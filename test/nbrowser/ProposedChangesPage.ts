@@ -1,7 +1,9 @@
+import { UserAPI } from "app/common/UserAPI";
+import { GristObjCode } from "app/plugin/GristData";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
 
-import { assert, driver } from "mocha-webdriver";
+import { assert, driver, Key } from "mocha-webdriver";
 
 describe("ProposedChangesPage", function() {
   this.timeout(60000);
@@ -421,9 +423,125 @@ describe("ProposedChangesPage", function() {
       ["Deciduous Tree", "Flower"]);
   });
 
+  it("can make and apply a proposed change to a Reference column", async function() {
+    const { api, doc } = await makeLifeDoc();
+    const url = await driver.getCurrentUrl();
+
+    // Add a table with a Reference column
+    await api.applyUserActions(doc.id, [
+      ["AddTable", "Habitat", [{ id: "Name", type: "Text" }]],
+      ["AddRecord", "Habitat", 1, { Name: "Ocean" }],
+      ["AddRecord", "Habitat", 2, { Name: "Forest" }],
+      ["AddRecord", "Habitat", 3, { Name: "Desert" }],
+    ]);
+
+    // Add a Reference column to Life table
+    await api.applyUserActions(doc.id, [
+      ["AddColumn", "Life", "Habitat", { type: "Ref:Habitat" }],
+      ["UpdateRecord", "Life", 1, { Habitat: 1 }], // Fish -> Ocean
+      ["UpdateRecord", "Life", 2, { Habitat: 2 }], // Primate -> Forest
+    ]);
+
+    // Make sure new column is visible on all possible views
+    await makeColumnVisible(api, doc.id, "Life", "Habitat");
+    await setReferenceDisplayColumn(api, doc.id, "Life", "Habitat", "Name");
+
+    await workOnCopy(url);
+
+    // Change the reference for Fish from Ocean to Desert
+    await gu.getCell("Habitat", 1).click();
+
+    await gu.waitAppFocus();
+    await gu.enterCell("Desert");
+
+    // Check that the count shows 1 change
+    assert.equal(await driver.find(".test-tools-proposals").getText(),
+      "Suggest changes (1)");
+
+    await proposeChange();
+
+    // Click on the "original document" to see the proposal.
+    await driver.findContentWait("span", /original document/, 2000).click();
+
+    // There should be exactly one proposal.
+    await driver.findWait(".test-proposals-header", 2000);
+    assert.lengthOf(await driver.findAll(".test-proposals-header"), 1);
+
+    // Verify the reference change is shown
+    await driver.findWait(".test-actionlog-tabular-diffs .field_clip", 2000);
+    assert.deepEqual(await getColumns("LIFE"), ["Habitat"]);
+    assert.deepEqual(await getRowValues("LIFE", 0), ["OceanDesert"]);
+    assert.deepEqual(await getChangeType("LIFE", 0), "→");
+
+    // Apply the proposal
+    await driver.find(".test-proposals-apply").click();
+    await gu.waitForServer();
+
+    // Verify the change was applied (reference should now point to Desert, which has id 3)
+    assert.match(
+      await driver.findContent(".test-proposals-header", /#1/).getText(),
+      /Accepted/,
+    );
+    assert.deepEqual((await api.getDocAPI(doc.id).getRows("Life")).Habitat,
+      [3, 2]); // Desert (id 3), Forest (id 2)
+  });
+
+  it("can make and apply a proposed change to a Reference List column", async function() {
+    const { api, doc } = await makeLifeDoc();
+    const url = await driver.getCurrentUrl();
+    // Add a table with a Reference column
+    await api.applyUserActions(doc.id, [
+      ["AddTable", "Habitat", [{ id: "Name", type: "Text" }]],
+      ["AddRecord", "Habitat", 1, { Name: "Ocean" }],
+      ["AddRecord", "Habitat", 2, { Name: "Forest" }],
+      ["AddRecord", "Habitat", 3, { Name: "Desert" }],
+      ["AddRecord", "Habitat", 4, { Name: "Arctic" }],
+    ]);
+    // Add a Reference List column to Life table
+    await api.applyUserActions(doc.id, [
+      ["AddColumn", "Life", "Habitats", { type: "RefList:Habitat" }],
+      ["UpdateRecord", "Life", 1, { Habitats: ["L", 1, 2] }], // Fish -> Ocean, Forest
+      ["UpdateRecord", "Life", 2, { Habitats: ["L", 2] }], // Primate -> Forest
+    ]);
+    // Make sure new column is visible on all possible views
+    await makeColumnVisible(api, doc.id, "Life", "Habitats");
+    await setReferenceDisplayColumn(api, doc.id, "Life", "Habitats", "Name");
+    await workOnCopy(url);
+    // Change the reference list for Fish: remove Forest, add Desert and Arctic
+    await gu.getCell("Habitats", 1).click();
+    await gu.waitAppFocus();
+    await gu.enterCell("Ocean");
+    await gu.enterCell("Desert");
+    await gu.enterCell("Arctic");
+    await driver.sendKeys(Key.ENTER);
+    await gu.waitForServer();
+    // Check that the count shows 1 change
+    assert.equal(await driver.find(".test-tools-proposals").getText(),
+      "Suggest changes (1)");
+    await proposeChange();
+    // Click on the "original document" to see the proposal.
+    await driver.findContentWait("span", /original document/, 2000).click();
+    // There should be exactly one proposal.
+    await driver.findWait(".test-proposals-header", 2000);
+    assert.lengthOf(await driver.findAll(".test-proposals-header"), 1);
+    // Verify the reference list change is shown
+    await driver.findWait(".test-actionlog-tabular-diffs .field_clip", 2000);
+    assert.deepEqual(await getColumns("LIFE"), ["Habitats"]);
+    assert.deepEqual(await getRowValues("LIFE", 0), ["Ocean, ForestDesert, Arctic"]);
+    assert.deepEqual(await getChangeType("LIFE", 0), "→");
+    // Apply the proposal
+    await driver.find(".test-proposals-apply").click();
+    await gu.waitForServer();
+    // Verify the change was applied (reference list should now be [Ocean, Desert, Arctic] = [1, 3, 4])
+    assert.match(
+      await driver.findContent(".test-proposals-header", /#1/).getText(),
+      /Accepted/,
+    );
+    assert.deepEqual((await api.getDocAPI(doc.id).getRows("Life")).Habitats,
+      [["L" as GristObjCode, 1, 3, 4], ["L" as GristObjCode, 2]]); // [Ocean, Desert, Arctic], [Forest]
+  });
+
   async function makeLifeDoc() {
-    await driver.navigate().refresh();
-    await gu.acceptAlert({ ignore: true });
     // Load a test document.
     const session = await gu.session().teamSite.login();
     const doc = await session.tempDoc(cleanup, "Hello.grist");
@@ -439,7 +557,10 @@ describe("ProposedChangesPage", function() {
     });
 
     await api.applyUserActions(doc.id, [
-      ["AddTable", "Life", [{ id: "A", type: "Int" }, { id: "B", type: "Text" }]],
+      ["AddTable", "Life", [
+        { id: "A", type: "Int" },
+        { id: "B", type: "Text" },
+      ]],
       ["AddRecord", "Life", 1, { A: 10, B: "Fish" }],
       ["AddRecord", "Life", 2, { A: 20, B: "Primate" }],
     ]);
@@ -503,4 +624,115 @@ async function collapse(section: string) {
   const parent = await title.findClosest(".viewsection_content");
   const button = await parent.find(".test-proposals-collapse");
   await button.click();
+}
+
+async function makeColumnVisible(api: UserAPI, docId: string, tableId: string, colId: string) {
+  const docApi = api.getDocAPI(docId);
+
+  // Fetch metadata tables using getRecords
+  const tables = await docApi.getRecords("_grist_Tables");
+  const tableRecord = tables.find(t => t.fields.tableId === tableId);
+
+  if (!tableRecord) {
+    throw new Error(`Table ${tableId} not found`);
+  }
+
+  // Find the column
+  const columns = await docApi.getRecords("_grist_Tables_column");
+  const columnRecord = columns.find(c =>
+    c.fields.parentId === tableRecord.id && c.fields.colId === colId,
+  );
+
+  if (!columnRecord) {
+    throw new Error(`Column ${colId} not found in table ${tableId}`);
+  }
+
+  // Find all view sections for this table
+  const sections = await docApi.getRecords("_grist_Views_section");
+  const tableSections = sections.filter(s => s.fields.tableRef === tableRecord.id);
+
+  // For each section, check if the field already exists
+  const fields = await docApi.getRecords("_grist_Views_section_field");
+
+  for (const section of tableSections) {
+    const existingField = fields.find(f =>
+      f.fields.parentId === section.id && f.fields.colRef === columnRecord.id,
+    );
+
+    if (!existingField) {
+      // Field doesn't exist, add it
+      // Find the maximum parentPos to add it at the end
+      const sectionFields = fields.filter(f => f.fields.parentId === section.id);
+      const maxPos = Math.max(0, ...sectionFields.map(f => f.fields.parentPos || 0) as number[]);
+
+      await docApi.applyUserActions([
+        ["AddRecord", "_grist_Views_section_field", null, {
+          parentId: section.id,
+          parentPos: maxPos + 1,
+          colRef: columnRecord.id,
+        }],
+      ]);
+    }
+  }
+}
+
+/**
+ * Based on Dmitry's comment at:
+ *   https://github.com/gristlabs/grist-core/issues/970#issuecomment-2102933747
+ */
+async function setReferenceDisplayColumn(
+  api: UserAPI,
+  docId: string,
+  tableId: string,
+  refColId: string,
+  showColId: string,
+) {
+  const docApi = api.getDocAPI(docId);
+
+  // Get column metadata to find the numeric IDs and string IDs
+  const columns = await docApi.getRecords("_grist_Tables_column");
+  const tables = await docApi.getRecords("_grist_Tables");
+
+  const table = tables.find(t => t.fields.tableId === tableId);
+  if (!table) {
+    throw new Error(`Table ${tableId} not found`);
+  }
+
+  const refColumn = columns.find(c =>
+    c.fields.parentId === table.id && c.fields.colId === refColId,
+  );
+
+  if (!refColumn) {
+    throw new Error(`Column ${refColId} not found`);
+  }
+
+  // Get the referenced table
+  const refType = refColumn.fields.type as string;
+  const match = refType.match(/^Ref(?:List)?:(.+)$/);
+  if (!match) {
+    throw new Error(`Column ${refColId} is not a reference column`);
+  }
+
+  const targetTableId = match[1];
+  const targetTable = tables.find(t => t.fields.tableId === targetTableId);
+
+  if (!targetTable) {
+    throw new Error(`Target table ${targetTableId} not found`);
+  }
+
+  const showColumn = columns.find(c =>
+    c.fields.parentId === targetTable.id && c.fields.colId === showColId,
+  );
+
+  if (!showColumn) {
+    throw new Error(`Column ${showColId} not found in target table`);
+  }
+
+  // Apply both actions together:
+  // 1. Update visibleCol in metadata
+  // 2. Set the display formula
+  await docApi.applyUserActions([
+    ["UpdateRecord", "_grist_Tables_column", refColumn.id, { visibleCol: showColumn.id }],
+    ["SetDisplayFormula", tableId, null, refColumn.id, `$${refColId}.${showColId}`],
+  ]);
 }
