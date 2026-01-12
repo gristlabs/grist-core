@@ -9,7 +9,7 @@ export interface ExistingDocSchema {
 
 export interface ExistingTableSchema {
   id: string;
-  ref: number;
+  ref?: number;
   columns: ExistingColumnSchema[];
 }
 
@@ -32,4 +32,4 @@ const Checkers = createCheckers(typeSuite);
 export const ExistingDocSchemaChecker = Checkers.ExistingDocSchema as CheckerT<ExistingDocSchema>;
 export const ExistingTableSchemaChecker = Checkers.ExistingTableSchema as CheckerT<ExistingTableSchema>;
 export const ExistingColumnSchemaChecker = Checkers.ExistingColumnSchema as CheckerT<ExistingColumnSchema>;
-export const DocSchemaSqlResultChecker = Checkers.DocSchemaSqlResultChecker as CheckerT<DocSchemaSqlResult>;
+export const DocSchemaSqlResultChecker = Checkers.DocSchemaSqlResult as CheckerT<DocSchemaSqlResult>;
