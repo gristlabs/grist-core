@@ -14,7 +14,7 @@ describe("CustomWidgets", function() {
 
   it("uses the Grist Labs widget repository by default", async function() {
     await gu.addNewSection("Custom", "Table1");
-    const widgetNames = new Set(await driver.findAll(".test-custom-widget-gallery-widget-name", e => e.getText()))
+    const widgetNames = new Set(await driver.findAll(".test-custom-widget-gallery-widget-name", e => e.getText()));
 
     assert.isTrue(widgetNames.has("Custom URL"));
     assert.isTrue(widgetNames.has("Calendar"));

@@ -42,6 +42,7 @@ setDefaultEnv("GRIST_WIDGET_LIST_URL", commonUrls.gristLabsWidgetRepository);
 // It's important that this comes after the setDefaultEnv calls above. MergedServer reads
 // some env vars at import time, including GRIST_WIDGET_LIST_URL.
 // TODO: Fix this reliance on side effects during import.
+// eslint-disable-next-line @import-x/order
 import { MergedServer, parseServerTypes } from "app/server/MergedServer";
 
 const G = {
