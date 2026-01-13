@@ -7,12 +7,15 @@ import { ColumnImportSchema, FormulaTemplate, ImportSchema } from "app/common/Do
 import { RecalcWhen } from "app/common/gristTypes";
 
 /**
- * Design note: this needs to be deterministic based solely on the input schema, and should not be
- * based on the current state of the Grist doc or any other parameters passed to the import.
+ * Design note: this needs to be deterministic and based solely on the Airtable base schema,
+ * it should not be based on the current state of the Grist doc or any other parameters passed to
+ * the import.
  *
- * Other areas of the import might skip tables, or re-use existing tables. If this schema changes
- * based on the import parameters, the remainder of the import code may not be able to adapt the
- * schema properly for the existing environment.
+ * Other areas of the import code may transform the created schema
+ * (e.g. skipping tables, resolving references).
+ * If this schema changes based on the destination document state, a user-given parameter or anything
+ * not directly derived from the Airtable schema, the remainder of the import code may not adapt the
+ * schema properly for the target document.
  */
 export function gristDocSchemaFromAirtableSchema(airtableSchema: AirtableBaseSchema): ImportSchema {
   const getTableIdForField = (fieldId: string) => {

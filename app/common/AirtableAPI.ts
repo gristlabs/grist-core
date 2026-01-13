@@ -70,6 +70,7 @@ export interface AirtableBaseSchema {
 export interface AirtableTableSchema {
   id: string;
   name: string;
+  primaryFieldId: string;
   fields: AirtableFieldSchema[];
 }
 
