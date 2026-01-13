@@ -12,6 +12,7 @@ import SCIMMY from "scimmy";
 const SCIM_API_BASE_PATH = "/api/scim/v2";
 const SCIMMY_USER_TYPE = "User";
 const SCIMMY_GROUP_TYPE = "Group";
+const SCIMMY_ROLE_TYPE = "Role";
 
 /**
  * Converts a user from your database to a SCIMMY user
@@ -65,13 +66,22 @@ function toSCIMMYMembers(group: Group): SCIMMY.Schemas.Group["members"] {
       $ref: `${SCIM_API_BASE_PATH}/Users/${member.id}`,
       type: SCIMMY_USER_TYPE,
     })),
-    // As of 2025-01-12, we don't support nested groups, so it should always be empty
-    ...group.memberGroups.map((member: Group) => ({
-      value: String(member.id),
-      display: member.name,
-      $ref: `${SCIM_API_BASE_PATH}/Groups/${member.id}`,
-      type: SCIMMY_GROUP_TYPE,
-    })),
+    ...group.memberGroups
+      .filter((member: Group) => member.type === Group.TEAM_TYPE)
+      .map((member: Group) => ({
+        value: String(member.id),
+        display: member.name,
+        $ref: `${SCIM_API_BASE_PATH}/Groups/${member.id}`,
+        type: SCIMMY_GROUP_TYPE,
+      })),
+    ...group.memberGroups
+      .filter((member: Group) => member.type === Group.ROLE_TYPE)
+      .map((member: Group) => ({
+        value: String(member.id),
+        display: member.name,
+        $ref: `${SCIM_API_BASE_PATH}/Roles/${member.id}`,
+        type: SCIMMY_ROLE_TYPE,
+      })),
   ];
 }
 
