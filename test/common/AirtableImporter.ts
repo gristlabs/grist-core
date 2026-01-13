@@ -5,11 +5,11 @@ import {
 } from "app/common/AirtableAPI";
 import { gristDocSchemaFromAirtableSchema } from "app/common/AirtableImporter";
 import { ColumnImportSchema } from "app/common/DocSchemaImport";
+import { RecalcWhen } from "app/common/gristTypes";
 
 import * as crypto from "crypto";
 
 import { assert } from "chai";
-import { RecalcWhen } from "app/common/gristTypes";
 
 describe("AirtableImporter", function() {
   const firstTableName = "A basic table";
@@ -430,7 +430,22 @@ function tableNameToId(name: string) {
             "fldiMWFlFLpKHfK3e"
           ],
           "prompt": [
-            "You are an expert undead strategist and minion handler for a powerful necromancer, specializing in optimizing minion efficiency and loyalty within a castle environment. Maintain a tone that is decisive, strategic, and authoritative, suitable for advising a ruler of undead forces.\n\nTask description:\nAnalyze the provided information about the minion's current status, loyalty level, minion type, and the statuses of their current tasks. Based on this analysis, determine the most effective and appropriate next action for the minion to maximize their usefulness and maintain order. Consider their abilities and any risks implied by their loyalty or current status. Provide only one clear recommendation.\n\nOutput format:\nOutput a single sentence recommending the next action for the minion, written in plain text. Do not include any introductory or explanatory text, and do not reference the minion by name. If you cannot determine a suitable action, output \"No recommendation possible with the provided information.\" Example: \"Assign to patrol the eastern corridors for intruders.\" (Real examples should be tailored to the minion's status and context.)\n\nContext and Data:\nStatus: ",
+            "You are an expert undead strategist and minion handler for a powerful necromancer,
+            specializing in optimizing minion efficiency and loyalty within a castle environment.
+            Maintain a tone that is decisive, strategic, and authoritative, suitable for
+            advising a ruler of undead forces.\n\nTask description:\n
+            Analyze the provided information about the minion's current status, loyalty level,
+            minion type, and the statuses of their current tasks. Based on this analysis,
+            determine the most effective and appropriate next action for the minion to maximize their
+            usefulness and maintain order. Consider their abilities and any risks implied by their loyalty
+            or current status. Provide only one clear recommendation.\n\nOutput format:\n
+            Output a single sentence recommending the next action for the minion, written in plain text.
+            Do not include any introductory or explanatory text, and do not reference the minion by name.
+            If you cannot determine a suitable action, output
+            \"No recommendation possible with the provided information.\"
+            Example: \"Assign to patrol the eastern corridors for intruders.\"
+            (Real examples should be tailored to the minion's status and context.)\n\nContext and Data:\n
+            Status: ",
             {
               "field": {
                 "fieldId": "fld7eSGFt3kriw8EC"
@@ -469,7 +484,18 @@ function tableNameToId(name: string) {
             "fldFqEoWDD04wFlxK"
           ],
           "prompt": [
-            "You are an expert loyalty assessor for undead minions, advising a necromancer on the risks of rebellion or defection within their ranks. Use a formal, analytical tone appropriate for strategic decision-making in a castle setting.\n\nTask description:\nEvaluate the minion's loyalty level, current status, and number of completed tasks. Assess the likelihood that the minion may rebel or defect, considering factors such as low loyalty, negative status, or lack of engagement. Summarize the risk in one or two sentences and assign a risk level: Low, Medium, or High. Be concise and specific.\n\nOutput format:\nOutput a brief risk summary followed by the risk level in parentheses, written in plain text. Do not include any additional commentary, headings, or explanations. If risk cannot be assessed, output \"Insufficient data to assess risk.\" Example: \"Loyalty is high and status is stable; risk of rebellion is low. (Low)\" (Real examples should reflect the actual data provided.)\n\nContext and Data:\nLoyalty Level: ",
+            "You are an expert loyalty assessor for undead minions, advising a necromancer on the risks
+            of rebellion or defection within their ranks. Use a formal, analytical tone appropriate for
+            strategic decision-making in a castle setting.\n\nTask description:\nEvaluate the minion's
+            loyalty level, current status, and number of completed tasks. Assess the likelihood that the
+            minion may rebel or defect, considering factors such as low loyalty, negative status, or
+            lack of engagement. Summarize the risk in one or two sentences and assign a risk level:
+            Low, Medium, or High. Be concise and specific.\n\nOutput format:\n
+            Output a brief risk summary followed by the risk level in parentheses, written in plain text.
+            Do not include any additional commentary, headings, or explanations.
+            If risk cannot be assessed, output \"Insufficient data to assess risk.\"
+            Example: \"Loyalty is high and status is stable; risk of rebellion is low. (Low)\"
+            (Real examples should reflect the actual data provided.)\n\nContext and Data:\nLoyalty Level: ",
             {
               "field": {
                 "fieldId": "fldIcJdSx3f2yTSk4"
@@ -718,7 +744,18 @@ function tableNameToId(name: string) {
           ],
           "prompt": [
             // eslint-disable-next-line @stylistic/max-len
-            "You are a strategic advisor to a necromancer overseeing operations in a mysterious castle. Your expertise is in providing concise, high-level summaries for task management and undead minion coordination. Maintain a formal and analytical tone suitable for evil rulership.\n\nTask description:\nAnalyze the provided information to generate a brief summary of the task. Focus on the task's objective, its priority level, and the types of minions assigned. Present the summary in a way that supports quick strategic decision-making.\n\nOutput format:\nA single sentence summarizing the task's objective, priority, and assigned minion types, written in plain text with no headings or extra commentary. Do not include any additional text or explanations. If you cannot generate a summary, output \"Unable to summarize this task based on the provided information.\" Example: \"Retrieve the lost artifact (High priority) with assigned minion types: Skeletons, Ghouls.\"\n\nContext and Data:\nTask Name: ",
+            "You are a strategic advisor to a necromancer overseeing operations in a mysterious castle.
+            Your expertise is in providing concise, high-level summaries for task management and undead
+            minion coordination. Maintain a formal and analytical tone suitable for evil rulership.
+            \n\nTask description:\nAnalyze the provided information to generate a brief summary of the task.
+            Focus on the task's objective, its priority level, and the types of minions assigned.
+            Present the summary in a way that supports quick strategic decision-making.\n\n
+            Output format:\nA single sentence summarizing the task's objective, priority, and assigned
+            minion types, written in plain text with no headings or extra commentary.
+            Do not include any additional text or explanations. If you cannot generate a summary,
+            output \"Unable to summarize this task based on the provided information.\"
+            Example: \"Retrieve the lost artifact (High priority) with assigned minion types: Skeletons, Ghouls.
+            \"\n\nContext and Data:\nTask Name: ",
             {
               "field": {
                 "fieldId": "fldsDgfhK8DSP5fo6"
@@ -757,7 +794,18 @@ function tableNameToId(name: string) {
             "fld9JzsSvUK5HKdB8"
           ],
           "prompt": [
-            "You are an expert tactical consultant for a necromancer managing undead minions in a mysterious castle. Your role is to recommend the most effective next action for each task, considering progress status and minion loyalty. Use a direct and strategic tone.\n\nTask description:\nEvaluate the task's objective, current progress, and the average loyalty of assigned minions to determine the optimal next step. Base your suggestion on maximizing task success and maintaining minion efficiency. Consider if the task is stalled, at risk, or progressing well, and tailor your recommendation accordingly.\n\nOutput format:\nA single, actionable sentence describing the next recommended step, written in plain text with no headings or extra commentary. Do not include any additional text or rationale. If you cannot suggest an action, output \"No suitable next action can be determined from the provided information.\" Example: \"Reinforce minion morale before proceeding to the next phase.\"\n\nContext and Data:\nObjective: ",
+            "You are an expert tactical consultant for a necromancer managing undead minions in a mysterious castle.
+             Your role is to recommend the most effective next action for each task, considering progress status
+             and minion loyalty. Use a direct and strategic tone.\n\nTask description:\nEvaluate the task's objective,
+             current progress, and the average loyalty of assigned minions to determine the optimal next step.
+             Base your suggestion on maximizing task success and maintaining minion efficiency.
+             Consider if the task is stalled, at risk, or progressing well, and tailor your recommendation accordingly.
+             \n\nOutput format:\nA single, actionable sentence describing the next recommended step,
+             written in plain text with no headings or extra commentary. Do not include any additional text or
+             rationale. If you cannot suggest an action, output \"No suitable next action can be determined from
+             the provided information.
+             \" Example: \"Reinforce minion morale before proceeding to the next phase.\"\n\n
+             Context and Data:\nObjective: ",
             {
               "field": {
                 "fieldId": "fldj39FpKEIl0Ra6i"
@@ -1135,4 +1183,3 @@ function tableNameToId(name: string) {
 ]
 }
 */
-

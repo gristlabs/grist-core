@@ -5,11 +5,12 @@
  *
  * This file collects most of the properties we use, for typings and visibility.
  */
+import { ImportSchemaTransformParams } from "app/common/DocSchemaImport";
+
 import type { TopAppModel } from "app/client/models/AppModel";
 import type { DocPageModel } from "app/client/models/DocPageModel";
 import type { GristLoadConfig } from "app/common/gristUrls";
 import type { TestState } from "app/common/TestState";
-import { ImportSchemaTransformParams } from 'app/common/DocSchemaImport';
 
 declare global {
   export interface Window {
@@ -26,7 +27,9 @@ declare global {
     isRunningUnderElectron?: boolean;
     resetDismissedPopups?: (seen?: boolean) => void;
     resetOnboarding?: () => void;
-    runAirtableMigration?: (apiKey: string, base: string, transformations?: ImportSchemaTransformParams) => Promise<any>;
+    runAirtableMigration?: (
+      apiKey: string, base: string, transformations?: ImportSchemaTransformParams,
+    ) => Promise<any>;
     testGrist?: Partial<TestState>;
   }
 }
