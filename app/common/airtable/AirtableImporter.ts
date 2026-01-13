@@ -143,6 +143,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       type: "Date",
       widgetOptions: {
         isCustomDateFormat: true,
+        // Airtable and Grist seem to share identical format syntax, based on limited testing
         dateFormat: field.options?.dateFormat?.format ?? "MM/DD/YYYY",
       },
     };
@@ -155,8 +156,10 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       type: "DateTime",
       widgetOptions: {
         isCustomDateFormat: true,
+        // Airtable and Grist seem to share identical format syntax, based on limited testing
         dateFormat: field.options?.dateFormat?.format ?? "MM/DD/YYYY",
         isCustomTimeFormat: true,
+        // Airtable and Grist seem to share identical format syntax, based on limited testing
         timeFormat: field.options?.timeFormat?.format ?? "h:mma",
       },
     };
@@ -184,8 +187,8 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       desiredGristId: field.name,
       label: field.name,
       // The field schema from Airtable has more information on what this should be,
-      // such as field type and options. The logic to implement that however doesn't seem worth
-      // the time investment.
+      // such as field type, options and referenced fields.
+      // The logic to implement that however doesn't seem worth the time investment.
       type: "Any",
       // Store the formula as a comment to prevent it showing errors.
       formula: { formula: `#${field.options?.formula || "#No formula set"}` },
@@ -212,9 +215,9 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       recalcWhen: 2,
       widgetOptions: {
         isCustomDateFormat: true,
-        dateFormat: field.options?.dateFormat?.format ?? "MM/DD/YYYY",
+        dateFormat: field.options?.result?.dateFormat?.format ?? "MM/DD/YYYY",
         isCustomTimeFormat: true,
-        timeFormat: field.options?.timeFormat?.format ?? "h:mma",
+        timeFormat: field.options?.result?.timeFormat?.format ?? "h:mma",
       },
     };
   },
@@ -285,6 +288,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       label: field.name,
       type: "Numeric",
       widgetOptions: {
+        decimals: field.options?.precision,
         numMode: "percent",
       },
     };
@@ -339,7 +343,9 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       type: "Any",
       isFormula: true,
       formula,
-      // TODO - Warn that this won't be perfect.
+      // TODO - Warn that this won't be perfect. There's a lot summary parameters rollup supports,
+      //        that we're not supporting in Grist (yet). A lot of this information also isn't
+      //        exported in the Airtable schema API.
     };
   },
   singleCollaborator({ field }) {
@@ -356,6 +362,9 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       desiredGristId: field.name,
       label: field.name,
       type: "Text",
+      // We could potentially limit this to only a single line, but it's a view section option
+      // which isn't (at the time of writing) supported by any of the import tools (which only deal
+      // with structure, e.g. tables and columns).
     };
   },
   singleSelect({ field }) {
