@@ -3,7 +3,7 @@ import { getHomeUrl, reportError } from "app/client/models/AppModel";
 import { cssTextArea } from "app/client/ui/AdminPanelCss";
 import { bigBasicButton, bigPrimaryButton } from "app/client/ui2018/buttons";
 import { theme, vars } from "app/client/ui2018/cssVars";
-// import {cssLink} from 'app/client/ui2018/links'; uncomment when we will have proper registration page
+import { cssLink } from "app/client/ui2018/links";
 import { cssModalWidth, modal } from "app/client/ui2018/modals";
 import { AsyncFlow, CancelledError, FlowRunner } from "app/common/AsyncFlow";
 import { ConfigAPI } from "app/common/ConfigAPI";
@@ -95,18 +95,18 @@ getgrist.com and paste the configuration key you receive below.", {
               provider: dom("b", t("Sign in with getgrist.com")),
             })),
         ),
-        // Uncomment when we have proper registration page
-        // cssRegisterLink(
-        //   dom.attr('href', registerUrlObs),
-        //   dom.on('click', (ev, el) => {
-        //     // Make sure we have a URL to go to.
-        //     if (!registerUrlObs.get()) {
-        //       ev.preventDefault();
-        //     }
-        //   }),
-        //   {target: '_blank'},
-        //   t('Register your Grist sever'),
-        // ),
+        cssLink(
+          dom.attr("href", registerUrlObs),
+          dom.on("click", (ev, el) => {
+            // Make sure we have a URL to go to.
+            if (!registerUrlObs.get()) {
+              ev.preventDefault();
+            }
+          }),
+          { target: "_blank" },
+          { style: "margin-bottom: 16px; display: block;" },
+          t("Register your Grist sever"),
+        ),
         cssLargerTextArea(
           this._configKey,
           { onInput: true },
