@@ -29,7 +29,7 @@ import { Request } from "express";
 export class Sessions {
   private _sessions = new Map<string, ScopedSession>();
 
-  constructor(private _sessionSecret: string, private _sessionStore: SessionStore, private _suffix: string) {
+  constructor(private _sessionSecret: string, private _sessionStore: SessionStore) {
   }
 
   /**
@@ -104,6 +104,6 @@ export class Sessions {
    * a session, so we add that into key too.
    */
   private _getSessionOrgKey(sid: string, org: string, userSelector: string): string {
-    return `${sid}__${org}__${userSelector}${this._suffix}`;
+    return `${sid}__${org}__${userSelector}`;
   }
 }

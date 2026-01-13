@@ -343,7 +343,6 @@ export function downloadDocModal(doc: Document, appModel: AppModel) {
     const selected = Observable.create<DownloadOption>(owner, "full");
 
     const attachmentStatusObs = Observable.create<DocAttachmentsLocation | undefined | "unknown">(owner, undefined);
-
     docApi.getAttachmentTransferStatus()
       .then((status) => {
         if (owner.isDisposed()) {

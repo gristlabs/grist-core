@@ -114,7 +114,7 @@ export function getAllowedOrgForSessionID(sessionID: string): { org: string, hos
  * Set up Grist Sessions, either in a sqlite db or via redis.
  * @param instanceRoot: path to storage area in case we need to make a sqlite db.
  */
-export function initGristSessions(instanceRoot: string, server: GristServer, suffix: string) {
+export function initGristSessions(instanceRoot: string, server: GristServer) {
   // TODO: We may need to evaluate the usage of space in the SQLite store grist-sessions.db
   // since entries are created on the first get request.
   const sessionsDB: string = path.join(instanceRoot, "grist-sessions.db");
@@ -157,7 +157,7 @@ export function initGristSessions(instanceRoot: string, server: GristServer, suf
     store: sessionStore,
   });
 
-  const sessions = new Sessions(sessionSecret, sessionStore, suffix);
+  const sessions = new Sessions(sessionSecret, sessionStore);
 
   return { sessions, sessionSecret, sessionStore, sessionMiddleware };
 }
