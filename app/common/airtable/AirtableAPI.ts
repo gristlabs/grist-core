@@ -1,4 +1,4 @@
-import AirtableSchemaTypeSuite from "app/common/AirtableAPI-ti";
+import AirtableSchemaTypeSuite from "app/common/airtable/AirtableAPI-ti";
 
 import Airtable from "airtable";
 import { CheckerT, createCheckers } from "ts-interface-checker";

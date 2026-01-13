@@ -1,6 +1,6 @@
 import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
-import { AirtableAPI } from "app/common/AirtableAPI";
-import { gristDocSchemaFromAirtableSchema } from "app/common/AirtableImporter";
+import { AirtableAPI } from "app/common/airtable/AirtableAPI";
+import { gristDocSchemaFromAirtableSchema } from "app/common/airtable/AirtableImporter";
 import {
   DocSchemaImportTool,
   formatDocSchemaSqlResult,
