@@ -1,4 +1,5 @@
 import { makeT } from "app/client/lib/localization";
+import { inlineMarkdown } from "app/client/lib/markdown";
 import { getHomeUrl, reportError } from "app/client/models/AppModel";
 import { cssTextArea } from "app/client/ui/AdminPanelCss";
 import { bigBasicButton, bigPrimaryButton } from "app/client/ui2018/buttons";
@@ -77,9 +78,9 @@ export class GetGristComProviderInfoModal extends Disposable {
         ),
         cssModalDescription(
           dom("p",
-            dom("b", t("Sign in with getgrist.com")),
-            t(" allows users on your Grist server to sign in using their account on \
-getgrist.com, the cloud version of Grist managed by Grist Labs."),
+            inlineMarkdown(t("**Sign in with getgrist.com** \
+allows users on your Grist server to sign in using their account on \
+getgrist.com, the cloud version of Grist managed by Grist Labs.")),
           ),
           dom("p",
             t("When signing in, users will be redirected to the getgrist.com login page \
@@ -105,7 +106,7 @@ getgrist.com and paste the configuration key you receive below.", {
           }),
           { target: "_blank" },
           { style: "margin-bottom: 16px; display: block;" },
-          t("Register your Grist sever"),
+          t("Register your Grist server"),
         ),
         cssLargerTextArea(
           this._configKey,
@@ -217,10 +218,6 @@ const cssModalInstructions = styled("div", `
   }
 `);
 
-// const cssRegisterLink = styled(cssLink, `
-//   margin-bottom: 16px;
-//   display: block;
-// `);
 // const cssLearnMoreLink = styled(cssLink, `
 //   margin-top: 16px;
 //   margin-bottom: 24px;
