@@ -31,12 +31,18 @@ export async function downloadDSV(
   const { filename, tableId, viewSectionId, filters, sortOrder, linkingFilter, delimiter, header } = options;
   const extension = getDSVFileExtension(delimiter);
   log.info(`Generating ${extension} file...`);
-  const data = viewSectionId ?
-    await makeDSVFromViewSection({
+  let data;
+  if (viewSectionId) {
+    data = await makeDSVFromViewSection({
       activeDoc, viewSectionId, sortOrder: sortOrder || null, filters: filters || null,
       linkingFilter: linkingFilter || null, header, delimiter, req,
-    }) :
-    await makeDSVFromTable({ activeDoc, tableId, header, delimiter, req });
+    });
+  } else {
+    if (!tableId) {
+      throw new Error("tableId or viewSectionId required");
+    }
+    data = await makeDSVFromTable({ activeDoc, tableId, header, delimiter, req });
+  }
   res.set("Content-Type", getDSVMimeType(delimiter));
   res.setHeader("Content-Disposition", contentDisposition(filename + extension));
   res.send(data);
