@@ -1,10 +1,10 @@
+import { getReferencedTableId } from "app/common/gristTypes";
 import { UserAPI } from "app/common/UserAPI";
 import { GristObjCode } from "app/plugin/GristData";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
 
 import { assert, driver, Key } from "mocha-webdriver";
-import { getReferencedTableId } from "app/common/gristTypes";
 
 describe("ProposedChangesPage", function() {
   this.timeout(60000);
