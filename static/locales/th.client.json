@@ -1,1 +1,12 @@
-{}
+{
+    "ACUserManager": {
+        "Enter email address": "กรอกอีเมล",
+        "Invite new member": "เชิญสมาชิกใหม่",
+        "We'll email an invite to {{email}}": "เราจะส่งคำเชิญไปยังอีเมล {{email}}"
+    },
+    "AccessRules": {
+        "Add column rule": "เพิ่มกฎของคอลัมน์",
+        "Add table rules": "เพิ่มกฎของตาราง",
+        "Add user attributes": "เพิ่มข้อมูลคุณลักษณะของผู้ใช้"
+    }
+}
