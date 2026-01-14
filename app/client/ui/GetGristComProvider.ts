@@ -106,7 +106,7 @@ getgrist.com and paste the configuration key you receive below.", {
           }),
           { target: "_blank" },
           { style: "margin-bottom: 16px; display: block;" },
-          t("Register your Grist sever"),
+          t("Register your Grist server"),
         ),
         cssLargerTextArea(
           this._configKey,

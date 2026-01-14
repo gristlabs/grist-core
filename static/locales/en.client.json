@@ -2602,7 +2602,7 @@
         "Instructions": "Instructions",
         "Learn more about Sign in with getgrist.com": "Learn more about Sign in with getgrist.com",
         "Paste configuration key here": "Paste configuration key here",
-        "Register your Grist sever": "Register your Grist sever",
+        "Register your Grist server": "Register your Grist server",
         "Sign in with getgrist.com": "Sign in with getgrist.com",
         "To set up {{provider}}, you need to register your Grist server on getgrist.com and paste the configuration key you receive below.": "To set up {{provider}}, you need to register your Grist server on getgrist.com and paste the configuration key you receive below.",
         "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.": "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as."
