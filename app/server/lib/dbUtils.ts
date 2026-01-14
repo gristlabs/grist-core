@@ -172,6 +172,7 @@ export function getTypeORMSettings(overrideConf?: Partial<DataSourceOptions>): D
     synchronize: false,
     migrationsRun: false,
     logging: process.env.TYPEORM_LOGGING === "true",
+    maxQueryExecutionTime: process.env.TYPEORM_LOG_SLOW_MS ? parseInt(process.env.TYPEORM_LOG_SLOW_MS) : undefined,
     entities: [
       `${codeRoot}/app/gen-server/entity/*.js`,
     ],

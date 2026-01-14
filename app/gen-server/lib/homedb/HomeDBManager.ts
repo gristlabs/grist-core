@@ -4683,10 +4683,7 @@ export class HomeDBManager implements HomeDBAuth {
       checkDisabledUser?: boolean,
     } = {},
   ): Promise<QueryResult<T[]>> {
-    if (Deps.usePreparedStatements) {
-      const sql = options.rawQueryBuilder?.getSql() || queryBuilder.getSql();
-      maybePrepareStatement(sql);
-    }
+    prepareStatementIfPossible(options.rawQueryBuilder ?? queryBuilder);
     const results = await (options.rawQueryBuilder ?
       getRawAndEntities(options.rawQueryBuilder, queryBuilder) :
       queryBuilder.getRawAndEntities());
@@ -5471,10 +5468,7 @@ async function verifyEntity(
   queryBuilder: SelectQueryBuilder<any>,
   options: { skipPermissionCheck?: boolean } = {},
 ): Promise<QueryResult<any>> {
-  if (Deps.usePreparedStatements) {
-    const sql = queryBuilder.getSql();
-    maybePrepareStatement(sql);
-  }
+  prepareStatementIfPossible(queryBuilder);
   const results = await queryBuilder.getRawAndEntities();
   if (results.entities.length === 0) {
     return {
@@ -5586,4 +5580,12 @@ function getDocResult(queryResult: QueryResult<any>) {
 
 function patch<T extends object>(obj: T, ...patches: Partial<T>[]): T {
   return Object.assign(obj, ...patches);
+}
+
+export function prepareStatementIfPossible(builder: SelectQueryBuilder<any>) {
+  if (Deps.usePreparedStatements) {
+    const sql = builder.getSql();
+    maybePrepareStatement(sql);
+  }
+  return builder;
 }
