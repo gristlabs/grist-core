@@ -524,7 +524,6 @@ class ActionLogPartInProposal extends ActionLogPart {
       doc.refreshTableData(table).catch(reportError);
       return dom.create(VirtualSection, doc, {
         tableId: table,
-        sectionId: "list",
         hiddenColumns: ["_gristChangeType"],
         hideViewButtons: true,
         gridOptions: {
@@ -544,7 +543,7 @@ class ActionLogPartInProposal extends ActionLogPart {
               haveId ? testId("collapse") : testId("expand"),
               dom.on("click", () => toggleInfo(table)),
             ),
-          ] : () => ["aaa"],
+          ] : () => [""],
           rowIndexRenderer: (row) => {
             const changeType = row.cells._gristChangeType.peek();
             return dom("div", String(changeType || "?"),
