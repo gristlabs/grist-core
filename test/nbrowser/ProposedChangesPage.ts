@@ -403,7 +403,7 @@ describe("ProposedChangesPage", function() {
 
     // Check Plants table changes
     assert.deepEqual(await getColumns("PLANTS"), ["Type"]);
-    assert.deepEqual(await getRowValues("PLANTS", 0), ["TreeDeciduous Tree"]);
+    assert.deepEqual(await getRowValues("PLANTS", 0), ["Deciduous Tree"]);
     assert.deepEqual(await getChangeType("PLANTS", 0), "→");
 
     // Apply the proposal
