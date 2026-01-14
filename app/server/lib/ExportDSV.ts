@@ -40,7 +40,7 @@ export async function downloadDSV(
   }
   else {
     if (!tableId) {
-      throw new Error("tableId or viewSectionId required");
+      throw new ApiError("tableId parameter is required", 400);
     }
     data = await makeDSVFromTable({ activeDoc, tableId, header, delimiter, req });
   }

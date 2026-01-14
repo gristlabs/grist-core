@@ -44,7 +44,7 @@ export async function collectTableSchemaInFrictionlessFormat(
     throw new Error("No docData in active document");
   }
   if (!tableId) {
-    throw new Error("tableId required");
+    throw new ApiError("tableId parameter is required", 400);
   }
 
   // Look up the table to make a CSV from.
