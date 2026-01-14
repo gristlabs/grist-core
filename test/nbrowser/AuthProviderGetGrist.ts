@@ -2,10 +2,11 @@ import { Activation } from "app/gen-server/entity/Activation";
 import { itemValue, toggleItem } from "test/nbrowser/AdminPanelTools";
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
-import { serveSomething, Serving } from "test/server/customUtil";
+import { Defer, serveSomething, Serving } from "test/server/customUtil";
 import * as testUtils from "test/server/testUtils";
 
 import * as express from "express";
+import { observable } from "grainjs";
 import { assert, driver, WebElementPromise } from "mocha-webdriver";
 
 describe("AuthProviderGetGrist", function() {
@@ -15,26 +16,38 @@ describe("AuthProviderGetGrist", function() {
 
   let oldEnv: testUtils.EnvironmentSnapshot;
   let serving: Serving;
+  const currentRequest = observable(null as express.Request | null);
 
   before(async function() {
     oldEnv = new testUtils.EnvironmentSnapshot();
     process.env.GRIST_DEFAULT_EMAIL = gu.translateUser("user1").email;
     process.env.GRIST_TEST_SERVER_DEPLOYMENT_TYPE = "core";
     process.env.GRIST_FEATURE_GETGRIST_COM = "1";
-    if (!process.env.APP_HOME_URL) {
-      process.env.GRIST_GETGRISTCOM_SP_HOST = server.getUrl("docs", "");
+    // Clear any APP_HOME_URL set by the runner.
+    if (process.env.APP_HOME_URL) {
+      console.warn(`Clearing APP_HOME_URL=${process.env.APP_HOME_URL} for test`);
     }
+    process.env.APP_HOME_URL = "";
     await server.restart();
 
     serving = await serveSomething((app) => {
+      app.use((req, res, next) => {
+        currentRequest.set(req);
+        next();
+      });
       app.use(express.json());
       app.get("/.well-known/openid-configuration", (req, res) => {
         res.json({
-          issuer: serving.url + "?provider=getgrist.com",
+          issuer: `${serving.url}?provider=getgrist.com`,
+          authorization_endpoint: `${serving.url}/authorize`,
         });
       });
+      app.get("/authorize", (req, res) => {
+        // Minimal authorize endpoint; no real auth flow needed for tests.
+        res.sendStatus(200);
+      });
       app.use((req) => {
-        assert.fail(`Unexpected request to test OIDC server: ${req.method} ${req.url}`);
+        console.warn(`Unexpected request to test OIDC server: ${req.method} ${req.url}`);
       });
     });
   });
@@ -117,7 +130,6 @@ describe("AuthProviderGetGrist", function() {
     assert.isDefined(json!.GRIST_GETGRISTCOM_SECRET);
   });
 
-  // We haven't started the mock server yet, so app will report an error in authentication.
   it("should use fake getgristlogin service", async function() {
     await server.restart();
     await server.removeLogin();
@@ -148,6 +160,21 @@ describe("AuthProviderGetGrist", function() {
     const oidcRow = providerItems[1];
     const oidcBadges = await oidcRow.findAll(".test-admin-auth-badge");
     assert.lengthOf(oidcBadges, 0);
+  });
+
+  it("should respect GRIST_GETGRISTCOM_SP_HOST env override", async function() {
+    process.env.GRIST_GETGRISTCOM_SP_HOST = "https://invalid-host.example.com";
+    await server.restart();
+    await server.removeLogin();
+    await driver.get(`${server.getHost()}`);
+    await gu.waitForDocMenuToLoad();
+    currentRequest.set(null);
+    const redirectUrl = new Defer<string>();
+    currentRequest.addListener((val) => {
+      redirectUrl.resolve(val?.query.redirect_uri as string);
+    });
+    await driver.findWait(".test-user-sign-in", 2000).click();
+    assert.equal(await redirectUrl, "https://invalid-host.example.com/oauth2/callback");
   });
 });
 
