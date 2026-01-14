@@ -4,6 +4,7 @@ import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
 
 import { assert, driver, Key } from "mocha-webdriver";
+import { getReferencedTableId } from "app/common/gristTypes";
 
 describe("ProposedChangesPage", function() {
   this.timeout(60000);
@@ -429,7 +430,7 @@ describe("ProposedChangesPage", function() {
     const { api, doc } = await makeLifeDoc();
     const url = await driver.getCurrentUrl();
 
-    // Add a table with a Reference column
+    // Add a table to refer to
     await api.applyUserActions(doc.id, [
       ["AddTable", "Habitat", [{ id: "Name", type: "Text" }]],
       ["AddRecord", "Habitat", 1, { Name: "Ocean" }],
@@ -444,15 +445,15 @@ describe("ProposedChangesPage", function() {
       ["UpdateRecord", "Life", 2, { Habitat: 2 }], // Primate -> Forest
     ]);
 
-    // Make sure new column is visible on all possible views
+    // Make new column visible and show what we want
     await makeColumnVisible(api, doc.id, "Life", "Habitat");
     await setReferenceDisplayColumn(api, doc.id, "Life", "Habitat", "Name");
 
     await workOnCopy(url);
 
-    // There's some race condition, maybe references not
-    // loading fast enough?, if we don't look at them in
-    // client.
+    // There's occasionally some race condition, maybe references not
+    // loading fast enough?, if we don't look at them in client. So we
+    // just briefly visit the Habitat page.
     await gu.openPage("Habitat");
     await gu.openPage("Life");
 
@@ -499,7 +500,7 @@ describe("ProposedChangesPage", function() {
   it("can make and apply a proposed change to a Reference List column", async function() {
     const { api, doc } = await makeLifeDoc();
     const url = await driver.getCurrentUrl();
-    // Add a table with a Reference column
+
     await api.applyUserActions(doc.id, [
       ["AddTable", "Habitat", [{ id: "Name", type: "Text" }]],
       ["AddRecord", "Habitat", 1, { Name: "Ocean" }],
@@ -507,20 +508,20 @@ describe("ProposedChangesPage", function() {
       ["AddRecord", "Habitat", 3, { Name: "Desert" }],
       ["AddRecord", "Habitat", 4, { Name: "Arctic" }],
     ]);
+
     // Add a Reference List column to Life table
     await api.applyUserActions(doc.id, [
       ["AddColumn", "Life", "Habitats", { type: "RefList:Habitat" }],
       ["UpdateRecord", "Life", 1, { Habitats: ["L", 1, 2] }], // Fish -> Ocean, Forest
       ["UpdateRecord", "Life", 2, { Habitats: ["L", 2] }], // Primate -> Forest
     ]);
-    // Make sure new column is visible
+
+    // Make sure new column is visible and shows what we want
     await makeColumnVisible(api, doc.id, "Life", "Habitats");
     await setReferenceDisplayColumn(api, doc.id, "Life", "Habitats", "Name");
+
     await workOnCopy(url);
 
-    // There's some race condition, maybe references not
-    // loading fast enough?, if we don't look at them in
-    // client.
     await gu.openPage("Habitat");
     await gu.openPage("Life");
 
@@ -532,23 +533,30 @@ describe("ProposedChangesPage", function() {
     await gu.enterCell("Arctic");
     await driver.sendKeys(Key.ENTER);
     await gu.waitForServer();
+
     // Check that the count shows 1 change
     assert.equal(await driver.find(".test-tools-proposals").getText(),
       "Suggest changes (1)");
+
     await proposeChange();
+
     // Click on the "original document" to see the proposal.
     await driver.findContentWait("span", /original document/, 2000).click();
+
     // There should be exactly one proposal.
     await driver.findWait(".test-proposals-header", 2000);
     assert.lengthOf(await driver.findAll(".test-proposals-header"), 1);
+
     // Verify the reference list change is shown
     await driver.findWait(".test-actionlog-tabular-diffs .field_clip", 2000);
     assert.deepEqual(await getColumns("LIFE"), ["Habitats"]);
     assert.deepEqual(await getRowValues("LIFE", 0), ["Ocean, ForestDesert, Arctic"]);
     assert.deepEqual(await getChangeType("LIFE", 0), "→");
+
     // Apply the proposal
     await driver.find(".test-proposals-apply").click();
     await gu.waitForServer();
+
     // Verify the change was applied (reference list should now be [Ocean, Desert, Arctic] = [1, 3, 4])
     assert.match(
       await driver.findContent(".test-proposals-header", /#1/).getText(),
@@ -654,7 +662,6 @@ async function collapse(section: string) {
 async function makeColumnVisible(api: UserAPI, docId: string, tableId: string, colId: string) {
   const docApi = api.getDocAPI(docId);
 
-  // Fetch metadata tables using getRecords
   const tables = await docApi.getRecords("_grist_Tables");
   const tableRecord = tables.find(t => t.fields.tableId === tableId);
 
@@ -662,7 +669,6 @@ async function makeColumnVisible(api: UserAPI, docId: string, tableId: string, c
     throw new Error(`Table ${tableId} not found`);
   }
 
-  // Find the column
   const columns = await docApi.getRecords("_grist_Tables_column");
   const columnRecord = columns.find(c =>
     c.fields.parentId === tableRecord.id && c.fields.colId === colId,
@@ -706,11 +712,7 @@ async function makeColumnVisible(api: UserAPI, docId: string, tableId: string, c
  *   https://github.com/gristlabs/grist-core/issues/970#issuecomment-2102933747
  */
 async function setReferenceDisplayColumn(
-  api: UserAPI,
-  docId: string,
-  tableId: string,
-  refColId: string,
-  showColId: string,
+  api: UserAPI, docId: string, tableId: string, refColId: string, showColId: string,
 ) {
   const docApi = api.getDocAPI(docId);
 
@@ -731,14 +733,11 @@ async function setReferenceDisplayColumn(
     throw new Error(`Column ${refColId} not found`);
   }
 
-  // Get the referenced table
-  const refType = refColumn.fields.type as string;
-  const match = refType.match(/^Ref(?:List)?:(.+)$/);
-  if (!match) {
+  const targetTableId = getReferencedTableId(refColumn.fields.type as string);
+  if (!targetTableId) {
     throw new Error(`Column ${refColId} is not a reference column`);
   }
 
-  const targetTableId = match[1];
   const targetTable = tables.find(t => t.fields.tableId === targetTableId);
 
   if (!targetTable) {
