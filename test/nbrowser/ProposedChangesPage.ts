@@ -356,6 +356,8 @@ describe("ProposedChangesPage", function() {
     await proposeChange();
     assert.equal(await driver.find(".test-tools-proposals").getText(),
       "Suggest changes");
+
+    await returnToTrunk(url);
   });
 
   it("can make and apply a proposed change affecting two tables", async function() {
@@ -448,6 +450,12 @@ describe("ProposedChangesPage", function() {
 
     await workOnCopy(url);
 
+    // There's some race condition, maybe references not
+    // loading fast enough?, if we don't look at them in
+    // client.
+    await gu.openPage("Habitat");
+    await gu.openPage("Life");
+
     // Change the reference for Fish from Ocean to Desert
     await gu.getCell("Habitat", 1).click();
 
@@ -484,6 +492,8 @@ describe("ProposedChangesPage", function() {
     );
     assert.deepEqual((await api.getDocAPI(doc.id).getRows("Life")).Habitat,
       [3, 2]); // Desert (id 3), Forest (id 2)
+
+    await returnToTrunk(url);
   });
 
   it("can make and apply a proposed change to a Reference List column", async function() {
@@ -503,10 +513,17 @@ describe("ProposedChangesPage", function() {
       ["UpdateRecord", "Life", 1, { Habitats: ["L", 1, 2] }], // Fish -> Ocean, Forest
       ["UpdateRecord", "Life", 2, { Habitats: ["L", 2] }], // Primate -> Forest
     ]);
-    // Make sure new column is visible on all possible views
+    // Make sure new column is visible
     await makeColumnVisible(api, doc.id, "Life", "Habitats");
     await setReferenceDisplayColumn(api, doc.id, "Life", "Habitats", "Name");
     await workOnCopy(url);
+
+    // There's some race condition, maybe references not
+    // loading fast enough?, if we don't look at them in
+    // client.
+    await gu.openPage("Habitat");
+    await gu.openPage("Life");
+
     // Change the reference list for Fish: remove Forest, add Desert and Arctic
     await gu.getCell("Habitats", 1).click();
     await gu.waitAppFocus();
@@ -539,6 +556,8 @@ describe("ProposedChangesPage", function() {
     );
     assert.deepEqual((await api.getDocAPI(doc.id).getRows("Life")).Habitats,
       [["L" as GristObjCode, 1, 3, 4], ["L" as GristObjCode, 2]]); // [Ocean, Desert, Arctic], [Forest]
+
+    await returnToTrunk(url);
   });
 
   async function makeLifeDoc() {
@@ -578,6 +597,12 @@ describe("ProposedChangesPage", function() {
     await driver.findWait(".test-work-on-copy", 2000).click();
     await gu.waitForServer();
     await gu.openPage("Life");
+  }
+
+  async function returnToTrunk(url: string) {
+    await driver.get(url);
+    if (await gu.isAlertShown()) { await gu.acceptAlert(); }
+    await gu.waitForDocToLoad();
   }
 
   // Propose a change.
