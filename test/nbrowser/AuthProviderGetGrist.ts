@@ -23,10 +23,7 @@ describe("AuthProviderGetGrist", function() {
     process.env.GRIST_DEFAULT_EMAIL = gu.translateUser("user1").email;
     process.env.GRIST_TEST_SERVER_DEPLOYMENT_TYPE = "core";
     process.env.GRIST_FEATURE_GETGRIST_COM = "1";
-    // Clear any APP_HOME_URL set by the runner.
-    if (process.env.APP_HOME_URL) {
-      console.warn(`Clearing APP_HOME_URL=${process.env.APP_HOME_URL} for test`);
-    }
+    // Make sure no APP_HOME_URL is set, to use calculated one.
     process.env.APP_HOME_URL = "";
     await server.restart();
 
@@ -43,7 +40,6 @@ describe("AuthProviderGetGrist", function() {
         });
       });
       app.get("/authorize", (req, res) => {
-        // Minimal authorize endpoint; no real auth flow needed for tests.
         res.sendStatus(200);
       });
       app.use((req) => {
