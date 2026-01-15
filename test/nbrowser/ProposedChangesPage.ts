@@ -361,7 +361,7 @@ describe("ProposedChangesPage", function() {
     const url = await driver.getCurrentUrl();
 
     // Add a second table
-    await api.applyUserActions(doc.id, [
+    await gu.sendActions([
       ["AddTable", "Plants", [{ id: "Name", type: "Text" }, { id: "Type", type: "Text" }]],
       ["AddRecord", "Plants", 1, { Name: "Oak", Type: "Tree" }],
       ["AddRecord", "Plants", 2, { Name: "Rose", Type: "Flower" }],
@@ -422,6 +422,8 @@ describe("ProposedChangesPage", function() {
   });
 
   async function makeLifeDoc() {
+    await driver.navigate().refresh();
+    await gu.acceptAlert({ ignore: true });
     // Load a test document.
     const session = await gu.session().teamSite.login();
     const doc = await session.tempDoc(cleanup, "Hello.grist");
