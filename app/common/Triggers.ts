@@ -22,6 +22,13 @@ export interface WebhookFields {
 export type WebhookBatchStatus = "success" | "failure" | "rejected";
 export type WebhookStatus = "idle" | "sending" | "retrying" | "postponed" | "error" | "invalid";
 
+/** Secrets for webhook stored outside the document in home db */
+export interface WebHookSecret {
+  url: string;
+  unsubscribeKey: string;
+  authorization?: string;
+}
+
 // WebhookSubscribe should be `Omit<WebhookFields, 'tableId'>` (because subscribe endpoint read
 // tableId from the url) but generics are not yet supported by ts-interface-builder
 export interface WebhookSubscribe {

@@ -28,6 +28,12 @@ export const WebhookBatchStatus = t.union(t.lit("success"), t.lit("failure"), t.
 
 export const WebhookStatus = t.union(t.lit("idle"), t.lit("sending"), t.lit("retrying"), t.lit("postponed"), t.lit("error"), t.lit("invalid"));
 
+export const WebHookSecret = t.iface([], {
+  "url": "string",
+  "unsubscribeKey": "string",
+  "authorization": t.opt("string"),
+});
+
 export const WebhookSubscribe = t.iface([], {
   "url": "string",
   "authorization": t.opt("string"),
@@ -104,6 +110,7 @@ const exportedTypeSuite: t.ITypeSuite = {
   WebhookFields,
   WebhookBatchStatus,
   WebhookStatus,
+  WebHookSecret,
   WebhookSubscribe,
   WebhookSummaryCollection,
   WebhookSummary,

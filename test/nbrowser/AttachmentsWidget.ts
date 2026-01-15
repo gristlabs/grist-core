@@ -159,6 +159,7 @@ describe("AttachmentsWidget", function() {
     );
     for (let i = 0; i < 5; i++) {
       await slider.sendKeys(Key.RIGHT);
+      await driver.sleep(20);
     }
     assert.equal(
       (await driver.find(".test-pw-thumbnail:last-child").getRect()).height,
@@ -166,6 +167,7 @@ describe("AttachmentsWidget", function() {
     );
     for (let i = 0; i < 3; i++) {
       await slider.sendKeys(Key.LEFT);
+      await driver.sleep(20);
     }
     assert.equal(
       (await driver.find(".test-pw-thumbnail:last-child").getRect()).height,

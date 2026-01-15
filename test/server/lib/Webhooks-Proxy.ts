@@ -1,5 +1,5 @@
 import { UserAPIImpl } from "app/common/UserAPI";
-import { WebhookSubscription } from "app/server/lib/DocApi";
+import { WebhookSubscription } from "app/server/lib/DocApiTriggers";
 import { configForUser } from "test/gen-server/testUtils";
 import { serveSomething, Serving } from "test/server/customUtil";
 import { prepareDatabase } from "test/server/lib/helpers/PrepareDatabase";

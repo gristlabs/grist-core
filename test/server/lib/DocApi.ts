@@ -13,8 +13,8 @@ import {
   docApiUsagePeriods,
   docPeriodicApiUsageKey,
   getDocApiUsageKeysToIncr,
-  WebhookSubscription,
 } from "app/server/lib/DocApi";
+import { WebhookSubscription } from "app/server/lib/DocApiTriggers";
 import { delayAbort, getAvailablePort } from "app/server/lib/serverUtils";
 import { testDailyApiLimitFeatures } from "test/gen-server/seed";
 import { configForUser } from "test/gen-server/testUtils";

@@ -127,7 +127,8 @@ import { IAttachmentStoreProvider } from "app/server/lib/AttachmentStoreProvider
 import { AuditEventAction } from "app/server/lib/AuditEvent";
 import { RequestWithLogin } from "app/server/lib/Authorizer";
 import { Client } from "app/server/lib/Client";
-import { getChanges, getMetaTables } from "app/server/lib/DocApi";
+import { getChanges } from "app/server/lib/DocApi";
+import { getMetaTables } from "app/server/lib/DocApiUtils";
 import { DocClients } from "app/server/lib/DocClients";
 import { DEFAULT_CACHE_TTL, DocManager } from "app/server/lib/DocManager";
 import { DocPluginManager } from "app/server/lib/DocPluginManager";
@@ -169,6 +170,7 @@ import { TableMetadataLoader } from "app/server/lib/TableMetadataLoader";
 import { DocTriggers } from "app/server/lib/Triggers";
 import { fetchURL, FileUploadInfo, globalUploadSet, UploadInfo } from "app/server/lib/uploads";
 import { UserPresence } from "app/server/lib/UserPresence";
+import { WebhookQueue } from "app/server/lib/WebhookQueue";
 
 import assert from "assert";
 import { EventEmitter } from "events";
@@ -293,6 +295,7 @@ export class ActiveDoc extends EventEmitter {
   private readonly _server: GristServer = this._docManager.gristServer;
   private _log = new LogMethods("ActiveDoc ", (s: OptDocSession | null) => this.getLogMeta(s));
   private _triggers: DocTriggers;
+  private _webhookQueue: WebhookQueue;
   private _requests: DocRequests;
   private _dataEngine: Promise<ISandbox> | null = null;
   private _activeDocImport: ActiveDocImport;
@@ -445,7 +448,8 @@ export class ActiveDoc extends EventEmitter {
     this.docStorage = new DocStorage(_docManager.storageManager, _docName);
     this.docClients = new DocClients(this);
     this._userPresence = new UserPresence(this.docClients);
-    this._triggers = new DocTriggers(this);
+    this._webhookQueue = new WebhookQueue(this);
+    this._triggers = new DocTriggers(this, this._webhookQueue);
     this._requests = new DocRequests(this);
     this._actionHistory = new ActionHistoryImpl(this.docStorage);
     this.docPluginManager = _docManager.pluginManager ?
@@ -514,6 +518,8 @@ export class ActiveDoc extends EventEmitter {
   public get isShuttingDown(): boolean { return this._shuttingDown; }
 
   public get triggers(): DocTriggers { return this._triggers; }
+
+  public get webhookQueue(): WebhookQueue { return this._webhookQueue; }
 
   public get rowLimitRatio(): number {
     return getUsageRatio(
@@ -2268,18 +2274,18 @@ export class ActiveDoc extends EventEmitter {
    * Clears all outgoing webhook requests queued for this document.
    */
   public async clearWebhookQueue() {
-    await this._triggers.clearWebhookQueue();
+    await this._webhookQueue.clearWebhookQueue();
   }
 
   public async clearSingleWebhookQueue(webhookId: string) {
-    await this._triggers.clearSingleWebhookQueue(webhookId);
+    await this._webhookQueue.clearSingleWebhookQueue(webhookId);
   }
 
   /**
    * Returns the list of outgoing webhook for a table in this document.
    */
   public async webhooksSummary() {
-    return this._triggers.summary();
+    return this._webhookQueue.summary();
   }
 
   /**
@@ -2578,7 +2584,7 @@ export class ActiveDoc extends EventEmitter {
         this.docClients.removeAllClients();
       }
 
-      this._triggers.shutdown();
+      this._webhookQueue.shutdown();
 
       // attachmentFileManager needs to shut down before DocStorage, to allow transfers to finish.
       await safeCallAndWait("attachmentFileManager",

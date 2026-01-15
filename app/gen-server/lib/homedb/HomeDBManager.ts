@@ -19,6 +19,7 @@ import { UserProfile } from "app/common/LoginSessionAPI";
 import { checkSubdomainValidity } from "app/common/orgNameUtils";
 import { DocPrefs, FullDocPrefs } from "app/common/Prefs";
 import * as roles from "app/common/roles";
+import { WebHookSecret } from "app/common/Triggers";
 import { UserType } from "app/common/User";
 import {
   ANONYMOUS_USER_EMAIL,
@@ -105,7 +106,6 @@ import { Permit } from "app/server/lib/Permit";
 import { IPubSubManager } from "app/server/lib/PubSubManager";
 import { getScope } from "app/server/lib/requestUtils";
 import { expectedResetDate } from "app/server/lib/serverUtils";
-import { WebHookSecret } from "app/server/lib/Triggers";
 
 import { Request } from "express";
 import { flatten, pick, size } from "lodash";
