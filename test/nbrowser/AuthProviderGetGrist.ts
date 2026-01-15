@@ -93,6 +93,10 @@ describe("AuthProviderGetGrist", function() {
       oidcClientSecret: "some-secret",
       oidcIssuer: serving.url + "?provider=getgrist.com",
       oidcSkipEndSessionEndpoint: true,
+      owner: {
+        name: "Chimpy",
+        email: "chimpy@getgrist.com",
+      },
     };
     await textarea.clear();
     await textarea.sendKeys(Buffer.from(JSON.stringify(validConfig)).toString("base64"));
