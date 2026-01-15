@@ -114,7 +114,7 @@ export interface OIDCConfig {
    * Notice: that the configuration reader actually requires this to be set explicitly,
    * but the OIDCConfig interface allows it to be optional for other providers like (e.g., getgrist.com).
    */
-  readonly spHost?: string;
+  spHost?: string;
   /** The issuer URL for the IdP (Identity Provider). */
   readonly issuerUrl: string;
   /** The client ID for the application, as registered with the IdP. */
@@ -271,6 +271,7 @@ export class OIDCBuilder {
 
   protected _client: Client;
   private _config: OIDCConfig;
+  private _redirectUrl: string;
   private _protectionManager: ProtectionsManager;
 
   constructor(
@@ -284,6 +285,7 @@ export class OIDCBuilder {
   public async initOIDC(): Promise<void> {
     this._protectionManager = new ProtectionsManager(this._config.enabledProtections);
 
+    this._redirectUrl = new URL(OIDC_CALLBACK_ENDPOINT, this._config.spHost).href;
     custom.setHttpOptionsDefaults({
       ...(agents.trusted !== undefined ? { agent: agents.trusted } : {}),
       ...(this._config.httpTimeout !== undefined ? { timeout: this._config.httpTimeout } : {}),
@@ -332,7 +334,7 @@ export class OIDCBuilder {
 
       // The callback function will compare the protections present in the params and the ones we retrieved
       // from the session. If they don't match, it will throw an error.
-      const tokenSet = await this._client.callback(this._buildRedirectUrl(this._getSpHost(req)), params, checks);
+      const tokenSet = await this._client.callback(this._redirectUrl, params, checks);
       log.debug("Got tokenSet: %o", formatTokenForLogs(tokenSet));
 
       const userInfo = await this._client.userinfo(tokenSet);
@@ -420,13 +422,10 @@ export class OIDCBuilder {
   ): Promise<void> {
     try {
       const issuer = await Issuer.discover(issuerUrl);
-      const redirect_uris = this._config.spHost ? [
-        this._buildRedirectUrl(this._config.spHost),
-      ] : [];
       this._client = new issuer.Client({
         client_id: clientId,
         client_secret: clientSecret,
-        redirect_uris,
+        redirect_uris: [this._redirectUrl],
         response_types: ["code"],
         ...extraMetadata,
       });
@@ -437,14 +436,6 @@ export class OIDCBuilder {
         `Failed to initialize OIDC client for issuer ${issuerUrl}: ${(err as Error).message}`,
       );
     }
-  }
-
-  private _getSpHost(req: express.Request): string {
-    return this._config.spHost || getOriginUrl(req);
-  }
-
-  private _buildRedirectUrl(spHost: string) {
-    return new URL(OIDC_CALLBACK_ENDPOINT, spHost).href;
   }
 
   private _sendErrorPage(
