@@ -154,7 +154,7 @@ describe("AccessRules4", function() {
     await driver.findContentWait(".test-tb-share-option", /Manage users/, 100).doClick();
     await driver.findWait(".test-um-public-access", 3000).click();
     await driver.findContentWait(".test-um-public-option", "On", 100).click();
-    await gu.saveAcls();
+    await gu.saveAcls({ sharePublicly: true });
     await testingHooks.flushAuthorizerCache();
     await gu.reloadDoc();
 

@@ -54,6 +54,8 @@ export interface UserManagerModel {
   isActiveUser(member: IEditableMember): boolean;
   // Returns the PermissionDelta reflecting the current unsaved changes in the model.
   getDelta(): PermissionDelta;
+  // Returns whether we are enabling public sharing.
+  goingToSharePublicly(): boolean;
 }
 
 export type ResourceType = "organization" | "workspace" | "document";
@@ -314,6 +316,12 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
       }
     }
     return delta;
+  }
+
+  public goingToSharePublicly(): boolean {
+    // We want to detect when the original access for the public member did not exist
+    // and has just been defined.
+    return Boolean(this.publicMember?.access.get() && !this.publicMember?.origAccess);
   }
 
   private _buildAllMembers(): IEditableMember[] {
