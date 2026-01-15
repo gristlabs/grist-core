@@ -1276,7 +1276,7 @@ describe("Scim", () => {
               async ([role1Name, role2Name, group1Name]) => {
                 const beforeAdditions = await axios.get(scimUrl("/Roles?count=300"), chimpy);
                 const beforeAdditionsIds = new Set(beforeAdditions.data.Resources.map(({ id}: { id: number }) => id));
-                await getDbManager().createGroup({
+                const group1 = await getDbManager().createGroup({
                   name: group1Name,
                   type: Group.TEAM_TYPE,
                   memberUsers: [userIdByName.chimpy!],
@@ -1290,6 +1290,7 @@ describe("Scim", () => {
                   name: role2Name,
                   type: Group.ROLE_TYPE,
                   memberUsers: [userIdByName.kiwi!],
+                  memberGroups: [role1.id, group1.id],
                 });
 
                 const res = await axios.get(scimUrl("/Roles?count=300"), chimpy);
@@ -1310,7 +1311,21 @@ describe("Scim", () => {
                     schemas: ["urn:ietf:params:scim:schemas:Grist:1.0:Role"],
                     id: String(role2.id),
                     displayName: role2Name,
-                    members: [getUserMemberWithRef("kiwi")],
+                    members: [
+                      getUserMemberWithRef("kiwi"),
+                      {
+                        value: String(group1.id),
+                        display: group1Name,
+                        type: "Group",
+                        $ref: `/api/scim/v2/Groups/${group1.id}`,
+                      },
+                      {
+                        value: String(role1.id),
+                        display: role1Name,
+                        type: "Role",
+                        $ref: `/api/scim/v2/Roles/${role1.id}`,
+                      },
+                    ],
                     meta: { resourceType: "Role", location: `/api/scim/v2/Roles/${role2.id}` },
                   },
                 ]);
