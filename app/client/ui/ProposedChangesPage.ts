@@ -4,6 +4,7 @@ import { GristDoc } from "app/client/components/GristDoc";
 import { ApiData, VirtualDoc, VirtualSection } from "app/client/components/VirtualDoc";
 import { makeT } from "app/client/lib/localization";
 import { getTimeFromNow } from "app/client/lib/timeUtils";
+import { ColumnRec } from "app/client/models/DocModel";
 import { urlState } from "app/client/models/gristUrlState";
 import { docListHeader } from "app/client/ui/DocMenuCss";
 import { buildOriginalUrlId } from "app/client/ui/ShareMenu";
@@ -14,7 +15,7 @@ import { icon } from "app/client/ui2018/icons";
 import { cssLink } from "app/client/ui2018/links";
 import { loadingSpinner } from "app/client/ui2018/loaders";
 import { rebaseSummary } from "app/common/ActionSummarizer";
-import { TableDataAction } from "app/common/DocActions";
+import { getActionColValues, TableDataAction } from "app/common/DocActions";
 import {
   DocStateComparison,
   DocStateComparisonDetails,
@@ -495,10 +496,33 @@ class ActionLogPartInProposal extends ActionLogPart {
       const columnRows = tableRow ? this._gristDoc.docModel.columns.rowModels.filter(
         cr => cr.parentId() === tableRow.id(),
       ) : null;
-      const types = columnRows ? Object.fromEntries(
+      const colIdToColRecs = columnRows ? Object.fromEntries(
         columnRows.map(cr => [cr.colId(), cr]),
       ) : {};
       const haveId = tdiff.header.includes("id");
+
+      // For references, we may need to handle our columns having
+      // distinct "display columns". If a column has a display column,
+      // we use its type, formatting, and content, but retain the
+      // colId of the original.
+      const displayedColRecs: Record<string, ColumnRec> = {};
+      const colRefToColRecs: Map<number, ColumnRec> = columnRows ? new Map(
+        columnRows.map(cr => [cr.id(), cr]),
+      ) : new Map();
+      for (const [colId, colRec] of Object.entries(colIdToColRecs)) {
+        const displayCol = colRec.displayCol();
+        if (!displayCol) { continue; }
+        const displayColRec = colRefToColRecs.get(displayCol);
+        if (!displayColRec) { continue; }
+        displayedColRecs[colId] = displayColRec;
+        const displayColId = displayColRec.colId();
+        const values = getActionColValues(data);
+        const src = values[displayColId];
+        values[colId] = src;
+        delete values[displayColId];
+        tdiff.header = tdiff.header.filter(colId => colId !== displayColId);
+      }
+
       doc.addTable({
         name: table,
         tableId: table,
@@ -512,11 +536,12 @@ class ActionLogPartInProposal extends ActionLogPart {
           },
           // Add regular columns from the diff
           ...tdiff.header.map((colId) => {
+            const colRec = displayedColRecs[colId] ?? colIdToColRecs[colId];
             return {
               colId,
               label: colId,
-              type: (types[colId]?.pureType.peek() as any) || "Any",
-              widgetOptions: types[colId]?.widgetOptionsJson.peek(),
+              type: (colRec?.pureType.peek() as any) || "Any",
+              widgetOptions: colRec?.widgetOptionsJson.peek(),
             };
           }),
         ],
