@@ -1,3 +1,4 @@
+import { ConfigAPI } from "app/common/ConfigAPI";
 import { TelemetryLevel } from "app/common/Telemetry";
 import { currentVersion, isEnabled, toggleItem, withExpandedItem } from "test/nbrowser/AdminPanelTools";
 import * as gu from "test/nbrowser/gristUtils";
@@ -31,6 +32,26 @@ describe("AdminPanel", function() {
     await fakeServer.close();
     oldEnv.restore();
     await server.restart(true);
+  });
+
+  it("should clear session when restarted", async function() {
+    // Create two sessions.
+    const currentEmail = () => gu.getUser().then(user => user.email);
+
+    const session1 = await gu.session().personalSite.login();
+    assert.equal(await currentEmail(), session1.email);
+
+    const session2 = await gu.session().user("user2").personalSite.login();
+    assert.equal(await currentEmail(), session2.email);
+
+    // Now using the api restart server with clear session set to true
+    // this call will be rejected as server can't be restarted, but the session will be cleared.
+    await assert.isRejected(session1.createApi(ConfigAPI).restartServer(true));
+
+    // Refresh the browser to check that session was cleared.
+    await driver.navigate().refresh();
+    await gu.waitForDocMenuToLoad();
+    assert.equal(await currentEmail(), gu.translateUser("anon").email);
   });
 
   it("should show an explanation to non-managers", async function() {

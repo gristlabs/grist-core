@@ -1,39 +1,19 @@
 import { ApiError } from "app/common/ApiError";
-import {
-  ConfigKey,
-  ConfigKeyChecker,
-  ConfigValue,
-  ConfigValueCheckers,
-} from "app/common/Config";
+import { ConfigKey, ConfigKeyChecker, ConfigValue, ConfigValueCheckers } from "app/common/Config";
 import { InstallProperties } from "app/common/InstallAPI";
 import { getOrgKey } from "app/gen-server/ApiServer";
 import { Config } from "app/gen-server/entity/Config";
-import {
-  PreviousAndCurrent,
-  QueryResult,
-} from "app/gen-server/lib/homedb/Interfaces";
+import { PreviousAndCurrent, QueryResult } from "app/gen-server/lib/homedb/Interfaces";
 import { RequestWithLogin } from "app/server/lib/Authorizer";
 import { BootProbes } from "app/server/lib/BootProbes";
 import { expressWrap } from "app/server/lib/expressWrap";
 import { GristServer } from "app/server/lib/GristServer";
 import log from "app/server/lib/log";
-import {
-  getScope,
-  sendOkReply,
-  sendReply,
-  stringParam,
-} from "app/server/lib/requestUtils";
+import { getScope, optBooleanParam, sendOkReply, sendReply, stringParam } from "app/server/lib/requestUtils";
 import { getTelemetryPrefs } from "app/server/lib/Telemetry";
 import { updateGristServerLatestVersion } from "app/server/lib/updateChecker";
 
-import {
-  Application,
-  json,
-  NextFunction,
-  Request,
-  RequestHandler,
-  Response,
-} from "express";
+import { Application, json, NextFunction, Request, RequestHandler, Response } from "express";
 import pick from "lodash/pick";
 
 export interface AttachOptions {
@@ -85,39 +65,45 @@ export function attachEarlyEndpoints(options: AttachOptions) {
   const probes = new BootProbes(app, gristServer, "/api", adminMiddleware);
   probes.addEndpoints();
 
-  app.post(
-    "/api/admin/restart",
-    expressWrap(async (req, res) => {
-      const mreq = req as RequestWithLogin;
-      const meta = {
-        host: mreq.get("host"),
-        path: mreq.path,
-        email: mreq.user?.loginEmail,
-      };
-      log.rawDebug(`Restart[${mreq.method}] starting:`, meta);
-      res.on("finish", () => {
-        // If we have IPC with parent process (e.g. when running under
-        // Docker) tell the parent that we have a new environment so it
-        // can restart us.
-        log.rawDebug(`Restart[${mreq.method}] finishing:`, meta);
-        if (process.send && process.env.GRIST_RUNNING_UNDER_SUPERVISOR) {
-          log.rawDebug(`Restart[${mreq.method}] requesting supervisor to restart home server:`, meta);
-          process.send({ action: "restart" });
-        }
-      });
-      if (!process.env.GRIST_RUNNING_UNDER_SUPERVISOR) {
-        // On the topic of http response codes, thus spake MDN:
-        // "409: This response is sent when a request conflicts with the current state of the server."
-        return res.status(409).send({
-          error:
-            "Cannot automatically restart the Grist server to enact changes. Please restart server manually.",
-        });
+  app.post("/api/admin/restart", expressWrap(async (req, res) => {
+    const mreq = req as RequestWithLogin;
+    const meta = {
+      host: mreq.get("host"),
+      path: mreq.path,
+      email: mreq.user?.loginEmail,
+    };
+    log.rawDebug(`Restart[${mreq.method}] starting:`, meta);
+    res.on("finish", () => {
+      // If we have IPC with parent process (e.g. when running under
+      // Docker) tell the parent that we have a new environment so it
+      // can restart us.
+      log.rawDebug(`Restart[${mreq.method}] finishing:`, meta);
+      if (process.send && process.env.GRIST_RUNNING_UNDER_SUPERVISOR) {
+        log.rawDebug(`Restart[${mreq.method}] requesting supervisor to restart home server:`, meta);
+        process.send({ action: "restart" });
       }
-      // We're going down, so we're no longer ready to serve requests.
-      gristServer.setReady(false);
-      return res.status(200).send({ msg: "ok" });
-    }),
-  );
+    });
+
+    const clearSession = optBooleanParam(req.query["clear-session"], "clear-session");
+    if (clearSession) {
+      log.info(`Restart requested with clear-session flag; clearing all sessions.`);
+      // We are going to clear the session for all users.
+      await gristServer.getSessions().clearAllSessions();
+    }
+
+    if (!process.env.GRIST_RUNNING_UNDER_SUPERVISOR) {
+      // On the topic of http response codes, thus spake MDN:
+      // "409: This response is sent when a request conflicts with the current state of the server."
+      return res.status(409).send({
+        error:
+          "Cannot automatically restart the Grist server to enact changes. Please restart server manually.",
+      });
+    }
+
+    // We're going down, so we're no longer ready to serve requests.
+    gristServer.setReady(false);
+    return res.status(200).send({ msg: "ok" });
+  }));
 
   // Restrict this endpoint to install admins.
   app.get(
