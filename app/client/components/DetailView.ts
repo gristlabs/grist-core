@@ -381,9 +381,10 @@ export default class DetailView extends BaseView {
         }
         else {
           return dom.domComputed((use) => {
-            if (use(this.cursor.rowIndex) === null) {
+            // If this.disableEditing is set, there's already an overlay in place hiding this view.
+            if (use(this.cursor.rowIndex) === null && !use(this.disableEditing)) {
               return dom("div",
-                dom("div.detailview_record_unavailable_overlay", t("This row is unavailable or does not exist")),
+                dom("div.disable_viewpane.flexvbox", t("This row is unavailable or does not exist")),
               );
             }
             else {

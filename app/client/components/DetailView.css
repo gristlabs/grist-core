@@ -198,20 +198,6 @@
   border-top: none;
 }
 
-.detailview_record_unavailable_overlay {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: var(--grist-medium-font-size);
-  font-weight: 700;
-}
-
 /*** compact theme ***/
 .detail_theme_record_compact {
   /* 12px is enough margin on the right to include most of the floating scrollbar on MacOS */
