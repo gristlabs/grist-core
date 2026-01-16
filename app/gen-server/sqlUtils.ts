@@ -183,8 +183,7 @@ export async function getRawAndEntities<T extends ObjectLiteral>(rawQueryBuilder
       entities,
       raw,
     };
-  }
-  finally {
+  } finally {
     // This is how the QueryBuilder <-> QueryRunner relationship is managed in TypeORM code.
     if (queryRunner !== runnerSource.queryRunner) {
       await queryRunner.release();

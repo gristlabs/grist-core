@@ -76,14 +76,12 @@ function getRefTableIdFromData(docModel: DocModel, column: ColumnRec): string | 
     for (const value of columnData) {
       if (gristTypes.isReferencing(value)) {
         return value[1];
-      }
-      else if (gristTypes.isList(value)) {
+      } else if (gristTypes.isList(value)) {
         const item = value[1];
         if (gristTypes.isReference(item)) {
           return item[1];
         }
-      }
-      else if (typeof value === "string") {
+      } else if (typeof value === "string") {
         // If it looks like a formatted Ref(List) value, e.g:
         //   - Table1[123]
         //   - [Table1[1], Table1[2], Table1[3]]
@@ -166,8 +164,7 @@ export async function prepTransformColInfo(options: {
         // It will simply wrap the reference (row ID) in a list or extract the one element of a reference list.
         suggestedColRef = origCol.visibleCol.peek();
         suggestedTableId = origColTypeInfo.tableId;
-      }
-      else {
+      } else {
         // Finds a reference suggestion column and sets it as the current reference value.
         const columnData = tableData.getDistinctValues(origDisplayCol.colId(), 100);
         if (!columnData) { break; }

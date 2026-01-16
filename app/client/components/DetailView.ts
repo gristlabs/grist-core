@@ -98,8 +98,7 @@ export default class DetailView extends BaseView {
       this._updateFloatingRow();
       this.autoDispose(this.cursor.rowIndex.subscribe(this._updateFloatingRow, this));
       this.autoDispose(this.viewData.subscribe(this._updateFloatingRow, this));
-    }
-    else {
+    } else {
       this.detailRecord = null;
     }
 
@@ -232,8 +231,7 @@ export default class DetailView extends BaseView {
     const index = this.cursor.rowIndex();
     try {
       await super.deleteRows(rowIds);
-    }
-    finally {
+    } finally {
       if (!this.isDisposed()) {
         this.cursor.rowIndex(index);
       }
@@ -378,15 +376,13 @@ export default class DetailView extends BaseView {
                 this.makeRecord(row)),
             ),
           );
-        }
-        else {
+        } else {
           return dom.domComputed((use) => {
             if (use(this.cursor.rowIndex) === null) {
               return dom("div",
                 dom("div.detailview_record_unavailable_overlay", t("This row is unavailable or does not exist")),
               );
-            }
-            else {
+            } else {
               return dom.update(
                 this.makeRecord(this.detailRecord!),
                 kd.domData("itemModel", this.detailRecord),
@@ -497,8 +493,7 @@ export default class DetailView extends BaseView {
   protected override getRenderedRowModel(rowId: UIRowId) {
     if (this.detailRecord) {
       return this.detailRecord.getRowId() === rowId ? this.detailRecord : undefined;
-    }
-    else {
+    } else {
       return this.viewData.getRowModel(rowId);
     }
   }
@@ -551,8 +546,7 @@ export default class DetailView extends BaseView {
     const isFormula = Boolean(selection.fields[0]?.column.peek().isRealFormula.peek());
     if (isFormula) {
       this.activateEditorAtCursor({ init: "" });
-    }
-    else {
+    } else {
       const clearAction = tableUtil.makeDeleteAction(this.getSelection());
       if (clearAction) {
         return this.gristDoc.docData.sendAction(clearAction);

@@ -135,8 +135,7 @@ describe("ManyFetches", function() {
       checkResults(await Promise.all(fetchersB.map(f => f.completeFetch())));
 
       assertIsBelow(await getHeapMB(), 225);
-    }
-    finally {
+    } finally {
       fetchersA.map(f => f.end());
       fetchersB.map(f => f.end());
     }
@@ -186,12 +185,10 @@ describe("ManyFetches", function() {
         assert.lengthOf(data.tableData[2], 20_000);
         assert.lengthOf(data.tableData[3].Num, 20_000);
         assert.lengthOf(data.tableData[3].Text, 20_000);
-      }
-      finally {
+      } finally {
         fetcherB.end();
       }
-    }
-    finally {
+    } finally {
       fetcherA.end();
     }
   });

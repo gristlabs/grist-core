@@ -262,8 +262,7 @@ export class TreeViewComponent extends Disposable {
           const itemChildrenElem = this._buildChildren(treeItem.children()!, level + 1);
           replaceChildren(elem, itemHeaderElem, itemChildrenElem);
           dom.styleElem(arrowElement, "visibility", itemChildren.get().length ? "visible" : "hidden");
-        }
-        else {
+        } else {
           replaceChildren(elem, itemHeaderElem);
           dom.styleElem(arrowElement, "visibility", "hidden");
         }
@@ -418,8 +417,7 @@ export class TreeViewComponent extends Disposable {
       const top = this._getDropZoneTop(dropZone);
       this._target.set({ width, left, top });
       this._hideTarget.set(false);
-    }
-    else {
+    } else {
       this._hideTarget.set(true);
     }
   }
@@ -456,8 +454,7 @@ export class TreeViewComponent extends Disposable {
     if (newParent && newParent !== "root") {
       drag.highlightedBox.autoDispose({ dispose: () => newParent.highlight.set(false) });
       newParent.highlight.set(true);
-    }
-    else {
+    } else {
       // setting holder to a dump value allows to dispose the previous value
       drag.highlightedBox.autoDispose({ dispose: noop });
     }
@@ -499,8 +496,7 @@ export class TreeViewComponent extends Disposable {
           return null;
         }
         return { zone: "within", item };
-      }
-      else {
+      } else {
         return { zone: "below", item };
       }
     }
@@ -594,8 +590,7 @@ export class TreeViewComponent extends Disposable {
     const children = item.treeItem.children();
     if (eq(drag.item, item) || !children || children.get().length && !item.collapsed.get()) {
       drag.autoExpander.clear();
-    }
-    else {
+    } else {
       const callback = () => {
         // Expanding the item needs some extra care. Because we could push the dragged item
         // downwards in the view (if the dragged item is below the item to be expanded). In which
@@ -649,16 +644,14 @@ function delayedMouseDrag(startDrag: MouseDragStart, delay: number) {
       // Clears timeout if cursor moves before timer expires, ie: the startDrag won't be called.
       if (handler) {
         handler.onMove(ev);
-      }
-      else {
+      } else {
         clearTimeout(timeoutId);
       }
     }
     function onStop(ev: MouseEvent) {
       if (handler) {
         handler.onStop(ev);
-      }
-      else {
+      } else {
         clearTimeout(timeoutId);
       }
     }

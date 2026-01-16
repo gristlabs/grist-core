@@ -30,8 +30,7 @@ export function makeFilterFunc(state: FilterState,
           (min === undefined ? true : min <= val)
         );
       };
-    }
-    else {
+    } else {
       // Although it is not possible to set a range filter for non numeric columns, this still can
       // happen as a result of a column type conversion. In this case, let's include all values.
       return () => true;

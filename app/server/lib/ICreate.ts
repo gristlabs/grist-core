@@ -207,8 +207,7 @@ export class BaseCreate implements ICreate {
           try {
             const storage = this.ExternalStorage("attachments", "");
             return storage ? storageSupportsAttachments(storage) : false;
-          }
-          catch (e) {
+          } catch (e) {
             if (e instanceof UnsupportedPurposeError) {
               return false;
             }

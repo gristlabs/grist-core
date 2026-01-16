@@ -28,8 +28,7 @@ export async function runSQLQuery(
   let docSession: OptDocSession;
   if (isRequest(requestOrSession)) {
     docSession = docSessionFromRequest(requestOrSession);
-  }
-  else {
+  } else {
     docSession = requestOrSession;
   }
   if (!(await activeDoc.canCopyEverything(docSession))) {
@@ -78,8 +77,7 @@ export async function runSQLQuery(
   const interrupt = setTimeout(async () => {
     try {
       await activeDoc.docStorage.interrupt();
-    }
-    catch (e) {
+    } catch (e) {
       // Should be unreachable, but just in case...
       log.error("runSQL interrupt failed with error ", e);
     }
@@ -89,8 +87,7 @@ export async function runSQLQuery(
       wrappedStatement,
       ...(options.args || []),
     );
-  }
-  finally {
+  } finally {
     clearTimeout(interrupt);
   }
 }

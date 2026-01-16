@@ -148,8 +148,7 @@ export class RightPanel extends Disposable {
     this.autoDispose(subscribe((use) => {
       if (!use(this._isForm) && use(this._subTab) === "submission") {
         setImmediate(() => !this._subTab.isDisposed() && this._subTab.set("sortAndFilter"));
-      }
-      else if (use(this._isForm) && use(this._subTab) === "sortAndFilter") {
+      } else if (use(this._isForm) && use(this._subTab) === "sortAndFilter") {
         setImmediate(() => !this._subTab.isDisposed() && this._subTab.set("submission"));
       }
     }));
@@ -655,13 +654,15 @@ export class RightPanel extends Disposable {
               // if [filter (reflist) <- ref], op="intersects", need to convey "list has value". symbol =":"
               // if [filter (ref) <- reflist], op="in", vals.length>1, need to convey "ref in list"
               // Sometimes operation will be 'empty', but in that case "=" still works fine, i.e. "list = []"
-              if (lfilter.operations[colId] == "intersects") { operationSymbol = ":"; }
-              else if (vals.length > 1) { operationSymbol = ELEMENTOF; }
+              if (lfilter.operations[colId] == "intersects") {
+                operationSymbol = ":";
+              } else if (vals.length > 1) {
+                operationSymbol = ELEMENTOF;
+              }
 
               if (colId == "id") {
                 return dom("div", `ERROR: ID FILTER: ${colId}[${vals}]`);
-              }
-              else {
+              } else {
                 return dom("tr",
                   dom("td", cssLinkInfoIcon("Filter"),
                     `${colId}`),
@@ -833,8 +834,7 @@ export class RightPanel extends Disposable {
       const widgetType = getTelemetryWidgetTypeFromVS(activeSection);
       if (val !== NoLink) {
         logTelemetryEvent("linkedWidget", { full: { docIdDigest: this._gristDoc.docId(), widgetType } });
-      }
-      else {
+      } else {
         logTelemetryEvent("unlinkedWidget", { full: { docIdDigest: this._gristDoc.docId(), widgetType } });
       }
 
@@ -1163,8 +1163,7 @@ function tabContentToDom(content: Observable<TabContent[]> | TabContent[] | IDom
           itemOrHeader.label ? dom("div.config_header", itemOrHeader.label) : null,
           dom.forEach(itemOrHeader.items, item => buildItemDom(item)),
         );
-      }
-      else {
+      } else {
         return buildItemDom(itemOrHeader);
       }
     }),

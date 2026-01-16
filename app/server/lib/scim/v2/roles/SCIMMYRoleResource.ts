@@ -23,8 +23,7 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource<SCIMMYRoleSchema> 
   public static basepath(path?: string) {
     if (path === undefined) {
       return SCIMMYRoleResource._basepath;
-    }
-    else {
+    } else {
       SCIMMYRoleResource._basepath = (path.endsWith(SCIMMYRoleResource.endpoint) ?
         path :
         `${path}${SCIMMYRoleResource.endpoint}`);
@@ -96,26 +95,19 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource<SCIMMYRoleSchema> 
           .map(u => new SCIMMYRoleSchema(
             u, "out", SCIMMYRoleResource.basepath(), this.attributes),
           ), this.constraints);
-      }
-      // For specific resources, make sure egress returned an object
-      else if (target instanceof Object) {
+      } else if (target instanceof Object) { // For specific resources, make sure egress returned an object
         return new SCIMMYRoleSchema(target, "out", SCIMMYRoleResource.basepath(), this.attributes);
-      }
-      // Otherwise, egress has not been implemented correctly
-      else {
+      } else { // Otherwise, egress has not been implemented correctly
         throw new SCIMMY.Types.Error(
           500, null!, `Unexpected ${target === undefined ? "empty" : "invalid"} value returned by egress handler`,
         );
       }
-    }
-    catch (ex) {
+    } catch (ex) {
       if (ex instanceof SCIMMY.Types.Error) {
         throw ex;
-      }
-      else if (ex instanceof TypeError) {
+      } else if (ex instanceof TypeError) {
         throw new SCIMMY.Types.Error(400, "invalidValue", ex.message);
-      }
-      else {
+      } else {
         throw new SCIMMY.Types.Error(404, null!, `Resource ${this.id} not found`);
       }
     }
@@ -149,22 +141,17 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource<SCIMMYRoleSchema> 
       // Make sure ingress returned an object
       if (target instanceof Object) {
         return new SCIMMYRoleSchema(target, "out", SCIMMYRoleResource.basepath(), this.attributes);
-      }
-      // Otherwise, ingress has not been implemented correctly
-      else {
+      } else { // Otherwise, ingress has not been implemented correctly
         throw new SCIMMY.Types.Error(500, null!,
           `Unexpected ${target === undefined ? "empty" : "invalid"} value returned by ingress handler`,
         );
       }
-    }
-    catch (ex) {
+    } catch (ex) {
       if (ex instanceof SCIMMY.Types.Error) {
         throw ex;
-      }
-      else if (ex instanceof TypeError) {
+      } else if (ex instanceof TypeError) {
         throw new SCIMMY.Types.Error(400, "invalidValue", ex.message);
-      }
-      else {
+      } else {
         throw new SCIMMY.Types.Error(404, null!, `Resource ${this.id} not found`);
       }
     }
@@ -209,15 +196,12 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource<SCIMMYRoleSchema> 
     }
     try {
       await SCIMMYRoleResource._degress(this, ctx);
-    }
-    catch (ex) {
+    } catch (ex) {
       if (ex instanceof SCIMMY.Types.Error) {
         throw ex;
-      }
-      else if (ex instanceof TypeError) {
+      } else if (ex instanceof TypeError) {
         throw new SCIMMY.Types.Error(500, null!, ex.message);
-      }
-      else {
+      } else {
         throw new SCIMMY.Types.Error(404, null!, `Resource ${this.id} not found`);
       }
     }

@@ -169,12 +169,10 @@ export function undef<T extends any[]>(...list: T): Undef<T> {
 export function numberOrDefault<T>(value: unknown, defaultVal: T): number | T {
   if (typeof value === "number") {
     return !Number.isNaN(value) ? value : defaultVal;
-  }
-  else if (typeof value === "string") {
+  } else if (typeof value === "string") {
     const maybeNumber = Number.parseFloat(value);
     return !Number.isNaN(maybeNumber) ? maybeNumber : defaultVal;
-  }
-  else {
+  } else {
     return defaultVal;
   }
 }
@@ -185,8 +183,7 @@ export function numberOrDefault<T>(value: unknown, defaultVal: T): number | T {
 export function safeJsonParse(json: string, defaultVal: any): any {
   try {
     return json !== "" && json !== undefined ? JSON.parse(json) : defaultVal;
-  }
-  catch (e) {
+  } catch (e) {
     return defaultVal;
   }
 }
@@ -283,8 +280,7 @@ export function arrayInsertBefore<T>(array: T[], value: T, nextValue: T): void {
   const index = array.indexOf(nextValue);
   if (index === -1) {
     array.push(value);
-  }
-  else {
+  } else {
     array.splice(index, 0, value);
   }
 }
@@ -357,8 +353,7 @@ export function arrayCopyBackward<T>(toArray: T[], toStart: number,
 export function arrayAppend<T>(toArray: T[], fromArray: ArrayLike<T>, fromStart: number, count: number): void {
   if (count === 1) {
     toArray.push(fromArray[fromStart]);
-  }
-  else {
+  } else {
     const len = toArray.length;
     toArray.length = len + count;
     arrayCopyForward(toArray, len, fromArray, fromStart, count);
@@ -382,8 +377,7 @@ export function arraySplice<T>(target: T[], start: number, arrToInsert: ArrayLik
     arrayCopyForward(target, origLen, arrToInsert, tailLen, insLen - tailLen);
     arrayCopyForward(target, start + insLen, target, start, tailLen);
     arrayCopyForward(target, start, arrToInsert, 0, tailLen);
-  }
-  else {
+  } else {
     arrayCopyForward(target, origLen, target, origLen - insLen, insLen);
     arrayCopyBackward(target, start + insLen, target, start, tailLen - insLen);
     arrayCopyForward(target, start, arrToInsert, 0, insLen);
@@ -411,8 +405,7 @@ export function sortedIndex<T>(array: ArrayLike<T>, elem: T, compareFunc: Compar
     mid = Math.floor((lo + hi) / 2);
     if (compareFunc(array[mid], elem) < 0) { // mid < elem
       lo = mid + 1;
-    }
-    else {
+    } else {
       hi = mid;
     }
   }
@@ -600,8 +593,7 @@ export function deepExtend(target: any, _varArgObjects: any): any {
         const tgt = target[name];
         if (Array.isArray(src)) {
           src = deepExtend(tgt && Array.isArray(tgt) ? tgt : [], src);
-        }
-        else if (typeof src === "object") {
+        } else if (typeof src === "object") {
           src = deepExtend(tgt && typeof tgt === "object" ? tgt : {}, src);
         }
       }
@@ -620,11 +612,9 @@ export function deepExtend(target: any, _varArgObjects: any): any {
 export function byteString(bytes: number): string {
   if (bytes < 1024) {
     return bytes + "B";
-  }
-  else if (bytes < 1024 * 1024) {
+  } else if (bytes < 1024 * 1024) {
     return (bytes / 1024).toFixed(1) + "KB";
-  }
-  else {
+  } else {
     return (bytes / 1024 / 1024).toFixed(1) + "MB";
   }
 }
@@ -753,12 +743,10 @@ export function sortedScan<T, U>(arrA: ArrayLike<T>, arrB: ArrayLike<U>,
     if (keyA !== null && (keyB === null || keyA < keyB)) {
       callback(a, null);
       i++;
-    }
-    else if (keyA === null || keyA > keyB) {
+    } else if (keyA === null || keyA > keyB) {
       callback(null, b);
       j++;
-    }
-    else {
+    } else {
       callback(a, b);
       i++;
       j++;
@@ -777,8 +765,7 @@ export function getReconnectTimeout(attemptNumber: number, intervals: ArrayLike<
     // Add an additional wait time if already at max attempts.
     const timeout = intervals[intervals.length - 1];
     return timeout + Math.random() * timeout;
-  }
-  else {
+  } else {
     return intervals[attemptNumber];
   }
 }
@@ -908,14 +895,12 @@ export async function timeoutReached(
   try {
     const res = await Promise.race([promise, delayPromise]);
     return res == timedOut;
-  }
-  catch (err) {
+  } catch (err) {
     if (options.rethrow) {
       throw err;
     }
     return false;
-  }
-  finally {
+  } finally {
     clearTimeout(timer!);
   }
 }
@@ -1021,8 +1006,7 @@ export function assertIsDefined<T>(name: string, value: T): asserts value is Non
 export async function retryOnce<T>(fn: () => Promise<T>, recover: (e: unknown) => Promise<void>): Promise<T> {
   try {
     return await fn();
-  }
-  catch (e) {
+  } catch (e) {
     await recover(e);
     return await fn();
   }

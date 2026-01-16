@@ -18,8 +18,7 @@ if (typeof TextDecoder !== "undefined") {
   stringToArray = function(str: string): Uint8Array {
     return enc.encode(str);
   };
-}
-else {
+} else {
   arrayToString = function(uint8Array: Uint8Array): string {
     return Buffer.from(uint8Array).toString("utf8");
   };

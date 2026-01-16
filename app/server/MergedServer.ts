@@ -73,8 +73,7 @@ export class MergedServer {
     if (ms.hasComponent("home")) {
       const userPort = checkUserContentPort();
       ms.flexServer.setServesPlugins(userPort !== undefined);
-    }
-    else {
+    } else {
       ms.flexServer.setServesPlugins(false);
     }
 
@@ -219,8 +218,7 @@ export class MergedServer {
           this._extraWorkers.push(server);
         }
       }
-    }
-    catch (e) {
+    } catch (e) {
       await this.close();
       throw e;
     }
@@ -279,8 +277,7 @@ export async function startMain() {
     }
 
     return server.flexServer;
-  }
-  catch (e) {
+  } catch (e) {
     log.error("mergedServer failed to start", e);
     process.exit(1);
   }

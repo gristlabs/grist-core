@@ -105,8 +105,7 @@ export const gristMarshal = {
     if (!accum.names || !accum.values) {
       accum.names = row.map(value => String(value));
       accum.values = row.map(() => []);
-    }
-    else {
+    } else {
       for (const [i, v] of row.entries()) {
         accum.values[i].push(v);
       }

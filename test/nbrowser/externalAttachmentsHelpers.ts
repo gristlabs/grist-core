@@ -70,8 +70,7 @@ function setEnvVars(vars: Record<string, string | undefined>) {
   for (const [varName, varValue] of Object.entries(vars)) {
     if (varValue === undefined) {
       delete process.env[varName];
-    }
-    else {
+    } else {
       process.env[varName] = varValue;
     }
   }

@@ -253,8 +253,7 @@ export class AttachmentsEditor extends NewBaseEditor {
       );
       this._isUploading.set(false);
       return this._add(uploadResult);
-    }
-    catch (error) {
+    } catch (error) {
       this._isUploading.set(false);
       throw error;
     }
@@ -273,8 +272,7 @@ export class AttachmentsEditor extends NewBaseEditor {
       );
       this._isUploading.set(false);
       return this._add(uploadResult);
-    }
-    catch (error) {
+    } catch (error) {
       this._isUploading.set(false);
       throw error;
     }
@@ -303,24 +301,19 @@ function renderContent(att: Attachment | null, readonly: boolean): HTMLElement {
       readonly ? null : cssDetails(t("Drop files here to attach.")),
       ...commonArgs,
     );
-  }
-  else if (att.hasPreview) {
+  } else if (att.hasPreview) {
     return dom("img", dom.attr("src", att.url), ...commonArgs);
-  }
-  else if (att.fileType.startsWith("video/")) {
+  } else if (att.fileType.startsWith("video/")) {
     return dom("video", dom.attr("src", att.inlineUrl), { autoplay: false, controls: true }, ...commonArgs);
-  }
-  else if (att.fileType.startsWith("audio/")) {
+  } else if (att.fileType.startsWith("audio/")) {
     return dom("audio", dom.attr("src", att.inlineUrl), { autoplay: false, controls: true }, ...commonArgs);
-  }
-  else if (att.fileType.startsWith("text/") || att.fileType === "application/json") {
+  } else if (att.fileType.startsWith("text/") || att.fileType === "application/json") {
     // Rendering text/html is risky. Things like text/plain and text/csv we could render though,
     // but probably not using object tag (which needs work to look acceptable).
     return dom("div", ...commonArgs,
       cssWarning(cssContent.cls(""), renderFileType(att.filename.get(), att.fileIdent),
         cssDetails(t("Preview not available."))));
-  }
-  else {
+  } else {
     // Setting 'type' attribute is important to avoid a download prompt from Chrome.
     return dom("object", { type: att.fileType }, dom.attr("data", att.inlineUrl), ...commonArgs,
       cssWarning(cssContent.cls(""), renderFileType(att.filename.get(), att.fileIdent),

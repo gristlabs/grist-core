@@ -324,8 +324,7 @@ function buildUsageProgressBar(options: MetricOptions) {
   if (currentValue === undefined) {
     ratioUsed = 0;
     percentUsed = 0;
-  }
-  else {
+  } else {
     ratioUsed = currentValue / (maximumValue || Infinity);
     percentUsed = Math.min(100, Math.floor(ratioUsed * 100));
   }

@@ -77,8 +77,7 @@ export class DocSnapshotPruner {
       snapshotIds = redundant.map(r => r.snapshot.snapshotId);
       await this._ext.remove(key, snapshotIds);
       log.info(`Pruned ${snapshotIds.length} versions of ${versions.length} for document ${key}`);
-    }
-    else {
+    } else {
       await this._ext.remove(key, snapshotIds);
       log.info(`Pruned ${snapshotIds.length} externally selected versions for document ${key}`);
     }
@@ -281,8 +280,7 @@ export class DocSnapshotInventory implements IInventory {
         return JSON.parse(await fse.readFile(fname, "utf8"));
       }
       return null;
-    }
-    catch (e) {
+    } catch (e) {
       return null;
     }
   }
@@ -305,8 +303,7 @@ export class DocSnapshotInventory implements IInventory {
       if (head) {
         this._normalizeMetadata(head);
         results.push(head);
-      }
-      else {
+      } else {
         log.debug(`When reconstructing history of ${key}, did not find ${snapshot.snapshotId}`);
       }
     }

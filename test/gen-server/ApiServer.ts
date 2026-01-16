@@ -161,8 +161,7 @@ describe("ApiServer", function() {
         orgs = resp.data.map((o: any) => o.name);
         if (users.includes("everyone")) {
           assert.include(orgs, "Abyss");
-        }
-        else {
+        } else {
           assert.notInclude(orgs, "Abyss");
         }
         resp = await axios.get(`${homeUrl}/o/deep/api/session/access/all`,
@@ -171,8 +170,7 @@ describe("ApiServer", function() {
         assert.equal(resp.status, 200);
         orgs = resp.data.orgs.map((o: any) => o.name);
         assert.notInclude(orgs, "Abyss");
-      }
-      finally {
+      } finally {
         // Cleanup: remove anon from org
         let resp = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, {
           delta: { users: removeUsers },
@@ -1142,8 +1140,7 @@ describe("ApiServer", function() {
       assert.equal(resp.status, 200);
       await axios.get(`${homeUrl}/api/docs/${did}/records`, chimpy);
       assert.equal(resp.status, 200);
-    }
-    finally {
+    } finally {
       chimpyUser.disabledAt = null;
       await chimpyUser.save();
     }
@@ -2637,8 +2634,7 @@ describe("ApiServer", function() {
             // Now its service account should no longer have access to resources
             const accessToOrgAfterBan = await axios.get(`${homeUrl}/api/orgs/${oid}`, serviceAccountReqConfig);
             assert.equal(accessToOrgAfterBan.status, 403, "Service Account should no longer list NASA org");
-          }
-          finally {
+          } finally {
             // Unban chimpy so the next tests work
             await axios.post(`${homeUrl}/api/users/${chimpyId}/enable`, { name: "Ham" }, ham);
           }
@@ -2660,8 +2656,7 @@ describe("ApiServer", function() {
       if (expected === "denied") {
         assert.equal(resp.status, 403);
         assert.deepEqual(resp.data, { error: "access denied" });
-      }
-      else {
+      } else {
         assert.equal(resp.status, 200);
         assert.deepEqual(resp.data, expected);
       }
@@ -2853,8 +2848,7 @@ describe("ApiServer", function() {
       // Assert that the response does not include the new document.
       assert.lengthOf(resp3.data, 2);
       assert.deepEqual(resp3.data[0].docs.map((doc: any) => doc.name), ["Lightweight CRM"]);
-    }
-    finally {
+    } finally {
       // Remove the 'Grist Templates' org.
       if (oid) {
         await axios.delete(`${homeUrl}/api/orgs/${oid}/force-delete`, support);

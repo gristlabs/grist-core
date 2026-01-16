@@ -193,8 +193,7 @@ export async function buildReassignModal(options: {
         return null;
       }
       return encodeObject(filteredOut);
-    }
-    else {
+    } else {
       return filteredOut[0] ?? null;
     }
   }
@@ -251,18 +250,15 @@ export async function buildReassignModal(options: {
               // We have two actions that will assign the same pet to two different owners.
               // We can't allow that, so we will remove this update from the action.
               valuesInAction[colId] = unassign(valuesInAction[colId], pet);
-            }
-            else {
+            } else {
               assignPet(colId, pet, newOwnerId);
             }
-          }
-          else {
+          } else {
             // If we will assign it to someone else in previous action, ignore this update.
             if (wasPetJustAssigned(petsCol.colId(), pet)) {
               valuesInAction[colId] = unassign(valuesInAction[colId], pet);
               continue;
-            }
-            else {
+            } else {
               assignPet(colId, pet, newOwnerId);
               problems.push(new Problem({
                 tableId: ownersTable,
@@ -278,8 +274,7 @@ export async function buildReassignModal(options: {
       }
 
       properActions.push(action);
-    }
-    else {
+    } else {
       throw new Error(`Unsupported action ${action[0]}`);
     }
   }
@@ -367,8 +362,7 @@ function* bulkToSingle(actions: DocAction[]): Iterable<DocAction> {
       for (let i = 0; i < rowIds.length; i++) {
         yield [name, tableId, rowIds[i], mapValues(colValues, values => values[i])];
       }
-    }
-    else {
+    } else {
       yield a;
     }
   }

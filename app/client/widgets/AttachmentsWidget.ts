@@ -188,8 +188,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
           viewInstance?.onRowResize([rowModel]);
         }
       }, 750);
-    }
-    else {
+    } else {
       states[rowId] = false;
       this._uploadingStatesObs.set({ ...states });
     }
@@ -211,8 +210,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
       });
       this._setUploadingState(rowId, false);
       return this._save(rowId, value, uploadResult);
-    }
-    catch (error) {
+    } catch (error) {
       this._setUploadingState(rowId, false);
       throw error;
     }
@@ -238,8 +236,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
       );
       this._setUploadingState(rowId, false);
       return this._save(rowId, value, uploadResult);
-    }
-    catch (error) {
+    } catch (error) {
       this._setUploadingState(rowId, false);
       throw error;
     }

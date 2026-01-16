@@ -33,8 +33,7 @@ function DateTextBox(field) {
     owner: this,
     read: function() { return this.mixedDateFormat() ? null : this.isCustomDateFormat() ? "Custom" : this.dateFormat(); },
     write: function(val) {
-      if (val === "Custom") { this.isCustomDateFormat.setAndSave(true); }
-      else {
+      if (val === "Custom") { this.isCustomDateFormat.setAndSave(true); } else {
         this.field.config.options.update({isCustomDateFormat: false, dateFormat: val});
         this.field.config.options.save();
       }

@@ -66,8 +66,7 @@ class Stepper<T> {
       const p = nextArrayFunc();
       if (p) {
         return p.then(() => this.setStart(step));
-      }
-      else {
+      } else {
         this.setStart(step);
       }
     }
@@ -221,8 +220,7 @@ class FinderImpl implements IFinder {
         this._pageStepper.index = 0;
         await this._pageStepper.value.openPage();
       }
-    }
-    else {
+    } else {
       // Else read all visible pages.
       const pages = this._gristDoc.docModel.visibleDocPages.peek();
       this._pageStepper.array = pages.map(p => new PageRecWrapper(p, this._openDocPageCB));
@@ -332,11 +330,9 @@ class FinderImpl implements IFinder {
     const skip = ["chart"].includes(this._sectionStepper.value.parentKey.peek());
     if (skip) {
       this._rowStepper.array = [];
-    }
-    else if (viewInstance) {
+    } else if (viewInstance) {
       this._rowStepper.array = viewInstance.sortedRows.getKoArray().peek() as number[];
-    }
-    else {
+    } else {
       // If we are searching through another page (not currently loaded), we will NOT have a
       // viewInstance, but we use the unsorted unfiltered row list, and if we find a match, the
       // _loadSection() method will load the page and we'll repeat the search with a viewInstance.
@@ -553,8 +549,7 @@ export class SearchModelImpl extends Disposable implements SearchModel {
       this.isRunning.set(true);
       finder.startPosition = finder.getCurrentPosition();
       await cb(finder);
-    }
-    finally {
+    } finally {
       this.isRunning.set(false);
       this.noMatch.set(!finder.matchFound);
     }

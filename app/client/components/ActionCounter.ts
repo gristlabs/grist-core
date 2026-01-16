@@ -107,8 +107,7 @@ export class ActionCounter extends dispose.Disposable {
         // Undoing an action we counted, so update count.
         this._changeCount(-1);
       }
-    }
-    else {
+    } else {
       this._countAction(action);
       this._changeCount(+1);
     }

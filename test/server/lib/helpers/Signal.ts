@@ -41,8 +41,7 @@ export function signal() {
     async waitAndReset() {
       try {
         return await this.wait();
-      }
-      finally {
+      } finally {
         this.reset();
       }
     },

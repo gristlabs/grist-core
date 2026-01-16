@@ -171,8 +171,7 @@ describe("VisibleFieldsConfig", function() {
     const checkDisabled = async (disabled: boolean) => {
       try {
         await findField("visible", /A/).find("input").click();
-      }
-      catch (e) {
+      } catch (e) {
         if (!disabled) {
           throw e;
         }
@@ -181,8 +180,7 @@ describe("VisibleFieldsConfig", function() {
       assert.equal(await driver.find(".test-vfc-visible-batch-buttons").isPresent(), !disabled);
       try {
         await findField("hidden", /B/).find("input").click();
-      }
-      catch (e) {
+      } catch (e) {
         if (!disabled) {
           throw e;
         }

@@ -62,8 +62,7 @@ async function setupDb() {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { createInitialDb } = require("test/gen-server/seed");
     await createInitialDb();
-  }
-  else {
+  } else {
     await updateDb();
   }
   const db = new HomeDBManager();
@@ -78,8 +77,7 @@ async function setupDb() {
         userId: db.getPreviewerUserId(),
         includeSupport: false,
       }, org));
-    }
-    catch (e) {
+    } catch (e) {
       if (!String(e).match(/organization not found/)) {
         throw e;
       }

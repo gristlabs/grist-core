@@ -97,8 +97,7 @@ export class FloatingEditor extends Disposable {
             detachNode(content);
             popupOwner.dispose();
             await editor.attach(content);
-          }
-          finally {
+          } finally {
             layer.dispose();
           }
         },
@@ -115,8 +114,7 @@ export class FloatingEditor extends Disposable {
 
       // Show the popup with the editor.
       popup.showPopup();
-    }
-    finally {
+    } finally {
       // Dispose the focus layer, we only needed it for the time when the dom was moved between parents.
       tempOwner.dispose();
     }
@@ -134,13 +132,11 @@ export class FloatingEditor extends Disposable {
     if (this._placement === "overlapping") {
       // Anchor the floating editor to the top-left corner of the refElement.
       left = rect.left;
-    }
-    else if (window.innerWidth - right >= FLOATING_POPUP_WIDTH_PX) {
+    } else if (window.innerWidth - right >= FLOATING_POPUP_WIDTH_PX) {
       // If there's enough space to the right of refElement, position the
       // floating editor there.
       left = right;
-    }
-    else {
+    } else {
       // Otherwise position it to the left of refElement; note that it may still
       // overlap if there isn't enough space on this side either.
       left = rect.left - FLOATING_POPUP_WIDTH_PX;

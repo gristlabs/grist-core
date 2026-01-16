@@ -59,8 +59,7 @@ export function relativeDatesOptions(value: IRangeBoundType, valueFormatter: (va
 function relativeDateOptionsSpec(value: IRangeBoundType): IRangeBoundType[] {
   if (value === undefined) {
     return DEFAULT_OPTION_LIST;
-  }
-  else if (isRelativeBound(value)) {
+  } else if (isRelativeBound(value)) {
     value = relativeDateToUnixTimestamp(value);
   }
 
@@ -121,8 +120,7 @@ export function getMatchingDoubleRelativeDate(
   const dateNow = now();
   const quantity = diffUnit(date, dateNow.clone(), unit);
   const m = dateNow.clone().add(quantity, unit);
-  if (option.endOf) { m.endOf(unit); m.startOf("day"); }
-  else { m.startOf(unit); }
+  if (option.endOf) { m.endOf(unit); m.startOf("day"); } else { m.startOf(unit); }
   const dayQuantity = diffUnit(date, m, "day");
   const res = [{ quantity, ...option }];
   // Only add a 2nd period when it is not moot.

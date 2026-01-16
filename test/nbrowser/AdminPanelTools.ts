@@ -27,14 +27,11 @@ export function sectionValue(sectionId: string) {
       const item = await driver.findWait(`.test-admin-panel-item-value-${sectionId}`, 100);
       if (await item.find(".test-admin-panel-value-label-success").isPresent()) {
         return "success";
-      }
-      else if (await item.find(".test-admin-panel-value-label-danger").isPresent()) {
+      } else if (await item.find(".test-admin-panel-value-label-danger").isPresent()) {
         return "danger";
-      }
-      else if (await item.find(".test-admin-panel-value-label-error").isPresent()) {
+      } else if (await item.find(".test-admin-panel-value-label-error").isPresent()) {
         return "error";
-      }
-      else {
+      } else {
         return null;
       }
     },

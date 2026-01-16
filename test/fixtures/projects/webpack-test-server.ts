@@ -84,8 +84,7 @@ export class WebpackServer implements IMochaServer {
   public async isServerReady(): Promise<boolean> {
     try {
       return (await fetch(this._serverUrl, { timeout: 1000 })).ok;
-    }
-    catch (err) {
+    } catch (err) {
       return false;
     }
   }

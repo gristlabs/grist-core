@@ -69,8 +69,7 @@ export class ConfigBackendAPI {
       // Check configuration, we now expect that this is enough to configure the provider.
       try {
         readGetGristComConfigFromSettings(newSettings);
-      }
-      catch (e) {
+      } catch (e) {
         // If still not configured, something is wrong with the provided key, but we don't know what exactly,
         // as the check function thinks nothing is configured, if the key was invalid it would have thrown earlier.
         throw new ApiError("Error configuring provider with the provided key.", 400);
@@ -97,8 +96,7 @@ export class ConfigBackendAPI {
       // Only one key is valid for now
       if (req.params.key === "edition") {
         resp.send({ value: getGlobalConfig().edition.get() });
-      }
-      else {
+      } else {
         resp.status(404).send({ error: "Configuration key not found." });
       }
     }));
@@ -112,8 +110,7 @@ export class ConfigBackendAPI {
         await getGlobalConfig().edition.set(config.edition);
 
         resp.send({ msg: "ok" });
-      }
-      else {
+      } else {
         resp.status(400).send({ error: "Invalid configuration key" });
       }
     }));
@@ -137,12 +134,10 @@ export class ConfigBackendAPI {
       try {
         configuredCheck(newSettings);
         record.isConfigured = true;
-      }
-      catch (e) {
+      } catch (e) {
         if (e instanceof NotConfiguredError) {
           record.isConfigured = false;
-        }
-        else {
+        } else {
           record.configError = (e as Error).message;
         }
       }

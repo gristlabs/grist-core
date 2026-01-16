@@ -110,8 +110,7 @@ export class AttachmentStoreProvider implements IAttachmentStoreProvider {
 async function isAttachmentStoreOptionAvailable(option: ICreateAttachmentStoreOptions) {
   try {
     return await option.isAvailable();
-  }
-  catch (error) {
+  } catch (error) {
     log.error(`Error checking availability of store option '${option}'`, error);
     return false;
   }

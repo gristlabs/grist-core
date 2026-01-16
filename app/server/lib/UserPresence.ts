@@ -39,8 +39,7 @@ export class UserPresence {
       const newPresenceSession = new UserPresenceSession(docSession);
       this._presenceSessionsById.set(id, newPresenceSession);
       this._broadcastUserPresenceSessionUpdate(newPresenceSession);
-    }
-    else {
+    } else {
       _existingPresenceSession.addDocSession(docSession);
     }
   }

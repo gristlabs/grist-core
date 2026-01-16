@@ -62,8 +62,7 @@ export async function backupSqliteDatabase(mainDb: SQLiteDB | undefined,
       // We'll we working from an already configured SqliteDB interface,
       // don't need to do anything special.
       _log.info(null, `copying ${src} (${label}) using source connection`);
-    }
-    else {
+    } else {
       // We need to open an interface to SQLite.
       await fromCallback((cb) => { db = new sqlite3.Database(dest, cb) as sqlite3.DatabaseWithBackup; });
       // Turn off protections that can slow backup steps.  If the app or OS
@@ -106,8 +105,7 @@ export async function backupSqliteDatabase(mainDb: SQLiteDB | undefined,
       if (mainDb?.isClosed()) { throw new Error("source closed"); }
       try {
         isCompleted = Boolean(await fromCallback(cb => backup!.step(PAGES_TO_BACKUP_PER_STEP, cb)));
-      }
-      catch (err) {
+      } catch (err) {
         testProgress?.({ action: "error", error: String(err) });
         if (String(err).match(/SQLITE_BUSY/)) {
           busyCount++;
@@ -122,8 +120,7 @@ export async function backupSqliteDatabase(mainDb: SQLiteDB | undefined,
         }
         prevError = err;
         if (backup.failed) { throw new Error(`backupSqliteDatabase (${src} ${label}): internal copy failed`); }
-      }
-      finally {
+      } finally {
         const stepTimeMs = Date.now() - stepStart;
         // Keep track of the longest step taken.
         if (stepTimeMs > maxStepTimeMs) { maxStepTimeMs = stepTimeMs; }
@@ -132,8 +129,7 @@ export async function backupSqliteDatabase(mainDb: SQLiteDB | undefined,
           // When backing up using the source connection, the last step does
           // more than simply copying pages.
           finalStepTimeMs = stepTimeMs;
-        }
-        else if (stepTimeMs > maxNonFinalStepTimeMs) {
+        } else if (stepTimeMs > maxNonFinalStepTimeMs) {
           // Keep track of the longest step taken that was just copying
           // pages. Since we bound the number of pages to copy, all else
           // being equal the timing of these steps should be fairly
@@ -149,15 +145,13 @@ export async function backupSqliteDatabase(mainDb: SQLiteDB | undefined,
       }
       await delay(PAUSE_BETWEEN_BACKUP_STEPS_IN_MS);
     }
-  }
-  finally {
+  } finally {
     mainDb?.unpause();
     if (backup) { await fromCallback(cb => backup!.finish(cb)); }
     testProgress?.({ action: "close", phase: "before" });
     try {
       if (db) { await fromCallback(cb => db!.close(cb)); }
-    }
-    catch (err) {
+    } catch (err) {
       _log.debug(null, `problem stopping copy of ${src} (${label}): ${err}`);
     }
     if (!success) {
@@ -165,8 +159,7 @@ export async function backupSqliteDatabase(mainDb: SQLiteDB | undefined,
       try {
         // NOTE: fse.remove succeeds also when the file does not exist.
         await fse.remove(dest);
-      }
-      catch (err) {
+      } catch (err) {
         _log.debug(null, `problem removing copy of ${src} (${label}): ${err}`);
       }
     }
@@ -210,8 +203,7 @@ export async function retryOnClose<T>(db: SQLiteDB | undefined,
   const wasClosed = db?.isClosed();
   try {
     return await op();
-  }
-  catch (err) {
+  } catch (err) {
     if (wasClosed || !db?.isClosed()) {
       throw err;
     }

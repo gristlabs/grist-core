@@ -59,16 +59,14 @@ export class SupportGristPage extends Disposable {
                 "This instance is opted in to telemetry. Only the site administrator has permission to change this.",
               )),
             ];
-          }
-          else {
+          } else {
             return [
               cssParagraph(t(
                 "This instance is opted out of telemetry. Only the site administrator has permission to change this.",
               )),
             ];
           }
-        }
-        else {
+        } else {
           return [
             cssParagraph(t(
               "Support Grist by opting in to telemetry, which helps us understand how the product \
@@ -104,8 +102,7 @@ is used, so that we can prioritize future improvements.",
               dom.on("click", () => this._optInToTelemetry.set(false)),
             ),
           ];
-        }
-        else {
+        } else {
           return [
             cssOptInButton(t("Opt in to Telemetry"),
               dom.on("click", () => this._optInToTelemetry.set(true)),
@@ -113,8 +110,7 @@ is used, so that we can prioritize future improvements.",
           ];
         }
       });
-    }
-    else {
+    } else {
       return cssOptInOutMessage(
         value !== "off" ?
           [t("You have opted in to telemetry. Thank you!"), " 🙏"] :

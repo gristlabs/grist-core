@@ -79,12 +79,10 @@ export class AlternateActions {
         if (undoOnDemand.length > 0) {
           onDemand.push(["ApplyUndoActions", undoOnDemand]);
         }
-      }
-      else if (isDataTableAction && isOnDemandAction && this.usesAlternateStorage(a[1] as string)) {
+      } else if (isDataTableAction && isOnDemandAction && this.usesAlternateStorage(a[1] as string)) {
         // Check whether the tableId belongs to an onDemand table.
         onDemand.push(a);
-      }
-      else {
+      } else {
         normal.push(a);
       }
     });

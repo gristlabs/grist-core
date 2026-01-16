@@ -284,8 +284,7 @@ export function setHoverTooltip(
       // If we're replacing a tooltip, open without delay.
       const delay = key && openTooltips.has(key) ? 0 : openDelay;
       resetTimer(open, delay);
-    }
-    else if (tipControl) {
+    } else if (tipControl) {
       // Already shown, reset to newly-shown state.
       clearTimer();
       if (timeoutMs) { resetTimer(close, timeoutMs); }
@@ -297,8 +296,7 @@ export function setHoverTooltip(
   if (openOnClick) {
     // If requested, re-open on click.
     dom.onElem(refElem, "click", () => { close(); open(); });
-  }
-  else if (closeOnClick) {
+  } else if (closeOnClick) {
     // If requested, close on click.
     dom.onElem(refElem, "click", () => { close(); });
   }

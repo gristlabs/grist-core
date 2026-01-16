@@ -63,8 +63,7 @@ describe("DocWorkerLoadTracker", function() {
         registerCleanup(cleanup);
         Deps[depsProperty] = path;
         await fs.writeFile(path, value.toString(), "utf-8");
-      }
-      else {
+      } else {
         Deps[depsProperty] = undefined;
       }
     }

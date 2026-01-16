@@ -133,8 +133,7 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
       if (otherAg.state) {
         otherAg.state(ag.isUndo ? state.UNDONE : state.DEFAULT);
       }
-    }
-    else {
+    } else {
       // Any (non-link) action.
       if (ag.fromSelf) {
         // Bury all undos immediately preceding this action since they can no longer
@@ -147,8 +146,7 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
           if (prevAction.fromSelf && prevState === state.DEFAULT) {
             // When a normal action is found, stop looking to bury previous actions.
             break;
-          }
-          else if (prevAction.fromSelf && prevState === state.UNDONE) {
+          } else if (prevAction.fromSelf && prevState === state.UNDONE) {
             // The previous action was undone, so now it has become buried.
             prevAction.state(state.BURIED);
           }
@@ -194,13 +192,11 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
       for (const name of Object.keys(prev.tableFilters!)) {
         if (name.startsWith("-")) {
           // skip
-        }
-        else if (renames.has(name)) {
+        } else if (renames.has(name)) {
           const newName = renames.get(name) || defunctTableName(name);
           filt[newName] = prev.tableFilters![name];
           filt[newName](newName);   // Update the observable with the new name.
-        }
-        else {
+        } else {
           filt[name] = prev.tableFilters![name];
         }
       }
@@ -383,8 +379,7 @@ export abstract class ActionLogPart extends Disposable {
     const context = contextObs.peek();
     if (context[table]) {
       await this._resetContext(contextObs, table, context);
-    }
-    else {
+    } else {
       await this._setContext(contextObs, table, context);
     }
   }
@@ -414,16 +409,13 @@ export abstract class ActionLogPart extends Disposable {
     if (!pre && !post) {
       // very boring before + after values :-)
       return "";
-    }
-    else if (pre && !post) {
+    } else if (pre && !post) {
       // this is a cell that was removed
       return dom("span.action_log_cell_remove", pre[0]);
-    }
-    else if (post && (pre === null || (pre[0] === null || pre[0] === ""))) {
+    } else if (post && (pre === null || (pre[0] === null || pre[0] === ""))) {
       // this is a cell that was added, or modified from a previously empty value
       return dom("span.action_log_cell_add", post[0]);
-    }
-    else if (pre && post) {
+    } else if (pre && post) {
       // a modified cell
       return dom("div",
         dom("span.action_log_cell_remove.action_log_cell_pre", pre[0]),

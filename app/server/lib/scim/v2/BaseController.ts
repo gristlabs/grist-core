@@ -46,8 +46,7 @@ export class BaseController {
     try {
       this.checkAccess(context);
       return await cb();
-    }
-    catch (err) {
+    } catch (err) {
       if (err instanceof ApiError) {
         this.logger.error(null, " ApiError: ", err.status, err.message);
         if (err.status === 409) {

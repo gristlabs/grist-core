@@ -242,8 +242,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
         this.undoState.set(null);
         if (!urlId) {
           this._openerHolder.clear();
-        }
-        else {
+        } else {
           FlowRunner.create(
             this._openerHolder,
             (flow: AsyncFlow) => this.appModel.notifier.slowNotification(this._openDoc(flow, urlId, {
@@ -268,8 +267,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
     this.autoDispose(this._isUnsavedFork.addListener((isUnsavedFork) => {
       if (isUnsavedFork) {
         UnsavedChange.create(this._unsavedChangeHolder);
-      }
-      else {
+      } else {
         this._unsavedChangeHolder.clear();
       }
     }));
@@ -299,8 +297,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
     this.currentProposal.set(proposal);
     if (proposal === "empty" || proposal.status.status === "retracted") {
       this.gristDoc.get()?.getActionCounter().setMark();
-    }
-    else {
+    } else {
       this.gristDoc.get()?.getActionCounter().setMark(proposal.comparison.comparison?.left);
     }
     return proposal;
@@ -338,8 +335,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
           { ...urlState().state.get(), ...docUrl(newDoc) },
           { replace: true, avoidReload: true },
         );
-      }
-      else {
+      } else {
         // This error won't be shown to user (caught by editableLabel).
         throw new Error(`doc name should not be empty`);
       }
@@ -454,8 +450,7 @@ contact the document owners to attempt a document recovery. [{{error}}]", { erro
           forkId: fork.id,
           forkUserId: this.appModel.currentValidUser!.id,
         });
-      }
-      else {
+      } else {
         // Otherwise, create a new fork and prepare to navigate to it.
         const forkResult = await this._api.getDocAPI(doc.id).fork();
         flow.checkIfCancelled();
@@ -466,8 +461,7 @@ contact the document owners to attempt a document recovery. [{{error}}]", { erro
       await this._updateCurrentDoc(forkUrlId, "default");
       flow.checkIfCancelled();
       doc = this.currentDoc.get()!;
-    }
-    else {
+    } else {
       if (doc.urlId && doc.urlId !== urlId) {
         // Replace the URL to reflect the canonical urlId.
         await this.updateUrlNoReload(doc.urlId, doc.openMode);
@@ -605,14 +599,12 @@ function buildDocInfo(doc: Document, mode: OpenDocMode | undefined): DocInfo {
       // mode. Since the document's 'openMode' has no effect, don't bother trying
       // to set it here, as it'll potentially be confusing for other code reading it.
       openMode = "default";
-    }
-    else if (!isFork && (type === DOCTYPE_TEMPLATE || shouldSuggest)) {
+    } else if (!isFork && (type === DOCTYPE_TEMPLATE || shouldSuggest)) {
       // Templates should always open in fork mode by default.
       // A doc soliciting suggestions should also open in fork mode
       // when user doesn't have write access.
       openMode = "fork";
-    }
-    else {
+    } else {
       // Try to use the document's 'openMode' if it's set.
       openMode = doc.options?.openMode ?? "default";
     }
@@ -646,8 +638,7 @@ async function retryOnNetworkError<R>(flow: AsyncFlow, func: () => Promise<R>): 
   for (let attempt = 0; ; attempt++) {
     try {
       return await func();
-    }
-    catch (err) {
+    } catch (err) {
       // fetch() promises that network errors are reported as TypeError. We'll accept NetworkError too.
       if (err.name !== "TypeError" && err.name !== "NetworkError") {
         throw err;

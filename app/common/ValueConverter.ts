@@ -31,14 +31,12 @@ export class ValueConverter {
       if (value.length === 1) {
         // Empty list: ['L']
         return null;
-      }
-      else if (value.length > 2 || this._isTargetText) {
+      } else if (value.length > 2 || this._isTargetText) {
         // List with multiple values, or the target type is text.
         // Since we're converting to just one value,
         // format the whole thing as text, which is an error for most types.
         return this.formatter.formatAny(value);
-      }
-      else {
+      } else {
         // Singleton list: ['L', value]
         // Convert just that one value.
         value = value[1];
@@ -111,8 +109,7 @@ class ReferenceListConverter extends ListConverter {
       if (typeof value === "string") {
         // Failed to parse one of the references, so return a raw string for the whole thing
         return raw;
-      }
-      else {
+      } else {
         // value is a lookup tuple: ['l', value, options]
         result.push(value[1]);
         lookupColumn = value[2].column;
@@ -247,17 +244,14 @@ export function convertValues(
     if (refToRefList && typeof actualValue === "number") {
       if (actualValue === 0) {
         return null;
-      }
-      else {
+      } else {
         return ["L", actualValue];
       }
-    }
-    else if (refListToRef && isList(actualValue)) {
+    } else if (refListToRef && isList(actualValue)) {
       if (actualValue.length === 1) {
         // Empty list: ['L']
         return 0;
-      }
-      else if (actualValue.length === 2) {
+      } else if (actualValue.length === 2) {
         // Singleton list: ['L', rowId]
         return actualValue[1];
       }

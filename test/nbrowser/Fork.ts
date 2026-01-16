@@ -94,8 +94,7 @@ describe("Fork", function() {
             if (mode === "anonymous") {
               visitedSites = ["@Guest"];
               await personal.anon.login();
-            }
-            else {
+            } else {
               visitedSites = ["Test Grist", `@${personal.name}`];
               await personal.login();
             }
@@ -115,8 +114,7 @@ describe("Fork", function() {
             assert.include(visitedSites, await driver.find(".test-dm-org").getText());
             if (content === "imported") {
               assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), "999");
-            }
-            else {
+            } else {
               assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), "");
             }
             // editing should work
@@ -654,8 +652,7 @@ describe("Fork", function() {
           assert.equal(await gu.findOpenMenu().isDisplayed(), true);
           await assert.isRejected(driver.findWait(".test-modal-dialog", 500), /Waiting for element/);
           await gu.refreshDismiss();
-        }
-        finally {
+        } finally {
           await api.updateDocPermissions(doc.id, { users: { [altSession.email]: null } });
         }
       });

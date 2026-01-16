@@ -65,18 +65,15 @@ export function gatherAttachmentIds(
       // how it interprets material in attachment cells.
       if (typeof v === "number") {
         attIds.add(v);
-      }
-      else if (Array.isArray(v)) {
+      } else if (Array.isArray(v)) {
         for (const p of v) {
           if (typeof p === "number") {
             attIds.add(p);
           }
         }
-      }
-      else if (typeof v === "boolean" || v === null) {
+      } else if (typeof v === "boolean" || v === null) {
         // Nothing obvious to do here.
-      }
-      else if (isNumber(v)) {
+      } else if (isNumber(v)) {
         attIds.add(Math.round(parseFloat(v)));
       }
     }

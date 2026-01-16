@@ -25,8 +25,7 @@ export function CardContextMenu({
       menuItemCmd(allCommands.insertRecordAfter, t("Insert card"),
         dom.cls("disabled", disableInsert)),
     );
-  }
-  else {
+  } else {
     result.push(
       menuItemCmd(allCommands.insertRecordBefore, t("Insert card above"),
         dom.cls("disabled", disableInsert)),

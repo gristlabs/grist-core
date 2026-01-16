@@ -272,8 +272,7 @@ export class RegionFocusSwitcher extends Disposable {
       // don't specify a section id here: we just want to focus back the view layout,
       // we don't specifically know which section, the view layout will take care of that.
       this._focusRegion({ type: "section" }, { initiator: { type: "mouse", event } });
-    }
-    else {
+    } else {
       this._focusRegion({ type: "panel", id: targetRegionId as Panel }, { initiator: { type: "mouse", event } });
     }
   }
@@ -318,8 +317,7 @@ export class RegionFocusSwitcher extends Disposable {
         if (activeElementIsInPanel) {
           this._prevFocusedElements[current.id] = null;
         }
-      }
-      else {
+      } else {
         this.reset();
       }
       return;
@@ -378,14 +376,12 @@ export class RegionFocusSwitcher extends Disposable {
 
     // If clicking on a panel: only make sure view layout commands are disabled,
     // making the Tab key available for normal browser navigation (see `escapeViewLayout`)
-    }
-    else if (mouseEvent && isPanel && panelElement && gristDoc) {
+    } else if (mouseEvent && isPanel && panelElement && gristDoc) {
       escapeViewLayout(gristDoc, !!(mouseEvent.target as Element)?.closest(`[${ATTRS.regionId}="right"]`));
 
     // If clicking or kb-focusing a section: focus the section,
     // enabling back the view layout commands (see `focusSection`).
-    }
-    else if (current.region?.type === "section" && gristDoc) {
+    } else if (current.region?.type === "section" && gristDoc) {
       focusSection(current.region, gristDoc);
     }
 
@@ -536,8 +532,7 @@ const focusPanel = (panel: PanelRegion, child: HTMLElement | null, gristDoc: Gri
       child.removeAttribute(ATTRS.focusedElement);
     }, { once: true });
     child.focus?.();
-  }
-  else {
+  } else {
     // No child to focus found: just focus the panel
     focusPanelElement(panelElement);
   }

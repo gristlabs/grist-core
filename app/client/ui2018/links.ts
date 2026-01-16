@@ -96,14 +96,12 @@ export function makeLinks(text: string) {
     for (const { value, isLink } of findLinks(text)) {
       if (isLink) {
         domElements.push(gristIconLink(value));
-      }
-      else {
+      } else {
         domElements.push(value);
       }
     }
     return domElements;
-  }
-  catch (ex) {
+  } catch (ex) {
     // In case when something went wrong, simply log and return original text, as showing
     // links is not that important.
     console.warn("makeLinks failed", ex);
@@ -132,8 +130,7 @@ function withAclAsUserParam(href: string) {
       url.searchParams.set("aclAsUser_", aclAsUser);
     }
     hrefWithParams = url.href;
-  }
-  catch {
+  } catch {
     return href;
   }
 

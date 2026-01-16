@@ -133,16 +133,13 @@ function removeView(activeDoc: GristDoc, viewId: number, pageName: string) {
       // Errors are handled in the dialog.
       if (option === "data") {
         await docData.sendActions(removeAll(), `Remove page ${pageName} with tables ${tableNames}`);
-      }
-      else if (option === "page") {
+      } else if (option === "page") {
         await docData.sendActions(removePage(), `Remove only page ${pageName}`);
-      }
-      else {
+      } else {
         // This should not happen, as save should be disabled when no option is selected.
       }
     });
-  }
-  else {
+  } else {
     return docData.sendActions(removePage(), `Remove only page ${pageName}`);
   }
 }

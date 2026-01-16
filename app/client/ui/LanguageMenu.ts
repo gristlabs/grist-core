@@ -74,8 +74,7 @@ export function translateLocale(locale: string) {
     // This API might not be available in all browsers.
     const languageNames = new Intl.DisplayNames([locale], { type: "language" });
     return languageNames.of(locale) || null;
-  }
-  catch (err) {
+  } catch (err) {
     return null;
   }
 }

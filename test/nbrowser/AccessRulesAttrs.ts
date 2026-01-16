@@ -211,8 +211,7 @@ async function checkError(ruleSet: WebElement, partNum: number, errorRegExp: Reg
   const elem = ruleSet.find(`.test-rule-part:nth-child(${partNum}) .test-rule-error`);
   if (errorRegExp) {
     assert.match(await elem.getText(), errorRegExp);
-  }
-  else {
+  } else {
     assert.equal(await elem.isPresent(), false);
   }
 }

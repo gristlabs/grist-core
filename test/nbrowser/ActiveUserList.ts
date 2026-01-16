@@ -186,8 +186,7 @@ describe("ActiveUserList", async function() {
 
     if (currentWindow !== window.handle) {
       await driver.switchTo().window(currentWindow);
-    }
-    else {
+    } else {
       await driver.switchTo().window(mainWindow.handle);
     }
   }

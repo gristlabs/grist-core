@@ -19,8 +19,7 @@ export async function waitForIt(fn: () => MaybePromise<any>, maxWaitMs: number =
     try {
       await fn();
       return;
-    }
-    catch (e) {
+    } catch (e) {
       if (timePassed() > maxWaitMs) {
         throw e;
       }

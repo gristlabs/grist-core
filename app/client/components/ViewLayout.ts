@@ -229,8 +229,7 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
       // If we are closing popup, resize all sections.
       if (!sectionId) {
         this._onResize();
-      }
-      else {
+      } else {
         // Otherwise resize only active one (the one in popup).
         const section = this.viewModel.activeSection.peek();
         if (!section.isDisposed() && section.id.peek()) {
@@ -279,8 +278,7 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
     this._freeze = true;
     try {
       return await promise;
-    }
-    finally {
+    } finally {
       this._freeze = false;
       this.rebuildLayout(this.layoutSpec.peek());
     }
