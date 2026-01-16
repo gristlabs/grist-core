@@ -43,6 +43,9 @@ export async function collectTableSchemaInFrictionlessFormat(
   if (!activeDoc.docData) {
     throw new Error("No docData in active document");
   }
+  if (!tableId) {
+    throw new ApiError("tableId parameter is required", 400);
+  }
 
   // Look up the table to make a CSV from.
   const settings = activeDoc.docData.docSettings();

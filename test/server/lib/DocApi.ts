@@ -3287,6 +3287,13 @@ function testDocApi(settings: {
     assert.notEqual(resp.data, null);
   });
 
+  it("GET /docs/{did}/download/xlsx returns 200 if tableId is missing and header present", async function() {
+    const resp = await axios.get(
+      `${serverUrl}/api/docs/${docIds.TestDoc}/download/xlsx?header=label`, chimpy);
+    assert.equal(resp.status, 200);
+    assert.notEqual(resp.data, null);
+  });
+
   it("POST /workspaces/{wid}/import handles empty filenames", async function() {
     if (!process.env.TEST_REDIS_URL) {
       this.skip();
