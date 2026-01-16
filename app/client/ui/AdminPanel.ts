@@ -118,6 +118,7 @@ export class AdminPanel extends Disposable {
 
 class AdminInstallationPanel extends Disposable implements AdminPanelControls {
   public needsRestart = Observable.create(this, false);
+  public needsSessionClear = Observable.create(this, false);
   public supportsRestart = Observable.create(this, true);
   private _supportGrist = SupportGristPage.create(this, this._appModel);
   private _toggleEnterprise = ToggleEnterpriseWidget.create(this, this._appModel.notifier);
@@ -177,14 +178,23 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
       {
         explanation: dom("div",
           dom("p", t("Are you sure you want to restart Grist?")),
-          dom("p", t("This will apply any pending changes and briefly interrupt access for all users.")),
+          dom("p",
+            dom.maybe(use => !use(this.needsSessionClear), () => [
+              t("This will apply any pending changes and briefly interrupt access for all users."),
+            ]),
+            dom.maybe(this.needsSessionClear, () => [
+              t("This will also clear all user sessions, requiring everyone to log in again."),
+            ]),
+          ),
         ),
       },
     );
   }
 
   private async _performRestart() {
-    await this._configAPI.restartServer();
+    await this._configAPI.restartServer(
+      this.needsSessionClear.get(),
+    );
     await reloadSafe();
   }
 
