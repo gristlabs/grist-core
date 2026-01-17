@@ -108,8 +108,13 @@ class ErrorWithUserFriendlyMessage extends Error {
  * Interface for OIDC configuration.
  */
 export interface OIDCConfig {
-  /** Host at which our /oauth2 endpoint will live (e.g., https://your-domain.com). */
-  readonly spHost: string;
+  /**
+   * Host at which our /oauth2 endpoint will live (e.g., https://your-domain.com).
+   * This is optional; if not provided, the origin of the request will be used.
+   * Notice: that the configuration reader actually requires this to be set explicitly,
+   * but the OIDCConfig interface allows it to be optional for other providers like (e.g., getgrist.com).
+   */
+  spHost?: string;
   /** The issuer URL for the IdP (Identity Provider). */
   readonly issuerUrl: string;
   /** The client ID for the application, as registered with the IdP. */

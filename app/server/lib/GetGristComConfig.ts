@@ -60,12 +60,12 @@ export function readGetGristComConfigFromSettings(settings: AppSettings): OIDCCo
  * Notice that this doesn't come from the GRIST_GETGRISTCOM_SECRET, that secret contains only upstream OIDC provider
  * information.
  */
-export function getGetGristComHost(settings = appSettings): string {
+export function getGetGristComHost(settings = appSettings): string | undefined {
   return settings.section("login")
     .section("system")
     .section(GETGRIST_COM_PROVIDER_KEY)
     .flag("spHost")
-    .requireString({
+    .readString({
       envVar: "GRIST_GETGRISTCOM_SP_HOST",
       defaultValue: process.env.APP_HOME_URL,
     });
@@ -80,6 +80,7 @@ async function getLoginSystem(settings: AppSettings): Promise<GristLoginSystem> 
 
   return {
     async getMiddleware(gristServer: GristServer) {
+      oidcConfig.spHost ||= gristServer.getOwnUrl();
       const oidcBuilder = await OIDCBuilder.build(gristServer.sendAppPage.bind(gristServer), oidcConfig);
       return {
         getLoginRedirectUrl: oidcBuilder.getLoginRedirectUrl.bind(oidcBuilder),

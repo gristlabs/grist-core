@@ -225,6 +225,7 @@ Please log in as an administrator.`)),
                 testId("admin-panel-restart-unsupported-warning"),
               ),
             ),
+            dom.hide(this.supportsRestart),
           ),
           dom("p", t("Restart Grist to apply pending changes or resolve issues.")),
           bigPrimaryButton(

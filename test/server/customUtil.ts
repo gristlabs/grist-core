@@ -74,14 +74,14 @@ export async function serveSomething(setup: (app: express.Express) => void, port
 /**
  * Creates a promise like object that can be resolved from outside.
  */
-export class Defer {
-  private _resolve!: () => void;
+export class Defer<T = void> {
+  private _resolve!: (val: T) => T;
   private _reject!: (err: any) => void;
-  private _promise: Promise<void>;
+  private _promise: Promise<T>;
 
   constructor() {
-    this._promise = new Promise<void>((resolve, reject) => {
-      this._resolve = resolve;
+    this._promise = new Promise<T>((resolve, reject) => {
+      this._resolve = resolve as any;
       this._reject = reject;
     });
   }
@@ -90,8 +90,8 @@ export class Defer {
     return this._promise.then.bind(this._promise);
   }
 
-  public resolve() {
-    this._resolve();
+  public resolve(val: T) {
+    this._resolve(val);
   }
 
   public reject(err: any) {
