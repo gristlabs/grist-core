@@ -10,6 +10,7 @@ import { dom, DomContents, DomElementArg, IDisposableOwner, Observable, styled }
 
 export interface AdminPanelControls {
   needsRestart: Observable<boolean>;
+  needsSessionClear: Observable<boolean>;
   supportsRestart: Observable<boolean>;
   restartGrist: () => Promise<void>;
 }
