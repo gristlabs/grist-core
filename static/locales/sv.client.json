@@ -1,1 +1,40 @@
-{}
+{
+    "ACUserManager": {
+        "Enter email address": "Ange e-postadress",
+        "Invite new member": "Bjud in ny medlem",
+        "We'll email an invite to {{email}}": "Vi kommer att skicka en inbjudan till {{email}}"
+    },
+    "AccessRules": {
+        "Add column rule": "Lägg till kolumnregel",
+        "Add Default Rule": "Lägg till standardregel",
+        "Add table rules": "Lägg till tabellregler",
+        "Add user attributes": "Lägg till användarattribut",
+        "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Tillåt alla att kopiera hela dokumentet, eller visa hela dokumentet i fippel läge.\nAnvändbart för exempel och mallar, men inte för känslig data.",
+        "Allow everyone to view Access Rules.": "Tillåt vem som helst att se åtkomstregler.",
+        "Attribute name": "Attributnamn",
+        "Attribute to Look Up": "Attribut att slå upp",
+        "Checking...": "Kontrollerar…",
+        "Condition": "Villkor",
+        "Default rules": "Standardregler",
+        "Delete table rules": "Radera tabell regler",
+        "Enter Condition": "Ange villkor",
+        "Everyone": "Alla",
+        "Everyone Else": "Alla andra",
+        "Invalid": "Ogiltig",
+        "Lookup Column": "Slå upp Kollumn",
+        "Lookup Table": "Slå upp tabell",
+        "Permission to access the document in full when needed": "Behörighet att få tillgång till dokumentet i sin helhet vid behov",
+        "Permission to view Access Rules": "Behörighet att visa åtkomstregler",
+        "Permissions": "Behörigheter",
+        "Remove column {{- colId }} from {{- tableId }} rules": "Radera kolumn {{- colId }} från regler för {{- tableId }}",
+        "Remove {{- tableId }} rules": "Radera reglerna för {{- tableId }}",
+        "Remove {{- name }} user attribute": "Radera användarattrubutet {{- name }}",
+        "Reset": "Återställ",
+        "Rules for table ": "Regler för tabell ",
+        "Save": "Spara",
+        "Saved": "Sparad",
+        "Special rules": "Specialregler",
+        "Type message to display when this rule blocks an action…": "Skriv meddelande att visa när denna regel hindrar en åtgärd…",
+        "User Attributes": "Användarattribut"
+    }
+}
