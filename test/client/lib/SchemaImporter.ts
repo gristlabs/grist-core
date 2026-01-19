@@ -1,11 +1,11 @@
-import { getExistingDocSchema } from "app/client/lib/AirtableImporter";
+import { getExistingDocSchema } from "app/client/lib/SchemaImporter";
 import { DocAPI } from "app/common/UserAPI";
 import clientUtil from "test/client/clientUtil";
 
 import { assert } from "chai";
 import sinon from "sinon";
 
-describe("AirtableImporter", function() {
+describe("SchemaImporter", function() {
   clientUtil.setTmpMochaGlobals();
 
   describe("getExistingDocSchema", () => {
