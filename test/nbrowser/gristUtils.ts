@@ -2090,11 +2090,14 @@ namespace gristUtils {
  * clickRemove was set and no modal popped up.
  */
   export async function saveAcls(
-    { sharePublicly = false, clickRemove = false}: { sharePublicly?: boolean, clickRemove?: boolean } = {},
+    { sharePubliclyDialog = false, clickRemove = false}: { sharePubliclyDialog?: boolean, clickRemove?: boolean } = {},
   ) {
     await driver.findWait(".test-um-confirm", 3000).click();
     let clickedRemove: boolean = false;
-    if (sharePublicly) {
+    if (sharePubliclyDialog) {
+      await driver.findWait(".test-modal-dialog", 1000);
+      assert.include(await driver.find(".test-modal-title").getText(), "sharing publicly",
+        "The modal alerting about sharing the doc public should have appeared");
       await driver.findWait(".test-modal-confirm", 3000).click();
     }
     await driver.wait(async () => {

@@ -890,15 +890,12 @@ describe("UserManager", function() {
     const changePublicAccess = async (value: "On" | "Off") => {
       await gu.editDocAcls();
       const publicAccess = await driver.find(".test-um-public-access");
+      const sharingPublicly = value === "On";
       // Check prior to the change that the previous value was the contrary.
-      assert.equal(await publicAccess.getText(), value === "On" ? "Off" : "On");
+      assert.equal(await publicAccess.getText(), sharingPublicly ? "Off" : "On");
       await publicAccess.click();
       await driver.findContentWait(".test-um-public-option", value, 1000).click();
-      await driver.find(".test-um-confirm").click();
-    };
-
-    const waitForUserModalToDisappear = async ()  => {
-      await driver.wait(async () => !await driver.find(".test-um-members").isPresent(), 500);
+      await gu.saveAcls({ sharePubliclyDialog: sharingPublicly });
     };
 
     const session = await gu.session().teamSite.login(owner);
@@ -910,19 +907,12 @@ describe("UserManager", function() {
     await gu.openDocAs(owner, doc.id);
 
     await changePublicAccess("On");
-    await driver.findWait(".test-modal-dialog", 1000);
-    assert.include(await driver.find(".test-modal-title").getText(), "sharing publicly",
-      "The modal alerting about sharing the doc public should have appeared");
-
-    await driver.find(".test-modal-confirm").click();
-    await waitForUserModalToDisappear();
 
     // Let's check whether anonymous user can access to the doc now
     await gu.openDocAs(anon, doc.id, { wait: true });
     await gu.openDocAs(owner, doc.id);
 
     await changePublicAccess("Off");
-    await waitForUserModalToDisappear();
     // Now anonymous access should be disabled again
     await checkAnonAccessDenied(doc.id);
   });
