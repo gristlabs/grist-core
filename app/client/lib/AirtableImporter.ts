@@ -1,14 +1,12 @@
 import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
+import { getExistingDocSchema } from "app/client/lib/SchemaImporter";
 import { AirtableAPI } from "app/common/airtable/AirtableAPI";
 import { gristDocSchemaFromAirtableSchema } from "app/common/airtable/AirtableImporter";
 import {
   DocSchemaImportTool,
-  formatDocSchemaSqlResult,
-  GET_DOC_SCHEMA_SQL, ImportSchemaTransformParams,
+  ImportSchemaTransformParams,
   transformImportSchema, validateImportSchema,
 } from "app/common/DocSchemaImport";
-import { DocSchemaSqlResultChecker, ExistingDocSchema } from "app/common/DocSchemaImportTypes";
-import { DocAPI } from "app/common/UserAPI";
 
 /*
 Importer will:
@@ -95,15 +93,4 @@ export async function runAirtableMigration(
 
   console.log("Final real doc schema");
   console.log(await getExistingDocSchema(docApi));
-}
-
-export async function getExistingDocSchema(docApi: DocAPI): Promise<ExistingDocSchema> {
-  const result = await docApi.sql(GET_DOC_SCHEMA_SQL);
-  const formattedResult = result.records.map(record => record.fields);
-  if (DocSchemaSqlResultChecker.test(formattedResult)) {
-    return formatDocSchemaSqlResult(formattedResult);
-  }
-  // This should always throw, but typescript doesn't know that.
-  DocSchemaSqlResultChecker.check(formattedResult);
-  throw new Error("Invalid schema format - this error should not be hit");
 }
