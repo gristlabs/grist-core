@@ -8,6 +8,15 @@ export const AirtableAPIOptions = t.iface([], {
   "apiKey": "string",
 });
 
+export const AirtableListBasesResponse = t.iface([], {
+  "bases": t.array(t.iface([], {
+    "id": "string",
+    "name": "string",
+    "permissionLevel": t.array(t.union(t.lit("none"), t.lit("read"), t.lit("comment"), t.lit("edit"), t.lit("create"))),
+  })),
+  "offset": t.opt("string"),
+});
+
 export const AirtableBaseSchema = t.iface([], {
   "tables": t.array("AirtableTableSchema"),
 });
@@ -15,6 +24,7 @@ export const AirtableBaseSchema = t.iface([], {
 export const AirtableTableSchema = t.iface([], {
   "id": "string",
   "name": "string",
+  "primaryFieldId": "string",
   "fields": t.array("AirtableFieldSchema"),
 });
 
@@ -22,11 +32,14 @@ export const AirtableFieldSchema = t.iface([], {
   "id": "string",
   "name": "string",
   "type": "string",
-  "options": t.opt("any"),
+  "options": t.opt(t.iface([], {
+    [t.indexKey]: "any",
+  })),
 });
 
 const exportedTypeSuite: t.ITypeSuite = {
   AirtableAPIOptions,
+  AirtableListBasesResponse,
   AirtableBaseSchema,
   AirtableTableSchema,
   AirtableFieldSchema,

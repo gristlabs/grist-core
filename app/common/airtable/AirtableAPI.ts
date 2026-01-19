@@ -84,5 +84,5 @@ export interface AirtableFieldSchema {
   id: string;
   name: string;
   type: string;
-  options?: Record<string, any>;
+  options?: { [key: string]: any };
 }
