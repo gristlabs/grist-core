@@ -10,6 +10,12 @@ export interface AirtableAPIOptions {
 // TODO - Improve error handling. Airtable's API throws if an error response is returned,
 //        but we don't want to show that directly to users.
 
+/**
+ * Simplifies access to Airtable's API.
+ * - Allows easy access to meta methods (e.g. schema retrieval, listing bases) that aren't exposed
+ *   by the "airtable" package.
+ * - Applies type checking and assertions to the responses
+ */
 export class AirtableAPI {
   private readonly _airtable: Airtable;
   private _metaRequester: Airtable.Base;
