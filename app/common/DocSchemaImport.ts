@@ -307,7 +307,7 @@ export function formatDocSchemaSqlResult(result: DocSchemaSqlResult): ExistingDo
  * "Warnings" here means anything the code thinks is important to show to the user, and may be
  * purely informational or a significant error.
  */
-interface DocSchemaImportWarning {
+export interface DocSchemaImportWarning {
   message: string;
 }
 

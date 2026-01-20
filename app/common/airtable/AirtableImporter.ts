@@ -3,7 +3,12 @@ import {
   AirtableFieldSchema,
   AirtableTableSchema,
 } from "app/common/airtable/AirtableAPI";
-import { ColumnImportSchema, FormulaTemplate, ImportSchema } from "app/common/DocSchemaImport";
+import {
+  ColumnImportSchema,
+  DocSchemaImportWarning,
+  FormulaTemplate,
+  ImportSchema,
+} from "app/common/DocSchemaImport";
 import { RecalcWhen } from "app/common/gristTypes";
 
 /**
@@ -17,7 +22,9 @@ import { RecalcWhen } from "app/common/gristTypes";
  * not directly derived from the Airtable schema, the remainder of the import code may not adapt the
  * schema properly for the target document.
  */
-export function gristDocSchemaFromAirtableSchema(airtableSchema: AirtableBaseSchema): ImportSchema {
+export function gristDocSchemaFromAirtableSchema(
+  airtableSchema: AirtableBaseSchema,
+): { schema: ImportSchema; warnings: DocSchemaImportWarning[] } {
   const getTableIdForField = (fieldId: string) => {
     const tableId = airtableSchema.tables.find(table => table.fields.find(field => field.id === fieldId))?.id;
     // Generally shouldn't happen - the schema should always have sufficient info to resolve a valid field id.
@@ -27,24 +34,34 @@ export function gristDocSchemaFromAirtableSchema(airtableSchema: AirtableBaseSch
     return tableId;
   };
 
-  return {
+  const warnings: DocSchemaImportWarning[] = [];
+  const schema: ImportSchema = {
     tables: airtableSchema.tables.map((baseTable) => {
       return {
         originalId: baseTable.id,
         desiredGristId: baseTable.name,
         columns: baseTable.fields
           .map((baseField) => {
-            if (!AirtableFieldMappers[baseField.type]) { return undefined; }
-            return AirtableFieldMappers[baseField.type]({
+            if (!AirtableFieldMappers[baseField.type]) {
+              warnings.push(new UnsupportedFieldTypeWarning(baseField.type, baseField.name));
+              return undefined;
+            }
+            const mapperResult = AirtableFieldMappers[baseField.type]({
               field: baseField,
               table: baseTable,
               getTableIdForField,
             });
+            if (mapperResult.warning) {
+              warnings.push(mapperResult.warning);
+            }
+            return mapperResult.column;
           })
           .filter((column): column is ColumnImportSchema => column !== undefined),
       };
     }),
   };
+
+  return { schema, warnings };
 }
 
 interface AirtableFieldMapperParams {
@@ -53,41 +70,48 @@ interface AirtableFieldMapperParams {
   getTableIdForField: (fieldId: string) => string,
 }
 
-type AirtableFieldMapper = (params: AirtableFieldMapperParams) => ColumnImportSchema;
+interface AirtableFieldMapperResult {
+  column: ColumnImportSchema,
+  warning?: DocSchemaImportWarning,
+}
+
+type AirtableFieldMapper = (params: AirtableFieldMapperParams) => AirtableFieldMapperResult;
 const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   aiText({ field }) {
     return {
-      originalId: field.id,
-      desiredGristId: field.name,
-      label: field.name,
-      type: "Text",
+      column: {
+        originalId: field.id,
+        desiredGristId: field.name,
+        label: field.name,
+        type: "Text",
+      },
     };
   },
   autoNumber({ field }) {
     return {
-      originalId: field.id,
-      desiredGristId: field.name,
-      label: field.name,
-      type: "Numeric",
-      // TODO - Need a simple formula for this - PREVIOUS runs into working correctly, circular
-      // reference issues
+      column: {
+        originalId: field.id,
+        desiredGristId: field.name,
+        label: field.name,
+        type: "Numeric",
+      },
+      warning: new AutoNumberLimitationWarning(field.name),
     };
   },
   checkbox({ field }) {
     return {
-      originalId: field.id,
-      desiredGristId: field.name,
-      label: field.name,
-      type: "Bool",
+      column: {
+        originalId: field.id,
+        desiredGristId: field.name,
+        label: field.name,
+        type: "Bool",
+      },
     };
   },
   count({ field, table }) {
     let formula: FormulaTemplate = { formula: "", replacements: [] };
     const fieldOptions = field.options;
     if (fieldOptions?.isValid && fieldOptions.recordLinkFieldId) {
-      // These can have conditions set in Airtable to filter them, but we have no way of knowing
-      // if they're present - they're not exported in the schema definition...
-      // Warning: This may not strictly match 1-to-1 with airtable as a result.
       formula = {
         formula: "len($[R0])",
         replacements: [{ originalTableId: table.id, originalColId: fieldOptions.recordLinkFieldId }],
@@ -95,229 +119,272 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
     }
 
     return {
-      originalId: field.id,
-      desiredGristId: field.name,
-      label: field.name,
-      type: "Numeric",
-      isFormula: true,
-      formula,
+      column: {
+        originalId: field.id,
+        desiredGristId: field.name,
+        label: field.name,
+        type: "Numeric",
+        isFormula: true,
+        formula,
+      },
+      warning: new CountLimitationWarning(field.name),
     };
   },
   createdBy({ field }) {
     return {
-      originalId: field.id,
-      desiredGristId: field.name,
-      label: field.name,
-      type: "Text",
+      column: {
+        originalId: field.id,
+        desiredGristId: field.name,
+        label: field.name,
+        type: "Text",
+      },
     };
   },
   createdTime({ field }) {
     return {
-      originalId: field.id,
-      desiredGristId: field.name,
-      label: field.name,
-      type: "DateTime",
-      formula: { formula: "NOW()" },
-      recalcWhen: RecalcWhen.DEFAULT,
+      column: {
+        originalId: field.id,
+        desiredGristId: field.name,
+        label: field.name,
+        type: "DateTime",
+        formula: { formula: "NOW()" },
+        recalcWhen: RecalcWhen.DEFAULT,
+      },
     };
   },
   currency({ field }) {
     return {
-      originalId: field.id,
-      desiredGristId: field.name,
-      label: field.name,
-      type: "Numeric",
-      widgetOptions: {
-        // Airtable only provides a currency symbol, which is pretty useless for setting this column up.
-        // Instead of showing a wrong currency - omit currency formatting and just use precision.
-        decimals: field.options?.precision ?? 2,
-        maxDecimals: field.options?.precision ?? 2,
+      column: {
+        originalId: field.id,
+        desiredGristId: field.name,
+        label: field.name,
+        type: "Numeric",
+        widgetOptions: {
+          // Airtable only provides a currency symbol, which is pretty useless for setting this column up.
+          // Instead of showing a wrong currency - omit currency formatting and just use precision.
+          decimals: field.options?.precision ?? 2,
+          maxDecimals: field.options?.precision ?? 2,
+        },
       },
     };
   },
   date({ field }) {
     return {
-      originalId: field.id,
-      desiredGristId: field.name,
-      label: field.name,
-      type: "Date",
-      widgetOptions: {
-        isCustomDateFormat: true,
-        // Airtable and Grist seem to share identical format syntax, based on limited testing
-        dateFormat: field.options?.dateFormat?.format ?? "MM/DD/YYYY",
+      column: {
+        originalId: field.id,
+        desiredGristId: field.name,
+        label: field.name,
+        type: "Date",
+        widgetOptions: {
+          isCustomDateFormat: true,
+          // Airtable and Grist seem to share identical format syntax, based on limited testing
+          dateFormat: field.options?.dateFormat?.format ?? "MM/DD/YYYY",
+        },
       },
     };
   },
   dateTime({ field }) {
     return {
-      originalId: field.id,
-      desiredGristId: field.name,
-      label: field.name,
-      type: "DateTime",
-      widgetOptions: {
-        isCustomDateFormat: true,
-        // Airtable and Grist seem to share identical format syntax, based on limited testing
-        dateFormat: field.options?.dateFormat?.format ?? "MM/DD/YYYY",
-        isCustomTimeFormat: true,
-        // Airtable and Grist seem to share identical format syntax, based on limited testing
-        timeFormat: field.options?.timeFormat?.format ?? "h:mma",
+      column: {
+        originalId: field.id,
+        desiredGristId: field.name,
+        label: field.name,
+        type: "DateTime",
+        widgetOptions: {
+          isCustomDateFormat: true,
+          // Airtable and Grist seem to share identical format syntax, based on limited testing
+          dateFormat: field.options?.dateFormat?.format ?? "MM/DD/YYYY",
+          isCustomTimeFormat: true,
+          // Airtable and Grist seem to share identical format syntax, based on limited testing
+          timeFormat: field.options?.timeFormat?.format ?? "h:mma",
+        },
       },
     };
   },
   duration({ field }) {
     return {
-      originalId: field.id,
-      desiredGristId: field.name,
-      label: field.name,
-      type: "Numeric",
-      // TODO - Should also produce a formatted duration formula column.
+      column: {
+        originalId: field.id,
+        desiredGristId: field.name,
+        label: field.name,
+        type: "Numeric",
+      },
+      warning: new DurationFormatWarning(field.name),
     };
   },
   email({ field }) {
     return {
-      originalId: field.id,
-      desiredGristId: field.name,
-      label: field.name,
-      type: "Text",
+      column: {
+        originalId: field.id,
+        desiredGristId: field.name,
+        label: field.name,
+        type: "Text",
+      },
     };
   },
   formula({ field }) {
     return {
-      originalId: field.id,
-      desiredGristId: field.name,
-      label: field.name,
-      // The field schema from Airtable has more information on what this should be,
-      // such as field type, options and referenced fields.
-      // The logic to implement that however doesn't seem worth the time investment.
-      type: "Any",
-      // Store the formula as a comment to prevent it showing errors.
-      formula: { formula: `#${field.options?.formula || "#No formula set"}` },
-      isFormula: true,
+      column: {
+        originalId: field.id,
+        desiredGristId: field.name,
+        label: field.name,
+        // The field schema from Airtable has more information on what this should be,
+        // such as field type, options and referenced fields.
+        // The logic to implement that however doesn't seem worth the time investment.
+        type: "Any",
+        // Store the formula as a comment to prevent it showing errors.
+        formula: { formula: `#${field.options?.formula || "#No formula set"}` },
+        isFormula: true,
+      },
     };
   },
   lastModifiedBy({ field }) {
     return {
-      originalId: field.id,
-      desiredGristId: field.name,
-      label: field.name,
-      type: "Text",
-      formula: { formula: 'user and f"{user.Name}"' },
-      recalcWhen: 2,
+      column: {
+        originalId: field.id,
+        desiredGristId: field.name,
+        label: field.name,
+        type: "Text",
+        formula: { formula: 'user and f"{user.Name}"' },
+        recalcWhen: 2,
+      },
     };
   },
   lastModifiedTime({ field }) {
     return {
-      originalId: field.id,
-      desiredGristId: field.name,
-      label: field.name,
-      type: "DateTime",
-      formula: { formula: "NOW()" },
-      recalcWhen: 2,
-      widgetOptions: {
-        isCustomDateFormat: true,
-        dateFormat: field.options?.result?.dateFormat?.format ?? "MM/DD/YYYY",
-        isCustomTimeFormat: true,
-        timeFormat: field.options?.result?.timeFormat?.format ?? "h:mma",
+      column: {
+        originalId: field.id,
+        desiredGristId: field.name,
+        label: field.name,
+        type: "DateTime",
+        formula: { formula: "NOW()" },
+        recalcWhen: 2,
+        widgetOptions: {
+          isCustomDateFormat: true,
+          dateFormat: field.options?.result?.dateFormat?.format ?? "MM/DD/YYYY",
+          isCustomTimeFormat: true,
+          timeFormat: field.options?.result?.timeFormat?.format ?? "h:mma",
+        },
       },
     };
   },
   multilineText({ field }) {
     return {
-      originalId: field.id,
-      desiredGristId: field.name,
-      label: field.name,
-      type: "Text",
+      column: {
+        originalId: field.id,
+        desiredGristId: field.name,
+        label: field.name,
+        type: "Text",
+      },
     };
   },
   multipleAttachments({ field }) {
     return {
-      originalId: field.id,
-      desiredGristId: field.name,
-      label: field.name,
-      type: "Attachments",
+      column: {
+        originalId: field.id,
+        desiredGristId: field.name,
+        label: field.name,
+        type: "Attachments",
+      },
     };
   },
   multipleCollaborators({ field }) {
     return {
-      originalId: field.id,
-      desiredGristId: field.name,
-      label: field.name,
-      type: "Text",
-      // Do we make a collaborators table and make this a reference instead?
+      column: {
+        originalId: field.id,
+        desiredGristId: field.name,
+        label: field.name,
+        type: "Text",
+        // Do we make a collaborators table and make this a reference instead?
+      },
     };
   },
   multipleRecordLinks({ field }) {
     return {
-      originalId: field.id,
-      desiredGristId: field.name,
-      label: field.name,
-      type: "RefList",
-      ref: {
-        originalTableId: field.options?.linkedTableId,
+      column: {
+        originalId: field.id,
+        desiredGristId: field.name,
+        label: field.name,
+        type: "RefList",
+        ref: {
+          originalTableId: field.options?.linkedTableId,
+        },
       },
     };
   },
   multipleSelects({ field }) {
     return {
-      originalId: field.id,
-      desiredGristId: field.name,
-      label: field.name,
-      type: "ChoiceList",
-      widgetOptions: {
-        choices: field.options?.choices.map((choice: any) => choice.name),
-        // We could import the color by mapping choice.color (e.g. tealLight2) to a hex color
-        choiceOptions: {},
+      column: {
+        originalId: field.id,
+        desiredGristId: field.name,
+        label: field.name,
+        type: "ChoiceList",
+        widgetOptions: {
+          choices: field.options?.choices.map((choice: any) => choice.name),
+          // We could import the color by mapping choice.color (e.g. tealLight2) to a hex color
+          choiceOptions: {},
+        },
       },
     };
   },
   number({ field }) {
     return {
-      originalId: field.id,
-      desiredGristId: field.name,
-      label: field.name,
-      type: "Numeric",
-      widgetOptions: {
-        decimals: field.options?.precision,
+      column: {
+        originalId: field.id,
+        desiredGristId: field.name,
+        label: field.name,
+        type: "Numeric",
+        widgetOptions: {
+          decimals: field.options?.precision,
+        },
       },
     };
   },
   percent({ field }) {
     return {
-      originalId: field.id,
-      desiredGristId: field.name,
-      label: field.name,
-      type: "Numeric",
-      widgetOptions: {
-        decimals: field.options?.precision,
-        numMode: "percent",
+      column: {
+        originalId: field.id,
+        desiredGristId: field.name,
+        label: field.name,
+        type: "Numeric",
+        widgetOptions: {
+          decimals: field.options?.precision,
+          numMode: "percent",
+        },
       },
     };
   },
   phoneNumber({ field }) {
     return {
-      originalId: field.id,
-      desiredGristId: field.name,
-      label: field.name,
-      type: "Text",
+      column: {
+        originalId: field.id,
+        desiredGristId: field.name,
+        label: field.name,
+        type: "Text",
+      },
     };
   },
   rating({ field }) {
     return {
-      originalId: field.id,
-      desiredGristId: field.name,
-      label: field.name,
-      type: "Int",
-      // Consider setting up some nice conditional formatting.
+      column: {
+        originalId: field.id,
+        desiredGristId: field.name,
+        label: field.name,
+        type: "Int",
+        // Consider setting up some nice conditional formatting.
+      },
     };
   },
   richText({ field }) {
     return {
-      originalId: field.id,
-      desiredGristId: field.name,
-      label: field.name,
-      type: "Text",
-      widgetOptions: {
-        widget: "Markdown",
+      column: {
+        originalId: field.id,
+        desiredGristId: field.name,
+        label: field.name,
+        type: "Text",
+        widgetOptions: {
+          widget: "Markdown",
+        },
       },
     };
   },
@@ -337,58 +404,107 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       };
     }
     return {
-      originalId: field.id,
-      desiredGristId: field.name,
-      label: field.name,
-      type: "Any",
-      isFormula: true,
-      formula,
-      // TODO - Warn that this won't be perfect. There's a lot summary parameters rollup supports,
-      //        that we're not supporting in Grist (yet). A lot of this information also isn't
-      //        exported in the Airtable schema API.
+      column: {
+        originalId: field.id,
+        desiredGristId: field.name,
+        label: field.name,
+        type: "Any",
+        isFormula: true,
+        formula,
+      },
+      warning: new RollupLimitationWarning(field.name),
     };
   },
   singleCollaborator({ field }) {
     return {
-      originalId: field.id,
-      desiredGristId: field.name,
-      label: field.name,
-      type: "Text",
+      column: {
+        originalId: field.id,
+        desiredGristId: field.name,
+        label: field.name,
+        type: "Text",
+      },
     };
   },
   singleLineText({ field }) {
     return {
-      originalId: field.id,
-      desiredGristId: field.name,
-      label: field.name,
-      type: "Text",
-      // We could potentially limit this to only a single line, but it's a view section option
-      // which isn't (at the time of writing) supported by any of the import tools (which only deal
-      // with structure, e.g. tables and columns).
+      column: {
+        originalId: field.id,
+        desiredGristId: field.name,
+        label: field.name,
+        type: "Text",
+        // We could potentially limit this to only a single line, but it's a view section option
+        // which isn't (at the time of writing) supported by any of the import tools (which only deal
+        // with structure, e.g. tables and columns).
+      },
     };
   },
   singleSelect({ field }) {
     return {
-      originalId: field.id,
-      desiredGristId: field.name,
-      label: field.name,
-      type: "Choice",
-      widgetOptions: {
-        choices: field.options?.choices.map((choice: any) => choice.name),
-        // We could import the color by mapping choice.color (e.g. tealLight2) to a hex color
-        choiceOptions: {},
+      column: {
+        originalId: field.id,
+        desiredGristId: field.name,
+        label: field.name,
+        type: "Choice",
+        widgetOptions: {
+          choices: field.options?.choices.map((choice: any) => choice.name),
+          // We could import the color by mapping choice.color (e.g. tealLight2) to a hex color
+          choiceOptions: {},
+        },
       },
     };
   },
   url({ field }) {
     return {
-      originalId: field.id,
-      desiredGristId: field.name,
-      label: field.name,
-      type: "Text",
-      widgetOptions: {
-        widget: "HyperLink",
+      column: {
+        originalId: field.id,
+        desiredGristId: field.name,
+        label: field.name,
+        type: "Text",
+        widgetOptions: {
+          widget: "HyperLink",
+        },
       },
     };
   },
 };
+
+class UnsupportedFieldTypeWarning implements DocSchemaImportWarning {
+  public readonly message: string;
+
+  constructor(fieldType: string, fieldName: string) {
+    this.message = `Field "${fieldName}" has unsupported type "${fieldType}" and will be skipped`;
+  }
+}
+
+// TODO - Fix
+class AutoNumberLimitationWarning implements DocSchemaImportWarning {
+  public readonly message: string;
+
+  constructor(fieldName: string) {
+    this.message = `AutoNumber field "${fieldName}" will be imported as plain Numeric. Automatic numbering is not yet supported.`;
+  }
+}
+
+class DurationFormatWarning implements DocSchemaImportWarning {
+  public readonly message: string;
+
+  constructor(fieldName: string) {
+    this.message = `Duration field "${fieldName}" will be imported as a numeric duration in seconds. Duration formatting is not yet supported.`;
+  }
+}
+
+class RollupLimitationWarning implements DocSchemaImportWarning {
+  public readonly message: string;
+
+  constructor(fieldName: string) {
+    this.message = `Rollup field "${fieldName}" may not match Airtable. Summary parameters and filter conditions are not supported.`;
+  }
+}
+
+class CountLimitationWarning implements DocSchemaImportWarning {
+  public readonly message: string;
+
+  constructor(fieldName: string) {
+    this.message = `Count field "${fieldName}" may not match Airtable. Filter conditions are not supported.`;
+  }
+}

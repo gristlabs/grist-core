@@ -45,8 +45,8 @@ describe("AirtableImporter", function() {
 
   describe("gristDocSchemaFromAirtableSchema", () => {
     it("correctly converts a very basic airtable schema", () => {
-      const importSchema = gristDocSchemaFromAirtableSchema(createBaseSchema());
-      assert.deepEqual(importSchema, {
+      const result = gristDocSchemaFromAirtableSchema(createBaseSchema());
+      assert.deepEqual(result.schema, {
         tables: [
           {
             originalId: firstTableId,
@@ -62,6 +62,7 @@ describe("AirtableImporter", function() {
           },
         ],
       });
+      assert.isEmpty(result.warnings);
     });
 
     interface ConvertAirtableFieldParams {
@@ -89,12 +90,13 @@ describe("AirtableImporter", function() {
           table.fields.push(...fields);
         });
       }
-      const importSchema = gristDocSchemaFromAirtableSchema(airtableSchema);
+      const result = gristDocSchemaFromAirtableSchema(airtableSchema);
       return {
         airtableSchema,
-        importSchema,
+        importSchema: result.schema,
+        warnings: result.warnings,
         testField: airtableSchema.tables[0].fields[0],
-        testColumn: importSchema.tables[0].columns[0],
+        testColumn: result.schema.tables[0].columns[0],
       };
     }
 

@@ -59,10 +59,13 @@ export async function runAirtableMigration(
   console.log(existingDocSchema);
   const initialTables = existingDocSchema.tables.map(table => table.id);
 
-  const importSchema = gristDocSchemaFromAirtableSchema(baseSchema);
+  const { schema: importSchema, warnings: airtableWarnings } = gristDocSchemaFromAirtableSchema(baseSchema);
 
   console.log("Generated Grist schema from the Airtable base:");
   console.log(importSchema);
+
+  console.log("Warnings from Airtable schema conversion:");
+  console.warn(airtableWarnings);
 
   console.log("Validation warnings for the generated Grist schema:");
   console.warn(validateImportSchema(importSchema));
