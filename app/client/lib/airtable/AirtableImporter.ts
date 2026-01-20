@@ -41,7 +41,6 @@ export async function runAirtableMigration(
     throw new Error("No base with the given ID found");
   }
 
-  // We can try using a custom DocComm inside a FlowRunner here if needed.
   const userApi = window.gristApp?.topAppModel?.api;
   if (!userApi) {
     throw new Error("No user API available - is this being run outside of the browser?");
