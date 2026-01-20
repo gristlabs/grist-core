@@ -612,7 +612,7 @@ describe("AirtableImporter", function() {
       (testField, testColumn) => ({
         type: "Text",
         widgetOptions: {
-          widget: "Hyperlink",
+          widget: "HyperLink",
         },
       }),
     ));
