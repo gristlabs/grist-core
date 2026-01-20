@@ -1,5 +1,5 @@
 import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
-import { getExistingDocSchema } from "app/client/lib/SchemaImporter";
+import { getExistingDocSchema } from "app/client/lib/DocSchemaImporter";
 import { AirtableAPI } from "app/common/airtable/AirtableAPI";
 import { gristDocSchemaFromAirtableSchema } from "app/common/airtable/AirtableImporter";
 import {

@@ -1,4 +1,4 @@
-import { getExistingDocSchema } from "app/client/lib/SchemaImporter";
+import { getExistingDocSchema } from "app/client/lib/DocSchemaImporter";
 import { DocAPI } from "app/common/UserAPI";
 import clientUtil from "test/client/clientUtil";
 
