@@ -507,13 +507,59 @@ describe("DocSchemaImport", function() {
       const importTool = new DocSchemaImportTool(applyUserActions);
       await importTool.createTablesFromSchema(schema);
 
-      // Check all ModifyColumn table and column ids are mapped.
       const modifyColumnActions: any[] = (applyUserActions as sinon.SinonSpy).secondCall.args[0];
       const [, , , colInfo] = modifyColumnActions.find(action => action[2] === "MyCol_Test1-2");
 
       assert.equal(
         colInfo.formula,
         "print('MyCol_Test1-1') # MyCol_Test1-1, MyCol_Test1, no [R2]",
+      );
+    });
+
+    it("substitutes the original ids when formula replacements fail to resolve", async () => {
+      const schema = createTestSchema();
+
+      schema.tables.push({
+        originalId: "Test1",
+        desiredGristId: "Test Table 1",
+        columns: [
+          {
+            originalId: "2",
+            desiredGristId: "Test1-2",
+            type: "Any",
+            formula: {
+              formula: "print('[R0]') # [R0], [R1], no [R2]",
+              replacements: [
+                { originalTableId: "OtherTable", originalColId: "BadCol" },
+                { originalTableId: "OtherTable" },
+              ],
+            },
+          },
+        ],
+      });
+
+      const retValues = schema.tables.map((tableSchema, index) => ({
+        id: index,
+        table_id: `MyCol_${tableSchema.originalId}`,
+        columns: tableSchema.columns.map(columnSchema => `MyCol_${columnSchema.desiredGristId}`),
+      }));
+
+      const applyUserActions: ApplyUserActionsFunc = sinon.fake.returns(Promise.resolve({
+        actionNum: 0,
+        actionHash: null,
+        retValues,
+        isModification: false,
+      }));
+
+      const importTool = new DocSchemaImportTool(applyUserActions);
+      await importTool.createTablesFromSchema(schema);
+
+      const modifyColumnActions: any[] = (applyUserActions as sinon.SinonSpy).secondCall.args[0];
+      const [, , , colInfo] = modifyColumnActions.find(action => action[2] === "MyCol_Test1-2");
+
+      assert.equal(
+        colInfo.formula,
+        "print('BadCol') # BadCol, OtherTable, no [R2]",
       );
     });
   });

@@ -532,10 +532,14 @@ function prepareFormula(
 
     if (resolvedRef === undefined) {
       warnings.push(new FormulaRefWarning(template, ref));
-      return { formula, warnings };
     }
 
-    const replacementText = resolvedRef.existingColId ?? resolvedRef.existingTableId;
+    const replacementText = (
+      (resolvedRef?.existingColId ?? resolvedRef?.existingTableId) ??
+      (ref.originalColId ?? ref.originalTableId) ??
+      // This case should never be hit - the above check is intended to be exhaustive, but typescript needs it.
+      "UNKNOWN_REF"
+    );
 
     return {
       formula: formula.replace(RegExp(`\\[R${index}\\]`, "g"), replacementText),
@@ -551,13 +555,13 @@ export class DocSchemaImportError extends Error {
 }
 
 // Small helper function throwing an import error when a reference can't be resolved.
-function throwUnresolvedRefError(ref: TableRef | ColRef) {
+function createUnresolvedRefError(ref: TableRef | ColRef) {
   if (ref.originalColId) {
-    throw new DocSchemaImportError(
+    return new DocSchemaImportError(
       `Couldn't find Grist column id for column '${ref.originalColId}' in table '${ref.originalTableId}'`,
     );
   }
-  throw new DocSchemaImportError(`Couldn't locate Grist table id for table ${ref.originalTableId}`);
+  return new DocSchemaImportError(`Couldn't locate Grist table id for table ${ref.originalTableId}`);
 }
 
 /**
@@ -573,7 +577,7 @@ function makeResolveRefFuncs(tableIdsMap: Map<string, TableIdsInfo>) {
    * Avoids introducing undefined if it isn't necessary (existing references are always resolvable)
    */
   function resolveRef<T extends (ExistingTableRef | ExistingColRef | undefined)>(ref: T): ResolvedRef<T>;
-  function resolveRef<T extends (TableRef | ColRef | undefined)>(ref: T): ResolvedRef<T>;
+  function resolveRef<T extends (TableRef | ColRef | undefined)>(ref: T): ResolvedRef<T> | undefined;
   function resolveRef(ref?: TableRef | ColRef): ExistingTableRef | ExistingColRef | undefined {
     if (ref === undefined) { return undefined; }
     if (ref.existingTableId !== undefined) { return ref; }
@@ -593,7 +597,7 @@ function makeResolveRefFuncs(tableIdsMap: Map<string, TableIdsInfo>) {
   function resolveRefOrThrow<T extends (TableRef | ColRef)>(ref: T) {
     const resolvedRef = resolveRef(ref);
     if (resolvedRef === undefined) {
-      throwUnresolvedRefError(ref);
+      throw createUnresolvedRefError(ref);
     }
     return resolvedRef;
   }
