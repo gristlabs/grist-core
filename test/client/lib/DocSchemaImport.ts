@@ -1,11 +1,11 @@
-import { getExistingDocSchema } from "app/client/lib/DocSchemaImporter";
+import { getExistingDocSchema } from "app/client/lib/DocSchemaImport";
 import { DocAPI } from "app/common/UserAPI";
 import clientUtil from "test/client/clientUtil";
 
 import { assert } from "chai";
 import sinon from "sinon";
 
-describe("SchemaImporter", function() {
+describe("DocSchemaImport", function() {
   clientUtil.setTmpMochaGlobals();
 
   describe("getExistingDocSchema", () => {
