@@ -223,6 +223,9 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
     };
   },
   formula({ field }) {
+    const formula = typeof field.options?.formula === "string" ? field.options?.formula : "No formula set";
+    // Store the formula as a comment to prevent it showing errors.
+    const formattedFormula = formula.split("\n").map(line => `#${line.trim()}`).join("\n");
     return {
       column: {
         originalId: field.id,
@@ -232,8 +235,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
         // such as field type, options and referenced fields.
         // The logic to implement that however doesn't seem worth the time investment.
         type: "Any",
-        // Store the formula as a comment to prevent it showing errors.
-        formula: { formula: `#${field.options?.formula || "#No formula set"}` },
+        formula: { formula: formattedFormula },
         isFormula: true,
       },
     };
