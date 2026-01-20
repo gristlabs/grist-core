@@ -125,7 +125,8 @@ export class DocPluginManager {
       const name = plugin.definition.id;
       try {
         log.info(`DocPluginManager.parseFile: calling to ${name} with ${filePath}`);
-        const result = await parseFileStub.parseFile({ path: filePath, origName: fileName }, parseOptions);
+        const pathFlavor = process.platform === "win32" ? "windows" : "posix";
+        const result = await parseFileStub.parseFile({ path: filePath, origName: fileName, pathFlavor }, parseOptions);
         checkers.ParseFileResult.check(result);
         checkReferences(result.tables);
         return result;

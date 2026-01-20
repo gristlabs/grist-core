@@ -79,7 +79,7 @@ SCHEMA = [
           ]
 
 def parse_file_source(file_source, options):
-  parsing_options, export_list = parse_file(import_utils.get_path(file_source["path"]), options)
+  parsing_options, export_list = parse_file(import_utils.get_path(file_source), options)
   return {"parseOptions": parsing_options, "tables": export_list}
 
 def parse_file(file_path, parse_options=None):

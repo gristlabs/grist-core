@@ -29,7 +29,7 @@ _reader.from_excel = new_from_excel
 
 
 def import_file(file_source):
-  path = import_utils.get_path(file_source["path"])
+  path = import_utils.get_path(file_source)
   parse_options, tables = parse_file(path)
   return {"parseOptions": parse_options, "tables": tables}
 
