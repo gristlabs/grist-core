@@ -41,7 +41,7 @@
         "When adding table rules, automatically add a rule to grant OWNER full access.": "Automatycznie dodawaj regułę przyznającą właścicielowi pełen dostęp.",
         "Permission to edit document structure": "Uprawnienie do edycji struktury dokumentu",
         "This default should be changed if editors' access is to be limited. ": "Tę wartość domyślną należy zmienić, jeśli dostęp edytorów ma być ograniczony. ",
-        "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "Zezwalaj edytorom na edycję struktury (np. modyfikowanie i usuwanie tabel, kolumn i układów) oraz pisanie formuł. Niezależnie od uprawnień ustawionych na poziomie tabeli i kolumny, formuły nadal mogą być edytowane i mają dostęp do wszystkich danych.",
+        "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "Zezwalaj edytorom na edycję struktury (np. modyfikowanie i usuwanie tabel, kolumn i układów) oraz pisanie formuł. Niezależnie od uprawnień ustawionych na poziomie tabel i kolumn, formuły nadal mogą być edytowane i mają dostęp do wszystkich danych.",
         "Add table-wide rule": "Dodaj regułę dla całej tabeli",
         "All": "Wszystkie",
         "Columns": "Kolumny",
@@ -51,13 +51,13 @@
         "**Special rules** (expand each rule to customize who it applies to)": "**Zasady specjalne** (rozszerz każdą regułę aby sprawdzić kogo ona dotyczy)",
         "Allow everyone to view access rules.": "Pozwól wszystkim zobaczyć zasady dostępu.",
         "Access rules have changed. Click Reset to revert your changes and refresh the rules.": "Reguły dostępu zmieniły się. Kliknij przycisk Reset, aby odrzucić zmiany i odświeżyć reguły.",
-        "Column {{colId}} appears in multiple rules for table {{tableId}} that might be order-dependent. Try splitting rules up differently?": "Kolumna {{colId}} występuje w wielu regułach dla tabeli {{tableId}} która może być zależna od kolejności. Spróbuj rozdzielić reguły w inny sposób",
-        "Default resource missing in resource map": "Nie znaleziono domyślnego zasobu w zbiorze zasobów",
+        "Column {{colId}} appears in multiple rules for table {{tableId}} that might be order-dependent. Try splitting rules up differently?": "Kolumna {{colId}} występuje w wielu regułach dla tabeli {{tableId}} która może być zależna od kolejności. Spróbować rozdzielić reguły w inny sposób?",
+        "Default resource missing in resource map": "Nie znaleziono domyślnego zasobu w mapie zasobów",
         "Invalid columns in table {{tableId}}: {{invalidColIds}}": "Nieprawidłowe kolumny w tabeli {{tableId}}: {{invalidColIds}}",
         "Invalid table: {{tableId}}": "Nieprawidłowa tabela: {{tableId}}",
         "Invalid user attribute rule: {{prop}} must be set": "Nieprawidłowa zasada atrybutu użytkownika: należy ustawić {{prop}}",
         "Not a valid user attribute": "Nieprawidłowy atrybut użytkownika",
-        "Resource missing in resource map: {{resourceKey}}": "Nie znaleziono zasobu w zbiorze zasobów: {{resourceKey}}",
+        "Resource missing in resource map: {{resourceKey}}": "Nie znaleziono zasobu w mapie zasobów: {{resourceKey}}",
         "After disabling Access Rules, Editors will be able to change the structure of the document and edit formulas. Editors and Viewers will be able to see all data in the document, as well as copy or download it.": "Po wyłączeniu reguł dostępu, edytorzy będą mogli modyfikować strukturę dokumentu i edytować formuły. Edytorzy i osoby wyświetlające będą mogły zobaczyć treść dokumentu, a także skopiować lub pobrać go.",
         "After enabling Access Rules, Editors will no longer be able to change the structure of the\ndocument or edit formulas. Only Owners will be able to copy or download the document.\n\nThese settings can be changed under 'Special rules'.": "Po włączeniu reguł dostępu, edytorzy nie będą mogli zmieniać struktury dokumentu lub\nedytować formuł. Tylko właściciele będą mogli skopiować lub pobrać dokument.\n\nTe ustawienia można zmienić pod \"Reguły specjalne\".",
         "Allow Editors to edit structure (e.g. modify and delete tables, columns, and layouts) and write formulas.  Important: if checked, Editors will be able to edit formulas, which can access all data, regardless of table and column access rules!": "Pozwól edytorom na edytowanie struktury (np. modyfikację i usuwanie tabel, kolumn i układów) i pisanie formuł.  Uwaga: po zaznaczeniu, edytorzy będą mogli edytować formuły mające dostęp do wszystkich danych, niezależnie od reguł dostępu tabel i kolumn!",
@@ -73,7 +73,9 @@
         "Invalid user attribute to look up": "Nie można wyszukać tego atrybutu użytkownika",
         "Use a simple attribute of user.LinkKey, e.g. user.LinkKey.something": "Użyj prostego atrybutu user.LinkKey, np. user.LinkKey.something",
         "Circumvent all read restrictions and allow everyone to copy the entire document, or view it in full in fiddle mode. Only use for for examples and templates, not for documents with sensitive data.": "Pomiń wszystkie ograniczenia odczytu i pozwól wszystkim na kopiowanie całego dokumentu, lub wyświetlanie go w trybie fiddle. Opcja do użytku tylko dla przykładów i szablonów, nie dokumentów z wrażliwymi danymi.",
-        "Restrict non-Owners from copying or downloading the full document. Note: this only affects users without read restrictions, since others will be restricted regardless of this setting.": "Zabroń użytkownikom bez roli właściciela kopiowania lub pobierania całego dokumentu. Uwaga: ta opcja dotyczy wyłącznie użytkowników bez ograniczeń odczytu, ponieważ inni będą ograniczeni niezależnie od tego ustawienia."
+        "Restrict non-Owners from copying or downloading the full document. Note: this only affects users without read restrictions, since others will be restricted regardless of this setting.": "Zabroń użytkownikom bez roli właściciela kopiowania lub pobierania całego dokumentu. Uwaga: ta opcja dotyczy wyłącznie użytkowników bez ograniczeń odczytu, ponieważ inni będą ograniczeni niezależnie od tego ustawienia.",
+        "No columns listed in a column rule for table {{tableId}}": "Brak kolumn w regule kolumn dla tabeli {{tableId}}",
+        "Trying to add TableRules for existing table {{tableId}}": "Próba dodania reguł tabeli dla istniejącej tabeli {{tableId}}"
     },
     "AccountPage": {
         "API": "API",
@@ -893,7 +895,8 @@
         "Download attachments...": "Pobierz załączniki...",
         "Download document...": "Pobierz dokument...",
         "Suggest changes": "Zasugeruj zmiany",
-        "current version": "obecna wersja"
+        "current version": "obecna wersja",
+        "original": "oryginalny"
     },
     "SiteSwitcher": {
         "Switch Sites": "Przełącz witrynę",
@@ -1320,7 +1323,11 @@
         "Use separate field settings for {{colId}}": "Użyj oddzielnych ustawień pól dla {{colId}}",
         "Revert field settings for {{colId}} to common": "Przywróć ustawienia pola dla {{colId}} do wspólnych",
         "Changing multiple column types": "Zmienianie wielu typów kolumn",
-        "Changing column type": "Zmiana typu kolumny"
+        "Changing column type": "Zmiana typu kolumny",
+        "Common": "Wspólny",
+        "Separate": "Oddzielny",
+        "Field in {{count}} views_one": "Pola w jednym widoku",
+        "Field in {{count}} views_other": "Pole w {{count}} widokach"
     },
     "Reference": {
         "CELL FORMAT": "FORMAT KOMÓRKI",
@@ -1792,7 +1799,9 @@
         "Unmap fields": "Cofnij mapowanie pól",
         "Unmapped": "Niezmapowane",
         "Hide {{label}}": "Ukryj {{label}}",
-        "Hide {{label}} (batch mode)": "Ukryj {{label}} (tryb seryjny)"
+        "Hide {{label}} (batch mode)": "Ukryj {{label}} (tryb seryjny)",
+        "Unmap {{label}}": "Odepnij {{label}}",
+        "Unmap {{label}} (batch mode)": "Odepnij {{label}} (tryb zbiorowy)"
     },
     "Section": {
         "Insert section above": "Wstaw sekcję powyżej",
