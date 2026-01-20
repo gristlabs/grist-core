@@ -86,3 +86,9 @@ export interface AirtableFieldSchema {
   type: string;
   options?: { [key: string]: any };
 }
+
+export interface AirtableChoiceValue {
+  id: string;
+  name: string;
+  color: string;
+}

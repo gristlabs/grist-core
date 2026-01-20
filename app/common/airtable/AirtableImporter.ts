@@ -1,5 +1,5 @@
 import {
-  AirtableBaseSchema,
+  AirtableBaseSchema, AirtableChoiceValue,
   AirtableFieldSchema,
   AirtableTableSchema,
 } from "app/common/airtable/AirtableAPI";
@@ -329,7 +329,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
         label: field.name,
         type: "ChoiceList",
         widgetOptions: {
-          choices: field.options?.choices.map((choice: any) => choice.name),
+          choices: field.options?.choices.map((choice: AirtableChoiceValue) => choice.name),
           // We could import the color by mapping choice.color (e.g. tealLight2) to a hex color
           choiceOptions: {},
         },
@@ -455,7 +455,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
         label: field.name,
         type: "Choice",
         widgetOptions: {
-          choices: field.options?.choices.map((choice: any) => choice.name),
+          choices: field.options?.choices.map((choice: AirtableChoiceValue) => choice.name),
           // We could import the color by mapping choice.color (e.g. tealLight2) to a hex color
           choiceOptions: {},
         },
