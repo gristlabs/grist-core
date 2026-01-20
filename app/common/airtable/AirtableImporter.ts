@@ -87,13 +87,20 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       },
     };
   },
-  autoNumber({ field }) {
+  autoNumber({ field, table }) {
     return {
       column: {
         originalId: field.id,
         desiredGristId: field.name,
         label: field.name,
         type: "Numeric",
+        formula: {
+          formula: "MAX(PEEK([R0].all.[R1]))+1",
+          replacements: [
+            { originalTableId: table.id },
+            { originalTableId: table.id, originalColId: field.id },
+          ],
+        },
       },
       warning: new AutoNumberLimitationWarning(field.name),
     };
@@ -478,12 +485,11 @@ class UnsupportedFieldTypeWarning implements DocSchemaImportWarning {
   }
 }
 
-// TODO - Fix
 class AutoNumberLimitationWarning implements DocSchemaImportWarning {
   public readonly message: string;
 
   constructor(fieldName: string) {
-    this.message = `AutoNumber field "${fieldName}" will be imported as plain Numeric. Automatic numbering is not yet supported.`;
+    this.message = `AutoNumber field "${fieldName}" behaviour will not be identical to Airtable's. Values may be re-used if rows are edited or deleted.`;
   }
 }
 
