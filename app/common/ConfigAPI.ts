@@ -40,7 +40,7 @@ export class ConfigAPI extends BaseAPI {
   public async restartServer(clearSession?: boolean): Promise<void> {
     const url = new URL(`${this._url}/api/admin/restart`);
     if (clearSession) {
-      url.searchParams.append("clear-session", String(true));
+      url.searchParams.append("clear-session", "true");
     }
     await this.request(url.href, {
       method: "POST",
