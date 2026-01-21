@@ -440,13 +440,12 @@ describe("ProposedChangesPage", function() {
 
     // Add a Reference column to Life table
     await api.applyUserActions(doc.id, [
-      ["AddColumn", "Life", "Habitat", { type: "Ref:Habitat" }],
+      ["AddVisibleColumn", "Life", "Habitat", { type: "Ref:Habitat" }],
       ["UpdateRecord", "Life", 1, { Habitat: 1 }], // Fish -> Ocean
       ["UpdateRecord", "Life", 2, { Habitat: 2 }], // Primate -> Forest
     ]);
 
-    // Make new column visible and show what we want
-    await makeColumnVisible(api, doc.id, "Life", "Habitat");
+    // Show what we want
     await setReferenceDisplayColumn(api, doc.id, "Life", "Habitat", "Name");
 
     await workOnCopy(url);
@@ -511,13 +510,12 @@ describe("ProposedChangesPage", function() {
 
     // Add a Reference List column to Life table
     await api.applyUserActions(doc.id, [
-      ["AddColumn", "Life", "Habitats", { type: "RefList:Habitat" }],
+      ["AddVisibleColumn", "Life", "Habitats", { type: "RefList:Habitat" }],
       ["UpdateRecord", "Life", 1, { Habitats: ["L", 1, 2] }], // Fish -> Ocean, Forest
       ["UpdateRecord", "Life", 2, { Habitats: ["L", 2] }], // Primate -> Forest
     ]);
 
-    // Make sure new column is visible and shows what we want
-    await makeColumnVisible(api, doc.id, "Life", "Habitats");
+    // Show what we want
     await setReferenceDisplayColumn(api, doc.id, "Life", "Habitats", "Name");
 
     await workOnCopy(url);
@@ -581,13 +579,12 @@ describe("ProposedChangesPage", function() {
 
     // Add a Reference column to Life table
     await api.applyUserActions(doc.id, [
-      ["AddColumn", "Life", "Habitat", { type: "Ref:Habitat" }],
+      ["AddVisibleColumn", "Life", "Habitat", { type: "Ref:Habitat" }],
       ["UpdateRecord", "Life", 1, { Habitat: 1 }], // Fish -> Ocean
       ["UpdateRecord", "Life", 2, { Habitat: 2 }], // Primate -> Forest
     ]);
 
-    // Make new column visible and show what we want
-    await makeColumnVisible(api, doc.id, "Life", "Habitat");
+    // Show what we want
     await setReferenceDisplayColumn(api, doc.id, "Life", "Habitat", "Name");
 
     await workOnCopy(url);
@@ -656,13 +653,12 @@ describe("ProposedChangesPage", function() {
 
     // Add a Reference List column to Life table
     await api.applyUserActions(doc.id, [
-      ["AddColumn", "Life", "Habitats", { type: "RefList:Habitat" }],
+      ["AddVisibleColumn", "Life", "Habitats", { type: "RefList:Habitat" }],
       ["UpdateRecord", "Life", 1, { Habitats: ["L", 1] }], // Fish -> Ocean
       ["UpdateRecord", "Life", 2, { Habitats: ["L", 2] }], // Primate -> Forest
     ]);
 
-    // Make sure new column is visible and shows what we want
-    await makeColumnVisible(api, doc.id, "Life", "Habitats");
+    // Show what we want
     await setReferenceDisplayColumn(api, doc.id, "Life", "Habitats", "Name");
 
     await workOnCopy(url);
@@ -820,54 +816,6 @@ async function collapse(section: string) {
   const parent = await title.findClosest(".viewsection_content");
   const button = await parent.find(".test-proposals-collapse");
   await button.click();
-}
-
-async function makeColumnVisible(api: UserAPI, docId: string, tableId: string, colId: string) {
-  const docApi = api.getDocAPI(docId);
-
-  const tables = await docApi.getRecords("_grist_Tables");
-  const tableRecord = tables.find(t => t.fields.tableId === tableId);
-
-  if (!tableRecord) {
-    throw new Error(`Table ${tableId} not found`);
-  }
-
-  const columns = await docApi.getRecords("_grist_Tables_column");
-  const columnRecord = columns.find(c =>
-    c.fields.parentId === tableRecord.id && c.fields.colId === colId,
-  );
-
-  if (!columnRecord) {
-    throw new Error(`Column ${colId} not found in table ${tableId}`);
-  }
-
-  // Find all view sections for this table
-  const sections = await docApi.getRecords("_grist_Views_section");
-  const tableSections = sections.filter(s => s.fields.tableRef === tableRecord.id);
-
-  // For each section, check if the field already exists
-  const fields = await docApi.getRecords("_grist_Views_section_field");
-
-  for (const section of tableSections) {
-    const existingField = fields.find(f =>
-      f.fields.parentId === section.id && f.fields.colRef === columnRecord.id,
-    );
-
-    if (!existingField) {
-      // Field doesn't exist, add it
-      // Find the maximum parentPos to add it at the end
-      const sectionFields = fields.filter(f => f.fields.parentId === section.id);
-      const maxPos = Math.max(0, ...sectionFields.map(f => f.fields.parentPos || 0) as number[]);
-
-      await docApi.applyUserActions([
-        ["AddRecord", "_grist_Views_section_field", null, {
-          parentId: section.id,
-          parentPos: maxPos + 1,
-          colRef: columnRecord.id,
-        }],
-      ]);
-    }
-  }
 }
 
 /**
