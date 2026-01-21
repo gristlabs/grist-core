@@ -137,7 +137,7 @@ describe("AuthProviderGetGrist", function() {
       await driver.findWait(".test-admin-panel-restart-unsupported-warning", 1000).isDisplayed(),
     );
 
-    // But the session is now cleared, so refreshing the page will show to login button.
+    // But the session is now cleared, so refreshing the page will show the login button.
     await driver.navigate().refresh();
     await driver.findWait(".test-user-sign-in", 5000);
   });
