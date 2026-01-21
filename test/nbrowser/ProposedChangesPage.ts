@@ -1,7 +1,10 @@
+import { getReferencedTableId } from "app/common/gristTypes";
+import { UserAPI } from "app/common/UserAPI";
+import { GristObjCode } from "app/plugin/GristData";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
 
-import { assert, driver } from "mocha-webdriver";
+import { assert, driver, Key } from "mocha-webdriver";
 
 describe("ProposedChangesPage", function() {
   this.timeout(60000);
@@ -354,6 +357,8 @@ describe("ProposedChangesPage", function() {
     await proposeChange();
     assert.equal(await driver.find(".test-tools-proposals").getText(),
       "Suggest changes");
+
+    await returnToTrunk(url);
   });
 
   it("can make and apply a proposed change affecting two tables", async function() {
@@ -421,9 +426,308 @@ describe("ProposedChangesPage", function() {
       ["Deciduous Tree", "Flower"]);
   });
 
+  it("can make and apply a proposed change to a Reference column", async function() {
+    const { api, doc } = await makeLifeDoc();
+    const url = await driver.getCurrentUrl();
+
+    // Add a table to refer to
+    await api.applyUserActions(doc.id, [
+      ["AddTable", "Habitat", [{ id: "Name", type: "Text" }]],
+      ["AddRecord", "Habitat", 1, { Name: "Ocean" }],
+      ["AddRecord", "Habitat", 2, { Name: "Forest" }],
+      ["AddRecord", "Habitat", 3, { Name: "Desert" }],
+    ]);
+
+    // Add a Reference column to Life table
+    await api.applyUserActions(doc.id, [
+      ["AddVisibleColumn", "Life", "Habitat", { type: "Ref:Habitat" }],
+      ["UpdateRecord", "Life", 1, { Habitat: 1 }], // Fish -> Ocean
+      ["UpdateRecord", "Life", 2, { Habitat: 2 }], // Primate -> Forest
+    ]);
+
+    // Show what we want
+    await setReferenceDisplayColumn(api, doc.id, "Life", "Habitat", "Name");
+
+    await workOnCopy(url);
+
+    // There's occasionally some race condition, maybe references not
+    // loading fast enough?, if we don't look at them in client. So we
+    // just briefly visit the Habitat page.
+    await gu.openPage("Habitat");
+    await gu.openPage("Life");
+
+    // Change the reference for Fish from Ocean to Desert
+    await gu.getCell("Habitat", 1).click();
+
+    await gu.waitAppFocus();
+    await gu.enterCell("Desert");
+
+    // Check that the count shows 1 change
+    assert.equal(await driver.find(".test-tools-proposals").getText(),
+      "Suggest changes (1)");
+
+    await proposeChange();
+
+    // Click on the "original document" to see the proposal.
+    await driver.findContentWait("span", /original document/, 2000).click();
+
+    // There should be exactly one proposal.
+    await driver.findWait(".test-proposals-header", 2000);
+    assert.lengthOf(await driver.findAll(".test-proposals-header"), 1);
+
+    // Verify the reference change is shown
+    await driver.findWait(".test-actionlog-tabular-diffs .field_clip", 2000);
+    assert.deepEqual(await getColumns("LIFE"), ["Habitat"]);
+    assert.deepEqual(await getRowValues("LIFE", 0), ["OceanDesert"]);
+    assert.deepEqual(await getChangeType("LIFE", 0), "→");
+
+    // Apply the proposal
+    await driver.find(".test-proposals-apply").click();
+    await gu.waitForServer();
+
+    // Verify the change was applied (reference should now point to Desert, which has id 3)
+    assert.match(
+      await driver.findContent(".test-proposals-header", /#1/).getText(),
+      /Accepted/,
+    );
+    assert.deepEqual((await api.getDocAPI(doc.id).getRows("Life")).Habitat,
+      [3, 2]); // Desert (id 3), Forest (id 2)
+
+    await returnToTrunk(url);
+  });
+
+  it("can make and apply a proposed change to a Reference List column", async function() {
+    const { api, doc } = await makeLifeDoc();
+    const url = await driver.getCurrentUrl();
+
+    await api.applyUserActions(doc.id, [
+      ["AddTable", "Habitat", [{ id: "Name", type: "Text" }]],
+      ["AddRecord", "Habitat", 1, { Name: "Ocean" }],
+      ["AddRecord", "Habitat", 2, { Name: "Forest" }],
+      ["AddRecord", "Habitat", 3, { Name: "Desert" }],
+      ["AddRecord", "Habitat", 4, { Name: "Arctic" }],
+    ]);
+
+    // Add a Reference List column to Life table
+    await api.applyUserActions(doc.id, [
+      ["AddVisibleColumn", "Life", "Habitats", { type: "RefList:Habitat" }],
+      ["UpdateRecord", "Life", 1, { Habitats: ["L", 1, 2] }], // Fish -> Ocean, Forest
+      ["UpdateRecord", "Life", 2, { Habitats: ["L", 2] }], // Primate -> Forest
+    ]);
+
+    // Show what we want
+    await setReferenceDisplayColumn(api, doc.id, "Life", "Habitats", "Name");
+
+    await workOnCopy(url);
+
+    await gu.openPage("Habitat");
+    await gu.openPage("Life");
+
+    // Change the reference list for Fish: remove Forest, add Desert and Arctic
+    await gu.getCell("Habitats", 1).click();
+    await gu.waitAppFocus();
+    await gu.enterCell("Ocean");
+    await gu.enterCell("Desert");
+    await gu.enterCell("Arctic");
+    await driver.sendKeys(Key.ENTER);
+    await gu.waitForServer();
+
+    // Check that the count shows 1 change
+    assert.equal(await driver.find(".test-tools-proposals").getText(),
+      "Suggest changes (1)");
+
+    await proposeChange();
+
+    // Click on the "original document" to see the proposal.
+    await driver.findContentWait("span", /original document/, 2000).click();
+
+    // There should be exactly one proposal.
+    await driver.findWait(".test-proposals-header", 2000);
+    assert.lengthOf(await driver.findAll(".test-proposals-header"), 1);
+
+    // Verify the reference list change is shown
+    await driver.findWait(".test-actionlog-tabular-diffs .field_clip", 2000);
+    assert.deepEqual(await getColumns("LIFE"), ["Habitats"]);
+    assert.deepEqual(await getRowValues("LIFE", 0), ["Ocean, ForestDesert, Arctic"]);
+    assert.deepEqual(await getChangeType("LIFE", 0), "→");
+
+    // Apply the proposal
+    await driver.find(".test-proposals-apply").click();
+    await gu.waitForServer();
+
+    // Verify the change was applied (reference list should now be [Ocean, Desert, Arctic] = [1, 3, 4])
+    assert.match(
+      await driver.findContent(".test-proposals-header", /#1/).getText(),
+      /Accepted/,
+    );
+    assert.deepEqual((await api.getDocAPI(doc.id).getRows("Life")).Habitats,
+      [["L" as GristObjCode, 1, 3, 4], ["L" as GristObjCode, 2]]); // [Ocean, Desert, Arctic], [Forest]
+
+    await returnToTrunk(url);
+  });
+
+  it("can make and apply a proposed change that creates a new Reference", async function() {
+    const { api, doc } = await makeLifeDoc();
+    const url = await driver.getCurrentUrl();
+
+    // Add a table to refer to
+    await api.applyUserActions(doc.id, [
+      ["AddTable", "Habitat", [{ id: "Name", type: "Text" }]],
+      ["AddRecord", "Habitat", 1, { Name: "Ocean" }],
+      ["AddRecord", "Habitat", 2, { Name: "Forest" }],
+    ]);
+
+    // Add a Reference column to Life table
+    await api.applyUserActions(doc.id, [
+      ["AddVisibleColumn", "Life", "Habitat", { type: "Ref:Habitat" }],
+      ["UpdateRecord", "Life", 1, { Habitat: 1 }], // Fish -> Ocean
+      ["UpdateRecord", "Life", 2, { Habitat: 2 }], // Primate -> Forest
+    ]);
+
+    // Show what we want
+    await setReferenceDisplayColumn(api, doc.id, "Life", "Habitat", "Name");
+
+    await workOnCopy(url);
+
+    await gu.openPage("Habitat");
+    await gu.openPage("Life");
+
+    // Create a new reference by typing a new value and clicking "add new"
+    await gu.getCell("Habitat", 1).click();
+    await gu.waitAppFocus();
+    await driver.sendKeys("Mountain");
+
+    // Click the "add new" item. The new value should be saved.
+    await driver.find(".test-ref-editor-new-item").click();
+    await gu.waitForServer();
+
+    // Check that the count shows 2 changes.
+    assert.equal(await driver.find(".test-tools-proposals").getText(),
+      "Suggest changes (2)");
+
+    await proposeChange();
+
+    // Click on the "original document" to see the proposal.
+    await driver.findContentWait("span", /original document/, 2000).click();
+
+    // There should be exactly one proposal.
+    await driver.findWait(".test-proposals-header", 2000);
+    assert.lengthOf(await driver.findAll(".test-proposals-header"), 1);
+
+    // Verify the reference change is shown (Ocean -> Mountain)
+    await driver.findWait(".test-actionlog-tabular-diffs .field_clip", 2000);
+    assert.deepEqual(await getColumns("LIFE"), ["Habitat"]);
+    assert.deepEqual(await getRowValues("LIFE", 0), ["OceanMountain"]);
+    assert.deepEqual(await getChangeType("LIFE", 0), "→");
+
+    // Apply the proposal
+    await driver.find(".test-proposals-apply").click();
+    await gu.waitForServer();
+
+    // Verify the change was applied
+    assert.match(
+      await driver.findContent(".test-proposals-header", /#1/).getText(),
+      /Accepted/,
+    );
+
+    // The new reference should have been created in the Habitat table
+    const habitats = await api.getDocAPI(doc.id).getRows("Habitat");
+    assert.deepEqual(habitats.Name, ["Ocean", "Forest", "Mountain"]);
+
+    // Fish should now reference Mountain (id 3)
+    assert.deepEqual((await api.getDocAPI(doc.id).getRows("Life")).Habitat,
+      [3, 2]); // Mountain (id 3), Forest (id 2)
+
+    await returnToTrunk(url);
+  });
+
+  it("can make and apply a proposed change that creates new Reference List items", async function() {
+    const { api, doc } = await makeLifeDoc();
+    const url = await driver.getCurrentUrl();
+
+    await api.applyUserActions(doc.id, [
+      ["AddTable", "Habitat", [{ id: "Name", type: "Text" }]],
+      ["AddRecord", "Habitat", 1, { Name: "Ocean" }],
+      ["AddRecord", "Habitat", 2, { Name: "Forest" }],
+    ]);
+
+    // Add a Reference List column to Life table
+    await api.applyUserActions(doc.id, [
+      ["AddVisibleColumn", "Life", "Habitats", { type: "RefList:Habitat" }],
+      ["UpdateRecord", "Life", 1, { Habitats: ["L", 1] }], // Fish -> Ocean
+      ["UpdateRecord", "Life", 2, { Habitats: ["L", 2] }], // Primate -> Forest
+    ]);
+
+    // Show what we want
+    await setReferenceDisplayColumn(api, doc.id, "Life", "Habitats", "Name");
+
+    await workOnCopy(url);
+
+    await gu.openPage("Habitat");
+    await gu.openPage("Life");
+
+    // Add new references to the list by typing new values
+    await gu.getCell("Habitats", 1).click();
+    await gu.waitAppFocus();
+
+    // Add existing reference
+    await gu.enterCell("Ocean");
+
+    // Add a new reference by typing and clicking "add new"
+    await driver.sendKeys("Desert");
+    await driver.find(".test-ref-editor-new-item").click();
+    await gu.waitForServer();
+
+    // Add another new reference
+    await driver.sendKeys("Tundra");
+    await driver.find(".test-ref-editor-new-item").click();
+    await gu.waitForServer();
+
+    // Close the editor
+    await driver.sendKeys(Key.ENTER);
+    await gu.waitForServer();
+
+    // Check that the count shows 2 changes.
+    assert.equal(await driver.find(".test-tools-proposals").getText(),
+      "Suggest changes (2)");
+
+    await proposeChange();
+
+    // Click on the "original document" to see the proposal.
+    await driver.findContentWait("span", /original document/, 2000).click();
+
+    // There should be exactly one proposal.
+    await driver.findWait(".test-proposals-header", 2000);
+    assert.lengthOf(await driver.findAll(".test-proposals-header"), 1);
+
+    // Verify the reference list change is shown
+    await driver.findWait(".test-actionlog-tabular-diffs .field_clip", 2000);
+    assert.deepEqual(await getColumns("LIFE"), ["Habitats"]);
+    assert.deepEqual(await getRowValues("LIFE", 0), ["Ocean, Desert, Tundra"]);
+    assert.deepEqual(await getChangeType("LIFE", 0), "→");
+
+    // Apply the proposal
+    await driver.find(".test-proposals-apply").click();
+    await gu.waitForServer();
+
+    // Verify the change was applied
+    assert.match(
+      await driver.findContent(".test-proposals-header", /#1/).getText(),
+      /Accepted/,
+    );
+
+    // The new references should have been created in the Habitat table
+    const habitats = await api.getDocAPI(doc.id).getRows("Habitat");
+    assert.deepEqual(habitats.Name, ["Ocean", "Forest", "Desert", "Tundra"]);
+
+    // Fish should now reference Ocean, Desert, and Tundra
+    assert.deepEqual((await api.getDocAPI(doc.id).getRows("Life")).Habitats,
+      [["L" as GristObjCode, 1, 3, 4], ["L" as GristObjCode, 2]]); // [Ocean, Desert, Tundra], [Forest]
+
+    await returnToTrunk(url);
+  });
+
   async function makeLifeDoc() {
-    await driver.navigate().refresh();
-    await gu.acceptAlert({ ignore: true });
     // Load a test document.
     const session = await gu.session().teamSite.login();
     const doc = await session.tempDoc(cleanup, "Hello.grist");
@@ -439,7 +743,10 @@ describe("ProposedChangesPage", function() {
     });
 
     await api.applyUserActions(doc.id, [
-      ["AddTable", "Life", [{ id: "A", type: "Int" }, { id: "B", type: "Text" }]],
+      ["AddTable", "Life", [
+        { id: "A", type: "Int" },
+        { id: "B", type: "Text" },
+      ]],
       ["AddRecord", "Life", 1, { A: 10, B: "Fish" }],
       ["AddRecord", "Life", 2, { A: 20, B: "Primate" }],
     ]);
@@ -457,6 +764,12 @@ describe("ProposedChangesPage", function() {
     await driver.findWait(".test-work-on-copy", 2000).click();
     await gu.waitForServer();
     await gu.openPage("Life");
+  }
+
+  async function returnToTrunk(url: string) {
+    await driver.get(url);
+    if (await gu.isAlertShown()) { await gu.acceptAlert(); }
+    await gu.waitForDocToLoad();
   }
 
   // Propose a change.
@@ -503,4 +816,58 @@ async function collapse(section: string) {
   const parent = await title.findClosest(".viewsection_content");
   const button = await parent.find(".test-proposals-collapse");
   await button.click();
+}
+
+/**
+ * Based on Dmitry's comment at:
+ *   https://github.com/gristlabs/grist-core/issues/970#issuecomment-2102933747
+ */
+async function setReferenceDisplayColumn(
+  api: UserAPI, docId: string, tableId: string, refColId: string, showColId: string,
+) {
+  const docApi = api.getDocAPI(docId);
+
+  // Get column metadata to find the numeric IDs and string IDs
+  const columns = await docApi.getRecords("_grist_Tables_column");
+  const tables = await docApi.getRecords("_grist_Tables");
+
+  const table = tables.find(t => t.fields.tableId === tableId);
+  if (!table) {
+    throw new Error(`Table ${tableId} not found`);
+  }
+
+  const refColumn = columns.find(c =>
+    c.fields.parentId === table.id && c.fields.colId === refColId,
+  );
+
+  if (!refColumn) {
+    throw new Error(`Column ${refColId} not found`);
+  }
+
+  const targetTableId = getReferencedTableId(refColumn.fields.type as string);
+  if (!targetTableId) {
+    throw new Error(`Column ${refColId} is not a reference column`);
+  }
+
+  const targetTable = tables.find(t => t.fields.tableId === targetTableId);
+
+  if (!targetTable) {
+    throw new Error(`Target table ${targetTableId} not found`);
+  }
+
+  const showColumn = columns.find(c =>
+    c.fields.parentId === targetTable.id && c.fields.colId === showColId,
+  );
+
+  if (!showColumn) {
+    throw new Error(`Column ${showColId} not found in target table`);
+  }
+
+  // Apply both actions together:
+  // 1. Update visibleCol in metadata
+  // 2. Set the display formula
+  await docApi.applyUserActions([
+    ["UpdateRecord", "_grist_Tables_column", refColumn.id, { visibleCol: showColumn.id }],
+    ["SetDisplayFormula", tableId, null, refColumn.id, `$${refColId}.${showColId}`],
+  ]);
 }
