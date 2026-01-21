@@ -22,7 +22,7 @@ describe("ApiConsole", function() {
       // Start a DELETE operation but cancel it
       await clickWithRetry(() => gu.scrollIntoView(driver.find("div#operations-orgs-deleteOrg")));
       await clickWithRetry(() => driver.findWait("button.try-out__btn", 3000));
-     // Fill in the org name parameter
+      // Fill in the org name parameter
       await driver.findWait("tr[data-param-name='name'] input[placeholder='name']", 3000).sendKeys("Home");
       await clickWithRetry(() => driver.findWait("button.execute", 3000));
       assert.equal(await driver.findWait(".test-modal-title", 3000).getText(),
