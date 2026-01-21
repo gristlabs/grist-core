@@ -67,7 +67,6 @@
 
 import { OIDC_PROVIDER_KEY } from "app/common/loginProviders";
 import { UserProfile } from "app/common/LoginSessionAPI";
-import { OIDC_CALLBACK_ENDPOINT } from "app/common/OIDCCommon";
 import { StringUnionError } from "app/common/StringUnion";
 import { appSettings, AppSettings } from "app/server/lib/AppSettings";
 import { RequestWithLogin } from "app/server/lib/Authorizer";
@@ -86,6 +85,9 @@ import pick from "lodash/pick";
 import {
   Client, ClientMetadata, custom, errors as OIDCError, Issuer, TokenSet, UserinfoResponse,
 } from "openid-client";
+
+// OIDC callback endpoint path.
+const OIDC_CALLBACK_ENDPOINT = "/oauth2/callback";
 
 function formatTokenForLogs(token: TokenSet) {
   const showValueInClear = ["token_type", "expires_in", "expires_at", "scope"];

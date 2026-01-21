@@ -10,7 +10,6 @@ import { AsyncFlow, CancelledError, FlowRunner } from "app/common/AsyncFlow";
 import { ConfigAPI } from "app/common/ConfigAPI";
 import { commonUrls } from "app/common/gristUrls";
 import { GETGRIST_COM_PROVIDER_KEY } from "app/common/loginProviders";
-import { OIDC_CALLBACK_ENDPOINT } from "app/common/OIDCCommon";
 import { components } from "app/common/ThemePrefs";
 import { getGristConfig } from "app/common/urlUtils";
 
@@ -59,9 +58,8 @@ export class GetGristComProviderInfoModal extends Disposable {
         const providerConfig = await this._configAPI.getAuthProviderConfig(GETGRIST_COM_PROVIDER_KEY);
         flow.checkIfCancelled();
         const spHost = providerConfig.GRIST_GETGRISTCOM_SP_HOST || homeUrl;
-        const callBackUrl = new URL(OIDC_CALLBACK_ENDPOINT, spHost).href;
         const registerUrl = new URL(commonUrls.signInWithGristRegister);
-        registerUrl.searchParams.set("redirect_uri", callBackUrl);
+        registerUrl.searchParams.set("uri", spHost);
         registerUrlObs.set(registerUrl.href);
       });
       runner.resultPromise.catch((err) => {
