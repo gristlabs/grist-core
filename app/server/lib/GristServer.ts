@@ -124,6 +124,7 @@ export interface GristLoginMiddleware {
   getLoginRedirectUrl(req: express.Request, target: URL): Promise<string>;
   getSignUpRedirectUrl(req: express.Request, target: URL): Promise<string>;
   getLogoutRedirectUrl(req: express.Request, nextUrl: URL): Promise<string>;
+  authenticateBearerToken?(bearer: string): Promise<undefined | Partial<UserProfile>>;
   // Optional middleware for the GET /login, /signup, and /signin routes.
   getLoginOrSignUpMiddleware?(): express.RequestHandler[];
   // Optional middleware for the GET /logout route.

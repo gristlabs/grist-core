@@ -13,7 +13,7 @@ import { forceSessionChange, getSessionProfiles, getSessionUser, getSignInStatus
   SessionUserObj, SignInStatus } from "app/server/lib/BrowserSession";
 import { expressWrap } from "app/server/lib/expressWrap";
 import { RequestWithOrg } from "app/server/lib/extractOrg";
-import { GristServer } from "app/server/lib/GristServer";
+import { GristLoginMiddleware, GristServer } from "app/server/lib/GristServer";
 import { COOKIE_MAX_AGE,
   cookieName as sessionCookieName, getAllowedOrgForSessionID, getCookieDomain } from "app/server/lib/gristSessions";
 import { makeId } from "app/server/lib/idUtils";
@@ -168,6 +168,7 @@ export async function addRequestUser(
   options: {
     gristServer: GristServer,
     skipSession?: boolean,
+    authenticateBearerToken: GristLoginMiddleware["authenticateBearerToken"],
     overrideProfile?(req: Request | IncomingMessage): Promise<UserProfile | null | undefined>,
   },
   req: Request, res: Response, next: NextFunction,
@@ -201,7 +202,30 @@ export async function addRequestUser(
     // header needs to be of form "Bearer XXXXXXXXX" to apply
     const parts = String(mreq.headers.authorization).split(" ");
     if (parts[0] === "Bearer") {
-      const user = parts[1] ? await dbManager.getUserByKey(parts[1]) : undefined;
+      const bearer = parts[1];
+      let user: User | undefined;
+      // If the bearer is formatted as a JWT (header.body.signature), verify the as access_token
+      if (bearer?.split(".").length === 3) {
+        // Reject bearer JWTs if there is no authorizer to process it
+        if (!options.authenticateBearerToken) {
+          return res.status(500).send("Not implemented: access_token not accepted.");
+        }
+        const tokenPayload = await options.authenticateBearerToken(bearer);
+
+        if (!tokenPayload?.email) { return res.status(401).send("Bad request: Bearer invalid"); }
+
+        try {
+          user = await dbManager.getUserByLogin(tokenPayload.email);
+        }
+        catch {
+          user = undefined;
+        }
+      }
+      else {
+        // Otherwise, treat the bearer string as an apiKey
+        user = bearer ? await dbManager.getUserByKey(bearer) : undefined;
+      }
+
       if (!user) {
         return res.status(401).send("Bad request: invalid API key");
       }
