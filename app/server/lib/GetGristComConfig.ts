@@ -80,7 +80,6 @@ async function getLoginSystem(settings: AppSettings): Promise<GristLoginSystem> 
 
   return {
     async getMiddleware(gristServer: GristServer) {
-      oidcConfig.spHost ||= gristServer.getOwnUrl();
       const oidcBuilder = await OIDCBuilder.build(gristServer.sendAppPage.bind(gristServer), oidcConfig);
       return {
         getLoginRedirectUrl: oidcBuilder.getLoginRedirectUrl.bind(oidcBuilder),

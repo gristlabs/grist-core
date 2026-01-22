@@ -271,7 +271,7 @@ export class OIDCBuilder {
 
   protected _client: Client;
   private _config: OIDCConfig;
-  private _redirectUrl: string;
+  private _redirectUrl: string | null;
   private _protectionManager: ProtectionsManager;
 
   constructor(
@@ -285,7 +285,7 @@ export class OIDCBuilder {
   public async initOIDC(): Promise<void> {
     this._protectionManager = new ProtectionsManager(this._config.enabledProtections);
 
-    this._redirectUrl = new URL(OIDC_CALLBACK_ENDPOINT, this._config.spHost).href;
+    this._redirectUrl = this._config.spHost ? new URL(OIDC_CALLBACK_ENDPOINT, this._config.spHost).href : null;
     custom.setHttpOptionsDefaults({
       ...(agents.trusted !== undefined ? { agent: agents.trusted } : {}),
       ...(this._config.httpTimeout !== undefined ? { timeout: this._config.httpTimeout } : {}),
@@ -334,7 +334,7 @@ export class OIDCBuilder {
 
       // The callback function will compare the protections present in the params and the ones we retrieved
       // from the session. If they don't match, it will throw an error.
-      const tokenSet = await this._client.callback(this._redirectUrl, params, checks);
+      const tokenSet = await this._client.callback(this._redirectUrl ?? undefined, params, checks);
       log.debug("Got tokenSet: %o", formatTokenForLogs(tokenSet));
 
       const userInfo = await this._client.userinfo(tokenSet);
@@ -425,7 +425,7 @@ export class OIDCBuilder {
       this._client = new issuer.Client({
         client_id: clientId,
         client_secret: clientSecret,
-        redirect_uris: [this._redirectUrl],
+        redirect_uris: this._redirectUrl ? [this._redirectUrl] : undefined,
         response_types: ["code"],
         ...extraMetadata,
       });
