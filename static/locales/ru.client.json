@@ -377,7 +377,7 @@
         "Exporting is only available from document pages. Please select a document page and try again.": "Экспорт доступен только на страницах документов. Пожалуйста, выберите страницу документа и попробуйте еще раз.",
         "Download attachments...": "Загрузка вложений...",
         "Download document...": "Загрузка документа...",
-        "Suggest Changes": "Предложить изменения",
+        "Suggest changes": "Предложить изменения",
         "current version": "текущая версия",
         "original": "оригинал"
     },
@@ -418,8 +418,8 @@
         "context menu - Access Rules": "контекстное меню - Правила доступа",
         "Delete document tour": "Удалить тур по документу",
         "Preview the tutorial": "Предварительный просмотр учебника",
-        "Proposed Changes": "Предлагаемые изменения",
-        "Suggest Changes": "Предложить изменения",
+        "Proposed changes": "Предлагаемые изменения",
+        "Suggest changes": "Предложить изменения",
         "Suggestions": "Предложения"
     },
     "TypeTransformation": {

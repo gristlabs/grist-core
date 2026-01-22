@@ -942,7 +942,7 @@
         "Download attachments...": "Baixar anexos...",
         "Download document...": "Baixar documento...",
         "Exporting is only available from document pages. Please select a document page and try again.": "A exportação só está disponível a partir de páginas de documentos. Por favor, selecione uma página de documento e tente novamente.",
-        "Suggest Changes": "Sugerir alterações",
+        "Suggest changes": "Sugerir alterações",
         "current version": "versão atual",
         "original": "original"
     },
@@ -993,8 +993,8 @@
         "context menu - Access Rules": "Menu de contexto - Regras de acesso",
         "Delete document tour": "Excluir o tour do documento",
         "Preview the tutorial": "Visualizar o tutorial",
-        "Proposed Changes": "Alterações propostas",
-        "Suggest Changes": "Sugerir alterações",
+        "Proposed changes": "Alterações propostas",
+        "Suggest changes": "Sugerir alterações",
         "Suggestions": "Sugestões"
     },
     "TopBar": {

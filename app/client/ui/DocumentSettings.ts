@@ -123,7 +123,7 @@ export class DocSettingsPage extends Disposable {
         }),
         !isFork ? dom.create(AdminSectionItem, {
           id: "acceptProposals",
-          name: [t("Suggestions"), betaTag(t("experiment"))],
+          name: [t("Suggestions"), betaTag(t("experiment"), { style: "margin-left: 4px;" })],
           description: withInfoTooltip(
             t("Allow others to suggest changes"),
             "suggestions",

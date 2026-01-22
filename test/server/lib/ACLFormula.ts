@@ -21,6 +21,7 @@ describe("ACLFormula", function() {
   function getInfoView(row: Record<string, CellValue>): InfoView {
     return {
       get: (colId: string) => row[colId],
+      keys: () => Object.keys(row),
       toJSON: () => row,
     };
   }

@@ -283,6 +283,8 @@ export class AccessRules extends Disposable {
       this._uiState.set(rules.haveRules() ? "rules" : "intro");
     }
     catch (e) {
+      // We might have failed somewhere in Promise.all
+      if (this.isDisposed()) { return; }
       this._uiState.set("error");
       throw e;
     }

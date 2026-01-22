@@ -908,7 +908,7 @@
         "Exporting is only available from document pages. Please select a document page and try again.": "Exporting is only available from document pages. Please select a document page and try again.",
         "Download attachments...": "Download attachments...",
         "Download document...": "Download document...",
-        "Suggest Changes": "Suggest Changes",
+        "Suggest changes": "Suggest changes",
         "current version": "current version",
         "original": "original"
     },
@@ -957,8 +957,8 @@
         "context menu - Access Rules": "context menu - Access Rules",
         "Delete document tour": "Delete document tour",
         "Preview the tutorial": "Preview the tutorial",
-        "Proposed Changes": "Proposed Changes",
-        "Suggest Changes": "Suggest Changes",
+        "Proposed changes": "Proposed changes",
+        "Suggest changes": "Suggest changes",
         "Suggestions": "Suggestions"
     },
     "TopBar": {
@@ -2385,7 +2385,7 @@
         "{{shortcutsModal}} Show the complete list of keyboard shortcuts": "{{shortcutsModal}} Show the complete list of keyboard shortcuts"
     },
     "ProposedChangesPage": {
-        "Proposed Changes": "Proposed Changes",
+        "Proposed changes": "Proposed changes",
         "Replace original": "Replace original",
         "This is a list of changes relative to the original document.": "This is a list of changes relative to the original document.",
         "Accept": "Accept",
@@ -2394,16 +2394,16 @@
         "Dismissed {{at}}.": "Dismissed {{at}}.",
         "Learn more": "Learn more",
         "No changes found to suggest. Please make some edits.": "No changes found to suggest. Please make some edits.",
-        "Retract Suggestion": "Retract Suggestion",
+        "Retract suggestion": "Retract suggestion",
         "Retracted {{at}}.": "Retracted {{at}}.",
-        "Suggest Change": "Suggest Change",
-        "Suggest Changes": "Suggest Changes",
+        "Suggest change": "Suggest change",
+        "Suggest changes": "Suggest changes",
         "Suggestion made {{at}}.": "Suggestion made {{at}}.",
         "Suggestions": "Suggestions",
         "The original document isn't asking for proposed changes.": "The original document isn't asking for proposed changes.",
         "There are fresh changes that haven't been added to the suggestion yet.": "There are fresh changes that haven't been added to the suggestion yet.",
         "This is a list of changes relative to the {{originalDocument}}.": "This is a list of changes relative to the {{originalDocument}}.",
-        "Update Suggestion": "Update Suggestion",
+        "Update suggestion": "Update suggestion",
         "Work on a copy": "Work on a copy",
         "Your suggestions": "Your suggestions",
         "experiment": "experiment",
@@ -2592,5 +2592,19 @@
     },
     "DetailView": {
         "This row is unavailable or does not exist": "This row is unavailable or does not exist"
+    },
+    "GetGristComProvider": {
+        "**Sign in with getgrist.com** allows users on your Grist server to sign in using their account on getgrist.com, the cloud version of Grist managed by Grist Labs.": "**Sign in with getgrist.com** allows users on your Grist server to sign in using their account on getgrist.com, the cloud version of Grist managed by Grist Labs.",
+        "Cancel": "Cancel",
+        "Configure": "Configure",
+        "Configure Sign in with getgrist.com": "Configure Sign in with getgrist.com",
+        "Home URL is not set; cannot configure Sign in with getgrist.com": "Home URL is not set; cannot configure Sign in with getgrist.com",
+        "Instructions": "Instructions",
+        "Learn more about Sign in with getgrist.com": "Learn more about Sign in with getgrist.com",
+        "Paste configuration key here": "Paste configuration key here",
+        "Register your Grist server": "Register your Grist server",
+        "Sign in with getgrist.com": "Sign in with getgrist.com",
+        "To set up {{provider}}, you need to register your Grist server on getgrist.com and paste the configuration key you receive below.": "To set up {{provider}}, you need to register your Grist server on getgrist.com and paste the configuration key you receive below.",
+        "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.": "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as."
     }
 }

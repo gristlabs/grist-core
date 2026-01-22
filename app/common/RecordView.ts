@@ -3,6 +3,7 @@ import { CellValue, TableDataAction } from "app/common/DocActions";
 /** Light wrapper for reading records or user attributes. */
 export interface InfoView {
   get(key: string): CellValue;
+  keys(): string[];
   toJSON(): { [key: string]: any };
 }
 
@@ -27,6 +28,10 @@ export class RecordView implements InfoView {
     return colId === "id" || colId in this.data[3];
   }
 
+  public keys(): string[] {
+    return ["id", ...Object.keys(this.data[3])];
+  }
+
   public toJSON() {
     if (this.index === undefined) { return {}; }
     const results: { [key: string]: any } = { id: this.index };
@@ -39,5 +44,6 @@ export class RecordView implements InfoView {
 
 export class EmptyRecordView implements InfoView {
   public get(_colId: string): CellValue { return null; }
+  public keys(): string[] { return []; }
   public toJSON() { return {}; }
 }

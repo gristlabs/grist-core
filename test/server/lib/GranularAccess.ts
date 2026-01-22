@@ -2687,7 +2687,7 @@ describe("GranularAccess", function() {
     // to accidentally edit/view through it at least.
   });
 
-  it("allows characteristic tables", async function() {
+  it("allows user attribute tables", async function() {
     await freshDoc();
 
     const editorProfile = await editor.getUserProfile();
@@ -2728,7 +2728,7 @@ describe("GranularAccess", function() {
     await assertDeniedFor(editor.getDocAPI(docId).getRows("Zones"), ["owner check"]);
   });
 
-  it("allows characteristic tables to control row access", async function() {
+  it("allows user attribute tables to control row access", async function() {
     await freshDoc();
 
     const ownerProfile = await owner.getUserProfile();
@@ -3695,6 +3695,75 @@ describe("GranularAccess", function() {
     cliOwner.flush();
     assert.match((await cliOwner.send("fetchTable", 0, "Leads")).error!,
       /Blocked by table read access rules/);
+  });
+
+  it("asks for reload when user attribute table changes significantly", async function() {
+    await freshDoc();
+
+    // Add a user attribute table.
+    await owner.applyUserActions(docId, [
+      ["AddTable", "Leads", [{ id: "Name" }, { id: "Place" }]],
+      ["AddRecord", "Leads", null, { Name: "Yi Wen", Place: "Seattle" }],
+      ["AddRecord", "Leads", null, { Name: "Zeng Hua", Place: "Boston" }],
+      ["AddRecord", "Leads", null, { Name: "Tao Ping", Place: "Cambridge" }],
+      ["AddTable", "Zones", [{ id: "Email" }, { id: "City" }]],
+      ["AddRecord", "Zones", null, { Email: "chimpy@getgrist.com", City: "Seattle" }],
+      ["AddRecord", "Zones", null, { Email: "charon@getgrist.com", City: "Boston" }],
+      ["AddRecord", "_grist_ACLResources", -1, { tableId: "*", colIds: "*" }],
+      ["AddRecord", "_grist_ACLResources", -2, { tableId: "Leads", colIds: "*" }],
+      ["AddRecord", "_grist_ACLRules", null, {
+        resource: -1, userAttributes: JSON.stringify({
+          name: "Zone",
+          tableId: "Zones",
+          charId: "Email",
+          lookupColId: "Email",
+        }),
+      }],
+      ["AddRecord", "_grist_ACLRules", null, {
+        resource: -2, aclFormula: "user.Zone.City and user.Zone.City != rec.Place", permissionsText: "none",
+      }],
+    ]);
+
+    // Check owner (chimpy) and editor (charon) see expected data.
+    assert.deepEqual(await owner.getDocAPI(docId).getRecords("Leads"),
+      [{ id: 1, fields: { Name: "Yi Wen", Place: "Seattle" } }]);
+
+    assert.deepEqual(await editor.getDocAPI(docId).getRecords("Leads"),
+      [{ id: 2, fields: { Name: "Zeng Hua", Place: "Boston" } }]);
+
+    // We'll be checking message types. Ignore somewhat unpredictable
+    // user presence messages which are not relevant to this test.
+    cliOwner.ignorePresenceUpdates();
+    cliEditor.ignorePresenceUpdates();
+
+    // Open fresh clients, then change owner's access via user attribute table.
+    await reopenClients();
+    await owner.applyUserActions(docId, [
+      ["UpdateRecord", "Zones", 1, { City: "Boston" }],
+    ]);
+    // Owner should see a shutdown request, editor just a change.
+    assert.equal((await cliOwner.read()).type, "docShutdown");
+    assert.equal((await cliEditor.read()).type, "docUserAction");
+    assert.deepEqual(await owner.getDocAPI(docId).getRecords("Leads"),
+      [{ id: 2, fields: { Name: "Zeng Hua", Place: "Boston" } }]);
+
+    // Start over, this time changing editor's access.
+    await reopenClients();
+    await owner.applyUserActions(docId, [
+      ["UpdateRecord", "Zones", 2, { City: "Seattle" }],
+    ]);
+    assert.equal((await cliOwner.read()).type, "docUserAction");
+    assert.equal((await cliEditor.read()).type, "docShutdown");
+    assert.deepEqual(await editor.getDocAPI(docId).getRecords("Leads"),
+      [{ id: 1, fields: { Name: "Yi Wen", Place: "Seattle" } }]);
+
+    // Start over, this time making a neutral change (adding a column).
+    await reopenClients();
+    await owner.applyUserActions(docId, [
+      ["AddColumn", "Zones", "NewCol", { type: "Int" }],
+    ]);
+    assert.equal((await cliOwner.read()).type, "docUserAction");
+    assert.equal((await cliEditor.read()).type, "docUserAction");
   });
 
   it("controls read and write access to attachment content", async function() {

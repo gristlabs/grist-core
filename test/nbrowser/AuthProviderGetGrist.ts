@@ -21,6 +21,9 @@ describe("AuthProviderGetGrist", function() {
     process.env.GRIST_DEFAULT_EMAIL = gu.translateUser("user1").email;
     process.env.GRIST_TEST_SERVER_DEPLOYMENT_TYPE = "core";
     process.env.GRIST_FEATURE_GETGRIST_COM = "1";
+    if (!process.env.APP_HOME_URL) {
+      process.env.GRIST_GETGRISTCOM_SP_HOST = server.getUrl("docs", "");
+    }
     await server.restart();
 
     serving = await serveSomething((app) => {

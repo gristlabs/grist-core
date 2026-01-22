@@ -71,9 +71,13 @@ export class ViewSectionHelper extends Disposable {
 
   constructor(gristDoc: GristDoc, vs: ViewSectionRec, options?: any) {
     super();
-    this.onDispose(() => vs.viewInstance(null));
+    this.onDispose(() => {
+      if (vs.isDisposed()) { return; }
+      vs.viewInstance(null);
+    });
 
     this.autoDispose(subscribe((use) => {
+      if (vs.isDisposed()) { return; }
       // Rebuild the section when its type changes or its underlying table.
       const table = use(vs.table);
       const key = use(vs.parentKey);

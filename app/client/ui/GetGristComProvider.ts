@@ -1,9 +1,10 @@
 import { makeT } from "app/client/lib/localization";
+import { inlineMarkdown } from "app/client/lib/markdown";
 import { getHomeUrl, reportError } from "app/client/models/AppModel";
 import { cssTextArea } from "app/client/ui/AdminPanelCss";
 import { bigBasicButton, bigPrimaryButton } from "app/client/ui2018/buttons";
 import { theme, vars } from "app/client/ui2018/cssVars";
-// import {cssLink} from 'app/client/ui2018/links'; uncomment when we will have proper registration page
+import { cssLink } from "app/client/ui2018/links";
 import { cssModalWidth, modal } from "app/client/ui2018/modals";
 import { AsyncFlow, CancelledError, FlowRunner } from "app/common/AsyncFlow";
 import { ConfigAPI } from "app/common/ConfigAPI";
@@ -77,9 +78,9 @@ export class GetGristComProviderInfoModal extends Disposable {
         ),
         cssModalDescription(
           dom("p",
-            dom("b", t("Sign in with getgrist.com")),
-            t(" allows users on your Grist server to sign in using their account on \
-getgrist.com, the cloud version of Grist managed by Grist Labs."),
+            inlineMarkdown(t("**Sign in with getgrist.com** \
+allows users on your Grist server to sign in using their account on \
+getgrist.com, the cloud version of Grist managed by Grist Labs.")),
           ),
           dom("p",
             t("When signing in, users will be redirected to the getgrist.com login page \
@@ -95,18 +96,18 @@ getgrist.com and paste the configuration key you receive below.", {
               provider: dom("b", t("Sign in with getgrist.com")),
             })),
         ),
-        // Uncomment when we have proper registration page
-        // cssRegisterLink(
-        //   dom.attr('href', registerUrlObs),
-        //   dom.on('click', (ev, el) => {
-        //     // Make sure we have a URL to go to.
-        //     if (!registerUrlObs.get()) {
-        //       ev.preventDefault();
-        //     }
-        //   }),
-        //   {target: '_blank'},
-        //   t('Register your Grist sever'),
-        // ),
+        cssLink(
+          dom.attr("href", registerUrlObs),
+          dom.on("click", (ev, el) => {
+            // Make sure we have a URL to go to.
+            if (!registerUrlObs.get()) {
+              ev.preventDefault();
+            }
+          }),
+          { target: "_blank" },
+          { style: "margin-bottom: 16px; display: block;" },
+          t("Register your Grist server"),
+        ),
         cssLargerTextArea(
           this._configKey,
           { onInput: true },
@@ -217,10 +218,6 @@ const cssModalInstructions = styled("div", `
   }
 `);
 
-// const cssRegisterLink = styled(cssLink, `
-//   margin-bottom: 16px;
-//   display: block;
-// `);
 // const cssLearnMoreLink = styled(cssLink, `
 //   margin-top: 16px;
 //   margin-bottom: 24px;

@@ -17,7 +17,7 @@ import { BaseFormatter, createFullFormatterFromDocData } from "app/common/ValueF
 import { ActiveDoc } from "app/server/lib/ActiveDoc";
 import { RequestWithLogin } from "app/server/lib/Authorizer";
 import { docSessionFromRequest } from "app/server/lib/DocSession";
-import { optIntegerParam, optJsonParam, optStringParam, stringParam } from "app/server/lib/requestUtils";
+import { optIntegerParam, optJsonParam, optStringParam } from "app/server/lib/requestUtils";
 import { ServerColumnGetters } from "app/server/lib/ServerColumnGetters";
 
 import * as express from "express";
@@ -97,7 +97,7 @@ export type ExportHeader = "colId" | "label";
  * Export parameters that identifies a section, filters, sort order.
  */
 export interface ExportParameters {
-  tableId: string;          // Value of '' is an instruction to export all tables.
+  tableId?: string;
   viewSectionId?: number;
   sortOrder?: number[];
   filters?: Filter[];
@@ -116,7 +116,7 @@ export interface DownloadOptions extends ExportParameters {
  * Gets export parameters from a request.
  */
 export function parseExportParameters(req: express.Request): ExportParameters {
-  const tableId = stringParam(req.query.tableId, "tableId");
+  const tableId = optStringParam(req.query.tableId, "tableId");
   const viewSectionId = optIntegerParam(req.query.viewSection, "viewSection");
   const sortOrder = optJsonParam(req.query.activeSortSpec, []) as number[];
   const filters: Filter[] = optJsonParam(req.query.filters, []);

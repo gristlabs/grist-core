@@ -1272,10 +1272,6 @@ export class DocWorkerApi {
         await this._getDownloadOptions(req) :
         {
           filename: await this._getDownloadFilename(req),
-          tableId: "",
-          viewSectionId: undefined,
-          filters: [],
-          sortOrder: [],
           header: "label",
         };
       await downloadXLSX(activeDoc, req, res, options);
