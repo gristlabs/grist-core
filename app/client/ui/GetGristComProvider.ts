@@ -9,9 +9,7 @@ import { AsyncFlow, CancelledError, FlowRunner } from "app/common/AsyncFlow";
 import { ConfigAPI } from "app/common/ConfigAPI";
 import { commonUrls } from "app/common/gristUrls";
 import { GETGRIST_COM_PROVIDER_KEY } from "app/common/loginProviders";
-import { OIDC_CALLBACK_ENDPOINT } from "app/common/OIDCCommon";
 import { components } from "app/common/ThemePrefs";
-import { getGristConfig } from "app/common/urlUtils";
 
 import { Disposable, dom, makeTestId, Observable, styled } from "grainjs";
 
@@ -46,21 +44,18 @@ export class GetGristComProviderInfoModal extends Disposable {
     onConfigure?: () => void,
   ): void {
     this._onConfigure = onConfigure;
-    const homeUrl = getGristConfig().homeUrl;
-    if (!homeUrl) {
-      throw new Error(t("Home URL is not set; cannot configure Sign in with getgrist.com"));
-    }
-
     modal((ctl, owner) => {
       this.onDispose(() => ctl.close());
       const registerUrlObs: Observable<string> = Observable.create<string>(owner, "");
       const runner = FlowRunner.create(owner, async (flow: AsyncFlow) => {
         const providerConfig = await this._configAPI.getAuthProviderConfig(GETGRIST_COM_PROVIDER_KEY);
         flow.checkIfCancelled();
-        const spHost = providerConfig.GRIST_GETGRISTCOM_SP_HOST || homeUrl;
-        const callBackUrl = new URL(OIDC_CALLBACK_ENDPOINT, spHost).href;
         const registerUrl = new URL(commonUrls.signInWithGristRegister);
-        registerUrl.searchParams.set("redirect_uri", callBackUrl);
+        const spHost = providerConfig.GRIST_GETGRISTCOM_SP_HOST;
+        if (spHost) {
+          const callBackUrl = new URL(spHost).origin;
+          registerUrl.searchParams.set("redirect_uri", callBackUrl);
+        }
         registerUrlObs.set(registerUrl.href);
       });
       runner.resultPromise.catch((err) => {
