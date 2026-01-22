@@ -50,6 +50,7 @@ interface INotifierMethods {
   ): Promise<void>;
   addBillingManager(hostUserId: number, addUserId: number, orgs: Organization[]): Promise<void>;
   firstLogin(user: FullUser): Promise<void>;
+  firstOAuthLogin(user: FullUser): Promise<void>;
   teamCreator(userId: number): Promise<void>;
   userChange(change: UserChange): Promise<void>;
   trialPeriodEndingSoon(account: BillingAccount, subscription: { trial_end: number | null }): Promise<void>;
@@ -106,6 +107,7 @@ export class EmitNotifier extends EventEmitter implements INotifier {
   public addUser = this._wrapEvent("addUser");
   public addBillingManager = this._wrapEvent("addBillingManager");
   public firstLogin = this._wrapEvent("firstLogin");
+  public firstOAuthLogin = this._wrapEvent("firstOAuthLogin");
   public teamCreator = this._wrapEvent("teamCreator");
   public userChange = this._wrapEvent("userChange");
   public trialPeriodEndingSoon = this._wrapEvent("trialPeriodEndingSoon");

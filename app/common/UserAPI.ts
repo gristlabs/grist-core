@@ -243,6 +243,8 @@ export interface UserOptions {
   // Locale selected by the user. Defaults to 'en' if unset.
   locale?: string;
   ssoExtraInfo?: Record<string, any>; // Extra fields from the user profile, e.g. from OIDC.
+  // The first time the user logged in using getgrist.com auth. Only set in Grist SaaS.
+  firstOAuthLoginAt?: Date;
 }
 
 export interface PermissionDelta {
