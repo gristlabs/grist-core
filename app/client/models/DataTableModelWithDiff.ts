@@ -3,12 +3,15 @@ import DataTableModel from "app/client/models/DataTableModel";
 import { DocModel } from "app/client/models/DocModel";
 import { TableRec } from "app/client/models/entities/TableRec";
 import { TableQuerySets } from "app/client/models/QuerySet";
-import { RowGrouping, SortedRowSet } from "app/client/models/rowset";
+import { ChangeType, RowGrouping, RowList, RowsChanged, SortedRowSet } from "app/client/models/rowset";
 import { TableData } from "app/client/models/TableData";
-import { createEmptyTableDelta, getTableIdAfter, getTableIdBefore, TableDelta } from "app/common/ActionSummary";
+import { ActionSummarizer } from "app/common/ActionSummarizer";
+import { createEmptyActionSummary, createEmptyTableDelta, getTableIdAfter,
+  getTableIdBefore, TableDelta } from "app/common/ActionSummary";
 import { DisposableWithEvents } from "app/common/DisposableWithEvents";
-import { CellVersions, UserAction } from "app/common/DocActions";
+import { CellVersions, DocAction, UserAction } from "app/common/DocActions";
 import { DocStateComparisonDetails } from "app/common/DocState";
+import { TableDataChangeListener } from "app/common/TableData";
 import { CellDelta } from "app/common/TabularDiff";
 import { CellValue, GristObjCode } from "app/plugin/GristData";
 
@@ -46,10 +49,17 @@ export class ExtraRows {
   public readonly rightTableDelta?: TableDelta;
   public readonly rightAddRows: Set<number>;
   public readonly rightRemoveRows: Set<number>;
-  public readonly leftAddRows: Set<number>;
-  public readonly leftRemoveRows: Set<number>;
+  public leftAddRows: Set<number>;
+  public leftRemoveRows: Set<number>;
 
-  public constructor(public readonly tableId: string, public readonly comparison?: DocStateComparisonDetails) {
+  public constructor(public readonly tableId?: string, public readonly comparison?: DocStateComparisonDetails) {
+    if (!tableId) {
+      this.rightAddRows = new Set();
+      this.rightRemoveRows = new Set();
+      this.leftAddRows = new Set();
+      this.leftRemoveRows = new Set();
+      return;
+    }
     const remoteTableId = getRemoteTableId(tableId, comparison);
     this.leftTableDelta = this.comparison?.leftChanges?.tableDeltas[tableId];
     if (remoteTableId) {
@@ -104,25 +114,44 @@ export class DataTableModelWithDiff extends DisposableWithEvents implements Data
   public tableData: TableData;
   public tableMetaRow: TableRec;
   public tableQuerySets: TableQuerySets;
+  public extraRows: ExtraRows;
 
   // For viewing purposes (LazyRowsModel), cells should have comparison info, so we will
   // forward to a comparison-aware wrapper. Otherwise, the model is left substantially
   // unchanged for now.
   private _wrappedModel: DataTableModel;
 
-  public constructor(public core: DataTableModel, comparison: DocStateComparisonDetails) {
+  public constructor(public core: DataTableModel, private _comparison: DocStateComparisonDetails) {
     super();
     this.tableMetaRow = core.tableMetaRow;
     this.tableQuerySets = core.tableQuerySets;
     this.docModel = core.docModel;
     const tableId = core.tableData.tableId;
-    const remoteTableId = getRemoteTableId(tableId, comparison) || "";
-    this.tableData = new TableDataWithDiff(
+    const remoteTableId = getRemoteTableId(tableId, _comparison) || "";
+    this.extraRows = new ExtraRows(this.core.tableData.tableId, this._comparison);
+    _comparison.leftChanges.tableDeltas[tableId] ||= createEmptyTableDelta();
+    _comparison.rightChanges.tableDeltas[tableId] ||= createEmptyTableDelta();
+    const tableDataWithDiff = new TableDataWithDiff(
       core.tableData,
-      comparison.leftChanges.tableDeltas[tableId] || createEmptyTableDelta(),
-      comparison.rightChanges.tableDeltas[remoteTableId] || createEmptyTableDelta()) as any;
+      _comparison.leftChanges.tableDeltas[tableId],
+      _comparison.rightChanges.tableDeltas[remoteTableId],
+      this.extraRows,
+    ) as any;
+    this.tableData = tableDataWithDiff;
+    core.tableData.addChangeListener(tableDataWithDiff);
     this.isLoaded = core.isLoaded;
     this._wrappedModel = new DataTableModel(this.docModel, this.tableData, this.tableMetaRow);
+
+    this.listenTo(this._wrappedModel, "rowChange", (changeType: ChangeType, rows: RowList) => {
+      this.trigger("rowChange", changeType, rows);
+    });
+    this.listenTo(this._wrappedModel, "rowNotify", (rows: RowsChanged, notifyValue: any) => {
+      this.trigger("rowNotify", rows, notifyValue);
+    });
+  }
+
+  public getExtraRows() {
+    return this.extraRows;
   }
 
   public createLazyRowsModel(sortedRowSet: SortedRowSet, optRowModelClass: any) {
@@ -163,7 +192,7 @@ export class DataTableModelWithDiff extends DisposableWithEvents implements Data
  * A variant of TableData that is aware of a comparison with another version of the table.
  * TODO: flesh out, just included essential members so far.
  */
-export class TableDataWithDiff {
+export class TableDataWithDiff implements TableDataChangeListener {
   public dataLoadedEmitter: any;
   public tableActionEmitter: any;
 
@@ -171,7 +200,8 @@ export class TableDataWithDiff {
   private _rightRemovals: Set<number>;
   private _updates: Set<number>;
 
-  constructor(public core: TableData, public leftTableDelta: TableDelta, public rightTableDelta: TableDelta) {
+  constructor(public core: TableData, public leftTableDelta: TableDelta,
+    public rightTableDelta: TableDelta, public extraRows: ExtraRows) {
     this.dataLoadedEmitter = core.dataLoadedEmitter;
     this.tableActionEmitter = core.tableActionEmitter;
     // Construct the set of all rows updated in either left/local or right/remote.
@@ -188,12 +218,88 @@ export class TableDataWithDiff {
     return this.core.getColIds();
   }
 
+  public getColType(colId: string) {
+    return this.core.getColType(colId);
+  }
+
   public sendTableActions(actions: UserAction[], optDesc?: string): Promise<any[]> {
     return this.core.sendTableActions(actions, optDesc);
   }
 
   public sendTableAction(action: UserAction, optDesc?: string): Promise<any> | undefined {
     return this.core.sendTableAction(action, optDesc);
+  }
+
+  public receiveAction(action: DocAction): boolean {
+    return this.core.receiveAction(action);
+  }
+
+  public before(action: DocAction): void {
+    console.log("DataTableModelWithDiff.before", action);
+    const op = new ActionSummarizer();
+    const sum = createEmptyActionSummary();
+    op.addAction(sum, action, this.core);
+    const tableDelta = Object.values(sum.tableDeltas)[0];
+    if (!tableDelta) { return; }
+    for (const r of tableDelta.updateRows) {
+      for (const colId of Object.keys(tableDelta.columnDeltas)) {
+        if (!this.leftTableDelta.columnDeltas[colId]) {
+          this.leftTableDelta.columnDeltas[colId] = {};
+        }
+        if (!this.leftTableDelta.columnDeltas[colId][r]) {
+          const row = this.core.getRecord(r);
+          const cell = row?.[colId];
+          const nestedCell = cell === undefined ? null : [cell] as [any];
+          this.leftTableDelta.columnDeltas[colId][r] = [nestedCell, null];
+          if (!this.leftTableDelta.updateRows.includes(r)) {
+            this.leftTableDelta.updateRows.push(r);
+            this._updates.add(r);
+          }
+        }
+        this.leftTableDelta.columnDeltas[colId][r][1] =
+          tableDelta.columnDeltas[colId]?.[r]?.[1];
+      }
+    }
+    for (const r of tableDelta.addRows) {
+      for (const colId of Object.keys(tableDelta.columnDeltas)) {
+        if (!this.leftTableDelta.columnDeltas[colId]) {
+          this.leftTableDelta.columnDeltas[colId] = {};
+        }
+        if (!this.leftTableDelta.columnDeltas[colId][r]) {
+          this.leftTableDelta.columnDeltas[colId][r] = [null, null];
+          if (!this.leftTableDelta.addRows.includes(r)) {
+            this.leftTableDelta.addRows.push(r);
+          }
+        }
+        this.leftTableDelta.columnDeltas[colId][r][1] =
+          tableDelta.columnDeltas[colId]?.[r]?.[1];
+        this._updates.add(r);
+        this.extraRows.leftAddRows.add(r);
+      }
+    }
+    for (const r of tableDelta.removeRows) {
+      if (this.extraRows.leftAddRows.has(r)) {
+        this.extraRows.leftAddRows.delete(r);
+        this.extraRows.leftRemoveRows.delete(r);
+        this.extraRows.leftRemoveRows.delete(-r * 2 - 2);
+        this._updates.delete(r);
+        this.leftTableDelta.addRows = this.leftTableDelta.addRows.filter(id => id !== r);
+        continue;
+      }
+      for (const colId of Object.keys(tableDelta.columnDeltas)) {
+        if (!this.leftTableDelta.columnDeltas[colId]) {
+          this.leftTableDelta.columnDeltas[colId] = {};
+        }
+        if (!this.leftTableDelta.columnDeltas[colId][r]) {
+          this.leftTableDelta.columnDeltas[colId][r] = [null, null];
+          this.leftTableDelta.removeRows.push(r);
+        }
+        this.leftTableDelta.columnDeltas[colId][r][0] =
+          tableDelta.columnDeltas[colId]?.[r]?.[1];
+        this._updates.add(r);
+        this.extraRows.leftRemoveRows.add(r);
+      }
+    }
   }
 
   /**

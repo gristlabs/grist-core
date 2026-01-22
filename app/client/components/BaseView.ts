@@ -133,7 +133,7 @@ export default class BaseView extends DisposableWithEvents {
 
     // TODO: but accessing by tableId identifier may be problematic when the table is renamed.
     this.tableModel = this.gristDoc.getTableModelMaybeWithDiff(this.schemaModel.tableId());
-    this.extraRows = new ExtraRows(this.schemaModel.tableId(), this.comparison?.details);
+    this.extraRows = this.tableModel.getExtraRows?.() ?? new ExtraRows();
 
     // We use a DynamicQuerySet as the underlying RowSource, with ColumnFilters applies on top of
     // it. It filters based on section linking, re-querying as needed in case of onDemand tables.

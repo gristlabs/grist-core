@@ -74,6 +74,9 @@ export type PersistentAnchor = typeof PersistentAnchor.type;
 export const InterfaceStyle = StringUnion("singlePage", "full");
 export type InterfaceStyle = typeof InterfaceStyle.type;
 
+export const CompareEmphasis = StringUnion("local", "remote");
+export type CompareEmphasis = typeof CompareEmphasis.type;
+
 // Default subdomain for home api service if not otherwise specified.
 export const DEFAULT_HOME_SUBDOMAIN = "api";
 
@@ -205,6 +208,7 @@ export interface IGristUrlState {
     srcDocId?: string;
     style?: InterfaceStyle;
     compare?: string;
+    compareEmphasis?: "local" | "remote";  // which of local and remote changes should be emphasized visually.
     linkParameters?: Record<string, string>;  // Parameters to pass as 'user.Link' in granular ACLs.
     // Encoded in URL as query params with extra '_' suffix.
     themeSyncWithOs?: boolean;
@@ -602,6 +606,12 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
 
   if (sp.has("compare")) {
     state.params!.compare = sp.get("compare")!;
+  }
+  if (sp.has("compareEmphasis")) {
+    const compareEmphasis = sp.get("compareEmphasis")!;
+    if (compareEmphasis && CompareEmphasis.guard(compareEmphasis)) {
+      state.params!.compareEmphasis = compareEmphasis;
+    }
   }
   const linkParameters = decodeLinkParameters(sp);
   if (linkParameters) {

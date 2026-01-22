@@ -51,6 +51,10 @@ export class TableData extends ActionDispatcher implements SkippableRows {
   private _isLoaded: boolean = false;
   private _fetchPromise?: Promise<void>;
 
+  // These are just temporary, can be done with existing mechanism
+  // I think.
+  private _changeListeners: TableDataChangeListener[] = [];
+
   // Storage of the underlying data. Each column is an array, all of the same length. Includes
   // 'id' column, containing a reference to _rowIdCol.
   private _columns = new Map<string, ColData>();
@@ -85,6 +89,10 @@ export class TableData extends ActionDispatcher implements SkippableRows {
     }
     // TODO: We should probably unload big sets of data when no longer needed. This can be left for
     // when we support loading only parts of a table.
+  }
+
+  public addChangeListener(listener: TableDataChangeListener) {
+    this._changeListeners.push(listener);
   }
 
   /**
@@ -396,7 +404,13 @@ export class TableData extends ActionDispatcher implements SkippableRows {
    */
   public receiveAction(action: DocAction): boolean {
     if (this._isLoaded || isSchemaAction(action)) {
+      for (const listener of this._changeListeners) {
+        listener.before?.(action);
+      }
       this.dispatchAction(action);
+      for (const listener of this._changeListeners) {
+        listener.after?.(action);
+      }
       return true;
     }
     return false;
@@ -624,4 +638,9 @@ export class MetaTableData<TableId extends keyof SchemaTypes> extends TableData 
 function reassignArray<T>(targetArray: T[], sourceArray: T[]): void {
   targetArray.length = 0;
   arraySplice(targetArray, 0, sourceArray);
+}
+
+export interface TableDataChangeListener {
+  before?(action: DocAction): void;
+  after?(action: DocAction): void;
 }

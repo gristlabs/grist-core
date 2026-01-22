@@ -4,6 +4,7 @@ import { ActionSummary, ColumnDelta, createEmptyActionSummary,
 import { DocAction } from "app/common/DocActions";
 import * as Action from "app/common/DocActions";
 import { arrayExtend } from "app/common/gutil";
+import { TableData } from "app/common/TableData";
 import { CellDelta } from "app/common/TabularDiff";
 
 import clone from "lodash/clone";
@@ -36,7 +37,7 @@ export interface ActionSummaryOptions {
   alwaysPreserveColIds?: string[];
 }
 
-class ActionSummarizer {
+export class ActionSummarizer {
   private readonly _maxRows = this._getMaxRows();
 
   constructor(private _options?: ActionSummaryOptions) {}
@@ -111,6 +112,52 @@ class ActionSummarizer {
       const td = this._forTable(summary, tableId);
       arrayExtend(td.removeRows, act[2]);
       this._addRows(tableId, td, act[2], act[3], 0);
+    }
+  }
+
+  /**
+   * Add action given the table state prior to the action.
+   * If calling this, we don't need the undo action to figure
+   * out prior state.
+   */
+  public addAction(summary: ActionSummary, act: DocAction,
+    tableData: TableData) {
+    const tableId = act[1];
+    if (!summary.tableDeltas[tableId]) {
+      summary.tableDeltas[tableId] = createEmptyTableDelta();
+    }
+    this.addForwardAction(summary, act);
+    // removal of records doesn't register in forward action.
+    if (Action.isRemoveRecord(act)) {
+      const td = this._forTable(summary, tableId);
+      td.removeRows.push(act[2]);
+      const rec = tableData.getRecord(act[2]);
+      if (rec) {
+        this._addRow(td, act[2], rec, 0);
+      }
+    }
+    else if (Action.isBulkRemoveRecord(act)) {
+      const td = this._forTable(summary, tableId);
+      arrayExtend(td.removeRows, act[2]);
+      for (const id of act[2]) {
+        const rec = tableData.getRecord(id);
+        if (rec) {
+          this._addRow(td, id, rec, 0);
+        }
+      }
+    }
+
+    const tableDelta = summary.tableDeltas[tableId];
+    for (const r of new Set([...tableDelta.updateRows, ...tableDelta.addRows])) {
+      const row = tableData.getRecord(r);
+      for (const colId of Object.keys(tableDelta.columnDeltas)) {
+        if (!(r in tableDelta.columnDeltas[colId])) {
+          continue;
+        }
+        const cell = row?.[colId];
+        const nestedCell = cell === undefined ? null : [cell] as [any];
+        tableDelta.columnDeltas[colId][r][0] = nestedCell;
+      }
     }
   }
 

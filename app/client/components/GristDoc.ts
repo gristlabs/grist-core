@@ -75,6 +75,7 @@ import { OpenLocalDocResult } from "app/common/DocListAPI";
 import { DocState, DocStateComparison } from "app/common/DocState";
 import { isList, isListType, isRefListType } from "app/common/gristTypes";
 import {
+  CompareEmphasis,
   HashLink,
   IDocPage,
   isFeatureEnabled,
@@ -251,6 +252,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
   public isReadonly = this.docPageModel.isReadonly;
   public isReadonlyKo = toKo(ko, this.isReadonly);
   public comparison: DocStateComparison | null;
+  public compareEmphasis: CompareEmphasis;
   public get regionFocusSwitcher() { return this.app.regionFocusSwitcher; }
   // component for keeping track of latest cursor position
   public cursorMonitor: CursorMonitor;
@@ -343,6 +345,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
   private _isShowingPopupSection = false;
   private _prevSectionId: number | null = null;
   private _assistantPopup = buildAssistantPopup(this);
+  private _diffModels: Record<string, DataTableModelWithDiff> = {};
 
   constructor(
     public readonly app: App,
@@ -352,7 +355,8 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
     openDocResponse: OpenLocalDocResult,
     plugins: LocalPlugin[],
     options: {
-      comparison?: DocStateComparison  // initial comparison with another document
+      comparison?: DocStateComparison,  // initial comparison with another document
+      compareEmphasis?: CompareEmphasis,
     } = {},
   ) {
     super();
@@ -702,6 +706,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
     this.rightPanelTool = Computed.create(this, use => this._getToolContent(use(this._rightPanelTool)));
 
     this.comparison = options.comparison || null;
+    this.compareEmphasis = options.compareEmphasis ?? "remote";
 
     // We need prevent default here to allow drop events to fire.
     this.autoDispose(dom.onElem(window, "dragover", ev => ev.preventDefault()));
@@ -831,6 +836,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       testId("gristdoc"),
       cssViewContentPane.cls("-special-page", use =>
         ["data", "settings", "code"].includes(use(this.activeViewId) as string)),
+      dom.cls("diff-emphasize-local", this.compareEmphasis === "local"),
       dom.maybe(this._isRickRowing, () => cssStopRickRowingButton(
         cssCloseIcon("CrossBig"),
         dom.on("click", () => {
@@ -961,8 +967,10 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
     if (!this.comparison?.details) {
       return tableModel;
     }
-    // TODO: cache wrapped models and share between views.
-    return new DataTableModelWithDiff(tableModel, this.comparison.details);
+    if (!this._diffModels[tableId]) {
+      this._diffModels[tableId] = new DataTableModelWithDiff(tableModel, this.comparison.details);
+    }
+    return this._diffModels[tableId];
   }
 
   /**
