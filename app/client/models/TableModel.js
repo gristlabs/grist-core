@@ -39,6 +39,10 @@ TableModel.prototype.getNumRows = function() {
   return this.tableData.numRecords();
 };
 
+TableModel.prototype.getExtraRows = function() {
+  return null;
+};
+
 TableModel.prototype.getRowGrouping = function(groupByCol) {
   var grouping = this.rowGroupings[groupByCol];
   if (!grouping) {
