@@ -86,9 +86,9 @@ export function attachEarlyEndpoints(options: AttachOptions) {
 
     const clearSession = optBooleanParam(req.query["clear-session"], "clear-session");
     if (clearSession) {
-      log.info(`Restart requested with clear-session flag; clearing all sessions.`);
-      // We are going to clear the session for all users.
-      await gristServer.getSessions().clearAllSessions();
+      log.info(`Restart requested with clear-session flag; setting persistent flag to clear sessions on next startup.`);
+      // Set a persistent flag in the home DB to clear sessions on the next startup
+      await gristServer.getHomeDBManager().updateInstallConfig("clear_sessions_on_startup", true);
     }
 
     if (!process.env.GRIST_RUNNING_UNDER_SUPERVISOR) {

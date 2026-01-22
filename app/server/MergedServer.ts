@@ -158,6 +158,9 @@ export class MergedServer {
       await this.flexServer.start();
 
       if (this.hasComponent("home")) {
+        // Check if we need to clear sessions on startup
+        await this._checkAndClearSessionsIfNeeded();
+
         this.flexServer.addUsage();
         if (!this.hasComponent("docs")) {
           this.flexServer.addDocApiForwarder();
@@ -246,6 +249,21 @@ export class MergedServer {
       }
     }
     throw new Error("Worker not found");
+  }
+
+  private async _checkAndClearSessionsIfNeeded() {
+    try {
+      const homeDBManager = this.flexServer.getHomeDBManager();
+      if (await homeDBManager.checkAndClearInstallFlag("clear_sessions_on_startup")) {
+        log.info("Clear sessions flag is set; clearing all sessions and resetting flag.");
+        // Clear all sessions
+        await this.flexServer.getSessions().clearAllSessions();
+      }
+    }
+    catch (err) {
+      // Log error but don't fail startup if something goes wrong
+      log.warn("Failed to check or clear sessions on startup:", err);
+    }
   }
 }
 

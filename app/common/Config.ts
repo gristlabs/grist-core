@@ -17,9 +17,11 @@ export interface ConfigOrg {
   domain: string | null;
 }
 
-export type ConfigKey = "audit_log_streaming_destinations";
+export type ConfigKey = "audit_log_streaming_destinations" | "clear_sessions_on_startup";
 
-export type ConfigValue = AuditLogStreamingDestinations;
+export type ConfigValue = AuditLogStreamingDestinations | ClearSessionsOnStartup;
+
+export type ClearSessionsOnStartup = boolean;
 
 export type AuditLogStreamingDestinations = AuditLogStreamingDestination[];
 
@@ -35,6 +37,7 @@ export type AuditLogStreamingDestinationName = "splunk" | "other";
 const {
   AuditLogStreamingDestinations,
   AuditLogStreamingDestinationName,
+  ClearSessionsOnStartup,
   ConfigKey,
 } = createCheckers(ConfigsTI);
 
@@ -46,4 +49,5 @@ export const ConfigKeyChecker = ConfigKey as CheckerT<ConfigKey>;
 export const ConfigValueCheckers = {
   audit_log_streaming_destinations:
     AuditLogStreamingDestinations as CheckerT<AuditLogStreamingDestinations>,
+  clear_sessions_on_startup: ClearSessionsOnStartup as CheckerT<boolean>,
 };

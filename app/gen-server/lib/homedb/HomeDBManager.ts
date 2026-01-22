@@ -3161,6 +3161,24 @@ export class HomeDBManager implements HomeDBAuth {
   }
 
   /**
+   * Checks for the install config with the specified `key`, and if it exists,
+   * deletes it.
+   */
+  public async checkAndClearInstallFlag(key: ConfigKey): Promise<boolean> {
+    return await this._connection.transaction(async (manager) => {
+      const queryResult = await this.getInstallConfig(key, {
+        transaction: manager,
+      });
+      if (queryResult.status === 200) {
+        const config: Config = this.unwrapQueryResult(queryResult);
+        await manager.remove(config);
+        return true;
+      }
+      return false;
+    });
+  }
+
+  /**
    * Updates the value of the config with the specified `key`.
    *
    * If a config with the specified `key` does not exist, returns a query

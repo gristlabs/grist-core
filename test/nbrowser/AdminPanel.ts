@@ -44,14 +44,28 @@ describe("AdminPanel", function() {
     const session2 = await gu.session().user("user2").personalSite.login();
     assert.equal(await currentEmail(), session2.email);
 
-    // Now using the api restart server with clear session set to true
-    // this call will be rejected as server can't be restarted, but the session will be cleared.
+    // Call API to set the clear-session flag (this call will be rejected as server can't restart itself via API)
     await assert.isRejected(session1.createApi(ConfigAPI).restartServer(true));
+
+    // Restart the server to process the flag
+    await server.restart(false);
 
     // Refresh the browser to check that session was cleared.
     await driver.navigate().refresh();
     await gu.waitForDocMenuToLoad();
     assert.equal(await currentEmail(), gu.translateUser("anon").email);
+
+    // Login again and restart once more time to see if everything is still working.
+    await session2.login();
+    assert.equal(await currentEmail(), session2.email);
+
+    // Restart the server once more time, without clearing sessions
+    await server.restart(false);
+
+    // Refresh the browser to check that session is still there.
+    await driver.navigate().refresh();
+    await gu.waitForDocMenuToLoad();
+    assert.equal(await currentEmail(), session2.email);
   });
 
   it("should show an explanation to non-managers", async function() {

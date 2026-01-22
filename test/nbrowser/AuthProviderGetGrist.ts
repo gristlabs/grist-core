@@ -121,27 +121,6 @@ describe("AuthProviderGetGrist", function() {
     assert.includeMembers(providerBadges, ["CONFIGURED", "ACTIVE ON RESTART"]);
   });
 
-  it("should flush out session when clicked restart", async function() {
-    // Click restart button.
-    await driver.find(".test-admin-panel-restart-button").click();
-
-    // We will see the restart modal with info about session being cleared
-    await driver.findContentWait(".test-modal-dialog", "clear all user sessions", 2000);
-
-    // Lets confirm it
-    await driver.findWait(".test-modal-confirm", 2000).click();
-
-    // This will fail as the test server is not run under supervisor, but the session is cleared.
-    await gu.waitForServer();
-    assert.isTrue(
-      await driver.findWait(".test-admin-panel-restart-unsupported-warning", 1000).isDisplayed(),
-    );
-
-    // But the session is now cleared, so refreshing the page will show the login button.
-    await driver.navigate().refresh();
-    await driver.findWait(".test-user-sign-in", 5000);
-  });
-
   it("should store config in database", async function() {
     const db = await server.getDatabase();
     const activation = await db.connection.manager.findOne(Activation, { where: {} });
