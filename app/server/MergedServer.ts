@@ -5,8 +5,12 @@
  *
  */
 
+import { SetInstallAdminOnStartup } from "app/common/Config";
+import { normalizeEmail } from "app/common/emails";
+import { appSettings } from "app/server/lib/AppSettings";
 import { FlexServer, FlexServerOptions } from "app/server/lib/FlexServer";
 import { getGlobalConfig } from "app/server/lib/globalConfig";
+import { getInstallAdminEmail } from "app/server/lib/InstallAdmin";
 import log from "app/server/lib/log";
 
 // Allowed server types. We'll start one or a combination based on the value of GRIST_SERVERS
@@ -158,6 +162,8 @@ export class MergedServer {
       await this.flexServer.start();
 
       if (this.hasComponent("home")) {
+        await this._maybeSetInstallAdmin();
+
         this.flexServer.addUsage();
         if (!this.hasComponent("docs")) {
           this.flexServer.addDocApiForwarder();
@@ -246,6 +252,44 @@ export class MergedServer {
       }
     }
     throw new Error("Worker not found");
+  }
+
+  private async _maybeSetInstallAdmin() {
+    try {
+      const dbManager = this.flexServer.getHomeDBManager();
+      await dbManager.runInTransaction(undefined, async (manager) => {
+        const key = "set_install_admin_on_startup";
+        const value = await dbManager.checkAndClearInstallConfig(key, { transaction: manager });
+        if (!value) {
+          return;
+        }
+
+        const { email, mode } = value as SetInstallAdminOnStartup;
+        const currentAdminEmail = getInstallAdminEmail() ?? "you@example.com";
+        log.info(`Set install admin config key is present. ` +
+          `Setting ${email} as the new install admin (current: ${currentAdminEmail})`);
+        const newEnvVars = await this.flexServer.getActivations()
+          .updateAppEnvFile({ GRIST_DEFAULT_EMAIL: email }, manager);
+        appSettings.setEnvVars(newEnvVars);
+        if (mode === "replace-existing") {
+          const currentAdmin = await dbManager.getExistingUserByLogin(currentAdminEmail, manager);
+          if (!currentAdmin) {
+            throw new Error(`User with email ${currentAdminEmail} not found`);
+          }
+
+          const login = currentAdmin.logins[0];
+          login.email = normalizeEmail(email);
+          login.displayEmail = email;
+          await manager.save(login);
+        }
+
+        log.info(`${email} successfully set as the new install admin. Clearing all sessions`);
+        await this.flexServer.getSessions().clearAllSessions();
+      });
+    }
+    catch (err) {
+      log.warn("Failed to set install admin:", err);
+    }
   }
 }
 

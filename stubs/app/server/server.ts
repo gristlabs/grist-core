@@ -6,8 +6,11 @@
 
 import { commonUrls } from "app/common/gristUrls";
 import { isAffirmative } from "app/common/gutil";
+import { ActivationsManager } from "app/gen-server/lib/ActivationsManager";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
+import { appSettings } from "app/server/lib/AppSettings";
 import { updateDb } from "app/server/lib/dbUtils";
+import { getInstallAdminEmail } from "app/server/lib/InstallAdmin";
 import { runPrometheusExporter } from "app/server/prometheus-exporter";
 
 import * as fse from "fs-extra";
@@ -83,7 +86,9 @@ async function setupDb() {
       if (!String(e).match(/organization not found/)) {
         throw e;
       }
-      const email = process.env.GRIST_DEFAULT_EMAIL;
+      const activations = new ActivationsManager(db);
+      appSettings.setEnvVars((await activations.current()).prefs?.envVars || {});
+      const email = getInstallAdminEmail() ?? "you@example.com";
       if (!email) {
         throw new Error("need GRIST_DEFAULT_EMAIL to create site");
       }
@@ -111,8 +116,6 @@ export async function main() {
     runPrometheusExporter(parseInt(process.env.GRIST_PROMCLIENT_PORT, 10));
   }
 
-  // If SAML is not configured, there's no login system, so provide a default email address.
-  setDefaultEnv("GRIST_DEFAULT_EMAIL", "you@example.com");
   // Set directory for uploaded documents.
   setDefaultEnv("GRIST_DATA_DIR", "docs");
   setDefaultEnv("GRIST_SERVERS", "home,docs,static");

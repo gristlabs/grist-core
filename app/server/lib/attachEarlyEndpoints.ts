@@ -4,7 +4,9 @@ import {
   ConfigKeyChecker,
   ConfigValue,
   ConfigValueCheckers,
+  SetInstallAdminOnStartup,
 } from "app/common/Config";
+import { isEmail } from "app/common/gutil";
 import { InstallProperties } from "app/common/InstallAPI";
 import { getOrgKey } from "app/gen-server/ApiServer";
 import { Config } from "app/gen-server/entity/Config";
@@ -116,6 +118,30 @@ export function attachEarlyEndpoints(options: AttachOptions) {
       // We're going down, so we're no longer ready to serve requests.
       gristServer.setReady(false);
       return res.status(200).send({ msg: "ok" });
+    }),
+  );
+
+  app.put(
+    "/api/install/admin/pending",
+    json(),
+    expressWrap(async (req, res) => {
+      const key = "set_install_admin_on_startup";
+      ConfigValueCheckers[key].check(req.body);
+      if (!isEmail(req.body.email)) {
+        throw new ApiError("Invalid email", 400);
+      }
+
+      const value = pick(req.body, "email", "mode") as SetInstallAdminOnStartup;
+      await gristServer.getHomeDBManager().updateInstallConfig(key, value);
+      return res.status(204).send();
+    }),
+  );
+
+  app.delete(
+    "/api/install/admin/pending",
+    expressWrap(async (req, res) => {
+      await gristServer.getHomeDBManager().deleteInstallConfig("set_install_admin_on_startup");
+      return res.status(204).send();
     }),
   );
 

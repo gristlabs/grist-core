@@ -76,7 +76,7 @@ export interface ICreate {
   NSandbox(options: ISandboxCreationOptions): ISandbox;
 
   // Create the logic to determine which users are authorized to manage this Grist installation.
-  createInstallAdmin(dbManager: HomeDBManager): Promise<InstallAdmin>;
+  createInstallAdmin(gristServer: GristServer): Promise<InstallAdmin>;
 
   deploymentType(): GristDeploymentType;
   sessionSecret(): string;
@@ -231,8 +231,8 @@ export class BaseCreate implements ICreate {
     };
   }
 
-  public async createInstallAdmin(dbManager: HomeDBManager): Promise<InstallAdmin> {
-    return new SimpleInstallAdmin(dbManager);
+  public async createInstallAdmin(gristServer: GristServer): Promise<InstallAdmin> {
+    return new SimpleInstallAdmin(gristServer);
   }
 
   public async getLoginSystem(): Promise<GristLoginSystem> {

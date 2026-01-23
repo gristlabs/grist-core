@@ -1,9 +1,10 @@
 import { ApiError } from "app/common/ApiError";
 import { InstallAdminInfo } from "app/common/LoginSessionAPI";
 import { User } from "app/gen-server/entity/User";
-import { HomeDBManager, SUPPORT_EMAIL } from "app/gen-server/lib/homedb/HomeDBManager";
+import { SUPPORT_EMAIL } from "app/gen-server/lib/homedb/HomeDBManager";
 import { appSettings } from "app/server/lib/AppSettings";
 import { getUser, RequestWithLogin } from "app/server/lib/Authorizer";
+import { GristServer } from "app/server/lib/GristServer";
 
 import express from "express";
 
@@ -57,11 +58,9 @@ export abstract class InstallAdmin {
 // If GRIST_DEFAULT_EMAIL is not given, we fall back on GRIST_SUPPORT_EMAIL,
 // which defaults to support@getgrist.com
 export class SimpleInstallAdmin extends InstallAdmin {
-  private _installAdminEmail = appSettings.section("access").flag("installAdminEmail").readString({
-    envVar: "GRIST_DEFAULT_EMAIL",
-  });
+  private _dbManager = this._server.getHomeDBManager();
 
-  public constructor(private _dbManager: HomeDBManager) {
+  public constructor(private _server: GristServer) {
     super();
   }
 
@@ -80,6 +79,22 @@ export class SimpleInstallAdmin extends InstallAdmin {
     return this._installAdminEmail || SUPPORT_EMAIL;
   }
 
+  private get _installAdminEmail() {
+    return getInstallAdminEmail() || this._defaultInstallAdminEmail;
+  }
+
+  private get _defaultInstallAdminEmail(): string | undefined {
+    const deploymentType = this._server.getDeploymentType();
+    switch (deploymentType) {
+      case "core": {
+        return "you@example.com";
+      }
+      default: {
+        return undefined;
+      }
+    }
+  }
+
   public override async getAdminUsers(req: express.Request): Promise<InstallAdminInfo[]> {
     if (!this._installAdminEmail) {
       return [{
@@ -94,4 +109,13 @@ export class SimpleInstallAdmin extends InstallAdmin {
       reason: req.t("admin.accountByEmail", { defaultEmail: this._installAdminEmail }),
     }];
   }
+}
+
+/**
+ * Returns the current value of `GRIST_DEFAULT_EMAIL` from {@link appSettings}.
+ */
+export function getInstallAdminEmail(): string | undefined {
+  return appSettings.section("access").flag("installAdminEmail").readString({
+    envVar: "GRIST_DEFAULT_EMAIL",
+  });
 }

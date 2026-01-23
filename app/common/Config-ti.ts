@@ -19,9 +19,9 @@ export const ConfigOrg = t.iface([], {
   "domain": t.union("string", "null"),
 });
 
-export const ConfigKey = t.lit("audit_log_streaming_destinations");
+export const ConfigKey = t.union(t.lit("audit_log_streaming_destinations"), t.lit("set_install_admin_on_startup"));
 
-export const ConfigValue = t.name("AuditLogStreamingDestinations");
+export const ConfigValue = t.union("AuditLogStreamingDestinations", "SetInstallAdminOnStartup");
 
 export const AuditLogStreamingDestinations = t.array("AuditLogStreamingDestination");
 
@@ -34,6 +34,11 @@ export const AuditLogStreamingDestination = t.iface([], {
 
 export const AuditLogStreamingDestinationName = t.union(t.lit("splunk"), t.lit("other"));
 
+export const SetInstallAdminOnStartup = t.iface([], {
+  "email": "string",
+  "mode": t.union(t.lit("set-new"), t.lit("replace-existing")),
+});
+
 const exportedTypeSuite: t.ITypeSuite = {
   Config,
   ConfigOrg,
@@ -42,5 +47,6 @@ const exportedTypeSuite: t.ITypeSuite = {
   AuditLogStreamingDestinations,
   AuditLogStreamingDestination,
   AuditLogStreamingDestinationName,
+  SetInstallAdminOnStartup,
 };
 export default exportedTypeSuite;

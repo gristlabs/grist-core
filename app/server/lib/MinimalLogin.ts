@@ -1,5 +1,6 @@
 import { UserProfile } from "app/common/UserAPI";
 import { GristLoginMiddleware, GristLoginSystem, GristServer, setUserInSession } from "app/server/lib/GristServer";
+import { getInstallAdminEmail } from "app/server/lib/InstallAdmin";
 import { getFallbackLoginProvider } from "app/server/lib/loginSystemHelpers";
 
 import { Request } from "express";
@@ -49,27 +50,10 @@ export const getMinimalLoginSystem = getFallbackLoginProvider(
   buildMinimalLoginSystem,
 );
 
-export function getDefaultProfile(): UserProfile {
+function getDefaultProfile(): UserProfile {
   return {
-    email: process.env.GRIST_DEFAULT_EMAIL || "you@example.com",
+    email: getInstallAdminEmail() || "you@example.com",
     name: "You",
-  };
-}
-
-/**
- * Returns a fallback login system that blocks all authentication attempts.
- *
- * This is used as a last resort when no login system is selected explicitly or configured properly, so that
- * it can be selected automatically. It is a variant of the minimal login system that does not allow any logins at all.
- */
-export async function getBlockedLoginSystem(): Promise<GristLoginSystem> {
-  return {
-    async getMiddleware() {
-      return new ErrorInLoginMiddleware();
-    },
-    async deleteUser() {
-      // nothing to do
-    },
   };
 }
 
