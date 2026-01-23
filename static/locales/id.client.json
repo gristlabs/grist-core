@@ -2594,5 +2594,19 @@
     },
     "DetailView": {
         "This row is unavailable or does not exist": "Baris ini tidak tersedia atau tidak ada"
+    },
+    "GetGristComProvider": {
+        "**Sign in with getgrist.com** allows users on your Grist server to sign in using their account on getgrist.com, the cloud version of Grist managed by Grist Labs.": "**Masuk dengan getgrist.com** memungkinkan pengguna di server Grist Anda untuk masuk menggunakan akun mereka di getgrist.com, versi cloud dari Grist yang dikelola oleh Grist Labs.",
+        "Cancel": "Batal",
+        "Configure": "Konfigurasi",
+        "Configure Sign in with getgrist.com": "Konfigurasi Masuk dengan getgrist.com",
+        "Home URL is not set; cannot configure Sign in with getgrist.com": "URL beranda belum diatur; tidak dapat mengkonfigurasi Masuk dengan getgrist.com",
+        "Instructions": "Instruksi",
+        "Learn more about Sign in with getgrist.com": "Pelajari selengkapnya tentang Masuk dengan getgrist.com",
+        "Paste configuration key here": "Tempelkan kunci konfigurasi di sini",
+        "Register your Grist server": "Daftarkan server Grist Anda",
+        "Sign in with getgrist.com": "Masuk dengan getgrist.com",
+        "To set up {{provider}}, you need to register your Grist server on getgrist.com and paste the configuration key you receive below.": "Untuk mengatur {{provider}}, Anda perlu mendaftarkan server Grist Anda di getgrist.com dan menempelkan kunci konfigurasi yang Anda terima di bawah ini.",
+        "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.": "Saat masuk, pengguna akan dialihkan ke halaman login getgrist.com untuk masuk atau mendaftar. Setelah melakukan autentikasi di getgrist.com, mereka akan dialihkan kembali ke server Grist Anda dan masuk sebagai pengguna yang telah mereka gunakan untuk autentikasi."
     }
 }
