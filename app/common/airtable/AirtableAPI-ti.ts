@@ -37,11 +37,18 @@ export const AirtableFieldSchema = t.iface([], {
   })),
 });
 
+export const AirtableChoiceValue = t.iface([], {
+  "id": "string",
+  "name": "string",
+  "color": "string",
+});
+
 const exportedTypeSuite: t.ITypeSuite = {
   AirtableAPIOptions,
   AirtableListBasesResponse,
   AirtableBaseSchema,
   AirtableTableSchema,
   AirtableFieldSchema,
+  AirtableChoiceValue,
 };
 export default exportedTypeSuite;
