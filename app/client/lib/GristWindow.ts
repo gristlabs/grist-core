@@ -27,7 +27,7 @@ declare global {
     isRunningUnderElectron?: boolean;
     resetDismissedPopups?: (seen?: boolean) => void;
     resetOnboarding?: () => void;
-    runAirtableMigration?: (
+    gristAirtableMigration?: (
       apiKey: string, base: string, transformations?: ImportSchemaTransformParams,
     ) => Promise<any>;
     testGrist?: Partial<TestState>;
