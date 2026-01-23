@@ -8,7 +8,7 @@ import {
 } from "app/common/DocSchemaImport";
 import { UserAPI } from "app/common/UserAPI";
 
-export interface AirtableMigrationOptions {
+export interface AirtableImportOptions {
   transformations?: ImportSchemaTransformParams,
   existingDocId?: string,
 }
@@ -22,10 +22,10 @@ export interface AirtableMigrationOptions {
  * @param {string} [options.existingDocId] - If defined, imports tables into this existing Grist doc.
  * @returns {Promise<void>}
  */
-export async function runAirtableMigration(
+export async function runAirtableImport(
   apiKey: string,
   baseId: string,
-  options: AirtableMigrationOptions = {},
+  options: AirtableImportOptions = {},
 ): Promise<void> {
   const { existingDocId, transformations } = options;
 
