@@ -1,4 +1,3 @@
-import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
 import { getExistingDocSchema } from "app/client/lib/DocSchemaImport";
 import { AirtableAPI } from "app/common/airtable/AirtableAPI";
 import { gristDocSchemaFromAirtableSchema } from "app/common/airtable/AirtableImporter";
@@ -8,12 +7,6 @@ import {
   transformImportSchema, validateImportSchema,
 } from "app/common/DocSchemaImport";
 import { UserAPI } from "app/common/UserAPI";
-
-const G = getBrowserGlobals("window");
-
-export function addAirtableMigrationBrowserGlobal() {
-  G.window.runAirtableMigration = runAirtableMigration;
-}
 
 /**
  * Exemplar function for importing an airtable base into a Grist document.
