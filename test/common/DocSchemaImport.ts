@@ -559,7 +559,7 @@ describe("DocSchemaImport", function() {
 
       assert.equal(
         colInfo.formula,
-        "print('BadCol') # BadCol, OtherTable, no [R2]",
+        "print('unknown_column_BadCol') # unknown_column_BadCol, unknown_table_OtherTable, no [R2]",
       );
     });
   });

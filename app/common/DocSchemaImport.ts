@@ -534,12 +534,9 @@ function prepareFormula(
       warnings.push(new FormulaRefWarning(template, ref));
     }
 
-    const replacementText = (
-      (resolvedRef?.existingColId ?? resolvedRef?.existingTableId) ??
-      (ref.originalColId ?? ref.originalTableId) ??
-      // This case should never be hit - the above check is intended to be exhaustive, but typescript needs it.
-      "UNKNOWN_REF"
-    );
+    const replacementText = resolvedRef ?
+      (resolvedRef.existingColId ?? resolvedRef?.existingTableId) :
+      (ref.originalColId ? `unknown_column_${ref.originalColId}` : `unknown_table_${ref.originalTableId}`);
 
     return {
       formula: formula.replace(RegExp(`\\[R${index}\\]`, "g"), replacementText),
