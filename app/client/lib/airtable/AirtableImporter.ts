@@ -8,20 +8,27 @@ import {
 } from "app/common/DocSchemaImport";
 import { UserAPI } from "app/common/UserAPI";
 
+export interface AirtableMigrationOptions {
+  transformations?: ImportSchemaTransformParams,
+  existingDocId?: string,
+}
+
 /**
  * Exemplar function for importing an airtable base into a Grist document.
  * @param {string} apiKey - Airtable Personal Access Token
  * @param {string} baseId - ID of the Airtable base to import
- * @param {ImportSchemaTransformParams} transformations - Transformations to apply to the schema
- * @param {string} [existingDocId] - If defined, imports tables into this existing Grist doc.
+ * @param options - Options to modify the import
+ * @param {ImportSchemaTransformParams} [options.transformations] - Transformations to apply to the schema
+ * @param {string} [options.existingDocId] - If defined, imports tables into this existing Grist doc.
  * @returns {Promise<void>}
  */
 export async function runAirtableMigration(
   apiKey: string,
   baseId: string,
-  transformations?: ImportSchemaTransformParams,
-  existingDocId?: string,
+  options: AirtableMigrationOptions = {},
 ): Promise<void> {
+  const { existingDocId, transformations } = options;
+
   const api = new AirtableAPI({ apiKey });
 
   const bases = await api.listBases();
