@@ -63,10 +63,10 @@ export interface AirtableListBasesResponse {
   offset?: string,
 }
 
-const AirtableTypeSuiteCheckers = createCheckers(AirtableSchemaTypeSuite);
-export const AirtableSchemaChecker = AirtableTypeSuiteCheckers.AirtableBaseSchema as CheckerT<AirtableBaseSchema>;
-export const AirtableSchemaTableChecker = AirtableTypeSuiteCheckers.AirtableSchemaTable as CheckerT<AirtableTableSchema>;
-export const AirtableSchemaFieldChecker = AirtableTypeSuiteCheckers.AirtableSchemaField as CheckerT<AirtableFieldSchema>;
+const checkers = createCheckers(AirtableSchemaTypeSuite);
+export const AirtableSchemaChecker = checkers.AirtableBaseSchema as CheckerT<AirtableBaseSchema>;
+export const AirtableSchemaTableChecker = checkers.AirtableSchemaTable as CheckerT<AirtableTableSchema>;
+export const AirtableSchemaFieldChecker = checkers.AirtableSchemaField as CheckerT<AirtableFieldSchema>;
 
 // Airtable schema response. Limit this to only needed fields to minimise chance of breakage.
 export interface AirtableBaseSchema {
