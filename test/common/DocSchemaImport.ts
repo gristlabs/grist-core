@@ -92,6 +92,7 @@ describe("DocSchemaImport", function() {
           columns: [
             {
               id: "A-1",
+              ref: 1,
             },
           ],
         }],
@@ -112,13 +113,19 @@ describe("DocSchemaImport", function() {
         },
       };
       schema.tables[0].columns.push(invalidFormulaCol);
-      assert.include(validateImportSchema(schema)[0].message, "Formula references non-existent entity");
+      assert.include(
+        validateImportSchema(schema)[0].message,
+        "Formula contains a reference to an invalid table or column",
+      );
 
       invalidFormulaCol.formula = {
         formula: "# [R0] [R1]",
         replacements: [{ existingTableId: "1" }],
       };
-      assert.include(validateImportSchema(schema)[0].message, "Formula references non-existent entity");
+      assert.include(
+        validateImportSchema(schema)[0].message,
+        "Formula contains a reference to an invalid table or column",
+      );
     });
 
     it("should warn about invalid reference columns", () => {
@@ -133,10 +140,10 @@ describe("DocSchemaImport", function() {
         },
       };
       schema.tables[0].columns.push(invalidRefCol);
-      assert.include(validateImportSchema(schema)[0].message, "Column references non-existent entity");
+      assert.include(validateImportSchema(schema)[0].message, "does not refer to a valid table or column");
 
       invalidRefCol.ref = { existingTableId: "1", existingColId: "1" };
-      assert.include(validateImportSchema(schema)[0].message, "Column references non-existent entity");
+      assert.include(validateImportSchema(schema)[0].message, "does not refer to a valid table or column");
     });
   });
 
@@ -173,6 +180,7 @@ describe("DocSchemaImport", function() {
           id: "Existing1",
           columns: [{
             id: "ExistingCol1",
+            ref: 1,
             // Needs to match the label on the source column for matching to work.
             label: "Col Alpha",
           }],
@@ -182,8 +190,7 @@ describe("DocSchemaImport", function() {
       const tableIdToReplace = "1";
       const { schema: newSchema, warnings } = transformImportSchema(schema, {
         mapExistingTableIds: new Map([[tableIdToReplace, "Existing1"]]),
-        existingDocSchema,
-      });
+      }, existingDocSchema);
 
       // Table is now at index 0 due to the replaced table being removed from the schema.
       const transformedRef = newSchema.tables[0].columns[0].ref;
@@ -210,10 +217,10 @@ describe("DocSchemaImport", function() {
         },
       };
 
+      const existingDocSchema = { tables: [] };
       const { schema: newSchema, warnings } = transformImportSchema(schema, {
         mapExistingTableIds: new Map([["12345", "Existing1"]]),
-        existingDocSchema: { tables: [] },
-      });
+      }, existingDocSchema);
 
       assert.include(warnings[0].message, "Could not find column information");
 
@@ -244,6 +251,7 @@ describe("DocSchemaImport", function() {
           id: "Existing1",
           columns: [{
             id: "ExistingCol1",
+            ref: 1,
             // Label doesn't match the column schema's label - column shouldn't match.
             label: "",
           }],
@@ -252,8 +260,7 @@ describe("DocSchemaImport", function() {
 
       const { schema: newSchema, warnings } = transformImportSchema(schema, {
         mapExistingTableIds: new Map([["1", "Existing1"]]),
-        existingDocSchema,
-      });
+      }, existingDocSchema);
 
       assert.include(warnings[0].message, "Could not match column schema");
 
@@ -500,13 +507,59 @@ describe("DocSchemaImport", function() {
       const importTool = new DocSchemaImportTool(applyUserActions);
       await importTool.createTablesFromSchema(schema);
 
-      // Check all ModifyColumn table and column ids are mapped.
       const modifyColumnActions: any[] = (applyUserActions as sinon.SinonSpy).secondCall.args[0];
       const [, , , colInfo] = modifyColumnActions.find(action => action[2] === "MyCol_Test1-2");
 
       assert.equal(
         colInfo.formula,
         "print('MyCol_Test1-1') # MyCol_Test1-1, MyCol_Test1, no [R2]",
+      );
+    });
+
+    it("substitutes the original ids when formula replacements fail to resolve", async () => {
+      const schema = createTestSchema();
+
+      schema.tables.push({
+        originalId: "Test1",
+        desiredGristId: "Test Table 1",
+        columns: [
+          {
+            originalId: "2",
+            desiredGristId: "Test1-2",
+            type: "Any",
+            formula: {
+              formula: "print('[R0]') # [R0], [R1], no [R2]",
+              replacements: [
+                { originalTableId: "OtherTable", originalColId: "BadCol" },
+                { originalTableId: "OtherTable" },
+              ],
+            },
+          },
+        ],
+      });
+
+      const retValues = schema.tables.map((tableSchema, index) => ({
+        id: index,
+        table_id: `MyCol_${tableSchema.originalId}`,
+        columns: tableSchema.columns.map(columnSchema => `MyCol_${columnSchema.desiredGristId}`),
+      }));
+
+      const applyUserActions: ApplyUserActionsFunc = sinon.fake.returns(Promise.resolve({
+        actionNum: 0,
+        actionHash: null,
+        retValues,
+        isModification: false,
+      }));
+
+      const importTool = new DocSchemaImportTool(applyUserActions);
+      await importTool.createTablesFromSchema(schema);
+
+      const modifyColumnActions: any[] = (applyUserActions as sinon.SinonSpy).secondCall.args[0];
+      const [, , , colInfo] = modifyColumnActions.find(action => action[2] === "MyCol_Test1-2");
+
+      assert.equal(
+        colInfo.formula,
+        "print('unknown_column_BadCol') # unknown_column_BadCol, unknown_table_OtherTable, no [R2]",
       );
     });
   });

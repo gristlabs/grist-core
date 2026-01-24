@@ -1,5 +1,10 @@
 import { ApplyUAResult } from "app/common/ActiveDocAPI";
 import { UserAction } from "app/common/DocActions";
+import {
+  DocSchemaSqlResult,
+  ExistingDocSchema,
+  ExistingTableSchema,
+} from "app/common/DocSchemaImportTypes";
 import { RecalcWhen } from "app/common/gristTypes";
 import { GristType } from "app/plugin/GristData";
 
@@ -75,9 +80,11 @@ export interface ColumnImportSchema {
  * - References to existing tables or columns in the document - these are preserved as-is.
  *
  * E.g.
- * - { originalTableId: "32", originalColId: "10" } with `len($[R0])` will possibly become `len($Col10)
+ * - { originalTableId: "32", originalColId: "10" } with `len($[R0])` will possibly become
+ * `len($Col10)
  * - { originalTableId: "32" } with `[R0].lookupOne()` will possibly become `MyTable32.lookupOne()`
- * - { existingTableId: "Table1" } with `[R0].lookupOne()` will definitely become `Table1.lookupOne()`
+ * - { existingTableId: "Table1" } with `[R0].lookupOne()` will definitely become
+ * `Table1.lookupOne()`
  *
  * Square brackets are used to prevent collisions with Javascript/Python template syntax.
  */
@@ -151,11 +158,13 @@ type ResolvedRef<T> =
 export type ApplyUserActionsFunc = (userActions: UserAction[]) => Promise<ApplyUAResult>;
 
 /**
- * Imports an ImportSchema, adding tables / columns to a document until it matches the schema's contents.
+ * Imports an ImportSchema, adding tables / columns to a document until it matches the schema's
+ * contents.
  *
  * This will not modify existing tables, and should be entirely non-destructive.
  *
- * Generates and applies user actions, meaning this tool works anywhere a user action can be applied
+ * Generates and applies user actions, meaning this tool works anywhere a user action can be
+ * applied
  * to a document.
  */
 export class DocSchemaImportTool {
@@ -164,6 +173,7 @@ export class DocSchemaImportTool {
   }
 
   public async createTablesFromSchema(schema: ImportSchema) {
+    const warnings: DocSchemaImportWarning[] = [];
     const tableSchemas = schema.tables;
     const addTableActions: UserAction[] = [];
 
@@ -215,7 +225,10 @@ export class DocSchemaImportTool {
         let type: string = columnSchema.type;
         const resolvedSchemaRef = resolveRef(columnSchema.ref);
         if (["Ref", "RefList"].includes(type)) {
-          // TODO - show a warning here if we couldn't resolve a table id
+          if (columnSchema.ref && resolvedSchemaRef === undefined) {
+            warnings.push(new ColumnRefWarning(columnSchema, columnSchema.ref));
+          }
+
           type = resolvedSchemaRef ?
             `${columnSchema.type}:${resolvedSchemaRef.existingTableId}` :
             "Any";
@@ -226,6 +239,11 @@ export class DocSchemaImportTool {
           originalColId: columnSchema.originalId,
         });
 
+        const preparedFormula = columnSchema.formula && prepareFormula(columnSchema.formula, refResolvers);
+        if (preparedFormula) {
+          warnings.push(...preparedFormula.warnings);
+        }
+
         modifyColumnActions.push([
           "ModifyColumn",
           existingColRef.existingTableId,
@@ -233,7 +251,7 @@ export class DocSchemaImportTool {
           {
             type,
             isFormula: columnSchema.isFormula ?? false,
-            formula: columnSchema.formula && prepareFormula(columnSchema.formula, refResolvers),
+            formula: preparedFormula?.formula,
             label: columnSchema.label,
             // Need to decouple it - otherwise our stored column ids may now be invalid.
             untieColIdFromLabel: columnSchema.label !== undefined,
@@ -251,24 +269,35 @@ export class DocSchemaImportTool {
 
     return {
       tableIdsMap,
+      warnings,
     };
+  }
+
+  public async removeTables(tableIds: string[]): Promise<void> {
+    await this._applyUserActions(tableIds.map(id => [
+      "RemoveTable",
+      id,
+    ]));
   }
 }
 
-// Minimal information needed from the existing document for the import to work.
-interface ExistingDocSchema {
-  tables: ExistingTableSchema[];
-}
+export const GET_DOC_SCHEMA_SQL = `
+  SELECT tables.id AS tableRef, tableId, columns.id AS colRef, columns.colId, columns.label as colLabel
+  FROM _grist_Tables AS tables
+  INNER JOIN _grist_Tables_column AS columns ON tableRef=parentId
+`.trim();
 
-interface ExistingTableSchema {
-  id: string;
-  columns: ExistingColumnSchema[];
-}
-
-interface ExistingColumnSchema {
-  id: string;
-  // Label is required for column matching to work correctly.
-  label?: string;
+export function formatDocSchemaSqlResult(result: DocSchemaSqlResult): ExistingDocSchema {
+  const tables = new Map<string, ExistingTableSchema>();
+  for (const { tableRef, tableId, colRef, colId, colLabel } of result) {
+    let existingTable = tables.get(tableId);
+    if (!existingTable) {
+      existingTable = { id: tableId, ref: tableRef, columns: [] };
+      tables.set(tableId, existingTable);
+    }
+    existingTable.columns.push({ id: colId, ref: colRef, label: colLabel });
+  }
+  return { tables: Array.from(tables.values()) };
 }
 
 /**
@@ -278,25 +307,36 @@ interface ExistingColumnSchema {
  * "Warnings" here means anything the code thinks is important to show to the user, and may be
  * purely informational or a significant error.
  */
-interface DocSchemaImportWarning {
+export interface DocSchemaImportWarning {
   message: string;
-  ref?: TableRef | ColRef;
 }
 
-class ColumnRefWarning implements DocSchemaImportWarning {
+class RefWarning implements DocSchemaImportWarning {
   public readonly message: string;
 
   constructor(public readonly ref: TableRef | ColRef) {
-    this.message = `Column references non-existent entity: ${JSON.stringify(ref)}`;
+    this.message = `Reference does not refer to a valid table or column: ${JSON.stringify(ref)}`;
+  }
+}
+
+class ColumnRefWarning extends RefWarning {
+  public readonly message: string;
+
+  constructor(public readonly column: ColumnImportSchema, public readonly ref: TableRef | ColRef) {
+    super(ref);
+    this.message = `Reference column ${schemaItemDebugIds(column)} does not refer to a valid table or column: ${JSON.stringify(ref)}`;
   }
 }
 
 class FormulaRefWarning implements DocSchemaImportWarning {
   public readonly message: string;
 
-  constructor(public readonly formula: FormulaTemplate, public readonly ref: TableRef | ColRef) {
+  constructor(
+    public readonly formula: FormulaTemplate,
+    public readonly ref: TableRef | ColRef,
+  ) {
     const formulaSnippet = formula.formula.trim().split("\n")[0].trim().substring(0, 40);
-    this.message = `Formula references non-existent entity: ${JSON.stringify(ref)} in formula "${formulaSnippet}"`;
+    this.message = `Formula contains a reference to an invalid table or column: ${JSON.stringify(ref)} in formula "${formulaSnippet}"`;
   }
 }
 
@@ -345,7 +385,7 @@ export function validateImportSchema(schema: ImportSchema, existingSchema?: Exis
 
       // Validate reference columns
       if (columnSchema.ref && !isRefValid(columnSchema.ref)) {
-        warnings.push(new ColumnRefWarning(columnSchema.ref));
+        warnings.push(new ColumnRefWarning(columnSchema, columnSchema.ref));
       }
     });
   });
@@ -379,8 +419,6 @@ export interface ImportSchemaTransformParams {
   // Implies that the table will be added to skipTableIds (and not created).
   // Will attempt to automatically match column references with columns in the existing table.
   mapExistingTableIds?: Map<string, string>;
-  // Details of tables and columns in the existing document - required to map references.
-  existingDocSchema?: ExistingDocSchema;
 }
 
 /**
@@ -388,11 +426,15 @@ export interface ImportSchemaTransformParams {
  *
  * @param {ImportSchema} schema Original schema to transform
  * @param {ImportSchemaTransformParams} params Transformations that should be applied.
+ * @param {ExistingDocSchema} existingDocSchema Details of tables and columns in existing doc - used to map references
  * @returns {{schema: ImportSchema, warnings: DocSchemaImportWarning[]}} The transformed schema (a
  *  deep copy) and warnings for any issues with the transformed schema.
  */
-export function transformImportSchema(schema: ImportSchema,
-  params: ImportSchemaTransformParams): { schema: ImportSchema, warnings: DocSchemaImportWarning[] } {
+export function transformImportSchema(
+  schema: ImportSchema,
+  params: ImportSchemaTransformParams,
+  existingDocSchema: ExistingDocSchema = { tables: [] },
+): { schema: ImportSchema, warnings: DocSchemaImportWarning[] } {
   const warnings: DocSchemaImportWarning[] = [];
   const newSchema = cloneDeep(schema);
   const { mapExistingTableIds } = params;
@@ -406,7 +448,7 @@ export function transformImportSchema(schema: ImportSchema,
   newSchema.tables = newSchema.tables.filter(table => !skipTableIds.includes(table.originalId));
 
   const mapRef = (originalRef: TableRef | ColRef) => {
-    const { ref, warning } = transformSchemaMapRef(schema, params, originalRef);
+    const { ref, warning } = transformSchemaMapRef(schema, params, existingDocSchema, originalRef);
     if (warning) {
       warnings.push(warning);
     }
@@ -432,11 +474,11 @@ export function transformImportSchema(schema: ImportSchema,
 
 // Maps a single reference in the import schema to a new reference for the transformed schema,
 // based on the requested transformations. May raise a warning if a problem is found.
-function transformSchemaMapRef(schema: ImportSchema, params: ImportSchemaTransformParams, ref: TableRef | ColRef): {
-  ref: TableRef | ColRef,
-  warning?: DocSchemaImportWarning,
-} {
-  const { mapExistingTableIds, existingDocSchema } = params;
+function transformSchemaMapRef(
+  schema: ImportSchema, params: ImportSchemaTransformParams,
+  existingDocSchema: ExistingDocSchema, ref: TableRef | ColRef,
+): { ref: TableRef | ColRef, warning?: DocSchemaImportWarning } {
+  const { mapExistingTableIds } = params;
   const existingTableId = ref.originalTableId && mapExistingTableIds?.get(ref.originalTableId);
   // Preserve the reference as-is if no mapping is found or needed.
   if (!existingTableId) {
@@ -477,22 +519,30 @@ function findMatchingExistingColumn(colSchema: ColumnImportSchema, existingTable
 
 // Converts a FormulaTemplate into a formula, resolving any IDs that need mapping and substituting
 // them into the formula.
-function prepareFormula(template: FormulaTemplate, mappers: ReturnType<typeof makeResolveRefFuncs>) {
+function prepareFormula(
+  template: FormulaTemplate, mappers: ReturnType<typeof makeResolveRefFuncs>,
+): { formula: string, warnings: DocSchemaImportWarning[] } {
+  const warnings: DocSchemaImportWarning[] = [];
+
   if (!template.replacements || template.replacements.length === 0) {
-    return template.formula;
+    return { formula: template.formula, warnings: [] };
   }
-  return template.replacements.reduce((formula, ref, index) => {
+  return template.replacements.reduce(({ formula, warnings }, ref, index) => {
     const resolvedRef = mappers.resolveRef(ref);
 
     if (resolvedRef === undefined) {
-      // TODO - Warning if formula replacements couldn't be mapped.
-      return formula;
+      warnings.push(new FormulaRefWarning(template, ref));
     }
 
-    const replacementText = resolvedRef.existingColId ?? resolvedRef.existingTableId;
+    const replacementText = resolvedRef ?
+      (resolvedRef.existingColId ?? resolvedRef?.existingTableId) :
+      (ref.originalColId ? `unknown_column_${ref.originalColId}` : `unknown_table_${ref.originalTableId}`);
 
-    return formula.replace(RegExp(`\\[R${index}\\]`, "g"), replacementText);
-  }, template.formula);
+    return {
+      formula: formula.replace(RegExp(`\\[R${index}\\]`, "g"), replacementText),
+      warnings,
+    };
+  }, { formula: template.formula, warnings });
 }
 
 export class DocSchemaImportError extends Error {
@@ -502,13 +552,13 @@ export class DocSchemaImportError extends Error {
 }
 
 // Small helper function throwing an import error when a reference can't be resolved.
-function throwUnresolvedRefError(ref: TableRef | ColRef) {
+function createUnresolvedRefError(ref: TableRef | ColRef) {
   if (ref.originalColId) {
-    throw new DocSchemaImportError(
+    return new DocSchemaImportError(
       `Couldn't find Grist column id for column '${ref.originalColId}' in table '${ref.originalTableId}'`,
     );
   }
-  throw new DocSchemaImportError(`Couldn't locate Grist table id for table ${ref.originalTableId}`);
+  return new DocSchemaImportError(`Couldn't locate Grist table id for table ${ref.originalTableId}`);
 }
 
 /**
@@ -519,12 +569,12 @@ function makeResolveRefFuncs(tableIdsMap: Map<string, TableIdsInfo>) {
   /**
    * Resolves any reference type to an ExistingXRef or undefined, if there's no mapping possible.
    *
-   * Generic overloads greatly simplify type checking, by always returning the narrowest type possible.
-   * E.g. a table reference input will always result in a table reference returned.
-   * E.g. Avoids introducing undefined if it isn't necessary (existing references are always resolvable)
+   * Generic overloads greatly simplify type checking, by always returning the narrowest type
+   * possible. E.g. a table reference input will always result in a table reference returned. E.g.
+   * Avoids introducing undefined if it isn't necessary (existing references are always resolvable)
    */
   function resolveRef<T extends (ExistingTableRef | ExistingColRef | undefined)>(ref: T): ResolvedRef<T>;
-  function resolveRef<T extends (TableRef | ColRef | undefined)>(ref: T): ResolvedRef<T>;
+  function resolveRef<T extends (TableRef | ColRef | undefined)>(ref: T): ResolvedRef<T> | undefined;
   function resolveRef(ref?: TableRef | ColRef): ExistingTableRef | ExistingColRef | undefined {
     if (ref === undefined) { return undefined; }
     if (ref.existingTableId !== undefined) { return ref; }
@@ -544,7 +594,7 @@ function makeResolveRefFuncs(tableIdsMap: Map<string, TableIdsInfo>) {
   function resolveRefOrThrow<T extends (TableRef | ColRef)>(ref: T) {
     const resolvedRef = resolveRef(ref);
     if (resolvedRef === undefined) {
-      throwUnresolvedRefError(ref);
+      throw createUnresolvedRefError(ref);
     }
     return resolvedRef;
   }
@@ -560,4 +610,8 @@ interface TableIdsInfo {
   gristId: string;
   gristRefId: number;
   columnIdMap: Map<string, string>;
+}
+
+function schemaItemDebugIds({ originalId, desiredGristId }: { originalId: string, desiredGristId: string }) {
+  return `(Original Id: ${originalId}, Desired Grist Id: ${desiredGristId})`;
 }
