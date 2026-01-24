@@ -877,6 +877,11 @@ describe("UserManager", function() {
 
   it("should give access publicly with a confirmation dialog", async function() {
     const driver = gu.currentDriver();
+    // This test currently only works in grist-core because it relies on behavior
+    // unique to the minimal login system, which is the default when deployment type
+    // is core. Specifically, when a redirect to login happens, it automatically
+    // authenticates the user as the install admin (default: you@example.com).
+    process.env.GRIST_TEST_SERVER_DEPLOYMENT_TYPE = "core";
     process.env.GRIST_WARN_BEFORE_SHARING_PUBLICLY = "true";
     await server.restart();
     const owner = gu.translateUser("owner");

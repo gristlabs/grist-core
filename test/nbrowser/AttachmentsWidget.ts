@@ -161,6 +161,7 @@ describe("AttachmentsWidget", function() {
       await slider.sendKeys(Key.RIGHT);
       await driver.sleep(20);
     }
+    await gu.waitForServer();
     assert.equal(
       (await driver.find(".test-pw-thumbnail:last-child").getRect()).height,
       41,
@@ -169,12 +170,13 @@ describe("AttachmentsWidget", function() {
       await slider.sendKeys(Key.LEFT);
       await driver.sleep(20);
     }
+    await gu.waitForServer();
     assert.equal(
       (await driver.find(".test-pw-thumbnail:last-child").getRect()).height,
       38,
     );
     // Wait to ensure the new setting is saved.
-    await driver.sleep(300);
+    await gu.waitForServer();
 
     // Thumbnail size setting should persist across refresh
     await driver.navigate().refresh();
@@ -257,6 +259,7 @@ describe("AttachmentsWidget", function() {
       .find(".test-pw-name")
       .doClick()
       .sendKeys("renamed.pdf", Key.ENTER);
+    await gu.waitForServer();
     // Wait for doc name input to lose focus, indicating that the save call completed.
     await driver.findWait(".test-bc-doc:not(:focus)", 2000);
     assert.equal(await driver.find(".test-pw-name").value(), "renamed.pdf");
