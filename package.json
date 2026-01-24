@@ -186,7 +186,7 @@
     "jsonwebtoken": "9.0.2",
     "knockout": "3.5.0",
     "locale-currency": "0.0.2",
-    "lodash": "4.17.21",
+    "lodash": "4.17.23",
     "lru-cache": "5.1.1",
     "marked": "14.0.0",
     "marked-highlight": "2.1.4",
