@@ -88,7 +88,7 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
 
   // Configure form framing behavior.
 
-  return {
+  const config: GristLoadConfig = {
     homeUrl,
     org: process.env.GRIST_SINGLE_ORG || (mreq && mreq.org),
     baseDomain,
@@ -141,6 +141,13 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     adminDefinedUrls: process.env.GRIST_CUSTOM_COMMON_URLS,
     userPresenceMaxUsers: getUserPresenceMaxUsers(),
     warnBeforeSharingPublicly: isAffirmative(process.env.GRIST_WARN_BEFORE_SHARING_PUBLICLY),
+  };
+  // To save some bytes, add uncommon settings only if needed.
+  if (isAffirmative(process.env.GRIST_TEST_FORCE_LIGHT_MODE)) {
+    config.testForceLightMode = true;
+  }
+  return {
+    ...config,
     ...extra,
   };
 }

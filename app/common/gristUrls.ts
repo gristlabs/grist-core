@@ -1018,6 +1018,9 @@ export interface GristLoadConfig {
   userPresenceMaxUsers?: number;
 
   warnBeforeSharingPublicly?: boolean;
+
+  // For testing, force into light mode.
+  testForceLightMode?: boolean;
 }
 
 export const Features = StringUnion(
