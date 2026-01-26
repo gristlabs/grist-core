@@ -88,7 +88,7 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
 
   // Configure form framing behavior.
 
-  return {
+  const config: GristLoadConfig = {
     homeUrl,
     org: process.env.GRIST_SINGLE_ORG || (mreq && mreq.org),
     baseDomain,
@@ -143,6 +143,13 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     warnBeforeSharingPublicly: isAffirmative(process.env.GRIST_WARN_BEFORE_SHARING_PUBLICLY),
     // TODO: Add to BootProbes and remove this. We don't need to include this in every page.
     runningUnderSupervisor: isAffirmative(process.env.GRIST_RUNNING_UNDER_SUPERVISOR),
+  };
+  // To save some bytes, add uncommon settings only if needed.
+  if (isAffirmative(process.env.GRIST_TEST_FORCE_LIGHT_MODE)) {
+    config.testForceLightMode = true;
+  }
+  return {
+    ...config,
     ...extra,
   };
 }

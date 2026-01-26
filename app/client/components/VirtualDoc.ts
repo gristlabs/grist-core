@@ -556,6 +556,8 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
   public getActionLog(): ActionLog {
     throw new Error("no ActionLog available");
   }
+
+  public setComparison() {}
 }
 
 /**

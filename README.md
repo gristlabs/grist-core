@@ -584,6 +584,7 @@ GRIST_DOCKER_GROUP | optional. When the container runs as the root user, this is
 Variable | Purpose
 -------- | -------
 GRIST_TESTING_SOCKET    | a socket used for out-of-channel communication during tests only.
+GRIST_TEST_FORCE_LIGHT_MODE | if set, Grist will use light mode even if system preference is dark. Some tests just assume light mode.
 GRIST_TEST_HTTPS_OFFSET | if set, adds https ports at the specified offset.  This is useful in testing.
 GRIST_TEST_SSL_CERT     | if set, contains filename of SSL certificate.
 GRIST_TEST_SSL_KEY      | if set, contains filename of SSL private key.
