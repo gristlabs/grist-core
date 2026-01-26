@@ -1,0 +1,48 @@
+networks:
+  grist:
+services:
+  keycloak.localhost:
+    build:
+      context: ./
+      dockerfile: ./oidc/Dockerfile.keycloak
+    command: ["start-dev", "--http-port=8082"]
+    environment:
+      KEYCLOAK_URL: http://localhost:8082
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports: ["8082:8082"]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "sh",
+          "-lc",
+          "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /health/ready HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 && head -n1 <&3 | grep -q '200'",
+        ]
+      interval: 3s
+      timeout: 2s
+      retries: 40
+    volumes:
+      - ./oidc:/seed
+    networks:
+      - grist
+  keycloak-seed:
+    build:
+      context: ./
+      dockerfile: ./oidc/Dockerfile.keycloak
+    depends_on:
+      keycloak.localhost:
+        condition: service_healthy
+    entrypoint: ["/bin/bash", "/seed/import.sh"]
+    environment:
+      KEYCLOAK_URL: http://keycloak.localhost:8082
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      REALM: test-domain
+      CLIENT_ID: grist-dev
+      CLIENT_SECRET: grist-oidc-secret
+      REDIRECT_URI: '"http://localhost:8484/*"'
+    volumes:
+      - ./oidc:/seed
+    networks:
+      - grist

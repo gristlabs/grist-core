@@ -923,6 +923,7 @@ export class FlexServer implements GristServer {
           // Set this to false to stop Grist using a cookie for authentication purposes.
           skipSession,
           gristServer: this,
+          authenticateBearerToken: this._loginMiddleware.authenticateBearerToken,
         },
       ));
       this._trustOriginsMiddleware = expressWrap(trustOriginHandler);

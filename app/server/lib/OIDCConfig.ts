@@ -82,6 +82,7 @@ import { SendAppPageFunction } from "app/server/lib/sendAppPage";
 import { Sessions } from "app/server/lib/Sessions";
 
 import * as express from "express";
+import { createRemoteJWKSet, type JWTPayload, jwtVerify } from "jose";
 import pick from "lodash/pick";
 import {
   Client, ClientMetadata, custom, errors as OIDCError, Issuer, TokenSet, UserinfoResponse,
@@ -255,6 +256,12 @@ function buildEnabledProtections(section: AppSettings): Set<EnabledProtectionStr
   }
 }
 
+function assertUserinfoResponse(payload: JWTPayload): asserts payload is UserinfoResponse {
+  if (typeof payload.sub !== "string") {
+    throw new Error("The payload is missing the 'sub' claim.");
+  }
+}
+
 export class OIDCBuilder {
   /**
    * Handy alias to create an OIDCBuilder instance and initialize it.
@@ -269,6 +276,7 @@ export class OIDCBuilder {
   }
 
   protected _client: Client;
+  protected _jwksKeyStore?: ReturnType<typeof createRemoteJWKSet>;
   private _config: OIDCConfig;
   private _redirectUrl: string | null;
   private _protectionManager: ProtectionsManager;
@@ -416,6 +424,30 @@ export class OIDCBuilder {
     return this._protectionManager.supportsProtection(protection);
   }
 
+  public async authenticateBearerToken(bearer: string): Promise<undefined | Partial<UserProfile>> {
+    if (!this._jwksKeyStore) { return undefined; }
+
+    try {
+      const verifiedToken = await jwtVerify(bearer, this._jwksKeyStore, {
+        audience: this._client.metadata.client_id,
+        clockTolerance: 30,
+        issuer: this._client.issuer.metadata.issuer,
+        crit: { JWT: true },
+        requiredClaims: [
+          this._config.emailPropertyKey,
+          "sub",
+        ],
+      });
+      assertUserinfoResponse(verifiedToken.payload);
+
+      return this._makeUserProfileFromUserInfo(verifiedToken.payload);
+    }
+    catch (e) {
+      log.warn(`Invalid bearer: ${e}`);
+      return undefined;
+    }
+  }
+
   protected async _initClient({ issuerUrl, clientId, clientSecret, extraMetadata }:
   { issuerUrl: string, clientId: string, clientSecret: string, extraMetadata: Partial<ClientMetadata> },
   ): Promise<void> {
@@ -428,6 +460,8 @@ export class OIDCBuilder {
         response_types: ["code"],
         ...extraMetadata,
       });
+      if (!issuer.metadata.jwks_uri) { return; }
+      this._jwksKeyStore = createRemoteJWKSet(new URL(issuer.metadata.jwks_uri));
     }
     catch (err) {
       log.error(`Failed to initialize OIDC client for issuer ${issuerUrl}: ${(err as Error).stack}`, err);
@@ -517,6 +551,7 @@ async function getLoginSystem(settings: AppSettings): Promise<GristLoginSystem> 
       // Build the middleware using the config
       const oidcBuilder = await OIDCBuilder.build(gristServer.sendAppPage.bind(gristServer), config);
       return {
+        authenticateBearerToken: oidcBuilder.authenticateBearerToken.bind(oidcBuilder),
         getLoginRedirectUrl: oidcBuilder.getLoginRedirectUrl.bind(oidcBuilder),
         getSignUpRedirectUrl: oidcBuilder.getLoginRedirectUrl.bind(oidcBuilder),
         getLogoutRedirectUrl: oidcBuilder.getLogoutRedirectUrl.bind(oidcBuilder),
