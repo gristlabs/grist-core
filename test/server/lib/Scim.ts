@@ -1,8 +1,10 @@
 import { isAffirmative } from "app/common/gutil";
 import { UserType } from "app/common/User";
 import { Group } from "app/gen-server/entity/Group";
+import { FlexServer } from "app/server/lib/FlexServer";
 import log from "app/server/lib/log";
 import { TestServer } from "test/gen-server/apiUtils";
+import { createServer, setUpDB } from "test/gen-server/seed";
 import { configForUser } from "test/gen-server/testUtils";
 import * as testUtils from "test/server/testUtils";
 
@@ -36,6 +38,12 @@ const USER_CONFIG_BY_NAME = {
 type UserConfigByName = typeof USER_CONFIG_BY_NAME;
 
 describe("Scim", () => {
+  const SCIM_ENV_VARS = {
+    GRIST_ENABLE_SCIM: "1",
+    GRIST_DEFAULT_EMAIL: "chimpy@getgrist.com",
+    GRIST_SCIM_EMAIL: "charon@getgrist.com",
+  };
+  const SEARCH_SCHEMA = "urn:ietf:params:scim:api:messages:2.0:SearchRequest";
   testUtils.setTmpLogLevel("alert");
 
   const setupTestServer = (env: NodeJS.ProcessEnv) => {
@@ -44,6 +52,7 @@ describe("Scim", () => {
     let server: TestServer;
 
     before(async function() {
+      this.timeout(10_000);
       oldEnv = new testUtils.EnvironmentSnapshot();
       Object.assign(process.env, env);
       server = new TestServer(this);
@@ -73,11 +82,7 @@ describe("Scim", () => {
   });
 
   describe("when enabled using GRIST_ENABLE_SCIM=1", function() {
-    const { scimUrl, getDbManager, getServer } = setupTestServer({
-      GRIST_ENABLE_SCIM: "1",
-      GRIST_DEFAULT_EMAIL: "chimpy@getgrist.com",
-      GRIST_SCIM_EMAIL: "charon@getgrist.com",
-    });
+    const { scimUrl, getDbManager, getServer } = setupTestServer(SCIM_ENV_VARS);
     const userIdByName: { [name in keyof UserConfigByName]?: number } = {};
     let logWarnStub: Sinon.SinonStub;
     let logErrorStub: Sinon.SinonStub;
@@ -123,7 +128,7 @@ describe("Scim", () => {
       };
     }
 
-    async function getOrCreateUserId(user: string, { type}: { type?: UserType } = {}) {
+    async function getOrCreateUserId(user: string, { type }: { type?: UserType } = {}) {
       const domain = type === "service" ? "serviceaccounts.invalid" : "getgrist.com";
       return (await getDbManager().getUserByLogin(`${user}@${domain}`, {}, type)).id;
     }
@@ -331,7 +336,7 @@ describe("Scim", () => {
           sortOrder: "descending",
         };
 
-        it("should return all users for chimpy order by userName in descending order", async function() {
+        it("should return all users for chimpy ordered by userName in descending order", async function() {
           const res = await axios.post(scimUrl("/Users/.search"), searchExample, chimpy);
           assert.equal(res.status, 200);
           assert.isAbove(res.data.totalResults, 0, "should have retrieved some users");
@@ -348,11 +353,11 @@ describe("Scim", () => {
           assert.equal(res.status, 200);
         });
 
-        it("should filter the users by userName", async function() {
+        it("should filter the users by displayName", async function() {
           const res = await axios.post(scimUrl("/Users/.search"), {
             schemas: [SEARCH_SCHEMA],
             attributes: ["userName"],
-            filter: 'userName sw "chimpy"',
+            filter: 'displayName sw "Chi"',
           }, chimpy);
           assert.equal(res.status, 200);
           assert.equal(res.data.totalResults, 1);
@@ -361,6 +366,108 @@ describe("Scim", () => {
             userName: "chimpy@getgrist.com",
           },
           "should have retrieved only chimpy's username and not other attribute");
+        });
+
+        for (const criterion of [
+          'username eq "chimpy@getgrist.com"',
+          'username sw "chimpy"',
+          'username ew "py@getgrist.com"',
+          'username co "mpy"',
+        ]) {
+          it(`should find chimpy given this criteria : '${criterion}'`, async function() {
+            const res = await axios.post(scimUrl("/Users/.search"), {
+              schemas: [SEARCH_SCHEMA],
+              attributes: ["userName"],
+              filter: criterion,
+            }, chimpy);
+            assert.equal(res.status, 200);
+            assert.equal(res.data.totalResults, 1);
+            assert.deepEqual(res.data.Resources[0], {
+              id: String(userIdByName.chimpy),
+              userName: "chimpy@getgrist.com",
+            },
+            `should have retrieved only chimpy's username when searching using: '${criterion}'`);
+          });
+        }
+
+        it(`should exclude chimpy when searching using 'username ne "chimpy@getgrist.com"'`, async function() {
+          const resAllUsers = await axios.get(scimUrl("/Users?count=1000"), chimpy);
+          assert.equal(resAllUsers.status, 200);
+          const allUsers = resAllUsers.data.Resources;
+
+          const res = await axios.post(scimUrl("/Users/.search"), {
+            schemas: [SEARCH_SCHEMA],
+            attributes: ["userName"],
+            filter: 'username ne "chimpy@getgrist.com"',
+          }, chimpy);
+          assert.equal(res.status, 200);
+          assert.equal(res.data.totalResults, allUsers.length - 1);
+          assert.isFalse(res.data.Resources.some((r: any) => r.userName === "chimpy@getgrist.com"));
+        });
+
+        it("should work with comparison operators", async function() {
+          await withUserName("aa", async (username) => {
+            const expectedUserId = await getOrCreateUserId(username);
+            const resLt = await axios.post(scimUrl("/Users/.search"), {
+              schemas: [SEARCH_SCHEMA],
+              attributes: ["userName"],
+              filter: 'username lt "ab@getgrist.com"',
+            }, chimpy);
+            assert.equal(resLt.status, 200);
+            assert.equal(resLt.data.totalResults, 1);
+            assert.equal(resLt.data.Resources[0].id, expectedUserId);
+
+            const resLe = await axios.post(scimUrl("/Users/.search"), {
+              schemas: [SEARCH_SCHEMA],
+              attributes: ["userName"],
+              filter: 'username le "aa@getgrist.com"',
+            }, chimpy);
+            assert.equal(resLe.status, 200);
+            assert.equal(resLe.data.totalResults, 1);
+            assert.equal(resLe.data.Resources[0].id, expectedUserId);
+          });
+
+          await withUserName("zz", async (username) => {
+            const expectedUserId = await getOrCreateUserId(username);
+            const resGt = await axios.post(scimUrl("/Users/.search"), {
+              schemas: [SEARCH_SCHEMA],
+              attributes: ["userName"],
+              filter: 'username gt "zy@getgrist.com"',
+            }, chimpy);
+            assert.equal(resGt.status, 200);
+            assert.equal(resGt.data.totalResults, 1);
+            assert.equal(resGt.data.Resources[0].id, expectedUserId);
+
+            const resGe = await axios.post(scimUrl("/Users/.search"), {
+              schemas: [SEARCH_SCHEMA],
+              attributes: ["userName"],
+              filter: 'username ge "zy@getgrist.com"',
+            }, chimpy);
+            assert.equal(resGe.status, 200);
+            assert.equal(resGe.data.totalResults, 1);
+            assert.equal(resGe.data.Resources[0].id, expectedUserId);
+          });
+        });
+
+        it("should escape the pattern used for LIKE", async function() {
+          await withUserName("hello%%world", async (username) => {
+            await getOrCreateUserId(username);
+            const shouldMatch = await axios.post(scimUrl("/Users/.search"), {
+              schemas: [SEARCH_SCHEMA],
+              attributes: ["userName"],
+              filter: 'username co "lo%%world"',
+            }, chimpy);
+            assert.equal(shouldMatch.status, 200);
+            assert.equal(shouldMatch.data.totalResults, 1);
+
+            const shouldNotMatch = await axios.post(scimUrl("/Users/.search"), {
+              schemas: [SEARCH_SCHEMA],
+              attributes: ["userName"],
+              filter: 'username co "lo%world"',
+            }, chimpy);
+            assert.equal(shouldNotMatch.status, 200);
+            assert.equal(shouldNotMatch.data.totalResults, 0);
+          });
         });
 
         checkCommonErrors("post", "/Users/.search", searchExample);
@@ -1690,6 +1797,84 @@ describe("Scim", () => {
       assert.property(res.data, "patch");
       assert.property(res.data, "bulk");
       assert.property(res.data, "filter");
+    });
+  });
+
+  describe("With lots of data", function() {
+    let server: FlexServer;
+    let oldEnv: testUtils.EnvironmentSnapshot;
+    before(async function() {
+      this.timeout(60000);
+      oldEnv = new testUtils.EnvironmentSnapshot();
+      Object.assign(process.env, SCIM_ENV_VARS);
+
+      setUpDB(this);
+      server = await createServer(0);
+
+      const nbUsers = 1_000_000;
+      await server.getHomeDBManager().connection.query(`
+        WITH RECURSIVE
+          for(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM for WHERE i < ${nbUsers})
+        INSERT INTO users(name, type, ref) SELECT 'user' || i, 'login', 'user-ref' || i FROM for;`);
+
+      await server.getHomeDBManager().connection.query(`
+        WITH RECURSIVE
+          for(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM for WHERE i < ${nbUsers})
+        INSERT INTO logins(user_id, email, display_email) SELECT users.id, users.name || '@getgrist.com', users.name || '@getgrist.com' FROM for JOIN users on users.name = 'user' || for.i;
+      `);
+
+      // Also create the Chimpy user
+      await server.getHomeDBManager().getExistingUserByLogin("chimpy@getgrist.com");
+    });
+
+    after(async function() {
+      oldEnv.restore();
+      await server.close();
+    });
+
+    describe("POST /Users/.search", function() {
+      const apiUrl = () => server.getOwnUrl() + "/api/scim/v2/Users/.search";
+
+      it("should return the user chimpy in a reasonable amount of time", async function() {
+        const chimpyUser = (await server.getHomeDBManager().getExistingUserByLogin("chimpy@getgrist.com"))!;
+        this.timeout(1000);
+        const res = await axios.post(apiUrl(), {
+          schemas: [SEARCH_SCHEMA],
+          attributes: ["userName"],
+          filter: `userName eq "${chimpyUser.loginEmail}"`,
+        }, chimpy);
+        assert.equal(res.status, 200);
+        assert.deepEqual(res.data.Resources, [{
+          id: String(chimpyUser.id),
+          userName: chimpyUser.loginEmail,
+        }]);
+      });
+
+      // FIXME: maybe check that in the regular search instead?
+      it("should return an empty array in a reasonable amount of time", async function() {
+        this.timeout(1000);
+        const resNoUsers = await axios.post(apiUrl(), {
+          schemas: [SEARCH_SCHEMA],
+          attributes: ["userName"],
+          filter: 'userName eq "iDontExist@getgrist.com"',
+        }, chimpy);
+        assert.equal(resNoUsers.status, 200);
+        assert.deepEqual(resNoUsers.data.Resources, []);
+      });
+
+      it("should return a result from a complex query in a reasonnable amount of time", async function() {
+        this.timeout(2000);
+        const apiUrl = server.getOwnUrl() + "/api/scim/v2/Users/.search";
+        const res = await axios.post(apiUrl, {
+          schemas: [SEARCH_SCHEMA],
+          attributes: ["userName"],
+          filter: 'userName sw "user99999"',
+        }, chimpy);
+        assert.equal(res.status, 200);
+        assert.lengthOf(res.data.Resources, 11);
+        assert.equal(res.data.Resources[0].userName, "user99999@getgrist.com");
+        assert.equal(res.data.Resources[1].userName, "user999990@getgrist.com");
+      });
     });
   });
 });

@@ -31,7 +31,7 @@ import { appSettings } from "app/server/lib/AppSettings";
 import * as crypto from "crypto";
 
 import flatten from "lodash/flatten";
-import { EntityManager, IsNull, Not } from "typeorm";
+import { EntityManager, FindOptionsWhere, IsNull, Not } from "typeorm";
 
 function apiKeyGenerator(): string {
   return crypto.randomBytes(20).toString("hex");
@@ -399,6 +399,22 @@ export class UsersManager {
     }
     return await this._buildExistingUsersByLoginRequest(emails, manager)
       .getMany();
+  }
+
+  /**
+   * Find some users given the passed condition.
+   *
+   * @param where The search condition
+   * @param manager The entity manager
+   *
+   * @return The users found
+   */
+  public async getExistingUsersFiltered(where: FindOptionsWhere<User>, manager?: EntityManager) {
+    return (manager || this._connection).getRepository(User)
+      .find({
+        relations: ["logins"],
+        where,
+      });
   }
 
   /**

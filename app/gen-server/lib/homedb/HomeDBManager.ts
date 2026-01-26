@@ -115,6 +115,7 @@ import {
   DatabaseType,
   DataSource,
   EntityManager,
+  FindOptionsWhere,
   ObjectLiteral,
   SelectQueryBuilder,
   WhereExpressionBuilder,
@@ -530,6 +531,10 @@ export class HomeDBManager implements HomeDBAuth {
    */
   public async getExistingUsersByLogin(emails: string[], manager?: EntityManager): Promise<User[]> {
     return await this._usersManager.getExistingUsersByLogin(emails, manager);
+  }
+
+  public async getExistingUsersFiltered(where: FindOptionsWhere<User>, manager?: EntityManager) {
+    return await this._usersManager.getExistingUsersFiltered(where, manager);
   }
 
   public async createGroup(groupDescriptor: GroupWithMembersDescriptor, optManager?: EntityManager) {
