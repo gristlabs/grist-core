@@ -64,8 +64,8 @@ interface INotifierMethods {
   streamingDestinationsChange(orgId: number | null): Promise<void>;
 
   /**
-   * Deliver notification of a doc change or comment. Other code is responsible for preparing the
-   * payload; this method only needs to deliver it.
+   * Deliver notification of a doc change, comment, or suggestion.
+   * Other code is responsible for preparing the payload; this method only needs to deliver it.
    */
   docNotification(
     event: DocNotificationEvent, userId: number, templateData: DocNotificationTemplateBase

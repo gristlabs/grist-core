@@ -151,6 +151,24 @@ export function createUnsubscribedPage(
       },
     );
   }
+  else if (notification === "suggestions") {
+    message = t(
+      "You will no longer receive email notifications about {{suggestions}} in {{docName}} at {{email}}.",
+      {
+        suggestions: dom("b", t("suggestions")),
+        docName: dom("b", docName),
+        email: dom("b", email || t("your email")),
+      },
+    );
+
+    description = t(
+      "You have been unsubscribed from notifications about suggestions to {{docName}}. You can update " +
+      "your preferences anytime in the document settings.",
+      {
+        docName: dom("b", docName),
+      },
+    );
+  }
   else if (mode === "full") {
     message = t(
       "You will no longer receive email notifications about {{comments}} in {{docName}} at {{email}}.",

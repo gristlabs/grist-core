@@ -136,6 +136,7 @@ export type TwoFactorEvent = typeof TwoFactorEvents.type;
 export const DocNotificationEvents = StringUnion(
   "docChanges",
   "comments",
+  "suggestions",
 );
 export type DocNotificationEvent = typeof DocNotificationEvents.type;
 

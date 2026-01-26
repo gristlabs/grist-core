@@ -1146,6 +1146,12 @@ export class DocWorkerApi {
         comparison: comp,
         retracted,
       });
+      if (!retracted) {
+        // Notify all subscribers of the proposal. This includes changes to an existing proposal;
+        // we may want to distinguish updates to existing proposals later, but for now it's simpler
+        // just to notify subscribers unconditionally.
+        await this._grist.getDocNotificationManager()?.notifySubscribersOfSuggestion(parts.trunkId, proposal);
+      }
       res.json(proposal);
     }));
 

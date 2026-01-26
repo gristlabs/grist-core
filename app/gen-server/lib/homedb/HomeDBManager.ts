@@ -3502,6 +3502,9 @@ export class HomeDBManager implements HomeDBAuth {
       const proposal = await manager.createQueryBuilder()
         .from(Proposal, "proposals")
         .select("proposals")
+        .leftJoinAndSelect("proposals.srcDoc", "src_doc")
+        .leftJoinAndSelect("src_doc.creator", "src_creator")
+        .leftJoinAndSelect("src_creator.logins", "src_logins")
         .where("proposals.dest_doc_id = :destDocId", { destDocId: options.destDocId })
         .andWhere("proposals.src_doc_id = :srcDocId", { srcDocId: options.srcDocId })
         .getOneOrFail();
