@@ -172,7 +172,7 @@ export interface GristDoc extends DisposableWithEvents {
   rightPanelTool: Observable<IExtraTool | null>;
   isReadonly: Observable<boolean>;
   isReadonlyKo: IKnockoutObservable<boolean>;
-  comparison: DocStateComparison | null;
+  readonly comparison: DocStateComparison | null;
   cursorMonitor: CursorMonitor;
   editorMonitor?: EditorMonitor;
   commentMonitor?: CommentMonitor;
@@ -226,6 +226,7 @@ export interface GristDoc extends DisposableWithEvents {
   activateEditorAtCursor(options?: { init?: string; state?: any }): Promise<void>;
   copyAnchorLink(anchorInfo: HashLink & CursorPos): Promise<void>;
   getActionLog(): ActionLog;
+  setComparison(comparison: DocStateComparison|null): void;
 }
 
 export class GristDocImpl extends DisposableWithEvents implements GristDoc {
@@ -896,6 +897,14 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
   // Open the given page. Note that links to pages should use <a> elements together with setLinkUrl().
   public openDocPage(viewId: IDocPage) {
     return urlState().pushUrl({ docPage: viewId });
+  }
+
+  public setComparison(comparison: DocStateComparison|null) {
+    this.comparison = comparison;
+    for (const model of Object.values(this._diffModels)) {
+      model.dispose();
+    }
+    this._diffModels = {};
   }
 
   public showTool(tool: typeof RightPanelTool.type): void {

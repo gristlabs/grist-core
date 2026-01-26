@@ -1021,6 +1021,9 @@ export interface GristLoadConfig {
 
   // Whether there is a parent process that can restart Grist.
   runningUnderSupervisor?: boolean;
+
+  // For testing, force into light mode.
+  testForceLightMode?: boolean;
 }
 
 export const Features = StringUnion(
