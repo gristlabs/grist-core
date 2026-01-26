@@ -79,8 +79,8 @@ export class SimpleInstallAdmin extends InstallAdmin {
     return this._installAdminEmail || SUPPORT_EMAIL;
   }
 
-  private get _installAdminEmail() {
-    return getInstallAdminEmail() || this._defaultInstallAdminEmail;
+  private get _installAdminEmail(): string | undefined {
+    return getInstallAdminEmail() ?? this._defaultInstallAdminEmail;
   }
 
   private get _defaultInstallAdminEmail(): string | undefined {
