@@ -365,9 +365,13 @@ describe("ProposedChangesPage", function() {
     const { api, doc } = await makeLifeDoc();
     const url = await driver.getCurrentUrl();
 
-    // Add a second table
+    // Add a second table.
+    // Create and delete a table around it for that "aged document" feel
+    // (there was a bug where an offset in table row ids caused a problem).
     await gu.sendActions([
+      ["AddTable", "OldPlants", [{ id: "Name", type: "Text" }, { id: "Type", type: "Text" }]],
       ["AddTable", "Plants", [{ id: "Name", type: "Text" }, { id: "Type", type: "Text" }]],
+      ["RemoveTable", "OldPlants"],
       ["AddRecord", "Plants", 1, { Name: "Oak", Type: "Tree" }],
       ["AddRecord", "Plants", 2, { Name: "Rose", Type: "Flower" }],
     ]);
