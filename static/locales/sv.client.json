@@ -57,6 +57,115 @@
         "Resource missing in resource map: {{resourceKey}}": "Resursen saknas i resurslistan: {{resourceKey}}",
         "Trying to add TableRules for existing table {{tableId}}": "Försöker att lägga till Tabellregler för existerande tabell {{tableId}}",
         "Use a simple attribute of user.LinkKey, e.g. user.LinkKey.something": "Använd ett enkelt attribut i user.LinkKey, som user.LinkKey.ennyckel",
-        "hidden": "dold"
+        "hidden": "dold",
+        "Allow everyone to view access rules.": "Tillåt alla att visa behörighets regler.",
+        "Continue": "Fortsätt",
+        "Disable Access Rules": "Avaktivera behörighetsregler",
+        "Disable and save": "Avaktivera och spara",
+        "Enable Access Rules": "Aktivera behörighetsregler",
+        "Special rules for templates": "Specialregler för mallar",
+        "This options should be off if Editors' access is to be limited. ": "Denna inställning skall vara av om behörigheten för Redigerare skall begränsas. ",
+        "Seed rules": "Delningsregler"
+    },
+    "AccountPage": {
+        "API": "API",
+        "API Key": "API Nyckel",
+        "Account settings": "Kontoinställningar",
+        "Allow signing in to this account with Google": "Tillåt inloggning till detta konto genom Google",
+        "Change password": "Byt lösenord",
+        "Edit": "Redigera",
+        "Email": "Epost",
+        "Login method": "Inloggningsmetod",
+        "Name": "Namn",
+        "Password & security": "Lösenord och säkerhet",
+        "Save": "Spara",
+        "Theme": "Tema",
+        "Two-factor authentication": "Tvåfaktors autentisering",
+        "Language": "Språk"
+    },
+    "AccountWidget": {
+        "Access Details": "Tillgångsdetaljer",
+        "Accounts": "Konton",
+        "Add account": "Lägg till konto",
+        "Document settings": "Dokument inställningar",
+        "Manage team": "Hantera arbetslag",
+        "Pricing": "Prissättning",
+        "Profile settings": "Profiliställningar",
+        "Sign out": "Logga ut",
+        "Sign in": "Logga in",
+        "Switch Accounts": "Växla konton",
+        "Toggle Mobile Mode": "Växla mobilläge",
+        "Activation": "Aktivering",
+        "Billing account": "Betalningskonto",
+        "Support Grist": "Stöd Grist",
+        "Upgrade Plan": "Uppgradera abonnemang",
+        "Sign up": "Registrera",
+        "Use This Template": "Använd denna mall"
+    },
+    "ViewAsDropdown": {
+        "View as": "Visa som",
+        "Users from table": "Användare från tabell",
+        "Example Users": "Exempelanvänare"
+    },
+    "ActionLog": {
+        "Action Log failed to load": "Aktivitetsloggen kunde inte laddas",
+        "All tables": "Alla tabeller"
+    },
+    "AddNewButton": {
+        "Add new": "Lägg till ny"
+    },
+    "ApiKey": {
+        "Click to show": "Klicka för att visa",
+        "Create": "Skapa",
+        "Remove": "Ta bort",
+        "Remove API Key": "Ta bort API nyckel"
+    },
+    "App": {
+        "Description": "Beskrivning",
+        "Key": "Nyckel",
+        "Memory Error": "Minnesfel"
+    },
+    "AppHeader": {
+        "Home page": "Hemsida",
+        "Personal Site": "Personlig sida",
+        "Team Site": "Arbetslagssida",
+        "Grist Templates": "Gristmallar"
+    },
+    "RightPanel": {
+        "Save": "Spara"
+    },
+    "ShareMenu": {
+        "Save copy": "Spara kopia",
+        "Save Document": "Spara dokument"
+    },
+    "SortFilterConfig": {
+        "Save": "Spara"
+    },
+    "ViewSectionMenu": {
+        "Save": "Spara"
+    },
+    "WidgetTitle": {
+        "Save": "Spara"
+    },
+    "modals": {
+        "Save": "Spara"
+    },
+    "ColumnInfo": {
+        "Save": "Spara"
+    },
+    "DiscussionEditor": {
+        "Save": "Spara"
+    },
+    "ColumnTitle": {
+        "Save": "Spara"
+    },
+    "FormulaAssistant": {
+        "Save": "Spara"
+    },
+    "AuditLogStreamingConfig": {
+        "Save": "Spara"
+    },
+    "ChoiceListEntry": {
+        "Save": "Spara"
     }
 }

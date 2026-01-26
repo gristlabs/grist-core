@@ -123,7 +123,7 @@
         "This API key can be used to access this account anonymously via the API.": "API gako hau erabiliz kontu honetara modu anonimoan sartzea dago.",
         "By generating an API key, you will be able to make API calls for your own account.": "API gako bat sortuz gero, zure kontuari eskaerak egin ahal izango dizkiozu.",
         "This API key can be used to access your account via the API. Don’t share your API key with anyone.": "API gako hau erabiliz zure kontuan sartzea dago. Ez partekatu zure API gakoa inorekin.",
-        "You're about to delete an API key. This will cause all future requests using this API key to be rejected. Do you still want to delete?": "API gako bat ezabatzear zaude. Horrek etorkizuneko eskaera guztiak baztertuko ditu. Ziur ezabatu nahi duzula?"
+        "You're about to delete an API key. This will cause all future requests using this API key to be rejected. Do you still want to delete?": "API gako bat ezabatzear zaude. Horrek etorkizuneko eskaera guztiak atzera botako ditu. Ziur ezabatu nahi duzula?"
     },
     "App": {
         "Description": "Deskribapena",
@@ -222,7 +222,7 @@
         "Developer:": "Garatzailea:",
         "Last updated:": "Azkenekoz eguneratua:",
         "Missing description and author information.": "Ez dago deskribapen ezta egilearen informaziorik ere.",
-        "Reject": "Baztertu",
+        "Reject": "Bota atzera",
         "ACCESS LEVEL": "SARBIDE-MAILA",
         "Custom URL": "URL pertsonalizatua",
         "Widget": "Widgeta"
@@ -973,7 +973,13 @@
         "changes": "aldaketak",
         "comments": "iruzkinak",
         "this document": "dokumentu hau",
-        "your email": "zure ePosta"
+        "your email": "zure ePosta",
+        "You are unsubscribed": "Ez zaude harpidetuta",
+        "Unsubscribed{{suffix}}": "Harpidetza utzi da{{suffix}}",
+        "We could not unsubscribe you": "Ezin izan dizugu harpidetza utzi",
+        "You can still unsubscribe from this document by updating your preferences in the document settings": "Dokumentuaren harpidetza utzi dezakezu zure hobespenak eguneratuz dokumentuko ezarpenetan",
+        "You will no longer receive email notifications about {{changes}} in {{docName}} at {{email}}.": "Aurrerantzean ez duzu {{email}} helbidean {{docName}}-n egindako {{changes}} jakinarazpenik jasoko.",
+        "You will no longer receive email notifications about {{comments}} in {{docName}} at {{email}}.": "Aurrerantzean ez duzu {{email}} helbidean {{docName}}-ri buruzko {{comments}} jakinarazpenik jasoko."
     },
     "menus": {
         "Select fields": "Hautatu eremuak",
@@ -1115,7 +1121,8 @@
         "Changing multiple column types": "Hainbat zutabe mota aldatzen",
         "Save field settings for {{colId}} as common": "Gorde {{colId}} eremu-ezarpenak arrunt gisa",
         "Use separate field settings for {{colId}}": "Erabili {{colId}} eremu-ezarpen bereiziak",
-        "Revert field settings for {{colId}} to common": "Itzuli {{colId}} eremu-ezarpenak defektuzkora"
+        "Revert field settings for {{colId}} to common": "Itzuli {{colId}} eremu-ezarpenak defektuzkora",
+        "Common": "Komuna"
     },
     "FormulaEditor": {
         "Column or field is required": "Beharrezkoa da zutabea edo eremua",
@@ -1248,7 +1255,8 @@
         "Formulas support many Excel functions and full Python syntax.": "Formulak bateragarriak dira Excelen funtzio askorekin eta Pythonen sintaxi osoarekin.",
         "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!": "Ulertu, moldatu eta egin lan zure datu eta formulekin Gristen AA laguntzaile berriari esker!",
         "Comments are here!": "Hemen dira iruzkinak!",
-        "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "Gelaxketan iruzkinak gehitu, harietako iruzkinei erantzun eta lankideak @-aipatu ditzakezu."
+        "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "Gelaxketan iruzkinak gehitu, harietako iruzkinei erantzun eta lankideak @-aipatu ditzakezu.",
+        "Set the maximum number of lines for multi-line text.": "Ezarri lerroanitzeko testuaren gehienezko lerro-kopurua."
     },
     "ColumnTitle": {
         "Column ID copied to clipboard": "Zutabearen IDa arbelera kopiatu da",
@@ -1613,7 +1621,8 @@
         "Preview": "Aurrebista",
         "# **Form Title**": "# **Formularioaren titulua**",
         "Your form description goes here.": "Hau formularioaren deskribapena da.",
-        "Publishing your form will generate a share link. Anyone with the link can see the empty form and submit a response.": "Formularioa argitaratzean partekatzeko esteka bat sortuko da. Esteka duen edonork ikus dezake formularioa eta erantzun bat bidali."
+        "Publishing your form will generate a share link. Anyone with the link can see the empty form and submit a response.": "Formularioa argitaratzean partekatzeko esteka bat sortuko da. Esteka duen edonork ikus dezake formularioa eta erantzun bat bidali.",
+        "Unpublishing the form will disable the share link so that users accessing your form via that link will see an error.": "Formularioa publiko egiteari uzteak partekatzeko esteka desgaituko du, esteka horren bidez zure formulariora sartzen diren erabiltzaileek errore bat ikus dezaten."
     },
     "Editor": {
         "Delete": "Ezabatu"
@@ -2236,7 +2245,8 @@
     },
     "AdminChecks": {
         "Grist has a small built-in health check often used when running it as a container.": "Grist-ek osasun-kontrol txiki bat du, askotan edukiontzi gisa exekutatzen denean erabiltzen dena.",
-        "It is good practice not to run Grist as the root user.": "Praktika ona da ez exekutatzea Grist root erabiltzaile gisa."
+        "It is good practice not to run Grist as the root user.": "Praktika ona da ez exekutatzea Grist root erabiltzaile gisa.",
+        "The main page of Grist should be available.": "Grist-en orri nagusia erabilgarri egon beharko litzateke."
     },
     "ChoiceListEntry": {
         "+{{count}} more_one": "+{{count}} gehiago",
@@ -2258,7 +2268,14 @@
         "First row contains headers": "Lehenengo errenkadak goiburuak ditu",
         "Number of rows": "Errenkaden zenbakia",
         "Quote character": "Aipuen karakterea",
-        "Skip leading whitespace": "Muzin egin hasierako zuriuneari"
+        "Skip leading whitespace": "Muzin egin hasierako zuriuneari",
+        "Update preview": "Eguneratu aurrebista",
+        "Convert quoted fields": "Bihurtu aipatutako eremuak",
+        "Escape character": "Ihes-karakterea",
+        "Line terminator": "Banalerroa",
+        "Quotes in fields are doubled": "Eremuetako kakotxak bikoizten dira",
+        "Start with row": "Hasi errenkadarekin",
+        "Character encoding. See [the supported codecs]({{link}})": "Karaktere-kodeketa. Ikus [kodek bateragarriak]({{link}})"
     },
     "OpenAccessibilityModal": {
         " or ": " edo ",
@@ -2270,7 +2287,18 @@
         "The left panel, home of the main navigation.": "Ezkerreko mahaigaina: nabigazio nagusia.",
         "The top panel, or the document header.": "Goiko mahaigaina edo dokumentuaren goiburua.",
         "To see other available themes, go to your {{profileSettingsLink}}.": "Erabilgarri dauden beste gai batzuk ikusteko, joan zure {{profileSettingsLink}}.",
-        "Use the high contrast theme (light appearance)": "Erabili kontraste altuko gaia (itxura argia)"
+        "Use the high contrast theme (light appearance)": "Erabili kontraste handiko gaia (itxura argia)",
+        "Other important keyboard shortcuts": "Beste laster-tekla garrantzitsu batzuk",
+        "You are currently **not using** the high contrast theme.": "Une honetan **ez** zara kontraste handiko gaia erabiltzen ari.",
+        "You are currently using the high contrast theme.": "Kontraste handiko gaia erabiltzen ari zara unean.",
+        "\"Regions\" are what we call the different parts of the user interface:": "Erabiltzaile-interfazearen atal desberdinak \"Eskualde\" izenez ezagutzen ditugu:",
+        "Keyboard navigation": "Teklatu bidezko nabigazioa",
+        "On a document page, keyboard navigation is first locked on the current widget.": "Dokumentuen orrian, teklatuaren bidezko nabigazioa uneko widgetean dago fokatuta hasieran.",
+        "profile settings": "profilaren ezarpenak",
+        "{{accessibilityModal}} Show the accessibility options (this modal)": "{{accessibilityModal}} Erakutsi irisgarritasun-aukerak (honako leihoa)",
+        "{{nextRegionShortcut}} Focus on the next region": "{{nextRegionShortcut}} Fokatu hurrengo eskualdean",
+        "{{prevRegionShortcut}} Focus on the previous region": "{{prevRegionShortcut}} Fokatu aurreko eskualdean",
+        "{{shortcutsModal}} Show the complete list of keyboard shortcuts": "{{shortcutsModal}} Erakutsi laster-teklen zerrenda osoa"
     },
     "AuthenticationSection": {
         "Error": "Errorea",
@@ -2279,11 +2307,112 @@
         "Confirm": "Baieztatu",
         "Configure": "Konfiguratu",
         "Configured": "Konfiguratuta",
-        "Close": "Itxi"
+        "Close": "Itxi",
+        "Active": "Aktibo",
+        "Active method is controlled by an environment variable. Unset variable to change active method.": "Aktibo dagoen metodoa ingurune-aldagai batek kontrolatzen du. Utzi aldagaia hautatzeari metodo aktiboa aldatzeko.",
+        "Active on restart": "Aktibo berrabioan"
     },
     "commandList": {
         "Copy anchor link": "Kopiatu esteka",
         "Display Grist documentation": "Erakutsi Grist-en dokumentazioa",
-        "Display shortcuts pane": "Erakutsi lasterbideak"
+        "Display shortcuts pane": "Erakutsi lasterbideak",
+        "Activate assistant": "Aktibatu laguntzailea",
+        "Adds all elements above the cursor to the selected range": "Kurtsorearen gainean dauden elementu guztiak hautatutako tartean gehitzen ditu",
+        "Adds all elements below the cursor to the selected range": "Kurtsorearen azpian dauden elementu guztiak hautatutako tartean gehitzen ditu",
+        "Adds all elements to the left of the cursor to the selected range": "Kurtsorearen ezkerrean dauden elementu guztiak hautatutako tartean gehitzen ditu",
+        "Adds all elements to the right of the cursor to the selected range": "Kurtsorearen eskuman dauden elementu guztiak hautatutako tartean gehitzen ditu",
+        "Adds the element above the cursor to the selected range": "Kurtsorearen gainean dagoen elementua hautatutako tarteari gehitzen du",
+        "Adds the element below the cursor to the selected range": "Kurtsorearen azpian dagoen elementua hautatutako tarteari gehitzen du",
+        "Adds the element to the left of the cursor to the selected range": "Kurtsorearen ezkerrean dagoen elementua hautatutako tarteari gehitzen du",
+        "Adds the element to the right of the cursor to the selected range": "Kurtsorearen eskuman dagoen elementua hautatutako tarteari gehitzen du",
+        "Clear the selected columns": "Garbitu hautatutako zutabeak",
+        "Clears the currently selected cells": "Hautatutako gelaxkak garbitzen ditu",
+        "Convert the selected columns from formula to data": "Bihurtu hautatutako zutabeak formuletatik datuetara",
+        "Copy current selection to clipboard": "Kopiatu hautaketa arbelera",
+        "Copy current selection to clipboard including headers": "Kopiatu hautaketa arbelera, baita goiburuak ere",
+        "Creates form for active table": "Formularioa sortzen du aktibo dagoen taularentzat",
+        "Cut current selection to clipboard": "Ebaki hautaketa arbelera",
+        "Delete the currently selected columns": "Ezabatu hautatutako zutabeak",
+        "Delete the currently selected record(s)": "Ezabatu hautatutako erregistroa(k)",
+        "Detach active editor": "Bereizi aktibo dagoen editorea",
+        "Duplicate the currently selected record(s)": "Bikoiztu hautatutako erregistroa(k)",
+        "Edit label of the currently-selected field": "Editatu hautatutako eremuko etiketa",
+        "Edit record layout": "Editatu erregistroaren antolaketa",
+        "Enter text into currently-selected cell and start editing": "Sartu testua hautatutako gelaxkan eta hasi editatzen",
+        "Fills current selection with the contents of the top row in the selection": "Uneko hautapena goiko errenkadan hautatutako edukiekin betetzen du",
+        "Find": "Bilatu",
+        "Finish editing a cell and save without moving to next record": "Amaitu gelaxka editatzen eta gorde hurrengo erregistrora pasa gabe",
+        "Finish editing a cell, saving the value": "Amaitu gelaxka editatzen, eta gorde balioa",
+        "Freeze or unfreeze selected columns": "Hautatutako zutabeak izoztu edo desizoztu",
+        "Hide the currently selected columns": "Ezkutatu hautatutako zutabeak",
+        "Hide the currently selected fields": "Ezkutatu hautatutako eremuak",
+        "Insert a new column, after the currently selected one": "Sartu zutabe berri bat, hautatutakoaren ondoren",
+        "Insert a new column, before the currently selected one": "Sartu zutabe berri bat, hautatutakoaren aurretik",
+        "Insert a new record, after the currently selected one in an unsorted table": "Sartu erregistro berri bat, hautatutakoaren ondoren, ordenatu gabeko taula batean",
+        "Insert a new record, before the currently selected one in an unsorted table": "Sartu erregistro berri bat, hautatutakoaren aurretik, ordenatu gabeko taula batean",
+        "Insert new column in default location": "Sartu zutabe berri bat defektuzko tokian",
+        "Insert the current date": "Sartu uneko data",
+        "Insert the current date and time": "Sartu uneko data eta ordua",
+        "Maximize the active section": "Maximizatu aktibo dagoen atala",
+        "Move down to the last record": "Jaitsi azken erregistrora",
+        "Move downward five records": "Jaitsi bost erregistro",
+        "Move downward to next record or field": "Jaitsi hurrengo erregistro edo eremura",
+        "Move left to the previous field": "Mugitu ezkerrera aurreko eremura",
+        "Move right to the next field": "Mugitu eskumara hurrengo eremura",
+        "Move to the first field or the beginning of a row": "Mugitu lehen eremura edo errenkadako hasierara",
+        "Move to the last field or the end of a row": "Mugitu azken eremura edo errenkadako amaierara",
+        "Move to the next field, saving changes if editing a value": "Mugitu hurrengo eremura, eta gorde aldaketak balioren bat editatuz gero",
+        "Move to the previous field, saving changes if editing a value": "Mugitu aurreko eremura, eta gorde aldaketak balioren bat editatuz gero",
+        "Move up to the first record": "Mugitu lehen erregistrora",
+        "Move upward five records": "Igo bost erregistro",
+        "Move upward to previous record or field": "Igo aurreko erregistro edo eremura",
+        "Moves the cursor to the correct location": "Kurtsorea kokapen egokira darama",
+        "Open comment thread": "Ireki iruzkinen haria",
+        "Open next page": "Ireki hurrengo orria",
+        "Open previous page": "Ireki aurreko orria",
+        "Opens document list": "Dokumentuen zerrenda irekitzen du",
+        "Paste clipboard contents at cursor": "Itsatsi arbeleko edukia kurtsorean",
+        "Redo last action": "Berregin azken ekintza",
+        "Rename the currently selected column": "Berrizendatu hautatutako zutabea",
+        "Selects all currently displayed cells": "Unean bistaratzen diren gelaxka guztiak hautatzen ditu"
+    },
+    "ProposedChangesPage": {
+        "Proposed changes": "Iradokitutako aldaketak",
+        "Replace original": "Ordezkatu jatorrizkoa",
+        "This is a list of changes relative to the original document.": "Honako zerrendan jatorrizko dokumentuarekiko aldaketak ageri dira.",
+        "Accept": "Onartu",
+        "Accepted {{at}}.": "{{at}}(e)an onartua.",
+        "Dismiss": "Baztertu",
+        "Dismissed {{at}}.": "{{at}}(e)an baztertua."
+    },
+    "GridViewMenusDateHelpers": {
+        "Day of month": "Hileko eguna",
+        "Day of week": "Asteko eguna",
+        "Day of week (abbrev)": "Asteko eguna (labur)",
+        "Day of week (full)": "Asteko eguna (osoa)",
+        "Day of week (numeric)": "Asteko eguna (zenbakia)",
+        "Default": "Defektuz",
+        "Full date": "Data osoa",
+        "Full name with year": "Izen osoa urtearekin",
+        "Hour": "Ordua",
+        "Intervals": "Bitarteak",
+        "Is weekend?": "Asteburua da?",
+        "Minute": "Minutu",
+        "Month": "Hilabetea",
+        "Name only": "Izena bakarrik",
+        "Number only": "Zenbakia bakarrik",
+        "Quarter": "Hiruhilekoa",
+        "Short with year": "Labur urtearekin",
+        "Time": "Denbora",
+        "Time bucket": "Denbora-poltsa",
+        "Week": "Astea",
+        "Week of year": "Urteko astea",
+        "Year": "Urtea"
+    },
+    "selectBy": {
+        "Select widget": "Hautatu widgeta"
+    },
+    "CoreNewDocMethods": {
+        "Untitled document": "Izenik gabeko dokumentua"
     }
 }

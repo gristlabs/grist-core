@@ -5,6 +5,8 @@
  *
  * This file collects most of the properties we use, for typings and visibility.
  */
+import { AirtableImportOptions } from "app/client/lib/airtable/AirtableImporter";
+
 import type { TopAppModel } from "app/client/models/AppModel";
 import type { DocPageModel } from "app/client/models/DocPageModel";
 import type { GristLoadConfig } from "app/common/gristUrls";
@@ -25,6 +27,9 @@ declare global {
     isRunningUnderElectron?: boolean;
     resetDismissedPopups?: (seen?: boolean) => void;
     resetOnboarding?: () => void;
+    gristAirtableImport?: (
+      apiKey: string, base: string, options: AirtableImportOptions,
+    ) => Promise<any>;
     testGrist?: Partial<TestState>;
   }
 }
