@@ -1,9 +1,12 @@
+import { Login } from "app/gen-server/entity/Login";
+import { User } from "app/gen-server/entity/User";
 import { HomeDBManager, Scope } from "app/gen-server/lib/homedb/HomeDBManager";
 import { BaseController } from "app/server/lib/scim/v2/BaseController";
 import { RequestContext } from "app/server/lib/scim/v2/ScimTypes";
 import { toSCIMMYUser, toUserProfile } from "app/server/lib/scim/v2/ScimUtils";
 
 import SCIMMY from "scimmy";
+import { FindOptionsWhere, LessThan, LessThanOrEqual, MoreThan, MoreThanOrEqual, Not, Raw } from "typeorm";
 
 type UserSchema = SCIMMY.Schemas.User;
 type UserResource = SCIMMY.Resources.User;
@@ -42,10 +45,28 @@ class ScimUserController extends BaseController {
    */
   public async getUsers(resource: UserResource, context: RequestContext): Promise<UserSchema[]> {
     return this.runAndHandleErrors(context, async (): Promise<UserSchema[]> => {
-      const scimmyUsers = (await this.dbManager.getUsers())
-        .filter(user => user.type === "login")
+      let users: User[];
+
+      // Detect if the search is a basic filter on the user name
+      // NOTE: quotes are not allowed in emails, hence we don't look for escape characters.
+      const simpleSearchOnUsernameRE = /^username\s*(?<op>..)\s*"(?<value>[^"]*)"$/i;
+      const match = resource.filter?.expression.match(simpleSearchOnUsernameRE);
+
+      if (match) {
+        const { op, value } = match.groups!;
+        users = await this.dbManager.getExistingUsersFiltered(
+          this._filterByLoginEmail(op, value),
+        );
+      }
+      else {
+        users = await this.dbManager.getUsers();
+      }
+
+      const scimmyUsers = users.filter(user => user.type === "login")
         .map(user => toSCIMMYUser(user));
-      return this.maybeApplyFilter(scimmyUsers, resource.filter);
+      return this.maybeApplyFilter(scimmyUsers, resource.filter, {
+        alreadyFiltered: Boolean(match),
+      });
     });
   }
 
@@ -112,6 +133,12 @@ class ScimUserController extends BaseController {
     });
   }
 
+  protected maybeApplyFilter<T extends SCIMMY.Types.Schema>(
+    prefilteredResults: T[], filter?: SCIMMY.Types.Filter, { alreadyFiltered } = { alreadyFiltered: false },
+  ): T[] {
+    return alreadyFiltered ? prefilteredResults : super.maybeApplyFilter(prefilteredResults, filter);
+  }
+
   /**
    * Checks if the passed email can be used for a new user or by the existing user.
    *
@@ -123,6 +150,34 @@ class ScimUserController extends BaseController {
     const existingUser = await this.dbManager.getExistingUserByLogin(email);
     if (existingUser !== undefined && existingUser.id !== userIdToUpdate) {
       throw new SCIMMY.Types.Error(409, "uniqueness", "An existing user with the passed email exist.");
+    }
+  }
+
+  private _filterByLoginEmail(operator: string, value: string): FindOptionsWhere<User> {
+    const whereLogin = (where: FindOptionsWhere<Login>): FindOptionsWhere<User> => ({ logins: where });
+    const escapeLikePattern = (value: string) => value.replace(/[\\%_]/g, "\\$&");
+
+    switch (operator) {
+      case "eq":
+        return whereLogin({ email: value });
+      case "ne":
+        return whereLogin({ email: Not(value) });
+      case "sw":
+        return whereLogin({ email: Raw(col => `${col} LIKE :value || '%' ESCAPE '\\'`, { value: escapeLikePattern(value) }) });
+      case "ew":
+        return whereLogin({ email: Raw(col => `${col} LIKE '%' || :value ESCAPE '\\'`, { value: escapeLikePattern(value) }) });
+      case "co":
+        return whereLogin({ email: Raw(col => `${col} LIKE '%' || :value || '%' ESCAPE '\\'`, { value: escapeLikePattern(value) }) });
+      case "lt":
+        return whereLogin({ email: LessThan(value) });
+      case "le":
+        return whereLogin({ email: LessThanOrEqual(value) });
+      case "gt":
+        return whereLogin({ email: MoreThan(value) });
+      case "ge":
+        return whereLogin({ email: MoreThanOrEqual(value) });
+      default:
+        throw new SCIMMY.Types.Error(500, null!, "Unknown operator: " + operator);
     }
   }
 }
