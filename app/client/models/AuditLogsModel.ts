@@ -46,6 +46,8 @@ export class AuditLogsModelImpl extends Disposable implements AuditLogsModel {
       if (this.isDisposed()) {
         return;
       }
+      // ConfigAPI is wrongly typed, it should be generic over the config value type, but the interface checker
+      // does not support generics yet, so we need to cast it here.
       this.streamingDestinations.set(value as any);
     }
     catch (e) {
@@ -112,6 +114,8 @@ export class AuditLogsModelImpl extends Disposable implements AuditLogsModel {
       return;
     }
 
+    // ConfigAPI is wrongly typed, it should be generic over the config value type, but the interface checker
+    // does not support generics yet, so we need to cast it here.
     this.streamingDestinations.set(value as any);
   }
 }
