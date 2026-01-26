@@ -226,7 +226,7 @@ export interface GristDoc extends DisposableWithEvents {
   activateEditorAtCursor(options?: { init?: string; state?: any }): Promise<void>;
   copyAnchorLink(anchorInfo: HashLink & CursorPos): Promise<void>;
   getActionLog(): ActionLog;
-  setComparison(comparison: DocStateComparison|null): void;
+  setComparison(comparison: DocStateComparison | null): void;
 }
 
 export class GristDocImpl extends DisposableWithEvents implements GristDoc {
@@ -899,7 +899,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
     return urlState().pushUrl({ docPage: viewId });
   }
 
-  public setComparison(comparison: DocStateComparison|null) {
+  public setComparison(comparison: DocStateComparison | null) {
     this.comparison = comparison;
     for (const model of Object.values(this._diffModels)) {
       model.dispose();
