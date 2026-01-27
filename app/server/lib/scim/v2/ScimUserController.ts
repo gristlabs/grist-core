@@ -157,7 +157,7 @@ class ScimUserController extends BaseController {
     const whereLogin = (where: FindOptionsWhere<Login>): FindOptionsWhere<User> => ({ logins: where });
     const escapeLikePattern = (value: string) => value.replace(/[\\%_]/g, "\\$&");
 
-    switch (operator) {
+    switch (operator.toLowerCase()) {
       case "eq":
         return whereLogin({ email: value });
       case "ne":
