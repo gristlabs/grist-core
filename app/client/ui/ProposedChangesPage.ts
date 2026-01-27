@@ -495,8 +495,10 @@ class ActionLogPartInProposal extends ActionLogPart {
       // Careful, there can be blank rowModels if tables were removed.
       const tableRow = this._gristDoc.docModel.tables.rowModels.find(tr => tr?.tableId() === table);
       const columnRows = tableRow ? this._gristDoc.docModel.columns.rowModels.filter(
-        cr => cr.parentId() === tableRow.id(),
+        cr => cr.parentId() === tableRow.id()
       ) : null;
+      console.log(tableRow?.tableId());
+      console.log(columnRows?.map(cr => cr.colId()));
       const colIdToColRecs = columnRows ? Object.fromEntries(
         columnRows.map(cr => [cr.colId(), cr]),
       ) : {};
@@ -544,7 +546,7 @@ class ActionLogPartInProposal extends ActionLogPart {
               type: (colRec?.pureType.peek() as any) || "Any",
               widgetOptions: colRec?.widgetOptionsJson.peek(),
             };
-          }),
+          }).filter(col => !col.colId.startsWith("gristHelper_")),
         ],
       });
       doc.refreshTableData(table).catch(reportError);
