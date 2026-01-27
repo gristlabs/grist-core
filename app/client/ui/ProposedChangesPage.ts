@@ -495,7 +495,7 @@ class ActionLogPartInProposal extends ActionLogPart {
       // Careful, there can be blank rowModels if tables were removed.
       const tableRow = this._gristDoc.docModel.tables.rowModels.find(tr => tr?.tableId() === table);
       const columnRows = tableRow ? this._gristDoc.docModel.columns.rowModels.filter(
-        cr => cr.parentId() === tableRow.id()
+        cr => cr.parentId() === tableRow.id(),
       ) : null;
       console.log(tableRow?.tableId());
       console.log(columnRows?.map(cr => cr.colId()));
