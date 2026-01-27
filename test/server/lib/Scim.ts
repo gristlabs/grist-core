@@ -368,6 +368,23 @@ describe("Scim", () => {
           "should have retrieved only chimpy's username and not other attribute");
         });
 
+        it("should filter the users by userName being set", async function() {
+          // This filter should not take the condition branch of the optimization.
+          // Check that the operator is processed by SCIMMY and does not raise an error.
+          const res = await axios.post(scimUrl("/Users/.search"), {
+            schemas: [SEARCH_SCHEMA],
+            attributes: ["userName"],
+            filter: "userName pr",
+          }, chimpy);
+          assert.equal(res.status, 200);
+          assert.isAbove(res.data.totalResults, 1);
+          assert.deepEqual(res.data.Resources[0], {
+            id: String(userIdByName.chimpy),
+            userName: "chimpy@getgrist.com",
+          },
+          "should have retrieved only chimpy's username and not other attribute");
+        });
+
         for (const criterion of [
           'username eq "chimpy@getgrist.com"',
           'username sw "chimpy"',
@@ -1835,7 +1852,7 @@ describe("Scim", () => {
     describe("POST /Users/.search", function() {
       const apiUrl = () => server.getOwnUrl() + "/api/scim/v2/Users/.search";
 
-      it("should return the user chimpy by its email in a reasonable amount of time", async function() {
+      it("should return the user chimpy by its email within a reasonable amount of time", async function() {
         const chimpyUser = (await server.getHomeDBManager().getExistingUserByLogin("chimpy@getgrist.com"))!;
         this.timeout(1000);
         const res = await axios.post(apiUrl(), {
@@ -1861,8 +1878,7 @@ describe("Scim", () => {
         }]);
       });
 
-      // FIXME: maybe check that in the regular search instead?
-      it("should return an empty array in a reasonable amount of time", async function() {
+      it("should return an empty array within a reasonable amount of time", async function() {
         this.timeout(1000);
         const resNoUsers = await axios.post(apiUrl(), {
           schemas: [SEARCH_SCHEMA],
@@ -1873,7 +1889,7 @@ describe("Scim", () => {
         assert.deepEqual(resNoUsers.data.Resources, []);
       });
 
-      it("should return a result from a complex query in a reasonnable amount of time", async function() {
+      it("should return a result from a complex query within a reasonnable amount of time", async function() {
         this.timeout(5000);
         const apiUrl = server.getOwnUrl() + "/api/scim/v2/Users/.search";
         const res = await axios.post(apiUrl, {
