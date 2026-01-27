@@ -60,7 +60,16 @@
         "Disable Access Rules": "Ezgaitu sarbide-arauak",
         "Disable and save": "Ezgaitu eta gorde",
         "Enable Access Rules": "Gaitu sarbide-arauak",
-        "Special rules for templates": "Txantiloien arau bereziak"
+        "Special rules for templates": "Txantiloien arau bereziak",
+        "Column {{colId}} appears in multiple rules for table {{tableId}} that might be order-dependent. Try splitting rules up differently?": "{{colId}} zutabea ordenaren menpekoa izan litekeen {{tableId}} taularako arau anitzetan agertzen da. Saiatu arauak beste modu batera banatzen?",
+        "Default resource missing in resource map": "Baliabide-mapan lehenetsitako baliabidea falta da",
+        "Not a valid user attribute": "Ez da baliozko erabiltzaile atributua",
+        "Resource missing in resource map: {{resourceKey}}": "Baliabidea ez dago baliabide-mapan: {{resourceKey}}",
+        "## Access Rules\n\nBasic access to this document is controlled using the 'Manage Users' option in the 'Share' menu, where you can assign collaborator roles such as Owner, Editor, or Viewer.\n\nFor more granular control, you can create Access Rules to limit who can view or edit specific\ntables, columns, or rows — useful for sensitive data or role-based permissions.\n[Learn more.]({{helpAccessRules}})": "## Sarbide-arauak\n\nDokumentu honetarako oinarrizko sarbidea 'Partekatu' menuko 'Kudeatu erabiltzaileak' aukeraren bidez kontrolatzen da. Kolaboratzaile-rolak eslei ditzakezu, hala nola jabea, editorea edo ikuslea.\n\nKontrol pikordunagoa lortzeko, Sarbide-arauak sor ditzakezu, taula, zutabe edo errenkada zehatzak nork ikusi\nedo editatu ditzakeen mugatzeko — erabilgarria datu sentikorretarako edo roletan oinarritutako baimenetarako.\n[Ikasi gehiago.]({{helpAccessRules}})",
+        "Permission to access the document in full by all users": "Erabiltzaile guztiek dokumentua osorik eskuratzeko baimena",
+        "Permission to access the document in full by unrestricted users": "Mugatu gabeko erabiltzaileek dokumentua osorik eskuratzeko baimena",
+        "Restrict non-Owners from copying or downloading the full document. Note: this only affects users without read restrictions, since others will be restricted regardless of this setting.": "Eragotzi jabe ez direnei dokumentu osoa kopiatzea edo deskargatzea. Oharra: honek irakurketa-murrizketarik gabeko erabiltzaileei bakarrik eragiten die, beste batzuk murriztuta egongo baitira ezarpen hau kontuan hartu gabe.",
+        "This options should be off if Editors' access is to be limited. ": "Aukera honek desaktibatuta egon behar du Editoreen sarbidea mugatua izango bada. "
     },
     "AccountPage": {
         "API": "APIa",
@@ -1366,7 +1375,14 @@
         "SERIES": "SEGIDAK",
         "Add series": "Gehitu segidak",
         "non-numeric columns are not shown": "ez dira erakusten zenbakizkoak ez diren zutabeak",
-        "non-numeric column is not shown": "ez da erakusten zenbakizkoa ez den zutabea"
+        "non-numeric column is not shown": "ez da erakusten zenbakizkoa ez den zutabea",
+        "LABEL": "ETIKETA",
+        "Bar chart": "Barra-diagrama",
+        "Connect gaps": "Konektatu hutsuneak",
+        "Show markers": "Erakutsi markatzaileak",
+        "Stack series": "Metatu serieak",
+        "Split Series": "Banandu serieak",
+        "selected new x-axis": "hautatutako x-ardatz berria"
     },
     "FilterBar": {
         "SearchColumns": "Bilatu zutabeak",
@@ -2310,7 +2326,13 @@
         "Close": "Itxi",
         "Active": "Aktibo",
         "Active method is controlled by an environment variable. Unset variable to change active method.": "Aktibo dagoen metodoa ingurune-aldagai batek kontrolatzen du. Utzi aldagaia hautatzeari metodo aktiboa aldatzeko.",
-        "Active on restart": "Aktibo berrabioan"
+        "Active on restart": "Aktibo berrabioan",
+        "Are you sure you want to set **{{name}}** as the active authentication method?": "Ziur **{{name}}** ezarri nahi duzula autentifikazio-metodo aktibo gisa?",
+        "Disabled on restart": "Ezgaituta berrabioan",
+        "No authentication method is active.": "Ez dago autentifikazio-metodorik aktibo.",
+        "Set as active method": "Ezarri metodo aktibo gisa",
+        "Set as active method?": "Metodo aktibo gisa ezarri?",
+        "The new method will go into effect after you restart Grist.": "Metodo berria Grist berrabiarazi ondoren sartuko da indarrean."
     },
     "commandList": {
         "Copy anchor link": "Kopiatu esteka",
@@ -2374,7 +2396,30 @@
         "Paste clipboard contents at cursor": "Itsatsi arbeleko edukia kurtsorean",
         "Redo last action": "Berregin azken ekintza",
         "Rename the currently selected column": "Berrizendatu hautatutako zutabea",
-        "Selects all currently displayed cells": "Unean bistaratzen diren gelaxka guztiak hautatzen ditu"
+        "Selects all currently displayed cells": "Unean bistaratzen diren gelaxka guztiak hautatzen ditu",
+        "Show accessibility options": "Erakutsi irisgarritasun aukerak",
+        "Find next occurrence": "Bilatu hurrengo agerpena",
+        "Find previous occurrence": "Bilatu aurreko agerpena",
+        "Shortcut to data selection tab": "Datuak hautatzeko fitxarako laster-tekla",
+        "Shortcut to focus view tab if creator panel is open": "Fokatze-ikuspegiaren fitxarako laster-tekla, sortzailearen panela irekita badago",
+        "Shortcut to open document tab": "Dokumentu-fitxa irekitzeko laster-tekla",
+        "Shortcut to open field tab": "Eremuaren fitxa irekitzeko laster-tekla",
+        "Shortcut to open sort & filter menu": "Ordenatzeko eta iragazteko menua irekitzeko laster-tekla",
+        "Shortcut to open the left panel": "Ezkerreko panela irekitzeko laster-tekla",
+        "Shortcut to open the right panel": "Eskumako panela irekitzeko laster-tekla",
+        "Shortcut to open view tab": "Ikuspegiaren fitxa irekitzeko laster-tekla",
+        "Shortcut to sort & filter tab": "Ordenatzeko eta iragazteko fitxaren laster-tekla",
+        "Show hidden columns": "Erakutsi ezkutatutako zutabeak",
+        "Show the record card widget of the selected record": "Erakutsi hautatutako erregistroaren erregistro-txartelaren widgeta",
+        "Sort the view data by the currently selected field in ascending order": "Ordenatu ikuspegiaren datuak unean hautatutako eremuaren arabera, goranzko ordenan",
+        "Sort the view data by the currently selected field in descending order": "Ordenatu ikuspegiaren datuak unean hautatutako eremuaren arabera, beheranzko ordenan",
+        "Start editing the currently-selected cell": "Hasi editatzen unean hautatutako gelaxka",
+        "Toggle creator panel keyboard focus": "Gaitu/ezgaitu sortzailearen paneleko teklatuaren fokua",
+        "Toggle the currently selected checkbox or switch cell": "Kommutatu une horretan hautatutako kontrol-laukia edo gelaxka",
+        "Undo last action": "Desegin azken ekintza",
+        "Use the currently selected row as table headers": "Erabili unean hautatutako errenkada taulen goiburu gisa",
+        "When in the search bar, close it and focus the current match": "Bilaketa-barran dagoenean, itxi eta fokatu uneko parekatzean",
+        "When typed at the start of a cell, make this a formula column": "Gelaxka baten hasieran idazten denean, bihurtu formula-zutabe"
     },
     "ProposedChangesPage": {
         "Proposed changes": "Iradokitutako aldaketak",
@@ -2383,7 +2428,22 @@
         "Accept": "Onartu",
         "Accepted {{at}}.": "{{at}}(e)an onartua.",
         "Dismiss": "Baztertu",
-        "Dismissed {{at}}.": "{{at}}(e)an baztertua."
+        "Dismissed {{at}}.": "{{at}}(e)an baztertua.",
+        "Learn more": "Ikasi gehiago",
+        "No changes found to suggest. Please make some edits.": "Ez da aurkitu aldaketa proposamenik. Egin edizioren bat.",
+        "Retract suggestion": "Bota iradokizuna atzera",
+        "Retracted {{at}}.": "{{at}}(e)an atzera bota da.",
+        "Suggest change": "Iradoki aldaketa",
+        "Suggest changes": "Iradoki aldaketak",
+        "Suggestion made {{at}}.": "{{at}}(e)an iradoki da.",
+        "Suggestions": "Iradokizunak",
+        "The original document isn't asking for proposed changes.": "Jatorrizko dokumentuak ez du aldaketa-iradokizunik eskatu.",
+        "There are fresh changes that haven't been added to the suggestion yet.": "Oraindik iradokizunetara gehitu ez diren aldaketa berriak daude.",
+        "Update suggestion": "Eguneratu iradokizuna",
+        "Work on a copy": "Egin lan kopia batean",
+        "Your suggestions": "Zure iradokizunak",
+        "experiment": "esperimentua",
+        "original document": "jatorrizko dokumentua"
     },
     "GridViewMenusDateHelpers": {
         "Day of month": "Hileko eguna",
@@ -2407,12 +2467,26 @@
         "Time bucket": "Denbora-poltsa",
         "Week": "Astea",
         "Week of year": "Urteko astea",
-        "Year": "Urtea"
+        "Year": "Urtea",
+        "Sortable": "Ordenagarria",
+        "Start of": "Hasiera"
     },
     "selectBy": {
         "Select widget": "Hautatu widgeta"
     },
     "CoreNewDocMethods": {
         "Untitled document": "Izenik gabeko dokumentua"
+    },
+    "DetailView": {
+        "This row is unavailable or does not exist": "Lerro hau ez dago erabilgarri edo ez da existitzen"
+    },
+    "GetGristComProvider": {
+        "Cancel": "Utzi",
+        "Configure": "Konfiguratu",
+        "Instructions": "Jarraibideak",
+        "Paste configuration key here": "Itsatsi konfigurazio-gakoa hemen",
+        "Sign in with getgrist.com": "Eman izena getgrist.com-ekin",
+        "To set up {{provider}}, you need to register your Grist server on getgrist.com and paste the configuration key you receive below.": "{{provider}} ezartzeko, zure Grist zerbitzaria getgrist.com-en erregistratu eta behean ageri den konfigurazio-gakoa itsatsi behar duzu.",
+        "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.": "Saioa hastean, erabiltzaileak getgrist.com-en saioa hasteko orrira birbideratuko dira, saioa hasteko edo izena emateko. getgrist.com-en autentifikatu ondoren, zure Grist zerbitzarira birbideratuko dira eta autentifikatu diren erabiltzaile gisa hasiko dute saioa."
     }
 }
