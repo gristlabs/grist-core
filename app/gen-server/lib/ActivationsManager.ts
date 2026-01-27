@@ -118,14 +118,17 @@ export class ActivationsManager {
   /**
    * Returns all prefs with their sources, if applicable.
    */
-  public async getPrefs(): Promise<InstallPrefsWithSources> {
+  public async getPrefsWithSources(): Promise<InstallPrefsWithSources> {
     const activation = await this.current();
     const telemetryPrefs = await getTelemetryPrefs(this._db, activation);
-    const prefs = activation.prefs || {};
-    const { onRestartSetDefaultEmail, onRestartReplaceEmailWithAdmin } = prefs;
+    const {
+      checkForLatestVersion = true,
+      onRestartSetDefaultEmail,
+      onRestartReplaceEmailWithAdmin,
+    } = activation.prefs || {};
     return {
       telemetry: telemetryPrefs,
-      checkForLatestVersion: activation.prefs?.checkForLatestVersion ?? true,
+      checkForLatestVersion,
       onRestartSetDefaultEmail,
       onRestartReplaceEmailWithAdmin,
     };

@@ -60,6 +60,11 @@ function setDefaultEnv(name: string, value: string) {
   }
 }
 
+/**
+ * Creates the database if needed and applies pending migrations.
+ *
+ * Returns an instance of {@link HomeDBManager} connected to the database.
+ */
 async function createOrUpdateDb() {
   // Make a blank db if needed.
   if (process.env.TEST_CLEAN_DATABASE) {
@@ -76,6 +81,16 @@ async function createOrUpdateDb() {
   return db;
 }
 
+/**
+ * Sets default email if `onRestartSetDefaultEmail` and optionally
+ * `onRestartReplaceEmailWithAdmin` are set in install preferences.
+ *
+ * This function is only intended for flavors of Grist that are based on
+ * grist-core, including grist-ee. In the version of Grist hosted on getgrist.com,
+ * we use a different server entrypoint and this file is unused. This is
+ * intentional, as we currently only want the preferences above to take effect in
+ * self-managed flavors of Grist.
+ */
 async function setUpDefaulEmail(db: HomeDBManager) {
   try {
     await db.runInTransaction(undefined, async (manager) => {
@@ -121,6 +136,11 @@ async function setUpDefaulEmail(db: HomeDBManager) {
   }
 }
 
+/**
+ * If `GRIST_SINGLE_ORG` is set to a value other than `"docs"`, checks that
+ * the org exists and creates it if needed (with GRIST_DEFAULT_EMAIL as the
+ * owner).
+ */
 async function setUpSingleOrg(db: HomeDBManager) {
   // If a team/organization is specified, make sure it exists.
   const org = process.env.GRIST_SINGLE_ORG;

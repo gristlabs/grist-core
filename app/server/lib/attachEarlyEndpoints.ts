@@ -122,7 +122,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
   app.get(
     "/api/install/prefs",
     expressWrap(async (_req, res) => {
-      const prefs = await gristServer.getActivations().getPrefs();
+      const prefs = await gristServer.getActivations().getPrefsWithSources();
       return sendOkReply(null, res, prefs);
     }),
   );

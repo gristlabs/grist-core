@@ -1,7 +1,7 @@
 import { BaseAPI, IOptions } from "app/common/BaseAPI";
 import { BootProbeInfo, BootProbeResult } from "app/common/BootProbe";
 import { LatestVersionAvailable } from "app/common/gristUrls";
-import { InstallPrefs } from "app/common/Install";
+import { InstallPrefs, RestartPrefs } from "app/common/Install";
 import { TelemetryLevel } from "app/common/Telemetry";
 import { addCurrentOrgToPath } from "app/common/urlUtils";
 
@@ -11,13 +11,11 @@ export interface InstallProperties {
   prefs: InstallPrefs;
 }
 
-export interface InstallPrefsWithSources {
+export interface InstallPrefsWithSources extends RestartPrefs {
   telemetry: {
     telemetryLevel: PrefWithSource<TelemetryLevel>;
   },
   checkForLatestVersion: boolean;
-  onRestartSetDefaultEmail?: string;
-  onRestartReplaceEmailWithAdmin?: string;
 }
 
 export type TelemetryPrefsWithSources = InstallPrefsWithSources["telemetry"];
