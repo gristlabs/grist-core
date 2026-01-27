@@ -353,7 +353,7 @@ describe("Scim", () => {
           assert.equal(res.status, 200);
         });
 
-        it("should filter the users by displayName", async function() {
+        it("should filter the users by partial displayName", async function() {
           const res = await axios.post(scimUrl("/Users/.search"), {
             schemas: [SEARCH_SCHEMA],
             attributes: ["userName"],
