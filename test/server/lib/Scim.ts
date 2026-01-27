@@ -1895,7 +1895,8 @@ describe("Scim", () => {
         const res = await axios.post(apiUrl, {
           schemas: [SEARCH_SCHEMA],
           attributes: ["userName"],
-          filter: 'userName sw "user99999"',
+          // Use operator in uppercase, it should work too.
+          filter: 'userName SW "user99999"',
         }, chimpy);
         assert.equal(res.status, 200);
         assert.lengthOf(res.data.Resources, 11);
