@@ -21,6 +21,7 @@ import {
   DocStateComparisonDetails,
   removeMetadataChangesFromDetails,
 } from "app/common/DocState";
+import { isHiddenCol } from "app/common/gristTypes";
 import { buildUrlId, commonUrls, parseUrlId } from "app/common/gristUrls";
 import { isLongerThan } from "app/common/gutil";
 import { TabularDiff, TabularDiffs } from "app/common/TabularDiff";
@@ -497,8 +498,6 @@ class ActionLogPartInProposal extends ActionLogPart {
       const columnRows = tableRow ? this._gristDoc.docModel.columns.rowModels.filter(
         cr => cr.parentId() === tableRow.id(),
       ) : null;
-      console.log(tableRow?.tableId());
-      console.log(columnRows?.map(cr => cr.colId()));
       const colIdToColRecs = columnRows ? Object.fromEntries(
         columnRows.map(cr => [cr.colId(), cr]),
       ) : {};
@@ -546,7 +545,7 @@ class ActionLogPartInProposal extends ActionLogPart {
               type: (colRec?.pureType.peek() as any) || "Any",
               widgetOptions: colRec?.widgetOptionsJson.peek(),
             };
-          }).filter(col => !col.colId.startsWith("gristHelper_")),
+          }).filter(col => isHiddenCol(col.colId)),
         ],
       });
       doc.refreshTableData(table).catch(reportError);
