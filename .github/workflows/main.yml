@@ -132,6 +132,7 @@ jobs:
           make setup
           cd ../..
           yarn run test:server -g 'ActiveDoc.useQuerySet|Sandbox'
+          yarn run test:nbrowser -g 'Importer'
         env:
           MOCHA_WEBDRIVER_HEADLESS: 1
           GRIST_SANDBOX_FLAVOR: pyodide
