@@ -1,6 +1,6 @@
 import { getExistingDocSchema } from "app/client/lib/DocSchemaImport";
 import { AirtableAPI } from "app/common/airtable/AirtableAPI";
-import { gristDocSchemaFromAirtableSchema } from "app/common/airtable/AirtableImporter";
+import { gristDocSchemaFromAirtableSchema } from "app/common/airtable/AirtableSchemaImporter";
 import {
   DocSchemaImportTool,
   ImportSchemaTransformParams,
