@@ -65,7 +65,17 @@
         "Enable Access Rules": "Aktivera behörighetsregler",
         "Special rules for templates": "Specialregler för mallar",
         "This options should be off if Editors' access is to be limited. ": "Denna inställning skall vara av om behörigheten för Redigerare skall begränsas. ",
-        "Seed rules": "Delningsregler"
+        "Seed rules": "Delningsregler",
+        "## Access Rules\n\nBasic access to this document is controlled using the 'Manage Users' option in the 'Share' menu, where you can assign collaborator roles such as Owner, Editor, or Viewer.\n\nFor more granular control, you can create Access Rules to limit who can view or edit specific\ntables, columns, or rows — useful for sensitive data or role-based permissions.\n[Learn more.]({{helpAccessRules}})": "## Behörighetsregler\n\nGrundläggande tillgång till detta dokument styrs av 'Hantera användare' inställningen i 'Dela' menyn, där du kan lägga till användare med rollerna Ägare, Redigerare eller Läsare.\n\nFör mer detaljerad styrning, kan du skapa Behörighetsregler för att begränsa vem som kan läsa eller redigera specifika tabeller, kolumner eller rader — vilket är användbart för känslig data eller rollbaserade behörigheter.\n\n[Lär dig mer.]({{helpAccessRules}})",
+        "## Access Rules\n\nYou don't have permission to view or edit access rules for this document.": "## Behörighetsregler\n\nDu har inte behörighet att visa eller redigera behörighetsregler för detta dokument.",
+        "**Special rules** (expand each rule to customize who it applies to)": "**Specialregler** (öppna respektive regel för att välja vem den ska gälla för)",
+        "After disabling Access Rules, Editors will be able to change the structure of the document and edit formulas. Editors and Viewers will be able to see all data in the document, as well as copy or download it.": "När Behörighetsreglerna stängs av kommer Redigerare kunna ändra dokumentets struktur och redigera formler. Redigerare och Läsare kommer att kunna se alla data i dokumentet, samt ladda ner en kopia av hela dokumentet.",
+        "After enabling Access Rules, Editors will no longer be able to change the structure of the\ndocument or edit formulas. Only Owners will be able to copy or download the document.\n\nThese settings can be changed under 'Special rules'.": "När Behörighetsreglerna aktiveras kommer inte Redigerare att kunna ändra strukturen på \ndokumentet samt formler. Enbart Ägare kommer att kunna kopiera hela dokumentet.\n\nDessa inställningar kan ändras under 'Specialregler'.",
+        "Allow Editors to edit structure (e.g. modify and delete tables, columns, and layouts) and write formulas.  Important: if checked, Editors will be able to edit formulas, which can access all data, regardless of table and column access rules!": "Tillåt Redigerare att ändra strukturen (som att ändra och ta bort tabeller, kolumner och layouter) och skriva formler.  Viktigt: om vald, så kommer Redigerare att kunna ändra formler som kan komma åt alla data, oavsett Behörighetsregler för tabeller och kolumner!",
+        "Circumvent all read restrictions and allow everyone to copy the entire document, or view it in full in fiddle mode. Only use for for examples and templates, not for documents with sensitive data.": "Kringgå alla läsbegränsningar och tillåt alla att kopiera hela dokumentet, eller läsa det i experiment läge. Använd bara för exempel och mallar, inte för dokument med känsliga data.",
+        "Permission to access the document in full by all users": "Behörighet att komma åt hela dokumentet för alla användare",
+        "Permission to access the document in full by unrestricted users": "Behörighet att komma åt hela dokumentet för användare utan begränsningar",
+        "Restrict non-Owners from copying or downloading the full document. Note: this only affects users without read restrictions, since others will be restricted regardless of this setting.": "Hindra alla utom Ägare från att kopiera eller ladda ner hela dokumentet. Notera: detta påverkar användare utan begränsningar för läsning, eftersom andra kommer att begränsar oavsett denna inställning."
     },
     "AccountPage": {
         "API": "API",
@@ -81,7 +91,9 @@
         "Save": "Spara",
         "Theme": "Tema",
         "Two-factor authentication": "Tvåfaktors autentisering",
-        "Language": "Språk"
+        "Language": "Språk",
+        "Names only allow letters, numbers and certain special characters": "Namn får bara innehålla bokstäver, siffror och vissa specialtecken",
+        "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "Tvåfaktorsautentisering är ett extra lager säkerhet för ditt Gristkonto, för att säkerställa att bara du kan komma åt ditt konto."
     },
     "AccountWidget": {
         "Access Details": "Tillgångsdetaljer",
