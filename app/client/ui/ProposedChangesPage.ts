@@ -545,7 +545,7 @@ class ActionLogPartInProposal extends ActionLogPart {
               type: (colRec?.pureType.peek() as any) || "Any",
               widgetOptions: colRec?.widgetOptionsJson.peek(),
             };
-          }).filter(col => isHiddenCol(col.colId)),
+          }).filter(col => !isHiddenCol(col.colId)),
         ],
       });
       doc.refreshTableData(table).catch(reportError);
