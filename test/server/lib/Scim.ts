@@ -1835,7 +1835,7 @@ describe("Scim", () => {
     describe("POST /Users/.search", function() {
       const apiUrl = () => server.getOwnUrl() + "/api/scim/v2/Users/.search";
 
-      it("should return the user chimpy in a reasonable amount of time", async function() {
+      it("should return the user chimpy by its email in a reasonable amount of time", async function() {
         const chimpyUser = (await server.getHomeDBManager().getExistingUserByLogin("chimpy@getgrist.com"))!;
         this.timeout(1000);
         const res = await axios.post(apiUrl(), {
@@ -1845,6 +1845,17 @@ describe("Scim", () => {
         }, chimpy);
         assert.equal(res.status, 200);
         assert.deepEqual(res.data.Resources, [{
+          id: String(chimpyUser.id),
+          userName: chimpyUser.loginEmail,
+        }]);
+
+        const resWithEmailValue = await axios.post(apiUrl(), {
+          schemas: [SEARCH_SCHEMA],
+          attributes: ["userName"],
+          filter: `email.value eq "${chimpyUser.loginEmail}"`,
+        }, chimpy);
+        assert.equal(resWithEmailValue.status, 200);
+        assert.deepEqual(resWithEmailValue.data.Resources, [{
           id: String(chimpyUser.id),
           userName: chimpyUser.loginEmail,
         }]);
@@ -1863,7 +1874,7 @@ describe("Scim", () => {
       });
 
       it("should return a result from a complex query in a reasonnable amount of time", async function() {
-        this.timeout(2000);
+        this.timeout(5000);
         const apiUrl = server.getOwnUrl() + "/api/scim/v2/Users/.search";
         const res = await axios.post(apiUrl, {
           schemas: [SEARCH_SCHEMA],

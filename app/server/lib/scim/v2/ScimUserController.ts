@@ -47,9 +47,9 @@ class ScimUserController extends BaseController {
     return this.runAndHandleErrors(context, async (): Promise<UserSchema[]> => {
       let users: User[];
 
-      // Detect if the search is a basic filter on the user name
+      // Detect if the search is a basic filter on the user name or the email value (which are the same thing)
       // NOTE: quotes are not allowed in emails, hence we don't look for escape characters.
-      const simpleSearchOnUsernameRE = /^username\s*(?<op>..)\s*"(?<value>[^"]*)"$/i;
+      const simpleSearchOnUsernameRE = /^(username|email\.value)\s+(?<op>..)\s+"(?<value>[^"]*)"$/i;
       const match = resource.filter?.expression.match(simpleSearchOnUsernameRE);
 
       if (match) {
