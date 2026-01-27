@@ -96,6 +96,17 @@ export async function runAirtableImport(
   console.log(await getExistingDocSchema(docApi));
 }
 
+export async function runAirtableDataImport(
+  apiKey: string,
+  baseId: string,
+  tableMapping: Map<string, string>,
+) {
+  // TODO - Fetch airtable schema
+  //        fetch existing doc schema
+  //        create crosswalk
+  //        execute data import code
+}
+
 async function createDoc(userApi: UserAPI, name: string) {
   const workspaces = await userApi.getOrgWorkspaces("current");
   return await userApi.newDoc({ name }, workspaces[0].id);

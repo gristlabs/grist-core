@@ -28,6 +28,10 @@ export class AirtableAPI {
     this._metaRequester = this._airtable.base("");
   }
 
+  public base(baseId: string) {
+    return this._airtable.base(baseId);
+  }
+
   public async listBases(): Promise<AirtableListBasesResponse["bases"]> {
     // Technically there's pagination here - but each request returns 1000 bases, so it feels
     // premature to implement.
@@ -68,20 +72,26 @@ export const AirtableSchemaChecker = checkers.AirtableBaseSchema as CheckerT<Air
 export const AirtableSchemaTableChecker = checkers.AirtableSchemaTable as CheckerT<AirtableTableSchema>;
 export const AirtableSchemaFieldChecker = checkers.AirtableSchemaField as CheckerT<AirtableFieldSchema>;
 
+// Aliases for the various Airtable IDs makes various Map type definitions clearer.
+export type AirtableBaseId = string;
+export type AirtableTableId = string;
+export type AirtableFieldId = string;
+
 // Airtable schema response. Limit this to only needed fields to minimise chance of breakage.
 export interface AirtableBaseSchema {
+  id: AirtableBaseId,
   tables: AirtableTableSchema[];
 }
 
 export interface AirtableTableSchema {
-  id: string;
+  id: AirtableTableId;
   name: string;
   primaryFieldId: string;
   fields: AirtableFieldSchema[];
 }
 
 export interface AirtableFieldSchema {
-  id: string;
+  id: AirtableFieldId;
   name: string;
   type: string;
   options?: { [key: string]: any };
