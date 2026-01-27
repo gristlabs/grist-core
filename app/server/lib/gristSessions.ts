@@ -27,7 +27,6 @@ export interface SessionStore {
   getAsync(sid: string): Promise<any>;
   setAsync(sid: string, session: any): Promise<void>;
   close(): Promise<void>;
-  clearAllSession(): Promise<void>;
 }
 
 /**
@@ -75,11 +74,7 @@ function createSessionStoreFactory(sessionsDB: string): () => SessionStore {
           // Quit the client, so that it doesn't attempt to reconnect (which matters for some
           // tests), and so that node becomes close-able.
           await fromCallback(cb => store.client.quit(cb));
-        },
-        async clearAllSession() {
-          await fromCallback(cb => store.clear(cb));
-        },
-      });
+        } });
     };
   }
   else {
@@ -100,12 +95,7 @@ function createSessionStoreFactory(sessionsDB: string): () => SessionStore {
       // set a busy timeout.
       store.db.run("PRAGMA busy_timeout = 1000");
 
-      return assignIn(store, {
-        async close() {},
-        async clearAllSession() {
-          await fromCallback(cb => store.clear(cb));
-        },
-      });
+      return assignIn(store, { async close() {} });
     };
   }
 }

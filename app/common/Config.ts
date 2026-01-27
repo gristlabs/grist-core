@@ -17,9 +17,9 @@ export interface ConfigOrg {
   domain: string | null;
 }
 
-export type ConfigKey = "audit_log_streaming_destinations" | "set_install_admin_on_startup";
+export type ConfigKey = "audit_log_streaming_destinations";
 
-export type ConfigValue = AuditLogStreamingDestinations | SetInstallAdminOnStartup;
+export type ConfigValue = AuditLogStreamingDestinations;
 
 export type AuditLogStreamingDestinations = AuditLogStreamingDestination[];
 
@@ -32,16 +32,10 @@ export interface AuditLogStreamingDestination {
 
 export type AuditLogStreamingDestinationName = "splunk" | "other";
 
-export interface SetInstallAdminOnStartup {
-  email: string;
-  mode: "set-new" | "replace-existing";
-}
-
 const {
   AuditLogStreamingDestinations,
   AuditLogStreamingDestinationName,
   ConfigKey,
-  SetInstallAdminOnStartup,
 } = createCheckers(ConfigsTI);
 
 export const AuditLogStreamingDestinationNameChecker =
@@ -52,6 +46,4 @@ export const ConfigKeyChecker = ConfigKey as CheckerT<ConfigKey>;
 export const ConfigValueCheckers = {
   audit_log_streaming_destinations:
     AuditLogStreamingDestinations as CheckerT<AuditLogStreamingDestinations>,
-  set_install_admin_on_startup:
-    SetInstallAdminOnStartup as CheckerT<SetInstallAdminOnStartup>,
 };

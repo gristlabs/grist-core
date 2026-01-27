@@ -2,7 +2,7 @@ import { ApiError } from "app/common/ApiError";
 import { InstallAdminInfo } from "app/common/LoginSessionAPI";
 import { User } from "app/gen-server/entity/User";
 import { SUPPORT_EMAIL } from "app/gen-server/lib/homedb/HomeDBManager";
-import { appSettings } from "app/server/lib/AppSettings";
+import { AppSettings, appSettings } from "app/server/lib/AppSettings";
 import { getUser, RequestWithLogin } from "app/server/lib/Authorizer";
 import { GristServer } from "app/server/lib/GristServer";
 
@@ -80,14 +80,14 @@ export class SimpleInstallAdmin extends InstallAdmin {
   }
 
   private get _installAdminEmail(): string | undefined {
-    return getInstallAdminEmail() ?? this._defaultInstallAdminEmail;
+    return getDefaultEmail() ?? this._defaultInstallAdminEmail;
   }
 
   private get _defaultInstallAdminEmail(): string | undefined {
     const deploymentType = this._server.getDeploymentType();
     switch (deploymentType) {
       case "core": {
-        return "you@example.com";
+        return GRIST_CORE_DEFAULT_EMAIL;
       }
       default: {
         return undefined;
@@ -111,11 +111,19 @@ export class SimpleInstallAdmin extends InstallAdmin {
   }
 }
 
+export const GRIST_CORE_DEFAULT_EMAIL = "you@example.com";
+
 /**
- * Returns the current value of `GRIST_DEFAULT_EMAIL` from {@link appSettings}.
+ * Returns the value of `GRIST_DEFAULT_EMAIL` from settings.
  */
-export function getInstallAdminEmail(): string | undefined {
-  return appSettings.section("access").flag("installAdminEmail").readString({
+export function getDefaultEmail(options: {
+  /**
+   * Defaults to {@link appSettings}.
+   */
+  settings?: AppSettings;
+} = {}): string | undefined {
+  const { settings = appSettings } = options;
+  return settings.section("access").flag("installAdminEmail").readString({
     envVar: "GRIST_DEFAULT_EMAIL",
   });
 }

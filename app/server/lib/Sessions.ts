@@ -96,15 +96,6 @@ export class Sessions {
   }
 
   /**
-   * Clear all sessions from the session store.
-   * This will remove all session data from Redis/SQLite and clear the in-memory cache.
-   */
-  public async clearAllSessions(): Promise<void> {
-    this._sessions.clear();
-    await this._sessionStore.clearAllSession();
-  }
-
-  /**
    * Get a per-organization, per-session key.
    * Grist has historically cached sessions in memory by their session id.
    * With the introduction of per-organization identity, that cache is now

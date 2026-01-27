@@ -16,6 +16,8 @@ export interface InstallPrefsWithSources {
     telemetryLevel: PrefWithSource<TelemetryLevel>;
   },
   checkForLatestVersion: boolean;
+  onRestartSetDefaultEmail?: string;
+  onRestartReplaceEmailWithAdmin?: string;
 }
 
 export type TelemetryPrefsWithSources = InstallPrefsWithSources["telemetry"];

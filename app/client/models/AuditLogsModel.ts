@@ -2,7 +2,6 @@ import { ConfigsAPI } from "app/client/ui/ConfigsAPI";
 import {
   AuditLogStreamingDestination,
   AuditLogStreamingDestinations,
-  ConfigValueCheckers,
 } from "app/common/Config";
 
 import { Disposable, Observable } from "grainjs";
@@ -46,9 +45,6 @@ export class AuditLogsModelImpl extends Disposable implements AuditLogsModel {
       );
       if (this.isDisposed()) {
         return;
-      }
-      if (!ConfigValueCheckers.audit_log_streaming_destinations.test(value)) {
-        throw new Error("Invalid config value for audit_log_streaming_destinations");
       }
 
       this.streamingDestinations.set(value);
@@ -115,10 +111,6 @@ export class AuditLogsModelImpl extends Disposable implements AuditLogsModel {
     );
     if (this.isDisposed()) {
       return;
-    }
-
-    if (!ConfigValueCheckers.audit_log_streaming_destinations.test(value)) {
-      throw new Error("Invalid config value for audit_log_streaming_destinations");
     }
 
     this.streamingDestinations.set(value);

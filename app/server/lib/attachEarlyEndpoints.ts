@@ -4,10 +4,8 @@ import {
   ConfigKeyChecker,
   ConfigValue,
   ConfigValueCheckers,
-  SetInstallAdminOnStartup,
 } from "app/common/Config";
-import { isEmail } from "app/common/gutil";
-import { InstallProperties } from "app/common/InstallAPI";
+import { InstallPrefs } from "app/common/Install";
 import { getOrgKey } from "app/gen-server/ApiServer";
 import { Config } from "app/gen-server/entity/Config";
 import {
@@ -25,7 +23,6 @@ import {
   sendReply,
   stringParam,
 } from "app/server/lib/requestUtils";
-import { getTelemetryPrefs } from "app/server/lib/Telemetry";
 import { updateGristServerLatestVersion } from "app/server/lib/updateChecker";
 
 import {
@@ -121,43 +118,12 @@ export function attachEarlyEndpoints(options: AttachOptions) {
     }),
   );
 
-  app.put(
-    "/api/install/admin/pending",
-    json(),
-    expressWrap(async (req, res) => {
-      const key = "set_install_admin_on_startup";
-      ConfigValueCheckers[key].check(req.body);
-      if (!isEmail(req.body.email)) {
-        throw new ApiError("Invalid email", 400);
-      }
-
-      const value = pick(req.body, "email", "mode") as SetInstallAdminOnStartup;
-      await gristServer.getHomeDBManager().updateInstallConfig(key, value);
-      return res.status(204).send();
-    }),
-  );
-
-  app.delete(
-    "/api/install/admin/pending",
-    expressWrap(async (req, res) => {
-      await gristServer.getHomeDBManager().deleteInstallConfig("set_install_admin_on_startup");
-      return res.status(204).send();
-    }),
-  );
-
   // Restrict this endpoint to install admins.
   app.get(
     "/api/install/prefs",
     expressWrap(async (_req, res) => {
-      const activation = await gristServer.getActivations().current();
-      const telemetryPrefs = await getTelemetryPrefs(
-        gristServer.getHomeDBManager(),
-        activation,
-      );
-      return sendOkReply(null, res, {
-        telemetry: telemetryPrefs,
-        checkForLatestVersion: activation.prefs?.checkForLatestVersion ?? true,
-      });
+      const prefs = await gristServer.getActivations().getPrefs();
+      return sendOkReply(null, res, prefs);
     }),
   );
 
@@ -165,13 +131,10 @@ export function attachEarlyEndpoints(options: AttachOptions) {
     "/api/install/prefs",
     json({ limit: "1mb" }),
     expressWrap(async (req, res) => {
-      const props = { prefs: req.body };
-      const activation = await gristServer.getActivations().current();
-      activation.checkProperties(props);
-      activation.updateFromProperties(props);
-      await activation.save();
+      const prefs = req.body;
+      await gristServer.getActivations().updatePrefs(prefs);
 
-      if ((props as Partial<InstallProperties>).prefs?.telemetry) {
+      if ((prefs as InstallPrefs).telemetry) {
         // Make sure the Telemetry singleton picks up the changes to telemetry preferences.
         // TODO: if there are multiple home server instances, notify them all of changes to
         // preferences (via Redis Pub/Sub).

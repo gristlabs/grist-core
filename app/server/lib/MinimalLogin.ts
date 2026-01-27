@@ -1,6 +1,6 @@
 import { UserProfile } from "app/common/UserAPI";
 import { GristLoginMiddleware, GristLoginSystem, GristServer, setUserInSession } from "app/server/lib/GristServer";
-import { getInstallAdminEmail } from "app/server/lib/InstallAdmin";
+import { getDefaultEmail, GRIST_CORE_DEFAULT_EMAIL } from "app/server/lib/InstallAdmin";
 import { getFallbackLoginProvider } from "app/server/lib/loginSystemHelpers";
 
 import { Request } from "express";
@@ -52,7 +52,7 @@ export const getMinimalLoginSystem = getFallbackLoginProvider(
 
 function getDefaultProfile(): UserProfile {
   return {
-    email: getInstallAdminEmail() || "you@example.com",
+    email: getDefaultEmail() || GRIST_CORE_DEFAULT_EMAIL,
     name: "You",
   };
 }

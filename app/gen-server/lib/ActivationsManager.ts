@@ -1,6 +1,9 @@
+import { InstallPrefs } from "app/common/Install";
+import { InstallPrefsWithSources } from "app/common/InstallAPI";
 import { Activation } from "app/gen-server/entity/Activation";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { makeId } from "app/server/lib/idUtils";
+import { getTelemetryPrefs } from "app/server/lib/Telemetry";
 
 import pick from "lodash/pick";
 import { EntityManager } from "typeorm";
@@ -91,10 +94,7 @@ export class ActivationsManager {
    * Updates a key/value pair in the app env file stored in the activation record.
    * TODO: Notify other servers that the env file has changed and they should refresh their copy of appSettings.
    */
-  public async updateAppEnvFile(
-    delta: Record<string, string | null>,
-    transaction?: EntityManager,
-  ): Promise<Record<string, any>> {
+  public async updateAppEnvFile(delta: Record<string, string | null>, transaction?: EntityManager) {
     return await this._db.runInTransaction(transaction, async (manager) => {
       const activation = await this.current(manager);
       activation.prefs ??= {};
@@ -112,7 +112,59 @@ export class ActivationsManager {
         }
       }
       await manager.save(activation);
-      return activation.prefs.envVars;
+    });
+  }
+
+  /**
+   * Returns all prefs with their sources, if applicable.
+   */
+  public async getPrefs(): Promise<InstallPrefsWithSources> {
+    const activation = await this.current();
+    const telemetryPrefs = await getTelemetryPrefs(this._db, activation);
+    const prefs = activation.prefs || {};
+    const { onRestartSetDefaultEmail, onRestartReplaceEmailWithAdmin } = prefs;
+    return {
+      telemetry: telemetryPrefs,
+      checkForLatestVersion: activation.prefs?.checkForLatestVersion ?? true,
+      onRestartSetDefaultEmail,
+      onRestartReplaceEmailWithAdmin,
+    };
+  }
+
+  /**
+   * Updates the specified `prefs`.
+   */
+  public async updatePrefs(prefs: Partial<InstallPrefs>): Promise<void> {
+    await this._updateActivation((activation) => {
+      const props = { prefs };
+      activation.checkProperties(props);
+      activation.updateFromProperties(props);
+    });
+  }
+
+  /**
+   * Deletes the specified `prefs`.
+   *
+   * Returns the deleted prefs, excluding any that were not found.
+   */
+  public async deletePrefs(
+    prefs: (keyof InstallPrefs)[],
+    { transaction }: { transaction?: EntityManager } = {},
+  ): Promise<Partial<InstallPrefs>> {
+    return await this._db.runInTransaction(transaction, async (manager) => {
+      const activation = await this.current(manager);
+      activation.prefs ??= {};
+      const deletedPrefs: Partial<InstallPrefs> = {};
+      for (const pref of prefs) {
+        if (pref in activation.prefs) {
+          deletedPrefs[pref] = activation.prefs[pref] as any;
+          delete activation.prefs[pref];
+        }
+      }
+      if (Object.keys(deletedPrefs).length > 0) {
+        await manager.save(activation);
+      }
+      return deletedPrefs;
     });
   }
 

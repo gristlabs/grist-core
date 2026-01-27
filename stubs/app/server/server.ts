@@ -4,13 +4,14 @@
  * By default, starts up on port 8484.
  */
 
+import { normalizeEmail } from "app/common/emails";
 import { commonUrls } from "app/common/gristUrls";
-import { isAffirmative } from "app/common/gutil";
+import { isAffirmative, isEmail } from "app/common/gutil";
 import { ActivationsManager } from "app/gen-server/lib/ActivationsManager";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
-import { appSettings } from "app/server/lib/AppSettings";
+import { AppSettings } from "app/server/lib/AppSettings";
 import { updateDb } from "app/server/lib/dbUtils";
-import { getInstallAdminEmail } from "app/server/lib/InstallAdmin";
+import { getDefaultEmail, GRIST_CORE_DEFAULT_EMAIL } from "app/server/lib/InstallAdmin";
 import { runPrometheusExporter } from "app/server/prometheus-exporter";
 
 import * as fse from "fs-extra";
@@ -59,7 +60,7 @@ function setDefaultEnv(name: string, value: string) {
   }
 }
 
-async function setupDb() {
+async function createOrUpdateDb() {
   // Make a blank db if needed.
   if (process.env.TEST_CLEAN_DATABASE) {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -72,7 +73,55 @@ async function setupDb() {
   const db = new HomeDBManager();
   await db.connect();
   await db.initializeSpecialIds({ skipWorkspaces: true });
+  return db;
+}
 
+async function setUpDefaulEmail(db: HomeDBManager) {
+  try {
+    await db.runInTransaction(undefined, async (manager) => {
+      const activations = new ActivationsManager(db);
+      const settings = new AppSettings("grist");
+      settings.setEnvVars((await activations.current(manager)).prefs?.envVars || {});
+      const { onRestartSetDefaultEmail, onRestartReplaceEmailWithAdmin } = await activations.deletePrefs(
+        ["onRestartSetDefaultEmail", "onRestartReplaceEmailWithAdmin"],
+        { transaction: manager },
+      );
+      if (!onRestartSetDefaultEmail) {
+        return;
+      }
+      if (!isEmail(onRestartSetDefaultEmail)) {
+        throw new Error(`Invalid email: "${onRestartSetDefaultEmail}"`);
+      }
+
+      const currentEmail = getDefaultEmail({ settings }) ?? GRIST_CORE_DEFAULT_EMAIL;
+      console.log(`Setting "${onRestartSetDefaultEmail}" as the default email (current value: "${currentEmail}")`);
+      await activations.updateAppEnvFile({ GRIST_DEFAULT_EMAIL: onRestartSetDefaultEmail }, manager);
+
+      if (onRestartReplaceEmailWithAdmin) {
+        if (!isEmail(onRestartReplaceEmailWithAdmin)) {
+          throw new Error(`Invalid email: "${onRestartReplaceEmailWithAdmin}"`);
+        }
+
+        const user = await db.getExistingUserByLogin(onRestartReplaceEmailWithAdmin, manager);
+        if (!user) {
+          throw new Error(`User with email "${onRestartReplaceEmailWithAdmin}" not found`);
+        }
+
+        const login = user.logins[0];
+        login.email = normalizeEmail(onRestartSetDefaultEmail);
+        login.displayEmail = onRestartSetDefaultEmail;
+        await manager.save(login);
+      }
+
+      console.log(`Successfully set "${onRestartSetDefaultEmail}" as the default email.`);
+    });
+  }
+  catch (err) {
+    console.error("Failed to set default email:", err);
+  }
+}
+
+async function setUpSingleOrg(db: HomeDBManager) {
   // If a team/organization is specified, make sure it exists.
   const org = process.env.GRIST_SINGLE_ORG;
   if (org && org !== "docs") {
@@ -87,8 +136,9 @@ async function setupDb() {
         throw e;
       }
       const activations = new ActivationsManager(db);
-      appSettings.setEnvVars((await activations.current()).prefs?.envVars || {});
-      const email = getInstallAdminEmail() ?? "you@example.com";
+      const settings = new AppSettings("grist");
+      settings.setEnvVars((await activations.current()).prefs?.envVars || {});
+      const email = getDefaultEmail({ settings }) ?? GRIST_CORE_DEFAULT_EMAIL;
       if (!email) {
         throw new Error("need GRIST_DEFAULT_EMAIL to create site");
       }
@@ -131,7 +181,9 @@ export async function main() {
 
   if (serverTypes.includes("home")) {
     console.log("Setting up database...");
-    await setupDb();
+    const db = await createOrUpdateDb();
+    await setUpDefaulEmail(db);
+    await setUpSingleOrg(db);
     console.log("Database setup complete.");
   }
 
