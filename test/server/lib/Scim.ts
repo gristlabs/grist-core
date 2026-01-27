@@ -1889,10 +1889,9 @@ describe("Scim", () => {
         assert.deepEqual(resNoUsers.data.Resources, []);
       });
 
-      it("should return a result from a complex query within a reasonnable amount of time", async function() {
+      it("should return a result from a complex query within a reasonable amount of time", async function() {
         this.timeout(5000);
-        const apiUrl = server.getOwnUrl() + "/api/scim/v2/Users/.search";
-        const res = await axios.post(apiUrl, {
+        const res = await axios.post(apiUrl(), {
           schemas: [SEARCH_SCHEMA],
           attributes: ["userName"],
           // Use operator in uppercase, it should work too.
