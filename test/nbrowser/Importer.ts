@@ -369,7 +369,7 @@ describe("Importer", function() {
         "Africa", "Eastern Africa", "Burundi",
         "Africa", "Eastern Africa", "Comoros"]);
     await driver.get(`${docUrl}`);
-    await gu.acceptAlert({ignore: true});
+    await gu.acceptAlert({ ignore: true });
     await gu.waitForDocToLoad();
   });
 
