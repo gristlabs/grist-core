@@ -765,6 +765,7 @@ describe("ProposedChangesPage", function() {
 
     await driver.find(".test-proposals-propose").click();
     // Click on the "original document" to see how things are there now.
+    await driver.findContentWait(".test-proposals-status", /Suggestion/, 2000);
     await driver.findContentWait("span", /original document/, 2000).click();
 
     await driver.findWait(".test-proposals-apply", 2000).click();
