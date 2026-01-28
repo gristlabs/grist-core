@@ -6,7 +6,9 @@ import { RequestContext } from "app/server/lib/scim/v2/ScimTypes";
 import { toSCIMMYUser, toUserProfile } from "app/server/lib/scim/v2/ScimUtils";
 
 import SCIMMY from "scimmy";
-import { FindOptionsWhere, LessThan, LessThanOrEqual, MoreThan, MoreThanOrEqual, Not, Raw } from "typeorm";
+import {
+  FindOptionsWhere, LessThan, LessThanOrEqual, MoreThan, MoreThanOrEqual, Not, ObjectLiteral, Raw,
+} from "typeorm";
 
 type UserSchema = SCIMMY.Schemas.User;
 type UserResource = SCIMMY.Resources.User;
@@ -55,15 +57,17 @@ class ScimUserController extends BaseController {
       if (match) {
         const { op, value } = match.groups!;
         users = await this.dbManager.getExistingUsersFiltered(
-          this._filterByLoginEmail(op, value),
+          {
+            logins: this._filterByLoginEmail(op, value),
+            type: "login",
+          },
         );
       }
       else {
-        users = await this.dbManager.getUsers();
+        users = await this.dbManager.getUsers({ type: "login" });
       }
 
-      const scimmyUsers = users.filter(user => user.type === "login")
-        .map(user => toSCIMMYUser(user));
+      const scimmyUsers = users.map(user => toSCIMMYUser(user));
       return this.maybeApplyFilter(scimmyUsers, resource.filter, {
         alreadyFiltered: Boolean(match),
       });
@@ -153,29 +157,29 @@ class ScimUserController extends BaseController {
     }
   }
 
-  private _filterByLoginEmail(operator: string, value: string): FindOptionsWhere<User> {
-    const whereLogin = (where: FindOptionsWhere<Login>): FindOptionsWhere<User> => ({ logins: where });
+  private _filterByLoginEmail(operator: string, value: string): FindOptionsWhere<Login> {
     const escapeLikePattern = (value: string) => value.replace(/[\\%_]/g, "\\$&");
+    const likeWithEscape = (params: ObjectLiteral) => Raw(col => `${col} LIKE :value ESCAPE '\\'`, params);
 
     switch (operator.toLowerCase()) {
       case "eq":
-        return whereLogin({ email: value });
+        return { email: value };
       case "ne":
-        return whereLogin({ email: Not(value) });
+        return { email: Not(value) };
       case "sw":
-        return whereLogin({ email: Raw(col => `${col} LIKE :value || '%' ESCAPE '\\'`, { value: escapeLikePattern(value) }) });
+        return { email: likeWithEscape({ value: `${escapeLikePattern(value)}%` }) };
       case "ew":
-        return whereLogin({ email: Raw(col => `${col} LIKE '%' || :value ESCAPE '\\'`, { value: escapeLikePattern(value) }) });
+        return { email: likeWithEscape({ value: `%${escapeLikePattern(value)}` }) };
       case "co":
-        return whereLogin({ email: Raw(col => `${col} LIKE '%' || :value || '%' ESCAPE '\\'`, { value: escapeLikePattern(value) }) });
+        return { email: likeWithEscape({ value: `%${escapeLikePattern(value)}%` }) };
       case "lt":
-        return whereLogin({ email: LessThan(value) });
+        return { email: LessThan(value) };
       case "le":
-        return whereLogin({ email: LessThanOrEqual(value) });
+        return { email: LessThanOrEqual(value) };
       case "gt":
-        return whereLogin({ email: MoreThan(value) });
+        return { email: MoreThan(value) };
       case "ge":
-        return whereLogin({ email: MoreThanOrEqual(value) });
+        return { email: MoreThanOrEqual(value) };
       default:
         throw new SCIMMY.Types.Error(500, null!, "Unknown operator: " + operator);
     }
