@@ -558,4 +558,91 @@ describe("Comparison", function() {
     await driver.close();
     await driver.switchTo().window(windowHandles[0]);
   });
+
+  it("can do a simple live edit (update cell, add row)", async function() {
+    const mainSession = await gu.session().teamSite.login();
+    const doc = await mainSession.tempDoc(cleanup, "Hello.grist");
+
+    // Set a cell to some text.
+    await gu.getCell({ rowNum: 1, col: 0 }).click();
+    await gu.waitAppFocus(true);
+    await gu.enterCell("zeep");
+    await gu.waitForServer();
+    await gu.getCell({ rowNum: 1, col: 1 }).click();
+    await gu.waitAppFocus(true);
+    await gu.enterCell("meep");
+    await gu.waitForServer();
+
+    // Make a fork of the document.
+    await mainSession.loadDoc(`/doc/${doc.id}/m/fork`);
+    await gu.waitForDocToLoad();
+
+    // Set a cell to some text so we are definitely on a fork.
+    await gu.getCell({ rowNum: 1, col: 1 }).click();
+    await gu.waitAppFocus(true);
+    await gu.enterCell("moop");
+    await gu.waitForServer();
+
+    // Compare with original
+    await driver.find(".test-tb-share").click();
+    await driver.findWait(".test-compare-original", 5000).click();
+
+    // Switch to the new tab, and wait for the doc to load.
+    const windowHandles = await driver.getAllWindowHandles();
+    await gu.switchToWindow(windowHandles[1]);
+    await gu.waitForDocToLoad();
+
+    let cell = await gu.getCell({ rowNum: 1, col: 1 });
+    assert.equal(await cell.find(".diff-remote").isPresent(), false);
+    assert.equal(await cell.find(".diff-parent").getText(), "meep");
+    assert.equal(await cell.find(".diff-local").getText(), "moop");
+
+    cell = await gu.getCell({ rowNum: 1, col: 0 });
+    assert.equal(await cell.find(".diff-remote").isPresent(), false);
+    assert.equal(await cell.find(".diff-parent").isPresent(), false);
+    assert.equal(await cell.find(".diff-local").isPresent(), false);
+    await gu.waitAppFocus(true);
+    await gu.enterCell("zoop");
+    await gu.waitForServer();
+    assert.equal(await cell.find(".diff-remote").isPresent(), false);
+    assert.equal(await cell.find(".diff-parent").getText(), "zeep");
+    assert.equal(await cell.find(".diff-local").getText(), "zoop");
+
+    // Undo/redo should work.
+    await gu.undo();
+    assert.equal(await cell.find(".diff-remote").isPresent(), false);
+    assert.equal(await cell.find(".diff-parent").isPresent(), false);
+    assert.equal(await cell.find(".diff-local").isPresent(), false);
+    await gu.redo();
+    assert.equal(await cell.find(".diff-remote").isPresent(), false);
+    assert.equal(await cell.find(".diff-parent").getText(), "zeep");
+    assert.equal(await cell.find(".diff-local").getText(), "zoop");
+
+    const count = await gu.getGridRowCount();
+
+    // Go to end and add a new record.
+    await gu.sendKeys(Key.chord(await gu.modKey(), Key.DOWN));
+    const rowNum = await gu.getSelectedRowNum();
+    await gu.waitAppFocus(true);
+    await gu.enterCell("newrecord");
+    await gu.waitForServer();
+
+    assert.equal(await gu.getGridRowCount(), count + 1);
+
+    cell = await gu.getCell({ rowNum, col: 0 });
+    assert.equal(await cell.find(".diff-remote").isPresent(), false);
+    assert.equal(await cell.find(".diff-parent").isPresent(), false);
+    assert.equal(await cell.find(".diff-local").getText(), "newrecord");
+
+    assert.include(await cell.findClosest(".record").getAttribute("className"), "diff-local-add");
+
+    await gu.undo();
+    assert.equal(await gu.getGridRowCount(), count);
+    await gu.redo();
+    assert.equal(await gu.getGridRowCount(), count + 1);
+
+    // Close the new tab and switch back to the original one.
+    await driver.close();
+    await driver.switchTo().window(windowHandles[0]);
+  });
 });
