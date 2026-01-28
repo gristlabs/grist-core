@@ -89,10 +89,6 @@
   border: 1px solid var(--grist-theme-widget-border, var(--grist-color-dark-grey));
 }
 
-.diff .view_data_pane_container {
-  border: none;
-}
-
 @media not print {
 .active_section > .view_data_pane_container {
   box-shadow: -2px 0 0 0px var(--grist-theme-widget-active-border, var(--grist-color-light-green));
