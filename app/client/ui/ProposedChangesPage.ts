@@ -21,6 +21,7 @@ import {
   DocStateComparisonDetails,
   removeMetadataChangesFromDetails,
 } from "app/common/DocState";
+import { isHiddenCol } from "app/common/gristTypes";
 import { buildUrlId, commonUrls, parseUrlId } from "app/common/gristUrls";
 import { isLongerThan } from "app/common/gutil";
 import { TabularDiff, TabularDiffs } from "app/common/TabularDiff";
@@ -544,7 +545,7 @@ class ActionLogPartInProposal extends ActionLogPart {
               type: (colRec?.pureType.peek() as any) || "Any",
               widgetOptions: colRec?.widgetOptionsJson.peek(),
             };
-          }),
+          }).filter(col => !isHiddenCol(col.colId)),
         ],
       });
       doc.refreshTableData(table).catch(reportError);

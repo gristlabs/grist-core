@@ -142,9 +142,6 @@ describe("ProposedChangesPage", function() {
     await gu.dbClick(driver.findContent(".diff-remote", /test2/));
     await driver.findContentWait(".test-widget-title-text", /TABLE1/, 2000);
     assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), "test2");
-
-    // Note that a formula column error is tickled by this test. This
-    // needs to be dealt with.
   });
 
   it("can make and apply multiple proposed changes", async function() {
@@ -731,6 +728,56 @@ describe("ProposedChangesPage", function() {
     await returnToTrunk(url);
   });
 
+  it("can make changes on a doc with conditional formatting", async function() {
+    const { doc, api } = await makeLifeDoc();
+    // const url = await driver.getCurrentUrl();
+    await addConditionalFormatting(api, doc.id, "Life", "B", "'s' in $B", {
+      fillColor: "#f00",
+    });
+    await gu.waitForServer();
+
+    // Check if the cell has the expected content background color
+    let cell = await gu.getCell("B", 1);
+    assert.equal(await cell.getText(), "Fish");
+    assert.equal(await cell.getCssValue("background-color"), "rgba(255, 0, 0, 1)");
+
+    // Work on a copy.
+    await driver.find(".test-tb-share").click();
+    await driver.findWait(".test-work-on-copy", 2000).click();
+    await gu.waitForServer();
+    await gu.waitForDocToLoad();
+
+    // Change the content of the first cell.
+    await gu.openPage("Life");
+    await gu.getCell("B", 1).click();
+    await gu.waitAppFocus();
+    await gu.enterCell("Fizh");
+
+    // Go to the propose-changes page.
+    await driver.find(".test-tools-proposals").click();
+
+    // Make sure the expected change is shown.
+    await driver.findContentWait(".test-main-content", /Suggest changes/, 2000);
+    await driver.findWait(".test-actionlog-tabular-diffs .field_clip", 2000);
+    assert.deepEqual(await getColumns("LIFE"), ["B"]);
+    assert.deepEqual(await getRowValues("LIFE", 0), ["FishFizh"]);
+    assert.deepEqual(await getChangeType("LIFE", 0), "→");
+
+    await driver.find(".test-proposals-propose").click();
+    // Click on the "original document" to see how things are there now.
+    await driver.findContentWait(".test-proposals-status", /Suggestion/, 2000);
+    await driver.findContentWait("span", /original document/, 2000).click();
+
+    await driver.findWait(".test-proposals-apply", 2000).click();
+    await gu.waitForServer();
+
+    await gu.dbClick(driver.findContent(".diff-remote", /Fizh/));
+    await driver.findContentWait(".test-widget-title-text", /LIFE/, 2000);
+    cell = await gu.getCell("B", 1);
+    assert.equal(await cell.getText(), "Fizh");
+    assert.notEqual(await cell.getCssValue("background-color"), "rgba(255, 0, 0, 1)");
+  });
+
   async function makeLifeDoc() {
     // Load a test document.
     const session = await gu.session().teamSite.login();
@@ -874,4 +921,92 @@ async function setReferenceDisplayColumn(
     ["UpdateRecord", "_grist_Tables_column", refColumn.id, { visibleCol: showColumn.id }],
     ["SetDisplayFormula", tableId, null, refColumn.id, `$${refColId}.${showColId}`],
   ]);
+}
+
+/**
+ * Set conditional formatting on a column. There's probably
+ * a slightly smoother way, this is patched together from just
+ * hacking.
+ */
+async function addConditionalFormatting(
+  api: UserAPI,
+  docId: string,
+  tableId: string,
+  colId: string,
+  formula: string,
+  options?: {
+    textColor?: string;
+    fillColor?: string;
+  },
+) {
+  const docApi = api.getDocAPI(docId);
+
+  // Get column metadata to find the numeric IDs and string IDs
+  const columns = await docApi.getRecords("_grist_Tables_column");
+  const tables = await docApi.getRecords("_grist_Tables");
+
+  const table = tables.find(t => t.fields.tableId === tableId);
+  if (!table) {
+    throw new Error(`Table ${tableId} not found`);
+  }
+
+  const column = columns.find(c =>
+    c.fields.parentId === table.id && c.fields.colId === colId,
+  );
+
+  if (!column) {
+    throw new Error(`Column ${colId} not found`);
+  }
+
+  // Add an empty rule
+  await docApi.applyUserActions([
+    ["AddEmptyRule", tableId, 0, column.id],
+  ]);
+
+  // Fetch the updated column to get the new rules array
+  const updatedColumns = await docApi.getRecords("_grist_Tables_column");
+  const updatedColumn = updatedColumns.find(c => c.id === column.id);
+
+  if (!updatedColumn) {
+    throw new Error("Failed to fetch updated column");
+  }
+
+  // The rules field is a RefList - ['L', id1, id2, ...]
+  const rules = updatedColumn.fields.rules as any[];
+  if (!Array.isArray(rules) || rules.length < 2 || rules[0] !== "L") {
+    throw new Error("Unexpected rules format");
+  }
+
+  // Get the last rule column ID (the one we just created)
+  const ruleColumnId = rules[rules.length - 1];
+  const ruleIndex = rules.length - 2; // Index in the array (skip the 'L' marker)
+
+  // Update the rule column's formula
+  await docApi.applyUserActions([
+    ["UpdateRecord", "_grist_Tables_column", ruleColumnId, { formula }],
+  ]);
+
+  // Now update the data column's widgetOptions with the styling for this rule
+  if (options) {
+    const currentWidgetOptions = updatedColumn.fields.widgetOptions as string || "{}";
+    const widgetOptions = JSON.parse(currentWidgetOptions);
+
+    if (!widgetOptions.rulesOptions) {
+      widgetOptions.rulesOptions = [];
+    }
+
+    // Ensure the array is large enough
+    while (widgetOptions.rulesOptions.length <= ruleIndex) {
+      widgetOptions.rulesOptions.push({});
+    }
+
+    // Set the options for this rule at the correct index
+    widgetOptions.rulesOptions[ruleIndex] = options;
+
+    await docApi.applyUserActions([
+      ["UpdateRecord", "_grist_Tables_column", column.id, {
+        widgetOptions: JSON.stringify(widgetOptions),
+      }],
+    ]);
+  }
 }
