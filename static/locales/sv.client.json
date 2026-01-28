@@ -259,6 +259,38 @@
         "selected new x-axis": "vald ny x-axel",
         "Remove": "Ta bort",
         "Create separate series for each value of the selected column.": "Skapa separata serier för varje värde i den valda kolumnen.",
-        "Each Y series is followed by a series for the length of error bars.": "Varje Y serie följs av serier för längden på felstaplarna."
+        "Each Y series is followed by a series for the length of error bars.": "Varje Y serie följs av serier för längden på avvikelsestaplarna.",
+        "Each Y series is followed by two series, for top and bottom error bars.": "Varje Y serie följs av två serier, för övre och under avvikelse staplar.",
+        "Toggle chart aggregation": "Växla diagram aggregering",
+        "selected new group data columns": "valda nya gruppdatakolumner"
+    },
+    "CodeEditorPanel": {
+        "Access denied": "Åtkomst nekad",
+        "Code View is available only when you have full document access.": "Kodvyn är bara tillgänglig där du har fulla dokumenträttigheter."
+    },
+    "ColorSelect": {
+        "Apply": "Applicera",
+        "Cancel": "Avbryt",
+        "Default cell style": "Standardstil för celler"
+    },
+    "ColumnFilterMenu": {
+        "All": "Alla",
+        "All except": "Alla utom",
+        "All shown": "Alla som visas",
+        "Filter by Range": "Filtrera efter spann",
+        "Future values": "Framtida värden",
+        "No matching values": "Inga matchande värden",
+        "None": "Ingen",
+        "Min": "Min",
+        "Max": "Max",
+        "Start": "Start",
+        "End": "Slut",
+        "Other Matching": "Annan matchning",
+        "Other Non-Matching": "Annan icke matchande",
+        "Other values": "Andra värden",
+        "Others": "Andra",
+        "Search": "Sök",
+        "Search values": "Sökvärden",
+        "Clear search": "Rensa sökning"
     }
 }
