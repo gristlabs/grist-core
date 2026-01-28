@@ -708,9 +708,10 @@ export class UsersManager {
     });
   }
 
-  public async getUsers() {
+  public async getUsers({ type }: { type?: UserType } = {}) {
     return await User.find({
       relations: ["logins"],
+      where: { type },
       order: { id: "ASC" },
     });
   }
