@@ -352,7 +352,14 @@ export class NSandbox implements ISandbox {
       sandboxStderrLogger(data);
     });
 
-    this._streamFromSandbox.on("data", data => this._onSandboxData(data));
+    this._streamFromSandbox.on("data", (data) => {
+      try {
+        this._onSandboxData(data);
+      }
+      catch (err) {
+        this._streamFromSandbox.emit("error", err);
+      }
+    });
     this._streamFromSandbox.on("end", () => this._onSandboxClose());
     this._streamFromSandbox.on("error", (err) => {
       log.rawError(`Sandbox error reading: ${err}`, this._logMeta);
