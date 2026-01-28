@@ -63,6 +63,7 @@ export class AuthenticationSection extends Disposable {
     const needsRestart = providers.some(p => p.willBeActive);
     if (needsRestart) {
       this._controls.needsRestart.set(true);
+      this._controls.needsSessionClear.set(true);
     }
   }
 

@@ -19,9 +19,11 @@ export const ConfigOrg = t.iface([], {
   "domain": t.union("string", "null"),
 });
 
-export const ConfigKey = t.lit("audit_log_streaming_destinations");
+export const ConfigKey = t.union(t.lit("audit_log_streaming_destinations"), t.lit("clear_sessions_on_startup"));
 
-export const ConfigValue = t.name("AuditLogStreamingDestinations");
+export const ConfigValue = t.union("AuditLogStreamingDestinations", "ClearSessionsOnStartup");
+
+export const ClearSessionsOnStartup = t.name("boolean");
 
 export const AuditLogStreamingDestinations = t.array("AuditLogStreamingDestination");
 
@@ -39,6 +41,7 @@ const exportedTypeSuite: t.ITypeSuite = {
   ConfigOrg,
   ConfigKey,
   ConfigValue,
+  ClearSessionsOnStartup,
   AuditLogStreamingDestinations,
   AuditLogStreamingDestination,
   AuditLogStreamingDestinationName,
