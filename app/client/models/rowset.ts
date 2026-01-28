@@ -649,9 +649,6 @@ export class SortedRowSet extends RowListener {
   private _keep(rows: UIRowId[], nContext: number = 2) {
     // Nothing to be done if there's no _keepFunc.
     if (!this._keepFunc) { return rows; }
-    if (!process.env.ewefwefewf) {
-      return rows;
-    }
 
     // Seed a list of rows to be kept (we'll expand it as we go).
     const keeping = rows.map(this._keepFunc);
