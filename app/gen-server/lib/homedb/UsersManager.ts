@@ -705,7 +705,7 @@ export class UsersManager {
       }
       await manager.save([user, login]);
 
-      return (await this.getUser(userId))!;
+      return user;
     });
   }
 
