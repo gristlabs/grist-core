@@ -459,8 +459,8 @@ export class HomeDBManager implements HomeDBAuth {
     return this._usersManager.getUser(userId, options);
   }
 
-  public async getUsers() {
-    return this._usersManager.getUsers();
+  public async getUsers(options?: { type?: UserType }) {
+    return this._usersManager.getUsers(options);
   }
 
   public async getFullUser(userId: number) {
