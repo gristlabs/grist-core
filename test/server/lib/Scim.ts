@@ -1,16 +1,15 @@
 import { isAffirmative } from "app/common/gutil";
 import { UserType } from "app/common/User";
 import { Group } from "app/gen-server/entity/Group";
-import { FlexServer } from "app/server/lib/FlexServer";
 import log from "app/server/lib/log";
 import { TestServer } from "test/gen-server/apiUtils";
-import { createServer, setUpDB } from "test/gen-server/seed";
 import { configForUser } from "test/gen-server/testUtils";
 import * as testUtils from "test/server/testUtils";
 
 import axios, { AxiosResponse } from "axios";
 import { assert } from "chai";
 import capitalize from "lodash/capitalize";
+import { Context } from "mocha";
 import Sinon from "sinon";
 
 function scimConfigForUser(user: string) {
@@ -28,6 +27,7 @@ const chimpy = scimConfigForUser("Chimpy");
 const kiwi = scimConfigForUser("Kiwi");
 const charon = scimConfigForUser("Charon");
 const anon = scimConfigForUser("Anonymous");
+const shouldCleanup = !isAffirmative(process.env.NO_CLEANUP);
 
 const USER_CONFIG_BY_NAME = {
   chimpy,
@@ -50,6 +50,8 @@ describe("Scim", () => {
     let homeUrl: string;
     let oldEnv: testUtils.EnvironmentSnapshot;
     let server: TestServer;
+    type Cleanup = (this: Context) => void | Promise<void>;
+    const cleanups: Cleanup[] = [];
 
     before(async function() {
       this.timeout(10_000);
@@ -59,7 +61,10 @@ describe("Scim", () => {
       homeUrl = await server.start();
     });
 
-    after(async () => {
+    after(async function() {
+      for (const cleanup of cleanups) {
+        await cleanup.call(this);
+      }
       oldEnv.restore();
       await server.stop();
     });
@@ -68,6 +73,7 @@ describe("Scim", () => {
       scimUrl: (path: string) => (homeUrl + "/api/scim/v2" + path),
       getDbManager: () => server.dbManager,
       getServer: () => server,
+      cleanupPreShutdown: (cleanup: Cleanup) => cleanups.push(cleanup),
     };
   };
 
@@ -166,7 +172,7 @@ describe("Scim", () => {
         await cb(userName);
       } finally {
         const user = await getDbManager().getExistingUserByLogin(userName + "@getgrist.com");
-        if (user && !isAffirmative(process.env.NO_CLEANUP)) {
+        if (user && shouldCleanup) {
           await cleanupUser(user.id);
         }
       }
@@ -571,8 +577,11 @@ describe("Scim", () => {
         beforeEach(async function() {
           userToUpdateId = await getOrCreateUserId(userToUpdateEmailLocalPart);
         });
+
         afterEach(async function() {
-          await cleanupUser(userToUpdateId);
+          if (shouldCleanup) {
+            await cleanupUser(userToUpdateId);
+          }
         });
 
         it("should update an existing user", async function() {
@@ -807,7 +816,7 @@ describe("Scim", () => {
         try {
           await cb(groupNames);
         } finally {
-          if (!isAffirmative(process.env.NO_CLEANUP)) {
+          if (shouldCleanup) {
             await cleanupGroups();
           }
         }
@@ -1818,42 +1827,77 @@ describe("Scim", () => {
   });
 
   describe("With lots of data", function() {
-    let server: FlexServer;
-    let oldEnv: testUtils.EnvironmentSnapshot;
+    let userIds: { id: number }[];
+    const { scimUrl, getDbManager, cleanupPreShutdown } = setupTestServer(SCIM_ENV_VARS);
     before(async function() {
       this.timeout(60000);
-      oldEnv = new testUtils.EnvironmentSnapshot();
-      Object.assign(process.env, SCIM_ENV_VARS);
-
-      setUpDB(this);
-      server = await createServer(0);
-
       const nbUsers = 1_000_000;
-      await server.getHomeDBManager().connection.query(`
+      userIds = await getDbManager().connection.query(`
         WITH RECURSIVE
-          for(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM for WHERE i < ${nbUsers})
-        INSERT INTO users(name, type, ref) SELECT 'user' || i, 'login', 'user-ref' || i FROM for;`);
+          loop(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM loop WHERE i < ${nbUsers})
+        INSERT INTO users(name, type, ref) SELECT 'user' || i, 'login', 'user-ref' || i FROM loop
+        RETURNING id;`);
 
-      await server.getHomeDBManager().connection.query(`
-        WITH RECURSIVE
-          for(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM for WHERE i < ${nbUsers})
-        INSERT INTO logins(user_id, email, display_email) SELECT users.id, users.name || '@getgrist.com', users.name || '@getgrist.com' FROM for JOIN users on users.name = 'user' || for.i;
+      await getDbManager().connection.query(`
+        INSERT INTO logins(user_id, email, display_email)
+        SELECT
+          id,
+          name || '@getgrist.com',
+          name || '@getgrist.com'
+        FROM users
+        WHERE name LIKE 'user%';
       `);
 
       // Also create the Chimpy user
-      await server.getHomeDBManager().getExistingUserByLogin("chimpy@getgrist.com");
+      await getDbManager().getExistingUserByLogin("chimpy@getgrist.com");
     });
 
-    after(async function() {
-      oldEnv.restore();
-      await server.close();
+    /**
+     * When running on postgresql, disable all the triggers.
+     * This considerably speed up the deletion time.
+     * In our case, we know what we do as the users have been manually inserted in the database
+     * and we don't need to look for foreign keys in other tables.
+     */
+    async function deactivatePgTriggers(cb: () => Promise<void>) {
+      const dbType = getDbManager().connection.options.type;
+      if (dbType !== "postgres") {
+        return cb();
+      }
+      try {
+        await getDbManager().connection.query(`SET session_replication_role = replica`);
+        await cb();
+      }
+      finally {
+        await getDbManager().connection.query(`SET session_replication_role = DEFAULT`);
+      }
+    };
+
+    cleanupPreShutdown(async function() {
+      this.timeout(60_000);
+      if (shouldCleanup) {
+        const minUserId = userIds[0].id;
+        const maxUserId = userIds.at(-1)!.id;
+
+        await deactivatePgTriggers(async () => {
+          await getDbManager().connection.createQueryBuilder()
+            .delete()
+            .from("logins")
+            .where("logins.user_id between :minUserId and :maxUserId", { minUserId, maxUserId })
+            .execute();
+          await getDbManager().connection.createQueryBuilder()
+            .delete()
+            .from("users")
+            .where("users.id between :minUserId and :maxUserId", { minUserId, maxUserId })
+            .execute();
+        });
+      }
     });
 
     describe("POST /Users/.search", function() {
-      const apiUrl = () => server.getOwnUrl() + "/api/scim/v2/Users/.search";
+      const apiUrl = () => scimUrl("/Users/.search");
 
       it("should return the user chimpy by its email within a reasonable amount of time", async function() {
-        const chimpyUser = (await server.getHomeDBManager().getExistingUserByLogin("chimpy@getgrist.com"))!;
+        const chimpyUser = (await getDbManager().getExistingUserByLogin("chimpy@getgrist.com"))!;
         this.timeout(1000);
         const res = await axios.post(apiUrl(), {
           schemas: [SEARCH_SCHEMA],

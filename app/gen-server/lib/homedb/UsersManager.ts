@@ -414,6 +414,7 @@ export class UsersManager {
       .find({
         relations: ["logins"],
         where,
+        order: { id: "ASC" },
       });
   }
 
@@ -708,7 +709,10 @@ export class UsersManager {
   }
 
   public async getUsers() {
-    return await User.find({ relations: ["logins"] });
+    return await User.find({
+      relations: ["logins"],
+      order: { id: "ASC" },
+    });
   }
 
   /**
