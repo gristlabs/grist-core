@@ -1,9 +1,14 @@
+import { Login } from "app/gen-server/entity/Login";
+import { User } from "app/gen-server/entity/User";
 import { HomeDBManager, Scope } from "app/gen-server/lib/homedb/HomeDBManager";
 import { BaseController } from "app/server/lib/scim/v2/BaseController";
 import { RequestContext } from "app/server/lib/scim/v2/ScimTypes";
 import { toSCIMMYUser, toUserProfile } from "app/server/lib/scim/v2/ScimUtils";
 
 import SCIMMY from "scimmy";
+import {
+  FindOptionsWhere, LessThan, LessThanOrEqual, MoreThan, MoreThanOrEqual, Not, ObjectLiteral, Raw,
+} from "typeorm";
 
 type UserSchema = SCIMMY.Schemas.User;
 type UserResource = SCIMMY.Resources.User;
@@ -42,10 +47,30 @@ class ScimUserController extends BaseController {
    */
   public async getUsers(resource: UserResource, context: RequestContext): Promise<UserSchema[]> {
     return this.runAndHandleErrors(context, async (): Promise<UserSchema[]> => {
-      const scimmyUsers = (await this.dbManager.getUsers())
-        .filter(user => user.type === "login")
-        .map(user => toSCIMMYUser(user));
-      return this.maybeApplyFilter(scimmyUsers, resource.filter);
+      let users: User[];
+
+      // Detect if the search is a basic filter on the user name or the email value (which are the same thing)
+      // NOTE: quotes are not allowed in emails, hence we don't look for escape characters.
+      const simpleSearchOnUsernameRE = /^(username|email\.value)\s+(?<op>..)\s+"(?<value>[^"]*)"$/i;
+      const match = resource.filter?.expression.match(simpleSearchOnUsernameRE);
+
+      if (match) {
+        const { op, value } = match.groups!;
+        users = await this.dbManager.getExistingUsersFiltered(
+          {
+            logins: this._filterByLoginEmail(op, value),
+            type: "login",
+          },
+        );
+      }
+      else {
+        users = await this.dbManager.getUsers({ type: "login" });
+      }
+
+      const scimmyUsers = users.map(user => toSCIMMYUser(user));
+      return this.maybeApplyFilter(scimmyUsers, resource.filter, {
+        alreadyFiltered: Boolean(match),
+      });
     });
   }
 
@@ -112,6 +137,12 @@ class ScimUserController extends BaseController {
     });
   }
 
+  protected maybeApplyFilter<T extends SCIMMY.Types.Schema>(
+    prefilteredResults: T[], filter?: SCIMMY.Types.Filter, { alreadyFiltered } = { alreadyFiltered: false },
+  ): T[] {
+    return alreadyFiltered ? prefilteredResults : super.maybeApplyFilter(prefilteredResults, filter);
+  }
+
   /**
    * Checks if the passed email can be used for a new user or by the existing user.
    *
@@ -123,6 +154,34 @@ class ScimUserController extends BaseController {
     const existingUser = await this.dbManager.getExistingUserByLogin(email);
     if (existingUser !== undefined && existingUser.id !== userIdToUpdate) {
       throw new SCIMMY.Types.Error(409, "uniqueness", "An existing user with the passed email exist.");
+    }
+  }
+
+  private _filterByLoginEmail(operator: string, value: string): FindOptionsWhere<Login> {
+    const escapeLikePattern = (value: string) => value.replace(/[\\%_]/g, "\\$&");
+    const likeWithEscape = (params: ObjectLiteral) => Raw(col => `${col} LIKE :value ESCAPE '\\'`, params);
+
+    switch (operator.toLowerCase()) {
+      case "eq":
+        return { email: value };
+      case "ne":
+        return { email: Not(value) };
+      case "sw":
+        return { email: likeWithEscape({ value: `${escapeLikePattern(value)}%` }) };
+      case "ew":
+        return { email: likeWithEscape({ value: `%${escapeLikePattern(value)}` }) };
+      case "co":
+        return { email: likeWithEscape({ value: `%${escapeLikePattern(value)}%` }) };
+      case "lt":
+        return { email: LessThan(value) };
+      case "le":
+        return { email: LessThanOrEqual(value) };
+      case "gt":
+        return { email: MoreThan(value) };
+      case "ge":
+        return { email: MoreThanOrEqual(value) };
+      default:
+        throw new SCIMMY.Types.Error(500, null!, "Unknown operator: " + operator);
     }
   }
 }
