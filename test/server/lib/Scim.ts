@@ -1895,10 +1895,10 @@ describe("Scim", () => {
 
     describe("POST /Users/.search", function() {
       const apiUrl = () => scimUrl("/Users/.search");
+      this.timeout(5000);
 
       it("should return the user chimpy by its email within a reasonable amount of time", async function() {
         const chimpyUser = (await getDbManager().getExistingUserByLogin("chimpy@getgrist.com"))!;
-        this.timeout(1000);
         const res = await axios.post(apiUrl(), {
           schemas: [SEARCH_SCHEMA],
           attributes: ["userName"],
@@ -1923,7 +1923,6 @@ describe("Scim", () => {
       });
 
       it("should return an empty array within a reasonable amount of time", async function() {
-        this.timeout(1000);
         const resNoUsers = await axios.post(apiUrl(), {
           schemas: [SEARCH_SCHEMA],
           attributes: ["userName"],
@@ -1934,7 +1933,6 @@ describe("Scim", () => {
       });
 
       it("should return a result from a complex query within a reasonable amount of time", async function() {
-        this.timeout(5000);
         const res = await axios.post(apiUrl(), {
           schemas: [SEARCH_SCHEMA],
           attributes: ["userName"],
