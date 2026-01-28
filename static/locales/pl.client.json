@@ -1983,7 +1983,7 @@
         "Restart": "Uruchom ponownie"
     },
     "OnboardingCards": {
-        "3 minute video tour": "3-minutowa wycieczka wideo",
+        "3 minute video tour": "3-minutowe wprowadzenie",
         "Complete our basics tutorial": "Ukończ nasz podstawowy samouczek",
         "Complete the tutorial": "Ukończ samouczek",
         "Learn the basic of reference columns, linked widgets, column types, & cards.": "Poznaj podstawy kolumn referencyjnych, połączonych widżetów, typów kolumn i kart.",
@@ -2080,14 +2080,14 @@
         "The toggle is **on**": "Przełącznik jest **włączony**"
     },
     "HomeIntroCards": {
-        "3 minute video tour": "3-minutowa wideo wycieczka",
+        "3 minute video tour": "3-minutowe wprowadzenie",
         "Blank document": "Pusty dokument",
         "Find solutions and explore more resources": "Znajdź rozwiązania i poznaj więcej zasobów",
         "Finish our basics tutorial": "Ukończ nasz samouczek podstaw",
         "Help center": "Centrum pomocy",
         "Import file": "Importuj plik",
         "Learn more": "Dowiedz się więcej",
-        "Start a new document": "Rozpocznij nowy dokument",
+        "Start a new document": "Stwórz nowy dokument",
         "Templates": "Szablony",
         "Tutorial": "Samouczek",
         "Webinars": "Webinary"
@@ -2148,12 +2148,12 @@
         "Set up streaming of audit events from Grist to an external security information and event management (SIEM) system like Splunk. {{learnMoreLink}}.": "Skonfiguruj strumieniowanie zdarzeń audytu z Grist do zewnętrznego systemu zarządzania informacjami i zdarzeniami bezpieczeństwa (SIEM), takiego jak Splunk. {{learnMoreLink}}."
     },
     "AuditLogsPage": {
-        "Audit Logs": "Dzienniki audytu",
-        "Audit logs for {{siteName}}": "Dzienniki audytu dla {{siteName}}",
+        "Audit Logs": "Dzienniki zdarzeń",
+        "Audit logs for {{siteName}}": "Dzienniki zdarzeń dla {{siteName}}",
         "Contact us": "Skontaktuj się z nami",
         "Home": "Strona główna",
         "Log streaming": "Strumieniowanie dzienników",
-        "Only site owners may access audit logs.": "Tylko właściciele witryny mogą uzyskać dostęp do dzienników audytu.",
+        "Only site owners may access audit logs.": "Tylko właściciele witryny mogą uzyskać dostęp do dziennika zdarzeń.",
         "upgrade your plan": "zaktualizuj swój plan",
         "You can set up streaming of audit events from Grist to an external SIEM (security information and event management) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.": "Możesz skonfigurować strumieniowanie zdarzeń audytu z Grist do zewnętrznego systemu SIEM (zarządzanie informacjami i zdarzeniami bezpieczeństwa), jeśli włączysz Grist Enterprise. {{contactUsLink}}, aby dowiedzieć się więcej.",
         "You can set up streaming of audit events from Grist to an external SIEM (security information and event management) system if you {{upgradePlanButton}}.": "Możesz skonfigurować strumieniowanie zdarzeń audytu z Grist do zewnętrznego systemu SIEM (zarządzanie informacjami i zdarzeniami bezpieczeństwa), jeśli {{upgradePlanButton}}."
