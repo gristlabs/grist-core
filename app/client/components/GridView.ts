@@ -533,12 +533,16 @@ export default class GridView extends BaseView {
       if (this._rowHeights.length > 0) {
         this._applyAutoWidth();
         this.scrolly.updateSize();
-        const scrollbarWidth = 22;
+
+        // Scrollbars have different widths on different platforms, so we need to re-apply
+
+        const scrollSize = scrollBar();
         const borderWidth = 2;
         const headerHeight = 23;
         const maxHeight = this.gridOptions?.maxInlineHeight || 600;
         const maxWidth = this.gridOptions?.maxInlineWidth || 800;
-        const totalHeight = this._rowHeights.reduce((sum, value) => sum + value, 0) + headerHeight + borderWidth;
+        const totalHeight = this._rowHeights.reduce((sum, value) => sum + value, 0) +
+          headerHeight + borderWidth + scrollSize.height;
         const targetHeight = Math.min(totalHeight, maxHeight);
         const widthObs = Observable.create<number>(this, 0);
 
@@ -546,7 +550,8 @@ export default class GridView extends BaseView {
           if (this.isDisposed()) { return; }
           const fields = this.viewSection.viewFields().all();
           const fieldsWidthSum = fields.reduce((sum, field) => sum + field.widthDef.peek(), 0);
-          const targetWidth =  Math.min(fieldsWidthSum + ROW_NUMBER_WIDTH + scrollbarWidth, maxWidth);
+
+          const targetWidth =  Math.min(fieldsWidthSum + ROW_NUMBER_WIDTH + scrollSize.width, maxWidth);
           widthObs.set(targetWidth);
         };
         updateWidth();
@@ -2489,4 +2494,12 @@ function calcZebra(hex: string) {
 // properties, so we add a helper to do that. TODO: fix grainjs to support this.
 function styleCustomVar(property: string, valueObs: BindableValue<string | number>): DomElementMethod {
   return elem => subscribeElem(elem, valueObs, val => elem.style.setProperty(property, String(val)));
+}
+
+function scrollBar(): { width: number; height: number } {
+  // Currently this feature is limited to suggestions only in virtual tables, that are showing
+  // inline grids. For this sake we can assume that scrollbars are always visible and have
+  // standard width/height across all browsers.
+  // Tested on Chrome/FF Linux/Windows/MacOS.
+  return { width: 13, height: 13 }; 
 }
