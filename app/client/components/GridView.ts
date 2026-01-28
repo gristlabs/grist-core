@@ -2501,5 +2501,5 @@ function scrollBar(): { width: number; height: number } {
   // inline grids. For this sake we can assume that scrollbars are always visible and have
   // standard width/height across all browsers.
   // Tested on Chrome/FF Linux/Windows/MacOS.
-  return { width: 13, height: 13 }; 
+  return { width: 13, height: 13 };
 }
