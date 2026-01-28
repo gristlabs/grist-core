@@ -1,3 +1,4 @@
+const crypto = require("crypto");
 const util = require("util");
 const childProcess = require("child_process");
 const fs = require("fs/promises");
@@ -7,8 +8,23 @@ const exec = util.promisify(childProcess.exec);
 const org = "grist-labs";
 const expirationSec = 30 * 24 * 60 * 60;  // 30 days
 
-const getAppName = () => "grist-" + getBranchName().toLowerCase().replace(/[\W|_]+/g, "-");
-const getVolumeName = () => ("gv_" + getBranchName().toLowerCase().replace(/\W+/g, "_")).substring(0, 30);
+function getAppName() {
+  return sanitizeName(getBranchName(), {
+    prefix: "grist-",
+    maxLength: 62,
+    separator: "-",
+    replacePattern: /[\W|_]+/g
+  });
+}
+
+function getVolumeName() {
+  return sanitizeName(getBranchName(), {
+    prefix: "gv_",
+    maxLength: 30,
+    separator: "_",
+    replacePattern: /\W+/g
+  });
+}
 
 const getBranchName = () => {
   if (!process.env.BRANCH_NAME) { console.log("Usage: Need BRANCH_NAME env var"); process.exit(1); }
@@ -144,6 +160,27 @@ function extraVars() {
 function stringifyTomlString(str) {
   // JSON.stringify() is sufficient to produce a safe TOML string.
   return JSON.stringify(String(str));
+}
+
+// We have strict limits on how long names can be, but we want them
+// both human readable and reasonably unique, so make some trade-offs.
+function sanitizeName(branchName, options) {
+  const { prefix, maxLength, separator, replacePattern } = options;
+  const sanitized = branchName.toLowerCase().replace(replacePattern, separator);
+  const name = prefix + sanitized;
+
+  if (name.length <= maxLength) {
+    return name;
+  }
+
+  // Add a short hash to avoid colliding with similarly named branches.
+  const hashLength = 6;
+  const hash = crypto.createHash("sha256").update(branchName).digest("hex").substring(0, hashLength);
+  const maxBranchLength = maxLength - prefix.length - hash.length - separator.length;
+
+  // Take from the end of the branch name.
+  const branchPart = sanitized.substring(sanitized.length - maxBranchLength);
+  return prefix + branchPart + separator + hash;
 }
 
 function runFetch(cmd) {
