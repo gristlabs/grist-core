@@ -588,6 +588,9 @@ describe("Comparison", function() {
     await driver.findWait(".test-compare-original", 5000).click();
 
     // Switch to the new tab, and wait for the doc to load.
+    await gu.waitToPass(async () => {
+      assert.lengthOf(await driver.getAllWindowHandles(), 2);
+    });
     const windowHandles = await driver.getAllWindowHandles();
     await gu.switchToWindow(windowHandles[1]);
     await gu.waitForDocToLoad();
@@ -598,6 +601,7 @@ describe("Comparison", function() {
     assert.equal(await cell.find(".diff-local").getText(), "moop");
 
     cell = await gu.getCell({ rowNum: 1, col: 0 });
+    await cell.click();
     assert.equal(await cell.find(".diff-remote").isPresent(), false);
     assert.equal(await cell.find(".diff-parent").isPresent(), false);
     assert.equal(await cell.find(".diff-local").isPresent(), false);

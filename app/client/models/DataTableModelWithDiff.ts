@@ -11,7 +11,6 @@ import { createEmptyActionSummary, createEmptyTableDelta, getTableIdAfter,
 import { DisposableWithEvents } from "app/common/DisposableWithEvents";
 import { CellVersions, DocAction, UserAction } from "app/common/DocActions";
 import { DocStateComparisonDetails } from "app/common/DocState";
-import { TableDataChangeListener } from "app/common/TableData";
 import { CellDelta } from "app/common/TabularDiff";
 import { CellValue, GristObjCode } from "app/plugin/GristData";
 
@@ -130,7 +129,7 @@ export class DataTableModelWithDiff extends DisposableWithEvents implements Data
     const remoteTableId = getRemoteTableId(tableId, _comparison) || "";
     this.extraRows = new ExtraRows(this.core.tableData.tableId, this._comparison);
     _comparison.leftChanges.tableDeltas[tableId] ||= createEmptyTableDelta();
-    _comparison.rightChanges.tableDeltas[tableId] ||= createEmptyTableDelta();
+    _comparison.rightChanges.tableDeltas[remoteTableId] ||= createEmptyTableDelta();
     const tableDataWithDiff = new TableDataWithDiff(
       core.tableData,
       _comparison.leftChanges.tableDeltas[tableId],
@@ -138,7 +137,6 @@ export class DataTableModelWithDiff extends DisposableWithEvents implements Data
       this.extraRows,
     ) as any;
     this.tableData = tableDataWithDiff;
-    core.tableData.addChangeListener(tableDataWithDiff);
     this.isLoaded = core.isLoaded;
     this._wrappedModel = new DataTableModel(this.docModel, this.tableData, this.tableMetaRow);
 
@@ -148,6 +146,9 @@ export class DataTableModelWithDiff extends DisposableWithEvents implements Data
     this.listenTo(this._wrappedModel, "rowNotify", (rows: RowsChanged, notifyValue: any) => {
       this.trigger("rowNotify", rows, notifyValue);
     });
+    this.autoDispose(core.tableData.preTableActionEmitter.addListener(
+      tableDataWithDiff.before.bind(tableDataWithDiff),
+    ));
   }
 
   public getExtraRows() {
@@ -192,9 +193,10 @@ export class DataTableModelWithDiff extends DisposableWithEvents implements Data
  * A variant of TableData that is aware of a comparison with another version of the table.
  * TODO: flesh out, just included essential members so far.
  */
-export class TableDataWithDiff implements TableDataChangeListener {
+export class TableDataWithDiff {
   public dataLoadedEmitter: any;
   public tableActionEmitter: any;
+  public preTableActionEmitter: any;
 
   private _leftRemovals: Set<number>;
   private _rightRemovals: Set<number>;
@@ -204,6 +206,7 @@ export class TableDataWithDiff implements TableDataChangeListener {
     public rightTableDelta: TableDelta, public extraRows: ExtraRows) {
     this.dataLoadedEmitter = core.dataLoadedEmitter;
     this.tableActionEmitter = core.tableActionEmitter;
+    this.preTableActionEmitter = core.preTableActionEmitter;
     // Construct the set of all rows updated in either left/local or right/remote.
     // Omit any rows that were deleted in the other version, for simplicity.
     this._leftRemovals = new Set(leftTableDelta.removeRows);
@@ -232,74 +235,6 @@ export class TableDataWithDiff implements TableDataChangeListener {
 
   public receiveAction(action: DocAction): boolean {
     return this.core.receiveAction(action);
-  }
-
-  public before(action: DocAction): void {
-    console.log("DataTableModelWithDiff.before", action);
-    const op = new ActionSummarizer();
-    const sum = createEmptyActionSummary();
-    op.addAction(sum, action, this.core);
-    const tableDelta = Object.values(sum.tableDeltas)[0];
-    if (!tableDelta) { return; }
-    for (const r of tableDelta.updateRows) {
-      for (const colId of Object.keys(tableDelta.columnDeltas)) {
-        if (!this.leftTableDelta.columnDeltas[colId]) {
-          this.leftTableDelta.columnDeltas[colId] = {};
-        }
-        if (!this.leftTableDelta.columnDeltas[colId][r]) {
-          const row = this.core.getRecord(r);
-          const cell = row?.[colId];
-          const nestedCell = cell === undefined ? null : [cell] as [any];
-          this.leftTableDelta.columnDeltas[colId][r] = [nestedCell, null];
-          if (!this.leftTableDelta.updateRows.includes(r)) {
-            this.leftTableDelta.updateRows.push(r);
-            this._updates.add(r);
-          }
-        }
-        this.leftTableDelta.columnDeltas[colId][r][1] =
-          tableDelta.columnDeltas[colId]?.[r]?.[1];
-      }
-    }
-    for (const r of tableDelta.addRows) {
-      for (const colId of Object.keys(tableDelta.columnDeltas)) {
-        if (!this.leftTableDelta.columnDeltas[colId]) {
-          this.leftTableDelta.columnDeltas[colId] = {};
-        }
-        if (!this.leftTableDelta.columnDeltas[colId][r]) {
-          this.leftTableDelta.columnDeltas[colId][r] = [null, null];
-          if (!this.leftTableDelta.addRows.includes(r)) {
-            this.leftTableDelta.addRows.push(r);
-          }
-        }
-        this.leftTableDelta.columnDeltas[colId][r][1] =
-          tableDelta.columnDeltas[colId]?.[r]?.[1];
-        this._updates.add(r);
-        this.extraRows.leftAddRows.add(r);
-      }
-    }
-    for (const r of tableDelta.removeRows) {
-      if (this.extraRows.leftAddRows.has(r)) {
-        this.extraRows.leftAddRows.delete(r);
-        this.extraRows.leftRemoveRows.delete(r);
-        this.extraRows.leftRemoveRows.delete(-r * 2 - 2);
-        this._updates.delete(r);
-        this.leftTableDelta.addRows = this.leftTableDelta.addRows.filter(id => id !== r);
-        continue;
-      }
-      for (const colId of Object.keys(tableDelta.columnDeltas)) {
-        if (!this.leftTableDelta.columnDeltas[colId]) {
-          this.leftTableDelta.columnDeltas[colId] = {};
-        }
-        if (!this.leftTableDelta.columnDeltas[colId][r]) {
-          this.leftTableDelta.columnDeltas[colId][r] = [null, null];
-          this.leftTableDelta.removeRows.push(r);
-        }
-        this.leftTableDelta.columnDeltas[colId][r][0] =
-          tableDelta.columnDeltas[colId]?.[r]?.[1];
-        this._updates.add(r);
-        this.extraRows.leftRemoveRows.add(r);
-      }
-    }
   }
 
   /**
@@ -380,6 +315,108 @@ export class TableDataWithDiff implements TableDataChangeListener {
 
   public numRecords() {
     return this.core.numRecords();
+  }
+
+  /**
+   * An action may be about to happen. We need to squirrel away
+   * the current version of cells since DocAction only has new
+   * values.
+   */
+  public before(action: DocAction): void {
+    const op = new ActionSummarizer();
+    const sum = createEmptyActionSummary();
+    op.addAction(sum, action, this.core);
+    
+    const tableDelta = Object.values(sum.tableDeltas)[0];
+    if (!tableDelta) {
+      return;
+    }
+
+    this._processUpdateRows(tableDelta);
+    this._processAddRows(tableDelta);
+    this._processRemoveRows(tableDelta);
+  }
+
+  private _processUpdateRows(tableDelta: TableDelta): void {
+    for (const rowId of tableDelta.updateRows) {
+      for (const colId of Object.keys(tableDelta.columnDeltas)) {
+        this._ensureColumnExists(colId);
+        
+        if (!this.leftTableDelta.columnDeltas[colId][rowId]) {
+          const row = this.core.getRecord(rowId);
+          const cell = row?.[colId];
+          const nestedCell = cell === undefined ? null : [cell] as [any];
+          
+          this.leftTableDelta.columnDeltas[colId][rowId] = [nestedCell, null];
+          
+          if (!this.leftTableDelta.updateRows.includes(rowId)) {
+            this.leftTableDelta.updateRows.push(rowId);
+            this._updates.add(rowId);
+          }
+        }
+        
+        this.leftTableDelta.columnDeltas[colId][rowId][1] =
+            tableDelta.columnDeltas[colId]?.[rowId]?.[1];
+      }
+    }
+  }
+
+  private _processAddRows(tableDelta: TableDelta): void {
+    for (const rowId of tableDelta.addRows) {
+      for (const colId of Object.keys(tableDelta.columnDeltas)) {
+        this._ensureColumnExists(colId);
+        
+        if (!this.leftTableDelta.columnDeltas[colId][rowId]) {
+          this.leftTableDelta.columnDeltas[colId][rowId] = [null, null];
+          
+          if (!this.leftTableDelta.addRows.includes(rowId)) {
+            this.leftTableDelta.addRows.push(rowId);
+          }
+        }
+        
+        this.leftTableDelta.columnDeltas[colId][rowId][1] =
+            tableDelta.columnDeltas[colId]?.[rowId]?.[1];
+        
+        this._updates.add(rowId);
+        this.extraRows.leftAddRows.add(rowId);
+      }
+    }
+  }
+
+  private _processRemoveRows(tableDelta: TableDelta): void {
+    for (const rowId of tableDelta.removeRows) {
+      if (this.extraRows.leftAddRows.has(rowId)) {
+        this._cleanupAddedRow(rowId);
+        continue;
+      }
+      
+      for (const colId of Object.keys(tableDelta.columnDeltas)) {
+        this._ensureColumnExists(colId);
+        
+        if (!this.leftTableDelta.columnDeltas[colId][rowId]) {
+          this.leftTableDelta.columnDeltas[colId][rowId] = [null, null];
+          this.leftTableDelta.removeRows.push(rowId);
+        }
+        
+        this.leftTableDelta.columnDeltas[colId][rowId][0] =
+            tableDelta.columnDeltas[colId]?.[rowId]?.[1];
+        
+        this._updates.add(rowId);
+        this.extraRows.leftRemoveRows.add(rowId);
+      }
+    }
+  }
+
+  private _ensureColumnExists(colId: string): void {
+    if (!this.leftTableDelta.columnDeltas[colId]) {
+      this.leftTableDelta.columnDeltas[colId] = {};
+    }
+  }
+
+  private _cleanupAddedRow(rowId: number): void {
+    this.extraRows.leftAddRows.delete(rowId);
+    this._updates.delete(rowId);
+    this.leftTableDelta.addRows = this.leftTableDelta.addRows.filter(id => id !== rowId);
   }
 }
 

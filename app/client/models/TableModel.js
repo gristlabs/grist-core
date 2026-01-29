@@ -40,7 +40,7 @@ TableModel.prototype.getNumRows = function() {
 };
 
 TableModel.prototype.getExtraRows = function() {
-  return null;
+  return undefined;
 };
 
 TableModel.prototype.getRowGrouping = function(groupByCol) {
