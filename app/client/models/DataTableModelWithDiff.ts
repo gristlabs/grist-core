@@ -326,7 +326,7 @@ export class TableDataWithDiff {
     const op = new ActionSummarizer();
     const sum = createEmptyActionSummary();
     op.addAction(sum, action, this.core);
-    
+
     const tableDelta = Object.values(sum.tableDeltas)[0];
     if (!tableDelta) {
       return;
@@ -341,22 +341,22 @@ export class TableDataWithDiff {
     for (const rowId of tableDelta.updateRows) {
       for (const colId of Object.keys(tableDelta.columnDeltas)) {
         this._ensureColumnExists(colId);
-        
+
         if (!this.leftTableDelta.columnDeltas[colId][rowId]) {
           const row = this.core.getRecord(rowId);
           const cell = row?.[colId];
           const nestedCell = cell === undefined ? null : [cell] as [any];
-          
+
           this.leftTableDelta.columnDeltas[colId][rowId] = [nestedCell, null];
-          
+
           if (!this.leftTableDelta.updateRows.includes(rowId)) {
             this.leftTableDelta.updateRows.push(rowId);
             this._updates.add(rowId);
           }
         }
-        
+
         this.leftTableDelta.columnDeltas[colId][rowId][1] =
-            tableDelta.columnDeltas[colId]?.[rowId]?.[1];
+          tableDelta.columnDeltas[colId]?.[rowId]?.[1];
       }
     }
   }
@@ -365,18 +365,18 @@ export class TableDataWithDiff {
     for (const rowId of tableDelta.addRows) {
       for (const colId of Object.keys(tableDelta.columnDeltas)) {
         this._ensureColumnExists(colId);
-        
+
         if (!this.leftTableDelta.columnDeltas[colId][rowId]) {
           this.leftTableDelta.columnDeltas[colId][rowId] = [null, null];
-          
+
           if (!this.leftTableDelta.addRows.includes(rowId)) {
             this.leftTableDelta.addRows.push(rowId);
           }
         }
-        
+
         this.leftTableDelta.columnDeltas[colId][rowId][1] =
-            tableDelta.columnDeltas[colId]?.[rowId]?.[1];
-        
+          tableDelta.columnDeltas[colId]?.[rowId]?.[1];
+
         this._updates.add(rowId);
         this.extraRows.leftAddRows.add(rowId);
       }
@@ -389,18 +389,18 @@ export class TableDataWithDiff {
         this._cleanupAddedRow(rowId);
         continue;
       }
-      
+
       for (const colId of Object.keys(tableDelta.columnDeltas)) {
         this._ensureColumnExists(colId);
-        
+
         if (!this.leftTableDelta.columnDeltas[colId][rowId]) {
           this.leftTableDelta.columnDeltas[colId][rowId] = [null, null];
           this.leftTableDelta.removeRows.push(rowId);
         }
-        
+
         this.leftTableDelta.columnDeltas[colId][rowId][0] =
-            tableDelta.columnDeltas[colId]?.[rowId]?.[1];
-        
+          tableDelta.columnDeltas[colId]?.[rowId]?.[1];
+
         this._updates.add(rowId);
         this.extraRows.leftRemoveRows.add(rowId);
       }
