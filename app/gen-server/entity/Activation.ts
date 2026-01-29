@@ -1,4 +1,5 @@
 import { ApiError } from "app/common/ApiError";
+import { isEmail, isNonNullish } from "app/common/gutil";
 import { InstallPrefs } from "app/common/Install";
 import { InstallProperties, installPropertyKeys } from "app/common/InstallAPI";
 import { nativeValues } from "app/gen-server/lib/values";
@@ -41,6 +42,20 @@ export class Activation extends BaseEntity {
         throw new ApiError(`Unrecognized property ${key}`, 400);
       }
     }
+
+    const assertIsEmailOrNullish = (key: keyof InstallPrefs) => {
+      const value = props.prefs?.[key];
+      if (
+        isNonNullish(value) &&
+        !(typeof value === "string" && isEmail(value))
+      ) {
+        throw new ApiError(`Invalid ${key}: "${value}"`, 400);
+      }
+    };
+
+    assertIsEmailOrNullish("onRestartSetAdminEmail");
+    assertIsEmailOrNullish("onRestartReplaceEmailWithAdmin");
+
     return true;
   }
 
@@ -61,6 +76,14 @@ export class Activation extends BaseEntity {
 
       if (props.prefs.checkForLatestVersion !== undefined) {
         this.prefs.checkForLatestVersion = props.prefs.checkForLatestVersion;
+      }
+
+      if (props.prefs.onRestartSetAdminEmail !== undefined) {
+        this.prefs.onRestartSetAdminEmail = props.prefs.onRestartSetAdminEmail;
+      }
+
+      if (props.prefs.onRestartReplaceEmailWithAdmin !== undefined) {
+        this.prefs.onRestartReplaceEmailWithAdmin = props.prefs.onRestartReplaceEmailWithAdmin;
       }
 
       for (const key of Object.keys(this.prefs) as (keyof InstallPrefs)[]) {

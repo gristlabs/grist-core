@@ -1,7 +1,11 @@
+import { InstallPrefs } from "app/common/Install";
+import { InstallPrefsWithSources } from "app/common/InstallAPI";
 import { Activation } from "app/gen-server/entity/Activation";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { makeId } from "app/server/lib/idUtils";
+import { getTelemetryPrefs } from "app/server/lib/Telemetry";
 
+import omit from "lodash/omit";
 import pick from "lodash/pick";
 import { EntityManager } from "typeorm";
 
@@ -96,8 +100,12 @@ export class ActivationsManager {
       const activation = await this.current(manager);
       activation.prefs ??= {};
       activation.prefs.envVars ??= {};
-      // For now we just support 2 keys here, as these ones are tested.
-      Object.assign(activation.prefs.envVars, pick(delta, "GRIST_LOGIN_SYSTEM_TYPE", "GRIST_GETGRISTCOM_SECRET"));
+      // For now we just support 3 keys here, as these ones are tested.
+      Object.assign(activation.prefs.envVars, pick(delta,
+        "GRIST_LOGIN_SYSTEM_TYPE",
+        "GRIST_GETGRISTCOM_SECRET",
+        "GRIST_ADMIN_EMAIL",
+      ));
       // If any values are undefined or null, remove them.
       for (const key of Object.keys(delta)) {
         if (delta[key] === null || delta[key] === undefined) {
@@ -105,6 +113,51 @@ export class ActivationsManager {
         }
       }
       await manager.save(activation);
+    });
+  }
+
+  /**
+   * Returns all prefs with their sources, if applicable.
+   */
+  public async getPrefsWithSources(): Promise<InstallPrefsWithSources> {
+    const activation = await this.current();
+    const telemetryPrefs = await getTelemetryPrefs(this._db, activation);
+    return {
+      checkForLatestVersion: true,
+      ...activation.prefs,
+      telemetry: telemetryPrefs,
+    };
+  }
+
+  /**
+   * Updates the specified `prefs`.
+   */
+  public async updatePrefs(prefs: Partial<InstallPrefs>): Promise<void> {
+    await this._updateActivation((activation) => {
+      const props = { prefs };
+      activation.checkProperties(props);
+      activation.updateFromProperties(props);
+    });
+  }
+
+  /**
+   * Deletes the specified `prefs`.
+   *
+   * Returns the deleted prefs, excluding any that were not found.
+   */
+  public async deletePrefs(
+    prefs: (keyof InstallPrefs)[],
+    { transaction }: { transaction?: EntityManager } = {},
+  ): Promise<Partial<InstallPrefs>> {
+    return await this._db.runInTransaction(transaction, async (manager) => {
+      const activation = await this.current(manager);
+      activation.prefs ??= {};
+      const deletedPrefs = pick(activation.prefs, prefs);
+      activation.prefs = omit(activation.prefs, prefs);
+      if (Object.keys(deletedPrefs).length > 0) {
+        await manager.save(activation);
+      }
+      return deletedPrefs;
     });
   }
 

@@ -52,14 +52,13 @@ export abstract class InstallAdmin {
   }
 }
 
-// Considers the user whose email matches GRIST_DEFAULT_EMAIL env var, if given, to be the
+// Considers the user whose email matches GRIST_ADMIN_EMAIL env var, if set, to be the
 // installation admin.
-// If GRIST_DEFAULT_EMAIL is not given, we fall back on GRIST_SUPPORT_EMAIL,
-// which defaults to support@getgrist.com
+// If GRIST_ADMIN_EMAIL is not set, we fall back on GRIST_DEFAULT_EMAIL, and finally
+// GRIST_SUPPORT_EMAIL, which defaults to support@getgrist.com.
 export class SimpleInstallAdmin extends InstallAdmin {
-  private _installAdminEmail = appSettings.section("access").flag("installAdminEmail").readString({
-    envVar: "GRIST_DEFAULT_EMAIL",
-  });
+  private _installAdminEmail = getAdminEmail();
+  private _defaultEmail = getDefaultEmail();
 
   public constructor(private _dbManager: HomeDBManager) {
     super();
@@ -77,21 +76,55 @@ export class SimpleInstallAdmin extends InstallAdmin {
   }
 
   private get _adminEmail(): string {
-    return this._installAdminEmail || SUPPORT_EMAIL;
+    return this._installAdminEmail || this._defaultEmail || SUPPORT_EMAIL;
   }
 
   public override async getAdminUsers(req: express.Request): Promise<InstallAdminInfo[]> {
-    if (!this._installAdminEmail) {
+    if (this._installAdminEmail) {
+      const admin = await this._dbManager.getUserByLogin(this._installAdminEmail);
       return [{
-        user: null,
-        reason: req.t("admin.noDefaultEmail"),
+        user: admin.toUserProfile(),
+        reason: req.t("admin.accountByAdminEmail", { adminEmail: this._installAdminEmail }),
       }];
     }
-
-    const installAdmin = await this._dbManager.getUserByLogin(this._installAdminEmail);
-    return [{
-      user: installAdmin.toUserProfile(),
-      reason: req.t("admin.accountByEmail", { defaultEmail: this._installAdminEmail }),
-    }];
+    else if (this._defaultEmail) {
+      const admin = await this._dbManager.getUserByLogin(this._defaultEmail);
+      return [{
+        user: admin.toUserProfile(),
+        reason: req.t("admin.accountByEmail", { defaultEmail: this._defaultEmail }),
+      }];
+    }
+    else {
+      return [{
+        user: null,
+        reason: req.t("admin.noAdminEmail"),
+      }];
+    }
   }
+}
+
+/**
+ * Returns the value of `GRIST_ADMIN_EMAIL` from `settings`, falling back
+ * to the value of `GRIST_DEFAULT_EMAIL`.
+ */
+export function getAdminOrDefaultEmail(settings = appSettings): string | undefined {
+  return getAdminEmail(settings) || getDefaultEmail(settings);
+}
+
+/**
+ * Returns the value of `GRIST_ADMIN_EMAIL` from `settings`.
+ */
+function getAdminEmail(settings = appSettings): string | undefined {
+  return settings.section("access").flag("installAdminEmail").readString({
+    envVar: "GRIST_ADMIN_EMAIL",
+  });
+}
+
+/**
+ * Returns the value of `GRIST_DEFAULT_EMAIL` from `settings`.
+ */
+function getDefaultEmail(settings = appSettings): string | undefined {
+  return settings.section("access").flag("defaultEmail").readString({
+    envVar: "GRIST_DEFAULT_EMAIL",
+  });
 }
