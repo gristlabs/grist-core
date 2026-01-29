@@ -21,6 +21,7 @@ import {
   DocStateComparisonDetails,
   removeMetadataChangesFromDetails,
 } from "app/common/DocState";
+import { isHiddenCol } from "app/common/gristTypes";
 import { buildUrlId, commonUrls, parseUrlId } from "app/common/gristUrls";
 import { isLongerThan } from "app/common/gutil";
 import { TabularDiff, TabularDiffs } from "app/common/TabularDiff";
@@ -209,7 +210,7 @@ and is subject to change and withdrawal.`,
                 ),
                 buildComparisonDetails(this, this.gristDoc, details, proposal.comparison.comparison),
                 proposal.status.status === "dismissed" ? "DISMISSED" : null,
-                isReadOnly ? null : cssDataRow(
+                isReadOnly ? null : cssButtonRow(
                   applied ? null : primaryButton(
                     t("Accept"),
                     dom.on("click", async () => {
@@ -544,7 +545,7 @@ class ActionLogPartInProposal extends ActionLogPart {
               type: (colRec?.pureType.peek() as any) || "Any",
               widgetOptions: colRec?.widgetOptionsJson.peek(),
             };
-          }),
+          }).filter(col => !isHiddenCol(col.colId)),
         ],
       });
       doc.refreshTableData(table).catch(reportError);
@@ -686,6 +687,12 @@ const cssDataRow = styled("div", `
   margin: 16px 0px;
   font-size: ${vars.mediumFontSize};
   color: ${theme.text};
+  & .view_data_pane_container {
+    width: max-content;
+  }
+`);
+
+const cssButtonRow = styled(cssDataRow, `
   width: 360px;
 `);
 

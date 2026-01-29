@@ -121,7 +121,13 @@
     },
     "ActionLog": {
         "Action Log failed to load": "Aktivitetsloggen kunde inte laddas",
-        "All tables": "Alla tabeller"
+        "All tables": "Alla tabeller",
+        "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "Kolumn {{colId}} togs bort i och med åtgärd # {{action.actionNum}}",
+        "Table {{tableId}} was subsequently removed in action #{{actionNum}}": "Tabell {{tableId}} togs bort i och med åtgärd # {{actionNum}}",
+        "This row was subsequently removed in action {{action.actionNum}}": "Denna rad togs bort i och med åtgärd # {{action.actionNum}}",
+        "Column {{colId}} was subsequently removed in action #{{actionNum}}": "Kolumn {{colId}} togs bort i och med åtgärd # {{actionNum}}",
+        "This row was subsequently removed in action {{actionNum}}": "Denna rad togs bort i och med åtgärd # {{actionNum}}",
+        "History blocked because of access rules.": "Historiken inte tillgänglig på grund av behörighetsreger."
     },
     "AddNewButton": {
         "Add new": "Lägg till ny"
@@ -130,7 +136,11 @@
         "Click to show": "Klicka för att visa",
         "Create": "Skapa",
         "Remove": "Ta bort",
-        "Remove API Key": "Ta bort API nyckel"
+        "Remove API Key": "Ta bort API nyckel",
+        "By generating an API key, you will be able to make API calls for your own account.": "Genom att skapa en API-nyckel gör du det möjligt att göra API-anrop som ditt eget konto.",
+        "This API key can be used to access this account anonymously via the API.": "Denna API-nyckel kan användas för att komma åt detta konto anonymt genom APIet.",
+        "This API key can be used to access your account via the API. Don’t share your API key with anyone.": "Denna API-nyckel kan användas för att komma åt ditt konto via APIet. Dela inte din API-nyckel med någon.",
+        "You're about to delete an API key. This will cause all future requests using this API key to be rejected. Do you still want to delete?": "Du håller på att radera en API-nyckel. Detta kommer att blockera alla framtida anrop med denna API-nyckel. Vill du ändå radera den?"
     },
     "App": {
         "Description": "Beskrivning",
@@ -141,7 +151,11 @@
         "Home page": "Hemsida",
         "Personal Site": "Personlig sida",
         "Team Site": "Arbetslagssida",
-        "Grist Templates": "Gristmallar"
+        "Grist Templates": "Gristmallar",
+        "Legacy": "Gammalt",
+        "Billing account": "Konto för fakturering",
+        "Manage team": "Hantera arbetslag",
+        "{{- organizationName }} - Back to home": "{{- organizationName }} - Tillbaka till hemskärm"
     },
     "RightPanel": {
         "Save": "Spara"
@@ -179,5 +193,104 @@
     },
     "ChoiceListEntry": {
         "Save": "Spara"
+    },
+    "AppModel": {
+        "This team site is suspended. Documents can be read, but not modified.": "Detta arbetslag är inaktiverat. Dokumenten kan läsas, men inte ändras."
+    },
+    "CellContextMenu": {
+        "Clear cell": "Rensa cell",
+        "Clear values": "Rensa värden",
+        "Copy anchor link": "Kopiera ankarlänk",
+        "Delete {{count}} columns_one": "Radera column",
+        "Delete {{count}} columns_other": "Radera {{count}} kolumner",
+        "Delete {{count}} rows_one": "Radera rad",
+        "Delete {{count}} rows_other": "Radera {{count}} rader",
+        "Duplicate rows_one": "Duplicera rad",
+        "Duplicate rows_other": "Duplicera raderna",
+        "Filter by this value": "Filtrera med detta värde",
+        "Insert column to the left": "Infoga kolumn till vänster",
+        "Insert column to the right": "Infoga kolumn till höger",
+        "Insert row": "Infoga rad",
+        "Insert row above": "Infoga rad ovanför",
+        "Insert row below": "Infoga rad nedanför",
+        "Reset {{count}} columns_one": "Återställ kolumn",
+        "Reset {{count}} columns_other": "Återställ {{count}} kolumner",
+        "Reset {{count}} entire columns_one": "Återställ hela kolumnen",
+        "Reset {{count}} entire columns_other": "Återställ {{count}} hela kolumner",
+        "Comment": "Kommentar",
+        "Copy": "Kopiera",
+        "Cut": "Klipp ut",
+        "Paste": "Klistra in",
+        "Copy with headers": "Kopiera med tabellrubriker"
+    },
+    "ChartView": {
+        "LABEL": "ETIKETT",
+        "Bar chart": "Stapeldiagram",
+        "Pie chart": "Cirkeldiagrem",
+        "Donut chart": "Ringdiagram",
+        "Area chart": "Ytdiagram",
+        "Line chart": "Linjediagram",
+        "Scatter plot": "Punktdiagram",
+        "Kaplan-Meier plot": "Kaplan-Meier kurva",
+        "Split series": "Dela serier",
+        "Invert Y-axis": "Invertera Y-axel",
+        "Orientation": "Orientering",
+        "Vertical": "Vertikal",
+        "Horizontal": "Horisontell",
+        "Log scale Y-axis": "Logaritmisk Y-axel skala",
+        "Hole size": "Hålstorlek",
+        "Show total": "Visa total",
+        "Text size": "Textstorlek",
+        "Connect gaps": "Överbrygga mellanrum",
+        "Show markers": "Visa markörer",
+        "Stack series": "Stapla serier",
+        "Error bars": "Felstaplar",
+        "None": "Ingen",
+        "Symmetric": "Symmetrisk",
+        "Above+Below": "Över+Under",
+        "Split Series": "Dela serier",
+        "X-AXIS": "X-AXEL",
+        "Pick a column": "Välj en kolumn",
+        "Aggregate values": "Aggrega värden",
+        "SERIES": "SERIER",
+        "Add series": "Lägg till serier",
+        "non-numeric columns are not shown": "icke numeriska kolumner visas inte",
+        "non-numeric column is not shown": "icke numerisk kolumn visas inte",
+        "selected new x-axis": "vald ny x-axel",
+        "Remove": "Ta bort",
+        "Create separate series for each value of the selected column.": "Skapa separata serier för varje värde i den valda kolumnen.",
+        "Each Y series is followed by a series for the length of error bars.": "Varje Y serie följs av serier för längden på avvikelsestaplarna.",
+        "Each Y series is followed by two series, for top and bottom error bars.": "Varje Y serie följs av två serier, för övre och under avvikelse staplar.",
+        "Toggle chart aggregation": "Växla diagram aggregering",
+        "selected new group data columns": "valda nya gruppdatakolumner"
+    },
+    "CodeEditorPanel": {
+        "Access denied": "Åtkomst nekad",
+        "Code View is available only when you have full document access.": "Kodvyn är bara tillgänglig där du har fulla dokumenträttigheter."
+    },
+    "ColorSelect": {
+        "Apply": "Applicera",
+        "Cancel": "Avbryt",
+        "Default cell style": "Standardstil för celler"
+    },
+    "ColumnFilterMenu": {
+        "All": "Alla",
+        "All except": "Alla utom",
+        "All shown": "Alla som visas",
+        "Filter by Range": "Filtrera efter spann",
+        "Future values": "Framtida värden",
+        "No matching values": "Inga matchande värden",
+        "None": "Ingen",
+        "Min": "Min",
+        "Max": "Max",
+        "Start": "Start",
+        "End": "Slut",
+        "Other Matching": "Annan matchning",
+        "Other Non-Matching": "Annan icke matchande",
+        "Other values": "Andra värden",
+        "Others": "Andra",
+        "Search": "Sök",
+        "Search values": "Sökvärden",
+        "Clear search": "Rensa sökning"
     }
 }
