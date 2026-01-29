@@ -178,14 +178,6 @@ export class ExtendedRowSource extends RowSource {
 
     // Listen to the two event types a rowSource might produce, and map the rows in them.
     this.listenTo(parentRowSource, "rowChange", (changeType: ChangeType, rows: RowList) => {
-      // I don't think this is needed? Maybe.
-      if (changeType === "remove") {
-        for (const id of rows) {
-          if (extras.includes(id)) {
-            this.extras = this.extras.filter(i => i !== id);
-          }
-        }
-      }
       this.trigger("rowChange", changeType, rows);
     });
     this.listenTo(parentRowSource, "rowNotify", (rows: RowsChanged, notifyValue: any) => {

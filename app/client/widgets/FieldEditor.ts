@@ -496,7 +496,8 @@ export function setupEditorCleanup(
 
 function onlyCurrent(cellValue: CellValue): CellValue {
   if (isVersions(cellValue)) {
-    return cellValue[1].local ?? cellValue;
+    const versions = cellValue[1];
+    return versions.local ?? versions.parent ?? cellValue;
   }
   return cellValue;
 }

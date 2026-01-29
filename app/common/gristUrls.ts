@@ -208,7 +208,7 @@ export interface IGristUrlState {
     srcDocId?: string;
     style?: InterfaceStyle;
     compare?: string;
-    compareEmphasis?: "local" | "remote";  // which of local and remote changes should be emphasized visually.
+    compareEmphasis?: CompareEmphasis;  // which of local and remote changes should be emphasized visually.
     linkParameters?: Record<string, string>;  // Parameters to pass as 'user.Link' in granular ACLs.
     // Encoded in URL as query params with extra '_' suffix.
     themeSyncWithOs?: boolean;
