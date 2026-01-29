@@ -9,6 +9,7 @@ import { TableDelta } from "app/common/ActionSummary";
 import { PatchItem, PatchLog } from "app/common/ActiveDocAPI";
 import { UserAction } from "app/common/DocActions";
 import { DocStateComparisonDetails } from "app/common/DocState";
+import { isHiddenCol } from "app/common/gristTypes";
 import { MetaRowRecord, MetaTableData } from "app/common/TableData";
 import { ActiveDoc } from "app/server/lib/ActiveDoc";
 import { OptDocSession } from "app/server/lib/DocSession";
@@ -157,11 +158,8 @@ export class Patch {
 
   private async _doAdd(delta: TableDelta, tableId: string,
     rowId: number, rec: Record<string, any>): Promise<PatchItem> {
-    if ("manualSort" in rec) {
-      delete rec.manualSort;
-    }
     for (const colId of Object.keys(rec)) {
-      if (this._isFormula(tableId, colId)) {
+      if (this._shouldSkip(tableId, colId)) {
         delete rec[colId];
       }
     }
@@ -185,9 +183,9 @@ export class Patch {
 
   private async _changeCell(delta: TableDelta, tableId: string, rowId: number, colId: string,
     pre: any, post: any): Promise<PatchItem> {
-    if (this._isFormula(tableId, colId)) {
+    if (this._shouldSkip(tableId, colId)) {
       return {
-        msg: "skipped formula cell",
+        msg: "skipped a cell",
       };
     }
     await this._applyUserActions([
@@ -198,11 +196,19 @@ export class Patch {
     };
   }
 
-  private _isFormula(tableId: string, colId: string): boolean {
+  /**
+   * Skip formula columns or certain special columns.
+   */
+  private _shouldSkip(tableId: string, colId: string): boolean {
     const prop = this._getTableColumn(tableId, colId);
     // Careful, isFormula set, with a blank formula, means
     // an empty column.
-    return Boolean(prop.isFormula) && Boolean(prop.formula);
+    // Hidden columns are currently gristHelper_ columns
+    // (for conditional formatting, so formula columns in
+    // any case, or manualSort. Changing manualSort is
+    // complicated, let's not get into it yet.
+    return (Boolean(prop.isFormula) && Boolean(prop.formula)) ||
+      isHiddenCol(colId);
   }
 
   private _getTableColumn(tableId: string, colId: string) {
