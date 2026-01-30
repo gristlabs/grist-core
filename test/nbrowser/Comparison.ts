@@ -638,7 +638,7 @@ describe("Comparison", function() {
     assert.equal(await cell.find(".diff-parent").isPresent(), false);
     assert.equal(await cell.find(".diff-local").getText(), "newrecord");
 
-    assert.include(await cell.findClosest(".record").getAttribute("className"), "diff-local-add");
+    assert.include(await cell.findClosest(".record").getAttribute("class"), "diff-local-add");
 
     await gu.undo();
     assert.equal(await gu.getGridRowCount(), count);
