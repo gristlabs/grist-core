@@ -11,8 +11,8 @@ import {
 import { createSessionObs, isBoolean, isNumber } from "app/client/lib/sessionObs";
 import { AppModel, TopAppModel } from "app/client/models/AppModel";
 import { DocPageModelImpl } from "app/client/models/DocPageModel";
-import { HomeModelImpl } from "app/client/models/HomeModel";
 import { urlState } from "app/client/models/gristUrlState";
+import { HomeModelImpl } from "app/client/models/HomeModel";
 import { App } from "app/client/ui/App";
 import { AppHeader } from "app/client/ui/AppHeader";
 import { createBottomBarDoc } from "app/client/ui/BottomBar";
@@ -160,7 +160,8 @@ function pagePanelsDoc(owner: IDisposableOwner, appModel: AppModel, appObj: App)
     leftPanelOpen.pauseSaving(true);
     leftPanelOpen.set(false);
     leftPanelOpen.pauseSaving(false);
-  } else if (sidebarParam === "expanded") {
+  }
+  else if (sidebarParam === "expanded") {
     leftPanelOpen.pauseSaving(true);
     leftPanelOpen.set(true);
     leftPanelOpen.pauseSaving(false);
