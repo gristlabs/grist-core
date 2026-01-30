@@ -74,6 +74,11 @@ class GristPipe {
     if (process.env.IMPORTDIR) {
       this.log("Setting up import from", process.env.IMPORTDIR);
       // All imports for a given doc live in the same root directory.
+      // Copying import files in and dropping read permissions isn't
+      // workable in that case, since the same sandbox is re-used for
+      // subsequent imports. The files would only be copied once on
+      // startup, meaning the files for these later imports won't be
+      // available to Pyodide, resulting in errors.
       await this.pyodide.FS.mkdir("/import");
       await this.pyodide.FS.mount(this.pyodide.FS.filesystems.NODEFS, {
         root: process.env.IMPORTDIR,
