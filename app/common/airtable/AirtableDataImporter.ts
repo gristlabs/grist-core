@@ -1,11 +1,47 @@
 import {
-  AirtableAPI,
   AirtableBaseSchema,
-  AirtableFieldId, AirtableFieldSchema,
-  AirtableTableId, AirtableTableSchema,
+  AirtableFieldSchema,
+  AirtableTableId,
+  AirtableTableSchema,
 } from "app/common/airtable/AirtableAPI";
 import { DocSchemaImportWarning } from "app/common/DocSchemaImport";
-import { ExistingColumnSchema, ExistingDocSchema, ExistingTableSchema } from "app/common/DocSchemaImportTypes";
+import {
+  ExistingColumnSchema,
+  ExistingDocSchema,
+  ExistingTableSchema,
+} from "app/common/DocSchemaImportTypes";
+import { BulkColValues } from "app/plugin/GristData";
+
+import { AirtableBase } from "airtable/lib/airtable_base";
+
+interface AirtableDataImportParams {
+  base: AirtableBase,
+  addRows: (tableId: GristTableId, rows: BulkColValues) => Promise<unknown>,
+  schemaCrosswalk: AirtableBaseSchemaCrosswalk,
+}
+
+export async function importDataFromAirtableBase({ base, addRows, schemaCrosswalk }: AirtableDataImportParams) {
+  // Build or receive a lookup table for references from the existing Grist doc.
+  // Could build a lookup table for the second one?
+  // Lookup tables are invalidated if *any* new rows are created
+
+  for (const [tableId, tableCrosswalk] of schemaCrosswalk.tables.entries()) {
+    console.log(`Migrating ${tableId} to ${tableCrosswalk.gristTable.id}`);
+    console.log(tableCrosswalk);
+    await base.table(tableId).select().eachPage((records, nextPage) => {
+      console.log(Array.from(tableCrosswalk.fields.keys()));
+      console.log(records);
+      nextPage();
+    });
+  }
+
+  // Fetch Airtable data - one page at a time
+  // Convert fields to Grist fields
+  // Resolve references
+  //   - Add mapping for received row
+  //   - Resolve any references
+  //   - Mark any unresolved references for later
+}
 
 type GristTableId = string;
 
@@ -14,7 +50,9 @@ interface AirtableBaseSchemaCrosswalk {
 }
 
 interface AirtableTableCrosswalk {
-  fields: Map<AirtableFieldId, AirtableFieldMappingInfo>
+  airtableTable: AirtableTableSchema;
+  gristTable: ExistingTableSchema;
+  fields: Map<AirtableFieldName, AirtableFieldMappingInfo>
 }
 
 interface AirtableFieldMappingInfo {
@@ -22,6 +60,7 @@ interface AirtableFieldMappingInfo {
   gristColumn: ExistingColumnSchema;
 }
 
+// TODO - Consider moving Airtable -> Grist crosswalk to its own file.
 /**
  * Creates a mapping from fields in an Airtable schema to fields in a Grist schema.
  * @param {AirtableBaseSchema} airtableSchema
@@ -70,6 +109,8 @@ function createAirtableTableToGristTableCrosswalk(
 ) {
   const warnings: AirtableDataImportWarning[] = [];
   const crosswalk: AirtableTableCrosswalk = {
+    airtableTable: airtableTableSchema,
+    gristTable: gristTableSchema,
     fields: new Map(),
   };
 
@@ -80,42 +121,14 @@ function createAirtableTableToGristTableCrosswalk(
       warnings.push(new NoDestinationColumnWarning(gristTableSchema.id, field));
       continue;
     }
-    crosswalk.fields.set(field.id, {
+    // Airtable record queries list fields by name (not id), which is guaranteed to be unique.
+    crosswalk.fields.set(field.name, {
       airtableField: field,
       gristColumn: matchingColumn,
     });
   }
 
   return { crosswalk, warnings };
-}
-
-interface AirtableDataImportParams {
-  api: AirtableAPI,
-  baseId: string,
-  schemaCrosswalk: AirtableBaseSchemaCrosswalk,
-}
-
-export async function importDataFromAirtableBase({ api, baseId, schemaCrosswalk }: AirtableDataImportParams) {
-  // Build or receive a lookup table for references from the existing Grist doc.
-  // Could build a lookup table for the second one?
-  // Lookup tables are invalidated if *any* new rows are created
-
-  const baseApi = api.base(baseId);
-
-  for (const [tableId, tableCrosswalk] of schemaCrosswalk.tables.entries()) {
-    console.log(tableCrosswalk);
-    await baseApi.table(tableId).select().eachPage((records, nextPage) => {
-      console.log(records);
-      nextPage();
-    });
-  }
-
-  // Fetch Airtable data - one page at a time
-  // Convert fields to Grist fields
-  // Resolve references
-  //   - Add mapping for received row
-  //   - Resolve any references
-  //   - Mark any unresolved references for later
 }
 
 interface AirtableDataImportWarning {

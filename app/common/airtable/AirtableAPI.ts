@@ -76,6 +76,7 @@ export const AirtableSchemaFieldChecker = checkers.AirtableSchemaField as Checke
 export type AirtableBaseId = string;
 export type AirtableTableId = string;
 export type AirtableFieldId = string;
+export type AirtableFieldName = string;
 
 // Airtable schema response. Limit this to only needed fields to minimise chance of breakage.
 export interface AirtableBaseSchema {
@@ -92,7 +93,7 @@ export interface AirtableTableSchema {
 
 export interface AirtableFieldSchema {
   id: AirtableFieldId;
-  name: string;
+  name: AirtableFieldName;
   type: string;
   options?: { [key: string]: any };
 }
