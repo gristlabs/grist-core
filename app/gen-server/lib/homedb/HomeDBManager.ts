@@ -2651,26 +2651,10 @@ export class HomeDBManager implements HomeDBAuth {
         };
       }
       // Get the destination workspace
-      let wsQuery = this._workspace(scope, wsId, {
-        manager,
+      const workspace = await this._loadWorkspaceAccess(scope, wsId, {
         markPermissions: Permissions.ADD,
-      })
-      // Join the workspaces's ACL rules (with 1st level groups listed) so we can include
-      // them in the doc.
-        .leftJoinAndSelect("workspaces.aclRules", "acl_rules")
-        .leftJoinAndSelect("acl_rules.group", "workspace_groups")
-        .leftJoinAndSelect("workspace_groups.memberUsers", "workspace_users")
-        .leftJoinAndSelect("workspaces.org", "orgs")
-        .leftJoinAndSelect("orgs.aclRules", "org_acl_rules")
-        .leftJoinAndSelect("org_acl_rules.group", "org_groups")
-        .leftJoinAndSelect("org_groups.memberUsers", "org_users");
-      wsQuery = this._addFeatures(wsQuery);
-      const wsQueryResult = await verifyEntity(wsQuery);
-      if (wsQueryResult.status !== 200) {
-        // If the query for the organization failed, return the failure result.
-        return wsQueryResult;
-      }
-      const workspace: Workspace = wsQueryResult.data;
+        transaction: manager,
+      });
       // Collect all first-level users of the doc being moved.
       const firstLevelUsers = UsersManager.getResourceUsers(doc);
       const docGroups = doc.aclRules.map(rule => rule.group);
@@ -5255,9 +5239,18 @@ export class HomeDBManager implements HomeDBAuth {
         .leftJoinAndSelect("doc_group_users.logins", "doc_user_logins");
       const aclDoc: Document = (await aclQuery.getOne())!;
       doc.aclRules = aclDoc.aclRules;
+      doc.workspace = await this._loadWorkspaceAccess(scope, doc.workspace.id, { transaction: manager });
+      return doc;
+    });
+  }
 
+  private async _loadWorkspaceAccess(
+    scope: DocScope, wsId: number, options: { markPermissions?: Permissions, transaction?: EntityManager } = {},
+  ) {
+    const { markPermissions, transaction } = options;
+    return await this.runInTransaction(transaction, async (manager) => {
       // Load the workspace's member groups/users.
-      const workspaceQuery = this._workspace(scope, doc.workspace.id, { manager })
+      const workspaceQuery = this._workspace(scope, wsId, { manager, markPermissions })
         .leftJoinAndSelect("workspaces.aclRules", "workspace_acl_rules")
         .leftJoinAndSelect("workspace_acl_rules.group", "workspace_groups")
         .leftJoinAndSelect("workspace_groups.memberUsers", "workspace_group_users")
@@ -5267,17 +5260,21 @@ export class HomeDBManager implements HomeDBAuth {
       // SQL results are flattened, and multiplying the number of rows we have already
       // by the number of org users could get excessive.
         .leftJoinAndSelect("workspaces.org", "org");
-      doc.workspace = (await workspaceQuery.getOne())!;
+      const wsQueryResult = await verifyEntity(workspaceQuery, { skipPermissionCheck: !markPermissions });
+      if (wsQueryResult.status !== 200) {
+        throw new ApiError(wsQueryResult.errMessage!, wsQueryResult.status);
+      }
+      const workspace: Workspace = wsQueryResult.data;
 
       // Load the org's member groups/users.
-      let orgQuery = this.org(scope, doc.workspace.org.id, { manager })
+      let orgQuery = this.org(scope, workspace.org.id, { manager })
         .leftJoinAndSelect("orgs.aclRules", "org_acl_rules")
         .leftJoinAndSelect("org_acl_rules.group", "org_groups")
         .leftJoinAndSelect("org_groups.memberUsers", "org_group_users")
         .leftJoinAndSelect("org_group_users.logins", "org_user_logins");
       orgQuery = this._addFeatures(orgQuery);
-      doc.workspace.org = (await orgQuery.getOne())!;
-      return doc;
+      workspace.org = (await orgQuery.getOne())!;
+      return workspace;
     });
   }
 
