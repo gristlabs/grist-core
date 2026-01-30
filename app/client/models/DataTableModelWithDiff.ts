@@ -403,11 +403,13 @@ export class TableDataWithDiff {
 
         if (!this.leftTableDelta.columnDeltas[colId][rowId]) {
           this.leftTableDelta.columnDeltas[colId][rowId] = [null, null];
-          this.leftTableDelta.removeRows.push(rowId);
+          if (!this.leftTableDelta.removeRows.includes(rowId)) {
+            this.leftTableDelta.removeRows.push(rowId);
+          }
         }
 
         this.leftTableDelta.columnDeltas[colId][rowId][0] =
-          tableDelta.columnDeltas[colId]?.[rowId]?.[1];
+          tableDelta.columnDeltas[colId]?.[rowId]?.[0];
 
         this._updates.add(rowId);
         this.extraRows.leftRemoveRows.add(
