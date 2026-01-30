@@ -71,7 +71,7 @@ export class ConfigBackendAPI {
         readGetGristComConfigFromSettings(newSettings);
       }
       catch (e) {
-        if (!NotConfiguredError.is(e)) {
+        if (!(e instanceof NotConfiguredError)) {
           // If still not configured, something is wrong with the provided key, but we don't know what exactly,
           // as the check function thinks nothing is configured, if the key was invalid it would have thrown earlier.
           throw new ApiError("Error configuring provider with the provided key.", 400);
