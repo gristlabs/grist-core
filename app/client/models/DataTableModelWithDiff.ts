@@ -64,10 +64,18 @@ export class ExtraRows {
     if (remoteTableId) {
       this.rightTableDelta = this.comparison?.rightChanges?.tableDeltas[remoteTableId];
     }
-    this.rightAddRows = new Set(this.rightTableDelta?.addRows.map(id => -id * 2 - 1));
+    this.rightAddRows = new Set(this.rightTableDelta?.addRows.map(id => this.encodeRightAddRow(id)));
     this.rightRemoveRows = new Set(this.rightTableDelta?.removeRows);
     this.leftAddRows = new Set(this.leftTableDelta?.addRows);
-    this.leftRemoveRows = new Set(this.leftTableDelta?.removeRows.map(id => -id * 2 - 2));
+    this.leftRemoveRows = new Set(this.leftTableDelta?.removeRows.map(id => this.encodeLeftRemoveRow(id)));
+  }
+
+  public encodeLeftRemoveRow(id: number) {
+    return -id * 2 - 2;
+  }
+
+  public encodeRightAddRow(id: number) {
+    return -id * 2 - 1;
   }
 
   /**
@@ -126,7 +134,7 @@ export class DataTableModelWithDiff extends DisposableWithEvents implements Data
     this.tableQuerySets = core.tableQuerySets;
     this.docModel = core.docModel;
     const tableId = core.tableData.tableId;
-    const remoteTableId = getRemoteTableId(tableId, _comparison) || "";
+    const remoteTableId = getRemoteTableId(tableId, _comparison) || tableId;
     this.extraRows = new ExtraRows(this.core.tableData.tableId, this._comparison);
     _comparison.leftChanges.tableDeltas[tableId] ||= createEmptyTableDelta();
     _comparison.rightChanges.tableDeltas[remoteTableId] ||= createEmptyTableDelta();
@@ -402,7 +410,9 @@ export class TableDataWithDiff {
           tableDelta.columnDeltas[colId]?.[rowId]?.[1];
 
         this._updates.add(rowId);
-        this.extraRows.leftRemoveRows.add(rowId);
+        this.extraRows.leftRemoveRows.add(
+          this.extraRows.encodeLeftRemoveRow(rowId),
+        );
       }
     }
   }
