@@ -1,4 +1,3 @@
-import { isAffirmative } from "app/common/gutil";
 import {
   FORWARD_AUTH_PROVIDER_KEY,
   GETGRIST_COM_PROVIDER_KEY,
@@ -7,7 +6,11 @@ import {
 } from "app/common/loginProviders";
 import { appSettings } from "app/server/lib/AppSettings";
 import { getForwardAuthLoginSystem, readForwardAuthConfigFromSettings } from "app/server/lib/ForwardAuthLogin";
-import { getGetGristComLoginSystem, readGetGristComConfigFromSettings } from "app/server/lib/GetGristComConfig";
+import {
+  getGetGristComLoginSystem,
+  readGetGristComConfigFromSettings,
+  readGetGristComMetadata,
+} from "app/server/lib/GetGristComConfig";
 import { GristLoginSystem } from "app/server/lib/GristServer";
 import { LoginSystemConfig } from "app/server/lib/LoginSystemConfig";
 import { getMinimalLoginSystem } from "app/server/lib/MinimalLogin";
@@ -31,13 +34,12 @@ export async function getCoreLoginSystem(): Promise<GristLoginSystem> {
  * List of supported login systems along with their configuration readers in order of preference.
  */
 export const LOGIN_SYSTEMS: LoginSystemConfig[] = [
-  ...(!isAffirmative(process.env.GRIST_FEATURE_GETGRIST_COM) ? [] : [
-    { key: GETGRIST_COM_PROVIDER_KEY,
-      name: "Sign in with getgrist.com",
-      reader: readGetGristComConfigFromSettings,
-      builder: getGetGristComLoginSystem,
-    },
-  ]),
+  { key: GETGRIST_COM_PROVIDER_KEY,
+    name: "Sign in with getgrist.com",
+    reader: readGetGristComConfigFromSettings,
+    builder: getGetGristComLoginSystem,
+    metadataReader: readGetGristComMetadata,
+  },
   { key: OIDC_PROVIDER_KEY,
     name: "OIDC",
     reader: readOIDCConfigFromSettings,

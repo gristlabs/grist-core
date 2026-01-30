@@ -13,8 +13,10 @@ export interface PendingChanges {
    *
    * Applied during server initialization in `/stubs/app/server/server.ts`
    * and automatically removed after changes are successfully applied.
+   *
+   * Set this to `null` to remove this key and cancel a pending change.
    */
-  onRestartSetAdminEmail?: string;
+  onRestartSetAdminEmail?: string | null;
   /**
    * If set, looks up the user whose login email matches this value and updates
    * their login email to be equal to `GRIST_ADMIN_EMAIL` on server restart.
@@ -29,8 +31,10 @@ export interface PendingChanges {
    *
    * Applied during server initialization in `/stubs/app/server/server.ts`,
    * and automatically removed after changes are successfully applied.
+   *
+   * Set this to `null` to remove this key and cancel a pending change.
    */
-  onRestartReplaceEmailWithAdmin?: string;
+  onRestartReplaceEmailWithAdmin?: string | null;
   /**
    * If set, clears all sessions on server restart.
    */

@@ -7,14 +7,15 @@ import { addCurrentOrgToPath } from "app/common/urlUtils";
 export interface AuthProvider {
   name: string;
   key: string;
-  isConfigured?: boolean;     // Whether the provider is configured properly.
-  isActive?: boolean;         // Whether the provider is currently active.
-  activeError?: string;       // Error reported by the provider (either at startup or runtime).
-  configError?: string;       // Error message if provider is misconfigured.
-  willBeActive?: boolean;     // Whether the provider will be active on restart.
-  willBeDisabled?: boolean;   // Whether the provider will be disabled on restart.
-  canBeActivated?: boolean;   // Whether the provider can be activated (configured and not selected via env).
-  isSelectedByEnv?: boolean;  // Whether the provider is selected via environment variable.
+  isConfigured?: boolean;         // Whether the provider is configured properly.
+  isActive?: boolean;             // Whether the provider is currently active.
+  activeError?: string;           // Error reported by the provider (either at startup or runtime).
+  configError?: string;           // Error message if provider is misconfigured.
+  willBeActive?: boolean;         // Whether the provider will be active on restart.
+  willBeDisabled?: boolean;       // Whether the provider will be disabled on restart.
+  canBeActivated?: boolean;       // Whether the provider can be activated (configured and not selected via env).
+  isSelectedByEnv?: boolean;      // Whether the provider is selected via environment variable.
+  metadata?: Record<string, any>; // Additional provide metadata.
 }
 
 /**

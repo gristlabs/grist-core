@@ -10,7 +10,6 @@ import { dom, DomContents, DomElementArg, IDisposableOwner, Observable, styled }
 
 export interface AdminPanelControls {
   needsRestart: Observable<boolean>;
-  supportsRestart: Observable<boolean>;
   restartGrist: () => Promise<void>;
 }
 
@@ -278,6 +277,7 @@ export const cssTextArea = styled(textarea, `
 `);
 
 export const cssWell = styled("div", `
+  color: ${theme.text};
   display: flex;
   align-items: flex-start;
   gap: 12px;
@@ -303,8 +303,14 @@ export const cssIconWrapper = styled("div", `
   margin-top: 2px;
 `);
 
+export const cssWellTitle = styled("div", `
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+  margin-bottom: 8px;
+`);
+
 export const cssWellContent = styled("div", `
-  color: ${theme.text};
   font-size: ${vars.mediumFontSize};
   line-height: 1.4;
   & > p {

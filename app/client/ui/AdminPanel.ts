@@ -20,6 +20,7 @@ import {
   cssValueLabel,
   cssWell,
   cssWellContent,
+  cssWellTitle,
   HidableToggle,
 } from "app/client/ui/AdminPanelCss";
 import { getAdminPanelName } from "app/client/ui/AdminPanelName";
@@ -118,7 +119,7 @@ export class AdminPanel extends Disposable {
 
 class AdminInstallationPanel extends Disposable implements AdminPanelControls {
   public needsRestart = Observable.create(this, false);
-  public supportsRestart = Observable.create(this, true);
+  private _supportsRestart = !!getGristConfig().runningUnderSupervisor;
   private _supportGrist = SupportGristPage.create(this, this._appModel);
   private _toggleEnterprise = ToggleEnterpriseWidget.create(this, this._appModel.notifier);
   private _checks: AdminChecks;
@@ -170,7 +171,6 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
           );
         }
         catch (err) {
-          this.supportsRestart.set(false);
           reportError(err as Error);
         }
       },
@@ -213,25 +213,29 @@ Please log in as an administrator.`)),
       dom.maybe(this.needsRestart, () => [
         cssSection(
           cssSectionTitle(t("Restart Grist")),
+          dom("p", t("Restart Grist to apply pending changes.")),
           cssWell(
             cssWell.cls("-warning"),
             cssWellIcon(icon("Warning")),
-            cssWellContent(
-              dom("p",
-                t(`Grist is running in an environment that doesn't support restarting from the admin panel.`),
-              ),
-              dom("p",
-                t("You can still restart Grist manually."),
-                testId("admin-panel-restart-unsupported-warning"),
+            dom("div",
+              cssWellTitle(t("Restart unavailable")),
+              cssWellContent(
+                dom("p",
+                  t(`Grist is running in an environment that doesn't support restarting from the admin panel.`),
+                ),
+                dom("p",
+                  t("Please restart Grist manually."),
+                  testId("admin-panel-restart-unsupported-warning"),
+                ),
               ),
             ),
-            dom.hide(this.supportsRestart),
+            dom.hide(this._supportsRestart),
           ),
-          dom("p", t("Restart Grist to apply pending changes or resolve issues.")),
           bigPrimaryButton(
             t("Restart Grist"),
             dom.on("click", () => this.restartGrist()),
             testId("admin-panel-restart-button"),
+            dom.show(this._supportsRestart),
           ),
         ),
       ]),
@@ -484,7 +488,12 @@ Please log in as an administrator.`)),
   }
 
   private _buildAuthenticationPanelExtraContent() {
-    return dom.create(AuthenticationSection, this._loginProvider, this);
+    return dom.create(AuthenticationSection, {
+      appModel: this._appModel,
+      loginSystemId: this._loginProvider,
+      controls: this,
+      installAPI: this._installAPI,
+    });
   }
 
   private _buildSessionSecretDisplay() {

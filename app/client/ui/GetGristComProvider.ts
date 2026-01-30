@@ -4,13 +4,14 @@ import { getHomeUrl, reportError } from "app/client/models/AppModel";
 import { cssTextArea } from "app/client/ui/AdminPanelCss";
 import { bigBasicButton, bigPrimaryButton } from "app/client/ui2018/buttons";
 import { theme, vars } from "app/client/ui2018/cssVars";
-import { cssLink } from "app/client/ui2018/links";
+import { cssLink, cssNestedLinks } from "app/client/ui2018/links";
 import { cssModalWidth, modal } from "app/client/ui2018/modals";
 import { AsyncFlow, CancelledError, FlowRunner } from "app/common/AsyncFlow";
 import { ConfigAPI } from "app/common/ConfigAPI";
 import { commonUrls } from "app/common/gristUrls";
 import { GETGRIST_COM_PROVIDER_KEY } from "app/common/loginProviders";
 import { components } from "app/common/ThemePrefs";
+import { getGristConfig } from "app/common/urlUtils";
 
 import { Disposable, dom, makeTestId, Observable, styled } from "grainjs";
 
@@ -52,7 +53,7 @@ export class GetGristComProviderInfoModal extends Disposable {
         const providerConfig = await this._configAPI.getAuthProviderConfig(GETGRIST_COM_PROVIDER_KEY);
         flow.checkIfCancelled();
         const registerUrl = new URL(commonUrls.signInWithGristRegister);
-        const spHost = providerConfig.GRIST_GETGRISTCOM_SP_HOST;
+        const spHost = providerConfig.GRIST_GETGRISTCOM_SP_HOST || getGristConfig().homeUrl;
         if (spHost) {
           const callBackUrl = new URL(spHost).origin;
           registerUrl.searchParams.set("uri", callBackUrl);
@@ -73,15 +74,11 @@ export class GetGristComProviderInfoModal extends Disposable {
         ),
         cssModalDescription(
           dom("p",
-            inlineMarkdown(t("**Sign in with getgrist.com** \
+            cssNestedLinks(inlineMarkdown(t(`**Sign in with getgrist.com** \
 allows users on your Grist server to sign in using their account on \
-getgrist.com, the cloud version of Grist managed by Grist Labs.")),
-          ),
-          dom("p",
-            t("When signing in, users will be redirected to the getgrist.com login page \
-to log in or register. After authenticating on getgrist.com, they'll be redirected \
-back to your Grist server and signed in as the user they authenticated as."),
-          ),
+getgrist.com, which is the cloud version of Grist managed by Grist Labs. \
+User registration and authentication are fully handled by Grist Labs, \
+while your documents and data stay on your server. [Learn more.](${commonUrls.signInWithGristHelp})`)))),
         ),
         cssModalInstructions(
           dom("h3", t("Instructions")),
@@ -100,7 +97,7 @@ getgrist.com and paste the configuration key you receive below.", {
             }
           }),
           { target: "_blank" },
-          { style: "margin-bottom: 16px; display: block;" },
+          { style: "margin-bottom: 16px; display: inline-block;" },
           t("Register your Grist server"),
         ),
         cssLargerTextArea(
@@ -110,11 +107,6 @@ getgrist.com and paste the configuration key you receive below.", {
           cssLargerTextArea.cls("-error", use => use(this._error)),
           testId("config-key-textarea"),
         ),
-        // Uncomment when we have proper help page
-        // cssLearnMoreLink(
-        //   {href: commonUrls.signInWithGristHelp, target: '_blank'},
-        //   t('Learn more about Sign in with getgrist.com'),
-        // ),
         cssModalButtons(
           bigBasicButton(
             t("Cancel"),
@@ -212,12 +204,6 @@ const cssModalInstructions = styled("div", `
     line-height: 1.5;
   }
 `);
-
-// const cssLearnMoreLink = styled(cssLink, `
-//   margin-top: 16px;
-//   margin-bottom: 24px;
-//   display: block;
-// `);
 
 const cssModalButtons = styled("div", `
   display: flex;

@@ -21,21 +21,8 @@ import * as express from "express";
  * Read GetGrist.com configuration from application settings.
  */
 export function readGetGristComConfigFromSettings(settings: AppSettings): OIDCConfig {
-  const section = settings.section("login").section("system").section(GETGRIST_COM_PROVIDER_KEY);
-
-  const secret = section.flag("secret").readString({
-    envVar: "GRIST_GETGRISTCOM_SECRET",
-    censor: true,
-  });
-
-  if (!secret) {
-    throw new NotConfiguredError("getgrist.com login system is not configured: missing secret");
-  }
-
   const spHost = getGetGristComHost(settings);
-
-  const decodedSecret = Buffer.from(secret, "base64").toString("utf-8");
-  const secretJson = JSON.parse(decodedSecret);
+  const secretJson = getDecodedGetGristSecretJson(settings);
 
   const config: OIDCConfig = {
     clientId: stringParam(secretJson.oidcClientId, "oidcClientId"),
@@ -52,6 +39,38 @@ export function readGetGristComConfigFromSettings(settings: AppSettings): OIDCCo
   };
 
   return config;
+}
+
+/**
+ * Read GetGrist.com metadata from application settings.
+ */
+export function readGetGristComMetadata(settings: AppSettings): Record<string, any> {
+  const secretJson = getDecodedGetGristSecretJson(settings);
+
+  const metadata = {
+    owner: secretJson.owner ?? null,
+  };
+
+  return metadata;
+}
+
+/**
+ * Return the decoded GetGrist.com secret JSON.
+ */
+function getDecodedGetGristSecretJson(settings: AppSettings) {
+  const section = settings.section("login").section("system").section(GETGRIST_COM_PROVIDER_KEY);
+  const secret = section.flag("secret").readString({
+    envVar: "GRIST_GETGRISTCOM_SECRET",
+    censor: true,
+  });
+  if (!secret) {
+    throw new NotConfiguredError("getgrist.com login system is not configured: missing secret");
+  }
+
+  const decodedSecret = Buffer.from(secret, "base64").toString("utf-8");
+  const secretJson = JSON.parse(decodedSecret);
+
+  return secretJson;
 }
 
 /**

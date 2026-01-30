@@ -164,7 +164,7 @@ export const getCommonUrls = () => withAdminDefinedUrls({
   attachmentStorage: "https://support.getgrist.com/document-settings/#external-attachments",
 
   signInWithGristRegister: "https://login.getgrist.com/oauth/register",
-  signInWithGristHelp: getHelpCenterUrl(),
+  signInWithGristHelp: "https://support.getgrist.com/install/sign-in-with-grist",
 });
 
 export const commonUrls = getCommonUrls();
@@ -1008,6 +1008,9 @@ export interface GristLoadConfig {
   userPresenceMaxUsers?: number;
 
   warnBeforeSharingPublicly?: boolean;
+
+  // Whether there is a parent process that can restart Grist.
+  runningUnderSupervisor?: boolean;
 }
 
 export const Features = StringUnion(

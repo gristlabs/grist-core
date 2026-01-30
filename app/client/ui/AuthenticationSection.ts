@@ -1,13 +1,22 @@
 import { makeT } from "app/client/lib/localization";
 import { cssMarkdownSpan } from "app/client/lib/markdown";
-import { getHomeUrl, reportError } from "app/client/models/AppModel";
-import { AdminPanelControls, cssIconWrapper, cssWell, cssWellContent } from "app/client/ui/AdminPanelCss";
+import { AppModel, getHomeUrl, reportError } from "app/client/models/AppModel";
+import {
+  AdminPanelControls,
+  cssIconWrapper,
+  cssWell,
+  cssWellContent,
+  cssWellTitle,
+} from "app/client/ui/AdminPanelCss";
+import { ChangeAdminModal } from "app/client/ui/ChangeAdminModal";
 import { GetGristComProviderInfoModal } from "app/client/ui/GetGristComProvider";
-import { basicButton, bigPrimaryButton } from "app/client/ui2018/buttons";
+import { basicButton, bigBasicButton, bigPrimaryButton } from "app/client/ui2018/buttons";
 import { theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
-import { confirmModal, cssModalWidth, modal } from "app/client/ui2018/modals";
+import { confirmModal, cssModalWidth, modal, saveModal } from "app/client/ui2018/modals";
 import { AuthProvider, ConfigAPI } from "app/common/ConfigAPI";
+import { PendingChanges } from "app/common/Install";
+import { InstallAPI } from "app/common/InstallAPI";
 import {
   FORWARD_AUTH_PROVIDER_KEY,
   GETGRIST_COM_PROVIDER_KEY,
@@ -17,38 +26,54 @@ import {
   SAML_PROVIDER_KEY,
 } from "app/common/loginProviders";
 
-import { Disposable, dom, makeTestId, Observable, styled } from "grainjs";
+import { Computed, Disposable, dom, makeTestId, Observable, styled } from "grainjs";
 
 const t = makeT("AdminPanel");
 
 const testId = makeTestId("test-admin-auth-");
 
+interface AuthenticationSectionOptions {
+  appModel: AppModel;
+  loginSystemId: Observable<string | undefined>;
+  controls: AdminPanelControls;
+  installAPI: InstallAPI;
+}
+
 export class AuthenticationSection extends Disposable {
+  private _appModel = this._options.appModel;
+  private _loginSystemId = this._options.loginSystemId;
+  private _controls = this._options.controls;
+  private _installAPI = this._options.installAPI;
+  private _prefsPendingChanges = Observable.create<PendingChanges | null>(this, null);
+
   private _providers = Observable.create<AuthProvider[]>(this, []);
   private _configAPI = new ConfigAPI(getHomeUrl());
+  private _currentUserEmail = this._appModel.currentValidUser!.email;
 
-  constructor(
-    private _loginSystemId: Observable<string | undefined>,
-    private _controls: AdminPanelControls,
-  ) {
+  private _hasActiveOnRestartProvider = Computed.create(this, this._providers, (_use, providers) => {
+    return providers.some(p => p.willBeActive);
+  });
+
+  private _showNoAuthenticationWarning = Computed.create(this, (use) => {
+    return use(this._loginSystemId) === MINIMAL_PROVIDER_KEY && !use(this._hasActiveOnRestartProvider);
+  });
+
+  private _getgristLoginOwner = Computed.create(this, this._providers, (_use, providers) => {
+    const getgristLogin = providers.find(p => p.key === GETGRIST_COM_PROVIDER_KEY);
+    return getgristLogin?.metadata?.owner ?? null;
+  });
+
+  constructor(private _options: AuthenticationSectionOptions) {
     super();
+
     this._fetchProviders().catch(reportError);
+    this._fetchPrefsPendingChanges().catch(reportError);
   }
 
   public buildDom() {
     return [
-      dom.maybe(use => use(this._loginSystemId) === MINIMAL_PROVIDER_KEY, () => [
-        cssWell(
-          dom.style("margin-bottom", "24px"),
-          cssWell.cls("-warning"),
-          cssIconWrapper(icon("Warning")),
-          cssWellContent(
-            dom("p", t("No authentication method is active.")),
-            dom("p", t("If Grist is accessible on your network, or is available to multiple people, " +
-              "we strongly recommend configuring one of the methods below as the active method.")),
-          ),
-        ),
-      ]),
+      dom.maybe(this._showNoAuthenticationWarning, () => this._buildNoAuthenticationWarning()),
+      dom.maybe(this._hasActiveOnRestartProvider, () => this._buildAuthenticationChangeWarning()),
       dom.domComputed(this._providers, providers => this._buildListOfProviders(providers)),
     ];
   }
@@ -59,11 +84,17 @@ export class AuthenticationSection extends Disposable {
       return;
     }
     this._providers.set(providers);
-    // Check if restart is needed (when current and active diverge)
-    const needsRestart = providers.some(p => p.willBeActive);
-    if (needsRestart) {
-      this._controls.needsRestart.set(true);
-    }
+    this._checkIfRestartNeeded();
+  }
+
+  private async _fetchPrefsPendingChanges() {
+    // TODO: This class, `TelemetryModel`, and`AdminInstallationPanel._buildUpdates`
+    // each call this endpoint when a single call should suffice.
+    const prefs = await this._installAPI.getInstallPrefs();
+    if (this.isDisposed()) { return; }
+
+    const { onRestartSetAdminEmail, onRestartReplaceEmailWithAdmin } = prefs;
+    this._prefsPendingChanges.set({ onRestartSetAdminEmail, onRestartReplaceEmailWithAdmin });
   }
 
   private _buildListOfProviders(providers: AuthProvider[]) {
@@ -140,6 +171,75 @@ export class AuthenticationSection extends Disposable {
     );
   }
 
+  private _buildNoAuthenticationWarning() {
+    return [
+      cssWell(
+        dom.style("margin-bottom", "24px"),
+        cssWell.cls("-warning"),
+        cssIconWrapper(icon("Warning")),
+        dom("div",
+          cssWellTitle(t("No authentication: unrestricted sign-in as demo user")),
+          cssWellContent(
+            dom("p", t("If Grist is accessible on your network, or is available to multiple people, \
+configure one of the authentication methods below.")),
+          ),
+        ),
+      ),
+    ];
+  }
+
+  private _buildAuthenticationChangeWarning() {
+    return cssWell(
+      dom.style("margin-bottom", "24px"),
+      cssWell.cls("-warning"),
+      cssIconWrapper(icon("Warning")),
+      dom("div",
+        cssWellTitle(t("Restart required. Authentication change may affect your access")),
+        cssWellContent(
+          dom.domComputed((use) => {
+            const prefs = use(this._prefsPendingChanges);
+            if (prefs?.onRestartSetAdminEmail) {
+              return dom("p",
+                t("You are signed in as {{email}}. \
+After restart, the new administrative user will be {{newEmail}}.",
+                {
+                  email: dom("strong", this._currentUserEmail),
+                  newEmail: dom("strong", prefs.onRestartSetAdminEmail),
+                }),
+              );
+            }
+            else {
+              return dom("p",
+                t("You are signed in as {{email}}. \
+You may lose access to this server if you cannot sign in as this user after switching the \
+authentication system.",
+                { email: dom("strong", this._currentUserEmail) }),
+              );
+            }
+          }),
+          dom("p", t('See "Restart Grist" section on top of this page to restart.')),
+        ),
+        dom.domComputed((use) => {
+          const prefs = use(this._prefsPendingChanges);
+          if (prefs?.onRestartSetAdminEmail) {
+            return bigBasicButton(
+              t("Revert change of admin user"),
+              dom.style("margin-top", "16px"),
+              dom.on("click", () => this._revertSetInstallAdmin()),
+            );
+          }
+          else {
+            return bigPrimaryButton(
+              t("Change admin user"),
+              dom.style("margin-top", "16px"),
+              dom.on("click", () => this._showChangeAdminModal()),
+            );
+          }
+        }),
+      ),
+    );
+  }
+
   private async _setActiveProvider(provider: AuthProvider) {
     confirmModal(
       t("Set as active method?"),
@@ -167,6 +267,67 @@ export class AuthenticationSection extends Disposable {
     if (configModal) {
       configModal.show(() => this._fetchProviders().catch(reportError));
       this.onDispose(() => configModal.isDisposed() ? void 0 : configModal.dispose());
+    }
+  }
+
+  private _showChangeAdminModal() {
+    const currentUserEmail = this._appModel.currentValidUser?.email;
+    if (!currentUserEmail) {
+      throw new Error("Current user is not defined");
+    }
+
+    saveModal((_ctl, owner) => {
+      const changeAdminModal = ChangeAdminModal.create(owner, {
+        currentUserEmail,
+        defaultEmail: this._getgristLoginOwner.get().email,
+        onSave: async ({ email, replace }) => {
+          await this._setInstallAdmin(email, replace);
+        },
+      });
+      return {
+        title: t("Change admin user"),
+        body: changeAdminModal.buildDom(),
+        saveFunc: () => changeAdminModal.save(),
+        saveDisabled: changeAdminModal.saveDisabled,
+        width: "normal" as const,
+        saveLabel: t("Prepare changes"),
+      };
+    });
+  }
+
+  private async _setInstallAdmin(email: string, replace: boolean) {
+    const onRestartReplaceEmailWithAdmin = replace ? this._currentUserEmail : undefined;
+    await this._installAPI.updateInstallPrefs({
+      onRestartSetAdminEmail: email,
+      onRestartReplaceEmailWithAdmin,
+    });
+    if (this.isDisposed()) { return; }
+
+    await this._fetchPrefsPendingChanges();
+    this._checkIfRestartNeeded();
+  };
+
+  private async _revertSetInstallAdmin() {
+    await this._installAPI.updateInstallPrefs({
+      onRestartSetAdminEmail: null,
+      onRestartReplaceEmailWithAdmin: null,
+    });
+    if (this.isDisposed()) { return; }
+
+    await this._fetchPrefsPendingChanges();
+  };
+
+  private _checkIfRestartNeeded() {
+    const hasActiveOnRestartProvider = this._hasActiveOnRestartProvider.get();
+
+    const prefsPendingChanges = this._prefsPendingChanges.get();
+    const hasUnappliedRestartPrefs = Boolean(
+      prefsPendingChanges?.onRestartSetAdminEmail ||
+      prefsPendingChanges?.onRestartReplaceEmailWithAdmin,
+    );
+    const needsRestart = hasActiveOnRestartProvider || hasUnappliedRestartPrefs;
+    if (needsRestart) {
+      this._controls.needsRestart.set(true);
     }
   }
 }
@@ -243,17 +404,17 @@ abstract class BaseInformationModal extends Disposable {
 class OIDCInformationModal extends BaseInformationModal {
   protected getDescription(): string[] {
     return [
-      t("**OIDC** allows users on your Grist server to sign in using an external identity provider that " +
-        "supports the OpenID Connect standard."),
-      t("When signing in, users will be redirected to your chosen identity provider's login page to " +
-        "authenticate. After successful authentication, they'll be redirected back to your Grist server and " +
-        "signed in as the user verified by the provider."),
+      t("**OIDC** allows users on your Grist server to sign in using an external identity provider that \
+supports the OpenID Connect standard."),
+      t("When signing in, users will be redirected to your chosen identity provider's login page to \
+authenticate. After successful authentication, they'll be redirected back to your Grist server and \
+signed in as the user verified by the provider."),
     ];
   }
 
   protected getInstruction(): string {
-    return t("To set up **OIDC**, follow the instructions in " +
-      "[the Grist support article for OIDC](https://support.getgrist.com/install/oidc).");
+    return t("To set up **OIDC**, follow the instructions in \
+[the Grist support article for OIDC](https://support.getgrist.com/install/oidc).");
   }
 }
 
@@ -263,17 +424,17 @@ class OIDCInformationModal extends BaseInformationModal {
 class SAMLInformationModal extends BaseInformationModal {
   protected getDescription(): string[] {
     return [
-      t("**SAML** allows users on your Grist server to sign in using an external identity provider that " +
-        "supports the SAML 2.0 standard."),
-      t("When signing in, users will be redirected to your chosen identity provider's login page to " +
-        "authenticate. After successful authentication, they'll be redirected back to your Grist server and " +
-        "signed in as the user verified by the provider."),
+      t("**SAML** allows users on your Grist server to sign in using an external identity provider that \
+supports the SAML 2.0 standard."),
+      t("When signing in, users will be redirected to your chosen identity provider's login page to \
+authenticate. After successful authentication, they'll be redirected back to your Grist server and \
+signed in as the user verified by the provider."),
     ];
   }
 
   protected getInstruction(): string {
-    return t("To set up **SAML**, follow the instructions in " +
-      "[the Grist support article for SAML](https://support.getgrist.com/install/saml/).");
+    return t("To set up **SAML**, follow the instructions in \
+[the Grist support article for SAML](https://support.getgrist.com/install/saml/).");
   }
 }
 
@@ -283,16 +444,16 @@ class SAMLInformationModal extends BaseInformationModal {
 class ForwardedHeadersInfoModal extends BaseInformationModal {
   protected getDescription(): string[] {
     return [
-      t("**Forwarded headers** allows your Grist server to trust authentication performed by an external " +
-        "proxy (e.g. Traefik ForwardAuth)."),
-      t("When a user accesses Grist, the proxy handles authentication and forwards verified user information " +
-        "through HTTP headers. Grist uses these headers to identify the user."),
+      t("**Forwarded headers** allows your Grist server to trust authentication performed by an external \
+proxy (e.g. Traefik ForwardAuth)."),
+      t("When a user accesses Grist, the proxy handles authentication and forwards verified user information \
+through HTTP headers. Grist uses these headers to identify the user."),
     ];
   }
 
   protected getInstruction(): string {
-    return t("To set up **forwarded headers**, follow the instructions in " +
-      "[the Grist support article for forwarded headers](https://support.getgrist.com/install/forwarded-headers/).");
+    return t("To set up **forwarded headers**, follow the instructions in \
+[the Grist support article for forwarded headers](https://support.getgrist.com/install/forwarded-headers/).");
   }
 }
 
@@ -302,17 +463,17 @@ class ForwardedHeadersInfoModal extends BaseInformationModal {
 class GristConnectInfoModal extends BaseInformationModal {
   protected getDescription(): string[] {
     return [
-      t("**Grist Connect** is a login solution built and maintained by Grist Labs that integrates seamlessly " +
-        "with your Grist server."),
-      t("When signing in, users will be redirected to a Grist Connect login page where they can authenticate " +
-        "using various identity providers. After authentication, they'll be redirected back to your Grist server " +
-        "and signed in."),
+      t("**Grist Connect** is a login solution built and maintained by Grist Labs that integrates seamlessly \
+with your Grist server."),
+      t("When signing in, users will be redirected to a Grist Connect login page where they can authenticate \
+using various identity providers. After authentication, they'll be redirected back to your Grist server \
+and signed in."),
     ];
   }
 
   protected getInstruction(): string {
-    return t("To set up **Grist Connect**, follow the instructions in " +
-      "[the Grist support article for Grist Connect](https://support.getgrist.com/install/grist-connect/).");
+    return t("To set up **Grist Connect**, follow the instructions in \
+[the Grist support article for Grist Connect](https://support.getgrist.com/install/grist-connect/).");
   }
 }
 

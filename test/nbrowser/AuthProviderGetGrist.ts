@@ -22,7 +22,6 @@ describe("AuthProviderGetGrist", function() {
     oldEnv = new testUtils.EnvironmentSnapshot();
     process.env.GRIST_DEFAULT_EMAIL = gu.translateUser("user1").email;
     process.env.GRIST_TEST_SERVER_DEPLOYMENT_TYPE = "core";
-    process.env.GRIST_FEATURE_GETGRIST_COM = "1";
     // Make sure no APP_HOME_URL is set, to use calculated one.
     delete process.env.APP_HOME_URL;
     await server.restart();

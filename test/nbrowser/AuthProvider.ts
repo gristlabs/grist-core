@@ -58,9 +58,10 @@ describe("AuthProvider", function() {
     const providerItems = await driver.findAll(".test-admin-auth-provider-row");
     assert.isAtLeast(providerItems.length, 3); // We expect to see OIDC provider as well.
 
-    assert.match(await providerItems[0].getText(), /OIDC/);
-    assert.match(await providerItems[1].getText(), /SAML/);
-    assert.match(await providerItems[2].getText(), /Forwarded headers/);
+    assert.match(await providerItems[0].getText(), /Sign in with getgrist\.com/);
+    assert.match(await providerItems[1].getText(), /OIDC/);
+    assert.match(await providerItems[2].getText(), /SAML/);
+    assert.match(await providerItems[3].getText(), /Forwarded headers/);
     // And some others, depending on the build we are in.
   });
 

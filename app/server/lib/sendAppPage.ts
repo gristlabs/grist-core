@@ -141,6 +141,8 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     adminDefinedUrls: process.env.GRIST_CUSTOM_COMMON_URLS,
     userPresenceMaxUsers: getUserPresenceMaxUsers(),
     warnBeforeSharingPublicly: isAffirmative(process.env.GRIST_WARN_BEFORE_SHARING_PUBLICLY),
+    // TODO: Add to BootProbes and remove this. We don't need to include this in every page.
+    runningUnderSupervisor: isAffirmative(process.env.GRIST_RUNNING_UNDER_SUPERVISOR),
     ...extra,
   };
 }

@@ -134,13 +134,14 @@ export class ConfigBackendAPI {
 
     // Now build the list of providers and check their configuration status.
     const providers: AuthProvider[] = [];
-    for (const { key, name, reader: configuredCheck } of LOGIN_SYSTEMS) {
+    for (const { key, name, reader: configuredCheck, metadataReader } of LOGIN_SYSTEMS) {
       const record: AuthProvider = {
         name,
         key,
       };
       try {
         configuredCheck(newSettings);
+        record.metadata = metadataReader?.(newSettings) ?? {};
         record.isConfigured = true;
       }
       catch (e) {
