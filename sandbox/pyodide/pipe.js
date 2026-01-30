@@ -73,8 +73,16 @@ class GristPipe {
   async mountImportDirIfNeeded() {
     if (process.env.IMPORTDIR) {
       this.log("Setting up import from", process.env.IMPORTDIR);
-      // Could mount directly, but instead copy so we can drop read perms early.
-      await this.copyFiles(process.env.IMPORTDIR, "/import_src", "/import");
+      // All imports for a given doc live in the same root directory.
+      // Copying import files in and dropping read permissions isn't
+      // workable in that case, since the same sandbox is re-used for
+      // subsequent imports. The files would only be copied once on
+      // startup, meaning the files for these later imports won't be
+      // available to Pyodide, resulting in errors.
+      await this.pyodide.FS.mkdir("/import");
+      await this.pyodide.FS.mount(this.pyodide.FS.filesystems.NODEFS, {
+        root: process.env.IMPORTDIR,
+      }, "/import");
     }
   }
 
@@ -146,11 +154,22 @@ async function main() {
 
     if (isDeno) {
       // Revoke write permissions now that packages are loaded.
-      // Revoke read access as well, why not.
       // eslint-disable-next-line no-undef
       await Deno.permissions.revoke({ name: "write" });
-      // eslint-disable-next-line no-undef
-      await Deno.permissions.revoke({ name: "read" });
+
+      // Read access has been limited quite a lot already.
+      // We need to keep access to the import directory, but can shed
+      // everything else. See --allow-read in SandboxPyodide.ts
+      const readDir = fs.realpathSync(__dirname);
+      const gristDir = fs.realpathSync(path.join(__dirname, "..", "grist"));
+      const reqFile = fs.realpathSync(path.join(__dirname, "..", "requirements.txt"));
+      for (const dir of [readDir, gristDir, reqFile]) {
+        // eslint-disable-next-line no-undef
+        await Deno.permissions.revoke({
+          name: "read",
+          path: dir
+        });
+      }
       console.error("[pyodide sandbox]", "revoked read and write permissions.");
     }
 
