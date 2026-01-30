@@ -35,7 +35,9 @@ export function getActiveLoginSystemTypeSource(settings: AppSettings) {
  * Exception thrown by the login system configuration readers when the system is not configured.
  */
 export class NotConfiguredError extends Error {
-
+  public static is(e: any): e is NotConfiguredError {
+    return e instanceof NotConfiguredError;
+  }
 }
 
 /**

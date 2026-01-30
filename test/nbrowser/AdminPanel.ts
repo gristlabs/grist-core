@@ -1,5 +1,6 @@
 import { ConfigAPI } from "app/common/ConfigAPI";
 import { TelemetryLevel } from "app/common/Telemetry";
+import { ActivationsManager } from "app/gen-server/lib/ActivationsManager";
 import { currentVersion, isEnabled, toggleItem, withExpandedItem } from "test/nbrowser/AdminPanelTools";
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
@@ -38,14 +39,28 @@ describe("AdminPanel", function() {
     // Create two sessions.
     const currentEmail = () => gu.getUser().then(user => user.email);
 
-    const session1 = await gu.session().personalSite.login();
-    assert.equal(await currentEmail(), session1.email);
+    const userSession = await gu.session().user("user2").personalSite.login();
+    assert.equal(await currentEmail(), userSession.email);
 
-    const session2 = await gu.session().user("user2").personalSite.login();
-    assert.equal(await currentEmail(), session2.email);
+    const adminSession = await gu.session().personalSite.login();
+    assert.equal(await currentEmail(), adminSession.email);
 
-    // Call API to set the clear-session flag (this call will be rejected as server can't restart itself via API)
-    await assert.isRejected(session1.createApi(ConfigAPI).restartServer(true));
+    const validConfig = {
+      oidcClientId: "some-id",
+      oidcClientSecret: "some-secret",
+      oidcIssuer: "https://some.provider.com",
+      oidcSkipEndSessionEndpoint: true,
+      owner: {
+        name: "Chimpy",
+        email: "chimpy@getgrist.com",
+      },
+    };
+    const secret = Buffer.from(JSON.stringify(validConfig)).toString("base64");
+
+    // Configure getgrist auth provider so that restarting the server will clear sessions.
+    await assert.isFulfilled(adminSession.createApi(ConfigAPI).configureProvider("getgrist.com", {
+      GRIST_GETGRISTCOM_SECRET: secret,
+    }));
 
     // Restart the server to process the flag
     await server.restart(false);
@@ -56,8 +71,8 @@ describe("AdminPanel", function() {
     assert.equal(await currentEmail(), gu.translateUser("anon").email);
 
     // Login again and restart once more time to see if everything is still working.
-    await session2.login();
-    assert.equal(await currentEmail(), session2.email);
+    await userSession.login();
+    assert.equal(await currentEmail(), userSession.email);
 
     // Restart the server once more time, without clearing sessions
     await server.restart(false);
@@ -65,7 +80,23 @@ describe("AdminPanel", function() {
     // Refresh the browser to check that session is still there.
     await driver.navigate().refresh();
     await gu.waitForDocMenuToLoad();
-    assert.equal(await currentEmail(), session2.email);
+    assert.equal(await currentEmail(), userSession.email);
+
+    // Cleanup: remove the auth provider config.
+    await adminSession.login();
+    await adminSession.createApi(ConfigAPI).configureProvider("getgrist.com", {
+      GRIST_GETGRISTCOM_SECRET: "",
+    });
+
+    // Make sure it is removed
+    const db = await server.getDatabase();
+    const manager = new ActivationsManager(db);
+    const activations = await manager.current();
+    assert.isUndefined(activations.prefs?.envVars?.GRIST_GETGRISTCOM_SECRET);
+
+    // Restart the server to process the flag (it will clear sessions again);
+    await server.restart(false);
+    await driver.navigate().refresh();
   });
 
   it("should show an explanation to non-managers", async function() {
