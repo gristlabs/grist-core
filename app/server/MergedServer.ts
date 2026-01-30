@@ -158,6 +158,7 @@ export class MergedServer {
       await this.flexServer.start();
 
       if (this.hasComponent("home")) {
+        await this._maybeClearSessions();
         this.flexServer.addUsage();
         if (!this.hasComponent("docs")) {
           this.flexServer.addDocApiForwarder();
@@ -246,6 +247,25 @@ export class MergedServer {
       }
     }
     throw new Error("Worker not found");
+  }
+
+  private async _maybeClearSessions() {
+    try {
+      const activations = this.flexServer.getActivations();
+      // deletePrefs creates a transaction to remove and return onRestartClearSessions.
+      // This is important when there are multiple home servers, as we only want
+      // one server to get back a truthy value and proceed with clearing sessions.
+      const { onRestartClearSessions } = await activations.deletePrefs(["onRestartClearSessions"]);
+      if (!onRestartClearSessions) { return; }
+
+      log.info("Clearing sessions...");
+      await this.flexServer.getSessions().clearAllSessions();
+      log.info("Successfully cleared sessions");
+    }
+    catch (err) {
+      // Don't re-throw so we don't disrupt the rest of the startup process.
+      log.error("Failed to clear sessions:", err);
+    }
   }
 }
 

@@ -86,6 +86,10 @@ export class Activation extends BaseEntity {
         this.prefs.onRestartReplaceEmailWithAdmin = props.prefs.onRestartReplaceEmailWithAdmin;
       }
 
+      if (props.prefs.onRestartClearSessions !== undefined) {
+        this.prefs.onRestartClearSessions = props.prefs.onRestartClearSessions;
+      }
+
       for (const key of Object.keys(this.prefs) as (keyof InstallPrefs)[]) {
         if (this.prefs[key] === null) {
           delete this.prefs[key];

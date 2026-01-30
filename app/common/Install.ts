@@ -17,7 +17,7 @@ export interface PendingChanges {
   onRestartSetAdminEmail?: string;
   /**
    * If set, looks up the user whose login email matches this value and updates
-   * their login email to be equal to `GRIST_ADMIN_EMAIL`.
+   * their login email to be equal to `GRIST_ADMIN_EMAIL` on server restart.
    *
    * This is primarily intended to be used in tandem with `onRestartSetAdminEmail`
    * to replace the current install admin without changing the user, to preserve
@@ -31,6 +31,10 @@ export interface PendingChanges {
    * and automatically removed after changes are successfully applied.
    */
   onRestartReplaceEmailWithAdmin?: string;
+  /**
+   * If set, clears all sessions on server restart.
+   */
+  onRestartClearSessions?: boolean;
 }
 
 export interface TelemetryPrefs {

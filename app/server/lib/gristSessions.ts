@@ -26,6 +26,7 @@ export const COOKIE_MAX_AGE =
 export interface SessionStore {
   getAsync(sid: string): Promise<any>;
   setAsync(sid: string, session: any): Promise<void>;
+  clearAsync(): Promise<void>;
   close(): Promise<void>;
 }
 
