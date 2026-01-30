@@ -146,7 +146,7 @@ export class DataTableModelWithDiff extends DisposableWithEvents implements Data
     ) as any;
     this.tableData = tableDataWithDiff;
     this.isLoaded = core.isLoaded;
-    this._wrappedModel = new DataTableModel(this.docModel, this.tableData, this.tableMetaRow);
+    this._wrappedModel = this.autoDispose(new DataTableModel(this.docModel, this.tableData, this.tableMetaRow));
 
     this.listenTo(this._wrappedModel, "rowChange", (changeType: ChangeType, rows: RowList) => {
       this.trigger("rowChange", changeType, rows);

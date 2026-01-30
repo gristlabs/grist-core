@@ -28,6 +28,7 @@ import { MinimalActionGroup } from "app/common/ActionGroup";
 import { DisposableWithEvents } from "app/common/DisposableWithEvents";
 import { CellValue, DocAction, getColValues, TableDataAction, TableRecordValues } from "app/common/DocActions";
 import { DocDataCache } from "app/common/DocDataCache";
+import { DocStateComparison } from "app/common/DocState";
 import { IDocPage } from "app/common/gristUrls";
 import { useBindable } from "app/common/gutil";
 import { VirtualId } from "app/common/SortSpec";
@@ -557,7 +558,9 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
     throw new Error("no ActionLog available");
   }
 
-  public setComparison() {}
+  public setComparison(comparison: DocStateComparison | null) {
+    this.comparison = comparison;
+  }
 }
 
 /**

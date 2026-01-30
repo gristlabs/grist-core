@@ -490,7 +490,8 @@ export function setupEditorCleanup(
 function onlyCurrent(cellValue: CellValue): CellValue {
   if (isVersions(cellValue)) {
     const versions = cellValue[1];
-    return versions.local ?? versions.parent ?? cellValue;
+    if (versions.local !== undefined) { return versions.local; }
+    if (versions.parent !== undefined) { return versions.parent; }
   }
   return cellValue;
 }
