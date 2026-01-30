@@ -7,6 +7,7 @@ import {
   transformImportSchema, validateImportSchema,
 } from "app/common/DocSchemaImport";
 import { UserAPI } from "app/common/UserAPI";
+import { createAirtableBaseToGristDocCrosswalk } from "app/common/airtable/AirtableDataImporter";
 
 export interface AirtableImportOptions {
   transformations?: ImportSchemaTransformParams,
@@ -99,12 +100,22 @@ export async function runAirtableImport(
 export async function runAirtableDataImport(
   apiKey: string,
   baseId: string,
+  docId: string,
   tableMapping: Map<string, string>,
 ) {
-  // TODO - Fetch airtable schema
-  //        fetch existing doc schema
-  //        create crosswalk
-  //        execute data import code
+  const api = new AirtableAPI({ apiKey });
+  const baseSchema = await api.getBaseSchema(baseId);
+
+  const userApi = window.gristApp?.topAppModel?.api;
+  if (!userApi) {
+    throw new Error("No user API available - is this being run outside of the browser?");
+  }
+  const docApi = userApi.getDocAPI(docId);
+  const existingDocSchema = await getExistingDocSchema(docApi);
+
+  console.log(createAirtableBaseToGristDocCrosswalk(baseSchema, existingDocSchema, tableMapping));
+
+  // TODO - Execute data import
 }
 
 async function createDoc(userApi: UserAPI, name: string) {
