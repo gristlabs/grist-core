@@ -112,8 +112,10 @@ describe("DocApi2", function() {
       this.timeout(120000); // Increase timeout for creating many users
 
       const testScenarios = [
+        // userCount describes both the number of users in the document and in the destination workspace
         { userCount: 5, label: "small document" },
         { userCount: 5, label: "small document" }, // Use results from second run to avoid cold start issues
+
         { userCount: 100, label: "large document" },
         { userCount: 100, label: "large document" },
       ];
@@ -146,6 +148,18 @@ describe("DocApi2", function() {
             }, {} as { [email: string]: "viewers" }),
           });
 
+          const destUserEmails: string[] = [];
+          for (let i = 1; i <= scenario.userCount; i++) {
+            const email = `testuser${scenario.userCount}_${i}_dst@example.com`;
+            destUserEmails.push(email);
+          }
+          await destOwner.updateWorkspacePermissions(destWsId, {
+            users: destUserEmails.reduce((acc, email) => {
+              acc[email] = "viewers";
+              return acc;
+            }, {} as { [email: string]: "viewers" }),
+          });
+
           try {
             // Measure the time it takes to move the document to different org
             const startTime = Date.now();
@@ -167,8 +181,9 @@ describe("DocApi2", function() {
         const smallDocTime = results.get(5)!;
         const largeDocTime = results.get(100)!;
 
-        // Make sure that moving the larger doc is within a reasonable factor of the smaller one. Before the fix
-        // it wasn't possible to move a document with 100 users at all, so this is a big improvement.
+        // Make sure that moving the larger doc is within a reasonable factor of the smaller one. Before the
+        // optimizations it wasn't possible at all to move a document with 100 users invited to the document
+        // and 100 another users invited to the destination workspace, so these are big improvements.
         assert.isAtMost(largeDocTime, smallDocTime * 9); // As for 20251008 on my machine it is ~4x
       }
       finally {
