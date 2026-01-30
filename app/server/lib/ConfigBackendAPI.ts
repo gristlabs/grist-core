@@ -54,16 +54,14 @@ export class ConfigBackendAPI {
     }));
 
     // PATCH /api/config/auth-providers?provider=...
+    // Configures an authentication provider or removes its configuration.
     app.patch("/api/config/auth-providers", requireInstallAdmin, expressWrap(async (req, resp) => {
       stringParam(req.query.provider, "provider", { allowed: [GETGRIST_COM_PROVIDER_KEY] });
 
       const gristComSecret = "GRIST_GETGRISTCOM_SECRET";
 
       // And expect just a secret key in the body.
-      const key = req.body[gristComSecret]?.split(/\s+/).join("");
-      if (!key) {
-        throw new ApiError("Request doesn't contain valid getgrist.com configuration parameter", 400);
-      }
+      const key = req.body[gristComSecret]?.split(/\s+/).join("") || undefined;
       const newSettings = new AppSettings("grist");
       const currentEnvVars = (await this._activations.current()).prefs?.envVars || {};
       const newEnvVars = { ...currentEnvVars, [gristComSecret]: key };
@@ -73,9 +71,14 @@ export class ConfigBackendAPI {
         readGetGristComConfigFromSettings(newSettings);
       }
       catch (e) {
-        // If still not configured, something is wrong with the provided key, but we don't know what exactly,
-        // as the check function thinks nothing is configured, if the key was invalid it would have thrown earlier.
-        throw new ApiError("Error configuring provider with the provided key.", 400);
+        if (!(e instanceof NotConfiguredError)) {
+          // If still not configured, something is wrong with the provided key, but we don't know what exactly,
+          // as the check function thinks nothing is configured, if the key was invalid it would have thrown earlier.
+          throw new ApiError("Error configuring provider with the provided key.", 400);
+        }
+        else {
+          log.debug(`Removing ${GETGRIST_COM_PROVIDER_KEY} configuration`);
+        }
       }
       await this._activations.updateAppEnvFile({ [gristComSecret]: key });
       // TODO: Restart may not always be required. When this endpoint evolves to support other
