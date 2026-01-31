@@ -977,7 +977,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       return tableModel;
     }
     if (!this._diffModels[tableId]) {
-      this._diffModels[tableId] = new DataTableModelWithDiff(tableModel, this.comparison.details);
+      this._diffModels[tableId] = this.autoDispose(new DataTableModelWithDiff(tableModel, this.comparison.details));
     }
     return this._diffModels[tableId];
   }
