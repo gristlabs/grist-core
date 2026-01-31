@@ -12,7 +12,6 @@
         "docNoAccess": "Ez duzu dokumentu honetara sarbiderik."
     },
     "admin": {
-        "noDefaultEmail": "Administratzailearen kontua falta da ez delako `GRIST_DEFAULT_EMAIL` ezarri",
         "emptyOrg": "Ez da `GRIST_INSTALL_ADMIN_ORG={{org}}`administrazio-erakundean zehaztutako jaberik aurkitu",
         "orgUser": "Erabiltzailea `GRIST_INSTALL_ADMIN_ORG={{org}}`administrazio-erakundean zehaztutako jabea da"
     },

@@ -60,7 +60,23 @@
         "Trying to add TableRules for existing table {{tableId}}": "Tentative d'ajout de règles de table pour la table existante {{tableId}}",
         "Use a simple attribute of user.LinkKey, e.g. user.LinkKey.something": "Utilisez un simple attribut de user.LinkKey, par exemple user.LinkKey.quelquechose",
         "hidden": "caché",
-        "## Access Rules\n\nYou don't have permission to view or edit access rules for this document.": "## Règles d'accès\n\nVous n'avez pas la permission de voir ou modifier les règles d'accès pour ce document."
+        "## Access Rules\n\nYou don't have permission to view or edit access rules for this document.": "## Règles d'accès\n\nVous n'avez pas la permission de voir ou modifier les règles d'accès pour ce document.",
+        "## Access Rules\n\nBasic access to this document is controlled using the 'Manage Users' option in the 'Share' menu, where you can assign collaborator roles such as Owner, Editor, or Viewer.\n\nFor more granular control, you can create Access Rules to limit who can view or edit specific\ntables, columns, or rows — useful for sensitive data or role-based permissions.\n[Learn more.]({{helpAccessRules}})": "## Règles d'accès\n\nLes accès de base à ce document sont configurés en utilisant l'option 'Gérer les utilisateurs' dans le menu 'Partager', où vous pouvez assigner à vos collaborateurs des rôles tels que Propriétaire, Éditeur, ou Lecture seule.\n\nPour un controle plus fin, vous pouvez créer des Permissions Avancées pour limiter qui peut voir ou éditer\ndes tables, colonnes, or lignes spécifiques — utile pour les données sensibles ou les permissions basées sur des rôles.\n[En savoir plus.]({{helpAccessRules}})",
+        "**Special rules** (expand each rule to customize who it applies to)": "**Règles spéciales** (développez chaque règle pour personnaliser à qui elle s'applique.)",
+        "After disabling Access Rules, Editors will be able to change the structure of the document and edit formulas. Editors and Viewers will be able to see all data in the document, as well as copy or download it.": "Après avoir désactivé les Permissions Avancées, les Éditeurs pourront changer la structure du document et modifier les formules. Les Éditeurs et les Spectateurs pourront voir toutes les données du document et également le copier et le télécharger.",
+        "After enabling Access Rules, Editors will no longer be able to change the structure of the\ndocument or edit formulas. Only Owners will be able to copy or download the document.\n\nThese settings can be changed under 'Special rules'.": "Après avoir activé les Permissions Avancées, les Éditeurs ne pourront plus modifier la structure du\ndocument ou modifier les formules. Seuls les Propriétaires pourront copier ou télécharger le document.\n\nCes paramètres peuvent être modifier dans les 'Règles spéciales''.",
+        "Allow Editors to edit structure (e.g. modify and delete tables, columns, and layouts) and write formulas.  Important: if checked, Editors will be able to edit formulas, which can access all data, regardless of table and column access rules!": "Autoriser les Éditeurs à modifier la structure (ex. modifier at supprimer les tables, colonnes et dispositions) et écrire des formules. Important : Si cette option est cochée, les Éditeurs pourront modifier les formules, qui peuvent accéder à toutes les données, malgré les Permissions Avancées sur les tables ou les colonnes !",
+        "Allow everyone to view access rules.": "Autoriser tout le monde à voir les permissions avancées.",
+        "Circumvent all read restrictions and allow everyone to copy the entire document, or view it in full in fiddle mode. Only use for for examples and templates, not for documents with sensitive data.": "Contourner toutes les restrictions de lecture et autoriser tout le monde à copier l'entièreté du document, ou le voir en entier en mode bac à sable. À n'utiliser que pour les exemples ou les modèles, pas pour les documents avec des données sensibles.",
+        "Continue": "Continuer",
+        "Disable Access Rules": "Désactiver les Permissions Avancées",
+        "Disable and save": "Désactiver et savegarder",
+        "Enable Access Rules": "Activer les Permissions Avancées",
+        "Permission to access the document in full by all users": "Permission d'accéder à l'entièreté du document pour tous les utilisatrices et utilisateurs",
+        "Permission to access the document in full by unrestricted users": "Permission d'accéder à l'entièreté du document pour les utilisateurs non soumis à une permission avancée",
+        "Restrict non-Owners from copying or downloading the full document. Note: this only affects users without read restrictions, since others will be restricted regardless of this setting.": "Empêche les non-Propriétaires de copier ou télécharger l'entièreté du document. N.B. : cela n'affecte que les utilisateurs sans restriction de lecture, comme les autres seront déjà empêchés sans tenir compte de ce réglage.",
+        "Special rules for templates": "Règle spéciale pour les modèles",
+        "This options should be off if Editors' access is to be limited. ": "Cette option ne devrait pas être activée si les accès des Éditeurs doivent être limités. "
     },
     "AccountPage": {
         "Account settings": "Paramètres du compte",
@@ -726,7 +742,8 @@
         ".zip": ".zip",
         "Format:": "Format :",
         ".tar (recommended)": ".tar (recommandé)",
-        "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "Les pièces jointes sont externalisées et ne sont pas incluses dans ce téléchargement. Si vous importez le document sur une autre instance de Grist, vous devrez {{downloadLink}} séparément. "
+        "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "Les pièces jointes sont externalisées et ne sont pas incluses dans ce téléchargement. Si vous importez le document sur une autre instance de Grist, vous devrez {{downloadLink}} séparément. ",
+        "If you're planning to upload this document to a Grist installation, you will need the archive in the \".tar\" format to restore attachments. ": "Si vous prévoyez de téléverser ce document dans une instance de Grist, vous aurez besoin de l'archiver au format \".tar\" pour pouvoir restaurer les pièces jointes. "
     },
     "NotifyUI": {
         "Upgrade Plan": "Améliorer votre abonnement",
@@ -1661,7 +1678,9 @@
         "You may also check out {{ourWeeklyWebinars}} to learn more about Grist.": "Vous pouvez également consulter {{ourWeeklyWebinars}} pour en savoir plus sur Grist.",
         "our weekly webinars": "nos webinaires hebdomadaires",
         "Grist 101": "Les fondamentaux de Grist",
-        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users                navigate the fundamentals of Grist.": "Vous pouvez également suivre notre webinaire d’introduction, {{ourWeeklyWebinars}}, qui a été spécialement créé afin d'aider les nouveaux utilisateurs à maitriser les fondamentaux de Grist."
+        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users                navigate the fundamentals of Grist.": "Vous pouvez également suivre notre webinaire d’introduction, {{ourWeeklyWebinars}}, qui a été spécialement créé afin d'aider les nouveaux utilisateurs à maitriser les fondamentaux de Grist.",
+        "Free coaching call": "Appel de coaching gratuit",
+        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users navigate the fundamentals of Grist.": "Vous pouvez aussi jeter un œil à notre webinaire d'introduction, {{ourWeeklyWebinars}}, conçu pour aider les nouveaux utilisateurs à découvrir les fondamentaux de Grist."
     },
     "FormView": {
         "Publish": "Publier",
@@ -1867,7 +1886,14 @@
         "Administrative accounts": "Comptes d'administration",
         "The users with administrative accounts": "Les utilisateurs avec un compte d'administration",
         "Version {{versionNumber}}": "Version {{versionNumber}}",
-        "no admin accounts": "pas de compte d'administration"
+        "no admin accounts": "pas de compte d'administration",
+        "Are you sure you want to restart Grist?": "Êtes-vous certain de vouloir redémarrer Grist ?",
+        "Grist is running in an environment that doesn't support restarting from the admin panel.": "Grist est lancé dans un environnement qui ne support pas le redémarrage depuis le panneau d’administration.",
+        "Restart": "Redémarrer",
+        "Restart Grist": "Redémarrer Grist",
+        "Restart Grist to apply pending changes or resolve issues.": "Redémarrer Grist pour appliquer les changements en attente ou résoudre les problèmes.",
+        "Restart Grist?": "Redémarrer Grist ?",
+        "Restarting Grist...": "Grist en cours de redémarrage..."
     },
     "Field": {
         "No choices configured": "Aucun choix configuré",
@@ -2548,5 +2574,9 @@
     },
     "CoreNewDocMethods": {
         "Untitled document": "Document sans titre"
+    },
+    "GetGristComProvider": {
+        "Sign in with getgrist.com": "Se connecter avec getgrist.com",
+        "Register your Grist server": "Enregistrer votre serveur Grist"
     }
 }

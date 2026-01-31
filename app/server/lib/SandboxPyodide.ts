@@ -99,7 +99,7 @@ export function getPyodideSettings(options: ISandboxOptions): PyodideSettings {
   );
 
   // If the sandbox is being used to do an import, we'll need read access
-  // to that too. We drop read access before running user code.
+  // to that too. We will not drop read access to this.
   const importDir = options.importDir ? fs.realpathSync(path.resolve(options.importDir)) : undefined;
   const importAllow = importDir ? [`--allow-read=${importDir}`] : [];
 
