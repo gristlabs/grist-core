@@ -1,5 +1,9 @@
 import { getExistingDocSchema } from "app/client/lib/DocSchemaImport";
 import { AirtableAPI } from "app/common/airtable/AirtableAPI";
+import {
+  createAirtableBaseToGristDocCrosswalk,
+  importDataFromAirtableBase,
+} from "app/common/airtable/AirtableDataImporter";
 import { gristDocSchemaFromAirtableSchema } from "app/common/airtable/AirtableSchemaImporter";
 import {
   DocSchemaImportTool,
@@ -7,7 +11,6 @@ import {
   transformImportSchema, validateImportSchema,
 } from "app/common/DocSchemaImport";
 import { UserAPI } from "app/common/UserAPI";
-import { createAirtableBaseToGristDocCrosswalk } from "app/common/airtable/AirtableDataImporter";
 
 export interface AirtableImportOptions {
   transformations?: ImportSchemaTransformParams,
@@ -113,9 +116,12 @@ export async function runAirtableDataImport(
   const docApi = userApi.getDocAPI(docId);
   const existingDocSchema = await getExistingDocSchema(docApi);
 
-  console.log(createAirtableBaseToGristDocCrosswalk(baseSchema, existingDocSchema, tableMapping));
+  const { schemaCrosswalk, warnings: crosswalkWarnings } =
+    createAirtableBaseToGristDocCrosswalk(baseSchema, existingDocSchema, tableMapping);
 
-  // TODO - Execute data import
+  console.log(crosswalkWarnings);
+
+  await importDataFromAirtableBase({ base: api.base(baseId), addRows: docApi.addRows.bind(docApi), schemaCrosswalk });
 }
 
 async function createDoc(userApi: UserAPI, name: string) {
