@@ -29,8 +29,7 @@ export async function withDriverLogging(
     running = true;
     try {
       await fetchScreenshotAndLogs(test);
-    }
-    finally {
+    } finally {
       running = false;
     }
   }
@@ -39,8 +38,7 @@ export async function withDriverLogging(
   const timeout = setTimeout(() => clearInterval(periodic), timeoutMs);
   try {
     return await callback();
-  }
-  finally {
+  } finally {
     clearInterval(periodic);
     clearTimeout(timeout);
   }

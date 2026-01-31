@@ -96,8 +96,7 @@ export function readForwardAuthConfigFromSettings(settings: AppSettings): Forwar
     header = headerSetting.requireString({
       envVar: ["GRIST_FORWARD_AUTH_HEADER", "GRIST_PROXY_AUTH_HEADER"],
     });
-  }
-  catch (e) {
+  } catch (e) {
     throw new NotConfiguredError((e as Error).message);
   }
 

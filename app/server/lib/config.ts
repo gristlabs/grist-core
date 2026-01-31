@@ -71,8 +71,7 @@ export class FileConfig<FileContents> {
 
     try {
       fileContents = validator(rawFileContents);
-    }
-    catch (error) {
+    } catch (error) {
       const configError =
         new ConfigValidationError(`Config at ${configPath} failed validation: ${error.message}`);
       configError.cause = error;

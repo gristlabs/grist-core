@@ -88,8 +88,7 @@ function assertMembersGroup(org: Organization, exists: boolean) {
   const memberAcl = org.aclRules.find(_aclRule => _aclRule.group.name === roles.MEMBER);
   if (!exists) {
     assert.isUndefined(memberAcl);
-  }
-  else {
+  } else {
     assert.isDefined(memberAcl);
     assert.equal(memberAcl!.permissions, Permissions.VIEW);
     assert.isDefined(memberAcl!.group);

@@ -90,8 +90,7 @@ describe("Sandbox", function() {
           "test_echo", "Hello world",
         );
         assert.equal(result, "Hello world");
-      }
-      finally {
+      } finally {
         await sandbox.shutdown();
       }
     });
@@ -106,8 +105,7 @@ describe("Sandbox", function() {
         const stderr = output.stderr.join("\n");
         assert.match(stderr, /Traceback \(most recent call last\):/);
         assert.match(stderr, /Exception: Hello world/);
-      }
-      finally {
+      } finally {
         await sandbox.shutdown();
       }
     });
@@ -127,8 +125,7 @@ describe("Sandbox", function() {
         assert.equal(value, 7.5);
         assert.deepEqual(output.stdout, []);
         assert.deepEqual(output.stderr, []);
-      }
-      finally {
+      } finally {
         await sandbox.shutdown();
       }
     });
@@ -155,8 +152,7 @@ describe("Sandbox", function() {
         await assert.isRejected(sandbox.pyCall("test_operation", 1.5, "uppercase", "shouldfail2"),
           /PipeToSandbox is closed/,
           "When sandbox has exited, pyCall should not succeed");
-      }
-      finally {
+      } finally {
         await sandbox.shutdown();
       }
     });
@@ -192,8 +188,7 @@ describe("Sandbox", function() {
         delta = Date.now() - start;
         assert(delta < 100, "Should really be around 20ms, but took " + delta);
         assert.equal(value, bigString);
-      }
-      finally {
+      } finally {
         await sandbox.shutdown();
       }
     });
@@ -321,16 +316,14 @@ describe("Sandbox", function() {
         let sandboxContent = "";
         try {
           sandboxContent = await sandbox.pyCall("test_read_file", path.join("/tmp", fname));
-        }
-        catch (e) {
+        } catch (e) {
           // File not found is acceptable.
           if (!String(e).match(/FileNotFoundError/)) {
             throw e;
           }
         }
         assert.lengthOf(sandboxContent, 0);
-      }
-      finally {
+      } finally {
         fs.unlinkSync(testFile);
       }
     });
@@ -355,8 +348,7 @@ return 'done'
           !result.match(/undefined symbol: emscripten_run_script_string/)) {
           throw new Error("unexpected result " + String(result));
         }
-      }
-      catch (e) {
+      } catch (e) {
         if (
           // this is how pyodide sandbox should fail.
           !String(e).match(/NotCapable: Requires write access/)
@@ -387,8 +379,7 @@ return 'done'
         const fileContents = fs.readFileSync(`./sandbox/${mainFile}`).toString();
         assert.match(fileContents, /defines what sandbox functions are made available to the Node controller/);
         assert.notMatch(fileContents, /rambunctious/);
-      }
-      catch (e) {
+      } catch (e) {
         // Writes may fail entirely.
         if (
           !String(e).match(/NotCapable: Requires write access/)
@@ -443,8 +434,7 @@ return 'done'
             "test_echo", "Hello world",
           );
           assert.equal(result, "Hello world");
-        }
-        finally {
+        } finally {
           await sandbox.shutdown();
         }
       });

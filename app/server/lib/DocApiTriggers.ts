@@ -107,13 +107,11 @@ export class DocApiTriggers {
           triggerId: sandboxRes.retValues[0],
           webhookId,
         };
-      }
-      catch (err) {
+      } catch (err) {
         // remove webhook
         await this._dbManager.removeWebhook(webhookId, activeDoc.docName, "", false);
         throw err;
-      }
-      finally {
+      } finally {
         await activeDoc.sendWebhookNotification();
       }
     };
@@ -178,8 +176,7 @@ export class DocApiTriggers {
           if (tableId !== currentTableId && currentTableId) {
             // if the tableId changed, we need to reset the watchedColIds
             fields.watchedColRefList = [GristObjCode.List];
-          }
-          else {
+          } else {
             if (!tableId) {
               throw new ApiError(`Cannot find columns "${watchedColIds}" because table is not known`, 404);
             }
@@ -189,8 +186,7 @@ export class DocApiTriggers {
                 (colId) => { return colIdToReference(metaTables, tableId, colId.trim().replace(/^\$/, "")); },
               )];
           }
-        }
-        else {
+        } else {
           fields.watchedColRefList = [GristObjCode.List];
         }
         fields.tableRef = tableIdToRef(metaTables, tableId);
@@ -205,12 +201,10 @@ export class DocApiTriggers {
             throw new ApiError(`Cannot find column "${isReadyColumn}" because table is not known`, 404);
           }
           fields.isReadyColRef = colIdToReference(metaTables, currentTableId, isReadyColumn);
-        }
-        else {
+        } else {
           fields.isReadyColRef = 0;
         }
-      }
-      else if (tableId) {
+      } else if (tableId) {
         // When isReadyColumn is undefined but tableId was changed, let's unset the ready column
         fields.isReadyColRef = 0;
       }

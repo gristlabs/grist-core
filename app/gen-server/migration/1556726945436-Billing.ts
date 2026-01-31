@@ -176,8 +176,7 @@ export class Billing1556726945436 implements MigrationInterface {
           .into(BillingAccountManager)
           .values([{ billingAccountId, userId: org.owner.id }])
           .execute();
-      }
-      else {
+      } else {
         for (const rule of org.aclRules) {
           for (const user of rule.group.memberUsers) {
             await queryRunner.manager.createQueryBuilder()

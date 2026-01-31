@@ -629,8 +629,7 @@ export class ActiveDoc extends EventEmitter {
     for (const group of groups) {
       if (await this._granularAccess.allowActionGroup(docSession, group)) {
         permittedGroups.push(group);
-      }
-      else {
+      } else {
         censored = true;
       }
     }
@@ -692,12 +691,10 @@ export class ActiveDoc extends EventEmitter {
     let result: AssistanceResponse;
     if (isAssistantV2(assistant) && isAssistanceRequestV2(params)) {
       result = await assistant.getAssistance(docSession, this, params);
-    }
-    else if (!isAssistantV2(assistant) && !isAssistanceRequestV2(params)) {
+    } else if (!isAssistantV2(assistant) && !isAssistanceRequestV2(params)) {
       // Same code, different types.
       result = await assistant.getAssistance(docSession, this, params);
-    }
-    else {
+    } else {
       throw new ApiError("Wrong type of assistance request", 400);
     }
     const limit = await dbManager.increaseUsage(scope, "assistant", { delta: 1 });
@@ -813,8 +810,7 @@ export class ActiveDoc extends EventEmitter {
           skipInitialTable: options?.skipInitialTable,
           useExisting: options?.useExisting,
         });
-      }
-      else {
+      } else {
         await this.docStorage.openFile({
           beforeMigration: async (currentVersion, newVersion) => {
             return this._beforeMigration(docSession, "storage", currentVersion, newVersion);
@@ -842,8 +838,7 @@ export class ActiveDoc extends EventEmitter {
           });
         }),
       );
-    }
-    catch (err) {
+    } catch (err) {
       const level = err.status === 404 ? "warn" : "error";
       this._log.log(level, docSession, "Failed to load document", err);
       await this.shutdown();
@@ -1022,8 +1017,7 @@ export class ActiveDoc extends EventEmitter {
           status: "applied",
         });
       }
-    }
-    else {
+    } else {
       await this._getHomeDbManagerOrFail().updateProposalStatus(urlId, proposalId, {
         status: options?.dismiss ? "dismissed" : undefined,
       });
@@ -1089,8 +1083,7 @@ export class ActiveDoc extends EventEmitter {
           const hadChanges = await this.updateUsedAttachmentsIfNeeded();
           if (hadChanges) {
             await this._updateAttachmentsSize({ syncUsageToDatabase: false });
-          }
-          else {
+          } else {
             // No point in retrying if nothing changed.
             throw e;
           }
@@ -1110,8 +1103,7 @@ export class ActiveDoc extends EventEmitter {
       });
       await this._granularAccess.noteUploads(docSession, result.retValues);
       return result.retValues;
-    }
-    finally {
+    } finally {
       await globalUploadSet.cleanup(uploadId);
     }
   }
@@ -1154,18 +1146,15 @@ export class ActiveDoc extends EventEmitter {
     ) {
       // Do not need to sweat over access to attachments if user can
       // read everything or download everything.
-    }
-    else {
+    } else {
       if (maybeNew && await this._granularAccess.isAttachmentUploadedByUser(docSession, attId)) {
         // Fine, this is an attachment the user uploaded (recently).
-      }
-      else if (cell) {
+      } else if (cell) {
         // Only provide the download if the user has access to the cell
         // they specified, and that cell is in an attachment column,
         // and the cell contains the specified attachment.
         await this._granularAccess.assertAttachmentAccess(docSession, cell, attId);
-      }
-      else {
+      } else {
         if (!await this._granularAccess.findAttachmentCellForUser(docSession, attId)) {
           // We found no reason to allow this user to access the attachment.
           throw new ApiError("Cannot access attachment", 403);
@@ -1251,12 +1240,10 @@ export class ActiveDoc extends EventEmitter {
         if (isAdded) {
           sizesToUpdate.set(fileIdent, file.size);
           results.added += 1;
-        }
-        else {
+        } else {
           results.unused += 1;
         }
-      }
-      catch (err) {
+      } catch (err) {
         results.errored += 1;
         if (err instanceof MismatchedFileHashError) {
           this._log.warn(docSession, `Failed to upload attachment: ${err.message}`);
@@ -1436,12 +1423,10 @@ export class ActiveDoc extends EventEmitter {
     let data: TableDataAction;
     if (onDemand || this._isSnapshot) {
       data = await this._fetchQueryFromDB(query, onDemand);
-    }
-    else if (wantFull) {
+    } else if (wantFull) {
       await this.waitForInitialization();
       data = await this._fetchQueryFromDataEngine(query);
-    }
-    else {
+    } else {
       if (!this._fullyLoaded) {
         data = await this._fetchQueryFromDB(query, false);
       }
@@ -1657,8 +1642,7 @@ export class ActiveDoc extends EventEmitter {
     let actions: UserAction[];
     if (undo) {
       actions = [["ApplyUndoActions", flatten(actionBundles.map(a => a!.undo))]];
-    }
-    else {
+    } else {
       actions = flatten(actionBundles.map(a => a!.userActions));
     }
     // Granular access control implemented ultimately in _applyUserActions.
@@ -1886,8 +1870,7 @@ export class ActiveDoc extends EventEmitter {
 
       await dbManager.forkDoc(userId, doc, forkIds.forkId);
       this._logForkDocumentEvents(docSession, { document: doc, fork: forkIds });
-    }
-    finally {
+    } finally {
       await permitStore.removePermit(permitKey);
     }
 
@@ -1935,8 +1918,7 @@ export class ActiveDoc extends EventEmitter {
       // and userAttribute rules are checked at a different point, in findRuleProblems() called
       // from getAclResources().
       return getPredicateFormulaProperties(parsedAclFormula);
-    }
-    catch (e) {
+    } catch (e) {
       e.message = e.message?.replace("[Sandbox] ", "");
       throw e;
     }
@@ -2094,8 +2076,7 @@ export class ActiveDoc extends EventEmitter {
         this._requests.handleRequestsBatchFromUserActions(requests).catch(e => console.error(e));
       }
       await this._reportDataEngineMemoryThrottled?.();
-    }
-    else {
+    } else {
       // Create default SandboxActionBundle to use if the data engine is not called.
       sandboxActionBundle = createEmptySandboxActionBundle();
     }
@@ -2163,8 +2144,7 @@ export class ActiveDoc extends EventEmitter {
     }
     try {
       await this.docStorage.removeUnusedAttachments();
-    }
-    catch (e) {
+    } catch (e) {
       // If document doesn't have _gristsys_Files, don't worry about it;
       // if this is an error it will have already been reported, and the
       // document can be in this state when updating initial SQL code after
@@ -2382,8 +2362,7 @@ export class ActiveDoc extends EventEmitter {
     try {
       // Call the data engine to start timing.
       await this._doStartTiming();
-    }
-    catch (e) {
+    } catch (e) {
       this.isTimingOn = false;
       throw e;
     }
@@ -2456,13 +2435,11 @@ export class ActiveDoc extends EventEmitter {
           shutdownAfter: this._isSnapshot,
         });
         success = true;
-      }
-      finally {
+      } finally {
         await this._afterMigration(docSession, "schema", schemaVersion, success);
         await this._tableMetadataLoader.clean();  // _grist_DocInfo may have changed.
       }
-    }
-    else if (docSchemaVersion > schemaVersion) {
+    } else if (docSchemaVersion > schemaVersion) {
       // We do NOT attempt to down-migrate in this case. Migration code cannot down-migrate
       // directly (since it doesn't know anything about newer documents). We could revert the
       // migration action, but that requires merging and still may not be safe. For now, doing
@@ -2564,8 +2541,7 @@ export class ActiveDoc extends EventEmitter {
         if (await timeoutReached(Deps.SHUTDOWN_ITEM_TIMEOUT_MS, func())) {
           this._log.error(docSession, `${funcDesc} timed out`);
         }
-      }
-      catch (err) {
+      } catch (err) {
         this._log.error(docSession, `${funcDesc} failed`, err);
       }
     };
@@ -2650,14 +2626,12 @@ export class ActiveDoc extends EventEmitter {
         // The this.waitForInitialization promise may not yet have resolved, but
         // should do so quickly now we've killed everything it depends on.
         await safeCallAndWait("waitForInitialization", () => this.waitForInitialization());
-      }
-      catch (err) {
+      } catch (err) {
         this._log.error(docSession, "failed to shutdown some resources", err);
       }
       // No timeout on this callback: if it hangs, it will make the document unusable.
       await this._afterShutdownCallback?.();
-    }
-    finally {
+    } finally {
       this._docManager.removeActiveDoc(this);
     }
     await safeCallAndWait("_granularAccess.close", () => this._granularAccess.close());
@@ -2790,8 +2764,7 @@ export class ActiveDoc extends EventEmitter {
     const exceedingDataLimit = this.dataLimitRatio > 1;
     if (exceedingDataLimit && !this._gracePeriodStart) {
       await this._updateGracePeriodStart(new Date());
-    }
-    else if (!exceedingDataLimit && this._gracePeriodStart) {
+    } else if (!exceedingDataLimit && this._gracePeriodStart) {
       await this._updateGracePeriodStart(null);
     }
   }
@@ -2838,8 +2811,7 @@ export class ActiveDoc extends EventEmitter {
     // The width and height properties are integers representing width and height in pixels.
     try {
       dimensions = await bluebird.fromCallback((cb: any) => imageSize(fileData.absPath, cb));
-    }
-    catch (err) {
+    } catch (err) {
       // Non-images will fail in some way, and that's OK.
       dimensions.height = 0;
       dimensions.width = 0;
@@ -2892,8 +2864,7 @@ export class ActiveDoc extends EventEmitter {
         [action],
         { attachment: true },
       );
-    }
-    catch (e) {
+    } catch (e) {
       if (e instanceof SandboxError) {
         this._log.error(null, "Attachment sizes could not be updated due to a sandbox error: ", e);
         throw new Error("Attachment sizes could not be updated due to a sandbox error", { cause: e });
@@ -2927,8 +2898,7 @@ export class ActiveDoc extends EventEmitter {
     try {
       // The last argument tells create_migrations() that only metadata is included.
       docActions = await this._rawPyCall("create_migrations", tableData, true);
-    }
-    catch (e) {
+    } catch (e) {
       if (!/need all tables/.test(e.message)) {
         throw e;
       }
@@ -2976,8 +2946,7 @@ export class ActiveDoc extends EventEmitter {
   private async _fetchTableIfPresent(tableName: string): Promise<Buffer | null> {
     try {
       return await this.docStorage.fetchTable(tableName);
-    }
-    catch (err) {
+    } catch (err) {
       if (/no such table/.test(err.message)) { return null; }
       throw err;
     }
@@ -3006,8 +2975,7 @@ export class ActiveDoc extends EventEmitter {
           ...this.getLogMeta(docSession),
           num_on_demand_tables: onDemandCount,
         });
-      }
-      else {
+      } else {
         if (!skipLoadingUserTables) {
           const pendingTableNames = tables.filterRecords({ onDemand: false }).map(r => r.tableId);
           pendingTableNames.sort();   // Sort for a consistent order (affects DocRegressionTest)
@@ -3061,8 +3029,7 @@ export class ActiveDoc extends EventEmitter {
           interval.enable();
         }
       }
-    }
-    catch (err) {
+    } catch (err) {
       this._fullyLoaded = true;
       if (!this._shuttingDown) {
         this._log.warn(docSession, "_finishInitialization stopped with %s", err);
@@ -3285,8 +3252,7 @@ export class ActiveDoc extends EventEmitter {
       await Promise.all(promises);
       this._syncDocUsageToDatabase();
       await this._broadcastDocUsageToClients();
-    }
-    catch (e) {
+    } catch (e) {
       this._log.warn(docSession, "failed to initialize doc usage", e);
     }
 
@@ -3350,8 +3316,7 @@ export class ActiveDoc extends EventEmitter {
       const data = await dataEngine.pyCall(funcName, ...varArgs);
       this._lastPyCallResponseSize = dataEngine.getLastResponseNumBytes?.();
       return data;
-    }
-    catch (e) {
+    } catch (e) {
       if (e instanceof UnavailableSandboxMethodError && this._isSnapshot) {
         throw new UnavailableSandboxMethodError("pyCall is not available in snapshots");
       }
@@ -3507,8 +3472,7 @@ export class ActiveDoc extends EventEmitter {
 
     try {
       await cb();
-    }
-    finally {
+    } finally {
       if (shutdownAfter) {
         await (await this._dataEngine)?.shutdown();
         this._dataEngine = null;
@@ -3534,12 +3498,10 @@ export class ActiveDoc extends EventEmitter {
           // corruption.
           try {
             await this.docStorage.vacuum();
-          }
-          catch (err) {
+          } catch (err) {
             if (err.code === "ENOENT") {
               this._log.warn(null, `Vacuum on inactive: Doc ${this.docName} is no longer available`);
-            }
-            else {
+            } else {
               this._log.warn(null, `Vacuum on inactive: Doc ${this.docName}\n ${err}`);
             }
           }

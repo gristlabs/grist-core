@@ -74,13 +74,11 @@ export class ReferenceUtils extends Disposable {
     if (this.hasDropdownCondition) {
       try {
         acIndex = this._getDropdownConditionACIndex(rowId);
-      }
-      catch (e) {
+      } catch (e) {
         this._dropdownConditionError?.set(e);
         return { items: [], extraItems: [], highlightFunc: () => [], selectIndex: -1 };
       }
-    }
-    else {
+    } else {
       acIndex = this.tableData.columnACIndexes.getColACIndex(
         this.visibleColId,
         this.visibleColFormatter,

@@ -91,8 +91,7 @@ export function AdminSectionItem(owner: IDisposableOwner, options: {
       ),
       testId(`admin-panel-item-${options.id}`),
     );
-  }
-  else {
+  } else {
     return cssItem(
       cssItemShort(itemContent(),
         cssItemShort.cls("-disabled", Boolean(options.disabled)),

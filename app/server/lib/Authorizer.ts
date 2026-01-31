@@ -251,8 +251,7 @@ export async function addRequestUser(
       if (!permit) { return res.status(401).send("Bad request: unknown permit"); }
       setRequestUser(mreq, dbManager, dbManager.getAnonymousUser());
       mreq.specialPermit = permit;
-    }
-    catch (err) {
+    } catch (err) {
       log.error(`problem reading permit: ${err}`);
       return res.status(401).send("Bad request: permit could not be read");
     }
@@ -319,8 +318,7 @@ export async function addRequestUser(
       if (allowedOrg) {
         if (allowHost(req, allowedOrg.host)) {
           customHostSession = ` custom-host-match ${allowedOrg.host}`;
-        }
-        else {
+        } else {
           // We need an exception for internal forwarding from home server to doc-workers. These use
           // internal hostnames, so we can't expect a custom domain. These requests do include an
           // Organization header, which we'll use to grant the exception, but security issues remain.
@@ -331,8 +329,7 @@ export async function addRequestUser(
           const org = req.header("organization");
           if (org && org === allowedOrg.org) {
             customHostSession = ` custom-host-fwd ${org}`;
-          }
-          else {
+          } else {
             // Log error and fail.
             log.warn("Auth[%s]: sessionID for host %s org %s; wrong for host %s org %s", mreq.method,
               allowedOrg.host, allowedOrg.org, mreq.get("host"), mreq.org);
@@ -373,8 +370,7 @@ export async function addRequestUser(
           // In this special case of initially linking a profile, we need to look up the user's info.
           const user = await dbManager.getUserByLogin(option.email, { userOptions });
           setRequestUser(mreq, dbManager, user);
-        }
-        else {
+        } else {
           // No profile has access to this org.  We could choose to
           // link no profile, in which case user will end up
           // immediately presented with a sign-in page, or choose to
@@ -486,8 +482,7 @@ export function redirectToLoginUnconditionally(
     const redirectUrl = new URL(getOriginUrl(req) + req.originalUrl);
     if (signUp) {
       return resp.redirect(await getSignUpRedirectUrl(req, redirectUrl));
-    }
-    else {
+    } else {
       return resp.redirect(await getLoginRedirectUrl(req, redirectUrl));
     }
   });
@@ -530,8 +525,7 @@ export function redirectToLogin(
 
       // In all other cases (including unknown org), redirect user to login or sign up.
       return redirectUnconditionally(req, resp, next);
-    }
-    catch (err) {
+    } catch (err) {
       log.info("Authorizer failed to redirect", err.message);
       return resp.status(401).send(err.message);
     }

@@ -260,8 +260,7 @@ export class FlexServer implements GristServer {
     // The "base domain" is only a thing if orgs are encoded as a subdomain.
     if (process.env.GRIST_ORG_IN_PATH === "true" || process.env.GRIST_SINGLE_ORG) {
       this._defaultBaseDomain = options.baseDomain || (homeUrl && new URL(homeUrl).hostname);
-    }
-    else {
+    } else {
       this._defaultBaseDomain = options.baseDomain || (homeUrl && parseSubdomain(new URL(homeUrl).hostname).base);
     }
     this.info.push(["defaultBaseDomain", this._defaultBaseDomain]);
@@ -625,8 +624,7 @@ export class FlexServer implements GristServer {
       if (overallOk) {
         this._healthCheckCounter++;
         res.status(200).send(`Grist ${this.name} is alive${extra}.`);
-      }
-      else {
+      } else {
         this._healthCheckCounter = 0;  // reset counter if we ever go internally unhealthy.
         res.status(500).send(`Grist ${this.name} is unhealthy${extra}.`);
       }
@@ -876,8 +874,7 @@ export class FlexServer implements GristServer {
       if (result.status !== 200) {
         throw new ApiError((await result.json()).error, result.status);
       }
-    }
-    finally {
+    } finally {
       await this._internalPermitStore.removePermit(permitKey);
     }
   }
@@ -940,8 +937,7 @@ export class FlexServer implements GristServer {
       this._redirectToLoginUnconditionally = redirectToLoginUnconditionally(this._getLoginRedirectUrl,
         this._getSignUpRedirectUrl);
       this._redirectToOrgMiddleware = tbind(this._redirectToOrg, this);
-    }
-    else {
+    } else {
       this._userIdMiddleware = noop;
       this._trustOriginsMiddleware = noop;
       // For standalone single-user Grist, documents are stored on-disk
@@ -1124,8 +1120,7 @@ export class FlexServer implements GristServer {
       if (mode === "clean") {
         await this._shutdown();
         this._disabled = true;
-      }
-      else {
+      } else {
         this._disabled = true;
         if (this._comm) {
           this._comm.setServerActivation(false);
@@ -1156,8 +1151,7 @@ export class FlexServer implements GristServer {
       try {
         await axios.get(statusUrl);
         return w.data;
-      }
-      catch (err) {
+      } catch (err) {
         log.debug(`While waiting for ${statusUrl} got error ${(err as Error).message}`);
       }
     }
@@ -1321,8 +1315,7 @@ export class FlexServer implements GristServer {
     try {
       const loginSystem = await this.resolveLoginSystem();
       this._loginMiddleware = await loginSystem.getMiddleware(this);
-    }
-    catch (err) {
+    } catch (err) {
       // We need to start even if login middleware fails to initialize, and report it so that admins
       // can fix the problem using the admin UI.
       log.error("Error initializing login middleware:", err);
@@ -1514,8 +1507,7 @@ export class FlexServer implements GristServer {
         this.create.ExternalStorage.bind(this.create),
       );
       this._storageManager = storageManager;
-    }
-    else {
+    } else {
       const samples = getAppPathTo(this.appRoot, "public_samples");
       const storageManager = await this.create.createLocalDocStorageManager(
         this.docsRoot, samples, this._comm, undefined, this);
@@ -1620,8 +1612,7 @@ export class FlexServer implements GristServer {
       info.lastSuccessfulStep = "all";
       info.functional = true;
       info.effective = !["skip", "unsandboxed"].includes(info.flavor);
-    }
-    catch (e) {
+    } catch (e) {
       info.error = String(e);
     }
     return info;
@@ -1815,8 +1806,7 @@ export class FlexServer implements GristServer {
       };
       try {
         await this._recordNewUserInfo(row);
-      }
-      catch (e) {
+      } catch (e) {
         // If we failed to record, at least log the data, so we could potentially recover it.
         log.rawWarn(`Failed to record new user info: ${e.message}`, { newUserQuestions: row });
       }
@@ -1841,8 +1831,7 @@ export class FlexServer implements GristServer {
     this.app.use("/", expressWrap((req, resp) => {
       if (this._sendAppPage) {
         return this._sendAppPage(req, resp, { path: "error.html", status: 404, config: { errPage: "not-found" } });
-      }
-      else {
+      } else {
         return resp.status(404).json({ error: "not found" });
       }
     }));
@@ -1861,8 +1850,7 @@ export class FlexServer implements GristServer {
         );
         const config = { errPage, errMessage: err.message || err };
         await this._sendAppPage(req, resp, { path: "error.html", status: err.status || 400, config });
-      }
-      catch (error) {
+      } catch (error) {
         return next(error);
       }
     });
@@ -1906,8 +1894,7 @@ export class FlexServer implements GristServer {
   public async finalizePlugins(userPort: number | null) {
     if (isAffirmative(process.env.GRIST_TRUST_PLUGINS)) {
       this._pluginUrl = this.getDefaultHomeUrl();
-    }
-    else if (userPort !== null) {
+    } else if (userPort !== null) {
       // If plugin content is served from same host but on different port,
       // run webserver on that port
       const ports = await this.startCopy("pluginServer", userPort);
@@ -1952,8 +1939,7 @@ export class FlexServer implements GristServer {
   public setReady(value: boolean) {
     if (value) {
       log.debug("FlexServer is ready");
-    }
-    else {
+    } else {
       log.debug("FlexServer is no longer ready");
     }
     this._isReady = value;
@@ -2045,12 +2031,10 @@ export class FlexServer implements GristServer {
     let org: Organization;
     if (resource instanceof Organization) {
       org = resource;
-    }
-    else if (resource instanceof Workspace) {
+    } else if (resource instanceof Workspace) {
       org = resource.org;
       state.ws = resource.id;
-    }
-    else {
+    } else {
       org = resource.workspace.org;
       state.doc = resource.urlId || resource.id;
       state.slug = getSlugIfNeeded(resource);
@@ -2135,8 +2119,7 @@ export class FlexServer implements GristServer {
 
     try {
       await this.getPubSubManager().publish(latestVersionChannel, JSON.stringify(latestVersionAvailable));
-    }
-    catch (error) {
+    } catch (error) {
       log.error(`Error publishing latest version`, { error, latestVersionAvailable });
     }
   }
@@ -2283,8 +2266,7 @@ export class FlexServer implements GristServer {
         if (this._has(antecedent)) {
           throw new Error(`${part} is needed before ${antecedent}`);
         }
-      }
-      else if (!this._has(precedent)) {
+      } else if (!this._has(precedent)) {
         throw new Error(`${precedent} is needed before ${part}`);
       }
     }
@@ -2313,8 +2295,7 @@ export class FlexServer implements GristServer {
             publicUrl: url,
             internalUrl: url,
           };
-        }
-        else {
+        } else {
           const url = (process.env.APP_DOC_URL || this.getOwnUrl()) + `/v/${this.tag}/`;
           this.worker = {
             // The worker id should be unique to this worker.
@@ -2328,16 +2309,14 @@ export class FlexServer implements GristServer {
         if (process.env.GRIST_WORKER_GROUP) {
           this.worker.group = process.env.GRIST_WORKER_GROUP;
         }
-      }
-      else {
+      } else {
         if (process.env.GRIST_ROUTER_URL) {
           await this.createWorkerUrl();
         }
       }
       await workers.addWorker(this.worker);
       await workers.setWorkerAvailability(this.worker.id, true);
-    }
-    catch (err) {
+    } catch (err) {
       this._healthy = false;
       throw err;
     }
@@ -2407,8 +2386,7 @@ export class FlexServer implements GristServer {
           // could reconnect to us.  The muted ActiveDoc will result
           // in them being dropped again.
           await workers.releaseAssignment(this.worker.id, assignment);
-        }
-        catch (err) {
+        } catch (err) {
           log.info("problem dealing with assignment", assignment, err);
         }
       }));
@@ -2423,8 +2401,7 @@ export class FlexServer implements GristServer {
     await this._removeSelfAsWorker(workers, this.worker.id);
     try {
       await this._docManager.shutdownAll();
-    }
-    catch (err) {
+    } catch (err) {
       log.error("FlexServer shutdown problem", err);
     }
     if (this._comm) {
@@ -2598,8 +2575,7 @@ export class FlexServer implements GristServer {
       if (res.status !== 200) {
         throw new Error(`API call failed with ${res.status}`);
       }
-    }
-    finally {
+    } finally {
       if (permitKey) {
         await this._internalPermitStore.removePermit(permitKey);
       }
@@ -2641,8 +2617,7 @@ export class FlexServer implements GristServer {
     );
     if (orgs.length > 1) {
       resp.redirect(getOrgUrl(mreq, "/welcome/teams"));
-    }
-    else {
+    } else {
       resp.redirect(redirectToMergedOrg ? this.getMergedOrgUrl(mreq) : getOrgUrl(mreq));
     }
   }
@@ -2668,8 +2643,7 @@ export class FlexServer implements GristServer {
     let newDocId: string | null = null;
     try {
       newDocId = await createSavedDoc(this, req, { srcDocId });
-    }
-    catch (e) {
+    } catch (e) {
       log.error(`FlexServer failed to copy doc ${srcDocId} to Home workspace`, e);
     }
     return newDocId;
@@ -2840,8 +2814,7 @@ function trustOriginHandler(req: express.Request, res: express.Response, next: e
   if (trustOrigin(req, res)) {
     res.header("Access-Control-Allow-Credentials", "true");
     res.header("Access-Control-Allow-Headers", "Authorization, Content-Type, X-Requested-With");
-  }
-  else {
+  } else {
     // Any origin is allowed, but if it isn't trusted, then we don't allow credentials,
     // i.e. no Cookie or Authorization header.
     res.header("Access-Control-Allow-Origin", "*");
@@ -2856,8 +2829,7 @@ function trustOriginHandler(req: express.Request, res: express.Response, next: e
   }
   if ("OPTIONS" === req.method) {
     res.sendStatus(200);
-  }
-  else {
+  } else {
     next();
   }
 }

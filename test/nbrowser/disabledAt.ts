@@ -141,8 +141,7 @@ async function assert403<T>(testPromise: Promise<T>) {
   let caughtErr: any = null;
   try {
     await testPromise;
-  }
-  catch (err: any) {
+  } catch (err: any) {
     caughtErr = err;
   }
   assert.equal(caughtErr?.status, 403);

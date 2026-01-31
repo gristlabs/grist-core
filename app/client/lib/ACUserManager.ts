@@ -61,8 +61,7 @@ export function buildACMemberEmail(
   const onEnter = () => {
     if (isOpen()) {
       commitIfValid();
-    }
-    else {
+    } else {
       acOpen();
     }
   };
@@ -81,11 +80,9 @@ export function buildACMemberEmail(
         save(emailObs.get());
         finish();
       }
-    }
-    catch (e) {
+    } catch (e) {
       emailInput.setCustomValidity(e.message);
-    }
-    finally {
+    } finally {
       emailInput.reportValidity();
     }
   };

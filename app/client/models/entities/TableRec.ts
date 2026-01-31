@@ -98,8 +98,7 @@ export function createTableRec(this: TableRec, docModel: DocModel): void {
       }
       if (this.summarySourceTable()) {
         return this.summarySource().rawViewSection().title();
-      }
-      else {
+      } else {
         // Need to be extra careful here, rawViewSection might be disposed.
         if (this.rawViewSection().isDisposed()) {
           return "";
@@ -110,8 +109,7 @@ export function createTableRec(this: TableRec, docModel: DocModel): void {
     write: (setter, val) => {
       if (this.summarySourceTable()) {
         setter(this.summarySource().rawViewSection().title, val);
-      }
-      else {
+      } else {
         setter(this.rawViewSection().title, val);
       }
     },

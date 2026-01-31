@@ -110,8 +110,7 @@ describe("CardView", function() {
       try {
         await driver.find(".test-vfc-hidden-fields .kf_draggable").mouseMove().find(".test-vfc-hide").click();
         await gu.waitForServer();
-      }
-      catch (e) {
+      } catch (e) {
         if (e.name === "NoSuchElementError") { break; }
         throw e;
       }

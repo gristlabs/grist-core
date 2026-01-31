@@ -9,8 +9,7 @@ function testParse(input: string, expected?: string[]) {
   const result = parser.cleanParse(input);
   if (expected) {
     assert.deepEqual(result, ["L", ...expected], input);
-  }
-  else {
+  } else {
     assert.isNull(result, input);
   }
 }

@@ -126,8 +126,7 @@ export class AccessTokens implements IAccessTokens {
     try {
       // Try to verify with the secrets we already know about.
       return await this._verifyWithGivenDoc(docId, token);
-    }
-    catch (e) {
+    } catch (e) {
       // Retry with up-to-date secrets.
       await this._refreshSecrets(docId);
       return await this._verifyWithGivenDoc(docId, token);
@@ -145,8 +144,7 @@ export class AccessTokens implements IAccessTokens {
     for (const secret of secrets) {
       try {
         return this._verifyWithGivenSecret(secret, token);
-      }
-      catch (e) {
+      } catch (e) {
         if (String(e).match(/Token has expired/)) {
           // Give specific error about token expiration.
           throw e;
@@ -168,8 +166,7 @@ export class AccessTokens implements IAccessTokens {
       if (!userId) { throw new ApiError("no userId in access token", 401); }
       if (!docId) { throw new ApiError("no docId in access token", 401); }
       return content as AccessTokenInfo;
-    }
-    catch (e) {
+    } catch (e) {
       if (e.name === "TokenExpiredError") {
         throw new ApiError("Token has expired", 401);
       }

@@ -60,8 +60,7 @@ export function textarea(
   const isValid = options?.isValid;
 
   function setValue(elem: HTMLTextAreaElement) {
-    if (options?.save) { options.save(elem.value); }
-    else { obs.set(elem.value); }
+    if (options?.save) { options.save(elem.value); } else { obs.set(elem.value); }
     if (isValid) { isValid.set(elem.validity.valid); }
   }
 

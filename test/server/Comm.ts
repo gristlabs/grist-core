@@ -404,8 +404,7 @@ describe("Comm", function() {
         .callsFake(async function(this: Client) {
           try {
             return await stubSendToWebsocket.wrappedMethod.apply(this, arguments);
-          }
-          catch (err) {
+          } catch (err) {
             if (options.closeHappensFirst) { await delay(100); }
             eventsSeen.push("failedSend");
             throw err;
@@ -484,20 +483,17 @@ describe("Comm", function() {
       if (options.noFailedSend) {
         if (options.useSmallMsgs) {
           assert.deepEqual(eventsSeen, ["close"]);
-        }
-        else {
+        } else {
           // Make sure to have waited long enough for the 'close' event we may have delayed
           await delay(20);
 
           // Large messages now cause a send to fail, after filling up buffer, and close the socket.
           assert.deepEqual(eventsSeen, ["close", "close"]);
         }
-      }
-      else if (options.closeHappensFirst) {
+      } else if (options.closeHappensFirst) {
         assert.equal(eventsSeen[0], "close");
         assert.include(eventsSeen, "failedSend");
-      }
-      else {
+      } else {
         assert.equal(eventsSeen[0], "failedSend");
         assert.include(eventsSeen, "close");
       }
@@ -533,8 +529,7 @@ describe("Comm", function() {
       const promise = connect({ headers });
       if (allowed) {
         await assert.isFulfilled(promise, `${headers.host} should allow ${headers.origin}`);
-      }
-      else {
+      } else {
         await assert.isRejected(promise, /.*/, `${headers.host} should reject ${headers.origin}`);
       }
     }

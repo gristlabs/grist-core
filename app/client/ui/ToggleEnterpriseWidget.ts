@@ -39,17 +39,13 @@ export class ToggleEnterpriseWidget extends Disposable {
     const status = use(this._model.status);
     if (!use(this._isEnterpriseEdition) || !status) {
       return "core";
-    }
-    else if (status.key) {
+    } else if (status.key) {
       return "activated";
-    }
-    else if (status.trial && status.trial.daysLeft > 0) {
+    } else if (status.trial && status.trial.daysLeft > 0) {
       return "trial";
-    }
-    else if (use(this._activation)?.error) {
+    } else if (use(this._activation)?.error) {
       return "error";
-    }
-    else {
+    } else {
       return "no-key";
     }
   });

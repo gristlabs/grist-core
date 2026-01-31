@@ -226,8 +226,7 @@ function evaluateRule(ruleSet: RuleSet, input: PredicateFormulaInput): PartialPe
       if (rule.matchFunc!(input)) {
         pset = mergePartialPermissions(pset, rule.permissions);
       }
-    }
-    catch (e) {
+    } catch (e) {
       if (e.code === "NEED_ROW_DATA") {
         pset = mergePartialPermissions(pset, makePartialPermissions(rule.permissions));
         if (rule.memo) {
@@ -266,8 +265,7 @@ function evaluateRule(ruleSet: RuleSet, input: PredicateFormulaInput): PartialPe
           const changesData = (perm: string) => dataChangePerms.includes(perm as keyof PermissionSet);
           pset = mapValues(pset, (val, perm) => val === "denySome" && changesData(perm) ? "mixed" : val);
         }
-      }
-      else {
+      } else {
         // Unexpected error. Interpret rule pessimistically.
         // Anything it would explicitly allow, no longer allow through this rule.
         // Anything it would explicitly deny, go ahead and deny.
@@ -295,14 +293,12 @@ function extractMemos(ruleSet: RuleSet, input: PredicateFormulaInput): MemoSet {
         if (rule.memo) {
           if (passing && p === "deny") {
             memos.push(rule.memo);
-          }
-          else if (!passing && p === "allow") {
+          } else if (!passing && p === "allow") {
             memos.push(rule.memo);
           }
         }
       }
-    }
-    catch (e) {
+    } catch (e) {
       if (e.code !== "NEED_ROW_DATA") {
         // If a rule is failing unexpectedly, give some information via memos.
         // TODO: Could give a more structured result.

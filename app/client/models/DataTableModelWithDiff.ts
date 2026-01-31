@@ -32,9 +32,13 @@ export class ExtraRows {
   public static interpretRowId(
     rowId: number,
   ): { type: "remote-add" | "local-remove" | "shared" | "skipped", id: number } {
-    if (rowId >= 0) { return { type: "shared", id: rowId }; }
-    else if (rowId === ROW_ID_SKIP) { return { type: "skipped", id: rowId }; }
-    else if (rowId % 2 !== 0) { return { type: "remote-add", id: -(rowId + 1) / 2 }; }
+    if (rowId >= 0) {
+      return { type: "shared", id: rowId };
+    } else if (rowId === ROW_ID_SKIP) {
+      return { type: "skipped", id: rowId };
+    } else if (rowId % 2 !== 0) {
+      return { type: "remote-add", id: -(rowId + 1) / 2 };
+    }
     return { type: "local-remove", id: -(rowId + 2) / 2 };
   }
 
@@ -68,10 +72,15 @@ export class ExtraRows {
    * Classify the row as either remote-add, remote-remove, local-add, or local-remove.
    */
   public getRowType(rowId: number) {
-    if (this.rightAddRows.has(rowId))         { return "remote-add"; }
-    else if (this.leftAddRows.has(rowId))     { return "local-add";  }
-    else if (this.rightRemoveRows.has(rowId)) { return "remote-remove"; }
-    else if (this.leftRemoveRows.has(rowId))  { return "local-remove"; }
+    if (this.rightAddRows.has(rowId)) {
+      return "remote-add";
+    } else if (this.leftAddRows.has(rowId)) {
+      return "local-add";
+    } else if (this.rightRemoveRows.has(rowId)) {
+      return "remote-remove";
+    } else if (this.leftRemoveRows.has(rowId)) {
+      return "local-remove";
+    }
     // TODO: consider what should happen when a row is removed both locally and remotely.
     return "";
   }
@@ -233,21 +242,18 @@ export class TableDataWithDiff {
           local: newValue(left),
           remote: newValue(right),
         } as CellVersions];
-      }
-      else if (right !== undefined) {
+      } else if (right !== undefined) {
         return [GristObjCode.Versions, {
           parent: oldValue(right),
           remote: newValue(right),
         } as CellVersions];
-      }
-      else if (left !== undefined) {
+      } else if (left !== undefined) {
         return [GristObjCode.Versions, {
           parent: oldValue(left),
           local: newValue(left),
         } as CellVersions];
       }
-    }
-    else {
+    } else {
       // keep row.id consistent with rowId for convenience.
       if (colId === "id") { return rowId; }
       const { type, id } = ExtraRows.interpretRowId(rowId);
@@ -255,8 +261,7 @@ export class TableDataWithDiff {
         const cell = this.rightTableDelta.columnDeltas[colId]?.[id];
         const value = (cell !== undefined) ? newValue(cell) : undefined;
         return value;
-      }
-      else if (type === "local-remove") {
+      } else if (type === "local-remove") {
         const cell = this.leftTableDelta.columnDeltas[colId]?.[id];
         const value = (cell !== undefined) ? oldValue(cell) : undefined;
         return value;

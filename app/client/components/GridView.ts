@@ -354,8 +354,7 @@ export default class GridView extends BaseView {
     onDblClickMatchElem(this.scrollPane, ".field:not(.column_name)", (event) => {
       if (this.gridOptions?.onCellDblClick) {
         this.gridOptions.onCellDblClick(this.cursor.getCursorPos());
-      }
-      else {
+      } else {
         this.activateEditorAtCursor({ event });
       }
     });
@@ -585,8 +584,7 @@ export default class GridView extends BaseView {
     if (type === "row") {
       selectObs = this.cellSelector.row.end;
       maxVal = this.getLastDataRowIndex();
-    }
-    else {
+    } else {
       selectObs = this.cellSelector.col.end;
       maxVal = this.viewSection.viewFields().peekLength - 1;
     }
@@ -595,8 +593,7 @@ export default class GridView extends BaseView {
     selectObs(newVal);
     if (type === "row") {
       this.scrolly.scrollRowIntoView(newVal);
-    }
-    else {
+    } else {
       this._scrollColumnIntoView(newVal);
     }
   }
@@ -693,15 +690,13 @@ export default class GridView extends BaseView {
         const hasEmptyValues = this._isCellValueEmpty(colValuesByIndex[fields[i]._index()!][rowIndex]);
         if (hasEmptyValues && shouldStopOnEmptyValue) {
           return steps;
-        }
-        else if (!hasEmptyValues && !shouldStopOnEmptyValue) {
+        } else if (!hasEmptyValues && !shouldStopOnEmptyValue) {
           return steps + 1;
         }
 
         steps += 1;
       }
-    }
-    else {
+    } else {
       // The selection is changing on the y-axis (i.e. the selected rows changed).
       const colValues = colValuesByIndex[fields[0]._index()!];
       const isLastRowEmpty = this._isCellValueEmpty(colValues[rowIndices[0]]);
@@ -711,8 +706,7 @@ export default class GridView extends BaseView {
         const hasEmptyValues = this._isCellValueEmpty(colValues[rowIndices[i]]);
         if (hasEmptyValues && shouldStopOnEmptyValue) {
           return steps;
-        }
-        else if (!hasEmptyValues && !shouldStopOnEmptyValue) {
+        } else if (!hasEmptyValues && !shouldStopOnEmptyValue) {
           return steps + 1;
         }
 
@@ -872,8 +866,7 @@ export default class GridView extends BaseView {
     if (this.cellSelector.isCurrentSelectType(selector.ROW)) {
       colStart = 0;
       colEnd = this.viewSection.viewFields().peekLength - 1;
-    }
-    else if (this.cellSelector.isCurrentSelectType(selector.COL)) {
+    } else if (this.cellSelector.isCurrentSelectType(selector.COL)) {
       rowStart = 0;
       rowEnd = this.getLastDataRowIndex();
     }
@@ -920,8 +913,7 @@ export default class GridView extends BaseView {
     const options = this._getColumnMenuOptions(selection);
     if (options.isFormula === true) {
       this.activateEditorAtCursor({ init: "" });
-    }
-    else {
+    } else {
       const clearAction = tableUtil.makeDeleteAction(selection);
       if (clearAction) {
         return this.gristDoc.docData.sendAction(clearAction);
@@ -977,8 +969,7 @@ export default class GridView extends BaseView {
       // multiple instances of the virtual table component).
       const event = new CustomEvent("setCursor", { detail: [row, col], bubbles: true });
       this.scrollPane.dispatchEvent(event);
-    }
-    catch (e) {
+    } catch (e) {
       console.error(e);
       console.error("GridView.assignCursor expects a row/col header, or cell as an input.");
     }
@@ -1030,8 +1021,7 @@ export default class GridView extends BaseView {
     this.cursor.setLive(false);
     try {
       await super.deleteRows(rowIds);
-    }
-    finally {
+    } finally {
       // Avoid setting cursor rowId, as the old rowId may have just been deleted!
       this.cursor.setCursorPos({ rowIndex: savedCursorPos.rowIndex });
       this.cursor.setLive(true);
@@ -1346,8 +1336,7 @@ export default class GridView extends BaseView {
         if (editIndex() === v.viewFields().peekLength - 1) {
           // Turn off editing if we're on the last field.
           editIndex(-1);
-        }
-        else {
+        } else {
           editIndex(editIndex() + 1);
           this.selectColumn(editIndex.peek());
         }
@@ -1446,8 +1435,7 @@ export default class GridView extends BaseView {
                       if (val) {
                       // Turn on editing.
                         editIndex(field._index()!);
-                      }
-                      else {
+                      } else {
                       // Turn off editing only if it wasn't changed to another field (e.g. by tabbing).
                         const isCurrent = editIndex.peek() === field._index.peek();
                         if (isCurrent) {
@@ -1484,8 +1472,7 @@ export default class GridView extends BaseView {
                         dom.autoDispose(isTooltip.subscribe((show) => {
                           if (show) {
                             tooltip.show(t(`Click to insert`) + ` $${field.origCol.peek().colId.peek()}`);
-                          }
-                          else {
+                          } else {
                             tooltip.hide();
                           }
                         })),
@@ -1777,8 +1764,7 @@ export default class GridView extends BaseView {
       // do it synchronously, to allow repositioning the editor to it in response to the same event.
       this.scrolly.updateSize(height);
       this.scrolly.scrollRowIntoView(this.cursor.rowIndex.peek());
-    }
-    else {
+    } else {
       this.scrolly.scheduleUpdateSize(height);
     }
     this.width(this.scrollPane.clientWidth);
@@ -1809,8 +1795,7 @@ export default class GridView extends BaseView {
       // contextmenu event could be preceded by a mousedown event (ie: when ctrl+click on
       // mac) which triggers a cursor assignment that we need to prevent.
       this.preventAssignCursor();
-    }
-    else {
+    } else {
       this.assignCursor(elem, selector.NONE);
     }
   }
@@ -1844,8 +1829,7 @@ export default class GridView extends BaseView {
       const row = this.domToRowModel(elem, selector.CELL);
       this.cellSelector.selectArea(this.cursor.rowIndex()!, this.cursor.fieldIndex(),
         row._index()!, col._index()!);
-    }
-    else {
+    } else {
       this.assignCursor(elem, selector.NONE);
     }
   }
@@ -1873,8 +1857,7 @@ export default class GridView extends BaseView {
     if (event.shiftKey) {
       this.cellSelector.currentSelectType(selector.ROW);
       this.cellSelector.row.end(this.currentMouseRow(event.pageY));
-    }
-    else {
+    } else {
       this.assignCursor(elem, selector.ROW);
     }
   }
@@ -1899,8 +1882,7 @@ export default class GridView extends BaseView {
     // Maintain single cells cannot be selected invariant
     if (this.cellSelector.onlyCellSelected(this.cursor.rowIndex()!, this.cursor.fieldIndex())) {
       this.cellSelector.currentSelectType(selector.NONE);
-    }
-    else {
+    } else {
       this.cellSelector.currentSelectType(selector.CELL);
     }
   }
@@ -1929,8 +1911,7 @@ export default class GridView extends BaseView {
             onMove: ev => this.rowMouseMove(ev),
             onStop: (ev) => {},
           };
-        }
-        else if (!this.viewSection.disableDragRows()) {
+        } else if (!this.viewSection.disableDragRows()) {
           this.styleRowDragElements(elem, event);
           return {
             onMove: ev => this.dragRows(ev),
@@ -1950,8 +1931,7 @@ export default class GridView extends BaseView {
             onMove: ev => this.colMouseMove(ev),
             onStop: (ev) => {},
           };
-        }
-        else {
+        } else {
           this.styleColDragElements(elem, event);
           return {
             onMove: ev => this.dragCols(ev),
@@ -2024,8 +2004,7 @@ export default class GridView extends BaseView {
       this.getLastDataRowIndex());
     if (this.cellSelector.containsRow(dropIndex)) {
       dropIndex = this.cellSelector.rowLower();
-    }
-    else if (dropIndex > this.cellSelector.rowUpper()) {
+    } else if (dropIndex > this.cellSelector.rowUpper()) {
       dropIndex += 1;
     }
     if (this.cellSelector.rowUpper() === this.viewData.peekLength - 1) {
@@ -2044,8 +2023,7 @@ export default class GridView extends BaseView {
       this.viewSection.viewFields().peekLength - 1);
     if (this.cellSelector.containsCol(dropIndex)) {
       dropIndex = this.cellSelector.colLower();
-    }
-    else if (dropIndex > this.cellSelector.colUpper()) {
+    } else if (dropIndex > this.cellSelector.colUpper()) {
       dropIndex += 1;
     }
     if (this.cellSelector.colUpper() === this.viewSection.viewFields().peekLength - 1) {
@@ -2060,8 +2038,7 @@ export default class GridView extends BaseView {
     // Move line left by the number of pixels the frozen set is scrolled.
     if (inFrozen) {
       linePos -= Math.min(this.frozenOffset.peek(), scrollLeft);
-    }
-    else {
+    } else {
       // Else move left by the whole amount.
       linePos -= scrollLeft;
     }
@@ -2104,8 +2081,7 @@ export default class GridView extends BaseView {
 
     if (selectedColIds.length > 1 && selectedColIds.includes(field.column().colId())) {
       return buildMultiColumnMenu(options);
-    }
-    else {
+    } else {
       return buildColumnContextMenu({
         filterOpenFunc: () => filterTriggerCtl.open(),
         sortSpec: this.gristDoc.viewModel.activeSection.peek().activeSortSpec.peek(),
@@ -2264,11 +2240,9 @@ export default class GridView extends BaseView {
 
     if (colIndex === 0) {
       this.scrollPaneLeft();
-    }
-    else if (colIndex === this.viewSection.viewFields().peekLength - 1) {
+    } else if (colIndex === this.viewSection.viewFields().peekLength - 1) {
       this.scrollPaneRight();
-    }
-    else {
+    } else {
       const offset = this.colRightOffsets.peek().getSumTo(colIndex);
 
       const rowNumsWidth = this._cornerDom.clientWidth;
@@ -2336,8 +2310,7 @@ export default class GridView extends BaseView {
               ctl.autoDispose(this._insertColumnIndex.subscribe((index) => {
                 if (field?._index() === index || (!field && index === -1)) {
                   ctl.open();
-                }
-                else if (!ctl.isDisposed()) {
+                } else if (!ctl.isDisposed()) {
                   ctl.close();
                 }
               }));
@@ -2352,8 +2325,7 @@ export default class GridView extends BaseView {
     if (columnIndex < this.viewSection.viewFields().peekLength) {
       this._scrollColumnIntoView(columnIndex);
       this._insertColumnIndex(columnIndex);
-    }
-    else {
+    } else {
       this.scrollPaneRight();
       this._insertColumnIndex(-1);
     }
@@ -2366,8 +2338,7 @@ export default class GridView extends BaseView {
 
     if (!event) {
       this._openInsertColumnMenu(index);
-    }
-    else {
+    } else {
       return this.insertColumn(null, { index });
     }
   }
@@ -2481,12 +2452,16 @@ function calcZebra(hex: string) {
   const hsl = convert.hex.hsl(hex.substr(1));
   // For bright color, we will make it darker. Value was picked by hand, to
   // produce #f8f8f8f out of #ffffff.
-  if (hsl[2] > 50) { hsl[2] -= 2.6; }
-  // For darker color, we will make it brighter. Value was picked by hand to look
-  // good for the darkest colors in our palette.
-  else if (hsl[2] > 1) { hsl[2] += 11; }
-  // For very dark colors
-  else { hsl[2] += 16; }
+  if (hsl[2] > 50) {
+    hsl[2] -= 2.6;
+  } else if (hsl[2] > 1) {
+    // For darker color, we will make it brighter. Value was picked by hand to look
+    // good for the darkest colors in our palette.
+    hsl[2] += 11;
+  } else {
+    // For very dark colors
+    hsl[2] += 16;
+  }
   return `#${convert.hsl.hex(hsl)}`;
 }
 

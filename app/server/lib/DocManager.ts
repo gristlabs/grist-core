@@ -362,8 +362,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
         // than a docId.
         throw new Error(`openDoc expected docId ${docAuth.docId} not urlId ${docId}`);
       }
-    }
-    else {
+    } else {
       log.debug(`DocManager.openDoc not using authorization for ${docId} because GRIST_SINGLE_USER`);
       auth = new DummyAuthorizer("owners", docId);
     }
@@ -394,8 +393,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
           // instance).
           docSession.forkingAsOwner = true;
           activeDoc.flushAccess(docSession);
-        }
-        else {
+        } else {
           // TODO: it would be kind to pass on a message to the client
           // to let them know they won't be able to fork.  They'll get
           // an error when they make their first change.  But currently
@@ -415,8 +413,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
       let docUsage: FilteredDocUsageSummary | undefined;
       try {
         docUsage = await activeDoc.getFilteredDocUsageSummary(docSession);
-      }
-      catch (e) {
+      } catch (e) {
         log.warn("DocManager.openDoc failed to get doc usage", e);
       }
       insightLog?.mark("getDocUsage");
@@ -470,8 +467,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
     await this.shutdownDocs();
     try {
       await this.storageManager.closeStorage();
-    }
-    catch (err) {
+    } catch (err) {
       log.error("DocManager had problem shutting down storage: %s", err.message);
     }
 
@@ -533,8 +529,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
       }
       this._activeDocs.delete(oldName);
       this.unregisterSQLiteDB(oldName);
-    }
-    else {
+    } else {
       await this.storageManager.renameDoc(oldName, newName);
     }
   }
@@ -641,8 +636,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
             });
             return newDoc.loadDoc(docSession);
           }));
-    }
-    else {
+    } else {
       activeDoc = await this._activeDocs.get(docName)!;
     }
     return activeDoc;
@@ -659,8 +653,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
       // For the sake of existing tests, get the db from gristServer where it may not exist and we should give up,
       // rather than using this._homeDbManager which may exist and then it turns out the document itself doesn't.
       db = this.gristServer.getHomeDBManager();
-    }
-    catch (e) {
+    } catch (e) {
       if (e.message === "no db") {
         return;
       }
@@ -683,8 +676,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
         docUrl: await this.gristServer.getResourceUrl(doc),
         docApiUrl: await this.gristServer.getResourceUrl(doc, "api"),
       };
-    }
-    catch (e) {
+    } catch (e) {
       // If there is no home url, we cannot construct links.  Accept this, for the benefit
       // of legacy tests.
       if (e.message !== "need APP_HOME_URL") {
@@ -763,19 +755,16 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
         await this.storageManager.prepareLocalDoc(docName);
         this.storageManager.markAsChanged(docName, "edit");
         return { title: basename, id: docName };
-      }
-      else {
+      } else {
         const doc = await this.createNewEmptyDoc(docSession, id);
         await doc.oneStepImport(docSession, uploadInfo);
         return { title: basename, id: doc.docName };
       }
-    }
-    catch (err) {
+    } catch (err) {
       throw new ApiError(err.message, err.status || 400, {
         tips: [{ action: "ask-for-help", message: "Ask for help" }],
       });
-    }
-    finally {
+    } finally {
       await globalUploadSet.cleanup(uploadInfo.uploadId);
     }
   }
@@ -857,8 +846,7 @@ async function updateDocumentSettingsInPlace(
       JSON.stringify(newSettings),
       docInfoRow.id,
     );
-  }
-  finally {
+  } finally {
     await db.close();
   }
 }

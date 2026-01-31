@@ -70,8 +70,7 @@ class NewSiteModalContent extends Disposable {
       if (this._onCreate) {
         this._onCreate(TEAM_PLAN);
       }
-    }
-    catch (err) {
+    } catch (err) {
       reportError(err as Error);
     }
   }
@@ -129,8 +128,7 @@ function buildTeamPage({
         return;
       }
       await create();
-    }
-    finally {
+    } finally {
       if (!disabled.isDisposed()) {
         disabled.set(false);
       }

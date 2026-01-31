@@ -73,8 +73,7 @@ export class MergedServer {
     if (ms.hasComponent("home")) {
       const userPort = checkUserContentPort();
       ms.flexServer.setServesPlugins(userPort !== undefined);
-    }
-    else {
+    } else {
       ms.flexServer.setServesPlugins(false);
     }
 
@@ -220,8 +219,7 @@ export class MergedServer {
           this._extraWorkers.push(server);
         }
       }
-    }
-    catch (e) {
+    } catch (e) {
       await this.close();
       throw e;
     }
@@ -261,8 +259,7 @@ export class MergedServer {
       log.info("Clearing sessions...");
       await this.flexServer.getSessions().clearAllSessions();
       log.info("Successfully cleared sessions");
-    }
-    catch (err) {
+    } catch (err) {
       // Don't re-throw so we don't disrupt the rest of the startup process.
       log.error("Failed to clear sessions:", err);
     }
@@ -299,8 +296,7 @@ export async function startMain() {
     }
 
     return server.flexServer;
-  }
-  catch (e) {
+  } catch (e) {
     log.error("mergedServer failed to start", e);
     process.exit(1);
   }

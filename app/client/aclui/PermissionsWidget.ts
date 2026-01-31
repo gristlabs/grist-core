@@ -117,8 +117,7 @@ function psetDescription(permissionSet: PartialPermissionSet): string {
     const value = permissionSet[prop];
     if (value === "allow") {
       allow.push(capitalize(prop));
-    }
-    else if (value === "deny") {
+    } else if (value === "deny") {
       deny.push(capitalize(prop));
     }
   }

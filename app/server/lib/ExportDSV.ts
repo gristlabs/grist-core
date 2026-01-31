@@ -37,8 +37,7 @@ export async function downloadDSV(
       activeDoc, viewSectionId, sortOrder: sortOrder || null, filters: filters || null,
       linkingFilter: linkingFilter || null, header, delimiter, req,
     });
-  }
-  else {
+  } else {
     if (!tableId) {
       throw new ApiError("tableId parameter is required", 400);
     }

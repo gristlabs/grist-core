@@ -181,8 +181,7 @@ class DropdownConditionEditor extends Disposable {
     }
     if (!shouldShowPlaceholder) {
       editor.renderer.emptyMessageNode = null;
-    }
-    else {
+    } else {
       editor.renderer.emptyMessageNode = cssDropdownConditionPlaceholder(t("Enter condition."));
       editor.renderer.scroller.appendChild(editor.renderer.emptyMessageNode);
     }
@@ -195,8 +194,7 @@ class DropdownConditionEditor extends Disposable {
         width: placeholder.scrollWidth,
         height: placeholder.scrollHeight,
       });
-    }
-    else {
+    } else {
       return this._editorPlacement.calcSizeWithPadding(elem, {
         width: desiredElemSize.width,
         height: desiredElemSize.height,

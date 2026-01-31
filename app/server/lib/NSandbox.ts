@@ -183,12 +183,10 @@ export class NSandbox implements ISandbox {
     if (this.childProc) {
       if (options.minimalPipeMode !== false) {
         this._initializeMinimalPipeMode(sandboxProcess);
-      }
-      else {
+      } else {
         this._initializeFivePipeMode(sandboxProcess);
       }
-    }
-    else {
+    } else {
       // No child process. In this case, there should be a callback for
       // receiving and sending data.
       if (!sandboxProcess.getData) {
@@ -258,8 +256,7 @@ export class NSandbox implements ISandbox {
       const { data, numBytes } = await this._pyCallWait(funcName, startTime);
       this._lastResponseNumBytes = numBytes;
       return data;
-    }
-    finally {
+    } finally {
       clearTimeout(slowCallCheck);
     }
   }
@@ -297,8 +294,7 @@ export class NSandbox implements ISandbox {
     if (sandboxProcess.dataToSandboxDescriptor) {
       this._streamToSandbox =
         (this.childProc.stdio as Stream[])[sandboxProcess.dataToSandboxDescriptor] as Writable;
-    }
-    else {
+    } else {
       if (!this.childProc.stdin) {
         throw new Error("stdin required");
       }
@@ -307,8 +303,7 @@ export class NSandbox implements ISandbox {
     if (sandboxProcess.dataFromSandboxDescriptor) {
       this._streamFromSandbox =
         (this.childProc.stdio as Stream[])[sandboxProcess.dataFromSandboxDescriptor];
-    }
-    else {
+    } else {
       if (!this.childProc.stdout) {
         throw new Error("stdout required");
       }
@@ -355,8 +350,7 @@ export class NSandbox implements ISandbox {
     this._streamFromSandbox.on("data", (data) => {
       try {
         this._onSandboxData(data);
-      }
-      catch (err) {
+      } catch (err) {
         this._streamFromSandbox.emit("error", err);
       }
     });
@@ -378,11 +372,9 @@ export class NSandbox implements ISandbox {
       return await new Promise((resolve, reject) => {
         this._pendingReads.push([resolve, reject]);
       });
-    }
-    catch (e) {
+    } catch (e) {
       throw new sandboxUtil.SandboxError(e.message);
-    }
-    finally {
+    } finally {
       if (this._logTimes) {
         log.rawDebug("NSandbox pyCall", {
           ...this._logMeta,
@@ -407,8 +399,7 @@ export class NSandbox implements ISandbox {
     this._close();
     if (expected) {
       log.rawDebug(`Sandbox exited with code ${code} signal ${signal}`, this._logMeta);
-    }
-    else {
+    } else {
       log.rawWarn(`Sandbox unexpectedly exited with code ${code} signal ${signal}`, this._logMeta);
     }
   }
@@ -433,8 +424,7 @@ export class NSandbox implements ISandbox {
     }
     if (this._streamToSandbox) {
       return this._streamToSandbox.write(buf);
-    }
-    else {
+    } else {
       if (!this._dataToSandbox) {
         throw new Error("no way to send data to sandbox");
       }
@@ -490,8 +480,7 @@ export class NSandbox implements ISandbox {
       // Handle calls FROM the sandbox.
       if (!Array.isArray(data) || data.length === 0) {
         log.rawWarn("Sandbox invalid call from the sandbox", this._logMeta);
-      }
-      else {
+      } else {
         const fname = data[0];
         const args = data.slice(1);
         log.rawDebug(`Sandbox got call to ${fname} (${args.length} args)`, this._logMeta);
@@ -510,18 +499,15 @@ export class NSandbox implements ISandbox {
             log.rawDebug(`Sandbox sending response failed: ${err}`, this._logMeta);
           });
       }
-    }
-    else {
+    } else {
       // Handle return values for calls made to the sandbox.
       const resolvePair = this._pendingReads.shift();
       if (resolvePair) {
         if (msgCode === sandboxUtil.EXC) {
           resolvePair[1](new Error(data));
-        }
-        else if (msgCode === sandboxUtil.DATA) {
+        } else if (msgCode === sandboxUtil.DATA) {
           resolvePair[0]({ data, numBytes });
-        }
-        else {
+        } else {
           log.rawWarn("Sandbox invalid message from sandbox", this._logMeta);
         }
       }
@@ -590,12 +576,10 @@ export class NSandboxCreator implements ISandboxCreator {
       const variants = create.getSandboxVariants?.();
       if (!variants?.[flavor]) {
         throw new Error(`Unrecognized sandbox flavor: ${flavor}`);
-      }
-      else {
+      } else {
         this._spawner = variants[flavor];
       }
-    }
-    else {
+    } else {
       this._spawner = spawners[flavor];
     }
     this._flavor = flavor;
@@ -649,8 +633,7 @@ const hasSandboxExec = checkCommandExists("sandbox-exec");
 function sandboxed(options: ISandboxOptions): SandboxProcess {
   if (hasRunsc) {
     return gvisor(options);
-  }
-  else if (hasSandboxExec) {
+  } else if (hasSandboxExec) {
     return macSandboxExec(options);
   }
   return pyodide(options);
@@ -748,8 +731,7 @@ function pyodide(options: ISandboxOptions): SandboxProcess {
       args,
       { cwd, ...spawnOptions },
     );
-  }
-  else {
+  } else {
     log.rawDebug("Launching Pyodide sandbox via fork", { scriptPath, cwd, spawnOptions });
     child = fork(
       scriptPath,
@@ -781,8 +763,7 @@ function gvisor(options: ISandboxOptions): SandboxProcess {
       // utility in sandbox/gvisor/run.py to run it.
       which.sync("runsc");
       command = "sandbox/gvisor/run.py";
-    }
-    catch (e) {
+    } catch (e) {
       // Otherwise, don't try any heroics, user will need to
       // explicitly set the command.
       throw new Error("runsc not found");
@@ -1236,8 +1217,7 @@ export function createSandbox(defaultFlavorSpec: string, options: ISandboxCreati
 function realpathSync(src: string) {
   try {
     return fs.realpathSync(src);
-  }
-  catch (e) {
+  } catch (e) {
     return src;
   }
 }
@@ -1246,8 +1226,7 @@ function adjustedSpawn(cmd: string, args: string[], options?: SpawnOptionsWithou
   const oomScoreAdj = process.env.GRIST_SANDBOX_OOM_SCORE_ADJ;
   if (oomScoreAdj) {
     return spawn("choom", ["-n", oomScoreAdj, "--", cmd, ...args], options);
-  }
-  else {
+  } else {
     return spawn(cmd, args, options);
   }
 }
@@ -1256,8 +1235,7 @@ function checkCommandExists(cmd: string) {
   try {
     which.sync(cmd);
     return true;
-  }
-  catch (e) {
+  } catch (e) {
     if (!String(e).match(/not found/)) {
       throw e;
     }

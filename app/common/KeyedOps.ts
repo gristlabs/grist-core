@@ -216,8 +216,7 @@ export class KeyedOps {
       delete status.promise;
       if (this._changed.has(key)) {
         this._schedule(key);
-      }
-      else {
+      } else {
         // No event information left to track, we can delete our OperationStatus entry.
         if (status.failures === 0 && !status.timeout) {
           this._operations.delete(key);

@@ -17,8 +17,7 @@ export function element(type: string, arg1?: number | WebElement, arg2?: WebElem
         return el;
       });
     return extra(new WebElementPromise(driver, nth));
-  }
-  else {
+  } else {
     return extra((arg1 ?? driver).find(`.active_section .test-forms-${type}`));
   }
 }
@@ -154,8 +153,7 @@ export async function formSchema(): Promise<FormElement[]> {
 
     if (type === "Field") {
       label = await el.find(".test-forms-label").getText();
-    }
-    else {
+    } else {
       content = await el.getText();
     }
 

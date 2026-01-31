@@ -45,8 +45,7 @@ export async function setupLocale() {
         // Throw only if we don't have any fallbacks.
         if (lang === i18next.options.fallbackLng && n === i18next.options.defaultNS) {
           throw new Error(`Failed to load ${resourceUrl}`);
-        }
-        else {
+        } else {
           console.warn(`Failed to load ${resourceUrl}`);
           return;
         }
@@ -60,8 +59,7 @@ export async function setupLocale() {
     }
     await Promise.all(pathsToLoad);
     console.log("Localization initialized in " + (Date.now() - now) + "ms");
-  }
-  catch (error: any) {
+  } catch (error: any) {
     reportError(error);
   }
 }
@@ -113,8 +111,7 @@ function domT(key: string, args: any, tImpl: typeof i18next.t) {
   const domElements = !args ? [] : Object.entries(args).filter(([_, value]) => isLikeDomContents(value));
   if (!args || !domElements.length) {
     return tImpl(key, args || undefined);
-  }
-  else {
+  } else {
     // Make a copy of the arguments, and remove any dom elements from it. It will instruct
     // i18next library to use `missingInterpolationHandler` handler.
     const copy = { ...args };

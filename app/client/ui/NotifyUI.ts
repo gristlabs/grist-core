@@ -26,8 +26,7 @@ function buildAction(action: NotifyAction, item: Notification, options: IBeaconO
       if (appModel) {
         return cssToastAction(t("Upgrade Plan"), dom.on("click", () =>
           appModel.showUpgradeModal()));
-      }
-      else {
+      } else {
         return dom("a", cssToastAction.cls(""), t("Upgrade Plan"), { target: "_blank" },
           { href: commonUrls.plans });
       }

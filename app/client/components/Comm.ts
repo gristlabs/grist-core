@@ -346,21 +346,17 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
               (message.shouldFork ? ` (should fork)` : ""));
             this._reportError?.(err);
             r.reject(err);
-          }
-          else {
+          } else {
             log.debug(`Comm response #${reqId} ${r.methodName} OK`);
             r.resolve(message.data);
           }
-        }
-        finally {
+        } finally {
           this.pendingRequests.delete(reqId);
         }
-      }
-      else {
+      } else {
         log.warn("Comm: Response to unknown reqId " + reqId);
       }
-    }
-    else {
+    } else {
       if (message.type === "clientConnect") {
         // Reject or re-send any pending requests as appropriate in the order in which they were
         // added to the pendingRequests map.
@@ -375,8 +371,7 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
       if (ValidEvent.guard(message.type)) {
         log.debug("Comm: Triggering event " + message.type);
         this.trigger(message.type, message);
-      }
-      else {
+      } else {
         log.warn("Comm: Server message of unknown type " + message.type);
       }
     }
@@ -389,12 +384,10 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
       // If we sent a request, and reconnected before getting a response, we don't know what
       // happened. The safer choice is to reject the request.
       error = "interrupted by reconnect";
-    }
-    else if (r.clientId !== null && r.clientId !== connection.clientId) {
+    } else if (r.clientId !== null && r.clientId !== connection.clientId) {
       // If we are waiting to send this request for a particular clientId, but clientId changed.
       error = "pending with outdated clientId";
-    }
-    else {
+    } else {
       // Waiting to send the request, and clientId is fine: go ahead and send it.
       r.sent = connection.send(r.requestMsg);
     }

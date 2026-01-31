@@ -45,8 +45,7 @@ export abstract class InstallAdmin {
         throw new ApiError("Access denied", 403);
       }
       next();
-    }
-    catch (err) {
+    } catch (err) {
       next(err);
     }
   }
@@ -86,15 +85,13 @@ export class SimpleInstallAdmin extends InstallAdmin {
         user: admin.toUserProfile(),
         reason: req.t("admin.accountByAdminEmail", { adminEmail: this._installAdminEmail }),
       }];
-    }
-    else if (this._defaultEmail) {
+    } else if (this._defaultEmail) {
       const admin = await this._dbManager.getUserByLogin(this._defaultEmail);
       return [{
         user: admin.toUserProfile(),
         reason: req.t("admin.accountByEmail", { defaultEmail: this._defaultEmail }),
       }];
-    }
-    else {
+    } else {
       return [{
         user: null,
         reason: req.t("admin.noAdminEmail"),

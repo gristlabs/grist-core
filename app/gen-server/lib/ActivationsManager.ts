@@ -71,15 +71,13 @@ export class ActivationsManager {
             return sub
               .where("o.owner_id = u.id")
               .andWhere("u.id NOT IN (:...excludedUsers)", { excludedUsers });
-          }
-          else if (process.env.GRIST_SINGLE_ORG) {
+          } else if (process.env.GRIST_SINGLE_ORG) {
             // Count users of this single org.
             return sub
               .where("o.owner_id IS NULL")
               .andWhere("o.domain = :domain", { domain: process.env.GRIST_SINGLE_ORG })
               .andWhere("u.id NOT IN (:...excludedUsers)", { excludedUsers });
-          }
-          else {
+          } else {
             // Count users of all teams except personal.
             return sub
               .where("o.owner_id IS NULL")

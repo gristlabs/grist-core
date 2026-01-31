@@ -60,8 +60,7 @@ export class LinkConfig {
           src = src.linkSrcSection();
         }
       }
-    }
-    catch (e) {
+    } catch (e) {
       throw new Error(`LinkConfig invalid: ` +
         `${this.srcSection.getRowId()}:${this.srcCol?.getRowId()}[${srcTableId}] -> ` +
         `${this.tgtSection.getRowId()}:${this.tgtCol?.getRowId()}[${tgtTableId}]: ${e}`);

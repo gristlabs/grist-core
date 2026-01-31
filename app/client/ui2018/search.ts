@@ -153,8 +153,7 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
       regionFocusSwitcher?.focusRegion("top");
       if (focusedSearchElement) {
         focusedSearchElement.focus();
-      }
-      else {
+      } else {
         inputElem.focus();
       }
     }
@@ -188,12 +187,10 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
         hasOutsideClicksListener = true;
       }
     // when we close the searchbar: focus back where we were and cleanup
-    }
-    else {
+    } else {
       if (regionIdOnOpen === "main") {
         regionFocusSwitcher?.focusRegion("main");
-      }
-      else {
+      } else {
         buttonElem.focus();
       }
       regionIdOnOpen = undefined;
