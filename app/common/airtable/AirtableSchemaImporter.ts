@@ -92,12 +92,13 @@ function findTableIdForField(baseSchema: AirtableBaseSchema, fieldId: string) {
   return tableId;
 }
 
+export const AirtableIdColumnLabel = "Airtable Id";
 function createAirtableIdColumnSchema(): ColumnImportSchema {
   return {
     originalId: "airtableId",
     desiredGristId: "Airtable Id",
     type: "Text",
-    label: "Airtable Id",
+    label: AirtableIdColumnLabel,
     untieColIdFromLabel: true,
   };
 }

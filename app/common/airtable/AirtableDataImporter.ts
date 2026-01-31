@@ -5,6 +5,7 @@ import {
   AirtableTableSchema,
 } from "app/common/airtable/AirtableAPI";
 import { DocSchemaImportWarning } from "app/common/DocSchemaImport";
+import { AirtableIdColumnLabel } from "app/common/airtable/AirtableSchemaImporter";
 import {
   ExistingColumnSchema,
   ExistingDocSchema,
@@ -53,6 +54,8 @@ interface AirtableTableCrosswalk {
   airtableTable: AirtableTableSchema;
   gristTable: ExistingTableSchema;
   fields: Map<AirtableFieldName, AirtableFieldMappingInfo>
+  // Special case - ID isn't a field in Airtable, but it's useful to have a mapping if it exists.
+  airtableIdColumn?: ExistingColumnSchema;
 }
 
 interface AirtableFieldMappingInfo {
@@ -112,11 +115,12 @@ function createAirtableTableToGristTableCrosswalk(
     airtableTable: airtableTableSchema,
     gristTable: gristTableSchema,
     fields: new Map(),
+    airtableIdColumn: gristTableSchema.columns.find(column => column.label === AirtableIdColumnLabel),
   };
 
   for (const field of airtableTableSchema.fields) {
     // Match columns on label. It's the only reliable value we can automatically match on and the simplest to implement.
-    const matchingColumn = gristTableSchema.columns.find(column => column.label === field.name);
+    const matchingColumn = findGristColumnForField(field, gristTableSchema);
     if (!matchingColumn) {
       warnings.push(new NoDestinationColumnWarning(gristTableSchema.id, field));
       continue;
@@ -129,6 +133,10 @@ function createAirtableTableToGristTableCrosswalk(
   }
 
   return { crosswalk, warnings };
+}
+
+function findGristColumnForField(field: AirtableFieldSchema, gristSchema: ExistingTableSchema) {
+  return gristSchema.columns.find(column => column.label === field.name);
 }
 
 interface AirtableDataImportWarning {
