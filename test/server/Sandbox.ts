@@ -311,25 +311,15 @@ describe("Sandbox", function() {
       const secretContent = "secret";
 
       // Create a file on the host
-      try {
-        fs.writeFileSync(testFile, secretContent);
-      }
-      catch (e) {
-        // PermissionError is acceptable, and means there is nothing
-        // further to test.
-        if (!String(e).match(/PermissionError/)) {
-          throw e;
-        }
-        // Test is complete.
-        return;
-      }
+      fs.writeFileSync(testFile, secretContent);
       try {
         let sandboxContent = "";
         try {
           sandboxContent = await sandbox.pyCall("test_read_file", path.join("/tmp", fname));
         } catch (e) {
-          // File not found is acceptable.
-          if (!String(e).match(/FileNotFoundError/)) {
+          // File not found or PermissionError is acceptable.
+          if (!String(e).match(/FileNotFoundError/) &&
+            !String(e).match(/PermissionError/)) {
             throw e;
           }
         }
