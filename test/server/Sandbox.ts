@@ -313,7 +313,8 @@ describe("Sandbox", function() {
       // Create a file on the host
       try {
         fs.writeFileSync(testFile, secretContent);
-      } catch (e) {
+      }
+      catch (e) {
         // PermissionError is acceptable, and means there is nothing
         // further to test.
         if (!String(e).match(/PermissionError/)) {
@@ -355,8 +356,8 @@ libc.emscripten_run_script_string(b"require('fs').writeFileSync('${testFile}', '
 return 'done'
 `);
         if (!result.match("done") &&
-            !result.match(/undefined symbol: emscripten_run_script_string/) &&
-            !result.match(/symbol not found/)) {
+          !result.match(/undefined symbol: emscripten_run_script_string/) &&
+          !result.match(/symbol not found/)) {
           throw new Error("unexpected result " + String(result));
         }
       } catch (e) {
