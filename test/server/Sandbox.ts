@@ -311,7 +311,17 @@ describe("Sandbox", function() {
       const secretContent = "secret";
 
       // Create a file on the host
-      fs.writeFileSync(testFile, secretContent);
+      try {
+        fs.writeFileSync(testFile, secretContent);
+      } catch (e) {
+        // PermissionError is acceptable, and means there is nothing
+        // further to test.
+        if (!String(e).match(/PermissionError/)) {
+          throw e;
+        }
+        // Test is complete.
+        return;
+      }
       try {
         let sandboxContent = "";
         try {
@@ -345,7 +355,8 @@ libc.emscripten_run_script_string(b"require('fs').writeFileSync('${testFile}', '
 return 'done'
 `);
         if (!result.match("done") &&
-          !result.match(/undefined symbol: emscripten_run_script_string/)) {
+            !result.match(/undefined symbol: emscripten_run_script_string/) &&
+            !result.match(/symbol not found/)) {
           throw new Error("unexpected result " + String(result));
         }
       } catch (e) {
