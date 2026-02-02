@@ -527,6 +527,57 @@
     "DuplicateTable": {
         "Copy all data in addition to the table structure.": "Kopiera alla data i tillägg till tabellstrukturen.",
         "Instead of duplicating tables, it's usually better to segment data using linked views. {{link}}": "Istället för att duplicera tabeller, är det vanligtvis bättre att segmentera datan med länkade vyer. {{link}}",
-        "Name for new table": "Namn för ny tabell"
+        "Name for new table": "Namn för ny tabell",
+        "Only the document default access rules will apply to the copy.": "Enbart dokumentets standard behörighetsregler kommer gälla för kopian."
+    },
+    "ExampleInfo": {
+        "Afterschool Program": "Fritidsprogram",
+        "Check out our related tutorial for how to link data, and create high-productivity layouts.": "Läs vår relaterade guide om hur du länkar data och skapar layouter för hög produktivitet.",
+        "Check out our related tutorial for how to model business data, use formulas, and manage complexity.": "Läs vår relaterade guide om hur du organiserar företagsdata, använder formler och hanterar komplexitet.",
+        "Check out our related tutorial to learn how to create summary tables and charts, and to link charts dynamically.": "Läs vår relaterade guide om hur du skapar summeringstabeller, diagram och länkar till diagram dynamiskt.",
+        "Investment Research": "Investeringsforskning",
+        "Lightweight CRM": "Enkelt CRM",
+        "Tutorial: Analyze & Visualize": "Guide: Analysera och visualisera",
+        "Tutorial: Create a CRM": "Guide: Skapa ett CRM",
+        "Tutorial: Manage Business Data": "Guide: Hantera företagsdata",
+        "Welcome to the Afterschool Program template": "Välkommen till fritidsprogramsmallen",
+        "Welcome to the Investment Research template": "Välkommen til investeringsforskningsmallen",
+        "Welcome to the Lightweight CRM template": "Välkommen till den enkla CRM mallen"
+    },
+    "FieldConfig": {
+        "COLUMN BEHAVIOR": "KOLUMN BETEENDE",
+        "COLUMN LABEL AND ID": "KOLUMN RUBRIK OCH ID",
+        "Clear and make into formula": "Rensa och gör till formel",
+        "Clear and reset": "Rensa och återställ",
+        "Column options are limited in summary tables.": "Kolumninställningar är begränsade i summeringstabeller.",
+        "Convert column to data": "Konvertera kolumnen till data",
+        "Convert to trigger formula": "Omvandla till triggad formel",
+        "Data columns_one": "Datakolumn",
+        "Data columns_other": "Datakolumner",
+        "Empty columns_one": "Tom kolumn",
+        "Empty columns_other": "Tomma kolumner",
+        "Enter formula": "Fyll i formel",
+        "Formula columns_one": "Formelkolumn",
+        "Formula columns_other": "Formelkolumner",
+        "Make into data column": "Omvandla till datakolumn",
+        "Mixed Behavior": "Varierat beteende",
+        "Set formula": "Ange formel",
+        "Set trigger formula": "Ange triggad fornel",
+        "TRIGGER FORMULA": "TRIGGAD FORMEL",
+        "DESCRIPTION": "BESKRIVNING"
+    },
+    "FieldMenus": {
+        "Revert to common settings": "Återgå till gemensamma inställningar",
+        "Save as common settings": "Spara som gemensamma inställningar",
+        "Use separate settings": "Använd separata inställningar",
+        "Using common settings": "Använd gemensamma inställningar",
+        "Using separate settings": "Använder separata inställningar"
+    },
+    "FilterConfig": {
+        "Add column": "Lägg till kolumn",
+        "Pin filter - {{- columnName}} column (current: unpinned)": "Fäst filter - kolum {{- columnName}} (nu: inte fäst)",
+        "Unpin filter - {{- columnName}} column (current: pinned)": "Lossa filter - kolumn {{- columnName}} (nu: fäst)",
+        "remove filter - {{- columnName}} column": "Ta bort filter - kolumn {{- columnName}}",
+        "{{- columnName }} column filters": "{{- columnName }} kolumnfilter"
     }
 }
