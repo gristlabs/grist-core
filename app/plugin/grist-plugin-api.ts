@@ -445,6 +445,14 @@ function onThemeChange(callback: (theme: any) => unknown) {
   });
 }
 
+function onCustomCss(callback: (customCssUrl: string) => unknown) {
+  on("message", function(msg) {
+    if (msg.customCssUrl) {
+      callback(msg.customCssUrl);
+    }
+  });
+}
+
 /**
  * Calling `addImporter(...)` adds a safeBrowser importer. It is a short-hand for forwarding calls
  * to an `ImportSourceAPI` implementation registered in the file at `path`. It takes care of
@@ -588,6 +596,21 @@ onThemeChange((newTheme) => {
 
   _theme = newTheme;
   attachCssThemeVars(_theme);
+});
+
+onCustomCss((customCssUrl) => {
+  const customCssLink = document.getElementById("grist-custom-css");
+  if (customCssLink) {
+    (customCssLink as HTMLLinkElement).href = customCssUrl;
+    return;
+  }
+  const link = document.createElement("link");
+  link.id = "grist-custom-css";
+  link.rel = "stylesheet";
+  link.href = customCssUrl;
+  document.head.append(link as Node);
+  // This data-attribute helps the custom CSS authors apply widget-specific styles if needed.
+  document.documentElement.setAttribute("data-grist-widget", "true");
 });
 
 function attachCssThemeVars({ appearance, name, colors: cssVars }: any) {
