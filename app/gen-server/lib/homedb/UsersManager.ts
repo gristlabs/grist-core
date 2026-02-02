@@ -772,6 +772,7 @@ export class UsersManager {
           // Org-level sharing with everyone would allow serious spamming - forbid it.
           if (
             role !== null && // allow removing anything
+            // FIXME: should also check for installadmin
             userId !== this.getSupportUserId() && // allow support user latitude
             user.id === this.getEveryoneUserId() &&
             isOrg
@@ -923,10 +924,13 @@ export class UsersManager {
     return members;
   }
 
-  // For the moment only the support user can add both everyone@ and anon@ to a
+  // Only the install administrators can add both everyone@ and anon@ to a
   // resource, since that allows spam. TODO: enhance or remove.
-  public checkUserChangeAllowed(userId: number, groups: Group[]) {
-    if (userId === this.getSupportUserId()) { return; }
+  public async checkUserChangeAllowed(userId: number, groups: Group[]) {
+    const adminId = (await this._homeDb.getAdminUser()).id;
+    if (userId === adminId || userId === this.getSupportUserId()) {
+      return;
+    }
     const ids = new Set(flatten(groups.map(g => g.memberUsers)).map(u => u.id));
     if (ids.has(this.getEveryoneUserId()) && ids.has(this.getAnonymousUserId())) {
       throw new Error("this user cannot share with everyone and anonymous");
