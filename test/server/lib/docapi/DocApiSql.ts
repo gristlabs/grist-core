@@ -111,8 +111,7 @@ function addSqlTests(getCtx: () => TestContext) {
         ], chimpy);
       resp = await axios.post(url, query, kiwi);
       assert.equal(resp.status, 403);
-    }
-    finally {
+    } finally {
       // Remove extra viewer; remove extra table.
       const delta = {
         users: { "kiwi@getgrist.com": null },
@@ -135,8 +134,7 @@ function addSqlTests(getCtx: () => TestContext) {
         chimpy);
       if (accept) {
         assert.equal(resp.status, 200);
-      }
-      else {
+      } else {
         assert.equal(resp.status, 400);
       }
       return resp.data;

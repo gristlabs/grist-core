@@ -105,8 +105,7 @@ function addDocumentsTests(getCtx: () => TestContext) {
       assert.equal(resp.data.A[1], "Orange");
       resp = await axios.get(`${serverUrl}/api/docs/urlid1/tables/Table1/data`, chimpy);
       assert.equal(resp.data.A[1], "Orange");
-    }
-    finally {
+    } finally {
       await userApi.deleteDoc(doc1);
     }
   });
@@ -133,8 +132,7 @@ function addDocumentsTests(getCtx: () => TestContext) {
       assert.equal(resp.data.A[0], "Apple");
       resp = await axios.get(`${serverUrl}/api/docs/${doc2}/tables/Table1/data`, chimpy);
       assert.equal(resp.data.A[0], "Orange");
-    }
-    finally {
+    } finally {
       await userApi.deleteDoc(doc1);
       await nasaApi.deleteDoc(doc2);
     }
@@ -164,8 +162,7 @@ function addDocumentsTests(getCtx: () => TestContext) {
         A: ["Orange"], B: [99],
       }, chimpy);
       assert.equal(resp.status, 404);
-    }
-    finally {
+    } finally {
       await userApi.deleteDoc(doc1);
       await nasaApi.deleteDoc(doc2);
     }
@@ -229,8 +226,7 @@ function addDocumentsTests(getCtx: () => TestContext) {
         sourceDocId: doc3,
       }, kiwi);
       assert.equal(resp.status, 200);
-    }
-    finally {
+    } finally {
       await userApi.deleteDoc(doc1);
       await userApi.deleteDoc(doc2);
       await userApi.deleteDoc(doc3);

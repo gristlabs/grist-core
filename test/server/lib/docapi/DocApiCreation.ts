@@ -94,8 +94,7 @@ function addCreationTests(getCtx: () => TestContext) {
         const urlId = resp.data;
         if (mode === "logged in") {
           assert.match(urlId, /^new~[^~]*~[0-9]+$/);
-        }
-        else {
+        } else {
           assert.match(urlId, /^new~[^~]*$/);
         }
 
@@ -108,8 +107,7 @@ function addCreationTests(getCtx: () => TestContext) {
         if (mode === "anonymous") {
           resp = await axios.get(`${homeUrl}/api/docs/${urlId}`, chimpy);
           assert.equal(resp.data.access, "owners");
-        }
-        else {
+        } else {
           resp = await axios.get(`${homeUrl}/api/docs/${urlId}`, charon);
           assert.equal(resp.status, 403);
           resp = await axios.get(`${homeUrl}/api/docs/${urlId}`, nobody);
@@ -120,8 +118,7 @@ function addCreationTests(getCtx: () => TestContext) {
         resp = await axios.get(`${serverUrl}/api/docs/${urlId}/tables/Table1/data`, user);
         if (content === "with content") {
           assert.deepEqual(resp.data, { id: [1, 2], manualSort: [1, 2], A: [1, 3], B: [2, 4] });
-        }
-        else {
+        } else {
           assert.deepEqual(resp.data, { id: [], manualSort: [], A: [], B: [], C: [] });
         }
       });
@@ -168,8 +165,7 @@ function addCreationTests(getCtx: () => TestContext) {
       resp = await axios.get(`${serverUrl}/api/docs/${urlId}/tables/Table1/data`, user);
       if (content === "with content") {
         assert.deepEqual(resp.data, { id: [1, 2], manualSort: [1, 2], A: [1, 3], B: [2, 4] });
-      }
-      else {
+      } else {
         assert.deepEqual(resp.data, { id: [], manualSort: [], A: [], B: [], C: [] });
       }
 

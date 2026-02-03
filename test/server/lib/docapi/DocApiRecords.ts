@@ -256,8 +256,7 @@ function addRecordsTests(getCtx: () => TestContext) {
         if (mode === "url") {
           const urlParams = new URLSearchParams(params as any);
           return axios.get(`${url}?${urlParams}`, chimpy);
-        }
-        else {
+        } else {
           return axios.get(url, { ...chimpy, headers: {
             ...chimpy.headers, "X-Sort": params.sort, "X-Limit": params.limit,
           } });

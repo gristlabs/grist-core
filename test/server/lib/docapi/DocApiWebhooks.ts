@@ -198,8 +198,7 @@ function addWebhooksTests(getCtx: () => TestContext) {
         assert.containsAllKeys(resp.data.webhooks[0], ["id", "fields"]);
         assert.containsAllKeys(resp.data.webhooks[0].fields,
           ["enabled", "isReadyColumn", "memo", "name", "tableId", "eventTypes", "url"]);
-      }
-      finally {
+      } finally {
         await deleteWebhookCheck(registerResponse.webhooks[0].id);
       }
     });
@@ -380,15 +379,13 @@ function addWebhooksTests(getCtx: () => TestContext) {
         let success = true;
         try {
           await api.getTable(docId, "Table1");
-        }
-        catch (e) {
+        } catch (e) {
           success = false;
         }
 
         if (success) {
           assert.isAtMost(i, max + 1);
-        }
-        else {
+        } else {
           assert.isAtLeast(i, max + 1);
         }
       }
@@ -654,8 +651,7 @@ function addWebhooksTests(getCtx: () => TestContext) {
           try {
             await delayAbort(20000, scoped.signal);
             assert.fail("Should have been aborted");
-          }
-          catch (exc) {
+          } catch (exc) {
             res.status(probeStatus);
             res.send(probeMessage);
             res.end();
@@ -671,8 +667,7 @@ function addWebhooksTests(getCtx: () => TestContext) {
             res.sendStatus(200);
             res.end();
             longFinished.emit(body[0].A);
-          }
-          catch (exc) {
+          } catch (exc) {
             res.sendStatus(200);
             res.end();
             longFinished.emit([408, body[0].A]);
@@ -893,8 +888,7 @@ function addWebhooksTests(getCtx: () => TestContext) {
 
           if (ctx.enabled) {
             assert.isAbove(redisPushIndex, 0, "Should have pushed events to the redis queue");
-          }
-          else {
+          } else {
             assert.equal(redisPushIndex, -1, "Should not have pushed any events to the redis queue");
           }
         });
@@ -1517,12 +1511,10 @@ function addWebhooksTests(getCtx: () => TestContext) {
               // eslint-disable-next-line @typescript-eslint/no-unused-vars
               const { unsubscribeKey, ...fieldsWithoutUnsubscribeKey } = stats[0].fields;
               assert.deepEqual(fieldsWithoutUnsubscribeKey, { ...expectedFields, ...fields });
-            }
-            else {
+            } else {
               if (error instanceof RegExp) {
                 assert.match(resp.data.details?.userError || resp.data.error, error);
-              }
-              else {
+              } else {
                 assert.deepEqual(resp.data, { error });
               }
             }
@@ -1587,8 +1579,7 @@ function addWebhooksTests(getCtx: () => TestContext) {
         anonConfig.headers!.Host = chimpyConfig.headers!.Host =
           "api.example.com";
         allowedOrigin = "http://front.example.com";
-      }
-      else {
+      } else {
         allowedOrigin = serverUrl;
       }
 
@@ -1623,8 +1614,7 @@ function addWebhooksTests(getCtx: () => TestContext) {
           if (config === anonConfig) {
             // Requests without credentials are still OK.
             assert.equal(response.status, 200);
-          }
-          else {
+          } else {
             assert.equal(response.status, 403);
             assert.deepEqual(response.data, { error: "Credentials not supported for cross-origin requests" });
           }
