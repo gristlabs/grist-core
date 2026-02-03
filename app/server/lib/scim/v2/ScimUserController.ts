@@ -6,8 +6,10 @@ import { RequestContext } from "app/server/lib/scim/v2/ScimTypes";
 import { toSCIMMYUser, toUserProfile } from "app/server/lib/scim/v2/ScimUtils";
 
 import SCIMMY from "scimmy";
+import { Filter } from "scimmy/types";
 import {
-  FindOptionsWhere, LessThan, LessThanOrEqual, MoreThan, MoreThanOrEqual, Not, ObjectLiteral, Raw,
+  FindOptionsWhere, LessThan, LessThanOrEqual, MoreThan, MoreThanOrEqual,
+  Not, ObjectLiteral, Raw, ValidateCollectionOptions,
 } from "typeorm";
 
 type UserSchema = SCIMMY.Schemas.User;
@@ -49,21 +51,17 @@ class ScimUserController extends BaseController {
     return this.runAndHandleErrors(context, async (): Promise<UserSchema[]> => {
       let users: User[];
 
-      // Detect if the search is a basic filter on the user name or the email value (which are the same thing)
-      // NOTE: quotes are not allowed in emails, hence we don't look for escape characters.
-      const simpleSearchOnUsernameRE = /^(username|email\.value)\s+(?<op>..)\s+"(?<value>[^"]*)"$/i;
-      const match = resource.filter?.expression.match(simpleSearchOnUsernameRE);
+      const match = this._extractOpAndEmailFromSimpleFilter(resource.filter);
 
       if (match) {
-        const { op, value } = match.groups!;
+        const { op, value } = match;
         users = await this.dbManager.getExistingUsersFiltered(
           {
             logins: this._filterByLoginEmail(op, value),
             type: "login",
           },
         );
-      }
-      else {
+      } else {
         users = await this.dbManager.getUsers({ type: "login" });
       }
 
@@ -157,15 +155,44 @@ class ScimUserController extends BaseController {
     }
   }
 
+  private _extractOpAndEmailFromSimpleFilter(
+    filter?: SCIMMY.Types.Filter,
+  ): { op: Filter.ValidComparisonStrings, value: string } | null {
+    // Ensure we only have a simple filter, with no logical operators
+    const firstFilter = filter?.[0];
+    const propNames = firstFilter && Object.keys(firstFilter);
+    if (filter?.length !== 1 || propNames.length !== 1) {
+      return null;
+    }
+    // Convert the keys to lowercase
+    const propName = propNames[0];
+    // NOTE: Have to convert the property name to lower case. See this issue:
+    // https://github.com/scimmyjs/scimmy/issues/97
+    if (propName.toLowerCase() === "username") {
+      return { op: firstFilter[propName][0], value: firstFilter[propName][1] };
+    }
+    if (propName.toLowerCase() === "email") {
+      const emailFilter = firstFilter[propName];
+      const keys = Object.keys(emailFilter);
+      if (keys.length === 1 && keys[0].toLowerCase() === "value") {
+        const emailValueComp = emailFilter[keys[0]];
+        return { op: emailValueComp[0], value: emailValueComp[1] };
+      }
+    }
+    return null;
+  }
+
   private _filterByLoginEmail(operator: string, value: string): FindOptionsWhere<Login> {
     const escapeLikePattern = (value: string) => value.replace(/[\\%_]/g, "\\$&");
     const likeWithEscape = (params: ObjectLiteral) => Raw(col => `${col} LIKE :value ESCAPE '\\'`, params);
 
-    switch (operator.toLowerCase()) {
+    switch (operator.toLowerCase() as ValidateCollectionOptions) {
       case "eq":
         return { email: value };
       case "ne":
         return { email: Not(value) };
+      case "pr":
+        return { email: Not("") }; // Probably will return every record
       case "sw":
         return { email: likeWithEscape({ value: `${escapeLikePattern(value)}%` }) };
       case "ew":
