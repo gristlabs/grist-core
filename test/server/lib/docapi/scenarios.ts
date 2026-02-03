@@ -134,9 +134,6 @@ async function globalSetup(testSuiteName: string) {
   // The XLS test fails on Jenkins without this. Mysterious? Maybe a real problem or
   // a problem in test setup related to plugins? TODO: investigate and fix.
   process.env.GRIST_SANDBOX_FLAVOR = "unsandboxed";
-  if (process.env.TEST_REDIS_URL && !process.env.REDIS_URL) {
-    process.env.REDIS_URL = process.env.TEST_REDIS_URL;
-  }
 
   // Create a stable temp directory (like DocApi.ts)
   tmpDir = path.join(tmpdir(), `grist_test_${username}_${testSuiteName}`);
