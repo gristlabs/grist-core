@@ -28,9 +28,6 @@ describe("DocApiAnonPlayground", function() {
   let serverUrl: string;
 
   before(async function() {
-    // Set up environment
-    process.env.GRIST_SANDBOX_FLAVOR = "unsandboxed";
-
     // Create temp directory
     tmpDir = path.join(tmpdir(), `grist_test_${username}_docapi-anon-playground`);
     await prepareFilesystemDirectoryForTests(tmpDir);
@@ -44,6 +41,7 @@ describe("DocApiAnonPlayground", function() {
     const additionalEnvConfiguration = {
       GRIST_DATA_DIR: dataDir,
       GRIST_ANON_PLAYGROUND: "false",
+      GRIST_SANDBOX_FLAVOR: "unsandboxed",
     };
 
     home = await TestServer.startServer("home,docs", tmpDir, "anon-playground", additionalEnvConfiguration);
