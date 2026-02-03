@@ -1866,8 +1866,7 @@ describe("Scim", () => {
       try {
         await getDbManager().connection.query(`SET session_replication_role = replica`);
         await cb();
-      }
-      finally {
+      } finally {
         await getDbManager().connection.query(`SET session_replication_role = DEFAULT`);
       }
     };
