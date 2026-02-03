@@ -57,6 +57,9 @@ export interface TestContext {
   cleanup: () => Promise<void>;
 }
 
+/** Server configuration mode */
+export type ServerMode = "merged" | "separated" | "direct";
+
 // Module-level state for each test run
 const username = process.env.USER || "nobody";
 let tmpDir: string;
@@ -208,91 +211,42 @@ function createContext(
 }
 
 /**
- * Set up a merged server (home + docs in one process).
+ * Set up servers for a given mode.
+ *
+ * @param mode - "merged" (single server), "separated" (home + docworker), or "direct" (to docworker)
+ * @param extraEnv - Additional environment variables
  */
-export async function setupMergedServer(
-  mochaContext: Mocha.Context,
+export async function setupServers(
+  mode: ServerMode,
   extraEnv?: Record<string, string>,
 ): Promise<TestContext> {
-  const suitename = "merged";
-  const { docIds: scenarioDocIds } = await scenarioSetup(suitename);
+  const { docIds: scenarioDocIds } = await scenarioSetup(mode);
 
-  const additionalEnvConfiguration = {
+  const env = {
     GRIST_DATA_DIR: dataDir,
     GRIST_EXTERNAL_ATTACHMENTS_MODE: "test",
     ...extraEnv,
   };
 
-  const home = await TestServer.startServer("home,docs", tmpDir, suitename, additionalEnvConfiguration);
-  const serverUrl = home.serverUrl;
-  const homeUrl = home.serverUrl;
+  let home: TestServer;
+  let docs: TestServer;
+  let serverUrl: string;
+
+  if (mode === "merged") {
+    home = docs = await TestServer.startServer("home,docs", tmpDir, mode, env);
+    serverUrl = home.serverUrl;
+  } else {
+    home = await TestServer.startServer("home", tmpDir, mode, env);
+    docs = await TestServer.startServer("docs", tmpDir, mode, env, home.serverUrl);
+    serverUrl = mode === "direct" ? docs.serverUrl : home.serverUrl;
+  }
 
   // Create TestDoc as an empty doc in Private workspace
-  const userApi = makeUserApi(homeUrl, ORG_NAME, "chimpy");
+  const userApi = makeUserApi(home.serverUrl, ORG_NAME, "chimpy");
   const wid = await getWorkspaceId(userApi, "Private");
   scenarioDocIds.TestDoc = await userApi.newDoc({ name: "TestDoc" }, wid);
 
-  return createContext(home, home, serverUrl, homeUrl, scenarioDocIds, true);
-}
-
-/**
- * Set up separated servers (home server + doc worker).
- * Requires Redis.
- */
-export async function setupSeparatedServers(
-  mochaContext: Mocha.Context,
-  extraEnv?: Record<string, string>,
-): Promise<TestContext> {
-  const suitename = "separated";
-  const { docIds: scenarioDocIds } = await scenarioSetup(suitename);
-
-  const additionalEnvConfiguration = {
-    GRIST_DATA_DIR: dataDir,
-    GRIST_EXTERNAL_ATTACHMENTS_MODE: "test",
-    ...extraEnv,
-  };
-
-  const home = await TestServer.startServer("home", tmpDir, suitename, additionalEnvConfiguration);
-  const homeUrl = home.serverUrl;
-  const docs = await TestServer.startServer("docs", tmpDir, suitename, additionalEnvConfiguration, homeUrl);
-  const serverUrl = homeUrl; // Requests go through home server
-
-  // Create TestDoc
-  const userApi = makeUserApi(homeUrl, ORG_NAME, "chimpy");
-  const wid = await getWorkspaceId(userApi, "Private");
-  scenarioDocIds.TestDoc = await userApi.newDoc({ name: "TestDoc" }, wid);
-
-  return createContext(home, docs, serverUrl, homeUrl, scenarioDocIds, true);
-}
-
-/**
- * Set up direct access to doc worker (requests bypass home server).
- * Requires Redis.
- */
-export async function setupDirectDocworker(
-  mochaContext: Mocha.Context,
-  extraEnv?: Record<string, string>,
-): Promise<TestContext> {
-  const suitename = "direct";
-  const { docIds: scenarioDocIds } = await scenarioSetup(suitename);
-
-  const additionalEnvConfiguration = {
-    GRIST_DATA_DIR: dataDir,
-    GRIST_EXTERNAL_ATTACHMENTS_MODE: "test",
-    ...extraEnv,
-  };
-
-  const home = await TestServer.startServer("home", tmpDir, suitename, additionalEnvConfiguration);
-  const homeUrl = home.serverUrl;
-  const docs = await TestServer.startServer("docs", tmpDir, suitename, additionalEnvConfiguration, homeUrl);
-  const serverUrl = docs.serverUrl; // Requests go directly to doc worker
-
-  // Create TestDoc (still need home API for this)
-  const userApi = makeUserApi(homeUrl, ORG_NAME, "chimpy");
-  const wid = await getWorkspaceId(userApi, "Private");
-  scenarioDocIds.TestDoc = await userApi.newDoc({ name: "TestDoc" }, wid);
-
-  return createContext(home, docs, serverUrl, homeUrl, scenarioDocIds, false);
+  return createContext(home, docs, serverUrl, home.serverUrl, scenarioDocIds, mode !== "direct");
 }
 
 /**
@@ -301,6 +255,30 @@ export async function setupDirectDocworker(
 export interface ScenarioOptions {
   /** Additional environment variables to pass to the server */
   extraEnv?: Record<string, string>;
+}
+
+/**
+ * Add a single test scenario as a describe block.
+ */
+function addScenario(
+  name: string,
+  mode: ServerMode,
+  addTests: (getCtx: () => TestContext) => void,
+  extraEnv?: Record<string, string>,
+) {
+  describe(name, function() {
+    let ctx: TestContext;
+
+    before(async function() {
+      ctx = await setupServers(mode, extraEnv);
+    });
+
+    after(async function() {
+      await ctx.cleanup();
+    });
+
+    addTests(() => ctx);
+  });
 }
 
 /**
@@ -330,47 +308,10 @@ export function addAllScenarios(
   // the first file's after() would clear the database path before
   // subsequent files run. The test process exits anyway.
 
-  describe("merged server", function() {
-    let ctx: TestContext;
-
-    before(async function() {
-      ctx = await setupMergedServer(this, options.extraEnv);
-    });
-
-    after(async function() {
-      await ctx.cleanup();
-    });
-
-    addTests(() => ctx);
-  });
+  addScenario("merged server", "merged", addTests, options.extraEnv);
 
   if (process.env.TEST_REDIS_URL) {
-    describe("home + docworker", function() {
-      let ctx: TestContext;
-
-      before(async function() {
-        ctx = await setupSeparatedServers(this, options.extraEnv);
-      });
-
-      after(async function() {
-        await ctx.cleanup();
-      });
-
-      addTests(() => ctx);
-    });
-
-    describe("direct to docworker", function() {
-      let ctx: TestContext;
-
-      before(async function() {
-        ctx = await setupDirectDocworker(this, options.extraEnv);
-      });
-
-      after(async function() {
-        await ctx.cleanup();
-      });
-
-      addTests(() => ctx);
-    });
+    addScenario("home + docworker", "separated", addTests, options.extraEnv);
+    addScenario("direct to docworker", "direct", addTests, options.extraEnv);
   }
 }
