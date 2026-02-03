@@ -45,8 +45,7 @@ import { AbortController } from "node-abort-controller";
 import fetch from "node-fetch";
 import { createClient, RedisClient } from "redis";
 
-// Use a fixed port offset based on test suite to avoid collisions
-const webhooksTestPort = 34365;
+const webhooksTestPort = Number(process.env.WEBHOOK_TEST_PORT || 34365);
 
 async function getWorkspaceId(api: UserAPIImpl, name: string) {
   const workspaces = await api.getOrgWorkspaces("current");
