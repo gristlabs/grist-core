@@ -130,11 +130,6 @@ async function globalSetup(testSuiteName: string) {
   }
   globalSetupDone.add(testSuiteName);
 
-  // Set up environment
-  // The XLS test fails on Jenkins without this. Mysterious? Maybe a real problem or
-  // a problem in test setup related to plugins? TODO: investigate and fix.
-  process.env.GRIST_SANDBOX_FLAVOR = "unsandboxed";
-
   // Create a stable temp directory (like DocApi.ts)
   tmpDir = path.join(tmpdir(), `grist_test_${username}_${testSuiteName}`);
   await prepareFilesystemDirectoryForTests(tmpDir);
@@ -222,6 +217,9 @@ export async function setupServers(
   const env = {
     GRIST_DATA_DIR: dataDir,
     GRIST_EXTERNAL_ATTACHMENTS_MODE: "test",
+    // The XLS test fails on Jenkins without this. Mysterious? Maybe a real problem or
+    // a problem in test setup related to plugins? TODO: investigate and fix.
+    GRIST_SANDBOX_FLAVOR: "unsandboxed",
     ...extraEnv,
   };
 
