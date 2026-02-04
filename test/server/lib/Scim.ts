@@ -1834,9 +1834,9 @@ describe("Scim", () => {
       const nbUsers = 1_000_000;
       userIds = await getDbManager().connection.query(`
         WITH RECURSIVE
-          loop(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM loop WHERE i < ${nbUsers})
+          loop(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM loop WHERE i < $1)
         INSERT INTO users(name, type, ref) SELECT 'user' || i, 'login', 'user-ref' || i FROM loop
-        RETURNING id;`);
+        RETURNING id;`, [nbUsers]);
 
       await getDbManager().connection.query(`
         INSERT INTO logins(user_id, email, display_email)
