@@ -80,7 +80,6 @@ export type AirtableFieldName = string;
 
 // Airtable schema response. Limit this to only needed fields to minimise chance of breakage.
 export interface AirtableBaseSchema {
-  id: AirtableBaseId,
   tables: AirtableTableSchema[];
 }
 
