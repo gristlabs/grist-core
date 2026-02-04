@@ -9,7 +9,7 @@ import SCIMMY from "scimmy";
 import { Filter } from "scimmy/types";
 import {
   FindOptionsWhere, LessThan, LessThanOrEqual, MoreThan, MoreThanOrEqual,
-  Not, ObjectLiteral, Raw, ValidateCollectionOptions,
+  Not, ObjectLiteral, Raw,
 } from "typeorm";
 
 type UserSchema = SCIMMY.Schemas.User;
@@ -158,9 +158,12 @@ class ScimUserController extends BaseController {
   private _extractOpAndEmailFromSimpleFilter(
     filter?: SCIMMY.Types.Filter,
   ): { op: Filter.ValidComparisonStrings, value: string } | null {
-    // Ensure we only have a simple filter, with no logical operators
+    // Ensure we only have a simple filter, with no logical operators (AND / OR / NOT)
+    // If the filter has a OR operator, the filter array would have more than one element
+    // (in which case we don't treat the case and let scimmy do that).
     const firstFilter = filter?.[0];
-    const propNames = firstFilter && Object.keys(firstFilter);
+    // Also if the filter has a AND operator, the object would have more than one property.
+    const propNames = firstFilter && typeof firstFilter === "object" ? Object.keys(firstFilter) : [];
     if (filter?.length !== 1 || propNames.length !== 1) {
       return null;
     }
@@ -173,26 +176,28 @@ class ScimUserController extends BaseController {
     }
     if (propName.toLowerCase() === "email") {
       const emailFilter = firstFilter[propName];
-      const keys = Object.keys(emailFilter);
-      if (keys.length === 1 && keys[0].toLowerCase() === "value") {
-        const emailValueComp = emailFilter[keys[0]];
+      const emailKeys = Object.keys(emailFilter);
+      if (emailKeys.length === 1 && emailKeys[0].toLowerCase() === "value") {
+        const emailValueComp = emailFilter[emailKeys[0]];
         return { op: emailValueComp[0], value: emailValueComp[1] };
       }
     }
     return null;
   }
 
-  private _filterByLoginEmail(operator: string, value: string): FindOptionsWhere<Login> {
+  private _filterByLoginEmail(
+    operator: Filter.ValidComparisonStrings, value: string,
+  ): FindOptionsWhere<Login> | undefined {
     const escapeLikePattern = (value: string) => value.replace(/[\\%_]/g, "\\$&");
     const likeWithEscape = (params: ObjectLiteral) => Raw(col => `${col} LIKE :value ESCAPE '\\'`, params);
 
-    switch (operator.toLowerCase() as ValidateCollectionOptions) {
+    switch (operator) {
       case "eq":
         return { email: value };
       case "ne":
         return { email: Not(value) };
       case "pr":
-        return { email: Not("") }; // Probably will return every record
+        return undefined; // Email is not null, so don't filter anything
       case "sw":
         return { email: likeWithEscape({ value: `${escapeLikePattern(value)}%` }) };
       case "ew":
@@ -207,6 +212,7 @@ class ScimUserController extends BaseController {
         return { email: MoreThan(value) };
       case "ge":
         return { email: MoreThanOrEqual(value) };
+      case "np": // Surprisingly seems supported by Scimmy but not specified in RFC. We don't support it.
       default:
         throw new SCIMMY.Types.Error(500, null!, "Unknown operator: " + operator);
     }
