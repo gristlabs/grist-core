@@ -130,52 +130,6 @@ export async function importDataFromAirtableBase(
   for (const tableReferenceTracker of referenceTracker.getTables()) {
     await tableReferenceTracker.bulkUpdateRowsWithUnresolvedReferences(updateRows);
   }
-
-  /*
-  // Resolve references, table by table to enable bulk updates.
-  // To make the bulk updates behave correctly, all reference columns need updating at the same time.
-  // This means every `UnresolvedRefsForRecord` should contain the values for every reference column being resolved.
-  for (const [tableCrosswalk, unresolvedRefsForTable] of unresolvedRefsByTable.entries()) {
-    const referenceColumns = Array.from(tableCrosswalk.fields.values())
-      .filter(mapping => isRefField(mapping.airtableField))
-      .map(mapping => mapping.gristColumn);
-
-    const referenceColumnIds = referenceColumns.map(column => column.id);
-    const maxBatchSize = 100;
-
-    let pendingUpdate: TableColValues = { id: [], ...createEmptyBulkColValues(referenceColumnIds) };
-    for (const unresolvedRefsForRecord of unresolvedRefsForTable) {
-      const gristRowId = gristRowIdLookup.get(unresolvedRefsForRecord.airtableRecordId);
-      // This should only happen if a row failed to be added - in which case, it's safe to skip
-      // reference resolution because there's no row to update.
-      if (gristRowId === undefined) { continue; }
-
-      pendingUpdate.id.push(gristRowId);
-      // Every row needs an entry in its respective column in the bulk update, so always loop through
-      // the same columns for every row.
-      for (const referenceColumnId of referenceColumnIds) {
-        const references = unresolvedRefsForRecord.refsByColumnId[referenceColumnId];
-        // TODO - Unresolvable references are currently just skipped silently. Find a way to display
-        //        them in the cell / UI.
-        const resolvedReferences = references ?
-          references.map(airtableRecordId => gristRowIdLookup.get(airtableRecordId)).filter(isNonNullish) : [];
-        pendingUpdate[referenceColumnId].push(
-          [GristObjCode.List, ...resolvedReferences],
-        );
-      }
-
-      if (pendingUpdate.id.length >= maxBatchSize) {
-        console.log(pendingUpdate);
-        await updateRows(tableCrosswalk.gristTable.id, pendingUpdate);
-        pendingUpdate = { id: [], ...createEmptyBulkColValues(referenceColumnIds) };
-      }
-    }
-
-    if (pendingUpdate.id.length > 0) {
-      console.log(pendingUpdate);
-      await updateRows(tableCrosswalk.gristTable.id, pendingUpdate);
-    }
-  }*/
 }
 
 // TODO - Consider how this can be made generic (and maybe do so)
