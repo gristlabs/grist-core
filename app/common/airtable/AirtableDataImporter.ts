@@ -1,6 +1,7 @@
 import { AirtableFieldSchema } from "app/common/airtable/AirtableAPI";
 import {
-  AirtableBaseSchemaCrosswalk, AirtableFieldMappingInfo,
+  AirtableBaseSchemaCrosswalk,
+  AirtableFieldMappingInfo,
   GristTableId,
 } from "app/common/airtable/AirtableCrosswalk";
 import { TableColValues } from "app/common/DocActions";
