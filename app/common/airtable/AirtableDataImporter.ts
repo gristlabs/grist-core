@@ -22,21 +22,11 @@ type UpdateRowsFunc = (tableId: GristTableId, rows: TableColValues) => Promise<n
 export async function importDataFromAirtableBase(
   { base, addRows, updateRows, schemaCrosswalk }: AirtableDataImportParams,
 ) {
-  // TODO - move this comment
-  // Maps known airtable ids to their grist row ids to enable reference resolution.
-  // Airtable row ids are guaranteed unique within a base.
   const referenceTracker = new ReferenceTracker();
-  /*
-  const addRowsAndStoreIdMapping = async (tableId: string, airtableRecordIds: string[], colValues: BulkColValues) => {
-    const rowIds = await addRows(tableId, colValues);
-  };
-   */
 
   const addRowsPromises: Promise<any>[] = [];
 
   for (const [tableId, tableCrosswalk] of schemaCrosswalk.tables.entries()) {
-    console.log(`Migrating ${tableId} to ${tableCrosswalk.gristTable.id}`);
-    console.log(tableCrosswalk);
     // Filter out any formula columns early - Grist will error on any write to formula columns.
     const fieldMappings = Array.from(tableCrosswalk.fields.values()).filter(mapping => !mapping.gristColumn.isFormula);
     const gristColumnIds = fieldMappings.map(mapping => mapping.gristColumn.id);
@@ -55,8 +45,6 @@ export async function importDataFromAirtableBase(
     // Used to re-throw outside the eachPage iterator.
     let eachPageError: any = undefined;
 
-    // TODO - This can throw various errors from Airtable's API
-    // TODO - See if it makes sense to have a predictable ordering here.
     await base.table(tableId).select().eachPage((records, nextPage) => {
       // Try-catch needed as Airtable's eachPage handler catches any error thrown here, and emits
       // an entirely different, unrelated error instead (looks like a bug in their library)
@@ -118,22 +106,24 @@ export async function importDataFromAirtableBase(
       }
     });
 
-    // TODO - Throw this for now, but we might want to ignore anything recoverable (partial import?)
+    // Future improvement - we might want to ignore anything recoverable (i.e. skip errored pages)
     if (eachPageError) {
       throw eachPageError;
     }
   }
 
-  // TODO - Handle errors from any addRows promise - should this be a Promise.allSettled?
-  console.log(await Promise.all(addRowsPromises));
+  // Future improvement - report all errors here using Promise.allSettled, or continue even if
+  //                      a few sets of rows throw errors
+  await Promise.all(addRowsPromises);
 
   for (const tableReferenceTracker of referenceTracker.getTables()) {
     await tableReferenceTracker.bulkUpdateRowsWithUnresolvedReferences(updateRows);
   }
 }
 
-// TODO - Consider how this can be made generic (and maybe do so)
-class ReferenceTracker {
+export class ReferenceTracker {
+  // Maps known airtable ids to their grist row ids to enable reference resolution.
+  // Airtable row ids are guaranteed unique within a base.
   private _rowIdLookup = new Map<string, number>();
   // Group references by table and row to achieve bulk-updates and atomic resolutions for rows.
   private _tableReferenceTrackers = new Map<string, TableReferenceTracker>();
@@ -167,7 +157,6 @@ class TableReferenceTracker {
   }
 
   public addUnresolvedRecord(unresolvedRefsForRecord: UnresolvedRefsForRecord) {
-    console.log(`Adding unresolved record: ${JSON.stringify(unresolvedRefsForRecord)}`);
     this._unresolvedRefsForRecords.push(unresolvedRefsForRecord);
   }
 
@@ -196,14 +185,12 @@ class TableReferenceTracker {
       }
 
       if (pendingUpdate.id.length >= batchSize) {
-        console.log(pendingUpdate);
         await updateRows(this._tableId, pendingUpdate);
         pendingUpdate = { id: [], ...createEmptyBulkColValues(this._columnIds) };
       }
     }
 
     if (pendingUpdate.id.length > 0) {
-      console.log(pendingUpdate);
       await updateRows(this._tableId, pendingUpdate);
     }
   }
@@ -232,7 +219,6 @@ function createEmptyBulkColValues(columnIds: string[]): BulkColValues {
 }
 
 type AirtableFieldValueConverter = (fieldSchema: AirtableFieldSchema, value: any) => CellValue | undefined;
-// TODO - Make these values easier to use by typing their parameters. It won't be type safe, but might help.
 const AirtableFieldValueConverters: Record<string, AirtableFieldValueConverter> = {
   identity(fieldSchema, value) {
     return value;
