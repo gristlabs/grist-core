@@ -30,7 +30,6 @@ describe("AirtableImporter", function() {
 
   function createBaseSchema(): AirtableBaseSchema {
     return {
-      id: "TestBaseSchemaId",
       tables: [createTableSchema()],
     };
   }
