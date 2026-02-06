@@ -11,7 +11,7 @@ import { BulkColValues, CellValue, GristObjCode } from "app/plugin/GristData";
 import { AirtableBase } from "airtable/lib/airtable_base";
 import { chain } from "lodash";
 
-interface AirtableDataImportParams {
+export interface AirtableDataImportParams {
   base: AirtableBase,
   addRows: (tableId: GristTableId, rows: BulkColValues) => Promise<number[]>,
   updateRows: UpdateRowsFunc,

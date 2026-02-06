@@ -15,6 +15,7 @@ import { UserAPI } from "app/common/UserAPI";
 export interface AirtableImportOptions {
   transformations?: ImportSchemaTransformParams,
   existingDocId?: string,
+  structureOnly?: boolean,
 }
 
 /**
@@ -55,8 +56,8 @@ export async function runAirtableImport(
   console.log("Retrieved schema for the selected Airtable base:");
   console.log(baseSchema);
 
-  const docApi = existingDocId ?
-    userApi.getDocAPI(existingDocId) : userApi.getDocAPI(await createDoc(userApi, baseToUse.name));
+  const docId = existingDocId ?? await createDoc(userApi, baseToUse.name);
+  const docApi = userApi.getDocAPI(docId);
 
   const existingDocSchema = await getExistingDocSchema(docApi);
   console.log("Schema for the existing Grist document:");
@@ -87,7 +88,7 @@ export async function runAirtableImport(
 
   const docSchemaCreator = new DocSchemaImportTool(actions => docApi.applyUserActions((actions)));
 
-  const { warnings: creationWarnings } = await docSchemaCreator.createTablesFromSchema(transformedSchema.schema);
+  const { tableIdsMap, warnings: creationWarnings } = await docSchemaCreator.createTablesFromSchema(transformedSchema.schema);
   console.log("Warnings that occurred when applying the schema to the document:");
   console.log(creationWarnings);
 
@@ -97,7 +98,31 @@ export async function runAirtableImport(
   }
 
   console.log("Final schema of the Grist document:");
-  console.log(await getExistingDocSchema(docApi));
+  const finalGristDocSchema = await getExistingDocSchema(docApi);
+  console.log(finalGristDocSchema);
+
+  if (options.structureOnly) { return; }
+
+  const dataTableMapping = new Map(
+    Array.from(tableIdsMap.values()).map(tableIdInfo => [tableIdInfo.originalId, tableIdInfo.gristId]),
+  );
+
+  const { schemaCrosswalk, warnings: crosswalkWarnings } =
+    createAirtableBaseToGristDocCrosswalk(baseSchema, existingDocSchema, dataTableMapping);
+
+  console.log("Generated crosswalk schema:");
+  console.log(schemaCrosswalk);
+
+  console.log("Warnings that occurred when generating the crosswalk between the Airtable base and Grist doc:");
+  console.log(crosswalkWarnings);
+
+  console.log(`Importing data from base ${baseId} to Grist doc ${docId}`);
+  await importDataFromAirtableBase({
+    base: api.base(baseId),
+    addRows: docApi.addRows.bind(docApi),
+    updateRows: docApi.updateRows.bind(docApi),
+    schemaCrosswalk,
+  });
 }
 
 export async function runAirtableDataImport(
