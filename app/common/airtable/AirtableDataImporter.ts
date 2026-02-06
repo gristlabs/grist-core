@@ -255,7 +255,8 @@ const AirtableFieldValueConverters: Record<string, AirtableFieldValueConverter> 
   singleCollaborator(fieldSchema, collaborator) {
     return formatCollaborator(collaborator);
   },
-  multipleSelects(fieldSchema, choices: string[]) {
+  multipleSelects(fieldSchema, choices?: string[]) {
+    if (!choices) { return null; }
     return [GristObjCode.List, ...choices];
   },
   rollup(fieldSchema, collaborator) {
