@@ -245,11 +245,18 @@ const AirtableFieldValueConverters: Record<string, AirtableFieldValueConverter> 
     // Lookup fields fetch values from other columns. This should be a formula in Grist, no value needed.
     return null;
   },
+  multipleAttachments(fieldSchema, attachmentInfo) {
+    // Improvement - add attachment support, null them out for now.
+    return null;
+  },
   multipleCollaborators(fieldSchema, collaborators) {
     return collaborators?.map(formatCollaborator);
   },
   singleCollaborator(fieldSchema, collaborator) {
     return formatCollaborator(collaborator);
+  },
+  multipleSelects(fieldSchema, choices: string[]) {
+    return [GristObjCode.List, ...choices];
   },
   rollup(fieldSchema, collaborator) {
     // Generated column - should be a formula in Grist, no value needed
