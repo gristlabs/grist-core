@@ -103,12 +103,16 @@ export async function runAirtableImport(
 
   if (options.structureOnly) { return; }
 
+  console.log(tableIdsMap);
+
   const dataTableMapping = new Map(
     Array.from(tableIdsMap.values()).map(tableIdInfo => [tableIdInfo.originalId, tableIdInfo.gristId]),
   );
 
+  console.log(dataTableMapping);
+
   const { schemaCrosswalk, warnings: crosswalkWarnings } =
-    createAirtableBaseToGristDocCrosswalk(baseSchema, existingDocSchema, dataTableMapping);
+    createAirtableBaseToGristDocCrosswalk(baseSchema, finalGristDocSchema, dataTableMapping);
 
   console.log("Generated crosswalk schema:");
   console.log(schemaCrosswalk);
@@ -123,6 +127,8 @@ export async function runAirtableImport(
     updateRows: docApi.updateRows.bind(docApi),
     schemaCrosswalk,
   });
+
+  console.log("Data import completed!");
 }
 
 export async function runAirtableDataImport(
