@@ -1,3 +1,14 @@
+/**
+ * Tests for various bug fixes and miscellaneous DocApi functionality:
+ * - /move endpoint performance scaling
+ * - DELETE /docs/{did} with forks
+ * - /docs/{did}/timing endpoints
+ *
+ * Note: These tests use the in-process TestServer (from test/gen-server/apiUtils)
+ * rather than scenarios.ts because they need access to FlexServer internals
+ * (e.g., getStorageManager() for fork deletion tests).
+ */
+
 import { UserAPI } from "app/common/UserAPI";
 import { TestServer } from "test/gen-server/apiUtils";
 import { configForUser } from "test/gen-server/testUtils";
@@ -12,7 +23,7 @@ import * as fse from "fs-extra";
 const chimpy = configForUser("Chimpy");
 const kiwi = configForUser("Kiwi");
 
-describe("DocApi2", function() {
+describe("DocApiBugsAndFixes", function() {
   this.timeout(40000);
   let server: TestServer;
   let homeUrl: string;
@@ -46,7 +57,7 @@ describe("DocApi2", function() {
     oldEnv.restore();
   });
 
-  describe("bugs and fixes", async () => {
+  describe("bugs and fixes", function() {
     it("/move endpoint scales well with user count", async function() {
       this.timeout(120000); // Increase timeout for creating many users
 
@@ -190,7 +201,7 @@ describe("DocApi2", function() {
     });
   });
 
-  describe("DELETE /docs/{did}", async () => {
+  describe("DELETE /docs/{did}", function() {
     it("permanently deletes a document and all of its forks", async function() {
       // Create a new document and fork it twice.
       const docId = await owner.newDoc({ name: "doc" }, wsId);
@@ -219,7 +230,7 @@ describe("DocApi2", function() {
     });
   });
 
-  describe("/docs/{did}/timing", async () => {
+  describe("/docs/{did}/timing", function() {
     let docId: string;
     before(async function() {
       docId = await owner.newDoc({ name: "doc2" }, wsId);
@@ -382,3 +393,55 @@ describe("DocApi2", function() {
     });
   });
 });
+
+// API limits tests - these need separate server configurations for each limit value
+for (const { limit, expected, desc } of [
+  { limit: "10", expected: 10, desc: "should limit to 10 requests" },
+  { limit: "20", expected: 20, desc: "should limit to 20 requests" },
+  { limit: "0", expected: 30, desc: "should not limit the requests" },
+]) {
+  describe(`DocApiBugsAndFixes - GRIST_MAX_PARALLEL_REQUESTS_PER_DOC=${limit}`, function() {
+    this.timeout(40000);
+    let limitServer: TestServer;
+    let limitHomeUrl: string;
+    let limitDocId: string;
+    testUtils.setTmpLogLevel("error");
+    let oldEnv: testUtils.EnvironmentSnapshot;
+
+    before(async function() {
+      oldEnv = new testUtils.EnvironmentSnapshot();
+      const tmpDir = await createTmpDir();
+      process.env.GRIST_DATA_DIR = tmpDir;
+      process.env.GRIST_MAX_PARALLEL_REQUESTS_PER_DOC = limit;
+      process.env.STRIPE_ENDPOINT_SECRET = "TEST_WITHOUT_ENDPOINT_SECRET";
+      if (process.env.TEST_REDIS_URL && !process.env.REDIS_URL) {
+        process.env.REDIS_URL = process.env.TEST_REDIS_URL;
+      }
+
+      // Copy Hello.grist as a test document
+      const docPath = `${tmpDir}/sampledocid_13.grist`;
+      await testUtils.copyFixtureDoc("Hello.grist", docPath);
+
+      limitServer = new TestServer(this);
+      limitHomeUrl = await limitServer.start(["home", "docs"]);
+      limitDocId = "sampledocid_13";
+    });
+
+    after(async function() {
+      await limitServer.stop();
+      oldEnv.restore();
+    });
+
+    it(desc, async function() {
+      // Launch 30 requests in parallel and see how many are honored and how many return 429s.
+      // We force-reload the doc first to increase the odds that results won't start coming back
+      // before all the requests have passed authorization.
+      await axios.post(`${limitHomeUrl}/api/docs/${limitDocId}/force-reload`, null, chimpy);
+      const reqs = [...Array(30).keys()].map(
+        _i => axios.get(`${limitHomeUrl}/api/docs/${limitDocId}/tables/Table1/data`, chimpy));
+      const responses = await Promise.all(reqs);
+      assert.lengthOf(responses.filter(r => r.status === 200), expected);
+      assert.lengthOf(responses.filter(r => r.status === 429), 30 - expected);
+    });
+  });
+}
