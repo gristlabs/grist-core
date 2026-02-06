@@ -2,7 +2,7 @@
 
 set -e
 
-CHROME_VERSION="132.0.6834.110-1"
+CHROME_VERSION="144.0.7559.133"
 
 if [[ "$1" != "-y" ]]; then
   echo "Usage: $0 -y"
@@ -18,7 +18,10 @@ if [[ "$(uname -m)" != "x86_64" ]]; then
   exit 1
 fi
 
-curl -sS -o /tmp/chrome.deb https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb \
+curl -sS -o /tmp/google-chrome.pub https://dl.google.com/linux/linux_signing_key.pub 
+sudo gpg --yes --dearmor -o /etc/apt/trusted.gpg.d/google-chrome.gpg /tmp/google-chrome.pub
+
+curl -sS -o /tmp/chrome.deb https://mirror.cs.uchicago.edu/google-chrome/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb \
   && sudo apt-get install --allow-downgrades -y /tmp/chrome.deb \
   && rm /tmp/chrome.deb \
   && sudo rm /usr/bin/chromedriver \
