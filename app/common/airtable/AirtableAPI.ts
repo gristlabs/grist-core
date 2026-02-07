@@ -1,6 +1,7 @@
 import AirtableSchemaTypeSuite from "app/common/airtable/AirtableAPI-ti";
 
-import Airtable from "airtable";
+import Airtable, { Record } from "airtable";
+import { QueryParams } from "airtable/lib/query_params";
 import { CheckerT, createCheckers } from "ts-interface-checker";
 
 export interface AirtableAPIOptions {
@@ -56,6 +57,54 @@ export class AirtableAPIError extends Error {
   constructor(message: string) {
     super(`Airtable API error: ${message}`);
   }
+}
+
+type FetchNextPageFunc = () => Promise<{
+  records: Airtable.Records<any>,
+  hasMoreRecords: boolean,
+  fetchNextPage: FetchNextPageFunc
+}>;
+
+const fetchPageWhenNoMoreData: FetchNextPageFunc = () => Promise.resolve({
+  records: [],
+  hasMoreRecords: false,
+  fetchNextPage: fetchPageWhenNoMoreData,
+});
+
+/**
+ * Airtable's built-in record querying (base.table("MyTable").select().eachPage()) is prone
+ * to hanging indefinitely when an error is thrown from the callback, or if the callback fails to
+ * call `nextPage()` correctly.
+ *
+ * This re-implements the listRecords functionality, while keeping the error handling,
+ * rate-limiting and auth logic from the Airtable library.
+ */
+export function listRecords(
+  base: Airtable.Base, tableName: string, params: QueryParams<any>,
+): ReturnType<FetchNextPageFunc> {
+  const table = base.table(tableName);
+
+  const fetchNextPage = async (offset?: number): ReturnType<FetchNextPageFunc> => {
+    const { body } = await base.makeRequest({
+      method: "GET",
+      path: `/${encodeURIComponent(tableName)}`,
+      qs: {
+        ...params,
+        offset,
+      },
+    });
+
+    const records = body.records.map((recordJson: string) => new Record(table, "", recordJson));
+    const hasMoreRecords = body.offset !== undefined;
+
+    return {
+      records,
+      hasMoreRecords,
+      fetchNextPage: hasMoreRecords ? () => fetchNextPage(body.offset) : fetchPageWhenNoMoreData,
+    };
+  };
+
+  return fetchNextPage();
 }
 
 export interface AirtableListBasesResponse {

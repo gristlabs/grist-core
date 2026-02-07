@@ -1,4 +1,4 @@
-import { AirtableFieldSchema } from "app/common/airtable/AirtableAPI";
+import { AirtableFieldSchema, listRecords } from "app/common/airtable/AirtableAPI";
 import {
   AirtableBaseSchemaCrosswalk,
   AirtableFieldMappingInfo,
@@ -43,73 +43,60 @@ export async function importDataFromAirtableBase(
 
     const tableReferenceTracker = referenceTracker.addTable(tableCrosswalk.gristTable.id, referenceColumnIds);
 
-    // Used to re-throw outside the eachPage iterator.
-    let eachPageError: any = undefined;
+    let listRecordsResult = await listRecords(base, tableId, {});
 
-    await base.table(tableId).select().eachPage((records, nextPage) => {
-      // Try-catch needed as Airtable's eachPage handler catches any error thrown here, and emits
-      // an entirely different, unrelated error instead (looks like a bug in their library)
-      try {
-        const colValues: BulkColValues = createEmptyBulkColValues(gristColumnIds);
-        const airtableRecordIds: string[] = [];
-        const refsByColumnIdForRecords: RefValuesByColumnId[] = [];
+    while (listRecordsResult.records.length > 0) {
+      const { records } = listRecordsResult;
 
-        for (const record of records) {
-          const refsByColumnId: RefValuesByColumnId = {};
+      const colValues: BulkColValues = createEmptyBulkColValues(gristColumnIds);
+      const airtableRecordIds: string[] = [];
+      const refsByColumnIdForRecords: RefValuesByColumnId[] = [];
 
-          airtableRecordIds.push(record.id);
-          for (const fieldMapping of fieldMappings) {
-            const rawFieldValue = record.fields[fieldMapping.airtableField.name];
+      for (const record of records) {
+        const refsByColumnId: RefValuesByColumnId = {};
 
-            if (isRefField(fieldMapping.airtableField)) {
-              refsByColumnId[fieldMapping.gristColumn.id] = extractRefFromRecordField(rawFieldValue, fieldMapping);
-              // Column should remain blank until it's filled in by a later reference resolution step.
-              colValues[fieldMapping.gristColumn.id].push(null);
-              continue;
-            }
+        airtableRecordIds.push(record.id);
+        for (const fieldMapping of fieldMappings) {
+          const rawFieldValue = record.fields[fieldMapping.airtableField.name];
 
-            const converter =
-              AirtableFieldValueConverters[fieldMapping.airtableField.type] ?? AirtableFieldValueConverters.identity;
-
-            const value = converter(fieldMapping.airtableField, record.fields[fieldMapping.airtableField.name]);
-
-            // Always push, even if the value is undefined, so that row values are always at the right index.
-            colValues[fieldMapping.gristColumn.id].push(value ?? null);
+          if (isRefField(fieldMapping.airtableField)) {
+            refsByColumnId[fieldMapping.gristColumn.id] = extractRefFromRecordField(rawFieldValue, fieldMapping);
+            // Column should remain blank until it's filled in by a later reference resolution step.
+            colValues[fieldMapping.gristColumn.id].push(null);
+            continue;
           }
 
-          if (tableCrosswalk.airtableIdColumn) {
-            colValues[tableCrosswalk.airtableIdColumn.id].push(record.id);
-          }
+          const converter =
+            AirtableFieldValueConverters[fieldMapping.airtableField.type] ?? AirtableFieldValueConverters.identity;
 
-          refsByColumnIdForRecords.push(refsByColumnId);
+          const value = converter(fieldMapping.airtableField, record.fields[fieldMapping.airtableField.name]);
+
+          // Always push, even if the value is undefined, so that row values are always at the right index.
+          colValues[fieldMapping.gristColumn.id].push(value ?? null);
         }
 
-        const addRowsPromise = addRows(tableCrosswalk.gristTable.id, colValues)
-          .then((gristRowIds) => {
-            airtableRecordIds.forEach((airtableRecordId, index) => {
-              // Only add entries to the reference tracker once we know they're added to the table.
-              referenceTracker.addRecordIdMapping(airtableRecordId, gristRowIds[index]);
-              tableReferenceTracker.addUnresolvedRecord({
-                gristRecordId: gristRowIds[index],
-                refsByColumnId: refsByColumnIdForRecords[index],
-              });
+        if (tableCrosswalk.airtableIdColumn) {
+          colValues[tableCrosswalk.airtableIdColumn.id].push(record.id);
+        }
+
+        refsByColumnIdForRecords.push(refsByColumnId);
+      }
+
+      const addRowsPromise = addRows(tableCrosswalk.gristTable.id, colValues)
+        .then((gristRowIds) => {
+          airtableRecordIds.forEach((airtableRecordId, index) => {
+            // Only add entries to the reference tracker once we know they're added to the table.
+            referenceTracker.addRecordIdMapping(airtableRecordId, gristRowIds[index]);
+            tableReferenceTracker.addUnresolvedRecord({
+              gristRecordId: gristRowIds[index],
+              refsByColumnId: refsByColumnIdForRecords[index],
             });
           });
+        });
 
-        addRowsPromises.push(addRowsPromise);
+      addRowsPromises.push(addRowsPromise);
 
-        nextPage();
-      }
-      catch (e) {
-        // Store it and re-throw outside the loop to prevent errors in Airtable's library.
-        eachPageError = e;
-        // Avoid calling nextPage() to end iteration.
-      }
-    });
-
-    // Future improvement - we might want to ignore anything recoverable (i.e. skip errored pages)
-    if (eachPageError) {
-      throw eachPageError;
+      listRecordsResult = await listRecordsResult.fetchNextPage();
     }
   }
 
