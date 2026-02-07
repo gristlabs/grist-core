@@ -237,7 +237,9 @@ const AirtableFieldValueConverters: Record<string, AirtableFieldValueConverter> 
     return null;
   },
   multipleCollaborators(fieldSchema, collaborators) {
-    return collaborators?.map(formatCollaborator);
+    const formattedCollaborators = collaborators?.map(formatCollaborator);
+    if (!formattedCollaborators) { return null; }
+    return formattedCollaborators.join(", ");
   },
   singleCollaborator(fieldSchema, collaborator) {
     return formatCollaborator(collaborator);
