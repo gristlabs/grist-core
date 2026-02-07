@@ -88,7 +88,8 @@ export async function runAirtableImport(
 
   const docSchemaCreator = new DocSchemaImportTool(actions => docApi.applyUserActions((actions)));
 
-  const { tableIdsMap, warnings: creationWarnings } = await docSchemaCreator.createTablesFromSchema(transformedSchema.schema);
+  const { tableIdsMap, warnings: creationWarnings } =
+    await docSchemaCreator.createTablesFromSchema(transformedSchema.schema);
   console.log("Warnings that occurred when applying the schema to the document:");
   console.log(creationWarnings);
 
