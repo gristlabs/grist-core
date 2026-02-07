@@ -1,6 +1,7 @@
 import AirtableSchemaTypeSuite from "app/common/airtable/AirtableAPI-ti";
 
-import Airtable from "airtable";
+import Airtable, { Record } from "airtable";
+import { QueryParams } from "airtable/lib/query_params";
 import { CheckerT, createCheckers } from "ts-interface-checker";
 
 export interface AirtableAPIOptions {
@@ -26,6 +27,10 @@ export class AirtableAPI {
     // we can still force it to request the URL we want, and re-use the library's backoff logic
     // to help with Airtable's rate limiting.
     this._metaRequester = this._airtable.base("");
+  }
+
+  public base(baseId: string) {
+    return this._airtable.base(baseId);
   }
 
   public async listBases(): Promise<AirtableListBasesResponse["bases"]> {
@@ -54,6 +59,54 @@ export class AirtableAPIError extends Error {
   }
 }
 
+type FetchNextPageFunc = () => Promise<{
+  records: Airtable.Records<any>,
+  hasMoreRecords: boolean,
+  fetchNextPage: FetchNextPageFunc
+}>;
+
+const fetchPageWhenNoMoreData: FetchNextPageFunc = () => Promise.resolve({
+  records: [],
+  hasMoreRecords: false,
+  fetchNextPage: fetchPageWhenNoMoreData,
+});
+
+/**
+ * Airtable's built-in record querying (base.table("MyTable").select().eachPage()) is prone
+ * to hanging indefinitely when an error is thrown from the callback, or if the callback fails to
+ * call `nextPage()` correctly.
+ *
+ * This re-implements the listRecords functionality, while keeping the error handling,
+ * rate-limiting and auth logic from the Airtable library.
+ */
+export function listRecords(
+  base: Airtable.Base, tableName: string, params: QueryParams<any>,
+): ReturnType<FetchNextPageFunc> {
+  const table = base.table(tableName);
+
+  const fetchNextPage = async (offset?: number): ReturnType<FetchNextPageFunc> => {
+    const { body } = await base.makeRequest({
+      method: "GET",
+      path: `/${encodeURIComponent(tableName)}`,
+      qs: {
+        ...params,
+        offset,
+      },
+    });
+
+    const records = body.records.map((recordJson: string) => new Record(table, "", recordJson));
+    const hasMoreRecords = body.offset !== undefined;
+
+    return {
+      records,
+      hasMoreRecords,
+      fetchNextPage: hasMoreRecords ? () => fetchNextPage(body.offset) : fetchPageWhenNoMoreData,
+    };
+  };
+
+  return fetchNextPage();
+}
+
 export interface AirtableListBasesResponse {
   bases: {
     id: string,
@@ -68,21 +121,27 @@ export const AirtableSchemaChecker = checkers.AirtableBaseSchema as CheckerT<Air
 export const AirtableSchemaTableChecker = checkers.AirtableSchemaTable as CheckerT<AirtableTableSchema>;
 export const AirtableSchemaFieldChecker = checkers.AirtableSchemaField as CheckerT<AirtableFieldSchema>;
 
+// Aliases for the various Airtable IDs makes various Map type definitions clearer.
+export type AirtableBaseId = string;
+export type AirtableTableId = string;
+export type AirtableFieldId = string;
+export type AirtableFieldName = string;
+
 // Airtable schema response. Limit this to only needed fields to minimise chance of breakage.
 export interface AirtableBaseSchema {
   tables: AirtableTableSchema[];
 }
 
 export interface AirtableTableSchema {
-  id: string;
+  id: AirtableTableId;
   name: string;
   primaryFieldId: string;
   fields: AirtableFieldSchema[];
 }
 
 export interface AirtableFieldSchema {
-  id: string;
-  name: string;
+  id: AirtableFieldId;
+  name: AirtableFieldName;
   type: string;
   options?: { [key: string]: any };
 }

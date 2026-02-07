@@ -17,20 +17,28 @@ export const AirtableListBasesResponse = t.iface([], {
   "offset": t.opt("string"),
 });
 
+export const AirtableBaseId = t.name("string");
+
+export const AirtableTableId = t.name("string");
+
+export const AirtableFieldId = t.name("string");
+
+export const AirtableFieldName = t.name("string");
+
 export const AirtableBaseSchema = t.iface([], {
   "tables": t.array("AirtableTableSchema"),
 });
 
 export const AirtableTableSchema = t.iface([], {
-  "id": "string",
+  "id": "AirtableTableId",
   "name": "string",
   "primaryFieldId": "string",
   "fields": t.array("AirtableFieldSchema"),
 });
 
 export const AirtableFieldSchema = t.iface([], {
-  "id": "string",
-  "name": "string",
+  "id": "AirtableFieldId",
+  "name": "AirtableFieldName",
   "type": "string",
   "options": t.opt(t.iface([], {
     [t.indexKey]: "any",
@@ -46,6 +54,10 @@ export const AirtableChoiceValue = t.iface([], {
 const exportedTypeSuite: t.ITypeSuite = {
   AirtableAPIOptions,
   AirtableListBasesResponse,
+  AirtableBaseId,
+  AirtableTableId,
+  AirtableFieldId,
+  AirtableFieldName,
   AirtableBaseSchema,
   AirtableTableSchema,
   AirtableFieldSchema,

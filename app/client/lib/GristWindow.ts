@@ -5,7 +5,10 @@
  *
  * This file collects most of the properties we use, for typings and visibility.
  */
-import { AirtableImportOptions } from "app/client/lib/airtable/AirtableImporter";
+import {
+  AirtableImportOptions,
+  runAirtableDataImport,
+} from "app/client/lib/airtable/AirtableImporter";
 
 import type { TopAppModel } from "app/client/models/AppModel";
 import type { DocPageModel } from "app/client/models/DocPageModel";
@@ -30,6 +33,7 @@ declare global {
     gristAirtableImport?: (
       apiKey: string, base: string, options: AirtableImportOptions,
     ) => Promise<any>;
+    gristAirtableTest?: typeof runAirtableDataImport;
     testGrist?: Partial<TestState>;
   }
 }

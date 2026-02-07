@@ -282,20 +282,25 @@ export class DocSchemaImportTool {
 }
 
 export const GET_DOC_SCHEMA_SQL = `
-  SELECT tables.id AS tableRef, tableId, columns.id AS colRef, columns.colId, columns.label as colLabel
+  SELECT
+    tables.id AS tableRef, tableId,
+    columns.id AS colRef,
+    columns.colId,
+    columns.label as colLabel,
+    columns.isFormula as colIsFormula
   FROM _grist_Tables AS tables
   INNER JOIN _grist_Tables_column AS columns ON tableRef=parentId
 `.trim();
 
 export function formatDocSchemaSqlResult(result: DocSchemaSqlResult): ExistingDocSchema {
   const tables = new Map<string, ExistingTableSchema>();
-  for (const { tableRef, tableId, colRef, colId, colLabel } of result) {
+  for (const { tableRef, tableId, colRef, colId, colLabel, colIsFormula } of result) {
     let existingTable = tables.get(tableId);
     if (!existingTable) {
       existingTable = { id: tableId, ref: tableRef, columns: [] };
       tables.set(tableId, existingTable);
     }
-    existingTable.columns.push({ id: colId, ref: colRef, label: colLabel });
+    existingTable.columns.push({ id: colId, ref: colRef, label: colLabel, isFormula: colIsFormula > 0 });
   }
   return { tables: Array.from(tables.values()) };
 }
