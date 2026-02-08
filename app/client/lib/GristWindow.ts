@@ -5,29 +5,31 @@
  *
  * This file collects most of the properties we use, for typings and visibility.
  */
-import type {TopAppModel} from 'app/client/models/AppModel';
-import type {DocPageModel} from 'app/client/models/DocPageModel';
-import type {GristLoadConfig} from 'app/common/gristUrls';
-import type {TestState} from 'app/common/TestState';
+import { AirtableImportOptions } from "app/client/lib/airtable/AirtableImporter";
 
-export interface GristWindow {
-  $?: JQueryStatic;    // Some old code still uses JQuery events.
-  gristConfig?: GristLoadConfig;
-  gristNotify?: (message: string) => void;
-  getAppErrors?: () => string[];
-  gristDocPageModel?: DocPageModel;
-  gristApp?: {
-    topAppModel?: TopAppModel;
-    testNumPendingApiRequests?: () => number;
-  };
-  cmd?: {[name: string]: () => void};
-  isRunningUnderElectron?: boolean;
-  resetDismissedPopups?: (seen?: boolean) => void;
-  resetOnboarding?: () => void;
-  testGrist?: Partial<TestState>;
-}
+import type { TopAppModel } from "app/client/models/AppModel";
+import type { DocPageModel } from "app/client/models/DocPageModel";
+import type { GristLoadConfig } from "app/common/gristUrls";
+import type { TestState } from "app/common/TestState";
 
 declare global {
-  // eslint-disable-next-line @typescript-eslint/no-empty-interface
-  interface Window extends GristWindow {}
+  export interface Window {
+    $?: JQueryStatic;    // Some old code still uses JQuery events.
+    gristConfig?: GristLoadConfig;
+    gristNotify?: (message: string) => void;
+    getAppErrors?: () => string[];
+    gristDocPageModel?: DocPageModel;
+    gristApp?: {
+      topAppModel?: TopAppModel;
+      testNumPendingApiRequests?: () => number;
+    };
+    cmd?: { [name: string]: () => void };
+    isRunningUnderElectron?: boolean;
+    resetDismissedPopups?: (seen?: boolean) => void;
+    resetOnboarding?: () => void;
+    gristAirtableImport?: (
+      apiKey: string, base: string, options: AirtableImportOptions,
+    ) => Promise<any>;
+    testGrist?: Partial<TestState>;
+  }
 }

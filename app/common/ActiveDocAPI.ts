@@ -1,13 +1,14 @@
-import {ActionGroup} from 'app/common/ActionGroup';
-import {AssistanceRequest, AssistanceResponse} from 'app/common/Assistance';
-import {BulkAddRecord, CellValue, TableDataAction, UserAction} from 'app/common/DocActions';
-import {DocStateComparison} from 'app/common/DocState';
-import {PredicateFormulaProperties} from 'app/common/PredicateFormula';
-import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
-import {PermissionData, Proposal, UserAccessData} from 'app/common/UserAPI';
-import {ParseOptions} from 'app/plugin/FileParserAPI';
-import {AccessTokenOptions, AccessTokenResult, UIRowId} from 'app/plugin/GristAPI';
-import {IMessage} from 'grain-rpc';
+import { ActionGroup } from "app/common/ActionGroup";
+import { AssistanceRequest, AssistanceResponse } from "app/common/Assistance";
+import { BulkAddRecord, CellValue, TableDataAction, UserAction } from "app/common/DocActions";
+import { DocStateComparison } from "app/common/DocState";
+import { PredicateFormulaProperties } from "app/common/PredicateFormula";
+import { FetchUrlOptions, UploadResult } from "app/common/uploads";
+import { PermissionData, Proposal, UserAccessData } from "app/common/UserAPI";
+import { ParseOptions } from "app/plugin/FileParserAPI";
+import { AccessTokenOptions, AccessTokenResult, UIRowId } from "app/plugin/GristAPI";
+
+import { IMessage } from "grain-rpc";
 
 export interface ApplyUAOptions {
   desc?: string;      // Overrides the description of the action.
@@ -19,10 +20,10 @@ export interface ApplyUAOptions {
 export interface ApplyUAExtendedOptions extends ApplyUAOptions {
   bestEffort?: boolean; // If set, action may be applied in part if it cannot be applied completely.
   fromOwnHistory?: boolean; // If set, action is confirmed to be a redo/undo taken from history, from
-                            // an action marked as being by the current user.
+  // an action marked as being by the current user.
   oldestSource?: number;  // If set, gives the timestamp of the oldest source the undo/redo
-                          // action was built from, expressed as number of milliseconds
-                          // elapsed since January 1, 1970 00:00:00 UTC
+  // action was built from, expressed as number of milliseconds
+  // elapsed since January 1, 1970 00:00:00 UTC
   attachment?: boolean;   // If set, allow actions on attachments.
 }
 
@@ -49,6 +50,7 @@ export interface TransformRuleMap {
 // Both special options exposed as consts.
 export const NEW_TABLE = null;
 export const SKIP_TABLE = "";
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 export type DestId = string | typeof NEW_TABLE | typeof SKIP_TABLE;
 
 /**
@@ -80,7 +82,7 @@ export interface TransformColumn {
   /**
    * Column id to update (null for a new table).
    */
-  colId: string|null;
+  colId: string | null;
   /**
    * Type of the column (important for new columns).
    */
@@ -110,7 +112,7 @@ export interface ImportTableResult {
   uploadFileIndex: number;      // Index into upload.files array, for the file responsible for this table.
   origTableName: string;
   transformSectionRef: number;
-  destTableId: string|null;
+  destTableId: string | null;
 }
 
 export interface ImportOptions {
@@ -120,7 +122,7 @@ export interface ImportOptions {
 
 export interface MergeOptionsMap {
   // Map of original GristTable name of imported table to its merge options, if any.
-  [origTableName: string]: MergeOptions|undefined;
+  [origTableName: string]: MergeOptions | undefined;
 }
 
 export interface MergeOptions {
@@ -129,7 +131,7 @@ export interface MergeOptions {
 }
 
 export interface MergeStrategy {
-  type: 'replace-with-nonblank-source' | 'replace-all-fields' | 'replace-blank-fields-only';
+  type: "replace-with-nonblank-source" | "replace-all-fields" | "replace-blank-fields-only";
 }
 
 /**
@@ -242,7 +244,7 @@ export interface AclTableDescription {
 }
 
 export interface AclResources {
-  tables: {[tableId: string]: AclTableDescription};
+  tables: { [tableId: string]: AclTableDescription };
   problems: AclRuleProblem[];
 }
 
@@ -262,18 +264,18 @@ export interface AclRuleProblem {
 }
 
 export function getTableTitle(table: AclTableDescription): string {
-  let {title} = table;
+  let { title } = table;
   if (table.groupByColLabels) {
-    title += ' ' + summaryGroupByDescription(table.groupByColLabels);
+    title += " " + summaryGroupByDescription(table.groupByColLabels);
   }
   return title;
 }
 
 export function summaryGroupByDescription(groupByColumnLabels: string[]): string {
-  return `[${groupByColumnLabels.length ? 'by ' + groupByColumnLabels.join(", ") : "Totals"}]`;
+  return `[${groupByColumnLabels.length ? "by " + groupByColumnLabels.join(", ") : "Totals"}]`;
 }
 
-//// Types for autocomplete suggestions
+/// / Types for autocomplete suggestions
 
 // Suggestion may be a string, or a tuple [funcname, argSpec, isGrist], where:
 //  - funcname (e.g. "DATEADD") will be auto-completed with "(", AND linked to Grist
@@ -324,7 +326,7 @@ export interface TimingInfo {
 export interface FormulaTimingInfo extends TimingInfo {
   tableId: string;
   colId: string;
-  marks?: Array<TimingInfo & {name: string}>;
+  marks?: (TimingInfo & { name: string })[];
 }
 
 /*
@@ -335,7 +337,7 @@ export interface TimingStatus {
    * If disabled then 'disabled', else 'active' or 'pending'. Pending means that the engine is busy
    * and can't respond to confirm the status (but it used to be active before that).
    */
-  status: 'active'|'pending'|'disabled';
+  status: "active" | "pending" | "disabled";
   /**
    * Will be undefined if we can't get the timing info (e.g. if the document is locked by other call).
    * Otherwise, contains the intermediate results gathered so far.
@@ -401,19 +403,19 @@ export interface ActiveDocAPI {
    * rather than by value.
    */
   applyUserActionsById(actionNums: number[], actionHashes: string[],
-                       undo: boolean, options?: ApplyUAOptions): Promise<ApplyUAResult>;
+    undo: boolean, options?: ApplyUAOptions): Promise<ApplyUAResult>;
 
   /**
    * Imports files, removes previously created temporary hidden tables and creates the new ones.
    */
   importFiles(dataSource: DataSourceTransformed,
-              parseOptions: ImportParseOptions, prevTableIds: string[]): Promise<ImportResult>;
+    parseOptions: ImportParseOptions, prevTableIds: string[]): Promise<ImportResult>;
 
   /**
    * Finishes import files, creates the new tables, and cleans up temporary hidden tables and uploads.
    */
   finishImportFiles(dataSource: DataSourceTransformed, prevTableIds: string[],
-                    options: ImportOptions): Promise<ImportResult>;
+    options: ImportOptions): Promise<ImportResult>;
 
   /**
    * Cancels import files, cleans up temporary hidden tables and uploads.
@@ -425,7 +427,7 @@ export interface ActiveDocAPI {
    * if the data from `hiddenTableId` is imported with the specified `mergeOptions`.
    */
   generateImportDiff(hiddenTableId: string, transformRule: TransformRule,
-                      mergeOptions: MergeOptions): Promise<DocStateComparison>;
+    mergeOptions: MergeOptions): Promise<DocStateComparison>;
 
   /**
    * Saves attachments from a given upload and creates an entry for them in the database. It
@@ -521,7 +523,7 @@ export interface ActiveDocAPI {
   /**
    * Get a share info associated with the document.
    */
-  getShare(linkId: string): Promise<RemoteShareInfo|null>;
+  getShare(linkId: string): Promise<RemoteShareInfo | null>;
 
   /**
    * Starts collecting timing information from formula evaluations.
@@ -536,7 +538,7 @@ export interface ActiveDocAPI {
   /**
    * Get assistant state associated with the document.
    */
-  getAssistantState(id: string): Promise<AssistantState|null>;
+  getAssistantState(id: string): Promise<AssistantState | null>;
 
   /**
    * Lists users that currently have the doc open.

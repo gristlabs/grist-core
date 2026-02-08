@@ -9,7 +9,7 @@ export interface IElectionStore {
    * has already been taken, null is returned, otherwise a secret is returned.
    * The secret can be used to remove the lock before the duration has expired.
    */
-  getElection(name: string, durationInMs: number): Promise<string|null>;
+  getElection(name: string, durationInMs: number): Promise<string | null>;
 
   /**
    * Remove a named lock, presenting the secret returned by getElection() as

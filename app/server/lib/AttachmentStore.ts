@@ -1,15 +1,16 @@
 import {
   ExternalStorage,
   joinKeySegments,
-} from 'app/server/lib/ExternalStorage';
-import {MemoryWritableStream} from 'app/server/utils/streams';
-import * as fse from 'fs-extra';
-import * as stream from 'node:stream';
-import * as path from 'path';
+} from "app/server/lib/ExternalStorage";
+import { MemoryWritableStream } from "app/server/utils/streams";
+
+import * as stream from "node:stream";
+import * as path from "path";
+
+import * as fse from "fs-extra";
 
 export type DocPoolId = string;
 type FileId = string;
-
 
 // Minimum document info needed to know which document pool to use.
 // Compatible with Document entity for ease of use
@@ -137,9 +138,9 @@ export class AttachmentStoreCreationError extends Error {
 }
 
 export interface ExternalStorageSupportingAttachments extends ExternalStorage {
-  uploadStream: NonNullable<ExternalStorage['uploadStream']>;
-  downloadStream: NonNullable<ExternalStorage['downloadStream']>;
-  removeAllWithPrefix: NonNullable<ExternalStorage['removeAllWithPrefix']>;
+  uploadStream: NonNullable<ExternalStorage["uploadStream"]>;
+  downloadStream: NonNullable<ExternalStorage["downloadStream"]>;
+  removeAllWithPrefix: NonNullable<ExternalStorage["removeAllWithPrefix"]>;
 }
 
 export function storageSupportsAttachments(storage: ExternalStorage): storage is ExternalStorageSupportingAttachments {
@@ -211,7 +212,7 @@ export class FilesystemAttachmentStore implements IAttachmentStore {
       metadata: {
         size: stat.size,
       },
-      contentStream: fse.createReadStream(filePath)
+      contentStream: fse.createReadStream(filePath),
     };
   }
 

@@ -1,4 +1,4 @@
-import { Sort } from 'app/common/SortSpec';
+import { Sort } from "app/common/SortSpec";
 
 /**
  *

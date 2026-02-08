@@ -1,12 +1,12 @@
-var _ = require('underscore');
-var sinon = require('sinon');
-var assert = require('chai').assert;
-var ko = require('knockout');
-var Mousetrap = require('app/client/lib/Mousetrap');
-var commands = require('app/client/components/commands');
-var clientUtil = require('../clientUtil');
+var _ = require("underscore");
+var sinon = require("sinon");
+var assert = require("chai").assert;
+var ko = require("knockout");
+var Mousetrap = require("app/client/lib/Mousetrap");
+var commands = require("app/client/components/commands");
+var clientUtil = require("../clientUtil");
 
-describe('commands', function() {
+describe("commands", function() {
 
   clientUtil.setTmpMochaGlobals();
 
@@ -104,10 +104,10 @@ describe('commands', function() {
       return _.chain(callCounts2).mapObject(function(count, name) {
         return count - callCounts1[name];
       })
-      .pick(function(count, name) {
-        return count > 0;
-      })
-      .value();
+        .pick(function(count, name) {
+          return count > 0;
+        })
+        .value();
     }
 
     /**
@@ -116,7 +116,7 @@ describe('commands', function() {
      */
     function assertCallCounts(groups, cmdOrFunc, expectedCounts) {
       var before = getCallCounts(groups);
-      if (typeof cmdOrFunc === 'string') {
+      if (typeof cmdOrFunc === "string") {
         commands.allCommands[cmdOrFunc].run();
       } else if (cmdOrFunc === null) {
         // nothing
@@ -137,25 +137,25 @@ describe('commands', function() {
       var cmdGroup2 = commands.createGroup(groups.group2, null, true);
       var cmdGroup3 = commands.createGroup(groups.group3, null, false);
 
-      assertCallCounts(groups, 'cmd1', {'group2:cmd1': 1});
-      assertCallCounts(groups, 'cmd2', {'group2:cmd2': 1});
-      assertCallCounts(groups, 'cmd3', {'group1:cmd3': 1});
+      assertCallCounts(groups, "cmd1", {"group2:cmd1": 1});
+      assertCallCounts(groups, "cmd2", {"group2:cmd2": 1});
+      assertCallCounts(groups, "cmd3", {"group1:cmd3": 1});
 
       cmdGroup2.activate(false);
-      assertCallCounts(groups, 'cmd1', {'group1:cmd1': 1});
-      assertCallCounts(groups, 'cmd2', {});
-      assertCallCounts(groups, 'cmd3', {'group1:cmd3': 1});
+      assertCallCounts(groups, "cmd1", {"group1:cmd1": 1});
+      assertCallCounts(groups, "cmd2", {});
+      assertCallCounts(groups, "cmd3", {"group1:cmd3": 1});
 
       cmdGroup3.activate(true);
       cmdGroup1.activate(false);
-      assertCallCounts(groups, 'cmd1', {});
-      assertCallCounts(groups, 'cmd2', {});
-      assertCallCounts(groups, 'cmd3', {'group3:cmd3': 1});
+      assertCallCounts(groups, "cmd1", {});
+      assertCallCounts(groups, "cmd2", {});
+      assertCallCounts(groups, "cmd3", {"group3:cmd3": 1});
 
       cmdGroup2.activate(true);
-      assertCallCounts(groups, 'cmd1', {'group2:cmd1': 1});
-      assertCallCounts(groups, 'cmd2', {'group2:cmd2': 1});
-      assertCallCounts(groups, 'cmd3', {'group3:cmd3': 1});
+      assertCallCounts(groups, "cmd1", {"group2:cmd1": 1});
+      assertCallCounts(groups, "cmd2", {"group2:cmd2": 1});
+      assertCallCounts(groups, "cmd3", {"group3:cmd3": 1});
     });
 
     it("should allow use of observable for activation flag", function() {
@@ -164,13 +164,13 @@ describe('commands', function() {
       };
       var isActive = ko.observable(false);
       commands.createGroup(groups.groupFoo, null, isActive);
-      assertCallCounts(groups, 'cmd1', {});
+      assertCallCounts(groups, "cmd1", {});
       isActive(true);
-      assertCallCounts(groups, 'cmd1', {'groupFoo:cmd1': 1});
+      assertCallCounts(groups, "cmd1", {"groupFoo:cmd1": 1});
       // Check that subsequent calls continue working.
-      assertCallCounts(groups, 'cmd1', {'groupFoo:cmd1': 1});
+      assertCallCounts(groups, "cmd1", {"groupFoo:cmd1": 1});
       isActive(false);
-      assertCallCounts(groups, 'cmd1', {});
+      assertCallCounts(groups, "cmd1", {});
     });
 
     function getFuncForShortcut(shortcut) {
@@ -200,17 +200,17 @@ describe('commands', function() {
       };
       var cmdGroup1 = commands.createGroup(groups.group1, null, true);
       var cmdGroup3 = commands.createGroup(groups.group3, null, true);
-      assertCallCounts(groups, getFuncForShortcut('ctrl+a'), {'group3:cmd3': 1});
-      assertCallCounts(groups, getFuncForShortcut('ctrl+b'), {'group1:cmd1': 1});
+      assertCallCounts(groups, getFuncForShortcut("ctrl+a"), {"group3:cmd3": 1});
+      assertCallCounts(groups, getFuncForShortcut("ctrl+b"), {"group1:cmd1": 1});
       cmdGroup3.activate(false);
-      assertCallCounts(groups, getFuncForShortcut('ctrl+a'), {'group1:cmd1': 1});
-      assertCallCounts(groups, getFuncForShortcut('ctrl+b'), {'group1:cmd1': 1});
+      assertCallCounts(groups, getFuncForShortcut("ctrl+a"), {"group1:cmd1": 1});
+      assertCallCounts(groups, getFuncForShortcut("ctrl+b"), {"group1:cmd1": 1});
       cmdGroup1.activate(false);
-      assertCallCounts(groups, getFuncForShortcut('ctrl+a'), {});
-      assertCallCounts(groups, getFuncForShortcut('ctrl+b'), {});
+      assertCallCounts(groups, getFuncForShortcut("ctrl+a"), {});
+      assertCallCounts(groups, getFuncForShortcut("ctrl+b"), {});
       cmdGroup3.activate(true);
-      assertCallCounts(groups, getFuncForShortcut('ctrl+a'), {'group3:cmd3': 1});
-      assertCallCounts(groups, getFuncForShortcut('ctrl+b'), {});
+      assertCallCounts(groups, getFuncForShortcut("ctrl+a"), {"group3:cmd3": 1});
+      assertCallCounts(groups, getFuncForShortcut("ctrl+b"), {});
     });
   });
 });

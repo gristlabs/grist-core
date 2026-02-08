@@ -2,43 +2,43 @@
  * This module export a component for editing some document settings consisting of the timezone,
  * (new settings to be added here ...).
  */
-import {cssPrimarySmallLink, cssSmallButton, cssSmallLinkButton} from 'app/client/components/Forms/styles';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {ACIndexImpl} from 'app/client/lib/ACIndex';
-import {ACSelectItem, buildACSelect} from 'app/client/lib/ACSelect';
-import {copyToClipboard} from 'app/client/lib/clipboardUtils';
-import {makeT} from 'app/client/lib/localization';
-import {cssMarkdownSpan} from 'app/client/lib/markdown';
-import {reportError} from 'app/client/models/AppModel';
-import type {DocPageModel} from 'app/client/models/DocPageModel';
-import {reportWarning} from 'app/client/models/errors';
-import {urlState} from 'app/client/models/gristUrlState';
-import {KoSaveableObservable} from 'app/client/models/modelUtil';
-import {AdminSection, AdminSectionItem} from 'app/client/ui/AdminPanelCss';
-import {openFilePicker} from 'app/client/ui/FileDialog';
-import {buildNotificationsConfig} from 'app/client/ui/Notifications';
-import {hoverTooltip, showTransientTooltip, withInfoTooltip} from 'app/client/ui/tooltips';
-import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
-import {cssRadioCheckboxOptions, labeledSquareCheckbox, radioCheckboxOption} from 'app/client/ui2018/checkbox';
-import {colors, mediaSmall, theme, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {cssLink} from 'app/client/ui2018/links';
-import {loadingSpinner} from 'app/client/ui2018/loaders';
-import {select} from 'app/client/ui2018/menus';
-import {confirmModal, cssModalButtons, cssModalTitle, cssSpinner, modal} from 'app/client/ui2018/modals';
-import {buildCurrencyPicker} from 'app/client/widgets/CurrencyPicker';
-import {buildTZAutocomplete} from 'app/client/widgets/TZAutocomplete';
-import {EngineCode} from 'app/common/DocumentSettings';
-import {commonUrls, GristLoadConfig, PREFERRED_STORAGE_ANCHOR} from 'app/common/gristUrls';
-import {not, propertyCompare} from 'app/common/gutil';
-import {getCurrency, locales} from 'app/common/Locales';
-import {isOwner, isOwnerOrEditor} from 'app/common/roles';
+import { cssPrimarySmallLink, cssSmallButton, cssSmallLinkButton } from "app/client/components/Forms/styles";
+import { GristDoc } from "app/client/components/GristDoc";
+import { ACIndexImpl } from "app/client/lib/ACIndex";
+import { ACSelectItem, buildACSelect } from "app/client/lib/ACSelect";
+import { copyToClipboard } from "app/client/lib/clipboardUtils";
+import { makeT } from "app/client/lib/localization";
+import { cssMarkdownSpan } from "app/client/lib/markdown";
+import { reportError } from "app/client/models/AppModel";
+import { reportWarning } from "app/client/models/errors";
+import { urlState } from "app/client/models/gristUrlState";
+import { KoSaveableObservable } from "app/client/models/modelUtil";
+import { AdminSection, AdminSectionItem } from "app/client/ui/AdminPanelCss";
+import { openFilePicker } from "app/client/ui/FileDialog";
+import { buildNotificationsConfig } from "app/client/ui/Notifications";
+import { hoverTooltip, showTransientTooltip, withInfoTooltip } from "app/client/ui/tooltips";
+import { bigBasicButton, bigPrimaryButton } from "app/client/ui2018/buttons";
+import { cssRadioCheckboxOptions, labeledSquareCheckbox, radioCheckboxOption } from "app/client/ui2018/checkbox";
+import { colors, mediaSmall, theme, vars } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { cssLink } from "app/client/ui2018/links";
+import { loadingSpinner } from "app/client/ui2018/loaders";
+import { select } from "app/client/ui2018/menus";
+import { confirmModal, cssModalButtons, cssModalTitle, cssSpinner, modal } from "app/client/ui2018/modals";
+import { buildCurrencyPicker } from "app/client/widgets/CurrencyPicker";
+import { buildTZAutocomplete } from "app/client/widgets/TZAutocomplete";
+import { EngineCode } from "app/common/DocumentSettings";
+import { commonUrls, GristLoadConfig, PREFERRED_STORAGE_ANCHOR } from "app/common/gristUrls";
+import { not, propertyCompare } from "app/common/gutil";
+import { getCurrency, locales } from "app/common/Locales";
+import { isOwner, isOwnerOrEditor } from "app/common/roles";
 import {
   DOCTYPE_NORMAL,
   DOCTYPE_TEMPLATE,
   DOCTYPE_TUTORIAL,
-  DocumentType
-} from 'app/common/UserAPI';
+  DocumentType,
+} from "app/common/UserAPI";
+
 import {
   Computed,
   Disposable,
@@ -49,23 +49,26 @@ import {
   IDomArgs,
   makeTestId,
   Observable,
-  styled
-} from 'grainjs';
-import * as moment from 'moment-timezone';
+  styled,
+} from "grainjs";
+import * as moment from "moment-timezone";
 
-const t = makeT('DocumentSettings');
-const testId = makeTestId('test-settings-');
+import type { DocPageModel } from "app/client/models/DocPageModel";
+
+const t = makeT("DocumentSettings");
+const testId = makeTestId("test-settings-");
 
 export class DocSettingsPage extends Disposable {
   private _docInfo = this._gristDoc.docInfo;
 
   private _timezone = this._docInfo.timezone;
-  private _locale: KoSaveableObservable<string> = this._docInfo.documentSettingsJson.prop('locale');
-  private _currency: KoSaveableObservable<string|undefined> = this._docInfo.documentSettingsJson.prop('currency');
+  private _locale: KoSaveableObservable<string> = this._docInfo.documentSettingsJson.prop("locale");
+  private _currency: KoSaveableObservable<string | undefined> = this._docInfo.documentSettingsJson.prop("currency");
   private _acceptProposals = Observable.create(
     this,
-    Boolean(this._gristDoc.docPageModel.currentDoc.get()?.options?.proposedChanges?.acceptProposals)
+    Boolean(this._gristDoc.docPageModel.currentDoc.get()?.options?.proposedChanges?.acceptProposals),
   );
+
   private _working: Observable<boolean> = Observable.create(this, false);
 
   constructor(private _gristDoc: GristDoc) {
@@ -79,179 +82,179 @@ export class DocSettingsPage extends Disposable {
     const isDocEditor = isOwnerOrEditor(docPageModel.currentDoc.get());
     const isFork = docPageModel.currentDoc.get()?.isFork;
 
-    return cssContainer({tabIndex: '-1'},
-      dom.create(AdminSection, t('Document settings'), [
+    return cssContainer({ tabIndex: "-1" },
+      dom.create(AdminSection, t("Document settings"), [
         dom.create(AdminSectionItem, {
-          id: 'timezone',
-          name: t('Time zone'),
-          description: t('Default for DateTime columns'),
-          value: dom.create(cssTZAutoComplete, moment, fromKo(this._timezone), (val) => this._timezone.saveOnly(val)),
+          id: "timezone",
+          name: t("Time zone"),
+          description: t("Default for DateTime columns"),
+          value: dom.create(cssTZAutoComplete, moment, fromKo(this._timezone), val => this._timezone.saveOnly(val)),
         }),
         dom.create(AdminSectionItem, {
-          id: 'locale',
-          name: t('Locale'),
-          description: t('For number and date formats'),
+          id: "locale",
+          name: t("Locale"),
+          description: t("For number and date formats"),
           value: dom.create(cssLocalePicker, this._locale),
         }),
         dom.create(AdminSectionItem, {
-          id: 'currency',
-          name: t('Currency'),
-          description: t('For currency columns'),
-          value: dom.domComputed(fromKo(this._locale), (l) =>
-            dom.create(cssCurrencyPicker, fromKo(this._currency), (val) => this._currency.saveOnly(val),
-              {defaultCurrencyLabel: t("Local currency ({{currency}})", {currency: getCurrency(l)})})
-          )
+          id: "currency",
+          name: t("Currency"),
+          description: t("For currency columns"),
+          value: dom.domComputed(fromKo(this._locale), l =>
+            dom.create(cssCurrencyPicker, fromKo(this._currency), val => this._currency.saveOnly(val),
+              { defaultCurrencyLabel: t("Local currency ({{currency}})", { currency: getCurrency(l) }) }),
+          ),
         }),
         dom.create(AdminSectionItem, {
-          id: 'templateMode',
-          name: t('Document type'),
-          description: t('Default, template, or tutorial'),
+          id: "templateMode",
+          name: t("Document type"),
+          description: t("Default, template, or tutorial"),
           value: cssDocTypeContainer(
             dom.create(
               displayCurrentType,
               docPageModel.type,
             ),
-            cssSmallButton(t('Edit'),
-              dom.on('click', this._buildDocumentTypeModal.bind(this)),
-              testId('doctype-edit')
+            cssSmallButton(t("Edit"),
+              dom.on("click", this._buildDocumentTypeModal.bind(this)),
+              testId("doctype-edit"),
             ),
           ),
-          disabled: isDocOwner ? false : t('Only available to document owners'),
+          disabled: isDocOwner ? false : t("Only available to document owners"),
         }),
         !isFork ? dom.create(AdminSectionItem, {
-          id: 'acceptProposals',
-          name: [t('Suggestions'), betaTag(t('experiment'))],
+          id: "acceptProposals",
+          name: [t("Suggestions"), betaTag(t("experiment"), { style: "margin-left: 4px;" })],
           description: withInfoTooltip(
-            t('Allow others to suggest changes'),
-            'suggestions'
+            t("Allow others to suggest changes"),
+            "suggestions",
           ),
           value: labeledSquareCheckbox(
             this._acceptProposals,
             t("Enable suggestions"),
-            dom.on('click', async (elem) => {
+            dom.on("click", async (elem) => {
               this._working.set(true);
               try {
                 const docId = docPageModel.currentDocId.get();
                 if (!docId) {
                   // Should never happen, don't bother translating.
-                  reportError(new Error('Document not found'));
+                  reportError(new Error("Document not found"));
                   return;
                 }
                 const acceptProposals = !this._acceptProposals.get();
-                await docPageModel.appModel.api.updateDoc(docId, {options: {proposedChanges: {acceptProposals}}});
+                await docPageModel.appModel.api.updateDoc(docId, { options: { proposedChanges: { acceptProposals } } });
                 window.location.reload();
-              } catch(e) {
+              } catch (e) {
                 reportError(e);
               } finally {
                 this._working.set(false);
               }
             }),
-            dom.prop('disabled', this._working),
-            testId('accept-proposals'),
+            dom.prop("disabled", this._working),
+            testId("accept-proposals"),
           ),
-          disabled: isDocOwner ? false : t('Only available to document owners'),
+          disabled: isDocOwner ? false : t("Only available to document owners"),
         }) : null,
       ]),
 
       dom.create(buildNotificationsConfig, this._gristDoc.docApi, docPageModel.currentDoc.get()),
 
-      dom.create(AdminSection, t('Data engine'), [
+      dom.create(AdminSection, t("Data engine"), [
         dom.create(AdminSectionItem, {
-          id: 'timings',
-          name: t('Formula timer'),
-          description: dom('div',
-            dom.maybe(isTimingOn, () => cssRedText(t('Timing is on') + '...')),
-            dom.maybe(not(isTimingOn), () => t('Find slow formulas')),
-            testId('timing-desc')
+          id: "timings",
+          name: t("Formula timer"),
+          description: dom("div",
+            dom.maybe(isTimingOn, () => cssRedText(t("Timing is on") + "...")),
+            dom.maybe(not(isTimingOn), () => t("Find slow formulas")),
+            testId("timing-desc"),
           ),
           value: dom.domComputed(isTimingOn, (timingOn) => {
             if (timingOn) {
-              return dom('div',
+              return dom("div",
                 cssPrimarySmallLinkSettings(
-                  t('Stop timing...'),
-                  urlState().setHref({docPage: 'timing'}),
-                  {target: '_blank'},
-                  testId('timing-stop')
-                )
+                  t("Stop timing..."),
+                  urlState().setHref({ docPage: "timing" }),
+                  { target: "_blank" },
+                  testId("timing-stop"),
+                ),
               );
             } else {
-              return cssSmallButtonSettings(t('Start timing'),
-                dom.on('click', this._startTiming.bind(this)),
-                testId('timing-start')
+              return cssSmallButtonSettings(t("Start timing"),
+                dom.on("click", this._startTiming.bind(this)),
+                testId("timing-start"),
               );
             }
           }),
-          expandedContent: dom('div', t(
-            'Once you start timing, Grist will measure the time it takes to evaluate each formula. \
+          expandedContent: dom("div", t(
+            "Once you start timing, Grist will measure the time it takes to evaluate each formula. \
 This allows diagnosing which formulas are responsible for slow performance when a \
-document is first opened, or when a document responds to changes.'
+document is first opened, or when a document responds to changes.",
           )),
-          disabled: isDocOwner ? false : t('Only available to document owners'),
+          disabled: isDocOwner ? false : t("Only available to document owners"),
         }),
         dom.create(AdminSectionItem, {
-          id: 'reload',
-          name: t('Reload'),
-          description: t('Hard reset of data engine'),
-          value: cssSmallButtonSettings(t('Reload data engine'), dom.on('click', this._reloadEngine.bind(this, true))),
-          disabled: isDocEditor ? false : t('Only available to document editors'),
+          id: "reload",
+          name: t("Reload"),
+          description: t("Hard reset of data engine"),
+          value: cssSmallButtonSettings(t("Reload data engine"), dom.on("click", this._reloadEngine.bind(this, true))),
+          disabled: isDocEditor ? false : t("Only available to document editors"),
         }),
       ]),
 
-      dom.create(AdminSection, t('API'), [
+      dom.create(AdminSection, t("API"), [
         dom.create(AdminSectionItem, {
-          id: 'documentId',
-          name: t('Document ID'),
-          description: t('ID for API use'),
+          id: "documentId",
+          name: t("Document ID"),
+          description: t("ID for API use"),
           value: cssHoverWrapper(
-            cssInput(docPageModel.currentDocId.get(), {tabIndex: "-1"}, clickToSelect(), readonly()),
+            cssInput(docPageModel.currentDocId.get(), { tabIndex: "-1" }, clickToSelect(), readonly()),
             cssCopyButton(
-              cssIcon('Copy'),
-              hoverTooltip(t('Copy to clipboard'), {
+              cssIcon("Copy"),
+              hoverTooltip(t("Copy to clipboard"), {
                 key: TOOLTIP_KEY,
               }),
               copyHandler(() => docPageModel.currentDocId.get()!, t("Document ID copied to clipboard")),
             ),
           ),
-          expandedContent: dom('div',
+          expandedContent: dom("div",
             cssWrap(
-              t('Document ID to use whenever the REST API calls for {{docId}}. See {{apiURL}}', {
-                apiURL: cssLink({href: commonUrls.helpAPI, target: '_blank'}, t('API documentation.')),
-                docId: dom('code', 'docId')
-              })
+              t("Document ID to use whenever the REST API calls for {{docId}}. See {{apiURL}}", {
+                apiURL: cssLink({ href: commonUrls.helpAPI, target: "_blank" }, t("API documentation.")),
+                docId: dom("code", "docId"),
+              }),
             ),
             dom.domComputed(urlState().makeUrl({
               api: true,
               docPage: undefined,
               doc: docPageModel.currentDocId.get(),
             }), url => [
-              cssWrap(t('Base doc URL: {{docApiUrl}}', {
+              cssWrap(t("Base doc URL: {{docApiUrl}}", {
                 docApiUrl: cssCopyLink(
-                  {href: url},
-                  dom('span', url),
+                  { href: url },
+                  dom("span", url),
                   copyHandler(() => url, t("API URL copied to clipboard")),
-                  hoverTooltip(t('Copy to clipboard'), {
+                  hoverTooltip(t("Copy to clipboard"), {
                     key: TOOLTIP_KEY,
                   }),
-                )
+                ),
               })),
             ]),
           ),
         }),
         dom.create(AdminSectionItem, {
-          id: 'api-console',
-          name: t('API console'),
-          description: t('Try API calls from the browser'),
-          value: cssSmallLinkButtonSettings(t('API console'), {
-            target: '_blank',
+          id: "api-console",
+          name: t("API console"),
+          description: t("Try API calls from the browser"),
+          value: cssSmallLinkButtonSettings(t("API console"), {
+            target: "_blank",
             href: getApiConsoleLink(docPageModel),
           }),
         }),
         this._gristDoc.docPageModel.isFork.get() ? null : dom.create(AdminSectionItem, {
-          id: 'webhooks',
-          name: t('Webhooks'),
-          description: t('Notify other services on doc changes'),
-          value: cssSmallLinkButtonSettings(t('Manage webhooks'), urlState().setLinkUrl({docPage: 'webhook'})),
-          disabled: isDocOwner ? false : t('Only available to document owners'),
+          id: "webhooks",
+          name: t("Webhooks"),
+          description: t("Notify other services on doc changes"),
+          value: cssSmallLinkButtonSettings(t("Manage webhooks"), urlState().setLinkUrl({ docPage: "webhook" })),
+          disabled: isDocOwner ? false : t("Only available to document owners"),
         }),
       ]),
 
@@ -260,9 +263,9 @@ document is first opened, or when a document responds to changes.'
   }
 
   private _buildAttachmentStorageSection() {
-    const INTERNAL = 'internal', EXTERNAL = 'external';
+    const INTERNAL = "internal", EXTERNAL = "external";
 
-    const storageType = Computed.create(this, use => {
+    const storageType = Computed.create(this, (use) => {
       const id = use(this._docInfo.documentSettingsJson).attachmentStoreId;
       return id ? EXTERNAL : INTERNAL;
     });
@@ -271,24 +274,24 @@ document is first opened, or when a document responds to changes.'
       // active doc has a chance to send us updates about the transfer.
       await this._gristDoc.docApi.setAttachmentStore(type);
     });
-    const storageOptions = [{value: INTERNAL, label: t('Internal')}, {value: EXTERNAL, label: t('External')}];
+    const storageOptions = [{ value: INTERNAL, label: t("Internal") }, { value: EXTERNAL, label: t("External") }];
 
     const transfer = this._gristDoc.attachmentTransfer;
     const locationSummary = Computed.create(this, use => use(transfer)?.locationSummary);
     const inProgress = Computed.create(this, use => !!use(transfer)?.status.isRunning);
-    const allInCurrent = Computed.create(this, use => {
+    const allInCurrent = Computed.create(this, (use) => {
       const summary = use(locationSummary);
       const current = use(storageType);
-      return summary && summary === current || summary === 'none';
+      return summary && summary === current || summary === "none";
     });
     const stores = Observable.create(this, [] as string[]);
 
-    const stillInternal = Computed.create(this, use => {
+    const stillInternal = Computed.create(this, (use) => {
       const currentExternal = use(storageType) === EXTERNAL;
       return currentExternal && (use(inProgress) || !use(allInCurrent));
     });
 
-    const stillExternal = Computed.create(this, use => {
+    const stillExternal = Computed.create(this, (use) => {
       const currentInternal = use(storageType) === INTERNAL;
       return currentInternal && (use(inProgress) || !use(allInCurrent));
     });
@@ -304,7 +307,7 @@ document is first opened, or when a document responds to changes.'
       transfer.set(status);
     };
 
-    const checkAvailableStores = () => this._gristDoc.docApi.getAttachmentStores().then(r => {
+    const checkAvailableStores = () => this._gristDoc.docApi.getAttachmentStores().then((r) => {
       if (r.stores.length === 0) {
         // There are no external providers (for now there can be at most 1).
         stores.set([]);
@@ -320,61 +323,61 @@ document is first opened, or when a document responds to changes.'
     const attachmentsReady = Observable.create(this, false);
 
     Promise.all([
-        loadStatus(),
-        checkAvailableStores(),
-      ])
+      loadStatus(),
+      checkAvailableStores(),
+    ])
       .then(() => attachmentsReady.set(true))
       .catch(reportError);
 
-    return dom.create(AdminSection, t('Attachment storage'), [
+    return dom.create(AdminSection, t("Attachment storage"), [
       dom.create(AdminSectionItem, {
         id: PREFERRED_STORAGE_ANCHOR,
         name: withInfoTooltip(
-          dom('span', t('Preferred storage for this document'), testId('transfer-header')),
-          'attachmentStorage',
+          dom("span", t("Preferred storage for this document"), testId("transfer-header")),
+          "attachmentStorage",
         ),
         value: cssFlex(
           dom.maybe(use => !use(allInCurrent) && !use(inProgress), () => [
             cssButton(
-              t('Start transfer'),
-              dom.on('click', () => beginTransfer()),
-              testId('transfer-start-button')
+              t("Start transfer"),
+              dom.on("click", () => beginTransfer()),
+              testId("transfer-start-button"),
             ),
           ]),
           dom.maybe(inProgress, () => [
             cssButton(
               cssLoadingSpinner(
-                loadingSpinner.cls('-inline'),
-                cssLoadingSpinner.cls('-disabled'),
-                testId('transfer-spinner')
+                loadingSpinner.cls("-inline"),
+                cssLoadingSpinner.cls("-disabled"),
+                testId("transfer-spinner"),
               ),
-              t('Transfer in progress'),
-              dom.prop('disabled', true),
-              testId('transfer-button-in-progress')
+              t("Transfer in progress"),
+              dom.prop("disabled", true),
+              testId("transfer-button-in-progress"),
             ),
           ]),
           dom.update(cssSmallSelect(storageType, storageOptions, {
             disabled: use => use(inProgress) || !use(attachmentsReady) || use(stores).length === 0,
-          }), testId('transfer-storage-select')),
-        )
+          }), testId("transfer-storage-select")),
+        ),
       }),
-      dom('div',
+      dom("div",
         dom.maybe(attachmentsReady, () => [
           dom.maybe(stillInternal, () => stillInternalCopy(
             inProgress,
-            testId('transfer-message'),
-            testId('transfer-still-internal-copy')
+            testId("transfer-message"),
+            testId("transfer-still-internal-copy"),
           )),
           dom.maybe(stillExternal, () => stillExternalCopy(
             inProgress,
-            testId('transfer-message'),
-            testId('transfer-still-external-copy')
+            testId("transfer-message"),
+            testId("transfer-still-external-copy"),
           )),
           dom.maybe(use => use(stores).length === 0, () => [
-            dom('span',
-              t('No external stores available'),
-              testId('transfer-message'),
-              testId('transfer-no-stores-warning')
+            dom("span",
+              t("No external stores available"),
+              testId("transfer-message"),
+              testId("transfer-no-stores-warning"),
             ),
           ]),
         ]),
@@ -385,11 +388,11 @@ document is first opened, or when a document responds to changes.'
 
   private _buildAttachmentUploadSection() {
     const isUploadingObs = Observable.create(this, false);
-    const buttonText = Computed.create(this, (use) => use(isUploadingObs) ? t('Uploading...') : t('Upload'));
+    const buttonText = Computed.create(this, use => use(isUploadingObs) ? t("Uploading...") : t("Upload"));
 
     const uploadButton = cssSmallButton(
       dom.text(buttonText),
-      dom.on('click',
+      dom.on("click",
         async () => {
           // This may never return due to openFilePicker. Anything past this point isn't guaranteed
           // to execute.
@@ -407,15 +410,15 @@ document is first opened, or when a document responds to changes.'
             }
           }
         }),
-      dom.prop('disabled', isUploadingObs),
-      testId('upload-attachment-archive')
+      dom.prop("disabled", isUploadingObs),
+      testId("upload-attachment-archive"),
     );
 
     return dom.create(AdminSectionItem, {
-      id: 'uploadAttachments',
+      id: "uploadAttachments",
       name: withInfoTooltip(
-        dom('span', t('Upload missing attachments'), testId('transfer-header')),
-        'uploadAttachments',
+        dom("span", t("Upload missing attachments"), testId("transfer-header")),
+        "uploadAttachments",
       ),
       value: uploadButton,
     });
@@ -436,7 +439,7 @@ document is first opened, or when a document responds to changes.'
       this._gristDoc.app.topAppModel.notifier.createNotification({
         title: "Attachments upload complete",
         message: `${uploadResult.added} attachment files reconnected`,
-        level: 'info',
+        level: "info",
         canUserClose: true,
         expireSec: 5,
       });
@@ -444,7 +447,7 @@ document is first opened, or when a document responds to changes.'
       reportWarning(err.toString(), {
         key: "attachmentArchiveUploadError",
         title: "Attachments upload failed",
-        level: 'error'
+        level: "error",
       });
     }
   }
@@ -457,13 +460,13 @@ document is first opened, or when a document responds to changes.'
     if (!ask) {
       return handler();
     }
-    confirmModal(t('Reload data engine?'), t('Reload'), handler, {
+    confirmModal(t("Reload data engine?"), t("Reload"), handler, {
       explanation: t(
-        'This will perform a hard reload of the data engine. This \
+        "This will perform a hard reload of the data engine. This \
 may help if the data engine is stuck in an infinite loop, is \
 indefinitely processing the latest change, or has crashed. \
-No data will be lost, except possibly currently pending actions.'
-      )
+No data will be lost, except possibly currently pending actions.",
+      ),
     });
   }
 
@@ -479,7 +482,7 @@ No data will be lost, except possibly currently pending actions.'
           await this._gristDoc.docApi.startTiming();
           await this._gristDoc.docApi.forceReload();
           ctl.close();
-          urlState().pushUrl({docPage: 'timing'}).catch(reportError);
+          urlState().pushUrl({ docPage: "timing" }).catch(reportError);
         } else {
           await this._gristDoc.docApi.startTiming();
           ctl.close();
@@ -488,49 +491,49 @@ No data will be lost, except possibly currently pending actions.'
 
       const startPage = () => [
         cssRadioCheckboxOptions(
-          dom.style('max-width', '400px'),
-          radioCheckboxOption(selected, TimingModalOption.Adhoc, dom('div',
-            dom('div',
-              dom('strong', t('Start timing')),
+          dom.style("max-width", "400px"),
+          radioCheckboxOption(selected, TimingModalOption.Adhoc, dom("div",
+            dom("div",
+              dom("strong", t("Start timing")),
             ),
-            dom('div',
-              dom.style('margin-top', '8px'),
-              dom('span', t('You can make changes to the document, then stop timing to see the results.'))
+            dom("div",
+              dom.style("margin-top", "8px"),
+              dom("span", t("You can make changes to the document, then stop timing to see the results.")),
             ),
-            testId('timing-modal-option-adhoc'),
+            testId("timing-modal-option-adhoc"),
           )),
-          radioCheckboxOption(selected, TimingModalOption.Reload, dom('div',
-            dom('div',
-              dom('strong', t('Time reload')),
+          radioCheckboxOption(selected, TimingModalOption.Reload, dom("div",
+            dom("div",
+              dom("strong", t("Time reload")),
             ),
-            dom('div',
-              dom.style('margin-top', '8px'),
-              dom('span', t('Force reload the document while timing formulas, and show the result.'))
+            dom("div",
+              dom.style("margin-top", "8px"),
+              dom("span", t("Force reload the document while timing formulas, and show the result.")),
             ),
-            testId('timing-modal-option-reload'),
-          ))
+            testId("timing-modal-option-reload"),
+          )),
         ),
         cssModalButtons(
           bigPrimaryButton(t(`Start timing`),
-            dom.on('click', startTiming),
-            testId('timing-modal-confirm'),
+            dom.on("click", startTiming),
+            testId("timing-modal-confirm"),
           ),
-          bigBasicButton(t('Cancel'), dom.on('click', () => ctl.close()), testId('timing-modal-cancel')),
-        )
+          bigBasicButton(t("Cancel"), dom.on("click", () => ctl.close()), testId("timing-modal-cancel")),
+        ),
       ];
 
       const spinnerPage = () => [
         cssSpinner(
           loadingSpinner(),
-          testId('timing-modal-spinner'),
-          dom.style('width', 'fit-content')
+          testId("timing-modal-spinner"),
+          dom.style("width", "fit-content"),
         ),
       ];
 
       return [
         cssModalTitle(t(`Formula timer`)),
-        dom.domComputed(page, (p) => p === TimingModalPage.Start ? startPage() : spinnerPage()),
-        testId('timing-modal'),
+        dom.domComputed(page, p => p === TimingModalPage.Start ? startPage() : spinnerPage()),
+        testId("timing-modal"),
       ];
     });
   }
@@ -564,8 +567,8 @@ No data will be lost, except possibly currently pending actions.'
           docType = DOCTYPE_TUTORIAL;
         }
 
-        const {trunkId} = docPageModel.currentDoc.get()!.idParts;
-        await docPageModel.appModel.api.updateDoc(trunkId, {type: docType});
+        const { trunkId } = docPageModel.currentDoc.get()!.idParts;
+        await docPageModel.appModel.api.updateDoc(trunkId, { type: docType });
         window.location.replace(urlState().makeUrl({
           docPage: "settings",
           fork: undefined, // will be automatically set once the page is reloaded
@@ -578,20 +581,20 @@ No data will be lost, except possibly currently pending actions.'
           type,
           label,
           description,
-          itemTestId
+          itemTestId,
         }: {
           type: DocTypeOption,
           label: string,
           description: string,
           itemTestId: DomElementMethod | null
         }) => {
-        return radioCheckboxOption(selected, type, dom('div',
-          dom('div',
-            dom('strong', label),
+        return radioCheckboxOption(selected, type, dom("div",
+          dom("div",
+            dom("strong", label),
           ),
-          dom('div',
-            dom.style('margin-top', '8px'),
-            dom('span', description)
+          dom("div",
+            dom.style("margin-top", "8px"),
+            dom("span", description),
           ),
           itemTestId,
         ));
@@ -599,43 +602,43 @@ No data will be lost, except possibly currently pending actions.'
 
       const documentTypeOptions = () => [
         cssRadioCheckboxOptions(
-          dom.style('max-width', '400px'),
+          dom.style("max-width", "400px"),
           docTypeOption({
             type: DocTypeOption.Regular,
-            label: t('Default'),
-            description: t('Normal document behavior. All users work on the same copy of the document.'),
-            itemTestId: testId('doctype-modal-option-regular'),
+            label: t("Default"),
+            description: t("Normal document behavior. All users work on the same copy of the document."),
+            itemTestId: testId("doctype-modal-option-regular"),
           }),
           docTypeOption({
             type: DocTypeOption.Template,
-            label: t('Template'),
-            description:  t('Document automatically opens in {{fiddleModeDocUrl}}. \
-Anyone may edit, which will create a new unsaved copy.',
-              {
-                fiddleModeDocUrl: cssLink({href: commonUrls.helpFiddleMode, target: '_blank'}, t('fiddle mode'))
-              }
+            label: t("Template"),
+            description: t("Document automatically opens in {{fiddleModeDocUrl}}. \
+Anyone may edit, which will create a new unsaved copy.",
+            {
+              fiddleModeDocUrl: cssLink({ href: commonUrls.helpFiddleMode, target: "_blank" }, t("fiddle mode")),
+            },
             ),
-            itemTestId: testId('doctype-modal-option-template'),
+            itemTestId: testId("doctype-modal-option-template"),
           }),
           docTypeOption({
             type: DocTypeOption.Tutorial,
-            label: t('Tutorial'),
-            description: t('Document automatically opens as a user-specific copy.'),
-            itemTestId: testId('doctype-modal-option-tutorial'),
+            label: t("Tutorial"),
+            description: t("Document automatically opens as a user-specific copy."),
+            itemTestId: testId("doctype-modal-option-tutorial"),
           }),
         ),
         cssModalButtons(
-          bigBasicButton(t('Cancel'), dom.on('click', () => ctl.close()), testId('doctype-modal-cancel')),
+          bigBasicButton(t("Cancel"), dom.on("click", () => ctl.close()), testId("doctype-modal-cancel")),
           bigPrimaryButton(t(`Confirm change`),
-            dom.on('click', doSetDocumentType),
-            testId('doctype-modal-confirm'),
+            dom.on("click", doSetDocumentType),
+            testId("doctype-modal-confirm"),
           ),
-        )
+        ),
       ];
       return [
         cssModalTitle(t(`Change document type`)),
         documentTypeOptions(),
-        testId('doctype-modal'),
+        testId("doctype-modal"),
       ];
     });
   }
@@ -643,15 +646,15 @@ Anyone may edit, which will create a new unsaved copy.',
 
 function getApiConsoleLink(docPageModel: DocPageModel) {
   const url = new URL(location.href);
-  url.pathname = '/apiconsole';
-  url.searchParams.set('docId', docPageModel.currentDocId.get()!);
+  url.pathname = "/apiconsole";
+  url.searchParams.set("docId", docPageModel.currentDocId.get()!);
   // Some extra question marks to placate a test fixture at test/fixtures/projects/DocumentSettings.ts
-  url.searchParams.set('workspaceId', String(docPageModel.currentWorkspace?.get()?.id || ''));
-  url.searchParams.set('orgId', String(docPageModel.appModel?.topAppModel.currentSubdomain.get()));
+  url.searchParams.set("workspaceId", String(docPageModel.currentWorkspace?.get()?.id || ""));
+  url.searchParams.set("orgId", String(docPageModel.appModel?.topAppModel.currentSubdomain.get()));
   return url.href;
 }
 
-type LocaleItem = ACSelectItem & {locale?: string};
+type LocaleItem = ACSelectItem & { locale?: string };
 
 function buildLocaleSelect(
   owner: IDisposableOwner,
@@ -663,11 +666,11 @@ function buildLocaleSelect(
     locale: l.code,
     cleanText: l.name.trim().toLowerCase(),
   })).sort(propertyCompare("label"));
-  const acIndex = new ACIndexImpl<LocaleItem>(localeList, {maxResults: 200, keepOrder: true});
+  const acIndex = new ACIndexImpl<LocaleItem>(localeList, { maxResults: 200, keepOrder: true });
   // AC select will show the value (in this case locale) not a label when something is selected.
   // To show the label - create another observable that will be in sync with the value, but
   // will contain text.
-  const textObs = Computed.create(owner, use => {
+  const textObs = Computed.create(owner, (use) => {
     const localeCode = use(locale);
     const localeName = locales.find(l => l.code === localeCode)?.name || localeCode;
     return localeName;
@@ -680,107 +683,106 @@ function buildLocaleSelect(
         locale.saveOnly(item.locale!).catch(reportError);
       },
     },
-    testId("locale-autocomplete")
+    testId("locale-autocomplete"),
   );
 }
 
-type DocumentTypeItem = ACSelectItem & {type?: string};
+type DocumentTypeItem = ACSelectItem & { type?: string };
 
 function displayCurrentType(
   owner: IDisposableOwner,
-  type: Observable<DocumentType|null>,
+  type: Observable<DocumentType | null>,
 ) {
   const typeList: DocumentTypeItem[] = [{
-    label: t('Regular'),
-    type: ''
+    label: t("Regular"),
+    type: "",
   }, {
-      label: t('Template'),
-      type: 'template'
-    }, {
-      label: t('Tutorial'),
-      type: 'tutorial'
-    }].map((el) => ({
+    label: t("Template"),
+    type: "template",
+  }, {
+    label: t("Tutorial"),
+    type: "tutorial",
+  }].map(el => ({
     ...el,
     value: el.label,
-    cleanText: el.label.trim().toLowerCase()
+    cleanText: el.label.trim().toLowerCase(),
   }));
-  const typeObs = Computed.create(owner, use => {
+  const typeObs = Computed.create(owner, (use) => {
     const typeCode = use(type) ?? "";
     const typeName = typeList.find(ty => ty.type === typeCode)?.label || typeCode;
     return typeName;
   });
   return dom(
-    'div',
+    "div",
     dom.text(typeObs),
-    testId('doctype-value')
+    testId("doctype-value"),
   );
 }
 
-
 const learnMore = () => t(
-  '[Learn more.]({{learnLink}})',
-  {learnLink: commonUrls.attachmentStorage}
+  "[Learn more.]({{learnLink}})",
+  { learnLink: commonUrls.attachmentStorage },
 );
 
 function stillExternalCopy(inProgress: Observable<boolean>, ...args: IDomArgs<HTMLSpanElement>) {
   const someExternal = () => t(
-    '**Some existing attachments are still [external]({{externalLink}})**.',
-    {externalLink: commonUrls.attachmentStorage}
+    "**Some existing attachments are still [external]({{externalLink}})**.",
+    { externalLink: commonUrls.attachmentStorage },
   );
 
   const startToInternal = () => t(
-    'Click "Start transfer" to transfer those to Internal storage (stored in the document SQLite file).'
+    'Click "Start transfer" to transfer those to Internal storage (stored in the document SQLite file).',
   );
 
   const newInInternal = () => t(
-    'Newly uploaded attachments will be placed in Internal storage.'
+    "Newly uploaded attachments will be placed in Internal storage.",
   );
 
   return dom.domComputed(inProgress, (yes) => {
     if (yes) {
       return cssMarkdownSpan(
-        `${someExternal()} ${newInInternal()}\n\n${learnMore()}`, ...args, testId('transfer-message-in-progress'));
+        `${someExternal()} ${newInInternal()}\n\n${learnMore()}`, ...args, testId("transfer-message-in-progress"));
     } else {
       return cssMarkdownSpan(
         `${someExternal()} ${startToInternal()} ${newInInternal()}\n\n${learnMore()}`,
         ...args,
-        testId('transfer-message-static'));
+        testId("transfer-message-static"));
     }
   });
 }
 
 function stillInternalCopy(inProgress: Observable<boolean>, ...args: IDomArgs<HTMLSpanElement>) {
   const someInternal = () => t(
-    '**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).',
-    {internalLink: commonUrls.attachmentStorage}
+    "**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).",
+    { internalLink: commonUrls.attachmentStorage },
   );
 
   const startToExternal = () => t(
-    'Click "Start transfer" to transfer those to External storage.'
+    'Click "Start transfer" to transfer those to External storage.',
   );
 
   const newInExternal = () => t(
-    'Newly uploaded attachments will be placed in External storage.'
+    "Newly uploaded attachments will be placed in External storage.",
   );
 
   return dom.domComputed(inProgress, (yes) => {
     if (yes) {
       return cssMarkdownSpan(
         `${someInternal()} ${newInExternal()}\n\n${learnMore()}`,
-        testId('transfer-message-in-progress'),
-        ...args
+        testId("transfer-message-in-progress"),
+        ...args,
       );
     } else {
       return cssMarkdownSpan(
         `${someInternal()} ${startToExternal()} ${newInExternal()}\n\n${learnMore()}`,
-        testId('transfer-message-static'),
-        ...args
+        testId("transfer-message-static"),
+        ...args,
       );
     }
   });
 }
 
-const cssContainer = styled('div', `
+const cssContainer = styled("div", `
   overflow-y: auto;
   position: relative;
   height: 100%;
@@ -793,7 +795,7 @@ const cssContainer = styled('div', `
   }
 `);
 
-const cssCopyButton = styled('div', `
+const cssCopyButton = styled("div", `
   position: absolute;
   display: flex;
   align-items: center;
@@ -811,7 +813,7 @@ const cssCopyButton = styled('div', `
 const cssIcon = styled(icon, `
 `);
 
-const cssInput = styled('div', `
+const cssInput = styled("div", `
   border: none;
   outline: none;
   background: transparent;
@@ -824,7 +826,7 @@ const cssInput = styled('div', `
   text-overflow: ellipsis;
 `);
 
-const cssHoverWrapper = styled('div', `
+const cssHoverWrapper = styled("div", `
   max-width: var(--admin-select-width);
   text-overflow: ellipsis;
   overflow: hidden;
@@ -861,22 +863,20 @@ const cssPrimarySmallLinkSettings = styled(cssPrimarySmallLink, `
 
 // This matches the style used in showProfileModal in app/client/ui/AccountWidget.
 
-
 // Check which engines can be selected in the UI, if any.
 export function getSupportedEngineChoices(): EngineCode[] {
   const gristConfig: Partial<GristLoadConfig> = window.gristConfig || {};
   return gristConfig.supportEngines || [];
 }
 
-const TOOLTIP_KEY = 'copy-on-settings';
-
+const TOOLTIP_KEY = "copy-on-settings";
 
 function copyHandler(value: () => string, confirmation: string) {
-  return dom.on('click', async (e, d) => {
+  return dom.on("click", async (e, d) => {
     e.stopImmediatePropagation();
     e.preventDefault();
     showTransientTooltip(d as Element, confirmation, {
-      key: TOOLTIP_KEY
+      key: TOOLTIP_KEY,
     });
     await copyToClipboard(value());
   });
@@ -884,12 +884,12 @@ function copyHandler(value: () => string, confirmation: string) {
 
 function readonly() {
   return [
-    { contentEditable: 'false', spellcheck: 'false' },
+    { contentEditable: "false", spellcheck: "false" },
   ];
 }
 
 function clickToSelect() {
-  return dom.on('click', (e) => {
+  return dom.on("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
     const range = document.createRange();
@@ -959,18 +959,18 @@ const cssTZAutoComplete = styled(buildTZAutocomplete, cssAutoComplete);
 const cssCurrencyPicker = styled(buildCurrencyPicker, cssAutoComplete);
 const cssLocalePicker = styled(buildLocaleSelect, cssAutoComplete);
 
-const cssWrap = styled('p', `
+const cssWrap = styled("p", `
   overflow-wrap: anywhere;
   & * {
     word-break: break-all;
   }
 `);
 
-const cssRedText = styled('span', `
+const cssRedText = styled("span", `
   color: ${theme.errorText};
 `);
 
-const cssDocTypeContainer = styled('div', `
+const cssDocTypeContainer = styled("div", `
   display: flex;
   width: var(--admin-select-width);
   align-items: center;
@@ -980,7 +980,7 @@ const cssDocTypeContainer = styled('div', `
   }
 `);
 
-const cssFlex = styled('div', `
+const cssFlex = styled("div", `
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1006,7 +1006,7 @@ const cssLoadingSpinner = styled(loadingSpinner, `
   }
 `);
 
-export const betaTag = styled('span', `
+export const betaTag = styled("span", `
   text-transform: uppercase;
   vertical-align: super;
   font-size: ${vars.xsmallFontSize};

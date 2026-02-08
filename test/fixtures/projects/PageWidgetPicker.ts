@@ -1,10 +1,11 @@
-import { attachPageWidgetPicker, IOptions, IPageWidget, ISaveFunc } from 'app/client/ui/PageWidgetPicker';
-import { basicButton } from 'app/client/ui2018/buttons';
-import { testId } from 'app/client/ui2018/cssVars';
-import { dom, domComputed, DomElementMethod, obsArray, observable, styled } from "grainjs";
-import { gristDocMock } from 'test/fixtures/projects/helpers/widgetPicker';
-import { withLocale } from 'test/fixtures/projects/helpers/withLocale';
+import { attachPageWidgetPicker, IOptions, IPageWidget, ISaveFunc } from "app/client/ui/PageWidgetPicker";
+import { basicButton } from "app/client/ui2018/buttons";
+import { testId } from "app/client/ui2018/cssVars";
 import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
+import { gristDocMock } from "test/fixtures/projects/helpers/widgetPicker";
+import { withLocale } from "test/fixtures/projects/helpers/withLocale";
+
+import { dom, domComputed, DomElementMethod, obsArray, observable, styled } from "grainjs";
 
 interface ISaveCall {
   resolve: () => void;
@@ -12,14 +13,13 @@ interface ISaveCall {
 }
 
 function setupTest() {
-
   const isNewPageObs = observable(false);
-  const valueOpt = observable<IPageWidget|null>(null);
+  const valueOpt = observable<IPageWidget | null>(null);
   const saveCalls = obsArray<ISaveCall>([]);
 
   const onSelect: ISaveFunc = async (val) => {
-    const promise = new Promise<void>(resolve => {
-      saveCalls.push({resolve, value: val});
+    const promise = new Promise<void>((resolve) => {
+      saveCalls.push({ resolve, value: val });
     });
     await promise;
   };
@@ -32,61 +32,61 @@ function setupTest() {
 
   return [
 
-    domComputed( (use) => {
-        const isNewPage = use(isNewPageObs);
-        const value = use(valueOpt) ? () => valueOpt.get()! : undefined;
-        return {isNewPage, value};
-      }, (option) => [
-        basicButton(
-          'Page widget picker',
-          pageWidgetPicker(onSelect, option),
-          testId('trigger'),
+    domComputed((use) => {
+      const isNewPage = use(isNewPageObs);
+      const value = use(valueOpt) ? () => valueOpt.get()! : undefined;
+      return { isNewPage, value };
+    }, option => [
+      basicButton(
+        "Page widget picker",
+        pageWidgetPicker(onSelect, option),
+        testId("trigger"),
+      ),
+      dom(
+        "div",
+        dom("h3", "Options"),
+        dom(
+          "div", "isNewPage: ",
+          dom(
+            "input", { type: "checkbox" },
+            dom.prop("checked", isNewPageObs),
+            dom.on("change", (ev, elem) => isNewPageObs.set(elem.checked)),
+            testId("option-isNewPage"),
+          ),
         ),
         dom(
-          'div',
-          dom('h3', 'Options'),
+          "div", "value: ", dom.text(use => JSON.stringify(use(valueOpt))),
           dom(
-            'div', 'isNewPage: ',
-            dom(
-              'input', {type: 'checkbox'},
-              dom.prop('checked', isNewPageObs),
-              dom.on('change', (ev, elem) => isNewPageObs.set(elem.checked)),
-              testId('option-isNewPage'),
-            ),
+            "button", "Change",
+            pageWidgetPicker(async val => valueOpt.set(val), option),
+            testId("option-value"),
           ),
           dom(
-            'div', 'value: ', dom.text((use) => JSON.stringify(use(valueOpt))),
-            dom(
-              'button', 'Change',
-              pageWidgetPicker(async (val) => valueOpt.set(val), option),
-              testId('option-value'),
-            ),
-            dom(
-              'button', 'omit',
-              dom.on('click', () => valueOpt.set(null)),
-              testId('option-omit-value')
-            )
+            "button", "omit",
+            dom.on("click", () => valueOpt.set(null)),
+            testId("option-omit-value"),
           ),
         ),
-      ]),
+      ),
+    ]),
 
     cssCallLogs(
-      dom('h3', 'Call logs: '),
-      dom.forEach(saveCalls, (call) => dom(
-        'div',
-        dom('span', JSON.stringify(call.value), testId('call-value')),
-        dom('button', 'Resolve', dom.on('click', (ev, el) => {
+      dom("h3", "Call logs: "),
+      dom.forEach(saveCalls, call => dom(
+        "div",
+        dom("span", JSON.stringify(call.value), testId("call-value")),
+        dom("button", "Resolve", dom.on("click", (ev, el) => {
           call.resolve();
-          el.toggleAttribute('disabled', true);
-        }), testId('resolve')),
-        testId('call-log')
+          el.toggleAttribute("disabled", true);
+        }), testId("resolve")),
+        testId("call-log"),
       )),
-      testId('call-logs'),
+      testId("call-logs"),
     ),
   ];
 }
 
-const cssCallLogs = styled('div', `
+const cssCallLogs = styled("div", `
   position: absolute;
   z-index: 1000;
   border: 1px solid grey;

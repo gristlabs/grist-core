@@ -1,4 +1,4 @@
-import * as Types from 'app/plugin/DocApiTypes';
+import * as Types from "app/plugin/DocApiTypes";
 
 /**
  * Offer CRUD-style operations on a table.
@@ -13,18 +13,18 @@ export interface TableOperations {
   /**
    * Update a record or records.
    */
-  update(records: Types.Record|Types.Record[], options?: OpOptions): Promise<void>;
+  update(records: Types.Record | Types.Record[], options?: OpOptions): Promise<void>;
 
   /**
    * Delete a record or records.
    */
-  destroy(recordIds: Types.RecordId|Types.RecordId[]): Promise<void>;
+  destroy(recordIds: Types.RecordId | Types.RecordId[]): Promise<void>;
 
   /**
    * Add or update a record or records.
    */
-  upsert(records: Types.AddOrUpdateRecord|Types.AddOrUpdateRecord[],
-         options?: UpsertOptions): Promise<void>;
+  upsert(records: Types.AddOrUpdateRecord | Types.AddOrUpdateRecord[],
+    options?: UpsertOptions): Promise<void>;
 
   /**
    * Determine the tableId of the table.
@@ -52,7 +52,7 @@ export interface UpsertOptions extends OpOptions {
   /** Permit updating a record. Defaults to true. */
   update?: boolean;
   /** Whether to update none, one, or all matching records. Defaults to "first". */
-  onMany?: 'none' | 'first' | 'all';
+  onMany?: "none" | "first" | "all";
   /** Allow "wildcard" operation. Defaults to false. */
   allowEmptyRequire?: boolean;
 }

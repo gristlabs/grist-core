@@ -1,14 +1,14 @@
-import {Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne,
-        PrimaryGeneratedColumn, RelationId} from "typeorm";
+import { Role } from "app/common/roles";
+import { OrganizationProperties, organizationPropertyKeys } from "app/common/UserAPI";
+import { AclRuleOrg } from "app/gen-server/entity/AclRule";
+import { BillingAccount } from "app/gen-server/entity/BillingAccount";
+import { Pref } from "app/gen-server/entity/Pref";
+import { Resource } from "app/gen-server/entity/Resource";
+import { User } from "app/gen-server/entity/User";
+import { Workspace } from "app/gen-server/entity/Workspace";
 
-import {Role} from "app/common/roles";
-import {OrganizationProperties, organizationPropertyKeys} from "app/common/UserAPI";
-import {AclRuleOrg} from "app/gen-server/entity/AclRule";
-import {BillingAccount} from "app/gen-server/entity/BillingAccount";
-import {Pref} from "app/gen-server/entity/Pref";
-import {Resource} from "app/gen-server/entity/Resource";
-import {User} from "app/gen-server/entity/User";
-import {Workspace} from "app/gen-server/entity/Workspace";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne,
+  PrimaryGeneratedColumn, RelationId } from "typeorm";
 
 // Information about how an organization may be accessed.
 export interface AccessOption {
@@ -22,20 +22,19 @@ export interface AccessOptionWithRole extends AccessOption {
   access: Role;   // summary of permissions
 }
 
-@Entity({name: 'orgs'})
+@Entity({ name: "orgs" })
 export class Organization extends Resource {
-
   @PrimaryGeneratedColumn()
   public id: number;
 
   @Column({
     type: String,
-    nullable: true
+    nullable: true,
   })
   public domain: string;
 
   @OneToOne(type => User, user => user.personalOrg)
-  @JoinColumn({name: 'owner_id'})
+  @JoinColumn({ name: "owner_id" })
   public owner: User;
 
   @RelationId((org: Organization) => org.owner)
@@ -47,11 +46,11 @@ export class Organization extends Resource {
   @OneToMany(type => AclRuleOrg, aclRule => aclRule.organization)
   public aclRules: AclRuleOrg[];
 
-  @Column({name: 'billing_account_id', type: Number})
+  @Column({ name: "billing_account_id", type: Number })
   public billingAccountId: number;
 
   @ManyToOne(type => BillingAccount)
-  @JoinColumn({name: 'billing_account_id'})
+  @JoinColumn({ name: "billing_account_id" })
   public billingAccount: BillingAccount;
 
   // Property that may be returned when the org is fetched to indicate the access the
@@ -64,18 +63,18 @@ export class Organization extends Resource {
   // a computed column with permissions.
   // {insert: false} makes sure typeorm doesn't try to put values into such
   // a column when creating organizations.
-  @Column({name: 'permissions', type: 'text', select: false, insert: false})
+  @Column({ name: "permissions", type: "text", select: false, insert: false })
   public permissions?: any;
 
   // For custom domains, this is the preferred host associated with this org/team.
-  @Column({name: 'host', type: 'text', nullable: true})
-  public host: string|null;
+  @Column({ name: "host", type: "text", nullable: true })
+  public host: string | null;
 
   // Any prefs relevant to the org and user.  This relation is marked to not result
   // in saves, since OneToMany saves in TypeORM are not reliable - see e.g. later
   // parts of this issue:
   //   https://github.com/typeorm/typeorm/issues/3095
-  @OneToMany(type => Pref, pref => pref.org, {persistence: false})
+  @OneToMany(type => Pref, pref => pref.org, { persistence: false })
   public prefs?: Pref[];
 
   public checkProperties(props: any): props is Partial<OrganizationProperties> {

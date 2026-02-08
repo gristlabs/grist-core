@@ -888,7 +888,7 @@
         "context menu - Access Rules": "μενού περιβάλλοντος - Κανόνες πρόσβασης",
         "Delete document tour": "Διαγραφή περιήγησης εγγράφου",
         "Preview the tutorial": "Προεπισκόπηση του οδηγού εκμάθησης",
-        "Proposed Changes": "Προτεινόμενες αλλαγές"
+        "Proposed changes": "Προτεινόμενες αλλαγές"
     },
     "TopBar": {
         "Manage team": "Διαχείριση ομάδας"
@@ -2304,7 +2304,7 @@
         "{{shortcutsModal}} Show the complete list of keyboard shortcuts": "{{shortcutsModal}} Εμφάνιση της πλήρους λίστας συντομεύσεων πληκτρολογίου"
     },
     "ProposedChangesPage": {
-        "Proposed Changes": "Προτεινόμενες αλλαγές",
+        "Proposed changes": "Προτεινόμενες αλλαγές",
         "Replace original": "Αντικατάσταση πρωτοτύπου",
         "This is a list of changes relative to the original document.": "Αυτή είναι μια λίστα αλλαγών σε σχέση με το αρχικό έγγραφο."
     },

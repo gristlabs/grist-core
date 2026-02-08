@@ -35,7 +35,7 @@
  *
  */
 
-import {RenderOptions, RenderTarget} from 'app/plugin/RenderOptions';
+import { RenderOptions, RenderTarget } from "app/plugin/RenderOptions";
 
 // This is the row ID used in the client, but it's helpful to have available in some common code
 // as well, which is why it's declared here. Note that for data actions and stored data,
@@ -43,7 +43,7 @@ import {RenderOptions, RenderTarget} from 'app/plugin/RenderOptions';
 /**
  * Represents the id of a row in a table. The value of the `id` column. Might be a number or 'new' value for a new row.
  */
-export type UIRowId = number | 'new';
+export type UIRowId = number | "new";
 
 /**
  * Represents the position of an active cursor on a page.
@@ -74,7 +74,7 @@ export interface CursorPos {
 
 export type ComponentKind = "safeBrowser" | "safePython" | "unsafeNode";
 
-export const RPC_GRISTAPI_INTERFACE = '_grist_api';
+export const RPC_GRISTAPI_INTERFACE = "_grist_api";
 
 export interface GristAPI {
   /**
@@ -162,7 +162,7 @@ export interface FetchSelectedOptions {
    * - `rows`, the returned data will be an array of objects, one per row, with column names as keys.
    * - `columns`, the returned data will be an object with column names as keys, and arrays of values.
    */
-  format?: 'rows' | 'columns';
+  format?: "rows" | "columns";
 
   /**
    * - `shown` (default): return only columns that are explicitly shown
@@ -170,7 +170,7 @@ export interface FetchSelectedOptions {
    * - `normal`: return all 'normal' columns, regardless of whether the user has shown them.
    * - `all`: also return special invisible columns like `manualSort` and display helper columns.
    */
-  includeColumns?: 'shown' | 'normal' | 'all';
+  includeColumns?: "shown" | "normal" | "all";
 
   /**
    *
@@ -207,7 +207,7 @@ export interface GristView {
   /**
    * Set the list of selected rows to be used against any linked widget.
    */
-  setSelectedRows(rowIds: number[]|null): Promise<void>;
+  setSelectedRows(rowIds: number[] | null): Promise<void>;
 
   /**
    * Sets the cursor position to a specific row and field. `sectionId` is ignored. Used for widget linking.

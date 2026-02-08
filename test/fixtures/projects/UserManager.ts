@@ -1,8 +1,9 @@
-import {UserManagerModelImpl} from "app/client/models/UserManagerModel";
-import {UserManager} from "app/client/ui/UserManager";
-import {PermissionData, PermissionDelta} from "app/common/UserAPI";
-import {dom, observable, styled} from "grainjs";
-import {withLocale} from "test/fixtures/projects/helpers/withLocale";
+import { UserManagerModelImpl } from "app/client/models/UserManagerModel";
+import { UserManager } from "app/client/ui/UserManager";
+import { PermissionData, PermissionDelta } from "app/common/UserAPI";
+import { withLocale } from "test/fixtures/projects/helpers/withLocale";
+
+import { dom, observable, styled } from "grainjs";
 
 function getInitialData(): PermissionData {
   return {
@@ -10,48 +11,47 @@ function getInitialData(): PermissionData {
     users: [
       {
         id: 1,
-        name: 'Foo Johnson',
+        name: "Foo Johnson",
         email: "foo@example.com",
-        access: 'owners',
+        access: "owners",
       },
       {
         id: 2,
-        name: 'Bar Jackson',
+        name: "Bar Jackson",
         email: "bar@example.com",
         access: "editors",
       },
       {
         id: 3,
-        name: 'Team Member',
-        email: 'team@example.com',
-        access: 'viewers',
+        name: "Team Member",
+        email: "team@example.com",
+        access: "viewers",
         isMember: true,
       },
       {
         id: 4,
-        name: 'Guest',
-        email: 'guest@example.com',
-        access: 'viewers',
+        name: "Guest",
+        email: "guest@example.com",
+        access: "viewers",
         isMember: false,
       },
     ],
   };
 }
 
-
 function setupTest() {
   const lastDelta = observable<PermissionDelta>({});
-  const activeUser = {id: 5, email: 'test-usermanager@getgrist.com', name: 'Test'};
-  const model = new UserManagerModelImpl(getInitialData(), 'document', { activeUser });
+  const activeUser = { id: 5, email: "test-usermanager@getgrist.com", name: "Test" };
+  const model = new UserManagerModelImpl(getInitialData(), "document", { activeUser });
   const um = observable(new UserManager(model, {}));
   return [
     testBox(
       dom.domComputed(um, _um => _um.buildDom()),
-      dom('button.test-save', 'Save', dom.on('click', () => { lastDelta.set(model.getDelta()); })),
+      dom("button.test-save", "Save", dom.on("click", () => { lastDelta.set(model.getDelta()); })),
     ),
     testBox(
-      dom('pre.test-result', dom.text((use) => JSON.stringify(use(lastDelta), null, 2))),
-      dom('button.test-reset', 'Reset', dom.on('click', () => {
+      dom("pre.test-result", dom.text(use => JSON.stringify(use(lastDelta), null, 2))),
+      dom("button.test-reset", "Reset", dom.on("click", () => {
         lastDelta.set({});
         model.reset();
       })),
@@ -59,7 +59,7 @@ function setupTest() {
   ];
 }
 
-const testBox = styled('div', `
+const testBox = styled("div", `
   float: left;
   font-family: sans-serif;
   font-size: 1rem;

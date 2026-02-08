@@ -1,7 +1,7 @@
-import {ClientScope} from 'app/client/components/ClientScope';
-import {SafeBrowser} from 'app/client/lib/SafeBrowser';
-import {LocalPlugin} from 'app/common/plugin';
-import {createRpcLogger, PluginInstance} from 'app/common/PluginInstance';
+import { ClientScope } from "app/client/components/ClientScope";
+import { SafeBrowser } from "app/client/lib/SafeBrowser";
+import { LocalPlugin } from "app/common/plugin";
+import { createRpcLogger, PluginInstance } from "app/common/PluginInstance";
 
 /**
  * Home plugins are all plugins that contributes to a general Grist management tasks.
@@ -10,7 +10,6 @@ import {createRpcLogger, PluginInstance} from 'app/common/PluginInstance';
  * only safeBrowser components without any access to Grist.
  */
 export class HomePluginManager {
-
   public pluginsList: PluginInstance[];
 
   constructor(options: {
@@ -18,7 +17,7 @@ export class HomePluginManager {
     untrustedContentOrigin: string,
     clientScope: ClientScope,
   }) {
-    const {localPlugins, untrustedContentOrigin, clientScope} = options;
+    const { localPlugins, untrustedContentOrigin, clientScope } = options;
     this.pluginsList = [];
     for (const plugin of localPlugins) {
       try {
@@ -44,14 +43,13 @@ export class HomePluginManager {
         }
         const forwarder = new NotAvailableForwarder();
         // Block any calls to internal apis.
-        pluginInstance.rpc.registerForwarder('*', {
-          forwardCall: (call) => forwarder.forwardPluginRpc(plugin.id, call),
-          forwardMessage: (msg) => forwarder.forwardPluginRpc(plugin.id, msg),
+        pluginInstance.rpc.registerForwarder("*", {
+          forwardCall: call => forwarder.forwardPluginRpc(plugin.id, call),
+          forwardMessage: msg => forwarder.forwardPluginRpc(plugin.id, msg),
         });
         this.pluginsList.push(pluginInstance);
       } catch (err) {
-        console.error( // tslint:disable-line:no-console
-          `HomePluginManager: failed to instantiate ${plugin.id}: ${err.message}`);
+        console.error(`HomePluginManager: failed to instantiate ${plugin.id}: ${err.message}`);
       }
     }
   }

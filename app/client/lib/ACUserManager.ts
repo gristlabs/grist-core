@@ -1,10 +1,8 @@
-import {makeT} from 'app/client/lib/localization';
-import {ACIndex, ACItem, ACResults, buildHighlightedDom, normalizeText} from "app/client/lib/ACIndex";
-import {cssSelectItem} from "app/client/lib/ACSelect";
-import {Autocomplete, IAutocompleteOptions} from "app/client/lib/autocomplete";
-import {colors, testId, theme} from "app/client/ui2018/cssVars";
-import {icon} from "app/client/ui2018/icons";
-import {menuCssClass} from "app/client/ui2018/menus";
+import { ACIndex, ACItem, ACResults, buildHighlightedDom, normalizeText } from "app/client/lib/ACIndex";
+import { cssSelectItem } from "app/client/lib/ACSelect";
+import { Autocomplete, IAutocompleteOptions } from "app/client/lib/autocomplete";
+import { makeT } from "app/client/lib/localization";
+import { createUserImage, cssUserImage } from "app/client/ui/UserImage";
 import {
   cssEmailInput,
   cssEmailInputContainer,
@@ -15,12 +13,15 @@ import {
   cssMemberSecondary,
   cssMemberText,
 } from "app/client/ui/UserItem";
-import {createUserImage, cssUserImage} from "app/client/ui/UserImage";
-import {getGristConfig} from 'app/common/urlUtils';
-import {Computed, computed, dom, DomElementArg, Holder, IDisposableOwner, Observable, styled} from "grainjs";
-import {cssMenuItem} from "popweasel";
+import { colors, testId, theme } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { menuCssClass } from "app/client/ui2018/menus";
+import { getGristConfig } from "app/common/urlUtils";
 
-const t = makeT('ACUserManager');
+import { Computed, computed, dom, DomElementArg, Holder, IDisposableOwner, Observable, styled } from "grainjs";
+import { cssMenuItem } from "popweasel";
+
+const t = makeT("ACUserManager");
 
 export interface ACUserItem extends ACItem {
   value: string;
@@ -38,11 +39,11 @@ export function buildACMemberEmail(
     acIndex: ACIndex<ACUserItem>;
     emailObs: Observable<string>;
     save: (value: string) => void;
-    prompt?: {email: string},
+    prompt?: { email: string },
   },
   ...args: DomElementArg[]
 ) {
-  const {acIndex, emailObs, save, prompt} = options;
+  const { acIndex, emailObs, save, prompt } = options;
   const acHolder = Holder.create<Autocomplete<ACUserItem>>(owner);
   let emailInput: HTMLInputElement;
 
@@ -58,7 +59,11 @@ export function buildACMemberEmail(
     emailInput.focus();
   };
   const onEnter = () => {
-    isOpen() ? commitIfValid() : acOpen();
+    if (isOpen()) {
+      commitIfValid();
+    } else {
+      acOpen();
+    }
   };
 
   const commitIfValid = () => {
@@ -106,36 +111,36 @@ export function buildACMemberEmail(
   const renderSearchItem = (item: ACUserItem, highlightFunc: any): HTMLLIElement => (item?.isNew ? cssSelectItem(
     cssMemberListItem(
       cssUserImagePlus(
-        cssPlusIcon('Plus'),
+        cssPlusIcon("Plus"),
         cssUserImage.cls("-large"),
-        cssUserImagePlus.cls('-invalid', (use) => !use(enableAdd),
+        cssUserImagePlus.cls("-invalid", use => !use(enableAdd),
         )),
       cssMemberText(
         cssMemberPrimaryPlus(t("Invite new member")),
         getGristConfig().notifierEnabled ? cssMemberSecondaryPlus(
-          dom.text(use => t("We'll email an invite to {{email}}", {email: use(emailObs)}))
+          dom.text(use => t("We'll email an invite to {{email}}", { email: use(emailObs) })),
         ) : null,
       ),
-      testId("um-add-email")
-    )
+      testId("um-add-email"),
+    ),
   ) : cssSelectItem(
     cssMemberListItem(
       cssMemberImage(createUserImage(item, "large")),
       cssMemberText(
         cssMemberPrimaryPlus(item.name, testId("um-member-name")),
-        cssMemberSecondaryPlus(buildHighlightedDom(item.label, highlightFunc, cssMatchText))
-      )
-    )
+        cssMemberSecondaryPlus(buildHighlightedDom(item.label, highlightFunc, cssMatchText)),
+      ),
+    ),
   ));
 
-  const enableAdd: Computed<boolean> = computed((use) => Boolean(use(emailObs) && use(isValid)));
+  const enableAdd: Computed<boolean> = computed(use => Boolean(use(emailObs) && use(isValid)));
 
   const acOptions: IAutocompleteOptions<ACUserItem> = {
     attach: null,
     menuCssClass: `${menuCssClass} test-acselect-dropdown`,
-    search: (term) => maybeShowAddNew(acIndex.search(term), term),
+    search: term => maybeShowAddNew(acIndex.search(term), term),
     renderItem: renderSearchItem,
-    getItemText: (item) => item.value,
+    getItemText: item => item.value,
     onClick: commitIfValid,
   };
 
@@ -143,8 +148,8 @@ export function buildACMemberEmail(
     cssMailIcon("Mail"),
     (emailInput = cssEmailInput(
       emailObs,
-      {onInput: true, isValid},
-      {type: "email", placeholder: t("Enter email address")},
+      { onInput: true, isValid },
+      { type: "email", placeholder: t("Enter email address") },
       dom.on("input", acOpen),
       dom.on("focus", acOpen),
       dom.on("click", acOpen),
@@ -156,8 +161,8 @@ export function buildACMemberEmail(
         Tab: commitIfValid,
       }),
     )),
-    cssEmailInputContainer.cls('-green', enableAdd),
-    ...args
+    cssEmailInputContainer.cls("-green", enableAdd),
+    ...args,
   );
 
   // Reset custom validity that we sometimes set.

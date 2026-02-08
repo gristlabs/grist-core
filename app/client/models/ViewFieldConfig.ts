@@ -1,12 +1,14 @@
-import * as modelUtil from 'app/client/models/modelUtil';
+import * as modelUtil from "app/client/models/modelUtil";
 // This is circular import, but only for types so it's fine.
-import type {DocModel, ViewFieldRec} from 'app/client/models/DocModel';
-import * as UserType from 'app/client/widgets/UserType';
-import {ifNotSet} from 'app/common/gutil';
-import * as ko from 'knockout';
+import * as UserType from "app/client/widgets/UserType";
+import { ifNotSet } from "app/common/gutil";
+
+import * as ko from "knockout";
 import intersection from "lodash/intersection";
 import isEqual from "lodash/isEqual";
-import zip from 'lodash/zip';
+import zip from "lodash/zip";
+
+import type { DocModel, ViewFieldRec } from "app/client/models/DocModel";
 
 export class ViewFieldConfig {
   /** If there are multiple columns selected in the viewSection */
@@ -21,9 +23,9 @@ export class ViewFieldConfig {
   public headerStyle: ko.Computed<StyleOptions>;
 
   // Rest of the options mimic the same options from ViewFieldRec.
-  public wrap: modelUtil.KoSaveableObservable<boolean|undefined>;
-  public widget: ko.Computed<string|undefined>;
-  public alignment: modelUtil.KoSaveableObservable<string|undefined>;
+  public wrap: modelUtil.KoSaveableObservable<boolean | undefined>;
+  public widget: ko.Computed<string | undefined>;
+  public alignment: modelUtil.KoSaveableObservable<string | undefined>;
   public fields: ko.PureComputed<ViewFieldRec[]>;
   constructor(private _field: ViewFieldRec, private _docModel: DocModel) {
     // Everything here will belong to a _field, this class is just a builder.
@@ -33,7 +35,7 @@ export class ViewFieldConfig {
     // selected (or the selection is empty) return it in an array.
     this.fields = owner.autoDispose(ko.pureComputed(() => {
       const list = this._field.viewSection().selectedFields();
-      if (!list || !list.length) {
+      if (!list?.length) {
         return [_field];
       }
       // Make extra sure that field and column is not disposed, most of the knockout
@@ -42,7 +44,6 @@ export class ViewFieldConfig {
       // computing something (mainly when columns are removed or restored using undo).
       return list.filter(f => !f.isDisposed() && !f.column().isDisposed());
     }));
-
 
     // Helper that lists all not disposed widgets. Many methods below gets all fields
     // list which still can contain disposed fields, this helper will filter them out.
@@ -61,7 +62,7 @@ export class ViewFieldConfig {
       // Now get all widget list and calculate intersection of the Sets.
       // Widget types are just strings defined in UserType.
       const widgets = list.map(c =>
-        Object.keys(UserType.typeDefs[c.column().pureType()]?.widgets ?? {})
+        Object.keys(UserType.typeDefs[c.column().pureType()]?.widgets ?? {}),
       );
       return intersection(...widgets).length === widgets[0]?.length;
     }));
@@ -85,7 +86,7 @@ export class ViewFieldConfig {
       },
       write: (widget) => {
         // Go through all the fields, and reset them all.
-        for(const field of listFields()) {
+        for (const field of listFields()) {
           // Reset the entire JSON, so that all options revert to their defaults.
           const previous = field.widgetOptionsJson.peek();
           // We don't need to bundle anything (actions send in the same tick, are bundled
@@ -98,7 +99,7 @@ export class ViewFieldConfig {
             textColor: previous.textColor,
           }).catch(reportError);
         }
-      }
+      },
     }));
 
     // Calculate common options for all column types (and their widgets).
@@ -108,17 +109,16 @@ export class ViewFieldConfig {
       const fields = listFields();
       // Put all options of first widget in the Set, and then remove
       // them one by one, if they are not present in other fields.
-      let options: Set<string>|null = null;
-      for(const field of fields) {
+      let options: Set<string> | null = null;
+      for (const field of fields) {
         // First get the data, and prepare initial set.
-        const widget = field.widget() || '';
+        const widget = field.widget() || "";
         const widgetOptions = UserType.typeDefs[field.column().pureType()]?.widgets[widget]?.options;
         if (!widgetOptions) { continue; }
-        if (!options) { options = new Set(Object.keys(widgetOptions)); }
-        else {
+        if (!options) { options = new Set(Object.keys(widgetOptions)); } else {
           // And now remove options that are not common.
           const newOptions = new Set(Object.keys(widgetOptions));
-          for(const key of options) {
+          for (const key of options) {
             if (!newOptions.has(key)) {
               options.delete(key);
             }
@@ -142,7 +142,7 @@ export class ViewFieldConfig {
         const optionList = listFields().map(f => f.widgetOptionsJson());
         // And fill only those that are common
         const common = commonOptions();
-        for(const key of common) {
+        for (const key of common) {
           // Setting null means that this options is there, but has no value.
           result[key] = null;
           // If all columns have the same value, use it.
@@ -159,22 +159,22 @@ export class ViewFieldConfig {
         // When the creator panel is saving widgetOptions, it will pass
         // our virtual widgetObject, which has nulls for mixed values.
         // If this option wasn't changed (set), we don't want to save it.
-        value = {...value};
-        for(const key of Object.keys(value)) {
+        value = { ...value };
+        for (const key of Object.keys(value)) {
           if (value[key] === null) {
             delete value[key];
           }
         }
         // Now update all options, for all fields, by amending the options
         // object from the field/column.
-        for(const item of listFields()) {
+        for (const item of listFields()) {
           const previous = item.widgetOptionsJson.peek();
           setter(item.widgetOptionsJson, {
             ...previous,
             ...value,
           });
         }
-      }
+      },
     });
 
     // We need some additional information about each property.
@@ -190,11 +190,11 @@ export class ViewFieldConfig {
     // This is repeated logic for wrap property in viewFieldRec,
     // every field has wrapping implicitly set to true on a card view.
     this.wrap = modelUtil.fieldWithDefault(
-      this.options.prop('wrap'),
-      () => this._field.viewSection().parentKey() !== 'record'
+      this.options.prop("wrap"),
+      () => this._field.viewSection().parentKey() !== "record",
     );
 
-    this.alignment = this.options.prop('alignment');
+    this.alignment = this.options.prop("alignment");
 
     // Style options are a bit different, as they are saved when style picker is disposed.
     // By the time it happens, fields may have changed (since user might have clicked some other column).
@@ -215,8 +215,8 @@ export class ViewFieldConfig {
           // First get all widgetOption jsons from all columns/fields.
           const optionList = fields.map(f => f.widgetOptionsJson());
           // And fill only those that are common
-          for(const key of ['textColor', 'fillColor', 'fontBold',
-                            'fontItalic', 'fontUnderline', 'fontStrikethrough']) {
+          for (const key of ["textColor", "fillColor", "fontBold",
+            "fontItalic", "fontUnderline", "fontStrikethrough"]) {
             // Setting null means that this options is there, but has no value.
             result[key] = null;
             // If all columns have the same value, use it.
@@ -233,22 +233,22 @@ export class ViewFieldConfig {
           // When the creator panel is saving widgetOptions, it will pass
           // our virtual widgetObject, which has nulls for mixed values.
           // If this option wasn't changed (set), we don't want to save it.
-          value = {...value};
-          for(const key of Object.keys(value)) {
+          value = { ...value };
+          for (const key of Object.keys(value)) {
             if (value[key] === null) {
               delete value[key];
             }
           }
           // Now update all options, for all fields, by amending the options
           // object from the field/column.
-          for(const item of fields) {
+          for (const item of fields) {
             const previous = item.widgetOptionsJson.peek();
             setter(item.widgetOptionsJson, {
               ...previous,
               ...value,
             });
           }
-        }
+        },
       });
       // Style picker needs to be able revert to previous value, if user cancels.
       const state = fields.map(f => f.style.peek());
@@ -277,8 +277,8 @@ export class ViewFieldConfig {
           // First get all widgetOption jsons from all columns/fields.
           const optionList = fields.map(f => f.widgetOptionsJson());
           // And fill only those that are common
-          for(const key of ['headerTextColor', 'headerFillColor', 'headerFontBold',
-                            'headerFontItalic', 'headerFontUnderline', 'headerFontStrikethrough']) {
+          for (const key of ["headerTextColor", "headerFillColor", "headerFontBold",
+            "headerFontItalic", "headerFontUnderline", "headerFontStrikethrough"]) {
             // Setting null means that this options is there, but has no value.
             result[key] = null;
             // If all columns have the same value, use it.
@@ -295,22 +295,22 @@ export class ViewFieldConfig {
           // When the creator panel is saving widgetOptions, it will pass
           // our virtual widgetObject, which has nulls for mixed values.
           // If this option wasn't changed (set), we don't want to save it.
-          value = {...value};
-          for(const key of Object.keys(value)) {
+          value = { ...value };
+          for (const key of Object.keys(value)) {
             if (value[key] === null) {
               delete value[key];
             }
           }
           // Now update all options, for all fields, by amending the options
           // object from the field/column.
-          for(const item of fields) {
+          for (const item of fields) {
             const previous = item.widgetOptionsJson.peek();
             setter(item.widgetOptionsJson, {
               ...previous,
               ...value,
             });
           }
-        }
+        },
       });
       // Style picker needs to be able revert to previous value, if user cancels.
       const state = fields.map(f => f.headerStyle.peek());
@@ -328,7 +328,7 @@ export class ViewFieldConfig {
 
   // Helper for Choice/ChoiceList columns, that saves widget options and renames values in a document
   // in one bundle
-  public async updateChoices(renames: Record<string, string>, options: any){
+  public async updateChoices(renames: Record<string, string>, options: any) {
     const hasRenames = !!Object.entries(renames).length;
     const tableId = this._field.column.peek().table.peek().tableId.peek();
     if (this.multiselect.peek()) {
@@ -337,22 +337,21 @@ export class ViewFieldConfig {
       return this._docModel.docData.bundleActions("Update choices configuration", () => Promise.all([
         this._field.config.options.save(),
         !hasRenames ? null : this._docModel.docData.sendActions(
-          colIds.map(colId => ["RenameChoices", tableId, colId, renames])
-        )
+          colIds.map(colId => ["RenameChoices", tableId, colId, renames]),
+        ),
       ]));
     } else {
       const column = this._field.column.peek();
       // In case this column is being transformed - using Apply Formula to Data, bundle the action
       // together with the transformation.
-      const actionOptions = {nestInActiveBundle: column.isTransforming.peek()};
+      const actionOptions = { nestInActiveBundle: column.isTransforming.peek() };
       this._field.widgetOptionsJson.update(options);
       return this._docModel.docData.bundleActions("Update choices configuration", () => Promise.all([
         this._field.widgetOptionsJson.save(),
-        !hasRenames ? null
-        : this._docModel.docData.sendAction(["RenameChoices", tableId, column.colId.peek(), renames])
+        !hasRenames ? null :
+          this._docModel.docData.sendAction(["RenameChoices", tableId, column.colId.peek(), renames]),
       ]), actionOptions);
     }
-
   }
 }
 
@@ -363,7 +362,7 @@ export class ViewFieldConfig {
 function allSame(arr: any[]) {
   if (arr.length <= 1) { return true; }
   const first = ifNotSet(arr[0], null);
-  const same = arr.every(next => {
+  const same = arr.every((next) => {
     return isEqual(ifNotSet(next, null), first);
   });
   return same;
@@ -384,7 +383,7 @@ type CommonOptions = modelUtil.SaveableObjObservable<any> & {
   disabled(prop: string): ko.Computed<boolean>,
   mixed(prop: string): ko.Computed<boolean>,
   empty(prop: string): ko.Computed<boolean>,
-}
+};
 
 /**
  * Extended version of widget options observable that contains information about mixed and empty styles, and supports
@@ -394,16 +393,16 @@ type StyleOptions = modelUtil.SaveableObjObservable<any> & {
   mixed(prop: string): ko.Computed<boolean>,
   empty(prop: string): ko.Computed<boolean>,
   revert(): void;
-}
+};
 
 // This is helper that adds disabled computed to an ObjObservable, it follows
 // the same pattern as `prop` helper.
 function extendObservable(
   obs: modelUtil.SaveableObjObservable<any>,
-  options: { [key: string]: (prop: string) => ko.PureComputed<boolean> }
+  options: { [key: string]: (prop: string) => ko.PureComputed<boolean> },
 ) {
   const result = obs as any;
-  for(const key of Object.keys(options)) {
+  for (const key of Object.keys(options)) {
     const cacheKey = `__${key}`;
     result[cacheKey] = new Map();
     result[key] = (prop: string) => {

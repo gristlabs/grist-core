@@ -59,7 +59,24 @@
         "Resource missing in resource map: {{resourceKey}}": "Recurso ausente no mapa de recursos: {{resourceKey}}",
         "Trying to add TableRules for existing table {{tableId}}": "Tentando adicionar TableRules a uma tabela existente {{tableId}}",
         "Use a simple attribute of user.LinkKey, e.g. user.LinkKey.something": "Use um atributo simples de user.LinkKey, por exemplo, user.LinkKey.algo",
-        "hidden": "oculto"
+        "hidden": "oculto",
+        "## Access Rules\n\nBasic access to this document is controlled using the 'Manage Users' option in the 'Share' menu, where you can assign collaborator roles such as Owner, Editor, or Viewer.\n\nFor more granular control, you can create Access Rules to limit who can view or edit specific\ntables, columns, or rows — useful for sensitive data or role-based permissions.\n[Learn more.]({{helpAccessRules}})": "## Regras de Acesso\n\nO acesso básico a este documento é controlado pela opção \"Gerenciar Usuários\" no menu \"Compartilhar\", onde você pode atribuir funções de colaborador, como Proprietário, Editor ou Visualizador.\n\nPara um controle mais granular, você pode criar Regras de Acesso para limitar quem pode visualizar ou editar tabelas, colunas ou linhas específicas — útil para dados confidenciais ou permissões baseadas em funções.\n\n[Saiba mais.]({{helpAccessRules}})",
+        "## Access Rules\n\nYou don't have permission to view or edit access rules for this document.": "## Regras de Acesso\n\nVocê não tem permissão para visualizar ou editar as regras de acesso para este documento .",
+        "**Special rules** (expand each rule to customize who it applies to)": "**Regras especiais** (expanda cada regra para personalizar a quem ela se aplica)",
+        "After disabling Access Rules, Editors will be able to change the structure of the document and edit formulas. Editors and Viewers will be able to see all data in the document, as well as copy or download it.": "Após desativar as Regras de Acesso, os Editores poderão alterar a estrutura do documento e editar fórmulas. Editores e Visualizadores poderão ver todos os dados do documento , bem como copiá-los ou baixá-los.",
+        "After enabling Access Rules, Editors will no longer be able to change the structure of the\ndocument or edit formulas. Only Owners will be able to copy or download the document.\n\nThese settings can be changed under 'Special rules'.": "Após ativar as Regras de Acesso, os Editores não poderão mais alterar a estrutura do\nDocumentar ou editar fórmulas. Somente os proprietários poderão copiar ou baixar o documento .\n\nEssas configurações podem ser alteradas em 'Regras especiais'.",
+        "Allow Editors to edit structure (e.g. modify and delete tables, columns, and layouts) and write formulas.  Important: if checked, Editors will be able to edit formulas, which can access all data, regardless of table and column access rules!": "Permitir que os editores editem a estrutura (por exemplo, modifiquem e excluam tabelas, colunas e layouts) e escrevam fórmulas.   Importante: se selecionada, esta opção permitirá que os editores editem fórmulas, que podem acessar todos os dados, independentemente das regras de acesso à tabela e à coluna !",
+        "Allow everyone to view access rules.": "Permitir que todos visualizem as regras de acesso.",
+        "Circumvent all read restrictions and allow everyone to copy the entire document, or view it in full in fiddle mode. Only use for for examples and templates, not for documents with sensitive data.": "Contorne todas as restrições de leitura e permita que todos copiem o documento inteiro ou o visualizem na íntegra no modo de edição. Use apenas para exemplos e modelos, não para documentos com dados confidenciais.",
+        "Continue": "Continuar",
+        "Disable Access Rules": "Regras de desativação de acesso",
+        "Disable and save": "Desativar e salvar",
+        "Enable Access Rules": "Ativar regras de acesso",
+        "Permission to access the document in full by all users": "Permissão para acesso integral ao documento por todos os usuários",
+        "Permission to access the document in full by unrestricted users": "Permissão para acesso integral ao documento por usuários sem restrições",
+        "Restrict non-Owners from copying or downloading the full document. Note: this only affects users without read restrictions, since others will be restricted regardless of this setting.": "Impeça usuários que não sejam proprietários de copiar ou baixar o documento completo . Observação: isso afeta apenas usuários sem restrições de leitura, pois os demais serão restringidos independentemente dessa configuração.",
+        "Special rules for templates": "Regras especiais para modelos",
+        "This options should be off if Editors' access is to be limited. ": "Esta opção deve estar desativada se o acesso dos editores for limitado. "
     },
     "AccountPage": {
         "API": "API",
@@ -760,7 +777,8 @@
         ".zip": ".zip",
         ".tar (recommended)": ".tar (recomendado)",
         "Download an archive of all the attachments present in this document.": "Baixe um arquivo de todos os anexos presentes neste documento.",
-        "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "Os anexos são externos e não estão incluídos neste download. Se fizer o upload do documento em uma instalação separada do Grist, também será necessário acessar {{downloadLink}} separadamente. "
+        "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "Os anexos são externos e não estão incluídos neste download. Se fizer o upload do documento em uma instalação separada do Grist, também será necessário acessar {{downloadLink}} separadamente. ",
+        "If you're planning to upload this document to a Grist installation, you will need the archive in the \".tar\" format to restore attachments. ": "Se você pretende enviar este documento para uma instalação do Grist, precisará do arquivo no formato \".tar\" para restaurar os anexos. "
     },
     "NTextBox": {
         "false": "falso",
@@ -942,7 +960,7 @@
         "Download attachments...": "Baixar anexos...",
         "Download document...": "Baixar documento...",
         "Exporting is only available from document pages. Please select a document page and try again.": "A exportação só está disponível a partir de páginas de documentos. Por favor, selecione uma página de documento e tente novamente.",
-        "Suggest Changes": "Sugerir alterações",
+        "Suggest changes": "Sugerir alterações",
         "current version": "versão atual",
         "original": "original"
     },
@@ -993,8 +1011,8 @@
         "context menu - Access Rules": "Menu de contexto - Regras de acesso",
         "Delete document tour": "Excluir o tour do documento",
         "Preview the tutorial": "Visualizar o tutorial",
-        "Proposed Changes": "Alterações propostas",
-        "Suggest Changes": "Sugerir alterações",
+        "Proposed changes": "Alterações propostas",
+        "Suggest changes": "Sugerir alterações",
         "Suggestions": "Sugestões"
     },
     "TopBar": {
@@ -1174,7 +1192,8 @@
         "You will no longer receive email notifications about {{comments}} in {{docName}} at {{email}}.": "Você não receberá mais notificações por e-mail sobre {{comments}} em {{docName}} em {{email}}.",
         "changes": "alterações",
         "comments": "comentários",
-        "this document": "este documento"
+        "this document": "este documento",
+        "your email": "seu e-mail"
     },
     "menus": {
         "* Workspaces are available on team plans. ": "* As áreas de trabalho estão disponíveis nos planos de equipe. ",
@@ -1232,7 +1251,8 @@
         "Find Previous ": "Encontrar Anterior ",
         "No results": "Sem resultados",
         "Search in document": "Procurar no documento",
-        "Search": "Procurar"
+        "Search": "Procurar",
+        "Close search bar": "Fechar barra de pesquisa"
     },
     "sendToDrive": {
         "Sending file to Google Drive": "Enviando arquivo ao Google Drive"
@@ -1489,10 +1509,13 @@
         "Set the maximum number of lines for multi-line text.": "Defina o número máximo de linhas para texto com várias linhas.",
         "This form is created by a Grist user, and is not endorsed by Grist Labs, Inc. or any party providing this service. For your security, do not submit passwords through this form, and be careful when clicking embedded links. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "Este formulário foi criado por um usuário do Grist e não é endossado pelo Grist Labs, Inc. ou por qualquer parte que forneça esse serviço. Para sua segurança, não envie senhas por meio deste formulário e tenha cuidado ao clicar em links incorporados. Denuncie formulários maliciosos para [{{mail}}](mailto:{{mail}}).",
         "Comments are here!": "Os comentários estão aqui!",
-        "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "Você pode adicionar comentários às células, responder a tópicos de comentários e @mencionar colaboradores."
+        "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "Você pode adicionar comentários às células, responder a tópicos de comentários e @mencionar colaboradores.",
+        "When checked, this field’s default value can be prefilled from the URL using query parameters.": "Quando selecionado, o valor padrão deste campo pode ser preenchido previamente a partir da URL usando parâmetros de consulta.",
+        "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "Com a função de sugestões, os usuários fazem alterações em uma cópia pessoal sem modificar o documento original e, em seguida, enviam essas sugestões para serem revisadas pelo proprietário do documento antes da integração."
     },
     "DescriptionConfig": {
-        "DESCRIPTION": "DESCRIÇÃO"
+        "DESCRIPTION": "DESCRIÇÃO",
+        "Set description": "Descrição do conjunto"
     },
     "PagePanels": {
         "Open creator panel": "Abrir o Painel do Criador",
@@ -1691,7 +1714,8 @@
         "Search all pages": "Procurar todas as páginas"
     },
     "searchDropdown": {
-        "Search": "Procurar"
+        "Search": "Procurar",
+        "Showing {{displayedCount}} of {{totalCount}} items. Search for more.": "Exibindo {{displayedCount}} de {{totalCount}} itens. Pesquise para ver mais."
     },
     "FloatingEditor": {
         "Collapse Editor": "Recolher editor"
@@ -1766,11 +1790,15 @@
     "WelcomeCoachingCall": {
         "Schedule your {{freeCoachingCall}} with a member of our team.": "Programe seu {{freeCoachingCall}} com um membro da nossa equipe.",
         "free coaching call": "chamada gratuita de treinamento",
-    "Maybe later": "Talvez mais tarde",
+        "Maybe later": "Talvez mais tarde",
         "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "Na chamada, vamos ter tempo para entender suas necessidades e adaptar a chamada para você. Podemos mostrar-lhe os princípios básicos do Grist ou começar a trabalhar com os seus dados imediatamente para construir os painéis que você precisa.",
-    "Schedule call": "Agendar chamada",
+        "Schedule call": "Agendar chamada",
         "You may also check out {{ourWeeklyWebinars}} to learn more about Grist.": "Você também pode conferir {{ourWeeklyWebinars}} para saber mais sobre Grist.",
-        "our weekly webinars": "nossos webinars semanais"
+        "our weekly webinars": "nossos webinars semanais",
+        "Free coaching call": "Sessão de coaching gratuita",
+        "Grist 101": "Grist 101",
+        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users                navigate the fundamentals of Grist.": "Você também pode conferir nosso webinar introdutório, {{ourWeeklyWebinars}} , desenvolvido para ajudar novos usuários.                Aprenda os fundamentos do Grist.",
+        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users navigate the fundamentals of Grist.": "Você também pode conferir nosso webinar introdutório, {{ourWeeklyWebinars}} , desenvolvido para ajudar novos usuários a se familiarizarem com os fundamentos do Grist."
     },
     "FormConfig": {
         "Field rules": "Regras de campo",
@@ -1785,7 +1813,10 @@
         "Options Sort Order": "Opções Ordem de classificação",
         "Radio": "Rádio",
         "Select": "Selecione",
-        "Vertical": "Vertical"
+        "Vertical": "Vertical",
+        "Accept value from URL": "Aceitar valor da URL",
+        "Hidden field": "Campo oculto",
+        "URL parameter:\n{{colId}}=VALUE": "Parâmetro da URL: \n{{colId}} =VALOR"
     },
     "CustomView": {
         "Some required columns aren't mapped": "Algumas colunas obrigatórias não estão mapeadas",
@@ -1831,7 +1862,11 @@
         "Unmapped": "Desmapeado",
         "Clear": "Limpar",
         "Map fields": "Mapear campos",
-        "Mapped": "Mapeado"
+        "Mapped": "Mapeado",
+        "Hide {{label}}": "Ocultar {{label}}",
+        "Hide {{label}} (batch mode)": "Ocultar {{label}} (modo em lote)",
+        "Unmap {{label}}": "Desmapear {{label}}",
+        "Unmap {{label}} (batch mode)": "Desmapear {{label}} (modo em lote)"
     },
     "Section": {
         "Insert section above": "Inserir seção acima",
@@ -1907,7 +1942,19 @@
         "default": "padrão",
         "more...": "mais...",
         "no authentication": "sem autenticação",
-        "unavailable": "indisponível"
+        "unavailable": "indisponível",
+        "{{count}} admin accounts_one": "{{count}} conta de administrador",
+        "{{count}} admin accounts_other": "{{count}} contas de administrador",
+        "Admin account not found": "Conta de administrador não encontrada",
+        "Administrative accounts": "Contas administrativas",
+        "The users with administrative accounts": "Os usuários com contas administrativas",
+        "Version {{versionNumber}}": "Versão {{versionNumber}}",
+        "no admin accounts": "não há contas de administrador",
+        "Are you sure you want to restart Grist?": "Tem certeza de que deseja reiniciar o Grist?",
+        "Grist is running in an environment that doesn't support restarting from the admin panel.": "O Grist está sendo executado em um ambiente que não suporta reinicialização a partir do painel de administração.",
+        "Restart": "Reiniciar",
+        "Restart Grist": "Reiniciar Grist",
+        "Restart Grist to apply pending changes or resolve issues.": "Reinicie o Grist para aplicar as alterações pendentes ou resolver problemas."
     },
     "Field": {
         "No choices configured": "Nenhuma opção configurada",
@@ -2368,5 +2415,8 @@
         "Skip leading whitespace": "Ignorar espaços em branco à esquerda",
         "Start with row": "Comece com a linha",
         "Character encoding. See [the supported codecs]({{link}})": "Codificação de caracteres. Consulte [os codecs compatíveis]({{link}})"
+    },
+    "GetGristComProvider": {
+        "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.": "Ao fazer login, os usuários serão redirecionados para a página de login do getgrist.com para entrar ou se cadastrar. Após a autenticação no getgrist.com, eles serão redirecionados de volta para o seu servidor Grist e farão login com a conta do usuário que utilizaram para autenticação."
     }
 }

@@ -1,19 +1,19 @@
-import {Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn} from "typeorm";
-import {FullUser, WorkspaceProperties, workspacePropertyKeys} from "app/common/UserAPI";
-import {nativeValues} from 'app/gen-server/lib/values';
-import {AclRuleWs} from "app/gen-server/entity/AclRule";
-import {Document} from "app/gen-server/entity/Document";
-import {Organization} from "app/gen-server/entity/Organization";
-import {Resource} from "app/gen-server/entity/Resource";
+import { FullUser, WorkspaceProperties, workspacePropertyKeys } from "app/common/UserAPI";
+import { AclRuleWs } from "app/gen-server/entity/AclRule";
+import { Document } from "app/gen-server/entity/Document";
+import { Organization } from "app/gen-server/entity/Organization";
+import { Resource } from "app/gen-server/entity/Resource";
+import { nativeValues } from "app/gen-server/lib/values";
 
-@Entity({name: 'workspaces'})
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+
+@Entity({ name: "workspaces" })
 export class Workspace extends Resource {
-
   @PrimaryGeneratedColumn()
   public id: number;
 
   @ManyToOne(type => Organization)
-  @JoinColumn({name: 'org_id'})
+  @JoinColumn({ name: "org_id" })
   public org: Organization;
 
   @OneToMany(type => Document, document => document.workspace)
@@ -27,17 +27,17 @@ export class Workspace extends Resource {
   public access: string;
 
   // A computed column that is true if the workspace is a support workspace.
-  @Column({name: 'support', type: 'boolean', insert: false, select: false})
+  @Column({ name: "support", type: "boolean", insert: false, select: false })
   public isSupportWorkspace?: boolean;
 
   // a computed column with permissions.
   // {insert: false} makes sure typeorm doesn't try to put values into such
   // a column when creating workspaces.
-  @Column({name: 'permissions', type: 'text', select: false, insert: false})
+  @Column({ name: "permissions", type: "text", select: false, insert: false })
   public permissions?: any;
 
-  @Column({name: 'removed_at', type: nativeValues.dateTimeType, nullable: true})
-  public removedAt: Date|null;
+  @Column({ name: "removed_at", type: nativeValues.dateTimeType, nullable: true })
+  public removedAt: Date | null;
 
   // Property that may be returned when the workspace is fetched to indicate
   // the owner of the workspace.

@@ -1,23 +1,25 @@
-import {ApiError} from 'app/common/ApiError';
-import {DEFAULT_HOME_SUBDOMAIN, isOrgInPathOnly, parseSubdomain, sanitizePathTail} from 'app/common/gristUrls';
-import * as gutil from 'app/common/gutil';
-import {DocScope, Scope} from 'app/gen-server/lib/homedb/HomeDBManager';
-import {QueryResult} from 'app/gen-server/lib/homedb/Interfaces';
-import {appSettings} from 'app/server/lib/AppSettings';
-import {getUserId, RequestWithLogin} from 'app/server/lib/Authorizer';
-import {RequestWithOrg} from 'app/server/lib/extractOrg';
-import {RequestWithGrist} from 'app/server/lib/GristServer';
-import log from 'app/server/lib/log';
-import {Permit} from 'app/server/lib/Permit';
-import {Request, Response} from 'express';
-import {IncomingMessage} from 'http';
-import {Writable} from 'stream';
-import {TLSSocket} from 'tls';
+import { ApiError } from "app/common/ApiError";
+import { DEFAULT_HOME_SUBDOMAIN, isOrgInPathOnly, parseSubdomain, sanitizePathTail } from "app/common/gristUrls";
+import * as gutil from "app/common/gutil";
+import { DocScope, Scope } from "app/gen-server/lib/homedb/HomeDBManager";
+import { QueryResult } from "app/gen-server/lib/homedb/Interfaces";
+import { appSettings } from "app/server/lib/AppSettings";
+import { getUserId, RequestWithLogin } from "app/server/lib/Authorizer";
+import { RequestWithOrg } from "app/server/lib/extractOrg";
+import { RequestWithGrist } from "app/server/lib/GristServer";
+import log from "app/server/lib/log";
+import { Permit } from "app/server/lib/Permit";
+
+import { IncomingMessage } from "http";
+import { Writable } from "stream";
+import { TLSSocket } from "tls";
+
+import { Request, Response } from "express";
 
 const shouldLogApiDetails = appSettings.section("log").flag("apiDetails").readBool({
   envVar: ["GRIST_LOG_API_DETAILS", "GRIST_HOSTED_VERSION"],
   preferredEnvVar: "GRIST_LOG_API_DETAILS",
-  defaultValue: false
+  defaultValue: false,
 });
 
 // Offset to https ports in dev/testing environment.
@@ -26,9 +28,9 @@ export const TEST_HTTPS_OFFSET = process.env.GRIST_TEST_HTTPS_OFFSET ?
 
 // Database fields that we permit in entities but don't want to cross the api.
 const INTERNAL_FIELDS = new Set([
-  'apiKey', 'billingAccountId', 'firstLoginAt', 'lastConnectionAt', 'filteredOut', 'ownerId', 'gracePeriodStart',
-  'stripeCustomerId', 'stripeSubscriptionId', 'stripeProductId', 'userId', 'isFirstTimeUser', 'allowGoogleLogin',
-  'authSubject', 'usage', 'createdBy', 'unsubscribeKey'
+  "apiKey", "billingAccountId", "firstLoginAt", "lastConnectionAt", "filteredOut", "ownerId", "gracePeriodStart",
+  "stripeCustomerId", "stripeSubscriptionId", "stripeProductId", "userId", "isFirstTimeUser", "allowGoogleLogin",
+  "authSubject", "usage", "createdBy", "unsubscribeKey",
 ]);
 
 /**
@@ -43,17 +45,17 @@ const INTERNAL_FIELDS = new Set([
 export function adaptServerUrl(url: URL, req: RequestWithOrg): void {
   const reqBaseDomain = parseSubdomain(req.hostname).base;
 
-  if (process.env.GRIST_SERVE_SAME_ORIGIN === 'true' || req.isCustomHost) {
+  if (process.env.GRIST_SERVE_SAME_ORIGIN === "true" || req.isCustomHost) {
     url.hostname = req.hostname;
   } else if (reqBaseDomain) {
-    const subdomain: string|undefined = parseSubdomain(url.hostname).org || DEFAULT_HOME_SUBDOMAIN;
+    const subdomain: string | undefined = parseSubdomain(url.hostname).org || DEFAULT_HOME_SUBDOMAIN;
     url.hostname = `${subdomain}${reqBaseDomain}`;
   }
 
   // In dev/test environment we can turn on a flag to adjust URLs to use https.
-  if (TEST_HTTPS_OFFSET && url.port && url.protocol === 'http:') {
+  if (TEST_HTTPS_OFFSET && url.port && url.protocol === "http:") {
     url.port = String(parseInt(url.port, 10) + TEST_HTTPS_OFFSET);
-    url.protocol = 'https:';
+    url.protocol = "https:";
   }
 }
 
@@ -76,7 +78,7 @@ export function addOrgToPath(req: RequestWithOrg, path: string): string {
 /**
  * Get url to the org associated with the request.
  */
-export function getOrgUrl(req: Request, path: string = '/') {
+export function getOrgUrl(req: Request, path: string = "/") {
   // Be careful to include a leading slash in path, to ensure we don't modify the origin or org.
   return getOriginUrl(req) + addOrgToPathIfNeeded(req, sanitizePathTail(path));
 }
@@ -104,11 +106,11 @@ export function trustOrigin(req: IncomingMessage, resp?: Response): boolean {
 
 // Returns whether req satisfies the given allowedHost. Unless req is to a custom domain, it is
 // enough if only the base domains match. Differing ports are allowed, which helps in dev/testing.
-export function allowHost(req: IncomingMessage, allowedHost: string|URL) {
+export function allowHost(req: IncomingMessage, allowedHost: string | URL) {
   const proto = getEndUserProtocol(req);
   const actualUrl = new URL(getOriginUrl(req));
-  const allowedUrl = (typeof allowedHost === 'string') ? new URL(`${proto}://${allowedHost}`) : allowedHost;
-  log.rawDebug('allowHost: ', {
+  const allowedUrl = (typeof allowedHost === "string") ? new URL(`${proto}://${allowedHost}`) : allowedHost;
+  log.rawDebug("allowHost: ", {
     req: (new URL(req.url!, `http://${req.headers.host}`).href),
     origin: req.headers.origin,
     actualUrl: actualUrl.hostname,
@@ -140,7 +142,7 @@ export function isParameterOn(parameter: any): boolean {
  */
 export function getDocScope(req: Request): DocScope {
   const scope = getScope(req);
-  if (!scope.urlId) { throw new Error('document required'); }
+  if (!scope.urlId) { throw new Error("document required"); }
   return scope as DocScope;
 }
 
@@ -172,20 +174,20 @@ export function getDocScope(req: Request): DocScope {
  *     is limited to docs/workspaces that have been removed.
  */
 export function getScope(req: Request): Scope {
-  const {specialPermit, docAuth} = (req as RequestWithLogin);
+  const { specialPermit, docAuth } = req as RequestWithLogin;
   const urlId = req.params.did || req.params.docId || docAuth?.docId || undefined;
   const userId = getUserId(req);
   const org = (req as RequestWithOrg).org;
   const includeSupport = isParameterOn(req.query.includeSupport);
   const showRemoved = isParameterOn(req.query.showRemoved);
-  return {urlId, userId, org, includeSupport, showRemoved, specialPermit};
+  return { urlId, userId, org, includeSupport, showRemoved, specialPermit };
 }
 
 /**
  * If scope is for the given userId, return a new Scope with the special permit added.
  */
 export function addPermit(scope: Scope, userId: number, specialPermit: Permit): Scope {
-  return {...scope, ...(scope.userId === userId ? {specialPermit} : {})};
+  return { ...scope, ...(scope.userId === userId ? { specialPermit } : {}) };
 }
 
 export interface SendReplyOptions {
@@ -196,7 +198,7 @@ export interface SendReplyOptions {
 // Filter out keys we don't want crossing the api.
 // Set req to null to not log any information about request.
 export async function sendReply<T>(
-  req: Request|null,
+  req: Request | null,
   res: Response,
   result: QueryResult<T>,
   options: SendReplyOptions = {},
@@ -204,11 +206,11 @@ export async function sendReply<T>(
   const data = pruneAPIResult(result.data, options.allowedFields);
   if (shouldLogApiDetails && req) {
     const mreq = req as RequestWithLogin;
-    log.rawDebug('api call', {
+    log.rawDebug("api call", {
       url: req.url,
       userId: mreq.userId,
       altSessionId: mreq.altSessionId,
-      email: mreq.user && mreq.user.loginEmail,
+      email: mreq.user?.loginEmail,
       org: mreq.org,
       params: req.params,
       body: req.body,
@@ -219,17 +221,17 @@ export async function sendReply<T>(
   if (result.status >= 200 && result.status < 300) {
     return res.json(data ?? null); // can't handle undefined
   } else {
-    return res.json({error: result.errMessage});
+    return res.json({ error: result.errMessage });
   }
 }
 
 export async function sendOkReply<T>(
-  req: Request|null,
+  req: Request | null,
   res: Response,
   result?: T,
-  options: SendReplyOptions = {}
+  options: SendReplyOptions = {},
 ) {
-  return sendReply(req, res, {status: 200, data: result}, options);
+  return sendReply(req, res, { status: 200, data: result }, options);
 }
 
 export function pruneAPIResult<T>(data: T, allowedFields?: Set<string>): T {
@@ -239,16 +241,16 @@ export function pruneAPIResult<T>(data: T, allowedFields?: Set<string>): T {
     (key: string, value: any) => {
       // Do not include removedAt field if it is not set.  It is not relevant to regular
       // situations where the user is working with non-deleted resources.
-      if (key === 'removedAt' && value === null) { return undefined; }
+      if (key === "removedAt" && value === null) { return undefined; }
       // Same for disabledAt
-      if (key === 'disabledAt' && value === null) { return undefined; }
+      if (key === "disabledAt" && value === null) { return undefined; }
       // Don't bother sending option fields if there are no options set.
-      if (key === 'options' && value === null) { return undefined; }
+      if (key === "options" && value === null) { return undefined; }
       // Don't prune anything that is explicitly allowed.
       if (allowedFields?.has(key)) { return value; }
       // User connect id is not used in regular configuration, so we remove it from the response, when
       // it's not filled.
-      if (key === 'connectId' && value === null) { return undefined; }
+      if (key === "connectId" && value === null) { return undefined; }
       return INTERNAL_FIELDS.has(key) ? undefined : value;
     });
   return output !== undefined ? JSON.parse(output) : undefined;
@@ -260,7 +262,7 @@ export function pruneAPIResult<T>(data: T, allowedFields?: Set<string>): T {
 export function getDocId(req: Request) {
   const mreq = req as RequestWithLogin;
   // We should always have authorized by now.
-  if (!mreq.docAuth || !mreq.docAuth.docId) { throw new ApiError(`unknown document`, 500); }
+  if (!mreq.docAuth?.docId) { throw new ApiError(`unknown document`, 500); }
   return mreq.docAuth.docId;
 }
 
@@ -270,21 +272,21 @@ export interface StringParamOptions {
   allowEmpty?: boolean;
 }
 
-export function optStringParam(p: any, name: string, options: StringParamOptions = {}): string|undefined {
+export function optStringParam(p: any, name: string, options: StringParamOptions = {}): string | undefined {
   if (p === undefined) { return p; }
 
   return stringParam(p, name, options);
 }
 
 export function stringParam(p: any, name: string, options: StringParamOptions = {}): string {
-  const {allowed, allowEmpty = true} = options;
+  const { allowed, allowEmpty = true } = options;
   if (p === null || p === undefined) {
     throw new ApiError(`${name} parameter is required`, 400);
   }
-  if (typeof p !== 'string') {
+  if (typeof p !== "string") {
     throw new ApiError(`${name} parameter should be a string: ${p}`, 400);
   }
-  if (!allowEmpty && p === '') {
+  if (!allowEmpty && p === "") {
     throw new ApiError(`${name} parameter cannot be empty`, 400);
   }
   if (allowed && !allowed.includes(p)) {
@@ -297,7 +299,7 @@ export function stringArrayParam(p: any, name: string): string[] {
   if (!Array.isArray(p)) {
     throw new ApiError(`${name} parameter should be an array: ${p}`, 400);
   }
-  if (p.some(el => typeof el !== 'string')) {
+  if (p.some(el => typeof el !== "string")) {
     throw new ApiError(`${name} parameter should be a string array: ${p}`, 400);
   }
 
@@ -307,17 +309,17 @@ export function stringArrayParam(p: any, name: string): string[] {
 export function optIntegerParam(
   p: any,
   name: string,
-  options?: { nullable?: false; isValid?: (n: number) => boolean }
+  options?: { nullable?: false; isValid?: (n: number) => boolean },
 ): number | undefined;
 export function optIntegerParam(
   p: any,
   name: string,
-  options: { nullable: true; isValid?: (n: number) => boolean }
+  options: { nullable: true; isValid?: (n: number) => boolean },
 ): number | null | undefined;
 export function optIntegerParam(
   p: any,
   name: string,
-  options: { nullable?: boolean; isValid?: (n: number) => boolean } = {}
+  options: { nullable?: boolean; isValid?: (n: number) => boolean } = {},
 ): number | undefined {
   if (p === undefined) {
     return p;
@@ -332,7 +334,7 @@ export function optIntegerParam(
 export function integerParam(
   p: any,
   name: string,
-  options: { isValid?: (n: number) => boolean } = {}
+  options: { isValid?: (n: number) => boolean } = {},
 ): number {
   const { isValid } = options;
   let result: number | null = null;
@@ -344,7 +346,7 @@ export function integerParam(
   if (result === null || Number.isNaN(result)) {
     throw new ApiError(
       `${name} parameter cannot be understood as an integer: ${p}`,
-      400
+      400,
     );
   }
   if (isValid && !isValid(result)) {
@@ -354,21 +356,21 @@ export function integerParam(
   return result;
 }
 
-export function optBooleanParam(p: any, name: string): boolean|undefined {
+export function optBooleanParam(p: any, name: string): boolean | undefined {
   if (p === undefined) { return p; }
 
   return booleanParam(p, name);
 }
 
 export function booleanParam(p: any, name: string): boolean {
-  if (typeof p === 'boolean') { return p; }
+  if (typeof p === "boolean") { return p; }
   if (gutil.isAffirmative(p)) { return true; }
-  if (String(p) === 'false') { return false; }
+  if (String(p) === "false") { return false; }
   throw new ApiError(`${name} parameter should be a boolean: ${p}`, 400);
 }
 
 export function optJsonParam(p: any, defaultValue: any): any {
-  if (typeof p !== 'string') { return defaultValue; }
+  if (typeof p !== "string") { return defaultValue; }
   return gutil.safeJsonParse(p, defaultValue);
 }
 
@@ -401,11 +403,11 @@ export function getOriginUrl(req: IncomingMessage) {
 export function getOriginIpAddress(req: IncomingMessage) {
   return (
     // May contain multiple comma-separated values; the first one is the original.
-    (req.headers['x-forwarded-for'] as string | undefined)
-      ?.split(',')
+    (req.headers["x-forwarded-for"] as string | undefined)
+      ?.split(",")
       .map(value => value.trim())[0] ||
-    req.socket?.remoteAddress ||
-    undefined
+      req.socket?.remoteAddress ||
+      undefined
   );
 }
 
@@ -415,10 +417,10 @@ export function getOriginIpAddress(req: IncomingMessage) {
  *
  * If the header is absent from the request, a new header will be returned.
  */
-export function buildXForwardedForHeader(req: Request): {'X-Forwarded-For': string}|undefined {
-  const values = req.get('X-Forwarded-For')?.split(',').map(value => value.trim()) ?? [];
+export function buildXForwardedForHeader(req: Request): { "X-Forwarded-For": string } | undefined {
+  const values = req.get("X-Forwarded-For")?.split(",").map(value => value.trim()) ?? [];
   if (req.socket.remoteAddress) { values.push(req.socket.remoteAddress); }
-  return values.length > 0 ? { 'X-Forwarded-For': values.join(', ') } : undefined;
+  return values.length > 0 ? { "X-Forwarded-For": values.join(", ") } : undefined;
 }
 
 /**
@@ -429,11 +431,11 @@ export function buildXForwardedForHeader(req: Request): {'X-Forwarded-For': stri
  */
 export function getEndUserProtocol(req: IncomingMessage) {
   if (process.env.APP_HOME_URL) {
-    return new URL(process.env.APP_HOME_URL).protocol.replace(':', '');
+    return new URL(process.env.APP_HOME_URL).protocol.replace(":", "");
   }
   // TODO we shouldn't blindly trust X-Forwarded-Proto. See the Express approach:
   // https://expressjs.com/en/5x/api.html#trust.proxy.options.table
-  return req.headers["x-forwarded-proto"] || ((req.socket as TLSSocket)?.encrypted ? 'https' : 'http');
+  return req.headers["x-forwarded-proto"] || ((req.socket as TLSSocket)?.encrypted ? "https" : "http");
 }
 
 /**
@@ -443,7 +445,7 @@ export function getEndUserProtocol(req: IncomingMessage) {
  */
 export function clearSessionCacheIfNeeded(req: Request, options?: {
   email?: string,
-  org?: string|null,
+  org?: string | null,
   sessionID?: string,
 }) {
   (req as RequestWithGrist).gristServer?.getSessions().clearCacheIfNeeded(options);
@@ -457,7 +459,7 @@ export function addAbortHandler(req: Request, res: Writable, op: () => void) {
   // on the response, without writableFinished being set.
   //   https://github.com/nodejs/node/issues/38924
   //   https://github.com/nodejs/node/issues/40775
-  res.on('close', () => {
+  res.on("close", () => {
     const aborted = !res.writableFinished;
     if (aborted) {
       op();

@@ -1,26 +1,27 @@
-import {createGroup} from 'app/client/components/commands';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {ACIndexImpl, ACItem, ACResults,
-        buildHighlightedDom, HighlightFunc, normalizeText} from 'app/client/lib/ACIndex';
-import {IAutocompleteOptions} from 'app/client/lib/autocomplete';
-import {makeT} from 'app/client/lib/localization';
-import {IToken, TokenField, tokenFieldStyles} from 'app/client/lib/TokenField';
-import {colors, testId, theme} from 'app/client/ui2018/cssVars';
-import {menuCssClass} from 'app/client/ui2018/menus';
-import {createMobileButtons, getButtonMargins} from 'app/client/widgets/EditorButtons';
-import {EditorPlacement} from 'app/client/widgets/EditorPlacement';
-import {FieldOptions, NewBaseEditor} from 'app/client/widgets/NewBaseEditor';
-import {csvEncodeRow} from 'app/common/csvFormat';
-import {CellValue} from "app/common/DocActions";
-import {CompiledPredicateFormula} from 'app/common/PredicateFormula';
-import {EmptyRecordView} from 'app/common/RecordView';
-import {decodeObject, encodeObject} from 'app/plugin/objtypes';
-import {ChoiceOptions} from 'app/client/widgets/ChoiceTextBox';
-import {choiceToken, choiceTokenDomArgs, cssChoiceACItem} from 'app/client/widgets/ChoiceToken';
-import {icon} from 'app/client/ui2018/icons';
-import {dom, styled} from 'grainjs';
+import { createGroup } from "app/client/components/commands";
+import { GristDoc } from "app/client/components/GristDoc";
+import { ACIndexImpl, ACItem, ACResults,
+  buildHighlightedDom, HighlightFunc, normalizeText } from "app/client/lib/ACIndex";
+import { IAutocompleteOptions } from "app/client/lib/autocomplete";
+import { makeT } from "app/client/lib/localization";
+import { IToken, TokenField, tokenFieldStyles } from "app/client/lib/TokenField";
+import { colors, testId, theme } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { menuCssClass } from "app/client/ui2018/menus";
+import { ChoiceOptions } from "app/client/widgets/ChoiceTextBox";
+import { choiceToken, choiceTokenDomArgs, cssChoiceACItem } from "app/client/widgets/ChoiceToken";
+import { createMobileButtons, getButtonMargins } from "app/client/widgets/EditorButtons";
+import { EditorPlacement } from "app/client/widgets/EditorPlacement";
+import { FieldOptions, NewBaseEditor } from "app/client/widgets/NewBaseEditor";
+import { csvEncodeRow } from "app/common/csvFormat";
+import { CellValue } from "app/common/DocActions";
+import { CompiledPredicateFormula } from "app/common/PredicateFormula";
+import { EmptyRecordView } from "app/common/RecordView";
+import { decodeObject, encodeObject } from "app/plugin/objtypes";
 
-const t = makeT('ChoiceListEditor');
+import { dom, styled } from "grainjs";
+
+const t = makeT("ChoiceListEditor");
 
 export class ChoiceItem implements ACItem, IToken {
   public cleanText: string = normalizeText(this.label);
@@ -46,7 +47,7 @@ export class ChoiceListEditor extends NewBaseEditor {
 
   private _widgetOptionsJson = this.options.field.widgetOptionsJson.peek();
   private _choices: string[] = this._widgetOptionsJson.choices || [];
-  private _choicesSet: Set<string> = new Set(this._choices);
+  private _choicesSet = new Set<string>(this._choices);
   private _choiceOptionsByName: ChoiceOptions = this._widgetOptionsJson.choiceOptions || {};
 
   // Whether to include a button to show a new choice.
@@ -64,7 +65,7 @@ export class ChoiceListEditor extends NewBaseEditor {
     if (this._hasDropdownCondition) {
       try {
         const dropdownConditionFilter = this._buildDropdownConditionFilter();
-        acItems = acItems.filter((item) => dropdownConditionFilter(item));
+        acItems = acItems.filter(item => dropdownConditionFilter(item));
       } catch (e) {
         acItems = [];
         this._dropdownConditionError = e.message;
@@ -77,12 +78,11 @@ export class ChoiceListEditor extends NewBaseEditor {
       buildNoItemsMessage: this._buildNoItemsMessage.bind(this),
       search: async (term: string) => this._maybeShowAddNew(acIndex.search(term), term),
       renderItem: (item, highlightFunc) => this._renderACItem(item, highlightFunc),
-      getItemText: (item) => item.label,
+      getItemText: item => item.label,
     };
 
     this.commandGroup = this.autoDispose(createGroup(options.commands, null, true));
-    this._alignment = options.field.widgetOptionsJson.peek().alignment || 'left';
-
+    this._alignment = options.field.widgetOptionsJson.peek().alignment || "left";
 
     // If starting to edit by typing in a string, ignore previous tokens.
     const cellValue = decodeObject(options.cellValue);
@@ -90,31 +90,31 @@ export class ChoiceListEditor extends NewBaseEditor {
     const startTokens = startLabels.map(label => new ChoiceItem(
       String(label),
       !this._choicesSet.has(String(label)),
-      String(label).trim() === ''
+      String(label).trim() === "",
     ));
 
     this._tokenField = TokenField.ctor<ChoiceItem>().create(this, {
       initialValue: startTokens,
       renderToken: item => choiceTokenDomArgs(
-        item.isBlank ? '[Blank]' : item.label,
+        item.isBlank ? "[Blank]" : item.label,
         {
           ...(this._choiceOptionsByName[item.label] || {}),
           invalid: item.isInvalid,
           blank: item.isBlank,
         },
       ),
-      createToken: label => new ChoiceItem(label, !this._choicesSet.has(label), label.trim() === ''),
+      createToken: label => new ChoiceItem(label, !this._choicesSet.has(label), label.trim() === ""),
       acOptions,
       openAutocompleteOnFocus: true,
-      readonly : options.readonly,
+      readonly: options.readonly,
       trimLabels: true,
-      styles: {cssTokenField, cssToken, cssDeleteButton, cssDeleteIcon},
+      styles: { cssTokenField, cssToken, cssDeleteButton, cssDeleteIcon },
     });
 
-    this._dom = dom('div.default_editor',
+    this._dom = dom("div.default_editor",
       dom.cls("readonly_editor", options.readonly),
       dom.cls(cssReadonlyStyle.className, options.readonly),
-      this.cellEditorDiv = cssCellEditor(testId('widget-text-editor'),
+      this.cellEditorDiv = cssCellEditor(testId("widget-text-editor"),
         this._contentSizer = cssContentSizer(),
         elem => this._tokenField.attach(elem),
       ),
@@ -123,20 +123,20 @@ export class ChoiceListEditor extends NewBaseEditor {
 
     this._textInput = this._tokenField.getTextInput();
     dom.update(this._tokenField.getRootElem(),
-      dom.style('justify-content', this._alignment),
+      dom.style("justify-content", this._alignment),
     );
     dom.update(this._tokenField.getHiddenInput(),
       this.commandGroup.attach(),
     );
     dom.update(this._textInput,
       // Resize the editor whenever user types into the textbox.
-      dom.on('input', () => this.resizeInput(true)),
-      dom.prop('value', options.editValue || ''),
+      dom.on("input", () => this.resizeInput(true)),
+      dom.prop("value", options.editValue || ""),
       this.commandGroup.attach(),
     );
 
     dom.update(this._dom,
-      dom.on('click', () => this._textInput.focus())
+      dom.on("click", () => this._textInput.focus()),
     );
 
     this._enableAddNew = !this._hasDropdownCondition;
@@ -144,7 +144,7 @@ export class ChoiceListEditor extends NewBaseEditor {
 
   public attach(cellElem: Element): void {
     // Attach the editor dom to page DOM.
-    this._editorPlacement = EditorPlacement.create(this, this._dom, cellElem, {margins: getButtonMargins()});
+    this._editorPlacement = EditorPlacement.create(this, this._dom, cellElem, { margins: getButtonMargins() });
 
     // Reposition the editor if needed for external reasons (in practice, window resize).
     this.autoDispose(this._editorPlacement.onReposition.addListener(() => this.resizeInput()));
@@ -173,7 +173,7 @@ export class ChoiceListEditor extends NewBaseEditor {
 
   public getTextValue() {
     const values = this._tokenField.tokensObs.get().map(token => token.label);
-    return csvEncodeRow(values, {prettier: true});
+    return csvEncodeRow(values, { prettier: true });
   }
 
   public getCursorPos(): number {
@@ -186,9 +186,9 @@ export class ChoiceListEditor extends NewBaseEditor {
    */
   public async prepForSave() {
     const tokens = this._tokenField.tokensObs.get();
-    const newChoices = tokens.filter(({isNew}) => isNew).map(({label}) => label);
+    const newChoices = tokens.filter(({ isNew }) => isNew).map(({ label }) => label);
     if (newChoices.length > 0) {
-      const choices = this.options.field.widgetOptionsJson.prop('choices');
+      const choices = this.options.field.widgetOptionsJson.prop("choices");
       await choices.saveOnly([...(choices.peek() || []), ...new Set(newChoices)]);
     }
   }
@@ -198,8 +198,8 @@ export class ChoiceListEditor extends NewBaseEditor {
     // once we reach it.
     const rootElem = this._tokenField.getRootElem();
     const maxSize = this._editorPlacement.calcSizeWithPadding(rootElem,
-      {width: Infinity, height: Infinity}, {calcOnly: true});
-    this._contentSizer.style.maxWidth = Math.ceil(maxSize.width) + 'px';
+      { width: Infinity, height: Infinity }, { calcOnly: true });
+    this._contentSizer.style.maxWidth = Math.ceil(maxSize.width) + "px";
   }
 
   /**
@@ -214,36 +214,36 @@ export class ChoiceListEditor extends NewBaseEditor {
     // re-create the tokens using cloneNode(true) copies all styles and properties, but not event
     // handlers. We can skip this step when we know that only _textInput changed.
     if (!onlyTextInput || !this._inputSizer) {
-      this._contentSizer.innerHTML = '';
+      this._contentSizer.innerHTML = "";
 
       dom.update(this._contentSizer,
         dom.update(rootElem.cloneNode(true) as HTMLElement,
-          dom.style('width', ''),
-          dom.style('height', ''),
+          dom.style("width", ""),
+          dom.style("height", ""),
           this._inputSizer = cssInputSizer(),
 
           // Remove the testId('tokenfield') from the cloned element, to simplify tests (so that
           // selecting .test-tokenfield only returns the actual visible tokenfield container).
-          dom.cls('test-tokenfield', false),
-        )
+          dom.cls("test-tokenfield", false),
+        ),
       );
     }
 
     // Use a separate sizer to size _textInput to the text inside it.
     // \u200B is a zero-width space; so the sizer will have height even when empty.
-    this._inputSizer.textContent = this._textInput.value + '\u200B';
+    this._inputSizer.textContent = this._textInput.value + "\u200B";
     const rect = this._contentSizer.getBoundingClientRect();
 
     const size = this._editorPlacement.calcSizeWithPadding(rootElem, rect);
-    rootElem.style.width = size.width + 'px';
-    rootElem.style.height = size.height + 'px';
-    this._textInput.style.width = this._inputSizer.getBoundingClientRect().width + 'px';
+    rootElem.style.width = size.width + "px";
+    rootElem.style.height = size.height + "px";
+    this._textInput.style.width = this._inputSizer.getBoundingClientRect().width + "px";
   }
 
   private _buildDropdownConditionFilter() {
     const dropdownConditionCompiled = this.options.field.dropdownConditionCompiled.get();
-    if (dropdownConditionCompiled?.kind !== 'success') {
-      throw new Error('Dropdown condition is not compiled');
+    if (dropdownConditionCompiled?.kind !== "success") {
+      throw new Error("Dropdown condition is not compiled");
     }
 
     return buildDropdownConditionFilter({
@@ -256,11 +256,11 @@ export class ChoiceListEditor extends NewBaseEditor {
 
   private _buildNoItemsMessage(): string {
     if (this._dropdownConditionError) {
-      return t('Error in dropdown condition');
+      return t("Error in dropdown condition");
     } else if (this._hasDropdownCondition) {
-      return t('No choices matching condition');
+      return t("No choices matching condition");
     } else {
-      return t('No choices to select');
+      return t("No choices to select");
     }
   }
 
@@ -281,7 +281,7 @@ export class ChoiceListEditor extends NewBaseEditor {
     }
 
     const addNewItem = new ChoiceItem(trimmedText, false, false, true);
-    if (result.items.find((item) => item.cleanText === addNewItem.cleanText)) {
+    if (result.items.find(item => item.cleanText === addNewItem.cleanText)) {
       return result;
     }
 
@@ -296,17 +296,17 @@ export class ChoiceListEditor extends NewBaseEditor {
 
     return cssChoiceACItem(
       (item.isNew ?
-        [cssChoiceACItem.cls('-new'), cssPlusButton(cssPlusIcon('Plus'))] :
-        [cssChoiceACItem.cls('-with-new', this._showAddNew)]
+        [cssChoiceACItem.cls("-new"), cssPlusButton(cssPlusIcon("Plus"))] :
+        [cssChoiceACItem.cls("-with-new", this._showAddNew)]
       ),
       choiceToken(
         buildHighlightedDom(item.label, highlightFunc, cssMatchText),
         options || {},
-        dom.style('max-width', '100%'),
-        testId('choice-list-editor-item-label')
+        dom.style("max-width", "100%"),
+        testId("choice-list-editor-item-label"),
       ),
-      testId('choice-list-editor-item'),
-      item.isNew ? testId('choice-list-editor-new-item') : null,
+      testId("choice-list-editor-item"),
+      item.isNew ? testId("choice-list-editor-new-item") : null,
     );
   }
 }
@@ -319,18 +319,18 @@ export interface GetACFilterFuncParams {
 }
 
 export function buildDropdownConditionFilter(
-  params: GetACFilterFuncParams
+  params: GetACFilterFuncParams,
 ): (item: ChoiceItem) => boolean {
-  const {dropdownConditionCompiled, gristDoc, tableId, rowId} = params;
+  const { dropdownConditionCompiled, gristDoc, tableId, rowId } = params;
   const table = gristDoc.docData.getTable(tableId);
   if (!table) { throw new Error(`Table ${tableId} not found`); }
 
   const user = gristDoc.docPageModel.user.get() ?? undefined;
   const rec = table.getRecord(rowId) || new EmptyRecordView();
-  return (item: ChoiceItem) => dropdownConditionCompiled({user, rec, choice: item.label});
+  return (item: ChoiceItem) => dropdownConditionCompiled({ user, rec, choice: item.label });
 }
 
-const cssCellEditor = styled('div', `
+const cssCellEditor = styled("div", `
   background-color: ${theme.cellEditorBg};
   cursor: text;
   font-family: var(--grist-font-family-data);
@@ -388,7 +388,7 @@ export const cssDeleteIcon = styled(tokenFieldStyles.cssDeleteIcon, `
   }
 `);
 
-const cssContentSizer = styled('div', `
+const cssContentSizer = styled("div", `
   position: absolute;
   left: 0;
   top: -100px;
@@ -402,14 +402,14 @@ const cssContentSizer = styled('div', `
   }
 `);
 
-const cssInputSizer = styled('div', `
+const cssInputSizer = styled("div", `
   flex: auto;
   min-width: 24px;
   margin: 3px 2px;
 `);
 
 // Set z-index to be higher than the 1000 set for .cell_editor.
-export const cssChoiceList = styled('div', `
+export const cssChoiceList = styled("div", `
   z-index: 1001;
   box-shadow: 0 0px 8px 0 ${theme.menuShadow};
   overflow-y: auto;
@@ -417,16 +417,16 @@ export const cssChoiceList = styled('div', `
   --weaseljs-menu-item-padding: 8px 16px;
 `);
 
-const cssReadonlyStyle = styled('div', `
+const cssReadonlyStyle = styled("div", `
   padding-left: 16px;
   background: ${theme.cellEditorBg};
 `);
 
-export const cssMatchText = styled('span', `
+export const cssMatchText = styled("span", `
   text-decoration: underline;
 `);
 
-export const cssPlusButton = styled('div', `
+export const cssPlusButton = styled("div", `
   display: flex;
   width: 20px;
   height: 20px;

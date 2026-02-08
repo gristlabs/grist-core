@@ -72,7 +72,7 @@
         "Exporting is only available from document pages. Please select a document page and try again.": "Експорт доступний лише зі сторінок документа. Виберіть сторінку документа та повторіть спробу.",
         "Download attachments...": "Завантажити вкладення...",
         "Download document...": "Завантажити документ...",
-        "Suggest Changes": "Запропонувати зміни",
+        "Suggest changes": "Запропонувати зміни",
         "current version": "поточна версія",
         "original": "оригінальний"
     },
@@ -113,7 +113,8 @@
         "Format:": "Формат:",
         "Learn more": "Дізнатися більше",
         "download attachments": "завантажити вкладення",
-        "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "Вкладення є зовнішніми та не включені до цього завантаження. Якщо ви завантажуєте документ до окремої інсталяції Grist, вам також потрібно буде окремо {{downloadLink}}. "
+        "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "Вкладення є зовнішніми та не включені до цього завантаження. Якщо ви завантажуєте документ до окремої інсталяції Grist, вам також потрібно буде окремо {{downloadLink}}. ",
+        "If you're planning to upload this document to a Grist installation, you will need the archive in the \".tar\" format to restore attachments. ": "Якщо ви плануєте завантажити цей документ до інсталяції Grist, вам знадобиться архів у форматі \".tar\" для відновлення вкладень. "
     },
     "SortConfig": {
         "Add column": "Додати стовпеця",
@@ -466,7 +467,24 @@
         "Resource missing in resource map: {{resourceKey}}": "Ресурс відсутній на карті ресурсів: {{resourceKey}}",
         "Trying to add TableRules for existing table {{tableId}}": "Спроба додати TableRules для існуючої таблиці {{tableId}}",
         "Use a simple attribute of user.LinkKey, e.g. user.LinkKey.something": "Використовуйте простий атрибут user.LinkKey, наприклад, user.LinkKey.something",
-        "hidden": "прихований"
+        "hidden": "прихований",
+        "## Access Rules\n\nBasic access to this document is controlled using the 'Manage Users' option in the 'Share' menu, where you can assign collaborator roles such as Owner, Editor, or Viewer.\n\nFor more granular control, you can create Access Rules to limit who can view or edit specific\ntables, columns, or rows — useful for sensitive data or role-based permissions.\n[Learn more.]({{helpAccessRules}})": "## Правила доступу\n\nБазовий доступ до цього документа контролюється за допомогою опції «Керування користувачами» в меню «Спільний доступ», де ви можете призначити ролі співавторів, такі як Власник, Редактор або Переглядач.\n\nДля більш детального контролю ви можете створити Правила доступу, щоб обмежити, хто може переглядати або редагувати певні\nтаблиці, стовпці або рядки — це корисно для конфіденційних даних або дозволів на основі ролей.\n[Дізнатися більше.]({{helpAccessRules}})",
+        "## Access Rules\n\nYou don't have permission to view or edit access rules for this document.": "## Правила доступу\n\nУ вас немає дозволу на перегляд або редагування правил доступу для цього документа.",
+        "**Special rules** (expand each rule to customize who it applies to)": "**Спеціальні правила** (розгорніть кожне правило, щоб налаштувати, до кого воно застосовується)",
+        "After disabling Access Rules, Editors will be able to change the structure of the document and edit formulas. Editors and Viewers will be able to see all data in the document, as well as copy or download it.": "Після вимкнення правил доступу редактори зможуть змінювати структуру документа та редагувати формули. Редактори та читачі зможуть бачити всі дані в документі, а також копіювати або завантажувати їх.",
+        "After enabling Access Rules, Editors will no longer be able to change the structure of the\ndocument or edit formulas. Only Owners will be able to copy or download the document.\n\nThese settings can be changed under 'Special rules'.": "Після ввімкнення правил доступу редактори більше не зможуть змінювати структуру документа або\nредагувати формули. Тільки власники зможуть копіювати або завантажувати документ.\n\nЦі налаштування можна змінити в розділі «Спеціальні правила».",
+        "Allow Editors to edit structure (e.g. modify and delete tables, columns, and layouts) and write formulas.  Important: if checked, Editors will be able to edit formulas, which can access all data, regardless of table and column access rules!": "Дозволити редакторам редагувати структуру (наприклад, змінювати та видаляти таблиці, стовпці та макети) та створювати формули. Важливо: якщо позначено, редактори зможуть редагувати формули, які матимуть доступ до всіх даних, незалежно від правил доступу до таблиць та стовпців!",
+        "Allow everyone to view access rules.": "Дозволити всім переглядати правила доступу.",
+        "Circumvent all read restrictions and allow everyone to copy the entire document, or view it in full in fiddle mode. Only use for for examples and templates, not for documents with sensitive data.": "Обійти всі обмеження на читання та дозволити всім копіювати весь документ або переглядати його повністю в режимі скрипки. Використовуйте лише для прикладів і шаблонів, а не для документів із конфіденційними даними.",
+        "Continue": "Продовжити",
+        "Disable Access Rules": "Вимкнути правила доступу",
+        "Disable and save": "Вимкнути та зберегти",
+        "Enable Access Rules": "Увімкнути правила доступу",
+        "Permission to access the document in full by all users": "Дозвіл на повний доступ до документа всім користувачам",
+        "Permission to access the document in full by unrestricted users": "Дозвіл на повний доступ до документа для користувачів без обмежень",
+        "Restrict non-Owners from copying or downloading the full document. Note: this only affects users without read restrictions, since others will be restricted regardless of this setting.": "Обмежити копіювання або завантаження повного документа користувачами, які не є власниками. Примітка: це стосується лише користувачів без обмежень на читання, оскільки інші будуть обмежені незалежно від цього налаштування.",
+        "Special rules for templates": "Спеціальні правила для шаблонів",
+        "This options should be off if Editors' access is to be limited. ": "Цей параметр слід вимкнути, якщо доступ редакторів має бути обмежений. "
     },
     "AccountPage": {
         "API": "API",
@@ -978,8 +996,8 @@
         "context menu - Access Rules": "контекстне меню - Правила доступу",
         "Delete document tour": "Видалити огляд документа",
         "Preview the tutorial": "Попередній перегляд посібника",
-        "Proposed Changes": "Запропоновані зміни",
-        "Suggest Changes": "Запропонувати зміни",
+        "Proposed changes": "Запропоновані зміни",
+        "Suggest changes": "Запропонувати зміни",
         "Suggestions": "Пропозиції"
     },
     "TopBar": {
@@ -1663,7 +1681,8 @@
         "our weekly webinars": "наші щотижневі вебінари",
         "Free coaching call": "Безкоштовний коучинговий дзвінок",
         "Grist 101": "Зерно 101",
-        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users                navigate the fundamentals of Grist.": "Ви також можете переглянути наш вступний вебінар {{ourWeeklyWebinars}}, розроблений, щоб допомогти новим користувачам зорієнтуватися в основах Grist."
+        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users                navigate the fundamentals of Grist.": "Ви також можете переглянути наш вступний вебінар {{ourWeeklyWebinars}}, розроблений, щоб допомогти новим користувачам зорієнтуватися в основах Grist.",
+        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users navigate the fundamentals of Grist.": "Ви також можете переглянути наш вступний вебінар {{ourWeeklyWebinars}}, розроблений, щоб допомогти новим користувачам зорієнтуватися в основах Grist."
     },
     "FormView": {
         "Publish": "Опублікувати",
@@ -1880,7 +1899,17 @@
         "Administrative accounts": "Адміністративні облікові записи",
         "The users with administrative accounts": "Користувачі з обліковими записами адміністраторів",
         "Version {{versionNumber}}": "Версія {{versionNumber}}",
-        "no admin accounts": "немає облікових записів адміністратора"
+        "no admin accounts": "немає облікових записів адміністратора",
+        "Are you sure you want to restart Grist?": "Ви впевнені, що хочете перезапустити Grist?",
+        "Grist is running in an environment that doesn't support restarting from the admin panel.": "Grist працює в середовищі, яке не підтримує перезапуск з панелі адміністратора.",
+        "Restart": "Перезавантажити",
+        "Restart Grist": "Перезавантажте Grist",
+        "Restart Grist to apply pending changes or resolve issues.": "Перезапустіть Grist, щоб застосувати зміни, що очікують на виконання, або вирішити проблеми.",
+        "Restart Grist?": "Перезапустити Grist?",
+        "Restarting Grist...": "Перезапуск Grist...",
+        "This will apply any pending changes and briefly interrupt access for all users.": "Це застосує всі незавершені зміни та ненадовго перерве доступ для всіх користувачів.",
+        "You can still restart Grist manually.": "Ви все ще можете перезапустити Grist вручну.",
+        "error in {{provider}}: {{verdict}}": "помилка в {{provider}}: {{verdict}}"
     },
     "Columns": {
         "Remove Column": "Вилучити стовпець"
@@ -2361,7 +2390,7 @@
         "{{shortcutsModal}} Show the complete list of keyboard shortcuts": "{{shortcutsModal}} Показати повний список комбінацій клавіш"
     },
     "ProposedChangesPage": {
-        "Proposed Changes": "Запропоновані зміни",
+        "Proposed changes": "Запропоновані зміни",
         "Replace original": "Замінити оригінал",
         "This is a list of changes relative to the original document.": "Це список змін порівняно з оригінальним документом.",
         "Accept": "Прийняти",
@@ -2370,20 +2399,21 @@
         "Dismissed {{at}}.": "Відхилено {{at}}.",
         "Learn more": "Дізнатися більше",
         "No changes found to suggest. Please make some edits.": "Не знайдено жодних змін, які можна запропонувати. Будь ласка, внесіть деякі зміни.",
-        "Retract Suggestion": "Відкликати пропозицію",
+        "Retract suggestion": "Відкликати пропозицію",
         "Retracted {{at}}.": "Відтягнуто {{at}}.",
-        "Suggest Change": "Запропонувати зміну",
-        "Suggest Changes": "Запропонувати зміни",
+        "Suggest change": "Запропонувати зміну",
+        "Suggest changes": "Запропонувати зміни",
         "Suggestion made {{at}}.": "Зроблено пропозицію {{at}}.",
         "Suggestions": "Пропозиції",
         "The original document isn't asking for proposed changes.": "У вихідному документі не міститься запит на внесення змін.",
         "There are fresh changes that haven't been added to the suggestion yet.": "До пропозиції ще не додано нові зміни.",
         "This is a list of changes relative to the {{originalDocument}}.": "Це список змін, що стосуються {{originalDocument}}.",
-        "Update Suggestion": "Пропозиція оновлення",
+        "Update suggestion": "Пропозиція оновлення",
         "Work on a copy": "Робота над копією",
         "Your suggestions": "Ваші пропозиції",
         "experiment": "експеримент",
-        "original document": "оригінальний документ"
+        "original document": "оригінальний документ",
+        "Undo dismissal": "Відмінити відхилення"
     },
     "commandList": {
         "Show accessibility options": "Показати параметри доступності",
@@ -2546,5 +2576,26 @@
     },
     "CoreNewDocMethods": {
         "Untitled document": "Документ без назви"
+    },
+    "AuthenticationSection": {
+        "Active": "Активний",
+        "Active method is controlled by an environment variable. Unset variable to change active method.": "Активний метод контролюється змінною середовища. Скасуйте значення змінної, щоб змінити активний метод.",
+        "Active on restart": "Активний після перезапуску",
+        "Are you sure you want to set **{{name}}** as the active authentication method?": "Ви впевнені, що хочете встановити **{{name}}** як активний метод автентифікації?",
+        "Close": "Закрити",
+        "Configure": "Налаштувати",
+        "Configured": "Налаштовано",
+        "Confirm": "Підтвердити",
+        "Disabled on restart": "Вимкнено після перезавантаження",
+        "Error": "Помилка",
+        "Error details": "Деталі помилки",
+        "Instructions": "Інструкції",
+        "No authentication method is active.": "Жоден метод автентифікації не активний.",
+        "Set as active method": "Встановити як активний метод",
+        "Set as active method?": "Встановити як активний метод?",
+        "The new method will go into effect after you restart Grist.": "Новий метод набуде чинності після перезапуску Grist."
+    },
+    "DetailView": {
+        "This row is unavailable or does not exist": "Цей рядок недоступний або не існує"
     }
 }

@@ -1,23 +1,24 @@
-import * as commands from 'app/client/components/commands';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {detachNode} from 'app/client/lib/dom';
-import {FocusLayer} from 'app/client/lib/FocusLayer';
-import {makeT} from 'app/client/lib/localization';
-import {FloatingPopup, PopupPosition} from 'app/client/ui/FloatingPopup';
-import {theme} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {Disposable, dom, Holder, IDisposableOwner, IDomArgs,
-        makeTestId, MultiHolder, Observable, styled} from 'grainjs';
+import * as commands from "app/client/components/commands";
+import { GristDoc } from "app/client/components/GristDoc";
+import { detachNode } from "app/client/lib/dom";
+import { FocusLayer } from "app/client/lib/FocusLayer";
+import { makeT } from "app/client/lib/localization";
+import { FloatingPopup, PopupPosition } from "app/client/ui/FloatingPopup";
+import { theme } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
 
-const t = makeT('FloatingEditor');
+import { Disposable, dom, Holder, IDisposableOwner, IDomArgs,
+  makeTestId, MultiHolder, Observable, styled } from "grainjs";
 
-const testId = makeTestId('test-floating-editor-');
+const t = makeT("FloatingEditor");
+
+const testId = makeTestId("test-floating-editor-");
 
 const FLOATING_POPUP_WIDTH_PX = 436;
 
 export interface IFloatingOwner extends IDisposableOwner {
   detach(): HTMLElement;
-  attach(content: HTMLElement): Promise<void>|void;
+  attach(content: HTMLElement): Promise<void> | void;
 }
 
 export interface FloatingEditorOptions {
@@ -40,20 +41,19 @@ export interface FloatingEditorOptions {
    *
    * Defaults to "fixed".
    */
-  placement?: 'overlapping' | 'adjacent' | 'fixed';
+  placement?: "overlapping" | "adjacent" | "fixed";
 }
 
 export class FloatingEditor extends Disposable {
-
   public active = Observable.create<boolean>(this, false);
 
   private _gristDoc = this._options.gristDoc;
-  private _placement = this._options.placement ?? 'fixed';
+  private _placement = this._options.placement ?? "fixed";
   private _refElem = this._options.refElem;
 
   constructor(
     private _fieldEditor: IFloatingOwner,
-    private _options: FloatingEditorOptions
+    private _options: FloatingEditorOptions,
   ) {
     super();
     this.autoDispose(commands.createGroup({
@@ -70,7 +70,7 @@ export class FloatingEditor extends Disposable {
       // Create a layer to grab the focus, when we will move the editor to the popup. Otherwise the focus
       // will be moved to the clipboard which can destroy us (as it will be treated as a clickaway). So here
       // we are kind of simulating always focused editor (even if it is not in the dom for a brief moment).
-      FocusLayer.create(tempOwner, { defaultFocusElem: document.activeElement as any});
+      FocusLayer.create(tempOwner, { defaultFocusElem: document.activeElement as any });
 
       // Take some data from gristDoc to create a title.
       const cursor = this._gristDoc.cursorPosition.get()!;
@@ -85,14 +85,14 @@ export class FloatingEditor extends Disposable {
         width: FLOATING_POPUP_WIDTH_PX,
         height: 711,
         content: () => (content = editor.detach()), // this will be called immediately, and will move some dom between
-                                                    // existing editor and the popup. We need to save it, so we can
-                                                    // detach it on close.
+        // existing editor and the popup. We need to save it, so we can
+        // detach it on close.
         title: () => title, // We are not reactive yet
         closeButton: true,  // Show the close button with a hover
-        closeButtonIcon: 'Minimize',
-        closeButtonHover: () => t('Collapse Editor'),
+        closeButtonIcon: "Minimize",
+        closeButtonHover: () => t("Collapse Editor"),
         onClose: async () => {
-          const layer = FocusLayer.create(null, { defaultFocusElem: document.activeElement as any});
+          const layer = FocusLayer.create(null, { defaultFocusElem: document.activeElement as any });
           try {
             detachNode(content);
             popupOwner.dispose();
@@ -121,15 +121,15 @@ export class FloatingEditor extends Disposable {
   }
 
   private _getPopupPosition(): PopupPosition | undefined {
-    if (!this._refElem || this._placement === 'fixed') {
+    if (!this._refElem || this._placement === "fixed") {
       return undefined;
     }
 
     const refElem = this._refElem as HTMLElement;
     const rect = refElem.getBoundingClientRect();
-    const {right, top} = rect;
+    const { right, top } = rect;
     let left: number;
-    if (this._placement === 'overlapping') {
+    if (this._placement === "overlapping") {
       // Anchor the floating editor to the top-left corner of the refElement.
       left = rect.left;
     } else if (window.innerWidth - right >= FLOATING_POPUP_WIDTH_PX) {
@@ -150,18 +150,18 @@ export class FloatingEditor extends Disposable {
 
 export function createDetachedIcon(...args: IDomArgs<HTMLDivElement>) {
   return cssResizeIconWrapper(
-    cssSmallIcon('Maximize'),
-    dom.on('click', (e) => {
+    cssSmallIcon("Maximize"),
+    dom.on("click", (e) => {
       e.stopPropagation();
       e.preventDefault();
       commands.allCommands.detachEditor.run();
     }),
-    dom.on('mousedown', (e) => {
+    dom.on("mousedown", (e) => {
       e.preventDefault();
       e.stopPropagation();
     }),
-    testId('detach-button'),
-    ...args
+    testId("detach-button"),
+    ...args,
   );
 }
 
@@ -170,7 +170,7 @@ const cssSmallIcon = styled(icon, `
   height: 14px;
 `);
 
-const cssResizeIconWrapper = styled('div', `
+const cssResizeIconWrapper = styled("div", `
   position: absolute;
   right: -2px;
   top: -20px;

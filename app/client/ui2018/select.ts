@@ -1,9 +1,10 @@
-import {theme, vars} from 'app/client/ui2018/cssVars';
-import {styled} from 'grainjs';
+import { theme, vars } from "app/client/ui2018/cssVars";
+
+import { styled } from "grainjs";
 
 // Import popweasel so that the styles we define here are included later in CSS, and take priority
 // over popweasel styles, when used together.
-import 'popweasel';
+import "popweasel";
 
 /**
  * Style for a select dropdown button.
@@ -11,7 +12,7 @@ import 'popweasel';
  * This incorporates styling from popweasel's select, so that it can be used to style buttons that
  * don't use it.
  */
-export const cssSelectBtn = styled('div', `
+export const cssSelectBtn = styled("div", `
   position: relative;
   display: flex;
   justify-content: space-between;

@@ -4,9 +4,9 @@
 
 
 
-var fs = require('fs');
-var fsPath = require('path');
-var Promise = require('bluebird');
+var fs = require("fs");
+var fsPath = require("path");
+var Promise = require("bluebird");
 Promise.promisifyAll(fs);
 
 var nonIdentRegex = /[^\w_]+/g;
@@ -19,7 +19,7 @@ var nonIdentRegex = /[^\w_]+/g;
  */
 function makeIdentifier(name) {
   // Lowercase and replace consecutive invalid characters with underscores.
-  return name.toLowerCase().replace(nonIdentRegex, '_');
+  return name.toLowerCase().replace(nonIdentRegex, "_");
 }
 exports.makeIdentifier = makeIdentifier;
 
@@ -34,16 +34,16 @@ function copyFile(sourcePath, destPath) {
     sourceStream = fs.createReadStream(sourcePath);
     destStream = fs.createWriteStream(destPath);
 
-    sourceStream.on('error', reject);
-    destStream.on('error', reject);
-    destStream.on('finish', resolve);
+    sourceStream.on("error", reject);
+    destStream.on("error", reject);
+    destStream.on("finish", resolve);
 
     sourceStream.pipe(destStream);
   })
-  .finally(function() {
-    if (destStream) { destStream.destroy(); }
-    if (sourceStream) { sourceStream.destroy(); }
-  });
+    .finally(function() {
+      if (destStream) { destStream.destroy(); }
+      if (sourceStream) { sourceStream.destroy(); }
+    });
 }
 exports.copyFile = copyFile;
 
@@ -59,15 +59,15 @@ exports.copyFile = copyFile;
  * @returns {Promise} Promise for the first name for which creator() succeeded.
  */
 function createNumbered(name, separator, creator, startNum) {
-  var fullName = name + (startNum === undefined ? '' : separator + startNum);
+  var fullName = name + (startNum === undefined ? "" : separator + startNum);
   var nextNum = (startNum === undefined ? 2 : startNum + 1);
   return creator(fullName)
-  .then(() => fullName)
-  .catch(function(err) {
-    if (err.cause && err.cause.code !== 'EEXIST')
-      throw err;
-    return createNumbered(name, separator, creator, nextNum);
-  });
+    .then(() => fullName)
+    .catch(function(err) {
+      if (err.cause && err.cause.code !== "EEXIST")
+        throw err;
+      return createNumbered(name, separator, creator, nextNum);
+    });
 }
 exports.createNumbered = createNumbered;
 
@@ -83,7 +83,7 @@ function createNumberedTemplate(template, creator) {
     throw new Error(`createNumberedTemplate: invalid template ${template}`);
   }
   return createNumbered(prefix, "-", (uniqPrefix) => creator(uniqPrefix + suffix))
-  .then((uniqPrefix) => uniqPrefix + suffix);
+    .then((uniqPrefix) => uniqPrefix + suffix);
 }
 exports.createNumberedTemplate = createNumberedTemplate;
 
@@ -94,7 +94,7 @@ exports.createNumberedTemplate = createNumberedTemplate;
  *      err.cause.code === EEXIST) or if there was another error creating it.
  */
 function createExclusive(path) {
-  return fs.openAsync(path, 'wx').then(fd => fs.closeAsync(fd));
+  return fs.openAsync(path, "wx").then(fd => fs.closeAsync(fd));
 }
 exports.createExclusive = createExclusive;
 
@@ -108,10 +108,10 @@ exports.createExclusive = createExclusive;
  */
 function realPath(path) {
   return fs.realpathAsync(path)
-  .catch(() =>
-    realPath(fsPath.dirname(path))
-    .then(dir => fsPath.join(dir, fsPath.basename(path)))
-  );
+    .catch(() =>
+      realPath(fsPath.dirname(path))
+        .then(dir => fsPath.join(dir, fsPath.basename(path)))
+    );
 }
 exports.realPath = realPath;
 
@@ -122,9 +122,9 @@ exports.realPath = realPath;
  */
 function pathExists(path) {
   return fs.accessAsync(path)
-  .then(() => true)
-  .catch({code: 'ENOENT'}, () => false)
-  .catch({code: 'ENOTDIR'}, () => false);
+    .then(() => true)
+    .catch({code: "ENOENT"}, () => false)
+    .catch({code: "ENOTDIR"}, () => false);
 }
 exports.pathExists = pathExists;
 
@@ -139,7 +139,7 @@ function isSameFile(path1, path2) {
     }
     return false;
   })
-  .catch({code: 'ENOENT'}, () => false)
-  .catch({code: 'ENOTDIR'}, () => false);
+    .catch({code: "ENOENT"}, () => false)
+    .catch({code: "ENOTDIR"}, () => false);
 }
 exports.isSameFile = isSameFile;

@@ -1,7 +1,8 @@
-import { assert, driver, Key } from "mocha-webdriver";
 import { server, setupTestSuite } from "test/projects/testUtils";
 
-describe('PagesComponent', function() {
+import { assert, driver, Key } from "mocha-webdriver";
+
+describe("PagesComponent", function() {
   setupTestSuite();
   this.timeout(10000);      // Set a longer default timeout.
 
@@ -11,53 +12,53 @@ describe('PagesComponent', function() {
   });
 
   function findPage(name: RegExp) {
-    return driver.findContentWait('.test-treeview-label', name, 100);
+    return driver.findContentWait(".test-treeview-label", name, 100);
   }
 
   async function beginRenaming(name: RegExp) {
-    await findPage(name).mouseMove().find('.test-docpage-dots').click();
-    await driver.find('.test-docpage-rename').doClick();
+    await findPage(name).mouseMove().find(".test-docpage-dots").click();
+    await driver.find(".test-docpage-rename").doClick();
     // A textbox should open and get selected: wait for it, since it's not immediate, and
     // trying to type into it too soon may miss some initial characters.
     await driver.wait(() => driver.executeScript(
       () => ((document as any).activeElement.selectionStart != null)), 500);
   }
 
-  it('should allow to manipulate text using mouse while renaming', async function() {
+  it("should allow to manipulate text using mouse while renaming", async function() {
     // starts renaming Interactions
     await beginRenaming(/Interactions/);
 
     // click on the right part of the text input
-    await driver.find('.test-docpage-editor').click();
+    await driver.find(".test-docpage-editor").click();
 
     await driver.sendKeys(Key.END);  // move to the end
 
     // enter 'Renamed'
-    await driver.sendKeys('Renamed', Key.ENTER);
+    await driver.sendKeys("Renamed", Key.ENTER);
 
     // new name should be InteractionsRenamed
-    assert.equal(await findPage(/Interactions/).find('.test-docpage-label').getText(), 'InteractionsRenamed');
+    assert.equal(await findPage(/Interactions/).find(".test-docpage-label").getText(), "InteractionsRenamed");
 
     // rename to Interactions
     await beginRenaming(/Interactions/);
-    await driver.sendKeys('Interactions', Key.ENTER);
-    assert.equal(await findPage(/Interactions/).find('.test-docpage-label').getText(), 'Interactions');
+    await driver.sendKeys("Interactions", Key.ENTER);
+    assert.equal(await findPage(/Interactions/).find(".test-docpage-label").getText(), "Interactions");
   });
 
-  it('clicking text input should not select page', async function() {
+  it("clicking text input should not select page", async function() {
     // starts renaming People
-    const page = driver.findContent('.test-treeview-label', /People/);
-    await page.mouseMove().find('.test-docpage-dots').click();
-    await driver.find('.test-docpage-rename').doClick();
+    const page = driver.findContent(".test-treeview-label", /People/);
+    await page.mouseMove().find(".test-docpage-dots").click();
+    await driver.find(".test-docpage-rename").doClick();
 
     // click on the text input
-    await driver.find('.test-docpage-editor').click();
+    await driver.find(".test-docpage-editor").click();
 
     // abord rename
     await driver.sendKeys(Key.ESCAPE);
 
     // Interactions should be selected
-    assert.equal(await driver.findContent('.test-treeview-itemHeader', /People/).matches('.selected'), false);
-    assert.equal(await driver.findContent('.test-treeview-itemHeader', /Interactions/).matches('.selected'), true);
+    assert.equal(await driver.findContent(".test-treeview-itemHeader", /People/).matches(".selected"), false);
+    assert.equal(await driver.findContent(".test-treeview-itemHeader", /Interactions/).matches(".selected"), true);
   });
 });

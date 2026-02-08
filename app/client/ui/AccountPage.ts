@@ -1,44 +1,45 @@
-import {detectCurrentLang, makeT} from 'app/client/lib/localization';
-import {checkName} from 'app/client/lib/nameUtils';
-import {AppModel, reportError} from 'app/client/models/AppModel';
-import {App} from 'app/client/ui/App';
-import {urlState} from 'app/client/models/gristUrlState';
-import * as css from 'app/client/ui/AccountPageCss';
-import {ApiKey} from 'app/client/ui/ApiKey';
-import {AppHeader} from 'app/client/ui/AppHeader';
-import {buildChangePasswordDialog} from 'app/client/ui/ChangePasswordDialog';
-import {DeleteAccountDialog} from 'app/client/ui/DeleteAccountDialog';
-import {translateLocale} from 'app/client/ui/LanguageMenu';
-import {leftPanelBasic} from 'app/client/ui/LeftPanelCommon';
-import {MFAConfig} from 'app/client/ui/MFAConfig';
-import {pagePanels} from 'app/client/ui/PagePanels';
-import {ThemeConfig} from 'app/client/ui/ThemeConfig';
-import {createTopBarHome} from 'app/client/ui/TopBar';
-import {transientInput} from 'app/client/ui/transientInput';
-import {cssBreadcrumbs, separator} from 'app/client/ui2018/breadcrumbs';
-import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
-import {cssLink} from 'app/client/ui2018/links';
-import {select} from 'app/client/ui2018/menus';
-import {getPageTitleSuffix, isFeatureEnabled} from 'app/common/gristUrls';
-import {getGristConfig} from 'app/common/urlUtils';
-import {FullUser} from 'app/common/UserAPI';
-import {Computed, Disposable, dom, domComputed, makeTestId, Observable, styled, subscribe} from 'grainjs';
+import { detectCurrentLang, makeT } from "app/client/lib/localization";
+import { checkName } from "app/client/lib/nameUtils";
+import { AppModel, reportError } from "app/client/models/AppModel";
+import { urlState } from "app/client/models/gristUrlState";
+import * as css from "app/client/ui/AccountPageCss";
+import { ApiKey } from "app/client/ui/ApiKey";
+import { App } from "app/client/ui/App";
+import { AppHeader } from "app/client/ui/AppHeader";
+import { buildChangePasswordDialog } from "app/client/ui/ChangePasswordDialog";
+import { DeleteAccountDialog } from "app/client/ui/DeleteAccountDialog";
+import { translateLocale } from "app/client/ui/LanguageMenu";
+import { leftPanelBasic } from "app/client/ui/LeftPanelCommon";
+import { MFAConfig } from "app/client/ui/MFAConfig";
+import { pagePanels } from "app/client/ui/PagePanels";
+import { ThemeConfig } from "app/client/ui/ThemeConfig";
+import { createTopBarHome } from "app/client/ui/TopBar";
+import { transientInput } from "app/client/ui/transientInput";
+import { cssBreadcrumbs, separator } from "app/client/ui2018/breadcrumbs";
+import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
+import { cssLink } from "app/client/ui2018/links";
+import { select } from "app/client/ui2018/menus";
+import { getPageTitleSuffix, isFeatureEnabled } from "app/common/gristUrls";
+import { getGristConfig } from "app/common/urlUtils";
+import { FullUser } from "app/common/UserAPI";
 
-const testId = makeTestId('test-account-page-');
-const t = makeT('AccountPage');
+import { Computed, Disposable, dom, domComputed, makeTestId, Observable, styled, subscribe } from "grainjs";
+
+const testId = makeTestId("test-account-page-");
+const t = makeT("AccountPage");
 
 /**
  * Creates the account page where a user can manage their profile settings.
  */
 export class AccountPage extends Disposable {
   private readonly _currentPage = Computed.create(this, urlState().state, (_use, s) => s.account);
-  private _apiKey = Observable.create<string>(this, '');
-  private _userObs = Observable.create<FullUser|null>(this, null);
+  private _apiKey = Observable.create<string>(this, "");
+  private _userObs = Observable.create<FullUser | null>(this, null);
   private _isEditingName = Observable.create(this, false);
-  private _nameEdit = Observable.create<string>(this, '');
+  private _nameEdit = Observable.create<string>(this, "");
   private _isNameValid = Computed.create(this, this._nameEdit, (_use, val) => checkName(val));
-  private _allowGoogleLogin = Computed.create(this, (use) => use(this._userObs)?.allowGoogleLogin ?? false)
-    .onWrite((val) => this._updateAllowGooglelogin(val));
+  private _allowGoogleLogin = Computed.create(this, use => use(this._userObs)?.allowGoogleLogin ?? false)
+    .onWrite(val => this._updateAllowGooglelogin(val));
 
   constructor(private _appModel: AppModel, private _appObj: App) {
     super();
@@ -64,23 +65,23 @@ export class AccountPage extends Disposable {
   }
 
   private _buildContentMain() {
-    const supportedLngs = getGristConfig().supportedLngs ?? ['en'];
+    const supportedLngs = getGristConfig().supportedLngs ?? ["en"];
     const languageOptions = supportedLngs
-      .map((lng) => ({value: lng, label: translateLocale(lng)!}))
+      .map(lng => ({ value: lng, label: translateLocale(lng)! }))
       .sort((a, b) => a.value.localeCompare(b.value));
 
-    const userLocale = Computed.create(this, use => {
+    const userLocale = Computed.create(this, (use) => {
       const selected = detectCurrentLang();
-      if (!supportedLngs.includes(selected)) { return 'en'; }
+      if (!supportedLngs.includes(selected)) { return "en"; }
       return selected;
     });
-    userLocale.onWrite(async value => {
+    userLocale.onWrite(async (value) => {
       await this._appModel.api.updateUserLocale(value || null);
       // Reload the page to apply the new locale.
       window.location.reload();
     });
 
-    return domComputed(this._userObs, (user) => user && (
+    return domComputed(this._userObs, user => user && (
       css.container(css.accountPage(
         css.header(t("Account settings")),
         css.dataRow(
@@ -89,31 +90,35 @@ export class AccountPage extends Disposable {
         ),
         css.dataRow(
           css.inlineSubHeader(t("Name")),
-          domComputed(this._isEditingName, (isEditing) => (
+          domComputed(this._isEditingName, isEditing => (
             isEditing ? [
               transientInput(
                 {
                   initialValue: user.name,
-                  save: (val) => this._isNameValid.get() && this._updateUserName(val),
-                  close: () => { this._isEditingName.set(false); this._nameEdit.set(''); },
+                  save: async (val) => {
+                    if (this._isNameValid.get()) {
+                      await this._updateUserName(val);
+                    }
+                  },
+                  close: () => { this._isEditingName.set(false); this._nameEdit.set(""); },
                 },
-                {size: '5'}, // Lower size so that input can shrink below ~152px.
-                dom.on('input', (_ev, el) => this._nameEdit.set(el.value)),
-                css.flexGrow.cls(''),
+                { size: "5" }, // Lower size so that input can shrink below ~152px.
+                dom.on("input", (_ev, el) => this._nameEdit.set(el.value)),
+                css.flexGrow.cls(""),
               ),
               css.textBtn(
-                css.icon('Settings'), t("Save"),
+                css.icon("Settings"), t("Save"),
                 // No need to save on 'click'. The transient input already does it on close.
               ),
             ] : [
               css.name(user.name),
               css.textBtn(
-                css.icon('Settings'), t("Edit"),
-                dom.on('click', () => this._isEditingName.set(true)),
+                css.icon("Settings"), t("Edit"),
+                dom.on("click", () => this._isEditingName.set(true)),
               ),
             ]
           )),
-          testId('username'),
+          testId("username"),
         ),
         // show warning for invalid name but not for the empty string
         dom.maybe(use => use(this._nameEdit) && !use(this._isNameValid), this._buildNameWarningsDom.bind(this)),
@@ -121,37 +126,37 @@ export class AccountPage extends Disposable {
         css.dataRow(
           css.inlineSubHeader(t("Login method")),
           css.loginMethod(user.loginMethod),
-          user.loginMethod === 'Email + Password' ? css.textBtn(t("Change password"),
-            dom.on('click', () => this._showChangePasswordDialog()),
+          user.loginMethod === "Email + Password" ? css.textBtn(t("Change password"),
+            dom.on("click", () => this._showChangePasswordDialog()),
           ) : null,
-          testId('login-method'),
+          testId("login-method"),
         ),
-        user.loginMethod !== 'Email + Password' ? null : dom.frag(
+        user.loginMethod !== "Email + Password" ? null : dom.frag(
           css.dataRow(
             labeledSquareCheckbox(
               this._allowGoogleLogin,
               t("Allow signing in to this account with Google"),
-              testId('allow-google-login-checkbox'),
+              testId("allow-google-login-checkbox"),
             ),
-            testId('allow-google-login'),
+            testId("allow-google-login"),
           ),
           css.subHeader(t("Two-factor authentication")),
           css.description(
             t("Two-factor authentication is an extra layer of security for your Grist account \
-designed to ensure that you're the only person who can access your account, even if someone knows your password.")
+designed to ensure that you're the only person who can access your account, even if someone knows your password."),
           ),
           dom.create(MFAConfig, user),
         ),
         css.header(t("Theme")),
-        isFeatureEnabled('themes') ? dom.create(ThemeConfig, this._appModel) : null,
+        isFeatureEnabled("themes") ? dom.create(ThemeConfig, this._appModel) : null,
         css.subHeader(t("Language")),
-        css.dataRow({ style: 'width: 300px'},
+        css.dataRow({ style: "width: 300px" },
           select(userLocale, languageOptions, {
             renderOptionArgs: () => {
               return dom.cls(cssFirstUpper.className);
-            }
+            },
           }),
-          testId('language'),
+          testId("language"),
         ),
         css.header(t("API")),
         css.dataRow(css.inlineSubHeader(t("API Key")), css.content(
@@ -160,27 +165,27 @@ designed to ensure that you're the only person who can access your account, even
             onCreate: () => this._createApiKey(),
             onDelete: () => this._deleteApiKey(),
             anonymous: false,
-            inputArgs: [{size: '5'}], // Lower size so that input can shrink below ~152px.
-          })
+            inputArgs: [{ size: "5" }], // Lower size so that input can shrink below ~152px.
+          }),
         )),
         !getGristConfig().canCloseAccount ? null : [
-            dom.create(DeleteAccountDialog, user),
+          dom.create(DeleteAccountDialog, user),
         ],
-),
-      testId('body'),
-    )));
+      ),
+      testId("body"),
+      )));
   }
 
   private _buildHeaderMain() {
     return dom.frag(
-      cssBreadcrumbs({style: 'margin-left: 16px;'},
+      cssBreadcrumbs({ style: "margin-left: 16px;" },
         cssLink(
           urlState().setLinkUrl({}),
-          'Home',
-          testId('home'),
+          "Home",
+          testId("home"),
         ),
-        separator(' / '),
-        dom('span', 'Account'),
+        separator(" / "),
+        dom("span", "Account"),
       ),
       createTopBarHome(this._appModel),
     );
@@ -196,7 +201,7 @@ designed to ensure that you're the only person who can access your account, even
 
   private async _deleteApiKey() {
     await this._appModel.api.deleteApiKey();
-    this._apiKey.set('');
+    this._apiKey.set("");
   }
 
   private async _fetchUserProfile() {
@@ -233,7 +238,7 @@ designed to ensure that you're the only person who can access your account, even
   private _buildNameWarningsDom() {
     return cssWarnings(
       t("Names only allow letters, numbers and certain special characters"),
-      testId('username-warning'),
+      testId("username-warning"),
     );
   }
 
@@ -242,7 +247,7 @@ designed to ensure that you're the only person who can access your account, even
       const suffix = getPageTitleSuffix(getGristConfig());
       switch (page) {
         case undefined:
-        case 'account': {
+        case "account": {
           return document.title = `Account${suffix}`;
         }
       }
@@ -254,7 +259,7 @@ const cssWarnings = styled(css.warning, `
   margin: -8px 0 0 110px;
 `);
 
-const cssFirstUpper = styled('div', `
+const cssFirstUpper = styled("div", `
   & > div::first-letter {
     text-transform: capitalize;
   }

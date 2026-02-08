@@ -1,6 +1,7 @@
-import {serveSomething, Serving} from "test/server/customUtil";
-import * as express from "express";
+import { serveSomething, Serving } from "test/server/customUtil";
+
 import axios from "axios";
+import * as express from "express";
 
 export class TestProxyServer {
   public static async Prepare(portNumber: number): Promise<TestProxyServer> {
@@ -25,9 +26,9 @@ export class TestProxyServer {
   }
 
   private async _prepare() {
-    this._proxyServing = await serveSomething(app => {
+    this._proxyServing = await serveSomething((app) => {
       app.use(express.json());
-      app.all('*', async (req: express.Request, res: express.Response) => {
+      app.all("*", async (req: express.Request, res: express.Response) => {
         this._proxyCallsCounter += 1;
         let responseCode;
         try {

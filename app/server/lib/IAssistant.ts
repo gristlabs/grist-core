@@ -11,6 +11,7 @@ import {
 import { AssistantProvider } from "app/common/Assistant";
 import { ActiveDoc } from "app/server/lib/ActiveDoc";
 import { OptDocSession } from "app/server/lib/DocSession";
+
 import * as express from "express";
 
 /**
@@ -99,7 +100,7 @@ export interface AssistanceDoc extends ActiveDoc {
 }
 
 export type AssistanceSchemaPromptGenerator = (
-  options?: AssistanceSchemaPromptV1Options
+  options?: AssistanceSchemaPromptV1Options,
 ) => Promise<AssistanceMessage>;
 
 export interface AssistanceSchemaPromptV1Options {

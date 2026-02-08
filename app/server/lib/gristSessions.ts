@@ -1,29 +1,32 @@
-import session from '@gristlabs/express-session';
-import {parseSubdomain} from 'app/common/gristUrls';
-import {isNumber} from 'app/common/gutil';
-import {RequestWithOrg} from 'app/server/lib/extractOrg';
-import {GristServer} from 'app/server/lib/GristServer';
-import log from 'app/server/lib/log';
-import {fromCallback} from 'app/server/lib/serverUtils';
-import {Sessions} from 'app/server/lib/Sessions';
-import {promisifyAll} from 'bluebird';
-import * as crypto from 'crypto';
-import * as express from 'express';
-import assignIn = require('lodash/assignIn');
-import * as path from 'path';
-import {createClient} from 'redis';
+import { parseSubdomain } from "app/common/gristUrls";
+import { isNumber } from "app/common/gutil";
+import { RequestWithOrg } from "app/server/lib/extractOrg";
+import { GristServer } from "app/server/lib/GristServer";
+import log from "app/server/lib/log";
+import { fromCallback } from "app/server/lib/serverUtils";
+import { Sessions } from "app/server/lib/Sessions";
 
-export const cookieName = process.env.GRIST_SESSION_COOKIE || 'grist_sid';
+import * as crypto from "crypto";
+import * as path from "path";
+
+import session from "@gristlabs/express-session";
+import { promisifyAll } from "bluebird";
+import * as express from "express";
+import assignIn from "lodash/assignIn";
+import { createClient } from "redis";
+
+export const cookieName = process.env.GRIST_SESSION_COOKIE || "grist_sid";
 
 export const COOKIE_MAX_AGE =
-      process.env.COOKIE_MAX_AGE === 'none' ? null :
-      isNumber(process.env.COOKIE_MAX_AGE || '') ? Number(process.env.COOKIE_MAX_AGE) :
+  process.env.COOKIE_MAX_AGE === "none" ? null :
+    isNumber(process.env.COOKIE_MAX_AGE || "") ? Number(process.env.COOKIE_MAX_AGE) :
       90 * 24 * 60 * 60 * 1000;  // 90 days in milliseconds
 
 // RedisStore and SqliteStore are expected to provide a set/get interface for sessions.
 export interface SessionStore {
   getAsync(sid: string): Promise<any>;
   setAsync(sid: string, session: any): Promise<void>;
+  clearAsync(): Promise<void>;
   close(): Promise<void>;
 }
 
@@ -42,45 +45,47 @@ export interface SessionStore {
 export interface IGristSession {
 
   // V1 Hosted Grist - known available users.
-  users: Array<{
+  users: {
     userId?: number;
-  }>;
+  }[];
 
   // V1 Hosted Grist - known user/org relationships.
-  orgs: Array<{
+  orgs: {
     orgId: number;
     userId: number;
-  }>;
+  }[];
 }
 
 function createSessionStoreFactory(sessionsDB: string): () => SessionStore {
   if (process.env.REDIS_URL) {
     // Note that ./build excludes this module from the electron build.
-    const RedisStore = require('connect-redis')(session);
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const RedisStore = require("connect-redis")(session);
     promisifyAll(RedisStore.prototype);
     return () => {
       const client = createClient(process.env.REDIS_URL);
-      client.on('error',
-        (err: unknown)=> {
+      client.on("error",
+        (err: unknown) => {
           log.error(`createSessionStoreFactory: redisClient error`, String(err));
-        }
+        },
       );
-      const store = new RedisStore({client});
+      const store = new RedisStore({ client });
       return assignIn(store, {
         async close() {
           // Quit the client, so that it doesn't attempt to reconnect (which matters for some
           // tests), and so that node becomes close-able.
           await fromCallback(cb => store.client.quit(cb));
-        }});
+        } });
     };
   } else {
-    const SQLiteStore = require('@gristlabs/connect-sqlite3')(session);
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const SQLiteStore = require("@gristlabs/connect-sqlite3")(session);
     promisifyAll(SQLiteStore.prototype);
     return () => {
       const store = new SQLiteStore({
         dir: path.dirname(sessionsDB),
         db: path.basename(sessionsDB),    // SQLiteStore no longer appends a .db suffix.
-        table: 'sessions',
+        table: "sessions",
       });
       // In testing, and monorepo's "yarn start", session is accessed from multiple
       // processes, so could hit lock failures.
@@ -88,18 +93,18 @@ function createSessionStoreFactory(sessionsDB: string): () => SessionStore {
       // it puts the database in WAL mode, which would have implications
       // for self-hosters (a second file to think about). Instead we just
       // set a busy timeout.
-      store.db.run('PRAGMA busy_timeout = 1000');
+      store.db.run("PRAGMA busy_timeout = 1000");
 
-      return assignIn(store, { async close() {}});
+      return assignIn(store, { async close() {} });
     };
   }
 }
 
-export function getAllowedOrgForSessionID(sessionID: string): {org: string, host: string}|null {
-  if (sessionID.startsWith('c-') && sessionID.includes('@')) {
-    const [, org, host] = sessionID.split('@');
-    if (!host) { throw new Error('Invalid session ID'); }
-    return {org, host};
+export function getAllowedOrgForSessionID(sessionID: string): { org: string, host: string } | null {
+  if (sessionID.startsWith("c-") && sessionID.includes("@")) {
+    const [, org, host] = sessionID.split("@");
+    if (!host) { throw new Error("Invalid session ID"); }
+    return { org, host };
   }
   // Otherwise sessions start with 'g-', but we also accept older sessions without a prefix.
   return null;
@@ -112,7 +117,7 @@ export function getAllowedOrgForSessionID(sessionID: string): {org: string, host
 export function initGristSessions(instanceRoot: string, server: GristServer) {
   // TODO: We may need to evaluate the usage of space in the SQLite store grist-sessions.db
   // since entries are created on the first get request.
-  const sessionsDB: string = path.join(instanceRoot, 'grist-sessions.db');
+  const sessionsDB: string = path.join(instanceRoot, "grist-sessions.db");
 
   // The extra step with the creator function is used in server.js to create a new session store
   // after unpausing the server.
@@ -127,7 +132,7 @@ export function initGristSessions(instanceRoot: string, server: GristServer) {
     // This ensures security against brute-force session hijacking even without signing the session ID.
     const randomNumbers = crypto.getRandomValues(new Uint8Array(32));
     const uid = Buffer.from(randomNumbers).toString("hex");
-    return req.isCustomHost ? `c-${uid}@${req.org}@${req.get('host')}` : `g-${uid}`;
+    return req.isCustomHost ? `c-${uid}@${req.org}@${req.get("host")}` : `g-${uid}`;
   };
   const sessionSecret = server.create.sessionSecret();
   const sessionMiddleware = session({
@@ -138,7 +143,7 @@ export function initGristSessions(instanceRoot: string, server: GristServer) {
     requestDomain: getCookieDomain,
     genid: generateId,
     cookie: {
-      sameSite: 'lax',
+      sameSite: "lax",
 
       // We do not initially set max-age, leaving the cookie as a
       // session cookie until there's a successful login.  On the
@@ -149,12 +154,12 @@ export function initGristSessions(instanceRoot: string, server: GristServer) {
       // session associated with the cookie will receive an updated
       // time-to-live, so that it persists for COOKIE_MAX_AGE.
     },
-    store: sessionStore
+    store: sessionStore,
   });
 
   const sessions = new Sessions(sessionSecret, sessionStore);
 
-  return {sessions, sessionSecret, sessionStore, sessionMiddleware};
+  return { sessions, sessionSecret, sessionStore, sessionMiddleware };
 }
 
 export function getCookieDomain(req: express.Request) {
@@ -165,12 +170,12 @@ export function getCookieDomain(req: express.Request) {
     return undefined;
   }
 
-  const adaptDomain = process.env.GRIST_ADAPT_DOMAIN === 'true';
+  const adaptDomain = process.env.GRIST_ADAPT_DOMAIN === "true";
   const fixedDomain = process.env.GRIST_SESSION_DOMAIN || process.env.GRIST_DOMAIN;
 
   if (adaptDomain) {
-    const reqDomain = parseSubdomain(req.get('host'));
-    if (reqDomain.base) { return reqDomain.base.split(':')[0]; }
+    const reqDomain = parseSubdomain(req.get("host"));
+    if (reqDomain.base) { return reqDomain.base.split(":")[0]; }
   }
   return fixedDomain;
 }

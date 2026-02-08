@@ -1,9 +1,9 @@
-import BaseView from 'app/client/components/BaseView';
-import {SequenceNEVER, SequenceNum} from 'app/client/components/Cursor';
-import {EmptyFilterColValues, LinkingState} from 'app/client/components/LinkingState';
-import {KoArray} from 'app/client/lib/koArray';
-import {fieldInsertPositions} from 'app/client/lib/tableUtil';
-import {ColumnToMapImpl} from 'app/client/models/ColumnToMap';
+import BaseView from "app/client/components/BaseView";
+import { SequenceNEVER, SequenceNum } from "app/client/components/Cursor";
+import { EmptyFilterColValues, LinkingState } from "app/client/components/LinkingState";
+import { KoArray } from "app/client/lib/koArray";
+import { fieldInsertPositions } from "app/client/lib/tableUtil";
+import { ColumnToMapImpl } from "app/client/models/ColumnToMap";
 import {
   ColumnRec,
   DocModel,
@@ -14,27 +14,29 @@ import {
   refRecord,
   TableRec,
   ViewFieldRec,
-  ViewRec
-} from 'app/client/models/DocModel';
-import {BEHAVIOR} from 'app/client/models/entities/ColumnRec';
-import * as modelUtil from 'app/client/models/modelUtil';
-import {removeRule, RuleOwner} from 'app/client/models/RuleOwner';
-import type {Style} from 'app/client/models/Styles';
-import {LinkConfig} from 'app/client/ui/LinkConfig';
-import {getWidgetTypes} from "app/client/ui/widgetTypesMap";
-import {FilterColValues} from "app/common/ActiveDocAPI";
-import {AccessLevel, ICustomWidget} from 'app/common/CustomWidget';
-import {UserAction} from 'app/common/DocActions';
-import {RecalcWhen} from 'app/common/gristTypes';
-import {arrayRepeat, safeJsonParse} from 'app/common/gutil';
-import {Sort} from 'app/common/SortSpec';
-import {WidgetType} from 'app/common/widgetTypes';
-import {ColumnsToMap, WidgetColumnMap} from 'app/plugin/CustomSectionAPI';
-import {CursorPos, UIRowId} from 'app/plugin/GristAPI';
-import {GristObjCode} from 'app/plugin/GristData';
-import {Computed, Holder, Observable, subscribe} from 'grainjs';
-import * as ko from 'knockout';
-import defaults = require('lodash/defaults');
+  ViewRec,
+} from "app/client/models/DocModel";
+import { BEHAVIOR } from "app/client/models/entities/ColumnRec";
+import * as modelUtil from "app/client/models/modelUtil";
+import { removeRule, RuleOwner } from "app/client/models/RuleOwner";
+import { LinkConfig } from "app/client/ui/LinkConfig";
+import { getWidgetTypes } from "app/client/ui/widgetTypesMap";
+import { FilterColValues } from "app/common/ActiveDocAPI";
+import { AccessLevel, ICustomWidget } from "app/common/CustomWidget";
+import { UserAction } from "app/common/DocActions";
+import { RecalcWhen } from "app/common/gristTypes";
+import { arrayRepeat, safeJsonParse } from "app/common/gutil";
+import { Sort } from "app/common/SortSpec";
+import { WidgetType } from "app/common/widgetTypes";
+import { ColumnsToMap, WidgetColumnMap } from "app/plugin/CustomSectionAPI";
+import { CursorPos, UIRowId } from "app/plugin/GristAPI";
+import { GristObjCode } from "app/plugin/GristData";
+
+import { Computed, Holder, Observable, subscribe } from "grainjs";
+import * as ko from "knockout";
+import defaults from "lodash/defaults";
+
+import type { Style } from "app/client/models/Styles";
 
 export interface InsertColOptions {
   colInfo?: ColInfo;
@@ -48,7 +50,7 @@ export interface ColInfo {
   isFormula?: boolean;
   formula?: string;
   recalcWhen?: RecalcWhen;
-  recalcDeps?: [GristObjCode.List, ...number[]]|null;
+  recalcDeps?: [GristObjCode.List, ...number[]] | null;
   widgetOptions?: string;
 }
 
@@ -71,12 +73,12 @@ export interface ChartOptions {
   logYAxis?: boolean;
   // If "symmetric", one series after each Y series gives the length of the error bars around it. If
   // "separate", two series after each Y series give the length of the error bars above and below it.
-  errorBars?: 'symmetric' | 'separate';
+  errorBars?: "symmetric" | "separate";
   donutHoleSize?: number;
   showTotal?: boolean;
   textSize?: number;
   isXAxisUndefined?: boolean;
-  orientation?: 'v'|'h';
+  orientation?: "v" | "h";
   aggregate?: boolean;
 }
 
@@ -278,7 +280,7 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   isSorted: ko.Computed<boolean>;
   disableDragRows: ko.Computed<boolean>;
   // Number of frozen columns
-  rawNumFrozen: modelUtil.CustomComputed<number|undefined>;
+  rawNumFrozen: modelUtil.CustomComputed<number | undefined>;
   // Number for frozen columns to display.
   // We won't freeze all the columns on a grid, it will leave at least 1 column unfrozen.
   numFrozen: ko.Computed<number>;
@@ -291,19 +293,19 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   // Temporary fields used to communicate with the Custom Widget. There are set through the Widget API.
 
   // Temporary variable holding columns mapping requested by the widget (set by API).
-  columnsToMap: ko.Observable<ColumnsToMap|null>;
+  columnsToMap: ko.Observable<ColumnsToMap | null>;
   // Map from widget columns to colIds in document.
-  mappedColumns: ko.Computed<WidgetColumnMap|null>;
+  mappedColumns: ko.Computed<WidgetColumnMap | null>;
   // Temporary variable holding flag that describes if the widget supports custom options (set by API).
   hasCustomOptions: ko.Observable<boolean>;
   // Temporary variable holding widget desired access (changed either from manifest or via API).
-  desiredAccessLevel: ko.Observable<AccessLevel|null>;
+  desiredAccessLevel: ko.Observable<AccessLevel | null>;
 
   // Show widget as linking source. Used by custom widget.
   allowSelectBy: ko.Observable<boolean>;
 
   // List of selected rows from a custom widget, or null if a filter shouldn't be applied.
-  selectedRows: ko.Observable<number[]|null>;
+  selectedRows: ko.Observable<number[] | null>;
 
   // If the row filter is active (i.e. if selectedRows is non-null). Separate computed to avoid
   // re-computing the filter when selectedRows changes.
@@ -317,11 +319,11 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   // Some computed observables for multi-select, used in the creator panel, by more than one widgets.
 
   // Common column behavior or mixed.
-  columnsBehavior: ko.PureComputed<BEHAVIOR|'mixed'>;
+  columnsBehavior: ko.PureComputed<BEHAVIOR | "mixed">;
   // If all selected columns are empty or formula column.
   columnsAllIsFormula: ko.PureComputed<boolean>;
   // Common type of selected columns or mixed.
-  columnsType: ko.PureComputed<string|'mixed'>;
+  columnsType: ko.PureComputed<string>;
 
   widgetType: modelUtil.KoSaveableObservable<WidgetType>;
 
@@ -337,10 +339,10 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
    * If the section can be renamed, used mostly by virtual tables. If undefined defaults to the caller
    * of the buildViewSectionDom function (which in turn defaults to true).
    */
-  canRename: ko.Observable<boolean|undefined>;
+  canRename: ko.Observable<boolean | undefined>;
 
   // If set, overrides the value of disableAddRemoveRows().
-  overrideDisableAddRemoveRows: ko.Observable<boolean|undefined>;
+  overrideDisableAddRemoveRows: ko.Observable<boolean | undefined>;
 
   // Save all filters of fields/columns in the section.
   saveFilters(): Promise<void>;
@@ -357,7 +359,7 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   // Saves custom definition (bundles change)
   saveCustomDef(): Promise<void>;
 
-  insertColumn(colId?: string|null, options?: InsertColOptions): Promise<NewFieldInfo>;
+  insertColumn(colId?: string | null, options?: InsertColOptions): Promise<NewFieldInfo>;
 
   /**
    * Shows column (by adding a view field)
@@ -365,27 +367,27 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
    * @param index Position to insert the column at
    * @returns ViewField rowId
    */
-  showColumn(col: number|string, index?: number): Promise<number>
+  showColumn(col: number | string, index?: number): Promise<number>
 
   /**
    * Removes one or multiple fields.
    * @param colRef
    */
-  removeField(colRef: number|Array<number>): Promise<void>;
+  removeField(colRef: number | number[]): Promise<void>;
 }
 
-export type WidgetMappedColumn = number|number[]|null;
-export type WidgetColumnMapping = Record<string, WidgetMappedColumn>
+export type WidgetMappedColumn = number | number[] | null;
+export type WidgetColumnMapping = Record<string, WidgetMappedColumn>;
 
 export interface CustomViewSectionDef {
   /**
    * The mode.
    */
-  mode: modelUtil.KoSaveableObservable<"url"|"plugin">;
+  mode: modelUtil.KoSaveableObservable<"url" | "plugin">;
   /**
    * The url.
    */
-  url: modelUtil.KoSaveableObservable<string|null>;
+  url: modelUtil.KoSaveableObservable<string | null>;
   /**
    * A widgetId, if available. Preferred to url.
    * For bundled custom widgets, it is important to refer
@@ -394,23 +396,23 @@ export interface CustomViewSectionDef {
    * documents between deployments if they have compatible
    * widgets available.
    */
-  widgetId: modelUtil.KoSaveableObservable<string|null>;
-   /**
+  widgetId: modelUtil.KoSaveableObservable<string | null>;
+  /**
     * Custom widget information. This is a record of what was
     * in a custom widget manifest entry when the widget was
     * configured. Its contents should not be relied on too much.
     * In particular, any URL contained may come from an entirely
     * different installation of Grist.
     */
-  widgetDef: modelUtil.KoSaveableObservable<ICustomWidget|null>;
+  widgetDef: modelUtil.KoSaveableObservable<ICustomWidget | null>;
   /**
    * Custom widget options.
    */
-  widgetOptions: modelUtil.KoSaveableObservable<Record<string, any>|null>;
+  widgetOptions: modelUtil.KoSaveableObservable<Record<string, any> | null>;
   /**
    * Custom widget interaction options.
    */
-  columnsMapping: modelUtil.KoSaveableObservable<WidgetColumnMapping|null>;
+  columnsMapping: modelUtil.KoSaveableObservable<WidgetColumnMapping | null>;
   /**
    * Access granted to url.
    */
@@ -437,7 +439,7 @@ export interface FilterInfo {
   /** The section that's being filtered. */
   viewSection: ViewSectionRec;
   /** The field or column that's being filtered. (Field if column is visible.) */
-  fieldOrColumn: ViewFieldRec|ColumnRec;
+  fieldOrColumn: ViewFieldRec | ColumnRec;
   /** Filter that applies to this field/column, if any. */
   filter: modelUtil.CustomComputed<string>;
   /** Whether this filter is pinned to the filter bar. */
@@ -455,51 +457,51 @@ export interface Filter {
 
 export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): void {
   this.widgetType = this.parentKey as any;
-  this.viewFields = recordSet(this, docModel.viewFields, 'parentId', {sortBy: 'parentPos'});
-  this.linkedSections = recordSet(this, docModel.viewSections, 'linkSrcSectionRef');
+  this.viewFields = recordSet(this, docModel.viewFields, "parentId", { sortBy: "parentPos" });
+  this.linkedSections = recordSet(this, docModel.viewSections, "linkSrcSectionRef");
 
   // All table columns associated with this view section, excluding any hidden helper columns.
   this.columns = this.autoDispose(ko.pureComputed(() => this.table().visibleColumns()));
   this.editingFormula = ko.pureComputed({
     read: () => docModel.editingFormula(),
-    write: val => {
+    write: (val) => {
       docModel.editingFormula(val);
-    }
+    },
   });
   const defaultOptions: ViewSectionOptions = {
     verticalGridlines: true,
     horizontalGridlines: true,
     zebraStripes: false,
-    customView: '',
-    numFrozen: 0
+    customView: "",
+    numFrozen: 0,
   };
   this.optionsObj = modelUtil.jsonObservable(this.options,
     (obj: ViewSectionOptions) => defaults(obj || {}, defaultOptions));
   this.shareOptionsObj = modelUtil.jsonObservable(this.shareOptions);
 
   const customViewDefaults = {
-    mode: 'url',
+    mode: "url",
     url: null,
     widgetDef: null,
-    access: '',
-    pluginId: '',
-    sectionId: '',
+    access: "",
+    pluginId: "",
+    sectionId: "",
     renderAfterReady: false,
   };
-  const customDefObj = modelUtil.jsonObservable(this.optionsObj.prop('customView'),
+  const customDefObj = modelUtil.jsonObservable(this.optionsObj.prop("customView"),
     (obj: any) => defaults(obj || {}, customViewDefaults));
 
   this.customDef = {
-    mode: customDefObj.prop('mode'),
-    url: customDefObj.prop('url'),
-    widgetId: customDefObj.prop('widgetId'),
-    widgetDef: customDefObj.prop('widgetDef'),
-    widgetOptions: customDefObj.prop('widgetOptions'),
-    columnsMapping: customDefObj.prop('columnsMapping'),
-    access: customDefObj.prop('access'),
-    pluginId: customDefObj.prop('pluginId'),
-    sectionId: customDefObj.prop('sectionId'),
-    renderAfterReady: customDefObj.prop('renderAfterReady'),
+    mode: customDefObj.prop("mode"),
+    url: customDefObj.prop("url"),
+    widgetId: customDefObj.prop("widgetId"),
+    widgetDef: customDefObj.prop("widgetDef"),
+    widgetOptions: customDefObj.prop("widgetOptions"),
+    columnsMapping: customDefObj.prop("columnsMapping"),
+    access: customDefObj.prop("access"),
+    pluginId: customDefObj.prop("pluginId"),
+    sectionId: customDefObj.prop("sectionId"),
+    renderAfterReady: customDefObj.prop("renderAfterReady"),
   };
 
   this.selectedFields = ko.observable<any>([]);
@@ -511,11 +513,11 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     .filter(c => !c.isDisposed())));
   this.columnsBehavior = ko.pureComputed(() => {
     const list = new Set(selectedColumns().map(c => c.behavior()));
-    return list.size === 1 ? list.values().next().value : 'mixed';
+    return list.size === 1 ? list.values().next().value : "mixed";
   });
   this.columnsType = ko.pureComputed(() => {
     const list = new Set(selectedColumns().map(c => c.type()));
-    return list.size === 1 ? list.values().next().value : 'mixed';
+    return list.size === 1 ? list.values().next().value : "mixed";
   });
   this.columnsAllIsFormula = ko.pureComputed(() => {
     return selectedColumns().every(c => c.isFormula());
@@ -528,12 +530,11 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     this.activeCustomOptions.revert();
   };
 
-  this.themeDef = modelUtil.fieldWithDefault(this.theme, 'form');
-  this.chartTypeDef = modelUtil.fieldWithDefault(this.chartType, 'bar');
+  this.themeDef = modelUtil.fieldWithDefault(this.theme, "form");
+  this.chartTypeDef = modelUtil.fieldWithDefault(this.chartType, "bar");
   this.view = refRecord(docModel.views, this.parentId);
 
   this.table = refRecord(docModel.tables, this.tableRef);
-
 
   // The user-friendly name of the table, which is the same as tableId for non-summary tables,
   // and is 'tableId[groupByCols...]' for summary tables.
@@ -543,15 +544,15 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   // - Widget type description (if not grid)
   // All concatenated separated by space.
   this.defaultWidgetTitle = this.autoDispose(ko.pureComputed(() => {
-    const widgetTypeDesc = this.parentKey() !== 'record'
-      ? `${getWidgetTypes(this.parentKey.peek() as any).getLabel()}`
-      : '';
+    const widgetTypeDesc = this.parentKey() !== "record" ?
+      `${getWidgetTypes(this.parentKey.peek() as any).getLabel()}` :
+      "";
     const table = this.table();
     return [
       table.tableNameDef()?.toUpperCase(), // Due to ACL this can be null.
       table.groupDesc(),
-      widgetTypeDesc
-    ].filter(part => Boolean(part?.trim())).join(' ');
+      widgetTypeDesc,
+    ].filter(part => Boolean(part?.trim())).join(" ");
   }));
   // Widget title.
   this.titleDef = modelUtil.fieldWithDefault(this.title, this.defaultWidgetTitle);
@@ -563,17 +564,17 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   this.tableRecordCard = this.autoDispose(ko.pureComputed(() => this.table().recordCardViewSection()));
   this.isRecordCard = this.autoDispose(ko.pureComputed(() =>
     this.table().recordCardViewSectionRef() === this.id()));
-  this.disabled = modelUtil.fieldWithDefault(this.optionsObj.prop('disabled'), false);
+  this.disabled = modelUtil.fieldWithDefault(this.optionsObj.prop("disabled"), false);
   this.isTableRecordCardDisabled = this.autoDispose(ko.pureComputed(() => this.tableRecordCard().disabled() ||
     this.table().summarySourceTable() !== 0));
 
-  this.isVirtual = this.autoDispose(ko.pureComputed(() => typeof this.id() === 'string'));
+  this.isVirtual = this.autoDispose(ko.pureComputed(() => typeof this.id() === "string"));
 
-  this.borderWidthPx = ko.pureComputed(() => this.borderWidth() + 'px');
+  this.borderWidthPx = ko.pureComputed(() => this.borderWidth() + "px");
 
   this.layoutSpecObj = modelUtil.jsonObservable(this.layoutSpec);
 
-  this._savedFilters = recordSet(this, docModel.filters, 'viewSectionRef');
+  this._savedFilters = recordSet(this, docModel.filters, "viewSectionRef");
 
   /**
    * Unsaved client-side filters, keyed by original col ref. Currently only wiped when unsaved filters
@@ -598,11 +599,11 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     const savedFiltersByColRef = new Map(this._savedFilters().all().map(f => [f.colRef(), f]));
     const viewFieldsByColRef = new Map(this.viewFields().all().map(f => [f.origCol().getRowId(), f]));
 
-    return this.columns().map(column => {
+    return this.columns().map((column) => {
       const savedFilter = savedFiltersByColRef.get(column.origColRef());
       // Initialize with a saved filter, if one exists. Otherwise, use a blank filter.
       const filter = modelUtil.customComputed({
-        read: () => { return savedFilter ? savedFilter.activeFilter() : ''; },
+        read: () => { return savedFilter ? savedFilter.activeFilter() : ""; },
       });
       const pinned = modelUtil.customComputed({
         read: () => { return savedFilter ? savedFilter.pinned() : false; },
@@ -611,7 +612,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
       // If an unsaved filter exists, overwrite the filter with it.
       const unsavedFilter = this._unsavedFilters.get(column.origColRef());
       if (unsavedFilter) {
-        const {filter: f, pinned: p} = unsavedFilter;
+        const { filter: f, pinned: p } = unsavedFilter;
         if (f !== undefined) { filter(f); }
         if (p !== undefined) { pinned(p); }
       }
@@ -621,7 +622,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
         filter,
         pinned,
         fieldOrColumn: viewFieldsByColRef.get(column.origColRef()) ?? column,
-        isFiltered: ko.pureComputed(() => filter() !== ''),
+        isFiltered: ko.pureComputed(() => filter() !== ""),
         isPinned: ko.pureComputed(() => pinned()),
       };
     });
@@ -635,7 +636,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
 
   // Helper metadata item which indicates whether any of the section's fields/columns have unsaved
   // changes to their filters. (True indicates unsaved changes)
-  this.filterSpecChanged = Computed.create(this, use => {
+  this.filterSpecChanged = Computed.create(this, (use) => {
     return use(this.filters).some(col => !use(col.filter.isSaved) || !use(col.pinned.isSaved));
   });
 
@@ -651,21 +652,21 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
         const newFilters: [number, Filter][] = []; // Pairs of column refs and filters to add.
 
         for (const f of this.filters()) {
-          const {fieldOrColumn, filter, pinned} = f;
+          const { fieldOrColumn, filter, pinned } = f;
           // Skip saved filters (i.e. filters whose local values are unchanged from server).
           if (filter.isSaved() && pinned.isSaved()) { continue; }
 
           const savedFilter = savedFiltersByColRef.get(fieldOrColumn.origCol().origColRef());
           if (!savedFilter) {
             // Never save blank filters. (This is primarily a sanity check.)
-            if (filter() === '') { continue; }
+            if (filter() === "") { continue; }
 
             // Since no saved filter exists, we must add a new record to the filters table.
             newFilters.push([fieldOrColumn.origCol().origColRef(), {
               filter: filter(),
               pinned: pinned(),
             }]);
-          } else if (filter() === '') {
+          } else if (filter() === "") {
             // Mark the saved filter for removal from the filters table.
             removedFilterIds.push(savedFilter.id());
           } else {
@@ -681,30 +682,30 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
 
         // Remove records of any deleted filters.
         if (removedFilterIds.length > 0) {
-          actions.push(['BulkRemoveRecord', removedFilterIds]);
+          actions.push(["BulkRemoveRecord", removedFilterIds]);
         }
 
         // Update existing filter records with new filter values.
         if (updatedFilters.length > 0) {
-          actions.push(['BulkUpdateRecord',
+          actions.push(["BulkUpdateRecord",
             updatedFilters.map(([id]) => id),
             {
-              filter: updatedFilters.map(([, {filter}]) => filter),
-              pinned: updatedFilters.map(([, {pinned}]) => pinned),
-            }
+              filter: updatedFilters.map(([, { filter }]) => filter),
+              pinned: updatedFilters.map(([, { pinned }]) => pinned),
+            },
           ]);
         }
 
         // Add new filter records.
         if (newFilters.length > 0) {
-          actions.push(['BulkAddRecord',
+          actions.push(["BulkAddRecord",
             arrayRepeat(newFilters.length, null),
             {
               viewSectionRef: arrayRepeat(newFilters.length, this.id()),
               colRef: newFilters.map(([colRef]) => colRef),
-              filter: newFilters.map(([, {filter}]) => filter),
-              pinned: newFilters.map(([, {pinned}]) => pinned),
-            }
+              filter: newFilters.map(([, { filter }]) => filter),
+              pinned: newFilters.map(([, { pinned }]) => pinned),
+            },
           ]);
         }
 
@@ -714,14 +715,14 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
 
         // Reset client filter state.
         this.revertFilters();
-      }
+      },
     );
   };
 
   // Revert all filters of fields/columns in the section.
   this.revertFilters = () => {
     this._unsavedFilters.clear();
-    this.filters().forEach(c => {
+    this.filters().forEach((c) => {
       c.filter.revert();
       c.pinned.revert();
     });
@@ -729,11 +730,11 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
 
   // Set `filter` for the field or column identified by `colRef`.
   this.setFilter = (colRef: number, filter: Partial<Filter>) => {
-    this._unsavedFilters.set(colRef, {...this._unsavedFilters.get(colRef), ...filter});
+    this._unsavedFilters.set(colRef, { ...this._unsavedFilters.get(colRef), ...filter });
     const filterInfo = this.filters().find(c => c.fieldOrColumn.origCol().origColRef() === colRef);
     if (!filterInfo) { return; }
 
-    const {filter: newFilter, pinned: newPinned} = filter;
+    const { filter: newFilter, pinned: newPinned } = filter;
     if (newFilter !== undefined) { filterInfo.filter(newFilter); }
     if (newPinned !== undefined) { filterInfo.pinned(newPinned); }
   };
@@ -755,7 +756,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   // twist: a rowId may be positive or negative, for ascending or descending respectively.
   // TODO: This method of ignoring columns which are deleted is inefficient and may cause conflicts
   //  with sharing.
-  this.activeSortSpec = modelUtil.jsonObservable(this.activeSortJson, (obj: Sort.SortSpec|null) => {
+  this.activeSortSpec = modelUtil.jsonObservable(this.activeSortJson, (obj: Sort.SortSpec | null) => {
     const tableId = this.tableRef();
     return (obj || []).filter((sortRef: Sort.ColSpec) => {
       const colModel = docModel.columns.getRowModel(Sort.getColRef(sortRef) as number /* HACK: for virtual tables */);
@@ -765,7 +766,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
 
   // Modified sort spec to take into account any active display columns.
   this.activeDisplaySortSpec = this.autoDispose(ko.computed(() => {
-    return this.activeSortSpec().map(directionalColRef => {
+    return this.activeSortSpec().map((directionalColRef) => {
       const colRef = Sort.getColRef(directionalColRef);
       const field = this.viewFields().all().find(f => f.column().origColRef() === colRef);
       const effectiveColRef = field ? field.displayColRef() : colRef;
@@ -790,23 +791,23 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
 
   // Evaluates to an array of column models, which are not referenced by anything in viewFields.
   this.hiddenColumns = this.autoDispose(ko.pureComputed(() => {
-    const included = new Set(this.viewFields().all().map((f) => f.column().origColRef()));
+    const included = new Set(this.viewFields().all().map(f => f.column().origColRef()));
     return this.columns().filter(c => !included.has(c.getRowId()));
   }));
 
   this.hasFocus = ko.pureComputed({
     // Read may occur for recently disposed sections, must check condition first.
     read: () => !this.isDisposed() && this.view().activeSectionId() === this.id(),
-    write: (val) => { this.view().activeSectionId(val ? this.id() : 0); }
+    write: (val) => { this.view().activeSectionId(val ? this.id() : 0); },
   });
   this.hasVisibleFocus = ko.pureComputed(() => {
     if (this.isDisposed()) {
       return false;
     }
     const region = this.view().focusedRegionState();
-    return this.hasFocus() && (region === 'in' || region === 'related');
+    return this.hasFocus() && (region === "in" || region === "related");
   });
-  this.hasRegionFocus = ko.pureComputed(() => this.hasFocus() && this.view().focusedRegionState() === 'in');
+  this.hasRegionFocus = ko.pureComputed(() => this.hasFocus() && this.view().focusedRegionState() === "in");
 
   // Section-linking affects this table if linkSrcSection is set. The controller value of the
   // link is the value of srcCol at activeRowId of linkSrcSection, or activeRowId itself when
@@ -816,7 +817,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   this.linkSrcCol = refRecord(docModel.columns, this.linkSrcColRef);
   this.linkTargetCol = refRecord(docModel.columns, this.linkTargetColRef);
 
-  this.activeRowId = ko.observable<UIRowId|null>(null);
+  this.activeRowId = ko.observable<UIRowId | null>(null);
   this.lastCursorEdit = ko.observable<SequenceNum>(SequenceNEVER);
 
   this._linkingState = Holder.create(this);
@@ -841,19 +842,19 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   }));
 
   // If the view instance for this section is instantiated, it will be accessible here.
-  this.viewInstance = ko.observable<BaseView|null>(null);
+  this.viewInstance = ko.observable<BaseView | null>(null);
 
   // Describes the most recent cursor position in the section.
   this.lastCursorPos = {
-    rowIndex:   0,
-    fieldIndex: 0
+    rowIndex: 0,
+    fieldIndex: 0,
   };
 
   // Describes the most recent scroll position.
   this.lastScrollPos = {
-    rowIndex:   0, // Used for scrolly sections. Indicates the index of the first visible row.
-    offset:     0, // Pixel distance past the top of row indicated by rowIndex.
-    scrollLeft: 0  // Used for grid sections. Indicates the scrollLeft value of the scroll pane.
+    rowIndex: 0, // Used for scrolly sections. Indicates the index of the first visible row.
+    offset: 0, // Pixel distance past the top of row indicated by rowIndex.
+    scrollLeft: 0,  // Used for grid sections. Indicates the scrollLeft value of the scroll pane.
   };
 
   this.disableAddRemoveRows = ko.pureComputed(() =>
@@ -863,29 +864,29 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   this.disableDragRows = ko.pureComputed(() => this.isSorted() || !this.table().supportsManualSort());
 
   // Number of frozen columns
-  this.rawNumFrozen = modelUtil.customValue(this.optionsObj.prop('numFrozen'));
+  this.rawNumFrozen = modelUtil.customValue(this.optionsObj.prop("numFrozen"));
   // Number for frozen columns to display
   this.numFrozen = ko.pureComputed(() =>
     Math.max(
       0,
       Math.min(
         this.rawNumFrozen() || 0,
-        this.viewFields().all().length - 1
-      )
-    )
+        this.viewFields().all().length - 1,
+      ),
+    ),
   );
 
   // Observables used for styling rows with limited heights.
   this.rowHeight = Computed.create<number>(this, use => Number(use(this.optionsObj).rowHeight) || 0);
-  this.rowHeightUniform = Computed.create(this, (use) =>
+  this.rowHeightUniform = Computed.create(this, use =>
     Boolean(use(this.rowHeight) && use(this.optionsObj).rowHeightUniform));
 
   // Subscription to trigger row resizing whenever row-height settings change.
-  this.autoDispose(subscribe(this.rowHeight, this.rowHeightUniform, () => this.events.trigger('rowHeightChange')));
+  this.autoDispose(subscribe(this.rowHeight, this.rowHeightUniform, () => this.events.trigger("rowHeightChange")));
 
   this.hasCustomOptions = ko.observable(false);
-  this.desiredAccessLevel = ko.observable<AccessLevel|null>(null);
-  this.columnsToMap = ko.observable<ColumnsToMap|null>(null);
+  this.desiredAccessLevel = ko.observable<AccessLevel | null>(null);
+  this.columnsToMap = ko.observable<ColumnsToMap | null>(null);
   // Calculate mapped columns for Custom Widget.
   this.mappedColumns = ko.pureComputed(() => {
     // First check if widget has requested a custom column mapping and
@@ -900,7 +901,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     const result: WidgetColumnMap = {};
     // Prepare map of existing column, will need this for translating colRefs to colIds.
     const colMap = new Map(this.columns().map(f => [f.id.peek(), f]));
-    for(const widgetCol of columnsToMap) {
+    for (const widgetCol of columnsToMap) {
       // Start with marking this column as not mapped.
       result[widgetCol.name] = widgetCol.allowMultiple ? [] : null;
       const mappedCol = mapping[widgetCol.name];
@@ -922,40 +923,40 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
 
         result[widgetCol.name] = columns.map(c => c.colId());
       } else {
-         // Widget expects a single value and existing column
-         if (Array.isArray(mappedCol) || !colMap.has(mappedCol)) { continue; }
-         const selectedColumn = colMap.get(mappedCol)!;
-         // Make a subscription to the column to get notified when it changes.
-         void selectedColumn.widgetOptions();
-         result[widgetCol.name] = widgetCol.canByMapped(selectedColumn.pureType()) ? selectedColumn.colId() : null;
+        // Widget expects a single value and existing column
+        if (Array.isArray(mappedCol) || !colMap.has(mappedCol)) { continue; }
+        const selectedColumn = colMap.get(mappedCol)!;
+        // Make a subscription to the column to get notified when it changes.
+        void selectedColumn.widgetOptions();
+        result[widgetCol.name] = widgetCol.canByMapped(selectedColumn.pureType()) ? selectedColumn.colId() : null;
       }
     }
     return result;
   });
 
   this.allowSelectBy = ko.observable(false);
-  this.selectedRows = ko.observable(null as number[]|null);
+  this.selectedRows = ko.observable(null as number[] | null);
   this.selectedRowsActive = this.autoDispose(ko.pureComputed(() => this.selectedRows() !== null));
 
   this.tableId = this.autoDispose(ko.pureComputed(() => this.table().tableId()));
   const rawSection = this.autoDispose(ko.pureComputed(() => this.table().rawViewSection()));
   this.rulesList = modelUtil.savingComputed({
     read: () => rawSection().rules(),
-    write: (setter, val) => setter(rawSection().rules, val)
+    write: (setter, val) => setter(rawSection().rules, val),
   });
   this.rulesCols = refListRecords(docModel.columns, ko.pureComputed(() => rawSection().rules()));
   this.rulesColsIds = ko.pureComputed(() => this.rulesCols().map(c => c.colId()));
   this.rulesStyles = modelUtil.savingComputed({
     read: () => rawSection().optionsObj.prop("rulesOptions")() ?? [],
-    write: (setter, val) => setter(rawSection().optionsObj.prop("rulesOptions"), val)
+    write: (setter, val) => setter(rawSection().optionsObj.prop("rulesOptions"), val),
   });
   this.hasRules = ko.pureComputed(() => this.rulesCols().length > 0);
   this.addEmptyRule = async () => {
     const action = [
-      'AddEmptyRule',
+      "AddEmptyRule",
       this.tableId.peek(),
       null,
-      null
+      null,
     ];
     await docModel.docData.sendAction(action, `Update rules for ${this.table.peek().tableId.peek()}`);
   };
@@ -967,15 +968,15 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     return list.includes(this.id());
   }));
 
-  this.insertColumn = async (colId: string|null = null, options: InsertColOptions = {}) => {
-    const {colInfo = {}, index = this.viewFields().peekLength} = options;
+  this.insertColumn = async (colId: string | null = null, options: InsertColOptions = {}) => {
+    const { colInfo = {}, index = this.viewFields().peekLength } = options;
     const parentPos = fieldInsertPositions(this.viewFields(), index)[0];
-    const action = ['AddColumn', colId, {
+    const action = ["AddColumn", colId, {
       ...colInfo,
-      '_position': parentPos,
+      _position: parentPos,
     }];
     let newColInfo: NewFieldInfo;
-    await docModel.docData.bundleActions('Insert column', async () => {
+    await docModel.docData.bundleActions("Insert column", async () => {
       newColInfo = await docModel.dataTables[this.tableId.peek()].sendTableAction(action);
       if (!this.isRaw.peek() && !this.isRecordCard.peek()) {
         const fieldInfo = {
@@ -983,39 +984,38 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
           parentId: this.id.peek(),
           parentPos,
         };
-        const fieldRef = await docModel.viewFields.sendTableAction(['AddRecord', null, fieldInfo]);
+        const fieldRef = await docModel.viewFields.sendTableAction(["AddRecord", null, fieldInfo]);
         newColInfo.fieldRef = fieldRef;
       }
-    }, {nestInActiveBundle: options.nestInActiveBundle});
+    }, { nestInActiveBundle: options.nestInActiveBundle });
     return newColInfo!;
   };
 
-  this.showColumn = async (col: string|number, index = this.viewFields().peekLength) => {
+  this.showColumn = async (col: string | number, index = this.viewFields().peekLength) => {
     const parentPos = fieldInsertPositions(this.viewFields(), index, 1)[0];
-    const colRef = typeof col === 'string'
-                    ? this.table().columns().all().find(c => c.colId() === col)?.getRowId()
-                    : col;
+    const colRef = typeof col === "string" ?
+      this.table().columns().all().find(c => c.colId() === col)?.getRowId() :
+      col;
     const colInfo = {
       colRef,
       parentId: this.id.peek(),
       parentPos,
     };
-    return await docModel.viewFields.sendTableAction(['AddRecord', null, colInfo]);
+    return await docModel.viewFields.sendTableAction(["AddRecord", null, colInfo]);
   };
 
-  this.removeField = async (fieldRef: number|number[]) => {
+  this.removeField = async (fieldRef: number | number[]) => {
     if (Array.isArray(fieldRef)) {
-      const action = ['BulkRemoveRecord', fieldRef];
+      const action = ["BulkRemoveRecord", fieldRef];
       await docModel.viewFields.sendTableAction(action);
     } else {
-      const action = ['RemoveRecord', fieldRef];
+      const action = ["RemoveRecord", fieldRef];
       await docModel.viewFields.sendTableAction(action);
     }
   };
 
-
   this.hideViewMenu = ko.observable(false);
-  this.canRename = ko.observable<boolean|undefined>(undefined);
+  this.canRename = ko.observable<boolean | undefined>(undefined);
   this.canExpand = ko.observable<boolean>(true);
-  this.overrideDisableAddRemoveRows = ko.observable<boolean|undefined>(undefined);
+  this.overrideDisableAddRemoveRows = ko.observable<boolean | undefined>(undefined);
 }

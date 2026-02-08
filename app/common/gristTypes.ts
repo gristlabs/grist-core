@@ -1,52 +1,50 @@
-import { CellValue, CellVersions } from 'app/common/DocActions';
-import { GristObjCode, GristType } from 'app/plugin/GristData';
-import isString = require('lodash/isString');
+import { CellValue, CellVersions } from "app/common/DocActions";
 import { removePrefix } from "app/common/gutil";
+import { GristObjCode, GristType } from "app/plugin/GristData";
 
-// tslint:disable:object-literal-key-quotes
+import isString from "lodash/isString";
 
 export type GristTypeInfo =
-  {type: 'DateTime', timezone: string} |
-  {type: 'Ref', tableId: string} |
-  {type: 'RefList', tableId: string} |
-  {type: Exclude<GristType, 'DateTime'|'Ref'|'RefList'>};
+  { type: "DateTime", timezone: string } |
+  { type: "Ref", tableId: string } |
+  { type: "RefList", tableId: string } |
+  { type: Exclude<GristType, "DateTime" | "Ref" | "RefList"> };
 
-export const MANUALSORT = 'manualSort';
+export const MANUALSORT = "manualSort";
 
 // Whether a column is internal and should be hidden.
 export function isHiddenCol(colId: string): boolean {
-  return colId.startsWith('gristHelper_') || colId === MANUALSORT;
+  return colId.startsWith("gristHelper_") || colId === MANUALSORT;
 }
 
 // This mapping includes both the default value, and its representation for SQLite.
-const _defaultValues: {[key in GristType]: [CellValue, string]} = {
-  'Any':              [ null,  "NULL"  ],
-  'Attachments':      [ null,  "NULL"  ],
-  'Blob':             [ null,  "NULL"  ],
+const _defaultValues: { [key in GristType]: [CellValue, string] } = {
+  Any: [null,  "NULL"],
+  Attachments: [null,  "NULL"],
+  Blob: [null,  "NULL"],
   // Bool is only supported by SQLite as 0 and 1 values.
-  'Bool':             [ false, "0" ],
-  'Choice':           [ '',    "''"    ],
-  'ChoiceList':       [ null,  "NULL"  ],
-  'Date':             [ null,  "NULL"  ],
-  'DateTime':         [ null,  "NULL"  ],
-  'Id':               [ 0,     "0"     ],
-  'Int':              [ 0,     "0"     ],
+  Bool: [false, "0"],
+  Choice: ["",    "''"],
+  ChoiceList: [null,  "NULL"],
+  Date: [null,  "NULL"],
+  DateTime: [null,  "NULL"],
+  Id: [0,     "0"],
+  Int: [0,     "0"],
   // Note that "1e999" is a way to store Infinity into SQLite. This is verified by "Defaults"
   // tests in DocStorage.js. See also http://sqlite.1065341.n5.nabble.com/Infinity-td55327.html.
-  'ManualSortPos':    [ Number.POSITIVE_INFINITY, "1e999" ],
-  'Numeric':          [ 0,     "0"     ],
-  'PositionNumber':   [ Number.POSITIVE_INFINITY, "1e999" ],
-  'Ref':              [ 0,     "0"     ],
-  'RefList':          [ null,  "NULL"  ],
-  'Text':             [ '',    "''"    ],
+  ManualSortPos: [Number.POSITIVE_INFINITY, "1e999"],
+  Numeric: [0,     "0"],
+  PositionNumber: [Number.POSITIVE_INFINITY, "1e999"],
+  Ref: [0,     "0"],
+  RefList: [null,  "NULL"],
+  Text: ["",    "''"],
 };
-
 
 /**
  * Given a grist column type (e.g Text, Numeric, ...) returns the default value for that type.
  * If options.sqlFormatted is true, returns the representation of the value for SQLite.
  */
-export function getDefaultForType(colType: string, options: {sqlFormatted?: boolean} = {}) {
+export function getDefaultForType(colType: string, options: { sqlFormatted?: boolean } = {}) {
   const type = extractTypeFromColType(colType);
   return (_defaultValues[type as GristType] || _defaultValues.Any)[options.sqlFormatted ? 1 : 0];
 }
@@ -57,14 +55,14 @@ export function getDefaultForType(colType: string, options: {sqlFormatted?: bool
  */
 export function extractInfoFromColType(colType: string): GristTypeInfo {
   if (colType === "Attachments") {
-    return {type: "RefList", tableId: "_grist_Attachments"};
+    return { type: "RefList", tableId: "_grist_Attachments" };
   }
-  const colon = colType.indexOf(':');
+  const colon = colType.indexOf(":");
   const [type, arg] = (colon === -1) ? [colType] : [colType.slice(0, colon), colType.slice(colon + 1)];
-  return (type === 'Ref') ? {type, tableId: String(arg)} :
-    (type === 'RefList')  ? {type, tableId: String(arg)} :
-    (type === 'DateTime') ? {type, timezone: String(arg)} :
-    {type} as GristTypeInfo;
+  return (type === "Ref") ? { type, tableId: String(arg) } :
+    (type === "RefList")  ? { type, tableId: String(arg) } :
+      (type === "DateTime") ? { type, timezone: String(arg) } :
+        { type } as GristTypeInfo;
 }
 
 /**
@@ -74,16 +72,15 @@ export function extractInfoFromColType(colType: string): GristTypeInfo {
  *    reencodeAsAny(123, 'Reference', 'Table1') -> ['R', 'Table1', 123]
  */
 export function reencodeAsAny(value: CellValue, typeInfo: GristTypeInfo): CellValue {
-  if (typeof value === 'number') {
+  if (typeof value === "number") {
     switch (typeInfo.type) {
-      case 'Date': return [GristObjCode.Date, value];
-      case 'DateTime': return [GristObjCode.DateTime, value, typeInfo.timezone];
-      case 'Ref': return [GristObjCode.Reference, typeInfo.tableId, value];
+      case "Date": return [GristObjCode.Date, value];
+      case "DateTime": return [GristObjCode.DateTime, value, typeInfo.timezone];
+      case "Ref": return [GristObjCode.Reference, typeInfo.tableId, value];
     }
   }
   return value;
 }
-
 
 /**
  * Returns whether a value (as received in a DocAction) represents a custom object.
@@ -96,7 +93,7 @@ export function isObject(value: CellValue): value is [GristObjCode, any?] {
  * Returns GristObjCode of the value if the value is an object, or null otherwise.
  * The return type includes any string, since we should not assume we can only get valid codes.
  */
-export function getObjCode(value: CellValue): GristObjCode|string|null {
+export function getObjCode(value: CellValue): GristObjCode | string | null {
   return Array.isArray(value) ? value[0] : null;
 }
 
@@ -148,8 +145,7 @@ export function isReferenceList(value: CellValue): value is [GristObjCode.Refere
  * Returns whether a value (as received in a DocAction) represents a reference or reference list.
  */
 export function isReferencing(value: CellValue):
-  value is [GristObjCode.ReferenceList|GristObjCode.Reference, string, number[]|number]
-{
+  value is [GristObjCode.ReferenceList | GristObjCode.Reference, string, number[] | number] {
   return Array.isArray(value) &&
     (value[0] === GristObjCode.ReferenceList || value[0] === GristObjCode.Reference);
 }
@@ -176,14 +172,14 @@ export function isEmptyReferenceList(value: CellValue): boolean {
   return Array.isArray(value) && value.length === 1 && value[0] === GristObjCode.ReferenceList;
 }
 
-function isNumber(v: CellValue) { return typeof v === 'number' || typeof v === 'boolean'; }
+function isNumber(v: CellValue) { return typeof v === "number" || typeof v === "boolean"; }
 function isNumberOrNull(v: CellValue) { return isNumber(v) || v === null; }
-function isBoolean(v: CellValue) { return typeof v === 'boolean' || v === 1 || v === 0; }
+function isBoolean(v: CellValue) { return typeof v === "boolean" || v === 1 || v === 0; }
 function isBooleanOrNull(v: CellValue) { return isBoolean(v) || v === null; }
 
 // These values are not regular cell values, even in a column of type Any.
 const abnormalValueTypes: string[] = [GristObjCode.Exception, GristObjCode.Pending, GristObjCode.Skip,
-                                      GristObjCode.Unmarshallable, GristObjCode.Versions];
+  GristObjCode.Unmarshallable, GristObjCode.Versions];
 
 function isNormalValue(value: CellValue) {
   return !abnormalValueTypes.includes(getObjCode(value)!);
@@ -193,23 +189,23 @@ function isNormalValue(value: CellValue) {
  * Map of Grist type to an "isRightType" checker function, which determines if a given values type
  * matches the declared type of the column.
  */
-const rightType: {[key in GristType]: (value: CellValue) => boolean} = {
-  Any:            isNormalValue,
-  Attachments:    isListOrNull,
-  Text:           isString,
-  Blob:           isString,
-  Int:            isNumberOrNull,
-  Bool:           isBooleanOrNull,
-  Date:           isNumberOrNull,
-  DateTime:       isNumberOrNull,
-  Numeric:        isNumberOrNull,
-  Id:             isNumber,
+const rightType: { [key in GristType]: (value: CellValue) => boolean } = {
+  Any: isNormalValue,
+  Attachments: isListOrNull,
+  Text: isString,
+  Blob: isString,
+  Int: isNumberOrNull,
+  Bool: isBooleanOrNull,
+  Date: isNumberOrNull,
+  DateTime: isNumberOrNull,
+  Numeric: isNumberOrNull,
+  Id: isNumber,
   PositionNumber: isNumber,
-  ManualSortPos:  isNumber,
-  Ref:            isNumber,
-  RefList:        isListOrNull,
-  Choice:         isString,
-  ChoiceList:     isListOrNull,
+  ManualSortPos: isNumber,
+  Ref: isNumber,
+  RefList: isListOrNull,
+  Choice: isString,
+  ChoiceList: isListOrNull,
 };
 
 export function isRightType(type: string): undefined | ((value: CellValue, options?: any) => boolean) {
@@ -218,7 +214,7 @@ export function isRightType(type: string): undefined | ((value: CellValue, optio
 
 export function extractTypeFromColType(type: string): string {
   if (!type) { return type; }
-  const colon = type.indexOf(':');
+  const colon = type.indexOf(":");
   return (colon === -1 ? type : type.slice(0, colon));
 }
 
@@ -231,7 +227,6 @@ export enum RecalcWhen {
   NEVER = 1,           // Don't calculate automatically (but user can trigger manually)
   MANUAL_UPDATES = 2,  // Calculate on new records and on manual updates to any data field.
 }
-
 
 /**
  * Converts SQL type strings produced by the Sequelize library into its corresponding
@@ -251,70 +246,70 @@ export function sequelizeToGristType(sqlType: string): GristType {
   // Sequelize type strings can include parens (e.g., `CHAR(10)`). This function
   // ignores those additional details when determining the Grist type.
   let endMarker = sqlType.length;
-  const parensMarker = sqlType.indexOf('(');
+  const parensMarker = sqlType.indexOf("(");
   endMarker = parensMarker > 0 ? parensMarker : endMarker;
 
   // Type strings might also include a space after the basic type description.
   // The type `DOUBLE PRECISION` is one such example, but modifiers or attributes
   // relevant to the type might also appear after the type itself (e.g., UNSIGNED,
   // NONZERO). These are ignored when determining the Grist type.
-  const spaceMarker = sqlType.indexOf(' ');
+  const spaceMarker = sqlType.indexOf(" ");
   endMarker = spaceMarker > 0 && spaceMarker < endMarker ? spaceMarker : endMarker;
 
   switch (sqlType.substring(0, endMarker)) {
-    case 'INTEGER':
-    case 'BIGINT':
-    case 'SMALLINT':
-    case 'INT':
-      return 'Int';
-    case 'NUMBER':
-    case 'FLOAT':
-    case 'DECIMAL':
-    case 'NUMERIC':
-    case 'REAL':
-    case 'DOUBLE':
-    case 'DOUBLE PRECISION':
-      return 'Numeric';
-    case 'BOOLEAN':
-    case 'TINYINT':
-      return 'Bool';
-    case 'STRING':
-    case 'CHAR':
-    case 'TEXT':
-    case 'UUID':
-    case 'UUIDV1':
-    case 'UUIDV4':
-    case 'VARCHAR':
-    case 'NVARCHAR':
-    case 'TINYTEXT':
-    case 'MEDIUMTEXT':
-    case 'LONGTEXT':
-    case 'ENUM':
-      return 'Text';
-    case 'TIME':
-    case 'DATE':
-    case 'DATEONLY':
-    case 'DATETIME':
-    case 'NOW':
-      return 'Text';
-    case 'BLOB':
-    case 'TINYBLOB':
-    case 'MEDIUMBLOB':
-    case 'LONGBLOB':
+    case "INTEGER":
+    case "BIGINT":
+    case "SMALLINT":
+    case "INT":
+      return "Int";
+    case "NUMBER":
+    case "FLOAT":
+    case "DECIMAL":
+    case "NUMERIC":
+    case "REAL":
+    case "DOUBLE":
+    case "DOUBLE PRECISION":
+      return "Numeric";
+    case "BOOLEAN":
+    case "TINYINT":
+      return "Bool";
+    case "STRING":
+    case "CHAR":
+    case "TEXT":
+    case "UUID":
+    case "UUIDV1":
+    case "UUIDV4":
+    case "VARCHAR":
+    case "NVARCHAR":
+    case "TINYTEXT":
+    case "MEDIUMTEXT":
+    case "LONGTEXT":
+    case "ENUM":
+      return "Text";
+    case "TIME":
+    case "DATE":
+    case "DATEONLY":
+    case "DATETIME":
+    case "NOW":
+      return "Text";
+    case "BLOB":
+    case "TINYBLOB":
+    case "MEDIUMBLOB":
+    case "LONGBLOB":
       // TODO: Passing binary data to the Sandbox is throwing Errors. Proper support
       // for these Blob data types requires some more investigation.
-      throw new Error('SQL type: `' + sqlType + '` is currently unsupported');
-    case 'NONE':
-    case 'HSTORE':
-    case 'JSON':
-    case 'JSONB':
-    case 'VIRTUAL':
-    case 'ARRAY':
-    case 'RANGE':
-    case 'GEOMETRY':
-      throw new Error('SQL type: `' + sqlType + '` is currently untested');
+      throw new Error("SQL type: `" + sqlType + "` is currently unsupported");
+    case "NONE":
+    case "HSTORE":
+    case "JSON":
+    case "JSONB":
+    case "VIRTUAL":
+    case "ARRAY":
+    case "RANGE":
+    case "GEOMETRY":
+      throw new Error("SQL type: `" + sqlType + "` is currently untested");
     default:
-      throw new Error('Unrecognized datatype: `' + sqlType + '`');
+      throw new Error("Unrecognized datatype: `" + sqlType + "`");
   }
 }
 
@@ -326,29 +321,29 @@ export function getReferencedTableId(type: string) {
 }
 
 export function isRefListType(type: string) {
-  return type === "Attachments" || type?.startsWith('RefList:');
+  return type === "Attachments" || type?.startsWith("RefList:");
 }
 
 export function isListType(type: string) {
   return type === "ChoiceList" || isRefListType(type);
 }
 
-export function isNumberType(type: string|undefined) {
-  return ['Numeric', 'Int'].includes(type || '');
+export function isNumberType(type: string | undefined) {
+  return ["Numeric", "Int"].includes(type || "");
 }
 
 export function isDateLikeType(type: string) {
-  return type === 'Date' || type.startsWith('DateTime');
+  return type === "Date" || type.startsWith("DateTime");
 }
 
 export function isFullReferencingType(type: string) {
-  return type.startsWith('Ref:') || isRefListType(type);
+  return type.startsWith("Ref:") || isRefListType(type);
 }
 
-export function isValidRuleValue(value: CellValue|undefined) {
+export function isValidRuleValue(value: CellValue | undefined) {
   // We want to strictly test if a value is boolean, when the value is 0 or 1 it might
   // indicate other number in the future.
-  return value === null || typeof value === 'boolean';
+  return value === null || typeof value === "boolean";
 }
 
 /**
@@ -360,13 +355,13 @@ export function isValidRuleValue(value: CellValue|undefined) {
 export function isBlankValue(value: CellValue) {
   return (
     value === null ||
-    (typeof value === 'string' && value.trim().length === 0) ||
+    (typeof value === "string" && value.trim().length === 0) ||
     isEmptyList(value) ||
     isEmptyReferenceList(value)
   );
 }
 
-export type RefListValue = [GristObjCode.List, ...number[]]|null;
+export type RefListValue = [GristObjCode.List, ...number[]] | null;
 
 /**
  * Type of cell metadata information.

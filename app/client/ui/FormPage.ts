@@ -1,25 +1,26 @@
-import {FormRenderer} from 'app/client/components/FormRenderer';
-import {handleSubmit, TypedFormData} from 'app/client/lib/formUtils';
-import {makeT} from 'app/client/lib/localization';
-import {sanitizeHttpUrl} from 'app/client/lib/sanitizeUrl';
-import {FormModel, FormModelImpl} from 'app/client/models/FormModel';
-import {buildFormFooter} from 'app/client/ui/FormContainer';
-import {FormErrorPage} from 'app/client/ui/FormErrorPage';
-import {FormSuccessPage} from 'app/client/ui/FormSuccessPage';
-import {colors} from 'app/client/ui2018/cssVars';
-import {ApiError} from 'app/common/ApiError';
-import {getPageTitleSuffix} from 'app/common/gristUrls';
-import {getGristConfig} from 'app/common/urlUtils';
-import {Disposable, dom, makeTestId, Observable, styled, subscribe} from 'grainjs';
-import {withInfoTooltip} from 'app/client/ui/tooltips';
+import { FormRenderer } from "app/client/components/FormRenderer";
+import { handleSubmit, TypedFormData } from "app/client/lib/formUtils";
+import { makeT } from "app/client/lib/localization";
+import { sanitizeHttpUrl } from "app/client/lib/sanitizeUrl";
+import { FormModel, FormModelImpl } from "app/client/models/FormModel";
+import { buildFormFooter } from "app/client/ui/FormContainer";
+import { FormErrorPage } from "app/client/ui/FormErrorPage";
+import { FormSuccessPage } from "app/client/ui/FormSuccessPage";
+import { withInfoTooltip } from "app/client/ui/tooltips";
+import { colors } from "app/client/ui2018/cssVars";
+import { ApiError } from "app/common/ApiError";
+import { getPageTitleSuffix } from "app/common/gristUrls";
+import { getGristConfig } from "app/common/urlUtils";
 
-const t = makeT('FormPage');
+import { Disposable, dom, makeTestId, Observable, styled, subscribe } from "grainjs";
 
-const testId = makeTestId('test-form-');
+const t = makeT("FormPage");
+
+const testId = makeTestId("test-form-");
 
 export class FormPage extends Disposable {
   private readonly _model: FormModel = new FormModelImpl();
-  private readonly _error = Observable.create<string|null>(this, null);
+  private readonly _error = Observable.create<string | null>(this, null);
 
   constructor() {
     super();
@@ -34,7 +35,7 @@ export class FormPage extends Disposable {
 
   public buildDom() {
     return cssPageContainer(
-      dom.domComputed(use => {
+      dom.domComputed((use) => {
         const error = use(this._model.error);
         if (error) { return dom.create(FormErrorPage, error); }
 
@@ -47,7 +48,7 @@ export class FormPage extends Disposable {
   }
 
   private _buildFormPageDom() {
-    return dom.domComputed(use => {
+    return dom.domComputed((use) => {
       const form = use(this._model.form);
       const rootLayoutNode = use(this._model.formLayout);
       if (!form || !rootLayoutNode) { return null; }
@@ -61,15 +62,15 @@ export class FormPage extends Disposable {
 
       const formFraming = getGristConfig().formFraming;
 
-      return dom('div',
+      return dom("div",
         cssFormBorder(
-          testId('framing'),
+          testId("framing"),
           cssFormBorder.cls(`-${formFraming}`),
-          formFraming !== 'border' ? null :
+          formFraming !== "border" ? null :
             cssFormBorderHelp(withInfoTooltip(
-              'Grist Form',
-              'formFraming',
-              {iconDomArgs: [cssFormBorderHelpButton.cls('')]}
+              "Grist Form",
+              "formFraming",
+              { iconDomArgs: [cssFormBorderHelpButton.cls("")] },
             )),
           cssForm(
             cssFormBody(
@@ -80,7 +81,7 @@ export class FormPage extends Disposable {
                   pending: this._model.submitting,
                   onSubmit: (_formData, formElement) => this._handleFormSubmit(formElement),
                   onSuccess: () => this._handleFormSubmitSuccess(),
-                  onError: (e) => this._handleFormError(e),
+                  onError: e => this._handleFormError(e),
                 }),
               ),
             ),
@@ -89,7 +90,7 @@ export class FormPage extends Disposable {
         cssFormFooter(
           buildFormFooter(),
         ),
-        testId('page'),
+        testId("page"),
       );
     });
   }
@@ -100,9 +101,9 @@ export class FormPage extends Disposable {
 
   private async _handleFormSubmitSuccess() {
     const formLayout = this._model.formLayout.get();
-    if (!formLayout) { throw new Error('formLayout is not defined'); }
+    if (!formLayout) { throw new Error("formLayout is not defined"); }
 
-    const {successURL} = formLayout;
+    const { successURL } = formLayout;
     if (successURL) {
       const url = sanitizeHttpUrl(successURL);
       if (url) {
@@ -114,22 +115,22 @@ export class FormPage extends Disposable {
   }
 
   private _handleFormError(e: unknown) {
-    this._error.set(t('There was an error submitting your form. Please try again.'));
+    this._error.set(t("There was an error submitting your form. Please try again."));
     if (!(e instanceof ApiError) || e.status >= 500) {
       // If it doesn't look like a user error (i.e. a 4XX HTTP response), report it.
-      reportError(e as Error|string);
+      reportError(e as Error | string);
     }
   }
 }
 
-const cssPageContainer = styled('div', `
+const cssPageContainer = styled("div", `
   height: 100%;
   width: 100%;
   padding: 20px;
   overflow: auto;
 `);
 
-const cssFormBorder = styled('div', `
+const cssFormBorder = styled("div", `
   margin: 0px auto;
   position: relative;
   &-border {
@@ -145,7 +146,7 @@ const cssFormBorder = styled('div', `
   }
 `);
 
-const cssFormBorderHelp = styled('div', `
+const cssFormBorderHelp = styled("div", `
   color: white;
   position: absolute;
   top: -18px;
@@ -153,7 +154,7 @@ const cssFormBorderHelp = styled('div', `
   font-size: 12px;
 `);
 
-const cssFormBorderHelpButton = styled('div', `
+const cssFormBorderHelpButton = styled("div", `
   border-color: white;
   color: white;
   height: 1rem;
@@ -166,7 +167,7 @@ const cssFormBorderHelpButton = styled('div', `
   }
 `);
 
-const cssForm = styled('div', `
+const cssForm = styled("div", `
   display: flex;
   position: relative;
   overflow: hidden;
@@ -176,12 +177,12 @@ const cssForm = styled('div', `
   border-radius: 3px;
 `);
 
-const cssFormBody = styled('main', `
+const cssFormBody = styled("main", `
   width: 100%;
 `);
 
 // TODO: break up and move to `FormRendererCss.ts`.
-const cssFormContent = styled('form', `
+const cssFormContent = styled("form", `
   color: ${colors.dark};
   font-size: 15px;
   line-height: 1.42857143;
@@ -226,7 +227,7 @@ const cssFormContent = styled('form', `
   }
 `);
 
-const cssFormFooter = styled('footer', `
+const cssFormFooter = styled("footer", `
   padding: 8px 16px;
   width: 100%;
 `);

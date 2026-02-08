@@ -56,6 +56,8 @@ export const ICommonUrls = t.iface([], {
   "githubSponsorGristLabs": "string",
   "versionCheck": "string",
   "attachmentStorage": "string",
+  "signInWithGristRegister": "string",
+  "signInWithGristHelp": "string",
 });
 
 const exportedTypeSuite: t.ITypeSuite = {

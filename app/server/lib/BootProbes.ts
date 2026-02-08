@@ -1,12 +1,14 @@
-import { ApiError } from 'app/common/ApiError';
-import { BootProbeIds, BootProbeResult } from 'app/common/BootProbe';
-import { removeTrailingSlash } from 'app/common/gutil';
-import { expressWrap, jsonErrorHandler } from 'app/server/lib/expressWrap';
-import { GristServer } from 'app/server/lib/GristServer';
-import * as express from 'express';
-import WS from 'ws';
-import fetch from 'node-fetch';
-import { DEFAULT_SESSION_SECRET } from 'app/server/lib/ICreate';
+import { ApiError } from "app/common/ApiError";
+import { BootProbeIds, BootProbeResult } from "app/common/BootProbe";
+import { removeTrailingSlash } from "app/common/gutil";
+import { appSettings } from "app/server/lib/AppSettings";
+import { expressWrap, jsonErrorHandler } from "app/server/lib/expressWrap";
+import { GristServer } from "app/server/lib/GristServer";
+import { DEFAULT_SESSION_SECRET } from "app/server/lib/ICreate";
+
+import * as express from "express";
+import fetch from "node-fetch";
+import WS from "ws";
 
 /**
  * Self-diagnostics useful when installing Grist.
@@ -19,35 +21,37 @@ export class BootProbes {
   public _probeById = new Map<string, Probe>();
 
   public constructor(private _app: express.Application,
-                     private _server: GristServer,
-                     private _base: string,
-                     private _middleware: express.Handler[] = []) {
+    private _server: GristServer,
+    private _base: string,
+    private _middleware: express.Handler[] = []) {
     this._addProbes();
   }
 
   public addEndpoints() {
     // Return a list of available probes.
+    // GET /api/probes
     this._app.use(`${this._base}/probes$`,
-                  ...this._middleware,
-                  expressWrap(async (_, res) => {
-      res.json({
-        'probes': this._probes.map(probe => {
-          return { id: probe.id, name: probe.name };
-        }),
-      });
-    }));
+      ...this._middleware,
+      expressWrap(async (_, res) => {
+        res.json({
+          probes: this._probes.map((probe) => {
+            return { id: probe.id, name: probe.name };
+          }),
+        });
+      }));
 
     // Return result of running an individual probe.
+    // GET /api/probes/:probeId
     this._app.use(`${this._base}/probes/:probeId`,
-                  ...this._middleware,
-                  expressWrap(async (req, res) => {
-      const probe = this._probeById.get(req.params.probeId);
-      if (!probe) {
-        throw new ApiError('unknown probe', 400);
-      }
-      const result = await probe.apply(this._server, req);
-      res.json(result);
-    }));
+      ...this._middleware,
+      expressWrap(async (req, res) => {
+        const probe = this._probeById.get(req.params.probeId);
+        if (!probe) {
+          throw new ApiError("unknown probe", 400);
+        }
+        const result = await probe.apply(this._server, req);
+        res.json(result);
+      }));
 
     // Fall-back for errors.
     this._app.use(`${this._base}/probes`, jsonErrorHandler);
@@ -80,27 +84,27 @@ export interface Probe {
 }
 
 const _admins: Probe = {
-  id: 'admins',
-  name: 'Currently defined install admins',
+  id: "admins",
+  name: "Currently defined install admins",
   apply: async (server, req) => {
     try {
       const users = await server.getInstallAdmin().getAdminUsers(req);
       return {
-        status: 'success',
-        details: {users}
+        status: "success",
+        details: { users },
       };
     } catch (e) {
       return {
-        status: 'fault',
-        details: {error: String(e)},
+        status: "fault",
+        details: { error: String(e) },
       };
     }
-  }
+  },
 };
 
 const _homeUrlReachableProbe: Probe = {
-  id: 'reachable',
-  name: 'Is home page available at expected URL',
+  id: "reachable",
+  name: "Is home page available at expected URL",
   apply: async (server, req) => {
     const url = server.getHomeInternalUrl();
     const details: Record<string, any> = {
@@ -113,7 +117,7 @@ const _homeUrlReachableProbe: Probe = {
         throw new ApiError(await resp.text(), resp.status);
       }
       return {
-        status: 'success',
+        status: "success",
         details,
       };
     } catch (e) {
@@ -122,50 +126,50 @@ const _homeUrlReachableProbe: Probe = {
           ...details,
           error: String(e),
         },
-        status: 'fault',
+        status: "fault",
       };
     }
-  }
+  },
 };
 
 const _webSocketsProbe: Probe = {
-  id: 'websockets',
-  name: 'Can we open a websocket with the server',
+  id: "websockets",
+  name: "Can we open a websocket with the server",
   apply: async (server, req) => {
     return new Promise((resolve) => {
       const url = new URL(server.getHomeUrl(req));
-      url.protocol = (url.protocol === 'https:') ? 'wss:' : 'ws:';
+      url.protocol = (url.protocol === "https:") ? "wss:" : "ws:";
       const ws = new WS.WebSocket(url.href);
       const details: Record<string, any> = {
         url,
       };
-      ws.on('open', () => {
+      ws.on("open", () => {
         ws.send('{"msg": "Just nod if you can hear me."}');
         resolve({
-          status: 'success',
+          status: "success",
           details,
         });
         ws.close();
       });
-      ws.on('error', (ev) => {
+      ws.on("error", (ev) => {
         details.error = ev.message;
         resolve({
-          status: 'fault',
+          status: "fault",
           details,
         });
         ws.close();
       });
     });
-  }
+  },
 };
 
 const _statusCheckProbe: Probe = {
-  id: 'health-check',
-  name: 'Is an internal health check passing',
+  id: "health-check",
+  name: "Is an internal health check passing",
   apply: async (server, req) => {
     const baseUrl = server.getHomeInternalUrl();
     const url = new URL(baseUrl);
-    url.pathname = removeTrailingSlash(url.pathname) + '/status';
+    url.pathname = removeTrailingSlash(url.pathname) + "/status";
     const details: Record<string, any> = {
       url: url.href,
     };
@@ -176,11 +180,11 @@ const _statusCheckProbe: Probe = {
         throw new Error(`Failed with status ${resp.status}`);
       }
       const txt = await resp.text();
-      if (!txt.includes('is alive')) {
+      if (!txt.includes("is alive")) {
         throw new Error(`Failed, page has unexpected content`);
       }
       return {
-        status: 'success',
+        status: "success",
         details,
       };
     } catch (e) {
@@ -189,28 +193,28 @@ const _statusCheckProbe: Probe = {
           ...details,
           error: String(e),
         },
-        status: 'fault',
+        status: "fault",
       };
     }
   },
 };
 
 const _userProbe: Probe = {
-  id: 'system-user',
-  name: 'Is the system user following best practice',
+  id: "system-user",
+  name: "Is the system user following best practice",
   apply: async () => {
     const details = {
-      uid: process.getuid ? process.getuid() : 'unavailable',
+      uid: process.getuid ? process.getuid() : "unavailable",
     };
     if (process.getuid && process.getuid() === 0) {
       return {
         details,
-        verdict: 'User appears to be root (UID 0)',
-        status: 'warning',
+        verdict: "User appears to be root (UID 0)",
+        status: "warning",
       };
     } else {
       return {
-        status: 'success',
+        status: "success",
         details,
       };
     }
@@ -218,29 +222,29 @@ const _userProbe: Probe = {
 };
 
 const _bootProbe: Probe = {
-  id: 'boot-page',
-  name: 'Is the boot page adequately protected',
+  id: "boot-page",
+  name: "Is the boot page adequately protected",
   apply: async (server) => {
-    const bootKey = server.getBootKey() || '';
+    const bootKey = server.getBootKey() || "";
     const hasBoot = Boolean(bootKey);
     const details: Record<string, any> = {
       bootKeySet: hasBoot,
     };
     if (!hasBoot) {
-      return { status: 'success', details };
+      return { status: "success", details };
     }
     details.bootKeyLength = bootKey.length;
     if (bootKey.length < 10) {
       return {
-        verdict: 'Boot key length is shorter than 10.',
+        verdict: "Boot key length is shorter than 10.",
         details,
-        status: 'fault',
+        status: "fault",
       };
     }
     return {
-      verdict: 'Boot key ideally should be removed after installation.',
+      verdict: "Boot key ideally should be removed after installation.",
       details,
-      status: 'warning',
+      status: "warning",
     };
   },
 };
@@ -253,70 +257,84 @@ const _bootProbe: Probe = {
  * to have an accurate Host header.
  */
 const _hostHeaderProbe: Probe = {
-  id: 'host-header',
-  name: 'Does the host header look correct',
+  id: "host-header",
+  name: "Does the host header look correct",
   apply: async (server, req) => {
-    const host = req.header('host');
+    const host = req.header("host");
     const url = new URL(server.getHomeUrl(req));
     const details = {
       homeUrlHost: url.hostname,
       headerHost: host,
     };
-    if (url.hostname === 'localhost') {
+    if (url.hostname === "localhost") {
       return {
-        status: 'none',
+        status: "none",
         details,
       };
     }
     if (String(url.hostname).toLowerCase() !== String(host).toLowerCase()) {
       return {
         details,
-        status: 'hmm',
+        status: "hmm",
       };
     }
     return {
-      status: 'none',
+      status: "none",
       details,
     };
   },
 };
 
 const _sandboxingProbe: Probe = {
-  id: 'sandboxing',
-  name: 'Is document sandboxing effective',
+  id: "sandboxing",
+  name: "Is document sandboxing effective",
   apply: async (server, req) => {
     const details = await server.getSandboxInfo();
     return {
-      status: (details?.configured && details?.functional) ? 'success' : 'fault',
+      status: (details?.configured && details?.functional) ? "success" : "fault",
       details,
     };
   },
 };
 
 const _authenticationProbe: Probe = {
-  id: 'authentication',
-  name: 'Authentication system',
-  apply: async(server, req) => {
-    const loginSystemId = server.getInfo('loginMiddlewareComment');
+  id: "authentication",
+  name: "Authentication system",
+  apply: async (server, req) => {
+    // Check what provider is active, there is always one, even if there are errors.
+    const active = appSettings.section("login").flag("active").get();
+
+    if (!active) {
+      return {
+        status: "fault",
+        verdict: "No active authentication provider",
+      };
+    }
+
+    // Check if active provider has errors.
+    const error = appSettings.section("login").flag("error").get();
+    const provider = String(active);
+    const status = error ? "fault" : provider === "no-auth" ? "warning" : "success";
     return {
-      status: (loginSystemId != undefined) ? 'success' : 'fault',
+      status,
+      verdict: error ? String(error) : undefined,
       details: {
-        loginSystemId,
-      }
+        provider,
+      },
     };
   },
 };
 
 const _sessionSecretProbe: Probe = {
-  id: 'session-secret',
-  name: 'Session secret',
-  apply: async(server, req) => {
+  id: "session-secret",
+  name: "Session secret",
+  apply: async (server, req) => {
     const usingDefaultSessionSecret = server.create.sessionSecret() === DEFAULT_SESSION_SECRET;
     return {
-      status: usingDefaultSessionSecret ? 'warning' : 'success',
+      status: usingDefaultSessionSecret ? "warning" : "success",
       details: {
-        "GRIST_SESSION_SECRET": process.env.GRIST_SESSION_SECRET ? "set" : "not set",
-      }
+        GRIST_SESSION_SECRET: process.env.GRIST_SESSION_SECRET ? "set" : "not set",
+      },
     };
   },
 };

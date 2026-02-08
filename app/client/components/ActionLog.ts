@@ -2,28 +2,31 @@
  * ActionLog manages the list of actions from server and displays them in the side bar.
  */
 
-import {GristDoc} from 'app/client/components/GristDoc';
-import * as dispose from 'app/client/lib/dispose';
-import koArray from 'app/client/lib/koArray';
-import {KoArray} from 'app/client/lib/koArray';
-import * as koDom from 'app/client/lib/koDom';
-import {makeT} from 'app/client/lib/localization';
-import {ClientTimeData} from 'app/client/models/TimeQuery';
-import {basicButton} from 'app/client/ui2018/buttons';
-import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
-import {theme} from 'app/client/ui2018/cssVars';
-import {ActionGroup} from 'app/common/ActionGroup';
-import {concatenateSummaryPair} from 'app/common/ActionSummarizer';
+import { GristDoc } from "app/client/components/GristDoc";
+import * as dispose from "app/client/lib/dispose";
+import koArray from "app/client/lib/koArray";
+import { KoArray } from "app/client/lib/koArray";
+import * as koDom from "app/client/lib/koDom";
+import { makeT } from "app/client/lib/localization";
+import { ClientTimeData } from "app/client/models/TimeQuery";
+import { basicButton } from "app/client/ui2018/buttons";
+import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
+import { theme } from "app/client/ui2018/cssVars";
+import { ActionGroup } from "app/common/ActionGroup";
+import { concatenateSummaryPair } from "app/common/ActionSummarizer";
 import {
   ActionSummary, asTabularDiffs, createEmptyActionSummary, defunctTableName, getAffectedTables,
-  LabelDelta
-} from 'app/common/ActionSummary';
-import {CellDelta, TabularDiff} from 'app/common/TabularDiff';
-import {timeFormat} from 'app/common/timeFormat';
-import {ResultRow, TimeCursor, TimeQuery} from 'app/common/TimeQuery';
-import {dom, DomContents, fromKo, IDomComponent, styled} from 'grainjs';
-import * as ko from 'knockout';
-import takeWhile = require('lodash/takeWhile');
+  LabelDelta,
+} from "app/common/ActionSummary";
+import { CellDelta, TabularDiff, TabularDiffs } from "app/common/TabularDiff";
+import { timeFormat } from "app/common/timeFormat";
+import { ResultRow, TimeCursor, TimeQuery } from "app/common/TimeQuery";
+
+import { Disposable, dom, DomContents, fromKo, IDomComponent, makeTestId, styled } from "grainjs";
+import * as ko from "knockout";
+import takeWhile from "lodash/takeWhile";
+
+const testId = makeTestId("test-actionlog-");
 
 /**
  *
@@ -38,8 +41,8 @@ import takeWhile = require('lodash/takeWhile');
  */
 export interface ActionGroupWithState extends ActionGroup {
   state?: ko.Observable<string>;  // is action undone/buried
-  tableFilters?: {[tableId: string]: ko.Observable<string>};  // current names of tables
-  affectedTableIds?: Array<ko.Observable<string>>; // names of tables affecting this ActionGroup
+  tableFilters?: { [tableId: string]: ko.Observable<string> };  // current names of tables
+  affectedTableIds?: ko.Observable<string>[]; // names of tables affecting this ActionGroup
   context?: ko.Observable<ActionContext>;  // extra cell information, computed on demand
 }
 
@@ -49,19 +52,19 @@ const gristNotify = window.gristNotify!;
 
 // Action display state enum.
 const state = {
-  UNDONE: 'undone',
-  BURIED: 'buried',
-  DEFAULT: 'default'
+  UNDONE: "undone",
+  BURIED: "buried",
+  DEFAULT: "default",
 };
 
-const t = makeT('ActionLog');
+const t = makeT("ActionLog");
 
 export class ActionLog extends dispose.Disposable implements IDomComponent {
   public displayStack: KoArray<ActionGroupWithState>;
   public selectedTableId: ko.Computed<string>;
   public showAllTables: ko.Observable<boolean>;      // should all tables be visible?
 
-  private _gristDoc: GristDoc|null;
+  private _gristDoc: GristDoc | null;
 
   private _pending: ActionGroupWithState[] = [];  // cache for actions that arrive while loading log
   private _loaded: boolean = false;               // flag set once log is loaded
@@ -74,7 +77,7 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
    *   can cross-reference with it.  We may not have a document, if used from the
    *   command line renderActions utility, in which case we don't set up cross-references.
    */
-  public create(options: {gristDoc: GristDoc|null}) {
+  public create(options: { gristDoc: GristDoc | null }) {
     // By default, just show actions for the currently viewed table.
     this.showAllTables = ko.observable(false);
     // We load the ActionLog lazily now, when it is first viewed.
@@ -106,6 +109,7 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
    * action (and not including it).
    */
   public async getChangesSince(actionNum: number): Promise<ActionSummary> {
+    await this._loadActionSummaries();
     return takeWhile(this.displayStack.all(), item => item.actionNum > actionNum)
       .reduce((summary, item) => concatenateSummaryPair(item.actionSummary, summary), createEmptyActionSummary());
   }
@@ -165,9 +169,12 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
     const part = new ActionLogPartInList(
       this._gristDoc,
       ag,
-      this
+      this,
     );
-    return part.renderTabularDiffs(sum, txt, ag?.context);
+    return part.renderTabularDiffs(sum, {
+      txt,
+      contextObs: ag?.context,
+    });
   }
 
   /**
@@ -176,14 +183,14 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
    * ActionGroup, and simply stored under a new name as needed.
    */
   private _setupFilters(ag: ActionGroupWithState, prev?: ActionGroupWithState): void {
-    const filt: {[name: string]: ko.Observable<string>} = ag.tableFilters = {};
+    const filt: { [name: string]: ko.Observable<string> } = ag.tableFilters = {};
 
     // First, bring along observables for tables from previous actions.
     if (prev) {
       // Tables are renamed from time to time - prepare dictionary of updates.
       const renames = new Map(ag.actionSummary.tableRenames);
       for (const name of Object.keys(prev.tableFilters!)) {
-        if (name.startsWith('-')) {
+        if (name.startsWith("-")) {
           // skip
         } else if (renames.has(name)) {
           const newName = renames.get(name) || defunctTableName(name);
@@ -214,44 +221,44 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
 
   private _buildLogDom() {
     this._loadActionSummaries().catch(() => gristNotify(t("Action Log failed to load")));
-    return dom('div.action_log',
-        {tabIndex: '-1'},
-        dom.maybe(this._censored, () => {
-          return cssHistoryCensored(dom(
-            'p',
-            t('History blocked because of access rules.'),
-          ));
-        }),
-        // currently, if censored, no history at all available - so drop checkbox
-        dom.maybe((use) => !use(this._censored), () => {
-          return dom('div',
-            labeledSquareCheckbox(fromKo(this.showAllTables),
-              t('All tables'),
-            ),
-          );
-        }),
-        dom('div.action_log_load',
-          koDom.show(() => this._loading()),
-          'Loading...'),
-        koDom.foreach(this.displayStack, (ag: ActionGroupWithState) => {
+    return dom("div.action_log",
+      { tabIndex: "-1" },
+      dom.maybe(this._censored, () => {
+        return cssHistoryCensored(dom(
+          "p",
+          t("History blocked because of access rules."),
+        ));
+      }),
+      // currently, if censored, no history at all available - so drop checkbox
+      dom.maybe(use => !use(this._censored), () => {
+        return dom("div",
+          labeledSquareCheckbox(fromKo(this.showAllTables),
+            t("All tables"),
+          ),
+        );
+      }),
+      dom("div.action_log_load",
+        koDom.show(() => this._loading()),
+        "Loading..."),
+      koDom.foreach(this.displayStack, (ag: ActionGroupWithState) => {
         const timestamp = ag.time ? timeFormat("D T", new Date(ag.time)) : "";
         let desc: DomContents = ag.desc || "";
         if (ag.actionSummary) {
           desc = this.renderTabularDiffs(ag.actionSummary, desc, ag);
         }
-        return dom('div.action_log_item',
+        return dom("div.action_log_item",
           koDom.cssClass(ag.state),
           koDom.show(() => this.showAllTables() || this._hasSelectedTable(ag)),
-          dom('div.action_info',
-            dom('span.action_info_action_num', `#${ag.actionNum}`),
-            ag.user ? dom('span.action_info_user',
+          dom("div.action_info",
+            dom("span.action_info_action_num", `#${ag.actionNum}`),
+            ag.user ? dom("span.action_info_user",
               ag.user,
-              koDom.toggleClass('action_info_from_self', ag.fromSelf)
-            ) : '',
-            dom('span.action_info_timestamp', timestamp)),
-          dom('span.action_desc', desc)
+              koDom.toggleClass("action_info_from_self", ag.fromSelf),
+            ) : "",
+            dom("span.action_info_timestamp", timestamp)),
+          dom("span.action_desc", desc),
         );
-      })
+      }),
     );
   }
 
@@ -262,7 +269,7 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
     if (this._loaded || !this._gristDoc) { return; }
     this._loading(true);
     // Returned actions are ordered with earliest actions first.
-    const {actions: result, censored} = await this._gristDoc.docComm.getActionSummaries();
+    const { actions: result, censored } = await this._gristDoc.docComm.getActionSummaries();
     this._censored(censored);
     this._loading(false);
     this._loaded = true;
@@ -278,16 +285,17 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
   }
 }
 
-
 /**
  * Factor out the display of a single action group, since that
  * is useful elsewhere in the UI now. This is an abstract class,
  * we will connect it with ActionLog in ActionLogPartInList.
  */
-export abstract class ActionLogPart {
+export abstract class ActionLogPart extends Disposable {
   public constructor(
-    private _gristDocBase: GristDoc|null,
-  ) {}
+    private _gristDocBase: GristDoc | null,
+  ) {
+    super();
+  }
 
   /**
    * This is used in the ActionLog to selectively show entries in the
@@ -306,7 +314,7 @@ export abstract class ActionLogPart {
   /**
    * Should return completions for the rows mentioned in this entry.
    */
-  public abstract getContext(): Promise<ActionContext|undefined>;
+  public abstract getContext(): Promise<ActionContext | undefined>;
 
   /**
    * Render a description of an action prepared on the server.
@@ -314,63 +322,68 @@ export abstract class ActionLogPart {
    * @param {string} txt - a textual description of the action
    * @param {Observable} context - extra information about the action
    */
-  public renderTabularDiffs(sum: ActionSummary, txt?: string, contextObs?: ko.Observable<ActionContext>): HTMLElement {
+  public renderTabularDiffs(sum: ActionSummary, options: RenderTabularDiffOptions): HTMLElement {
+    const { txt, contextObs } = options;
     const editDom = koDom.scope(contextObs, (context: ActionContext) => {
       const act = asTabularDiffs(sum, {
         context,
         order: this._naiveColumnOrder.bind(this),
       });
-      return dom(
-        'div',
+      return dom("div",
+        testId("tabular-diffs"),
         this._renderTableSchemaChanges(sum),
         this._renderColumnSchemaChanges(sum),
-        Object.entries(act).map(([table, tdiff]: [string, TabularDiff]) => {
-          if (tdiff.cells.length === 0) { return dom('div'); }
-          return dom(
-            'table.action_log_table',
-            koDom.show(() => this.showForTable(table)),
-            dom('caption',
+        options.customRender ? options.customRender?.(act, contextObs!, this.selectCell.bind(this)) :
+          Object.entries(act).map(([table, tdiff]: [string, TabularDiff]) => {
+            if (tdiff.cells.length === 0) { return dom("div"); }
+            return dom(
+              "table.action_log_table",
+              koDom.show(() => this.showForTable(table)),
+              dom("caption",
                 this._renderTableName(table),
                 // Add a little button to show or hide extra context.
                 // This is a baby step, there's a lot more that could
                 // and should be done here.
                 contextObs ? cssBasicButton(
-                  context[table] ? ' <' : ' >',
-                  dom.on('click', async () => {
-                    if (context[table]) {
-                      await this._resetContext(contextObs, table, context);
-                    } else {
-                      await this._setContext(contextObs, table, context);
-                    }
-                  })) : null,
-                dom.style('text-align', 'left'),
-               ),
-            dom(
-              'tr',
-              dom('th'),
-              tdiff.header.map(diff => {
-                return dom('th', this._renderCell(diff));
-              })),
-            tdiff.cells.map(
-              row => {
-                return dom(
-                  'tr',
-                  dom('td', this._renderCell(row.type)),
-                  row.cellDeltas.map((diff, idx: number) => {
-                    return dom('td',
-                               this._renderCell(diff),
-                               dom.on('click', () => {
-                                 return this.selectCell(row.rowId, act[table].header[idx], table);
-                               }));
-                  }));
-              }));
-        }),
-        txt ? dom('span.action_comment', txt) : null,
+                  context[table] ? " <" : " >",
+                  dom.on("click", () => this.toggleContext(contextObs, table))) : null,
+                dom.style("text-align", "left"),
+              ),
+              dom(
+                "tr",
+                dom("th"),
+                tdiff.header.map((diff) => {
+                  return dom("th", this._renderCell(diff));
+                })),
+              tdiff.cells.map(
+                (row) => {
+                  return dom(
+                    "tr",
+                    dom("td", this._renderCell(row.type)),
+                    row.cellDeltas.map((diff, idx: number) => {
+                      return dom("td",
+                        this._renderCell(diff),
+                        dom.on("click", () => {
+                          return this.selectCell(row.rowId, act[table].header[idx], table);
+                        }));
+                    }));
+                }));
+          }),
+        txt ? dom("span.action_comment", txt) : null,
       );
     });
-    return dom('div',
-               editDom);
+    return dom("div", editDom);
   }
+
+  public async toggleContext(contextObs: ko.Observable<ActionContext>, table: string) {
+    const context = contextObs.peek();
+    if (context[table]) {
+      await this._resetContext(contextObs, table, context);
+    } else {
+      await this._setContext(contextObs, table, context);
+    }
+  }
+
   /**
    * Prepare dom element(s) for a cell that has been created, destroyed,
    * or modified.
@@ -379,13 +392,13 @@ export abstract class ActionLogPart {
    *   or a plain string, or null
    *
    */
-  private _renderCell(cell: CellDelta|string|null) {
+  private _renderCell(cell: CellDelta | string | null) {
     // we'll show completely empty cells as "..."
     if (cell === null) {
       return "...";
     }
     // strings are shown as themselves
-    if (typeof(cell) === 'string') {
+    if (typeof (cell) === "string") {
       return cell;
     }
     if (!Array.isArray(cell)) {
@@ -398,15 +411,15 @@ export abstract class ActionLogPart {
       return "";
     } else if (pre && !post) {
       // this is a cell that was removed
-      return dom('span.action_log_cell_remove', pre[0]);
-    } else if (post && (pre === null || (pre[0] === null || pre[0] === ''))) {
+      return dom("span.action_log_cell_remove", pre[0]);
+    } else if (post && (pre === null || (pre[0] === null || pre[0] === ""))) {
       // this is a cell that was added, or modified from a previously empty value
-      return dom('span.action_log_cell_add', post[0]);
+      return dom("span.action_log_cell_add", post[0]);
     } else if (pre && post) {
       // a modified cell
-      return dom('div',
-                 dom('span.action_log_cell_remove.action_log_cell_pre', pre[0]),
-                 dom('span.action_log_cell_add', post[0]));
+      return dom("div",
+        dom("span.action_log_cell_remove.action_log_cell_pre", pre[0]),
+        dom("span.action_log_cell_add", post[0]));
     }
     return JSON.stringify(cell);
   }
@@ -418,12 +431,12 @@ export abstract class ActionLogPart {
    * @returns {string} a friendlier name for the table
    */
   private _renderTableName(name: string): string {
-    if (name.indexOf('_grist_') !== 0) {
+    if (!name.startsWith("_grist_")) {
       // Ordinary data table.  Ideally, we would look up
       // a friendly name from a raw data view - TODO.
       return name;
     }
-    const metaName = name.split('_grist_')[1].replace(/_/g, '.');
+    const metaName = name.split("_grist_")[1].replace(/_/g, ".");
     return `[${metaName}]`;
   }
 
@@ -440,33 +453,33 @@ export abstract class ActionLogPart {
   private _renderSchemaChange(scope: string, pair: LabelDelta) {
     const [pre, post] = pair;
     // ignore addition/removal of manualSort column
-    if ((pre || post) === 'manualSort') { return dom('div'); }
-    return dom('div.action_log_rename',
+    if ((pre || post) === "manualSort") { return dom("div"); }
+    return dom("div.action_log_rename",
       koDom.show(() => this.showForTable(post || defunctTableName(pre!))),
       (!post ? ["Remove ", scope, dom("span.action_log_rename_pre", pre)] :
-       (!pre ? ["Add ", scope, dom("span.action_log_rename_post", post)] :
-        ["Rename ", scope, dom("span.action_log_rename_pre", pre),
-         " to ", dom("span.action_log_rename_post", post)])));
+        (!pre ? ["Add ", scope, dom("span.action_log_rename_post", post)] :
+          ["Rename ", scope, dom("span.action_log_rename_pre", pre),
+            " to ", dom("span.action_log_rename_post", post)])));
   }
 
   /**
    * Show any table additions/removals/renames.
    */
   private _renderTableSchemaChanges(sum: ActionSummary) {
-    return dom('div',
-               sum.tableRenames.map(pair => this._renderSchemaChange("", pair)));
+    return dom("div",
+      sum.tableRenames.map(pair => this._renderSchemaChange("", pair)));
   }
 
   /**
    * Show any column additions/removals/renames.
    */
   private _renderColumnSchemaChanges(sum: ActionSummary) {
-    return dom('div',
-               Object.keys(sum.tableDeltas).filter(key => !key.startsWith('-')).map(key =>
-                 dom('div',
-                     koDom.show(() => this.showForTable(key)),
-                     sum.tableDeltas[key].columnRenames.map(pair =>
-                        this._renderSchemaChange(key + ".", pair)))));
+    return dom("div",
+      Object.keys(sum.tableDeltas).filter(key => !key.startsWith("-")).map(key =>
+        dom("div",
+          koDom.show(() => this.showForTable(key)),
+          sum.tableDeltas[key].columnRenames.map(pair =>
+            this._renderSchemaChange(key + ".", pair)))));
   }
 
   private async _resetContext(contextObs: ko.Observable<ActionContext>, tableId: string, context: ActionContext) {
@@ -479,7 +492,7 @@ export abstract class ActionLogPart {
     // table may have changed name
     tableId = Object.keys(result || {})[0] || tableId;
     if (result) {
-      contextObs({...context, [tableId]: result[tableId]});
+      contextObs({ ...context, [tableId]: result[tableId] });
     }
   }
 
@@ -494,7 +507,7 @@ export abstract class ActionLogPart {
     const refColIds = this._gristDocBase?.docData.getTable(tableId)?.getColIds();
     if (!refColIds) { return colIds; }
     const order = new Map(refColIds.map((id, i) => [id, i]));
-    order.set('id', 0);
+    order.set("id", 0);
     return [...colIds].sort((a, b) => {
       const ai = order.get(a);
       const bi = order.get(b);
@@ -513,8 +526,8 @@ export abstract class ActionLogPart {
  */
 class ActionLogPartInList extends ActionLogPart {
   public constructor(
-    private _gristDoc: GristDoc|null,
-    private _actionGroup: ActionGroupWithState|undefined,
+    private _gristDoc: GristDoc | null,
+    private _actionGroup: ActionGroupWithState | undefined,
     private _actionLog: ActionLog,
   ) {
     super(_gristDoc);
@@ -537,7 +550,7 @@ class ActionLogPartInList extends ActionLogPart {
     for (let i = index; i >= 0; i--) {
       const action = this._actionLog.displayStack.at(i)!;
       const sum = action.actionSummary;
-      const cell = traceCell({rowId, colId, tableId}, sum, (deletedObj: DeletedObject) => {
+      const cell = traceCell({ rowId, colId, tableId }, sum, (deletedObj: DeletedObject) => {
         reportDeletedObject(deletedObj, action.actionNum);
       });
       if (cell) {
@@ -546,10 +559,10 @@ class ActionLogPartInList extends ActionLogPart {
         rowId = cell.rowId;
       }
     }
-    await showCell(this._gristDoc, {tableId, colId, rowId});
+    await showCell(this._gristDoc, { tableId, colId, rowId });
   }
 
-  public async getContext(): Promise<ActionContext|undefined> {
+  public async getContext(): Promise<ActionContext | undefined> {
     if (!this._gristDoc) { return; }
     if (!this._actionGroup) { return; }
     const base = this._actionGroup.actionSummary;
@@ -583,43 +596,43 @@ class ActionLogPartInList extends ActionLogPart {
  * deleted, in which case reportDeletion is called and null is returned.
  * Column and table renames are tracked, with updated names returned.
  */
-export function traceCell(cell: {rowId: number, colId: string, tableId: string},
-                          summary: ActionSummary,
-                          reportDeletion: (deletedObj: DeletedObject) => void) {
-  let {tableId, colId} = cell;
-  const {rowId} = cell;
+export function traceCell(cell: { rowId: number, colId: string, tableId: string },
+  summary: ActionSummary,
+  reportDeletion: (deletedObj: DeletedObject) => void) {
+  let { tableId, colId } = cell;
+  const { rowId } = cell;
   // Check if this table was renamed / removed.
-  const tableRename: LabelDelta|undefined = summary.tableRenames.find(r => r[0] === tableId);
+  const tableRename: LabelDelta | undefined = summary.tableRenames.find(r => r[0] === tableId);
   if (tableRename) {
     const newName = tableRename[1];
     if (!newName) {
-      reportDeletion({tableId});
+      reportDeletion({ tableId });
       return null;
     }
     tableId = newName;
   }
   const td = summary.tableDeltas[tableId];
   if (!td) {
-    return {tableId, rowId, colId};
+    return { tableId, rowId, colId };
   }
 
   // Check is this row was removed - if so there's no reason to go on.
-  if (td.removeRows.indexOf(rowId) >= 0) {
-    reportDeletion({thisRow: true});
+  if (td.removeRows.includes(rowId)) {
+    reportDeletion({ thisRow: true });
     return null;
   }
 
   // Check if this column was renamed / added.
-  const columnRename: LabelDelta|undefined = td.columnRenames.find(r => r[0] === colId);
+  const columnRename: LabelDelta | undefined = td.columnRenames.find(r => r[0] === colId);
   if (columnRename) {
     const newName = columnRename[1];
     if (!newName) {
-      reportDeletion({colId});
+      reportDeletion({ colId });
       return null;
     }
     colId = newName;
   }
-  return {tableId, rowId, colId};
+  return { tableId, rowId, colId };
 }
 
 /**
@@ -634,7 +647,7 @@ export async function showCell(gristDoc: GristDoc, cell: {
   colId: string,
   rowId: number,
 }) {
-  const {tableId, colId, rowId} = cell;
+  const { tableId, colId, rowId } = cell;
 
   // Find the table model of interest.
   const tableModel = gristDoc.getTableModel(tableId);
@@ -656,7 +669,7 @@ export async function showCell(gristDoc: GristDoc, cell: {
   const fieldIndex = viewSection.viewFields().peek().findIndex((f: any) => f.colId.peek() === colId);
 
   // Finally, move cursor position to the section, column (if we found it), and row.
-  gristDoc.moveToCursorPos({rowId, sectionId, fieldIndex}).catch(() => { /* do nothing */ });
+  gristDoc.moveToCursorPos({ rowId, sectionId, fieldIndex }).catch(() => { /* do nothing */ });
 }
 
 /**
@@ -674,7 +687,7 @@ export async function computeContext(gristDoc: GristDoc, base: ActionSummary, in
   init?.(cursor);
 
   async function getTable(tableId: string, rowIds: number[]) {
-    const query = new TimeQuery(cursor, tableId, '*', rowIds);
+    const query = new TimeQuery(cursor, tableId, "*", rowIds);
     await query.update();
     return query.all();
   }
@@ -682,7 +695,7 @@ export async function computeContext(gristDoc: GristDoc, base: ActionSummary, in
   const result: ActionContext = {};
   for (const [tableId, tableDelta] of Object.entries(base.tableDeltas)) {
     const rowIds = new Set([...tableDelta.addRows,
-                            ...tableDelta.updateRows]);
+      ...tableDelta.updateRows]);
     const rows = await getTable(tableId, [...rowIds]);
     result[tableId] = rows;
   }
@@ -700,17 +713,17 @@ function reportDeletedObject(obj: DeletedObject, actionNum: number) {
   if (obj.tableId) {
     gristNotify(t(
       "Table {{tableId}} was subsequently removed in action #{{actionNum}}",
-      {tableId: obj.tableId, actionNum}
+      { tableId: obj.tableId, actionNum },
     ));
   }
   if (obj.colId) {
-      gristNotify(t(
-        "Column {{colId}} was subsequently removed in action #{{actionNum}}",
-        {colId: obj.colId, actionNum}
-      ));
+    gristNotify(t(
+      "Column {{colId}} was subsequently removed in action #{{actionNum}}",
+      { colId: obj.colId, actionNum },
+    ));
   }
   if (obj.thisRow) {
-    gristNotify(t("This row was subsequently removed in action {{actionNum}}", {actionNum}));
+    gristNotify(t("This row was subsequently removed in action {{actionNum}}", { actionNum }));
   }
 }
 
@@ -720,7 +733,17 @@ interface DeletedObject {
   tableId?: string;
 }
 
-const cssHistoryCensored = styled('div', `
+interface RenderTabularDiffOptions {
+  txt?: string;
+  contextObs?: ko.Observable<ActionContext>;
+  customRender?(
+    diffs: TabularDiffs,
+    ctx: ko.Observable<ActionContext>,
+    selectCell: (rowId: number, colId: string, tableId: string) => Promise<void>
+  ): DomContents;
+}
+
+const cssHistoryCensored = styled("div", `
   margin: 8px 16px;
   text-align: center;
   color: ${theme.text};

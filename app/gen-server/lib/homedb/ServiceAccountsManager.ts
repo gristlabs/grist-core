@@ -1,22 +1,21 @@
-import { normalizeEmail } from 'app/common/emails';
-import { ApiError } from 'app/common/ApiError';
-import { Login } from 'app/gen-server/entity/Login';
-import { ServiceAccount } from 'app/gen-server/entity/ServiceAccount';
-import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
-import { RunInTransaction, ServiceAccountProperties } from 'app/gen-server/lib/homedb/Interfaces';
+import { ApiError } from "app/common/ApiError";
+import { normalizeEmail } from "app/common/emails";
+import { Login } from "app/gen-server/entity/Login";
+import { ServiceAccount } from "app/gen-server/entity/ServiceAccount";
+import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
+import { RunInTransaction, ServiceAccountProperties } from "app/gen-server/lib/homedb/Interfaces";
 
-import { EntityManager } from 'typeorm';
-import { v4 as uuidv4 } from 'uuid';
+import { EntityManager } from "typeorm";
+import { v4 as uuidv4 } from "uuid";
 
 export class ServiceAccountsManager {
-
-  private get _connection () {
+  private get _connection() {
     return this._homeDb.connection;
   }
 
   public constructor(
     private readonly _homeDb: HomeDBManager,
-    private _runInTransaction: RunInTransaction
+    private _runInTransaction: RunInTransaction,
   ) {}
 
   // This method is implemented for test purpose only
@@ -26,7 +25,7 @@ export class ServiceAccountsManager {
     const manager = optManager || new EntityManager(this._connection);
     const queryBuilder = manager.createQueryBuilder()
       .delete()
-      .from(ServiceAccount, 'service_accounts');
+      .from(ServiceAccount, "service_accounts");
     return await queryBuilder.execute();
   }
 
@@ -40,12 +39,12 @@ export class ServiceAccountsManager {
     ownerId: number,
     props?: ServiceAccountProperties,
   ): Promise<ServiceAccount> {
-    return await this._connection.transaction(async manager => {
+    return await this._connection.transaction(async (manager) => {
       const owner = await this._homeDb.getUser(ownerId);
       if (!owner) {
         throw new ApiError("owner not found", 404);
       }
-      if (owner.type !== 'login') {
+      if (owner.type !== "login") {
         throw new ApiError('Only regular users (of type "login") are allowed to create service accounts', 403);
       }
       const uuid = uuidv4();
@@ -54,7 +53,7 @@ export class ServiceAccountsManager {
       // and then be able to connect via link in email
       const login = `${uuid}@${Login.SERVICE_ACCOUNTS_TLD}`;
       // Using getUserByLogin will create the user... Yeah, please don't blame us.
-      const serviceUser = await this._homeDb.getUserByLogin(login, {manager}, 'service');
+      const serviceUser = await this._homeDb.getUserByLogin(login, { manager }, "service");
 
       await this._homeDb.createApiKey(serviceUser.id, false, manager);
 
@@ -63,7 +62,7 @@ export class ServiceAccountsManager {
         serviceUserId: serviceUser.id,
         label: props?.label,
         description: props?.description,
-        expiresAt: props?.expiresAt
+        expiresAt: props?.expiresAt,
       });
       const serviceAccount = await manager.save(newServiceAccount);
       return (await this.getServiceAccount(serviceAccount.id, manager))!;
@@ -79,11 +78,11 @@ export class ServiceAccountsManager {
    */
   public async getServiceAccount(
     serviceAccountId: number,
-    transaction?: EntityManager
-  ): Promise<ServiceAccount|null> {
-    return await this._runInTransaction(transaction, async manager => {
+    transaction?: EntityManager,
+  ): Promise<ServiceAccount | null> {
+    return await this._runInTransaction(transaction, async (manager) => {
       return await this._buildServiceAccountQuery(manager)
-        .where("serviceAccount.id = :id", {id: serviceAccountId})
+        .where("serviceAccount.id = :id", { id: serviceAccountId })
         .getOne();
     });
   }
@@ -93,12 +92,12 @@ export class ServiceAccountsManager {
    */
   public async getServiceAccountByLoginWithOwner(
     serviceAccountLogin: string,
-    transaction?: EntityManager
-  ): Promise<ServiceAccount|null> {
-    return await this._runInTransaction(transaction, async manager => {
+    transaction?: EntityManager,
+  ): Promise<ServiceAccount | null> {
+    return await this._runInTransaction(transaction, async (manager) => {
       return await this._buildServiceAccountQuery(manager)
         .innerJoinAndSelect("serviceAccount.owner", "owner")
-        .where("logins.email = :email", {email: normalizeEmail(serviceAccountLogin)})
+        .where("logins.email = :email", { email: normalizeEmail(serviceAccountLogin) })
         .getOne();
     });
   }
@@ -111,19 +110,19 @@ export class ServiceAccountsManager {
    */
   public assertServiceAccountExistingAndOwned(
     serviceAccount: ServiceAccount | null,
-    expectedOwnerId: number
+    expectedOwnerId: number,
   ): asserts serviceAccount is ServiceAccount {
     return this._assertExistingAndOwned(serviceAccount, expectedOwnerId);
   }
 
   public async getOwnedServiceAccounts(
     ownerId: number,
-    transaction?: EntityManager
+    transaction?: EntityManager,
   ): Promise<ServiceAccount[]> {
-    return await this._runInTransaction(transaction, async manager => {
+    return await this._runInTransaction(transaction, async (manager) => {
       return await this._buildServiceAccountQuery(manager)
         .innerJoinAndSelect("serviceAccount.owner", "owner")
-        .where("owner.id = :id", {id: ownerId})
+        .where("owner.id = :id", { id: ownerId })
         .getMany();
     });
   }
@@ -140,10 +139,10 @@ export class ServiceAccountsManager {
   public async updateServiceAccount(
     serviceAccountId: number,
     props: ServiceAccountProperties,
-    options: {expectedOwnerId?: number, transaction?: EntityManager} = {},
+    options: { expectedOwnerId?: number, transaction?: EntityManager } = {},
   ): Promise<ServiceAccount> {
     const { expectedOwnerId } = options;
-    return await this._runInTransaction(options.transaction, async manager => {
+    return await this._runInTransaction(options.transaction, async (manager) => {
       const serviceAccount = await this.getServiceAccount(serviceAccountId, manager);
       this._assertExistingAndOwned(serviceAccount, expectedOwnerId);
       ServiceAccount.merge(serviceAccount, props as Partial<ServiceAccount>);
@@ -161,9 +160,9 @@ export class ServiceAccountsManager {
    */
   public async deleteServiceAccount(
     serviceAccountId: number,
-    options: {expectedOwnerId?: number, transaction?: EntityManager} = {},
+    options: { expectedOwnerId?: number, transaction?: EntityManager } = {},
   ): Promise<ServiceAccount> {
-    return await this._runInTransaction(options.transaction, async manager => {
+    return await this._runInTransaction(options.transaction, async (manager) => {
       const serviceAccount = await this.getServiceAccount(serviceAccountId, manager);
       this._assertExistingAndOwned(serviceAccount, options.expectedOwnerId);
       const { serviceUser } = serviceAccount;
@@ -184,9 +183,9 @@ export class ServiceAccountsManager {
    */
   public async createServiceAccountApiKey(
     serviceAccountId: number,
-    options: {expectedOwnerId?: number, transaction?: EntityManager} = {},
+    options: { expectedOwnerId?: number, transaction?: EntityManager } = {},
   ): Promise<ServiceAccount> {
-    return await this._runInTransaction(options.transaction, async manager => {
+    return await this._runInTransaction(options.transaction, async (manager) => {
       const serviceAccount = await this.getServiceAccount(serviceAccountId, manager);
       this._assertExistingAndOwned(serviceAccount, options.expectedOwnerId);
       await this._homeDb.createApiKey(serviceAccount.serviceUser.id, true, manager);
@@ -207,9 +206,9 @@ export class ServiceAccountsManager {
    */
   public async deleteServiceAccountApiKey(
     serviceAccountId: number,
-    options: {expectedOwnerId?: number, transaction?: EntityManager} = {},
+    options: { expectedOwnerId?: number, transaction?: EntityManager } = {},
   ): Promise<ServiceAccount> {
-    return await this._runInTransaction(options.transaction, async manager => {
+    return await this._runInTransaction(options.transaction, async (manager) => {
       const serviceAccount = await this.getServiceAccount(serviceAccountId, manager);
       this._assertExistingAndOwned(serviceAccount, options.expectedOwnerId);
       serviceAccount.serviceUser = await this._homeDb.deleteApiKey(serviceAccount.serviceUser.id, manager);
@@ -222,7 +221,7 @@ export class ServiceAccountsManager {
    * its ownership.
    */
   private _assertExistingAndOwned(
-    serviceAccount: ServiceAccount|null, expectedOwnerId: number|undefined
+    serviceAccount: ServiceAccount | null, expectedOwnerId: number | undefined,
   ): asserts serviceAccount is ServiceAccount {
     this._assertExisting(serviceAccount);
     if (expectedOwnerId !== undefined && serviceAccount.ownerId !== expectedOwnerId) {
@@ -230,7 +229,7 @@ export class ServiceAccountsManager {
     }
   }
 
-  private _assertExisting(serviceAccount: ServiceAccount|null): asserts serviceAccount is ServiceAccount {
+  private _assertExisting(serviceAccount: ServiceAccount | null): asserts serviceAccount is ServiceAccount {
     if (serviceAccount === null) {
       throw new ApiError("This Service Account does not exist", 404);
     }

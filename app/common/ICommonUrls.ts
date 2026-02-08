@@ -58,4 +58,7 @@ export interface ICommonUrls {
 
   versionCheck: string; // API to check the instance has the latest version and otherwise show a banner.
   attachmentStorage: string; // Support doc for attachment storage.
+
+  signInWithGristRegister: string; // Registration for Sign in with getgrist.com.
+  signInWithGristHelp: string; // Help for Sign in with getgrist.com.
 }

@@ -1,14 +1,15 @@
-import { ApiError } from 'app/common/ApiError';
-import { FullUser } from 'app/common/UserAPI';
-import { Organization } from 'app/gen-server/entity/Organization';
-import { HomeDBManager, Scope } from 'app/gen-server/lib/homedb/HomeDBManager';
-import { INotifier } from 'app/server/lib/INotifier';
-import { scrubUserFromOrg } from 'app/gen-server/lib/scrubUserFromOrg';
-import { GristLoginSystem } from 'app/server/lib/GristServer';
-import { IPermitStore } from 'app/server/lib/Permit';
-import remove = require('lodash/remove');
-import sortBy = require('lodash/sortBy');
-import fetch from 'node-fetch';
+import { ApiError } from "app/common/ApiError";
+import { FullUser } from "app/common/UserAPI";
+import { Organization } from "app/gen-server/entity/Organization";
+import { HomeDBManager, Scope } from "app/gen-server/lib/homedb/HomeDBManager";
+import { scrubUserFromOrg } from "app/gen-server/lib/scrubUserFromOrg";
+import { GristLoginSystem } from "app/server/lib/GristServer";
+import { INotifier } from "app/server/lib/INotifier";
+import { IPermitStore } from "app/server/lib/Permit";
+
+import remove from "lodash/remove";
+import sortBy from "lodash/sortBy";
+import fetch from "node-fetch";
 
 /**
  *
@@ -18,8 +19,8 @@ import fetch from 'node-fetch';
  */
 export class Doom {
   constructor(private _dbManager: HomeDBManager, private _permitStore: IPermitStore,
-              private _notifier: Pick<INotifier, "deleteUser">, private _loginSystem: GristLoginSystem,
-              private _homeApiUrl: string) {
+    private _notifier: Pick<INotifier, "deleteUser">, private _loginSystem: GristLoginSystem,
+    private _homeApiUrl: string) {
   }
 
   /**
@@ -42,8 +43,8 @@ export class Doom {
     const scope: Scope = {
       userId: this._dbManager.getPreviewerUserId(),
       specialPermit: {
-        org: orgKey
-      }
+        org: orgKey,
+      },
     };
     await this._dbManager.deleteOrg(scope, orgKey);
   }
@@ -55,14 +56,14 @@ export class Doom {
   public async deleteWorkspace(workspaceId: number) {
     const workspace = await this._getWorkspace(workspaceId);
     for (const doc of workspace.docs) {
-      const permitKey = await this._permitStore.setPermit({docId: doc.id});
+      const permitKey = await this._permitStore.setPermit({ docId: doc.id });
       try {
         const docApiUrl = this._homeApiUrl + `/api/docs/${doc.id}`;
         const result = await fetch(docApiUrl, {
-          method: 'DELETE',
+          method: "DELETE",
           headers: {
-            Permit: permitKey
-          }
+            Permit: permitKey,
+          },
         });
         if (result.status !== 200) {
           const info = await result.json().catch(e => null);
@@ -80,8 +81,8 @@ export class Doom {
     const scope: Scope = {
       userId: this._dbManager.getPreviewerUserId(),
       specialPermit: {
-        workspaceId: workspace.id
-      }
+        workspaceId: workspace.id,
+      },
     };
     await this._dbManager.deleteWorkspace(scope, workspaceId);
   }
@@ -110,7 +111,7 @@ export class Doom {
       orgs = await this._getOrgs(userId);
     }
     if (orgs.length > 0) {
-      throw new ApiError('Cannot remove user from a site', 500);
+      throw new ApiError("Cannot remove user from a site", 500);
     }
 
     // Remove user from sendgrid
@@ -132,10 +133,10 @@ export class Doom {
    */
   public async deleteUserFromOrg(userId: number, org: Organization) {
     const orgId = org.id;
-    const scope = {userId: this._dbManager.getPreviewerUserId()};
+    const scope = { userId: this._dbManager.getPreviewerUserId() };
     const members = this._dbManager.unwrapQueryResult(await this._dbManager.getOrgAccess(scope, orgId));
     const owners: FullUser[] = members.users
-      .filter(u => u.access === 'owners' && u.id !== userId);
+      .filter(u => u.access === "owners" && u.id !== userId);
     if (owners.length === 0) {
       throw new ApiError(`No owner available for ${org.id}/${org.domain}/${org.name}`, 401);
     }
@@ -151,49 +152,49 @@ export class Doom {
         owners.push(...nonBillingManagers);
       }
     }
-    const candidate = sortBy(owners, ['email'])[0];
+    const candidate = sortBy(owners, ["email"])[0];
     await scrubUserFromOrg(orgId, userId, candidate.id, this._dbManager.connection.manager);
   }
 
   // List the sites a user has access to.
   private async _getOrgs(userId: number) {
     const orgs = this._dbManager.unwrapQueryResult(await this._dbManager.getOrgs(userId, null,
-                                                                                 {ignoreEveryoneShares: true}));
+      { ignoreEveryoneShares: true }));
     return orgs;
   }
 
   // Get information about a workspace, including the docs in it.
   private async _getWorkspace(workspaceId: number) {
     const workspace = this._dbManager.unwrapQueryResult(
-      await this._dbManager.getWorkspace({userId: this._dbManager.getPreviewerUserId(),
-                                          showAll: true}, workspaceId));
+      await this._dbManager.getWorkspace({ userId: this._dbManager.getPreviewerUserId(),
+        showAll: true }, workspaceId));
     return workspace;
   }
 
   // List the workspaces in a site.
   private async _getWorkspaces(orgKey: number) {
     const org = this._dbManager.unwrapQueryResult(
-      await this._dbManager.getOrgWorkspaces({userId: this._dbManager.getPreviewerUserId(),
-                                              includeSupport: false, showAll: true}, orgKey));
+      await this._dbManager.getOrgWorkspaces({ userId: this._dbManager.getPreviewerUserId(),
+        includeSupport: false, showAll: true }, orgKey));
     return org;
   }
 
   // Do whatever it takes to clean up billing information linked with site.
   private async _removeBillingFromOrg(orgKey: number): Promise<void> {
     const account = await this._dbManager.getBillingAccount(
-      {userId: this._dbManager.getPreviewerUserId()}, orgKey, false);
+      { userId: this._dbManager.getPreviewerUserId() }, orgKey, false);
     if (account.stripeCustomerId === null) {
       // Nothing to do.
       return;
     }
     const url = this._homeApiUrl + `/api/billing/detach?orgId=${orgKey}`;
-    const permitKey = await this._permitStore.setPermit({org: orgKey});
+    const permitKey = await this._permitStore.setPermit({ org: orgKey });
     try {
       const result = await fetch(url, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          Permit: permitKey
-        }
+          Permit: permitKey,
+        },
       });
       if (result.status !== 200) {
         // There should be a better way to just pass on the error?

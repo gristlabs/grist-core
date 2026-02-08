@@ -1,6 +1,7 @@
-import type {Express} from 'express';
-import type {OptDocSession} from 'app/server/lib/DocSession';
-import type {GranularAccessForBundle} from 'app/server/lib/GranularAccess';
+import type { Proposal } from "app/common/UserAPI";
+import type { OptDocSession } from "app/server/lib/DocSession";
+import type { GranularAccessForBundle } from "app/server/lib/GranularAccess";
+import type { Express } from "express";
 
 export interface IDocNotificationManager {
   /**
@@ -13,4 +14,9 @@ export interface IDocNotificationManager {
    * Prepare a notification for a particular change (included into the accessControl argument).
    */
   notifySubscribers(docSession: OptDocSession, docId: string, accessControl: GranularAccessForBundle): Promise<void>;
+
+  /**
+   * Prepare a notification for a particular suggestion.
+   */
+  notifySubscribersOfSuggestion(docId: string, proposal: Proposal): Promise<void>;
 }

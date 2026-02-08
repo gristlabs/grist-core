@@ -1,8 +1,9 @@
-import {buildParseOptionsForm, ParseOptionValues} from 'app/client/components/ParseOptions';
-import {testId} from 'app/client/ui2018/cssVars';
-import {dom, Observable, styled} from "grainjs";
-import {initSchema, initValues} from 'test/fixtures/projects/helpers/ParseOptionsData';
-import {initGristStyles} from "test/fixtures/projects/helpers/gristStyles";
+import { buildParseOptionsForm, ParseOptionValues } from "app/client/components/ParseOptions";
+import { testId } from "app/client/ui2018/cssVars";
+import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
+import { initSchema, initValues } from "test/fixtures/projects/helpers/ParseOptionsData";
+
+import { dom, Observable, styled } from "grainjs";
 
 function setupTest() {
   const schemaObs = Observable.create(null, initSchema);
@@ -11,30 +12,30 @@ function setupTest() {
   function doCancel() { /* no-op */ }
 
   return [
-    dom('div', {style: 'display: flex; width: 100%; height: 400px'},
+    dom("div", { style: "display: flex; width: 100%; height: 400px" },
       testBox(
-        dom('textarea', dom.text((use) => JSON.stringify(use(schemaObs), null, 2)),
-          {style: 'width: 100%; height: 100%; min-width: 400px; border: none;'},
-          dom.on('change', (ev, elem) => schemaObs.set(JSON.parse(elem.value)))),
-        testId('schema'),
+        dom("textarea", dom.text(use => JSON.stringify(use(schemaObs), null, 2)),
+          { style: "width: 100%; height: 100%; min-width: 400px; border: none;" },
+          dom.on("change", (ev, elem) => schemaObs.set(JSON.parse(elem.value)))),
+        testId("schema"),
       ),
-      dom('div',
+      dom("div",
         testBox(
-          dom.domComputed((use) =>
-            dom.create(buildParseOptionsForm, use(schemaObs), use(valuesObs), doUpdate, doCancel)
+          dom.domComputed(use =>
+            dom.create(buildParseOptionsForm, use(schemaObs), use(valuesObs), doUpdate, doCancel),
           ),
-          testId('parse-options')
+          testId("parse-options"),
         ),
         testBox(
-          dom.text((use) => JSON.stringify(use(valuesObs), null, 2)),
-          testId('values'),
+          dom.text(use => JSON.stringify(use(valuesObs), null, 2)),
+          testId("values"),
         ),
       ),
-    )
+    ),
   ];
 }
 
-const testBox = styled('div', `
+const testBox = styled("div", `
   flex: 1 0 auto;
   margin: 2rem;
   box-shadow: 1px 1px 4px 2px #AAA;

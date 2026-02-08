@@ -1,8 +1,10 @@
-import {server} from 'test/nbrowser/testServer';
-import {createTmpDir} from 'test/server/docTools';
-import {mkdtemp} from 'fs-extra';
-import path from 'path';
-import * as process from 'node:process';
+import { server } from "test/nbrowser/testServer";
+import { createTmpDir } from "test/server/docTools";
+
+import * as process from "node:process";
+import path from "path";
+
+import { mkdtemp } from "fs-extra";
 
 /**
  * Adds a before() hook that sets the environment variables for external attachments, then restarts
@@ -15,11 +17,10 @@ export function enableExternalAttachmentsForTestSuite(options: {
   thresholdMb?: number,
   transferDelay?: number,
 }):
-  { envVars: Record<string, string>; getAttachmentsDir(): string; }
-{
-  const {thresholdMb, transferDelay} = options;
+{ envVars: Record<string, string>; getAttachmentsDir(): string; } {
+  const { thresholdMb, transferDelay } = options;
   const envVars: Record<string, string> = {
-    GRIST_EXTERNAL_ATTACHMENTS_MODE: 'test',
+    GRIST_EXTERNAL_ATTACHMENTS_MODE: "test",
     GRIST_TEST_ATTACHMENTS_DIR: "",
   };
 
@@ -34,7 +35,7 @@ export function enableExternalAttachmentsForTestSuite(options: {
 
   before(async () => {
     const tempFolder = await createTmpDir();
-    envVars.GRIST_TEST_ATTACHMENTS_DIR = await mkdtemp(path.join(tempFolder, 'attachments'));
+    envVars.GRIST_TEST_ATTACHMENTS_DIR = await mkdtemp(path.join(tempFolder, "attachments"));
 
     originalEnv = saveEnvVars(Object.keys(envVars));
     setEnvVars(envVars);
@@ -52,7 +53,7 @@ export function enableExternalAttachmentsForTestSuite(options: {
     envVars,
     getAttachmentsDir() {
       return envVars.GRIST_TEST_ATTACHMENTS_DIR;
-    }
+    },
   };
 }
 

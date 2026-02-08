@@ -7,10 +7,11 @@
  * FocusLayerManager will watch for this element to lose focus or to get disposed, and will
  * restore focus to the default element.
  */
-import * as Mousetrap from 'app/client/lib/Mousetrap';
-import {arrayRemove} from 'app/common/gutil';
-import {RefCountMap} from 'app/common/RefCountMap';
-import {Disposable, dom, DomMethod} from 'grainjs';
+import * as Mousetrap from "app/client/lib/Mousetrap";
+import { arrayRemove } from "app/common/gutil";
+import { RefCountMap } from "app/common/RefCountMap";
+
+import { Disposable, dom, DomMethod } from "grainjs";
 
 /**
  * The default focus is organized into layers. A layer determines when focus should move to the
@@ -39,7 +40,7 @@ export interface FocusLayerOptions {
 // Use RefCountMap to have a reference-counted instance of the global FocusLayerManager. It will
 // be active as long as at least one FocusLayer is active (i.e. not disposed).
 const _focusLayerManager = new RefCountMap<null, FocusLayerManager>({
-  create: (key) => FocusLayerManager.create(null),
+  create: key => FocusLayerManager.create(null),
   dispose: (key, value) => value.dispose(),
   gracePeriodMs: 10,
 });
@@ -57,7 +58,7 @@ class FocusLayerManager extends Disposable {
 
     const grabFocus = this.grabFocus.bind(this);
 
-    this.autoDispose(dom.onElem(window, 'focus', grabFocus));
+    this.autoDispose(dom.onElem(window, "focus", grabFocus));
     this.grabFocus();
 
     // The following block of code deals with what happens when the window is in the background.
@@ -68,12 +69,12 @@ class FocusLayerManager extends Disposable {
       const addRemove = onOff ? window.addEventListener : window.removeEventListener;
       // Note the third argument useCapture=true, which lets us notice these events before other
       // code that might call .stopPropagation on them.
-      addRemove.call(window, 'click', grabFocus, true);
-      addRemove.call(window, 'mousedown', grabFocus, true);
-      addRemove.call(window, 'keydown', grabFocus, true);
+      addRemove.call(window, "click", grabFocus, true);
+      addRemove.call(window, "mousedown", grabFocus, true);
+      addRemove.call(window, "keydown", grabFocus, true);
     }
-    this.autoDispose(dom.onElem(window, 'blur', setBackgroundCapture.bind(null, true)));
-    this.autoDispose(dom.onElem(window, 'focus', setBackgroundCapture.bind(null, false)));
+    this.autoDispose(dom.onElem(window, "blur", setBackgroundCapture.bind(null, true)));
+    this.autoDispose(dom.onElem(window, "focus", setBackgroundCapture.bind(null, false)));
     setBackgroundCapture(!document.hasFocus());
   }
 
@@ -82,7 +83,7 @@ class FocusLayerManager extends Disposable {
     this._focusLayers.push(layer);
     // Move the focus to the new layer. Not just grabFocus, because if the focus is on the previous
     // layer's defaultFocusElem, the new layer might consider it "allowed" and never get the focus.
-    setTimeout(() => layer.defaultFocusElem.focus({preventScroll: true}), 0);
+    setTimeout(() => layer.defaultFocusElem.focus({ preventScroll: true }), 0);
   }
 
   public removeLayer(layer: FocusLayer) {
@@ -91,7 +92,7 @@ class FocusLayerManager extends Disposable {
     this.grabFocus();
   }
 
-  public getCurrentLayer(): FocusLayer|undefined {
+  public getCurrentLayer(): FocusLayer | undefined {
     return this._focusLayers[this._focusLayers.length - 1];
   }
 
@@ -121,7 +122,7 @@ class FocusLayerManager extends Disposable {
       watchElementForBlur(document.activeElement, () => this.grabFocus());
       layer.onDefaultBlur();
     } else {
-      layer.defaultFocusElem.focus({preventScroll: true});
+      layer.defaultFocusElem.focus({ preventScroll: true });
       layer.onDefaultFocus();
     }
   }
@@ -142,7 +143,7 @@ export class FocusLayer extends Disposable implements FocusLayerOptions {
    */
   public static attach(options: Partial<FocusLayerOptions>): DomMethod<HTMLElement> {
     return (element: HTMLElement) => {
-      const layer = FocusLayer.create(null, {defaultFocusElem: element, ...options});
+      const layer = FocusLayer.create(null, { defaultFocusElem: element, ...options });
       dom.autoDisposeElem(element, layer);
     };
   }
@@ -151,7 +152,7 @@ export class FocusLayer extends Disposable implements FocusLayerOptions {
   public allowFocus: (elem: Element) => boolean;
   public _onDefaultFocus?: () => void;
   public _onDefaultBlur?: () => void;
-  private _isDefaultFocused: boolean|null = null;
+  private _isDefaultFocused: boolean | null = null;
 
   constructor(options: FocusLayerOptions) {
     super();
@@ -161,8 +162,8 @@ export class FocusLayer extends Disposable implements FocusLayerOptions {
     this._onDefaultBlur = options.onDefaultBlur;
 
     // Make sure the element has a tabIndex attribute, to make it focusable.
-    if (!this.defaultFocusElem.hasAttribute('tabindex')) {
-      this.defaultFocusElem.setAttribute('tabindex', '-1');
+    if (!this.defaultFocusElem.hasAttribute("tabindex")) {
+      this.defaultFocusElem.setAttribute("tabindex", "-1");
     }
 
     if (options.pauseMousetrap) {
@@ -174,7 +175,7 @@ export class FocusLayer extends Disposable implements FocusLayerOptions {
     const manager = managerRefCount.get();
     manager.addLayer(this);
     this.onDispose(() => manager.removeLayer(this));
-    this.autoDispose(dom.onElem(this.defaultFocusElem, 'blur', () => manager.grabFocus()));
+    this.autoDispose(dom.onElem(this.defaultFocusElem, "blur", () => manager.grabFocus()));
   }
 
   public onDefaultFocus() {
@@ -205,14 +206,14 @@ export function watchElementForBlur(elem: Element, callback: () => void) {
       callback();
     }
   };
-  const lis = dom.onElem(elem, 'blur', maybeDone);
+  const lis = dom.onElem(elem, "blur", maybeDone);
 
   // Watch for the removal of elem by observing the childList of all its ancestors.
   // (Just guessing that it is more efficient than watching document.body with {subtree: true}).
   const observer = new MutationObserver(maybeDone);
   let parent = elem.parentNode;
   while (parent) {
-    observer.observe(parent, {childList: true});
+    observer.observe(parent, { childList: true });
     parent = parent.parentNode;
   }
 }

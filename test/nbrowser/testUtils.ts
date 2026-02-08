@@ -15,18 +15,19 @@
  * Run `bin/mocha 'test/nbrowser/*.ts' -b --no-exit` to open a command-line prompt on
  * first-failure for debugging and quick reruns.
  */
-import log from 'app/server/lib/log';
-import {addToRepl, assert, Capability, driver, enableDebugCapture, ITimeouts,
-  Key, setOptionsModifyFunc, useServer} from 'mocha-webdriver';
-import * as gu from 'test/nbrowser/gristUtils';
-import {server} from 'test/nbrowser/testServer';
-import {setupCleanup} from 'test/server/testCleanup';
+import log from "app/server/lib/log";
+import * as gu from "test/nbrowser/gristUtils";
+import { server } from "test/nbrowser/testServer";
+import { setupCleanup } from "test/server/testCleanup";
+
+import { addToRepl, assert, Capability, driver, enableDebugCapture, ITimeouts,
+  Key, setOptionsModifyFunc, useServer } from "mocha-webdriver";
 
 // Exports the server object with useful methods such as getHost(), waitServerReady(),
 // simulateLogin(), etc.
-export {server, setupCleanup};
+export { server, setupCleanup };
 
-setOptionsModifyFunc(({chromeOpts, firefoxOpts}) => {
+setOptionsModifyFunc(({ chromeOpts, firefoxOpts }) => {
   if (process.env.TEST_CHROME_BINARY_PATH) {
     chromeOpts.setChromeBinaryPath(process.env.TEST_CHROME_BINARY_PATH);
   }
@@ -41,9 +42,8 @@ setOptionsModifyFunc(({chromeOpts, firefoxOpts}) => {
   // don't have latest webdriver library (where the new `enableBiDi` method is exposed), it can be
   // toggled by using the `set` method in `capabilities` interface, as it is done here (long URL):
 
-  // eslint-disable-next-line max-len
   // https://github.com/shs96c/selenium/blob/ff82c4af6a493321d9eaec6ba8fa8589e4aa824d/javascript/node/selenium-webdriver/firefox.js#L415
-  chromeOpts.set('webSocketUrl', true);
+  chromeOpts.set("webSocketUrl", true);
   chromeOpts.set(Capability.UNHANDLED_PROMPT_BEHAVIOR, "ignore");
 
   chromeOpts.setUserPreferences({
@@ -54,11 +54,11 @@ setOptionsModifyFunc(({chromeOpts, firefoxOpts}) => {
       content_settings: {
         exceptions: {
           clipboard: {
-            '*': {
+            "*": {
               // Grant access to the system clipboard. This applies to regular (non-headless)
               // Chrome. On headless Chrome, this has no effect.
               setting: 1,
-            }
+            },
           },
         },
       },
@@ -77,11 +77,11 @@ setOptionsModifyFunc(({chromeOpts, firefoxOpts}) => {
     }),
     "printing.print_preview_sticky_settings.appState": JSON.stringify({
       recentDestinations: [{
-        id: 'Save as PDF',
-        origin: 'local',
-        account: '',
+        id: "Save as PDF",
+        origin: "local",
+        account: "",
       }],
-      version: 2
+      version: 2,
     }),
     "download.default_directory": server.testDir,
     "savefile.default_directory": server.testDir,
@@ -114,9 +114,9 @@ interface TestSuiteOptions {
 export function setupTestSuite(options?: TestSuiteOptions) {
   useServer(server);
   enableDebugCapture();
-  addToRepl('gu', gu, 'gristUtils, grist-specific helpers');
-  addToRepl('Key', Key, 'key values such as Key.ENTER');
-  addToRepl('server', server, 'test server');
+  addToRepl("gu", gu, "gristUtils, grist-specific helpers");
+  addToRepl("Key", Key, "key values such as Key.ENTER");
+  addToRepl("server", server, "test server");
 
   // After every suite, assert it didn't leave an alert open.
   checkForAlerts();
@@ -148,10 +148,10 @@ export function setupTestSuite(options?: TestSuiteOptions) {
   after(async () => server.closeDatabase());
 
   if (options?.pageLoadTimeout) {
-    setDriverTimeoutsForSuite({pageLoad: options.pageLoadTimeout});
+    setDriverTimeoutsForSuite({ pageLoad: options.pageLoadTimeout });
   }
 
-  return setupRequirement({team: true, ...options});
+  return setupRequirement({ team: true, ...options });
 }
 
 // Check for alerts after the test suite.
@@ -199,11 +199,10 @@ export function cleanupExtraWindows() {
   });
 }
 
-
 async function clearCurrentWindowStorage() {
-  if ((await driver.getCurrentUrl()).startsWith('http')) {
+  if ((await driver.getCurrentUrl()).startsWith("http")) {
     try {
-      await driver.executeScript('window.sessionStorage.clear(); window.localStorage.clear();');
+      await driver.executeScript("window.sessionStorage.clear(); window.localStorage.clear();");
     } catch (err) {
       log.info("Could not clear window storage after the test ended: %s", err.message);
     }
@@ -219,7 +218,7 @@ async function clearTestUserPreferences() {
 }
 
 export function setDriverTimeoutsForSuite(newTimeouts: ITimeouts) {
-  let prevTimeouts: ITimeouts|null = null;
+  let prevTimeouts: ITimeouts | null = null;
 
   before(async () => {
     prevTimeouts = await driver.manage().getTimeouts();
@@ -244,7 +243,7 @@ export function setDriverTimeoutsForSuite(newTimeouts: ITimeouts) {
  */
 export function setupRequirement(options: TestSuiteOptions) {
   const cleanup = setupCleanup();
-  const {samples, tutorial} = options;
+  const { samples, tutorial } = options;
   if (samples || tutorial) {
     if (process.env.TEST_ADD_SAMPLES || !server.isExternalServer()) {
       gu.shareSupportWorkspaceForSuite(); // TODO: Remove after the support workspace is removed from the backend.
@@ -253,8 +252,7 @@ export function setupRequirement(options: TestSuiteOptions) {
   }
 
   before(async function() {
-
-    if (new URL(server.getHost()).hostname !== 'localhost') {
+    if (new URL(server.getHost()).hostname !== "localhost") {
       // Non-dev servers should already meet the requirements; in any case we should not
       // fiddle with them here.
       return;
@@ -263,14 +261,14 @@ export function setupRequirement(options: TestSuiteOptions) {
     // Optionally ensure that a team site is available for tests.
     if (options.team) {
       await gu.addSupportUserIfPossible();
-      const api = gu.createHomeApi('support', 'docs');
-      for (const suffix of ['', '2'] as const) {
+      const api = gu.createHomeApi("support", "docs");
+      for (const suffix of ["", "2"] as const) {
         let orgName = `test${suffix}-grist`;
         const deployment = process.env.GRIST_ID_PREFIX;
         if (deployment) { orgName = `${orgName}-${deployment}`; }
         let isNew: boolean = false;
         try {
-          await api.newOrg({name: `Test${suffix} Grist`, domain: orgName});
+          await api.newOrg({ name: `Test${suffix} Grist`, domain: orgName });
           isNew = true;
         } catch (e) {
           // Assume the org already exists.
@@ -278,21 +276,21 @@ export function setupRequirement(options: TestSuiteOptions) {
         if (isNew) {
           await api.updateOrgPermissions(orgName, {
             users: {
-              'gristoid+chimpy@gmail.com': 'owners',
-            }
+              "gristoid+chimpy@gmail.com": "owners",
+            },
           });
           // Recreate the api for the correct org, then update billing.
-          const api2 = gu.createHomeApi('support', orgName);
+          const api2 = gu.createHomeApi("support", orgName);
           const billing = api2.getBillingAPI();
           try {
             await billing.updateBillingManagers({
               users: {
-                'gristoid+chimpy@gmail.com': 'managers',
-              }
+                "gristoid+chimpy@gmail.com": "managers",
+              },
             });
           } catch (e) {
             // ignore if no billing endpoint
-            if (!String(e).match('404: Not Found')) {
+            if (!String(e).match("404: Not Found")) {
               throw e;
             }
           }

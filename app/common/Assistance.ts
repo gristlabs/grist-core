@@ -1,5 +1,5 @@
-import {ApplyUAResult} from 'app/common/ActiveDocAPI';
-import {DocAction} from 'app/common/DocActions';
+import { ApplyUAResult } from "app/common/ActiveDocAPI";
+import { DocAction } from "app/common/DocActions";
 
 /**
  * State related to a request for assistance.
@@ -39,7 +39,7 @@ export interface AssistanceRequestV2 extends BaseAssistanceRequest {
 }
 
 export function isAssistanceRequestV2(req: AssistanceRequest): req is AssistanceRequestV2 {
-  return !('tableId' in req.context);
+  return !("tableId" in req.context);
 }
 
 export type DeveloperPromptVersion = "default" | "new-document";

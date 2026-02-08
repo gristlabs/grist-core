@@ -37,7 +37,7 @@ export namespace Sort {
   /**
    * Sort expression type, for example [1,-2, '3:emptyLast', '-4:orderByChoice']
    */
-  export type SortSpec = Array<ColSpec>;
+  export type SortSpec = ColSpec[];
   export type Direction = 1 | -1;
   export const ASC: Direction = 1;
   export const DESC: Direction = -1;
@@ -85,12 +85,12 @@ export namespace Sort {
    * Converts column expression to object representation.
    */
   export function specToDetails(colSpec: ColSpec): ColSpecDetails {
-    return typeof colSpec === "number"
-      ? {
-          colRef: Math.abs(colSpec),
-          direction: colSpec >= 0 ? ASC: DESC,
-        }
-      : parseColSpec(colSpec);
+    return typeof colSpec === "number" ?
+      {
+        colRef: Math.abs(colSpec),
+        direction: colSpec >= 0 ? ASC : DESC,
+      } :
+      parseColSpec(colSpec);
   }
 
   function maybeNumber(colRef: string): ColRef {
@@ -107,7 +107,7 @@ export namespace Sort {
     if (!match) {
       throw new Error("Error parsing sort expression " + colString);
     }
-    const {sign, colRef, flag} = match.groups || {};
+    const { sign, colRef, flag } = match.groups || {};
     const flags = flag?.split(";");
     return onlyDefined({
       colRef: maybeNumber(colRef),
@@ -118,7 +118,7 @@ export namespace Sort {
     });
   }
 
-  function onlyDefined<T extends Record<string, any>>(obj: T): T{
+  function onlyDefined<T extends Record<string, any>>(obj: T): T {
     return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== undefined)) as T;
   }
 
@@ -157,7 +157,7 @@ export namespace Sort {
       return dir === DESC ? `-${colSpec}` : colSpec;
     } else if (colSpec.startsWith(`-${VirtualId.PREFIX}`)) {
       return dir === ASC ? colSpec.slice(1) : colSpec;
-    }  else {
+    } else {
       return detailsToSpec({ ...parseColSpec(colSpec), direction: dir });
     }
   }
@@ -211,10 +211,13 @@ export namespace Sort {
    */
   export function swapColRef(colSpec: ColSpec, colRef: ColRef): ColSpec {
     if (typeof colSpec === "number") {
+      // FIXME: This eslint rule should probably be reenabled. But we need to understand
+      // how this function is expected to be called.
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-unary-minus
       return colSpec >= 0 ? colRef : -colRef;
     }
     const spec = parseColSpec(colSpec);
-    return detailsToSpec({...spec, colRef});
+    return detailsToSpec({ ...spec, colRef });
   }
 
   /**
@@ -353,7 +356,7 @@ const _virtualSymbols = new Map<string, string>();
  *
  * The resulting id looks like _vid\d+.
  */
-export function VirtualId(symbol = '') {
+export function VirtualId(symbol = "") {
   if (symbol) {
     if (!_virtualSymbols.has(symbol)) {
       const generated = `${VirtualId.PREFIX}${_virtualIdCounter++}`;
@@ -366,4 +369,4 @@ export function VirtualId(symbol = '') {
     return `${VirtualId.PREFIX}${_virtualIdCounter++}`;
   }
 }
-VirtualId.PREFIX = '_vid';
+VirtualId.PREFIX = "_vid";

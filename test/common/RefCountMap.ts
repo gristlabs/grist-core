@@ -1,7 +1,8 @@
-import {delay} from 'app/common/delay';
-import {RefCountMap} from 'app/common/RefCountMap';
-import {assert} from 'chai';
-import * as sinon from 'sinon';
+import { delay } from "app/common/delay";
+import { RefCountMap } from "app/common/RefCountMap";
+
+import { assert } from "chai";
+import * as sinon from "sinon";
 
 function assertResetSingleCall(spy: sinon.SinonSpy, context: any, ...args: any[]): void {
   sinon.assert.calledOnce(spy);
@@ -12,9 +13,9 @@ function assertResetSingleCall(spy: sinon.SinonSpy, context: any, ...args: any[]
 
 describe("RefCountMap", function() {
   it("should dispose items when ref-count returns to 0", function() {
-    const create = sinon.stub().callsFake((key) => key.toUpperCase());
+    const create = sinon.stub().callsFake(key => key.toUpperCase());
     const dispose = sinon.spy();
-    const m = new RefCountMap<string, string>({create, dispose, gracePeriodMs: 0});
+    const m = new RefCountMap<string, string>({ create, dispose, gracePeriodMs: 0 });
 
     const subFoo1 = m.use("foo");
     assert.strictEqual(subFoo1.get(), "FOO");
@@ -46,9 +47,9 @@ describe("RefCountMap", function() {
   });
 
   it("should respect the grace period", async function() {
-    const create = sinon.stub().callsFake((key) => key.toUpperCase());
+    const create = sinon.stub().callsFake(key => key.toUpperCase());
     const dispose = sinon.spy();
-    const m = new RefCountMap<string, string>({create, dispose, gracePeriodMs: 60});
+    const m = new RefCountMap<string, string>({ create, dispose, gracePeriodMs: 60 });
 
     const subFoo1 = m.use("foo");
     assert.strictEqual(subFoo1.get(), "FOO");
@@ -86,9 +87,9 @@ describe("RefCountMap", function() {
   });
 
   it("should dispose immediately on clear", async function() {
-    const create = sinon.stub().callsFake((key) => key.toUpperCase());
+    const create = sinon.stub().callsFake(key => key.toUpperCase());
     const dispose = sinon.spy();
-    const m = new RefCountMap<string, string>({create, dispose, gracePeriodMs: 0});
+    const m = new RefCountMap<string, string>({ create, dispose, gracePeriodMs: 0 });
     const subFoo1 = m.use("foo");
     const subBar1 = m.use("bar");
     const subFoo2 = m.use("foo");
@@ -110,9 +111,9 @@ describe("RefCountMap", function() {
   });
 
   it("should be safe to purge a key", async function() {
-    const create = sinon.stub().callsFake((key) => key.toUpperCase());
+    const create = sinon.stub().callsFake(key => key.toUpperCase());
     const dispose = sinon.spy();
-    const m = new RefCountMap<string, string>({create, dispose, gracePeriodMs: 0});
+    const m = new RefCountMap<string, string>({ create, dispose, gracePeriodMs: 0 });
     const subFoo1 = m.use("foo");
     const subBar1 = m.use("bar");
     const subFoo2 = m.use("foo");
@@ -147,9 +148,9 @@ describe("RefCountMap", function() {
   });
 
   it("should not dispose a re-created key on timeout after purge", async function() {
-    const create = sinon.stub().callsFake((key) => key.toUpperCase());
+    const create = sinon.stub().callsFake(key => key.toUpperCase());
     const dispose = sinon.spy();
-    const m = new RefCountMap<string, string>({create, dispose, gracePeriodMs: 60});
+    const m = new RefCountMap<string, string>({ create, dispose, gracePeriodMs: 60 });
 
     const subFoo1 = m.use("foo");
     subFoo1.dispose();    // This schedules a disposal in 20ms

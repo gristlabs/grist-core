@@ -2,8 +2,8 @@
  * Types for encrypted ActionBundles that get sent between instances and hub.
  */
 
-import {ActionInfo, Envelope} from 'app/common/ActionBundle';
-import {DocAction} from 'app/common/DocActions';
+import { ActionInfo, Envelope } from "app/common/ActionBundle";
+import { DocAction } from "app/common/DocActions";
 
 // Type representing a point in time as milliseconds since Epoch.
 export type Timestamp = number;
@@ -41,8 +41,8 @@ export interface EncKeyBundle extends KeyInfo {
 export interface DecryptedEnvelopeContent {
   info?: ActionInfo;
   // number is the index into the bundle-wide array of 'stored' or 'calc' DocActions.
-  stored: Array<[number, DocAction]>;
-  calc: Array<[number, DocAction]>;
+  stored: [number, DocAction][];
+  calc: [number, DocAction][];
 }
 
 export type DecryptedEnvelope = Envelope & DecryptedEnvelopeContent;
@@ -64,8 +64,8 @@ export interface EncEnvelopeFromHub extends Envelope {
 // sending ActionBundle to the hub, and one for receiving from the hub.
 export interface EncActionBundle<EncEnvelope> {
   actionNum: number;
-  actionHash: string|null;
-  parentActionHash: string|null;
+  actionHash: string | null;
+  parentActionHash: string | null;
   envelopes: EncEnvelope[];
 }
 

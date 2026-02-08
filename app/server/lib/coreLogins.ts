@@ -1,14 +1,58 @@
-import {AppSettings} from 'app/server/lib/AppSettings';
-import {getForwardAuthLoginSystem} from 'app/server/lib/ForwardAuthLogin';
-import {GristLoginSystem} from 'app/server/lib/GristServer';
-import {getMinimalLoginSystem, getNoLoginSystem} from 'app/server/lib/MinimalLogin';
-import {getOIDCLoginSystem} from 'app/server/lib/OIDCConfig';
-import {getSamlLoginSystem} from 'app/server/lib/SamlConfig';
+import {
+  FORWARD_AUTH_PROVIDER_KEY,
+  GETGRIST_COM_PROVIDER_KEY,
+  OIDC_PROVIDER_KEY,
+  SAML_PROVIDER_KEY,
+} from "app/common/loginProviders";
+import { appSettings } from "app/server/lib/AppSettings";
+import { getForwardAuthLoginSystem, readForwardAuthConfigFromSettings } from "app/server/lib/ForwardAuthLogin";
+import {
+  getGetGristComLoginSystem,
+  readGetGristComConfigFromSettings,
+  readGetGristComMetadata,
+} from "app/server/lib/GetGristComConfig";
+import { GristLoginSystem } from "app/server/lib/GristServer";
+import { LoginSystemConfig } from "app/server/lib/LoginSystemConfig";
+import { getMinimalLoginSystem } from "app/server/lib/MinimalLogin";
+import { getOIDCLoginSystem, readOIDCConfigFromSettings } from "app/server/lib/OIDCConfig";
+import { readSamlConfigFromSettings } from "app/server/lib/SamlConfig";
+import { getSamlLoginSystem } from "app/server/lib/SamlConfig";
 
-export async function getCoreLoginSystem(settings: AppSettings): Promise<GristLoginSystem> {
-  return await getSamlLoginSystem(settings) ||
-    await getOIDCLoginSystem(settings) ||
-    await getForwardAuthLoginSystem(settings) ||
-    await getMinimalLoginSystem(settings) ||
-    await getNoLoginSystem();
+export async function getCoreLoginSystem(): Promise<GristLoginSystem> {
+  const builders = LOGIN_SYSTEMS.map(ls => ls.builder);
+  for (const builder of builders) {
+    const loginSystem = await builder(appSettings);
+    if (loginSystem) {
+      return loginSystem;
+    }
+  }
+  // Fallback to minimal login system if none configured.
+  return await getMinimalLoginSystem(appSettings);
 }
+
+/**
+ * List of supported login systems along with their configuration readers in order of preference.
+ */
+export const LOGIN_SYSTEMS: LoginSystemConfig[] = [
+  { key: GETGRIST_COM_PROVIDER_KEY,
+    name: "Sign in with getgrist.com",
+    reader: readGetGristComConfigFromSettings,
+    builder: getGetGristComLoginSystem,
+    metadataReader: readGetGristComMetadata,
+  },
+  { key: OIDC_PROVIDER_KEY,
+    name: "OIDC",
+    reader: readOIDCConfigFromSettings,
+    builder: getOIDCLoginSystem,
+  },
+  { key: SAML_PROVIDER_KEY,
+    name: "SAML",
+    reader: readSamlConfigFromSettings,
+    builder: getSamlLoginSystem,
+  },
+  { key: FORWARD_AUTH_PROVIDER_KEY,
+    name: "Forwarded headers",
+    reader: readForwardAuthConfigFromSettings,
+    builder: getForwardAuthLoginSystem,
+  },
+];

@@ -35,7 +35,7 @@ export interface AssistantStatePermit extends Permit {
  */
 export async function getAndRemoveAssistantStatePermit(
   store: IPermitStore,
-  id: string
+  id: string,
 ): Promise<AssistantStatePermit | null> {
   const prefix = store.getKeyPrefix();
   const key = prefix + id;
@@ -55,7 +55,7 @@ export async function getAndRemoveAssistantStatePermit(
  */
 export async function setAssistantStatePermit(
   store: IPermitStore,
-  permit: AssistantStatePermit
+  permit: AssistantStatePermit,
 ): Promise<string> {
   const key = await store.setPermit(permit, 1000 * 60 * 60);
   const prefix = store.getKeyPrefix();

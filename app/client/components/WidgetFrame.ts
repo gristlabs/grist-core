@@ -1,33 +1,33 @@
-import BaseView from 'app/client/components/BaseView';
-import {CommandName} from 'app/client/components/commandList';
-import * as commands from 'app/client/components/commands';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {hooks} from 'app/client/Hooks';
-import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
-import {makeTestId} from 'app/client/lib/domUtils';
-import {sanitizeHttpUrl} from 'app/client/lib/sanitizeUrl';
-import {ColumnRec, ViewSectionRec} from 'app/client/models/DocModel';
-import {reportError} from 'app/client/models/errors';
-import {gristThemeObs} from 'app/client/ui2018/theme';
-import {convertThemeKeysToCssVars} from 'app/common/ThemePrefs';
-import {AccessLevel, ICustomWidget, isSatisfied, matchWidget} from 'app/common/CustomWidget';
-import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
-import {BulkColValues, fromTableDataAction, RowRecord} from 'app/common/DocActions';
-import {extractInfoFromColType, reencodeAsAny} from 'app/common/gristTypes';
-import {getGristConfig} from 'app/common/urlUtils';
+import BaseView from "app/client/components/BaseView";
+import { CommandName } from "app/client/components/commandList";
+import * as commands from "app/client/components/commands";
+import { GristDoc } from "app/client/components/GristDoc";
+import { hooks } from "app/client/Hooks";
+import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
+import { makeTestId } from "app/client/lib/domUtils";
+import { sanitizeHttpUrl } from "app/client/lib/sanitizeUrl";
+import { ColumnRec, ViewSectionRec } from "app/client/models/DocModel";
+import { reportError } from "app/client/models/errors";
+import { gristThemeObs } from "app/client/ui2018/theme";
+import { AccessLevel, ICustomWidget, isSatisfied, matchWidget } from "app/common/CustomWidget";
+import { DisposableWithEvents } from "app/common/DisposableWithEvents";
+import { BulkColValues, fromTableDataAction, RowRecord } from "app/common/DocActions";
+import { extractInfoFromColType, reencodeAsAny } from "app/common/gristTypes";
+import { convertThemeKeysToCssVars } from "app/common/ThemePrefs";
+import { getGristConfig } from "app/common/urlUtils";
 import {
   AccessTokenOptions, CursorPos, CustomSectionAPI, FetchSelectedOptions, GristDocAPI, GristView,
-  InteractionOptionsRequest, WidgetAPI, WidgetColumnMap
-} from 'app/plugin/grist-plugin-api';
-import {MsgType, Rpc} from 'grain-rpc';
-import {Computed, Disposable, dom, Observable} from 'grainjs';
-import noop = require('lodash/noop');
-import debounce = require('lodash/debounce');
-import isEqual = require('lodash/isEqual');
-import flatMap = require('lodash/flatMap');
+  InteractionOptionsRequest, WidgetAPI, WidgetColumnMap,
+} from "app/plugin/grist-plugin-api";
 
-const testId = makeTestId('test-custom-widget-');
+import { MsgType, Rpc } from "grain-rpc";
+import { Computed, Disposable, dom, Observable } from "grainjs";
+import debounce from "lodash/debounce";
+import flatMap from "lodash/flatMap";
+import isEqual from "lodash/isEqual";
+import noop from "lodash/noop";
 
+const testId = makeTestId("test-custom-widget-");
 
 /**
  * This file contains a WidgetFrame and all its components.
@@ -39,7 +39,7 @@ const testId = makeTestId('test-custom-widget-');
  * API are defined in the core/app/plugin/grist-plugin-api.ts.
  */
 
-const G = getBrowserGlobals('window');
+const G = getBrowserGlobals("window");
 
 /**
  * Options for WidgetFrame
@@ -48,12 +48,12 @@ export interface WidgetFrameOptions {
   /**
    * Url of external page. Iframe is rebuild each time the URL changes.
    */
-  url: string|null;
+  url: string | null;
   /**
    * ID of widget, if known. When set, the url for the specified widget
    * in the WidgetRepository, if found, will take precedence.
    */
-  widgetId?: string|null;
+  widgetId?: string | null;
   /**
    * ID of the plugin that provided the widget (if it came from a plugin).
    */
@@ -84,7 +84,7 @@ export interface WidgetFrameOptions {
   /**
    * Optional language to use for the widget.
    */
-  preferences: {language?: string, timeZone?: any, currency?: string, culture?: string};
+  preferences: { language?: string, timeZone?: any, currency?: string, culture?: string };
   /**
    * The containing document.
    */
@@ -103,7 +103,7 @@ export class WidgetFrame extends DisposableWithEvents {
   private _readyCalled = Observable.create(this, false);
   // Whether the iframe is visible.
   private _visible = Observable.create(this, !this._options.showAfterReady);
-  private readonly _widget = Observable.create<ICustomWidget|null>(this, null);
+  private readonly _widget = Observable.create<ICustomWidget | null>(this, null);
 
   private _url: Observable<string>;
   /**
@@ -121,15 +121,15 @@ export class WidgetFrame extends DisposableWithEvents {
     this._rpc.queueOutgoingUntilReadyMessage();
 
     // Register outgoing message handler.
-    this._rpc.setSendMessage(msg => this._iframe?.contentWindow!.postMessage(msg, '*'));
+    this._rpc.setSendMessage(msg => this._iframe?.contentWindow!.postMessage(msg, "*"));
 
     // Register incoming message handler.
     const listener = this._onMessage.bind(this);
     // 'message' is an event's name used by Rpc in window to iframe communication.
-    G.window.addEventListener('message', listener);
+    G.window.addEventListener("message", listener);
     this.onDispose(() => {
       // Stop listening for events from the iframe.
-      G.window.removeEventListener('message', listener);
+      G.window.removeEventListener("message", listener);
       // Stop sending messages to the iframe.
       this._rpc.setSendMessage(noop);
     });
@@ -145,14 +145,14 @@ export class WidgetFrame extends DisposableWithEvents {
     // Url to widget or empty page with access level and preferences.
     this._url = Computed.create(
       this,
-      (use) => this._urlWithAccess(use(maybeUrl)) || this._getEmptyWidgetPage()
+      use => this._urlWithAccess(use(maybeUrl)) || this._getEmptyWidgetPage(),
     );
 
     // Iframe is empty when url is not set.
     this._isEmpty = Computed.create(this, use => !use(maybeUrl));
 
     // When isEmpty is switched to true, reset the ready state.
-    this.autoDispose(this._isEmpty.addListener(isEmpty => {
+    this.autoDispose(this._isEmpty.addListener((isEmpty) => {
       if (isEmpty) {
         this._readyCalled.set(false);
       }
@@ -169,7 +169,7 @@ export class WidgetFrame extends DisposableWithEvents {
         await this._rpc.postMessage(data);
       }
     };
-    this.listenTo(source, 'event', handler);
+    this.listenTo(source, "event", handler);
     // Give EventSource a chance to attach to WidgetFrame events.
     source.attach(this);
   }
@@ -189,7 +189,7 @@ export class WidgetFrame extends DisposableWithEvents {
    */
   public exposeMethod(name: string, handler: (...args: any[]) => any, access: AccessChecker) {
     this._rpc.registerFunc(name, (...args: any[]) => {
-      if (access.check(this._options.access, 'invoke')) {
+      if (access.check(this._options.access, "invoke")) {
         return handler(...args);
       } else {
         throwError(this._options.access);
@@ -201,7 +201,7 @@ export class WidgetFrame extends DisposableWithEvents {
    * Make configure call to the widget. Widget should open some configuration screen or ignore it.
    */
   public editOptions() {
-    return this.callRemote('editOptions');
+    return this.callRemote("editOptions");
   }
 
   /**
@@ -213,15 +213,15 @@ export class WidgetFrame extends DisposableWithEvents {
 
   public buildDom() {
     this._iframe = dom(
-      'iframe',
-      dom.style('visibility', use => use(this._visible) ? 'visible' : 'hidden'),
-      dom.cls('clipboard_allow_focus'),
-      dom.cls('custom_view'),
-      dom.attr('src', this._url),
+      "iframe",
+      dom.style("visibility", use => use(this._visible) ? "visible" : "hidden"),
+      dom.cls("clipboard_allow_focus"),
+      dom.cls("custom_view"),
+      dom.attr("src", this._url),
       // Allow widgets to write to the clipboard via the Clipboard API.
-      {allow: "clipboard-write"},
+      { allow: "clipboard-write" },
       hooks.iframeAttributes,
-      testId('ready', use => use(this._readyCalled) && !use(this._isEmpty)),
+      testId("ready", use => use(this._readyCalled) && !use(this._isEmpty)),
       (elem) => { this._options.onElem(elem); },
     );
     return this._iframe;
@@ -240,8 +240,8 @@ export class WidgetFrame extends DisposableWithEvents {
       console.error(e);
       return null;
     }
-    urlObj.searchParams.append('access', this._options.access);
-    urlObj.searchParams.append('readonly', String(this._options.readonly));
+    urlObj.searchParams.append("access", this._options.access);
+    urlObj.searchParams.append("readonly", String(this._options.readonly));
     // Append user and document preferences to query string.
     const settingsParams = new URLSearchParams(this._options.preferences);
     settingsParams.forEach((value, key) => urlObj.searchParams.append(key, value));
@@ -262,14 +262,14 @@ export class WidgetFrame extends DisposableWithEvents {
       // It feels like it should be possible to deal with the mdest more cleanly,
       // with a rpc.registerForwarder('grist', { ... }), but it seems somehow hard
       // to call a locally registered interface of an rpc object?
-      if (event.data.mdest === 'grist') {
-        event.data.mdest = '';
+      if (event.data.mdest === "grist") {
+        event.data.mdest = "";
       }
       if (event.data.mtype === MsgType.Ready) {
-        this.trigger('ready', this);
+        this.trigger("ready", this);
         this._readyCalled.set(true);
       }
-      if (event.data.data?.message === 'themeInitialized') {
+      if (event.data.data?.message === "themeInitialized") {
         this._visible.set(true);
       }
       this._rpc.receiveMessage(event.data);
@@ -281,17 +281,17 @@ export class WidgetFrame extends DisposableWithEvents {
    * get the best URL we can for it.
    */
   private async _checkWidgetRepository() {
-    const {widgetId, pluginId} = this._options;
+    const { widgetId, pluginId } = this._options;
     if (this.isDisposed() || !widgetId) { return; }
     const widgets = await this._options.gristDoc.app.topAppModel.getWidgets();
     if (this.isDisposed()) { return; }
-    const widget = matchWidget(widgets, {widgetId, pluginId});
+    const widget = matchWidget(widgets, { widgetId, pluginId });
     this._widget.set(widget || null);
   }
 }
 
 const throwError = (access: AccessLevel) => {
-  throw new Error('Access not granted. Current access level ' + access);
+  throw new Error("Access not granted. Current access level " + access);
 };
 
 /**
@@ -303,8 +303,8 @@ function wrapObject<T extends object>(impl: T, accessChecker: AccessChecker, acc
   return new Proxy(impl, {
     // This proxies all the calls to methods on the API.
     get(target: any, methodName: string) {
-      return function () {
-        if (methodName === 'then') {
+      return function() {
+        if (methodName === "then") {
           // Making a proxy for then invocation is not a good idea.
           return undefined;
         }
@@ -340,7 +340,7 @@ export class MinimumLevel implements AccessChecker {
   }
 }
 
-type MethodMatcher<T> = keyof T | '*';
+type MethodMatcher<T> = keyof T | "*";
 /**
  * Helper object that allows assigning access level to a particular method in the interface.
  *
@@ -363,24 +363,25 @@ type MethodMatcher<T> = keyof T | '*';
  *  .require("read_table", "*") // for any other, require read_table
  */
 export class MethodAccess<T> implements AccessChecker {
-  private _accessMap: Map<MethodMatcher<T>, AccessLevel> = new Map();
+  private _accessMap = new Map<MethodMatcher<T>, AccessLevel>();
   constructor() {}
-  public require(level: AccessLevel, method: MethodMatcher<T> = '*') {
+  public require(level: AccessLevel, method: MethodMatcher<T> = "*") {
     this._accessMap.set(method, level);
     return this;
   }
+
   public check(access: AccessLevel, method?: string): boolean {
     if (!method) {
-      throw new Error('Method name is required for MethodAccess check');
+      throw new Error("Method name is required for MethodAccess check");
     }
     // Check if the iface was registered.
     if (this._accessMap.has(method as MethodMatcher<T>)) {
       // If it was, check that minimum access level is granted.
       const minimum = this._accessMap.get(method as MethodMatcher<T>)!;
       return isSatisfied(access, minimum);
-    } else if (this._accessMap.has('*')) {
+    } else if (this._accessMap.has("*")) {
       // If there is a default rule, check if it permits the access.
-      const minimum = this._accessMap.get('*')!;
+      const minimum = this._accessMap.get("*")!;
       return isSatisfied(access, minimum);
     } else {
       // By default, don't allow anything on this interface.
@@ -403,7 +404,7 @@ export class MethodAccess<T> implements AccessChecker {
  */
 export class GristDocAPIImpl implements GristDocAPI {
   public static readonly defaultAccess = new MethodAccess<GristDocAPI>()
-    .require(AccessLevel.read_table, 'getDocName')
+    .require(AccessLevel.read_table, "getDocName")
     .require(AccessLevel.full); // for any other, require full Access.
 
   constructor(private _doc: GristDoc) {}
@@ -414,9 +415,9 @@ export class GristDocAPIImpl implements GristDocAPI {
 
   public async listTables(): Promise<string[]> {
     // Could perhaps read tableIds from this.gristDoc.docModel.visibleTableIds.all()?
-    const {tableData} = await this._doc.docComm.fetchTable('_grist_Tables');
+    const { tableData } = await this._doc.docComm.fetchTable("_grist_Tables");
     // Tables the user doesn't have access to are just blanked out.
-    return tableData[3].tableId.filter(tableId => tableId !== '') as string[];
+    return tableData[3].tableId.filter(tableId => tableId !== "") as string[];
   }
 
   public async fetchTable(tableId: string) {
@@ -424,7 +425,7 @@ export class GristDocAPIImpl implements GristDocAPI {
   }
 
   public async applyUserActions(actions: any[][], options?: any) {
-    return this._doc.docComm.applyUserActions(actions, {desc: undefined, ...options});
+    return this._doc.docComm.applyUserActions(actions, { desc: undefined, ...options });
   }
 
   // Get a token for out-of-band access to the document.
@@ -455,14 +456,14 @@ export class GristViewImpl implements GristView {
     // Hidden/Visible columns will eventually reflect what is available, but this operation
     // is not instant - and widget can receive rows with fields that are not in the mapping.
     const columns: ColumnRec[] = this._visibleColumns(options);
-    const rowIds = this._baseView.sortedRows.getKoArray().peek().filter(id => id != 'new');
+    const rowIds = this._baseView.sortedRows.getKoArray().peek().filter(id => id != "new");
     const data: BulkColValues = {};
     const expandRefs = options.expandRefs !== false;
     for (const column of columns) {
       // Use the colId of the displayCol when expanding references, so
       // we don't get the underlying refId instead.
       const colId: string = expandRefs ? column.displayColModel.peek().colId.peek() : column.colId.peek();
-      const getter = this._baseView.tableModel.tableData.getRowPropFunc(colId)!;
+      const getter = this._baseView.tableModel.tableData.getRowPropFunc(colId);
       const typeInfo = extractInfoFromColType(column.type.peek());
       data[column.colId.peek()] = rowIds.map(r => reencodeAsAny(getter(r)!, typeInfo));
     }
@@ -477,14 +478,14 @@ export class GristViewImpl implements GristView {
     // the custom view depends on, so we shouldn't volunteer any untracked
     // information here.
     const columns: ColumnRec[] = this._visibleColumns(options);
-    const data: RowRecord = {id: rowId};
+    const data: RowRecord = { id: rowId };
     const expandRefs = options.expandRefs !== false;
     for (const column of columns) {
       const typeInfo = extractInfoFromColType(column.type.peek());
       const colId: string = expandRefs ? column.displayColModel.peek().colId.peek() : column.colId.peek();
       data[column.colId.peek()] = reencodeAsAny(
         this._baseView.tableModel.tableData.getValue(rowId, colId)!,
-        typeInfo
+        typeInfo,
       );
     }
     return data;
@@ -502,7 +503,7 @@ export class GristViewImpl implements GristView {
     this._baseView.viewSection.selectedRows([]);
   }
 
-  public async setSelectedRows(rowIds: number[]|null): Promise<void> {
+  public async setSelectedRows(rowIds: number[] | null): Promise<void> {
     this._baseView.viewSection.selectedRows(rowIds);
   }
 
@@ -519,7 +520,7 @@ export class GristViewImpl implements GristView {
       const mappedColumns = new Set(flatMap(Object.values(mappings)));
       const mapped = (col: ColumnRec) => mappedColumns.has(col.colId.peek());
       return columns.filter(mapped);
-    } else if (options.includeColumns === 'shown' || !options.includeColumns) {
+    } else if (options.includeColumns === "shown" || !options.includeColumns) {
       // Return columns that have been shown by the user, i.e. have a corresponding view field.
       const hiddenCols = this._baseView.viewSection.hiddenColumns.peek().map(c => c.id.peek());
       const notHidden = (col: ColumnRec) => !hiddenCols.includes(col.id.peek());
@@ -532,7 +533,7 @@ export class GristViewImpl implements GristView {
         `Setting includeColumns to ${options.includeColumns} requires full access.` +
         ` Current access level is ${this._access}`);
     }
-    if (options.includeColumns === 'normal') {
+    if (options.includeColumns === "normal") {
       // Return all 'normal' columns of the table, regardless of whether the user has shown them.
       return columns;
     } else {
@@ -554,8 +555,8 @@ export class WidgetAPIImpl implements WidgetAPI {
    * between widgets by design.
    */
   public async setOptions(options: object): Promise<void> {
-    if (options === null || options === undefined || typeof options !== 'object') {
-      throw new Error('options must be a valid JSON object');
+    if (options === null || options === undefined || typeof options !== "object") {
+      throw new Error("options must be a valid JSON object");
     }
     this._section.activeCustomOptions(options);
   }
@@ -569,7 +570,7 @@ export class WidgetAPIImpl implements WidgetAPI {
   }
 
   public async setOption(key: string, value: any): Promise<void> {
-    const options = {...this._section.activeCustomOptions.peek()};
+    const options = { ...this._section.activeCustomOptions.peek() };
     options[key] = value;
     this._section.activeCustomOptions(options);
   }
@@ -580,10 +581,10 @@ export class WidgetAPIImpl implements WidgetAPI {
   }
 }
 
-const COMMAND_MINIMUM_ACCESS_LEVELS: Map<CommandName, AccessLevel> = new Map([
-  ['undo', AccessLevel.full],
-  ['redo', AccessLevel.full],
-  ['viewAsCard', AccessLevel.read_table],
+const COMMAND_MINIMUM_ACCESS_LEVELS = new Map<CommandName, AccessLevel>([
+  ["undo", AccessLevel.full],
+  ["redo", AccessLevel.full],
+  ["viewAsCard", AccessLevel.read_table],
 ]);
 
 export class CommandAPI {
@@ -625,16 +626,18 @@ export interface IEventSource extends DisposableWithEvents {
 export class BaseEventSource extends DisposableWithEvents implements IEventSource {
   // Attaches to WidgetFrame ready event.
   public attach(frame: WidgetFrame): void {
-    this.listenTo(frame, 'ready', this._ready.bind(this));
+    this.listenTo(frame, "ready", this._ready.bind(this));
   }
+
   protected _ready() {
     // To override if needed to react on the ready event.
   }
+
   protected _notify(data: any) {
     if (this.isDisposed()) {
       return;
     }
-    this.trigger('event', data);
+    this.trigger("event", data);
   }
 }
 
@@ -671,13 +674,13 @@ export interface ConfigNotifierOptions {
  */
 export class ConfigNotifier extends BaseEventSource {
   private _accessLevel = this._options.access;
-  private _currentConfig = Computed.create(this, use => {
+  private _currentConfig = Computed.create(this, (use) => {
     const options = use(this._section.activeCustomOptions);
     return options;
   });
 
   // Debounced call to let the view know linked cursor changed.
-  private _debounced = debounce((options?: {fromReady?: boolean}) => this._update(options), 0);
+  private _debounced = debounce((options?: { fromReady?: boolean }) => this._update(options), 0);
 
   constructor(private _section: ViewSectionRec, private _options: ConfigNotifierOptions) {
     super();
@@ -686,16 +689,16 @@ export class ConfigNotifier extends BaseEventSource {
         if (isEqual(newConfig, oldConfig)) { return; }
 
         this._debounced();
-      })
+      }),
     );
   }
 
   protected _ready() {
     // On ready, send initial configuration.
-    this._debounced({fromReady: true});
+    this._debounced({ fromReady: true });
   }
 
-  private _update({fromReady}: {fromReady?: boolean} = {}) {
+  private _update({ fromReady}: { fromReady?: boolean } = {}) {
     if (this.isDisposed()) { return; }
 
     this._notify({
@@ -719,15 +722,15 @@ export class ThemeNotifier extends BaseEventSource {
         if (isEqual(newTheme, oldTheme)) { return; }
 
         this._update();
-      })
+      }),
     );
   }
 
   protected _ready() {
-    this._update({fromReady: true});
+    this._update({ fromReady: true });
   }
 
-  private _update({fromReady}: {fromReady?: boolean} = {}) {
+  private _update({ fromReady}: { fromReady?: boolean } = {}) {
     if (this.isDisposed()) { return; }
 
     this._notify({
@@ -749,13 +752,13 @@ export class TableNotifier extends BaseEventSource {
     super();
     this._debounced = debounce(() => this._update(), 0);
     this.autoDispose(_baseView.viewSection.viewFields().subscribe(this._debounced.bind(this)));
-    this.listenTo(_baseView.sortedRows, 'rowNotify', this._debounced.bind(this));
+    this.listenTo(_baseView.sortedRows, "rowNotify", this._debounced.bind(this));
     this.autoDispose(_baseView.sortedRows.getKoArray().subscribe(this._debounced.bind(this)));
     this.autoDispose(_baseView.viewSection.mappedColumns
       .subscribe(() => {
         this._updateMapping = true;
         this._debounced();
-      })
+      }),
     );
   }
 
@@ -772,7 +775,7 @@ export class TableNotifier extends BaseEventSource {
       tableId: this._baseView.viewSection.table().tableId(),
       rowId: this._baseView.cursor.getCursorPos().rowId || undefined,
       dataChange: true,
-      mappingsChange: this._updateMapping
+      mappingsChange: this._updateMapping,
     };
     this._updateMapping = false;
     this._notify(state);
@@ -783,12 +786,12 @@ export class CustomSectionAPIImpl extends Disposable implements CustomSectionAPI
   constructor(
     private _section: ViewSectionRec,
     private _currentAccess: AccessLevel,
-    private _promptCallback: (access: AccessLevel) => void
+    private _promptCallback: (access: AccessLevel) => void,
   ) {
     super();
   }
 
-  public async mappings(): Promise<WidgetColumnMap|null> {
+  public async mappings(): Promise<WidgetColumnMap | null> {
     return this._section.mappedColumns.peek();
   }
 

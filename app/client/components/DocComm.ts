@@ -1,13 +1,14 @@
-import {Comm} from 'app/client/components/Comm';
-import {reportError, reportMessage} from 'app/client/models/errors';
-import {Notifier} from 'app/client/models/NotifyModel';
-import {ActiveDocAPI, ApplyUAOptions, ApplyUAResult} from 'app/common/ActiveDocAPI';
-import {CommMessage} from 'app/common/CommTypes';
-import {UserAction} from 'app/common/DocActions';
-import {OpenLocalDocResult} from 'app/common/DocListAPI';
-import {docUrl} from 'app/common/urlUtils';
-import {Events as BackboneEvents} from 'backbone';
-import {Disposable, Emitter} from 'grainjs';
+import { Comm } from "app/client/components/Comm";
+import { reportError, reportMessage } from "app/client/models/errors";
+import { Notifier } from "app/client/models/NotifyModel";
+import { ActiveDocAPI, ApplyUAOptions, ApplyUAResult } from "app/common/ActiveDocAPI";
+import { CommMessage } from "app/common/CommTypes";
+import { UserAction } from "app/common/DocActions";
+import { OpenLocalDocResult } from "app/common/DocListAPI";
+import { docUrl } from "app/common/urlUtils";
+
+import { Events as BackboneEvents } from "backbone";
+import { Disposable, Emitter } from "grainjs";
 
 const SLOW_NOTIFICATION_TIMEOUT_MS = 1000; // applies to user actions only
 
@@ -61,17 +62,17 @@ export class DocComm extends Disposable implements ActiveDocAPI {
   // (which is handled by App.ts). This way, Comm can protect against mismatched clientIds.
   private _clientId: string;
   private _docFD: number;
-  private _forkPromise: Promise<void>|null = null;
+  private _forkPromise: Promise<void> | null = null;
   private _isClosed: boolean = false;
-  private listenTo: BackboneEvents['listenTo'];  // set by Backbone
+  private listenTo: BackboneEvents["listenTo"];  // set by Backbone
 
   constructor(private _comm: Comm, openResponse: OpenLocalDocResult, private _docId: string,
-              private _notifier: Notifier) {
+    private _notifier: Notifier) {
     super();
     this._setOpenResponse(openResponse);
     // If *this* doc is shutdown forcibly (e.g. via reloadDoc call), mark it as closed, so we
     // don't attempt to close it again.
-    this.listenTo(_comm, 'docShutdown', (m: CommMessage) => {
+    this.listenTo(_comm, "docShutdown", (m: CommMessage) => {
       if (this.isActionFromThisDoc(m)) { this._isClosed = true; }
     });
     this.onDispose(async () => {
@@ -87,7 +88,7 @@ export class DocComm extends Disposable implements ActiveDocAPI {
 
   // Returns the URL params that identifying this open document to the DocWorker
   // (used e.g. in attachment and download URLs).
-  public getUrlParams(): {clientId: string, docFD: number} {
+  public getUrlParams(): { clientId: string, docFD: number } {
     return { clientId: this._clientId, docFD: this._docFD };
   }
 
@@ -113,7 +114,7 @@ export class DocComm extends Disposable implements ActiveDocAPI {
    */
   public applyUserActions(actions: UserAction[], options?: ApplyUAOptions): Promise<ApplyUAResult> {
     this._comm.addUserActions(actions);
-    return this._callMethod('applyUserActions', actions, options);
+    return this._callMethod("applyUserActions", actions, options);
   }
 
   /**
@@ -121,7 +122,7 @@ export class DocComm extends Disposable implements ActiveDocAPI {
    * This is important in particular since it may be called while forking.
    */
   public closeDoc(): Promise<void> {
-    return this._callDocMethod('closeDoc');
+    return this._callDocMethod("closeDoc");
   }
 
   /**
@@ -195,8 +196,8 @@ export class DocComm extends Disposable implements ActiveDocAPI {
   }
 
   private async _doForkDoc(): Promise<void> {
-    reportMessage('Preparing your copy...', {key: 'forking'});
-    const {urlId, docId} = await this.fork();
+    reportMessage("Preparing your copy...", { key: "forking" });
+    const { urlId, docId } = await this.fork();
     // TODO: may want to preserve linkParameters in call to openDoc.
     const openResponse = await this._comm.openDoc(docId);
     // Close the old doc and release the old connection. Note that the closeDoc call is expected
@@ -206,7 +207,7 @@ export class DocComm extends Disposable implements ActiveDocAPI {
     this._docId = docId;
     this._setOpenResponse(openResponse);
     this.changeUrlIdEmitter.emit(urlId);
-    reportMessage('You are now editing your own copy', {key: 'forking'});
+    reportMessage("You are now editing your own copy", { key: "forking" });
   }
 }
 

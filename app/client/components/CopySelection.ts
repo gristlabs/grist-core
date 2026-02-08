@@ -1,7 +1,7 @@
-import type {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
-import type {CellValue} from 'app/common/DocActions';
-import type {TableData} from 'app/common/TableData';
-import type {UIRowId} from 'app/plugin/GristAPI';
+import type { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
+import type { CellValue } from "app/common/DocActions";
+import type { TableData } from "app/common/TableData";
+import type { UIRowId } from "app/plugin/GristAPI";
 
 /**
  * The CopySelection class is an abstraction for a subset of currently selected cells.
@@ -16,32 +16,32 @@ export class CopySelection {
   public readonly colIds = this.fields.map(f => f.colId());
   public readonly colRefs = this.fields.map(f => f.colRef());
   public readonly displayColIds = this.fields.map(f => f.displayColModel().colId());
-  public readonly rowStyle: {[r: number]: object}|undefined;
-  public readonly colStyle: {[c: string]: object}|undefined;
+  public readonly rowStyle: { [r: number]: object } | undefined;
+  public readonly colStyle: { [c: string]: object } | undefined;
 
-  public readonly columns: Array<{
+  public readonly columns: {
     colId: string,
     fmtGetter: (rowId: UIRowId) => string,
-    rawGetter: (rowId: UIRowId) => CellValue|undefined,
-  }>;
+    rawGetter: (rowId: UIRowId) => CellValue | undefined,
+  }[];
 
   constructor(tableData: TableData, public readonly rowIds: UIRowId[], public readonly fields: ViewFieldRec[],
-              options: {
-                rowStyle?: {[r: number]: object},
-                colStyle?: {[c: string]: object},
-              }
+    options: {
+      rowStyle?: { [r: number]: object },
+      colStyle?: { [c: string]: object },
+    },
   ) {
     this.rowStyle = options.rowStyle;
     this.colStyle = options.colStyle;
     this.columns = fields.map((f, i) => {
       const formatter = f.formatter();
-      const _fmtGetter = tableData.getRowPropFunc(this.displayColIds[i])!;
-      const _rawGetter = tableData.getRowPropFunc(this.colIds[i])!;
+      const _fmtGetter = tableData.getRowPropFunc(this.displayColIds[i]);
+      const _rawGetter = tableData.getRowPropFunc(this.colIds[i]);
 
       return {
         colId: this.colIds[i],
         fmtGetter: rowId => formatter.formatAny(_fmtGetter(rowId)),
-        rawGetter: rowId => _rawGetter(rowId)
+        rawGetter: rowId => _rawGetter(rowId),
       };
     });
   }

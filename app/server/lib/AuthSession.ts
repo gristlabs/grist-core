@@ -15,11 +15,13 @@
  *     represent a particular document.
  */
 
-import {ApiError} from 'app/common/ApiError';
-import {FullUser} from 'app/common/LoginSessionAPI';
-import type {RequestWithLogin} from 'app/server/lib/Authorizer';
-import {ILogMeta} from 'app/server/lib/log';
-import moment from 'moment';
+import { ApiError } from "app/common/ApiError";
+import { FullUser } from "app/common/LoginSessionAPI";
+import { ILogMeta } from "app/server/lib/log";
+
+import moment from "moment";
+
+import type { RequestWithLogin } from "app/server/lib/Authorizer";
 
 export abstract class AuthSession {
   // Create AuthSession from request. (This is very cheap to create.)
@@ -34,20 +36,21 @@ export abstract class AuthSession {
   public static unauthenticated(): AuthSession { return new UnauthenticatedAuthSession(); }
 
   public abstract org?: string;
-  public abstract altSessionId: string|null;
-  public abstract userId: number|null;
+  public abstract altSessionId: string | null;
+  public abstract userId: number | null;
   public abstract userIsAuthorized: boolean;
-  public abstract fullUser: FullUser|null;
+  public abstract fullUser: FullUser | null;
 
-  public get normalizedEmail(): string|undefined { return this.fullUser?.loginEmail ?? this.fullUser?.email; }
-  public get displayEmail(): string|undefined { return this.fullUser?.email; }
-  public get userAgeInDays(): number|undefined { return this._userAge ?? (this._userAge = this._calcAgeInDays()); }
+  public get normalizedEmail(): string | undefined { return this.fullUser?.loginEmail ?? this.fullUser?.email; }
+  public get displayEmail(): string | undefined { return this.fullUser?.email; }
+  public get userAgeInDays(): number | undefined { return this._userAge ?? (this._userAge = this._calcAgeInDays()); }
 
   private _userAge?: number;
 
   public requiredUserId(): number {
     return this.userId || apiFail("user not known", 401);
   }
+
   public getLogMeta(): ILogMeta {
     // Setting each field conditionally here to omit keys with undefined/null values.
     const meta: ILogMeta = {};
@@ -68,11 +71,11 @@ export abstract class AuthSession {
 }
 
 class UnauthenticatedAuthSession extends AuthSession {
-  public get org() { return undefined; }
-  public get altSessionId() { return null; }
-  public get userId() { return null; }
-  public get userIsAuthorized() { return false; }
-  public get fullUser() { return null; }
+  public readonly org = undefined;
+  public readonly altSessionId = null;
+  public readonly userId = null;
+  public readonly userIsAuthorized = false;
+  public readonly fullUser = null;
 }
 
 class AuthSessionForReq extends AuthSession {

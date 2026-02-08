@@ -1,10 +1,11 @@
-import escapeRegExp = require('lodash/escapeRegExp');
-import last = require('lodash/last');
-import memoize = require('lodash/memoize');
-import {getDistinctValues, isNonNullish} from 'app/common/gutil';
+import { getDistinctValues, isNonNullish } from "app/common/gutil";
+
+import guessFormat from "@gristlabs/moment-guess/dist/bundle.js";
+import escapeRegExp from "lodash/escapeRegExp";
+import last from "lodash/last";
+import memoize from "lodash/memoize";
 // Simply importing 'moment-guess' inconsistently imports bundle.js or bundle.esm.js depending on environment
-import guessFormat from '@gristlabs/moment-guess/dist/bundle.js';
-import moment from 'moment-timezone';
+import moment from "moment-timezone";
 
 // When using YY format, use a consistent interpretation in datepicker and in moment parsing: add
 // 2000 if the result is at most 10 years greater than the current year; otherwise add 1900. See
@@ -19,7 +20,6 @@ const MAX_TWO_DIGIT_YEAR = new Date().getFullYear() + TWO_DIGIT_YEAR_THRESHOLD -
   return year + (year > MAX_TWO_DIGIT_YEAR ? 1900 : 2000);
 };
 
-
 // Order of formats to try if the date cannot be parsed as the currently set format.
 // Formats are parsed in momentjs strict mode, but separator matching and the MM/DD
 // two digit requirement are ignored. Also, partial completion is permitted, so formats
@@ -28,39 +28,39 @@ const MAX_TWO_DIGIT_YEAR = new Date().getFullYear() + TWO_DIGIT_YEAR_THRESHOLD -
 // TODO: We may want to consider adding default time formats as well to support more
 //  time formats.
 const PARSER_FORMATS: string[] = [
-  'M D YYYY',
-  'M D YY',
-  'M D',
-  'M',
-  'MMMM D YYYY',
-  'MMMM D',
-  'MMMM Do YYYY',
-  'MMMM Do',
-  'D MMMM YYYY',
-  'D MMMM',
-  'Do MMMM YYYY',
-  'Do MMMM',
-  'MMMM',
-  'MMM D YYYY',
-  'MMM D',
-  'MMM Do YYYY',
-  'MMM Do',
-  'D MMM YYYY',
-  'D MMM',
-  'Do MMM YYYY',
-  'Do MMM',
-  'MMM',
-  'YYYY M D',
-  'YYYY M',
-  'YYYY',
-  'D M YYYY',
-  'D M YY',
-  'D M',
-  'D'
+  "M D YYYY",
+  "M D YY",
+  "M D",
+  "M",
+  "MMMM D YYYY",
+  "MMMM D",
+  "MMMM Do YYYY",
+  "MMMM Do",
+  "D MMMM YYYY",
+  "D MMMM",
+  "Do MMMM YYYY",
+  "Do MMMM",
+  "MMMM",
+  "MMM D YYYY",
+  "MMM D",
+  "MMM Do YYYY",
+  "MMM Do",
+  "D MMM YYYY",
+  "D MMM",
+  "Do MMM YYYY",
+  "Do MMM",
+  "MMM",
+  "YYYY M D",
+  "YYYY M",
+  "YYYY",
+  "D M YYYY",
+  "D M YY",
+  "D M",
+  "D",
 ];
 
 const UNAMBIGUOUS_FORMATS = [
-  'YYYY M D',
+  "YYYY M D",
   ...PARSER_FORMATS.filter(f => f.includes("MMM")),
 ];
 
@@ -77,11 +77,11 @@ const tzAbbreviations = memoize((tzName: string): RegExp => {
   // and escaping the + seems better than filtering
   const abbreviations = new Set(moment.tz.zone(tzName)!.abbrs.map(escapeRegExp));
 
-  const union = [...abbreviations].join('|');
+  const union = [...abbreviations].join("|");
 
   // [^a-zA-Z] because no letters are allowed directly before the abbreviation
   // so for example CEST won't match even if EST does
-  return new RegExp(`[^a-zA-Z](${union})$`, 'i');
+  return new RegExp(`[^a-zA-Z](${union})$`, "i");
 });
 
 interface ParseOptions {
@@ -117,9 +117,9 @@ export function parseDate(date: string, options: ParseOptions = {}): number | nu
 
   const dateFormat = options.dateFormat || "YYYY-MM-DD";
   const dateFormats = [..._buildVariations(dateFormat, date), ...PARSER_FORMATS];
-  const cleanDate = date.replace(SEPARATORS, ' ');
+  const cleanDate = date.replace(SEPARATORS, " ");
   let datetime = cleanDate.trim();
-  let timeformat = '';
+  let timeformat = "";
   let time = options.time;
   if (time) {
     const parsedTimeZone = parseTimeZone(time, options.timezone!);
@@ -128,13 +128,13 @@ export function parseDate(date: string, options: ParseOptions = {}): number | nu
       return null;
     }
     time = parsedTime.time;
-    const {tzOffset} = parsedTimeZone;
-    datetime += ' ' + time + tzOffset;
-    timeformat = ' HH:mm:ss' + (tzOffset ? 'Z' : '');
+    const { tzOffset } = parsedTimeZone;
+    datetime += " " + time + tzOffset;
+    timeformat = " HH:mm:ss" + (tzOffset ? "Z" : "");
   }
   for (const format of dateFormats) {
     const fullFormat = format + timeformat;
-    const m = moment.tz(datetime, fullFormat, true, options.timezone || 'UTC');
+    const m = moment.tz(datetime, fullFormat, true, options.timezone || "UTC");
     if (m.isValid()) {
       return m.unix();
     }
@@ -151,7 +151,7 @@ export function parseDate(date: string, options: ParseOptions = {}): number | nu
  * and won't silently swap around day and month.
  */
 export function parseDateStrict(
-  date: string, dateFormat: string | null, results?: Set<number>, timezone: string = 'UTC'
+  date: string, dateFormat: string | null, results?: Set<number>, timezone: string = "UTC",
 ): number | undefined {
   if (!date) {
     return;
@@ -163,7 +163,7 @@ export function parseDateStrict(
   }
   dateFormat = dateFormat || "YYYY-MM-DD";
   const dateFormats = [..._buildVariations(dateFormat, date), ...UNAMBIGUOUS_FORMATS];
-  const cleanDate = date.replace(SEPARATORS, ' ').trim();
+  const cleanDate = date.replace(SEPARATORS, " ").trim();
   for (const format of dateFormats) {
     const m = moment.tz(cleanDate, format, true, timezone);
     if (m.isValid()) {
@@ -192,7 +192,7 @@ export function parseDateTime(dateTime: string, options: ParseOptions): number |
   }
 
   const parsedTimeZone = parseTimeZone(dateTime, timezone);
-  let tzOffset = '';
+  let tzOffset = "";
   if (parsedTimeZone) {
     tzOffset = parsedTimeZone.tzOffset;
     dateTime = parsedTimeZone.remaining;
@@ -213,11 +213,10 @@ export function parseDateTime(dateTime: string, options: ParseOptions): number |
   // date is a timestamp of midnight in UTC, so to get a formatted representation (for parsing
   // together with time), take care to interpret it in UTC.
   const dateString = moment.unix(date).utc().format("YYYY-MM-DD");
-  dateTime = dateString + ' ' + parsedTime.time + tzOffset;
-  const fullFormat = "YYYY-MM-DD HH:mm:ss" + (tzOffset ? 'Z' : '');
+  dateTime = dateString + " " + parsedTime.time + tzOffset;
+  const fullFormat = "YYYY-MM-DD HH:mm:ss" + (tzOffset ? "Z" : "");
   return moment.tz(dateTime, fullFormat, true, timezone).valueOf() / 1000;
 }
-
 
 // Helper function to get the partial format string based on the input. Momentjs has a feature
 // which allows defaulting to the current year, month and/or day if not accounted for in the
@@ -235,12 +234,12 @@ function _getPartialFormat(input: string, format: string): string {
   if (numFormatParts > numInputParts) {
     // Remove year from format first, to default to current year.
     if (/Y+/.test(format)) {
-      format = format.replace(/Y+/, ' ').trim();
+      format = format.replace(/Y+/, " ").trim();
       numFormatParts -= 1;
     }
     if (numFormatParts > numInputParts) {
       // Remove month from format next.
-      format = format.replace(/M+/, ' ').trim();
+      format = format.replace(/M+/, " ").trim();
     }
   }
   return format;
@@ -252,9 +251,9 @@ function _getPartialFormat(input: string, format: string): string {
 function _buildVariations(dateFormat: string, date: string) {
   // Momentjs has an undesirable feature in strict mode where MM and DD
   // matches require two digit numbers. Change MM, DD to M, D.
-  let format = dateFormat.replace(/MM+/g, m => (m === 'MM' ? 'M' : m))
-    .replace(/DD+/g, m => (m === 'DD' ? 'D' : m))
-    .replace(SEPARATORS, ' ')
+  let format = dateFormat.replace(/MM+/g, m => (m === "MM" ? "M" : m))
+    .replace(/DD+/g, m => (m === "DD" ? "D" : m))
+    .replace(SEPARATORS, " ")
     .trim();
 
   // Allow the input date to end with a 4-digit year even if the format doesn't mention the year
@@ -270,21 +269,20 @@ function _buildVariations(dateFormat: string, date: string) {
 
   // Consider some alternatives to the preferred format.
   const variations = new Set<string>([format]);
-  const otherYear = format.replace(/Y{2,4}/, (m) => (m === 'YY' ? 'YYYY' : (m === 'YYYY' ? 'YY' : m)));
+  const otherYear = format.replace(/Y{2,4}/, m => (m === "YY" ? "YYYY" : (m === "YYYY" ? "YY" : m)));
   variations.add(otherYear);
-  variations.add(format.replace(/MMM+/, 'M'));
+  variations.add(format.replace(/MMM+/, "M"));
   if (otherYear !== format) {
-    variations.add(otherYear.replace(/MMM+/, 'M'));
+    variations.add(otherYear.replace(/MMM+/, "M"));
   }
   return variations;
 }
-
 
 // Based on private calculateOffset in moment source code.
 function calculateOffset(tzMatch: string[]): string {
   const [, hhOffset, mmOffset] = tzMatch;
   const sign = hhOffset.slice(0, 1);
-  return sign + hhOffset.slice(1).padStart(2, '0') + ':' + (mmOffset || '0').padStart(2, '0');
+  return sign + hhOffset.slice(1).padStart(2, "0") + ":" + (mmOffset || "0").padStart(2, "0");
 }
 
 function parseTimeZone(str: string, timezone: string): { remaining: string, tzOffset: string } {
@@ -292,9 +290,9 @@ function parseTimeZone(str: string, timezone: string): { remaining: string, tzOf
 
   let tzMatch = UTC_REGEX.exec(str);
   let matchStart = 0;
-  let tzOffset = '';
+  let tzOffset = "";
   if (tzMatch) {
-    tzOffset = '+00:00';
+    tzOffset = "+00:00";
     matchStart = tzMatch.index + 1;  // skip [^a-zA-Z] at regex start
   } else {
     tzMatch = NUMERIC_TZ_REGEX.exec(str);
@@ -314,7 +312,7 @@ function parseTimeZone(str: string, timezone: string): { remaining: string, tzOf
     str = str.slice(0, matchStart).trim();
   }
 
-  return {remaining: str, tzOffset};
+  return { remaining: str, tzOffset };
 }
 
 // Parses time of the form, roughly, HH[:MM[:SS]][am|pm]. Returns the time in the
@@ -326,16 +324,16 @@ function standardizeTime(timeString: string): { remaining: string, time: string 
     return;
   }
   let hours = parseInt(match[1] || match[4], 10);
-  const mm = (match[2] || match[5] || '0').padStart(2, '0');
-  const ss = (match[3] || '0').padStart(2, '0');
-  const ampm = (match[6] || '').toLowerCase();
-  if (hours < 12 && hours > 0 && ampm.startsWith('p')) {
+  const mm = (match[2] || match[5] || "0").padStart(2, "0");
+  const ss = (match[3] || "0").padStart(2, "0");
+  const ampm = (match[6] || "").toLowerCase();
+  if (hours < 12 && hours > 0 && ampm.startsWith("p")) {
     hours += 12;
-  } else if (hours === 12 && ampm.startsWith('a')) {
+  } else if (hours === 12 && ampm.startsWith("a")) {
     hours = 0;
   }
-  const hh = String(hours).padStart(2, '0');
-  return {remaining: timeString.slice(0, match.index).trim(), time: `${hh}:${mm}:${ss}`};
+  const hh = String(hours).padStart(2, "0");
+  return { remaining: timeString.slice(0, match.index).trim(), time: `${hh}:${mm}:${ss}` };
 }
 
 /**
@@ -344,7 +342,7 @@ function standardizeTime(timeString: string): { remaining: string, time: string 
  * This means formats with an early Y and/or M are favoured.
  * If no formats match, returns the default YYYY-MM-DD.
  */
-export function guessDateFormat(values: Array<string | null>, timezone: string = 'UTC'): string {
+export function guessDateFormat(values: (string | null)[], timezone: string = "UTC"): string {
   const formats = guessDateFormats(values, timezone);
   if (!formats) {
     return "YYYY-MM-DD";
@@ -357,7 +355,7 @@ export function guessDateFormat(values: Array<string | null>, timezone: string =
  * If several formats match equally well, returns them all.
  * May return null if there are no matching formats or choosing one is too expensive.
  */
-export function guessDateFormats(values: Array<string | null>, timezone: string = 'UTC'): string[] | null {
+export function guessDateFormats(values: (string | null)[], timezone: string = "UTC"): string[] | null {
   const dateStrings: string[] = values.filter(isNonNullish);
   const sample = getDistinctValues(dateStrings, 100);
   const formats: Record<string, number> = {};
@@ -396,23 +394,23 @@ export function guessDateFormats(values: Array<string | null>, timezone: string 
 }
 
 export const dateFormatOptions = [
-  'YYYY-MM-DD',
-  'MM-DD-YYYY',
-  'MM/DD/YYYY',
-  'MM-DD-YY',
-  'MM/DD/YY',
-  'DD MMM YYYY',
-  'MMMM Do, YYYY',
-  'DD-MM-YYYY',
+  "YYYY-MM-DD",
+  "MM-DD-YYYY",
+  "MM/DD/YYYY",
+  "MM-DD-YY",
+  "MM/DD/YY",
+  "DD MMM YYYY",
+  "MMMM Do, YYYY",
+  "DD-MM-YYYY",
 ];
 
 export const timeFormatOptions = [
-  'h:mma',
-  'h:mma z',
-  'HH:mm',
-  'HH:mm z',
-  'HH:mm:ss',
-  'HH:mm:ss z',
+  "h:mma",
+  "h:mma z",
+  "HH:mm",
+  "HH:mm z",
+  "HH:mm:ss",
+  "HH:mm:ss z",
 ];
 
 /**
@@ -443,7 +441,7 @@ export function parseTimeStamp(date: string): number | null {
   // So time before 100 000 000 (1974-04-26) is not covered. Also negative values
   // are also not supported, as they overlap with the YYYYYY date format.
   if (date && /^[1-9]\d{8,9}$/.test(date)) {
-    const parsedDate = moment(date, 'X');
+    const parsedDate = moment(date, "X");
     if (parsedDate.isValid()) {
       return parsedDate.unix();
     }

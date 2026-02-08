@@ -1,8 +1,9 @@
-import {localStorageObs} from 'app/client/lib/localStorageObs';
-import {AppModel} from 'app/client/models/AppModel';
-import {UserOrgPrefs, UserPrefs} from 'app/common/Prefs';
-import {Computed, Observable} from 'grainjs';
-import {CheckerT} from 'ts-interface-checker';
+import { localStorageObs } from "app/client/lib/localStorageObs";
+import { AppModel } from "app/client/models/AppModel";
+import { UserOrgPrefs, UserPrefs } from "app/common/Prefs";
+
+import { Computed, Observable } from "grainjs";
+import { CheckerT } from "ts-interface-checker";
 
 interface PrefsTypes {
   userOrgPrefs: UserOrgPrefs;
@@ -22,21 +23,21 @@ function makePrefFunctions<P extends keyof PrefsTypes>(prefsTypeName: P) {
     if (appModel.currentValidUser && appModel.currentOrg) {
       let prefs: PrefsType | undefined;
       let saveBack: (newPrefs: PrefsType) => void = () => {};
-      if (prefsTypeName === 'userPrefs') {
+      if (prefsTypeName === "userPrefs") {
         prefs = appModel.currentValidUser.prefs;
-        saveBack = (newPrefs) => appModel.currentValidUser && (appModel.currentValidUser.prefs = newPrefs);
+        saveBack = newPrefs => appModel.currentValidUser && (appModel.currentValidUser.prefs = newPrefs);
       } else {
         prefs = appModel.currentOrg?.[prefsTypeName];
-        saveBack = (newPrefs) => appModel.currentOrg && (appModel.currentOrg[prefsTypeName] = newPrefs);
+        saveBack = newPrefs => appModel.currentOrg && (appModel.currentOrg[prefsTypeName] = newPrefs);
       }
       const prefsObs = Observable.create<PrefsType>(null, prefs ?? {});
-      return Computed.create(null, (use) => use(prefsObs))
-        .onWrite(newPrefs => {
+      return Computed.create(null, use => use(prefsObs))
+        .onWrite((newPrefs) => {
           const previousPrefs = prefsObs.get();
           prefsObs.set(newPrefs);
           saveBack(newPrefs);
-          appModel.api.updateOrg('current', {[prefsTypeName]: newPrefs})
-            .catch(err => {
+          appModel.api.updateOrg("current", { [prefsTypeName]: newPrefs })
+            .catch((err) => {
               prefsObs.set(previousPrefs);
               saveBack(previousPrefs);
               throw err;
@@ -46,7 +47,7 @@ function makePrefFunctions<P extends keyof PrefsTypes>(prefsTypeName: P) {
       const userId = appModel.currentUser?.id || 0;
       const jsonPrefsObs = localStorageObs(`${prefsTypeName}:u=${userId}`);
       return Computed.create(null, jsonPrefsObs, (use, p) => (p && JSON.parse(p) || {}) as PrefsType)
-        .onWrite(newPrefs => {
+        .onWrite((newPrefs) => {
           jsonPrefsObs.set(JSON.stringify(newPrefs));
         });
     }
@@ -62,9 +63,9 @@ function makePrefFunctions<P extends keyof PrefsTypes>(prefsTypeName: P) {
     options: {
       defaultValue?: Exclude<PrefsType[Name], undefined>;
       checker?: CheckerT<PrefsType[Name]>;
-    } = {}
+    } = {},
   ): Observable<PrefsType[Name] | undefined> {
-    const {defaultValue, checker} = options;
+    const { defaultValue, checker } = options;
     return Computed.create(null, (use) => {
       const prefs = use(prefsObs);
       if (!(prefName in prefs)) { return defaultValue; }
@@ -80,10 +81,10 @@ function makePrefFunctions<P extends keyof PrefsTypes>(prefsTypeName: P) {
       }
 
       return value;
-    }).onWrite(value => prefsObs.set({...prefsObs.get(), [prefName]: value}));
+    }).onWrite(value => prefsObs.set({ ...prefsObs.get(), [prefName]: value }));
   }
 
-  return {getPrefsObs, getPrefObs};
+  return { getPrefsObs, getPrefObs };
 }
 
 // Functions actually exported are:
@@ -92,9 +93,8 @@ function makePrefFunctions<P extends keyof PrefsTypes>(prefsTypeName: P) {
 // - getUserPrefsObs(appModel): Observable<UserPrefs>
 // - getUserPrefObs(userPrefsObs, prefName): Observable<PrefType[prefName]>
 
-export const {getPrefsObs: getUserOrgPrefsObs, getPrefObs: getUserOrgPrefObs} = makePrefFunctions('userOrgPrefs');
-export const {getPrefsObs: getUserPrefsObs, getPrefObs: getUserPrefObs} = makePrefFunctions('userPrefs');
-
+export const { getPrefsObs: getUserOrgPrefsObs, getPrefObs: getUserOrgPrefObs } = makePrefFunctions("userOrgPrefs");
+export const { getPrefsObs: getUserPrefsObs, getPrefObs: getUserPrefObs } = makePrefFunctions("userPrefs");
 
 // For preferences that store a list of items (such as seen docTours), this helper updates the
 // preference to add itemId to it (e.g. to avoid auto-starting the docTour again in the future).
@@ -114,7 +114,6 @@ export function markAsSeen<T>(seenIdsObs: Observable<T[] | undefined>, itemId: T
   } catch (e) {
     // If we fail to save this preference, it's probably not worth alerting the user about,
     // so just log to console.
-    // tslint:disable-next-line:no-console
     console.warn("Failed to save preference in markAsSeen", e);
   }
 }

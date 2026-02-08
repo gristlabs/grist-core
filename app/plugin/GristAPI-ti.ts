@@ -4,7 +4,7 @@
 import * as t from "ts-interface-checker";
 // tslint:disable:object-literal-key-quotes
 
-export const UIRowId = t.union("number", t.lit('new'));
+export const UIRowId = t.union("number", t.lit("new"));
 
 export const CursorPos = t.iface([], {
   "rowId": t.opt("UIRowId"),
@@ -33,8 +33,8 @@ export const GristDocAPI = t.iface([], {
 
 export const FetchSelectedOptions = t.iface([], {
   "keepEncoded": t.opt("boolean"),
-  "format": t.opt(t.union(t.lit('rows'), t.lit('columns'))),
-  "includeColumns": t.opt(t.union(t.lit('shown'), t.lit('normal'), t.lit('all'))),
+  "format": t.opt(t.union(t.lit("rows"), t.lit("columns"))),
+  "includeColumns": t.opt(t.union(t.lit("shown"), t.lit("normal"), t.lit("all"))),
   "expandRefs": t.opt("boolean"),
 });
 

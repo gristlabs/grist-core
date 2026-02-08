@@ -8,17 +8,20 @@ if (window._gristAppLoaded) {
 }
 window._gristAppLoaded = true;
 
-const {setupLocale} = require('./lib/localization');
+const {setupLocale} = require("./lib/localization");
 
-const {AppImpl} = require('./ui/App');
+const {AppImpl} = require("./ui/App");
+
+// Sets up global helper for airtable migration
+require("./lib/airtable/AirtableBrowserGlobals").addAirtableImportBrowserGlobal();
 
 // Disable longStackTraces, which seem to be enabled in the browser by default.
-var bluebird = require('bluebird');
+var bluebird = require("bluebird");
 bluebird.config({ longStackTraces: false });
 
 // Set up integration between grainjs and knockout disposal.
-const {setupKoDisposal} = require('grainjs');
-const ko = require('knockout');
+const {setupKoDisposal} = require("grainjs");
+const ko = require("knockout");
 setupKoDisposal(ko);
 
 $(function() {
@@ -36,14 +39,14 @@ $(function() {
   localeSetup.then(() => {
     window.gristApp = AppImpl.create(null);
   }).catch(error => {
-    throw new Error(`Failed to load locale: ${error?.message || 'Unknown error'}`);
-  })
+    throw new Error(`Failed to load locale: ${error?.message || "Unknown error"}`);
+  });
   // Set from the login tests to stub and un-stub functions during execution.
   window.loginTestSandbox = null;
 
   // These modules are exposed for the sake of browser tests.
   window.exposeModulesForTests = function() {
-    return (import('./exposeModulesForTests' /* webpackChunkName: "modulesForTests" */));
+    return (import("./exposeModulesForTests" /* webpackChunkName: "modulesForTests" */));
   };
   window.exposedModules = {};
   // Make it easy for tests to use loadScript() whether or not exposedModules has already loaded.

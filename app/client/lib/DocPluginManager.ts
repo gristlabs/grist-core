@@ -1,16 +1,15 @@
+import { ClientScope } from "app/client/components/ClientScope";
+import { SafeBrowser } from "app/client/lib/SafeBrowser";
+import { ActiveDocAPI } from "app/common/ActiveDocAPI";
+import { LocalPlugin } from "app/common/plugin";
+import { createRpcLogger, PluginInstance } from "app/common/PluginInstance";
 
-import {ClientScope} from 'app/client/components/ClientScope';
-import {SafeBrowser} from 'app/client/lib/SafeBrowser';
-import {ActiveDocAPI} from 'app/common/ActiveDocAPI';
-import {LocalPlugin} from 'app/common/plugin';
-import {createRpcLogger, PluginInstance} from 'app/common/PluginInstance';
-import {Rpc} from 'grain-rpc';
+import { Rpc } from "grain-rpc";
 
 /**
  * DocPluginManager's Client side implementation.
  */
 export class DocPluginManager {
-
   public pluginsList: PluginInstance[];
 
   private _clientScope = this._options.clientScope;
@@ -40,14 +39,13 @@ export class DocPluginManager {
         }
 
         // Forward calls to the server, if no matching forwarder.
-        pluginInstance.rpc.registerForwarder('*', {
-          forwardCall: (call) => this._docComm.forwardPluginRpc(plugin.id, call),
-          forwardMessage: (msg) => this._docComm.forwardPluginRpc(plugin.id, msg),
+        pluginInstance.rpc.registerForwarder("*", {
+          forwardCall: call => this._docComm.forwardPluginRpc(plugin.id, call),
+          forwardMessage: msg => this._docComm.forwardPluginRpc(plugin.id, msg),
         });
         this.pluginsList.push(pluginInstance);
       } catch (err) {
-        console.error( // tslint:disable-line:no-console
-          `DocPluginManager: failed to instantiate ${plugin.id}: ${err.message}`);
+        console.error(`DocPluginManager: failed to instantiate ${plugin.id}: ${err.message}`);
       }
     }
   }
@@ -70,9 +68,9 @@ export class DocPluginManager {
   public makeAnonForwarder() {
     const rpc = new Rpc({});
     rpc.queueOutgoingUntilReadyMessage();
-    rpc.registerForwarder('*', {
-      forwardCall: (call) => this._docComm.forwardPluginRpc("builtIn/core", call),
-      forwardMessage: (msg) => this._docComm.forwardPluginRpc("builtIn/core", msg),
+    rpc.registerForwarder("*", {
+      forwardCall: call => this._docComm.forwardPluginRpc("builtIn/core", call),
+      forwardMessage: msg => this._docComm.forwardPluginRpc("builtIn/core", msg),
     });
     return rpc;
   }

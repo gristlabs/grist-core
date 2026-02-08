@@ -1,17 +1,33 @@
-const util = require('util');
-const childProcess = require('child_process');
-const fs = require('fs/promises');
+const crypto = require("crypto");
+const util = require("util");
+const childProcess = require("child_process");
+const fs = require("fs/promises");
 
 const exec = util.promisify(childProcess.exec);
 
 const org = "grist-labs";
 const expirationSec = 30 * 24 * 60 * 60;  // 30 days
 
-const getAppName = () => "grist-" + getBranchName().toLowerCase().replace(/[\W|_]+/g, '-');
-const getVolumeName = () => ("gv_" + getBranchName().toLowerCase().replace(/\W+/g, '_')).substring(0, 30);
+function getAppName() {
+  return sanitizeName(getBranchName(), {
+    prefix: "grist-",
+    maxLength: 62,
+    separator: "-",
+    replacePattern: /[\W|_]+/g
+  });
+}
+
+function getVolumeName() {
+  return sanitizeName(getBranchName(), {
+    prefix: "gv_",
+    maxLength: 30,
+    separator: "_",
+    replacePattern: /\W+/g
+  });
+}
 
 const getBranchName = () => {
-  if (!process.env.BRANCH_NAME) { console.log('Usage: Need BRANCH_NAME env var'); process.exit(1); }
+  if (!process.env.BRANCH_NAME) { console.log("Usage: Need BRANCH_NAME env var"); process.exit(1); }
   return process.env.BRANCH_NAME;
 };
 
@@ -74,7 +90,7 @@ const volCreate = (name, vol) => runAction(`flyctl volumes create ${vol} -s 1 -r
 const volList = (name) => runFetch(`flyctl volumes list -a ${name} -j`).then(({stdout}) => JSON.parse(stdout));
 const appDeploy = async (name) => {
   try {
-    await runAction("flyctl auth docker")
+    await runAction("flyctl auth docker");
     await runAction(`docker image tag grist-core:preview ${getDockerTag(name)}`);
     await runAction(`docker push ${getDockerTag(name)}`);
     await runAction(`flyctl deploy --app ${name} --image ${getDockerTag(name)}`);
@@ -92,13 +108,13 @@ async function prepConfig(name, volName) {
   const configPath = "./fly.toml";
   const configTemplatePath = "./buildtools/fly-template.toml";
   const envVarsPath = "./buildtools/fly-template.env";
-  const template = await fs.readFile(configTemplatePath, {encoding: 'utf8'});
+  const template = await fs.readFile(configTemplatePath, {encoding: "utf8"});
 
   // Parse envVarsPath manually to avoid the need to install npm modules. It supports comments,
   // strips whitespace, and splits on "=". (If not for comments, we could've used json.)
   // The reason it's separate is to allow it to come from untrusted branches.
   const envVars = [];
-  const envVarsContent = await fs.readFile(envVarsPath, {encoding: 'utf8'});
+  const envVarsContent = await fs.readFile(envVarsPath, {encoding: "utf8"});
   for (const line of envVarsContent.split(/\n/)) {
     const match = /^(?:\s*([^#=]+?)\s*=\s*([^#]*?))?\s*(?:#.*)?$/.exec(line);
     if (!match) {
@@ -131,12 +147,12 @@ async function prepConfig(name, volName) {
 function extraVars() {
   const lines = [];
   for (const [name, value] of Object.entries(process.env)) {
-    if (name.startsWith('FLY_ENV__')) {
-      const varName = name.slice('FLY_ENV__'.length);
+    if (name.startsWith("FLY_ENV__")) {
+      const varName = name.slice("FLY_ENV__".length);
       lines.push(`  ${stringifyTomlString(varName)} = ${stringifyTomlString(value)}`);
     }
   }
-  return lines.join('\n');
+  return lines.join("\n");
 }
 
 // Stringify a string for safe inclusion into toml. (We are careful not to allow it to escape
@@ -144,6 +160,27 @@ function extraVars() {
 function stringifyTomlString(str) {
   // JSON.stringify() is sufficient to produce a safe TOML string.
   return JSON.stringify(String(str));
+}
+
+// We have strict limits on how long names can be, but we want them
+// both human readable and reasonably unique, so make some trade-offs.
+function sanitizeName(branchName, options) {
+  const { prefix, maxLength, separator, replacePattern } = options;
+  const sanitized = branchName.toLowerCase().replace(replacePattern, separator);
+  const name = prefix + sanitized;
+
+  if (name.length <= maxLength) {
+    return name;
+  }
+
+  // Add a short hash to avoid colliding with similarly named branches.
+  const hashLength = 6;
+  const hash = crypto.createHash("sha256").update(branchName).digest("hex").substring(0, hashLength);
+  const maxBranchLength = maxLength - prefix.length - hash.length - separator.length;
+
+  // Take from the end of the branch name.
+  const branchPart = sanitized.substring(sanitized.length - maxBranchLength);
+  return prefix + branchPart + separator + hash;
 }
 
 function runFetch(cmd) {
@@ -157,10 +194,10 @@ async function runAction(cmd) {
     return;
   }
   console.log(`Running: ${cmd}`);
-  const cp = childProcess.spawn(cmd, {shell: true, stdio: 'inherit'});
+  const cp = childProcess.spawn(cmd, {shell: true, stdio: "inherit"});
   return new Promise((resolve, reject) => {
-    cp.on('error', reject);
-    cp.on('exit', function (code) {
+    cp.on("error", reject);
+    cp.on("exit", function (code) {
       if (code === 0) {
         resolve();
       } else {

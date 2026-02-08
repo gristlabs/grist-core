@@ -1,10 +1,10 @@
-import { theme, vars } from 'app/client/ui2018/cssVars';
-import {textarea} from 'app/client/ui/inputs';
-import {cssTextInput} from 'app/client/ui2018/editableLabel';
-import {IInputOptions, input, Observable, styled} from 'grainjs';
+import { textarea } from "app/client/ui/inputs";
+import { theme, vars } from "app/client/ui2018/cssVars";
+import { cssTextInput } from "app/client/ui2018/editableLabel";
 
+import { IInputOptions, input, Observable, styled } from "grainjs";
 
-export const cssRenamePopup = styled('div', `
+export const cssRenamePopup = styled("div", `
   display: flex;
   flex-direction: column;
   min-width: 280px;
@@ -14,7 +14,7 @@ export const cssRenamePopup = styled('div', `
   outline: none;
 `);
 
-export const cssLabel = styled('label', `
+export const cssLabel = styled("label", `
   color: ${theme.text};
   font-size: ${vars.xsmallFontSize};
   font-weight: ${vars.bigControlTextWeight};
@@ -25,7 +25,7 @@ export const cssLabel = styled('label', `
   }
 `);
 
-const cssInputWithIcon = styled('div', `
+const cssInputWithIcon = styled("div", `
   position: relative;
   display: flex;
   flex-direction: column;
@@ -34,7 +34,7 @@ const cssInputWithIcon = styled('div', `
 export const cssInput = styled((
   obs: Observable<string>,
   opts: IInputOptions,
-  ...args) => input(obs, opts, cssTextInput.cls(''), ...args), `
+  ...args) => input(obs, opts, cssTextInput.cls(""), ...args), `
   text-overflow: ellipsis;
   color: ${theme.inputFg};
   background-color: transparent;

@@ -1,11 +1,12 @@
-import {makeTestId} from 'app/client/lib/domUtils';
-import {urlState} from 'app/client/models/gristUrlState';
-import {isNarrowScreenObs, theme} from 'app/client/ui2018/cssVars';
-import {IconName} from 'app/client/ui2018/IconList';
-import {icon as cssIcon} from 'app/client/ui2018/icons';
-import {IGristUrlState} from 'app/common/gristUrls';
-import {useBindable} from 'app/common/gutil';
-import {BindableValue, dom, IDomArgs, MaybeObsArray, styled, UseCBOwner} from 'grainjs';
+import { makeTestId } from "app/client/lib/domUtils";
+import { urlState } from "app/client/models/gristUrlState";
+import { isNarrowScreenObs, theme } from "app/client/ui2018/cssVars";
+import { IconName } from "app/client/ui2018/IconList";
+import { icon as cssIcon } from "app/client/ui2018/icons";
+import { IGristUrlState } from "app/common/gristUrls";
+import { useBindable } from "app/common/gutil";
+
+import { BindableValue, dom, IDomArgs, MaybeObsArray, styled, UseCBOwner } from "grainjs";
 
 const testId = makeTestId("test-component-tabs-");
 
@@ -24,30 +25,29 @@ export interface TabProps {
 
 export function buildTabs(
   tabs: MaybeObsArray<TabProps>,
-  selected: BindableValue<string|null|undefined>,
+  selected: BindableValue<string | null | undefined>,
   ...args: IDomArgs<HTMLDivElement>
 ) {
-
   const isSelected = (tab: TabProps) => (use: UseCBOwner) => useBindable(use, selected) === (tab.id ?? tab.label);
   return cssTabs(
     dom.forEach(tabs, tab => cssTab(
       cssIconAndLabel(!tab.icon ? null : cssTabIcon(tab.icon, dom.hide(isNarrowScreenObs())),
 
-      // The combination with space makes the label as wide as its bold version,
-      // to avoid slight shifts of other labels when switching tabs.
-      dom('div', tab.label, cssBoldLabelSpacer(tab.label))),
+        // The combination with space makes the label as wide as its bold version,
+        // to avoid slight shifts of other labels when switching tabs.
+        dom("div", tab.label, cssBoldLabelSpacer(tab.label))),
 
       cssTab.cls("-selected", isSelected(tab)),
 
-      tab.onClick && dom.on('click', tab.onClick.bind(tab)),
+      tab.onClick && dom.on("click", tab.onClick.bind(tab)),
 
       tab.link && urlState().setLinkUrl(tab.link, { replace: true }),
 
-      testId('tab'),
-      testId('tab-selected', isSelected(tab)),
+      testId("tab"),
+      testId("tab-selected", isSelected(tab)),
     )),
-    testId('list'),
-    ...args
+    testId("list"),
+    ...args,
   );
 }
 

@@ -1,8 +1,9 @@
-import { assert, driver, Key } from "mocha-webdriver";
-import * as gu from 'test/nbrowser/gristUtils';
+import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
 
-describe('Search2', async function() {
+import { assert, driver, Key } from "mocha-webdriver";
+
+describe("Search2", async function() {
   this.timeout(20000);
   setupTestSuite();
   gu.bigScreen();
@@ -22,30 +23,30 @@ describe('Search2', async function() {
     closedSize = await driver.find(".test-tb-search-wrapper").rect();
   });
 
-  it('should handle sending Cmd+f repeatedly', async () => {
+  it("should handle sending Cmd+f repeatedly", async () => {
     await gu.getPageItem(/City/).click();
     await gu.waitForServer();
 
     // open search
-    await driver.find('.test-tb-search-icon').doClick();
+    await driver.find(".test-tb-search-icon").doClick();
     await driver.sleep(500);
 
     // click multiPage options
-    await driver.find('.test-tb-search-option-all-pages').click();
+    await driver.find(".test-tb-search-option-all-pages").click();
 
     // type in 'gorane'
-    await driver.find('.test-tb-search-input').doClick();
-    await driver.sendKeys('gorane');
+    await driver.find(".test-tb-search-input").doClick();
+    await driver.sendKeys("gorane");
 
     // repeteadly send Cmd+G
     for (let i = 0; i < 10; ++i) {
-      await driver.find('body').sendKeys(Key.chord(await gu.modKey(), 'g'));
+      await driver.find("body").sendKeys(Key.chord(await gu.modKey(), "g"));
     }
 
     // unclick multiPage options
-    await driver.find('.test-tb-search-icon').doClick();
+    await driver.find(".test-tb-search-icon").doClick();
     await driver.sleep(500);
-    await driver.find('.test-tb-search-option-all-pages').click();
+    await driver.find(".test-tb-search-option-all-pages").click();
     await driver.sendKeys(Key.ESCAPE);
     await waitForClose();
 
@@ -53,35 +54,35 @@ describe('Search2', async function() {
     await gu.checkForErrors();
   });
 
-  it('should update linked sections', async () => {
+  it("should update linked sections", async () => {
     // Link City sections
     await gu.getPageItem(/City/).click();
     await gu.waitForServer();
-    await gu.getSection('CITY Card List').click();
-    await gu.toggleSidePanel('right', 'open');
-    await driver.findContent('.test-right-panel button', /Change widget/).click();
-    await driver.find('.test-wselect-selectby').doClick();
-    await driver.findContent('.test-wselect-selectby option', /CITY/).doClick();
-    await driver.find('.test-wselect-addBtn').doClick();
+    await gu.getSection("CITY Card List").click();
+    await gu.toggleSidePanel("right", "open");
+    await driver.findContent(".test-right-panel button", /Change widget/).click();
+    await driver.find(".test-wselect-selectby").doClick();
+    await driver.findContent(".test-wselect-selectby option", /CITY/).doClick();
+    await driver.find(".test-wselect-addBtn").doClick();
     await gu.waitForServer();
-    await gu.getSection('CITY').click();
-    await gu.getCell('Name', 1).click();
+    await gu.getSection("CITY").click();
+    await gu.getCell("Name", 1).click();
 
     // Search for "CHN"
-    await gu.search('CHN');
+    await gu.search("CHN");
 
     // Leave search
     await driver.sendKeys(Key.ESCAPE);
     await waitForClose();
 
     // Make sure linked sections ended up where we'd expect, and consistent
-    await gu.selectSectionByTitle('CITY Card List');
-    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 4, col: 'Country' });
-    await gu.selectSectionByTitle('CITY');
+    await gu.selectSectionByTitle("CITY Card List");
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 4, col: "Country" });
+    await gu.selectSectionByTitle("CITY");
     assert.deepEqual(await gu.getCursorPosition(), { rowNum: 3293, col: 0 });
   });
 
-  it('should scroll to the active element', async () => {
+  it("should scroll to the active element", async () => {
     await gu.getPageItem(/Country/).click();
     await gu.waitForServer();
     // Select a first row
@@ -90,7 +91,7 @@ describe('Search2', async function() {
       // Scroll
       await gu.scrollActiveView(0, 22 * rowCount); // 22 is a row height
       // Search for Aruba.
-      await gu.search('Aruba');
+      await gu.search("Aruba");
       // Leave search
       await driver.sendKeys(Key.ESCAPE);
       await waitForClose();

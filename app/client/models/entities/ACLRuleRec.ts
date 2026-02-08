@@ -1,4 +1,4 @@
-import {DocModel, IRowModel} from 'app/client/models/DocModel';
+import { DocModel, IRowModel } from "app/client/models/DocModel";
 
 export type ACLRuleRec = IRowModel<"_grist_ACLRules">;
 

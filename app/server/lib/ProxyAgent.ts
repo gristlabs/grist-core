@@ -1,8 +1,8 @@
-import {appSettings} from "app/server/lib/AppSettings";
-import log from 'app/server/lib/log';
+import { appSettings } from "app/server/lib/AppSettings";
+import log from "app/server/lib/log";
 
-import fetch, { RequestInit } from 'node-fetch';
-import {ProxyAgent, ProxyAgentOptions} from "proxy-agent";
+import fetch, { RequestInit } from "node-fetch";
+import { ProxyAgent, ProxyAgentOptions } from "proxy-agent";
 
 /**
  * GristProxyAgent derives from ProxyAgent which is a class that is responsible for proxying the request using either
@@ -13,23 +13,23 @@ import {ProxyAgent, ProxyAgentOptions} from "proxy-agent";
  * itself (using `proxy-from-env` module), we already do that ourselves and need to keep the control for that.
  */
 export class GristProxyAgent extends ProxyAgent {
-  constructor(public readonly proxyUrl: string, opts?: Omit<ProxyAgentOptions, 'getProxyForUrl'>) {
+  constructor(public readonly proxyUrl: string, opts?: Omit<ProxyAgentOptions, "getProxyForUrl">) {
     super({
       ...opts,
-      getProxyForUrl: () => this.proxyUrl
+      getProxyForUrl: () => this.proxyUrl,
     });
   }
 }
 
 function getProxyAgentConfiguration() {
-  const proxyForTrustedRequestsUrl = appSettings.section('proxy').readString({
-    envVar: ['HTTPS_PROXY', 'https_proxy'],
-    preferredEnvVar: 'HTTPS_PROXY',
+  const proxyForTrustedRequestsUrl = appSettings.section("proxy").readString({
+    envVar: ["HTTPS_PROXY", "https_proxy"],
+    preferredEnvVar: "HTTPS_PROXY",
   });
 
-  const proxyForUntrustedRequestsUrl = appSettings.section('proxy').readString({
-    envVar: ['GRIST_PROXY_FOR_UNTRUSTED_URLS', 'GRIST_HTTPS_PROXY'],
-    preferredEnvVar: 'GRIST_PROXY_FOR_UNTRUSTED_URLS'
+  const proxyForUntrustedRequestsUrl = appSettings.section("proxy").readString({
+    envVar: ["GRIST_PROXY_FOR_UNTRUSTED_URLS", "GRIST_HTTPS_PROXY"],
+    preferredEnvVar: "GRIST_PROXY_FOR_UNTRUSTED_URLS",
   });
 
   return {
@@ -39,17 +39,17 @@ function getProxyAgentConfiguration() {
 }
 
 function generateProxyAgents() {
-  const {proxyForTrustedRequestsUrl, proxyForUntrustedRequestsUrl} = getProxyAgentConfiguration();
+  const { proxyForTrustedRequestsUrl, proxyForUntrustedRequestsUrl } = getProxyAgentConfiguration();
 
   if (process.env.GRIST_HTTPS_PROXY) {
-    log.warn('GRIST_HTTPS_PROXY is deprecated in favor of GRIST_PROXY_FOR_UNTRUSTED_URLS. ' +
+    log.warn("GRIST_HTTPS_PROXY is deprecated in favor of GRIST_PROXY_FOR_UNTRUSTED_URLS. " +
       `Please rather set GRIST_PROXY_FOR_UNTRUSTED_URLS="${proxyForUntrustedRequestsUrl}"`);
   }
 
   return {
     trusted: proxyForTrustedRequestsUrl ? new GristProxyAgent(proxyForTrustedRequestsUrl) : undefined,
-    untrusted: (proxyForUntrustedRequestsUrl && proxyForUntrustedRequestsUrl !== "direct")
-      ? new GristProxyAgent(proxyForUntrustedRequestsUrl) : undefined
+    untrusted: (proxyForUntrustedRequestsUrl && proxyForUntrustedRequestsUrl !== "direct") ?
+      new GristProxyAgent(proxyForUntrustedRequestsUrl) : undefined,
   };
 }
 
@@ -82,7 +82,7 @@ export const agents = generateProxyAgents();
  * Here are written thoughts and doubts about this function:
  * https://github.com/gristlabs/grist-core/pull/1363#discussion_r2034871615
  */
-export async function fetchUntrustedWithAgent(requestUrl: URL|string, options?: Omit<RequestInit, 'agent'>) {
+export async function fetchUntrustedWithAgent(requestUrl: URL | string, options?: Omit<RequestInit, "agent">) {
   const agent = agents.untrusted;
   if (!agent) {
     // No proxy is configured, just use the default agent.
@@ -91,11 +91,11 @@ export async function fetchUntrustedWithAgent(requestUrl: URL|string, options?: 
   requestUrl = new URL(requestUrl);
 
   try {
-    return await fetch(requestUrl, {...options, agent});
-  } catch(e) {
+    return await fetch(requestUrl, { ...options, agent });
+  } catch (e) {
     // Include info helpful for diagnosing issues (but not the potentially sensitive full requestUrl).
     log.rawWarn(`ProxyAgent error ${e}`,
-      {proxy: agent.proxyUrl, reqProtocol: requestUrl.protocol, requestHost: requestUrl.origin});
+      { proxy: agent.proxyUrl, reqProtocol: requestUrl.protocol, requestHost: requestUrl.origin });
     throw e;
   }
 }

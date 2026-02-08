@@ -1,4 +1,4 @@
-import Deque from 'double-ended-queue';
+import Deque from "double-ended-queue";
 
 /**
  * Usage:
@@ -56,12 +56,12 @@ export class MemoryPool {
     if (this.hasSpaceOrIsEmpty(size)) {
       this._updateReserved(size);
     } else {
-      await new Promise<void>(resolve => this._queue.push({size, resolve}));
+      await new Promise<void>(resolve => this._queue.push({ size, resolve }));
     }
     return new MemoryReservation(size, this._updateReserved.bind(this));
   }
 
-  public async withReserved(size: number, callback: (updateRes: UpdateReservation) => void|Promise<void>) {
+  public async withReserved(size: number, callback: (updateRes: UpdateReservation) => void | Promise<void>) {
     const memRes = await this.waitAndReserve(size);
     try {
       return await callback(memRes.updateReservation.bind(memRes));

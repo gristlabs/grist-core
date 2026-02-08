@@ -1,38 +1,37 @@
-import {ClientScope} from 'app/client/components/ClientScope';
-import {Clipboard} from 'app/client/components/Clipboard';
-import {RegionFocusSwitcher} from 'app/client/components/RegionFocusSwitcher';
-import {KeyboardFocusHighlighter} from 'app/client/components/KeyboardFocusHighlighter';
-import {Comm} from 'app/client/components/Comm';
-import * as commandList from 'app/client/components/commandList';
-import * as commands from 'app/client/components/commands';
-import {unsavedChanges} from 'app/client/components/UnsavedChanges';
-import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
-import {isDesktop} from 'app/client/lib/browserInfo';
-import {FocusLayer} from 'app/client/lib/FocusLayer';
-import * as koUtil from 'app/client/lib/koUtil';
-import {reportError, TopAppModel, TopAppModelImpl} from 'app/client/models/AppModel';
-import {DocPageModel} from 'app/client/models/DocPageModel';
-import {setUpErrorHandling} from 'app/client/models/errors';
-import {createAppUI} from 'app/client/ui/AppUI';
-import {openAccessibilityModal} from 'app/client/ui/OpenAccessibilityModal';
-import {addViewportTag} from 'app/client/ui/viewport';
-import {attachCssRootVars} from 'app/client/ui2018/cssVars';
-import {attachTheme} from 'app/client/ui2018/theme';
-import {BaseAPI} from 'app/common/BaseAPI';
-import {CommDocError} from 'app/common/CommTypes';
-import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
-import {fetchFromHome} from 'app/common/urlUtils';
-import {ISupportedFeatures} from 'app/common/UserConfig';
-import {dom} from 'grainjs';
-import * as ko from 'knockout';
-import {makeT} from 'app/client/lib/localization';
-import { onClickOutside } from 'app/client/lib/domUtils';
+import { ClientScope } from "app/client/components/ClientScope";
+import { Clipboard } from "app/client/components/Clipboard";
+import { Comm } from "app/client/components/Comm";
+import * as commandList from "app/client/components/commandList";
+import * as commands from "app/client/components/commands";
+import { KeyboardFocusHighlighter } from "app/client/components/KeyboardFocusHighlighter";
+import { RegionFocusSwitcher } from "app/client/components/RegionFocusSwitcher";
+import { unsavedChanges } from "app/client/components/UnsavedChanges";
+import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
+import { isDesktop } from "app/client/lib/browserInfo";
+import { onClickOutside } from "app/client/lib/domUtils";
+import { FocusLayer } from "app/client/lib/FocusLayer";
+import * as koUtil from "app/client/lib/koUtil";
+import { makeT } from "app/client/lib/localization";
+import { reportError, TopAppModel, TopAppModelImpl } from "app/client/models/AppModel";
+import { DocPageModel } from "app/client/models/DocPageModel";
+import { setUpErrorHandling } from "app/client/models/errors";
+import { createAppUI } from "app/client/ui/AppUI";
+import { openAccessibilityModal } from "app/client/ui/OpenAccessibilityModal";
+import { addViewportTag } from "app/client/ui/viewport";
+import { attachCssRootVars } from "app/client/ui2018/cssVars";
+import { attachTheme } from "app/client/ui2018/theme";
+import { BaseAPI } from "app/common/BaseAPI";
+import { CommDocError } from "app/common/CommTypes";
+import { DisposableWithEvents } from "app/common/DisposableWithEvents";
+import { fetchFromHome } from "app/common/urlUtils";
+import { ISupportedFeatures } from "app/common/UserConfig";
 
-const t = makeT('App');
+import { dom } from "grainjs";
+import * as ko from "knockout";
 
-// tslint:disable:no-console
+const t = makeT("App");
 
-const G = getBrowserGlobals('document', 'window');
+const G = getBrowserGlobals("document", "window");
 
 export interface App extends DisposableWithEvents {
   allCommands: typeof commands.allCommands;
@@ -62,11 +61,11 @@ export class AppImpl extends DisposableWithEvents implements App {
   // Track the RegionFocusSwitcher created by pagePanels, so that the codebase can access it.
   public regionFocusSwitcher?: RegionFocusSwitcher;
 
-  private _settings: ko.Observable<{features?: ISupportedFeatures}>;
+  private _settings: ko.Observable<{ features?: ISupportedFeatures }>;
 
   // Track the version of the server we are communicating with, so that if it changes
   // we can choose to refresh the client also.
-  private _serverVersion: string|null = null;
+  private _serverVersion: string | null = null;
 
   constructor() {
     super();
@@ -91,12 +90,12 @@ export class AppImpl extends DisposableWithEvents implements App {
       // scrolling and showing of mobile keyboard). But we still rely on 'clipboard_focus' and
       // 'clipboard_blur' events to know when the "app" has a focus (rather than a particular
       // input), by making document.body focusable and using a FocusLayer with it as the default.
-      document.body.setAttribute('tabindex', '-1');
+      document.body.setAttribute("tabindex", "-1");
       FocusLayer.create(this, {
         defaultFocusElem: document.body,
         allowFocus: Clipboard.allowFocus,
-        onDefaultFocus: () => this.trigger('clipboard_focus'),
-        onDefaultBlur: () => this.trigger('clipboard_blur'),
+        onDefaultFocus: () => this.trigger("clipboard_focus"),
+        onDefaultBlur: () => this.trigger("clipboard_blur"),
       });
     }
 
@@ -104,36 +103,36 @@ export class AppImpl extends DisposableWithEvents implements App {
 
     const isHelpPaneVisible = ko.observable(false);
 
-    G.document.querySelector('#grist-logo-wrapper')?.remove();
+    G.document.querySelector("#grist-logo-wrapper")?.remove();
 
     const helpDiv = document.body.appendChild(
-      dom('div.g-help',
+      dom("div.g-help",
         onClickOutside(() => isHelpPaneVisible(false)),
         dom.show(isHelpPaneVisible), // Toggle visibility dynamically
-        dom('table.g-help-table',
-          dom('thead',
-            dom('tr',
-              dom('th', t("Key")),
-              dom('th', t("Description"))
-            )
+        dom("table.g-help-table",
+          dom("thead",
+            dom("tr",
+              dom("th", t("Key")),
+              dom("th", t("Description")),
+            ),
           ),
           dom.forEach(commandList.groups, (group) => {
-            const cmds = group.commands.filter((cmd) => Boolean(cmd.desc && cmd.keys.length && !cmd.deprecated));
+            const cmds = group.commands.filter(cmd => Boolean(cmd.desc && cmd.keys.length && !cmd.deprecated));
             return cmds.length > 0 ?
-              dom('tbody',
-                dom('tr',
-                  dom('td', {colspan: '2'}, group.group)
+              dom("tbody",
+                dom("tr",
+                  dom("td", { colspan: "2" }, group.group),
                 ),
-                dom.forEach(cmds, (cmd) =>
-                  dom('tr',
-                    dom('td', commands.allCommands[cmd.name]!.getKeysDom()),
-                    dom('td', cmd.desc?.() ?? '')
-                  )
-                )
+                dom.forEach(cmds, cmd =>
+                  dom("tr",
+                    dom("td", commands.allCommands[cmd.name].getKeysDom()),
+                    dom("td", cmd.desc?.() ?? ""),
+                  ),
+                ),
               ) : null;
-          })
-        )
-      )
+          }),
+        ),
+      ),
     );
     this.onDispose(() => { dom.domDispose(helpDiv); helpDiv.remove(); });
 
@@ -157,10 +156,10 @@ export class AppImpl extends DisposableWithEvents implements App {
       shortcuts() { isHelpPaneVisible(false); },  // Close menu
     }, this, isHelpPaneVisible));
 
-    this.listenTo(this.comm, 'clientConnect', (message) => {
+    this.listenTo(this.comm, "clientConnect", (message) => {
       console.log(`App clientConnect event: needReload ${message.needReload} version ${message.serverVersion}`);
       this._settings(message.settings);
-      if (message.serverVersion === 'dead' || (this._serverVersion && this._serverVersion !== message.serverVersion)) {
+      if (message.serverVersion === "dead" || (this._serverVersion && this._serverVersion !== message.serverVersion)) {
         console.log("Upgrading...");
         // Server has upgraded.  Upgrade client.  TODO: be gentle and polite.
         return this.reload();
@@ -173,24 +172,24 @@ export class AppImpl extends DisposableWithEvents implements App {
       }
     });
 
-    this.listenTo(this.comm, 'connectState', (isConnected: boolean) => {
+    this.listenTo(this.comm, "connectState", (isConnected: boolean) => {
       this.topAppModel.notifier.setConnectState(isConnected);
     });
 
-    this.listenTo(this.comm, 'docShutdown', () => {
+    this.listenTo(this.comm, "docShutdown", () => {
       console.log("Received docShutdown");
       // Reload on next tick, to let other objects process 'docShutdown' before they get disposed.
       setTimeout(() => this._reloadPane(), 0);
     });
 
-    this.listenTo(this.comm, 'docError', (msg: CommDocError) => {
+    this.listenTo(this.comm, "docError", (msg: CommDocError) => {
       this._checkError(new Error(msg.data.message));
     });
 
     // When the document is unloaded, dispose the app, allowing it to do any needed
     // cleanup (e.g. Document on disposal triggers closeDoc message to the server). It needs to be
     // in 'beforeunload' rather than 'unload', since websocket is closed by the time of 'unload'.
-    G.window.addEventListener('beforeunload', (ev: BeforeUnloadEvent) => {
+    G.window.addEventListener("beforeunload", (ev: BeforeUnloadEvent) => {
       if (unsavedChanges.haveUnsavedChanges()) {
         // Following https://developer.mozilla.org/en-US/docs/Web/API/Window/beforeunload_event
         ev.returnValue = true;
@@ -241,12 +240,12 @@ export class AppImpl extends DisposableWithEvents implements App {
    * is available in weblate and good translations have been updated.
    */
   public checkSpecialTranslationKey() {
-    return t('Translators: please translate this only when your language is ready to be offered to users');
+    return t("Translators: please translate this only when your language is ready to be offered to users");
   }
 
   // Get the user profile for testing purposes
   public async testGetProfile(): Promise<any> {
-    const resp = await fetchFromHome('/api/profile/user', {credentials: 'include'});
+    const resp = await fetchFromHome("/api/profile/user", { credentials: "include" });
     return resp.json();
   }
 

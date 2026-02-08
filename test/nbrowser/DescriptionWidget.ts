@@ -1,9 +1,9 @@
-import { assert, driver, Key } from 'mocha-webdriver';
-import * as gu from 'test/nbrowser/gristUtils';
-import { setupTestSuite } from 'test/nbrowser/testUtils';
+import * as gu from "test/nbrowser/gristUtils";
+import { setupTestSuite } from "test/nbrowser/testUtils";
 
+import { assert, driver, Key } from "mocha-webdriver";
 
-describe('DescriptionWidget', function() {
+describe("DescriptionWidget", function() {
   this.timeout(20000);
   const cleanup = setupTestSuite();
 
@@ -13,20 +13,20 @@ describe('DescriptionWidget', function() {
     await gu.openWidgetPanel();
   });
 
-  const getDescriptionAddLink = () => driver.find('.test-right-panel .test-description-add');
-  const getDescriptionPreview = () => driver.find('.test-right-panel .test-description-preview');
-  const getDescriptionInput = () => driver.find('.test-right-panel .test-right-widget-description');
+  const getDescriptionAddLink = () => driver.find(".test-right-panel .test-description-add");
+  const getDescriptionPreview = () => driver.find(".test-right-panel .test-description-preview");
+  const getDescriptionInput = () => driver.find(".test-right-panel .test-right-widget-description");
 
-  it('should support basic edition in right panel', async () => {
+  it("should support basic edition in right panel", async () => {
     const newWidgetDesc = "This is the widget description\nIt is in two lines";
     await getDescriptionAddLink().click();
     await driver.sleep(10);
     assert.equal(await getDescriptionInput().hasFocus(), true);
-    await gu.sendKeys(newWidgetDesc.split('\n')[0]);
+    await gu.sendKeys(newWidgetDesc.split("\n")[0]);
     await gu.sendKeys(Key.chord(Key.SHIFT, Key.ENTER));
-    await gu.sendKeys(newWidgetDesc.split('\n')[1]);
+    await gu.sendKeys(newWidgetDesc.split("\n")[1]);
     // Click on other input to unselect descriptionInput
-    await driver.find('.test-right-panel .test-right-widget-title').click();
+    await driver.find(".test-right-panel .test-right-widget-title").click();
     await gu.waitForServer();
     assert.equal(await getDescriptionAddLink().isPresent(), false);
     assert.equal(await getDescriptionPreview().isPresent(), true);
@@ -35,7 +35,7 @@ describe('DescriptionWidget', function() {
     await checkDescValueInWidgetTooltip("Table", newWidgetDesc);
   });
 
-  it('should support clearing description in right panel', async function() {
+  it("should support clearing description in right panel", async function() {
     // Should support clearing the description after reload (there was a bug with that at one point).
     await gu.reloadDoc();
     assert.equal(await getDescriptionPreview().isPresent(), true);
@@ -48,7 +48,7 @@ describe('DescriptionWidget', function() {
     assert.equal(await getDescriptionInput().isPresent(), false);
   });
 
-  it('should support basic edition in widget popup', async () => {
+  it("should support basic edition in widget popup", async () => {
     const widgetName = "Table";
     const newWidgetDescFirstLine = "First line of the description";
     const newWidgetDescSecondLine = "Second line of the description";
@@ -57,7 +57,7 @@ describe('DescriptionWidget', function() {
     await checkDescValueInWidgetTooltip(widgetName, `${newWidgetDescFirstLine}\n${newWidgetDescSecondLine}`);
   });
 
-  it('should show info tooltip only if there is a description', async () => {
+  it("should show info tooltip only if there is a description", async () => {
     const newWidgetDesc = "New description for widget Table";
 
     await addWidgetDescription("Table", newWidgetDesc);
@@ -68,7 +68,7 @@ describe('DescriptionWidget', function() {
     await checkDescValueInWidgetTooltip("Table", newWidgetDesc);
   });
 
-  it('shows link in a description', async () => {
+  it("shows link in a description", async () => {
     await addWidgetDescription("Table", "Some text with a https://www.grist.com link");
 
     assert.isFalse(await getWidgetTooltip("Single card").isPresent());
@@ -77,9 +77,9 @@ describe('DescriptionWidget', function() {
     await getWidgetTooltip("Table").click();
     await waitForTooltip();
     const descriptionTooltip = await driver
-      .find('.test-widget-info-tooltip-popup');
+      .find(".test-widget-info-tooltip-popup");
     assert.equal(await descriptionTooltip.getText(), "Some text with a \nhttps://www.grist.com link");
-    assert.equal(await descriptionTooltip.find(".test-text-link a").getAttribute('href'), "https://www.grist.com/");
+    assert.equal(await descriptionTooltip.find(".test-text-link a").getAttribute("href"), "https://www.grist.com/");
     assert.equal(await descriptionTooltip.find(".test-text-link").getText(), "https://www.grist.com");
   });
 });
@@ -97,7 +97,7 @@ async function waitForTooltip() {
 }
 
 function getWidgetTitle(widgetName: string) {
-  return driver.findContent('.test-widget-title-text', `${widgetName}`);
+  return driver.findContent(".test-widget-title-text", `${widgetName}`);
 }
 
 function getWidgetTooltip(widgetName: string) {
@@ -108,8 +108,8 @@ async function addWidgetDescription(widgetName: string, desc: string, descSecond
   // Click on the title and open the edition popup
   await getWidgetTitle(widgetName).click();
   await waitForEditPopup();
-  const widgetEditPopup = await driver.find('.test-widget-title-popup');
-  const widgetDescInput = await widgetEditPopup.find('.test-widget-title-section-description-input');
+  const widgetEditPopup = await driver.find(".test-widget-title-popup");
+  const widgetDescInput = await widgetEditPopup.find(".test-widget-title-section-description-input");
 
   // Edit the description of the widget inside the popup
   await widgetDescInput.click();
@@ -126,6 +126,6 @@ async function checkDescValueInWidgetTooltip(widgetName: string, desc: string) {
   await getWidgetTooltip(widgetName).click();
   await waitForTooltip();
   const descriptionTooltip = await driver
-    .find('.test-widget-info-tooltip-popup');
+    .find(".test-widget-info-tooltip-popup");
   assert.equal(await descriptionTooltip.getText(), desc);
 }

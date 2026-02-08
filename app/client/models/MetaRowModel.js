@@ -1,9 +1,9 @@
-var _ = require('underscore');
-var ko = require('knockout');
-var dispose = require('../lib/dispose');
-var BaseRowModel = require('./BaseRowModel');
-var modelUtil = require('./modelUtil');
-var BackboneEvents = require('backbone').Events;
+var _ = require("underscore");
+var ko = require("knockout");
+var dispose = require("../lib/dispose");
+var BaseRowModel = require("./BaseRowModel");
+var modelUtil = require("./modelUtil");
+var BackboneEvents = require("backbone").Events;
 
 /**
  * MetaRowModel is a RowModel for built-in (Meta) tables. It takes a list of field names, and an
@@ -11,13 +11,13 @@ var BackboneEvents = require('backbone').Events;
  * can add arbitrary additional properties to this RowModel.
  */
 function MetaRowModel(tableModel, fieldNames, rowConstructor, rowId) {
-  var colNames = ['id'].concat(fieldNames);
+  var colNames = ["id"].concat(fieldNames);
   BaseRowModel.call(this, tableModel, colNames);
   this._rowId = rowId;
 
   // MetaTableModel#_createRowModelItem creates lightweight objects that all reference the same MetaRowModel but are slightly different.
   // We don't derive from BackboneEvents directly so that the lightweight objects created share the same Events object even though they are distinct.
-  this.events = this.autoDisposeWith('stopListening', BackboneEvents);
+  this.events = this.autoDisposeWith("stopListening", BackboneEvents);
 
   // Changes to true when this row gets deleted. This also likely means that this model is about
   // to get disposed, except for a floating row model.
@@ -61,7 +61,7 @@ MetaRowModel.Floater = function(tableModel, rowIdObs) {
   if (!this.constructor.prototype.getRowId) {
     this.constructor.prototype.getRowId = function() {
       return this.rowIdObs();
-    }
+    };
   }
 
   // Note that ._index isn't supported because it doesn't make sense for a floating row model.
@@ -90,8 +90,8 @@ MetaRowModel.Floater = function(tableModel, rowIdObs) {
 
       // If the underlying observable supports saving, forward save calls too.
       if (propValue.saveOnly) {
-          modelUtil.addSaveInterface(this[propName], (value =>
-            this._underlyingRowModel()[propName].saveOnly(value)));
+        modelUtil.addSaveInterface(this[propName], (value =>
+          this._underlyingRowModel()[propName].saveOnly(value)));
       }
     }
   }, this);

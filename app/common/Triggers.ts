@@ -1,5 +1,5 @@
-export interface WebhookSubscribeCollection{
-  webhooks: Array<Webhook>
+export interface WebhookSubscribeCollection {
+  webhooks: Webhook[]
 }
 
 export interface Webhook {
@@ -9,36 +9,41 @@ export interface Webhook {
 export interface WebhookFields {
   url: string;
   authorization?: string;
-  eventTypes: Array<"add"|"update">;
+  eventTypes: ("add" | "update")[];
   tableId: string;
   watchedColIds?: string[];
   enabled?: boolean;
-  isReadyColumn?: string|null;
+  isReadyColumn?: string | null;
   name?: string;
   memo?: string;
 }
 
 // Union discriminated by type
-export type WebhookBatchStatus = 'success'|'failure'|'rejected';
-export type WebhookStatus = 'idle'|'sending'|'retrying'|'postponed'|'error'|'invalid';
+export type WebhookBatchStatus = "success" | "failure" | "rejected";
+export type WebhookStatus = "idle" | "sending" | "retrying" | "postponed" | "error" | "invalid";
 
+/** Secrets for webhook stored outside the document in home db */
+export interface WebHookSecret {
+  url: string;
+  unsubscribeKey: string;
+  authorization?: string;
+}
 
 // WebhookSubscribe should be `Omit<WebhookFields, 'tableId'>` (because subscribe endpoint read
 // tableId from the url) but generics are not yet supported by ts-interface-builder
 export interface WebhookSubscribe {
   url: string;
   authorization?: string;
-  eventTypes: Array<"add"|"update">;
+  eventTypes: ("add" | "update")[];
   watchedColIds?: string[];
   enabled?: boolean;
-  isReadyColumn?: string|null;
+  isReadyColumn?: string | null;
   name?: string;
   memo?: string;
 }
 
-
 export interface  WebhookSummaryCollection {
-  webhooks: Array<WebhookSummary>;
+  webhooks: WebhookSummary[];
 }
 export interface WebhookSummary {
   id: string;
@@ -47,14 +52,14 @@ export interface WebhookSummary {
     authorization?: string;
     unsubscribeKey: string;
     eventTypes: string[];
-    isReadyColumn: string|null;
+    isReadyColumn: string | null;
     tableId: string;
     watchedColIds?: string[];
     enabled: boolean;
     name: string;
     memo: string;
   },
-  usage: WebhookUsage|null,
+  usage: WebhookUsage | null,
 }
 
 // Describes fields to update a webhook
@@ -68,29 +73,28 @@ export interface WebhookUpdate {
 export interface WebhookPatch {
   url?: string;
   authorization?: string;
-  eventTypes?: Array<"add"|"update">;
+  eventTypes?: ("add" | "update")[];
   tableId?: string;
   watchedColIds?: string[];
   enabled?: boolean;
-  isReadyColumn?: string|null;
+  isReadyColumn?: string | null;
   name?: string;
   memo?: string;
 }
-
 
 export interface WebhookUsage {
   // As minimum we need number of waiting events and status (by default pending).
   numWaiting: number,
   status: WebhookStatus;
-  updatedTime?: number|null;
-  lastSuccessTime?: number|null;
-  lastFailureTime?: number|null;
-  lastErrorMessage?: string|null;
-  lastHttpStatus?: number|null;
+  updatedTime?: number | null;
+  lastSuccessTime?: number | null;
+  lastFailureTime?: number | null;
+  lastErrorMessage?: string | null;
+  lastHttpStatus?: number | null;
   lastEventBatch?: null | {
     size: number;
-    errorMessage: string|null;
-    httpStatus: number|null;
+    errorMessage: string | null;
+    httpStatus: number | null;
     status: WebhookBatchStatus;
     attempts: number;
   },

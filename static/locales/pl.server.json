@@ -1,1 +1,22 @@
-{}
+{
+    "sendAppPage": {
+        "Loading...": "Ładowanie...",
+        "og-description": "Nowoczesny, otwartoźródłowy arkusz kalkulacyjny, który znaczy więcej niż tabela",
+        "og-title": "Grist - ewolucja arkusza kalkulacyjnego"
+    },
+    "access": {
+        "docDisabled": "Ten dokument jest wyłączony.",
+        "docNoAccess": "Nie masz dostępu do tego dokumentu."
+    },
+    "admin": {
+        "emptyOrg": "Nie znaleziono właścicieli w organizacji zdefiniowanej przez `GRIST_INSTALL_ADMIN_ORG={{org}}`",
+        "orgUser": "Użytkownik jest właścicielem organizacji zdefiniowanej przez `GRIST_INSTALL_ADMIN_ORG={{org}}`",
+        "accountByEmail": "Konto administratora zdefiniowane przez `GRIST_DEFAULT_EMAIL={{defaultEmail}}`"
+    },
+    "DocApi": {
+        "UntitledDocument": "Dokument bez tytułu"
+    },
+    "oidc": {
+        "emailNotVerifiedError": "Zweryfikuj swój adres e-mail z dostawcą tożsamości i zaloguj się ponownie."
+    }
+}

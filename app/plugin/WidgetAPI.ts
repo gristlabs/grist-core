@@ -9,7 +9,7 @@ export interface WidgetAPI {
   /**
    * Replaces all options stored by the widget.
    */
-  setOptions(options: {[key: string]: any}): Promise<void>;
+  setOptions(options: { [key: string]: any }): Promise<void>;
   /**
    * Clears all the options.
    */

@@ -8,13 +8,13 @@ export { isRelativeBound } from "app/common/RelativeDates";
 export interface FilterSpec {
   included?: CellValue[];
   excluded?: CellValue[];
-  min?: number|IRelativeDateSpec;
-  max?: number|IRelativeDateSpec;
+  min?: number | IRelativeDateSpec;
+  max?: number | IRelativeDateSpec;
 }
 
-export type IRangeBoundType = undefined|number|IRelativeDateSpec;
+export type IRangeBoundType = undefined | number | IRelativeDateSpec;
 
-export type FilterState = ByValueFilterState | RangeFilterState
+export type FilterState = ByValueFilterState | RangeFilterState;
 
 // A more efficient representation of filter state for a column than FilterSpec.
 interface ByValueFilterState {
@@ -23,17 +23,17 @@ interface ByValueFilterState {
 }
 
 interface RangeFilterState {
-  min?: number|IRelativeDateSpec;
-  max?: number|IRelativeDateSpec;
+  min?: number | IRelativeDateSpec;
+  max?: number | IRelativeDateSpec;
 }
 
 // Creates a FilterState. Accepts spec as a json string or a FilterSpec.
 export function makeFilterState(spec: string | FilterSpec): FilterState {
-  if (typeof (spec) === 'string') {
+  if (typeof (spec) === "string") {
     return makeFilterState((spec && JSON.parse(spec)) || {});
   }
   if (spec.min !== undefined || spec.max !== undefined) {
-    return {min: spec.min, max: spec.max};
+    return { min: spec.min, max: spec.max };
   }
   return {
     include: Boolean(spec.included),
@@ -61,7 +61,7 @@ export function isEquivalentFilter(state: FilterState, spec: FilterSpec): boolea
 }
 
 export function isRangeFilter(state: FilterState): state is RangeFilterState {
-  const {min, max} = state as any;
+  const { min, max } = state as any;
   return min !== undefined || max !== undefined;
 }
 

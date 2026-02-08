@@ -1,9 +1,11 @@
-import {BarePlugin} from 'app/plugin/PluginManifest';
-import PluginManifestTI from 'app/plugin/PluginManifest-ti';
-import * as fse from 'fs-extra';
-import * as yaml from 'js-yaml';
-import * as path from 'path';
-import {createCheckers} from "ts-interface-checker";
+import { BarePlugin } from "app/plugin/PluginManifest";
+import PluginManifestTI from "app/plugin/PluginManifest-ti";
+
+import * as path from "path";
+
+import * as fse from "fs-extra";
+import * as yaml from "js-yaml";
+import { createCheckers } from "ts-interface-checker";
 
 const manifestChecker = createCheckers(PluginManifestTI).BarePlugin;
 /**
@@ -26,7 +28,7 @@ function isValidManifest(manifest: any, notices: string[]): boolean {
   try {
     manifestChecker.strictCheck(manifest);
   } catch (e) {
-    notices.push(`WARNING: ${e.message}` );
+    notices.push(`WARNING: ${e.message}`);
     /* but don't fail */
   }
   if (Object.keys(manifest.contributions).length === 0) {
@@ -69,15 +71,15 @@ async function _readManifest(pluginPath: string): Promise<object> {
     return yaml.load(await readManifestFile("yml")) as object;
   } catch (e) {
     if (e instanceof yaml.YAMLException) {
-      throw new Error('error parsing yaml manifest: ' + e.message);
+      throw new Error("error parsing yaml manifest: " + e.message);
     }
   }
   try {
     return JSON.parse(await readManifestFile("json"));
   } catch (e) {
     if (e instanceof SyntaxError) {
-      throw new Error('error parsing json manifest' + e.message);
+      throw new Error("error parsing json manifest" + e.message);
     }
-    throw new Error('cannot read manifest file: ' + e.message);
+    throw new Error("cannot read manifest file: " + e.message);
   }
 }

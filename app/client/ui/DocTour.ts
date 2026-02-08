@@ -1,17 +1,18 @@
-import {Placement} from '@popperjs/core';
-import {placements} from '@popperjs/core/lib/enums';
-import {DocComm} from 'app/client/components/DocComm';
-import {makeT} from 'app/client/lib/localization';
-import {sameDocumentUrlState} from 'app/client/models/gristUrlState';
-import {cssButtons, cssLinkBtn, cssLinkIcon} from 'app/client/ui/ExampleCard';
-import {IOnBoardingMsg, startOnBoarding} from 'app/client/ui/OnBoardingPopups';
-import {isNarrowScreen} from 'app/client/ui2018/cssVars';
-import {IconList, IconName} from 'app/client/ui2018/IconList';
-import {DocData} from 'app/common/DocData';
-import {dom} from 'grainjs';
-import sortBy = require('lodash/sortBy');
+import { DocComm } from "app/client/components/DocComm";
+import { makeT } from "app/client/lib/localization";
+import { sameDocumentUrlState } from "app/client/models/gristUrlState";
+import { cssButtons, cssLinkBtn, cssLinkIcon } from "app/client/ui/ExampleCard";
+import { IOnBoardingMsg, startOnBoarding } from "app/client/ui/OnBoardingPopups";
+import { isNarrowScreen } from "app/client/ui2018/cssVars";
+import { IconList, IconName } from "app/client/ui2018/IconList";
+import { DocData } from "app/common/DocData";
 
-const t = makeT('DocTour');
+import { Placement } from "@popperjs/core";
+import { placements } from "@popperjs/core/lib/enums";
+import { dom } from "grainjs";
+import sortBy from "lodash/sortBy";
+
+const t = makeT("DocTour");
 
 export async function startDocTour(docData: DocData, docComm: DocComm, onFinishCB: () => void) {
   const docTour: IOnBoardingMsg[] = await makeDocTour(docData, docComm) || invalidDocTour;
@@ -23,7 +24,7 @@ const invalidDocTour: IOnBoardingMsg[] = [{
   title: t("No valid document tour"),
   body: t("Cannot construct a document tour from the data in this document. \
 Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location."),
-  selector: 'document',
+  selector: "document",
   showHasModal: true,
 }];
 
@@ -39,7 +40,7 @@ async function makeDocTour(docData: DocData, docComm: DocComm): Promise<IOnBoard
   await docData.fetchTable(tableId);
   const tableData = docData.getTable(tableId)!;
 
-  const result = sortBy(tableData.getRowIds(), tableData.getRowPropFunc('manualSort') as any).map(rowId => {
+  const result = sortBy(tableData.getRowIds(), tableData.getRowPropFunc("manualSort") as any).map((rowId) => {
     function getValue(colId: string): string {
       return String(tableData.getValue(rowId, colId) || "");
     }
@@ -69,14 +70,14 @@ async function makeDocTour(docData: DocData, docComm: DocComm): Promise<IOnBoard
 
     if (validLinkUrl && linkText) {
       body = dom(
-        'div',
-        dom('p', body),
-        dom('p',
+        "div",
+        dom("p", body),
+        dom("p",
           cssButtons(cssLinkBtn(
             IconList.includes(linkIcon) ? cssLinkIcon(linkIcon) : null,
             linkText,
-            {href: linkUrl, target: '_blank'},
-          ))
+            { href: linkUrl, target: "_blank" },
+          )),
         ),
       );
     }
@@ -86,9 +87,9 @@ async function makeDocTour(docData: DocData, docComm: DocComm): Promise<IOnBoard
       body,
       placement,
       urlState,
-      selector: '.active_cursor',
+      selector: ".active_cursor",
       // Center the popup if the user doesn't provide a link to a cell
-      showHasModal: !urlState?.hash
+      showHasModal: !urlState?.hash,
     };
   }).filter(x => x !== null) as IOnBoardingMsg[];
   if (!result.length) {
@@ -102,9 +103,9 @@ function exposeDocTour(docTour: IOnBoardingMsg[]) {
   (window as any)._gristDocTour = () =>
     docTour.map(msg => ({
       ...msg,
-      body: typeof msg.body === "string" ? msg.body
-        : (msg.body as HTMLElement)?.outerHTML
+      body: typeof msg.body === "string" ? msg.body :
+        (msg.body as HTMLElement)?.outerHTML
           .replace(/_grain\d+_/g, "_grainXXX_"),
-      urlState: msg.urlState?.hash
+      urlState: msg.urlState?.hash,
     }));
 }

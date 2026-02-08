@@ -1,5 +1,6 @@
-import {IProgress} from 'app/client/models/NotifyModel';
-import {Disposable} from 'grainjs';
+import { IProgress } from "app/client/models/NotifyModel";
+
+import { Disposable } from "grainjs";
 
 export class ImportProgress extends Disposable {
   // Import does upload first, then import. We show a single indicator, estimating which fraction

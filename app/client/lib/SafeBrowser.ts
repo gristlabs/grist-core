@@ -24,39 +24,38 @@
  * now the whole plugin's folder is served.
  *
  */
- // Todo: plugin resources should not be made available on the server by default, but only after
- // activation.
+// Todo: plugin resources should not be made available on the server by default, but only after
+// activation.
 
-// tslint:disable:max-classes-per-file
+import { ClientScope } from "app/client/components/ClientScope";
+import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
+import { Disposable } from "app/client/lib/dispose";
+import dom from "app/client/lib/dom";
+import * as Mousetrap from "app/client/lib/Mousetrap";
+import { gristThemeObs } from "app/client/ui2018/theme";
+import { ActionRouter } from "app/common/ActionRouter";
+import { BaseComponent, BaseLogger, createRpcLogger, PluginInstance, warnIfNotReady } from "app/common/PluginInstance";
+import { tbind } from "app/common/tbind";
+import { convertThemeKeysToCssVars, Theme } from "app/common/ThemePrefs";
+import { getOriginUrl } from "app/common/urlUtils";
+import { GristAPI, RPC_GRISTAPI_INTERFACE } from "app/plugin/GristAPI";
+import { RenderOptions, RenderTarget } from "app/plugin/RenderOptions";
+import { checkers } from "app/plugin/TypeCheckers";
 
-import { ClientScope } from 'app/client/components/ClientScope';
-import { get as getBrowserGlobals } from 'app/client/lib/browserGlobals';
-import dom from 'app/client/lib/dom';
-import * as Mousetrap from 'app/client/lib/Mousetrap';
-import { gristThemeObs } from 'app/client/ui2018/theme';
-import { ActionRouter } from 'app/common/ActionRouter';
-import { BaseComponent, BaseLogger, createRpcLogger, PluginInstance, warnIfNotReady } from 'app/common/PluginInstance';
-import { tbind } from 'app/common/tbind';
-import { convertThemeKeysToCssVars, Theme } from 'app/common/ThemePrefs';
-import { getOriginUrl } from 'app/common/urlUtils';
-import { GristAPI, RPC_GRISTAPI_INTERFACE } from 'app/plugin/GristAPI';
-import { RenderOptions, RenderTarget } from 'app/plugin/RenderOptions';
-import { checkers } from 'app/plugin/TypeCheckers';
-import { dom as grainjsDom, Observable } from 'grainjs';
-import { IMsgCustom, IMsgRpcCall, IRpcLogger, MsgType, Rpc } from 'grain-rpc';
-import { Disposable } from 'app/client/lib/dispose';
-import isEqual from 'lodash/isEqual';
-const G = getBrowserGlobals('document', 'window');
+import { IMsgCustom, IMsgRpcCall, IRpcLogger, MsgType, Rpc } from "grain-rpc";
+import { dom as grainjsDom, Observable } from "grainjs";
+import isEqual from "lodash/isEqual";
+const G = getBrowserGlobals("document", "window");
 
 /**
  * The SafeBrowser component implementation. Responsible for running the script, rendering the
  * views, settings up communication channel.
  */
- // todo: it is unfortunate that SafeBrowser had to expose both `renderImpl` and `disposeImpl` which
- // really have no business outside of this module. What could be done, is to have an internal class
- // ProcessManager which will be created by SafeBrowser as a private field. It will manage the
- // client processes and among other thing will expose both renderImpl and
- // disposeImpl. ClientProcess will hold a reference to ProcessManager instead of SafeBrowser.
+// todo: it is unfortunate that SafeBrowser had to expose both `renderImpl` and `disposeImpl` which
+// really have no business outside of this module. What could be done, is to have an internal class
+// ProcessManager which will be created by SafeBrowser as a private field. It will manage the
+// client processes and among other thing will expose both renderImpl and
+// disposeImpl. ClientProcess will hold a reference to ProcessManager instead of SafeBrowser.
 export class SafeBrowser extends BaseComponent {
   /**
    * Create a webview ClientProcess to render safe browser process in electron.
@@ -77,16 +76,16 @@ export class SafeBrowser extends BaseComponent {
   // All view processes. This is not used anymore to dispose all processes on deactivation (this is
   // now achieved using `this._mainProcess.autoDispose(...)`) but rather to be able to dispatch
   // events to all processes (such as doc actions which will need soon).
-  private _viewProcesses: Map<number, ClientProcess> = new Map();
+  private _viewProcesses = new Map<number, ClientProcess>();
   private _pluginId: string;
   private _pluginRpc: Rpc;
-  private _mainProcess: WorkerProcess|undefined;
+  private _mainProcess: WorkerProcess | undefined;
   private _viewCount: number = 0;
 
   private _plugin = this._options.pluginInstance;
   private _clientScope = this._options.clientScope;
   private _untrustedContentOrigin = this._options.untrustedContentOrigin;
-  private _mainPath = this._options.mainPath ?? '';
+  private _mainPath = this._options.mainPath ?? "";
   private _baseLogger = this._options.baseLogger ?? console;
 
   constructor(private _options: {
@@ -101,8 +100,8 @@ export class SafeBrowser extends BaseComponent {
       _options.pluginInstance.definition.manifest,
       _options.rpcLogger ?? createRpcLogger(
         _options.baseLogger ?? console,
-        `PLUGIN ${_options.pluginInstance.definition.id} SafeBrowser:`
-      )
+        `PLUGIN ${_options.pluginInstance.definition.id} SafeBrowser:`,
+      ),
     );
     this._pluginId = this._plugin.definition.id;
     this._pluginRpc = this._plugin.rpc;
@@ -114,6 +113,7 @@ export class SafeBrowser extends BaseComponent {
   public createViewProcess(path: string): ViewProcess {
     return this._createViewProcess(path)[0];
   }
+
   /**
    * `receiveAction` handles an action received from the server by forwarding it to the view processes.
    */
@@ -122,7 +122,6 @@ export class SafeBrowser extends BaseComponent {
       view.receiveAction(action);
     }
   }
-
 
   /**
    * Renders the file at path and returns its proc id. This is the SafeBrowser implementation for
@@ -202,8 +201,8 @@ export class SafeBrowser extends BaseComponent {
    */
   private _createViewProcess(path: string): [ViewProcess, number] {
     const rpc = this._createRpc(path);
-    const url = `${this._untrustedContentOrigin}/plugins/${this._plugin.definition.id}/${path}`
-    + `?host=${G.window.location.origin}`;
+    const url = `${this._untrustedContentOrigin}/plugins/${this._plugin.definition.id}/${path}` +
+      `?host=${G.window.location.origin}`;
     const viewId = this._viewCount++;
     const process = SafeBrowser.createView(this, rpc, url);
     this._viewProcesses.set(viewId, process);
@@ -223,17 +222,15 @@ export class SafeBrowser extends BaseComponent {
    * Returns the rpc instance.
    */
   private _createRpc(path: string): Rpc {
-    const rpc = new Rpc({logger: createRpcLogger(this._baseLogger, `PLUGIN ${this._pluginId}/${path} SafeBrowser:`) });
+    const rpc = new Rpc({ logger: createRpcLogger(this._baseLogger, `PLUGIN ${this._pluginId}/${path} SafeBrowser:`) });
     rpc.queueOutgoingUntilReadyMessage();
     warnIfNotReady(rpc, 3000, "Plugin isn't ready; be sure to call grist.ready() from plugin");
-    rpc.registerForwarder('*', this._pluginRpc);
+    rpc.registerForwarder("*", this._pluginRpc);
     // TODO: we should be able to stop serving plugins, it looks like there are some resources
     // required that should be disposed on component deactivation.
     this._clientScope.servePlugin(this._pluginId, rpc);
     return rpc;
   }
-
-
 }
 
 /**
@@ -254,10 +251,10 @@ export class ClientProcess extends Disposable {
     this._src = src;
     this._actionRouter = new ActionRouter(this.rpc);
     const gristAPI: GristAPI = {
-      subscribe:    tbind(this._actionRouter.subscribeTable, this._actionRouter),
-      unsubscribe:  tbind(this._actionRouter.unsubscribeTable, this._actionRouter),
-      render:       tbind(this._safeBrowser.renderImpl, this._safeBrowser),
-      dispose:      tbind(this._safeBrowser.disposeImpl, this._safeBrowser),
+      subscribe: tbind(this._actionRouter.subscribeTable, this._actionRouter),
+      unsubscribe: tbind(this._actionRouter.unsubscribeTable, this._actionRouter),
+      render: tbind(this._safeBrowser.renderImpl, this._safeBrowser),
+      dispose: tbind(this._safeBrowser.disposeImpl, this._safeBrowser),
     };
     rpc.registerImpl<GristAPI>(RPC_GRISTAPI_INTERFACE, gristAPI, checkers.GristAPI);
     this.autoDisposeCallback(() => {
@@ -267,10 +264,8 @@ export class ClientProcess extends Disposable {
 
   public receiveAction(action: any[]) {
     this._actionRouter.process(action)
-      // tslint:disable:no-console
       .catch((err: any) => console.warn("ClientProcess[%s] receiveAction: failed with %s", this._src, err));
   }
-
 }
 
 /**
@@ -303,38 +298,38 @@ class IframeProcess extends ViewProcess {
     this._themeInitialized = Observable.create(this, false);
     const iframe = this.element = this.autoDispose(
       grainjsDom(`iframe.safe_browser_process.clipboard_allow_focus`,
-        {src},
-        grainjsDom.style('visibility', use => use(this._themeInitialized) ? 'visible' : 'hidden'),
-      ) as HTMLIFrameElement
+        { src },
+        grainjsDom.style("visibility", use => use(this._themeInitialized) ? "visible" : "hidden"),
+      ) as HTMLIFrameElement,
     );
     const listener = async (event: MessageEvent) => {
       if (event.source === iframe.contentWindow) {
         if (event.data.mtype === MsgType.Ready) {
-          await this._sendTheme({theme: gristThemeObs().get(), fromReady: true});
+          await this._sendTheme({ theme: gristThemeObs().get(), fromReady: true });
         }
 
-        if (event.data.data?.message === 'themeInitialized') {
+        if (event.data.data?.message === "themeInitialized") {
           this._themeInitialized.set(true);
         }
 
         this.rpc.receiveMessage(event.data);
       }
     };
-    G.window.addEventListener('message', listener);
+    G.window.addEventListener("message", listener);
     this.autoDisposeCallback(() => {
-      G.window.removeEventListener('message', listener);
+      G.window.removeEventListener("message", listener);
     });
-    this.rpc.setSendMessage(msg => iframe.contentWindow!.postMessage(msg, '*'));
+    this.rpc.setSendMessage(msg => iframe.contentWindow!.postMessage(msg, "*"));
 
     this.autoDispose(gristThemeObs().addListener(async (newTheme, oldTheme) => {
       if (isEqual(newTheme, oldTheme)) { return; }
 
-      await this._sendTheme({theme: newTheme});
+      await this._sendTheme({ theme: newTheme });
     }));
   }
 
-  private async _sendTheme({theme, fromReady = false}: {theme: Theme, fromReady?: boolean}) {
-    await this.rpc.postMessage({theme: convertThemeKeysToCssVars(theme), fromReady});
+  private async _sendTheme({ theme, fromReady = false}: { theme: Theme, fromReady?: boolean }) {
+    await this.rpc.postMessage({ theme: convertThemeKeysToCssVars(theme), fromReady });
   }
 }
 
@@ -344,27 +339,27 @@ class IframeProcess extends ViewProcess {
 class WebviewProcess extends ViewProcess {
   public create(safeBrowser: SafeBrowser, rpc: Rpc, src: string) {
     super.create(safeBrowser, rpc, src);
-    const webview = this.element = this.autoDispose(dom('webview.safe_browser_process.clipboard_allow_focus', {
+    const webview = this.element = this.autoDispose(dom("webview.safe_browser_process.clipboard_allow_focus", {
       src,
-      allowpopups: '',
+      allowpopups: "",
       // Requests with this partition get an extra header (see main.js) to get access to plugin content.
-      partition: 'plugins',
+      partition: "plugins",
     }));
     // Temporaily disable "mousetrap" keyboard stealing for the duration of this webview.
     // This is acceptable since webviews are currently full-screen modals.
     // TODO: find a way for keyboard events to play nice when webviews are non-modal.
     Mousetrap.setPaused(true);
     this.autoDisposeCallback(() => Mousetrap.setPaused(false));
-    webview.addEventListener('ipc-message', (event: any /* IpcMessageEvent */) => {
+    webview.addEventListener("ipc-message", (event: any /* IpcMessageEvent */) => {
       // The event object passed to the listener is missing proper documentation. In the examples
       // listed in https://electronjs.org/docs/api/ipc-main the arguments should be passed to the
       // listener after the event object, but this is not happening here. Only we know it is a
       // DOMEvent with some extra porperties including a `channel` property of type `string` and an
       // `args` property of type `any[]`.
-      if (event.channel === 'grist') {
+      if (event.channel === "grist") {
         rpc.receiveMessage(event.args[0]);
       }
     });
-    this.rpc.setSendMessage(msg => webview.send('grist', msg));
+    this.rpc.setSendMessage(msg => webview.send("grist", msg));
   }
 }

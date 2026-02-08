@@ -1,32 +1,33 @@
-import {hooks} from 'app/client/Hooks';
-import {getGristConfig} from 'app/common/urlUtils';
-import {DomContents} from 'grainjs';
-import i18next from 'i18next';
-import {G} from 'grainjs/dist/cjs/lib/browserGlobals';
+import { hooks } from "app/client/Hooks";
+import { getGristConfig } from "app/common/urlUtils";
+
+import { DomContents } from "grainjs";
+import { G } from "grainjs/dist/cjs/lib/browserGlobals";
+import i18next from "i18next";
 
 export async function setupLocale() {
   const now = Date.now();
-  const supportedLngs = getGristConfig().supportedLngs ?? ['en'];
+  const supportedLngs = getGristConfig().supportedLngs ?? ["en"];
   const lng = detectCurrentLang();
-  const ns = getGristConfig().namespaces ?? ['client'];
+  const ns = getGristConfig().namespaces ?? ["client"];
   // Initialize localization plugin
   try {
     // We don't await this promise, as it is resolved synchronously due to initImmediate: false.
     i18next.init({
       // By default we use english language.
-      fallbackLng: 'en',
+      fallbackLng: "en",
       // We will load resources ourselves.
       initImmediate: false,
       // Read language from navigator object.
       lng,
       // By default we use client namespace.
-      defaultNS: 'client',
+      defaultNS: "client",
       // Read namespaces that are supported by the server.
       // TODO: this can be converted to a dynamic list of namespaces, for async components.
       // for now just import all what server offers.
       // We can fallback to client namespace for any addons.
-      fallbackNS: 'client',
-      ns
+      fallbackNS: "client",
+      ns,
     }).catch((err: any) => {
       // This should not happen, the promise should be resolved synchronously, without
       // any errors reported.
@@ -38,7 +39,7 @@ export async function setupLocale() {
     const loadPath = `${hooks.baseURI || document.baseURI}locales/{{lng}}.{{ns}}.json`;
     const pathsToLoad: Promise<any>[] = [];
     async function load(lang: string, n: string) {
-      const resourceUrl = loadPath.replace('{{lng}}', lang.replace("-", "_")).replace('{{ns}}', n);
+      const resourceUrl = loadPath.replace("{{lng}}", lang.replace("-", "_")).replace("{{ns}}", n);
       const response = await fetch(resourceUrl);
       if (!response.ok) {
         // Throw only if we don't have any fallbacks.
@@ -51,7 +52,7 @@ export async function setupLocale() {
       }
       i18next.addResourceBundle(lang, n, await response.json());
     }
-    for (const lang of languages.filter((l) => supportedLngs.includes(l))) {
+    for (const lang of languages.filter(l => supportedLngs.includes(l))) {
       for (const n of ns) {
         pathsToLoad.push(load(lang, n));
       }
@@ -65,21 +66,21 @@ export async function setupLocale() {
 
 export function detectCurrentLang() {
   const { userLocale, supportedLngs } = getGristConfig();
-  const detected = userLocale
-    || document.cookie.match(/grist_user_locale=([^;]+)/)?.[1]
-    || window.navigator.language
-    || 'en';
-  const supportedList = supportedLngs ?? ['en'];
+  const detected = userLocale ||
+    document.cookie.match(/grist_user_locale=([^;]+)/)?.[1] ||
+    window.navigator.language ||
+    "en";
+  const supportedList = supportedLngs ?? ["en"];
   // If we have this language in the list (or more general version) mark it as selected.
   // Compare languages in lower case, as navigator.language can return en-US, en-us (for older Safari).
   const selected = supportedList.find(supported => supported.toLowerCase() === detected.toLowerCase()) ??
-    supportedList.find(supported => supported === detected.split(/[-_]/)[0]) ?? 'en';
+    supportedList.find(supported => supported === detected.split(/[-_]/)[0]) ?? "en";
   return selected;
 }
 
 export function setAnonymousLocale(lng: string) {
-  document.cookie = lng ? `grist_user_locale=${lng}; path=/; max-age=31536000`
-                        : 'grist_user_locale=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC';
+  document.cookie = lng ? `grist_user_locale=${lng}; path=/; max-age=31536000` :
+    "grist_user_locale=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC";
 }
 
 /**
@@ -96,12 +97,12 @@ export function tString(key: string, args?: any, instance = i18next): string {
 // We will try to infer result from the arguments passed to `t` function.
 // For plain objects we expect string as a result. If any property doesn't look as a plain value
 // we assume that it might be a dom node and the result is DomContents.
-type InferResult<T> = T extends Record<string, string | number | boolean>|undefined|null ? string : DomContents;
+type InferResult<T> = T extends Record<string, string | number | boolean> | undefined | null ? string : DomContents;
 
 /**
  * Resolves the translation of the given key and substitutes. Supports dom elements interpolation.
  */
-export function t<T extends Record<string, any>>(key: string, args?: T|null, instance = i18next): InferResult<T> {
+export function t<T extends Record<string, any>>(key: string, args?: T | null, instance = i18next): InferResult<T> {
   return domT(key, args, instance.t);
 }
 
@@ -113,12 +114,12 @@ function domT(key: string, args: any, tImpl: typeof i18next.t) {
   } else {
     // Make a copy of the arguments, and remove any dom elements from it. It will instruct
     // i18next library to use `missingInterpolationHandler` handler.
-    const copy = {...args};
+    const copy = { ...args };
     domElements.forEach(([prop]) => delete copy[prop]);
 
     // Passing `missingInterpolationHandler` will allow as to resolve all missing keys
     // and replace them with a marker.
-    const result: string = tImpl(key, {...copy, missingInterpolationHandler});
+    const result: string = tImpl(key, { ...copy, missingInterpolationHandler });
 
     // Now replace all markers with dom elements passed as arguments.
     const parts = result.split(/(\[\[\[[^\]]+?\]\]\])/);
@@ -127,7 +128,7 @@ function domT(key: string, args: any, tImpl: typeof i18next.t) {
       const domElement = args[propName] ?? `{{${propName}}}`; // If the prop is not there, simulate default behavior.
       parts[i] = domElement;
     }
-    return parts.filter(p => p !== '') as any; // Remove empty parts.
+    return parts.filter(p => p !== "") as any; // Remove empty parts.
   }
 }
 
@@ -150,7 +151,7 @@ function isLikeDomContents(value: any): boolean {
   if (value === null || value === undefined) { return false; }
   return value instanceof G.Node || // Node
     (Array.isArray(value) && isLikeDomContents(value[0])) || // DomComputed
-    typeof value === 'function'; // DomMethod
+    typeof value === "function"; // DomMethod
 }
 
 /**
@@ -159,9 +160,9 @@ function isLikeDomContents(value: any): boolean {
  */
 export function makeT(scope: string, instance?: typeof i18next) {
   // Can't create the scopedInstance yet as it might not be initialized.
-  let scopedInstance: null|typeof i18next = null;
-  let scopedResolver: null|typeof i18next.t = null;
-  return function<T extends Record<string, any>>(key: string, args?: T|null) {
+  let scopedInstance: null | typeof i18next = null;
+  let scopedResolver: null | typeof i18next.t = null;
+  return function<T extends Record<string, any>>(key: string, args?: T | null) {
     // Create a scoped instance with disabled namespace and nested features.
     // This enables keys like `key1.key2:key3` to be resolved properly.
     if (!scopedInstance) {
@@ -169,7 +170,7 @@ export function makeT(scope: string, instance?: typeof i18next) {
         keySeparator: false,
         nsSeparator: false,
         saveMissing: true,
-        missingKeyHandler: (lng, ns, _key) => console.warn(`Missing translation for key: ${_key}`)
+        missingKeyHandler: (lng, ns, _key) => console.warn(`Missing translation for key: ${_key}`),
       });
 
       // Create a version of `t` function that will use the provided prefix as default.
@@ -177,7 +178,7 @@ export function makeT(scope: string, instance?: typeof i18next) {
 
       // Override the resolver with a custom one, that will use the argument as a default.
       // This will remove all the overloads from the function, but we don't need them.
-      scopedResolver = (_key: string, _args?: any) => fixedResolver(_key, {defaultValue: _key, ..._args});
+      scopedResolver = (_key: string, _args?: any) => fixedResolver(_key, { defaultValue: _key, ..._args });
     }
     return domT(key, args, scopedResolver!);
   };

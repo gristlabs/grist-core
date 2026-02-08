@@ -1,17 +1,18 @@
-import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
-import {guessTimezone} from 'app/client/lib/guessTimezone';
-import {getSessionStorage} from 'app/client/lib/storage';
-import {newUserAPIImpl} from 'app/client/models/AppModel';
-import {getWorker} from 'app/client/models/gristConfigCache';
-import {CommResponseBase} from 'app/common/CommTypes';
-import * as gutil from 'app/common/gutil';
-import {addOrgToPath, docUrl, getGristConfig} from 'app/common/urlUtils';
-import {UserAPI} from 'app/common/UserAPI';
-import {Events as BackboneEvents} from 'backbone';
-import {Disposable} from 'grainjs';
-import {GristClientSocket} from 'app/client/components/GristClientSocket';
+import { GristClientSocket } from "app/client/components/GristClientSocket";
+import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
+import { guessTimezone } from "app/client/lib/guessTimezone";
+import { getSessionStorage } from "app/client/lib/storage";
+import { newUserAPIImpl } from "app/client/models/AppModel";
+import { getWorker } from "app/client/models/gristConfigCache";
+import { CommResponseBase } from "app/common/CommTypes";
+import * as gutil from "app/common/gutil";
+import { addOrgToPath, docUrl, getGristConfig } from "app/common/urlUtils";
+import { UserAPI } from "app/common/UserAPI";
 
-const G = getBrowserGlobals('window');
+import { Events as BackboneEvents } from "backbone";
+import { Disposable } from "grainjs";
+
+const G = getBrowserGlobals("window");
 const reconnectInterval = [1000, 1000, 2000, 5000, 10000];
 
 // Time that may elapse prior to triggering a heartbeat message.  This is a message
@@ -22,7 +23,7 @@ const HEARTBEAT_PERIOD_IN_SECONDS = 45;
 // Find the correct worker to connect to for the currently viewed doc,
 // returning a base url for endpoints served by that worker.  The url
 // may need to change again in future.
-async function getDocWorkerUrl(assignmentId: string|null): Promise<string|null> {
+async function getDocWorkerUrl(assignmentId: string | null): Promise<string | null> {
   // Currently, a null assignmentId happens only in classic Grist, where the server
   // never changes.
   if (assignmentId === null) { return docUrl(null); }
@@ -49,17 +50,17 @@ export interface GristWSSettings {
   getPageUrl(): string;
 
   // Get the URL for the worker serving the given assignmentId (which is usually a docId).
-  getDocWorkerUrl(assignmentId: string|null): Promise<string|null>;
+  getDocWorkerUrl(assignmentId: string | null): Promise<string | null>;
 
   // Get an id associated with the client, null for "no id set yet".
-  getClientId(assignmentId: string|null): string|null;
+  getClientId(assignmentId: string | null): string | null;
 
   // Get selector for user, so if cookie auth allows multiple the correct one will be picked.
   // Selector is currently just the email address.
   getUserSelector(): string;
 
   // Update the id associated with the client.  Future calls to getClientId should return this.
-  updateClientId(assignmentId: string|null, clentId: string): void;
+  updateClientId(assignmentId: string | null, clentId: string): void;
 
   // Returns the next identifier for a new GristWSConnection object, and advance the counter.
   advanceCounter(): string;
@@ -78,29 +79,35 @@ export class GristWSSettingsBrowser implements GristWSSettings {
   public makeWebSocket(url: string) { return new GristClientSocket(url); }
   public getTimezone()              { return guessTimezone(); }
   public getPageUrl()               { return G.window.location.href; }
-  public async getDocWorkerUrl(assignmentId: string|null) {
+  public async getDocWorkerUrl(assignmentId: string | null) {
     return getDocWorkerUrl(assignmentId);
   }
-  public getClientId(assignmentId: string|null) {
+
+  public getClientId(assignmentId: string | null) {
     return this._sessionStorage.getItem(`clientId_${assignmentId}`) || null;
   }
+
   public getUserSelector(): string {
     // TODO: find/create a more official way to get the user.
-    return window.gristDocPageModel?.appModel.currentUser?.email || '';
+    return window.gristDocPageModel?.appModel.currentUser?.email || "";
   }
-  public updateClientId(assignmentId: string|null, id: string) {
+
+  public updateClientId(assignmentId: string | null, id: string) {
     this._sessionStorage.setItem(`clientId_${assignmentId}`, id);
   }
+
   public advanceCounter(): string {
-    const value = parseInt(this._sessionStorage.getItem('clientCounter')!, 10) || 0;
-    this._sessionStorage.setItem('clientCounter', String(value + 1));
+    const value = parseInt(this._sessionStorage.getItem("clientCounter")!, 10) || 0;
+    this._sessionStorage.setItem("clientCounter", String(value + 1));
     return String(value);
   }
+
   public log(...args: any[]): void {
-    console.log(...args);   // tslint:disable-line:no-console
+    console.log(...args);
   }
+
   public warn(...args: any[]): void {
-    console.warn(...args);  // tslint:disable-line:no-console
+    console.warn(...args);
   }
 }
 
@@ -110,15 +117,15 @@ export class GristWSSettingsBrowser implements GristWSSettings {
  */
 export class GristWSConnection extends Disposable {
   public useCount: number = 0;
-  public on: BackboneEvents['on'];    // set by Backbone
-  public off: BackboneEvents['off'];    // set by Backbone
+  public on: BackboneEvents["on"];    // set by Backbone
+  public off: BackboneEvents["off"];    // set by Backbone
 
-  protected trigger: BackboneEvents['trigger']; // set by Backbone
+  protected trigger: BackboneEvents["trigger"]; // set by Backbone
 
-  private _clientId: string|null;
+  private _clientId: string | null;
   private _clientCounter: string;     // Identifier of this GristWSConnection object in this browser tab session
-  private _assignmentId: string|null;
-  private _docWorkerUrl: string|null = null;
+  private _assignmentId: string | null;
+  private _docWorkerUrl: string | null = null;
   private _initialConnection: Promise<void>;
   private _established: boolean = false;     // This is set once the server sends us a 'clientConnect' message.
   private _firstConnect: boolean = true;
@@ -126,11 +133,11 @@ export class GristWSConnection extends Disposable {
   private _reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
   private _reconnectAttempts: number = 0;
   private _wantReconnect: boolean = true;
-  private _ws: GristClientSocket|null = null;
+  private _ws: GristClientSocket | null = null;
 
   // The server sends incremental seqId numbers with each message on the connection, starting with
   // 0. We keep track of them to allow for seamless reconnects.
-  private _lastReceivedSeqId: number|null = null;
+  private _lastReceivedSeqId: number | null = null;
 
   constructor(private _settings: GristWSSettings = new GristWSSettingsBrowser()) {
     super();
@@ -138,7 +145,7 @@ export class GristWSConnection extends Disposable {
     this.onDispose(() => this.disconnect());
   }
 
-  public initialize(assignmentId: string|null) {
+  public initialize(assignmentId: string | null) {
     // For reconnections, squirrel away the id of the resource we are committed to (if any).
     this._assignmentId = assignmentId;
     // clientId is associated with a session. We try to persist it within a tab across navigation
@@ -152,7 +159,7 @@ export class GristWSConnection extends Disposable {
     // not trying to make the connection.
     // TODO: serve and use websockets for the DocMenu.
     if (getGristConfig().getWorker) {
-      this.trigger('connectState', false);
+      this.trigger("connectState", false);
       this._initialConnection = this.connect();
     } else {
       this._log("GristWSConnection not activating for hosted grist page with no document present");
@@ -172,7 +179,7 @@ export class GristWSConnection extends Disposable {
 
   // Disconnect websocket if currently connected, and reset to initial state.
   public disconnect() {
-    this._log('GristWSConnection: disconnect');
+    this._log("GristWSConnection: disconnect");
     this._wantReconnect = false;
     this._established = false;
     if (this._ws) {
@@ -192,7 +199,7 @@ export class GristWSConnection extends Disposable {
     return this._established;
   }
 
-  public get clientId(): string|null {
+  public get clientId(): string | null {
     return this._clientId;
   }
 
@@ -200,7 +207,7 @@ export class GristWSConnection extends Disposable {
    * Returns the URL of the doc worker, or throws if we don't have one.
    */
   public get docWorkerUrl(): string {
-    if (!this._docWorkerUrl) { throw new Error('server for document not known'); }
+    if (!this._docWorkerUrl) { throw new Error("server for document not known"); }
     return this._docWorkerUrl;
   }
 
@@ -235,14 +242,14 @@ export class GristWSConnection extends Disposable {
   }
 
   private _processReceivedMessage(msgData: string, processClientConnect: boolean) {
-    this._log('GristWSConnection: onmessage (%d bytes)', msgData.length);
-    const message: CommResponseBase & {seqId: number} = JSON.parse(msgData);
+    this._log("GristWSConnection: onmessage (%d bytes)", msgData.length);
+    const message: CommResponseBase & { seqId: number } = JSON.parse(msgData);
 
-    if (typeof message.seqId === 'number') {
+    if (typeof message.seqId === "number") {
       // For sequenced messages (all except clientConnect), check that seqId is as expected, and
       // update this._lastReceivedSeqId.
       if (this._lastReceivedSeqId !== null && message.seqId !== this._lastReceivedSeqId + 1) {
-        this._log('GristWSConnection: unexpected seqId after %s: %s', this._lastReceivedSeqId, message.seqId);
+        this._log("GristWSConnection: unexpected seqId after %s: %s", this._lastReceivedSeqId, message.seqId);
         this.disconnect();
         return;
       }
@@ -252,7 +259,7 @@ export class GristWSConnection extends Disposable {
     // clientConnect is the first message from the server that sets the clientId. We only consider
     // the connection established once we receive it.
     let needReload = false;
-    if ('type' in message && message.type === 'clientConnect' && processClientConnect) {
+    if ("type" in message && message.type === "clientConnect" && processClientConnect) {
       if (this._established) {
         this._log("GristWSConnection skipping duplicate 'clientConnect' message");
         return;
@@ -266,7 +273,7 @@ export class GristWSConnection extends Disposable {
       }
       needReload = Boolean(message.needReload);
       this._log(`GristWSConnection established: clientId ${message.clientId} counter ${this._clientCounter}` +
-                ` needReload ${needReload}`);
+        ` needReload ${needReload}`);
       if (message.dup) {
         this._warn("GristWSConnection missed initial 'clientConnect', processing its duplicate");
       }
@@ -275,7 +282,7 @@ export class GristWSConnection extends Disposable {
         this._settings.updateClientId(this._assignmentId, message.clientId);
       }
       this._firstConnect = false;
-      this.trigger('connectState', true);
+      this.trigger("connectState", true);
 
       // Process any missed messages. (Should only have any if needReload is false.)
       if (!needReload && message.missedMessages) {
@@ -292,10 +299,10 @@ export class GristWSConnection extends Disposable {
     if (needReload) {
       // If we are unable to resume this connection, disconnect to avoid accept more messages on
       // this connection, they are likely to only cause errors. Elsewhere, the app will reload.
-      this._log('GristWSConnection: needReload');
+      this._log("GristWSConnection: needReload");
       this.disconnect();
     }
-    this.trigger('serverMessage', message);
+    this.trigger("serverMessage", message);
   }
 
   // unschedule any pending heartbeat message
@@ -310,20 +317,19 @@ export class GristWSConnection extends Disposable {
   private _scheduleHeartbeat() {
     this._clearHeartbeat();
     this._heartbeatTimeout = setTimeout(this._sendHeartbeat.bind(this),
-                                        Math.round(HEARTBEAT_PERIOD_IN_SECONDS * 1000));
+      Math.round(HEARTBEAT_PERIOD_IN_SECONDS * 1000));
   }
 
   // send a heartbeat message, including the document url for server-side logs
   private _sendHeartbeat() {
     this.send(JSON.stringify({
-      beat: 'alive',
+      beat: "alive",
       url: this._settings.getPageUrl(),
       docId: this._assignmentId,
     }));
   }
 
   private _connectImpl(isReconnecting: boolean, timezone: any) {
-
     if (!this._wantReconnect) { return; }
 
     if (isReconnecting) {
@@ -334,7 +340,7 @@ export class GristWSConnection extends Disposable {
     try {
       url = this._buildWebsocketUrl(isReconnecting, timezone);
     } catch (e) {
-      this._warn('Failed to get the URL for the worker serving the document');
+      this._warn("Failed to get the URL for the worker serving the document");
       this._scheduleReconnect(isReconnecting);
       return;
     }
@@ -350,10 +356,10 @@ export class GristWSConnection extends Disposable {
     this._ws = this._settings.makeWebSocket(url);
 
     this._ws.onopen = () => {
-      const connectMessage = isReconnecting ? 'Reconnected' : 'Connected';
-      this._log('GristWSConnection: onopen: ' + connectMessage);
+      const connectMessage = isReconnecting ? "Reconnected" : "Connected";
+      this._log("GristWSConnection: onopen: " + connectMessage);
 
-      this.trigger('connectionStatus', connectMessage, 'OK');
+      this.trigger("connectionStatus", connectMessage, "OK");
       this._reconnectAttempts = 0; // reset reconnection information
       this._scheduleHeartbeat();
     };
@@ -361,7 +367,7 @@ export class GristWSConnection extends Disposable {
     this._ws.onmessage = this.onmessage.bind(this);
 
     this._ws.onerror = (err: Error) => {
-      this._log('GristWSConnection: onerror', String(err));
+      this._log("GristWSConnection: onerror", String(err));
     };
 
     this._ws.onclose = () => {
@@ -369,10 +375,10 @@ export class GristWSConnection extends Disposable {
         return;
       }
 
-      this._log('GristWSConnection: onclose');
+      this._log("GristWSConnection: onclose");
       this._established = false;
       this._ws = null;
-      this.trigger('connectState', false);
+      this.trigger("connectState", false);
 
       if (!this._wantReconnect) { return; }
       this._scheduleReconnect(true);
@@ -381,8 +387,8 @@ export class GristWSConnection extends Disposable {
 
   private _scheduleReconnect(isReconnecting: boolean) {
     const reconnectTimeout = gutil.getReconnectTimeout(this._reconnectAttempts, reconnectInterval);
-    this._log('Trying to reconnect in', reconnectTimeout, 'ms');
-    this.trigger('connectionStatus', 'Trying to reconnect...', 'WARNING');
+    this._log("Trying to reconnect in", reconnectTimeout, "ms");
+    this.trigger("connectionStatus", "Trying to reconnect...", "WARNING");
     this._reconnectTimeout = setTimeout(async () => {
       this._reconnectTimeout = null;
       // Make sure we've gotten through all lazy-loading.
@@ -393,28 +399,28 @@ export class GristWSConnection extends Disposable {
 
   private _buildWebsocketUrl(isReconnecting: boolean, timezone: any): string {
     const url = new URL(this.docWorkerUrl);
-    url.protocol = (url.protocol === 'https:') ? 'wss:' : 'ws:';
-    url.searchParams.append('clientId', this._clientId || '0');
-    url.searchParams.append('counter', this._clientCounter);
-    url.searchParams.append('newClient', String(isReconnecting ? 0 : 1));
+    url.protocol = (url.protocol === "https:") ? "wss:" : "ws:";
+    url.searchParams.append("clientId", this._clientId || "0");
+    url.searchParams.append("counter", this._clientCounter);
+    url.searchParams.append("newClient", String(isReconnecting ? 0 : 1));
     if (isReconnecting && this._lastReceivedSeqId !== null) {
-      url.searchParams.append('lastSeqId', String(this._lastReceivedSeqId));
+      url.searchParams.append("lastSeqId", String(this._lastReceivedSeqId));
     }
-    url.searchParams.append('browserSettings', JSON.stringify({timezone}));
-    url.searchParams.append('user', this._settings.getUserSelector());
+    url.searchParams.append("browserSettings", JSON.stringify({ timezone }));
+    url.searchParams.append("user", this._settings.getUserSelector());
     return url.href;
   }
 
   private async _updateDocWorkerUrl() {
     try {
-      const url: string|null = await this._settings.getDocWorkerUrl(this._assignmentId);
+      const url: string | null = await this._settings.getDocWorkerUrl(this._assignmentId);
       // Doc worker urls in general will need to have org information in them, since
       // the doc worker will check for that.  The home service doesn't currently do
       // that for us, although it could.  TODO: update home server to produce
       // standalone doc worker urls.
       this._docWorkerUrl = url ? addOrgToPath(url, this._settings.getPageUrl()) : url;
     } catch (e) {
-      this._warn('Failed to connect to server for document');
+      this._warn("Failed to connect to server for document");
     }
   }
 

@@ -12,20 +12,20 @@ export const Base: BaseThemeTokens = {
    * More "semantic" colors tokens, like "primary" or "secondary" colors,
    * are not listed in the Base theme and are defined in each specific theme.
    */
-  white: '#ffffff',
-  black: '#000000',
+  white: "#ffffff",
+  black: "#000000",
 
-  error: '#d0021b',
-  errorLight: '#ff6666',
+  error: "#d0021b",
+  errorLight: "#ff6666",
 
-  warning: '#dd962c',
-  warningLight: '#f9ae41',
+  warning: "#dd962c",
+  warningLight: "#f9ae41",
 
-  info: '#3b82f6',
-  infoLight: '#87b2f9',
+  info: "#3b82f6",
+  infoLight: "#87b2f9",
 
-  logoBg: '#040404',
-  logoSize: '22px 22px',
+  logoBg: "#040404",
+  logoSize: "22px 22px",
 
   /**
    * The fonts used attempt to default to system fonts as described here:
@@ -40,21 +40,21 @@ export const Base: BaseThemeTokens = {
   fontFamilyData:
     `Liberation Sans,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol`,
 
-  xxsmallFontSize: '8px',
-  xsmallFontSize: '10px',
-  smallFontSize: '11px',
-  mediumFontSize: '13px',
-  introFontSize:  '14px',
-  largeFontSize: '16px',
-  xlargeFontSize: '18px',
-  xxlargeFontSize: '20px',
-  xxxlargeFontSize: '22px',
+  xxsmallFontSize: "8px",
+  xsmallFontSize: "10px",
+  smallFontSize: "11px",
+  mediumFontSize: "13px",
+  introFontSize: "14px",
+  largeFontSize: "16px",
+  xlargeFontSize: "18px",
+  xxlargeFontSize: "20px",
+  xxxlargeFontSize: "22px",
 
-  bigControlFontSize: '13px',
-  headerControlFontSize: '22px',
+  bigControlFontSize: "13px",
+  headerControlFontSize: "22px",
 
-  bigControlTextWeight: '500',
-  headerControlTextWeight: '600',
+  bigControlTextWeight: "500",
+  headerControlTextWeight: "600",
 
   /**
    * Component-specific tokens.
@@ -72,7 +72,7 @@ export const Base: BaseThemeTokens = {
     lightText: tokens.secondary,
     darkText: tokens.emphasis,
     disabledText: tokens.secondary,
-    dangerText: '#ffa500',
+    dangerText: "#ffa500",
 
     /* Page */
     pageBg: tokens.bgSecondary,
@@ -108,7 +108,7 @@ export const Base: BaseThemeTokens = {
     notificationsPanelBorder: tokens.decoration,
 
     /* Toasts */
-    toastBg: '#040404',
+    toastBg: "#040404",
     toastLightText: tokens.secondary,
     toastText: tokens.white,
     toastMemoText: tokens.veryLight,
@@ -124,7 +124,7 @@ export const Base: BaseThemeTokens = {
     toastControlFg: tokens.primary,
 
     /* Tooltips */
-    tooltipBg: 'rgba(0, 0, 0, 0.75)',
+    tooltipBg: "rgba(0, 0, 0, 0.75)",
     tooltipCloseButtonHoverFg: tokens.black,
     tooltipFg: tokens.white,
     tooltipIcon: tokens.secondary,
@@ -291,7 +291,7 @@ export const Base: BaseThemeTokens = {
     inputPlaceholderFg: tokens.secondary,
     inputBorder: tokens.decoration,
     inputValid: tokens.primary,
-    inputFocus: '#5e9ed6',
+    inputFocus: "#5e9ed6",
     inputReadonlyBg: tokens.bgSecondary,
 
     /* Choice Tokens */
@@ -383,9 +383,9 @@ export const Base: BaseThemeTokens = {
     menuToggleBorder: tokens.secondary,
 
     /* Info Button */
-    infoButtonFg: '#8f8f8f',
-    infoButtonHoverFg: '#707070',
-    infoButtonActiveFg: '#5c5c5c',
+    infoButtonFg: "#8f8f8f",
+    infoButtonHoverFg: "#707070",
+    infoButtonActiveFg: "#5c5c5c",
 
     /* Button Groups */
     buttonGroupBg: tokens.bg,
@@ -492,15 +492,15 @@ export const Base: BaseThemeTokens = {
 
     /* Card Button */
     cardButtonBorderSelected: tokens.primary,
-    cardButtonShadow: 'rgba(0,0,0,0.1)',
+    cardButtonShadow: "rgba(0,0,0,0.1)",
 
-    formulaIcon: '#D0D0D0',
+    formulaIcon: "#D0D0D0",
 
     /* Text Button */
-    textButtonHoverBg: 'transparent',
-    textButtonHoverBorder: 'transparent',
+    textButtonHoverBg: "transparent",
+    textButtonHoverBorder: "transparent",
 
     /* Keyboard Focus Highlighter */
     kbFocusHighlight: tokens.primary,
-  }
+  },
 };

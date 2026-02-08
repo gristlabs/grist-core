@@ -1,19 +1,20 @@
-import * as commands from 'app/client/components/commands';
-import {makeT} from 'app/client/lib/localization';
-import {ColumnRec, DocModel} from 'app/client/models/DocModel';
-import {cssCode} from 'app/client/ui/DocTutorial';
-import {withInfoTooltip} from 'app/client/ui/tooltips';
-import {bigBasicButton, bigPrimaryButton, textButton} from 'app/client/ui2018/buttons';
-import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
-import {theme} from 'app/client/ui2018/cssVars';
-import {cssModalBody, cssModalButtons, cssModalTitle, cssModalWidth, modal} from 'app/client/ui2018/modals';
-import {DocAction} from 'app/common/DocActions';
-import {cached} from 'app/common/gutil';
-import {decodeObject, encodeObject} from 'app/plugin/objtypes';
-import {dom, Observable, styled} from 'grainjs';
-import mapValues from 'lodash/mapValues';
+import * as commands from "app/client/components/commands";
+import { makeT } from "app/client/lib/localization";
+import { ColumnRec, DocModel } from "app/client/models/DocModel";
+import { cssCode } from "app/client/ui/DocTutorial";
+import { withInfoTooltip } from "app/client/ui/tooltips";
+import { bigBasicButton, bigPrimaryButton, textButton } from "app/client/ui2018/buttons";
+import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
+import { theme } from "app/client/ui2018/cssVars";
+import { cssModalBody, cssModalButtons, cssModalTitle, cssModalWidth, modal } from "app/client/ui2018/modals";
+import { DocAction } from "app/common/DocActions";
+import { cached } from "app/common/gutil";
+import { decodeObject, encodeObject } from "app/plugin/objtypes";
 
-const t = makeT('ReassignModal');
+import { dom, Observable, styled } from "grainjs";
+import mapValues from "lodash/mapValues";
+
+const t = makeT("ReassignModal");
 
 /**
  * Builds a modal that shows the user that they can't reassign records because of uniqueness
@@ -40,7 +41,7 @@ export async function buildReassignModal(options: {
   docModel: DocModel,
   actions: DocAction[],
 }) {
-  const {docModel, actions} = options;
+  const { docModel, actions } = options;
 
   const tableRec = cached((tableId: string) => {
     return docModel.getTableModel(tableId).tableMetaRow;
@@ -93,7 +94,7 @@ export async function buildReassignModal(options: {
 
     public buildReason() {
       // Pets record Azor is already assigned to Owners record Bob.
-      const {colRec, revRec, pointer, oldRowId} = this.data;
+      const { colRec, revRec, pointer, oldRowId } = this.data;
       const Pets = revRec.table().tableNameDef();
       const Owners = colRec.table().tableNameDef();
       const Azor = rowDisplay(revRec.table().tableId(), pointer, revRec.colId()) as string;
@@ -114,7 +115,7 @@ export async function buildReassignModal(options: {
     public buildHeader() {
       // Generally we try to show a text like this:
       // Each Pets record may only be assigned to a single Owners record.
-      const {colRec, revRec} = this.data;
+      const { colRec, revRec } = this.data;
       // Task is the name of the revRec table
       const Pets = revRec.table().tableNameDef();
       const Owners = colRec.table().tableNameDef();
@@ -123,7 +124,7 @@ export async function buildReassignModal(options: {
           {
             targetTable: cssCode(Pets),
             sourceTable: cssCode(Owners),
-          })
+          }),
       ]);
     }
 
@@ -134,21 +135,21 @@ export async function buildReassignModal(options: {
       const oldRowId = this.data.oldRowId;
       const oldRecord = getRow(tableId, oldRowId);
       const oldValue = decodeObject(oldRecord[colId]);
-      let newValue: any = Array.isArray(oldValue)
-              ? oldValue.filter(v => v !== this.data.pointer)
-              : 0;
+      let newValue: any = Array.isArray(oldValue) ?
+        oldValue.filter(v => v !== this.data.pointer) :
+        0;
       if (Array.isArray(newValue) && newValue.length === 0) {
         newValue = null;
       }
       oldRecord[colId] = encodeObject(newValue);
-      return ['UpdateRecord', tableId, oldRowId, {[colId]: oldRecord[colId]}];
+      return ["UpdateRecord", tableId, oldRowId, { [colId]: oldRecord[colId] }];
     }
 
     public buildAction(checked: Observable<boolean>, multiple: boolean = false) {
       // Shows a checkbox and explanation what can be done, checkbox has a text
       // Reassing to People record Ann
       // Reasing to new Poeple records.
-      const {colRec, newRowId} = this.data;
+      const { colRec, newRowId } = this.data;
       const Ann = rowDisplay(colRec.table().tableId(), newRowId, colRec.colId()) as string;
       const singleText = () => t(`Reassign to {{sourceTable}} record {{sourceName}}.`,
         {
@@ -166,7 +167,7 @@ export async function buildReassignModal(options: {
   // List of problems we found in actions.
   const problems: Problem[] = [];
   const uniqueColumns: ColumnRec[] = [];
-  const newOwners = new Set<number|null>();
+  const newOwners = new Set<number | null>();
 
   // We will hold changes in references, so that we can clear the action itself.
   const newValues = new Map<string, Map<number, number>>();
@@ -200,21 +201,21 @@ export async function buildReassignModal(options: {
   // We will go one by one for each action (either update or add), we will flat bulk actions
   // and simulate applying them to the data, to test if the following actions won't produce
   // conflicts.
-  for(const origAction of bulkToSingle(actions)) {
+  for (const origAction of bulkToSingle(actions)) {
     const action = structuredClone(origAction);
-    if (action[0] === 'UpdateRecord' || action[0] === 'AddRecord') {
+    if (action[0] === "UpdateRecord" || action[0] === "AddRecord") {
       const ownersTable = action[1]; // this is same for each action.
       const newOwnerId = action[2];
       newOwners.add(newOwnerId);
       const valuesInAction = action[3];
-      for(const colId of Object.keys(valuesInAction)) {
+      for (const colId of Object.keys(valuesInAction)) {
         // We are only interested in uqniue ref columns with reverse column.
         const petsCol = columnRec(ownersTable, colId);
         const ownerRevCol = petsCol.reverseColModel();
-        if (!ownerRevCol || !ownerRevCol.id()) {
+        if (!ownerRevCol?.id()) {
           continue;
         }
-        if (petsCol.reverseColModel().pureType() !== 'Ref') {
+        if (petsCol.reverseColModel().pureType() !== "Ref") {
           continue;
         }
         const petsTable = ownerRevCol.table().tableId();
@@ -234,12 +235,12 @@ export async function buildReassignModal(options: {
           continue;
         }
         // Now find current owners of the pets that will be assigned to the new owner.
-        for(const pet of petsAfter) {
+        for (const pet of petsAfter) {
           // We will use data available in that other table (Pets). Notice that we assume, that
           // the reverse column (Owner in Pets) is Ref column.
           const oldOwner = getRow(petsTable, pet)?.[ownerRevCol.colId()] as number;
           // If the pet didn't have an owner previously, we don't care, we are fine reasigning it.
-          if (!oldOwner || (typeof oldOwner !== 'number')) {
+          if (!oldOwner || (typeof oldOwner !== "number")) {
             // We ignore it, but there might be other actions that will try to move this pet
             // to other owner, so remember that one.
 
@@ -279,7 +280,7 @@ export async function buildReassignModal(options: {
   }
 
   if (!problems.length) {
-    throw new Error('No problems found');
+    throw new Error("No problems found");
   }
 
   const checked = Observable.create(null, false);
@@ -290,7 +291,7 @@ export async function buildReassignModal(options: {
     const reassign = async () => {
       await docModel.docData.sendActions([
         ...problems.map(p => p.fixUserAction()).filter(Boolean),
-        ...properActions
+        ...properActions,
       ]);
       ctl.close();
     };
@@ -304,45 +305,45 @@ export async function buildReassignModal(options: {
       const reverseColId = revCol.colId.peek();
       if (!reverseColId) { return; } // might happen if it is censored.
       const targetField = rawViewSection.viewFields.peek().all()
-                                        .find(f => f.colId.peek() === reverseColId);
+        .find(f => f.colId.peek() === reverseColId);
       if (!targetField) { return; }
       await commands.allCommands.setCursor.run(null, targetField);
       await commands.allCommands.rightPanelOpen.run();
       await commands.allCommands.fieldTabOpen.run();
     };
     return [
-      cssModalWidth('normal'),
-      cssModalTitle(t('Record already assigned', {count: problems.length})),
+      cssModalWidth("normal"),
+      cssModalTitle(t("Record already assigned", { count: problems.length })),
       cssModalBody(() => {
         // Show single problem in a simple way.
-        return dom('div',
+        return dom("div",
           problems[0].buildHeader(),
-          dom('div',
-            dom.style('margin-top', '18px'),
-            dom('div', problems.slice(0, 4).map(p => p.buildReason())),
-            problems.length <= 4 ? null : dom('div', `... and ${problems.length - 4} more`),
-            dom('div',
+          dom("div",
+            dom.style("margin-top", "18px"),
+            dom("div", problems.slice(0, 4).map(p => p.buildReason())),
+            problems.length <= 4 ? null : dom("div", `... and ${problems.length - 4} more`),
+            dom("div",
               problems[0].buildAction(checked, multipleOrNew),
-              dom.style('margin-top', '18px'),
+              dom.style("margin-top", "18px"),
             ),
           ),
         );
       }),
       cssModalButtons(
-        dom.style('display', 'flex'),
-        dom.style('justify-content', 'space-between'),
-        dom.style('align-items', 'baseline'),
-        dom.domComputed(checked, (v) => [
-          v ? bigPrimaryButton(t('Reassign'), dom.on('click', reassign))
-            : bigBasicButton(t('Cancel'), dom.on('click', () => ctl.close())),
+        dom.style("display", "flex"),
+        dom.style("justify-content", "space-between"),
+        dom.style("align-items", "baseline"),
+        dom.domComputed(checked, v => [
+          v ? bigPrimaryButton(t("Reassign"), dom.on("click", reassign)) :
+            bigBasicButton(t("Cancel"), dom.on("click", () => ctl.close())),
         ]),
-        dom('div',
+        dom("div",
           withInfoTooltip(
-            textButton('Configure reference', dom.on('click', configureReference)),
-            'reassignTwoWayReference',
-          )
-        )
-      )
+            textButton("Configure reference", dom.on("click", configureReference)),
+            "reassignTwoWayReference",
+          ),
+        ),
+      ),
     ];
   });
 }
@@ -352,14 +353,14 @@ export async function buildReassignModal(options: {
  * flatten them to equivalent single actions.
  */
 function* bulkToSingle(actions: DocAction[]): Iterable<DocAction> {
-  for(const a of actions) {
-    if (a[0].startsWith('Bulk')) {
-      const name = a[0].replace('Bulk', '') as 'AddRecord' | 'UpdateRecord';
+  for (const a of actions) {
+    if (a[0].startsWith("Bulk")) {
+      const name = a[0].replace("Bulk", "") as "AddRecord" | "UpdateRecord";
       const rowIds = a[2] as number[];
       const tableId = a[1];
       const colValues = a[3] as any;
       for (let i = 0; i < rowIds.length; i++) {
-        yield [name, tableId, rowIds[i], mapValues(colValues, (values) => values[i])];
+        yield [name, tableId, rowIds[i], mapValues(colValues, values => values[i])];
       }
     } else {
       yield a;
@@ -367,7 +368,7 @@ function* bulkToSingle(actions: DocAction[]): Iterable<DocAction> {
   }
 }
 
-const cssBulletLine = styled('div', `
+const cssBulletLine = styled("div", `
   margin-bottom: 8px;
   line-height: 22px;
   &::before {
@@ -377,11 +378,11 @@ const cssBulletLine = styled('div', `
   }
 `);
 
-const cssHigherLine = styled('div', `
+const cssHigherLine = styled("div", `
   line-height: 22px;
 `);
 
-const cssName = (text: string) => dom('span', `"${text}"`);
+const cssName = (text: string) => dom("span", `"${text}"`);
 
 const cssCheckbox = styled(labeledSquareCheckbox, `
   line-height: 22px;

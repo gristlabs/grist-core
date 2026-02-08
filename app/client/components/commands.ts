@@ -7,18 +7,18 @@
  * command is active at any time.
  */
 
-import * as Mousetrap from 'app/client/lib/Mousetrap';
-import {arrayRemove, unwrap} from 'app/common/gutil';
-import dom from 'app/client/lib/dom';
-import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
-import {CommandDef, CommandName, CommendGroupDef, groups} from 'app/client/components/commandList';
+import { CommandDef, CommandName, CommendGroupDef, groups } from "app/client/components/commandList";
+import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
+import dom from "app/client/lib/dom";
+import * as Mousetrap from "app/client/lib/Mousetrap";
+import { arrayRemove, unwrap } from "app/common/gutil";
 
-import {Disposable, Observable} from 'grainjs';
-import * as _ from 'underscore';
-import * as ko from 'knockout';
+import { Disposable, Observable } from "grainjs";
+import * as ko from "knockout";
+import * as _ from "underscore";
 
-const G = getBrowserGlobals('window');
-type BoolLike = boolean|ko.Observable<boolean>|ko.Computed<boolean>|Observable<boolean>;
+const G = getBrowserGlobals("window");
+type BoolLike = boolean | ko.Observable<boolean> | ko.Computed<boolean> | Observable<boolean>;
 
 /**
  * A helper method that can create a subscription to ko or grains observables.
@@ -29,13 +29,13 @@ function subscribe(value: Exclude<BoolLike, boolean>, fn: (value: boolean) => vo
   } else if (value instanceof Observable) {
     return value.addListener(fn);
   } else {
-    throw new Error('Expected an observable');
+    throw new Error("Expected an observable");
   }
 }
 
 // Same logic as used by mousetrap to map 'Mod' key to platform-specific key.
-export const isMac = (typeof navigator !== 'undefined' && navigator &&
-               /Mac|iPod|iPhone|iPad/.test(navigator.platform));
+export const isMac = (typeof navigator !== "undefined" && navigator &&
+  /Mac|iPod|iPhone|iPad/.test(navigator.platform));
 
 /**
  * Globally-exposed map of command names to Command objects. E.g. typing "cmd.cursorDown.run()" in
@@ -86,40 +86,40 @@ export function init(optCommandGroups?: CommendGroupDef[]) {
   // Define the browser console interface.
   G.window.cmd = {};
   _.each(allCommands, function(cmd, name) {
-    Object.defineProperty(G.window.cmd, name, {get: cmd.run});
+    Object.defineProperty(G.window.cmd, name, { get: cmd.run });
   });
 }
 
-//----------------------------------------------------------------------
+// ----------------------------------------------------------------------
 
 const KEY_MAP_MAC = {
-  Mod: '⌘',
-  Alt: '⌥',
-  Shift: '⇧',
-  Ctrl: '⌃',
-  Left: '←',
-  Right: '→',
-  Up: '↑',
-  Down: '↓',
+  Mod: "⌘",
+  Alt: "⌥",
+  Shift: "⇧",
+  Ctrl: "⌃",
+  Left: "←",
+  Right: "→",
+  Up: "↑",
+  Down: "↓",
 };
 
 const KEY_MAP_WIN = {
-  Mod: 'Ctrl',
-  Left: '←',
-  Right: '→',
-  Up: '↑',
-  Down: '↓',
+  Mod: "Ctrl",
+  Left: "←",
+  Right: "→",
+  Up: "↑",
+  Down: "↓",
 };
 
 export function getHumanKey(key: string, mac: boolean): string {
   const keyMap = mac ? KEY_MAP_MAC : KEY_MAP_WIN;
-  let keys = key.split('+').map(s => s.trim());
-  keys = keys.map(k => {
+  let keys = key.split("+").map(s => s.trim());
+  keys = keys.map((k) => {
     if (k in keyMap) { return (keyMap as any)[k]; }
     if (k.length === 1) { return k.toUpperCase(); }
     return k;
   });
-  return keys.join( mac ? '' : ' + ');
+  return keys.join(mac ? "" : " + ");
 }
 
 export interface CommandOptions {
@@ -156,7 +156,7 @@ export class Command implements CommandDef {
     this.name = name;
     this.desc = desc;
     this.humanKeys = keys.map(key => getHumanKey(key, isMac));
-    this.keys = keys.map(function(k) { return k.trim().toLowerCase().replace(/ *\+ */g, '+'); });
+    this.keys = keys.map(function(k) { return k.trim().toLowerCase().replace(/ *\+ */g, "+"); });
     this.bindKeys = options.bindKeys ?? true;
     this.alwaysOn = options.alwaysOn ?? false;
     this.isActive = ko.observable(false);
@@ -166,6 +166,7 @@ export class Command implements CommandDef {
     // Let .run bind the Command object, so that it can be used as a stand-alone callback.
     this.run = this._run.bind(this);
   }
+
   /**
    * Returns a comma-separated string of all keyboard shortcuts, or `null` if no
    * shortcuts exist.
@@ -173,27 +174,30 @@ export class Command implements CommandDef {
   public getKeysDesc() {
     if (this.humanKeys.length === 0) { return null; }
 
-    return `(${this.humanKeys.join(', ')})`;
+    return `(${this.humanKeys.join(", ")})`;
   }
+
   /**
    * Returns the text description for the command, including the keyboard shortcuts.
    */
   public getDesc() {
-    const parts = [this.desc?.() ?? ''];
+    const parts = [this.desc?.() ?? ""];
     const keysDesc = this.getKeysDesc();
     if (keysDesc) { parts.push(keysDesc); }
 
-    return parts.join(' ');
+    return parts.join(" ");
   }
+
   /**
    * Returns DOM for the keyboard shortcuts, wrapped in cute boxes that look like keyboard keys.
    */
   public getKeysDom(separator?: ko.Observable<string>) {
-    return dom('span.shortcut_keys',
-      separator ? this.humanKeys.map((key, i) => [i ? separator() : null, dom('span.shortcut_key_image', key)])
-        : this.humanKeys.map(key => dom('span.shortcut_key_image', key))
+    return dom("span.shortcut_keys",
+      separator ? this.humanKeys.map((key, i) => [i ? separator() : null, dom("span.shortcut_key_image", key)]) :
+        this.humanKeys.map(key => dom("span.shortcut_key_image", key)),
     );
   }
+
   /**
    * Adds a CommandGroup that implements this Command to the top of the stack of groups.
    */
@@ -201,6 +205,7 @@ export class Command implements CommandDef {
     this._implGroupStack.push(cmdGroup);
     this._updateActive();
   }
+
   /**
    * Removes a CommandGroup from the stack of groups implementing this Command.
    */
@@ -208,6 +213,7 @@ export class Command implements CommandDef {
     arrayRemove(this._implGroupStack, cmdGroup);
     this._updateActive();
   }
+
   /**
    * Updates the command's state to reflect the currently active group, if any.
    */
@@ -255,7 +261,7 @@ function wrapKeyCallback(callback: Func) {
   };
 }
 
-//----------------------------------------------------------------------
+// ----------------------------------------------------------------------
 
 type Func = (...args: any[]) => any;
 type CommandMap = { [key in CommandName]?: Func };
@@ -302,9 +308,9 @@ export class CommandGroup extends Disposable {
     // Map recognized key combinations to the corresponding command names.
     this.knownKeys = {};
     for (const name in this.commands) {
-      const keys = allCommands[name as CommandName]!.keys;
-      for (let i = 0; i < keys.length; i++) {
-        this.knownKeys[keys[i]] = name;
+      const keys = allCommands[name as CommandName].keys;
+      for (const key of keys) {
+        this.knownKeys[key] = name;
       }
     }
 
@@ -312,10 +318,10 @@ export class CommandGroup extends Disposable {
     this.onDispose(this._removeGroup.bind(this));
 
     // Finally, set the activation status of the command group, subscribing if an observable.
-    if (typeof activate === 'boolean' || activate === undefined) {
+    if (typeof activate === "boolean" || activate === undefined) {
       this.activate(activate ?? false);
     } else if (activate) {
-      this.autoDispose(subscribe(activate, (val) => this.activate(val)));
+      this.autoDispose(subscribe(activate, val => this.activate(val)));
       this.activate(unwrap(activate));
     }
   }
@@ -340,10 +346,11 @@ export class CommandGroup extends Disposable {
       }
       // Add this CommandGroup to each command that it implements.
       for (const name in this.commands) {
-        allCommands[name as CommandName]!.addGroup(this);
+        allCommands[name as CommandName].addGroup(this);
       }
     }
   }
+
   private _removeGroup() {
     if (this.isActive) {
       // On disposal, remove the CommandGroup from all the commands and keys.
@@ -351,13 +358,12 @@ export class CommandGroup extends Disposable {
         arrayRemove(_allKeys[key], this);
       }
       for (const name in this.commands) {
-        allCommands[name as CommandName]!.removeGroup(this);
+        allCommands[name as CommandName].removeGroup(this);
       }
       this.isActive = false;
     }
   }
 }
-
 
 type BoundedFunc<T> = (this: T, ...args: any[]) => any;
 type BoundedMap<T> = { [key in CommandName]?: BoundedFunc<T> };
@@ -365,11 +371,11 @@ type BoundedMap<T> = { [key in CommandName]?: BoundedFunc<T> };
 /**
  * Just a shorthand for CommandGroup.create constructor.
  */
-export function createGroup<T>(commands: BoundedMap<T>|null, context: T, activate?: BoolLike) {
+export function createGroup<T>(commands: BoundedMap<T> | null, context: T, activate?: BoolLike) {
   return CommandGroup.create(null, commands ?? {}, context, activate);
 }
 
-//----------------------------------------------------------------------
+// ----------------------------------------------------------------------
 
 /**
  * Tie the button to an command listed in commandList.js, triggering the callback from the
@@ -380,7 +386,7 @@ export function createGroup<T>(commands: BoundedMap<T>|null, context: T, activat
  *      dom('button', commands.setButtonCommand(dom, 'command'))
  */
 export const setButtonCommand = dom.inlinable(function(elem: Element, commandName: CommandName) {
-  const cmd = allCommands[commandName]!;
-  elem.setAttribute('title', cmd.getDesc());
-  dom.on(elem, 'click', cmd.run);
+  const cmd = allCommands[commandName];
+  elem.setAttribute("title", cmd.getDesc());
+  dom.on(elem, "click", cmd.run);
 });

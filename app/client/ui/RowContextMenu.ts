@@ -1,9 +1,10 @@
-import { allCommands } from 'app/client/components/commands';
-import { makeT } from 'app/client/lib/localization';
-import { menuDivider, menuIcon, menuItemCmd, menuItemCmdLabel } from 'app/client/ui2018/menus';
-import { dom } from 'grainjs';
+import { allCommands } from "app/client/components/commands";
+import { makeT } from "app/client/lib/localization";
+import { menuDivider, menuIcon, menuItemCmd, menuItemCmdLabel } from "app/client/ui2018/menus";
 
-const t = makeT('RowContextMenu');
+import { dom } from "grainjs";
+
+const t = makeT("RowContextMenu");
 
 export interface IRowContextMenu {
   disableInsert: boolean;
@@ -22,15 +23,15 @@ export function RowContextMenu({
   disableShowRecordCard,
   disableAnchorLink,
   isViewSorted,
-  numRows
+  numRows,
 }: IRowContextMenu) {
   const result: Element[] = [];
   if (numRows === 1) {
     result.push(
       menuItemCmd(
         allCommands.viewAsCard,
-        () => menuItemCmdLabel(menuIcon('TypeCard'), t("View as card")),
-        dom.cls('disabled', disableShowRecordCard),
+        () => menuItemCmdLabel(menuIcon("TypeCard"), t("View as card")),
+        dom.cls("disabled", disableShowRecordCard),
       ),
       menuDivider(),
     );
@@ -41,35 +42,35 @@ export function RowContextMenu({
     // below the active row. Thus in this case we show a single `insert row` command.
     result.push(
       menuItemCmd(allCommands.insertRecordAfter, t("Insert row"),
-        dom.cls('disabled', disableInsert)),
+        dom.cls("disabled", disableInsert)),
     );
   } else {
     result.push(
       menuItemCmd(allCommands.insertRecordBefore, t("Insert row above"),
-        dom.cls('disabled', disableInsert)),
+        dom.cls("disabled", disableInsert)),
       menuItemCmd(allCommands.insertRecordAfter, t("Insert row below"),
-        dom.cls('disabled', disableInsert)),
+        dom.cls("disabled", disableInsert)),
     );
   }
   result.push(
-    menuItemCmd(allCommands.duplicateRows, t('Duplicate rows', { count: numRows }),
-      dom.cls('disabled', disableInsert || numRows === 0)),
+    menuItemCmd(allCommands.duplicateRows, t("Duplicate rows", { count: numRows }),
+      dom.cls("disabled", disableInsert || numRows === 0)),
   );
   result.push(
     menuDivider(),
     menuItemCmd(allCommands.makeHeadersFromRow, t("Use as table headers"),
-      dom.cls('disabled', disableMakeHeadersFromRow)),
+      dom.cls("disabled", disableMakeHeadersFromRow)),
   );
   result.push(
     menuDivider(),
     // TODO: should show `Delete ${num} rows` when multiple are selected
     menuItemCmd(allCommands.deleteRecords, t("Delete"),
-      dom.cls('disabled', disableDelete)),
+      dom.cls("disabled", disableDelete)),
   );
   result.push(
     menuDivider(),
     menuItemCmd(allCommands.copyLink, t("Copy anchor link"),
-      dom.cls('disabled', disableAnchorLink ?? false)),
+      dom.cls("disabled", disableAnchorLink ?? false)),
   );
   return result;
 }

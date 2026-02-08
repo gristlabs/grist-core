@@ -2,11 +2,11 @@
  * A tip for fixing an error.
  */
 export interface ApiTip {
-  action: 'add-members' | 'upgrade' | 'ask-for-help' | 'manage';
+  action: "add-members" | "upgrade" | "ask-for-help" | "manage";
   message: string;
 }
 
-export type LimitType = 'collaborators' | 'docs' | 'workspaces' | 'assistant';
+export type LimitType = "collaborators" | "docs" | "workspaces" | "assistant";
 
 /**
  * Documentation of a limit relevant to an API error.
@@ -37,10 +37,10 @@ export interface ApiErrorDetails {
 }
 
 export type ApiErrorCode =
-  | 'UserNotConfirmed'
-  | 'FormNotFound'
-  | 'FormNotPublished'
-  | 'ContextLimitExceeded';
+  | "UserNotConfirmed" |
+  "FormNotFound" |
+  "FormNotPublished" |
+  "ContextLimitExceeded";
 
 /**
  * An error with an http status code.

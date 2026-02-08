@@ -1,5 +1,6 @@
-import {KoArray} from 'app/client/lib/koArray';
-import {IDisposableOwnerT, MutableObsArray, ObsArray, setDisposeOwner} from 'grainjs';
+import { KoArray } from "app/client/lib/koArray";
+
+import { IDisposableOwnerT, MutableObsArray, ObsArray, setDisposeOwner } from "grainjs";
 
 /**
  * Returns a grainjs ObsArray that reflects the given koArray, mapping small changes using
@@ -14,7 +15,6 @@ export function createObsArray<T>(
 ): ObsArray<T> {
   return setDisposeOwner(owner, new KoWrapObsArray(koArray));
 }
-
 
 /**
  * An Observable that wraps a Knockout observable, created via fromKo(). It keeps minimal overhead
@@ -32,7 +32,7 @@ class KoWrapObsArray<T> extends MutableObsArray<T> {
     this._koSub = _koArray.subscribe((splice: any) => {
       const newValues = splice.array.slice(splice.start, splice.start + splice.added);
       this.splice(splice.start, splice.deleted.length, ...newValues);
-    }, null, 'spliceChange');
+    }, null, "spliceChange");
   }
 
   public dispose(): void {

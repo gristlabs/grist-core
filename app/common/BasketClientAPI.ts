@@ -7,5 +7,5 @@ export interface BasketClientAPI {
   /**
    * Adds, updates or deletes a table's data to/from Grist Basket.
    */
-  embedTable(tableId: string, action: "add"|"update"|"delete"): Promise<void>;
+  embedTable(tableId: string, action: "add" | "update" | "delete"): Promise<void>;
 }

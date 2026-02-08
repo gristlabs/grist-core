@@ -5,9 +5,9 @@
  *
  */
 
-import {FlexServer, FlexServerOptions} from 'app/server/lib/FlexServer';
-import log from 'app/server/lib/log';
-import {getGlobalConfig} from "app/server/lib/globalConfig";
+import { FlexServer, FlexServerOptions } from "app/server/lib/FlexServer";
+import { getGlobalConfig } from "app/server/lib/globalConfig";
+import log from "app/server/lib/log";
 
 // Allowed server types. We'll start one or a combination based on the value of GRIST_SERVERS
 // environment variable.
@@ -15,9 +15,9 @@ export type ServerType = "home" | "docs" | "static" | "app";
 const allServerTypes: ServerType[] = ["home", "docs", "static", "app"];
 
 // Parse a comma-separate list of server types into an array, with validation.
-export function parseServerTypes(serverTypes: string|undefined): ServerType[] {
+export function parseServerTypes(serverTypes: string | undefined): ServerType[] {
   // Split and filter out empty strings (including the one we get when splitting "").
-  const types = (serverTypes || "").trim().split(',').filter(part => Boolean(part));
+  const types = (serverTypes || "").trim().split(",").filter(part => Boolean(part));
 
   // Check that parts is non-empty and only contains valid options.
   if (!types.length) {
@@ -43,8 +43,8 @@ function checkUserContentPort(): number | null {
     // If the hostname of both home and plugin url are the same,
     // but the ports are different
     if (homeUrl.hostname === pluginUrl.hostname &&
-        homeUrl.port !== pluginUrl.port) {
-      const port = parseInt(pluginUrl.port || '80', 10);
+      homeUrl.port !== pluginUrl.port) {
+      const port = parseInt(pluginUrl.port || "80", 10);
       return port;
     }
   }
@@ -66,7 +66,6 @@ interface ServerOptions extends FlexServerOptions {
 }
 
 export class MergedServer {
-
   public static async create(port: number, serverTypes: ServerType[], options: ServerOptions = {}) {
     options.settings ??= getGlobalConfig();
     const ms = new MergedServer(port, serverTypes, options);
@@ -153,13 +152,12 @@ export class MergedServer {
     return this._serverTypes.includes(serverType);
   }
 
-
   public async run() {
-
     try {
       await this.flexServer.start();
 
       if (this.hasComponent("home")) {
+        await this._maybeClearSessions();
         this.flexServer.addUsage();
         if (!this.hasComponent("docs")) {
           this.flexServer.addDocApiForwarder();
@@ -210,10 +208,10 @@ export class MergedServer {
 
       if (this._options.extraWorkers) {
         if (!process.env.REDIS_URL) {
-          throw new Error('Redis needed to support multiple workers');
+          throw new Error("Redis needed to support multiple workers");
         }
         for (let i = 1; i <= this._options.extraWorkers; i++) {
-          const server = await MergedServer.create(0, ['docs'], {
+          const server = await MergedServer.create(0, ["docs"], {
             ...this._options,
             extraWorkers: undefined,
           });
@@ -221,7 +219,7 @@ export class MergedServer {
           this._extraWorkers.push(server);
         }
       }
-    } catch(e) {
+    } catch (e) {
       await this.close();
       throw e;
     }
@@ -246,13 +244,30 @@ export class MergedServer {
         return worker;
       }
     }
-    throw new Error('Worker not found');
+    throw new Error("Worker not found");
+  }
+
+  private async _maybeClearSessions() {
+    try {
+      const activations = this.flexServer.getActivations();
+      // deletePrefs creates a transaction to remove and return onRestartClearSessions.
+      // This is important when there are multiple home servers, as we only want
+      // one server to get back a truthy value and proceed with clearing sessions.
+      const { onRestartClearSessions } = await activations.deletePrefs(["onRestartClearSessions"]);
+      if (!onRestartClearSessions) { return; }
+
+      log.info("Clearing sessions...");
+      await this.flexServer.getSessions().clearAllSessions();
+      log.info("Successfully cleared sessions");
+    } catch (err) {
+      // Don't re-throw so we don't disrupt the rest of the startup process.
+      log.error("Failed to clear sessions:", err);
+    }
   }
 }
 
 export async function startMain() {
   try {
-
     const serverTypes = parseServerTypes(process.env.GRIST_SERVERS);
 
     // No defaults for a port, since this server can serve very different purposes.
@@ -267,26 +282,26 @@ export async function startMain() {
       extraWorkers = parseInt(process.env.DOC_WORKER_COUNT, 10);
       // If the main server functions also as a doc worker, then
       // we need one fewer extra servers.
-      if (serverTypes.includes('docs')) { extraWorkers--; }
+      if (serverTypes.includes("docs")) { extraWorkers--; }
     }
 
     const server = await MergedServer.create(port, serverTypes, {
-      extraWorkers
+      extraWorkers,
     });
     await server.run();
 
     const opt = process.argv[2];
-    if (opt === '--testingHooks') {
+    if (opt === "--testingHooks") {
       await server.flexServer.addTestingHooks();
     }
 
     return server.flexServer;
   } catch (e) {
-    log.error('mergedServer failed to start', e);
+    log.error("mergedServer failed to start", e);
     process.exit(1);
   }
 }
 
 if (require.main === module) {
-  startMain().catch((e) => log.error('mergedServer failed to start', e));
+  startMain().catch(e => log.error("mergedServer failed to start", e));
 }

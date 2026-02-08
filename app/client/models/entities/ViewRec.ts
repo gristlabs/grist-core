@@ -1,10 +1,11 @@
-import {BoxSpec} from 'app/client/lib/BoxSpec';
-import {KoArray} from 'app/client/lib/koArray';
-import * as koUtil from 'app/client/lib/koUtil';
-import {DocModel, IRowModel, PageRec, recordSet, refRecord} from 'app/client/models/DocModel';
-import {TabBarRec, ViewSectionRec} from 'app/client/models/DocModel';
-import * as modelUtil from 'app/client/models/modelUtil';
-import * as ko from 'knockout';
+import { BoxSpec } from "app/client/lib/BoxSpec";
+import { KoArray } from "app/client/lib/koArray";
+import * as koUtil from "app/client/lib/koUtil";
+import { DocModel, IRowModel, PageRec, recordSet, refRecord } from "app/client/models/DocModel";
+import { TabBarRec, ViewSectionRec } from "app/client/models/DocModel";
+import * as modelUtil from "app/client/models/modelUtil";
+
+import * as ko from "knockout";
 
 // Represents a view (now also referred to as a "page") containing one or more view sections.
 export interface ViewRec extends IRowModel<"_grist_Views"> {
@@ -23,7 +24,7 @@ export interface ViewRec extends IRowModel<"_grist_Views"> {
   // - 'out' means the view region is not focused
   // - 'in' means the view region is focused
   // - 'related' means the currently focused region is not the view but something related to it (e.g. the creator panel)
-  focusedRegionState: ko.Observable<'out' | 'in' | 'related'>;
+  focusedRegionState: ko.Observable<"out" | "in" | "related">;
 
   // Saved collapsed sections.
   collapsedSections: ko.Computed<number[]>;
@@ -37,17 +38,17 @@ export interface ViewRec extends IRowModel<"_grist_Views"> {
   // If the active section is removed, set the next active section to be the default.
   _isActiveSectionGone: ko.Computed<boolean>;
 
-  page: ko.Computed<PageRec|null>;
+  page: ko.Computed<PageRec | null>;
 }
 
 export function createViewRec(this: ViewRec, docModel: DocModel): void {
-  this.viewSections = recordSet(this, docModel.viewSections, 'parentId');
-  this.tabBarItem = recordSet(this, docModel.tabBar, 'viewRef');
+  this.viewSections = recordSet(this, docModel.viewSections, "parentId");
+  this.tabBarItem = recordSet(this, docModel.tabBar, "viewRef");
 
   this.layoutSpecObj = modelUtil.jsonObservable(this.layoutSpec);
 
   this.activeCollapsedSectionId = ko.observable(0);
-  this.focusedRegionState = ko.observable<'out' | 'in' | 'related'>('in');
+  this.focusedRegionState = ko.observable<"out" | "in" | "related">("in");
 
   this.collapsedSections = this.autoDispose(ko.pureComputed(() => {
     const allSections = new Set(this.viewSections().all().map(x => x.id()));
@@ -80,7 +81,7 @@ export function createViewRec(this: ViewRec, docModel: DocModel): void {
 
   // If the active section is removed, set the next active section to be the default.
   this._isActiveSectionGone = this.autoDispose(ko.computed(() => this.activeSection()._isDeleted()));
-  this.autoDispose(this._isActiveSectionGone.subscribe(gone => {
+  this.autoDispose(this._isActiveSectionGone.subscribe((gone) => {
     if (gone) {
       this.activeSectionId(0);
     }
@@ -92,7 +93,7 @@ export function createViewRec(this: ViewRec, docModel: DocModel): void {
   }));
 }
 
-function getFirstLeaf(layoutSpec: BoxSpec|undefined): BoxSpec['leaf'] {
+function getFirstLeaf(layoutSpec: BoxSpec | undefined): BoxSpec["leaf"] {
   while (layoutSpec?.children?.length) {
     layoutSpec = layoutSpec.children[0];
   }

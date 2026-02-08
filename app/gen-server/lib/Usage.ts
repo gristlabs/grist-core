@@ -1,8 +1,8 @@
-import {Document} from 'app/gen-server/entity/Document';
-import {Organization} from 'app/gen-server/entity/Organization';
-import {User} from 'app/gen-server/entity/User';
-import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
-import log from 'app/server/lib/log';
+import { Document } from "app/gen-server/entity/Document";
+import { Organization } from "app/gen-server/entity/Organization";
+import { User } from "app/gen-server/entity/User";
+import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
+import log from "app/server/lib/log";
 
 // Frequency of logging usage information.  Not something we need
 // to track with much granularity.
@@ -48,24 +48,24 @@ export class Usage {
       const userCount = await manager.count(User);
       // users who have logged in at least once
       const userWithLoginCount = await manager.createQueryBuilder()
-        .from(User, 'users')
-        .where('first_login_at is not null')
+        .from(User, "users")
+        .where("first_login_at is not null")
         .getCount();
       // raw count of organizations (excluding personal orgs)
       const orgCount = await manager.createQueryBuilder()
-        .from(Organization, 'orgs')
-        .where('owner_id is null')
+        .from(Organization, "orgs")
+        .where("owner_id is null")
         .getCount();
       // organizations with subscriptions that are in a non-terminated state
       const orgInGoodStandingCount = await manager.createQueryBuilder()
-        .from(Organization, 'orgs')
-        .leftJoin('orgs.billingAccount', 'billing_accounts')
-        .where('owner_id is null')
-        .andWhere('billing_accounts.in_good_standing = true')
+        .from(Organization, "orgs")
+        .leftJoin("orgs.billingAccount", "billing_accounts")
+        .where("owner_id is null")
+        .andWhere("billing_accounts.in_good_standing = true")
         .getCount();
       // raw count of documents
       const docCount = await manager.count(Document);
-      log.rawInfo('activity', {
+      log.rawInfo("activity", {
         docCount,
         orgCount,
         orgInGoodStandingCount,

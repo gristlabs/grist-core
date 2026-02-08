@@ -10,11 +10,11 @@ export interface ColumnToMap {
   /**
    * Title or short description of a column (used as a label in section mapping).
    */
-  title?: string|null,
+  title?: string | null,
   /**
    * Optional long description of a column (used as a help text in section mapping).
    */
-  description?: string|null,
+  description?: string | null,
   /**
    * Column types (as comma separated list), by default "Any", what means that any type is
    * allowed (unless strictType is true).
@@ -38,7 +38,7 @@ export interface ColumnToMap {
  * Tells Grist what columns a Custom Widget expects and allows users to map between existing column names
  * and those requested by the Custom Widget.
  */
-export type ColumnsToMap = (string|ColumnToMap)[];
+export type ColumnsToMap = (string | ColumnToMap)[];
 
 /**
  * Initial message sent by the CustomWidget with initial requirements.
@@ -68,7 +68,7 @@ export interface InteractionOptionsRequest {
 /**
  * Widget configuration set and approved by Grist, sent as part of ready message.
  */
-export interface InteractionOptions{
+export interface InteractionOptions {
   /**
    * Granted access level.
    */
@@ -79,7 +79,7 @@ export interface InteractionOptions{
  * Current columns mapping between viewFields in section and Custom widget.
  */
 export interface WidgetColumnMap {
-  [key: string]: string|string[]|null
+  [key: string]: string | string[] | null
 }
 
 /**
@@ -93,5 +93,5 @@ export interface CustomSectionAPI {
   /**
    * Returns current widget configuration (if requested through configuration method).
    */
-  mappings(): Promise<WidgetColumnMap|null>;
+  mappings(): Promise<WidgetColumnMap | null>;
 }

@@ -8,10 +8,10 @@
 
 // --no-exit|-E flag is interpreted by mocha-webdriver library to start REPL on failure, and we
 // do NOT want to output a big dump about that.
-const noexit = process.argv.includes("--no-exit") || process.argv.includes('-E');
+const noexit = process.argv.includes("--no-exit") || process.argv.includes("-E");
 // Don't load why-is-node-running if we're not going to use it. It probably means that we're
 // in a debugging session, and this module creates async hooks that interfere with debugging.
-const whyIsNodeRunning = noexit ? null : require('why-is-node-running');
+const whyIsNodeRunning = noexit ? null : require("why-is-node-running");
 
 function report() {
   whyIsNodeRunning?.();
@@ -20,7 +20,7 @@ function report() {
   console.warn("*******************************************************");
   // We want to exit, but process.exit(1) doesn't work, since mocha catches it and insists on
   // exiting with the test status result (which may be 0, and we need to indicate failure).
-  process.kill(process.pid, 'SIGTERM');
+  process.kill(process.pid, "SIGTERM");
 }
 
 if (process.env.MOCHA_WORKER_ID === undefined) {
@@ -35,5 +35,5 @@ if (process.env.MOCHA_WORKER_ID === undefined) {
       }
       done();
     }
-  }
+  };
 }

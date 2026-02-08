@@ -4,14 +4,17 @@
  * Usage:
  *    test/upgradeDocument <docPaths...>
  */
-import {DocStorage} from 'app/server/lib/DocStorage';
-import {DocStorageManager} from 'app/server/lib/DocStorageManager';
-import {copyFile} from 'app/server/lib/docUtils';
-import {createDocTools} from 'test/server/docTools';
-import log from 'app/server/lib/log';
+
+import { DocStorage } from "app/server/lib/DocStorage";
+import { DocStorageManager } from "app/server/lib/DocStorageManager";
+import { copyFile } from "app/server/lib/docUtils";
+import log from "app/server/lib/log";
+import { createDocTools } from "test/server/docTools";
+
 import * as fs from "fs";
-import * as fse from "fs-extra";
 import * as path from "path";
+
+import * as fse from "fs-extra";
 import * as tmp from "tmp-promise";
 
 export async function upgradeDocuments(docPaths: string[]): Promise<void> {
@@ -31,7 +34,7 @@ export async function upgradeDocuments(docPaths: string[]): Promise<void> {
 }
 
 export async function upgradeDocumentsDocStorageOnly(paths: string[]): Promise<void> {
-  let tmpDir = (await tmp.dir({ prefix: 'grist_migrate_', unsafeCleanup: true })).path;
+  let tmpDir = (await tmp.dir({ prefix: "grist_migrate_", unsafeCleanup: true })).path;
   tmpDir = await fse.realpath(tmpDir);
   const docStorageManager = new DocStorageManager(tmpDir);
 
@@ -51,8 +54,8 @@ export async function upgradeDocumentsDocStorageOnly(paths: string[]): Promise<v
 
 export async function main() {
   const params = process.argv.slice(2);
-  const onlyRunDocStorageMigrations = params.map((text) => text.toLowerCase()).includes("--doc-storage-only");
-  const docPaths = params.filter((text) => text.trim()[0] != "-");
+  const onlyRunDocStorageMigrations = params.map(text => text.toLowerCase()).includes("--doc-storage-only");
+  const docPaths = params.filter(text => !text.trim().startsWith("-"));
   if (docPaths.length === 0) {
     console.log(`Usage:\n    test/upgradeDocument path/to/doc.grist ...\n`);
     console.log(`Parameters: `);
@@ -60,7 +63,7 @@ export async function main() {
     throw new Error("Document argument required");
   }
   for (const docPath of docPaths) {
-    if (!docPath.endsWith('.grist')) {
+    if (!docPath.endsWith(".grist")) {
       throw new Error(`Document path should have .grist extension: ${docPath}`);
     }
     if (!fs.existsSync(docPath)) {
@@ -69,7 +72,7 @@ export async function main() {
   }
 
   const prevLogLevel = log.transports.file.level;
-  log.transports.file.level = 'warn';
+  log.transports.file.level = "warn";
   try {
     if (onlyRunDocStorageMigrations) {
       await upgradeDocumentsDocStorageOnly(docPaths);

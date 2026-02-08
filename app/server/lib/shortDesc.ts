@@ -1,16 +1,17 @@
-import defaults = require('lodash/defaults');
-import identity = require('lodash/identity');
-import {inspect} from 'util';
+import { inspect } from "util";
 
-function truncateString(s: string|Uint8Array, maxLen: number, optStringMapper?: (arg: any) => string): string {
+import defaults from "lodash/defaults";
+import identity from "lodash/identity";
+
+function truncateString(s: string | Uint8Array, maxLen: number, optStringMapper?: (arg: any) => string): string {
   const m: (arg: any) => string = optStringMapper || identity;
   return s.length <= maxLen ? m(s) : m(s.slice(0, maxLen)) + "... (" + s.length + " length)";
 }
 
 function formatUint8Array(array: Uint8Array): string {
-  const s = Buffer.from(array).toString('binary');
+  const s = Buffer.from(array).toString("binary");
   // eslint-disable-next-line no-control-regex
-  return s.replace(/[\x00-\x1f\x7f-\xff]/g, '?');
+  return s.replace(/[\x00-\x1f\x7f-\xff]/g, "?");
 }
 
 interface DescLimits {
@@ -43,14 +44,14 @@ export function shortDesc(topObj: any, optLimits?: DescLimits): string {
         "]";
     } else if (obj instanceof Uint8Array) {
       return "b'" + truncateString(obj, lim.maxBufferLength, formatUint8Array) + "'";
-    } else if (obj && typeof obj === 'object' && !Buffer.isBuffer(obj)) {
+    } else if (obj && typeof obj === "object" && !Buffer.isBuffer(obj)) {
       const keys = Object.keys(obj);
       return "{" + keys.slice(0, lim.maxObjectKeys).map(function(key) {
         return key + ": " + _shortDesc(obj[key]);
       }).join(", ") +
-        (keys.length > lim.maxObjectKeys ? ", ... (" + keys.length + " keys)" : "") +
-        "}";
-    } else if (typeof obj === 'string') {
+      (keys.length > lim.maxObjectKeys ? ", ... (" + keys.length + " keys)" : "") +
+      "}";
+    } else if (typeof obj === "string") {
       return inspect(truncateString(obj, lim.maxStringLength));
     } else {
       return inspect(obj);

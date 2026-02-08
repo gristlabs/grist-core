@@ -2,7 +2,7 @@
  * API definitions for FileParser plugins.
  */
 
-import {GristTables} from 'app/plugin/GristTable';
+import { GristTables } from "app/plugin/GristTable";
 
 export interface EditOptionsAPI {
   getParseOptions(parseOptions?: ParseOptions): Promise<ParseOptions>;
@@ -39,6 +39,14 @@ export interface FileSource {
    * `/importDir/path`.
    */
   path: string;
+
+  /**
+   * The platform-specific flavor of the path stored in the {path} property.
+   * Certain sandboxed environments may have a different path convention to the local OS.
+   * E.g. Pyodide (WASM Python in Node/Deno) uses POSIX paths, even on a Windows host OS.
+   * This enables the path above to be interpreted correctly / converted.
+   */
+  pathFlavor: "windows" | "posix";
 
   /**
    * Plugins that want to know the original filename should use origName. Depending on the source

@@ -1,10 +1,11 @@
-import {makeT} from 'app/client/lib/localization';
-import {colors, mediaSmall} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {commonUrls} from 'app/common/gristUrls';
-import {DomContents, DomElementArg, styled} from 'grainjs';
+import { makeT } from "app/client/lib/localization";
+import { colors, mediaSmall } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { commonUrls } from "app/common/gristUrls";
 
-const t = makeT('FormContainer');
+import { DomContents, DomElementArg, styled } from "grainjs";
+
+const t = makeT("FormContainer");
 
 export function buildFormMessagePage(buildBody: () => DomContents, ...args: DomElementArg[]) {
   return cssFormMessagePage(
@@ -25,36 +26,36 @@ export function buildFormFooter() {
     cssPoweredByGrist(
       cssPoweredByGristLink(
         {
-          href: commonUrls.forms,
-          target: '_blank',
-          'aria-label': t('Powered by Grist'),
+          "href": commonUrls.forms,
+          "target": "_blank",
+          "aria-label": t("Powered by Grist"),
         },
-        t('Powered by'),
+        t("Powered by"),
         cssGristLogo(),
-      )
+      ),
     ),
     cssBuildForm(
       cssBuildFormLink(
-        {href: commonUrls.forms, target: '_blank'},
-        t('Build your own form'),
-        icon('Expand'),
+        { href: commonUrls.forms, target: "_blank" },
+        t("Build your own form"),
+        icon("Expand"),
       ),
     ),
   ];
 }
 
-export const cssFormMessageImageContainer = styled('div', `
+export const cssFormMessageImageContainer = styled("div", `
   margin-top: 28px;
   display: flex;
   justify-content: center;
 `);
 
-export const cssFormMessageImage = styled('img', `
+export const cssFormMessageImage = styled("img", `
   height: 100%;
   width: 100%;
 `);
 
-export const cssFormMessageText = styled('p', `
+export const cssFormMessageText = styled("p", `
   color: ${colors.dark};
   text-align: center;
   font-weight: 600;
@@ -64,11 +65,11 @@ export const cssFormMessageText = styled('p', `
   margin-bottom: 24px;
 `);
 
-const cssFormMessagePage = styled('div', `
+const cssFormMessagePage = styled("div", `
   padding: 16px;
 `);
 
-const cssFormMessage = styled('div', `
+const cssFormMessage = styled("div", `
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -79,7 +80,7 @@ const cssFormMessage = styled('div', `
   margin: 0px auto;
 `);
 
-const cssFormMessageBody = styled('main', `
+const cssFormMessageBody = styled("main", `
   width: 100%;
   padding: 20px 48px 20px 48px;
 
@@ -90,13 +91,13 @@ const cssFormMessageBody = styled('main', `
   }
 `);
 
-const cssFormMessageFooter = styled('footer', `
+const cssFormMessageFooter = styled("footer", `
   border-top: 1px solid ${colors.darkGrey};
   padding: 8px 16px;
   width: 100%;
 `);
 
-const cssPoweredByGrist = styled('div', `
+const cssPoweredByGrist = styled("div", `
   color: ${colors.darkText};
   font-size: 13px;
   font-style: normal;
@@ -108,7 +109,7 @@ const cssPoweredByGrist = styled('div', `
   padding: 0px 10px;
 `);
 
-const cssPoweredByGristLink = styled('a', `
+const cssPoweredByGristLink = styled("a", `
   display: flex;
   align-items: center;
   justify-content: center;
@@ -117,7 +118,7 @@ const cssPoweredByGristLink = styled('a', `
   text-decoration: none;
 `);
 
-const cssGristLogo = styled('div', `
+const cssGristLogo = styled("div", `
   width: 58px;
   height: 20.416px;
   flex-shrink: 0;
@@ -129,14 +130,14 @@ const cssGristLogo = styled('div', `
   margin-top: 3px;
 `);
 
-const cssBuildForm = styled('div', `
+const cssBuildForm = styled("div", `
   display: flex;
   align-items: center;
   justify-content: center;
   margin-top: 8px;
 `);
 
-const cssBuildFormLink = styled('a', `
+const cssBuildFormLink = styled("a", `
   display: flex;
   align-items: center;
   justify-content: center;

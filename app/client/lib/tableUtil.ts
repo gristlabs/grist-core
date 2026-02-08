@@ -1,17 +1,19 @@
-import type {CopySelection} from 'app/client/components/CopySelection';
-import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
-import type {KoArray} from 'app/client/lib/koArray';
-import {simpleStringHash} from 'app/client/lib/textUtils';
-import type {ViewFieldRec} from 'app/client/models/DocModel';
-import TableModel from 'app/client/models/TableModel';
-import type {BulkColValues, BulkUpdateRecord} from 'app/common/DocActions';
-import {safeJsonParse} from 'app/common/gutil';
-import type {TableData} from 'app/common/TableData';
-import {tsvEncode} from 'app/common/tsvFormat';
-import {dom} from 'grainjs';
-import zipObject = require('lodash/zipObject');
+import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
+import { simpleStringHash } from "app/client/lib/textUtils";
+import TableModel from "app/client/models/TableModel";
+import { safeJsonParse } from "app/common/gutil";
+import { tsvEncode } from "app/common/tsvFormat";
 
-const G = getBrowserGlobals('document', 'DOMParser');
+import { dom } from "grainjs";
+import zipObject from "lodash/zipObject";
+
+import type { CopySelection } from "app/client/components/CopySelection";
+import type { KoArray } from "app/client/lib/koArray";
+import type { ViewFieldRec } from "app/client/models/DocModel";
+import type { BulkColValues, BulkUpdateRecord } from "app/common/DocActions";
+import type { TableData } from "app/common/TableData";
+
+const G = getBrowserGlobals("document", "DOMParser");
 
 /**
  * Returns a sorted array of parentPos values for a viewField to be inserted just before index.
@@ -19,8 +21,8 @@ const G = getBrowserGlobals('document', 'DOMParser');
  * @{param} {number} index - index in viewFields at which to insert the new fields
  * @{param} {number} numInserts - number of new fields to insert
  */
-export function fieldInsertPositions(viewFields: KoArray<ViewFieldRec>, index: number, numInserts: number = 1
-): Array<number|null> {
+export function fieldInsertPositions(viewFields: KoArray<ViewFieldRec>, index: number, numInserts: number = 1,
+): (number | null)[] {
   const rightPos = (index < viewFields.peekLength) ? viewFields.at(index)!.parentPos() : null;
   return Array(numInserts).fill(rightPos);
 }
@@ -47,9 +49,9 @@ export function makePasteText(tableData: TableData, selection: CopySelection, in
  * Hash of the current docId to allow checking if copying and pasting is happening in the same document,
  * without leaking the actual docId which may allow others to access the document.
  */
-export function getDocIdHash(): string|undefined {
+export function getDocIdHash(): string | undefined {
   // We might not have global gristDocPageModel (e.g. for virtual tables).
-  const docId: string|undefined = window.gristDocPageModel?.currentDocId.get();
+  const docId: string | undefined = window.gristDocPageModel?.currentDocId.get();
   return docId && simpleStringHash(docId);
 }
 
@@ -65,46 +67,46 @@ export function makePasteHtml(tableData: TableData, selection: CopySelection, in
   const rowStyle = selection.rowStyle || {};    // Maps rowId to style object.
   const colStyle = selection.colStyle || {};    // Maps colId to style object.
 
-  const elem = dom('table',
-    {border: '1', cellspacing: '0', style: 'white-space: pre', 'data-grist-doc-id-hash': getDocIdHash() || ''},
-    dom('colgroup', selection.colIds.map((colId, idx) =>
-      dom('col', {
-        style: _styleAttr(colStyle[colId]),
-        'data-grist-col-ref': String(selection.colRefs[idx]),
-        'data-grist-col-type': tableData.getColType(colId)
-      })
+  const elem = dom("table",
+    { "border": "1", "cellspacing": "0", "style": "white-space: pre", "data-grist-doc-id-hash": getDocIdHash() || "" },
+    dom("colgroup", selection.colIds.map((colId, idx) =>
+      dom("col", {
+        "style": _styleAttr(colStyle[colId]),
+        "data-grist-col-ref": String(selection.colRefs[idx]),
+        "data-grist-col-type": tableData.getColType(colId),
+      }),
     )),
     // Include column headers if requested.
     (includeColHeaders ?
-      dom('tr', selection.fields.map(field => dom('th', field.label()))) :
+      dom("tr", selection.fields.map(field => dom("th", field.label()))) :
       null
     ),
     // Fill with table cells.
     selection.rowIds.map(rowId =>
-      dom('tr',
-        {style: _styleAttr(rowStyle[rowId as number])},
-        selection.columns.map(col => {
+      dom("tr",
+        { style: _styleAttr(rowStyle[rowId as number]) },
+        selection.columns.map((col) => {
           const rawValue = col.rawGetter(rowId);
           const fmtValue = col.fmtGetter(rowId);
           const dataOptions = (rawValue === fmtValue) ? {} :
-            {'data-grist-raw-value': JSON.stringify(rawValue)};
-          return dom('td', dataOptions, fmtValue);
-        })
-      )
-    )
+            { "data-grist-raw-value": JSON.stringify(rawValue) };
+          return dom("td", dataOptions, fmtValue);
+        }),
+      ),
+    ),
   );
   return elem.outerHTML;
 }
 
 export interface RichPasteObject {
   displayValue: string;
-  docIdHash?: string|null;
-  colType?: string|null;  // Column type of the source column.
-  colRef?: number|null;
+  docIdHash?: string | null;
+  colType?: string | null;  // Column type of the source column.
+  colRef?: number | null;
   rawValue?: unknown;     // Optional rawValue that should be used if colType matches destination.
 }
 
-export type PasteData = string[][] | RichPasteObject[][] | Array<File>[][];
+export type PasteData = string[][] | RichPasteObject[][] | File[][][];
 
 /**
  * Parses a 2-d array of objects from a text string containing an HTML table.
@@ -113,39 +115,39 @@ export type PasteData = string[][] | RichPasteObject[][] | Array<File>[][];
  */
 export function parsePasteHtml(data: string): RichPasteObject[][] {
   const parser: DOMParser = new G.DOMParser();
-  const doc = parser.parseFromString(data, 'text/html');
-  const table = doc.querySelector('table')!;
-  const docIdHash = table.getAttribute('data-grist-doc-id-hash');
+  const doc = parser.parseFromString(data, "text/html");
+  const table = doc.querySelector("table")!;
+  const docIdHash = table.getAttribute("data-grist-doc-id-hash");
 
-  const cols = [...table.querySelectorAll('col')];
-  const rows = [...table.querySelectorAll('tr')];
+  const cols = [...table.querySelectorAll("col")];
+  const rows = [...table.querySelectorAll("tr")];
   const result = rows.map(row =>
-    Array.from(row.querySelectorAll('td, th'), (cell, colIdx) => {
+    Array.from(row.querySelectorAll("td, th"), (cell, colIdx) => {
       const col = cols[colIdx];
-      const colType = col?.getAttribute('data-grist-col-type');
-      const colRef = col && Number(col.getAttribute('data-grist-col-ref'));
-      const o: RichPasteObject = {displayValue: cell.textContent!, docIdHash, colType, colRef};
+      const colType = col?.getAttribute("data-grist-col-type");
+      const colRef = col && Number(col.getAttribute("data-grist-col-ref"));
+      const o: RichPasteObject = { displayValue: cell.textContent!, docIdHash, colType, colRef };
 
-      if (cell.hasAttribute('data-grist-raw-value')) {
-        o.rawValue = safeJsonParse(cell.getAttribute('data-grist-raw-value')!,
+      if (cell.hasAttribute("data-grist-raw-value")) {
+        o.rawValue = safeJsonParse(cell.getAttribute("data-grist-raw-value")!,
           o.displayValue);
       }
 
       return o;
     }))
-    .filter((row) => (row.length > 0));
+    .filter(row => (row.length > 0));
   if (result.length === 0) {
-    throw new Error('Unable to parse data from text/html');
+    throw new Error("Unable to parse data from text/html");
   }
   return result;
 }
 
 // Helper function to add css style properties to an html tag
-function _styleAttr(style: object|undefined) {
-  if (typeof style !== 'object') {
-    return '';
+function _styleAttr(style: object | undefined) {
+  if (typeof style !== "object") {
+    return "";
   }
-  return Object.entries(style).map(([prop, value]) => `${prop}: ${value};`).join(' ');
+  return Object.entries(style).map(([prop, value]) => `${prop}: ${value};`).join(" ");
 }
 
 /**
@@ -155,13 +157,13 @@ function _styleAttr(style: object|undefined) {
 * See GridView.js getSelection and DetailView.js getSelection.
 * @returns {Object} BulkUpdateRecord action
 */
-export function makeDeleteAction(selection: CopySelection): BulkUpdateRecord|null {
+export function makeDeleteAction(selection: CopySelection): BulkUpdateRecord | null {
   // If the selection includes the "new" row, ignore that one.
-  const rowIds = selection.rowIds.filter((r): r is number => (typeof r === 'number'));
+  const rowIds = selection.rowIds.filter((r): r is number => (typeof r === "number"));
   if (rowIds.length === 0) {
     return null;
   }
-  const blankRow = rowIds.map(() => '');
+  const blankRow = rowIds.map(() => "");
 
   const colIds = selection.fields
     .filter(field => !field.column().isRealFormula() && !field.disableEditData())
@@ -173,16 +175,15 @@ export function makeDeleteAction(selection: CopySelection): BulkUpdateRecord|nul
   if (colIds.length === 0) {
     return null;
   }
-  return ['BulkUpdateRecord', tableId, rowIds,
+  return ["BulkUpdateRecord", tableId, rowIds,
     zipObject(colIds, colIds.map(() => blankRow))];
 }
-
 
 /**
  * Fills currently selected grid with the contents of the top row in that selection.
  */
 export function fillSelectionDown(selection: CopySelection, tableModel: TableModel) {
-  const rowIds = selection.rowIds.filter((r): r is number => (typeof r === 'number'));
+  const rowIds = selection.rowIds.filter((r): r is number => (typeof r === "number"));
   if (rowIds.length <= 1) {
     return;
   }

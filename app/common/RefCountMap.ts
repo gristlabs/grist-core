@@ -7,7 +7,7 @@
  * reference is gone, and an optional gracePeriodMs elapsed, the value is cleaned up using
  * options.dispose(key, value) callback.
  */
-import {IDisposable} from 'grainjs';
+import { IDisposable } from "grainjs";
 
 export interface IRefCountSub<Value> extends IDisposable {
   get(): Value;
@@ -15,7 +15,7 @@ export interface IRefCountSub<Value> extends IDisposable {
 }
 
 export class RefCountMap<Key, Value> implements IDisposable {
-  private _map: Map<Key, RefCountValue<Value>> = new Map();
+  private _map = new Map<Key, RefCountValue<Value>>();
   private _createKey: (key: Key) => Value;
   private _disposeKey: (key: Key, value: Value) => void;
   private _gracePeriodMs: number;
@@ -53,7 +53,7 @@ export class RefCountMap<Key, Value> implements IDisposable {
    * Return the value for the key, if one is set, or undefined otherwise, without touching
    * reference counts.
    */
-  public get(key: Key): Value|undefined {
+  public get(key: Key): Value | undefined {
     return this._map.get(key)?.value;
   }
 

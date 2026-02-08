@@ -1,4 +1,4 @@
-import {ApiError} from 'app/common/ApiError';
+import { ApiError } from "app/common/ApiError";
 
 /**
  * Error class indicating failure due to limits being exceeded.

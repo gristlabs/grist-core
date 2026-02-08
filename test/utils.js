@@ -1,8 +1,8 @@
 /* global location */
 
-var _ = require('underscore');
-var Chance = require('chance');
-var assert = require('chai').assert;
+var _ = require("underscore");
+var Chance = require("chance");
+var assert = require("chai").assert;
 
 function mod(r) { return function(x) { return x%r; }; }
 exports.mod = mod;
@@ -55,8 +55,8 @@ function timingDescribe(desc, func) {
   // If under Node, non-empty ENABLE_TIMING_TESTS environment variable turns on the timing tests.
   // If under the Browser, we look for 'timing=1' among URL params, set by test/browser.js.
   var enableTimingTests = (process.browser ?
-      (location.search.substr(1).split("&").indexOf("timing=1") !== -1) :
-      process.env.ENABLE_TIMING_TESTS);
+    (location.search.substr(1).split("&").indexOf("timing=1") !== -1) :
+    process.env.ENABLE_TIMING_TESTS);
 
   function body() {
     func();
@@ -109,8 +109,8 @@ function timingTest(expectedMs, desc, testFunc) {
  * in the browser when running /test.html manually, go to /test.html?timing=1.
  */
 exports.timing = {
- describe: timingDescribe,
- it: timingTest
+  describe: timingDescribe,
+  it: timingTest
 };
 
 
@@ -129,7 +129,7 @@ function TestPerson(last, first, age, year, month, day) {
  * @param {integer} num - length of people list to return
  */
 function genPeople(num, seed) {
-  if (typeof seed === 'undefined') seed = 0;
+  if (typeof seed === "undefined") seed = 0;
   var ageOpts = {min: 0, max: 90};
   var monthOpts = {min:1, max:12};
   var dayOpts = {min:1, max:30};
@@ -137,11 +137,11 @@ function genPeople(num, seed) {
   var chance = new Chance(seed);
   for (var i = 0; i < num; i++) {
     people.push(new TestPerson(chance.last(),
-                               chance.first(),
-                               chance.integer(ageOpts),
-                               parseInt(chance.year()),
-                               chance.integer(monthOpts),
-                               chance.integer(dayOpts)
+      chance.first(),
+      chance.integer(ageOpts),
+      parseInt(chance.year()),
+      chance.integer(monthOpts),
+      chance.integer(dayOpts)
     ));
   }
   return people;
@@ -157,8 +157,8 @@ exports.genPeople = genPeople;
  * @param {object} options - object denoting options for the given chance.js function
  */
 function genItems(chanceFunc, num, options, seed) {
-  if (typeof seed === 'undefined') seed = 0;
-  console.assert(typeof new Chance()[chanceFunc] === 'function');
+  if (typeof seed === "undefined") seed = 0;
+  console.assert(typeof new Chance()[chanceFunc] === "function");
   var chance = new Chance(seed);
   var items = [];
   for (var i = 0; i < num; i++) {

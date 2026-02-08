@@ -1,29 +1,30 @@
-import {exitPromise, expectedResetDate} from 'app/server/lib/serverUtils';
-import {spawn} from 'child_process';
-import {assert} from 'test/server/testUtils';
+import { exitPromise, expectedResetDate } from "app/server/lib/serverUtils";
+import { assert } from "test/server/testUtils";
+
+import { spawn } from "child_process";
 
 describe("serverUtils2", function() {
   describe("exitPromise", function() {
     it("should resolve to exit code when child process exits", async function() {
-      const child = spawn('echo', ['hello', 'world']);
+      const child = spawn("echo", ["hello", "world"]);
       assert.strictEqual(await exitPromise(child), 0);
 
-      const child2 = spawn('exit 4', [], {shell: true});
+      const child2 = spawn("exit 4", [], { shell: true });
       assert.strictEqual(await exitPromise(child2), 4);
     });
 
     it("should resolve to signal when child process is killed", async function() {
-      const child = spawn('sleep', ['1']);
+      const child = spawn("sleep", ["1"]);
       child.kill();
-      assert.strictEqual(await exitPromise(child), 'SIGTERM');
+      assert.strictEqual(await exitPromise(child), "SIGTERM");
 
-      const child2 = spawn('sleep', ['1']);
-      child2.kill('SIGINT');
-      assert.strictEqual(await exitPromise(child2), 'SIGINT');
+      const child2 = spawn("sleep", ["1"]);
+      child2.kill("SIGINT");
+      assert.strictEqual(await exitPromise(child2), "SIGINT");
     });
 
     it("should be rejected when child process can't start", async function() {
-      const child = spawn('non-existent-command-83714', ['hello']);
+      const child = spawn("non-existent-command-83714", ["hello"]);
       await assert.isRejected(exitPromise(child), /ENOENT/);
     });
   });
@@ -73,5 +74,5 @@ const D = 24 * 60 * 60 * 1000;
 const NOW = new Date("2025-01-10T00:00:00Z").getTime();
 const day = (d: number) => new Date(Math.floor(NOW + d * D)).getTime();
 const test = (start: number, end: number) => expectedResetDate(start, end, NOW);
-const str = (s: string) => new Date(s + 'T00:00:00Z').getTime();
+const str = (s: string) => new Date(s + "T00:00:00Z").getTime();
 const test2 = (start: string, end: string) => expectedResetDate(str(start), str(end), NOW);

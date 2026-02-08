@@ -20,14 +20,14 @@ export interface IntervalDelay {
  */
 export class Interval {
   private _timeout?: NodeJS.Timeout | null;
-  private _lastPendingCall?: Promise<unknown> | unknown;
+  private _lastPendingCall?: Promise<unknown>;
   private _timeoutDelay?: number;
   private _stopped: boolean = true;
 
   constructor(
-    private _callback: () => Promise<unknown> | unknown,
+    private _callback: () => Promise<unknown>,
     private _delay: IntervalDelay,
-    private _options: IntervalOptions
+    private _options: IntervalOptions,
   ) {}
 
   /**
@@ -81,7 +81,7 @@ export class Interval {
   }
 
   private _computeDelayMs() {
-    const {delayMs, varianceMs} = this._delay;
+    const { delayMs, varianceMs } = this._delay;
     if (varianceMs !== undefined) {
       // Randomize the delay by the specified amount of variance.
       const [min, max] = [delayMs - varianceMs, delayMs + varianceMs];

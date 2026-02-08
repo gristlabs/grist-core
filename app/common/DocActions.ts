@@ -3,7 +3,7 @@
  */
 
 // Some definitions have moved to be part of plugin API.
-import { BulkColValues, CellValue, RowRecord } from 'app/plugin/GristData';
+import { BulkColValues, CellValue, RowRecord } from "app/plugin/GristData";
 export type { BulkColValues, CellValue, RowRecord };
 
 // Part of a special CellValue used for comparisons, embedding several versions of a CellValue.
@@ -14,26 +14,26 @@ export interface AllCellVersions {
 }
 export type CellVersions = Partial<AllCellVersions>;
 
-export type AddRecord = ['AddRecord', string, number, ColValues];
-export type BulkAddRecord = ['BulkAddRecord', string, number[], BulkColValues];
-export type RemoveRecord = ['RemoveRecord', string, number];
-export type BulkRemoveRecord = ['BulkRemoveRecord', string, number[]];
-export type UpdateRecord = ['UpdateRecord', string, number, ColValues];
-export type BulkUpdateRecord = ['BulkUpdateRecord', string, number[], BulkColValues];
+export type AddRecord = ["AddRecord", string, number, ColValues];
+export type BulkAddRecord = ["BulkAddRecord", string, number[], BulkColValues];
+export type RemoveRecord = ["RemoveRecord", string, number];
+export type BulkRemoveRecord = ["BulkRemoveRecord", string, number[]];
+export type UpdateRecord = ["UpdateRecord", string, number, ColValues];
+export type BulkUpdateRecord = ["BulkUpdateRecord", string, number[], BulkColValues];
 
-export type ReplaceTableData = ['ReplaceTableData', string, number[], BulkColValues];
+export type ReplaceTableData = ["ReplaceTableData", string, number[], BulkColValues];
 
 // This is the format in which data comes when we fetch a table from the sandbox.
-export type TableDataAction = ['TableData', string, number[], BulkColValues];
+export type TableDataAction = ["TableData", string, number[], BulkColValues];
 
-export type AddColumn = ['AddColumn', string, string, ColInfo];
-export type RemoveColumn = ['RemoveColumn', string, string];
-export type RenameColumn = ['RenameColumn', string, string, string];
-export type ModifyColumn = ['ModifyColumn', string, string, Partial<ColInfo>];
+export type AddColumn = ["AddColumn", string, string, ColInfo];
+export type RemoveColumn = ["RemoveColumn", string, string];
+export type RenameColumn = ["RenameColumn", string, string, string];
+export type ModifyColumn = ["ModifyColumn", string, string, Partial<ColInfo>];
 
-export type AddTable = ['AddTable', string, ColInfoWithId[]];
-export type RemoveTable = ['RemoveTable', string];
-export type RenameTable = ['RenameTable', string, string];
+export type AddTable = ["AddTable", string, ColInfoWithId[]];
+export type RemoveTable = ["RemoveTable", string];
+export type RenameTable = ["RenameTable", string, string];
 
 export type DocAction = (
   AddRecord |
@@ -55,30 +55,29 @@ export type DocAction = (
 
 // type guards for convenience - see:
 //   https://www.typescriptlang.org/docs/handbook/advanced-types.html#user-defined-type-guards
-export function isAddRecord(act: DocAction): act is AddRecord { return act[0] === 'AddRecord'; }
-export function isBulkAddRecord(act: DocAction): act is BulkAddRecord { return act[0] === 'BulkAddRecord'; }
-export function isRemoveRecord(act: DocAction): act is RemoveRecord { return act[0] === 'RemoveRecord'; }
-export function isBulkRemoveRecord(act: DocAction): act is BulkRemoveRecord { return act[0] === 'BulkRemoveRecord'; }
-export function isUpdateRecord(act: DocAction): act is UpdateRecord { return act[0] === 'UpdateRecord'; }
-export function isBulkUpdateRecord(act: DocAction): act is BulkUpdateRecord { return act[0] === 'BulkUpdateRecord'; }
+export function isAddRecord(act: DocAction): act is AddRecord { return act[0] === "AddRecord"; }
+export function isBulkAddRecord(act: DocAction): act is BulkAddRecord { return act[0] === "BulkAddRecord"; }
+export function isRemoveRecord(act: DocAction): act is RemoveRecord { return act[0] === "RemoveRecord"; }
+export function isBulkRemoveRecord(act: DocAction): act is BulkRemoveRecord { return act[0] === "BulkRemoveRecord"; }
+export function isUpdateRecord(act: DocAction): act is UpdateRecord { return act[0] === "UpdateRecord"; }
+export function isBulkUpdateRecord(act: DocAction): act is BulkUpdateRecord { return act[0] === "BulkUpdateRecord"; }
 
-export function isReplaceTableData(act: DocAction): act is ReplaceTableData { return act[0] === 'ReplaceTableData'; }
+export function isReplaceTableData(act: DocAction): act is ReplaceTableData { return act[0] === "ReplaceTableData"; }
 
-export function isAddColumn(act: DocAction): act is AddColumn { return act[0] === 'AddColumn'; }
-export function isRemoveColumn(act: DocAction): act is RemoveColumn { return act[0] === 'RemoveColumn'; }
-export function isRenameColumn(act: DocAction): act is RenameColumn { return act[0] === 'RenameColumn'; }
-export function isModifyColumn(act: DocAction): act is ModifyColumn { return act[0] === 'ModifyColumn'; }
+export function isAddColumn(act: DocAction): act is AddColumn { return act[0] === "AddColumn"; }
+export function isRemoveColumn(act: DocAction): act is RemoveColumn { return act[0] === "RemoveColumn"; }
+export function isRenameColumn(act: DocAction): act is RenameColumn { return act[0] === "RenameColumn"; }
+export function isModifyColumn(act: DocAction): act is ModifyColumn { return act[0] === "ModifyColumn"; }
 
-export function isAddTable(act: DocAction): act is AddTable { return act[0] === 'AddTable'; }
-export function isRemoveTable(act: DocAction): act is RemoveTable { return act[0] === 'RemoveTable'; }
-export function isRenameTable(act: DocAction): act is RenameTable { return act[0] === 'RenameTable'; }
+export function isAddTable(act: DocAction): act is AddTable { return act[0] === "AddTable"; }
+export function isRemoveTable(act: DocAction): act is RemoveTable { return act[0] === "RemoveTable"; }
+export function isRenameTable(act: DocAction): act is RenameTable { return act[0] === "RenameTable"; }
 
+const SCHEMA_ACTIONS = new Set(["AddTable", "RemoveTable", "RenameTable", "AddColumn",
+  "RemoveColumn", "RenameColumn", "ModifyColumn"]);
 
-const SCHEMA_ACTIONS = new Set(['AddTable', 'RemoveTable', 'RenameTable', 'AddColumn',
-  'RemoveColumn', 'RenameColumn', 'ModifyColumn']);
-
-const DATA_ACTIONS = new Set(['AddRecord', 'RemoveRecord', 'UpdateRecord', 'BulkAddRecord',
-  'BulkRemoveRecord', 'BulkUpdateRecord', 'ReplaceTableData', 'TableData']);
+const DATA_ACTIONS = new Set(["AddRecord", "RemoveRecord", "UpdateRecord", "BulkAddRecord",
+  "BulkRemoveRecord", "BulkUpdateRecord", "ReplaceTableData", "TableData"]);
 
 /**
  * Determines whether a given action is a schema action or not.
@@ -96,12 +95,12 @@ export type SingleDataAction = AddRecord | UpdateRecord | RemoveRecord;
 export type BulkDataAction = Exclude<DataAction, SingleDataAction>;
 
 // Check if action adds/updates/removes/replaces rows.
-export function isDataAction(action: DocAction|UserAction): action is DataAction {
+export function isDataAction(action: DocAction | UserAction): action is DataAction {
   return DATA_ACTIONS.has(String(action[0]));
 }
 
 export function isSingleAction(action: DataAction): action is SingleDataAction {
-  return typeof action[2] === 'number';
+  return typeof action[2] === "number";
 }
 export function isBulkAction(action: DataAction): action is BulkDataAction {
   return !isSingleAction(action);
@@ -126,20 +125,22 @@ export function getActionName<T extends DocAction>(action: T) { return action[0]
 // Returns rowId or rowIds for a DataAction.
 export function getRowIds(action: SingleDataAction): number;
 export function getRowIds(action: BulkDataAction): number[];
-export function getRowIds(action: DataAction): number|number[];
-export function getRowIds(action: DataAction): number|number[] { return action[2]; }
+export function getRowIds(action: DataAction): number | number[];
+export function getRowIds(action: DataAction): number | number[] { return action[2]; }
 
 // Returns the row ids in a DataAction as a list, even if the action is not a bulk action.
 export function getRowIdsFromDocAction(action: DataAction): number[] {
   const ids = action[2];
-  return (typeof ids === 'number') ? [ids] : ids;
+  return (typeof ids === "number") ? [ids] : ids;
 }
 
 // Returns colValues from a DataAction other than a remove action (which doesn't have colValues).
 export function getActionColValues(action: Exclude<SingleDataAction, RemoveRecord>): ColValues;
 export function getActionColValues(action: Exclude<BulkDataAction, BulkRemoveRecord>): BulkColValues;
-export function getActionColValues(action: Exclude<DataAction, RemoveRecord|BulkRemoveRecord>): ColValues|BulkColValues;
-export function getActionColValues(action: Exclude<DataAction, RemoveRecord|BulkRemoveRecord>) { return action[3]; }
+export function getActionColValues(
+  action: Exclude<DataAction, RemoveRecord | BulkRemoveRecord>,
+): ColValues | BulkColValues;
+export function getActionColValues(action: Exclude<DataAction, RemoveRecord | BulkRemoveRecord>) { return action[3]; }
 
 export interface TableDataActionSet {
   [tableId: string]: TableDataAction;
@@ -189,7 +190,7 @@ export interface TableRecordValueWithoutId {
 // Both UserActions and DocActions are represented as [ActionName, ...actionArgs].
 // TODO I think it's better to represent DocAction as a Buffer containing the marshalled action.
 
-export type UserAction = Array<string|number|object|boolean|null|undefined>;
+export type UserAction = (string | number | object | boolean | null | undefined)[];
 
 // Actions that are performed automatically by the server
 // for things like regular maintenance or triggering formula calculations in the data engine.
@@ -199,39 +200,39 @@ export type UserAction = Array<string|number|object|boolean|null|undefined>;
 // and we can dismiss their result if the document is shutting down.
 export const SYSTEM_ACTIONS = new Set([
   // Initial dummy action performed when the document laods.
-  'Calculate',
+  "Calculate",
   // Called automatically at regular intervals, again to trigger formula calculations.
-  'UpdateCurrentTime',
+  "UpdateCurrentTime",
   // Part of the formula calculation process for formulas that use the `REQUEST` function.
-  'RespondToRequests',
+  "RespondToRequests",
   // Performed at shutdown to clean up temporary helper columns and tables.
-  'RemoveStaleObjects'
+  "RemoveStaleObjects",
 ]);
 
 export function getNumRows(action: DocAction): number {
-  return !isDataAction(action) ? 0
-    : Array.isArray(action[2]) ? action[2].length
-    : 1;
+  return !isDataAction(action) ? 0 :
+    Array.isArray(action[2]) ? action[2].length :
+      1;
 }
 
 // Convert from TableColValues (used by DocStorage and external APIs) to TableDataAction (used
 // mainly by the sandbox).
 export function toTableDataAction(tableId: string, colValues: TableColValues): TableDataAction {
-  const colData = {...colValues};   // Make a copy to avoid changing passed-in arguments.
+  const colData = { ...colValues };   // Make a copy to avoid changing passed-in arguments.
   const rowIds: number[] = colData.id;
   delete (colData as BulkColValues).id;
-  return ['TableData', tableId, rowIds, colData];
+  return ["TableData", tableId, rowIds, colData];
 }
 
 // Convert from TableDataAction (used mainly by the sandbox) to TableColValues (used by DocStorage
 // and external APIs).
 // Also accepts a TableDataAction nested as a tableData member of a larger structure,
 // for convenience in dealing with the result of fetches.
-export function fromTableDataAction(tableData: TableDataAction|{tableData: TableDataAction}): TableColValues {
-  const data = ('tableData' in tableData) ? tableData.tableData : tableData;
+export function fromTableDataAction(tableData: TableDataAction | { tableData: TableDataAction }): TableColValues {
+  const data = ("tableData" in tableData) ? tableData.tableData : tableData;
   const rowIds: number[] = data[2];
   const colValues: BulkColValues = data[3];
-  return {id: rowIds, ...colValues};
+  return { id: rowIds, ...colValues };
 }
 
 /**
@@ -242,7 +243,7 @@ export function getColValues(records: Partial<RowRecord>[]): BulkColValues {
   const colIdSet = new Set<string>();
   for (const r of records) {
     for (const c of Object.keys(r)) {
-      if (c !== 'id') {
+      if (c !== "id") {
         colIdSet.add(c);
       }
     }
@@ -272,7 +273,7 @@ export function getColIdsFromDocAction(docActions: RemoveRecord | BulkRemoveReco
  */
 export function getColValuesFromDocAction(docAction: RemoveRecord | BulkRemoveRecord | AddRecord |
   BulkAddRecord | UpdateRecord | BulkUpdateRecord | ReplaceTableData |
-  TableDataAction, colId: string): CellValue[]|undefined {
+  TableDataAction, colId: string): CellValue[] | undefined {
   const colValues = docAction[3];
   if (!colValues) { return undefined; }
   const cellValues = colValues[colId];
@@ -288,27 +289,27 @@ export function getColValuesFromDocAction(docAction: RemoveRecord | BulkRemoveRe
  * Converts a bulk-like data action to its non-bulk equivalent. For actions like TableData or ReplaceTableData
  * it will return a list of single-row actions, one for each row.
  */
-export function* getSingleAction(a: DataAction): Iterable<SingleDataAction|ReplaceTableData|TableDataAction> {
+export function* getSingleAction(a: DataAction): Iterable<SingleDataAction | ReplaceTableData | TableDataAction> {
   if (isBulkAddRecord(a)) {
     const [, tableId, rowIds, colValues] = a;
     for (let i = 0; i < rowIds.length; i++) {
-      yield ['AddRecord', tableId, rowIds[i], getRowFromBulkColValues(colValues, i)];
+      yield ["AddRecord", tableId, rowIds[i], getRowFromBulkColValues(colValues, i)];
     }
   } else if (isBulkRemoveRecord(a)) {
     const [, tableId, rowIds] = a;
     for (const rowId of rowIds) {
-      yield ['RemoveRecord', tableId, rowId];
+      yield ["RemoveRecord", tableId, rowId];
     }
   } else if (isBulkUpdateRecord(a)) {
     const [, tableId, rowIds, colValues] = a;
     for (let i = 0; i < rowIds.length; i++) {
-      yield ['UpdateRecord', tableId, rowIds[i], getRowFromBulkColValues(colValues, i)];
+      yield ["UpdateRecord", tableId, rowIds[i], getRowFromBulkColValues(colValues, i)];
     }
-  } else if (a[0] === 'TableData' || a[0] === 'ReplaceTableData') {
+  } else if (a[0] === "TableData" || a[0] === "ReplaceTableData") {
     const [actionName, tableId, rowIds, colValues] = a;
     for (let i = 0; i < rowIds.length; i++) {
       yield [actionName, tableId, [rowIds[i]],
-        Object.fromEntries(Object.entries(colValues).map(([colId, values]) => [colId, [values[i]]]))
+        Object.fromEntries(Object.entries(colValues).map(([colId, values]) => [colId, [values[i]]])),
       ];
     }
   } else {

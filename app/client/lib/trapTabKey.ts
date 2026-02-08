@@ -22,7 +22,7 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
-import { isFocusable } from 'app/client/lib/isFocusable';
+import { isFocusable } from "app/client/lib/isFocusable";
 
 /**
  * Trap the tab key within the given element.
@@ -42,11 +42,9 @@ export function trapTabKey(container: HTMLElement, tabEvent: KeyboardEvent) {
   if (tabEvent.shiftKey && activeEl === firstFocusableEl) {
     lastFocusableEl?.focus();
     tabEvent.preventDefault();
-  }
-
-  // If the SHIFT key is not pressed (moving forwards) and the currently focused
-  // item is the last one, move the focus to the first focusable item from the element
-  else if (!tabEvent.shiftKey && activeEl === lastFocusableEl) {
+  } else if (!tabEvent.shiftKey && activeEl === lastFocusableEl) {
+    // If the SHIFT key is not pressed (moving forwards) and the currently focused
+    // item is the last one, move the focus to the first focusable item from the element
     firstFocusableEl?.focus();
     tabEvent.preventDefault();
   }
@@ -66,7 +64,7 @@ function getFocusableEdges(el: HTMLElement) {
 
 function findFocusableEl(
   el: HTMLElement,
-  forward: boolean
+  forward: boolean,
 ): HTMLElement | null {
   // If we’re walking forward, check if this element is focusable, and return it
   // immediately if it is.
@@ -76,8 +74,9 @@ function findFocusableEl(
   // children.
   if (canHaveFocusableChildren(el)) {
     // Start walking the DOM tree, looking for focusable elements.
-    // Case 1: If this element has a shadow root, search it recursively.
     if (el.shadowRoot) {
+      // Case 1: If this element has a shadow root, search it recursively.
+
       // Descend into this subtree.
       let next = getNextChildEl(el.shadowRoot, forward);
 
@@ -88,11 +87,10 @@ function findFocusableEl(
         if (focusableEl) { return focusableEl; }
         next = getNextSiblingEl(next as HTMLElement, forward);
       }
-    }
+    } else if (el.localName === "slot") {
+      // Case 2: If this element is a slot for a Custom Element, search its
+      // assigned elements recursively.
 
-    // Case 2: If this element is a slot for a Custom Element, search its
-    // assigned elements recursively.
-    else if (el.localName === 'slot') {
       const assignedElements = (el as HTMLSlotElement).assignedElements({
         flatten: true,
       }) as HTMLElement[];
@@ -102,9 +100,9 @@ function findFocusableEl(
         const focusableEl = findFocusableEl(assignedElement, forward);
         if (focusableEl) { return focusableEl; }
       }
-    }
-    // Case 3: this is a regular Light DOM element. Search its subtree.
-    else {
+    } else {
+      // Case 3: this is a regular Light DOM element. Search its subtree.
+
       // Descend into this subtree.
       let next = getNextChildEl(el, forward);
 
@@ -132,7 +130,7 @@ function findFocusableEl(
  * @see: https://www.abeautifulsite.net/posts/finding-the-active-element-in-a-shadow-root/
  */
 export function getActiveEl(
-  root: Document | ShadowRoot = document
+  root: Document | ShadowRoot = document,
 ): Element | null {
   const activeEl = root.activeElement;
 
@@ -141,8 +139,7 @@ export function getActiveEl(
   // If there’s a shadow root, recursively find the active element within it.
   // If the recursive call returns null, return the active element
   // of the top-level Document.
-  if (activeEl.shadowRoot)
-    { return getActiveEl(activeEl.shadowRoot) || document.activeElement; }
+  if (activeEl.shadowRoot) { return getActiveEl(activeEl.shadowRoot) || document.activeElement; }
 
   // If not, we can just return the active element
   return activeEl;
@@ -166,14 +163,13 @@ function canHaveFocusableChildren(el: HTMLElement) {
   // The browser will never send focus into a Shadow DOM if the host element
   // has a negative tabindex. This applies to both slotted Light DOM Shadow DOM
   // children
-  if (el.shadowRoot && el.getAttribute('tabindex') === '-1') { return false; }
+  if (el.shadowRoot && el.getAttribute("tabindex") === "-1") { return false; }
 
   // Elemments matching this selector are either hidden entirely from the user,
   // or are visible but unavailable for interaction. Their descentants can never
   // receive focus.
-  return !el.matches(':disabled,[hidden],[inert]');
+  return !el.matches(":disabled,[hidden],[inert]");
 }
-
 
 function getNextChildEl(el: ParentNode, forward: boolean) {
   return forward ? el.firstElementChild : el.lastElementChild;

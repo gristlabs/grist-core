@@ -5,24 +5,25 @@
  *
  * Workspace is a clickable link and document and page names are editable labels.
  */
-import {makeT} from 'app/client/lib/localization';
-import { urlState } from 'app/client/models/gristUrlState';
-import { cssHideForNarrowScreen, mediaNotSmall, testId, theme } from 'app/client/ui2018/cssVars';
-import { editableLabel } from 'app/client/ui2018/editableLabel';
-import { icon } from 'app/client/ui2018/icons';
-import { cssLink } from 'app/client/ui2018/links';
-import { BindableValue, dom, Observable, styled } from 'grainjs';
-import { tooltip } from 'popweasel';
+import { makeT } from "app/client/lib/localization";
+import { urlState } from "app/client/models/gristUrlState";
+import { cssHideForNarrowScreen, mediaNotSmall, testId, theme } from "app/client/ui2018/cssVars";
+import { editableLabel } from "app/client/ui2018/editableLabel";
+import { icon } from "app/client/ui2018/icons";
+import { cssLink } from "app/client/ui2018/links";
 
-const t = makeT('breadcrumbs');
+import { BindableValue, dom, Observable, styled } from "grainjs";
+import { tooltip } from "popweasel";
 
-export const cssBreadcrumbs = styled('div', `
+const t = makeT("breadcrumbs");
+
+export const cssBreadcrumbs = styled("div", `
   color: ${theme.lightText};
   white-space: nowrap;
   cursor: default;
 `);
 
-export const separator = styled('span', `
+export const separator = styled("span", `
   padding: 0 2px;
 `);
 
@@ -56,13 +57,13 @@ const cssWorkspaceNarrowScreen = styled(icon, `
   }
 `);
 
-const cssEditableName = styled('input', `
+const cssEditableName = styled("input", `
   &:hover, &:focus {
     color: ${theme.text};
   }
 `);
 
-const cssTag = styled('span', `
+const cssTag = styled("span", `
   background-color: ${theme.breadcrumbsTagBg};
   color: ${theme.breadcrumbsTagFg};
   border-radius: 3px;
@@ -84,7 +85,7 @@ interface PartialWorkspace {
 }
 
 export function docBreadcrumbs(
-  workspace: Observable<PartialWorkspace|null>,
+  workspace: Observable<PartialWorkspace | null>,
   docName: Observable<string>,
   pageName: Observable<string>,
   options: {
@@ -105,95 +106,95 @@ export function docBreadcrumbs(
     isAnonymous?: boolean,
     isProposable?: Observable<boolean>,
     isReadonly?: Observable<boolean>,
-  }
-  ): Element {
-    const shouldShowWorkspace = !(options.isTemplate && options.isAnonymous);
-    return cssBreadcrumbs(
-      !shouldShowWorkspace ? null : dom.domComputed<[boolean, PartialWorkspace|null]>(
-        (use) => [use(options.isBareFork), use(workspace)],
-        ([isBareFork, ws]) => {
-          if (isBareFork || !ws) { return null; }
-          return [
-            cssIcon('Home',
-              testId('bc-home'),
-              cssHideForNarrowScreen.cls('')),
-            cssWorkspaceName(
-              urlState().setLinkUrl({ws: ws.id}),
-              dom.text(ws.name),
-              testId('bc-workspace'),
-              cssHideForNarrowScreen.cls('')
-            ),
-            cssWorkspaceNarrowScreen(
-              'Expand',
-              urlState().setLinkUrl({ws: ws.id}),
-              testId('bc-workspace-ns')
-            ),
-            separator(' / ',
-                      testId('bc-separator'),
-                      cssHideForNarrowScreen.cls(''))
-          ];
-        }
-      ),
-      editableLabel(docName, {
-        save: options.docNameSave,
-        inputArgs: [
-          testId('bc-doc'),
-          cssEditableName.cls(''),
-          dom.boolAttr('disabled', options.isDocNameReadOnly || false),
-        ],
-      }),
-      dom.maybe(options.isPublic, () => cssPublicIcon('PublicFilled', testId('bc-is-public'))),
-      dom.domComputed((use) => {
-        if (options.isSnapshot && use(options.isSnapshot)) {
-          return cssTag(t("snapshot"), testId('snapshot-tag'));
-        }
-        if (use(options.isFork) && !use(options.isTutorialFork)) {
-          if (options.isProposable && use(options.isProposable)) {
-            return cssTag(t("suggesting"), testId('proposing-changes-tag'));
-          } else {
-            return cssTag(t("unsaved"), testId('unsaved-tag'));
-          }
-        }
-        if (use(options.isRecoveryMode)) {
-          return cssAlertTag(t("recovery mode"),
-                             dom('a', dom.on('click', () => options.cancelRecoveryMode()),
-                                 icon('CrossSmall')),
-                             testId('recovery-mode-tag'));
-        }
-        if (use(options.isFiddle)) {
-          if (options.isProposable && use(options.isProposable)) {
-            return cssTag(t("suggesting"), tooltip({title: t(`You may make edits,
-but they will not affect the original document.
-You can propose them as suggestions.`)}), testId('fiddle-tag'));
-          } else {
-            return cssTag(t("fiddle"), tooltip({title: t(`You may make edits, but they will create a new copy and will
-not affect the original document.`)}), testId('fiddle-tag'));
-          }
-        }
+  },
+): Element {
+  const shouldShowWorkspace = !(options.isTemplate && options.isAnonymous);
+  return cssBreadcrumbs(
+    !shouldShowWorkspace ? null : dom.domComputed<[boolean, PartialWorkspace | null]>(
+      use => [use(options.isBareFork), use(workspace)],
+      ([isBareFork, ws]) => {
+        if (isBareFork || !ws) { return null; }
+        return [
+          cssIcon("Home",
+            testId("bc-home"),
+            cssHideForNarrowScreen.cls("")),
+          cssWorkspaceName(
+            urlState().setLinkUrl({ ws: ws.id }),
+            dom.text(ws.name),
+            testId("bc-workspace"),
+            cssHideForNarrowScreen.cls(""),
+          ),
+          cssWorkspaceNarrowScreen(
+            "Expand",
+            urlState().setLinkUrl({ ws: ws.id }),
+            testId("bc-workspace-ns"),
+          ),
+          separator(" / ",
+            testId("bc-separator"),
+            cssHideForNarrowScreen.cls("")),
+        ];
+      },
+    ),
+    editableLabel(docName, {
+      save: options.docNameSave,
+      inputArgs: [
+        testId("bc-doc"),
+        cssEditableName.cls(""),
+        dom.boolAttr("disabled", options.isDocNameReadOnly || false),
+      ],
+    }),
+    dom.maybe(options.isPublic, () => cssPublicIcon("PublicFilled", testId("bc-is-public"))),
+    dom.domComputed((use) => {
+      if (options.isSnapshot && use(options.isSnapshot)) {
+        return cssTag(t("snapshot"), testId("snapshot-tag"));
+      }
+      if (use(options.isFork) && !use(options.isTutorialFork)) {
         if (options.isProposable && use(options.isProposable)) {
-          if (options.isReadonly && use(options.isReadonly)) {
-            return cssAlertTag('',
-                               dom('a', dom.on('click', () => options.proposeChanges?.()),
-                                   'suggesting ', icon('Pencil')),
-                               testId('propose-changes-tag'));
-          } else {
-            return cssTag(t("editing"), tooltip({
-              title: 'Editing directly. Work on a copy if you want to propose changes.'
-            }), testId('direct-tag'));
-          }
+          return cssTag(t("suggesting"), testId("proposing-changes-tag"));
+        } else {
+          return cssTag(t("unsaved"), testId("unsaved-tag"));
         }
-      }),
-      separator(' / ',
-                testId('bc-separator'),
-                cssHideForNarrowScreen.cls('')),
-      editableLabel(pageName, {
-        save: options.pageNameSave,
-        inputArgs: [
-          testId('bc-page'),
-          cssEditableName.cls(''),
-          dom.boolAttr('disabled', options.isPageNameReadOnly || false),
-          dom.cls(cssHideForNarrowScreen.className),
-        ],
-      }),
-    );
+      }
+      if (use(options.isRecoveryMode)) {
+        return cssAlertTag(t("recovery mode"),
+          dom("a", dom.on("click", () => options.cancelRecoveryMode()),
+            icon("CrossSmall")),
+          testId("recovery-mode-tag"));
+      }
+      if (use(options.isFiddle)) {
+        if (options.isProposable && use(options.isProposable)) {
+          return cssTag(t("suggesting"), tooltip({ title: t(`You may make edits,
+but they will not affect the original document.
+You can propose them as suggestions.`) }), testId("fiddle-tag"));
+        } else {
+          return cssTag(t("fiddle"), tooltip({ title: t(`You may make edits, but they will create a new copy and will
+not affect the original document.`) }), testId("fiddle-tag"));
+        }
+      }
+      if (options.isProposable && use(options.isProposable)) {
+        if (options.isReadonly && use(options.isReadonly)) {
+          return cssAlertTag("",
+            dom("a", dom.on("click", () => options.proposeChanges?.()),
+              "suggesting ", icon("Pencil")),
+            testId("propose-changes-tag"));
+        } else {
+          return cssTag(t("editing"), tooltip({
+            title: "Editing directly. Work on a copy if you want to propose changes.",
+          }), testId("direct-tag"));
+        }
+      }
+    }),
+    separator(" / ",
+      testId("bc-separator"),
+      cssHideForNarrowScreen.cls("")),
+    editableLabel(pageName, {
+      save: options.pageNameSave,
+      inputArgs: [
+        testId("bc-page"),
+        cssEditableName.cls(""),
+        dom.boolAttr("disabled", options.isPageNameReadOnly || false),
+        dom.cls(cssHideForNarrowScreen.className),
+      ],
+    }),
+  );
 }

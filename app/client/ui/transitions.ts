@@ -32,7 +32,7 @@
  * prepare()); those triggered AFTER are subject to transitions (like run()).
  */
 
-import {BindableValue, Disposable, dom, DomElementMethod, subscribeElem} from 'grainjs';
+import { BindableValue, Disposable, dom, DomElementMethod, subscribeElem } from "grainjs";
 
 export interface ITransitionLogic<T = void> {
   prepare(elem: HTMLElement, value: T): void;
@@ -41,10 +41,10 @@ export interface ITransitionLogic<T = void> {
 }
 
 export function transition<T>(obs: BindableValue<T>, trans: ITransitionLogic<T>): DomElementMethod {
-  const {prepare, run, finish} = trans;
-  let watcher: TransitionWatcher|null = null;
+  const { prepare, run, finish } = trans;
+  let watcher: TransitionWatcher | null = null;
   let firstCall = true;
-  return (elem) => subscribeElem<T>(elem, obs, (val) => {
+  return elem => subscribeElem<T>(elem, obs, (val) => {
     // First call is initialization, don't treat it as a transition
     if (firstCall) { firstCall = false; return; }
     if (watcher) {
@@ -69,18 +69,19 @@ export function transition<T>(obs: BindableValue<T>, trans: ITransitionLogic<T>)
  */
 export function prepareForTransition(elem: HTMLElement, prepare: () => void) {
   const prior = elem.style.transitionProperty;
-  elem.style.transitionProperty = 'none';
+  elem.style.transitionProperty = "none";
   prepare();
 
   // Recompute styles while transitions are off. See https://stackoverflow.com/a/16575811/328565
   // for explanation and https://stackoverflow.com/a/31862081/328565 for the recommendation used
   // here to trigger a style computation without a reflow.
-  window.getComputedStyle(elem).opacity;   // eslint-disable-line no-unused-expressions
+  //
+  // eslint-disable-next-line @typescript-eslint/no-unused-expressions, no-unused-expressions
+  window.getComputedStyle(elem).opacity;
 
   // Restore transitions.
   elem.style.transitionProperty = prior;
 }
-
 
 /**
  * Helper for waiting for an active transition to end. Beyond listening to 'transitionend', it
@@ -111,7 +112,7 @@ export class TransitionWatcher extends Disposable {
     const duration = style.transitionDuration;
     this._durationMs = ((duration && parseFloat(duration)) || 0) * 1000;
 
-    this.autoDispose(dom.onElem(elem, 'transitionend', (e) =>
+    this.autoDispose(dom.onElem(elem, "transitionend", e =>
       (e.propertyName === this._propertyName) && this.dispose()));
 
     this._timer = setTimeout(() => this.dispose(), this._durationMs + 10);

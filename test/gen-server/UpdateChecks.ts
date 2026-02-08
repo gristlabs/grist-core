@@ -1,17 +1,17 @@
+import { delay } from "app/common/delay";
+import { TelemetryEvent } from "app/common/Telemetry";
+import { ILogMeta, LogMethods } from "app/server/lib/LogMethods";
+import { Deps } from "app/server/lib/UpdateManager";
+import { LatestVersion } from "app/server/lib/UpdateManager";
+import { TestServer } from "test/gen-server/apiUtils";
+import { configForUser } from "test/gen-server/testUtils";
+import { Defer, serveSomething, Serving } from "test/server/customUtil";
+import * as testUtils from "test/server/testUtils";
+
 import axios from "axios";
 import * as chai from "chai";
-import omit from 'lodash/omit';
-import * as sinon from 'sinon';
-
-import { configForUser } from "test/gen-server/testUtils";
-import * as testUtils from "test/server/testUtils";
-import { Defer, serveSomething, Serving } from "test/server/customUtil";
-import { ILogMeta, LogMethods } from 'app/server/lib/LogMethods';
-import { Deps } from "app/server/lib/UpdateManager";
-import { TestServer } from "test/gen-server/apiUtils";
-import { delay } from "app/common/delay";
-import { LatestVersion } from 'app/server/lib/UpdateManager';
-import { TelemetryEvent } from 'app/common/Telemetry';
+import omit from "lodash/omit";
+import * as sinon from "sinon";
 
 const assert = chai.assert;
 
@@ -29,16 +29,16 @@ const logMessages: [TelemetryEvent, ILogMeta][] = [];
 
 const chimpy = configForUser("Chimpy");
 const headers = {
-  headers: {'Content-Type': 'application/json'}
+  headers: { "Content-Type": "application/json" },
 };
 
 // Tests specific complex scenarios that may have previously resulted in wrong behavior.
-describe("UpdateChecks", function () {
+describe("UpdateChecks", function() {
   testUtils.setTmpLogLevel("error");
 
   this.timeout("20s");
 
-  before(async function () {
+  before(async function() {
     testUtils.EnvironmentSnapshot.push();
     dockerHub = await dummyDockerHub();
     assert.equal((await fetch(dockerHub.url + "/tags")).status, 200);
@@ -54,9 +54,9 @@ describe("UpdateChecks", function () {
     sandbox.stub(Deps, "GOOD_RESULT_TTL").value(500);
     sandbox.stub(Deps, "BAD_RESULT_TTL").value(200);
     sandbox.stub(Deps, "DOCKER_ENDPOINT").value(dockerHub.url + "/tags");
-    sandbox.stub(Deps, "OLDEST_RECOMMENDED_VERSION").value('8.8.8');
-    sandbox.stub(LogMethods.prototype, 'rawLog').callsFake((_level, _info, name, meta) => {
-      if (name !== 'checkedUpdateAPI') {
+    sandbox.stub(Deps, "OLDEST_RECOMMENDED_VERSION").value("8.8.8");
+    sandbox.stub(LogMethods.prototype, "rawLog").callsFake((_level, _info, name, meta) => {
+      if (name !== "checkedUpdateAPI") {
         return;
       }
       logMessages.push([name, meta]);
@@ -65,18 +65,18 @@ describe("UpdateChecks", function () {
     await startInProcess(this);
   });
 
-  after(async function () {
+  after(async function() {
     sandbox.restore();
     await dockerHub.shutdown();
     await stop();
     testUtils.EnvironmentSnapshot.pop();
   });
 
-  afterEach(async function () {
+  afterEach(async function() {
     await testServer.server.getUpdateManager().clear();
   });
 
-  it("should read latest version as anonymous user in happy path", async function () {
+  it("should read latest version as anonymous user in happy path", async function() {
     setEndpoint(dockerHub.url + "/tags");
     const resp = await axios.get(`${homeUrl}/api/version`);
     assert.equal(resp.status, 200, `${homeUrl}/api/version`);
@@ -89,7 +89,7 @@ describe("UpdateChecks", function () {
     assert.deepEqual(resp2.data, result);
   });
 
-  it("should read latest version as existing user", async function () {
+  it("should read latest version as existing user", async function() {
     setEndpoint(dockerHub.url + "/tags");
     const resp = await axios.get(`${homeUrl}/api/version`, chimpy);
     assert.equal(resp.status, 200);
@@ -97,14 +97,14 @@ describe("UpdateChecks", function () {
     assert.equal(result.latestVersion, "10");
   });
 
-  it("passes errors to client", async function () {
+  it("passes errors to client", async function() {
     setEndpoint(dockerHub.url + "/404");
     const resp = await axios.get(`${homeUrl}/api/version`, chimpy);
     assert.equal(resp.status, 404);
     assert.deepEqual(resp.data, { error: "Not Found" });
   });
 
-  it("retries on 429", async function () {
+  it("retries on 429", async function() {
     setEndpoint(dockerHub.url + "/429");
 
     // First make sure that mock works.
@@ -127,13 +127,13 @@ describe("UpdateChecks", function () {
     await check();
   });
 
-  it("throws when receives html", async function () {
+  it("throws when receives html", async function() {
     setEndpoint(dockerHub.url + "/html");
     const resp = await axios.get(`${homeUrl}/api/version`, chimpy);
     assert.equal(resp.status, 500);
   });
 
-  it("caches data end errors", async function () {
+  it("caches data end errors", async function() {
     setEndpoint(dockerHub.url + "/error");
     const r1 = await axios.get(`${homeUrl}/api/version`, chimpy);
     assert.equal(r1.status, 500);
@@ -172,12 +172,12 @@ describe("UpdateChecks", function () {
     assert.equal(r7.data.latestVersion, "4");
   });
 
-  it("can stop server when hangs", async function () {
+  it("can stop server when hangs", async function() {
     setEndpoint(dockerHub.url + "/hang");
     const handCalled = dockerHub.signal();
     const resp = axios
       .get(`${homeUrl}/api/version`, chimpy)
-      .catch((err) => ({ status: 999, data: null }));
+      .catch(err => ({ status: 999, data: null }));
     await handCalled;
     await stop();
     const result = await resp;
@@ -187,7 +187,7 @@ describe("UpdateChecks", function () {
     await startInProcess(this);
   });
 
-  it("dosent starts for non saas deployment", async function () {
+  it("dosent starts for non saas deployment", async function() {
     try {
       testUtils.EnvironmentSnapshot.push();
       Object.assign(process.env, {
@@ -206,14 +206,14 @@ describe("UpdateChecks", function () {
     await startInProcess(this);
   });
 
-  it("reports error when timeout happens", async function () {
+  it("reports error when timeout happens", async function() {
     setEndpoint(dockerHub.url + "/timeout");
     const resp = await axios.get(`${homeUrl}/api/version`, chimpy);
     assert.equal(resp.status, 500);
     assert.match(resp.data.error, /timeout/);
   });
 
-  it("logs deploymentId, deploymentType, and currentVersion", async function () {
+  it("logs deploymentId, deploymentType, and currentVersion", async function() {
     logMessages.length = 0;
     setEndpoint(dockerHub.url + "/tags");
     const installationId = "randomInstallationId";
@@ -243,13 +243,13 @@ describe("UpdateChecks", function () {
     setEndpoint(dockerHub.url + "/tags");
     const installationId = "randomInstallationId";
     const deploymentType = "test";
-    async function testVersion(version: string, isCritical: boolean|'fail') {
+    async function testVersion(version: string, isCritical: boolean | "fail") {
       const resp = await axios.post(`${homeUrl}/api/version`, {
         installationId,
         deploymentType,
         currentVersion: version,
       }, chimpy);
-      if (isCritical === 'fail') {
+      if (isCritical === "fail") {
         assert.equal(resp.status, 400);
       } else {
         assert.equal(resp.status, 200);
@@ -257,19 +257,19 @@ describe("UpdateChecks", function () {
       }
     }
     // we've set 8.8.8 as the oldest recommended version.
-    await testVersion('1.1.1', true);
-    await testVersion('v1.1.1', true);
-    await testVersion('7.1.1', true);
-    await testVersion('8.1.1', true);
-    await testVersion('8.8.7', true);
-    await testVersion('8.8.8', false);
-    await testVersion('8.8.10', false);
-    await testVersion('10.1.1', false);
-    await testVersion('v10.9.0', false);
-    await testVersion('11.1.1', false);
-    await testVersion('10', 'fail');
-    await testVersion('goose', 'fail');
-    await testVersion('', false);
+    await testVersion("1.1.1", true);
+    await testVersion("v1.1.1", true);
+    await testVersion("7.1.1", true);
+    await testVersion("8.1.1", true);
+    await testVersion("8.8.7", true);
+    await testVersion("8.8.8", false);
+    await testVersion("8.8.10", false);
+    await testVersion("10.1.1", false);
+    await testVersion("v10.9.0", false);
+    await testVersion("11.1.1", false);
+    await testVersion("10", "fail");
+    await testVersion("goose", "fail");
+    await testVersion("", false);
   });
 });
 
@@ -284,7 +284,7 @@ async function dummyDockerHub() {
 
   const tempServer = await serveSomething((app) => {
     app.use((req, res, next) => {
-      signals.forEach((p) => p.resolve());
+      signals.forEach(p => p.resolve());
       signals.length = 0;
       next();
     });
@@ -400,4 +400,3 @@ const FIRST_PAGE = (tempServer: Serving) => ({
   count: 0,
   next: tempServer.url + "/next",
 });
-

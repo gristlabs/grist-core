@@ -1,7 +1,7 @@
-import { BulkColValues, TableColValues, TableDataAction, toTableDataAction } from 'app/common/DocActions';
-import log from 'app/server/lib/log';
+import { BulkColValues, TableColValues, TableDataAction, toTableDataAction } from "app/common/DocActions";
+import log from "app/server/lib/log";
 
-import fromPairs = require('lodash/fromPairs');
+import fromPairs from "lodash/fromPairs";
 
 /**
  *
@@ -26,7 +26,7 @@ import fromPairs = require('lodash/fromPairs');
  */
 export class TableMetadataLoader {
   // Promises of buffers for tables being fetched from database, by tableId.
-  private _fetches = new Map<string, Promise<Buffer|null>>();
+  private _fetches = new Map<string, Promise<Buffer | null>>();
 
   // Set of all tableIds for tables that are fully fetched from database.
   private _fetched = new Set<string>();
@@ -41,7 +41,7 @@ export class TableMetadataLoader {
   private _tables = new Map<string, TableDataAction>();
 
   // Operation promise for loading core schema (table and column list) into the data engine.
-  private _corePush: Promise<void>|undefined;
+  private _corePush: Promise<void> | undefined;
 
   // True once core push is complete.
   private _corePushed: boolean = false;
@@ -138,13 +138,13 @@ export class TableMetadataLoader {
   // Core push operation. Before we can send arbitrary tables to engine, we must call
   // load_meta_tables with tables and columns.
   public async opCorePush() {
-    const tables = await this.fetchTableAsBuffer('_grist_Tables');
-    const columns = await this.fetchTableAsBuffer('_grist_Tables_column');
+    const tables = await this.fetchTableAsBuffer("_grist_Tables");
+    const columns = await this.fetchTableAsBuffer("_grist_Tables_column");
     await this._options.loadMetaTables(tables, columns);
     this._corePushed = true;
     // It appears to be bad and unnecessary to send tables and columns outside of core push.
-    this._pushed.add('_grist_Tables');
-    this._pushed.add('_grist_Tables_column');
+    this._pushed.add("_grist_Tables");
+    this._pushed.add("_grist_Tables_column");
     this._update();
   }
 
@@ -180,13 +180,13 @@ export class TableMetadataLoader {
 
     // Get a list of new pushes that will be needed.
     const newPushes = new Set([...this._fetched]
-                              .filter(tableId => !(this._pushes.has(tableId) ||
-                                                   this._pushed.has(tableId))));
+      .filter(tableId => !(this._pushes.has(tableId) ||
+        this._pushed.has(tableId))));
 
     // Be careful to do the core push first, once we can.
     if (!this._corePushed) {
-      if (this._corePush === undefined && newPushes.has('_grist_Tables') && newPushes.has('_grist_Tables_column')) {
-        this._corePush = this._counted(this.opCorePush()).catch(e => {
+      if (this._corePush === undefined && newPushes.has("_grist_Tables") && newPushes.has("_grist_Tables_column")) {
+        this._corePush = this._counted(this.opCorePush()).catch((e) => {
           log.warn(`TableMetadataLoader opCorePush failed: ${e}`);
         });
       }
@@ -203,7 +203,7 @@ export class TableMetadataLoader {
       // Mark the promise as handled to avoid "unhandledRejection", but without affecting other
       // code (which will still see `promise`, not the new promise returned by `.catch()`).
       promise.catch(() => {});
-   }
+    }
   }
 
   // Wrapper to keep track of pending promises.

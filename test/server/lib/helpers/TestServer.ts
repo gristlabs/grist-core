@@ -1,19 +1,21 @@
-import {connectTestingHooks, TestingHooksClient} from "app/server/lib/TestingHooks";
-import {ChildProcess, execFileSync, spawn} from "child_process";
-import * as http from "http";
-import FormData from 'form-data';
-import path from "path";
-import * as fse from "fs-extra";
-import * as testUtils from "test/server/testUtils";
-import {UserAPIImpl} from "app/common/UserAPI";
-import {exitPromise, getAvailablePort} from "app/server/lib/serverUtils";
-import log from "app/server/lib/log";
-import {delay} from "bluebird";
-import fetch from "node-fetch";
-import {Writable} from "stream";
-import express from "express";
 import { isAffirmative } from "app/common/gutil";
-import httpProxy from 'http-proxy';
+import { UserAPIImpl } from "app/common/UserAPI";
+import log from "app/server/lib/log";
+import { exitPromise, getAvailablePort } from "app/server/lib/serverUtils";
+import { connectTestingHooks, TestingHooksClient } from "app/server/lib/TestingHooks";
+import * as testUtils from "test/server/testUtils";
+
+import { ChildProcess, execFileSync, spawn } from "child_process";
+import * as http from "http";
+import path from "path";
+import { Writable } from "stream";
+
+import { delay } from "bluebird";
+import express from "express";
+import FormData from "form-data";
+import * as fse from "fs-extra";
+import httpProxy from "http-proxy";
+import fetch from "node-fetch";
 
 /**
  * This starts a server in a separate process.
@@ -25,9 +27,9 @@ export class TestServer {
     suitename: string,
     customEnv?: NodeJS.ProcessEnv,
     _homeUrl?: string,
-    options: {output?: Writable} = {},      // Pipe server output to the given stream
+    options: { output?: Writable } = {},      // Pipe server output to the given stream
   ): Promise<TestServer> {
-    const port = await getAvailablePort(parseInt(process.env.GET_AVAILABLE_PORT_START || '8080', 10));
+    const port = await getAvailablePort(parseInt(process.env.GET_AVAILABLE_PORT_START || "8080", 10));
     const server = new this(serverTypes, port, tempDirectory, suitename);
     await server.start(_homeUrl, customEnv, options);
     return server;
@@ -38,11 +40,12 @@ export class TestServer {
   public stopped = false;
   public get serverUrl() {
     if (this._proxiedServer) {
-      throw new Error('Direct access to this test server is disallowed');
+      throw new Error("Direct access to this test server is disallowed");
     }
 
     return `http://localhost:${this.port}`;
   }
+
   public get proxiedServer() { return this._proxiedServer; }
 
   private _server: ChildProcess;
@@ -55,28 +58,28 @@ export class TestServer {
     private _serverTypes: string,
     public readonly port: number,
     public readonly rootDir: string,
-    private _suiteName: string
+    private _suiteName: string,
   ) {
     this._defaultEnv = {
       GRIST_INST_DIR: this.rootDir,
       GRIST_DATA_DIR: path.join(this.rootDir, "data"),
       GRIST_SERVERS: this._serverTypes,
-      GRIST_DISABLE_S3: 'true',
+      GRIST_DISABLE_S3: "true",
       REDIS_URL: process.env.TEST_REDIS_URL,
-      GRIST_TRIGGER_WAIT_DELAY: '100',
+      GRIST_TRIGGER_WAIT_DELAY: "100",
       // this is calculated value, some tests expect 4 attempts and some will try 3 times
-      GRIST_TRIGGER_MAX_ATTEMPTS: '4',
-      GRIST_MAX_QUEUE_SIZE: '10',
-      ...process.env
+      GRIST_TRIGGER_MAX_ATTEMPTS: "4",
+      GRIST_MAX_QUEUE_SIZE: "10",
+      ...process.env,
     };
   }
 
-  public async start(homeUrl?: string, customEnv?: NodeJS.ProcessEnv, options: {output?: Writable} = {}) {
+  public async start(homeUrl?: string, customEnv?: NodeJS.ProcessEnv, options: { output?: Writable } = {}) {
     // put node logs into files with meaningful name that relate to the suite name and server type
-    const fixedName = this._serverTypes.replace(/,/, '_');
+    const fixedName = this._serverTypes.replace(/,/, "_");
     const nodeLogPath = path.join(this.rootDir, `${this._suiteName}-${fixedName}-node.log`);
-    const nodeLogFd = await fse.open(nodeLogPath, 'a');
-    const serverLog = options.output ? 'pipe' : (process.env.VERBOSE ? 'inherit' : nodeLogFd);
+    const nodeLogFd = await fse.open(nodeLogPath, "a");
+    const serverLog = options.output ? "pipe" : (process.env.VERBOSE ? "inherit" : nodeLogFd);
     // use a path for socket that relates to suite name and server types
     this.testingSocket = path.join(this.rootDir, `${this._suiteName}-${fixedName}.socket`);
     if (this.testingSocket.length >= 104) {
@@ -89,12 +92,12 @@ export class TestServer {
       GRIST_TESTING_SOCKET: this.testingSocket,
       GRIST_PORT: String(this.port),
       ...this._defaultEnv,
-      ...customEnv
+      ...customEnv,
     };
-    const main = await testUtils.getBuildFile('app/server/MergedServer.js');
-    this._server = spawn('node', [main, '--testingHooks'], {
+    const main = await testUtils.getBuildFile("app/server/MergedServer.js");
+    this._server = spawn("node", [main, "--testingHooks"], {
       env,
-      stdio: ['inherit', serverLog, serverLog]
+      stdio: ["inherit", serverLog, serverLog],
     });
     if (options.output) {
       this._server.stdout!.pipe(options.output);
@@ -109,7 +112,7 @@ export class TestServer {
         return;
       }
       log.error("Server died unexpectedly, with code", code);
-      const output = execFileSync('tail', ['-30', nodeLogPath]);
+      const output = execFileSync("tail", ["-30", nodeLogPath]);
       log.info(`\n===== BEGIN SERVER OUTPUT ====\n${output}\n===== END SERVER OUTPUT =====`);
     })
       .catch(() => undefined);
@@ -134,7 +137,6 @@ export class TestServer {
     // and then do an api check. This approach allow us to start server with GRIST_PORT set to '0',
     // which will listen on first available port, removing the need to hard code a port number.
     try {
-
       // wait for testing socket
       while (!(await fse.pathExists(this.testingSocket))) {
         await delay(200);
@@ -144,7 +146,7 @@ export class TestServer {
       this.testingHooks = await connectTestingHooks(this.testingSocket);
 
       // wait for check
-      return (await fetch(`${this.serverUrl}/status/hooks`, {timeout: 1000})).ok;
+      return (await fetch(`${this.serverUrl}/status/hooks`, { timeout: 1000 })).ok;
     } catch (err) {
       log.warn("Failed to initialize server", err);
       return false;
@@ -155,11 +157,11 @@ export class TestServer {
   public getChildProcess(): ChildProcess { return this._server; }
 
   // Returns the promise for the ChildProcess's signal or exit code.
-  public getExitPromise(): Promise<string|number> { return this._exitPromise; }
+  public getExitPromise(): Promise<string | number> { return this._exitPromise; }
 
-  public makeUserApi(org: string, user: string = 'chimpy'): UserAPIImpl {
+  public makeUserApi(org: string, user: string = "chimpy"): UserAPIImpl {
     return new UserAPIImpl(`${this.serverUrl}/o/${org}`, {
-      headers: {Authorization: `Bearer api_key_for_${user}`},
+      headers: { Authorization: `Bearer api_key_for_${user}` },
       fetch: fetch as unknown as typeof globalThis.fetch,
       newFormData: () => new FormData() as any,
     });
@@ -211,17 +213,16 @@ const FROM_OUTSIDE_HEADER_KEY = "X-FROM-OUTSIDE";
  * ```
  */
 export class TestServerReverseProxy {
-
   // Use a different hostname for the proxy than the doc and home workers'
   // so we can ensure that either we omit the Origin header (so the internal calls to home and doc workers
   // are not considered as CORS requests), or otherwise we fail because the hostnames are different
   // https://github.com/gristlabs/grist-core/blob/24b39c651b9590cc360cc91b587d3e1b301a9c63/app/server/lib/requestUtils.ts#L85-L98
-  public static readonly HOSTNAME: string = 'grist-test-proxy.127.0.0.1.nip.io';
+  public static readonly HOSTNAME: string = "grist-test-proxy.127.0.0.1.nip.io";
 
-  public static FROM_OUTSIDE_HEADER = {[FROM_OUTSIDE_HEADER_KEY]: true};
+  public static FROM_OUTSIDE_HEADER = { [FROM_OUTSIDE_HEADER_KEY]: true };
 
   public static async build() {
-    const port = await getAvailablePort(parseInt(process.env.GET_AVAILABLE_PORT_START || '8080', 10));
+    const port = await getAvailablePort(parseInt(process.env.GET_AVAILABLE_PORT_START || "8080", 10));
     return new this(port);
   }
 
@@ -251,15 +252,15 @@ export class TestServerReverseProxy {
   }
 
   public start(homeServer: TestServer, docServer: TestServer) {
-    this._app.all(['/dw/dw1', '/dw/dw1/*'], this._getRequestHandlerFor(docServer));
-    this._app.all('/*', this._getRequestHandlerFor(homeServer));
+    this._app.all(["/dw/dw1", "/dw/dw1/*"], this._getRequestHandlerFor(docServer));
+    this._app.all("/*", this._getRequestHandlerFor(homeServer));
 
     // Forbid now the use of serverUrl property, so we don't allow the tests to
     // call the workers directly
     homeServer.disallowDirectAccess();
     docServer.disallowDirectAccess();
 
-    log.info('proxy server running on ', this.serverUrl);
+    log.info("proxy server running on ", this.serverUrl);
   }
 
   public stop() {
@@ -279,8 +280,8 @@ export class TestServerReverseProxy {
 
       // See the requireFromOutsideHeader() method for the explanation
       if (this._requireFromOutsideHeader && !isAffirmative(oreq.get(FROM_OUTSIDE_HEADER_KEY))) {
-        log.error('TestServerReverseProxy: called public URL from internal');
-        return ores.status(403).json({error: "TestServerReverseProxy: called public URL from internal "});
+        log.error("TestServerReverseProxy: called public URL from internal");
+        return ores.status(403).json({ error: "TestServerReverseProxy: called public URL from internal " });
       }
 
       this._proxy.web(oreq, ores, { target: serverUrl });

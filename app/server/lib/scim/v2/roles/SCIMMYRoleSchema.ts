@@ -12,26 +12,48 @@ export class SCIMMYRoleSchema extends SCIMMY.Types.Schema {
     return this._definition;
   }
 
-  private static _definition = (function () {
+  private static _definition = (function() {
     // Clone the Groups schema definition
     return new SchemaDefinition(
-      "Role", "urn:ietf:params:scim:schemas:Grist:1.0:Role", "Role in Grist (Owner)", [
+      "Role", "urn:ietf:params:scim:schemas:Grist:1.0:Role", "Role in Grist", [
         new Attribute("string", "displayName", {
-          mutable: false, direction: "out"}),
-        SCIMMY.Schemas.Group.definition.attribute('members'),
-        new Attribute("string", "docId", {required: false, description: "The docId associated to this role.",
-          mutable: false, direction: 'out'}),
-        new Attribute("integer", "workspaceId", {required: false, description: "The workspaceId for this role",
-          mutable: false, direction: 'out'}),
-        new Attribute("integer", "orgId", {required: false, description: "The orgId for this role",
-          mutable: false, direction: 'out'})
+          mutable: false, direction: "out" }),
+        new Attribute("complex", "members",
+          { multiValued: true, uniqueness: false, description: "A list of members of the Role." },
+          [
+            new Attribute("string", "value",
+              { mutable: "immutable", description: "Identifier of the member of this Role." }),
+            new Attribute("string", "display",
+              { mutable: "immutable", description: "Human-readable name of the member of this Role." }),
+            new Attribute("reference", "$ref",
+              {
+                mutable: "immutable",
+                referenceTypes: ["User", "Group", "Role"],
+                description: "The URI corresponding to a SCIM resource that is a member of this Role.",
+              },
+            ),
+            new Attribute("string", "type",
+              {
+                mutable: "immutable",
+                canonicalValues: ["User", "Group", "Role"],
+                description: "A label indicating the type of resource, e.g., 'User', 'Role' or 'Group'.",
+              },
+            ),
+          ],
+        ),
+        new Attribute("string", "docId", { required: false, description: "The docId associated to this role.",
+          mutable: false, direction: "out" }),
+        new Attribute("integer", "workspaceId", { required: false, description: "The workspaceId for this role",
+          mutable: false, direction: "out" }),
+        new Attribute("integer", "orgId", { required: false, description: "The orgId for this role",
+          mutable: false, direction: "out" }),
       ]);
   })();
 
   public displayName: string;
-  public docId: string|undefined;
-  public workspaceId: number|undefined;
-  public orgId: number|undefined;
+  public docId: string | undefined;
+  public workspaceId: number | undefined;
+  public orgId: number | undefined;
   public members: SCIMMY.Schemas.Group["members"];
 
   constructor(resource: object, direction = "both", basepath?: string, filters?: SCIMMY.Types.Filter) {
@@ -39,4 +61,3 @@ export class SCIMMYRoleSchema extends SCIMMY.Types.Schema {
     Object.assign(this, SCIMMYRoleSchema._definition.coerce(resource, direction, basepath, filters));
   }
 }
-

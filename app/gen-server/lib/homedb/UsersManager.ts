@@ -1,11 +1,11 @@
-import * as crypto from 'crypto';
-import { ApiError } from 'app/common/ApiError';
-import { normalizeEmail } from 'app/common/emails';
-import { PERSONAL_FREE_PLAN } from 'app/common/Features';
-import { buildUrlId } from 'app/common/gristUrls';
-import { UserOrgPrefs } from 'app/common/Prefs';
-import * as roles from 'app/common/roles';
-import { UserType } from 'app/common/User';
+import { ApiError } from "app/common/ApiError";
+import { normalizeEmail } from "app/common/emails";
+import { PERSONAL_FREE_PLAN } from "app/common/Features";
+import { buildUrlId } from "app/common/gristUrls";
+import { isEmail } from "app/common/gutil";
+import { UserOrgPrefs } from "app/common/Prefs";
+import * as roles from "app/common/roles";
+import { UserType } from "app/common/User";
 import {
   ANONYMOUS_USER_EMAIL,
   EVERYONE_EMAIL,
@@ -13,32 +13,34 @@ import {
   PermissionDelta,
   PREVIEWER_EMAIL,
   UserOptions,
-  UserProfile
-} from 'app/common/UserAPI';
-import { AclRule } from 'app/gen-server/entity/AclRule';
-import { Document } from 'app/gen-server/entity/Document';
-import { Group } from 'app/gen-server/entity/Group';
-import { Login } from 'app/gen-server/entity/Login';
-import { User } from 'app/gen-server/entity/User';
-import { appSettings } from 'app/server/lib/AppSettings';
-import { HomeDBManager, PermissionDeltaAnalysis, Scope, UserIdDelta } from 'app/gen-server/lib/homedb/HomeDBManager';
+  UserProfile,
+} from "app/common/UserAPI";
+import { AclRule } from "app/gen-server/entity/AclRule";
+import { Document } from "app/gen-server/entity/Document";
+import { Group } from "app/gen-server/entity/Group";
+import { Login } from "app/gen-server/entity/Login";
+import { Pref } from "app/gen-server/entity/Pref";
+import { User } from "app/gen-server/entity/User";
+import { HomeDBManager, PermissionDeltaAnalysis, Scope, UserIdDelta } from "app/gen-server/lib/homedb/HomeDBManager";
 import {
-  AvailableUsers, GetUserOptions, NonGuestGroup, QueryResult, Resource, RunInTransaction, UserProfileChange
-} from 'app/gen-server/lib/homedb/Interfaces';
-import { Permissions } from 'app/gen-server/lib/Permissions';
-import { Pref } from 'app/gen-server/entity/Pref';
+  AvailableUsers, GetUserOptions, NonGuestGroup, QueryResult, Resource, RunInTransaction, UserProfileChange,
+} from "app/gen-server/lib/homedb/Interfaces";
+import { Permissions } from "app/gen-server/lib/Permissions";
+import { appSettings } from "app/server/lib/AppSettings";
 
-import flatten from 'lodash/flatten';
-import { EntityManager, IsNull, Not } from 'typeorm';
+import * as crypto from "crypto";
+
+import flatten from "lodash/flatten";
+import { EntityManager, IsNull, Not } from "typeorm";
 
 function apiKeyGenerator(): string {
-  return crypto.randomBytes(20).toString('hex');
+  return crypto.randomBytes(20).toString("hex");
 }
 
 // A special user allowed to add/remove both the EVERYONE_EMAIL and ANONYMOUS_USER_EMAIL to/from a resource.
-export const SUPPORT_EMAIL = appSettings.section('access').flag('supportEmail').requireString({
-  envVar: 'GRIST_SUPPORT_EMAIL',
-  defaultValue: 'support@getgrist.com',
+export const SUPPORT_EMAIL = appSettings.section("access").flag("supportEmail").requireString({
+  envVar: "GRIST_SUPPORT_EMAIL",
+  defaultValue: "support@getgrist.com",
 });
 
 // A list of emails we don't expect to see logins for.
@@ -52,15 +54,15 @@ const NON_LOGIN_EMAILS = [PREVIEWER_EMAIL, EVERYONE_EMAIL, ANONYMOUS_USER_EMAIL]
  */
 export class UsersManager {
   public static isSingleUser(users: AvailableUsers): users is number {
-    return typeof users === 'number';
+    return typeof users === "number";
   }
 
   // Returns all first-level memberUsers in the resources. Requires all resources' aclRules, groups
   // and memberUsers to be populated.
   // If optRoles is provided, only checks membership in resource groups with the given roles.
-  public static getResourceUsers(res: Resource|Resource[], optRoles?: string[]): User[] {
+  public static getResourceUsers(res: Resource | Resource[], optRoles?: string[]): User[] {
     res = Array.isArray(res) ? res : [res];
-    const users: {[uid: string]: User} = {};
+    const users: { [uid: string]: User } = {};
     let resAcls: AclRule[] = flatten(res.map(_res => _res.aclRules as AclRule[]));
     if (optRoles) {
       resAcls = resAcls.filter(_acl => optRoles.includes(_acl.group.name));
@@ -80,22 +82,22 @@ export class UsersManager {
     for (const group of groups) {
       let users = group.memberUsers;
       if (excludeUsers) {
-        users = users.filter((user) => !excludeUsers.includes(user.id));
+        users = users.filter(user => !excludeUsers.includes(user.id));
       }
       members.set(group.name, users);
     }
     return members;
   }
 
-  private _specialUserIds: {[name: string]: number} = {}; // id for anonymous user, previewer, etc
+  private _specialUserIds: { [name: string]: number } = {}; // id for anonymous user, previewer, etc
 
-  private get _connection () {
+  private get _connection() {
     return this._homeDb.connection;
   }
 
   public constructor(
     private readonly _homeDb: HomeDBManager,
-    private _runInTransaction: RunInTransaction
+    private _runInTransaction: RunInTransaction,
   ) {}
 
   /**
@@ -103,11 +105,11 @@ export class UsersManager {
    * For use in tests.
    */
   public async testClearUserPrefs(emails: string[]) {
-    return await this._connection.transaction(async manager => {
+    return await this._connection.transaction(async (manager) => {
       for (const email of emails) {
         const user = await this.getExistingUserByLogin(email, manager);
         if (user) {
-          await manager.delete(Pref, {userId: user.id});
+          await manager.delete(Pref, { userId: user.id });
         }
       }
     });
@@ -162,32 +164,32 @@ export class UsersManager {
     return id;
   }
 
-  public async getUserByKey(apiKey: string): Promise<User|undefined> {
+  public async getUserByKey(apiKey: string): Promise<User | undefined> {
     // Include logins relation for Authorization convenience.
-    return await User.findOne({where: {apiKey}, relations: ["logins"]}) || undefined;
+    return await User.findOne({ where: { apiKey }, relations: ["logins"] }) || undefined;
   }
 
   public async getUserByRef(
     ref: string,
-    options: {manager?: EntityManager; relations?: string[]} = {}
-  ): Promise<User|undefined> {
+    options: { manager?: EntityManager; relations?: string[] } = {},
+  ): Promise<User | undefined> {
     const { manager, relations = ["logins"] } = options;
-    const user = await this._runInTransaction(manager, (m) => m.findOne(User, {where: {ref}, relations}));
+    const user = await this._runInTransaction(manager, m => m.findOne(User, { where: { ref }, relations }));
     return user || undefined;
   }
 
   public async getUser(
     userId: number,
-    options: {includePrefs?: boolean} = {}
-  ): Promise<User|undefined> {
-    const {includePrefs} = options;
+    options: { includePrefs?: boolean } = {},
+  ): Promise<User | undefined> {
+    const { includePrefs } = options;
     const relations = ["logins"];
     if (includePrefs) { relations.push("prefs"); }
-    return await User.findOne({where: {id: userId}, relations}) || undefined;
+    return await User.findOne({ where: { id: userId }, relations }) || undefined;
   }
 
   public async getFullUser(userId: number): Promise<FullUser> {
-    const user = await User.findOne({where: {id: userId}, relations: ["logins"]});
+    const user = await User.findOne({ where: { id: userId }, relations: ["logins"] });
     if (!user) { throw new ApiError("unable to find user", 400); }
     return this.makeFullUser(user);
   }
@@ -196,12 +198,12 @@ export class UsersManager {
    * Gets a user and ensures that they have an unsubscribe key.
    */
   public async getUserAndEnsureUnsubscribeKey(userId: number): Promise<User> {
-    return await this._runInTransaction(undefined, async manager => {
+    return await this._runInTransaction(undefined, async (manager) => {
       const relations = ["logins"];
-      const user = await manager.findOne(User, {where: {id: userId}, relations});
+      const user = await manager.findOne(User, { where: { id: userId }, relations });
       if (!user) { throw new ApiError("unable to find user", 400); }
       if (!user.unsubscribeKey) {
-        user.unsubscribeKey = crypto.randomBytes(32).toString('base64url');
+        user.unsubscribeKey = crypto.randomBytes(32).toString("base64url");
         await manager.save(user);
       }
       return user;
@@ -227,7 +229,7 @@ export class UsersManager {
       picture: user.picture,
       ref: user.ref,
       locale: user.options?.locale,
-      prefs: user.prefs?.find((p)=> p.orgId === null)?.prefs,
+      prefs: user.prefs?.find(p => p.orgId === null)?.prefs,
       firstLoginAt: user.firstLoginAt || null,
       disabledAt: user.disabledAt || null,
     };
@@ -249,10 +251,10 @@ export class UsersManager {
    * @param profile External profile
    */
   public async ensureExternalUser(profile: UserProfile) {
-    await this._connection.transaction(async manager => {
+    await this._connection.transaction(async (manager) => {
       // First find user by the connectId from the profile
       const existing = await manager.findOne(User, {
-        where: {connectId: profile.connectId || undefined},
+        where: { connectId: profile.connectId || undefined },
         relations: ["logins"],
       });
 
@@ -260,7 +262,7 @@ export class UsersManager {
       if (!existing) {
         const newUser = await this.getUserByLoginWithRetry(profile.email, {
           profile,
-          manager
+          manager,
         });
         // No need to survey this user.
         newUser.isFirstTimeUser = false;
@@ -268,7 +270,7 @@ export class UsersManager {
       } else {
         // Else update profile and login information from external profile.
         let updated = false;
-        let login: Login = existing.logins[0]!;
+        let login: Login = existing.logins[0];
         const properEmail = normalizeEmail(profile.email);
 
         if (properEmail !== existing.loginEmail) {
@@ -297,13 +299,13 @@ export class UsersManager {
     });
   }
 
-  public async updateUser(userId: number, props: UserProfileChange){
-    return await this._connection.transaction(async manager => {
+  public async updateUser(userId: number, props: UserProfileChange) {
+    return await this._connection.transaction(async (manager) => {
       let isWelcomed = false;
       let needsSave = false;
       const user = await manager.findOne(User, {
-        relations: ['logins'],
-        where: {id: userId},
+        relations: ["logins"],
+        where: { id: userId },
       });
       if (!user) { throw new ApiError("unable to find user", 400); }
 
@@ -327,16 +329,16 @@ export class UsersManager {
       if (needsSave) {
         await manager.save(user);
       }
-      return {previous, current: user, isWelcomed};
+      return { previous, current: user, isWelcomed };
     });
   }
 
   // TODO: rather use the updateUser() method, if that makes sense?
   public async updateUserOptions(userId: number, props: Partial<UserOptions>) {
-    await this._runInTransaction(undefined, async manager => {
-      const user = await manager.findOne(User, {where: {id: userId}});
+    await this._runInTransaction(undefined, async (manager) => {
+      const user = await manager.findOne(User, { where: { id: userId } });
       if (!user) { throw new ApiError("unable to find user", 400); }
-      user.options = {...(user.options ?? {}), ...props};
+      user.options = { ...(user.options ?? {}), ...props };
       await manager.save(user);
     });
   }
@@ -352,7 +354,7 @@ export class UsersManager {
     const login = new Login();
     login.displayEmail = login.email = ANONYMOUS_USER_EMAIL;
     user.logins = [login];
-    user.ref = '';
+    user.ref = "";
     return user;
   }
 
@@ -364,8 +366,7 @@ export class UsersManager {
     try {
       return await this.getUserByLogin(email, options);
     } catch (e) {
-      if (e.name === 'QueryFailedError' && e.detail &&
-          e.detail.match(/Key \(email\)=[^ ]+ already exists/)) {
+      if (e.name === "QueryFailedError" && e.detail?.match(/Key \(email\)=[^ ]+ already exists/)) {
         // This is a postgres-specific error message. This problem cannot arise in sqlite,
         // because we have to serialize sqlite transactions in any case to get around a typeorm
         // limitation.
@@ -380,8 +381,8 @@ export class UsersManager {
    */
   public async getExistingUserByLogin(
     email: string,
-    manager?: EntityManager
-  ): Promise<User|undefined> {
+    manager?: EntityManager,
+  ): Promise<User | undefined> {
     return await this._buildExistingUsersByLoginRequest([email], manager)
       .getOne() || undefined;
   }
@@ -391,9 +392,9 @@ export class UsersManager {
    */
   public async getExistingUsersByLogin(
     emails: string[],
-    manager?: EntityManager
+    manager?: EntityManager,
   ): Promise<User[]> {
-    if (emails.length === 0){
+    if (emails.length === 0) {
       return [];
     }
     return await this._buildExistingUsersByLoginRequest(emails, manager)
@@ -409,17 +410,17 @@ export class UsersManager {
    * unset/outdated fields of an existing record.
    *
    */
-  public async getUserByLogin(email: string, options: GetUserOptions = {}, type: UserType = 'login') {
-    const {manager: transaction, profile, userOptions} = options;
+  public async getUserByLogin(email: string, options: GetUserOptions = {}, type: UserType = "login") {
+    const { manager: transaction, profile, userOptions } = options;
     const normalizedEmail = normalizeEmail(email);
-    return await this._runInTransaction(transaction, async manager => {
+    return await this._runInTransaction(transaction, async (manager) => {
       let needUpdate = false;
       const userQuery = manager.createQueryBuilder()
-        .select('user')
-        .from(User, 'user')
-        .leftJoinAndSelect('user.logins', 'logins')
-        .leftJoinAndSelect('user.personalOrg', 'personalOrg')
-        .where('email = :email', {email: normalizedEmail});
+        .select("user")
+        .from(User, "user")
+        .leftJoinAndSelect("user.logins", "logins")
+        .leftJoinAndSelect("user.personalOrg", "personalOrg")
+        .where("email = :email", { email: normalizedEmail });
       let user = await userQuery.getOne();
       let login: Login;
       if (!user) {
@@ -441,15 +442,15 @@ export class UsersManager {
         // Set the user's name if our provider knows it. Otherwise use their username
         // from email, for lack of something better. If we don't have a profile at this
         // time, then leave the name blank in the hopes of learning it when the user logs in.
-        user.name = (profile && this._getNameOrDeduceFromEmail(profile.name, email)) || '';
+        user.name = (profile && this._getNameOrDeduceFromEmail(profile.name, email)) || "";
         needUpdate = true;
       }
-      if (!user.picture && profile && profile.picture) {
+      if (!user.picture && profile?.picture) {
         // Set the user's profile picture if our provider knows it.
         user.picture = profile.picture;
         needUpdate = true;
       }
-      if (profile && profile.email && profile.email !== login.displayEmail) {
+      if (profile?.email && profile.email !== login.displayEmail) {
         // Use provider's version of email address for display.
         login.displayEmail = profile.email;
         needUpdate = true;
@@ -470,13 +471,13 @@ export class UsersManager {
       }
       if (!user.options?.authSubject && userOptions?.authSubject) {
         // Link subject from password-based authentication provider if not previously linked.
-        user.options = {...(user.options ?? {}), authSubject: userOptions.authSubject};
+        user.options = { ...(user.options ?? {}), authSubject: userOptions.authSubject };
         needUpdate = true;
       }
       // We might want to store extra information returned by the identity provider
       if (options.profile?.extra) {
         // Update already existing user options
-        user.options = {...user.options, ssoExtraInfo: options.profile.extra};
+        user.options = { ...user.options, ssoExtraInfo: options.profile.extra };
         needUpdate = true;
       }
 
@@ -491,7 +492,7 @@ export class UsersManager {
       }
       const getTimestampStartOfDay = (date: Date) => {
         const timestamp = Math.floor(date.getTime() / 1000); // unix timestamp seconds from epoc
-        const startOfDay = timestamp - (timestamp % 86400 /*24h*/); // start of a day in seconds since epoc
+        const startOfDay = timestamp - (timestamp % 86400 /* 24h */); // start of a day in seconds since epoc
         return startOfDay;
       };
       if (!user.lastConnectionAt || getTimestampStartOfDay(user.lastConnectionAt) !== getTimestampStartOfDay(nowish)) {
@@ -506,7 +507,7 @@ export class UsersManager {
         // Add a personal organization for this user.
         // We don't add a personal org for anonymous/everyone/previewer "users" as it could
         // get a bit confusing.
-        const result = await this._homeDb.addOrg(user, {name: "Personal"}, {
+        const result = await this._homeDb.addOrg(user, { name: "Personal" }, {
           setUserAsOwner: true,
           useNewPlan: true,
           product: PERSONAL_FREE_PLAN,
@@ -517,10 +518,10 @@ export class UsersManager {
         needUpdate = true;
 
         // We just created a personal org; set userOrgPrefs that should apply for new users only.
-        const userOrgPrefs: UserOrgPrefs = {showGristTour: true};
+        const userOrgPrefs: UserOrgPrefs = { showGristTour: true };
         const org = result.data;
         if (org) {
-          await this._homeDb.updateOrg({userId: user.id}, org.id, {userOrgPrefs}, manager);
+          await this._homeDb.updateOrg({ userId: user.id }, org.id, { userOrgPrefs }, manager);
         }
       }
       if (needUpdate) {
@@ -543,10 +544,10 @@ export class UsersManager {
    * @param name: optional cross-check, delete only if user name matches this
    */
   public async deleteUser(scope: Scope, userIdToDelete: number,
-                          name?: string): Promise<QueryResult<User>> {
+    name?: string): Promise<QueryResult<User>> {
     const userIdDeleting = scope.userId;
     if (userIdDeleting !== userIdToDelete) {
-      throw new ApiError('not permitted to delete this user', 403);
+      throw new ApiError("not permitted to delete this user", 403);
     }
 
     // Deleting a user leaves their forks orphaned, inaccessible.
@@ -565,7 +566,7 @@ export class UsersManager {
       where: {
         createdBy: userIdToDelete,
         trunkId: Not(IsNull()),
-      }});
+      } });
     // Delete external storage for orphaned forks.
     // This might take some time, if there's a lot of them.
     for (const doc of forksToDelete) {
@@ -573,16 +574,16 @@ export class UsersManager {
       // that's usually fine. But if we're deleting forks it had
       // better be there.
       if (!this._homeDb.storageCoordinator) {
-        throw new Error('no mechanism available to delete forks');
+        throw new Error("no mechanism available to delete forks");
       }
-      const fullId = buildUrlId({trunkId: doc.trunkId!, forkId: doc.id, forkUserId: doc.createdBy!});
+      const fullId = buildUrlId({ trunkId: doc.trunkId!, forkId: doc.id, forkUserId: doc.createdBy! });
       await this._homeDb.storageCoordinator.hardDeleteDoc(fullId);
     }
 
-    return await this._connection.transaction(async manager => {
-      const user = await manager.findOne(User, {where: {id: userIdToDelete},
-                                                relations: ["logins", "personalOrg", "prefs"]});
-      if (!user) { throw new ApiError('user not found', 404); }
+    return await this._connection.transaction(async (manager) => {
+      const user = await manager.findOne(User, { where: { id: userIdToDelete },
+        relations: ["logins", "personalOrg", "prefs"] });
+      if (!user) { throw new ApiError("user not found", 404); }
       if (name) {
         if (user.name !== name) {
           throw new ApiError(`user name did not match ('${name}' vs '${user.name}')`, 400);
@@ -592,12 +593,12 @@ export class UsersManager {
 
       // Unset 'created_by' on any documents created by this user. It's sad to lose this info, but
       // we can't leave an invalid reference (and violate the foreign-key constraint)
-      const docs = await manager.getRepository(Document).find({where: {createdBy: userIdToDelete}});
-      docs.forEach(doc => {
+      const docs = await manager.getRepository(Document).find({ where: { createdBy: userIdToDelete } });
+      docs.forEach((doc) => {
         if (doc.trunkId) {
           // We tried cleaning up forks before starting the
           // transaction but one snuck back in? Just bail.
-          throw new ApiError('Untimely document addition? Please retry.', 503);
+          throw new ApiError("Untimely document addition? Please retry.", 503);
         } else {
           doc.createdBy = null;
         }
@@ -609,8 +610,8 @@ export class UsersManager {
       // so use a plain query to delete entries in the group_users table.
       await manager.createQueryBuilder()
         .delete()
-        .from('group_users')
-        .where('user_id = :userId', {userId: userIdToDelete})
+        .from("group_users")
+        .where("user_id = :userId", { userId: userIdToDelete })
         .execute();
 
       await manager.delete(User, userIdToDelete);
@@ -624,19 +625,19 @@ export class UsersManager {
   public async initializeSpecialIds(): Promise<void> {
     await this._maybeCreateSpecialUserId({
       email: ANONYMOUS_USER_EMAIL,
-      name: "Anonymous"
+      name: "Anonymous",
     });
     await this._maybeCreateSpecialUserId({
       email: PREVIEWER_EMAIL,
-      name: "Preview"
+      name: "Preview",
     });
     await this._maybeCreateSpecialUserId({
       email: EVERYONE_EMAIL,
-      name: "Everyone"
+      name: "Everyone",
     });
     await this._maybeCreateSpecialUserId({
       email: SUPPORT_EMAIL,
-      name: "Support"
+      name: "Support",
     });
   }
 
@@ -650,11 +651,11 @@ export class UsersManager {
   public async completeProfiles(profiles: UserProfile[]): Promise<FullUser[]> {
     if (profiles.length === 0) { return []; }
     const qb = this._connection.createQueryBuilder()
-      .select('logins')
-      .from(Login, 'logins')
-      .leftJoinAndSelect('logins.user', 'user')
-      .where('logins.email in (:...emails)', {emails: profiles.map(profile => normalizeEmail(profile.email))});
-    const completedProfiles: {[email: string]: FullUser} = {};
+      .select("logins")
+      .from(Login, "logins")
+      .leftJoinAndSelect("logins.user", "user")
+      .where("logins.email in (:...emails)", { emails: profiles.map(profile => normalizeEmail(profile.email)) });
+    const completedProfiles: { [email: string]: FullUser } = {};
     for (const login of await qb.getMany()) {
       completedProfiles[login.email] = {
         id: login.user.id,
@@ -662,7 +663,7 @@ export class UsersManager {
         name: login.user.name,
         picture: login.user.picture,
         anonymous: login.user.id === this.getAnonymousUserId(),
-        locale: login.user.options?.locale
+        locale: login.user.options?.locale,
       };
     }
     return profiles.map(profile => completedProfiles[normalizeEmail(profile.email)])
@@ -673,13 +674,13 @@ export class UsersManager {
    * Update users with passed property. Optional user properties that are missing will be reset to their default value.
    */
   public async overwriteUser(userId: number, props: UserProfile): Promise<User> {
-    return await this._connection.transaction(async manager => {
-      const user = await this.getUser(userId, {includePrefs: true});
+    return await this._connection.transaction(async (manager) => {
+      const user = await this.getUser(userId, { includePrefs: true });
       if (!user) { throw new ApiError("unable to find user to update", 404); }
       const login = user.logins[0];
       user.name = this._getNameOrDeduceFromEmail(props.name, props.email);
-      user.picture = props.picture || '';
-      user.options = {...(user.options || {}), locale: props.locale ?? undefined};
+      user.picture = props.picture || "";
+      user.options = { ...(user.options || {}), locale: props.locale ?? undefined };
       if (props.email) {
         login.email = normalizeEmail(props.email);
         login.displayEmail = props.email;
@@ -691,9 +692,8 @@ export class UsersManager {
   }
 
   public async getUsers() {
-    return await User.find({relations: ["logins"]});
+    return await User.find({ relations: ["logins"] });
   }
-
 
   /**
    * ==================================
@@ -711,21 +711,21 @@ export class UsersManager {
     userId: number,
     delta: PermissionDelta,
     isOrg: boolean = false,
-    transaction?: EntityManager
+    transaction?: EntityManager,
   ): Promise<PermissionDeltaAnalysis> {
     if (!delta) {
-      throw new ApiError('Bad request: missing permission delta', 400);
+      throw new ApiError("Bad request: missing permission delta", 400);
     }
     this._mergeIndistinguishableEmails(delta);
-    const hasInherit = 'maxInheritedRole' in delta;
+    const hasInherit = "maxInheritedRole" in delta;
     const hasUsers = delta.users; // allow zero actual changes; useful to reduce special
-                                  // cases in scripts
+    // cases in scripts
     if ((isOrg && (hasInherit || !hasUsers)) || (!isOrg && !hasInherit && !hasUsers)) {
-      throw new ApiError('Bad request: invalid permission delta', 400);
+      throw new ApiError("Bad request: invalid permission delta", 400);
     }
     // Lookup the email access changes and move them to the users object.
-    const notFoundUserEmailDelta: {[email: string]: roles.NonGuestRole} = {};
-    const foundUserIdDelta: {[userId: string]: roles.NonGuestRole|null} = {};
+    const notFoundUserEmailDelta: { [email: string]: roles.NonGuestRole } = {};
+    const foundUserIdDelta: { [userId: string]: roles.NonGuestRole | null } = {};
     if (hasInherit) {
       // Verify maxInheritedRole
       const role = delta.maxInheritedRole;
@@ -758,6 +758,12 @@ export class UsersManager {
           continue;
         }
 
+        // Validate email. We only skip this check for removing users, to allow correcting invalid
+        // emails if any were added in a version of Grist that predates this check.
+        if (!isEmail(email)) {
+          throw new ApiError("Invalid email address included", 400);
+        }
+
         if (user) {
           // Org-level sharing with everyone would allow serious spamming - forbid it.
           if (
@@ -768,7 +774,7 @@ export class UsersManager {
           ) {
             throw new ApiError(
               "This user cannot share with everyone at top level",
-              403
+              403,
             );
           }
           foundUserIdDelta[user.id] = role;
@@ -786,9 +792,9 @@ export class UsersManager {
       userIdsAndEmails[0] === String(userId) &&
       delta.maxInheritedRole === undefined &&
       foundUserIdDelta[userId] === null;
-    const permissionThreshold = removingSelf
-      ? Permissions.VIEW
-      : Permissions.ACL_EDIT;
+    const permissionThreshold = removingSelf ?
+      Permissions.VIEW :
+      Permissions.ACL_EDIT;
     return {
       foundUserDelta: delta.users ? foundUserIdDelta : null,
       foundUsers,
@@ -800,7 +806,7 @@ export class UsersManager {
 
   public async translateDeltaEmailsToUserIds(
     userDelta: { [email: string]: roles.NonGuestRole | null },
-    transaction?: EntityManager
+    transaction?: EntityManager,
   ): Promise<{ userDelta: UserIdDelta; users: User[] }> {
     const newDelta: UserIdDelta = {};
     const users: User[] = [];
@@ -840,17 +846,17 @@ export class UsersManager {
    */
   public async getUsersByIds(
     userIds: number[],
-    options: {manager?: EntityManager, withLogins?: boolean} = {}
+    options: { manager?: EntityManager, withLogins?: boolean } = {},
   ): Promise<User[]> {
     if (userIds.length === 0) {
       return [];
     }
     const manager = options.manager || new EntityManager(this._connection);
     const queryBuilder = manager.createQueryBuilder()
-      .select('users')
-      .from(User, 'users')
-      .chain(qb => options.withLogins ? qb.leftJoinAndSelect('users.logins', 'logins') : qb)
-      .where('users.id IN (:...userIds)', {userIds});
+      .select("users")
+      .from(User, "users")
+      .chain(qb => options.withLogins ? qb.leftJoinAndSelect("users.logins", "logins") : qb)
+      .where("users.id IN (:...userIds)", { userIds });
     return await queryBuilder.getMany();
   }
 
@@ -864,7 +870,7 @@ export class UsersManager {
     if (users.length !== userIds.length) {
       const foundUserIds = new Set(users.map(user => user.id));
       const missingUserIds = userIds.filter(userId => !foundUserIds.has(userId));
-      throw new ApiError('Users not found: ' + missingUserIds.join(', '), 404);
+      throw new ApiError("Users not found: " + missingUserIds.join(", "), 404);
     }
     return users;
   }
@@ -893,8 +899,8 @@ export class UsersManager {
   // This method is used for checking limits on shares.
   // Excluded users are removed from the results.
   public getUserDifference(groupsA: Group[], groupsB: Group[]): Map<roles.NonGuestRole, User[]> {
-    const subtractSet: Set<number> =
-      new Set(flatten(groupsB.map(grp => grp.memberUsers)).map(usr => usr.id));
+    const subtractSet =
+      new Set<number>(flatten(groupsB.map(grp => grp.memberUsers)).map(usr => usr.id));
     const result = new Map<roles.NonGuestRole, User[]>();
     for (const group of groupsA) {
       const name = group.name;
@@ -907,11 +913,10 @@ export class UsersManager {
   public withoutExcludedUsers(members: Map<roles.NonGuestRole, User[]>): Map<roles.NonGuestRole, User[]> {
     const excludedUsers = this.getExcludedUserIds();
     for (const [role, users] of members.entries()) {
-      members.set(role, users.filter((user) => !excludedUsers.includes(user.id)));
+      members.set(role, users.filter(user => !excludedUsers.includes(user.id)));
     }
     return members;
   }
-
 
   // For the moment only the support user can add both everyone@ and anon@ to a
   // resource, since that allows spam. TODO: enhance or remove.
@@ -919,22 +924,22 @@ export class UsersManager {
     if (userId === this.getSupportUserId()) { return; }
     const ids = new Set(flatten(groups.map(g => g.memberUsers)).map(u => u.id));
     if (ids.has(this.getEveryoneUserId()) && ids.has(this.getAnonymousUserId())) {
-      throw new Error('this user cannot share with everyone and anonymous');
+      throw new Error("this user cannot share with everyone and anonymous");
     }
   }
 
   public async getApiKey(userId: number) {
-    const user = await User.findOne({where: {id: userId}});
+    const user = await User.findOne({ where: { id: userId } });
     if (user) {
       // The null value is of no interest to the user, let's show empty string instead.
-      return user.apiKey || '';
+      return user.apiKey || "";
     }
     throw new ApiError("user not known", 404);
   }
 
   public async createApiKey(userId: number, force: boolean, transaction?: EntityManager): Promise<User> {
-    return await this._runInTransaction(transaction, async manager => {
-      const user = await manager.findOne(User, {where: {id: userId}});
+    return await this._runInTransaction(transaction, async (manager) => {
+      const user = await manager.findOne(User, { where: { id: userId } });
       if (!user) {
         throw new ApiError("user not known", 404);
       }
@@ -948,8 +953,8 @@ export class UsersManager {
   }
 
   public async deleteApiKey(userId: number, transaction?: EntityManager): Promise<User> {
-    return await this._runInTransaction(transaction, async manager => {
-      const user = await manager.findOne(User, {where: {id: userId}});
+    return await this._runInTransaction(transaction, async (manager) => {
+      const user = await manager.findOne(User, { where: { id: userId } });
       if (!user) {
         throw new Error("user not known");
       }
@@ -969,7 +974,7 @@ export class UsersManager {
       // get or create user - with retry, since there'll be a race to create the
       // user if a bunch of servers start simultaneously and the user doesn't exist
       // yet.
-      const user = await this.getUserByLoginWithRetry(profile.email, {profile});
+      const user = await this.getUserByLoginWithRetry(profile.email, { profile });
       id = this._specialUserIds[profile.email] = user.id;
     }
     if (!id) { throw new Error(`Could not find or create user ${profile.email}`); }
@@ -977,7 +982,7 @@ export class UsersManager {
   }
 
   private _getNameOrDeduceFromEmail(name: string, email: string) {
-    return name || email.split('@')[0];
+    return name || email.split("@")[0];
   }
 
   // This deals with the problem posed by receiving a PermissionDelta specifying a
@@ -991,9 +996,9 @@ export class UsersManager {
     // in order to preserve it. This is worth doing since for the common case
     // of a user being added to a resource prior to ever logging in, their
     // displayEmail will be seeded from this value.
-    const displayEmails: {[email: string]: string} = {};
+    const displayEmails: { [email: string]: string } = {};
     // This will be our output.
-    const users: {[email: string]: roles.NonGuestRole|null} = {};
+    const users: { [email: string]: roles.NonGuestRole | null } = {};
     for (const displayEmail of Object.keys(delta.users).sort()) {
       const email = normalizeEmail(displayEmail);
       const role = delta.users[displayEmail];
@@ -1005,13 +1010,13 @@ export class UsersManager {
 
   private _buildExistingUsersByLoginRequest(
     emails: string[],
-    manager?: EntityManager
+    manager?: EntityManager,
   ) {
-    const normalizedEmails = emails.map(email=> normalizeEmail(email));
+    const normalizedEmails = emails.map(email => normalizeEmail(email));
     return (manager || this._connection).createQueryBuilder()
-      .select('user')
-      .from(User, 'user')
-      .leftJoinAndSelect('user.logins', 'logins')
-      .where('email IN (:...emails)', {emails: normalizedEmails});
+      .select("user")
+      .from(User, "user")
+      .leftJoinAndSelect("user.logins", "logins")
+      .where("email IN (:...emails)", { emails: normalizedEmails });
   }
 }

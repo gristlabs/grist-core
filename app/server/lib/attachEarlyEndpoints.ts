@@ -5,7 +5,7 @@ import {
   ConfigValue,
   ConfigValueCheckers,
 } from "app/common/Config";
-import { InstallProperties } from "app/common/InstallAPI";
+import { InstallPrefs } from "app/common/Install";
 import { getOrgKey } from "app/gen-server/ApiServer";
 import { Config } from "app/gen-server/entity/Config";
 import {
@@ -23,8 +23,8 @@ import {
   sendReply,
   stringParam,
 } from "app/server/lib/requestUtils";
-import { getTelemetryPrefs } from "app/server/lib/Telemetry";
 import { updateGristServerLatestVersion } from "app/server/lib/updateChecker";
+
 import {
   Application,
   json,
@@ -68,9 +68,9 @@ export function attachEarlyEndpoints(options: AttachOptions) {
       return gristServer.sendAppPage(req, res, {
         path: "app.html",
         status: 200,
-        config: {adminControls: gristServer.create.areAdminControlsAvailable()},
+        config: { adminControls: gristServer.create.areAdminControlsAvailable() },
       });
-    })
+    }),
   );
 
   const requireInstallAdmin = gristServer
@@ -89,7 +89,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
     expressWrap(async (req, res) => {
       const mreq = req as RequestWithLogin;
       const meta = {
-        host: mreq.get('host'),
+        host: mreq.get("host"),
         path: mreq.path,
         email: mreq.user?.loginEmail,
       };
@@ -115,36 +115,26 @@ export function attachEarlyEndpoints(options: AttachOptions) {
       // We're going down, so we're no longer ready to serve requests.
       gristServer.setReady(false);
       return res.status(200).send({ msg: "ok" });
-    })
+    }),
   );
 
   // Restrict this endpoint to install admins.
   app.get(
     "/api/install/prefs",
     expressWrap(async (_req, res) => {
-      const activation = await gristServer.getActivations().current();
-      const telemetryPrefs = await getTelemetryPrefs(
-          gristServer.getHomeDBManager(),
-          activation
-      );
-      return sendOkReply(null, res, {
-        telemetry: telemetryPrefs,
-        checkForLatestVersion: activation.prefs?.checkForLatestVersion ?? true,
-      });
-    })
+      const prefs = await gristServer.getActivations().getPrefsWithSources();
+      return sendOkReply(null, res, prefs);
+    }),
   );
 
   app.patch(
     "/api/install/prefs",
     json({ limit: "1mb" }),
     expressWrap(async (req, res) => {
-      const props = { prefs: req.body };
-      const activation = await gristServer.getActivations().current();
-      activation.checkProperties(props);
-      activation.updateFromProperties(props);
-      await activation.save();
+      const prefs = req.body;
+      await gristServer.getActivations().updatePrefs(prefs);
 
-      if ((props as Partial<InstallProperties>).prefs?.telemetry) {
+      if ((prefs as InstallPrefs).telemetry) {
         // Make sure the Telemetry singleton picks up the changes to telemetry preferences.
         // TODO: if there are multiple home server instances, notify them all of changes to
         // preferences (via Redis Pub/Sub).
@@ -152,7 +142,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
       }
 
       return res.status(200).send();
-    })
+    }),
   );
 
   // Retrieves the latest version of the client from Grist SAAS endpoint.
@@ -170,7 +160,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
           res.send(error.details);
         }
       }
-    })
+    }),
   );
 
   app.get(
@@ -183,7 +173,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
         .getInstallConfig(key);
       const result = pruneConfigAPIResult(configResult);
       return sendReply(req, res, result);
-    })
+    }),
   );
 
   app.put(
@@ -201,7 +191,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
       }
       const result = pruneConfigAPIResult(configResult);
       return sendReply(req, res, result);
-    })
+    }),
   );
 
   app.delete(
@@ -216,7 +206,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
         logDeleteConfigEvents(req, data);
       }
       return sendReply(req, res, result);
-    })
+    }),
   );
 
   app.get(
@@ -230,7 +220,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
         .getOrgConfig(getScope(req), org, key);
       const result = pruneConfigAPIResult(configResult);
       return sendReply(req, res, result);
-    })
+    }),
   );
 
   app.put(
@@ -249,7 +239,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
       }
       const result = pruneConfigAPIResult(configResult);
       return sendReply(req, res, result);
-    })
+    }),
   );
 
   app.delete(
@@ -265,12 +255,12 @@ export function attachEarlyEndpoints(options: AttachOptions) {
         logDeleteConfigEvents(req, data);
       }
       return sendReply(req, res, { status });
-    })
+    }),
   );
 
   function logCreateOrUpdateConfigEvents(
     req: Request,
-    config: Config | PreviousAndCurrent<Config>
+    config: Config | PreviousAndCurrent<Config>,
   ) {
     const mreq = req as RequestWithLogin;
     if ("previous" in config) {
@@ -278,25 +268,25 @@ export function attachEarlyEndpoints(options: AttachOptions) {
       gristServer.getAuditLogger().logEvent(mreq, {
         action: "config.update",
         context: {
-          site: current.org
-            ? pick(current.org, "id", "name", "domain")
-            : undefined,
+          site: current.org ?
+            pick(current.org, "id", "name", "domain") :
+            undefined,
         },
         details: {
           previous: {
             config: {
               ...pick(previous, "id", "key", "value"),
-              site: previous.org
-                ? pick(previous.org, "id", "name", "domain")
-                : undefined,
+              site: previous.org ?
+                pick(previous.org, "id", "name", "domain") :
+                undefined,
             },
           },
           current: {
             config: {
               ...pick(current, "id", "key", "value"),
-              site: current.org
-                ? pick(current.org, "id", "name", "domain")
-                : undefined,
+              site: current.org ?
+                pick(current.org, "id", "name", "domain") :
+                undefined,
             },
           },
         },
@@ -305,16 +295,16 @@ export function attachEarlyEndpoints(options: AttachOptions) {
       gristServer.getAuditLogger().logEvent(mreq, {
         action: "config.create",
         context: {
-          site: config.org
-            ? pick(config.org, "id", "name", "domain")
-            : undefined,
+          site: config.org ?
+            pick(config.org, "id", "name", "domain") :
+            undefined,
         },
         details: {
           config: {
             ...pick(config, "id", "key", "value"),
-            site: config.org
-              ? pick(config.org, "id", "name", "domain")
-              : undefined,
+            site: config.org ?
+              pick(config.org, "id", "name", "domain") :
+              undefined,
           },
         },
       });
@@ -330,9 +320,9 @@ export function attachEarlyEndpoints(options: AttachOptions) {
       details: {
         config: {
           ...pick(config, "id", "key", "value"),
-          site: config.org
-            ? pick(config.org, "id", "name", "domain")
-            : undefined,
+          site: config.org ?
+            pick(config.org, "id", "name", "domain") :
+            undefined,
         },
       },
     });
@@ -340,7 +330,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
 }
 
 function pruneConfigAPIResult(
-  result: QueryResult<Config | PreviousAndCurrent<Config>>
+  result: QueryResult<Config | PreviousAndCurrent<Config>>,
 ) {
   if (!result.data) {
     return result as unknown as QueryResult<undefined>;
@@ -351,9 +341,9 @@ function pruneConfigAPIResult(
     ...result,
     data: {
       ...pick(config, "id", "key", "value", "createdAt", "updatedAt"),
-      ...(config.org
-        ? { org: pick(config.org, "id", "name", "domain") }
-        : undefined),
+      ...(config.org ?
+        { org: pick(config.org, "id", "name", "domain") } :
+        undefined),
     },
   };
 }
@@ -384,8 +374,8 @@ function assertValidConfig(req: Request) {
   } catch (err) {
     log.warn(
       `Error during API call to ${req.path}: invalid config value (${String(
-        err
-      )})`
+        err,
+      )})`,
     );
     throw new ApiError("Invalid config value", 400, { userError: String(err) });
   }
@@ -397,8 +387,8 @@ function assertValidConfigKey(req: Request) {
   } catch (err) {
     log.warn(
       `Error during API call to ${req.path}: invalid config key (${String(
-        err
-      )})`
+        err,
+      )})`,
     );
     throw new ApiError("Invalid config key", 400, { userError: String(err) });
   }

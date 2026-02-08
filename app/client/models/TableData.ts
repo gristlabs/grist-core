@@ -1,15 +1,16 @@
 /**
  * TableData maintains a single table's data.
  */
-import {ColumnACIndexes} from 'app/client/models/ColumnACIndexes';
-import {ColumnCache} from 'app/client/models/ColumnCache';
-import {DocData} from 'app/client/models/DocData';
-import {DocAction, ReplaceTableData, TableDataAction, UserAction} from 'app/common/DocActions';
-import {isRaisedException} from 'app/common/gristTypes';
-import {countIf} from 'app/common/gutil';
-import {SchemaTypes} from 'app/common/schema';
-import {ColTypeMap, MetaTableData as MetaTableDataBase, TableData as TableDataBase} from 'app/common/TableData';
-import {Emitter} from 'grainjs';
+import { ColumnACIndexes } from "app/client/models/ColumnACIndexes";
+import { ColumnCache } from "app/client/models/ColumnCache";
+import { DocData } from "app/client/models/DocData";
+import { DocAction, ReplaceTableData, TableDataAction, UserAction } from "app/common/DocActions";
+import { isRaisedException } from "app/common/gristTypes";
+import { countIf } from "app/common/gutil";
+import { SchemaTypes } from "app/common/schema";
+import { ColTypeMap, MetaTableData as MetaTableDataBase, TableData as TableDataBase } from "app/common/TableData";
+
+import { Emitter } from "grainjs";
 
 /**
  * TableData class to maintain a single table's data.
@@ -20,7 +21,7 @@ export class TableData extends TableDataBase {
 
   public readonly columnACIndexes = new ColumnACIndexes(this);
 
-  private _columnErrorCounts = new ColumnCache<number|undefined>(this);
+  private _columnErrorCounts = new ColumnCache<number | undefined>(this);
 
   /**
    * Constructor for TableData.
@@ -31,11 +32,11 @@ export class TableData extends TableDataBase {
    * @param {Object} columnTypes: A map of colId to colType.
    */
   constructor(public readonly docData: DocData,
-              tableId: string, tableData: TableDataAction|null, columnTypes: ColTypeMap) {
+    tableId: string, tableData: TableDataAction | null, columnTypes: ColTypeMap) {
     super(tableId, tableData, columnTypes);
   }
 
-  public loadData(tableData: TableDataAction|ReplaceTableData): number[] {
+  public loadData(tableData: TableDataAction | ReplaceTableData): number[] {
     const oldRowIds = super.loadData(tableData);
     // If called from base constructor, this.dataLoadedEmitter may be unset; in that case there
     // are no subscribers anyway.
@@ -63,7 +64,7 @@ export class TableData extends TableDataBase {
    * Counts and returns the number of error values in the given column. The count is cached to
    * keep it faster for large tables, and the cache is cleared as needed on changes to the table.
    */
-  public countErrors(colId: string): number|undefined {
+  public countErrors(colId: string): number | undefined {
     return this._columnErrorCounts.getValue(colId, () => {
       const values = this.getColValues(colId);
       return values && countIf(values, isRaisedException);
@@ -80,7 +81,7 @@ export class TableData extends TableDataBase {
    * @returns {Array} Array of return values for all the UserActions as produced by the data engine.
    */
   public sendTableActions(actions: UserAction[], optDesc?: string) {
-    actions.forEach((action) => action.splice(1, 0, this.tableId));
+    actions.forEach(action => action.splice(1, 0, this.tableId));
     return this.docData.sendActions(actions as DocAction[], optDesc);
   }
 

@@ -1,5 +1,6 @@
-import * as fse from "fs-extra";
 import log from "app/server/lib/log";
+
+import * as fse from "fs-extra";
 
 export async function prepareFilesystemDirectoryForTests(directory: string) {
   // Create the tmp dir removing any previous one

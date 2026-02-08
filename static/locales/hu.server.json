@@ -14,7 +14,6 @@
     "admin": {
         "emptyOrg": "Nem található tulajdonos a `GRIST_INSTALL_ADMIN_ORG={{org}}` által meghatározott admin szervezetben",
         "orgUser": "A felhasználó tulajdonos a `GRIST_INSTALL_ADMIN_ORG={{org}}` által meghatározott admin szervezetben",
-        "noDefaultEmail": "Az admin fiók hiányzik, mivel a `GRIST_DEFAULT_EMAIL` nincs beállítva",
         "accountByEmail": "Admin fiók a `GRIST_DEFAULT_EMAIL={{defaultEmail}}` által beállítva"
     },
     "DocApi": {

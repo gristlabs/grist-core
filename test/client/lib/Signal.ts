@@ -1,25 +1,26 @@
-import { assert } from 'chai';
-import { Signal } from 'app/client/lib/Signal';
+import { Signal } from "app/client/lib/Signal";
 
-describe('Signal', function() {
-  it('computes new signal from other events', function() {
+import { assert } from "chai";
+
+describe("Signal", function() {
+  it("computes new signal from other events", function() {
     const started = Signal.create(null, false);
     const hovered = Signal.create(null, false);
     const hoverAndStarted = Signal.compute(null, on => on(started) && on(hovered));
 
-    let flag: any = 'not-called';
+    let flag: any = "not-called";
     hoverAndStarted.listen(val => flag = val);
 
     function start(emit: boolean, expected: boolean) {
       started.emit(emit);
       assert.equal(flag, expected);
-      flag = 'not-called';
+      flag = "not-called";
     }
 
     function hover(emit: boolean, expected: boolean) {
       hovered.emit(emit);
       assert.equal(flag, expected);
-      flag = 'not-called';
+      flag = "not-called";
     }
 
     start(true, false);
@@ -33,7 +34,7 @@ describe('Signal', function() {
     start(false, false);
   });
 
-  it('works as flag', function() {
+  it("works as flag", function() {
     const started = Signal.create(null, false);
     const hovered = Signal.create(null, false);
     const andEvent = Signal.compute(null, on => on(started) && on(hovered)).distinct();
@@ -65,7 +66,7 @@ describe('Signal', function() {
     start(false, false);
   });
 
-  it('supports basic compositions', function() {
+  it("supports basic compositions", function() {
     const numbers = Signal.create(null, 0);
     const even = numbers.filter(n => n % 2 === 0);
     const odd = numbers.filter(n => n % 2 === 1);
@@ -115,7 +116,7 @@ describe('Signal', function() {
     assert.equal(onRoadCount, 1);
   });
 
-  it('detects cycles', function() {
+  it("detects cycles", function() {
     const first = Signal.create(null, 0);
     const second = Signal.create(null, 0);
     first.listen(n => second.emit(n + 1));

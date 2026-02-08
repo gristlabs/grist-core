@@ -1,6 +1,6 @@
+import BaseRowModel from "app/client/models/BaseRowModel";
 import { DocModel, ViewFieldRec } from "app/client/models/DocModel";
-import { CursorPos } from 'app/plugin/GristAPI';
-import BaseRowModel = require("app/client/models/BaseRowModel");
+import { CursorPos } from "app/plugin/GristAPI";
 
 /**
  * Absolute position of a cell in a document
@@ -11,12 +11,14 @@ export abstract class CellPosition {
       a.sectionId == b.sectionId &&
       a.rowId == b.rowId;
   }
+
   public static create(row: BaseRowModel, field: ViewFieldRec): CellPosition {
     const rowId = row.id.peek();
     const colRef = field.colRef.peek();
     const sectionId = field.viewSection.peek().id.peek();
     return { rowId, colRef, sectionId };
   }
+
   public sectionId: number;
   public rowId: number | string;
   public colRef: number;
@@ -51,7 +53,6 @@ export function fromCursor(position: CursorPos, docModel: DocModel): CellPositio
  * @param docModel DocModel
  */
 export function toCursor(position: CellPosition, docModel: DocModel): CursorPos {
-
   // translate colRef to fieldIndex
   const fieldIndex = docModel.viewSections.getRowModel(position.sectionId)
     .viewFields().peek()
@@ -60,7 +61,7 @@ export function toCursor(position: CellPosition, docModel: DocModel): CursorPos 
   const cursorPosition = {
     rowId: position.rowId as number, // this is hack, as cursor position can accept string
     fieldIndex,
-    sectionId: position.sectionId
+    sectionId: position.sectionId,
   };
 
   return cursorPosition;

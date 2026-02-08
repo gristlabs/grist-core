@@ -1,9 +1,10 @@
 import { theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { unstyledButton } from "app/client/ui2018/unstyled";
+
 import { styled } from "grainjs";
 
-export const treeViewContainer = styled('div', `
+export const treeViewContainer = styled("div", `
   user-select: none;
   -moz-user-select: none;
   position: relative;
@@ -13,7 +14,7 @@ export const treeViewContainer = styled('div', `
   margin-top: 2px;
 `);
 
-export const itemChildren = styled('div', `
+export const itemChildren = styled("div", `
   flex: 1 1 auto;
   min-width: 0;
   .itemContainer.collapsed > & {
@@ -21,13 +22,13 @@ export const itemChildren = styled('div', `
   }
 `);
 
-export const dragDropContainer = styled('div', `
+export const dragDropContainer = styled("div", `
   position: relative;
 `);
 
 // pointer-events: none is set while dragging, to ensure that mouse events are sent to the element
 // over which we are dragging, rather than the one being dragged (which is also under the cursor).
-export const itemHeaderWrapper = styled('div', `
+export const itemHeaderWrapper = styled("div", `
   display: flex;
   flex-direction: row;
 
@@ -36,7 +37,7 @@ export const itemHeaderWrapper = styled('div', `
   }
 `);
 
-export const itemHeader = styled('div', `
+export const itemHeader = styled("div", `
   display: flex;
   flex-direction: row;
   flex-grow: 1;
@@ -63,7 +64,7 @@ export const dropdown = styled(icon, `
   }
 `);
 
-export const itemLabelRight = styled('div', `
+export const itemLabelRight = styled("div", `
   --icon-color: ${theme.controlSecondaryFg};
   width: 16px;
   .${treeViewContainer.className}-close & {
@@ -80,7 +81,7 @@ export const centeredIcon = styled(icon, `
   }
 `);
 
-export const itemLabel = styled('div', `
+export const itemLabel = styled("div", `
   order: 99;
   flex-grow: 1;
   min-width: 0;
@@ -103,7 +104,7 @@ export const arrow = styled(unstyledButton, `
   }
 `);
 
-export const offset = styled('div', `
+export const offset = styled("div", `
   flex-shrink: 0;
   .${treeViewContainer.className}-close & {
     display: none;
@@ -114,7 +115,7 @@ export const offset = styled('div', `
 // is a 1px border of same color. Setting pointer-events to prevent target from grabbing mouse
 // events none and causes some intermittent interruptions to the processing of mouse events when
 // hovering while dragging.
-export const target = styled('div', `
+export const target = styled("div", `
   position: absolute;
   height: 2px;
   background: ${theme.controlFg};

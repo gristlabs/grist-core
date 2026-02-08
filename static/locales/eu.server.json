@@ -6,5 +6,16 @@
     },
     "oidc": {
         "emailNotVerifiedError": "Egiaztatu zure posta elektronikoa identitate-hornitzailearekin, eta hasi saioa berriro."
+    },
+    "access": {
+        "docDisabled": "Dokumentu hau ezgaituta dago.",
+        "docNoAccess": "Ez duzu dokumentu honetara sarbiderik."
+    },
+    "admin": {
+        "emptyOrg": "Ez da `GRIST_INSTALL_ADMIN_ORG={{org}}`administrazio-erakundean zehaztutako jaberik aurkitu",
+        "orgUser": "Erabiltzailea `GRIST_INSTALL_ADMIN_ORG={{org}}`administrazio-erakundean zehaztutako jabea da"
+    },
+    "DocApi": {
+        "UntitledDocument": "Izenik gabeko dokumentua"
     }
 }

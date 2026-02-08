@@ -1,7 +1,8 @@
-import {synchronizeProducts} from 'app/gen-server/entity/Product';
-import {codeRoot} from 'app/server/lib/places';
-import {Mutex} from 'async-mutex';
-import {DatabaseType, DataSource, DataSourceOptions} from 'typeorm';
+import { synchronizeProducts } from "app/gen-server/entity/Product";
+import { codeRoot } from "app/server/lib/places";
+
+import { Mutex } from "async-mutex";
+import { DatabaseType, DataSource, DataSourceOptions } from "typeorm";
 
 // Summary of migrations found in database and in code.
 interface MigrationSummary {
@@ -14,13 +15,13 @@ interface MigrationSummary {
 export async function getMigrations(dataSource: DataSource): Promise<MigrationSummary> {
   let migrationsInDb: string[];
   try {
-    migrationsInDb = (await dataSource.query('select name from migrations')).map((rec: any) => rec.name);
+    migrationsInDb = (await dataSource.query("select name from migrations")).map((rec: any) => rec.name);
   } catch (e) {
     // If no migrations have run, there'll be no migrations table - which is fine,
     // it just means 0 migrations run yet.  Sqlite+Postgres report this differently,
     // so any query error that mentions the name of our table is treated as ok.
     // Everything else is unexpected.
-    if (!(e.name === 'QueryFailedError' && e.message.includes('migrations'))) {
+    if (!(e.name === "QueryFailedError" && e.message.includes("migrations"))) {
       throw e;
     }
     migrationsInDb = [];
@@ -46,7 +47,7 @@ export async function updateDb(dataSource?: DataSource) {
 }
 
 export function getConnectionName() {
-  return process.env.TYPEORM_NAME || 'default';
+  return process.env.TYPEORM_NAME || "default";
 }
 
 /**
@@ -56,14 +57,13 @@ export function getConnectionName() {
 let gristDataSource: DataSource | null = null;
 const connectionMutex = new Mutex();
 export async function getOrCreateConnection(): Promise<DataSource> {
-  return connectionMutex.runExclusive(async() => {
-
+  return connectionMutex.runExclusive(async () => {
     // If multiple servers are started within the same process, we
     // share the database connection.  This saves locking trouble
     // with Sqlite.
     if (!gristDataSource?.isInitialized) {
       let settings = getTypeORMSettings();
-      if (settings.type === 'postgres') {
+      if (settings.type === "postgres") {
         // We're having problems with the Postgres JIT compiler slowing
         // down a particular query, so we'll turn it off for this
         // session.
@@ -88,19 +88,17 @@ export async function getOrCreateConnection(): Promise<DataSource> {
 
       gristDataSource = new DataSource(settings);
       await gristDataSource.initialize();
-      if (settings.type === 'sqlite') {
+      if (settings.type === "sqlite") {
         // When using Sqlite, set a busy timeout of 3s to tolerate a little
         // interference from connections made by tests. Logging doesn't show
         // any particularly slow queries, but bad luck is possible.
         // This doesn't affect when Postgres is in use. It also doesn't have
         // any impact when there is a single connection to the db, as is the
         // case when Grist is run as a single process.
-        await gristDataSource.query('PRAGMA busy_timeout = 3000');
+        await gristDataSource.query("PRAGMA busy_timeout = 3000");
       }
-
     }
     return gristDataSource;
-
   });
 }
 
@@ -112,7 +110,7 @@ export async function runMigrations(dataSource: DataSource) {
 
 export async function undoLastMigration(dataSource: DataSource) {
   return await withSqliteForeignKeyConstraintDisabled(dataSource, async () => {
-    await dataSource.transaction(async tr => {
+    await dataSource.transaction(async (tr) => {
       await tr.connection.undoLastMigration();
     });
   });
@@ -124,9 +122,9 @@ export async function undoLastMigration(dataSource: DataSource) {
 // Also, we need to disable foreign key constraint checking outside of any
 // transaction, or it has no effect.
 export async function withSqliteForeignKeyConstraintDisabled<T>(
-  dataSource: DataSource, cb: () => Promise<T>
+  dataSource: DataSource, cb: () => Promise<T>,
 ): Promise<T> {
-  const sqlite = getDatabaseType(dataSource) === 'sqlite';
+  const sqlite = getDatabaseType(dataSource) === "sqlite";
   if (sqlite) { await dataSource.query("PRAGMA foreign_keys = OFF;"); }
   try {
     return await cb();
@@ -153,33 +151,34 @@ export function getTypeORMSettings(overrideConf?: Partial<DataSourceOptions>): D
       type: "redis",
       options: {
         host: redisUrl.hostname,
-        port: parseInt(redisUrl.port || "6379", 10)
-      }
-    } as const
+        port: parseInt(redisUrl.port || "6379", 10),
+      },
+    } as const,
   } : undefined;
 
   return {
-    "name": getConnectionName(),
-    "type": (process.env.TYPEORM_TYPE as any) || "sqlite",  // officially, TYPEORM_CONNECTION -
-                                                   // but if we use that, this file will never
-                                                   // be read, and we can't configure
-                                                   // caching otherwise.
-    "database": process.env.TYPEORM_DATABASE || "landing.db",
-    "username": process.env.TYPEORM_USERNAME || undefined,
-    "password": process.env.TYPEORM_PASSWORD || undefined,
-    "host": process.env.TYPEORM_HOST || undefined,
-    "port": process.env.TYPEORM_PORT ? parseInt(process.env.TYPEORM_PORT, 10) : undefined,
-    "synchronize": false,
-    "migrationsRun": false,
-    "logging": process.env.TYPEORM_LOGGING === "true",
-    "entities": [
-      `${codeRoot}/app/gen-server/entity/*.js`
+    name: getConnectionName(),
+    type: (process.env.TYPEORM_TYPE as any) || "sqlite",  // officially, TYPEORM_CONNECTION -
+    // but if we use that, this file will never
+    // be read, and we can't configure
+    // caching otherwise.
+    database: process.env.TYPEORM_DATABASE || "landing.db",
+    username: process.env.TYPEORM_USERNAME || undefined,
+    password: process.env.TYPEORM_PASSWORD || undefined,
+    host: process.env.TYPEORM_HOST || undefined,
+    port: process.env.TYPEORM_PORT ? parseInt(process.env.TYPEORM_PORT, 10) : undefined,
+    synchronize: false,
+    migrationsRun: false,
+    logging: process.env.TYPEORM_LOGGING === "true",
+    maxQueryExecutionTime: process.env.TYPEORM_LOG_SLOW_MS ? parseInt(process.env.TYPEORM_LOG_SLOW_MS) : undefined,
+    entities: [
+      `${codeRoot}/app/gen-server/entity/*.js`,
     ],
-    "migrations": [
-      `${codeRoot}/app/gen-server/migration/*.js`        // migration files don't actually get packaged.
+    migrations: [
+      `${codeRoot}/app/gen-server/migration/*.js`,        // migration files don't actually get packaged.
     ],
-    "subscribers": [
-      `${codeRoot}/app/gen-server/subscriber/*.js`
+    subscribers: [
+      `${codeRoot}/app/gen-server/subscriber/*.js`,
     ],
     ...cache,
     ...overrideConf,

@@ -1,4 +1,4 @@
-export type CleanupFunc = (() => void|Promise<void>);
+export type CleanupFunc = (() => void | Promise<void>);
 
 /**
  * Helper to run cleanup callbacks created in a test case. See setupCleanup() below for usage.
@@ -10,12 +10,13 @@ export class Cleanup {
   public addAfterAll(cleanupFunc: CleanupFunc) {
     this._callbacksAfterAll.push(cleanupFunc);
   }
+
   public addAfterEach(cleanupFunc: CleanupFunc) {
     this._callbacksAfterEach.push(cleanupFunc);
   }
 
-  public async runCleanup(which: 'all'|'each') {
-    const callbacks = which === 'all' ? this._callbacksAfterAll : this._callbacksAfterEach;
+  public async runCleanup(which: "all" | "each") {
+    const callbacks = which === "all" ? this._callbacksAfterAll : this._callbacksAfterEach;
     const list = callbacks.splice(0);   // Get a copy of the list AND clear it out.
     for (const f of list) {
       await f();
@@ -37,7 +38,7 @@ export class Cleanup {
  */
 export function setupCleanup() {
   const cleanup = new Cleanup();
-  after(() => cleanup.runCleanup('all'));
-  afterEach(() => cleanup.runCleanup('each'));
+  after(() => cleanup.runCleanup("all"));
+  afterEach(() => cleanup.runCleanup("each"));
   return cleanup;
 }

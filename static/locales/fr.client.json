@@ -59,7 +59,24 @@
         "Resource missing in resource map: {{resourceKey}}": "Ressource absente parmi les ressources disponibles : {{resourceKey}}",
         "Trying to add TableRules for existing table {{tableId}}": "Tentative d'ajout de règles de table pour la table existante {{tableId}}",
         "Use a simple attribute of user.LinkKey, e.g. user.LinkKey.something": "Utilisez un simple attribut de user.LinkKey, par exemple user.LinkKey.quelquechose",
-        "hidden": "caché"
+        "hidden": "caché",
+        "## Access Rules\n\nYou don't have permission to view or edit access rules for this document.": "## Règles d'accès\n\nVous n'avez pas la permission de voir ou modifier les règles d'accès pour ce document.",
+        "## Access Rules\n\nBasic access to this document is controlled using the 'Manage Users' option in the 'Share' menu, where you can assign collaborator roles such as Owner, Editor, or Viewer.\n\nFor more granular control, you can create Access Rules to limit who can view or edit specific\ntables, columns, or rows — useful for sensitive data or role-based permissions.\n[Learn more.]({{helpAccessRules}})": "## Règles d'accès\n\nLes accès de base à ce document sont configurés en utilisant l'option 'Gérer les utilisateurs' dans le menu 'Partager', où vous pouvez assigner à vos collaborateurs des rôles tels que Propriétaire, Éditeur, ou Lecture seule.\n\nPour un controle plus fin, vous pouvez créer des Permissions Avancées pour limiter qui peut voir ou éditer\ndes tables, colonnes, or lignes spécifiques — utile pour les données sensibles ou les permissions basées sur des rôles.\n[En savoir plus.]({{helpAccessRules}})",
+        "**Special rules** (expand each rule to customize who it applies to)": "**Règles spéciales** (développez chaque règle pour personnaliser à qui elle s'applique.)",
+        "After disabling Access Rules, Editors will be able to change the structure of the document and edit formulas. Editors and Viewers will be able to see all data in the document, as well as copy or download it.": "Après avoir désactivé les Permissions Avancées, les Éditeurs pourront changer la structure du document et modifier les formules. Les Éditeurs et les Spectateurs pourront voir toutes les données du document et également le copier et le télécharger.",
+        "After enabling Access Rules, Editors will no longer be able to change the structure of the\ndocument or edit formulas. Only Owners will be able to copy or download the document.\n\nThese settings can be changed under 'Special rules'.": "Après avoir activé les Permissions Avancées, les Éditeurs ne pourront plus modifier la structure du\ndocument ou modifier les formules. Seuls les Propriétaires pourront copier ou télécharger le document.\n\nCes paramètres peuvent être modifier dans les 'Règles spéciales''.",
+        "Allow Editors to edit structure (e.g. modify and delete tables, columns, and layouts) and write formulas.  Important: if checked, Editors will be able to edit formulas, which can access all data, regardless of table and column access rules!": "Autoriser les Éditeurs à modifier la structure (ex. modifier at supprimer les tables, colonnes et dispositions) et écrire des formules. Important : Si cette option est cochée, les Éditeurs pourront modifier les formules, qui peuvent accéder à toutes les données, malgré les Permissions Avancées sur les tables ou les colonnes !",
+        "Allow everyone to view access rules.": "Autoriser tout le monde à voir les permissions avancées.",
+        "Circumvent all read restrictions and allow everyone to copy the entire document, or view it in full in fiddle mode. Only use for for examples and templates, not for documents with sensitive data.": "Contourner toutes les restrictions de lecture et autoriser tout le monde à copier l'entièreté du document, ou le voir en entier en mode bac à sable. À n'utiliser que pour les exemples ou les modèles, pas pour les documents avec des données sensibles.",
+        "Continue": "Continuer",
+        "Disable Access Rules": "Désactiver les Permissions Avancées",
+        "Disable and save": "Désactiver et savegarder",
+        "Enable Access Rules": "Activer les Permissions Avancées",
+        "Permission to access the document in full by all users": "Permission d'accéder à l'entièreté du document pour tous les utilisatrices et utilisateurs",
+        "Permission to access the document in full by unrestricted users": "Permission d'accéder à l'entièreté du document pour les utilisateurs non soumis à une permission avancée",
+        "Restrict non-Owners from copying or downloading the full document. Note: this only affects users without read restrictions, since others will be restricted regardless of this setting.": "Empêche les non-Propriétaires de copier ou télécharger l'entièreté du document. N.B. : cela n'affecte que les utilisateurs sans restriction de lecture, comme les autres seront déjà empêchés sans tenir compte de ce réglage.",
+        "Special rules for templates": "Règle spéciale pour les modèles",
+        "This options should be off if Editors' access is to be limited. ": "Cette option ne devrait pas être activée si les accès des Éditeurs doivent être limités. "
     },
     "AccountPage": {
         "Account settings": "Paramètres du compte",
@@ -725,7 +742,8 @@
         ".zip": ".zip",
         "Format:": "Format :",
         ".tar (recommended)": ".tar (recommandé)",
-        "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "Les pièces jointes sont externalisées et ne sont pas incluses dans ce téléchargement. Si vous importez le document sur une autre instance de Grist, vous devrez {{downloadLink}} séparément. "
+        "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "Les pièces jointes sont externalisées et ne sont pas incluses dans ce téléchargement. Si vous importez le document sur une autre instance de Grist, vous devrez {{downloadLink}} séparément. ",
+        "If you're planning to upload this document to a Grist installation, you will need the archive in the \".tar\" format to restore attachments. ": "Si vous prévoyez de téléverser ce document dans une instance de Grist, vous aurez besoin de l'archiver au format \".tar\" pour pouvoir restaurer les pièces jointes. "
     },
     "NotifyUI": {
         "Upgrade Plan": "Améliorer votre abonnement",
@@ -887,7 +905,7 @@
         "Download document...": "Télécharger le document...",
         "Download attachments...": "Télécharger les PJ...",
         "Exporting is only available from document pages. Please select a document page and try again.": "L'export n'est possible qu'à partir des pages du document. Veuillez sélectionner une page du document et réessayer.",
-        "Suggest Changes": "Suggérer des modifications",
+        "Suggest changes": "Suggérer des modifications",
         "current version": "version actuelle",
         "original": "original"
     },
@@ -936,8 +954,8 @@
         "context menu - Access Rules": "menu contextuel - Règles d'Accès",
         "Delete document tour": "Supprimer la visite de document",
         "Preview the tutorial": "Prévisualiser le tutoriel",
-        "Proposed Changes": "Suggestions de modifications",
-        "Suggest Changes": "Suggérer des modifications",
+        "Proposed changes": "Suggestions de modifications",
+        "Suggest changes": "Suggérer des modifications",
         "Suggestions": "Suggestions"
     },
     "TopBar": {
@@ -1399,7 +1417,7 @@
         "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "Un UUID est un texte généré aléatoirement qui est utile pour les identifiants uniques et les clés de jointures.",
         "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "Les formules supportent beaucoup de fonctions Excel et la syntaxe Python complète. Un assistant IA est disponible sur certaines instances.",
         "Lookups return data from related tables.": "Récupère les données d'une table liée.",
-        "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "Vous pouvez choisir parmi les widgets disponibles dans le menu déroulant, ou utilisez le votre en fournissant son URL complète.",
+        "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "Vous pouvez choisir parmi les vues disponibles dans le menu déroulant, ou utilisez le votre en fournissant son URL complète.",
         "Use reference columns to relate data in different tables.": "Utilisez les colonnes de type Référence pour lier différentes tables entre elles.",
         "Learn more": "En savoir plus",
         "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Créez des formulaires simples directement dans Grist et partagez-les en un clic avec notre nouveau widget. {{learnMoreButton}}",
@@ -1407,7 +1425,7 @@
         "These rules are applied after all column rules have been processed, if applicable.": "Ces règles sont appliquées après le traitement de toutes les règles de la colonne, le cas échéant.",
         "Example: {{example}}": "Exemple : {{example}}",
         "Filter displayed dropdown values with a condition.": "Filtrer les valeurs affichées dans la liste déroulante en fonction d'une condition.",
-        "Community widgets are created and maintained by Grist community members.": "Les widgets communautaires sont créés et maintenus par des membres de la communauté de Grist.",
+        "Community widgets are created and maintained by Grist community members.": "Les vues communautaires sont créées et maintenues par des membres de la communauté de Grist.",
         "Creates a reverse column in target table that can be edited from either end.": "Crée une colonne inversée dans la table cible qui peut être modifiée des deux côtés.",
         "This limitation occurs when one column in a two-way reference has the Reference type.": "Cette limitation se produit lorsque l'une des colonnes d'une référence bidirectionnelle est de type Référence.",
         "To allow multiple assignments, change the referenced column's type to Reference List.": "Pour permettre plusieurs assignations, modifiez le type de la colonne référencée en Référence Multiple.",
@@ -1660,7 +1678,9 @@
         "You may also check out {{ourWeeklyWebinars}} to learn more about Grist.": "Vous pouvez également consulter {{ourWeeklyWebinars}} pour en savoir plus sur Grist.",
         "our weekly webinars": "nos webinaires hebdomadaires",
         "Grist 101": "Les fondamentaux de Grist",
-        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users                navigate the fundamentals of Grist.": "Vous pouvez également suivre notre webinaire d’introduction, {{ourWeeklyWebinars}}, qui a été spécialement créé afin d'aider les nouveaux utilisateurs à maitriser les fondamentaux de Grist."
+        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users                navigate the fundamentals of Grist.": "Vous pouvez également suivre notre webinaire d’introduction, {{ourWeeklyWebinars}}, qui a été spécialement créé afin d'aider les nouveaux utilisateurs à maitriser les fondamentaux de Grist.",
+        "Free coaching call": "Appel de coaching gratuit",
+        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users navigate the fundamentals of Grist.": "Vous pouvez aussi jeter un œil à notre webinaire d'introduction, {{ourWeeklyWebinars}}, conçu pour aider les nouveaux utilisateurs à découvrir les fondamentaux de Grist."
     },
     "FormView": {
         "Publish": "Publier",
@@ -1866,7 +1886,17 @@
         "Administrative accounts": "Comptes d'administration",
         "The users with administrative accounts": "Les utilisateurs avec un compte d'administration",
         "Version {{versionNumber}}": "Version {{versionNumber}}",
-        "no admin accounts": "pas de compte d'administration"
+        "no admin accounts": "pas de compte d'administration",
+        "Are you sure you want to restart Grist?": "Êtes-vous certain de vouloir redémarrer Grist ?",
+        "Grist is running in an environment that doesn't support restarting from the admin panel.": "Grist est lancé dans un environnement qui ne support pas le redémarrage depuis le panneau d’administration.",
+        "Restart": "Redémarrer",
+        "Restart Grist": "Redémarrer Grist",
+        "Restart Grist to apply pending changes or resolve issues.": "Redémarrer Grist pour appliquer les changements en attente ou résoudre les problèmes.",
+        "Restart Grist?": "Redémarrer Grist ?",
+        "Restarting Grist...": "Grist en cours de redémarrage...",
+        "This will apply any pending changes and briefly interrupt access for all users.": "Ceci appliquera tout changement en attente et coupera durant une courte durée l'accès pour tous les utilisateurs.",
+        "You can still restart Grist manually.": "Vous pouvez toujours redémarrer Grist manuellement.",
+        "error in {{provider}}: {{verdict}}": "erreur dans {{provider}} : {{verdict}}"
     },
     "Field": {
         "No choices configured": "Aucun choix configuré",
@@ -2007,7 +2037,7 @@
     },
     "ViewLayout": {
         "Delete": "Supprimer",
-        "Delete data and this widget.": "Supprimer les données et le composant.",
+        "Delete data and this widget.": "Supprimer les données et la vue",
         "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "Garder les données et supprimer la vue. La table restera disponible dans {{rawDataLink}}",
         "Table {{tableName}} will no longer be visible": "La table {{tableName}} ne sera plus visible",
         "Raw Data page": "la page de données source"
@@ -2024,10 +2054,10 @@
         "Custom URL": "URL personnalisée",
         "Grist Widget": "Widget Grist",
         "Last updated:": "Dernière mise à jour :",
-        "No matching widgets": "Pas de widgets correspondants",
+        "No matching widgets": "Pas de vues correspondantes",
         "Search": "Rechercher",
         "Widget URL": "URL du widget",
-        "Learn more about custom widgets": "En savoir plus sur les Widgets personnalisés",
+        "Learn more about custom widgets": "En savoir plus sur les Vues personnalisées",
         "Add Your Own Widget": "Ajouter votre propre widget"
     },
     "markdown": {
@@ -2361,7 +2391,7 @@
         "{{shortcutsModal}} Show the complete list of keyboard shortcuts": "{{shortcutsModal}} Afficher la liste complète des raccourcis claviers"
     },
     "ProposedChangesPage": {
-        "Proposed Changes": "Suggestions de modifications",
+        "Proposed changes": "Suggestions de modifications",
         "Replace Original": "Remplacer l'original",
         "This is a list of changes relative to the original document.": "Liste des modifications apportées par rapport au document original.",
         "Replace original": "Replacer l'original",
@@ -2371,20 +2401,21 @@
         "Dismissed {{at}}.": "Rejeté à {{at}}.",
         "Learn more": "En savoir plus",
         "No changes found to suggest. Please make some edits.": "Aucune modification à suggérer. Veuillez apporter quelques modifications.",
-        "Retract Suggestion": "Retirer la suggestion",
+        "Retract suggestion": "Retirer la suggestion",
         "Retracted {{at}}.": "Retirée à {{at}}.",
-        "Suggest Change": "Suggérer une modification",
-        "Suggest Changes": "Suggérer des modifications",
+        "Suggest change": "Suggérer une modification",
+        "Suggest changes": "Suggérer des modifications",
         "Suggestion made {{at}}.": "Suggestion faite à {{at}}.",
         "Suggestions": "Suggestions",
         "The original document isn't asking for proposed changes.": "Le document original ne demande pas de propositions de modifications.",
         "There are fresh changes that haven't been added to the suggestion yet.": "De nouvelles modifications n'ont pas encore été ajoutées aux suggestions.",
         "This is a list of changes relative to the {{originalDocument}}.": "Voici une liste des modifications relative au {{originalDocument}}.",
-        "Update Suggestion": "Mettre à jour une suggestion",
+        "Update suggestion": "Mettre à jour une suggestion",
         "Work on a copy": "Travailler sur une copie",
         "Your suggestions": "Vos suggestions",
         "experiment": "expérimentation",
-        "original document": "document original"
+        "original document": "document original",
+        "Undo dismissal": "Annuler le rejet"
     },
     "commandList": {
         "Show accessibility options": "Montrer les options d'accessibilité",
@@ -2547,5 +2578,40 @@
     },
     "CoreNewDocMethods": {
         "Untitled document": "Document sans titre"
+    },
+    "GetGristComProvider": {
+        "Sign in with getgrist.com": "Se connecter avec getgrist.com",
+        "Register your Grist server": "Enregistrer votre serveur Grist",
+        "**Sign in with getgrist.com** allows users on your Grist server to sign in using their account on getgrist.com, the cloud version of Grist managed by Grist Labs.": "**Se connecter avec getgrist.com** permets aux utilisateurs de se connecter à votre instance Grist grâce à leur compte sur getgrist.com, la version cloud de Grist gérée par Grist Labs.",
+        "Cancel": "Annuler",
+        "Configure": "Configurer",
+        "Configure Sign in with getgrist.com": "Configurer Se connecter avec getgrist.com",
+        "Home URL is not set; cannot configure Sign in with getgrist.com": "L'URL d'accueil n'est pas définie, impossible de configurer Se connecter avec getgrist.com",
+        "Instructions": "Instructions",
+        "Learn more about Sign in with getgrist.com": "En savoir plus à propose de Se connecter avec getgrist.com",
+        "Paste configuration key here": "Collez votre clé de configuration ici",
+        "To set up {{provider}}, you need to register your Grist server on getgrist.com and paste the configuration key you receive below.": "Pour mettre en place {{provider}}, vous devez enregistrer votre instance Grist sur getgrist.com et coller la clé de configuration que vous avez reçue ci-dessous.",
+        "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.": "Quand il se connecteront, les utilisateurs seront redirigés sur la page de connexion de getgrist.com pour se connecter ou se créer un compte. Après s'être authentifié sur getgrist.com, ils seront redirigés sur votre instance de Grist et connecté en tant que l'utilisateur qu'ils ont authentifié."
+    },
+    "AuthenticationSection": {
+        "Active": "Active",
+        "Active method is controlled by an environment variable. Unset variable to change active method.": "La méthode active est contrôlée par une variable d'environnement. Supprimez la variable pour changer de méthode active.",
+        "Are you sure you want to set **{{name}}** as the active authentication method?": "Êtes-vous sûr de vouloir définir **{{name}}** comme la méthode d’authentification active ?",
+        "Close": "Fermer",
+        "Configure": "Configurer",
+        "Configured": "Configuré",
+        "Confirm": "Confirmer",
+        "Disabled on restart": "Désactiver au redémarrage",
+        "Error": "Erreur",
+        "Error details": "Détail d'erreur",
+        "Instructions": "Instructions",
+        "No authentication method is active.": "Aucune méthode d’authentification active.",
+        "Set as active method": "Définir comme méthode active",
+        "Set as active method?": "Définir comme une méthode active ?",
+        "The new method will go into effect after you restart Grist.": "Cette nouvelle méthode prendra effet quand vous redémarrerez Grist.",
+        "Active on restart": "Active au redémarrage"
+    },
+    "DetailView": {
+        "This row is unavailable or does not exist": "Cette ligne est indisponible ou n’existe pas"
     }
 }

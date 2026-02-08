@@ -1,41 +1,43 @@
+import { MinIOExternalStorage } from "app/server/lib/MinIOExternalStorage";
+import { waitForIt } from "test/server/wait";
+
+import * as stream from "node:stream";
+
+import { assert } from "chai";
+import fse from "fs-extra";
 import * as minio from "minio";
 import sinon from "sinon";
-import * as stream from "node:stream";
-import fse from "fs-extra";
-import {MinIOExternalStorage} from "app/server/lib/MinIOExternalStorage";
-import {assert} from "chai";
-import {waitForIt} from "test/server/wait";
 
-describe("MinIOExternalStorage", function () {
+describe("MinIOExternalStorage", function() {
   const sandbox = sinon.createSandbox();
   const FakeClientClass = class extends minio.Client {
     public listObjects(
       bucket: string,
       key: string,
       recursive: boolean,
-      options?: {IncludeVersion?: boolean}
+      options?: { IncludeVersion?: boolean },
     ): minio.BucketStream<minio.BucketItem> {
       return new stream.Readable();
     }
   };
-  const dummyBucket = 'some-bucket';
+  const dummyBucket = "some-bucket";
   const dummyOptions = {
-    endPoint: 'some-endpoint',
-    accessKey: 'some-accessKey',
-    secretKey: 'some-secretKey',
-    region: 'some-region',
+    endPoint: "some-endpoint",
+    accessKey: "some-accessKey",
+    secretKey: "some-secretKey",
+    region: "some-region",
   };
-  afterEach(function () {
+  afterEach(function() {
     sandbox.restore();
   });
 
-  describe('upload()', function () {
+  describe("upload()", function() {
     const filename = "some-filename";
     let filestream: fse.ReadStream;
     let s3: sinon.SinonStubbedInstance<minio.Client>;
     let extStorage: MinIOExternalStorage;
 
-    beforeEach(function () {
+    beforeEach(function() {
       filestream = new stream.Readable() as any;
       sandbox.stub(fse, "lstat").resolves({} as any);
       sandbox.stub(fse, "createReadStream").withArgs(filename).returns(filestream as any);
@@ -44,11 +46,11 @@ describe("MinIOExternalStorage", function () {
         dummyBucket,
         dummyOptions,
         undefined,
-        s3 as any
+        s3 as any,
       );
     });
 
-    it("should call putObject with the right arguments", async function () {
+    it("should call putObject with the right arguments", async function() {
       const putObjectPromise = sinon.promise<Awaited<ReturnType<typeof s3.putObject>>>();
       s3.putObject
         .withArgs(dummyBucket, "some-key", filestream, undefined, undefined)
@@ -67,7 +69,7 @@ describe("MinIOExternalStorage", function () {
         "filestream should be destroyed after putObject resolves");
     });
 
-    it("should close the file even if putObject fails", async function () {
+    it("should close the file even if putObject fails", async function() {
       s3.putObject.rejects(new Error("some-error"));
 
       await assert.isRejected(extStorage.upload("some-key", filename), "some-error");
@@ -76,23 +78,23 @@ describe("MinIOExternalStorage", function () {
     });
   });
 
-  describe('versions()', function () {
+  describe("versions()", function() {
     function makeFakeStream(listedObjects: object[]) {
-      const fakeStream = new stream.Readable({objectMode: true});
+      const fakeStream = new stream.Readable({ objectMode: true });
       const readSpy = sandbox.stub(fakeStream, "_read");
       for (const [index, obj] of listedObjects.entries()) {
         readSpy.onCall(index).callsFake(() => fakeStream.push(obj));
       }
       readSpy.onCall(listedObjects.length).callsFake(() => fakeStream.push(null));
-      return {fakeStream, readSpy};
+      return { fakeStream, readSpy };
     }
 
-    it("should call listObjects with the right arguments", async function () {
+    it("should call listObjects with the right arguments", async function() {
       const s3 = sandbox.createStubInstance(FakeClientClass);
       const key = "some-key";
       const expectedRecursive = false;
-      const expectedOptions = {IncludeVersion: true};
-      const {fakeStream} = makeFakeStream([]);
+      const expectedOptions = { IncludeVersion: true };
+      const { fakeStream } = makeFakeStream([]);
 
       s3.listObjects.returns(fakeStream);
 
@@ -107,18 +109,18 @@ describe("MinIOExternalStorage", function () {
     // and when the minio-js version used as a dependency includes that patch.
     //
     // For more context: https://github.com/gristlabs/grist-core/pull/577
-    it("should return versionId's as string when return snapshotId is an integer", async function () {
+    it("should return versionId's as string when return snapshotId is an integer", async function() {
       // given
       const s3 = sandbox.createStubInstance(FakeClientClass);
       const key = "some-key";
       const versionId = 123;
       const lastModified = new Date();
-      const {fakeStream, readSpy} = makeFakeStream([
+      const { fakeStream, readSpy } = makeFakeStream([
         {
           name: key,
           lastModified,
           versionId,
-        }
+        },
       ]);
 
       s3.listObjects.returns(fakeStream);
@@ -129,11 +131,11 @@ describe("MinIOExternalStorage", function () {
       assert.equal(readSpy.callCount, 2);
       assert.deepEqual(result, [{
         lastModified: lastModified.toISOString(),
-        snapshotId: String(versionId)
+        snapshotId: String(versionId),
       }]);
     });
 
-    it("should include markers only when asked through options", async function () {
+    it("should include markers only when asked through options", async function() {
       // given
       const s3 = sandbox.createStubInstance(FakeClientClass);
       const key = "some-key";
@@ -142,17 +144,17 @@ describe("MinIOExternalStorage", function () {
         {
           name: key,
           lastModified,
-          versionId: 'regular-version-uuid',
-          isDeleteMarker: false
+          versionId: "regular-version-uuid",
+          isDeleteMarker: false,
         },
         {
           name: key,
           lastModified,
-          versionId: 'delete-marker-version-uuid',
-          isDeleteMarker: true
-        }
+          versionId: "delete-marker-version-uuid",
+          isDeleteMarker: true,
+        },
       ];
-      let {fakeStream} = makeFakeStream(objectsFromS3);
+      let { fakeStream } = makeFakeStream(objectsFromS3);
 
       s3.listObjects.returns(fakeStream);
       const extStorage = new MinIOExternalStorage(dummyBucket, dummyOptions, 42, s3 as any);
@@ -163,7 +165,7 @@ describe("MinIOExternalStorage", function () {
       // then
       assert.deepEqual(result, [{
         lastModified: lastModified.toISOString(),
-        snapshotId: objectsFromS3[0].versionId
+        snapshotId: objectsFromS3[0].versionId,
       }]);
 
       // given
@@ -171,27 +173,27 @@ describe("MinIOExternalStorage", function () {
       s3.listObjects.returns(fakeStream);
 
       // when
-      const resultWithDeleteMarkers = await extStorage.versions(key, {includeDeleteMarkers: true});
+      const resultWithDeleteMarkers = await extStorage.versions(key, { includeDeleteMarkers: true });
 
       // then
       assert.deepEqual(resultWithDeleteMarkers, [{
         lastModified: lastModified.toISOString(),
-        snapshotId: objectsFromS3[0].versionId
+        snapshotId: objectsFromS3[0].versionId,
       }, {
         lastModified: lastModified.toISOString(),
-        snapshotId: objectsFromS3[1].versionId
+        snapshotId: objectsFromS3[1].versionId,
       }]);
     });
 
-    it("should reject when an error occurs while listing objects", function () {
+    it("should reject when an error occurs while listing objects", function() {
       // given
       const s3 = sandbox.createStubInstance(FakeClientClass);
       const key = "some-key";
-      const fakeStream = new stream.Readable({objectMode: true});
+      const fakeStream = new stream.Readable({ objectMode: true });
       const error = new Error("dummy-error");
       sandbox.stub(fakeStream, "_read")
         .returns(fakeStream as any)
-        .callsFake(() => fakeStream.emit('error', error));
+        .callsFake(() => fakeStream.emit("error", error));
       s3.listObjects.returns(fakeStream);
       const extStorage = new MinIOExternalStorage(dummyBucket, dummyOptions, 42, s3 as any);
 

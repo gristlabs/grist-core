@@ -12,7 +12,6 @@ import { downloadDocModal } from "app/client/ui/MakeCopyMenu";
 import { showRenameDocModal } from "app/client/ui/RenameDocModal";
 import { shadowScroll } from "app/client/ui/shadowScroll";
 import { makeShareDocUrl } from "app/client/ui/ShareMenu";
-import { buildTabs, TabProps } from 'app/client/ui2018/tabs';
 import {
   isNarrowScreenObs,
   mediaMedium,
@@ -21,15 +20,17 @@ import {
 } from "app/client/ui2018/cssVars";
 import { IconName } from "app/client/ui2018/IconList";
 import { icon as cssIcon } from "app/client/ui2018/icons";
-import { unstyledButton, unstyledH2, unstyledUl } from "app/client/ui2018/unstyled";
-import { stretchedLink } from "app/client/ui2018/stretchedLink";
-import { visuallyHidden } from "app/client/ui2018/visuallyHidden";
 import { menu, menuIcon, menuItem, select } from "app/client/ui2018/menus";
 import { confirmModal, saveModal } from "app/client/ui2018/modals";
+import { stretchedLink } from "app/client/ui2018/stretchedLink";
+import { buildTabs, TabProps } from "app/client/ui2018/tabs";
+import { unstyledButton, unstyledH2, unstyledUl } from "app/client/ui2018/unstyled";
+import { visuallyHidden } from "app/client/ui2018/visuallyHidden";
 import { HomePageTab } from "app/common/gristUrls";
 import { SortPref } from "app/common/Prefs";
 import * as roles from "app/common/roles";
 import { Document } from "app/common/UserAPI";
+
 import {
   Computed,
   computedArray,
@@ -62,34 +63,38 @@ export class DocList extends Disposable {
       } else {
         return ["all", "pinned"];
       }
-    }
+    },
   );
+
   private readonly _tabIconsAndLabels = getTabIconsAndLabels();
 
   private readonly _tabs: MaybeObsArray<TabProps> = this.autoDispose(
-    computedArray(this._tabNames, (tab) => ({
+    computedArray(this._tabNames, tab => ({
       id: tab,
       label: this._tabIconsAndLabels[tab].label,
       icon: this._tabIconsAndLabels[tab].icon,
       link: { homePageTab: tab },
-    })
-  ));
+    }),
+    ));
+
   private readonly _viewSettings =
     this._options.viewSettings ?? this._options.home;
+
   private readonly _tab = Computed.create(
     this,
     this._tabNames,
     urlState().state,
     (_use, tabs, { homePageTab }) => {
       return homePageTab && tabs.includes(homePageTab) ? homePageTab : tabs[0];
-    }
+    },
   );
+
   private readonly _showWorkspace = Computed.create(
     this,
     this._home.currentPage,
     (_use, page) => {
       return page !== "workspace";
-    }
+    },
   );
 
   constructor(private _options: DocListOptions) {
@@ -104,13 +109,13 @@ export class DocList extends Disposable {
     return cssHeader(
       visuallyHidden(unstyledH2(t("Documents list"))),
       buildTabs(this._tabs, this._tab),
-      this._buildViewSettings()
+      this._buildViewSettings(),
     );
   }
 
   private _buildViewSettings() {
     return dom.maybe(
-      (use) => use(this._tab) !== "recent",
+      use => use(this._tab) !== "recent",
       () =>
         cssViewSettings(
           dom.update(
@@ -120,11 +125,11 @@ export class DocList extends Disposable {
                 { value: "name", label: t("Sort by name") },
                 { value: "date", label: t("Sort by date") },
               ],
-              { buttonCssClass: cssSortSelect.className }
+              { buttonCssClass: cssSortSelect.className },
             ),
-            testId("sort-mode")
-          )
-        )
+            testId("sort-mode"),
+          ),
+        ),
     );
   }
 
@@ -132,7 +137,7 @@ export class DocList extends Disposable {
     const { currentSort } = this._viewSettings;
     return [
       dom.domComputed(
-        (use) => ({
+        use => ({
           docs: use(this._home.currentWSDocs),
           sort: use(currentSort),
           tab: use(this._tab),
@@ -141,9 +146,9 @@ export class DocList extends Disposable {
           docs = sortAndFilterDocs(docs, { sort, tab });
           if (docs.length === 0) {
             return cssNoDocsMessage(
-              cssNoDocsImage({ alt: '', width: '150', height: '140', src: "img/create-document.svg" }),
+              cssNoDocsImage({ alt: "", width: "150", height: "140", src: "img/create-document.svg" }),
               dom("div", cssParagraph(t("No documents to show."))),
-              testId("no-docs-message")
+              testId("no-docs-message"),
             );
           }
 
@@ -152,10 +157,10 @@ export class DocList extends Disposable {
             // as they are not relevant in that case
             cssDocHeaderRow(
               dom.hide(isNarrowScreenObs()),
-              cssNameColumn(t("Name"), {'aria-hidden': 'true'}),
-              cssWorkspaceColumn(t("Workspace"), dom.show(this._showWorkspace), {'aria-hidden': 'true'}),
-              cssEditedAtColumn(t("Last edited"), {'aria-hidden': 'true'}),
-              cssOptionsColumn()
+              cssNameColumn(t("Name"), { "aria-hidden": "true" }),
+              cssWorkspaceColumn(t("Workspace"), dom.show(this._showWorkspace), { "aria-hidden": "true" }),
+              cssEditedAtColumn(t("Last edited"), { "aria-hidden": "true" }),
+              cssOptionsColumn(),
             ),
             unstyledUl(
               dom.forEach(docs, (doc) => {
@@ -170,50 +175,50 @@ export class DocList extends Disposable {
                           icon: doc.options?.appearance?.icon,
                         },
                         testId("doc-icon"),
-                        {'aria-hidden': 'true'},
+                        { "aria-hidden": "true" },
                       ),
                       cssDocNameAndBadges(
                         cssDocName(
                           urlState().setLinkUrl(docUrl(doc)),
                           stripIconFromName(doc.name, Boolean(doc.options?.appearance?.icon?.emoji)),
-                          testId("doc-name")
+                          testId("doc-name"),
                         ),
                         cssDocBadges(
-                          doc.isPinned
-                            ? cssPinIcon("Pin2", testId("doc-pinned"))
-                            : null,
-                          doc.public
-                            ? cssWorldIcon("World", testId("doc-public"))
-                            : null,
-                        )
-                      )
+                          doc.isPinned ?
+                            cssPinIcon("Pin2", testId("doc-pinned")) :
+                            null,
+                          doc.public ?
+                            cssWorldIcon("World", testId("doc-public")) :
+                            null,
+                        ),
+                      ),
                     ),
                     cssDocWorkspace(
                       dom.show(this._showWorkspace),
-                      dom('span',
+                      dom("span",
                         visuallyHidden(t("Workspace")),
-                        workspaceName(this._home.app, doc.workspace)
+                        workspaceName(this._home.app, doc.workspace),
                       ),
-                      testId("doc-workspace")
+                      testId("doc-workspace"),
                     ),
                     cssDocEditedAt(
                       getUpdatedAt(doc),
-                      testId("doc-edited-at")
+                      testId("doc-edited-at"),
                     ),
                     cssDocDetailsCompact(
                       cssDocName(
                         urlState().setLinkUrl(docUrl(doc)),
-                        stripIconFromName(doc.name, Boolean(doc.options?.appearance?.icon?.emoji))
+                        stripIconFromName(doc.name, Boolean(doc.options?.appearance?.icon?.emoji)),
                       ),
                       cssDocEditedAt(getUpdatedAt(doc)),
                       cssDocBadges(
-                        !doc.isPinned
-                          ? null
-                          : cssPinIcon("Pin2"),
-                        !doc.public
-                          ? null
-                          : cssWorldIcon("World")
-                      )
+                        !doc.isPinned ?
+                          null :
+                          cssPinIcon("Pin2"),
+                        !doc.public ?
+                          null :
+                          cssWorldIcon("World"),
+                      ),
                     ),
                     cssDocOptions(
                       cssDotsIcon("Dots"),
@@ -222,21 +227,21 @@ export class DocList extends Disposable {
                         // Keep the document highlighted while the menu is open.
                         parentSelectorToMark: "." + cssDocRow.className,
                       }),
-                      dom.on("click", (ev) => stopEvent(ev)),
-                      {'aria-label': t("context menu - {{- documentName }}", {documentName: `"${doc.name}"`})},
-                      testId("doc-options")
+                      dom.on("click", ev => stopEvent(ev)),
+                      { "aria-label": t("context menu - {{- documentName }}", { documentName: `"${doc.name}"` }) },
+                      testId("doc-options"),
                     ),
                     contextMenu(() => makeDocOptionsMenu(this._home, doc), {
                       // Keep the document highlighted while the menu is open.
                       parentSelectorToMark: "." + cssDocRow.className,
                     }),
-                    testId("doc")
-                  )
+                    testId("doc"),
+                  ),
                 );
               }),
             ),
           ];
-        }
+        },
       ),
     ];
   }
@@ -252,7 +257,7 @@ export function makeDocOptionsMenu(home: HomeModel, doc: Document) {
       t("Delete {{name}}", { name: doc.name }),
       t("Delete"),
       () => home.deleteDoc(doc.id, false).catch(reportError),
-      { explanation: t("Document will be moved to Trash.") }
+      { explanation: t("Document will be moved to Trash.") },
     );
   }
 
@@ -277,7 +282,7 @@ export function makeDocOptionsMenu(home: HomeModel, doc: Document) {
       () => showRenameDocModal({ home, doc }),
       t("Rename and set icon"),
       dom.cls("disabled", doc.disabledAt !== undefined || !roles.isOwner(doc)),
-      testId("rename-doc")
+      testId("rename-doc"),
     ),
     menuItem(
       () => showMoveDocModal(home, doc),
@@ -290,36 +295,36 @@ export function makeDocOptionsMenu(home: HomeModel, doc: Document) {
       // the doc, so this is the only access check required to move the doc out of this workspace.
       // The user must also have edit access on the destination, however, for the move to work.
       dom.cls("disabled", doc.disabledAt !== undefined || !roles.canEditAccess(doc.access)),
-      testId("move-doc")
+      testId("move-doc"),
     ),
     menuItem(
       deleteDoc,
       t("Delete"),
       dom.cls("disabled", !roles.isOwner(doc)),
-      testId("delete-doc")
+      testId("delete-doc"),
     ),
     menuItem(
       () => home.pinUnpinDoc(doc.id, !doc.isPinned).catch(reportError),
       doc.isPinned ? t("Unpin") : t("Pin"),
       dom.cls("disabled", !roles.canEdit(orgAccess)),
-      testId("pin-doc")
+      testId("pin-doc"),
     ),
     menuItem(
       manageUsers,
       roles.canEditAccess(doc.access) ? t("Manage users") : t("Access details"),
-      testId("doc-access")
+      testId("doc-access"),
     ),
     // The electron method for "downloading" documents only works
     // with a websocket currently, so downloads are only easy
     // to support when the document is open.
     // TODO: support showItemInFolder with electron in a better way.
     (isElectron ? null :
-        menuItem(
-          () => downloadDocModal(doc, home.app),
-          menuIcon('Download'), t("Download document..."),
-          dom.cls("disabled", doc.disabledAt !== undefined),
-          testId('tb-share-option'))
-        ),
+      menuItem(
+        () => downloadDocModal(doc, home.app),
+        menuIcon("Download"), t("Download document..."),
+        dom.cls("disabled", doc.disabledAt !== undefined),
+        testId("tb-share-option"))
+    ),
   ];
 }
 
@@ -332,30 +337,30 @@ function showMoveDocModal(home: HomeModel, doc: Document) {
           if (ws.isSupportWorkspace) {
             return null;
           }
-          const isCurrent = Boolean(ws.docs.find((_doc) => _doc.id === doc.id));
+          const isCurrent = Boolean(ws.docs.find(_doc => _doc.id === doc.id));
           const isEditable = roles.canEdit(ws.access);
           const disabled = isCurrent || !isEditable;
           return cssMoveDocListItem(
             cssMoveDocListText(workspaceName(home.app, ws)),
             isCurrent ? cssMoveDocListHintText(t("Current workspace")) : null,
-            !isEditable
-              ? cssMoveDocListHintText(t("Requires edit permissions"))
-              : null,
+            !isEditable ?
+              cssMoveDocListHintText(t("Requires edit permissions")) :
+              null,
             cssMoveDocListItem.cls("-disabled", disabled),
             cssMoveDocListItem.cls(
               "-selected",
-              (use) => use(selected) === ws.id
+              use => use(selected) === ws.id,
             ),
             dom.on("click", () => disabled || selected.set(ws.id)),
-            testId("dest-ws")
+            testId("dest-ws"),
           );
-        })
-      )
+        }),
+      ),
     );
     return {
       title: t("Move {{name}} to workspace", { name: doc.name }),
       body,
-      saveDisabled: Computed.create(owner, (use) => !use(selected)),
+      saveDisabled: Computed.create(owner, use => !use(selected)),
       saveFunc: async () =>
         !selected.get() ||
         home.moveDoc(doc.id, selected.get()!).catch(reportError),
@@ -393,15 +398,15 @@ interface SortAndFilterOptions {
 
 function sortAndFilterDocs(
   docs: Document[],
-  { sort, tab }: SortAndFilterOptions
+  { sort, tab }: SortAndFilterOptions,
 ) {
   if (tab === "pinned") {
     docs = docs.filter(({ isPinned }) => isPinned);
   }
   if (sort === "date" || tab === "recent") {
-    docs = sortBy(docs, (doc) => doc.removedAt || doc.updatedAt).reverse();
+    docs = sortBy(docs, doc => doc.removedAt || doc.updatedAt).reverse();
   } else {
-    docs = sortBy(docs, (doc) => doc.name.toLowerCase());
+    docs = sortBy(docs, doc => doc.name.toLowerCase());
   }
   return docs;
 }

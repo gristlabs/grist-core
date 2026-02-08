@@ -3,7 +3,7 @@
  *
  * Useful to easily build semantic content without having to deal with removing styles all the time.
  */
-import {styled} from "grainjs";
+import { styled } from "grainjs";
 
 const base = `
   margin: 0;
@@ -11,7 +11,7 @@ const base = `
   border: 0 solid;
 `;
 
-export const unstyledButton = styled('button', `
+export const unstyledButton = styled("button", `
   ${base}
   font: inherit;
   letter-spacing: inherit;
@@ -22,7 +22,7 @@ export const unstyledButton = styled('button', `
   appearance: button;
 `);
 
-export const unstyledLink = styled('a', `
+export const unstyledLink = styled("a", `
   ${base}
   color: inherit;
   -webkit-text-decoration: inherit;
@@ -35,7 +35,7 @@ export const unstyledLink = styled('a', `
   }
 `);
 
-export const unstyledUl = styled('ul', `
+export const unstyledUl = styled("ul", `
   ${base}
   list-style: none;
 `);
@@ -46,4 +46,4 @@ const unstyledHeadings = `
   font-weight: inherit;
 `;
 
-export const unstyledH2 = styled('h2', unstyledHeadings);
+export const unstyledH2 = styled("h2", unstyledHeadings);

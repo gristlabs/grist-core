@@ -1085,7 +1085,7 @@
         "Exporting is only available from document pages. Please select a document page and try again.": "导出功能仅支持从文档页面导出。请选择一个文档页面，然后重试。",
         "Download attachments...": "下载附件...",
         "Download document...": "下载文档...",
-        "Suggest Changes": "建议修改",
+        "Suggest changes": "建议修改",
         "current version": "当前版本",
         "original": "原来的"
     },
@@ -1127,8 +1127,8 @@
         "context menu - Access Rules": "上下文菜单 - 访问规则",
         "Delete document tour": "删除文档导览",
         "Preview the tutorial": "预览教程",
-        "Proposed Changes": "拟议变更",
-        "Suggest Changes": "建议修改",
+        "Proposed changes": "拟议变更",
+        "Suggest changes": "建议修改",
         "Suggestions": "建议"
     },
     "TopBar": {

@@ -1,4 +1,4 @@
-import {loadMomentTimezone} from 'app/client/lib/imports';
+import { loadMomentTimezone } from "app/client/lib/imports";
 
 /**
  * Returns the browser timezone, using moment.tz.guess(), allowing overriding it via a "timezone"
@@ -7,5 +7,5 @@ import {loadMomentTimezone} from 'app/client/lib/imports';
 export async function guessTimezone() {
   const moment = await loadMomentTimezone();
   const searchParams = new URLSearchParams(window.location.search);
-  return searchParams.get('timezone') || moment.tz.guess();
+  return searchParams.get("timezone") || moment.tz.guess();
 }

@@ -9,7 +9,7 @@ export function dateFmt(timestamp: number | null | string | Date): string {
   if (date.getFullYear() !== new Date().getFullYear()) {
     return dateFmtFull(timestamp);
   }
-  return new Date(timestamp).toLocaleDateString('default', { month: 'long', day: 'numeric' });
+  return new Date(timestamp).toLocaleDateString("default", { month: "long", day: "numeric" });
 }
 
 /**
@@ -19,13 +19,13 @@ export function dateFmt(timestamp: number | null | string | Date): string {
  */
 export function dateFmtFull(timestamp: number | null | string | Date): string {
   if (!timestamp) { return "unknown"; }
-  return new Date(timestamp).toLocaleDateString('default', { month: 'short', day: 'numeric', year: 'numeric' });
+  return new Date(timestamp).toLocaleDateString("default", { month: "short", day: "numeric", year: "numeric" });
 }
 
 /**
  * Formats a timestamp in milliseconds to a time string.
  */
 export function timeFmt(timestampMs: number): string {
-  return new Date(timestampMs).toLocaleString('default',
-    { month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric' });
+  return new Date(timestampMs).toLocaleString("default",
+    { month: "short", day: "numeric", hour: "numeric", minute: "numeric" });
 }

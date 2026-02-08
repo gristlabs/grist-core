@@ -1,5 +1,5 @@
-const gutil = require('./gutil');
-const {arrayToString, stringToArray} = require('./arrayToString');
+const gutil = require("./gutil");
+const {arrayToString, stringToArray} = require("./arrayToString");
 
 
 /**
@@ -106,7 +106,7 @@ MemBuffer.prototype.writeByteArray = function(bytes) {
 /**
  * Encodes the given string in UTF8 and appends to the buffer.
  */
-if (typeof TextDecoder !== 'undefined') {
+if (typeof TextDecoder !== "undefined") {
   MemBuffer.prototype.writeString = function(string) {
     this.writeByteArray(stringToArray(string));
   };
@@ -132,7 +132,7 @@ if (typeof TextDecoder !== 'undefined') {
 
 
 function makeWriteFunc(typeName, bytes, optLittleEndian) {
-  var setter = DataView.prototype['set' + typeName];
+  var setter = DataView.prototype["set" + typeName];
   return function(value) {
     this.reserve(this.size() + bytes);
     setter.call(this.asDataView, this.endPos, value, optLittleEndian);
@@ -144,20 +144,20 @@ function makeWriteFunc(typeName, bytes, optLittleEndian) {
  * The following methods append a value of the given type to the buffer.
  * These are analogous to Node Buffer's write* family of methods.
  */
-MemBuffer.prototype.writeInt8 = makeWriteFunc('Int8', 1);
-MemBuffer.prototype.writeUint8 = makeWriteFunc('Uint8', 1);
-MemBuffer.prototype.writeInt16LE = makeWriteFunc('Int16', 2, true);
-MemBuffer.prototype.writeInt16BE = makeWriteFunc('Int16', 2, false);
-MemBuffer.prototype.writeUint16LE = makeWriteFunc('Uint16', 2, true);
-MemBuffer.prototype.writeUint16BE = makeWriteFunc('Uint16', 2, false);
-MemBuffer.prototype.writeInt32LE = makeWriteFunc('Int32', 4, true);
-MemBuffer.prototype.writeInt32BE = makeWriteFunc('Int32', 4, false);
-MemBuffer.prototype.writeUint32LE = makeWriteFunc('Uint32', 4, true);
-MemBuffer.prototype.writeUint32BE = makeWriteFunc('Uint32', 4, false);
-MemBuffer.prototype.writeFloat32LE = makeWriteFunc('Float32', 4, true);
-MemBuffer.prototype.writeFloat32BE = makeWriteFunc('Float32', 4, false);
-MemBuffer.prototype.writeFloat64LE = makeWriteFunc('Float64', 8, true);
-MemBuffer.prototype.writeFloat64BE = makeWriteFunc('Float64', 8, false);
+MemBuffer.prototype.writeInt8 = makeWriteFunc("Int8", 1);
+MemBuffer.prototype.writeUint8 = makeWriteFunc("Uint8", 1);
+MemBuffer.prototype.writeInt16LE = makeWriteFunc("Int16", 2, true);
+MemBuffer.prototype.writeInt16BE = makeWriteFunc("Int16", 2, false);
+MemBuffer.prototype.writeUint16LE = makeWriteFunc("Uint16", 2, true);
+MemBuffer.prototype.writeUint16BE = makeWriteFunc("Uint16", 2, false);
+MemBuffer.prototype.writeInt32LE = makeWriteFunc("Int32", 4, true);
+MemBuffer.prototype.writeInt32BE = makeWriteFunc("Int32", 4, false);
+MemBuffer.prototype.writeUint32LE = makeWriteFunc("Uint32", 4, true);
+MemBuffer.prototype.writeUint32BE = makeWriteFunc("Uint32", 4, false);
+MemBuffer.prototype.writeFloat32LE = makeWriteFunc("Float32", 4, true);
+MemBuffer.prototype.writeFloat32BE = makeWriteFunc("Float32", 4, false);
+MemBuffer.prototype.writeFloat64LE = makeWriteFunc("Float64", 8, true);
+MemBuffer.prototype.writeFloat64BE = makeWriteFunc("Float64", 8, false);
 
 /**
  * To consume data from an mbuf, the following pattern is recommended:
@@ -244,7 +244,7 @@ MemBuffer.prototype.readBuffer = function(cons, length) {
  * passed-in consumer, as created by mbuf.makeConsumer().
  * @returns {string}
  */
-if (typeof TextDecoder !== 'undefined') {
+if (typeof TextDecoder !== "undefined") {
   MemBuffer.prototype.readString = function(cons, byteLength) {
     return arrayToString(this.readByteArraySlice(cons, byteLength));
   };
@@ -254,7 +254,7 @@ if (typeof TextDecoder !== 'undefined') {
     var offset = cons._consume(byteLength);
     if (byteLength <= decodeBuffer.length) {
       gutil.arrayCopyForward(decodeBuffer, 0, this.asArray, offset, byteLength);
-      return decodeBuffer.toString('utf8', 0, byteLength);
+      return decodeBuffer.toString("utf8", 0, byteLength);
     } else {
       return Buffer.from(new Uint8Array(this.buffer, offset, byteLength)).toString();
     }
@@ -262,7 +262,7 @@ if (typeof TextDecoder !== 'undefined') {
 }
 
 function makeReadFunc(typeName, bytes, optLittleEndian) {
-  var getter = DataView.prototype['get' + typeName];
+  var getter = DataView.prototype["get" + typeName];
   return function(cons) {
     return getter.call(this.asDataView, cons._consume(bytes), optLittleEndian);
   };
@@ -276,19 +276,19 @@ function makeReadFunc(typeName, bytes, optLittleEndian) {
  *    mbuf.consume(consumer);
  * These are analogous to Node Buffer's read* family of methods.
  */
-MemBuffer.prototype.readInt8 = makeReadFunc('Int8', 1);
-MemBuffer.prototype.readUint8 = makeReadFunc('Uint8', 1);
-MemBuffer.prototype.readInt16LE = makeReadFunc('Int16', 2, true);
-MemBuffer.prototype.readUint16LE = makeReadFunc('Uint16', 2, true);
-MemBuffer.prototype.readInt16BE = makeReadFunc('Int16', 2, false);
-MemBuffer.prototype.readUint16BE = makeReadFunc('Uint16', 2, false);
-MemBuffer.prototype.readInt32LE = makeReadFunc('Int32', 4, true);
-MemBuffer.prototype.readUint32LE = makeReadFunc('Uint32', 4, true);
-MemBuffer.prototype.readInt32BE = makeReadFunc('Int32', 4, false);
-MemBuffer.prototype.readUint32BE = makeReadFunc('Uint32', 4, false);
-MemBuffer.prototype.readFloat32LE = makeReadFunc('Float32', 4, true);
-MemBuffer.prototype.readFloat32BE = makeReadFunc('Float32', 4, false);
-MemBuffer.prototype.readFloat64LE = makeReadFunc('Float64', 8, true);
-MemBuffer.prototype.readFloat64BE = makeReadFunc('Float64', 8, false);
+MemBuffer.prototype.readInt8 = makeReadFunc("Int8", 1);
+MemBuffer.prototype.readUint8 = makeReadFunc("Uint8", 1);
+MemBuffer.prototype.readInt16LE = makeReadFunc("Int16", 2, true);
+MemBuffer.prototype.readUint16LE = makeReadFunc("Uint16", 2, true);
+MemBuffer.prototype.readInt16BE = makeReadFunc("Int16", 2, false);
+MemBuffer.prototype.readUint16BE = makeReadFunc("Uint16", 2, false);
+MemBuffer.prototype.readInt32LE = makeReadFunc("Int32", 4, true);
+MemBuffer.prototype.readUint32LE = makeReadFunc("Uint32", 4, true);
+MemBuffer.prototype.readInt32BE = makeReadFunc("Int32", 4, false);
+MemBuffer.prototype.readUint32BE = makeReadFunc("Uint32", 4, false);
+MemBuffer.prototype.readFloat32LE = makeReadFunc("Float32", 4, true);
+MemBuffer.prototype.readFloat32BE = makeReadFunc("Float32", 4, false);
+MemBuffer.prototype.readFloat64LE = makeReadFunc("Float64", 8, true);
+MemBuffer.prototype.readFloat64BE = makeReadFunc("Float64", 8, false);
 
 module.exports = MemBuffer;

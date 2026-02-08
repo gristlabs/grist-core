@@ -1,4 +1,5 @@
 import ConfigsTI from "app/common/Config-ti";
+
 import { CheckerT, createCheckers } from "ts-interface-checker";
 
 export interface Config {

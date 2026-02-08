@@ -2,20 +2,19 @@
  * This module contains various logic for converting columns between types. It is used from
  * TypeTransform.js.
  */
-// tslint:disable:no-console
 
-import {isString} from 'app/client/lib/sessionObs';
-import {DocModel} from 'app/client/models/DocModel';
-import {ColumnRec} from 'app/client/models/entities/ColumnRec';
-import {csvDecodeRow} from 'app/common/csvFormat';
-import * as gristTypes from 'app/common/gristTypes';
-import {isFullReferencingType} from 'app/common/gristTypes';
-import * as gutil from 'app/common/gutil';
-import {isNonNullish} from 'app/common/gutil';
-import NumberParse from 'app/common/NumberParse';
-import {dateTimeWidgetOptions, guessDateFormat, timeFormatOptions} from 'app/common/parseDate';
-import {TableData} from 'app/common/TableData';
-import {decodeObject} from 'app/plugin/objtypes';
+import { isString } from "app/client/lib/sessionObs";
+import { DocModel } from "app/client/models/DocModel";
+import { ColumnRec } from "app/client/models/entities/ColumnRec";
+import { csvDecodeRow } from "app/common/csvFormat";
+import * as gristTypes from "app/common/gristTypes";
+import { isFullReferencingType } from "app/common/gristTypes";
+import * as gutil from "app/common/gutil";
+import { isNonNullish } from "app/common/gutil";
+import NumberParse from "app/common/NumberParse";
+import { dateTimeWidgetOptions, guessDateFormat, timeFormatOptions } from "app/common/parseDate";
+import { TableData } from "app/common/TableData";
+import { decodeObject } from "app/plugin/objtypes";
 
 interface PrepColInfo {
   type: string;
@@ -25,7 +24,6 @@ interface PrepColInfo {
   widgetOptions?: string;
   rules: gristTypes.RefListValue
 }
-
 
 /**
  * Returns the suggested full type for `column` given a desired pure type to convert it to.
@@ -41,7 +39,7 @@ export function addColTypeSuffix(type: string, column: ColumnRec, docModel: DocM
       return `${type}:${refTableId}`;
     }
     case "DateTime":
-      return 'DateTime:' + docModel.docInfoRow.timezone();
+      return "DateTime:" + docModel.docInfoRow.timezone();
     default:
       return type;
   }
@@ -58,7 +56,7 @@ export function inferColTypeSuffix(newPure: string, column: ColumnRec) {
   }
 
   // If the old type was also Ref/RefList, just return the tableId from the old type.
-  const existingTable = column.type.peek().split(':')[1];
+  const existingTable = column.type.peek().split(":")[1];
   const oldPure = gristTypes.extractTypeFromColType(column.type.peek());
   if (existingTable && (oldPure === "Ref" || oldPure === "RefList")) {
     return `${newPure}:${existingTable}`;
@@ -71,9 +69,9 @@ export function inferColTypeSuffix(newPure: string, column: ColumnRec) {
  * [R|r, <tableId>, <rowId>] (a Reference(List) value returned from a formula), and returns the tableId
  * from that.
  */
-function getRefTableIdFromData(docModel: DocModel, column: ColumnRec): string|null {
+function getRefTableIdFromData(docModel: DocModel, column: ColumnRec): string | null {
   const tableData = docModel.docData.getTable(column.table().tableId());
-  const columnData = tableData && tableData.getColValues(column.colId());
+  const columnData = tableData?.getColValues(column.colId());
   if (columnData) {
     for (const value of columnData) {
       if (gristTypes.isReferencing(value)) {
@@ -83,7 +81,7 @@ function getRefTableIdFromData(docModel: DocModel, column: ColumnRec): string|nu
         if (gristTypes.isReference(item)) {
           return item[1];
         }
-      } else if (typeof value === 'string') {
+      } else if (typeof value === "string") {
         // If it looks like a formatted Ref(List) value, e.g:
         //   - Table1[123]
         //   - [Table1[1], Table1[2], Table1[3]]
@@ -100,7 +98,6 @@ function getRefTableIdFromData(docModel: DocModel, column: ColumnRec): string|nu
   return null;
 }
 
-
 // Given info about the original column, and the type of the new one, returns a promise for the
 // ColInfo to use for the transform column. Note that isFormula will be set to true, and formula
 // will be set to the expression to compute the new values from the old ones.
@@ -112,14 +109,14 @@ export async function prepTransformColInfo(options: {
   toTypeMaybeFull: string;
   convertedRef?: string
 }): Promise<PrepColInfo> {
-  const {docModel, origCol, origDisplayCol, toTypeMaybeFull, convertedRef} = options;
+  const { docModel, origCol, origDisplayCol, toTypeMaybeFull, convertedRef } = options;
   const toType = gristTypes.extractTypeFromColType(toTypeMaybeFull);
   const tableData: TableData = docModel.docData.getTable(origCol.table().tableId())!;
 
   const visibleCol = origCol.visibleColModel();
   // Column used to derive previous widget options and sample values for guessing
   const sourceCol = visibleCol.getRowId() !== 0 ? visibleCol : origCol;
-  let widgetOptions = {...(sourceCol.widgetOptionsJson() || {})};
+  let widgetOptions = { ...(sourceCol.widgetOptionsJson() || {}) };
 
   if (isReferenceCol(origCol)) {
     // While reference columns copy most options from their visible column, conditional style rules are kept
@@ -135,7 +132,7 @@ export async function prepTransformColInfo(options: {
     // A quirk of this is that the default (non-conditional) cell style can still be copied from the visible column,
     // so a subset of the overall cell styling can change.
     delete widgetOptions.rulesOptions;
-    const {rulesOptions} = origCol.widgetOptionsJson() || {};
+    const { rulesOptions } = origCol.widgetOptionsJson() || {};
     if (rulesOptions) {
       widgetOptions.rulesOptions = rulesOptions;
     }
@@ -150,8 +147,8 @@ export async function prepTransformColInfo(options: {
   };
 
   switch (toType) {
-    case 'Ref':
-    case 'RefList':
+    case "Ref":
+    case "RefList":
     {
       // Set suggested destination table and visible column.
       // Undefined if toTypeMaybeFull is a pure type (e.g. converting to Ref before a table is chosen).
@@ -189,7 +186,7 @@ export async function prepTransformColInfo(options: {
       break;
     }
     default:
-      widgetOptions = guessWidgetOptionsSync({docModel, origCol, toTypeMaybeFull, widgetOptions});
+      widgetOptions = guessWidgetOptionsSync({ docModel, origCol, toTypeMaybeFull, widgetOptions });
   }
 
   if (Object.keys(widgetOptions).length) {
@@ -208,45 +205,45 @@ export function guessWidgetOptionsSync(options: {
   toTypeMaybeFull: string;
   widgetOptions?: any;
 }): object {
-  const {docModel, origCol, toTypeMaybeFull} = options;
+  const { docModel, origCol, toTypeMaybeFull } = options;
   const toType = gristTypes.extractTypeFromColType(toTypeMaybeFull);
-  let widgetOptions = {...(options.widgetOptions ?? {})};
+  let widgetOptions = { ...(options.widgetOptions ?? {}) };
   const tableData: TableData = docModel.docData.getTable(origCol.table().tableId())!;
   const visibleCol = origCol.visibleColModel();
   const sourceCol = visibleCol.getRowId() !== 0 ? visibleCol : origCol;
   switch (toType) {
-    case 'Bool':
+    case "Bool":
       // Most types use a TextBox as the default widget.
       // We don't want to reuse that for Toggle columns, which should be a CheckBox by default.
       delete widgetOptions.widget;
       break;
-    case 'Date':
-    case 'DateTime': {
-      let {dateFormat} = widgetOptions;
+    case "Date":
+    case "DateTime": {
+      let { dateFormat } = widgetOptions;
       if (!dateFormat) {
         // Guess date and time format if there aren't any already
         const colValues = tableData.getColValues(sourceCol.colId()) || [];
         const strValues = colValues.map(v => isNonNullish(v) ? String(v) : null);
         dateFormat = guessDateFormat(strValues);
-        widgetOptions = {...widgetOptions, ...(dateTimeWidgetOptions(dateFormat, true))};
+        widgetOptions = { ...widgetOptions, ...(dateTimeWidgetOptions(dateFormat, true)) };
       }
-      if (toType === 'DateTime' && !widgetOptions.timeFormat) {
+      if (toType === "DateTime" && !widgetOptions.timeFormat) {
         // Ensure DateTime columns have a time format. This is needed when converting from a Date column.
         widgetOptions.timeFormat = timeFormatOptions[0];
         widgetOptions.isCustomTimeFormat = false;
       }
       break;
     }
-    case 'Numeric':
-    case 'Int': {
+    case "Numeric":
+    case "Int": {
       if (!["Numeric", "Int"].includes(sourceCol.type())) {
         const numberParse = NumberParse.fromSettings(docModel.docData.docSettings());
         const colValues = tableData.getColValues(sourceCol.colId()) || [];
-        widgetOptions = {...widgetOptions, ...numberParse.guessOptions(colValues.filter(isString))};
+        widgetOptions = { ...widgetOptions, ...numberParse.guessOptions(colValues.filter(isString)) };
       }
       break;
     }
-    case 'Choice': {
+    case "Choice": {
       // Use previous choices if they are set, e.g. if converting from ChoiceList
       if (!Array.isArray(widgetOptions.choices)) {
         // Set suggested choices. Limit to 100, since too many choices is more likely to cause
@@ -254,14 +251,14 @@ export function guessWidgetOptionsSync(options: {
         const columnData = tableData.getDistinctValues(sourceCol.colId(), 100);
         if (columnData) {
           const choices = Array.from(columnData).filter(isNonNullish)
-                                                .map(v => String(v).trim())
-                                                .filter(Boolean);
-          widgetOptions = {...widgetOptions, choices};
+            .map(v => String(v).trim())
+            .filter(Boolean);
+          widgetOptions = { ...widgetOptions, choices };
         }
       }
       break;
     }
-    case 'ChoiceList': {
+    case "ChoiceList": {
       // Use previous choices if they are set, e.g. if converting from Choice
       if (!Array.isArray(widgetOptions.choices)) {
         // Set suggested choices. This happens before the conversion to ChoiceList, so we do some
@@ -270,15 +267,15 @@ export function guessWidgetOptionsSync(options: {
         for (let value of tableData.getColValues(sourceCol.colId()) || []) {
           if (value === null) { continue; }
           value = String(decodeObject(value)).trim();
-          const tags: unknown[] = (value.startsWith('[') && gutil.safeJsonParse(value, null)) || csvDecodeRow(value);
+          const tags: unknown[] = (value.startsWith("[") && gutil.safeJsonParse(value, null)) || csvDecodeRow(value);
           for (const tag of tags) {
-            const choice = !tag ? '' : String(tag).trim();
-            if (choice === '') { continue; }
+            const choice = !tag ? "" : String(tag).trim();
+            if (choice === "") { continue; }
             choices.add(choice);
             if (choices.size > 100) { break; }    // Don't suggest excessively many choices.
           }
         }
-        widgetOptions = {...widgetOptions, choices: Array.from(choices)};
+        widgetOptions = { ...widgetOptions, choices: Array.from(choices) };
       }
       break;
     }
@@ -286,22 +283,21 @@ export function guessWidgetOptionsSync(options: {
   return widgetOptions;
 }
 
-
 // Given the transformCol, calls (if needed) a user action to update its displayCol.
 export async function setDisplayFormula(
-  docModel: DocModel, transformCol: ColumnRec, visibleCol?: number
+  docModel: DocModel, transformCol: ColumnRec, visibleCol?: number,
 ): Promise<void> {
   const vcolRef = (visibleCol == null) ? transformCol.visibleCol() : visibleCol;
   if (isReferenceCol(transformCol)) {
     const vcol = getVisibleColName(docModel, vcolRef);
     const tcol = transformCol.colId();
-    const displayFormula = (vcolRef === 0 ? '' : `$${tcol}.${vcol}`);
+    const displayFormula = (vcolRef === 0 ? "" : `$${tcol}.${vcol}`);
     return transformCol.saveDisplayFormula(displayFormula);
   }
 }
 
 // Returns the name of the visibleCol given its rowId.
-function getVisibleColName(docModel: DocModel, visibleColRef: number): string|undefined {
+function getVisibleColName(docModel: DocModel, visibleColRef: number): string | undefined {
   return visibleColRef ? docModel.columns.getRowModel(visibleColRef).colId() : undefined;
 }
 

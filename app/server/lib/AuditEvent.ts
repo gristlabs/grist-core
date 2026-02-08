@@ -9,7 +9,7 @@ import { Workspace } from "app/gen-server/entity/Workspace";
 import { PreviousAndCurrent } from "app/gen-server/lib/homedb/Interfaces";
 
 export interface AuditEvent<
-  Action extends AuditEventAction = AuditEventAction
+  Action extends AuditEventAction = AuditEventAction,
 > {
   /**
    * The event ID.
@@ -77,16 +77,16 @@ export const AuditEventAction = StringUnion(
   "workspace.delete",
   "workspace.move_to_trash",
   "workspace.rename",
-  "workspace.restore_from_trash"
+  "workspace.restore_from_trash",
 );
 
 export type AuditEventAction = typeof AuditEventAction.type;
 
 export type AuditEventActor =
-  | UserActor
-  | GuestActor
-  | SystemActor
-  | UnknownActor;
+  | UserActor |
+  GuestActor |
+  SystemActor |
+  UnknownActor;
 
 interface UserActor {
   type: "user";
@@ -134,11 +134,9 @@ export interface AuditEventDetails {
     access_changes: {
       public_access?: NonGuestRole | null;
       max_inherited_access?: BasicRole | null;
-      users?: Array<
-        Pick<User, "id" | "name"> & { email?: string } & {
-          access: NonGuestRole | null;
-        }
-      >;
+      users?: (Pick<User, "id" | "name"> & { email?: string } & {
+        access: NonGuestRole | null;
+      })[];
     };
   };
   "document.clear_all_webhook_queues": {
@@ -248,7 +246,7 @@ export interface AuditEventDetails {
     document: Pick<Document, "id">;
     sql_query: {
       statement: string;
-      arguments?: Array<string | number> | null;
+      arguments?: (string | number)[] | null;
     };
     options: {
       timeout_ms?: number;
@@ -269,11 +267,9 @@ export interface AuditEventDetails {
   "site.change_access": {
     site: Pick<Organization, "id" | "name" | "domain">;
     access_changes: {
-      users: Array<
-        Pick<User, "id" | "name"> & { email?: string } & {
-          access: NonGuestRole | null;
-        }
-      >;
+      users: (Pick<User, "id" | "name"> & { email?: string } & {
+        access: NonGuestRole | null;
+      })[];
     };
   };
   "site.create": {
@@ -310,11 +306,9 @@ export interface AuditEventDetails {
     workspace: Pick<Workspace, "id" | "name">;
     access_changes: {
       max_inherited_access?: BasicRole | null;
-      users?: Array<
-        Pick<User, "id" | "name"> & { email?: string } & {
-          access: NonGuestRole | null;
-        }
-      >;
+      users?: (Pick<User, "id" | "name"> & { email?: string } & {
+        access: NonGuestRole | null;
+      })[];
     };
   };
   "workspace.create": {

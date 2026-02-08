@@ -2,10 +2,11 @@
  * Implements a widget for showing and editing a list of colIds. It offers a select dropdown to
  * add a new column, and allows removing already-added columns.
  */
-import {aclSelect, cssSelect} from 'app/client/aclui/ACLSelect';
-import {testId, theme} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {Computed, dom, Observable, styled} from 'grainjs';
+import { aclSelect, cssSelect } from "app/client/aclui/ACLSelect";
+import { testId, theme } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+
+import { Computed, dom, Observable, styled } from "grainjs";
 
 export function aclColumnList(colIds: Observable<string[]>, validColIds: string[]) {
   // Define some helpers functions.
@@ -24,14 +25,14 @@ export function aclColumnList(colIds: Observable<string[]>, validColIds: string[
     }
   }
   function onBlur() {
-    if (!selectBox.matches('.weasel-popup-open') && colIds.get().length > 0) {
+    if (!selectBox.matches(".weasel-popup-open") && colIds.get().length > 0) {
       editing.set(false);
     }
   }
 
   // The observable for the selected element is a Computed, with a callback for being set, which
   // adds the selected colId to the list.
-  const newColId = Computed.create(null, (use) => '')
+  const newColId = Computed.create(null, use => "")
     .onWrite((value) => { setTimeout(() => addColId(value), 0); });
 
   // We don't allow adding the same column twice, so for the select dropdown build a list of
@@ -45,35 +46,34 @@ export function aclColumnList(colIds: Observable<string[]>, validColIds: string[
   const editing = Observable.create(null, !colIds.get().length);
 
   let selectBox: HTMLElement;
-  return cssColListWidget({tabIndex: '0'},
+  return cssColListWidget({ tabIndex: "0" },
     dom.autoDispose(unusedColIds),
-    cssColListWidget.cls('-editing', editing),
-    dom.on('focus', onFocus),
+    cssColListWidget.cls("-editing", editing),
+    dom.on("focus", onFocus),
     dom.forEach(colIds, colId =>
       cssColItem(
         cssColId(colId),
-        cssColItemIcon(icon('CrossSmall'),
-          dom.on('click', () => removeColId(colId)),
-          testId('acl-col-remove'),
+        cssColItemIcon(icon("CrossSmall"),
+          dom.on("click", () => removeColId(colId)),
+          testId("acl-col-remove"),
         ),
-        testId('acl-column'),
-      )
+        testId("acl-column"),
+      ),
     ),
     cssNewColItem(
       dom.update(
-        selectBox = aclSelect(newColId, unusedColIds, {defaultLabel: '[Add Column]'}),
-        cssSelect.cls('-active'),
-        dom.on('blur', onBlur),
-        dom.onKeyDown({Escape: onBlur}),
+        selectBox = aclSelect(newColId, unusedColIds, { defaultLabel: "[Add Column]" }),
+        cssSelect.cls("-active"),
+        dom.on("blur", onBlur),
+        dom.onKeyDown({ Escape: onBlur }),
         // If starting out in edit mode, focus the select box.
-        (editing.get() ? (elem) => { setTimeout(() => elem.focus(), 0); } : null)
+        (editing.get() ? (elem) => { setTimeout(() => elem.focus(), 0); } : null),
       ),
-    )
+    ),
   );
 }
 
-
-const cssColListWidget = styled('div', `
+const cssColListWidget = styled("div", `
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -89,7 +89,7 @@ const cssColListWidget = styled('div', `
   }
 `);
 
-const cssColItem = styled('div', `
+const cssColItem = styled("div", `
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -103,7 +103,7 @@ const cssColItem = styled('div', `
   }
 `);
 
-const cssColId = styled('div', `
+const cssColId = styled("div", `
   flex: auto;
   height: 24px;
   line-height: 24px;
@@ -112,7 +112,7 @@ const cssColId = styled('div', `
   text-overflow: ellipsis;
 `);
 
-const cssNewColItem = styled('div', `
+const cssNewColItem = styled("div", `
   margin-top: 2px;
   display: none;
   .${cssColListWidget.className}-editing & {
@@ -120,7 +120,7 @@ const cssNewColItem = styled('div', `
   }
 `);
 
-const cssColItemIcon = styled('div', `
+const cssColItemIcon = styled("div", `
   flex: none;
   height: 16px;
   width: 16px;

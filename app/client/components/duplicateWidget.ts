@@ -1,28 +1,29 @@
-import {cleanFormLayoutSpec} from 'app/client/components/FormRenderer';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {BoxSpec, purgeBoxSpec} from 'app/client/lib/BoxSpec';
-import {makeT} from 'app/client/lib/localization';
-import {ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
-import {cssField, cssLabel} from 'app/client/ui/MakeCopyMenu';
-import {IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
-import {IOption, select} from 'app/client/ui2018/menus';
-import {saveModal} from 'app/client/ui2018/modals';
-import {BulkColValues, getColValues, RowRecord, UserAction} from 'app/common/DocActions';
-import {arrayRepeat} from 'app/common/gutil';
-import {schema} from 'app/common/schema';
-import {dom, fromKo, Observable} from 'grainjs';
-import cloneDeepWith from 'lodash/cloneDeepWith';
-import flatten from 'lodash/flatten';
-import forEach from 'lodash/forEach';
-import {testId} from 'app/client/ui2018/cssVars';
-import {logTelemetryEvent} from 'app/client/lib/telemetry';
-import sortBy from 'lodash/sortBy';
-import fromPairs from 'lodash/fromPairs';
-import ko from 'knockout';
+import { cleanFormLayoutSpec } from "app/client/components/FormRenderer";
+import { GristDoc } from "app/client/components/GristDoc";
+import { BoxSpec, purgeBoxSpec } from "app/client/lib/BoxSpec";
+import { makeT } from "app/client/lib/localization";
+import { logTelemetryEvent } from "app/client/lib/telemetry";
+import { ViewFieldRec, ViewSectionRec } from "app/client/models/DocModel";
+import { cssField, cssLabel } from "app/client/ui/MakeCopyMenu";
+import { IPageWidget, toPageWidget } from "app/client/ui/PageWidgetPicker";
+import { testId } from "app/client/ui2018/cssVars";
+import { IOption, select } from "app/client/ui2018/menus";
+import { saveModal } from "app/client/ui2018/modals";
+import { BulkColValues, getColValues, RowRecord, UserAction } from "app/common/DocActions";
+import { arrayRepeat } from "app/common/gutil";
+import { schema } from "app/common/schema";
 
-const t = makeT('duplicateWidget');
+import { dom, fromKo, Observable } from "grainjs";
+import ko from "knockout";
+import cloneDeepWith from "lodash/cloneDeepWith";
+import flatten from "lodash/flatten";
+import forEach from "lodash/forEach";
+import fromPairs from "lodash/fromPairs";
+import sortBy from "lodash/sortBy";
 
-type PageSelectOption = IOption<number> & { isActivePage: boolean }
+const t = makeT("duplicateWidget");
+
+type PageSelectOption = IOption<number> & { isActivePage: boolean };
 
 export async function buildDuplicateWidgetModal(gristDoc: GristDoc, viewSectionId: number) {
   saveModal((ctl, owner) => {
@@ -30,19 +31,19 @@ export async function buildDuplicateWidgetModal(gristDoc: GristDoc, viewSectionI
     const pageSelectOptions = fromKo(ko.pureComputed(() => {
       const allPages = gristDoc.docModel.allPages();
       const validPages = allPages.filter(page => !page.isHidden());
-      const sortedPages = sortBy(validPages, [(page) => page.pagePos()]);
+      const sortedPages = sortBy(validPages, [page => page.pagePos()]);
       const views = sortedPages.map(page => page.view());
 
-      const options: PageSelectOption[] = views.map(view => {
+      const options: PageSelectOption[] = views.map((view) => {
         const isActivePage = view.getRowId() === activeView;
-        const suffix = isActivePage ? (" (" + t('Active') + ")") : "";
+        const suffix = isActivePage ? (" (" + t("Active") + ")") : "";
         return {
           label: `${view.name()}${suffix}`,
           value: view.getRowId(),
           isActivePage: isActivePage,
         };
       });
-      options.push({ label: t('Create new page'), value: 0, isActivePage: false, icon: "Plus" });
+      options.push({ label: t("Create new page"), value: 0, isActivePage: false, icon: "Plus" });
       return options;
     }));
 
@@ -51,19 +52,19 @@ export async function buildDuplicateWidgetModal(gristDoc: GristDoc, viewSectionI
     const pageSelectObs = Observable.create<number>(owner, initialSelectedPage);
 
     return {
-      title: t('Duplicate widget'),
-      body: dom('div', [
+      title: t("Duplicate widget"),
+      body: dom("div", [
         cssField(
           cssLabel("Page"),
           select(pageSelectObs, pageSelectOptions),
           testId("duplicate-widget-page-select"),
-        )
+        ),
       ]),
       async saveFunc() {
         await duplicateWidgets(
-          gristDoc, [viewSectionId], pageSelectObs.get()
+          gristDoc, [viewSectionId], pageSelectObs.get(),
         );
-      }
+      },
     };
   });
 }
@@ -80,11 +81,11 @@ export async function duplicateWidgets(gristDoc: GristDoc, srcViewSectionIds: nu
   const isNewView = destViewId < 1;
   let resolvedDestViewId = destViewId;
 
-  logTelemetryEvent('duplicatedWidget', {
+  logTelemetryEvent("duplicatedWidget", {
     full: {
       docIdDigest: gristDoc.docId(),
-      destPage: isNewView ? 'NEW' : (destViewId === sourceView.getRowId() ? 'SAME' : 'OTHER'),
-    }
+      destPage: isNewView ? "NEW" : (destViewId === sourceView.getRowId() ? "SAME" : "OTHER"),
+    },
   });
 
   await gristDoc.docData.bundleActions(
@@ -95,7 +96,7 @@ export async function duplicateWidgets(gristDoc: GristDoc, srcViewSectionIds: nu
       const {
         duplicatedViewSections,
         viewRef,
-        viewSectionIdMap
+        viewSectionIdMap,
       } = await createNewViewSections(gristDoc, sourceViewSections, destViewId);
       resolvedDestViewId = viewRef;
 
@@ -112,15 +113,15 @@ export async function duplicateWidgets(gristDoc: GristDoc, srcViewSectionIds: nu
       // to match the newly created view sections.
       let layoutSpecUpdatePromise = Promise.resolve();
       if (isNewView) {
-          const newLayoutSpec = patchLayoutSpec(sourceView.layoutSpecObj.peek(), viewSectionIdMap);
-          layoutSpecUpdatePromise = gristDoc.docData.sendAction(
-            ['UpdateRecord', '_grist_Views', resolvedDestViewId, { layoutSpec: JSON.stringify(newLayoutSpec)}]
-          );
+        const newLayoutSpec = patchLayoutSpec(sourceView.layoutSpecObj.peek(), viewSectionIdMap);
+        layoutSpecUpdatePromise = gristDoc.docData.sendAction(
+          ["UpdateRecord", "_grist_Views", resolvedDestViewId, { layoutSpec: JSON.stringify(newLayoutSpec) }],
+        );
       }
       await Promise.all([
         layoutSpecUpdatePromise,
         updateViewSections(gristDoc, duplicatedViewSections, viewFieldsIdMap, viewSectionIdMap),
-        copyFilters(gristDoc, sourceViewSections, viewSectionIdMap)
+        copyFilters(gristDoc, sourceViewSections, viewSectionIdMap),
       ]);
 
       // Remove the fields that were automatically created when the view sections were created,.
@@ -131,10 +132,9 @@ export async function duplicateWidgets(gristDoc: GristDoc, srcViewSectionIds: nu
       // the UI will either break, throw errors, or both, due to it temporarily being in an invalid
       // state (referencing non-existent fields).
       await removeViewFields(gristDoc, autoCreatedViewFieldIds);
-
     },
     // If called from duplicatePage (or similar), we don't want to start a new bundle.
-    {nestInActiveBundle: true}
+    { nestInActiveBundle: true },
   );
 
   // Give copy focus
@@ -151,23 +151,22 @@ export async function duplicateWidgets(gristDoc: GristDoc, srcViewSectionIds: nu
 async function copyFilters(
   gristDoc: GristDoc,
   srcViewSections: ViewSectionRec[],
-  viewSectionMap: {[id: number]: number}) {
-
+  viewSectionMap: { [id: number]: number }) {
   // Get all filters for selected sections.
   const filters: RowRecord[] = [];
-  const table = gristDoc.docData.getMetaTable('_grist_Filters');
+  const table = gristDoc.docData.getMetaTable("_grist_Filters");
   for (const srcViewSection of srcViewSections) {
     const sectionFilters = table
-      .filterRecords({ viewSectionRef : srcViewSection.id.peek()})
+      .filterRecords({ viewSectionRef: srcViewSection.id.peek() })
       .map(filter => ({
         // Replace section ref with destination ref.
-        ...filter, viewSectionRef : viewSectionMap[srcViewSection.id.peek()]
+        ...filter, viewSectionRef: viewSectionMap[srcViewSection.id.peek()],
       }));
     filters.push(...sectionFilters);
   }
   if (filters.length) {
     const filterInfo = getColValues(filters);
-    await gristDoc.docData.sendAction(['BulkAddRecord', '_grist_Filters',
+    await gristDoc.docData.sendAction(["BulkAddRecord", "_grist_Filters",
       new Array(filters.length).fill(null), filterInfo]);
   }
 }
@@ -177,16 +176,15 @@ async function copyFilters(
  * (for detail/cardlist sections), use viewSectionMap to patch the sections ids for linking.
  */
 async function updateViewSections(gristDoc: GristDoc, duplicatedViewSections: DuplicatedViewSection[],
-                                  fieldsMap: {[id: number]: number}, viewSectionMap: {[id: number]: number}) {
-
+  fieldsMap: { [id: number]: number }, viewSectionMap: { [id: number]: number }) {
   const destRowIds: number[] = [];
   const records: RowRecord[] = [];
   for (const { srcViewSection, destViewSection } of duplicatedViewSections) {
     const viewSectionLayoutSpec =
-      srcViewSection.parentKey.peek() === 'form'
-          ? cleanFormLayoutSpec(srcViewSection.layoutSpecObj.peek(), fieldsMap)
-          : patchLayoutSpec(srcViewSection.layoutSpecObj.peek(), fieldsMap);
-    const record = gristDoc.docData.getMetaTable('_grist_Views_section').getRecord(srcViewSection.getRowId())!;
+      srcViewSection.parentKey.peek() === "form" ?
+        cleanFormLayoutSpec(srcViewSection.layoutSpecObj.peek(), fieldsMap) :
+        patchLayoutSpec(srcViewSection.layoutSpecObj.peek(), fieldsMap);
+    const record = gristDoc.docData.getMetaTable("_grist_Views_section").getRecord(srcViewSection.getRowId())!;
 
     const isNewView = srcViewSection.view.peek().id.peek() != destViewSection.view.peek().id.peek();
     const originalLinkRef = srcViewSection.linkSrcSectionRef.peek();
@@ -197,7 +195,7 @@ async function updateViewSections(gristDoc: GristDoc, duplicatedViewSections: Du
       ...record,
       layoutSpec: JSON.stringify(viewSectionLayoutSpec),
       linkSrcSectionRef: linkRef ?? false,
-      shareOptions: '',
+      shareOptions: "",
     });
   }
 
@@ -206,7 +204,7 @@ async function updateViewSections(gristDoc: GristDoc, duplicatedViewSections: Du
 
   delete sectionsInfo.parentId;
 
-  await gristDoc.docData.sendAction(['BulkUpdateRecord', '_grist_Views_section', destRowIds, sectionsInfo]);
+  await gristDoc.docData.sendAction(["BulkUpdateRecord", "_grist_Views_section", destRowIds, sectionsInfo]);
 }
 
 async function copyOriginalViewFields(gristDoc: GristDoc, viewSectionPairs: DuplicatedViewSection[]) {
@@ -219,8 +217,8 @@ async function copyOriginalViewFields(gristDoc: GristDoc, viewSectionPairs: Dupl
     const srcViewFields: ViewFieldRec[] = srcViewSection.viewFields.peek().peek();
     const parentId = destViewSection.getRowId();
     for (const field of srcViewFields) {
-      const record = docData.getMetaTable('_grist_Views_section_field').getRecord(field.getRowId())!;
-      fieldsToAdd.push({...record, parentId});
+      const record = docData.getMetaTable("_grist_Views_section_field").getRecord(field.getRowId())!;
+      fieldsToAdd.push({ ...record, parentId });
       srcViewFieldIds.push(field.getRowId());
     }
   }
@@ -230,7 +228,7 @@ async function copyOriginalViewFields(gristDoc: GristDoc, viewSectionPairs: Dupl
   forEach(schema._grist_Views_section_field, (val, key) => fieldsInfo[key] = fieldsToAdd.map(rec => rec[key]));
   const rowIds = arrayRepeat(fieldsInfo.parentId.length, null);
 
-  const addAction: UserAction = ['BulkAddRecord', '_grist_Views_section_field', rowIds, fieldsInfo];
+  const addAction: UserAction = ["BulkAddRecord", "_grist_Views_section_field", rowIds, fieldsInfo];
   // Add then remove to workaround a bug, where fields won't work in the UI when a duplicate widget
   // has a 'SelectBy' set and all fields are showing.
   // This looks to be an issue deep within the computed values, where something isn't updating
@@ -246,12 +244,12 @@ async function copyOriginalViewFields(gristDoc: GristDoc, viewSectionPairs: Dupl
 
 function listAllViewFields(viewSections: ViewSectionRec[]) {
   return flatten(viewSections.map(
-    (viewSection) => viewSection.viewFields.peek().peek().map((field) => field.getRowId())
+    viewSection => viewSection.viewFields.peek().peek().map(field => field.getRowId()),
   ));
 }
 
 async function removeViewFields(gristDoc: GristDoc, fieldIds: number[]) {
-  await gristDoc.docData.sendAction(['BulkRemoveRecord', '_grist_Views_section_field', fieldIds]);
+  await gristDoc.docData.sendAction(["BulkRemoveRecord", "_grist_Views_section_field", fieldIds]);
 }
 
 /**
@@ -263,12 +261,12 @@ async function createNewViewSections(gristDoc: GristDoc, viewSections: ViewSecti
 
   // Passing a viewId of 0 will create a new view.
   const createdViewSectionResults = [
-    await gristDoc.docData.sendAction(newViewSectionAction(first, viewId))
+    await gristDoc.docData.sendAction(newViewSectionAction(first, viewId)),
   ];
   const targetViewRef = createdViewSectionResults[0].viewRef;
 
   // Other view sections are added to the newly created view.
-  const otherViewSectionActions = rest.map((widget) => newViewSectionAction(widget, targetViewRef));
+  const otherViewSectionActions = rest.map(widget => newViewSectionAction(widget, targetViewRef));
 
   // Avoid sending an empty list of actions - it causes a bug in the bundling code that results
   // in the bundle being split into two bundles (2025-07-18).
@@ -280,7 +278,7 @@ async function createNewViewSections(gristDoc: GristDoc, viewSections: ViewSecti
   // backend. In practice, this typically won't occur, and a more correct solution would require major work.
   // Either moving duplicate to the backend, or not using viewSection models at all (only ids).
   const newViewSections = createdViewSectionResults.map(
-    result => gristDoc.docModel.viewSections.rowModels[result.sectionRef]
+    result => gristDoc.docModel.viewSections.rowModels[result.sectionRef],
   );
 
   const duplicatedViewSections: DuplicatedViewSection[] =
@@ -289,7 +287,7 @@ async function createNewViewSections(gristDoc: GristDoc, viewSections: ViewSecti
   return {
     duplicatedViewSections,
     viewSectionIdMap: fromPairs(duplicatedViewSections.map((
-      { srcViewSection, destViewSection }) => [srcViewSection.getRowId(), destViewSection.getRowId()]
+      { srcViewSection, destViewSection }) => [srcViewSection.getRowId(), destViewSection.getRowId()],
     )),
     viewRef: targetViewRef,
   };
@@ -297,7 +295,7 @@ async function createNewViewSections(gristDoc: GristDoc, viewSections: ViewSecti
 
 // Helper to create an action that add widget to the view with viewId.
 function newViewSectionAction(widget: IPageWidget, viewId: number) {
-  return ['CreateViewSection', widget.table, viewId, widget.type, widget.summarize ? widget.columns : null, null];
+  return ["CreateViewSection", widget.table, viewId, widget.type, widget.summarize ? widget.columns : null, null];
 }
 
 /**
@@ -313,16 +311,16 @@ function newViewSectionAction(widget: IPageWidget, viewId: number) {
 *      collapsed: [{leaf: 2}]
  *   }, {1: 10, 2: 20})
  */
-function patchLayoutSpec(layoutSpec: BoxSpec, mapIds: {[id: number]: number}) {
+function patchLayoutSpec(layoutSpec: BoxSpec, mapIds: { [id: number]: number }) {
   // First remove any invalid ids from the layoutSpec. We are doing the same thing what
   // `ViewLayout` does when it load itself.
   layoutSpec = purgeBoxSpec({
     spec: layoutSpec,
     validLeafIds: Object.keys(mapIds).map(Number),
-    restoreCollapsed: true
+    restoreCollapsed: true,
   });
   return cloneDeepWith(layoutSpec, (val, key) => {
-    if (key === 'leaf' && mapIds[val]) {
+    if (key === "leaf" && mapIds[val]) {
       return mapIds[val];
     }
   });

@@ -23,7 +23,7 @@ export const ariaTabs = (tabListId: string, state: Observable<string>) => {
  *
  * A "tab list" is a dom element containing multiple "tabs" (see `ariaTab`).
  */
-export const ariaTabList = () => ({role: "tablist"});
+export const ariaTabList = () => ({ role: "tablist" });
 
 /**
  * Returns a list of DOM args to attach to an element we want to expose as a "tab",
@@ -42,21 +42,21 @@ export const ariaTabList = () => ({role: "tablist"});
 export const ariaTab = (tabListId: string, tabId: string, state: Observable<string>) => {
   return [
     {
-      id: `aria-tab-${tabListId}-${tabId}`,
-      role: "tab",
+      "id": `aria-tab-${tabListId}-${tabId}`,
+      "role": "tab",
       "data-tab-id": tabId,
       "aria-controls": `aria-tabpanel-${tabListId}-${tabId}`,
     },
-    dom.attr("aria-selected", (use) => use(state) === tabId ? "true" : "false"),
-    dom.attr("tabindex", (use) => use(state) === tabId ? "0" : "-1"),
+    dom.attr("aria-selected", use => use(state) === tabId ? "true" : "false"),
+    dom.attr("tabindex", use => use(state) === tabId ? "0" : "-1"),
     // this is important to bypass default handling of tabindex in the RegionFocusSwitcher and Clipboard
     dom.cls("ignore_tabindex"),
-    dom.on('click', () => state.set(tabId)),
+    dom.on("click", () => state.set(tabId)),
     dom.onKeyDown({
       // Only horizontal tabs are currently implemented.
-      ArrowLeft: (event) => cycle(event.target, state, -1),
-      ArrowRight: (event) => cycle(event.target, state, 1),
-    })
+      ArrowLeft: event => cycle(event.target, state, -1),
+      ArrowRight: event => cycle(event.target, state, 1),
+    }),
   ];
 };
 
@@ -83,12 +83,12 @@ export const ariaTab = (tabListId: string, tabId: string, state: Observable<stri
 export const ariaTabPanel = (tabListId: string, tabId: string, state: Observable<string>, children: DomContents) => {
   return [
     {
-      id: `aria-tabpanel-${tabListId}-${tabId}`,
-      role: "tabpanel",
+      "id": `aria-tabpanel-${tabListId}-${tabId}`,
+      "role": "tabpanel",
       "aria-labelledby": `aria-tab-${tabListId}-${tabId}`,
     },
-    dom.attr('aria-hidden', (use) => use(state) !== tabId ? "true" : "false"),
-    dom.domComputed(state, (currentTabId) => currentTabId === tabId ? children : null),
+    dom.attr("aria-hidden", use => use(state) !== tabId ? "true" : "false"),
+    dom.domComputed(state, currentTabId => currentTabId === tabId ? children : null),
   ];
 };
 
@@ -103,7 +103,7 @@ const cycle = (fromElement: EventTarget | null, state: Observable<string>, direc
   const tabs = tabList.querySelectorAll('[role="tab"]');
   const currentIndex = Array.from(tabs).indexOf(fromElement as HTMLElement);
   const newIndex = (currentIndex + direction + tabs.length) % tabs.length;
-  const newTabId = tabs[newIndex].getAttribute('data-tab-id');
+  const newTabId = tabs[newIndex].getAttribute("data-tab-id");
   if (newTabId) {
     state.set(newTabId);
     const newTab = tabs[newIndex];

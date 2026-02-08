@@ -1,11 +1,13 @@
-const path = require('path');
-const fs = require('fs');
+const path = require("path");
+const fs = require("fs");
 
-const { loadPyodide } = require('./_build/worker/node_modules/pyodide');
-const { listLibs } = require('./packages');
+const { loadPyodide } = require("./_build/worker/node_modules/pyodide");
+const { listLibs } = require("./packages");
 
-const INCOMING_FD = 4;
-const OUTGOING_FD = 5;
+const isDeno = typeof Deno !== "undefined";
+
+const INCOMING_FD = isDeno ? 0 : 4;
+const OUTGOING_FD = isDeno ? 1 : 5;
 
 class GristPipe {
   constructor() {
@@ -26,19 +28,20 @@ class GristPipe {
             setTimeout(code, delay);
             // Seems to be OK not to return anything, so we don't.
           } else {
-            throw new Error('setTimeout not available');
+            throw new Error("setTimeout not available");
           }
         },
         sendFromSandbox: (data) => {
           return fs.writeSync(OUTGOING_FD, Buffer.from(data.toJs()));
         }
       },
+      packageCacheDir: fs.realpathSync(path.join(__dirname, "_build", "cache")),
     });
     this.setAdminMode(false);
     this.pyodide.setStdin({
       stdin: () => {
         const result = fs.readSync(INCOMING_FD, this.incomingBuffer, 0,
-                                   this.incomingBuffer.byteLength);
+          this.incomingBuffer.byteLength);
         if (result > 0) {
           const buf = Buffer.allocUnsafe(result, 0, 0, result);
           this.incomingBuffer.copy(buf);
@@ -56,20 +59,56 @@ class GristPipe {
 
   async loadCode() {
     // Load python packages.
-    const src = path.join(__dirname, '_build', 'packages');
+    const src = path.join(__dirname, "_build", "packages");
     const lsty = (await listLibs(src)).available.map(item => item.fullName);
     await this.pyodide.loadPackage(lsty, {
-      messageCallback: (msg) => this.log('[package]', msg),
+      messageCallback: (msg) => this.log("[package]", msg),
     });
 
     // Load Grist data engine code.
     // We mount it as /grist_src, copy to /grist, then unmount.
+    await this.copyFiles(path.join(__dirname, "../grist"), "/grist_src", "/grist");
+  }
+
+  async mountImportDirIfNeeded() {
+    if (process.env.IMPORTDIR) {
+      this.log("Setting up import from", process.env.IMPORTDIR);
+      // All imports for a given doc live in the same root directory.
+      // Copying import files in and dropping read permissions isn't
+      // workable in that case, since the same sandbox is re-used for
+      // subsequent imports. The files would only be copied once on
+      // startup, meaning the files for these later imports won't be
+      // available to Pyodide, resulting in errors.
+      await this.pyodide.FS.mkdir("/import");
+      await this.pyodide.FS.mount(this.pyodide.FS.filesystems.NODEFS, {
+        root: process.env.IMPORTDIR,
+      }, "/import");
+    }
+  }
+
+  async runCode() {
+    await this.pyodide.runPython(`
+  import sys
+  sys.path.append('/')
+  sys.path.append('/grist')
+  import grist
+  import main
+  import os
+  os.environ['PIPE_MODE'] = 'pyodide'
+  os.environ['IMPORTDIR'] = '/import'
+  main.main()
+`);
+  }
+
+  async copyFiles(srcDir, tmpDir, destDir) {
+    // Load file system data.
+    // We mount it as tmpDir, copy to destDir, then unmount.
     // Note that path to source must be a realpath.
-    const root = fs.realpathSync(path.join(__dirname, '../grist'));
-    await this.pyodide.FS.mkdir("/grist_src");
+    const root = fs.realpathSync(srcDir);
+    await this.pyodide.FS.mkdir(tmpDir);
     // careful, needs to be a realpath
-    await this.pyodide.FS.mount(this.pyodide.FS.filesystems.NODEFS, { root }, "/grist_src");
-    // Now want to copy /grist_src to /grist.
+    await this.pyodide.FS.mount(this.pyodide.FS.filesystems.NODEFS, { root }, tmpDir);
+    // Now want to copy tmpDir to destDir.
     // For some reason shutil.copytree doesn't work on Windows in this situation, so
     // we reimplement it crudely.
     await this.pyodide.runPython(`
@@ -83,35 +122,9 @@ def copytree(src, dst):
       copytree(s, d)
     else:
       shutil.copy2(s, d)
-copytree('/grist_src', '/grist')`);
-    await this.pyodide.FS.unmount("/grist_src");
-    await this.pyodide.FS.rmdir("/grist_src");
-  }
-
-  async mountImportDirIfNeeded() {
-    if (process.env.IMPORTDIR) {
-      this.log("Setting up import from", process.env.IMPORTDIR);
-      // Ideally would be read-only; don't see a way to do that,
-      // other than copying like for Grist code.
-      await this.pyodide.FS.mkdir("/import");
-      await this.pyodide.FS.mount(this.pyodide.FS.filesystems.NODEFS, {
-        root: process.env.IMPORTDIR,
-      }, "/import");
-    }
-  }
-  
-  async runCode() {
-    await this.pyodide.runPython(`
-  import sys
-  sys.path.append('/')
-  sys.path.append('/grist')
-  import grist
-  import main
-  import os
-  os.environ['PIPE_MODE'] = 'pyodide'
-  os.environ['IMPORTDIR'] = '/import'
-  main.main()
-`);
+copytree('${tmpDir}', '${destDir}')`);
+    await this.pyodide.FS.unmount(tmpDir);
+    await this.pyodide.FS.rmdir(tmpDir);
   }
 
   setAdminMode(active) {
@@ -138,6 +151,28 @@ async function main() {
     await pipe.init();
     await pipe.loadCode();
     await pipe.mountImportDirIfNeeded();
+
+    if (isDeno) {
+      // Revoke write permissions now that packages are loaded.
+      // eslint-disable-next-line no-undef
+      await Deno.permissions.revoke({ name: "write" });
+
+      // Read access has been limited quite a lot already.
+      // We need to keep access to the import directory, but can shed
+      // everything else. See --allow-read in SandboxPyodide.ts
+      const readDir = fs.realpathSync(__dirname);
+      const gristDir = fs.realpathSync(path.join(__dirname, "..", "grist"));
+      const reqFile = fs.realpathSync(path.join(__dirname, "..", "requirements.txt"));
+      for (const dir of [readDir, gristDir, reqFile]) {
+        // eslint-disable-next-line no-undef
+        await Deno.permissions.revoke({
+          name: "read",
+          path: dir
+        });
+      }
+      console.error("[pyodide sandbox]", "revoked read and write permissions.");
+    }
+
     await pipe.runCode();
   } finally {
     process.stdin.removeAllListeners();

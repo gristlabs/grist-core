@@ -7,23 +7,23 @@
  *
  */
 
-
 /* global before, after */
 
-import * as _ from 'underscore';
-import { assert } from 'chai';
-import {tmpdir} from 'os';
-import * as path from 'path';
-import * as fse from 'fs-extra';
-import clone = require('lodash/clone');
-import * as tmp from 'tmp-promise';
-import {FileOptions as TmpOptions} from 'tmp';
-import * as winston from 'winston';
-import { serialize } from 'winston/lib/winston/common';
+import * as docUtils from "app/server/lib/docUtils";
+import log from "app/server/lib/log";
+import { getAppRoot } from "app/server/lib/places";
 
-import * as docUtils from 'app/server/lib/docUtils';
-import log from 'app/server/lib/log';
-import { getAppRoot } from 'app/server/lib/places';
+import { tmpdir } from "os";
+import * as path from "path";
+
+import { assert } from "chai";
+import * as fse from "fs-extra";
+import clone from "lodash/clone";
+import { FileOptions as TmpOptions } from "tmp";
+import * as tmp from "tmp-promise";
+import * as _ from "underscore";
+import * as winston from "winston";
+import { serialize } from "winston/lib/winston/common";
 
 /**
  * Creates a temporary file with the given contents.
@@ -36,7 +36,7 @@ export async function writeTmpFile(content: any, options: TmpOptions = {}) {
   // discardDescriptor ensures tmp module closes it. It can lead to horrible bugs to close this
   // descriptor yourself, since tmp also closes it on exit, and if it's a different descriptor by
   // that time, it can lead to a crash. See https://github.com/raszi/node-tmp/issues/168
-  const obj = await tmp.file({discardDescriptor: true, ...options});
+  const obj = await tmp.file({ discardDescriptor: true, ...options });
   await fse.writeFile(obj.path, content);
   return obj.path;
 }
@@ -57,8 +57,6 @@ export async function generateTmpFile(numLines: number, options: TmpOptions = {}
   }
   return writeTmpFile(data.join(""), options);
 }
-
-
 
 /**
  * Helper class to capture log output when we want to test it.
@@ -90,16 +88,16 @@ type CaptureFunc = (level: string, msg: string, meta: any) => void;
  *
  * This should be called at the suite level (i.e. inside describe()).
  */
-export function setTmpLogLevel(level: string, optCaptureTo?: CaptureFunc|string) {
+export function setTmpLogLevel(level: string, optCaptureTo?: CaptureFunc | string) {
   // If verbose is set in the environment, sabotage all reductions in logging level.
   // Handier than modifying the setTmpLogLevel line and then remembering to set it back
   // before committing.
-  if (process.env.VERBOSE === '1') {
-    level = 'debug';
+  if (process.env.VERBOSE === "1") {
+    level = "debug";
   }
 
-  let prevLogLevel: string|undefined = undefined;
-  const name = _.uniqueId('CaptureLog');
+  let prevLogLevel: string | undefined = undefined;
+  const name = _.uniqueId("CaptureLog");
 
   before(async function() {
     if (this.runnable().parent?.root) {
@@ -111,16 +109,16 @@ export function setTmpLogLevel(level: string, optCaptureTo?: CaptureFunc|string)
     if (optCaptureTo instanceof Function) {
       log.add(CaptureTransport as any, { captureFunc: optCaptureTo, name });  // typing is off.
     } else if (optCaptureTo) {
-      const suiteName = this.test?.parent?.title || 'unknown-suite';
+      const suiteName = this.test?.parent?.title || "unknown-suite";
       const testDir = await createTestDir(suiteName);
       const logPath = path.join(testDir, optCaptureTo);
-      const stream = fse.createWriteStream(logPath, {flags: 'a'});
+      const stream = fse.createWriteStream(logPath, { flags: "a" });
       log.add(winston.transports.File, {
         name,
         stream,
-        level: 'debug',
+        level: "debug",
         timestamp: true,
-        json: false
+        json: false,
       });
     }
   });
@@ -143,7 +141,7 @@ export function nestLogLevel(level: string): NestedLogLevel {
   return {
     restore() {
       log.transports.file.level = prevLogLevel;
-    }
+    },
   };
 }
 
@@ -153,18 +151,18 @@ export function nestLogLevel(level: string): NestedLogLevel {
  * strings. These may be tested using testUtils.assertMatchArray(). Callback may return a promise.
  */
 export async function captureLog(
-  minLevel: string, callback: (messages: string[]) => void|Promise<void>,
-  options: {timestamp?: boolean, waitForFirstLog?: boolean} = {timestamp: false, waitForFirstLog: false}
+  minLevel: string, callback: (messages: string[]) => void | Promise<void>,
+  options: { timestamp?: boolean, waitForFirstLog?: boolean } = { timestamp: false, waitForFirstLog: false },
 ): Promise<string[]> {
   const messages: string[] = [];
   const prevLogLevel = log.transports.file.level;
-  const name = _.uniqueId('CaptureLog');
+  const name = _.uniqueId("CaptureLog");
 
   const captureFirstLogPromise = new Promise((resolve) => {
     function capture(level: string, msg: string, meta: any) {
       if ((log as any).levels[level] <= (log as any).levels[minLevel]) {  // winston types are off?
-        const timePrefix = options.timestamp ? new Date().toISOString() + ' ' : '';
-        messages.push(`${timePrefix}${level}: ${msg}${meta ? ' ' + serialize(meta) : ''}`);
+        const timePrefix = options.timestamp ? new Date().toISOString() + " " : "";
+        messages.push(`${timePrefix}${level}: ${msg}${meta ? " " + serialize(meta) : ""}`);
         resolve(null);
       }
     }
@@ -172,7 +170,7 @@ export async function captureLog(
     if (!process.env.VERBOSE) {
       log.transports.file.level = -1 as any;   // Suppress all log output.
     }
-    log.add(CaptureTransport as any, { captureFunc: capture, name, level: minLevel});  // types are off.
+    log.add(CaptureTransport as any, { captureFunc: capture, name, level: minLevel });  // types are off.
   });
 
   try {
@@ -187,7 +185,6 @@ export async function captureLog(
   return messages;
 }
 
-
 /**
  * Asserts that each string of stringArray matches the corresponding regex in regexArray.
  */
@@ -196,9 +193,9 @@ export function assertMatchArray(stringArray: string[], regexArray: RegExp[]) {
     assert.match(stringArray[i], regexArray[i]);
   }
   assert.isAtMost(stringArray.length, regexArray.length,
-    `Unexpected strings seen: ${stringArray.slice(regexArray.length).join('\n')}`);
+    `Unexpected strings seen: ${stringArray.slice(regexArray.length).join("\n")}`);
   assert.isAtLeast(stringArray.length, regexArray.length,
-    'Not all expected strings were seen');
+    "Not all expected strings were seen");
 }
 
 /**
@@ -208,22 +205,22 @@ export function assertMatchArray(stringArray: string[], regexArray: RegExp[]) {
  * @param {String} errCode - Error code to check against `err.code` from the caller.
  * @param {RegExp} errRegexp - Regular expression to check against `err.message` from the caller.
  */
-export function expectRejection(promise: Promise<any>, errCode: number|string, errRegexp: RegExp) {
+export function expectRejection(promise: Promise<any>, errCode: number | string, errRegexp: RegExp) {
   return promise
-  .then(function() {
-    assert(false, "Expected promise to return an error: " + errCode);
-  })
-  .catch(function(err) {
-    if (err.cause) {
-      err = err.cause;
-    }
-    assert.strictEqual(err.code, errCode);
+    .then(function() {
+      assert(false, "Expected promise to return an error: " + errCode);
+    })
+    .catch(function(err) {
+      if (err.cause) {
+        err = err.cause;
+      }
+      assert.strictEqual(err.code, errCode);
 
-    if (errRegexp !== undefined) {
-      assert(errRegexp.test(err.message), "Description doesn't match regexp: " +
-             errRegexp + ' !~ ' + err.message);
-    }
-  });
+      if (errRegexp !== undefined) {
+        assert(errRegexp.test(err.message), "Description doesn't match regexp: " +
+        errRegexp + " !~ " + err.message);
+      }
+    });
 }
 
 /**
@@ -236,11 +233,11 @@ export function expectRejection(promise: Promise<any>, errCode: number|string, e
  * @returns {Promise:Object} - Parsed test script object
  */
 export async function readTestScript(file: string) {
-  const fullText = await fse.readFile(file, {encoding: 'utf8'});
+  const fullText = await fse.readFile(file, { encoding: "utf8" });
   const allLines: string[] = [];
   fullText.split("\n").forEach(function(line, i) {
     if (line.match(/^\s*\/\//)) {
-      allLines.push('');
+      allLines.push("");
     } else {
       line = line.replace(/"(APPLY|CHECK_OUTPUT|LOAD_SAMPLE)"\s*,/, '"$1@' + (i + 1) + '",');
       allLines.push(line);
@@ -255,11 +252,11 @@ export async function readTestScript(file: string) {
  * errors thrown by the callback.
  */
 export async function processTestScriptSteps<T>(body: Promise<[string, T]>[],
-                                                stepCallback: (step: [string, T]) => Promise<void>) {
+  stepCallback: (step: [string, T]) => Promise<void>) {
   for (const promise of body) {
     const step = await promise;
     const stepName = step[0];
-    const lineNoPos = stepName.indexOf('@');
+    const lineNoPos = stepName.indexOf("@");
     const lineNum = (lineNoPos === -1) ? null : stepName.slice(lineNoPos + 1);
     step[0] = (lineNoPos === -1) ? stepName : stepName.slice(0, lineNoPos);
     try {
@@ -278,14 +275,14 @@ export function deepSubstitute(obj: any, from: any, to: any): any {
   from = _.isArray(from) ? from : [from];
   if (_.isArray(obj)) {
     return obj.map(el => deepSubstitute(el, from, to));
-  } else if (obj && typeof obj === 'object' && !_.isFunction(obj)) {
+  } else if (obj && typeof obj === "object" && !_.isFunction(obj)) {
     return _.mapObject(obj, el => deepSubstitute(el, from, to));
   } else {
     return from.indexOf(obj) !== -1 ? to : obj;
   }
 }
 
-export const fixturesRoot = path.resolve(getAppRoot(), 'test', 'fixtures');
+export const fixturesRoot = path.resolve(getAppRoot(), "test", "fixtures");
 
 export const appRoot = getAppRoot();
 
@@ -317,20 +314,19 @@ export async function useLocalDoc(srcPath: string, storageManager: any, alias: s
 
 // an helper to copy a fixtures document to destPath
 export async function copyFixtureDoc(docName: string, destPath: string) {
-  const srcPath = path.resolve(fixturesRoot, 'docs', docName);
+  const srcPath = path.resolve(fixturesRoot, "docs", docName);
   await docUtils.copyFile(srcPath, destPath);
 }
 
 // a helper to read a fixtures document into memory
 export async function readFixtureDoc(docName: string) {
-  const srcPath = path.resolve(fixturesRoot, 'docs', docName);
+  const srcPath = path.resolve(fixturesRoot, "docs", docName);
   return fse.readFile(srcPath);
 }
 
 // a class to store a snapshot of environment variables, can be reverted to by
 // calling .restore()
 export class EnvironmentSnapshot {
-
   public static push() {
     this._stack.push(new EnvironmentSnapshot());
   }
@@ -350,6 +346,7 @@ export class EnvironmentSnapshot {
   public constructor() {
     this._oldEnv = clone(process.env);
   }
+
   // Reset environment variables.
   public restore() {
     Object.assign(process.env, this._oldEnv);
@@ -360,7 +357,7 @@ export class EnvironmentSnapshot {
     }
   }
 
-  public get(key: string): string|undefined {
+  public get(key: string): string | undefined {
     return this._oldEnv[key];
   }
 }
@@ -369,7 +366,7 @@ const createdInThisRun = new Set<string>();
 
 export async function createTestDir(suiteName: string): Promise<string> {
   const tmpRootDir = process.env.TESTDIR || tmpdir();
-  const workerIdText = process.env.MOCHA_WORKER_ID || '0';
+  const workerIdText = process.env.MOCHA_WORKER_ID || "0";
   const username = process.env.USER || "nobody";
   const testDir = path.join(tmpRootDir, `grist_test_${username}_${suiteName}_${workerIdText}`);
   // Remove any previous tmp dir, and create the new one. But don't clobber the previous directory
@@ -384,10 +381,10 @@ export async function createTestDir(suiteName: string): Promise<string> {
 }
 
 export async function getBuildFile(relativePath: string): Promise<string> {
-  if (await fse.pathExists(path.join('_build', relativePath))) {
-    return path.join('_build', relativePath);
+  if (await fse.pathExists(path.join("_build", relativePath))) {
+    return path.join("_build", relativePath);
   }
-  return path.join('_build', 'core', relativePath);
+  return path.join("_build", "core", relativePath);
 }
 
 /**
@@ -400,7 +397,7 @@ export function withoutSandboxing() {
   let env: EnvironmentSnapshot;
   before(() => {
     env = new EnvironmentSnapshot();
-    process.env.GRIST_SANDBOX_FLAVOR = 'unsandboxed';
+    process.env.GRIST_SANDBOX_FLAVOR = "unsandboxed";
   });
   after(() => {
     env.restore();

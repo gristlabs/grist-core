@@ -1,82 +1,82 @@
-import {beaconOpenMessage, IBeaconOpenOptions} from 'app/client/lib/helpScout';
-import {makeT} from 'app/client/lib/localization';
-import {AppModel} from 'app/client/models/AppModel';
-import {ConnectState} from 'app/client/models/ConnectState';
-import {urlState} from 'app/client/models/gristUrlState';
-import {Expirable, IAppError, Notification, Notifier, NotifyAction, Progress} from 'app/client/models/NotifyModel';
-import {hoverTooltip} from 'app/client/ui/tooltips';
-import {cssHoverCircle, cssTopBarBtn} from 'app/client/ui/TopBarCss';
-import {theme, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {IconName} from "app/client/ui2018/IconList";
-import {menuCssClass} from 'app/client/ui2018/menus';
-import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
-import {dom, makeTestId, styled} from 'grainjs';
-import {cssMenu, defaultMenuOptions, IOpenController, setPopupToCreateDom} from 'popweasel';
+import { beaconOpenMessage, IBeaconOpenOptions } from "app/client/lib/helpScout";
+import { makeT } from "app/client/lib/localization";
+import { AppModel } from "app/client/models/AppModel";
+import { ConnectState } from "app/client/models/ConnectState";
+import { urlState } from "app/client/models/gristUrlState";
+import { Expirable, IAppError, Notification, Notifier, NotifyAction, Progress } from "app/client/models/NotifyModel";
+import { hoverTooltip } from "app/client/ui/tooltips";
+import { cssHoverCircle, cssTopBarBtn } from "app/client/ui/TopBarCss";
+import { theme, vars } from "app/client/ui2018/cssVars";
+import { IconName } from "app/client/ui2018/IconList";
+import { icon } from "app/client/ui2018/icons";
+import { menuCssClass } from "app/client/ui2018/menus";
+import { commonUrls, isFeatureEnabled } from "app/common/gristUrls";
 
-const t = makeT('NotifyUI');
+import { dom, makeTestId, styled } from "grainjs";
+import { cssMenu, defaultMenuOptions, IOpenController, setPopupToCreateDom } from "popweasel";
 
-const testId = makeTestId('test-notifier-');
+const t = makeT("NotifyUI");
 
+const testId = makeTestId("test-notifier-");
 
-function buildAction(action: NotifyAction, item: Notification, options: IBeaconOpenOptions): HTMLElement|null {
+function buildAction(action: NotifyAction, item: Notification, options: IBeaconOpenOptions): HTMLElement | null {
   const appModel = options.appModel;
   switch (action) {
-    case 'upgrade':
+    case "upgrade":
       if (appModel) {
-        return cssToastAction(t("Upgrade Plan"), dom.on('click', () =>
+        return cssToastAction(t("Upgrade Plan"), dom.on("click", () =>
           appModel.showUpgradeModal()));
       } else {
-        return dom('a', cssToastAction.cls(''), t("Upgrade Plan"), {target: '_blank'},
-          {href: commonUrls.plans});
+        return dom("a", cssToastAction.cls(""), t("Upgrade Plan"), { target: "_blank" },
+          { href: commonUrls.plans });
       }
-    case 'manage':
-      if (urlState().state.get().billing === 'billing') { return null; }
-      return dom('a', cssToastAction.cls(''), t("Manage billing"), {target: '_blank'},
-        {href: urlState().makeUrl({billing: 'billing'})});
-    case 'renew':
+    case "manage":
+      if (urlState().state.get().billing === "billing") { return null; }
+      return dom("a", cssToastAction.cls(""), t("Manage billing"), { target: "_blank" },
+        { href: urlState().makeUrl({ billing: "billing" }) });
+    case "renew":
       // If already on the billing page, nothing to return.
-      if (urlState().state.get().billing === 'billing') { return null; }
+      if (urlState().state.get().billing === "billing") { return null; }
       // If not a billing manager, nothing to return.
-      if (appModel && appModel.currentOrg && appModel.currentOrg.billingAccount &&
-          !appModel.currentOrg.billingAccount.isManager) { return null; }
+      if (appModel?.currentOrg?.billingAccount &&
+        !appModel.currentOrg.billingAccount.isManager) { return null; }
       // Otherwise return a link to the billing page.
-      return dom('a', cssToastAction.cls(''), t("Renew"), {target: '_blank'},
-                 {href: urlState().makeUrl({billing: 'billing'})});
+      return dom("a", cssToastAction.cls(""), t("Renew"), { target: "_blank" },
+        { href: urlState().makeUrl({ billing: "billing" }) });
 
-    case 'personal':
+    case "personal":
       if (!appModel) { return null; }
-      return cssToastAction(t("Go to your free personal site"), dom.on('click', async () => {
+      return cssToastAction(t("Go to your free personal site"), dom.on("click", async () => {
         const info = await appModel.api.getSessionAll();
         const orgs = info.orgs.filter(org => org.owner && org.owner.id === appModel.currentUser?.id);
         if (orgs.length !== 1) {
           throw new Error(t("Cannot find personal site, sorry!"));
         }
-        window.location.assign(urlState().makeUrl({org: orgs[0].domain || undefined}));
+        window.location.assign(urlState().makeUrl({ org: orgs[0].domain || undefined }));
       }));
 
-    case 'report-problem':
-      return cssToastAction(t("Report a problem"), testId('toast-report-problem'),
-        dom.on('click', () => beaconOpenMessage({...options, includeAppErrors: true})));
+    case "report-problem":
+      return cssToastAction(t("Report a problem"), testId("toast-report-problem"),
+        dom.on("click", () => beaconOpenMessage({ ...options, includeAppErrors: true })));
 
-    case 'ask-for-help': {
+    case "ask-for-help": {
       const errors: IAppError[] = [{
         error: new Error(item.options.message as string),
         timestamp: item.options.timestamp,
       }];
       return cssToastAction(t("Ask for help"),
-        dom.on('click', () => beaconOpenMessage({...options, includeAppErrors: true, errors})));
+        dom.on("click", () => beaconOpenMessage({ ...options, includeAppErrors: true, errors })));
     }
 
     default:
-      return cssToastAction(action.label, testId('toast-custom-action'),
-        dom.on('click', action.action));
+      return cssToastAction(action.label, testId("toast-custom-action"),
+        dom.on("click", action.action));
   }
 }
 
 function notificationIcon(item: Notification) {
- let iconName: IconName|null = null;
-  switch(item.options.level) {
+  let iconName: IconName | null = null;
+  switch (item.options.level) {
     case "error":   iconName = "Warning"; break;
     case "warning": iconName = "Warning"; break;
     case "success": iconName = "TickSolid"; break;
@@ -88,67 +88,67 @@ function notificationIcon(item: Notification) {
 function buildNotificationDom(item: Notification, options: IBeaconOpenOptions) {
   const iconElement = notificationIcon(item);
   const hasLeftIcon = Boolean(!item.options.title && iconElement);
-  return cssToastWrapper(testId('toast-wrapper'),
+  return cssToastWrapper(testId("toast-wrapper"),
     cssToastWrapper.cls(use => `-${use(item.status)}`),
     cssToastWrapper.cls(`-${item.options.level}`),
-    cssToastWrapper.cls('-memo', item.options.memos.length > 0),
-    cssToastWrapper.cls(hasLeftIcon ? '-left-icon' : ''),
+    cssToastWrapper.cls("-memo", item.options.memos.length > 0),
+    cssToastWrapper.cls(hasLeftIcon ? "-left-icon" : ""),
     item.options.title ? null : iconElement,
     cssToastBody(
       item.options.title ? cssToastTitle(notificationIcon(item), cssToastTitle(item.options.title)) : null,
-      cssToastText(testId('toast-message'),
+      cssToastText(testId("toast-message"),
         item.options.message,
       ),
       item.options.actions.length ? cssToastActions(
-        item.options.actions.map((action) => buildAction(action, item, options))
+        item.options.actions.map(action => buildAction(action, item, options)),
       ) : null,
       item.options.memos.length ? cssToastMemos(
         item.options.memos.map(memo => cssToastMemo(
-          cssToastMemoIcon('Memo'),
-          dom('div', memo, testId('toast-memo')),
-        ))
+          cssToastMemoIcon("Memo"),
+          dom("div", memo, testId("toast-memo")),
+        )),
       ) : null,
     ),
     dom.maybe(item.options.canUserClose, () =>
-      cssToastClose(testId('toast-close'),
-        '✕',
-        dom.on('click', () => item.dispose())
-      )
-    )
+      cssToastClose(testId("toast-close"),
+        "✕",
+        dom.on("click", () => item.dispose()),
+      ),
+    ),
   );
 }
 
 function buildProgressDom(item: Progress) {
-  return cssToastWrapper(testId('progress-wrapper'),
+  return cssToastWrapper(testId("progress-wrapper"),
     cssToastBody(
-      cssToastText(testId('progress-message'),
+      cssToastText(testId("progress-message"),
         dom.text(item.options.name),
-        dom.maybe(item.options.size, size => cssProgressBarSize(` (${size})`))
+        dom.maybe(item.options.size, size => cssProgressBarSize(` (${size})`)),
       ),
       cssProgressBarWrapper(
         cssProgressBarStatus(
-          dom.style('width', use => `${use(item.progress)}%`)
-        )
-      )
-    )
+          dom.style("width", use => `${use(item.progress)}%`),
+        ),
+      ),
+    ),
   );
 }
 
-export function buildNotifyMenuButton(notifier: Notifier, appModel: AppModel|null) {
-  const {connectState} = notifier.getStateForUI();
-  return cssHoverCircle({style: `margin: 5px;`},
-    dom.domComputed(connectState, (state) => buildConnectStateButton(state)),
+export function buildNotifyMenuButton(notifier: Notifier, appModel: AppModel | null) {
+  const { connectState } = notifier.getStateForUI();
+  return cssHoverCircle({ style: `margin: 5px;` },
+    dom.domComputed(connectState, state => buildConnectStateButton(state)),
     (elem) => {
-      setPopupToCreateDom(elem, (ctl) => buildNotifyDropdown(ctl, notifier, appModel),
-        {...defaultMenuOptions, placement: 'bottom-end'});
+      setPopupToCreateDom(elem, ctl => buildNotifyDropdown(ctl, notifier, appModel),
+        { ...defaultMenuOptions, placement: "bottom-end" });
     },
-    hoverTooltip('Notifications', {key: 'topBarBtnTooltip'}),
-    testId('menu-btn'),
+    hoverTooltip("Notifications", { key: "topBarBtnTooltip" }),
+    testId("menu-btn"),
   );
 }
 
-function buildNotifyDropdown(ctl: IOpenController, notifier: Notifier, appModel: AppModel|null): Element {
-  const {connectState, disconnectMsg, dropdownItems} = notifier.getStateForUI();
+function buildNotifyDropdown(ctl: IOpenController, notifier: Notifier, appModel: AppModel | null): Element {
+  const { connectState, disconnectMsg, dropdownItems } = notifier.getStateForUI();
 
   return cssDropdownWrapper(
     // Reuse css classes for menus (combination of popweasel classes and those from Grist menus)
@@ -156,7 +156,7 @@ function buildNotifyDropdown(ctl: IOpenController, notifier: Notifier, appModel:
     dom.cls(menuCssClass),
 
     // Close on Escape.
-    dom.onKeyDown({Escape: () => ctl.close()}),
+    dom.onKeyDown({ Escape: () => ctl.close() }),
     // Once attached, focus this element, so that it accepts keyboard events.
     (elem) => { setTimeout(() => elem.focus(), 0); },
 
@@ -164,63 +164,62 @@ function buildNotifyDropdown(ctl: IOpenController, notifier: Notifier, appModel:
       cssDropdownHeader(
         cssDropdownHeaderTitle(t("Notifications")),
         !isFeatureEnabled("helpCenter") ? null :
-        cssDropdownFeedbackLink(
-          cssDropdownFeedbackIcon('Feedback'),
-          t("Give feedback"),
-          dom.on('click', () => beaconOpenMessage({appModel, onOpen: () => ctl.close(), route: '/ask/message/'})),
-          testId('feedback'),
-        )
+          cssDropdownFeedbackLink(
+            cssDropdownFeedbackIcon("Feedback"),
+            t("Give feedback"),
+            dom.on("click", () => beaconOpenMessage({ appModel, onOpen: () => ctl.close(), route: "/ask/message/" })),
+            testId("feedback"),
+          ),
       ),
-      dom.maybe(disconnectMsg, (msg) =>
+      dom.maybe(disconnectMsg, msg =>
         cssDropdownStatus(
           buildConnectStateButton(connectState.get()),
-          dom('div', cssDropdownStatusText(msg.message), testId('disconnect-msg')),
-        )
+          dom("div", cssDropdownStatusText(msg.message), testId("disconnect-msg")),
+        ),
       ),
-      dom.maybe((use) => use(dropdownItems).length === 0 && !use(disconnectMsg), () =>
+      dom.maybe(use => use(dropdownItems).length === 0 && !use(disconnectMsg), () =>
         cssDropdownStatus(
-          dom('div', cssDropdownStatusText(t("No notifications"))),
-        )
+          dom("div", cssDropdownStatusText(t("No notifications"))),
+        ),
       ),
       dom.forEach(dropdownItems, item =>
-        buildNotificationDom(item, {appModel, onOpen: () => ctl.close()})),
+        buildNotificationDom(item, { appModel, onOpen: () => ctl.close() })),
     ),
-    testId('dropdown'),
+    testId("dropdown"),
   );
 }
 
-export function buildSnackbarDom(notifier: Notifier, appModel: AppModel|null): Element {
-  const {progressItems, toasts} = notifier.getStateForUI();
-  return cssSnackbarWrapper(testId('snackbar-wrapper'),
+export function buildSnackbarDom(notifier: Notifier, appModel: AppModel | null): Element {
+  const { progressItems, toasts } = notifier.getStateForUI();
+  return cssSnackbarWrapper(testId("snackbar-wrapper"),
     dom.forEach(progressItems, item => buildProgressDom(item)),
-    dom.forEach(toasts, toast => buildNotificationDom(toast, {appModel})),
+    dom.forEach(toasts, toast => buildNotificationDom(toast, { appModel })),
   );
 }
 
 function buildConnectStateButton(state: ConnectState): Element {
   switch (state) {
-    case ConnectState.JustDisconnected: return cssTopBarBtn('Notification', cssTopBarBtn.cls('-slate'));
-    case ConnectState.RecentlyDisconnected: return cssTopBarBtn('Offline', cssTopBarBtn.cls('-slate'));
-    case ConnectState.ReallyDisconnected: return cssTopBarBtn('Offline', cssTopBarBtn.cls('-error'));
+    case ConnectState.JustDisconnected: return cssTopBarBtn("Notification", cssTopBarBtn.cls("-slate"));
+    case ConnectState.RecentlyDisconnected: return cssTopBarBtn("Offline", cssTopBarBtn.cls("-slate"));
+    case ConnectState.ReallyDisconnected: return cssTopBarBtn("Offline", cssTopBarBtn.cls("-error"));
     case ConnectState.Connected:
     default:
-      return cssTopBarBtn('Notification');
+      return cssTopBarBtn("Notification");
   }
 }
 
-
-const cssDropdownWrapper = styled('div', `
+const cssDropdownWrapper = styled("div", `
   background-color: ${theme.notificationsPanelBodyBg};
   border: 1px solid ${theme.notificationsPanelBorder};
   padding: 0px;
 `);
 
-const cssDropdownContent = styled('div', `
+const cssDropdownContent = styled("div", `
   min-width: 320px;
   max-width: 320px;
 `);
 
-const cssDropdownHeader = styled('div', `
+const cssDropdownHeader = styled("div", `
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -229,12 +228,12 @@ const cssDropdownHeader = styled('div', `
   outline: 1px solid ${theme.notificationsPanelBorder};
 `);
 
-const cssDropdownHeaderTitle = styled('span', `
+const cssDropdownHeaderTitle = styled("span", `
   color: ${theme.text};
   font-weight: bold;
 `);
 
-const cssDropdownFeedbackLink = styled('div', `
+const cssDropdownFeedbackLink = styled("div", `
   display: flex;
   color: ${theme.controlFg};
   cursor: pointer;
@@ -249,13 +248,13 @@ const cssDropdownFeedbackIcon = styled(icon, `
   margin-right: 4px;
 `);
 
-const cssDropdownStatus = styled('div', `
+const cssDropdownStatus = styled("div", `
   padding: 16px 48px 24px 48px;
   text-align: center;
   border-top: 1px solid ${theme.notificationsPanelBorder};
 `);
 
-const cssDropdownStatusText = styled('div', `
+const cssDropdownStatusText = styled("div", `
   display: inline-block;
   margin: 8px 0 0 0;
   text-align: left;
@@ -264,7 +263,7 @@ const cssDropdownStatusText = styled('div', `
 
 // z-index below is set above other assorted children of <body>, which includes
 // indexes such as 999 for modals.
-const cssSnackbarWrapper = styled('div', `
+const cssSnackbarWrapper = styled("div", `
   position: fixed;
   bottom: 8px;
   right: 8px;
@@ -279,7 +278,7 @@ const cssSnackbarWrapper = styled('div', `
   pointer-events: none; /* Allow mouse clicks through */
 `);
 
-const cssToastBody = styled('div', `
+const cssToastBody = styled("div", `
   display: flex;
   flex-direction: column;
   flex-grow: 1;
@@ -287,20 +286,20 @@ const cssToastBody = styled('div', `
   overflow-wrap: anywhere;
 `);
 
-const cssToastIcon = styled('div', `
+const cssToastIcon = styled("div", `
   flex-shrink: 0;
   height: 18px;
   width: 18px;
 `);
 
-const cssToastActions = styled('div', `
+const cssToastActions = styled("div", `
   display: flex;
   align-items: flex-end;
   margin-top: 16px;
   color: ${theme.toastControlFg};
 `);
 
-const cssToastWrapper = styled('div', `
+const cssToastWrapper = styled("div", `
   display: flex;
   min-width: 240px;
   max-width: 320px;
@@ -369,8 +368,7 @@ const cssToastWrapper = styled('div', `
   }
 `);
 
-
-const cssToastText = styled('div', `
+const cssToastText = styled("div", `
   .${cssToastWrapper.className}-memo & {
     font-weight: 700;
   }
@@ -383,7 +381,7 @@ const cssToastTitle = styled(cssToastText, `
   margin-bottom: 8px;
 `);
 
-const cssToastClose = styled('div', `
+const cssToastClose = styled("div", `
   cursor: pointer;
   user-select: none;
   width: 16px;
@@ -393,7 +391,7 @@ const cssToastClose = styled('div', `
   margin: -4px -4px -4px 4px;
 `);
 
-const cssToastAction = styled('div', `
+const cssToastAction = styled("div", `
   cursor: pointer;
   user-select: none;
   margin-right: 24px;
@@ -405,13 +403,13 @@ const cssToastAction = styled('div', `
   }
 `);
 
-const cssToastMemos = styled('div', `
+const cssToastMemos = styled("div", `
   margin-top: 8px;
   display: flex;
   flex-direction: column;
 `);
 
-const cssToastMemo = styled('div', `
+const cssToastMemo = styled("div", `
   display: flex;
   column-gap: 8px;
   align-items: center;
@@ -422,7 +420,7 @@ const cssToastMemoIcon = styled(icon, `
   flex-shrink: 0;
 `);
 
-const cssProgressBarWrapper = styled('div', `
+const cssProgressBarWrapper = styled("div", `
   margin-top: 18px;
   margin-bottom: 11px;
   height: 3px;
@@ -430,11 +428,11 @@ const cssProgressBarWrapper = styled('div', `
   background-color: ${theme.progressBarBg};
 `);
 
-const cssProgressBarSize = styled('span', `
+const cssProgressBarSize = styled("span", `
   color: ${theme.toastLightText};
 `);
 
-const cssProgressBarStatus = styled('div', `
+const cssProgressBarStatus = styled("div", `
   height: 3px;
   min-width: 3px;
   border-radius: 3px;

@@ -1,6 +1,7 @@
-import {CellDelta, TabularDiff, TabularDiffs} from 'app/common/TabularDiff';
-import {ResultRow} from 'app/common/TimeQuery';
-import toPairs = require('lodash/toPairs');
+import { CellDelta, TabularDiff, TabularDiffs } from "app/common/TabularDiff";
+import { ResultRow } from "app/common/TimeQuery";
+
+import toPairs from "lodash/toPairs";
 
 /**
  * An ActionSummary represents the overall effect of changes that took place
@@ -78,7 +79,7 @@ import toPairs = require('lodash/toPairs');
  */
 export interface ActionSummary {
   tableRenames: LabelDelta[];  /** a list of table renames/additions/removals */
-  tableDeltas: {[tableId: string]: TableDelta};  /** changes within an individual table */
+  tableDeltas: { [tableId: string]: TableDelta };  /** changes within an individual table */
 }
 
 /**
@@ -89,7 +90,7 @@ export interface TableDelta {
   removeRows: number[];  /** rowIds of rows that existed before but were removed during */
   addRows: number[];     /** rowIds of rows that were added during, and exist after */
   /** Partial record of cell-level changes - large bulk changes not included. */
-  columnDeltas: {[colId: string]: ColumnDelta};
+  columnDeltas: { [colId: string]: ColumnDelta };
   columnRenames: LabelDelta[];  /** a list of column renames/additions/removals */
 }
 
@@ -97,7 +98,7 @@ export interface TableDelta {
  * Pairs of before/after names of tables and columns.  Null represents non-existence,
  * so the addition and removal of tables/columns can be represented.
  */
-export type LabelDelta = [string|null, string|null];
+export type LabelDelta = [string | null, string | null];
 
 /**
  * A collection of changes related to cells in a specific column.
@@ -105,7 +106,6 @@ export type LabelDelta = [string|null, string|null];
 export interface ColumnDelta {
   [rowId: number]: CellDelta;
 }
-
 
 /** Create an ActionSummary for a period with no action */
 export function createEmptyActionSummary(): ActionSummary {
@@ -119,10 +119,9 @@ export function createEmptyTableDelta(): TableDelta {
     removeRows: [],
     addRows: [],
     columnDeltas: {},
-    columnRenames: []
+    columnRenames: [],
   };
 }
-
 
 /**
  * Distill a summary further, into tabular form, for ease of rendering.
@@ -142,11 +141,11 @@ export function asTabularDiffs(summary: ActionSummary, options: {
       cells: [],
     };
     // need order to be row-dominant for visualization purposes.
-    const perRow: {[row: number]: {[name: string]: any}} = {};
+    const perRow: { [row: number]: { [name: string]: any } } = {};
     const activeCols = new Set<string>();
     // First add any background context we have been handed.
     for (const row of singleTableContext || []) {
-      if (!(typeof row.id === 'number')) {
+      if (!(typeof row.id === "number")) {
         // Should not happen.
         throw new Error(`asTabularDiffs saw a non-numeric id: ${row.id}`);
       }
@@ -168,8 +167,8 @@ export function asTabularDiffs(summary: ActionSummary, options: {
     // TODO: recover row numbers (as opposed to rowIds)
     const reorder = options.order ?? ((_, colIds) => colIds);
     const activeColsWithoutManualSort = [
-      ...reorder(tableId, [...activeCols])
-    ].filter(c => c !== 'manualSort');
+      ...reorder(tableId, [...activeCols]),
+    ].filter(c => c !== "manualSort");
     tableChanges.header = activeColsWithoutManualSort;
     const addedRows = new Set(td.addRows);
     const removedRows = new Set(td.removeRows);
@@ -191,9 +190,9 @@ export function asTabularDiffs(summary: ActionSummary, options: {
         // go isn't well defined at this point (there's a row number TODO above).
         if (rowId > droppedRows[0]) {
           tableChanges.cells.push({
-            type: '...',
+            type: "...",
             rowId: droppedRows[0],
-            cellDeltas: activeColsWithoutManualSort.map(x => [null, null] as [null, null])
+            cellDeltas: activeColsWithoutManualSort.map(x => [null, null] as [null, null]),
           });
           while (rowId > droppedRows[0]) {
             droppedRows.shift();
@@ -204,27 +203,27 @@ export function asTabularDiffs(summary: ActionSummary, options: {
       // if the rowId is both added and removed - in this scenario, the rows
       // before and after are unrelated.  In all other cases, the before and
       // after values refer to the same row.
-      const versions: Array<[string, (diff: CellDelta) => CellDelta]> = [];
+      const versions: [string, (diff: CellDelta) => CellDelta][] = [];
       if (addedRows.has(rowId) && removedRows.has(rowId)) {
-        versions.push(['-', (diff) => [diff[0], null]]);
-        versions.push(['+', (diff) => [null, diff[1]]]);
+        versions.push(["-", diff => [diff[0], null]]);
+        versions.push(["+", diff => [null, diff[1]]]);
       } else {
-        let code: string = '...';
+        let code: string = "...";
         if (updatedRows.has(rowId)) {
-          code = '→';
+          code = "→";
         }
         if (addedRows.has(rowId)) {
-          code = '+';
+          code = "+";
         }
         if (removedRows.has(rowId)) {
-          code = '-';
+          code = "-";
         }
-        versions.push([code, (diff) => diff]);
+        versions.push([code, diff => diff]);
       }
       for (const [code, transform] of versions) {
         const acc: CellDelta[] = [];
         const perCol = perRow[rowId];
-        activeColsWithoutManualSort.forEach(col => {
+        activeColsWithoutManualSort.forEach((col) => {
           const diff = perCol ? perCol[col] : null;
           if (!diff) {
             acc.push([null, null]);
@@ -235,7 +234,7 @@ export function asTabularDiffs(summary: ActionSummary, options: {
         tableChanges.cells.push({
           type: code,
           rowId,
-          cellDeltas: acc
+          cellDeltas: acc,
         });
       }
     }
@@ -252,7 +251,7 @@ export function defunctTableName(id: string): string {
 }
 
 export function rootTableName(id: string): string {
-  return id.replace('-', '');
+  return id.replace("-", "");
 }
 
 /**
@@ -265,7 +264,7 @@ export function getAffectedTables(summary: ActionSummary): string[] {
     // Tables added, renamed, or removed in this action.
     ...summary.tableRenames.map(pair => pair[1] || defunctTableName(pair[0] || "")),
     // Tables modified in this action.
-    ...Object.keys(summary.tableDeltas)
+    ...Object.keys(summary.tableDeltas),
   ];
 }
 
@@ -273,7 +272,7 @@ export function getAffectedTables(summary: ActionSummary): string[] {
  * Given a tableId from after the specified renames, figure out what the tableId was before
  * the renames.  Returns null if table didn't exist.
  */
-export function getTableIdBefore(renames: LabelDelta[], tableIdAfter: string|null): string|null {
+export function getTableIdBefore(renames: LabelDelta[], tableIdAfter: string | null): string | null {
   if (tableIdAfter === null) { return tableIdAfter; }
   const rename = renames.find(_rename => _rename[1] === tableIdAfter);
   return rename ? rename[0] : tableIdAfter;
@@ -283,10 +282,10 @@ export function getTableIdBefore(renames: LabelDelta[], tableIdAfter: string|nul
  * Given a tableId from before the specified renames, figure out what the tableId is after
  * the renames.  Returns null if there is no valid tableId to return.
  */
-export function getTableIdAfter(renames: LabelDelta[], tableIdBefore: string|null): string|null {
+export function getTableIdAfter(renames: LabelDelta[], tableIdBefore: string | null): string | null {
   if (tableIdBefore === null) { return tableIdBefore; }
   const rename = renames.find(_rename => _rename[0] === tableIdBefore);
   const tableIdAfter = rename ? rename[1] : tableIdBefore;
-  if (tableIdAfter?.startsWith('-')) { return null; }
+  if (tableIdAfter?.startsWith("-")) { return null; }
   return tableIdAfter;
 }

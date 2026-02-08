@@ -11,6 +11,7 @@ import { icon } from "app/client/ui2018/icons";
 import { saveModal } from "app/client/ui2018/modals";
 import { gristThemeObs, gristThemePrefs } from "app/client/ui2018/theme";
 import { Document } from "app/common/UserAPI";
+
 import {
   Computed,
   Disposable,
@@ -54,16 +55,16 @@ class RenameDocModal extends Disposable {
     backgroundColor: Observable.create(
       this,
       this._doc.options?.appearance?.icon?.backgroundColor ??
-        this._defaultIconColors.backgroundColor
+      this._defaultIconColors.backgroundColor,
     ),
     color: Observable.create(
       this,
       this._doc.options?.appearance?.icon?.color ??
-        this._defaultIconColors.color
+      this._defaultIconColors.color,
     ),
     emoji: Observable.create(
       this,
-      this._doc.options?.appearance?.icon?.emoji ?? null
+      this._doc.options?.appearance?.icon?.emoji ?? null,
     ),
   };
 
@@ -73,7 +74,7 @@ class RenameDocModal extends Disposable {
     this.saveDisabled = Computed.create(
       this,
       this._name,
-      (_use, name) => name.trim().length === 0
+      (_use, name) => name.trim().length === 0,
     );
   }
 
@@ -89,8 +90,8 @@ class RenameDocModal extends Disposable {
               el.select();
             }, 10);
           },
-          { id: "name", placeholder: t("Enter document name") }
-        )
+          { id: "name", placeholder: t("Enter document name") },
+        ),
       ),
       cssField(
         cssLabel(t("Icon")),
@@ -101,7 +102,7 @@ class RenameDocModal extends Disposable {
               docName: this._name,
               icon: this._icon,
             },
-            testId("doc-icon-preview")
+            testId("doc-icon-preview"),
           ),
           cssButtons(
             textButton(
@@ -109,7 +110,7 @@ class RenameDocModal extends Disposable {
               (el) => {
                 setPopupToCreateDom(
                   el,
-                  (ctl) =>
+                  ctl =>
                     buildColorPicker(ctl, {
                       styleOptions: {
                         textColor: new ColorOption({
@@ -126,12 +127,12 @@ class RenameDocModal extends Disposable {
                         }),
                       },
                     }),
-                  { ...defaultMenuOptions, attach: null }
+                  { ...defaultMenuOptions, attach: null },
                 );
-              }
+              },
             ),
             textButton(
-              cssIconAndLabel(icon("Smiley"), t("Choose icon"), testId('choose-icon')),
+              cssIconAndLabel(icon("Smiley"), t("Choose icon"), testId("choose-icon")),
               (el) => {
                 setPopupToCreateDom(
                   el,
@@ -150,17 +151,17 @@ class RenameDocModal extends Disposable {
                               this._icon.emoji.set(emoji.native);
                               ctl.close();
                             },
-                            theme: gristThemePrefs.get()?.syncWithOS
-                              ? "auto"
-                              : gristThemeObs().get().appearance,
+                            theme: gristThemePrefs.get()?.syncWithOS ?
+                              "auto" :
+                              gristThemeObs().get().appearance,
                           });
-                        })
-                      )
+                        }),
+                      ),
                     );
                   },
-                  { ...defaultMenuOptions, attach: null }
+                  { ...defaultMenuOptions, attach: null },
                 );
-              }
+              },
             ),
             textButton(
               t("Reset icon"),
@@ -168,10 +169,10 @@ class RenameDocModal extends Disposable {
               dom.on("click", () => {
                 this._icon.emoji.set(null);
               }),
-              dom.prop("disabled", (use) => !use(this._icon.emoji))
-            )
-          )
-        )
+              dom.prop("disabled", use => !use(this._icon.emoji)),
+            ),
+          ),
+        ),
       ),
     ];
   }

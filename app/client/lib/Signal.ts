@@ -1,5 +1,6 @@
-import { DisposableWithEvents } from 'app/common/DisposableWithEvents';
-import { Disposable, IDisposable, IDisposableOwner, Observable } from 'grainjs';
+import { DisposableWithEvents } from "app/common/DisposableWithEvents";
+
+import { Disposable, IDisposable, IDisposableOwner, Observable } from "grainjs";
 
 /**
  * A simple abstraction for events composition. It is an object that can emit a single value of type T,
@@ -52,7 +53,7 @@ export class Signal<T = any> implements IDisposable, IDisposableOwner {
     ...rest: string[]
   ) {
     const signal = Signal.create(owner, null);
-    for(const event of [first, ...rest]) {
+    for (const event of [first, ...rest]) {
       signal._emitter.listenTo(emitter, event, (value: any) => signal.emit(value));
     }
     return signal as Signal<T | null>;
@@ -66,7 +67,7 @@ export class Signal<T = any> implements IDisposable, IDisposableOwner {
     const on: any = (s: Signal) => {
       if (!signal._listeners.has(s)) {
         signal._listeners.add(s);
-        signal._emitter.listenTo(s._emitter, 'signal', () => signal.emit(compute(on)));
+        signal._emitter.listenTo(s._emitter, "signal", () => signal.emit(compute(on)));
       }
       return s.state.get();
     };
@@ -82,7 +83,7 @@ export class Signal<T = any> implements IDisposable, IDisposableOwner {
   /**
    * List of signals that we are listening to. Stored in a WeakSet to avoid memory leaks.
    */
-  private _listeners: WeakSet<Signal> = new WeakSet();
+  private _listeners = new WeakSet<Signal>();
 
   /**
    * Flag that can be changed by stateless() function. It won't hold last value (but can't be used in compute function).
@@ -91,7 +92,7 @@ export class Signal<T = any> implements IDisposable, IDisposableOwner {
 
   private _beforeHandler: CustomEmitter<T>;
 
-  constructor(owner: IDisposableOwner|null, initialValue: T) {
+  constructor(owner: IDisposableOwner | null, initialValue: T) {
     this._emitter = DisposableWithEvents.create(owner);
     this.state = Observable.create(this, initialValue);
   }
@@ -117,7 +118,7 @@ export class Signal<T = any> implements IDisposable, IDisposableOwner {
    */
   public map<Z>(selector: (value: T) => Z): Signal<Z> {
     const signal = Signal.create(this, selector(this.state.get()));
-    this.listen(value => {
+    this.listen((value) => {
       signal.emit(selector(value));
     });
     return signal;
@@ -129,7 +130,7 @@ export class Signal<T = any> implements IDisposable, IDisposableOwner {
    */
   public filter(selector: (value: T) => boolean): Signal<T> {
     const signal = Signal.create(this, this.state.get());
-    this.listen(value => {
+    this.listen((value) => {
       if (selector(value)) {
         signal.emit(value);
       }
@@ -167,9 +168,9 @@ export class Signal<T = any> implements IDisposable, IDisposableOwner {
     const stateHandler = () => {
       handler(this.state.get());
     };
-    this._emitter.on('signal', stateHandler);
+    this._emitter.on("signal", stateHandler);
     return {
-      dispose: () => this._emitter.off('signal', stateHandler),
+      dispose: () => this._emitter.off("signal", stateHandler),
     };
   }
 
@@ -177,11 +178,11 @@ export class Signal<T = any> implements IDisposable, IDisposableOwner {
     if (this._beforeHandler) {
       this._beforeHandler(value, (emitted: T) => {
         this.state.set(emitted);
-        this._emitter.trigger('signal', emitted);
+        this._emitter.trigger("signal", emitted);
       });
     } else {
       this.state.set(value);
-      this._emitter.trigger('signal', value);
+      this._emitter.trigger("signal", value);
     }
   }
 

@@ -1,13 +1,14 @@
-import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
-import * as log from 'app/client/lib/log';
-import {INotification, INotifyOptions, MessageType, Notifier} from 'app/client/models/NotifyModel';
-import {ErrorTooltips} from 'app/client/ui/GristTooltips';
-import {ApiErrorDetails} from 'app/common/ApiError';
-import {fetchFromHome, pageHasHome} from 'app/common/urlUtils';
-import isError = require('lodash/isError');
-import pick = require('lodash/pick');
+import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
+import * as log from "app/client/lib/log";
+import { INotification, INotifyOptions, MessageType, Notifier } from "app/client/models/NotifyModel";
+import { ErrorTooltips } from "app/client/ui/GristTooltips";
+import { ApiErrorDetails } from "app/common/ApiError";
+import { fetchFromHome, pageHasHome } from "app/common/urlUtils";
 
-const G = getBrowserGlobals('document', 'window');
+import isError from "lodash/isError";
+import pick from "lodash/pick";
+
+const G = getBrowserGlobals("document", "window");
 
 let _notifier: Notifier;
 
@@ -23,7 +24,7 @@ export class MutedError extends Error {
 export class UserError extends Error {
   public name: string = "UserError";
   public key?: string;
-  constructor(message: string, options: {key?: string} = {}) {
+  constructor(message: string, options: { key?: string } = {}) {
     super(message);
     this.key = options.key;
   }
@@ -33,8 +34,8 @@ export class UserError extends Error {
  * This error causes Notifier to show the message with an upgrade link.
  */
 export class NeedUpgradeError extends Error {
-  public name: string = 'NeedUpgradeError';
-  constructor(message: string = 'This feature is not available in your plan') {
+  public name: string = "NeedUpgradeError";
+  constructor(message: string = "This feature is not available in your plan") {
     super(message);
   }
 }
@@ -48,16 +49,16 @@ export function setErrorNotifier(notifier: Notifier) {
 
 // Returns application errors collected by NotifyModel. Used in tests.
 export function getAppErrors(): string[] {
-  return _notifier.getFullAppErrors().map((e) => e.error.message);
+  return _notifier.getFullAppErrors().map(e => e.error.message);
 }
 
 /**
  * Shows normal notification without any styling or icon.
  */
-export function reportMessage(msg: MessageType, options?: Partial<INotifyOptions>): INotification|undefined {
+export function reportMessage(msg: MessageType, options?: Partial<INotifyOptions>): INotification | undefined {
   if (_notifier && !_notifier.isDisposed()) {
     return _notifier.createUserMessage(msg, {
-      ...options
+      ...options,
     });
   }
 }
@@ -67,7 +68,7 @@ export function reportMessage(msg: MessageType, options?: Partial<INotifyOptions
  * {level: 'error'} for same behavior with adjusted styling.
  */
 export function reportWarning(msg: string, options?: Partial<INotifyOptions>) {
-  options = {level: 'warning', ...options};
+  options = { level: "warning", ...options };
   log.warn(`${options.level}: `, msg);
   logError(msg);
   return reportMessage(msg, options);
@@ -77,11 +78,11 @@ export function reportWarning(msg: string, options?: Partial<INotifyOptions>) {
  * Shows success toast notification (with green styling).
  */
 export function reportSuccess(msg: MessageType, options?: Partial<INotifyOptions>) {
-  return reportMessage(msg, {level: 'success', ...options});
+  return reportMessage(msg, { level: "success", ...options });
 }
 
-function isUnhelpful(ev: ErrorEvent) {
-  if (ev.message === 'ResizeObserver loop completed with undelivered notifications.') {
+function isUnhelpful(err: Error | string, ev: ErrorEvent) {
+  if (ev.message === "ResizeObserver loop completed with undelivered notifications.") {
     // Sometimes on Chrome, changing the browser zoom level causes this benign error to
     // be thrown. It seems to only appear on the Access Rules page, and may have something
     // to do with Ace. In any case, the error seems harmless and it isn't particularly helpful,
@@ -91,7 +92,7 @@ function isUnhelpful(ev: ErrorEvent) {
     return true;
   }
 
-  if (!ev.filename && !ev.lineno && ev.message?.toLowerCase().includes('script error')) {
+  if (!ev.filename && !ev.lineno && ev.message?.toLowerCase().includes("script error")) {
     // Errors from cross-origin scripts, and some add-ons, show up as unhelpful sanitized "Script
     // error." messages. We want to know if they occur, but they are useless to the user, and useless
     // to report multiple times. We report them just once to the server.
@@ -99,6 +100,13 @@ function isUnhelpful(ev: ErrorEvent) {
     // In particular, this addresses a bug on iOS version of Firefox, which produces uncaught
     // sanitized errors on load AND on attempts to report them, leading to a loop that hangs the
     // browser. Reporting just once is a sufficient workaround.
+    return true;
+  }
+
+  if (typeof err === "object" && typeof err?.stack === "string" && err.stack.includes("chrome-extension://")) {
+    // Sometimes we can tell when the error is really from a browser extension rather than Grist.
+    // These usually don't interfere, and the report of the error is more disruptive than the
+    // error itself.
     return true;
   }
 
@@ -115,7 +123,7 @@ const unhelpfulErrors = new Set<string>();
  * Not all errors will be shown as an error toast, depending on the content of the error
  * this function might show a simple toast message.
  */
-export function reportError(err: Error|string, ev?: ErrorEvent): void {
+export function reportError(err: Error | string, ev?: ErrorEvent): void {
   if (err instanceof MutedError) {
     return;
   }
@@ -124,7 +132,7 @@ export function reportError(err: Error|string, ev?: ErrorEvent): void {
     // This error can be emitted while a page is reloaded, and isn't worth reporting.
     return;
   }
-  if (ev && isUnhelpful(ev)) {
+  if (ev && isUnhelpful(err, ev)) {
     // Report just once to the server. There is little point reporting subsequent such errors once
     // we know they happen, since each individual error has no useful information.
     if (!unhelpfulErrors.has(ev.message)) {
@@ -140,44 +148,44 @@ export function reportError(err: Error|string, ev?: ErrorEvent): void {
       err = new Error(String(err));
     }
 
-    const details: ApiErrorDetails|undefined = (err as any).details;
+    const details: ApiErrorDetails | undefined = (err as any).details;
     const code: unknown = (err as any).code;
     const status: unknown = (err as any).status;
-    const message = (details && details.userError) || err.message;
-    if (details && details.limit) {
+    const message = (details?.userError) || err.message;
+    if (details?.limit) {
       // This is a notification about reaching a plan limit. Key prevents showing multiple
       // notifications for the same type of limit.
       const options: Partial<INotifyOptions> = {
         title: "Reached plan limit",
         key: `limit:${details.limit.quantity || message}`,
-        actions: details.tips?.some(t => t.action === 'manage') ? ['manage'] : ['upgrade'],
+        actions: details.tips?.some(t => t.action === "manage") ? ["manage"] : ["upgrade"],
       };
-      if (details.tips && details.tips.some(tip => tip.action === 'add-members')) {
+      if (details.tips?.some(tip => tip.action === "add-members")) {
         // When adding members would fix a problem, give more specific advice.
         options.title = "Add users as team members first";
         options.actions = [];
       }
       // Show the error as a message
       _notifier.createUserMessage(message, options);
-    } else if (err.name === 'UserError' || (typeof status === 'number' && status >= 400 && status < 500)) {
+    } else if (err.name === "UserError" || (typeof status === "number" && status >= 400 && status < 500)) {
       // This is explicitly a user error, or one in the "Client Error" range, so treat it as user
       // error rather than a bug. Using message as the key causes same-message notifications to
       // replace previous ones rather than accumulate.
-      const options: Partial<INotifyOptions> = {key: (err as UserError).key || message};
+      const options: Partial<INotifyOptions> = { key: (err as UserError).key || message };
       options.memos = details?.memos;
-      if (details && details.tips && details.tips.some(tip => tip.action === 'ask-for-help')) {
-        options.actions = ['ask-for-help'];
+      if (details?.tips?.some(tip => tip.action === "ask-for-help")) {
+        options.actions = ["ask-for-help"];
       }
       _notifier.createUserMessage(message, options);
-    } else if (err.name === 'NeedUpgradeError') {
+    } else if (err.name === "NeedUpgradeError") {
       // Show the error as a message
-      _notifier.createUserMessage(err.message, {actions: ['upgrade'], key: 'NEED_UPGRADE'});
-    } else if (code === 'AUTH_NO_EDIT' || code === 'ACL_DENY') {
+      _notifier.createUserMessage(err.message, { actions: ["upgrade"], key: "NEED_UPGRADE" });
+    } else if (code === "AUTH_NO_EDIT" || code === "ACL_DENY") {
       // Show the error as a message
-      _notifier.createUserMessage(err.message, {key: code, memos: details?.memos});
+      _notifier.createUserMessage(err.message, { key: code, memos: details?.memos });
     } else if (message.match(/\[Sandbox\].*between formula and data/)) {
       // Show nicer error message for summary tables.
-      _notifier.createUserMessage(ErrorTooltips.summaryFormulas, {key: 'summary'});
+      _notifier.createUserMessage(ErrorTooltips.summaryFormulas, { key: "summary" });
     } else {
       // If we don't recognize it, consider it an application error (bug) that the user should be
       // able to report.
@@ -204,10 +212,10 @@ export function setUpErrorHandling(doReportError = reportError, koUtil?: any) {
   }
 
   // Report also uncaught JS errors and unhandled Promise rejections.
-  G.window.addEventListener('error', (ev: ErrorEvent) => doReportError(ev.error || ev.message, ev));
+  G.window.addEventListener("error", (ev: ErrorEvent) => doReportError(ev.error || ev.message, ev));
 
-  G.window.addEventListener('unhandledrejection', (ev: any) => {
-    const reason = ev.reason || (ev.detail && ev.detail.reason);
+  G.window.addEventListener("unhandledrejection", (ev: any) => {
+    const reason = ev.reason || (ev.detail?.reason);
     doReportError(reason || ev);
   });
 
@@ -224,26 +232,25 @@ export function setUpErrorHandling(doReportError = reportError, koUtil?: any) {
  * over-logging (regular errors such as access rights or account limits) and
  * under-logging (javascript errors during startup might never get reported).
  */
-export function logError(error: Error|string) {
+export function logError(error: Error | string) {
   if (!pageHasHome()) { return; }
   const docId = G.window.gristDocPageModel?.currentDocId?.get();
-  fetchFromHome('/api/log', {
-    method: 'POST',
+  fetchFromHome("/api/log", {
+    method: "POST",
     body: JSON.stringify({
       // Errors don't stringify, so pick out properties explicitly for errors.
       event: (error instanceof Error) ? pick(error, Object.getOwnPropertyNames(error)) : error,
       docId,
       page: G.window.location.href,
-      browser: pick(G.window.navigator, ['language', 'platform', 'userAgent'])
+      browser: pick(G.window.navigator, ["language", "platform", "userAgent"]),
     }),
-    credentials: 'include',
+    credentials: "include",
     headers: {
-      'Content-Type': 'application/json',
-      'X-Requested-With': 'XMLHttpRequest',
-    }
-  }).catch(e => {
+      "Content-Type": "application/json",
+      "X-Requested-With": "XMLHttpRequest",
+    },
+  }).catch((e) => {
     // There ... isn't much we can do about this.
-    // tslint:disable-next-line:no-console
-    console.warn('Failed to log event', e);
+    console.warn("Failed to log event", e);
   });
 }

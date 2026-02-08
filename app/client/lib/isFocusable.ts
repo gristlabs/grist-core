@@ -1,4 +1,3 @@
-
 /**
  * Code authored by Kitty Giraudel for a11y-dialog https://github.com/KittyGiraudel/a11y-dialog, thanks to her!
  *
@@ -52,18 +51,17 @@ const isHidden = (el: HTMLElement) => {
   // focusable-selectors and may still have dimensions, so we need a special
   // case to ignore them.
   if (
-    el.matches('details:not([open]) *') &&
-    !el.matches('details>summary:first-of-type')
-  )
-    { return true; }
+    el.matches("details:not([open]) *") &&
+    !el.matches("details>summary:first-of-type")
+  ) { return true; }
 
   // If this element has no painted dimensions, it's hidden.
   return !(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
 };
 
-const notInert = ':not([inert]):not([inert] *)';
+const notInert = ":not([inert]):not([inert] *)";
 const notNegTabIndex = ':not([tabindex^="-"])';
-const notDisabled = ':not(:disabled)';
+const notDisabled = ":not(:disabled)";
 
 const focusableSelectors = [
   `a[href]${notInert}${notNegTabIndex}`,
@@ -84,4 +82,4 @@ const focusableSelectors = [
   `[tabindex]${notInert}${notNegTabIndex}`,
 ];
 
-const focusableSelectorsString = focusableSelectors.join(',');
+const focusableSelectorsString = focusableSelectors.join(",");

@@ -1,26 +1,27 @@
-import {FilterColValues} from 'app/common/ActiveDocAPI';
-import {ApiError} from 'app/common/ApiError';
-import {buildColFilter} from 'app/common/ColumnFilterFunc';
-import {TableDataAction, TableDataActionSet} from 'app/common/DocActions';
-import {DocData} from 'app/common/DocData';
-import {DocumentSettings} from 'app/common/DocumentSettings';
-import * as gristTypes from 'app/common/gristTypes';
-import * as gutil from 'app/common/gutil';
-import {nativeCompare} from 'app/common/gutil';
-import {isTableCensored} from 'app/common/isHiddenTable';
-import {buildRowFilter, getLinkingFilterFunc} from 'app/common/RowFilterFunc';
-import {schema, SchemaTypes} from 'app/common/schema';
-import {SortFunc} from 'app/common/SortFunc';
-import {Sort} from 'app/common/SortSpec';
-import {MetaRowRecord, MetaTableData} from 'app/common/TableData';
-import {BaseFormatter, createFullFormatterFromDocData} from 'app/common/ValueFormatter';
-import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {RequestWithLogin} from 'app/server/lib/Authorizer';
-import {docSessionFromRequest} from 'app/server/lib/DocSession';
-import {optIntegerParam, optJsonParam, optStringParam, stringParam} from 'app/server/lib/requestUtils';
-import {ServerColumnGetters} from 'app/server/lib/ServerColumnGetters';
-import * as express from 'express';
-import * as _ from 'underscore';
+import { FilterColValues } from "app/common/ActiveDocAPI";
+import { ApiError } from "app/common/ApiError";
+import { buildColFilter } from "app/common/ColumnFilterFunc";
+import { TableDataAction, TableDataActionSet } from "app/common/DocActions";
+import { DocData } from "app/common/DocData";
+import { DocumentSettings } from "app/common/DocumentSettings";
+import * as gristTypes from "app/common/gristTypes";
+import * as gutil from "app/common/gutil";
+import { nativeCompare } from "app/common/gutil";
+import { isTableCensored } from "app/common/isHiddenTable";
+import { buildRowFilter, getLinkingFilterFunc } from "app/common/RowFilterFunc";
+import { schema, SchemaTypes } from "app/common/schema";
+import { SortFunc } from "app/common/SortFunc";
+import { Sort } from "app/common/SortSpec";
+import { MetaRowRecord, MetaTableData } from "app/common/TableData";
+import { BaseFormatter, createFullFormatterFromDocData } from "app/common/ValueFormatter";
+import { ActiveDoc } from "app/server/lib/ActiveDoc";
+import { RequestWithLogin } from "app/server/lib/Authorizer";
+import { docSessionFromRequest } from "app/server/lib/DocSession";
+import { optIntegerParam, optJsonParam, optStringParam } from "app/server/lib/requestUtils";
+import { ServerColumnGetters } from "app/server/lib/ServerColumnGetters";
+
+import * as express from "express";
+import * as _ from "underscore";
 
 // Helper type for Cell Accessor
 type Access = (row: number) => any;
@@ -44,7 +45,7 @@ export class ActiveDocSourceDirect implements ActiveDocSource {
   public async getDocName() { return this._activeDoc.docName; }
   public fetchMetaTables() { return this._activeDoc.fetchMetaTables(docSessionFromRequest(this._req)); }
   public async fetchTable(tableId: string) {
-    const {tableData} = await this._activeDoc.fetchTable(docSessionFromRequest(this._req), tableId, true);
+    const { tableData } = await this._activeDoc.fetchTable(docSessionFromRequest(this._req), tableId, true);
     return tableData;
   }
 }
@@ -90,13 +91,13 @@ export interface ExportData {
   docSettings: DocumentSettings;
 }
 
-export type ExportHeader = 'colId' | 'label';
+export type ExportHeader = "colId" | "label";
 
 /**
  * Export parameters that identifies a section, filters, sort order.
  */
 export interface ExportParameters {
-  tableId: string;          // Value of '' is an instruction to export all tables.
+  tableId?: string;
   viewSectionId?: number;
   sortOrder?: number[];
   filters?: Filter[];
@@ -115,12 +116,14 @@ export interface DownloadOptions extends ExportParameters {
  * Gets export parameters from a request.
  */
 export function parseExportParameters(req: express.Request): ExportParameters {
-  const tableId = stringParam(req.query.tableId, 'tableId');
-  const viewSectionId = optIntegerParam(req.query.viewSection, 'viewSection');
+  const tableId = optStringParam(req.query.tableId, "tableId");
+  const viewSectionId = optIntegerParam(req.query.viewSection, "viewSection");
   const sortOrder = optJsonParam(req.query.activeSortSpec, []) as number[];
   const filters: Filter[] = optJsonParam(req.query.filters, []);
   const linkingFilter: FilterColValues = optJsonParam(req.query.linkingFilter, null);
-  const header = optStringParam(req.query.header, 'header', {allowed: ['label', 'colId']}) as ExportHeader | undefined;
+  const header = optStringParam(
+    req.query.header, "header", { allowed: ["label", "colId"] },
+  ) as ExportHeader | undefined;
 
   return {
     tableId,
@@ -170,12 +173,12 @@ export async function doExportDoc(
   handleTable: (data: ExportData) => Promise<void>,
 ): Promise<void> {
   const metaTables = await getMetaTables(activeDocSource);
-  const tables = safeTable(metaTables, '_grist_Tables');
+  const tables = safeTable(metaTables, "_grist_Tables");
   // select raw tables
   const tableRefs = tables.filterRowIds({ summarySourceTable: 0 });
   for (const tableRef of tableRefs) {
     if (!isTableCensored(tables, tableRef)) {    // Omit censored tables
-      const data = await doExportTable(activeDocSource, {metaTables, tableRef});
+      const data = await doExportTable(activeDocSource, { metaTables, tableRef });
       await handleTable(data);
     }
   }
@@ -188,26 +191,26 @@ export async function exportTable(
   activeDoc: ActiveDoc,
   tableRef: number,
   req: express.Request,
-  {metaTables}: {metaTables?: TableDataActionSet} = {},
+  { metaTables}: { metaTables?: TableDataActionSet } = {},
 ): Promise<ExportData> {
-  return doExportTable(new ActiveDocSourceDirect(activeDoc, req), {metaTables, tableRef});
+  return doExportTable(new ActiveDocSourceDirect(activeDoc, req), { metaTables, tableRef });
 }
 
 export async function doExportTable(
   activeDocSource: ActiveDocSource,
-  options: {metaTables?: TableDataActionSet, tableRef?: number, tableId?: string},
+  options: { metaTables?: TableDataActionSet, tableRef?: number, tableId?: string },
 ) {
   const metaTables = options.metaTables || await getMetaTables(activeDocSource);
   const docData = new DocData((tableId) => { throw new Error("Unexpected DocData fetch"); }, metaTables);
-  const tables = safeTable(metaTables, '_grist_Tables');
-  const metaColumns = safeTable(metaTables, '_grist_Tables_column');
+  const tables = safeTable(metaTables, "_grist_Tables");
+  const metaColumns = safeTable(metaTables, "_grist_Tables_column");
 
   let tableRef: number;
   if (options.tableRef) {
     tableRef = options.tableRef;
   } else {
-    if (!options.tableId) { throw new Error('doExportTable: tableRef or tableId must be given'); }
-    tableRef = tables.findRow('tableId', options.tableId);
+    if (!options.tableId) { throw new Error("doExportTable: tableRef or tableId must be given"); }
+    tableRef = tables.findRow("tableId", options.tableId);
     if (tableRef === 0) {
       throw new ApiError(`Table ${options.tableId} not found.`, 404);
     }
@@ -217,26 +220,26 @@ export async function doExportTable(
   const table = safeRecord(tables, tableRef);
 
   // Select only columns that belong to this table.
-  const tableColumns = metaColumns.filterRecords({parentId: tableRef})
+  const tableColumns = metaColumns.filterRecords({ parentId: tableRef })
     // sort by parentPos and id, which should be the same order as in raw data
     .sort((c1, c2) => nativeCompare(c1.parentPos, c2.parentPos) || nativeCompare(c1.id, c2.id));
 
   // Produce a column description matching what user will see / expect to export
   const columns: ExportColumn[] = tableColumns
-  .filter(tc => !gristTypes.isHiddenCol(tc.colId))    // Exclude helpers
-  .map<ExportColumn>(tc => {
+    .filter(tc => !gristTypes.isHiddenCol(tc.colId))    // Exclude helpers
+    .map<ExportColumn>((tc) => {
     // for reference columns, return display column, and copy settings from visible column
-    const displayCol = metaColumns.getRecord(tc.displayCol) || tc;
-    return {
-      id: displayCol.id,
-      colId: displayCol.colId,
-      label: tc.label,
-      type: tc.type,
-      formatter: createFullFormatterFromDocData(docData, tc.id),
-      parentPos: tc.parentPos,
-      description: tc.description,
-    };
-  });
+      const displayCol = metaColumns.getRecord(tc.displayCol) || tc;
+      return {
+        id: displayCol.id,
+        colId: displayCol.colId,
+        label: tc.label,
+        type: tc.type,
+        formatter: createFullFormatterFromDocData(docData, tc.id),
+        parentPos: tc.parentPos,
+        description: tc.description,
+      };
+    });
 
   // fetch actual data
   const tableData = await activeDocSource.fetchTable(table.tableId);
@@ -251,12 +254,12 @@ export async function doExportTable(
   // since tables ids are not very friendly, borrow name from a primary view
   if (table.primaryViewId) {
     const viewId = table.primaryViewId;
-    const views = safeTable(metaTables, '_grist_Views');
+    const views = safeTable(metaTables, "_grist_Views");
     const view = safeRecord(views, viewId);
     tableName = view.name;
   }
 
-  const docInfo = safeRecord(safeTable(metaTables, '_grist_DocInfo'), 1);
+  const docInfo = safeRecord(safeTable(metaTables, "_grist_DocInfo"), 1);
   const docSettings = gutil.safeJsonParse(docInfo.documentSettings, {});
   const exportData: ExportData = {
     tableName,
@@ -264,7 +267,7 @@ export async function doExportTable(
     rowIds,
     access,
     columns,
-    docSettings
+    docSettings,
   };
   return exportData;
 }
@@ -279,10 +282,10 @@ export async function exportSection(
   filters: Filter[] | null,
   linkingFilter: FilterColValues | null = null,
   req: express.Request,
-  {metaTables}: {metaTables?: TableDataActionSet} = {},
+  { metaTables}: { metaTables?: TableDataActionSet } = {},
 ): Promise<ExportData> {
   return doExportSection(new ActiveDocSourceDirect(activeDoc, req), viewSectionId, sortSpec,
-    filters, linkingFilter, {metaTables});
+    filters, linkingFilter, { metaTables });
 }
 
 export async function doExportSection(
@@ -291,26 +294,26 @@ export async function doExportSection(
   sortSpec: Sort.SortSpec | null,
   filters: Filter[] | null,
   linkingFilter: FilterColValues | null = null,
-  {metaTables}: {metaTables?: TableDataActionSet} = {},
+  { metaTables}: { metaTables?: TableDataActionSet } = {},
 ): Promise<ExportData> {
   metaTables = metaTables || await getMetaTables(activeDocSource);
   const docData = new DocData((tableId) => { throw new Error("Unexpected DocData fetch"); }, metaTables);
-  const viewSections = safeTable(metaTables, '_grist_Views_section');
+  const viewSections = safeTable(metaTables, "_grist_Views_section");
   const viewSection = safeRecord(viewSections, viewSectionId);
   safe(viewSection.tableRef, `Cannot find or access table`);
-  const tables = safeTable(metaTables, '_grist_Tables');
+  const tables = safeTable(metaTables, "_grist_Tables");
   checkTableAccess(tables, viewSection.tableRef);
   const table = safeRecord(tables, viewSection.tableRef);
-  const metaColumns = safeTable(metaTables, '_grist_Tables_column');
-  const columns = metaColumns.filterRecords({parentId: table.id});
-  const viewSectionFields = safeTable(metaTables, '_grist_Views_section_field');
-  const fields = viewSectionFields.filterRecords({parentId: viewSection.id});
-  const savedFilters = safeTable(metaTables, '_grist_Filters')
-    .filterRecords({viewSectionRef: viewSection.id});
+  const metaColumns = safeTable(metaTables, "_grist_Tables_column");
+  const columns = metaColumns.filterRecords({ parentId: table.id });
+  const viewSectionFields = safeTable(metaTables, "_grist_Views_section_field");
+  const fields = viewSectionFields.filterRecords({ parentId: viewSection.id });
+  const savedFilters = safeTable(metaTables, "_grist_Filters")
+    .filterRecords({ viewSectionRef: viewSection.id });
 
-  const fieldsByColRef = _.indexBy(fields, 'colRef');
-  const savedFiltersByColRef = _.indexBy(savedFilters, 'colRef');
-  const unsavedFiltersByColRef = _.indexBy(filters ?? [], 'colRef');
+  const fieldsByColRef = _.indexBy(fields, "colRef");
+  const savedFiltersByColRef = _.indexBy(savedFilters, "colRef");
+  const unsavedFiltersByColRef = _.indexBy(filters ?? [], "colRef");
 
   // Produce a column description matching what user will see / expect to export
   const viewify = (col: GristTablesColumn, field?: GristViewsSectionField): ExportColumn => {
@@ -338,14 +341,14 @@ export async function doExportSection(
   const columnsForFilters = columns
     .filter(column => !gristTypes.isHiddenCol(column.colId))
     .map(column => buildFilters(column, fieldsByColRef[column.id]));
-  const viewColumns: ExportColumn[] = _.sortBy(fields, 'parentPos')
-    .map((field) => viewify(metaColumns.getRecord(field.colRef)!, field));
+  const viewColumns: ExportColumn[] = _.sortBy(fields, "parentPos")
+    .map(field => viewify(metaColumns.getRecord(field.colRef)!, field));
 
   // The columns named in sort order need to now become display columns
   sortSpec = sortSpec || gutil.safeJsonParse(viewSection.sortColRefs, []);
   sortSpec = sortSpec!.map((colSpec) => {
     const colRef = Sort.getColRef(colSpec);
-    if (typeof colRef !== 'number') {
+    if (typeof colRef !== "number") {
       // colRef might be string for virtual tables, but we don't support them here.
       throw new Error(`Unsupported colRef type: ${typeof colRef}`);
     }
@@ -371,7 +374,7 @@ export async function doExportSection(
   // create row filter based on all columns filter
   const rowFilter = columnsForFilters
     .map((col, c) => buildRowFilter(tableAccess[c], col.filterFunc))
-    .reduce((prevFilter, curFilter) => (id) => prevFilter(id) && curFilter(id), () => true);
+    .reduce((prevFilter, curFilter) => id => prevFilter(id) && curFilter(id), () => true);
   // filter rows numbers
   rowIds = rowIds.filter(rowFilter);
 
@@ -379,7 +382,7 @@ export async function doExportSection(
     rowIds = rowIds.filter(getLinkingFilterFunc(getters, linkingFilter));
   }
 
-  const docInfo = safeRecord(safeTable(metaTables, '_grist_DocInfo'), 1);
+  const docInfo = safeRecord(safeTable(metaTables, "_grist_DocInfo"), 1);
   const docSettings = gutil.safeJsonParse(docInfo.documentSettings, {});
 
   const exportData: ExportData = {
@@ -388,13 +391,13 @@ export async function doExportSection(
     tableName: table.tableId,
     docName: await activeDocSource.getDocName(),
     access: viewColumns.map(col => getters.getColGetter(col.id)!),
-    columns: viewColumns
+    columns: viewColumns,
   };
   return exportData;
 }
 
-type GristViewsSectionField = MetaRowRecord<'_grist_Views_section_field'>
-type GristTablesColumn = MetaRowRecord<'_grist_Tables_column'>
+type GristViewsSectionField = MetaRowRecord<"_grist_Views_section_field">;
+type GristTablesColumn = MetaRowRecord<"_grist_Tables_column">;
 
 // Type for filters passed from the client
 export interface Filter { colRef: number, filter: string }

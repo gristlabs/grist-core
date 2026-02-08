@@ -2,7 +2,7 @@
  * API definitions for ImportSource plugins.
  */
 
-import { GristTable } from 'app/plugin/GristTable';
+import { GristTable } from "app/plugin/GristTable";
 
 export interface ImportSourceAPI {
   /**
@@ -11,7 +11,7 @@ export interface ImportSourceAPI {
    * but not an empty list of `ImportSourceItem`. Which is a valid import source and is used in
    * cases where only options are to be sent to an `ImportProcessAPI` implementation.
    */
-  getImportSource(): Promise<ImportSource|undefined>;
+  getImportSource(): Promise<ImportSource | undefined>;
 }
 
 export interface ImportProcessorAPI {
@@ -44,7 +44,7 @@ export interface ImportSource {
    * The options are only passed within this plugin, nothing else needs to know how they are
    * serialized. Using JSON.stringify/JSON.parse is a simple approach.
    */
-  options?: string|Buffer;
+  options?: string | Buffer;
 
   /**
    * The short description that shows in the import dialog after source have been selected.

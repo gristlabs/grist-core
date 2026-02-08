@@ -1,5 +1,6 @@
 import { nativeValues } from "app/gen-server/lib/values";
 import * as sqlUtils from "app/gen-server/sqlUtils";
+
 import { MigrationInterface, QueryRunner, Table } from "typeorm";
 
 export class OAuthClientsAndGrants1764872085347 implements MigrationInterface {
@@ -57,7 +58,7 @@ export class OAuthClientsAndGrants1764872085347 implements MigrationInterface {
             onDelete: "CASCADE",
           },
         ],
-      })
+      }),
     );
 
     await queryRunner.createTable(
@@ -119,7 +120,7 @@ export class OAuthClientsAndGrants1764872085347 implements MigrationInterface {
           // scopes granted to the client on behalf of the user.
           { columnNames: ["oauth_client_id", "issued_to_user_id"], isUnique: true },
         ],
-      })
+      }),
     );
   }
 

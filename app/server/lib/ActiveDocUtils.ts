@@ -41,7 +41,7 @@ export function getDocDataOrThrow(doc: ActiveDoc) {
 function getRecordById<TableId extends keyof SchemaTypes>(
   doc: ActiveDoc,
   tableId: TableId,
-  id: number
+  id: number,
 ) {
   const record = getDocDataOrThrow(doc).getMetaTable(tableId).getRecord(id);
   if (!record) {

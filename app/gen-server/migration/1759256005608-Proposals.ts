@@ -1,9 +1,9 @@
-import { nativeValues } from 'app/gen-server/lib/values';
-import * as sqlUtils from 'app/gen-server/sqlUtils';
-import { MigrationInterface, QueryRunner, Table, TableUnique } from 'typeorm';
+import { nativeValues } from "app/gen-server/lib/values";
+import * as sqlUtils from "app/gen-server/sqlUtils";
+
+import { MigrationInterface, QueryRunner, Table, TableUnique } from "typeorm";
 
 export class Proposals1759256005608 implements MigrationInterface {
-
   public async up(queryRunner: QueryRunner): Promise<void> {
     const dbType = queryRunner.connection.driver.options.type;
     const datetime = sqlUtils.datetime(dbType);
@@ -17,73 +17,73 @@ export class Proposals1759256005608 implements MigrationInterface {
     // the scope of the document. It exists for github
     // pull request numbering aesthetics.
     await queryRunner.createTable(new Table({
-      name: 'proposals',
+      name: "proposals",
       columns: [
         {
-          name: 'dest_doc_id',
+          name: "dest_doc_id",
           type: "varchar",
           isPrimary: true,
         },
         {
-          name: 'short_id',
-          type: 'integer',
+          name: "short_id",
+          type: "integer",
           isPrimary: true,
         },
         {
-          name: 'src_doc_id',
+          name: "src_doc_id",
           type: "varchar",
         },
         {
-          name: 'comparison',
+          name: "comparison",
           type: nativeValues.jsonType,
         },
         {
-          name: 'status',
+          name: "status",
           type: nativeValues.jsonType,
         },
         {
           name: "created_at",
           type: datetime,
-          default: now
+          default: now,
         },
         {
           name: "updated_at",
           type: datetime,
-          default: now
+          default: now,
         },
         {
           name: "applied_at",
           type: datetime,
-          isNullable: true
+          isNullable: true,
         },
       ],
       foreignKeys: [
         {
-          columnNames: ['src_doc_id'],
-          referencedColumnNames: ['id'],
-          referencedTableName: 'docs',
-          onDelete: 'CASCADE',
+          columnNames: ["src_doc_id"],
+          referencedColumnNames: ["id"],
+          referencedTableName: "docs",
+          onDelete: "CASCADE",
         },
         {
-          columnNames: ['dest_doc_id'],
-          referencedColumnNames: ['id'],
-          referencedTableName: 'docs',
-          onDelete: 'CASCADE',
+          columnNames: ["dest_doc_id"],
+          referencedColumnNames: ["id"],
+          referencedTableName: "docs",
+          onDelete: "CASCADE",
         },
       ],
     }));
     // This constraint is currently true, but perhaps
     // could be removed in the future.
     await queryRunner.createUniqueConstraint(
-      'proposals',
+      "proposals",
       new TableUnique({
-        name: 'proposals__dest_doc_id__src_doc_id',
-        columnNames: ['dest_doc_id', 'src_doc_id'],
-      })
+        name: "proposals__dest_doc_id__src_doc_id",
+        columnNames: ["dest_doc_id", "src_doc_id"],
+      }),
     );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('proposals');
+    await queryRunner.dropTable("proposals");
   }
 }

@@ -6,7 +6,7 @@ import * as t from "ts-interface-checker";
 
 export const SnapshotWindow = t.iface([], {
   "count": "number",
-  "unit": t.union(t.lit('days'), t.lit('month'), t.lit('year')),
+  "unit": t.union(t.lit("days"), t.lit("month"), t.lit("year")),
 });
 
 export const Product = t.iface([], {

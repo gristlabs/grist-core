@@ -1,31 +1,32 @@
-import {makeT} from 'app/client/lib/localization';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {AppModel} from 'app/client/models/AppModel';
-import {DocPageModel} from 'app/client/models/DocPageModel';
-import {ShareAnnotations, ShareAnnotator} from 'app/common/ShareAnnotator';
-import {normalizeEmail} from 'app/common/emails';
-import {GristLoadConfig} from 'app/common/gristUrls';
-import * as roles from 'app/common/roles';
-import {getGristConfig} from 'app/common/urlUtils';
-import {ANONYMOUS_USER_EMAIL, Document, EVERYONE_EMAIL, FullUser, getRealAccess, Organization,
-        PermissionData, PermissionDelta, UserAPI, Workspace} from 'app/common/UserAPI';
-import {computed, Computed, Disposable, obsArray, ObsArray, observable, Observable} from 'grainjs';
-import some = require('lodash/some');
+import { GristDoc } from "app/client/components/GristDoc";
+import { makeT } from "app/client/lib/localization";
+import { AppModel } from "app/client/models/AppModel";
+import { DocPageModel } from "app/client/models/DocPageModel";
+import { normalizeEmail } from "app/common/emails";
+import { GristLoadConfig } from "app/common/gristUrls";
+import * as roles from "app/common/roles";
+import { ShareAnnotations, ShareAnnotator } from "app/common/ShareAnnotator";
+import { getGristConfig } from "app/common/urlUtils";
+import { ANONYMOUS_USER_EMAIL, Document, EVERYONE_EMAIL, FullUser, getRealAccess, Organization,
+  PermissionData, PermissionDelta, UserAPI, Workspace } from "app/common/UserAPI";
 
-const t = makeT('UserManagerModel');
+import { computed, Computed, Disposable, obsArray, ObsArray, observable, Observable } from "grainjs";
+import some from "lodash/some";
+
+const t = makeT("UserManagerModel");
 
 export interface UserManagerModel {
   initData: PermissionData;                    // PermissionData used to initialize the UserManager
-  resource: Resource|null;                     // The access resource.
+  resource: Resource | null;                     // The access resource.
   resourceType: ResourceType;                  // String representing the access resource type.
   userSelectOptions: IMemberSelectOption[];    // Select options for each user's role dropdown
   orgUserSelectOptions: IOrgMemberSelectOption[];  // Select options for each user's role dropdown on the org
   inheritSelectOptions: IMemberSelectOption[]; // Select options for the maxInheritedRole dropdown
   publicUserSelectOptions: IMemberSelectOption[]; // Select options for the public member's role dropdown
-  maxInheritedRole: Observable<roles.BasicRole|null>;  // Current unsaved maxInheritedRole setting
+  maxInheritedRole: Observable<roles.BasicRole | null>;  // Current unsaved maxInheritedRole setting
   membersEdited: ObsArray<IEditableMember>;    // Current unsaved editable array of members
-  publicMember: IEditableMember|null;          // Member whose access (VIEWER or null) represents that of
-                                               // anon@ or everyone@ (depending on the settings and resource).
+  publicMember: IEditableMember | null;          // Member whose access (VIEWER or null) represents that of
+  // anon@ or everyone@ (depending on the settings and resource).
   isAnythingChanged: Computed<boolean>;        // Indicates whether there are unsaved changes
   isSelfRemoved: Computed<boolean>;            // Indicates whether current user is removed
   isOrg: boolean;                              // Indicates if the UserManager is for an org
@@ -34,8 +35,8 @@ export interface UserManagerModel {
   hasOverview: boolean;                         // If user access contains readonly info about other users.
   isPublicMember: boolean;                     // Indicates if current user is a public member.
 
-  activeUser: FullUser|null;                   // Populated if current user is logged in.
-  gristDoc: GristDoc|null;                     // Populated if there is an open document.
+  activeUser: FullUser | null;                   // Populated if current user is logged in.
+  gristDoc: GristDoc | null;                     // Populated if there is an open document.
 
   // Analyze the relation that users have to the resource or site.
   annotate(): void;
@@ -44,32 +45,34 @@ export interface UserManagerModel {
   // Recreate annotations, factoring in any changes on the back-end.
   reloadAnnotations(): Promise<void>;
   // Writes all unsaved changes to the server.
-  save(userApi: UserAPI, resourceId: number|string): Promise<void>;
+  save(userApi: UserAPI, resourceId: number | string): Promise<void>;
   // Adds a member to membersEdited
-  add(email: string, role: roles.Role|null): void;
+  add(email: string, role: roles.Role | null): void;
   // Removes a member from membersEdited
   remove(member: IEditableMember): void;
   // Returns a boolean indicating if the member is the currently active user.
   isActiveUser(member: IEditableMember): boolean;
   // Returns the PermissionDelta reflecting the current unsaved changes in the model.
   getDelta(): PermissionDelta;
+  // Returns whether we are enabling public sharing.
+  goingToSharePublicly(): boolean;
 }
 
-export type ResourceType = 'organization'|'workspace'|'document';
+export type ResourceType = "organization" | "workspace" | "document";
 
-export type Resource = Organization|Workspace|Document;
+export type Resource = Organization | Workspace | Document;
 
 export interface IEditableMember {
   id: number;    // Newly invited members do not have ids and are represented by -1
   name: string;
   email: string;
-  picture?: string|null;
-  locale?: string|null;
-  access: Observable<roles.Role|null>;
-  parentAccess: roles.BasicRole|null;
-  inheritedAccess: Computed<roles.BasicRole|null>;
-  effectiveAccess: Computed<roles.Role|null>;
-  origAccess: roles.Role|null;
+  picture?: string | null;
+  locale?: string | null;
+  access: Observable<roles.Role | null>;
+  parentAccess: roles.BasicRole | null;
+  inheritedAccess: Computed<roles.BasicRole | null>;
+  effectiveAccess: Computed<roles.Role | null>;
+  origAccess: roles.Role | null;
   isNew: boolean;
   isRemoved: boolean;
   isTeamMember?: boolean;
@@ -77,13 +80,13 @@ export interface IEditableMember {
 
 // An option for the select elements used in the UserManager.
 export interface IMemberSelectOption {
-  value: roles.BasicRole|null;
+  value: roles.BasicRole | null;
   label: string;
 }
 
 // An option for the organization select elements used in the UserManager.
 export interface IOrgMemberSelectOption {
-  value: roles.NonGuestRole|null;
+  value: roles.NonGuestRole | null;
   label: string;
 }
 
@@ -91,9 +94,9 @@ interface IBuildMemberOptions {
   id: number;
   name: string;
   email: string;
-  picture?: string|null;
-  access: roles.Role|null;
-  parentAccess: roles.BasicRole|null;
+  picture?: string | null;
+  access: roles.Role | null;
+  parentAccess: roles.BasicRole | null;
   isTeamMember?: boolean;
 }
 
@@ -105,8 +108,9 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
   public readonly userSelectOptions: IMemberSelectOption[] = [
     { value: roles.OWNER,  label: t("Owner")  },
     { value: roles.EDITOR, label: t("Editor") },
-    { value: roles.VIEWER, label: t("Viewer") }
+    { value: roles.VIEWER, label: t("Viewer") },
   ];
+
   // Select options for each individual user's role dropdown in the org.
   public readonly orgUserSelectOptions: IOrgMemberSelectOption[] = [
     { value: roles.OWNER,  label: t("Owner")  },
@@ -114,34 +118,36 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
     { value: roles.VIEWER, label: t("Viewer") },
     { value: roles.MEMBER, label: t("No Default Access") },
   ];
+
   // Select options for the resource's maxInheritedRole dropdown.
   public readonly inheritSelectOptions: IMemberSelectOption[] = [
     { value: roles.OWNER,  label: t("In full")     },
     { value: roles.EDITOR, label: t("View & edit") },
     { value: roles.VIEWER, label: t("View only")   },
-    { value: null,         label: t("None")        }
+    { value: null,         label: t("None")        },
   ];
+
   // Select options for the public member's role dropdown.
   public readonly publicUserSelectOptions: IMemberSelectOption[] = [
     { value: roles.EDITOR, label: t("Editor") },
     { value: roles.VIEWER, label: t("Viewer") },
   ];
 
-  public activeUser: FullUser|null = this._options.activeUser ?? null;
+  public activeUser: FullUser | null = this._options.activeUser ?? null;
 
-  public resource: Resource|null = this._options.resource ?? null;
+  public resource: Resource | null = this._options.resource ?? null;
 
-  public maxInheritedRole: Observable<roles.BasicRole|null> =
+  public maxInheritedRole: Observable<roles.BasicRole | null> =
     observable(this.initData.maxInheritedRole || null);
 
   // The public member's access settings reflect either those of anonymous users (when
   // shouldSupportAnon() is true) or those of everyone@ (i.e. access granted to all users,
   // supported for docs only). The member is null when public access is not supported.
-  public publicMember: IEditableMember|null = this._buildPublicMember();
+  public publicMember: IEditableMember | null = this._buildPublicMember();
 
   public membersEdited = this.autoDispose(obsArray<IEditableMember>(this._buildAllMembers()));
 
-  public annotations = this.autoDispose(observable({users: new Map()}));
+  public annotations = this.autoDispose(observable({ users: new Map() }));
 
   public isPersonal = Boolean(this.initData.personal);
 
@@ -152,9 +158,9 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
 
   public isPublicMember = this.initData.public ?? false;
 
-  public isOrg: boolean = this.resourceType === 'organization';
+  public isOrg: boolean = this.resourceType === "organization";
 
-  public gristDoc: GristDoc|null = this._options.docPageModel?.gristDoc.get() ?? null;
+  public gristDoc: GristDoc | null = this._options.docPageModel?.gristDoc.get() ?? null;
 
   // Checks if any members were added/removed/changed, if the max inherited role changed or if the
   // anonymous access setting changed to enable the confirm button to write changes to the server.
@@ -177,18 +183,18 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
     public initData: PermissionData,
     public resourceType: ResourceType,
     private _options: {
-      activeUser?: FullUser|null,
+      activeUser?: FullUser | null,
       reload?: () => Promise<PermissionData>,
       docPageModel?: DocPageModel,
       appModel?: AppModel,
       resource?: Resource,
-    }
+    },
   ) {
     super();
     if (this._options.appModel) {
       const features = this._options.appModel.currentFeatures;
-      const {supportEmail} = getGristConfig();
-      this._shareAnnotator = new ShareAnnotator(features, initData, {supportEmail});
+      const { supportEmail } = getGristConfig();
+      this._shareAnnotator = new ShareAnnotator(features, initData, { supportEmail });
     }
     this.annotate();
   }
@@ -211,25 +217,25 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
     this.annotate();
   }
 
-  public async save(userApi: UserAPI, resourceId: number|string): Promise<void> {
-    if (this.resourceType === 'organization') {
+  public async save(userApi: UserAPI, resourceId: number | string): Promise<void> {
+    if (this.resourceType === "organization") {
       await userApi.updateOrgPermissions(resourceId as number, this.getDelta());
-    } else if (this.resourceType === 'workspace') {
+    } else if (this.resourceType === "workspace") {
       await userApi.updateWorkspacePermissions(resourceId as number, this.getDelta());
-    } else if (this.resourceType === 'document') {
+    } else if (this.resourceType === "document") {
       await userApi.updateDocPermissions(resourceId as string, this.getDelta());
     }
   }
 
-  public add(email: string, role: roles.Role|null): void {
+  public add(email: string, role: roles.Role | null): void {
     email = normalizeEmail(email);
     const members = this.membersEdited.get();
-    const index = members.findIndex((m) => normalizeEmail(m.email) === email);
+    const index = members.findIndex(m => normalizeEmail(m.email) === email);
     const existing = index > -1 ? members[index] : null;
-    if (existing && existing.isRemoved) {
+    if (existing?.isRemoved) {
       // The member is replaced with the isRemoved set to false to trigger an
       // update to the membersEdited observable array.
-      this.membersEdited.splice(index, 1, {...existing, isRemoved: false});
+      this.membersEdited.splice(index, 1, { ...existing, isRemoved: false });
     } else if (existing) {
       const effective = existing.effectiveAccess.get();
       if (effective && effective !== roles.GUEST) {
@@ -246,7 +252,7 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
         email,
         name: "",
         access: role,
-        parentAccess: null
+        parentAccess: null,
       });
       newMember.isNew = true;
       this.membersEdited.push(newMember);
@@ -260,7 +266,7 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
       this.membersEdited.splice(index, 1);
     } else {
       // Keep it in the array with a flag, to simplify comparing "before" and "after" arrays.
-      this.membersEdited.splice(index, 1, {...member, isRemoved: true});
+      this.membersEdited.splice(index, 1, { ...member, isRemoved: true });
     }
     this.annotate();
   }
@@ -273,14 +279,14 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
     // Only attempt for documents for now.
     // TODO: extend to workspaces.
     if (!this._shareAnnotator) { return; }
-    this.annotations.set(this._shareAnnotator.annotateChanges(this.getDelta({silent: true})));
+    this.annotations.set(this._shareAnnotator.annotateChanges(this.getDelta({ silent: true })));
   }
 
   // Construct the permission delta from the changed users/maxInheritedRole.
   // Give warnings or errors as appropriate (these are suppressed if silent is set).
-  public getDelta(options?: {silent: boolean}): PermissionDelta {
+  public getDelta(options?: { silent: boolean }): PermissionDelta {
     const delta: PermissionDelta = { users: {} };
-    if (this.resourceType !== 'organization') {
+    if (this.resourceType !== "organization") {
       const maxInheritedRole = this.maxInheritedRole.get();
       if (this.initData.maxInheritedRole !== maxInheritedRole) {
         delta.maxInheritedRole = maxInheritedRole;
@@ -307,6 +313,12 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
     return delta;
   }
 
+  public goingToSharePublicly(): boolean {
+    // We want to detect when the original access for the public member did not exist
+    // and has just been defined.
+    return Boolean(this.publicMember?.access.get() && !this.publicMember?.origAccess);
+  }
+
   private _buildAllMembers(): IEditableMember[] {
     // If the UI supports some public access, strip the supported public user (anon@ or
     // everyone@). Otherwise, keep it, to allow the non-fancy way of adding/removing public access.
@@ -324,18 +336,18 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
         access: m.access,
         parentAccess: m.parentAccess || null,
         isTeamMember: m.isMember,
-      })
+      }),
     );
   }
 
-  private _buildPublicMember(): IEditableMember|null {
+  private _buildPublicMember(): IEditableMember | null {
     // shouldSupportAnon() changes "public" access to "anonymous" access, and enables it for
     // workspaces and org level. It's currently used for on-premise installs only.
     // TODO Think through proper public sharing or workspaces/orgs, and get rid of
     // shouldSupportAnon() exceptions.
     const email =
       shouldSupportAnon() ? ANONYMOUS_USER_EMAIL :
-      (this.resourceType === 'document') ? EVERYONE_EMAIL : null;
+        (this.resourceType === "document") ? EVERYONE_EMAIL : null;
     if (!email) { return null; }
     const user = this.initData.users.find(m => m.email === email);
     return this._buildEditableMember({
@@ -350,7 +362,7 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
   private _buildEditableMember(member: IBuildMemberOptions): IEditableMember {
     // Represents the member's access set specifically on the resource of interest.
     const access = Observable.create(this, member.access);
-    let inheritedAccess: Computed<roles.BasicRole|null>;
+    let inheritedAccess: Computed<roles.BasicRole | null>;
 
     if (member.email === this.activeUser?.email) {
       // Note that we currently prevent the active user's role from changing to prevent users from
@@ -360,14 +372,14 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
       // case any attempted changes will fail on saving.)
       const initialAccessBasicRole = roles.getEffectiveRole(getRealAccess(member, this.initData));
       // This pretends to be a computed to match the other case, but is really a constant.
-      inheritedAccess = Computed.create(this, (use) => initialAccessBasicRole);
+      inheritedAccess = Computed.create(this, use => initialAccessBasicRole);
     } else {
       // Gives the role inherited from parent taking the maxInheritedRole into account.
       inheritedAccess = Computed.create(this, this.maxInheritedRole, (use, maxInherited) =>
         roles.getWeakestRole(member.parentAccess, maxInherited));
     }
     // Gives the effective role of the member on the resource, taking everything into account.
-    const effectiveAccess = Computed.create(this, (use) =>
+    const effectiveAccess = Computed.create(this, use =>
       roles.getStrongestRole(use(access), use(inheritedAccess)));
     effectiveAccess.onWrite((value) => {
       // For UI simplicity, we use a single dropdown to represent the effective access level of
@@ -395,11 +407,11 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
   }
 }
 
-export function getResourceParent(resource: ResourceType): ResourceType|null {
-  if (resource === 'workspace') {
-    return 'organization';
-  } else if (resource === 'document') {
-    return 'workspace';
+export function getResourceParent(resource: ResourceType): ResourceType | null {
+  if (resource === "workspace") {
+    return "organization";
+  } else if (resource === "document") {
+    return "workspace";
   } else {
     return null;
   }

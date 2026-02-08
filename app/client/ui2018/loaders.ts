@@ -1,5 +1,6 @@
-import {theme} from 'app/client/ui2018/cssVars';
-import {DomArg, keyframes, Observable, observable, styled} from 'grainjs';
+import { theme } from "app/client/ui2018/cssVars";
+
+import { DomArg, keyframes, Observable, observable, styled } from "grainjs";
 
 const rotate360 = keyframes(`
   from { transform: rotate(45deg); }
@@ -19,7 +20,7 @@ const flash = keyframes(`
 /**
  * Creates a 32x32 pixel loading spinner. Use by calling `loadingSpinner()`.
  */
-export const loadingSpinner = styled('div', `
+export const loadingSpinner = styled("div", `
   --loader-fg: ${theme.loaderFg};
   --loader-bg: ${theme.loaderBg};
   display: inline-block;
@@ -44,14 +45,14 @@ export const loadingSpinner = styled('div', `
  */
 export function loadingDots(...args: DomArg<HTMLDivElement>[]) {
   return cssLoadingDotsContainer(
-    cssLoadingDot(cssLoadingDot.cls('-left')),
-    cssLoadingDot(cssLoadingDot.cls('-middle')),
-    cssLoadingDot(cssLoadingDot.cls('-right')),
+    cssLoadingDot(cssLoadingDot.cls("-left")),
+    cssLoadingDot(cssLoadingDot.cls("-middle")),
+    cssLoadingDot(cssLoadingDot.cls("-right")),
     ...args,
   );
 }
 
-export function watchPromise<T extends (...args: any[]) => any>(fun: T): T & {busy: Observable<boolean>} {
+export function watchPromise<T extends (...args: any[]) => any>(fun: T): T & { busy: Observable<boolean> } {
   const loading = observable(false);
   const result = async (...args: any) => {
     loading.set(true);
@@ -63,16 +64,16 @@ export function watchPromise<T extends (...args: any[]) => any>(fun: T): T & {bu
       }
     }
   };
-  return Object.assign(result, {busy: loading}) as any;
+  return Object.assign(result, { busy: loading }) as any;
 }
 
-const cssLoadingDotsContainer = styled('div', `
+const cssLoadingDotsContainer = styled("div", `
   --dot-size: 10px;
   display: inline-flex;
   column-gap: calc(var(--dot-size) / 2);
 `);
 
-const cssLoadingDot = styled('div', `
+const cssLoadingDot = styled("div", `
   border-radius: 50%;
   width: var(--dot-size);
   height: var(--dot-size);

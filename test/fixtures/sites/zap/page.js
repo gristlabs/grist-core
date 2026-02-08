@@ -11,7 +11,7 @@ function problem(err) {
   // Trying to zap formula columns will fail, but that's ok.
   if (String(err).includes("formula column")) { return; }
   console.error(err);
-  document.getElementById('placeholder').innerHTML = 'zap failed';
+  document.getElementById("placeholder").innerHTML = "zap failed";
   failures++;
 }
 
@@ -20,7 +20,7 @@ async function zap() {
   try {
     // If no access is granted, listTables will hang.  Detect this condition with
     // a timeout.
-    const timeout = setTimeout(() => problem(new Error('cannot connect')), 1000);
+    const timeout = setTimeout(() => problem(new Error("cannot connect")), 1000);
     const tables = await grist.docApi.listTables();
     clearTimeout(timeout);
     // Iterate through user tables.
@@ -34,11 +34,11 @@ async function zap() {
       for (const key of Object.keys(data)) {
         const column = data[key];
         for (let i = 0; i < ids.length; i++) {
-          column[i] = 'zap';
+          column[i] = "zap";
         }
         // Zap columns one by one since if they are a formula column they will fail.
         await grist.docApi.applyUserActions([[
-          'BulkUpdateRecord',
+          "BulkUpdateRecord",
           tableId,
           ids,
           {[key]: column},
@@ -49,7 +49,7 @@ async function zap() {
     problem(err);
   }
   if (failures === 0) {
-    document.getElementById('placeholder').innerHTML = 'zap succeeded';
+    document.getElementById("placeholder").innerHTML = "zap succeeded";
   }
 }
 

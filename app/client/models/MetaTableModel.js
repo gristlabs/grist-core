@@ -4,14 +4,14 @@
  */
 
 
-var _ = require('underscore');
-var ko = require('knockout');
-var dispose = require('../lib/dispose');
-var MetaRowModel = require('./MetaRowModel');
-var TableModel = require('./TableModel');
-var rowset = require('./rowset');
-var assert = require('assert');
-var gutil = require('app/common/gutil');
+var _ = require("underscore");
+var ko = require("knockout");
+var dispose = require("../lib/dispose");
+var MetaRowModel = require("./MetaRowModel");
+var TableModel = require("./TableModel");
+var rowset = require("./rowset");
+var assert = require("assert");
+var gutil = require("app/common/gutil");
 
 /**
  * MetaTableModel maintains observables for one table's rows. It accepts a list of fields to
@@ -33,7 +33,7 @@ function MetaTableModel(docModel, tableData, fields, rowConstructor) {
   this._rowModelVersions = [];
 
   // Whenever rowNotify is triggered, also send the action to all row RowModels that we maintain.
-  this.listenTo(this, 'rowNotify', function(rows, action) {
+  this.listenTo(this, "rowNotify", function(rows, action) {
     assert(rows !== rowset.ALL, "Unexpected schema action on a metadata table");
     for (let r of rows) {
       if (this.rowModels[r]) {
@@ -233,7 +233,7 @@ MetaTableModel.prototype._createRowModelArray = function(rowIdArray) {
         arr[i]._index(i);
       }
     }
-  }, null, 'spliceChange');
+  }, null, "spliceChange");
   return ret;
 };
 

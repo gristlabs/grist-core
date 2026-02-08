@@ -1,11 +1,12 @@
-import {GristDoc} from 'app/client/components/GristDoc';
-import * as dispose from 'app/client/lib/dispose';
-import {MinimalActionGroup} from 'app/common/ActionGroup';
-import {PromiseChain, setDefault} from 'app/common/gutil';
-import {CursorPos} from 'app/plugin/GristAPI';
-import {fromKo, Observable} from 'grainjs';
-import * as ko from 'knockout';
-import sortBy = require('lodash/sortBy');
+import { GristDoc } from "app/client/components/GristDoc";
+import * as dispose from "app/client/lib/dispose";
+import { MinimalActionGroup } from "app/common/ActionGroup";
+import { PromiseChain, setDefault } from "app/common/gutil";
+import { CursorPos } from "app/plugin/GristAPI";
+
+import { Computed, fromKo, Observable } from "grainjs";
+import * as ko from "knockout";
+import sortBy from "lodash/sortBy";
 
 export interface ActionGroupWithCursorPos extends MinimalActionGroup {
   cursorPos?: CursorPos;
@@ -32,12 +33,17 @@ export class UndoStack extends dispose.Disposable {
   private _stack: ActionGroupWithCursorPos[];
   private _pointer: number;
   private _linkMap: Map<number, ActionGroupWithCursorPos[]>;
+  private _undoDisabledOrBlockedObs: Computed<boolean>;
 
   // Chain of promises which send undo actions to the server. This delays the execution of the
   // next action until the current one has been received and moved the pointer index.
   private _undoChain = new PromiseChain<void>();
 
-  public create(log: MinimalActionGroup[], options: {gristDoc: GristDoc}) {
+  public create(log: MinimalActionGroup[], options: {
+    gristDoc: GristDoc,
+    // if supplied, allow undos to be blocked for some external reason.
+    isUndoBlocked?: Observable<boolean>,
+  }) {
     this._gristDoc = options.gristDoc;
 
     this.isDisabled = Observable.create(this, false);
@@ -55,16 +61,23 @@ export class UndoStack extends dispose.Disposable {
     this.undoDisabledObs = ko.observable(true);
     this.redoDisabledObs = ko.observable(true);
 
+    this._undoDisabledOrBlockedObs = Computed.create(
+      this,
+      fromKo(this.undoDisabledObs),
+      options.isUndoBlocked || fromKo(ko.observable(false)),
+      (_, undoDisabled, blocked) => undoDisabled || blocked,
+    );
+
     // Set the history nav interface in the DocPageModel to properly enable/disabled undo/redo.
     if (this._gristDoc.docPageModel) {
       this._gristDoc.docPageModel.undoState.set({
-        isUndoDisabled: fromKo(this.undoDisabledObs),
-        isRedoDisabled: fromKo(this.redoDisabledObs)
+        isUndoDisabled: this._undoDisabledOrBlockedObs,
+        isRedoDisabled: fromKo(this.redoDisabledObs),
       });
     }
 
     // Initialize the stack from the log of recent actions from the server.
-    log.forEach(ag => { this.pushAction(ag); });
+    log.forEach((ag) => { this.pushAction(ag); });
   }
 
   /**
@@ -153,7 +166,7 @@ export class UndoStack extends dispose.Disposable {
       }
       this._gristDoc.moveToCursorPos(returnCursorPos, ag).catch(() => { /* do nothing */ });
     } catch (err) {
-      err.message = `Failed to apply ${isUndo ? 'undo' : 'redo'} action: ${err.message}`;
+      err.message = `Failed to apply ${isUndo ? "undo" : "redo"} action: ${err.message}`;
       throw err;
     }
   }
