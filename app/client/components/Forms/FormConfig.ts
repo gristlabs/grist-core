@@ -5,6 +5,7 @@ import { fieldWithDefault, SaveableObjObservable } from "app/client/models/model
 import { FormFieldOptions, FormOptionsAlignment, FormOptionsSortOrder, FormSelectFormat } from "app/client/ui/FormAPI";
 import {
   cssLabel,
+  cssNumericSpinner,
   cssRow,
   cssSeparator,
 } from "app/client/ui/RightPanelStyles";
@@ -14,7 +15,7 @@ import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
 import { theme } from "app/client/ui2018/cssVars";
 import { select } from "app/client/ui2018/menus";
 
-import { Computed, Disposable, dom, IDisposableOwner, makeTestId, styled } from "grainjs";
+import { Computed, Disposable, dom, fromKo, IDisposableOwner, makeTestId, styled } from "grainjs";
 
 const t = makeT("FormConfig");
 
@@ -97,6 +98,35 @@ export class FormOptionsSortConfig extends Disposable {
             { value: "descending", label: t("Descending") },
           ],
           { defaultLabel: t("Default") },
+        ),
+      ),
+    ];
+  }
+}
+
+export class FormOptionsLimitConfig extends Disposable {
+  constructor(private _field: ViewFieldRec) {
+    super();
+  }
+
+  public buildDom() {
+    const optionsLimit = fieldWithDefault<number | "">(
+      this._field.widgetOptionsJson.prop("formOptionsLimit"),
+      "",
+    );
+
+    return [
+      cssLabel(t("Options Limit")),
+      cssRow(
+        cssNumericSpinner(
+          fromKo(optionsLimit),
+          {
+            label: t("Options Limit"),
+            defaultValue: 30,
+            minValue: 1,
+            maxValue: 1000,
+            save: async val => optionsLimit.setAndSave((val && Math.floor(val)) ?? ""),
+          },
         ),
       ),
     ];

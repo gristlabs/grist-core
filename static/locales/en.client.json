@@ -1750,7 +1750,8 @@
         "Vertical": "Vertical",
         "Accept value from URL": "Accept value from URL",
         "Hidden field": "Hidden field",
-        "URL parameter:\n{{colId}}=VALUE": "URL parameter:\n{{colId}}=VALUE"
+        "URL parameter:\n{{colId}}=VALUE": "URL parameter:\n{{colId}}=VALUE",
+        "Options Limit": "Options Limit"
     },
     "CustomView": {
         "Some required columns aren't mapped": "Some required columns aren't mapped",

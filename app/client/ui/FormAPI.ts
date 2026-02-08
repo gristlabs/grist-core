@@ -71,6 +71,12 @@ export interface FormFieldOptions {
    * Defaults to `"default"`.
    */
   formOptionsSortOrder?: FormOptionsSortOrder;
+  /**
+   * Maximum number of options to display for Choice List and Reference List fields.
+   *
+   * Defaults to `30`.
+   */
+  formOptionsLimit?: number;
   /** True if the field is required. Defaults to `false`. */
   formRequired?: boolean;
   /** True if the field is marked as hidden, to hide from users. Defaults to false. */
