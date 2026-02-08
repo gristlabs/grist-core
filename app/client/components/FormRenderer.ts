@@ -11,7 +11,18 @@ import { confirmModal } from "app/client/ui2018/modals";
 import { toggleSwitch } from "app/client/ui2018/toggleSwitch";
 import { isAffirmative, isNumber } from "app/common/gutil";
 import { CellValue } from "app/plugin/GristData";
-import { Disposable, dom, DomContents, IAttrObj, makeTestId, MutableObsArray, obsArray, Observable, styled } from "grainjs";
+
+import {
+  Disposable,
+  dom,
+  DomContents,
+  IAttrObj,
+  makeTestId,
+  MutableObsArray,
+  obsArray,
+  Observable,
+  styled,
+} from "grainjs";
 import { IPopupOptions, PopupControl } from "popweasel";
 
 const testId = makeTestId("test-form-");
@@ -270,7 +281,7 @@ abstract class BaseFieldRenderer extends Disposable {
     return this.name().replace(/\s+/g, "-");
   }
 
-  public label() {
+  public label(): HTMLElement {
     return dom("label",
       css.label.cls(""),
       css.label.cls("-required", Boolean(this.field.options.formRequired)),
@@ -325,10 +336,10 @@ class TextRenderer extends BaseFieldRenderer {
     }
 
     const minimumLengthLabel = minimumLength && t("min. {{minimum}}", {
-      "minimum": minimumLength,
+      minimum: minimumLength,
     });
     const maxLengthLabel = maximumLength && t("max. {{maximum}}", {
-      "maximum": maximumLength,
+      maximum: maximumLength,
     });
 
     let finalLengthText;
@@ -341,14 +352,15 @@ class TextRenderer extends BaseFieldRenderer {
     }
 
     return cssRow(
-        super.label(),
-        constraintLabel("(" + finalLengthText + ")"),
+      super.label(),
+      constraintLabel("(" + finalLengthText + ")"),
     );
   }
 
   public input() {
+    let element;
     if (this._format === "singleline") {
-      return this._renderSingleLineInput();
+      element = this._renderSingleLineInput();
     } else {
       element = this._renderMultiLineInput();
     }
@@ -1097,7 +1109,7 @@ function validateRequiredLists() {
   }
 }
 
-const constraintLabel = styled('span', `
+const constraintLabel = styled("span", `
   color: ${theme.text};
   font-size: ${vars.xsmallFontSize};
   margin-left: 8px;

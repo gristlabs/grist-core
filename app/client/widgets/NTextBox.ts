@@ -72,13 +72,13 @@ export class NTextBox extends NewAbstractWidget {
       this.field.widgetOptionsJson.prop("formTextLineCount"),
       "",
     );
-    const minimumLength = fieldWithDefault<number|"">(
-      this.field.widgetOptionsJson.prop('formTextMinimumLength'),
-      ''
+    const minimumLength = fieldWithDefault<number | "">(
+      this.field.widgetOptionsJson.prop("formTextMinimumLength"),
+      "",
     );
-    const maximumLength = fieldWithDefault<number|"">(
-      this.field.widgetOptionsJson.prop('formTextMaximumLength'),
-      ''
+    const maximumLength = fieldWithDefault<number | "">(
+      this.field.widgetOptionsJson.prop("formTextMaximumLength"),
+      "",
     );
 
     const minimumLengthValue = minimumLength.peek();
@@ -110,16 +110,16 @@ export class NTextBox extends NewAbstractWidget {
           ),
         ),
       ),
-      cssLabel(t('Length constraints')),
+      cssLabel(t("Length constraints")),
       cssRow(
         cssNumericSpinner(
           fromKo(minimumLength),
           {
-            label: t('Minimum length'),
+            label: t("Minimum length"),
             defaultValue: 0,
             minValue: 0,
             maxValue: maximumLengthValue === "" ? Number.MAX_VALUE : maximumLengthValue,
-            save: async (val) => minimumLength.setAndSave((val && Math.floor(val)) ?? ''),
+            save: async val => minimumLength.setAndSave((val && Math.floor(val)) ?? ""),
           },
         ),
       ),
@@ -127,10 +127,10 @@ export class NTextBox extends NewAbstractWidget {
         cssNumericSpinner(
           fromKo(maximumLength),
           {
-            label: t('Maximum length'),
+            label: t("Maximum length"),
             defaultValue: undefined,
             minValue: minimumLengthValue === "" ? 0 : minimumLengthValue,
-            save: async (val) => maximumLength.setAndSave((val && Math.floor(val)) ?? ''),
+            save: async val => maximumLength.setAndSave((val && Math.floor(val)) ?? ""),
           },
         ),
       ),
