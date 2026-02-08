@@ -1,6 +1,7 @@
 import {
   FormFieldRulesConfig,
   FormOptionsAlignmentConfig,
+  FormOptionsLimitConfig,
   FormOptionsSortConfig,
 } from "app/client/components/Forms/FormConfig";
 import { DataRowModel } from "app/client/models/DataRowModel";
@@ -61,6 +62,7 @@ export class ChoiceListCell extends ChoiceTextBox {
       this.buildChoicesConfigDom(),
       dom.create(FormOptionsAlignmentConfig, this.field),
       dom.create(FormOptionsSortConfig, this.field),
+      dom.create(FormOptionsLimitConfig, this.field),
       dom.create(FormFieldRulesConfig, this.field),
     ];
   }

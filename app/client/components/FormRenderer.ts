@@ -666,8 +666,7 @@ class ChoiceListRenderer extends BaseFieldRenderer  {
           choices.reverse();
         }
       }
-      // Support for 30 choices. TODO: make limit dynamic.
-      choices = choices.slice(0, 30);
+      choices = choices.slice(0, this.field.options.formOptionsLimit ?? 30);
     }
 
     const initialValues = new Set(this.getInitialValueList());
@@ -738,8 +737,7 @@ class RefListRenderer extends BaseFieldRenderer {
         references.reverse();
       }
     }
-    // Support for 30 choices. TODO: make limit dynamic.
-    references.splice(30);
+    references.splice(this.field.options.formOptionsLimit ?? 30);
     const initialValues = new Set(this.getInitialValueList());
     this.checkboxes.set(references.map(reference => ({
       label: String(reference[1]),

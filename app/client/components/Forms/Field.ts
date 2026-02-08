@@ -440,8 +440,9 @@ class ChoiceModel extends Question {
 
 class ChoiceListModel extends ChoiceModel {
   private _choices = Computed.create(this, (use) => {
-    // Support for 30 choices. TODO: make limit dynamic.
-    return use(this.choices).slice(0, 30);
+    const field = use(this.field);
+    const limit = use(field.widgetOptionsJson.prop("formOptionsLimit")) ?? 30;
+    return use(this.choices).slice(0, limit);
   });
 
   public renderInput() {
@@ -586,7 +587,9 @@ class RefListModel extends Question {
           values.reverse();
         }
       }
-      return values.slice(0, 30);
+      const field = use(this.field);
+      const limit = use(field.widgetOptionsJson.prop("formOptionsLimit")) ?? 30;
+      return values.slice(0, limit);
     });
   }
 
