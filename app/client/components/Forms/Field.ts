@@ -6,6 +6,7 @@ import * as css from "app/client/components/Forms/styles";
 import { stopEvent } from "app/client/lib/domUtils";
 import { makeT } from "app/client/lib/localization";
 import { DocModel, refRecord } from "app/client/models/DocModel";
+import type { ViewFieldRec } from "app/client/models/DocModel";
 import TableModel from "app/client/models/TableModel";
 import {
   FormFieldOptions,
@@ -38,6 +39,7 @@ import {
   observable,
   Observable,
   toKo,
+  UseCB,
 } from "grainjs";
 import * as ko from "knockout";
 
@@ -440,9 +442,7 @@ class ChoiceModel extends Question {
 
 class ChoiceListModel extends ChoiceModel {
   private _choices = Computed.create(this, (use) => {
-    const field = use(this.field);
-    const limit = use(field.widgetOptionsJson.prop("formOptionsLimit")) ?? 30;
-    return use(this.choices).slice(0, limit);
+    return use(this.choices).slice(0, useFormOptionsLimit(use, this.field));
   });
 
   public renderInput() {
@@ -587,9 +587,7 @@ class RefListModel extends Question {
           values.reverse();
         }
       }
-      const field = use(this.field);
-      const limit = use(field.widgetOptionsJson.prop("formOptionsLimit")) ?? 30;
-      return values.slice(0, limit);
+      return values.slice(0, useFormOptionsLimit(use, this.field));
     });
   }
 
@@ -708,6 +706,10 @@ function fieldConstructor(type: string): Constructor<Question> {
     case "Attachments": return AttachmentsModel;
     default: return TextModel;
   }
+}
+
+function useFormOptionsLimit(use: UseCB, field: ko.Computed<ViewFieldRec>): number {
+  return use(use(field).widgetOptionsJson.prop("formOptionsLimit")) ?? 30;
 }
 
 /**
