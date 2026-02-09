@@ -104,13 +104,18 @@ export async function runAirtableImport(
 
   if (options.structureOnly) { return; }
 
-  console.log(tableIdsMap);
-
   const dataTableMapping = new Map(
     Array.from(tableIdsMap.values()).map(tableIdInfo => [tableIdInfo.originalId, tableIdInfo.gristId]),
   );
 
-  console.log(dataTableMapping);
+  // tableIdsMap only contains newly created tables - need to add the table mapping supplied by the
+  // user when building the crosswalk.
+  const existingTableIdMap = options?.transformations?.mapExistingTableIds;
+  if (existingTableIdMap) {
+    for (const [airtableTableId, gristTableId] of existingTableIdMap.entries()) {
+      dataTableMapping.set(airtableTableId, gristTableId);
+    }
+  }
 
   const { schemaCrosswalk, warnings: crosswalkWarnings } =
     createAirtableBaseToGristDocCrosswalk(baseSchema, finalGristDocSchema, dataTableMapping);
