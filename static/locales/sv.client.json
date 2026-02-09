@@ -1591,6 +1591,414 @@
         "Remove my access": "Ta bort min behörighet",
         "Save & ": "Spara & ",
         "Team member": "Arbetslagsmedlem",
-        "User inherits permissions from {{parent})}. To remove,           set 'Inherit access' option to 'None'.": "Användare ärver behörigheter från {{parent}}. För att ta bort           ställ in 'Ärv behörighet' inställningen till 'Ingen'."
+        "User inherits permissions from {{parent})}. To remove,           set 'Inherit access' option to 'None'.": "Användare ärver behörigheter från {{parent})}. För att ta bort           ställ in 'Ärv behörighet' inställningen till 'Ingen'.",
+        "User may not modify their own access.": "Användare kan inte ändra sin egen behörighet.",
+        "Your role for this team site": "Din roll för denna arbetslagssajt",
+        "Your role for this {{resourceType}}": "Din roll för denna {{resourceType}}",
+        "free collaborator": "gratis deltagare",
+        "guest": "gäst",
+        "member": "medlem",
+        "team site": "arbetslagssajt",
+        "{{collaborator}} limit exceeded": "{{collaborator}} begränsning överskriden",
+        "{{limitAt}} of {{limitTop}} {{collaborator}}s": "{{limitAt}} av {{limitTop}} {{collaborator}}e",
+        "No default access allows access to be granted to individual documents or workspaces, rather than the full team site.": "Ingen standardbehörighet gör det möjligt att ge tillgång till individuella dokument eller arbetsytor, istället för till hela arbetslagssajten.",
+        "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.": "När du har tagit bort din egen behörighet, kan du inte få tillbaka den utan hjälp från någon som har tillräcklig behörighet till {{resourceType}}.",
+        "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.": "Användaren har läsbehörighet till {{resource}} genom en manuell inställning för åtkomst till resurser där i. Om den tas bort här kommer denna användare förlora tillgången till resurserna där i.",
+        "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "Användaren ärver behörigheter från {{parent}}. För att ta bort ställ in 'Ärv behörighet' inställningen till 'Ingen'.",
+        "You are about to remove your own access to this {{resourceType}}": "Du är på väg att ta bort din egen behörighet för {{resourceType}}",
+        "Inherit access: ": "Ärv behörighet: ",
+        "Access overview": "Behörighetsöversikt"
+    },
+    "SearchModel": {
+        "Search all pages": "Sök på alla sidor",
+        "Search all tables": "Sök i alla tabeller"
+    },
+    "searchDropdown": {
+        "Search": "Sök",
+        "Showing {{displayedCount}} of {{totalCount}} items. Search for more.": "Visar {{displayedCount}} av {{totalCount}} träffar. Sök efter fler."
+    },
+    "SupportGristNudge": {
+        "Close": "Stäng",
+        "Contribute": "Bidra",
+        "Help Center": "Hjälpcenter",
+        "Opt in to Telemetry": "Aktivera tillgång till telemetri",
+        "Opted In": "Aktiverad",
+        "Support Grist": "Stöd Grist",
+        "Support Grist page": "Stöd Gristsida",
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Tack! Ditt förtroende och stöd är mycket uppskattat. Avaktivera när som helst på {{link}} i använarmenyn.",
+        "Admin Panel": "Administrationspanel"
+    },
+    "SupportGristPage": {
+        "GitHub": "GitHub",
+        "GitHub Sponsors page": "GitHub sponsorsida",
+        "Help Center": "Hjälpcenter",
+        "Home": "Hem",
+        "Manage Sponsorship": "Hantera sponsring",
+        "Opt in to Telemetry": "Aktivera telemetri",
+        "Opt out of Telemetry": "Avaktivera telemetri",
+        "Sponsor Grist Labs on GitHub": "Sponsra Grist Labs på GitHub",
+        "Support Grist": "Stöd Grist",
+        "Telemetry": "Telemetri",
+        "This instance is opted in to telemetry. Only the site administrator has permission to change this.": "Denna instans har telemetri aktiverat. Det är bara sajt administratören som har behörighet att ändra detta.",
+        "This instance is opted out of telemetry. Only the site administrator has permission to change this.": "Denna instans har inte telemetri aktiverat. Det är bara sajt administratören som har behörighet att ändra detta.",
+        "We only collect usage statistics, as detailed in our {{link}}, never document contents.": "Vi samlar bra användarstatistik som beskrivs på vår {{link}}, aldrig dokumentinnehåll.",
+        "You can opt out of telemetry at any time from this page.": "Du kan avaktivera telemetri när som helst från denna sida.",
+        "You have opted in to telemetry. Thank you!": "Du har aktiverat telemetri. Tack!",
+        "You have opted out of telemetry.": "Du har avaktiverat telemetri.",
+        "Sponsor": "Sponsor",
+        "Grist software is developed by Grist Labs, which offers free and paid hosted plans. We also make Grist code available under a standard free and open OSS license (Apache 2.0) on {{link}}.": "Gristmkukvaran är utvecklad av Girst Labs, som erbjuder gratis och betalda abbonemang. Vi gör också Gristkoden tillgänglig under en standard, gratis och öppen OSS licens (Apache 2.0) på {{link}}.",
+        "Support Grist by opting in to telemetry, which helps us understand how the product is used, so that we can prioritize future improvements.": "Stöd Grist genom att aktivera telemetri, som hjälper oss förstå hur produkten används och därmed prioritera framtida förbättringar.",
+        "We are a small and determined team. Your support matters a lot to us. It also shows to others that there is a determined community behind this product.": "Vi är ett litet och dedikerat arbetslag. Ditt stöd betyder mycket för oss. Det visar också andra att det finns en dedikerad användargrupp bakom produkten.",
+        "You can support Grist open-source development by sponsoring us on our {{link}}.": "Du kan stödja Grist söppenkällkodsutveckling genom att sponsra oss på vår {{link}}."
+    },
+    "buildViewSectionDom": {
+        "No data": "Ingen data",
+        "No row selected in {{title}}": "Ingen rad vald i {{title}}",
+        "Not all data is shown": "Alla dara visas inte"
+    },
+    "FloatingEditor": {
+        "Collapse Editor": "Komprimera redigerare"
+    },
+    "FloatingPopup": {
+        "Maximize": "Maximera",
+        "Minimize": "Minimera"
+    },
+    "CardContextMenu": {
+        "Copy anchor link": "Kopiera ankarlänk",
+        "Delete card": "Radera kort",
+        "Duplicate card": "Duplicera kort",
+        "Insert card": "Infoga kort",
+        "Insert card above": "Infoga kort ovanför",
+        "Insert card below": "Infoga kort nedanför"
+    },
+    "HiddenQuestionConfig": {
+        "Hidden fields": "Dolda fällt"
+    },
+    "WelcomeCoachingCall": {
+        "free coaching call": "gratis coachingsamtal",
+        "Maybe later": "Kanske senare",
+        "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "Under samtalet kommer vi att sätta oss in dina/era behov och skräddarsy samtalet därefter. Vi kan visa dig grunderna i Grist eller börja arbeta med din data direkt för att skapa de kontrollpaneler du behöver.",
+        "Schedule your {{freeCoachingCall}} with a member of our team.": "Svhemalägg ditt {{freeCoachingCall}} med en av oss.",
+        "You may also check out {{ourWeeklyWebinars}} to learn more about Grist.": "Du kan också kolla in {{ourWeeklyWebinars}} för att lära dig mer om Grist.",
+        "our weekly webinars": "våra veckovisa webinarier",
+        "Free coaching call": "Gratis coachingsamtal",
+        "Grist 101": "Grist ABC",
+        "Schedule call": "Schemalägg samtal",
+        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users                navigate the fundamentals of Grist.": "Du kan också kolla in vårt introduktions webinar, {{ourWeeklyWebinars}}, designad för att hjälpa nya användare                att komma under fund med grunderna i Grist.",
+        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users navigate the fundamentals of Grist.": "Du kan också kolla in vårt introduktions webinar, {{ourWeeklyWebinars}}, designad för att hjälpa nya användare att komma under fund med grunderna i Grist."
+    },
+    "FormView": {
+        "Publish": "Publicera",
+        "Publish your form?": "Publicera ditt formulär?",
+        "Unpublish": "Avpublicera",
+        "Unpublish your form?": "Avpublicera ditt formulär?",
+        "Anyone with the link below can see the empty form and submit a response.": "Alla med länken nedan kan se det tomma formuläret och skicka in ett svar.",
+        "Are you sure you want to reset your form?": "Är du säker på att du vill återställa ditt formulär?",
+        "Code copied to clipboard": "Kod kopierad till utklipp",
+        "Copy code": "Kopiera kod",
+        "Copy link": "Kopiera länk",
+        "Embed this form": "Bäddain detta formulär",
+        "Link copied to clipboard": "Länk kopierad till utklipp",
+        "Preview": "Förhandsvisa",
+        "Reset": "Återställ",
+        "Reset form": "Återställ formulär",
+        "Save your document to publish this form.": "Spara ditt dokument för att publicera detta formulär.",
+        "Share": "Dela",
+        "Share this form": "Dela detta formulär",
+        "View": "Visa",
+        "# **Form Title**": "# **Formulärtitel**",
+        "Your form description goes here.": "Din formulärbeskrivning läggs in här.",
+        "Publishing your form will generate a share link. Anyone with the link can see the empty form and submit a response.": "Att publicera ditt formulär genererar en delningslänk. Alla med länken kan se det tomma formuläret och skicka in ett svar.",
+        "Unpublishing the form will disable the share link so that users accessing your form via that link will see an error.": "Att avpublicera formuläret kommer att stänga av delningslänken så att användare som kommer åt ditt formulär via den länken får se ett felmeddelande.",
+        "Users are limited to submitting entries (records in your table) and reading pre-set values in designated fields, such as reference and choice columns.": "Användare är begränsade till att skicka in svar (rader i din tabell) och läsa förifyllda värden i vissa fällt, så som referens- och alternativkolumner.",
+        "Your form is published. Every change is live and visible to users with access to the form. If you want to make changes in draft, unpublish the form.": "Ditt formulär år publicerat. Alla ändringar är live och synliga för användare med tillgång till formuläret. Om du vill göra ändringar i ett utkast, avpublicera formuläret."
+    },
+    "Editor": {
+        "Delete": "Radera"
+    },
+    "Menu": {
+        "Building blocks": "Byggstenar",
+        "Columns": "Kolumner",
+        "Copy": "Kopiera",
+        "Cut": "Klipp ut",
+        "Insert question above": "Infoga fråga ovanför",
+        "Insert question below": "Infoga fråga nedanför",
+        "Paragraph": "Stycke",
+        "Paste": "Klistra in",
+        "Separator": "Avdelare",
+        "Unmapped fields": "Koppla loss fällt",
+        "Header": "Sidhuvud",
+        "New question": "Ny fråga",
+        "More": "Mer"
+    },
+    "UnmappedFieldsConfig": {
+        "Clear": "Rensa",
+        "Map fields": "Koppla fällt",
+        "Mapped": "Kopplade",
+        "Select all": "Välj alla",
+        "Unmap fields": "Koppla loss fällt",
+        "Unmapped": "Okopplade"
+    },
+    "FormConfig": {
+        "Field rules": "Fältregler",
+        "Required field": "Obligatoriskt fällt",
+        "Ascending": "Stigande",
+        "Default": "Standard",
+        "Descending": "Fallande",
+        "Field Format": "Fälltformat",
+        "Field Rules": "Fälltregler",
+        "Horizontal": "Horisontell",
+        "Options Alignment": "Inställningsjustering",
+        "Options Sort Order": "Ordning för inställningssortering",
+        "Radio": "Radio",
+        "Select": "Välj",
+        "Vertical": "Vertikal",
+        "Accept value from URL": "Acceptera värde från URL",
+        "Hidden field": "Dolt fällt",
+        "URL parameter:\n{{colId}}=VALUE": "URL parameter\n{{colId}}=VÄRDE"
+    },
+    "CustomView": {
+        "Some required columns aren't mapped": "Några obligatoriskt kolumner är inte kopplade",
+        "To use this widget, please map all non-optional columns from the creator panel on the right.": "För att använda denna widget koppla alla obligatoriska kolumner från designpanelen till höger.",
+        "Some required columns are hidden by access rules": "Några obligatoriska kolumner är dolda av behörighetsregler",
+        "To use this widget, all mapped columns must be visible. Please contact document owner or modify access rules.": "För att använda denna widget måste alla kopplade kolumner vara synliga. Var god kontakta dokumentägaren eller ändra behörighetsreglerna."
+    },
+    "FormContainer": {
+        "Build your own form": "Skapa ditt eget formulär",
+        "Powered by": "Drivs av",
+        "Powered by Grist": "Drivs av Grist"
+    },
+    "FormErrorPage": {
+        "Error": "Fel"
+    },
+    "FormModel": {
+        "Oops! The form you're looking for doesn't exist.": "Oops! Formuläret du försöker öppna finns inte.",
+        "Oops! This form is no longer published.": "Oops! Detta formulär är inte publicerat längre.",
+        "There was a problem loading the form.": "Ett problem uppstod när formuläret skulle laddas.",
+        "You don't have access to this form.": "Du har inte behörighet till detta formulär."
+    },
+    "FormPage": {
+        "There was an error submitting your form. Please try again.": "Det uppstod ett fel när ditt formulär skulle skickas in. Var god försök igen."
+    },
+    "FormSuccessPage": {
+        "Form Submitted": "Formuläret inskickat",
+        "Thank you! Your response has been recorded.": "Tack! Ditt svar är sparat.",
+        "Submit new response": "Skicka ett nytt svar"
+    },
+    "DateRangeOptions": {
+        "Last 30 days": "Senaste 30 dagarna",
+        "Last 7 days": "Senaste 7 dagarna",
+        "Last week": "Senaste veckan",
+        "Next 7 days": "Kommande 7 dagarna",
+        "This month": "Denna månad",
+        "This week": "Denna vecka",
+        "This year": "Detta år",
+        "Today": "Idag"
+    },
+    "MappedFieldsConfig": {
+        "Clear": "Rensa",
+        "Map fields": "Koppla fällt",
+        "Mapped": "Kopplade",
+        "Select all": "Välj alla",
+        "Unmap fields": "Okopplade fällt",
+        "Unmapped": "Okopplade",
+        "Hide {{label}}": "Dölj {{label}}",
+        "Hide {{label}} (batch mode)": "Dölj {{label}} (gruppvis)",
+        "Unmap {{label}}": "Koppla loss {{label}}",
+        "Unmap {{label}} (batch mode)": "Koppla loss {{label}} (gruppvis)"
+    },
+    "Section": {
+        "Insert section above": "Infoga sektion ovanför",
+        "Insert section below": "Infoga sektion nedanför",
+        "## **Header**": "## **Rubrik**",
+        "Description": "Beskrivning"
+    },
+    "CreateTeamModal": {
+        "Cancel": "Avbryt",
+        "Choose a name and url for your team site": "Välj ett namn och URL för din arbetslagsajt",
+        "Create site": "Skapa sajt",
+        "Domain name is invalid": "Domännamnet är inte giltigt",
+        "Domain name is required": "Domännamn är obligatoriskt",
+        "Go to your site": "Gå till din sajt",
+        "Team name": "Arbetslagsnamn",
+        "Team name is required": "Arbetslagsnamn är obligatoriskt",
+        "Team site created": "Arbetslagsajt skapad",
+        "Team url": "ArbetslagsURL",
+        "Work as a Team": "Jobba som ett arbetslag",
+        "Billing is not supported in grist-core": "Fakturering stöds inte i grist-core"
+    },
+    "AdminPanel": {
+        "Admin Panel": "Administrationspanel",
+        "Current": "Nuvarande",
+        "Current version of Grist": "Nuvarande version av Grist",
+        "Help us make Grist better": "Hjälp oss att göra Grist bättre",
+        "Home": "Hem",
+        "Sponsor": "Sponsor",
+        "Support Grist": "Stöd Grist",
+        "Support Grist Labs on GitHub": "Stöd Grist Lab på GitHub",
+        "Telemetry": "Telemetri",
+        "Version": "Version",
+        "Auto-check when this page loads": "Kontrollera automatiskt när denna sida laddas",
+        "Check now": "Kolla nu",
+        "Checking for updates...": "Söker efter uppdateringar...",
+        "Error": "Fel",
+        "Error checking for updates": "Fel vid sökning efter uppdateringar",
+        "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future since session IDs have been updated to be inherently cryptographically secure.": "Grist signerar användarens sessionskakor med en hemlig nyckel. Ställ in denna nyckel via miljövariabeln GRIST_SESSION_SECRET. Grist använder till en hårdkodad standardinställning när den inte är inställd. Vi kan komma att ta bort detta meddelande i framtiden eftersom sessions-ID:n som genererats sedan v1.1.16 är i sig kryptografiskt säkra.",
+        "Grist is up to date": "Grist är uppdaterad",
+        "Grist releases are at ": "Grist versioner finns på ",
+        "Last checked {{time}}": "Senast kontrollerad {{time}}",
+        "Learn more.": "Lär dig mer.",
+        "Newer version available": "Nyare version tillgänglig",
+        "No information available": "Ingen information tillgänglig",
+        "OK": "OK",
+        "Sandbox settings for data engine": "Sandbox-Inställningar för databasmotor",
+        "Sandboxing": "Sandboxning",
+        "Security Settings": "Säkerhetsinställningar",
+        "Updates": "Uppdateringar",
+        "unconfigured": "inte inställd",
+        "unknown": "okänd",
+        "Administrator Panel Unavailable": "Administratörspanelen är inte tillgänglig",
+        "Authentication": "Autentisering",
+        "Check failed.": "Kontrollen misslyckades.",
+        "Check succeeded.": "Kontrollen lyckades.",
+        "Current authentication method": "Nuvarande autentiseringmetod",
+        "Details": "Detaljer",
+        "Grist allows different types of authentication to be configured, including SAML and OIDC.     We recommend enabling one of these if Grist is accessible over the network or being made available     to multiple people.": "Grist tillåter konfigurering av olika typer av autentisering, inklusive SAML och OIDC.     Vi rekommenderar att du aktiverar en av dessa om Grist är tillgängligt över nätverket eller görs tillgängligt      för flera personer.",
+        "No fault detected.": "Ingen fel upptäckt.",
+        "Notes": "Anteckningar",
+        "Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}": "Eller, som en nödlösning, så kan du ställa in: miljövariabeln {{bootKey}} och öppna: {{url}}",
+        "Results": "Resultat",
+        "Self Checks": "Självkontroller",
+        "You do not have access to the administrator panel.\nPlease log in as an administrator.": "Du har inte behörighet för att komma åt administratörspanelen.\nLogga in som administratör.",
+        "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.": "Grist tillåter konfigurering av olika typer av autentisering, inklusive SAML och OIDC. Vi rekommenderar att du aktiverar en av dessa om Grist är tillgängligt över nätverket eller görs tillgängligt för flera personer.",
+        "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.": "Grist signerar användarens sessionskakor med en hemlig nyckel. Ställ in denna nyckel via miljövariabeln GRIST_SESSION_SECRET. Grist använder till en hårdkodad standardinställning när den inte är inställd. Vi kan komma att ta bort detta meddelande i framtiden eftersom sessions-ID:n som genererats sedan v1.1.16 är i sig kryptografiskt säkra.",
+        "Key to sign sessions with": "Nyckel att signera sessioner med",
+        "Session Secret": "Sessionshemlighet",
+        "Enable Grist Enterprise": "Aktivera Grist för företag",
+        "Enterprise": "Företagsversion",
+        "checking": "kontrollerar",
+        "Audit Logs": "Granskningsloggar",
+        "Contact us": "Kontakta oss",
+        "Log Streaming": "Strömma logning",
+        "New, Enterprise": "Ny, Företagsversion",
+        "Off": "Av",
+        "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}} mer",
+        "{{count}} admin accounts_one": "{{count}} administrationskonto",
+        "{{count}} admin accounts_other": "{{count}} administartionskonton",
+        "On": "På",
+        "Grist Instance": "Grist-instans",
+        "Auto-check weekly": "Kontrollerar automatiskt veckovis",
+        "No record of last version check": "Det finns ingen information om senaste versionskontroll",
+        "You can set up streaming of audit events from Grist to an external security information and event management (SIEM) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.": "Du kan konfigurera strömning av loggar från Grist till ett externt SIEM-system (säkerhetsinformation och händelsehantering) om du aktiverar Grist för företag. {{contactUsLink}} för att läsa mer.",
+        "Automatic checks are disabled. Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to \"true\" to enable them.": "Automatiska kontrollera avaktiverade. Ställ in miljövariabeln GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING till \"true\" för att aktivera dom.",
+        "auth error": "autentiseringsfel",
+        "configured": "inställd",
+        "default": "standard",
+        "more...": "mer...",
+        "no authentication": "ingen autentisering",
+        "unavailable": "inte tillgänglig",
+        "Admin account not found": "Administrationskonto kunde inte hittas",
+        "Administrative accounts": "Administrationskonton",
+        "The users with administrative accounts": "Användare med administratörskonton",
+        "Version {{versionNumber}}": "Version {{versionNumber}}",
+        "no admin accounts": "inga administratörskonton",
+        "Are you sure you want to restart Grist?": "Är du säker på att du vill starta om Grist?",
+        "Grist is running in an environment that doesn't support restarting from the admin panel.": "Grist kör i en miljö som inte stöder omstart från administrationspanelen.",
+        "Restart": "Starta om",
+        "Restart Grist": "Starta om Grist",
+        "Restart Grist to apply pending changes or resolve issues.": "Starta om Grist för att applicera väntande ändringar eller lösa problem.",
+        "Restart Grist?": "Start om Grist?",
+        "Restarting Grist...": "Startar om Grist...",
+        "This will apply any pending changes and briefly interrupt access for all users.": "Detta kommer att applicera alla väntande ändringar och kortvarigt bryta åtkomsten för alla användare.",
+        "You can still restart Grist manually.": "Du kan fortfarande starta om Grist manuellt.",
+        "error in {{provider}}: {{verdict}}": "fel i {{provider}}: {{verdict}}"
+    },
+    "Columns": {
+        "Remove Column": "Ta bort kolumn"
+    },
+    "Field": {
+        "No choices configured": "Inga val inställda",
+        "No values in show column of referenced table": "Inga värden i visakolumnen i den refererade tabellen",
+        "Hide": "Dölj"
+    },
+    "Toggle": {
+        "Checkbox": "Kryssruta",
+        "Field Format": "Fälltformat",
+        "Switch": "Växla"
+    },
+    "ChoiceEditor": {
+        "Error in dropdown condition": "Fel i rullgardinsmenyvillkor",
+        "No choices matching condition": "Inga alternativ matchar villkoret",
+        "No choices to select": "Inga alternativ att välja"
+    },
+    "ChoiceListEditor": {
+        "Error in dropdown condition": "Fel i rullgardinsmenyvillkor",
+        "No choices matching condition": "Inga alternativ matchar villkoret",
+        "No choices to select": "Inga alternativ att välja"
+    },
+    "DropdownConditionConfig": {
+        "Dropdown Condition": "Rullgardinsmenyvillkor",
+        "Invalid columns: {{colIds}}": "Ogiltiga kolumner: {{colIds}}",
+        "Set dropdown condition": "Ställ in rullgardinsmenyvillkor"
+    },
+    "DropdownConditionEditor": {
+        "Enter condition.": "Fyll i villkor."
+    },
+    "ReferenceUtils": {
+        "Error in dropdown condition": "Fel i rullgardinsmenyvillkor",
+        "No choices matching condition": "Inga alternativ matchar villkoret",
+        "No choices to select": "Inga alternativ att välja"
+    },
+    "FormRenderer": {
+        "Reset": "återställ",
+        "Search": "Sök",
+        "Select...": "Välj...",
+        "Submit": "Skicka in",
+        "Submitting…": "Skickar in…",
+        "Clear selection for: {{-inputLabel}}": "Rensa val för: {{-inputLabel}}"
+    },
+    "widgetTypesMap": {
+        "Calendar": "Kalender",
+        "Card": "Kort",
+        "Card List": "Kortlista",
+        "Chart": "Diagram",
+        "Custom": "Anpassad",
+        "Form": "Formulär",
+        "Table": "Tabell"
+    },
+    "TimingPage": {
+        "Average Time (s)": "Snittid (s)",
+        "Column ID": "Kolumn ID",
+        "Formula timer": "Formeltidtagare",
+        "Loading timing data. Don't close this tab.": "Laddar tidtagningsdata. Stäng inte denna flik.",
+        "Max Time (s)": "Max tid (s)",
+        "Number of Calls": "Antal anrop",
+        "Table ID": "Tabell ID",
+        "Total Time (s)": "Total tid (s)"
+    },
+    "DocTutorial": {
+        "Click to expand": "Klicka för att expandera",
+        "Do you want to restart the tutorial? All progress will be lost.": "Vill du starta om instruktionsguiden? Allt du slutfört försvinner.",
+        "End tutorial": "Avsluta instruktionsguide",
+        "Finish": "Avsluta",
+        "Next": "Nästa",
+        "Previous": "Föregående",
+        "Restart": "Start om"
+    },
+    "OnboardingCards": {
+        "3 minute video tour": "3 minuters videogenomgång",
+        "Complete our basics tutorial": "Slutför vår grundläggande instruktionsguide",
+        "Complete the tutorial": "Slutför instruktionsguiden",
+        "Learn the basic of reference columns, linked widgets, column types, & cards.": "Lär dig grunderna för referenskolumner, länkade widgets, kolumntyper & kort.",
+        "Learn the basics of reference columns, linked widgets, column types, & cards.": "Lär dig grunderna för referenskolumner, länkade widgets, kolumntyper & kort."
+    },
+    "OnboardingPage": {
+        "Back": "Tillbaka",
+        "Discover Grist in 3 minutes": "Upptäck Grist på 3 minuter",
+        "Go hands-on with the Grist Basics tutorial": "Testa själv med Grists grundläggande instruktionsguide",
+        "Go to the tutorial!": "Gå till instruktionsguide!",
+        "Next step": "Nästa steg",
+        "Skip step": "Hoppa över steg",
+        "Skip tutorial": "Hoppa över instruktionsguide"
     }
 }
