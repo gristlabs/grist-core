@@ -6,7 +6,6 @@ import * as css from "app/client/components/Forms/styles";
 import { stopEvent } from "app/client/lib/domUtils";
 import { makeT } from "app/client/lib/localization";
 import { DocModel, refRecord } from "app/client/models/DocModel";
-import type { ViewFieldRec } from "app/client/models/DocModel";
 import TableModel from "app/client/models/TableModel";
 import {
   FormFieldOptions,
@@ -42,6 +41,8 @@ import {
   UseCB,
 } from "grainjs";
 import * as ko from "knockout";
+
+import type { ViewFieldRec } from "app/client/models/DocModel";
 
 const testId = makeTestId("test-forms-");
 

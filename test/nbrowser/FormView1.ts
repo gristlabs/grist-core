@@ -682,19 +682,19 @@ describe("FormView1", function() {
     });
 
     it("can limit choices in a form with ChoiceList field", async function() {
-      const choices = Array.from({length: 35}, (_, i) => `Option ${i + 1}`);
+      const choices = Array.from({ length: 35 }, (_, i) => `Option ${i + 1}`);
       const formUrl = await createFormWith("Choice List");
 
       // Set 35 choices without a limit.
       await gu.sendActions([
         ["ModifyColumn", "Table1", "D", {
-          widgetOptions: JSON.stringify({choices})
+          widgetOptions: JSON.stringify({ choices }),
         }],
       ]);
 
       // Open the config panel and set Options Limit to 5 via the UI.
       await gu.openColumnPanel();
-      const limitInput = await driver.findWait('.test-form-field-options-limit', 2000);
+      const limitInput = await driver.findWait(".test-form-field-options-limit", 2000);
       await limitInput.click();
       await gu.selectAll();
       await driver.sendKeys("5", Key.TAB);
@@ -708,7 +708,7 @@ describe("FormView1", function() {
       });
 
       // Raise the limit to 35 via the UI.
-      const limitInput2 = await driver.findWait('.test-form-field-options-limit', 2000);
+      const limitInput2 = await driver.findWait(".test-form-field-options-limit", 2000);
       await limitInput2.click();
       await gu.selectAll();
       await driver.sendKeys("35", Key.TAB);
@@ -722,7 +722,7 @@ describe("FormView1", function() {
       });
 
       // Clear the limit via the UI — should fall back to the default of 30.
-      const limitInput3 = await driver.findWait('.test-form-field-options-limit', 2000);
+      const limitInput3 = await driver.findWait(".test-form-field-options-limit", 2000);
       await limitInput3.click();
       await gu.selectAll();
       await driver.sendKeys(Key.DELETE, Key.TAB);
@@ -947,11 +947,11 @@ describe("FormView1", function() {
       await gu.setRefShowColumn("A");
       // Add 10 records.
       await gu.sendActions(
-        Array.from({length: 10}, (_, i) => ["AddRecord", "Table1", null, {A: `Item ${i + 1}`}])
+        Array.from({ length: 10 }, (_, i) => ["AddRecord", "Table1", null, { A: `Item ${i + 1}` }]),
       );
 
       // Set a limit of 3 via the config UI.
-      const limitInput = await driver.findWait('.test-form-field-options-limit', 2000);
+      const limitInput = await driver.findWait(".test-form-field-options-limit", 2000);
       await limitInput.click();
       await gu.selectAll();
       await driver.sendKeys("3", Key.TAB);
@@ -965,7 +965,7 @@ describe("FormView1", function() {
       });
 
       // Raise the limit to 10 via the config UI.
-      const limitInput2 = await driver.findWait('.test-form-field-options-limit', 2000);
+      const limitInput2 = await driver.findWait(".test-form-field-options-limit", 2000);
       await limitInput2.click();
       await gu.selectAll();
       await driver.sendKeys("10", Key.TAB);
