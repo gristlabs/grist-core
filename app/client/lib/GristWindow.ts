@@ -7,7 +7,6 @@
  */
 import {
   AirtableImportOptions,
-  runAirtableDataImport,
 } from "app/client/lib/airtable/AirtableImporter";
 
 import type { TopAppModel } from "app/client/models/AppModel";
@@ -33,7 +32,6 @@ declare global {
     gristAirtableImport?: (
       apiKey: string, base: string, options: AirtableImportOptions,
     ) => Promise<any>;
-    gristAirtableTest?: typeof runAirtableDataImport;
     testGrist?: Partial<TestState>;
   }
 }
