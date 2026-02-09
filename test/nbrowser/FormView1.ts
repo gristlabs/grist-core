@@ -681,6 +681,39 @@ describe("FormView1", function() {
       await removeForm();
     });
 
+    it("can limit choices in a form with ChoiceList field", async function() {
+      const choices = Array.from({length: 35}, (_, i) => `Option ${i + 1}`);
+      const formUrl = await createFormWith("Choice List");
+
+      // Set 35 choices with a limit of 5.
+      await gu.sendActions([
+        ["ModifyColumn", "Table1", "D", {
+          widgetOptions: JSON.stringify({choices, formOptionsLimit: 5})
+        }],
+      ]);
+      await gu.onNewTab(async () => {
+        await driver.get(formUrl);
+        await driver.findWait('input[name="D[]"]', 2000);
+        const items = await driver.findAll('input[name="D[]"]');
+        assert.equal(items.length, 5);
+      });
+
+      // Raise the limit to 35.
+      await gu.sendActions([
+        ["ModifyColumn", "Table1", "D", {
+          widgetOptions: JSON.stringify({choices, formOptionsLimit: 35})
+        }],
+      ]);
+      await gu.onNewTab(async () => {
+        await driver.get(formUrl);
+        await driver.findWait('input[name="D[]"]', 2000);
+        const items = await driver.findAll('input[name="D[]"]');
+        assert.equal(items.length, 35);
+      });
+
+      await removeForm();
+    });
+
     it("can submit a form with select Ref field", async function() {
       const formUrl = await createFormWith("Reference");
       // Add some options.
@@ -881,6 +914,48 @@ describe("FormView1", function() {
         ["BulkRemoveRecord", "Table1", [1, 2, 3, 4]],
       ]);
 
+      await removeForm();
+    });
+
+    it("can limit references in a form with RefList field", async function() {
+      const formUrl = await createFormWith("Reference List");
+      await gu.openColumnPanel();
+      await gu.setRefShowColumn("A");
+      // Add 10 records.
+      await gu.sendActions(
+        Array.from({length: 10}, (_, i) => ["AddRecord", "Table1", null, {A: `Item ${i + 1}`}])
+      );
+
+      // Set a limit of 3.
+      await gu.sendActions([
+        ["ModifyColumn", "Table1", "D", {
+          widgetOptions: JSON.stringify({formOptionsLimit: 3})
+        }],
+      ]);
+      await gu.onNewTab(async () => {
+        await driver.get(formUrl);
+        await driver.findWait('input[name="D[]"]', 2000);
+        const items = await driver.findAll('input[name="D[]"]');
+        assert.equal(items.length, 3);
+      });
+
+      // Raise the limit to 10.
+      await gu.sendActions([
+        ["ModifyColumn", "Table1", "D", {
+          widgetOptions: JSON.stringify({formOptionsLimit: 10})
+        }],
+      ]);
+      await gu.onNewTab(async () => {
+        await driver.get(formUrl);
+        await driver.findWait('input[name="D[]"]', 2000);
+        const items = await driver.findAll('input[name="D[]"]');
+        assert.equal(items.length, 10);
+      });
+
+      // Clean up records and form.
+      await gu.sendActions([
+        ["BulkRemoveRecord", "Table1", [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]],
+      ]);
       await removeForm();
     });
 
