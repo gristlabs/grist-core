@@ -110,8 +110,9 @@ export class FormOptionsLimitConfig extends Disposable {
   }
 
   public buildDom() {
+    const optionsLimitProp = this._field.widgetOptionsJson.prop("formOptionsLimit");
     const optionsLimit = fieldWithDefault<number | "">(
-      this._field.widgetOptionsJson.prop("formOptionsLimit"),
+      optionsLimitProp,
       "",
     );
 
@@ -125,7 +126,7 @@ export class FormOptionsLimitConfig extends Disposable {
             defaultValue: 30,
             minValue: 1,
             maxValue: 1000,
-            save: async val => optionsLimit.setAndSave((val && Math.floor(val)) ?? ""),
+            save: async val => optionsLimitProp.setAndSave(val ? Math.floor(val) : undefined),
           },
         ),
       ),
