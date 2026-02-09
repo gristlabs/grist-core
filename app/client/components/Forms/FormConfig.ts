@@ -127,6 +127,7 @@ export class FormOptionsLimitConfig extends Disposable {
             minValue: 1,
             maxValue: 1000,
             save: async val => optionsLimitProp.setAndSave(val ? Math.floor(val) : undefined),
+            inputArgs: [testId("field-options-limit")],
           },
         ),
       ),
