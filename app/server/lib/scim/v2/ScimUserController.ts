@@ -53,6 +53,8 @@ class ScimUserController extends BaseController {
 
       const match = this._extractOpAndEmailFromSimpleFilter(resource.filter);
 
+      // If we match the case where the caller just want to filter by the email address
+      // take an optimised branch where we query the database by filtering the entries.
       if (match) {
         const { op, value } = match;
         users = await this.dbManager.getExistingUsersFiltered(
@@ -61,6 +63,7 @@ class ScimUserController extends BaseController {
             type: "login",
           },
         );
+      // Otherwise we fetch all the users and let Scimmy apply the potential filter.
       } else {
         users = await this.dbManager.getUsers({ type: "login" });
       }
