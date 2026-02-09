@@ -709,7 +709,7 @@ function fieldConstructor(type: string): Constructor<Question> {
 }
 
 function useFormOptionsLimit(use: UseCB, field: ko.Computed<ViewFieldRec>): number {
-  return (use(use(field).widgetOptionsJson) as FormFieldOptions).formOptionsLimit ?? 30;
+  return (use(use(field).widgetOptionsJson) as FormFieldOptions).formOptionsLimit || 30;
 }
 
 /**
