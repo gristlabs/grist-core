@@ -45,7 +45,7 @@ describe("Fork", function() {
     assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), "1");
     const forkUrl = await driver.getCurrentUrl();
     assert.match(forkUrl, isLoggedIn ? /^[^~]*~[^~]+~\d+$/ : /^[^~]*~[^~]*$/);
-    await gu.refreshDismiss();
+    await gu.reloadDoc();
     await session.loadDoc((new URL(forkUrl)).pathname + "/m/fork");
     await gu.getCell({ rowNum: 1, col: 0 }).click();
     await gu.enterCell("2");
@@ -58,7 +58,7 @@ describe("Fork", function() {
     assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), "1");
     assert.equal(await driver.getCurrentUrl(), `${forkUrl}/m/fork`);
     await gu.wipeToasts();
-    await gu.refreshDismiss();
+    await gu.reloadDoc();
   }
 
   // Run tests with both regular docId and a custom urlId in URL, to make sure
@@ -122,7 +122,7 @@ describe("Fork", function() {
             await gu.enterCell("123");
             await gu.waitForServer();
             assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), "123");
-            await gu.refreshDismiss();
+            await gu.reloadDoc();
             // edits should persist across reloads
             await personal.loadDoc(`/doc/${id}`);
             assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), "123");
@@ -131,7 +131,7 @@ describe("Fork", function() {
             await gu.enterCell("234");
             await gu.waitForServer();
             assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), "234");
-            await gu.refreshDismiss();
+            await gu.reloadDoc();
 
             if (mode !== "anonymous") {
               // if we log out, access should now be denied
@@ -183,7 +183,7 @@ describe("Fork", function() {
         assert.match(forkUrl, /~/);
         // check that the tag is there
         assert.equal(await driver.find(".test-unsaved-tag").isPresent(), true);
-        await gu.refreshDismiss();
+        await gu.reloadDoc();
 
         // Open the original url and make sure the change we made is not there
         await anonSession.loadDoc(`/doc/${doc.id}`);
@@ -207,7 +207,7 @@ describe("Fork", function() {
         await gu.waitForServer();
         assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), "1");
         const fork1 = await driver.getCurrentUrl();
-        await gu.refreshDismiss();
+        await gu.reloadDoc();
 
         await anonSession.loadDoc(`/doc/${doc.id}/m/fork`);
         await gu.getCell({ rowNum: 1, col: 0 }).click();
@@ -215,7 +215,7 @@ describe("Fork", function() {
         await gu.waitForServer();
         assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), "2");
         const fork2 = await driver.getCurrentUrl();
-        await gu.refreshDismiss();
+        await gu.reloadDoc();
 
         await anonSession.loadDoc((new URL(fork1)).pathname);
         assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), "1");
@@ -236,7 +236,7 @@ describe("Fork", function() {
         const urlId1 = await gu.getCurrentUrlId();
         assert.match(urlId1!, /~/);
         assert.match(await driver.find(".test-treeview-itemHeader.selected").getText(), /Table2/);
-        await gu.refreshDismiss();
+        await gu.reloadDoc();
       });
 
       for (const user of [{ access: "viewers", name: "user3" },
@@ -268,7 +268,7 @@ describe("Fork", function() {
           const fork = forks.find(f => f.id === forkId);
           assert.isDefined(fork);
           assert.equal(fork!.trunkId, doc.id);
-          await gu.refreshDismiss();
+          await gu.reloadDoc();
 
           // Open the original url and make sure the change we made is not there
           await userSession.loadDoc(`/doc/${doc.id}`);
@@ -285,7 +285,7 @@ describe("Fork", function() {
           await gu.getCell({ rowNum: 1, col: 0 }).click();
           await gu.enterCell("1234");
           await gu.waitForServer();
-          await gu.refreshDismiss();
+          await gu.reloadDoc();
           await userSession.loadDoc((new URL(forkUrl)).pathname);
           assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), "1234");
 
@@ -298,7 +298,7 @@ describe("Fork", function() {
           await gu.getCell({ rowNum: 1, col: 0 }).click();
           await gu.enterCell("12345");
           await gu.waitForServer();
-          await gu.refreshDismiss();
+          await gu.reloadDoc();
           await team.loadDoc((new URL(forkUrl)).pathname);
           assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), "1234");
 
@@ -309,7 +309,7 @@ describe("Fork", function() {
           await gu.getCell({ rowNum: 1, col: 0 }).click();
           await gu.enterCell("12345");
           await gu.waitForServer();
-          await gu.refreshDismiss();
+          await gu.reloadDoc();
           await anonSession.loadDoc((new URL(forkUrl)).pathname);
           assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), "1234");
         });
@@ -328,7 +328,7 @@ describe("Fork", function() {
         // The url of the doc should now be that of a fork
         const forkUrl = await driver.getCurrentUrl();
         assert.match(forkUrl, /~/);
-        await gu.refreshDismiss();
+        await gu.reloadDoc();
 
         // Open the original url and make sure the change we made is not there
         await team.loadDoc(`/doc/${doc2.id}`);
@@ -342,7 +342,7 @@ describe("Fork", function() {
         await gu.getCell({ rowNum: 1, col: 0 }).click();
         await gu.enterCell("1234");
         await gu.waitForServer();
-        await gu.refreshDismiss();
+        await gu.reloadDoc();
         await team.loadDoc((new URL(forkUrl)).pathname);
         assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), "1234");
 
@@ -417,7 +417,7 @@ describe("Fork", function() {
         await gu.waitForServer();
         const forkUrl = await driver.getCurrentUrl();
         assert.match(forkUrl, /~/);
-        await gu.refreshDismiss();
+        await gu.reloadDoc();
 
         // check that there is no tag on trunk
         await team.loadDoc(`/doc/${trunk.id}`);
@@ -456,7 +456,7 @@ describe("Fork", function() {
         await gu.waitForDocToLoad();
         assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), "2");
         assert.equal(await driver.find(".test-unsaved-tag").isPresent(), true);
-        await gu.refreshDismiss();
+        await gu.reloadDoc();
       });
 
       it("disables document renaming for forks", async function() {
@@ -469,7 +469,7 @@ describe("Fork", function() {
         await gu.waitToPass(async () => {
           assert.equal(await driver.find(".test-bc-doc").getAttribute("disabled"), "true");
         });
-        await gu.refreshDismiss();
+        await gu.reloadDoc();
       });
 
       it("navigating browser history play well with the add new menu", async function() {
@@ -518,7 +518,7 @@ describe("Fork", function() {
         // check we're on a fork
         await gu.waitForUrl(/~/);
         const urlId = await gu.getCurrentUrlId();
-        await gu.refreshDismiss();
+        await gu.reloadDoc();
 
         // open trunk again, to test that page is reloaded after replacement
         await team.loadDoc(`/doc/${doc.id}`);
@@ -618,7 +618,7 @@ describe("Fork", function() {
         assert.equal(await confirmButton.getText(), "Update");
         assert.match(await driver.find(".test-modal-dialog").getText(),
           /already identical/);
-        await gu.refreshDismiss();
+        await gu.reloadDoc();
       });
 
       it("gives an error when replacing without write access via UI", async function() {
@@ -651,7 +651,7 @@ describe("Fork", function() {
           await driver.find(".test-replace-original").click();
           assert.equal(await gu.findOpenMenu().isDisplayed(), true);
           await assert.isRejected(driver.findWait(".test-modal-dialog", 500), /Waiting for element/);
-          await gu.refreshDismiss();
+          await gu.reloadDoc();
         } finally {
           await api.updateDocPermissions(doc.id, { users: { [altSession.email]: null } });
         }
