@@ -64,11 +64,13 @@ export class AirtableAPIError extends Error {
   }
 }
 
-type FetchNextPageFunc = () => Promise<{
+export interface ListAirtableRecordsResult {
   records: Airtable.Records<any>,
   hasMoreRecords: boolean,
   fetchNextPage: FetchNextPageFunc
-}>;
+}
+
+type FetchNextPageFunc = () => Promise<ListAirtableRecordsResult>;
 
 const fetchPageWhenNoMoreData: FetchNextPageFunc = () => Promise.resolve({
   records: [],
@@ -86,7 +88,7 @@ const fetchPageWhenNoMoreData: FetchNextPageFunc = () => Promise.resolve({
  */
 export function listRecords(
   base: Airtable.Base, tableName: string, params: QueryParams<any>,
-): ReturnType<FetchNextPageFunc> {
+): Promise<ListAirtableRecordsResult> {
   const table = base.table(tableName);
 
   const fetchNextPage = async (offset?: number): ReturnType<FetchNextPageFunc> => {

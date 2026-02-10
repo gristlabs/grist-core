@@ -1,5 +1,5 @@
-import { listRecords } from "app/common/airtable/AirtableAPI";
-import { AirtableFieldSchema } from "app/common/airtable/AirtableAPITypes";
+import { ListAirtableRecordsResult } from "app/common/airtable/AirtableAPI";
+import { AirtableFieldSchema, AirtableTableId } from "app/common/airtable/AirtableAPITypes";
 import {
   AirtableBaseSchemaCrosswalk,
   AirtableFieldMappingInfo,
@@ -9,20 +9,20 @@ import { TableColValues } from "app/common/DocActions";
 import { isNonNullish } from "app/common/gutil";
 import { BulkColValues, CellValue, GristObjCode } from "app/plugin/GristData";
 
-import { AirtableBase } from "airtable/lib/airtable_base";
 import { chain } from "lodash";
 
 export interface AirtableDataImportParams {
-  base: AirtableBase,
+  listRecords: ListRecordsFunc,
   addRows: (tableId: GristTableId, rows: BulkColValues) => Promise<number[]>,
   updateRows: UpdateRowsFunc,
   schemaCrosswalk: AirtableBaseSchemaCrosswalk,
 }
 
+type ListRecordsFunc = (tableId: AirtableTableId) => Promise<ListAirtableRecordsResult>;
 type UpdateRowsFunc = (tableId: GristTableId, rows: TableColValues) => Promise<number[]>;
 
 export async function importDataFromAirtableBase(
-  { base, addRows, updateRows, schemaCrosswalk }: AirtableDataImportParams,
+  { listRecords, addRows, updateRows, schemaCrosswalk }: AirtableDataImportParams,
 ) {
   const referenceTracker = new ReferenceTracker();
 
@@ -44,7 +44,7 @@ export async function importDataFromAirtableBase(
 
     const tableReferenceTracker = referenceTracker.addTable(tableCrosswalk.gristTable.id, referenceColumnIds);
 
-    let listRecordsResult = await listRecords(base, tableId, {});
+    let listRecordsResult = await listRecords(tableId);
 
     while (listRecordsResult.records.length > 0) {
       const { records } = listRecordsResult;
