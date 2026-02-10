@@ -4,19 +4,6 @@
 import * as t from "ts-interface-checker";
 // tslint:disable:object-literal-key-quotes
 
-export const AirtableAPIOptions = t.iface([], {
-  "apiKey": "string",
-});
-
-export const AirtableListBasesResponse = t.iface([], {
-  "bases": t.array(t.iface([], {
-    "id": "string",
-    "name": "string",
-    "permissionLevel": t.array(t.union(t.lit("none"), t.lit("read"), t.lit("comment"), t.lit("edit"), t.lit("create"))),
-  })),
-  "offset": t.opt("string"),
-});
-
 export const AirtableBaseId = t.name("string");
 
 export const AirtableTableId = t.name("string");
@@ -51,9 +38,16 @@ export const AirtableChoiceValue = t.iface([], {
   "color": "string",
 });
 
+export const AirtableListBasesResponse = t.iface([], {
+  "bases": t.array(t.iface([], {
+    "id": "string",
+    "name": "string",
+    "permissionLevel": t.array(t.union(t.lit("none"), t.lit("read"), t.lit("comment"), t.lit("edit"), t.lit("create"))),
+  })),
+  "offset": t.opt("string"),
+});
+
 const exportedTypeSuite: t.ITypeSuite = {
-  AirtableAPIOptions,
-  AirtableListBasesResponse,
   AirtableBaseId,
   AirtableTableId,
   AirtableFieldId,
@@ -62,5 +56,6 @@ const exportedTypeSuite: t.ITypeSuite = {
   AirtableTableSchema,
   AirtableFieldSchema,
   AirtableChoiceValue,
+  AirtableListBasesResponse,
 };
 export default exportedTypeSuite;

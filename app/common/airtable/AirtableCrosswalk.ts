@@ -3,7 +3,7 @@ import {
   AirtableFieldName, AirtableFieldSchema,
   AirtableTableId,
   AirtableTableSchema,
-} from "app/common/airtable/AirtableAPI";
+} from "app/common/airtable/AirtableAPITypes";
 import { AirtableIdColumnLabel } from "app/common/airtable/AirtableSchemaImporter";
 import {
   ExistingColumnSchema,

@@ -2,7 +2,7 @@ import {
   AirtableBaseSchema,
   AirtableFieldSchema,
   AirtableTableSchema,
-} from "app/common/airtable/AirtableAPI";
+} from "app/common/airtable/AirtableAPITypes";
 import { gristDocSchemaFromAirtableSchema } from "app/common/airtable/AirtableSchemaImporter";
 import { ColumnImportSchema } from "app/common/DocSchemaImport";
 import { RecalcWhen } from "app/common/gristTypes";

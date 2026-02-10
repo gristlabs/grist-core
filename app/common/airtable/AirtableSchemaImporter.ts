@@ -2,7 +2,7 @@ import {
   AirtableBaseSchema, AirtableChoiceValue,
   AirtableFieldSchema,
   AirtableTableSchema,
-} from "app/common/airtable/AirtableAPI";
+} from "app/common/airtable/AirtableAPITypes";
 import {
   ColumnImportSchema,
   DocSchemaImportWarning,

@@ -1,4 +1,5 @@
-import { AirtableFieldSchema, listRecords } from "app/common/airtable/AirtableAPI";
+import { listRecords } from "app/common/airtable/AirtableAPI";
+import { AirtableFieldSchema } from "app/common/airtable/AirtableAPITypes";
 import {
   AirtableBaseSchemaCrosswalk,
   AirtableFieldMappingInfo,
