@@ -97,7 +97,6 @@ namespace gristUtils {
   export const dismissBehavioralPrompts = webdriverUtils.dismissBehavioralPrompts.bind(webdriverUtils);
   export const toggleSelectable = webdriverUtils.toggleSelectable.bind(webdriverUtils);
   export const waitToPass = webdriverUtils.waitToPass.bind(webdriverUtils);
-  export const refreshDismiss = webdriverUtils.refreshDismiss.bind(webdriverUtils);
   export const acceptAlert = webdriverUtils.acceptAlert.bind(webdriverUtils);
   export const isAlertShown = webdriverUtils.isAlertShown.bind(webdriverUtils);
   export const waitForDocToLoad = webdriverUtils.waitForDocToLoad.bind(webdriverUtils);
