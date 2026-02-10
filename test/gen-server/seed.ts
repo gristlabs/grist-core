@@ -49,7 +49,7 @@ import {
 } from "app/server/lib/dbUtils";
 import { FlexServer } from "app/server/lib/FlexServer";
 import * as fse from "fs-extra";
-import { Connection, Repository } from "typeorm";
+import { Connection, DataSource, Repository } from "typeorm";
 
 const ACCESS_GROUPS = ["owners", "editors", "viewers", "guests", "members"];
 
@@ -574,7 +574,7 @@ export async function removeConnection() {
   await connection.destroy();
 }
 
-export async function createInitialDb(connection?: Connection, migrateAndSeedData: boolean | "migrateOnly" = true) {
+export async function createInitialDb(connection?: DataSource, migrateAndSeedData: boolean | "migrateOnly" = true) {
   // In jenkins tests, we may want to reset the database to a clean
   // state.  If so, TEST_CLEAN_DATABASE will have been set.  How to
   // clean the database depends on what kind of database it is.  With
@@ -638,10 +638,13 @@ export async function createBenchmarkDb(connection?: Connection) {
   });
 }
 
-export async function createServer(port: number, initDb = createInitialDb): Promise<FlexServer> {
+export async function createServer(
+  port: number, initDb: (ds: DataSource) => Promise<void> = createInitialDb,
+): Promise<FlexServer> {
   const flexServer = new FlexServer(port);
   flexServer.addJsonSupport();
   await flexServer.start();
+  await initDb(await getOrCreateConnection());
   await flexServer.initHomeDBManager();
   flexServer.addDocWorkerMap();
   await flexServer.addLoginMiddleware();
@@ -651,8 +654,8 @@ export async function createServer(port: number, initDb = createInitialDb): Prom
   flexServer.addWidgetRepository();
   flexServer.addHomeApi();
   flexServer.addScimApi();
+  await flexServer.addTelemetry();
   flexServer.addApiErrorHandlers();
-  await initDb(flexServer.getHomeDBManager().connection);
   flexServer.summary();
   return flexServer;
 }
