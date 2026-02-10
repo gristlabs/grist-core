@@ -268,6 +268,7 @@ export async function addRequestUser(
   // nefarious ones.
   if (
     !mreq.userId &&
+    !mreq.accessToken &&
     !(mreq.xhr || mreq.get("content-type") === "application/json") &&
     !["GET", "HEAD", "OPTIONS"].includes(mreq.method)
   ) {
