@@ -41,7 +41,7 @@ describe("Smoke", function() {
     await gu.sendKeys(Key.ENTER);
 
     await gu.enterCell("123");
-    await gu.refreshDismiss({ ignore: true });
+    await gu.reloadDoc();
     assert.equal(await gu.getCell("A", 1).getText(), "123");
   });
 });

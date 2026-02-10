@@ -235,15 +235,6 @@ export class GristWebDriverUtils {
   }
 
   /**
-   * Refresh browser and dismiss alert that is shown (for refreshing during edits).
-   */
-  public async refreshDismiss({ ignore } = { ignore: false }) {
-    await this.driver.navigate().refresh();
-    await this.acceptAlert({ ignore });
-    await this.waitForDocToLoad();
-  }
-
-  /**
    * Accepts an alert.
    */
   public async acceptAlert({ ignore } = { ignore: false }) {

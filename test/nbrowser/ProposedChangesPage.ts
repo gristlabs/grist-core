@@ -305,7 +305,7 @@ describe("ProposedChangesPage", function() {
     assert.equal(await driver.find(".test-tools-proposals").getText(),
       "Suggest changes (2)");
 
-    await gu.refreshDismiss({ ignore: true });
+    await gu.reloadDoc();
     assert.equal(await driver.find(".test-tools-proposals").getText(),
       "Suggest changes (2)");
 
