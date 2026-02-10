@@ -31,5 +31,6 @@ declare global {
       apiKey: string, base: string, options: AirtableImportOptions,
     ) => Promise<any>;
     testGrist?: Partial<TestState>;
+    setExperimentState?: (experiment: string, enabled: boolean) => void;
   }
 }

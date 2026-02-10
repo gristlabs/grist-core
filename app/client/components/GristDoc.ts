@@ -24,6 +24,7 @@ import { ViewLayout } from "app/client/components/ViewLayout";
 import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
 import { copyToClipboard } from "app/client/lib/clipboardUtils";
 import { DocPluginManager } from "app/client/lib/DocPluginManager";
+import { loadAirtableImportUI } from "app/client/lib/imports";
 import { ImportSourceElement } from "app/client/lib/ImportSourceElement";
 import { makeT } from "app/client/lib/localization";
 import { createSessionObs } from "app/client/lib/sessionObs";
@@ -605,6 +606,13 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
         label: importSourceElem.importSource.label,
         action: () => selectAndImport(this, importSourceElems, importSourceElem, createPreview),
       })),
+      ...(this.appModel.experiments?.isEnabled("airtableImport") ?
+        [{
+          label: t("Import from Airtable"),
+          action: async () => (await loadAirtableImportUI()).startImport(),
+        }] :
+        []
+      ),
     ];
 
     // Set the available import sources in the DocPageModel.

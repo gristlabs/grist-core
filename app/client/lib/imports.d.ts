@@ -1,5 +1,6 @@
 import * as GristDocModule from "app/client/components/GristDoc";
 import * as ViewPane from "app/client/components/ViewPane";
+import * as AirtableImportUI from "app/client/lib/airtable/AirtableImportUI";
 import * as AccountPageModule from "app/client/ui/AccountPage";
 import * as ActivationPageModule from "app/client/ui/ActivationPage";
 import * as AdminPanelModule from "app/client/ui/AdminPanel";
@@ -19,6 +20,7 @@ export type PlotlyType = typeof plotly;
 
 export function loadAccountPage(): Promise<typeof AccountPageModule>;
 export function loadActivationPage(): Promise<typeof ActivationPageModule>;
+export function loadAirtableImportUI(): Promise<typeof AirtableImportUI>;
 export function loadAuditLogsPage(): Promise<typeof AuditLogsPageModule>;
 export function loadBillingPage(): Promise<typeof BillingPageModule>;
 export function loadAdminPanel(): Promise<typeof AdminPanelModule>;
