@@ -43,8 +43,9 @@ setOptionsModifyFunc(({ chromeOpts, firefoxOpts }) => {
   // toggled by using the `set` method in `capabilities` interface, as it is done here (long URL):
 
   // https://github.com/shs96c/selenium/blob/ff82c4af6a493321d9eaec6ba8fa8589e4aa824d/javascript/node/selenium-webdriver/firefox.js#L415
-  chromeOpts.set("webSocketUrl", true);
+  chromeOpts.set("webSocketUrl", true); // FIXME: remove this line
   chromeOpts.set(Capability.UNHANDLED_PROMPT_BEHAVIOR, "ignore");
+  // FIXME: use enableBidi, may require to bump mocha-webdriver
 
   chromeOpts.setUserPreferences({
     // Don't show popups to save passwords, which are shown when running against a deployment when
