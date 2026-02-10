@@ -6,7 +6,7 @@ import { urlState } from "app/client/models/gristUrlState";
 import { Expirable, IAppError, Notification, Notifier, NotifyAction, Progress } from "app/client/models/NotifyModel";
 import { hoverTooltip } from "app/client/ui/tooltips";
 import { cssHoverCircle, cssTopBarBtn } from "app/client/ui/TopBarCss";
-import { theme, vars } from "app/client/ui2018/cssVars";
+import { isNarrowScreenObs, theme, vars } from "app/client/ui2018/cssVars";
 import { IconName } from "app/client/ui2018/IconList";
 import { icon } from "app/client/ui2018/icons";
 import { menuCssClass } from "app/client/ui2018/menus";
@@ -136,14 +136,16 @@ function buildProgressDom(item: Progress) {
 
 export function buildNotifyMenuButton(notifier: Notifier, appModel: AppModel | null) {
   const { connectState } = notifier.getStateForUI();
-  return cssHoverCircle({ style: `margin: 5px;` },
-    dom.domComputed(connectState, state => buildConnectStateButton(state)),
-    (elem) => {
-      setPopupToCreateDom(elem, ctl => buildNotifyDropdown(ctl, notifier, appModel),
-        { ...defaultMenuOptions, placement: "bottom-end" });
-    },
-    hoverTooltip("Notifications", { key: "topBarBtnTooltip" }),
-    testId("menu-btn"),
+  return dom.maybe(use => (!use(isNarrowScreenObs()) && use(connectState) !== ConnectState.Connected), () =>
+    cssHoverCircle({ style: `margin: 5px;` },
+      dom.domComputed(connectState, state => buildConnectStateButton(state)),
+      (elem) => {
+        setPopupToCreateDom(elem, ctl => buildNotifyDropdown(ctl, notifier, appModel),
+          { ...defaultMenuOptions, placement: "bottom-end" });
+      },
+      hoverTooltip("Notifications", { key: "topBarBtnTooltip" }),
+      testId("menu-btn"),
+    ),
   );
 }
 
