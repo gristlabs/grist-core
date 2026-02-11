@@ -471,10 +471,12 @@ It is also known to function against the chat completion endpoint provided by <a
 
 #### Sandbox related variables:
 
-Variable | Purpose
--------- | -------
-GRIST_SANDBOX_FLAVOR | can be gvisor, pynbox, unsandboxed, docker, or macSandboxExec. If set, forces Grist to use the specified kind of sandbox.
-GRIST_SANDBOX | a program or image name to run as the sandbox. See NSandbox.ts for nerdy details.
+Variable | Purpose | OS      | Sandbox |
+-------- | ------- | ------- | ------- |
+GRIST_SANDBOX_FLAVOR | can be gvisor, pynbox, unsandboxed, docker, or macSandboxExec. If set, forces Grist to use the specified kind of sandbox. | Any | N/A |
+GRIST_SANDBOX | a program or image name to run as the sandbox. See NSandbox.ts for nerdy details. | Any | N/A |
+RLIMIT_NPROC | the number of extant processes the sandbox is allowed to spawn when running on Linux. Defaults to 8. | Linux (incl. Docker image) | GVisor, Pyodide |
+RLIMIT_AS | the maximum size of the sandboxed process's virtual memory (in bytes). No limit by default. | Linux (incl. Docker image) | GVisor, Pyodide |
 
 #### Forward authentication variables:
 

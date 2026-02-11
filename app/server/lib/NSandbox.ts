@@ -626,6 +626,9 @@ export type SpawnFn = (options: ISandboxOptions) => SandboxProcess;
 const hasRunsc = checkCommandExists("runsc");
 const hasSandboxExec = checkCommandExists("sandbox-exec");
 
+// This is used to limit resource usage on Linux.
+const hasPrlimit = checkCommandExists("prlimit");
+
 /**
  * Currently for sandboxing use gvisor if available, otherwise
  * try native sandboxing on macs, otherwise fall back on pyodide.
@@ -714,6 +717,7 @@ function pyodide(options: ISandboxOptions): SandboxProcess {
   let child: ChildProcess;
 
   const command = options.command ?? pyodideSettings.command;
+  const usePrlimit = !options.command && hasPrlimit;
   if (command) {
     const args = [
       ...pyodideSettings.args,
@@ -737,6 +741,10 @@ function pyodide(options: ISandboxOptions): SandboxProcess {
       scriptPath,
       { cwd, ...spawnOptions },
     );
+  }
+
+  if (usePrlimit && child.pid) {
+    prLimit(child.pid);
   }
 
   return {
@@ -1082,6 +1090,29 @@ function getAbsolutePaths(options: ISandboxOptions) {
     main: path.join(sandboxDir, "grist/main.py"),
     engine: path.join(sandboxDir, "grist"),
   };
+}
+
+function prLimit(pid: number) {
+  const args = [];
+  console.log("⚙️ applying prlimit to process id = ", pid);
+
+  // See man getrlimit for more info about the options.
+  // https://www.man7.org/linux/man-pages/man2/getrlimit.2.html
+
+  // Maximum number of processes.
+  let nproc = parseInt(process.env.RLIMIT_NPROC!, 10);
+  nproc = Number.isNaN(nproc) ? 8 : nproc; // nproc defaults to 8 if unset or invalid
+  args.push(`--nproc=${nproc}`);
+
+  // Address space limit.
+  const as = parseInt(process.env.RLIMIT_AS!, 10);
+  if (!Number.isNaN(as)) {
+    console.log("👀 applying as = ", as);
+    args.push(`--as=${as}`);
+  }
+  console.log("➡️ ", "prlimit", [...args, "--pid", String(pid)]);
+
+  return spawn("prlimit", [...args, "--pid", String(pid)]);
 }
 
 /**
