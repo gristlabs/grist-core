@@ -17,6 +17,7 @@ import { Emitter } from "grainjs";
  */
 export class TableData extends TableDataBase {
   public readonly tableActionEmitter = new Emitter();
+  public readonly preTableActionEmitter = new Emitter();
   public readonly dataLoadedEmitter = new Emitter();
 
   public readonly columnACIndexes = new ColumnACIndexes(this);
@@ -103,6 +104,7 @@ export class TableData extends TableDataBase {
    * Emits a table-specific action received from the server as a 'tableAction' event.
    */
   public receiveAction(action: DocAction): boolean {
+    this.preTableActionEmitter.emit(action);
     const applied = super.receiveAction(action);
     if (applied) {
       this.tableActionEmitter.emit(action);

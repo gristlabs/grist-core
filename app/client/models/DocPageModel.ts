@@ -23,7 +23,7 @@ import { delay } from "app/common/delay";
 import { OpenDocMode, OpenDocOptions, UserOverride } from "app/common/DocListAPI";
 import { FilteredDocUsageSummary } from "app/common/DocUsage";
 import { Features, mergedFeatures, Product } from "app/common/Features";
-import { buildUrlId, IGristUrlState, parseUrlId, UrlIdParts } from "app/common/gristUrls";
+import { buildUrlId, CompareEmphasis, IGristUrlState, parseUrlId, UrlIdParts } from "app/common/gristUrls";
 import { getReconnectTimeout } from "app/common/gutil";
 import { canEdit, isOwner } from "app/common/roles";
 import { UserInfo } from "app/common/User";
@@ -249,7 +249,10 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
               openMode: urlOpenMode,
               linkParameters,
               originalUrlId: state.doc,
-            }, state.params?.compare)),
+            }, {
+              comparisonUrlId: state.params?.compare,
+              compareEmphasis: state.params?.compareEmphasis,
+            })),
           )
             .resultPromise.catch(err => this._onOpenError(err));
         }
@@ -426,9 +429,12 @@ contact the document owners to attempt a document recovery. [{{error}}]", { erro
     this.offerRecovery(err);
   }
 
-  private async _openDoc(flow: AsyncFlow, urlId: string, options: OpenDocOptions,
-    comparisonUrlId: string | undefined): Promise<void> {
+  private async _openDoc(flow: AsyncFlow, urlId: string, options: OpenDocOptions, comparisonOptions: {
+    comparisonUrlId?: string,
+    compareEmphasis?: CompareEmphasis
+  }): Promise<void> {
     const { openMode: urlOpenMode, linkParameters } = options;
+    const { comparisonUrlId, compareEmphasis } = comparisonOptions;
     console.log(`DocPageModel _openDoc starting for ${urlId} (mode ${urlOpenMode})` +
       (comparisonUrlId ? ` (compare ${comparisonUrlId})` : ""));
     const gristDocModulePromise = loadGristDoc();
@@ -518,7 +524,8 @@ contact the document owners to attempt a document recovery. [{{error}}]", { erro
       await this._api.getDocAPI(urlId).compareDoc(comparisonUrlId, { detail: true }) : undefined;
 
     const gristDoc = gdModule.GristDocImpl.create(flow, this._appObj, this.appModel, docComm, this, openDocResponse,
-      this.appModel.topAppModel.plugins, { comparison });
+      this.appModel.topAppModel.plugins,
+      { comparison, compareEmphasis });
 
     // Move ownership of docComm to GristDoc.
     gristDoc.autoDispose(flow.release(docComm));
