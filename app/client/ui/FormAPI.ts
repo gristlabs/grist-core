@@ -48,9 +48,9 @@ export interface FormFieldOptions {
   formTextFormat?: FormTextFormat;
   /** Number of lines/rows for the `"multiline"` option of `formTextFormat`. Defaults to `3`. */
   formTextLineCount?: number;
-  /** Minimum length for the text response. Defaults to `-1` (no constraint). */
+  /** Minimum length for the text response. */
   formTextMinimumLength?: number;
-  /** Maximum length for the text response. Defaults to `-1` (no constraint). */
+  /** Maximum length for the text response. */
   formTextMaximumLength?: number;
   /** Numeric or Int field format. Defaults to `"text"`. */
   formNumberFormat?: FormNumberFormat;
