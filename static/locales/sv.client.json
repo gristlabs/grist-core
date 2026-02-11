@@ -373,7 +373,26 @@
         "Talk to me like a person. No need to specify tables and column names. For example, you can ask \"Please calculate the total invoice amount.\"": "Prata med mig som till en person. Du behöver inte specificera tabell och kolumnnamn. Exempelvis kan du fråga \"Vad god räkna ut det totala beloppet att fakturera.\""
     },
     "AuditLogStreamingConfig": {
-        "Save": "Spara"
+        "Save": "Spara",
+        "Add destination": "Lägg till mål",
+        "Add streaming destination": "Lägg till mål för strömning",
+        "Are you sure you want to delete this streaming destination? This action cannot be undone.": "Är du säker på att du vill radera detta strömningsmål? Denna åtgärd kan inte ångras.",
+        "Cancel": "Avbryt",
+        "Delete": "Radera",
+        "Delete streaming destination?": "Radera strömningsmål?",
+        "Destination": "Mål",
+        "Destinations": "Mål",
+        "Edit": "Redigera",
+        "Edit streaming destination": "Redigera mål för strömning",
+        "Enter URL": "Fyll i URL",
+        "Enter token": "Fyll i token",
+        "Learn more": "Lär dig mer",
+        "Other": "Annat",
+        "Splunk": "Splunk",
+        "Start streaming": "Starta strömmning",
+        "Token": "Token",
+        "URL": "URL",
+        "Set up streaming of audit events from Grist to an external security information and event management (SIEM) system like Splunk. {{learnMoreLink}}.": "Ställ in strömming av audit händelser från Grist till en extern säkerhetsinformations- och händelsehanteringssystem (SIEM) som Splunk. {{learnMoreLink}}."
     },
     "ChoiceListEntry": {
         "Save": "Spara"
@@ -1999,6 +2018,207 @@
         "Go to the tutorial!": "Gå till instruktionsguide!",
         "Next step": "Nästa steg",
         "Skip step": "Hoppa över steg",
-        "Skip tutorial": "Hoppa över instruktionsguide"
+        "Skip tutorial": "Hoppa över instruktionsguide",
+        "Tell us who you are": "Berätta för oss vem du är",
+        "Type here": "Skriv här",
+        "Welcome": "Välkommen",
+        "What brings you to Grist (you can select multiple)?": "Hur kom du i kontakt med Grist (Du kan välja flera)?",
+        "What is your role?": "Vilken är din roll?",
+        "What organization are you with?": "Vilken organisation är du från?",
+        "Your organization": "Din organisation",
+        "Your role": "Din roll",
+        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "Grist kan se ut som ett kalkylblad, men det fungerar inte alltid som ett. Upptäck vad som gör Grist annorlunda."
+    },
+    "ToggleEnterpriseWidget": {
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "En aktiveringsnyckel används för att köra Grist Företagsversion efter att försöksperioden\npå 30 dagar är slut. Skaffa en aktiveringsnyckel genom att [registrera för Grist\nFöretagsversion]({{signupLink}}). Du behöver ingen aktiveringsnyckel för att köra \nGrist Core.\n\nLär dig mer i vårt [Hjälpcenter]({{helpCenter}}).",
+        "Disable Grist Enterprise": "Avaktivera Grist företagsversion",
+        "Enable Grist Enterprise": "Akrivera Grist företagsversion",
+        "Grist Enterprise is **enabled**.": "Grist företagsversion är **aktiverad**.",
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "En aktiveringsnyckel används för att köra Grist Företagsversion efter att försöksperioden\npå 30 dagar är slut. Skaffa en aktiveringsnyckel genom att [kontakta oss]({{contactLink}}). Du behöver ingen aktiveringsnyckel för att köra \nGrist Core.\n\nLär dig mer i vårt [Hjälpcenter]({{helpCenter}}).",
+        "Activate": "Aktivera",
+        "Activation key": "Aktiveringsnyckel",
+        "An activation key is used to run Grist Enterprise after a trial period\n        of 30 days has expired. Get an activation key by [signing up for Grist\n        Enterprise]({{signupLink}}). You do not need an activation key to run\n        Grist Core.": "En aktiveringsnyckel används för att köra Grist Företagsversion efter att försöksperioden\n        på 30 dagar är slut. Skaffa en aktiveringsnyckel genom att [registrera för Grist\n        Företagsversion]({{signupLink}}). Du behöver ingen aktiveringsnyckel för att köra \n        Grist Core.",
+        "An active subscription is required to continue using Grist Enterprise. You can\nyou activate your subscription by [signing up for Grist Enterprise ]({{signupLink}}) and pasting your\nactivation key below.": "Ett aktivt abonnemang krävs för att köra Grist Företagsversion. Du kan aktivera ditt abonnemang genom att [registrera för Grist\nFöretagsversion]({{signupLink}}) ock klistra in\naktiveringsnyckeln nedan.",
+        "Copy to clipboard": "Kopiera till utklipp",
+        "Expiration date": "Utgångsdatum",
+        "Installation ID copied to clipboard": "Installations ID kopierat till utklipp",
+        "Installation ID:": "Installations ID:",
+        "Installation seats": "Installations säten",
+        "Learn more in our [Help Center]({{helpCenter}}).": "Lär dig mer i vårt [Hjälpcenter]({{helpCenter}}).",
+        "Paste your activation key": "Klistra in din aktiveringdnyckel",
+        "Plan name": "Abonnemangsnamn",
+        "You do not have an active subscription.": "Du har inget aktivt abonnemang.",
+        "To continue using Grist Enterprise, you need to\n                  [contact us]({{signupLink}}) to get your activation key.": "För att fortsätta använda Grist Företagsversion behöver du\n                   [kontakta oss]({{signupLink}}) för att få din aktiveringsnyckel.",
+        "You are currently trialing Grist Enterprise.": "Du har just nu en provperiod av Grist företagsversion.",
+        "Your activation key has expired due to exceeding limits.": "Din aktiveringsnyckel har gått ut på grund av att begränsningar överskridits.",
+        "Your instance will be in **read-only** mode in **{{days}}** day(s).": "Din instans kommer övergå till **skrivskyddat** läge om **{{days}}** dag(ar).",
+        "Your subscription expired on {{date}}.": "Ditt abonnemang tog slut {{date}}.",
+        "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.": "Din provperiod tog slut **{{expireAt}}**. För att fortsätta använda Grist företagsversion, du behöver\n[Registrera dig för Grist företagsversion]({{signupLink}}) och klistra in aktiveringsnyckeln nedan."
+    },
+    "ViewLayout": {
+        "Delete": "Radera",
+        "Delete data and this widget.": "Radera data och denna widget.",
+        "Raw Data page": "Rådatasida",
+        "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "Behåll datan och radera widget. Tabellen kommer fortsatt avar tillgänglig på {{rawDataLink}}",
+        "Table {{tableName}} will no longer be visible": "Tabell {{tableName}} kommer inte längre att vara synlig"
+    },
+    "AdminPanelName": {
+        "Admin Panel": "Administrationspanel"
+    },
+    "CustomWidgetGallery": {
+        "(Missing info)": "(Information saknas)",
+        "Add widget": "Lägg till widget",
+        "Add Your Own Widget": "Lägg till din egen widget",
+        "Add a widget from outside this gallery.": "Lägg till en widget från annan plats.",
+        "Cancel": "Avbryt",
+        "Change widget": "Ändra widget",
+        "Choose custom widget": "Välj anpassad widget",
+        "Community Widget": "Widget från användargruppen",
+        "Custom URL": "Anpassad URL",
+        "Developer:": "Utvecklare:",
+        "Grist Widget": "Grist widget",
+        "Last updated:": "Senast uppdaterad:",
+        "Learn more about custom widgets": "Lär dig mer om anpassade widgets",
+        "No matching widgets": "Inga matchande widgets",
+        "Search": "Sök",
+        "Widget URL": "Widget URL"
+    },
+    "markdown": {
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
+            "": {
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Ny Markdown funktion\n\n      Vi kan _skriva_ [vanlig Markdown](https://markdownguide.org) *inne* i\n      ett Grainjs element."
+            }
+        },
+        "The toggle is **off**": "Detta av/på-val är **av**",
+        "The toggle is **on**": "Detta av/på-val är **på**"
+    },
+    "markdown.d": {
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
+            "": {
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Ny Markdown funktion\n\n      Vi kan _skriva_ [vanlig Markdown](https://markdownguide.org) *inne* i\n      ett Grainjs element."
+            }
+        },
+        "The toggle is **off**": "Detta av/på-val är **av**",
+        "The toggle is **on**": "Detta av/på-val är **på**"
+    },
+    "HomeIntroCards": {
+        "3 minute video tour": "3 minuters videogenomgång",
+        "Blank document": "Tomt dokument",
+        "Find solutions and explore more resources": "Hitta läsningar och utforska fler resurser",
+        "Finish our basics tutorial": "Slutför vår grundläggande instruktionsguide",
+        "Help center": "Hjälpcenter",
+        "Import file": "Importera fil",
+        "Learn more": "Lär dig mer",
+        "Start a new document": "Börja med ett nytt dokument",
+        "Templates": "Mallar",
+        "Tutorial": "Instruktionsguide",
+        "Webinars": "Webinarier"
+    },
+    "ReverseReferenceConfig": {
+        "Add two-way reference": "Lägg till tvåvägsreferens",
+        "Column": "Kolumn",
+        "Delete": "Radera",
+        "Delete column {{column}} in table {{table}}?": "Radera kolumn {{column}} i tabell {{table}}?",
+        "It is the reverse of the reference column {{column}} in table {{table}}.": "Det är det omvända av referenskolumn {{column}} i tabell {{table}}.",
+        "Table": "Tabell",
+        "Two-way Reference": "Tvåvägsreferens",
+        "Delete two-way reference?": "Radera tvåvägsreferens?",
+        "Target table": "Måltabell",
+        "This will delete the reference column {{refCol}} in table {{refTable}}. The reference column {{myName}} will remain in the current table {{myTable}}.": "Detta kommer att radera referenskolumn {{refCol}} i tabell {{refTable}}. Referenskolumnen {{myName}} kommer att finnas kvar i nuvarande tabell {{myTable}}."
+    },
+    "SupportGristButton": {
+        "Admin Panel": "Administrationspanel",
+        "Close": "Stäng",
+        "Help Center": "Hjälpcenter",
+        "Opt in to Telemetry": "Aktivera telemetri",
+        "Opted In": "Aktiverad",
+        "Support Grist": "Stöd Grist",
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Tack! Ditt förtroende och stöd är mycket uppskattat. Avaktivera när som helst på {{link}} i användarmenyn.",
+        "Opt in to telemetry to help us understand how the product is used, so that we can prioritize future improvements.": "Stöd Grist genom att aktivera telemetri, som hjälper oss förstå hur produkten används, så att vi kan prioritera framtida förbättringar.",
+        "We only collect usage statistics, as detailed in our {{helpCenterLink}}, never document contents. Opt out any time from the {{supportGristLink}} in the user menu.": "Vi samlar bra användarstatistik som beskrivs i vårt {{helpCenterLink}}, aldrig dokumentinnehåll. Avaktivera när som helst från {{supportGristLink}} i användarmenyn."
+    },
+    "buildReassignModal": {
+        "Cancel": "Avbryt",
+        "Each {{targetTable}} record may only be assigned to a single {{sourceTable}} record.": "Respektive {{targetTable}} rad kan bara kopplas till en enda rad i {{sourceTable}}.",
+        "Reassign": "Byt koppling",
+        "Reassign to new {{sourceTable}} records.": "Byt koppling till en nya {{sourceTable}} rader.",
+        "Reassign to {{sourceTable}} record {{sourceName}}.": "Byt koppling till {{sourceTable}} rad {{sourceName}}.",
+        "Record already assigned_one": "Raden är redan kopplad",
+        "Record already assigned_other": "Raderna är redan kopplade",
+        "{{targetTable}} record {{targetName}} is already assigned to {{sourceTable}} record          {{oldSourceName}}.": "{{targetTable}} rad {{targetName}} är redan kopplad till {{sourceTable}} rad           {{oldSourceName}}."
+    },
+    "AuditLogsPage": {
+        "Audit Logs": "Audit loggar",
+        "Audit logs for {{siteName}}": "Auditloggar för {{siteName}}",
+        "Contact us": "Kontakta oss",
+        "Home": "Hem",
+        "Log streaming": "Loggströmning",
+        "Only site owners may access audit logs.": "Enbart sajtägare kan komma åt auditloggar.",
+        "upgrade your plan": "Upgradera ditt abonnemang"
+    },
+    "DocList": {
+        "Access details": "Behörigheter",
+        "All": "Alla",
+        "Current workspace": "Nuvarande arbetsyta",
+        "Delete": "Radera",
+        "Delete {{name}}": "Radera {{name}}",
+        "Document will be moved to Trash.": "Dokumentet kommer flyttas till p­apperskorgen.",
+        "Edited {{at}}": "Redigerad {{at}}",
+        "Last edited": "Senast redigerad",
+        "Manage users": "Hantera användare",
+        "Move": "Flytta",
+        "Move {{name}} to workspace": "Flytta {{name}} till arbetsyta",
+        "Name": "Namn",
+        "No documents to show.": "Inga dokument att visa.",
+        "Pin": "Fäst",
+        "Pinned": "Fästa",
+        "Recent": "Nyligen",
+        "Rename and set icon": "Byt namn och välj ikon",
+        "Requires edit permissions": "Kräver redigeringsbehörighet",
+        "Sort by date": "Sortera efter datum",
+        "Sort by name": "Sortera efter namn",
+        "Unpin": "Lossa",
+        "Workspace": "Arbetsyta",
+        "context menu - {{- documentName }}": "snabbmeny - {{- documentName }}",
+        "Documents list": "Dokumentlista",
+        "Download document...": "Ladda ner dokument...",
+        "Deleted {{at}}": "Raderad {{at}}"
+    },
+    "RenameDocModal": {
+        "Choose color": "Välj färg",
+        "Choose icon": "Välj ikon",
+        "Enter document name": "Fyll i dokument namn",
+        "Icon": "Ikon",
+        "Name": "Namn",
+        "Rename and set icon": "But namn och välj ikon",
+        "Reset icon": "Återställ ikon"
+    },
+    "RightPanelUtils": {
+        "columns_one": "kolumn",
+        "columns_other": "kolumner",
+        "fields_one": "fällt",
+        "fields_other": "fällt",
+        "series_one": "serie",
+        "series_other": "serier"
+    },
+    "userTrustsCustomWidget": {
+        "Be careful with unknown custom widgets": "Var försiktig med okända anpassade widgets",
+        "Please review the following before adding a new custom widget.": "Var god kontrollera följande innan du lägger till en ny anpassad widget.",
+        "Custom widgets are **powerful**! They may be able to read and write your document data, and send it elsewhere.": "Anpassade widgets är **kraftfulla**! Det är möjligt att dom kan läsa och skriva i ditt dokument och skicka data vidare någon annanstans.",
+        "Are you sure you **trust the resource** at this URL?": "Är du säker på att du **litar på resursen** på denna URL?",
+        "Do you **trust the person** who shared this link?": "**Litar du på personen** som delat denna länk?",
+        "Have you **reviewed the code** at this URL?": "Har du **kontrollerat koden** på denna URL?",
+        "If in doubt, do not install this widget, or ask an administrator of your organization to review it for safety.": "Om du är osäker, installera inte denna widget eller be en administratör i din organisation att kontrollera säkerheten.",
+        "I confirm that I understand these warnings and accept the risks": "Jag bekräftar att jag förstår dessa varningar och accepterar risken"
+    },
+    "AdminLeftPanel": {
+        "Admin area": "Administrationsyta",
+        "Admin controls": "Administrationsinställningar",
+        "Docs": "Dokument",
+        "Installation": "Installation",
+        "Learn more": "Lär dig mer",
+        "Orgs": "Organisationer",
+        "Users": "Användare",
+        "Workspaces": "Arbetsytor"
     }
 }
