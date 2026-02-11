@@ -22,7 +22,7 @@ friendly-traceback==0.7.48
     # via -r core/sandbox/requirements.in
 iso8601==0.1.12
     # via -r core/sandbox/requirements.in
-lazy-object-proxy==1.6.0
+lazy-object-proxy==1.12.0
     # via astroid
 openpyxl==3.0.10
     # via -r core/sandbox/requirements.in
