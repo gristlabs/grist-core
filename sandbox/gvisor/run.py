@@ -132,11 +132,11 @@ settings['process']['rlimits'] = [{
 
 memory_limit = os.environ.get('RLIMIT_AS', os.environ.get('GVISOR_LIMIT_MEMORY'))
 if memory_limit:
-  settings['process']['rlimits'] += {
+  settings['process']['rlimits'].append({
     "type": "RLIMIT_AS",
     "hard": int(memory_limit),
     "soft": int(memory_limit)
-  }
+  })
 
 # Helper for preparing a mount.
 def preserve(*locations, short_failure=False):
