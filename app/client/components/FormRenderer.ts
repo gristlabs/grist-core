@@ -328,32 +328,17 @@ class TextRenderer extends BaseFieldRenderer {
   private _value = Observable.create<string>(this, this.getInitialValue() ?? "");
 
   public label() {
-    const minimumLength = this.field.options.formTextMinimumLength;
     const maximumLength = this.field.options.formTextMaximumLength;
 
-    if (!maximumLength && !minimumLength) {
+    if (!maximumLength) {
       return super.label();
-    }
-
-    const minimumLengthLabel = minimumLength && t("min. {{minimum}}", {
-      minimum: minimumLength,
-    });
-    const maxLengthLabel = maximumLength && t("max. {{maximum}}", {
-      maximum: maximumLength,
-    });
-
-    let finalLengthText;
-    if (minimumLength && maximumLength) {
-      finalLengthText = minimumLengthLabel + ", " + maxLengthLabel;
-    } else if (minimumLength) {
-      finalLengthText = minimumLengthLabel;
-    } else {
-      finalLengthText = maxLengthLabel;
     }
 
     return cssRow(
       super.label(),
-      constraintLabel("(" + finalLengthText + ")"),
+      constraintLabel(t("(max. {{maximum}})", {
+        maximum: maximumLength,
+      })),
     );
   }
 
@@ -365,12 +350,7 @@ class TextRenderer extends BaseFieldRenderer {
       element = this._renderMultiLineInput();
     }
 
-    const minimumLength = this.field.options.formTextMinimumLength;
     const maximumLength = this.field.options.formTextMaximumLength;
-
-    if (minimumLength) {
-      element.minLength = minimumLength;
-    }
 
     if (maximumLength) {
       element.maxLength = maximumLength;
