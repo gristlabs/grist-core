@@ -3,7 +3,6 @@ import { bindMarkdown } from "app/client/components/Forms/styles";
 import { getBrowserGlobals } from "app/client/lib/browserGlobals";
 import { makeT } from "app/client/lib/localization";
 import { FormField } from "app/client/ui/FormAPI";
-import { cssRow } from "app/client/ui/RightPanelStyles";
 import { dropdownWithSearch } from "app/client/ui/searchDropdown";
 import { isXSmallScreenObs, theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
@@ -334,11 +333,14 @@ class TextRenderer extends BaseFieldRenderer {
       return super.label();
     }
 
-    return cssRow(
+    return labelRow(
       super.label(),
-      constraintLabel(t("(max. {{maximum}})", {
-        maximum: maximumLength,
-      })),
+      constraintLabel(
+        dom.text(use => t("({{length}} / {{maximum}})", {
+          maximum: maximumLength,
+          length: use(this._value).length,
+        })),
+      ),
     );
   }
 
@@ -373,6 +375,7 @@ class TextRenderer extends BaseFieldRenderer {
       },
       dom.prop("value", this._value),
       preventSubmitOnEnter(),
+      dom.on("input", (_e, elem) => this._value.set(elem.value)),
     );
   }
 
@@ -1093,4 +1096,9 @@ const constraintLabel = styled("span", `
   color: ${theme.text};
   font-size: ${vars.xsmallFontSize};
   margin-left: 8px;
+`);
+
+const labelRow = styled("div", `
+  display: flex;
+  align-items: center;
 `);
