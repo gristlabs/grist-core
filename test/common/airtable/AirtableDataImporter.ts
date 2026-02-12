@@ -91,7 +91,7 @@ describe("AirtableDataImporter", function() {
     };
   }
 
-  function createBasicSchemaCrosswalk(tableIdPairs: [AirtableTableId, GristTableId]): AirtableBaseSchemaCrosswalk {
+  function createBasicSchemaCrosswalk(tableIdPairs: [AirtableTableId, GristTableId][]): AirtableBaseSchemaCrosswalk {
     return {
       tables: new Map(tableIdPairs.map(
         ([airtableTableId, gristTableId]) =>
@@ -287,7 +287,7 @@ describe("AirtableDataImporter", function() {
 
       const listRecords = createListRecordsFake(new Map([["tblMain", [mockRecord]]]));
 
-      const schemaCrosswalk = createBasicSchemaCrosswalk(["tblMain", "Main"]);
+      const schemaCrosswalk = createBasicSchemaCrosswalk([["tblMain", "Main"]]);
 
       await importDataFromAirtableBase({
         listRecords,
@@ -318,7 +318,7 @@ describe("AirtableDataImporter", function() {
 
       const listRecords = createListRecordsFake(new Map([["tblMain", [mockRecord]]]));
 
-      const schemaCrosswalk = createBasicSchemaCrosswalk(["tblMain", "Main"]);
+      const schemaCrosswalk = createBasicSchemaCrosswalk([["tblMain", "Main"]]);
 
       await importDataFromAirtableBase({
         listRecords,
@@ -336,7 +336,7 @@ describe("AirtableDataImporter", function() {
       assert.property(bulkColValues, "Name");
     });
 
-    it("stores airtable id when airtableIdColumn is configured", async () => {
+    async function testAirtableIdColumn(params = { omitAirtableId: false }) {
       const mockRecord = {
         id: "rec999",
         fields: {
@@ -346,7 +346,10 @@ describe("AirtableDataImporter", function() {
 
       const listRecords = createListRecordsFake(new Map([["tblMain", [mockRecord]]]));
 
-      const schemaCrosswalk = createBasicSchemaCrosswalk(["tblMain", "Main"]);
+      const schemaCrosswalk = createBasicSchemaCrosswalk([["tblMain", "Main"]]);
+      if (params.omitAirtableId) {
+        schemaCrosswalk.tables.get("tblMain")!.airtableIdColumn = undefined;
+      }
 
       await importDataFromAirtableBase({
         listRecords,
@@ -356,22 +359,41 @@ describe("AirtableDataImporter", function() {
       });
 
       const call = addRowsMock.getCall(0);
-      const bulkColValues = call.args[1];
-      assert.deepEqual(bulkColValues.Airtable_Id, ["rec999"]);
+      return call.args[1];
+    }
+
+    it("stores airtable id when airtableIdColumn is configured", async () => {
+      const bulkColValues = await testAirtableIdColumn({ omitAirtableId: false });
+      assert.deepEqual(bulkColValues.Airtable_Id, ["rec999"], "Airtable ID column data missing");
+    });
+
+    it("skips airtable id when airtableIdColumn is missing", async () => {
+      const bulkColValues = await testAirtableIdColumn({ omitAirtableId: true });
+      assert.isUndefined(bulkColValues.Airtable_Id, "Airtable ID column present when it shouldn't be");
     });
 
     it("handles multipleRecordLinks references and defers resolution", async () => {
-      const mockRecord = {
-        id: "rec123",
-        fields: {
-          Name: "Test",
-          Links: ["rec456", "rec789"],
+      const mockRecords = [
+        {
+          id: "recA",
+          fields: {
+            Name: "Test",
+            Links: ["recC", "recB"],
+          },
         },
-      };
+        {
+          id: "recB",
+          fields: {},
+        },
+        {
+          id: "recC",
+          fields: {},
+        },
+      ];
 
-      const listRecords = createListRecordsFake(new Map([["tblMain", [mockRecord]]]));
+      const listRecords = createListRecordsFake(new Map([["tblMain", mockRecords]]));
 
-      const schemaCrosswalk = createBasicSchemaCrosswalk(["tblMain", "Main"]);
+      const schemaCrosswalk = createBasicSchemaCrosswalk([["tblMain", "Main"]]);
 
       await importDataFromAirtableBase({
         listRecords,
@@ -383,13 +405,14 @@ describe("AirtableDataImporter", function() {
       // First add rows with links as null
       const addRowsCall = addRowsMock.getCall(0);
       const initialBulkValues = addRowsCall.args[1];
-      assert.deepEqual(initialBulkValues.Links, [null]);
+      assert.deepEqual(initialBulkValues.Links, [null, null, null]);
 
       // Update rows with resolved links
       assert.isTrue(updateRowsMock.called);
       const updateCall = updateRowsMock.getCall(0);
       const updates = updateCall.args[1];
-      assert.deepEqual(updates.Links, [[GristObjCode.List, 1, 1]]);
+      // Row IDs are created incrementally starting at 1 - so the two referenced rows have 2 and 3.
+      assert.deepEqual(updates.Links, [[GristObjCode.List, 3, 2], [GristObjCode.List], [GristObjCode.List]]);
     });
 
     it("handles multiple pages of records", async () => {
@@ -408,7 +431,7 @@ describe("AirtableDataImporter", function() {
 
       const listRecords = createListRecordsFake(new Map([["tblMain", mockRecords]]), { pageSize: 3 });
 
-      const schemaCrosswalk = createBasicSchemaCrosswalk(["tblMain", "Main"]);
+      const schemaCrosswalk = createBasicSchemaCrosswalk([["tblMain", "Main"]]);
 
       await importDataFromAirtableBase({
         listRecords,
@@ -424,7 +447,9 @@ describe("AirtableDataImporter", function() {
       assert.equal(totalRows, 10);
     });
 
-    async function testFieldValueConversion(fieldName: string, fieldValue: any, assertion: (value: any) => void) {
+    async function testFieldValueConversion(fieldName: string, fieldValue: any) {
+      sinon.reset();
+
       const mockRecord: AirtableRecordKeyFieldsOnly = {
         id: "rec123",
         fields: {},
@@ -433,7 +458,7 @@ describe("AirtableDataImporter", function() {
       mockRecord.fields[fieldName] = fieldValue;
 
       const listRecords = createListRecordsFake(new Map([["tblMain", [mockRecord]]]));
-      const schemaCrosswalk = createBasicSchemaCrosswalk(["tblMain", "Main"]);
+      const schemaCrosswalk = createBasicSchemaCrosswalk([["tblMain", "Main"]]);
 
       await importDataFromAirtableBase({
         listRecords,
@@ -445,35 +470,118 @@ describe("AirtableDataImporter", function() {
       const call = addRowsMock.getCall(0);
       const bulkColValues = call.args[1];
       const colId = schemaCrosswalk.tables.get("tblMain")!.fields.get(fieldName)!.gristColumn.id;
-      assertion(bulkColValues[colId][0]);
+      if (bulkColValues[colId] === undefined) {
+        throw new Error("Expected column not in addRows call");
+      }
+      return bulkColValues[colId][0];
     }
 
     it("converts aiText fields correctly", async () => {
-      await testFieldValueConversion("AiField", { value: "Generated text" },
-        value => assert.equal(value, "Generated text"));
+      const value1 = await testFieldValueConversion("AiField", { value: "Generated text" });
+      assert.equal(value1, "Generated text");
 
-      await testFieldValueConversion("AiField", undefined,
-        value => assert.isNull(value));
+      const value2 = await testFieldValueConversion("AiField", undefined);
+      assert.isNull(value2);
     });
 
-    it("converts field values correctly", async () => {
-      const fields = {
-        Name: "Test",
-        AiField: { value: "Generated text" },
-        CreatedBy: { name: "Alice", email: "alice@example.com" },
-        ModifiedBy: { name: "Bob" },
-        Collaborators: [
-          { name: "Charlie" },
-          { name: "Diana" },
-        ],
-        SingleCollaborator: { name: "Bilbo" },
-        MultipleSelects: [""],
-      };
+    it("converts createdBy fields correctly", async () => {
+      const value1 = await testFieldValueConversion("CreatedBy", { name: "Alice", email: "alice@example.com" });
+      assert.equal(value1, "Alice");
 
-      assert.deepEqual(bulkColValues.AiField, ["Generated text"]);
-      assert.deepEqual(bulkColValues.CreatedBy, ["Alice"]);
-      assert.deepEqual(bulkColValues.ModifiedBy, ["Bob"]);
-      assert.deepEqual(bulkColValues.Collaborators, [GristObjCode.List, "Charlie", "Diana"]);
+      const value2 = await testFieldValueConversion("CreatedBy", { name: "Bob" });
+      assert.equal(value2, "Bob");
+
+      const value3 = await testFieldValueConversion("CreatedBy", undefined);
+      assert.isNull(value3);
+    });
+
+    it("converts lastModifiedBy fields correctly", async () => {
+      const value1 = await testFieldValueConversion("ModifiedBy", { name: "Charlie", email: "charlie@example.com" });
+      assert.equal(value1, "Charlie");
+
+      const value2 = await testFieldValueConversion("ModifiedBy", undefined);
+      assert.isNull(value2);
+    });
+
+    it("converts singleCollaborator fields correctly", async () => {
+      const value1 = await testFieldValueConversion("SingleCollaborator", { name: "Diana" });
+      assert.equal(value1, "Diana");
+
+      const value2 = await testFieldValueConversion("SingleCollaborator", undefined);
+      assert.isNull(value2);
+    });
+
+    it("converts multipleCollaborators fields correctly", async () => {
+      const value1 = await testFieldValueConversion("Collaborators", [
+        { name: "Eve" },
+        { name: "Frank" },
+      ]);
+      assert.equal(value1, "Eve, Frank");
+
+      const value2 = await testFieldValueConversion("Collaborators", [{ name: "Grace" }]);
+      assert.equal(value2, "Grace");
+
+      const value3 = await testFieldValueConversion("Collaborators", undefined);
+      assert.isNull(value3);
+
+      const value4 = await testFieldValueConversion("Collaborators", []);
+      assert.equal(value4, "");
+    });
+
+    it("converts multipleSelects fields correctly", async () => {
+      const value1 = await testFieldValueConversion("MultipleSelects", ["Option1", "Option2"]);
+      assert.deepEqual(value1, [GristObjCode.List, "Option1", "Option2"]);
+
+      const value2 = await testFieldValueConversion("MultipleSelects", ["Single"]);
+      assert.deepEqual(value2, [GristObjCode.List, "Single"]);
+
+      const value3 = await testFieldValueConversion("MultipleSelects", undefined);
+      assert.isNull(value3);
+
+      const value4 = await testFieldValueConversion("MultipleSelects", []);
+      assert.deepEqual(value4, [GristObjCode.List]);
+    });
+
+    it("skips count field data conversion because it's a formula column", async () => {
+      await assert.isRejected(
+        testFieldValueConversion("Count", 42),
+        "Expected column not in addRows call",
+      );
+    });
+
+    it("skips formula field data conversion because it's a formula column", async () => {
+      await assert.isRejected(
+        testFieldValueConversion("Formula", "computed result"),
+        "Expected column not in addRows call",
+      );
+    });
+
+    it("skips lookup field data conversion because it's a formula column", async () => {
+      await assert.isRejected(
+        testFieldValueConversion("Lookup", ["value1", "value2"]),
+        "Expected column not in addRows call",
+      );
+    });
+
+    it("skips rollup field data conversion because it's a formula column", async () => {
+      await assert.isRejected(
+        testFieldValueConversion("Rollup", {}),
+        "Expected column not in addRows call",
+      );
+    });
+
+    it("preserves the values of fields without explicit converters", async () => {
+      const value1 = await testFieldValueConversion("Name", "Plain text");
+      assert.equal(value1, "Plain text");
+
+      const value2 = await testFieldValueConversion("Name", 42);
+      assert.equal(value2, 42);
+
+      const value3 = await testFieldValueConversion("Name", [GristObjCode.List, 1]);
+      assert.deepEqual(value3, [GristObjCode.List, 1]);
+
+      const value4 = await testFieldValueConversion("Name", undefined);
+      assert.isNull(value4);
     });
 
     it("uses null for crosswalk fields without values in the record", async () => {
@@ -485,7 +593,7 @@ describe("AirtableDataImporter", function() {
 
       const listRecords = createListRecordsFake(new Map([["tblMain", [mockRecord]]]));
 
-      const schemaCrosswalk = createBasicSchemaCrosswalk(["tblMain", "Main"]);
+      const schemaCrosswalk = createBasicSchemaCrosswalk([["tblMain", "Main"]]);
 
       await importDataFromAirtableBase({
         listRecords,
@@ -505,7 +613,7 @@ describe("AirtableDataImporter", function() {
         throw new Error("Airtable API error");
       };
 
-      const schemaCrosswalk = createBasicSchemaCrosswalk(["tblMain", "Main"]);
+      const schemaCrosswalk = createBasicSchemaCrosswalk([["tblMain", "Main"]]);
 
       try {
         await importDataFromAirtableBase({

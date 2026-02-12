@@ -219,19 +219,17 @@ const AirtableFieldValueConverters: Record<string, AirtableFieldValueConverter> 
     return formatCollaborator(collaborator);
   },
   count(fieldSchema, collaborator) {
-    // Summary column - should be a formula in Grist, no value needed
-    return null;
+    throw new Error("Count is a formula column, and should not have data conversion run");
   },
   formula(fieldSchema, collaborator) {
-    // Generated column - should be a formula in Grist, no value needed
-    return null;
+    throw new Error("Formula is a formula column, and should not have data conversion run");
   },
   lastModifiedBy(fieldSchema, collaborator) {
     return formatCollaborator(collaborator);
   },
   lookup(fieldSchema, value) {
     // Lookup fields fetch values from other columns. This should be a formula in Grist, no value needed.
-    return null;
+    throw new Error("Lookup is a formula column, and should not have data conversion run");
   },
   multipleAttachments(fieldSchema, attachmentInfo) {
     // Improvement - add attachment support, null them out for now.
@@ -250,8 +248,7 @@ const AirtableFieldValueConverters: Record<string, AirtableFieldValueConverter> 
     return [GristObjCode.List, ...choices];
   },
   rollup(fieldSchema, collaborator) {
-    // Generated column - should be a formula in Grist, no value needed
-    return null;
+    throw new Error("Rollup is a formula column, and should not have data conversion run");
   },
 };
 
