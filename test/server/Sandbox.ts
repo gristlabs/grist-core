@@ -408,7 +408,7 @@ return 'done'
       assert.notMatch(fileContents, /rambunctious/);
     });
 
-    it("gvisor and pyodide should fail after unreasonnable number of calls to os.fork()", async function() {
+    it("gvisor and pyodide should fail after unreasonable number of calls to os.fork()", async function() {
       if (!["gvisor", "pyodide"].includes(sandbox.getFlavor())) {
         this.skip();
       }
