@@ -11,6 +11,7 @@ import {
   transformImportSchema, validateImportSchema,
 } from "app/common/DocSchemaImport";
 import { UserAPI } from "app/common/UserAPI";
+import { EDITOR, OWNER } from "app/common/roles";
 
 export interface AirtableImportOptions {
   transformations?: ImportSchemaTransformParams,
@@ -168,5 +169,19 @@ export async function runAirtableDataImport(
 
 async function createDoc(userApi: UserAPI, name: string) {
   const workspaces = await userApi.getOrgWorkspaces("current");
+  if (workspaces.length === 0) {
+    throw new NoWorkspacesError();
+  }
+  const writableWorkspaces = workspaces.filter(workspace => [OWNER, EDITOR].includes(workspace.access));
+  if (writableWorkspaces.length === 0) {
+    // This could be a different error? But any logged-in user should have at least one writable workspace.
+    throw new NoWorkspacesError();
+  }
   return await userApi.newDoc({ name }, workspaces[0].id);
+}
+
+class NoWorkspacesError extends Error {
+  constructor() {
+    super("No workspaces could be found for importing to: imports by anonymous users are not supported.");
+  }
 }
