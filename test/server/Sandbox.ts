@@ -407,6 +407,23 @@ return 'done'
       assert.match(fileContents, /defines what sandbox functions are made available to the Node controller/);
       assert.notMatch(fileContents, /rambunctious/);
     });
+
+    it("gvisor and pyodide should fail after unreasonnable number of calls to os.fork()", async function() {
+      if (!["gvisor", "pyodide"].includes(sandbox.getFlavor())) {
+        this.skip();
+      }
+
+      const result = await tryFormula(sandbox, `
+import os
+os.fork()
+os.fork()
+os.fork()
+`);
+      if (!result.match(/BlockingIOError/) &&
+        !result.match(/OSError/)) {
+        throw new Error("unexpected result " + String(result));
+      }
+    });
   });
 
   describe("pyodide", function() {
