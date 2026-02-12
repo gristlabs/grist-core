@@ -226,6 +226,10 @@ def run(sandbox):
     raise Exception('unrecognized operation')
 
   @export
+  def test_fork(nb):
+    return [ os.fork() for _ in range(0, nb or 1) ]
+
+  @export
   def test_tz_data():
     import moment   # pylint: disable=import-outside-toplevel
     return moment.read_tz_raw_data()

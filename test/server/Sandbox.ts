@@ -413,16 +413,10 @@ return 'done'
         this.skip();
       }
 
-      const result = await tryFormula(sandbox, `
-import os
-os.fork()
-os.fork()
-return str(os.fork())
-`);
-      if (!result.match(/BlockingIOError/) &&
-        !result.match(/OSError/)) {
-        throw new Error("unexpected result " + String(result));
-      }
+      await assert.isRejected(
+        sandbox.pyCall("test_fork", 8),
+        /BlockingIOError|OSError/,
+      );
     });
   });
 
