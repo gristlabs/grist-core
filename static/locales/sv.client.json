@@ -395,7 +395,13 @@
         "Set up streaming of audit events from Grist to an external security information and event management (SIEM) system like Splunk. {{learnMoreLink}}.": "Ställ in strömming av audit händelser från Grist till en extern säkerhetsinformations- och händelsehanteringssystem (SIEM) som Splunk. {{learnMoreLink}}."
     },
     "ChoiceListEntry": {
-        "Save": "Spara"
+        "Save": "Spara",
+        "+{{count}} more_one": "+{{count}} mer",
+        "+{{count}} more_other": "+{{count}} mer",
+        "Edit": "Redigera",
+        "No choices configured": "Inga alternativ inställda",
+        "Reset": "Återställ",
+        "Cancel": "Avbryt"
     },
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "Detta arbetslag är inaktiverat. Dokumenten kan läsas, men inte ändras."
@@ -2154,7 +2160,9 @@
         "Home": "Hem",
         "Log streaming": "Loggströmning",
         "Only site owners may access audit logs.": "Enbart sajtägare kan komma åt auditloggar.",
-        "upgrade your plan": "Upgradera ditt abonnemang"
+        "upgrade your plan": "Upgradera ditt abonnemang",
+        "You can set up streaming of audit events from Grist to an external SIEM (security information and event management) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.": "Du kan konfigurera strömning av loggar från Grist till ett externt SIEM-system (säkerhetsinformation och händelsehantering) om du aktiverar Grist för företag. {{contactUsLink}} för att lära dig mer.",
+        "You can set up streaming of audit events from Grist to an external SIEM (security information and event management) system if you {{upgradePlanButton}}.": "Du kan konfigurera strömning av loggar från Grist till ett externt SIEM-system (säkerhetsinformation och händelsehantering) om du {{upgradePlanButton}}."
     },
     "DocList": {
         "Access details": "Behörigheter",
@@ -2219,6 +2227,217 @@
         "Learn more": "Lär dig mer",
         "Orgs": "Organisationer",
         "Users": "Användare",
-        "Workspaces": "Arbetsytor"
+        "Workspaces": "Arbetsytor",
+        "Admin Controls": "Administrationsintällningar",
+        "Settings": "Inställningar"
+    },
+    "Assistant": {
+        "AI Assistant is only available for logged in users.": "AIassistenten är bara tillgänglig för inloggade användare.",
+        "Apply": "Applicera",
+        "For higher limits, contact the site owner.": "För minskade begränsningar, kontakta sajtägaren.",
+        "For higher limits, {{upgradeNudge}}.": "För minskade begränsningar, {{upgradeNudge}}",
+        "Learn more.": "Lär dig mer.",
+        "Press Enter to apply suggested formula.": "Tryck på enter för att applicera formeln.",
+        "Sign Up for Free": "Registrera dig gratis",
+        "What do you need help with?": "Vad behöver du hjälp med?",
+        "You have used all available credits.": "Du har använt alla dina krediter.",
+        "You have {{numCredits}} remaining credits.": "Du har {{numCredits}} krediter kvar.",
+        "start a new chat": "starta en ny chat",
+        "upgrade to the Pro Team plan": "uppgradera till professionellt arbetslagsabbonmang",
+        "upgrade your plan": "uppgradera ditt abonnemang",
+        "Sign up for a free Grist account to start using the AI Assistant.": "Registrera ett gratis Gristkonto för att börja använda AIassistenten.",
+        "Upgrade to Grist Enterprise to try the new Grist Assistant. {{learnMoreLink}}": "Upgradera till Grist Företagsversion för att prova den nya Grist assistenten. {{learnMoreLink}}",
+        "The conversation has become too long and I can no longer respond effectively. Please {{startANewChatButton}} to continue receiving assistance.": "Konversation har blivit för lång och kan inte svara effektivt längre. Var god {{startANewChatButton}} för att fortsätta få hjälp."
+    },
+    "apiconsole": {
+        "Are you sure you want to delete the following?": "Är du säker på att du vill radera följande?",
+        "Confirm Deletion": "Bekräfta borttagning",
+        "Delete": "Radera",
+        "Deletion was not confirmed, skipping.": "Borttagningen bekräftades ej, hoppar över.",
+        "Type DELETE here if you wish to proceed.": "Skriv DELETE här om du vill fortsätta.",
+        "Type DELETE if you are sure you do indeed wish to do this deletion.\nIf you are not sure, or do not understand what this operation will do,\nit would be wise to cancel it.": "Skriv DELETE om du är säker på att du vi radera.\nOm du inte är säker eller inte förstår vad denna åtgärd gör,\när det klokt att avbryta."
+    },
+    "MentionTextBox": {
+        "no access": "ingen behörighet",
+        "...loading": "...laddar"
+    },
+    "VersionUpdateBanner": {
+        "Your Grist version is outdated.\nConsider upgrading to version {{version}} as soon as possible.": "Din Gristverson är gammal.\nÖverväg att uppgradera till version {{version}} så snart som möjligt.",
+        "There is a critical Grist update available.\nConsider upgrading to version {{version}} as soon as possible.": "Det finns en kristisk uppdatering till Grist tillgänglig.\nÖverväg att uppgrader till version {{version}} så fort som möjligt."
+    },
+    "ExternalAttachmentBanner": {
+        "Set the document to use external storage.": "Ställ in dokumentet att använda extern lagring.",
+        "Recommendation: {{storageRecommendation}}\nWhen storing large attachments, or many of them, we recommend\nkeeping them in external storage. This document is currently\nusing internal storage for attachments, which keeps it\nself-contained but may limit performance.": "Rekomendation: {{storageRecommendation}}\nNär du sparar stora eller många bilagor rekomenderar vi\natt spara dem på extern lagring. Detta dokument använder nu\nintern lagring för bilagor, som håller alla bilagor och\ndokument som en enhet men kan begränsa hastigheten."
+    },
+    "ToggleEnterpriseModel": {
+        "Please wait for the previous operation to complete.": "Vänta på att den föregående åtgärden blir klar.",
+        "Timed out on waiting for the Grist backend to restart": "Timeout nåddes under väntan på omstart av Grist servern"
+    },
+    "Experiments": {
+        "Disable feature": "Stäng av funktion",
+        "Don't worry, you can disable it later if needed.": "Oroa dig inte du kan stänga av det senare om det behövs.",
+        "Enable feature": "Slå på funktion",
+        "Experimental feature": "Experimentell funktion",
+        "New record button": "Ny rad knapp",
+        "Reload the page": "Ladda om sidan",
+        "Visit this URL at any time to stop using this feature: {{url}}": "Besök denna URL när som helst för att sluta använda denna funktion: {{url}}",
+        "You are about to disable this experimental feature: {{experiment}}": "Du håller på att stänga av denna experimentella funktion: {{experiment}}",
+        "You are about to enable this experimental feature: {{experiment}}": "Du håller på att slå på denna experimentella funktion: {{experiment}}",
+        "{{experiment}} disabled.": "{{experiment}} avstängd.",
+        "{{experiment}} enabled.": "{{experiment}} påslagen."
+    },
+    "NewRecordButton": {
+        "New card": "Nytt kort",
+        "New record": "Ny rad"
+    },
+    "RegionFocusSwitcher": {
+        "Trying to access the creator panel? Use {{key}}.": "Försöker du komma åt designpanelen? Använd {{key}}."
+    },
+    "duplicateWidget": {
+        "Duplicate widget": "Duplicera widget",
+        "Duplicate widgets": "Duplicera widgetar",
+        "Active": "Aktiv",
+        "Create new page": "Skapa ny sida"
+    },
+    "AttachmentsWidget": {
+        "Uploading, please wait…": "Ladda upp, var god vänta…"
+    },
+    "AttachmentsEditor": {
+        "Add": "Lägg till",
+        "Delete": "Radera",
+        "Download": "Ladda ner",
+        "Drop files here to attach": "Släpp filer här för att bifoga",
+        "Drop files here to attach.": "Släpp filer här för att bifoga.",
+        "No attachments": "Inga bilagor",
+        "Preview not available.": "Förhandsvisning inte tillgänglig.",
+        "{{index}} of {{total}}": "{{index}} av {{total}}",
+        "Uploading…": "Laddar upp…"
+    },
+    "RowHeightConfig": {
+        "Expand all rows to this height": "Expandera alla rader till denna höjd",
+        "Max height": "Maxhöjd",
+        "Max row height": "Max rad höjd",
+        "Change": "Ändra"
+    },
+    "TreeViewComponent": {
+        "Collapse": "Komprimera",
+        "Expand": "Expandera"
+    },
+    "ActiveUserList": {
+        "active user": "aktiv användare",
+        "active user list": "aktiv användarelista",
+        "open full active user list": "öppna hela aktiv användarelistan"
+    },
+    "AdminChecks": {
+        "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Grist möjliggör välidgt kraftfulla formler, som använder Python. Vi rekomenderar att ställa in miljövariabeln GRIST_SANDBOX_FLAVOR till gvisor om din hårdvara stöder det (villket de flesta gör), för att köra formlerna i respektive dokument i en egen isolerad sandbox, utan åtkomst till andra dokumen eller nätverket.",
+        "Grist has a small built-in health check often used when running it as a container.": "Girst har en egen liten inbygg sjävkontroll som ofta används när Grist körs i en kontainer.",
+        "Requests arriving to Grist should have an accurate Host header. This is essential when GRIST_SERVE_SAME_ORIGIN is set.": "Anrop som kommer till Grist ska ha en korekt värd i headern (HTTP Host header). Det är esensiellt om du ställt in GRIST_SERVE_SAME_ORIGIN.",
+        "This boot page should not be too easy to access. Either turn it off when configuration is ok (by unsetting GRIST_BOOT_KEY) or make GRIST_BOOT_KEY long and cryptographically secure.": "Denna start sida ska inte vara för lätt att komma åt. Stäng av den när inställningarna är klara (genom att ta bort GRIST_BOOT_KEY) eller gör GRIST_BOOT_KEY lång och kryprografiskt säker.",
+        "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.": "Websocketanslutningar behöver HTTP1.1 and möjligheten att lägga till några extra headers för att fungera. Ibland kan en revrese proxy hinda det.",
+        "It is good practice not to run Grist as the root user.": "Det är en bra grundregel att inte köra Grist som root-användare.",
+        "The main page of Grist should be available.": "Grists huvudsida borde vara tillgänglig."
+    },
+    "FormulaTransform": {
+        "Apply": "Applicera",
+        "Cancel": "Avbryt",
+        "Preview": "Förhandsvining"
+    },
+    "ParseOptions": {
+        "Close": "Stäng",
+        "Update preview": "Uppdatera förhandsvisning",
+        "Convert quoted fields": "Omvadla citerade fällt",
+        "Escape character": "Escapetecken",
+        "Field separator": "Fälltavdelare",
+        "First row contains headers": "Första raden innehåller rubriker",
+        "Line terminator": "Radavslut",
+        "Number of rows": "Antal rader",
+        "Quote character": "Citeringstecken",
+        "Quotes in fields are doubled": "Citattecken inne i fällt är dubblerade",
+        "Skip leading whitespace": "Hoppa över inledande blanksteg",
+        "Start with row": "Börja med rad",
+        "Character encoding. See [the supported codecs]({{link}})": "Teckenkodning. Se [teckenkodningar som stöds]({{link}})"
+    },
+    "OpenAccessibilityModal": {
+        " or ": " eller ",
+        "\"Regions\" are what we call the different parts of the user interface:": "\"Regioner\" är vad vi kallar de olika delarna av användargränssnittet:",
+        "Accessibility": "Tillgänglighet",
+        "Close": "Stäng",
+        "Finally, the right panel – or the creator panel – is only available through its own shortcut and is not included in the next and previous region cycle.": "Slutligen, den högra panelen - eller designpanelen - är bara tillgänglig genom sin egen genväg och är inte inkuderad i nästa och föregoende regioncykel.",
+        "Focus on other parts of the user interface using the following shortcuts:": "Fokusera på de andra delar in användargränssnittet genom följande genvägar:",
+        "High contrast theme": "Högkontrasttema",
+        "Keyboard navigation": "Tangentbordsnavigering",
+        "On a document page, keyboard navigation is first locked on the current widget.": "På dokumentsidam, är tangentbordsnavigering initialt låst på nuvarande widget.",
+        "On document pages, each [widget]({{supportPageUrl}}) is a region that can receive focus.": "På dokumentsidorna, är [widget]({{supportPageUrl}}) en region som kan få fokus.",
+        "On non-document pages, the main content area is a region.": "Utanför dokumensidor är områet huvudinnehåll en region.",
+        "Other important keyboard shortcuts": "Andra viktiga tangetbordsgenvägar",
+        "The left panel, home of the main navigation.": "Vänsterpanelen, hem för huvudnavigationen.",
+        "The top panel, or the document header.": "Den övre panelen eller dokumenhuvudet.",
+        "To see other available themes, go to your {{profileSettingsLink}}.": "För att se andra tillgängliga teman gå till vår {{profileSettingsLink}}.",
+        "Use the high contrast theme (light appearance)": "Använd högkontrasttemat (ljust utseende)",
+        "You are currently **not using** the high contrast theme.": "Du **använder inte** högkontrasttemat nu.",
+        "You are currently using the high contrast theme.": "Du använder högkontrasttemat nu.",
+        "profile settings": "profilinställningar",
+        "{{accessibilityModal}} Show the accessibility options (this modal)": "{{accessibilityModal}} Visa tillgänglighetsinställningar (denna modal)",
+        "{{creatorPanelShortcut}} Focus to and from the creator panel": "{{creatorPanelShortcut}} Fokusera till och från designpanelen",
+        "{{nextRegionShortcut}} Focus on the next region": "{{nextRegionShortcut}} Fokusera på nästa region",
+        "{{prevRegionShortcut}} Focus on the previous region": "{{prevRegionShortcut}} Fokusra på den föregående regionen",
+        "{{shortcutsModal}} Show the complete list of keyboard shortcuts": "{{shortcutsModal}} Visa hela listan av tangentbordsgenvägar"
+    },
+    "ProposedChangesPage": {
+        "Proposed changes": "Föreslagna ändringar",
+        "Replace original": "Ersätt original",
+        "This is a list of changes relative to the original document.": "Detta är en lista över ändringar i jämföresle med orginaldokumentet.",
+        "Accept": "Acceptera",
+        "Accepted {{at}}.": "Accepterad {{at}}.",
+        "Dismiss": "Avfärda",
+        "Dismissed {{at}}.": "Avfärdad {{at}}.",
+        "Learn more": "Lär dig mer",
+        "No changes found to suggest. Please make some edits.": "Inga ändringar att föreslå. Var god göra några ändringar.",
+        "Retract suggestion": "Dra tillbaka föreslag",
+        "Retracted {{at}}.": "Tillbakadragen {{at}}.",
+        "Suggest change": "Föreslå ändring",
+        "Suggest changes": "Föreslå ändringar",
+        "Suggestion made {{at}}.": "Föreslagen {{at}}.",
+        "Suggestions": "Ändringsförslag",
+        "The original document isn't asking for proposed changes.": "Orignaldokumentet efterfrågar inga förslag på ändringar.",
+        "There are fresh changes that haven't been added to the suggestion yet.": "Det finns nya ändringar som inte har lagts till som ändringsförslag ännu.",
+        "This is a list of changes relative to the {{originalDocument}}.": "Detta är en list av ändringr i jämföresle med {{originalDocument}}.",
+        "Update suggestion": "Uppdatera ändringsförslag",
+        "Work on a copy": "Arbeta på en kopia",
+        "Your suggestions": "Dina ändringsförslag",
+        "experiment": "experiment",
+        "original document": "originaldokument",
+        "Undo dismissal": "Ångra avvisande"
+    },
+    "commandList": {
+        "Show accessibility options": "Visa tillgänglighetsinställningar",
+        "Activate assistant": "Aktivera assistent",
+        "Add a new viewsection to the currently active view": "Lägg till en ny vysection till den nu aktiva vyn",
+        "Adds all elements above the cursor to the selected range": "Lägger till alla element ovanför markören till det valda området",
+        "Adds all elements below the cursor to the selected range": "Lägger till alla element nedanför markören till det valda området",
+        "Adds all elements to the left of the cursor to the selected range": "Lägger till alla element till vänster av markören till det vala området",
+        "Adds all elements to the right of the cursor to the selected range": "Lägger till alla element till höger om markören till det valda området",
+        "Adds the currently selected column(ascending) to the current view's sort spec": "Lägger till den nu valda kolumnen(stigande) till den nuvarane vyns sortering",
+        "Adds the currently selected column(descending) to the current view's sort spec": "Lägger till den nu valda kolumnen (fallande) till den nuvarande vyns sorterig",
+        "Adds the element above the cursor to the selected range": "Lägger till elementet ovanför markören till det valda området",
+        "Adds the element below the cursor to the selected range": "Lägger till elementet nedanför markören till det valda området",
+        "Adds the element to the left of the cursor to the selected range": "Lägger till elementet till vänster om markören till det valda området",
+        "Adds the element to the right of the cursor to the selected range": "Lägger till elementet till höger om markören till det vala området",
+        "Clear the selected columns": "Rensa de valda kolumnerna",
+        "Clears the current copy selection, if any": "Rensar den nuvarande kopieringsvalet, om det finns",
+        "Clears the currently selected cells": "Rensar de nu valda cellerna",
+        "Clears the section links in the current view": "Rensar sektionslänkar i nuvarande vyn",
+        "Clears the section links in the current viewsection": "Rensar sektionslänkar i den nuvarande vysektionen",
+        "Collapse the currently active viewsection": "Komprimera den aktiva vysektionen",
+        "Convert the selected columns from formula to data": "Kovertera de valda kolumnerna från formel till data",
+        "Copy anchor link": "Kopiera ankarlänk",
+        "Copy current selection to clipboard": "Kopiera nuvarade val till utklipp",
+        "Copy current selection to clipboard including headers": "Kopiera nuvarande sektion till utklipp inklusive rubriker",
+        "Creates form for active table": "Skpar formulär för aktiv tabell",
+        "Cut current selection to clipboard": "Klipp ut nuvarande val till utklipp",
+        "Delete collapsed viewsection": "Radera den komprimerade vysektionen",
+        "Delete the currently active viewsection": "Radera den aktiva vysektionen",
+        "Delete the currently selected columns": "Radera de vald kolumnerna",
+        "Delete the currently selected record(s)": "Radera de valda rader(na)"
     }
 }
