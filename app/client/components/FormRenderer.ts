@@ -329,7 +329,7 @@ class TextRenderer extends BaseFieldRenderer {
   public label() {
     const maximumLength = this.field.options.formTextMaximumLength;
 
-    if (!maximumLength) {
+    if (maximumLength == null) {
       return super.label();
     }
 
@@ -340,12 +340,13 @@ class TextRenderer extends BaseFieldRenderer {
           maximum: maximumLength,
           length: use(this._value).length,
         })),
+        testId("text-constraint"),
       ),
     );
   }
 
   public input() {
-    let element;
+    let element: HTMLInputElement | HTMLTextAreaElement;
     if (this._format === "singleline") {
       element = this._renderSingleLineInput();
     } else {
@@ -354,7 +355,7 @@ class TextRenderer extends BaseFieldRenderer {
 
     const maximumLength = this.field.options.formTextMaximumLength;
 
-    if (maximumLength) {
+    if (maximumLength != null) {
       element.maxLength = maximumLength;
     }
 
