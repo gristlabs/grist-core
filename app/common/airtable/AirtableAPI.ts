@@ -1,12 +1,11 @@
-import AirtableSchemaTypeSuite from "app/common/airtable/AirtableAPITypes-ti";
 import {
   AirtableBaseSchema,
   AirtableFieldSchema, AirtableListBasesResponse,
   AirtableTableSchema,
 } from "app/common/airtable/AirtableAPITypes";
+import AirtableSchemaTypeSuite from "app/common/airtable/AirtableAPITypes-ti";
 
-import Airtable, { Record } from "airtable";
-import { QueryParams } from "airtable/lib/query_params";
+import Airtable, { Record, SelectOptions as QueryParams } from "airtable";
 import { CheckerT, createCheckers } from "ts-interface-checker";
 
 export interface AirtableAPIOptions {
