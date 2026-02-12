@@ -414,7 +414,7 @@ return 'done'
       }
 
       await assert.isRejected(
-        sandbox.pyCall("test_fork", 8),
+        sandbox.pyCall("test_fork", 64),
         /BlockingIOError|OSError/,
       );
     });

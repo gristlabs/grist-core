@@ -227,7 +227,27 @@ def run(sandbox):
 
   @export
   def test_fork(nb):
-    return [ os.fork() for _ in range(0, nb or 1) ]
+    """
+    Fork `nb` child processes for testing.
+    Children exit immediately with status 0 so they do not continue running the
+    sandbox main loop. The parent waits for all children and returns the list
+    of child PIDs. Only the original parent ever returns from this function.
+    """
+    count = nb or 1
+    child_pids = []
+    for _ in range(count):
+      pid = os.fork()
+      if pid == 0:
+        # Child process: exit immediately to avoid running the sandbox main loop.
+        os._exit(0)
+      else:
+        # Parent process: remember child PID so we can reap it.
+        child_pids.append(pid)
+    # Parent: wait for all children to avoid leaving zombies.
+    for pid in child_pids:
+      os.waitpid(pid, 0)
+    return child_pids
+
 
   @export
   def test_tz_data():
