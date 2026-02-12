@@ -196,12 +196,12 @@ describe("Sandbox", function() {
 
   describe("sandbox restrictions", function() {
     let sandbox: NSandbox;
-    before(async function() {
+    beforeEach(async function() {
       sandbox = createSandbox("sandboxed", {}) as NSandbox;
       await prepareFormula(sandbox);
     });
 
-    after(function() {
+    afterEach(function() {
       return sandbox.shutdown();
     });
 
