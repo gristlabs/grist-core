@@ -417,7 +417,7 @@ return 'done'
 import os
 os.fork()
 os.fork()
-os.fork()
+return str(os.fork())
 `);
       if (!result.match(/BlockingIOError/) &&
         !result.match(/OSError/)) {
