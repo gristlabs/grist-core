@@ -157,9 +157,15 @@ describe("AttachmentsWidget", function() {
         .height,
       36,
     );
+    await slider.sendKeys("a"); // Focus the slider.
+    await driver.sleep(20);
     for (let i = 0; i < 5; i++) {
       await slider.sendKeys(Key.RIGHT);
       await driver.sleep(20);
+      assert.equal(
+        (await driver.find(".test-pw-thumbnail:last-child").getRect()).height,
+        36 + i + 1,
+      );
     }
     await gu.waitForServer();
     assert.equal(

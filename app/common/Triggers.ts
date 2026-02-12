@@ -14,6 +14,7 @@ export interface WebhookFields {
   watchedColIds?: string[];
   enabled?: boolean;
   isReadyColumn?: string | null;
+  condition?: string;
   name?: string;
   memo?: string;
 }
@@ -37,6 +38,7 @@ export interface WebhookSubscribe {
   eventTypes: ("add" | "update")[];
   watchedColIds?: string[];
   enabled?: boolean;
+  condition?: string;
   isReadyColumn?: string | null;
   name?: string;
   memo?: string;
@@ -102,4 +104,15 @@ export interface WebhookUsage {
     pastHour: number;
     past24Hours: number;
   },
+}
+
+// Union type for trigger actions. Currently only WebhookAction is supported, but this is
+// designed as a discriminated union to support additional action types in the future (e.g., emails).
+export type TriggerAction = WebhookAction;
+
+export interface WebhookAction {
+  // The type field is used to discriminate between different action types.
+  // For now we have only webhook, but next types in the pipeline are emails.
+  type: "webhook";
+  id: string; // Unique id of the action, used as a key in homeDB secrets for webhooks
 }

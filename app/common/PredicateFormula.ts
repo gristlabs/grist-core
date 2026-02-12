@@ -27,8 +27,25 @@ export type ParsedPredicateFormula = [string, ...(ParsedPredicateFormula | Primi
  */
 export interface PredicateFormulaInput {
   user?: UserInfo;
+  /**
+   * Used in:
+   * - ACL formulas, depending on the action user is taking, it may represent
+   *   - new version, if user is creating a row
+   *   - old version, if user is changing the row
+   * - Dropdown conditions, where it represents the current version of the record.
+   * - Trigger conditions, where it represents the new version of the record (might be empty row for deleted rows).
+   */
   rec?: RowRecord | InfoView;
+  /**
+   * Used only in ACL formulas, represents the new version of the record when user is proposing a change
+   * to an existing row.
+   */
   newRec?: InfoView;
+  /**
+   * Used only in trigger conditions, always represents the old version of the record (might be empty row
+   * for new rows).
+   */
+  oldRec?: RowRecord | InfoView;
   docId?: string;
   choice?: string | RowRecord | InfoView;
 }
@@ -52,7 +69,7 @@ type IntermediatePredicateFormula = (input: PredicateFormulaInput) => any;
 
 export interface CompilePredicateFormulaOptions {
   /** Defaults to `'acl'`. */
-  variant?: "acl" | "dropdown-condition";
+  variant?: "acl" | "dropdown-condition" | "trigger";
 }
 
 /**
@@ -100,6 +117,10 @@ export function compilePredicateFormula(
           }
           case "dropdown-condition": {
             validNames = ["rec", "choice", "user"];
+            break;
+          }
+          case "trigger": {
+            validNames = ["rec", "oldRec"];
             break;
           }
         }
@@ -248,14 +269,14 @@ export function getPredicateFormulaProperties(
   };
 }
 
-function isRecOrNewRec(formula: ParsedPredicateFormula | PrimitiveCellValue): boolean {
+function isAnyRec(formula: ParsedPredicateFormula | PrimitiveCellValue): boolean {
   return Array.isArray(formula) &&
     formula[0] === "Name" &&
-    (formula[1] === "rec" || formula[1] === "newRec");
+    (formula[1] === "rec" || formula[1] === "newRec" || formula[1] === "oldRec");
 }
 
 function getRecColIds(formula: ParsedPredicateFormula): string[] {
-  return [...new Set(collectColIds(formula, isRecOrNewRec))];
+  return [...new Set(collectColIds(formula, isAnyRec))];
 }
 
 function isChoice(formula: ParsedPredicateFormula | PrimitiveCellValue): boolean {

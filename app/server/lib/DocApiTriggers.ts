@@ -1,7 +1,7 @@
 import { ApiError } from "app/common/ApiError";
 import { timeoutReached } from "app/common/gutil";
 import { SchemaTypes } from "app/common/schema";
-import { WebhookFields, WebHookSecret } from "app/common/Triggers";
+import { WebhookAction, WebhookFields, WebHookSecret } from "app/common/Triggers";
 import TriggersTI from "app/common/Triggers-ti";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { GristObjCode } from "app/plugin/GristData";
@@ -10,7 +10,7 @@ import { RequestWithLogin } from "app/server/lib/Authorizer";
 import { getMetaTables, handleSandboxError, validate, WithDocHandler } from "app/server/lib/DocApiUtils";
 import { docSessionFromRequest } from "app/server/lib/DocSession";
 import log from "app/server/lib/log";
-import { isUrlAllowed, WebhookAction } from "app/server/lib/Triggers";
+import { isUrlAllowed } from "app/server/lib/Triggers";
 
 import { Application, RequestHandler, Response } from "express";
 import * as _ from "lodash";
@@ -139,6 +139,7 @@ export class DocApiTriggers {
       // Validate unsubscribeKey before deleting trigger from document
       await this._dbManager.removeWebhook(webhookId, activeDoc.docName, unsubscribeKey, checkKey);
       activeDoc.webhookQueue.clearWebhookCache(webhookId);
+      activeDoc.triggers.clearCache();
 
       await handleSandboxError("_grist_Triggers", [], activeDoc.applyUserActions(
         docSessionFromRequest(req),
@@ -210,7 +211,7 @@ export class DocApiTriggers {
       }
 
       // assign other field properties
-      Object.assign(fields, _.pick(webhook, ["enabled", "memo"]));
+      Object.assign(fields, _.pick(webhook, ["enabled", "memo", "condition"]));
       if (name) {
         fields.label = name;
       }
@@ -290,6 +291,7 @@ export class DocApiTriggers {
 
         // then update document
         if (Object.keys(fields).length) {
+          activeDoc.triggers.clearCache();
           await handleSandboxError("_grist_Triggers", [], activeDoc.applyUserActions(
             docSessionFromRequest(req),
             [["UpdateRecord", "_grist_Triggers", triggerRowId, fields]]));

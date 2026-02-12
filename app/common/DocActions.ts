@@ -317,6 +317,6 @@ export function* getSingleAction(a: DataAction): Iterable<SingleDataAction | Rep
   }
 }
 
-function getRowFromBulkColValues(colValues: BulkColValues, idx: number): ColValues {
+export function getRowFromBulkColValues(colValues: BulkColValues, idx: number): ColValues {
   return Object.fromEntries(Object.entries(colValues).map(([colId, values]) => [colId, values[idx]]));
 }

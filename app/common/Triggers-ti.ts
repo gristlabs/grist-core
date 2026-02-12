@@ -20,6 +20,7 @@ export const WebhookFields = t.iface([], {
   "watchedColIds": t.opt(t.array("string")),
   "enabled": t.opt("boolean"),
   "isReadyColumn": t.opt(t.union("string", "null")),
+  "condition": t.opt("string"),
   "name": t.opt("string"),
   "memo": t.opt("string"),
 });
@@ -40,6 +41,7 @@ export const WebhookSubscribe = t.iface([], {
   "eventTypes": t.array(t.union(t.lit("add"), t.lit("update"))),
   "watchedColIds": t.opt(t.array("string")),
   "enabled": t.opt("boolean"),
+  "condition": t.opt("string"),
   "isReadyColumn": t.opt(t.union("string", "null")),
   "name": t.opt("string"),
   "memo": t.opt("string"),
@@ -104,6 +106,13 @@ export const WebhookUsage = t.iface([], {
   })),
 });
 
+export const TriggerAction = t.name("WebhookAction");
+
+export const WebhookAction = t.iface([], {
+  "type": t.lit("webhook"),
+  "id": "string",
+});
+
 const exportedTypeSuite: t.ITypeSuite = {
   WebhookSubscribeCollection,
   Webhook,
@@ -117,5 +126,7 @@ const exportedTypeSuite: t.ITypeSuite = {
   WebhookUpdate,
   WebhookPatch,
   WebhookUsage,
+  TriggerAction,
+  WebhookAction,
 };
 export default exportedTypeSuite;
