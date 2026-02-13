@@ -53,6 +53,13 @@ describe("AirtableImporter", function() {
             desiredGristId: "A basic table",
             columns: [
               {
+                originalId: "airtableId",
+                desiredGristId: "Airtable Id",
+                label: "Airtable Id",
+                type: "Text",
+                untieColIdFromLabel: true,
+              },
+              {
                 originalId: fieldNameToId("Arbitrary column name 1"),
                 desiredGristId: "Arbitrary column name 1",
                 label: "Arbitrary column name 1",
@@ -95,8 +102,8 @@ describe("AirtableImporter", function() {
         airtableSchema,
         importSchema: result.schema,
         warnings: result.warnings,
-        testField: airtableSchema.tables[0].fields[0],
-        testColumn: result.schema.tables[0].columns[0],
+        testField: airtableSchema.tables[0].fields.find(field => field.id === params.field.id)!,
+        testColumn: result.schema.tables[0].columns.find(column => column.originalId === params.field.id)!,
       };
     }
 
