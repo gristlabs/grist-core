@@ -21,7 +21,7 @@ export interface AirtableImportOptions {
 /**
  * @deprecated
  * Runs a full import from an Airtable base into a new or existing Grist doc
- * This is intended to replaced by a full UI when complete.
+ * This is intended to be replaced by a full UI when complete.
  * @param {string} apiKey - Airtable Personal Access Token
  * @param {string} baseId - ID of the Airtable base to import
  * @param options - Options to modify the import
