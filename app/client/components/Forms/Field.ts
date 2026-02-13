@@ -38,8 +38,11 @@ import {
   observable,
   Observable,
   toKo,
+  UseCB,
 } from "grainjs";
 import * as ko from "knockout";
+
+import type { ViewFieldRec } from "app/client/models/DocModel";
 
 const testId = makeTestId("test-forms-");
 
@@ -440,8 +443,7 @@ class ChoiceModel extends Question {
 
 class ChoiceListModel extends ChoiceModel {
   private _choices = Computed.create(this, (use) => {
-    // Support for 30 choices. TODO: make limit dynamic.
-    return use(this.choices).slice(0, 30);
+    return use(this.choices).slice(0, useFormOptionsLimit(use, this.field));
   });
 
   public renderInput() {
@@ -586,7 +588,7 @@ class RefListModel extends Question {
           values.reverse();
         }
       }
-      return values.slice(0, 30);
+      return values.slice(0, useFormOptionsLimit(use, this.field));
     });
   }
 
@@ -705,6 +707,10 @@ function fieldConstructor(type: string): Constructor<Question> {
     case "Attachments": return AttachmentsModel;
     default: return TextModel;
   }
+}
+
+function useFormOptionsLimit(use: UseCB, field: ko.Computed<ViewFieldRec>): number {
+  return (use(use(field).widgetOptionsJson) as FormFieldOptions).formOptionsLimit || 30;
 }
 
 /**
