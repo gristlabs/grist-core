@@ -623,8 +623,7 @@ describe("AirtableDataImporter", function() {
           schemaCrosswalk,
         });
         assert.fail("Should have thrown");
-      }
-      catch (e: any) {
+      } catch (e: any) {
         assert.equal(e.message, "Airtable API error");
       }
     });
