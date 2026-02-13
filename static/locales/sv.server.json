@@ -1,11 +1,11 @@
 {
     "sendAppPage": {
         "Loading...": "Laddar…",
-        "og-description": "Ett modernt kalkylblad i öppen källkod som går bortom tabellen",
+        "og-description": "Ett modernt öppen källkods kalkylblad som går bortom tabellen",
         "og-title": "Grist, en evolution av kalkylark"
     },
     "oidc": {
-        "emailNotVerifiedError": "Var god och verifiera din e-post hos identitets tjänsten och logga in igen."
+        "emailNotVerifiedError": "Var god och verifiera din e-post hos identitetstjänsten och logga in igen."
     },
     "access": {
         "docDisabled": "Dokumentet är inaktiverat.",
