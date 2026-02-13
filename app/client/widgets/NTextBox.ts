@@ -72,6 +72,10 @@ export class NTextBox extends NewAbstractWidget {
       this.field.widgetOptionsJson.prop("formTextLineCount"),
       "",
     );
+    const maximumLength = fieldWithDefault<number | "">(
+      this.field.widgetOptionsJson.prop("formTextMaximumLength"),
+      "",
+    );
 
     return [
       cssLabel(t("Field Format")),
@@ -97,6 +101,19 @@ export class NTextBox extends NewAbstractWidget {
               save: async val => lineCount.setAndSave((val && Math.floor(val)) ?? ""),
             },
           ),
+        ),
+      ),
+      cssLabel(t("Length constraints")),
+      cssRow(
+        cssNumericSpinner(
+          fromKo(maximumLength),
+          {
+            label: t("Maximum length"),
+            defaultValue: undefined,
+            minValue: 0,
+            save: async val => maximumLength.setAndSave((val == null ? "" : Math.floor(val))),
+          },
+          testId("tb-form-field-constraint"),
         ),
       ),
       dom.create(FormFieldRulesConfig, this.field),

@@ -322,6 +322,36 @@ describe("FormView1", function() {
       await removeForm();
     });
 
+    it("max length for single-line Text field", async function() {
+      const formUrl = await createFormWith("Text");
+      await gu.openColumnPanel();
+      await gu.waitForSidePanel();
+      const constraintInput = await driver.find(".test-tb-form-field-constraint input");
+      await constraintInput.sendKeys(5);
+      await constraintInput.sendKeys(Key.ENTER);
+      await gu.waitForServer();
+      // We are in a new window.
+      await gu.onNewTab(async () => {
+        await driver.get(formUrl);
+        // click on the label: this implictly tests if the label is correctly associated with the input
+        await driver.findWait('label[for="D"]', 2000).click();
+        await gu.sendKeys("Hello");
+        assert.equal(await driver.find('input[name="D"]').value(), "Hello");
+        assert.equal(await driver.find(".test-form-text-constraint").getText(), "(5 / 5)");
+        await driver.find(".test-form-reset").click();
+        await driver.find(".test-modal-confirm").click();
+        assert.equal(await driver.find('input[name="D"]').value(), "");
+        await driver.find('input[name="D"]').click();
+        await gu.sendKeys("Hello World");
+        await assertSubmitOnEnterIsDisabled();
+        await driver.find('button[type="submit"]').click();
+        await waitForConfirm();
+      });
+      // Make sure we see the new record.
+      await expectSingle("Hello");
+      await removeForm();
+    });
+
     it("can submit a form with multi-line Text field", async function() {
       const formUrl = await createFormWith("Text");
       await gu.openColumnPanel();
@@ -345,6 +375,36 @@ describe("FormView1", function() {
       });
       // Make sure we see the new record.
       await expectSingle("Hello,\nWorld");
+      await removeForm();
+    });
+
+    it("max length for multi-line Text field", async function() {
+      const formUrl = await createFormWith("Text");
+      await gu.openColumnPanel();
+      await gu.waitForSidePanel();
+      await driver.findContent(".test-tb-form-field-format .test-select-button", /Multi line/).click();
+      const constraintInput = await driver.find(".test-tb-form-field-constraint input");
+      await constraintInput.sendKeys(7);
+      await constraintInput.sendKeys(Key.ENTER);
+      await gu.waitForServer();
+      // We are in a new window.
+      await gu.onNewTab(async () => {
+        await driver.get(formUrl);
+        // click on the label: this implictly tests if the label is correctly associated with the textarea
+        await driver.findWait('label[for="D"]', 2000).click();
+        await gu.sendKeys("Hello");
+        assert.equal(await driver.find('textarea[name="D"]').value(), "Hello");
+        assert.equal(await driver.find(".test-form-text-constraint").getText(), "(5 / 7)");
+        await driver.find(".test-form-reset").click();
+        await driver.find(".test-modal-confirm").click();
+        assert.equal(await driver.find('textarea[name="D"]').value(), "");
+        await driver.find('textarea[name="D"]').click();
+        await gu.sendKeys("Hello,", Key.ENTER, "World");
+        await driver.find('button[type="submit"]').click();
+        await waitForConfirm();
+      });
+      // Make sure we see the new record.
+      await expectSingle("Hello,\n");
       await removeForm();
     });
 
