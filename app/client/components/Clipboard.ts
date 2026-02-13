@@ -19,7 +19,7 @@
  *      visible character (useful if component wants to interpret typing into a cell, for example).
  */
 
-import { getHumanKey, isMac } from "app/client/components/commands";
+import { allCommands, getHumanKey, isMac } from "app/client/components/commands";
 import * as commands from "app/client/components/commands";
 import { copyToClipboard, readDataFromClipboard } from "app/client/lib/clipboardUtils";
 import { FocusLayer } from "app/client/lib/FocusLayer";
@@ -101,7 +101,14 @@ export class Clipboard extends Disposable {
 
   constructor(private _app: App) {
     super();
-    this.copypasteField = dom("textarea", dom.cls("copypaste"), dom.cls("mousetrap"),
+    this.copypasteField = dom("textarea",
+      dom.cls("copypaste"),
+      dom.cls("mousetrap"),
+      dom.attr("aria-label", t(
+        "Focus is currently on the main region. Press {{nextRegionShortcut}} to navigate to other regions.",
+        { nextRegionShortcut: getHumanKey(allCommands.nextRegion.humanKeys[0], isMac) },
+      )),
+      dom.attr("aria-describedby", "clipboard-description"),
       dom.on("input", (event, elem) => {
         const value = elem.value;
         elem.value = "";
@@ -113,7 +120,16 @@ export class Clipboard extends Disposable {
       dom.on("cut", this._onCut.bind(this)),
       dom.on("paste", this._onPaste.bind(this)),
     );
+    const description = cssHiddenElement(
+      { id: "clipboard-description" },
+      t(
+        "Press {{accessibilityShortcut}} to open the accessibility modal and get help on how to navigate with a screen \
+reader.",
+        { accessibilityShortcut: getHumanKey(allCommands.accessibility.humanKeys[0], isMac) },
+      ),
+    );
     document.body.appendChild(this.copypasteField);
+    document.body.appendChild(description);
     this.onDispose(() => { dom.domDispose(this.copypasteField); this.copypasteField.remove(); });
 
     FocusLayer.create(this, {
@@ -382,4 +398,8 @@ by using the keyboard shortcut {{shortcut}}.",
 
 const cssModalContent = styled("div", `
   line-height: 18px;
+`);
+
+const cssHiddenElement = styled("span", `
+  display: none;
 `);
