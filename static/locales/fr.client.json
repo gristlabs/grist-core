@@ -588,7 +588,7 @@
         "Shortcuts": "Raccourcis",
         "Show hidden columns": "Montrer les colonnes cachées",
         "Created At": "Créé(e) le",
-        "Authorship": "Paternité",
+        "Authorship": "Créé par",
         "Last Updated By": "Dernière mise à jour par",
         "Hidden Columns": "Colonnes cachées",
         "Lookups": "Champ rapporté",
@@ -1417,7 +1417,7 @@
         "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "Un UUID est un texte généré aléatoirement qui est utile pour les identifiants uniques et les clés de jointures.",
         "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "Les formules supportent beaucoup de fonctions Excel et la syntaxe Python complète. Un assistant IA est disponible sur certaines instances.",
         "Lookups return data from related tables.": "Récupère les données d'une table liée.",
-        "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "Vous pouvez choisir parmi les widgets disponibles dans le menu déroulant, ou utilisez le votre en fournissant son URL complète.",
+        "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "Vous pouvez choisir parmi les vues disponibles dans le menu déroulant, ou utilisez le votre en fournissant son URL complète.",
         "Use reference columns to relate data in different tables.": "Utilisez les colonnes de type Référence pour lier différentes tables entre elles.",
         "Learn more": "En savoir plus",
         "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Créez des formulaires simples directement dans Grist et partagez-les en un clic avec notre nouveau widget. {{learnMoreButton}}",
@@ -1425,7 +1425,7 @@
         "These rules are applied after all column rules have been processed, if applicable.": "Ces règles sont appliquées après le traitement de toutes les règles de la colonne, le cas échéant.",
         "Example: {{example}}": "Exemple : {{example}}",
         "Filter displayed dropdown values with a condition.": "Filtrer les valeurs affichées dans la liste déroulante en fonction d'une condition.",
-        "Community widgets are created and maintained by Grist community members.": "Les widgets communautaires sont créés et maintenus par des membres de la communauté de Grist.",
+        "Community widgets are created and maintained by Grist community members.": "Les vues communautaires sont créées et maintenues par des membres de la communauté de Grist.",
         "Creates a reverse column in target table that can be edited from either end.": "Crée une colonne inversée dans la table cible qui peut être modifiée des deux côtés.",
         "This limitation occurs when one column in a two-way reference has the Reference type.": "Cette limitation se produit lorsque l'une des colonnes d'une référence bidirectionnelle est de type Référence.",
         "To allow multiple assignments, change the referenced column's type to Reference List.": "Pour permettre plusieurs assignations, modifiez le type de la colonne référencée en Référence Multiple.",
@@ -1893,7 +1893,10 @@
         "Restart Grist": "Redémarrer Grist",
         "Restart Grist to apply pending changes or resolve issues.": "Redémarrer Grist pour appliquer les changements en attente ou résoudre les problèmes.",
         "Restart Grist?": "Redémarrer Grist ?",
-        "Restarting Grist...": "Grist en cours de redémarrage..."
+        "Restarting Grist...": "Grist en cours de redémarrage...",
+        "This will apply any pending changes and briefly interrupt access for all users.": "Ceci appliquera tout changement en attente et coupera durant une courte durée l'accès pour tous les utilisateurs.",
+        "You can still restart Grist manually.": "Vous pouvez toujours redémarrer Grist manuellement.",
+        "error in {{provider}}: {{verdict}}": "erreur dans {{provider}} : {{verdict}}"
     },
     "Field": {
         "No choices configured": "Aucun choix configuré",
@@ -2034,7 +2037,7 @@
     },
     "ViewLayout": {
         "Delete": "Supprimer",
-        "Delete data and this widget.": "Supprimer les données et le composant.",
+        "Delete data and this widget.": "Supprimer les données et la vue",
         "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "Garder les données et supprimer la vue. La table restera disponible dans {{rawDataLink}}",
         "Table {{tableName}} will no longer be visible": "La table {{tableName}} ne sera plus visible",
         "Raw Data page": "la page de données source"
@@ -2051,10 +2054,10 @@
         "Custom URL": "URL personnalisée",
         "Grist Widget": "Widget Grist",
         "Last updated:": "Dernière mise à jour :",
-        "No matching widgets": "Pas de widgets correspondants",
+        "No matching widgets": "Pas de vues correspondantes",
         "Search": "Rechercher",
         "Widget URL": "URL du widget",
-        "Learn more about custom widgets": "En savoir plus sur les Widgets personnalisés",
+        "Learn more about custom widgets": "En savoir plus sur les Vues personnalisées",
         "Add Your Own Widget": "Ajouter votre propre widget"
     },
     "markdown": {
@@ -2411,7 +2414,8 @@
         "Work on a copy": "Travailler sur une copie",
         "Your suggestions": "Vos suggestions",
         "experiment": "expérimentation",
-        "original document": "document original"
+        "original document": "document original",
+        "Undo dismissal": "Annuler le rejet"
     },
     "commandList": {
         "Show accessibility options": "Montrer les options d'accessibilité",
@@ -2577,6 +2581,37 @@
     },
     "GetGristComProvider": {
         "Sign in with getgrist.com": "Se connecter avec getgrist.com",
-        "Register your Grist server": "Enregistrer votre serveur Grist"
+        "Register your Grist server": "Enregistrer votre serveur Grist",
+        "**Sign in with getgrist.com** allows users on your Grist server to sign in using their account on getgrist.com, the cloud version of Grist managed by Grist Labs.": "**Se connecter avec getgrist.com** permets aux utilisateurs de se connecter à votre instance Grist grâce à leur compte sur getgrist.com, la version cloud de Grist gérée par Grist Labs.",
+        "Cancel": "Annuler",
+        "Configure": "Configurer",
+        "Configure Sign in with getgrist.com": "Configurer Se connecter avec getgrist.com",
+        "Home URL is not set; cannot configure Sign in with getgrist.com": "L'URL d'accueil n'est pas définie, impossible de configurer Se connecter avec getgrist.com",
+        "Instructions": "Instructions",
+        "Learn more about Sign in with getgrist.com": "En savoir plus à propose de Se connecter avec getgrist.com",
+        "Paste configuration key here": "Collez votre clé de configuration ici",
+        "To set up {{provider}}, you need to register your Grist server on getgrist.com and paste the configuration key you receive below.": "Pour mettre en place {{provider}}, vous devez enregistrer votre instance Grist sur getgrist.com et coller la clé de configuration que vous avez reçue ci-dessous.",
+        "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.": "Quand il se connecteront, les utilisateurs seront redirigés sur la page de connexion de getgrist.com pour se connecter ou se créer un compte. Après s'être authentifié sur getgrist.com, ils seront redirigés sur votre instance de Grist et connecté en tant que l'utilisateur qu'ils ont authentifié."
+    },
+    "AuthenticationSection": {
+        "Active": "Active",
+        "Active method is controlled by an environment variable. Unset variable to change active method.": "La méthode active est contrôlée par une variable d'environnement. Supprimez la variable pour changer de méthode active.",
+        "Are you sure you want to set **{{name}}** as the active authentication method?": "Êtes-vous sûr de vouloir définir **{{name}}** comme la méthode d’authentification active ?",
+        "Close": "Fermer",
+        "Configure": "Configurer",
+        "Configured": "Configuré",
+        "Confirm": "Confirmer",
+        "Disabled on restart": "Désactiver au redémarrage",
+        "Error": "Erreur",
+        "Error details": "Détail d'erreur",
+        "Instructions": "Instructions",
+        "No authentication method is active.": "Aucune méthode d’authentification active.",
+        "Set as active method": "Définir comme méthode active",
+        "Set as active method?": "Définir comme une méthode active ?",
+        "The new method will go into effect after you restart Grist.": "Cette nouvelle méthode prendra effet quand vous redémarrerez Grist.",
+        "Active on restart": "Active au redémarrage"
+    },
+    "DetailView": {
+        "This row is unavailable or does not exist": "Cette ligne est indisponible ou n’existe pas"
     }
 }

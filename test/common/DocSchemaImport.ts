@@ -93,6 +93,7 @@ describe("DocSchemaImport", function() {
             {
               id: "A-1",
               ref: 1,
+              isFormula: false,
             },
           ],
         }],
@@ -183,6 +184,7 @@ describe("DocSchemaImport", function() {
             ref: 1,
             // Needs to match the label on the source column for matching to work.
             label: "Col Alpha",
+            isFormula: false,
           }],
         }],
       };
@@ -254,6 +256,7 @@ describe("DocSchemaImport", function() {
             ref: 1,
             // Label doesn't match the column schema's label - column shouldn't match.
             label: "",
+            isFormula: false,
           }],
         }],
       };

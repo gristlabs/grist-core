@@ -348,7 +348,7 @@ including summary tables and tables not included in page layouts.")),
     title: () => t("Pinning Filters"),
     content: (...args: DomElementArg[]) => cssTooltipContent(
       dom("div", t("Pinned filters are displayed as buttons above the widget.")),
-      dom("div", t("Unpin to hide the the button while keeping the filter.")),
+      dom("div", t("Unpin to hide the button while keeping the filter.")),
       dom("div", cssLink({ href: commonUrls.helpFilterButtons, target: "_blank" }, t("Learn more."))),
       ...args,
     ),

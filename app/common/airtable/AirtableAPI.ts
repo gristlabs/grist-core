@@ -1,6 +1,11 @@
-import AirtableSchemaTypeSuite from "app/common/airtable/AirtableAPI-ti";
+import {
+  AirtableBaseSchema,
+  AirtableFieldSchema, AirtableListBasesResponse,
+  AirtableTableSchema,
+} from "app/common/airtable/AirtableAPITypes";
+import AirtableSchemaTypeSuite from "app/common/airtable/AirtableAPITypes-ti";
 
-import Airtable from "airtable";
+import Airtable, { Record, SelectOptions as QueryParams } from "airtable";
 import { CheckerT, createCheckers } from "ts-interface-checker";
 
 export interface AirtableAPIOptions {
@@ -26,6 +31,10 @@ export class AirtableAPI {
     // we can still force it to request the URL we want, and re-use the library's backoff logic
     // to help with Airtable's rate limiting.
     this._metaRequester = this._airtable.base("");
+  }
+
+  public base(baseId: string) {
+    return this._airtable.base(baseId);
   }
 
   public async listBases(): Promise<AirtableListBasesResponse["bases"]> {
@@ -54,41 +63,57 @@ export class AirtableAPIError extends Error {
   }
 }
 
-export interface AirtableListBasesResponse {
-  bases: {
-    id: string,
-    name: string,
-    permissionLevel: ("none" | "read" | "comment" | "edit" | "create")[],
-  }[],
-  offset?: string,
+export interface ListAirtableRecordsResult {
+  records: Airtable.Records<any>,
+  hasMoreRecords: boolean,
+  fetchNextPage: FetchNextPageFunc
+}
+
+type FetchNextPageFunc = () => Promise<ListAirtableRecordsResult>;
+
+const fetchPageWhenNoMoreData: FetchNextPageFunc = () => Promise.resolve({
+  records: [],
+  hasMoreRecords: false,
+  fetchNextPage: fetchPageWhenNoMoreData,
+});
+
+/**
+ * Airtable's built-in record querying (base.table("MyTable").select().eachPage()) is prone
+ * to hanging indefinitely when an error is thrown from the callback, or if the callback fails to
+ * call `nextPage()` correctly.
+ *
+ * This re-implements the listRecords functionality, while keeping the error handling,
+ * rate-limiting and auth logic from the Airtable library.
+ */
+export function listRecords(
+  base: Airtable.Base, tableName: string, params: QueryParams<any>,
+): Promise<ListAirtableRecordsResult> {
+  const table = base.table(tableName);
+
+  const fetchNextPage = async (offset?: number): ReturnType<FetchNextPageFunc> => {
+    const { body } = await base.makeRequest({
+      method: "GET",
+      path: `/${encodeURIComponent(tableName)}`,
+      qs: {
+        ...params,
+        offset,
+      },
+    });
+
+    const records = body.records.map((recordJson: string) => new Record(table, "", recordJson));
+    const hasMoreRecords = body.offset !== undefined;
+
+    return {
+      records,
+      hasMoreRecords,
+      fetchNextPage: hasMoreRecords ? () => fetchNextPage(body.offset) : fetchPageWhenNoMoreData,
+    };
+  };
+
+  return fetchNextPage();
 }
 
 const checkers = createCheckers(AirtableSchemaTypeSuite);
 export const AirtableSchemaChecker = checkers.AirtableBaseSchema as CheckerT<AirtableBaseSchema>;
 export const AirtableSchemaTableChecker = checkers.AirtableSchemaTable as CheckerT<AirtableTableSchema>;
 export const AirtableSchemaFieldChecker = checkers.AirtableSchemaField as CheckerT<AirtableFieldSchema>;
-
-// Airtable schema response. Limit this to only needed fields to minimise chance of breakage.
-export interface AirtableBaseSchema {
-  tables: AirtableTableSchema[];
-}
-
-export interface AirtableTableSchema {
-  id: string;
-  name: string;
-  primaryFieldId: string;
-  fields: AirtableFieldSchema[];
-}
-
-export interface AirtableFieldSchema {
-  id: string;
-  name: string;
-  type: string;
-  options?: { [key: string]: any };
-}
-
-export interface AirtableChoiceValue {
-  id: string;
-  name: string;
-  color: string;
-}

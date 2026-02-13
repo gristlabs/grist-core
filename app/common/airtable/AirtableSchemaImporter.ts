@@ -2,7 +2,7 @@ import {
   AirtableBaseSchema, AirtableChoiceValue,
   AirtableFieldSchema,
   AirtableTableSchema,
-} from "app/common/airtable/AirtableAPI";
+} from "app/common/airtable/AirtableAPITypes";
 import {
   ColumnImportSchema,
   DocSchemaImportWarning,
@@ -23,45 +23,84 @@ import { RecalcWhen } from "app/common/gristTypes";
  * schema properly for the target document.
  */
 export function gristDocSchemaFromAirtableSchema(
-  airtableSchema: AirtableBaseSchema,
+  baseSchema: AirtableBaseSchema,
 ): { schema: ImportSchema; warnings: DocSchemaImportWarning[] } {
-  const getTableIdForField = (fieldId: string) => {
-    const tableId = airtableSchema.tables.find(table => table.fields.find(field => field.id === fieldId))?.id;
-    // Generally shouldn't happen - the schema should always have sufficient info to resolve a valid field id.
-    if (tableId === undefined) {
-      throw new Error(`Unable to resolve table id for Airtable field ${fieldId}`);
-    }
-    return tableId;
-  };
-
   const warnings: DocSchemaImportWarning[] = [];
+
   const schema: ImportSchema = {
-    tables: airtableSchema.tables.map((baseTable) => {
+    tables: baseSchema.tables.map((baseTable) => {
+      const { columns, warnings: columnWarnings } =
+        convertAirtableTableFieldsToColumnSchemas({ base: baseSchema, table: baseTable });
+
+      warnings.push(...columnWarnings);
+
       return {
         originalId: baseTable.id,
         desiredGristId: baseTable.name,
-        columns: baseTable.fields
-          .map((baseField) => {
-            if (!AirtableFieldMappers[baseField.type]) {
-              warnings.push(new UnsupportedFieldTypeWarning(baseField.type, baseField.name));
-              return undefined;
-            }
-            const mapperResult = AirtableFieldMappers[baseField.type]({
-              field: baseField,
-              table: baseTable,
-              getTableIdForField,
-            });
-            if (mapperResult.warning) {
-              warnings.push(mapperResult.warning);
-            }
-            return mapperResult.column;
-          })
-          .filter((column): column is ColumnImportSchema => column !== undefined),
+        columns: [createAirtableIdColumnSchema(), ...columns],
       };
     }),
   };
 
   return { schema, warnings };
+}
+
+function convertAirtableTableFieldsToColumnSchemas(
+  params: { base: AirtableBaseSchema, table: AirtableTableSchema },
+) {
+  const { table } = params;
+  const warnings: DocSchemaImportWarning[] = [];
+  const columns = table.fields
+    .map((field) => {
+      const result = convertAirtableFieldToColumnSchema({ field, ...params });
+
+      if (result.warning) {
+        warnings.push(result.warning);
+      }
+
+      return result.column;
+    })
+    .filter((column): column is ColumnImportSchema => column !== undefined);
+
+  return { columns, warnings };
+}
+
+function convertAirtableFieldToColumnSchema(
+  params: { base: AirtableBaseSchema, table: AirtableTableSchema, field: AirtableFieldSchema  },
+): { column?: ColumnImportSchema, warning?: DocSchemaImportWarning } {
+  const { field, table, base } = params;
+
+  if (!AirtableFieldMappers[field.type]) {
+    return {
+      column: undefined,
+      warning: new UnsupportedFieldTypeWarning(field.type, field.name),
+    };
+  }
+  return AirtableFieldMappers[field.type]({
+    field,
+    table,
+    getTableIdForField: (fieldId: string) => findTableIdForField(base, fieldId),
+  });
+}
+
+function findTableIdForField(baseSchema: AirtableBaseSchema, fieldId: string) {
+  const tableId = baseSchema.tables.find(table => table.fields.find(field => field.id === fieldId))?.id;
+  // Generally shouldn't happen - the schema should always have sufficient info to resolve a valid field id.
+  if (tableId === undefined) {
+    throw new Error(`Unable to resolve table id for Airtable field ${fieldId}`);
+  }
+  return tableId;
+}
+
+export const AirtableIdColumnLabel = "Airtable Id";
+function createAirtableIdColumnSchema(): ColumnImportSchema {
+  return {
+    originalId: "airtableId",
+    desiredGristId: "Airtable Id",
+    type: "Text",
+    label: AirtableIdColumnLabel,
+    untieColIdFromLabel: true,
+  };
 }
 
 interface AirtableFieldMapperParams {
@@ -308,6 +347,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       },
     };
   },
+  // todo - multiple lookup values
   multipleRecordLinks({ field }) {
     return {
       column: {
