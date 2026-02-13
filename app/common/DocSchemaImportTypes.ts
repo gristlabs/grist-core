@@ -18,6 +18,8 @@ export interface ExistingColumnSchema {
   ref: number;
   // Label is required for column matching to work correctly.
   label?: string;
+  // Useful to import tools to know if a column is writable.
+  isFormula: boolean;
 }
 
 export type DocSchemaSqlResult = {
@@ -26,6 +28,7 @@ export type DocSchemaSqlResult = {
   colRef: number,
   colId: string,
   colLabel: string,
+  colIsFormula: number,
 }[];
 
 const Checkers = createCheckers(typeSuite);

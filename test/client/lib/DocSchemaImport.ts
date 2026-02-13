@@ -1,4 +1,5 @@
 import { getExistingDocSchema } from "app/client/lib/DocSchemaImport";
+import { DocSchemaSqlResult } from "app/common/DocSchemaImportTypes";
 import { DocAPI } from "app/common/UserAPI";
 import clientUtil from "test/client/clientUtil";
 
@@ -10,7 +11,7 @@ describe("DocSchemaImport", function() {
 
   describe("getExistingDocSchema", () => {
     it("returns a correctly formatted document description from an SQL response", async () => {
-      const records = [
+      const records: { fields: DocSchemaSqlResult[0] }[] = [
         {
           fields: {
             tableRef: 1,
@@ -18,6 +19,7 @@ describe("DocSchemaImport", function() {
             colRef: 1,
             colId: "Col1",
             colLabel: "Column 1",
+            colIsFormula: 0,
           },
         },
         {
@@ -27,6 +29,7 @@ describe("DocSchemaImport", function() {
             colRef: 2,
             colId: "Col2",
             colLabel: "Column 2",
+            colIsFormula: 1,
           },
         },
         {
@@ -36,6 +39,7 @@ describe("DocSchemaImport", function() {
             colRef: 3,
             colId: "Col3",
             colLabel: "Column 3",
+            colIsFormula: 0,
           },
         },
       ];
@@ -54,6 +58,7 @@ describe("DocSchemaImport", function() {
       assert.deepEqual(table1.columns.map(col => col.id), ["Col1", "Col2"]);
       assert.deepEqual(table1.columns.map(col => col.ref), [1, 2]);
       assert.deepEqual(table1.columns.map(col => col.label), ["Column 1", "Column 2"]);
+      assert.deepEqual(table1.columns.map(col => col.isFormula), [false, true]);
     });
 
     it("throws on a malformed SQL response", async () => {
