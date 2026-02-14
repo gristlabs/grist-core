@@ -737,6 +737,15 @@ export class ThemeNotifier extends BaseEventSource {
       theme: convertThemeKeysToCssVars(gristThemeObs().get()),
       fromReady,
     });
+
+    const gristConfig = getGristConfig();
+    if (gristConfig.enableCustomCss && fromReady) {
+      // We tell the plugin API to load our instance's custom CSS file.
+      // That way, we don't care about where the grist-plugin-api.js file is hosted.
+      this._notify({
+        customCssUrl: new URL("custom.css", document.querySelector("base")!.href).href,
+      });
+    }
   }
 }
 
