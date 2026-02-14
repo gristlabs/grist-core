@@ -18,11 +18,11 @@
 import { UserAction } from "app/common/DocActions";
 import { arrayRepeat } from "app/common/gutil";
 import { Record as ApiRecord } from "app/plugin/DocApiTypes";
-import { addAllScenarios, TestContext } from "test/server/lib/docapi/helpers";
+import { addAllScenarios, addAttachmentsToDoc, TestContext } from "test/server/lib/docapi/helpers";
 import * as testUtils from "test/server/testUtils";
 import { readFixtureDoc } from "test/server/testUtils";
 
-import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
+import axios, { AxiosResponse } from "axios";
 import { assert } from "chai";
 import decompress from "decompress";
 import FormData from "form-data";
@@ -39,22 +39,6 @@ describe("DocApiAttachments", function() {
 function checkError(status: number, pattern: RegExp, resp: AxiosResponse) {
   assert.equal(resp.status, status);
   assert.match(resp.data.error, pattern);
-}
-
-async function addAttachmentsToDoc(
-  serverUrl: string,
-  docId: string,
-  attachments: { name: string; contents: string }[],
-  config: AxiosRequestConfig,
-) {
-  const formData = new FormData();
-  for (const attachment of attachments) {
-    formData.append("upload", attachment.contents, attachment.name);
-  }
-  const resp = await axios.post(`${serverUrl}/api/docs/${docId}/attachments`, formData,
-    defaultsDeep({ headers: formData.getHeaders() }, config));
-  assert.equal(resp.status, 200);
-  return resp;
 }
 
 function addAttachmentsTests(getCtx: () => TestContext) {

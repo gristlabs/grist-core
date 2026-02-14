@@ -17,9 +17,11 @@ import * as testUtils from "test/server/testUtils";
 import { tmpdir } from "os";
 import * as path from "path";
 
-import { AxiosRequestConfig } from "axios";
+import axios, { AxiosRequestConfig } from "axios";
+import { assert } from "chai";
 import FormData from "form-data";
 import * as fse from "fs-extra";
+import defaultsDeep from "lodash/defaultsDeep";
 import fetch from "node-fetch";
 import { createClient } from "redis";
 
@@ -312,4 +314,20 @@ export function addAllScenarios(
     addScenario("home + docworker", "separated", addTests, options.extraEnv);
     addScenario("direct to docworker", "direct", addTests, options.extraEnv);
   }
+}
+
+export async function addAttachmentsToDoc(
+  serverUrl: string,
+  docId: string,
+  attachments: { name: string; contents: string }[],
+  config: AxiosRequestConfig,
+) {
+  const formData = new FormData();
+  for (const attachment of attachments) {
+    formData.append("upload", attachment.contents, attachment.name);
+  }
+  const resp = await axios.post(`${serverUrl}/api/docs/${docId}/attachments`, formData,
+    defaultsDeep({ headers: formData.getHeaders() }, config));
+  assert.equal(resp.status, 200);
+  return resp;
 }

@@ -23,7 +23,7 @@ describe("CustomView", function() {
   });
 
   after(async function() {
-    if (serving) {
+    if (serving && !gu.noCleanup) {
       await serving.shutdown();
     }
   });
@@ -392,9 +392,7 @@ describe("CustomView", function() {
     });
   }
 
-  it("should receive friendly types when reading data from Grist", async function() {
-    // TODO The same decoding should probably apply to calls like fetchTable() which are satisfied
-    // by the server.
+  async function createTypeEncodingDocWithCustomWidget(accessLevel: "read table" | "full", widgetUrl: string) {
     const mainSession = await gu.session().teamSite.login();
     await mainSession.tempDoc(cleanup, "TypeEncoding.grist");
     await gu.toggleSidePanel("right", "open");
@@ -405,37 +403,55 @@ describe("CustomView", function() {
     // The test doc already has a Custom View widget. It just needs to
     // have a URL set.
     await gu.getSection("TYPES custom").click();
-    await gu.setCustomWidgetUrl(`${serving.url}/types`);
+    await gu.setCustomWidgetUrl(widgetUrl);
     // If we needed to change widget to Custom URL, make sure access is read table.
-    await setAccess("read table");
+    await setAccess(accessLevel);
     await gu.waitForServer();
+  }
+
+  it("should receive friendly types when reading data from Grist", async function() {
+    // TODO The same decoding should probably apply to calls like fetchTable() which are satisfied
+    // by the server.
+    await createTypeEncodingDocWithCustomWidget("read table", `${serving.url}/types`);
 
     const iframe = gu.getSection("TYPES custom").find("iframe");
     await driver.switchTo().frame(iframe);
-    await driver.findContentWait("#record", /AnyDate/, 1000000);
+    await driver.findContentWait("#record", /AnyDate/, 10_000);
     let lines = (await driver.find("#record").getText()).split("\n");
 
     // The first line has regular old values.
     assert.deepEqual(lines, [
+      "AnyAttachment: _grist_Attachments[[1]] [typeof=object] [name=ReferenceList]",
       "AnyDate: 2020-07-02 [typeof=object] [name=GristDate] [date=2020-07-02T00:00:00.000Z]",
       "AnyDateTime: 1990-08-21T17:19:40.705Z [typeof=object] [name=GristDateTime] [date=1990-08-21T17:19:40.705Z]",
       "AnyRef: Types[2] [typeof=object] [name=Reference]",
+      "AnyRefList: Types[[2,24]] [typeof=object] [name=ReferenceList]",
+      // The "Attachments" representation is poor and indistinguishable from "ReferenceList". But
+      // changing it for this API can break existing widgets.
+      "Attachments: 1 [typeof=object] [name=Array]",
       "Bool: true [typeof=boolean]",
       "Date: 2020-07-01 [typeof=object] [name=GristDate] [date=2020-07-01T00:00:00.000Z]",
       "DateTime: 2020-08-21T17:19:40.705Z [typeof=object] [name=GristDateTime] [date=2020-08-21T17:19:40.705Z]",
       "Numeric: 17.25 [typeof=number]",
       "RECORD: [object Object] [typeof=object] [name=Object]",
+      "  AnyAttachment: _grist_Attachments[[1]] [typeof=object] [name=ReferenceList]",
       "  AnyDate: 2020-07-02 [typeof=object] [name=GristDate] [date=2020-07-02T00:00:00.000Z]",
       "  AnyDateTime: 1990-08-21T17:19:40.705Z [typeof=object] [name=GristDateTime] [date=1990-08-21T17:19:40.705Z]",
       "  AnyRef: Types[2] [typeof=object] [name=Reference]",
+      "  AnyRefList: Types[[2,24]] [typeof=object] [name=ReferenceList]",
+      "  Attachments: _grist_Attachments[[1]] [typeof=object] [name=ReferenceList]",
       "  Bool: true [typeof=boolean]",
       "  Date: 2020-07-01 [typeof=object] [name=GristDate] [date=2020-07-01T00:00:00.000Z]",
       "  DateTime: 2020-08-21T17:19:40.705Z [typeof=object] [name=GristDateTime] [date=2020-08-21T17:19:40.705Z]",
       "  Numeric: 17.25 [typeof=number]",
       "  Reference: Types[2] [typeof=object] [name=Reference]",
+      "  ReferenceList: Types[[2,24]] [typeof=object] [name=ReferenceList]",
       "  Text: Hello! [typeof=string]",
       "  id: 24 [typeof=number]",
       "Reference: Types[2] [typeof=object] [name=Reference]",
+      // The "ReferenceList" representation is poor and indistinguishable from "Attachments". But
+      // changing it for this API can break existing widgets.
+      "ReferenceList: 2,24 [typeof=object] [name=Array]",
       "Text: Hello! [typeof=string]",
       "id: 24 [typeof=number]",
     ]);
@@ -450,25 +466,33 @@ describe("CustomView", function() {
     await driver.findContentWait("#record", /AnyDate: null/, 1000);
     lines = (await driver.find("#record").getText()).split("\n");
     assert.deepEqual(lines, [
+      "AnyAttachment: _grist_Attachments[[]] [typeof=object] [name=ReferenceList]",
       "AnyDate: null [typeof=object]",
       "AnyDateTime: null [typeof=object]",
       "AnyRef: Types[0] [typeof=object] [name=Reference]",
+      "AnyRefList: Types[[]] [typeof=object] [name=ReferenceList]",
+      "Attachments: null [typeof=object]",
       "Bool: false [typeof=boolean]",
       "Date: null [typeof=object]",
       "DateTime: null [typeof=object]",
       "Numeric: 0 [typeof=number]",
       "RECORD: [object Object] [typeof=object] [name=Object]",
+      "  AnyAttachment: _grist_Attachments[[]] [typeof=object] [name=ReferenceList]",
       "  AnyDate: null [typeof=object]",
       "  AnyDateTime: null [typeof=object]",
       "  AnyRef: Types[0] [typeof=object] [name=Reference]",
+      "  AnyRefList: Types[[]] [typeof=object] [name=ReferenceList]",
+      "  Attachments: _grist_Attachments[[]] [typeof=object] [name=ReferenceList]",
       "  Bool: false [typeof=boolean]",
       "  Date: null [typeof=object]",
       "  DateTime: null [typeof=object]",
       "  Numeric: 0 [typeof=number]",
       "  Reference: Types[0] [typeof=object] [name=Reference]",
+      "  ReferenceList: Types[[]] [typeof=object] [name=ReferenceList]",
       "  Text:  [typeof=string]",
       "  id: 1 [typeof=number]",
       "Reference: Types[0] [typeof=object] [name=Reference]",
+      "ReferenceList: null [typeof=object]",
       "Text:  [typeof=string]",
       "id: 1 [typeof=number]",
     ]);
@@ -484,29 +508,39 @@ describe("CustomView", function() {
     lines = (await driver.find("#record").getText()).split("\n");
 
     assert.deepEqual(lines, [
+      "AnyAttachment: #AssertionError [typeof=object] [name=RaisedException]",
       "AnyDate: #Invalid Date: Not-a-Date [typeof=object] [name=RaisedException]",
       "AnyDateTime: #Invalid DateTime: Not-a-DateTime [typeof=object] [name=RaisedException]",
       "AnyRef: #AssertionError [typeof=object] [name=RaisedException]",
+      "AnyRefList: #AssertionError [typeof=object] [name=RaisedException]",
+      "Attachments: No-Att [typeof=string]",
       "Bool: true [typeof=boolean]",
       "Date: Not-a-Date [typeof=string]",
       "DateTime: Not-a-DateTime [typeof=string]",
       "Numeric: Not-a-Number [typeof=string]",
       "RECORD: [object Object] [typeof=object] [name=Object]",
+      "  AnyAttachment: null [typeof=object]",
       "  AnyDate: null [typeof=object]",
       "  AnyDateTime: null [typeof=object]",
       "  AnyRef: null [typeof=object]",
+      "  AnyRefList: null [typeof=object]",
+      "  Attachments: No-Att [typeof=string]",
       "  Bool: true [typeof=boolean]",
       "  Date: Not-a-Date [typeof=string]",
       "  DateTime: Not-a-DateTime [typeof=string]",
       "  Numeric: Not-a-Number [typeof=string]",
       "  Reference: No-Ref [typeof=string]",
+      "  ReferenceList: No-RefList [typeof=string]",
       "  Text: Errors [typeof=string]",
       "  _error_: [object Object] [typeof=object] [name=Object]",
+      "    AnyAttachment: AssertionError:  [typeof=string]",
       "    AnyDate: InvalidTypedValue: Invalid Date: Not-a-Date [typeof=string]",
       "    AnyDateTime: InvalidTypedValue: Invalid DateTime: Not-a-DateTime [typeof=string]",
       "    AnyRef: AssertionError:  [typeof=string]",
+      "    AnyRefList: AssertionError:  [typeof=string]",
       "  id: 2 [typeof=number]",
       "Reference: No-Ref [typeof=string]",
+      "ReferenceList: No-RefList [typeof=string]",
       "Text: Errors [typeof=string]",
       "id: 2 [typeof=number]",
     ]);
@@ -515,25 +549,146 @@ describe("CustomView", function() {
     assert.equal(await driver.find("#match").getText(), "true");
   });
 
-  it("should not expand refs when expandRefs is false", async function() {
-    const mainSession = await gu.session().teamSite.login();
-    await mainSession.tempDoc(cleanup, "TypeEncoding.grist");
-    await gu.toggleSidePanel("right", "open");
-    await driver.find(".test-right-tab-pagewidget").click();
-    await gu.waitForServer();
-    await driver.find(".test-config-data").click();
+  it("should encode data in the same format as 'Any' columns with cellFormat=typed", async function() {
+    await createTypeEncodingDocWithCustomWidget("full", `${serving.url}/types-rest-api`);
 
-    // The test doc already has a Custom View widget. It just needs to
-    // have a URL set.
-    await gu.getSection("TYPES custom").click();
-    await gu.setCustomWidgetUrl(`${serving.url}/types-raw-refs`);
-    // If we needed to change widget to Custom URL, make sure access is read table.
-    await setAccess("read table");
-    await gu.waitForServer();
+    async function waitForMatchingRecordRepr(regexp: RegExp): Promise<string> {
+      const iframe = gu.getSection("TYPES custom").find("iframe");
+      return gu.doInIframe(iframe, () => driver.findContentWait("#record", regexp, 1000).getText());
+    }
+
+    let recordJson = await waitForMatchingRecordRepr(/"id": 24/);
+    let result = JSON.parse(recordJson);
+    const expectedValue1 = {
+      id: 24,
+      AnyAttachment: { tableId: "_grist_Attachments", rowIds: [1] },
+      AnyDate: "2020-07-02T00:00:00.000Z",
+      AnyDateTime: "1990-08-21T17:19:40.705Z",
+      AnyRef: { tableId: "Types", rowId: 2 },
+      AnyRefList: { tableId: "Types", rowIds: [2, 24] },
+      Attachments: { tableId: "_grist_Attachments", rowIds: [1] },
+      Bool: true,
+      Date: "2020-07-01T00:00:00.000Z",
+      DateTime: "2020-08-21T17:19:40.705Z",
+      Numeric: 17.25,
+      Reference: { tableId: "Types", rowId: 2 },
+      ReferenceList: { tableId: "Types", rowIds: [2, 24] },
+      Text: "Hello!",
+      RECORD: {
+        id: 24,
+        AnyAttachment: { tableId: "_grist_Attachments", rowIds: [1] },
+        AnyDate: "2020-07-02T00:00:00.000Z",
+        AnyDateTime: "1990-08-21T17:19:40.705Z",
+        AnyRef: { tableId: "Types", rowId: 2 },
+        AnyRefList: { tableId: "Types", rowIds: [2, 24] },
+        Attachments: { tableId: "_grist_Attachments", rowIds: [1] },
+        Bool: true,
+        Date: "2020-07-01T00:00:00.000Z",
+        DateTime: "2020-08-21T17:19:40.705Z",
+        Numeric: 17.25,
+        Reference: { tableId: "Types", rowId: 2 },
+        ReferenceList: { tableId: "Types", rowIds: [2, 24] },
+        Text: "Hello!",
+      },
+    };
+    assert.deepEqual(result.onRecordVersion, expectedValue1);
+    assert.deepEqual(result.fetchSelectedVersion, expectedValue1);
+    assert.deepEqual(result.restApiVersion, expectedValue1);
+
+    await gu.getCell({ section: "TYPES", col: 0, rowNum: 2 }).click();
+    recordJson = await waitForMatchingRecordRepr(/"id": 1/);
+    result = JSON.parse(recordJson);
+
+    const expectedValueEmpty = {
+      id: 1,
+      AnyAttachment: { tableId: "_grist_Attachments", rowIds: [] },
+      AnyDate: null,
+      AnyDateTime: null,
+      AnyRef: { tableId: "Types", rowId: 0 },
+      AnyRefList: { tableId: "Types", rowIds: [] },
+      Attachments: { tableId: "_grist_Attachments", rowIds: [] },
+      Bool: false,
+      Date: null,
+      DateTime: null,
+      Numeric: 0,
+      Reference: { tableId: "Types", rowId: 0 },
+      ReferenceList: { tableId: "Types", rowIds: [] },
+      Text: "",
+      RECORD: {
+        id: 1,
+        AnyAttachment: { tableId: "_grist_Attachments", rowIds: [] },
+        AnyDate: null,
+        AnyDateTime: null,
+        AnyRef: { tableId: "Types", rowId: 0 },
+        AnyRefList: { tableId: "Types", rowIds: [] },
+        Attachments: { tableId: "_grist_Attachments", rowIds: [] },
+        Bool: false,
+        Date: null,
+        DateTime: null,
+        Numeric: 0,
+        Reference: { tableId: "Types", rowId: 0 },
+        ReferenceList: { tableId: "Types", rowIds: [] },
+        Text: "",
+      },
+    };
+    assert.deepEqual(result.onRecordVersion, expectedValueEmpty);
+    assert.deepEqual(result.fetchSelectedVersion, expectedValueEmpty);
+    assert.deepEqual(result.restApiVersion, expectedValueEmpty);
+
+    await gu.getCell({ section: "TYPES", col: 0, rowNum: 3 }).click();
+    recordJson = await waitForMatchingRecordRepr(/"id": 2/);
+    result = JSON.parse(recordJson);
+
+    const expectedValueErrors = {
+      id: 2,
+      AnyAttachment: { name: "AssertionError" },
+      AnyDate: { name: "InvalidTypedValue", message: "Date", details: "Not-a-Date" },
+      AnyDateTime: { name: "InvalidTypedValue", message: "DateTime", details: "Not-a-DateTime" },
+      AnyRef: { name: "AssertionError" },
+      AnyRefList: { name: "AssertionError" },
+      Attachments: "No-Att",
+      Bool: true,
+      Date: "Not-a-Date",
+      DateTime: "Not-a-DateTime",
+      Numeric: "Not-a-Number",
+      Reference: "No-Ref",
+      ReferenceList: "No-RefList",
+      Text: "Errors",
+      RECORD: {
+        id: 2,
+        AnyAttachment: null,
+        AnyDate: null,
+        AnyDateTime: null,
+        AnyRef: null,
+        AnyRefList: null,
+        Attachments: "No-Att",
+        Bool: true,
+        Date: "Not-a-Date",
+        DateTime: "Not-a-DateTime",
+        Numeric: "Not-a-Number",
+        Reference: "No-Ref",
+        ReferenceList: "No-RefList",
+        Text: "Errors",
+        _error_: {
+          AnyDate: "InvalidTypedValue: Invalid Date: Not-a-Date",
+          AnyDateTime: "InvalidTypedValue: Invalid DateTime: Not-a-DateTime",
+          AnyRef: "AssertionError: ",
+          AnyAttachment: "AssertionError: ",
+          AnyRefList: "AssertionError: ",
+        },
+      },
+    };
+    assert.deepEqual(result.onRecordVersion, expectedValueErrors);
+    assert.deepEqual(result.fetchSelectedVersion, expectedValueErrors);
+    assert.deepEqual(result.restApiVersion, expectedValueErrors);
+  });
+
+  it("should not expand refs when expandRefs is false", async function() {
+    await createTypeEncodingDocWithCustomWidget("read table", `${serving.url}/types-raw-refs`);
 
     const iframe = gu.getSection("TYPES custom").find("iframe");
     await driver.switchTo().frame(iframe);
-    await driver.findContentWait("#record", /AnyDate/, 1000000);
+    await driver.findContentWait("#record", /AnyDate/, 10_000);
     let record = await driver.find("#record").getText();
 
     // The first line has regular old values.
@@ -792,15 +947,25 @@ const rowsWithoutExpandedRefs = [
     AnyDateTime: "1990-08-21T17:19:40.705Z",
     AnyRef: { tableId: "Types", rowId: 2 },
     AnyDate: "2020-07-02T00:00:00.000Z",
+    AnyAttachment: { tableId: "_grist_Attachments", rowIds: [1] },
+    AnyRefList: { tableId: "Types", rowIds: [2, 24] },
+    // The "Attachments" and "RefList" representation are poor and indistinguishable from each other. But
+    // changing it for this API can break existing widgets.
+    Attachments: [1],
+    ReferenceList: [2, 24],
     RECORD: {
       AnyDate: "2020-07-02T00:00:00.000Z",
       AnyDateTime: "1990-08-21T17:19:40.705Z",
       AnyRef: { tableId: "Types", rowId: 2 },
+      AnyAttachment: { tableId: "_grist_Attachments", rowIds: [1] },
+      AnyRefList: { tableId: "Types", rowIds: [2, 24] },
+      Attachments: { tableId: "_grist_Attachments", rowIds: [1] },
       Bool: true,
       Date: "2020-07-01T00:00:00.000Z",
       DateTime: "2020-08-21T17:19:40.705Z",
       Numeric: 17.25,
       Reference: { tableId: "Types", rowId: 2 },
+      ReferenceList: { tableId: "Types", rowIds: [2, 24] },
       Text: "Hello!",
       id: 24,
     },
@@ -816,15 +981,23 @@ const rowsWithoutExpandedRefs = [
     AnyDateTime: null,
     AnyRef: { tableId: "Types", rowId: 0 },
     AnyDate: null,
+    AnyAttachment: { tableId: "_grist_Attachments", rowIds: [] },
+    AnyRefList: { tableId: "Types", rowIds: [] },
+    Attachments: null,
+    ReferenceList: null,
     RECORD: {
       AnyDate: null,
       AnyDateTime: null,
       AnyRef: { tableId: "Types", rowId: 0 },
+      AnyAttachment: { tableId: "_grist_Attachments", rowIds: [] },
+      AnyRefList: { tableId: "Types", rowIds: [] },
+      Attachments: { tableId: "_grist_Attachments", rowIds: [] },
       Bool: false,
       Date: null,
       DateTime: null,
       Numeric: 0,
       Reference: { tableId: "Types", rowId: 0 },
+      ReferenceList: { tableId: "Types", rowIds: [] },
       Text: "",
       id: 1,
     },
@@ -844,20 +1017,30 @@ const rowsWithoutExpandedRefs = [
     },
     AnyRef: { name: "AssertionError" },
     AnyDate: { name: "InvalidTypedValue", message: "Date", details: "Not-a-Date" },
+    AnyAttachment: { name: "AssertionError" },
+    AnyRefList: { name: "AssertionError" },
+    Attachments: "No-Att",
+    ReferenceList: "No-RefList",
     RECORD: {
       AnyDate: null,
       AnyDateTime: null,
       AnyRef: null,
+      AnyAttachment: null,
+      AnyRefList: null,
+      Attachments: "No-Att",
       Bool: true,
       Date: "Not-a-Date",
       DateTime: "Not-a-DateTime",
       Numeric: "Not-a-Number",
       Reference: "No-Ref",
+      ReferenceList: "No-RefList",
       Text: "Errors",
       _error_: {
         AnyDate: "InvalidTypedValue: Invalid Date: Not-a-Date",
         AnyDateTime: "InvalidTypedValue: Invalid DateTime: Not-a-DateTime",
         AnyRef: "AssertionError: ",
+        AnyAttachment: "AssertionError: ",
+        AnyRefList: "AssertionError: ",
       },
       id: 2,
     },
