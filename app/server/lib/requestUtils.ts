@@ -1,6 +1,7 @@
 import { ApiError } from "app/common/ApiError";
 import { DEFAULT_HOME_SUBDOMAIN, isOrgInPathOnly, parseSubdomain, sanitizePathTail } from "app/common/gristUrls";
 import * as gutil from "app/common/gutil";
+import { SingleCell } from "app/common/TableData";
 import { DocScope, Scope } from "app/gen-server/lib/homedb/HomeDBManager";
 import { QueryResult } from "app/gen-server/lib/homedb/Interfaces";
 import { appSettings } from "app/server/lib/AppSettings";
@@ -465,4 +466,27 @@ export function addAbortHandler(req: Request, res: Writable, op: () => void) {
       op();
     }
   });
+}
+
+/**
+   * Attachment-related endpoints can be given some extra flags to
+   * specify a cell in which the attachment is expected to be, so user
+   * access to the attachment can be proven efficiently (otherwise we
+   * have to search for a proof).  A `maybeNew` flag can be set to
+   * specify that the attachment may be a recent upload that is not
+   * yet referenced in the document.
+   */
+export function getExtraAttachmentOptions(req: Request): {
+  cell?: SingleCell,
+  maybeNew?: boolean,
+} {
+  const tableId = optStringParam(req.query.tableId, "tableId");
+  const colId = optStringParam(req.query.colId, "colId");
+  const rowId = optIntegerParam(req.query.rowId, "rowId");
+  if ((tableId || colId || rowId) && !(tableId && colId && rowId)) {
+    throw new ApiError("define all of tableId, colId and rowId, or none.", 400);
+  }
+  const cell = (tableId && colId && rowId) ? { tableId, colId, rowId } : undefined;
+  const maybeNew = gutil.isAffirmative(req.query.maybeNew);
+  return { cell, maybeNew };
 }
