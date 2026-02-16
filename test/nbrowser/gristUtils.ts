@@ -685,15 +685,31 @@ namespace gristUtils {
   }
 
   /**
- * Type keys in the currently active cell, then hit Enter to save, and wait for the server.
- * If the last key is TAB, DELETE, or ENTER, we assume the cell is already taken out of editing
- * mode, and don't send another ENTER.
- */
+   * Display the active cell editor and type keys in it, then hit Enter to save, and wait for the server.
+   * If the last key is TAB or ENTER, we assume the cell is already taken out of editing
+   * mode, and don't send another ENTER.
+   */
   export async function enterCell(...keys: string[]) {
-    const lastKey = keys[keys.length - 1];
-    if (![Key.ENTER, Key.TAB, Key.DELETE].includes(lastKey)) {
+    const lastKey = keys.at(-1);
+    // If the caller has not requested
+    if (![Key.ENTER, Key.TAB].includes(lastKey!)) {
       keys.push(Key.ENTER);
     }
+    // Press enter to display the editor
+    await driver.sendKeys(Key.ENTER);
+    // Wait for the editor to appear
+    await driver.wait(() => driver.find(".cell_editor").isDisplayed(), 1000);
+    // Select the content (so it is cleared) and press the keys requested by the caller
+    await sendKeys(await selectAllKey(), ...keys);
+    await waitForServer();    // Wait for the value to be saved
+  }
+
+  /**
+   * Press keys on a cell and wait for the server to react.
+   * Call it with a validation (to either use only the DELETE key
+   * or entering the editors and validate with ENTER or TAB)
+   */
+  export async function pressKeysOnCell(...keys: string[]) {
     await driver.sendKeys(...keys);
     await waitForServer();    // Wait for the value to be saved
   }
@@ -770,7 +786,11 @@ namespace gristUtils {
       await getCell({ ...cell, rowNum: cell.rowNum + i }).click();
       // Enter all values, advancing with a TAB
       for (const value of rowsOfValues[i]) {
-        await enterCell(value || Key.DELETE, Key.TAB);
+        if (value) {
+          await enterCell(value, Key.TAB);
+        } else {
+          await pressKeysOnCell(Key.DELETE, Key.TAB);
+        }
       }
     }
   }

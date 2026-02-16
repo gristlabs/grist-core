@@ -54,7 +54,7 @@ describe("DropdownConditionEditor", function() {
 
     it("creates dropdown conditions", async function() {
       await gu.getCell(1, 1).click();
-      await driver.find(".test-field-dropdown-condition").click();
+      await driver.findWait(".test-field-dropdown-condition", 2000).click();
       await gu.waitAppFocus(false);
       await gu.sendKeys(await gu.selectAllKey(), Key.DELETE, "c");
       await gu.waitToPass(async () => {
