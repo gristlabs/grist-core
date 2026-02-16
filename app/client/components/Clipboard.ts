@@ -109,6 +109,10 @@ export class Clipboard extends Disposable {
         { nextRegionShortcut: getHumanKey(allCommands.nextRegion.humanKeys[0], isMac) },
       )),
       dom.attr("aria-describedby", "clipboard-description"),
+      // The aria-activedescendant attribute is very important for assistive technologies like screen readers (SRs):
+      // when focused on the copypasteField, SRs will actually announce things as if the user was focused on the
+      // element with current-cursor-cell id. This id is moved as needed when gridview, detailview, etc. cursor changes.
+      dom.attr("aria-activedescendant", "current-cursor-cell"),
       dom.on("input", (event, elem) => {
         const value = elem.value;
         elem.value = "";
