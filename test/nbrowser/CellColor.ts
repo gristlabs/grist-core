@@ -234,7 +234,7 @@ describe("CellColor", function() {
 
     // empty cell
     let cell = await gu.getCell("A", 1).find(".field_clip").doClick();
-    await gu.enterCell(Key.DELETE);
+    await gu.pressKeysOnCell(Key.DELETE);
 
     // check cell type
     cell = await gu.getCell("A", 1).find(".field_clip");
@@ -360,7 +360,7 @@ describe("CellColor", function() {
 
     // empty cell
     await gu.getCell("A", 1).click();
-    await gu.enterCell(Key.DELETE);
+    await gu.pressKeysOnCell(Key.DELETE);
 
     // open color picker
     await gu.openCellColorPicker();
