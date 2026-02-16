@@ -475,8 +475,8 @@ Variable | Purpose | Sandbox |
 -------- | ------- | ------- |
 GRIST_SANDBOX_FLAVOR | can be gvisor, pynbox, unsandboxed, docker, or macSandboxExec. If set, forces Grist to use the specified kind of sandbox. | N/A |
 GRIST_SANDBOX | a program or image name to run as the sandbox. See NSandbox.ts for nerdy details. | N/A |
-RLIMIT_NPROC | the number of extant processes the sandbox is allowed to spawn when running on Linux. Defaults to 8. | GVisor |
-RLIMIT_AS | the maximum size of the sandboxed process's virtual memory (in bytes). No limit by default. | GVisor |
+GVISOR_LIMIT_NPROC | the number of extant processes the sandbox is allowed to spawn when running on Linux. Defaults to 8. | GVisor |
+GVISOR_LIMIT_MEMORY | the maximum size of the sandboxed process's virtual memory (in bytes). No limit by default. | GVisor |
 
 #### Forward authentication variables:
 

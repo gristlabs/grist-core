@@ -126,11 +126,11 @@ settings = {
 # Prevents fork bomb
 settings['process']['rlimits'] = [{
   "type": "RLIMIT_NPROC",
-  "hard": int(os.environ.get('RLIMIT_NPROC', '8')),
-  "soft": int(os.environ.get('RLIMIT_NPROC', '8')),
+  "hard": int(os.environ.get('GVISOR_LIMIT_NPROC', '8')),
+  "soft": int(os.environ.get('GVISOR_LIMIT_NPROC', '8')),
 }]
 
-memory_limit = os.environ.get('RLIMIT_AS', os.environ.get('GVISOR_LIMIT_MEMORY'))
+memory_limit = os.environ.get('GVISOR_LIMIT_MEMORY')
 if memory_limit:
   settings['process']['rlimits'].append({
     "type": "RLIMIT_AS",
