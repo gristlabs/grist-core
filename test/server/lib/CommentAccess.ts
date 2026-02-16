@@ -39,6 +39,25 @@ describe("CommentAccess", function() {
     return docData.getMetaTable("_grist_Tables_column").findMatchingRowId({ parentId, colId });
   }
 
+  const bulkMeta = async (ids: number[]) => {
+    const data  = await owner.getTable(docId, "_grist_Cells");
+    return {
+      // Assuming that ids are generated in order, so we can just map them to arrays.
+      timeCreated: ids.map(id => data.timeCreated[id - 1]),
+      timeUpdated: ids.map(id => data.timeUpdated[id - 1]),
+      resolved: ids.map(id => data.resolved[id - 1]),
+    };
+  };
+
+  const singleMeta = async (id: number) => {
+    const bulked = await bulkMeta([id]);
+    return {
+      timeCreated: bulked.timeCreated[0],
+      timeUpdated: bulked.timeUpdated[0],
+      resolved: bulked.resolved[0],
+    };
+  };
+
   before(async function() {
     home = new TestServer(this);
     await home.start(["home", "docs"]);
@@ -493,12 +512,14 @@ describe("CommentAccess", function() {
       "UpdateRecord", "_grist_Cells", 1, {
         content: "First",
         userRef: ownerRef,
+        ...await singleMeta(1),
       },
     ]);
     deepEqual(helper.generateUpdate([1, 2]), [
       "BulkUpdateRecord", "_grist_Cells", [1, 2], {
         content: ["First", "Second"],
         userRef: [ownerRef, ownerRef],
+        ...await bulkMeta([1, 2]),
       },
     ]);
 
@@ -578,6 +599,7 @@ describe("CommentAccess", function() {
         // Data is read from docData.
         content: ["First", "Second"],
         userRef: [ownerRef, ownerRef],
+        ...await bulkMeta([1, 2]),
       }],
     ]);
 
@@ -619,6 +641,7 @@ describe("CommentAccess", function() {
       ["BulkUpdateRecord", "_grist_Cells", [1, 2, 3], {
         content: ["First", "Second", "Third"],
         userRef: [ownerRef, ownerRef, ownerRef],
+        ...await bulkMeta([1, 2, 3]),
       }],
     ]);
 
@@ -630,6 +653,7 @@ describe("CommentAccess", function() {
       ["BulkUpdateRecord", "_grist_Cells", [1, 2, 3], {
         content: ["First", "Second", "Third"],
         userRef: [ownerRef, ownerRef, ownerRef],
+        ...await bulkMeta([1, 2, 3]),
       }],
     ]);
 
@@ -653,11 +677,13 @@ describe("CommentAccess", function() {
         type: 1,
         userRef: ownerRef,
         parentId: 0,
+        ...await singleMeta(1),
       }],
       // Update is sent only for existing cells.
       ["BulkUpdateRecord", "_grist_Cells", [2, 3], {
         content: ["Second", "Third"],
         userRef: [ownerRef, ownerRef],
+        ...await bulkMeta([2, 3]),
       }],
     ]);
   });
@@ -671,9 +697,10 @@ describe("CommentAccess", function() {
     await owner.applyUserActions(docId, [
       ["UpdateRecord", "Chat", 1, { Censored: "Updated" }],
     ]);
+
     deepEqual(await cliEditor.readDocUserAction(), [
       ["UpdateRecord", "Chat", 1, { Censored: ["C"] }],
-      ["UpdateRecord", "_grist_Cells", 1, { content: "Message", userRef: ownerRef }],
+      ["UpdateRecord", "_grist_Cells", 1, { content: "Message", userRef: ownerRef, ...await singleMeta(1) }],
     ]);
     // Test if patch is created correctly when, records are updated
     // before table was renamed.
@@ -685,7 +712,7 @@ describe("CommentAccess", function() {
       ["UpdateRecord", "Chat", 1, { Censored: ["C"] }],
       ["RenameTable", "Chat", "Chat2"],
       ["UpdateRecord", "_grist_Tables", 2, { tableId: "Chat2" }],
-      ["UpdateRecord", "_grist_Cells", 1, { content: "Message", userRef: ownerRef }],
+      ["UpdateRecord", "_grist_Cells", 1, { content: "Message", userRef: ownerRef, ...await singleMeta(1) }],
     ]);
     await owner.applyUserActions(docId, [
       ["UpdateRecord", "Chat2", 1, { Censored: "Updated3" }],
@@ -730,6 +757,7 @@ describe("CommentAccess", function() {
       ["BulkUpdateRecord", "_grist_Cells", [1, 2, 3], {
         content: ["First", "Second", "Third"],
         userRef: [ownerRef, ownerRef, ownerRef],
+        ...await bulkMeta([1, 2, 3]),
       }],
     ]);
     deepEqual(await cliEditor.readDocUserAction(), [
@@ -738,6 +766,7 @@ describe("CommentAccess", function() {
       ["BulkUpdateRecord", "_grist_Cells", [1, 2, 3], {
         content: [["C"], "Second", "Third"],
         userRef: ["", ownerRef, ownerRef],
+        ...await bulkMeta([1, 2, 3]),
       }],
     ]);
 
@@ -748,6 +777,7 @@ describe("CommentAccess", function() {
       ["BulkUpdateRecord", "_grist_Cells", [1, 2, 3], {
         content: ["First", "Second", "Third"],
         userRef: [ownerRef, ownerRef, ownerRef],
+        ...await bulkMeta([1, 2, 3]),
       }],
     ]);
     deepEqual(await cliEditor.readDocUserAction(), [
@@ -756,6 +786,7 @@ describe("CommentAccess", function() {
       ["BulkUpdateRecord", "_grist_Cells", [1, 2, 3], {
         content: [["C"], "Second", ["C"]],
         userRef: ["", ownerRef, ""],
+        ...await bulkMeta([1, 2, 3]),
       }],
     ]);
   });
@@ -790,6 +821,7 @@ describe("CommentAccess", function() {
       ["UpdateRecord", "Chat2", 1, { Censored2: "test2" }],
       ["UpdateRecord", "_grist_Cells", 1, {
         content: "Secret", userRef: ownerRef,
+        ...await singleMeta(1),
       }],
     ]);
     deepEqual(await cliEditor.readDocUserAction(), [
@@ -799,7 +831,7 @@ describe("CommentAccess", function() {
       ["RenameColumn", "Chat2", "Censored", "Censored2"],
       ["UpdateRecord", "_grist_Tables_column", 8, { colId: "Censored2" }],
       ["UpdateRecord", "Chat2", 1, { Censored2: ["C"] }],
-      ["UpdateRecord", "_grist_Cells", 1, { content: ["C"], userRef: "" }],
+      ["UpdateRecord", "_grist_Cells", 1, { content: ["C"], userRef: "", ...await singleMeta(1) }],
     ]);
 
     const ChatTable = 2, Censored = 8;
@@ -824,12 +856,14 @@ describe("CommentAccess", function() {
       ["AddRecord", "_grist_Cells", 2, {
         colRef: Censored, content: "New Secret",
         userRef: ownerRef, root: true, rowId: 1, tableRef: ChatTable, type: 1, parentId: 0,
+        ...await singleMeta(2),
       }],
     ]);
     deepEqual(await cliEditor.readDocUserAction(), [
       ["AddRecord", "_grist_Cells", 2, {
         colRef: Censored, content: ["C"],
         userRef: "", root: true, rowId: 1, tableRef: ChatTable, type: 1, parentId: 0,
+        ...await singleMeta(2),
       }],
     ]);
 
@@ -1009,6 +1043,9 @@ describe("CommentAccess", function() {
         root: true,
         type: 1,
         parentId: 0,
+        timeCreated: cells.timeCreated[cells.id.length - 1],
+        timeUpdated: cells.timeUpdated[cells.id.length - 1],
+        resolved: cells.resolved[cells.id.length - 1],
       }],
     ]);
   }
