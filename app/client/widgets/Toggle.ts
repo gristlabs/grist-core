@@ -10,6 +10,7 @@ import { cssLabel, cssRow } from "app/client/ui/RightPanelStyles";
 import { buttonSelect } from "app/client/ui2018/buttonSelect";
 import { theme } from "app/client/ui2018/cssVars";
 import { toggleSwitch } from "app/client/ui2018/toggleSwitch";
+import { visuallyHidden } from "app/client/ui2018/visuallyHidden";
 import { NewAbstractWidget, Options } from "app/client/widgets/NewAbstractWidget";
 import { components } from "app/common/ThemePrefs";
 
@@ -78,6 +79,9 @@ export class ToggleCheckBox extends ToggleBase {
     const value = row.cells[this.field.colId.peek()] as KoSaveableObservable<boolean>;
     return dom("div.field_clip",
       buildCheckbox(value, this._addClickEventHandlers(row)),
+      dom.domComputed(value, trueOrFalse =>
+        visuallyHidden(trueOrFalse ? t("Checked") : t("Unchecked")),
+      ),
     );
   }
 }
@@ -100,6 +104,9 @@ export class ToggleSwitch extends ToggleBase {
         row._isRealChange,
         this._addClickEventHandlers(row),
         dom.cls("print-force-hide"),
+      ),
+      dom.domComputed(value, trueOrFalse =>
+        visuallyHidden(trueOrFalse ? t("Toggled on") : t("Toggled off")),
       ),
     );
   }
