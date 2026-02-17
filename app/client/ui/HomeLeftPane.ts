@@ -1,4 +1,5 @@
-import { loadAirtableImportUI, loadUserManager } from "app/client/lib/imports";
+import { startHomeAirtableImport } from "app/client/lib/airtable/startHomeAirtableImport";
+import { loadUserManager } from "app/client/lib/imports";
 import { makeT } from "app/client/lib/localization";
 import { getLoginOrSignupUrl } from "app/client/lib/urlUtils";
 import { urlState } from "app/client/models/gristUrlState";
@@ -216,20 +217,17 @@ function addMenu(home: HomeModel, creating: Observable<boolean>): DomElementArg[
           testId(`dm-import-plugin`),
         )),
     ])),
-    (home.app.experiments?.isEnabled("airtableImport") ?
-      menuItem(
-        async () => {
-          if (home.app.currentValidUser) {
-            (await loadAirtableImportUI()).startImport();
-          } else {
-            window.location.href = getLoginOrSignupUrl();
-          }
-        },
-        menuIcon("Import"), t("Import from Airtable"),
-        dom.cls("disabled", !home.newDocWorkspace.get()),
-        testId("dm-import-from-airtable"),
-      ) :
-      null
+    menuItem(
+      async () => {
+        if (home.app.currentValidUser) {
+          await startHomeAirtableImport(home.app);
+        } else {
+          window.location.href = getLoginOrSignupUrl();
+        }
+      },
+      menuIcon("Import"), t("Import from Airtable"),
+      dom.cls("disabled", !home.newDocWorkspace.get()),
+      testId("dm-import-from-airtable"),
     ),
     // For workspaces: if ACL says we can create them, but product says we can't,
     // then offer an upgrade link.

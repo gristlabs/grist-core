@@ -1078,6 +1078,11 @@ export function getWebinarsUrl(): string {
   return getCustomizableValue("webinarsUrl", "GRIST_WEBINARS_URL") || defaultUrl;
 }
 
+export function getMaxUploadSizeAttachmentMB(): number {
+  const value = getCustomizableValue("maxUploadSizeAttachment", "GRIST_MAX_UPLOAD_ATTACHMENT_MB");
+  return Number(value) || Infinity;
+}
+
 /**
  * Returns true if org must be encoded in path, not in domain.  Determined from
  * gristConfig on the client.  On the server, returns true if the host is

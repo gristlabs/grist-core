@@ -3,11 +3,9 @@ import {
   AirtableBaseSchemaCrosswalk,
   AirtableTableCrosswalk, GristTableId,
 } from "app/common/airtable/AirtableCrosswalk";
-import {
-  AirtableDataImportParams,
-  importDataFromAirtableBase,
-  ReferenceTracker,
-} from "app/common/airtable/AirtableDataImporter";
+import { importDataFromAirtableBase } from "app/common/airtable/AirtableDataImporter";
+import { AirtableDataImportParams } from "app/common/airtable/AirtableDataImporterTypes";
+import { ReferenceTracker } from "app/common/airtable/AirtableReferenceTracker";
 import { AirtableIdColumnLabel } from "app/common/airtable/AirtableSchemaImporter";
 import { ExistingColumnSchema } from "app/common/DocSchemaImportTypes";
 import { BulkColValues, GristObjCode } from "app/plugin/GristData";
@@ -118,6 +116,9 @@ describe("AirtableDataImporter", function() {
 
   const updateRowsMock =
     sinon.fake((tableId, rows) => Promise.resolve(rows.id)) satisfies AirtableDataImportParams["updateRows"];
+
+  const uploadAttachmentMock = sinon.fake((value: string | Blob, filename?: string) =>
+    Promise.resolve(1)) satisfies AirtableDataImportParams["uploadAttachment"];
 
   afterEach(function() {
     sinon.reset();
@@ -293,6 +294,7 @@ describe("AirtableDataImporter", function() {
         listRecords,
         addRows: addRowsMock,
         updateRows: updateRowsMock,
+        uploadAttachment: uploadAttachmentMock,
         schemaCrosswalk,
       });
 
@@ -324,6 +326,7 @@ describe("AirtableDataImporter", function() {
         listRecords,
         addRows: addRowsMock,
         updateRows: updateRowsMock,
+        uploadAttachment: uploadAttachmentMock,
         schemaCrosswalk,
       });
 
@@ -355,6 +358,7 @@ describe("AirtableDataImporter", function() {
         listRecords,
         addRows: addRowsMock,
         updateRows: updateRowsMock,
+        uploadAttachment: uploadAttachmentMock,
         schemaCrosswalk,
       });
 
@@ -399,6 +403,7 @@ describe("AirtableDataImporter", function() {
         listRecords,
         addRows: addRowsMock,
         updateRows: updateRowsMock,
+        uploadAttachment: uploadAttachmentMock,
         schemaCrosswalk,
       });
 
@@ -437,6 +442,7 @@ describe("AirtableDataImporter", function() {
         listRecords,
         addRows: addRowsMock,
         updateRows: updateRowsMock,
+        uploadAttachment: uploadAttachmentMock,
         schemaCrosswalk,
       });
 
@@ -464,6 +470,7 @@ describe("AirtableDataImporter", function() {
         listRecords,
         addRows: addRowsMock,
         updateRows: updateRowsMock,
+        uploadAttachment: uploadAttachmentMock,
         schemaCrosswalk,
       });
 
@@ -599,6 +606,7 @@ describe("AirtableDataImporter", function() {
         listRecords,
         addRows: addRowsMock,
         updateRows: updateRowsMock,
+        uploadAttachment: uploadAttachmentMock,
         schemaCrosswalk,
       });
 
@@ -620,6 +628,7 @@ describe("AirtableDataImporter", function() {
           listRecords,
           addRows: addRowsMock,
           updateRows: updateRowsMock,
+          uploadAttachment: uploadAttachmentMock,
           schemaCrosswalk,
         });
         assert.fail("Should have thrown");
@@ -644,6 +653,7 @@ describe("AirtableDataImporter", function() {
         listRecords: listEmptyResult,
         addRows: addRowsMock,
         updateRows: updateRowsMock,
+        uploadAttachment: uploadAttachmentMock,
         schemaCrosswalk,
       });
 

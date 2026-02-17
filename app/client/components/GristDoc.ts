@@ -21,10 +21,10 @@ import { RecordCardPopup } from "app/client/components/RecordCardPopup";
 import { RegionFocusSwitcher } from "app/client/components/RegionFocusSwitcher";
 import { ActionGroupWithCursorPos, UndoStack } from "app/client/components/UndoStack";
 import { ViewLayout } from "app/client/components/ViewLayout";
+import { startDocAirtableImport } from "app/client/lib/airtable/startDocAirtableImport";
 import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
 import { copyToClipboard } from "app/client/lib/clipboardUtils";
 import { DocPluginManager } from "app/client/lib/DocPluginManager";
-import { loadAirtableImportUI } from "app/client/lib/imports";
 import { ImportSourceElement } from "app/client/lib/ImportSourceElement";
 import { makeT } from "app/client/lib/localization";
 import { createSessionObs } from "app/client/lib/sessionObs";
@@ -607,23 +607,20 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
         label: importSourceElem.importSource.label,
         action: () => selectAndImport(this, importSourceElems, importSourceElem, createPreview),
       })),
-      ...(this.appModel.experiments?.isEnabled("airtableImport") ?
-        [{
-          label: t("Import from Airtable"),
-          action: async () => {
-            if (this.docPageModel.appModel.currentValidUser) {
-              (await loadAirtableImportUI()).startImport();
-            } else {
-              // Don't show the modal about unsaved changes; saving a document requires an
-              // account, and the redirect below should automatically save the document upon
-              // sign-up.
-              this.docPageModel.clearUnsavedChanges();
-              window.location.href = getLoginOrSignupUrl({ srcDocId: urlState().state.get().doc });
-            }
-          },
-        }] :
-        []
-      ),
+      {
+        label: t("Import from Airtable"),
+        action: async () => {
+          if (this.docPageModel.appModel.currentValidUser) {
+            await startDocAirtableImport(this);
+          } else {
+            // Don't show the modal about unsaved changes; saving a document requires an
+            // account, and the redirect below should automatically save the document upon
+            // sign-up.
+            this.docPageModel.clearUnsavedChanges();
+            window.location.href = getLoginOrSignupUrl({ srcDocId: urlState().state.get().doc });
+          }
+        },
+      },
     ];
 
     // Set the available import sources in the DocPageModel.

@@ -1,3 +1,9 @@
+import {
+  AirtableImportResult,
+  applyAirtableImportSchemaAndImportData,
+  ImportProgress,
+  validateAirtableSchemaImport,
+} from "app/client/lib/airtable/AirtableImporter";
 import { makeT } from "app/client/lib/localization";
 import { markdown } from "app/client/lib/markdown";
 import { reportError } from "app/client/models/errors";
@@ -6,37 +12,59 @@ import { cssWell, cssWellContent, cssWellTitle } from "app/client/ui/AdminPanelC
 import { cssCodeBlock } from "app/client/ui/CodeHighlight";
 import { textInput } from "app/client/ui/inputs";
 import { shadowScroll } from "app/client/ui/shadowScroll";
+import { hoverTooltip } from "app/client/ui/tooltips";
 import { bigBasicButton, bigPrimaryButton, textButton } from "app/client/ui2018/buttons";
 import { cssLabelText, cssRadioCheckboxOptions, radioCheckboxOption } from "app/client/ui2018/checkbox";
-import { testId, theme } from "app/client/ui2018/cssVars";
+import { isNarrowScreenObs, mediaSmall, testId, theme } from "app/client/ui2018/cssVars";
 import { cssIconButton, icon } from "app/client/ui2018/icons";
 import { cssNestedLinks } from "app/client/ui2018/links";
 import { loadingSpinner } from "app/client/ui2018/loaders";
-import { menu, menuDivider, menuIcon, menuItem, menuText } from "app/client/ui2018/menus";
-import { cssModalBody, cssModalButtons, cssModalTitle, cssModalWidth, modal } from "app/client/ui2018/modals";
+import {
+  menu,
+  menuDivider,
+  menuIcon,
+  menuItem,
+  menuSubHeader,
+  menuText,
+  selectMenu,
+  selectOption,
+} from "app/client/ui2018/menus";
+import { cssModalBody, cssModalButtons } from "app/client/ui2018/modals";
+import { AirtableAPI } from "app/common/airtable/AirtableAPI";
+import { AirtableBaseSchema } from "app/common/airtable/AirtableAPITypes";
+import { gristDocSchemaFromAirtableSchema } from "app/common/airtable/AirtableSchemaImporter";
 import { BaseAPI } from "app/common/BaseAPI";
+import { DocSchemaImportWarning, ImportSchemaTransformParams } from "app/common/DocSchemaImport";
+import { ExistingDocSchema } from "app/common/DocSchemaImportTypes";
+import { components, tokens } from "app/common/ThemePrefs";
 import { addCurrentOrgToPath } from "app/common/urlUtils";
+import { UserAPI } from "app/common/UserAPI";
+import { MaybePromise } from "app/plugin/gutil";
 
-import { Disposable, dom, DomElementArg, IDisposableOwner, Observable, styled } from "grainjs";
+import { Computed, Disposable, dom, DomElementArg, IDisposableOwner, Observable, styled } from "grainjs";
 
 const t = makeT("AirtableImport");
-
-export function startImport() {
-  return modal((ctl, owner) => {
-    const importUI = AirtableImport.create(owner);
-    return [
-      cssModalStyle.cls(""),
-      cssModalWidth("normal"),
-      cssModalTitle(t("Import from Airtable")),
-      importUI.buildDom(() => ctl.close()),
-    ];
-  });
-}
 
 interface AirtableBase {
   id: string;                    // Base ID (e.g., "appXXXXXXXXXXXXXX")
   name: string;                  // Base name
   permissionLevel: string;       // Permission level (e.g., "owner", "create", "edit", "comment", "read", "none")
+}
+
+interface AirtableToGristMapping {
+  tableId: string;
+  tableName: string;
+  destination: Observable<NewTable | ExistingTable | null>;
+}
+
+interface NewTable {
+  type: "new-table";
+  structureOnly: boolean;
+}
+
+interface ExistingTable {
+  type: "existing-table";
+  tableId: string;
 }
 
 interface TokenPayload {
@@ -45,7 +73,16 @@ interface TokenPayload {
   error?: string;
 };
 
-class AirtableImport extends Disposable {
+export interface AirtableImportOptions {
+  api: UserAPI;
+  existingDocId?: string;
+  existingDocSchema?: Computed<ExistingDocSchema>;
+  onSuccess(result: AirtableImportResult): MaybePromise<void>;
+  onError(error: unknown): void;
+  onCancel(): void;
+}
+
+export class AirtableImport extends Disposable {
   // Check for a base URL override, for use in tests.
   public static AIRTABLE_API_BASE = (window as any).testAirtableImportBaseUrlOverride ||
     "https://api.airtable.com/v0";
@@ -55,18 +92,118 @@ class AirtableImport extends Disposable {
   private _patToken = Observable.create(this, "");
   private _accessToken = Observable.create<string | null>(this, null);
   private _bases = Observable.create<AirtableBase[]>(this, []);
-  private _loading = Observable.create(this, 0);    // Positive values mean we should show a spinner.
+  private _loadingToken = Observable.create(this, false);
+  private _loadingBases = Observable.create(this, false);
+  private _base = Observable.create<AirtableBase | null>(this, null);
+  private _baseSchema = Observable.create<AirtableBaseSchema | null>(this, null);
+  private _loadingBaseSchema = Observable.create(this, false);
+  private _importing = Observable.create(this, false);
   private _error = Observable.create<string | null>(this, null);
   private _oauth2ClientsApi = new OAuth2ClientsAPI();
+  private _existingDocId = this._options.existingDocId;
+  private _existingDocSchema = this._options.existingDocSchema;
 
-  constructor() {
+  private _existingTables = Computed.create(this, (use) => {
+    const existingDocSchema = this._existingDocSchema ? use(this._existingDocSchema) : null;
+    return existingDocSchema ? existingDocSchema.tables : [];
+  });
+
+  private _existingTablesById = Computed.create(this, (use) => {
+    const existingTables = use(this._existingTables);
+    return new Map(existingTables.map(t => [t.id, t]));
+  });
+
+  private _tableMappings = Observable.create<AirtableToGristMapping[]>(this, []);
+
+  private _skipTableIds = Computed.create(this, (use) => {
+    const mappings = use(this._tableMappings);
+    return mappings.filter(m => !use(m.destination)).map(d => d.tableId);
+  });
+
+  private _mapExistingTableIds = Computed.create(this, (use) => {
+    const existingTablesById = use(this._existingTablesById);
+    const mappings = use(this._tableMappings);
+    const existingTableMappings = mappings.filter((m) => {
+      const d = use(m.destination);
+      return d?.type === "existing-table" && existingTablesById?.has(d.tableId);
+    });
+
+    return new Map(existingTableMappings.map((m) => {
+      const d = use(m.destination) as ExistingTable;
+      return [m.tableId, d.tableId];
+    }));
+  });
+
+  private _newTables = Computed.create(this, (use) => {
+    const mappings = use(this._tableMappings);
+    return mappings.filter(m => use(m.destination)?.type === "new-table");
+  });
+
+  private _structureOnlyTableIds = Computed.create(this, (use) => {
+    const newTables = use(this._newTables);
+    return newTables.filter(m => (use(m.destination) as NewTable).structureOnly).map(m => m.tableId);
+  });
+
+  private _importTablesCount = Computed.create(this, (use) => {
+    const existingTablesCount = use(this._mapExistingTableIds).size;
+    const newTablesCount = use(this._newTables).length;
+    return existingTablesCount + newTablesCount;
+  });
+
+  private _warningsByTableId = Computed.create(this, (use) => {
+    const warningsByTableId = new Map<string, DocSchemaImportWarning[]>();
+
+    const baseSchema = use(this._baseSchema);
+    if (!baseSchema) { return warningsByTableId; }
+
+    const existingDocSchema = this._existingDocSchema ? use(this._existingDocSchema) : undefined;
+
+    const skipTableIds = use(this._skipTableIds);
+    const mapExistingTableIds = use(this._mapExistingTableIds);
+    const transformations: ImportSchemaTransformParams = {
+      skipTableIds,
+      mapExistingTableIds,
+    };
+
+    const warnings = validateAirtableSchemaImport(baseSchema, existingDocSchema, transformations);
+
+    for (const warning of warnings) {
+      const tableId = warning.ref?.originalTableId;
+      if (tableId) {
+        const tableWarnings = warningsByTableId.get(tableId) || [];
+        tableWarnings.push(warning);
+        warningsByTableId.set(tableId, tableWarnings);
+      }
+    }
+
+    return warningsByTableId;
+  });
+
+  private _importProgress: Observable<ImportProgress> =  Observable.create(this, { percent: 0 });
+
+  private _api = this._options.api;
+
+  private _onSuccess = this._options.onSuccess.bind(this);
+
+  private _onError = this._options.onError.bind(this);
+
+  private _onCancel = this._options.onCancel.bind(this);
+
+  constructor(private _options: AirtableImportOptions) {
     super();
     this._checkForToken();
   }
 
-  public buildDom(close: () => void) {
-    return dom.domComputed(this._accessToken,
-      token => token ? dom.create(this._basesList.bind(this), close) : this._authDialog());
+  public buildDom() {
+    return dom.domComputed((use) => {
+      if (use(this._base)) {
+        return dom.create(this._baseTablesList.bind(this));
+      } else if (use(this._accessToken)) {
+        return dom.create(this._basesList.bind(this));
+      } else {
+        return this._authDialog();
+      }
+    });
   }
 
   // Auth Dialog Component
@@ -92,8 +229,8 @@ OAUTH_CLIENT_SECRET, or use Personal Access Token.`)),
         if (!showPAT) {
           return [
             bigPrimaryButton(
-              dom.text(use => use(this._loading) ? t("Connecting...") : t("Connect with Airtable")),
-              dom.prop("disabled", use => Boolean(!isOAuthConfigured || use(this._loading))),
+              dom.text(use => use(this._loadingToken) ? t("Connecting...") : t("Connect with Airtable")),
+              dom.prop("disabled", use => !isOAuthConfigured || use(this._loadingToken)),
               dom.on("click", this._handleOAuthLogin.bind(this)),
               testId("import-airtable-connect"),
             ),
@@ -113,13 +250,15 @@ OAUTH_CLIENT_SECRET, or use Personal Access Token.`)),
               ),
               cssHelperText(markdown(
                 t(`[Generate a token]({{airtableCreateTokens}}) in your Airtable \
-account with scopes that include at least **\`schema.bases:read\`** and **\`data.records:read\`**.`,
+account with scopes that include at least **\`schema.bases:read\`** and **\`data.records:read\`**.
+
+Your token is never sent to Grist's servers, and is only used to make API calls to Airtable from your browser.`,
                 { airtableCreateTokens: "https://airtable.com/create/tokens" }),
               )),
             ),
             bigPrimaryButton(
-              dom.text(use => use(this._loading) ? t("Connecting...") : t("Connect")),
-              dom.prop("disabled", use => Boolean(use(this._loading) || !use(this._patToken).trim())),
+              dom.text(use => use(this._loadingToken) ? t("Connecting...") : t("Connect")),
+              dom.prop("disabled", use => use(this._loadingToken) || !use(this._patToken).trim()),
               dom.on("click", this._handlePATLogin.bind(this)),
             ),
             cssTextButton(
@@ -150,7 +289,7 @@ account with scopes that include at least **\`schema.bases:read\`** and **\`data
     ]);
   }
 
-  private _basesList(owner: IDisposableOwner, closeModal: () => void) {
+  private _basesList(owner: IDisposableOwner) {
     const selected = Observable.create<string | null>(owner, null);
     return [
       cssChooseBase(t("Choose an Airtable base to import from"),
@@ -159,7 +298,7 @@ account with scopes that include at least **\`schema.bases:read\`** and **\`data
       dom.maybe(this._error, err => cssError(err)),
 
       cssScrollableContent(
-        dom.domComputed(use => [use(this._loading), use(this._bases)] as const, ([isLoading, basesList]) => [
+        dom.domComputed(use => [use(this._loadingBases), use(this._bases)] as const, ([isLoading, basesList]) => [
           (isLoading ?
             cssLoading(
               loadingSpinner(),
@@ -184,10 +323,192 @@ account with scopes that include at least **\`schema.bases:read\`** and **\`data
         testId("import-airtable-bases"),
       ),
       cssFooterButtons(
-        bigPrimaryButton(t("Continue")),
-        bigBasicButton(t("Cancel"), dom.on("click", closeModal)),
+        bigPrimaryButton(
+          t("Continue"),
+          dom.prop("disabled", use => use(this._loadingBases) || !use(selected)),
+          dom.on("click", () => this._handleSelectBase(selected.get()!)),
+        ),
+        bigBasicButton(t("Cancel"), dom.on("click", this._onCancel)),
       ),
     ];
+  }
+
+  private _baseTablesList(owner: IDisposableOwner) {
+    return [
+      cssSelectTables(
+        dom.domComputed(this._importing, importing => importing ?
+          t("Import from {{baseName}} in progress. Do not navigate away from this page.", {
+            baseName: dom("strong", this._base.get()!.name),
+          }) :
+          t("Select tables to import from {{baseName}}", {
+            baseName: dom("strong", this._base.get()!.name),
+          }),
+        ),
+      ),
+      dom.maybe(this._error, err => cssError(err)),
+
+      cssScrollableContent(
+        dom.domComputed(
+          use => [use(this._loadingBaseSchema), use(this._tableMappings), use(this._importing)] as const,
+          ([isLoadingSchema, mappings, isImporting]) => [
+            (isLoadingSchema || isImporting ?
+              cssLoading(
+                loadingSpinner(dom.hide(isImporting)),
+                cssHelperText(
+                  isImporting ?
+                    dom.text(use => use(this._importProgress).status ?? "") :
+                    t("loading your tables..."),
+                ),
+                isImporting ? cssProgressBarContainer(
+                  cssProgressBarFill(
+                    dom.style("width", use => `${use(this._importProgress).percent}%`),
+                  ),
+                ) : null,
+              ) :
+              this._tableMappingsList(mappings)
+            ),
+          ],
+        ),
+      ),
+      cssFooterButtons(
+        bigPrimaryButton(
+          dom.text((use) => {
+            const count = use(this._importTablesCount);
+            return count > 0 ? t("Import {{count}} tables", { count }) : t("Import tables");
+          }),
+          dom.prop("disabled", use =>
+            use(this._loadingBaseSchema) ||
+            use(this._importTablesCount) === 0 ||
+            use(this._importing),
+          ),
+          dom.on("click", () => this._handleImport()),
+        ),
+        bigBasicButton(t("Cancel"), dom.on("click", this._onCancel)),
+      ),
+    ];
+  }
+
+  private _tableMappingsList(mappings: AirtableToGristMapping[]) {
+    return cssMappingsGrid(
+      cssMappingsHeaderColumn(t("Source tables")),
+      cssMappingsHeaderColumn(t("Destination")),
+      cssMappingsHeaderColumn(dom.hide(isNarrowScreenObs())), // To keep grid template aligned.
+      mappings.map(m => this._tableMapping(m)),
+    );
+  }
+
+  private _tableMapping(mapping: AirtableToGristMapping) {
+    return [
+      cssTableNameColumn(
+        cssTableIconAndName(
+          cssTableIcon("TypeTable"),
+          cssTableName(mapping.tableName),
+        ),
+      ),
+      this._destinationMenu(mapping),
+      this._tableWarnings(mapping),
+    ];
+  }
+
+  private _destinationMenu(mapping: AirtableToGristMapping) {
+    return selectMenu(
+      cssDestinationIconAndName(
+        this._destinationMenuLabel(mapping),
+      ),
+      () => this._destinationMenuOptions(mapping),
+    );
+  }
+
+  private _destinationMenuLabel(mapping: AirtableToGristMapping) {
+    return dom.domComputed((use) => {
+      const destination = use(mapping.destination);
+      const existingTablesById = use(this._existingTablesById);
+
+      if (destination?.type === "existing-table" && existingTablesById.has(destination.tableId)) {
+        const { name, id } = existingTablesById.get(destination.tableId)!;
+        return [
+          cssDestinationIcon("FieldTable"),
+          cssDestinationName(name || id),
+        ];
+      } else if (destination?.type === "new-table" && !destination.structureOnly) {
+        return [
+          cssDestinationIcon("Plus"),
+          cssDestinationName(t("New table")),
+        ];
+      } else if (destination?.type === "new-table" && destination.structureOnly) {
+        return [
+          cssDestinationIcon("Plus"),
+          cssDestinationName(t("Structure only")),
+        ];
+      } else if (!destination) {
+        return [
+          cssDestinationIcon("CrossBig"),
+          cssDestinationName(t("Skip")),
+        ];
+      }
+    });
+  }
+
+  private _destinationMenuOptions(mapping: AirtableToGristMapping) {
+    return [
+      menuSubHeader(t("Choose destination")),
+      selectOption(
+        () => {
+          mapping.destination.set({ type: "new-table", structureOnly: false });
+        },
+        t("New table"),
+        "Plus",
+        cssAccentIconColor.cls(""),
+      ),
+      selectOption(
+        () => {
+          mapping.destination.set({ type: "new-table", structureOnly: true });
+        },
+        t("New table: structure only"),
+        "Plus",
+        cssAccentIconColor.cls(""),
+      ),
+      selectOption(
+        () => {
+          mapping.destination.set(null);
+        },
+        t("Skip"),
+        "CrossBig",
+        cssAccentIconColor.cls(""),
+      ),
+      dom.domComputed(this._existingTables, existingTables => existingTables && existingTables.length > 0 ? [
+        menuDivider(),
+        menuSubHeader(t("Existing tables")),
+        existingTables.map(({ id, name }) =>
+          selectOption(
+            () => {
+              mapping.destination.set({ type: "existing-table", tableId: id });
+            },
+            name || id,
+            "FieldTable",
+            cssAccentIconColor.cls(""),
+          ),
+        ),
+      ] : null),
+    ];
+  }
+
+  private _tableWarnings({ tableId }: AirtableToGristMapping) {
+    return dom.domComputed((use) => {
+      const warningsByTableId = use(this._warningsByTableId);
+      const warnings = warningsByTableId.get(tableId);
+      if (warnings && warnings.length > 0) {
+        return cssTableWarnings(
+          cssWarningIcon("Warning2"),
+          cssWarningsLabel(t("{{count}} warnings", { count: String(warnings.length) })),
+          hoverTooltip(() => cssWarningsList(
+            dom.forEach(warnings, w => dom("li", w.message)),
+          )),
+        );
+      } else {
+        return cssTableWarnings(dom.hide(isNarrowScreenObs()));
+      }
+    });
   }
 
   private _checkForToken() {
@@ -210,7 +531,7 @@ account with scopes that include at least **\`schema.bases:read\`** and **\`data
           this._error.set(String(err));
         }
       }
-    });
+    }, { loading: this._loadingToken });
   }
 
   private _handleOAuthLogin() {
@@ -261,10 +582,52 @@ account with scopes that include at least **\`schema.bases:read\`** and **\`data
     }
   }
 
-  private async _doAsyncWork(doWork: () => Promise<void>) {
-    // Use a counter for _loading, so that multiple things loading at the same time keep the
-    // spinner going. We don't try too hard for the error: later errors override earlier ones.
-    this._loading.set(this._loading.get() + 1);
+  private async _handleSelectBase(baseId: string) {
+    const base = this._bases.get().find(b => b.id === baseId)!;
+    this._base.set(base);
+    this._fetchBaseSchema();
+  }
+
+  private async _handleImport() {
+    this._voidAsyncWork(async () => {
+      try {
+        const { schema: importSchema } = gristDocSchemaFromAirtableSchema(this._baseSchema.get()!);
+        const result = await applyAirtableImportSchemaAndImportData({
+          importSchema,
+          dataSource: {
+            api: new AirtableAPI({ apiKey: this._accessToken.get()! }),
+            baseId: this._base.get()!.id,
+          },
+          userApi: this._api,
+          options: {
+            existingDocId: this._existingDocId,
+            transformations: {
+              skipTableIds: this._skipTableIds.get(),
+              mapExistingTableIds: this._mapExistingTableIds.get(),
+            },
+            structureOnlyTableIds: this._structureOnlyTableIds.get(),
+            onProgress: (progress) => {
+              if (this.isDisposed()) { return; }
+
+              this._importProgress.set(progress);
+            },
+          },
+        });
+        if (this.isDisposed()) { return; }
+        await this._onSuccess(result);
+      } catch (err) {
+        if (this.isDisposed()) { return; }
+        this._onError(err);
+      }
+    }, { loading: this._importing });
+  }
+
+  private async _doAsyncWork(
+    doWork: () => Promise<void>,
+    options: { loading?: Observable<boolean> } = {},
+  ) {
+    const { loading } = options;
+    if (loading) { loading.set(true); }
     this._error.set(null);
     try {
       await doWork();
@@ -273,14 +636,17 @@ account with scopes that include at least **\`schema.bases:read\`** and **\`data
         this._error.set(err.message);
       }
     } finally {
-      if (!this.isDisposed()) {
-        this._loading.set(this._loading.get() - 1);
+      if (!this.isDisposed() && loading) {
+        loading.set(false);
       }
     }
   }
 
-  private _voidAsyncWork(doWork: () => Promise<void>): void {
-    void this._doAsyncWork(doWork);
+  private _voidAsyncWork(
+    doWork: () => Promise<void>,
+    options: { loading?: Observable<boolean> } = {},
+  ): void {
+    void this._doAsyncWork(doWork, options);
   }
 
   private _fetchBases(token: string) {
@@ -292,7 +658,28 @@ account with scopes that include at least **\`schema.bases:read\`** and **\`data
       const data = await response.json();
       if (this.isDisposed()) { return; }
       this._bases.set(data.bases || []);
-    });
+    }, { loading: this._loadingBases });
+  }
+
+  private _fetchBaseSchema() {
+    this._voidAsyncWork(async () => {
+      const api = new AirtableAPI({ apiKey: this._accessToken.get()! });
+      try {
+        const baseSchema = await api.getBaseSchema(this._base.get()!.id);
+        if (this.isDisposed()) { return; }
+        this._baseSchema.set(baseSchema);
+        this._tableMappings.set(baseSchema.tables.map(table => ({
+          tableId: table.id,
+          tableName: table.name,
+          destination: Observable.create(this, {
+            type: "new-table" as const,
+            structureOnly: false,
+          }),
+        })));
+      } catch {
+        throw new Error(t("Failed to fetch base schema"));
+      }
+    }, { loading: this._loadingBaseSchema });
   }
 
   private _handleLogout() {
@@ -337,12 +724,6 @@ function cssError(...args: DomElementArg[]) {
 }
 
 // Styled Components
-
-const cssModalStyle = styled("div", `
-  max-height: 90vh;
-  display: flex;
-  flex-direction: column;
-`);
 
 const cssMainContent = styled(cssModalBody, `
   display: flex;
@@ -400,13 +781,26 @@ const cssScrollableContent = styled(shadowScroll, `
   margin: 0 -64px;
   padding: 16px 64px 24px 64px;
   border-bottom: 1px solid ${theme.modalBorderDark};
+
+  @media ${mediaSmall} {
+    & {
+      margin: 0 -16px;
+      padding: 16px;
+    }
+  }
 `);
 
 const cssChooseBase = styled("div", `
+  color: ${components.mediumText};
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 16px;
+  margin-bottom: 8px;
+`);
+
+const cssSelectTables = styled("div", `
+  color: ${components.mediumText};
   margin-bottom: 8px;
 `);
 
@@ -438,4 +832,119 @@ const cssBaseId = styled(cssCodeBlock, `
 
 const cssFooterButtons = styled(cssModalButtons, `
   margin: 16px 0 -16px 0;
+`);
+
+const cssMappingsGrid = styled("div", `
+  align-items: baseline;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(220px, auto) minmax(160px, auto) auto;
+
+  @media ${mediaSmall} {
+    & {
+      grid-template-columns: minmax(160px, auto) minmax(120px, auto);
+    }
+  }
+`);
+
+const cssMappingsHeaderColumn = styled("div", `
+  color: ${components.mediumText};
+  font-size: ${tokens.smallFontSize};
+  text-transform: uppercase;
+`);
+
+const cssTableNameColumn = styled("div", `
+  font-weight: bold;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`);
+
+const cssTableIconAndName = styled("div", `
+  display: flex;
+  align-items: center;
+  gap: 16px;
+`);
+
+const cssTableIcon = styled(icon, `
+  flex-shrink: 0;
+  --icon-color: ${theme.accentIcon};
+`);
+
+const cssTableName = styled("div", `
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`);
+
+const cssDestinationIconAndName = styled("div", `
+  display: flex;
+  align-items: center;
+  gap: 4px;
+`);
+
+const cssDestinationIcon = styled(icon, `
+  flex-shrink: 0;
+  --icon-color: ${theme.accentIcon};
+`);
+
+const cssDestinationName = styled("div", `
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`);
+
+const cssAccentIconColor = styled("div", `
+  --icon-color: ${theme.accentIcon};
+`);
+
+const cssTableWarnings = styled("div", `
+  align-items: center;
+  display: flex;
+  gap: 4px;
+
+  @media ${mediaSmall} {
+    & {
+      grid-column-start: 2;
+      grid-column-end: 3;
+      margin-bottom: 8px;
+    }
+  }
+`);
+
+const cssWarningIcon = styled(icon, `
+  flex-shrink: 0;
+  height: 20px;
+  width: 20px;
+  --icon-color: ${theme.iconError};
+`);
+
+const cssWarningsLabel = styled("div", `
+  cursor: default;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`);
+
+const cssWarningsList = styled("ul", `
+  margin: 0px;
+  max-width: 400px;
+  padding: 8px 16px;
+  text-align: left;
+`);
+
+const cssProgressBarContainer = styled("div", `
+  width: 100%;
+  height: 4px;
+  border-radius: 5px;
+  background: ${theme.progressBarBg};
+`);
+
+const cssProgressBarFill = styled(cssProgressBarContainer, `
+  background: ${theme.progressBarFg};
+  transition: width 0.4s linear;
+
+  &-approaching-limit {
+    background: ${theme.progressBarErrorFg};
+  }
 `);

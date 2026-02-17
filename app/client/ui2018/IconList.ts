@@ -29,8 +29,8 @@ export const IconList = [
   "FieldLink",
   "FieldMarkdown",
   "FieldNumeric",
-  "FieldReferenceDisabled",
   "FieldReference",
+  "FieldReferenceDisabled",
   "FieldSpinner",
   "FieldSwitcher",
   "FieldTable",
@@ -160,6 +160,7 @@ export const IconList = [
   "VideoPlay",
   "VideoPlay2",
   "Warning",
+  "Warning2",
   "Widget",
   "World",
   "Wrap",
@@ -173,7 +174,7 @@ export const IconList = [
   "UseOther",
   "UseProduct",
   "UseSales",
-  "UseScience",
+  "UseScience"
 ] as const;
 
 export type IconName = (typeof IconList)[number];

@@ -8,6 +8,7 @@ import {
   DocSchemaImportWarning,
   FormulaTemplate,
   ImportSchema,
+  OriginalTableRef,
 } from "app/common/DocSchemaImport";
 import { RecalcWhen } from "app/common/gristTypes";
 
@@ -73,7 +74,7 @@ function convertAirtableFieldToColumnSchema(
   if (!AirtableFieldMappers[field.type]) {
     return {
       column: undefined,
-      warning: new UnsupportedFieldTypeWarning(field.type, field.name),
+      warning: new UnsupportedFieldTypeWarning(field.type, field.name, { originalTableId: table.id }),
     };
   }
   return AirtableFieldMappers[field.type]({
@@ -141,7 +142,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
           ],
         },
       },
-      warning: new AutoNumberLimitationWarning(field.name),
+      warning: new AutoNumberLimitationWarning(field.name, { originalTableId: table.id }),
     };
   },
   checkbox({ field }) {
@@ -173,7 +174,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
         isFormula: true,
         formula,
       },
-      warning: new CountLimitationWarning(field.name),
+      warning: new CountLimitationWarning(field.name, { originalTableId: table.id }),
     };
   },
   createdBy({ field }) {
@@ -247,7 +248,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       },
     };
   },
-  duration({ field }) {
+  duration({ field, table }) {
     return {
       column: {
         originalId: field.id,
@@ -255,7 +256,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
         label: field.name,
         type: "Numeric",
       },
-      warning: new DurationFormatWarning(field.name),
+      warning: new DurationFormatWarning(field.name, { originalTableId: table.id }),
     };
   },
   email({ field }) {
@@ -486,7 +487,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
         isFormula: true,
         formula,
       },
-      warning: new RollupLimitationWarning(field.name),
+      warning: new RollupLimitationWarning(field.name, { originalTableId: table.id }),
     };
   },
   singleCollaborator({ field }) {
@@ -545,7 +546,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
 class UnsupportedFieldTypeWarning implements DocSchemaImportWarning {
   public readonly message: string;
 
-  constructor(fieldType: string, fieldName: string) {
+  constructor(fieldType: string, fieldName: string, public readonly ref: OriginalTableRef) {
     this.message = `Field "${fieldName}" has unsupported type "${fieldType}" and will be skipped`;
   }
 }
@@ -553,7 +554,7 @@ class UnsupportedFieldTypeWarning implements DocSchemaImportWarning {
 class AutoNumberLimitationWarning implements DocSchemaImportWarning {
   public readonly message: string;
 
-  constructor(fieldName: string) {
+  constructor(fieldName: string, public readonly ref: OriginalTableRef) {
     this.message = `AutoNumber field "${fieldName}" behaviour will not be identical to Airtable's. Values may be re-used if rows are edited or deleted.`;
   }
 }
@@ -561,7 +562,7 @@ class AutoNumberLimitationWarning implements DocSchemaImportWarning {
 class DurationFormatWarning implements DocSchemaImportWarning {
   public readonly message: string;
 
-  constructor(fieldName: string) {
+  constructor(fieldName: string, public readonly ref: OriginalTableRef) {
     this.message = `Duration field "${fieldName}" will be imported as a numeric duration in seconds. Duration formatting is not yet supported.`;
   }
 }
@@ -569,7 +570,7 @@ class DurationFormatWarning implements DocSchemaImportWarning {
 class RollupLimitationWarning implements DocSchemaImportWarning {
   public readonly message: string;
 
-  constructor(fieldName: string) {
+  constructor(fieldName: string, public readonly ref: OriginalTableRef) {
     this.message = `Rollup field "${fieldName}" may not match Airtable. Summary parameters and filter conditions are not supported.`;
   }
 }
@@ -577,7 +578,7 @@ class RollupLimitationWarning implements DocSchemaImportWarning {
 class CountLimitationWarning implements DocSchemaImportWarning {
   public readonly message: string;
 
-  constructor(fieldName: string) {
+  constructor(fieldName: string, public readonly ref: OriginalTableRef) {
     this.message = `Count field "${fieldName}" may not match Airtable. Filter conditions are not supported.`;
   }
 }

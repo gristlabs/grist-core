@@ -33,6 +33,7 @@ describe("AirtableImport", function() {
     const port = (testHelperServer.address() as AddressInfo).port;
     testHelperServerUrl = `http://localhost:${port}`;
     oldEnv = new testUtils.EnvironmentSnapshot();
+    process.env.GRIST_TEST_LOGIN = "1";
     process.env.OAUTH2_GRIST_HOST = server.getHost();
     process.env.OAUTH2_AIRTABLE_CLIENT_ID = "test-client";
     process.env.OAUTH2_AIRTABLE_CLIENT_SECRET = "test-secret";
@@ -175,7 +176,6 @@ describe("AirtableImport", function() {
     });
 
     it("should redirect to sign-in page", async function() {
-      await driver.executeScript(() => { (window as any).setExperimentState("airtableImport", true); });
       await gu.refreshDismiss({ ignore: true });
       await driver.findWait(".test-dp-add-new", 2000).click();
       await driver.findContentWait(".test-dp-import-option", /Import from Airtable/i, 500).click();
@@ -198,8 +198,6 @@ describe("AirtableImport", function() {
 
     it("should go through oauth2 flow and fetch bases", async function() {
       await mainSession.loadDoc(`/doc/${docId}`);
-      await driver.executeScript(() => { (window as any).setExperimentState("airtableImport", true); });
-      await gu.reloadDoc();
 
       await openAirtableDocImporter();
 
@@ -231,8 +229,6 @@ describe("AirtableImport", function() {
     it("should associate access_token with a user", async function() {
       otherSession = await gu.session().personalSite.user("user2").addLogin();
       otherDocId = await otherSession.tempNewDoc(cleanup, "AirtableImport2");
-      await driver.executeScript(() => { (window as any).setExperimentState("airtableImport", true); });
-      await gu.reloadDoc();
 
       await openAirtableDocImporter();
 
@@ -289,7 +285,7 @@ describe("AirtableImport", function() {
       await gu.waitToPass(async () => {
         assert.equal(await driver.find(".test-import-airtable-error").isPresent(), false);
       });
-      
+
       await driver.findContentWait(".test-modal-dialog button", /Cancel/, 500).click();
       await waitForModalToClose();
     });
