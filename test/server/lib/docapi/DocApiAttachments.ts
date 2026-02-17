@@ -18,7 +18,7 @@
 import { UserAction } from "app/common/DocActions";
 import { arrayRepeat } from "app/common/gutil";
 import { Record as ApiRecord } from "app/plugin/DocApiTypes";
-import { addAllScenarios, TestContext } from "test/server/lib/docapi/scenarios";
+import { addAllScenarios, TestContext } from "test/server/lib/docapi/helpers";
 import * as testUtils from "test/server/testUtils";
 import { readFixtureDoc } from "test/server/testUtils";
 

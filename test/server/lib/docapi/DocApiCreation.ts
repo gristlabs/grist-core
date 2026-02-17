@@ -10,15 +10,13 @@
  * - Direct to docworker (requires Redis)
  */
 
-import { addAllScenarios, TestContext } from "test/server/lib/docapi/scenarios";
+import { addAllScenarios, ORG_NAME, TestContext } from "test/server/lib/docapi/helpers";
 import * as testUtils from "test/server/testUtils";
 
 import axios from "axios";
 import { assert } from "chai";
 import FormData from "form-data";
 import defaultsDeep from "lodash/defaultsDeep";
-
-const ORG_NAME = "docs-1";
 
 describe("DocApiCreation", function() {
   this.timeout(30000);

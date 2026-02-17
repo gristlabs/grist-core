@@ -10,7 +10,7 @@
 import { BulkColValues, CellValue } from "app/common/DocActions";
 import { AddOrUpdateRecord } from "app/plugin/DocApiTypes";
 import { GristObjCode } from "app/plugin/GristData";
-import { addAllScenarios, TestContext } from "test/server/lib/docapi/scenarios";
+import { addAllScenarios, TestContext } from "test/server/lib/docapi/helpers";
 import * as testUtils from "test/server/testUtils";
 
 import axios, { AxiosResponse } from "axios";

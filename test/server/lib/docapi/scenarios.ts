@@ -75,7 +75,8 @@ const docIds: { [name: string]: string } = {
 };
 
 // Org name from the seeded database
-const ORG_NAME = "docs-1";
+import { ORG_NAME } from "test/server/lib/docapi/helpers";
+export { ORG_NAME };
 
 /**
  * Flush Redis database if Redis is in use.
@@ -297,11 +298,6 @@ export function addAllScenarios(
   before(async function() {
     await globalSetup(testSuiteName);
   });
-
-  // Note: We intentionally don't restore oldEnv in after() because
-  // when multiple test files share the same globalSetupDone flag,
-  // the first file's after() would clear the database path before
-  // subsequent files run. The test process exits anyway.
 
   addScenario("merged server", "merged", addTests, options.extraEnv);
 

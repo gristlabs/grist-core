@@ -11,6 +11,7 @@
 import { UserAPIImpl } from "app/common/UserAPI";
 import { getAvailablePort } from "app/server/lib/serverUtils";
 import { configForUser } from "test/gen-server/testUtils";
+import { ORG_NAME } from "test/server/lib/docapi/helpers";
 import { prepareDatabase } from "test/server/lib/helpers/PrepareDatabase";
 import { prepareFilesystemDirectoryForTests } from "test/server/lib/helpers/PrepareFilesystemDirectoryForTests";
 import { TestServer, TestServerReverseProxy } from "test/server/lib/helpers/TestServer";
@@ -24,8 +25,6 @@ import { assert } from "chai";
 import FormData from "form-data";
 import fetch from "node-fetch";
 import { createClient } from "redis";
-
-const ORG_NAME = "docs";
 
 // A testDir of the form grist_test_{USER}_{SERVER_NAME}
 const username = process.env.USER || "nobody";

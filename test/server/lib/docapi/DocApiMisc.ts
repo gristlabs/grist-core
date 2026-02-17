@@ -12,7 +12,7 @@
  */
 
 import { SHARE_KEY_PREFIX } from "app/common/gristUrls";
-import { addAllScenarios, TestContext } from "test/server/lib/docapi/scenarios";
+import { addAllScenarios, TestContext } from "test/server/lib/docapi/helpers";
 import * as testUtils from "test/server/testUtils";
 import { getDatabase } from "test/testUtils";
 

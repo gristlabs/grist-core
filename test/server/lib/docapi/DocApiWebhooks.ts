@@ -28,7 +28,7 @@ import { delayAbort } from "app/server/lib/serverUtils";
 import { testDailyApiLimitFeatures } from "test/gen-server/seed";
 import { configForUser } from "test/gen-server/testUtils";
 import { serveSomething, Serving } from "test/server/customUtil";
-import { addAllScenarios, TestContext } from "test/server/lib/docapi/scenarios";
+import { addAllScenarios, TestContext } from "test/server/lib/docapi/helpers";
 import { signal } from "test/server/lib/helpers/Signal";
 import * as testUtils from "test/server/testUtils";
 import { waitForIt } from "test/server/wait";

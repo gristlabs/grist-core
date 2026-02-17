@@ -19,7 +19,7 @@ import { ActionSummary } from "app/common/ActionSummary";
 import { DocState } from "app/common/DocState";
 import { UserAPI, UserAPIImpl } from "app/common/UserAPI";
 import { configForUser } from "test/gen-server/testUtils";
-import { addAllScenarios, TestContext } from "test/server/lib/docapi/scenarios";
+import { addAllScenarios, ORG_NAME, TestContext } from "test/server/lib/docapi/helpers";
 import * as testUtils from "test/server/testUtils";
 
 import axios from "axios";
@@ -27,8 +27,6 @@ import { assert } from "chai";
 import FormData from "form-data";
 import range from "lodash/range";
 import fetch from "node-fetch";
-
-const ORG_NAME = "docs-1";
 
 describe("DocApiDocuments", function() {
   this.timeout(30000);

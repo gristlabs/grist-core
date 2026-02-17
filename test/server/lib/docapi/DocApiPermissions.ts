@@ -8,7 +8,7 @@
  */
 
 import { UserAPIImpl } from "app/common/UserAPI";
-import { addAllScenarios, TestContext } from "test/server/lib/docapi/scenarios";
+import { addAllScenarios, TestContext } from "test/server/lib/docapi/helpers";
 import * as testUtils from "test/server/testUtils";
 
 import { assert } from "chai";

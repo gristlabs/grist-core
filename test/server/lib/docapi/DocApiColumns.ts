@@ -7,7 +7,7 @@
  * - Direct to docworker (requires Redis)
  */
 
-import { addAllScenarios, TestContext } from "test/server/lib/docapi/scenarios";
+import { addAllScenarios, TestContext } from "test/server/lib/docapi/helpers";
 import * as testUtils from "test/server/testUtils";
 
 import axios from "axios";
