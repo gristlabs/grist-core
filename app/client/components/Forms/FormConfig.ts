@@ -117,12 +117,11 @@ export class FormOptionsLimitConfig extends Disposable {
     );
 
     return [
-      cssLabel(t("Options Limit")),
+      cssLabel(t("Options limit")),
       cssRow(
         cssNumericSpinner(
           fromKo(optionsLimit),
           {
-            label: t("Options Limit"),
             defaultValue: 30,
             minValue: 1,
             maxValue: 1000,
