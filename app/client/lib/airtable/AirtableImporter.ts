@@ -52,7 +52,7 @@ export async function applyAirtableImportSchemaAndImportData(params: {
 
   const baseSchema = await api.getBaseSchema(baseId);
 
-  if (!existingDocId) { onProgress?.({percent: 10, status: t("Creating a new Grist document...") }); }
+  if (!existingDocId) { onProgress?.({ percent: 10, status: t("Creating a new Grist document...") }); }
 
   const docId = existingDocId ?? await createDoc(userApi, options.newDocName ?? baseId);
   const docApi = userApi.getDocAPI(docId);
