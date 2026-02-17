@@ -23,12 +23,7 @@ interface AttachmentsForRecord {
 }
 
 export class AttachmentTracker {
-  private _rowIdLookup = new Map<string, number>();
   private _tableAttachmentTrackers = new Map<string, TableAttachmentTracker>();
-
-  public addRecordIdMapping(originalRecordId: string, gristRecordId: number) {
-    this._rowIdLookup.set(originalRecordId, gristRecordId);
-  }
 
   public addTable(gristTableId: string, columnIdsToUpdate: string[]) {
     const tableTracker = new TableAttachmentTracker(gristTableId, columnIdsToUpdate);
@@ -88,6 +83,11 @@ class TableAttachmentTracker {
         }
       }
 
+      // TODO: Use a pipeline instead of batching uploads. Batches are only as fast as the slowest
+      // item, and a particularly large attachment could hold up starting a new batch.
+      // Also consider switching to allSettled and reporting any warnings/errors to the client.
+      // Note that all errors are currently handled by _uploadAttachment, so this call shouldn't
+      // throw.
       await Promise.all(uploads);
 
       for (const colId of this._columnIds) {

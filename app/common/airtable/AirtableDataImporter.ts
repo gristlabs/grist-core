@@ -103,7 +103,6 @@ export async function importDataFromAirtableBase(
               gristRecordId: gristRowIds[index],
               refsByColumnId: refsByColumnIdForRecords[index],
             });
-            attachmentTracker.addRecordIdMapping(airtableRecordId, gristRowIds[index]);
             tableAttachmentTracker.addRecord({
               gristRecordId: gristRowIds[index],
               attachmentsByColumnId: attachmentsByColumnIdForRecords[index],

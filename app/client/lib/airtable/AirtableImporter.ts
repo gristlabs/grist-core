@@ -143,7 +143,7 @@ export function validateAirtableSchemaImport(
   const warnings: DocSchemaImportWarning[] = [];
 
   const { schema: importSchema, warnings: airtableWarnings } = gristDocSchemaFromAirtableSchema(baseSchema);
-  warnings.push(...airtableWarnings, ...validateImportSchema(importSchema));
+  warnings.push(...airtableWarnings);
 
   const transformedSchema = transformImportSchema(importSchema, transformations ?? {}, existingDocSchema);
   warnings.push(...transformedSchema.warnings, ...validateImportSchema(transformedSchema.schema));
