@@ -69,8 +69,8 @@ export class SimpleInstallAdmin extends InstallAdmin {
   }
 
   public override async isAdminUser(user: User): Promise<boolean> {
-    if (!user.loginEmail) { return false; }
-    return normalizeEmail(user.loginEmail) === normalizeEmail(this._adminEmail) && this._adminEmail !== "";
+    if (!user.loginEmail || !this._adminEmail) { return false; }
+    return normalizeEmail(user.loginEmail) === normalizeEmail(this._adminEmail);
   }
 
   public override clearCaches(): void {
