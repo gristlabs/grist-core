@@ -378,9 +378,9 @@ Your token is never sent to Grist's servers, and is only used to make API calls 
           }),
           dom.prop("disabled", use =>
             use(this._loadingBaseSchema) ||
-            use(this._importTablesCount) === 0 ||
-            use(this._importing),
+            use(this._importTablesCount) === 0,
           ),
+          dom.hide(this._importing),
           dom.on("click", () => this._handleImport()),
         ),
         bigBasicButton(t("Cancel"), dom.on("click", this._onCancel)),
