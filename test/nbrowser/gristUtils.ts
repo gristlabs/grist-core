@@ -1797,6 +1797,9 @@ namespace gristUtils {
     }
     await driver.find(".test-widget-title-save").click();
     await waitForServer();
+    if (newName) {
+      await driver.findContentWait(".test-raw-data-table-id", newName, 2000);
+    }
   }
 
   export async function isRawTableOpened() {
@@ -3467,7 +3470,7 @@ namespace gristUtils {
  * Confirms that anchor link was used for navigation.
  */
   export async function waitForAnchor() {
-    await waitForDocToLoad();
+    await waitForDocToLoad(5_000);
     await driver.wait(async () => (await getTestState()).anchorApplied, 2000);
   }
 
