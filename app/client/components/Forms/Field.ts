@@ -15,6 +15,7 @@ import {
   FormSelectFormat,
   FormTextFormat,
   FormToggleFormat,
+  getFormOptionsLimit,
 } from "app/client/ui/FormAPI";
 import { autoGrow } from "app/client/ui/forms";
 import { cssCheckboxSquare, cssLabel, squareCheckbox } from "app/client/ui2018/checkbox";
@@ -710,7 +711,7 @@ function fieldConstructor(type: string): Constructor<Question> {
 }
 
 function useFormOptionsLimit(use: UseCB, field: ko.Computed<ViewFieldRec>): number {
-  return (use(use(field).widgetOptionsJson) as FormFieldOptions).formOptionsLimit || 30;
+  return getFormOptionsLimit(use(use(field).widgetOptionsJson) as FormFieldOptions);
 }
 
 /**

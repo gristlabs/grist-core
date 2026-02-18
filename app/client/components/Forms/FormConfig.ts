@@ -3,6 +3,7 @@ import { makeT } from "app/client/lib/localization";
 import { ViewFieldRec } from "app/client/models/DocModel";
 import { fieldWithDefault, SaveableObjObservable } from "app/client/models/modelUtil";
 import { FormFieldOptions, FormOptionsAlignment, FormOptionsSortOrder, FormSelectFormat } from "app/client/ui/FormAPI";
+import { FORM_OPTIONS_DEFAULT_LIMIT } from "app/client/ui/FormAPI";
 import {
   cssLabel,
   cssNumericSpinner,
@@ -122,7 +123,7 @@ export class FormOptionsLimitConfig extends Disposable {
         cssNumericSpinner(
           fromKo(optionsLimit),
           {
-            defaultValue: 30,
+            defaultValue: FORM_OPTIONS_DEFAULT_LIMIT,
             minValue: 1,
             maxValue: 1000,
             save: async val => optionsLimitProp.setAndSave(val ? Math.floor(val) : undefined),

@@ -2,7 +2,7 @@ import * as css from "app/client/components/FormRendererCss";
 import { bindMarkdown } from "app/client/components/Forms/styles";
 import { getBrowserGlobals } from "app/client/lib/browserGlobals";
 import { makeT } from "app/client/lib/localization";
-import { FormField } from "app/client/ui/FormAPI";
+import { FormField, getFormOptionsLimit } from "app/client/ui/FormAPI";
 import { dropdownWithSearch } from "app/client/ui/searchDropdown";
 import { isXSmallScreenObs } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
@@ -666,7 +666,7 @@ class ChoiceListRenderer extends BaseFieldRenderer  {
           choices.reverse();
         }
       }
-      choices = choices.slice(0, this.field.options.formOptionsLimit || 30);
+      choices = choices.slice(0, getFormOptionsLimit(this.field.options));
     }
 
     const initialValues = new Set(this.getInitialValueList());
@@ -737,7 +737,7 @@ class RefListRenderer extends BaseFieldRenderer {
         references.reverse();
       }
     }
-    references.splice(this.field.options.formOptionsLimit || 30);
+    references.splice(getFormOptionsLimit(this.field.options));
     const initialValues = new Set(this.getInitialValueList());
     this.checkboxes.set(references.map(reference => ({
       label: String(reference[1]),

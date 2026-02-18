@@ -97,6 +97,12 @@ export type FormOptionsAlignment = "vertical" | "horizontal";
 
 export type FormOptionsSortOrder = "default" | "ascending" | "descending";
 
+export const FORM_OPTIONS_DEFAULT_LIMIT = 30;
+
+export function getFormOptionsLimit(options: FormFieldOptions): number {
+  return options.formOptionsLimit || FORM_OPTIONS_DEFAULT_LIMIT;
+}
+
 export interface FormAPI {
   getForm(options: GetFormOptions): Promise<Form>;
   createRecord(options: CreateRecordOptions): Promise<void>;
