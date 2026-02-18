@@ -9,6 +9,12 @@ export interface AirtableDataImportParams {
   updateRows: UpdateRowsFunc,
   uploadAttachment: UploadAttachmentFunc,
   schemaCrosswalk: AirtableBaseSchemaCrosswalk,
+  onProgress?(progress: AirtableImportProgress): void,
+}
+
+export interface AirtableImportProgress {
+  percent: number;
+  status?: string;
 }
 
 export type ListRecordsFunc = (tableId: AirtableTableId) => Promise<ListAirtableRecordsResult>;

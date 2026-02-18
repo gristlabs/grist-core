@@ -34,6 +34,14 @@ export class AttachmentTracker {
   public getTables(): TableAttachmentTracker[] {
     return Array.from(this._tableAttachmentTrackers.values());
   }
+
+  public getRemainingAttachmentsCount() {
+    let count = 0;
+    for (const table of this.getTables()) {
+      count += table.getRemainingAttachmentsCount();
+    }
+    return count;
+  }
 }
 
 class TableAttachmentTracker {
@@ -52,9 +60,10 @@ class TableAttachmentTracker {
     options: {
       maxConcurrentUploads?: number;
       updateRowsBatchSize?: number;
+      onBatchComplete?(): void;
     } = {},
   ) {
-    const { maxConcurrentUploads = 5, updateRowsBatchSize = 100 } = options;
+    const { maxConcurrentUploads = 5, updateRowsBatchSize = 100, onBatchComplete } = options;
 
     while (this._attachmentsForRecords.length > 0) {
       const attachmentsForRecords = this._attachmentsForRecords.splice(0, updateRowsBatchSize);
@@ -83,8 +92,8 @@ class TableAttachmentTracker {
         }
       }
 
-      // TODO: Use a pipeline instead of batching uploads. Batches are only as fast as the slowest
-      // item, and a particularly large attachment could hold up starting a new batch.
+      // TODO: Use a pipeline instead of batching for uploads. Batches are only as fast as the
+      // slowest upload, and a particularly large attachment could hold up starting a new batch.
       // Also consider switching to allSettled and reporting any warnings/errors to the client.
       // Note that all errors are currently handled by _uploadAttachment, so this call shouldn't
       // throw.
@@ -99,7 +108,21 @@ class TableAttachmentTracker {
       }
 
       await updateRows(this._tableId, tableColValues);
+
+      onBatchComplete?.();
     }
+  }
+
+  public getRemainingAttachmentsCount() {
+    let count = 0;
+    for (const record of this._attachmentsForRecords) {
+      for (const attachments of Object.values(record.attachmentsByColumnId)) {
+        if (attachments) {
+          count += attachments.length;
+        }
+      }
+    }
+    return count;
   }
 
   private async _uploadAttachment(

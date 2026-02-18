@@ -4,6 +4,7 @@ import { AirtableAPI, listRecords } from "app/common/airtable/AirtableAPI";
 import { AirtableBaseSchema } from "app/common/airtable/AirtableAPITypes";
 import { AirtableCrosswalkWarning, createAirtableBaseToGristDocCrosswalk } from "app/common/airtable/AirtableCrosswalk";
 import { importDataFromAirtableBase } from "app/common/airtable/AirtableDataImporter";
+import { AirtableImportProgress } from "app/common/airtable/AirtableDataImporterTypes";
 import { gristDocSchemaFromAirtableSchema } from "app/common/airtable/AirtableSchemaImporter";
 import {
   DocSchemaImportTool,
@@ -22,18 +23,13 @@ export interface AirtableImportOptions {
   existingDocId?: string,
   newDocName?: string,
   structureOnlyTableIds?: string[],
-  onProgress?(progress: ImportProgress): void,
+  onProgress?(progress: AirtableImportProgress): void,
 }
 
 export interface AirtableImportResult {
   docId: string;
   creationWarnings: DocSchemaImportWarning[];
   crosswalkWarnings?: AirtableCrosswalkWarning[];
-}
-
-export interface ImportProgress {
-  percent: number;
-  status?: string;
 }
 
 const t = makeT("AirtableImport");
@@ -116,17 +112,16 @@ export async function applyAirtableImportSchemaAndImportData(params: {
     });
   }
 
-  onProgress?.({ percent: 50, status: t("Importing data from Airtable...") });
-
   await importDataFromAirtableBase({
     listRecords: tableId => listRecords(api.base(baseId), tableId, {}),
     addRows: docApi.addRows.bind(docApi),
     updateRows: docApi.updateRows.bind(docApi),
     uploadAttachment: docApi.uploadAttachment.bind(docApi),
     schemaCrosswalk,
+    onProgress: ({ percent, status }) => {
+      onProgress?.({ percent: 50 + (percent * 0.50), status });
+    },
   });
-
-  onProgress?.({ percent: 100 });
 
   return {
     creationWarnings,

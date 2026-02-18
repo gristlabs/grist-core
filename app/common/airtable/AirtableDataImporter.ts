@@ -16,12 +16,14 @@ import {
 import { BulkColValues, CellValue, GristObjCode } from "app/plugin/GristData";
 
 export async function importDataFromAirtableBase(
-  { listRecords, addRows, updateRows, uploadAttachment, schemaCrosswalk }: AirtableDataImportParams,
+  { listRecords, addRows, updateRows, uploadAttachment, schemaCrosswalk, onProgress }: AirtableDataImportParams,
 ) {
   const referenceTracker = new ReferenceTracker();
   const attachmentTracker = new AttachmentTracker();
 
   const addRowsPromises: Promise<any>[] = [];
+
+  onProgress?.({ percent: 0, status: "Importing records from Airtable..." });
 
   for (const [tableId, tableCrosswalk] of schemaCrosswalk.tables.entries()) {
     // Filter out any formula columns early - Grist will error on any write to formula columns.
@@ -124,12 +126,26 @@ export async function importDataFromAirtableBase(
     await tableReferenceTracker.bulkUpdateRowsWithUnresolvedReferences(updateRows);
   }
 
+  const totalAttachmentsCount = attachmentTracker.getRemainingAttachmentsCount();
   for (const tableAttachmentTracker of attachmentTracker.getTables()) {
     await tableAttachmentTracker.importAttachments(
       uploadAttachment,
       updateRows,
+      {
+        onBatchComplete: () => {
+          const remainingAttachmentsCount = attachmentTracker.getRemainingAttachmentsCount();
+          const uploadedAttachmentsCount = totalAttachmentsCount - remainingAttachmentsCount;
+          const attachmentsPercent = (uploadedAttachmentsCount / totalAttachmentsCount) * 100;
+          onProgress?.({
+            percent: 50 + (attachmentsPercent * 0.50),
+            status: `Importing attachments from Airtable... (${remainingAttachmentsCount} remaining)`,
+          });
+        },
+      },
     );
   }
+
+  onProgress?.({ percent: 100 });
 }
 
 type AirtableFieldValueConverter = (fieldSchema: AirtableFieldSchema, value: any) => CellValue | undefined;
