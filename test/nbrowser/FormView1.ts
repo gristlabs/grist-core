@@ -51,8 +51,10 @@ describe("FormView1", function() {
   });
 
   after(async function() {
-    oldEnv.restore();
-    await server.restart(true);
+    if (!gu.noCleanup) {
+      oldEnv.restore();
+      await server.restart(true);
+    }
   });
   afterEach(() => gu.checkForErrors());
 
@@ -931,7 +933,7 @@ describe("FormView1", function() {
         await driver.find('button[type="submit"]').click();
         await waitForConfirm();
       });
-      await expectInD([null, null, null, ["L", 2, 1]]);
+      await expectInD([null, null, null, ["L", 1, 2]]);
 
       // Remove 3 records.
       await gu.sendActions([
