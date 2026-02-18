@@ -1,7 +1,6 @@
 import {
   AirtableImportResult,
   applyAirtableImportSchemaAndImportData,
-  ImportProgress,
   validateAirtableSchemaImport,
 } from "app/client/lib/airtable/AirtableImporter";
 import { makeT } from "app/client/lib/localization";
@@ -32,6 +31,7 @@ import {
 import { cssModalBody, cssModalButtons } from "app/client/ui2018/modals";
 import { AirtableAPI } from "app/common/airtable/AirtableAPI";
 import { AirtableBaseSchema } from "app/common/airtable/AirtableAPITypes";
+import { AirtableImportProgress } from "app/common/airtable/AirtableDataImporterTypes";
 import { gristDocSchemaFromAirtableSchema } from "app/common/airtable/AirtableSchemaImporter";
 import { BaseAPI } from "app/common/BaseAPI";
 import { DocSchemaImportWarning, ImportSchemaTransformParams } from "app/common/DocSchemaImport";
@@ -180,7 +180,7 @@ export class AirtableImport extends Disposable {
     return warningsByTableId;
   });
 
-  private _importProgress: Observable<ImportProgress> =  Observable.create(this, { percent: 0 });
+  private _importProgress: Observable<AirtableImportProgress> =  Observable.create(this, { percent: 0 });
 
   private _api = this._options.api;
 
