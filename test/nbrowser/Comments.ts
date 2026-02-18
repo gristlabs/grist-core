@@ -560,7 +560,7 @@ describe("Comments", function() {
     await gu.addNewTable("Table2");
     await gu.getCell("A", 1).click();
     await gu.waitAppFocus();
-    await gu.enterCell("1");
+    await gu.enterCell(["1"]);
     await gu.getCell("A", 1).click();
 
     await openCommentsWithKey();
@@ -1254,7 +1254,7 @@ describe("Comments", function() {
     ]);
     // Hide B comment (it is on Table1)
     await gu.getCell("A", 1).click();
-    await gu.enterCell("1");
+    await gu.enterCell(["1"]);
     // We should see only 1 comment as editor (since second row is hidden now)
     assert.equal(await commentCount("panel"), 1);
     assert.equal(await readComment(0, "panel"), "C,2");
@@ -1309,7 +1309,7 @@ describe("Comments", function() {
     ]);
     // Now censor column B in the first row.
     await gu.getCell("A", 1).click();
-    await gu.enterCell("0");
+    await gu.enterCell(["0"]);
     await gu.getCell("B", 1).click();
     // Test that all comments from B,1 are hidden.
     assert.equal(await commentCount("panel"), 1);
@@ -1330,7 +1330,7 @@ describe("Comments", function() {
     // Now show them
     await gu.getCell("A", 1).click();
     await gu.waitAppFocus();
-    await gu.enterCell("2");
+    await gu.enterCell(["2"]);
     await gu.getCell("B", 1).click();
     await gu.waitAppFocus();
     assert.equal(await commentCount("panel"), 2);
@@ -1594,7 +1594,7 @@ describe("Comments", function() {
     ]);
     // Hide 4th row, by setting it to 0
     await gu.getCell("A", 4).click();
-    await gu.enterCell("99");
+    await gu.enterCell(["99"]);
     await assertClientComments([
       "CENSORED",
       "Second",
@@ -1658,7 +1658,7 @@ describe("Comments", function() {
     await addComment("A", 1, "From owner");
     await gu.getCell("A", 1).click();
     await gu.waitAppFocus(true);
-    await gu.enterCell("1");
+    await gu.enterCell(["1"]);
     // Switch to editor
     await asSupport();
     await assertClientComments([

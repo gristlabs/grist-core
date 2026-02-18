@@ -14,9 +14,9 @@ describe("CellColor", function() {
     const mainSession = await gu.session().login();
     doc = await mainSession.tempNewDoc(cleanup, "CellColor");
     // add records
-    await gu.enterCell("a");
-    await gu.enterCell("b");
-    await gu.enterCell("c");
+    await gu.enterCell(["a"]);
+    await gu.enterCell(["b"]);
+    await gu.enterCell(["c"]);
     await gu.toggleSidePanel("right", "open");
     await driver.find(".test-right-tab-field").click();
   });
@@ -122,7 +122,7 @@ describe("CellColor", function() {
     // First let's add an Hyperlink column
     await gu.getSection("TABLE1").click();
     let cell = await gu.getCell("B", 1).doClick();
-    await gu.enterCell("foo");
+    await gu.enterCell(["foo"]);
     await gu.setFieldWidgetType("HyperLink");
 
     // check default color of hyperlink
@@ -141,10 +141,10 @@ describe("CellColor", function() {
 
     // Add new record
     await gu.getCell("A", 1).click();
-    await gu.enterCell("e");
+    await gu.enterCell(["e"]);
     await gu.getCell("A", 4).click();
-    await gu.enterCell("f", Key.TAB);
-    await gu.enterCell("foo");
+    await gu.enterCell(["f", Key.TAB]);
+    await gu.enterCell(["foo"]);
 
     // get the forkid
     const forkId = await gu.getCurrentUrlId();
@@ -391,7 +391,7 @@ describe("CellColor", function() {
 
     // enter text
     await gu.getCell("A", 1).click();
-    await gu.enterCell("foo");
+    await gu.enterCell(["foo"]);
 
     // open color picker
     await gu.openCellColorPicker();
@@ -530,7 +530,7 @@ describe("CellColor", function() {
 
     // enter 'true'
     await gu.getCell("E", 1).click();
-    await gu.enterCell("true");
+    await gu.enterCell(["true"]);
 
     // check the color
     const cell = () => gu.getCell("E", 1).find(".field_clip");
