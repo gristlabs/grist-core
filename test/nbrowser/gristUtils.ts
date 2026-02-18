@@ -706,7 +706,7 @@ namespace gristUtils {
     // Press enter to display the editor
     await driver.sendKeys(Key.ENTER);
     // Wait for the editor to appear
-    await driver.wait(() => driver.find(".cell_editor").isDisplayed(), 1000);
+    await waitForCellEditor();
     // Select the content (so it is cleared) and press the keys requested by the caller
     await sendKeys(
       ...(clear ? [await selectAllKey(), Key.BACK_SPACE] : []),
@@ -723,6 +723,10 @@ namespace gristUtils {
   export async function pressKeysOnCell(...keys: string[]) {
     await driver.sendKeys(...keys);
     await waitForServer();    // Wait for the value to be saved
+  }
+
+  export async function waitForCellEditor() {
+    await driver.wait(() => driver.find(".cell_editor").isDisplayed(), 1000);
   }
 
   /**
