@@ -13,6 +13,7 @@ import { BulkColValues, GristObjCode } from "app/plugin/GristData";
 import Airtable from "airtable";
 import { assert } from "chai";
 import { sum } from "lodash";
+import nock from "nock";
 import * as sinon from "sinon";
 
 describe("AirtableDataImporter", function() {
@@ -64,6 +65,10 @@ describe("AirtableDataImporter", function() {
     {
       airtableField: { id: "fld11", name: "Lookup", type: "lookup" as const, options: {} },
       gristColumn: { id: "Lookup", ref: 111, label: "Lookup", isFormula: true },
+    },
+    {
+      airtableField: { id: "fld12", name: "Attachments", type: "multipleAttachments" as const, options: {} },
+      gristColumn: { id: "Attachments", ref: 112, label: "Attachments", isFormula: false },
     },
   ];
 
@@ -117,10 +122,19 @@ describe("AirtableDataImporter", function() {
   const updateRowsMock =
     sinon.fake((tableId, rows) => Promise.resolve(rows.id)) satisfies AirtableDataImportParams["updateRows"];
 
-  const uploadAttachmentMock = sinon.fake((value: string | Blob, filename?: string) =>
-    Promise.resolve(1)) satisfies AirtableDataImportParams["uploadAttachment"];
+  let attachmentId = 1;
+  const uploadAttachmentMock =
+    sinon.fake(async (value, filename) => attachmentId++) satisfies AirtableDataImportParams["uploadAttachment"];
+
+  beforeEach(function() {
+    nock.disableNetConnect();
+  });
 
   afterEach(function() {
+    attachmentId = 1;
+    nock.abortPendingRequests();
+    nock.cleanAll();
+    nock.enableNetConnect();
     sinon.reset();
   });
 
@@ -474,12 +488,25 @@ describe("AirtableDataImporter", function() {
         schemaCrosswalk,
       });
 
-      const call = addRowsMock.getCall(0);
-      const bulkColValues = call.args[1];
-      const colId = schemaCrosswalk.tables.get("tblMain")!.fields.get(fieldName)!.gristColumn.id;
-      if (bulkColValues[colId] === undefined) {
-        throw new Error("Expected column not in addRows call");
+      let bulkColValues: BulkColValues;
+      let colId: string;
+      if (fieldName === "Attachments") {
+        const call = updateRowsMock.getCall(1);
+        bulkColValues = call.args[1];
+        colId = schemaCrosswalk.tables.get("tblMain")!.fields.get(fieldName)!.gristColumn.id;
+        if (bulkColValues[colId] === undefined) {
+          throw new Error("Expected column not in updateRows call");
+        }
+        return bulkColValues[colId][0];
+      } else {
+        const call = addRowsMock.getCall(0);
+        bulkColValues = call.args[1];
+        colId = schemaCrosswalk.tables.get("tblMain")!.fields.get(fieldName)!.gristColumn.id;
+        if (bulkColValues[colId] === undefined) {
+          throw new Error("Expected column not in addRows call");
+        }
       }
+
       return bulkColValues[colId][0];
     }
 
@@ -546,6 +573,54 @@ describe("AirtableDataImporter", function() {
       assert.isNull(value3);
 
       const value4 = await testFieldValueConversion("MultipleSelects", []);
+      assert.deepEqual(value4, [GristObjCode.List]);
+    });
+
+    it("converts multipleAttachments fields correctly", async () => {
+      nock("https://example.com")
+        .get("/file1.pdf")
+        .reply(200, "file1", { "Content-Type": "application/pdf" });
+      nock("https://example.com")
+        .get("/file2.jpeg")
+        .reply(200, "file2", { "Content-Type": "image/jpeg" });
+      nock("https://example.com")
+        .get("/file3.txt")
+        .reply(200, "file3", { "Content-Type": "text/plain" });
+
+      const getBlobContents = async (blob: Blob) => await blob.text();
+
+      const value1 = await testFieldValueConversion("Attachments", [
+        { id: "att0", url: "https://example.com/file1.pdf", filename: "file1.pdf" },
+        { id: "att1", url: "https://example.com/file2.jpeg", filename: "file2.jpeg" },
+      ]);
+      assert.deepEqual(value1, [GristObjCode.List, 1, 2]);
+      assert.equal(uploadAttachmentMock.callCount, 2);
+      const blob1 = uploadAttachmentMock.firstCall.args[0] as Blob;
+      const filename1 = uploadAttachmentMock.firstCall.args[1];
+      assert.equal(await getBlobContents(blob1), "file1");
+      assert.equal(blob1.type, "application/pdf");
+      assert.equal(filename1, "file1.pdf");
+      const blob2 = uploadAttachmentMock.secondCall.args[0] as Blob;
+      const filename2 = uploadAttachmentMock.secondCall.args[1];
+      assert.equal(await getBlobContents(blob2), "file2");
+      assert.equal(blob2.type, "image/jpeg");
+      assert.equal(filename2, "file2.jpeg");
+
+      const value2 = await testFieldValueConversion("Attachments", [
+        { id: "att2", url: "https://example.com/file3.txt", filename: "file3.txt" },
+      ]);
+      assert.deepEqual(value2, [GristObjCode.List, 3]);
+      assert.equal(uploadAttachmentMock.callCount, 1);
+      const blob3 = uploadAttachmentMock.firstCall.args[0] as Blob;
+      const filename3 = uploadAttachmentMock.firstCall.args[1];
+      assert.equal(await getBlobContents(blob3), "file3");
+      assert.equal(blob3.type, "text/plain");
+      assert.equal(filename3, "file3.txt");
+
+      const value3 = await testFieldValueConversion("Attachments", undefined);
+      assert.deepEqual(value3, [GristObjCode.List]);
+
+      const value4 = await testFieldValueConversion("Attachments", []);
       assert.deepEqual(value4, [GristObjCode.List]);
     });
 
