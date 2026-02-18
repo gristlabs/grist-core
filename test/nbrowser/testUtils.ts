@@ -45,7 +45,14 @@ setOptionsModifyFunc(({ chromeOpts, firefoxOpts }) => {
   // https://github.com/shs96c/selenium/blob/ff82c4af6a493321d9eaec6ba8fa8589e4aa824d/javascript/node/selenium-webdriver/firefox.js#L415
   // FIXME: use enableBidi, may require to bump mocha-webdriver
   chromeOpts.set("webSocketUrl", true); // FIXME: remove this line
-  chromeOpts.set(Capability.UNHANDLED_PROMPT_BEHAVIOR, "ignore");
+  chromeOpts.set(Capability.UNHANDLED_PROMPT_BEHAVIOR, {
+    alert: "ignore",
+    beforeUnload: "ignore",
+    confirm: "ignore",
+    default: "ignore",
+    file: "ignore",
+    prompt: "ignore",
+  });
   // chromeOpts.set(Capability.TIMEOUTS, { implicit: 2000 });
 
   chromeOpts.setUserPreferences({
