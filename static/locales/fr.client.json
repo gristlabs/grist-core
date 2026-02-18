@@ -1679,7 +1679,7 @@
         "our weekly webinars": "nos webinaires hebdomadaires",
         "Grist 101": "Les fondamentaux de Grist",
         "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users                navigate the fundamentals of Grist.": "Vous pouvez également suivre notre webinaire d’introduction, {{ourWeeklyWebinars}}, qui a été spécialement créé afin d'aider les nouveaux utilisateurs à maitriser les fondamentaux de Grist.",
-        "Free coaching call": "Appel de coaching gratuit",
+        "Free coaching call": "appel de coaching gratuit",
         "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users navigate the fundamentals of Grist.": "Vous pouvez aussi jeter un œil à notre webinaire d'introduction, {{ourWeeklyWebinars}}, conçu pour aider les nouveaux utilisateurs à découvrir les fondamentaux de Grist."
     },
     "FormView": {
