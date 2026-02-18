@@ -15,6 +15,7 @@
  * Run `bin/mocha 'test/nbrowser/*.ts' -b --no-exit` to open a command-line prompt on
  * first-failure for debugging and quick reruns.
  */
+import { isAffirmative } from "app/common/gutil";
 import log from "app/server/lib/log";
 import * as gu from "test/nbrowser/gristUtils";
 import { server } from "test/nbrowser/testServer";
@@ -35,12 +36,14 @@ setOptionsModifyFunc(({ chromeOpts, firefoxOpts }) => {
   // Set "kiosk" printing that saves to PDF without offering any dialogs. This applies to regular
   // (non-headless) Chrome. On headless Chrome, no dialog or output occurs regardless.
   chromeOpts.addArguments("--kiosk-printing");
-  // Latest chrome version 127, has started ignoring alerts and popups when controlled via a
-  // webdriver.
-  // https://github.com/SeleniumHQ/selenium/issues/14290
-  // According to the article above, popups and alerts are still shown in `BiDi` sessions. While we
-  // don't have latest webdriver library (where the new `enableBiDi` method is exposed), it can be
-  // toggled by using the `set` method in `capabilities` interface, as it is done here (long URL):
+
+  // In headless, make sure we have a decent window size
+  if (isAffirmative(process.env.MOCHA_WEBDRIVER_HEADLESS)) {
+    chromeOpts.windowSize({
+      width: 1920,
+      height: 1080,
+    });
+  }
 
   // https://github.com/shs96c/selenium/blob/ff82c4af6a493321d9eaec6ba8fa8589e4aa824d/javascript/node/selenium-webdriver/firefox.js#L415
   // FIXME: use enableBidi, may require to bump mocha-webdriver
