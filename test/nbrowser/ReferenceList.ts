@@ -32,7 +32,7 @@ describe("ReferenceList", function() {
       await gu.setRefShowColumn("A");
 
       await gu.getCell("B", 1).click();
-      await gu.sendKeys(Key.ENTER, "b");
+      await gu.enterCell(["b"], { validate: false });
       await gu.waitToPass(async () => {
         await driver.findWait(".test-ref-editor-new-item", 100).click();
       });
@@ -172,9 +172,10 @@ describe("ReferenceList", function() {
 
       // Add additional favorite films to a few rows in Friends.
       await gu.getCell("Favorite Film", 1, "Friends record").doClick();
-      await gu.sendKeys(Key.ENTER, "Alien", Key.ENTER, Key.ENTER);
-      await gu.sendKeys(Key.ENTER, "Avatar", Key.ENTER, "The Avengers", Key.ENTER, Key.ENTER);
-      await gu.sendKeys(Key.ARROW_DOWN, Key.ENTER, "The Avengers", Key.ENTER, Key.ENTER);
+      await gu.enterCell(["Alien", Key.ENTER, Key.ARROW_DOWN], { clear: false });
+      await gu.enterCell(["Avatar", Key.ENTER, "The Avengers", Key.ENTER, Key.ENTER], { clear: false });
+      await gu.sendKeys(Key.ARROW_DOWN);
+      await gu.enterCell(["The Avengers", Key.ENTER, Key.ENTER], { clear: false });
 
       // Check that the cells are rendered correctly.
       await gu.resizeColumn({ col: "Favorite Film" }, 100);
@@ -191,9 +192,11 @@ describe("ReferenceList", function() {
 
       // Change a few of the film titles.
       await gu.getCell("Title", 1, "Films record").doClick();
-      await gu.sendKeys("Toy Story 2", Key.ENTER);
-      await gu.sendKeys(Key.ARROW_DOWN, "Aliens", Key.ENTER);
-      await gu.sendKeys(Key.ARROW_DOWN, "The Dark Knight Rises", Key.ENTER);
+      await gu.enterCell(["Toy Story 2", Key.ENTER]);
+      await gu.sendKeys(Key.ARROW_DOWN);
+      await gu.enterCell(["Aliens", Key.ENTER]);
+      await gu.sendKeys(Key.ARROW_DOWN);
+      await gu.enterCell(["The Dark Knight Rises", Key.ENTER]);
 
       // Check that the Favorite Film column reflects the new titles.
       assert.deepEqual(
@@ -360,9 +363,9 @@ describe("ReferenceList", function() {
 
       // Populate the first few rows of the new column with some references.
       await gu.getCell({ rowNum: 1, col: "A" }).click();
-      await driver.sendKeys("1", Key.ENTER, "2", Key.ENTER, Key.ENTER);
-      await driver.sendKeys("2", Key.ENTER, Key.ENTER);
-      await driver.sendKeys("3", Key.ENTER, "4", Key.ENTER, "5", Key.ENTER, Key.ENTER);
+      await gu.enterCell(["1", Key.ENTER, "2", Key.ENTER, Key.ENTER]);
+      await gu.enterCell(["2", Key.ENTER, Key.ENTER]);
+      await gu.enterCell(["3", Key.ENTER, "4", Key.ENTER, "5", Key.ENTER, Key.ENTER]);
 
       // Check that the cells render their tokens as TableId[RowId].
       assert.deepEqual(await gu.getVisibleGridCells(3, [1, 2, 3, 4, 5, 6]),
@@ -378,8 +381,7 @@ describe("ReferenceList", function() {
 
       // Add a new reference.
       await gu.getCell(3, 5).click();
-      await driver.sendKeys("Roger");
-      await driver.sendKeys(Key.ENTER, Key.ENTER);
+      await gu.enterCell(["Roger", Key.ENTER, Key.ENTER]);
       await gu.waitForServer();
 
       // Check that switching between Row ID and Name still works correctly.
@@ -412,7 +414,7 @@ describe("ReferenceList", function() {
       await server.pauseUntil(async () => {
         assert.equal(await cell.getText(), "Friends[1]\nFriends[2]");
         await gu.clickReferenceListCell(cell);
-        await gu.sendKeys("5");
+        await gu.enterCell(["5"], { validate: false, clear: true });
         // Check that the autocomplete has no items yet.
         assert.isEmpty(await driver.findAll(".test-autocomplete .test-ref-editor-new-item"));
         await gu.sendKeys(Key.ENTER, Key.ENTER);
@@ -425,7 +427,7 @@ describe("ReferenceList", function() {
 
       // Once server is responsive, a valid value should not offer a "new item".
       await gu.clickReferenceListCell(cell);
-      await gu.sendKeys("5");
+      await gu.enterCell(["5"], { validate: false });
       await driver.findWait(".test-ref-editor-item", 500);
       assert.isFalse(await driver.find(".test-ref-editor-new-item").isPresent());
       await gu.sendKeys(Key.ENTER, Key.ENTER);
