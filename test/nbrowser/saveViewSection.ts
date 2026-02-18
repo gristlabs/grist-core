@@ -82,13 +82,13 @@ describe("saveViewSection", function() {
       await driver.find(".test-pwc-editDataSelection").doClick();
 
       // select type t and save
-      await driver.findContent(".test-wselect-type", gu.exactMatch(t)).doClick();
+      await driver.findContentWait(".test-wselect-type", gu.exactMatch(t), 1000).doClick();
       await driver.find(".test-wselect-addBtn").doClick();
       await gu.waitForServer();
 
       // check section's type
       await driver.find(".test-pwc-editDataSelection").doClick();
-      assert.equal(await driver.find(".test-wselect-type[class*=-selected]").getText(), t);
+      assert.equal(await driver.findWait(".test-wselect-type[class*=-selected]", 1000).getText(), t);
 
       // close page widget picker
       await driver.sendKeys(Key.ESCAPE);
@@ -106,7 +106,7 @@ describe("saveViewSection", function() {
     await driver.find(".test-pwc-editDataSelection").doClick();
 
     // Select column B
-    await driver.findContent(".test-wselect-column", /B/).doClick();
+    await driver.findContentWait(".test-wselect-column", /B/, 1000).doClick();
     await driver.find(".test-wselect-addBtn").doClick();
     await gu.waitForServer();
 
@@ -163,7 +163,7 @@ describe("saveViewSection", function() {
     // select form type
     await driver.find(".test-dp-add-new").doClick();
     await driver.find(".test-dp-add-new-page").doClick();
-    await driver.findContent(".test-wselect-type", gu.exactMatch("Form")).doClick();
+    await driver.findContentWait(".test-wselect-type", gu.exactMatch("Form"), 1000).doClick();
 
     // check that summary is disabled
     assert.ok(await driver.find(".test-wselect-pivot[class*=-disabled]"));
@@ -175,8 +175,8 @@ describe("saveViewSection", function() {
   it("should disable form when summary is selected", async () => {
     // select table type then select summary for a Table
     await driver.find(".test-dp-add-new").doClick();
-    await driver.find(".test-dp-add-new-page").doClick();
-    await driver.find(".test-wselect-pivot").doClick();
+    await driver.findWait(".test-dp-add-new-page", 1000).doClick();
+    await driver.findWait(".test-wselect-pivot", 1000).doClick();
 
     // check that form is disabled
     assert.equal(await driver.find(".test-wselect-type[class*=-disabled]").getText(), "Form");
