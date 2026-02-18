@@ -512,7 +512,7 @@ contact the document owners to attempt a document recovery. [{{error}}]", { erro
         await this._updateCurrentDoc(newUrlId, "default");
       }
       // The baseAction in docInfo may have changed.
-      const docInfo = openResponse.doc["_grist_DocInfo"];
+      const docInfo = openResponse.doc._grist_DocInfo;
       this.gristDoc.get()?.docData.receiveAction([
         "ReplaceTableData", docInfo[1], docInfo[2], docInfo[3],
       ]);
