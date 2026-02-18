@@ -525,7 +525,7 @@ describe("ReferenceList", function() {
     it("should sort consistently when column contains AltText", async function() {
       // Enter an invalid reference in Favorite Film.
       await gu.getCell("Favorite Film", 4, "Friends record").doClick();
-      await gu.sendKeys("Aliens 4", Key.ENTER, Key.ENTER);
+      await gu.enterCell(["Aliens 4", Key.ENTER, Key.ENTER]);
       await gu.waitForServer();
 
       // Check that the updated sort order is correct.
@@ -547,7 +547,7 @@ describe("ReferenceList", function() {
 
   describe("autocomplete", function() {
     const getACOptions = stackWrapFunc(async (limit?: number) => {
-      await driver.findWait(".test-ref-editor-item", 1000);
+      await driver.findWait(".test-ref-editor-item", 2000);
       return (await driver.findAll(".test-ref-editor-item", el => el.getText())).slice(0, limit);
     });
 
@@ -609,7 +609,7 @@ describe("ReferenceList", function() {
 
       // Edit another cell by starting to type.
       cell = await gu.getCell({ section: "References", col: "Colors", rowNum: 4 }).doClick();
-      await driver.sendKeys("gr");
+      await gu.enterCell(["gr"], { validate: false });
       await driver.findWait(".test-ref-editor-item", 1000);
       item = driver.findContent(".test-ref-editor-item", "Medium Sea Green");
       await gu.scrollIntoView(item);
@@ -651,7 +651,7 @@ describe("ReferenceList", function() {
 
       // Edit another cell by starting to type.
       cell = await gu.getCell({ section: "References", col: "Colors", rowNum: 4 }).doClick();
-      await driver.sendKeys("gr");
+      await gu.enterCell(["gr"], { validate: false });
       await driver.findWait(".test-ref-editor-item", 1000);
       await driver.sendKeys(Key.UP, Key.UP, Key.UP, Key.UP, Key.UP);
       assert.equal(await driver.findWait(".test-ref-editor-item.selected", 1000).getText(), "Chocolate");
@@ -666,7 +666,7 @@ describe("ReferenceList", function() {
 
     it("should return to text-as-typed when nothing is selected", async function() {
       const cell = await gu.getCell({ section: "References", col: "Colors", rowNum: 2 }).doClick();
-      await driver.sendKeys("da");
+      await gu.enterCell(["da"], { validate: false });
       assert.deepEqual(await getACOptions(2), ["Dark Blue", "Dark Cyan"]);
 
       // Check that the first item is highlighted by default.
@@ -813,7 +813,7 @@ describe("ReferenceList", function() {
     it("should offer items ordered by best match", async function() {
       let cell = await gu.getCell({ section: "References", col: "Colors", rowNum: 1 }).doClick();
       assert.equal(await cell.getText(), "Dark Slate Blue");
-      await driver.sendKeys(Key.ENTER, "Dark Slate Blue");
+      await gu.enterCell(["Dark Slate Blue"], { validate: false });
       assert.deepEqual(await getACOptions(4),
         ["Dark Slate Blue", "Dark Slate Gray", "Slate Blue", "Medium Slate Blue"]);
       await driver.sendKeys(Key.ESCAPE);
@@ -837,21 +837,21 @@ describe("ReferenceList", function() {
 
       cell = await gu.getCell({ section: "References", col: "Colors", rowNum: 3 }).doClick();
       assert.equal(await cell.getText(), "hello");    // Alt-text
-      await driver.sendKeys("hello");
+      await gu.enterCell(["hello"], { validate: false });
       assert.deepEqual(await getACOptions(2),
         ["Honeydew", "Hot Pink"]);
       await driver.sendKeys(Key.ESCAPE);
 
       cell = await gu.getCell({ section: "References", col: "ColorCodes", rowNum: 2 }).doClick();
       assert.equal(await cell.getText(), "#808080");
-      await driver.sendKeys("#808080");
+      await gu.enterCell(["#808080"], { validate: false });
       assert.deepEqual(await getACOptions(5),
         ["#808080", "#808000", "#800000", "#800080", "#87CEEB"]);
       await driver.sendKeys(Key.ESCAPE);
 
       cell = await gu.getCell({ section: "References", col: "XNums", rowNum: 2 }).doClick();
       assert.equal(await cell.getText(), "2019-04-29");
-      await driver.sendKeys("2019-04-29");
+      await gu.enterCell(["2019-04-29"], { validate: false });
       assert.deepEqual(await getACOptions(4),
         ["2019-04-29", "2020-04-29", "2019-11-05", "2020-04-28"]);
       await driver.sendKeys(Key.ESCAPE);
@@ -861,7 +861,7 @@ describe("ReferenceList", function() {
       let cell = await gu.getCell({ section: "References", col: "Schools", rowNum: 1 });
       await gu.clickReferenceListCell(cell);
       assert.equal(await cell.getText(), "TECHNOLOGY, ARTS AND SCIENCES STUDIO");
-      await driver.sendKeys("TECHNOLOGY, ARTS AND SCIENCES STUDIO");
+      await gu.enterCell(["TECHNOLOGY, ARTS AND SCIENCES STUDIO"], { validate: false });
       assert.deepEqual(await getACOptions(3), [
         "TECHNOLOGY, ARTS AND SCIENCES STUDIO",
         "SCIENCE AND TECHNOLOGY ACADEMY",
@@ -903,7 +903,7 @@ describe("ReferenceList", function() {
       let cell = await gu.getCell({ section: "References", col: "Colors", rowNum: 2 });
       await gu.clickReferenceListCell(cell);
       assert.equal(await cell.getText(), "Red");
-      await driver.sendKeys(Key.ENTER, "Red");
+      await gu.enterCell(["Red"], { validate: false });
       await driver.findWait(".test-ref-editor-item", 1000);
       assert.deepEqual(
         await driver.findContent(".test-ref-editor-item", /Dark Red/).findAll("span", e => e.getText()),
@@ -915,7 +915,7 @@ describe("ReferenceList", function() {
 
       cell = await gu.getCell({ section: "References", col: "Schools", rowNum: 1 });
       await gu.clickReferenceListCell(cell);
-      await driver.sendKeys("br tech");
+      await gu.enterCell(["br tech"], { validate: false });
       assert.deepEqual(
         await driver.findContentWait(".test-ref-editor-item", /BROOKLYN TECH/, 1000).findAll("span", e => e.getText()),
         ["BR", "TECH"]);
@@ -940,7 +940,7 @@ describe("ReferenceList", function() {
 
       // Change a color
       await gu.clickReferenceListCell(await gu.getCell({ section: "Colors", col: "Color Name", rowNum: 1 }));
-      await driver.sendKeys("HAZELNUT", Key.ENTER, Key.ENTER);
+      await gu.enterCell(["HAZELNUT", Key.ENTER, Key.ENTER]);
       await gu.waitForServer();
 
       // See that the old value is gone from the autocomplete, and the new one is present.
@@ -957,7 +957,7 @@ describe("ReferenceList", function() {
 
       // See that the value is gone from the autocomplete.
       await gu.clickReferenceListCell(cell);
-      await driver.sendKeys("H");
+      await gu.enterCell(["H"], { validate: false });
       assert.deepEqual(await getACOptions(2), ["Honeydew", "Hot Pink"]);
       await driver.sendKeys(Key.ESCAPE);
 
@@ -965,12 +965,12 @@ describe("ReferenceList", function() {
       await gu.getCell({ section: "Colors", col: "Color Name", rowNum: 1 }).doClick();
       await driver.find("body").sendKeys(Key.chord(await gu.modKey(), Key.ENTER));
       await gu.waitForServer();
-      await driver.sendKeys("HELIOTROPE", Key.ENTER);
+      await gu.enterCell(["HELIOTROPE", Key.ENTER]);
       await gu.waitForServer();
 
       // See that the new value is visible in the autocomplete.
       await gu.clickReferenceListCell(cell);
-      await driver.sendKeys("H");
+      await gu.enterCell(["H"], { validate: false });
       assert.deepEqual(await getACOptions(2), ["HELIOTROPE", "Honeydew"]);
       await driver.sendKeys(Key.BACK_SPACE);
       assert.deepEqual(await getACOptions(2), ["Añil", "Aqua"]);
@@ -980,7 +980,7 @@ describe("ReferenceList", function() {
       await gu.undo(4);
 
       await gu.clickReferenceListCell(cell);
-      await driver.sendKeys("H");
+      await gu.enterCell(["H"], { validate: false });
       assert.deepEqual(await getACOptions(2), ["Honeydew", "Hot Pink"]);
       await driver.sendKeys(Key.BACK_SPACE);
       assert.deepEqual(await getACOptions(2), ["Alice Blue", "Añil"]);
