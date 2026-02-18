@@ -65,7 +65,7 @@ describe("RawData", function() {
     // Test that overlay is showed.
     assert.isTrue(await driver.findWait(".test-raw-data-overlay", 100).isDisplayed());
     // Test proper table is selected.
-    assert.equal(await gu.getSectionTitle(), "Country");
+    assert.equal(await gu.getSectionTitle(3_000), "Country");
     // Test we have some data.
     assert.deepEqual(await gu.getVisibleGridCells("Code", [1, 2], "Country"), ["ABW", "AFG"]);
     // Test we can close by button.
@@ -109,7 +109,9 @@ describe("RawData", function() {
     assert.equal(await gu.findOpenMenuItem("li", /Duplicate widget/).matches(".disabled"), true);
     assert.equal(await gu.findOpenMenuItem("li", /Delete widget/).matches(".disabled"), true);
     await driver.sendKeys(Key.ESCAPE);    // Close the menu
+    await driver.wait(async () => !await driver.find(".grist-floating-menu").isPresent());
     await driver.sendKeys(Key.ESCAPE);    // Close the preview popup
+    await driver.wait(async () => !await driver.find(".test-raw-data-overlay").isPresent());
   });
 
   it("should rename table from modal window", async function() {
@@ -194,7 +196,7 @@ describe("RawData", function() {
     await clickConfirm();
     await gu.waitForServer();
     assert.isTrue(await driver.findWait(".test-raw-data-overlay", 100).isDisplayed());
-    assert.equal(await gu.getSectionTitle(), "Empire Copy");
+    assert.equal(await gu.getSectionTitle(3_000), "Empire Copy");
     assert.deepEqual(await gu.getVisibleGridCells("Code", [1, 2], "Empire Copy"), ["ABW", "AFG"]);
 
     await driver.sendKeys(Key.ESCAPE);
@@ -321,7 +323,7 @@ describe("RawData", function() {
     assert.isTrue(await driver.findWait(".test-raw-data-overlay", 100).isDisplayed());
 
     // Check that the right section title is shown.
-    assert.equal(await gu.getSectionTitle(), "COUNTRYLANGUAGE [by Country]");
+    assert.equal(await gu.getSectionTitle(3_000), "COUNTRYLANGUAGE [by Country]");
 
     // Make sure the data looks correct.
     assert.deepEqual(
@@ -446,9 +448,7 @@ describe("RawData", function() {
     assert.deepEqual(await getRawTableIds(), allTables);
 
     // The last table should have disabled remove button.
-    await openMenu(allTables[0]);
-    assert.isTrue(await driver.find(".test-raw-data-menu-remove-table.disabled").isDisplayed());
-    await gu.sendKeys(Key.ESCAPE);
+    assert.isFalse(await isRemovable(allTables[0]));
   });
 
   it("should allow removing GristHidden* pages", async () => {
@@ -531,7 +531,7 @@ describe("RawData", function() {
     await gu.checkTextEditor("abc");
     await gu.sendKeys(Key.ESCAPE);
     await gu.showRawData();
-    assert.equal(await gu.getActiveSectionTitle(), "City");
+    assert.equal(await gu.getActiveSectionTitle(3_000), "City");
     assert.deepEqual(await gu.getCursorPosition(), { rowNum: 20, col: 0 }); // raw popup is not sorted
     await gu.sendKeys("abc");
     await gu.checkTextEditor("abc");
@@ -545,7 +545,7 @@ describe("RawData", function() {
     await gu.sendKeys(Key.ESCAPE);
     await assertNoPopup();
     // Make sure we see CITY, and everything is where it should be.
-    assert.equal(await gu.getActiveSectionTitle(), "CITY");
+    assert.equal(await gu.getActiveSectionTitle(3_000), "CITY");
     assert.deepEqual(await gu.getCursorPosition(), { rowNum: 2, col: 0 });
     await gu.sendKeys("abc");
     await gu.checkTextEditor("abc");
@@ -555,7 +555,7 @@ describe("RawData", function() {
     await gu.showRawData();
     await gu.closeRawTable();
     await assertNoPopup();
-    assert.equal(await gu.getActiveSectionTitle(), "CITY");
+    assert.equal(await gu.getActiveSectionTitle(3_000), "CITY");
     assert.deepEqual(await gu.getCursorPosition(), { rowNum: 2, col: 0 });
     await gu.sendKeys("abc");
     await gu.checkTextEditor("abc");
@@ -565,7 +565,7 @@ describe("RawData", function() {
     await gu.showRawData();
     await gu.getPageItem("Country").click();
     await assertNoPopup();
-    assert.equal(await gu.getActiveSectionTitle(), "COUNTRY");
+    assert.equal(await gu.getActiveSectionTitle(3_000), "COUNTRY");
     assert.deepEqual(await gu.getCursorPosition(), { rowNum: 1, col: 0 });
     await gu.sendKeys("abc");
     await gu.checkTextEditor("abc");
@@ -573,9 +573,9 @@ describe("RawData", function() {
 
     // Now make sure that raw data is available for card view.
     await gu.selectSectionByTitle("COUNTRY Card List");
-    assert.equal(await gu.getActiveSectionTitle(), "COUNTRY Card List");
+    assert.equal(await gu.getActiveSectionTitle(3_000), "COUNTRY Card List");
     await gu.showRawData();
-    assert.equal(await gu.getActiveSectionTitle(), "Country");
+    assert.equal(await gu.getActiveSectionTitle(3_000), "Country");
     assert.deepEqual(await gu.getCursorPosition(), { rowNum: 1, col: 1 });
     await gu.sendKeys("abc");
     await gu.checkTextEditor("abc");
@@ -593,7 +593,7 @@ describe("RawData", function() {
     let anchorLink = replaceAnchor(await gu.getAnchor(), { a: "2" });
     const testResult = async () => {
       await waitForAnchorPopup(anchorLink);
-      assert.equal(await gu.getActiveSectionTitle(), "COUNTRY Card List");
+      assert.equal(await gu.getActiveSectionTitle(3_000), "COUNTRY Card List");
       assert.deepEqual(await gu.getCursorPosition(), { rowNum: 1, col: "Code" });
       await gu.sendKeys("abc");
       await gu.checkTextEditor("abc");
@@ -633,7 +633,8 @@ describe("RawData", function() {
     anchorLink = (await driver.getCurrentUrl()) + "#" + anchorLink.split("#")[1];
     await waitForAnchorPopup(anchorLink);
 
-    assert.equal(await gu.getActiveSectionTitle(), "COUNTRY Card List");
+    // FIXME: The test sometimes hangs here.
+    assert.equal(await gu.getActiveSectionTitle(3_000), "COUNTRY Card List");
     // Now remove the section using api, popup should be closed.
     const sectionId = parseInt(getAnchorParams(anchorLink).s);
     await api.applyUserActions(doc, [[
@@ -644,9 +645,9 @@ describe("RawData", function() {
     await assertNoPopup();
     // Now open plain raw data for City table.
     await gu.selectSectionByTitle("CITY");
-    assert.equal(await gu.getActiveSectionTitle(), "CITY"); // CITY is viewSection title
+    assert.equal(await gu.getActiveSectionTitle(3_000), "CITY"); // CITY is viewSection title
     await gu.showRawData();
-    assert.equal(await gu.getActiveSectionTitle(), "City"); // City is now a table title
+    assert.equal(await gu.getActiveSectionTitle(3_000), "City"); // City is now a table title
     // Now remove the table.
     await api.applyUserActions(doc, [[
       "RemoveTable", "City",
@@ -669,7 +670,7 @@ describe("RawData", function() {
 
     // Check that the title is correct. Note that it's initially obscured by the layout
     // editing buttons; it becomes visible after the layout is saved.
-    assert.equal(await gu.getSectionTitle(), "COUNTRY Card");
+    assert.equal(await gu.getSectionTitle(3_000), "COUNTRY Card");
 
     // Modify the layout and theme.
     await gu.openWidgetPanel("widget");
@@ -733,7 +734,7 @@ describe("RawData", function() {
     await openMenu("Country");
     await driver.find(".test-raw-data-menu-edit-record-card").click();
     assert.isTrue(await driver.findWait(".test-raw-data-overlay", 100).isDisplayed());
-    assert.equal(await gu.getSectionTitle(), "COUNTRY Card");
+    assert.equal(await gu.getSectionTitle(3_000), "COUNTRY Card");
 
     // Stop editing the layout and close the overlay.
     await gu.sendKeys(Key.ESCAPE, Key.ESCAPE);
@@ -765,7 +766,7 @@ describe("RawData", function() {
     assert.isTrue(await isRecordCardEnabled("Country"));
     await editRecordCard("Country");
     assert.isTrue(await driver.findWait(".test-raw-data-overlay", 100).isDisplayed());
-    assert.equal(await gu.getSectionTitle(), "COUNTRY Card");
+    assert.equal(await gu.getSectionTitle(3_000), "COUNTRY Card");
 
     // Check that it's possible again to open the Record Card from outside
     // the Raw Data page.
@@ -841,9 +842,9 @@ async function convertToSummary(...groupByColumns: string[]) {
   // Tab [Data]
   await driver.find(".test-config-data").click();
   // Edit Data Selection
-  await driver.find(".test-pwc-editDataSelection").click();
+  await driver.findWait(".test-pwc-editDataSelection", 500).click();
   // Σ
-  await driver.find(".test-wselect-pivot").click();
+  await driver.findWait(".test-wselect-pivot", 500).click();
   // Select Group-By Columns
   for (const c of groupByColumns) {
     await driver.findContent(".test-wselect-column", c).click();
@@ -884,6 +885,7 @@ async function openMenu(tableId: string) {
   const menus = await driver.findAll(".test-raw-data-table .test-raw-data-table-menu");
   assert.equal(menus.length, allTables.length);
   await menus[tableIndex].click();
+  await driver.wait(async () => await driver.find(".grist-floating-menu").isPresent());
 }
 
 async function waitForRawData() {
@@ -895,6 +897,7 @@ async function isRemovable(tableId: string) {
   await openMenu(tableId);
   const disabledItems = await driver.findAll(".test-raw-data-menu-remove-table.disabled");
   await gu.sendKeys(Key.ESCAPE);
+  await driver.wait(async () => !await driver.find(".grist-floating-menu").isPresent());
   return disabledItems.length === 0;
 }
 
