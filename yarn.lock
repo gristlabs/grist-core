@@ -171,10 +171,10 @@
     "@babel/helper-string-parser" "^7.27.1"
     "@babel/helper-validator-identifier" "^7.28.5"
 
-"@bazel/runfiles@^6.5.0":
-  version "6.5.0"
-  resolved "https://registry.yarnpkg.com/@bazel/runfiles/-/runfiles-6.5.0.tgz#63cf7b77b91b54873e75f7a08fabec215c6888be"
-  integrity sha512-RzahvqTkfpY2jsDxo8YItPX+/iZ6hbiikw1YhE0bA9EKBR5Og8Pa6FHn9PO9M0zaXRVsr0GFQLKbB/0rzy9SzA==
+"@bazel/runfiles@^6.3.1":
+  version "6.3.1"
+  resolved "https://registry.yarnpkg.com/@bazel/runfiles/-/runfiles-6.3.1.tgz#3f8824b2d82853377799d42354b4df78ab0ace0b"
+  integrity sha512-1uLNT5NZsUVIGS4syuHwTzZ8HycMPyr6POA3FCE4GbMtc4rhoJk8aZKtNIRthJYfL+iioppi+rTfH3olMPr9nA==
 
 "@cspotcode/source-map-support@^0.8.0":
   version "0.8.1"
@@ -6671,25 +6671,17 @@ mkdirp@^1.0.3, mkdirp@^1.0.4:
   resolved "https://registry.npmjs.org/mkdirp/-/mkdirp-1.0.4.tgz"
   integrity sha512-vVqVZQyf3WLx2Shd0qJ9xuvqgAyKPLAiqITEtqW0oIUjzo3PePDd6fW9iFz30ef7Ysp/oiWqbhszeGWW2T6Gzw==
 
-"mocha-webdriver@file:../mocha-webdriver":
+mocha-webdriver@0.3.4:
   version "0.3.4"
+  resolved "https://registry.yarnpkg.com/mocha-webdriver/-/mocha-webdriver-0.3.4.tgz#8fd98c39ab67660ef018237b68d32b07e38c0635"
+  integrity sha512-j5n3SJTXUMExjR8rEq1mcuY730tQfMqGN4Ncs6grR8LNfVIfwju8oWGeEGDocioL5LE0+kekh4mGR4fcECBlXg==
   dependencies:
     chai "^4.1.2"
     chai-as-promised "^7.1.1"
     fs-extra "^8.0.1"
-    mocha "^10.2.0"
+    mocha "^10.7.3"
     npm-run-path "^3.1.0"
-    selenium-webdriver "^4.40.0"
-
-"mocha-webdriver@file:./../mocha-webdriver/":
-  version "0.3.4"
-  dependencies:
-    chai "^4.1.2"
-    chai-as-promised "^7.1.1"
-    fs-extra "^8.0.1"
-    mocha "^10.2.0"
-    npm-run-path "^3.1.0"
-    selenium-webdriver "^4.40.0"
+    selenium-webdriver "^4.20.0"
 
 mocha@11.0.1:
   version "11.0.1"
@@ -6717,7 +6709,7 @@ mocha@11.0.1:
     yargs-parser "^20.2.9"
     yargs-unparser "^2.0.0"
 
-mocha@^10.2.0:
+mocha@^10.7.3:
   version "10.8.2"
   resolved "https://registry.yarnpkg.com/mocha/-/mocha-10.8.2.tgz#8d8342d016ed411b12a429eb731b825f961afb96"
   integrity sha512-VZlYo/WE8t1tstuRmqgeyBgCbJc/lEdopaa+axcKzTBJ+UIdlAB9XnmvTCAH4pwR4ElNInaedhEBmZD8iCSVEg==
@@ -8143,15 +8135,15 @@ select-hose@^2.0.0:
   resolved "https://registry.yarnpkg.com/select-hose/-/select-hose-2.0.0.tgz#625d8658f865af43ec962bfc376a37359a4994ca"
   integrity sha512-mEugaLK+YfkijB4fx0e6kImuJdCIt2LxCRcbEYPqRGCs4F2ogyfZU5IAZRdjCP8JPq2AtdNoC/Dux63d9Kiryg==
 
-selenium-webdriver@^4.40.0:
-  version "4.40.0"
-  resolved "https://registry.yarnpkg.com/selenium-webdriver/-/selenium-webdriver-4.40.0.tgz#2872adbb2d3cde87585f5ba863daf51c2521ca26"
-  integrity sha512-dU0QbnVKdPmoNP8OtMCazRdtU2Ux6Wl4FEpG1iwUbDeajJK1dBAywBLrC1D7YFRtogHzN96AbXBgBAJaarcysw==
+selenium-webdriver@^4.20.0:
+  version "4.27.0"
+  resolved "https://registry.yarnpkg.com/selenium-webdriver/-/selenium-webdriver-4.27.0.tgz#f0f26ce453805e7dc77151040442c67e441dbe7a"
+  integrity sha512-LkTJrNz5socxpPnWPODQ2bQ65eYx9JK+DQMYNihpTjMCqHwgWGYQnQTCAAche2W3ZP87alA+1zYPvgS8tHNzMQ==
   dependencies:
-    "@bazel/runfiles" "^6.5.0"
+    "@bazel/runfiles" "^6.3.1"
     jszip "^3.10.1"
-    tmp "^0.2.5"
-    ws "^8.18.3"
+    tmp "^0.2.3"
+    ws "^8.18.0"
 
 selfsigned@^2.4.1:
   version "2.4.1"
@@ -8981,7 +8973,7 @@ tmp-promise@3.0.3:
   dependencies:
     tmp "^0.2.0"
 
-tmp@0.2.5, tmp@^0.2.0, tmp@^0.2.5:
+tmp@0.2.5, tmp@^0.2.0, tmp@^0.2.3:
   version "0.2.5"
   resolved "https://registry.yarnpkg.com/tmp/-/tmp-0.2.5.tgz#b06bcd23f0f3c8357b426891726d16015abfd8f8"
   integrity sha512-voyz6MApa1rQGUxT3E+BK7/ROe8itEx7vD8/HEvt4xwXucvQ5G5oeEiHkmHZJuBO21RpOf+YYm9MOivj709jow==
@@ -9869,11 +9861,6 @@ ws@8.18.0, ws@^8.18.0:
   version "8.18.0"
   resolved "https://registry.yarnpkg.com/ws/-/ws-8.18.0.tgz#0d7505a6eafe2b0e712d232b42279f53bc289bbc"
   integrity sha512-8VbfWfHLbbwu3+N6OKsOMpBdT4kXPDDB9cJk2bJ6mh9ucxdlnNvH1e+roYkKmN9Nxw2yjz7VzeO9oOz2zJ04Pw==
-
-ws@^8.18.3:
-  version "8.19.0"
-  resolved "https://registry.yarnpkg.com/ws/-/ws-8.19.0.tgz#ddc2bdfa5b9ad860204f5a72a4863a8895fd8c8b"
-  integrity sha512-blAT2mjOEIi0ZzruJfIhb3nps74PRWTCz1IjglWEEpQl5XS/UNama6u2/rjFkDDouqr4L67ry+1aGIALViWjDg==
 
 ws@~8.17.1:
   version "8.17.1"
