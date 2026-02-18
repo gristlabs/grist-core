@@ -88,6 +88,7 @@ export class AirtableImport extends Disposable {
     "https://api.airtable.com/v0";
 
   private _authMethod = Observable.create<"oauth" | "pat" | null>(this, null);
+  private _isOAuthConfigured = Observable.create<boolean | null>(this, null);
   private _showPATInput = Observable.create(this, false);
   private _patToken = Observable.create(this, "");
   private _accessToken = Observable.create<string | null>(this, null);
@@ -208,16 +209,12 @@ export class AirtableImport extends Disposable {
 
   // Auth Dialog Component
   private _authDialog() {
-    // TODO: fetch getToken from server: if 401, no token, but if 400, then not configured so don't
-    // offer "Connect" button (but show that not configured).
-    const isOAuthConfigured = true;
-
     return cssNestedLinks(cssMainContent(
       dom("div", t("Connect your Airtable account to access your bases.")),
 
       dom.maybe(this._error, err => cssError(err)),
 
-      dom.maybe(use => !isOAuthConfigured && !use(this._showPATInput), () =>
+      dom.maybe(use => use(this._isOAuthConfigured) === false && !use(this._showPATInput), () =>
         cssWarning(
           cssWellTitle(t("Grist configuration required")),
           cssWellContent(t(`OAuth credentials not configured. Please set OAUTH_CLIENT_ID and \
@@ -230,7 +227,7 @@ OAUTH_CLIENT_SECRET, or use Personal Access Token.`)),
           return [
             bigPrimaryButton(
               dom.text(use => use(this._loadingToken) ? t("Connecting...") : t("Connect with Airtable")),
-              dom.prop("disabled", use => !isOAuthConfigured || use(this._loadingToken)),
+              dom.prop("disabled", use => !use(this._isOAuthConfigured) || use(this._loadingToken)),
               dom.on("click", this._handleOAuthLogin.bind(this)),
               testId("import-airtable-connect"),
             ),
@@ -515,20 +512,22 @@ Your token is never sent to Grist's servers, and is only used to make API calls 
     this._voidAsyncWork(async () => {
       try {
         const payload = await this._oauth2ClientsApi.fetchToken();
+        this._isOAuthConfigured.set(true);
         if (this.isDisposed()) { return; }
         this._handleTokenPayload(payload);
       } catch (err) {
         if (this.isDisposed()) { return; }
         this._accessToken.set(null);
         this._authMethod.set(null);
-        if (err.status === 400) {
-          // TODO: disable "Connect" button with a grey message "not configured". Not really a
-          // problem, totally fine for self-hosters to be in this state; the message is mainly for the
-          // admin to know that configuration IS possible.
+        if ([400, 404].includes(err.status)) {
+          // OAuth endpoint unavailable or integration not configured.
+          this._isOAuthConfigured.set(false);
         } else if (err.status === 401) {
           // No tokens. That's not an error!
+          this._isOAuthConfigured.set(true);
         } else {
           this._error.set(String(err));
+          this._isOAuthConfigured.set(true);
         }
       }
     }, { loading: this._loadingToken });
