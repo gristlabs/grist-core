@@ -63,7 +63,7 @@ class TableAttachmentTracker {
       onBatchComplete?(): void;
     } = {},
   ) {
-    const { maxConcurrentUploads = 5, updateRowsBatchSize = 100, onBatchComplete } = options;
+    const { maxConcurrentUploads = 5, updateRowsBatchSize = 25, onBatchComplete } = options;
 
     while (this._attachmentsForRecords.length > 0) {
       const attachmentsForRecords = this._attachmentsForRecords.splice(0, updateRowsBatchSize);
