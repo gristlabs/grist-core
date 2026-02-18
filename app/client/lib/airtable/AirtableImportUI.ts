@@ -600,6 +600,7 @@ Your token is never sent to Grist's servers, and is only used to make API calls 
           userApi: this._api,
           options: {
             existingDocId: this._existingDocId,
+            newDocName: this._base.get()!.name,
             transformations: {
               skipTableIds: this._skipTableIds.get(),
               mapExistingTableIds: this._mapExistingTableIds.get(),
