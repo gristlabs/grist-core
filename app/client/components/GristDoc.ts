@@ -30,6 +30,7 @@ import { makeT } from "app/client/lib/localization";
 import { createSessionObs } from "app/client/lib/sessionObs";
 import { logTelemetryEvent } from "app/client/lib/telemetry";
 import { setTestState } from "app/client/lib/testState";
+import { getLoginOrSignupUrl } from "app/client/lib/urlUtils";
 import { AppModel } from "app/client/models/AppModel";
 import BaseRowModel from "app/client/models/BaseRowModel";
 import DataTableModel from "app/client/models/DataTableModel";
@@ -609,7 +610,17 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       ...(this.appModel.experiments?.isEnabled("airtableImport") ?
         [{
           label: t("Import from Airtable"),
-          action: async () => (await loadAirtableImportUI()).startImport(),
+          action: async () => {
+            if (this.docPageModel.appModel.currentValidUser) {
+              (await loadAirtableImportUI()).startImport();
+            } else {
+              // Don't show the modal about unsaved changes; saving a document requires an
+              // account, and the redirect below should automatically save the document upon
+              // sign-up.
+              this.docPageModel.clearUnsavedChanges();
+              window.location.href = getLoginOrSignupUrl({ srcDocId: urlState().state.get().doc });
+            }
+          },
         }] :
         []
       ),

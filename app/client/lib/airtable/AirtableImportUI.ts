@@ -15,6 +15,7 @@ import { loadingSpinner } from "app/client/ui2018/loaders";
 import { menu, menuDivider, menuIcon, menuItem, menuText } from "app/client/ui2018/menus";
 import { cssModalBody, cssModalButtons, cssModalTitle, cssModalWidth, modal } from "app/client/ui2018/modals";
 import { BaseAPI } from "app/common/BaseAPI";
+import { addCurrentOrgToPath } from "app/common/urlUtils";
 
 import { Disposable, dom, DomElementArg, IDisposableOwner, Observable, styled } from "grainjs";
 
@@ -213,7 +214,8 @@ account with scopes that include at least **\`schema.bases:read\`** and **\`data
   }
 
   private _handleOAuthLogin() {
-    const authUrl = new URL("/oauth2/airtable/authorize", getHomeUrl());
+    const baseUrl = addCurrentOrgToPath(getHomeUrl());
+    const authUrl = `${baseUrl}/oauth2/airtable/authorize`;
     const lis = dom.onElem(window, "message", (event: Event) => {
       if ((event as MessageEvent).origin !== window.location.origin) {
         return;
@@ -304,7 +306,7 @@ class OAuth2ClientsAPI extends BaseAPI {
   private _homeUrl: string;   // Home URL, guaranteed to be without trailing slashes.
   constructor(homeUrl: string = getHomeUrl()) {
     super();
-    this._homeUrl = homeUrl.replace(/\/+$/, "");
+    this._homeUrl = addCurrentOrgToPath(homeUrl.replace(/\/+$/, ""));
   }
 
   public fetchToken(): Promise<TokenPayload> { return this.requestJson(`${this._homeUrl}/oauth2/airtable/token`); }

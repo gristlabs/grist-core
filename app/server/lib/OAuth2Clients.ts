@@ -21,13 +21,16 @@
  */
 import { ApiError } from "app/common/ApiError";
 import { safeJsonParse } from "app/common/gutil";
+import { User } from "app/common/User";
 import { appSettings } from "app/server/lib/AppSettings";
-import { RequestWithLogin } from "app/server/lib/Authorizer";
-import { SessionObj, SessionOIDCInfo } from "app/server/lib/BrowserSession";
+import { getAuthorizedUserId, RequestWithLogin } from "app/server/lib/Authorizer";
+import { SessionOIDCInfo, SessionUserObj } from "app/server/lib/BrowserSession";
 import { expressWrap, secureJsonErrorHandler } from "app/server/lib/expressWrap";
+import { GristServer } from "app/server/lib/GristServer";
 import log from "app/server/lib/log";
 import { ProtectionsManager } from "app/server/lib/oidc/Protections";
 import { agents } from "app/server/lib/ProxyAgent";
+import { stringParam } from "app/server/lib/requestUtils";
 
 import express from "express";
 import pick from "lodash/pick";
@@ -161,7 +164,7 @@ interface IntegrationSessionInfo {
   tokenSet?: TokenSet;
 }
 
-interface SessionObjWithOAuth extends SessionObj {
+interface SessionUserObjWithOAuth extends SessionUserObj {
   oauth2?: { [key: string]: IntegrationSessionInfo };
 }
 
@@ -172,8 +175,10 @@ const OAUTH2_ENDPOINTS = {
 };
 
 export class OAuth2Clients {
-  constructor() {
-    // Tell openid-client library to use the trused proxy agent if one is configured.
+  private _sessions = this._gristServer.getSessions();
+
+  constructor(private _gristServer: GristServer) {
+    // Tell openid-client library to use the trusted proxy agent if one is configured.
     if (agents.trusted) {
       openidClient.custom.setHttpOptionsDefaults({ agent: agents.trusted });
     }
@@ -185,16 +190,22 @@ export class OAuth2Clients {
   }
 
   public attachEndpoints(app: express.Express) {
+    const addRequestUser = this._gristServer.getUserIdMiddleware();
+
     /**
      * Redirect to the resource provider's authorization endpoint.
      */
-    app.get(OAUTH2_ENDPOINTS.authorize, expressWrap((req, res) => {
+    app.get(OAUTH2_ENDPOINTS.authorize, addRequestUser, expressWrap(async (req, res) => {
       try {
+        assertUserIsAuthorized(req);
         const { id, client, protections, scope } = this._getIntegration(req.params.integration);
-        const session = getRequiredSession(req);
-        const previousInfo = session.oauth2?.[id] || {};
+        const session = this._sessions.getOrCreateSessionFromRequest(req);
         const flowInfo = protections.generateSessionInfo();
-        session.oauth2 = { ...session.oauth2, [id]: { ...previousInfo, flow: flowInfo } };
+        await session.operateOnScopedSession(req, async (user: SessionUserObjWithOAuth) => {
+          const previousInfo = user.oauth2?.[id] || {};
+          user.oauth2 = { ...user.oauth2, [id]: { ...previousInfo, flow: flowInfo } };
+          return user;
+        });
         const authUrl = client.authorizationUrl({
           scope,
           ...protections.forgeAuthUrlParams(flowInfo),
@@ -213,13 +224,25 @@ export class OAuth2Clients {
      * Receive redirect back from resource provider, to complete authorization code flow and get
      * access tokens. Returns HTML to close the popup window and post back the credential.
      */
-    app.get(OAUTH2_ENDPOINTS.callback, expressWrap(async (req, res) => {
+    app.get(OAUTH2_ENDPOINTS.callback, addRequestUser, expressWrap(async (req, res) => {
+      assertUserIsAuthorized(req);
       const { id, name, client, protections, redirectUri } = this._getIntegration(req.params.integration);
       let payload = {};
       try {
         const params = client.callbackParams(req);
-        const session = getRequiredSession(req);
-        const flow = session.oauth2?.[id].flow;
+        const state = stringParam(params.state, "state");
+        const sessionUsers = getRequiredSessionUsers(req);
+        const sessionUser = sessionUsers.find(u => u.oauth2?.[id].flow?.state === state);
+        if (!sessionUser) {
+          throw new Error("Session expired");
+        }
+
+        const userSelector = sessionUser.profile?.email;
+        if (!userSelector) {
+          throw new Error("Session missing profile email");
+        }
+
+        const flow = sessionUser.oauth2?.[id].flow;
         if (!flow) { throw new Error(`Session missing ${name} info`); }
 
         // This is the verification critical to security.
@@ -228,7 +251,11 @@ export class OAuth2Clients {
         const tokenSet = await client.oauthCallback(redirectUri, params, checks);
 
         // Store the result in the session.
-        session.oauth2 = { ...session.oauth2, [id]: { tokenSet } };
+        const session = this._sessions.getOrCreateSession(req.sessionID, undefined, userSelector);
+        await session.operateOnScopedSession(req, async (user: SessionUserObjWithOAuth) => {
+          user.oauth2 = { ...user.oauth2, [id]: { tokenSet } };
+          return user;
+        });
         payload = pick(tokenSet, "access_token", "expires_at");
       } catch (e) {
         log.warn(`OAuth2 callback error: ${e.message}. Response`, e.response?.body);
@@ -245,11 +272,13 @@ export class OAuth2Clients {
      * Fetch access token if have one in the session, or 400 if integration is not configured, or
      * 401 if the token is missing or expired.
      */
-    app.get(OAUTH2_ENDPOINTS.token, expressWrap((req, res) => {
+    app.get(OAUTH2_ENDPOINTS.token, addRequestUser, expressWrap(async (req, res) => {
       log.warn(`REQ ${req.method} ${req.url} ${req.params.integration}`);
+      assertUserIsAuthorized(req);
       const { id, name } = this._getIntegration(req.params.integration);
-      const session = getRequiredSession(req);
-      const tokenSet = session.oauth2?.[id]?.tokenSet;
+      const session = this._sessions.getOrCreateSessionFromRequest(req);
+      const sessionUser: SessionUserObjWithOAuth = await session.getScopedSession(req.session);
+      const tokenSet = sessionUser.oauth2?.[id]?.tokenSet;
       if (!tokenSet) {
         throw new ApiError(`Not authorized with ${name}`, 401);
       }
@@ -264,11 +293,16 @@ export class OAuth2Clients {
     /**
      * Delete the token stored in the session, along with other session material for this integration.
      */
-    app.delete(OAUTH2_ENDPOINTS.token, expressWrap((req, res) => {
+    app.delete(OAUTH2_ENDPOINTS.token, addRequestUser, expressWrap(async (req, res) => {
+      assertUserIsAuthorized(req);
       const id = req.params.integration;
-      const session = getRequiredSession(req);
-      if (session.oauth2 && typeof id == "string") {
-        delete session.oauth2[id];
+      const session = this._sessions.getOrCreateSessionFromRequest(req);
+      const sessionUser: SessionUserObjWithOAuth = await session.getScopedSession(req.session);
+      if (sessionUser.oauth2?.[id] !== undefined) {
+        await session.operateOnScopedSession(req, async (user: SessionUserObjWithOAuth) => {
+          delete user.oauth2?.[id];
+          return user;
+        });
       }
       res.json(null);
     }));
@@ -286,10 +320,15 @@ export class OAuth2Clients {
   }
 }
 
-function getRequiredSession(req: express.Request): SessionObjWithOAuth {
+function assertUserIsAuthorized(req: express.Request): asserts req is RequestWithLogin & { user: User } {
+  getAuthorizedUserId(req);
+}
+
+function getRequiredSessionUsers(req: express.Request): SessionUserObjWithOAuth[] {
   const mreq = req as RequestWithLogin;
   if (!mreq.session) { throw new Error("no session available"); }
-  return mreq.session;
+
+  return mreq.session.users ?? [];
 }
 
 // This is a template for a HTML page served at the end of authorization to the popup window. It

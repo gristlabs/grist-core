@@ -21,7 +21,9 @@ describe("AirtableImport", function() {
   const cleanup = setupTestSuite();
   let oldEnv: testUtils.EnvironmentSnapshot;
   let mainSession: gu.Session;
+  let otherSession: gu.Session;
   let docId: string;
+  let otherDocId: string;
   let testHelperServer: http.Server;
   let testHelperServerUrl: string;
   let cancelNextOAuthRequest: boolean = false;
@@ -42,9 +44,6 @@ describe("AirtableImport", function() {
       },
     });
     await server.restart(false);
-
-    mainSession = await gu.session().teamSite.user("user1").login();
-    docId = await mainSession.tempNewDoc(cleanup, "AirtableImport", { load: false });
   });
 
   after(async function() {
@@ -165,67 +164,134 @@ describe("AirtableImport", function() {
     await driver.wait(async () => !(await driver.find(".test-modal-dialog").isPresent()), 3000);
   }
 
-  it("should go through oauth2 flow and fetch bases", async function() {
-    await mainSession.loadDoc(`/doc/${docId}`);
-    await driver.executeScript(() => { (window as any).setExperimentState("airtableImport", true); });
-    await gu.reloadDoc();
+  describe("when anonymous", function() {
+    before(async function() {
+      mainSession = await gu.session().anon.login();
+      await mainSession.loadDocMenu("/");
+      await driver.find(".test-intro-create-doc").click();
+      await gu.waitForDocToLoad();
+      await gu.dismissWelcomeTourIfNeeded();
+    });
 
-    await openAirtableDocImporter();
+    it("should redirect to sign-in page", async function() {
+      await driver.executeScript(() => { (window as any).setExperimentState("airtableImport", true); });
+      await gu.refreshDismiss({ ignore: true });
+      await driver.findWait(".test-dp-add-new", 2000).click();
+      await driver.findContentWait(".test-dp-import-option", /Import from Airtable/i, 500).click();
 
-    await driver.findWait(".test-import-airtable-connect:not(:disabled)", 2000).click();
+      await gu.checkLoginPage();
 
-    const bases = await driver.findWait(".test-import-airtable-bases", 2000);
-    assert.deepEqual(await bases.findAll(".test-import-airtable-name", el => el.getText()),
-      ["Product planning", "Sales CRM"]);
-    assert.deepEqual(await bases.findAll(".test-import-airtable-id", el => el.getText()),
-      ["appYovle0EAuu0OZE", "app04i02p1V0I1QvU"]);
+      await mainSession.loadDocMenu("/");
+      await driver.findWait(".test-dm-add-new", 2000).click();
+      await driver.findWait(".test-dm-import-from-airtable", 500).click();
 
-    await driver.findContent(".test-modal-dialog button", /Cancel/).click();
-    await waitForModalToClose();
+      await gu.checkLoginPage();
+    });
   });
 
-  it("should reuse access_token on repeat invocation", async function() {
-    await gu.reloadDoc();
-    await openAirtableDocImporter();
-    const bases = await driver.findWait(".test-import-airtable-bases", 2000);
-    assert.deepEqual(await bases.findAll(".test-import-airtable-name", el => el.getText()),
-      ["Product planning", "Sales CRM"]);
-    assert.deepEqual(await bases.findAll(".test-import-airtable-id", el => el.getText()),
-      ["appYovle0EAuu0OZE", "app04i02p1V0I1QvU"]);
+  describe("when signed in", function() {
+    before(async function() {
+      mainSession = await gu.session().teamSite.user("user1").login();
+      docId = await mainSession.tempNewDoc(cleanup, "AirtableImport", { load: false });
+    });
 
-    await driver.findContent(".test-modal-dialog button", /Cancel/).click();
-    await waitForModalToClose();
-  });
+    it("should go through oauth2 flow and fetch bases", async function() {
+      await mainSession.loadDoc(`/doc/${docId}`);
+      await driver.executeScript(() => { (window as any).setExperimentState("airtableImport", true); });
+      await gu.reloadDoc();
 
-  it("should allow disconnecting", async function() {
-    await openAirtableDocImporter();
-    await driver.findWait(".test-import-airtable-settings", 2000).click();
-    await gu.findOpenMenuItem("li", /Disconnect/).click();
-    await gu.waitForServer();
+      await openAirtableDocImporter();
 
-    // The "Connect" button should show up again.
-    assert.equal(await driver.findWait(".test-import-airtable-connect", 2000).isPresent(), true);
+      await driver.findWait(".test-import-airtable-connect:not(:disabled)", 2000).click();
 
-    // Reload the page. We should see the connect button again.
-    await gu.reloadDoc();
-    await openAirtableDocImporter();
-    assert.equal(await driver.findWait(".test-import-airtable-connect", 2000).isPresent(), true);
-  });
+      const bases = await driver.findWait(".test-import-airtable-bases", 2000);
+      assert.deepEqual(await bases.findAll(".test-import-airtable-name", el => el.getText()),
+        ["Product planning", "Sales CRM"]);
+      assert.deepEqual(await bases.findAll(".test-import-airtable-id", el => el.getText()),
+        ["appYovle0EAuu0OZE", "app04i02p1V0I1QvU"]);
 
-  it("should show error if oauth2 is canceled", async function() {
-    // Continue the previous test case: we already have the dialog open.
-    cancelNextOAuthRequest = true;
-    await driver.findWait(".test-import-airtable-connect:not(:disabled)", 2000).click();
-    assert.equal(await driver.findWait(".test-import-airtable-error", 2000).getText(),
-      "access_denied (The user denied the request)");   // This is not a very friendly error.
+      await driver.findContent(".test-modal-dialog button", /Cancel/).click();
+      await waitForModalToClose();
+    });
 
-    // Try again; this time, the request should succeed, and error should disappear.
-    cancelNextOAuthRequest = false;
-    await driver.findWait(".test-import-airtable-connect:not(:disabled)", 2000).click();
-    assert.equal(await driver.findWait(".test-import-airtable-error", 500).isPresent(), false);
+    it("should reuse access_token on repeat invocation", async function() {
+      await gu.reloadDoc();
+      await openAirtableDocImporter();
+      const bases = await driver.findWait(".test-import-airtable-bases", 2000);
+      assert.deepEqual(await bases.findAll(".test-import-airtable-name", el => el.getText()),
+        ["Product planning", "Sales CRM"]);
+      assert.deepEqual(await bases.findAll(".test-import-airtable-id", el => el.getText()),
+        ["appYovle0EAuu0OZE", "app04i02p1V0I1QvU"]);
 
-    await driver.findContent(".test-modal-dialog button", /Cancel/).click();
-    await waitForModalToClose();
+      await driver.findContent(".test-modal-dialog button", /Cancel/).click();
+      await waitForModalToClose();
+    });
+
+    it("should associate access_token with a user", async function() {
+      otherSession = await gu.session().personalSite.user("user2").addLogin();
+      otherDocId = await otherSession.tempNewDoc(cleanup, "AirtableImport2");
+      await driver.executeScript(() => { (window as any).setExperimentState("airtableImport", true); });
+      await gu.reloadDoc();
+
+      await openAirtableDocImporter();
+
+      await driver.findWait(".test-import-airtable-connect:not(:disabled)", 2000).click();
+      const bases = await driver.findWait(".test-import-airtable-bases", 2000);
+      assert.deepEqual(await bases.findAll(".test-import-airtable-name", el => el.getText()),
+        ["Product planning", "Sales CRM"]);
+      assert.deepEqual(await bases.findAll(".test-import-airtable-id", el => el.getText()),
+        ["appYovle0EAuu0OZE", "app04i02p1V0I1QvU"]);
+
+      await driver.findContent(".test-modal-dialog button", /Cancel/).click();
+      await waitForModalToClose();
+    });
+
+    it("should allow disconnecting", async function() {
+      await mainSession.loadDoc(`/doc/${docId}`);
+      await openAirtableDocImporter();
+      await driver.findWait(".test-import-airtable-settings", 2000).click();
+      await gu.findOpenMenuItem("li", /Disconnect/).click();
+      await gu.waitForServer();
+
+      // The "Connect" button should show up again.
+      assert.equal(await driver.findWait(".test-import-airtable-connect", 2000).isPresent(), true);
+
+      // Reload the page. We should see the connect button again.
+      await gu.reloadDoc();
+      await openAirtableDocImporter();
+      assert.equal(await driver.findWait(".test-import-airtable-connect", 2000).isPresent(), true);
+
+      // Check that the other session is still connected.
+      await otherSession.loadDoc(`/doc/${otherDocId}`);
+      await openAirtableDocImporter();
+      const bases = await driver.findWait(".test-import-airtable-bases", 2000);
+      assert.deepEqual(await bases.findAll(".test-import-airtable-name", el => el.getText()),
+        ["Product planning", "Sales CRM"]);
+      assert.deepEqual(await bases.findAll(".test-import-airtable-id", el => el.getText()),
+        ["appYovle0EAuu0OZE", "app04i02p1V0I1QvU"]);
+
+      await driver.findContent(".test-modal-dialog button", /Cancel/).click();
+      await waitForModalToClose();
+    });
+
+    it("should show error if oauth2 is canceled", async function() {
+      await mainSession.loadDoc(`/doc/${docId}`);
+      await openAirtableDocImporter();
+      cancelNextOAuthRequest = true;
+      await driver.findWait(".test-import-airtable-connect:not(:disabled)", 2000).click();
+      assert.equal(await driver.findWait(".test-import-airtable-error", 2000).getText(),
+        "access_denied (The user denied the request)");   // This is not a very friendly error.
+
+      // Try again; this time, the request should succeed, and error should disappear.
+      cancelNextOAuthRequest = false;
+      await driver.findWait(".test-import-airtable-connect:not(:disabled)", 2000).click();
+      await gu.waitToPass(async () => {
+        assert.isFalse(await driver.find(".test-import-airtable-error").isPresent());
+      }, 2000);
+
+      await driver.findContent(".test-modal-dialog button", /Cancel/).click();
+      await waitForModalToClose();
+    });
   });
 });
 
