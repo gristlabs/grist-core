@@ -223,7 +223,8 @@ describe("RawData", function() {
     await gu.waitForServer();
     await gu.getCell(2, 9).click();
     await driver.sendKeys("123456789");
-    await gu.reloadDoc();
+    await gu.refreshDismiss();
+    await gu.waitForDocToLoad();
     assert.isTrue(await driver.findWait(".test-raw-data-overlay", 100).isDisplayed());
     await gu.checkTextEditor(gu.exactMatch("123456789"));
     // Close editor.

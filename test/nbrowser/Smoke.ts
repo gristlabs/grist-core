@@ -43,7 +43,7 @@ describe("Smoke", function() {
     await gu.pressKeysOnCell("3");
     await driver.wait(() => driver.find(".cell_editor").isDisplayed(), 1000);
     await gu.pressKeysOnCell("21");
-    await gu.reloadDoc();
+    await gu.refreshDismiss({ ignore: true });
     assert.equal(await gu.getCell("A", 1).getText(), "123");
   });
 });
