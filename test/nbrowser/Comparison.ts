@@ -25,7 +25,7 @@ describe("Comparison", function() {
     // Make a fork of the document with a change.
     await mainSession.loadDoc(`/doc/${doc.id}/m/fork`);
     await gu.getCell({ rowNum: 1, col: 0 }).click();
-    await gu.enterCell("123");
+    await gu.enterCell(["123"]);
     await gu.waitForServer();
     assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), "123");
     const forkId = await gu.getCurrentUrlId();
@@ -76,7 +76,7 @@ describe("Comparison", function() {
 
     // Change a cell
     await gu.getCell({ rowNum: 1, col: 1 }).click();
-    await gu.enterCell("800");
+    await gu.enterCell(["800"]);
     await gu.waitForServer();
 
     // Remove a row
@@ -85,7 +85,7 @@ describe("Comparison", function() {
     // Add a row
     await (await gu.openRowMenu(5)).findContent("li", /Insert row above/).click();
     await gu.waitForServer();
-    await gu.enterCell("Unicorny");
+    await gu.enterCell(["Unicorny"]);
     await gu.waitForServer();
 
     const forkId = await gu.getCurrentUrlId();
@@ -106,10 +106,10 @@ describe("Comparison", function() {
     await mainSession.loadDoc(`/doc/${forkId}`);
     await gu.getPageItem("Performances").click();
     await gu.getCell({ rowNum: 1, col: "Film" }).click();
-    await gu.enterCell("The Avengers");
+    await gu.enterCell(["The Avengers"]);
     await gu.waitForServer();
     await gu.getCell({ rowNum: 2, col: "Film" }).click();
-    await gu.enterCell("Unicorny");
+    await gu.enterCell(["Unicorny"]);
     await gu.waitForServer();
 
     // Check that reference changes are visible, including one as an effect of
@@ -143,7 +143,7 @@ describe("Comparison", function() {
 
       // Change a cell
       await gu.getCell({ rowNum: 1, col: 1 }).click();
-      await gu.enterCell("800");
+      await gu.enterCell(["800"]);
       await gu.waitForServer();
 
       // Remove a row
@@ -152,16 +152,16 @@ describe("Comparison", function() {
       // Add a row
       await (await gu.openRowMenu(5)).findContent("li", /Insert row above/).click();
       await gu.waitForServer();
-      await gu.enterCell("Unicorny");
+      await gu.enterCell(["Unicorny"]);
       await gu.waitForServer();
 
       // Now change some references.
       await gu.getPageItem("Performances").click();
       await gu.getCell({ rowNum: 1, col: "Film" }).click();
-      await gu.enterCell("The Avengers");
+      await gu.enterCell(["The Avengers"]);
       await gu.waitForServer();
       await gu.getCell({ rowNum: 2, col: "Film" }).click();
-      await gu.enterCell("Unicorny");
+      await gu.enterCell(["Unicorny"]);
       await gu.waitForServer();
 
       const forkId = await gu.getCurrentUrlId();
@@ -171,7 +171,7 @@ describe("Comparison", function() {
 
       // Change a cell
       await gu.getCell({ rowNum: 2, col: 1 }).click();
-      await gu.enterCell("400");
+      await gu.enterCell(["400"]);
       await gu.waitForServer();
 
       // Remove a row
@@ -180,19 +180,19 @@ describe("Comparison", function() {
       // Add a row
       await (await gu.openRowMenu(2)).findContent("li", /Insert row above/).click();
       await gu.waitForServer();
-      await gu.enterCell("Pegasusy");
+      await gu.enterCell(["Pegasusy"]);
       await gu.waitForServer();
 
       // Now change some references.
       await gu.getPageItem("Performances").click();
       await gu.getCell({ rowNum: 4, col: "Film" }).click();
-      await gu.enterCell("Pegasusy");
+      await gu.enterCell(["Pegasusy"]);
       await gu.waitForServer();
       await gu.removeRow(3);
       await (await gu.openRowMenu(10)).findContent("li", /Insert row above/).click();
       await gu.waitForServer();
       await gu.getCell({ rowNum: 10, col: "Film" }).click();
-      await gu.enterCell("The Dark Knight");
+      await gu.enterCell(["The Dark Knight"]);
       await gu.waitForServer();
 
       // Check that comparing original with changed doc results in a difference.
@@ -313,7 +313,7 @@ describe("Comparison", function() {
     // Set some cells.
     for (let rowNum = 1; rowNum <= 4; rowNum++) {
       await gu.getCell({ rowNum, col: 1 }).click();
-      await gu.enterCell("V0");
+      await gu.enterCell(["V0"]);
     }
     await gu.waitForServer();
 
@@ -322,18 +322,18 @@ describe("Comparison", function() {
 
     // Change two of the cells.
     await gu.getCell({ rowNum: 1, col: 1 }).click();
-    await gu.enterCell("V1");
+    await gu.enterCell(["V1"]);
     await gu.getCell({ rowNum: 2, col: 1 }).click();
-    await gu.enterCell("V1");
+    await gu.enterCell(["V1"]);
     await gu.waitForServer();
 
     // Change two cells in trunk.
     const forkId = await gu.getCurrentUrlId();
     await mainSession.loadDoc(`/doc/${doc.id}`, { skipAlert: true });
     await gu.getCell({ rowNum: 2, col: 1 }).click();
-    await gu.enterCell("V2");
+    await gu.enterCell(["V2"]);
     await gu.getCell({ rowNum: 3, col: 1 }).click();
-    await gu.enterCell("V2");
+    await gu.enterCell(["V2"]);
     await gu.waitForServer();
 
     // Load comparison, and sanity-check it.
@@ -366,7 +366,7 @@ describe("Comparison", function() {
 
     // Set a cell to some text.
     await gu.getCell({ rowNum: 1, col: 1 }).click();
-    await gu.enterCell("This is some cell content");
+    await gu.enterCell(["This is some cell content"]);
     await gu.waitForServer();
 
     // Wrap text to make it all visible.
@@ -380,7 +380,7 @@ describe("Comparison", function() {
 
     // Change cell a bit more.
     await gu.getCell({ rowNum: 1, col: 1 }).click();
-    await gu.enterCell("This is some cell content!");
+    await gu.enterCell(["This is some cell content!"]);
     await gu.waitForServer();
 
     const forkId = await gu.getCurrentUrlId();
@@ -400,7 +400,7 @@ describe("Comparison", function() {
 
     // Set a cell to some text.
     await gu.getCell({ rowNum: 1, col: 1 }).click();
-    await gu.enterCell("test1");
+    await gu.enterCell(["test1"]);
     await gu.waitForServer();
 
     // Make a fork of the document.
@@ -408,7 +408,7 @@ describe("Comparison", function() {
 
     // Change cell a bit more.
     await gu.getCell({ rowNum: 1, col: 1 }).click();
-    await gu.enterCell("test2");
+    await gu.enterCell(["test2"]);
     await gu.waitForServer();
 
     // And rename the table.
@@ -446,7 +446,7 @@ describe("Comparison", function() {
     await gu.waitToPass(async () => assert.equal(await driver.find(".field_clip.has_cursor").getText(), "Dublin"));
     await driver.sendKeys(Key.ESCAPE);
     await driver.sleep(500);
-    await gu.enterCell("Baile Átha Cliath");
+    await gu.enterCell(["Baile Átha Cliath"]);
     await gu.waitForServer();
 
     await driver.find(".test-tb-share").click();

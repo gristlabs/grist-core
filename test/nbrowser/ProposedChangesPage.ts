@@ -55,7 +55,7 @@ describe("ProposedChangesPage", function() {
     // Put something known in the first cell.
     await gu.getCell("A", 1).click();
     await gu.waitAppFocus();
-    await gu.enterCell("test1");
+    await gu.enterCell(["test1"]);
 
     // Work on a copy.
     await driver.find(".test-tb-share").click();
@@ -66,7 +66,7 @@ describe("ProposedChangesPage", function() {
     // Change the content of the first cell.
     await gu.getCell("A", 1).click();
     await gu.waitAppFocus();
-    await gu.enterCell("test2");
+    await gu.enterCell(["test2"]);
 
     // Go to the propose-changes page.
     assert.equal(await driver.find(".test-tools-proposals").getText(),
@@ -153,7 +153,7 @@ describe("ProposedChangesPage", function() {
     // Make a change.
     await gu.getCell("B", 1).click();
     await gu.waitAppFocus();
-    await gu.enterCell("Bird");
+    await gu.enterCell(["Bird"]);
 
     await proposeChange();
 
@@ -161,14 +161,14 @@ describe("ProposedChangesPage", function() {
     await workOnCopy(url);
     await gu.getCell("B", 2).click();
     await gu.waitAppFocus();
-    await gu.enterCell("Mammal");
+    await gu.enterCell(["Mammal"]);
     await proposeChange();
 
     // Work on another copy and propose a different change.
     await workOnCopy(url);
     await gu.getCell("B", 3).click();
     await gu.waitAppFocus();
-    await gu.enterCell("SpaceDuck");
+    await gu.enterCell(["SpaceDuck"]);
     await proposeChange();
 
     // Click on the "original document" to see how things are there now.
@@ -228,7 +228,7 @@ describe("ProposedChangesPage", function() {
     // Make a change.
     await gu.getCell("B", 1).click();
     await gu.waitAppFocus();
-    await gu.enterCell("Bird");
+    await gu.enterCell(["Bird"]);
 
     await proposeChange();
 
@@ -284,7 +284,7 @@ describe("ProposedChangesPage", function() {
     // Make a change.
     await gu.getCell("B", 1).click();
     await gu.waitAppFocus();
-    await gu.enterCell("Bird");
+    await gu.enterCell(["Bird"]);
 
     assert.equal(await driver.find(".test-tools-proposals").getText(),
       "Suggest changes (1)");
@@ -292,7 +292,7 @@ describe("ProposedChangesPage", function() {
     // Make another change.
     await gu.getCell("A", 2).click();
     await gu.waitAppFocus();
-    await gu.enterCell("15");
+    await gu.enterCell(["15"]);
 
     assert.equal(await driver.find(".test-tools-proposals").getText(),
       "Suggest changes (2)");
@@ -320,7 +320,7 @@ describe("ProposedChangesPage", function() {
     await gu.openPage("Life");
     await gu.getCell("A", 1).click();
     await gu.waitAppFocus();
-    await gu.enterCell("13");
+    await gu.enterCell(["13"]);
     assert.equal(await driver.find(".test-tools-proposals").getText(),
       "Suggest changes (1)");
     assert.notInclude(await driver.find(".test-undo").getAttribute("class"), "-disable");
@@ -334,12 +334,12 @@ describe("ProposedChangesPage", function() {
     await gu.openPage("Life");
     await gu.getCell("A", 1).click();
     await gu.waitAppFocus();
-    await gu.enterCell("1");
+    await gu.enterCell(["1"]);
 
     await driver.get(forkUrl);
     await gu.getCell("A", 1).click();
     await gu.waitAppFocus();
-    await gu.enterCell("99");
+    await gu.enterCell(["99"]);
     assert.equal(await driver.find(".test-tools-proposals").getText(),
       "Suggest changes (1)");
     await proposeChange();
@@ -348,7 +348,7 @@ describe("ProposedChangesPage", function() {
     await gu.openPage("Life");
     await gu.getCell("A", 1).click();
     await gu.waitAppFocus();
-    await gu.enterCell("999");
+    await gu.enterCell(["999"]);
     assert.equal(await driver.find(".test-tools-proposals").getText(),
       "Suggest changes (1)");
     await proposeChange();
@@ -378,13 +378,13 @@ describe("ProposedChangesPage", function() {
     // Make a change to the Life table.
     await gu.getCell("B", 1).click();
     await gu.waitAppFocus();
-    await gu.enterCell("Bird");
+    await gu.enterCell(["Bird"]);
 
     // Make a change to the Plants table.
     await gu.openPage("Plants");
     await gu.getCell("Type", 1).click();
     await gu.waitAppFocus();
-    await gu.enterCell("Deciduous Tree");
+    await gu.enterCell(["Deciduous Tree"]);
 
     // Check that the count shows 2 changes
     assert.equal(await driver.find(".test-tools-proposals").getText(),
@@ -461,7 +461,7 @@ describe("ProposedChangesPage", function() {
     await gu.getCell("Habitat", 1).click();
 
     await gu.waitAppFocus();
-    await gu.enterCell("Desert");
+    await gu.enterCell(["Desert"]);
 
     // Check that the count shows 1 change
     assert.equal(await driver.find(".test-tools-proposals").getText(),
@@ -527,9 +527,9 @@ describe("ProposedChangesPage", function() {
     // Change the reference list for Fish: remove Forest, add Desert and Arctic
     await gu.getCell("Habitats", 1).click();
     await gu.waitAppFocus();
-    await gu.enterCell("Ocean");
-    await gu.enterCell("Desert");
-    await gu.enterCell("Arctic");
+    await gu.enterCell(["Ocean"]);
+    await gu.enterCell(["Desert"]);
+    await gu.enterCell(["Arctic"]);
     await driver.sendKeys(Key.ENTER);
     await gu.waitForServer();
 
@@ -672,7 +672,7 @@ describe("ProposedChangesPage", function() {
     await gu.waitAppFocus();
 
     // Add existing reference
-    await gu.enterCell("Ocean");
+    await gu.enterCell(["Ocean"]);
 
     // Add a new reference by typing and clicking "add new"
     await driver.sendKeys("Desert");
@@ -751,7 +751,7 @@ describe("ProposedChangesPage", function() {
     await gu.openPage("Life");
     await gu.getCell("B", 1).click();
     await gu.waitAppFocus();
-    await gu.enterCell("Fizh");
+    await gu.enterCell(["Fizh"]);
 
     // Go to the propose-changes page.
     await driver.find(".test-tools-proposals").click();

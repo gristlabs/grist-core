@@ -72,7 +72,7 @@ describe("MultiColumn", function() {
       await gu.openColumnPanel();
       // Should be able to change type.
       await gu.getDetailCell("Test1", 1);
-      await gu.enterCell("aa");
+      await gu.enterCell(["aa"]);
       await gu.setType("Integer", { apply: true });
       assert.equal(await gu.getType(), "Integer");
     });
@@ -83,9 +83,9 @@ describe("MultiColumn", function() {
       await selectColumns("Test1", "Test2");
       await gu.setType("Reference");
       await gu.getCell("Test1", 1).click();
-      await gu.enterCell("Table1", Key.ENTER);
+      await gu.enterCell(["Table1", Key.ENTER]);
       await gu.getCell("Test2", 3).click();
-      await gu.enterCell("Table1", Key.ENTER);
+      await gu.enterCell(["Table1", Key.ENTER]);
       await selectColumns("Test1", "Test2");
       await gu.openCellColorPicker();
       await gu.setFillColor(blue);
@@ -182,9 +182,9 @@ describe("MultiColumn", function() {
       assert.equal(await alignment(), "left");
 
       // Make them all data columns
-      await gu.getCell("Test1", 1).click(); await gu.enterCell("a");
-      await gu.getCell("Test2", 1).click(); await gu.enterCell("a");
-      await gu.getCell("Test3", 1).click(); await gu.enterCell("a");
+      await gu.getCell("Test1", 1).click(); await gu.enterCell(["a"]);
+      await gu.getCell("Test2", 1).click(); await gu.enterCell(["a"]);
+      await gu.getCell("Test3", 1).click(); await gu.enterCell(["a"]);
       await selectColumns("Test1", "Test3");
       assert.equal(await gu.columnBehavior(), "Data columns");
       await selectColumns("Test1");
