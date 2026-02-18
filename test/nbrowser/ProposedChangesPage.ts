@@ -527,10 +527,7 @@ describe("ProposedChangesPage", function() {
     // Change the reference list for Fish: remove Forest, add Desert and Arctic
     await gu.getCell("Habitats", 1).click();
     await gu.waitAppFocus();
-    await gu.enterCell(["Ocean"]);
-    await gu.enterCell(["Desert"]);
-    await gu.enterCell(["Arctic"]);
-    await driver.sendKeys(Key.ENTER);
+    await gu.enterCell(["Ocean", Key.ENTER, "Desert", Key.ENTER, "Arctic", Key.ENTER, Key.ENTER]);
     await gu.waitForServer();
 
     // Check that the count shows 1 change
