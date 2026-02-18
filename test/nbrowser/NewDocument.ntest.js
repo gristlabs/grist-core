@@ -139,12 +139,10 @@ describe("NewDocument.ntest", function() {
         // should clear a single cell
         var cell_1_a = gu.getCellRC(0, 0);
         await cell_1_a.click();
-        await gu.sendKeys("A1", $.ENTER);
-        await gu.waitForServer();
+        await gu.enterCell(["A1", $.ENTER]);
         assert.equal(await cell_1_a.text(), "A1");
         await cell_1_a.click();
-        await gu.sendKeys(delKey);
-        await gu.waitForServer();
+        await gu.pressKeysOnCell(delKey);
         assert.equal(await cell_1_a.text(), "");
 
         // should clear a selection of cells
