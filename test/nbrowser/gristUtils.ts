@@ -688,11 +688,18 @@ namespace gristUtils {
    * Display the active cell editor and type keys in it, then hit Enter to save, and wait for the server.
    * If the last key is TAB or ENTER, we assume the cell is already taken out of editing
    * mode, and don't send another ENTER.
+   *
+   * @param options
+   * @param options.clear Whether the existing content of the cell should be cleared
    */
-  export async function enterCell(...keys: string[]) {
+  export async function enterCell(
+    keys: string[],
+    options: { clear?: boolean, validate?: boolean } = {},
+  ) {
+    const { clear = true, validate = true } = options;
     const lastKey = keys.at(-1);
     // If the caller has not requested
-    if (![Key.ENTER, Key.TAB].includes(lastKey!)) {
+    if (![Key.ENTER, Key.TAB].includes(lastKey!) && validate) {
       keys.push(Key.ENTER);
     }
     // Press enter to display the editor
@@ -700,7 +707,10 @@ namespace gristUtils {
     // Wait for the editor to appear
     await driver.wait(() => driver.find(".cell_editor").isDisplayed(), 1000);
     // Select the content (so it is cleared) and press the keys requested by the caller
-    await sendKeys(await selectAllKey(), ...keys);
+    await sendKeys(
+      ...(clear ? [await selectAllKey(), Key.BACK_SPACE] : []),
+      ...keys,
+    );
     await waitForServer();    // Wait for the value to be saved
   }
 
@@ -787,7 +797,7 @@ namespace gristUtils {
       // Enter all values, advancing with a TAB
       for (const value of rowsOfValues[i]) {
         if (value) {
-          await enterCell(value, Key.TAB);
+          await enterCell([value, Key.TAB]);
         } else {
           await pressKeysOnCell(Key.DELETE, Key.TAB);
         }

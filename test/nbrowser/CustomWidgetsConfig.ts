@@ -481,7 +481,7 @@ describe("CustomWidgetsConfig", function() {
     await gu.selectSectionByTitle("Table");
     await gu.addColumn("B");
     await gu.getCell("B", 1).click();
-    await gu.enterCell("99");
+    await gu.enterCell(["99"]);
     await gu.addColumn("C");
     await gu.selectSectionByTitle("Widget");
     // Column M1 should be mappable to all 3, column M4 only to A and C
@@ -553,7 +553,7 @@ describe("CustomWidgetsConfig", function() {
     await gu.selectSectionByTitle("Table");
     await gu.addColumn("B");
     await gu.getCell("B", 1).click();
-    await gu.enterCell("99");
+    await gu.enterCell(["99"]);
     await gu.addColumn("C");
     await gu.selectSectionByTitle("Widget");
     await widget.waitForPendingRequests();

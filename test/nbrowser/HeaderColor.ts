@@ -44,9 +44,9 @@ describe("HeaderColor", function() {
 
   it("should save by clicking away", async function() {
     // add records
-    await gu.enterCell("a");
-    await gu.enterCell("b");
-    await gu.enterCell("c");
+    await gu.enterCell(["a"]);
+    await gu.enterCell(["b"]);
+    await gu.enterCell(["c"]);
     await gu.toggleSidePanel("right", "open");
     await driver.find(".test-right-tab-field").click();
 
