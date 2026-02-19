@@ -77,6 +77,16 @@ export interface Organization extends OrganizationWithoutAccessInfo {
   access: roles.Role;
 }
 
+// This type is for billing account status information.  Intended for stuff
+// like "free trial running out in N days".
+export interface BillingAccountStatus {
+  stripeStatus?: string;
+  currentPeriodStart?: string;
+  currentPeriodEnd?: string;
+  // Used only for tests
+  message?: string;
+}
+
 // Basic information about a billing account associated with an org or orgs.
 export interface BillingAccount {
   id: number;
@@ -85,6 +95,7 @@ export interface BillingAccount {
   stripePlanId: string; // Stripe price id.
   isManager: boolean;
   inGoodStanding: boolean;
+  status?: BillingAccountStatus;
   features?: Features; // Features override, not the final set of features.
   externalOptions?: {
     invoiceId?: string;

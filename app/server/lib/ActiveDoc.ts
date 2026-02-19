@@ -416,7 +416,7 @@ export class ActiveDoc extends EventEmitter {
       const { gracePeriodStart, workspace, usage } = _options.doc;
       const billingAccount = workspace.org.billingAccount;
       this._product = billingAccount?.product;
-      this._features = billingAccount?.getFeatures();
+      this._features = billingAccount?.getEffectiveFeatures();
       this._gracePeriodStart = gracePeriodStart;
 
       if (billingAccount) {

@@ -370,7 +370,7 @@ describe("HomeDBManager", function() {
     const readDoc = await home.getDoc({ userId, urlId: addedDoc.urlId! });
 
     // Check that the doc has the expected features.
-    assert.equal(readDoc.workspace.org.billingAccount.getFeatures().maxDocsPerOrg, 2);
+    assert.equal(readDoc.workspace.org.billingAccount.getEffectiveFeatures().maxDocsPerOrg, 2);
 
     // Add an override on the billing account level.
     await home.updateBillingAccount({ userId }, orgId, async (ba, tx) => {
@@ -379,20 +379,20 @@ describe("HomeDBManager", function() {
 
     // Reread the doc and check that it has the updated features.
     const updatedDoc = await home.getDoc({ userId, urlId: addedDoc.urlId! });
-    assert.equal(updatedDoc.workspace.org.billingAccount.getFeatures().maxDocsPerOrg, 3);
+    assert.equal(updatedDoc.workspace.org.billingAccount.getEffectiveFeatures().maxDocsPerOrg, 3);
 
     // Now open this document as fork.
     const forkId = `${addedDoc.id}~${uuidv4()}~${userId}`;
     const forkedRead = await home.getDoc({ userId, urlId: forkId });
 
     // Check that the forked document has the same features as the original.
-    assert.equal(forkedRead.workspace.org.billingAccount.getFeatures().maxDocsPerOrg, 3);
+    assert.equal(forkedRead.workspace.org.billingAccount.getEffectiveFeatures().maxDocsPerOrg, 3);
 
     // Create a new document using the NEW_DOCUMENT_CODE
     const newId = `${NEW_DOCUMENT_CODE}~${uuidv4()}~${userId}`;
     const newRead = await home.getDoc({ userId, urlId: newId });
     // Check that the new document has the same features as the original.
-    assert.deepEqual(newRead.workspace.org.billingAccount.getFeatures(), getAnonymousFeatures());
+    assert.deepEqual(newRead.workspace.org.billingAccount.getEffectiveFeatures(), getAnonymousFeatures());
 
     // Open document using share key.
     const share = new Share();
@@ -404,7 +404,7 @@ describe("HomeDBManager", function() {
 
     const shareRead = await home.getDoc({ userId, urlId: `${SHARE_KEY_PREFIX}${share.key}` });
     // Check that the share document has the same features as the original.
-    assert.equal(shareRead.workspace.org.billingAccount.getFeatures().maxDocsPerOrg, 3);
+    assert.equal(shareRead.workspace.org.billingAccount.getEffectiveFeatures().maxDocsPerOrg, 3);
 
     // Remove the override.
     await home.updateBillingAccount({ userId }, orgId, async (ba, tx) => {
@@ -413,7 +413,7 @@ describe("HomeDBManager", function() {
 
     // Reread the doc and check that it has the original features.
     const finalDoc = await home.getDoc({ userId, urlId: addedDoc.urlId! });
-    assert.equal(finalDoc.workspace.org.billingAccount.getFeatures().maxDocsPerOrg, 2);
+    assert.equal(finalDoc.workspace.org.billingAccount.getEffectiveFeatures().maxDocsPerOrg, 2);
   });
 
   it("can fork docs", async function() {

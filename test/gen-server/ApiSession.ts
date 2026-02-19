@@ -72,7 +72,10 @@ describe("ApiSession", function() {
       paymentLink: null,
       isManager: true,
       paid: false,
-      features: null,
+      features: {
+        workspaces: true,
+        vanityDomain: true,
+      },
       stripePlanId: null,
       product: {
         id: 1,
