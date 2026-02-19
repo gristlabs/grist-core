@@ -115,7 +115,7 @@ describe("OnDemand", function() {
 
     // Add a record to column A of the new table. This also tests a bug with adding records to
     // a previously empty formula column of an on-demand table.
-    await gu.enterCell(["hello"]);
+    await gu.enterCell("hello");
     assert.deepEqual(await gu.getVisibleGridCells({ cols: [0, 1, 2], rowNums: [1] }), [
       "hello", "", ""]);
 
@@ -167,10 +167,10 @@ describe("OnDemand", function() {
 
     // Update individual records in the table.
     await gu.getCell(1, 2).click();
-    await gu.enterCell(["dog"]);
+    await gu.enterCell("dog");
     await gu.waitForServer();
     await gu.getCell(0, 3).click();
-    await gu.enterCell(["lazy"]);
+    await gu.enterCell("lazy");
     await gu.waitForServer();
     assert.deepEqual(await gu.getVisibleGridCells({ cols: [0, 1, 2], rowNums: [1, 2, 3] }), [
       "hello", "brown",  "",
@@ -246,8 +246,8 @@ describe("OnDemand", function() {
   it("should always add records at the end", async function() {
     // Add rows in a bunch of different locations and assert their positions.
     await gu.getCell(0, 4).click();
-    await gu.enterCell(["1"]);
-    await gu.enterCell(["2"]);
+    await gu.enterCell("1");
+    await gu.enterCell("2");
     assert.deepEqual(await gu.getVisibleGridCells({ cols: [0, 1, 2], rowNums: [1, 2, 3, 4, 5] }), [
       "hello", "brown",  "",
       "the",   "fox",    "",
@@ -299,10 +299,10 @@ describe("OnDemand", function() {
     await gu.waitAppFocus(true);
     // Add values to the new columns and make sure no errors arise.
     await gu.getCell(3, 1).click();
-    await gu.enterCell(["abcd"]);
+    await gu.enterCell("abcd");
     await gu.waitForServer();
     await gu.waitAppFocus(true);
-    await gu.enterCell(["defg"]);
+    await gu.enterCell("defg");
     await gu.waitAppFocus(true);
     assert.deepEqual(await gu.getVisibleGridCells({ cols: [0, 1, 2, 3], rowNums: [1, 2, 3] }), [
       "hello", "brown",  "", "abcd",

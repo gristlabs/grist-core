@@ -96,7 +96,7 @@ describe("NumericEditor", function() {
         for (const [i, entry] of Object.entries(entriesByColumn)) {
           await gu.getCell({ rowNum: 1, col: Number(i) }).click();
           await entry.workaround?.();
-          await gu.enterCell([entry.initial]);
+          await gu.enterCell(entry.initial);
           assert.equal(await gu.getCell({ rowNum: 1, col: Number(i) }).getText(), entry.expect);
         }
 
