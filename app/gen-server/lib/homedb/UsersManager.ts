@@ -32,6 +32,7 @@ import * as crypto from "crypto";
 
 import flatten from "lodash/flatten";
 import { EntityManager, IsNull, Not } from "typeorm";
+import { getPersonalOrgsEnabled } from "app/server/lib/gristSettings";
 
 function apiKeyGenerator(): string {
   return crypto.randomBytes(20).toString("hex");
@@ -503,7 +504,7 @@ export class UsersManager {
         login.user = user;
         await manager.save([user, login]);
       }
-      if (!user.personalOrg && !NON_LOGIN_EMAILS.includes(login.email)) {
+      if (getPersonalOrgsEnabled() && !user.personalOrg && !NON_LOGIN_EMAILS.includes(login.email)) {
         // Add a personal organization for this user.
         // We don't add a personal org for anonymous/everyone/previewer "users" as it could
         // get a bit confusing.

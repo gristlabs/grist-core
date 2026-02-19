@@ -26,3 +26,10 @@ export function getOnboardingTutorialDocId() {
     envVar: "GRIST_ONBOARDING_TUTORIAL_DOC_ID",
   });
 }
+
+export function getPersonalOrgsEnabled() {
+  return appSettings.section("orgs").flag("enablePersonalOrgs").readBool({
+    envVar: "GRIST_PERSONAL_ORGS",
+    defaultValue: true,
+  });
+}
