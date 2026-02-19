@@ -31,7 +31,7 @@ import { appSettings } from "app/server/lib/AppSettings";
 import * as crypto from "crypto";
 
 import flatten from "lodash/flatten";
-import { EntityManager, IsNull, Not } from "typeorm";
+import { EntityManager, FindOptionsWhere, IsNull, Not } from "typeorm";
 
 function apiKeyGenerator(): string {
   return crypto.randomBytes(20).toString("hex");
@@ -402,6 +402,23 @@ export class UsersManager {
   }
 
   /**
+   * Find some users given the passed condition.
+   *
+   * @param where The search condition
+   * @param manager The entity manager
+   *
+   * @return The users found
+   */
+  public async getExistingUsersFiltered(where: FindOptionsWhere<User>, manager?: EntityManager) {
+    return (manager || this._connection).getRepository(User)
+      .find({
+        relations: ["logins"],
+        where,
+        order: { id: "ASC" },
+      });
+  }
+
+  /**
    *
    * Fetches a user record based on an email address. If a user record already
    * exists linked to the email address supplied, that is the record returned.
@@ -687,12 +704,16 @@ export class UsersManager {
       }
       await manager.save([user, login]);
 
-      return (await this.getUser(userId))!;
+      return user;
     });
   }
 
-  public async getUsers() {
-    return await User.find({ relations: ["logins"] });
+  public async getUsers({ type }: { type?: UserType } = {}) {
+    return await User.find({
+      relations: ["logins"],
+      where: { type },
+      order: { id: "ASC" },
+    });
   }
 
   /**

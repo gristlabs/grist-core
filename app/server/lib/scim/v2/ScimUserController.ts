@@ -1,9 +1,16 @@
+import { Login } from "app/gen-server/entity/Login";
+import { User } from "app/gen-server/entity/User";
 import { HomeDBManager, Scope } from "app/gen-server/lib/homedb/HomeDBManager";
 import { BaseController } from "app/server/lib/scim/v2/BaseController";
 import { RequestContext } from "app/server/lib/scim/v2/ScimTypes";
 import { toSCIMMYUser, toUserProfile } from "app/server/lib/scim/v2/ScimUtils";
 
 import SCIMMY from "scimmy";
+import { Filter } from "scimmy/types";
+import {
+  FindOptionsWhere, LessThan, LessThanOrEqual, MoreThan, MoreThanOrEqual,
+  Not, ObjectLiteral, Raw,
+} from "typeorm";
 
 type UserSchema = SCIMMY.Schemas.User;
 type UserResource = SCIMMY.Resources.User;
@@ -42,10 +49,29 @@ class ScimUserController extends BaseController {
    */
   public async getUsers(resource: UserResource, context: RequestContext): Promise<UserSchema[]> {
     return this.runAndHandleErrors(context, async (): Promise<UserSchema[]> => {
-      const scimmyUsers = (await this.dbManager.getUsers())
-        .filter(user => user.type === "login")
-        .map(user => toSCIMMYUser(user));
-      return this.maybeApplyFilter(scimmyUsers, resource.filter);
+      let users: User[];
+
+      const match = this._extractOpAndEmailFromSimpleFilter(resource.filter);
+
+      // If we match the case where the caller just want to filter by the email address
+      // take an optimised branch where we query the database by filtering the entries.
+      if (match) {
+        const { op, value } = match;
+        users = await this.dbManager.getExistingUsersFiltered(
+          {
+            logins: this._filterByLoginEmail(op, value),
+            type: "login",
+          },
+        );
+      // Otherwise we fetch all the users and let Scimmy apply the potential filter.
+      } else {
+        users = await this.dbManager.getUsers({ type: "login" });
+      }
+
+      const scimmyUsers = users.map(user => toSCIMMYUser(user));
+      return this.maybeApplyFilter(scimmyUsers, resource.filter, {
+        alreadyFiltered: Boolean(match),
+      });
     });
   }
 
@@ -112,6 +138,12 @@ class ScimUserController extends BaseController {
     });
   }
 
+  protected maybeApplyFilter<T extends SCIMMY.Types.Schema>(
+    prefilteredResults: T[], filter?: SCIMMY.Types.Filter, { alreadyFiltered } = { alreadyFiltered: false },
+  ): T[] {
+    return alreadyFiltered ? prefilteredResults : super.maybeApplyFilter(prefilteredResults, filter);
+  }
+
   /**
    * Checks if the passed email can be used for a new user or by the existing user.
    *
@@ -123,6 +155,69 @@ class ScimUserController extends BaseController {
     const existingUser = await this.dbManager.getExistingUserByLogin(email);
     if (existingUser !== undefined && existingUser.id !== userIdToUpdate) {
       throw new SCIMMY.Types.Error(409, "uniqueness", "An existing user with the passed email exist.");
+    }
+  }
+
+  private _extractOpAndEmailFromSimpleFilter(
+    filter?: SCIMMY.Types.Filter,
+  ): { op: Filter.ValidComparisonStrings, value: string } | null {
+    // Ensure we only have a simple filter, with no logical operators (AND / OR / NOT)
+    // If the filter has a OR operator, the filter array would have more than one element
+    // (in which case we don't treat the case and let scimmy do that).
+    const firstFilter = filter?.[0];
+    // Also if the filter has a AND operator, the object would have more than one property.
+    const propNames = firstFilter && typeof firstFilter === "object" ? Object.keys(firstFilter) : [];
+    if (filter?.length !== 1 || propNames.length !== 1) {
+      return null;
+    }
+    // Convert the keys to lowercase
+    const propName = propNames[0];
+    // NOTE: Have to convert the property name to lower case. See this issue:
+    // https://github.com/scimmyjs/scimmy/issues/97
+    if (propName.toLowerCase() === "username") {
+      return { op: firstFilter[propName][0], value: firstFilter[propName][1] };
+    }
+    if (propName.toLowerCase() === "email") {
+      const emailFilter = firstFilter[propName];
+      const emailKeys = Object.keys(emailFilter);
+      if (emailKeys.length === 1 && emailKeys[0].toLowerCase() === "value") {
+        const emailValueComp = emailFilter[emailKeys[0]];
+        return { op: emailValueComp[0], value: emailValueComp[1] };
+      }
+    }
+    return null;
+  }
+
+  private _filterByLoginEmail(
+    operator: Filter.ValidComparisonStrings, value: string,
+  ): FindOptionsWhere<Login> | undefined {
+    const escapeLikePattern = (value: string) => value.replace(/[\\%_]/g, "\\$&");
+    const likeWithEscape = (params: ObjectLiteral) => Raw(col => `${col} LIKE :value ESCAPE '\\'`, params);
+
+    switch (operator) {
+      case "eq":
+        return { email: value };
+      case "ne":
+        return { email: Not(value) };
+      case "pr":
+        return undefined; // Email is not null, so don't filter anything
+      case "sw":
+        return { email: likeWithEscape({ value: `${escapeLikePattern(value)}%` }) };
+      case "ew":
+        return { email: likeWithEscape({ value: `%${escapeLikePattern(value)}` }) };
+      case "co":
+        return { email: likeWithEscape({ value: `%${escapeLikePattern(value)}%` }) };
+      case "lt":
+        return { email: LessThan(value) };
+      case "le":
+        return { email: LessThanOrEqual(value) };
+      case "gt":
+        return { email: MoreThan(value) };
+      case "ge":
+        return { email: MoreThanOrEqual(value) };
+      case "np": // Surprisingly seems supported by Scimmy but not specified in RFC. We don't support it.
+      default:
+        throw new SCIMMY.Types.Error(500, null!, "Unknown operator: " + operator);
     }
   }
 }
