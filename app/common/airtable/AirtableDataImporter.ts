@@ -25,6 +25,7 @@ export async function importDataFromAirtableBase(
 
   const addRowsPromises: Promise<any>[] = [];
 
+  // TODO: Strings passed to onProgress calls in common code aren't translatable.
   onProgress?.({ percent: 0, status: "Importing records from Airtable..." });
 
   for (const [tableId, tableCrosswalk] of schemaCrosswalk.tables.entries()) {
