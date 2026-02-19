@@ -44,7 +44,7 @@ export class AttachmentTracker {
   }
 }
 
-class TableAttachmentTracker {
+export class TableAttachmentTracker {
   private _attachmentsForRecords: AttachmentsForRecord[] = [];
 
   public constructor(private _tableId: string, private _columnIds: string[]) {

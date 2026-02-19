@@ -5,8 +5,6 @@ import { TableColValues } from "app/common/DocActions";
 import { isNonNullish } from "app/common/gutil";
 import { BulkColValues, GristObjCode } from "app/plugin/GristData";
 
-import { chain } from "lodash";
-
 export type RefValuesByColumnId = Record<string, string[] | undefined>;
 
 interface UnresolvedRefsForRecord {
@@ -41,7 +39,7 @@ export class ReferenceTracker {
 }
 
 // Store and resolve references per-table to enable bulk updates.
-class TableReferenceTracker {
+export class TableReferenceTracker {
   private _unresolvedRefsForRecords: UnresolvedRefsForRecord[] = [];
 
   // To perform bulk updates, all reference columns need updating at the same time.
@@ -104,5 +102,5 @@ export function extractRefFromRecordField(
 }
 
 export function createEmptyBulkColValues(columnIds: string[]): BulkColValues {
-  return chain(columnIds).keyBy().mapValues(() => []).value();
+  return Object.fromEntries(columnIds.map(id => [id, []]));
 }

@@ -4,6 +4,7 @@ import {
   AttachmentTracker,
   extractAttachmentsFromRecordField,
   isAttachmentField,
+  TableAttachmentTracker,
 } from "app/common/airtable/AirtableAttachmentTracker";
 import { AirtableDataImportParams } from "app/common/airtable/AirtableDataImporterTypes";
 import {
@@ -12,6 +13,7 @@ import {
   isRefField,
   ReferenceTracker,
   RefValuesByColumnId,
+  TableReferenceTracker,
 } from "app/common/airtable/AirtableReferenceTracker";
 import { BulkColValues, CellValue, GristObjCode } from "app/plugin/GristData";
 
@@ -39,12 +41,19 @@ export async function importDataFromAirtableBase(
       .filter(mapping => isRefField(mapping.airtableField))
       .map(mapping => mapping.gristColumn.id);
 
-    const tableReferenceTracker = referenceTracker.addTable(tableCrosswalk.gristTable.id, referenceColumnIds);
+    let tableReferenceTracker: TableReferenceTracker | undefined;
+    if (referenceColumnIds.length > 0) {
+      tableReferenceTracker = referenceTracker.addTable(tableCrosswalk.gristTable.id, referenceColumnIds);
+    }
 
     const attachmentColumnIds = Array.from(tableCrosswalk.fields.values())
       .filter(mapping => isAttachmentField(mapping.airtableField))
       .map(mapping => mapping.gristColumn.id);
-    const tableAttachmentTracker = attachmentTracker.addTable(tableCrosswalk.gristTable.id, attachmentColumnIds);
+
+    let tableAttachmentTracker: TableAttachmentTracker | undefined;
+    if (attachmentColumnIds.length > 0) {
+      tableAttachmentTracker = attachmentTracker.addTable(tableCrosswalk.gristTable.id, attachmentColumnIds);
+    }
 
     let listRecordsResult = await listRecords(tableId);
 
@@ -101,11 +110,11 @@ export async function importDataFromAirtableBase(
           airtableRecordIds.forEach((airtableRecordId, index) => {
             // Only add entries to the reference and attachment trackers once we know they're added to the table.
             referenceTracker.addRecordIdMapping(airtableRecordId, gristRowIds[index]);
-            tableReferenceTracker.addUnresolvedRecord({
+            tableReferenceTracker?.addUnresolvedRecord({
               gristRecordId: gristRowIds[index],
               refsByColumnId: refsByColumnIdForRecords[index],
             });
-            tableAttachmentTracker.addRecord({
+            tableAttachmentTracker?.addRecord({
               gristRecordId: gristRowIds[index],
               attachmentsByColumnId: attachmentsByColumnIdForRecords[index],
             });

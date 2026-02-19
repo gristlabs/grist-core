@@ -8,7 +8,7 @@ import {
 import { RecalcWhen } from "app/common/gristTypes";
 import { GristType } from "app/plugin/GristData";
 
-import { cloneDeep } from "lodash";
+import cloneDeep from "lodash/cloneDeep";
 
 /**
  * A self-contained schema for a Grist document, that can be declared, validated and then used

@@ -73,6 +73,8 @@ interface TokenPayload {
   error?: string;
 };
 
+type AirtableImportStep = "auth" | "select-base" | "select-tables";
+
 export interface AirtableImportOptions {
   api: UserAPI;
   existingDocId?: string;
@@ -87,20 +89,23 @@ export class AirtableImport extends Disposable {
   public static AIRTABLE_API_BASE = (window as any).testAirtableImportBaseUrlOverride ||
     "https://api.airtable.com/v0";
 
-  private _authMethod = Observable.create<"oauth" | "pat" | null>(this, null);
+  private _authMethod = Observable.create<"oauth" | "personal-access-token" | null>(this, null);
+  private _currentStep = Observable.create<AirtableImportStep>(this, "auth");
   private _isOAuthConfigured = Observable.create<boolean | null>(this, null);
-  private _showPATInput = Observable.create(this, false);
-  private _patToken = Observable.create(this, "");
+  private _showPersonalAccessTokenInput = Observable.create(this, false);
+  private _personalAccesToken = Observable.create(this, "");
   private _accessToken = Observable.create<string | null>(this, null);
   private _bases = Observable.create<AirtableBase[]>(this, []);
-  private _loadingToken = Observable.create(this, false);
+  private _connecting = Observable.create(this, false);
   private _loadingBases = Observable.create(this, false);
   private _base = Observable.create<AirtableBase | null>(this, null);
   private _baseSchema = Observable.create<AirtableBaseSchema | null>(this, null);
   private _loadingBaseSchema = Observable.create(this, false);
   private _importing = Observable.create(this, false);
+  private _importProgress: Observable<AirtableImportProgress> =  Observable.create(this, { percent: 0 });
   private _error = Observable.create<string | null>(this, null);
   private _oauth2ClientsApi = new OAuth2ClientsAPI();
+  private _api = this._options.api;
   private _existingDocId = this._options.existingDocId;
   private _existingDocSchema = this._options.existingDocSchema;
 
@@ -180,10 +185,6 @@ export class AirtableImport extends Disposable {
     return warningsByTableId;
   });
 
-  private _importProgress: Observable<AirtableImportProgress> =  Observable.create(this, { percent: 0 });
-
-  private _api = this._options.api;
-
   private _onSuccess = this._options.onSuccess.bind(this);
 
   private _onError = this._options.onError.bind(this);
@@ -196,73 +197,77 @@ export class AirtableImport extends Disposable {
   }
 
   public buildDom() {
-    return dom.domComputed((use) => {
-      if (use(this._base)) {
-        return dom.create(this._baseTablesList.bind(this));
-      } else if (use(this._accessToken)) {
-        return dom.create(this._basesList.bind(this));
-      } else {
-        return this._authDialog();
+    return dom.domComputed(this._currentStep, (step) => {
+      switch (step) {
+        case "auth": {
+          return this._buildAuthDialog();
+        }
+        case "select-base": {
+          return dom.create(this._basesList.bind(this));
+        }
+        case "select-tables": {
+          return this._buildBaseTables();
+        }
       }
     });
   }
 
   // Auth Dialog Component
-  private _authDialog() {
+  private _buildAuthDialog() {
     return cssNestedLinks(cssMainContent(
       dom("div", t("Connect your Airtable account to access your bases.")),
 
       dom.maybe(this._error, err => cssError(err)),
 
-      dom.maybe(use => use(this._isOAuthConfigured) === false && !use(this._showPATInput), () =>
+      dom.maybe(use => use(this._isOAuthConfigured) === false && !use(this._showPersonalAccessTokenInput), () =>
         cssWarning(
           cssWellTitle(t("Grist configuration required")),
-          cssWellContent(t(`OAuth credentials not configured. Please set OAUTH_CLIENT_ID and \
-OAUTH_CLIENT_SECRET, or use Personal Access Token.`)),
+          cssWellContent(t(`OAuth credentials not configured. Please set OAUTH2_AIRTABLE_CLIENT_ID and \
+OAUTH2_AIRTABLE_CLIENT_SECRET, or use Personal Access Token.`)),
         ),
       ),
 
-      dom.domComputed(this._showPATInput, (showPAT) => {
-        if (!showPAT) {
+      dom.domComputed(this._showPersonalAccessTokenInput, (showPersonalAccessTokenInput) => {
+        if (!showPersonalAccessTokenInput) {
           return [
             bigPrimaryButton(
-              dom.text(use => use(this._loadingToken) ? t("Connecting...") : t("Connect with Airtable")),
-              dom.prop("disabled", use => !use(this._isOAuthConfigured) || use(this._loadingToken)),
+              dom.text(use => use(this._connecting) ? t("Connecting...") : t("Connect with Airtable")),
+              dom.prop("disabled", use => !use(this._isOAuthConfigured) || use(this._connecting)),
               dom.on("click", this._handleOAuthLogin.bind(this)),
               testId("import-airtable-connect"),
             ),
             cssDivider(cssDividerLine(), t("or"), cssDividerLine()),
             bigBasicButton(
-              t("Use Personal Access Token instead"),
-              dom.on("click", () => this._showPATInput.set(true)),
-              testId("import-airtable-use-pat"),
+              t("Use Personal access token instead"),
+              dom.on("click", () => this._showPersonalAccessTokenInput.set(true)),
+              testId("import-airtable-use-personal-access-token"),
             ),
           ];
         } else {
           return [
             cssInputGroup(
-              cssLabel(t("Personal Access Token")),
-              cssTextInput(this._patToken, { type: "password", placeholder: "patXXXXXXXXXXXXXXXX" },
-                dom.onKeyPress({ Enter: this._handlePATLogin.bind(this) }),
+              cssLabel(t("Personal access token")),
+              cssTextInput(this._personalAccesToken, { type: "password", placeholder: "patXXXXXXXXXXXXXXXX" },
+                dom.onKeyPress({ Enter: this._handlePersonalAccessTokenLogin.bind(this) }),
               ),
               cssHelperText(markdown(
-                t(`[Generate a token]({{airtableCreateTokens}}) in your Airtable \
+                t(`[Generate a token]({{url}}) in your Airtable \
 account with scopes that include at least **\`schema.bases:read\`** and **\`data.records:read\`**.
 
 Your token is never sent to Grist's servers, and is only used to make API calls to Airtable from your browser.`,
-                { airtableCreateTokens: "https://airtable.com/create/tokens" }),
+                { url: "https://airtable.com/create/tokens" }),
               )),
             ),
             bigPrimaryButton(
-              dom.text(use => use(this._loadingToken) ? t("Connecting...") : t("Connect")),
-              dom.prop("disabled", use => use(this._loadingToken) || !use(this._patToken).trim()),
-              dom.on("click", this._handlePATLogin.bind(this)),
+              dom.text(use => use(this._connecting) ? t("Connecting...") : t("Connect")),
+              dom.prop("disabled", use => use(this._connecting) || !use(this._personalAccesToken).trim()),
+              dom.on("click", this._handlePersonalAccessTokenLogin.bind(this)),
             ),
             cssTextButton(
               t("Back"),
               dom.on("click", () => {
-                this._showPATInput.set(false);
-                this._patToken.set("");
+                this._showPersonalAccessTokenInput.set(false);
+                this._personalAccesToken.set("");
                 this._error.set(null);
               }),
             ),
@@ -277,7 +282,9 @@ Your token is never sent to Grist's servers, and is only used to make API calls 
       cssMenuText(
         menuIcon("Info"),
         dom.text(use =>
-          t("Connected via {{method}}", { method: use(this._authMethod) === "oauth" ? "OAuth" : "PAT" }),
+          t("Connected via {{method}}", {
+            method: use(this._authMethod) === "oauth" ? t("OAuth") : t("Personal access token"),
+          }),
         ),
       ),
       menuDivider(),
@@ -331,7 +338,7 @@ Your token is never sent to Grist's servers, and is only used to make API calls 
     ];
   }
 
-  private _baseTablesList(owner: IDisposableOwner) {
+  private _buildBaseTables() {
     return [
       cssSelectTables(
         dom.domComputed(this._importing, importing => importing ?
@@ -517,7 +524,7 @@ Your token is never sent to Grist's servers, and is only used to make API calls 
   }
 
   private _checkForToken() {
-    this._voidAsyncWork(async () => {
+    void this._doAsyncWork(async () => {
       try {
         const payload = await this._oauth2ClientsApi.fetchToken();
         this._isOAuthConfigured.set(true);
@@ -538,7 +545,7 @@ Your token is never sent to Grist's servers, and is only used to make API calls 
           this._isOAuthConfigured.set(true);
         }
       }
-    }, { loading: this._loadingToken });
+    }, { loading: this._connecting });
   }
 
   private _handleOAuthLogin() {
@@ -574,17 +581,19 @@ Your token is never sent to Grist's servers, and is only used to make API calls 
     } else {
       this._accessToken.set(payload.access_token!);
       this._authMethod.set("oauth");
+      this._currentStep.set("select-base");
       this._fetchBases(payload.access_token!);
     }
   }
 
-  private async _handlePATLogin() {
-    const token = this._patToken.get().trim();
+  private async _handlePersonalAccessTokenLogin() {
+    const token = this._personalAccesToken.get().trim();
     if (!token) {
-      this._error.set(t("Please enter a Personal Access Token"));
+      this._error.set(t("Please enter a personal access token"));
     } else {
       this._accessToken.set(token);
-      this._authMethod.set("pat");
+      this._authMethod.set("personal-access-token");
+      this._currentStep.set("select-base");
       this._fetchBases(token);
     }
   }
@@ -592,11 +601,12 @@ Your token is never sent to Grist's servers, and is only used to make API calls 
   private async _handleSelectBase(baseId: string) {
     const base = this._bases.get().find(b => b.id === baseId)!;
     this._base.set(base);
+    this._currentStep.set("select-tables");
     this._fetchBaseSchema();
   }
 
-  private async _handleImport() {
-    this._voidAsyncWork(async () => {
+  private _handleImport() {
+    void this._doAsyncWork(async () => {
       try {
         const { schema } = gristDocSchemaFromAirtableSchema(this._baseSchema.get()!);
         const transformations: ImportSchemaTransformParams = {
@@ -655,15 +665,8 @@ Your token is never sent to Grist's servers, and is only used to make API calls 
     }
   }
 
-  private _voidAsyncWork(
-    doWork: () => Promise<void>,
-    options: { loading?: Observable<boolean> } = {},
-  ): void {
-    void this._doAsyncWork(doWork, options);
-  }
-
   private _fetchBases(token: string) {
-    this._voidAsyncWork(async () => {
+    void this._doAsyncWork(async () => {
       const response = await fetch(`${AirtableImport.AIRTABLE_API_BASE}/meta/bases`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -675,7 +678,7 @@ Your token is never sent to Grist's servers, and is only used to make API calls 
   }
 
   private _fetchBaseSchema() {
-    this._voidAsyncWork(async () => {
+    void this._doAsyncWork(async () => {
       const api = new AirtableAPI({
         apiKey: this._accessToken.get()!,
         endpointUrl: AirtableImport.AIRTABLE_API_BASE,
@@ -703,9 +706,10 @@ Your token is never sent to Grist's servers, and is only used to make API calls 
     this._accessToken.set(null);
     this._authMethod.set(null);
     this._bases.set([]);
-    this._patToken.set("");
-    this._showPATInput.set(false);
+    this._personalAccesToken.set("");
+    this._showPersonalAccessTokenInput.set(false);
     this._error.set(null);
+    this._currentStep.set("auth");
   }
 
   private _handleRefresh() {
