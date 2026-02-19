@@ -223,7 +223,7 @@ export class AirtableImport extends Disposable {
         cssWarning(
           cssWellTitle(t("Grist configuration required")),
           cssWellContent(t(`OAuth credentials not configured. Please set OAUTH2_AIRTABLE_CLIENT_ID and \
-OAUTH2_AIRTABLE_CLIENT_SECRET, or use Personal Access Token.`)),
+OAUTH2_AIRTABLE_CLIENT_SECRET, or use personal access token.`)),
         ),
       ),
 
@@ -238,7 +238,7 @@ OAUTH2_AIRTABLE_CLIENT_SECRET, or use Personal Access Token.`)),
             ),
             cssDivider(cssDividerLine(), t("or"), cssDividerLine()),
             bigBasicButton(
-              t("Use Personal access token instead"),
+              t("Use personal access token instead"),
               dom.on("click", () => this._showPersonalAccessTokenInput.set(true)),
               testId("import-airtable-use-personal-access-token"),
             ),
