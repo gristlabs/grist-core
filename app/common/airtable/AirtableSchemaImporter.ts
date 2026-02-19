@@ -347,7 +347,32 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       },
     };
   },
-  // todo - multiple lookup values
+  multipleLookupValues({ field, table, getTableIdForField }) {
+    let formula: FormulaTemplate = { formula: "" };
+    const fieldOptions = field.options;
+    if (fieldOptions?.recordLinkFieldId && fieldOptions.fieldIdInLinkedTable) {
+      formula = {
+        formula: "$[R0].[R1]",
+        replacements: [
+          { originalTableId: table.id, originalColId: fieldOptions.recordLinkFieldId },
+          {
+            originalTableId: getTableIdForField(fieldOptions.fieldIdInLinkedTable),
+            originalColId: fieldOptions.fieldIdInLinkedTable,
+          },
+        ],
+      };
+    }
+    return {
+      column: {
+        originalId: field.id,
+        desiredGristId: field.name,
+        label: field.name,
+        type: "Any",
+        isFormula: true,
+        formula,
+      },
+    };
+  },
   multipleRecordLinks({ field }) {
     return {
       column: {
