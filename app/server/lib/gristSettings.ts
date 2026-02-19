@@ -27,6 +27,13 @@ export function getOnboardingTutorialDocId() {
   });
 }
 
+export function getCanAnyoneCreateOrgs() {
+  return appSettings.section("orgs").flag("canAnyoneCreateOrgs").readBool({
+    envVar: "GRIST_ORG_CREATION_ANYONE",
+    defaultValue: true,
+  });
+}
+
 export function getPersonalOrgsEnabled() {
   return appSettings.section("orgs").flag("enablePersonalOrgs").readBool({
     envVar: "GRIST_PERSONAL_ORGS",
