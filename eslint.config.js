@@ -20,12 +20,13 @@ module.exports = defineConfig([
     "!test/",
     "!plugins/",
     "!sandbox/",
+    "sandbox/pyodide/_build/",
     "!stubs/",
     "!buildtools/",
     "!ext/",
     "!core/",
     "core/static/*.js",
-    "test/video-scripts/"
+    "test/video-scripts/",
   ]),
   {
     extends: [
