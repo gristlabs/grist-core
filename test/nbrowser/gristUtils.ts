@@ -694,11 +694,17 @@ namespace gristUtils {
    * @param options
    * @param options.clear Whether the existing content of the cell should be cleared
    */
+  interface EnterCellOptions { clear?: boolean, validate?: boolean }
+  export async function enterCell(...keys: string[]): Promise<void>;
   export async function enterCell(
     keys: string[],
-    options: { clear?: boolean, validate?: boolean } = {},
-  ) {
-    const { clear = true, validate = true } = options;
+    options?: EnterCellOptions,
+  ): Promise<void>;
+  export async function enterCell(
+    ...args: string[] | [string[], EnterCellOptions?]
+  ): Promise<void> {
+    const [keys, { clear = true, validate = true }] = typeof args[0] === "string" ?
+      [args as string[], {} as EnterCellOptions] : [args[0], (args[1] ?? {}) as EnterCellOptions];
     const lastKey = keys.at(-1);
     // If the caller has not requested
     if (![Key.ENTER, Key.TAB].includes(lastKey!) && validate) {
@@ -801,7 +807,7 @@ namespace gristUtils {
       // Enter all values, advancing with a TAB
       for (const value of rowsOfValues[i]) {
         if (value) {
-          await enterCell([value, Key.TAB]);
+          await enterCell(value, Key.TAB);
         } else {
           await pressKeysOnCell(Key.DELETE, Key.TAB);
         }
