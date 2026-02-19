@@ -223,7 +223,9 @@ describe("AirtableImport", function() {
     // Try again; this time, the request should succeed, and error should disappear.
     cancelNextOAuthRequest = false;
     await driver.findWait(".test-import-airtable-connect:not(:disabled)", 2000).click();
-    await driver.findWait(".test-import-airtable-error", 500);
+    await gu.waitToPass(async () => {
+      assert.equal(await driver.find(".test-import-airtable-error").isPresent(), false);
+    });
 
     await driver.findContentWait(".test-modal-dialog button", /Cancel/, 500).click();
     await waitForModalToClose();
