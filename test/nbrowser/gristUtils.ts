@@ -703,15 +703,13 @@ namespace gristUtils {
     if (![Key.ENTER, Key.TAB].includes(lastKey!) && validate) {
       keys.push(Key.ENTER);
     }
-    // Press enter to display the editor
-    await driver.sendKeys(Key.ENTER);
+    await driver.executeScript((...args: any[]) => {
+      (window as any).gristApp.allCommands.input.run(...args);
+    }, ...(clear ? [""] : []));
     // Wait for the editor to appear
     await waitForCellEditor();
     // Select the content (so it is cleared) and press the keys requested by the caller
-    await sendKeys(
-      ...(clear ? [await selectAllKey(), Key.BACK_SPACE] : []),
-      ...keys,
-    );
+    await sendKeys(...keys);
     await waitForServer();    // Wait for the value to be saved
   }
 
