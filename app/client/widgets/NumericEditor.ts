@@ -3,7 +3,7 @@ import { NTextEditor } from "app/client/widgets/NTextEditor";
 
 export class NumericEditor extends NTextEditor {
   constructor(protected options: FieldOptions) {
-    if (!options.editValue && typeof options.cellValue === "number") {
+    if (options.editValue === undefined && typeof options.cellValue === "number") {
       // If opening a number for editing, we render it using the basic string representation (e.g.
       // no currency symbols or groupings), but it's important to use the right locale so that the
       // number can be parsed back (e.g. correct decimal separator).
