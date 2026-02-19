@@ -398,7 +398,6 @@ Your token is never sent to Grist's servers, and is only used to make API calls 
     return cssMappingsGrid(
       cssMappingsHeaderColumn(t("Source tables")),
       cssMappingsHeaderColumn(t("Destination")),
-      cssMappingsHeaderColumn(dom.hide(isNarrowScreenObs())), // To keep grid template aligned.
       mappings.map(m => this._tableMapping(m)),
       testId("import-airtable-mappings"),
     );
@@ -427,6 +426,7 @@ Your token is never sent to Grist's servers, and is only used to make API calls 
         testId("import-airtable-destination-label"),
       ),
       () => this._destinationMenuOptions(mapping),
+      cssDestinationMenu.cls(""),
       testId(`import-airtable-table-${mapping.tableId}-destination`),
     );
   }
@@ -875,6 +875,7 @@ const cssMappingsHeaderColumn = styled("div", `
 
 const cssTableNameColumn = styled("div", `
   font-weight: bold;
+  grid-column: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -967,4 +968,8 @@ const cssProgressBarFill = styled(cssProgressBarContainer, `
   &-approaching-limit {
     background: ${theme.progressBarErrorFg};
   }
+`);
+
+const cssDestinationMenu = styled("div", `
+  grid-column: 2;  
 `);
