@@ -993,6 +993,7 @@ export const Features = StringUnion(
   "createSite",
   "multiSite",
   "multiAccounts",
+  "importFromAirtable",
   "sendToDrive",
   "tutorials",
   "supportGrist",

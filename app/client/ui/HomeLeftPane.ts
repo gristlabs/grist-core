@@ -226,6 +226,7 @@ function addMenu(home: HomeModel, creating: Observable<boolean>): DomElementArg[
         }
       },
       menuIcon("Import"), t("Import from Airtable"),
+      dom.show(isFeatureEnabled("importFromAirtable")),
       dom.cls("disabled", !home.newDocWorkspace.get()),
       testId("dm-import-from-airtable"),
     ),

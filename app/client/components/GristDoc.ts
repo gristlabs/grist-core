@@ -74,7 +74,15 @@ import { isSchemaAction, UserAction } from "app/common/DocActions";
 import { OpenLocalDocResult } from "app/common/DocListAPI";
 import { DocState, DocStateComparison } from "app/common/DocState";
 import { isList, isListType, isRefListType } from "app/common/gristTypes";
-import { HashLink, IDocPage, isViewDocPage, parseUrlId, SpecialDocPage, ViewDocPage } from "app/common/gristUrls";
+import {
+  HashLink,
+  IDocPage,
+  isFeatureEnabled,
+  isViewDocPage,
+  parseUrlId,
+  SpecialDocPage,
+  ViewDocPage,
+} from "app/common/gristUrls";
 import { undef, waitObs } from "app/common/gutil";
 import { LocalPlugin } from "app/common/plugin";
 import { StringUnion } from "app/common/StringUnion";
@@ -607,7 +615,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
         label: importSourceElem.importSource.label,
         action: () => selectAndImport(this, importSourceElems, importSourceElem, createPreview),
       })),
-      {
+      ...(isFeatureEnabled("importFromAirtable") && [{
         label: t("Import from Airtable"),
         action: async () => {
           if (this.docPageModel.appModel.currentValidUser) {
@@ -620,7 +628,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
             window.location.href = getLoginOrSignupUrl({ srcDocId: urlState().state.get().doc });
           }
         },
-      },
+      }] || []),
     ];
 
     // Set the available import sources in the DocPageModel.

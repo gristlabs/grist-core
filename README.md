@@ -387,7 +387,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_ENABLE_SERVICE_ACCOUNTS | enables the `service accounts` feature. This feature allows users to create special service accounts that they can manage and to whom they can grant restricted access to chosen resources. Useful as a way to get fine-grained api keys for use with third party automations. Unset by default |
 | GRIST_ENABLE_REQUEST_FUNCTION | enables the REQUEST function. This function performs HTTP requests in a similar way to `requests.request`. This function presents a significant security risk, since it can let users call internal endpoints when Grist is available publicly. This function can also cause performance issues. Unset by default. |
 | GRIST_HEADERS_TIMEOUT_MS | if set, override nodes's server.headersTimeout flag. |
-| GRIST_HIDE_UI_ELEMENTS | comma-separated list of UI features to disable. Allowed names of parts: `helpCenter`, `billing`, `templates`, `createSite`, `multiSite`, `multiAccounts`, `sendToDrive`, `tutorials`, `supportGrist`, `themes`. If a part also exists in GRIST_UI_FEATURES, it will still be disabled. |
+| GRIST_HIDE_UI_ELEMENTS | comma-separated list of UI features to disable. Allowed names of parts: `helpCenter`, `billing`, `templates`, `createSite`, `multiSite`, `multiAccounts`, `importFromAirtable`, `sendToDrive`, `tutorials`, `supportGrist`, `themes`. If a part also exists in GRIST_UI_FEATURES, it will still be disabled. |
 | GRIST_HOST | hostname to use when listening on a port. |
 | GRIST_PROXY_FOR_UNTRUSTED_URLS | Full URL of proxy for delivering webhook payloads. Default value is `direct` for delivering payloads without proxying. |
 | HTTPS_PROXY or https_proxy | Full URL of reverse web proxy (corporate proxy) for fetching the custom widgets repository or the OIDC config from the issuer. |
@@ -433,7 +433,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_THROTTLE_CPU | if set, CPU throttling is enabled |
 | GRIST_TRUST_PLUGINS | if set, plugins are expect to be served from the same host as the rest of the Grist app, rather than from a distinct host. Ordinarily, plugins are served from a distinct host so that the cookies used by the Grist app are not automatically available to them. Enable this only if you understand the security implications. |
 | GRIST_USER_ROOT | an extra path to look for plugins in - Grist will scan for plugins in `$GRIST_USER_ROOT/plugins`. |
-| GRIST_UI_FEATURES | comma-separated list of UI features to enable. Allowed names of parts: `helpCenter`, `billing`, `templates`, `createSite`, `multiSite`, `multiAccounts`, `sendToDrive`, `tutorials`, `supportGrist`, `themes`. If a part also exists in GRIST_HIDE_UI_ELEMENTS, it won't be enabled. |
+| GRIST_UI_FEATURES | comma-separated list of UI features to enable. Allowed names of parts: `helpCenter`, `billing`, `templates`, `createSite`, `multiSite`, `multiAccounts`, `importFromAirtable`, `sendToDrive`, `tutorials`, `supportGrist`, `themes`. If a part also exists in GRIST_HIDE_UI_ELEMENTS, it won't be enabled. |
 | GRIST_UNTRUSTED_PORT | if set, plugins will be served from the given port. This is an alternative to setting APP_UNTRUSTED_URL. |
 | GRIST_WIDGET_LIST_URL | a url pointing to a widget manifest, by default https://github.com/gristlabs/grist-widget/releases/download/latest/manifest.json is used |
 | GRIST_LOG_HTTP | When set to `true`, log HTTP requests and responses information. Defaults to `false`. |
