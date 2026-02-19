@@ -231,7 +231,7 @@ describe("ReferenceColumns", function() {
 
       // Edit another cell by starting to type.
       cell = await gu.getCell({ section: "References", col: "Color", rowNum: 4 }).doClick();
-      await driver.sendKeys("gr");
+      await gu.enterCell(["gr"], { validate: false });
       await driver.findWait(".test-ref-editor-item", 1000);
       item = driver.findContent(".test-ref-editor-item", "Medium Sea Green");
       await gu.scrollIntoView(item);

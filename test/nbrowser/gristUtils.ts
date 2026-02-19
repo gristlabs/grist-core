@@ -37,6 +37,7 @@ import startCase from "lodash/startCase";
 import { stackWrapFunc, stackWrapOwnMethods, WebDriver } from "mocha-webdriver";
 import { assert, By, driver as driverOrig, error, Key, WebElement, WebElementPromise } from "mocha-webdriver";
 import { lock } from "proper-lockfile";
+import { stalenessOf } from "selenium-webdriver/lib/until";
 
 import type { AssertionError } from "assert";
 import type { Cleanup } from "test/server/testCleanup";
@@ -1880,6 +1881,13 @@ namespace gristUtils {
     await openColumnMenu(col, "Delete column");
     await waitForServer();
     await wipeToasts();
+  }
+
+  export async function deleteRow(rowNum: number) {
+    const cell = getCell(0, rowNum);
+    await cell.click();
+    await sendKeys(Key.chord(await modKey(), Key.DELETE));
+    await driver.wait(stalenessOf(cell));
   }
 
   export type ColumnType =
