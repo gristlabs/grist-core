@@ -87,7 +87,7 @@ export interface AirtableImportOptions {
 export class AirtableImport extends Disposable {
   // Check for a base URL override, for use in tests.
   public static AIRTABLE_API_BASE = (window as any).testAirtableImportBaseUrlOverride ||
-    "https://api.airtable.com/v0";
+    "https://api.airtable.com";
 
   private _authMethod = Observable.create<"oauth" | "personal-access-token" | null>(this, null);
   private _currentStep = Observable.create<AirtableImportStep>(this, "auth");
@@ -667,7 +667,7 @@ Your token is never sent to Grist's servers, and is only used to make API calls 
 
   private _fetchBases(token: string) {
     void this._doAsyncWork(async () => {
-      const response = await fetch(`${AirtableImport.AIRTABLE_API_BASE}/meta/bases`, {
+      const response = await fetch(`${AirtableImport.AIRTABLE_API_BASE}/v0/meta/bases`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!response.ok) { throw new Error(t("Failed to fetch bases")); }
