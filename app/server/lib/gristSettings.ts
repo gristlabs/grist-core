@@ -27,6 +27,13 @@ export function getOnboardingTutorialDocId() {
   });
 }
 
+export function getAnonPlaygroundEnabled() {
+  return appSettings.section("orgs").flag("enableAnonPlayground").readBool({
+    envVar: "GRIST_ANON_PLAYGROUND",
+    defaultValue: true,
+  });
+}
+
 export function getCanAnyoneCreateOrgs() {
   return appSettings.section("orgs").flag("canAnyoneCreateOrgs").readBool({
     envVar: "GRIST_ORG_CREATION_ANYONE",
