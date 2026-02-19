@@ -127,7 +127,7 @@ describe("AirtableImport", function() {
      * Simulates an Airtable "fetch bases" endpoint. It's called from the browser, so we relax
      * CORS. That's something that I've manually checked is the case for Airtable's endpoints.
      */
-    app.get("/meta/bases", (req, res) => {
+    app.get("/v0/meta/bases", (req, res) => {
       allowCors(res);
       if (req.headers.authorization !== "Bearer opaque-test-access-token") {
         // This is the shape of a realistic Airtable response.
