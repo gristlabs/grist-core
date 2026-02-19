@@ -200,7 +200,7 @@ describe("UserManager2", function() {
     // Make a document, and start editing shares.
     await session.tempDoc(cleanup, "Hello.grist", { load: true });
     await driver.findWait(".test-tb-share", 2000).click();
-    await driver.findContent(".test-tb-share-option", /Manage users/).click();
+    await driver.findContentWait(".test-tb-share-option", /Manage users/, 2000).click();
 
     // Add a collaborator.
     await driver.findWait(".test-um-member-new", 2000).find("input").click();
