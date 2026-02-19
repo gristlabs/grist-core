@@ -227,7 +227,7 @@ function menuOriginal(doc: Document, pageModel: DocPageModel, options: MenuOrigi
   // Preserve the current state in order to stay on the selected page. TODO: Should auto-switch to
   // first page when the requested page is not in the document.
   const compareHref = dom.attr("href", use => urlState().makeUrl({
-    ...use(urlState().state), doc: leftDocId, params: { compare: rightDocId } }));
+    ...use(urlState().state), doc: rightDocId, params: { compare: leftDocId, compareEmphasis: "local" } }));
 
   const compareUrlId = urlState().state.get().params?.compare;
   const comparingSnapshots: boolean = isSnapshot && Boolean(compareUrlId && parseUrlId(compareUrlId).snapshotId);
