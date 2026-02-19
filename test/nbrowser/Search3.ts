@@ -43,7 +43,7 @@ describe("Search3", async function() {
   it("should search after toggling columns", async () => {
     await mainSession.loadDoc(`/doc/${docId}/p/1`);
     await gu.getCell("A", 1).click();
-    await gu.enterCell(["a", Key.ENTER]);
+    await gu.enterCell("a", Key.ENTER);
     await gu.openWidgetPanel();
     await gu.moveToHidden("B");
 

@@ -23,7 +23,7 @@ describe("links", function() {
 
   async function assertSameDocumentLink(value: string, expected: RegExp) {
     await gu.sendKeys(Key.chord(await gu.modKey(), Key.ARROW_UP));
-    await gu.enterCell([value]);
+    await gu.enterCell(value);
     const link = await gu.getCell(0, 1).find("a");
     const href = await link.getAttribute("href");
     assert.match(href, expected);
@@ -41,7 +41,7 @@ describe("links", function() {
     expected: RegExp | null,
   ) {
     await gu.sendKeys(Key.chord(await gu.modKey(), Key.ARROW_UP));
-    await gu.enterCell([value]);
+    await gu.enterCell(value);
     if ((await gu.getFieldWidgetType()) === "TextBox" && expected === null) {
       assert.isFalse(await gu.getCell(0, 1).find("a").isPresent());
       return;
@@ -96,7 +96,7 @@ describe("links", function() {
         // Previously, URLs in Markdown cells were treated as being relative to
         // the document origin if they were missing a scheme. This was inconsistent
         // with how HyperLink cells treated such URLs (with `http://` inferred).
-        await gu.enterCell([makeLink("google.com")]);
+        await gu.enterCell(makeLink("google.com"));
         if (type !== "TextBox") {
           assert.equal(
             await gu.getCell(0, 1).find("a").getAttribute("href"),
@@ -110,7 +110,7 @@ describe("links", function() {
       it(`have ${
         type === "Markdown" ? "a null" : 'an "about:blank"'
       } URL when invalid`, async function() {
-        await gu.enterCell([makeLink("javascript:alert()")]);
+        await gu.enterCell(makeLink("javascript:alert()"));
         if (type !== "TextBox") {
           assert.equal(
             await gu.getCell(0, 1).find("a").getAttribute("href"),

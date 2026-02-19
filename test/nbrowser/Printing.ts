@@ -135,7 +135,7 @@ describe("Printing", function() {
   it("should not display link icon when printing", async function() {
     await gu.getPageItem("Countries").click();
     await gu.getCell(0, 1).click();
-    await gu.enterCell(["http://getgrist.com"]);
+    await gu.enterCell("http://getgrist.com");
     await gu.waitForServer();
 
     const checkLinkIsDisplayed = async (expected: boolean) => {
@@ -157,7 +157,7 @@ describe("Printing", function() {
     await gu.openColumnPanel("Name");
     await gu.setFieldWidgetType("Markdown");
     await gu.getCell({ rowNum: 1, col: "Name" }).click();
-    await gu.enterCell(["[Aruba](https://getgrist.com/#aruba)"]);
+    await gu.enterCell("[Aruba](https://getgrist.com/#aruba)");
 
     const link = driver.findContentWait(".test-text-link", "Aruba", 1000);
     assert.equal(await link.isDisplayed(), true);

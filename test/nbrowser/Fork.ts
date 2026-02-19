@@ -40,7 +40,7 @@ describe("Fork", function() {
     const session = isLoggedIn ? await team.login() : await team.anon.login();
     await session.loadDoc(`/doc/${doc.id}/m/fork`);
     await gu.getCell({ rowNum: 1, col: 0 }).click();
-    await gu.enterCell(["1"]);
+    await gu.enterCell("1");
     await gu.waitForServer();
     assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), "1");
     const forkUrl = await driver.getCurrentUrl();
@@ -48,7 +48,7 @@ describe("Fork", function() {
     await gu.refreshDismiss();
     await session.loadDoc((new URL(forkUrl)).pathname + "/m/fork");
     await gu.getCell({ rowNum: 1, col: 0 }).click();
-    await gu.enterCell(["2"]);
+    await gu.enterCell("2");
     await gu.waitForServer();
     await driver.findContentWait(
       ".test-notifier-toast-wrapper",
@@ -119,7 +119,7 @@ describe("Fork", function() {
             }
             // editing should work
             await gu.getCell({ rowNum: 1, col: 0 }).click();
-            await gu.enterCell(["123"]);
+            await gu.enterCell("123");
             await gu.waitForServer();
             assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), "123");
             await gu.refreshDismiss();
@@ -128,7 +128,7 @@ describe("Fork", function() {
             assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), "123");
             // edits should still work
             await gu.getCell({ rowNum: 1, col: 0 }).click();
-            await gu.enterCell(["234"]);
+            await gu.enterCell("234");
             await gu.waitForServer();
             assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), "234");
             await gu.refreshDismiss();
@@ -153,7 +153,7 @@ describe("Fork", function() {
         const anonSession = await team.anon.login();
         await anonSession.loadDoc(`/doc/${doc.id}`);
         await gu.getCell({ rowNum: 1, col: 0 }).click();
-        await gu.enterCell(["123"]);
+        await gu.enterCell("123");
         await gu.waitForServer();
         assert.notEqual(await gu.getCell({ rowNum: 1, col: 0 }).value(), "123");
         // check that there is no tag
@@ -162,7 +162,7 @@ describe("Fork", function() {
         // Anon forks the document, tries to modify, and succeeds
         await anonSession.loadDoc(`/doc/${doc.id}/m/fork`);
         await gu.getCell({ rowNum: 1, col: 0 }).click();
-        await gu.enterCell(["123"]);
+        await gu.enterCell("123");
 
         // Check that we show some indicators of what's happening to the user in notification toasts
         // (but allow for possibility that things are changing fast).
@@ -174,7 +174,7 @@ describe("Fork", function() {
 
         assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), "123");
         await gu.getCell({ rowNum: 2, col: 0 }).click();
-        await gu.enterCell(["234"]);
+        await gu.enterCell("234");
         await gu.waitForServer();
         assert.equal(await gu.getCell({ rowNum: 2, col: 0 }).getText(), "234");
 
@@ -203,7 +203,7 @@ describe("Fork", function() {
         const anonSession = await team.anon.login();
         await anonSession.loadDoc(`/doc/${doc.id}/m/fork`);
         await gu.getCell({ rowNum: 1, col: 0 }).click();
-        await gu.enterCell(["1"]);
+        await gu.enterCell("1");
         await gu.waitForServer();
         assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), "1");
         const fork1 = await driver.getCurrentUrl();
@@ -211,7 +211,7 @@ describe("Fork", function() {
 
         await anonSession.loadDoc(`/doc/${doc.id}/m/fork`);
         await gu.getCell({ rowNum: 1, col: 0 }).click();
-        await gu.enterCell(["2"]);
+        await gu.enterCell("2");
         await gu.waitForServer();
         assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), "2");
         const fork2 = await driver.getCurrentUrl();
@@ -249,11 +249,11 @@ describe("Fork", function() {
           // Dismiss forms announcement popup, if present.
           await gu.dismissBehavioralPrompts();
           await gu.getCell({ rowNum: 1, col: 0 }).click();
-          await gu.enterCell(["123"]);
+          await gu.enterCell("123");
           await gu.waitForServer();
           assert.equal(await driver.findWait(".test-unsaved-tag", 4000).isPresent(), true);
           await gu.getCell({ rowNum: 2, col: 0 }).click();
-          await gu.enterCell(["234"]);
+          await gu.enterCell("234");
           await gu.waitForServer();
           assert.equal(await gu.getCell({ rowNum: 2, col: 0 }).getText(), "234");
 
@@ -283,7 +283,7 @@ describe("Fork", function() {
 
           // Check we still have editing rights
           await gu.getCell({ rowNum: 1, col: 0 }).click();
-          await gu.enterCell(["1234"]);
+          await gu.enterCell("1234");
           await gu.waitForServer();
           await gu.refreshDismiss();
           await userSession.loadDoc((new URL(forkUrl)).pathname);
@@ -296,7 +296,7 @@ describe("Fork", function() {
           assert.equal(await gu.getEmail(), team.email);
           assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), "1234");
           await gu.getCell({ rowNum: 1, col: 0 }).click();
-          await gu.enterCell(["12345"]);
+          await gu.enterCell("12345");
           await gu.waitForServer();
           await gu.refreshDismiss();
           await team.loadDoc((new URL(forkUrl)).pathname);
@@ -307,7 +307,7 @@ describe("Fork", function() {
           assert.equal(await gu.getEmail(), "anon@getgrist.com");
           assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), "1234");
           await gu.getCell({ rowNum: 1, col: 0 }).click();
-          await gu.enterCell(["12345"]);
+          await gu.enterCell("12345");
           await gu.waitForServer();
           await gu.refreshDismiss();
           await anonSession.loadDoc((new URL(forkUrl)).pathname);
@@ -322,7 +322,7 @@ describe("Fork", function() {
         await team.login();
         await team.loadDoc(`/doc/${doc2.id}/m/fork`);
         await gu.getCell({ rowNum: 1, col: 0 }).click();
-        await gu.enterCell(["123"]);
+        await gu.enterCell("123");
         await gu.waitForServer();
 
         // The url of the doc should now be that of a fork
@@ -340,7 +340,7 @@ describe("Fork", function() {
 
         // Check we still have editing rights
         await gu.getCell({ rowNum: 1, col: 0 }).click();
-        await gu.enterCell(["1234"]);
+        await gu.enterCell("1234");
         await gu.waitForServer();
         await gu.refreshDismiss();
         await team.loadDoc((new URL(forkUrl)).pathname);
@@ -413,7 +413,7 @@ describe("Fork", function() {
         // make a fork
         await team.loadDoc(`/doc/${trunk.id}/m/fork`);
         await gu.getCell({ rowNum: 1, col: 0 }).click();
-        await gu.enterCell(["123"]);
+        await gu.enterCell("123");
         await gu.waitForServer();
         const forkUrl = await driver.getCurrentUrl();
         assert.match(forkUrl, /~/);
@@ -437,7 +437,7 @@ describe("Fork", function() {
         const initialUrl = await driver.getCurrentUrl();
         assert.equal(await driver.find(".test-unsaved-tag").isPresent(), false);
         await gu.getCell({ rowNum: 1, col: 0 }).click();
-        await gu.enterCell(["2"]);
+        await gu.enterCell("2");
         await gu.waitForServer();
         assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), "2");
         const forkUrl = await driver.getCurrentUrl();
@@ -464,7 +464,7 @@ describe("Fork", function() {
         await team.loadDoc(`/doc/${doc.id}/m/fork`);
         assert.equal(await driver.find(".test-bc-doc").getAttribute("disabled"), null);
         await gu.getCell({ rowNum: 1, col: 0 }).click();
-        await gu.enterCell(["2"]);
+        await gu.enterCell("2");
         await gu.waitForServer();
         await gu.waitToPass(async () => {
           assert.equal(await driver.find(".test-bc-doc").getAttribute("disabled"), "true");
@@ -480,7 +480,7 @@ describe("Fork", function() {
 
         // edit one cell
         await gu.getCell({ rowNum: 1, col: 0 }).click();
-        await gu.enterCell(["2"]);
+        await gu.enterCell("2");
         await gu.waitForServer();
 
         // check we're on a fork
@@ -512,7 +512,7 @@ describe("Fork", function() {
         await gu.getCell({ rowNum: 2, col: 0 }).click();
         const v1 = await gu.getCell({ rowNum: 2, col: 0 }).getText();
         const v2 = `${v1}_tweaked`;
-        await gu.enterCell([v2]);
+        await gu.enterCell(v2);
         await gu.waitForServer();
 
         // check we're on a fork
@@ -539,7 +539,7 @@ describe("Fork", function() {
         const altDoc = await altSession.tempDoc(cleanup, "Hello.grist");
         await gu.dismissWelcomeTourIfNeeded();
         await gu.getCell({ rowNum: 2, col: 0 }).click();
-        await gu.enterCell(["altDoc"]);
+        await gu.enterCell("altDoc");
         await gu.waitForServer();
 
         // replacement should fail for document not found
@@ -567,7 +567,7 @@ describe("Fork", function() {
         await gu.getCell({ rowNum: 2, col: 0 }).click();
         const v1 = await gu.getCell({ rowNum: 2, col: 0 }).getText();
         const v2 = `${v1}_tweaked`;
-        await gu.enterCell([v2]);
+        await gu.enterCell(v2);
         await gu.waitForServer();
 
         // check we're on a fork.
@@ -590,7 +590,7 @@ describe("Fork", function() {
         // edit the cell again.
         await gu.getCell({ rowNum: 2, col: 0 }).click();
         const v3 = `${v2}_tweaked`;
-        await gu.enterCell([v3]);
+        await gu.enterCell(v3);
         await gu.waitForServer();
 
         // revisit the fork.
@@ -635,7 +635,7 @@ describe("Fork", function() {
           await gu.getCell({ rowNum: 2, col: 0 }).click();
           const v1 = await gu.getCell({ rowNum: 2, col: 0 }).getText();
           const v2 = `${v1}_tweaked`;
-          await gu.enterCell([v2]);
+          await gu.enterCell(v2);
           await gu.waitForServer();
 
           // check we're on a fork.

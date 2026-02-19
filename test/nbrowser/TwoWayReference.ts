@@ -80,7 +80,7 @@ describe("TwoWayReference", function() {
     await gu.selectColumn("Friend");
     await gu.setRefShowColumn("Name");
     await gu.getCell("Friend", 1).click();
-    await gu.enterCell(["Bob", Key.ENTER]);
+    await gu.enterCell("Bob", Key.ENTER);
     await gu.waitForServer();
 
     // Now rename the Pets table to start with a number and contain a space + person emoji.
@@ -239,7 +239,7 @@ describe("TwoWayReference", function() {
     // Make sure we can change data.
     await gu.selectSectionByTitle("PETS");
     await gu.getCell("Owner", 1).click();
-    await gu.enterCell(["Bob", Key.ENTER]);
+    await gu.enterCell("Bob", Key.ENTER);
     await gu.waitForServer();
     await gu.checkForErrors();
 
@@ -282,7 +282,7 @@ describe("TwoWayReference", function() {
     // Move Rex to Bob.
     await gu.selectSectionByTitle("PETS");
     await gu.getCell("Owner", 1).click();
-    await gu.enterCell(["Bob", Key.ENTER]);
+    await gu.enterCell("Bob", Key.ENTER);
     await gu.waitForServer();
 
     // Make sure Rex is owned by Bob, in both tables.
@@ -299,7 +299,7 @@ describe("TwoWayReference", function() {
     // Now move Rex to Alice.
     await gu.selectSectionByTitle("PETS");
     await gu.getCell("Owner", 1).click();
-    await gu.enterCell(["Alice", Key.ENTER]);
+    await gu.enterCell("Alice", Key.ENTER);
     await gu.waitForServer();
     await gu.assertGridData("OWNERS", [
       [0, "Name", "Pets"],
@@ -314,7 +314,7 @@ describe("TwoWayReference", function() {
     // And check that after moving Rex to Bob, it's not shown in the Owners table.
     await gu.selectSectionByTitle("PETS");
     await gu.getCell("Owner", 1).click();
-    await gu.enterCell(["Bob", Key.ENTER]);
+    await gu.enterCell("Bob", Key.ENTER);
     await gu.waitForServer();
     await gu.checkForErrors();
 
@@ -345,7 +345,7 @@ describe("TwoWayReference", function() {
     // Move Rex to Bob again.
     await gu.selectSectionByTitle("PETS");
     await gu.getCell("Owner", 1).click();
-    await gu.enterCell(["Bob", Key.ENTER]);
+    await gu.enterCell("Bob", Key.ENTER);
     await gu.waitForServer();
     await gu.checkForErrors();
 
@@ -550,9 +550,9 @@ describe("TwoWayReference", function() {
     // Now assign Bob to Backend and Alice to Apps.
     await gu.selectSectionByTitle("Projects");
     await gu.getCell("Owner", 1).click();
-    await gu.enterCell(["Alice"]);
+    await gu.enterCell("Alice");
     await gu.getCell("Owner", 2).click();
-    await gu.enterCell(["Bob"]);
+    await gu.enterCell("Bob");
 
     // And now make sure the reverse reference is correct.
     await gu.selectSectionByTitle("People");

@@ -192,11 +192,11 @@ describe("ReferenceList", function() {
 
       // Change a few of the film titles.
       await gu.getCell("Title", 1, "Films record").doClick();
-      await gu.enterCell(["Toy Story 2", Key.ENTER]);
+      await gu.enterCell("Toy Story 2", Key.ENTER);
       await gu.sendKeys(Key.ARROW_DOWN);
-      await gu.enterCell(["Aliens", Key.ENTER]);
+      await gu.enterCell("Aliens", Key.ENTER);
       await gu.sendKeys(Key.ARROW_DOWN);
-      await gu.enterCell(["The Dark Knight Rises", Key.ENTER]);
+      await gu.enterCell("The Dark Knight Rises", Key.ENTER);
 
       // Check that the Favorite Film column reflects the new titles.
       assert.deepEqual(
@@ -363,9 +363,9 @@ describe("ReferenceList", function() {
 
       // Populate the first few rows of the new column with some references.
       await gu.getCell({ rowNum: 1, col: "A" }).click();
-      await gu.enterCell(["1", Key.ENTER, "2", Key.ENTER, Key.ENTER]);
-      await gu.enterCell(["2", Key.ENTER, Key.ENTER]);
-      await gu.enterCell(["3", Key.ENTER, "4", Key.ENTER, "5", Key.ENTER, Key.ENTER]);
+      await gu.enterCell("1", Key.ENTER, "2", Key.ENTER, Key.ENTER);
+      await gu.enterCell("2", Key.ENTER, Key.ENTER);
+      await gu.enterCell("3", Key.ENTER, "4", Key.ENTER, "5", Key.ENTER, Key.ENTER);
 
       // Check that the cells render their tokens as TableId[RowId].
       assert.deepEqual(await gu.getVisibleGridCells(3, [1, 2, 3, 4, 5, 6]),
@@ -381,7 +381,7 @@ describe("ReferenceList", function() {
 
       // Add a new reference.
       await gu.getCell(3, 5).click();
-      await gu.enterCell(["Roger", Key.ENTER, Key.ENTER]);
+      await gu.enterCell("Roger", Key.ENTER, Key.ENTER);
       await gu.waitForServer();
 
       // Check that switching between Row ID and Name still works correctly.
@@ -525,7 +525,7 @@ describe("ReferenceList", function() {
     it("should sort consistently when column contains AltText", async function() {
       // Enter an invalid reference in Favorite Film.
       await gu.getCell("Favorite Film", 4, "Friends record").doClick();
-      await gu.enterCell(["Aliens 4", Key.ENTER, Key.ENTER]);
+      await gu.enterCell("Aliens 4", Key.ENTER, Key.ENTER);
       await gu.waitForServer();
 
       // Check that the updated sort order is correct.
@@ -940,7 +940,7 @@ describe("ReferenceList", function() {
 
       // Change a color
       await gu.clickReferenceListCell(await gu.getCell({ section: "Colors", col: "Color Name", rowNum: 1 }));
-      await gu.enterCell(["HAZELNUT", Key.ENTER, Key.ENTER]);
+      await gu.enterCell("HAZELNUT", Key.ENTER, Key.ENTER);
       await gu.waitForServer();
 
       // See that the old value is gone from the autocomplete, and the new one is present.
@@ -965,7 +965,7 @@ describe("ReferenceList", function() {
       await gu.getCell({ section: "Colors", col: "Color Name", rowNum: 1 }).doClick();
       await driver.find("body").sendKeys(Key.chord(await gu.modKey(), Key.ENTER));
       await gu.waitForServer();
-      await gu.enterCell(["HELIOTROPE", Key.ENTER]);
+      await gu.enterCell("HELIOTROPE", Key.ENTER);
       await gu.waitForServer();
 
       // See that the new value is visible in the autocomplete.

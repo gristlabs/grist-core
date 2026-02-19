@@ -223,7 +223,7 @@ async function checkSelectingRecords(selectBy: string, sourceData: string[][], n
 
   // Create a new record with rownum=99
   await gu.getCell({ section: "LINKTARGET", col: "rownum", rowNum: numSourceRows }).click();
-  await gu.enterCell(["99"]);
+  await gu.enterCell("99");
 
   assert.deepEqual(
     await gu.getVisibleGridCells({

@@ -109,7 +109,7 @@ describe("ActionLog", function() {
   it("should indicate that actions that cannot be redone are buried", async function() {
     // Add an item after the undo actions and check that they get buried.
     await gu.getCell({ rowNum: 1, col: 0 }).click();
-    await gu.enterCell(["e"]);
+    await gu.enterCell("e");
     assert.deepEqual(await getActionUndoState(4), ["default", "buried", "default", "default"]);
 
     // Check that undos skip the buried actions.
@@ -117,7 +117,7 @@ describe("ActionLog", function() {
     assert.deepEqual(await getActionUndoState(4), ["undone", "buried", "undone", "default"]);
 
     // Check that burying around already buried actions works.
-    await gu.enterCell(["f"]);
+    await gu.enterCell("f");
     await gu.waitForServer();
     assert.deepEqual(await getActionUndoState(5), ["default", "buried", "buried", "buried", "default"]);
   });

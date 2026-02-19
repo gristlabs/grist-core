@@ -62,7 +62,7 @@ describe("AccessRules4", function() {
     assert.isFalse(await gu.getCell("Toggle", 1).find(".widget_checkmark").isDisplayed());
 
     await gu.getCell("Another", 1).click();
-    await gu.enterCell(["owner"]);
+    await gu.enterCell("owner");
     await gu.getCell("Toggle", 1).mouseMove();
     await gu.getCell("Toggle", 1).find(".widget_checkbox").click();
     await gu.waitForServer();
@@ -83,7 +83,7 @@ describe("AccessRules4", function() {
     assert.isFalse(await gu.getCell("Toggle", 1).find(".widget_checkmark").isDisplayed());
 
     await gu.getCell("Another", 1).click();
-    await gu.enterCell(["user2"]);
+    await gu.enterCell("user2");
     await gu.getCell("Toggle", 1).mouseMove();
     await gu.getCell("Toggle", 1).find(".widget_checkbox").click();
     await gu.waitForServer();
