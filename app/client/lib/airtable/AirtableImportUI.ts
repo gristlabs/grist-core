@@ -389,6 +389,7 @@ Your token is never sent to Grist's servers, and is only used to make API calls 
           dom.on("click", () => this._handleImport()),
           testId("import-airtable-import"),
         ),
+        // TODO: Cancel currently only closes the modal. Make it also stop any import in progress.
         bigBasicButton(t("Cancel"), dom.on("click", this._onCancel)),
       ),
     ];
