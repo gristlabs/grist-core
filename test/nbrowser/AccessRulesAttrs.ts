@@ -179,7 +179,7 @@ describe("AccessRulesAttrs", function() {
     // The rule preventing edits will still work for text values, but should show error for
     // non-text values.
     await gu.getCell({ rowNum: 2, col: "SomeText" }).click();
-    await gu.enterCell(["ciao"]);
+    await gu.enterCell("ciao");
     assert.deepEqual(await gu.getVisibleGridCells({ cols: ["SomeText", "OtherText"], rowNums: [2] }), ["ciao", "ciao"]);
     await gu.checkForErrors();
     await gu.pressKeysOnCell(Key.DELETE);

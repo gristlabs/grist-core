@@ -113,14 +113,14 @@ describe("SectionFilter", function() {
 
       // Update first row to Oranges; it should remain shown.
       await gu.getCell(0, 1).click();
-      await gu.enterCell(["Oranges"]);
+      await gu.enterCell("Oranges");
 
       // Enter a new row using a keyboard shortcut.
       await driver.find("body").sendKeys(Key.chord(await gu.modKey(), Key.ENTER));
 
       // Enter a new row by typing in a value into the "add-row".
       await driver.find(".gridview_row .record-add .field").click();
-      await gu.enterCell(["Bananas"]);
+      await gu.enterCell("Bananas");
 
       // Ensure all 3 changes are visible.
       assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3, 4, 5, 6]),
@@ -170,22 +170,22 @@ describe("SectionFilter", function() {
 
       // Update Oranges to Apples and make sure it's not filtered out
       await (await gu.getCell(0, 1)).click();
-      await gu.enterCell(["Apples"]);
+      await gu.enterCell("Apples");
 
       assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3]),
         ["Apples", "Bananas", "Bananas"]);
 
       // Set back to Oranges and make sure it stays
       await driver.sendKeys(Key.UP);
-      await gu.enterCell(["Oranges"]);
+      await gu.enterCell("Oranges");
 
       assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3]),
         ["Oranges", "Bananas", "Bananas"]);
 
       // Enter two new rows and make sure they're also not filtered out
       await driver.find(".gridview_row .record-add .field").click();
-      await gu.enterCell(["Apples"]);
-      await gu.enterCell(["Bananas"]);
+      await gu.enterCell("Apples");
+      await gu.enterCell("Bananas");
 
       // Enter a new row using a keyboard shortcut.
       await driver.find("body").sendKeys(Key.chord(await gu.modKey(), Key.ENTER));

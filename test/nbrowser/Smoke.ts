@@ -37,7 +37,7 @@ describe("Smoke", function() {
     await gu.dismissWelcomeTourIfNeeded();
     await gu.getCell("A", 1).click();
 
-    await gu.enterCell(["123"]);
+    await gu.enterCell("123");
     // Also ensure that we don't require typing Enter to enter in editor mode
     await gu.getCell("B", 1).click();
     await gu.pressKeysOnCell("3");
