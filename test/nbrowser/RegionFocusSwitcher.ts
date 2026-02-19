@@ -289,7 +289,7 @@ describe("RegionFocusSwitcher", function() {
     const session = await gu.session().teamSite.login();
     await session.tempNewDoc(cleanup);
 
-    await gu.enterCell(["test"]);
+    await gu.enterCell("test");
     await driver.find(".test-undo").click();
     await assertPanelFocus("top", false);
     await expectClipboardFocus(true, 0);
