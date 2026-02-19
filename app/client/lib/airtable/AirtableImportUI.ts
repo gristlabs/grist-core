@@ -34,7 +34,7 @@ import { AirtableBaseSchema } from "app/common/airtable/AirtableAPITypes";
 import { AirtableImportProgress } from "app/common/airtable/AirtableDataImporterTypes";
 import { gristDocSchemaFromAirtableSchema } from "app/common/airtable/AirtableSchemaImporter";
 import { BaseAPI } from "app/common/BaseAPI";
-import { DocSchemaImportWarning, ImportSchemaTransformParams } from "app/common/DocSchemaImport";
+import { DocSchemaImportWarning, ImportSchemaTransformParams, transformImportSchema } from "app/common/DocSchemaImport";
 import { ExistingDocSchema } from "app/common/DocSchemaImportTypes";
 import { components, tokens } from "app/common/ThemePrefs";
 import { addCurrentOrgToPath } from "app/common/urlUtils";
@@ -324,6 +324,7 @@ Your token is never sent to Grist's servers, and is only used to make API calls 
           t("Continue"),
           dom.prop("disabled", use => use(this._loadingBases) || !use(selected)),
           dom.on("click", () => this._handleSelectBase(selected.get()!)),
+          testId("import-airtable-continue"),
         ),
         bigBasicButton(t("Cancel"), dom.on("click", this._onCancel)),
       ),
@@ -379,6 +380,7 @@ Your token is never sent to Grist's servers, and is only used to make API calls 
           ),
           dom.hide(this._importing),
           dom.on("click", () => this._handleImport()),
+          testId("import-airtable-import"),
         ),
         bigBasicButton(t("Cancel"), dom.on("click", this._onCancel)),
       ),
@@ -391,6 +393,7 @@ Your token is never sent to Grist's servers, and is only used to make API calls 
       cssMappingsHeaderColumn(t("Destination")),
       cssMappingsHeaderColumn(dom.hide(isNarrowScreenObs())), // To keep grid template aligned.
       mappings.map(m => this._tableMapping(m)),
+      testId("import-airtable-mappings"),
     );
   }
 
@@ -399,7 +402,10 @@ Your token is never sent to Grist's servers, and is only used to make API calls 
       cssTableNameColumn(
         cssTableIconAndName(
           cssTableIcon("TypeTable"),
-          cssTableName(mapping.tableName),
+          cssTableName(
+            mapping.tableName,
+            testId(`import-airtable-table-name`),
+          ),
         ),
       ),
       this._destinationMenu(mapping),
@@ -411,8 +417,10 @@ Your token is never sent to Grist's servers, and is only used to make API calls 
     return selectMenu(
       cssDestinationIconAndName(
         this._destinationMenuLabel(mapping),
+        testId("import-airtable-destination-label"),
       ),
       () => this._destinationMenuOptions(mapping),
+      testId(`import-airtable-table-${mapping.tableId}-destination`),
     );
   }
 
@@ -590,21 +598,26 @@ Your token is never sent to Grist's servers, and is only used to make API calls 
   private async _handleImport() {
     this._voidAsyncWork(async () => {
       try {
-        const { schema: importSchema } = gristDocSchemaFromAirtableSchema(this._baseSchema.get()!);
+        const { schema } = gristDocSchemaFromAirtableSchema(this._baseSchema.get()!);
+        const transformations: ImportSchemaTransformParams = {
+          skipTableIds: this._skipTableIds.get(),
+          mapExistingTableIds: this._mapExistingTableIds.get(),
+        };
+        const { schema: importSchema } = transformImportSchema(schema, transformations, this._existingDocSchema?.get());
         const result = await applyAirtableImportSchemaAndImportData({
           importSchema,
           dataSource: {
-            api: new AirtableAPI({ apiKey: this._accessToken.get()! }),
+            api: new AirtableAPI({
+              apiKey: this._accessToken.get()!,
+              endpointUrl: AirtableImport.AIRTABLE_API_BASE,
+            }),
             baseId: this._base.get()!.id,
           },
           userApi: this._api,
           options: {
             existingDocId: this._existingDocId,
             newDocName: this._base.get()!.name,
-            transformations: {
-              skipTableIds: this._skipTableIds.get(),
-              mapExistingTableIds: this._mapExistingTableIds.get(),
-            },
+            transformations,
             structureOnlyTableIds: this._structureOnlyTableIds.get(),
             onProgress: (progress) => {
               if (this.isDisposed()) { return; }
@@ -663,7 +676,10 @@ Your token is never sent to Grist's servers, and is only used to make API calls 
 
   private _fetchBaseSchema() {
     this._voidAsyncWork(async () => {
-      const api = new AirtableAPI({ apiKey: this._accessToken.get()! });
+      const api = new AirtableAPI({
+        apiKey: this._accessToken.get()!,
+        endpointUrl: AirtableImport.AIRTABLE_API_BASE,
+      });
       try {
         const baseSchema = await api.getBaseSchema(this._base.get()!.id);
         if (this.isDisposed()) { return; }
