@@ -280,7 +280,7 @@ describe("CustomView", function() {
 
         // Change a cell in Friends
         await gu.getCell({ section: "FRIENDS", col: 0, rowNum: 1 }).click();
-        await gu.enterCell(["Rabbit"]);
+        await gu.enterCell("Rabbit");
         await gu.waitForServer();
         // Return to the cell after automatically going to next row.
         await gu.getCell({ section: "FRIENDS", col: 0, rowNum: 1 }).click();

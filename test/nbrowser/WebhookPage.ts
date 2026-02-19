@@ -313,7 +313,7 @@ describe("WebhookPage", function() {
 
 async function setField(rowNum: number, col: string, text: string) {
   await gu.getDetailCell({ col, rowNum }).click();
-  await gu.enterCell([text]);
+  await gu.enterCell(text);
 }
 
 async function getField(rowNum: number, col: string) {
