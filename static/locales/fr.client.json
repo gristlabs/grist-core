@@ -2037,7 +2037,7 @@
     },
     "ViewLayout": {
         "Delete": "Supprimer",
-        "Delete data and this widget.": "Supprimer les données et la vue",
+        "Delete data and this widget.": "Supprimer les données et la vue.",
         "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "Garder les données et supprimer la vue. La table restera disponible dans {{rawDataLink}}",
         "Table {{tableName}} will no longer be visible": "La table {{tableName}} ne sera plus visible",
         "Raw Data page": "la page de données source"
@@ -2574,7 +2574,7 @@
         "Years until": "Années jusque"
     },
     "selectBy": {
-        "Select widget": "Choisir un widget"
+        "Select widget": "Choisir une vue"
     },
     "CoreNewDocMethods": {
         "Untitled document": "Document sans titre"
