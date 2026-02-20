@@ -10,6 +10,7 @@ export const ExistingDocSchema = t.iface([], {
 
 export const ExistingTableSchema = t.iface([], {
   "id": "string",
+  "name": t.opt("string"),
   "ref": t.opt("number"),
   "columns": t.array("ExistingColumnSchema"),
 });

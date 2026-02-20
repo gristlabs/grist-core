@@ -8,7 +8,7 @@ import {
 import { RecalcWhen } from "app/common/gristTypes";
 import { GristType } from "app/plugin/GristData";
 
-import { cloneDeep } from "lodash";
+import cloneDeep from "lodash/cloneDeep";
 
 /**
  * A self-contained schema for a Grist document, that can be declared, validated and then used
@@ -96,7 +96,7 @@ export interface FormulaTemplate {
 /**
  * Reference to a table within the import schema (i.e. using the table's originalId);
  */
-interface OriginalTableRef {
+export interface OriginalTableRef {
   originalTableId: string;
   // 'never' types below allow convenient type guard usage
   // e.g. `if (ref.originalTableId && ref.originalColId === undefined)` will narrow any ref to an
@@ -313,7 +313,8 @@ export function formatDocSchemaSqlResult(result: DocSchemaSqlResult): ExistingDo
  * purely informational or a significant error.
  */
 export interface DocSchemaImportWarning {
-  message: string;
+  readonly message: string;
+  readonly ref?: TableRef | ColRef;
 }
 
 class RefWarning implements DocSchemaImportWarning {
@@ -409,7 +410,7 @@ class NoColumnInfoForRefWarning implements DocSchemaImportWarning {
 class NoMatchingColumnWarning implements DocSchemaImportWarning {
   public readonly message: string;
 
-  constructor(public readonly colSchema: ColumnImportSchema) {
+  constructor(public readonly colSchema: ColumnImportSchema, public readonly ref: TableRef | ColRef) {
     this.message = `Could not match column schema with an existing column: ${JSON.stringify(colSchema)}`;
   }
 }
@@ -508,7 +509,7 @@ function transformSchemaMapRef(
   const matchingCol = existingTableSchema && findMatchingExistingColumn(colSchema, existingTableSchema);
 
   if (!matchingCol) {
-    return { ref, warning: new NoMatchingColumnWarning(colSchema) };
+    return { ref, warning: new NoMatchingColumnWarning(colSchema, ref) };
   }
 
   return { ref: { existingTableId, existingColId: matchingCol.id } };

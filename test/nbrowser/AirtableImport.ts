@@ -14,7 +14,7 @@ import http from "node:http";
 import { AddressInfo } from "node:net";
 
 import express from "express";
-import { assert, driver } from "mocha-webdriver";
+import { assert, driver, Key } from "mocha-webdriver";
 
 describe("AirtableImport", function() {
   this.timeout("20s");
@@ -33,6 +33,7 @@ describe("AirtableImport", function() {
     const port = (testHelperServer.address() as AddressInfo).port;
     testHelperServerUrl = `http://localhost:${port}`;
     oldEnv = new testUtils.EnvironmentSnapshot();
+    process.env.GRIST_TEST_LOGIN = "1";
     process.env.OAUTH2_GRIST_HOST = server.getHost();
     process.env.OAUTH2_AIRTABLE_CLIENT_ID = "test-client";
     process.env.OAUTH2_AIRTABLE_CLIENT_SECRET = "test-secret";
@@ -117,7 +118,8 @@ describe("AirtableImport", function() {
     function allowCors(res: express.Response) {
       res.header("Access-Control-Allow-Methods", "GET, PATCH, PUT, POST, DELETE, OPTIONS");
       res.header("Access-Control-Allow-Credentials", "true");
-      res.header("Access-Control-Allow-Headers", "Authorization, Content-Type, X-Requested-With");
+      res.header("Access-Control-Allow-Headers",
+        "Authorization, Content-Type, X-Requested-With, X-Airtable-User-Agent");
       res.header("Access-Control-Allow-Origin", "*");
     }
 
@@ -125,7 +127,7 @@ describe("AirtableImport", function() {
      * Simulates an Airtable "fetch bases" endpoint. It's called from the browser, so we relax
      * CORS. That's something that I've manually checked is the case for Airtable's endpoints.
      */
-    app.get("/meta/bases", (req, res) => {
+    app.get("/v0/meta/bases", (req, res) => {
       allowCors(res);
       if (req.headers.authorization !== "Bearer opaque-test-access-token") {
         // This is the shape of a realistic Airtable response.
@@ -133,6 +135,40 @@ describe("AirtableImport", function() {
         return res.status(403).json(msg);
       }
       return res.status(200).json(airtableBasesFixture);
+    });
+
+    /**
+     * Simulates an Airtable "get base schema" endpoint.
+     */
+    app.get("/v0/meta/bases/:baseId/tables", (req, res) => {
+      allowCors(res);
+      if (req.headers.authorization !== "Bearer opaque-test-access-token") {
+        const msg = { error: { type: "AUTHENTICATION_REQUIRED", message: "Authentication required" } };
+        return res.status(403).json(msg);
+      }
+      const { baseId } = req.params;
+      const baseSchema = airtableBaseSchemaFixture[baseId as keyof typeof airtableBaseSchemaFixture];
+      if (!baseSchema) {
+        return res.status(404).json({ error: { type: "NOT_FOUND", message: "Base not found" } });
+      }
+      return res.status(200).json(baseSchema);
+    });
+
+    /**
+     * Simulates an Airtable "list records" endpoint.
+     */
+    app.get("/v0/:baseId/:tableId", (req, res) => {
+      allowCors(res);
+      if (req.headers.authorization !== "Bearer opaque-test-access-token") {
+        const msg = { error: { type: "AUTHENTICATION_REQUIRED", message: "Authentication required" } };
+        return res.status(403).json(msg);
+      }
+      const { tableId } = req.params;
+      const records = airtableListRecordsFixture[tableId as keyof typeof airtableListRecordsFixture];
+      if (!records) {
+        return res.status(404).json({ error: { type: "NOT_FOUND", message: "Table not found" } });
+      }
+      return res.status(200).json(records);
     });
 
     app.use("/", (req, res) => {
@@ -150,14 +186,19 @@ describe("AirtableImport", function() {
     return helperServer;
   }
 
-  async function openAirtableDocImporter() {
+  async function openAirtableDocImporter(context: "home" | "doc" = "doc") {
     // Make Airtable API calls go to our helper server.
     await driver.executeScript((baseUrl: string) => {
       (window as any).testAirtableImportBaseUrlOverride = baseUrl;
     }, testHelperServerUrl);
 
-    await driver.findWait(".test-dp-add-new", 2000).click();
-    await driver.findContentWait(".test-dp-import-option", /Import from Airtable/i, 500).click();
+    const prefix = context === "home" ? "dm" : "dp";
+    await driver.findWait(`.test-${prefix}-add-new`, 2000).click();
+    if (context === "home") {
+      await driver.findWait(".test-dm-import-from-airtable", 500).click();
+    } else {
+      await driver.findContentWait(".test-dp-import-option", /Import from Airtable/i, 500).click();
+    }
     await driver.findWait(".test-modal-dialog", 2000);
   }
 
@@ -175,7 +216,6 @@ describe("AirtableImport", function() {
     });
 
     it("should redirect to sign-in page", async function() {
-      await driver.executeScript(() => { (window as any).setExperimentState("airtableImport", true); });
       await gu.refreshDismiss({ ignore: true });
       await driver.findWait(".test-dp-add-new", 2000).click();
       await driver.findContentWait(".test-dp-import-option", /Import from Airtable/i, 500).click();
@@ -198,8 +238,6 @@ describe("AirtableImport", function() {
 
     it("should go through oauth2 flow and fetch bases", async function() {
       await mainSession.loadDoc(`/doc/${docId}`);
-      await driver.executeScript(() => { (window as any).setExperimentState("airtableImport", true); });
-      await gu.reloadDoc();
 
       await openAirtableDocImporter();
 
@@ -231,8 +269,6 @@ describe("AirtableImport", function() {
     it("should associate access_token with a user", async function() {
       otherSession = await gu.session().personalSite.user("user2").addLogin();
       otherDocId = await otherSession.tempNewDoc(cleanup, "AirtableImport2");
-      await driver.executeScript(() => { (window as any).setExperimentState("airtableImport", true); });
-      await gu.reloadDoc();
 
       await openAirtableDocImporter();
 
@@ -289,9 +325,204 @@ describe("AirtableImport", function() {
       await gu.waitToPass(async () => {
         assert.equal(await driver.find(".test-import-airtable-error").isPresent(), false);
       });
-      
+
       await driver.findContentWait(".test-modal-dialog button", /Cancel/, 500).click();
       await waitForModalToClose();
+    });
+
+    it("should list all tables from the selected base", async function() {
+      await gu.loadDocMenu("/");
+      await openAirtableDocImporter("home");
+
+      const bases = await driver.findWait(".test-import-airtable-bases", 2000);
+      await bases.findContent(".test-import-airtable-name", "Product planning").click();
+      await driver.find(".test-import-airtable-continue").click();
+
+      await driver.findWait(".test-import-airtable-mappings", 2000).isDisplayed();
+      assert.deepEqual(await driver.findAll(".test-import-airtable-table-name", el => el.getText()), [
+        "Products",
+        "Suppliers",
+        "Orders",
+      ]);
+    });
+
+    it("should allow mapping Airtable tables to Grist tables", async function() {
+    // Tables are imported as new tables by default.
+      assert.deepEqual(await driver.findAll(".test-import-airtable-destination-label", el => el.getText()), [
+        "New table",
+        "New table",
+        "New table",
+      ]);
+      assert.equal(await driver.find(".test-import-airtable-import").getText(), "Import 3 tables");
+
+      // Import Products (tbl79ux7qppckp8hr) as a new table.
+      await driver.find(".test-import-airtable-table-tbl79ux7qppckp8hr-destination").click();
+      assert.deepEqual(await gu.findOpenMenuAllItems("li", el => el.getText()), [
+        "New table",
+        "New table: structure only",
+        "Skip",
+      ]);
+      await gu.findOpenMenuItem("li", "New table").click();
+      assert.deepEqual(await driver.findAll(".test-import-airtable-destination-label", el => el.getText()), [
+        "New table",
+        "New table",
+        "New table",
+      ]);
+      assert.equal(await driver.find(".test-import-airtable-import").getText(), "Import 3 tables");
+
+      // Import Suppliers (tblbyte2tg72cbhhf) as a new table without data.
+      await driver.find(".test-import-airtable-table-tblbyte2tg72cbhhf-destination").click();
+      assert.deepEqual(await gu.findOpenMenuAllItems("li", el => el.getText()), [
+        "New table",
+        "New table: structure only",
+        "Skip",
+      ]);
+      await gu.findOpenMenuItem("li", "New table: structure only").click();
+      assert.deepEqual(await driver.findAll(".test-import-airtable-destination-label", el => el.getText()), [
+        "New table",
+        "Structure only",
+        "New table",
+      ]);
+      assert.equal(await driver.find(".test-import-airtable-import").getText(), "Import 3 tables");
+
+      // Skip importing Orders (tblfyhS37Hst5Hvsf).
+      await driver.find(".test-import-airtable-table-tblfyhS37Hst5Hvsf-destination").click();
+      assert.deepEqual(await gu.findOpenMenuAllItems("li", el => el.getText()), [
+        "New table",
+        "New table: structure only",
+        "Skip",
+      ]);
+      await gu.findOpenMenuItem("li", "Skip").click();
+      assert.deepEqual(await driver.findAll(".test-import-airtable-destination-label", el => el.getText()), [
+        "New table",
+        "Structure only",
+        "Skip",
+      ]);
+      assert.equal(await driver.find(".test-import-airtable-import").getText(), "Import 2 tables");
+    });
+
+    it("should import Airtable base to a new Grist document", async function() {
+      await driver.find(".test-import-airtable-import").click();
+      await waitForModalToClose();
+      await gu.waitForDocToLoad();
+
+      assert.equal(await driver.find(".test-bc-doc").value(), "Product planning");
+      assert.deepEqual(await gu.getPageNames(), ["Products", "Suppliers"]);
+      assert.deepEqual(await gu.getColumnNames(), [
+        "Airtable Id",
+        "Name",
+        "Price",
+        "Category",
+        "Suppliers",
+      ]);
+      assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: [0, 1, 2, 3, 4] }), [
+        "reccaegwskzka7wi1", "Widget X", "99.99", "Electronics", "",
+        "recigwb4bc7vq2fhd", "Gadget Y", "149.99", "Electronics", "",
+        "", "", "", "", "",
+      ]);
+
+      await gu.getPageItem("Suppliers").click();
+      assert.deepEqual(await gu.getColumnNames(), [
+        "Airtable Id",
+        "Name",
+        "Email",
+        "Phone",
+      ]);
+      assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1], cols: [0, 1, 2, 3] }), [
+        "", "", "", "",
+      ]);
+    });
+
+    it("should import Airtable base to an existing Grist document", async function() {
+      await gu.getPageItem("Products").click();
+      await gu.sendKeys(await gu.selectAllKey(), Key.chord(await gu.modKey(), Key.DELETE));
+      await gu.confirm(true);
+      await gu.waitForServer();
+
+      await openAirtableDocImporter("doc");
+
+      const bases = await driver.findWait(".test-import-airtable-bases", 2000);
+      await bases.findContent(".test-import-airtable-name", "Product planning").click();
+      await driver.find(".test-import-airtable-continue").click();
+      await driver.findWait(".test-import-airtable-mappings", 2000).isDisplayed();
+
+      // Import Products (tbl79ux7qppckp8hr) to the existing Products table.
+      await driver.find(".test-import-airtable-table-tbl79ux7qppckp8hr-destination").click();
+      assert.deepEqual(await gu.findOpenMenuAllItems("li", el => el.getText()), [
+        "New table",
+        "New table: structure only",
+        "Skip",
+        "Products",
+        "Suppliers",
+      ]);
+      await gu.findOpenMenuItem("li", "Products").click();
+      assert.deepEqual(await driver.findAll(".test-import-airtable-destination-label", el => el.getText()), [
+        "Products",
+        "New table",
+        "New table",
+      ]);
+      assert.equal(await driver.find(".test-import-airtable-import").getText(), "Import 3 tables");
+
+      // Import Suppliers (tblbyte2tg72cbhhf) as a new table without data.
+      await driver.find(".test-import-airtable-table-tblbyte2tg72cbhhf-destination").click();
+      assert.deepEqual(await gu.findOpenMenuAllItems("li", el => el.getText()), [
+        "New table",
+        "New table: structure only",
+        "Skip",
+        "Products",
+        "Suppliers",
+      ]);
+      await gu.findOpenMenuItem("li", "Suppliers").click();
+      assert.deepEqual(await driver.findAll(".test-import-airtable-destination-label", el => el.getText()), [
+        "Products",
+        "Suppliers",
+        "New table",
+      ]);
+      assert.equal(await driver.find(".test-import-airtable-import").getText(), "Import 3 tables");
+
+      await driver.find(".test-import-airtable-import").click();
+      await waitForModalToClose();
+
+      assert.deepEqual(await gu.getPageNames(), ["Products", "Suppliers", "Orders"]);
+      assert.deepEqual(await gu.getColumnNames(), [
+        "Airtable Id",
+        "Name",
+        "Price",
+        "Category",
+        "Suppliers",
+      ]);
+      assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: [0, 1, 2, 3, 4] }), [
+        "reccaegwskzka7wi1", "Widget X", "99.99", "Electronics", "Suppliers[1]",
+        "recigwb4bc7vq2fhd", "Gadget Y", "149.99", "Electronics", "Suppliers[2]",
+        "", "", "", "", "",
+      ]);
+
+      await gu.getPageItem("Suppliers").click();
+      assert.deepEqual(await gu.getColumnNames(), [
+        "Airtable Id",
+        "Name",
+        "Email",
+        "Phone",
+      ]);
+      assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: [0, 1, 2, 3] }), [
+        "recoa4mwyeytxu3fb", "Wow Widgets", "wowwidgets@example.com", "(123) 456-7890",
+        "recw7cwwskv1q5jck", "Grand Gadgets", "grandgadgets@example.com", "(111) 222-3333",
+        "", "", "", "",
+      ]);
+
+      await gu.getPageItem("Orders").click();
+      assert.deepEqual(await gu.getColumnNames(), [
+        "Airtable Id",
+        "Order Number",
+        "Order Date",
+        "Products",
+        "Total Amount",
+      ]);
+      assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: [0, 1, 2, 3, 4] }), [
+        "recjngmiw6qy39v53", "ord5q3rxaa95gyvrw", "01/05/2023", "Products[1]", "99.99",
+        "recua5n4ir46dn5t6", "ordx37praxl2m95wj", "01/06/2023", "Products[1]\nProducts[2]", "249.98",
+        "", "", "", "", "",
+      ]);
     });
   });
 });
@@ -307,4 +538,157 @@ const airtableBasesFixture = {
     name: "Sales CRM",
     permissionLevel: "create",
   }],
+};
+
+// Sample response to GET https://api.airtable.com/v0/meta/bases/{baseId}/tables
+const airtableBaseSchemaFixture = {
+  appYovle0EAuu0OZE: {
+    tables: [{
+      id: "tbl79ux7qppckp8hr",
+      name: "Products",
+      primaryFieldId: "fldc2scnky16ae07t",
+      fields: [
+        {
+          id: "fldc2scnky16ae07t",
+          name: "Name",
+          type: "singleLineText",
+        },
+        {
+          id: "fldov4y3i2tojpq9e",
+          name: "Price",
+          type: "number",
+        },
+        {
+          id: "fldh00nlbe0pbmh60",
+          name: "Category",
+          type: "singleLineText",
+        },
+        {
+          id: "fldgdanj899r6y0ua",
+          name: "Suppliers",
+          type: "multipleRecordLinks",
+          options: {
+            linkedTableId: "tblbyte2tg72cbhhf",
+          },
+        },
+      ],
+    }, {
+      id: "tblbyte2tg72cbhhf",
+      name: "Suppliers",
+      primaryFieldId: "fldh8fha8zrd88t3u",
+      fields: [
+        {
+          id: "fldh8fha8zrd88t3u",
+          name: "Name",
+          type: "singleLineText",
+        },
+        {
+          id: "fld43552lj107y510",
+          name: "Email",
+          type: "email",
+        },
+        {
+          id: "fldo0m0ozf0k5aatm",
+          name: "Phone",
+          type: "phoneNumber",
+        },
+      ],
+    }, {
+      id: "tblfyhS37Hst5Hvsf",
+      name: "Orders",
+      primaryFieldId: "fldrk0qj3lm70na2f",
+      fields: [
+        {
+          id: "fldrk0qj3lm70na2f",
+          name: "Order Number",
+          type: "singleLineText",
+        },
+        {
+          id: "fldctmhnpzgf98ly5",
+          name: "Order Date",
+          type: "date",
+        },
+        {
+          id: "fldjpzq93zncwwx2z",
+          name: "Products",
+          type: "multipleRecordLinks",
+          options: {
+            linkedTableId: "tbl79ux7qppckp8hr",
+          },
+        },
+        {
+          id: "fld5bepfz6vjdjnvq",
+          name: "Total Amount",
+          type: "number",
+        },
+      ],
+    }],
+  },
+};
+
+// Sample response to GET https://api.airtable.com/v0/{baseId}/{tableIdOrName}
+const airtableListRecordsFixture = {
+  tbl79ux7qppckp8hr: {
+    records: [{
+      id: "reccaegwskzka7wi1",
+      fields: {
+        Name: "Widget X",
+        Price: 99.99,
+        Category: "Electronics",
+        Suppliers: ["recoa4mwyeytxu3fb"],
+      },
+      createdTime: "2023-01-01T00:00:00.000Z",
+    }, {
+      id: "recigwb4bc7vq2fhd",
+      fields: {
+        Name: "Gadget Y",
+        Price: 149.99,
+        Category: "Electronics",
+        Suppliers: ["recw7cwwskv1q5jck"],
+      },
+      createdTime: "2023-01-02T00:00:00.000Z",
+    }],
+  },
+
+  tblbyte2tg72cbhhf: {
+    records: [{
+      id: "recoa4mwyeytxu3fb",
+      fields: {
+        Name: "Wow Widgets",
+        Email: "wowwidgets@example.com",
+        Phone: "(123) 456-7890",
+      },
+      createdTime: "2023-01-01T00:00:00.000Z",
+    }, {
+      id: "recw7cwwskv1q5jck",
+      fields: {
+        Name: "Grand Gadgets",
+        Email: "grandgadgets@example.com",
+        Phone: "(111) 222-3333",
+      },
+      createdTime: "2023-01-02T00:00:00.000Z",
+    }],
+  },
+
+  tblfyhS37Hst5Hvsf: {
+    records: [{
+      id: "recjngmiw6qy39v53",
+      fields: {
+        "Order Number": "ord5q3rxaa95gyvrw",
+        "Order Date": "2023-01-05",
+        "Products": ["reccaegwskzka7wi1"],
+        "Total Amount": 99.99,
+      },
+      createdTime: "2023-01-05T10:00:00.000Z",
+    }, {
+      id: "recua5n4ir46dn5t6",
+      fields: {
+        "Order Number": "ordx37praxl2m95wj",
+        "Order Date": "2023-01-06",
+        "Products": ["reccaegwskzka7wi1", "recigwb4bc7vq2fhd"],
+        "Total Amount": 249.98,
+      },
+      createdTime: "2023-01-06T11:00:00.000Z",
+    }],
+  },
 };

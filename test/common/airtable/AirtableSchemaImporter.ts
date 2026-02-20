@@ -11,7 +11,7 @@ import * as crypto from "crypto";
 
 import { assert } from "chai";
 
-describe("AirtableImporter", function() {
+describe("AirtableSchemaImporter", function() {
   const firstTableName = "A basic table";
   const firstTableId = tableNameToId(firstTableName);
 

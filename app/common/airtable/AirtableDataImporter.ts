@@ -1,32 +1,32 @@
-import { ListAirtableRecordsResult } from "app/common/airtable/AirtableAPI";
-import { AirtableFieldSchema, AirtableTableId } from "app/common/airtable/AirtableAPITypes";
+import { AirtableFieldSchema } from "app/common/airtable/AirtableAPITypes";
 import {
-  AirtableBaseSchemaCrosswalk,
-  AirtableFieldMappingInfo,
-  GristTableId,
-} from "app/common/airtable/AirtableCrosswalk";
-import { TableColValues } from "app/common/DocActions";
-import { isNonNullish } from "app/common/gutil";
+  AttachmentsByColumnId,
+  AttachmentTracker,
+  extractAttachmentsFromRecordField,
+  isAttachmentField,
+  TableAttachmentTracker,
+} from "app/common/airtable/AirtableAttachmentTracker";
+import { AirtableDataImportParams } from "app/common/airtable/AirtableDataImporterTypes";
+import {
+  createEmptyBulkColValues,
+  extractRefFromRecordField,
+  isRefField,
+  ReferenceTracker,
+  RefValuesByColumnId,
+  TableReferenceTracker,
+} from "app/common/airtable/AirtableReferenceTracker";
 import { BulkColValues, CellValue, GristObjCode } from "app/plugin/GristData";
 
-import { chain } from "lodash";
-
-export interface AirtableDataImportParams {
-  listRecords: ListRecordsFunc,
-  addRows: (tableId: GristTableId, rows: BulkColValues) => Promise<number[]>,
-  updateRows: UpdateRowsFunc,
-  schemaCrosswalk: AirtableBaseSchemaCrosswalk,
-}
-
-type ListRecordsFunc = (tableId: AirtableTableId) => Promise<ListAirtableRecordsResult>;
-type UpdateRowsFunc = (tableId: GristTableId, rows: TableColValues) => Promise<number[]>;
-
 export async function importDataFromAirtableBase(
-  { listRecords, addRows, updateRows, schemaCrosswalk }: AirtableDataImportParams,
+  { listRecords, addRows, updateRows, uploadAttachment, schemaCrosswalk, onProgress }: AirtableDataImportParams,
 ) {
   const referenceTracker = new ReferenceTracker();
+  const attachmentTracker = new AttachmentTracker();
 
   const addRowsPromises: Promise<any>[] = [];
+
+  // TODO: Strings passed to onProgress calls in common code aren't translatable.
+  onProgress?.({ percent: 0, status: "Importing records from Airtable..." });
 
   for (const [tableId, tableCrosswalk] of schemaCrosswalk.tables.entries()) {
     // Filter out any formula columns early - Grist will error on any write to formula columns.
@@ -42,7 +42,19 @@ export async function importDataFromAirtableBase(
       .filter(mapping => isRefField(mapping.airtableField))
       .map(mapping => mapping.gristColumn.id);
 
-    const tableReferenceTracker = referenceTracker.addTable(tableCrosswalk.gristTable.id, referenceColumnIds);
+    let tableReferenceTracker: TableReferenceTracker | undefined;
+    if (referenceColumnIds.length > 0) {
+      tableReferenceTracker = referenceTracker.addTable(tableCrosswalk.gristTable.id, referenceColumnIds);
+    }
+
+    const attachmentColumnIds = Array.from(tableCrosswalk.fields.values())
+      .filter(mapping => isAttachmentField(mapping.airtableField))
+      .map(mapping => mapping.gristColumn.id);
+
+    let tableAttachmentTracker: TableAttachmentTracker | undefined;
+    if (attachmentColumnIds.length > 0) {
+      tableAttachmentTracker = attachmentTracker.addTable(tableCrosswalk.gristTable.id, attachmentColumnIds);
+    }
 
     let listRecordsResult = await listRecords(tableId);
 
@@ -52,18 +64,28 @@ export async function importDataFromAirtableBase(
       const colValues: BulkColValues = createEmptyBulkColValues(gristColumnIds);
       const airtableRecordIds: string[] = [];
       const refsByColumnIdForRecords: RefValuesByColumnId[] = [];
+      const attachmentsByColumnIdForRecords: AttachmentsByColumnId[] = [];
 
       for (const record of records) {
         const refsByColumnId: RefValuesByColumnId = {};
+        const attachmentsByColumnId: AttachmentsByColumnId = {};
 
         airtableRecordIds.push(record.id);
         for (const fieldMapping of fieldMappings) {
-          const rawFieldValue = record.fields[fieldMapping.airtableField.name];
+          const { airtableField, gristColumn } = fieldMapping;
+          const rawFieldValue = record.fields[airtableField.name];
 
-          if (isRefField(fieldMapping.airtableField)) {
-            refsByColumnId[fieldMapping.gristColumn.id] = extractRefFromRecordField(rawFieldValue, fieldMapping);
-            // Column should remain blank until it's filled in by a later reference resolution step.
-            colValues[fieldMapping.gristColumn.id].push(null);
+          if (isRefField(airtableField)) {
+            refsByColumnId[gristColumn.id] = extractRefFromRecordField(rawFieldValue, fieldMapping);
+          }
+
+          if (isAttachmentField(airtableField)) {
+            attachmentsByColumnId[gristColumn.id] = extractAttachmentsFromRecordField(rawFieldValue, fieldMapping);
+          }
+
+          if (isRefField(airtableField) || isAttachmentField(airtableField)) {
+            // Column should remain blank until it's filled in by a later step.
+            colValues[gristColumn.id].push(null);
             continue;
           }
 
@@ -81,16 +103,21 @@ export async function importDataFromAirtableBase(
         }
 
         refsByColumnIdForRecords.push(refsByColumnId);
+        attachmentsByColumnIdForRecords.push(attachmentsByColumnId);
       }
 
       const addRowsPromise = addRows(tableCrosswalk.gristTable.id, colValues)
         .then((gristRowIds) => {
           airtableRecordIds.forEach((airtableRecordId, index) => {
-            // Only add entries to the reference tracker once we know they're added to the table.
+            // Only add entries to the reference and attachment trackers once we know they're added to the table.
             referenceTracker.addRecordIdMapping(airtableRecordId, gristRowIds[index]);
-            tableReferenceTracker.addUnresolvedRecord({
+            tableReferenceTracker?.addUnresolvedRecord({
               gristRecordId: gristRowIds[index],
               refsByColumnId: refsByColumnIdForRecords[index],
+            });
+            tableAttachmentTracker?.addRecord({
+              gristRecordId: gristRowIds[index],
+              attachmentsByColumnId: attachmentsByColumnIdForRecords[index],
             });
           });
         });
@@ -108,103 +135,27 @@ export async function importDataFromAirtableBase(
   for (const tableReferenceTracker of referenceTracker.getTables()) {
     await tableReferenceTracker.bulkUpdateRowsWithUnresolvedReferences(updateRows);
   }
-}
 
-export class ReferenceTracker {
-  // Maps known airtable ids to their grist row ids to enable reference resolution.
-  // Airtable row ids are guaranteed unique within a base.
-  private _rowIdLookup = new Map<string, number>();
-  // Group references by table and row to achieve bulk-updates and atomic resolutions for rows.
-  private _tableReferenceTrackers = new Map<string, TableReferenceTracker>();
-
-  public addRecordIdMapping(originalRecordId: string, gristRecordId: number) {
-    this._rowIdLookup.set(originalRecordId, gristRecordId);
+  const totalAttachmentsCount = attachmentTracker.getRemainingAttachmentsCount();
+  for (const tableAttachmentTracker of attachmentTracker.getTables()) {
+    await tableAttachmentTracker.importAttachments(
+      uploadAttachment,
+      updateRows,
+      {
+        onBatchComplete: () => {
+          const remainingAttachmentsCount = attachmentTracker.getRemainingAttachmentsCount();
+          const uploadedAttachmentsCount = totalAttachmentsCount - remainingAttachmentsCount;
+          const attachmentsPercent = (uploadedAttachmentsCount / totalAttachmentsCount) * 100;
+          onProgress?.({
+            percent: 50 + (attachmentsPercent * 0.50),
+            status: `Importing attachments from Airtable... (${remainingAttachmentsCount} remaining)`,
+          });
+        },
+      },
+    );
   }
 
-  public resolve(originalRecordId: string): number | undefined {
-    return this._rowIdLookup.get(originalRecordId);
-  }
-
-  public addTable(gristTableId: string, columnIdsToUpdate: string[]) {
-    const tableTracker = new TableReferenceTracker(this, gristTableId, columnIdsToUpdate);
-    this._tableReferenceTrackers.set(gristTableId, tableTracker);
-    return tableTracker;
-  }
-
-  public getTables(): TableReferenceTracker[] {
-    return Array.from(this._tableReferenceTrackers.values());
-  }
-}
-
-// Store and resolve references per-table to enable bulk updates.
-class TableReferenceTracker {
-  private _unresolvedRefsForRecords: UnresolvedRefsForRecord[] = [];
-
-  // To perform bulk updates, all reference columns need updating at the same time.
-  // Enforce this by explicitly listing the column ids to use during instantiation.
-  public constructor(private _parent: ReferenceTracker, private _tableId: string, private _columnIds: string[]) {
-  }
-
-  public addUnresolvedRecord(unresolvedRefsForRecord: UnresolvedRefsForRecord) {
-    this._unresolvedRefsForRecords.push(unresolvedRefsForRecord);
-  }
-
-  public async bulkUpdateRowsWithUnresolvedReferences(
-    updateRows: UpdateRowsFunc,
-    options?: { batchSize?: number },
-  ) {
-    const batchSize = options?.batchSize ?? 100;
-
-    let pendingUpdate: TableColValues = { id: [], ...createEmptyBulkColValues(this._columnIds) };
-
-    for (const unresolvedRefsForRecord of this._unresolvedRefsForRecords) {
-      pendingUpdate.id.push(unresolvedRefsForRecord.gristRecordId);
-
-      // Every row needs an entry in its respective column in the bulk update, so always loop through
-      // the same columns for every row.
-      for (const columnId of this._columnIds) {
-        const references = unresolvedRefsForRecord.refsByColumnId[columnId];
-        // TODO - Unresolvable references are currently just skipped silently. Find a way to display
-        //        them in the cell / UI.
-        const resolvedReferences = references ?
-          references.map(originalRecordId => this._parent.resolve(originalRecordId)).filter(isNonNullish) : [];
-        pendingUpdate[columnId].push(
-          [GristObjCode.List, ...resolvedReferences],
-        );
-      }
-
-      if (pendingUpdate.id.length >= batchSize) {
-        await updateRows(this._tableId, pendingUpdate);
-        pendingUpdate = { id: [], ...createEmptyBulkColValues(this._columnIds) };
-      }
-    }
-
-    if (pendingUpdate.id.length > 0) {
-      await updateRows(this._tableId, pendingUpdate);
-    }
-  }
-}
-
-interface UnresolvedRefsForRecord {
-  gristRecordId: number;
-  refsByColumnId: RefValuesByColumnId;
-}
-
-type RefValuesByColumnId = Record<string, string[] | undefined>;
-
-function isRefField(field: AirtableFieldSchema) {
-  return field.type === "multipleRecordLinks";
-}
-
-function extractRefFromRecordField(fieldValue: any, fieldMapping: AirtableFieldMappingInfo): string[] | undefined {
-  if (fieldMapping.airtableField.type === "multipleRecordLinks") {
-    return fieldValue;
-  }
-  return undefined;
-}
-
-function createEmptyBulkColValues(columnIds: string[]): BulkColValues {
-  return chain(columnIds).keyBy().mapValues(() => []).value();
+  onProgress?.({ percent: 100 });
 }
 
 type AirtableFieldValueConverter = (fieldSchema: AirtableFieldSchema, value: any) => CellValue | undefined;
@@ -230,10 +181,6 @@ const AirtableFieldValueConverters: Record<string, AirtableFieldValueConverter> 
   lookup(fieldSchema, value) {
     // Lookup fields fetch values from other columns. This should be a formula in Grist, no value needed.
     throw new Error("Lookup is a formula column, and should not have data conversion run");
-  },
-  multipleAttachments(fieldSchema, attachmentInfo) {
-    // Improvement - add attachment support, null them out for now.
-    return null;
   },
   multipleCollaborators(fieldSchema, collaborators) {
     const formattedCollaborators = collaborators?.map(formatCollaborator);

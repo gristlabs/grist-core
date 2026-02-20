@@ -1,85 +1,54 @@
 import { getExistingDocSchema } from "app/client/lib/DocSchemaImport";
+import { makeT } from "app/client/lib/localization";
 import { AirtableAPI, listRecords } from "app/common/airtable/AirtableAPI";
-import { createAirtableBaseToGristDocCrosswalk } from "app/common/airtable/AirtableCrosswalk";
+import { AirtableBaseSchema } from "app/common/airtable/AirtableAPITypes";
+import { AirtableCrosswalkWarning, createAirtableBaseToGristDocCrosswalk } from "app/common/airtable/AirtableCrosswalk";
 import { importDataFromAirtableBase } from "app/common/airtable/AirtableDataImporter";
+import { AirtableImportProgress } from "app/common/airtable/AirtableDataImporterTypes";
 import { gristDocSchemaFromAirtableSchema } from "app/common/airtable/AirtableSchemaImporter";
 import {
   DocSchemaImportTool,
+  DocSchemaImportWarning,
   ImportSchema,
   ImportSchemaTransformParams,
+  transformImportSchema,
+  validateImportSchema,
 } from "app/common/DocSchemaImport";
+import { ExistingDocSchema } from "app/common/DocSchemaImportTypes";
 import { OWNER } from "app/common/roles";
 import { UserAPI } from "app/common/UserAPI";
 
 export interface AirtableImportOptions {
   transformations?: ImportSchemaTransformParams,
   existingDocId?: string,
-  newDocName?: string;
-  structureOnly?: boolean,
+  newDocName?: string,
+  structureOnlyTableIds?: string[],
+  onProgress?(progress: AirtableImportProgress): void,
 }
 
-/**
- * @deprecated
- * Runs a full import from an Airtable base into a new or existing Grist doc
- * This is intended to be replaced by a full UI when complete.
- * @param {string} apiKey - Airtable Personal Access Token
- * @param {string} baseId - ID of the Airtable base to import
- * @param options - Options to modify the import
- * @param {ImportSchemaTransformParams} [options.transformations] - Transformations to apply to the
- *   schema
- * @param {string} [options.existingDocId] - If defined, imports tables into this existing Grist
- *   doc.
- * @returns {Promise<void>}
- */
-export async function runAirtableImport(
-  apiKey: string,
-  baseId: string,
-  options: AirtableImportOptions = {},
-): Promise<void> {
-  const api = new AirtableAPI({ apiKey });
-
-  const bases = await api.listBases();
-
-  console.log("All available Airtable bases:");
-  console.log(bases);
-
-  const baseToUse = bases.find(base => base.id === baseId);
-  if (baseToUse === undefined) {
-    throw new Error("No base with the given ID found");
-  }
-
-  const userApi = window.gristApp?.topAppModel?.api;
-  if (!userApi) {
-    throw new Error("No user API available - is this being run outside of the browser?");
-  }
-
-  const baseSchema = await api.getBaseSchema(baseToUse.id);
-  const { schema: importSchema, warnings: airtableWarnings } = gristDocSchemaFromAirtableSchema(baseSchema);
-
-  console.log("Warnings from Airtable schema conversion:");
-  console.warn(airtableWarnings);
-
-  await applyAirtableImportSchemaAndImportData({
-    userApi,
-    dataSource: { api, baseId },
-    importSchema,
-    options: {
-      newDocName: options.newDocName ?? baseToUse.name,
-    },
-  });
+export interface AirtableImportResult {
+  docId: string;
+  creationWarnings: DocSchemaImportWarning[];
+  crosswalkWarnings?: AirtableCrosswalkWarning[];
 }
+
+const t = makeT("AirtableImport");
 
 export async function applyAirtableImportSchemaAndImportData(params: {
   importSchema: ImportSchema,
   dataSource: { api: AirtableAPI, baseId: string },
   userApi: UserAPI,
   options: AirtableImportOptions,
-}) {
+}): Promise<AirtableImportResult> {
   const { dataSource, importSchema, userApi, options } = params;
   const { api, baseId } = dataSource;
-  const { existingDocId, transformations } = options;
+  const { existingDocId, transformations, structureOnlyTableIds = [], onProgress } = options;
+
+  onProgress?.({ percent: 0, status: t("Preparing to import base from Airtable...") });
 
   const baseSchema = await api.getBaseSchema(baseId);
+
+  if (!existingDocId) { onProgress?.({ percent: 10, status: t("Creating a new Grist document...") }); }
 
   const docId = existingDocId ?? await createDoc(userApi, options.newDocName ?? baseId);
   const docApi = userApi.getDocAPI(docId);
@@ -88,6 +57,8 @@ export async function applyAirtableImportSchemaAndImportData(params: {
   const initialTables = existingDocSchema.tables.map(table => table.id);
 
   const docSchemaCreator = new DocSchemaImportTool(actions => docApi.applyUserActions((actions)));
+
+  onProgress?.({ percent: 25, status: t("Setting up tables...") });
 
   const { tableIdsMap, warnings: creationWarnings } = await docSchemaCreator.createTablesFromSchema(importSchema);
 
@@ -106,13 +77,11 @@ export async function applyAirtableImportSchemaAndImportData(params: {
     await docSchemaCreator.removeTables(initialTables);
   }
 
-  if (options.structureOnly) { return; }
-
   const finalGristDocSchema = await getExistingDocSchema(docApi);
 
-  const dataTableMapping = new Map(
-    Array.from(tableIdsMap.values()).map(tableIdInfo => [tableIdInfo.originalId, tableIdInfo.gristId]),
-  );
+  const skipDataTableIds = new Set(structureOnlyTableIds);
+  const dataTableInfo = Array.from(tableIdsMap.values()).filter(({ originalId: id }) => !skipDataTableIds.has(id));
+  const dataTableMapping = new Map(dataTableInfo.map(({ originalId, gristId }) => [originalId, gristId]));
 
   // tableIdsMap only contains newly created tables - need to add the table mapping supplied by the
   // user when building the crosswalk.
@@ -121,6 +90,13 @@ export async function applyAirtableImportSchemaAndImportData(params: {
     for (const [airtableTableId, gristTableId] of existingTableIdMap.entries()) {
       dataTableMapping.set(airtableTableId, gristTableId);
     }
+  }
+
+  if (dataTableMapping.size === 0) {
+    return {
+      docId,
+      creationWarnings,
+    };
   }
 
   const { schemaCrosswalk, warnings: crosswalkWarnings } =
@@ -140,13 +116,34 @@ export async function applyAirtableImportSchemaAndImportData(params: {
     listRecords: tableId => listRecords(api.base(baseId), tableId, {}),
     addRows: docApi.addRows.bind(docApi),
     updateRows: docApi.updateRows.bind(docApi),
+    uploadAttachment: docApi.uploadAttachment.bind(docApi),
     schemaCrosswalk,
+    onProgress: ({ percent, status }) => {
+      onProgress?.({ percent: 50 + (percent * 0.50), status });
+    },
   });
 
   return {
     creationWarnings,
     crosswalkWarnings,
+    docId,
   };
+}
+
+export function validateAirtableSchemaImport(
+  baseSchema: AirtableBaseSchema,
+  existingDocSchema?: ExistingDocSchema,
+  transformations?: ImportSchemaTransformParams,
+): DocSchemaImportWarning[] {
+  const warnings: DocSchemaImportWarning[] = [];
+
+  const { schema: importSchema, warnings: airtableWarnings } = gristDocSchemaFromAirtableSchema(baseSchema);
+  warnings.push(...airtableWarnings);
+
+  const transformedSchema = transformImportSchema(importSchema, transformations ?? {}, existingDocSchema);
+  warnings.push(...transformedSchema.warnings, ...validateImportSchema(transformedSchema.schema));
+
+  return warnings;
 }
 
 async function createDoc(userApi: UserAPI, name: string) {

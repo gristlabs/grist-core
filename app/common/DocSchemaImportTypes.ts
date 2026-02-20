@@ -9,6 +9,7 @@ export interface ExistingDocSchema {
 
 export interface ExistingTableSchema {
   id: string;
+  name?: string;
   ref?: number;
   columns: ExistingColumnSchema[];
 }

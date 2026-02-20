@@ -41,7 +41,7 @@ if (!process.env.GRIST_SINGLE_ORG) {
 }
 
 setDefaultEnv("GRIST_UI_FEATURES",
-  "helpCenter,billing,templates,multiSite,multiAccounts,sendToDrive,createSite,supportGrist,themes");
+  "helpCenter,billing,templates,multiSite,multiAccounts,importFromAirtable,sendToDrive,createSite,supportGrist,themes");
 setDefaultEnv("GRIST_WIDGET_LIST_URL", commonUrls.gristLabsWidgetRepository);
 
 // It's important that this comes after the setDefaultEnv calls above. MergedServer reads

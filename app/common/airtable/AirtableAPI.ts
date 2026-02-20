@@ -10,6 +10,7 @@ import { CheckerT, createCheckers } from "ts-interface-checker";
 
 export interface AirtableAPIOptions {
   apiKey: string;
+  endpointUrl?: string;
 }
 
 // TODO - Improve error handling. Airtable's API throws if an error response is returned,

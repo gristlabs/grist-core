@@ -14,7 +14,6 @@ const G = getBrowserGlobals("document", "window");
 
 const EXPERIMENTS = {
   newRecordButton: () => t("New record button"),
-  airtableImport: () => t("Import from Airtable"),
 };
 
 type Experiment = keyof typeof EXPERIMENTS;
@@ -24,9 +23,6 @@ const EXPERIMENT_URL_PARAM = "experiment";
 export class Experiments extends Disposable {
   constructor(private _userId: number) {
     super();
-
-    // Expose for tests.
-    G.window.setExperimentState = this._setExperimentState.bind(this);
   }
 
   public isEnabled(experiment: Experiment) {
