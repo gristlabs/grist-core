@@ -329,201 +329,201 @@ describe("AirtableImport", function() {
       await driver.findContentWait(".test-modal-dialog button", /Cancel/, 500).click();
       await waitForModalToClose();
     });
-  });
 
-  it("should list all tables from the selected base", async function() {
-    await gu.loadDocMenu("/");
-    await openAirtableDocImporter("home");
+    it("should list all tables from the selected base", async function() {
+      await gu.loadDocMenu("/");
+      await openAirtableDocImporter("home");
 
-    const bases = await driver.findWait(".test-import-airtable-bases", 2000);
-    await bases.findContent(".test-import-airtable-name", "Product planning").click();
-    await driver.find(".test-import-airtable-continue").click();
+      const bases = await driver.findWait(".test-import-airtable-bases", 2000);
+      await bases.findContent(".test-import-airtable-name", "Product planning").click();
+      await driver.find(".test-import-airtable-continue").click();
 
-    await driver.findWait(".test-import-airtable-mappings", 2000).isDisplayed();
-    assert.deepEqual(await driver.findAll(".test-import-airtable-table-name", el => el.getText()), [
-      "Products",
-      "Suppliers",
-      "Orders",
-    ]);
-  });
+      await driver.findWait(".test-import-airtable-mappings", 2000).isDisplayed();
+      assert.deepEqual(await driver.findAll(".test-import-airtable-table-name", el => el.getText()), [
+        "Products",
+        "Suppliers",
+        "Orders",
+      ]);
+    });
 
-  it("should allow mapping Airtable tables to Grist tables", async function() {
+    it("should allow mapping Airtable tables to Grist tables", async function() {
     // Tables are imported as new tables by default.
-    assert.deepEqual(await driver.findAll(".test-import-airtable-destination-label", el => el.getText()), [
-      "New table",
-      "New table",
-      "New table",
-    ]);
-    assert.equal(await driver.find(".test-import-airtable-import").getText(), "Import 3 tables");
+      assert.deepEqual(await driver.findAll(".test-import-airtable-destination-label", el => el.getText()), [
+        "New table",
+        "New table",
+        "New table",
+      ]);
+      assert.equal(await driver.find(".test-import-airtable-import").getText(), "Import 3 tables");
 
-    // Import Products (tbl79ux7qppckp8hr) as a new table.
-    await driver.find(".test-import-airtable-table-tbl79ux7qppckp8hr-destination").click();
-    assert.deepEqual(await gu.findOpenMenuAllItems("li", el => el.getText()), [
-      "New table",
-      "New table: structure only",
-      "Skip",
-    ]);
-    await gu.findOpenMenuItem("li", "New table").click();
-    assert.deepEqual(await driver.findAll(".test-import-airtable-destination-label", el => el.getText()), [
-      "New table",
-      "New table",
-      "New table",
-    ]);
-    assert.equal(await driver.find(".test-import-airtable-import").getText(), "Import 3 tables");
+      // Import Products (tbl79ux7qppckp8hr) as a new table.
+      await driver.find(".test-import-airtable-table-tbl79ux7qppckp8hr-destination").click();
+      assert.deepEqual(await gu.findOpenMenuAllItems("li", el => el.getText()), [
+        "New table",
+        "New table: structure only",
+        "Skip",
+      ]);
+      await gu.findOpenMenuItem("li", "New table").click();
+      assert.deepEqual(await driver.findAll(".test-import-airtable-destination-label", el => el.getText()), [
+        "New table",
+        "New table",
+        "New table",
+      ]);
+      assert.equal(await driver.find(".test-import-airtable-import").getText(), "Import 3 tables");
 
-    // Import Suppliers (tblbyte2tg72cbhhf) as a new table without data.
-    await driver.find(".test-import-airtable-table-tblbyte2tg72cbhhf-destination").click();
-    assert.deepEqual(await gu.findOpenMenuAllItems("li", el => el.getText()), [
-      "New table",
-      "New table: structure only",
-      "Skip",
-    ]);
-    await gu.findOpenMenuItem("li", "New table: structure only").click();
-    assert.deepEqual(await driver.findAll(".test-import-airtable-destination-label", el => el.getText()), [
-      "New table",
-      "Structure only",
-      "New table",
-    ]);
-    assert.equal(await driver.find(".test-import-airtable-import").getText(), "Import 3 tables");
+      // Import Suppliers (tblbyte2tg72cbhhf) as a new table without data.
+      await driver.find(".test-import-airtable-table-tblbyte2tg72cbhhf-destination").click();
+      assert.deepEqual(await gu.findOpenMenuAllItems("li", el => el.getText()), [
+        "New table",
+        "New table: structure only",
+        "Skip",
+      ]);
+      await gu.findOpenMenuItem("li", "New table: structure only").click();
+      assert.deepEqual(await driver.findAll(".test-import-airtable-destination-label", el => el.getText()), [
+        "New table",
+        "Structure only",
+        "New table",
+      ]);
+      assert.equal(await driver.find(".test-import-airtable-import").getText(), "Import 3 tables");
 
-    // Skip importing Orders (tblfyhS37Hst5Hvsf).
-    await driver.find(".test-import-airtable-table-tblfyhS37Hst5Hvsf-destination").click();
-    assert.deepEqual(await gu.findOpenMenuAllItems("li", el => el.getText()), [
-      "New table",
-      "New table: structure only",
-      "Skip",
-    ]);
-    await gu.findOpenMenuItem("li", "Skip").click();
-    assert.deepEqual(await driver.findAll(".test-import-airtable-destination-label", el => el.getText()), [
-      "New table",
-      "Structure only",
-      "Skip",
-    ]);
-    assert.equal(await driver.find(".test-import-airtable-import").getText(), "Import 2 tables");
-  });
+      // Skip importing Orders (tblfyhS37Hst5Hvsf).
+      await driver.find(".test-import-airtable-table-tblfyhS37Hst5Hvsf-destination").click();
+      assert.deepEqual(await gu.findOpenMenuAllItems("li", el => el.getText()), [
+        "New table",
+        "New table: structure only",
+        "Skip",
+      ]);
+      await gu.findOpenMenuItem("li", "Skip").click();
+      assert.deepEqual(await driver.findAll(".test-import-airtable-destination-label", el => el.getText()), [
+        "New table",
+        "Structure only",
+        "Skip",
+      ]);
+      assert.equal(await driver.find(".test-import-airtable-import").getText(), "Import 2 tables");
+    });
 
-  it("should import Airtable base to a new Grist document", async function() {
-    await driver.find(".test-import-airtable-import").click();
-    await waitForModalToClose();
-    await gu.waitForDocToLoad();
+    it("should import Airtable base to a new Grist document", async function() {
+      await driver.find(".test-import-airtable-import").click();
+      await waitForModalToClose();
+      await gu.waitForDocToLoad();
 
-    assert.equal(await driver.find(".test-bc-doc").value(), "Product planning");
-    assert.deepEqual(await gu.getPageNames(), ["Products", "Suppliers"]);
-    assert.deepEqual(await gu.getColumnNames(), [
-      "Airtable Id",
-      "Name",
-      "Price",
-      "Category",
-      "Suppliers",
-    ]);
-    assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: [0, 1, 2, 3, 4] }), [
-      "reccaegwskzka7wi1", "Widget X", "99.99", "Electronics", "",
-      "recigwb4bc7vq2fhd", "Gadget Y", "149.99", "Electronics", "",
-      "", "", "", "", "",
-    ]);
+      assert.equal(await driver.find(".test-bc-doc").value(), "Product planning");
+      assert.deepEqual(await gu.getPageNames(), ["Products", "Suppliers"]);
+      assert.deepEqual(await gu.getColumnNames(), [
+        "Airtable Id",
+        "Name",
+        "Price",
+        "Category",
+        "Suppliers",
+      ]);
+      assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: [0, 1, 2, 3, 4] }), [
+        "reccaegwskzka7wi1", "Widget X", "99.99", "Electronics", "",
+        "recigwb4bc7vq2fhd", "Gadget Y", "149.99", "Electronics", "",
+        "", "", "", "", "",
+      ]);
 
-    await gu.getPageItem("Suppliers").click();
-    assert.deepEqual(await gu.getColumnNames(), [
-      "Airtable Id",
-      "Name",
-      "Email",
-      "Phone",
-    ]);
-    assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1], cols: [0, 1, 2, 3] }), [
-      "", "", "", "",
-    ]);
-  });
+      await gu.getPageItem("Suppliers").click();
+      assert.deepEqual(await gu.getColumnNames(), [
+        "Airtable Id",
+        "Name",
+        "Email",
+        "Phone",
+      ]);
+      assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1], cols: [0, 1, 2, 3] }), [
+        "", "", "", "",
+      ]);
+    });
 
-  it("should import Airtable base to an existing Grist document", async function() {
-    await gu.getPageItem("Products").click();
-    await gu.sendKeys(await gu.selectAllKey(), Key.chord(await gu.modKey(), Key.DELETE));
-    await gu.confirm(true);
-    await gu.waitForServer();
+    it("should import Airtable base to an existing Grist document", async function() {
+      await gu.getPageItem("Products").click();
+      await gu.sendKeys(await gu.selectAllKey(), Key.chord(await gu.modKey(), Key.DELETE));
+      await gu.confirm(true);
+      await gu.waitForServer();
 
-    await openAirtableDocImporter("doc");
+      await openAirtableDocImporter("doc");
 
-    const bases = await driver.findWait(".test-import-airtable-bases", 2000);
-    await bases.findContent(".test-import-airtable-name", "Product planning").click();
-    await driver.find(".test-import-airtable-continue").click();
-    await driver.findWait(".test-import-airtable-mappings", 2000).isDisplayed();
+      const bases = await driver.findWait(".test-import-airtable-bases", 2000);
+      await bases.findContent(".test-import-airtable-name", "Product planning").click();
+      await driver.find(".test-import-airtable-continue").click();
+      await driver.findWait(".test-import-airtable-mappings", 2000).isDisplayed();
 
-    // Import Products (tbl79ux7qppckp8hr) to the existing Products table.
-    await driver.find(".test-import-airtable-table-tbl79ux7qppckp8hr-destination").click();
-    assert.deepEqual(await gu.findOpenMenuAllItems("li", el => el.getText()), [
-      "New table",
-      "New table: structure only",
-      "Skip",
-      "Products",
-      "Suppliers",
-    ]);
-    await gu.findOpenMenuItem("li", "Products").click();
-    assert.deepEqual(await driver.findAll(".test-import-airtable-destination-label", el => el.getText()), [
-      "Products",
-      "New table",
-      "New table",
-    ]);
-    assert.equal(await driver.find(".test-import-airtable-import").getText(), "Import 3 tables");
+      // Import Products (tbl79ux7qppckp8hr) to the existing Products table.
+      await driver.find(".test-import-airtable-table-tbl79ux7qppckp8hr-destination").click();
+      assert.deepEqual(await gu.findOpenMenuAllItems("li", el => el.getText()), [
+        "New table",
+        "New table: structure only",
+        "Skip",
+        "Products",
+        "Suppliers",
+      ]);
+      await gu.findOpenMenuItem("li", "Products").click();
+      assert.deepEqual(await driver.findAll(".test-import-airtable-destination-label", el => el.getText()), [
+        "Products",
+        "New table",
+        "New table",
+      ]);
+      assert.equal(await driver.find(".test-import-airtable-import").getText(), "Import 3 tables");
 
-    // Import Suppliers (tblbyte2tg72cbhhf) as a new table without data.
-    await driver.find(".test-import-airtable-table-tblbyte2tg72cbhhf-destination").click();
-    assert.deepEqual(await gu.findOpenMenuAllItems("li", el => el.getText()), [
-      "New table",
-      "New table: structure only",
-      "Skip",
-      "Products",
-      "Suppliers",
-    ]);
-    await gu.findOpenMenuItem("li", "Suppliers").click();
-    assert.deepEqual(await driver.findAll(".test-import-airtable-destination-label", el => el.getText()), [
-      "Products",
-      "Suppliers",
-      "New table",
-    ]);
-    assert.equal(await driver.find(".test-import-airtable-import").getText(), "Import 3 tables");
+      // Import Suppliers (tblbyte2tg72cbhhf) as a new table without data.
+      await driver.find(".test-import-airtable-table-tblbyte2tg72cbhhf-destination").click();
+      assert.deepEqual(await gu.findOpenMenuAllItems("li", el => el.getText()), [
+        "New table",
+        "New table: structure only",
+        "Skip",
+        "Products",
+        "Suppliers",
+      ]);
+      await gu.findOpenMenuItem("li", "Suppliers").click();
+      assert.deepEqual(await driver.findAll(".test-import-airtable-destination-label", el => el.getText()), [
+        "Products",
+        "Suppliers",
+        "New table",
+      ]);
+      assert.equal(await driver.find(".test-import-airtable-import").getText(), "Import 3 tables");
 
-    await driver.find(".test-import-airtable-import").click();
-    await waitForModalToClose();
+      await driver.find(".test-import-airtable-import").click();
+      await waitForModalToClose();
 
-    assert.deepEqual(await gu.getPageNames(), ["Products", "Suppliers", "Orders"]);
-    assert.deepEqual(await gu.getColumnNames(), [
-      "Airtable Id",
-      "Name",
-      "Price",
-      "Category",
-      "Suppliers",
-    ]);
-    assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: [0, 1, 2, 3, 4] }), [
-      "reccaegwskzka7wi1", "Widget X", "99.99", "Electronics", "Suppliers[1]",
-      "recigwb4bc7vq2fhd", "Gadget Y", "149.99", "Electronics", "Suppliers[2]",
-      "", "", "", "", "",
-    ]);
+      assert.deepEqual(await gu.getPageNames(), ["Products", "Suppliers", "Orders"]);
+      assert.deepEqual(await gu.getColumnNames(), [
+        "Airtable Id",
+        "Name",
+        "Price",
+        "Category",
+        "Suppliers",
+      ]);
+      assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: [0, 1, 2, 3, 4] }), [
+        "reccaegwskzka7wi1", "Widget X", "99.99", "Electronics", "Suppliers[1]",
+        "recigwb4bc7vq2fhd", "Gadget Y", "149.99", "Electronics", "Suppliers[2]",
+        "", "", "", "", "",
+      ]);
 
-    await gu.getPageItem("Suppliers").click();
-    assert.deepEqual(await gu.getColumnNames(), [
-      "Airtable Id",
-      "Name",
-      "Email",
-      "Phone",
-    ]);
-    assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: [0, 1, 2, 3] }), [
-      "recoa4mwyeytxu3fb", "Wow Widgets", "wowwidgets@example.com", "(123) 456-7890",
-      "recw7cwwskv1q5jck", "Grand Gadgets", "grandgadgets@example.com", "(111) 222-3333",
-      "", "", "", "",
-    ]);
+      await gu.getPageItem("Suppliers").click();
+      assert.deepEqual(await gu.getColumnNames(), [
+        "Airtable Id",
+        "Name",
+        "Email",
+        "Phone",
+      ]);
+      assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: [0, 1, 2, 3] }), [
+        "recoa4mwyeytxu3fb", "Wow Widgets", "wowwidgets@example.com", "(123) 456-7890",
+        "recw7cwwskv1q5jck", "Grand Gadgets", "grandgadgets@example.com", "(111) 222-3333",
+        "", "", "", "",
+      ]);
 
-    await gu.getPageItem("Orders").click();
-    assert.deepEqual(await gu.getColumnNames(), [
-      "Airtable Id",
-      "Order Number",
-      "Order Date",
-      "Products",
-      "Total Amount",
-    ]);
-    assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: [0, 1, 2, 3, 4] }), [
-      "recjngmiw6qy39v53", "ord5q3rxaa95gyvrw", "01/05/2023", "Products[1]", "99.99",
-      "recua5n4ir46dn5t6", "ordx37praxl2m95wj", "01/06/2023", "Products[1]\nProducts[2]", "249.98",
-      "", "", "", "", "",
-    ]);
+      await gu.getPageItem("Orders").click();
+      assert.deepEqual(await gu.getColumnNames(), [
+        "Airtable Id",
+        "Order Number",
+        "Order Date",
+        "Products",
+        "Total Amount",
+      ]);
+      assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: [0, 1, 2, 3, 4] }), [
+        "recjngmiw6qy39v53", "ord5q3rxaa95gyvrw", "01/05/2023", "Products[1]", "99.99",
+        "recua5n4ir46dn5t6", "ordx37praxl2m95wj", "01/06/2023", "Products[1]\nProducts[2]", "249.98",
+        "", "", "", "", "",
+      ]);
+    });
   });
 });
 
