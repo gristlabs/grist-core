@@ -8,6 +8,7 @@ import { getSingleOrg, isFeatureEnabled } from "app/common/gristUrls";
 import { getOrgName } from "app/common/UserAPI";
 
 import { dom, makeTestId, styled } from "grainjs";
+import { getGristConfig } from "app/common/urlUtils";
 
 const t = makeT("SiteSwitcher");
 
@@ -43,14 +44,17 @@ export function buildSiteSwitcher(appModel: AppModel) {
         testId("org"),
       ),
     ),
-    dom.maybe(() => isFeatureEnabled("createSite"), () => [
-      menuItem(
-        () => appModel.showNewSiteModal(),
-        menuIcon("Plus"),
-        t("Create new team site"),
-        testId("create-new-site"),
-      ),
-    ]),
+    dom.maybe(
+      () => isFeatureEnabled("createSite") && (appModel.isInstallAdmin() || getGristConfig().canAnyoneCreateOrgs),
+      () => [
+        menuItem(
+          () => appModel.showNewSiteModal(),
+          menuIcon("Plus"),
+          t("Create new team site"),
+          testId("create-new-site"),
+        ),
+      ],
+    ),
   ];
 }
 
