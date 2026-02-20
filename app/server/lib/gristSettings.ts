@@ -30,7 +30,7 @@ export function getOnboardingTutorialDocId() {
 export function getAnonPlaygroundEnabled() {
   return appSettings.section("orgs").flag("enableAnonPlayground").readBool({
     envVar: "GRIST_ANON_PLAYGROUND",
-    defaultValue: true,
+    defaultValue: getCanAnyoneCreateOrgs(),
   });
 }
 
@@ -44,6 +44,6 @@ export function getCanAnyoneCreateOrgs() {
 export function getPersonalOrgsEnabled() {
   return appSettings.section("orgs").flag("enablePersonalOrgs").readBool({
     envVar: "GRIST_PERSONAL_ORGS",
-    defaultValue: true,
+    defaultValue: getCanAnyoneCreateOrgs(),
   });
 }
