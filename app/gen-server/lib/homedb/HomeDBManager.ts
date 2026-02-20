@@ -120,6 +120,7 @@ import {
   WhereExpressionBuilder,
 } from "typeorm";
 import { v4 as uuidv4 } from "uuid";
+import { getPersonalOrgsEnabled } from "app/server/lib/gristSettings";
 
 // Support transactions in Sqlite in async code.  This is a monkey patch, affecting
 // the prototypes of various TypeORM classes.
@@ -3799,6 +3800,10 @@ export class HomeDBManager implements HomeDBAuth {
     } else {
       query = this._whereOrg(query, org, includeSupport);
     }
+    if (!getPersonalOrgsEnabled()) {
+      // Filter out any personal orgs - treat them as not existing.
+      query.andWhere("orgs.owner_id is NULL");
+    }
     if (options.markPermissions) {
       if (!scope?.userId) {
         throw new Error(`_orgQuery error: userId must be set to mark permissions`);
@@ -4441,9 +4446,15 @@ export class HomeDBManager implements HomeDBAuth {
   }
 
   private _orgs(manager?: EntityManager) {
-    return (manager || this._connection).createQueryBuilder()
+    let query = (manager || this._connection).createQueryBuilder()
       .select("orgs")
       .from(Organization, "orgs");
+
+    if (!getPersonalOrgsEnabled()) {
+      query = query.where("orgs.owner_id is NULL");
+    }
+
+    return query;
   }
 
   // Adds a where clause to filter orgs by domain or id.
