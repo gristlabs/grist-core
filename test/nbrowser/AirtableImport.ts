@@ -33,6 +33,7 @@ describe("AirtableImport", function() {
     const port = (testHelperServer.address() as AddressInfo).port;
     testHelperServerUrl = `http://localhost:${port}`;
     oldEnv = new testUtils.EnvironmentSnapshot();
+    process.env.OAUTH2_GRIST_HOST = server.getHost();
     process.env.OAUTH2_AIRTABLE_CLIENT_ID = "test-client";
     process.env.OAUTH2_AIRTABLE_CLIENT_SECRET = "test-secret";
     process.env.TEST_GRIST_OAUTH2_CLIENTS_OVERRIDES = JSON.stringify({
@@ -286,10 +287,10 @@ describe("AirtableImport", function() {
       cancelNextOAuthRequest = false;
       await driver.findWait(".test-import-airtable-connect:not(:disabled)", 2000).click();
       await gu.waitToPass(async () => {
-        assert.isFalse(await driver.find(".test-import-airtable-error").isPresent());
-      }, 2000);
-
-      await driver.findContent(".test-modal-dialog button", /Cancel/).click();
+        assert.equal(await driver.find(".test-import-airtable-error").isPresent(), false);
+      });
+      
+      await driver.findContentWait(".test-modal-dialog button", /Cancel/, 500).click();
       await waitForModalToClose();
     });
   });

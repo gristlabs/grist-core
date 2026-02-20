@@ -402,6 +402,52 @@ describe("AirtableImporter", function() {
       }),
     ));
 
+    it("correctly converts a multipleLookupValues column", () => {
+      const otherTableId = tableNameToId("other table");
+      const otherField = createBasicAirtableField("Any field", "");
+      const refField = {
+        ...createBasicAirtableField("A multipleRecordLinks column", "multipleRecordLinks"),
+        options: {
+          linkedTableId: otherTableId,
+          isReversed: false,
+          prefersSingleRecordLink: false,
+          // No valid value needed for this test
+          inverseLinkFieldId: "",
+        },
+      };
+      const fieldDependenciesByTable = {
+        [firstTableId]: [refField],
+        [otherTableId]: [otherField],
+      };
+
+      const field = {
+        ...createBasicAirtableField("A multipleLookupValues column", "multipleLookupValues"),
+        options: {
+          isValid: true,
+          recordLinkFieldId: refField.id,
+          fieldIdInLinkedTable: otherField.id,
+          referencedFieldIds: [],
+          result: {
+            type: "singleLineText",
+          },
+        },
+      };
+
+      const { testField, testColumn } = convertAirtableField({ field, fieldDependenciesByTable });
+      runBasicFieldTest(testField, testColumn);
+      assert.deepInclude(testColumn, {
+        type: "Any",
+        isFormula: true,
+        formula: {
+          formula: "$[R0].[R1]",
+          replacements: [
+            { originalTableId: firstTableId, originalColId: refField.id },
+            { originalTableId: otherTableId, originalColId: otherField.id },
+          ],
+        },
+      });
+    });
+
     it("correctly converts a multipleRecordLinks column", () => {
       const field = {
         ...createBasicAirtableField("A multipleRecordLinks column", "multipleRecordLinks"),

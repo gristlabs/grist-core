@@ -21,7 +21,8 @@ describe("AdminPanel", function() {
     oldEnv = new testUtils.EnvironmentSnapshot();
     process.env.GRIST_TEST_SERVER_DEPLOYMENT_TYPE = "core";
     process.env.GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING = "true";
-    process.env.GRIST_DEFAULT_EMAIL = gu.session().email;
+    // Set admin email, but make it non-canonical casing as an extra test.
+    process.env.GRIST_DEFAULT_EMAIL = gu.session().email.toUpperCase();
     fakeServer = await startFakeUpdateServer();
     process.env.GRIST_TEST_VERSION_CHECK_URL = `${fakeServer.url()}/version`;
     await server.restart(true);

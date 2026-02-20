@@ -85,6 +85,7 @@ import log from "app/server/lib/log";
 import {
   getDocId,
   getDocScope,
+  getExtraAttachmentOptions,
   getScope,
   integerParam,
   isParameterOn,
@@ -468,26 +469,22 @@ export class DocWorkerApi {
     // Returns cleaned metadata for a given attachment ID (i.e. a rowId in _grist_Attachments table).
     this._app.get("/api/docs/:docId/attachments/:attId", canView, withDoc(async (activeDoc, req, res) => {
       const attId = integerParam(req.params.attId, "attId");
-      const attRecord = activeDoc.getAttachmentMetadata(attId);
+      const options = getExtraAttachmentOptions(req);
+      const attRecord = await activeDoc.getAttachmentMetadata(docSessionFromRequest(req), attId, options);
       res.json(cleanAttachmentRecord(attRecord));
     }));
 
     // Responds with attachment contents, with suitable Content-Type and Content-Disposition.
     this._app.get("/api/docs/:docId/attachments/:attId/download", canView, withDoc(async (activeDoc, req, res) => {
       const attId = integerParam(req.params.attId, "attId");
-      const tableId = optStringParam(req.params.tableId, "tableId");
-      const colId = optStringParam(req.params.colId, "colId");
-      const rowId = optIntegerParam(req.params.rowId, "rowId");
-      if ((tableId || colId || rowId) && !(tableId && colId && rowId)) {
-        throw new ApiError("define all of tableId, colId and rowId, or none.", 400);
-      }
-      const attRecord = activeDoc.getAttachmentMetadata(attId);
-      const cell = (tableId && colId && rowId) ? { tableId, colId, rowId } : undefined;
+      const options = getExtraAttachmentOptions(req);
+      // getAttachmentData below will throw if user does not have access to attachment.
+      const attRecord = activeDoc.getAttachmentMetadataWithoutAccessControl(attId);
       const fileIdent = attRecord.fileIdent as string;
       const ext = path.extname(fileIdent);
       const origName = attRecord.fileName as string;
       const fileName = ext ? path.basename(origName, path.extname(origName)) + ext : origName;
-      const fileData = await activeDoc.getAttachmentData(docSessionFromRequest(req), attRecord, { cell });
+      const fileData = await activeDoc.getAttachmentData(docSessionFromRequest(req), attRecord, options);
       res.status(200)
         .type(ext)
         // Construct a content-disposition header of the form 'attachment; filename="NAME"'

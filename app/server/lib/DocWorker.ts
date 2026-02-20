@@ -13,7 +13,10 @@ import { filterDocumentInPlace } from "app/server/lib/filterUtils";
 import { GristServer } from "app/server/lib/GristServer";
 import { IDocStorageManager } from "app/server/lib/IDocStorageManager";
 import log from "app/server/lib/log";
-import { getDocId, integerParam, optIntegerParam, optStringParam, stringParam } from "app/server/lib/requestUtils";
+import {
+  getDocId, getExtraAttachmentOptions, integerParam,
+  optStringParam, stringParam,
+} from "app/server/lib/requestUtils";
 
 import * as path from "path";
 
@@ -40,14 +43,15 @@ export class DocWorker {
       const docSession = this._getDocSession(stringParam(req.query.clientId, "clientId"),
         integerParam(req.query.docFD, "docFD"));
       const activeDoc = docSession.activeDoc;
-      const colId = optStringParam(req.query.colId, "colId");
-      const tableId = optStringParam(req.query.tableId, "tableId");
-      const rowId = optIntegerParam(req.query.rowId, "rowId");
-      const cell =
-        colId && tableId && rowId ? { colId, tableId, rowId } : undefined;
-      const maybeNew = isAffirmative(req.query.maybeNew);
+      const options = getExtraAttachmentOptions(req);
       const attId = integerParam(req.query.attId, "attId");
-      const attRecord = activeDoc.getAttachmentMetadata(attId);
+      // Access control is done in getAttachmentData, below.
+      // It can be expensive, if only the attId is available,
+      // so only do it once. Important to review that information
+      // from attRecord doesn't leak. getAttachmentData should
+      // throw before anything is returned to the user, if they
+      // don't have access to the attachment.
+      const attRecord = activeDoc.getAttachmentMetadataWithoutAccessControl(attId);
       const ext = path.extname(attRecord.fileIdent);
       const type = mimeTypes.lookup(ext);
 
@@ -58,7 +62,7 @@ export class DocWorker {
       // Construct a content-disposition header of the form 'inline|attachment; filename="NAME"'
       const contentDispType = inline ? "inline" : "attachment";
       const contentDispHeader = contentDisposition(stringParam(req.query.name, "name"), { type: contentDispType });
-      const data = await activeDoc.getAttachmentData(docSession, attRecord, { cell, maybeNew });
+      const data = await activeDoc.getAttachmentData(docSession, attRecord, options);
       res.status(200)
         .type(ext)
         .set("Content-Disposition", contentDispHeader)

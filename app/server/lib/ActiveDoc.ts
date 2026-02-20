@@ -1112,7 +1112,7 @@ export class ActiveDoc extends EventEmitter {
    * Returns the record from _grist_Attachments table for the given attachment ID,
    * or throws an error if not found.
    */
-  public getAttachmentMetadata(attId: number): MetaRowRecord<"_grist_Attachments"> {
+  public getAttachmentMetadataWithoutAccessControl(attId: number): MetaRowRecord<"_grist_Attachments"> {
     // docData should always be available after loadDoc() or createDoc().
     if (!this.docData) {
       throw new Error("No doc data");
@@ -1122,6 +1122,14 @@ export class ActiveDoc extends EventEmitter {
       throw new ApiError(`Attachment not found: ${attId}`, 404);
     }
     return attRecord;
+  }
+
+  public async getAttachmentMetadata(docSession: OptDocSession, attId: number, options?: {
+    cell?: SingleCell,
+    maybeNew?: boolean,
+  }): Promise<MetaRowRecord<"_grist_Attachments">> {
+    await this._assertCanGetAttachment(docSession, attId, options);
+    return this.getAttachmentMetadataWithoutAccessControl(attId);
   }
 
   /**
@@ -1138,29 +1146,7 @@ export class ActiveDoc extends EventEmitter {
     }): Promise<Buffer> {
     const attId = attRecord.id;
     const fileIdent = attRecord.fileIdent;
-    const cell = options?.cell;
-    const maybeNew = options?.maybeNew;
-    if (
-      await this._granularAccess.canReadEverything(docSession) ||
-      await this.canDownload(docSession)
-    ) {
-      // Do not need to sweat over access to attachments if user can
-      // read everything or download everything.
-    } else {
-      if (maybeNew && await this._granularAccess.isAttachmentUploadedByUser(docSession, attId)) {
-        // Fine, this is an attachment the user uploaded (recently).
-      } else if (cell) {
-        // Only provide the download if the user has access to the cell
-        // they specified, and that cell is in an attachment column,
-        // and the cell contains the specified attachment.
-        await this._granularAccess.assertAttachmentAccess(docSession, cell, attId);
-      } else {
-        if (!await this._granularAccess.findAttachmentCellForUser(docSession, attId)) {
-          // We found no reason to allow this user to access the attachment.
-          throw new ApiError("Cannot access attachment", 403);
-        }
-      }
-    }
+    await this._assertCanGetAttachment(docSession, attId, options);
     const data = await this._attachmentFileManager.getFileData(fileIdent);
     if (!data) { throw new ApiError("Invalid attachment identifier", 404); }
     this._log.info(docSession, "getAttachment: %s -> %s bytes", fileIdent, data.length);
@@ -2738,6 +2724,36 @@ export class ActiveDoc extends EventEmitter {
 
   private _syncDocUsageToDatabase(minimizeDelay = false) {
     this._docManager.storageManager.scheduleUsageUpdate(this._docName, this._docUsage, minimizeDelay);
+  }
+
+  private async _assertCanGetAttachment(docSession: OptDocSession, attId: number,
+    options?: {
+      cell?: SingleCell,
+      maybeNew?: boolean,
+    }): Promise<void> {
+    const cell = options?.cell;
+    const maybeNew = options?.maybeNew;
+    if (
+      await this._granularAccess.canReadEverything(docSession) ||
+      await this.canDownload(docSession)
+    ) {
+      // Do not need to sweat over access to attachments if user can
+      // read everything or download everything.
+    } else {
+      if (maybeNew && await this._granularAccess.isAttachmentUploadedByUser(docSession, attId)) {
+        // Fine, this is an attachment the user uploaded (recently).
+      } else if (cell) {
+        // Only provide the download if the user has access to the cell
+        // they specified, and that cell is in an attachment column,
+        // and the cell contains the specified attachment.
+        await this._granularAccess.assertAttachmentAccess(docSession, cell, attId);
+      } else {
+        if (!await this._granularAccess.findAttachmentCellForUser(docSession, attId)) {
+          // We found no reason to allow this user to access the attachment.
+          throw new ApiError("Cannot access attachment", 403);
+        }
+      }
+    }
   }
 
   private async _broadcastDocUsageToClients() {
