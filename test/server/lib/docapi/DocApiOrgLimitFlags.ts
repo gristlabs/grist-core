@@ -17,6 +17,12 @@ import * as testUtils from "test/server/testUtils";
 
 import axios from "axios";
 import { assert } from "chai";
+import { EnvironmentSnapshot } from "test/server/testUtils";
+import {
+  getAnonPlaygroundEnabled,
+  getCanAnyoneCreateOrgs,
+  getPersonalOrgsEnabled
+} from "app/server/lib/gristSettings";
 
 describe("DocApiOrgLimitFlags", function() {
   this.timeout(30000);
@@ -36,6 +42,31 @@ describe("DocApiOrgLimitFlags", function() {
       extraEnv: {
         GRIST_ORG_CREATION_ANYONE: "false",
       },
+    });
+  });
+
+  describe("Org creation setting default values", function() {
+    let oldEnv: EnvironmentSnapshot;
+    before(async function() {
+      oldEnv = new EnvironmentSnapshot();
+    });
+
+    after(async function() {
+      oldEnv.restore();
+    });
+
+    it("GRIST_ORG_CREATION_ANYONE sets the default values of GRIST_PERSONAL_ORGS and GRIST_ANON_PLAYGROUND", () => {
+      process.env.GRIST_ORG_CREATION_ANYONE = "true";
+      delete process.env.GRIST_PERSONAL_ORGS;
+      delete process.env.GRIST_ANON_PLAYGROUND;
+      assert.equal(getCanAnyoneCreateOrgs(), true);
+      assert.equal(getAnonPlaygroundEnabled(), true);
+      assert.equal(getPersonalOrgsEnabled(), true);
+
+      process.env.GRIST_ORG_CREATION_ANYONE = "false";
+      assert.equal(getCanAnyoneCreateOrgs(), false);
+      assert.equal(getAnonPlaygroundEnabled(), false);
+      assert.equal(getPersonalOrgsEnabled(), false);
     });
   });
 });
