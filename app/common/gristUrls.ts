@@ -873,6 +873,9 @@ export interface GristLoadConfig {
   // If set, allow non-admins to create new organizations
   canAnyoneCreateOrgs?: boolean;
 
+  // If set, allow access to each user's personal organization
+  enablePersonalOrgs?: boolean;
+
   // If set, allow selection of the specified engines.
   // TODO: move this list to a separate endpoint.
   supportEngines?: EngineCode[];
