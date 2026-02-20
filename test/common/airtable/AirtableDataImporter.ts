@@ -14,6 +14,7 @@ import Airtable from "airtable";
 import { assert } from "chai";
 import { sum } from "lodash";
 import nock from "nock";
+import fetch from "node-fetch";
 import * as sinon from "sinon";
 
 describe("AirtableDataImporter", function() {
@@ -126,12 +127,20 @@ describe("AirtableDataImporter", function() {
   const uploadAttachmentMock =
     sinon.fake(async (value, filename) => attachmentId++) satisfies AirtableDataImportParams["uploadAttachment"];
 
+  let originalFetch: typeof global.fetch;
+
   beforeEach(function() {
+    // nock@13 can't intercept requests using global fetch, and 14 has some outstanding timeout issues in a
+    // few tests that are preventing us from upgrading (https://github.com/nock/nock/issues/2857).
+    originalFetch = global.fetch;
+    (global as any).fetch = fetch;
+
     nock.disableNetConnect();
   });
 
   afterEach(function() {
     attachmentId = 1;
+    global.fetch = originalFetch;
     nock.abortPendingRequests();
     nock.cleanAll();
     nock.enableNetConnect();
