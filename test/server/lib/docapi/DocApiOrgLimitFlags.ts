@@ -82,11 +82,17 @@ function addPersonalOrgLimitTests(getCtx: () => TestContext) {
         name: "Test personal org disabling",
       },
     });
-    const apiKeyResponse = await axios.post(new URL("/api/profile/apikey", homeUrl).toString(), {}, {
-      // Copy cookies from login so we're authorized to create an actual API key
-      headers: { cookie: loginResponse.headers["set-cookie"] },
-      withCredentials: true,
-    });
+    const apiKeyResponse = await axios.post(
+      new URL("/api/profile/apikey", homeUrl).toString(),
+      // Needed in case this test runs multiple times against the same DB (e.g. merged server + separate servers)
+      { force: true },
+      {
+        // Copy cookies from login so we're authorized to create an actual API key
+        headers: { cookie: loginResponse.headers["set-cookie"] },
+        withCredentials: true,
+      },
+    );
+
     const apiKey = apiKeyResponse.data;
     const newUserApi = makeUserApi(homeUrl, ORG_NAME, configForApiKey(apiKey));
     const id = (await newUserApi.getUserProfile()).id;
