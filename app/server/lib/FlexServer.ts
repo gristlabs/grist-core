@@ -2077,7 +2077,9 @@ export class FlexServer implements GristServer {
     // Google auth. Should at least clarify the method name.
     this._oauth2Clients = new OAuth2Clients(this);
     log.info("Configured OAuth2 clients: %s", this._oauth2Clients.getValidClients());
-    this._oauth2Clients.attachEndpoints(this.app);
+    // Use the same middleware as for API calls.
+    const oauth2Middleware = [this._userIdMiddleware, this._trustOriginsMiddleware, disableCache];
+    this._oauth2Clients.attachEndpoints(this.app, oauth2Middleware);
   }
 
   /**

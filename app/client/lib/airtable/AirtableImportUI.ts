@@ -215,13 +215,26 @@ account with scopes that include at least **\`schema.bases:read\`** and **\`data
 
   private _handleOAuthLogin() {
     const baseUrl = addCurrentOrgToPath(getHomeUrl());
-    const authUrl = `${baseUrl}/oauth2/airtable/authorize`;
+    const authUrl = new URL(`${baseUrl}/oauth2/airtable/authorize`);
+    authUrl.searchParams.set("openerOrigin", location.origin);
     const lis = dom.onElem(window, "message", (event: Event) => {
-      if ((event as MessageEvent).origin !== window.location.origin) {
+      const homeOrigin = new URL(getHomeUrl()).origin;
+      const eventOrigin = (event as MessageEvent).origin;
+      if (eventOrigin !== homeOrigin) {
+        console.warn(`Not trusting event from an unrecognized origin: ${eventOrigin}`);
         return;
       }
       lis.dispose();
-      this._handleTokenPayload((event as MessageEvent).data);
+      if (this.isDisposed()) { return; }
+
+      // The payload may contain an error, but we avoid sending tokens, to keep fewer paths for
+      // sensitive data. If no error, the API call should succeed in returning a token.
+      const payload = (event as MessageEvent).data;
+      if (payload && typeof payload === "object" && typeof payload.error === "string") {
+        this._error.set(payload.error);
+      } else {
+        this._checkForToken();
+      }
     });
     window.open(authUrl, "_blank");
   }

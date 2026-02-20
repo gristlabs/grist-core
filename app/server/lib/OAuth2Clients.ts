@@ -30,7 +30,7 @@ import { GristServer } from "app/server/lib/GristServer";
 import log from "app/server/lib/log";
 import { ProtectionsManager } from "app/server/lib/oidc/Protections";
 import { agents } from "app/server/lib/ProxyAgent";
-import { stringParam } from "app/server/lib/requestUtils";
+import { allowHost, stringParam } from "app/server/lib/requestUtils";
 
 import express from "express";
 import pick from "lodash/pick";
@@ -161,6 +161,9 @@ function initIntegration(spec: Integration): Integration {
 
 interface IntegrationSessionInfo {
   flow?: SessionOIDCInfo;
+  // We need to postMessage from spHost origin to the origin of the opening page, which may be
+  // different when running in an environment with subdomains. We remember it temporarily here.
+  openerOrigin?: string;
   tokenSet?: TokenSet;
 }
 
@@ -189,13 +192,16 @@ export class OAuth2Clients {
     return [...INTEGRATIONS.values()].filter(it => it.client).map(it => it.id);
   }
 
-  public attachEndpoints(app: express.Express) {
-    const addRequestUser = this._gristServer.getUserIdMiddleware();
-
+  public attachEndpoints(app: express.Express, middleware: express.RequestHandler[]) {
     /**
      * Redirect to the resource provider's authorization endpoint.
      */
-    app.get(OAUTH2_ENDPOINTS.authorize, addRequestUser, expressWrap(async (req, res) => {
+    app.get(OAUTH2_ENDPOINTS.authorize, middleware, expressWrap(async (req, res) => {
+      const openerOrigin = stringParam(req.query.openerOrigin, "openerOrigin");
+      if (openerOrigin && !allowHost(req, new URL(openerOrigin))) {
+        // This is outside try/catch because a problem with the origin can't be reported back to the opener.
+        throw new ApiError("Untrusted opener origin", 403);
+      }
       try {
         assertUserIsAuthorized(req);
         const { id, client, protections, scope } = this._getIntegration(req.params.integration);
@@ -203,7 +209,7 @@ export class OAuth2Clients {
         const flowInfo = protections.generateSessionInfo();
         await session.operateOnScopedSession(req, async (user: SessionUserObjWithOAuth) => {
           const previousInfo = user.oauth2?.[id] || {};
-          user.oauth2 = { ...user.oauth2, [id]: { ...previousInfo, flow: flowInfo } };
+          user.oauth2 = { ...user.oauth2, [id]: { ...previousInfo, openerOrigin, flow: flowInfo } };
           return user;
         });
         const authUrl = client.authorizationUrl({
@@ -216,7 +222,7 @@ export class OAuth2Clients {
         // Short-circuit to the error response we'd get after a redirect, i.e. respond with the
         // HTML page that closes the popup and sends the error code back to the window opener.
         const payload = { error: String(e.message) };
-        return res.send(END_FLOW_HTML_TEMPLATE.replace("{{PAYLOAD}}", JSON.stringify(payload)));
+        return res.send(renderEndFlowHtmlTemplate(payload, openerOrigin));
       }
     }));
 
@@ -224,10 +230,11 @@ export class OAuth2Clients {
      * Receive redirect back from resource provider, to complete authorization code flow and get
      * access tokens. Returns HTML to close the popup window and post back the credential.
      */
-    app.get(OAUTH2_ENDPOINTS.callback, addRequestUser, expressWrap(async (req, res) => {
+    app.get(OAUTH2_ENDPOINTS.callback, middleware, expressWrap(async (req, res) => {
       assertUserIsAuthorized(req);
       const { id, name, client, protections, redirectUri } = this._getIntegration(req.params.integration);
       let payload = {};
+      let openerOrigin: string | undefined;
       try {
         const params = client.callbackParams(req);
         const state = stringParam(params.state, "state");
@@ -242,37 +249,51 @@ export class OAuth2Clients {
           throw new Error("Session missing profile email");
         }
 
-        const flow = sessionUser.oauth2?.[id].flow;
+        const info = sessionUser.oauth2?.[id];
+        const flow = info?.flow;
         if (!flow) { throw new Error(`Session missing ${name} info`); }
+        if (!info.openerOrigin) { throw new Error(`Session missing openerOrigin`); }
+        openerOrigin = info.openerOrigin;
 
         // This is the verification critical to security.
         const checks = protections.getCallbackChecks(flow);
 
         const tokenSet = await client.oauthCallback(redirectUri, params, checks);
 
-        // Store the result in the session.
+        // Store the result in the session, dropping other transient info.
         const session = this._sessions.getOrCreateSession(req.sessionID, undefined, userSelector);
         await session.operateOnScopedSession(req, async (user: SessionUserObjWithOAuth) => {
           user.oauth2 = { ...user.oauth2, [id]: { tokenSet } };
           return user;
         });
-        payload = pick(tokenSet, "access_token", "expires_at");
       } catch (e) {
         log.warn(`OAuth2 callback error: ${e.message}. Response`, e.response?.body);
         payload = { error: String(e.message) };
+        // We are normally careful about only posting data back to the opener if that opener is on
+        // an allowed origin (e.g. not evil.com). But in case of an error, we may not have the
+        // origin, and the error message is presumably not so sensitive. So post it regardless.
+        // (It so happens that we now avoid posting anything sensitive in all cases.)
+        if (!openerOrigin) {
+          openerOrigin = "*";
+        }
       }
 
       // ENDPOINT.authorize redirects through the resource provider to here. The client opens it
       // in a new window, and here we should serve a page that sends back our redirect result and
       // closes itself. It needs an actual HTML page.
-      return res.send(END_FLOW_HTML_TEMPLATE.replace("{{PAYLOAD}}", JSON.stringify(payload)));
+      return res.send(renderEndFlowHtmlTemplate(payload, openerOrigin));
+    }));
+
+    app.options(OAUTH2_ENDPOINTS.token, middleware, expressWrap((req, res) => {
+      // For OPTIONS requests, the included trustOriginHandler middleware will actually respond.
+      res.sendStatus(200);
     }));
 
     /**
      * Fetch access token if have one in the session, or 400 if integration is not configured, or
      * 401 if the token is missing or expired.
      */
-    app.get(OAUTH2_ENDPOINTS.token, addRequestUser, expressWrap(async (req, res) => {
+    app.get(OAUTH2_ENDPOINTS.token, middleware, expressWrap(async (req, res) => {
       log.warn(`REQ ${req.method} ${req.url} ${req.params.integration}`);
       assertUserIsAuthorized(req);
       const { id, name } = this._getIntegration(req.params.integration);
@@ -293,7 +314,7 @@ export class OAuth2Clients {
     /**
      * Delete the token stored in the session, along with other session material for this integration.
      */
-    app.delete(OAUTH2_ENDPOINTS.token, addRequestUser, expressWrap(async (req, res) => {
+    app.delete(OAUTH2_ENDPOINTS.token, middleware, expressWrap(async (req, res) => {
       assertUserIsAuthorized(req);
       const id = req.params.integration;
       const session = this._sessions.getOrCreateSessionFromRequest(req);
@@ -340,10 +361,19 @@ const END_FLOW_HTML_TEMPLATE = `
 <body>
 <script>
   if (opener) {
-    opener.postMessage({{PAYLOAD}}, location.origin);
+    opener.postMessage({{PAYLOAD}}, {{OPENER_ORIGIN}});
     close();
   }
 </script>
 </body>
 </html>
 `;
+
+// We avoid posting sensitive payloads because we don't have to, but in case we need to in the
+// future, we validate that openerOrigin is an allowed origin. Otherwise, evil.com could open our
+// /authorize endpoint and receive back the payload.
+function renderEndFlowHtmlTemplate(payload: object, openerOrigin: string) {
+  return END_FLOW_HTML_TEMPLATE
+    .replace("{{PAYLOAD}}", JSON.stringify(payload))
+    .replace("{{OPENER_ORIGIN}}", JSON.stringify(openerOrigin));
+}
