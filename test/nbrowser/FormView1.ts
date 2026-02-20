@@ -51,8 +51,10 @@ describe("FormView1", function() {
   });
 
   after(async function() {
-    oldEnv.restore();
-    await server.restart(true);
+    if (!gu.noCleanup) {
+      oldEnv.restore();
+      await server.restart(true);
+    }
   });
   afterEach(() => gu.checkForErrors());
 
@@ -681,6 +683,63 @@ describe("FormView1", function() {
       await removeForm();
     });
 
+    it("can limit choices in a form with ChoiceList field", async function() {
+      const choices = Array.from({ length: 35 }, (_, i) => `Option ${i + 1}`);
+      const formUrl = await createFormWith("Choice List");
+
+      // Set 35 choices without a limit.
+      await gu.sendActions([
+        ["ModifyColumn", "Table1", "D", {
+          widgetOptions: JSON.stringify({ choices }),
+        }],
+      ]);
+
+      // Open the config panel and set Options Limit to 5 via the UI.
+      await gu.openColumnPanel();
+      const limitInput = await driver.findWait(".test-form-field-options-limit", 2000);
+      await limitInput.click();
+      await gu.selectAll();
+      await driver.sendKeys("5", Key.TAB);
+      await gu.waitForServer();
+
+      await gu.onNewTab(async () => {
+        await driver.get(formUrl);
+        await driver.findWait('input[name="D[]"]', 2000);
+        const items = await driver.findAll('input[name="D[]"]');
+        assert.equal(items.length, 5);
+      });
+
+      // Raise the limit to 35 via the UI.
+      const limitInput2 = await driver.findWait(".test-form-field-options-limit", 2000);
+      await limitInput2.click();
+      await gu.selectAll();
+      await driver.sendKeys("35", Key.TAB);
+      await gu.waitForServer();
+
+      await gu.onNewTab(async () => {
+        await driver.get(formUrl);
+        await driver.findWait('input[name="D[]"]', 2000);
+        const items = await driver.findAll('input[name="D[]"]');
+        assert.equal(items.length, 35);
+      });
+
+      // Clear the limit via the UI — should fall back to the default of 30.
+      const limitInput3 = await driver.findWait(".test-form-field-options-limit", 2000);
+      await limitInput3.click();
+      await gu.selectAll();
+      await driver.sendKeys(Key.DELETE, Key.TAB);
+      await gu.waitForServer();
+
+      await gu.onNewTab(async () => {
+        await driver.get(formUrl);
+        await driver.findWait('input[name="D[]"]', 2000);
+        const items = await driver.findAll('input[name="D[]"]');
+        assert.equal(items.length, 30);
+      });
+
+      await removeForm();
+    });
+
     it("can submit a form with select Ref field", async function() {
       const formUrl = await createFormWith("Reference");
       // Add some options.
@@ -874,13 +933,57 @@ describe("FormView1", function() {
         await driver.find('button[type="submit"]').click();
         await waitForConfirm();
       });
-      await expectInD([null, null, null, ["L", 2, 1]]);
+      await expectInD([null, null, null, ["L", 1, 2]]);
 
       // Remove 3 records.
       await gu.sendActions([
         ["BulkRemoveRecord", "Table1", [1, 2, 3, 4]],
       ]);
 
+      await removeForm();
+    });
+
+    it("can limit references in a form with RefList field", async function() {
+      const formUrl = await createFormWith("Reference List");
+      await gu.openColumnPanel();
+      await gu.setRefShowColumn("A");
+      // Add 10 records.
+      await gu.sendActions(
+        Array.from({ length: 10 }, (_, i) => ["AddRecord", "Table1", null, { A: `Item ${i + 1}` }]),
+      );
+
+      // Set a limit of 3 via the config UI.
+      const limitInput = await driver.findWait(".test-form-field-options-limit", 2000);
+      await limitInput.click();
+      await gu.selectAll();
+      await driver.sendKeys("3", Key.TAB);
+      await gu.waitForServer();
+
+      await gu.onNewTab(async () => {
+        await driver.get(formUrl);
+        await driver.findWait('input[name="D[]"]', 2000);
+        const items = await driver.findAll('input[name="D[]"]');
+        assert.equal(items.length, 3);
+      });
+
+      // Raise the limit to 10 via the config UI.
+      const limitInput2 = await driver.findWait(".test-form-field-options-limit", 2000);
+      await limitInput2.click();
+      await gu.selectAll();
+      await driver.sendKeys("10", Key.TAB);
+      await gu.waitForServer();
+
+      await gu.onNewTab(async () => {
+        await driver.get(formUrl);
+        await driver.findWait('input[name="D[]"]', 2000);
+        const items = await driver.findAll('input[name="D[]"]');
+        assert.equal(items.length, 10);
+      });
+
+      // Clean up records and form.
+      await gu.sendActions([
+        ["BulkRemoveRecord", "Table1", [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]],
+      ]);
       await removeForm();
     });
 

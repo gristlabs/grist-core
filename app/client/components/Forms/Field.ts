@@ -1,4 +1,4 @@
-import { FormLayoutNode, selectPlaceholder } from "app/client/components/FormRenderer";
+import { FormLayoutNode, selectPlaceholder, sortChoicesInPlace } from "app/client/components/FormRenderer";
 import { buildEditor } from "app/client/components/Forms/Editor";
 import { FormView } from "app/client/components/Forms/FormView";
 import { BoxModel, ignoreClick } from "app/client/components/Forms/Model";
@@ -15,6 +15,7 @@ import {
   FormSelectFormat,
   FormTextFormat,
   FormToggleFormat,
+  getFormOptionsLimit,
 } from "app/client/ui/FormAPI";
 import { autoGrow } from "app/client/ui/forms";
 import { cssCheckboxSquare, cssLabel, squareCheckbox } from "app/client/ui2018/checkbox";
@@ -38,8 +39,11 @@ import {
   observable,
   Observable,
   toKo,
+  UseCB,
 } from "grainjs";
 import * as ko from "knockout";
+
+import type { ViewFieldRec } from "app/client/models/DocModel";
 
 const testId = makeTestId("test-forms-");
 
@@ -367,9 +371,9 @@ class ChoiceModel extends Question {
     return use(field.widgetOptionsJson.prop("formSelectFormat")) ?? "select";
   });
 
-  private _sortOrder = Computed.create<FormOptionsSortOrder>(this, (use) => {
+  private _sortOrder = Computed.create<FormOptionsSortOrder | undefined>(this, (use) => {
     const field = use(this.field);
-    return use(field.widgetOptionsJson.prop("formOptionsSortOrder")) ?? "default";
+    return use(field.widgetOptionsJson.prop("formOptionsSortOrder"));
   });
 
   constructor(model: FieldModel) {
@@ -383,13 +387,7 @@ class ChoiceModel extends Question {
       if (!Array.isArray(choices) || choices.some(choice => typeof choice !== "string")) {
         return [];
       } else {
-        const sort = use(this._sortOrder);
-        if (sort !== "default") {
-          choices.sort((a, b) => a.localeCompare(b));
-          if (sort === "descending") {
-            choices.reverse();
-          }
-        }
+        sortChoicesInPlace(choices, item => String(item), use(this._sortOrder));
         return choices;
       }
     });
@@ -440,8 +438,7 @@ class ChoiceModel extends Question {
 
 class ChoiceListModel extends ChoiceModel {
   private _choices = Computed.create(this, (use) => {
-    // Support for 30 choices. TODO: make limit dynamic.
-    return use(this.choices).slice(0, 30);
+    return use(this.choices).slice(0, useFormOptionsLimit(use, this.field));
   });
 
   public renderInput() {
@@ -535,9 +532,9 @@ class RefListModel extends Question {
     return use(field.widgetOptionsJson.prop("formOptionsAlignment")) ?? "vertical";
   });
 
-  private _sortOrder = Computed.create<FormOptionsSortOrder>(this, (use) => {
+  private _sortOrder = Computed.create<FormOptionsSortOrder | undefined>(this, (use) => {
     const field = use(this.field);
-    return use(field.widgetOptionsJson.prop("formOptionsSortOrder")) ?? "default";
+    return use(field.widgetOptionsJson.prop("formOptionsSortOrder"));
   });
 
   constructor(model: FieldModel) {
@@ -576,17 +573,12 @@ class RefListModel extends Question {
     const observer = this._columnObserver(this, this.model.view.gristDoc.docModel, tableId, colId);
 
     return Computed.create(this, (use) => {
-      const sort = use(this._sortOrder);
       const values = use(observer)
         .filter(([_id, value]) => !isBlankValue(value))
         .map(([id, value]) => ({ label: String(value), value: String(id) }));
-      if (sort !== "default") {
-        values.sort((a, b) => a.label.localeCompare(b.label));
-        if (sort === "descending") {
-          values.reverse();
-        }
-      }
-      return values.slice(0, 30);
+
+      sortChoicesInPlace(values, item => item.label, use(this._sortOrder));
+      return values.slice(0, useFormOptionsLimit(use, this.field));
     });
   }
 
@@ -705,6 +697,10 @@ function fieldConstructor(type: string): Constructor<Question> {
     case "Attachments": return AttachmentsModel;
     default: return TextModel;
   }
+}
+
+function useFormOptionsLimit(use: UseCB, field: ko.Computed<ViewFieldRec>): number {
+  return getFormOptionsLimit(use(use(field).widgetOptionsJson) as FormFieldOptions);
 }
 
 /**
