@@ -293,15 +293,18 @@ export function addAllScenarios(
   testSuiteName: string = "docapi",
   options: ScenarioOptions = {},
 ) {
+  let oldEnv: testUtils.EnvironmentSnapshot;
+
   // Global setup runs once before any scenario
   before(async function() {
+    oldEnv = new testUtils.EnvironmentSnapshot();
     await globalSetup(testSuiteName);
   });
 
-  // Note: We intentionally don't restore oldEnv in after() because
-  // when multiple test files share the same globalSetupDone flag,
-  // the first file's after() would clear the database path before
-  // subsequent files run. The test process exits anyway.
+  after(async function() {
+    oldEnv.restore();
+    globalSetupDone.delete(testSuiteName);
+  });
 
   addScenario("merged server", "merged", addTests, options.extraEnv);
 

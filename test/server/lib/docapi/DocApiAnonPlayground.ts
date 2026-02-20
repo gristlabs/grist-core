@@ -26,11 +26,13 @@ describe("DocApiAnonPlayground", function() {
   let tmpDir: string;
   let home: TestServer;
   let serverUrl: string;
+  let oldEnv: testUtils.EnvironmentSnapshot;
 
   before(async function() {
     // Create temp directory
     tmpDir = path.join(tmpdir(), `grist_test_${username}_docapi-anon-playground`);
     await prepareFilesystemDirectoryForTests(tmpDir);
+    oldEnv = new testUtils.EnvironmentSnapshot();
     await prepareDatabase(tmpDir);
 
     // Create data directory
@@ -50,6 +52,7 @@ describe("DocApiAnonPlayground", function() {
 
   after(async function() {
     await home.stop();
+    oldEnv.restore();
   });
 
   it("should not allow anonymous users to create new docs", async () => {
