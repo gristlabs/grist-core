@@ -26,3 +26,24 @@ export function getOnboardingTutorialDocId() {
     envVar: "GRIST_ONBOARDING_TUTORIAL_DOC_ID",
   });
 }
+
+export function getAnonPlaygroundEnabled() {
+  return appSettings.section("orgs").flag("enableAnonPlayground").readBool({
+    envVar: "GRIST_ANON_PLAYGROUND",
+    defaultValue: getCanAnyoneCreateOrgs(),
+  });
+}
+
+export function getCanAnyoneCreateOrgs() {
+  return appSettings.section("orgs").flag("canAnyoneCreateOrgs").readBool({
+    envVar: "GRIST_ORG_CREATION_ANYONE",
+    defaultValue: true,
+  });
+}
+
+export function getPersonalOrgsEnabled() {
+  return appSettings.section("orgs").flag("enablePersonalOrgs").readBool({
+    envVar: "GRIST_PERSONAL_ORGS",
+    defaultValue: getCanAnyoneCreateOrgs(),
+  });
+}

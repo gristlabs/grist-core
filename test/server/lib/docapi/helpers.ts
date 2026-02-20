@@ -89,10 +89,9 @@ async function flushAllRedis() {
 }
 
 /**
- * Create a UserAPI instance for the given org and user.
+ * Create a UserAPI instance for the given org and request config, as fetched by configForUser
  */
-function makeUserApi(homeUrl: string, org: string, user: string): UserAPI {
-  const config = configForUser(user);
+export function makeUserApi(homeUrl: string, org: string, config: AxiosRequestConfig): UserAPI {
   return new UserAPIImpl(`${homeUrl}/o/${org}`, {
     headers: config.headers as Record<string, string>,
     fetch: fetch as unknown as typeof globalThis.fetch,
@@ -163,7 +162,7 @@ function createContext(
   scenarioDocIds: { [name: string]: string },
   hasHomeApi: boolean,
 ): TestContext {
-  const userApi = makeUserApi(homeUrl, ORG_NAME, "chimpy");
+  const userApi = makeUserApi(homeUrl, ORG_NAME, configForUser("chimpy"));
 
   const flushAuth = async () => {
     await home.testingHooks.flushAuthorizerCache();
@@ -237,7 +236,7 @@ export async function setupServers(
   }
 
   // Create TestDoc as an empty doc in Private workspace
-  const userApi = makeUserApi(home.serverUrl, ORG_NAME, "chimpy");
+  const userApi = makeUserApi(home.serverUrl, ORG_NAME, configForUser("chimpy"));
   const wid = await getWorkspaceId(userApi, "Private");
   scenarioDocIds.TestDoc = await userApi.newDoc({ name: "TestDoc" }, wid);
 
