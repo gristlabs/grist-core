@@ -168,7 +168,7 @@ describe("AccessRulesAttrs", function() {
     assert.deepEqual(await gu.getVisibleGridCells({ cols: ["SomeText", "OtherText"], rowNums: [2] }), ["FoO", "FoO"]);
     // We can edit data (rule restricting edits is valid because type is Text, and doesn't match).
     await gu.getCell({ rowNum: 2, col: "SomeText" }).click();
-    await gu.enterCell(Key.DELETE);
+    await gu.pressKeysOnCell(Key.DELETE);
     assert.deepEqual(await gu.getVisibleGridCells({ cols: ["SomeText", "OtherText"], rowNums: [2] }), ["", "2"]);
     await gu.checkForErrors();
     await gu.undo();
@@ -179,10 +179,10 @@ describe("AccessRulesAttrs", function() {
     // The rule preventing edits will still work for text values, but should show error for
     // non-text values.
     await gu.getCell({ rowNum: 2, col: "SomeText" }).click();
-    await gu.enterCell("ciao");
+    await gu.enterCell(["ciao"]);
     assert.deepEqual(await gu.getVisibleGridCells({ cols: ["SomeText", "OtherText"], rowNums: [2] }), ["ciao", "ciao"]);
     await gu.checkForErrors();
-    await gu.enterCell(Key.DELETE);
+    await gu.pressKeysOnCell(Key.DELETE);
     assert.deepEqual(await gu.getVisibleGridCells({ cols: ["SomeText", "OtherText"], rowNums: [2] }), ["ciao", "ciao"]);
     assert.match((await gu.getToasts())[0], /Rule.*has an error: Not a function: 'newRec.OtherText.lower'/);
     await gu.undo();

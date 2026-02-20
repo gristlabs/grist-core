@@ -122,8 +122,8 @@ describe("SelectBySummary", function() {
       // Create new records with rownum = 99 and 100
       await gu.getCell({ section: "TABLE1", col: "rownum", rowNum: 3 }).click();
       await gu.waitAppFocus();
-      await gu.enterCell("99");
-      await gu.enterCell("100");
+      await gu.enterCell(["99"]);
+      await gu.enterCell(["100"]);
       await driver.sleep(100); // there is some setTimeout in Grist somewhere here.
 
       assert.deepEqual(
