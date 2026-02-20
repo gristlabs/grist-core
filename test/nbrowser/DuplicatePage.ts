@@ -1,6 +1,8 @@
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
 
+// import { setTimeout } from "node:timers/promises";
+
 import { assert, driver, Key } from "mocha-webdriver";
 
 describe("DuplicatePage", async function() {
@@ -170,6 +172,7 @@ describe("DuplicatePage", async function() {
     await save();
 
     await clickPlus();
+    // await setTimeout(60_000);
     await selectColumn("Code");
     await clickNone();
     await clickFilterValue("ARG");

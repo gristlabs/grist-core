@@ -53,7 +53,7 @@ describe("SelectBy", function() {
     await driver.findWait(".test-dp-add-widget-to-page", 2000).doClick();
 
     // select /Table/ /Table1/ and check options of `SELECT BY` drop down
-    await driver.findContent(".test-wselect-table", /Table1/).doClick();
+    await driver.findContentWait(".test-wselect-table", /Table1/, 1000).doClick();
     await driver.findContent(".test-wselect-type", /Table/).doClick();
     await driver.find(".test-wselect-selectby").doClick();
     assert.deepEqual(
@@ -77,7 +77,7 @@ describe("SelectBy", function() {
     );
 
     // select Table2 and check options of `SELECT BY` drop down
-    await driver.findContent(".test-wselect-table", /Table2/).doClick();
+    await driver.findContentWait(".test-wselect-table", /Table2/, 1000).doClick();
     await driver.find(".test-wselect-selectby").doClick();
     assert.deepEqual(
       await driver.findAll(".test-wselect-selectby option:not(:first-of-type)", e => e.getText()), [
@@ -91,11 +91,11 @@ describe("SelectBy", function() {
     );
 
     // Selecting "New Table" should show no options.
-    await driver.findContent(".test-wselect-table", /New Table/).doClick();
+    await driver.findContentWait(".test-wselect-table", /New Table/, 1000).doClick();
     assert.equal(await driver.find(".test-wselect-selectby").isPresent(), false);
     assert.lengthOf(await driver.findAll(".test-wselect-selectby option"), 0);
     // Selecting a regular table should show options again.
-    await driver.findContent(".test-wselect-table", /Table2/).doClick();
+    await driver.findContentWait(".test-wselect-table", /Table2/, 1000).doClick();
     assert.equal(await driver.find(".test-wselect-selectby").isPresent(), true);
     assert.lengthOf(await driver.findAll(".test-wselect-selectby option"), 7);
 
@@ -108,12 +108,12 @@ describe("SelectBy", function() {
     await driver.findWait(".test-dp-add-widget-to-page", 2000).doClick();
 
     // select /Table/ /Table1/ and check no options are available
-    await driver.findContent(".test-wselect-table", /Table1/).doClick();
+    await driver.findContentWait(".test-wselect-table", /Table1/, 1000).doClick();
     await driver.findContent(".test-wselect-type", /Table/).doClick();
     assert.equal(await driver.find(".test-wselect-selectby").isPresent(), false);
 
     // select Table2 and check no options are available
-    await driver.findContent(".test-wselect-table", /Table2/).doClick();
+    await driver.findContentWait(".test-wselect-table", /Table2/, 1000).doClick();
     assert.equal(await driver.find(".test-wselect-selectby").isPresent(), false);
   });
 
@@ -135,7 +135,7 @@ describe("SelectBy", function() {
     await driver.findWait(".test-dp-add-widget-to-page", 2000).doClick();
 
     // select Table3 and summarize
-    await driver.findContent(".test-wselect-table", /Table3/).find(".test-wselect-pivot").doClick();
+    await driver.findContentWait(".test-wselect-table", /Table3/, 1000).find(".test-wselect-pivot").doClick();
 
     // check selectBy options
     assert.deepEqual(
@@ -181,7 +181,7 @@ describe("SelectBy", function() {
     // begin adding table1 as a table to page
     await driver.findWait(".test-dp-add-new", 2000).doClick();
     await driver.findWait(".test-dp-add-widget-to-page", 2000).doClick();
-    await driver.findContent(".test-wselect-table", /Table1/).doClick();
+    await driver.findContentWait(".test-wselect-table", /Table1/, 1000).doClick();
 
     // select link
     await driver.find(".test-wselect-selectby").doClick();
