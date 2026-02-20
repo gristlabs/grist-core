@@ -27,12 +27,12 @@ import {
 } from "app/gen-server/lib/homedb/Interfaces";
 import { Permissions } from "app/gen-server/lib/Permissions";
 import { appSettings } from "app/server/lib/AppSettings";
+import { getPersonalOrgsEnabled } from "app/server/lib/gristSettings";
 
 import * as crypto from "crypto";
 
 import flatten from "lodash/flatten";
 import { EntityManager, IsNull, Not } from "typeorm";
-import { getPersonalOrgsEnabled } from "app/server/lib/gristSettings";
 
 function apiKeyGenerator(): string {
   return crypto.randomBytes(20).toString("hex");

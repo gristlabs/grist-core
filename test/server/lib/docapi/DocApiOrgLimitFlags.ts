@@ -6,6 +6,11 @@
  * Tests only run using merged server (as they don't utilise doc workers)
  */
 
+import {
+  getAnonPlaygroundEnabled,
+  getCanAnyoneCreateOrgs,
+  getPersonalOrgsEnabled,
+} from "app/server/lib/gristSettings";
 import { configForApiKey } from "test/gen-server/testUtils";
 import {
   addAllScenarios,
@@ -14,15 +19,10 @@ import {
   TestContext,
 } from "test/server/lib/docapi/helpers";
 import * as testUtils from "test/server/testUtils";
+import { EnvironmentSnapshot } from "test/server/testUtils";
 
 import axios from "axios";
 import { assert } from "chai";
-import { EnvironmentSnapshot } from "test/server/testUtils";
-import {
-  getAnonPlaygroundEnabled,
-  getCanAnyoneCreateOrgs,
-  getPersonalOrgsEnabled
-} from "app/server/lib/gristSettings";
 
 describe("DocApiOrgLimitFlags", function() {
   this.timeout(30000);
