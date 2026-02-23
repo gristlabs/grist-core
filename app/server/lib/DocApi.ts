@@ -1870,7 +1870,7 @@ export class DocWorkerApi {
   }
 
   /**
-   * Disallow document creation for anonymous users if GRIST_ANONYMOUS_CREATION is set to false.
+   * Disallow document creation for anonymous users if GRIST_ANON_PLAYGROUND is set to false.
    */
   private async _checkAnonymousCreation(req: Request, res: Response, next: NextFunction) {
     if (isAnonymousUser(req) && !getAnonPlaygroundEnabled()) {

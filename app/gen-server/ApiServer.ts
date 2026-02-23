@@ -201,7 +201,7 @@ export class ApiServer {
       // doesn't have access to that information yet, so punting on this.
 
       if (!getCanAnyoneCreateOrgs()) {
-        const isAdmin = await this._gristServer.getInstallAdmin()?.isAdminReq(req);
+        const isAdmin = await this._gristServer.getInstallAdmin().isAdminReq(req);
         if (!isAdmin) {
           throw new ApiError("Only admins can create new teams", 403);
         }
