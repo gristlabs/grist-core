@@ -552,6 +552,21 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
   }
 
   /**
+   * Validate and copy an uploaded .grist file into the doc's storage path.
+   * Runs an SQLite integrity check on the source, copies it into place,
+   * and fixes up attachment store settings that may reference external stores
+   * not available in this environment.
+   */
+  public async importGristDoc(docSession: OptDocSession, docId: string, srcDocPath: string): Promise<void> {
+    // TODO: We should be skeptical of the upload file to close a possible
+    // security vulnerability. See https://phab.getgrist.com/T457.
+    const docPath: string = this.storageManager.getPath(docId);
+    await checkAllegedGristDoc(docSession, srcDocPath);
+    await docUtils.copyFile(srcDocPath, docPath);
+    await updateDocumentAttachmentStoreSettingToValidValue(docPath, this._attachmentStoreProvider);
+  }
+
+  /**
    * Helper function for creating a new empty document that also emits an event.
    * @param docSession The client session.
    * @param basenameHint Suggested base name to use (no directory, no extension).
@@ -746,15 +761,8 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
       await options.register?.(id, basename);
       if (ext === ".grist") {
         log.debug(`DocManager._doImportDoc: Importing .grist doc`);
-        // If the import is a grist file, copy it to the docs directory.
-        // TODO: We should be skeptical of the upload file to close a possible
-        // security vulnerability. See https://phab.getgrist.com/T457.
         const docName = await this._createNewDoc(id);
-        const docPath: string = this.storageManager.getPath(docName);
-        const srcDocPath = uploadInfo.files[0].absPath;
-        await checkAllegedGristDoc(docSession, srcDocPath);
-        await docUtils.copyFile(srcDocPath, docPath);
-        await updateDocumentAttachmentStoreSettingToValidValue(docPath, this._attachmentStoreProvider);
+        await this.importGristDoc(docSession, docName, uploadInfo.files[0].absPath);
         // Go ahead and claim this document. If we wanted to serve it
         // from a potentially different worker, we'd call addToStorage(docName)
         // instead (we used to do this). The upload should already be happening
