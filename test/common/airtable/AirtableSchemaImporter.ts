@@ -2,8 +2,8 @@ import {
   AirtableBaseSchema,
   AirtableFieldSchema,
   AirtableTableSchema,
-} from "app/common/airtable/AirtableAPI";
-import { gristDocSchemaFromAirtableSchema } from "app/common/airtable/AirtableImporter";
+} from "app/common/airtable/AirtableAPITypes";
+import { gristDocSchemaFromAirtableSchema } from "app/common/airtable/AirtableSchemaImporter";
 import { ColumnImportSchema } from "app/common/DocSchemaImport";
 import { RecalcWhen } from "app/common/gristTypes";
 
@@ -11,7 +11,7 @@ import * as crypto from "crypto";
 
 import { assert } from "chai";
 
-describe("AirtableImporter", function() {
+describe("AirtableSchemaImporter", function() {
   const firstTableName = "A basic table";
   const firstTableId = tableNameToId(firstTableName);
 
@@ -52,6 +52,13 @@ describe("AirtableImporter", function() {
             originalId: firstTableId,
             desiredGristId: "A basic table",
             columns: [
+              {
+                originalId: "airtableId",
+                desiredGristId: "Airtable Id",
+                label: "Airtable Id",
+                type: "Text",
+                untieColIdFromLabel: true,
+              },
               {
                 originalId: fieldNameToId("Arbitrary column name 1"),
                 desiredGristId: "Arbitrary column name 1",
@@ -95,8 +102,8 @@ describe("AirtableImporter", function() {
         airtableSchema,
         importSchema: result.schema,
         warnings: result.warnings,
-        testField: airtableSchema.tables[0].fields[0],
-        testColumn: result.schema.tables[0].columns[0],
+        testField: airtableSchema.tables[0].fields.find(field => field.id === params.field.id)!,
+        testColumn: result.schema.tables[0].columns.find(column => column.originalId === params.field.id)!,
       };
     }
 
@@ -394,6 +401,52 @@ describe("AirtableImporter", function() {
         type: "Text",
       }),
     ));
+
+    it("correctly converts a multipleLookupValues column", () => {
+      const otherTableId = tableNameToId("other table");
+      const otherField = createBasicAirtableField("Any field", "");
+      const refField = {
+        ...createBasicAirtableField("A multipleRecordLinks column", "multipleRecordLinks"),
+        options: {
+          linkedTableId: otherTableId,
+          isReversed: false,
+          prefersSingleRecordLink: false,
+          // No valid value needed for this test
+          inverseLinkFieldId: "",
+        },
+      };
+      const fieldDependenciesByTable = {
+        [firstTableId]: [refField],
+        [otherTableId]: [otherField],
+      };
+
+      const field = {
+        ...createBasicAirtableField("A multipleLookupValues column", "multipleLookupValues"),
+        options: {
+          isValid: true,
+          recordLinkFieldId: refField.id,
+          fieldIdInLinkedTable: otherField.id,
+          referencedFieldIds: [],
+          result: {
+            type: "singleLineText",
+          },
+        },
+      };
+
+      const { testField, testColumn } = convertAirtableField({ field, fieldDependenciesByTable });
+      runBasicFieldTest(testField, testColumn);
+      assert.deepInclude(testColumn, {
+        type: "Any",
+        isFormula: true,
+        formula: {
+          formula: "$[R0].[R1]",
+          replacements: [
+            { originalTableId: firstTableId, originalColId: refField.id },
+            { originalTableId: otherTableId, originalColId: otherField.id },
+          ],
+        },
+      });
+    });
 
     it("correctly converts a multipleRecordLinks column", () => {
       const field = {

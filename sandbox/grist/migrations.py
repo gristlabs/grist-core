@@ -1390,3 +1390,13 @@ def migration45(tdset):
     }))
 
   return tdset.apply_doc_actions(doc_actions)
+
+
+@migration(schema_version=46)
+def migration46(tdset):
+  """
+  Adds column to store trigger condition, a new way to define when triggers are invoked.
+  """
+  return tdset.apply_doc_actions([
+    add_column('_grist_Triggers', 'condition', 'Text'),
+  ])

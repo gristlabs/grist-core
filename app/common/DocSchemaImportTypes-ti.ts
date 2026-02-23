@@ -10,6 +10,7 @@ export const ExistingDocSchema = t.iface([], {
 
 export const ExistingTableSchema = t.iface([], {
   "id": "string",
+  "name": t.opt("string"),
   "ref": t.opt("number"),
   "columns": t.array("ExistingColumnSchema"),
 });
@@ -18,6 +19,7 @@ export const ExistingColumnSchema = t.iface([], {
   "id": "string",
   "ref": "number",
   "label": t.opt("string"),
+  "isFormula": "boolean",
 });
 
 export const DocSchemaSqlResult = t.array(t.iface([], {
@@ -26,6 +28,7 @@ export const DocSchemaSqlResult = t.array(t.iface([], {
   "colRef": "number",
   "colId": "string",
   "colLabel": "string",
+  "colIsFormula": "number",
 }));
 
 const exportedTypeSuite: t.ITypeSuite = {

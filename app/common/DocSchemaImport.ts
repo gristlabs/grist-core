@@ -8,7 +8,7 @@ import {
 import { RecalcWhen } from "app/common/gristTypes";
 import { GristType } from "app/plugin/GristData";
 
-import { cloneDeep } from "lodash";
+import cloneDeep from "lodash/cloneDeep";
 
 /**
  * A self-contained schema for a Grist document, that can be declared, validated and then used
@@ -96,7 +96,7 @@ export interface FormulaTemplate {
 /**
  * Reference to a table within the import schema (i.e. using the table's originalId);
  */
-interface OriginalTableRef {
+export interface OriginalTableRef {
   originalTableId: string;
   // 'never' types below allow convenient type guard usage
   // e.g. `if (ref.originalTableId && ref.originalColId === undefined)` will narrow any ref to an
@@ -282,20 +282,25 @@ export class DocSchemaImportTool {
 }
 
 export const GET_DOC_SCHEMA_SQL = `
-  SELECT tables.id AS tableRef, tableId, columns.id AS colRef, columns.colId, columns.label as colLabel
+  SELECT
+    tables.id AS tableRef, tableId,
+    columns.id AS colRef,
+    columns.colId,
+    columns.label as colLabel,
+    columns.isFormula as colIsFormula
   FROM _grist_Tables AS tables
   INNER JOIN _grist_Tables_column AS columns ON tableRef=parentId
 `.trim();
 
 export function formatDocSchemaSqlResult(result: DocSchemaSqlResult): ExistingDocSchema {
   const tables = new Map<string, ExistingTableSchema>();
-  for (const { tableRef, tableId, colRef, colId, colLabel } of result) {
+  for (const { tableRef, tableId, colRef, colId, colLabel, colIsFormula } of result) {
     let existingTable = tables.get(tableId);
     if (!existingTable) {
       existingTable = { id: tableId, ref: tableRef, columns: [] };
       tables.set(tableId, existingTable);
     }
-    existingTable.columns.push({ id: colId, ref: colRef, label: colLabel });
+    existingTable.columns.push({ id: colId, ref: colRef, label: colLabel, isFormula: colIsFormula > 0 });
   }
   return { tables: Array.from(tables.values()) };
 }
@@ -308,7 +313,8 @@ export function formatDocSchemaSqlResult(result: DocSchemaSqlResult): ExistingDo
  * purely informational or a significant error.
  */
 export interface DocSchemaImportWarning {
-  message: string;
+  readonly message: string;
+  readonly ref?: TableRef | ColRef;
 }
 
 class RefWarning implements DocSchemaImportWarning {
@@ -404,7 +410,7 @@ class NoColumnInfoForRefWarning implements DocSchemaImportWarning {
 class NoMatchingColumnWarning implements DocSchemaImportWarning {
   public readonly message: string;
 
-  constructor(public readonly colSchema: ColumnImportSchema) {
+  constructor(public readonly colSchema: ColumnImportSchema, public readonly ref: TableRef | ColRef) {
     this.message = `Could not match column schema with an existing column: ${JSON.stringify(colSchema)}`;
   }
 }
@@ -503,7 +509,7 @@ function transformSchemaMapRef(
   const matchingCol = existingTableSchema && findMatchingExistingColumn(colSchema, existingTableSchema);
 
   if (!matchingCol) {
-    return { ref, warning: new NoMatchingColumnWarning(colSchema) };
+    return { ref, warning: new NoMatchingColumnWarning(colSchema, ref) };
   }
 
   return { ref: { existingTableId, existingColId: matchingCol.id } };

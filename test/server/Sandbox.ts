@@ -196,12 +196,12 @@ describe("Sandbox", function() {
 
   describe("sandbox restrictions", function() {
     let sandbox: NSandbox;
-    before(async function() {
+    beforeEach(async function() {
       sandbox = createSandbox("sandboxed", {}) as NSandbox;
       await prepareFormula(sandbox);
     });
 
-    after(function() {
+    afterEach(function() {
       return sandbox.shutdown();
     });
 
@@ -406,6 +406,18 @@ return 'done'
       const fileContents = await sandbox.pyCall("test_read_file", mainFile);
       assert.match(fileContents, /defines what sandbox functions are made available to the Node controller/);
       assert.notMatch(fileContents, /rambunctious/);
+    });
+
+    it("gvisor and pyodide should fail after unreasonable number of calls to os.fork()", async function() {
+      // TODO: This test fails in Jenkins CI when run with gvisor. It doesn't appear to be enforcing GVISOR_LIMIT_NPROC.
+      if (![/* "gvisor", */"pyodide"].includes(sandbox.getFlavor())) {
+        this.skip();
+      }
+
+      await assert.isRejected(
+        sandbox.pyCall("test_fork", 64),
+        /BlockingIOError|OSError/,
+      );
     });
   });
 

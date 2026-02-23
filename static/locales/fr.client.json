@@ -588,7 +588,7 @@
         "Shortcuts": "Raccourcis",
         "Show hidden columns": "Montrer les colonnes cachées",
         "Created At": "Créé(e) le",
-        "Authorship": "Paternité",
+        "Authorship": "Créé par",
         "Last Updated By": "Dernière mise à jour par",
         "Hidden Columns": "Colonnes cachées",
         "Lookups": "Champ rapporté",
@@ -1678,8 +1678,8 @@
         "You may also check out {{ourWeeklyWebinars}} to learn more about Grist.": "Vous pouvez également consulter {{ourWeeklyWebinars}} pour en savoir plus sur Grist.",
         "our weekly webinars": "nos webinaires hebdomadaires",
         "Grist 101": "Les fondamentaux de Grist",
-        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users                navigate the fundamentals of Grist.": "Vous pouvez également suivre notre webinaire d’introduction, {{ourWeeklyWebinars}}, qui a été spécialement créé afin d'aider les nouveaux utilisateurs à maitriser les fondamentaux de Grist.",
-        "Free coaching call": "Appel de coaching gratuit",
+        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users                navigate the fundamentals of Grist.": "Vous pouvez également suivre notre webinaire d'introduction, {{ourWeeklyWebinars}}, qui a été spécialement créé afin d'aider les nouveaux utilisateurs à maitriser les fondamentaux de Grist.",
+        "Free coaching call": "appel de coaching gratuit",
         "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users navigate the fundamentals of Grist.": "Vous pouvez aussi jeter un œil à notre webinaire d'introduction, {{ourWeeklyWebinars}}, conçu pour aider les nouveaux utilisateurs à découvrir les fondamentaux de Grist."
     },
     "FormView": {
@@ -2037,7 +2037,7 @@
     },
     "ViewLayout": {
         "Delete": "Supprimer",
-        "Delete data and this widget.": "Supprimer les données et la vue",
+        "Delete data and this widget.": "Supprimer les données et la vue.",
         "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "Garder les données et supprimer la vue. La table restera disponible dans {{rawDataLink}}",
         "Table {{tableName}} will no longer be visible": "La table {{tableName}} ne sera plus visible",
         "Raw Data page": "la page de données source"
@@ -2574,7 +2574,7 @@
         "Years until": "Années jusque"
     },
     "selectBy": {
-        "Select widget": "Choisir un widget"
+        "Select widget": "Choisir une vue"
     },
     "CoreNewDocMethods": {
         "Untitled document": "Document sans titre"

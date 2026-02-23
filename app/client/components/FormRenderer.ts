@@ -2,7 +2,7 @@ import * as css from "app/client/components/FormRendererCss";
 import { bindMarkdown } from "app/client/components/Forms/styles";
 import { getBrowserGlobals } from "app/client/lib/browserGlobals";
 import { makeT } from "app/client/lib/localization";
-import { FormField } from "app/client/ui/FormAPI";
+import { FormField, FormOptionsSortOrder, getFormOptionsLimit } from "app/client/ui/FormAPI";
 import { dropdownWithSearch } from "app/client/ui/searchDropdown";
 import { isXSmallScreenObs, theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
@@ -480,13 +480,7 @@ class ChoiceRenderer extends BaseFieldRenderer  {
     if (!Array.isArray(choices) || choices.some(choice => typeof choice !== "string")) {
       this._choices = [];
     } else {
-      const sortOrder = this.field.options.formOptionsSortOrder ?? "default";
-      if (sortOrder !== "default") {
-        choices.sort((a, b) => String(a).localeCompare(String(b)));
-        if (sortOrder === "descending") {
-          choices.reverse();
-        }
-      }
+      sortChoicesInPlace(choices, choice => String(choice), this.field.options.formOptionsSortOrder);
       this._choices = choices;
     }
 
@@ -698,15 +692,8 @@ class ChoiceListRenderer extends BaseFieldRenderer  {
     if (!Array.isArray(choices) || choices.some(choice => typeof choice !== "string")) {
       choices = [];
     } else {
-      const sortOrder = this.field.options.formOptionsSortOrder ?? "default";
-      if (sortOrder !== "default") {
-        choices.sort((a, b) => String(a).localeCompare(String(b)));
-        if (sortOrder === "descending") {
-          choices.reverse();
-        }
-      }
-      // Support for 30 choices. TODO: make limit dynamic.
-      choices = choices.slice(0, 30);
+      sortChoicesInPlace(choices, choice => String(choice), this.field.options.formOptionsSortOrder);
+      choices = choices.slice(0, getFormOptionsLimit(this.field.options));
     }
 
     const initialValues = new Set(this.getInitialValueList());
@@ -769,16 +756,9 @@ class RefListRenderer extends BaseFieldRenderer {
     super(field, context);
 
     const references = this.field.refValues ?? [];
-    const sortOrder = this.field.options.formOptionsSortOrder;
-    if (sortOrder !== "default") {
-      // Sort by the second value, which is the display value.
-      references.sort((a, b) => String(a[1]).localeCompare(String(b[1])));
-      if (sortOrder === "descending") {
-        references.reverse();
-      }
-    }
-    // Support for 30 choices. TODO: make limit dynamic.
-    references.splice(30);
+    // Sort by the second value, which is the display value.
+    sortChoicesInPlace(references, ref => String(ref[1]), this.field.options.formOptionsSortOrder);
+    references.splice(getFormOptionsLimit(this.field.options));
     const initialValues = new Set(this.getInitialValueList());
     this.checkboxes.set(references.map(reference => ({
       label: String(reference[1]),
@@ -846,14 +826,8 @@ class RefRenderer extends BaseFieldRenderer {
     super(field, context);
 
     const choices: [number | string, CellValue][] = this.field.refValues ?? [];
-    const sortOrder = this.field.options.formOptionsSortOrder ?? "default";
-    if (sortOrder !== "default") {
-      // Sort by the second value, which is the display value.
-      choices.sort((a, b) => String(a[1]).localeCompare(String(b[1])));
-      if (sortOrder === "descending") {
-        choices.reverse();
-      }
-    }
+    // Sort by the second value, which is the display value.
+    sortChoicesInPlace(choices, choice => String(choice[1]), this.field.options.formOptionsSortOrder);
     this._choices = choices;
 
     const initialValue = this.getInitialValue();
@@ -1090,6 +1064,25 @@ function validateRequiredLists() {
       const firstOption = list.querySelector(`input[type="${type}"]`);
       firstOption?.removeAttribute("required");
     });
+  }
+}
+
+/**
+ * Uses formOptions.formOptionsSortOrder to sort the passed-in array of choices in-place,
+ * according to the value of getSortKey(item).
+ */
+export function sortChoicesInPlace<T>(
+  choices: T[], getSortKey: (item: T) => string, formOptionsSortOrder: FormOptionsSortOrder | undefined,
+) {
+  const sortOrder = formOptionsSortOrder ?? "default";
+  if (sortOrder !== "default") {
+    // The `numeric` option is to use natural sort on numbers (e.g. "1" < "2" < "10"); this seems
+    // a better choice for presenting a list of choices in forms when sorting is requested.
+    const collator = new Intl.Collator(undefined, { numeric: true });
+    choices.sort((a, b) => collator.compare(getSortKey(a), getSortKey(b)));
+    if (sortOrder === "descending") {
+      choices.reverse();
+    }
   }
 }
 

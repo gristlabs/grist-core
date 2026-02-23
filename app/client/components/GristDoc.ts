@@ -21,6 +21,7 @@ import { RecordCardPopup } from "app/client/components/RecordCardPopup";
 import { RegionFocusSwitcher } from "app/client/components/RegionFocusSwitcher";
 import { ActionGroupWithCursorPos, UndoStack } from "app/client/components/UndoStack";
 import { ViewLayout } from "app/client/components/ViewLayout";
+import { startDocAirtableImport } from "app/client/lib/airtable/startDocAirtableImport";
 import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
 import { copyToClipboard } from "app/client/lib/clipboardUtils";
 import { DocPluginManager } from "app/client/lib/DocPluginManager";
@@ -29,6 +30,7 @@ import { makeT } from "app/client/lib/localization";
 import { createSessionObs } from "app/client/lib/sessionObs";
 import { logTelemetryEvent } from "app/client/lib/telemetry";
 import { setTestState } from "app/client/lib/testState";
+import { getLoginOrSignupUrl } from "app/client/lib/urlUtils";
 import { AppModel } from "app/client/models/AppModel";
 import BaseRowModel from "app/client/models/BaseRowModel";
 import DataTableModel from "app/client/models/DataTableModel";
@@ -72,7 +74,15 @@ import { isSchemaAction, UserAction } from "app/common/DocActions";
 import { OpenLocalDocResult } from "app/common/DocListAPI";
 import { DocState, DocStateComparison } from "app/common/DocState";
 import { isList, isListType, isRefListType } from "app/common/gristTypes";
-import { HashLink, IDocPage, isViewDocPage, parseUrlId, SpecialDocPage, ViewDocPage } from "app/common/gristUrls";
+import {
+  HashLink,
+  IDocPage,
+  isFeatureEnabled,
+  isViewDocPage,
+  parseUrlId,
+  SpecialDocPage,
+  ViewDocPage,
+} from "app/common/gristUrls";
 import { undef, waitObs } from "app/common/gutil";
 import { LocalPlugin } from "app/common/plugin";
 import { StringUnion } from "app/common/StringUnion";
@@ -605,6 +615,20 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
         label: importSourceElem.importSource.label,
         action: () => selectAndImport(this, importSourceElems, importSourceElem, createPreview),
       })),
+      ...(isFeatureEnabled("importFromAirtable") && [{
+        label: t("Import from Airtable"),
+        action: async () => {
+          if (this.docPageModel.appModel.currentValidUser) {
+            await startDocAirtableImport(this);
+          } else {
+            // Don't show the modal about unsaved changes; saving a document requires an
+            // account, and the redirect below should automatically save the document upon
+            // sign-up.
+            this.docPageModel.clearUnsavedChanges();
+            window.location.href = getLoginOrSignupUrl({ srcDocId: urlState().state.get().doc });
+          }
+        },
+      }] || []),
     ];
 
     // Set the available import sources in the DocPageModel.

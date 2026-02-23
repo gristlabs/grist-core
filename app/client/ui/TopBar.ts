@@ -18,7 +18,7 @@ import { hoverTooltip } from "app/client/ui/tooltips";
 import { cssHoverCircle, cssTopBarBtn } from "app/client/ui/TopBarCss";
 import { docBreadcrumbs } from "app/client/ui2018/breadcrumbs";
 import { basicButton } from "app/client/ui2018/buttons";
-import { cssHideForNarrowScreen, isNarrowScreenObs, testId, theme } from "app/client/ui2018/cssVars";
+import { isNarrowScreenObs, testId, theme } from "app/client/ui2018/cssVars";
 import { IconName } from "app/client/ui2018/IconList";
 import * as roles from "app/common/roles";
 
@@ -156,10 +156,7 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
       buildShareMenuButton(pageModel),
       dom.maybe(pageModel.gristDoc,
         gristDoc => buildShowDiscussionButton(gristDoc)),
-      dom.update(
-        buildNotifyMenuButton(appModel.notifier, appModel),
-        cssHideForNarrowScreen.cls(""),
-      ),
+      buildNotifyMenuButton(appModel.notifier, appModel),
     ]),
     dom("div", dom.create(AccountWidget, appModel, pageModel)),
   ];

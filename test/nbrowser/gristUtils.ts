@@ -2648,7 +2648,7 @@ namespace gristUtils {
   }
 
   export async function clickAway() {
-    await driver.find(".test-notifier-menu-btn").click();
+    await driver.find(".test-dm-account").click();
     await driver.sendKeys(Key.ESCAPE);
   }
 

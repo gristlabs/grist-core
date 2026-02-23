@@ -1,4 +1,5 @@
 import { ApiError } from "app/common/ApiError";
+import { normalizeEmail } from "app/common/emails";
 import { InstallAdminInfo } from "app/common/LoginSessionAPI";
 import { User } from "app/gen-server/entity/User";
 import { HomeDBManager, SUPPORT_EMAIL } from "app/gen-server/lib/homedb/HomeDBManager";
@@ -68,7 +69,8 @@ export class SimpleInstallAdmin extends InstallAdmin {
   }
 
   public override async isAdminUser(user: User): Promise<boolean> {
-    return user.loginEmail === this._adminEmail && this._adminEmail !== "";
+    if (!user.loginEmail || !this._adminEmail) { return false; }
+    return normalizeEmail(user.loginEmail) === normalizeEmail(this._adminEmail);
   }
 
   public override clearCaches(): void {

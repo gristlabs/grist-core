@@ -993,6 +993,7 @@ export const Features = StringUnion(
   "createSite",
   "multiSite",
   "multiAccounts",
+  "importFromAirtable",
   "sendToDrive",
   "tutorials",
   "supportGrist",
@@ -1076,6 +1077,11 @@ export function getContactSupportUrl(): string {
 export function getWebinarsUrl(): string {
   const defaultUrl = "https://www.getgrist.com/webinars/grist-101-new-users-guide";
   return getCustomizableValue("webinarsUrl", "GRIST_WEBINARS_URL") || defaultUrl;
+}
+
+export function getMaxUploadSizeAttachmentMB(): number {
+  const value = getCustomizableValue("maxUploadSizeAttachment", "GRIST_MAX_UPLOAD_ATTACHMENT_MB");
+  return Number(value) || Infinity;
 }
 
 /**

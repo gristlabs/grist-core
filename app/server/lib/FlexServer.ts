@@ -67,6 +67,7 @@ import { InstallAdmin } from "app/server/lib/InstallAdmin";
 import log, { logAsJson } from "app/server/lib/log";
 import { disableCache, noop } from "app/server/lib/middleware";
 import { ErrorInLoginMiddleware } from "app/server/lib/MinimalLogin";
+import { OAuth2Clients } from "app/server/lib/OAuth2Clients";
 import { IPermitStore } from "app/server/lib/Permit";
 import { getAppPathTo, getAppRoot, getInstanceRoot, getUnpackedAppRoot } from "app/server/lib/places";
 import { addPluginEndpoints, limitToPlugins } from "app/server/lib/PluginEndpoint";
@@ -212,6 +213,7 @@ export class FlexServer implements GristServer {
   private _jobs?: GristJobs;
   private _emitNotifier: EmitNotifier = new EmitNotifier();
   private _latestVersionAvailable?: LatestVersionAvailable;
+  private _oauth2Clients?: OAuth2Clients;
 
   constructor(public port: number, public name: string = "flexServer",
     public readonly options: FlexServerOptions = {}) {
@@ -2070,6 +2072,14 @@ export class FlexServer implements GristServer {
     if (this._check("google-auth")) { return; }
     const messagePage = makeMessagePage(getAppPathTo(this.appRoot, "static"));
     addGoogleAuthEndpoint(this.app, messagePage);
+
+    // Sticking the more general OAuth2 clients here because it's a similar type of thing to
+    // Google auth. Should at least clarify the method name.
+    this._oauth2Clients = new OAuth2Clients(this);
+    log.info("Configured OAuth2 clients: %s", this._oauth2Clients.getValidClients());
+    // Use the same middleware as for API calls.
+    const oauth2Middleware = [this._userIdMiddleware, this._trustOriginsMiddleware, disableCache];
+    this._oauth2Clients.attachEndpoints(this.app, oauth2Middleware);
   }
 
   /**

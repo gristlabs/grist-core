@@ -291,7 +291,6 @@ export const cssWell = styled("div", `
 
   &-error {
     border: 1px solid ${components.errorText};
-    background-color: ${components.toastErrorBg};
     --icon-color: ${components.errorText};
   }
 `);

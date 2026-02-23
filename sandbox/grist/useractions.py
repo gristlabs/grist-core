@@ -13,6 +13,8 @@ import depend
 import gencode
 from dropdown_condition import parse_dropdown_conditions
 import dropdown_condition
+from trigger_expression import parse_conditions_in_triggers
+from trigger_expression import perform_trigger_condition_renames
 import actions
 import column
 import sort_specs
@@ -457,6 +459,11 @@ class UserActions(object):
 
     return filled_row_ids
 
+  @override_action('BulkAddRecord', '_grist_Triggers')
+  def _addTriggers(self, table_id, row_ids, col_values):
+    parse_conditions_in_triggers(col_values)
+    return self.doBulkAddOrReplace(table_id, row_ids, col_values)
+
   @override_action('BulkAddRecord', '_grist_ACLRules')
   def _addACLRules(self, table_id, row_ids, col_values):
     parse_acl_formulas(col_values)
@@ -616,6 +623,11 @@ class UserActions(object):
 
     method = self._overrides.get(('BulkUpdateRecord', table_id), self.doBulkUpdateRecord)
     method(table_id, row_ids, columns)
+
+  @override_action('BulkUpdateRecord', '_grist_Triggers')
+  def _updateTriggerRecords(self, table_id, row_ids, col_values):
+    parse_conditions_in_triggers(col_values)
+    self.doBulkUpdateRecord(table_id, row_ids, col_values)
 
   @override_action('BulkUpdateRecord', '_grist_Validations')
   def _updateValidationRecords(self, table_id, row_ids, col_values):
@@ -830,6 +842,7 @@ class UserActions(object):
     if renames:
       acl.perform_acl_rule_renames(self, renames)
       dropdown_condition.perform_dropdown_condition_renames(self, renames)
+      perform_trigger_condition_renames(self, renames)
 
     for table_id in rebuild_summary_tables:
       table = self._engine.tables[table_id]

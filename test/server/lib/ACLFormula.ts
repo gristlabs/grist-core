@@ -206,6 +206,9 @@ describe("ACLFormula", function() {
     await assert.isRejected(setAndCompile("lower(rec.A) == rec.B"),
       /Unknown variable 'lower'/);
 
+    await assert.isRejected(setAndCompile("oldRec.B == 1"),
+      /Unknown variable 'oldRec'/);
+
     compiled = await setAndCompile("rec.get('A') == rec.B");
     assert.throws(() => compiled({ user: new User({}), rec: V({ A: "foo", B: "foo" }) }),
       /Not a function: 'rec.get'/);   // only explicitly supported functions are supported

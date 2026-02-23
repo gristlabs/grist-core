@@ -2,6 +2,7 @@ import { MapWithTTL } from "app/common/AsyncCreate";
 import { WebhookMessageType } from "app/common/CommTypes";
 import { RowRecord } from "app/common/DocActions";
 import {
+  TriggerAction,
   WebhookBatchStatus,
   WebHookSecret,
   WebhookStatus,
@@ -23,21 +24,6 @@ import { AbortController, AbortSignal } from "node-abort-controller";
 import { createClient, Multi, RedisClient } from "redis";
 
 promisifyAll(RedisClient.prototype);
-
-// Union discriminated by type
-type TriggerAction = WebhookAction | PythonAction;
-
-export interface WebhookAction {
-  type: "webhook";
-  id: string;
-}
-
-// Just hypothetical
-interface PythonAction {
-  id: string;
-  type: "python";
-  code: string;
-}
 
 interface WebHookEvent {
   payload: RowRecord;
@@ -119,6 +105,7 @@ export class WebhookQueue {
   public shutdown() {
     this._shuttingDown = true;
     this._loopAbort?.abort();
+    this._webhookCache.clear();
     if (!this._sending) {
       void (this._redisClientField?.quitAsync());
     }
@@ -143,7 +130,7 @@ export class WebhookQueue {
       // Each trigger has associated table and a bunch of trigger actions (currently only 1 that is webhook).
       const actions = JSON.parse(t.actions) as TriggerAction[];
       // Get only webhooks for this trigger.
-      const webhookActions = actions.filter(act => act.type === "webhook") as WebhookAction[];
+      const webhookActions = actions.filter(act => act.type === "webhook");
       for (const act of webhookActions) {
         // Url, probably should be hidden for non-owners (but currently this API is owners only).
         const url = await getUrl(act.id);

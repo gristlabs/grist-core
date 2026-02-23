@@ -4,17 +4,18 @@
     },
     "sendAppPage": {
         "Loading...": "Načítavam...",
-        "og-description": "Moderný, open source tabuľkový procesor, ktorý presahuje tabuľku",
-        "og-title": "Grist, vývoj tabuľkových procesorov"
+        "og-description": "Moderný, open source tabuľkový procesor, viac ako mriežka",
+        "og-title": "Grist, evolúcia tabuľkových procesorov"
     },
     "access": {
         "docNoAccess": "Nemáte prístup k tomuto dokumentu.",
         "docDisabled": "Tento dokument je deaktivovaný."
     },
     "admin": {
-        "emptyOrg": "Nenašli sa žiadni vlastníci správcu organizácie definovanej ako `GRIST_INSTALL_ADMIN_ORG={{org}}`",
-        "orgUser": "Užívateľ je vlastníkom správcu organizácie definovanej ako `GRIST_INSTALL_ADMIN_ORG={{org}}`",
-        "accountByEmail": "Správcovský účet definovaný ako `GRIST_DEFAULT_EMAIL={{defaultEmail}}`"
+        "emptyOrg": "Nenašli sa žiadni vlastníci v organizácii admina definovanej ako `GRIST_INSTALL_ADMIN_ORG={{org}}`",
+        "orgUser": "Požívateľ je vlastníkom organizácie admina definovanej ako `GRIST_INSTALL_ADMIN_ORG={{org}}`",
+        "accountByEmail": "Admin účet definovaný `GRIST_DEFAULT_EMAIL={{defaultEmail}}`",
+        "noAdminEmail": "Chýba admin účet pretože `GRIST_ADMIN_EMAIL` a `GRIST_DEFAULT_EMAIL` nie sú nastavené"
     },
     "DocApi": {
         "UntitledDocument": "Dokument bez názvu"

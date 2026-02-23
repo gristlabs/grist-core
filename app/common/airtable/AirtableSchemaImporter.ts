@@ -2,12 +2,13 @@ import {
   AirtableBaseSchema, AirtableChoiceValue,
   AirtableFieldSchema,
   AirtableTableSchema,
-} from "app/common/airtable/AirtableAPI";
+} from "app/common/airtable/AirtableAPITypes";
 import {
   ColumnImportSchema,
   DocSchemaImportWarning,
   FormulaTemplate,
   ImportSchema,
+  OriginalTableRef,
 } from "app/common/DocSchemaImport";
 import { RecalcWhen } from "app/common/gristTypes";
 
@@ -23,45 +24,84 @@ import { RecalcWhen } from "app/common/gristTypes";
  * schema properly for the target document.
  */
 export function gristDocSchemaFromAirtableSchema(
-  airtableSchema: AirtableBaseSchema,
+  baseSchema: AirtableBaseSchema,
 ): { schema: ImportSchema; warnings: DocSchemaImportWarning[] } {
-  const getTableIdForField = (fieldId: string) => {
-    const tableId = airtableSchema.tables.find(table => table.fields.find(field => field.id === fieldId))?.id;
-    // Generally shouldn't happen - the schema should always have sufficient info to resolve a valid field id.
-    if (tableId === undefined) {
-      throw new Error(`Unable to resolve table id for Airtable field ${fieldId}`);
-    }
-    return tableId;
-  };
-
   const warnings: DocSchemaImportWarning[] = [];
+
   const schema: ImportSchema = {
-    tables: airtableSchema.tables.map((baseTable) => {
+    tables: baseSchema.tables.map((baseTable) => {
+      const { columns, warnings: columnWarnings } =
+        convertAirtableTableFieldsToColumnSchemas({ base: baseSchema, table: baseTable });
+
+      warnings.push(...columnWarnings);
+
       return {
         originalId: baseTable.id,
         desiredGristId: baseTable.name,
-        columns: baseTable.fields
-          .map((baseField) => {
-            if (!AirtableFieldMappers[baseField.type]) {
-              warnings.push(new UnsupportedFieldTypeWarning(baseField.type, baseField.name));
-              return undefined;
-            }
-            const mapperResult = AirtableFieldMappers[baseField.type]({
-              field: baseField,
-              table: baseTable,
-              getTableIdForField,
-            });
-            if (mapperResult.warning) {
-              warnings.push(mapperResult.warning);
-            }
-            return mapperResult.column;
-          })
-          .filter((column): column is ColumnImportSchema => column !== undefined),
+        columns: [createAirtableIdColumnSchema(), ...columns],
       };
     }),
   };
 
   return { schema, warnings };
+}
+
+function convertAirtableTableFieldsToColumnSchemas(
+  params: { base: AirtableBaseSchema, table: AirtableTableSchema },
+) {
+  const { table } = params;
+  const warnings: DocSchemaImportWarning[] = [];
+  const columns = table.fields
+    .map((field) => {
+      const result = convertAirtableFieldToColumnSchema({ field, ...params });
+
+      if (result.warning) {
+        warnings.push(result.warning);
+      }
+
+      return result.column;
+    })
+    .filter((column): column is ColumnImportSchema => column !== undefined);
+
+  return { columns, warnings };
+}
+
+function convertAirtableFieldToColumnSchema(
+  params: { base: AirtableBaseSchema, table: AirtableTableSchema, field: AirtableFieldSchema  },
+): { column?: ColumnImportSchema, warning?: DocSchemaImportWarning } {
+  const { field, table, base } = params;
+
+  if (!AirtableFieldMappers[field.type]) {
+    return {
+      column: undefined,
+      warning: new UnsupportedFieldTypeWarning(field.type, field.name, { originalTableId: table.id }),
+    };
+  }
+  return AirtableFieldMappers[field.type]({
+    field,
+    table,
+    getTableIdForField: (fieldId: string) => findTableIdForField(base, fieldId),
+  });
+}
+
+function findTableIdForField(baseSchema: AirtableBaseSchema, fieldId: string) {
+  const tableId = baseSchema.tables.find(table => table.fields.find(field => field.id === fieldId))?.id;
+  // Generally shouldn't happen - the schema should always have sufficient info to resolve a valid field id.
+  if (tableId === undefined) {
+    throw new Error(`Unable to resolve table id for Airtable field ${fieldId}`);
+  }
+  return tableId;
+}
+
+export const AirtableIdColumnLabel = "Airtable Id";
+function createAirtableIdColumnSchema(): ColumnImportSchema {
+  return {
+    originalId: "airtableId",
+    desiredGristId: "Airtable Id",
+    type: "Text",
+    label: AirtableIdColumnLabel,
+    untieColIdFromLabel: true,
+  };
 }
 
 interface AirtableFieldMapperParams {
@@ -102,7 +142,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
           ],
         },
       },
-      warning: new AutoNumberLimitationWarning(field.name),
+      warning: new AutoNumberLimitationWarning(field.name, { originalTableId: table.id }),
     };
   },
   checkbox({ field }) {
@@ -134,7 +174,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
         isFormula: true,
         formula,
       },
-      warning: new CountLimitationWarning(field.name),
+      warning: new CountLimitationWarning(field.name, { originalTableId: table.id }),
     };
   },
   createdBy({ field }) {
@@ -208,7 +248,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       },
     };
   },
-  duration({ field }) {
+  duration({ field, table }) {
     return {
       column: {
         originalId: field.id,
@@ -216,7 +256,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
         label: field.name,
         type: "Numeric",
       },
-      warning: new DurationFormatWarning(field.name),
+      warning: new DurationFormatWarning(field.name, { originalTableId: table.id }),
     };
   },
   email({ field }) {
@@ -305,6 +345,32 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
         label: field.name,
         type: "Text",
         // Do we make a collaborators table and make this a reference instead?
+      },
+    };
+  },
+  multipleLookupValues({ field, table, getTableIdForField }) {
+    let formula: FormulaTemplate = { formula: "" };
+    const fieldOptions = field.options;
+    if (fieldOptions?.recordLinkFieldId && fieldOptions.fieldIdInLinkedTable) {
+      formula = {
+        formula: "$[R0].[R1]",
+        replacements: [
+          { originalTableId: table.id, originalColId: fieldOptions.recordLinkFieldId },
+          {
+            originalTableId: getTableIdForField(fieldOptions.fieldIdInLinkedTable),
+            originalColId: fieldOptions.fieldIdInLinkedTable,
+          },
+        ],
+      };
+    }
+    return {
+      column: {
+        originalId: field.id,
+        desiredGristId: field.name,
+        label: field.name,
+        type: "Any",
+        isFormula: true,
+        formula,
       },
     };
   },
@@ -421,7 +487,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
         isFormula: true,
         formula,
       },
-      warning: new RollupLimitationWarning(field.name),
+      warning: new RollupLimitationWarning(field.name, { originalTableId: table.id }),
     };
   },
   singleCollaborator({ field }) {
@@ -480,7 +546,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
 class UnsupportedFieldTypeWarning implements DocSchemaImportWarning {
   public readonly message: string;
 
-  constructor(fieldType: string, fieldName: string) {
+  constructor(fieldType: string, fieldName: string, public readonly ref: OriginalTableRef) {
     this.message = `Field "${fieldName}" has unsupported type "${fieldType}" and will be skipped`;
   }
 }
@@ -488,7 +554,7 @@ class UnsupportedFieldTypeWarning implements DocSchemaImportWarning {
 class AutoNumberLimitationWarning implements DocSchemaImportWarning {
   public readonly message: string;
 
-  constructor(fieldName: string) {
+  constructor(fieldName: string, public readonly ref: OriginalTableRef) {
     this.message = `AutoNumber field "${fieldName}" behaviour will not be identical to Airtable's. Values may be re-used if rows are edited or deleted.`;
   }
 }
@@ -496,7 +562,7 @@ class AutoNumberLimitationWarning implements DocSchemaImportWarning {
 class DurationFormatWarning implements DocSchemaImportWarning {
   public readonly message: string;
 
-  constructor(fieldName: string) {
+  constructor(fieldName: string, public readonly ref: OriginalTableRef) {
     this.message = `Duration field "${fieldName}" will be imported as a numeric duration in seconds. Duration formatting is not yet supported.`;
   }
 }
@@ -504,7 +570,7 @@ class DurationFormatWarning implements DocSchemaImportWarning {
 class RollupLimitationWarning implements DocSchemaImportWarning {
   public readonly message: string;
 
-  constructor(fieldName: string) {
+  constructor(fieldName: string, public readonly ref: OriginalTableRef) {
     this.message = `Rollup field "${fieldName}" may not match Airtable. Summary parameters and filter conditions are not supported.`;
   }
 }
@@ -512,7 +578,7 @@ class RollupLimitationWarning implements DocSchemaImportWarning {
 class CountLimitationWarning implements DocSchemaImportWarning {
   public readonly message: string;
 
-  constructor(fieldName: string) {
+  constructor(fieldName: string, public readonly ref: OriginalTableRef) {
     this.message = `Count field "${fieldName}" may not match Airtable. Filter conditions are not supported.`;
   }
 }

@@ -541,6 +541,9 @@ export class CellData {
         rowId: [],
         userRef: [],
         parentId: [],
+        timeCreated: [],
+        timeUpdated: [],
+        resolved: [],
       },
     ];
     for (const cell of ids) {
@@ -555,6 +558,9 @@ export class CellData {
       action[3].root.push(dataCell.root);
       action[3].rowId.push(dataCell.rowId);
       action[3].parentId.push(dataCell.parentId);
+      action[3].timeCreated.push(dataCell.timeCreated);
+      action[3].timeUpdated.push(dataCell.timeUpdated);
+      action[3].resolved.push(dataCell.resolved);
     }
     return action[2].length > 1 ? action :
       action[2].length == 1 ? [...getSingleAction(action)][0] : null;
@@ -578,6 +584,9 @@ export class CellData {
       {
         content: [],
         userRef: [],
+        timeCreated: [],
+        timeUpdated: [],
+        resolved: [],
       },
     ];
     for (const cell of ids) {
@@ -586,6 +595,9 @@ export class CellData {
       action[2].push(dataCell.id);
       action[3].content.push(dataCell.content);
       action[3].userRef.push(dataCell.userRef);
+      action[3].timeCreated.push(dataCell.timeCreated);
+      action[3].timeUpdated.push(dataCell.timeUpdated);
+      action[3].resolved.push(dataCell.resolved);
     }
     return action[2].length > 1 ? action :
       action[2].length == 1 ? [...getSingleAction(action)][0] : null;

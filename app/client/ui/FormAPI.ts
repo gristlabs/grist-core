@@ -73,6 +73,12 @@ export interface FormFieldOptions {
    * Defaults to `"default"`.
    */
   formOptionsSortOrder?: FormOptionsSortOrder;
+  /**
+   * Maximum number of options to display for Choice List and Reference List fields.
+   *
+   * Defaults to `30`.
+   */
+  formOptionsLimit?: number;
   /** True if the field is required. Defaults to `false`. */
   formRequired?: boolean;
   /** True if the field is marked as hidden, to hide from users. Defaults to false. */
@@ -92,6 +98,12 @@ export type FormSelectFormat = "select" | "radio";
 export type FormOptionsAlignment = "vertical" | "horizontal";
 
 export type FormOptionsSortOrder = "default" | "ascending" | "descending";
+
+export const FORM_OPTIONS_DEFAULT_LIMIT = 30;
+
+export function getFormOptionsLimit(options: FormFieldOptions): number {
+  return options.formOptionsLimit || FORM_OPTIONS_DEFAULT_LIMIT;
+}
 
 export interface FormAPI {
   getForm(options: GetFormOptions): Promise<Form>;
