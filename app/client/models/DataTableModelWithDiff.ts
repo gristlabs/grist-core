@@ -128,6 +128,10 @@ export class DataTableModelWithDiff extends DisposableWithEvents implements Data
   // unchanged for now.
   private _wrappedModel: DataTableModel;
 
+  /**
+   * The _comparison provided to this DataTableModelWithDiff may be mutated. It is used
+   * to store and track local changes.
+   */
   public constructor(public core: DataTableModel, private _comparison: DocStateComparisonDetails) {
     super();
     this.tableMetaRow = core.tableMetaRow;
