@@ -152,10 +152,6 @@ function getThemeFromPrefs(themePrefs: ThemePrefs, userAgentPrefersDarkTheme: bo
     themeName = userAgentPrefersDarkTheme ? "GristDark" : "GristLight";
   }
 
-  if (getGristConfig().testForceLightMode) {
-    appearance = "light";
-    themeName = "GristLight";
-  }
   return { appearance, colors: getThemeTokens(themeName), name: themeName };
 }
 
