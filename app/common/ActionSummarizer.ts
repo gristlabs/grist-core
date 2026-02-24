@@ -127,11 +127,15 @@ export class ActionSummarizer {
   }
 
   /**
-   * Update a summary given a forward action plus the state
-   * of the table it operations on prior to the action.
-   * This is an alternative to calling addForwardAction and
-   * addReverseAction and is useful when undos are not available
-   * but the state of tables is.
+   * Build a summary from a forward action plus the current table state (pre-action).
+   * This is an alternative to addForwardAction + addReverseAction, for when undo
+   * actions aren't available but the live table data is.
+   *
+   * addForwardAction() populates new values (CellDelta index 1). Removals need
+   * special handling since forward remove actions don't carry cell contents — we
+   * look those up from tableData. The final loop backfills old values (index 0) for
+   * updated/added rows from the current table state, which works because this is
+   * called before the action is applied.
    */
   public addAction(summary: ActionSummary, act: DocAction,
     tableData: TableData) {
@@ -159,6 +163,10 @@ export class ActionSummarizer {
       }
     }
 
+    // Backfill old values (CellDelta index 0) from the pre-action table state.
+    // For updates, this captures what the cell held before the edit. For adds,
+    // getRecord returns undefined (row doesn't exist yet), so the old value is
+    // correctly set to null (non-existent).
     const tableDelta = summary.tableDeltas[tableId];
     for (const r of new Set([...tableDelta.updateRows, ...tableDelta.addRows])) {
       const row = tableData.getRecord(r);

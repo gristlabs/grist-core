@@ -158,6 +158,8 @@ export class DataTableModelWithDiff extends DisposableWithEvents implements Data
     this.listenTo(this._wrappedModel, "rowNotify", (rows: RowsChanged, notifyValue: any) => {
       this.trigger("rowNotify", rows, notifyValue);
     });
+    // Listen for actions about to be applied, so we can snapshot cell values
+    // before mutation and track them as local changes in the diff.
     this.autoDispose(core.tableData.preTableActionEmitter.addListener(
       tableDataWithDiff.before.bind(tableDataWithDiff),
     ));
@@ -330,9 +332,13 @@ export class TableDataWithDiff {
   }
 
   /**
-   * An action may be about to happen. We need to squirrel away
-   * the current version of cells since DocAction only has new
-   * values.
+   * Called via preTableActionEmitter, just before a DocAction is applied to the
+   * underlying table. When the user edits while viewing a comparison, those edits
+   * need to appear as local changes in the diff. The problem is that DocActions only
+   * carry *new* cell values. By running here — before the action mutates the table —
+   * we can use ActionSummarizer.addAction() to build a delta that pairs each new value
+   * with the current (soon-to-be-old) value read from this.core. The resulting delta
+   * is then folded into leftTableDelta so the diff display reflects the edit.
    */
   public before(action: DocAction): void {
     const op = new ActionSummarizer();
@@ -349,6 +355,13 @@ export class TableDataWithDiff {
     this._processRemoveRows(tableDelta);
   }
 
+  /**
+   * For each updated cell, record a delta in leftTableDelta. If this is the first
+   * local edit to this cell, snapshot the current value as the "parent" (index 0) —
+   * subsequent edits to the same cell keep that original parent, so the diff always
+   * shows the change from the comparison base, not from intermediate edits.
+   * The new value (index 1) is always overwritten with the latest.
+   */
   private _processUpdateRows(tableDelta: TableDelta): void {
     for (const rowId of tableDelta.updateRows) {
       for (const colId of Object.keys(tableDelta.columnDeltas)) {
@@ -373,6 +386,10 @@ export class TableDataWithDiff {
     }
   }
 
+  /**
+   * Record locally-added rows. The parent value (index 0) is null since the row
+   * didn't exist in the comparison base.
+   */
   private _processAddRows(tableDelta: TableDelta): void {
     for (const rowId of tableDelta.addRows) {
       for (const colId of Object.keys(tableDelta.columnDeltas)) {
@@ -395,6 +412,12 @@ export class TableDataWithDiff {
     }
   }
 
+  /**
+   * Record locally-removed rows. If a row was added locally and is now being
+   * removed, the add and remove cancel out — we just clean up the bookkeeping.
+   * Otherwise, we record the pre-removal cell values (index 0) so the diff can
+   * show what was deleted.
+   */
   private _processRemoveRows(tableDelta: TableDelta): void {
     for (const rowId of tableDelta.removeRows) {
       if (this.extraRows.leftAddRows.has(rowId)) {
