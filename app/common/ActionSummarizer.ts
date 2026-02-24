@@ -135,8 +135,7 @@ export class ActionSummarizer {
       if (rec) {
         this._addRow(td, act[2], rec, 0);
       }
-    }
-    else if (Action.isBulkRemoveRecord(act)) {
+    } else if (Action.isBulkRemoveRecord(act)) {
       const td = this._forTable(summary, tableId);
       arrayExtend(td.removeRows, act[2]);
       for (const id of act[2]) {
