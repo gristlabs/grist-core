@@ -20,7 +20,7 @@ import { confirmModal } from "app/client/ui2018/modals";
 import { mapGetOrSet, MapWithTTL } from "app/common/AsyncCreate";
 import { AsyncFlow, CancelledError, FlowRunner } from "app/common/AsyncFlow";
 import { delay } from "app/common/delay";
-import { OpenDocMode, OpenDocOptions, UserOverride } from "app/common/DocListAPI";
+import { OpenDocMode, OpenDocOptions, OpenLocalDocResult, UserOverride } from "app/common/DocListAPI";
 import { FilteredDocUsageSummary } from "app/common/DocUsage";
 import { Features, mergedFeatures, Product } from "app/common/Features";
 import { buildUrlId, IGristUrlState, parseUrlId, UrlIdParts } from "app/common/gristUrls";
@@ -296,7 +296,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
     const proposal = (proposals.proposals[0] ?? "empty") as Proposal | "empty";
     this.currentProposal.set(proposal);
     if (proposal === "empty" || proposal.status.status === "retracted") {
-      this.gristDoc.get()?.getActionCounter().setMark();
+      this.gristDoc.get()?.getActionCounter().setMarkToBaseAction();
     } else {
       this.gristDoc.get()?.getActionCounter().setMark(proposal.comparison.comparison?.left);
     }
@@ -503,7 +503,7 @@ contact the document owners to attempt a document recovery. [{{error}}]", { erro
     const docComm = gdModule.DocComm.create(flow, comm, openDocResponse, doc.id, this.appModel.notifier);
     flow.checkIfCancelled();
 
-    docComm.changeUrlIdEmitter.addListener(async (newUrlId: string) => {
+    docComm.changeUrlIdEmitter.addListener(async (newUrlId: string, openResponse: OpenLocalDocResult) => {
       // The current document has been forked, and should now be referred to using a new docId.
       const currentDoc = this.currentDoc.get();
       if (currentDoc) {
@@ -511,6 +511,12 @@ contact the document owners to attempt a document recovery. [{{error}}]", { erro
         await this.updateUrlNoReload(newUrlId, "default", { removeSlug: true, replaceUrl: false });
         await this._updateCurrentDoc(newUrlId, "default");
       }
+      // The baseAction in docInfo may have changed.
+      const docInfo = openResponse.doc._grist_DocInfo;
+      this.gristDoc.get()?.docData.receiveAction([
+        "ReplaceTableData", docInfo[1], docInfo[2], docInfo[3],
+      ]);
+      this.gristDoc.get()?.getActionCounter().setMarkToBaseAction();
     });
 
     // If a document for comparison is given, load the comparison, and provide it to the Gristdoc.

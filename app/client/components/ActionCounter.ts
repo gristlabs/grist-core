@@ -47,7 +47,11 @@ export class ActionCounter extends dispose.Disposable {
   // The offset to the count at the marked actionNum, or 0.
   private _countOffset: number;
 
+  private _docData: DocData;
+
   public create(log: MinimalActionGroup[], docData: DocData) {
+    this._docData = docData;
+
     // Initialize counters and stats.
     this.count = Observable.create(this, 0);
     this.countFromMark = Observable.create(this, 0);
@@ -98,6 +102,12 @@ export class ActionCounter extends dispose.Disposable {
     this._actionNumMark = state?.n ?? null;
     this._countOffset = -(this._countAt.get(this._actionNumMark ?? -1) ?? 0);
     this._setCount();
+  }
+
+  public setMarkToBaseAction() {
+    const docSettings = this._docData.docSettings();
+    const state = docSettings.baseAction;
+    this.setMark(state);
   }
 
   // Process an action, updating the count.

@@ -358,6 +358,79 @@ describe("ProposedChangesPage", function() {
     await returnToTrunk(url);
   });
 
+  it("shows correct action count when viewer auto-forks by typing", async function() {
+    const { api } = await makeLifeDoc();
+
+    // Duplicate the document via the "Save Copy" button, so that
+    // it has a non-trivial baseAction.
+    await driver.find(".test-tb-share").click();
+    await driver.findWait(".test-save-copy", 2000).click();
+    await gu.completeCopy({ destName: "LifeCopy" });
+
+    // Get the copy's doc ID.
+    const copyId = (await gu.getCurrentUrlId())!;
+
+    // Add some extra actions to create action history. This is
+    // important because the bug is clearest when the document has
+    // significant history that would be miscounted if baseAction
+    // isn't updated after forking.
+    for (let i = 0; i < 5; i++) {
+      await api.applyUserActions(copyId, [
+        ["AddRecord", "Life", null, { A: 100 + i, B: "Spam" }],
+      ]);
+    }
+
+    // Turn on feature.
+    await api.updateDoc(copyId, {
+      options: {
+        proposedChanges: {
+          acceptProposals: true,
+        },
+      },
+    });
+
+    // Share the copy with user3 as viewer.
+    const user3Email = gu.session().user("user3").email;
+    await api.updateDocPermissions(copyId, { users: { [user3Email]: "viewers" } });
+
+    // Login as user3 (a viewer) and load the copy.
+    const user3Session = await gu.session().teamSite.user("user3").login();
+    await user3Session.loadDoc(`/doc/${copyId}`);
+    await gu.openPage("Life");
+
+    // Dismiss any popups.
+    await gu.dismissBehavioralPrompts();
+
+    // Type into a cell. Since user3 is a viewer and proposals are
+    // enabled, this triggers an auto-fork.
+    await gu.getCell("B", 1).click();
+    await gu.waitAppFocus();
+    await gu.enterCell("Bird");
+    await gu.waitForServer();
+
+    // Wait for the fork to be created (URL changes to include ~).
+    await driver.wait(async () => (await driver.getCurrentUrl()).includes("~"), 5000);
+
+    // The action count should show exactly 1 change. Without the fix,
+    // the count would be wrong because baseAction from the copy (not
+    // the fork) would be used.
+    assert.equal(await driver.find(".test-tools-proposals").getText(),
+      "Suggest changes (1)");
+
+    // Make a second change and verify count updates.
+    await gu.getCell("A", 2).click();
+    await gu.waitAppFocus();
+    await gu.enterCell("99");
+
+    assert.equal(await driver.find(".test-tools-proposals").getText(),
+      "Suggest changes (2)");
+
+    // Undo and verify count goes back down.
+    await gu.undo();
+    assert.equal(await driver.find(".test-tools-proposals").getText(),
+      "Suggest changes (1)");
+  });
+
   it("can make and apply a proposed change affecting two tables", async function() {
     const { api, doc } = await makeLifeDoc();
     const url = await driver.getCurrentUrl();
