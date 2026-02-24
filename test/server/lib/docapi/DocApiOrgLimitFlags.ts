@@ -11,7 +11,7 @@ import {
   getCanAnyoneCreateOrgs,
   getPersonalOrgsEnabled,
 } from "app/server/lib/gristSettings";
-import { configForApiKey } from "test/gen-server/testUtils";
+import { configForApiKey, configForUser } from "test/gen-server/testUtils";
 import {
   addAllScenarios,
   makeUserApi,
@@ -99,6 +99,15 @@ function addPersonalOrgLimitTests(getCtx: () => TestContext) {
     assert.isNumber(id);
     const orgs = await newUserApi.getOrgs();
     const personalOrg = orgs.find(org => org.owner?.id === id);
+    assert.isUndefined(personalOrg);
+  });
+
+  it("should not allow users to view their existing personal orgs", async () => {
+    const { homeUrl } = getCtx();
+    // Chimpy has an existing personal org set up already.
+    const userApi = makeUserApi(homeUrl, ORG_NAME, configForUser("chimpy"));
+    const orgs = await userApi.getOrgs();
+    const personalOrg = orgs.find(org => Boolean(org.owner));
     assert.isUndefined(personalOrg);
   });
 }
