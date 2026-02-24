@@ -5,6 +5,7 @@ import { theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { menuDivider, menuIcon, menuItem, menuItemLink, menuSubHeader } from "app/client/ui2018/menus";
 import { getSingleOrg, isFeatureEnabled } from "app/common/gristUrls";
+import { getGristConfig } from "app/common/urlUtils";
 import { getOrgName } from "app/common/UserAPI";
 
 import { dom, makeTestId, styled } from "grainjs";
@@ -43,14 +44,17 @@ export function buildSiteSwitcher(appModel: AppModel) {
         testId("org"),
       ),
     ),
-    dom.maybe(() => isFeatureEnabled("createSite"), () => [
-      menuItem(
-        () => appModel.showNewSiteModal(),
-        menuIcon("Plus"),
-        t("Create new team site"),
-        testId("create-new-site"),
-      ),
-    ]),
+    dom.maybe(
+      () => isFeatureEnabled("createSite") && (appModel.isInstallAdmin() || getGristConfig().canAnyoneCreateOrgs),
+      () => [
+        menuItem(
+          () => appModel.showNewSiteModal(),
+          menuIcon("Plus"),
+          t("Create new team site"),
+          testId("create-new-site"),
+        ),
+      ],
+    ),
   ];
 }
 

@@ -79,6 +79,7 @@ import { filterDocumentInPlace } from "app/server/lib/filterUtils";
 import { googleAuthTokenMiddleware } from "app/server/lib/GoogleAuth";
 import { exportToDrive } from "app/server/lib/GoogleExport";
 import { GristServer } from "app/server/lib/GristServer";
+import { getAnonPlaygroundEnabled } from "app/server/lib/gristSettings";
 import { HashUtil } from "app/server/lib/HashUtil";
 import { makeForkIds } from "app/server/lib/idUtils";
 import log from "app/server/lib/log";
@@ -1869,11 +1870,10 @@ export class DocWorkerApi {
   }
 
   /**
-   * Disallow document creation for anonymous users if GRIST_ANONYMOUS_CREATION is set to false.
+   * Disallow document creation for anonymous users if GRIST_ANON_PLAYGROUND is set to false.
    */
   private async _checkAnonymousCreation(req: Request, res: Response, next: NextFunction) {
-    const isAnonPlayground = isAffirmative(process.env.GRIST_ANON_PLAYGROUND ?? true);
-    if (isAnonymousUser(req) && !isAnonPlayground) {
+    if (isAnonymousUser(req) && !getAnonPlaygroundEnabled()) {
       throw new ApiError("Anonymous document creation is disabled", 403);
     }
     next();

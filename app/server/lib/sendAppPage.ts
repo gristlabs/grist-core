@@ -23,6 +23,7 @@ import { isAnonymousUser, isSingleUserMode, RequestWithLogin } from "app/server/
 import { RequestWithOrg } from "app/server/lib/extractOrg";
 import { GristServer } from "app/server/lib/GristServer";
 import {
+  getAnonPlaygroundEnabled, getCanAnyoneCreateOrgs,
   getOnboardingTutorialDocId,
   getTemplateOrg,
   getUserPresenceMaxUsers,
@@ -103,7 +104,8 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     contactSupportUrl: getContactSupportUrl(),
     pathOnly,
     supportAnon: shouldSupportAnon(),
-    enableAnonPlayground: isAffirmative(process.env.GRIST_ANON_PLAYGROUND ?? true),
+    enableAnonPlayground: getAnonPlaygroundEnabled(),
+    canAnyoneCreateOrgs: getCanAnyoneCreateOrgs(),
     supportEngines: getSupportedEngineChoices(),
     features: getFeatures(),
     pageTitleSuffix: configuredPageTitleSuffix(),

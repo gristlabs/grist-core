@@ -870,6 +870,9 @@ export interface GristLoadConfig {
   // If set, enable anonymous playground.
   enableAnonPlayground?: boolean;
 
+  // If set, allow non-admins to create new organizations
+  canAnyoneCreateOrgs?: boolean;
+
   // If set, allow selection of the specified engines.
   // TODO: move this list to a separate endpoint.
   supportEngines?: EngineCode[];

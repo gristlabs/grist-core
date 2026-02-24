@@ -27,6 +27,7 @@ import {
 } from "app/gen-server/lib/homedb/Interfaces";
 import { Permissions } from "app/gen-server/lib/Permissions";
 import { appSettings } from "app/server/lib/AppSettings";
+import { getPersonalOrgsEnabled } from "app/server/lib/gristSettings";
 
 import * as crypto from "crypto";
 
@@ -503,7 +504,7 @@ export class UsersManager {
         login.user = user;
         await manager.save([user, login]);
       }
-      if (!user.personalOrg && !NON_LOGIN_EMAILS.includes(login.email)) {
+      if (getPersonalOrgsEnabled() && !user.personalOrg && !NON_LOGIN_EMAILS.includes(login.email)) {
         // Add a personal organization for this user.
         // We don't add a personal org for anonymous/everyone/previewer "users" as it could
         // get a bit confusing.
