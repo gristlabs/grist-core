@@ -42,7 +42,13 @@ export class ActionSummarizer {
 
   constructor(private _options?: ActionSummaryOptions) {}
 
-  /** add information about an action based on the forward direction */
+  /**
+   * Add information about an action based on the forward direction.
+   * The `act` DocAction is examined for everything we can glean,
+   * updating the ActionSummary. On its own, this isn't enough for
+   * the summary to be complete, since we know neither the current
+   * state the action is working on, nor the undo action for `act`.
+   */
   public addForwardAction(summary: ActionSummary, act: DocAction) {
     const tableId = act[1];
     if (Action.isAddTable(act)) {
@@ -81,7 +87,12 @@ export class ActionSummarizer {
     }
   }
 
-  /** add information about an action based on undo information */
+  /**
+   * Add information about an action to a summary based on
+   * undo information. `act` is assumed to be an undo action.
+   * So, for example, if it is an AddTable, the summary will
+   * contain a table deletion.
+   */
   public addReverseAction(summary: ActionSummary, act: DocAction) {
     const tableId = act[1];
     if (Action.isAddTable(act)) { // undoing, so this is a table removal
@@ -116,9 +127,11 @@ export class ActionSummarizer {
   }
 
   /**
-   * Add action given the table state prior to the action.
-   * If calling this, we don't need the undo action to figure
-   * out prior state.
+   * Update a summary given a forward action plus the state
+   * of the table it operations on prior to the action.
+   * This is an alternative to calling addForwardAction and
+   * addReverseAction and is useful when undos are not available
+   * but the state of tables is.
    */
   public addAction(summary: ActionSummary, act: DocAction,
     tableData: TableData) {
