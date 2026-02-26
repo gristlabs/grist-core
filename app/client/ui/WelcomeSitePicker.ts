@@ -6,10 +6,10 @@ import { createUserImage } from "app/client/ui/UserImage";
 import { bigBasicButtonLink } from "app/client/ui2018/buttons";
 import { testId, theme } from "app/client/ui2018/cssVars";
 import { FullUser } from "app/common/LoginSessionAPI";
+import { getGristConfig } from "app/common/urlUtils";
 import { getOrgName } from "app/common/UserAPI";
 
 import { Computed, dom, DomContents, IDisposableOwner, styled } from "grainjs";
-import { getGristConfig } from "app/common/urlUtils";
 
 const t = makeT("WelcomeSitePicker");
 

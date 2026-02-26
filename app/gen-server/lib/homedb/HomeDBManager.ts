@@ -99,6 +99,7 @@ import {
 import { appSettings } from "app/server/lib/AppSettings";
 import { getOrCreateConnection } from "app/server/lib/dbUtils";
 import { StorageCoordinator } from "app/server/lib/GristServer";
+import { getPersonalOrgsEnabled } from "app/server/lib/gristSettings";
 import { makeId } from "app/server/lib/idUtils";
 import { EmitNotifier, INotifier } from "app/server/lib/INotifier";
 import log from "app/server/lib/log";
@@ -120,7 +121,6 @@ import {
   WhereExpressionBuilder,
 } from "typeorm";
 import { v4 as uuidv4 } from "uuid";
-import { getPersonalOrgsEnabled } from "app/server/lib/gristSettings";
 
 // Support transactions in Sqlite in async code.  This is a monkey patch, affecting
 // the prototypes of various TypeORM classes.
