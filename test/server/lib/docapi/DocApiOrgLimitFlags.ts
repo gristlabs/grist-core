@@ -11,7 +11,7 @@ import {
   getCanAnyoneCreateOrgs,
   getPersonalOrgsEnabled,
 } from "app/server/lib/gristSettings";
-import { configForApiKey } from "test/gen-server/testUtils";
+import { configForApiKey, configForUser } from "test/gen-server/testUtils";
 import {
   addAllScenarios,
   makeUserApi,
@@ -49,24 +49,47 @@ describe("DocApiOrgLimitFlags", function() {
     let oldEnv: EnvironmentSnapshot;
     before(async function() {
       oldEnv = new EnvironmentSnapshot();
+      delete process.env.GRIST_ORG_CREATION_ANYONE;
+      delete process.env.GRIST_PERSONAL_ORGS;
+      delete process.env.GRIST_ANON_PLAYGROUND;
+
+      // Clear memoized function cache.
+      getCanAnyoneCreateOrgs.cache.clear();
+      getAnonPlaygroundEnabled.cache.clear();
+      getPersonalOrgsEnabled.cache.clear();
+    });
+
+    afterEach(function() {
+      // Clear memoized function cache.
+      getCanAnyoneCreateOrgs.cache.clear();
+      getAnonPlaygroundEnabled.cache.clear();
+      getPersonalOrgsEnabled.cache.clear();
     });
 
     after(async function() {
       oldEnv.restore();
     });
 
-    it("GRIST_ORG_CREATION_ANYONE sets the default values of GRIST_PERSONAL_ORGS and GRIST_ANON_PLAYGROUND", () => {
-      process.env.GRIST_ORG_CREATION_ANYONE = "true";
-      delete process.env.GRIST_PERSONAL_ORGS;
-      delete process.env.GRIST_ANON_PLAYGROUND;
-      assert.equal(getCanAnyoneCreateOrgs(), true);
-      assert.equal(getAnonPlaygroundEnabled(), true);
-      assert.equal(getPersonalOrgsEnabled(), true);
+    describe("GRIST_ORG_CREATION_ANYONE sets default values of GRIST_PERSONAL_ORGS and GRIST_ANON_PLAYGROUND", () => {
+      it("defaults to true", () => {
+        assert.equal(getCanAnyoneCreateOrgs(), true);
+        assert.equal(getAnonPlaygroundEnabled(), true);
+        assert.equal(getPersonalOrgsEnabled(), true);
+      });
 
-      process.env.GRIST_ORG_CREATION_ANYONE = "false";
-      assert.equal(getCanAnyoneCreateOrgs(), false);
-      assert.equal(getAnonPlaygroundEnabled(), false);
-      assert.equal(getPersonalOrgsEnabled(), false);
+      it("sets them to true", () => {
+        process.env.GRIST_ORG_CREATION_ANYONE = "true";
+        assert.equal(getCanAnyoneCreateOrgs(), true);
+        assert.equal(getAnonPlaygroundEnabled(), true);
+        assert.equal(getPersonalOrgsEnabled(), true);
+      });
+
+      it("sets them to false", () => {
+        process.env.GRIST_ORG_CREATION_ANYONE = "false";
+        assert.equal(getCanAnyoneCreateOrgs(), false);
+        assert.equal(getAnonPlaygroundEnabled(), false);
+        assert.equal(getPersonalOrgsEnabled(), false);
+      });
     });
   });
 });
@@ -99,6 +122,15 @@ function addPersonalOrgLimitTests(getCtx: () => TestContext) {
     assert.isNumber(id);
     const orgs = await newUserApi.getOrgs();
     const personalOrg = orgs.find(org => org.owner?.id === id);
+    assert.isUndefined(personalOrg);
+  });
+
+  it("should not allow users to view their existing personal orgs", async () => {
+    const { homeUrl } = getCtx();
+    // Chimpy has an existing personal org set up already.
+    const userApi = makeUserApi(homeUrl, ORG_NAME, configForUser("chimpy"));
+    const orgs = await userApi.getOrgs();
+    const personalOrg = orgs.find(org => Boolean(org.owner));
     assert.isUndefined(personalOrg);
   });
 }

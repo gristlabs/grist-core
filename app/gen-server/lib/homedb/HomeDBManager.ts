@@ -99,6 +99,7 @@ import {
 import { appSettings } from "app/server/lib/AppSettings";
 import { getOrCreateConnection } from "app/server/lib/dbUtils";
 import { StorageCoordinator } from "app/server/lib/GristServer";
+import { getPersonalOrgsEnabled } from "app/server/lib/gristSettings";
 import { makeId } from "app/server/lib/idUtils";
 import { EmitNotifier, INotifier } from "app/server/lib/INotifier";
 import log from "app/server/lib/log";
@@ -3799,6 +3800,10 @@ export class HomeDBManager implements HomeDBAuth {
     } else {
       query = this._whereOrg(query, org, includeSupport);
     }
+    if (!getPersonalOrgsEnabled()) {
+      // Filter out any personal orgs - treat them as not existing.
+      query.andWhere("orgs.owner_id is NULL");
+    }
     if (options.markPermissions) {
       if (!scope?.userId) {
         throw new Error(`_orgQuery error: userId must be set to mark permissions`);
@@ -4441,9 +4446,15 @@ export class HomeDBManager implements HomeDBAuth {
   }
 
   private _orgs(manager?: EntityManager) {
-    return (manager || this._connection).createQueryBuilder()
+    let query = (manager || this._connection).createQueryBuilder()
       .select("orgs")
       .from(Organization, "orgs");
+
+    if (!getPersonalOrgsEnabled()) {
+      query = query.where("orgs.owner_id is NULL");
+    }
+
+    return query;
   }
 
   // Adds a where clause to filter orgs by domain or id.

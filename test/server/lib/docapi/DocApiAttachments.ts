@@ -66,24 +66,26 @@ function addAttachmentsTests(getCtx: () => TestContext) {
 
   describe("attachments", function() {
     it("POST /docs/{did}/attachments adds attachments", async function() {
-      const { homeUrl, docIds, chimpy } = getCtx();
-      const uploadResp = await addAttachmentsToDoc(homeUrl, docIds.TestDoc, [
+      const { homeUrl, chimpy, getOrCreateTestDoc } = getCtx();
+      const testDoc = await getOrCreateTestDoc();
+      const uploadResp = await addAttachmentsToDoc(homeUrl, testDoc, [
         { name: "hello.doc", contents: "foobar" },
         { name: "world.jpg", contents: "123456" },
       ], chimpy);
       assert.deepEqual(uploadResp.data, [1, 2]);
 
       // Another upload gets the next number.
-      const upload2Resp = await addAttachmentsToDoc(homeUrl, docIds.TestDoc, [
+      const upload2Resp = await addAttachmentsToDoc(homeUrl, testDoc, [
         { name: "hello.png", contents: "abcdef" },
       ], chimpy);
       assert.deepEqual(upload2Resp.data, [3]);
     });
 
     it("GET /docs/{did}/attachments lists attachment metadata", async function() {
-      const { homeUrl, docIds, chimpy } = getCtx();
+      const { homeUrl, chimpy, getOrCreateTestDoc } = getCtx();
+      const testDoc = await getOrCreateTestDoc();
       // Test that the usual /records query parameters like sort and filter also work
-      const url = `${homeUrl}/api/docs/${docIds.TestDoc}/attachments?sort=-fileName&limit=2`;
+      const url = `${homeUrl}/api/docs/${testDoc}/attachments?sort=-fileName&limit=2`;
       const resp = await axios.get(url, chimpy);
       assert.equal(resp.status, 200);
       const { records } = resp.data;
@@ -99,16 +101,18 @@ function addAttachmentsTests(getCtx: () => TestContext) {
     });
 
     it("GET /docs/{did}/attachments/{id} returns attachment metadata", async function() {
-      const { homeUrl, docIds, chimpy } = getCtx();
-      const resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/2`, chimpy);
+      const { homeUrl, chimpy, getOrCreateTestDoc } = getCtx();
+      const testDoc = await getOrCreateTestDoc();
+      const resp = await axios.get(`${homeUrl}/api/docs/${testDoc}/attachments/2`, chimpy);
       assert.equal(resp.status, 200);
       assert.include(resp.data, { fileName: "world.jpg", fileSize: 6 });
       assert.match(resp.data.timeUploaded, /^\d{4}-\d{2}-\d{2}T/);
     });
 
     it("GET /docs/{did}/attachments/{id}/download downloads attachment contents", async function() {
-      const { homeUrl, docIds, chimpy } = getCtx();
-      const resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/2/download`,
+      const { homeUrl, chimpy, getOrCreateTestDoc } = getCtx();
+      const testDoc = await getOrCreateTestDoc();
+      const resp = await axios.get(`${homeUrl}/api/docs/${testDoc}/attachments/2/download`,
         { ...chimpy, responseType: "arraybuffer" });
       assert.equal(resp.status, 200);
       assert.deepEqual(resp.headers["content-type"], "image/jpeg");
@@ -132,8 +136,9 @@ function addAttachmentsTests(getCtx: () => TestContext) {
     }
 
     it("GET /docs/{did}/attachments/archive downloads all attachments as a .zip", async function() {
-      const { homeUrl, docIds, chimpy } = getCtx();
-      const resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/archive`,
+      const { homeUrl, chimpy, getOrCreateTestDoc } = getCtx();
+      const testDoc = await getOrCreateTestDoc();
+      const resp = await axios.get(`${homeUrl}/api/docs/${testDoc}/attachments/archive`,
         { ...chimpy, responseType: "arraybuffer" });
       assert.equal(resp.status, 200);
       assert.deepEqual(resp.headers["content-type"], "application/zip");
@@ -154,8 +159,9 @@ function addAttachmentsTests(getCtx: () => TestContext) {
     });
 
     it("GET /docs/{did}/attachments/archive downloads all attachments as a .tar", async function() {
-      const { homeUrl, docIds, chimpy } = getCtx();
-      const resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/archive?format=tar`,
+      const { homeUrl, chimpy, getOrCreateTestDoc } = getCtx();
+      const testDoc = await getOrCreateTestDoc();
+      const resp = await axios.get(`${homeUrl}/api/docs/${testDoc}/attachments/archive?format=tar`,
         { ...chimpy, responseType: "arraybuffer" });
       assert.equal(resp.status, 200);
       assert.deepEqual(resp.headers["content-type"], "application/x-tar");
@@ -176,11 +182,12 @@ function addAttachmentsTests(getCtx: () => TestContext) {
     });
 
     it("GET /docs/{did}/attachments/{id}/download works after doc shutdown", async function() {
-      const { homeUrl, docIds, chimpy } = getCtx();
+      const { homeUrl, chimpy, getOrCreateTestDoc } = getCtx();
+      const testDoc = await getOrCreateTestDoc();
       // Check that we can download when ActiveDoc isn't currently open.
-      let resp = await axios.post(`${homeUrl}/api/docs/${docIds.TestDoc}/force-reload`, null, chimpy);
+      let resp = await axios.post(`${homeUrl}/api/docs/${testDoc}/force-reload`, null, chimpy);
       assert.equal(resp.status, 200);
-      resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/2/download`,
+      resp = await axios.get(`${homeUrl}/api/docs/${testDoc}/attachments/2/download`,
         { ...chimpy, responseType: "arraybuffer" });
       assert.equal(resp.status, 200);
       assert.deepEqual(resp.headers["content-type"], "image/jpeg");
@@ -190,70 +197,74 @@ function addAttachmentsTests(getCtx: () => TestContext) {
     });
 
     it("GET /docs/{did}/attachments/{id}... returns 404 when attachment not found", async function() {
-      const { homeUrl, docIds, chimpy } = getCtx();
-      let resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/22`, chimpy);
+      const { homeUrl, chimpy, getOrCreateTestDoc } = getCtx();
+      const testDoc = await getOrCreateTestDoc();
+      let resp = await axios.get(`${homeUrl}/api/docs/${testDoc}/attachments/22`, chimpy);
       checkError(404, /Attachment not found: 22/, resp);
-      resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/moo`, chimpy);
+      resp = await axios.get(`${homeUrl}/api/docs/${testDoc}/attachments/moo`, chimpy);
       checkError(400, /parameter cannot be understood as an integer: moo/, resp);
-      resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/22/download`, chimpy);
+      resp = await axios.get(`${homeUrl}/api/docs/${testDoc}/attachments/22/download`, chimpy);
       checkError(404, /Attachment not found: 22/, resp);
-      resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/moo/download`, chimpy);
+      resp = await axios.get(`${homeUrl}/api/docs/${testDoc}/attachments/moo/download`, chimpy);
       checkError(400, /parameter cannot be understood as an integer: moo/, resp);
     });
 
     it("POST /docs/{did}/attachments produces reasonable errors", async function() {
-      const { homeUrl, docIds, chimpy } = getCtx();
+      const { homeUrl, chimpy, getOrCreateTestDoc } = getCtx();
+      const testDoc = await getOrCreateTestDoc();
       // Check that it produces reasonable errors if we try to use it with non-form-data
-      let resp = await axios.post(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments`, [4, 5, 6], chimpy);
+      let resp = await axios.post(`${homeUrl}/api/docs/${testDoc}/attachments`, [4, 5, 6], chimpy);
       assert.equal(resp.status, 415);     // Wrong content-type
 
       // Check for an error if there is no data included.
       const formData = new FormData();
-      resp = await axios.post(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments`, formData,
+      resp = await axios.post(`${homeUrl}/api/docs/${testDoc}/attachments`, formData,
         defaultsDeep({ headers: formData.getHeaders() }, chimpy));
       assert.equal(resp.status, 400);
       // TODO The error here is "stream ended unexpectedly", which isn't really reasonable.
     });
 
     it("POST/GET /docs/{did}/attachments respect document permissions", async function() {
-      const { homeUrl, docIds, kiwi } = getCtx();
+      const { homeUrl, kiwi, getOrCreateTestDoc } = getCtx();
+      const testDoc = await getOrCreateTestDoc();
       const formData = new FormData();
       formData.append("upload", "xyzzz", "wrong.png");
-      let resp = await axios.post(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments`, formData,
+      let resp = await axios.post(`${homeUrl}/api/docs/${testDoc}/attachments`, formData,
         defaultsDeep({ headers: formData.getHeaders() }, kiwi));
       checkError(403, /No view access/, resp);
 
-      resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/3`, kiwi);
+      resp = await axios.get(`${homeUrl}/api/docs/${testDoc}/attachments/3`, kiwi);
       checkError(403, /No view access/, resp);
 
-      resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/3/download`, kiwi);
+      resp = await axios.get(`${homeUrl}/api/docs/${testDoc}/attachments/3/download`, kiwi);
       checkError(403, /No view access/, resp);
     });
 
     it("POST /docs/{did}/attachments respects untrusted content-type only if valid", async function() {
-      const { homeUrl, docIds, chimpy } = getCtx();
+      const { homeUrl, chimpy, getOrCreateTestDoc } = getCtx();
+      const testDoc = await getOrCreateTestDoc();
       const formData = new FormData();
       formData.append("upload", "xyz", { filename: "foo", contentType: "application/pdf" });
       formData.append("upload", "abc", { filename: "hello.png", contentType: "invalid/content-type" });
       formData.append("upload", "def", { filename: "world.doc", contentType: "text/plain\nbad-header: 1\n\nEvil" });
-      let resp = await axios.post(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments`, formData,
+      let resp = await axios.post(`${homeUrl}/api/docs/${testDoc}/attachments`, formData,
         defaultsDeep({ headers: formData.getHeaders() }, chimpy));
       assert.equal(resp.status, 200);
       assert.deepEqual(resp.data, [4, 5, 6]);
 
-      resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/4/download`, chimpy);
+      resp = await axios.get(`${homeUrl}/api/docs/${testDoc}/attachments/4/download`, chimpy);
       assert.equal(resp.status, 200);
       assert.deepEqual(resp.headers["content-type"], "application/pdf");    // A valid content-type is respected
       assert.deepEqual(resp.headers["content-disposition"], 'attachment; filename="foo.pdf"');
       assert.deepEqual(resp.data, "xyz");
 
-      resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/5/download`, chimpy);
+      resp = await axios.get(`${homeUrl}/api/docs/${testDoc}/attachments/5/download`, chimpy);
       assert.equal(resp.status, 200);
       assert.deepEqual(resp.headers["content-type"], "image/png");    // Did not pay attention to invalid header
       assert.deepEqual(resp.headers["content-disposition"], 'attachment; filename="hello.png"');
       assert.deepEqual(resp.data, "abc");
 
-      resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/6/download`, chimpy);
+      resp = await axios.get(`${homeUrl}/api/docs/${testDoc}/attachments/6/download`, chimpy);
       assert.equal(resp.status, 200);
       assert.deepEqual(resp.headers["content-type"], "application/msword");    // Another invalid header ignored
       assert.deepEqual(resp.headers["content-disposition"], 'attachment; filename="world.doc"');

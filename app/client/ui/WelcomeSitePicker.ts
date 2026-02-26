@@ -6,6 +6,7 @@ import { createUserImage } from "app/client/ui/UserImage";
 import { bigBasicButtonLink } from "app/client/ui2018/buttons";
 import { testId, theme } from "app/client/ui2018/cssVars";
 import { FullUser } from "app/common/LoginSessionAPI";
+import { getGristConfig } from "app/common/urlUtils";
 import { getOrgName } from "app/common/UserAPI";
 
 import { Computed, dom, DomContents, IDisposableOwner, styled } from "grainjs";
@@ -26,19 +27,22 @@ export function buildWelcomeSitePicker(owner: IDisposableOwner, appModel: AppMod
         cssHeading(t("Welcome back")),
         cssMessage(t("You have access to the following Grist sites.")),
         cssColumns(
-          cssColumn(
-            cssColumnLabel(css.horizontalLine(), css.lightText("Personal"), css.horizontalLine()),
-            dom.forEach(appModel.topAppModel.users, user => (
-              cssOrgButton(
-                cssPersonalOrg(
-                  createUserImage(user, "small"),
-                  dom("div", user.email, testId("personal-org-email")),
-                ),
-                dom.attr("href", use => urlState().makeUrl({ org: use(personalOrg) })),
-                dom.on("click", (ev) => { void (switchToPersonalUrl(ev, appModel, personalOrg.get(), user)); }),
-                testId("personal-org"),
-              )
-            )),
+          dom.maybe(
+            () => getGristConfig().enablePersonalOrgs,
+            () => cssColumn(
+              cssColumnLabel(css.horizontalLine(), css.lightText("Personal"), css.horizontalLine()),
+              dom.forEach(appModel.topAppModel.users, user => (
+                cssOrgButton(
+                  cssPersonalOrg(
+                    createUserImage(user, "small"),
+                    dom("div", user.email, testId("personal-org-email")),
+                  ),
+                  dom.attr("href", use => urlState().makeUrl({ org: use(personalOrg) })),
+                  dom.on("click", (ev) => { void (switchToPersonalUrl(ev, appModel, personalOrg.get(), user)); }),
+                  testId("personal-org"),
+                )
+              )),
+            ),
           ),
           cssColumn(
             cssColumnLabel(css.horizontalLine(), css.lightText("Team"), css.horizontalLine()),

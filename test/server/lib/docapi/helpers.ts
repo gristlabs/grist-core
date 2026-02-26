@@ -33,6 +33,8 @@ export interface TestContext {
   homeUrl: string;
   /** User API client */
   userApi: UserAPI;
+  /** Create a new testing document, or get it if already created **/
+  getOrCreateTestDoc: (workspace?: string) => Promise<string>;
   /** Document IDs for fixture documents */
   docIds: { [name: string]: string };
   /** Axios config for Chimpy user */
@@ -114,9 +116,9 @@ async function setupDataDir(dir: string) {
 /**
  * Get workspace ID by name.
  */
-async function getWorkspaceId(api: UserAPI, name: string): Promise<number> {
+async function getWorkspaceId(api: UserAPI, name: string): Promise<number | undefined> {
   const workspaces = await api.getOrgWorkspaces("current");
-  return workspaces.find(w => w.name === name)!.id;
+  return workspaces.find(w => w.name === name)?.id;
 }
 
 /**
@@ -171,6 +173,16 @@ function createContext(
     }
   };
 
+  const getOrCreateTestDoc = async (workspace: string = "Private") => {
+    if (scenarioDocIds.TestDoc) {
+      return scenarioDocIds.TestDoc;
+    }
+    // Create TestDoc as an empty doc in Private workspace
+    const privateWorkspaceId = await getWorkspaceId(userApi, workspace);
+    scenarioDocIds.TestDoc = await userApi.newDoc({ name: "TestDoc" }, privateWorkspaceId!);
+    return scenarioDocIds.TestDoc;
+  };
+
   const cleanup = async () => {
     // Delete TestDoc if it was created
     if (scenarioDocIds.TestDoc) {
@@ -187,6 +199,7 @@ function createContext(
     serverUrl,
     homeUrl,
     userApi,
+    getOrCreateTestDoc,
     docIds: scenarioDocIds,
     chimpy: configForUser("Chimpy"),
     kiwi: configForUser("Kiwi"),
@@ -235,11 +248,6 @@ export async function setupServers(
     serverUrl = mode === "direct" ? docs.serverUrl : home.serverUrl;
   }
 
-  // Create TestDoc as an empty doc in Private workspace
-  const userApi = makeUserApi(home.serverUrl, ORG_NAME, configForUser("chimpy"));
-  const wid = await getWorkspaceId(userApi, "Private");
-  scenarioDocIds.TestDoc = await userApi.newDoc({ name: "TestDoc" }, wid);
-
   return createContext(home, docs, serverUrl, home.serverUrl, scenarioDocIds, mode !== "direct");
 }
 
@@ -258,13 +266,13 @@ function addScenario(
   name: string,
   mode: ServerMode,
   addTests: (getCtx: () => TestContext) => void,
-  extraEnv?: Record<string, string>,
+  options: ScenarioOptions = {},
 ) {
   describe(name, function() {
     let ctx: TestContext;
 
     before(async function() {
-      ctx = await setupServers(mode, extraEnv);
+      ctx = await setupServers(mode, options.extraEnv);
     });
 
     after(async function() {
@@ -302,10 +310,10 @@ export function addAllScenarios(
   // the first file's after() would clear the database path before
   // subsequent files run. The test process exits anyway.
 
-  addScenario("merged server", "merged", addTests, options.extraEnv);
+  addScenario("merged server", "merged", addTests, options);
 
   if (process.env.TEST_REDIS_URL) {
-    addScenario("home + docworker", "separated", addTests, options.extraEnv);
-    addScenario("direct to docworker", "direct", addTests, options.extraEnv);
+    addScenario("home + docworker", "separated", addTests, options);
+    addScenario("direct to docworker", "direct", addTests, options);
   }
 }
