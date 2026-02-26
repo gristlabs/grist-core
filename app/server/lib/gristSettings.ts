@@ -1,4 +1,5 @@
 import { appSettings } from "app/server/lib/AppSettings";
+import memoize from "lodash/memoize";
 
 export function getTemplateOrg() {
   let org = appSettings.section("templates").flag("org").readString({
@@ -27,23 +28,23 @@ export function getOnboardingTutorialDocId() {
   });
 }
 
-export function getAnonPlaygroundEnabled() {
-  return appSettings.section("orgs").flag("enableAnonPlayground").readBool({
+export const getAnonPlaygroundEnabled = memoize(() =>
+  appSettings.section("orgs").flag("enableAnonPlayground").readBool({
     envVar: "GRIST_ANON_PLAYGROUND",
     defaultValue: getCanAnyoneCreateOrgs(),
-  });
-}
+  }),
+);
 
-export function getCanAnyoneCreateOrgs() {
-  return appSettings.section("orgs").flag("canAnyoneCreateOrgs").readBool({
+export const getCanAnyoneCreateOrgs = memoize(() =>
+  appSettings.section("orgs").flag("canAnyoneCreateOrgs").readBool({
     envVar: "GRIST_ORG_CREATION_ANYONE",
     defaultValue: true,
-  });
-}
+  }),
+);
 
-export function getPersonalOrgsEnabled() {
-  return appSettings.section("orgs").flag("enablePersonalOrgs").readBool({
+export const getPersonalOrgsEnabled = memoize(() =>
+  appSettings.section("orgs").flag("enablePersonalOrgs").readBool({
     envVar: "GRIST_PERSONAL_ORGS",
     defaultValue: getCanAnyoneCreateOrgs(),
-  });
-}
+  }),
+);
