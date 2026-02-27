@@ -176,6 +176,7 @@ declare module "app/client/models/TableModel" {
     public getRowGrouping(groupByCol: string): RowGrouping<CellValue>;
     public sendTableActions(actions: UserAction[], optDesc?: string): Promise<any[]>;
     public sendTableAction(action: UserAction, optDesc?: string): Promise<any> | undefined;
+    public getExtraRows?(): ExtraRows;
   }
   export = TableModel;
 }

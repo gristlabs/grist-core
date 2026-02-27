@@ -315,6 +315,29 @@
   --grist-diff-color: black;
 }
 
+.diff-emphasize-local .diff-local,
+.diff-emphasize-local .diff-local-add {
+  background-color: #afffaf;
+  --grist-diff-background-color: #afffaf;
+}
+
+.diff-emphasize-local .diff-remote,
+.diff-emphasize-local .diff-remote-add {
+  background-color: #dfdfff;
+  --grist-diff-background-color: #dfdfff;
+}
+
+.diff-emphasize-local .diff-local-remove {
+  background-color: #ffdfdf;
+  --grist-diff-background-color: #ffdfdf;
+}
+
+.diff-emphasize-local .diff-parent,
+.diff-emphasize-local .diff-remote-remove {
+  background-color: #dfdfdf;
+  --grist-diff-background-color: #dfdfdf;
+}
+
 .diff-common {
   color: var(--grist-theme-text);
   --grist-diff-color: var(--grist-theme-text);

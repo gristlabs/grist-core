@@ -3,11 +3,13 @@ import DataTableModel from "app/client/models/DataTableModel";
 import { DocModel } from "app/client/models/DocModel";
 import { TableRec } from "app/client/models/entities/TableRec";
 import { TableQuerySets } from "app/client/models/QuerySet";
-import { RowGrouping, SortedRowSet } from "app/client/models/rowset";
+import { ChangeType, RowGrouping, RowList, RowsChanged, SortedRowSet } from "app/client/models/rowset";
 import { TableData } from "app/client/models/TableData";
-import { createEmptyTableDelta, getTableIdAfter, getTableIdBefore, TableDelta } from "app/common/ActionSummary";
+import { ActionSummarizer } from "app/common/ActionSummarizer";
+import { createEmptyActionSummary, createEmptyTableDelta, getTableIdAfter,
+  getTableIdBefore, TableDelta } from "app/common/ActionSummary";
 import { DisposableWithEvents } from "app/common/DisposableWithEvents";
-import { CellVersions, UserAction } from "app/common/DocActions";
+import { CellVersions, DocAction, UserAction } from "app/common/DocActions";
 import { DocStateComparisonDetails } from "app/common/DocState";
 import { CellDelta } from "app/common/TabularDiff";
 import { CellValue, GristObjCode } from "app/plugin/GristData";
@@ -46,19 +48,34 @@ export class ExtraRows {
   public readonly rightTableDelta?: TableDelta;
   public readonly rightAddRows: Set<number>;
   public readonly rightRemoveRows: Set<number>;
-  public readonly leftAddRows: Set<number>;
-  public readonly leftRemoveRows: Set<number>;
+  public leftAddRows: Set<number>;
+  public leftRemoveRows: Set<number>;
 
-  public constructor(public readonly tableId: string, public readonly comparison?: DocStateComparisonDetails) {
+  public constructor(public readonly tableId?: string, public readonly comparison?: DocStateComparisonDetails) {
+    if (!tableId) {
+      this.rightAddRows = new Set();
+      this.rightRemoveRows = new Set();
+      this.leftAddRows = new Set();
+      this.leftRemoveRows = new Set();
+      return;
+    }
     const remoteTableId = getRemoteTableId(tableId, comparison);
     this.leftTableDelta = this.comparison?.leftChanges?.tableDeltas[tableId];
     if (remoteTableId) {
       this.rightTableDelta = this.comparison?.rightChanges?.tableDeltas[remoteTableId];
     }
-    this.rightAddRows = new Set(this.rightTableDelta?.addRows.map(id => -id * 2 - 1));
+    this.rightAddRows = new Set(this.rightTableDelta?.addRows.map(id => this.encodeRightAddRow(id)));
     this.rightRemoveRows = new Set(this.rightTableDelta?.removeRows);
     this.leftAddRows = new Set(this.leftTableDelta?.addRows);
-    this.leftRemoveRows = new Set(this.leftTableDelta?.removeRows.map(id => -id * 2 - 2));
+    this.leftRemoveRows = new Set(this.leftTableDelta?.removeRows.map(id => this.encodeLeftRemoveRow(id)));
+  }
+
+  public encodeLeftRemoveRow(id: number) {
+    return -id * 2 - 2;
+  }
+
+  public encodeRightAddRow(id: number) {
+    return -id * 2 - 1;
   }
 
   /**
@@ -104,25 +121,52 @@ export class DataTableModelWithDiff extends DisposableWithEvents implements Data
   public tableData: TableData;
   public tableMetaRow: TableRec;
   public tableQuerySets: TableQuerySets;
+  public extraRows: ExtraRows;
 
   // For viewing purposes (LazyRowsModel), cells should have comparison info, so we will
   // forward to a comparison-aware wrapper. Otherwise, the model is left substantially
   // unchanged for now.
   private _wrappedModel: DataTableModel;
 
-  public constructor(public core: DataTableModel, comparison: DocStateComparisonDetails) {
+  /**
+   * The _comparison provided to this DataTableModelWithDiff may be mutated. It is used
+   * to store and track local changes.
+   */
+  public constructor(public core: DataTableModel, private _comparison: DocStateComparisonDetails) {
     super();
     this.tableMetaRow = core.tableMetaRow;
     this.tableQuerySets = core.tableQuerySets;
     this.docModel = core.docModel;
     const tableId = core.tableData.tableId;
-    const remoteTableId = getRemoteTableId(tableId, comparison) || "";
-    this.tableData = new TableDataWithDiff(
+    const remoteTableId = getRemoteTableId(tableId, _comparison) || tableId;
+    this.extraRows = new ExtraRows(this.core.tableData.tableId, this._comparison);
+    _comparison.leftChanges.tableDeltas[tableId] ||= createEmptyTableDelta();
+    _comparison.rightChanges.tableDeltas[remoteTableId] ||= createEmptyTableDelta();
+    const tableDataWithDiff = new TableDataWithDiff(
       core.tableData,
-      comparison.leftChanges.tableDeltas[tableId] || createEmptyTableDelta(),
-      comparison.rightChanges.tableDeltas[remoteTableId] || createEmptyTableDelta()) as any;
+      _comparison.leftChanges.tableDeltas[tableId],
+      _comparison.rightChanges.tableDeltas[remoteTableId],
+      this.extraRows,
+    ) as any;
+    this.tableData = tableDataWithDiff;
     this.isLoaded = core.isLoaded;
-    this._wrappedModel = new DataTableModel(this.docModel, this.tableData, this.tableMetaRow);
+    this._wrappedModel = this.autoDispose(new DataTableModel(this.docModel, this.tableData, this.tableMetaRow));
+
+    this.listenTo(this._wrappedModel, "rowChange", (changeType: ChangeType, rows: RowList) => {
+      this.trigger("rowChange", changeType, rows);
+    });
+    this.listenTo(this._wrappedModel, "rowNotify", (rows: RowsChanged, notifyValue: any) => {
+      this.trigger("rowNotify", rows, notifyValue);
+    });
+    // Listen for actions about to be applied, so we can snapshot cell values
+    // before mutation and track them as local changes in the diff.
+    this.autoDispose(core.tableData.preTableActionEmitter.addListener(
+      tableDataWithDiff.before.bind(tableDataWithDiff),
+    ));
+  }
+
+  public getExtraRows() {
+    return this.extraRows;
   }
 
   public createLazyRowsModel(sortedRowSet: SortedRowSet, optRowModelClass: any) {
@@ -166,14 +210,17 @@ export class DataTableModelWithDiff extends DisposableWithEvents implements Data
 export class TableDataWithDiff {
   public dataLoadedEmitter: any;
   public tableActionEmitter: any;
+  public preTableActionEmitter: any;
 
   private _leftRemovals: Set<number>;
   private _rightRemovals: Set<number>;
   private _updates: Set<number>;
 
-  constructor(public core: TableData, public leftTableDelta: TableDelta, public rightTableDelta: TableDelta) {
+  constructor(public core: TableData, public leftTableDelta: TableDelta,
+    public rightTableDelta: TableDelta, public extraRows: ExtraRows) {
     this.dataLoadedEmitter = core.dataLoadedEmitter;
     this.tableActionEmitter = core.tableActionEmitter;
+    this.preTableActionEmitter = core.preTableActionEmitter;
     // Construct the set of all rows updated in either left/local or right/remote.
     // Omit any rows that were deleted in the other version, for simplicity.
     this._leftRemovals = new Set(leftTableDelta.removeRows);
@@ -188,12 +235,20 @@ export class TableDataWithDiff {
     return this.core.getColIds();
   }
 
+  public getColType(colId: string) {
+    return this.core.getColType(colId);
+  }
+
   public sendTableActions(actions: UserAction[], optDesc?: string): Promise<any[]> {
     return this.core.sendTableActions(actions, optDesc);
   }
 
   public sendTableAction(action: UserAction, optDesc?: string): Promise<any> | undefined {
     return this.core.sendTableAction(action, optDesc);
+  }
+
+  public receiveAction(action: DocAction): boolean {
+    return this.core.receiveAction(action);
   }
 
   /**
@@ -274,6 +329,133 @@ export class TableDataWithDiff {
 
   public numRecords() {
     return this.core.numRecords();
+  }
+
+  /**
+   * Called via preTableActionEmitter, just before a DocAction is applied to the
+   * underlying table. When the user edits while viewing a comparison, those edits
+   * need to appear as local changes in the diff. The problem is that DocActions only
+   * carry *new* cell values. By running here — before the action mutates the table —
+   * we can use ActionSummarizer.addAction() to build a delta that pairs each new value
+   * with the current (soon-to-be-old) value read from this.core. The resulting delta
+   * is then folded into leftTableDelta so the diff display reflects the edit.
+   */
+  public before(action: DocAction): void {
+    const op = new ActionSummarizer();
+    const sum = createEmptyActionSummary();
+    op.addAction(sum, action, this.core);
+
+    const tableDelta = Object.values(sum.tableDeltas)[0];
+    if (!tableDelta) {
+      return;
+    }
+
+    this._processUpdateRows(tableDelta);
+    this._processAddRows(tableDelta);
+    this._processRemoveRows(tableDelta);
+  }
+
+  /**
+   * For each updated cell, record a delta in leftTableDelta. If this is the first
+   * local edit to this cell, snapshot the current value as the "parent" (index 0) —
+   * subsequent edits to the same cell keep that original parent, so the diff always
+   * shows the change from the comparison base, not from intermediate edits.
+   * The new value (index 1) is always overwritten with the latest.
+   */
+  private _processUpdateRows(tableDelta: TableDelta): void {
+    for (const rowId of tableDelta.updateRows) {
+      for (const colId of Object.keys(tableDelta.columnDeltas)) {
+        this._ensureColumnExists(colId);
+
+        if (!this.leftTableDelta.columnDeltas[colId][rowId]) {
+          const row = this.core.getRecord(rowId);
+          const cell = row?.[colId];
+          const nestedCell = cell === undefined ? null : [cell] as [any];
+
+          this.leftTableDelta.columnDeltas[colId][rowId] = [nestedCell, null];
+
+          if (!this.leftTableDelta.updateRows.includes(rowId)) {
+            this.leftTableDelta.updateRows.push(rowId);
+            this._updates.add(rowId);
+          }
+        }
+
+        this.leftTableDelta.columnDeltas[colId][rowId][1] =
+          tableDelta.columnDeltas[colId]?.[rowId]?.[1];
+      }
+    }
+  }
+
+  /**
+   * Record locally-added rows. The parent value (index 0) is null since the row
+   * didn't exist in the comparison base.
+   */
+  private _processAddRows(tableDelta: TableDelta): void {
+    for (const rowId of tableDelta.addRows) {
+      for (const colId of Object.keys(tableDelta.columnDeltas)) {
+        this._ensureColumnExists(colId);
+
+        if (!this.leftTableDelta.columnDeltas[colId][rowId]) {
+          this.leftTableDelta.columnDeltas[colId][rowId] = [null, null];
+
+          if (!this.leftTableDelta.addRows.includes(rowId)) {
+            this.leftTableDelta.addRows.push(rowId);
+          }
+        }
+
+        this.leftTableDelta.columnDeltas[colId][rowId][1] =
+          tableDelta.columnDeltas[colId]?.[rowId]?.[1];
+
+        this._updates.add(rowId);
+        this.extraRows.leftAddRows.add(rowId);
+      }
+    }
+  }
+
+  /**
+   * Record locally-removed rows. If a row was added locally and is now being
+   * removed, the add and remove cancel out — we just clean up the bookkeeping.
+   * Otherwise, we record the pre-removal cell values (index 0) so the diff can
+   * show what was deleted.
+   */
+  private _processRemoveRows(tableDelta: TableDelta): void {
+    for (const rowId of tableDelta.removeRows) {
+      if (this.extraRows.leftAddRows.has(rowId)) {
+        this._cleanupAddedRow(rowId);
+        continue;
+      }
+
+      for (const colId of Object.keys(tableDelta.columnDeltas)) {
+        this._ensureColumnExists(colId);
+
+        if (!this.leftTableDelta.columnDeltas[colId][rowId]) {
+          this.leftTableDelta.columnDeltas[colId][rowId] = [null, null];
+          if (!this.leftTableDelta.removeRows.includes(rowId)) {
+            this.leftTableDelta.removeRows.push(rowId);
+          }
+        }
+
+        this.leftTableDelta.columnDeltas[colId][rowId][0] =
+          tableDelta.columnDeltas[colId]?.[rowId]?.[0];
+
+        this._updates.add(rowId);
+        this.extraRows.leftRemoveRows.add(
+          this.extraRows.encodeLeftRemoveRow(rowId),
+        );
+      }
+    }
+  }
+
+  private _ensureColumnExists(colId: string): void {
+    if (!this.leftTableDelta.columnDeltas[colId]) {
+      this.leftTableDelta.columnDeltas[colId] = {};
+    }
+  }
+
+  private _cleanupAddedRow(rowId: number): void {
+    this.extraRows.leftAddRows.delete(rowId);
+    this._updates.delete(rowId);
+    this.leftTableDelta.addRows = this.leftTableDelta.addRows.filter(id => id !== rowId);
   }
 }
 

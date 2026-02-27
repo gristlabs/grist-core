@@ -735,7 +735,7 @@ export class Importer extends DisposableWithEvents {
       // currently observable, we'll wrap the modification around the `_isLoadingDiff`
       // flag, which will force the preview table to re-render with diffing disabled.
       this._isLoadingDiff.set(true);
-      this._gristDoc.comparison = null;
+      this._gristDoc.setComparison(null);
       this._isLoadingDiff.set(false);
     }
 
@@ -770,7 +770,7 @@ export class Importer extends DisposableWithEvents {
     if (this.isDisposed() || genImportDiffPromise !== this._lastGenImportDiffPromise) { return; }
 
     // Put the document in comparison mode with the diff data.
-    this._gristDoc.comparison = diff;
+    this._gristDoc.setComparison(diff);
 
     // If more updates where scheduled since we started the update, leave the loading spinner up.
     if (!this._hasScheduledDiffUpdate) {
@@ -783,7 +783,7 @@ export class Importer extends DisposableWithEvents {
    */
   private _resetImportDiffState() {
     this._cancelPendingDiffRequests();
-    this._gristDoc.comparison = null;
+    this._gristDoc.setComparison(null);
   }
 
   /**

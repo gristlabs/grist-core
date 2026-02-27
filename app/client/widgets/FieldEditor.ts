@@ -13,6 +13,7 @@ import { FormulaEditor, getFormulaError } from "app/client/widgets/FormulaEditor
 import { IEditorCommandGroup, IEditorConstructor, NewBaseEditor } from "app/client/widgets/NewBaseEditor";
 import { asyncOnce } from "app/common/AsyncCreate";
 import { CellValue } from "app/common/DocActions";
+import { isVersions } from "app/common/gristTypes";
 import * as gutil from "app/common/gutil";
 import { CursorPos } from "app/plugin/GristAPI";
 
@@ -250,7 +251,7 @@ export class FieldEditor extends Disposable {
       field: this._field,
       column: this._field.column(), // needed for FormulaEditor
       editingFormula: this._field.editingFormula, // needed for Formula editor
-      cellValue,
+      cellValue: onlyCurrent(cellValue),
       rowId: this._editRow.id(),
       formulaError: error,
       editValue,
@@ -484,4 +485,13 @@ export function setupEditorCleanup(
     // Unset field.editingFormula flag when the editor closes.
     editingFormula(false);
   });
+}
+
+function onlyCurrent(cellValue: CellValue): CellValue {
+  if (isVersions(cellValue)) {
+    const versions = cellValue[1];
+    if (versions.local !== undefined) { return versions.local; }
+    if (versions.parent !== undefined) { return versions.parent; }
+  }
+  return cellValue;
 }
