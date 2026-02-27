@@ -930,6 +930,40 @@ describe("CustomWidgets", function() {
         assert.sameMembers(Object.keys(await result.json()), ["records"]);
       });
     });
+
+    it("should support custom CSS", async () => {
+      try {
+        // Enable custom CSS
+        process.env.APP_STATIC_INCLUDE_CUSTOM_CSS = "true";
+        await server.restart();
+        await gu.reloadDoc();
+
+        widgets = [widgetWithTheme];
+        await reloadWidgets();
+        await gu.toggleSidePanel("right", "open");
+        await recreatePanel();
+        await gu.setCustomWidget(widgetWithTheme.name);
+
+        // Check that the widget iframe has the custom CSS link tag
+        const iframe = await getCustomWidgetFrame();
+        await driver.switchTo().frame(iframe);
+        const customCssLink = await driver.find("link#grist-custom-css");
+        assert.isTrue(await customCssLink.isPresent());
+
+        // Check the widget-specific data attribute is there in the iframe document
+        const inWidgetAttribute = await driver.executeScript<string>(
+          "return document.documentElement.getAttribute('data-grist-widget')",
+        );
+        assert.equal(inWidgetAttribute, "true");
+
+        await driver.switchTo().defaultContent();
+      } finally {
+        // Restore old env and restart
+        delete process.env.APP_STATIC_INCLUDE_CUSTOM_CSS;
+        await server.restart();
+        await gu.reloadDoc();
+      }
+    });
   });
 
   describe("Bundling", function() {
