@@ -1,6 +1,5 @@
 import { MapWithTTL } from "app/common/AsyncCreate";
 import { WebhookMessageType } from "app/common/CommTypes";
-import { RowRecord } from "app/common/DocActions";
 import {
   TriggerAction,
   WebhookBatchStatus,
@@ -10,6 +9,7 @@ import {
   WebhookSummaryCollection,
   WebhookUsage,
 } from "app/common/Triggers";
+import { WebhookEventPayload } from "app/server/lib/Triggers";
 import { decodeObject } from "app/plugin/objtypes";
 import { ActiveDoc } from "app/server/lib/ActiveDoc";
 import log from "app/server/lib/log";
@@ -26,7 +26,7 @@ import { createClient, Multi, RedisClient } from "redis";
 promisifyAll(RedisClient.prototype);
 
 interface WebHookEvent {
-  payload: RowRecord;
+  payload: WebhookEventPayload;
   id: string;
 }
 

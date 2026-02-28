@@ -40,12 +40,21 @@ interface RecordDelta {
 type RecordDeltas = Map<number, RecordDelta>;
 
 /**
+ * The payload structure for a single webhook event, containing both the current and previous
+ * states of the record.
+ */
+export interface WebhookEventPayload {
+  current: RowRecord;       // The record state after actions are applied
+  previous: RowRecord | null; // The record state before actions were applied, or null for add events
+}
+
+/**
  * A payload calculated for the action to use. Each action has only access to a single record. Notice
  * that this is a whole record, without any restrictions.
  */
 interface ActionPayload {
   id: string; // Action id (each action has unique id, for webhooks this a an id from home db)
-  payload: RowRecord; // The record data to use with the action
+  payload: WebhookEventPayload; // The record data to use with the action
 }
 
 export interface TriggerCondition {
@@ -262,9 +271,15 @@ export class DocTriggers {
     const meta = { numTriggers: triggers.length, numRecords: bulkColValues.id.length };
     this._log(`Processing triggers`, meta);
 
-    const makePayload = _.memoize((rowIndex: number) =>
-      _.mapValues(bulkColValues, col => col[rowIndex]) as RowRecord,
-    );
+    const makePayload = _.memoize((rowIndex: number) => {
+      const current = _.mapValues(bulkColValues, col => col[rowIndex]) as RowRecord;
+      const rowId = bulkColValues.id[rowIndex];
+      const recordDelta = recordDeltas.get(rowId)!;
+      const previous: RowRecord | null = recordDelta.existedBefore
+        ? { ...current, ...rowRecordFromCellDeltas(tableDelta, rowId) }
+        : null;
+      return { current, previous };
+    });
 
     const result: ActionPayload[] = [];
     for (const trigger of triggers) {

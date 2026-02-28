@@ -1,5 +1,5 @@
 import { DocAPI, UserAPI } from "app/common/UserAPI";
-import { DocTriggers } from "app/server/lib/Triggers";
+import { DocTriggers, WebhookEventPayload } from "app/server/lib/Triggers";
 import { TestServer } from "test/gen-server/apiUtils";
 import { configForUser } from "test/gen-server/testUtils";
 import { Defer, serveSomething, Serving } from "test/server/customUtil";
@@ -42,6 +42,8 @@ describe("Triggers", function() {
     }
   }
   const waiter = new EventAwaiter();
+  // Captures the most recently enqueued events for payload inspection.
+  let capturedEvents: Array<{id: string, payload: WebhookEventPayload}> = [];
 
   before(async function() {
     if (!process.env.REDIS_URL && !process.env.TEST_REDIS_URL) {
@@ -65,6 +67,7 @@ describe("Triggers", function() {
     const oldEnqueue = DocTriggers.prototype.enqueue;
     sandbox.replace(DocTriggers.prototype, "enqueue", async function(this: DocTriggers, events: any[]) {
       // This function is called even if there are no events to enqueue.
+      capturedEvents = events;
       try {
         return await oldEnqueue.call(this as any, events as any);
       } finally {
@@ -398,6 +401,67 @@ describe("Triggers", function() {
           A: [20],
         });
       });
+
+      await clear();
+    });
+  });
+
+  describe("payload", function() {
+    let docId: string;
+    let doc: DocAPI;
+    this.timeout("10s");
+
+    before(async function() {
+      docId = await ownerApi.newDoc({ name: "testdoc-payload" }, wsId);
+      doc = ownerApi.getDocAPI(docId);
+    });
+
+    afterEach(async function() {
+      await doc.flushWebhooks();
+      await clearQueue(docId);
+      await doc.applyUserActions([["RemoveRecord", "_grist_Triggers", 1]]);
+      await doc.applyUserActions([["RemoveRecord", "Table1", 1]]);
+    });
+
+    it("add events should have previous=null and current with record data", async function() {
+      const clear = await autoSubscribe(docId, { eventTypes: ["add", "update"] });
+
+      waiter.start();
+      await doc.addRows("Table1", { A: [42], B: [99] });
+      await waiter.wait();
+
+      assert.equal(capturedEvents.length, 1, "Expected exactly one add event");
+      const payload = capturedEvents[0].payload;
+      assert.isNull(payload.previous, "previous should be null for add events");
+      assert.isObject(payload.current, "current should be an object");
+      assert.equal(payload.current.A, 42, "current.A should match added value");
+      assert.equal(payload.current.B, 99, "current.B should match added value");
+
+      await clear();
+    });
+
+    it("update events should have both current and previous with correct values", async function() {
+      const clear = await autoSubscribe(docId, { eventTypes: ["add", "update"] });
+
+      // Add a row first
+      waiter.start();
+      await doc.addRows("Table1", { A: [1], B: [2] });
+      await waiter.wait();
+
+      // Now update the row
+      waiter.start();
+      await doc.updateRows("Table1", { id: [1], A: [10] });
+      await waiter.wait();
+
+      assert.equal(capturedEvents.length, 1, "Expected exactly one update event");
+      const payload = capturedEvents[0].payload;
+      assert.isObject(payload.current, "current should be an object for update events");
+      assert.isObject(payload.previous, "previous should be an object for update events");
+      assert.equal(payload.current.A, 10, "current.A should reflect the updated value");
+      assert.equal(payload.previous!.A, 1, "previous.A should reflect the value before update");
+      // Unchanged column B should be the same in both current and previous
+      assert.equal(payload.current.B, 2, "current.B should be unchanged");
+      assert.equal(payload.previous!.B, 2, "previous.B should equal current.B when not changed");
 
       await clear();
     });
