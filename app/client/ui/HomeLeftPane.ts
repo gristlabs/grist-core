@@ -220,7 +220,7 @@ function addMenu(home: HomeModel, creating: Observable<boolean>): DomElementArg[
     menuItem(
       async () => {
         if (home.app.currentValidUser) {
-          await startHomeAirtableImport(home.app);
+          await startHomeAirtableImport(home);
         } else {
           window.location.href = getLoginOrSignupUrl();
         }
