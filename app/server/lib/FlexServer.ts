@@ -1346,6 +1346,8 @@ export class FlexServer implements GristServer {
       httpsServer: this.httpsServer,
       i18Instance: this.i18Instance,
       dbManager: this.getHomeDBManager(),
+      gristServer: this,
+      permitStore: this._internalPermitStore,
     });
   }
 
