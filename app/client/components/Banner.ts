@@ -1,6 +1,6 @@
 import { colors, isNarrowScreenObs } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
-import { tokens } from "app/common/ThemePrefs.ts";
+import { tokens } from "app/common/ThemePrefs";
 
 import { Disposable, dom, DomArg, DomElementArg, makeTestId, Observable, styled } from "grainjs";
 

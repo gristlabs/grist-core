@@ -12,7 +12,7 @@ import { colors, testId, theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { makeLinks } from "app/client/ui2018/links";
 import { menuCssClass } from "app/client/ui2018/menus";
-import { tokens } from "app/common/ThemePrefs.ts";
+import { tokens } from "app/common/ThemePrefs";
 
 import { BindableValue, dom, DomContents, DomElementArg, DomElementMethod, Observable, styled } from "grainjs";
 import merge from "lodash/merge";
