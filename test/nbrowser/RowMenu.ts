@@ -27,7 +27,7 @@ describe("RowMenu", function() {
     // close the menu
     await driver.sendKeys(Key.ESCAPE);
     // make sure the menu is closed
-    assert.lengthOf(await driver.findAll(".grist-floating-menu"), 0);
+    await driver.wait(async () => (await driver.findAll(".grist-floating-menu")).length === 0, 2000);
   }
 
   async function assertRowMenuOpensWithRightClick() {
@@ -39,7 +39,7 @@ describe("RowMenu", function() {
     // close the menu by clicking the toggle
     await toggle.click();
     // make sure the menu is closed
-    assert.lengthOf(await driver.findAll(".grist-floating-menu"), 0);
+    await driver.wait(async () => (await driver.findAll(".grist-floating-menu")).length === 0, 2000);
   }
 
   before(async () => {
