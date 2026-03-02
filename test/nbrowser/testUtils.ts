@@ -43,7 +43,7 @@ setOptionsModifyFunc(({ chromeOpts, firefoxOpts }) => {
   // toggled by using the `set` method in `capabilities` interface, as it is done here (long URL):
 
   // https://github.com/shs96c/selenium/blob/ff82c4af6a493321d9eaec6ba8fa8589e4aa824d/javascript/node/selenium-webdriver/firefox.js#L415
-  chromeOpts.set("webSocketUrl", true);
+  chromeOpts.set("webSocketUrl", false);
   chromeOpts.set(Capability.UNHANDLED_PROMPT_BEHAVIOR, "ignore");
 
   chromeOpts.setUserPreferences({
