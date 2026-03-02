@@ -142,6 +142,20 @@ export class AppImpl extends DisposableWithEvents implements App {
     this.autoDispose(commands.createGroup({
       shortcuts() { isHelpPaneVisible(true); },
       accessibility() { openAccessibilityModal(this.topAppModel.appObs); },
+      toggleScreenReaderMode() {
+        const appModel = this.topAppModel.appObs.get();
+        if (appModel) {
+          appModel.screenReaderMode.set(!appModel.screenReaderMode.get());
+          appModel.notifier.createUserMessage(
+            appModel.screenReaderMode.get() ?
+              t("Enabled screen reader mode") : t("Disabled screen reader mode"),
+            {
+              level: "success",
+              key: "sr-mode-change",
+            },
+          );
+        }
+      },
       historyBack() { G.window.history.back(); },
       historyForward() { G.window.history.forward(); },
     }, this, true));
