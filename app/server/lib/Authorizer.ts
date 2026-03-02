@@ -205,7 +205,7 @@ async function getUserFromProfile(
   if (!profile?.email) {
     return dbManager.getAnonymousUser();
   }
-  return await dbManager.getUserByLoginWithRetry(profile.email, {profile, userOptions});
+  return await dbManager.getUserByLoginWithRetry(profile.email, { profile, userOptions });
 }
 
 /**
@@ -249,8 +249,8 @@ export async function resolveIdentity(
   },
 ): Promise<IdentityResult> {
   // 1. Access token via ?auth query parameter.
-  const url = new URL(req.url!, 'http://localhost');
-  const auth = url.searchParams.get('auth');
+  const url = new URL(req.url!, "http://localhost");
+  const auth = url.searchParams.get("auth");
   if (auth) {
     const tokens = options.gristServer.getAccessTokens();
     const accessToken = await tokens.verify(auth);

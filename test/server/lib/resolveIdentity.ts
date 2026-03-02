@@ -1,5 +1,6 @@
 import { ApiError } from "app/common/ApiError";
 import { UserProfile } from "app/common/LoginSessionAPI";
+import { ServiceAccount } from "app/gen-server/entity/ServiceAccount";
 import { User } from "app/gen-server/entity/User";
 import { HomeDBAuth } from "app/gen-server/lib/homedb/Interfaces";
 import { AccessTokenInfo, IAccessTokens } from "app/server/lib/AccessTokens";
@@ -8,10 +9,9 @@ import { createDummyGristServer, GristServer } from "app/server/lib/GristServer"
 import { InstallAdmin } from "app/server/lib/InstallAdmin";
 import { IPermitStore, Permit } from "app/server/lib/Permit";
 
-import { ServiceAccount } from "app/gen-server/entity/ServiceAccount";
+import { IncomingMessage } from "http";
 
 import { assert } from "chai";
-import { IncomingMessage } from "http";
 
 function makeUser(id: number, name: string, extra?: Partial<User>): User {
   return { id, name, disabledAt: null, type: "login", ...extra } as User;
@@ -65,7 +65,6 @@ function opts(extra?: Partial<Parameters<typeof resolveIdentity>[2]>): Parameter
 }
 
 describe("resolveIdentity", function() {
-
   it("returns anonymous when no credentials are provided", async function() {
     const result = await resolveIdentity(makeRequest(), makeDbManager(), opts());
     assert.equal(result.user.id, ANON_ID);
@@ -118,7 +117,7 @@ describe("resolveIdentity", function() {
 
   describe("API key", function() {
     it("resolves user from valid API key", async function() {
-      const db = makeDbManager({ getUserByKey: async (k) => k === "good" ? ALICE : undefined });
+      const db = makeDbManager({ getUserByKey: async k => k === "good" ? ALICE : undefined });
       const result = await resolveIdentity(
         makeRequest("/test", { authorization: "Bearer good" }), db, opts(),
       );
@@ -237,7 +236,7 @@ describe("resolveIdentity", function() {
     it("boot key takes priority over API key", async function() {
       const db = makeDbManager({ getUserByKey: async () => ALICE });
       const result = await resolveIdentity(
-        makeRequest("/test", { authorization: "Bearer good", "x-boot-key": "bk" }), db,
+        makeRequest("/test", { "authorization": "Bearer good", "x-boot-key": "bk" }), db,
         opts({
           gristServer: {
             ...createDummyGristServer(),
@@ -255,7 +254,7 @@ describe("resolveIdentity", function() {
     it("resolves permit as anonymous with specialPermit", async function() {
       const permit: Permit = { docId: "doc1" };
       const permitStore = makePermitStore({
-        getPermit: async (k) => k === "pk" ? permit : null,
+        getPermit: async k => k === "pk" ? permit : null,
       });
       const result = await resolveIdentity(
         makeRequest("/test", { permit: "pk" }), makeDbManager(),
@@ -370,7 +369,7 @@ describe("resolveIdentity", function() {
       const permitStore = makePermitStore({ getPermit: async () => permit });
 
       const result = await resolveIdentity(
-        makeRequest("/test", { authorization: "Bearer key", "x-boot-key": "bk", permit: "pk" }),
+        makeRequest("/test", { "authorization": "Bearer key", "x-boot-key": "bk", "permit": "pk" }),
         db,
         {
           gristServer, permitStore,
