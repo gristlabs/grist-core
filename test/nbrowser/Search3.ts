@@ -1,7 +1,7 @@
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
 
-import { assert, driver, Key } from "mocha-webdriver";
+import { assert, driver, Key, until } from "mocha-webdriver";
 
 describe("Search3", async function() {
   this.timeout(20000);
@@ -51,8 +51,10 @@ describe("Search3", async function() {
     await gu.moveToVisible("B");
 
     await driver.find(".test-tb-search-icon").click();
-    await driver.sleep(500);
-    await driver.find(".test-tb-search-next").click();
+
+    const nextBtn = driver.find(".test-tb-search-next");
+    await driver.wait(until.elementIsVisible(nextBtn));
+    await nextBtn.click();
     await gu.checkForErrors();
   });
 
