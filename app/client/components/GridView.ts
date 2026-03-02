@@ -242,11 +242,13 @@ export default class GridView extends BaseView {
     this.autoDispose(this.currentPosition.addListener((cur, prev) => {
       if (cur.rowIndex !== prev.rowIndex || cur.fieldIndex !== prev.fieldIndex) {
         this.visibleRowIndex(cur.rowIndex);
-        if (this.gristDoc.app?.clipboard) {
+
+        // Also announce the current cell to screen reader users.
+        const announcer = this.gristDoc.app?.topAppModel.screenReaderAnnouncer;
+        if (announcer) {
           const columnLabel = this.viewSection.viewFields().all()[cur.fieldIndex].label();
           const rowLabel = (cur.rowIndex ?? 0) + 1;
-          // get dom element of the current cell
-          this.gristDoc.app.clipboard.announce(
+          announcer.announce(
             this.viewPane.querySelector<HTMLDivElement>(`[aria-rowindex="${(cur.rowIndex ?? 0) + 1}"][aria-colindex="${cur.fieldIndex + 1}"] .field_clip`),
             `Cell ${rowLabel} ${columnLabel}`,
           );

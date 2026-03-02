@@ -7,13 +7,13 @@ import { assert, driver, Key } from "mocha-webdriver";
 // Check that the focus is on the clipboard element, with a short wait in case it's not entirely
 // synchronous. You may set waitMs to 0.
 const expectClipboardFocus = (yesNo: boolean, waitMs: number = 100) => {
-  return gu.waitForFocus("textarea.copypaste.mousetrap", yesNo, waitMs);
+  return gu.waitForFocus("#copypaste-field", yesNo, waitMs);
 };
 
 const isNormalElementFocused = async (containerSelector?: string) => {
   const activeElement = await driver.switchTo().activeElement();
   const isException = await activeElement.matches(
-    ".test-left-panel, .test-top-header, .test-right-panel, .test-main-content, body, textarea.copypaste.mousetrap",
+    ".test-left-panel, .test-top-header, .test-right-panel, .test-main-content, body, #copypaste-field",
   );
   const isInContainer = containerSelector ?
     await activeElement.matches(`${containerSelector} *`) :

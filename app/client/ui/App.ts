@@ -86,6 +86,8 @@ export class AppImpl extends DisposableWithEvents implements App {
 
     KeyboardFocusHighlighter.create(this);
 
+    this.topAppModel = this.autoDispose(TopAppModelImpl.create(null, G.window));
+
     if (isDesktop()) {
       this.clipboard = Clipboard.create(this, this);
     } else {
@@ -101,8 +103,6 @@ export class AppImpl extends DisposableWithEvents implements App {
         onDefaultBlur: () => this.trigger("clipboard_blur"),
       });
     }
-
-    this.topAppModel = this.autoDispose(TopAppModelImpl.create(null, G.window));
 
     const isHelpPaneVisible = ko.observable(false);
 

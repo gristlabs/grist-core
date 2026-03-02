@@ -27,11 +27,10 @@ import { makeT } from "app/client/lib/localization";
 import { makePasteHtml, makePasteText, parsePasteHtml, PasteData } from "app/client/lib/tableUtil";
 import { ShortcutKey, ShortcutKeyContent } from "app/client/ui/ShortcutKey";
 import { confirmModal } from "app/client/ui2018/modals";
-import { visuallyHidden } from "app/client/ui2018/visuallyHidden";
 import { isNonNullish } from "app/common/gutil";
 import { tsvDecode } from "app/common/tsvFormat";
 
-import { Disposable, dom, styled } from "grainjs";
+import { Computed, Disposable, dom, styled, subscribe } from "grainjs";
 
 import type { CopySelection } from "app/client/components/CopySelection";
 import type { App } from "app/client/ui/App";
@@ -91,7 +90,6 @@ export class Clipboard extends Disposable {
   }
 
   public readonly copypasteField: HTMLDivElement;
-  private readonly _announcer: HTMLDivElement;
 
   // In the event of a cut a callback is provided by the viewsection that is the target of the cut.
   // When called it returns the additional removal action needed for a cut.
@@ -103,22 +101,18 @@ export class Clipboard extends Disposable {
 
   constructor(private _app: App) {
     super();
-    this._announcer = visuallyHidden({
-      "id": "announcer",
-      "aria-live": "polite",
-      "aria-atomic": "true",
-    });
     this.copypasteField = dom("div",
       dom.cls("copypaste"),
       dom.cls("mousetrap"),
       {
         id: "copypaste-field",
         tabIndex: "0",
-        role: "application",
+        contenteditable: "true",
+        role: "textbox",
       },
       dom.on("input", (event, elem) => {
         const value = (event as InputEvent).data;
-        elem.innerHTML = "<br><br>";
+        elem.textContent = "";
         event.stopPropagation();
         event.preventDefault();
         commands.allCommands.input.run(value);
@@ -126,28 +120,15 @@ export class Clipboard extends Disposable {
       dom.on("copy", this._onCopy.bind(this)),
       dom.on("cut", this._onCut.bind(this)),
       dom.on("paste", this._onPaste.bind(this)),
-      dom("br"),
-      dom("br"),
-    );
-    const description = cssHiddenElement(
-      { id: "clipboard-description" },
-      t(
-        "Press {{accessibilityShortcut}} to open the accessibility modal and get help on how to navigate with a screen \
-reader.",
-        { accessibilityShortcut: getHumanKey(allCommands.accessibility.humanKeys[0], isMac) },
-      ),
     );
     document.body.appendChild(this.copypasteField);
-    document.body.appendChild(this._announcer);
-    document.body.appendChild(description);
     this.onDispose(() => { dom.domDispose(this.copypasteField); this.copypasteField.remove(); });
 
     FocusLayer.create(this, {
       defaultFocusElem: this.copypasteField,
       allowFocus: Clipboard.allowFocus,
       onDefaultFocus: () => {
-        console.log("mhl focuslayer onDefaultFocus");
-        this.copypasteField.innerHTML = "<br><br>";
+        this.copypasteField.textContent = "";
         window.getSelection()?.selectAllChildren(this.copypasteField);
         this._app.trigger("clipboard_focus");
       },
@@ -155,6 +136,33 @@ reader.",
         this._app.trigger("clipboard_blur");
       },
     });
+
+    const screenReaderMode = Computed.create(this, (use) => {
+      const appModel = use(this._app.topAppModel.appObs);
+      return appModel ? use(appModel.screenReaderMode) : false;
+    });
+
+    const srLabel = t(
+      "You must enable screen reader mode to use Grist with assistive technologies. Press {{srShortcut}} to \
+enable it, or press {{a11yShortcut}} to open the accessibility modal and get help on how to navigate with a \
+screen reader and a keyboard.",
+      {
+        srShortcut: getHumanKey(allCommands.toggleScreenReaderMode.humanKeys[0], isMac),
+        a11yShortcut: getHumanKey(allCommands.accessibility.humanKeys[0], isMac),
+      },
+    );
+
+    this.autoDispose(subscribe(screenReaderMode, (_use, enabled) => {
+      if (enabled) {
+        this.copypasteField.removeAttribute("contentEditable");
+        this.copypasteField.setAttribute("role", "application");
+        this.copypasteField.removeAttribute("aria-label");
+      } else {
+        this.copypasteField.setAttribute("contentEditable", "true");
+        this.copypasteField.setAttribute("role", "textbox");
+        this.copypasteField.setAttribute("aria-label", srLabel);
+      }
+    }));
 
     // Expose the grabber as a global to allow upload from tests to explicitly restore focus
     (window as any).gristClipboardGrabFocus = () => FocusLayer.grabFocus();
@@ -169,16 +177,6 @@ reader.",
     });
 
     this.autoDispose(commands.createGroup(Clipboard.commands, this, true));
-  }
-
-  public announce(...elems: (HTMLElement | null | string)[]) {
-    this._announcer.innerHTML = "";
-    for (const elem of elems) {
-      if (!elem) {
-        continue;
-      }
-      this._announcer.appendChild(elem instanceof HTMLElement ? elem.cloneNode(true) : dom("span", elem));
-    }
   }
 
   /**
@@ -419,8 +417,4 @@ by using the keyboard shortcut {{shortcut}}.",
 
 const cssModalContent = styled("div", `
   line-height: 18px;
-`);
-
-const cssHiddenElement = styled("span", `
-  display: none;
 `);
