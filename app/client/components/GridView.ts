@@ -242,6 +242,15 @@ export default class GridView extends BaseView {
     this.autoDispose(this.currentPosition.addListener((cur, prev) => {
       if (cur.rowIndex !== prev.rowIndex || cur.fieldIndex !== prev.fieldIndex) {
         this.visibleRowIndex(cur.rowIndex);
+        if (this.gristDoc.app?.clipboard) {
+          const columnLabel = this.viewSection.viewFields().all()[cur.fieldIndex].label();
+          const rowLabel = (cur.rowIndex ?? 0) + 1;
+          // get dom element of the current cell
+          this.gristDoc.app.clipboard.announce(
+            this.viewPane.querySelector<HTMLDivElement>(`[aria-rowindex="${(cur.rowIndex ?? 0) + 1}"][aria-colindex="${cur.fieldIndex + 1}"] .field_clip`),
+            `Cell ${rowLabel} ${columnLabel}`,
+          );
+        }
       }
     }));
 
@@ -1349,7 +1358,7 @@ export default class GridView extends BaseView {
 
     return dom(
       "div.gridview_data_pane.flexvbox",
-      { role: "grid" },
+      { "role": "grid", "aria-owns": "copypaste-field floating-editor" },
       dom.attr("aria-label", use => use(v.titleDef)),
       dom.attr("aria-rowcount", (use) => {
         const dataLength = use(data.getObservable()).length;

@@ -27,6 +27,7 @@ import { makeT } from "app/client/lib/localization";
 import { makePasteHtml, makePasteText, parsePasteHtml, PasteData } from "app/client/lib/tableUtil";
 import { ShortcutKey, ShortcutKeyContent } from "app/client/ui/ShortcutKey";
 import { confirmModal } from "app/client/ui2018/modals";
+import { visuallyHidden } from "app/client/ui2018/visuallyHidden";
 import { isNonNullish } from "app/common/gutil";
 import { tsvDecode } from "app/common/tsvFormat";
 
@@ -89,7 +90,8 @@ export class Clipboard extends Disposable {
     return FOCUS_TARGET_TAGS.has(elem.tagName) || elem.hasAttribute("tabindex");
   }
 
-  public readonly copypasteField: HTMLTextAreaElement;
+  public readonly copypasteField: HTMLDivElement;
+  private readonly _announcer: HTMLDivElement;
 
   // In the event of a cut a callback is provided by the viewsection that is the target of the cut.
   // When called it returns the additional removal action needed for a cut.
@@ -101,21 +103,22 @@ export class Clipboard extends Disposable {
 
   constructor(private _app: App) {
     super();
-    this.copypasteField = dom("textarea",
+    this._announcer = visuallyHidden({
+      "id": "announcer",
+      "aria-live": "polite",
+      "aria-atomic": "true",
+    });
+    this.copypasteField = dom("div",
       dom.cls("copypaste"),
       dom.cls("mousetrap"),
-      dom.attr("aria-label", t(
-        "Focus is currently on the main region. Press {{nextRegionShortcut}} to navigate to other regions.",
-        { nextRegionShortcut: getHumanKey(allCommands.nextRegion.humanKeys[0], isMac) },
-      )),
-      dom.attr("aria-describedby", "clipboard-description"),
-      // The aria-activedescendant attribute is very important for assistive technologies like screen readers (SRs):
-      // when focused on the copypasteField, SRs will actually announce things as if the user was focused on the
-      // element with current-cursor-cell id. This id is moved as needed when gridview, detailview, etc. cursor changes.
-      dom.attr("aria-activedescendant", "current-cursor-cell"),
+      {
+        id: "copypaste-field",
+        tabIndex: "0",
+        role: "application",
+      },
       dom.on("input", (event, elem) => {
-        const value = elem.value;
-        elem.value = "";
+        const value = (event as InputEvent).data;
+        elem.innerHTML = "<br><br>";
         event.stopPropagation();
         event.preventDefault();
         commands.allCommands.input.run(value);
@@ -123,6 +126,8 @@ export class Clipboard extends Disposable {
       dom.on("copy", this._onCopy.bind(this)),
       dom.on("cut", this._onCut.bind(this)),
       dom.on("paste", this._onPaste.bind(this)),
+      dom("br"),
+      dom("br"),
     );
     const description = cssHiddenElement(
       { id: "clipboard-description" },
@@ -133,6 +138,7 @@ reader.",
       ),
     );
     document.body.appendChild(this.copypasteField);
+    document.body.appendChild(this._announcer);
     document.body.appendChild(description);
     this.onDispose(() => { dom.domDispose(this.copypasteField); this.copypasteField.remove(); });
 
@@ -140,8 +146,9 @@ reader.",
       defaultFocusElem: this.copypasteField,
       allowFocus: Clipboard.allowFocus,
       onDefaultFocus: () => {
-        this.copypasteField.value = " ";
-        this.copypasteField.select();
+        console.log("mhl focuslayer onDefaultFocus");
+        this.copypasteField.innerHTML = "<br><br>";
+        window.getSelection()?.selectAllChildren(this.copypasteField);
         this._app.trigger("clipboard_focus");
       },
       onDefaultBlur: () => {
@@ -164,11 +171,21 @@ reader.",
     this.autoDispose(commands.createGroup(Clipboard.commands, this, true));
   }
 
+  public announce(...elems: (HTMLElement | null | string)[]) {
+    this._announcer.innerHTML = "";
+    for (const elem of elems) {
+      if (!elem) {
+        continue;
+      }
+      this._announcer.appendChild(elem instanceof HTMLElement ? elem.cloneNode(true) : dom("span", elem));
+    }
+  }
+
   /**
    * Internal helper fired on `copy` events. If a callback was registered from a component, calls the
    * callback to get selection data and puts it on the clipboard.
    */
-  private _onCopy(event: ClipboardEvent, elem: HTMLTextAreaElement) {
+  private _onCopy(event: ClipboardEvent, elem: HTMLDivElement) {
     event.preventDefault();
     const pasteObj = commands.allCommands.copy.run();
     this._setCBdata(pasteObj, event.clipboardData!);
@@ -184,7 +201,7 @@ reader.",
     void this._copyToClipboard(pasteObj, "copy", true);
   }
 
-  private _onCut(event: ClipboardEvent, elem: HTMLTextAreaElement) {
+  private _onCut(event: ClipboardEvent, elem: HTMLDivElement) {
     event.preventDefault();
     const pasteObj = commands.allCommands.cut.run();
     this._setCBdata(pasteObj, event.clipboardData!);
@@ -253,7 +270,7 @@ reader.",
    * Internal helper fired on `paste` events. If a callback was registered from a component, calls the
    * callback with data from the clipboard.
    */
-  private _onPaste(event: ClipboardEvent, elem: HTMLTextAreaElement) {
+  private _onPaste(event: ClipboardEvent, elem: HTMLDivElement) {
     event.preventDefault();
     const cb = event.clipboardData!;
     const plainText = cb.getData("text/plain");
