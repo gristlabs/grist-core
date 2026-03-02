@@ -12,6 +12,7 @@ import { colors, testId, theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { makeLinks } from "app/client/ui2018/links";
 import { menuCssClass } from "app/client/ui2018/menus";
+import { tokens } from "app/common/ThemePrefs.ts";
 
 import { BindableValue, dom, DomContents, DomElementArg, DomElementMethod, Observable, styled } from "grainjs";
 import merge from "lodash/merge";
@@ -598,8 +599,8 @@ export const cssInfoTooltipButton = styled(cssInfoTooltipIcon, `
   }
 
   &-in-banner {
-    color: ${colors.dark};
-    border-color: ${colors.dark};
+    color: ${tokens.black};
+    border-color: ${tokens.black};
   }
 
   &-in-banner:hover {
