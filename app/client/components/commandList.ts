@@ -603,7 +603,7 @@ export const groups: CommendGroupDef[] = [{
       desc: () => t("Insert a new column, after the currently selected one"),
     }, {
       name: "makeHeadersFromRow",
-      keys: ["Mod+Shift+H"],
+      keys: [],
       desc: () => t("Use the currently selected row as table headers"),
     }, {
       name: "renameField",
