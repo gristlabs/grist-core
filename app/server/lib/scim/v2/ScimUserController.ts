@@ -57,12 +57,18 @@ class ScimUserController extends BaseController {
       // take an optimised branch where we query the database by filtering the entries.
       if (match) {
         const { op, value } = match;
-        users = await this.dbManager.getExistingUsersFiltered(
-          {
+        const filterMaxResults = SCIMMY.Config.get().filter.maxResults;
+        users = await this.dbManager.findUsers({
+          where: {
             logins: this._filterByLoginEmail(op, value),
             type: "login",
           },
-        );
+          // Safe-guard: only take a certain number of result, avoiding
+          // DB overload or server crash.
+          // Though we can't compute the "totalResults".
+          // https://datatracker.ietf.org/doc/html/rfc7644#page-25
+          take: parseInt(filterMaxResults),
+        });
       // Otherwise we fetch all the users and let Scimmy apply the potential filter.
       } else {
         users = await this.dbManager.getUsers({ type: "login" });

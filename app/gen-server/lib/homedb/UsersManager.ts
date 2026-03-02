@@ -32,7 +32,7 @@ import { getPersonalOrgsEnabled } from "app/server/lib/gristSettings";
 import * as crypto from "crypto";
 
 import flatten from "lodash/flatten";
-import { EntityManager, FindOptionsWhere, IsNull, Not } from "typeorm";
+import { EntityManager, FindManyOptions, IsNull, Not } from "typeorm";
 
 function apiKeyGenerator(): string {
   return crypto.randomBytes(20).toString("hex");
@@ -410,12 +410,12 @@ export class UsersManager {
    *
    * @return The users found
    */
-  public async getExistingUsersFiltered(where: FindOptionsWhere<User>, manager?: EntityManager) {
+  public async findUsers(findOpts: FindManyOptions<User>, manager?: EntityManager) {
     return (manager || this._connection).getRepository(User)
       .find({
         relations: ["logins"],
-        where,
         order: { id: "ASC" },
+        ...findOpts,
       });
   }
 
