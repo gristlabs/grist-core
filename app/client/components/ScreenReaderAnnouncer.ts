@@ -1,3 +1,4 @@
+import { Notifier } from "app/client/models/NotifyModel";
 import { visuallyHidden } from "app/client/ui2018/visuallyHidden";
 
 import { Disposable, dom } from "grainjs";
@@ -10,7 +11,7 @@ export class ScreenReaderAnnouncer extends Disposable {
     this._container = visuallyHidden({
       "id": "screen-reader-announcer",
       "aria-live": "polite",
-      "aria-atomic": "true",
+      "aria-atomic": "false",
     });
     document.body.appendChild(this._container);
     this.onDispose(() => {
@@ -28,12 +29,19 @@ export class ScreenReaderAnnouncer extends Disposable {
    * Passing DOM elements is useful to make the screen reader vocalize structured content like headings, lists, etc.
    */
   public announce(...elems: (HTMLElement | null | string)[]) {
-    this._container.innerHTML = "";
     for (const elem of elems) {
-      if (!elem) { continue; }
+      if (!elem) {
+        continue;
+      }
+      // We append things to have some sort of announcement queue, instead of replacing content directly,
+      // in case we want to announce different things at seemingly the same time.
       this._container.appendChild(
         elem instanceof HTMLElement ? elem.cloneNode(true) : dom("span", elem),
       );
+      // Make sure the DOM doesn't get too big
+      while (this._container.children.length > 10) {
+        this._container.removeChild(this._container.firstChild!);
+      }
     }
   }
 }
