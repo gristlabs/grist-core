@@ -102,6 +102,7 @@ import { StorageCoordinator } from "app/server/lib/GristServer";
 import { getPersonalOrgsEnabled } from "app/server/lib/gristSettings";
 import { makeId } from "app/server/lib/idUtils";
 import { EmitNotifier, INotifier } from "app/server/lib/INotifier";
+import { InstallAdmin } from "app/server/lib/InstallAdmin";
 import log from "app/server/lib/log";
 import { Permit } from "app/server/lib/Permit";
 import { IPubSubManager } from "app/server/lib/PubSubManager";
@@ -302,6 +303,7 @@ export class HomeDBManager implements HomeDBAuth {
 
   private _docAuthCache = new MapWithTTL<string, Promise<DocAuthResult>>(DOC_AUTH_CACHE_TTL);
   private _readonly: boolean = false;
+  private _installAdmin?: InstallAdmin;
 
   private get _dbType(): DatabaseType {
     return this._connection.driver.options.type;
@@ -2160,7 +2162,7 @@ export class HomeDBManager implements HomeDBAuth {
         const membersBefore = UsersManager.getUsersWithRole(groups, this._usersManager.getExcludedUserIds());
         const countBefore = removeRole(membersBefore).length;
         await this._updateUserPermissions(groups, userIdDelta, manager);
-        this._checkUserChangeAllowed(userId, groups);
+        await this._checkUserChangeAllowed(userId, groups);
         await manager.save(groups);
         // Fully remove any users being removed from the org.
         for (const deltaUser in userIdDelta) {
@@ -2259,7 +2261,7 @@ export class HomeDBManager implements HomeDBAuth {
         // to _updateUserPermissions.  Careful, that method mutates groups.
         const nonOrgMembersBefore = this._usersManager.getUserDifference(groups, orgGroups);
         await this._updateUserPermissions(groups, userIdDelta, manager);
-        this._checkUserChangeAllowed(userId, groups);
+        await this._checkUserChangeAllowed(userId, groups);
         const nonOrgMembersAfter = this._usersManager.getUserDifference(groups, orgGroups);
         const features = org.billingAccount.getFeatures();
         const limit = features.maxSharesPerWorkspace;
@@ -2336,7 +2338,7 @@ export class HomeDBManager implements HomeDBAuth {
         const orgGroups = getNonGuestGroups(org);
         const nonOrgMembersBefore = this._usersManager.getUserDifference(groups, orgGroups);
         await this._updateUserPermissions(groups, userIdDelta, manager);
-        this._checkUserChangeAllowed(userId, groups);
+        await this._checkUserChangeAllowed(userId, groups);
         const nonOrgMembersAfter = this._usersManager.getUserDifference(groups, orgGroups);
         const features = org.billingAccount.getFeatures();
         this._restrictAllDocShares(features, nonOrgMembersBefore, nonOrgMembersAfter);
@@ -3608,6 +3610,17 @@ export class HomeDBManager implements HomeDBAuth {
 
   public async deleteApiKey(userId: number, transaction?: EntityManager) {
     return this._usersManager.deleteApiKey(userId, transaction);
+  }
+
+  public setInstallAdmin(installAdmin: InstallAdmin) {
+    this._installAdmin = installAdmin;
+  }
+
+  public async getAdminUser(): Promise<User> {
+    if (!this._installAdmin) {
+      throw new Error("HomeDBManager: setInstallAdmin has not been called");
+    }
+    return this._installAdmin.getAdminUser();
   }
 
   private async _doGetDocPrefs(scope: DocScope, manager: EntityManager): Promise<[Document, FullDocPrefs]> {
@@ -5179,7 +5192,7 @@ export class HomeDBManager implements HomeDBAuth {
 
   // For the moment only the support user can add both everyone@ and anon@ to a
   // resource, since that allows spam.  TODO: enhance or remove.
-  private _checkUserChangeAllowed(userId: number, groups: Group[]) {
+  private async _checkUserChangeAllowed(userId: number, groups: Group[]) {
     return this._usersManager.checkUserChangeAllowed(userId, groups);
   }
 
