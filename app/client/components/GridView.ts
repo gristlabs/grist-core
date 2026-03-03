@@ -1350,7 +1350,13 @@ export default class GridView extends BaseView {
     return dom(
       "div.gridview_data_pane.flexvbox",
       { role: "grid" },
-      dom.attr("aria-label", use => use(v.titleDef)),
+      dom.attr("aria-label", use =>
+        t("{{title}} widget on {{pageName}} page", {
+          title: use(v.titleDef),
+          pageName: use(this.gristDoc.currentPageName),
+        }),
+      ),
+      dom.attr("aria-describedby", "current-page-name"),
       dom.attr("aria-rowcount", (use) => {
         const dataLength = use(data.getObservable()).length;
         const hasAddRow = use(this.enableAddRow);
