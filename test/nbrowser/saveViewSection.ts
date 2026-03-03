@@ -33,7 +33,7 @@ describe("saveViewSection", function() {
     await driver.find(".test-pwc-editDataSelection").doClick();
 
     // summarize table by 'A' and save
-    await driver.findContent(".test-wselect-table", /Table1/).find(".test-wselect-pivot").doClick();
+    await driver.findContentWait(".test-wselect-table", /Table1/, 2000).find(".test-wselect-pivot").doClick();
     await driver.findContent(".test-wselect-column", /A/).doClick();
     await driver.find(".test-wselect-addBtn").doClick();
 
