@@ -14,6 +14,8 @@ import { DocStateComparisonDetails } from "app/common/DocState";
 import { CellDelta } from "app/common/TabularDiff";
 import { CellValue, GristObjCode } from "app/plugin/GristData";
 
+import { Emitter } from "grainjs";
+
 // A special row id, representing omitted rows.
 const ROW_ID_SKIP = -1;
 
@@ -21,11 +23,15 @@ const ROW_ID_SKIP = -1;
  * Represent extra rows in a table that correspond to rows added in a remote (right) document,
  * or removed in the local (left) document relative to a common ancestor.
  *
- * We assign synthetic row ids for these rows somewhat arbitrarily as follows:
+ * These rows don't exist in the real TableData, so we assign synthetic negative row IDs
+ * to inject them into the grid's row source. The encoding is:
  *  - For rows added remotely, we map their id to - id * 2 - 1
  *  - For rows removed locally, we map their id to - id * 2 - 2
  *  - (id of -1 is left free for use in skipped rows)
  * This should be the only part of the code that knows that.
+ *
+ * `changeEmitter` fires when locally-removed rows are added or cleaned up at runtime,
+ * so that BaseView can dynamically update ExtendedRowSource (which feeds the grid).
  */
 export class ExtraRows {
   /**
@@ -50,6 +56,8 @@ export class ExtraRows {
   public readonly rightRemoveRows: Set<number>;
   public leftAddRows: Set<number>;
   public leftRemoveRows: Set<number>;
+
+  public readonly changeEmitter = new Emitter();
 
   public constructor(public readonly tableId?: string, public readonly comparison?: DocStateComparisonDetails) {
     if (!tableId) {
@@ -204,8 +212,24 @@ export class DataTableModelWithDiff extends DisposableWithEvents implements Data
 }
 
 /**
- * A variant of TableData that is aware of a comparison with another version of the table.
- * TODO: flesh out, just included essential members so far.
+ * A variant of TableData that shows a live diff between the document's state when it was
+ * first opened (the "comparison base") and its current state.
+ *
+ * For cell edits, the diff is straightforward: `leftTableDelta` stores [oldValue, newValue]
+ * pairs and `getValue()` returns them as CellVersions so the UI can render old/new side by side.
+ *
+ * Row deletions are trickier: the deleted row disappears from the real table data, but the
+ * diff needs to keep showing it (struck-through) with its original values. We handle this by
+ * injecting a *synthetic row ID* (via ExtraRows) into the grid's row source. The synthetic ID
+ * maps back to the original row, and `getValue()` returns the pre-deletion values from
+ * `leftTableDelta`. The synthetic row is added to ExtendedRowSource dynamically via
+ * `changeEmitter`, so the grid updates in real time.
+ *
+ * When operations cancel out (add then delete the same row, or delete then undo), the
+ * bookkeeping is cleaned up and the synthetic row is removed - leaving no diff artifact.
+ *
+ * `leftTableDelta` accumulates across all edits for the lifetime of the document view,
+ * so the diff always shows the total change from the comparison base, not incremental changes.
  */
 export class TableDataWithDiff {
   public dataLoadedEmitter: any;
@@ -392,23 +416,28 @@ export class TableDataWithDiff {
    */
   private _processAddRows(tableDelta: TableDelta): void {
     for (const rowId of tableDelta.addRows) {
+      const syntheticId = this.extraRows.encodeLeftRemoveRow(rowId);
+      if (this.extraRows.leftRemoveRows.has(syntheticId)) {
+        this._cleanupRemovedRow(rowId);
+        continue;
+      }
+
       for (const colId of Object.keys(tableDelta.columnDeltas)) {
         this._ensureColumnExists(colId);
 
         if (!this.leftTableDelta.columnDeltas[colId][rowId]) {
           this.leftTableDelta.columnDeltas[colId][rowId] = [null, null];
-
-          if (!this.leftTableDelta.addRows.includes(rowId)) {
-            this.leftTableDelta.addRows.push(rowId);
-          }
         }
 
         this.leftTableDelta.columnDeltas[colId][rowId][1] =
           tableDelta.columnDeltas[colId]?.[rowId]?.[1];
-
-        this._updates.add(rowId);
-        this.extraRows.leftAddRows.add(rowId);
       }
+
+      if (!this.leftTableDelta.addRows.includes(rowId)) {
+        this.leftTableDelta.addRows.push(rowId);
+      }
+      this._updates.add(rowId);
+      this.extraRows.leftAddRows.add(rowId);
     }
   }
 
@@ -425,6 +454,9 @@ export class TableDataWithDiff {
         continue;
       }
 
+      const syntheticId = this.extraRows.encodeLeftRemoveRow(rowId);
+      const isNew = !this.extraRows.leftRemoveRows.has(syntheticId);
+
       for (const colId of Object.keys(tableDelta.columnDeltas)) {
         this._ensureColumnExists(colId);
 
@@ -437,11 +469,13 @@ export class TableDataWithDiff {
 
         this.leftTableDelta.columnDeltas[colId][rowId][0] =
           tableDelta.columnDeltas[colId]?.[rowId]?.[0];
+      }
 
-        this._updates.add(rowId);
-        this.extraRows.leftRemoveRows.add(
-          this.extraRows.encodeLeftRemoveRow(rowId),
-        );
+      this._updates.add(rowId);
+      this.extraRows.leftRemoveRows.add(syntheticId);
+
+      if (isNew) {
+        this.extraRows.changeEmitter.emit("add", [syntheticId]);
       }
     }
   }
@@ -456,6 +490,20 @@ export class TableDataWithDiff {
     this.extraRows.leftAddRows.delete(rowId);
     this._updates.delete(rowId);
     this.leftTableDelta.addRows = this.leftTableDelta.addRows.filter(id => id !== rowId);
+    for (const colId of Object.keys(this.leftTableDelta.columnDeltas)) {
+      delete this.leftTableDelta.columnDeltas[colId][rowId];
+    }
+  }
+
+  private _cleanupRemovedRow(rowId: number): void {
+    const syntheticId = this.extraRows.encodeLeftRemoveRow(rowId);
+    this.extraRows.leftRemoveRows.delete(syntheticId);
+    this._updates.delete(rowId);
+    this.leftTableDelta.removeRows = this.leftTableDelta.removeRows.filter(id => id !== rowId);
+    for (const colId of Object.keys(this.leftTableDelta.columnDeltas)) {
+      delete this.leftTableDelta.columnDeltas[colId][rowId];
+    }
+    this.extraRows.changeEmitter.emit("remove", [syntheticId]);
   }
 }
 

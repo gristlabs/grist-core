@@ -941,6 +941,140 @@ describe("ProposedChangesPage", function() {
     await returnToTrunk(url);
   });
 
+  it("highlights deleted rows in suggestion mode", async function() {
+    await makeLifeDoc();
+    const url = await driver.getCurrentUrl();
+
+    await workOnCopy(url);
+
+    // Delete the first row.
+    await gu.getCell("A", 1).click();
+    await gu.waitAppFocus();
+    await gu.sendKeys(Key.chord(await gu.modKey(), Key.DELETE));
+    // Confirm the deletion in the popup.
+    await driver.findWait(".test-confirm-save", 2000).click();
+    await gu.waitForServer();
+
+    // Verify the deleted row appears with diff-local-remove styling.
+    const removedRecord = await driver.findWait(".record.diff-local-remove", 2000);
+    assert.isTrue(await removedRecord.isDisplayed());
+    // Verify old cell value is present in the removed row.
+    const cellText = await removedRecord.find(".field_clip").getText();
+    assert.equal(cellText, "10");
+
+    // Undo and verify the diff-local-remove row is gone.
+    await gu.undo();
+    const removedAfterUndo = await driver.findAll(".record.diff-local-remove");
+    assert.lengthOf(removedAfterUndo, 0);
+    // Verify the original row is restored.
+    const cell = await gu.getCell("A", 1);
+    assert.equal(await cell.getText(), "10");
+
+    // Redo and verify diff-local-remove returns.
+    await gu.redo();
+    await driver.findWait(".record.diff-local-remove", 2000);
+    const removedAfterRedo = await driver.findAll(".record.diff-local-remove");
+    assert.lengthOf(removedAfterRedo, 1);
+
+    await returnToTrunk(url);
+  });
+
+  it("shows deleted row after reload in suggestion mode", async function() {
+    await makeLifeDoc();
+    const url = await driver.getCurrentUrl();
+
+    await workOnCopy(url);
+
+    // Delete the first row (A=10, B="Fish").
+    await gu.getCell("A", 1).click();
+    await gu.waitAppFocus();
+    await gu.sendKeys(Key.chord(await gu.modKey(), Key.DELETE));
+    await driver.findWait(".test-confirm-save", 2000).click();
+    await gu.waitForServer();
+
+    // Verify both columns show original values in the removed row.
+    let removedRecord = await driver.findWait(".record.diff-local-remove", 5000);
+    let cells = await removedRecord.findAll(".field_clip");
+    assert.equal(await cells[0].getText(), "10");
+    assert.equal(await cells[1].getText(), "Fish");
+
+    // Reload the page.
+    await gu.refreshDismiss({ ignore: true });
+
+    // Verify the deleted row still shows after reload.
+    removedRecord = await driver.findWait(".record.diff-local-remove", 5000);
+    cells = await removedRecord.findAll(".field_clip");
+    assert.equal(await cells[0].getText(), "10");
+    assert.equal(await cells[1].getText(), "Fish");
+
+    await returnToTrunk(url);
+  });
+
+  it("shows edits and deletions together in suggestion mode", async function() {
+    await makeLifeDoc();
+    const url = await driver.getCurrentUrl();
+
+    await workOnCopy(url);
+
+    // Edit the second row.
+    await gu.getCell("B", 2).click();
+    await gu.waitAppFocus();
+    await gu.enterCell("Ape");
+
+    // Delete the first row.
+    await gu.getCell("A", 1).click();
+    await gu.waitAppFocus();
+    await gu.sendKeys(Key.chord(await gu.modKey(), Key.DELETE));
+    await driver.findWait(".test-confirm-save", 2000).click();
+    await gu.waitForServer();
+
+    // Verify the deleted row shows with diff-local-remove.
+    await driver.findWait(".record.diff-local-remove", 5000);
+    const removedRecords = await driver.findAll(".record.diff-local-remove");
+    assert.lengthOf(removedRecords, 1);
+
+    // Verify the edited row still shows its diff highlighting.
+    // After deleting row 1, the synthetic deleted row stays at position 1,
+    // so the edited row (originally row 2) moves to position 2.
+    const editedCell = await gu.getCell("B", 2);
+    assert.equal(await editedCell.find(".diff-parent").getText(), "Primate");
+    assert.equal(await editedCell.find(".diff-local").getText(), "Ape");
+
+    await returnToTrunk(url);
+  });
+
+  it("cancels out add and delete of same row in suggestion mode", async function() {
+    await makeLifeDoc();
+    const url = await driver.getCurrentUrl();
+
+    await workOnCopy(url);
+
+    // Add a new row by typing in the "new" row.
+    await gu.getCell("B", 3).click();
+    await gu.waitAppFocus();
+    await gu.enterCell("Whale");
+
+    // Verify the new row appears as diff-local-add.
+    let addedRecords = await driver.findAll(".record.diff-local-add");
+    assert.lengthOf(addedRecords, 1);
+
+    // Now delete the row we just added.
+    await gu.getCell("A", 3).click();
+    await gu.waitAppFocus();
+    await gu.sendKeys(Key.chord(await gu.modKey(), Key.DELETE));
+    await driver.findWait(".test-confirm-save", 2000).click();
+    await gu.waitForServer();
+
+    // The add and delete should cancel out — no diff rows at all.
+    addedRecords = await driver.findAll(".record.diff-local-add");
+    const removedRecords = await driver.findAll(".record.diff-local-remove");
+
+    assert.lengthOf(addedRecords, 0);
+    assert.lengthOf(removedRecords, 0);
+
+    await returnToTrunk(url);
+  });
+
   async function makeLifeDoc() {
     // Load a test document.
     const session = await gu.session().teamSite.login();

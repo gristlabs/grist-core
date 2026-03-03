@@ -170,11 +170,14 @@ export class MappedRowSource extends RowSource {
  * A RowSource with some extra rows added.
  */
 export class ExtendedRowSource extends RowSource {
+  private _extras: UIRowId[];
+
   constructor(
     public parentRowSource: RowSource,
-    public extras: readonly UIRowId[],
+    extras: readonly UIRowId[],
   ) {
     super();
+    this._extras = [...extras];
 
     // Listen to the two event types a rowSource might produce, and map the rows in them.
     this.listenTo(parentRowSource, "rowChange", (changeType: ChangeType, rows: RowList) => {
@@ -186,11 +189,22 @@ export class ExtendedRowSource extends RowSource {
   }
 
   public getAllRows(): RowList {
-    return [...this.parentRowSource.getAllRows()].concat(this.extras);
+    return [...this.parentRowSource.getAllRows()].concat(this._extras);
   }
 
   public getNumRows(): number {
-    return this.parentRowSource.getNumRows() + this.extras.length;
+    return this.parentRowSource.getNumRows() + this._extras.length;
+  }
+
+  public addExtraRows(rows: UIRowId[]): void {
+    this._extras.push(...rows);
+    this.trigger("rowChange", "add", rows);
+  }
+
+  public removeExtraRows(rows: UIRowId[]): void {
+    const toRemove = new Set(rows);
+    this._extras = this._extras.filter(r => !toRemove.has(r));
+    this.trigger("rowChange", "remove", rows);
   }
 }
 

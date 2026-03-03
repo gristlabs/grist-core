@@ -144,7 +144,17 @@ export default class BaseView extends DisposableWithEvents {
       // Assign extra row ids for any rows added in the remote (right) table or removed in the
       // local (left) table.
       const extraRowIds = this.extraRows.getExtraRows();
-      this._mainRowSource = rowset.ExtendedRowSource.create(this, this._mainRowSource, extraRowIds);
+      const extendedRowSource = rowset.ExtendedRowSource.create(this, this._mainRowSource, extraRowIds);
+      this._mainRowSource = extendedRowSource;
+      this.autoDispose(this.extraRows.changeEmitter.addListener(
+        (changeType: string, rows: number[]) => {
+          if (changeType === "add") {
+            extendedRowSource.addExtraRows(rows);
+          } else if (changeType === "remove") {
+            extendedRowSource.removeExtraRows(rows);
+          }
+        },
+      ));
     }
 
     // Rows that should temporarily be visible even if they don't match filters.
