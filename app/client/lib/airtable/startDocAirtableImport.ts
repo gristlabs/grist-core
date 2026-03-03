@@ -31,6 +31,7 @@ export async function startDocAirtableImport(gristDoc: GristDoc) {
     const airtableImport = AirtableImport.create(owner, {
       api: gristDoc.docPageModel.appModel.api,
       destination: {
+        type: "existing-doc",
         docId: gristDoc.docId(),
         docSchema: existingDocSchema,
       },

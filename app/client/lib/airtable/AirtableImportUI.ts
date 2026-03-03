@@ -1,7 +1,7 @@
 import {
   AirtableImportDestination,
   AirtableImportResult,
-  applyAirtableImportSchemaAndImportData,
+  applyAirtableImportSchemaAndImportData, ExistingDoc, NewDoc,
   validateAirtableSchemaImport,
 } from "app/client/lib/airtable/AirtableImporter";
 import { makeT } from "app/client/lib/localization";
@@ -76,9 +76,8 @@ interface TokenPayload {
 };
 
 type AirtableImportStep = "auth" | "select-base" | "select-tables";
-type Destination =
-  { docId: string, docSchema?: Computed<ExistingDocSchema> } |
-  { docId?: never, getNewDocWorkspace(): number };
+
+type Destination = ExistingDoc & { docSchema?: Computed<ExistingDocSchema> } | Omit<NewDoc, "name">;
 
 export interface AirtableImportOptions {
   api: UserAPI;
@@ -634,12 +633,13 @@ Your token is never sent to Grist's servers, and is only used to make API calls 
     const destination = this._options.destination;
     if (destination.docId !== undefined) {
       return {
+        type: "existing-doc",
         docId: destination.docId,
       };
     }
     return {
+      ...destination,
       name: this._base.get()?.name,
-      workspaceId: destination.getNewDocWorkspace(),
     };
   }
 

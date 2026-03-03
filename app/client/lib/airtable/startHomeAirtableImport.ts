@@ -13,19 +13,17 @@ const t = makeT("AirtableImport");
 export async function startHomeAirtableImport(home: HomeModel) {
   const { AirtableImport } = await loadAirtableImportUI();
 
-  const getNewDocWorkspace = () => {
-    const workspace = home.newDocWorkspace.get();
-    if (typeof workspace !== "object" || workspace === null) {
-      throw new Error(t("The current workspace can't be imported to."))
-    }
-    return workspace.id;
+  const workspace = home.newDocWorkspace.get();
+  if (typeof workspace !== "object" || workspace === null) {
+    throw new Error(t("The current workspace can't be imported to."));
   }
 
   return modal((ctl, owner) => {
     const airtableImport = AirtableImport.create(owner, {
       api: home.app.api,
       destination: {
-        getNewDocWorkspace,
+        type: "new-doc",
+        workspaceId: workspace.id,
       },
       onSuccess: async ({ docId }: AirtableImportResult) => {
         ctl.close();

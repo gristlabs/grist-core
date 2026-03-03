@@ -17,7 +17,19 @@ import {
 import { ExistingDocSchema } from "app/common/DocSchemaImportTypes";
 import { UserAPI } from "app/common/UserAPI";
 
-export type AirtableImportDestination = { docId: string } | { docId?: never, name?: string, workspaceId: number };
+export interface ExistingDoc {
+  type: "existing-doc";
+  docId: string;
+}
+
+export interface NewDoc {
+  type: "new-doc";
+  workspaceId: number;
+  name?: string;
+  docId?: never;
+}
+
+export type AirtableImportDestination = NewDoc | ExistingDoc;
 
 export interface AirtableImportOptions {
   destination: AirtableImportDestination,
