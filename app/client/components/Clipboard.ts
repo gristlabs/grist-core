@@ -102,12 +102,14 @@ export class Clipboard extends Disposable {
   constructor(private _app: App) {
     super();
     this.copypasteField = dom("div",
-      dom.cls("copypaste"),
-      dom.cls("mousetrap"),
       {
         id: "copypaste-field",
+        class: "copypaste mousetrap",
+        // By default, the field acts as a textarea. It's "homemade" through tabIndex + contentEditable + role
+        // attributes, in order to easily change the behavior without re-creating the element,
+        // when toggling the screen reader mode (see below).
         tabIndex: "0",
-        contenteditable: "true",
+        contentEditable: "true",
         role: "textbox",
       },
       dom.on("input", (event, elem) => {
@@ -153,6 +155,16 @@ screen reader and a keyboard.",
     );
 
     this.autoDispose(subscribe(screenReaderMode, (_use, enabled) => {
+      // If we enable the screen reader mode:
+      // - stop exposing the clipboard field as a textarea. This helps us avoiding unwanted default screen reader
+      //   behaviors. For example, SRs can announce an input value when pressing arrow keys when focused on it. So, if
+      //   it stayed as a textarea, when moving in the grid with the keyboard, it would often say "Empty", as the
+      //   clipboard field always stays empty.
+      // - apply a somewhat generic "application" role, to tell screen readers that we don't want to have navigation
+      //   mode enabled by default on this field. This allows to use the arrow keys to move in the grid, without moving
+      //   the internal screen reader navigation cursor.
+      // - remove the aria-label that helped users understand how to use Grist ; now we just want to announce the
+      //   current cell when navigating the grid (this is done on a case-by-case basis by each view type).
       if (enabled) {
         this.copypasteField.removeAttribute("contentEditable");
         this.copypasteField.setAttribute("role", "application");
