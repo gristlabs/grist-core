@@ -1,7 +1,10 @@
+import { makeT } from "app/client/lib/localization";
 import { Notifier } from "app/client/models/NotifyModel";
 import { visuallyHidden } from "app/client/ui2018/visuallyHidden";
 
 import { Disposable, dom } from "grainjs";
+
+const t = makeT("ScreenReaderAnnouncer");
 
 export class ScreenReaderAnnouncer extends Disposable {
   private readonly _container: HTMLDivElement;
@@ -18,6 +21,16 @@ export class ScreenReaderAnnouncer extends Disposable {
       dom.domDispose(this._container);
       this._container.remove();
     });
+  }
+
+  public listenToNotifier(notifier: Notifier) {
+    const { toasts } = notifier.getStateForUI();
+    this.autoDispose(toasts.addListener((newToasts) => {
+      for (const toast of newToasts) {
+        const { title, message } = toast.options;
+        this.announce(t("Notification: {{notification}}", { notification: `${title ? `${title} - ` : ""}${message}` }));
+      }
+    }));
   }
 
   /**
