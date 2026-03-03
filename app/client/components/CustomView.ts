@@ -65,7 +65,7 @@ export class CustomView extends BaseView {
       (this as unknown as BaseView).viewSelectedRecordAsCard();
 
       // Move focus back to the app, so that keyboard shortcuts work in the popup.
-      document.querySelector<HTMLElement>("textarea.copypaste.mousetrap")?.focus();
+      document.querySelector<HTMLElement>("#copypaste-field")?.focus();
     },
   };
 
@@ -93,7 +93,7 @@ export class CustomView extends BaseView {
       this.viewSelectedRecordAsCard();
 
       // Move focus back to the app, so that keyboard shortcuts work in the popup.
-      document.querySelector<HTMLElement>("textarea.copypaste.mousetrap")?.focus();
+      document.querySelector<HTMLElement>("#copypaste-field")?.focus();
     },
   };
 

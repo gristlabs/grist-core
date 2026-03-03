@@ -11,6 +11,7 @@ import { MetaTableData } from "app/client/models/TableData";
 import { cssRow } from "app/client/ui/RightPanelStyles";
 import { colors, testId, theme, vars } from "app/client/ui2018/cssVars";
 import { loadingSpinner } from "app/client/ui2018/loaders";
+import { visuallyHidden } from "app/client/ui2018/visuallyHidden";
 import { NewAbstractWidget } from "app/client/widgets/NewAbstractWidget";
 import { CellValue } from "app/common/DocActions";
 import { encodeQueryParams } from "app/common/gutil";
@@ -83,6 +84,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
           testId("attachment-icon"),
         ),
       ]),
+      visuallyHidden(t("Attachments:")),
       dom.maybe<number>(row.id, (rowId) => {
         return dom.forEach(values, (value: number) =>
           isNaN(value) ? null : this._buildAttachment(value, values, {
@@ -148,6 +150,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
       // TODO: Update to legitimately determine whether a file preview exists.
       hasPreview ? dom("img", { style: "height: 100%; min-width: 100%; vertical-align: top;" },
         dom.attr("src", this._getUrl(value, cell)),
+        { alt: t("Image") },
       ) : renderFileType(filename, fileIdent, this._height),
       // Open editor as if with input, using it to tell it which of the attachments to show. We
       // pass in a 1-based index. Hitting a key opens the cell, and this approach allows an

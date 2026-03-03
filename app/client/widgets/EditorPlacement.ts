@@ -68,15 +68,18 @@ export class EditorPlacement extends Disposable {
       this.onReposition.emit();
     }));
 
-    const editorRoot = this._editorRoot = dom("div.cell_editor", editorDom);
+    const editorRoot = this._editorRoot = dom("div.cell_editor", { id: "floating-editor" }, editorDom);
     // To hide from the user the incorrectly-sized element, we set visibility to hidden, and
     // reset it in _calcEditorSize() as soon as we have the sizes.
     editorRoot.style.visibility = "hidden";
 
     document.body.appendChild(editorRoot);
+    this._cellElem.setAttribute("aria-owns", "floating-editor");
+
     this.onDispose(() => {
       // When the editor is destroyed, destroy and remove its DOM.
       dom.domDispose(editorRoot);
+      this._cellElem.removeAttribute("aria-owns");
       editorRoot.remove();
     });
   }

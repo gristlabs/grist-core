@@ -2,7 +2,7 @@ import BaseView, { ViewOptions } from "app/client/components/BaseView";
 import { parsePasteForView } from "app/client/components/BaseView2";
 import * as selector from "app/client/components/CellSelector";
 import { ElemType } from "app/client/components/CellSelector";
-import { CutCallback } from "app/client/components/Clipboard";
+import { Clipboard, CutCallback } from "app/client/components/Clipboard";
 import * as commands from "app/client/components/commands";
 import { CopySelection } from "app/client/components/CopySelection";
 import { GristDoc } from "app/client/components/GristDoc";
@@ -1349,6 +1349,20 @@ export default class GridView extends BaseView {
 
     return dom(
       "div.gridview_data_pane.flexvbox",
+      { role: "grid" },
+      dom.attr("aria-label", use =>
+        t("{{title}} widget on {{pageName}} page", {
+          title: use(v.titleDef),
+          pageName: use(this.gristDoc.currentPageName),
+        }),
+      ),
+      dom.attr("aria-describedby", "current-page-name"),
+      dom.attr("aria-rowcount", (use) => {
+        const dataLength = use(data.getObservable()).length;
+        const hasAddRow = use(this.enableAddRow);
+        return String(hasAddRow ? dataLength - 1 : dataLength);
+      }),
+      dom.attr("aria-colcount", use => String(use(v.viewFields().getObservable()).length)),
       // offset for frozen columns - how much move them to the left
       styleCustomVar("--frozen-offset", this.frozenOffset),
       // total width of frozen columns
@@ -1421,6 +1435,7 @@ export default class GridView extends BaseView {
             this.header = dom("div.gridview_data_header.flexhbox", // main header, flexbox floats contents onto a line
 
               dom("div.column_names.record",
+                { role: "row" },
                 dom.style("minWidth", "100%"),
                 dom.style("borderLeftWidth", v.borderWidthPx),
                 kd.foreach(v.viewFields(), (field: ViewFieldRec) => {
@@ -1453,6 +1468,7 @@ export default class GridView extends BaseView {
 
                   return dom(
                     "div.column_name.field",
+                    { role: "columnheader" },
                     dom.autoDispose(canRename),
                     styleCustomVar("--grist-header-color", use => use(field.headerTextColor) || ""),
                     styleCustomVar("--grist-header-background-color", use => use(field.headerFillColor) || ""),
@@ -1601,6 +1617,8 @@ export default class GridView extends BaseView {
       );
 
       return dom("div.gridview_row",
+        { role: "row" },
+        row._isAddRow() ? null : dom.attr("aria-rowindex", use => String((use(row._index) ?? 0) + 1)),
         dom.autoDispose(isRowActive),
         dom.autoDispose(computedFlags),
         dom.autoDispose(computedRule),
@@ -1721,6 +1739,11 @@ export default class GridView extends BaseView {
 
             return dom(
               "div.field",
+              { role: "gridcell" },
+              dom.attr("id", use => use(isCellActive) ? Clipboard.srActiveId : undefined),
+              dom.attr("aria-colindex", use => String((use(field._index) ?? 0) + 1)),
+              dom.attr("aria-rowindex", use => String((use(row._index) ?? 0) + 1)),
+              dom.attr("aria-selected", use => use(isCellActive) ? "true" : "false"),
               dom.cls("field-insert-before", use =>
                 use(this._insertColumnIndex) === use(field._index)),
               kd.style("--frozen-position", () => ko.unwrap(this.frozenPositions.at(field._index()!)!)),

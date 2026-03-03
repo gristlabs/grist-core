@@ -4,6 +4,7 @@ import { inlineMarkdown, markdown } from "app/client/lib/markdown";
 import { AppModel } from "app/client/models/AppModel";
 import { urlState } from "app/client/models/gristUrlState";
 import { bigPrimaryButton, cssButton } from "app/client/ui2018/buttons";
+import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
 import { cssLink, cssNestedLinks } from "app/client/ui2018/links";
 import { cssModalBody,
   cssModalButtons,
@@ -16,7 +17,7 @@ import { cssModalBody,
 import { commonUrls, isFeatureEnabled } from "app/common/gristUrls";
 import { tokens } from "app/common/ThemePrefs";
 
-import { dom, makeTestId, Observable, styled } from "grainjs";
+import { Computed, dom, makeTestId, Observable, styled } from "grainjs";
 
 const t = makeT("OpenAccessibilityModal");
 
@@ -40,6 +41,7 @@ export function openAccessibilityModal(appObs: Observable<AppModel | null>) {
         cssModalBody(
           showHighContrastTheme ? highContrastThemeSection(appObs, ctl) : null,
           keyboardSection(),
+          screenReaderSection(appObs),
         ),
         cssModalButtons(
           bigPrimaryButton(t(`Close`),
@@ -134,10 +136,36 @@ const keyboardSection = () => {
       dom("li", t("Finally, the right panel – or the creator panel – is only available \
 through its own shortcut and is not included in the next and previous region cycle.")),
     ),
-    cssModalSubheading(t("Other important keyboard shortcuts"), { "role": "heading", "aria-level": 2 }),
+    cssModalSubheading(t("Other important keyboard shortcuts"), { "role": "heading", "aria-level": 3 }),
     dom("ul",
       cssShortcutRow(t("{{shortcutsModal}} Show the complete list of keyboard shortcuts", { shortcutsModal })),
       cssShortcutRow(t("{{accessibilityModal}} Show the accessibility options (this modal)", { accessibilityModal })),
+    ),
+  );
+};
+
+const screenReaderSection = (appObs: Observable<AppModel | null>) => {
+  const appModel = appObs.get();
+  const screenReaderMode = appModel?.screenReaderMode;
+  const checked = Computed.create(null,
+    use => screenReaderMode ? use(screenReaderMode) : false,
+  ).onWrite(val => screenReaderMode?.set(val));
+
+  return cssSection(
+    cssModalSubheading(t("Screen reader navigation"), { "role": "heading", "aria-level": 2 }),
+    dom("p", t("First, be sure to check the \"Keyboard navigation\" section above to understand how to navigate the \
+interface with the keyboard.")),
+    dom("p", t("Then, while navigating with a screen reader is possible by default, you can enable a specific mode to \
+improve the navigation experience when using a screen reader or other assistive technologies:")),
+    dom("p",
+      labeledSquareCheckbox(
+        checked,
+        t("Enable screen reader improvements (global shortcut: {{shortcut}})", {
+          shortcut: allCommands.toggleScreenReaderMode.humanKeys,
+        }),
+        testId("screen-reader-checkbox"),
+      ),
+      dom.autoDispose(checked),
     ),
   );
 };

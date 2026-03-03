@@ -58,7 +58,7 @@ class FocusLayerManager extends Disposable {
 
     const grabFocus = this.grabFocus.bind(this);
 
-    this.autoDispose(dom.onElem(window, "focus", grabFocus));
+    this.autoDispose(dom.onElem(window, "focus", () => grabFocus()));
     this.grabFocus();
 
     // The following block of code deals with what happens when the window is in the background.
@@ -69,9 +69,9 @@ class FocusLayerManager extends Disposable {
       const addRemove = onOff ? window.addEventListener : window.removeEventListener;
       // Note the third argument useCapture=true, which lets us notice these events before other
       // code that might call .stopPropagation on them.
-      addRemove.call(window, "click", grabFocus, true);
-      addRemove.call(window, "mousedown", grabFocus, true);
-      addRemove.call(window, "keydown", grabFocus, true);
+      addRemove.call(window, "click", () => grabFocus(), true);
+      addRemove.call(window, "mousedown", () => grabFocus(), true);
+      addRemove.call(window, "keydown", () => grabFocus(), true);
     }
     this.autoDispose(dom.onElem(window, "blur", setBackgroundCapture.bind(null, true)));
     this.autoDispose(dom.onElem(window, "focus", setBackgroundCapture.bind(null, false)));
@@ -98,8 +98,29 @@ class FocusLayerManager extends Disposable {
 
   /**
    * Select the default focus element, or wait until the current element loses focus.
+   *
+   * The focus is done asynchronously at the end of the event loop, to make sure focus is done on the correct element.
+   *
+   * This has one downside: when handling focus after a DOM el removal, since the focus grab is done asynchronously,
+   * the focus is set back to the body by the browser for a tiny millisecond, before being set to the correct element
+   * by the FocusLayer.
+   * In practice, this makes some screen readers announce too much context when switching focus to and from elements,
+   * event if they are next to each other in the DOM. Because the SR thinks we moved out of their container, since
+   * focus has been set back to the body in betweenfor a millisecond.
+   *
+   * To handle that specific use-case, you can pass the element from which you want to grab focus,
+   * and the FocusLayer will grab focus synchronously if the element is not there anymore.
    */
-  public grabFocus() {
+  public grabFocus(fromElement?: Element) {
+    if (fromElement && !fromElement.isConnected) {
+      if (this._timeoutId) {
+        clearTimeout(this._timeoutId);
+        this._timeoutId = null;
+      }
+      this._doGrabFocus();
+      return;
+    }
+
     if (!this._timeoutId) {
       this._timeoutId = setTimeout(() => this._doGrabFocus(), 0);
     }
@@ -119,7 +140,9 @@ class FocusLayerManager extends Disposable {
       return;
     }
     if (document.activeElement && layer.allowFocus(document.activeElement)) {
-      watchElementForBlur(document.activeElement, () => this.grabFocus());
+      // we instantly grab focus back if the watched element is gone from the page, to prevent screen
+      // readers from announcing "virtual" context switching
+      watchElementForBlur(document.activeElement, elem => this.grabFocus(elem));
       layer.onDefaultBlur();
     } else {
       layer.defaultFocusElem.focus({ preventScroll: true });
@@ -133,8 +156,8 @@ class FocusLayerManager extends Disposable {
  */
 export class FocusLayer extends Disposable implements FocusLayerOptions {
   // FocusLayer.grabFocus() allows triggering the focus check manually.
-  public static grabFocus() {
-    _focusLayerManager.get(null)?.grabFocus();
+  public static grabFocus(fromElement?: Element) {
+    _focusLayerManager.get(null)?.grabFocus(fromElement);
   }
 
   /**
@@ -175,7 +198,7 @@ export class FocusLayer extends Disposable implements FocusLayerOptions {
     const manager = managerRefCount.get();
     manager.addLayer(this);
     this.onDispose(() => manager.removeLayer(this));
-    this.autoDispose(dom.onElem(this.defaultFocusElem, "blur", () => manager.grabFocus()));
+    this.autoDispose(dom.onElem(this.defaultFocusElem, "blur", (event, elem) => manager.grabFocus(elem)));
   }
 
   public onDefaultFocus() {
@@ -198,12 +221,12 @@ export class FocusLayer extends Disposable implements FocusLayerOptions {
  * Because elements getting removed from the DOM don't always trigger 'blur' event, this also
  * uses MutationObserver to watch for the element to get removed from DOM.
  */
-export function watchElementForBlur(elem: Element, callback: () => void) {
+export function watchElementForBlur(elem: Element, callback: (elem: Element) => void) {
   const maybeDone = () => {
     if (document.activeElement !== elem) {
       lis.dispose();
       observer.disconnect();
-      callback();
+      callback(elem);
     }
   };
   const lis = dom.onElem(elem, "blur", maybeDone);
