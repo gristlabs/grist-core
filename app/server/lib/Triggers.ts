@@ -15,15 +15,22 @@ import { StringUnion } from "app/common/StringUnion";
 import { MetaRowRecord } from "app/common/TableData";
 import { CellDelta } from "app/common/TabularDiff";
 import { TriggerAction } from "app/common/Triggers";
+import TriggersTI from "app/common/Triggers-ti";
 import { ActiveDoc } from "app/server/lib/ActiveDoc";
 import { makeExceptionalDocSession } from "app/server/lib/DocSession";
 import log from "app/server/lib/log";
 import { matchesBaseDomain } from "app/server/lib/requestUtils";
-import { WebhookQueue } from "app/server/lib/WebhookQueue";
+import { type ActionPayload, type ActionQueue } from "app/server/lib/WebhookQueue";
 
 import { promisifyAll } from "bluebird";
 import * as _ from "lodash";
 import { RedisClient } from "redis";
+import * as t from "ts-interface-checker";
+
+// Schema validators for api endpoints that creates or updates records.
+const {
+  TriggerAction: TriggerActionTI,
+} = t.createCheckers(TriggersTI);
 
 promisifyAll(RedisClient.prototype);
 
@@ -38,15 +45,6 @@ interface RecordDelta {
 }
 
 type RecordDeltas = Map<number, RecordDelta>;
-
-/**
- * A payload calculated for the action to use. Each action has only access to a single record. Notice
- * that this is a whole record, without any restrictions.
- */
-interface ActionPayload {
-  id: string; // Action id (each action has unique id, for webhooks this a an id from home db)
-  payload: RowRecord; // The record data to use with the action
-}
 
 export interface TriggerCondition {
   text: string;
@@ -91,7 +89,7 @@ export class DocTriggers {
 
   constructor(
     private _activeDoc: ActiveDoc,
-    private _jobQueue: WebhookQueue,
+    private _jobQueue: ActionQueue,
   ) {}
 
   /**
@@ -269,15 +267,17 @@ export class DocTriggers {
     const result: ActionPayload[] = [];
     for (const trigger of triggers) {
       const actions = JSON.parse(trigger.actions) as TriggerAction[];
-      const webhookActions = actions.filter(act => act.type === "webhook");
-      if (!webhookActions.length) {
+      if (!actions.length) {
         continue;
       }
+
+      // Validate trigger actions and skip trigger if any action is invalid, while logging stats about it.
+      actions.forEach(action => TriggerActionTI.check(action));
 
       if (trigger.isReadyColRef) {
         if (!this._validateColId(trigger.isReadyColRef, trigger.tableRef)) {
           // ready column does not belong to table, let's ignore trigger and log stats
-          for (const action of webhookActions) {
+          for (const action of actions) {
             const colId = this._getColId(trigger.isReadyColRef); // no validation
             const tableId = this._getTableId(trigger.tableRef);
             const error = `isReadyColumn is not valid: colId ${colId} does not belong to ${tableId}`;
@@ -291,7 +291,7 @@ export class DocTriggers {
         for (const colRef of trigger.watchedColRefList.slice(1)) {
           if (!this._validateColId(colRef as number, trigger.tableRef)) {
             // column does not belong to table, let's ignore trigger and log stats
-            for (const action of webhookActions) {
+            for (const action of actions) {
               const colId = this._getColId(colRef as number); // no validation
               const tableId = this._getTableId(trigger.tableRef);
               const error = `column is not valid: colId ${colId} does not belong to ${tableId}`;
@@ -313,9 +313,9 @@ export class DocTriggers {
       },
       );
 
-      for (const action of webhookActions) {
+      for (const action of actions) {
         for (const rowIndex of rowIndexesToSend) {
-          const event = { id: action.id, payload: makePayload(rowIndex) };
+          const event = { id: action.id, action, payload: makePayload(rowIndex) };
           result.push(event);
         }
       }

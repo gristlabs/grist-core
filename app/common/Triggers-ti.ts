@@ -106,11 +106,19 @@ export const WebhookUsage = t.iface([], {
   })),
 });
 
-export const TriggerAction = t.name("WebhookAction");
+export const TriggerAction = t.union("WebhookAction", "EmailAction");
 
 export const WebhookAction = t.iface([], {
   "type": t.lit("webhook"),
   "id": "string",
+});
+
+export const EmailAction = t.iface([], {
+  "id": "string",
+  "type": t.lit("email"),
+  "to": "string",
+  "subject": "string",
+  "body": "string",
 });
 
 const exportedTypeSuite: t.ITypeSuite = {
@@ -128,5 +136,6 @@ const exportedTypeSuite: t.ITypeSuite = {
   WebhookUsage,
   TriggerAction,
   WebhookAction,
+  EmailAction,
 };
 export default exportedTypeSuite;

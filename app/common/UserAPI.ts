@@ -1090,6 +1090,20 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     });
   }
 
+  /**
+   * Adds rows to a table.
+   *
+   * Example:
+   * ```typescript
+   * const newRowIds = await docApi.addRows("tableId", {
+   *   "Column1": [value1, value2],
+   *   "Column2": [value3, value4],
+   * });
+   * ```
+   * @param tableId Table ID to add rows to.
+   * @param additions JSON object with column values for the new rows.
+   * @returns Array of new row IDs.
+   */
   public async addRows(tableId: string, additions: BulkColValues): Promise<number[]> {
     return this.requestJson(`${this._url}/tables/${tableId}/data`, {
       body: JSON.stringify(additions),

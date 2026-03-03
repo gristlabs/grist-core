@@ -108,11 +108,19 @@ export interface WebhookUsage {
 
 // Union type for trigger actions. Currently only WebhookAction is supported, but this is
 // designed as a discriminated union to support additional action types in the future (e.g., emails).
-export type TriggerAction = WebhookAction;
+export type TriggerAction = WebhookAction | EmailAction;
 
 export interface WebhookAction {
   // The type field is used to discriminate between different action types.
   // For now we have only webhook, but next types in the pipeline are emails.
   type: "webhook";
   id: string; // Unique id of the action, used as a key in homeDB secrets for webhooks
+}
+
+export interface EmailAction {
+  id: string;
+  type: "email";
+  to: string; // Comma-separated list of email addresses, user refs.
+  subject: string;
+  body: string;
 }

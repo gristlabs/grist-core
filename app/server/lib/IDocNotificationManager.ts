@@ -1,3 +1,5 @@
+import { EmailActionPayload } from "app/server/lib/WebhookQueue";
+
 import type { Proposal } from "app/common/UserAPI";
 import type { OptDocSession } from "app/server/lib/DocSession";
 import type { GranularAccessForBundle } from "app/server/lib/GranularAccess";
@@ -19,4 +21,8 @@ export interface IDocNotificationManager {
    * Prepare a notification for a particular suggestion.
    */
   notifySubscribersOfSuggestion(docId: string, proposal: Proposal): Promise<void>;
+  /**
+   * Process row-level notifications (emails) for a document.
+   */
+  rowNotification(docId: string, actions: EmailActionPayload[]): Promise<void>;
 }

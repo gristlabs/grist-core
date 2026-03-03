@@ -170,7 +170,7 @@ import { TableMetadataLoader } from "app/server/lib/TableMetadataLoader";
 import { DocTriggers } from "app/server/lib/Triggers";
 import { fetchURL, FileUploadInfo, globalUploadSet, UploadInfo } from "app/server/lib/uploads";
 import { UserPresence } from "app/server/lib/UserPresence";
-import { WebhookQueue } from "app/server/lib/WebhookQueue";
+import { ComposedActionQueue, WebhookQueue } from "app/server/lib/WebhookQueue";
 
 import assert from "assert";
 import { EventEmitter } from "events";
@@ -449,7 +449,21 @@ export class ActiveDoc extends EventEmitter {
     this.docClients = new DocClients(this);
     this._userPresence = new UserPresence(this.docClients);
     this._webhookQueue = new WebhookQueue(this);
-    this._triggers = new DocTriggers(this, this._webhookQueue);
+
+    // We will create a wrapper around the action queue, and reroute actions to different queues/handlers.
+    // Webhooks are delivered through the webhook queue, tightly coupled with particular doc worker, and it will
+    // - stop the processing of further actions if queue is too long
+    // - send any request from within the doc worker server
+    // Emails are delivered through the DocNotificationManager, which is a service running on the home server
+    // and has its own batching-job queue mechanism.
+    // NOTICE: this is just a 'plugin' mechanism for other flavors of Grist to implement. Emails are currently
+    // only supported in Grist Cloud or in Enterprise installations.
+    const actionRoute = new ComposedActionQueue();
+    actionRoute.use("webhook", this._webhookQueue);
+    actionRoute.use("email",
+      ev => this._server.getDocNotificationManager()?.rowNotification(this._docName, ev) ?? Promise.resolve());
+
+    this._triggers = new DocTriggers(this, actionRoute);
     this._requests = new DocRequests(this);
     this._actionHistory = new ActionHistoryImpl(this.docStorage);
     this.docPluginManager = _docManager.pluginManager ?
