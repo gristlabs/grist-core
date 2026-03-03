@@ -332,7 +332,9 @@ describe("AirtableImport", function() {
       });
 
       it("should list all tables from the selected base", async function() {
-        await gu.loadDocMenu("/");
+        // Switch to the team site for importing, enabling checks that the doc is in the right site/workspace.
+        await mainSession.tempWorkspace(cleanup, "Airtable");
+        await mainSession.loadDocMenu("/");
         await openAirtableDocImporter("home");
 
         const bases = await driver.findWait(".test-import-airtable-bases", 2000);
@@ -432,6 +434,14 @@ describe("AirtableImport", function() {
         assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1], cols: [0, 1, 2, 3] }), [
           "", "", "", "",
         ]);
+      });
+
+      it("should import Airtable base into the current team site and workspace", async function() {
+        // Team site should have been logged into when starting the import flow, just need to verify here.
+        // Check in the correct team site.
+        assert.equal(await driver.find(".test-dm-orgname").getText(), "Test Grist");
+        // Check correct workspace
+        assert.equal(await driver.find(".test-bc-workspace").getText(), "Airtable");
       });
 
       it("should import Airtable base to an existing Grist document", async function() {
