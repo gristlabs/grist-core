@@ -16,7 +16,7 @@ import { CellValue } from "app/common/DocActions";
 import * as gutil from "app/common/gutil";
 import { CursorPos } from "app/plugin/GristAPI";
 
-import { Disposable, dom, Emitter, Holder, MultiHolder, Observable } from "grainjs";
+import { Disposable, dom, Emitter, Holder, MultiHolder, Observable, subscribe } from "grainjs";
 import isEqual from "lodash/isEqual";
 
 const t = makeT("FieldEditor");
@@ -126,17 +126,18 @@ export class FieldEditor extends Disposable {
     }
 
     // These are the commands for while the editor is active.
+    const fieldEditSave = () => {
+      this._saveEdit().then((jumped: boolean) => {
+        // To avoid confusing cursor movement, do not increment the rowIndex if the row
+        // was re-sorted after editing.
+        if (!jumped) { commands.allCommands.fieldEditSave.run(); }
+      })
+        .catch(reportError);
+    };
     this._editCommands = {
       // _saveEdit disables this command group, so when we run fieldEditSave again, it triggers
       // another registered group, if any. E.g. GridView listens to it to move the cursor down.
-      fieldEditSave: () => {
-        this._saveEdit().then((jumped: boolean) => {
-          // To avoid confusing cursor movement, do not increment the rowIndex if the row
-          // was re-sorted after editing.
-          if (!jumped) { commands.allCommands.fieldEditSave.run(); }
-        })
-          .catch(reportError);
-      },
+      fieldEditSave,
       fieldEditSaveHere: () => { this._saveEdit().catch(reportError); },
       fieldEditCancel: () => { this._cancelEdit(); },
       prevField: () => { this._saveEdit().then(commands.allCommands.prevField.run).catch(reportError); },
@@ -144,6 +145,19 @@ export class FieldEditor extends Disposable {
       makeFormula: () => this._makeFormula(),
       unmakeFormula: () => this._unmakeFormula(),
     };
+
+    // When using screen reader mode, I think a good default is rather to stay on the cell we just edited,
+    // than to move to the next cell.
+    const app = this._gristDoc.app.topAppModel.appObs.get();
+    if (app) {
+      this.autoDispose(subscribe(app.screenReaderMode, (_use, enabled) => {
+        if (enabled) {
+          this._editCommands.fieldEditSave = this._editCommands.fieldEditSaveHere;
+        } else {
+          this._editCommands.fieldEditSave = fieldEditSave;
+        }
+      }));
+    }
 
     // for readonly editor rewire commands, most of this also could be
     // done by just overriding the saveEdit method, but this is more clearer
