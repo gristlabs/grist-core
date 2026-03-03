@@ -11,7 +11,7 @@ import {
   getTermsOfServiceUrl,
   getWebinarsUrl,
   GristLoadConfig,
-  IFeature,
+  IFeature, ImplicitlyEnabledFeatures,
 } from "app/common/gristUrls";
 import { isAffirmative } from "app/common/gutil";
 import { getTagManagerSnippet } from "app/common/tagManager";
@@ -276,7 +276,8 @@ function shouldSupportAnon() {
 
 function getFeatures(): IFeature[] {
   const disabledFeatures = process.env.GRIST_HIDE_UI_ELEMENTS?.split(",") ?? [];
-  const enabledFeatures = process.env.GRIST_UI_FEATURES?.split(",") ?? Features.values;
+  const explicitFeatures = process.env.GRIST_UI_FEATURES?.split(",") ?? Features.values;
+  const enabledFeatures = explicitFeatures.concat(ImplicitlyEnabledFeatures);
   return Features.checkAll(difference(enabledFeatures, disabledFeatures));
 }
 
