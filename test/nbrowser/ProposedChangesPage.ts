@@ -889,6 +889,8 @@ describe("ProposedChangesPage", function() {
     cell = await gu.getCell("B", 1);
     assert.equal(await cell.find(".diff-parent").getText(), "Fish");
     assert.equal(await cell.find(".diff-local").getText(), "Cat");
+
+    await returnToTrunk(url);
   });
 
   it("highlights cells after reload in suggestion mode", async function() {
@@ -913,6 +915,8 @@ describe("ProposedChangesPage", function() {
     cell = await gu.getCell("B", 1);
     assert.equal(await cell.find(".diff-parent").getText(), "Fish");
     assert.equal(await cell.find(".diff-local").getText(), "Cat");
+
+    await returnToTrunk(url);
   });
 
   it("highlights added rows in suggestion mode", async function() {
@@ -933,6 +937,8 @@ describe("ProposedChangesPage", function() {
 
     // Verify the cell has diff-local content.
     assert.equal(await cell.find(".diff-local").getText(), "Whale");
+
+    await returnToTrunk(url);
   });
 
   async function makeLifeDoc() {
