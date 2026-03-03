@@ -226,7 +226,7 @@
     "tmp-promise": "3.0.3",
     "ts-interface-checker": "1.0.2",
     "typeorm": "0.3.27",
-    "underscore": "1.12.1",
+    "underscore": "1.13.8",
     "uuid": "10.0.0",
     "winston": "2.4.5",
     "ws": "8.18.0",
