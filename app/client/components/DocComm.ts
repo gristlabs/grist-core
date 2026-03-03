@@ -206,7 +206,7 @@ export class DocComm extends Disposable implements ActiveDocAPI {
     this._comm.releaseDocConnection(this._docId);
     this._docId = docId;
     this._setOpenResponse(openResponse);
-    this.changeUrlIdEmitter.emit(urlId);
+    this.changeUrlIdEmitter.emit(urlId, openResponse);
     reportMessage("You are now editing your own copy", { key: "forking" });
   }
 }
