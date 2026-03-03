@@ -19,7 +19,7 @@
  *      visible character (useful if component wants to interpret typing into a cell, for example).
  */
 
-import { allCommands, getHumanKey, isMac } from "app/client/components/commands";
+import { getHumanKey, isMac } from "app/client/components/commands";
 import * as commands from "app/client/components/commands";
 import { copyToClipboard, readDataFromClipboard } from "app/client/lib/clipboardUtils";
 import { FocusLayer } from "app/client/lib/FocusLayer";
@@ -30,7 +30,7 @@ import { confirmModal } from "app/client/ui2018/modals";
 import { isNonNullish } from "app/common/gutil";
 import { tsvDecode } from "app/common/tsvFormat";
 
-import { Computed, Disposable, dom, styled, subscribe } from "grainjs";
+import { Disposable, dom, styled } from "grainjs";
 
 import type { CopySelection } from "app/client/components/CopySelection";
 import type { App } from "app/client/ui/App";
@@ -98,7 +98,7 @@ export class Clipboard extends Disposable {
     return FOCUS_TARGET_TAGS.has(elem.tagName) || elem.hasAttribute("tabindex");
   }
 
-  public readonly copypasteField: HTMLDivElement;
+  public readonly copypasteField: HTMLTextAreaElement;
 
   // In the event of a cut a callback is provided by the viewsection that is the target of the cut.
   // When called it returns the additional removal action needed for a cut.
@@ -110,20 +110,18 @@ export class Clipboard extends Disposable {
 
   constructor(private _app: App) {
     super();
-    this.copypasteField = dom("div",
+    this.copypasteField = dom("textarea",
       {
-        id: "copypaste-field",
-        class: "copypaste mousetrap",
-        // By default, the field acts as a textarea. It's "homemade" through tabIndex + contentEditable + role
-        // attributes, in order to easily change the behavior without re-creating the element,
-        // when toggling the screen reader mode (see below).
-        tabIndex: "0",
-        contentEditable: "true",
-        role: "textbox",
+        "id": "copypaste-field",
+        "class": "copypaste mousetrap",
+        // These 2 attributes expose to screen readers the current active item of the view (i.e the current grid cell),
+        // SRs more-or-less act as if the DOM focus is on the target element of aria-activedescendant
+        "aria-owns": "main-content",
+        "aria-activedescendant": Clipboard.srActiveId,
       },
       dom.on("input", (event, elem) => {
         const value = (event as InputEvent).data;
-        elem.textContent = "";
+        elem.value = "";
         event.stopPropagation();
         event.preventDefault();
         commands.allCommands.input.run(value);
@@ -139,57 +137,14 @@ export class Clipboard extends Disposable {
       defaultFocusElem: this.copypasteField,
       allowFocus: Clipboard.allowFocus,
       onDefaultFocus: () => {
-        this.copypasteField.textContent = "";
-        window.getSelection()?.selectAllChildren(this.copypasteField);
+        this.copypasteField.value = " ";
+        this.copypasteField.select();
         this._app.trigger("clipboard_focus");
       },
       onDefaultBlur: () => {
         this._app.trigger("clipboard_blur");
       },
     });
-
-    const screenReaderMode = Computed.create(this, (use) => {
-      const appModel = use(this._app.topAppModel.appObs);
-      return appModel ? use(appModel.screenReaderMode) : false;
-    });
-
-    const srLabel = t(
-      "You must enable screen reader mode to use Grist with assistive technologies. Press {{srShortcut}} to \
-enable it, or press {{a11yShortcut}} to open the accessibility modal and get help on how to navigate with a \
-screen reader and a keyboard.",
-      {
-        srShortcut: getHumanKey(allCommands.toggleScreenReaderMode.humanKeys[0], isMac),
-        a11yShortcut: getHumanKey(allCommands.accessibility.humanKeys[0], isMac),
-      },
-    );
-
-    this.autoDispose(subscribe(screenReaderMode, (_use, enabled) => {
-      // If we enable the screen reader mode:
-      // - expose to SRs the current active item of the view (i.e the current grid cell), through the aria-owns
-      //   and aria-activedescendant attributes. SRs will more-or-less act as if the DOM focus is on the target element.
-      // - stop exposing the clipboard field as a textarea. This helps us avoiding unwanted default screen reader
-      //   behaviors. For example, SRs can announce an input value when pressing arrow keys when focused on it. So, if
-      //   it stayed as a textarea, when moving in the grid with the keyboard, it would often say "Empty", as the
-      //   clipboard field always stays empty.
-      // - apply a somewhat generic "application" role, to tell screen readers that we don't want to have navigation
-      //   mode enabled by default on this field. This allows to use the arrow keys to move in the grid, without moving
-      //   the internal screen reader navigation cursor.
-      // - remove the aria-label that helped users understand how to use Grist ; now we just want to announce the
-      //   current cell when navigating the grid (this is done mostly through the aria-activedescendant behavior).
-      if (enabled) {
-        this.copypasteField.setAttribute("aria-owns", "main-content");
-        this.copypasteField.setAttribute("aria-activedescendant", Clipboard.srActiveId);
-        this.copypasteField.removeAttribute("contentEditable");
-        this.copypasteField.setAttribute("role", "application");
-        this.copypasteField.removeAttribute("aria-label");
-      } else {
-        this.copypasteField.removeAttribute("aria-owns");
-        this.copypasteField.removeAttribute("aria-activedescendant");
-        this.copypasteField.setAttribute("contentEditable", "true");
-        this.copypasteField.setAttribute("role", "textbox");
-        this.copypasteField.setAttribute("aria-label", srLabel);
-      }
-    }));
 
     // Expose the grabber as a global to allow upload from tests to explicitly restore focus
     (window as any).gristClipboardGrabFocus = () => FocusLayer.grabFocus();
@@ -210,7 +165,7 @@ screen reader and a keyboard.",
    * Internal helper fired on `copy` events. If a callback was registered from a component, calls the
    * callback to get selection data and puts it on the clipboard.
    */
-  private _onCopy(event: ClipboardEvent, elem: HTMLDivElement) {
+  private _onCopy(event: ClipboardEvent, elem: HTMLTextAreaElement) {
     event.preventDefault();
     const pasteObj = commands.allCommands.copy.run();
     this._setCBdata(pasteObj, event.clipboardData!);
@@ -226,7 +181,7 @@ screen reader and a keyboard.",
     void this._copyToClipboard(pasteObj, "copy", true);
   }
 
-  private _onCut(event: ClipboardEvent, elem: HTMLDivElement) {
+  private _onCut(event: ClipboardEvent, elem: HTMLTextAreaElement) {
     event.preventDefault();
     const pasteObj = commands.allCommands.cut.run();
     this._setCBdata(pasteObj, event.clipboardData!);
@@ -295,7 +250,7 @@ screen reader and a keyboard.",
    * Internal helper fired on `paste` events. If a callback was registered from a component, calls the
    * callback with data from the clipboard.
    */
-  private _onPaste(event: ClipboardEvent, elem: HTMLDivElement) {
+  private _onPaste(event: ClipboardEvent, elem: HTMLTextAreaElement) {
     event.preventDefault();
     const cb = event.clipboardData!;
     const plainText = cb.getData("text/plain");

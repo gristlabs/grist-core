@@ -153,12 +153,14 @@ const screenReaderSection = (appObs: Observable<AppModel | null>) => {
 
   return cssSection(
     cssModalSubheading(t("Screen reader navigation"), { "role": "heading", "aria-level": 2 }),
-    dom("p", t("You must first enable the screen reader mode to be able to navigate the interface using your screen \
-reader or another assistive technology.")),
+    dom("p", t("First, be sure to check the \"Keyboard navigation\" section above to understand how to navigate the \
+interface with the keyboard.")),
+    dom("p", t("Then, while navigating with a screen reader is possible by default, you can enable a specific mode to \
+improve the navigation experience when using a screen reader or other assistive technologies:")),
     dom("p",
       labeledSquareCheckbox(
         checked,
-        t("Enable screen reader mode (global shortcut: {{shortcut}})", {
+        t("Enable screen reader improvements (global shortcut: {{shortcut}})", {
           shortcut: allCommands.toggleScreenReaderMode.humanKeys,
         }),
         testId("screen-reader-checkbox"),

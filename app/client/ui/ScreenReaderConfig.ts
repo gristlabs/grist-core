@@ -28,8 +28,8 @@ export class ScreenReaderConfig extends Disposable {
         ),
       ),
       css.description(
-        t("Enable the screen reader mode if you use a screen reader or another assistive technology to navigate the \
-interface."),
+        t("Enable the screen reader mode if you use a screen reader or another assistive technology to improve the \
+navigation experience."),
         { id: "screen-reader-mode-description" },
       ),
       testId("container"),
