@@ -30,7 +30,7 @@ However you try it, you'll quickly see that Grist is a hybrid database/spreadshe
 
 This difference can confuse people coming directly from Excel or Google Sheets. Give it a chance! There's also a [Grist for Spreadsheet Users](https://www.getgrist.com/blog/grist-for-spreadsheet-users/) article to help get you oriented. If you're coming from Airtable, you'll find the model familiar (and there's also our [Grist vs Airtable](https://www.getgrist.com/blog/grist-v-airtable/) article for a direct comparison).
 
-Here are some specific feature highlights of Grist:
+Here are some specific feature highlights of Grist (🇫🇷 marks heavy French gov contributions):
 
   * Python formulas.
     - Full [Python syntax is supported](https://support.getgrist.com/formulas/#python), including the standard library.
@@ -71,14 +71,15 @@ Here are some specific feature highlights of Grist:
     - Import/export to Google drive, Excel format, CSV. [Import directly from Airtable](https://support.getgrist.com/imports/#importing-from-airtable).
     - Link data with [custom widgets](https://support.getgrist.com/widget-custom/#_top), hosted externally.
     - Configurable outgoing [webhooks](https://support.getgrist.com/webhooks/), with support for authorization headers, column-specific triggers, and formula conditions.
-    - [Service accounts](https://support.getgrist.com/install/service-accounts/) for fine-tuned API access (🇫🇷 French gov contribution).
-    - [SCIM](https://support.getgrist.com/install/scim/) for standard user and group provisioning (🇫🇷 French gov contribution).
+    - [Service accounts](https://support.getgrist.com/install/service-accounts/) for fine-tuned API access (🇫🇷).
+    - [SCIM](https://support.getgrist.com/install/scim/) for standard user and group provisioning (🇫🇷).
   * [Many templates](https://templates.getgrist.com/) to get you started, from investment research to organizing treasure hunts.
   * Access control options.
     - (You'll need SSO logins set up to make use of these options; [`grist-omnibus`](https://github.com/gristlabs/grist-omnibus) has a prepackaged solution if configuring this feels daunting)
     - Share [individual documents](https://support.getgrist.com/sharing/), workspaces, or [team sites](https://support.getgrist.com/team-sharing/).
     - Control access to [individual rows, columns, and tables](https://support.getgrist.com/access-rules/).
     - Control access based on cell values and user attributes.
+    - [OIDC](https://support.getgrist.com/install/oidc/) (🇫🇷) and [SAML](https://support.getgrist.com/install/saml/) support for single sign-on.
   * Collaboration.
     - [Comments](https://support.getgrist.com/comments/) on cells, with threaded replies and @-mentions.
     - See who else is viewing a document in real time.
@@ -86,15 +87,15 @@ Here are some specific feature highlights of Grist:
   * Self-maintainable.
     - Useful for intranet operation and specific compliance requirements.
     - [Sign in with getgrist.com](https://support.getgrist.com/install/sign-in-with-getgrist/) for easy authentication without running your own auth server.
-    - Store [attachments externally](https://support.getgrist.com/install/cloud-storage/#attachment-stores) in S3-compatible storage to keep `.grist` files small.
-    - [HTTP long polling](https://support.getgrist.com/self-managed/#what-if-websocket-connections-are-not-available) as an alternative to WebSockets for restrictive network environments (🇫🇷 French gov contribution).
+    - Store [attachments externally](https://support.getgrist.com/install/cloud-storage/#attachment-stores) in S3-compatible storage to keep `.grist` files small (🇫🇷).
+    - [HTTP long polling](https://support.getgrist.com/self-managed/#what-if-websocket-connections-are-not-available) as an alternative to WebSockets for restrictive network environments (🇫🇷).
   * Sandboxing options for untrusted documents.
     - On Linux or with Docker, you can enable [gVisor](https://github.com/google/gvisor) sandboxing at the individual document level.
     - On macOS, you can use native sandboxing.
     - On any OS, including Windows, you can use a wasm-based sandbox via [Deno](https://deno.com/) and [Pyodide](https://pyodide.org/).
-  * Translated to many languages.
-  * A [high-contrast theme](https://support.getgrist.com/toggle-widget/#light-high-contrast) meeting WCAG level AA requirements (🇫🇷 French gov contribution).
-  * `F1` key brings up some quick help. This used to go without saying, but in general Grist has good keyboard support.
+  * Translated to many languages (🇫🇷).
+  * A [high-contrast theme](https://support.getgrist.com/toggle-widget/#light-high-contrast) meeting WCAG level AA requirements (🇫🇷).
+  * `F1` key brings up some quick help. This used to go without saying, but in general Grist has good keyboard support (🇫🇷).
   * We post progress on [𝕏 or Twitter or whatever](https://twitter.com/getgrist) and publish [monthly newsletters](https://support.getgrist.com/newsletters/).
 
 If you are curious about where Grist is heading, see [our roadmap](https://github.com/gristlabs/grist-core/projects/1), drop a question in [our forum](https://community.getgrist.com), or browse [our extensive documentation](https://support.getgrist.com).
