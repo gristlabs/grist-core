@@ -43,6 +43,20 @@ export interface DocStateComparisonDetails {
   rightChanges: ActionSummary;
 }
 
+/** Create a DocStateComparison representing no differences. */
+export function createEmptyDocStateComparison(): DocStateComparison {
+  return {
+    left: { n: 0, h: "" },
+    right: { n: 0, h: "" },
+    parent: { n: 0, h: "" },
+    summary: "same",
+    details: {
+      leftChanges: createEmptyActionSummary(),
+      rightChanges: createEmptyActionSummary(),
+    },
+  };
+}
+
 export function removeMetadataChangesFromDetails(details: DocStateComparisonDetails) {
   const { summary: leftChanges, hadMetadata: leftHadMetadata } = removeMetadataChangesFromSummary(details.leftChanges);
   const { summary: rightChanges, hadMetadata: rightHadMetadata } =

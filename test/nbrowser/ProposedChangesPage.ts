@@ -851,6 +851,90 @@ describe("ProposedChangesPage", function() {
     assert.notEqual(await cell.getCssValue("background-color"), "rgba(255, 0, 0, 1)");
   });
 
+  it("highlights edited cells in suggestion mode", async function() {
+    await makeLifeDoc();
+    const url = await driver.getCurrentUrl();
+
+    await workOnCopy(url);
+
+    // Verify comparison is active with details.
+    const comparison = await gu.getComparison();
+    assert.isNotNull(comparison);
+    assert.property(comparison!, "details");
+
+    // Verify the diff-emphasize-local class is present on the content pane.
+    const hasEmphasis = await driver.executeScript<boolean>(
+      () => !!document.querySelector(".diff-emphasize-local"),
+    );
+    assert.isTrue(hasEmphasis);
+
+    // Edit cell B row 1 from "Fish" to "Cat".
+    await gu.getCell("B", 1).click();
+    await gu.waitAppFocus();
+    await gu.enterCell("Cat");
+
+    // Verify the cell shows diff highlighting.
+    let cell = await gu.getCell("B", 1);
+    assert.equal(await cell.find(".diff-parent").getText(), "Fish");
+    assert.equal(await cell.find(".diff-local").getText(), "Cat");
+
+    // Undo and verify highlighting is gone.
+    await gu.undo();
+    cell = await gu.getCell("B", 1);
+    assert.equal(await cell.find(".diff-parent").isPresent(), false);
+    assert.equal(await cell.find(".diff-local").isPresent(), false);
+
+    // Redo and verify highlighting returns.
+    await gu.redo();
+    cell = await gu.getCell("B", 1);
+    assert.equal(await cell.find(".diff-parent").getText(), "Fish");
+    assert.equal(await cell.find(".diff-local").getText(), "Cat");
+  });
+
+  it("highlights cells after reload in suggestion mode", async function() {
+    await makeLifeDoc();
+    const url = await driver.getCurrentUrl();
+
+    await workOnCopy(url);
+
+    // Edit cell B row 1.
+    await gu.getCell("B", 1).click();
+    await gu.waitAppFocus();
+    await gu.enterCell("Cat");
+
+    // Verify highlighting before reload.
+    let cell = await gu.getCell("B", 1);
+    assert.equal(await cell.find(".diff-local").getText(), "Cat");
+
+    // Reload the page.
+    await gu.refreshDismiss({ ignore: true });
+
+    // Verify the previously edited cell still shows diff highlighting.
+    cell = await gu.getCell("B", 1);
+    assert.equal(await cell.find(".diff-parent").getText(), "Fish");
+    assert.equal(await cell.find(".diff-local").getText(), "Cat");
+  });
+
+  it("highlights added rows in suggestion mode", async function() {
+    await makeLifeDoc();
+    const url = await driver.getCurrentUrl();
+
+    await workOnCopy(url);
+
+    // Navigate to the last row and add a new record.
+    await gu.getCell("B", 3).click();
+    await gu.waitAppFocus();
+    await gu.enterCell("Whale");
+
+    // Verify the new row has diff-local-add class.
+    const cell = await gu.getCell("B", 3);
+    const record = await cell.findClosest(".record");
+    assert.include(await record.getAttribute("class"), "diff-local-add");
+
+    // Verify the cell has diff-local content.
+    assert.equal(await cell.find(".diff-local").getText(), "Whale");
+  });
+
   async function makeLifeDoc() {
     // Load a test document.
     const session = await gu.session().teamSite.login();
