@@ -45,7 +45,6 @@ export class NTextEditor extends NewBaseEditor {
           this._contentSizer = dom("div.celleditor_content_measure"),
           this.textInput = dom("textarea",
             dom.cls("celleditor_text_editor"),
-            { id: "floating-editor" },
             dom.style("text-align", this._alignment),
             dom.prop("value", initialValue),
             dom.boolAttr("readonly", options.readonly),

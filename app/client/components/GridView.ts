@@ -2,7 +2,7 @@ import BaseView, { ViewOptions } from "app/client/components/BaseView";
 import { parsePasteForView } from "app/client/components/BaseView2";
 import * as selector from "app/client/components/CellSelector";
 import { ElemType } from "app/client/components/CellSelector";
-import { CutCallback } from "app/client/components/Clipboard";
+import { Clipboard, CutCallback } from "app/client/components/Clipboard";
 import * as commands from "app/client/components/commands";
 import { CopySelection } from "app/client/components/CopySelection";
 import { GristDoc } from "app/client/components/GristDoc";
@@ -242,17 +242,6 @@ export default class GridView extends BaseView {
     this.autoDispose(this.currentPosition.addListener((cur, prev) => {
       if (cur.rowIndex !== prev.rowIndex || cur.fieldIndex !== prev.fieldIndex) {
         this.visibleRowIndex(cur.rowIndex);
-
-        // Also announce the current cell to screen reader users.
-        const announcer = this.gristDoc.app?.topAppModel.screenReaderAnnouncer;
-        if (announcer) {
-          const columnLabel = this.viewSection.viewFields().all()[cur.fieldIndex].label();
-          const rowLabel = (cur.rowIndex ?? 0) + 1;
-          announcer.announce(
-            this.viewPane.querySelector<HTMLDivElement>(`[aria-rowindex="${(cur.rowIndex ?? 0) + 1}"][aria-colindex="${cur.fieldIndex + 1}"] .field_clip`),
-            `Cell ${rowLabel} ${columnLabel}`,
-          );
-        }
       }
     }));
 
@@ -1360,7 +1349,7 @@ export default class GridView extends BaseView {
 
     return dom(
       "div.gridview_data_pane.flexvbox",
-      { "role": "grid", "aria-owns": "copypaste-field floating-editor" },
+      { role: "grid" },
       dom.attr("aria-label", use => use(v.titleDef)),
       dom.attr("aria-rowcount", (use) => {
         const dataLength = use(data.getObservable()).length;
@@ -1745,8 +1734,7 @@ export default class GridView extends BaseView {
             return dom(
               "div.field",
               { role: "gridcell" },
-              // The "current-cursor-cell" is a very special id used by the Clipboard's hidden input (see Clipboard.ts)
-              dom.attr("id", use => use(isCellActive) ? "current-cursor-cell" : undefined),
+              dom.attr("id", use => use(isCellActive) ? Clipboard.srActiveId : undefined),
               dom.attr("aria-colindex", use => String((use(field._index) ?? 0) + 1)),
               dom.attr("aria-rowindex", use => String((use(row._index) ?? 0) + 1)),
               dom.attr("aria-selected", use => use(isCellActive) ? "true" : "false"),

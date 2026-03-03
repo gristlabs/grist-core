@@ -61,6 +61,15 @@ export class Clipboard extends Disposable {
   };
 
   /**
+   * String used as a DOM element id that identifies the currently active item in a View.
+   * It is used by the clipboard's hidden input to correctly announce the active item to screen readers.
+   *
+   * A View is meant to place this id on the element that should be announced as active to screen readers,
+   * for example, the currently active cell in a GridView.
+   */
+  public static readonly srActiveId = "current-screenreader-item";
+
+  /**
    * Helper to determine if the currently active element deserves to keep its own focus, and capture copy-paste events.
    *
    * By default, focus is automatically allowed if:
@@ -156,6 +165,8 @@ screen reader and a keyboard.",
 
     this.autoDispose(subscribe(screenReaderMode, (_use, enabled) => {
       // If we enable the screen reader mode:
+      // - expose to SRs the current active item of the view (i.e the current grid cell), through the aria-owns
+      //   and aria-activedescendant attributes. SRs will more-or-less act as if the DOM focus is on the target element.
       // - stop exposing the clipboard field as a textarea. This helps us avoiding unwanted default screen reader
       //   behaviors. For example, SRs can announce an input value when pressing arrow keys when focused on it. So, if
       //   it stayed as a textarea, when moving in the grid with the keyboard, it would often say "Empty", as the
@@ -164,12 +175,16 @@ screen reader and a keyboard.",
       //   mode enabled by default on this field. This allows to use the arrow keys to move in the grid, without moving
       //   the internal screen reader navigation cursor.
       // - remove the aria-label that helped users understand how to use Grist ; now we just want to announce the
-      //   current cell when navigating the grid (this is done on a case-by-case basis by each view type).
+      //   current cell when navigating the grid (this is done mostly through the aria-activedescendant behavior).
       if (enabled) {
+        this.copypasteField.setAttribute("aria-owns", "main-content");
+        this.copypasteField.setAttribute("aria-activedescendant", Clipboard.srActiveId);
         this.copypasteField.removeAttribute("contentEditable");
         this.copypasteField.setAttribute("role", "application");
         this.copypasteField.removeAttribute("aria-label");
       } else {
+        this.copypasteField.removeAttribute("aria-owns");
+        this.copypasteField.removeAttribute("aria-activedescendant");
         this.copypasteField.setAttribute("contentEditable", "true");
         this.copypasteField.setAttribute("role", "textbox");
         this.copypasteField.setAttribute("aria-label", srLabel);
