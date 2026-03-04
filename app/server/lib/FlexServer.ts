@@ -764,7 +764,64 @@ export class FlexServer implements GristServer {
       await activations.updateAppEnvFile({ GRIST_GETGRISTCOM_SECRET: key });
       await activations.updatePrefs({ onRestartClearSessions: true });
 
-      return res.json({ msg: "ok", owner: metadata.owner || null });
+      return res.json({ msg: "ok", owner: metadata.owner || null, bootKey: this.getBootKey() });
+    });
+
+    // Setup-only endpoint: configure sandbox flavor.
+    // Requires boot key authentication (since Authorizer hasn't run for setup endpoints).
+    this.app.post("/api/setup/configure-sandbox", express.json(), async (req, res) => {
+      if (this._isInService()) {
+        return res.status(404).json({ error: "Not found" });
+      }
+      // Manual boot key check (Authorizer hasn't run for setup endpoints).
+      const bootKey = this.getBootKey();
+      const reqKey = req.headers["x-boot-key"];
+      if (!bootKey || reqKey !== bootKey) {
+        return res.status(401).json({ error: "Boot key required" });
+      }
+      const flavor = req.body?.GRIST_SANDBOX_FLAVOR;
+      if (!flavor || typeof flavor !== "string") {
+        return res.status(400).json({ error: "Missing GRIST_SANDBOX_FLAVOR" });
+      }
+      const known = ["gvisor", "pyodide", "macSandboxExec", "unsandboxed"];
+      if (!known.includes(flavor)) {
+        return res.status(400).json({ error: `Unknown sandbox flavor: ${flavor}` });
+      }
+      const activations = this.getActivations();
+      await activations.updateAppEnvFile({ GRIST_SANDBOX_FLAVOR: flavor });
+      return res.json({ msg: "ok", flavor });
+    });
+
+    // MOCKUP ONLY — will be removed before merge.
+    // Sets GRIST_ADMIN_EMAIL in process.env so the getgrist.com auth flow
+    // can be demoed without restarting.  No auth, no security — throwaway code.
+    this.app.post("/api/setup/mockup-set-admin-email", express.json(), async (req, res) => {
+      if (this._isInService()) {
+        return res.status(404).json({ error: "Not found" });
+      }
+      const email = req.body?.email;
+      if (!email || typeof email !== "string") {
+        return res.status(400).json({ error: "Missing email" });
+      }
+      process.env.GRIST_ADMIN_EMAIL = email;
+      return res.json({ msg: "ok", email });
+    });
+
+    // MOCKUP ONLY — will be removed before merge.
+    // Exposes the boot key so reviewers without server log access can use the
+    // mockup controls on the setup page.  No auth, no security — throwaway code.
+    this.app.get("/api/setup/mockup-boot-key", async (_req, res) => {
+      if (this._isInService()) {
+        return res.status(404).json({ error: "Not found" });
+      }
+      // If the boot key wasn't set (old activation record), create one now.
+      let bootKey = this.getBootKey();
+      if (!bootKey) {
+        const crypto = await import("crypto");
+        bootKey = crypto.randomBytes(12).toString("hex");
+        this._bootKey = bootKey;
+      }
+      return res.json({ bootKey });
     });
 
     this.app.use((req, res, next) => {
