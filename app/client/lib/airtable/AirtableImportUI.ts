@@ -241,7 +241,7 @@ export class AirtableImport extends Disposable {
                   url: commonUrls.helpAirtableIntegration,
                 }),
               ),
-              dom.hide(this._isOAuthConfigured),
+              dom.hide(use => !!use(this._isOAuthConfigured)),
               testId("import-airtable-connect-hint"),
             ),
           ];
