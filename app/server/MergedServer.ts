@@ -103,6 +103,10 @@ export class MergedServer {
     }
     ms.flexServer.denyRequestsIfNotReady();
 
+    if (ms.hasComponent("home") || ms.hasComponent("app")) {
+      await ms.flexServer.addSetupGate();
+    }
+
     if (ms.hasComponent("home") || ms.hasComponent("static") || ms.hasComponent("app")) {
       ms.flexServer.setDirectory();
     }
