@@ -63,8 +63,7 @@ describe("FormulaAutocomplete", function() {
       ["AddRecord", "LongNames", null, {}],
     ]);
     await gu.getCell({ rowNum: 1, col: "C" }).click();
-    await driver.sendKeys("=");
-    await gu.waitAppFocus(false);
+    await gu.enterCell(["="], { validate: false });
     await driver.sendKeys(`$V`);
 
     // Make sure that `ace_` element has some width.
