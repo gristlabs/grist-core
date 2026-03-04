@@ -214,6 +214,7 @@ export class FlexServer implements GristServer {
   private _emitNotifier: EmitNotifier = new EmitNotifier();
   private _latestVersionAvailable?: LatestVersionAvailable;
   private _oauth2Clients?: OAuth2Clients;
+  private _bootKey: string | undefined;
 
   constructor(public port: number, public name: string = "flexServer",
     public readonly options: FlexServerOptions = {}) {
@@ -661,17 +662,108 @@ export class FlexServer implements GristServer {
    */
   public addBootPage() {
     if (this._check("boot")) { return; }
+    this.app.get("/boot/:key", async (req, res) => {
+      const bootKey = this.getBootKey();
+      if (bootKey && req.params.key === bootKey) {
+        res.redirect(`/admin?boot-key=${encodeURIComponent(bootKey)}`);
+      } else {
+        res.status(403).send("Invalid boot key. Check server logs for the correct key.");
+      }
+    });
     this.app.get("/boot(/*)?", async (req, res) => {
-      // Doing a good redirect is actually pretty subtle and we might
-      // get it wrong, so just say /boot got moved.
-      res.send("The /boot/KEY page is now /admin?boot-key=KEY");
+      res.send("Visit /boot/YOUR_KEY to access admin setup, or use /admin?boot-key=YOUR_KEY directly.");
     });
   }
 
   public getBootKey(): string | undefined {
+    if (this._bootKey !== undefined) {
+      return this._bootKey;
+    }
     return appSettings.section("boot").flag("key").readString({
       envVar: "GRIST_BOOT_KEY",
     });
+  }
+
+  /**
+   * Add a setup gate that blocks access to a fresh Grist installation
+   * until the operator configures authentication or provides a boot key.
+   */
+  public async addSetupGate() {
+    // Read boot key from activation prefs, with GRIST_BOOT_KEY env var as override.
+    const envBootKey = process.env.GRIST_BOOT_KEY;
+    if (envBootKey !== undefined) {
+      // Empty string means disable boot key.
+      this._bootKey = envBootKey || undefined;
+    } else {
+      const activation = await this.getActivations().current();
+      this._bootKey = activation.prefs?.bootKey;
+    }
+
+    if (this._bootKey) {
+      log.rawInfo("Boot key for initial setup", {bootKey: this._bootKey});
+    }
+
+    // Paths that should always be accessible, even when the setup gate is active.
+    const allowedPrefixes = [
+      "/health", "/status", "/boot", "/admin", "/api/admin",
+      "/api/install", "/api/probes", "/v/",
+    ];
+
+    this.app.use((req, res, next) => {
+      if (this._isInService()) {
+        return next();
+      }
+
+      // Allow specific paths through the gate.  Use originalUrl to check
+      // against the raw URL before any middleware (e.g. inspectTag) rewrites it.
+      const path = req.originalUrl.split("?")[0];
+      if (allowedPrefixes.some(prefix => path.startsWith(prefix))) {
+        return next();
+      }
+
+      // For API requests, return a 503 JSON response.
+      const isApi = path.startsWith("/api/") ||
+        req.headers.accept?.includes("application/json");
+      if (isApi) {
+        return res.status(503).json({
+          error: "Grist is not yet configured. Visit /admin to set up this installation."
+        });
+      }
+
+      // For browser requests, show the setup page.
+      // _sendAppPage is initialized later (in addLandingPages), but denyRequestsIfNotReady
+      // ensures no requests arrive before setReady(true), by which time it's available.
+      if (!this._sendAppPage) {
+        return res.status(503).send("Server is starting up...");
+      }
+      return this._sendAppPage(req, res, {
+        path: "error.html",
+        status: 200,
+        config: { errPage: "setup" },
+      });
+    });
+  }
+
+  /**
+   * Check whether this Grist installation is "in service" (should serve
+   * normal requests) or needs initial setup.
+   */
+  private _isInService(): boolean {
+    // Explicit opt-in via environment variable.
+    if (isAffirmative(process.env.GRIST_IN_SERVICE)) {
+      return true;
+    }
+    // Testing environments should not be blocked by the setup gate,
+    // unless explicitly testing the gate itself.
+    if (process.env.GRIST_TESTING_SOCKET && !isAffirmative(process.env.GRIST_FORCE_SETUP_GATE)) {
+      return true;
+    }
+    // If a real auth system is configured (not "minimal" fallback), we're in service.
+    const loginActive = appSettings.section("login").flag("active").get();
+    if (loginActive && loginActive !== "minimal") {
+      return true;
+    }
+    return false;
   }
 
   public denyRequestsIfNotReady() {

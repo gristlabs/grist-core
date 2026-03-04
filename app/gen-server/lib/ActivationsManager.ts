@@ -1,3 +1,5 @@
+import * as crypto from "crypto";
+
 import { InstallPrefs } from "app/common/Install";
 import { InstallPrefsWithSources } from "app/common/InstallAPI";
 import { Activation } from "app/gen-server/entity/Activation";
@@ -31,7 +33,10 @@ export class ActivationsManager {
       if (!activation) {
         activation = manager.create(Activation);
         activation.id = makeId();
-        activation.prefs = { checkForLatestVersion: true };
+        activation.prefs = {
+          checkForLatestVersion: true,
+          bootKey: crypto.randomBytes(12).toString("hex"),
+        };
         await activation.save();
       }
       return activation;
