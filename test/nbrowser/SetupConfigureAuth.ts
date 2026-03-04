@@ -86,7 +86,7 @@ describe("SetupConfigureAuth", function() {
 
     it("shows setup page with registration link and config key textarea", async function() {
       await driver.get(`${server.getHost()}/`);
-      await driver.findContentWait("div", /needs to be set up/, 5000);
+      await driver.findContentWait("div", /Set up your Grist/, 5000);
       // Should show the GRIST_ADMIN_EMAIL instruction.
       assert.include(await driver.getPageSource(), "GRIST_ADMIN_EMAIL");
       // Should show the registration link.
@@ -101,7 +101,7 @@ describe("SetupConfigureAuth", function() {
 
     it("shows error in browser when submitting without GRIST_ADMIN_EMAIL set", async function() {
       await driver.get(`${server.getHost()}/`);
-      await driver.findContentWait("div", /needs to be set up/, 5000);
+      await driver.findContentWait("div", /Set up your Grist/, 5000);
       const textarea = await driver.find(".test-setup-config-key");
       await textarea.sendKeys(buildConfigKey("admin@example.com"));
       await driver.find(".test-setup-configure-submit").click();
@@ -232,7 +232,7 @@ describe("SetupConfigureAuth", function() {
 
     it("shows error in browser when key email does not match", async function() {
       await driver.get(`${server.getHost()}/`);
-      await driver.findContentWait("div", /needs to be set up/, 5000);
+      await driver.findContentWait("div", /Set up your Grist/, 5000);
       const textarea = await driver.find(".test-setup-config-key");
       await textarea.sendKeys(buildConfigKey("wrong@example.com"));
       await driver.find(".test-setup-configure-submit").click();
@@ -241,7 +241,7 @@ describe("SetupConfigureAuth", function() {
 
     it("shows success in browser when key email matches", async function() {
       await driver.get(`${server.getHost()}/`);
-      await driver.findContentWait("div", /needs to be set up/, 5000);
+      await driver.findContentWait("div", /Set up your Grist/, 5000);
       const textarea = await driver.find(".test-setup-config-key");
       await textarea.sendKeys(buildConfigKey("admin@example.com"));
       await driver.find(".test-setup-configure-submit").click();

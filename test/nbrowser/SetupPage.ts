@@ -72,12 +72,12 @@ describe("SetupPage", function() {
     it("renders the setup page in the browser", async function() {
       await driver.get(`${server.getHost()}/`);
       // Wait for the setup page header to appear.
-      await driver.findContentWait("div", /needs to be set up/, 5000);
+      await driver.findContentWait("div", /Set up your Grist/, 5000);
     });
 
     it("shows the three setup steps", async function() {
       await driver.get(`${server.getHost()}/`);
-      await driver.findContentWait("div", /needs to be set up/, 5000);
+      await driver.findContentWait("div", /Set up your Grist/, 5000);
       // Check for the three setup steps.
       assert.include(await driver.getPageSource(), "Sign in with getgrist.com");
       assert.include(await driver.getPageSource(), "Sandboxing");
@@ -86,7 +86,7 @@ describe("SetupPage", function() {
 
     it("shows the boot key input field after toggling", async function() {
       await driver.get(`${server.getHost()}/`);
-      await driver.findContentWait("div", /needs to be set up/, 5000);
+      await driver.findContentWait("div", /Set up your Grist/, 5000);
       // Boot key input is hidden by default; click toggle to show it.
       await driver.find(".test-setup-toggle-bootkey").click();
       const input = await driver.find(".test-setup-boot-key-input");
@@ -122,7 +122,7 @@ describe("SetupPage", function() {
 
     it("navigates to admin when boot key is submitted in browser", async function() {
       await driver.get(`${server.getHost()}/`);
-      await driver.findContentWait("div", /needs to be set up/, 5000);
+      await driver.findContentWait("div", /Set up your Grist/, 5000);
       // Toggle to boot key mode first.
       await driver.find(".test-setup-toggle-bootkey").click();
       const input = await driver.find(".test-setup-boot-key-input");
@@ -154,7 +154,7 @@ describe("SetupPage", function() {
       const resp = await fetch(`${server.getHost()}/`);
       assert.equal(resp.status, 200);
       const text = await resp.text();
-      assert.notMatch(text, /needs to be set up/);
+      assert.notMatch(text, /Set up your Grist/);
     });
   });
 });

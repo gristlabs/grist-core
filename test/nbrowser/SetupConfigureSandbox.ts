@@ -195,14 +195,14 @@ describe("SetupConfigureSandbox", function() {
 
     it("step 2 shows idle state before step 1 completion", async function() {
       await driver.get(`${server.getHost()}/`);
-      await driver.findContentWait("div", /needs to be set up/, 5000);
+      await driver.findContentWait("div", /Set up your Grist/, 5000);
       // Step 2 should show the "complete step 1" message.
       await driver.findContentWait("div", /Complete step 1/, 5000);
     });
 
     it("step 2 shows loading then sandbox options after boot key submit", async function() {
       await driver.get(`${server.getHost()}/`);
-      await driver.findContentWait("div", /needs to be set up/, 5000);
+      await driver.findContentWait("div", /Set up your Grist/, 5000);
       // Switch to boot key mode.
       await driver.find(".test-setup-toggle-bootkey").click();
       // Enter the boot key.
@@ -216,7 +216,7 @@ describe("SetupConfigureSandbox", function() {
 
     it("step 2 shows admin panel link after boot key submit", async function() {
       await driver.get(`${server.getHost()}/`);
-      await driver.findContentWait("div", /needs to be set up/, 5000);
+      await driver.findContentWait("div", /Set up your Grist/, 5000);
       // Switch to boot key mode and submit.
       await driver.find(".test-setup-toggle-bootkey").click();
       const input = await driver.find(".test-setup-boot-key-input");
