@@ -143,6 +143,7 @@ export const getCommonUrls = () => withAdminDefinedUrls({
   helpFiddleMode: "https://support.getgrist.com/glossary/#fiddle-mode",
   helpSharing: "https://support.getgrist.com/sharing",
   helpFormUrlValues: "https://support.getgrist.com/widget-form/#accept-value-from-url",
+  helpAirtableIntegration: "https://support.getgrist.com/install/integrations/airtable",
   freeCoachingCall: getFreeCoachingCallUrl(),
   contactSupport: getContactSupportUrl(),
   termsOfService: getTermsOfServiceUrl(),

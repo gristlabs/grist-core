@@ -525,6 +525,26 @@ describe("AirtableImport", function() {
       ]);
     });
   });
+
+  describe("when oauth variables are unset", function() {
+    before(async function() {
+      delete process.env.OAUTH2_GRIST_HOST;
+      delete process.env.OAUTH2_AIRTABLE_CLIENT_ID;
+      delete process.env.OAUTH2_AIRTABLE_CLIENT_SECRET;
+      await server.restart(false);
+      mainSession = await gu.session().teamSite.user("user1").login();
+      await mainSession.loadDocMenu("/");
+    });
+
+    it("should disable 'Connect with Airtable' button", async function() {
+      await openAirtableDocImporter("home");
+      assert.equal(await driver.find(".test-import-airtable-connect").getAttribute("disabled"), "true");
+      assert.equal(
+        await driver.find(".test-import-airtable-connect-hint").getText(),
+        "The more convenient ‘Connect with Airtable’ option can be configured by the installation administrator. Learn more."
+      );
+    });
+  });
 });
 
 // Sample response to GET https://api.airtable.com/v0/meta/bases

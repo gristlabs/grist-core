@@ -7,7 +7,7 @@ import { makeT } from "app/client/lib/localization";
 import { markdown } from "app/client/lib/markdown";
 import { reportError } from "app/client/models/errors";
 import { getHomeUrl } from "app/client/models/homeUrl";
-import { cssWell, cssWellContent, cssWellTitle } from "app/client/ui/AdminPanelCss";
+import { cssWell } from "app/client/ui/AdminPanelCss";
 import { cssCodeBlock } from "app/client/ui/CodeHighlight";
 import { textInput } from "app/client/ui/inputs";
 import { shadowScroll } from "app/client/ui/shadowScroll";
@@ -36,6 +36,7 @@ import { gristDocSchemaFromAirtableSchema } from "app/common/airtable/AirtableSc
 import { BaseAPI } from "app/common/BaseAPI";
 import { DocSchemaImportWarning, ImportSchemaTransformParams, transformImportSchema } from "app/common/DocSchemaImport";
 import { ExistingDocSchema } from "app/common/DocSchemaImportTypes";
+import { commonUrls } from "app/common/gristUrls";
 import { components, tokens } from "app/common/ThemePrefs";
 import { addCurrentOrgToPath } from "app/common/urlUtils";
 import { UserAPI } from "app/common/UserAPI";
@@ -219,28 +220,29 @@ export class AirtableImport extends Disposable {
 
       dom.maybe(this._error, err => cssError(err)),
 
-      dom.maybe(use => use(this._isOAuthConfigured) === false && !use(this._showPersonalAccessTokenInput), () =>
-        cssWarning(
-          cssWellTitle(t("Grist configuration required")),
-          cssWellContent(t(`OAuth credentials not configured. Please set OAUTH2_AIRTABLE_CLIENT_ID and \
-OAUTH2_AIRTABLE_CLIENT_SECRET, or use personal access token.`)),
-        ),
-      ),
-
       dom.domComputed(this._showPersonalAccessTokenInput, (showPersonalAccessTokenInput) => {
         if (!showPersonalAccessTokenInput) {
           return [
+            bigBasicButton(
+              t("Use personal access token"),
+              dom.on("click", () => this._showPersonalAccessTokenInput.set(true)),
+              testId("import-airtable-use-personal-access-token"),
+            ),
+            cssDivider(cssDividerLine(), t("or"), cssDividerLine()),
             bigPrimaryButton(
               dom.text(use => use(this._connecting) ? t("Connecting...") : t("Connect with Airtable")),
               dom.prop("disabled", use => !use(this._isOAuthConfigured) || use(this._connecting)),
               dom.on("click", this._handleOAuthLogin.bind(this)),
               testId("import-airtable-connect"),
             ),
-            cssDivider(cssDividerLine(), t("or"), cssDividerLine()),
-            bigBasicButton(
-              t("Use personal access token instead"),
-              dom.on("click", () => this._showPersonalAccessTokenInput.set(true)),
-              testId("import-airtable-use-personal-access-token"),
+            cssHelperText(
+              markdown(
+                t(`The more convenient ‘Connect with Airtable’ option can be configured by the installation administrator. [Learn more]({{url}}).`, {
+                  url: commonUrls.helpAirtableIntegration,
+                }),
+              ),
+              dom.hide(this._isOAuthConfigured),
+              testId("import-airtable-connect-hint"),
             ),
           ];
         } else {
@@ -972,5 +974,5 @@ const cssProgressBarFill = styled(cssProgressBarContainer, `
 `);
 
 const cssDestinationMenu = styled("div", `
-  grid-column: 2;  
+  grid-column: 2;
 `);
