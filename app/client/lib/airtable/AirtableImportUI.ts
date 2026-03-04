@@ -4,7 +4,7 @@ import {
   validateAirtableSchemaImport,
 } from "app/client/lib/airtable/AirtableImporter";
 import { makeT } from "app/client/lib/localization";
-import { markdown } from "app/client/lib/markdown";
+import { cssMarkdownSpan, markdown } from "app/client/lib/markdown";
 import { reportError } from "app/client/models/errors";
 import { getHomeUrl } from "app/client/models/homeUrl";
 import { cssWell } from "app/client/ui/AdminPanelCss";
@@ -222,96 +222,81 @@ export class AirtableImport extends Disposable {
 
       dom.domComputed(this._showPersonalAccessTokenInput, (showPersonalAccessTokenInput) => {
         if (!showPersonalAccessTokenInput) {
-          return dom.domComputed(this._isOAuthConfigured, (isOAuthConfigured) => {
-            if (isOAuthConfigured) {
-              return [
-                bigPrimaryButton(
-                  dom.text(use => use(this._connecting) ? t("Connecting...") : t("Connect with Airtable")),
-                  dom.prop("disabled", this._connecting),
-                  dom.on("click", this._handleOAuthLogin.bind(this)),
-                  testId("import-airtable-connect"),
-                ),
-                cssDivider(cssDividerLine(), t("or"), cssDividerLine()),
-                bigBasicButton(
-                  t("Use personal access token instead"),
-                  dom.on("click", () => this._showPersonalAccessTokenInput.set(true)),
-                  testId("import-airtable-use-personal-access-token"),
-                ),
-              ];
-            } else {
-              return [
-                bigPrimaryButton(
-                  t("Use personal access token"),
-                  dom.on("click", () => this._showPersonalAccessTokenInput.set(true)),
-                  testId("import-airtable-use-personal-access-token"),
-                ),
-                cssHelperText(
-                  markdown(
-                    t(`The more convenient ‘Connect with Airtable’ option can be configured by \
-the installation administrator. [Learn more]({{url}}).`, {
-                      url: commonUrls.helpAirtableIntegration,
-                    }),
-                  ),
-                  testId("import-airtable-connect-hint"),
-                ),
-              ];
-            }
-          });
-          return [
-            bigBasicButton(
-              t("Use personal access token"),
-              dom.on("click", () => this._showPersonalAccessTokenInput.set(true)),
-              testId("import-airtable-use-personal-access-token"),
-            ),
-            cssDivider(cssDividerLine(), t("or"), cssDividerLine()),
-            bigPrimaryButton(
-              dom.text(use => use(this._connecting) ? t("Connecting...") : t("Connect with Airtable")),
-              dom.prop("disabled", use => !use(this._isOAuthConfigured) || use(this._connecting)),
-              dom.on("click", this._handleOAuthLogin.bind(this)),
-              testId("import-airtable-connect"),
-            ),
-            cssHelperText(
-              markdown(
-                t(`The more convenient ‘Connect with Airtable’ option can be configured by the installation administrator. [Learn more]({{url}}).`, {
-                  url: commonUrls.helpAirtableIntegration,
-                }),
-              ),
-              dom.hide(use => !!use(this._isOAuthConfigured)),
-              testId("import-airtable-connect-hint"),
-            ),
-          ];
+          return this._buildSelectAuthMethodScreen();
         } else {
-          return [
-            cssInputGroup(
-              cssLabel(t("Personal access token")),
-              cssTextInput(this._personalAccesToken, { type: "password", placeholder: "patXXXXXXXXXXXXXXXX" },
-                dom.onKeyPress({ Enter: this._handlePersonalAccessTokenLogin.bind(this) }),
-              ),
-              cssHelperText(markdown(
-                t(`[Generate a token]({{url}}) in your Airtable \
-account with scopes that include at least **\`schema.bases:read\`** and **\`data.records:read\`**.
-
-Your token is never sent to Grist's servers, and is only used to make API calls to Airtable from your browser.`,
-                { url: "https://airtable.com/create/tokens" }),
-              )),
-            ),
-            bigPrimaryButton(
-              dom.text(use => use(this._connecting) ? t("Connecting...") : t("Connect")),
-              dom.prop("disabled", use => use(this._connecting) || !use(this._personalAccesToken).trim()),
-              dom.on("click", this._handlePersonalAccessTokenLogin.bind(this)),
-            ),
-            cssTextButton(
-              t("Back"),
-              dom.on("click", () => {
-                this._showPersonalAccessTokenInput.set(false);
-                this._personalAccesToken.set("");
-                this._error.set(null);
-              }),
-            ),
-          ];
+          return this._buildPersonalAccessTokenScreen();
         }
       }),
     ));
+  }
+
+  private _buildSelectAuthMethodScreen() {
+    return dom.domComputed(this._isOAuthConfigured, (isOAuthConfigured) => {
+      if (isOAuthConfigured) {
+        return [
+          bigPrimaryButton(
+            dom.text(use => use(this._connecting) ? t("Connecting...") : t("Connect with Airtable")),
+            dom.prop("disabled", this._connecting),
+            dom.on("click", this._handleOAuthLogin.bind(this)),
+            testId("import-airtable-connect"),
+          ),
+          cssDivider(cssDividerLine(), t("or"), cssDividerLine()),
+          bigBasicButton(
+            t("Use personal access token instead"),
+            dom.on("click", () => this._showPersonalAccessTokenInput.set(true)),
+            testId("import-airtable-use-personal-access-token"),
+          ),
+        ];
+      } else {
+        return [
+          bigPrimaryButton(
+            t("Use personal access token"),
+            dom.on("click", () => this._showPersonalAccessTokenInput.set(true)),
+            testId("import-airtable-use-personal-access-token"),
+          ),
+          cssHelperText(
+            cssMarkdownSpan(
+              t(`The more convenient ‘Connect with Airtable’ option can be configured by \
+the installation administrator. [Learn more.]({{url}})`, {
+                url: commonUrls.helpAirtableIntegration,
+              }),
+            ),
+            testId("import-airtable-connect-hint"),
+          ),
+        ];
+      }
+    });
+  }
+
+  private _buildPersonalAccessTokenScreen() {
+    return [
+      cssInputGroup(
+        cssLabel(t("Personal access token")),
+        cssTextInput(this._personalAccesToken, { type: "password", placeholder: "patXXXXXXXXXXXXXXXX" },
+          dom.onKeyPress({ Enter: this._handlePersonalAccessTokenLogin.bind(this) }),
+        ),
+        cssHelperText(markdown(
+          t(`[Generate a token]({{url}}) in your Airtable \
+account with scopes that include at least **\`schema.bases:read\`** and **\`data.records:read\`**.
+
+Your token is never sent to Grist's servers, and is only used to make API calls to Airtable from your browser.`,
+          { url: "https://airtable.com/create/tokens" }),
+        )),
+      ),
+      bigPrimaryButton(
+        dom.text(use => use(this._connecting) ? t("Connecting...") : t("Connect")),
+        dom.prop("disabled", use => use(this._connecting) || !use(this._personalAccesToken).trim()),
+        dom.on("click", this._handlePersonalAccessTokenLogin.bind(this)),
+      ),
+      cssTextButton(
+        t("Back"),
+        dom.on("click", () => {
+          this._showPersonalAccessTokenInput.set(false);
+          this._personalAccesToken.set("");
+          this._error.set(null);
+        }),
+      ),
+    ];
   }
 
   private _connectionMenu() {
