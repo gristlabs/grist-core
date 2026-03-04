@@ -30,6 +30,7 @@ export class TestServer {
   public server: FlexServer;
   public dbManager: HomeDBManager;
   public defaultSession: TestSession;
+  private _savedInService: string | undefined;
 
   constructor(context?: Mocha.Context) {
     setUpDB(context);
@@ -41,6 +42,9 @@ export class TestServer {
       seedData = true,
       externalStorage = false,
     } = {}): Promise<string> {
+    // Bypass the setup gate for in-process test servers.
+    this._savedInService = process.env.GRIST_IN_SERVICE;
+    process.env.GRIST_IN_SERVICE = "true";
     await createInitialDb(undefined, seedData ? true : "migrateOnly");
     const mergedServer = await MergedServer.create(0, servers, { logToConsole: isAffirmative(process.env.DEBUG),
       externalStorage, ...options });
@@ -62,6 +66,12 @@ export class TestServer {
       await waitForAllNotifications(this.server, 3000);
     }
     await removeConnection();
+    // Restore GRIST_IN_SERVICE to its original value.
+    if (this._savedInService === undefined) {
+      delete process.env.GRIST_IN_SERVICE;
+    } else {
+      process.env.GRIST_IN_SERVICE = this._savedInService;
+    }
   }
 
   // Set up a profile for the given org, and return an axios configuration to

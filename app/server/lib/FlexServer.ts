@@ -25,7 +25,7 @@ import { Usage } from "app/gen-server/lib/Usage";
 import { AccessTokens, IAccessTokens } from "app/server/lib/AccessTokens";
 import { createSandbox } from "app/server/lib/ActiveDoc";
 import { attachAppEndpoint } from "app/server/lib/AppEndpoint";
-import { appSettings } from "app/server/lib/AppSettings";
+import { appSettings, AppSettings } from "app/server/lib/AppSettings";
 import { attachEarlyEndpoints } from "app/server/lib/attachEarlyEndpoints";
 import {
   AttachmentStoreProvider,
@@ -52,6 +52,7 @@ import { DocWorkerLoadTracker, getDocWorkerLoadTracker } from "app/server/lib/Do
 import { DocWorkerInfo, IDocWorkerMap } from "app/server/lib/DocWorkerMap";
 import { expressWrap, jsonErrorHandler, secureJsonErrorHandler } from "app/server/lib/expressWrap";
 import { Hosts, RequestWithOrg } from "app/server/lib/extractOrg";
+import { readGetGristComConfigFromSettings, readGetGristComMetadata } from "app/server/lib/GetGristComConfig";
 import { addGoogleAuthEndpoint } from "app/server/lib/GoogleAuth";
 import { createGristJobs, GristJobs } from "app/server/lib/GristJobs";
 import { DocTemplate, GristLoginMiddleware, GristLoginSystem, GristServer,
@@ -706,8 +707,65 @@ export class FlexServer implements GristServer {
     // Paths that should always be accessible, even when the setup gate is active.
     const allowedPrefixes = [
       "/health", "/status", "/boot", "/admin", "/api/admin",
-      "/api/install", "/api/probes", "/v/",
+      "/api/install", "/api/probes", "/api/setup", "/v/",
     ];
+
+    // Setup-only endpoint: configure auth from the setup page.
+    // This requires GRIST_ADMIN_EMAIL to be set in the environment.  The config
+    // key's owner email must match it — this is how the person at the keyboard
+    // proves they are the declared admin, not a random bot rattling the port.
+    this.app.post("/api/setup/configure-auth", express.json(), async (req, res) => {
+      if (this._isInService()) {
+        return res.status(404).json({ error: "Not found" });
+      }
+
+      // GRIST_ADMIN_EMAIL is required.  Without it there is no identity claim
+      // to verify, so this endpoint must not do anything.
+      const envAdminEmail = process.env.GRIST_ADMIN_EMAIL;
+      if (!envAdminEmail) {
+        return res.status(400).json({
+          error: "GRIST_ADMIN_EMAIL must be set in the environment before " +
+            "using this endpoint. Set it to your email address and restart Grist.",
+        });
+      }
+
+      const key = req.body?.GRIST_GETGRISTCOM_SECRET?.split(/\s+/).join("");
+      if (!key) {
+        return res.status(400).json({ error: "Missing GRIST_GETGRISTCOM_SECRET" });
+      }
+
+      // Validate the key structure.
+      const testSettings = new AppSettings("grist");
+      testSettings.setEnvVars({ GRIST_GETGRISTCOM_SECRET: key });
+      try {
+        readGetGristComConfigFromSettings(testSettings);
+      } catch (e) {
+        return res.status(400).json({ error: "Invalid configuration key" });
+      }
+
+      // The key's owner email must match GRIST_ADMIN_EMAIL.  This is the proof
+      // step: the operator declared their email in the environment, then
+      // authenticated with getgrist.com using that same email.
+      const metadata = readGetGristComMetadata(testSettings);
+      const ownerEmail = metadata.owner?.email;
+      if (!ownerEmail || ownerEmail.toLowerCase() !== envAdminEmail.toLowerCase()) {
+        return res.status(400).json({
+          error: `The email in the configuration key` +
+            `${ownerEmail ? ` (${ownerEmail})` : ""}` +
+            ` does not match GRIST_ADMIN_EMAIL (${envAdminEmail}). ` +
+            `Please register on getgrist.com with ${envAdminEmail}.`,
+        });
+      }
+
+      // Save the getgrist.com secret so OIDC auth activates on restart.
+      // GRIST_ADMIN_EMAIL is already in the environment, so no need to set it
+      // via onRestartSetAdminEmail — the operator declared it themselves.
+      const activations = this.getActivations();
+      await activations.updateAppEnvFile({ GRIST_GETGRISTCOM_SECRET: key });
+      await activations.updatePrefs({ onRestartClearSessions: true });
+
+      return res.json({ msg: "ok", owner: metadata.owner || null });
+    });
 
     this.app.use((req, res, next) => {
       if (this._isInService()) {

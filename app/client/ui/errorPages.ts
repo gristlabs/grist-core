@@ -13,7 +13,7 @@ import { cssLink } from "app/client/ui2018/links";
 import { commonUrls, getPageTitleSuffix } from "app/common/gristUrls";
 import { getGristConfig } from "app/common/urlUtils";
 
-import { dom, DomContents, DomElementArg, makeTestId, observable, styled } from "grainjs";
+import { dom, DomContents, DomElementArg, makeTestId, Observable, observable, styled } from "grainjs";
 
 const testId = makeTestId("test-");
 
@@ -258,7 +258,39 @@ export function createSetupPage(appModel: AppModel) {
   document.title = `Setup${getPageTitleSuffix(getGristConfig())}`;
 
   const bootKeyValue = observable("");
-  const authMode = observable<"env" | "bootkey">("env");
+  const authMode = observable<"getgrist" | "bootkey">("getgrist");
+  const configKey = Observable.create(null, "");
+  const configStatus = Observable.create<"idle" | "working" | "success" | "error">(null, "idle");
+  const configError = Observable.create(null, "");
+
+  // Build registration URL.
+  const homeUrl = getGristConfig().homeUrl;
+  const registerUrl = new URL(commonUrls.signInWithGristRegister);
+  if (homeUrl) {
+    registerUrl.searchParams.set("uri", new URL(homeUrl).origin);
+  }
+
+  async function handleConfigure() {
+    const key = configKey.get();
+    if (!key) { return; }
+    configStatus.set("working");
+    configError.set("");
+    try {
+      const resp = await fetch("/api/setup/configure-auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ GRIST_GETGRISTCOM_SECRET: key }),
+      });
+      const result = await resp.json();
+      if (!resp.ok) {
+        throw new Error(result.error || "Failed to configure authentication");
+      }
+      configStatus.set("success");
+    } catch (e) {
+      configError.set((e as Error).message);
+      configStatus.set("error");
+    }
+  }
 
   return pagePanels({
     headerMain: cssSetupHeaderMain(buildLanguageMenu(appModel)),
@@ -267,7 +299,7 @@ export function createSetupPage(appModel: AppModel) {
       cssErrorHeader("This Grist installation needs to be set up", testId("error-header")),
       [
         cssSetupSection(
-          dom.domComputed(authMode, mode => mode === "env" ? [
+          dom.domComputed(authMode, mode => mode === "getgrist" ? [
             cssSetupStepHeader(
               cssStepNumber("1"),
               cssSetupSectionTitle("Sign in with getgrist.com"),
@@ -279,23 +311,58 @@ export function createSetupPage(appModel: AppModel) {
               cssSetupSectionTitle("Enter a boot key"),
             ),
           ]),
-          dom.domComputed(authMode, mode => mode === "env" ? [
-            cssSetupDescription(
-              "Use your getgrist.com account to claim this server. ",
-              "Add your email to the environment and restart:",
-            ),
-            cssSetupCode(
-              "GRIST_ADMIN_EMAIL=you@example.com",
-            ),
-            cssSetupDescription(
-              "After restarting, return to this page and you'll be able to sign in ",
-              "and complete setup through the admin panel.",
-            ),
-            cssToggleLink(
-              "Air-gapped or no external account? Use a boot key instead",
-              dom.on("click", () => authMode.set("bootkey")),
-              testId("setup-toggle-bootkey"),
-            ),
+          dom.domComputed(authMode, mode => mode === "getgrist" ? [
+            dom.domComputed(configStatus, status => status === "success" ? [
+              cssSetupDescription(
+                dom("b", "Authentication configured."),
+              ),
+              cssSetupDescription(
+                "Please restart your server to activate Sign in with getgrist.com.",
+              ),
+            ] : [
+              cssSetupDescription(
+                "First, declare your admin email in the environment and restart:",
+              ),
+              cssSetupCode(
+                "GRIST_ADMIN_EMAIL=you@example.com",
+              ),
+              cssSetupDescription(
+                "Then, register your Grist server on getgrist.com ",
+                dom("b", "using that same email address"),
+                ". This proves to the server that you are the declared admin.",
+              ),
+              cssSetupDescription(
+                cssLink(
+                  "Register your Grist server",
+                  { href: registerUrl.href, target: "_blank" },
+                  testId("setup-register-link"),
+                ),
+              ),
+              cssSetupDescription(
+                "Paste the configuration key you receive below:",
+              ),
+              cssSetupConfigTextarea(
+                dom.prop("value", configKey),
+                dom.on("input", (_e: Event, elem: HTMLTextAreaElement) => configKey.set(elem.value)),
+                { placeholder: "Paste configuration key here" },
+                dom.prop("disabled", use => use(configStatus) === "working"),
+                testId("setup-config-key"),
+              ),
+              dom.maybe(configError, err =>
+                cssSetupError(err, testId("setup-config-error")),
+              ),
+              cssBootKeySubmit(
+                "Configure",
+                dom.prop("disabled", use => !use(configKey) || use(configStatus) === "working"),
+                dom.on("click", handleConfigure),
+                testId("setup-configure-submit"),
+              ),
+              cssToggleLink(
+                "Air-gapped or no external account? Use a boot key instead",
+                dom.on("click", () => authMode.set("bootkey")),
+                testId("setup-toggle-bootkey"),
+              ),
+            ]),
           ] : [
             cssSetupDescription(
               "A boot key was printed to your server logs on startup. ",
@@ -325,7 +392,7 @@ export function createSetupPage(appModel: AppModel) {
             ),
             cssToggleLink(
               "Sign in with getgrist.com instead",
-              dom.on("click", () => authMode.set("env")),
+              dom.on("click", () => authMode.set("getgrist")),
               testId("setup-toggle-env"),
             ),
           ]),
@@ -606,4 +673,33 @@ const cssBootKeySubmit = styled("button", `
   &:hover {
     background: ${theme.controlPrimaryHoverBg};
   }
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+`);
+
+const cssSetupConfigTextarea = styled("textarea", `
+  width: 100%;
+  min-height: 80px;
+  font-size: ${vars.mediumFontSize};
+  font-family: monospace;
+  padding: 8px 10px;
+  border: 1px solid ${theme.inputBorder};
+  border-radius: 4px;
+  background: ${theme.inputBg};
+  color: ${theme.inputFg};
+  outline: none;
+  resize: vertical;
+  margin-bottom: 8px;
+  box-sizing: border-box;
+  &:focus {
+    border-color: ${theme.controlFg};
+  }
+`);
+
+const cssSetupError = styled("div", `
+  font-size: ${vars.mediumFontSize};
+  color: ${theme.errorText};
+  margin-bottom: 8px;
 `);
