@@ -42,7 +42,7 @@ export interface PageSidePanel {
 }
 
 export interface PageContents {
-  leftPanel: PageSidePanel;
+  leftPanel?: PageSidePanel;      // If omitted, the left panel isn't shown at all.
   rightPanel?: PageSidePanel;     // If omitted, the right panel isn't shown at all.
 
   headerMain: DomElementArg;
@@ -69,7 +69,7 @@ export function pagePanels(page: PageContents) {
 
   const appObj = page.app;
 
-  let lastLeftOpen = left.panelOpen.get();
+  let lastLeftOpen = left?.panelOpen.get() ?? false;
   let lastRightOpen = right?.panelOpen.get() || false;
   let leftPaneDom: HTMLElement;
   let rightPaneDom: HTMLElement;
@@ -88,10 +88,10 @@ export function pagePanels(page: PageContents) {
   // last desktop state.
   const sub1 = subscribe(isNarrowScreenObs(), (use, narrow) => {
     if (narrow) {
-      lastLeftOpen = leftOverlap.get() ? false : left.panelOpen.get();
+      lastLeftOpen = leftOverlap.get() ? false : left?.panelOpen.get() ?? false;
       lastRightOpen = right?.panelOpen.get() || false;
     }
-    left.panelOpen.set(narrow ? false : lastLeftOpen);
+    left?.panelOpen.set(narrow ? false : lastLeftOpen);
     right?.panelOpen.set(narrow ? false : lastRightOpen);
 
     // overlap should always be OFF when switching screen mode
@@ -104,17 +104,18 @@ export function pagePanels(page: PageContents) {
   //   - reset the focus switcher to behave like a normal browser navigation (lose focus).
   const sub2 = subscribe(isNarrowScreenObs(), urlState().state, (use, narrow, state) => {
     if (narrow) {
-      left.panelOpen.set(false);
+      left?.panelOpen.set(false);
     }
     regionFocusSwitcher?.reset();
   });
 
   const pauseSavingLeft = (yesNo: boolean) => {
-    (left.panelOpen as SessionObs<boolean>)?.pauseSaving?.(yesNo);
+    (left?.panelOpen as SessionObs<boolean>)?.pauseSaving?.(yesNo);
   };
 
   const commandsGroup = commands.createGroup({
     leftPanelOpen: () => new Promise((resolve) => {
+      if (!left) { resolve(undefined); return; }
       const watcher = new TransitionWatcher(leftPaneDom);
       watcher.onDispose(() => resolve(undefined));
       left.panelOpen.set(true);
@@ -156,6 +157,7 @@ export function pagePanels(page: PageContents) {
       (el) => {
         regionFocusSwitcher?.onPageDomLoaded(el);
       },
+      ...(left ? [
       leftPaneDom = cssLeftPane(
         testId("left-panel"),
         regionFocusSwitcher?.panelAttrs("left", t("Main navigation and document settings (left panel)")),
@@ -294,12 +296,13 @@ export function pagePanels(page: PageContents) {
         testId("left-resizer"),
         dom.show(use => use(left.panelOpen) && !use(leftOverlap)),
         cssHideForNarrowScreen.cls("")),
+      ] : []),
 
       cssMainPane(
         mainHeaderDom = cssTopHeader(
           testId("top-header"),
           regionFocusSwitcher?.panelAttrs("top", t("Document header")),
-          (left.hideOpener ? null :
+          (!left || left.hideOpener ? null :
             unstyledButton(
               { "aria-label": left.panelOpen.get() ?
                 t("Close navigation panel (left panel)") :
@@ -382,9 +385,9 @@ export function pagePanels(page: PageContents) {
         )] : null
       ),
       cssContentOverlay(
-        dom.show(use => use(left.panelOpen) || Boolean(right && use(right.panelOpen))),
+        dom.show(use => Boolean(left && use(left.panelOpen)) || Boolean(right && use(right.panelOpen))),
         dom.on("click", () => {
-          left.panelOpen.set(false);
+          left?.panelOpen.set(false);
           if (right) { right.panelOpen.set(false); }
         }),
         testId("overlay"),
@@ -392,7 +395,7 @@ export function pagePanels(page: PageContents) {
       dom.maybe(isNarrowScreenObs(), () =>
         cssBottomFooter(
           testId("bottom-footer"),
-          cssPanelOpenerNarrowScreenBtn(
+          (left ? cssPanelOpenerNarrowScreenBtn(
             cssPanelOpenerNarrowScreen(
               "FieldTextbox",
               dom.on("click", () => {
@@ -402,14 +405,14 @@ export function pagePanels(page: PageContents) {
               testId("left-opener-ns"),
             ),
             cssPanelOpenerNarrowScreenBtn.cls("-open", left.panelOpen),
-          ),
+          ) : null),
           page.contentBottom,
           (!right ? null :
             cssPanelOpenerNarrowScreenBtn(
               cssPanelOpenerNarrowScreen(
                 "Settings",
                 dom.on("click", () => {
-                  left.panelOpen.set(false);
+                  left?.panelOpen.set(false);
                   toggleObs(right.panelOpen);
                 }),
                 testId("right-opener-ns"),

@@ -1,11 +1,11 @@
-import * as crypto from "crypto";
-
 import { InstallPrefs } from "app/common/Install";
 import { InstallPrefsWithSources } from "app/common/InstallAPI";
 import { Activation } from "app/gen-server/entity/Activation";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { makeId } from "app/server/lib/idUtils";
 import { getTelemetryPrefs } from "app/server/lib/Telemetry";
+
+import * as crypto from "crypto";
 
 import omit from "lodash/omit";
 import pick from "lodash/pick";
