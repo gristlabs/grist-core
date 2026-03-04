@@ -222,6 +222,41 @@ export class AirtableImport extends Disposable {
 
       dom.domComputed(this._showPersonalAccessTokenInput, (showPersonalAccessTokenInput) => {
         if (!showPersonalAccessTokenInput) {
+          return dom.domComputed(this._isOAuthConfigured, (isOAuthConfigured) => {
+            if (isOAuthConfigured) {
+              return [
+                bigPrimaryButton(
+                  dom.text(use => use(this._connecting) ? t("Connecting...") : t("Connect with Airtable")),
+                  dom.prop("disabled", this._connecting),
+                  dom.on("click", this._handleOAuthLogin.bind(this)),
+                  testId("import-airtable-connect"),
+                ),
+                cssDivider(cssDividerLine(), t("or"), cssDividerLine()),
+                bigBasicButton(
+                  t("Use personal access token instead"),
+                  dom.on("click", () => this._showPersonalAccessTokenInput.set(true)),
+                  testId("import-airtable-use-personal-access-token"),
+                ),
+              ];
+            } else {
+              return [
+                bigPrimaryButton(
+                  t("Use personal access token"),
+                  dom.on("click", () => this._showPersonalAccessTokenInput.set(true)),
+                  testId("import-airtable-use-personal-access-token"),
+                ),
+                cssHelperText(
+                  markdown(
+                    t(`The more convenient ‘Connect with Airtable’ option can be configured by \
+the installation administrator. [Learn more]({{url}}).`, {
+                      url: commonUrls.helpAirtableIntegration,
+                    }),
+                  ),
+                  testId("import-airtable-connect-hint"),
+                ),
+              ];
+            }
+          });
           return [
             bigBasicButton(
               t("Use personal access token"),
