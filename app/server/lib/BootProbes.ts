@@ -5,6 +5,7 @@ import { appSettings } from "app/server/lib/AppSettings";
 import { expressWrap, jsonErrorHandler } from "app/server/lib/expressWrap";
 import { GristServer } from "app/server/lib/GristServer";
 import { DEFAULT_SESSION_SECRET } from "app/server/lib/ICreate";
+import { NSandboxCreator } from "app/server/lib/NSandbox";
 
 import * as express from "express";
 import fetch from "node-fetch";
@@ -64,6 +65,7 @@ export class BootProbes {
     this._probes.push(_bootProbe);
     this._probes.push(_hostHeaderProbe);
     this._probes.push(_sandboxingProbe);
+    this._probes.push(_sandboxAvailabilityProbe);
     this._probes.push(_authenticationProbe);
     this._probes.push(_webSocketsProbe);
     this._probes.push(_sessionSecretProbe);
@@ -335,6 +337,58 @@ const _sessionSecretProbe: Probe = {
       details: {
         GRIST_SESSION_SECRET: process.env.GRIST_SESSION_SECRET ? "set" : "not set",
       },
+    };
+  },
+};
+
+const SANDBOX_TEST_TIMEOUT_MS = 10_000;
+// Ordered by preference: gvisor is most secure, pyodide is most portable.
+const SANDBOX_CANDIDATES = ["gvisor", "pyodide", "macSandboxExec"];
+
+async function _testSandboxFlavor(flavor: string): Promise<{ name: string; available: boolean; error?: string }> {
+  let sandbox: ReturnType<NSandboxCreator["create"]> | undefined;
+  try {
+    const creator = new NSandboxCreator({
+      defaultFlavor: flavor,
+      preferredPythonVersion: "3",
+    });
+    sandbox = creator.create({
+      comment: `test-${flavor}`,
+      preferredPythonVersion: "3",
+    });
+    const version = await new Promise<any>((resolve, reject) => {
+      const timer = setTimeout(() => { reject(new Error("Timed out")); }, SANDBOX_TEST_TIMEOUT_MS);
+      sandbox!.pyCall("get_version").then(
+        (v) => { clearTimeout(timer); resolve(v); },
+        (e: unknown) => { clearTimeout(timer); reject(e instanceof Error ? e : new Error(String(e))); },
+      );
+    });
+    if (typeof version !== "number") {
+      throw new Error(`Unexpected response: ${version}`);
+    }
+    await sandbox.shutdown();
+    sandbox = undefined;
+    return { name: flavor, available: true };
+  } catch (e) {
+    if (sandbox) {
+      try { await sandbox.shutdown(); } catch { /* best effort */ }
+    }
+    return { name: flavor, available: false, error: String(e) };
+  }
+}
+
+const _sandboxAvailabilityProbe: Probe = {
+  id: "sandbox-availability",
+  name: "Which sandbox flavors are available",
+  apply: async (server, req) => {
+    // If ?flavor=X is given, test just that one flavor.
+    const single = req.query.flavor as string | undefined;
+    const candidates = single && SANDBOX_CANDIDATES.includes(single) ?
+      [single] : SANDBOX_CANDIDATES;
+    const results = await Promise.all(candidates.map(_testSandboxFlavor));
+    return {
+      status: results.some(r => r.available) ? "success" : "fault",
+      details: { flavors: results },
     };
   },
 };
