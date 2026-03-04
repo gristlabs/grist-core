@@ -542,7 +542,7 @@ describe("AirtableImport", function() {
       assert.equal(
         await driver.find(".test-import-airtable-connect-hint").getText(),
         "The more convenient ‘Connect with Airtable’ option can be configured by the installation " +
-          "administrator. Learn more."
+        "administrator. Learn more.",
       );
     });
   });

@@ -53,9 +53,6 @@ export async function applyAirtableImportSchemaAndImportData(params: {
   const docId = existingDocId ?? await createDoc(userApi, options.newDocName ?? baseId);
   const docApi = userApi.getDocAPI(docId);
 
-  const existingDocSchema = await getExistingDocSchema(docApi);
-  const initialTables = existingDocSchema.tables.map(table => table.id);
-
   const docSchemaCreator = new DocSchemaImportTool(actions => docApi.applyUserActions((actions)));
 
   onProgress?.({ percent: 25, status: t("Setting up tables...") });
@@ -72,9 +69,9 @@ export async function applyAirtableImportSchemaAndImportData(params: {
     });
   }
 
-  // Only remove the initial tables if the Grist document was newly created.
+  // Only remove the initial table if the Grist document was newly created.
   if (!existingDocId) {
-    await docSchemaCreator.removeTables(initialTables);
+    await docSchemaCreator.removeTables(["Table1"]);
   }
 
   const finalGristDocSchema = await getExistingDocSchema(docApi);
