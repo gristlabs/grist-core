@@ -43,15 +43,10 @@ describe("SetupConfigureSandbox", function() {
       process.env.GRIST_FORCE_SETUP_GATE = "true";
       delete process.env.GRIST_IN_SERVICE;
       process.env.GRIST_ADMIN_EMAIL = "admin@example.com";
+      // Set a known boot key so tests can authenticate without admin session.
+      bootKey = "test-boot-key-for-sandbox";
+      process.env.GRIST_BOOT_KEY = bootKey;
       await server.restart(true);
-
-      // Get the boot key from the server by reading the install prefs.
-      const resp = await fetch(`${server.getHost()}/api/install/prefs`, {
-        headers: { "Content-Type": "application/json" },
-      });
-      const body = await resp.json();
-      bootKey = body.bootKey;
-      assert.ok(bootKey, "boot key should be set");
     });
 
     after(async function() {
@@ -217,6 +212,23 @@ describe("SetupConfigureSandbox", function() {
       // Should see loading or loaded state.
       // Wait for sandbox options to appear (probe runs).
       await driver.findWait(".test-setup-sandbox-submit", 30000);
+    });
+
+    it("step 2 shows admin panel link after boot key submit", async function() {
+      await driver.get(`${server.getHost()}/`);
+      await driver.findContentWait("div", /needs to be set up/, 5000);
+      // Switch to boot key mode and submit.
+      await driver.find(".test-setup-toggle-bootkey").click();
+      const input = await driver.find(".test-setup-boot-key-input");
+      await input.sendKeys(bootKey);
+      await driver.find(".test-setup-boot-key-submit").click();
+      // Wait for sandbox options to load.
+      await driver.findWait(".test-setup-sandbox-submit", 30000);
+      // Admin panel link should be present and point to /boot/{key}/.
+      const link = await driver.findContentWait("a", /Open full admin panel/, 5000);
+      const href = await link.getAttribute("href");
+      assert.include(href, `/boot/${bootKey}/`);
+      assert.equal(await link.getAttribute("target"), "_blank");
     });
   });
 });

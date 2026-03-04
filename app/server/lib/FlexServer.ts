@@ -707,7 +707,8 @@ export class FlexServer implements GristServer {
     // Paths that should always be accessible, even when the setup gate is active.
     const allowedPrefixes = [
       "/health", "/status", "/boot", "/admin", "/api/admin",
-      "/api/install", "/api/probes", "/api/setup", "/v/",
+      "/api/install", "/api/probes", "/api/setup", "/api/session", "/api/config",
+      "/v/",
     ];
 
     // Setup-only endpoint: configure auth from the setup page.

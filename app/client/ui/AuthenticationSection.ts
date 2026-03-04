@@ -49,7 +49,7 @@ export class AuthenticationSection extends Disposable {
 
   private _providers = Observable.create<AuthProvider[]>(this, []);
   private _configAPI = new ConfigAPI(getHomeUrl());
-  private _currentUserEmail = this._appModel.currentValidUser!.email;
+  private _currentUserEmail = this._appModel.currentValidUser?.email ?? "";
 
   private _hasActiveOnRestartProvider = Computed.create(this, this._providers, (_use, providers) => {
     return providers.some(p => p.willBeActive);
