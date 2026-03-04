@@ -224,6 +224,13 @@ export async function main() {
     const db = await createOrUpdateDb();
     await setUpAdminEmail(db);
     await setUpSingleOrg(db);
+
+    // Log the boot key for initial setup access.
+    const activation = await new ActivationsManager(db).current();
+    if (activation.prefs?.bootKey) {
+      console.log(`Boot key for initial setup: ${activation.prefs.bootKey}`);
+    }
+
     log.info("Database setup complete.");
   }
 
