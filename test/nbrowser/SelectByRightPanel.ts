@@ -53,7 +53,7 @@ describe("SelectByRightPanel", function() {
     await driver.find(".test-right-tab-pagewidget").click();
     await driver.find(".test-config-data").click();
     await driver.find(".test-pwc-editDataSelection").click();
-    await driver.findContent(".test-wselect-column", /Company/).doClick();
+    await driver.findContentWait(".test-wselect-column", /Company/, 1000).doClick();
     await driver.find(".test-wselect-addBtn").click();
     await gu.waitForServer();
     // Test that we have new option.
