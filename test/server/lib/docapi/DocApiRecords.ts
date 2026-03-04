@@ -25,7 +25,8 @@ describe("DocApiRecords", function() {
 
 function addRecordsTests(getCtx: () => TestContext) {
   it("GET /docs/{did}/tables/{tid}/data retrieves data in column format", async function() {
-    const { serverUrl, docIds, chimpy } = getCtx();
+    const { serverUrl, docIds, chimpy, getOrCreateTestDoc } = getCtx();
+    await getOrCreateTestDoc();
     const data = {
       id: [1, 2, 3, 4],
       A: ["hello", "", "", ""],
@@ -320,27 +321,30 @@ function addRecordsTests(getCtx: () => TestContext) {
   });
 
   it("GET /docs/{did}/tables/{tid}/data returns matches /not found/ for bad table id", async function() {
-    const { serverUrl, docIds, chimpy } = getCtx();
-    const resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Bad_Foo_/data`, chimpy);
+    const { serverUrl, chimpy, getOrCreateTestDoc } = getCtx();
+    const testDoc = await getOrCreateTestDoc();
+    const resp = await axios.get(`${serverUrl}/api/docs/${testDoc}/tables/Bad_Foo_/data`, chimpy);
     assert.equal(resp.status, 404);
     assert.match(resp.data.error, /not found/);
   });
 
   it("POST /docs/{did}/apply applies user actions", async function() {
-    const { serverUrl, docIds, chimpy } = getCtx();
+    const { serverUrl, chimpy, getOrCreateTestDoc } = getCtx();
+    const testDoc = await getOrCreateTestDoc();
     const userActions = [
       ["AddTable", "Foo", [{ id: "A" }, { id: "B" }]],
       ["BulkAddRecord", "Foo", [1, 2], { A: ["Santa", "Bob"], B: [1, 11] }],
     ];
-    const resp = await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/apply`, userActions, chimpy);
+    const resp = await axios.post(`${serverUrl}/api/docs/${testDoc}/apply`, userActions, chimpy);
     assert.equal(resp.status, 200);
     assert.deepEqual(
-      (await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`, chimpy)).data,
+      (await axios.get(`${serverUrl}/api/docs/${testDoc}/tables/Foo/data`, chimpy)).data,
       { id: [1, 2], A: ["Santa", "Bob"], B: ["1", "11"], manualSort: [1, 2] });
   });
 
   it("POST /docs/{did}/apply respects document permissions", async function() {
-    const { serverUrl, docIds, chimpy, kiwi } = getCtx();
+    const { serverUrl, docIds, chimpy, kiwi, getOrCreateTestDoc } = getCtx();
+    const testDoc = await getOrCreateTestDoc();
     const userActions = [
       ["AddTable", "FooBar", [{ id: "A" }]],
     ];
@@ -357,24 +361,25 @@ function addRecordsTests(getCtx: () => TestContext) {
     assert.match(resp.data.error, /not found/);
 
     // as not in any group kiwi cannot edit TestDoc
-    resp = await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/apply`, userActions, kiwi);
+    resp = await axios.post(`${serverUrl}/api/docs/${testDoc}/apply`, userActions, kiwi);
     assert.equal(resp.status, 403);
 
     // check that changes did not apply
-    resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/FooBar/data`, chimpy);
+    resp = await axios.get(`${serverUrl}/api/docs/${testDoc}/tables/FooBar/data`, chimpy);
     assert.equal(resp.status, 404);
     assert.match(resp.data.error, /not found/);
   });
 
   it("POST /docs/{did}/tables/{tid}/data adds records", async function() {
-    const { serverUrl, docIds, chimpy } = getCtx();
-    let resp = await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`, {
+    const { serverUrl, chimpy, getOrCreateTestDoc } = getCtx();
+    const testDoc = await getOrCreateTestDoc();
+    let resp = await axios.post(`${serverUrl}/api/docs/${testDoc}/tables/Foo/data`, {
       A: ["Alice", "Felix"],
       B: [2, 22],
     }, chimpy);
     assert.equal(resp.status, 200);
     assert.deepEqual(resp.data, [3, 4]);
-    resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`, chimpy);
+    resp = await axios.get(`${serverUrl}/api/docs/${testDoc}/tables/Foo/data`, chimpy);
     assert.deepEqual(resp.data, {
       id: [1, 2, 3, 4],
       A: ["Santa", "Bob", "Alice", "Felix"],
@@ -384,20 +389,22 @@ function addRecordsTests(getCtx: () => TestContext) {
   });
 
   it("POST /docs/{did}/tables/{tid}/data respects document permissions", async function() {
-    const { serverUrl, docIds, chimpy, kiwi } = getCtx();
+    const { serverUrl, docIds, chimpy, kiwi, getOrCreateTestDoc } = getCtx();
+    const testDoc = await getOrCreateTestDoc();
     let resp: AxiosResponse;
     // as a guest chimpy cannot edit Bananas
     resp = await axios.post(`${serverUrl}/api/docs/${docIds.Bananas}/tables/Table1/data`, { A: ["Alice"] }, chimpy);
     assert.equal(resp.status, 403);
 
     // as not in any group kiwi cannot edit TestDoc
-    resp = await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`, { A: ["Alice"] }, kiwi);
+    resp = await axios.post(`${serverUrl}/api/docs/${testDoc}/tables/Foo/data`, { A: ["Alice"] }, kiwi);
     assert.equal(resp.status, 403);
   });
 
   it("POST /docs/{did}/tables/{tid}/records adds records", async function() {
-    const { serverUrl, docIds, chimpy } = getCtx();
-    let resp = await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`, {
+    const { serverUrl, chimpy, getOrCreateTestDoc } = getCtx();
+    const testDoc = await getOrCreateTestDoc();
+    let resp = await axios.post(`${serverUrl}/api/docs/${testDoc}/tables/Foo/records`, {
       records: [
         { fields: { A: "John", B: 55 } },
         { fields: { A: "Jane", B: 0 } },
@@ -410,7 +417,7 @@ function addRecordsTests(getCtx: () => TestContext) {
         { id: 6 },
       ],
     });
-    resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`, chimpy);
+    resp = await axios.get(`${serverUrl}/api/docs/${testDoc}/tables/Foo/records`, chimpy);
     assert.equal(resp.status, 200);
     assert.deepEqual(resp.data,
       {
@@ -473,15 +480,16 @@ function addRecordsTests(getCtx: () => TestContext) {
     },
   ]) {
     it(desc, async function() {
-      const { serverUrl, docIds, chimpy } = getCtx();
+      const { serverUrl, chimpy, getOrCreateTestDoc } = getCtx();
+      const testDoc = await getOrCreateTestDoc();
       let resp = await axios.post(
-        `${serverUrl}/api/docs/${docIds.TestDoc}/${url}`,
+        `${serverUrl}/api/docs/${testDoc}/${url}`,
         [3, 4, 5, 6],
         chimpy,
       );
       assert.equal(resp.status, 200);
       assert.deepEqual(resp.data, null);
-      resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`, chimpy);
+      resp = await axios.get(`${serverUrl}/api/docs/${testDoc}/tables/Foo/data`, chimpy);
       assert.deepEqual(resp.data, {
         id: [1, 2],
         A: ["Santa", "Bob"],
@@ -490,11 +498,11 @@ function addRecordsTests(getCtx: () => TestContext) {
       });
 
       // restore rows
-      await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`, {
+      await axios.post(`${serverUrl}/api/docs/${testDoc}/tables/Foo/data`, {
         A: ["Alice", "Felix"],
         B: [2, 22],
       }, chimpy);
-      resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`, chimpy);
+      resp = await axios.get(`${serverUrl}/api/docs/${testDoc}/tables/Foo/data`, chimpy);
       assert.deepEqual(resp.data, {
         id: [1, 2, 3, 4],
         A: ["Santa", "Bob", "Alice", "Felix"],
@@ -711,8 +719,9 @@ function addRecordsTests(getCtx: () => TestContext) {
     });
 
     it("should 400 for an incorrect onmany parameter", async function() {
-      const { serverUrl, docIds, chimpy } = getCtx();
-      const resp = await axios.put(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`,
+      const { serverUrl, chimpy, getOrCreateTestDoc } = getCtx();
+      const testDoc = await getOrCreateTestDoc();
+      const resp = await axios.put(`${serverUrl}/api/docs/${testDoc}/tables/Foo/records`,
         { records: [{ require: { id: 1 } }] }, { ...chimpy, params: { onmany: "foo" } });
       assert.equal(resp.status, 400);
       assert.match(resp.data.error, /onmany parameter foo should be one of first,none,all/);
@@ -731,8 +740,9 @@ function addRecordsTests(getCtx: () => TestContext) {
     });
 
     it("should validate request schema", async function() {
-      const { serverUrl, docIds, chimpy } = getCtx();
-      const url = `${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`;
+      const { serverUrl, chimpy, getOrCreateTestDoc } = getCtx();
+      const testDoc = await getOrCreateTestDoc();
+      const url = `${serverUrl}/api/docs/${testDoc}/tables/Foo/records`;
       const test = async (payload: any, error: { error: string, details: { userError: string } }) => {
         const resp = await axios.put(url, payload, chimpy);
         assert.equal(resp.status, 400);
@@ -806,8 +816,9 @@ function addRecordsTests(getCtx: () => TestContext) {
     });
 
     it("validates request schema", async function() {
-      const { serverUrl, docIds, chimpy } = getCtx();
-      const url = `${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`;
+      const { serverUrl, chimpy, getOrCreateTestDoc } = getCtx();
+      const testDoc = await getOrCreateTestDoc();
+      const url = `${serverUrl}/api/docs/${testDoc}/tables/Foo/records`;
       const test = async (payload: any, error: { error: string, details: { userError: string } }) => {
         const resp = await axios.post(url, payload, chimpy);
         assert.equal(resp.status, 400);
@@ -872,8 +883,9 @@ function addRecordsTests(getCtx: () => TestContext) {
 
   describe("PATCH /docs/{did}/tables/{tid}/records", function() {
     it("updates records", async function() {
-      const { serverUrl, docIds, chimpy } = getCtx();
-      let resp = await axios.patch(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`, {
+      const { serverUrl, chimpy, getOrCreateTestDoc } = getCtx();
+      const testDoc = await getOrCreateTestDoc();
+      let resp = await axios.patch(`${serverUrl}/api/docs/${testDoc}/tables/Foo/records`, {
         records: [
           {
             id: 1,
@@ -884,7 +896,7 @@ function addRecordsTests(getCtx: () => TestContext) {
         ],
       }, chimpy);
       assert.equal(resp.status, 200);
-      resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`, chimpy);
+      resp = await axios.get(`${serverUrl}/api/docs/${testDoc}/tables/Foo/records`, chimpy);
       // check that rest of the data is left unchanged
       assert.deepEqual(resp.data, {
         records:
@@ -922,8 +934,9 @@ function addRecordsTests(getCtx: () => TestContext) {
     });
 
     it("validates request schema", async function() {
-      const { serverUrl, docIds, chimpy } = getCtx();
-      const url = `${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`;
+      const { serverUrl, chimpy, getOrCreateTestDoc } = getCtx();
+      const testDoc = await getOrCreateTestDoc();
+      const url = `${serverUrl}/api/docs/${testDoc}/tables/Foo/records`;
       async function failsWithError(payload: any, error: { error: string, details?: { userError: string } }) {
         const resp = await axios.patch(url, payload, chimpy);
         assert.equal(resp.status, 400);
@@ -1006,13 +1019,14 @@ function addRecordsTests(getCtx: () => TestContext) {
 
   describe("PATCH /docs/{did}/tables/{tid}/data", function() {
     it("updates records", async function() {
-      const { serverUrl, docIds, chimpy } = getCtx();
-      let resp = await axios.patch(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`, {
+      const { serverUrl, chimpy, getOrCreateTestDoc } = getCtx();
+      const testDoc = await getOrCreateTestDoc();
+      let resp = await axios.patch(`${serverUrl}/api/docs/${testDoc}/tables/Foo/data`, {
         id: [1],
         A: ["Santa Klaus"],
       }, chimpy);
       assert.equal(resp.status, 200);
-      resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`, chimpy);
+      resp = await axios.get(`${serverUrl}/api/docs/${testDoc}/tables/Foo/data`, chimpy);
       // check that rest of the data is left unchanged
       assert.deepEqual(resp.data, {
         id: [1, 2, 3, 4],
@@ -1023,9 +1037,10 @@ function addRecordsTests(getCtx: () => TestContext) {
     });
 
     it("throws 400 for invalid row ids", async function() {
-      const { serverUrl, docIds, chimpy } = getCtx();
+      const { serverUrl, chimpy, getOrCreateTestDoc } = getCtx();
+      const testDoc = await getOrCreateTestDoc();
       // combination of valid and invalid ids fails
-      let resp = await axios.patch(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`, {
+      let resp = await axios.patch(`${serverUrl}/api/docs/${testDoc}/tables/Foo/data`, {
         id: [1, 5],
         A: ["Alice", "Felix"],
       }, chimpy);
@@ -1033,7 +1048,7 @@ function addRecordsTests(getCtx: () => TestContext) {
       assert.match(resp.data.error, /Invalid row id 5/);
 
       // only invalid ids also fails
-      resp = await axios.patch(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`, {
+      resp = await axios.patch(`${serverUrl}/api/docs/${testDoc}/tables/Foo/data`, {
         id: [10, 5],
         A: ["Alice", "Felix"],
       }, chimpy);
@@ -1041,7 +1056,7 @@ function addRecordsTests(getCtx: () => TestContext) {
       assert.match(resp.data.error, /Invalid row id 10/);
 
       // check that changes related to id 1 did not apply
-      assert.deepEqual((await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`, chimpy)).data, {
+      assert.deepEqual((await axios.get(`${serverUrl}/api/docs/${testDoc}/tables/Foo/data`, chimpy)).data, {
         id: [1, 2, 3, 4],
         A: ["Santa Klaus", "Bob", "Alice", "Felix"],
         B: ["1", "11", "2", "22"],
@@ -1050,8 +1065,9 @@ function addRecordsTests(getCtx: () => TestContext) {
     });
 
     it("throws 400 for invalid column", async function() {
-      const { serverUrl, docIds, chimpy } = getCtx();
-      const resp = await axios.patch(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`, {
+      const { serverUrl, chimpy, getOrCreateTestDoc } = getCtx();
+      const testDoc = await getOrCreateTestDoc();
+      const resp = await axios.patch(`${serverUrl}/api/docs/${testDoc}/tables/Foo/data`, {
         id: [1],
         A: ["Alice"],
         X: ["mystery"],
@@ -1060,7 +1076,7 @@ function addRecordsTests(getCtx: () => TestContext) {
       assert.match(resp.data.error, /Invalid column "X"/);
 
       // check that changes related to A did not apply
-      assert.deepEqual((await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`, chimpy)).data, {
+      assert.deepEqual((await axios.get(`${serverUrl}/api/docs/${testDoc}/tables/Foo/data`, chimpy)).data, {
         id: [1, 2, 3, 4],
         A: ["Santa Klaus", "Bob", "Alice", "Felix"],
         B: ["1", "11", "2", "22"],
@@ -1069,7 +1085,8 @@ function addRecordsTests(getCtx: () => TestContext) {
     });
 
     it("respects document permissions", async function() {
-      const { serverUrl, docIds, chimpy, kiwi } = getCtx();
+      const { serverUrl, docIds, chimpy, kiwi, getOrCreateTestDoc } = getCtx();
+      const testDoc = await getOrCreateTestDoc();
       let resp: AxiosResponse;
       // as a guest Chimpy cannot edit Bananas
       resp = await axios.patch(`${serverUrl}/api/docs/${docIds.Bananas}/tables/Table1/data`,
@@ -1077,7 +1094,7 @@ function addRecordsTests(getCtx: () => TestContext) {
       assert.equal(resp.status, 403);
 
       // as not in any group kiwi cannot edit TestDoc
-      resp = await axios.patch(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`,
+      resp = await axios.patch(`${serverUrl}/api/docs/${testDoc}/tables/Foo/data`,
         { id: [1], A: ["Alice"] }, kiwi);
       assert.equal(resp.status, 403);
     });

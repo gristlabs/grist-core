@@ -29,7 +29,8 @@ describe("DocApiDownloads", function() {
 function addDownloadsTests(getCtx: () => TestContext) {
   // Set up test data that the CSV/table-schema download tests depend on
   before(async function() {
-    const { serverUrl, docIds, chimpy } = getCtx();
+    const { serverUrl, chimpy, getOrCreateTestDoc } = getCtx();
+    const testDoc = await getOrCreateTestDoc();
     // Create Foo table with test data in TestDoc
     const userActions = [
       ["AddTable", "Foo", [{ id: "A" }, { id: "B" }]],
@@ -38,7 +39,7 @@ function addDownloadsTests(getCtx: () => TestContext) {
         B: [1, 11, 2, 22],
       }],
     ];
-    await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/apply`, userActions, chimpy);
+    await axios.post(`${serverUrl}/api/docs/${testDoc}/apply`, userActions, chimpy);
   });
 
   async function generateDocAndUrl(docName: string = "Dummy") {

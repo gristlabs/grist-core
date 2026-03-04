@@ -20,10 +20,10 @@ import { confirmModal } from "app/client/ui2018/modals";
 import { mapGetOrSet, MapWithTTL } from "app/common/AsyncCreate";
 import { AsyncFlow, CancelledError, FlowRunner } from "app/common/AsyncFlow";
 import { delay } from "app/common/delay";
-import { OpenDocMode, OpenDocOptions, UserOverride } from "app/common/DocListAPI";
+import { OpenDocMode, OpenDocOptions, OpenLocalDocResult, UserOverride } from "app/common/DocListAPI";
 import { FilteredDocUsageSummary } from "app/common/DocUsage";
 import { Features, mergedFeatures, Product } from "app/common/Features";
-import { buildUrlId, IGristUrlState, parseUrlId, UrlIdParts } from "app/common/gristUrls";
+import { buildUrlId, CompareEmphasis, IGristUrlState, parseUrlId, UrlIdParts } from "app/common/gristUrls";
 import { getReconnectTimeout } from "app/common/gutil";
 import { canEdit, isOwner } from "app/common/roles";
 import { UserInfo } from "app/common/User";
@@ -249,7 +249,10 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
               openMode: urlOpenMode,
               linkParameters,
               originalUrlId: state.doc,
-            }, state.params?.compare)),
+            }, {
+              comparisonUrlId: state.params?.compare,
+              compareEmphasis: state.params?.compareEmphasis,
+            })),
           )
             .resultPromise.catch(err => this._onOpenError(err));
         }
@@ -296,7 +299,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
     const proposal = (proposals.proposals[0] ?? "empty") as Proposal | "empty";
     this.currentProposal.set(proposal);
     if (proposal === "empty" || proposal.status.status === "retracted") {
-      this.gristDoc.get()?.getActionCounter().setMark();
+      this.gristDoc.get()?.getActionCounter().setMarkToBaseAction();
     } else {
       this.gristDoc.get()?.getActionCounter().setMark(proposal.comparison.comparison?.left);
     }
@@ -426,9 +429,12 @@ contact the document owners to attempt a document recovery. [{{error}}]", { erro
     this.offerRecovery(err);
   }
 
-  private async _openDoc(flow: AsyncFlow, urlId: string, options: OpenDocOptions,
-    comparisonUrlId: string | undefined): Promise<void> {
+  private async _openDoc(flow: AsyncFlow, urlId: string, options: OpenDocOptions, comparisonOptions: {
+    comparisonUrlId?: string,
+    compareEmphasis?: CompareEmphasis
+  }): Promise<void> {
     const { openMode: urlOpenMode, linkParameters } = options;
+    const { comparisonUrlId, compareEmphasis } = comparisonOptions;
     console.log(`DocPageModel _openDoc starting for ${urlId} (mode ${urlOpenMode})` +
       (comparisonUrlId ? ` (compare ${comparisonUrlId})` : ""));
     const gristDocModulePromise = loadGristDoc();
@@ -503,7 +509,7 @@ contact the document owners to attempt a document recovery. [{{error}}]", { erro
     const docComm = gdModule.DocComm.create(flow, comm, openDocResponse, doc.id, this.appModel.notifier);
     flow.checkIfCancelled();
 
-    docComm.changeUrlIdEmitter.addListener(async (newUrlId: string) => {
+    docComm.changeUrlIdEmitter.addListener(async (newUrlId: string, openResponse: OpenLocalDocResult) => {
       // The current document has been forked, and should now be referred to using a new docId.
       const currentDoc = this.currentDoc.get();
       if (currentDoc) {
@@ -511,6 +517,12 @@ contact the document owners to attempt a document recovery. [{{error}}]", { erro
         await this.updateUrlNoReload(newUrlId, "default", { removeSlug: true, replaceUrl: false });
         await this._updateCurrentDoc(newUrlId, "default");
       }
+      // The baseAction in docInfo may have changed.
+      const docInfo = openResponse.doc._grist_DocInfo;
+      this.gristDoc.get()?.docData.receiveAction([
+        "ReplaceTableData", docInfo[1], docInfo[2], docInfo[3],
+      ]);
+      this.gristDoc.get()?.getActionCounter().setMarkToBaseAction();
     });
 
     // If a document for comparison is given, load the comparison, and provide it to the Gristdoc.
@@ -518,7 +530,8 @@ contact the document owners to attempt a document recovery. [{{error}}]", { erro
       await this._api.getDocAPI(urlId).compareDoc(comparisonUrlId, { detail: true }) : undefined;
 
     const gristDoc = gdModule.GristDocImpl.create(flow, this._appObj, this.appModel, docComm, this, openDocResponse,
-      this.appModel.topAppModel.plugins, { comparison });
+      this.appModel.topAppModel.plugins,
+      { comparison, compareEmphasis });
 
     // Move ownership of docComm to GristDoc.
     gristDoc.autoDispose(flow.release(docComm));

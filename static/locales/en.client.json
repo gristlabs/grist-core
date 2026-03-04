@@ -631,7 +631,8 @@
         "Import from file": "Import from file",
         "Saved linked section {{title}} in view {{name}}": "Saved linked section {{title}} in view {{name}}",
         "go to webhook settings": "go to webhook settings",
-        "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue."
+        "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.",
+        "Import from Airtable": "Import from Airtable"
     },
     "HomeIntro": {
         "Any documents created in this site will appear here.": "Any documents created in this site will appear here.",
@@ -679,7 +680,8 @@
         "Tutorial": "Tutorial",
         "Terms of service": "Terms of service",
         "Grist Resources": "Grist Resources",
-        "context menu - {{- workspaceName }}": "context menu - {{- workspaceName }}"
+        "context menu - {{- workspaceName }}": "context menu - {{- workspaceName }}",
+        "Import from Airtable": "Import from Airtable"
     },
     "Importer": {
         "Merge rows that match these fields:": "Merge rows that match these fields:",
@@ -1135,7 +1137,9 @@
         "changes": "changes",
         "comments": "comments",
         "this document": "this document",
-        "your email": "your email"
+        "your email": "your email",
+        "You will no longer receive email notifications about {{suggestions}} in {{docName}} at {{email}}.": "You will no longer receive email notifications about {{suggestions}} in {{docName}} at {{email}}.",
+        "suggestions": "suggestions"
     },
     "menus": {
         "* Workspaces are available on team plans. ": "* Workspaces are available on team plans. ",
@@ -1445,7 +1449,8 @@
         "Comments are here!": "Comments are here!",
         "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "You can add comments to cells, reply to comment threads, and @-mention collaborators.",
         "When checked, this field’s default value can be prefilled from the URL using query parameters.": "When checked, this field’s default value can be prefilled from the URL using query parameters.",
-        "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration."
+        "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.",
+        "Unpin to hide the button while keeping the filter.": "Unpin to hide the button while keeping the filter."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION",
@@ -1602,7 +1607,10 @@
         "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.",
         "You are about to remove your own access to this {{resourceType}}": "You are about to remove your own access to this {{resourceType}}",
         "Inherit access: ": "Inherit access: ",
-        "Access overview": "Access overview"
+        "Access overview": "Access overview",
+        "Share it publicly": "Share it publicly",
+        "Verify your sensitive data before sharing publicly": "Verify your sensitive data before sharing publicly",
+        "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing.": "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing."
     },
     "SearchModel": {
         "Search all pages": "Search all pages",
@@ -1907,7 +1915,10 @@
         "Restarting Grist...": "Restarting Grist...",
         "This will apply any pending changes and briefly interrupt access for all users.": "This will apply any pending changes and briefly interrupt access for all users.",
         "You can still restart Grist manually.": "You can still restart Grist manually.",
-        "error in {{provider}}: {{verdict}}": "error in {{provider}}: {{verdict}}"
+        "error in {{provider}}: {{verdict}}": "error in {{provider}}: {{verdict}}",
+        "Please restart Grist manually.": "Please restart Grist manually.",
+        "Restart Grist to apply pending changes.": "Restart Grist to apply pending changes.",
+        "Restart unavailable": "Restart unavailable"
     },
     "Columns": {
         "Remove Column": "Remove Column"
@@ -2589,7 +2600,65 @@
         "No authentication method is active.": "No authentication method is active.",
         "Set as active method": "Set as active method",
         "Set as active method?": "Set as active method?",
-        "The new method will go into effect after you restart Grist.": "The new method will go into effect after you restart Grist."
+        "The new method will go into effect after you restart Grist.": "The new method will go into effect after you restart Grist.",
+        "**Forwarded headers** allows your Grist server to trust authentication performed by an external proxy (e.g. Traefik ForwardAuth).": "**Forwarded headers** allows your Grist server to trust authentication performed by an external proxy (e.g. Traefik ForwardAuth).",
+        "**Grist Connect** is a login solution built and maintained by Grist Labs that integrates seamlessly with your Grist server.": "**Grist Connect** is a login solution built and maintained by Grist Labs that integrates seamlessly with your Grist server.",
+        "**OIDC** allows users on your Grist server to sign in using an external identity provider that supports the OpenID Connect standard.": "**OIDC** allows users on your Grist server to sign in using an external identity provider that supports the OpenID Connect standard.",
+        "**SAML** allows users on your Grist server to sign in using an external identity provider that supports the SAML 2.0 standard.": "**SAML** allows users on your Grist server to sign in using an external identity provider that supports the SAML 2.0 standard.",
+        "Change admin user": "Change admin user",
+        "If Grist is accessible on your network, or is available to multiple people, configure one of the authentication methods below.": "If Grist is accessible on your network, or is available to multiple people, configure one of the authentication methods below.",
+        "No authentication: unrestricted sign-in as demo user": "No authentication: unrestricted sign-in as demo user",
+        "Prepare changes": "Prepare changes",
+        "Restart required. Authentication change may affect your access": "Restart required. Authentication change may affect your access",
+        "Revert change of admin user": "Revert change of admin user",
+        "See \"Restart Grist\" section on top of this page to restart.": "See \"Restart Grist\" section on top of this page to restart.",
+        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "grist-connect": {
+                            ").": "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect](https://support.getgrist.com/install/grist-connect/)."
+                        }
+                    }
+                }
+            }
+        },
+        "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "oidc).": "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC](https://support.getgrist.com/install/oidc)."
+                    }
+                }
+            }
+        },
+        "To set up **SAML**, follow the instructions in [the Grist support article for SAML](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "saml": {
+                            ").": "To set up **SAML**, follow the instructions in [the Grist support article for SAML](https://support.getgrist.com/install/saml/)."
+                        }
+                    }
+                }
+            }
+        },
+        "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "forwarded-headers": {
+                            ").": "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers](https://support.getgrist.com/install/forwarded-headers/)."
+                        }
+                    }
+                }
+            }
+        },
+        "When a user accesses Grist, the proxy handles authentication and forwards verified user information through HTTP headers. Grist uses these headers to identify the user.": "When a user accesses Grist, the proxy handles authentication and forwards verified user information through HTTP headers. Grist uses these headers to identify the user.",
+        "When signing in, users will be redirected to a Grist Connect login page where they can authenticate using various identity providers. After authentication, they'll be redirected back to your Grist server and signed in.": "When signing in, users will be redirected to a Grist Connect login page where they can authenticate using various identity providers. After authentication, they'll be redirected back to your Grist server and signed in.",
+        "When signing in, users will be redirected to your chosen identity provider's login page to authenticate. After successful authentication, they'll be redirected back to your Grist server and signed in as the user verified by the provider.": "When signing in, users will be redirected to your chosen identity provider's login page to authenticate. After successful authentication, they'll be redirected back to your Grist server and signed in as the user verified by the provider.",
+        "You are signed in as {{email}}. After restart, the new administrative user will be {{newEmail}}.": "You are signed in as {{email}}. After restart, the new administrative user will be {{newEmail}}.",
+        "You are signed in as {{email}}. You may lose access to this server if you cannot sign in as this user after switching the authentication system.": "You are signed in as {{email}}. You may lose access to this server if you cannot sign in as this user after switching the authentication system."
     },
     "DetailView": {
         "This row is unavailable or does not exist": "This row is unavailable or does not exist"
@@ -2607,5 +2676,64 @@
         "Sign in with getgrist.com": "Sign in with getgrist.com",
         "To set up {{provider}}, you need to register your Grist server on getgrist.com and paste the configuration key you receive below.": "To set up {{provider}}, you need to register your Grist server on getgrist.com and paste the configuration key you receive below.",
         "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.": "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as."
+    },
+    "AirtableImportUI": {
+        "Back": "Back",
+        "Cancel": "Cancel",
+        "Choose an Airtable base to import from": "Choose an Airtable base to import from",
+        "Choose destination": "Choose destination",
+        "Connect": "Connect",
+        "Connect with Airtable": "Connect with Airtable",
+        "Connect your Airtable account to access your bases.": "Connect your Airtable account to access your bases.",
+        "Connected via {{method}}": "Connected via {{method}}",
+        "Connecting...": "Connecting...",
+        "Continue": "Continue",
+        "Destination": "Destination",
+        "Disconnect": "Disconnect",
+        "Existing tables": "Existing tables",
+        "Failed to fetch base schema": "Failed to fetch base schema",
+        "Failed to fetch bases": "Failed to fetch bases",
+        "Grist configuration required": "Grist configuration required",
+        "Import from {{baseName}} in progress. Do not navigate away from this page.": "Import from {{baseName}} in progress. Do not navigate away from this page.",
+        "Import tables": "Import tables",
+        "Import {{count}} tables_one": "Import {{count}} tables",
+        "Import {{count}} tables_other": "Import {{count}} tables",
+        "Make sure your token has the correct permissions.": "Make sure your token has the correct permissions.",
+        "New table": "New table",
+        "New table: structure only": "New table: structure only",
+        "No bases found": "No bases found",
+        "OAuth": "OAuth",
+        "OAuth credentials not configured. Please set OAUTH2_AIRTABLE_CLIENT_ID and OAUTH2_AIRTABLE_CLIENT_SECRET, or use personal access token.": "OAuth credentials not configured. Please set OAUTH2_AIRTABLE_CLIENT_ID and OAUTH2_AIRTABLE_CLIENT_SECRET, or use personal access token.",
+        "Personal access token": "Personal access token",
+        "Please enter a personal access token": "Please enter a personal access token",
+        "Refresh": "Refresh",
+        "Select tables to import from {{baseName}}": "Select tables to import from {{baseName}}",
+        "Skip": "Skip",
+        "Source tables": "Source tables",
+        "Structure only": "Structure only",
+        "Use personal access token instead": "Use personal access token instead",
+        "[Generate a token]({{url}}) in your Airtable account with scopes that include at least **\\`schema.bases:read\\`** and **\\`data.records:read\\`**.\n\nYour token is never sent to Grist's servers, and is only used to make API calls to Airtable from your browser.": "[Generate a token]({{url}}) in your Airtable account with scopes that include at least **\\`schema.bases:read\\`** and **\\`data.records:read\\`**.\n\nYour token is never sent to Grist's servers, and is only used to make API calls to Airtable from your browser.",
+        "loading your bases...": "loading your bases...",
+        "loading your tables...": "loading your tables...",
+        "or": "or",
+        "{{count}} warnings_one": "{{count}} warnings",
+        "{{count}} warnings_other": "{{count}} warnings"
+    },
+    "AirtableImporter": {
+        "Creating a new Grist document...": "Creating a new Grist document...",
+        "Preparing to import base from Airtable...": "Preparing to import base from Airtable...",
+        "Setting up tables...": "Setting up tables..."
+    },
+    "ChangeAdminModal": {
+        "Enter new admin email": "Enter new admin email",
+        "Make the new email the installation admin. Orgs, workspaces, and documents will remain owned by {{email}}. These changes will take effect after you restart this Grist server.": "Make the new email the installation admin. Orgs, workspaces, and documents will remain owned by {{email}}. These changes will take effect after you restart this Grist server.",
+        "New admin": "New admin",
+        "Replace {{email}} with the new email throughout. The new email will become the installation admin, as well as the owner of all materials previously owned by you@example.com.": "Replace {{email}} with the new email throughout. The new email will become the installation admin, as well as the owner of all materials previously owned by you@example.com."
+    },
+    "startDocAirtableImport": {
+        "Import from Airtable": "Import from Airtable"
+    },
+    "startHomeAirtableImport": {
+        "Import from Airtable": "Import from Airtable"
     }
 }

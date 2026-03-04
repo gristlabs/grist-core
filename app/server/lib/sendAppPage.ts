@@ -11,7 +11,7 @@ import {
   getTermsOfServiceUrl,
   getWebinarsUrl,
   GristLoadConfig,
-  IFeature,
+  IFeature, ImplicitlyEnabledFeatures,
 } from "app/common/gristUrls";
 import { isAffirmative } from "app/common/gutil";
 import { getTagManagerSnippet } from "app/common/tagManager";
@@ -23,7 +23,8 @@ import { isAnonymousUser, isSingleUserMode, RequestWithLogin } from "app/server/
 import { RequestWithOrg } from "app/server/lib/extractOrg";
 import { GristServer } from "app/server/lib/GristServer";
 import {
-  getOnboardingTutorialDocId,
+  getAnonPlaygroundEnabled, getCanAnyoneCreateOrgs,
+  getOnboardingTutorialDocId, getPersonalOrgsEnabled,
   getTemplateOrg,
   getUserPresenceMaxUsers,
 } from "app/server/lib/gristSettings";
@@ -88,7 +89,7 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
 
   // Configure form framing behavior.
 
-  return {
+  const config: GristLoadConfig = {
     homeUrl,
     org: process.env.GRIST_SINGLE_ORG || (mreq && mreq.org),
     baseDomain,
@@ -103,7 +104,9 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     contactSupportUrl: getContactSupportUrl(),
     pathOnly,
     supportAnon: shouldSupportAnon(),
-    enableAnonPlayground: isAffirmative(process.env.GRIST_ANON_PLAYGROUND ?? true),
+    enableAnonPlayground: getAnonPlaygroundEnabled(),
+    canAnyoneCreateOrgs: getCanAnyoneCreateOrgs(),
+    enablePersonalOrgs: getPersonalOrgsEnabled(),
     supportEngines: getSupportedEngineChoices(),
     features: getFeatures(),
     pageTitleSuffix: configuredPageTitleSuffix(),
@@ -143,6 +146,9 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     warnBeforeSharingPublicly: isAffirmative(process.env.GRIST_WARN_BEFORE_SHARING_PUBLICLY),
     // TODO: Add to BootProbes and remove this. We don't need to include this in every page.
     runningUnderSupervisor: isAffirmative(process.env.GRIST_RUNNING_UNDER_SUPERVISOR),
+  };
+  return {
+    ...config,
     ...extra,
   };
 }
@@ -270,7 +276,8 @@ function shouldSupportAnon() {
 
 function getFeatures(): IFeature[] {
   const disabledFeatures = process.env.GRIST_HIDE_UI_ELEMENTS?.split(",") ?? [];
-  const enabledFeatures = process.env.GRIST_UI_FEATURES?.split(",") ?? Features.values;
+  const explicitFeatures = process.env.GRIST_UI_FEATURES?.split(",") ?? Features.values;
+  const enabledFeatures = explicitFeatures.concat(ImplicitlyEnabledFeatures);
   return Features.checkAll(difference(enabledFeatures, disabledFeatures));
 }
 

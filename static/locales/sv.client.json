@@ -1781,7 +1781,8 @@
         "Vertical": "Vertikal",
         "Accept value from URL": "Acceptera värde från URL",
         "Hidden field": "Dolt fällt",
-        "URL parameter:\n{{colId}}=VALUE": "URL parameter\n{{colId}}=VÄRDE"
+        "URL parameter:\n{{colId}}=VALUE": "URL parameter\n{{colId}}=VÄRDE",
+        "Options limit": "Inställningsbegränsningar"
     },
     "CustomView": {
         "Some required columns aren't mapped": "Några obligatoriskt kolumner är inte kopplade",
@@ -2093,7 +2094,7 @@
     "markdown": {
         "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
             "": {
-                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Ny Markdown funktion\n\n      Vi kan _skriva_ [vanlig Markdown](https://markdownguide.org) *inne* i\n      ett Grainjs element."
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Ny Markdownfunktion\n\n      Vi kan _skriva_ [vanlig Markdown](https://markdownguide.org) *inne* i\n      ett Grainjs element."
             }
         },
         "The toggle is **off**": "Detta av/på-val är **av**",
@@ -2102,7 +2103,7 @@
     "markdown.d": {
         "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
             "": {
-                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Ny Markdown funktion\n\n      Vi kan _skriva_ [vanlig Markdown](https://markdownguide.org) *inne* i\n      ett Grainjs element."
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Ny Markdownfunktion\n\n      Vi kan _skriva_ [vanlig Markdown](https://markdownguide.org) *inne* i\n      ett Grainjs element."
             }
         },
         "The toggle is **off**": "Detta av/på-val är **av**",
@@ -2592,5 +2593,19 @@
     },
     "DetailView": {
         "This row is unavailable or does not exist": "Denna rad är inte tillgänglig eller finns inte"
+    },
+    "GetGristComProvider": {
+        "Cancel": "Avbryt",
+        "Configure": "Ställ in",
+        "Register your Grist server": "Registrera din Gristserver",
+        "Sign in with getgrist.com": "Logga in med getgrist.com",
+        "Configure Sign in with getgrist.com": "Ställ in inloggning med getgrist.com",
+        "Instructions": "Instruktioner",
+        "Learn more about Sign in with getgrist.com": "Lär dig mer om inloggning med getgrist.com",
+        "Paste configuration key here": "Klistra in inställningsnyckeln här",
+        "Home URL is not set; cannot configure Sign in with getgrist.com": "Hem URL är inte inställd; kan inte ställa in inloggning med getgrist.com",
+        "**Sign in with getgrist.com** allows users on your Grist server to sign in using their account on getgrist.com, the cloud version of Grist managed by Grist Labs.": "**Logga in med getgrist.com** gör att användare på din Gristserver kan logga in med sitt konto på getgrist.com, molnversionen av Grist som drivs av Grist Labs.",
+        "To set up {{provider}}, you need to register your Grist server on getgrist.com and paste the configuration key you receive below.": "För att ställa in {{provider}} behöver du registrera din Gristserver på getgrist.com och klistra ininställningsnyckeln du får nedan.",
+        "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.": "Vid inloggning kommer användarna att skickas vidare till inloggningssidan på getgrist.com för att logga in eller registrera sig. Efter autentisering på getgrist.com skickas användaren tillbaka till din Gristserver inloggad som användaren som de autentiserdes som."
     }
 }

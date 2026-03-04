@@ -74,6 +74,9 @@ export type PersistentAnchor = typeof PersistentAnchor.type;
 export const InterfaceStyle = StringUnion("singlePage", "full");
 export type InterfaceStyle = typeof InterfaceStyle.type;
 
+export const CompareEmphasis = StringUnion("local", "remote");
+export type CompareEmphasis = typeof CompareEmphasis.type;
+
 // Default subdomain for home api service if not otherwise specified.
 export const DEFAULT_HOME_SUBDOMAIN = "api";
 
@@ -205,6 +208,7 @@ export interface IGristUrlState {
     srcDocId?: string;
     style?: InterfaceStyle;
     compare?: string;
+    compareEmphasis?: CompareEmphasis;  // which of local and remote changes should be emphasized visually.
     linkParameters?: Record<string, string>;  // Parameters to pass as 'user.Link' in granular ACLs.
     // Encoded in URL as query params with extra '_' suffix.
     themeSyncWithOs?: boolean;
@@ -603,6 +607,12 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
   if (sp.has("compare")) {
     state.params!.compare = sp.get("compare")!;
   }
+  if (sp.has("compareEmphasis")) {
+    const compareEmphasis = sp.get("compareEmphasis")!;
+    if (compareEmphasis && CompareEmphasis.guard(compareEmphasis)) {
+      state.params!.compareEmphasis = compareEmphasis;
+    }
+  }
   const linkParameters = decodeLinkParameters(sp);
   if (linkParameters) {
     state.params!.linkParameters = linkParameters;
@@ -870,6 +880,12 @@ export interface GristLoadConfig {
   // If set, enable anonymous playground.
   enableAnonPlayground?: boolean;
 
+  // If set, allow non-admins to create new organizations
+  canAnyoneCreateOrgs?: boolean;
+
+  // If set, allow access to each user's personal organization
+  enablePersonalOrgs?: boolean;
+
   // If set, allow selection of the specified engines.
   // TODO: move this list to a separate endpoint.
   supportEngines?: EngineCode[];
@@ -1000,6 +1016,10 @@ export const Features = StringUnion(
   "themes",
 );
 export type IFeature = typeof Features.type;
+
+// Features that are enabled, even if not explicitly listed in GRIST_UI_FEATURES.
+// These should be still be disabled if listed in GRIST_HIDE_UI_ELEMENTS.
+export const ImplicitlyEnabledFeatures: IFeature[] = ["importFromAirtable"];
 
 export function isFeatureEnabled(feature: IFeature): boolean {
   return (getGristConfig().features || []).includes(feature);
