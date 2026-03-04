@@ -2657,7 +2657,7 @@ namespace gristUtils {
   }
 
   export function setFillColor(color: string) {
-    return setColor(driver.find(".test-fill-input"), color);
+    return setColor(driver.findWait(".test-fill-input", 1000), color);
   }
 
   export async function applyStyle() {
