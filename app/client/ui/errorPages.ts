@@ -416,32 +416,42 @@ export function createSetupPage(appModel: AppModel) {
     headerMain: cssSetupHeaderMain(buildLanguageMenu(appModel)),
     contentMain: cssCenteredContent(cssCenteredContent.cls("-setup"), cssErrorContent(
       cssBigIcon(),
-      cssErrorHeader("This Grist installation needs to be set up", testId("error-header")),
+      cssErrorHeader("Set up your Grist installation", testId("error-header")),
       [
         cssSetupSection(
-          dom.domComputed(authMode, mode => mode === "getgrist" ? [
-            cssSetupStepHeader(
-              cssStepNumber("1"),
-              cssSetupSectionTitle("Sign in with getgrist.com"),
-              cssStepRecommendedBadge("Recommended"),
+          cssSetupStepHeader(
+            cssStepNumber("1"),
+            cssSetupSectionTitle("Verify you are the installer"),
+          ),
+          cssSetupDescription(
+            "Before configuring anything, we need to confirm you're the person who installed ",
+            "this server. Choose how to verify:",
+          ),
+          cssSegmentedControl(
+            cssSegmentedOption(
+              cssSegmentedOption.cls("-selected", use => use(authMode) === "getgrist"),
+              dom.on("click", () => authMode.set("getgrist")),
+              "Register on getgrist.com",
+              testId("setup-toggle-env"),
             ),
-          ] : [
-            cssSetupStepHeader(
-              cssStepNumber("1"),
-              cssSetupSectionTitle("Enter a boot key"),
+            cssSegmentedOption(
+              cssSegmentedOption.cls("-selected", use => use(authMode) === "bootkey"),
+              dom.on("click", () => authMode.set("bootkey")),
+              "Enter boot key",
+              testId("setup-toggle-bootkey"),
             ),
-          ]),
+          ),
           dom.domComputed(authMode, mode => mode === "getgrist" ? [
             cssSetupDescription(
-              "First, declare your admin email in the environment and restart:",
+              "Declare your admin email in the environment and restart:",
             ),
             cssSetupCode(
               "GRIST_ADMIN_EMAIL=you@example.com",
             ),
             cssSetupDescription(
-              "Then, register your Grist server on getgrist.com ",
+              "Then register your Grist server on getgrist.com ",
               dom("b", "using that same email address"),
-              ". This proves to the server that you are the declared admin.",
+              ".",
             ),
             cssSetupDescription(
               cssLink(
@@ -485,17 +495,10 @@ export function createSetupPage(appModel: AppModel) {
                 testId("setup-configure-submit"),
               ),
             ]),
-            dom.maybe(use => use(configStatus) !== "success", () =>
-              cssToggleLink(
-                "Air-gapped or no external account? Use a boot key instead",
-                dom.on("click", () => authMode.set("bootkey")),
-                testId("setup-toggle-bootkey"),
-              ),
-            ),
           ] : [
             cssSetupDescription(
               "A boot key was printed to your server logs on startup. ",
-              "Retrieve it and paste it below.",
+              "Only someone with access to the server can retrieve it.",
             ),
             cssBootKeyRow(
               cssBootKeyInput(
@@ -532,13 +535,6 @@ export function createSetupPage(appModel: AppModel) {
               cssSetupDescription(
                 dom("b", "Boot key accepted."),
                 " Detecting sandbox options below...",
-              ),
-            ),
-            dom.maybe(use => !use(storedBootKey), () =>
-              cssToggleLink(
-                "Sign in with getgrist.com instead",
-                dom.on("click", () => authMode.set("getgrist")),
-                testId("setup-toggle-env"),
               ),
             ),
           ]),
@@ -868,7 +864,7 @@ function buildMockupControls(owner: any, state: MockupState) {
     cssMockupTitle("Mockup controls"),
 
     // --- Step 1 ---
-    cssMockupSection("Step 1: Authentication"),
+    cssMockupSection("Step 1: Verify identity"),
     cssMockupRow(
       cssMockupLabel("Email:"),
       cssMockupInput(
@@ -1042,13 +1038,6 @@ const cssStepOptionalBadge = styled("span", `
   font-style: italic;
 `);
 
-const cssStepRecommendedBadge = styled("span", `
-  font-size: ${vars.smallFontSize};
-  color: ${theme.controlFg};
-  font-weight: normal;
-  font-style: italic;
-`);
-
 const cssSetupDivider = styled("div", `
   max-width: 500px;
   margin: 32px auto 24px auto;
@@ -1072,13 +1061,30 @@ const cssSetupCode = styled("div", `
   word-break: break-all;
 `);
 
-const cssToggleLink = styled("div", `
-  font-size: ${vars.smallFontSize};
-  color: ${theme.controlFg};
+const cssSegmentedControl = styled("div", `
+  display: inline-flex;
+  border: 1px solid ${theme.inputBorder};
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 12px;
+`);
+
+const cssSegmentedOption = styled("div", `
+  padding: 6px 16px;
+  font-size: ${vars.mediumFontSize};
   cursor: pointer;
-  margin-top: 4px;
-  &:hover {
-    text-decoration: underline;
+  color: ${theme.lightText};
+  user-select: none;
+  transition: background-color 0.15s, color 0.15s;
+  &:not(:last-child) {
+    border-right: 1px solid ${theme.inputBorder};
+  }
+  &:hover:not(&-selected) {
+    background: ${theme.controlSecondaryHoverBg};
+  }
+  &-selected {
+    background: ${theme.controlPrimaryBg};
+    color: ${theme.controlPrimaryFg};
   }
 `);
 
