@@ -154,139 +154,139 @@ export function pagePanels(page: PageContents) {
         regionFocusSwitcher?.onPageDomLoaded(el);
       },
       ...(left ? [
-      leftPaneDom = cssLeftPane(
-        testId("left-panel"),
-        regionFocusSwitcher?.panelAttrs("left", t("Main navigation and document settings (left panel)")),
-        cssOverflowContainer(
-          contentWrapper = cssLeftPanelContainer(
-            cssLeftPaneHeader(
-              left.header,
-              dom.style("margin-bottom", use => use(bannerHeight) + "px"),
+        leftPaneDom = cssLeftPane(
+          testId("left-panel"),
+          regionFocusSwitcher?.panelAttrs("left", t("Main navigation and document settings (left panel)")),
+          cssOverflowContainer(
+            contentWrapper = cssLeftPanelContainer(
+              cssLeftPaneHeader(
+                left.header,
+                dom.style("margin-bottom", use => use(bannerHeight) + "px"),
+              ),
+              left.content,
             ),
-            left.content,
           ),
-        ),
 
-        // Show plain border when the resize handle is hidden.
-        cssResizeDisabledBorder(
-          dom.hide(use => use(left.panelOpen) && !use(leftOverlap)),
-          cssHideForNarrowScreen.cls(""),
-          testId("left-disabled-resizer"),
-        ),
+          // Show plain border when the resize handle is hidden.
+          cssResizeDisabledBorder(
+            dom.hide(use => use(left.panelOpen) && !use(leftOverlap)),
+            cssHideForNarrowScreen.cls(""),
+            testId("left-disabled-resizer"),
+          ),
 
-        dom.style("width", use => use(left.panelOpen) ? use(left.panelWidth) + "px" : ""),
+          dom.style("width", use => use(left.panelOpen) ? use(left.panelWidth) + "px" : ""),
 
-        // Opening/closing the left pane, with transitions.
-        cssLeftPane.cls("-open", left.panelOpen),
-        transition(use => (use(isNarrowScreenObs()) ? false : use(left.panelOpen)), {
-          prepare(elem, open) {
-            elem.style.width = (open ? 48 : left.panelWidth.get()) + "px";
-          },
-          run(elem, open) {
-            elem.style.width = contentWrapper.style.width = (open ? left.panelWidth.get() : 48) + "px";
-          },
-          finish() {
-            onResize();
-            contentWrapper.style.width = "";
-            onLeftTransitionFinish();
-          },
-        }),
+          // Opening/closing the left pane, with transitions.
+          cssLeftPane.cls("-open", left.panelOpen),
+          transition(use => (use(isNarrowScreenObs()) ? false : use(left.panelOpen)), {
+            prepare(elem, open) {
+              elem.style.width = (open ? 48 : left.panelWidth.get()) + "px";
+            },
+            run(elem, open) {
+              elem.style.width = contentWrapper.style.width = (open ? left.panelWidth.get() : 48) + "px";
+            },
+            finish() {
+              onResize();
+              contentWrapper.style.width = "";
+              onLeftTransitionFinish();
+            },
+          }),
 
-        // opening left panel on hover
-        dom.on("mouseenter", (evt1, elem) => {
-          if (left.panelOpen.get() ||
+          // opening left panel on hover
+          dom.on("mouseenter", (evt1, elem) => {
+            if (left.panelOpen.get() ||
 
             // when no opener should not auto-expand
-            left.hideOpener ||
+              left.hideOpener ||
 
             // if user is resizing the window, don't expand.
-            isScreenResizingObs.get()) { return; }
+              isScreenResizingObs.get()) { return; }
 
-          let isMouseInsideLeftPane = true;
-          let isFocusInsideLeftPane = false;
-          let isMouseDragging = false;
+            let isMouseInsideLeftPane = true;
+            let isFocusInsideLeftPane = false;
+            let isMouseDragging = false;
 
-          const owner = new MultiHolder();
-          const startExpansion = () => {
-            leftOverlap.set(true);
-            pauseSavingLeft(true); // prevents from updating state in the window storage
-            left.panelOpen.set(true);
-            onLeftTransitionFinish = noop;
-            watchBlur();
-          };
-          const startCollapse = () => {
-            left.panelOpen.set(false);
-            pauseSavingLeft(false);
-            // turns overlap off only when the transition finishes
-            onLeftTransitionFinish = once(() => leftOverlap.set(false));
-            clear();
-          };
-          const clear = () => {
-            if (owner.isDisposed()) { return; }
-            clearTimeout(timeoutId);
-            owner.dispose();
-          };
-          dom.onDisposeElem(elem, clear);
+            const owner = new MultiHolder();
+            const startExpansion = () => {
+              leftOverlap.set(true);
+              pauseSavingLeft(true); // prevents from updating state in the window storage
+              left.panelOpen.set(true);
+              onLeftTransitionFinish = noop;
+              watchBlur();
+            };
+            const startCollapse = () => {
+              left.panelOpen.set(false);
+              pauseSavingLeft(false);
+              // turns overlap off only when the transition finishes
+              onLeftTransitionFinish = once(() => leftOverlap.set(false));
+              clear();
+            };
+            const clear = () => {
+              if (owner.isDisposed()) { return; }
+              clearTimeout(timeoutId);
+              owner.dispose();
+            };
+            dom.onDisposeElem(elem, clear);
 
-          // updates isFocusInsideLeftPane and starts watch for blur on activeElement.
-          const watchBlur = debounce(() => {
-            if (owner.isDisposed()) { return; }
-            isFocusInsideLeftPane = Boolean(leftPaneDom.contains(document.activeElement) ||
-              document.activeElement?.closest(".grist-floating-menu"));
-            maybeStartCollapse();
-            if (document.activeElement) {
-              maybePatchDomAndChangeFocus(); // This is to support projects test environment
-              watchElementForBlur(document.activeElement, watchBlur);
-            }
-          }, DELAY_BEFORE_TESTING_FOCUS_CHANGE_MS);
+            // updates isFocusInsideLeftPane and starts watch for blur on activeElement.
+            const watchBlur = debounce(() => {
+              if (owner.isDisposed()) { return; }
+              isFocusInsideLeftPane = Boolean(leftPaneDom.contains(document.activeElement) ||
+                document.activeElement?.closest(".grist-floating-menu"));
+              maybeStartCollapse();
+              if (document.activeElement) {
+                maybePatchDomAndChangeFocus(); // This is to support projects test environment
+                watchElementForBlur(document.activeElement, watchBlur);
+              }
+            }, DELAY_BEFORE_TESTING_FOCUS_CHANGE_MS);
 
-          // starts collapsed only if neither mouse nor focus are inside the left pane. Return true
-          // if started collapsed, false otherwise.
-          const maybeStartCollapse = () => {
-            if (!isMouseInsideLeftPane && !isFocusInsideLeftPane && !isMouseDragging) {
-              startCollapse();
-            }
-          };
+            // starts collapsed only if neither mouse nor focus are inside the left pane. Return true
+            // if started collapsed, false otherwise.
+            const maybeStartCollapse = () => {
+              if (!isMouseInsideLeftPane && !isFocusInsideLeftPane && !isMouseDragging) {
+                startCollapse();
+              }
+            };
 
-          // mouse events
-          const onMouseEvt = (evt: MouseEvent) => {
-            const rect = leftPaneDom.getBoundingClientRect();
-            isMouseInsideLeftPane = evt.clientX <= rect.right;
-            isMouseDragging = evt.buttons !== 0;
-            maybeStartCollapse();
-          };
-          owner.autoDispose(dom.onElem(document, "mousemove", onMouseEvt));
-          owner.autoDispose(dom.onElem(document, "mouseup", onMouseEvt));
+            // mouse events
+            const onMouseEvt = (evt: MouseEvent) => {
+              const rect = leftPaneDom.getBoundingClientRect();
+              isMouseInsideLeftPane = evt.clientX <= rect.right;
+              isMouseDragging = evt.buttons !== 0;
+              maybeStartCollapse();
+            };
+            owner.autoDispose(dom.onElem(document, "mousemove", onMouseEvt));
+            owner.autoDispose(dom.onElem(document, "mouseup", onMouseEvt));
 
-          // Enables collapsing when the cursor leaves the window. This comes handy in a split
-          // screen setup, especially when Grist is on the right side: moving the cursor back and
-          // forth between the 2 windows, the cursor is likely to hover the left pane and expand it
-          // inadvertendly. This line collapses it back.
-          const onMouseLeave = () => {
-            isMouseInsideLeftPane = false;
-            maybeStartCollapse();
-          };
-          owner.autoDispose(dom.onElem(document.body, "mouseleave", onMouseLeave));
+            // Enables collapsing when the cursor leaves the window. This comes handy in a split
+            // screen setup, especially when Grist is on the right side: moving the cursor back and
+            // forth between the 2 windows, the cursor is likely to hover the left pane and expand it
+            // inadvertendly. This line collapses it back.
+            const onMouseLeave = () => {
+              isMouseInsideLeftPane = false;
+              maybeStartCollapse();
+            };
+            owner.autoDispose(dom.onElem(document.body, "mouseleave", onMouseLeave));
 
-          // schedule start of expansion
-          const timeoutId = setTimeout(startExpansion, AUTO_EXPAND_TIMEOUT_MS);
-        }),
-        cssLeftPane.cls("-overlap", leftOverlap),
-        cssLeftPane.cls("-dragging", dragResizer),
-      ),
+            // schedule start of expansion
+            const timeoutId = setTimeout(startExpansion, AUTO_EXPAND_TIMEOUT_MS);
+          }),
+          cssLeftPane.cls("-overlap", leftOverlap),
+          cssLeftPane.cls("-dragging", dragResizer),
+        ),
 
-      // Resizer for the left pane.
-      // TODO: resizing to small size should collapse. possibly should allow expanding too
-      cssResizeFlexVHandle(
-        { target: "left", onSave: (val) => {
-          left.panelWidth.set(val); onResize();
-          leftPaneDom.style.width = val + "px";
-          setTimeout(() => dragResizer.set(false), 0);
-        },
-        onDrag: (val) => { dragResizer.set(true); } },
-        testId("left-resizer"),
-        dom.show(use => use(left.panelOpen) && !use(leftOverlap)),
-        cssHideForNarrowScreen.cls("")),
+        // Resizer for the left pane.
+        // TODO: resizing to small size should collapse. possibly should allow expanding too
+        cssResizeFlexVHandle(
+          { target: "left", onSave: (val) => {
+            left.panelWidth.set(val); onResize();
+            leftPaneDom.style.width = val + "px";
+            setTimeout(() => dragResizer.set(false), 0);
+          },
+          onDrag: (val) => { dragResizer.set(true); } },
+          testId("left-resizer"),
+          dom.show(use => use(left.panelOpen) && !use(leftOverlap)),
+          cssHideForNarrowScreen.cls("")),
       ] : []),
 
       cssMainPane(
