@@ -2061,7 +2061,8 @@ namespace gristUtils {
     await toggleSidePanel("right", "open");
     await driver.find(".test-config-data").click();
     await getSection(section).click();
-    await driver.find(".test-right-select-by").click();
+    const selectBy = await driver.find(".test-right-select-by").doClick();
+    await driver.wait(() => selectBy.find(".weasel-popup-open").isPresent(), 1000);
   }
 
   export async function editOrgAcls(): Promise<void> {

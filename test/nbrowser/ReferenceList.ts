@@ -712,8 +712,7 @@ describe("ReferenceList", function() {
 
     it("should save text as typed when nothing is selected", async function() {
       const cell = await gu.getCell({ section: "References", col: "Colors", rowNum: 1 }).doClick();
-      await driver.sendKeys("lavender ", Key.ENTER, Key.ENTER);
-      await gu.waitForServer();
+      await gu.enterCell(["lavender ", Key.ENTER, Key.ENTER]);
       assert.equal(await cell.getText(), "Lavender");
       await gu.undo();
       assert.equal(await cell.getText(), "Dark Slate Blue");
@@ -870,7 +869,7 @@ describe("ReferenceList", function() {
       await driver.sendKeys(Key.ESCAPE);
       cell = await gu.getCell({ section: "References", col: "Schools", rowNum: 2 });
       await gu.clickReferenceListCell(cell);
-      await driver.sendKeys("stuy");
+      await gu.enterCell(["stuy"], { validate: false });
       assert.deepEqual(await getACOptions(3), [
         "STUYVESANT HIGH SCHOOL",
         "BEDFORD STUY COLLEGIATE CHARTER SCH",
