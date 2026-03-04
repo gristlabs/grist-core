@@ -700,7 +700,7 @@ export class FlexServer implements GristServer {
     }
 
     if (this._bootKey) {
-      log.rawInfo("Boot key for initial setup", {bootKey: this._bootKey});
+      log.rawInfo("Boot key for initial setup", { bootKey: this._bootKey });
     }
 
     // Paths that should always be accessible, even when the setup gate is active.
@@ -726,7 +726,7 @@ export class FlexServer implements GristServer {
         req.headers.accept?.includes("application/json");
       if (isApi) {
         return res.status(503).json({
-          error: "Grist is not yet configured. Visit /admin to set up this installation."
+          error: "Grist is not yet configured. Visit /admin to set up this installation.",
         });
       }
 
@@ -742,28 +742,6 @@ export class FlexServer implements GristServer {
         config: { errPage: "setup" },
       });
     });
-  }
-
-  /**
-   * Check whether this Grist installation is "in service" (should serve
-   * normal requests) or needs initial setup.
-   */
-  private _isInService(): boolean {
-    // Explicit opt-in via environment variable.
-    if (isAffirmative(process.env.GRIST_IN_SERVICE)) {
-      return true;
-    }
-    // Testing environments should not be blocked by the setup gate,
-    // unless explicitly testing the gate itself.
-    if (process.env.GRIST_TESTING_SOCKET && !isAffirmative(process.env.GRIST_FORCE_SETUP_GATE)) {
-      return true;
-    }
-    // If a real auth system is configured (not "minimal" fallback), we're in service.
-    const loginActive = appSettings.section("login").flag("active").get();
-    if (loginActive && loginActive !== "minimal") {
-      return true;
-    }
-    return false;
   }
 
   public denyRequestsIfNotReady() {
@@ -2342,6 +2320,28 @@ export class FlexServer implements GristServer {
    */
   public getUserIdMiddleware(): express.RequestHandler {
     return this._userIdMiddleware;
+  }
+
+  /**
+   * Check whether this Grist installation is "in service" (should serve
+   * normal requests) or needs initial setup.
+   */
+  private _isInService(): boolean {
+    // Explicit opt-in via environment variable.
+    if (isAffirmative(process.env.GRIST_IN_SERVICE)) {
+      return true;
+    }
+    // Testing environments should not be blocked by the setup gate,
+    // unless explicitly testing the gate itself.
+    if (process.env.GRIST_TESTING_SOCKET && !isAffirmative(process.env.GRIST_FORCE_SETUP_GATE)) {
+      return true;
+    }
+    // If a real auth system is configured (not "minimal" fallback), we're in service.
+    const loginActive = appSettings.section("login").flag("active").get();
+    if (loginActive && loginActive !== "minimal") {
+      return true;
+    }
+    return false;
   }
 
   // Adds endpoints that support imports and exports.
