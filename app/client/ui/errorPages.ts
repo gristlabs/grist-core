@@ -3,6 +3,7 @@ import { getLoginUrl, getSignupUrl } from "app/client/lib/urlUtils";
 import { AppModel } from "app/client/models/AppModel";
 import { getMainOrgUrl, urlState } from "app/client/models/gristUrlState";
 import { AppHeader } from "app/client/ui/AppHeader";
+import { buildLanguageMenu } from "app/client/ui/LanguageMenu";
 import { leftPanelBasic } from "app/client/ui/LeftPanelCommon";
 import { pagePanels } from "app/client/ui/PagePanels";
 import { createTopBarHome } from "app/client/ui/TopBar";
@@ -257,144 +258,147 @@ export function createSetupPage(appModel: AppModel) {
   document.title = `Setup${getPageTitleSuffix(getGristConfig())}`;
 
   const bootKeyValue = observable("");
-  const authMode = observable<"env"|"bootkey">("env");
+  const authMode = observable<"env" | "bootkey">("env");
 
-  return cssCenteredContent(cssCenteredContent.cls('-setup'), cssErrorContent(
-      cssBigIcon(),
-      cssErrorHeader("This Grist installation needs to be set up", testId("error-header")),
-      [
-    cssSetupNotice(
-      "Complete the steps below to secure your Grist installation, then restart the server.",
-    ),
+  return pagePanels({
+    headerMain: cssSetupHeaderMain(buildLanguageMenu(appModel)),
+    contentMain: cssCenteredContent(cssCenteredContent.cls("-setup"), cssErrorContent(
+    cssBigIcon(),
+    cssErrorHeader("This Grist installation needs to be set up", testId("error-header")),
+    [
+      cssSetupNotice(
+        "Complete the steps below to secure your Grist installation, then restart the server.",
+      ),
 
-    cssSetupSection(
-      dom.domComputed(authMode, mode => mode === "env" ? [
-        cssSetupStepHeader(
-          cssStepNumber("1"),
-          cssSetupSectionTitle("Sign in with getgrist.com"),
-          cssStepRecommendedBadge("Recommended"),
-        ),
-      ] : [
-        cssSetupStepHeader(
-          cssStepNumber("1"),
-          cssSetupSectionTitle("Enter a boot key"),
-        ),
-      ]),
-      dom.domComputed(authMode, mode => mode === "env" ? [
-        cssSetupDescription(
-          "Use your getgrist.com account to claim this server. ",
-          "Add your email to the environment and restart:",
-        ),
-        cssSetupCode(
-          "GRIST_ADMIN_EMAIL=you@example.com",
-        ),
-        cssSetupDescription(
-          "After restarting, return to this page and you'll be able to sign in ",
-          "and complete setup through the admin panel.",
-        ),
-        cssToggleLink(
-          "Air-gapped or no external account? Use a boot key instead",
-          dom.on("click", () => authMode.set("bootkey")),
-          testId("setup-toggle-bootkey"),
-        ),
-      ] : [
-        cssSetupDescription(
-          "A boot key was printed to your server logs on startup. ",
-          "Retrieve it and paste it below to access the admin panel.",
-        ),
-        cssBootKeyRow(
-          cssBootKeyInput(
-            dom.prop("value", bootKeyValue),
-            dom.on("input", (_e: Event, elem: HTMLInputElement) => bootKeyValue.set(elem.value)),
-            { placeholder: "Enter boot key from server logs" },
-            dom.on("keydown", (ev: KeyboardEvent) => {
-              if (ev.key === "Enter") {
+      cssSetupSection(
+        dom.domComputed(authMode, mode => mode === "env" ? [
+          cssSetupStepHeader(
+            cssStepNumber("1"),
+            cssSetupSectionTitle("Sign in with getgrist.com"),
+            cssStepRecommendedBadge("Recommended"),
+          ),
+        ] : [
+          cssSetupStepHeader(
+            cssStepNumber("1"),
+            cssSetupSectionTitle("Enter a boot key"),
+          ),
+        ]),
+        dom.domComputed(authMode, mode => mode === "env" ? [
+          cssSetupDescription(
+            "Use your getgrist.com account to claim this server. ",
+            "Add your email to the environment and restart:",
+          ),
+          cssSetupCode(
+            "GRIST_ADMIN_EMAIL=you@example.com",
+          ),
+          cssSetupDescription(
+            "After restarting, return to this page and you'll be able to sign in ",
+            "and complete setup through the admin panel.",
+          ),
+          cssToggleLink(
+            "Air-gapped or no external account? Use a boot key instead",
+            dom.on("click", () => authMode.set("bootkey")),
+            testId("setup-toggle-bootkey"),
+          ),
+        ] : [
+          cssSetupDescription(
+            "A boot key was printed to your server logs on startup. ",
+            "Retrieve it and paste it below to access the admin panel.",
+          ),
+          cssBootKeyRow(
+            cssBootKeyInput(
+              dom.prop("value", bootKeyValue),
+              dom.on("input", (_e: Event, elem: HTMLInputElement) => bootKeyValue.set(elem.value)),
+              { placeholder: "Enter boot key from server logs" },
+              dom.on("keydown", (ev: KeyboardEvent) => {
+                if (ev.key === "Enter") {
+                  const key = bootKeyValue.get().trim();
+                  if (key) { window.location.href = `/boot/${encodeURIComponent(key)}`; }
+                }
+              }),
+              testId("setup-boot-key-input"),
+            ),
+            cssBootKeySubmit(
+              "Submit",
+              dom.on("click", () => {
                 const key = bootKeyValue.get().trim();
                 if (key) { window.location.href = `/boot/${encodeURIComponent(key)}`; }
-              }
-            }),
-            testId("setup-boot-key-input"),
+              }),
+              testId("setup-boot-key-submit"),
+            ),
           ),
-          cssBootKeySubmit(
-            "Submit",
-            dom.on("click", () => {
-              const key = bootKeyValue.get().trim();
-              if (key) { window.location.href = `/boot/${encodeURIComponent(key)}`; }
-            }),
-            testId("setup-boot-key-submit"),
+          cssToggleLink(
+            "Sign in with getgrist.com instead",
+            dom.on("click", () => authMode.set("env")),
+            testId("setup-toggle-env"),
           ),
+        ]),
+      ),
+
+      cssSetupSection(
+        cssSetupStepHeader(
+          cssStepNumber("2"),
+          cssSetupSectionTitle("Sandboxing"),
         ),
-        cssToggleLink(
-          "Sign in with getgrist.com instead",
-          dom.on("click", () => authMode.set("env")),
-          testId("setup-toggle-env"),
+        cssSetupDescription(
+          "Grist runs user formulas as Python code. Sandboxing isolates this execution ",
+          "to protect your server. Without it, document formulas can access the full system.",
         ),
-      ]),
-    ),
+        cssSetupCode(
+          "GRIST_SANDBOX_FLAVOR=gvisor",
+        ),
+        cssSetupDescription(
+          "Recommended: ",
+          dom("b", "gvisor"),
+          " (Linux, requires runsc). Alternatives: ",
+          dom("b", "macSandboxExec"),
+          " (macOS), ",
+          dom("b", "pyodide"),
+          " (any platform, WebAssembly). ",
+          "See the ",
+          cssLink("documentation", { href: "https://support.getgrist.com/self-managed/#sandboxing" }),
+          " for setup instructions.",
+        ),
+      ),
 
-    cssSetupSection(
-      cssSetupStepHeader(
-        cssStepNumber("2"),
-        cssSetupSectionTitle("Sandboxing"),
+      cssSetupSection(
+        cssSetupStepHeader(
+          cssStepNumber("3"),
+          cssSetupSectionTitle("Backups"),
+          cssStepOptionalBadge("Optional"),
+        ),
+        cssSetupDescription(
+          "Store document snapshots in S3-compatible external storage for backup and versioning. ",
+          "Without this, documents are only stored on the local filesystem.",
+        ),
+        cssSetupCode(
+          "GRIST_DOCS_MINIO_BUCKET=my-grist-docs\n" +
+          "GRIST_DOCS_MINIO_ENDPOINT=s3.amazonaws.com\n" +
+          "GRIST_DOCS_MINIO_ACCESS_KEY=...\n" +
+          "GRIST_DOCS_MINIO_SECRET_KEY=...",
+        ),
+        cssSetupDescription(
+          "Works with AWS S3, MinIO, and any S3-compatible storage provider.",
+        ),
       ),
-      cssSetupDescription(
-        "Grist runs user formulas as Python code. Sandboxing isolates this execution ",
-        "to protect your server. Without it, document formulas can access the full system.",
-      ),
-      cssSetupCode(
-        "GRIST_SANDBOX_FLAVOR=gvisor",
-      ),
-      cssSetupDescription(
-        "Recommended: ",
-        dom("b", "gvisor"),
-        " (Linux, requires runsc). Alternatives: ",
-        dom("b", "macSandboxExec"),
-        " (macOS), ",
-        dom("b", "pyodide"),
-        " (any platform, WebAssembly). ",
-        "See the ",
-        cssLink("documentation", { href: "https://support.getgrist.com/self-managed/#sandboxing" }),
-        " for setup instructions.",
-      ),
-    ),
 
-    cssSetupSection(
-      cssSetupStepHeader(
-        cssStepNumber("3"),
-        cssSetupSectionTitle("Backups"),
-        cssStepOptionalBadge("Optional"),
-      ),
-      cssSetupDescription(
-        "Store document snapshots in S3-compatible external storage for backup and versioning. ",
-        "Without this, documents are only stored on the local filesystem.",
-      ),
-      cssSetupCode(
-        "GRIST_DOCS_MINIO_BUCKET=my-grist-docs\n" +
-        "GRIST_DOCS_MINIO_ENDPOINT=s3.amazonaws.com\n" +
-        "GRIST_DOCS_MINIO_ACCESS_KEY=...\n" +
-        "GRIST_DOCS_MINIO_SECRET_KEY=...",
-      ),
-      cssSetupDescription(
-        "Works with AWS S3, MinIO, and any S3-compatible storage provider.",
-      ),
-    ),
+      cssSetupDivider(),
 
-    cssSetupDivider(),
-
-    cssSetupSection(
-      cssSetupSectionTitle("Skip setup"),
-      cssSetupDescription(
-        "Set the following environment variable and restart to bypass this gate entirely. ",
-        dom("b", "Warning: "),
-        "this will leave your installation open without authentication or sandboxing.",
+      cssSetupSection(
+        cssSetupSectionTitle("Skip setup"),
+        cssSetupDescription(
+          "Set the following environment variable and restart to bypass this gate entirely. ",
+          dom("b", "Warning: "),
+          "this will leave your installation open without authentication or sandboxing.",
+        ),
+        cssSetupCode("GRIST_IN_SERVICE=true"),
       ),
-      cssSetupCode("GRIST_IN_SERVICE=true"),
-    ),
 
-    testId("setup-page"),
-  ],
-      testId("error-content"),
-    ));
+      testId("setup-page"),
+    ],
+    testId("error-content"),
+  )),
+  });
 }
 
 /**
@@ -483,6 +487,13 @@ const cssButtonWrap = styled("div", `
 
 const cssContactSupportDiv = styled("div", `
   margin-top: 24px;
+`);
+
+const cssSetupHeaderMain = styled("div", `
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 `);
 
 const cssSetupNotice = styled("div", `
