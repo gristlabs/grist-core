@@ -364,8 +364,8 @@ export function createSetupPage(appModel: AppModel) {
     if (firstAvailable) {
       selectedSandbox.set(firstAvailable.name);
     }
-    // Append the "no sandbox" fallback now that all real candidates are resolved.
-    sandboxFlavors.set([...sandboxFlavors.get(), { name: "unsandboxed", status: "available" }]);
+    // Ensure "no sandbox" fallback is present (may already have been added by maybeAppendUnsandboxed).
+    maybeAppendUnsandboxed();
     sandboxStatus.set("loaded");
   }
 
@@ -374,6 +374,16 @@ export function createSetupPage(appModel: AppModel) {
     sandboxFlavors.set(current.map(f =>
       f.name === name ? { name, status, error } : f,
     ));
+    // Show "no sandbox" as soon as any real sandbox is confirmed available.
+    if (status === "available") {
+      maybeAppendUnsandboxed();
+    }
+  }
+
+  function maybeAppendUnsandboxed() {
+    const current = sandboxFlavors.get();
+    if (current.some(f => f.name === "unsandboxed")) { return; }
+    sandboxFlavors.set([...current, { name: "unsandboxed", status: "available" }]);
   }
 
   async function handleConfigureSandbox() {
@@ -684,6 +694,15 @@ export function createSetupPage(appModel: AppModel) {
               ),
             ];
           }),
+          dom.maybe(storedBootKey, key =>
+            cssAdminPanelLink(
+              cssLink(
+                "Open full admin panel",
+                { href: `/boot/${key}/` },
+                { target: "_blank" },
+              ),
+            ),
+          ),
         ),
 
         cssSetupSection(
@@ -1208,6 +1227,11 @@ const cssSandboxBadge = styled("span", `
   &-checking {
     color: ${theme.lightText};
     font-style: italic;
+    animation: sandbox-checking-pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes sandbox-checking-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
   }
 `);
 
@@ -1240,6 +1264,11 @@ const cssSandboxPreviewHint = styled("div", `
   color: ${theme.lightText};
   font-style: italic;
   margin-bottom: 8px;
+`);
+
+const cssAdminPanelLink = styled("div", `
+  display: inline-block;
+  margin-left: 16px;
 `);
 
 const cssSandboxSuccessBox = styled("div", `
