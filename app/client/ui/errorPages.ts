@@ -258,10 +258,21 @@ export function createSetupPage(appModel: AppModel) {
   document.title = `Setup${getPageTitleSuffix(getGristConfig())}`;
 
   const bootKeyValue = observable("");
+  const bootKeyStatus = observable<"idle" | "working" | "error">("idle");
+  const bootKeyError = observable("");
   const authMode = observable<"getgrist" | "bootkey">("getgrist");
   const configKey = Observable.create(null, "");
   const configStatus = Observable.create<"idle" | "working" | "success" | "error">(null, "idle");
   const configError = Observable.create(null, "");
+
+  // Step 2: Sandboxing state
+  const storedBootKey = observable("");
+  type FlavorStatus = "checking" | "available" | "unavailable";
+  interface FlavorInfo { name: string; status: FlavorStatus; error?: string; }
+  const sandboxFlavors = observable<FlavorInfo[]>([]);
+  const selectedSandbox = observable("");
+  const sandboxStatus = observable<"idle" | "loading" | "loaded" | "working" | "success" | "error">("idle");
+  const sandboxError = observable("");
 
   // Build registration URL.
   const homeUrl = getGristConfig().homeUrl;
@@ -286,9 +297,108 @@ export function createSetupPage(appModel: AppModel) {
         throw new Error(result.error || "Failed to configure authentication");
       }
       configStatus.set("success");
+      // Store boot key returned from server for step 2.
+      if (result.bootKey) {
+        storedBootKey.set(result.bootKey);
+        void detectSandboxFlavors();
+      }
     } catch (e) {
       configError.set((e as Error).message);
       configStatus.set("error");
+    }
+  }
+
+  async function submitBootKey() {
+    const key = bootKeyValue.get().trim();
+    if (!key) { return; }
+    bootKeyStatus.set("working");
+    bootKeyError.set("");
+    try {
+      // Validate the boot key by making a lightweight probe call.
+      const resp = await fetch("/api/probes", {
+        headers: { "X-Boot-Key": key },
+      });
+      if (!resp.ok) {
+        throw new Error("Invalid boot key");
+      }
+      storedBootKey.set(key);
+      bootKeyStatus.set("idle");
+      void detectSandboxFlavors();
+    } catch (e) {
+      bootKeyError.set((e as Error).message);
+      bootKeyStatus.set("error");
+    }
+  }
+
+  // Ordered by preference: gvisor is most secure, pyodide is most portable.
+  const SANDBOX_CANDIDATES = ["gvisor", "pyodide", "macSandboxExec"];
+
+  async function detectSandboxFlavors() {
+    const key = storedBootKey.get();
+    if (!key) { return; }
+    sandboxStatus.set("loading");
+    sandboxError.set("");
+    // Show all candidates immediately as "checking".
+    sandboxFlavors.set(SANDBOX_CANDIDATES.map(name => ({ name, status: "checking" as FlavorStatus })));
+
+    // Probe each flavor in parallel, updating the list as each resolves.
+    await Promise.all(SANDBOX_CANDIDATES.map(async (name) => {
+      try {
+        const resp = await fetch(`/api/probes/sandbox-availability?flavor=${name}`, {
+          headers: { "X-Boot-Key": key },
+        });
+        if (!resp.ok) {
+          throw new Error(`Probe failed with status ${resp.status}`);
+        }
+        const result = await resp.json();
+        const flavorResult = result.details?.flavors?.[0];
+        updateFlavor(name,
+          flavorResult?.available ? "available" : "unavailable",
+          flavorResult?.error);
+      } catch (e) {
+        updateFlavor(name, "unavailable", (e as Error).message);
+      }
+    }));
+    // Pre-select first available flavor.
+    const firstAvailable = sandboxFlavors.get().find(f => f.status === "available");
+    if (firstAvailable) {
+      selectedSandbox.set(firstAvailable.name);
+    }
+    // Append the "no sandbox" fallback now that all real candidates are resolved.
+    sandboxFlavors.set([...sandboxFlavors.get(), { name: "unsandboxed", status: "available" }]);
+    sandboxStatus.set("loaded");
+  }
+
+  function updateFlavor(name: string, status: FlavorStatus, error?: string) {
+    const current = sandboxFlavors.get();
+    sandboxFlavors.set(current.map(f =>
+      f.name === name ? { name, status, error } : f,
+    ));
+  }
+
+  async function handleConfigureSandbox() {
+    const key = storedBootKey.get();
+    const flavor = selectedSandbox.get();
+    if (!key || !flavor) { return; }
+    sandboxStatus.set("working");
+    sandboxError.set("");
+    try {
+      const resp = await fetch("/api/setup/configure-sandbox", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Boot-Key": key,
+        },
+        body: JSON.stringify({ GRIST_SANDBOX_FLAVOR: flavor }),
+      });
+      const result = await resp.json();
+      if (!resp.ok) {
+        throw new Error(result.error || "Failed to configure sandboxing");
+      }
+      sandboxStatus.set("success");
+    } catch (e) {
+      sandboxError.set((e as Error).message);
+      sandboxStatus.set("error");
     }
   }
 
@@ -312,88 +422,114 @@ export function createSetupPage(appModel: AppModel) {
             ),
           ]),
           dom.domComputed(authMode, mode => mode === "getgrist" ? [
+            cssSetupDescription(
+              "First, declare your admin email in the environment and restart:",
+            ),
+            cssSetupCode(
+              "GRIST_ADMIN_EMAIL=you@example.com",
+            ),
+            cssSetupDescription(
+              "Then, register your Grist server on getgrist.com ",
+              dom("b", "using that same email address"),
+              ". This proves to the server that you are the declared admin.",
+            ),
+            cssSetupDescription(
+              cssLink(
+                "Register your Grist server",
+                { href: registerUrl.href, target: "_blank" },
+                testId("setup-register-link"),
+              ),
+            ),
+            cssSetupDescription(
+              "Paste the configuration key you receive below:",
+            ),
+            cssSetupConfigTextarea(
+              dom.prop("value", (use) => {
+                const status = use(configStatus);
+                const key = use(configKey);
+                if (status === "success" && key) {
+                  return key.replace(/./g, "*");
+                }
+                return key;
+              }),
+              dom.on("input", (_e: Event, elem: HTMLTextAreaElement) => configKey.set(elem.value)),
+              { placeholder: "Paste configuration key here" },
+              dom.prop("disabled", use =>
+                use(configStatus) === "working" || use(configStatus) === "success",
+              ),
+              testId("setup-config-key"),
+            ),
+            dom.maybe(configError, err =>
+              cssSetupError(err, testId("setup-config-error")),
+            ),
             dom.domComputed(configStatus, status => status === "success" ? [
               cssSetupDescription(
                 dom("b", "Authentication configured."),
-              ),
-              cssSetupDescription(
-                "Please restart your server to activate Sign in with getgrist.com.",
+                " Please restart your server to activate Sign in with getgrist.com.",
               ),
             ] : [
-              cssSetupDescription(
-                "First, declare your admin email in the environment and restart:",
-              ),
-              cssSetupCode(
-                "GRIST_ADMIN_EMAIL=you@example.com",
-              ),
-              cssSetupDescription(
-                "Then, register your Grist server on getgrist.com ",
-                dom("b", "using that same email address"),
-                ". This proves to the server that you are the declared admin.",
-              ),
-              cssSetupDescription(
-                cssLink(
-                  "Register your Grist server",
-                  { href: registerUrl.href, target: "_blank" },
-                  testId("setup-register-link"),
-                ),
-              ),
-              cssSetupDescription(
-                "Paste the configuration key you receive below:",
-              ),
-              cssSetupConfigTextarea(
-                dom.prop("value", configKey),
-                dom.on("input", (_e: Event, elem: HTMLTextAreaElement) => configKey.set(elem.value)),
-                { placeholder: "Paste configuration key here" },
-                dom.prop("disabled", use => use(configStatus) === "working"),
-                testId("setup-config-key"),
-              ),
-              dom.maybe(configError, err =>
-                cssSetupError(err, testId("setup-config-error")),
-              ),
               cssBootKeySubmit(
                 "Configure",
                 dom.prop("disabled", use => !use(configKey) || use(configStatus) === "working"),
                 dom.on("click", handleConfigure),
                 testId("setup-configure-submit"),
               ),
+            ]),
+            dom.maybe(use => use(configStatus) !== "success", () =>
               cssToggleLink(
                 "Air-gapped or no external account? Use a boot key instead",
                 dom.on("click", () => authMode.set("bootkey")),
                 testId("setup-toggle-bootkey"),
               ),
-            ]),
+            ),
           ] : [
             cssSetupDescription(
               "A boot key was printed to your server logs on startup. ",
-              "Retrieve it and paste it below to access the admin panel.",
+              "Retrieve it and paste it below.",
             ),
             cssBootKeyRow(
               cssBootKeyInput(
-                dom.prop("value", bootKeyValue),
+                dom.prop("value", (use) => {
+                  const key = use(bootKeyValue);
+                  if (use(storedBootKey) && key) {
+                    return key.replace(/./g, "*");
+                  }
+                  return key;
+                }),
                 dom.on("input", (_e: Event, elem: HTMLInputElement) => bootKeyValue.set(elem.value)),
                 { placeholder: "Enter boot key from server logs" },
+                dom.prop("disabled", use =>
+                  use(bootKeyStatus) === "working" || !!use(storedBootKey),
+                ),
                 dom.on("keydown", (ev: KeyboardEvent) => {
-                  if (ev.key === "Enter") {
-                    const key = bootKeyValue.get().trim();
-                    if (key) { window.location.href = `/boot/${encodeURIComponent(key)}`; }
-                  }
+                  if (ev.key === "Enter") { void submitBootKey(); }
                 }),
                 testId("setup-boot-key-input"),
               ),
               cssBootKeySubmit(
                 "Submit",
-                dom.on("click", () => {
-                  const key = bootKeyValue.get().trim();
-                  if (key) { window.location.href = `/boot/${encodeURIComponent(key)}`; }
-                }),
+                dom.prop("disabled", use =>
+                  !use(bootKeyValue) || use(bootKeyStatus) === "working" || !!use(storedBootKey),
+                ),
+                dom.on("click", () => void submitBootKey()),
                 testId("setup-boot-key-submit"),
               ),
             ),
-            cssToggleLink(
-              "Sign in with getgrist.com instead",
-              dom.on("click", () => authMode.set("getgrist")),
-              testId("setup-toggle-env"),
+            dom.maybe(bootKeyError, err =>
+              cssSetupError(err, testId("setup-boot-key-error")),
+            ),
+            dom.maybe(storedBootKey, () =>
+              cssSetupDescription(
+                dom("b", "Boot key accepted."),
+                " Detecting sandbox options below...",
+              ),
+            ),
+            dom.maybe(use => !use(storedBootKey), () =>
+              cssToggleLink(
+                "Sign in with getgrist.com instead",
+                dom.on("click", () => authMode.set("getgrist")),
+                testId("setup-toggle-env"),
+              ),
             ),
           ]),
         ),
@@ -407,21 +543,147 @@ export function createSetupPage(appModel: AppModel) {
             "Grist runs user formulas as Python code. Sandboxing isolates this execution ",
             "to protect your server. Without it, document formulas can access the full system.",
           ),
-          cssSetupCode(
-            "GRIST_SANDBOX_FLAVOR=gvisor",
-          ),
-          cssSetupDescription(
-            "Recommended: ",
-            dom("b", "gvisor"),
-            " (Linux, requires runsc). Alternatives: ",
-            dom("b", "macSandboxExec"),
-            " (macOS), ",
-            dom("b", "pyodide"),
-            " (any platform, WebAssembly). ",
-            "See the ",
-            cssLink("documentation", { href: "https://support.getgrist.com/self-managed/#sandboxing" }),
-            " for setup instructions.",
-          ),
+          dom.domComputed(sandboxStatus, (status) => {
+            const flavorMeta: Record<string, {
+              label: string; desc: string; recommended?: boolean; notRecommended?: boolean;
+            }> = {
+              gvisor: {
+                label: "gVisor",
+                desc: "Strong isolation via Google's container sandbox. Linux only, requires runsc.",
+                recommended: true,
+              },
+              pyodide: {
+                label: "Pyodide",
+                desc: "Runs Python in WebAssembly. Works on any platform, no extra install needed.",
+              },
+              macSandboxExec: {
+                label: "macOS Sandbox",
+                desc: "Uses the built-in macOS sandbox-exec facility. macOS only.",
+              },
+              unsandboxed: {
+                label: "No Sandbox",
+                desc: "Formulas run with full system access. Only use if you trust all document authors.",
+                notRecommended: true,
+              },
+            };
+
+            function renderFlavorCard(
+              name: string,
+              opts: {
+                radio?: boolean;
+                disabled?: boolean;
+                status?: FlavorStatus;
+                error?: string;
+                onSelect?: () => void;
+              } = {},
+            ) {
+              const meta = flavorMeta[name] || { label: name, desc: "" };
+              const isAvail = opts.status === "available";
+              const isChecking = opts.status === "checking";
+              const isUnavail = opts.status === "unavailable";
+              const dimmed = opts.disabled && !isChecking;
+              return cssSandboxCard(
+                cssSandboxCard.cls("-disabled", Boolean(dimmed)),
+                cssSandboxCard.cls("-selected", use => use(selectedSandbox) === name),
+                cssSandboxCard.cls("-available", isAvail),
+                opts.onSelect && !opts.disabled ?
+                  dom.on("click", opts.onSelect) : null,
+                opts.radio ? cssSandboxRadio(
+                  { type: "radio", name: "sandbox-flavor", value: name },
+                  dom.prop("checked", use => use(selectedSandbox) === name),
+                  dom.prop("disabled", Boolean(opts.disabled)),
+                  opts.onSelect ? dom.on("change", opts.onSelect) : null,
+                ) : cssSandboxRadio(
+                  { type: "radio", name: "sandbox-preview", disabled: true },
+                ),
+                cssSandboxCardBody(
+                  cssSandboxNameRow(
+                    cssSandboxName(meta.label),
+                    meta.recommended ? cssSandboxRecommended("Recommended") : null,
+                    meta.notRecommended ? cssSandboxBadge(cssSandboxBadge.cls("-warn"), "Not recommended") : null,
+                    isAvail && !meta.notRecommended ?
+                      cssSandboxBadge(cssSandboxBadge.cls("-ok"), "\u2713 Available") : null,
+                    isUnavail ? cssSandboxBadge(cssSandboxBadge.cls("-fail"), "\u2717 Not available") : null,
+                    isChecking ? cssSandboxBadge(cssSandboxBadge.cls("-checking"), "Checking\u2026") : null,
+                  ),
+                  cssSandboxCardDesc(meta.desc),
+                  isUnavail && opts.error ?
+                    cssSandboxErrorHint(opts.error) : null,
+                ),
+                testId(`setup-sandbox-option-${name}`),
+              );
+            }
+
+            if (status === "idle") {
+              return [
+                cssSandboxPreview(
+                  ...SANDBOX_CANDIDATES.map(name =>
+                    renderFlavorCard(name, { disabled: true }),
+                  ),
+                ),
+                cssSandboxPreviewHint(
+                  "Complete step 1 to detect which flavors work on this system.",
+                ),
+              ];
+            }
+            if (status === "success") {
+              const meta = flavorMeta[selectedSandbox.get()];
+              const label = meta ? meta.label : selectedSandbox.get();
+              return [
+                cssSandboxSuccessBox(
+                  cssSandboxSuccessIcon("\u2713"),
+                  dom("div",
+                    dom("b", `Sandboxing set to ${label}.`),
+                    dom("div", "This will take effect on the next server restart."),
+                  ),
+                  testId("setup-sandbox-success"),
+                ),
+              ];
+            }
+            if (status === "error" && sandboxFlavors.get().length === 0) {
+              return [
+                cssSetupError(
+                  sandboxError.get() || "Failed to detect sandbox flavors",
+                  testId("setup-sandbox-error"),
+                ),
+              ];
+            }
+            // "loading", "loaded", "working", or "error" after loading
+            return [
+              dom.domComputed(sandboxFlavors, (flavors) => {
+                if (flavors.length === 0) {
+                  return cssSetupDescription("No sandbox flavors detected.");
+                }
+                return cssSandboxList(
+                  ...flavors.map((f) => {
+                    const isAvailable = f.status === "available";
+                    const canSelect = isAvailable && status !== "working";
+                    return renderFlavorCard(f.name, {
+                      radio: true,
+                      disabled: !canSelect,
+                      status: f.status,
+                      error: f.error,
+                      onSelect: () => selectedSandbox.set(f.name),
+                    });
+                  }),
+                );
+              }),
+              dom.maybe(sandboxError, err =>
+                cssSetupError(err, testId("setup-sandbox-error")),
+              ),
+              cssBootKeySubmit(
+                "Configure",
+                dom.prop("disabled", use =>
+                  !use(selectedSandbox) ||
+                  use(sandboxStatus) === "loading" ||
+                  use(sandboxStatus) === "working" ||
+                  use(sandboxStatus) === "success",
+                ),
+                dom.on("click", handleConfigureSandbox),
+                testId("setup-sandbox-submit"),
+              ),
+            ];
+          }),
         ),
 
         cssSetupSection(
@@ -430,19 +692,32 @@ export function createSetupPage(appModel: AppModel) {
             cssSetupSectionTitle("Backups"),
             cssStepOptionalBadge("Optional"),
           ),
-          cssSetupDescription(
-            "Store document snapshots in S3-compatible external storage for backup and versioning. ",
-            "Without this, documents are only stored on the local filesystem.",
-          ),
-          cssSetupCode(
-            "GRIST_DOCS_MINIO_BUCKET=my-grist-docs\n" +
-            "GRIST_DOCS_MINIO_ENDPOINT=s3.amazonaws.com\n" +
-            "GRIST_DOCS_MINIO_ACCESS_KEY=...\n" +
-            "GRIST_DOCS_MINIO_SECRET_KEY=...",
-          ),
-          cssSetupDescription(
-            "Works with AWS S3, MinIO, and any S3-compatible storage provider.",
-          ),
+          dom.domComputed(storedBootKey, (key) => {
+            if (!key) {
+              return cssSandboxPreview(
+                cssSetupDescription(
+                  "Store document snapshots in S3-compatible external storage for backup and versioning. ",
+                  "Without this, documents are only stored on the local filesystem.",
+                ),
+                cssSandboxPreviewHint("Complete step 1 to configure backups."),
+              );
+            }
+            return [
+              cssSetupDescription(
+                "Store document snapshots in S3-compatible external storage for backup and versioning. ",
+                "Without this, documents are only stored on the local filesystem.",
+              ),
+              cssSetupCode(
+                "GRIST_DOCS_MINIO_BUCKET=my-grist-docs\n" +
+                "GRIST_DOCS_MINIO_ENDPOINT=s3.amazonaws.com\n" +
+                "GRIST_DOCS_MINIO_ACCESS_KEY=...\n" +
+                "GRIST_DOCS_MINIO_SECRET_KEY=...",
+              ),
+              cssSetupDescription(
+                "Works with AWS S3, MinIO, and any S3-compatible storage provider.",
+              ),
+            ];
+          }),
         ),
 
         cssSetupDivider(),
@@ -458,10 +733,156 @@ export function createSetupPage(appModel: AppModel) {
         ),
 
         testId("setup-page"),
+
+        // --- Mockup controls (for development/demo only) ---
+        dom.create(buildMockupControls, {
+          configKey, configStatus, configError, storedBootKey,
+          sandboxFlavors, selectedSandbox, sandboxStatus, sandboxError,
+          authMode, bootKeyValue, bootKeyStatus, bootKeyError,
+          handleConfigure, detectSandboxFlavors,
+        }),
       ],
       testId("error-content"),
     )),
   });
+}
+
+interface MockupState {
+  configKey: Observable<string>;
+  configStatus: Observable<string>;
+  configError: Observable<string>;
+  storedBootKey: Observable<string>;
+  sandboxFlavors: Observable<{ name: string; status: string; error?: string }[]>;
+  selectedSandbox: Observable<string>;
+  sandboxStatus: Observable<string>;
+  sandboxError: Observable<string>;
+  authMode: Observable<"getgrist" | "bootkey">;
+  bootKeyValue: Observable<string>;
+  bootKeyStatus: Observable<string>;
+  bootKeyError: Observable<string>;
+  handleConfigure: () => Promise<void>;
+  detectSandboxFlavors: () => Promise<void>;
+}
+
+function buildMockupControls(owner: any, state: MockupState) {
+  const mockupEmail = observable("admin@example.com");
+  const mockupLog = observable("");
+
+  function log(msg: string) {
+    mockupLog.set(msg);
+  }
+
+  // Build a config key the same way tests do — base64-encoded JSON with OIDC fields + owner.
+  function buildConfigKey(email: string): string {
+    const payload = {
+      oidcClientId: "mock-client-id",
+      oidcClientSecret: "mock-client-secret",
+      oidcIssuer: "https://login.getgrist.com",
+      owner: { name: "Setup Admin", email },
+    };
+    return btoa(JSON.stringify(payload));
+  }
+
+  async function fetchBootKey() {
+    log("Fetching boot key...");
+    try {
+      const resp = await fetch("/api/setup/mockup-boot-key");
+      const body = await resp.json();
+      if (body.bootKey) {
+        state.authMode.set("bootkey");
+        state.bootKeyValue.set(body.bootKey);
+        log(`Boot key filled in`);
+      } else {
+        log("No bootKey returned (server may be in service)");
+      }
+    } catch (e) {
+      log(`Error: ${(e as Error).message}`);
+    }
+  }
+
+  async function doGetgristComAuth() {
+    const email = mockupEmail.get().trim();
+    if (!email) {
+      log("Enter an email first");
+      return;
+    }
+    // Set GRIST_ADMIN_EMAIL on the server so configure-auth will accept the key.
+    log("Setting admin email...");
+    try {
+      const resp = await fetch("/api/setup/mockup-set-admin-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      if (!resp.ok) {
+        throw new Error("Failed to set admin email");
+      }
+    } catch (e) {
+      log(`Error: ${(e as Error).message}`);
+      return;
+    }
+    const key = buildConfigKey(email);
+    state.authMode.set("getgrist");
+    state.configKey.set(key);
+    log(`Admin email set, config key filled in`);
+  }
+
+  async function doBootKeyAuth() {
+    await fetchBootKey();
+  }
+
+  function resetAll() {
+    state.configStatus.set("idle");
+    state.configError.set("");
+    state.configKey.set("");
+    state.storedBootKey.set("");
+    state.sandboxFlavors.set([]);
+    state.selectedSandbox.set("");
+    state.sandboxStatus.set("idle");
+    state.sandboxError.set("");
+    state.bootKeyStatus.set("idle");
+    state.bootKeyError.set("");
+    log("Reset");
+  }
+
+  return cssMockupPanel(
+    cssMockupTitle("Mockup controls"),
+
+    // --- Step 1 ---
+    cssMockupSection("Step 1: Authentication"),
+    cssMockupRow(
+      cssMockupLabel("Email:"),
+      cssMockupInput(
+        dom.prop("value", mockupEmail),
+        dom.on("input", (_e: Event, el: HTMLInputElement) => mockupEmail.set(el.value)),
+        { placeholder: "admin@example.com" },
+      ),
+    ),
+    cssMockupRow(
+      cssMockupButton(
+        "Fill in config key",
+        dom.on("click", () => doGetgristComAuth()),
+        { title: "Build a config key for this email and paste it into the textarea" },
+      ),
+      cssMockupButton(
+        "Fill in boot key",
+        dom.on("click", () => void doBootKeyAuth()),
+        { title: "Fetch boot key from mockup endpoint, then detect sandboxes" },
+      ),
+    ),
+
+    // --- Utilities ---
+    cssMockupSection("Utilities"),
+    cssMockupRow(
+      cssMockupButton("Reset all", dom.on("click", resetAll)),
+    ),
+    cssMockupRow(
+      dom.domComputed(state.storedBootKey, key =>
+        key ? cssMockupInfo(`Boot key: ${key.slice(0, 12)}...`) : cssMockupInfo("No boot key yet"),
+      ),
+    ),
+    dom.maybe(mockupLog, msg => cssMockupLog(msg)),
+  );
 }
 
 /**
@@ -702,4 +1123,247 @@ const cssSetupError = styled("div", `
   font-size: ${vars.mediumFontSize};
   color: ${theme.errorText};
   margin-bottom: 8px;
+`);
+
+const cssSandboxList = styled("div", `
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+`);
+
+const cssSandboxCard = styled("div", `
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid ${theme.inputBorder};
+  border-radius: 6px;
+  transition: border-color 0.15s, background-color 0.15s;
+  cursor: pointer;
+  &-disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+  &-selected {
+    border-color: ${theme.controlFg};
+    background: ${theme.controlSecondaryHoverBg};
+  }
+  &-available:not(&-selected):hover {
+    border-color: ${theme.controlSecondaryFg};
+  }
+`);
+
+const cssSandboxRadio = styled("input", `
+  margin-top: 4px;
+  flex-shrink: 0;
+`);
+
+const cssSandboxCardBody = styled("div", `
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+`);
+
+const cssSandboxNameRow = styled("div", `
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+`);
+
+const cssSandboxName = styled("span", `
+  font-size: ${vars.mediumFontSize};
+  font-weight: 600;
+  color: ${theme.text};
+`);
+
+const cssSandboxRecommended = styled("span", `
+  font-size: ${vars.smallFontSize};
+  font-weight: 600;
+  color: ${theme.controlFg};
+  background: ${theme.controlSecondaryHoverBg};
+  padding: 1px 6px;
+  border-radius: 3px;
+`);
+
+const cssSandboxBadge = styled("span", `
+  font-size: ${vars.smallFontSize};
+  padding: 1px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+  &-ok {
+    color: ${theme.controlFg};
+    background: ${theme.controlSecondaryHoverBg};
+    font-weight: 600;
+  }
+  &-fail {
+    color: ${theme.lightText};
+  }
+  &-warn {
+    color: ${theme.errorText};
+    font-weight: 600;
+  }
+  &-checking {
+    color: ${theme.lightText};
+    font-style: italic;
+  }
+`);
+
+const cssSandboxCardDesc = styled("div", `
+  font-size: ${vars.smallFontSize};
+  color: ${theme.lightText};
+  line-height: 1.4;
+`);
+
+const cssSandboxErrorHint = styled("div", `
+  font-size: ${vars.smallFontSize};
+  color: ${theme.lightText};
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 2px;
+`);
+
+const cssSandboxPreview = styled("div", `
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 4px;
+  opacity: 0.45;
+  pointer-events: none;
+`);
+
+const cssSandboxPreviewHint = styled("div", `
+  font-size: ${vars.smallFontSize};
+  color: ${theme.lightText};
+  font-style: italic;
+  margin-bottom: 8px;
+`);
+
+const cssSandboxSuccessBox = styled("div", `
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid ${theme.controlFg};
+  border-radius: 6px;
+  background: ${theme.controlSecondaryHoverBg};
+  color: ${theme.controlFg};
+  font-size: ${vars.mediumFontSize};
+  line-height: 1.4;
+`);
+
+const cssSandboxSuccessIcon = styled("div", `
+  font-size: 20px;
+  font-weight: bold;
+  line-height: 1;
+  flex-shrink: 0;
+`);
+
+const cssMockupPanel = styled("div", `
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  background: ${theme.pagePanelsBorder};
+  border: 2px dashed ${theme.controlFg};
+  border-radius: 8px;
+  padding: 10px 14px;
+  z-index: 1000;
+  max-width: 420px;
+`);
+
+const cssMockupTitle = styled("div", `
+  font-size: ${vars.smallFontSize};
+  font-weight: bold;
+  color: ${theme.controlFg};
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+`);
+
+const cssMockupRow = styled("div", `
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+  &:last-child {
+    margin-bottom: 0;
+  }
+`);
+
+const cssMockupButton = styled("button", `
+  font-size: 11px;
+  padding: 3px 8px;
+  border: 1px solid ${theme.controlFg};
+  border-radius: 3px;
+  background: transparent;
+  color: ${theme.controlFg};
+  cursor: pointer;
+  white-space: nowrap;
+  &:hover {
+    background: ${theme.controlFg};
+    color: ${theme.controlPrimaryFg};
+  }
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+    &:hover {
+      background: transparent;
+      color: ${theme.controlFg};
+    }
+  }
+`);
+
+const cssMockupSection = styled("div", `
+  font-size: 10px;
+  font-weight: bold;
+  color: ${theme.lightText};
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 6px;
+  margin-bottom: 4px;
+  &:first-of-type {
+    margin-top: 0;
+  }
+`);
+
+const cssMockupLabel = styled("span", `
+  font-size: 11px;
+  color: ${theme.lightText};
+  white-space: nowrap;
+  align-self: center;
+`);
+
+const cssMockupInput = styled("input", `
+  font-size: 11px;
+  padding: 2px 6px;
+  border: 1px solid ${theme.inputBorder};
+  border-radius: 3px;
+  background: ${theme.inputBg};
+  color: ${theme.inputFg};
+  outline: none;
+  flex: 1;
+  min-width: 0;
+  &:focus {
+    border-color: ${theme.controlFg};
+  }
+`);
+
+const cssMockupInfo = styled("div", `
+  font-size: 10px;
+  color: ${theme.lightText};
+  font-family: monospace;
+`);
+
+const cssMockupLog = styled("div", `
+  font-size: 10px;
+  color: ${theme.controlFg};
+  font-family: monospace;
+  margin-top: 4px;
+  padding: 3px 6px;
+  background: ${theme.inputBg};
+  border-radius: 2px;
+  word-break: break-all;
 `);
