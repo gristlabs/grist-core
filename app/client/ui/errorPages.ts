@@ -1402,11 +1402,18 @@ export function createBootKeyLoginPage(appModel: AppModel) {
     headerMain: cssSetupHeaderMain(buildLanguageMenu(appModel)),
     contentMain: cssCenteredContent(cssErrorContent(
       cssBigIcon(),
-      cssErrorHeader("Sign in to Grist"),
+      cssErrorHeader("Grist Boot Login"),
       cssSetupSection(
         cssSetupDescription(
-          "Enter the ", dom("b", "boot key"), " from your server logs to sign in as the administrator. ",
+          "This is a fallback login for the server administrator only, ",
+          "for use when the normal login system is unavailable. ",
+          "Enter the ", dom("b", "boot key"), " from your server logs to sign in. ",
           "Look for the boot key banner in your server output.",
+        ),
+        cssSetupDescription(
+          "You can override the boot key by setting ",
+          dom("code", "GRIST_BOOT_KEY=xxxx..."),
+          " and restarting.",
         ),
         dom.maybe(errorMsg, err =>
           cssSetupError(err, testId("boot-key-login-error")),
