@@ -428,7 +428,7 @@ export class GristWebDriverUtils {
 
     const sectionElem = section ? await this.getSection(section) : await this.driver.findWait(".active_section", 4000);
     const colIndex = (typeof col === "number" ? col :
-      await sectionElem.findContent(".column_name", this.exactMatch(col)).index());
+      await sectionElem.findContentWait(".column_name", this.exactMatch(col), 1000).index());
 
     const visibleRowNums: number[] = await sectionElem.findAll(".gridview_data_row_num",
       async el => parseInt(await el.getText(), 10));
