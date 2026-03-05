@@ -817,6 +817,12 @@ export class FlexServer implements GristServer {
         return res.status(401).json({ error: "Boot key required" });
       }
       const activations = this.getActivations();
+      // Persist the admin email if provided (from the boot-key setup path).
+      const reqAdminEmail = req.body?.adminEmail;
+      if (reqAdminEmail && typeof reqAdminEmail === "string") {
+        await activations.updateAppEnvFile({ GRIST_ADMIN_EMAIL: reqAdminEmail });
+        process.env.GRIST_ADMIN_EMAIL = reqAdminEmail;
+      }
       await activations.updateAppEnvFile({ GRIST_IN_SERVICE: "true" });
       process.env.GRIST_IN_SERVICE = "true";
       // Establish a session so the admin can navigate freely after Go Live
