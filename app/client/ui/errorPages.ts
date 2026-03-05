@@ -291,7 +291,7 @@ export function createSetupPage(appModel: AppModel) {
   const storageError = observable("");
 
   // Step 4: Go Live state
-  const goLiveStatus = observable<"idle" | "working" | "success" | "error">("idle");
+  const goLiveStatus = observable<"idle" | "working" | "restarting" | "success" | "error">("idle");
   const goLiveError = observable("");
 
   // Tab navigation
@@ -598,11 +598,31 @@ export function createSetupPage(appModel: AppModel) {
       if (!resp.ok) {
         throw new Error(result.error || "Failed to go live");
       }
+      if (result.restarting) {
+        goLiveStatus.set("restarting");
+        await waitForServerReady();
+      }
       goLiveStatus.set("success");
     } catch (e) {
       goLiveError.set((e as Error).message);
       goLiveStatus.set("error");
     }
+  }
+
+  /** Poll /status until the server is back up after a restart. */
+  async function waitForServerReady() {
+    // Give the server a moment to begin shutting down.
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    for (let i = 0; i < 30; i++) {
+      try {
+        const resp = await fetch("/status?ready=1");
+        if (resp.ok) { return; }
+      } catch (_) {
+        // Network error — server still down, keep polling.
+      }
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    throw new Error("Timed out waiting for Grist to restart");
   }
 
   // Restore saved progress (boot key, active step, etc.) after a page refresh.
@@ -1077,6 +1097,14 @@ export function createSetupPage(appModel: AppModel) {
             sandbox: use(sandboxStatus),
             storage: use(selectedStorage),
           }), ({ status, key, sandbox, storage }) => {
+            if (status === "restarting") {
+              return [
+                cssSandboxPreviewHint(
+                  "Applying settings and restarting\u2026",
+                  testId("setup-go-live-restarting"),
+                ),
+              ];
+            }
             if (status === "success") {
               return [
                 cssSandboxSuccessBox(
