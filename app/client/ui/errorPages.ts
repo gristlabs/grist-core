@@ -13,7 +13,7 @@ import { cssLink } from "app/client/ui2018/links";
 import { commonUrls, getPageTitleSuffix } from "app/common/gristUrls";
 import { getGristConfig } from "app/common/urlUtils";
 
-import { dom, DomContents, DomElementArg, makeTestId, Observable, observable, styled } from "grainjs";
+import { dom, DomContents, DomElementArg, makeTestId, Observable, observable, styled, UseCBOwner } from "grainjs";
 
 const testId = makeTestId("test-");
 
@@ -529,40 +529,24 @@ export function createSetupPage(appModel: AppModel) {
       cssErrorHeader("Set up your Grist installation", testId("error-header")),
       [
         cssTabBar(
-          cssTab(
-            cssTabNumber("1"),
-            "Verify",
-            dom.maybe(storedBootKey, () => cssTabCheck("\u2713")),
-            cssTab.cls("-active", use => use(activeStep) === 1),
-            dom.on("click", () => activeStep.set(1)),
-            testId("setup-tab-1"),
-          ),
-          cssTab(
-            cssTabNumber("2"),
-            "Sandboxing",
-            dom.domComputed(sandboxStatus, s =>
-              s === "success" ? cssTabCheck("\u2713") : null),
-            cssTab.cls("-active", use => use(activeStep) === 2),
-            dom.on("click", () => activeStep.set(2)),
-            testId("setup-tab-2"),
-          ),
-          cssTab(
-            cssTabNumber("3"),
-            "Backups",
-            dom.domComputed(selectedStorage, s =>
-              s ? cssTabCheck("\u2713") : null),
-            cssTab.cls("-active", use => use(activeStep) === 3),
-            dom.on("click", () => activeStep.set(3)),
-            testId("setup-tab-3"),
-          ),
-          cssTab(
-            cssTabNumber("\uD83D\uDE80"),
-            "Go Live",
-            dom.domComputed(goLiveStatus, s =>
-              s === "success" ? cssTabCheck("\u2713") : null),
-            cssTab.cls("-active", use => use(activeStep) === 4),
-            dom.on("click", () => activeStep.set(4)),
-            testId("setup-tab-4"),
+          ...[
+            { step: 1 as const, icon: "1", label: "Verify",
+              done: (use: UseCBOwner) => !!use(storedBootKey) },
+            { step: 2 as const, icon: "2", label: "Sandboxing",
+              done: (use: UseCBOwner) => use(sandboxStatus) === "success" },
+            { step: 3 as const, icon: "3", label: "Backups",
+              done: (use: UseCBOwner) => !!use(selectedStorage) },
+            { step: 4 as const, icon: "\uD83D\uDE80", label: "Go Live",
+              done: (use: UseCBOwner) => use(goLiveStatus) === "success" },
+          ].map(({ step, icon, label, done }) =>
+            cssTab(
+              cssTabNumber(icon),
+              label,
+              dom.maybe(done, () => cssTabCheck("\u2713")),
+              cssTab.cls("-active", use => use(activeStep) === step),
+              dom.on("click", () => activeStep.set(step)),
+              testId(`setup-tab-${step}`),
+            ),
           ),
         ),
 
@@ -847,8 +831,7 @@ export function createSetupPage(appModel: AppModel) {
 
         cssSetupSection(
           dom.show(use => use(activeStep) === 3),
-          cssSetupSectionTitle("Backups"),
-          cssStepOptionalBadge("Optional"),
+          cssSetupSectionTitle("Backups", " ", cssStepOptionalBadge("Optional")),
           cssSetupDescription(
             "Store document snapshots in S3-compatible external storage for backup and versioning. ",
             "Without this, documents are only stored on the local filesystem.",
