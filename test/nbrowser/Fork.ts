@@ -601,7 +601,7 @@ describe("Fork", function() {
         assert.equal(await driver.findWait(".test-unsaved-tag", 4000).isPresent(), true);
         // check Replace Original gives a scarier button, and press it anyway.
         await driver.find(".test-tb-share").click();
-        await driver.find(".test-replace-original").click();
+        await driver.findWait(".test-replace-original", 1000).click();
         confirmButton = driver.findWait(".test-modal-confirm", 3000);
         assert.equal(await confirmButton.getText(), "Overwrite");
         await confirmButton.click();
