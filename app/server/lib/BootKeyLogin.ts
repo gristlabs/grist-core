@@ -4,7 +4,7 @@ import { GristLoginMiddleware, GristLoginSystem, GristServer, setUserInSession }
 import log from "app/server/lib/log";
 import { getFallbackLoginProvider } from "app/server/lib/loginSystemHelpers";
 
-import express, { Express, Request } from "express";
+import express, { Express, Request, Response } from "express";
 
 /**
  * A login system that authenticates a single admin user via a boot key.
@@ -65,11 +65,11 @@ class BootKeyLoginMiddleware implements GristLoginMiddleware {
       await user.save();
     }
 
-    // Serve the boot key login form.
+    // Serve the boot key login form as a Grist-styled client page.
     app.get("/auth/boot-key", expressWrap(async (req, res) => {
       const next = String(req.query.next || "/");
       const error = String(req.query.error || "");
-      res.send(renderBootKeyPage(next, error));
+      await sendBootKeyPage(gristServer, req, res, next, error);
     }));
 
     // Validate the boot key and establish a session.
@@ -95,52 +95,22 @@ class BootKeyLoginMiddleware implements GristLoginMiddleware {
   }
 }
 
-function escapeHtml(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-}
-
-function renderBootKeyPage(next: string, error: string): string {
-  return `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Grist - Boot Key Login</title>
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-           display: flex; align-items: center; justify-content: center;
-           min-height: 100vh; margin: 0; background: #f7f7f7; }
-    .container { background: #fff; padding: 32px; border-radius: 8px;
-                 box-shadow: 0 2px 8px rgba(0,0,0,0.1); max-width: 400px; width: 100%; }
-    h1 { margin: 0 0 8px; font-size: 20px; }
-    p { color: #666; font-size: 14px; margin: 0 0 16px; }
-    .error { color: #d32f2f; font-size: 14px; margin-bottom: 12px; }
-    input[type=text] { width: 100%; padding: 8px 10px; font-size: 14px;
-                       border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-    input[type=text]:focus { border-color: #1565c0; outline: none; }
-    button { margin-top: 12px; padding: 8px 20px; font-size: 14px; border: none;
-             border-radius: 4px; background: #1565c0; color: #fff; cursor: pointer; }
-    button:hover { background: #0d47a1; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>Grist Setup</h1>
-    <p>Enter the <b>BOOT KEY</b> from your server logs to sign in as the administrator.
-    Look for the boot key banner in your server output.</p>
-    ${error ? `<div class="error">${escapeHtml(error)}</div>` : ""}
-    <form method="POST" action="/auth/boot-key">
-      <input type="hidden" name="next" value="${escapeHtml(next)}">
-      <div>
-        <input type="text" name="bootKey" placeholder="Boot key" autofocus
-               class="test-boot-key-input">
-      </div>
-      <div>
-        <button type="submit" class="test-boot-key-submit">Sign In</button>
-      </div>
-    </form>
-  </div>
-</body>
-</html>`;
+async function sendBootKeyPage(
+  gristServer: GristServer,
+  req: Request,
+  res: Response,
+  next: string,
+  error: string,
+) {
+  return gristServer.sendAppPage(req, res, {
+    path: "error.html",
+    status: 200,
+    config: {
+      errPage: "boot-key-login",
+      errDetails: {
+        next,
+        ...(error ? { error } : {}),
+      },
+    },
+  });
 }

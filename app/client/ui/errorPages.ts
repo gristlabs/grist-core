@@ -40,7 +40,8 @@ export function createErrPage(appModel: AppModel) {
           errPage === "signin-failed" ? createSigninFailedPage(appModel, errMessage) :
             errPage === "unsubscribed" ? createUnsubscribedPage(appModel, errMessage, errDetails) :
               errPage === "setup" ? createSetupPage(appModel) :
-                createOtherErrorPage(appModel, errMessage);
+                errPage === "boot-key-login" ? createBootKeyLoginPage(appModel) :
+                  createOtherErrorPage(appModel, errMessage);
 }
 
 /**
@@ -1351,6 +1352,105 @@ function buildMockupControls(owner: any, state: MockupState) {
     ),
     dom.maybe(mockupLog, msg => cssMockupLog(msg)),
   );
+}
+
+/**
+ * Boot-key login page — styled to match Grist's look and feel.
+ * Shown after Go Live when GRIST_ADMIN_EMAIL is set but no real auth is configured.
+ */
+export function createBootKeyLoginPage(appModel: AppModel) {
+  document.title = `Sign In${getPageTitleSuffix(getGristConfig())}`;
+
+  const { errDetails } = getGristConfig();
+  const next = errDetails?.next || "/";
+  const serverError = errDetails?.error || "";
+
+  const bootKeyValue = observable("");
+  const status = observable<"idle" | "working" | "error">("idle");
+  const errorMsg = observable(serverError);
+
+  async function submit() {
+    const key = bootKeyValue.get().trim();
+    if (!key) { return; }
+    status.set("working");
+    errorMsg.set("");
+    try {
+      // POST the boot key as a form submission and follow the redirect.
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = "/auth/boot-key";
+      form.style.display = "none";
+      const addField = (name: string, value: string) => {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = name;
+        input.value = value;
+        form.appendChild(input);
+      };
+      addField("bootKey", key);
+      addField("next", next);
+      document.body.appendChild(form);
+      form.submit();
+    } catch (e) {
+      errorMsg.set((e as Error).message);
+      status.set("error");
+    }
+  }
+
+  return pagePanels({
+    headerMain: cssSetupHeaderMain(buildLanguageMenu(appModel)),
+    contentMain: cssCenteredContent(cssErrorContent(
+      cssBigIcon(),
+      cssErrorHeader("Sign in to Grist"),
+      cssSetupSection(
+        cssSetupDescription(
+          "Enter the ", dom("b", "boot key"), " from your server logs to sign in as the administrator. ",
+          "Look for the boot key banner in your server output.",
+        ),
+        dom.maybe(errorMsg, err =>
+          cssSetupError(err, testId("boot-key-login-error")),
+        ),
+        cssBootKeyRow(
+          cssBootKeyInput(
+            dom.prop("value", bootKeyValue),
+            dom.on("input", (_e: Event, elem: HTMLInputElement) => bootKeyValue.set(elem.value)),
+            { placeholder: "Boot key", autofocus: true },
+            dom.on("keydown", (ev: KeyboardEvent) => {
+              if (ev.key === "Enter") { void submit(); }
+            }),
+            testId("boot-key-login-input"),
+          ),
+          cssBootKeySubmit(
+            dom.domComputed(status, s => s === "working" ? "Signing in..." : "Sign In"),
+            dom.prop("disabled", use => !use(bootKeyValue).trim() || use(status) === "working"),
+            dom.on("click", () => void submit()),
+            testId("boot-key-login-submit"),
+          ),
+        ),
+      ),
+
+      // MOCKUP ONLY — auto-fill the boot key for reviewers.
+      cssMockupPanel(
+        cssMockupTitle("Mockup controls"),
+        cssMockupSection("Boot key login"),
+        cssMockupRow(
+          cssMockupButton("Fill in boot key", dom.on("click", async () => {
+            try {
+              const resp = await fetch("/api/setup/mockup-boot-key-login");
+              const body = await resp.json();
+              if (body.bootKey) {
+                bootKeyValue.set(body.bootKey);
+              }
+            } catch (e) {
+              errorMsg.set((e as Error).message);
+            }
+          })),
+        ),
+      ),
+
+      testId("boot-key-login-content"),
+    )),
+  });
 }
 
 /**

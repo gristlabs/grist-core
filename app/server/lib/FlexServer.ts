@@ -877,6 +877,19 @@ export class FlexServer implements GristServer {
       return res.json({ bootKey });
     });
 
+    // MOCKUP ONLY — will be removed before merge.
+    // Exposes the boot key for the boot-key login page mockup control.
+    // Works regardless of service state so it's available post-Go Live.
+    this.app.get("/api/setup/mockup-boot-key-login", async (_req, res) => {
+      let bootKey = this.getBootKey();
+      if (!bootKey) {
+        const crypto = await import("crypto");
+        bootKey = crypto.randomBytes(12).toString("hex");
+        this._bootKey = bootKey;
+      }
+      return res.json({ bootKey });
+    });
+
     this.app.use((req, res, next) => {
       if (this._isInService()) {
         return next();
