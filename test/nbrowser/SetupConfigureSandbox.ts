@@ -355,9 +355,7 @@ describe("SetupConfigureSandbox", function() {
         const unsandboxed = await driver.findWait(".test-setup-sandbox-option-unsandboxed", 30000);
         await unsandboxed.click();
         await driver.find(".test-setup-sandbox-submit").click();
-        await driver.findWait(".test-setup-sandbox-success", 15000);
-        // Auto-advanced to step 3; select "none" for storage.
-        await driver.find(".test-setup-tab-3").click();
+        // Auto-advances to step 3 after configure succeeds.
         const noneCard = await driver.findWait(".test-setup-storage-option-none", 15000);
         await noneCard.click();
         // Click tab 4 to see Go Live button.
