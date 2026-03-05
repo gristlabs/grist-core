@@ -102,7 +102,7 @@ interface ColumnMetadata {
   };
 }
 
-interface TableMetadata {
+export interface TableMetadata {
   id: string;
   fields: {
     tableRef: number;

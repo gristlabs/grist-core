@@ -109,7 +109,7 @@ import { parseUserAction } from "app/common/ValueParser";
 import { Document } from "app/gen-server/entity/Document";
 import { Share } from "app/gen-server/entity/Share";
 import { Scope } from "app/gen-server/lib/homedb/HomeDBManager";
-import { RecordWithStringId } from "app/plugin/DocApiTypes";
+import { RecordWithStringId, TableMetadata } from "app/plugin/DocApiTypes";
 import { ParseFileResult, ParseOptions } from "app/plugin/FileParserAPI";
 import { AccessTokenOptions, AccessTokenResult, GristDocAPI, UIRowId } from "app/plugin/GristAPI";
 import { ActionHistory } from "app/server/lib/ActionHistory";
@@ -1511,11 +1511,11 @@ export class ActiveDoc extends EventEmitter {
   /**
    * Returns table metadata for all tables.
    *
-   * @returns {Promise<any[]>} Records containing metadata for all tables.
+   * @returns {Promise<TableMetadata[]>} Records containing metadata for all tables.
    */
   public async getTables(
     docSession: OptDocSession,
-    expand: ExpandableTableObject[] = []): Promise<any[]> {
+    expand: ExpandableTableObject[] = []): Promise<TableMetadata[]> {
     const metaTables = await this.fetchMetaTables(docSession);
     const [, , tableRefs, tableData] = metaTables._grist_Tables;
 
@@ -1524,7 +1524,7 @@ export class ActiveDoc extends EventEmitter {
     // tableId is pulled out of fields and used as the root id
     const fieldNames = without(Object.keys(tableData), "tableId");
 
-    const tables: any[] = [];
+    const tables: TableMetadata[] = [];
     (tableData.tableId as string[]).forEach((id, index) => {
       if (!id) {
         return;
