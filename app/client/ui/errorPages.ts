@@ -536,7 +536,7 @@ export function createSetupPage(appModel: AppModel) {
               done: (use: UseCBOwner) => use(sandboxStatus) === "success" },
             { step: 3 as const, icon: "3", label: "Backups",
               done: (use: UseCBOwner) => !!use(selectedStorage) },
-            { step: 4 as const, icon: "\uD83D\uDE80", label: "Go Live",
+            { step: 4 as const, icon: "4", label: "Go live",
               done: (use: UseCBOwner) => use(goLiveStatus) === "success" },
           ].map(({ step, icon, label, done }) =>
             cssTab(
@@ -758,6 +758,11 @@ export function createSetupPage(appModel: AppModel) {
                 cssSandboxPreviewHint(
                   "Complete step 1 to verify you are the installer.",
                 ),
+                cssBootKeySubmit(
+                  "Configure",
+                  dom.prop("disabled", true),
+                  testId("setup-sandbox-submit"),
+                ),
               ];
             }
             if (status === "success") {
@@ -916,6 +921,11 @@ export function createSetupPage(appModel: AppModel) {
                   "Complete step 1 to verify you are the installer.",
                   testId("setup-storage-idle"),
                 ),
+                cssBootKeySubmit(
+                  "Continue",
+                  dom.prop("disabled", true),
+                  testId("setup-storage-continue"),
+                ),
               ];
             }
             // "loading" or "loaded"
@@ -972,7 +982,7 @@ export function createSetupPage(appModel: AppModel) {
 
         cssSetupSection(
           dom.show(use => use(activeStep) === 4),
-          cssSetupSectionTitle("Go Live"),
+          cssSetupSectionTitle("Go live"),
           cssSetupDescription(
             "Launch Grist for you, the installer. Use the admin panel to configure ",
             "authentication so other users can access it too.",
@@ -1008,27 +1018,19 @@ export function createSetupPage(appModel: AppModel) {
                 ),
               ];
             }
-            if (!key) {
-              return [
-                cssSandboxPreviewHint("Complete step 1 to verify you are the installer."),
-              ];
-            }
-            const stepsReady = sandbox === "success" && !!storage;
-            if (!stepsReady) {
-              return [
-                cssSandboxPreviewHint(
+            const stepsReady = !!key && sandbox === "success" && !!storage;
+            return [
+              !key ? cssSandboxPreviewHint("Complete step 1 to verify you are the installer.") :
+                !stepsReady ? cssSandboxPreviewHint(
                   "Complete steps 2 and 3 first.",
                   testId("setup-go-live-blocked"),
-                ),
-              ];
-            }
-            return [
+                ) : null,
               dom.maybe(goLiveError, err =>
                 cssSetupError(err, testId("setup-go-live-error")),
               ),
               cssBootKeySubmit(
-                "Go Live",
-                dom.prop("disabled", status === "working"),
+                "Go live",
+                dom.prop("disabled", !stepsReady || status === "working"),
                 dom.on("click", () => void handleGoLive()),
                 testId("setup-go-live-submit"),
               ),
@@ -1380,7 +1382,7 @@ const cssStepOptionalBadge = styled("span", `
 const cssSetupDescription = styled("div", `
   font-size: ${vars.mediumFontSize};
   color: ${theme.lightText};
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 `);
 
 const cssSetupCode = styled("div", `
@@ -1399,6 +1401,7 @@ const cssSegmentedControl = styled("div", `
   border: 1px solid ${theme.inputBorder};
   border-radius: 6px;
   overflow: hidden;
+  margin-bottom: 12px;
   margin-bottom: 12px;
 `);
 
