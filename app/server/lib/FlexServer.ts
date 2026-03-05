@@ -830,7 +830,13 @@ export class FlexServer implements GristServer {
           // Not critical — the admin can still log in via /auth/boot-key.
         }
       }
-      return res.json({ msg: "ok", adminUrl: `/admin?boot-key=${bootKey}` });
+      const restarting = typeof process.send === "function";
+      if (restarting) {
+        res.on("finish", () => {
+          process.send!({ action: "restart" });
+        });
+      }
+      return res.json({ msg: "ok", adminUrl: `/admin?boot-key=${bootKey}`, restarting });
     });
 
     // MOCKUP ONLY — will be removed before merge.
@@ -1117,7 +1123,18 @@ export class FlexServer implements GristServer {
     this.info.push(["database", getDatabaseUrl(this._dbManager.connection.options, false)]);
     // If the installation appears to be new, give it an id and a creation date.
     this._activations = new ActivationsManager(this._dbManager);
-    appSettings.setEnvVars((await this._activations.current()).prefs?.envVars || {});
+    const dbEnvVars = (await this._activations.current()).prefs?.envVars || {};
+    appSettings.setEnvVars(dbEnvVars);
+    // Propagate DB-stored env vars into process.env so that code reading
+    // process.env directly (not via appSettings) picks them up.  DB values
+    // take precedence — they represent explicit choices made through the
+    // setup wizard or admin panel, overriding defaults like those in the
+    // Dockerfile.
+    for (const [key, value] of Object.entries(dbEnvVars)) {
+      if (value != null) {
+        process.env[key] = value;
+      }
+    }
     await this._activations.current();
     this._installAdmin = await this.create.createInstallAdmin(this._dbManager);
   }

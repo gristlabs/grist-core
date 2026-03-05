@@ -264,8 +264,13 @@ function runAsSupervisor() {
 
   function startChild() {
     restartRequested = false;
+    // Printing the user helps with setting volume permissions in a container.
+    if (process.getuid) {
+      console.log(`Running Grist as user ${process.getuid()} with primary group ${process.getgid!()}`);
+    }
     child = fork(__filename, {
-      stdio: ["inherit", "inherit", "inherit", "ipc"],
+      // fork() defaults: inherit stdio + IPC channel, child output appears
+      // in the parent terminal.  We only need to add the env override.
       env: { ...process.env, GRIST_RUNNING_UNDER_SUPERVISOR: "true" },
     });
 
