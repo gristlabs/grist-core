@@ -4,7 +4,7 @@ import { delay } from "app/common/delay";
 import { encodeUrl, getSlugIfNeeded, GristDeploymentType, GristDeploymentTypes,
   GristLoadConfig, IGristUrlState, isOrgInPathOnly, LatestVersionAvailable, parseSubdomain,
   sanitizePathTail } from "app/common/gristUrls";
-import { getOrgUrlInfo } from "app/common/gristUrls";
+import { extractOrgParts, getOrgUrlInfo } from "app/common/gristUrls";
 import { isAffirmative } from "app/common/gutil";
 import { UserProfile } from "app/common/LoginSessionAPI";
 import { SandboxInfo } from "app/common/SandboxInfo";
@@ -895,9 +895,10 @@ export class FlexServer implements GristServer {
         return next();
       }
 
-      // Allow specific paths through the gate.  Use originalUrl to check
-      // against the raw URL before any middleware (e.g. inspectTag) rewrites it.
-      const path = req.originalUrl.split("?")[0];
+      // Allow specific paths through the gate.  Strip the /o/ORG prefix
+      // that GRIST_ORG_IN_PATH adds, since this runs before inspectTag.
+      const rawPath = req.originalUrl.split("?")[0];
+      const path = extractOrgParts(req.hostname, rawPath).pathRemainder;
       if (allowedPrefixes.some(prefix => path.startsWith(prefix))) {
         return next();
       }
