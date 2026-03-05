@@ -109,7 +109,8 @@ export class AirtableImport extends Disposable {
   private _error = Observable.create<string | null>(this, null);
   private _oauth2ClientsApi = new OAuth2ClientsAPI();
   private _api = this._options.api;
-  private _existingDocSchema = this._options.destination.docId ? this._options.destination.docSchema : undefined;
+  private _existingDocSchema = this._options.destination.type === "existing-doc" ?
+    this._options.destination.docSchema : undefined;
 
   private _existingTables = Computed.create(this, (use) => {
     const existingDocSchema = this._existingDocSchema ? use(this._existingDocSchema) : null;
@@ -631,11 +632,8 @@ Your token is never sent to Grist's servers, and is only used to make API calls 
 
   private _destination(): AirtableImportDestination {
     const destination = this._options.destination;
-    if (destination.docId !== undefined) {
-      return {
-        type: "existing-doc",
-        docId: destination.docId,
-      };
+    if (destination.type === "existing-doc") {
+      return destination;
     }
     return {
       ...destination,

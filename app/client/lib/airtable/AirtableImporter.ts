@@ -26,7 +26,6 @@ export interface NewDoc {
   type: "new-doc";
   workspaceId: number;
   name?: string;
-  docId?: never;
 }
 
 export type AirtableImportDestination = NewDoc | ExistingDoc;
@@ -60,9 +59,9 @@ export async function applyAirtableImportSchemaAndImportData(params: {
 
   const baseSchema = await api.getBaseSchema(baseId);
 
-  if (!destination.docId) { onProgress?.({ percent: 10, status: t("Creating a new Grist document...") }); }
+  if (destination.type === "new-doc") { onProgress?.({ percent: 10, status: t("Creating a new Grist document...") }); }
 
-  const docId = destination.docId !== undefined ? destination.docId : await userApi.newDoc(
+  const docId = destination.type === "existing-doc" ? destination.docId : await userApi.newDoc(
     { name: destination.name }, destination.workspaceId,
   );
   const docApi = userApi.getDocAPI(docId);
@@ -87,7 +86,7 @@ export async function applyAirtableImportSchemaAndImportData(params: {
   }
 
   // Only remove the initial tables if the Grist document was newly created.
-  if (destination.docId === undefined) {
+  if (destination.type === "new-doc") {
     await docSchemaCreator.removeTables(initialTables);
   }
 
