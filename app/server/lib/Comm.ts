@@ -32,19 +32,21 @@
  * In other words, there is an opportunity for untangling and simplifying.
  */
 
+import { ApiError } from "app/common/ApiError";
 import { parseFirstUrlPart } from "app/common/gristUrls";
 import { safeJsonParse } from "app/common/gutil";
-import { UserProfile } from "app/common/LoginSessionAPI";
 import * as version from "app/common/version";
 import { HomeDBAuth } from "app/gen-server/lib/homedb/Interfaces";
+import { resolveIdentity } from "app/server/lib/Authorizer";
 import { AuthSession } from "app/server/lib/AuthSession";
 import { ScopedSession } from "app/server/lib/BrowserSession";
 import { Client, ClientMethod } from "app/server/lib/Client";
 import { Hosts, RequestWithOrg } from "app/server/lib/extractOrg";
-import { GristLoginMiddleware } from "app/server/lib/GristServer";
+import { GristLoginMiddleware, GristServer } from "app/server/lib/GristServer";
 import { GristServerSocket } from "app/server/lib/GristServerSocket";
 import { GristSocketServer } from "app/server/lib/GristSocketServer";
 import log from "app/server/lib/log";
+import { IPermitStore } from "app/server/lib/Permit";
 import { trustOrigin } from "app/server/lib/requestUtils";
 import { localeFromRequest } from "app/server/lib/ServerLocale";
 import { fromCallback } from "app/server/lib/serverUtils";
@@ -64,6 +66,8 @@ export interface CommOptions {
   loginMiddleware?: GristLoginMiddleware; // If set, use custom getProfile method if available
   httpsServer?: https.Server;   // An optional HTTPS server to listen on too.
   i18Instance?: i18n;           // The i18next instance to use for translations.
+  gristServer?: GristServer;            // The GristServer instance, needed for resolveIdentity.
+  permitStore?: IPermitStore;            // Permit store, needed for resolveIdentity.
 }
 
 /**
@@ -175,18 +179,6 @@ export class Comm extends EventEmitter {
   }
 
   /**
-   * Returns a profile based on the request or session.
-   */
-  private async _getSessionProfile(
-    scopedSession: ScopedSession, req: http.IncomingMessage,
-  ): Promise<UserProfile | null> {
-    return (
-      (await this._options.loginMiddleware?.overrideProfile?.(req)) ??
-      (await scopedSession.getSessionProfile())
-    );
-  }
-
-  /**
    * Processes a new websocket connection, and associates the websocket and a Client object.
    */
   private async _onWebSocketConnection(websocket: GristServerSocket, req: http.IncomingMessage) {
@@ -210,11 +202,37 @@ export class Comm extends EventEmitter {
 
     log.rawInfo("Comm: Got Websocket connection", { ...client.getLogMeta(), urlPath: req.url, reuseClient });
 
-    // Parse the cookie in the request to get the sessionId.
-    const sessionId = this.sessions.getSessionIdFromRequest(req);
-    const scopedSession = this.sessions.getOrCreateSession(sessionId!, (req as RequestWithOrg).org, userSelector);
-    const profile = await this._getSessionProfile(scopedSession, req);
-    const authSession = await getAuthSession(this._options.dbManager, scopedSession, profile);
+    const dbManager = this._options.dbManager;
+    let authSession: AuthSession;
+    if (!dbManager || !this._options.gristServer || !this._options.permitStore) {
+      authSession = AuthSession.unauthenticated();
+    } else {
+      let scopedSession: ScopedSession | undefined;
+      const identity = await resolveIdentity(req, dbManager, {
+        gristServer: this._options.gristServer,
+        permitStore: this._options.permitStore,
+        overrideProfile: this._options.loginMiddleware?.overrideProfile,
+        getSessionProfile: async () => {
+          const sessionId = this.sessions.getSessionIdFromRequest(req);
+          scopedSession = this.sessions.getOrCreateSession(
+            sessionId!, (req as RequestWithOrg).org, userSelector);
+          // Use scopedSession directly — overrideProfile is already handled by
+          // resolveIdentity at step 5, so we don't call _getSessionProfile here
+          // (which would check overrideProfile a second time).
+          const profile = await scopedSession.getSessionProfile();
+          return { profile };
+        },
+      });
+
+      if (identity.user.disabledAt) {
+        throw new ApiError("User is disabled", 403);
+      }
+
+      const org = (req as RequestWithOrg).org || "";
+      const fullUser = dbManager.makeFullUser(identity.user);
+      const altSessionId = scopedSession?.getAltSessionId();
+      authSession = AuthSession.fromUser(fullUser, org, altSessionId);
+    }
 
     client.setConnection({ websocket, req, counter, browserSettings, authSession });
 
@@ -262,17 +280,4 @@ export class Comm extends EventEmitter {
     }
     return wss;
   }
-}
-
-// This is a subset of the logic in Authorizer addRequestUser(), but sufficient for websocket
-// connections, which rely on having an existing session.
-async function getAuthSession(
-  dbManager: HomeDBAuth | undefined, scopedSession: ScopedSession, profile: UserProfile | null,
-): Promise<AuthSession> {
-  if (!dbManager) {
-    return AuthSession.unauthenticated();
-  }
-  const user = profile?.email ? await dbManager.getUserByLogin(profile.email) : dbManager.getAnonymousUser();
-  const fullUser = dbManager.makeFullUser(user);
-  return AuthSession.fromUser(fullUser, scopedSession.org, scopedSession.getAltSessionId());
 }

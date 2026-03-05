@@ -2236,7 +2236,7 @@ describe("ApiServerAccess", function() {
     // check that chimpy's apikey does not work any more
     resp = await axios.get(`${homeUrl}/api/orgs`, chimpy);
     assert.equal(resp.status, 401);
-    assert.deepEqual(resp.data, "Bad request: invalid API key");
+    assert.deepEqual(resp.data.error, "Bad request: invalid API key");
 
     // check that the apikey '' does not work either
     resp = await axios.get(`${homeUrl}/api/orgs`, {
@@ -2245,7 +2245,7 @@ describe("ApiServerAccess", function() {
       headers: { Authorization: "Bearer " },
     });
     assert.equal(resp.status, 401);
-    assert.deepEqual(resp.data, "Bad request: invalid API key");
+    assert.deepEqual(resp.data.error, "Bad request: invalid API key");
 
     // check that db encoded null for the apikey
     const chimpyUser = (await User.findOne({ where: { name: "Chimpy" } }))!;
@@ -2272,7 +2272,7 @@ describe("ApiServerAccess", function() {
       // check that old apikey does not work any more
       resp = await axios.get(`${homeUrl}/api/orgs`, kiwi);
       assert.equal(resp.status, 401);
-      assert.deepEqual(resp.data, "Bad request: invalid API key");
+      assert.deepEqual(resp.data.error, "Bad request: invalid API key");
 
       // check that the new api key works
       kiwi.headers = { Authorization: "Bearer " + apiKey };
