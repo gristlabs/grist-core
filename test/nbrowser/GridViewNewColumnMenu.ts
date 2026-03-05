@@ -277,9 +277,8 @@ describe("GridViewNewColumnMenu", function() {
           // discard rename menu
           await driver.findWait(".test-column-title-close", STANDARD_WAITING_TIME).click();
           // Wait for the side panel animation.
-          await gu.waitForSidePanel();
+          await gu.waitForSidePanel("right");
           // check if right menu is opened on column section
-          await gu.waitForSidePanel();
           assert.isTrue(await driver.find(".test-right-tab-field").isDisplayed());
           await gu.toggleSidePanel("right", "close");
           await gu.undo(1);
