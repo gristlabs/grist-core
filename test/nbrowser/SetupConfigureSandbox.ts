@@ -293,5 +293,192 @@ describe("SetupConfigureSandbox", function() {
       assert.include(href, `/boot/${bootKey}/`);
       assert.equal(await link.getAttribute("target"), "_blank");
     });
+
+    // --- Step 4: Go Live browser tests ---
+
+    it("step 4 shows 'Complete step 1 first' initially", async function() {
+      await driver.get(`${server.getHost()}/`);
+      await driver.findContentWait("div", /Set up your Grist/, 5000);
+      await driver.findContentWait("div", /Go Live/, 5000);
+      await driver.findContentWait("div", /Complete step 1 first/, 5000);
+    });
+
+    it("step 4 shows 'Complete steps 2 and 3' after boot key but before sandbox/storage",
+      async function() {
+        await driver.get(`${server.getHost()}/`);
+        await driver.findContentWait("div", /Set up your Grist/, 5000);
+        await driver.find(".test-setup-toggle-bootkey").click();
+        const input = await driver.find(".test-setup-boot-key-input");
+        await input.sendKeys(bootKey);
+        await driver.find(".test-setup-boot-key-submit").click();
+        // Wait for sandbox options to appear (step 1 done).
+        await driver.findWait(".test-setup-sandbox-submit", 30000);
+        // Step 4 should still be blocked (steps 2/3 not completed).
+        await driver.findWait(".test-setup-go-live-blocked", 5000);
+      });
+
+    it("step 4 shows Go Live button after sandbox configured and storage selected",
+      async function() {
+        await driver.get(`${server.getHost()}/`);
+        await driver.findContentWait("div", /Set up your Grist/, 5000);
+        await driver.find(".test-setup-toggle-bootkey").click();
+        const input = await driver.find(".test-setup-boot-key-input");
+        await input.sendKeys(bootKey);
+        await driver.find(".test-setup-boot-key-submit").click();
+        // Wait for sandbox probe to finish and "unsandboxed" option to appear.
+        const unsandboxed = await driver.findWait(".test-setup-sandbox-option-unsandboxed", 30000);
+        await unsandboxed.click();
+        await driver.find(".test-setup-sandbox-submit").click();
+        await driver.findWait(".test-setup-sandbox-success", 15000);
+        // Select "none" for storage.
+        const noneCard = await driver.findWait(".test-setup-storage-option-none", 15000);
+        await noneCard.click();
+        // Now Go Live button should appear.
+        await driver.findWait(".test-setup-go-live-submit", 5000);
+      });
+  });
+
+  // Separate block because go-live changes server state (opens the gate).
+  describe("go-live endpoint", function() {
+    before(async function() {
+      oldEnv = new testUtils.EnvironmentSnapshot();
+      process.env.GRIST_FORCE_SETUP_GATE = "true";
+      delete process.env.GRIST_IN_SERVICE;
+      process.env.GRIST_ADMIN_EMAIL = "admin@example.com";
+      bootKey = "test-boot-key-for-go-live";
+      process.env.GRIST_BOOT_KEY = bootKey;
+      await server.restart(true);
+    });
+
+    after(async function() {
+      oldEnv.restore();
+      await server.restart(true);
+    });
+
+    it("rejects missing boot key", async function() {
+      const resp = await fetch(`${server.getHost()}/api/setup/go-live`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      assert.equal(resp.status, 401);
+    });
+
+    it("accepts valid boot key and brings server into service", async function() {
+      // Verify setup gate is active: configure-sandbox should be reachable (not 404).
+      const gateBefore = await fetch(`${server.getHost()}/api/setup/configure-sandbox`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Boot-Key": bootKey,
+        },
+        body: JSON.stringify({ GRIST_SANDBOX_FLAVOR: "unsandboxed" }),
+      });
+      assert.equal(gateBefore.status, 200, "setup endpoint should be available before go-live");
+
+      // Go live.
+      const resp = await fetch(`${server.getHost()}/api/setup/go-live`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Boot-Key": bootKey,
+        },
+      });
+      assert.equal(resp.status, 200);
+      const body = await resp.json();
+      assert.equal(body.msg, "ok");
+      assert.include(body.adminUrl, "/admin");
+
+      // Setup gate should now be gone: setup endpoints return 404.
+      const gateAfter = await fetch(`${server.getHost()}/api/setup/configure-sandbox`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Boot-Key": bootKey,
+        },
+        body: JSON.stringify({ GRIST_SANDBOX_FLAVOR: "unsandboxed" }),
+      });
+      assert.equal(gateAfter.status, 404, "setup endpoint should return 404 after go-live");
+    });
+
+    it("returns 404 after server is already in service", async function() {
+      const resp = await fetch(`${server.getHost()}/api/setup/go-live`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Boot-Key": bootKey,
+        },
+      });
+      assert.equal(resp.status, 404);
+    });
+  });
+
+  describe("maintenance mode endpoint", function() {
+    before(async function() {
+      oldEnv = new testUtils.EnvironmentSnapshot();
+      process.env.GRIST_FORCE_SETUP_GATE = "true";
+      process.env.GRIST_IN_SERVICE = "true";
+      process.env.GRIST_ADMIN_EMAIL = "admin@example.com";
+      bootKey = "test-boot-key-for-maintenance";
+      process.env.GRIST_BOOT_KEY = bootKey;
+      await server.restart(true);
+    });
+
+    after(async function() {
+      oldEnv.restore();
+      await server.restart(true);
+    });
+
+    it("enables maintenance mode (takes Grist out of service)", async function() {
+      // Server should be in service — setup endpoints return 404.
+      const before = await fetch(`${server.getHost()}/api/setup/go-live`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Boot-Key": bootKey },
+      });
+      assert.equal(before.status, 404, "go-live should return 404 when in service");
+
+      // Enable maintenance mode.
+      const resp = await fetch(`${server.getHost()}/api/admin/maintenance`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Boot-Key": bootKey },
+        body: JSON.stringify({ maintenance: true }),
+      });
+      assert.equal(resp.status, 200);
+      const body = await resp.json();
+      assert.equal(body.maintenance, true);
+
+      // Setup gate should now be active — setup endpoints should work.
+      const after = await fetch(`${server.getHost()}/api/setup/go-live`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Boot-Key": bootKey },
+      });
+      assert.equal(after.status, 200, "go-live should succeed after entering maintenance mode");
+    });
+
+    it("disables maintenance mode (brings Grist back into service)", async function() {
+      // After the previous test, server is back in service via go-live.
+      // Take it out again to test the disable path.
+      await fetch(`${server.getHost()}/api/admin/maintenance`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Boot-Key": bootKey },
+        body: JSON.stringify({ maintenance: true }),
+      });
+
+      // Disable maintenance mode.
+      const resp = await fetch(`${server.getHost()}/api/admin/maintenance`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Boot-Key": bootKey },
+        body: JSON.stringify({ maintenance: false }),
+      });
+      assert.equal(resp.status, 200);
+      const body = await resp.json();
+      assert.equal(body.maintenance, false);
+
+      // Setup endpoints should now return 404 (server is in service).
+      const after = await fetch(`${server.getHost()}/api/setup/go-live`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Boot-Key": bootKey },
+      });
+      assert.equal(after.status, 404, "go-live should return 404 after disabling maintenance");
+    });
   });
 });

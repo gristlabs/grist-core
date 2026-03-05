@@ -288,6 +288,7 @@ Please log in as an administrator.`)),
           expandedContent: this._buildSessionSecretNotice(),
         }),
       ]),
+      this._buildMaintenanceSection(),
       this._buildAuditLogsSection(),
       dom.create(AdminSection, t("Version"), [
         dom.create(AdminSectionItem, {
@@ -825,6 +826,46 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
         // should not arrive here
         return "??";
     }
+  }
+
+  private _buildMaintenanceSection() {
+    const status = Observable.create<"idle" | "working">(this, "idle");
+    return dom.create(AdminSection, t("Maintenance"), [
+      dom.create(AdminSectionItem, {
+        id: "maintenance-mode",
+        name: t("Maintenance Mode"),
+        description: t("Take Grist out of service to show the setup page instead of normal operation"),
+        value: basicButton(
+          t("Enable Maintenance Mode"),
+          dom.prop("disabled", use => use(status) === "working"),
+          dom.on("click", () => {
+            confirmModal(
+              t("Enable Maintenance Mode?"),
+              t("Enable"),
+              async () => {
+                status.set("working");
+                try {
+                  await this._configAPI.setMaintenanceMode(true);
+                  window.location.href = "/";
+                } catch (err) {
+                  status.set("idle");
+                  reportError(err as Error);
+                }
+              },
+              {
+                explanation: dom("div",
+                  dom("p",
+                    t("This will take Grist out of service. All users will see the setup page " +
+                      "until Grist is brought back into service."),
+                  ),
+                ),
+              },
+            );
+          }),
+          testId("admin-panel-maintenance-button"),
+        ),
+      }),
+    ]);
   }
 
   private _buildAuditLogsSection() {

@@ -793,6 +793,23 @@ export class FlexServer implements GristServer {
       return res.json({ msg: "ok", flavor });
     });
 
+    // Setup-only endpoint: bring Grist into service (open the setup gate).
+    // Requires boot key authentication.
+    this.app.post("/api/setup/go-live", express.json(), async (req, res) => {
+      if (this._isInService()) {
+        return res.status(404).json({ error: "Not found" });
+      }
+      const bootKey = this.getBootKey();
+      const reqKey = req.headers["x-boot-key"];
+      if (!bootKey || reqKey !== bootKey) {
+        return res.status(401).json({ error: "Boot key required" });
+      }
+      const activations = this.getActivations();
+      await activations.updateAppEnvFile({ GRIST_IN_SERVICE: "true" });
+      process.env.GRIST_IN_SERVICE = "true";
+      return res.json({ msg: "ok", adminUrl: `/admin?boot-key=${bootKey}` });
+    });
+
     // MOCKUP ONLY — will be removed before merge.
     // Sets GRIST_ADMIN_EMAIL in process.env so the getgrist.com auth flow
     // can be demoed without restarting.  No auth, no security — throwaway code.

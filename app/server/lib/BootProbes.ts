@@ -381,7 +381,7 @@ const _externalStorageProbe: Probe = {
   },
 };
 
-const SANDBOX_TEST_TIMEOUT_MS = 10_000;
+const SANDBOX_TEST_TIMEOUT_MS = process.env.GRIST_TESTING_SOCKET ? 2_000 : 10_000;
 // Ordered by preference: gvisor is most secure, pyodide is most portable.
 const SANDBOX_CANDIDATES = ["gvisor", "pyodide", "macSandboxExec"];
 

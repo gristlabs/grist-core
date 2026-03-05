@@ -42,6 +42,13 @@ export class ConfigAPI extends BaseAPI {
     await this.request(`${this._url}/api/admin/restart`, { method: "POST" });
   }
 
+  public async setMaintenanceMode(enable: boolean): Promise<void> {
+    await this.request(`${this._url}/api/admin/maintenance`, {
+      method: "POST",
+      body: JSON.stringify({ maintenance: enable }),
+    });
+  }
+
   public async healthcheck(): Promise<void> {
     const resp = await this.request(`${this._homeUrl}/status?ready=1`);
     if (!resp.ok) {

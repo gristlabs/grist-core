@@ -289,6 +289,10 @@ export function createSetupPage(appModel: AppModel) {
   const storageStatus = observable<"idle" | "loading" | "loaded">("idle");
   const storageError = observable("");
 
+  // Step 4: Go Live state
+  const goLiveStatus = observable<"idle" | "working" | "success" | "error">("idle");
+  const goLiveError = observable("");
+
   // Build registration URL.
   const homeUrl = getGristConfig().homeUrl;
   const registerUrl = new URL(commonUrls.signInWithGristRegister);
@@ -485,6 +489,30 @@ export function createSetupPage(appModel: AppModel) {
     } catch (e) {
       sandboxError.set((e as Error).message);
       sandboxStatus.set("error");
+    }
+  }
+
+  async function handleGoLive() {
+    const key = storedBootKey.get();
+    if (!key) { return; }
+    goLiveStatus.set("working");
+    goLiveError.set("");
+    try {
+      const resp = await fetch("/api/setup/go-live", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Boot-Key": key,
+        },
+      });
+      const result = await resp.json();
+      if (!resp.ok) {
+        throw new Error(result.error || "Failed to go live");
+      }
+      goLiveStatus.set("success");
+    } catch (e) {
+      goLiveError.set((e as Error).message);
+      goLiveStatus.set("error");
     }
   }
 
@@ -921,16 +949,71 @@ export function createSetupPage(appModel: AppModel) {
           }),
         ),
 
-        cssSetupDivider(),
-
         cssSetupSection(
-          cssSetupSectionTitle("Skip setup"),
-          cssSetupDescription(
-            "Set the following environment variable and restart to bypass this gate entirely. ",
-            dom("b", "Warning: "),
-            "this will leave your installation open without authentication or sandboxing.",
+          cssSetupStepHeader(
+            cssStepNumber("4"),
+            cssSetupSectionTitle("Go Live"),
           ),
-          cssSetupCode("GRIST_IN_SERVICE=true"),
+          cssSetupDescription(
+            "Launch Grist for you, the installer. Use the admin panel to configure ",
+            "authentication so other users can access it too.",
+          ),
+          cssSetupDescription(
+            "Or skip this wizard entirely by setting ",
+            dom("code", "GRIST_IN_SERVICE=true"),
+            " and restarting.",
+          ),
+          dom.domComputed(use => ({
+            status: use(goLiveStatus),
+            key: use(storedBootKey),
+            sandbox: use(sandboxStatus),
+            storage: use(selectedStorage),
+          }), ({ status, key, sandbox, storage }) => {
+            if (status === "success") {
+              return [
+                cssSandboxSuccessBox(
+                  cssSandboxSuccessIcon("\u2713"),
+                  dom("div",
+                    dom("b", "Grist is live!"),
+                    dom("div",
+                      "Set up authentication for other users in the admin panel.",
+                    ),
+                  ),
+                  testId("setup-go-live-success"),
+                ),
+                cssGoLiveAdminButton(
+                  "Head to the admin panel",
+                  dom.on("click", () => { window.location.href = `/admin?boot-key=${key}`; }),
+                  testId("setup-go-live-admin-link"),
+                ),
+              ];
+            }
+            if (!key) {
+              return [
+                cssSandboxPreviewHint("Complete step 1 first."),
+              ];
+            }
+            const stepsReady = sandbox === "success" && !!storage;
+            if (!stepsReady) {
+              return [
+                cssSandboxPreviewHint(
+                  "Complete steps 2 and 3 first.",
+                  testId("setup-go-live-blocked"),
+                ),
+              ];
+            }
+            return [
+              dom.maybe(goLiveError, err =>
+                cssSetupError(err, testId("setup-go-live-error")),
+              ),
+              cssBootKeySubmit(
+                "Go Live",
+                dom.prop("disabled", status === "working"),
+                dom.on("click", () => void handleGoLive()),
+                testId("setup-go-live-submit"),
+              ),
+            ];
+          }),
         ),
 
         testId("setup-page"),
@@ -940,6 +1023,7 @@ export function createSetupPage(appModel: AppModel) {
           configKey, configStatus, configError, storedBootKey,
           sandboxFlavors, selectedSandbox, sandboxStatus, sandboxError,
           storageBackends, selectedStorage, storageStatus, storageError,
+          goLiveStatus, goLiveError,
           authMode, bootKeyValue, bootKeyStatus, bootKeyError,
           handleConfigure, detectSandboxFlavors,
         }),
@@ -962,6 +1046,8 @@ interface MockupState {
   selectedStorage: Observable<string>;
   storageStatus: Observable<string>;
   storageError: Observable<string>;
+  goLiveStatus: Observable<string>;
+  goLiveError: Observable<string>;
   authMode: Observable<"getgrist" | "bootkey">;
   bootKeyValue: Observable<string>;
   bootKeyStatus: Observable<string>;
@@ -1052,6 +1138,8 @@ function buildMockupControls(owner: any, state: MockupState) {
     state.selectedStorage.set("");
     state.storageStatus.set("idle");
     state.storageError.set("");
+    state.goLiveStatus.set("idle");
+    state.goLiveError.set("");
     log("Reset");
   }
 
@@ -1233,12 +1321,6 @@ const cssStepOptionalBadge = styled("span", `
   font-style: italic;
 `);
 
-const cssSetupDivider = styled("div", `
-  max-width: 500px;
-  margin: 32px auto 24px auto;
-  border-top: 1px solid ${theme.pagePanelsBorder};
-`);
-
 const cssSetupDescription = styled("div", `
   font-size: ${vars.mediumFontSize};
   color: ${theme.lightText};
@@ -1317,6 +1399,22 @@ const cssBootKeySubmit = styled("button", `
   &:disabled {
     opacity: 0.5;
     cursor: default;
+  }
+`);
+
+const cssGoLiveAdminButton = styled("button", `
+  display: block;
+  margin-top: 12px;
+  font-size: ${vars.mediumFontSize};
+  padding: 8px 20px;
+  border: none;
+  border-radius: 4px;
+  background: ${theme.controlPrimaryBg};
+  color: ${theme.controlPrimaryFg};
+  cursor: pointer;
+  font-weight: 600;
+  &:hover {
+    background: ${theme.controlPrimaryHoverBg};
   }
 `);
 
