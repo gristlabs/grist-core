@@ -274,6 +274,21 @@ export function createSetupPage(appModel: AppModel) {
   const sandboxStatus = observable<"idle" | "loading" | "loaded" | "working" | "success" | "error">("idle");
   const sandboxError = observable("");
 
+  // Step 3: External storage / backups state
+  // "selectable" = not detected but user can configure it manually.
+  type StorageBackendStatus = "checking" | "available" | "unavailable" | "selectable";
+  interface StorageBackendInfo {
+    name: string;
+    status: StorageBackendStatus;
+    error?: string;
+    bucket?: string;
+    endpoint?: string;
+  }
+  const storageBackends = observable<StorageBackendInfo[]>([]);
+  const selectedStorage = observable("");
+  const storageStatus = observable<"idle" | "loading" | "loaded">("idle");
+  const storageError = observable("");
+
   // Build registration URL.
   const homeUrl = getGristConfig().homeUrl;
   const registerUrl = new URL(commonUrls.signInWithGristRegister);
@@ -297,10 +312,11 @@ export function createSetupPage(appModel: AppModel) {
         throw new Error(result.error || "Failed to configure authentication");
       }
       configStatus.set("success");
-      // Store boot key returned from server for step 2.
+      // Store boot key returned from server for steps 2 and 3.
       if (result.bootKey) {
         storedBootKey.set(result.bootKey);
         void detectSandboxFlavors();
+        void detectExternalStorage();
       }
     } catch (e) {
       configError.set((e as Error).message);
@@ -324,6 +340,7 @@ export function createSetupPage(appModel: AppModel) {
       storedBootKey.set(key);
       bootKeyStatus.set("idle");
       void detectSandboxFlavors();
+      void detectExternalStorage();
     } catch (e) {
       bootKeyError.set((e as Error).message);
       bootKeyStatus.set("error");
@@ -367,6 +384,65 @@ export function createSetupPage(appModel: AppModel) {
     // Ensure "no sandbox" fallback is present (may already have been added by maybeAppendUnsandboxed).
     maybeAppendUnsandboxed();
     sandboxStatus.set("loaded");
+  }
+
+  const STORAGE_CANDIDATES = ["minio", "s3", "azure"];
+
+  async function detectExternalStorage() {
+    const key = storedBootKey.get();
+    if (!key) { return; }
+    storageStatus.set("loading");
+    storageError.set("");
+    // Show all candidates as "checking".
+    storageBackends.set(STORAGE_CANDIDATES.map(name => ({ name, status: "checking" as StorageBackendStatus })));
+
+    // Probe the server — currently only detects minio in grist-core.
+    try {
+      const resp = await fetch("/api/probes/external-storage", {
+        headers: { "X-Boot-Key": key },
+      });
+      const body = await resp.json();
+      const details = body.details;
+      if (details?.configured && body.status === "success") {
+        // Mark the detected backend as available.
+        const backend = details.backend || "minio";
+        updateStorageBackend(backend, "available", undefined, details.bucket, details.endpoint);
+      } else if (details?.configured) {
+        // Configured but validation failed.
+        const backend = details.backend || "minio";
+        updateStorageBackend(backend, "unavailable", details.error || "Validation failed");
+      }
+    } catch (e) {
+      storageError.set((e as Error).message);
+    }
+
+    // Mark any still-checking backends as unavailable (not detected),
+    // except minio which is always selectable (user can configure it).
+    const current = storageBackends.get();
+    storageBackends.set(current.map((b) => {
+      if (b.status !== "checking") { return b; }
+      if (b.name === "minio") {
+        return { ...b, status: "selectable" as StorageBackendStatus };
+      }
+      return { ...b, status: "unavailable" as StorageBackendStatus, error: "Not available" };
+    }));
+    // Append "none" option.
+    storageBackends.set([...storageBackends.get(), { name: "none", status: "available" }]);
+    // Pre-select: first available real backend, otherwise nothing.
+    const firstAvailable = storageBackends.get().find(b => b.status === "available" && b.name !== "none");
+    if (firstAvailable) {
+      selectedStorage.set(firstAvailable.name);
+    }
+    storageStatus.set("loaded");
+  }
+
+  function updateStorageBackend(
+    name: string, status: StorageBackendStatus, error?: string, bucket?: string, endpoint?: string,
+  ) {
+    const current = storageBackends.get();
+    storageBackends.set(current.map(b =>
+      b.name === name ? { name, status, error, bucket, endpoint } : b,
+    ));
   }
 
   function updateFlavor(name: string, status: FlavorStatus, error?: string) {
@@ -707,29 +783,139 @@ export function createSetupPage(appModel: AppModel) {
             cssSetupSectionTitle("Backups"),
             cssStepOptionalBadge("Optional"),
           ),
-          dom.domComputed(storedBootKey, (key) => {
-            if (!key) {
-              return cssSandboxPreview(
-                cssSetupDescription(
-                  "Store document snapshots in S3-compatible external storage for backup and versioning. ",
-                  "Without this, documents are only stored on the local filesystem.",
+          cssSetupDescription(
+            "Store document snapshots in S3-compatible external storage for backup and versioning. ",
+            "Without this, documents are only stored on the local filesystem.",
+          ),
+          dom.domComputed(storageStatus, (status) => {
+            const storageMeta: Record<string, {
+              label: string; desc: string; recommended?: boolean; notRecommended?: boolean;
+            }> = {
+              minio: {
+                label: "S3 (MinIO client)",
+                desc: "S3-compatible storage via MinIO client library. Works with AWS S3, MinIO, and others.",
+                recommended: true,
+              },
+              s3: {
+                label: "S3 (AWS client)",
+                desc: "S3-compatible storage via native AWS SDK. Supports IAM roles and AWS-native auth.",
+              },
+              azure: {
+                label: "Azure Blob Storage",
+                desc: "Microsoft Azure Blob Storage for document snapshots.",
+              },
+              none: {
+                label: "No External Storage",
+                desc: "Documents stored on local filesystem only. No off-server backups or versioning.",
+                notRecommended: true,
+              },
+            };
+
+            function renderStorageCard(
+              backend: StorageBackendInfo,
+              opts: { radio?: boolean; disabled?: boolean; } = {},
+            ) {
+              const meta = storageMeta[backend.name] || { label: backend.name, desc: "" };
+              const isAvail = backend.status === "available";
+              const isSelectable = backend.status === "selectable";
+              const isChecking = backend.status === "checking";
+              const isUnavail = backend.status === "unavailable";
+              const effectiveDisabled = opts.disabled || isUnavail;
+              const dimmed = effectiveDisabled && !isChecking;
+              const canSelect = (isAvail || isSelectable) && !opts.disabled;
+              return cssSandboxCard(
+                cssSandboxCard.cls("-disabled", Boolean(dimmed)),
+                cssSandboxCard.cls("-selected", use => use(selectedStorage) === backend.name),
+                cssSandboxCard.cls("-available", isAvail || isSelectable),
+                canSelect ? dom.on("click", () => selectedStorage.set(backend.name)) : null,
+                opts.radio ? cssSandboxRadio(
+                  { type: "radio", name: "storage-backend", value: backend.name },
+                  dom.prop("checked", use => use(selectedStorage) === backend.name),
+                  dom.prop("disabled", !canSelect),
+                  canSelect ? dom.on("change", () => selectedStorage.set(backend.name)) : null,
+                ) : cssSandboxRadio(
+                  { type: "radio", name: "storage-preview", disabled: true },
                 ),
-                cssSandboxPreviewHint("Complete step 1 to configure backups."),
+                cssSandboxCardBody(
+                  cssSandboxNameRow(
+                    cssSandboxName(meta.label),
+                    meta.recommended ? cssSandboxRecommended("Recommended") : null,
+                    !opts.disabled && meta.notRecommended ?
+                      cssSandboxBadge(cssSandboxBadge.cls("-warn"), "Not recommended") : null,
+                    !opts.disabled && isAvail && !meta.notRecommended ?
+                      cssSandboxBadge(cssSandboxBadge.cls("-ok"), "\u2713 Available") : null,
+                    !opts.disabled && isSelectable ?
+                      cssSandboxBadge(cssSandboxBadge.cls("-fail"), "Not configured") : null,
+                    !opts.disabled && isUnavail ?
+                      cssSandboxBadge(cssSandboxBadge.cls("-fail"), "\u2717 Not available") : null,
+                    !opts.disabled && isChecking ?
+                      cssSandboxBadge(cssSandboxBadge.cls("-checking"), "Checking\u2026") : null,
+                  ),
+                  cssSandboxCardDesc(meta.desc),
+                  isAvail && backend.bucket ?
+                    cssSandboxCardDesc(`Bucket: ${backend.bucket}` +
+                      (backend.endpoint ? ` (${backend.endpoint})` : "")) : null,
+                  isUnavail && backend.error && backend.error !== "Not available" ?
+                    cssSandboxErrorHint(backend.error) : null,
+                ),
+                testId(`setup-storage-option-${backend.name}`),
               );
             }
+
+            if (status === "idle") {
+              return [
+                cssSandboxPreview(
+                  ...STORAGE_CANDIDATES.map(name =>
+                    renderStorageCard({ name, status: "unavailable" }, { disabled: true }),
+                  ),
+                ),
+                cssSandboxPreviewHint(
+                  "Complete step 1 to check backups.",
+                  testId("setup-storage-idle"),
+                ),
+              ];
+            }
+            // "loading" or "loaded"
             return [
-              cssSetupDescription(
-                "Store document snapshots in S3-compatible external storage for backup and versioning. ",
-                "Without this, documents are only stored on the local filesystem.",
-              ),
-              cssSetupCode(
-                "GRIST_DOCS_MINIO_BUCKET=my-grist-docs\n" +
-                "GRIST_DOCS_MINIO_ENDPOINT=s3.amazonaws.com\n" +
-                "GRIST_DOCS_MINIO_ACCESS_KEY=...\n" +
-                "GRIST_DOCS_MINIO_SECRET_KEY=...",
-              ),
-              cssSetupDescription(
-                "Works with AWS S3, MinIO, and any S3-compatible storage provider.",
+              dom.domComputed(storageBackends, (backends) => {
+                if (backends.length === 0) {
+                  return cssSandboxBadge(cssSandboxBadge.cls("-checking"),
+                    "Checking external storage\u2026",
+                    testId("setup-storage-loading"),
+                  );
+                }
+                return cssSandboxList(
+                  ...backends.map(b => renderStorageCard(b, { radio: true })),
+                  testId("setup-storage-not-configured"),
+                );
+              }),
+              dom.domComputed((use) => {
+                const sel = use(selectedStorage);
+                const backends = use(storageBackends);
+                const backend = backends.find(b => b.name === sel);
+                if (backend?.status !== "selectable") { return null; }
+                // Show setup instructions for the selected-but-unconfigured backend.
+                if (sel === "minio") {
+                  return dom("div",
+                    cssSetupDescription(
+                      "Set these environment variables and restart Grist to enable MinIO storage:",
+                    ),
+                    cssSetupCode(
+                      "GRIST_DOCS_MINIO_BUCKET=my-grist-docs\n" +
+                      "GRIST_DOCS_MINIO_ENDPOINT=s3.amazonaws.com\n" +
+                      "GRIST_DOCS_MINIO_ACCESS_KEY=...\n" +
+                      "GRIST_DOCS_MINIO_SECRET_KEY=...",
+                    ),
+                    cssSetupDescription(
+                      "Works with AWS S3, MinIO, and any S3-compatible storage provider.",
+                    ),
+                    testId("setup-storage-instructions"),
+                  );
+                }
+                return null;
+              }),
+              dom.maybe(storageError, err =>
+                cssSetupError(err, testId("setup-storage-error")),
               ),
             ];
           }),
@@ -753,6 +939,7 @@ export function createSetupPage(appModel: AppModel) {
         dom.create(buildMockupControls, {
           configKey, configStatus, configError, storedBootKey,
           sandboxFlavors, selectedSandbox, sandboxStatus, sandboxError,
+          storageBackends, selectedStorage, storageStatus, storageError,
           authMode, bootKeyValue, bootKeyStatus, bootKeyError,
           handleConfigure, detectSandboxFlavors,
         }),
@@ -771,6 +958,10 @@ interface MockupState {
   selectedSandbox: Observable<string>;
   sandboxStatus: Observable<string>;
   sandboxError: Observable<string>;
+  storageBackends: Observable<{ name: string; status: string; error?: string }[]>;
+  selectedStorage: Observable<string>;
+  storageStatus: Observable<string>;
+  storageError: Observable<string>;
   authMode: Observable<"getgrist" | "bootkey">;
   bootKeyValue: Observable<string>;
   bootKeyStatus: Observable<string>;
@@ -857,6 +1048,10 @@ function buildMockupControls(owner: any, state: MockupState) {
     state.sandboxError.set("");
     state.bootKeyStatus.set("idle");
     state.bootKeyError.set("");
+    state.storageBackends.set([]);
+    state.selectedStorage.set("");
+    state.storageStatus.set("idle");
+    state.storageError.set("");
     log("Reset");
   }
 
