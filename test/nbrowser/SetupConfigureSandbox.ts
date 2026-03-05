@@ -239,7 +239,7 @@ describe("SetupConfigureSandbox", function() {
       // Click tab 3 to reveal step 3 content.
       await driver.find(".test-setup-tab-3").click();
       // Step 3 should show the "complete step 1" hint.
-      await driver.findContentWait("div", /Complete step 1 to check backups/, 5000);
+      await driver.findContentWait("div", /Complete step 1 to verify you are the installer/, 5000);
     });
 
     it("step 3 shows storage backend cards after boot key submit", async function() {
@@ -306,12 +306,12 @@ describe("SetupConfigureSandbox", function() {
 
     // --- Step 4: Go Live browser tests ---
 
-    it("step 4 shows 'Complete step 1 first' initially", async function() {
+    it("step 4 shows 'Complete step 1' message initially", async function() {
       await driver.get(`${server.getHost()}/`);
       await driver.findContentWait("div", /Set up your Grist/, 5000);
       // Click tab 4 to reveal step 4 content.
       await driver.find(".test-setup-tab-4").click();
-      await driver.findContentWait("div", /Complete step 1 first/, 5000);
+      await driver.findContentWait("div", /Complete step 1 to verify you are the installer/, 5000);
     });
 
     it("step 4 shows 'Complete steps 2 and 3' after boot key but before sandbox/storage",
