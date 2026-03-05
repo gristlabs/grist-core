@@ -185,6 +185,23 @@ describe("SetupConfigureSandbox", function() {
       assert.notProperty(body, "bootKey");
     });
 
+    // --- External storage probe API tests ---
+
+    it("external-storage probe returns not-configured with valid boot key", async function() {
+      const resp = await fetch(`${server.getHost()}/api/probes/external-storage`, {
+        headers: { "X-Boot-Key": bootKey },
+      });
+      assert.equal(resp.status, 200);
+      const body = await resp.json();
+      assert.deepEqual(body.details, { configured: false });
+      assert.equal(body.status, "none");
+    });
+
+    it("external-storage probe rejects missing boot key", async function() {
+      const resp = await fetch(`${server.getHost()}/api/probes/external-storage`);
+      assert.include([401, 403], resp.status);
+    });
+
     it("all probes listing requires admin auth", async function() {
       // Without boot key, the probes listing should be rejected.
       const resp = await fetch(`${server.getHost()}/api/probes`);
@@ -213,6 +230,52 @@ describe("SetupConfigureSandbox", function() {
       // Wait for sandbox options to appear (probe runs).
       await driver.findWait(".test-setup-sandbox-submit", 30000);
     });
+
+    it("step 3 shows idle state before step 1 completion", async function() {
+      await driver.get(`${server.getHost()}/`);
+      await driver.findContentWait("div", /Set up your Grist/, 5000);
+      // Step 3 should show the "complete step 1" hint.
+      await driver.findContentWait("div", /Complete step 1 to check backups/, 5000);
+    });
+
+    it("step 3 shows storage backend cards after boot key submit", async function() {
+      await driver.get(`${server.getHost()}/`);
+      await driver.findContentWait("div", /Set up your Grist/, 5000);
+      // Switch to boot key mode and submit.
+      await driver.find(".test-setup-toggle-bootkey").click();
+      const input = await driver.find(".test-setup-boot-key-input");
+      await input.sendKeys(bootKey);
+      await driver.find(".test-setup-boot-key-submit").click();
+      // Wait for storage detection to complete — should show backend cards.
+      await driver.findWait(".test-setup-storage-not-configured", 15000);
+      // All four options should be present: minio, s3, azure, none.
+      await driver.findWait(".test-setup-storage-option-minio", 5000);
+      await driver.findWait(".test-setup-storage-option-s3", 5000);
+      await driver.findWait(".test-setup-storage-option-azure", 5000);
+      await driver.findWait(".test-setup-storage-option-none", 5000);
+    });
+
+    it("step 3 minio is selectable and shows instructions; s3/azure are greyed out",
+      async function() {
+        await driver.get(`${server.getHost()}/`);
+        await driver.findContentWait("div", /Set up your Grist/, 5000);
+        await driver.find(".test-setup-toggle-bootkey").click();
+        const input = await driver.find(".test-setup-boot-key-input");
+        await input.sendKeys(bootKey);
+        await driver.find(".test-setup-boot-key-submit").click();
+        await driver.findWait(".test-setup-storage-not-configured", 15000);
+        // MinIO should be selectable (not disabled), s3/azure should be greyed out.
+        const minioCard = await driver.find(".test-setup-storage-option-minio");
+        assert.notInclude(await minioCard.getAttribute("class"), "-disabled");
+        const s3Card = await driver.find(".test-setup-storage-option-s3");
+        assert.include(await s3Card.getAttribute("class"), "-disabled");
+        const azureCard = await driver.find(".test-setup-storage-option-azure");
+        assert.include(await azureCard.getAttribute("class"), "-disabled");
+        // Select minio — should show setup instructions.
+        await minioCard.click();
+        await driver.findWait(".test-setup-storage-instructions", 5000);
+        await driver.findContentWait("div", /GRIST_DOCS_MINIO_BUCKET/, 5000);
+      });
 
     it("step 2 shows admin panel link after boot key submit", async function() {
       await driver.get(`${server.getHost()}/`);
