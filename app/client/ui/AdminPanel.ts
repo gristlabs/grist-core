@@ -287,6 +287,13 @@ Please log in as an administrator.`)),
           value: this._buildSessionSecretDisplay(),
           expandedContent: this._buildSessionSecretNotice(),
         }),
+        dom.create(AdminSectionItem, {
+          id: "boot-key",
+          name: t("Boot Key"),
+          description: t("Key for initial setup and emergency access"),
+          value: this._buildBootKeyDisplay(),
+          expandedContent: this._buildBootKeyDetail(),
+        }),
       ]),
       this._buildMaintenanceSection(),
       this._buildAuditLogsSection(),
@@ -515,6 +522,157 @@ Please log in as an administrator.`)),
     return t("Grist signs user session cookies with a secret key. Please set this key via the environment variable \
 GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice \
 in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.");
+  }
+
+  private _buildBootKeyDisplay() {
+    return dom.domComputed(
+      (use) => {
+        const req = this._checks.requestCheckById(use, "boot-key");
+        const result = req ? use(req.result) : undefined;
+        if (!result) { return cssValueLabel(t("loading...")); }
+
+        const details = result.details as { set: boolean; source: string } | undefined;
+        if (!details?.set) {
+          return cssValueLabel(cssHappyText(t("not set")));
+        }
+        if (details.source === "env") {
+          return cssValueLabel(cssHappyText(t("set via environment")));
+        }
+        return cssValueLabel(cssDangerText(t("auto-generated")));
+      },
+    );
+  }
+
+  private _buildBootKeyDetail() {
+    const working = Observable.create(null, false);
+    const actionDone = Observable.create<"cleared" | "generated" | null>(null, null);
+    const generatedKey = Observable.create<string>(null, "");
+
+    const refreshProbe = async () => {
+      try {
+        const result = await this._installAPI.runCheck("boot-key");
+        const probe = this._checks.probes.get().find(p => p.id === "boot-key");
+        if (probe) {
+          const req = this._checks.requestCheck(probe);
+          req.result.set(result);
+        }
+      } catch (e) {
+        // Not critical — the display just won't update.
+      }
+    };
+
+    const callBootKeyApi = async (action: "generate" | "clear") => {
+      working.set(true);
+      try {
+        const resp = await fetch(getHomeUrl() + `/api/admin/boot-key/${action}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: "{}",
+        });
+        if (!resp.ok) { throw new Error(await resp.text()); }
+        if (action === "generate") {
+          const body = await resp.json();
+          generatedKey.set(body.bootKey || "");
+        }
+        actionDone.set(action === "clear" ? "cleared" : "generated");
+      } catch (e) {
+        reportError(e as Error);
+      } finally {
+        working.set(false);
+      }
+    };
+
+    return dom.domComputed(
+      (use) => {
+        const req = this._checks.requestCheckById(use, "boot-key");
+        const result = req ? use(req.result) : undefined;
+        const details = result?.details as { set: boolean; source: string } | undefined;
+        const done = use(actionDone);
+
+        if (done === "cleared") {
+          return dom("div",
+            dom("div",
+              cssHappyText(t("Boot key cleared.")),
+              " " + t("It will no longer be active after the next restart."),
+            ),
+            dom("div",
+              { style: "margin-top: 12px;" },
+              basicButton(t("OK"), dom.on("click", async () => {
+                actionDone.set(null);
+                await refreshProbe();
+              })),
+            ),
+          );
+        }
+        if (done === "generated") {
+          const key = use(generatedKey);
+          return dom("div",
+            dom("div",
+              cssHappyText(t("Boot key generated.")),
+              " " + t("Copy it now — it will not be shown again."),
+            ),
+            key ? cssBootKeyValue(key, testId("boot-key-value")) : null,
+            dom("div",
+              t("You can use it to sign in at /auth/boot-key when no other authentication is configured. ") +
+              t("It will also appear in the server logs on startup."),
+            ),
+            dom("div",
+              { style: "margin-top: 12px;" },
+              basicButton(t("OK"), dom.on("click", async () => {
+                actionDone.set(null);
+                generatedKey.set("");
+                await refreshProbe();
+              })),
+            ),
+          );
+        }
+
+        if (!details?.set) {
+          return dom("div",
+            dom("div",
+              t("No boot key is active. Without a boot key, the emergency login system at /auth/boot-key ") +
+              t("is unavailable. You can set one via the GRIST_BOOT_KEY environment variable, or generate ") +
+              t("one that will be stored in the database."),
+            ),
+            dom("div",
+              { style: "margin-top: 12px;" },
+              basicButton(
+                dom.domComputed(working, w => w ? t("Generating...") : t("Generate boot key")),
+                dom.prop("disabled", working),
+                dom.on("click", () => callBootKeyApi("generate")),
+                testId("boot-key-generate"),
+              ),
+            ),
+          );
+        }
+
+        if (details.source === "env") {
+          return dom("div",
+            t("The boot key is explicitly set via the GRIST_BOOT_KEY environment variable. ") +
+            t("To remove it, unset the variable and restart Grist."),
+          );
+        }
+
+        // Auto-generated boot key — offer to clear it.
+        return dom("div",
+          dom("div",
+            t("An auto-generated boot key is stored in the database. Anyone with access to the server logs ") +
+            t("can use it to sign in as admin. If you no longer need it, clear it to avoid leaving ") +
+            t("credentials lying around."),
+          ),
+          dom("div",
+            { style: "margin-top: 12px;" },
+            basicButton(
+              dom.domComputed(working, w => w ? t("Clearing...") : t("Clear boot key")),
+              dom.prop("disabled", working),
+              dom.on("click", () => callBootKeyApi("clear")),
+              testId("boot-key-clear"),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   private _buildUpdates(owner: MultiHolder) {
@@ -1018,6 +1176,18 @@ const cssDangerText = styled("div", `
 
 const cssHappyText = styled("span", `
   color: ${theme.controlFg};
+`);
+
+const cssBootKeyValue = styled("div", `
+  font-family: monospace;
+  font-size: ${vars.mediumFontSize};
+  padding: 8px 12px;
+  margin: 8px 0;
+  background: ${theme.inputBg};
+  border: 1px solid ${theme.inputBorder};
+  border-radius: 4px;
+  user-select: all;
+  word-break: break-all;
 `);
 
 const cssLabel = styled("div", `
