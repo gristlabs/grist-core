@@ -36,6 +36,7 @@ import {
 import { addRequestUser, getUser, getUserId, isAnonymousUser,
   isSingleUserMode, redirectToLoginUnconditionally } from "app/server/lib/Authorizer";
 import { redirectToLogin, RequestWithLogin, signInStatusMiddleware } from "app/server/lib/Authorizer";
+import { BootKeyLoginMiddleware } from "app/server/lib/BootKeyLogin";
 import { forceSessionChange } from "app/server/lib/BrowserSession";
 import { Comm } from "app/server/lib/Comm";
 import { ConfigBackendAPI } from "app/server/lib/ConfigBackendAPI";
@@ -67,7 +68,6 @@ import { EmitNotifier, INotifier } from "app/server/lib/INotifier";
 import { InstallAdmin } from "app/server/lib/InstallAdmin";
 import log, { logAsJson } from "app/server/lib/log";
 import { disableCache, noop } from "app/server/lib/middleware";
-import { ErrorInLoginMiddleware } from "app/server/lib/MinimalLogin";
 import { OAuth2Clients } from "app/server/lib/OAuth2Clients";
 import { IPermitStore } from "app/server/lib/Permit";
 import { getAppPathTo, getAppRoot, getInstanceRoot, getUnpackedAppRoot } from "app/server/lib/places";
@@ -1587,7 +1587,7 @@ export class FlexServer implements GristServer {
       // We don't fallback to MinimalLogin here, as it imposes some security risks if enabled
       // unintentionally. This way, the admin is made aware of the problem and can take action using boot
       // page instructions.
-      this._loginMiddleware = new ErrorInLoginMiddleware();
+      this._loginMiddleware = new BootKeyLoginMiddleware(this);
     }
     this._getLoginRedirectUrl = tbind(this._loginMiddleware.getLoginRedirectUrl, this._loginMiddleware);
     this._getSignUpRedirectUrl = tbind(this._loginMiddleware.getSignUpRedirectUrl, this._loginMiddleware);

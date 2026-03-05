@@ -36,7 +36,7 @@ function getAdminProfile(): UserProfile {
   };
 }
 
-class BootKeyLoginMiddleware implements GristLoginMiddleware {
+export class BootKeyLoginMiddleware implements GristLoginMiddleware {
   constructor(private _gristServer: GristServer) {}
 
   public async getLoginRedirectUrl(req: Request, target: URL): Promise<string> {
@@ -65,34 +65,48 @@ class BootKeyLoginMiddleware implements GristLoginMiddleware {
       await user.save();
     }
 
-    // Serve the boot key login form as a Grist-styled client page.
-    app.get("/auth/boot-key", expressWrap(async (req, res) => {
-      const next = String(req.query.next || "/");
-      const error = String(req.query.error || "");
-      await sendBootKeyPage(gristServer, req, res, next, error);
-    }));
-
-    // Validate the boot key and establish a session.
-    app.post("/auth/boot-key", express.urlencoded({ extended: false }), expressWrap(async (req, res) => {
-      const bootKey = req.body?.bootKey;
-      const next = req.body?.next || "/";
-
-      const serverBootKey = gristServer.getBootKey();
-      if (!serverBootKey || bootKey !== serverBootKey) {
-        const url = new URL("/auth/boot-key", gristServer.getHomeUrl(req));
-        url.searchParams.set("next", next);
-        url.searchParams.set("error", "Invalid boot key");
-        return res.redirect(url.href);
-      }
-
-      const adminProfile = getAdminProfile();
-      await setUserInSession(req, gristServer, adminProfile);
-      log.info("Boot key login successful for %s", adminProfile.email);
-      return res.redirect(next);
-    }));
+    addBootKeyRoutes(app, gristServer);
 
     return "boot-key-login";
   }
+}
+
+/**
+ * Register the /auth/boot-key GET and POST routes. Extracted so that
+ * ErrorInLoginMiddleware can reuse them as a fallback login page.
+ */
+export function addBootKeyRoutes(app: Express, gristServer: GristServer) {
+  // Serve the boot key login form as a Grist-styled client page.
+  app.get("/auth/boot-key", expressWrap(async (req, res) => {
+    const next = String(req.query.next || "/");
+    const error = String(req.query.error || "");
+    await sendBootKeyPage(gristServer, req, res, next, error);
+  }));
+
+  // Validate the boot key and establish a session.
+  app.post("/auth/boot-key", express.urlencoded({ extended: false }), expressWrap(async (req, res) => {
+    const bootKey = req.body?.bootKey;
+    const next = req.body?.next || "/";
+
+    const serverBootKey = gristServer.getBootKey();
+    if (!serverBootKey || bootKey !== serverBootKey) {
+      const url = new URL("/auth/boot-key", gristServer.getHomeUrl(req));
+      url.searchParams.set("next", next);
+      url.searchParams.set("error", "Invalid boot key");
+      return res.redirect(url.href);
+    }
+
+    const email = process.env.GRIST_ADMIN_EMAIL;
+    if (email) {
+      const adminProfile: UserProfile = {
+        email,
+        name: email.split("@")[0] || "Admin",
+      };
+      await setUserInSession(req, gristServer, adminProfile);
+      log.info("Boot key login successful for %s", adminProfile.email);
+    }
+    return res.redirect(next);
+  }));
 }
 
 async function sendBootKeyPage(
