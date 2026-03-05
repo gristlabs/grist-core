@@ -22,11 +22,27 @@ describe("SetupPage", function() {
       delete process.env.GRIST_IN_SERVICE;
       delete process.env.GRIST_BOOT_KEY;
       await server.restart(true);
+      // Clear any persisted wizard state from previous tests.
+      await driver.get(`${server.getHost()}/`);
+      await driver.executeScript(
+        "try { sessionStorage.removeItem('grist-setup-state'); } catch(e) {}",
+      );
     });
 
     after(async function() {
       oldEnv.restore();
       await server.restart(true);
+    });
+
+    // Clear persisted wizard state between tests so each starts fresh.
+    afterEach(async function() {
+      try {
+        await driver.executeScript(
+          "try { sessionStorage.removeItem('grist-setup-state'); } catch(e) {}",
+        );
+      } catch {
+        // May fail if no page was loaded (API-only tests).
+      }
     });
 
     it("serves error.html with setup config at /", async function() {
@@ -79,7 +95,7 @@ describe("SetupPage", function() {
       await driver.get(`${server.getHost()}/`);
       await driver.findContentWait("div", /Set up your Grist/, 5000);
       // Check for the three setup steps.
-      assert.include(await driver.getPageSource(), "Sign in with getgrist.com");
+      assert.include(await driver.getPageSource(), "Register on getgrist.com");
       assert.include(await driver.getPageSource(), "Sandboxing");
       assert.include(await driver.getPageSource(), "Backups");
     });
@@ -100,12 +116,29 @@ describe("SetupPage", function() {
       process.env.GRIST_FORCE_SETUP_GATE = "true";
       delete process.env.GRIST_IN_SERVICE;
       process.env.GRIST_BOOT_KEY = "test-boot-key-123";
+      process.env.GRIST_ADMIN_EMAIL = "admin@example.com";
       await server.restart(true);
+      // Clear any persisted wizard state from previous tests.
+      await driver.get(`${server.getHost()}/`);
+      await driver.executeScript(
+        "try { sessionStorage.removeItem('grist-setup-state'); } catch(e) {}",
+      );
     });
 
     after(async function() {
       oldEnv.restore();
       await server.restart(true);
+    });
+
+    // Clear persisted wizard state between tests so each starts fresh.
+    afterEach(async function() {
+      try {
+        await driver.executeScript(
+          "try { sessionStorage.removeItem('grist-setup-state'); } catch(e) {}",
+        );
+      } catch {
+        // May fail if no page was loaded (API-only tests).
+      }
     });
 
     it("rejects invalid boot key", async function() {
@@ -120,7 +153,7 @@ describe("SetupPage", function() {
       assert.match(location!, /\/admin\?boot-key=test-boot-key-123/);
     });
 
-    it("navigates to admin when boot key is submitted in browser", async function() {
+    it("advances to step 2 when boot key is submitted in browser", async function() {
       await driver.get(`${server.getHost()}/`);
       await driver.findContentWait("div", /Set up your Grist/, 5000);
       // Toggle to boot key mode first.
@@ -129,11 +162,8 @@ describe("SetupPage", function() {
       await input.sendKeys("test-boot-key-123");
       const submit = await driver.find(".test-setup-boot-key-submit");
       await submit.click();
-      // Should navigate away from the setup page to /admin with boot key.
-      await driver.wait(async () => {
-        const url = await driver.getCurrentUrl();
-        return url.includes("/admin") && url.includes("boot-key=test-boot-key-123");
-      }, 5000, "Expected redirect to /admin?boot-key=...");
+      // Should auto-advance to step 2 (sandbox configuration).
+      await driver.findContentWait("div", /Sandboxing/, 5000);
     });
   });
 

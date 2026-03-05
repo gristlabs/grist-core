@@ -66,11 +66,26 @@ describe("SetupConfigureAuth", function() {
       delete process.env.GRIST_IN_SERVICE;
       delete process.env.GRIST_ADMIN_EMAIL;
       await server.restart(true);
+      // Clear any persisted wizard state from previous tests.
+      await driver.get(`${server.getHost()}/`);
+      await driver.executeScript(
+        "try { sessionStorage.removeItem('grist-setup-state'); } catch(e) {}",
+      );
     });
 
     after(async function() {
       oldEnv.restore();
       await server.restart(true);
+    });
+
+    afterEach(async function() {
+      try {
+        await driver.executeScript(
+          "try { sessionStorage.removeItem('grist-setup-state'); } catch(e) {}",
+        );
+      } catch {
+        // May fail if no page was loaded (API-only tests).
+      }
     });
 
     it("rejects API call when GRIST_ADMIN_EMAIL is not set", async function() {
@@ -117,11 +132,26 @@ describe("SetupConfigureAuth", function() {
       delete process.env.GRIST_IN_SERVICE;
       process.env.GRIST_ADMIN_EMAIL = "admin@example.com";
       await server.restart(true);
+      // Clear any persisted wizard state from previous tests.
+      await driver.get(`${server.getHost()}/`);
+      await driver.executeScript(
+        "try { sessionStorage.removeItem('grist-setup-state'); } catch(e) {}",
+      );
     });
 
     after(async function() {
       oldEnv.restore();
       await server.restart(true);
+    });
+
+    afterEach(async function() {
+      try {
+        await driver.executeScript(
+          "try { sessionStorage.removeItem('grist-setup-state'); } catch(e) {}",
+        );
+      } catch {
+        // May fail if no page was loaded (API-only tests).
+      }
     });
 
     // --- API tests ---
