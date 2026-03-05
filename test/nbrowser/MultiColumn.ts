@@ -959,15 +959,11 @@ async function testChoices(colA: string = "Left", colB: string = "Right") {
   await choiceEditor.save();
   await gu.waitForServer();
   // Test if grid is ok.
-  await gu.waitToPass(async () => { // Use waitToPass, got some flakiness for the assertions below
-    assert.equal(await gu.getCell(colA, 1).getText(), "one renamed");
-    assert.equal(await gu.getCell(colB, 1).getText(), "one renamed");
-  }, 1000);
+  assert.equal(await gu.getCell(colA, 1).getText(), "one renamed");
+  assert.equal(await gu.getCell(colB, 1).getText(), "one renamed");
   await undo();
-  await gu.waitToPass(async () => {
-    assert.equal(await gu.getCell(colA, 1).getText(), "one");
-    assert.equal(await gu.getCell(colB, 1).getText(), "one");
-  }, 1000);
+  assert.equal(await gu.getCell(colA, 1).getText(), "one");
+  assert.equal(await gu.getCell(colB, 1).getText(), "one");
 
   // Test that colors are also treated as different.
   await selectColumns(colA, colB);
@@ -998,8 +994,8 @@ const choiceEditor = {
   async rename(label: string, label2: string) {
     const entry = await driver.findWait(`.test-choice-list-entry .test-token-label[value='${label}']`, 100);
     await entry.click();
-    await gu.sendKeys(label2);
-    await gu.sendKeys(Key.ENTER);
+    await driver.wait(() => entry.hasFocus());
+    await gu.sendKeys(label2, Key.ENTER);
   },
   async color(token: string, color: string) {
     const label = await driver.findWait(`.test-choice-list-entry .test-token-label[value='${token}']`, 100);
