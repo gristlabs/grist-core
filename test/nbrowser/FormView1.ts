@@ -327,7 +327,6 @@ describe("FormView1", function() {
     it("can submit a form with multi-line Text field", async function() {
       const formUrl = await createFormWith("Text");
       await gu.openColumnPanel();
-      await gu.waitForSidePanel();
       await driver.findContent(".test-tb-form-field-format .test-select-button", /Multi line/).click();
       await gu.waitForServer();
       // We are in a new window.
