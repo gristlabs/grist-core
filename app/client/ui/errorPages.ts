@@ -818,14 +818,8 @@ export function createSetupPage(appModel: AppModel) {
               ),
             ];
           }),
-          dom.maybe(storedBootKey, key =>
-            cssAdminPanelLink(
-              cssLink(
-                "Open full admin panel",
-                { href: `/boot/${key}/` },
-                { target: "_blank" },
-              ),
-            ),
+          dom.maybe(use => use(sandboxStatus) === "loading", () =>
+            cssAdminPanelLink("Please wait a moment while checks are in progress\u2026"),
           ),
         ),
 
@@ -966,6 +960,12 @@ export function createSetupPage(appModel: AppModel) {
               dom.maybe(storageError, err =>
                 cssSetupError(err, testId("setup-storage-error")),
               ),
+              cssBootKeySubmit(
+                "Continue",
+                dom.prop("disabled", use => !use(selectedStorage)),
+                dom.on("click", () => activeStep.set(4)),
+                testId("setup-storage-continue"),
+              ),
             ];
           }),
         ),
@@ -995,7 +995,8 @@ export function createSetupPage(appModel: AppModel) {
                   dom("div",
                     dom("b", "Grist is live!"),
                     dom("div",
-                      "Set up authentication for other users in the admin panel.",
+                      "Set up authentication for other users in the admin panel, ",
+                      "where you can also bring Grist back out of service.",
                     ),
                   ),
                   testId("setup-go-live-success"),
