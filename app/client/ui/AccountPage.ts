@@ -181,11 +181,11 @@ designed to ensure that you're the only person who can access your account, even
       cssBreadcrumbs({ style: "margin-left: 16px;" },
         cssLink(
           urlState().setLinkUrl({}),
-          "Home",
+          t("Home"),
           testId("home"),
         ),
         separator(" / "),
-        dom("span", "Account"),
+        dom("span", t("Account")),
       ),
       createTopBarHome(this._appModel),
     );
