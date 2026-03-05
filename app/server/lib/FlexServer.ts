@@ -56,7 +56,7 @@ import { readGetGristComConfigFromSettings, readGetGristComMetadata } from "app/
 import { addGoogleAuthEndpoint } from "app/server/lib/GoogleAuth";
 import { createGristJobs, GristJobs } from "app/server/lib/GristJobs";
 import { DocTemplate, GristLoginMiddleware, GristLoginSystem, GristServer,
-  RequestWithGrist } from "app/server/lib/GristServer";
+  RequestWithGrist, setUserInSession } from "app/server/lib/GristServer";
 import { initGristSessions, SessionStore } from "app/server/lib/gristSessions";
 import { IAssistant } from "app/server/lib/IAssistant";
 import { IAuditLogger } from "app/server/lib/IAuditLogger";
@@ -708,6 +708,7 @@ export class FlexServer implements GristServer {
     const allowedPrefixes = [
       "/health", "/status", "/boot", "/admin", "/api/admin",
       "/api/install", "/api/probes", "/api/setup", "/api/session", "/api/config",
+      "/auth/",
       "/v/",
     ];
 
@@ -807,6 +808,17 @@ export class FlexServer implements GristServer {
       const activations = this.getActivations();
       await activations.updateAppEnvFile({ GRIST_IN_SERVICE: "true" });
       process.env.GRIST_IN_SERVICE = "true";
+      // Establish a session so the admin can navigate freely after Go Live
+      // without re-entering the boot key.  May fail for raw API calls
+      // without a session cookie (e.g. tests), which is fine.
+      if (process.env.GRIST_ADMIN_EMAIL && (req as any).session) {
+        const email = process.env.GRIST_ADMIN_EMAIL;
+        try {
+          await setUserInSession(req, this, { email, name: email.split("@")[0] || "Admin" });
+        } catch (e) {
+          // Not critical — the admin can still log in via /auth/boot-key.
+        }
+      }
       return res.json({ msg: "ok", adminUrl: `/admin?boot-key=${bootKey}` });
     });
 
@@ -2471,7 +2483,7 @@ export class FlexServer implements GristServer {
     }
     // If a real auth system is configured (not "minimal" fallback), we're in service.
     const loginActive = appSettings.section("login").flag("active").get();
-    if (loginActive && loginActive !== "minimal") {
+    if (loginActive && loginActive !== "minimal" && loginActive !== "boot-key") {
       return true;
     }
     return false;

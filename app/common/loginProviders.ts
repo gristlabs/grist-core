@@ -15,3 +15,6 @@ export const GETGRIST_COM_PROVIDER_KEY = "getgrist.com";
 
 // SAML provider key.
 export const SAML_PROVIDER_KEY = "saml";
+
+// Boot key provider key — admin login via boot key when no real auth is configured.
+export const BOOT_KEY_PROVIDER_KEY = "boot-key";

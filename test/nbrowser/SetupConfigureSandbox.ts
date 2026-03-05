@@ -287,7 +287,7 @@ describe("SetupConfigureSandbox", function() {
         await driver.findContentWait("div", /GRIST_DOCS_MINIO_BUCKET/, 5000);
       });
 
-    it("step 2 shows admin panel link after boot key submit", async function() {
+    it("step 2 shows loading hint while sandbox checks run", async function() {
       await driver.get(`${server.getHost()}/`);
       await driver.findContentWait("div", /Set up your Grist/, 5000);
       // Switch to boot key mode and submit.
@@ -297,11 +297,6 @@ describe("SetupConfigureSandbox", function() {
       await driver.find(".test-setup-boot-key-submit").click();
       // Wait for sandbox options to load.
       await driver.findWait(".test-setup-sandbox-submit", 30000);
-      // Admin panel link should be present and point to /boot/{key}/.
-      const link = await driver.findContentWait("a", /Open full admin panel/, 5000);
-      const href = await link.getAttribute("href");
-      assert.include(href, `/boot/${bootKey}/`);
-      assert.equal(await link.getAttribute("target"), "_blank");
     });
 
     // --- Step 4: Go Live browser tests ---

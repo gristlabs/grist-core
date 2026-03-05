@@ -5,6 +5,7 @@ import {
   SAML_PROVIDER_KEY,
 } from "app/common/loginProviders";
 import { appSettings } from "app/server/lib/AppSettings";
+import { getBootKeyLoginSystem } from "app/server/lib/BootKeyLogin";
 import { getForwardAuthLoginSystem, readForwardAuthConfigFromSettings } from "app/server/lib/ForwardAuthLogin";
 import {
   getGetGristComLoginSystem,
@@ -26,7 +27,10 @@ export async function getCoreLoginSystem(): Promise<GristLoginSystem> {
       return loginSystem;
     }
   }
-  // Fallback to minimal login system if none configured.
+  // Fallback: use boot-key login if an admin email is set, otherwise minimal (auto-login).
+  if (process.env.GRIST_ADMIN_EMAIL) {
+    return await getBootKeyLoginSystem(appSettings);
+  }
   return await getMinimalLoginSystem(appSettings);
 }
 
