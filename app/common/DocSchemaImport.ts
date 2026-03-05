@@ -1,7 +1,7 @@
 import { ApplyUAResult } from "app/common/ActiveDocAPI";
 import { UserAction } from "app/common/DocActions";
+import { TablesMetadataGet } from "app/plugin/DocApiTypes";
 import {
-  DocSchemaSqlResult,
   ExistingDocSchema,
   ExistingTableSchema,
 } from "app/common/DocSchemaImportTypes";
@@ -281,26 +281,16 @@ export class DocSchemaImportTool {
   }
 }
 
-export const GET_DOC_SCHEMA_SQL = `
-  SELECT
-    tables.id AS tableRef, tableId,
-    columns.id AS colRef,
-    columns.colId,
-    columns.label as colLabel,
-    columns.isFormula as colIsFormula
-  FROM _grist_Tables AS tables
-  INNER JOIN _grist_Tables_column AS columns ON tableRef=parentId
-`.trim();
-
-export function formatDocSchemaSqlResult(result: DocSchemaSqlResult): ExistingDocSchema {
+export function formatGetTablesResult(result: TablesMetadataGet): ExistingDocSchema {
   const tables = new Map<string, ExistingTableSchema>();
-  for (const { tableRef, tableId, colRef, colId, colLabel, colIsFormula } of result) {
-    let existingTable = tables.get(tableId);
-    if (!existingTable) {
-      existingTable = { id: tableId, ref: tableRef, columns: [] };
-      tables.set(tableId, existingTable);
+  for (const { id: tableId, fields: tableFields, columns = [] } of result.tables) {
+    const { tableRef } = tableFields;
+    const existingTable: ExistingTableSchema = { id: tableId, ref: tableRef, columns: [] };
+    tables.set(tableId, existingTable);
+    for (const { id: colId, fields: colFields } of columns) {
+      const { colRef, label, isFormula } = colFields;
+      existingTable.columns.push({ id: colId, ref: colRef, label, isFormula });
     }
-    existingTable.columns.push({ id: colId, ref: colRef, label: colLabel, isFormula: colIsFormula > 0 });
   }
   return { tables: Array.from(tables.values()) };
 }

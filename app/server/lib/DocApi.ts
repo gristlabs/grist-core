@@ -30,6 +30,7 @@ import {
   ArchiveUploadResult,
   CreatableArchiveFormats,
   DocReplacementOptions,
+  ExpandableTableObject,
   NEW_DOCUMENT_CODE,
 } from "app/common/UserAPI";
 import { Document } from "app/gen-server/entity/Document";
@@ -308,14 +309,11 @@ export class DocWorkerApi {
     // Get the tables of the specified document in recordish format
     this._app.get("/api/docs/:docId/tables", canView,
       withDoc(async (activeDoc, req, res) => {
-        const records = await getTableRecords(activeDoc, req, { optTableId: "_grist_Tables" });
-        const tables: Types.RecordWithStringId[] = records.map(record => ({
-          id: String(record.fields.tableId),
-          fields: {
-            ..._.omit(record.fields, "tableId"),
-            tableRef: record.id,
-          },
-        })).filter(({ id }) => id);
+        const expandParam = optStringParam(req.query.expand, "expand");
+        const expand = (expandParam?.split(",") ?? []).map(object =>
+          ExpandableTableObject.check(object));
+        const tables = await handleSandboxError("", [],
+          activeDoc.getTables(docSessionFromRequest(req), expand));
         res.json({ tables });
       }),
     );

@@ -24,7 +24,11 @@ import {
   WebhookUpdate,
 } from "app/common/Triggers";
 import { addCurrentOrgToPath, getGristConfig } from "app/common/urlUtils";
-import { AttachmentStore, AttachmentStoreDesc } from "app/plugin/DocApiTypes";
+import {
+  AttachmentStore,
+  AttachmentStoreDesc,
+  TablesMetadataGet,
+} from "app/plugin/DocApiTypes";
 
 import { AxiosProgressEvent } from "axios";
 import omitBy from "lodash/omitBy";
@@ -502,6 +506,9 @@ export const DocAttachmentsLocation = StringUnion(
 );
 export type DocAttachmentsLocation = typeof DocAttachmentsLocation.type;
 
+export const ExpandableTableObject = StringUnion("column");
+export type ExpandableTableObject = typeof ExpandableTableObject.type;
+
 /**
  * Collect endpoints related to the content of a single document that we've been thinking
  * of as the (restful) "Doc API".  A few endpoints that could be here are not, for historical
@@ -510,6 +517,7 @@ export type DocAttachmentsLocation = typeof DocAttachmentsLocation.type;
 export interface DocAPI {
   readonly options: IOptions;
   getBaseUrl(): string;
+  getTables(expand?: ExpandableTableObject[]): Promise<TablesMetadataGet>;
   // Immediate flag is a currently not-advertised feature, allowing a query to proceed without
   // waiting for a document to be initialized. This is useful if the calculations done when
   // opening a document are irrelevant.
@@ -1063,6 +1071,14 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
   }
 
   public getBaseUrl(): string { return this._url; }
+
+  public async getTables(expand: ExpandableTableObject[] = []): Promise<TablesMetadataGet> {
+    const url = new URL(`${this._url}/tables`);
+    if (expand.length > 0) {
+      url.searchParams.set("expand", expand.join(","));
+    }
+    return this.requestJson(url.href);
+  }
 
   public async getRows(tableId: string, options?: GetRowsParams): Promise<TableColValues> {
     return this._getRecords(tableId, "data", options);

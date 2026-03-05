@@ -100,6 +100,7 @@ import {
   CreatableArchiveFormats,
   DocReplacementOptions,
   Document as APIDocument,
+  ExpandableTableObject,
   NEW_DOCUMENT_CODE,
 } from "app/common/UserAPI";
 import { convertFromColumn } from "app/common/ValueConverter";
@@ -1508,10 +1509,44 @@ export class ActiveDoc extends EventEmitter {
   }
 
   /**
+   * Returns table metadata for all tables.
+   *
+   * @returns {Promise<any[]>} Records containing metadata for all tables.
+   */
+  public async getTables(
+    docSession: OptDocSession,
+    expand: ExpandableTableObject[] = []): Promise<any[]> {
+    const metaTables = await this.fetchMetaTables(docSession);
+    const [, , tableRefs, tableData] = metaTables._grist_Tables;
+
+    const includeColumns = expand.includes("column");
+
+    // tableId is pulled out of fields and used as the root id
+    const fieldNames = without(Object.keys(tableData), "tableId");
+
+    const tables: any[] = [];
+    (tableData.tableId as string[]).forEach((id, index) => {
+      if (!id) {
+        return;
+      }
+      const tableRef = tableRefs[index];
+      const table: any = { id, fields: { tableRef } };
+      for (const key of fieldNames) {
+        table.fields[key] = tableData[key][index];
+      }
+      if (includeColumns) {
+        table.columns = this._getTableColsAsRecords(metaTables, tableRef);
+      }
+      tables.push(table);
+    });
+    return tables;
+  }
+
+  /**
    * Returns column metadata for all visible columns from `tableId`.
    *
    * @param {string} tableId Table to retrieve column metadata for.
-   * @returns {Promise<TableRecordValue[]>} Records containing metadata about the visible columns
+   * @returns {Promise<RecordWithStringId[]>} Records containing metadata about the visible columns
    * from `tableId`.
    */
   public async getTableCols(
@@ -1523,6 +1558,13 @@ export class ActiveDoc extends EventEmitter {
       throw new Error("getTableCols not available for meta tables");
     }
     const tableRef = tableIdToRef(metaTables, tableId);
+    return this._getTableColsAsRecords(metaTables, tableRef, includeHidden);
+  }
+
+  private _getTableColsAsRecords(
+    metaTables: { [p: string]: TableDataAction },
+    tableRef: number,
+    includeHidden = false): RecordWithStringId[] {
     const [, , colRefs, columnData] = metaTables._grist_Tables_column;
 
     // colId is pulled out of fields and used as the root id

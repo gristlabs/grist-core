@@ -92,6 +92,33 @@ export interface ColumnsPut {
   columns: [RecordWithStringId, ...RecordWithStringId[]]; // at least one column is required
 }
 
+export interface ColumnRecord extends RecordWithStringId {
+
+}
+
+interface ColumnMetadata {
+  id: string;
+  fields: {
+    colRef: number;
+    label: string;
+    isFormula: boolean;
+    [colId: string]: CellValue;
+  };
+}
+
+interface TableMetadata {
+  id: string;
+  fields: {
+    tableRef: number;
+    [colId: string]: CellValue;
+  };
+  columns?: [ColumnMetadata, ...ColumnMetadata[]];
+}
+
+export interface TablesMetadataGet {
+  tables: [TableMetadata, ...TableMetadata[]];
+}
+
 /**
  * Creating tables requires a list of columns.
  * `fields` is not accepted because it's not generally sensible to set the metadata fields on new tables.

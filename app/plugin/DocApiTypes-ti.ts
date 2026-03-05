@@ -72,6 +72,39 @@ export const ColumnsPut = t.iface([], {
   "columns": t.tuple("RecordWithStringId", t.rest(t.array("RecordWithStringId"))),
 });
 
+export const ColumnRecord = t.iface(["RecordWithStringId"], {
+});
+
+export const ColumnMetadata = t.iface([], {
+  "id": "string",
+  "fields": t.iface([], {
+    "colRef": "number",
+    "label": "string",
+    "isFormula": "boolean",
+    [t.indexKey]: "unknown",
+  }),
+});
+
+export const TableMetadata = t.iface([], {
+  "id": "string",
+  "fields": t.iface([], {
+    "tableRef": "number",
+    [t.indexKey]: "unknown",
+  }),
+});
+
+export const TableMetadataWithColumns = t.iface(["TableMetadata"], {
+  "columns": t.tuple("ColumnMetadata", t.rest(t.array("ColumnMetadata"))),
+});
+
+export const TablesMetadataGet = t.iface([], {
+  "tables": t.tuple("TableMetadata", t.rest(t.array("TableMetadata"))),
+});
+
+export const TablesMetadataGetWithColumns = t.iface([], {
+  "tables": t.tuple("TableMetadataWithColumns", t.rest(t.array("TableMetadataWithColumns"))),
+});
+
 export const TablePost = t.iface(["ColumnsPost"], {
   "id": t.opt("string"),
 });
@@ -114,6 +147,12 @@ const exportedTypeSuite: t.ITypeSuite = {
   ColumnsPost,
   ColumnsPatch,
   ColumnsPut,
+  ColumnRecord,
+  ColumnMetadata,
+  TableMetadata,
+  TableMetadataWithColumns,
+  TablesMetadataGet,
+  TablesMetadataGetWithColumns,
   TablePost,
   TablesPost,
   TablesPatch,
