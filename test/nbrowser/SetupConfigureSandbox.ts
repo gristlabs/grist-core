@@ -213,6 +213,8 @@ describe("SetupConfigureSandbox", function() {
     it("step 2 shows idle state before step 1 completion", async function() {
       await driver.get(`${server.getHost()}/`);
       await driver.findContentWait("div", /Set up your Grist/, 5000);
+      // Click tab 2 to reveal step 2 content.
+      await driver.find(".test-setup-tab-2").click();
       // Step 2 should show the "complete step 1" message.
       await driver.findContentWait("div", /Complete step 1/, 5000);
     });
@@ -234,6 +236,8 @@ describe("SetupConfigureSandbox", function() {
     it("step 3 shows idle state before step 1 completion", async function() {
       await driver.get(`${server.getHost()}/`);
       await driver.findContentWait("div", /Set up your Grist/, 5000);
+      // Click tab 3 to reveal step 3 content.
+      await driver.find(".test-setup-tab-3").click();
       // Step 3 should show the "complete step 1" hint.
       await driver.findContentWait("div", /Complete step 1 to check backups/, 5000);
     });
@@ -246,6 +250,9 @@ describe("SetupConfigureSandbox", function() {
       const input = await driver.find(".test-setup-boot-key-input");
       await input.sendKeys(bootKey);
       await driver.find(".test-setup-boot-key-submit").click();
+      // Auto-advance goes to step 2; click tab 3 to see storage options.
+      await driver.findWait(".test-setup-tab-3", 5000);
+      await driver.find(".test-setup-tab-3").click();
       // Wait for storage detection to complete — should show backend cards.
       await driver.findWait(".test-setup-storage-not-configured", 15000);
       // All four options should be present: minio, s3, azure, none.
@@ -263,6 +270,9 @@ describe("SetupConfigureSandbox", function() {
         const input = await driver.find(".test-setup-boot-key-input");
         await input.sendKeys(bootKey);
         await driver.find(".test-setup-boot-key-submit").click();
+        // Auto-advance goes to step 2; click tab 3 to see storage options.
+        await driver.findWait(".test-setup-tab-3", 5000);
+        await driver.find(".test-setup-tab-3").click();
         await driver.findWait(".test-setup-storage-not-configured", 15000);
         // MinIO should be selectable (not disabled), s3/azure should be greyed out.
         const minioCard = await driver.find(".test-setup-storage-option-minio");
@@ -299,7 +309,8 @@ describe("SetupConfigureSandbox", function() {
     it("step 4 shows 'Complete step 1 first' initially", async function() {
       await driver.get(`${server.getHost()}/`);
       await driver.findContentWait("div", /Set up your Grist/, 5000);
-      await driver.findContentWait("div", /Go Live/, 5000);
+      // Click tab 4 to reveal step 4 content.
+      await driver.find(".test-setup-tab-4").click();
       await driver.findContentWait("div", /Complete step 1 first/, 5000);
     });
 
@@ -311,8 +322,10 @@ describe("SetupConfigureSandbox", function() {
         const input = await driver.find(".test-setup-boot-key-input");
         await input.sendKeys(bootKey);
         await driver.find(".test-setup-boot-key-submit").click();
-        // Wait for sandbox options to appear (step 1 done).
+        // Wait for sandbox options to appear (step 1 done, auto-advanced to step 2).
         await driver.findWait(".test-setup-sandbox-submit", 30000);
+        // Click tab 4 to see step 4 content.
+        await driver.find(".test-setup-tab-4").click();
         // Step 4 should still be blocked (steps 2/3 not completed).
         await driver.findWait(".test-setup-go-live-blocked", 5000);
       });
@@ -325,14 +338,17 @@ describe("SetupConfigureSandbox", function() {
         const input = await driver.find(".test-setup-boot-key-input");
         await input.sendKeys(bootKey);
         await driver.find(".test-setup-boot-key-submit").click();
-        // Wait for sandbox probe to finish and "unsandboxed" option to appear.
+        // Wait for sandbox probe to finish and "unsandboxed" option to appear (auto-advanced to step 2).
         const unsandboxed = await driver.findWait(".test-setup-sandbox-option-unsandboxed", 30000);
         await unsandboxed.click();
         await driver.find(".test-setup-sandbox-submit").click();
         await driver.findWait(".test-setup-sandbox-success", 15000);
-        // Select "none" for storage.
+        // Auto-advanced to step 3; select "none" for storage.
+        await driver.find(".test-setup-tab-3").click();
         const noneCard = await driver.findWait(".test-setup-storage-option-none", 15000);
         await noneCard.click();
+        // Click tab 4 to see Go Live button.
+        await driver.find(".test-setup-tab-4").click();
         // Now Go Live button should appear.
         await driver.findWait(".test-setup-go-live-submit", 5000);
       });
