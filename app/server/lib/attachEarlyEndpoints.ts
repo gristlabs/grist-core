@@ -118,6 +118,27 @@ export function attachEarlyEndpoints(options: AttachOptions) {
     }),
   );
 
+  // Toggle maintenance mode (take Grist out of / back into service).
+  app.post(
+    "/api/admin/maintenance",
+    json({ limit: "1kb" }),
+    expressWrap(async (req, res) => {
+      const enable = req.body?.maintenance;
+      if (typeof enable !== "boolean") {
+        return res.status(400).send({ error: "Missing boolean 'maintenance' field" });
+      }
+      const activations = gristServer.getActivations();
+      if (enable) {
+        await activations.updateAppEnvFile({ GRIST_IN_SERVICE: null });
+        delete process.env.GRIST_IN_SERVICE;
+      } else {
+        await activations.updateAppEnvFile({ GRIST_IN_SERVICE: "true" });
+        process.env.GRIST_IN_SERVICE = "true";
+      }
+      return res.status(200).send({ msg: "ok", maintenance: enable });
+    }),
+  );
+
   // Restrict this endpoint to install admins.
   app.get(
     "/api/install/prefs",
