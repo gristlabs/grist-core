@@ -702,6 +702,17 @@ export class FlexServer implements GristServer {
 
     if (this._bootKey) {
       log.rawInfo("Boot key for initial setup", { bootKey: this._bootKey });
+      // Print a prominent banner so the boot key is easy to find in logs.
+      console.log("");
+      console.log("  ┌──────────────────────────────────────────┐");
+      console.log("  │                                          │");
+      console.log(`  │   BOOT KEY: ${this._bootKey.padEnd(29)}│`);
+      console.log("  │                                          │");
+      console.log("  │   Use this key in the setup wizard or    │");
+      console.log("  │   at /auth/boot-key to sign in.          │");
+      console.log("  │                                          │");
+      console.log("  └──────────────────────────────────────────┘");
+      console.log("");
     }
 
     // Paths that should always be accessible, even when the setup gate is active.

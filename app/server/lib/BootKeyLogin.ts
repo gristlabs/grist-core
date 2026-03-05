@@ -127,7 +127,8 @@ function renderBootKeyPage(next: string, error: string): string {
 <body>
   <div class="container">
     <h1>Grist Setup</h1>
-    <p>Enter the boot key from your server logs to sign in as the administrator.</p>
+    <p>Enter the <b>BOOT KEY</b> from your server logs to sign in as the administrator.
+    Look for the boot key banner in your server output.</p>
     ${error ? `<div class="error">${escapeHtml(error)}</div>` : ""}
     <form method="POST" action="/auth/boot-key">
       <input type="hidden" name="next" value="${escapeHtml(next)}">
