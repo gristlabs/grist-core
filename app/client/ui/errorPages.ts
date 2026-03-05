@@ -756,7 +756,7 @@ export function createSetupPage(appModel: AppModel) {
                   ),
                 ),
                 cssSandboxPreviewHint(
-                  "Complete step 1 to detect which flavors work on this system.",
+                  "Complete step 1 to verify you are the installer.",
                 ),
               ];
             }
@@ -919,7 +919,7 @@ export function createSetupPage(appModel: AppModel) {
                   ),
                 ),
                 cssSandboxPreviewHint(
-                  "Complete step 1 to check backups.",
+                  "Complete step 1 to verify you are the installer.",
                   testId("setup-storage-idle"),
                 ),
               ];
@@ -1009,7 +1009,7 @@ export function createSetupPage(appModel: AppModel) {
             }
             if (!key) {
               return [
-                cssSandboxPreviewHint("Complete step 1 first."),
+                cssSandboxPreviewHint("Complete step 1 to verify you are the installer."),
               ];
             }
             const stepsReady = sandbox === "success" && !!storage;
