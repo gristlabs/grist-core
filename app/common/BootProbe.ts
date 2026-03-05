@@ -6,9 +6,11 @@ export type BootProbeIds =
   "health-check" |
   "reachable" |
   "host-header" |
+  "sandbox-availability" |
   "sandboxing" |
   "system-user" |
   "authentication" |
+  "external-storage" |
   "websockets" |
   "session-secret"
 ;

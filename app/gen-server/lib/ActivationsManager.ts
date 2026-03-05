@@ -5,6 +5,8 @@ import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { makeId } from "app/server/lib/idUtils";
 import { getTelemetryPrefs } from "app/server/lib/Telemetry";
 
+import * as crypto from "crypto";
+
 import omit from "lodash/omit";
 import pick from "lodash/pick";
 import { EntityManager } from "typeorm";
@@ -31,7 +33,10 @@ export class ActivationsManager {
       if (!activation) {
         activation = manager.create(Activation);
         activation.id = makeId();
-        activation.prefs = { checkForLatestVersion: true };
+        activation.prefs = {
+          checkForLatestVersion: true,
+          bootKey: crypto.randomBytes(12).toString("hex"),
+        };
         await activation.save();
       }
       return activation;
@@ -98,11 +103,12 @@ export class ActivationsManager {
       const activation = await this.current(manager);
       activation.prefs ??= {};
       activation.prefs.envVars ??= {};
-      // For now we just support 3 keys here, as these ones are tested.
       Object.assign(activation.prefs.envVars, pick(delta,
         "GRIST_LOGIN_SYSTEM_TYPE",
         "GRIST_GETGRISTCOM_SECRET",
         "GRIST_ADMIN_EMAIL",
+        "GRIST_SANDBOX_FLAVOR",
+        "GRIST_IN_SERVICE",
       ));
       // If any values are undefined or null, remove them.
       for (const key of Object.keys(delta)) {

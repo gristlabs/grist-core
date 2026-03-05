@@ -99,12 +99,12 @@ export function attachEarlyEndpoints(options: AttachOptions) {
         // Docker) tell the parent that we have a new environment so it
         // can restart us.
         log.rawDebug(`Restart[${mreq.method}] finishing:`, meta);
-        if (process.send && process.env.GRIST_RUNNING_UNDER_SUPERVISOR) {
+        if (process.send) {
           log.rawDebug(`Restart[${mreq.method}] requesting supervisor to restart home server:`, meta);
           process.send({ action: "restart" });
         }
       });
-      if (!process.env.GRIST_RUNNING_UNDER_SUPERVISOR) {
+      if (!process.send) {
         // On the topic of http response codes, thus spake MDN:
         // "409: This response is sent when a request conflicts with the current state of the server."
         return res.status(409).send({
@@ -115,6 +115,27 @@ export function attachEarlyEndpoints(options: AttachOptions) {
       // We're going down, so we're no longer ready to serve requests.
       gristServer.setReady(false);
       return res.status(200).send({ msg: "ok" });
+    }),
+  );
+
+  // Toggle maintenance mode (take Grist out of / back into service).
+  app.post(
+    "/api/admin/maintenance",
+    json({ limit: "1kb" }),
+    expressWrap(async (req, res) => {
+      const enable = req.body?.maintenance;
+      if (typeof enable !== "boolean") {
+        return res.status(400).send({ error: "Missing boolean 'maintenance' field" });
+      }
+      const activations = gristServer.getActivations();
+      if (enable) {
+        await activations.updateAppEnvFile({ GRIST_IN_SERVICE: null });
+        delete process.env.GRIST_IN_SERVICE;
+      } else {
+        await activations.updateAppEnvFile({ GRIST_IN_SERVICE: "true" });
+        process.env.GRIST_IN_SERVICE = "true";
+      }
+      return res.status(200).send({ msg: "ok", maintenance: enable });
     }),
   );
 
