@@ -260,6 +260,7 @@ export function createSetupPage(appModel: AppModel) {
   const bootKeyValue = observable("");
   const bootKeyStatus = observable<"idle" | "working" | "error">("idle");
   const bootKeyError = observable("");
+  const adminEmail = observable("");
   const authMode = observable<"getgrist" | "bootkey">("getgrist");
   const configKey = Observable.create(null, "");
   const configStatus = Observable.create<"idle" | "working" | "success" | "error">(null, "idle");
@@ -305,6 +306,7 @@ export function createSetupPage(appModel: AppModel) {
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
         authMode: authMode.get(),
         bootKey: storedBootKey.get(),
+        adminEmail: adminEmail.get(),
         activeStep: activeStep.get(),
         sandboxStatus: sandboxStatus.get(),
         selectedSandbox: selectedSandbox.get(),
@@ -323,6 +325,7 @@ export function createSetupPage(appModel: AppModel) {
         storedBootKey.set(state.bootKey);
         bootKeyValue.set(state.bootKey);
       }
+      if (state.adminEmail) { adminEmail.set(state.adminEmail); }
       if (state.activeStep) { activeStep.set(state.activeStep); }
       // Restore completed steps directly — no need to re-probe.
       if (state.sandboxStatus === "success" && state.selectedSandbox) {
@@ -419,10 +422,9 @@ export function createSetupPage(appModel: AppModel) {
       }
       storedBootKey.set(key);
       bootKeyStatus.set("idle");
-      activeStep.set(2);
       saveState();
-      void detectSandboxFlavors();
-      void detectExternalStorage();
+      // Stay on step 1 so the user can enter their admin email.
+      // The "Continue" button (shown after email input) advances to step 2.
     } catch (e) {
       bootKeyError.set((e as Error).message);
       bootKeyStatus.set("error");
@@ -587,12 +589,14 @@ export function createSetupPage(appModel: AppModel) {
     goLiveStatus.set("working");
     goLiveError.set("");
     try {
+      const email = adminEmail.get().trim();
       const resp = await fetch("/api/setup/go-live", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "X-Boot-Key": key,
         },
+        body: JSON.stringify({ adminEmail: email || undefined }),
       });
       const result = await resp.json();
       if (!resp.ok) {
@@ -637,7 +641,8 @@ export function createSetupPage(appModel: AppModel) {
         cssTabBar(
           ...[
             { step: 1 as const, icon: "1", label: "Verify",
-              done: (use: UseCBOwner) => !!use(storedBootKey) },
+              done: (use: UseCBOwner) => !!use(storedBootKey) &&
+                (use(authMode) !== "bootkey" || !!use(adminEmail)) },
             { step: 2 as const, icon: "2", label: "Sandboxing",
               done: (use: UseCBOwner) => use(sandboxStatus) === "success" },
             { step: 3 as const, icon: "3", label: "Backups",
@@ -774,12 +779,42 @@ export function createSetupPage(appModel: AppModel) {
             dom.maybe(bootKeyError, err =>
               cssSetupError(err, testId("setup-boot-key-error")),
             ),
-            dom.maybe(storedBootKey, () =>
+            dom.maybe(storedBootKey, () => [
               cssSetupDescription(
                 dom("b", "Boot key accepted. "),
-                "Continue to the next step.",
+                "Enter your email address to create your admin account.",
               ),
-            ),
+              cssBootKeyRow(
+                cssBootKeyInput(
+                  dom.prop("value", adminEmail),
+                  dom.on("input", (_e: Event, elem: HTMLInputElement) => {
+                    adminEmail.set(elem.value);
+                    saveState();
+                  }),
+                  { placeholder: "you@example.com", type: "email" },
+                  dom.on("keydown", (ev: KeyboardEvent) => {
+                    if (ev.key === "Enter" && adminEmail.get().trim()) {
+                      activeStep.set(2);
+                      saveState();
+                      void detectSandboxFlavors();
+                      void detectExternalStorage();
+                    }
+                  }),
+                  testId("setup-admin-email"),
+                ),
+                cssBootKeySubmit(
+                  "Continue",
+                  dom.prop("disabled", use => !use(adminEmail).trim()),
+                  dom.on("click", () => {
+                    activeStep.set(2);
+                    saveState();
+                    void detectSandboxFlavors();
+                    void detectExternalStorage();
+                  }),
+                  testId("setup-admin-email-submit"),
+                ),
+              ),
+            ]),
           ]),
         ),
 
