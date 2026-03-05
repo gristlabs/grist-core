@@ -39,10 +39,10 @@ installers at different technical levels.
    proceeds happily to Go Live. A non-technical user may think everything is
    active. At minimum, a stronger warning; ideally, a check after restart.
 
-4. **Unsandboxed option only appears if a real sandbox is available.**
-   `maybeAppendUnsandboxed()` only runs after at least one real sandbox is
-   detected. If ALL sandbox probes fail (e.g. permissions issue), there is
-   no way to proceed — no fallback option is shown and the user is stuck.
+4. ~~**Unsandboxed option only appears if a real sandbox is available.**~~
+   **Not actually a problem.** `maybeAppendUnsandboxed()` is called
+   unconditionally after all probes complete (line 394), so the "No
+   Sandbox" fallback always appears regardless of probe results.
 
 ### High
 
@@ -84,16 +84,16 @@ installers at different technical levels.
     Every step would benefit from a "Learn more" link. For sandboxing
     especially, users need to understand the security tradeoffs.
 
-12. **Loading feedback is vague.**
-    "Please wait a moment while checks are in progress…" with no progress
-    bar, no indication of which probes have completed, and no timeout. If a
-    probe hangs, the user waits forever.
+12. ~~**Loading feedback is vague.**~~ **Addressed.**
+    Probes now have a 30-second timeout via AbortController. The vague
+    "Please wait…" message was removed; per-card "Checking…" badges
+    already show which probes are in progress.
 
-13. **State not persisted across page refresh.**
-    Refreshing the browser loses all progress. The boot key, sandbox
-    selection, and storage selection are all in-memory observables. For a
-    multi-step wizard that may involve restarting the server between steps,
-    this is painful.
+13. ~~**State not persisted across page refresh.**~~ **Addressed.**
+    Wizard state (boot key, active step, sandbox config, storage
+    selection) is now persisted to `sessionStorage` and restored on
+    page reload. State is saved explicitly at key transition points
+    (boot key accepted, sandbox configured, storage selected).
 
 14. **Mockup controls and endpoints still present.**
     Comments say "will be removed before merge" but the mockup panel
@@ -154,13 +154,16 @@ this requires editing her Docker run command or compose file.
 ### Bob — sysadmin, familiar with Docker and env vars
 
 Sets `GRIST_ADMIN_EMAIL`, restarts, sees the setup page. Finds the boot
-key in `docker logs`. Enters it — step 1 done, auto-advance to step 2.
-Sees gvisor is available, clicks Configure. Success message says
-"next server restart" — **Bob wonders: do I need to restart NOW, or
-after Go Live?** Picks minio for storage, sees env var instructions,
-sets them, but **doesn't know if he should restart before or after Go
-Live.** Clicks Go Live, everything seems to work. Goes to admin panel.
-Needs: clearer restart guidance (before Go Live? after? both?).
+key in the banner from `docker logs`. Enters it — step 1 done,
+auto-advance to step 2. Sees gvisor is available, clicks Configure.
+Success message says "will take effect when you go live" — clear,
+no confusion about restart timing. Picks minio for storage, sees env
+var instructions, sets them. **Still unclear: does he need to restart
+to pick up the new MinIO env vars, or will they take effect on Go
+Live?** (They won't — MinIO credentials must be in the environment
+before the server starts.) Clicks Go Live, navigates to admin panel.
+Needs: step 3 should clarify that newly added env vars require a
+restart after Go Live.
 
 ### Carol — developer, self-hosting on a Mac
 

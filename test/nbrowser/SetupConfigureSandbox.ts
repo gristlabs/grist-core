@@ -47,11 +47,29 @@ describe("SetupConfigureSandbox", function() {
       bootKey = "test-boot-key-for-sandbox";
       process.env.GRIST_BOOT_KEY = bootKey;
       await server.restart(true);
+      // Clear any persisted wizard state from previous test suites, then reload
+      // so the wizard starts fresh (restoreState runs on page load).
+      await driver.get(`${server.getHost()}/`);
+      await driver.executeScript(
+        "try { sessionStorage.removeItem('grist-setup-state'); } catch(e) {}",
+      );
+      await driver.get(`${server.getHost()}/`);
     });
 
     after(async function() {
       oldEnv.restore();
       await server.restart(true);
+    });
+
+    // Clear persisted wizard state between tests so each starts fresh.
+    afterEach(async function() {
+      try {
+        await driver.executeScript(
+          "try { sessionStorage.removeItem('grist-setup-state'); } catch(e) {}",
+        );
+      } catch {
+        // May fail if no page was loaded (API-only tests).
+      }
     });
 
     // --- Probe API tests ---
@@ -347,6 +365,104 @@ describe("SetupConfigureSandbox", function() {
         // Now Go Live button should appear.
         await driver.findWait(".test-setup-go-live-submit", 5000);
       });
+  });
+
+  describe("configure-auth endpoint", function() {
+    before(async function() {
+      oldEnv = new testUtils.EnvironmentSnapshot();
+      process.env.GRIST_FORCE_SETUP_GATE = "true";
+      delete process.env.GRIST_IN_SERVICE;
+      process.env.GRIST_ADMIN_EMAIL = "admin@example.com";
+      bootKey = "test-boot-key-for-auth";
+      process.env.GRIST_BOOT_KEY = bootKey;
+      await server.restart(true);
+    });
+
+    after(async function() {
+      oldEnv.restore();
+      await server.restart(true);
+    });
+
+    function makeConfigKey(fields: Record<string, any>): string {
+      return Buffer.from(JSON.stringify(fields)).toString("base64");
+    }
+
+    it("rejects missing key", async function() {
+      const resp = await fetch(`${server.getHost()}/api/setup/configure-auth`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      assert.equal(resp.status, 400);
+      const body = await resp.json();
+      assert.match(body.error, /Missing/);
+    });
+
+    it("rejects malformed key", async function() {
+      const resp = await fetch(`${server.getHost()}/api/setup/configure-auth`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ GRIST_GETGRISTCOM_SECRET: "not-valid-base64!!!" }),
+      });
+      assert.equal(resp.status, 400);
+      const body = await resp.json();
+      assert.match(body.error, /Invalid configuration key/);
+    });
+
+    it("rejects key with wrong owner email", async function() {
+      const key = makeConfigKey({
+        oidcClientId: "test-id",
+        oidcClientSecret: "test-secret",
+        oidcIssuer: "https://login.getgrist.com",
+        owner: { email: "wrong@example.com" },
+      });
+      const resp = await fetch(`${server.getHost()}/api/setup/configure-auth`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ GRIST_GETGRISTCOM_SECRET: key }),
+      });
+      assert.equal(resp.status, 400);
+      const body = await resp.json();
+      assert.match(body.error, /does not match GRIST_ADMIN_EMAIL/);
+    });
+
+    it("accepts valid key with matching email", async function() {
+      const key = makeConfigKey({
+        oidcClientId: "test-id",
+        oidcClientSecret: "test-secret",
+        oidcIssuer: "https://login.getgrist.com",
+        owner: { email: "admin@example.com" },
+      });
+      const resp = await fetch(`${server.getHost()}/api/setup/configure-auth`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ GRIST_GETGRISTCOM_SECRET: key }),
+      });
+      assert.equal(resp.status, 200);
+      const body = await resp.json();
+      assert.equal(body.msg, "ok");
+      assert.equal(body.owner?.email, "admin@example.com");
+      assert.isString(body.bootKey);
+    });
+
+    it("rejects key when GRIST_ADMIN_EMAIL is not set", async function() {
+      delete process.env.GRIST_ADMIN_EMAIL;
+      await server.restart(true);
+      const key = makeConfigKey({
+        oidcClientId: "test-id",
+        oidcClientSecret: "test-secret",
+        oidcIssuer: "https://login.getgrist.com",
+        owner: { email: "admin@example.com" },
+      });
+      const resp = await fetch(`${server.getHost()}/api/setup/configure-auth`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ GRIST_GETGRISTCOM_SECRET: key }),
+      });
+      assert.equal(resp.status, 400);
+      const body = await resp.json();
+      assert.match(body.error, /GRIST_ADMIN_EMAIL must be set/);
+    });
   });
 
   // Separate block because go-live changes server state (opens the gate).
