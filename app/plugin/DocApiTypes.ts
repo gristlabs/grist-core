@@ -92,10 +92,6 @@ export interface ColumnsPut {
   columns: [RecordWithStringId, ...RecordWithStringId[]]; // at least one column is required
 }
 
-export interface ColumnRecord extends RecordWithStringId {
-
-}
-
 interface ColumnMetadata {
   id: string;
   fields: {
