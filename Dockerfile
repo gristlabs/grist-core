@@ -200,4 +200,4 @@ EXPOSE 8484
 #  --json "select * from _gristsys_ActionHistory"
 
 ENTRYPOINT ["./sandbox/docker_entrypoint.sh"]
-CMD ["node", "./sandbox/supervisor.mjs"]
+CMD ["./sandbox/run.sh"]
