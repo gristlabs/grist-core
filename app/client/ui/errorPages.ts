@@ -293,6 +293,9 @@ export function createSetupPage(appModel: AppModel) {
   const goLiveStatus = observable<"idle" | "working" | "success" | "error">("idle");
   const goLiveError = observable("");
 
+  // Tab navigation
+  const activeStep = observable<1 | 2 | 3 | 4>(1);
+
   // Build registration URL.
   const homeUrl = getGristConfig().homeUrl;
   const registerUrl = new URL(commonUrls.signInWithGristRegister);
@@ -319,6 +322,7 @@ export function createSetupPage(appModel: AppModel) {
       // Store boot key returned from server for steps 2 and 3.
       if (result.bootKey) {
         storedBootKey.set(result.bootKey);
+        activeStep.set(2);
         void detectSandboxFlavors();
         void detectExternalStorage();
       }
@@ -343,6 +347,7 @@ export function createSetupPage(appModel: AppModel) {
       }
       storedBootKey.set(key);
       bootKeyStatus.set("idle");
+      activeStep.set(2);
       void detectSandboxFlavors();
       void detectExternalStorage();
     } catch (e) {
@@ -486,6 +491,7 @@ export function createSetupPage(appModel: AppModel) {
         throw new Error(result.error || "Failed to configure sandboxing");
       }
       sandboxStatus.set("success");
+      activeStep.set(3);
     } catch (e) {
       sandboxError.set((e as Error).message);
       sandboxStatus.set("error");
@@ -522,11 +528,47 @@ export function createSetupPage(appModel: AppModel) {
       cssBigIcon(),
       cssErrorHeader("Set up your Grist installation", testId("error-header")),
       [
-        cssSetupSection(
-          cssSetupStepHeader(
-            cssStepNumber("1"),
-            cssSetupSectionTitle("Verify you are the installer"),
+        cssTabBar(
+          cssTab(
+            cssTabNumber("1"),
+            "Verify",
+            dom.maybe(storedBootKey, () => cssTabCheck("\u2713")),
+            cssTab.cls("-active", use => use(activeStep) === 1),
+            dom.on("click", () => activeStep.set(1)),
+            testId("setup-tab-1"),
           ),
+          cssTab(
+            cssTabNumber("2"),
+            "Sandboxing",
+            dom.domComputed(sandboxStatus, s =>
+              s === "success" ? cssTabCheck("\u2713") : null),
+            cssTab.cls("-active", use => use(activeStep) === 2),
+            dom.on("click", () => activeStep.set(2)),
+            testId("setup-tab-2"),
+          ),
+          cssTab(
+            cssTabNumber("3"),
+            "Backups",
+            dom.domComputed(selectedStorage, s =>
+              s ? cssTabCheck("\u2713") : null),
+            cssTab.cls("-active", use => use(activeStep) === 3),
+            dom.on("click", () => activeStep.set(3)),
+            testId("setup-tab-3"),
+          ),
+          cssTab(
+            cssTabNumber("\uD83D\uDE80"),
+            "Go Live",
+            dom.domComputed(goLiveStatus, s =>
+              s === "success" ? cssTabCheck("\u2713") : null),
+            cssTab.cls("-active", use => use(activeStep) === 4),
+            dom.on("click", () => activeStep.set(4)),
+            testId("setup-tab-4"),
+          ),
+        ),
+
+        cssSetupSection(
+          dom.show(use => use(activeStep) === 1),
+          cssSetupSectionTitle("Verify you are the installer"),
           cssSetupDescription(
             "Before configuring anything, we need to confirm you're the person who installed ",
             "this server. Choose how to verify:",
@@ -645,10 +687,8 @@ export function createSetupPage(appModel: AppModel) {
         ),
 
         cssSetupSection(
-          cssSetupStepHeader(
-            cssStepNumber("2"),
-            cssSetupSectionTitle("Sandboxing"),
-          ),
+          dom.show(use => use(activeStep) === 2),
+          cssSetupSectionTitle("Sandboxing"),
           cssSetupDescription(
             "Grist runs user formulas as Python code. Sandboxing isolates this execution ",
             "to protect your server. Without it, document formulas can access the full system.",
@@ -806,11 +846,9 @@ export function createSetupPage(appModel: AppModel) {
         ),
 
         cssSetupSection(
-          cssSetupStepHeader(
-            cssStepNumber("3"),
-            cssSetupSectionTitle("Backups"),
-            cssStepOptionalBadge("Optional"),
-          ),
+          dom.show(use => use(activeStep) === 3),
+          cssSetupSectionTitle("Backups"),
+          cssStepOptionalBadge("Optional"),
           cssSetupDescription(
             "Store document snapshots in S3-compatible external storage for backup and versioning. ",
             "Without this, documents are only stored on the local filesystem.",
@@ -950,10 +988,8 @@ export function createSetupPage(appModel: AppModel) {
         ),
 
         cssSetupSection(
-          cssSetupStepHeader(
-            cssStepNumber("4"),
-            cssSetupSectionTitle("Go Live"),
-          ),
+          dom.show(use => use(activeStep) === 4),
+          cssSetupSectionTitle("Go Live"),
           cssSetupDescription(
             "Launch Grist for you, the installer. Use the admin panel to configure ",
             "authentication so other users can access it too.",
@@ -1025,6 +1061,7 @@ export function createSetupPage(appModel: AppModel) {
           storageBackends, selectedStorage, storageStatus, storageError,
           goLiveStatus, goLiveError,
           authMode, bootKeyValue, bootKeyStatus, bootKeyError,
+          activeStep,
           handleConfigure, detectSandboxFlavors,
         }),
       ],
@@ -1052,6 +1089,7 @@ interface MockupState {
   bootKeyValue: Observable<string>;
   bootKeyStatus: Observable<string>;
   bootKeyError: Observable<string>;
+  activeStep: Observable<1 | 2 | 3 | 4>;
   handleConfigure: () => Promise<void>;
   detectSandboxFlavors: () => Promise<void>;
 }
@@ -1083,6 +1121,7 @@ function buildMockupControls(owner: any, state: MockupState) {
       if (body.bootKey) {
         state.authMode.set("bootkey");
         state.bootKeyValue.set(body.bootKey);
+        state.activeStep.set(1);
         log(`Boot key filled in`);
       } else {
         log("No bootKey returned (server may be in service)");
@@ -1116,6 +1155,7 @@ function buildMockupControls(owner: any, state: MockupState) {
     const key = buildConfigKey(email);
     state.authMode.set("getgrist");
     state.configKey.set(key);
+    state.activeStep.set(1);
     log(`Admin email set, config key filled in`);
   }
 
@@ -1140,6 +1180,7 @@ function buildMockupControls(owner: any, state: MockupState) {
     state.storageError.set("");
     state.goLiveStatus.set("idle");
     state.goLiveError.set("");
+    state.activeStep.set(1);
     log("Reset");
   }
 
@@ -1287,31 +1328,62 @@ const cssSetupSection = styled("div", `
   border-radius: 4px;
 `);
 
+const cssTabBar = styled("div", `
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  max-width: 500px;
+  margin: 0 auto 16px auto;
+`);
+
+const cssTab = styled("div", `
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: ${vars.mediumFontSize};
+  cursor: pointer;
+  color: ${theme.lightText};
+  border-bottom: 2px solid transparent;
+  user-select: none;
+  transition: color 0.15s, border-color 0.15s;
+  &:hover {
+    color: ${theme.text};
+  }
+  &-active {
+    color: ${theme.text};
+    font-weight: 600;
+    border-bottom-color: ${theme.controlPrimaryBg};
+  }
+`);
+
+const cssTabNumber = styled("span", `
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: ${theme.pagePanelsBorder};
+  font-size: ${vars.smallFontSize};
+  font-weight: bold;
+  flex-shrink: 0;
+  .${cssTab.className}-active > & {
+    background: ${theme.controlPrimaryBg};
+    color: ${theme.controlPrimaryFg};
+  }
+`);
+
+const cssTabCheck = styled("span", `
+  color: ${theme.controlFg};
+  font-weight: bold;
+  font-size: ${vars.smallFontSize};
+`);
+
 const cssSetupSectionTitle = styled("div", `
   font-weight: ${vars.headerControlTextWeight};
   font-size: ${vars.largeFontSize};
   color: ${theme.text};
-`);
-
-const cssSetupStepHeader = styled("div", `
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-`);
-
-const cssStepNumber = styled("div", `
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: ${theme.controlPrimaryBg};
-  color: ${theme.controlPrimaryFg};
-  font-size: ${vars.smallFontSize};
-  font-weight: bold;
-  flex-shrink: 0;
 `);
 
 const cssStepOptionalBadge = styled("span", `
