@@ -1145,12 +1145,11 @@ export class FlexServer implements GristServer {
     const dbEnvVars = (await this._activations.current()).prefs?.envVars || {};
     appSettings.setEnvVars(dbEnvVars);
     // Propagate DB-stored env vars into process.env so that code reading
-    // process.env directly (not via appSettings) picks them up.  DB values
-    // take precedence — they represent explicit choices made through the
-    // setup wizard or admin panel, overriding defaults like those in the
-    // Dockerfile.
+    // process.env directly (not via appSettings) picks them up.  Only set
+    // values that aren't already in process.env — real env vars (from Docker,
+    // shell, or test harness) take precedence over DB-stored values.
     for (const [key, value] of Object.entries(dbEnvVars)) {
-      if (value != null) {
+      if (value != null && process.env[key] === undefined) {
         process.env[key] = value;
       }
     }
