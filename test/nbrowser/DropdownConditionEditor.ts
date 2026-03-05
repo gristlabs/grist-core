@@ -3,7 +3,7 @@ import { startEditingAccessRules } from "test/nbrowser/aclTestUtils";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
 
-import { assert, driver, Key } from "mocha-webdriver";
+import { assert, driver, Key, until } from "mocha-webdriver";
 
 describe("DropdownConditionEditor", function() {
   this.timeout(20000);
@@ -45,6 +45,19 @@ describe("DropdownConditionEditor", function() {
     await driver.find(".test-rules-save").click();
     await gu.waitForServer();
   }
+
+  const waitForConditionEditor = async () => {
+    return driver.findWait(".cell_editor", 1000);
+  };
+
+  // The editor for the condition is the same for the cells.
+  const editCondition = async (keys: string[]) => {
+    await driver.findWait(".test-field-set-dropdown-condition", 1000).click();
+    const editor = await waitForConditionEditor();
+    await gu.sendKeys(...keys);
+    await driver.wait(until.stalenessOf(editor), 1000);
+    return editor;
+  };
 
   describe(`in choice columns`, function() {
     before(async () => {
@@ -144,13 +157,12 @@ describe("DropdownConditionEditor", function() {
         "Trainee",
       ]);
       await gu.sendKeys(Key.ESCAPE);
+      await gu.waitAppFocus();
     });
 
     it("reports errors", async function() {
       // Check syntax errors are reported, but not saved.
-      await driver.find(".test-field-set-dropdown-condition").click();
-      await gu.sendKeys("!@#$%^", Key.ENTER);
-      await gu.waitForServer();
+      await editCondition(["!@#$%^", Key.ENTER]);
       assert.equal(
         await driver.findWait(".test-field-dropdown-condition-error", 500).getText(),
         "SyntaxError invalid syntax on line 1 col 1",
@@ -159,9 +171,7 @@ describe("DropdownConditionEditor", function() {
       assert.isFalse(await driver.find(".test-field-dropdown-condition-error").isPresent());
 
       // Check compilation errors are reported and saved.
-      await driver.find(".test-field-set-dropdown-condition").click();
-      await gu.sendKeys("foo", Key.ENTER);
-      await gu.waitForServer();
+      await editCondition(["foo", Key.ENTER]);
       assert.equal(
         await driver.find(".test-field-dropdown-condition-error").getText(),
         "Unknown variable 'foo'",
@@ -193,6 +203,7 @@ describe("DropdownConditionEditor", function() {
       assert.isFalse(await driver.find(".test-field-dropdown-condition").isPresent());
       await driver.find(".test-field-set-dropdown-condition").click();
       await gu.waitAppFocus(false);
+      await waitForConditionEditor();
       await gu.sendKeysSlowly("choice");
       await gu.waitToPass(async () => {
         const completions = await driver.findAll(".ace_autocomplete .ace_line", el => el.getText());
@@ -291,8 +302,7 @@ describe("DropdownConditionEditor", function() {
 
     it("reports errors", async function() {
       // Check syntax errors are reported, but not saved.
-      await driver.find(".test-field-set-dropdown-condition").click();
-      await gu.sendKeys("!@#$%^", Key.ENTER);
+      await editCondition(["!@#$%^", Key.ENTER]);
       await gu.waitForServer();
       assert.equal(
         await driver.find(".test-field-dropdown-condition-error").getText(),
@@ -302,9 +312,7 @@ describe("DropdownConditionEditor", function() {
       assert.isFalse(await driver.find(".test-field-dropdown-condition-error").isPresent());
 
       // Check compilation errors are reported and saved.
-      await driver.find(".test-field-set-dropdown-condition").click();
-      await driver.findWait(".cell_editor", 100);
-      await gu.sendKeys("foo", Key.ENTER);
+      await editCondition(["foo", Key.ENTER]);
       await gu.waitForServer();
 
       assert.equal(
@@ -328,6 +336,7 @@ describe("DropdownConditionEditor", function() {
 
       // Check evaluation errors are also reported in the dropdown.
       await driver.find(".test-field-dropdown-condition").click();
+      await waitForConditionEditor();
       await gu.sendKeys(await gu.selectAllKey(), Key.DELETE, "[].upper() not in 5", Key.ENTER);
       await gu.waitForServer();
       await gu.sendKeys(Key.ENTER);
