@@ -194,6 +194,8 @@ export class ScopedSession {
    */
   public async getScopedSession(prev?: SessionObj): Promise<SessionUserObj> {
     const session = prev || await this._getSession();
+    const sessionType = prev !== undefined ? "prev" : "fetched";
+    console.log(`DUCKS: Getting ${sessionType} session - ${JSON.stringify(session, null, 2)}`);
     return getSessionUser(session, this._org, this._userSelector) || {};
   }
 
@@ -267,9 +269,19 @@ export class ScopedSession {
    * Read the state of the session.
    */
   private async _getSession(req?: Request): Promise<SessionObj> {
-    if (this._sessionCache) { return this._sessionCache; }
+    if (this._sessionCache) {
+      console.log("DUCKS: Returning session cache");
+      return this._sessionCache;
+    }
     const reqSession = (req as any)?.session;
-    const session = ((await this._sessionStore.getAsync(this._sessionId)) || reqSession || {}) as SessionObj;
+    const storeValue = (await this._sessionStore.getAsync(this._sessionId));
+    if (storeValue) {
+      console.log("DUCKS: Return session from store (getAsync)");
+    }
+    if (reqSession) {
+      console.log("DUCKS: Returning reqSession");
+    }
+    const session = (storeValue || reqSession || {}) as SessionObj;
     if (!this._live) { this._sessionCache = session; }
     this._altSessionId = session.altSessionId;
     return session;
@@ -312,6 +324,7 @@ export class ScopedSession {
     }
 
     const session = prev || await this._getSession(req);
+    console.log(`DUCKS: Pre-update session fetch - ${JSON.stringify(session, null, 2)}`);
     if (!session.users) { session.users = []; }
     if (!session.orgToUser) { session.orgToUser = {}; }
     let index = session.users.findIndex((u) => {
@@ -320,6 +333,8 @@ export class ScopedSession {
     if (index < 0) { index = session.users.length; }
     session.orgToUser[this._org] = index;
     session.users[index] = user;
+    const sessionType = prev !== undefined ? "prev" : "fetched";
+    console.log(`DUCKS: Updating ${sessionType} session - ${JSON.stringify(session, null, 2)}`);
     await this._setSession(req, session);
   }
 

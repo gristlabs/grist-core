@@ -263,6 +263,7 @@ export class OAuth2Clients {
         // Store the result in the session, dropping other transient info.
         const session = this._sessions.getOrCreateSession(req.sessionID, undefined, userSelector);
         await session.operateOnScopedSession(req, async (user: SessionUserObjWithOAuth) => {
+          console.log(`DUCKS: Setting Oauth for ${sessionUser.profile?.email} - ${tokenSet}`);
           user.oauth2 = { ...user.oauth2, [id]: { tokenSet } };
           return user;
         });
@@ -300,6 +301,7 @@ export class OAuth2Clients {
       const session = this._sessions.getOrCreateSessionFromRequest(req);
       const sessionUser: SessionUserObjWithOAuth = await session.getScopedSession(req.session);
       const tokenSet = sessionUser.oauth2?.[id]?.tokenSet;
+      console.log(`DUCKS: Getting Oauth for ${sessionUser.profile?.email} - ${tokenSet}`);
       if (!tokenSet) {
         throw new ApiError(`Not authorized with ${name}`, 401);
       }
@@ -321,6 +323,7 @@ export class OAuth2Clients {
       const sessionUser: SessionUserObjWithOAuth = await session.getScopedSession(req.session);
       if (sessionUser.oauth2?.[id] !== undefined) {
         await session.operateOnScopedSession(req, async (user: SessionUserObjWithOAuth) => {
+          console.log(`DUCKS: Deleting Oauth for ${user.profile?.email} - ${user.userId}`);
           delete user.oauth2?.[id];
           return user;
         });

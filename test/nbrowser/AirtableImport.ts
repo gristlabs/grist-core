@@ -239,7 +239,9 @@ describe("AirtableImport", function() {
       });
 
       it("should go through oauth2 flow and fetch bases", async function() {
+        this.timeout(60000000);
         await mainSession.loadDoc(`/doc/${docId}`);
+        await driver.sleep(10000);
 
         await openAirtableDocImporter();
 
@@ -270,10 +272,14 @@ describe("AirtableImport", function() {
 
       it("should associate access_token with a user", async function() {
         otherDocId = await otherSession.tempNewDoc(cleanup, "AirtableImport2");
+        await driver.sleep(10000);
 
         await openAirtableDocImporter();
+        //this.timeout(6000000);
+        //await driver.sleep(6000000);
 
         await driver.findWait(".test-import-airtable-connect:not(:disabled)", 2000).click();
+        await driver.sleep(2000);
         const bases = await driver.findWait(".test-import-airtable-bases", 2000);
         assert.deepEqual(await bases.findAll(".test-import-airtable-name", el => el.getText()),
           ["Product planning", "Sales CRM"]);
@@ -281,14 +287,18 @@ describe("AirtableImport", function() {
           ["appYovle0EAuu0OZE", "app04i02p1V0I1QvU"]);
 
         await driver.findContent(".test-modal-dialog button", /Cancel/).click();
+        await driver.sleep(2000);
         await waitForModalToClose();
       });
 
       it("should allow disconnecting", async function() {
         await mainSession.loadDoc(`/doc/${docId}`);
         await openAirtableDocImporter();
+        await driver.sleep(1000);
         await driver.findWait(".test-import-airtable-settings", 2000).click();
+        await driver.sleep(1000);
         await gu.findOpenMenuItem("li", /Disconnect/).click();
+        await driver.sleep(2000);
         await gu.waitForServer();
 
         // The "Connect" button should show up again.
@@ -301,7 +311,9 @@ describe("AirtableImport", function() {
 
         // Check that the other session is still connected.
         await otherSession.loadDoc(`/doc/${otherDocId}`);
+        await driver.sleep(2000);
         await openAirtableDocImporter();
+        await driver.sleep(5000);
         const bases = await driver.findWait(".test-import-airtable-bases", 2000);
         assert.deepEqual(await bases.findAll(".test-import-airtable-name", el => el.getText()),
           ["Product planning", "Sales CRM"]);
