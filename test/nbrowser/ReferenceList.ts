@@ -720,7 +720,7 @@ describe("ReferenceList", function() {
 
     it("should offer an add-new option when no good match", async function() {
       const cell = await gu.getCell({ section: "References", col: "Colors", rowNum: 2 }).doClick();
-      await driver.sendKeys("pinkish");
+      await gu.enterCell(["pinkish"], { validate: false });
       // There are inexact matches.
       assert.deepEqual(await getACOptions(3),
         ["Pink", "Deep Pink", "Hot Pink"]);
@@ -818,7 +818,7 @@ describe("ReferenceList", function() {
       await driver.sendKeys(Key.ESCAPE);
 
       // Starting to type Añil with the accent
-      await driver.sendKeys("añ");
+      await gu.enterCell(["añ"], { validate: false });
       assert.deepEqual(await getACOptions(2),
         ["Añil", "Alice Blue"]);
       await driver.sendKeys(Key.ESCAPE);
