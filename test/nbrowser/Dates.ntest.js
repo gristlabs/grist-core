@@ -1,4 +1,4 @@
-import { assert, driver } from "mocha-webdriver";
+import { assert, driver, until } from "mocha-webdriver";
 import { $, gu, test } from "test/nbrowser/gristUtil-nbrowser";
 
 describe("Dates.ntest", function() {
@@ -21,7 +21,7 @@ describe("Dates.ntest", function() {
 
     // Move to the first column
     await cell.click();
-    await gu.sendKeys("2008-01-10 9:20pm", $.ENTER);
+    await gu.enterCell("2008-01-10 9:20pm");
 
     // Change type to 'DateTime'
     await gu.setType("DateTime");
@@ -69,6 +69,7 @@ describe("Dates.ntest", function() {
     await $(".celleditor_text_editor").first().sendKeys($.DOWN);   // Opens date picker even if window has no focus.
     await $(".datepicker .day:contains(19)").wait().click();
     await gu.sendKeys($.ENTER);
+    await gu.waitAppFocus();
     assert.equal(await cell.text(), "Saturday 1320");
 
     // Date editor should convert Moment formats to datepicker safe formats
@@ -145,6 +146,7 @@ describe("Dates.ntest", function() {
     await $(".datepicker .day:contains(19)").wait().click();
     await gu.sendKeys($.ENTER);
     await gu.waitForServer();
+    await gu.waitAppFocus();
     assert.equal(await cell.text(), "Tuesday");
 
     // Date editor should convert Moment formats to datepicker safe formats
@@ -293,6 +295,7 @@ describe("Dates.ntest", function() {
     await gu.waitAppFocus(false);
     await gu.sendKeys($.UP, $.UP, $.LEFT, $.ENTER);
     await gu.waitForServer();
+    await gu.waitAppFocus(true);
     assert.equal(await cell.text(), "January 11th, 1968");
 
     // Do the same in the datetime editor.
@@ -301,6 +304,7 @@ describe("Dates.ntest", function() {
     await gu.sendKeys($.ENTER);
     await gu.waitAppFocus(false);
     await gu.sendKeys($.UP, $.RIGHT, $.RIGHT, $.ENTER);
+    await gu.waitAppFocus(true);
     await gu.waitForServer();
     assert.equal(await cell.text(), "October 28th, 2016 11:04pm");
 
@@ -312,6 +316,7 @@ describe("Dates.ntest", function() {
     await gu.sendKeys($.ENTER);
     await gu.waitAppFocus(false);
     await gu.sendKeys($.DOWN, $.RIGHT, $.BACK_SPACE, "9", $.LEFT, $.BACK_SPACE, "0", $.ENTER);
+    await gu.waitAppFocus(true);
     await gu.waitForServer();
     assert.equal(await cell.text(), "October 27th, 2009");
   });
@@ -321,25 +326,22 @@ describe("Dates.ntest", function() {
   it("should allow using common formats to enter the date", async function() {
     let cell = await gu.getCellRC(2, 1);
     await cell.click();
-    await gu.sendKeys("April 2 1993", $.ENTER);
+    await gu.enterCell("April 2 1993");
     await gu.waitForServer();
     assert.equal(await cell.text(), "April 2nd, 1993");
 
     cell = await gu.getCellRC(1, 0);
     await cell.click();
-    await gu.sendKeys("December", $.ENTER);
-    await gu.waitForServer();
+    await gu.enterCell("December");
     assert.equal(await cell.text(), `December 1st, 2016 11:04pm`);
 
     cell = await gu.getCellRC(0, 1);
     await cell.click();
-    await gu.sendKeys("7-Sep", $.ENTER);
-    await gu.waitForServer();
+    await gu.enterCell("7-Sep");
     assert.equal(await cell.text(), `September 7th, 2016`);
 
     await cell.click();
-    await gu.sendKeys("6/8", $.ENTER);
-    await gu.waitForServer();
+    await gu.enterCell("6/8");
     assert.equal(await cell.text(), `June 8th, 2016`);
 
     // The selected format should take precedence over the default format when
@@ -350,14 +352,13 @@ describe("Dates.ntest", function() {
     await cell.click();
     await gu.dateFormat("DD-MM-YYYY");
     await cell.click();
-    await gu.sendKeys("6/8", $.ENTER);
-    await gu.waitForServer();
+    await gu.enterCell("6/8");
     await gu.dateFormat("MMMM Do, YYYY");
     assert.equal(await cell.text(), `August 6th, 2016`);
 
     cell = await gu.getCellRC(2, 1);
     await cell.click();
-    await gu.sendKeys("1937", $.ENTER);
+    await gu.enterCell("1937");
     await gu.waitForServer();
     assert.equal(await cell.text(), `January 1st, 1937`);
   });
@@ -366,7 +367,7 @@ describe("Dates.ntest", function() {
     // Should allow AltText
     let cell = await gu.getCellRC(2, 1);
     await cell.click();
-    await gu.sendKeys("Applesauce", $.ENTER);
+    await gu.enterCell("Applesauce");
     await gu.waitForServer();
     assert.equal(await cell.text(), "Applesauce");
     await assert.hasClass(cell.find(".field_clip"), "invalid");
@@ -374,7 +375,7 @@ describe("Dates.ntest", function() {
     // Manually entered numbers should not be read as timestamps.
     cell = await gu.getCellRC(1, 0);
     await cell.click();
-    await gu.sendKeys("100000", $.ENTER);
+    await gu.enterCell("100000");
     await gu.waitForServer();
     assert.equal(await cell.text(), "100000 11:04pm");
     await assert.hasClass(cell.find(".field_clip"), "invalid");
@@ -394,9 +395,7 @@ describe("Dates.ntest", function() {
     await gu.waitAppFocus(false);
     await gu.sendKeys("Diff", $.ENTER);
     await gu.waitForServer();
-    await gu.sendKeys("=");
-    await gu.waitAppFocus(false);
-    await gu.sendKeys("($A-DTIME($B)).total_seconds()", $.ENTER);
+    await gu.enterCell("=($A-DTIME($B)).total_seconds()");
     await gu.waitForServer();
     await gu.waitAppFocus();
     assert.deepEqual(await gu.getCellRC(0, 2).text(), "-230211900");
@@ -435,10 +434,11 @@ describe("Dates.ntest", function() {
     // Enter a formula column that uses a date.
     await gu.clickCellRC(0, 1);
     await gu.sendKeys([$.ALT, "="]);
-    await gu.waitForServer();
+    const titleEditor = await $(".test-column-title-label").wait().elem();
+    await gu.waitForFocus(".test-column-title-label", true);
     await gu.sendKeys("Month", $.ENTER);
-    await gu.waitForServer();
-    await gu.sendKeys("=$B.month", $.ENTER);
+    await driver.wait(until.stalenessOf(titleEditor));
+    await gu.enterCell("=$B.month");
     await gu.waitForServer();
 
     assert.deepEqual(await gu.getGridValues({rowNums: [1, 2, 3, 4], cols: ["B", "Month"]}), [
@@ -497,7 +497,7 @@ async function addColumn() {
 
 async function setGlobalTimezone(name) {
   await $(".test-user-icon").click();   // open the user menu
-  await $(".test-dm-doc-settings").click();
+  await $(".test-dm-doc-settings").wait().click();
   await $(".test-tz-autocomplete").click();
   await $(`.test-acselect-dropdown li:contains(${name})`).click();
   await gu.waitForServer();
