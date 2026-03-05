@@ -2,6 +2,7 @@ import { ApiError } from "app/common/ApiError";
 import { BootProbeIds, BootProbeResult } from "app/common/BootProbe";
 import { removeTrailingSlash } from "app/common/gutil";
 import { appSettings } from "app/server/lib/AppSettings";
+import { checkMinIOBucket, checkMinIOExternalStorage } from "app/server/lib/configureMinIOExternalStorage";
 import { expressWrap, jsonErrorHandler } from "app/server/lib/expressWrap";
 import { GristServer } from "app/server/lib/GristServer";
 import { DEFAULT_SESSION_SECRET } from "app/server/lib/ICreate";
@@ -69,6 +70,7 @@ export class BootProbes {
     this._probes.push(_authenticationProbe);
     this._probes.push(_webSocketsProbe);
     this._probes.push(_sessionSecretProbe);
+    this._probes.push(_externalStorageProbe);
     this._probes.push(_admins);
     this._probeById = new Map(this._probes.map(p => [p.id, p]));
   }
@@ -338,6 +340,44 @@ const _sessionSecretProbe: Probe = {
         GRIST_SESSION_SECRET: process.env.GRIST_SESSION_SECRET ? "set" : "not set",
       },
     };
+  },
+};
+
+const _externalStorageProbe: Probe = {
+  id: "external-storage",
+  name: "External storage configuration",
+  apply: async (server, req) => {
+    const config = checkMinIOExternalStorage();
+    if (!config) {
+      return {
+        status: "none",
+        details: { configured: false },
+      };
+    }
+    try {
+      await checkMinIOBucket();
+      return {
+        status: "success",
+        details: {
+          configured: true,
+          backend: "minio",
+          bucket: config.bucket,
+          endpoint: config.endPoint,
+          prefix: config.prefix,
+        },
+      };
+    } catch (e) {
+      return {
+        status: "fault",
+        details: {
+          configured: true,
+          backend: "minio",
+          bucket: config.bucket,
+          endpoint: config.endPoint,
+          error: String(e),
+        },
+      };
+    }
   },
 };
 

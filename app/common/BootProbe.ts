@@ -10,6 +10,7 @@ export type BootProbeIds =
   "sandboxing" |
   "system-user" |
   "authentication" |
+  "external-storage" |
   "websockets" |
   "session-secret"
 ;
