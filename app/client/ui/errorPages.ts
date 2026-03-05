@@ -296,6 +296,46 @@ export function createSetupPage(appModel: AppModel) {
   // Tab navigation
   const activeStep = observable<1 | 2 | 3 | 4>(1);
 
+  // --- State persistence across page refresh ---
+  const STORAGE_KEY = "grist-setup-state";
+
+  function saveState() {
+    try {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
+        bootKey: storedBootKey.get(),
+        activeStep: activeStep.get(),
+        sandboxStatus: sandboxStatus.get(),
+        selectedSandbox: selectedSandbox.get(),
+        selectedStorage: selectedStorage.get(),
+      }));
+    } catch { /* sessionStorage unavailable */ }
+  }
+
+  function restoreState() {
+    try {
+      const raw = sessionStorage.getItem(STORAGE_KEY);
+      if (!raw) { return; }
+      const state = JSON.parse(raw);
+      if (state.bootKey) {
+        storedBootKey.set(state.bootKey);
+        bootKeyValue.set(state.bootKey);
+        // Re-trigger detection probes.
+        void detectSandboxFlavors();
+        void detectExternalStorage();
+      }
+      if (state.activeStep) { activeStep.set(state.activeStep); }
+      if (state.sandboxStatus === "success" && state.selectedSandbox) {
+        sandboxStatus.set("success");
+        selectedSandbox.set(state.selectedSandbox);
+      }
+      if (state.selectedStorage) { selectedStorage.set(state.selectedStorage); }
+    } catch { /* ignore parse errors */ }
+  }
+
+  // Note: saveState() is called explicitly at key transition points
+  // (boot key accepted, sandbox configured, storage selected) rather
+  // than via addListener, to avoid stale writes during page unload.
+
   // Build registration URL.
   const homeUrl = getGristConfig().homeUrl;
   const registerUrl = new URL(commonUrls.signInWithGristRegister);
@@ -348,12 +388,21 @@ export function createSetupPage(appModel: AppModel) {
       storedBootKey.set(key);
       bootKeyStatus.set("idle");
       activeStep.set(2);
+      saveState();
       void detectSandboxFlavors();
       void detectExternalStorage();
     } catch (e) {
       bootKeyError.set((e as Error).message);
       bootKeyStatus.set("error");
     }
+  }
+
+  const PROBE_TIMEOUT_MS = 30_000;
+
+  function fetchWithTimeout(url: string, opts: RequestInit): Promise<Response> {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), PROBE_TIMEOUT_MS);
+    return fetch(url, { ...opts, signal: controller.signal }).finally(() => clearTimeout(timer));
   }
 
   // Ordered by preference: gvisor is most secure, pyodide is most portable.
@@ -370,7 +419,7 @@ export function createSetupPage(appModel: AppModel) {
     // Probe each flavor in parallel, updating the list as each resolves.
     await Promise.all(SANDBOX_CANDIDATES.map(async (name) => {
       try {
-        const resp = await fetch(`/api/probes/sandbox-availability?flavor=${name}`, {
+        const resp = await fetchWithTimeout(`/api/probes/sandbox-availability?flavor=${name}`, {
           headers: { "X-Boot-Key": key },
         });
         if (!resp.ok) {
@@ -407,7 +456,7 @@ export function createSetupPage(appModel: AppModel) {
 
     // Probe the server — currently only detects minio in grist-core.
     try {
-      const resp = await fetch("/api/probes/external-storage", {
+      const resp = await fetchWithTimeout("/api/probes/external-storage", {
         headers: { "X-Boot-Key": key },
       });
       const body = await resp.json();
@@ -492,6 +541,7 @@ export function createSetupPage(appModel: AppModel) {
       }
       sandboxStatus.set("success");
       activeStep.set(3);
+      saveState();
     } catch (e) {
       sandboxError.set((e as Error).message);
       sandboxStatus.set("error");
@@ -521,6 +571,9 @@ export function createSetupPage(appModel: AppModel) {
       goLiveStatus.set("error");
     }
   }
+
+  // Restore saved progress (boot key, active step, etc.) after a page refresh.
+  restoreState();
 
   return pagePanels({
     headerMain: cssSetupHeaderMain(buildLanguageMenu(appModel)),
@@ -783,7 +836,7 @@ export function createSetupPage(appModel: AppModel) {
                   cssSandboxSuccessIcon("\u2713"),
                   dom("div",
                     dom("b", `Sandboxing set to ${label}.`),
-                    dom("div", "This will take effect on the next server restart."),
+                    dom("div", "This will take effect when you go live."),
                   ),
                   testId("setup-sandbox-success"),
                 ),
@@ -833,14 +886,11 @@ export function createSetupPage(appModel: AppModel) {
               ),
             ];
           }),
-          dom.maybe(use => use(sandboxStatus) === "loading", () =>
-            cssAdminPanelLink("Please wait a moment while checks are in progress\u2026"),
-          ),
         ),
 
         cssSetupSection(
           dom.show(use => use(activeStep) === 3),
-          cssSetupSectionTitle("Backups", " ", cssStepOptionalBadge("Optional")),
+          cssSetupSectionTitle("Backups"),
           cssSetupDescription(
             "Store document snapshots in S3-compatible external storage for backup and versioning. ",
             "Without this, documents are only stored on the local filesystem.",
@@ -885,12 +935,12 @@ export function createSetupPage(appModel: AppModel) {
                 cssSandboxCard.cls("-disabled", Boolean(dimmed)),
                 cssSandboxCard.cls("-selected", use => use(selectedStorage) === backend.name),
                 cssSandboxCard.cls("-available", isAvail || isSelectable),
-                canSelect ? dom.on("click", () => selectedStorage.set(backend.name)) : null,
+                canSelect ? dom.on("click", () => { selectedStorage.set(backend.name); saveState(); }) : null,
                 opts.radio ? cssSandboxRadio(
                   { type: "radio", name: "storage-backend", value: backend.name },
                   dom.prop("checked", use => use(selectedStorage) === backend.name),
                   dom.prop("disabled", !canSelect),
-                  canSelect ? dom.on("change", () => selectedStorage.set(backend.name)) : null,
+                  canSelect ? dom.on("change", () => { selectedStorage.set(backend.name); saveState(); }) : null,
                 ) : cssSandboxRadio(
                   { type: "radio", name: "storage-preview", disabled: true },
                 ),
@@ -1015,8 +1065,9 @@ export function createSetupPage(appModel: AppModel) {
                   dom("div",
                     dom("b", "Grist is live!"),
                     dom("div",
-                      "Set up authentication for other users in the admin panel, ",
-                      "where you can also bring Grist back out of service.",
+                      "You are signed in as the installer. To let other people use this server, ",
+                      "configure authentication (such as OIDC or SAML) in the admin panel. ",
+                      "You can also bring Grist back out of service from there.",
                     ),
                   ),
                   testId("setup-go-live-success"),
@@ -1382,13 +1433,6 @@ const cssSetupSectionTitle = styled("div", `
   color: ${theme.text};
 `);
 
-const cssStepOptionalBadge = styled("span", `
-  font-size: ${vars.smallFontSize};
-  color: ${theme.lightText};
-  font-weight: normal;
-  font-style: italic;
-`);
-
 const cssSetupDescription = styled("div", `
   font-size: ${vars.mediumFontSize};
   color: ${theme.lightText};
@@ -1632,11 +1676,6 @@ const cssSandboxPreviewHint = styled("div", `
   color: ${theme.lightText};
   font-style: italic;
   margin-bottom: 8px;
-`);
-
-const cssAdminPanelLink = styled("div", `
-  display: inline-block;
-  margin-left: 16px;
 `);
 
 const cssSandboxSuccessBox = styled("div", `
