@@ -1643,7 +1643,8 @@
         "Inherit access: ": "Hériter des droits d'accès : ",
         "Access overview": "Aperçu de l'accès",
         "Share it publicly": "Partager publiquement",
-        "Verify your sensitive data before sharing publicly": "Vérifier vos données sensibles avant de partager publiquement"
+        "Verify your sensitive data before sharing publicly": "Vérifier vos données sensibles avant de partager publiquement",
+        "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing.": "Votre {{resourceType}} sera accessible par toute personne ayant le lien, que ce soit via un partage directe ou à travers un moteur de recherche.\n Assurez vous que votre {{resourceType}} ne contienne pas de données sensible avant de partager."
     },
     "SearchModel": {
         "Search all tables": "Rechercher toutes les tables",
@@ -1903,7 +1904,10 @@
         "Restarting Grist...": "Grist en cours de redémarrage...",
         "This will apply any pending changes and briefly interrupt access for all users.": "Ceci appliquera tout changement en attente et coupera durant une courte durée l'accès pour tous les utilisateurs.",
         "You can still restart Grist manually.": "Vous pouvez toujours redémarrer Grist manuellement.",
-        "error in {{provider}}: {{verdict}}": "erreur dans {{provider}} : {{verdict}}"
+        "error in {{provider}}: {{verdict}}": "erreur dans {{provider}} : {{verdict}}",
+        "Please restart Grist manually.": "Redémarrez Grist manuellement s’il vous plaît.",
+        "Restart Grist to apply pending changes.": "Redémarrez Grist pour appliquer les changements en attente.",
+        "Restart unavailable": "Redémarrage indisponible"
     },
     "Field": {
         "No choices configured": "Aucun choix configuré",
