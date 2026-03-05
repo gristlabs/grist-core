@@ -70,6 +70,7 @@ export class BootProbes {
     this._probes.push(_authenticationProbe);
     this._probes.push(_webSocketsProbe);
     this._probes.push(_sessionSecretProbe);
+    this._probes.push(_bootKeyProbe);
     this._probes.push(_externalStorageProbe);
     this._probes.push(_admins);
     this._probeById = new Map(this._probes.map(p => [p.id, p]));
@@ -339,6 +340,27 @@ const _sessionSecretProbe: Probe = {
       details: {
         GRIST_SESSION_SECRET: process.env.GRIST_SESSION_SECRET ? "set" : "not set",
       },
+    };
+  },
+};
+
+const _bootKeyProbe: Probe = {
+  id: "boot-key",
+  name: "Boot key",
+  apply: async (server, req) => {
+    const envKey = process.env.GRIST_BOOT_KEY;
+    const bootKey = server.getBootKey();
+    if (!bootKey) {
+      return {
+        status: "success",
+        details: { set: false, source: "none" },
+      };
+    }
+    // If GRIST_BOOT_KEY env var is set, the key is explicitly configured.
+    const source = envKey !== undefined ? "env" : "auto";
+    return {
+      status: source === "auto" ? "warning" : "success",
+      details: { set: true, source },
     };
   },
 };

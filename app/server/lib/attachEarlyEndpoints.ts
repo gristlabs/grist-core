@@ -139,6 +139,40 @@ export function attachEarlyEndpoints(options: AttachOptions) {
     }),
   );
 
+  // Generate a new boot key and store it in activation prefs.
+  app.post(
+    "/api/admin/boot-key/generate",
+    json({ limit: "1kb" }),
+    expressWrap(async (_req, res) => {
+      const crypto = await import("crypto");
+      const newKey = crypto.randomBytes(12).toString("hex");
+      const activations = gristServer.getActivations();
+      const activation = await activations.current();
+      if (!activation.prefs) { activation.prefs = {}; }
+      activation.prefs.bootKey = newKey;
+      await activation.save();
+      (gristServer as any)._bootKey = newKey;
+      return res.status(200).send({ msg: "ok", bootKey: newKey });
+    }),
+  );
+
+  // Clear the boot key from activation prefs.
+  app.post(
+    "/api/admin/boot-key/clear",
+    json({ limit: "1kb" }),
+    expressWrap(async (_req, res) => {
+      const activations = gristServer.getActivations();
+      const activation = await activations.current();
+      if (activation.prefs?.bootKey) {
+        delete activation.prefs.bootKey;
+        await activation.save();
+      }
+      // Also clear the cached value so getBootKey() returns the env var (or undefined).
+      (gristServer as any)._bootKey = process.env.GRIST_BOOT_KEY || undefined;
+      return res.status(200).send({ msg: "ok" });
+    }),
+  );
+
   // Restrict this endpoint to install admins.
   app.get(
     "/api/install/prefs",

@@ -1311,6 +1311,7 @@ function buildMockupControls(owner: any, state: MockupState) {
     state.goLiveStatus.set("idle");
     state.goLiveError.set("");
     state.activeStep.set(1);
+    try { sessionStorage.removeItem("grist-setup-state"); } catch { /* ok */ }
     log("Reset");
   }
 
