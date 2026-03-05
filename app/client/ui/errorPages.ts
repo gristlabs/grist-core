@@ -627,8 +627,18 @@ export function createSetupPage(appModel: AppModel) {
             ]),
           ] : [
             cssSetupDescription(
-              "A boot key was printed to your server logs on startup. ",
-              "Only someone with access to the server can retrieve it.",
+              "When Grist starts, it prints a ",
+              dom("b", "BOOT KEY"),
+              " banner to the server output. ",
+              "Check your server logs for a box that looks like this:",
+            ),
+            cssSetupCode("BOOT KEY: a1b2c3d4e5f6a1b2c3d4e5f6"),
+            cssSetupDescription(
+              "For Docker: ",
+              dom("code", "docker logs <container>"),
+              ". For systemd: ",
+              dom("code", "journalctl -u grist"),
+              ".",
             ),
             cssBootKeyRow(
               cssBootKeyInput(
