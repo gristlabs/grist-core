@@ -271,6 +271,7 @@ export function createSetupPage(appModel: AppModel) {
   interface FlavorInfo { name: string; status: FlavorStatus; error?: string; }
   const sandboxFlavors = observable<FlavorInfo[]>([]);
   const selectedSandbox = observable("");
+  const configuredSandbox = observable("");  // What was actually sent to the server.
   const sandboxStatus = observable<"idle" | "loading" | "loaded" | "working" | "success" | "error">("idle");
   const sandboxError = observable("");
 
@@ -302,6 +303,7 @@ export function createSetupPage(appModel: AppModel) {
   function saveState() {
     try {
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
+        authMode: authMode.get(),
         bootKey: storedBootKey.get(),
         activeStep: activeStep.get(),
         sandboxStatus: sandboxStatus.get(),
@@ -316,19 +318,49 @@ export function createSetupPage(appModel: AppModel) {
       const raw = sessionStorage.getItem(STORAGE_KEY);
       if (!raw) { return; }
       const state = JSON.parse(raw);
+      if (state.authMode) { authMode.set(state.authMode); }
       if (state.bootKey) {
         storedBootKey.set(state.bootKey);
         bootKeyValue.set(state.bootKey);
-        // Re-trigger detection probes.
-        void detectSandboxFlavors();
-        void detectExternalStorage();
       }
       if (state.activeStep) { activeStep.set(state.activeStep); }
+      // Restore completed steps directly — no need to re-probe.
       if (state.sandboxStatus === "success" && state.selectedSandbox) {
         sandboxStatus.set("success");
         selectedSandbox.set(state.selectedSandbox);
+        configuredSandbox.set(state.selectedSandbox);
+        // Populate a minimal flavors list so the cards render without re-probing.
+        // The selected flavor is "available"; others are "unavailable".
+        sandboxFlavors.set([
+          ...SANDBOX_CANDIDATES.map(name => ({
+            name, status: (name === state.selectedSandbox ? "available" : "unavailable") as FlavorStatus,
+          })),
+          { name: "unsandboxed", status: "available" as FlavorStatus },
+        ]);
       }
-      if (state.selectedStorage) { selectedStorage.set(state.selectedStorage); }
+      if (state.selectedStorage) {
+        selectedStorage.set(state.selectedStorage);
+        // Populate a minimal backend list so the cards render without re-probing.
+        // The selected backend is "available"; minio is always "selectable";
+        // others are "unavailable".
+        storageBackends.set([
+          ...STORAGE_CANDIDATES.map(name => ({
+            name,
+            status: (name === state.selectedStorage ? "available" :
+              name === "minio" ? "selectable" :
+                "unavailable") as StorageBackendStatus,
+          })),
+          { name: "none", status: "available" as StorageBackendStatus },
+        ]);
+        storageStatus.set("loaded");
+      }
+      // Only run probes for steps that haven't been completed yet.
+      if (state.bootKey && state.sandboxStatus !== "success") {
+        void detectSandboxFlavors();
+      }
+      if (state.bootKey && !state.selectedStorage) {
+        void detectExternalStorage();
+      }
     } catch { /* ignore parse errors */ }
   }
 
@@ -434,13 +466,13 @@ export function createSetupPage(appModel: AppModel) {
         updateFlavor(name, "unavailable", (e as Error).message);
       }
     }));
+    // Ensure "no sandbox" fallback is present (may already have been added by maybeAppendUnsandboxed).
+    maybeAppendUnsandboxed();
     // Pre-select first available flavor.
     const firstAvailable = sandboxFlavors.get().find(f => f.status === "available");
     if (firstAvailable) {
       selectedSandbox.set(firstAvailable.name);
     }
-    // Ensure "no sandbox" fallback is present (may already have been added by maybeAppendUnsandboxed).
-    maybeAppendUnsandboxed();
     sandboxStatus.set("loaded");
   }
 
@@ -539,6 +571,7 @@ export function createSetupPage(appModel: AppModel) {
       if (!resp.ok) {
         throw new Error(result.error || "Failed to configure sandboxing");
       }
+      configuredSandbox.set(flavor);
       sandboxStatus.set("success");
       activeStep.set(3);
       saveState();
@@ -681,15 +714,12 @@ export function createSetupPage(appModel: AppModel) {
           ] : [
             cssSetupDescription(
               "When Grist starts, it prints a ",
-              dom("b", "BOOT KEY"),
+              dom("b", "BOOT KEY: "),
+              dom("code", "xxxx..."),
               " banner to the server output. ",
-              "Check your server logs for a box that looks like this:",
-            ),
-            cssSetupCode("BOOT KEY: a1b2c3d4e5f6a1b2c3d4e5f6"),
-            cssSetupDescription(
-              "For Docker: ",
+              "Find it with ",
               dom("code", "docker logs <container>"),
-              ". For systemd: ",
+              " or ",
               dom("code", "journalctl -u grist"),
               ".",
             ),
@@ -726,8 +756,8 @@ export function createSetupPage(appModel: AppModel) {
             ),
             dom.maybe(storedBootKey, () =>
               cssSetupDescription(
-                dom("b", "Boot key accepted."),
-                " Detecting sandbox options below...",
+                dom("b", "Boot key accepted. "),
+                "Continue to the next step.",
               ),
             ),
           ]),
@@ -828,20 +858,6 @@ export function createSetupPage(appModel: AppModel) {
                 ),
               ];
             }
-            if (status === "success") {
-              const meta = flavorMeta[selectedSandbox.get()];
-              const label = meta ? meta.label : selectedSandbox.get();
-              return [
-                cssSandboxSuccessBox(
-                  cssSandboxSuccessIcon("\u2713"),
-                  dom("div",
-                    dom("b", `Sandboxing set to ${label}.`),
-                    dom("div", "This will take effect when you go live."),
-                  ),
-                  testId("setup-sandbox-success"),
-                ),
-              ];
-            }
             if (status === "error" && sandboxFlavors.get().length === 0) {
               return [
                 cssSetupError(
@@ -850,7 +866,6 @@ export function createSetupPage(appModel: AppModel) {
                 ),
               ];
             }
-            // "loading", "loaded", "working", or "error" after loading
             return [
               dom.domComputed(sandboxFlavors, (flavors) => {
                 if (flavors.length === 0) {
@@ -873,17 +888,22 @@ export function createSetupPage(appModel: AppModel) {
               dom.maybe(sandboxError, err =>
                 cssSetupError(err, testId("setup-sandbox-error")),
               ),
-              cssBootKeySubmit(
-                "Configure",
-                dom.prop("disabled", use =>
-                  !use(selectedSandbox) ||
-                  use(sandboxStatus) === "loading" ||
-                  use(sandboxStatus) === "working" ||
-                  use(sandboxStatus) === "success",
-                ),
-                dom.on("click", handleConfigureSandbox),
-                testId("setup-sandbox-submit"),
-              ),
+              dom.domComputed(use => ({
+                selected: use(selectedSandbox),
+                sstatus: use(sandboxStatus),
+              }), ({ selected, sstatus }) => {
+                const needsConfigure = sstatus !== "success" || selected !== configuredSandbox.get();
+                return cssBootKeySubmit(
+                  needsConfigure ? "Configure" : "Continue",
+                  dom.prop("disabled",
+                    !selected || sstatus === "loading" || sstatus === "working",
+                  ),
+                  dom.on("click", needsConfigure ?
+                    handleConfigureSandbox :
+                    () => activeStep.set(3)),
+                  testId("setup-sandbox-submit"),
+                );
+              }),
             ];
           }),
         ),
@@ -915,7 +935,6 @@ export function createSetupPage(appModel: AppModel) {
               none: {
                 label: "No External Storage",
                 desc: "Documents stored on local filesystem only. No off-server backups or versioning.",
-                notRecommended: true,
               },
             };
 
