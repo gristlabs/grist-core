@@ -1509,6 +1509,7 @@ describe("FormView1", function() {
     it("cutting works", async function() {
       const revert = await gu.begin();
       await question("A").click();
+      await gu.waitAppFocus();
       // Send copy command.
       await clipboard.lockAndPerform(async (cb) => {
         await cb.cut();
@@ -1530,6 +1531,7 @@ describe("FormView1", function() {
       await clickMenu("Paragraph");
       await gu.waitForServer();
       await element("Paragraph", 5).click();
+      await gu.waitAppFocus();
       await clipboard.lockAndPerform(async (cb) => {
         await cb.cut();
         // Go over A and paste there.
