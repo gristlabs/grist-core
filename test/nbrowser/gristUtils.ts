@@ -741,6 +741,7 @@ namespace gristUtils {
  * text. Note that ACE editor adds some indentation automatically.
  */
   export async function enterFormula(formula: string) {
+    await waitAppFocus();
     await driver.sendKeys("=");
     await waitAppFocus(false);
     if (await driver.find(".test-editor-tooltip-convert").isPresent()) {
