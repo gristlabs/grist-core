@@ -244,6 +244,7 @@ return [
     await gu.sendKeys(Key.ENTER);
     assert.equal(await gu.getFormulaText(), "  if $Budget > 50:\n    return 'Big'\n  return 'Small'");
     await gu.sendKeys(Key.ESCAPE);
+    await gu.waitAppFocus();
 
     assert.deepEqual(await gu.getVisibleGridCells("A", [1, 2, 3]), ["Small", "Big", "Small"]);
 
@@ -253,6 +254,7 @@ return [
   it("should support autocompletion from lowercase values", async function() {
     await gu.toggleSidePanel("right", "close");
     await gu.getCell({ rowNum: 1, col: "A" }).click();
+    await gu.waitAppFocus();
     await driver.sendKeys("=");
     await gu.waitAppFocus(false);
 
@@ -274,6 +276,7 @@ return [
 
     // Check that this works also for table names ("fri" finds "Friends")
     await driver.sendKeys("=");
+    await gu.waitForCellEditor();
     await gu.waitAppFocus(false);
     await driver.sendKeys("fri");
     await gu.waitToPass(async () => {
@@ -306,6 +309,7 @@ return [
     // Check that some built-in values are recognized in lowercase.
     async function testBuiltin(typedText: string, expectedCompletion: string) {
       await driver.sendKeys("=");
+      await gu.waitForCellEditor();
       await gu.waitAppFocus(false);
       await driver.sendKeys(typedText);
       await gu.waitToPass(async () =>
