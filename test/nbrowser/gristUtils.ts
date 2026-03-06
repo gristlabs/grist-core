@@ -1893,8 +1893,10 @@ namespace gristUtils {
   export async function deleteRow(rowNum: number) {
     const cell = getCell(0, rowNum);
     await cell.click();
+    await waitAppFocus();
     await sendKeys(Key.chord(await modKey(), Key.DELETE));
     await driver.wait(stalenessOf(cell));
+    await waitAppFocus();
   }
 
   export type ColumnType =
