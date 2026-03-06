@@ -139,11 +139,13 @@ describe("OnDemand", function() {
 
     // Add multiple records to the table.
     await gu.selectGridArea([2, 0], [3, 1]);
+    await gu.waitAppFocus();
     await clipboard.lockAndPerform(async (cb: IClipboard) => {
       await cb.copy();
       await gu.getCell(1, 4).click();
       await cb.paste();
     });
+    await gu.waitAppFocus();
     await gu.waitForServer();
     await gu.waitToPass(async () => {
       assert.deepEqual(await gu.getVisibleGridCells({ cols: [0, 1, 2], rowNums: [1, 2, 3, 4, 5] }), [
@@ -187,12 +189,14 @@ describe("OnDemand", function() {
     // Update multiple records in the table.
     await gu.waitAppFocus(true);
     await gu.selectGridArea([1, 0], [3, 0]);
+    await gu.waitAppFocus();
     await clipboard.lockAndPerform(async (cb: IClipboard) => {
       await cb.copy();
       await gu.getCell(1, 2).click();
       await cb.paste();
     });
     await gu.waitForServer();
+    await gu.waitAppFocus();
     // FIXME: Despite the waitToPass, there is some flakiness here. Needs help.
     await gu.waitToPass(async () => {
       assert.deepEqual(await gu.getVisibleGridCells({ cols: [0, 1, 2], rowNums: [1, 2, 3, 4] }), [
@@ -258,35 +262,29 @@ describe("OnDemand", function() {
     // Perform removal actions and assert that the rows are re-added to the correct places on undo.
     await gu.deleteRow(4);
 
-    await gu.waitForServer(4);
+    await gu.deleteRow(4);
 
     await gu.undo();
-    await gu.waitToPass(async () => {
-      assert.deepEqual(await gu.getVisibleGridCells({ cols: [0, 1, 2], rowNums: [1, 2, 3, 4] }), [
-        "hello", "brown",  "",
-        "the",   "fox",    "",
-        "quick", "jumped", "",
-        "2",     "",       ""]);
-    }, 2000);
+    assert.deepEqual(await gu.getVisibleGridCells({ cols: [0, 1, 2], rowNums: [1, 2, 3, 4] }), [
+      "hello", "brown",  "",
+      "the",   "fox",    "",
+      "quick", "jumped", "",
+      "2",     "",       ""]);
 
     await gu.undo();
-    await gu.waitToPass(async () => {
-      assert.deepEqual(await gu.getVisibleGridCells({ cols: [0, 1, 2], rowNums: [1, 2, 3, 4, 5] }), [
-        "hello", "brown",  "",
-        "the",   "fox",    "",
-        "quick", "jumped", "",
-        "1",     "",       "",
-        "2",     "",       ""]);
-    }, 1000);
+    assert.deepEqual(await gu.getVisibleGridCells({ cols: [0, 1, 2], rowNums: [1, 2, 3, 4, 5] }), [
+      "hello", "brown",  "",
+      "the",   "fox",    "",
+      "quick", "jumped", "",
+      "1",     "",       "",
+      "2",     "",       ""]);
 
     // Redo all removals and assert that the table is as before the test.
     await gu.redo(2);
-    await gu.waitToPass(async () => {
-      assert.deepEqual(await gu.getVisibleGridCells({ cols: [0, 1, 2], rowNums: [1, 2, 3] }), [
-        "hello", "brown",  "",
-        "the",   "fox",    "",
-        "quick", "jumped", ""]);
-    }, 1000);
+    assert.deepEqual(await gu.getVisibleGridCells({ cols: [0, 1, 2], rowNums: [1, 2, 3] }), [
+      "hello", "brown",  "",
+      "the",   "fox",    "",
+      "quick", "jumped", ""]);
   });
 
   it("should allow adding functional columns", async function() {
