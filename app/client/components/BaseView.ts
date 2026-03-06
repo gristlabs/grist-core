@@ -595,9 +595,6 @@ export default class BaseView extends DisposableWithEvents {
   }
 
   private _setCursorPosImmediately(cursorPos: CursorPos, isFromLink: boolean, showFirstRowIfRowMissing: boolean): void {
-    if (this.isDisposed()) {
-      return;
-    }
     const fallbackCursorPos = showFirstRowIfRowMissing ? { ...cursorPos, rowId: undefined, rowIndex: 0 } : undefined;
     this.cursor.setCursorPos(cursorPos, isFromLink, fallbackCursorPos);
   }
