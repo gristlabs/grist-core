@@ -1,7 +1,7 @@
 import * as gu from "test/nbrowser/gristUtils";
 import { cleanupExtraWindows, setupTestSuite } from "test/nbrowser/testUtils";
 
-import { assert, driver } from "mocha-webdriver";
+import { assert, driver, Key } from "mocha-webdriver";
 
 describe("CursorSaving", function() {
   this.timeout(20000);
@@ -70,12 +70,12 @@ describe("CursorSaving", function() {
       assert.equal(await gu.getCardCell("Tags", "ITEMS Card").getText(), "");
 
       // Try a position when when the grandparent parent record is on a "new" row.
-      await clickAndCheck({ section: "Tags", rowNum: 4, col: 0 }, "");
+      await clickAndCheck({ section: "Tags", rowNum: 5, col: 0 }, "");
       assert.match(await gu.getSection("Items").find(".disable_viewpane").getText(), /No row selected/);
       await clickAndCheckCard({ section: "ITEMS Card", col: "Tags", rowNum: 1 }, "");
 
       await gu.reloadDoc();
-      assert.deepEqual(await gu.getCursorPosition("Tags"), { rowNum: 4, col: 0 });
+      assert.deepEqual(await gu.getCursorPosition("Tags"), { rowNum: 5, col: 0 });
       assert.match(await gu.getSection("Items").find(".disable_viewpane").getText(), /No row selected/);
       assert.equal(await gu.getActiveSectionTitle(), "ITEMS Card");
       assert.equal(await gu.getCardCell("Tags", "ITEMS Card").getText(), "");
@@ -140,7 +140,7 @@ describe("CursorSaving", function() {
       await clipboard.lockAndPerform(async () => { anchorLinks.push(await gu.getAnchor()); });
 
       // Try a position when when the grandparent parent record is on a "new" row.
-      await clickAndCheck({ section: "Tags", rowNum: 4, col: 0 }, "");
+      await clickAndCheck({ section: "Tags", rowNum: 5, col: 0 }, "");
       assert.match(await gu.getSection("Items").find(".disable_viewpane").getText(), /No row selected/);
       await clickAndCheckCard({ section: "ITEMS Card", col: "Tags", rowNum: 1 }, "");
 
@@ -153,7 +153,7 @@ describe("CursorSaving", function() {
       assert.equal(await gu.getCardCell("Tags", "ITEMS Card").getText(), "");
 
       await driver.get(anchorLinks[1]);
-      assert.deepEqual(await gu.getCursorPosition("Tags"), { rowNum: 4, col: 0 });
+      assert.deepEqual(await gu.getCursorPosition("Tags"), { rowNum: 5, col: 0 });
       assert.match(await gu.getSection("Items").find(".disable_viewpane").getText(), /No row selected/);
       assert.equal(await gu.getActiveSectionTitle(), "ITEMS Card");
       assert.equal(await gu.getCardCell("Tags", "ITEMS Card").getText(), "");
@@ -207,6 +207,34 @@ describe("CursorSaving", function() {
       await driver.get(anchorLinks[1]);
       assert.deepEqual(await gu.getCursorPosition("Country"), { rowNum: 3, col: 0 });
       assert.deepEqual(await gu.getCursorPosition("City"), { rowNum: 6, col: 1 });
+    });
+  });
+
+  describe("When switching between pages", function() {
+    before(async function() {
+      const session = await gu.session().login();
+      await session.tempDoc(cleanup, "CursorWithRefLists1.grist");
+    });
+
+    it("should show the first row if the saved cursor is invalid", async function() {
+      // Prime the saved cursor positions of each view section with rowIds that won't be valid when
+      // the filter-linked reference changes.
+      await gu.openPage("Selector");
+      await gu.openPage("Selector copy");
+
+      await gu.openPage("Selector");
+      await clickAndCheck({ section: "Selector", rowNum: 1, col: 0 }, "a");
+      // Set the reference from "a" to "d", whose only valid item is "Papaya".
+      // The other tags all reference other items, so the stored cursor position will be invalid.
+      await gu.enterCell(Key.DELETE, Key.ENTER);
+      await driver.findContentWait(".test-ref-editor-item", "d", 1000).click();
+      await clickAndCheck({ section: "Selector", rowNum: 1, col: 0 }, "d");
+
+      // Open the previously primed page and check that it shows "Papaya" (the first and only row)
+      // instead of "Row is unavailable".
+      await gu.openPage("Selector copy");
+      const name = await gu.getDetailCell({ section: "ITEMS Card", rowNum: 1, col: 1 }).getText();
+      assert.equal(name, "Papaya");
     });
   });
 });
