@@ -860,6 +860,11 @@ export class FlexServer implements GristServer {
       return res.json({ msg: "ok", email });
     });
 
+    this.app.post("/api/setup/mockup-reset-admin-email", async (_req, res) => {
+      delete process.env.GRIST_ADMIN_EMAIL;
+      return res.json({ msg: "ok" });
+    });
+
     // MOCKUP ONLY — will be removed before merge.
     // Exposes the boot key so reviewers without server log access can use the
     // mockup controls on the setup page.  No auth, no security — throwaway code.
@@ -1454,11 +1459,21 @@ export class FlexServer implements GristServer {
       baseDomain: this._defaultBaseDomain,
     });
 
-    const forceLogin = appSettings.section("login").flag("forced").readBool({
+    const forceLoginEnv = appSettings.section("login").flag("forced").readBool({
       envVar: "GRIST_FORCE_LOGIN",
     });
 
-    const forcedLoginMiddleware = forceLogin ? this._redirectToLoginWithoutExceptionsMiddleware : noop;
+    // Force login when explicitly requested, or when Grist is in service
+    // but no real auth system is configured (so the boot-key login is the
+    // only way in).
+    const forcedLoginMiddleware: express.RequestHandler = (req, res, next) => {
+      const shouldForce = forceLoginEnv ||
+        (process.env.GRIST_IN_SERVICE && !this._hasRealAuth());
+      if (shouldForce) {
+        return this._redirectToLoginWithoutExceptionsMiddleware(req, res, next);
+      }
+      return next();
+    };
 
     const welcomeNewUser: express.RequestHandler = isSingleUserMode() ?
       (req, res, next) => next() :
@@ -2518,6 +2533,15 @@ export class FlexServer implements GristServer {
    * Check whether this Grist installation is "in service" (should serve
    * normal requests) or needs initial setup.
    */
+  /**
+   * Returns true if a real authentication provider (OIDC, SAML, etc.) is
+   * active, as opposed to the boot-key or minimal fallback login.
+   */
+  private _hasRealAuth(): boolean {
+    const active = appSettings.section("login").flag("active").get();
+    return !!active && active !== "boot-key" && active !== "minimal" && active !== "no-logins";
+  }
+
   private _isInService(): boolean {
     // Explicit opt-in via environment variable.
     if (isAffirmative(process.env.GRIST_IN_SERVICE)) {
@@ -2528,9 +2552,10 @@ export class FlexServer implements GristServer {
     if (process.env.GRIST_TESTING_SOCKET && !isAffirmative(process.env.GRIST_FORCE_SETUP_GATE)) {
       return true;
     }
-    // If a real auth system is configured (not "minimal" fallback), we're in service.
+    // If a real auth system is configured and working, we're in service.
     const loginActive = appSettings.section("login").flag("active").get();
-    if (loginActive && loginActive !== "minimal" && loginActive !== "boot-key") {
+    const loginError = appSettings.section("login").flag("error").get();
+    if (loginActive && loginActive !== "minimal" && loginActive !== "boot-key" && !loginError) {
       return true;
     }
     return false;

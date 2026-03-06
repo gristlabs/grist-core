@@ -92,11 +92,22 @@ export function addBootKeyRoutes(app: Express, gristServer: GristServer) {
     if (!serverBootKey || bootKey !== serverBootKey) {
       const url = new URL("/auth/boot-key", gristServer.getHomeUrl(req));
       url.searchParams.set("next", next);
-      url.searchParams.set("error", "Invalid boot key");
+      url.searchParams.set("error", "invalid-key");
       return res.redirect(url.href);
     }
 
-    const email = process.env.GRIST_ADMIN_EMAIL;
+    // Use the provided email, or fall back to GRIST_ADMIN_EMAIL.
+    let email: string | undefined = process.env.GRIST_ADMIN_EMAIL;
+    const submittedEmail: string | undefined = req.body?.email?.trim();
+    if (!email && submittedEmail) {
+      // Persist the admin email so it survives restarts.
+      email = submittedEmail;
+      process.env.GRIST_ADMIN_EMAIL = email;
+      const activations = gristServer.getActivations();
+      await activations.updateAppEnvFile({ GRIST_ADMIN_EMAIL: email });
+      log.info("Admin email set to %s via boot key login", email);
+    }
+
     if (email) {
       const adminProfile: UserProfile = {
         email,
@@ -124,6 +135,7 @@ async function sendBootKeyPage(
       errDetails: {
         next,
         ...(error ? { error } : {}),
+        needsEmail: !process.env.GRIST_ADMIN_EMAIL ? "true" : "",
       },
     },
   });
