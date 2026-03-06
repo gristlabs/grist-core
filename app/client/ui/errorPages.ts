@@ -1360,15 +1360,25 @@ function buildMockupControls(owner: any, state: MockupState) {
  * Shown after Go Live when GRIST_ADMIN_EMAIL is set but no real auth is configured.
  */
 export function createBootKeyLoginPage(appModel: AppModel) {
-  document.title = `Sign In${getPageTitleSuffix(getGristConfig())}`;
+  document.title = `Welcome to Grist${getPageTitleSuffix(getGristConfig())}`;
 
   const { errDetails } = getGristConfig();
   const next = errDetails?.next || "/";
-  const serverError = errDetails?.error || "";
+  const BOOT_KEY_ERRORS: Record<string, string> = {
+    "invalid-key": "Invalid boot key. Please try again.",
+  };
+  const serverError = BOOT_KEY_ERRORS[errDetails?.error || ""] || "";
+  const needsEmail = !!errDetails?.needsEmail;
 
   const bootKeyValue = observable("");
+  const emailValue = observable("");
+  const tipsOpen = observable(false);
   const status = observable<"idle" | "working" | "error">("idle");
   const errorMsg = observable(serverError);
+
+  // If the user navigates back after submitting, the browser restores the
+  // page from bfcache with status still "working". Reset it.
+  window.addEventListener("pageshow", () => status.set("idle"));
 
   async function submit() {
     const key = bootKeyValue.get().trim();
@@ -1390,6 +1400,9 @@ export function createBootKeyLoginPage(appModel: AppModel) {
       };
       addField("bootKey", key);
       addField("next", next);
+      if (needsEmail) {
+        addField("email", emailValue.get().trim());
+      }
       document.body.appendChild(form);
       form.submit();
     } catch (e) {
@@ -1400,37 +1413,131 @@ export function createBootKeyLoginPage(appModel: AppModel) {
 
   return pagePanels({
     headerMain: cssSetupHeaderMain(buildLanguageMenu(appModel)),
-    contentMain: cssCenteredContent(cssErrorContent(
-      cssBigIcon(),
-      cssErrorHeader("Grist Boot Login"),
-      cssSetupSection(
-        cssSetupDescription(
-          "This is a fallback login for the server administrator only, ",
-          "for use when the normal login system is unavailable. ",
-          "Enter the ", dom("b", "boot key"), " from your server logs to sign in. ",
-          "Look for the boot key banner in your server output.",
+    contentMain: cssBootLoginPage(
+      cssBootLoginGlow(),
+      cssBootLoginCenter(
+        // Staggered entrance: logo → heading → card
+        cssBigIcon({ style: "animation: bootFadeUp 0.5s ease both;" }),
+        cssBootLoginHeading(
+          "Welcome to Grist",
+          { style: "animation: bootFadeUp 0.5s ease 0.1s both;" },
         ),
-        cssSetupDescription(
-          "You can override the boot key by setting ",
-          dom("code", "GRIST_BOOT_KEY=xxxx..."),
-          " and restarting.",
+        cssBootLoginSubheading(
+          "Let's get you set up.",
+          { style: "animation: bootFadeUp 0.5s ease 0.2s both;" },
         ),
-        dom.maybe(errorMsg, err =>
-          cssSetupError(err, testId("boot-key-login-error")),
-        ),
-        cssBootKeyRow(
-          cssBootKeyInput(
-            dom.prop("value", bootKeyValue),
-            dom.on("input", (_e: Event, elem: HTMLInputElement) => bootKeyValue.set(elem.value)),
-            { placeholder: "Boot key", autofocus: true },
-            dom.on("keydown", (ev: KeyboardEvent) => {
-              if (ev.key === "Enter") { void submit(); }
-            }),
-            testId("boot-key-login-input"),
+        cssBootLoginCard(
+          { style: "animation: bootFadeUp 0.5s ease 0.3s both;" },
+
+          // — Boot key field —
+          cssBootFieldGroup(
+            cssBootLoginLabel("Boot key"),
+            cssBootKeyInput(
+              dom.prop("value", bootKeyValue),
+              dom.on("input", (_e: Event, elem: HTMLInputElement) => {
+                bootKeyValue.set(elem.value);
+                if (elem.value.trim()) { tipsOpen.set(false); }
+              }),
+              { placeholder: "Paste boot key here", autofocus: true },
+              dom.on("keydown", (ev: KeyboardEvent) => {
+                if (ev.key === "Enter" && !needsEmail) { void submit(); }
+              }),
+              testId("boot-key-login-input"),
+            ),
+            cssBootFieldCaption(
+              "Find ",
+              dom("b", "BOOT KEY"),
+              " in your server logs. ",
+              dom("span",
+                cssBootHelpLink.cls(""),
+                dom.on("click", (ev: MouseEvent) => {
+                  const tips = (ev.currentTarget as HTMLElement)
+                    .closest("." + cssBootFieldGroup.className)
+                    ?.querySelector("." + cssBootTips.className) as HTMLElement | null;
+                  if (tips) {
+                    const open = tipsOpen.get();
+                    tipsOpen.set(!open);
+                    tips.setAttribute("data-open", String(!open));
+                    if (open) {
+                      tips.style.maxHeight = tips.scrollHeight + "px";
+                      requestAnimationFrame(() => { tips.style.maxHeight = "0"; });
+                    } else {
+                      tips.style.maxHeight = "none";
+                    }
+                  }
+                }),
+                dom.text(use => use(tipsOpen) ? "Hide help" : "Need help?"),
+              ),
+            ),
+            cssBootHelpWrap(
+              dom.cls("collapsed", use => !!use(bootKeyValue).trim()),
+              dom("div",
+                cssBootTips(
+                  { "data-open": "false" },
+                  cssBootTip(
+                    cssBootTipTitle("What to look for"),
+                    dom("pre", cssBootBannerPre.cls(""),
+                      "┌──────────────────────────────────────────┐\n" +
+                      "│                                          │\n" +
+                      "│   BOOT KEY: abc123-your-key-here...      │\n" +
+                      "│                                          │\n" +
+                      "└──────────────────────────────────────────┘",
+                    ),
+                    cssBootTipCaption("This banner appears near the top of the server output."),
+                  ),
+                  cssBootTip(
+                    cssBootTipTitle("Or set your own"),
+                    cssBootTipBody(
+                      "Set the environment variable ",
+                      dom("code", cssBootCode.cls(""), "GRIST_BOOT_KEY"),
+                      " to any value you choose, then restart Grist.",
+                    ),
+                  ),
+                  cssBootTip(
+                    cssBootTipTitle("Why boot keys?"),
+                    cssBootTipBody(
+                      "Entering a boot key proves that you are the person installing Grist, " +
+                      "and not someone nefarious. If you are in a private trusted network, " +
+                      "you can set ",
+                      dom("code", cssBootCode.cls(""), "GRIST_IN_SERVICE"),
+                      " to turn off this check.",
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
-          cssBootKeySubmit(
-            dom.domComputed(status, s => s === "working" ? "Signing in..." : "Sign In"),
-            dom.prop("disabled", use => !use(bootKeyValue).trim() || use(status) === "working"),
+
+          dom.maybe(errorMsg, err =>
+            cssSetupError(err, testId("boot-key-login-error")),
+          ),
+
+          // — Email field (only when GRIST_ADMIN_EMAIL is not set) —
+          ...(needsEmail ? [
+            cssBootFieldGroup(
+              cssBootLoginLabel("Administrator email"),
+              cssBootEmailInput(
+                dom.prop("value", emailValue),
+                dom.on("input", (_e: Event, elem: HTMLInputElement) => emailValue.set(elem.value)),
+                { placeholder: "you@example.com", type: "email" },
+                dom.on("keydown", (ev: KeyboardEvent) => {
+                  if (ev.key === "Enter") { void submit(); }
+                }),
+                testId("boot-key-login-email"),
+              ),
+              cssBootFieldCaption(
+                "This will be your admin account for managing Grist.",
+              ),
+            ),
+          ] : []),
+
+          // — Submit —
+          cssBootSubmitButton(
+            dom.domComputed(status, s => s === "working" ? "Signing in\u2026" : "Continue"),
+            dom.prop("disabled", use =>
+              !use(bootKeyValue).trim() ||
+              (needsEmail && !use(emailValue).trim()) ||
+              use(status) === "working"),
             dom.on("click", () => void submit()),
             testId("boot-key-login-submit"),
           ),
@@ -1454,10 +1561,20 @@ export function createBootKeyLoginPage(appModel: AppModel) {
             }
           })),
         ),
+        cssMockupRow(
+          cssMockupButton("Reset admin email", dom.on("click", async () => {
+            try {
+              await fetch("/api/setup/mockup-reset-admin-email", { method: "POST" });
+              window.location.reload();
+            } catch (e) {
+              errorMsg.set((e as Error).message);
+            }
+          })),
+        ),
       ),
 
       testId("boot-key-login-content"),
-    )),
+    ),
   });
 }
 
@@ -1668,6 +1785,188 @@ const cssSegmentedOption = styled("div", `
   }
 `);
 
+// -- Boot login page: full-page layout with atmospheric background ----------
+
+const cssBootLoginPage = styled("div", `
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  position: relative;
+  background: ${theme.mainPanelBg};
+
+  @keyframes bootFadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+`);
+
+// Subtle radial glow behind the card — gives depth without being flashy.
+const cssBootLoginGlow = styled("div", `
+  position: absolute;
+  top: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 400px;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    ${theme.controlPrimaryBg}11 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+`);
+
+const cssBootLoginCenter = styled("div", `
+  position: relative;
+  text-align: center;
+  padding: 80px 24px 64px;
+  max-width: 520px;
+  margin: 0 auto;
+`);
+
+const cssBootLoginHeading = styled("div", `
+  font-weight: 700;
+  font-size: 32px;
+  letter-spacing: -0.5px;
+  color: ${theme.text};
+  margin-top: 20px;
+  margin-bottom: 8px;
+`);
+
+const cssBootLoginSubheading = styled("div", `
+  font-size: 15px;
+  color: ${theme.lightText};
+  margin-bottom: 36px;
+  line-height: 1.5;
+`);
+
+const cssBootLoginCard = styled("div", `
+  text-align: left;
+  max-width: 460px;
+  margin: 0 auto;
+  padding: 32px;
+  border: 1px solid ${theme.pagePanelsBorder};
+  border-radius: 12px;
+  background: ${theme.mainPanelBg};
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.04),
+    0 8px 24px rgba(0, 0, 0, 0.06);
+`);
+
+const cssBootLoginLabel = styled("label", `
+  display: block;
+  font-weight: 600;
+  font-size: 13px;
+  color: ${theme.text};
+  margin-bottom: 6px;
+`);
+
+const cssBootFieldGroup = styled("div", `
+  margin-bottom: 4px;
+  &:not(:first-child) {
+    margin-top: 20px;
+  }
+`);
+
+const cssBootHelpWrap = styled("div", `
+  display: grid;
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transition: grid-template-rows 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.3s ease;
+  &.collapsed {
+    grid-template-rows: 0fr;
+    opacity: 0;
+    pointer-events: none;
+  }
+  & > * {
+    overflow: hidden;
+  }
+`);
+
+const cssBootFieldCaption = styled("div", `
+  font-size: 13px;
+  color: ${theme.lightText};
+  line-height: 1.5;
+  margin-bottom: 4px;
+`);
+
+const cssBootHelpLink = styled("span", `
+  color: ${theme.controlPrimaryBg};
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+  &:hover {
+    color: ${theme.controlPrimaryHoverBg};
+    text-decoration-style: solid;
+  }
+`);
+
+const cssBootTips = styled("div", `
+  display: flex;
+  flex-direction: column;
+  margin-top: 8px;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.25s ease;
+  &[data-open="true"] {
+    max-height: none;
+    opacity: 1;
+    overflow: visible;
+  }
+`);
+
+const cssBootTip = styled("div", `
+  font-size: 13px;
+  color: ${theme.lightText};
+  line-height: 1.5;
+  padding: 6px 0;
+  &:last-child {
+    padding-bottom: 0;
+  }
+`);
+
+const cssBootTipTitle = styled("div", `
+  font-weight: 600;
+  font-size: 13px;
+  color: ${theme.text};
+  margin-bottom: 4px;
+`);
+
+const cssBootTipBody = styled("div", `
+  line-height: 1.5;
+`);
+
+const cssBootTipCaption = styled("div", `
+  margin-top: 6px;
+  color: ${theme.lightText};
+`);
+
+const cssBootBannerPre = styled("pre", `
+  font-family: "SFMono-Regular", "Consolas", "Liberation Mono", "Menlo", monospace;
+  font-size: 10.5px;
+  line-height: 1.4;
+  color: ${theme.text};
+  background: ${theme.mainPanelBg};
+  border: 1px solid ${theme.pagePanelsBorder};
+  border-radius: 4px;
+  padding: 8px 10px;
+  margin: 0;
+  overflow-x: auto;
+  white-space: pre;
+`);
+
+const cssBootCode = styled("code", `
+  background: ${theme.pagePanelsBorder};
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 12px;
+`);
+
 const cssBootKeyRow = styled("div", `
   display: flex;
   gap: 8px;
@@ -1675,27 +1974,81 @@ const cssBootKeyRow = styled("div", `
 `);
 
 const cssBootKeyInput = styled("input", `
-  flex: 1;
-  font-size: ${vars.mediumFontSize};
-  padding: 6px 10px;
+  width: 100%;
+  font-size: 15px;
+  padding: 10px 14px;
   border: 1px solid ${theme.inputBorder};
-  border-radius: 4px;
+  border-radius: 8px;
   background: ${theme.inputBg};
   color: ${theme.inputFg};
   outline: none;
+  font-family: "SFMono-Regular", "Consolas", "Liberation Mono", "Menlo", monospace;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+  transition: border-color 0.15s, box-shadow 0.15s;
   &:focus {
-    border-color: ${theme.controlFg};
+    border-color: ${theme.controlPrimaryBg};
+    box-shadow: 0 0 0 3px ${theme.controlPrimaryBg}22;
+  }
+  &::placeholder {
+    font-family: inherit;
+    letter-spacing: normal;
+    color: ${theme.inputPlaceholderFg};
+  }
+`);
+
+const cssBootEmailInput = styled("input", `
+  width: 100%;
+  font-size: 15px;
+  padding: 10px 14px;
+  border: 1px solid ${theme.inputBorder};
+  border-radius: 8px;
+  background: ${theme.inputBg};
+  color: ${theme.inputFg};
+  outline: none;
+  margin-bottom: 8px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  &:focus {
+    border-color: ${theme.controlPrimaryBg};
+    box-shadow: 0 0 0 3px ${theme.controlPrimaryBg}22;
+  }
+`);
+
+const cssBootSubmitButton = styled("button", `
+  width: 100%;
+  font-size: 15px;
+  padding: 12px 24px;
+  margin-top: 12px;
+  border: none;
+  border-radius: 8px;
+  background: ${theme.controlPrimaryBg};
+  color: ${theme.controlPrimaryFg};
+  cursor: pointer;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  transition: background-color 0.15s, transform 0.1s;
+  &:hover:not(:disabled) {
+    background: ${theme.controlPrimaryHoverBg};
+  }
+  &:active:not(:disabled) {
+    transform: scale(0.99);
+  }
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
   }
 `);
 
 const cssBootKeySubmit = styled("button", `
   font-size: ${vars.mediumFontSize};
-  padding: 6px 16px;
+  padding: 8px 20px;
   border: none;
   border-radius: 4px;
   background: ${theme.controlPrimaryBg};
   color: ${theme.controlPrimaryFg};
   cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.15s;
   &:hover {
     background: ${theme.controlPrimaryHoverBg};
   }
