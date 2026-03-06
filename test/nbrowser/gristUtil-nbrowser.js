@@ -193,6 +193,7 @@ const gu = {
     }
     const cell = guBase.getCell(rowIndexOrPosOrCell, colIndex);
     await cell.click();
+    await gu.waitAppFocus();
   },
 
   /**
