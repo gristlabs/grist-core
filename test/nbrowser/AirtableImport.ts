@@ -234,6 +234,7 @@ describe("AirtableImport", function() {
     describe("and signed in", function() {
       before(async function() {
         mainSession = await gu.session().teamSite.user("user1").login();
+        otherSession = await gu.session().personalSite.user("user2").addLogin();
         docId = await mainSession.tempNewDoc(cleanup, "AirtableImport", { load: false });
       });
 
@@ -268,7 +269,6 @@ describe("AirtableImport", function() {
       });
 
       it("should associate access_token with a user", async function() {
-        otherSession = await gu.session().personalSite.user("user2").addLogin();
         otherDocId = await otherSession.tempNewDoc(cleanup, "AirtableImport2");
 
         await openAirtableDocImporter();
@@ -534,6 +534,40 @@ describe("AirtableImport", function() {
           "recua5n4ir46dn5t6", "ordx37praxl2m95wj", "01/06/2023", "Products[1]\nProducts[2]", "249.98",
           "", "", "", "", "",
         ]);
+      });
+
+      it("should import Airtable to a specific team site with editor permissions", async function() {
+        const mainApi = mainSession.createHomeApi();
+        await mainApi.updateOrgPermissions(mainSession.teamSite.orgDomain, {
+          users: {
+            [otherSession.email]: "editors",
+          },
+        });
+
+        const newWorkspaceId = await mainSession.tempWorkspace(cleanup, "Airtable-User2");
+        await mainApi.updateWorkspacePermissions(newWorkspaceId, {
+          users: {
+            [otherSession.email]: "editors",
+          },
+        });
+
+        const teamSiteSession = otherSession.teamSite.forWorkspace("Airtable-User2");
+        await teamSiteSession.loadDocMenu("/");
+        await openAirtableDocImporter("home");
+
+        await driver.findWait(".test-import-airtable-connect", 2000).click();
+
+        const bases = await driver.findWait(".test-import-airtable-bases", 2000);
+        await bases.findContent(".test-import-airtable-name", "Product planning").click();
+        await driver.find(".test-import-airtable-continue").click();
+
+        await driver.find(".test-import-airtable-import").click();
+        await waitForModalToClose();
+        await gu.waitForDocToLoad();
+
+        assert.equal(await driver.find(".test-dm-orgname").getText(), "Test Grist");
+        // Check correct workspace
+        assert.equal(await driver.find(".test-bc-workspace").getText(), "Airtable-User2");
       });
     });
   });
