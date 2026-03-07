@@ -4,14 +4,24 @@ import { getBrowserGlobals } from "app/client/lib/browserGlobals";
 import { makeT } from "app/client/lib/localization";
 import { FormField, FormOptionsSortOrder, getFormOptionsLimit } from "app/client/ui/FormAPI";
 import { dropdownWithSearch } from "app/client/ui/searchDropdown";
-import { isXSmallScreenObs } from "app/client/ui2018/cssVars";
+import { isXSmallScreenObs, theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { confirmModal } from "app/client/ui2018/modals";
 import { toggleSwitch } from "app/client/ui2018/toggleSwitch";
 import { isAffirmative, isNumber } from "app/common/gutil";
 import { CellValue } from "app/plugin/GristData";
 
-import { Disposable, dom, DomContents, IAttrObj, makeTestId, MutableObsArray, obsArray, Observable } from "grainjs";
+import {
+  Disposable,
+  dom,
+  DomContents,
+  IAttrObj,
+  makeTestId,
+  MutableObsArray,
+  obsArray,
+  Observable,
+  styled,
+} from "grainjs";
 import { IPopupOptions, PopupControl } from "popweasel";
 
 const testId = makeTestId("test-form-");
@@ -270,7 +280,7 @@ abstract class BaseFieldRenderer extends Disposable {
     return this.name().replace(/\s+/g, "-");
   }
 
-  public label() {
+  public label(): HTMLElement {
     return dom("label",
       css.label.cls(""),
       css.label.cls("-required", Boolean(this.field.options.formRequired)),
@@ -316,12 +326,40 @@ class TextRenderer extends BaseFieldRenderer {
   private _lineCount = String(this.field.options.formTextLineCount || 3);
   private _value = Observable.create<string>(this, this.getInitialValue() ?? "");
 
-  public input() {
-    if (this._format === "singleline") {
-      return this._renderSingleLineInput();
-    } else {
-      return this._renderMultiLineInput();
+  public label() {
+    const maximumLength = this.field.options.formTextMaximumLength;
+
+    if (maximumLength == null) {
+      return super.label();
     }
+
+    return labelRow(
+      super.label(),
+      constraintLabel(
+        dom.text(use => t("({{length}} / {{maximum}})", {
+          maximum: maximumLength,
+          length: use(this._value).length,
+        })),
+        testId("text-constraint"),
+      ),
+    );
+  }
+
+  public input() {
+    let element: HTMLInputElement | HTMLTextAreaElement;
+    if (this._format === "singleline") {
+      element = this._renderSingleLineInput();
+    } else {
+      element = this._renderMultiLineInput();
+    }
+
+    const maximumLength = this.field.options.formTextMaximumLength;
+
+    if (maximumLength != null) {
+      element.maxLength = maximumLength;
+    }
+
+    return element;
   }
 
   public resetInput(): void {
@@ -338,6 +376,7 @@ class TextRenderer extends BaseFieldRenderer {
       },
       dom.prop("value", this._value),
       preventSubmitOnEnter(),
+      dom.on("input", (_e, elem) => this._value.set(elem.value)),
     );
   }
 
@@ -1046,3 +1085,14 @@ export function sortChoicesInPlace<T>(
     }
   }
 }
+
+const constraintLabel = styled("span", `
+  color: ${theme.text};
+  font-size: ${vars.xsmallFontSize};
+  margin-left: 8px;
+`);
+
+const labelRow = styled("div", `
+  display: flex;
+  align-items: center;
+`);
