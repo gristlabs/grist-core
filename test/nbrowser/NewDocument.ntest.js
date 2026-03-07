@@ -94,10 +94,10 @@ describe("NewDocument.ntest", function() {
     it("should add rows on entering new data", async function() {
       assert.equal(await gu.getGridRowCount(), 1);
       await gu.getCellRC(0, 0).click();
-      await gu.sendKeys("hello", $.ENTER);
+      await gu.enterCell("hello");
       await gu.waitForServer();
       await gu.getCellRC(1, 1).click();
-      await gu.sendKeys("world", $.ENTER);
+      await gu.enterCell("world");
       await gu.waitForServer();
       assert.equal(await gu.getGridRowCount(), 3);
     });
