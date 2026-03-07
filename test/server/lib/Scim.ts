@@ -391,6 +391,20 @@ describe("Scim", () => {
           "should have retrieved only chimpy's username and not other attribute");
         });
 
+        it("should reject when the filter on userName contains an invalid operator", async function() {
+          const res = await axios.post(scimUrl("/Users/.search"), {
+            schemas: [SEARCH_SCHEMA],
+            filter: "userName blah",
+          }, chimpy);
+          assert.deepEqual(res.data, {
+            schemas: ["urn:ietf:params:scim:api:messages:2.0:Error"],
+            status: "400",
+            detail: "Unexpected token 'blah' in filter",
+            scimType: "invalidFilter",
+          });
+          assert.equal(res.status, 400);
+        });
+
         for (const criterion of [
           'username eq "chimpy@getgrist.com"',
           'username sw "chimpy"',

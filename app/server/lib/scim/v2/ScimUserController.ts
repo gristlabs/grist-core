@@ -223,7 +223,9 @@ class ScimUserController extends BaseController {
         return { email: MoreThanOrEqual(value) };
       case "np": // Surprisingly seems supported by Scimmy but not specified in RFC. We don't support it.
       default:
-        throw new SCIMMY.Types.Error(500, null!, "Unknown operator: " + operator);
+        // This should not happen, as Scimmy checks the syntax of the filters.
+        // But let's add a safe-guard here.
+        throw new SCIMMY.Types.Error(400, "invalidFilter", "Unknown operator: " + operator);
     }
   }
 }
