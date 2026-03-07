@@ -339,7 +339,7 @@ async function waitAndDismiss() {
 async function deleteFirstDoc() {
   assert.equal(await driver.find(".test-dm-doc").isPresent(), true);
   await driver.find(".test-dm-doc").mouseMove().find(".test-dm-doc-options").click();
-  await driver.find(".test-dm-delete-doc").click();
+  await driver.findWait(".test-dm-delete-doc", 1000).click();
   await driver.find(".test-modal-confirm").click();
   await gu.waitForServer();
   await driver.wait(async () => !(await driver.find(".test-modal-dialog").isPresent()), 3000);
