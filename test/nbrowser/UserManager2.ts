@@ -250,7 +250,7 @@ describe("UserManager2", function() {
     // Make a document, and start editing shares.
     await session.tempDoc(cleanup, "Hello.grist", { load: true });
     await driver.findWait(".test-tb-share", 2000).click();
-    await driver.findContent(".test-tb-share-option", /Manage users/).click();
+    await driver.findContentWait(".test-tb-share-option", /Manage users/, 1000).click();
 
     // Add a collaborator.
     await driver.findWait(".test-um-member-new", 2000).find("input").click();
@@ -267,7 +267,7 @@ describe("UserManager2", function() {
     // Make a new document, and start editing shares.
     await session.tempDoc(cleanup, "Hello.grist", { load: true });
     await driver.findWait(".test-tb-share", 2000).click();
-    await driver.findContent(".test-tb-share-option", /Manage users/).click();
+    await driver.findContentWait(".test-tb-share-option", /Manage users/, 1000).click();
 
     // Add same collaborator.
     await driver.findWait(".test-um-member-new", 2000).find("input").click();
@@ -306,7 +306,7 @@ describe("UserManager2", function() {
       assert.equal(await driver.find(".test-modal-dialog").isPresent(), false);
     });
     await driver.findWait(".test-tb-share", 2000).click();
-    await driver.findContent(".test-tb-share-option", /Manage users/).click();
+    await driver.findContentWait(".test-tb-share-option", /Manage users/, 1000).click();
     await assertSupportAnnotation();
 
     // Now add another collaborator and check their annotation.
@@ -333,7 +333,7 @@ describe("UserManager2", function() {
 
     // open User Manager
     await driver.findWait(".test-tb-share", 2000).click();
-    await driver.findContent(".test-tb-share-option", /Manage users/).click();
+    await driver.findContentWait(".test-tb-share-option", /Manage users/, 1000).click();
 
     // Adds new user and save
     await driver.findWait(".test-um-member-new", 2000).find("input").click();
@@ -499,7 +499,7 @@ function findModal(title: string | RegExp) {
 
 async function openAccessDetails() {
   await driver.findWait(".test-tb-share", 2000).click();
-  await driver.findContent(".test-tb-share-option", /Access Details/).click();
+  await driver.findContentWait(".test-tb-share-option", /Access Details/, 1000).click();
   await driver.findWait(".test-um-header", 2000);
 }
 
