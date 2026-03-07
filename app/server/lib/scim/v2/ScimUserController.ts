@@ -57,18 +57,28 @@ class ScimUserController extends BaseController {
       // take an optimised branch where we query the database by filtering the entries.
       if (match) {
         const { op, value } = match;
+        // Let's fix the maximum number of results to 200 (the default value set by Scimmy
+        // for the maximum number of resources returned in a response).
+        // It's a reasonnable limit for a query to the DB.
         const filterMaxResults = SCIMMY.Config.get().filter.maxResults;
         users = await this.dbManager.findUsers({
           where: {
             logins: this._filterByLoginEmail(op, value),
             type: "login",
           },
-          // Safe-guard: only take a certain number of result, avoiding
-          // DB overload or server crash.
-          // Though we can't compute the "totalResults".
-          // https://datatracker.ietf.org/doc/html/rfc7644#page-25
-          take: parseInt(filterMaxResults),
+          take: parseInt(filterMaxResults) + 1,
         });
+        // Cf https://datatracker.ietf.org/doc/html/rfc7644#section-3.4.2.1
+        //
+        if (users.length > filterMaxResults) {
+          throw new SCIMMY.Types.Error(
+            // The status should be 400, but Scimmy requires a status 413.
+            // PR submitted to fix that: https://github.com/scimmyjs/scimmy/pull/100
+            413,
+            "tooMany",
+            "Please refine the filter to limit the number of results to less than " + filterMaxResults,
+          );
+        }
       // Otherwise we fetch all the users and let Scimmy apply the potential filter.
       } else {
         users = await this.dbManager.getUsers({ type: "login" });

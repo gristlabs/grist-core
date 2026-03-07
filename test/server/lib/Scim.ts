@@ -1935,6 +1935,21 @@ describe("Scim", () => {
         }]);
       });
 
+      it("should reject when the filter gives too many results", async function() {
+        const resTooManyResults = await axios.post(apiUrl(), {
+          schemas: [SEARCH_SCHEMA],
+          attributes: ["userName"],
+          filter: "userName pr",
+        }, chimpy);
+        assert.deepEqual(resTooManyResults.data, {
+          schemas: ["urn:ietf:params:scim:api:messages:2.0:Error"],
+          status: "413",
+          detail: "Please refine the filter to limit the number of results to less than 200",
+          scimType: "tooMany",
+        });
+        assert.equal(resTooManyResults.status, 413);
+      });
+
       it("should return an empty array within a reasonable amount of time", async function() {
         const resNoUsers = await axios.post(apiUrl(), {
           schemas: [SEARCH_SCHEMA],
