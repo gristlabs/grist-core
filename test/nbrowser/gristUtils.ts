@@ -37,6 +37,7 @@ import startCase from "lodash/startCase";
 import { stackWrapFunc, stackWrapOwnMethods, WebDriver } from "mocha-webdriver";
 import { assert, By, driver as driverOrig, error, Key, WebElement, WebElementPromise } from "mocha-webdriver";
 import { lock } from "proper-lockfile";
+import { stalenessOf } from "selenium-webdriver/lib/until";
 
 import type { AssertionError } from "assert";
 import type { Cleanup } from "test/server/testCleanup";
@@ -464,8 +465,9 @@ namespace gristUtils {
  * and examining the last row number. The count includes the special "Add Row".
  */
   export async function getGridRowCount(): Promise<number> {
+    await waitAppFocus();
     await sendKeys(Key.chord(await modKey(), Key.DOWN));
-    const rowNum = await driver.find(".active_cursor")
+    const rowNum = await driver.findWait(".active_cursor", 1000)
       .findClosest(".gridview_row").find(".gridview_data_row_num").getText();
     return parseInt(rowNum, 10);
   }
@@ -686,17 +688,51 @@ namespace gristUtils {
   }
 
   /**
- * Type keys in the currently active cell, then hit Enter to save, and wait for the server.
- * If the last key is TAB, DELETE, or ENTER, we assume the cell is already taken out of editing
- * mode, and don't send another ENTER.
- */
-  export async function enterCell(...keys: string[]) {
-    const lastKey = keys[keys.length - 1];
-    if (![Key.ENTER, Key.TAB, Key.DELETE].includes(lastKey)) {
+   * Display the active cell editor and type keys in it, then hit Enter to save, and wait for the server.
+   * If the last key is TAB or ENTER, we assume the cell is already taken out of editing
+   * mode, and don't send another ENTER.
+   *
+   * @param options
+   * @param options.clear Whether the existing content of the cell should be cleared
+   */
+  interface EnterCellOptions { clear?: boolean, validate?: boolean }
+  export async function enterCell(...keys: string[]): Promise<void>;
+  export async function enterCell(
+    keys: string[],
+    options?: EnterCellOptions,
+  ): Promise<void>;
+  export async function enterCell(
+    ...args: string[] | [string[], EnterCellOptions?]
+  ): Promise<void> {
+    const [keys, { clear = true, validate = true }] = typeof args[0] === "string" ?
+      [args as string[], {} as EnterCellOptions] : [args[0], (args[1] ?? {}) as EnterCellOptions];
+    const lastKey = keys.at(-1);
+    // If the caller has not requested
+    if (![Key.ENTER, Key.TAB].includes(lastKey!) && validate) {
       keys.push(Key.ENTER);
     }
+    await driver.executeScript((...args: any[]) => {
+      (window as any).gristApp.allCommands.input.run(...args);
+    }, ...(clear ? [""] : []));
+    // Wait for the editor to appear
+    await waitForCellEditor();
+    // Select the content (so it is cleared) and press the keys requested by the caller
+    await sendKeys(...keys);
+    await waitForServer();    // Wait for the value to be saved
+  }
+
+  /**
+   * Press keys on a cell and wait for the server to react.
+   * Call it with a validation (to either use only the DELETE key
+   * or entering the editors and validate with ENTER or TAB)
+   */
+  export async function pressKeysOnCell(...keys: string[]) {
     await driver.sendKeys(...keys);
     await waitForServer();    // Wait for the value to be saved
+  }
+
+  export async function waitForCellEditor() {
+    await driver.wait(() => driver.find(".cell_editor").isDisplayed(), 1000);
   }
 
   /**
@@ -706,6 +742,7 @@ namespace gristUtils {
  * text. Note that ACE editor adds some indentation automatically.
  */
   export async function enterFormula(formula: string) {
+    await waitAppFocus();
     await driver.sendKeys("=");
     await waitAppFocus(false);
     if (await driver.find(".test-editor-tooltip-convert").isPresent()) {
@@ -771,7 +808,11 @@ namespace gristUtils {
       await getCell({ ...cell, rowNum: cell.rowNum + i }).click();
       // Enter all values, advancing with a TAB
       for (const value of rowsOfValues[i]) {
-        await enterCell(value || Key.DELETE, Key.TAB);
+        if (value) {
+          await enterCell(value, Key.TAB);
+        } else {
+          await pressKeysOnCell(Key.DELETE, Key.TAB);
+        }
       }
     }
   }
@@ -1767,6 +1808,9 @@ namespace gristUtils {
     }
     await driver.find(".test-widget-title-save").click();
     await waitForServer();
+    if (newName) {
+      await driver.findContentWait(".test-raw-data-table-id", newName, 2000);
+    }
   }
 
   export async function isRawTableOpened() {
@@ -1817,7 +1861,7 @@ namespace gristUtils {
       await menu.findContent("li", option).click();
       const waitForElem = ColumnMenuOption[option];
       if (waitForElem) {
-        return await driver.findWait(ColumnMenuOption[option], 100);
+        return await driver.findWait(ColumnMenuOption[option], 1000);
       }
     }
     return menu;
@@ -1845,6 +1889,15 @@ namespace gristUtils {
     await openColumnMenu(col, "Delete column");
     await waitForServer();
     await wipeToasts();
+  }
+
+  export async function deleteRow(rowNum: number) {
+    const cell = getCell(0, rowNum);
+    await cell.click();
+    await waitAppFocus();
+    await sendKeys(Key.chord(await modKey(), Key.DELETE));
+    await driver.wait(stalenessOf(cell));
+    await waitAppFocus();
   }
 
   export type ColumnType =
@@ -2012,7 +2065,8 @@ namespace gristUtils {
     await toggleSidePanel("right", "open");
     await driver.find(".test-config-data").click();
     await getSection(section).click();
-    await driver.find(".test-right-select-by").click();
+    const selectBy = await driver.find(".test-right-select-by").doClick();
+    await driver.wait(() => selectBy.find(".weasel-popup-open").isPresent(), 1000);
   }
 
   export async function editOrgAcls(): Promise<void> {
@@ -2608,7 +2662,7 @@ namespace gristUtils {
   }
 
   export function setFillColor(color: string) {
-    return setColor(driver.find(".test-fill-input"), color);
+    return setColor(driver.findWait(".test-fill-input", 1000), color);
   }
 
   export async function applyStyle() {
@@ -3437,7 +3491,7 @@ namespace gristUtils {
  * Confirms that anchor link was used for navigation.
  */
   export async function waitForAnchor() {
-    await waitForDocToLoad();
+    await waitForDocToLoad(5_000);
     await driver.wait(async () => (await getTestState()).anchorApplied, 2000);
   }
 
@@ -3652,7 +3706,7 @@ namespace gristUtils {
  * from options for Date columns, simply pass {relative: '2 days ago'} as value.
  */
   export async function setRangeFilterBound(minMax: "min" | "max", value: string | { relative: string } | null) {
-    await driver.find(`.test-filter-menu-${minMax}`).click();
+    await driver.findWait(`.test-filter-menu-${minMax}`, 1000).click();
     if (typeof value === "string" || value === null) {
       await selectAll();
       await driver.sendKeys(value === null ? Key.DELETE : value);

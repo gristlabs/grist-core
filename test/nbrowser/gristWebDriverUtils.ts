@@ -50,14 +50,11 @@ export class GristWebDriverUtils {
     );
   }
 
-  public async waitForSidePanel() {
-    // 0.4 is the duration of the transition setup in app/client/ui/PagePanels.ts for opening the
-  // side panes
-    const transitionDuration = 0.4;
-
-    // let's add an extra delay of 0.1 for even more robustness
-    const delta = 0.1;
-    await this.driver.sleep((transitionDuration + delta) * 1000);
+  public async waitForSidePanel(which: "left" | "right") {
+    await this.driver.executeAsyncScript(`
+      const done = [...arguments].at(-1);
+      document.querySelector(".test-${which}-panel").addEventListener("transitionend", done, { once: true });
+    `);
   }
 
   /*
@@ -75,7 +72,7 @@ export class GristWebDriverUtils {
 
     // click the opener and wait for the duration of the transition
     await this.driver.find(`.test-${which}-opener${suffix}`).doClick();
-    await this.waitForSidePanel();
+    await this.waitForSidePanel(which);
   }
 
   /**
@@ -428,7 +425,7 @@ export class GristWebDriverUtils {
 
     const sectionElem = section ? await this.getSection(section) : await this.driver.findWait(".active_section", 4000);
     const colIndex = (typeof col === "number" ? col :
-      await sectionElem.findContent(".column_name", this.exactMatch(col)).index());
+      await sectionElem.findContentWait(".column_name", this.exactMatch(col), 1000).index());
 
     const visibleRowNums: number[] = await sectionElem.findAll(".gridview_data_row_num",
       async el => parseInt(await el.getText(), 10));

@@ -84,7 +84,9 @@ describe("ReferenceColumns", function() {
       await server.pauseUntil(async () => {
         assert.equal(await cell.getText(), "Films[1]");
         await cell.click();
-        await gu.sendKeys("5");
+        await driver.sendKeys(Key.ENTER);
+        await gu.waitForCellEditor();
+        await gu.sendKeys(await gu.selectAllKey(), "5");
         // Check that the autocomplete has no items yet.
         assert.isEmpty(await driver.findAll(".test-autocomplete .test-ref-editor-new-item"));
         await gu.sendKeys(Key.ENTER);
@@ -96,8 +98,7 @@ describe("ReferenceColumns", function() {
       assert.equal(await cell.getText(), "Films[1]");
 
       // Once server is responsive, a valid value should not offer a "new item".
-      await cell.click();
-      await gu.sendKeys("5");
+      await gu.enterCell(["5"], { validate: false });
       await driver.findWait(".test-ref-editor-item", 500);
       assert.isFalse(await driver.find(".test-ref-editor-new-item").isPresent());
       await gu.sendKeys(Key.ENTER);
@@ -230,7 +231,7 @@ describe("ReferenceColumns", function() {
 
       // Edit another cell by starting to type.
       cell = await gu.getCell({ section: "References", col: "Color", rowNum: 4 }).doClick();
-      await driver.sendKeys("gr");
+      await gu.enterCell(["gr"], { validate: false });
       await driver.findWait(".test-ref-editor-item", 1000);
       item = driver.findContent(".test-ref-editor-item", "Medium Sea Green");
       await gu.scrollIntoView(item);
@@ -422,18 +423,18 @@ describe("ReferenceColumns", function() {
       await driver.sendKeys(Key.ESCAPE);
 
       // Starting to type Añil with the accent
-      await driver.sendKeys("añ");
+      await gu.enterCell(["añ"], { validate: false });
       assert.deepEqual(await getACOptions(2),
         ["Añil", "Alice Blue"]);
       await driver.sendKeys(Key.ESCAPE);
 
       // Starting to type Añil without the accent should work too
-      await driver.sendKeys("an");
+      await gu.enterCell(["an"], { validate: false });
       assert.deepEqual(await getACOptions(2),
         ["Añil", "Alice Blue"]);
       await driver.sendKeys(Key.ESCAPE);
 
-      await driver.sendKeys("blac");
+      await gu.enterCell(["blac"], { validate: false });
       assert.deepEqual(await getACOptions(6),
         ["Black", "Blanched Almond", "Blue", "Blue Violet", "Alice Blue", "Cadet Blue"]);
       await driver.sendKeys(Key.ESCAPE);
@@ -560,7 +561,7 @@ describe("ReferenceColumns", function() {
 
       // See that the value is gone from the autocomplete.
       await cell.click();
-      await driver.sendKeys("H");
+      await gu.enterCell(["H"], { validate: false });
       assert.deepEqual(await getACOptions(2), ["Honeydew", "Hot Pink"]);
       await driver.sendKeys(Key.ESCAPE);
 
@@ -573,7 +574,7 @@ describe("ReferenceColumns", function() {
 
       // See that the new value is visible in the autocomplete.
       await cell.click();
-      await driver.sendKeys("H");
+      await gu.enterCell(["H"], { validate: false });
       assert.deepEqual(await getACOptions(2), ["HELIOTROPE", "Honeydew"]);
       await driver.sendKeys(Key.BACK_SPACE);
       assert.deepEqual(await getACOptions(2), ["Añil", "Aqua"]);
@@ -583,7 +584,7 @@ describe("ReferenceColumns", function() {
       await gu.undo(4);
 
       await cell.click();
-      await driver.sendKeys("H");
+      await gu.enterCell(["H"], { validate: false });
       assert.deepEqual(await getACOptions(2), ["Honeydew", "Hot Pink"]);
       await driver.sendKeys(Key.BACK_SPACE);
       assert.deepEqual(await getACOptions(2), ["Alice Blue", "Añil"]);
