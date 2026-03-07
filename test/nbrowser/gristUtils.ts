@@ -465,8 +465,9 @@ namespace gristUtils {
  * and examining the last row number. The count includes the special "Add Row".
  */
   export async function getGridRowCount(): Promise<number> {
+    await waitAppFocus();
     await sendKeys(Key.chord(await modKey(), Key.DOWN));
-    const rowNum = await driver.find(".active_cursor")
+    const rowNum = await driver.findWait(".active_cursor", 1000)
       .findClosest(".gridview_row").find(".gridview_data_row_num").getText();
     return parseInt(rowNum, 10);
   }
@@ -1860,7 +1861,7 @@ namespace gristUtils {
       await menu.findContent("li", option).click();
       const waitForElem = ColumnMenuOption[option];
       if (waitForElem) {
-        return await driver.findWait(ColumnMenuOption[option], 100);
+        return await driver.findWait(ColumnMenuOption[option], 1000);
       }
     }
     return menu;
@@ -3705,7 +3706,7 @@ namespace gristUtils {
  * from options for Date columns, simply pass {relative: '2 days ago'} as value.
  */
   export async function setRangeFilterBound(minMax: "min" | "max", value: string | { relative: string } | null) {
-    await driver.find(`.test-filter-menu-${minMax}`).click();
+    await driver.findWait(`.test-filter-menu-${minMax}`, 1000).click();
     if (typeof value === "string" || value === null) {
       await selectAll();
       await driver.sendKeys(value === null ? Key.DELETE : value);
