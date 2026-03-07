@@ -301,7 +301,7 @@ describe("WebhookPage", function() {
 
     // Now let's make sure it's not in a fork
     await driver.find(".test-tb-share").click();
-    await driver.find(".test-work-on-copy").click();
+    await driver.findWait(".test-work-on-copy", 1000).click();
     await gu.waitForUrl(/~/);
     await gu.waitForDocToLoad();
     await gu.wipeToasts();
