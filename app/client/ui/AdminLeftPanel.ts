@@ -34,6 +34,7 @@ export function getPageNames() {
     adminControls,
     pages: {
       admin: { section: settings, name: t("Installation") },
+      setup: { section: settings, name: t("Quick Setup") },
       users: { section: adminControls, name: t("Users") },
       orgs: { section: adminControls, name: t("Orgs") },
       workspaces: { section: adminControls, name: t("Workspaces") },

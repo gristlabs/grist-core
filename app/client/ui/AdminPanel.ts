@@ -2,7 +2,7 @@ import { buildHomeBanners } from "app/client/components/Banners";
 import { makeT } from "app/client/lib/localization";
 import { markdown } from "app/client/lib/markdown";
 import { getTimeFromNow } from "app/client/lib/timeUtils";
-import { AdminCheckRequest, AdminChecks, probeDetails, ProbeDetails } from "app/client/models/AdminChecks";
+import { AdminCheckRequest, AdminChecks, ProbeDetails } from "app/client/models/AdminChecks";
 import { AppModel, getHomeUrl, reportError } from "app/client/models/AppModel";
 import { AuditLogsModel, AuditLogsModelImpl } from "app/client/models/AuditLogsModel";
 import { urlState } from "app/client/models/gristUrlState";
@@ -28,6 +28,9 @@ import { App } from "app/client/ui/App";
 import { AuditLogStreamingConfig, getDestinationDisplayName } from "app/client/ui/AuditLogStreamingConfig";
 import { AuthenticationSection } from "app/client/ui/AuthenticationSection";
 import { InstallConfigsAPI } from "app/client/ui/ConfigsAPI";
+import { SandboxConfigurator, buildSandboxingInfo } from "app/client/ui/SandboxConfigurator";
+import { buildSetupWizard } from "app/client/ui/SetupWizard";
+import { StorageConfigurator } from "app/client/ui/StorageConfigurator";
 import { pagePanels } from "app/client/ui/PagePanels";
 import { SupportGristPage } from "app/client/ui/SupportGristPage";
 import { ToggleEnterpriseWidget } from "app/client/ui/ToggleEnterpriseWidget";
@@ -104,8 +107,11 @@ export class AdminPanel extends Disposable {
       // because it messes with focus in GridViews, and its unclear how to undo its effect.
       dom.attr("tabindex", use => use(this._page) === "admin" ? "-1" : null as any),
 
-      dom.domComputed(use => use(this._page) === "admin", (isInstallationAdminPage) => {
-        return isInstallationAdminPage ?
+      dom.domComputed(this._page, (page) => {
+        if (page === "setup") {
+          return buildSetupWizard(this, this._appModel);
+        }
+        return page === "admin" ?
           dom.create(AdminInstallationPanel, this._appModel) :
           dom.create(buildAdminData, this._appModel);
       }),
@@ -127,6 +133,8 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
   private readonly _configAPI: ConfigAPI = new ConfigAPI(getHomeUrl());
   private _authCheck: Observable<AdminCheckRequest | undefined>;
   private _loginProvider: Observable<string | undefined>;
+  private _sandboxConfigurator = SandboxConfigurator.create(this, this._installAPI);
+  private _storageConfigurator = StorageConfigurator.create(this, this._installAPI);
 
   constructor(private _appModel: AppModel) {
     super();
@@ -152,11 +160,15 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
     // If probes are available, show the panel as normal.
     // Otherwise say it is unavailable, and describe a fallback
     // mechanism for access.
-    return dom.maybe(use => use(this._checks.probes), probes => [
-      (probes as any[]).length > 0 ?
-        this._buildMainContentForAdmin() :
-        this._buildMainContentForOthers(),
-    ]);
+    return dom.maybe(use => use(this._checks.probes), (probes) => {
+      if ((probes as any[]).length > 0) {
+        // Start shared component probes only when we know the user is an admin.
+        void this._sandboxConfigurator.probe();
+        void this._storageConfigurator.probe();
+        return this._buildMainContentForAdmin();
+      }
+      return this._buildMainContentForOthers();
+    });
   }
 
   public async restartGrist(): Promise<void> {
@@ -192,16 +204,18 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
    * which could include a legit administrator if auth is misconfigured.
    */
   private _buildMainContentForOthers() {
-    const exampleKey = _longCodeForExample();
     return dom.create(AdminSection, t("Administrator Panel Unavailable"), [
       dom("p", t(`You do not have access to the administrator panel.
 Please log in as an administrator.`)),
       dom(
         "p",
-        t(`Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}`, {
-          bootKey: dom("pre", `GRIST_BOOT_KEY=${exampleKey}`),
-          url: dom("pre", `/admin?boot-key=${exampleKey}`),
-        }),
+        t(`If you are the server operator, you can sign in using the boot key from your server logs:`),
+      ),
+      dom("p",
+        dom("a",
+          { href: "/auth/boot-key", style: "font-weight: 600;" },
+          t("Sign in with boot key"),
+        ),
       ),
       testId("admin-panel-error"),
     ]);
@@ -271,7 +285,10 @@ Please log in as an administrator.`)),
           name: t("Sandboxing"),
           description: t("Sandbox settings for data engine"),
           value: this._buildSandboxingDisplay(),
-          expandedContent: this._buildSandboxingNotice(),
+          expandedContent: [
+            this._sandboxConfigurator.buildDom({ showAction: false }),
+            ...buildSandboxingInfo(),
+          ],
         }),
         dom.create(AdminSectionItem, {
           id: "authentication",
@@ -293,6 +310,15 @@ Please log in as an administrator.`)),
           description: t("Key for initial setup and emergency access"),
           value: this._buildBootKeyDisplay(),
           expandedContent: this._buildBootKeyDetail(),
+        }),
+      ]),
+      dom.create(AdminSection, t("External Storage"), [
+        dom.create(AdminSectionItem, {
+          id: "storage",
+          name: t("Document Storage"),
+          description: t("External storage for document snapshots and backups"),
+          value: this._storageConfigurator.buildStatusDisplay(),
+          expandedContent: this._storageConfigurator.buildDom({ showAction: false }),
         }),
       ]),
       this._buildMaintenanceSection(),
@@ -373,19 +399,6 @@ Please log in as an administrator.`)),
             cssErrorText(t("unconfigured")));
       },
     );
-  }
-
-  private _buildSandboxingNotice() {
-    return [
-      // Use AdminChecks text for sandboxing, in order not to
-      // duplicate.
-      probeDetails.sandboxing.info,
-      dom(
-        "div",
-        { style: "margin-top: 8px" },
-        cssLink({ href: commonUrls.helpSandboxing, target: "_blank" }, t("Learn more.")),
-      ),
-    ];
   }
 
   private _buildAdminUsersComputed(
@@ -1236,21 +1249,6 @@ const cssAdminAccountItemPart = styled("span", `
     padding: 12px 24px 12px 16px;
   }
 `);
-
-/**
- * Make a long code to use in the example, so that if people copy
- * and paste it lazily, they end up decently secure, or at least a
- * lot more secure than a key like "REPLACE_WITH_YOUR_SECRET"
- */
-function _longCodeForExample() {
-  // Crypto in insecure contexts doesn't have randomUUID
-  if (window.isSecureContext) {
-    return "example-a" + window.crypto.randomUUID();
-  }
-  return "example-b" + "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx".replace(/x/g, () => {
-    return Math.floor(Math.random() * 16).toString(16);
-  });
-}
 
 async function reloadSafe() {
   // Reload the page.
