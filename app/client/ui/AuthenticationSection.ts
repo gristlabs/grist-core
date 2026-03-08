@@ -36,14 +36,14 @@ const testId = makeTestId("test-admin-auth-");
 interface AuthenticationSectionOptions {
   appModel: AppModel;
   loginSystemId: Observable<string | undefined>;
-  controls: AdminPanelControls;
+  controls?: AdminPanelControls;
   installAPI: InstallAPI;
 }
 
 export class AuthenticationSection extends Disposable {
   private _appModel = this._options.appModel;
   private _loginSystemId = this._options.loginSystemId;
-  private _controls = this._options.controls;
+  private _controls = this._options.controls ?? null;
   private _installAPI = this._options.installAPI;
   private _prefsPendingChanges = Observable.create<PendingChanges | null>(this, null);
 
@@ -329,7 +329,7 @@ authentication system.",
       prefsPendingChanges?.onRestartReplaceEmailWithAdmin,
     );
     const needsRestart = hasActiveOnRestartProvider || hasUnappliedRestartPrefs;
-    if (needsRestart) {
+    if (needsRestart && this._controls) {
       this._controls.needsRestart.set(true);
     }
   }

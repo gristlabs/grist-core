@@ -37,6 +37,14 @@ export class ActivationsManager {
           checkForLatestVersion: true,
           bootKey: crypto.randomBytes(12).toString("hex"),
         };
+        // On a truly fresh install, persist GRIST_IN_SERVICE=false so the
+        // setup gate activates. The env var (if set) takes precedence over
+        // the persisted value, so admins who set GRIST_IN_SERVICE=true in
+        // their environment will bypass the gate. Existing installations
+        // already have an activation row, so they're unaffected.
+        if (process.env.GRIST_IN_SERVICE === undefined) {
+          activation.prefs.envVars = { GRIST_IN_SERVICE: "false" };
+        }
         await activation.save();
       }
       return activation;

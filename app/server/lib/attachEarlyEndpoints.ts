@@ -139,6 +139,52 @@ export function attachEarlyEndpoints(options: AttachOptions) {
     }),
   );
 
+  // Configure sandbox flavor.  Persists to activation prefs so the
+  // value survives restarts.
+  app.post(
+    "/api/admin/configure-sandbox",
+    json({ limit: "1kb" }),
+    expressWrap(async (req, res) => {
+      const flavor = req.body?.GRIST_SANDBOX_FLAVOR;
+      if (!flavor || typeof flavor !== "string") {
+        return res.status(400).send({ error: "Missing GRIST_SANDBOX_FLAVOR" });
+      }
+      const known = ["gvisor", "pyodide", "macSandboxExec", "unsandboxed"];
+      if (!known.includes(flavor)) {
+        return res.status(400).send({ error: `Unknown sandbox flavor: ${flavor}` });
+      }
+      const activations = gristServer.getActivations();
+      await activations.updateAppEnvFile({ GRIST_SANDBOX_FLAVOR: flavor });
+      return res.status(200).send({ msg: "ok", flavor });
+    }),
+  );
+
+  // Bring Grist into service (open the setup gate).  Persists
+  // GRIST_IN_SERVICE=true and optionally sets GRIST_ADMIN_EMAIL.
+  app.post(
+    "/api/admin/go-live",
+    json({ limit: "1kb" }),
+    expressWrap(async (req, res) => {
+      const activations = gristServer.getActivations();
+      const reqAdminEmail = req.body?.adminEmail;
+      if (reqAdminEmail && typeof reqAdminEmail === "string") {
+        await activations.updateAppEnvFile({ GRIST_ADMIN_EMAIL: reqAdminEmail });
+        process.env.GRIST_ADMIN_EMAIL = reqAdminEmail;
+      }
+      await activations.updateAppEnvFile({ GRIST_IN_SERVICE: "true" });
+      process.env.GRIST_IN_SERVICE = "true";
+      // Trigger a restart if we have IPC with a parent process.
+      const restarting = typeof process.send === "function";
+      if (restarting) {
+        gristServer.setReady(false);
+        res.on("finish", () => {
+          process.send!({ action: "restart" });
+        });
+      }
+      return res.status(200).send({ msg: "ok", restarting });
+    }),
+  );
+
   // Generate a new boot key and store it in activation prefs.
   app.post(
     "/api/admin/boot-key/generate",
