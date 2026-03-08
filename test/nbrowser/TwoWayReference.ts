@@ -160,7 +160,7 @@ describe("TwoWayReference", function() {
     await driver.find(".test-tools-raw").click();
     const removeTable = async (tableId: string) => {
       await driver.findWait(`.test-raw-data-table-menu-${tableId}`, 1000).click();
-      await driver.find(".test-raw-data-menu-remove-table").click();
+      await driver.findWait(".test-raw-data-menu-remove-table", 1000).click();
       await driver.find(".test-modal-confirm").click();
       await gu.waitForServer();
     };
@@ -593,6 +593,7 @@ describe("TwoWayReference", function() {
 
     await gu.selectSectionByTitle("People");
     await gu.getCell("Projects", 1).click();
+    await gu.waitAppFocus();
     await gu.sendKeys("Backend");
     await gu.sendKeys(Key.ENTER);
     await gu.sendKeys(Key.ENTER);
