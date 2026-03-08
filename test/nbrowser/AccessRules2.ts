@@ -170,6 +170,10 @@ describe("AccessRules2", function() {
     assert.match(await driver.find(".test-view-as-banner .test-select-open").getText(), /Chimpy/);
   });
 
+  // FIXME: Need help. I don't understand how this test work. It fails at line 244.
+  // It is expected to have FinancialTable rules added, but there have previously been removed
+  // and not having been added again. The failure hence seems logical and I don't know how these tests
+  // may have passed
   it("should make all tables/columns available to editor of ACL rules", async function() {
     const mainSession = await gu.session().teamSite.user("user1").login();
     await mainSession.loadDoc(`/doc/${docId}`);
