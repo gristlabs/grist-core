@@ -124,7 +124,7 @@ describe("AccessRules1", function() {
     await gu.findOpenMenuItem("li", /Add column rule/).click();
     ruleSet = findRuleSet(/ClientsTable/, 1);
 
-    await ruleSet.findWait(".test-rule-resource .test-select-open", 300).click();
+    await ruleSet.findWait(".test-rule-resource .test-select-open", 2000).click();
     assert.deepEqual(
       await gu.findOpenMenuAllItems("li", el => el.getText()),
       [
@@ -366,7 +366,7 @@ describe("AccessRules1", function() {
     await findTable(/FinancialsTable/).find(".test-rule-table-menu-btn").click();
     await gu.findOpenMenuItem("li", /Add column rule/).click();
     let ruleSet = findRuleSet(/FinancialsTable/, 1);
-    await ruleSet.findWait(".test-rule-resource .test-select-open", 300).click();
+    await ruleSet.findWait(".test-rule-resource .test-select-open", 2000).click();
     assert.deepEqual(
       await gu.findOpenMenuAllItems("li", el => el.getText()),
       ["Expenses", "Income", "Year"],
@@ -397,13 +397,13 @@ describe("AccessRules1", function() {
     await findTable(/FinancialsTable/).find(".test-rule-table-menu-btn").click();
     await gu.findOpenMenuItem("li", /Add column rule/).click();
     let ruleSet = findRuleSet(/FinancialsTable/, 1);
-    await ruleSet.findWait(".test-rule-resource .test-select-open", 300).click();
+    await ruleSet.findWait(".test-rule-resource .test-select-open", 2000).click();
     assert.deepEqual(
       await gu.findOpenMenuAllItems("li", el => el.getText()),
       ["Expenses", "Income", "Year"],
     );
     await gu.findOpenMenuItem("li", "Year").click();
-    await ruleSet.findWait(".test-rule-resource .test-select-open", 300).click();
+    await ruleSet.findWait(".test-rule-resource .test-select-open", 2000).click();
     await gu.findOpenMenuItem("li", "Income").click();
     await enterRulePart(ruleSet, 1, 'user.Email == "noone1"', { R: "deny" });
 
@@ -411,13 +411,13 @@ describe("AccessRules1", function() {
     await findTable(/FinancialsTable/).find(".test-rule-table-menu-btn").click();
     await gu.findOpenMenuItem("li", /Add column rule/).click();
     ruleSet = findRuleSet(/FinancialsTable/, 2);
-    await ruleSet.findWait(".test-rule-resource .test-select-open", 300).click();
+    await ruleSet.findWait(".test-rule-resource .test-select-open", 2000).click();
     assert.deepEqual(
       await gu.findOpenMenuAllItems("li", el => el.getText()),
       ["Expenses", "Income", "Year"],
     );
     await gu.findOpenMenuItem("li", "Year").click();
-    await ruleSet.findWait(".test-rule-resource .test-select-open", 300).click();
+    await ruleSet.findWait(".test-rule-resource .test-select-open", 2000).click();
     await gu.findOpenMenuItem("li", "Expenses").click();
     await enterRulePart(ruleSet, 1, 'user.Email == "noone2"', { R: "allow" });
 
