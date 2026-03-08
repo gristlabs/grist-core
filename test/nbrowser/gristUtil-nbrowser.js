@@ -419,7 +419,7 @@ const gu = {
     },
     addNewTable: async () => {
       await $(".test-dp-add-new").wait().click();
-      await $(".test-dp-empty-table").click();
+      await $(".test-dp-empty-table").wait().click();
       // if we selected a new table, there will be a popup for a name
       const prompts = await $(".test-modal-prompt");
       const prompt = prompts[0];
