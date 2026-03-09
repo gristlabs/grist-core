@@ -101,7 +101,7 @@ export class AuthenticationSection extends Disposable {
   private _buildListOfProviders(providers: AuthProvider[]) {
     // Hide deprecated providers unless already configured or active.
     const visible = providers.filter(p =>
-      !DEPRECATED_PROVIDERS.includes(p.key) || p.isConfigured || p.isActive
+      !DEPRECATED_PROVIDERS.includes(p.key) || p.isConfigured || p.isActive,
     );
     return cssMethodsContainer(
       visible.map((provider) => {
