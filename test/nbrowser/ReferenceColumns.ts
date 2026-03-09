@@ -46,8 +46,7 @@ describe("ReferenceColumns", function() {
       assert.deepEqual(await gu.getVisibleGridCells(3, [1, 2, 3, 4, 5, 6]),
         ["Films[1]", "Films[2]", "Films[3]", "Films[4]", "", ""]);
       await gu.getCell(3, 5).click();
-      await driver.sendKeys("Roger");
-      await driver.sendKeys(Key.ENTER);
+      await gu.enterCell("Roger");
       await gu.waitForServer();
 
       // 'Roger' is an actual reference
@@ -265,7 +264,7 @@ describe("ReferenceColumns", function() {
 
       // Edit another cell by starting to type.
       cell = await gu.getCell({ section: "References", col: "Color", rowNum: 4 }).doClick();
-      await driver.sendKeys("gr");
+      await gu.enterCell(["gr"], { validate: false });
       await driver.findWait(".test-ref-editor-item", 1000);
       await driver.sendKeys(Key.UP, Key.UP, Key.UP, Key.UP, Key.UP);
       assert.equal(await driver.findWait(".test-ref-editor-item.selected", 1000).getText(), "Chocolate");
@@ -280,7 +279,7 @@ describe("ReferenceColumns", function() {
 
     it("should return to text-as-typed when nothing is selected", async function() {
       const cell = await gu.getCell({ section: "References", col: "Color", rowNum: 2 }).doClick();
-      await driver.sendKeys("da");
+      await gu.enterCell(["da"], { validate: false });
       assert.deepEqual(await getACOptions(2), ["Dark Blue", "Dark Cyan"]);
 
       // Check that the first item is highlighted by default.
@@ -315,6 +314,7 @@ describe("ReferenceColumns", function() {
       await driver.sendKeys("da", Key.UP);
       await gu.getCell({ section: "References", col: "Color", rowNum: 1 }).doClick();
       await gu.waitForServer();
+      await gu.waitAppFocus();
       assert.equal(await cell.getText(), "da");
       assert.equal(await cell.find(".field_clip").matches(".invalid"), true);
 
@@ -325,7 +325,7 @@ describe("ReferenceColumns", function() {
 
     it("should save text as typed when nothing is selected", async function() {
       const cell = await gu.getCell({ section: "References", col: "Color", rowNum: 1 }).doClick();
-      await driver.sendKeys("lavender ", Key.ENTER);
+      await gu.enterCell("lavender ");
       await gu.waitForServer();
       assert.equal(await cell.getText(), "Lavender");
       await gu.undo();
@@ -334,7 +334,7 @@ describe("ReferenceColumns", function() {
 
     it("should offer an add-new option when no good match", async function() {
       const cell = await gu.getCell({ section: "References", col: "Color", rowNum: 2 }).doClick();
-      await driver.sendKeys("pinkish");
+      await gu.enterCell(["pinkish"], { validate: false });
       // There are inexact matches.
       assert.deepEqual(await getACOptions(3),
         ["Pink", "Deep Pink", "Hot Pink"]);
@@ -358,7 +358,7 @@ describe("ReferenceColumns", function() {
       const cell = await gu.getCell({ section: "References", col: "Color", rowNum: 2 }).doClick();
 
       // Enter and invalid value and save without clicking "add new".
-      await driver.sendKeys("super pink", Key.ENTER);
+      await gu.enterCell("super pink");
 
       // It should be saved but appear invalid (as alt-text).
       await gu.waitForServer();
@@ -473,7 +473,7 @@ describe("ReferenceColumns", function() {
       ]);
       await driver.sendKeys(Key.ESCAPE);
       cell = await gu.getCell({ section: "References", col: "School", rowNum: 2 }).doClick();
-      await driver.sendKeys("stuy");
+      await gu.enterCell(["stuy"], { validate: false });
       assert.deepEqual(await getACOptions(3), [
         "STUYVESANT HIGH SCHOOL",
         "BEDFORD STUY COLLEGIATE CHARTER SCH",
@@ -518,7 +518,7 @@ describe("ReferenceColumns", function() {
 
       cell = await gu.getCell({ section: "References", col: "School", rowNum: 1 })
         .find(".test-ref-text").doClick();
-      await driver.sendKeys("br tech");
+      await gu.enterCell(["br tech"], { validate: false });
       assert.deepEqual(
         await driver.findContentWait(".test-ref-editor-item", /BROOKLYN TECH/, 1000).findAll("span", e => e.getText()),
         ["BR", "TECH"]);
@@ -542,11 +542,12 @@ describe("ReferenceColumns", function() {
 
       // Change a color
       await gu.getCell({ section: "Colors", col: "Color Name", rowNum: 1 }).doClick();
-      await driver.sendKeys("HAZELNUT", Key.ENTER);
+      await gu.enterCell("HAZELNUT");
       await gu.waitForServer();
 
       // See that the old value is gone from the autocomplete, and the new one is present.
       await cell.click();
+      await gu.waitAppFocus();
       await driver.sendKeys(Key.ENTER);
       assert.deepEqual(await getACOptions(2), ["Añil", "Aqua"]);
       await driver.sendKeys("H");
