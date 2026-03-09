@@ -19,28 +19,36 @@ import { menuCssClass, menuItem } from "app/client/ui2018/menus";
 
 import { Disposable, dom, DomArg, Observable, styled } from "grainjs";
 import { cssMenu, cssMenuItem, cssMenuWrap, getOptionFull, IOpenController, IOption } from "popweasel";
+import slugify from "slugify";
+import { uniqueId } from "underscore";
 
 export type { IOption, IOptionFull } from "popweasel";
 export { getOptionFull } from "popweasel";
 
 export interface ISimpleListOpt<T, U extends IOption<T> = IOption<T>> {
   matchTriggerElemWidth?: boolean;
+  ariaLabel?: Observable<string | undefined>;
   headerDom?(): DomArg<HTMLElement>;
   renderItem?(item: U): DomArg<HTMLElement>;
+  onSelectedChange?(selectedItem: HTMLElement | null): void;
 }
 
 export class SimpleList<T, U extends IOption<T> = IOption<T>> extends Disposable {
   public readonly content: HTMLElement;
+  public readonly domId: string;
   private _menuContent: HTMLElement;
   private _selected: HTMLElement;
   private _selectedIndex: number = -1;
   private _mouseOver: { reset(): void };
+  private _onSelectedChange?: (selectedItem: HTMLElement | null) => void;
 
   constructor(private _ctl: IOpenController,
     private _items: Observable<U[]>,
     private _action: (value: T) => void,
     opt: ISimpleListOpt<T, U> = {}) {
     super();
+    this.domId = `simple-list-${uniqueId()}`;
+    this._onSelectedChange = opt.onSelectedChange;
     const renderItem = opt.renderItem || ((item: U) => getOptionFull(item).label);
     this.content = cssMenuWrap(
       dom("div",
@@ -57,10 +65,17 @@ export class SimpleList<T, U extends IOption<T> = IOption<T>> extends Disposable
         cssMenuExt.cls(""),
         opt.headerDom?.(),
         this._menuContent = cssMenuList(
+          { id: this.domId, role: "listbox" },
+          dom.attr("aria-label", opt.ariaLabel),
           dom.forEach(this._items, (i) => {
             const item = getOptionFull(i);
             return cssOptionRow(
-              { class: menuItem.className + " " + cssMenuItem.className },
+              {
+                // we expose unique DOM ids, for external components that need to reference them for screen readers
+                id: `${this.domId}-item-${slugify(item.label)}`,
+                role: "option",
+                class: menuItem.className + " " + cssMenuItem.className,
+              },
               dom.on("click", () => this._doAction(item.value)),
               renderItem(i),
               dom.cls("disabled", Boolean(item.disabled)),
@@ -95,14 +110,19 @@ export class SimpleList<T, U extends IOption<T> = IOption<T>> extends Disposable
     const prev = this._selected;
     if (elem !== prev) {
       const clsName = cssMenuItem.className + "-sel";
-      if (prev) { prev.classList.remove(clsName); }
+      if (prev) {
+        prev.classList.remove(clsName);
+        prev.removeAttribute("aria-selected");
+      }
       if (elem) {
         elem.classList.add(clsName);
+        elem.setAttribute("aria-selected", "true");
         elem.scrollIntoView({ block: "nearest" });
       }
     }
     this._selected = elem;
     this._selectedIndex = elem ? index : -1;
+    this._onSelectedChange?.(elem);
   }
 
   private _update() {

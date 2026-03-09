@@ -269,6 +269,7 @@ abstract class BaseFieldRenderer extends Disposable {
       this.label(),
       dom("div", this.input()),
       this.fieldDomAttributes(),
+      testId("field"),
     );
   }
 
@@ -564,6 +565,8 @@ class ChoiceRenderer extends BaseFieldRenderer  {
             })),
             onClose: () => { setTimeout(() => this._selectElement.focus()); },
             placeholder: t("Search"),
+            ariaLabelInput: t("Search options for {{-inputLabel}}", { inputLabel: this.field.question }),
+            ariaLabelList: t("Options for {{-inputLabel}}", { inputLabel: this.field.question }),
             acOptions: { maxResults: 100, keepOrder: false, showEmptyItems: true },
             popupOptions: {
               trigger: [
@@ -637,6 +640,7 @@ class BoolRenderer extends BaseFieldRenderer {
   public render() {
     return css.field(
       dom("div", this.input()),
+      testId("field"),
     );
   }
 
@@ -926,6 +930,8 @@ class RefRenderer extends BaseFieldRenderer {
             onClose: () => { setTimeout(() => this._selectElement.focus()); },
             acOptions: { maxResults: 100, keepOrder: false, showEmptyItems: true },
             placeholder: "Search",
+            ariaLabelInput: t("Search options for {{-inputLabel}}", { inputLabel: this.field.question }),
+            ariaLabelList: t("Options for {{-inputLabel}}", { inputLabel: this.field.question }),
             popupOptions: {
               trigger: [
                 "click",
