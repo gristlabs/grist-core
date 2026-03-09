@@ -36,6 +36,12 @@ export interface IDropdownWithSearchOptions<T> {
   // place holder for the search input. Default to 'Search'
   placeholder?: string;
 
+  /** Label for the search input, vocalized by screen readers, but not shown. */
+  ariaLabelInput?: string;
+
+  /** Label for the options list, vocalized by screen readers, but not shown. */
+  ariaLabelList?: string;
+
   // popup options
   popupOptions?: IPopupOptions;
 
@@ -90,6 +96,7 @@ class DropdownWithSearch<T> extends Disposable {
   private _inputElem: HTMLInputElement;
   private _simpleList: SimpleList<T>;
   private _highlightFunc: HighlightFunc;
+  private _ariaLabelListObs: Observable<string | undefined> | undefined;
 
   constructor(private _ctl: IOpenController, private _options: IDropdownWithSearchOptions<T>) {
     super();
@@ -97,8 +104,10 @@ class DropdownWithSearch<T> extends Disposable {
     this._acIndex = new ACIndexImpl<OptionItem<T>>(acItems, this._options.acOptions);
     this._items = Observable.create<OptionItem<T>[]>(this, acItems);
     this._highlightFunc = () => [];
+    this._ariaLabelListObs = _options.ariaLabelList ? Observable.create(this, _options.ariaLabelList) : undefined;
     this._simpleList = this._buildSimpleList();
     this._simpleList.listenKeys(this._inputElem);
+    this._inputElem.setAttribute("aria-controls", this._simpleList.domId);
     this._update();
     // auto-focus the search input
     setTimeout(() => this._inputElem.focus(), 1);
@@ -117,6 +126,14 @@ class DropdownWithSearch<T> extends Disposable {
       matchTriggerElemWidth: this._options.matchTriggerElemWidth,
       headerDom,
       renderItem,
+      ariaLabel: this._ariaLabelListObs,
+      onSelectedChange: (selectedItem) => {
+        if (selectedItem?.id) {
+          this._inputElem.setAttribute("aria-activedescendant", selectedItem.id);
+        } else {
+          this._inputElem.removeAttribute("aria-activedescendant");
+        }
+      },
     });
   }
 
@@ -125,7 +142,14 @@ class DropdownWithSearch<T> extends Disposable {
       cssMenuHeader(
         cssSearchIcon("Search"),
         this._inputElem = cssSearch(
-          { placeholder: this._options.placeholder || t("Search") },
+          {
+            "placeholder": this._options.placeholder || t("Search"),
+            "role": "combobox",
+            "aria-autocomplete": "list",
+            "aria-expanded": "true",
+            "aria-label": this._options.ariaLabelInput ||
+              this._options.placeholder || t("Search"),
+          },
           dom.on("input", () => { this._update(); }),
           dom.on("blur", () => setTimeout(() => this._inputElem.focus(), 0)),
         ),
@@ -157,12 +181,18 @@ class DropdownWithSearch<T> extends Disposable {
     this._highlightFunc = acResults.highlightFunc;
     let items = acResults.items;
     if (items.length < this._acIndex.totalItems) {
-      items = items.concat(new TruncatedListItem(
-        t("Showing {{displayedCount}} of {{totalCount}} items. Search for more.", {
-          displayedCount: items.length,
-          totalCount: this._acIndex.totalItems,
-        }),
-      ) as OptionItem<T>);
+      const truncatedLabel = t("Showing {{displayedCount}} of {{totalCount}} items. Search for more.", {
+        displayedCount: items.length,
+        totalCount: this._acIndex.totalItems,
+      });
+      items = items.concat(new TruncatedListItem(truncatedLabel) as OptionItem<T>);
+      this._ariaLabelListObs?.set(
+        this._options.ariaLabelList ?
+          `${this._options.ariaLabelList} - ${truncatedLabel}` :
+          truncatedLabel,
+      );
+    } else {
+      this._ariaLabelListObs?.set(this._options.ariaLabelList);
     }
     this._items.set(items);
     this._simpleList.setSelected(acResults.selectIndex);
