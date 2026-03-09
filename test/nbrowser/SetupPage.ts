@@ -113,6 +113,14 @@ describe("SetupPage", function() {
       // Gate redirects to boot-key login page.
       await driver.findWait(".test-boot-key-login-input", 10000);
       await driver.find(".test-boot-key-login-input").sendKeys("test-boot-key-123");
+      // Phase 1: Check the key.
+      await driver.find(".test-boot-key-login-submit").click();
+      // Phase 2: Email field appears after key verification.
+      await driver.findWait(".test-boot-key-login-email", 10000);
+      // Email should be pre-filled from GRIST_ADMIN_EMAIL.
+      const emailVal = await driver.find(".test-boot-key-login-email").getAttribute("value");
+      assert.equal(emailVal, "admin@example.com");
+      // Click "Continue" to complete login.
       await driver.find(".test-boot-key-login-submit").click();
       // After login, redirects to /admin/setup which shows the wizard.
       await driver.findContentWait("div", /Quick Setup/, 15000);
@@ -173,6 +181,11 @@ describe("SetupPage", function() {
       await driver.get(`${server.getHost()}/auth/boot-key`);
       await driver.findWait(".test-boot-key-login-input", 10000);
       await driver.find(".test-boot-key-login-input").sendKeys("test-fallback-key");
+      // Phase 1: Check the key.
+      await driver.find(".test-boot-key-login-submit").click();
+      // Phase 2: Email field appears after key verification.
+      await driver.findWait(".test-boot-key-login-email", 10000);
+      // Click "Continue" to complete login.
       await driver.find(".test-boot-key-login-submit").click();
       // After boot-key login, should reach the main page (server is in service).
       await driver.wait(async () => {
@@ -212,6 +225,11 @@ describe("SetupPage", function() {
       await driver.get(`${server.getHost()}/`);
       await driver.findWait(".test-boot-key-login-input", 10000);
       await driver.find(".test-boot-key-login-input").sendKeys("recovery-key-456");
+      // Phase 1: Check the key.
+      await driver.find(".test-boot-key-login-submit").click();
+      // Phase 2: Email field appears after key verification.
+      await driver.findWait(".test-boot-key-login-email", 10000);
+      // Click "Continue" to complete login.
       await driver.find(".test-boot-key-login-submit").click();
       await driver.findContentWait("div", /Quick Setup/, 15000);
     });

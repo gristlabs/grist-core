@@ -448,9 +448,10 @@ const _sandboxAvailabilityProbe: Probe = {
     const candidates = single && SANDBOX_CANDIDATES.includes(single) ?
       [single] : SANDBOX_CANDIDATES;
     const results = await Promise.all(candidates.map(_testSandboxFlavor));
+    const configured = process.env.GRIST_SANDBOX_FLAVOR || "";
     return {
       status: results.some(r => r.available) ? "success" : "fault",
-      details: { flavors: results },
+      details: { flavors: results, configured },
     };
   },
 };

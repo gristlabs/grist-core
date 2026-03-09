@@ -5,6 +5,7 @@ import {
   ConfigValue,
   ConfigValueCheckers,
 } from "app/common/Config";
+import { isAffirmative } from "app/common/gutil";
 import { InstallPrefs } from "app/common/Install";
 import { getOrgKey } from "app/gen-server/ApiServer";
 import { Config } from "app/gen-server/entity/Config";
@@ -118,6 +119,15 @@ export function attachEarlyEndpoints(options: AttachOptions) {
     }),
   );
 
+  // Query current maintenance / service state.
+  app.get(
+    "/api/admin/maintenance",
+    expressWrap(async (_req, res) => {
+      const inService = isAffirmative(process.env.GRIST_IN_SERVICE);
+      return res.status(200).send({ maintenance: !inService, inService });
+    }),
+  );
+
   // Toggle maintenance mode (take Grist out of / back into service).
   app.post(
     "/api/admin/maintenance",
@@ -129,8 +139,8 @@ export function attachEarlyEndpoints(options: AttachOptions) {
       }
       const activations = gristServer.getActivations();
       if (enable) {
-        await activations.updateAppEnvFile({ GRIST_IN_SERVICE: null });
-        delete process.env.GRIST_IN_SERVICE;
+        await activations.updateAppEnvFile({ GRIST_IN_SERVICE: "false" });
+        process.env.GRIST_IN_SERVICE = "false";
       } else {
         await activations.updateAppEnvFile({ GRIST_IN_SERVICE: "true" });
         process.env.GRIST_IN_SERVICE = "true";

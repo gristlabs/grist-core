@@ -83,62 +83,43 @@ export function addBootKeyRoutes(app: Express, gristServer: GristServer) {
     await sendBootKeyPage(gristServer, req, res, next, error);
   }));
 
+  // Check the boot key without completing login. Returns the admin
+  // email (if configured) so the client can pre-fill it.
+  app.post("/auth/boot-key/check", express.json(), expressWrap(async (req, res) => {
+    const bootKey = req.body?.bootKey;
+    const serverBootKey = gristServer.getBootKey();
+    if (!serverBootKey || bootKey !== serverBootKey) {
+      return res.status(401).json({ valid: false, error: "invalid-key" });
+    }
+    const adminEmail = process.env.GRIST_ADMIN_EMAIL || "";
+    return res.json({ valid: true, email: adminEmail });
+  }));
+
   // Validate the boot key and establish a session.
   app.post("/auth/boot-key", express.urlencoded({ extended: false }), expressWrap(async (req, res) => {
     const bootKey = req.body?.bootKey;
     const next = req.body?.next || "/";
     const submittedEmail: string | undefined = req.body?.email?.trim();
 
-    // Two-step flow: on the email step, the boot key was already
-    // validated and a session flag was set. Check that instead of
-    // requiring the boot key again (which would mean passing it
-    // through the URL or a hidden field).
-    const session = (req as any).session;
-    const isEmailStep = !!session?.bootKeyValidated;
-
-    if (!isEmailStep) {
-      // Step 1: validate the boot key.
-      const serverBootKey = gristServer.getBootKey();
-      if (!serverBootKey || bootKey !== serverBootKey) {
-        const url = new URL("/auth/boot-key", gristServer.getHomeUrl(req));
-        url.searchParams.set("next", next);
-        url.searchParams.set("error", "invalid-key");
-        return res.redirect(url.href);
-      }
-
-      let email: string | undefined = process.env.GRIST_ADMIN_EMAIL;
-      if (!email && !submittedEmail) {
-        // Boot key valid but no admin email — store a session flag
-        // and redirect to collect the email. The boot key is NOT
-        // passed in the URL to avoid leaking it in browser history,
-        // server logs, or referrer headers.
-        session.bootKeyValidated = true;
-        const url = new URL("/auth/boot-key", gristServer.getHomeUrl(req));
-        url.searchParams.set("next", next);
-        url.searchParams.set("step", "email");
-        return res.redirect(url.href);
-      }
-
-      // Boot key valid and admin email available — fall through to login.
-      if (!email && submittedEmail) {
-        email = submittedEmail;
-      }
-      return completeLogin(req, res, gristServer, email!, next);
-    }
-
-    // Step 2: email collection (boot key already validated via session flag).
-    delete session.bootKeyValidated;
-
-    if (!submittedEmail) {
-      // No email submitted — send back to the email step.
+    // Validate the boot key.
+    const serverBootKey = gristServer.getBootKey();
+    if (!serverBootKey || bootKey !== serverBootKey) {
       const url = new URL("/auth/boot-key", gristServer.getHomeUrl(req));
       url.searchParams.set("next", next);
-      url.searchParams.set("step", "email");
       url.searchParams.set("error", "invalid-key");
       return res.redirect(url.href);
     }
 
-    return completeLogin(req, res, gristServer, submittedEmail, next);
+    // Use submitted email (user confirmed or entered), fall back to env var.
+    const email = submittedEmail || process.env.GRIST_ADMIN_EMAIL;
+    if (!email) {
+      const url = new URL("/auth/boot-key", gristServer.getHomeUrl(req));
+      url.searchParams.set("next", next);
+      url.searchParams.set("error", "invalid-key");
+      return res.redirect(url.href);
+    }
+
+    return completeLogin(req, res, gristServer, email, next);
   }));
 }
 
@@ -177,11 +158,6 @@ async function sendBootKeyPage(
   next: string,
   error: string,
 ) {
-  // The "step" query param is set by the POST handler when the boot
-  // key was validated but an admin email is still needed. The boot key
-  // itself is stored in the session, not passed in the URL.
-  const step = String(req.query.step || "");
-
   return gristServer.sendAppPage(req, res, {
     path: "error.html",
     status: 200,
@@ -190,7 +166,6 @@ async function sendBootKeyPage(
       errDetails: {
         next,
         ...(error ? { error } : {}),
-        ...(step === "email" ? { step: "email" } : {}),
       },
     },
   });

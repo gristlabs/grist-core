@@ -103,6 +103,13 @@ export class MergedServer {
     }
     ms.flexServer.denyRequestsIfNotReady();
 
+    // Sessions must be available before the setup gate so that
+    // boot-key login can create sessions during initial setup.
+    ms.flexServer.addHosts();
+    if (ms.hasComponent("home") || ms.hasComponent("docs") || ms.hasComponent("app")) {
+      ms.flexServer.addSessions();
+    }
+
     if (ms.hasComponent("home") || ms.hasComponent("app")) {
       await ms.flexServer.addSetupGate();
     }
@@ -115,8 +122,6 @@ export class MergedServer {
       ms.flexServer.addStaticAndBowerDirectories();
     }
 
-    ms.flexServer.addHosts();
-
     ms.flexServer.addDocWorkerMap();
 
     if (ms.hasComponent("home") || ms.hasComponent("static")) {
@@ -125,10 +130,6 @@ export class MergedServer {
 
     if (ms.hasComponent("home")) {
       ms.flexServer.addEarlyWebhooks();
-    }
-
-    if (ms.hasComponent("home") || ms.hasComponent("docs") || ms.hasComponent("app")) {
-      ms.flexServer.addSessions();
     }
 
     ms.flexServer.addAccessMiddleware();

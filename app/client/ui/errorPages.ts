@@ -262,53 +262,71 @@ export function createBootKeyLoginPage(appModel: AppModel) {
     "invalid-key": "Invalid boot key. Please try again.",
   };
   const serverError = BOOT_KEY_ERRORS[errDetails?.error || ""] || "";
-  // Step "email" means the boot key was already validated (server stored
-  // a session flag) and we just need the admin email.
-  const isEmailStep = errDetails?.step === "email";
 
   const bootKeyValue = observable("");
   const emailValue = observable("");
   const tipsOpen = observable(false);
-  const status = observable<"idle" | "working" | "error">("idle");
+  // "idle" → "checking" → "key-ok" → "signing-in"
+  const status = observable<"idle" | "checking" | "key-ok" | "signing-in" | "error">("idle");
   const errorMsg = observable(serverError);
+  // Whether boot key field should be disabled (after successful check).
+  const keyConfirmed = observable(false);
 
   // If the user navigates back after submitting, the browser restores the
-  // page from bfcache with status still "working". Reset it.
-  window.addEventListener("pageshow", () => status.set("idle"));
+  // page from bfcache with status still "signing-in". Reset it.
+  window.addEventListener("pageshow", () => {
+    if (status.get() === "signing-in") { status.set("key-ok"); }
+  });
 
-  async function submit() {
-    if (isEmailStep) {
-      if (!emailValue.get().trim()) { return; }
-    } else {
-      if (!bootKeyValue.get().trim()) { return; }
-    }
-    status.set("working");
+  // Step 1: validate boot key against the server, get admin email.
+  async function checkKey() {
+    if (!bootKeyValue.get().trim()) { return; }
+    status.set("checking");
     errorMsg.set("");
     try {
-      // POST as a form submission and follow the redirect.
-      const form = document.createElement("form");
-      form.method = "POST";
-      form.action = "/auth/boot-key";
-      form.style.display = "none";
-      const addField = (name: string, value: string) => {
-        const input = document.createElement("input");
-        input.type = "hidden";
-        input.name = name;
-        input.value = value;
-        form.appendChild(input);
-      };
-      addField("next", next);
-      if (isEmailStep) {
-        addField("email", emailValue.get().trim());
-      } else {
-        addField("bootKey", bootKeyValue.get().trim());
+      const resp = await fetch("/auth/boot-key/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bootKey: bootKeyValue.get().trim() }),
+      });
+      const body = await resp.json();
+      if (!body.valid) {
+        errorMsg.set("Invalid boot key. Please try again.");
+        status.set("error");
+        return;
       }
-      document.body.appendChild(form);
-      form.submit();
+      keyConfirmed.set(true);
+      if (body.email) {
+        emailValue.set(body.email);
+      }
+      status.set("key-ok");
     } catch (e) {
       errorMsg.set((e as Error).message);
       status.set("error");
     }
+  }
+
+  // Step 2: submit boot key + email to complete login.
+  function submitLogin() {
+    if (!bootKeyValue.get().trim() || !emailValue.get().trim()) { return; }
+    status.set("signing-in");
+    errorMsg.set("");
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = "/auth/boot-key";
+    form.style.display = "none";
+    const addField = (name: string, value: string) => {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = name;
+      input.value = value;
+      form.appendChild(input);
+    };
+    addField("next", next);
+    addField("bootKey", bootKeyValue.get().trim());
+    addField("email", emailValue.get().trim());
+    document.body.appendChild(form);
+    form.submit();
   }
 
   return pagePanels({
@@ -329,9 +347,8 @@ export function createBootKeyLoginPage(appModel: AppModel) {
         cssBootLoginCard(
           { style: "animation: bootFadeUp 0.5s ease 0.3s both;" },
 
-          // Step 1: Boot key field (hidden on email step)
-          ...(isEmailStep ? [] : [
-            cssBootFieldGroup(
+          // Boot key field
+          cssBootFieldGroup(
               cssBootLoginLabel("Boot key"),
               cssBootKeyInput(
                 dom.prop("value", bootKeyValue),
@@ -339,83 +356,93 @@ export function createBootKeyLoginPage(appModel: AppModel) {
                   bootKeyValue.set(elem.value);
                   if (elem.value.trim()) { tipsOpen.set(false); }
                 }),
+                dom.prop("disabled", keyConfirmed),
                 { placeholder: "Paste boot key here", autofocus: true },
                 dom.on("keydown", (ev: KeyboardEvent) => {
-                  if (ev.key === "Enter") { void submit(); }
+                  if (ev.key === "Enter" && !keyConfirmed.get()) { void checkKey(); }
                 }),
                 testId("boot-key-login-input"),
               ),
-              cssBootFieldCaption(
-                "Find ",
-                dom("b", "BOOT KEY"),
-                " in your server logs. ",
-                dom("span",
-                  cssBootHelpLink.cls(""),
-                  dom.on("click", (ev: MouseEvent) => {
-                    const tips = (ev.currentTarget as HTMLElement)
-                      .closest("." + cssBootFieldGroup.className)
-                      ?.querySelector("." + cssBootTips.className) as HTMLElement | null;
-                    if (tips) {
-                      const open = tipsOpen.get();
-                      tipsOpen.set(!open);
-                      tips.setAttribute("data-open", String(!open));
-                      if (open) {
-                        tips.style.maxHeight = tips.scrollHeight + "px";
-                        requestAnimationFrame(() => { tips.style.maxHeight = "0"; });
-                      } else {
-                        tips.style.maxHeight = "none";
-                      }
-                    }
-                  }),
-                  dom.text(use => use(tipsOpen) ? "Hide help" : "Need help?"),
-                ),
-              ),
-              cssBootHelpWrap(
-                dom.cls("collapsed", use => !!use(bootKeyValue).trim()),
-                dom("div",
-                  cssBootTips(
-                    { "data-open": "false" },
-                    cssBootTip(
-                      cssBootTipTitle("What to look for"),
-                      dom("pre", cssBootBannerPre.cls(""),
-                        "┌──────────────────────────────────────────┐\n" +
-                        "│                                          │\n" +
-                        "│   BOOT KEY: abc123-your-key-here...      │\n" +
-                        "│                                          │\n" +
-                        "└──────────────────────────────────────────┘",
-                      ),
-                      cssBootTipCaption("This banner appears near the top of the server output."),
+              dom.domComputed(keyConfirmed, (confirmed) => {
+                if (confirmed) {
+                  return cssBootFieldCaption(
+                    { style: "color: #1e7e34;" },
+                    "\u2713 Boot key verified",
+                  );
+                }
+                return [
+                  cssBootFieldCaption(
+                    "Find ",
+                    dom("b", "BOOT KEY"),
+                    " in your server logs. ",
+                    dom("span",
+                      cssBootHelpLink.cls(""),
+                      dom.on("click", (ev: MouseEvent) => {
+                        const tips = (ev.currentTarget as HTMLElement)
+                          .closest("." + cssBootFieldGroup.className)
+                          ?.querySelector("." + cssBootTips.className) as HTMLElement | null;
+                        if (tips) {
+                          const open = tipsOpen.get();
+                          tipsOpen.set(!open);
+                          tips.setAttribute("data-open", String(!open));
+                          if (open) {
+                            tips.style.maxHeight = tips.scrollHeight + "px";
+                            requestAnimationFrame(() => { tips.style.maxHeight = "0"; });
+                          } else {
+                            tips.style.maxHeight = "none";
+                          }
+                        }
+                      }),
+                      dom.text(use => use(tipsOpen) ? "Hide help" : "Need help?"),
                     ),
-                    cssBootTip(
-                      cssBootTipTitle("Or set your own"),
-                      cssBootTipBody(
-                        "Set the environment variable ",
-                        dom("code", cssBootCode.cls(""), "GRIST_BOOT_KEY"),
-                        " to any value you choose, then restart Grist.",
-                      ),
-                    ),
-                    cssBootTip(
-                      cssBootTipTitle("Why boot keys?"),
-                      cssBootTipBody(
-                        "Entering a boot key proves that you are the person installing Grist, " +
-                        "and not someone nefarious. If you are in a private trusted network, " +
-                        "you can set ",
-                        dom("code", cssBootCode.cls(""), "GRIST_IN_SERVICE"),
-                        " to turn off this check.",
+                  ),
+                  cssBootHelpWrap(
+                    dom.cls("collapsed", use => !!use(bootKeyValue).trim()),
+                    dom("div",
+                      cssBootTips(
+                        { "data-open": "false" },
+                        cssBootTip(
+                          cssBootTipTitle("What to look for"),
+                          dom("pre", cssBootBannerPre.cls(""),
+                            "┌──────────────────────────────────────────┐\n" +
+                            "│                                          │\n" +
+                            "│   BOOT KEY: abc123-your-key-here...      │\n" +
+                            "│                                          │\n" +
+                            "└──────────────────────────────────────────┘",
+                          ),
+                          cssBootTipCaption("This banner appears near the top of the server output."),
+                        ),
+                        cssBootTip(
+                          cssBootTipTitle("Or set your own"),
+                          cssBootTipBody(
+                            "Set the environment variable ",
+                            dom("code", cssBootCode.cls(""), "GRIST_BOOT_KEY"),
+                            " to any value you choose, then restart Grist.",
+                          ),
+                        ),
+                        cssBootTip(
+                          cssBootTipTitle("Why boot keys?"),
+                          cssBootTipBody(
+                            "Entering a boot key proves that you are the person installing Grist, " +
+                            "and not someone nefarious. If you are in a private trusted network, " +
+                            "you can set ",
+                            dom("code", cssBootCode.cls(""), "GRIST_IN_SERVICE"),
+                            " to turn off this check.",
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
-            ),
-          ]),
+                ];
+              }),
+          ),
 
           dom.maybe(errorMsg, err =>
             cssSetupError(err, testId("boot-key-login-error")),
           ),
 
-          // Step 2: Email field (only after boot key validation)
-          ...(isEmailStep ? [
+          // Email field — revealed after boot key is verified.
+          dom.maybe(keyConfirmed, () =>
             cssBootFieldGroup(
               cssBootLoginLabel("Administrator email"),
               cssBootEmailInput(
@@ -423,27 +450,40 @@ export function createBootKeyLoginPage(appModel: AppModel) {
                 dom.on("input", (_e: Event, elem: HTMLInputElement) => emailValue.set(elem.value)),
                 { placeholder: "you@example.com", type: "email", autofocus: true },
                 dom.on("keydown", (ev: KeyboardEvent) => {
-                  if (ev.key === "Enter") { void submit(); }
+                  if (ev.key === "Enter") { submitLogin(); }
                 }),
                 testId("boot-key-login-email"),
               ),
               cssBootFieldCaption(
-                "This will be your admin account for managing Grist.",
+                dom.domComputed(emailValue, (val) =>
+                  val ? "Confirm or change the administrator email address." :
+                    "This will be your admin account for managing Grist."
+                ),
               ),
             ),
-          ] : []),
-
-          // — Submit —
-          cssBootSubmitButton(
-            dom.domComputed(status, s =>
-              s === "working" ? "Signing in\u2026" :
-              isEmailStep ? "Continue" : "Sign in"),
-            dom.prop("disabled", use =>
-              (isEmailStep ? !use(emailValue).trim() : !use(bootKeyValue).trim()) ||
-              use(status) === "working"),
-            dom.on("click", () => void submit()),
-            testId("boot-key-login-submit"),
           ),
+
+          // Buttons: "Check key" before verification, "Continue" after.
+          dom.domComputed(keyConfirmed, (confirmed) => {
+            if (!confirmed) {
+              return cssBootSubmitButton(
+                dom.domComputed(status, s =>
+                  s === "checking" ? "Checking\u2026" : "Check key"),
+                dom.prop("disabled", use =>
+                  !use(bootKeyValue).trim() || use(status) === "checking"),
+                dom.on("click", () => void checkKey()),
+                testId("boot-key-login-submit"),
+              );
+            }
+            return cssBootSubmitButton(
+              dom.domComputed(status, s =>
+                s === "signing-in" ? "Signing in\u2026" : "Continue"),
+              dom.prop("disabled", use =>
+                !use(emailValue).trim() || use(status) === "signing-in"),
+              dom.on("click", () => submitLogin()),
+              testId("boot-key-login-submit"),
+            );
+          }),
         ),
       ),
 
