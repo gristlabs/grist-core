@@ -1698,10 +1698,10 @@ namespace gristUtils {
 
   export async function search(what: string) {
     await driver.find(".test-tb-search-icon").click();
-    await driver.sleep(500);
-    await driver.find(".test-tb-search-input input").click();
-    await selectAll();
-    await driver.sendKeys(what);
+    const input = await driver.findWait(".test-tb-search-input input", 1000);
+
+    await driver.wait(async () => input.hasFocus(), 1000);
+    await sendKeys(await selectAllKey(), what);
     // Sleep for search debounce time
     await driver.sleep(120);
   }
