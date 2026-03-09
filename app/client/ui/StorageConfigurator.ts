@@ -125,7 +125,7 @@ export class StorageConfigurator extends Disposable {
         );
       }),
       // Inline setup instructions for selected-but-unconfigured backends.
-      dom.domComputed(use => {
+      dom.domComputed((use) => {
         const sel = use(this.selected);
         const backend = use(this.backends).find(b => b.name === sel);
         if (backend?.status !== "selectable") { return null; }

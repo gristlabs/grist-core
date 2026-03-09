@@ -29,10 +29,10 @@ import { App } from "app/client/ui/App";
 import { AuditLogStreamingConfig, getDestinationDisplayName } from "app/client/ui/AuditLogStreamingConfig";
 import { AuthenticationSection } from "app/client/ui/AuthenticationSection";
 import { InstallConfigsAPI } from "app/client/ui/ConfigsAPI";
-import { SandboxConfigurator, buildSandboxingInfo } from "app/client/ui/SandboxConfigurator";
+import { pagePanels } from "app/client/ui/PagePanels";
+import { buildSandboxingInfo, SandboxConfigurator } from "app/client/ui/SandboxConfigurator";
 import { buildSetupWizard } from "app/client/ui/SetupWizard";
 import { StorageConfigurator } from "app/client/ui/StorageConfigurator";
-import { pagePanels } from "app/client/ui/PagePanels";
 import { SupportGristPage } from "app/client/ui/SupportGristPage";
 import { ToggleEnterpriseWidget } from "app/client/ui/ToggleEnterpriseWidget";
 import { createTopBarHome } from "app/client/ui/TopBar";
@@ -88,9 +88,9 @@ export class AdminPanel extends Disposable {
     // When the left panel is fully collapsed (collapsedWidth === 0), hide the breadcrumbs
     // and extra buttons so the top bar is mostly empty — just the opener on the left
     // and user account on the right.
-    const isFullyCollapsed = collapsedWidth
-      ? Computed.create(this, use => use(collapsedWidth) === 0)
-      : Observable.create(this, false);
+    const isFullyCollapsed = collapsedWidth ?
+      Computed.create(this, use => use(collapsedWidth) === 0) :
+      Observable.create(this, false);
     return [
       cssBreadcrumbs({ style: "margin-left: 16px;" },
         dom.show(use => !use(isFullyCollapsed)),

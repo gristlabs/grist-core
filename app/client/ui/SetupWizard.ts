@@ -1,12 +1,12 @@
 import { makeT } from "app/client/lib/localization";
-import { AppModel, getHomeUrl } from "app/client/models/AppModel";
 import { AdminChecks } from "app/client/models/AdminChecks";
+import { AppModel, getHomeUrl } from "app/client/models/AppModel";
 import { AuthenticationSection } from "app/client/ui/AuthenticationSection";
-import { basicButton, primaryButton } from "app/client/ui2018/buttons";
-import { testId, theme } from "app/client/ui2018/cssVars";
 import { GoLiveControl } from "app/client/ui/GoLiveControl";
 import { SandboxConfigurator } from "app/client/ui/SandboxConfigurator";
 import { StorageConfigurator } from "app/client/ui/StorageConfigurator";
+import { basicButton, primaryButton } from "app/client/ui2018/buttons";
+import { testId, theme } from "app/client/ui2018/cssVars";
 import { InstallAPIImpl } from "app/common/InstallAPI";
 
 import { Computed, Disposable, dom, DomContents, Observable, styled } from "grainjs";
@@ -54,6 +54,7 @@ export class SetupWizard extends Disposable {
   private _authCheck = Computed.create(this, (use) => {
     return this._checks.requestCheckById(use, "authentication");
   });
+
   private _loginProvider = Computed.create<string | undefined>(this, (use) => {
     const req = use(this._authCheck);
     const result = req ? use(req.result) : undefined;
@@ -62,6 +63,7 @@ export class SetupWizard extends Disposable {
     }
     return undefined;
   });
+
   private _hasRealAuth = Computed.create(this, (use) => {
     const provider = use(this._loginProvider);
     return !!provider && provider !== "no-logins" && provider !== "boot-key" && provider !== "minimal";
@@ -71,22 +73,22 @@ export class SetupWizard extends Disposable {
     {
       step: 1,
       label: t("Sandboxing"),
-      done: (use) => use(this._sandboxConfirmed),
+      done: use => use(this._sandboxConfirmed),
     },
     {
       step: 2,
       label: t("Authentication"),
-      done: (use) => use(this._authConfirmed),
+      done: use => use(this._authConfirmed),
     },
     {
       step: 3,
       label: t("Backups"),
-      done: (use) => use(this._storageConfirmed),
+      done: use => use(this._storageConfirmed),
     },
     {
       step: 4,
       label: t("Apply & Restart"),
-      done: (use) => use(this._goLive.status) === "success",
+      done: use => use(this._goLive.status) === "success",
     },
   ];
 
@@ -110,6 +112,135 @@ export class SetupWizard extends Disposable {
     this.autoDispose(this._sandboxConfirmed.addListener(() => this._saveState()));
     this.autoDispose(this._authConfirmed.addListener(() => this._saveState()));
     this.autoDispose(this._storageConfirmed.addListener(() => this._saveState()));
+  }
+
+  public buildDom() {
+    const hideMockup = new URLSearchParams(window.location.search).has("no-mockup");
+
+    return cssWizardPage(
+      cssWizardGlow(),
+      cssWizardContent(
+        cssLogo({ style: "animation: wizFadeUp 0.5s ease both;" }),
+        cssTitle(
+          t("Quick Setup"),
+          { style: "animation: wizFadeUp 0.5s ease 0.08s both;" },
+          testId("setup-title"),
+        ),
+        cssSubtitle(
+          t("Configure Grist for your environment."),
+          { style: "animation: wizFadeUp 0.5s ease 0.14s both;" },
+        ),
+
+        // Progress rail — horizontal track with connected step dots.
+        cssProgressRail(
+          { style: "animation: wizFadeUp 0.5s ease 0.2s both;" },
+          // Filled portion of the rail, width tracks active step.
+          cssProgressFill(
+            dom.style("width", (use) => {
+              const step = use(this._activeStep);
+              // 0% at step 1, 33% at step 2, 67% at step 3, 100% at step 4.
+              return `${((step - 1) / 3) * 100}%`;
+            }),
+          ),
+          ...this._steps.map(({ step, label, done }) =>
+            cssProgressStep(
+              dom.style("left", `${((step - 1) / 3) * 100}%`),
+              cssProgressDot(
+                cssProgressDot.cls("-active", use => use(this._activeStep) === step),
+                cssProgressDot.cls("-done", done),
+                dom.domComputed(done, isDone =>
+                  isDone ?
+                    cssProgressDotCheck("\u2713") :
+                    cssProgressDotNumber(String(step)),
+                ),
+                dom.on("click", () => this._activeStep.set(step)),
+              ),
+              cssProgressLabel(
+                label,
+                cssProgressLabel.cls("-active", use => use(this._activeStep) === step),
+              ),
+              testId(`setup-tab-${step}`),
+            ),
+          ),
+        ),
+
+        // Step panels — cards with entrance animation.
+        // Step 1: Sandboxing
+        cssStepCard(
+          dom.show(use => use(this._activeStep) === 1),
+          cssStepHeader(
+            cssStepIcon("\uD83D\uDEE1\uFE0F"),
+            cssStepTitle(t("Sandboxing")),
+          ),
+          cssStepDesc(
+            t("Grist runs user formulas as Python code. Sandboxing isolates this execution " +
+              "to protect your server. Without it, document formulas can access the full system."),
+          ),
+          this._sandbox.buildDom({
+            onContinue: () => {
+              this._sandboxConfirmed.set(true);
+              this._activeStep.set(2);
+            },
+          }),
+          testId("setup-step-sandbox"),
+        ),
+
+        // Step 2: Authentication
+        cssStepCard(
+          dom.show(use => use(this._activeStep) === 2),
+          cssStepHeader(
+            cssStepIcon("\uD83D\uDD10"),
+            cssStepTitle(t("Authentication")),
+          ),
+          cssStepDesc(
+            t("Configure how users sign in to Grist. Without authentication, anyone who " +
+              "can reach your server gets unrestricted access as an admin user."),
+          ),
+          this._buildAuthStep(),
+          testId("setup-step-auth"),
+        ),
+
+        // Step 3: Backups / External Storage
+        cssStepCard(
+          dom.show(use => use(this._activeStep) === 3),
+          cssStepHeader(
+            cssStepIcon("\uD83D\uDCBE"),
+            cssStepTitle(t("Backups")),
+          ),
+          cssStepDesc(
+            t("Configure external storage to back up document snapshots off-server. " +
+              "This enables versioning and protects against data loss."),
+          ),
+          this._storage.buildDom({
+            onContinue: () => {
+              this._storageConfirmed.set(true);
+              this._activeStep.set(4);
+            },
+          }),
+          testId("setup-step-storage"),
+        ),
+
+        // Step 4: Apply & Restart
+        cssStepCard(
+          dom.show(use => use(this._activeStep) === 4),
+          cssStepHeader(
+            cssStepIcon("\uD83D\uDE80"),
+            cssStepTitle(t("Apply & Restart")),
+          ),
+          cssStepDesc(
+            t("Restart Grist to apply any configuration changes made in the previous steps."),
+          ),
+          this._goLive.buildDom({
+            mode: "restart",
+            canProceed: Observable.create(this, true),
+          }),
+          testId("setup-step-go-live"),
+        ),
+
+        testId("setup-page"),
+      ),
+      hideMockup ? null : this._buildMockupControls(),
+    );
   }
 
   private _saveState() {
@@ -154,135 +285,6 @@ export class SetupWizard extends Disposable {
         this._storageConfirmed.set(true);
       }
     } catch (_) { /* ok — corrupted or unavailable */ }
-  }
-
-  public buildDom() {
-    const hideMockup = new URLSearchParams(window.location.search).has("no-mockup");
-
-    return cssWizardPage(
-      cssWizardGlow(),
-      cssWizardContent(
-        cssLogo({ style: "animation: wizFadeUp 0.5s ease both;" }),
-        cssTitle(
-          t("Quick Setup"),
-          { style: "animation: wizFadeUp 0.5s ease 0.08s both;" },
-          testId("setup-title"),
-        ),
-        cssSubtitle(
-          t("Configure Grist for your environment."),
-          { style: "animation: wizFadeUp 0.5s ease 0.14s both;" },
-        ),
-
-        // Progress rail — horizontal track with connected step dots.
-        cssProgressRail(
-          { style: "animation: wizFadeUp 0.5s ease 0.2s both;" },
-          // Filled portion of the rail, width tracks active step.
-          cssProgressFill(
-            dom.style("width", (use) => {
-              const step = use(this._activeStep);
-              // 0% at step 1, 33% at step 2, 67% at step 3, 100% at step 4.
-              return `${((step - 1) / 3) * 100}%`;
-            }),
-          ),
-          ...this._steps.map(({ step, label, done }) =>
-            cssProgressStep(
-              dom.style("left", `${((step - 1) / 3) * 100}%`),
-              cssProgressDot(
-                cssProgressDot.cls("-active", (use) => use(this._activeStep) === step),
-                cssProgressDot.cls("-done", done),
-                dom.domComputed(done, (isDone) =>
-                  isDone
-                    ? cssProgressDotCheck("\u2713")
-                    : cssProgressDotNumber(String(step))
-                ),
-                dom.on("click", () => this._activeStep.set(step)),
-              ),
-              cssProgressLabel(
-                label,
-                cssProgressLabel.cls("-active", (use) => use(this._activeStep) === step),
-              ),
-              testId(`setup-tab-${step}`),
-            ),
-          ),
-        ),
-
-        // Step panels — cards with entrance animation.
-        // Step 1: Sandboxing
-        cssStepCard(
-          dom.show((use) => use(this._activeStep) === 1),
-          cssStepHeader(
-            cssStepIcon("\uD83D\uDEE1\uFE0F"),
-            cssStepTitle(t("Sandboxing")),
-          ),
-          cssStepDesc(
-            t("Grist runs user formulas as Python code. Sandboxing isolates this execution " +
-              "to protect your server. Without it, document formulas can access the full system."),
-          ),
-          this._sandbox.buildDom({
-            onContinue: () => {
-              this._sandboxConfirmed.set(true);
-              this._activeStep.set(2);
-            },
-          }),
-          testId("setup-step-sandbox"),
-        ),
-
-        // Step 2: Authentication
-        cssStepCard(
-          dom.show((use) => use(this._activeStep) === 2),
-          cssStepHeader(
-            cssStepIcon("\uD83D\uDD10"),
-            cssStepTitle(t("Authentication")),
-          ),
-          cssStepDesc(
-            t("Configure how users sign in to Grist. Without authentication, anyone who " +
-              "can reach your server gets unrestricted access as an admin user."),
-          ),
-          this._buildAuthStep(),
-          testId("setup-step-auth"),
-        ),
-
-        // Step 3: Backups / External Storage
-        cssStepCard(
-          dom.show((use) => use(this._activeStep) === 3),
-          cssStepHeader(
-            cssStepIcon("\uD83D\uDCBE"),
-            cssStepTitle(t("Backups")),
-          ),
-          cssStepDesc(
-            t("Configure external storage to back up document snapshots off-server. " +
-              "This enables versioning and protects against data loss."),
-          ),
-          this._storage.buildDom({
-            onContinue: () => {
-              this._storageConfirmed.set(true);
-              this._activeStep.set(4);
-            },
-          }),
-          testId("setup-step-storage"),
-        ),
-
-        // Step 4: Apply & Restart
-        cssStepCard(
-          dom.show((use) => use(this._activeStep) === 4),
-          cssStepHeader(
-            cssStepIcon("\uD83D\uDE80"),
-            cssStepTitle(t("Apply & Restart")),
-          ),
-          cssStepDesc(
-            t("Restart Grist to apply any configuration changes made in the previous steps."),
-          ),
-          this._goLive.buildDom({
-            mode: "restart",
-            canProceed: Observable.create(this, true),
-          }),
-          testId("setup-step-go-live"),
-        ),
-
-        testId("setup-page"),
-      ),
-      hideMockup ? null : this._buildMockupControls(),
-    );
   }
 
   /**
@@ -705,4 +707,3 @@ const cssMockupButton = styled("button", `
     color: #fff;
   }
 `);
-

@@ -79,7 +79,7 @@ export class SandboxConfigurator extends Disposable {
       if (this.isDisposed()) { return; }
       try {
         const result: BootProbeResult = await this._installAPI.runCheck(
-          `sandbox-availability?flavor=${name}` as any
+          `sandbox-availability?flavor=${name}` as any,
         );
         if (this.isDisposed()) { return; }
         const flavorResult = result.details?.flavors?.[0];
@@ -235,7 +235,7 @@ export class SandboxConfigurator extends Disposable {
   }
 
   private _buildActionButton(onContinue?: () => void) {
-    return dom.domComputed(use => {
+    return dom.domComputed((use) => {
       const status = use(this.status);
       const selected = use(this.selected);
       const configured = use(this.configured);
