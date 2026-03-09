@@ -880,6 +880,7 @@ describe("FormView1", function() {
         await driver.findWait('select[name="D"]', 2000);
         await driver.findWait('label[for="D"]', 2000);
         await driver.find(".test-form-search-select").click();
+        await driver.findWait(".test-sd-searchable-list-item", 2000);
         assert.deepEqual(
           await driver.findAll(".test-sd-searchable-list-item", e => e.getText()),
           twoLettersCombination.slice(0, 100),
