@@ -22,20 +22,20 @@ const STORAGE_CANDIDATES = ["minio", "s3", "azure"];
 const STORAGE_META: Record<string, { label: string; desc: string; recommended?: boolean }> = {
   minio: {
     label: t("S3 (MinIO client)"),
-    desc: t("S3-compatible storage via MinIO client library. Works with AWS S3, MinIO, and others."),
+    desc: t("S3-compatible service via MinIO client library. Works with AWS S3, MinIO, and others."),
     recommended: true,
   },
   s3: {
     label: t("S3 (AWS client)"),
-    desc: t("S3-compatible storage via native AWS SDK. Supports IAM roles and AWS-native auth."),
+    desc: t("S3-compatible service via native AWS SDK. Supports IAM roles and AWS-native auth."),
   },
   azure: {
     label: t("Azure Blob Storage"),
-    desc: t("Microsoft Azure Blob Storage for document snapshots."),
+    desc: t("Microsoft Azure Blob Storage for document backups."),
   },
   none: {
     label: t("No External Storage"),
-    desc: t("Documents stored on local filesystem only. No off-server backups or versioning."),
+    desc: t("Documents stored on local disk only. No off-server backups."),
   },
 };
 
@@ -117,7 +117,7 @@ export class StorageConfigurator extends Disposable {
     return cssConfigurator(
       dom.domComputed(this.backends, (backends) => {
         if (backends.length === 0 && this.status.get() === "probing") {
-          return cssBadge(cssBadge.cls("-checking"), t("Checking external storage..."));
+          return cssBadge(cssBadge.cls("-checking"), t("Checking backup options..."));
         }
         if (backends.length === 0) { return null; }
         return cssBackendList(

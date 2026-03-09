@@ -30,7 +30,7 @@ import { AuditLogStreamingConfig, getDestinationDisplayName } from "app/client/u
 import { AuthenticationSection } from "app/client/ui/AuthenticationSection";
 import { InstallConfigsAPI } from "app/client/ui/ConfigsAPI";
 import { pagePanels } from "app/client/ui/PagePanels";
-import { buildSandboxingInfo, SandboxConfigurator } from "app/client/ui/SandboxConfigurator";
+import { SandboxConfigurator } from "app/client/ui/SandboxConfigurator";
 import { buildSetupWizard } from "app/client/ui/SetupWizard";
 import { StorageConfigurator } from "app/client/ui/StorageConfigurator";
 import { SupportGristPage } from "app/client/ui/SupportGristPage";
@@ -300,10 +300,7 @@ Please log in as an administrator.`)),
           name: t("Sandboxing"),
           description: t("Sandbox settings for data engine"),
           value: this._buildSandboxingDisplay(),
-          expandedContent: [
-            this._sandboxConfigurator.buildDom({ showAction: false }),
-            ...buildSandboxingInfo(),
-          ],
+          expandedContent: this._sandboxConfigurator.buildDom(),
         }),
         dom.create(AdminSectionItem, {
           id: "authentication",

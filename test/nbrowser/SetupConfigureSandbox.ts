@@ -176,7 +176,9 @@ describe("SetupConfigureSandbox", function() {
       // Step 1 (Sandboxing) is active by default.
       // Wait for sandbox probe to complete and submit button to appear.
       await driver.findWait(".test-sandbox-submit", 30000);
-      // "unsandboxed" should always be present as a fallback.
+      // "unsandboxed" is available via the "Other options" toggle.
+      await driver.findWait(".test-sandbox-show-alternatives", 5000);
+      await driver.find(".test-sandbox-show-alternatives").click();
       await driver.findWait(".test-sandbox-option-unsandboxed", 5000);
     });
 
@@ -317,12 +319,13 @@ describe("SetupConfigureSandbox", function() {
     });
 
     it("wizard sandbox step renders without errors", async function() {
-      const wizardUrl = `${server.getHost()}/admin/setup`;
+      const wizardUrl = `${server.getHost()}/admin/setup?no-mockup`;
       await driver.get(wizardUrl);
       await driver.findContentWait("div", /Quick Setup/, 5000);
-      // Wait for sandbox probe to complete and options to appear.
+      // Wait for sandbox probe to complete and submit button to appear.
       await driver.findWait(".test-sandbox-submit", 30000);
-      await driver.findWait(".test-sandbox-option-unsandboxed", 5000);
+      // A sandbox option should be visible (hero card).
+      await driver.findWait(".test-sandbox-configurator", 5000);
     });
 
     it("wizard auth step renders without access denied", async function() {

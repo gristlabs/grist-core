@@ -5,6 +5,7 @@ import { getMainOrgUrl, urlState } from "app/client/models/gristUrlState";
 import { AppHeader } from "app/client/ui/AppHeader";
 import { buildLanguageMenu } from "app/client/ui/LanguageMenu";
 import { leftPanelBasic } from "app/client/ui/LeftPanelCommon";
+import { buildMockupPanel, cssMockupButton, cssMockupRow, cssMockupSection } from "app/client/ui/MockupPanel";
 import { pagePanels } from "app/client/ui/PagePanels";
 import { createTopBarHome } from "app/client/ui/TopBar";
 import { bigBasicButtonLink, bigPrimaryButtonLink } from "app/client/ui2018/buttons";
@@ -501,8 +502,7 @@ export function createBootKeyLoginPage(appModel: AppModel) {
       ),
 
       // MOCKUP ONLY — auto-fill the boot key for reviewers.
-      cssMockupPanel(
-        cssMockupTitle("Mockup controls"),
+      buildMockupPanel("Mockup controls",
         cssMockupSection("Boot key login"),
         cssMockupRow(
           cssMockupButton("Fill in boot key", dom.on("click", async () => {
@@ -893,71 +893,4 @@ const cssSetupError = styled("div", `
   font-size: ${vars.mediumFontSize};
   color: ${theme.errorText};
   margin-bottom: 8px;
-`);
-
-const cssMockupPanel = styled("div", `
-  position: fixed;
-  bottom: 16px;
-  right: 16px;
-  background: ${theme.pagePanelsBorder};
-  border: 2px dashed ${theme.controlFg};
-  border-radius: 8px;
-  padding: 10px 14px;
-  z-index: 1000;
-  max-width: 420px;
-`);
-
-const cssMockupTitle = styled("div", `
-  font-size: ${vars.smallFontSize};
-  font-weight: bold;
-  color: ${theme.controlFg};
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 8px;
-`);
-
-const cssMockupRow = styled("div", `
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 6px;
-  &:last-child {
-    margin-bottom: 0;
-  }
-`);
-
-const cssMockupButton = styled("button", `
-  font-size: 11px;
-  padding: 3px 8px;
-  border: 1px solid ${theme.controlFg};
-  border-radius: 3px;
-  background: transparent;
-  color: ${theme.controlFg};
-  cursor: pointer;
-  white-space: nowrap;
-  &:hover {
-    background: ${theme.controlFg};
-    color: ${theme.controlPrimaryFg};
-  }
-  &:disabled {
-    opacity: 0.4;
-    cursor: default;
-    &:hover {
-      background: transparent;
-      color: ${theme.controlFg};
-    }
-  }
-`);
-
-const cssMockupSection = styled("div", `
-  font-size: 10px;
-  font-weight: bold;
-  color: ${theme.lightText};
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-top: 6px;
-  margin-bottom: 4px;
-  &:first-of-type {
-    margin-top: 0;
-  }
 `);
