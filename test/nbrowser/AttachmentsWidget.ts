@@ -62,10 +62,10 @@ describe("AttachmentsWidget", function() {
     // Put 'foo1' in a cell, then replace it immediately with 'foo2'.
     // This is just setting up for testing undo behaviour below.
     await gu.getCell(1, 2).click();
-    await driver.sendKeys("foo1", Key.ENTER);
+    await gu.enterCell("foo1");
     await gu.waitForServer();
     await gu.getCell(1, 2).click();
-    await driver.sendKeys("foo2", Key.ENTER);
+    await gu.enterCell("foo2");
     await gu.waitForServer();
 
     await gu.getCell(0, 2).click();
@@ -604,8 +604,10 @@ describe("AttachmentsWidget", function() {
     await driver.wait(async () => !(await cell.find(".test-attachment-spinner").isPresent()), 2000);
 
     // check the upload was successful by comparing the number of thumbnails
-    const newThumbnailsCount = (await cell.findAll(".test-pw-thumbnail"))?.length || 0;
-    assert.equal(newThumbnailsCount, thumbnailsCount + 1);
+    await gu.waitToPass(async () => {
+      const newThumbnailsCount = (await cell.findAll(".test-pw-thumbnail"))?.length || 0;
+      assert.equal(newThumbnailsCount, thumbnailsCount + 1);
+    }, 1000);
     await gu.clearTestState();
   });
 
@@ -695,6 +697,7 @@ describe("AttachmentsWidget", function() {
     // Now double click on the empty cell in row 4, we should see "No attachments" message
     const emptyCell = gu.getCell({ col: "B", rowNum: 4 });
     await gu.dbClick(emptyCell);
+    await gu.waitAppFocus(false);
     assert.equal(await driver.findWait(".test-pw-attachment-content", 1000).getText(), "No attachments");
     // Close the preview
     await driver.sendKeys(Key.ESCAPE);
