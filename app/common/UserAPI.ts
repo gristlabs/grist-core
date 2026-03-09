@@ -30,6 +30,7 @@ import {
 } from "app/common/Triggers";
 import { addCurrentOrgToPath, getGristConfig } from "app/common/urlUtils";
 import { AttachmentStore, AttachmentStoreDesc,  Record as ApiRecord, TablesGet } from "app/plugin/DocApiTypes";
+import { AddOrUpdateRecord } from "app/plugin/DocApiTypes";
 
 import { AxiosProgressEvent } from "axios";
 import omitBy from "lodash/omitBy";
@@ -351,6 +352,17 @@ export interface OrgError {
   status: number;
 }
 
+export interface AddOrUpdateRowsOptions {
+  /** Permit inserting a record. Defaults to true. */
+  add?: boolean;
+  /** Permit updating a record. Defaults to true. */
+  update?: boolean;
+  /** Whether to update none, one, or all matching records. Defaults to "first". */
+  onMany?: "none" | "first" | "all";
+  /** Allow "wildcard" operation where empty `require` matches all records. Defaults to false. */
+  allowEmptyRequire?: boolean;
+}
+
 /**
  * Options to control the source of a document being replaced.  For
  * example, a document could be initialized from another document
@@ -542,6 +554,8 @@ export interface DocAPI {
   sql(sql: string, args?: any[]): Promise<SqlResult>;
   updateRows(tableId: string, changes: TableColValues): Promise<number[]>;
   addRows(tableId: string, additions: BulkColValues): Promise<number[]>;
+  addOrUpdateRows(tableId: string, records: AddOrUpdateRecord[],
+    options?: AddOrUpdateRowsOptions): Promise<void>;
   removeRows(tableId: string, removals: number[]): Promise<number[]>;
   fork(): Promise<ForkResult>;
   replace(source: DocReplacementOptions): Promise<void>;
@@ -1152,6 +1166,21 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     return this.requestJson(`${this._url}/tables/${tableId}/data`, {
       body: JSON.stringify(additions),
       method: "POST",
+    });
+  }
+
+  public async addOrUpdateRows(
+    tableId: string, records: AddOrUpdateRecord[], options: AddOrUpdateRowsOptions = {},
+  ): Promise<void> {
+    const params = new URLSearchParams();
+    if (options.add === false) { params.set("noadd", "1"); }
+    if (options.update === false) { params.set("noupdate", "1"); }
+    if (options.onMany !== undefined) { params.set("onmany", options.onMany); }
+    if (options.allowEmptyRequire) { params.set("allow_empty_require", "1"); }
+    const query = params.toString() ? `?${params.toString()}` : "";
+    await this.requestJson(`${this._url}/tables/${tableId}/records${query}`, {
+      body: JSON.stringify({ records }),
+      method: "PUT",
     });
   }
 
