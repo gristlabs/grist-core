@@ -6,6 +6,7 @@ import { AdminCheckRequest, AdminChecks, ProbeDetails } from "app/client/models/
 import { AppModel, getHomeUrl, reportError } from "app/client/models/AppModel";
 import { AuditLogsModel, AuditLogsModelImpl } from "app/client/models/AuditLogsModel";
 import { urlState } from "app/client/models/gristUrlState";
+import { AccountWidget } from "app/client/ui/AccountWidget";
 import { cssEmail, cssUserInfo, cssUserName } from "app/client/ui/AccountWidgetCss";
 import { showEnterpriseToggle } from "app/client/ui/ActivationPage";
 import { buildAdminData } from "app/client/ui/AdminControls";
@@ -72,19 +73,27 @@ export class AdminPanel extends Disposable {
 
   public buildDom() {
     const pageObs = Computed.create(this, use => use(urlState().state).adminPanel || "admin");
+    const leftPanel = buildAdminLeftPanel(this, this._appModel);
     return pagePanels({
-      leftPanel: buildAdminLeftPanel(this, this._appModel),
-      headerMain: this._buildMainHeader(pageObs),
+      leftPanel,
+      headerMain: this._buildMainHeader(pageObs, leftPanel.collapsedWidth),
       contentTop: buildHomeBanners(this._appModel),
       contentMain: this._buildMainContent(),
       app: this._appObj,
     });
   }
 
-  private _buildMainHeader(pageObs: Computed<AdminPanelPage>) {
+  private _buildMainHeader(pageObs: Computed<AdminPanelPage>, collapsedWidth?: Observable<number>) {
     const pageNames = getPageNames();
+    // When the left panel is fully collapsed (collapsedWidth === 0), hide the breadcrumbs
+    // and extra buttons so the top bar is mostly empty — just the opener on the left
+    // and user account on the right.
+    const isFullyCollapsed = collapsedWidth
+      ? Computed.create(this, use => use(collapsedWidth) === 0)
+      : Observable.create(this, false);
     return [
       cssBreadcrumbs({ style: "margin-left: 16px;" },
+        dom.show(use => !use(isFullyCollapsed)),
         cssLink(
           urlState().setLinkUrl({}),
           t("Grist Instance"),
@@ -96,7 +105,13 @@ export class AdminPanel extends Disposable {
         separator(" / "),
         dom("span", dom.domComputed(use => pageNames.pages[use(pageObs)].name)),
       ),
-      createTopBarHome(this._appModel),
+      dom.domComputed(isFullyCollapsed, (collapsed) => {
+        if (collapsed) {
+          // Minimal header: just a spacer and account widget.
+          return [dom("div", { style: "flex: 1;" }), dom("div", dom.create(AccountWidget, this._appModel))];
+        }
+        return createTopBarHome(this._appModel);
+      }),
     ];
   }
 
@@ -1001,40 +1016,81 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
 
   private _buildMaintenanceSection() {
     const status = Observable.create<"idle" | "working">(this, "idle");
+    const inService = Observable.create<boolean | null>(this, null);
+
+    // Fetch current service state.
+    void this._configAPI.getMaintenanceMode()
+      .then(result => inService.set(result.inService))
+      .catch(() => inService.set(null));
+
     return dom.create(AdminSection, t("Maintenance"), [
       dom.create(AdminSectionItem, {
         id: "maintenance-mode",
-        name: t("Maintenance Mode"),
-        description: t("Take Grist out of service to show the setup page instead of normal operation"),
-        value: basicButton(
-          t("Enable Maintenance Mode"),
-          dom.prop("disabled", use => use(status) === "working"),
-          dom.on("click", () => {
-            confirmModal(
-              t("Enable Maintenance Mode?"),
-              t("Enable"),
-              async () => {
-                status.set("working");
-                try {
-                  await this._configAPI.setMaintenanceMode(true);
-                  window.location.href = "/";
-                } catch (err) {
-                  status.set("idle");
-                  reportError(err as Error);
-                }
-              },
-              {
-                explanation: dom("div",
-                  dom("p",
-                    t("This will take Grist out of service. All users will see the setup page " +
-                      "until Grist is brought back into service."),
-                  ),
-                ),
-              },
+        name: t("Service Status"),
+        description: t("Take Grist out of service for maintenance. " +
+          "Non-admin users will be blocked until service is restored."),
+        value: dom.domComputed(inService, (isInService) => {
+          if (isInService === null) { return null; }
+          return isInService ?
+            cssValueLabel(cssHappyText(t("In Service")), testId("admin-panel-service-status")) :
+            cssValueLabel(cssDangerText(t("Out of Service")), testId("admin-panel-service-status"));
+        }),
+        expandedContent: dom.domComputed(inService, (isInService) => {
+          if (isInService === null) { return null; }
+          if (isInService) {
+            return basicButton(
+              t("Take Out of Service"),
+              dom.prop("disabled", use => use(status) === "working"),
+              dom.on("click", () => {
+                confirmModal(
+                  t("Take Grist Out of Service?"),
+                  t("Confirm"),
+                  async () => {
+                    status.set("working");
+                    try {
+                      await this._configAPI.setMaintenanceMode(true);
+                      window.location.href = "/admin";
+                    } catch (err) {
+                      status.set("idle");
+                      reportError(err as Error);
+                    }
+                  },
+                  {
+                    explanation: dom("div",
+                      dom("p",
+                        t("This will take Grist out of service. Non-admin users will see " +
+                          "the boot-key login page until service is restored."),
+                      ),
+                    ),
+                  },
+                );
+              }),
+              testId("admin-panel-maintenance-button"),
             );
-          }),
-          testId("admin-panel-maintenance-button"),
-        ),
+          }
+          return basicButton(
+            t("Restore Service"),
+            dom.prop("disabled", use => use(status) === "working"),
+            dom.on("click", async () => {
+              status.set("working");
+              try {
+                await this._configAPI.setMaintenanceMode(false);
+                await this._configAPI.restartServer();
+              } catch (err) {
+                // Restart kills the connection, so errors are expected.
+              }
+              // Poll until the server is back, then reload.
+              const poll = setInterval(async () => {
+                try {
+                  await this._configAPI.healthcheck();
+                  clearInterval(poll);
+                  window.location.reload();
+                } catch { /* not ready yet */ }
+              }, 1000);
+            }),
+            testId("admin-panel-restore-button"),
+          );
+        }),
       }),
     ]);
   }

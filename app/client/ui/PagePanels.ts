@@ -33,6 +33,7 @@ export interface PageSidePanel {
   panelWidth: Observable<number>;
   panelOpen: Observable<boolean>;
   hideOpener?: boolean;           // If true, don't show the opener handle.
+  collapsedWidth?: Observable<number>;  // Width when collapsed (default 48). Use 0 for full collapse.
   header?: DomElementArg;
   content: DomElementArg;
 }
@@ -174,16 +175,22 @@ export function pagePanels(page: PageContents) {
             testId("left-disabled-resizer"),
           ),
 
-          dom.style("width", use => use(left.panelOpen) ? use(left.panelWidth) + "px" : ""),
+          dom.style("width", use => {
+            if (use(left.panelOpen)) { return use(left.panelWidth) + "px"; }
+            if (left.collapsedWidth) { return use(left.collapsedWidth) + "px"; }
+            return "";
+          }),
 
           // Opening/closing the left pane, with transitions.
           cssLeftPane.cls("-open", left.panelOpen),
           transition(use => (use(isNarrowScreenObs()) ? false : use(left.panelOpen)), {
             prepare(elem, open) {
-              elem.style.width = (open ? 48 : left.panelWidth.get()) + "px";
+              const cw = left.collapsedWidth?.get() ?? 48;
+              elem.style.width = (open ? cw : left.panelWidth.get()) + "px";
             },
             run(elem, open) {
-              elem.style.width = contentWrapper.style.width = (open ? left.panelWidth.get() : 48) + "px";
+              const cw = left.collapsedWidth?.get() ?? 48;
+              elem.style.width = contentWrapper.style.width = (open ? left.panelWidth.get() : cw) + "px";
             },
             finish() {
               onResize();

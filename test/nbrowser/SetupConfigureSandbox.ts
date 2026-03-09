@@ -27,6 +27,11 @@ describe("SetupConfigureSandbox", function() {
       await driver.get(`${server.getHost()}/`);
       await driver.findWait(".test-boot-key-login-input", 10000);
       await driver.find(".test-boot-key-login-input").sendKeys(bootKey);
+      // Phase 1: Check the key.
+      await driver.find(".test-boot-key-login-submit").click();
+      // Phase 2: Email field appears after key verification.
+      await driver.findWait(".test-boot-key-login-email", 10000);
+      // Click "Continue" to complete login.
       await driver.find(".test-boot-key-login-submit").click();
       // After login, redirects to /admin/setup (the wizard).
       await driver.findContentWait("div", /Quick Setup/, 15000);

@@ -42,6 +42,11 @@ export class ConfigAPI extends BaseAPI {
     await this.request(`${this._url}/api/admin/restart`, { method: "POST" });
   }
 
+  public async getMaintenanceMode(): Promise<{ maintenance: boolean; inService: boolean }> {
+    const resp = await this.request(`${this._url}/api/admin/maintenance`);
+    return resp.json();
+  }
+
   public async setMaintenanceMode(enable: boolean): Promise<void> {
     await this.request(`${this._url}/api/admin/maintenance`, {
       method: "POST",
