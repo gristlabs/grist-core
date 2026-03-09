@@ -15,13 +15,24 @@ import {
   validateImportSchema,
 } from "app/common/DocSchemaImport";
 import { ExistingDocSchema } from "app/common/DocSchemaImportTypes";
-import { OWNER } from "app/common/roles";
 import { UserAPI } from "app/common/UserAPI";
 
+export interface ExistingDoc {
+  type: "existing-doc";
+  docId: string;
+}
+
+export interface NewDoc {
+  type: "new-doc";
+  workspaceId: number;
+  name?: string;
+}
+
+export type AirtableImportDestination = NewDoc | ExistingDoc;
+
 export interface AirtableImportOptions {
+  destination: AirtableImportDestination,
   transformations?: ImportSchemaTransformParams,
-  existingDocId?: string,
-  newDocName?: string,
   structureOnlyTableIds?: string[],
   onProgress?(progress: AirtableImportProgress): void,
 }
@@ -42,15 +53,17 @@ export async function applyAirtableImportSchemaAndImportData(params: {
 }): Promise<AirtableImportResult> {
   const { dataSource, importSchema, userApi, options } = params;
   const { api, baseId } = dataSource;
-  const { existingDocId, transformations, structureOnlyTableIds = [], onProgress } = options;
+  const { destination, transformations, structureOnlyTableIds = [], onProgress } = options;
 
   onProgress?.({ percent: 0, status: t("Preparing to import base from Airtable...") });
 
   const baseSchema = await api.getBaseSchema(baseId);
 
-  if (!existingDocId) { onProgress?.({ percent: 10, status: t("Creating a new Grist document...") }); }
+  if (destination.type === "new-doc") { onProgress?.({ percent: 10, status: t("Creating a new Grist document...") }); }
 
-  const docId = existingDocId ?? await createDoc(userApi, options.newDocName ?? baseId);
+  const docId = destination.type === "existing-doc" ? destination.docId : await userApi.newDoc(
+    { name: destination.name }, destination.workspaceId,
+  );
   const docApi = userApi.getDocAPI(docId);
 
   const existingDocSchema = await getExistingDocSchema(docApi);
@@ -73,7 +86,7 @@ export async function applyAirtableImportSchemaAndImportData(params: {
   }
 
   // Only remove the initial tables if the Grist document was newly created.
-  if (!existingDocId) {
+  if (destination.type === "new-doc") {
     await docSchemaCreator.removeTables(initialTables);
   }
 
@@ -144,23 +157,4 @@ export function validateAirtableSchemaImport(
   warnings.push(...transformedSchema.warnings, ...validateImportSchema(transformedSchema.schema));
 
   return warnings;
-}
-
-async function createDoc(userApi: UserAPI, name: string) {
-  const workspaces = await userApi.getOrgWorkspaces("current");
-  if (workspaces.length === 0) {
-    throw new NoWorkspacesError();
-  }
-  const writableWorkspaces = workspaces.filter(workspace => workspace.access === OWNER);
-  if (writableWorkspaces.length === 0) {
-    // This could be a different error?
-    throw new NoWorkspacesError();
-  }
-  return await userApi.newDoc({ name }, workspaces[0].id);
-}
-
-class NoWorkspacesError extends Error {
-  constructor() {
-    super("No workspaces could be found for importing to: imports by anonymous users are not supported.");
-  }
 }

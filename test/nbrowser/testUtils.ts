@@ -46,6 +46,13 @@ setOptionsModifyFunc(({ chromeOpts, firefoxOpts }) => {
   chromeOpts.set("webSocketUrl", true);
   chromeOpts.set(Capability.UNHANDLED_PROMPT_BEHAVIOR, "ignore");
 
+  if (process.env.GRIST_TEST_FORCE_LIGHT_MODE) {
+    chromeOpts.addArguments(
+      "--disable-features=WebContentsForceDark",
+      "--force-dark-mode=false",
+    );
+  }
+
   chromeOpts.setUserPreferences({
     // Don't show popups to save passwords, which are shown when running against a deployment when
     // we use a login form.
@@ -146,6 +153,19 @@ export function setupTestSuite(options?: TestSuiteOptions) {
   // Close database until next test explicitly needs it, to avoid conflicts
   // with tests that don't use the same server.
   after(async () => server.closeDatabase());
+
+  if (process.env.GRIST_TEST_FORCE_LIGHT_MODE) {
+    before(async () => {
+      await (driver as any).sendDevToolsCommand(
+        "Emulation.setEmulatedMedia",
+        {
+          features: [
+            { name: "prefers-color-scheme", value: "light" },
+          ],
+        },
+      );
+    });
+  }
 
   if (options?.pageLoadTimeout) {
     setDriverTimeoutsForSuite({ pageLoad: options.pageLoadTimeout });

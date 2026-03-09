@@ -24,7 +24,7 @@ import { expressWrap } from "app/server/lib/expressWrap";
 import { RequestWithOrg } from "app/server/lib/extractOrg";
 import { GristServer } from "app/server/lib/GristServer";
 import { getCookieDomain } from "app/server/lib/gristSessions";
-import { getTemplateOrg } from "app/server/lib/gristSettings";
+import { getCanAnyoneCreateOrgs, getTemplateOrg } from "app/server/lib/gristSettings";
 import log from "app/server/lib/log";
 import { clearSessionCacheIfNeeded, getDocScope, getScope, integerParam,
   isParameterOn, optStringParam, sendOkReply, sendReply, stringParam } from "app/server/lib/requestUtils";
@@ -199,7 +199,14 @@ export class ApiServer {
       // Don't let anonymous users end up owning organizations, it will be confusing.
       // Maybe if the user has presented credentials this would be ok - but addOrg
       // doesn't have access to that information yet, so punting on this.
-      // TODO: figure out who should be allowed to create organizations
+
+      if (!getCanAnyoneCreateOrgs()) {
+        const isAdmin = await this._gristServer.getInstallAdmin().isAdminReq(req);
+        if (!isAdmin) {
+          throw new ApiError("Only admins can create new teams", 403);
+        }
+      }
+
       const userId = getAuthorizedUserId(req);
       const org = await addOrg(this._dbManager, userId, req.body);
       this._logCreateSiteEvents(req, org);

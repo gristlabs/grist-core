@@ -2469,9 +2469,9 @@ namespace gristUtils {
     }
 
     // Create a workspace that will be deleted at the end of testing.
-    public async tempWorkspace(cleanup: Cleanup, workspaceName: string) {
+    public async tempWorkspace(cleanup: Cleanup, workspaceName: string, orgId: string = "current") {
       const api = this.createHomeApi();
-      const workspaceId = await api.newWorkspace({ name: workspaceName }, "current");
+      const workspaceId = await api.newWorkspace({ name: workspaceName }, orgId);
       if (!noCleanup) {
         cleanup.addAfterAll(async () => {
           await api.deleteWorkspace(workspaceId).catch(noop);

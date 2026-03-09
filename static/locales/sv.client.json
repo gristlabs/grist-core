@@ -877,7 +877,8 @@
         "Import from file": "Importera från fil",
         "Saved linked section {{title}} in view {{name}}": "Sparade länkad sektio {{title}} i vyn {{name}}",
         "go to webhook settings": "gå till webhookinställningar",
-        "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "Nya ändringar är tillfälligt pausade. Wehbooks kön är överfull. Kontrollera webhooksinställningar, ta bort felaktiga webhooks och rensa kön."
+        "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "Nya ändringar är tillfälligt pausade. Wehbooks kön är överfull. Kontrollera webhooksinställningar, ta bort felaktiga webhooks och rensa kön.",
+        "Import from Airtable": "Importera från Airtable"
     },
     "HomeIntro": {
         "Any documents created in this site will appear here.": "Alla dokument som skapas på denna sajt kommer synas här.",
@@ -925,7 +926,8 @@
         "Tutorial": "Instruktionsguide",
         "Terms of service": "Användarvillkor",
         "Grist Resources": "Grist resurser",
-        "context menu - {{- workspaceName }}": "snabbmeny - {{- workspaceName }}"
+        "context menu - {{- workspaceName }}": "snabbmeny - {{- workspaceName }}",
+        "Import from Airtable": "Importera från Airtable"
     },
     "Importer": {
         "Merge rows that match these fields:": "Slå ihop rader som där dessa fällt matchar:",
@@ -1265,7 +1267,9 @@
         "changes": "ändringar",
         "comments": "kommentarer",
         "this document": "detta dokument",
-        "your email": "din e-post"
+        "your email": "din e-post",
+        "You will no longer receive email notifications about {{suggestions}} in {{docName}} at {{email}}.": "Du kommer inte längre få e-postnotiser om {{suggestions}} i {{docName}} till {{email}}.",
+        "suggestions": "ändringsförslag"
     },
     "menus": {
         "* Workspaces are available on team plans. ": "* Arbetsytor är tillgängliga i arbetslagsprenumerationer. ",
@@ -1528,7 +1532,8 @@
         "Comments are here!": "Kommentarer är här!",
         "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "Du kan Lägg till kommentarer i celler, svara på en kommentarstråd och @-omnämna deltagare.",
         "When checked, this field’s default value can be prefilled from the URL using query parameters.": "När vald, kommer detta fällts standardvärde att vara förifyllt från URLen genom dess frågeparametrar.",
-        "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "Med ändringsförslag kan användare göra ändringar i en egen kopia utan att ändra orginaldokumenet, sedan kan de skicka in dessa ändringsförslag för att bli granskade av dokumentägaren innan de accepteras."
+        "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "Med ändringsförslag kan användare göra ändringar i en egen kopia utan att ändra orginaldokumenet, sedan kan de skicka in dessa ändringsförslag för att bli granskade av dokumentägaren innan de accepteras.",
+        "Unpin to hide the button while keeping the filter.": "Lossa för att dölja knappen och samtidigt behålla filtret."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "BESKRIVNING",
@@ -1633,7 +1638,10 @@
         "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "Användaren ärver behörigheter från {{parent}}. För att ta bort ställ in 'Ärv behörighet' inställningen till 'Ingen'.",
         "You are about to remove your own access to this {{resourceType}}": "Du är på väg att ta bort din egen behörighet för {{resourceType}}",
         "Inherit access: ": "Ärv behörighet: ",
-        "Access overview": "Behörighetsöversikt"
+        "Access overview": "Behörighetsöversikt",
+        "Share it publicly": "Dela den ofantligt",
+        "Verify your sensitive data before sharing publicly": "Kontrollera din känsliga data innan du delar ofäntligt",
+        "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing.": "Din {{resourceType}} kommer att vara tillgänglig för vem som helst med länken, oavsett om den delas direkt eller hittas via en sökmotor.\n Säkerställ att din {{resourceType}} inte innehåller någon känslig data innan du delar."
     },
     "SearchModel": {
         "Search all pages": "Sök på alla sidor",
@@ -1781,7 +1789,8 @@
         "Vertical": "Vertikal",
         "Accept value from URL": "Acceptera värde från URL",
         "Hidden field": "Dolt fällt",
-        "URL parameter:\n{{colId}}=VALUE": "URL parameter\n{{colId}}=VÄRDE"
+        "URL parameter:\n{{colId}}=VALUE": "URL parameter\n{{colId}}=VÄRDE",
+        "Options limit": "Inställningsbegränsningar"
     },
     "CustomView": {
         "Some required columns aren't mapped": "Några obligatoriskt kolumner är inte kopplade",
@@ -1937,7 +1946,10 @@
         "Restarting Grist...": "Startar om Grist...",
         "This will apply any pending changes and briefly interrupt access for all users.": "Detta kommer att applicera alla väntande ändringar och kortvarigt bryta åtkomsten för alla användare.",
         "You can still restart Grist manually.": "Du kan fortfarande starta om Grist manuellt.",
-        "error in {{provider}}: {{verdict}}": "fel i {{provider}}: {{verdict}}"
+        "error in {{provider}}: {{verdict}}": "fel i {{provider}}: {{verdict}}",
+        "Please restart Grist manually.": "Start om Grist manuellt.",
+        "Restart Grist to apply pending changes.": "Start om Grist för att aktivera väntande ändringar.",
+        "Restart unavailable": "Om start inte tillgänglig"
     },
     "Columns": {
         "Remove Column": "Ta bort kolumn"
@@ -2093,7 +2105,7 @@
     "markdown": {
         "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
             "": {
-                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Ny Markdown funktion\n\n      Vi kan _skriva_ [vanlig Markdown](https://markdownguide.org) *inne* i\n      ett Grainjs element."
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Ny Markdownfunktion\n\n      Vi kan _skriva_ [vanlig Markdown](https://markdownguide.org) *inne* i\n      ett Grainjs element."
             }
         },
         "The toggle is **off**": "Detta av/på-val är **av**",
@@ -2102,7 +2114,7 @@
     "markdown.d": {
         "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
             "": {
-                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Ny Markdown funktion\n\n      Vi kan _skriva_ [vanlig Markdown](https://markdownguide.org) *inne* i\n      ett Grainjs element."
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Ny Markdownfunktion\n\n      Vi kan _skriva_ [vanlig Markdown](https://markdownguide.org) *inne* i\n      ett Grainjs element."
             }
         },
         "The toggle is **off**": "Detta av/på-val är **av**",
@@ -2588,9 +2600,140 @@
         "No authentication method is active.": "Ingen autentiseringsmetod är aktiv.",
         "Set as active method": "Ställ in som aktiv metod",
         "Set as active method?": "Ställ in som aktiv metod?",
-        "The new method will go into effect after you restart Grist.": "Den nys metoden kommer aktiveras när du startar om Grist."
+        "The new method will go into effect after you restart Grist.": "Den nys metoden kommer aktiveras när du startar om Grist.",
+        "Change admin user": "Ändra administratörsanvändare",
+        "Prepare changes": "Förbered ändringar",
+        "Revert change of admin user": "Ångra ändringar av administratörsanvändaren",
+        "You are signed in as {{email}}. After restart, the new administrative user will be {{newEmail}}.": "Du är inloggad som {{email}}. Efter omstart kommer den nya administratörsanvändaren att vara {{newEmail}}.",
+        "**Grist Connect** is a login solution built and maintained by Grist Labs that integrates seamlessly with your Grist server.": "**Grist Connect** är en inloggningslösning som är skapad och drivs av Grist Labs som integrerar sömmlöst med din Grist server.",
+        "**OIDC** allows users on your Grist server to sign in using an external identity provider that supports the OpenID Connect standard.": "**OIDC** tillåter användare på din Gristserver att logga in med hjälp av en extern identitets leverantör som stödjer standarden OpenID Connect.",
+        "**SAML** allows users on your Grist server to sign in using an external identity provider that supports the SAML 2.0 standard.": "**SAML** tillåter användare på din Gristserver att logga in med en extern identitets leverantör som stödjer standarden SAML 2.0.",
+        "If Grist is accessible on your network, or is available to multiple people, configure one of the authentication methods below.": "Om Grist går att komma åt på ditt nätverk, eller är tillgänglig för flera personer, ställ in en av inloggnings metoderna nedan.",
+        "No authentication: unrestricted sign-in as demo user": "Ingen inloggning: obegränsad inloggning som demoanvändare",
+        "Restart required. Authentication change may affect your access": "Omstart krävs. Inloggningsändring kan påverka din åtkost",
+        "See \"Restart Grist\" section on top of this page to restart.": "Se \"Starta om Grist\" avsnittet högst upp på denna sida för att starta om.",
+        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "grist-connect": {
+                            ").": "För att ställa in **Grist Connect**, följe instruktionerna i [Grist supportartikeln för Grist Connect](https://support.getgrist.com/install/grist-connect/)."
+                        }
+                    }
+                }
+            }
+        },
+        "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "oidc).": "För att ställa in **OIDC**, följ instruktionerna i [Grist supportartikeln för OIDC](https://support.getgrist.com/install/oidc)."
+                    }
+                }
+            }
+        },
+        "To set up **SAML**, follow the instructions in [the Grist support article for SAML](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "saml": {
+                            ").": "För att ställa in **SAML**, följ instruktionerna i [Grist supportartikeln för SAML](https://support.getgrist.com/install/saml/)."
+                        }
+                    }
+                }
+            }
+        },
+        "**Forwarded headers** allows your Grist server to trust authentication performed by an external proxy (e.g. Traefik ForwardAuth).": "**Forwarded headers** får din Gristserver att använda inloggning genom extern proxy (till exempel Traefik ForwardAut).",
+        "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "forwarded-headers": {
+                            ").": "För att ställa in **forwarded headers**, följ instruktionerna i [Grist supportartikel för forwarded headers](https://support.getgrist.com/install/forwarded-headers/)."
+                        }
+                    }
+                }
+            }
+        },
+        "When a user accesses Grist, the proxy handles authentication and forwards verified user information through HTTP headers. Grist uses these headers to identify the user.": "När en användare använder Grist så hanterar proxyn inloggningen och vidarebefordrar verifierad användarinformation genom HTTP headers. Grist använder dessa headers för att identifiera användaren.",
+        "When signing in, users will be redirected to a Grist Connect login page where they can authenticate using various identity providers. After authentication, they'll be redirected back to your Grist server and signed in.": "När användare loggar in blir de omdirigerade till Grist Connects inloggnings sida där de kan logga in genom olika identitets leverantörer. Efter inloggning kommer de att omdirigeras tillbaka till din Gristserver inloggade.",
+        "When signing in, users will be redirected to your chosen identity provider's login page to authenticate. After successful authentication, they'll be redirected back to your Grist server and signed in as the user verified by the provider.": "Vid inloggning kommer användare att skickas till din vada identitets leverantörs inloggningssida för att logga in. Efter lyckad inloggning kommer de att omdirigeras tillbaka till din Gristserver, inloggade som den användare som verifierats av leverantören.",
+        "You are signed in as {{email}}. You may lose access to this server if you cannot sign in as this user after switching the authentication system.": "Du är inloggad om {{email}}. Du kan förlora tillgången till denna server om du inte kan logga in som denna användare efter byte av inloggninssystem."
     },
     "DetailView": {
         "This row is unavailable or does not exist": "Denna rad är inte tillgänglig eller finns inte"
+    },
+    "GetGristComProvider": {
+        "Cancel": "Avbryt",
+        "Configure": "Ställ in",
+        "Register your Grist server": "Registrera din Gristserver",
+        "Sign in with getgrist.com": "Logga in med getgrist.com",
+        "Configure Sign in with getgrist.com": "Ställ in inloggning med getgrist.com",
+        "Instructions": "Instruktioner",
+        "Learn more about Sign in with getgrist.com": "Lär dig mer om inloggning med getgrist.com",
+        "Paste configuration key here": "Klistra in inställningsnyckeln här",
+        "Home URL is not set; cannot configure Sign in with getgrist.com": "Hem URL är inte inställd; kan inte ställa in inloggning med getgrist.com",
+        "**Sign in with getgrist.com** allows users on your Grist server to sign in using their account on getgrist.com, the cloud version of Grist managed by Grist Labs.": "**Logga in med getgrist.com** gör att användare på din Gristserver kan logga in med sitt konto på getgrist.com, molnversionen av Grist som drivs av Grist Labs.",
+        "To set up {{provider}}, you need to register your Grist server on getgrist.com and paste the configuration key you receive below.": "För att ställa in {{provider}} behöver du registrera din Gristserver på getgrist.com och klistra ininställningsnyckeln du får nedan.",
+        "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.": "Vid inloggning kommer användarna att skickas vidare till inloggningssidan på getgrist.com för att logga in eller registrera sig. Efter autentisering på getgrist.com skickas användaren tillbaka till din Gristserver inloggad som användaren som de autentiserdes som."
+    },
+    "AirtableImportUI": {
+        "Back": "Tillbaka",
+        "Cancel": "Avbryt",
+        "Choose destination": "Välj mål",
+        "Connect": "Koppla",
+        "Connect with Airtable": "Anslut till Airtable",
+        "Connect your Airtable account to access your bases.": "Anslut ditt Airtablekonto för att komma åt dina databaser där.",
+        "Connected via {{method}}": "Ansluten via {{method}}",
+        "Connecting...": "Ansluter...",
+        "Continue": "Fortsätt",
+        "Destination": "Mål",
+        "Disconnect": "Koppla ner",
+        "Existing tables": "Existerande tabeller",
+        "Failed to fetch base schema": "Kunde inte hämta databasschema",
+        "Failed to fetch bases": "Kunde inte hämta databaser",
+        "Import tables": "Importera tabeller",
+        "Import {{count}} tables_one": "Importera {{count}} tabeller",
+        "Import {{count}} tables_other": "Importera {{count}} tabeller",
+        "New table": "Ny tabell",
+        "New table: structure only": "Ny tabell: enbart struktur",
+        "No bases found": "Inga databaser hittades",
+        "OAuth": "OAuth",
+        "Choose an Airtable base to import from": "Välj en Airtable databas att importera från",
+        "Grist configuration required": "Inställning av Grist krävs",
+        "Import from {{baseName}} in progress. Do not navigate away from this page.": "Import från {{baseName}} pågår. Lämna inte denna sida.",
+        "Make sure your token has the correct permissions.": "Säkerställ att din token har rätt behörigheter.",
+        "Personal access token": "Personlig behörighetstoken",
+        "Please enter a personal access token": "Fyll i en personlig behörighetstoken",
+        "Refresh": "Uppdatera",
+        "Select tables to import from {{baseName}}": "Välj tabeller att importera från {{baseName}}",
+        "Skip": "Hoppa över",
+        "Source tables": "Källtabeller",
+        "Structure only": "Enbart struktur",
+        "Use personal access token instead": "Använd personlig behörighetstoken istället",
+        "loading your bases...": "laddar dina databaser...",
+        "loading your tables...": "laddar dina tabeller...",
+        "or": "eller",
+        "{{count}} warnings_one": "{{count}} varningar",
+        "{{count}} warnings_other": "{{count}} varningar",
+        "OAuth credentials not configured. Please set OAUTH2_AIRTABLE_CLIENT_ID and OAUTH2_AIRTABLE_CLIENT_SECRET, or use personal access token.": "OAuth nycklarna är inte valda. Ställ in OAUTH2_AIRTABLE_CLIENT_ID och OAUTH2_AIRTABLE_CLIENT_SECRET, eller använd en personlig behörighetstoken.",
+        "[Generate a token]({{url}}) in your Airtable account with scopes that include at least **\\`schema.bases:read\\`** and **\\`data.records:read\\`**.\n\nYour token is never sent to Grist's servers, and is only used to make API calls to Airtable from your browser.": "[Generera en token]({{url}}) på ditt Airtable acctount med behörighet som inkluderar minst **\\`schema.bases:read\\`** och **\\`data.records:read\\`**.\n\nDin token skickas aldrig till Grists servrar, den avvänds bara för att göra API-anrop till Airtable från din webbläsare."
+    },
+    "ChangeAdminModal": {
+        "New admin": "Ny administratör",
+        "Enter new admin email": "Fyll i ny administratörs se-post",
+        "Make the new email the installation admin. Orgs, workspaces, and documents will remain owned by {{email}}. These changes will take effect after you restart this Grist server.": "Gör den nya e-postadressen till installationens administratör. Organisationer, arbetsytor och dokument kommer fortsatt att vara ägda av {{email}}. Dessa ändringar kommer att få effekt först efter omstart av denna Gristserver.",
+        "Replace {{email}} with the new email throughout. The new email will become the installation admin, as well as the owner of all materials previously owned by you@example.com.": "Ersätt {{email}} med den nya e-postadressen för allt. Den nya e-postadressen blir installationens administratör och ägare av allt material som tidigare ägdes av you@example.com."
+    },
+    "startDocAirtableImport": {
+        "Import from Airtable": "Importera från Airtable"
+    },
+    "startHomeAirtableImport": {
+        "Import from Airtable": "Importera från Airtable"
+    },
+    "AirtableImporter": {
+        "Creating a new Grist document...": "Skapar ett nytt Gristdokument...",
+        "Preparing to import base from Airtable...": "Förbereder för art importera databas från Airtable...",
+        "Setting up tables...": "Ställer in tabeller..."
     }
 }

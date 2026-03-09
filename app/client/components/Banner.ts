@@ -1,5 +1,6 @@
 import { colors, isNarrowScreenObs } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
+import { tokens } from "app/common/ThemePrefs";
 
 import { Disposable, dom, DomArg, DomElementArg, makeTestId, Observable, styled } from "grainjs";
 
@@ -130,16 +131,16 @@ const cssBanner = styled("div", `
   display: flex;
   padding: 10px;
   gap: 16px;
-  color: ${colors.light};
+  color: ${tokens.white};
 
   & a {
-    color: ${colors.light};
+    color: ${tokens.white};
     text-decoration: underline;
   }
 
   &-info {
-    color: ${colors.dark};
-    --icon-color: ${colors.dark};
+    color: ${tokens.black};
+    --icon-color: ${tokens.black};
     background: #FFFACD;
   }
 

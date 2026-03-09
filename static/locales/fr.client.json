@@ -628,7 +628,8 @@
         "Added new linked section to view {{viewName}}": "Création d'une nouvelle section à la page {{viewName}}",
         "Saved linked section {{title}} in view {{name}}": "Section liée {{title}} sauvegardée dans la page {{name}}",
         "go to webhook settings": "Aller aux paramétrages des points d’ancrage Web",
-        "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "Les nouvelles modifications sont temporairement suspendues. La file d'attente des points d'ancrage est saturée. Veuillez vérifier les paramètres des points d'ancrage , supprimer les points d'ancrage non valides et nettoyer la file d'attente."
+        "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "Les nouvelles modifications sont temporairement suspendues. La file d'attente des points d'ancrage est saturée. Veuillez vérifier les paramètres des points d'ancrage , supprimer les points d'ancrage non valides et nettoyer la file d'attente.",
+        "Import from Airtable": "Importer depuis Airtable"
     },
     "HomeIntro": {
         "Sign up": "S'inscrire",
@@ -676,7 +677,8 @@
         "Tutorial": "Tutoriel",
         "Terms of service": "CGU",
         "Grist Resources": "Ressources Grist",
-        "context menu - {{- workspaceName }}": "menu contextuel - {{- workspaceName }}"
+        "context menu - {{- workspaceName }}": "menu contextuel - {{- workspaceName }}",
+        "Import from Airtable": "Importer depuis Airtable"
     },
     "Importer": {
         "Update existing records": "Mettre à jour les enregistrements existants",
@@ -1126,7 +1128,9 @@
         "comments": "commentaires",
         "this document": "ce document",
         "your email": "votre email",
-        "Unsubscribed{{suffix}}": "Désabonné{{suffix}}"
+        "Unsubscribed{{suffix}}": "Désabonné{{suffix}}",
+        "You will no longer receive email notifications about {{suggestions}} in {{docName}} at {{email}}.": "Vous ne recevrez plus de notifications par email au sujet de {{suggestions}} dans {{docName}} sur {{email}}.",
+        "suggestions": "suggestions"
     },
     "menus": {
         "Select fields": "Sélectionner les champs",
@@ -1448,7 +1452,8 @@
         "Comments are here!": "Les commentaires sont ici !",
         "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "Vous pouvez-ajouter des commentaires aux cellules, répondre aux fils de commentaires, et @-mentionner les collaborateurs.",
         "When checked, this field’s default value can be prefilled from the URL using query parameters.": "Lorsqu'il est coché, la valeur par défaut de ce champ peut-être préremplie à partir de l'URL en utilisant ses paramètres de requête.",
-        "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "Avec les suggestions, les utilisateurs font des modifications dans une copie personnelle sans modifier le document original, puis ils soumettent ces suggestions à la revue du propriétaire du document avant leur intégration."
+        "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "Avec les suggestions, les utilisateurs font des modifications dans une copie personnelle sans modifier le document original, puis ils soumettent ces suggestions à la revue du propriétaire du document avant leur intégration.",
+        "Unpin to hide the button while keeping the filter.": "Désépingler pour masquer le bouton tout en conservant le filtre."
     },
     "ColumnTitle": {
         "Add description": "Ajouter une description",
@@ -1636,7 +1641,10 @@
         "You are about to remove your own access to this {{resourceType}}": "Vous êtes sur le point de supprimer votre propre accès à {{resourceType}}",
         "User inherits permissions from {{parent})}. To remove,           set 'Inherit access' option to 'None'.": "L'utilisateur hérite ses permissions de {{parent})}. Pour supprimer cela,            paramétrez 'Héritage d'accès à 'Aucun'.",
         "Inherit access: ": "Hériter des droits d'accès : ",
-        "Access overview": "Aperçu de l'accès"
+        "Access overview": "Aperçu de l'accès",
+        "Share it publicly": "Partager publiquement",
+        "Verify your sensitive data before sharing publicly": "Vérifier vos données sensibles avant de partager publiquement",
+        "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing.": "Votre {{resourceType}} sera accessible par toute personne ayant le lien, que ce soit via un partage directe ou à travers un moteur de recherche.\n Assurez vous que votre {{resourceType}} ne contienne pas de données sensible avant de partager."
     },
     "SearchModel": {
         "Search all tables": "Rechercher toutes les tables",
@@ -1896,7 +1904,10 @@
         "Restarting Grist...": "Grist en cours de redémarrage...",
         "This will apply any pending changes and briefly interrupt access for all users.": "Ceci appliquera tout changement en attente et coupera durant une courte durée l'accès pour tous les utilisateurs.",
         "You can still restart Grist manually.": "Vous pouvez toujours redémarrer Grist manuellement.",
-        "error in {{provider}}: {{verdict}}": "erreur dans {{provider}} : {{verdict}}"
+        "error in {{provider}}: {{verdict}}": "erreur dans {{provider}} : {{verdict}}",
+        "Please restart Grist manually.": "Redémarrez Grist manuellement s’il vous plaît.",
+        "Restart Grist to apply pending changes.": "Redémarrez Grist pour appliquer les changements en attente.",
+        "Restart unavailable": "Redémarrage indisponible"
     },
     "Field": {
         "No choices configured": "Aucun choix configuré",

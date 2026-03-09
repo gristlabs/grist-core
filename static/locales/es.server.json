@@ -8,6 +8,16 @@
         "og-title": "Grist, la evolución de las hojas de cálculo"
     },
     "access": {
-        "docNoAccess": "No tiene acceso a este documento."
+        "docNoAccess": "No tiene acceso a este documento.",
+        "docDisabled": "Este documento está desactivado."
+    },
+    "DocApi": {
+        "UntitledDocument": "Documento sin título"
+    },
+    "admin": {
+        "emptyOrg": "No se han encontrado propietarios en la organización administrativa definida por `GRIST_INSTALL_ADMIN_ORG={{org}}`",
+        "orgUser": "El usuario es propietario de la organización administrativa definida por `GRIST_INSTALL_ADMIN_ORG={{org}}`",
+        "noAdminEmail": "Falta la cuenta de administrador porque `GRIST_ADMIN_EMAIL` y `GRIST_DEFAULT_EMAIL` no están establecidos",
+        "accountByEmail": "Cuenta de administrador definida por `GRIST_DEFAULT_EMAIL={{defaultEmail}}`"
     }
 }

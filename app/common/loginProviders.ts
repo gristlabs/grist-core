@@ -15,3 +15,8 @@ export const GETGRIST_COM_PROVIDER_KEY = "getgrist.com";
 
 // SAML provider key.
 export const SAML_PROVIDER_KEY = "saml";
+
+// Deprecated/unmaintained providers, hidden unless already configured or active.
+export const DEPRECATED_PROVIDERS: string[] = [
+  GRIST_CONNECT_PROVIDER_KEY,
+];

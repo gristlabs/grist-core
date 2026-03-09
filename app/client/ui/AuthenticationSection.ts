@@ -18,6 +18,7 @@ import { AuthProvider, ConfigAPI } from "app/common/ConfigAPI";
 import { PendingChanges } from "app/common/Install";
 import { InstallAPI } from "app/common/InstallAPI";
 import {
+  DEPRECATED_PROVIDERS,
   FORWARD_AUTH_PROVIDER_KEY,
   GETGRIST_COM_PROVIDER_KEY,
   GRIST_CONNECT_PROVIDER_KEY,
@@ -98,8 +99,12 @@ export class AuthenticationSection extends Disposable {
   }
 
   private _buildListOfProviders(providers: AuthProvider[]) {
+    // Hide deprecated providers unless already configured or active.
+    const visible = providers.filter(p =>
+      !DEPRECATED_PROVIDERS.includes(p.key) || p.isConfigured || p.isActive,
+    );
     return cssMethodsContainer(
-      providers.map((provider) => {
+      visible.map((provider) => {
         return cssMethodRow(
           testId(`provider-row-${provider.key.replace(".", "-")}`),
           testId(`provider-row`),

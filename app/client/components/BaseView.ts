@@ -109,7 +109,7 @@ export default class BaseView extends DisposableWithEvents {
   private _filteredRowSource: rowset.FilteredRowSource;
   private _newRowSource: rowset.RowSource;
   private _isLoading: ko.Observable<boolean>;
-  private _pendingCursorPos: CursorPos | null;
+  private _pendingCursorPos: { cursorPos: CursorPos, showFirstRowIfRowMissing: boolean } | null;
   protected _isPrinting: ko.Observable<boolean>;
 
   constructor(
@@ -133,7 +133,7 @@ export default class BaseView extends DisposableWithEvents {
 
     // TODO: but accessing by tableId identifier may be problematic when the table is renamed.
     this.tableModel = this.gristDoc.getTableModelMaybeWithDiff(this.schemaModel.tableId());
-    this.extraRows = new ExtraRows(this.schemaModel.tableId(), this.comparison?.details);
+    this.extraRows = this.tableModel.getExtraRows?.() ?? new ExtraRows();
 
     // We use a DynamicQuerySet as the underlying RowSource, with ColumnFilters applies on top of
     // it. It filters based on section linking, re-querying as needed in case of onDemand tables.
@@ -252,7 +252,10 @@ export default class BaseView extends DisposableWithEvents {
     // --------------------------------------------------
     // Observables local to this view
     this._isLoading = ko.observable(true);
-    this._pendingCursorPos = this.viewSection.lastCursorPos;
+    this._pendingCursorPos = {
+      cursorPos: this.viewSection.lastCursorPos,
+      showFirstRowIfRowMissing: true,
+    };
 
     // Initialize the cursor with the previous cursor position indices, if they exist.
     console.log("BaseView viewSection %s (%s) lastCursorPos %s", this.viewSection.getRowId(),
@@ -435,17 +438,19 @@ export default class BaseView extends DisposableWithEvents {
    *
    * @param cursorPos - Cursor position to set to
    * @param isFromLink - Set when called as a result of cursor linking (see Cursor.setCursorPos for info)
-   * @param immediate - Avoids deferring - immediately sets the cursor pos
+   * @param showFirstRowIfRowMissing - Shows the first available row if cursor points to a missing row
    */
-  public setCursorPos(cursorPos: CursorPos, isFromLink = false, immediate = false): void {
+  public setCursorPos(
+    cursorPos: CursorPos, isFromLink = false, showFirstRowIfRowMissing = false,
+  ): void {
     if (this.isDisposed()) {
       return;
     }
-    if (!this._isLoading.peek() || immediate) {
-      this.cursor.setCursorPos(cursorPos, isFromLink);
+    if (!this._isLoading.peek()) {
+      this._setCursorPosImmediately(cursorPos, isFromLink, showFirstRowIfRowMissing);
     } else {
       // This is the first step; the second happens in onTableLoaded.
-      this._pendingCursorPos = cursorPos;
+      this._pendingCursorPos = { cursorPos, showFirstRowIfRowMissing };
       this.cursor.setLive(false);
     }
   }
@@ -587,6 +592,11 @@ export default class BaseView extends DisposableWithEvents {
         }
         return rowId;
       });
+  }
+
+  private _setCursorPosImmediately(cursorPos: CursorPos, isFromLink: boolean, showFirstRowIfRowMissing: boolean): void {
+    const fallbackCursorPos = showFirstRowIfRowMissing ? { ...cursorPos, rowId: undefined, rowIndex: 0 } : undefined;
+    this.cursor.setCursorPos(cursorPos, isFromLink, fallbackCursorPos);
   }
 
   private _getDefaultColValues() {
@@ -813,7 +823,9 @@ export default class BaseView extends DisposableWithEvents {
   protected onTableLoaded() {
     // Complete the setting of a pending cursor position (see setCursorPos() for the first half).
     if (this._pendingCursorPos) {
-      this.setCursorPos(this._pendingCursorPos, false, true);
+      this._setCursorPosImmediately(
+        this._pendingCursorPos.cursorPos, false, this._pendingCursorPos.showFirstRowIfRowMissing,
+      );
       this._pendingCursorPos = null;
     }
     this._isLoading(false);

@@ -6,5 +6,18 @@
         "og-description": "Moderní tabulkový procesor s otevřeným zdrojovým kódem, který přesahuje rámec mřížky",
         "og-title": "Grist, vývoj tabulkových procesorů",
         "Loading...": "Načítání..."
+    },
+    "access": {
+        "docDisabled": "Tento dokument byl znepřístupněn.",
+        "docNoAccess": "Nemáte oprávnění přistupovat k tomuto dokumentu."
+    },
+    "admin": {
+        "emptyOrg": "V administrátorské organizaci definované pomocí `GRIST_INSTALL_ADMIN_ORG={{org}}` nebyli nalezeni žádní vlastníci",
+        "orgUser": "Uživatel je vlastníkem administrátorské organizace definované pomocí `GRIST_INSTALL_ADMIN_ORG={{org}}`",
+        "noAdminEmail": "Chybí administrátorský účet, protože nejsou nastaveny proměnné `GRIST_ADMIN_EMAIL` a `GRIST_DEFAULT_EMAIL`",
+        "accountByEmail": "Administrátorský účet definovaný pomocí `GRIST_DEFAULT_EMAIL={{defaultEmail}}`"
+    },
+    "DocApi": {
+        "UntitledDocument": "Dokument bez názvu"
     }
 }

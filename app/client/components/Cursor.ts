@@ -164,26 +164,21 @@ export class Cursor extends Disposable {
    * preferring rowId.
    *
    * isFromLink prevents lastEditedAt from being updated, so lastEdit reflects only user-driven edits
-   * @param cursorPos - Position as { rowId?, rowIndex?, fieldIndex? }, as from getCursorPos().
-   * @param isFromLink - should be set if this is a cascading update from cursor-linking
+   * @param {CursorPos} cursorPos - Position, as from getCursorPos().
+   * @param {boolean} [isFromLink=false] - should be set if this is a cascading update from cursor-linking
+   * @param {CursorPos} [fallbackCursorPos] - Position to use if cursorPos is set to a non-existent row.
    *
    * @returns {boolean} True if the cursor position was valid
    */
-  public setCursorPos(cursorPos: CursorPos, isFromLink: boolean = false): boolean {
+  public setCursorPos(cursorPos: CursorPos, isFromLink: boolean = false, fallbackCursorPos?: CursorPos): boolean {
     try {
       // If updating as a result of links, we want to NOT update lastEditedAt
       if (isFromLink) { this._silentUpdatesFlag = true; }
 
-      let newRowIndex: number | null | undefined = undefined;
+      let newRowIndex = this._getNewRowIndexForCursorPos(cursorPos);
 
-      if (cursorPos.rowId !== undefined) {
-        newRowIndex = this.viewData.getRowIndex(cursorPos.rowId);
-      } else if (cursorPos.rowIndex !== undefined && cursorPos.rowIndex >= 0) {
-        newRowIndex = cursorPos.rowIndex;
-      }
-
-      if (typeof (newRowIndex) === "number" && newRowIndex < 0) {
-        newRowIndex = null;
+      if (newRowIndex === null && fallbackCursorPos !== undefined) {
+        newRowIndex = this._getNewRowIndexForCursorPos(fallbackCursorPos);
       }
 
       if (newRowIndex !== undefined && (newRowIndex === null || newRowIndex >= 0)) {
@@ -229,5 +224,29 @@ export class Cursor extends Disposable {
   private _cursorEdited(): void {
     // If updating as a result of links, we want to NOT update lastEdited
     if (!this._silentUpdatesFlag) { this._lastEditedAt(nextSequenceNum()); }
+  }
+
+  /**
+   * Calculates the correct row index for a given cursor pos
+   * @param {CursorPos} cursorPos - Position to find the row index for
+   * @returns {number | null | undefined} - A row index >= 0 if a valid row index exists.
+   *                                        Null if the position is invalid for the current data.
+   *                                        Undefined if the cursorPos doesn't specify a new row.
+   * @private
+   */
+  private _getNewRowIndexForCursorPos(cursorPos: CursorPos): number | null | undefined {
+    let newRowIndex: number | null | undefined = undefined;
+
+    if (cursorPos.rowId !== undefined) {
+      newRowIndex = this.viewData.getRowIndex(cursorPos.rowId);
+    } else if (cursorPos.rowIndex !== undefined && cursorPos.rowIndex >= 0) {
+      newRowIndex = cursorPos.rowIndex;
+    }
+
+    if (typeof (newRowIndex) === "number" && newRowIndex < 0) {
+      newRowIndex = null;
+    }
+
+    return newRowIndex;
   }
 }

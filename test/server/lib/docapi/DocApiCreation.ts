@@ -30,7 +30,8 @@ function addCreationTests(getCtx: () => TestContext) {
   // because it requires GRIST_ANON_PLAYGROUND: "false" environment setting.
 
   it("guesses types of new columns", async () => {
-    const { serverUrl, docIds, chimpy } = getCtx();
+    const { serverUrl, chimpy, getOrCreateTestDoc } = getCtx();
+    const testDoc = await getOrCreateTestDoc();
     const userActions = [
       ["AddTable", "GuessTypes", []],
       // Make 5 blank columns of type Any
@@ -48,12 +49,12 @@ function addCreationTests(getCtx: () => TestContext) {
         Text: "hello",
       }],
     ];
-    const resp = await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/apply`, userActions, chimpy);
+    const resp = await axios.post(`${serverUrl}/api/docs/${testDoc}/apply`, userActions, chimpy);
     assert.equal(resp.status, 200);
 
     // Check that the strings were parsed to typed values
     assert.deepEqual(
-      (await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/GuessTypes/records`, chimpy)).data,
+      (await axios.get(`${serverUrl}/api/docs/${testDoc}/tables/GuessTypes/records`, chimpy)).data,
       {
         records: [
           {
@@ -72,7 +73,7 @@ function addCreationTests(getCtx: () => TestContext) {
 
     // Check the column types
     assert.deepEqual(
-      (await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/GuessTypes/columns`, chimpy))
+      (await axios.get(`${serverUrl}/api/docs/${testDoc}/tables/GuessTypes/columns`, chimpy))
         .data.columns.map((col: any) => col.fields.type),
       ["Date", "DateTime:UTC", "Bool", "Numeric", "Text"],
     );

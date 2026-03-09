@@ -98,18 +98,18 @@ If you evaluate Grist by using the hosted version at [getgrist.com](https://getg
     - Enterprises may care about this.
   * [Advanced Admin Controls](https://support.getgrist.com/admin-controls/) (2025)
     - This is a special page for a Grist installation administrator to monitor and edit user access to resources.
-  - It uses a special set of administrative endpoints not present on `grist-core`.
-  - If you're going to be running a large Grist installation, with employees coming and going, you may care about this.
+    - It uses a special set of administrative endpoints not present on `grist-core`.
+    - If you're going to be running a large Grist installation, with employees coming and going, you may care about this.
   * [Grist Assistant](https://support.getgrist.com/assistant/#assistant) (2025)
     - An AI Formula Assistant - limited to working with formulas - is present in `grist-core`, but the newer Assistant can help with a wider range of tasks like building tables and dashboards and modifying data.
     - If you have many users who need help building documents or working with data, you may care about this one.
   * [Invite Notifications](https://support.getgrist.com/self-managed/#how-do-i-set-up-email-notifications) (2025)
     - When a user is added to a document, or a workspace, or a site, with email notifications they will get emailed a link to access the resource.
-  - This link isn't special, with `grist-core` you can just send a link yourself or a colleague.
-  - For a big Grist installation with users who aren't in close communication, emails might be nice? Hard to guess if you'll care about this one.
+    - This link isn't special, with `grist-core` you can just send a link yourself or a colleague.
+    - For a big Grist installation with users who aren't in close communication, emails might be nice? Hard to guess if you'll care about this one.
   * [Document Change and Comment Notifications](https://support.getgrist.com/document-settings/#notifications) (2025)
     - You can achieve change notifications in `grist-core` using webhooks, but it is less convenient.
-  - People have been asking for this one for years. If you need an excuse to get your boss to pay for Grist, this might finally be the one that works?
+    - People have been asking for this one for years. If you need an excuse to get your boss to pay for Grist, this might finally be the one that works?
 
 ## Using Grist
 
@@ -416,8 +416,10 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_SESSION_SECRET | a key used to encode sessions |
 | GRIST_SKIP_BUNDLED_WIDGETS | if set, Grist will ignore any bundled widgets included via NPM packages. |
 | GRIST_SQLITE_MODE | if set to `wal`, use SQLite in [WAL mode](https://www.sqlite.org/wal.html), if set to `sync`, use SQLite with [SYNCHRONOUS=full](https://www.sqlite.org/pragma.html#pragma_synchronous)
-| GRIST_ANON_PLAYGROUND | When set to `false` deny anonymous users access to the home page (but documents can still be shared to anonymous users). Defaults to `true`. |
+| GRIST_ANON_PLAYGROUND | When set to `false` deny anonymous users access to the home page (but documents can still be shared to anonymous users). Defaults to `true`, unless GRIST_ORG_CREATION_ANYONE is `false`. |
 | GRIST_FORCE_LOGIN | Setting it to `true` is similar to setting `GRIST_ANON_PLAYGROUND: false` but it blocks any anonymous access (thus any document shared publicly actually requires the users to be authenticated before consulting them) |
+| GRIST_PERSONAL_ORGS | When set to `false` prevent new personal orgs from being created when a user signs up. Defaults to `true`, unless GRIST_ORG_CREATION_ANYONE is `false`. |
+| GRIST_ORG_CREATION_ANYONE | When set to `false`, prevent new team orgs from being created by non-admin users. Sets default values of `GRIST_ANON_PLAYGROUND` and `GRIST_PERSONAL_ORGS` to `false`. Defaults to `true`. |
 | GRIST_SINGLE_ORG | set to an org "domain" to pin client to that org |
 | GRIST_TEMPLATE_ORG | set to an org "domain" to show public docs from that org |
 | GRIST_HELP_CENTER | set the help center link ref |
@@ -584,6 +586,7 @@ GRIST_DOCKER_GROUP | optional. When the container runs as the root user, this is
 Variable | Purpose
 -------- | -------
 GRIST_TESTING_SOCKET    | a socket used for out-of-channel communication during tests only.
+GRIST_TEST_FORCE_LIGHT_MODE | if set, Grist will use light mode even if system preference is dark. Some tests just assume light mode.
 GRIST_TEST_HTTPS_OFFSET | if set, adds https ports at the specified offset.  This is useful in testing.
 GRIST_TEST_SSL_CERT     | if set, contains filename of SSL certificate.
 GRIST_TEST_SSL_KEY      | if set, contains filename of SSL private key.

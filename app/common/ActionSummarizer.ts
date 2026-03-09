@@ -4,6 +4,7 @@ import { ActionSummary, ColumnDelta, createEmptyActionSummary,
 import { DocAction } from "app/common/DocActions";
 import * as Action from "app/common/DocActions";
 import { arrayExtend } from "app/common/gutil";
+import { TableData } from "app/common/TableData";
 import { CellDelta } from "app/common/TabularDiff";
 
 import clone from "lodash/clone";
@@ -36,12 +37,18 @@ export interface ActionSummaryOptions {
   alwaysPreserveColIds?: string[];
 }
 
-class ActionSummarizer {
+export class ActionSummarizer {
   private readonly _maxRows = this._getMaxRows();
 
   constructor(private _options?: ActionSummaryOptions) {}
 
-  /** add information about an action based on the forward direction */
+  /**
+   * Add information about an action based on the forward direction.
+   * The `act` DocAction is examined for everything we can glean,
+   * updating the ActionSummary. On its own, this isn't enough for
+   * the summary to be complete, since we know neither the current
+   * state the action is working on, nor the undo action for `act`.
+   */
   public addForwardAction(summary: ActionSummary, act: DocAction) {
     const tableId = act[1];
     if (Action.isAddTable(act)) {
@@ -80,7 +87,12 @@ class ActionSummarizer {
     }
   }
 
-  /** add information about an action based on undo information */
+  /**
+   * Add information about an action to a summary based on
+   * undo information. `act` is assumed to be an undo action.
+   * So, for example, if it is an AddTable, the summary will
+   * contain a table deletion.
+   */
   public addReverseAction(summary: ActionSummary, act: DocAction) {
     const tableId = act[1];
     if (Action.isAddTable(act)) { // undoing, so this is a table removal
@@ -111,6 +123,61 @@ class ActionSummarizer {
       const td = this._forTable(summary, tableId);
       arrayExtend(td.removeRows, act[2]);
       this._addRows(tableId, td, act[2], act[3], 0);
+    }
+  }
+
+  /**
+   * Build a summary from a forward action plus the current table state (pre-action).
+   * This is an alternative to addForwardAction + addReverseAction, for when undo
+   * actions aren't available but the live table data is.
+   *
+   * addForwardAction() populates new values (CellDelta index 1). Removals need
+   * special handling since forward remove actions don't carry cell contents — we
+   * look those up from tableData. The final loop backfills old values (index 0) for
+   * updated/added rows from the current table state, which works because this is
+   * called before the action is applied.
+   */
+  public addAction(summary: ActionSummary, act: DocAction,
+    tableData: TableData) {
+    const tableId = act[1];
+    if (!summary.tableDeltas[tableId]) {
+      summary.tableDeltas[tableId] = createEmptyTableDelta();
+    }
+    this.addForwardAction(summary, act);
+    // removal of records doesn't register in forward action.
+    if (Action.isRemoveRecord(act)) {
+      const td = this._forTable(summary, tableId);
+      td.removeRows.push(act[2]);
+      const rec = tableData.getRecord(act[2]);
+      if (rec) {
+        this._addRow(td, act[2], rec, 0);
+      }
+    } else if (Action.isBulkRemoveRecord(act)) {
+      const td = this._forTable(summary, tableId);
+      arrayExtend(td.removeRows, act[2]);
+      for (const id of act[2]) {
+        const rec = tableData.getRecord(id);
+        if (rec) {
+          this._addRow(td, id, rec, 0);
+        }
+      }
+    }
+
+    // Backfill old values (CellDelta index 0) from the pre-action table state.
+    // For updates, this captures what the cell held before the edit. For adds,
+    // getRecord returns undefined (row doesn't exist yet), so the old value is
+    // correctly set to null (non-existent).
+    const tableDelta = summary.tableDeltas[tableId];
+    for (const r of new Set([...tableDelta.updateRows, ...tableDelta.addRows])) {
+      const row = tableData.getRecord(r);
+      for (const colId of Object.keys(tableDelta.columnDeltas)) {
+        if (!(r in tableDelta.columnDeltas[colId])) {
+          continue;
+        }
+        const cell = row?.[colId];
+        const nestedCell = cell === undefined ? null : [cell] as [any];
+        tableDelta.columnDeltas[colId][r][0] = nestedCell;
+      }
     }
   }
 
