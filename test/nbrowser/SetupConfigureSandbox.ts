@@ -324,6 +324,188 @@ describe("SetupConfigureSandbox", function() {
       await driver.findWait(".test-sandbox-submit", 30000);
       await driver.findWait(".test-sandbox-option-unsandboxed", 5000);
     });
+
+    it("wizard auth step renders without access denied", async function() {
+      const wizardUrl = `${server.getHost()}/admin/setup?no-mockup`;
+      await driver.get(wizardUrl);
+      await driver.findContentWait("div", /Quick Setup/, 5000);
+      // Click tab 2 to see authentication options.
+      await driver.find(".test-setup-tab-2").click();
+      await driver.findWait(".test-setup-step-auth", 5000);
+      // Should show auth providers or a skip button — NOT an access denied error.
+      await driver.findWait(".test-auth-skip", 10000);
+      // Verify no error text about access denied.
+      const pageText = await driver.find(".test-setup-step-auth").getText();
+      assert.notMatch(pageText, /access denied/i);
+      assert.notMatch(pageText, /403/);
+    });
+
+    it("auth providers API returns 200 with boot-key auth", async function() {
+      const resp = await fetch(`${server.getHost()}/api/config/auth-providers`, {
+        headers: { "X-Boot-Key": bootKey },
+      });
+      assert.equal(resp.status, 200, `Expected 200 but got ${resp.status}: ${await resp.clone().text()}`);
+      const body = await resp.json();
+      assert.isArray(body);
+    });
+
+    it("auth providers API returns 200 with browser session auth", async function() {
+      // This is the critical test: the browser uses session cookies (not X-Boot-Key header)
+      // to call /api/config/auth-providers. This is what the wizard's AuthenticationSection
+      // actually does. If the session doesn't match the admin email, this returns 403.
+      const wizardUrl = `${server.getHost()}/admin/setup?no-mockup`;
+      await driver.get(wizardUrl);
+      await driver.findContentWait("div", /Quick Setup/, 5000);
+      // Use the browser's native fetch (with session cookies) to call the API.
+      // Must use a string script to avoid capturing the node-fetch import.
+      const result = await driver.executeScript<{status: number; body: string}>(
+        `return window.fetch("/api/config/auth-providers", {
+          headers: { "X-Requested-With": "XMLHttpRequest" }
+        }).then(function(resp) {
+          return resp.text().then(function(body) {
+            return { status: resp.status, body: body };
+          });
+        });`
+      );
+      assert.equal(result.status, 200,
+        `Expected 200 but got ${result.status}: ${result.body}`);
+      const body = JSON.parse(result.body);
+      assert.isArray(body);
+    });
+  });
+
+  // Test that GRIST_DEFAULT_EMAIL doesn't interfere with custom admin email.
+  // If GRIST_DEFAULT_EMAIL is set to one email but the user logs in with a different
+  // email via boot-key, the admin check should use the new email, not the default.
+  describe("custom admin email with GRIST_DEFAULT_EMAIL set", function() {
+    before(async function() {
+      oldEnv = new testUtils.EnvironmentSnapshot();
+      process.env.GRIST_FORCE_SETUP_GATE = "true";
+      delete process.env.GRIST_IN_SERVICE;
+      delete process.env.GRIST_ADMIN_EMAIL;
+      // Set GRIST_DEFAULT_EMAIL to a DIFFERENT email than what we'll enter.
+      process.env.GRIST_DEFAULT_EMAIL = "default@example.com";
+      bootKey = "test-boot-key-default-email";
+      process.env.GRIST_BOOT_KEY = bootKey;
+      await server.restart(true);
+    });
+
+    after(async function() {
+      oldEnv.restore();
+      await server.restart(true);
+    });
+
+    it("login with different email than GRIST_DEFAULT_EMAIL works", async function() {
+      await driver.get(`${server.getHost()}/`);
+      await driver.findWait(".test-boot-key-login-input", 10000);
+      await driver.find(".test-boot-key-login-input").sendKeys(bootKey);
+      await driver.find(".test-boot-key-login-submit").click();
+      await driver.findWait(".test-boot-key-login-email", 10000);
+      // Enter an email different from GRIST_DEFAULT_EMAIL.
+      await driver.find(".test-boot-key-login-email").sendKeys("realadmin@myorg.com");
+      await driver.find(".test-boot-key-login-submit").click();
+      await driver.findContentWait("div", /Quick Setup/, 15000);
+    });
+
+    it("auth providers API works via browser session despite GRIST_DEFAULT_EMAIL", async function() {
+      const wizardUrl = `${server.getHost()}/admin/setup?no-mockup`;
+      await driver.get(wizardUrl);
+      await driver.findContentWait("div", /Quick Setup/, 5000);
+      // Use browser's native fetch with session cookies (same as the wizard does).
+      const result = await driver.executeScript<{status: number; body: string}>(
+        `return window.fetch("/api/config/auth-providers", {
+          headers: { "X-Requested-With": "XMLHttpRequest" }
+        }).then(function(resp) {
+          return resp.text().then(function(body) {
+            return { status: resp.status, body: body };
+          });
+        });`
+      );
+      assert.equal(result.status, 200,
+        `Expected 200 but got ${result.status}: ${result.body}`);
+    });
+
+    it("install prefs API works via browser session despite GRIST_DEFAULT_EMAIL", async function() {
+      // The AuthenticationSection also calls getInstallPrefs which requires admin auth.
+      const result = await driver.executeScript<{status: number; body: string}>(
+        `return window.fetch("/api/install/prefs", {
+          headers: { "X-Requested-With": "XMLHttpRequest" }
+        }).then(function(resp) {
+          return resp.text().then(function(body) {
+            return { status: resp.status, body: body };
+          });
+        });`
+      );
+      assert.equal(result.status, 200,
+        `Expected 200 but got ${result.status}: ${result.body}`);
+    });
+  });
+
+  // Regression test: if GRIST_ADMIN_EMAIL is already set (from a previous run)
+  // and the user enters a DIFFERENT email during boot-key login, the server
+  // must update the admin email. Otherwise the session email won't match and
+  // all admin API calls return 403.
+  describe("changing admin email when GRIST_ADMIN_EMAIL already set", function() {
+    before(async function() {
+      oldEnv = new testUtils.EnvironmentSnapshot();
+      process.env.GRIST_FORCE_SETUP_GATE = "true";
+      delete process.env.GRIST_IN_SERVICE;
+      // Simulate a previous run that already set GRIST_ADMIN_EMAIL.
+      process.env.GRIST_ADMIN_EMAIL = "old-admin@example.com";
+      bootKey = "test-boot-key-change-email";
+      process.env.GRIST_BOOT_KEY = bootKey;
+      await server.restart(true);
+    });
+
+    after(async function() {
+      oldEnv.restore();
+      await server.restart(true);
+    });
+
+    it("login with a different email than the existing GRIST_ADMIN_EMAIL", async function() {
+      await driver.get(`${server.getHost()}/`);
+      await driver.findWait(".test-boot-key-login-input", 10000);
+      await driver.find(".test-boot-key-login-input").sendKeys(bootKey);
+      await driver.find(".test-boot-key-login-submit").click();
+      await driver.findWait(".test-boot-key-login-email", 10000);
+      // The email field should be pre-filled with old-admin@example.com.
+      // Clear it and enter a different email.
+      await driver.find(".test-boot-key-login-email").clear();
+      await driver.find(".test-boot-key-login-email").sendKeys("new-admin@example.com");
+      await driver.find(".test-boot-key-login-submit").click();
+      await driver.findContentWait("div", /Quick Setup/, 15000);
+    });
+
+    it("probes API works via browser session with changed email", async function() {
+      const wizardUrl = `${server.getHost()}/admin/setup?no-mockup`;
+      await driver.get(wizardUrl);
+      await driver.findContentWait("div", /Quick Setup/, 5000);
+      const result = await driver.executeScript<{status: number; body: string}>(
+        `return window.fetch("/api/probes", {
+          headers: { "X-Requested-With": "XMLHttpRequest" }
+        }).then(function(resp) {
+          return resp.text().then(function(body) {
+            return { status: resp.status, body: body };
+          });
+        });`
+      );
+      assert.equal(result.status, 200,
+        `Expected 200 but got ${result.status}: ${result.body}`);
+    });
+
+    it("auth providers API works via browser session with changed email", async function() {
+      const result = await driver.executeScript<{status: number; body: string}>(
+        `return window.fetch("/api/config/auth-providers", {
+          headers: { "X-Requested-With": "XMLHttpRequest" }
+        }).then(function(resp) {
+          return resp.text().then(function(body) {
+            return { status: resp.status, body: body };
+          });
+        });`
+      );
+      assert.equal(result.status, 200,
+        `Expected 200 but got ${result.status}: ${result.body}`);
+    });
   });
 
   describe("maintenance mode endpoint", function() {

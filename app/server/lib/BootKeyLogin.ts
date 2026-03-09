@@ -137,8 +137,10 @@ async function completeLogin(
   email: string,
   next: string,
 ) {
-  if (!process.env.GRIST_ADMIN_EMAIL) {
+  if (!process.env.GRIST_ADMIN_EMAIL || process.env.GRIST_ADMIN_EMAIL !== email) {
     // Persist the admin email so it survives restarts.
+    // Always update when the submitted email differs from the current one —
+    // the user may be correcting a previously-set address.
     process.env.GRIST_ADMIN_EMAIL = email;
     const activations = gristServer.getActivations();
     await activations.updateAppEnvFile({ GRIST_ADMIN_EMAIL: email });
