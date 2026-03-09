@@ -587,6 +587,7 @@ describe("ReferenceList", function() {
       // Edit a cell by double-clicking.
       let cell = await gu.getCell({ section: "References", col: "Colors", rowNum: 2 }).doClick();
       await driver.withActions(a => a.doubleClick(cell));
+      await gu.waitAppFocus(false);
 
       // Scroll to another item and click it.
       await gu.sendKeys("ro");
@@ -824,12 +825,12 @@ describe("ReferenceList", function() {
       await driver.sendKeys(Key.ESCAPE);
 
       // Starting to type Añil without the accent should work too
-      await driver.sendKeys("an");
+      await gu.enterCell(["an"], { validate: false });
       assert.deepEqual(await getACOptions(2),
         ["Añil", "Alice Blue"]);
       await driver.sendKeys(Key.ESCAPE);
 
-      await driver.sendKeys("blac");
+      await gu.enterCell(["blac"], { validate: false });
       assert.deepEqual(await getACOptions(6),
         ["Black", "Blanched Almond", "Blue", "Blue Violet", "Alice Blue", "Cadet Blue"]);
       await driver.sendKeys(Key.ESCAPE);
@@ -881,7 +882,7 @@ describe("ReferenceList", function() {
         "STUDIO SCHOOL (THE)",
         "STUYVESANT HIGH SCHOOL",
       ]);
-      await driver.sendKeys(" bre");
+      await gu.enterCell([" bre"], { validate: false });
       assert.equal(await driver.find(".cell_editor .test-tokenfield .test-tokenfield-input").value(), "stu bre");
       assert.deepEqual(await getACOptions(3), [
         "ST BRENDAN SCHOOL",
@@ -946,7 +947,7 @@ describe("ReferenceList", function() {
       await gu.clickReferenceListCell(cell);
       await driver.sendKeys(Key.ENTER);
       assert.deepEqual(await getACOptions(2), ["Añil", "Aqua"]);
-      await driver.sendKeys("H");
+      await gu.enterCell(["H"], { validate: false });
       assert.deepEqual(await getACOptions(2), ["HAZELNUT", "Honeydew"]);
       await driver.sendKeys(Key.ESCAPE);
 
