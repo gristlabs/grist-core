@@ -98,8 +98,8 @@ If you evaluate Grist by using the hosted version at [getgrist.com](https://getg
     - Enterprises may care about this.
   * [Advanced Admin Controls](https://support.getgrist.com/admin-controls/) (2025)
     - This is a special page for a Grist installation administrator to monitor and edit user access to resources.
-  - It uses a special set of administrative endpoints not present on `grist-core`.
-  - If you're going to be running a large Grist installation, with employees coming and going, you may care about this.
+    - It uses a special set of administrative endpoints not present on `grist-core`.
+    - If you're going to be running a large Grist installation, with employees coming and going, you may care about this.
   * [Grist Assistant](https://support.getgrist.com/assistant/#assistant) (2025)
     - An AI Formula Assistant - limited to working with formulas - is present in `grist-core`, but the newer Assistant can help with a wider range of tasks like building tables and dashboards and modifying data.
     - If you have many users who need help building documents or working with data, you may care about this one.
