@@ -329,6 +329,19 @@ export function createBootKeyLoginPage(appModel: AppModel) {
     form.submit();
   }
 
+  // Close the tips panel, syncing both the observable and DOM state.
+  function closeTips(context: HTMLElement) {
+    if (!tipsOpen.get()) { return; }
+    tipsOpen.set(false);
+    const tips = context
+      .closest("." + cssBootFieldGroup.className)
+      ?.querySelector("." + cssBootTips.className) as HTMLElement | null;
+    if (tips) {
+      tips.setAttribute("data-open", "false");
+      tips.style.maxHeight = "0";
+    }
+  }
+
   return pagePanels({
     headerMain: cssSetupHeaderMain(buildLanguageMenu(appModel)),
     contentMain: cssBootLoginPage(
@@ -354,7 +367,7 @@ export function createBootKeyLoginPage(appModel: AppModel) {
               dom.prop("value", bootKeyValue),
               dom.on("input", (_e: Event, elem: HTMLInputElement) => {
                 bootKeyValue.set(elem.value);
-                if (elem.value.trim()) { tipsOpen.set(false); }
+                if (elem.value.trim()) { closeTips(elem); }
               }),
               dom.prop("disabled", keyConfirmed),
               { placeholder: "Paste boot key here", autofocus: true },
@@ -393,11 +406,11 @@ export function createBootKeyLoginPage(appModel: AppModel) {
                         }
                       }
                     }),
-                    dom.text(use => use(tipsOpen) ? "Hide help" : "Need help?"),
+                    dom.text(use => use(tipsOpen) ? "\u25B4 Hide help" : "\u25BE Need help?"),
                   ),
                 ),
                 cssBootHelpWrap(
-                  dom.cls("collapsed", use => !!use(bootKeyValue).trim()),
+                  dom.cls("collapsed", use => !!use(bootKeyValue).trim() && !use(tipsOpen)),
                   dom("div",
                     cssBootTips(
                       { "data-open": "false" },
@@ -742,12 +755,24 @@ const cssBootTips = styled("div", `
   max-height: 0;
   opacity: 0;
   overflow: hidden;
+  border-left: 3px solid transparent;
+  padding-left: 0;
+  background: transparent;
+  border-radius: 0 6px 6px 0;
   transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              opacity 0.25s ease;
+              opacity 0.25s ease,
+              border-color 0.3s ease,
+              padding 0.3s ease,
+              background 0.3s ease;
   &[data-open="true"] {
     max-height: none;
     opacity: 1;
     overflow: visible;
+    border-left-color: ${theme.controlPrimaryBg};
+    padding-left: 12px;
+    background: ${theme.mainPanelBg};
+    padding-top: 4px;
+    padding-bottom: 4px;
   }
 `);
 
