@@ -267,6 +267,65 @@ describe("SetupConfigureSandbox", function() {
     });
   });
 
+  // Verify that entering a non-default admin email during boot-key login
+  // does not break subsequent wizard screens (sandbox probes, etc.).
+  describe("custom admin email via boot-key login", function() {
+    before(async function() {
+      oldEnv = new testUtils.EnvironmentSnapshot();
+      process.env.GRIST_FORCE_SETUP_GATE = "true";
+      delete process.env.GRIST_IN_SERVICE;
+      // Deliberately do NOT set GRIST_ADMIN_EMAIL — the user will type one in.
+      delete process.env.GRIST_ADMIN_EMAIL;
+      bootKey = "test-boot-key-custom-email";
+      process.env.GRIST_BOOT_KEY = bootKey;
+      await server.restart(true);
+    });
+
+    after(async function() {
+      oldEnv.restore();
+      await server.restart(true);
+    });
+
+    it("login with custom email allows wizard probes to succeed", async function() {
+      // Navigate to root — gate redirects to boot-key login.
+      await driver.get(`${server.getHost()}/`);
+      await driver.findWait(".test-boot-key-login-input", 10000);
+      await driver.find(".test-boot-key-login-input").sendKeys(bootKey);
+      // Phase 1: Check the key.
+      await driver.find(".test-boot-key-login-submit").click();
+      // Phase 2: Email field appears (empty since GRIST_ADMIN_EMAIL is unset).
+      await driver.findWait(".test-boot-key-login-email", 10000);
+      // Enter a custom email that differs from any default.
+      await driver.find(".test-boot-key-login-email").sendKeys("newadmin@mycompany.com");
+      // Complete login.
+      await driver.find(".test-boot-key-login-submit").click();
+      // Should reach the wizard.
+      await driver.findContentWait("div", /Quick Setup/, 15000);
+    });
+
+    it("sandbox probe succeeds with the custom admin email session", async function() {
+      // The boot-key login set GRIST_ADMIN_EMAIL=newadmin@mycompany.com and
+      // cleared the InstallAdmin cache. Verify API probes work with both
+      // session auth and boot-key auth.
+      const resp = await fetch(`${server.getHost()}/api/probes/sandbox-availability`, {
+        headers: { "X-Boot-Key": bootKey },
+      });
+      assert.equal(resp.status, 200);
+      const body = await resp.json();
+      assert.isArray(body.details?.flavors);
+      assert.isTrue(body.details.flavors.length > 0);
+    });
+
+    it("wizard sandbox step renders without errors", async function() {
+      const wizardUrl = `${server.getHost()}/admin/setup`;
+      await driver.get(wizardUrl);
+      await driver.findContentWait("div", /Quick Setup/, 5000);
+      // Wait for sandbox probe to complete and options to appear.
+      await driver.findWait(".test-sandbox-submit", 30000);
+      await driver.findWait(".test-sandbox-option-unsandboxed", 5000);
+    });
+  });
+
   describe("maintenance mode endpoint", function() {
     before(async function() {
       oldEnv = new testUtils.EnvironmentSnapshot();

@@ -142,6 +142,8 @@ async function completeLogin(
     process.env.GRIST_ADMIN_EMAIL = email;
     const activations = gristServer.getActivations();
     await activations.updateAppEnvFile({ GRIST_ADMIN_EMAIL: email });
+    // Refresh the install admin so it recognizes the new email immediately.
+    gristServer.getInstallAdmin().clearCaches();
     log.info("Admin email set to %s via boot key login", email);
   }
 
