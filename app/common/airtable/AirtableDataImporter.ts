@@ -18,7 +18,7 @@ import {
 import { BulkColValues, CellValue, GristObjCode } from "app/plugin/GristData";
 
 export async function importDataFromAirtableBase(
-  { listRecords, addRows, updateRows, uploadAttachment, schemaCrosswalk, onProgress }: AirtableDataImportParams,
+  { listRecords, addOrUpdateRows, updateRows, uploadAttachment, schemaCrosswalk, onProgress }: AirtableDataImportParams,
 ) {
   const referenceTracker = new ReferenceTracker();
   const attachmentTracker = new AttachmentTracker();
@@ -106,8 +106,11 @@ export async function importDataFromAirtableBase(
         attachmentsByColumnIdForRecords.push(attachmentsByColumnId);
       }
 
-      const addRowsPromise = addRows(tableCrosswalk.gristTable.id, colValues)
-        .then((gristRowIds) => {
+      // Need to check if addOrUpdateRows can handle just adding.
+      // If so - let's move everything over to record syntax? Maybe Claude can help.
+
+      const addRowsPromise = addOrUpdateRows(tableCrosswalk.gristTable.id, colValues)
+        .then(() => {
           airtableRecordIds.forEach((airtableRecordId, index) => {
             // Only add entries to the reference and attachment trackers once we know they're added to the table.
             referenceTracker.addRecordIdMapping(airtableRecordId, gristRowIds[index]);
