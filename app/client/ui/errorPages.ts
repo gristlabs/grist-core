@@ -349,92 +349,92 @@ export function createBootKeyLoginPage(appModel: AppModel) {
 
           // Boot key field
           cssBootFieldGroup(
-              cssBootLoginLabel("Boot key"),
-              cssBootKeyInput(
-                dom.prop("value", bootKeyValue),
-                dom.on("input", (_e: Event, elem: HTMLInputElement) => {
-                  bootKeyValue.set(elem.value);
-                  if (elem.value.trim()) { tipsOpen.set(false); }
-                }),
-                dom.prop("disabled", keyConfirmed),
-                { placeholder: "Paste boot key here", autofocus: true },
-                dom.on("keydown", (ev: KeyboardEvent) => {
-                  if (ev.key === "Enter" && !keyConfirmed.get()) { void checkKey(); }
-                }),
-                testId("boot-key-login-input"),
-              ),
-              dom.domComputed(keyConfirmed, (confirmed) => {
-                if (confirmed) {
-                  return cssBootFieldCaption(
-                    { style: "color: #1e7e34;" },
-                    "\u2713 Boot key verified",
-                  );
-                }
-                return [
-                  cssBootFieldCaption(
-                    "Find ",
-                    dom("b", "BOOT KEY"),
-                    " in your server logs. ",
-                    dom("span",
-                      cssBootHelpLink.cls(""),
-                      dom.on("click", (ev: MouseEvent) => {
-                        const tips = (ev.currentTarget as HTMLElement)
-                          .closest("." + cssBootFieldGroup.className)
-                          ?.querySelector("." + cssBootTips.className) as HTMLElement | null;
-                        if (tips) {
-                          const open = tipsOpen.get();
-                          tipsOpen.set(!open);
-                          tips.setAttribute("data-open", String(!open));
-                          if (open) {
-                            tips.style.maxHeight = tips.scrollHeight + "px";
-                            requestAnimationFrame(() => { tips.style.maxHeight = "0"; });
-                          } else {
-                            tips.style.maxHeight = "none";
-                          }
+            cssBootLoginLabel("Boot key"),
+            cssBootKeyInput(
+              dom.prop("value", bootKeyValue),
+              dom.on("input", (_e: Event, elem: HTMLInputElement) => {
+                bootKeyValue.set(elem.value);
+                if (elem.value.trim()) { tipsOpen.set(false); }
+              }),
+              dom.prop("disabled", keyConfirmed),
+              { placeholder: "Paste boot key here", autofocus: true },
+              dom.on("keydown", (ev: KeyboardEvent) => {
+                if (ev.key === "Enter" && !keyConfirmed.get()) { void checkKey(); }
+              }),
+              testId("boot-key-login-input"),
+            ),
+            dom.domComputed(keyConfirmed, (confirmed) => {
+              if (confirmed) {
+                return cssBootFieldCaption(
+                  { style: "color: #1e7e34;" },
+                  "\u2713 Boot key verified",
+                );
+              }
+              return [
+                cssBootFieldCaption(
+                  "Find ",
+                  dom("b", "BOOT KEY"),
+                  " in your server logs. ",
+                  dom("span",
+                    cssBootHelpLink.cls(""),
+                    dom.on("click", (ev: MouseEvent) => {
+                      const tips = (ev.currentTarget as HTMLElement)
+                        .closest("." + cssBootFieldGroup.className)
+                        ?.querySelector("." + cssBootTips.className) as HTMLElement | null;
+                      if (tips) {
+                        const open = tipsOpen.get();
+                        tipsOpen.set(!open);
+                        tips.setAttribute("data-open", String(!open));
+                        if (open) {
+                          tips.style.maxHeight = tips.scrollHeight + "px";
+                          requestAnimationFrame(() => { tips.style.maxHeight = "0"; });
+                        } else {
+                          tips.style.maxHeight = "none";
                         }
-                      }),
-                      dom.text(use => use(tipsOpen) ? "Hide help" : "Need help?"),
-                    ),
+                      }
+                    }),
+                    dom.text(use => use(tipsOpen) ? "Hide help" : "Need help?"),
                   ),
-                  cssBootHelpWrap(
-                    dom.cls("collapsed", use => !!use(bootKeyValue).trim()),
-                    dom("div",
-                      cssBootTips(
-                        { "data-open": "false" },
-                        cssBootTip(
-                          cssBootTipTitle("What to look for"),
-                          dom("pre", cssBootBannerPre.cls(""),
-                            "┌──────────────────────────────────────────┐\n" +
-                            "│                                          │\n" +
-                            "│   BOOT KEY: abc123-your-key-here...      │\n" +
-                            "│                                          │\n" +
-                            "└──────────────────────────────────────────┘",
-                          ),
-                          cssBootTipCaption("This banner appears near the top of the server output."),
+                ),
+                cssBootHelpWrap(
+                  dom.cls("collapsed", use => !!use(bootKeyValue).trim()),
+                  dom("div",
+                    cssBootTips(
+                      { "data-open": "false" },
+                      cssBootTip(
+                        cssBootTipTitle("What to look for"),
+                        dom("pre", cssBootBannerPre.cls(""),
+                          "┌──────────────────────────────────────────┐\n" +
+                          "│                                          │\n" +
+                          "│   BOOT KEY: abc123-your-key-here...      │\n" +
+                          "│                                          │\n" +
+                          "└──────────────────────────────────────────┘",
                         ),
-                        cssBootTip(
-                          cssBootTipTitle("Or set your own"),
-                          cssBootTipBody(
-                            "Set the environment variable ",
-                            dom("code", cssBootCode.cls(""), "GRIST_BOOT_KEY"),
-                            " to any value you choose, then restart Grist.",
-                          ),
+                        cssBootTipCaption("This banner appears near the top of the server output."),
+                      ),
+                      cssBootTip(
+                        cssBootTipTitle("Or set your own"),
+                        cssBootTipBody(
+                          "Set the environment variable ",
+                          dom("code", cssBootCode.cls(""), "GRIST_BOOT_KEY"),
+                          " to any value you choose, then restart Grist.",
                         ),
-                        cssBootTip(
-                          cssBootTipTitle("Why boot keys?"),
-                          cssBootTipBody(
-                            "Entering a boot key proves that you are the person installing Grist, " +
-                            "and not someone nefarious. If you are in a private trusted network, " +
-                            "you can set ",
-                            dom("code", cssBootCode.cls(""), "GRIST_IN_SERVICE"),
-                            " to turn off this check.",
-                          ),
+                      ),
+                      cssBootTip(
+                        cssBootTipTitle("Why boot keys?"),
+                        cssBootTipBody(
+                          "Entering a boot key proves that you are the person installing Grist, " +
+                          "and not someone nefarious. If you are in a private trusted network, " +
+                          "you can set ",
+                          dom("code", cssBootCode.cls(""), "GRIST_IN_SERVICE"),
+                          " to turn off this check.",
                         ),
                       ),
                     ),
                   ),
-                ];
-              }),
+                ),
+              ];
+            }),
           ),
 
           dom.maybe(errorMsg, err =>
@@ -455,9 +455,9 @@ export function createBootKeyLoginPage(appModel: AppModel) {
                 testId("boot-key-login-email"),
               ),
               cssBootFieldCaption(
-                dom.domComputed(emailValue, (val) =>
+                dom.domComputed(emailValue, val =>
                   val ? "Confirm or change the administrator email address." :
-                    "This will be your admin account for managing Grist."
+                    "This will be your admin account for managing Grist.",
                 ),
               ),
             ),
@@ -936,4 +936,3 @@ const cssMockupSection = styled("div", `
     margin-top: 0;
   }
 `);
-

@@ -36,7 +36,7 @@ import {
 import { addRequestUser, getUser, getUserId, isAnonymousUser,
   isSingleUserMode, redirectToLoginUnconditionally } from "app/server/lib/Authorizer";
 import { redirectToLogin, RequestWithLogin, signInStatusMiddleware } from "app/server/lib/Authorizer";
-import { BootKeyLoginMiddleware } from "app/server/lib/BootKeyLogin";
+import { addBootKeyRoutes, BootKeyLoginMiddleware } from "app/server/lib/BootKeyLogin";
 import { forceSessionChange } from "app/server/lib/BrowserSession";
 import { Comm } from "app/server/lib/Comm";
 import { ConfigBackendAPI } from "app/server/lib/ConfigBackendAPI";
@@ -718,7 +718,6 @@ export class FlexServer implements GristServer {
     // login system. The gate redirects browser requests here for authentication.
     // If BootKeyLoginMiddleware later registers its own routes, Express will use
     // whichever is registered first (this one), which is fine since they're identical.
-    const { addBootKeyRoutes } = require("app/server/lib/BootKeyLogin");
     addBootKeyRoutes(this.app, this);
 
     // Paths that should always be accessible, even when the setup gate is active.

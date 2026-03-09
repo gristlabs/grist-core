@@ -179,7 +179,7 @@ export function pagePanels(page: PageContents) {
             testId("left-disabled-resizer"),
           ),
 
-          dom.style("width", use => {
+          dom.style("width", (use) => {
             if (use(left.panelOpen)) { return use(left.panelWidth) + "px"; }
             if (left.collapsedWidth) { return use(left.collapsedWidth) + "px"; }
             return "";
