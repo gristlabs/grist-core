@@ -33,6 +33,8 @@ import { signal } from "test/server/lib/helpers/Signal";
 import * as testUtils from "test/server/testUtils";
 import { waitForIt } from "test/server/wait";
 
+import { Agent } from "http";
+
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import { assert } from "chai";
 import * as express from "express";
@@ -46,6 +48,12 @@ import fetch from "node-fetch";
 import { createClient, RedisClient } from "redis";
 
 const webhooksTestPort = Number(process.env.WEBHOOK_TEST_PORT || 34365);
+const axiosInstance = axios.create({
+  // FIXME: disable keepAlive, otherwise since axios in version 1.13.2
+  // we have a "socket hang up" error (regression in axios?)
+  // Maybe related to the use of agentkeepalive (present in yarn.lock)
+  httpAgent: new Agent({ keepAlive: false }),
+});
 
 async function getWorkspaceId(api: UserAPIImpl, name: string) {
   const workspaces = await api.getOrgWorkspaces("current");
@@ -107,7 +115,7 @@ function addWebhooksTests(getCtx: () => TestContext) {
 
     async function oldSubscribeCheck(requestBody: any, status: number, ...errors: RegExp[]) {
       const { serverUrl, docIds, chimpy } = getCtx();
-      const resp = await axios.post(
+      const resp = await axiosInstance.post(
         `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/_subscribe`,
         requestBody, chimpy,
       );
@@ -119,7 +127,7 @@ function addWebhooksTests(getCtx: () => TestContext) {
 
     async function postWebhookCheck(requestBody: any, status: number, ...errors: RegExp[]) {
       const { serverUrl, docIds, chimpy } = getCtx();
-      const resp = await axios.post(
+      const resp = await axiosInstance.post(
         `${serverUrl}/api/docs/${docIds.Timesheets}/webhooks`,
         requestBody, chimpy,
       );
@@ -132,7 +140,7 @@ function addWebhooksTests(getCtx: () => TestContext) {
 
     async function userCheck(user: AxiosRequestConfig, requestBody: any, status: number, responseBody: any) {
       const { serverUrl, docIds } = getCtx();
-      const resp = await axios.post(
+      const resp = await axiosInstance.post(
         `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/_unsubscribe`,
         requestBody, user,
       );
@@ -145,7 +153,7 @@ function addWebhooksTests(getCtx: () => TestContext) {
 
     async function userDeleteCheck(user: AxiosRequestConfig, webhookId: string, status: number, ...errors: RegExp[]) {
       const { serverUrl, docIds } = getCtx();
-      const resp = await axios.delete(
+      const resp = await axiosInstance.delete(
         `${serverUrl}/api/docs/${docIds.Timesheets}/webhooks/${webhookId}`,
         user,
       );
@@ -162,7 +170,7 @@ function addWebhooksTests(getCtx: () => TestContext) {
 
     async function subscribeWebhook(): Promise<SubscriptionInfo> {
       const { serverUrl, docIds, chimpy } = getCtx();
-      const subscribeResponse = await axios.post(
+      const subscribeResponse = await axiosInstance.post(
         `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/_subscribe`,
         { eventTypes: ["add"], url: "https://example.com" }, chimpy,
       );
@@ -173,14 +181,14 @@ function addWebhooksTests(getCtx: () => TestContext) {
 
     async function getRegisteredWebhooks() {
       const { serverUrl, docIds, chimpy } = getCtx();
-      const response = await axios.get(
+      const response = await axiosInstance.get(
         `${serverUrl}/api/docs/${docIds.Timesheets}/webhooks`, chimpy);
       return response.data.webhooks;
     }
 
     async function deleteWebhookCheck(webhookId: any) {
       const { serverUrl, docIds, chimpy } = getCtx();
-      const response = await axios.delete(
+      const response = await axiosInstance.delete(
         `${serverUrl}/api/docs/${docIds.Timesheets}/webhooks/${webhookId}`, chimpy);
       return response.data;
     }
@@ -190,7 +198,7 @@ function addWebhooksTests(getCtx: () => TestContext) {
       const registerResponse = await postWebhookCheck({
         webhooks: [{ fields: { tableId: "Table1", eventTypes: ["add"], url: "https://example.com" } }],
       }, 200);
-      const resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/webhooks`, chimpy);
+      const resp = await axiosInstance.get(`${serverUrl}/api/docs/${docIds.Timesheets}/webhooks`, chimpy);
       try {
         assert.equal(resp.status, 200);
         assert.isAtLeast(resp.data.webhooks.length, 1);
@@ -307,7 +315,7 @@ function addWebhooksTests(getCtx: () => TestContext) {
       const delta = {
         users: { "kiwi@getgrist.com": "editors" as string | null },
       };
-      let accessResp = await axios.patch(`${homeUrl}/api/docs/${docIds.Timesheets}/access`, { delta }, chimpy);
+      let accessResp = await axiosInstance.patch(`${homeUrl}/api/docs/${docIds.Timesheets}/access`, { delta }, chimpy);
       await flushAuth();
       assert.equal(accessResp.status, 200);
 
@@ -323,7 +331,7 @@ function addWebhooksTests(getCtx: () => TestContext) {
         404, `Webhook not found "${subscribeResponse.webhookId}"`);
 
       delta.users["kiwi@getgrist.com"] = null;
-      accessResp = await axios.patch(`${homeUrl}/api/docs/${docIds.Timesheets}/access`, { delta }, chimpy);
+      accessResp = await axiosInstance.patch(`${homeUrl}/api/docs/${docIds.Timesheets}/access`, { delta }, chimpy);
       assert.equal(accessResp.status, 200);
       await flushAuth();
     });
@@ -336,14 +344,14 @@ function addWebhooksTests(getCtx: () => TestContext) {
       const delta = {
         users: { "kiwi@getgrist.com": "editors" as string | null },
       };
-      let accessResp = await axios.patch(`${homeUrl}/api/docs/${docIds.Timesheets}/access`, { delta }, chimpy);
+      let accessResp = await axiosInstance.patch(`${homeUrl}/api/docs/${docIds.Timesheets}/access`, { delta }, chimpy);
       assert.equal(accessResp.status, 200);
       await flushAuth();
 
       await check(subscribeResponse.webhookId, 403, /No owner access/);
 
       delta.users["kiwi@getgrist.com"] = null;
-      accessResp = await axios.patch(`${homeUrl}/api/docs/${docIds.Timesheets}/access`, { delta }, chimpy);
+      accessResp = await axiosInstance.patch(`${homeUrl}/api/docs/${docIds.Timesheets}/access`, { delta }, chimpy);
       assert.equal(accessResp.status, 200);
       await flushAuth();
     });
@@ -412,7 +420,7 @@ function addWebhooksTests(getCtx: () => TestContext) {
       for (let i = 1; i <= 9; i++) {
         const last = i === 9;
         m = moment.utc();
-        const response = await axios.get(`${serverUrl}/api/docs/${docId}/tables/Table1/records`,
+        const response = await axiosInstance.get(`${serverUrl}/api/docs/${docId}/tables/Table1/records`,
           chimpy);
         await delay(100);
         if (i <= 4) {
@@ -570,7 +578,7 @@ function addWebhooksTests(getCtx: () => TestContext) {
 
     function unsubscribe(docId: string, data: any, tableId = "Table1") {
       const { serverUrl, chimpy } = getCtx();
-      return axios.post(
+      return axiosInstance.post(
         `${serverUrl}/api/docs/${docId}/tables/${tableId}/_unsubscribe`,
         data, chimpy,
       );
@@ -586,7 +594,7 @@ function addWebhooksTests(getCtx: () => TestContext) {
       enabled?: boolean,
     }) {
       const { serverUrl, chimpy } = getCtx();
-      const { data, status } = await axios.post(
+      const { data, status } = await axiosInstance.post(
         `${serverUrl}/api/docs/${docId}/tables/${options?.tableId ?? "Table1"}/_subscribe`,
         {
           eventTypes: options?.eventTypes ?? ["add", "update"],
@@ -601,7 +609,7 @@ function addWebhooksTests(getCtx: () => TestContext) {
 
     async function clearQueue(docId: string) {
       const { serverUrl, chimpy } = getCtx();
-      const deleteResult = await axios.delete(
+      const deleteResult = await axiosInstance.delete(
         `${serverUrl}/api/docs/${docId}/webhooks/queue`, chimpy,
       );
       assert.equal(deleteResult.status, 200);
@@ -609,7 +617,7 @@ function addWebhooksTests(getCtx: () => TestContext) {
 
     async function readStats(docId: string): Promise<WebhookSummary[]> {
       const { serverUrl, chimpy } = getCtx();
-      const result = await axios.get(
+      const result = await axiosInstance.get(
         `${serverUrl}/api/docs/${docId}/webhooks`, chimpy,
       );
       assert.equal(result.status, 200);
@@ -736,7 +744,7 @@ function addWebhooksTests(getCtx: () => TestContext) {
         },
       ) {
         const { serverUrl, chimpy } = getCtx();
-        await axios.post(`${serverUrl}/api/docs/${docId}/apply`, [
+        await axiosInstance.post(`${serverUrl}/api/docs/${docId}/apply`, [
           ["ModifyColumn", tableId, isReadyColumn, { type: "Bool" }],
         ], chimpy);
 
@@ -791,7 +799,7 @@ function addWebhooksTests(getCtx: () => TestContext) {
             await doc.updateRows("Table1", { id: [2], A: [7], B: [true] });
             await doc.updateRows("Table1", { id: [2], A: [8] });
 
-            await axios.post(`${serverUrl}/api/docs/${docId}/apply`, [
+            await axiosInstance.post(`${serverUrl}/api/docs/${docId}/apply`, [
               ["BulkAddRecord", "Table1", [3, 4, 5, 6], { A: [9, 10, 11, 12], B: [true, true, false, false] }],
               ["BulkUpdateRecord", "Table1", [1, 2, 3, 4, 5, 6], {
                 A: [101, 102, 13, 14, 15, 16],
@@ -803,7 +811,7 @@ function addWebhooksTests(getCtx: () => TestContext) {
               ["RemoveColumn", "Table12", "C"],
             ], chimpy);
 
-            await axios.post(`${serverUrl}/api/docs/${docId}/apply`, [
+            await axiosInstance.post(`${serverUrl}/api/docs/${docId}/apply`, [
               ["AddRecord", "Table12", 7, { A3: 17, B3: false }],
               ["UpdateRecord", "Table12", 7, { A3: 18, B3: true }],
               ["AddRecord", "Table12", 8, { A3: 19, B3: true }],
@@ -820,7 +828,7 @@ function addWebhooksTests(getCtx: () => TestContext) {
             await receivedLastEvent;
 
             await Promise.all(subscribeResponses.map(async (subscribeResponse) => {
-              const unsubscribeResponse = await axios.post(
+              const unsubscribeResponse = await axiosInstance.post(
                 `${serverUrl}/api/docs/${docId}/tables/Table12/_unsubscribe`,
                 subscribeResponse, chimpy,
               );
@@ -904,7 +912,7 @@ function addWebhooksTests(getCtx: () => TestContext) {
         const ws1 = (await userApi.getOrgWorkspaces("current"))[0].id;
         docId = await userApi.newDoc({ name: "testdoc2" }, ws1);
         doc = userApi.getDocAPI(docId);
-        await axios.post(`${serverUrl}/api/docs/${docId}/apply`, [
+        await axiosInstance.post(`${serverUrl}/api/docs/${docId}/apply`, [
           ["ModifyColumn", "Table1", "B", { type: "Bool" }],
         ], chimpy);
         await userApi.applyUserActions(docId, [["AddTable", "Table2", [{ id: "Foo" }, { id: "Bar" }]]]);
@@ -922,7 +930,7 @@ function addWebhooksTests(getCtx: () => TestContext) {
         const ws1 = (await userApi.getOrgWorkspaces("current"))[0].id;
         const docId = await userApi.newDoc({ name: "testdoc2" }, ws1);
         const doc = userApi.getDocAPI(docId);
-        await axios.post(`${serverUrl}/api/docs/${docId}/apply`, [
+        await axiosInstance.post(`${serverUrl}/api/docs/${docId}/apply`, [
           ["ModifyColumn", "Table1", "B", { type: "Bool" }],
         ], chimpy);
 
@@ -1007,7 +1015,7 @@ function addWebhooksTests(getCtx: () => TestContext) {
         });
         successCalled.assertNotCalled();
         longFinished.assertNotCalled();
-        assert.isTrue((await axios.delete(
+        assert.isTrue((await axiosInstance.delete(
           `${serverUrl}/api/docs/${docId}/webhooks/queue`, chimpy,
         )).status === 200);
         controller5.abort();
@@ -1035,7 +1043,7 @@ function addWebhooksTests(getCtx: () => TestContext) {
         const ws1 = (await userApi.getOrgWorkspaces("current"))[0].id;
         const docId = await userApi.newDoc({ name: "testdoc4" }, ws1);
         const doc = userApi.getDocAPI(docId);
-        await axios.post(`${serverUrl}/api/docs/${docId}/apply`, [
+        await axiosInstance.post(`${serverUrl}/api/docs/${docId}/apply`, [
           ["ModifyColumn", "Table1", "B", { type: "Bool" }],
         ], chimpy);
 
@@ -1073,12 +1081,12 @@ function addWebhooksTests(getCtx: () => TestContext) {
         const ws1 = (await userApi.getOrgWorkspaces("current"))[0].id;
         const docId = await userApi.newDoc({ name: "testdoc5" }, ws1);
         const doc = userApi.getDocAPI(docId);
-        await axios.post(`${serverUrl}/api/docs/${docId}/apply`, [
+        await axiosInstance.post(`${serverUrl}/api/docs/${docId}/apply`, [
           ["ModifyColumn", "Table1", "B", { type: "Bool" }],
         ], chimpy);
 
         const modifyColumn = async (newValues: { [key: string]: any; }) => {
-          await axios.post(`${serverUrl}/api/docs/${docId}/apply`, [
+          await axiosInstance.post(`${serverUrl}/api/docs/${docId}/apply`, [
             ["UpdateRecord", "Table1", newRowIds[0], newValues],
           ], chimpy);
         };
@@ -1339,7 +1347,7 @@ function addWebhooksTests(getCtx: () => TestContext) {
         const doc = userApi.getDocAPI(docId);
         const formulaEvaluatedAtDocLoad = "NOW()";
 
-        await axios.post(`${serverUrl}/api/docs/${docId}/apply`, [
+        await axiosInstance.post(`${serverUrl}/api/docs/${docId}/apply`, [
           ["ModifyColumn", "Table1", "C", { isFormula: true, formula: formulaEvaluatedAtDocLoad }],
         ], chimpy);
 
@@ -1450,7 +1458,7 @@ function addWebhooksTests(getCtx: () => TestContext) {
 
             const doc = userApi.getDocAPI(docId);
             const fork = await doc.fork();
-            const { data: errorData } = await axios.post(
+            const { data: errorData } = await axiosInstance.post(
               `${serverUrl}/api/docs/${fork.docId}/webhooks`,
               {
                 webhooks: [{
@@ -1463,7 +1471,7 @@ function addWebhooksTests(getCtx: () => TestContext) {
             );
             assert.equal(errorData.error, "Unsaved document copies cannot have webhooks");
 
-            const { data } = await axios.post(
+            const { data } = await axiosInstance.post(
               `${serverUrl}/api/docs/${docId}/webhooks`,
               {
                 webhooks: [{
@@ -1495,7 +1503,7 @@ function addWebhooksTests(getCtx: () => TestContext) {
             const { unsubscribeKey, ...fieldsWithoutUnsubscribeKey } = stats[0].fields;
             assert.deepEqual(fieldsWithoutUnsubscribeKey, expectedFields);
 
-            const resp = await axios.patch(
+            const resp = await axiosInstance.patch(
               `${serverUrl}/api/docs/${docId}/webhooks/${webhooks.webhooks[0].id}`, fields, chimpy,
             );
 
@@ -1518,7 +1526,7 @@ function addWebhooksTests(getCtx: () => TestContext) {
               }
             }
 
-            const unsubscribeResp = await axios.delete(
+            const unsubscribeResp = await axiosInstance.delete(
               `${serverUrl}/api/docs/${docId}/webhooks/${webhooks.webhooks[0].id}`, chimpy,
             );
             assert.equal(unsubscribeResp.status, 200, JSON.stringify(pick(unsubscribeResp, ["data", "status"])));
@@ -1591,9 +1599,9 @@ function addWebhooksTests(getCtx: () => TestContext) {
       anonConfig.headers!.Origin = allowedOrigin;
       let response: AxiosResponse;
       for (response of [
-        await axios.post(url, data, anonConfig),
-        await axios.get(url, anonConfig),
-        await axios.options(url, anonConfig),
+        await axiosInstance.post(url, data, anonConfig),
+        await axiosInstance.get(url, anonConfig),
+        await axiosInstance.options(url, anonConfig),
       ]) {
         assert.equal(response.status, 200);
         assert.equal(response.headers["access-control-allow-methods"], "GET, PATCH, PUT, POST, DELETE, OPTIONS");
@@ -1606,9 +1614,9 @@ function addWebhooksTests(getCtx: () => TestContext) {
       for (const config of [anonConfig, chimpyConfig]) {
         config.headers!.Origin = forbiddenOrigin;
         for (response of [
-          await axios.post(url, data, config),
-          await axios.get(url, config),
-          await axios.options(url, config),
+          await axiosInstance.post(url, data, config),
+          await axiosInstance.get(url, config),
+          await axiosInstance.options(url, config),
         ]) {
           if (config === anonConfig) {
             // Requests without credentials are still OK.
@@ -1630,7 +1638,7 @@ function addWebhooksTests(getCtx: () => TestContext) {
       // One possible header is X-Requested-With, which we removed at the start of the test.
       // The other is Content-Type: application/json, which we have been using implicitly above because axios
       // automatically treats the given data object as data. Passing a string instead prevents this.
-      response = await axios.post(url, JSON.stringify(data), anonConfig);
+      response = await axiosInstance.post(url, JSON.stringify(data), anonConfig);
       assert.equal(response.status, 401);
       assert.deepEqual(response.data, {
         error: "Unauthenticated requests require one of the headers" +
@@ -1638,7 +1646,7 @@ function addWebhooksTests(getCtx: () => TestContext) {
       });
 
       // ^ that's for requests without credentials, otherwise we get the same 403 as earlier.
-      response = await axios.post(url, JSON.stringify(data), chimpyConfig);
+      response = await axiosInstance.post(url, JSON.stringify(data), chimpyConfig);
       assert.equal(response.status, 403);
       assert.deepEqual(response.data, { error: "Credentials not supported for cross-origin requests" });
     });
