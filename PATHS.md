@@ -743,6 +743,19 @@ through to the new `/api/admin/*` endpoints.
 
 Three shared components extracted from the wizard into reusable files:
 
+#### Sandbox flavor guide
+
+| Flavor | When to use | Speed | Notes |
+|---|---|---|---|
+| **gvisor** | Recommended when available. The default in the Grist Docker image (`runsc` is pre-installed). | Fastest sandbox | Most tested. Won't work in some environments (e.g. containers without required capabilities, or old processors). If the availability probe passes, use this. |
+| **pyodide** | Fallback when gVisor isn't available. Works everywhere (runs Python via WebAssembly). | Slower than gVisor | Full Grist formula compatibility (standard library only). Good isolation. Less battle-tested than gVisor. |
+| **macSandboxExec** | Running Grist on a Mac (local/dev use). Uses Apple's built-in `sandbox-exec`. | Fast (native Python) | Good isolation. Less tested than gVisor. Only relevant on macOS — not a choice the wizard should nudge toward. |
+| **unsandboxed** | Trusted environments where the admin controls all documents (e.g. personal use, air-gapped). | Fastest (no overhead) | Formulas get full system access. Legitimate when you trust every document author. Some users specifically want this to run unrestricted Python. |
+
+**Decision tree for the wizard:** recommend gVisor if its probe passes →
+otherwise suggest pyodide (or macSandboxExec if on a Mac) → show
+unsandboxed as an available-but-opt-in fallback with a clear warning.
+
 **1. SandboxConfigurator** (`app/client/ui/SandboxConfigurator.ts`)
 - Probes sandbox flavors via `InstallAPI.runCheck()` (one request per
   candidate: gvisor, pyodide, macSandboxExec)

@@ -3,10 +3,14 @@ import { AdminChecks } from "app/client/models/AdminChecks";
 import { AppModel, getHomeUrl } from "app/client/models/AppModel";
 import { AuthenticationSection } from "app/client/ui/AuthenticationSection";
 import { GoLiveControl } from "app/client/ui/GoLiveControl";
+import {
+  buildMockupPanel, cssMockupButton, cssMockupDesc, cssMockupRow, cssMockupSection,
+} from "app/client/ui/MockupPanel";
 import { SandboxConfigurator } from "app/client/ui/SandboxConfigurator";
 import { StorageConfigurator } from "app/client/ui/StorageConfigurator";
 import { basicButton, primaryButton } from "app/client/ui2018/buttons";
 import { testId, theme } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
 import { InstallAPIImpl } from "app/common/InstallAPI";
 
 import { Computed, Disposable, dom, DomContents, Observable, styled } from "grainjs";
@@ -102,10 +106,20 @@ export class SetupWizard extends Disposable {
     // active step survive page reloads.
     this._restoreState();
 
-    // Auto-start probes (user is already authenticated via session).
+    // Probe sandbox immediately (step 1 is visible on load).
+    // Defer storage and auth probes until their steps become active,
+    // to avoid confusing background activity and unnecessary requests.
     void this._sandbox.probe();
-    void this._storage.probe();
-    void this._checks.fetchAvailableChecks();
+
+    const triggerStepProbes = (step: Step) => {
+      if (step >= 2) { void this._checks.fetchAvailableChecks(); }
+      if (step >= 3) { void this._storage.probe(); }
+    };
+
+    // Trigger probes for the restored step (if user reloads mid-wizard).
+    triggerStepProbes(this._activeStep.get());
+
+    this.autoDispose(this._activeStep.addListener((step) => triggerStepProbes(step)));
 
     // Save progress whenever meaningful state changes.
     this.autoDispose(this._activeStep.addListener(() => this._saveState()));
@@ -169,7 +183,7 @@ export class SetupWizard extends Disposable {
         cssStepCard(
           dom.show(use => use(this._activeStep) === 1),
           cssStepHeader(
-            cssStepIcon("\uD83D\uDEE1\uFE0F"),
+            cssStepIcon(icon("Code")),
             cssStepTitle(t("Sandboxing")),
           ),
           cssStepDesc(
@@ -189,7 +203,7 @@ export class SetupWizard extends Disposable {
         cssStepCard(
           dom.show(use => use(this._activeStep) === 2),
           cssStepHeader(
-            cssStepIcon("\uD83D\uDD10"),
+            cssStepIcon(icon("Lock")),
             cssStepTitle(t("Authentication")),
           ),
           cssStepDesc(
@@ -204,12 +218,12 @@ export class SetupWizard extends Disposable {
         cssStepCard(
           dom.show(use => use(this._activeStep) === 3),
           cssStepHeader(
-            cssStepIcon("\uD83D\uDCBE"),
+            cssStepIcon(icon("Database")),
             cssStepTitle(t("Backups")),
           ),
           cssStepDesc(
-            t("Configure external storage to back up document snapshots off-server. " +
-              "This enables versioning and protects against data loss."),
+            t("Store document backups on an external service like S3 or Azure. " +
+              "This protects against data loss if the server's disk fails."),
           ),
           this._storage.buildDom({
             onContinue: () => {
@@ -224,7 +238,7 @@ export class SetupWizard extends Disposable {
         cssStepCard(
           dom.show(use => use(this._activeStep) === 4),
           cssStepHeader(
-            cssStepIcon("\uD83D\uDE80"),
+            cssStepIcon(icon("Settings")),
             cssStepTitle(t("Apply & Restart")),
           ),
           cssStepDesc(
@@ -332,8 +346,7 @@ export class SetupWizard extends Disposable {
    * wizard state without server access. Will be removed before merge.
    */
   private _buildMockupControls(): DomContents {
-    return cssMockupPanel(
-      cssMockupTitle("Mockup controls"),
+    return buildMockupPanel("Mockup controls",
       cssMockupDesc("For user testing only. Append ?no-mockup to the URL to hide this panel."),
 
       // --- Reset ---
@@ -395,6 +408,36 @@ export class SetupWizard extends Disposable {
           ]);
           this._sandbox.selected.set("unsandboxed");
           this._sandbox.status.set("ready");
+        })),
+      ),
+
+      // --- Force auth results ---
+      cssMockupSection("Force auth provider"),
+      cssMockupDesc("Simulate an auth provider being configured."),
+      cssMockupRow(
+        cssMockupButton("getgrist.com", dom.on("click", () => {
+          this._checks.forceCheckResult("authentication", {
+            status: "success",
+            details: { provider: "getgrist-com" },
+          });
+        })),
+        cssMockupButton("OIDC", dom.on("click", () => {
+          this._checks.forceCheckResult("authentication", {
+            status: "success",
+            details: { provider: "oidc" },
+          });
+        })),
+        cssMockupButton("SAML", dom.on("click", () => {
+          this._checks.forceCheckResult("authentication", {
+            status: "success",
+            details: { provider: "saml" },
+          });
+        })),
+        cssMockupButton("None (boot-key)", dom.on("click", () => {
+          this._checks.forceCheckResult("authentication", {
+            status: "success",
+            details: { provider: "boot-key" },
+          });
         })),
       ),
 
@@ -616,9 +659,10 @@ const cssStepHeader = styled("div", `
   margin-bottom: 4px;
 `);
 
-const cssStepIcon = styled("span", `
-  font-size: 20px;
-  line-height: 1;
+const cssStepIcon = styled("div", `
+  display: flex;
+  align-items: center;
+  --icon-color: ${theme.controlPrimaryBg};
 `);
 
 const cssStepTitle = styled("div", `
@@ -645,65 +689,4 @@ const cssSkipRow = styled("div", `
   display: flex;
   align-items: center;
   gap: 12px;
-`);
-
-// --- Mockup panel styles (DEV/TESTING ONLY) ---
-
-const cssMockupPanel = styled("div", `
-  position: fixed;
-  bottom: 0;
-  right: 0;
-  width: 360px;
-  max-height: 60vh;
-  overflow-y: auto;
-  background: #1a1a2e;
-  color: #e0e0e0;
-  padding: 12px;
-  border-top-left-radius: 8px;
-  font-size: 12px;
-  z-index: 1000;
-  box-shadow: -2px -2px 12px rgba(0, 0, 0, 0.4);
-`);
-
-const cssMockupTitle = styled("div", `
-  font-weight: bold;
-  font-size: 14px;
-  margin-bottom: 4px;
-  color: #fff;
-`);
-
-const cssMockupDesc = styled("div", `
-  color: #888;
-  margin-bottom: 8px;
-`);
-
-const cssMockupSection = styled("div", `
-  font-weight: 600;
-  margin-top: 10px;
-  margin-bottom: 4px;
-  color: #aaa;
-  text-transform: uppercase;
-  font-size: 10px;
-  letter-spacing: 0.5px;
-`);
-
-const cssMockupRow = styled("div", `
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-bottom: 4px;
-`);
-
-const cssMockupButton = styled("button", `
-  padding: 4px 8px;
-  border: 1px solid #444;
-  border-radius: 3px;
-  background: #2a2a4a;
-  color: #ccc;
-  cursor: pointer;
-  font-size: 11px;
-  &:hover {
-    background: #3a3a5a;
-    color: #fff;
-  }
 `);
