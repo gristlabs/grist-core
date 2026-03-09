@@ -215,6 +215,7 @@ export class FlexServer implements GristServer {
   private _latestVersionAvailable?: LatestVersionAvailable;
   private _oauth2Clients?: OAuth2Clients;
   private _bootKey: string | undefined;
+  private _dbInService: string | undefined;  // GRIST_IN_SERVICE from activation DB prefs
 
   constructor(public port: number, public name: string = "flexServer",
     public readonly options: FlexServerOptions = {}) {
@@ -1030,7 +1031,13 @@ export class FlexServer implements GristServer {
     // process.env directly (not via appSettings) picks them up.  Only set
     // values that aren't already in process.env — real env vars (from Docker,
     // shell, or test harness) take precedence over DB-stored values.
+    // Skip GRIST_IN_SERVICE — it's handled by _isInService() which checks
+    // _dbInService directly and has test-environment awareness.
     for (const [key, value] of Object.entries(dbEnvVars)) {
+      if (key === "GRIST_IN_SERVICE") {
+        this._dbInService = value ?? undefined;
+        continue;
+      }
       if (value != null && process.env[key] === undefined) {
         process.env[key] = value;
       }
@@ -1339,17 +1346,10 @@ export class FlexServer implements GristServer {
       envVar: "GRIST_FORCE_LOGIN",
     });
 
-    // Force login when explicitly requested, or when Grist is in service
-    // but no real auth system is configured (so the boot-key login is the
-    // only way in).
-    const forcedLoginMiddleware: express.RequestHandler = (req, res, next) => {
-      const shouldForce = forceLoginEnv ||
-        (process.env.GRIST_IN_SERVICE && !this._hasRealAuth());
-      if (shouldForce) {
-        return this._redirectToLoginWithoutExceptionsMiddleware(req, res, next);
-      }
-      return next();
-    };
+    // Force login when explicitly requested via GRIST_FORCE_LOGIN.
+    const forcedLoginMiddleware: express.RequestHandler = forceLoginEnv ?
+      this._redirectToLoginWithoutExceptionsMiddleware :
+      (_req, _res, next) => next();
 
     const welcomeNewUser: express.RequestHandler = isSingleUserMode() ?
       (req, res, next) => next() :
@@ -2409,31 +2409,25 @@ export class FlexServer implements GristServer {
    * Check whether this Grist installation is "in service" (should serve
    * normal requests) or needs initial setup.
    */
-  /**
-   * Returns true if a real authentication provider (OIDC, SAML, etc.) is
-   * active, as opposed to the boot-key or minimal fallback login.
-   */
-  private _hasRealAuth(): boolean {
-    const active = appSettings.section("login").flag("active").get();
-    return !!active && active !== "boot-key" && active !== "minimal" && active !== "no-logins";
-  }
-
   private _isInService(): boolean {
-    // Explicit GRIST_IN_SERVICE always takes precedence.
-    const val = process.env.GRIST_IN_SERVICE;
-    if (val !== undefined) {
-      return isAffirmative(val);
+    // Explicit GRIST_IN_SERVICE always takes precedence (set by admin
+    // in Docker/shell, or by Go Live endpoint at runtime).
+    const envVal = process.env.GRIST_IN_SERVICE;
+    if (envVal !== undefined) {
+      return isAffirmative(envVal);
     }
     // In test environments, default to in-service unless the test
     // explicitly forces the setup gate on.
     if (process.env.GRIST_TESTING_SOCKET) {
       return !isAffirmative(process.env.GRIST_FORCE_SETUP_GATE);
     }
-    // No explicit value anywhere. Fresh installs will have persisted
-    // GRIST_IN_SERVICE=false on first boot (see ActivationsManager),
-    // which gets merged into process.env before this runs. If we reach
-    // here, it means no value was persisted — this is an existing
-    // installation upgrading, so default to in-service.
+    // Check DB-persisted value (set by setup wizard / admin panel).
+    // Fresh installs persist GRIST_IN_SERVICE=false (see ActivationsManager).
+    // This is NOT propagated to process.env to keep test environments clean.
+    if (this._dbInService !== undefined) {
+      return isAffirmative(this._dbInService);
+    }
+    // No value anywhere — existing installation upgrading, default to in-service.
     return true;
   }
 

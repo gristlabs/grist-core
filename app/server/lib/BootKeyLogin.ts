@@ -28,8 +28,9 @@ export const getBootKeyLoginSystem = getFallbackLoginProvider(
   buildBootKeyLoginSystem,
 );
 
-function getAdminProfile(): UserProfile {
-  const email = process.env.GRIST_ADMIN_EMAIL!;
+function getAdminProfile(): UserProfile | undefined {
+  const email = process.env.GRIST_ADMIN_EMAIL;
+  if (!email) { return undefined; }
   return {
     email,
     name: email.split("@")[0] || "Admin",
@@ -56,13 +57,15 @@ export class BootKeyLoginMiddleware implements GristLoginMiddleware {
   public async addEndpoints(app: Express): Promise<string> {
     const gristServer = this._gristServer;
 
-    // Ensure admin user exists in the database.
-    const dbManager = gristServer.getHomeDBManager();
+    // Ensure admin user exists in the database (only if email is configured).
     const profile = getAdminProfile();
-    const user = await dbManager.getUserByLoginWithRetry(profile.email, { profile });
-    if (user) {
-      user.isFirstTimeUser = false;
-      await user.save();
+    if (profile) {
+      const dbManager = gristServer.getHomeDBManager();
+      const user = await dbManager.getUserByLoginWithRetry(profile.email, { profile });
+      if (user) {
+        user.isFirstTimeUser = false;
+        await user.save();
+      }
     }
 
     addBootKeyRoutes(app, gristServer);
