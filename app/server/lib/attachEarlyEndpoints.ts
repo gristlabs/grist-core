@@ -180,6 +180,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
       if (reqAdminEmail && typeof reqAdminEmail === "string") {
         await activations.updateAppEnvFile({ GRIST_ADMIN_EMAIL: reqAdminEmail });
         process.env.GRIST_ADMIN_EMAIL = reqAdminEmail;
+        gristServer.getInstallAdmin().clearCaches();
       }
       await activations.updateAppEnvFile({ GRIST_IN_SERVICE: "true" });
       process.env.GRIST_IN_SERVICE = "true";
