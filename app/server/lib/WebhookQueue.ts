@@ -34,6 +34,7 @@ promisifyAll(RedisClient.prototype);
 export interface ActionPayload<A extends TriggerAction = TriggerAction> {
   id: string; // Action id (each action has unique id, for webhooks this a an id from home db)
   payload: RowRecord; // The record data to use with the action
+  previous?: RowRecord; // The previous state of the record, if any
   action: A;
 }
 
