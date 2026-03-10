@@ -1488,15 +1488,15 @@ namespace gristUtils {
  */
   export async function begin(invariant: () => any = () => true) {
     const undoStackPointer = () => driver.executeScript<number>(`
-    return window.gristDocPageModel.gristDoc.get()._undoStack._pointer;
-  `);
+      return window.gristDocPageModel.gristDoc.get()._undoStack._pointer;
+    `);
     const start = await undoStackPointer();
     const previous = await invariant();
     return async () => {
-    // We will be careful here and await every time for the server and check js errors.
-      const count = await undoStackPointer() - start;
-      for (let i = 0; i < count; ++i) {
+      // We will be careful here and await every time for the server and check js errors.
+      for (let i = await undoStackPointer() - 1; i >= start; --i) {
         await undo();
+        await driver.wait(async () => (await undoStackPointer()) === i);
         await checkForErrors();
       }
       assert.deepEqual(await invariant(), previous);
