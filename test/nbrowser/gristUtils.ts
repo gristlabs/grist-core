@@ -3503,6 +3503,7 @@ namespace gristUtils {
         await driver.findContentWait(".test-notifier-toast-message", /Link copied to clipboard/, 100).isDisplayed(),
       );
     });
+    await wipeToasts();
   }
 
   export async function getAnchor() {

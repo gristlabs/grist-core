@@ -226,7 +226,7 @@ describe("CursorSaving", function() {
       await clickAndCheck({ section: "Selector", rowNum: 1, col: 0 }, "a");
       // Set the reference from "a" to "d", whose only valid item is "Papaya".
       // The other tags all reference other items, so the stored cursor position will be invalid.
-      await gu.enterCell(Key.DELETE, Key.ENTER);
+      await gu.sendKeys(Key.DELETE, Key.ENTER);
       await driver.findContentWait(".test-ref-editor-item", "d", 1000).click();
       await clickAndCheck({ section: "Selector", rowNum: 1, col: 0 }, "d");
 
@@ -242,6 +242,7 @@ describe("CursorSaving", function() {
 async function clickAndCheck(options: gu.ICellSelect, expectedValue: string) {
   const cell = gu.getCell(options);
   await cell.click();
+  await gu.waitAppFocus();
   assert.equal(await cell.getText(), expectedValue);
 }
 
