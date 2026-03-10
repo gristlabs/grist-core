@@ -226,6 +226,15 @@ yet. Use `theme.*` tokens for everything else.
 | `AuthenticationSection` | `app/client/ui/AuthenticationSection.ts` | Wizard step 2, admin panel Security |
 | `MockupPanel` | `app/client/ui/MockupPanel.ts` | Wizard (dev/testing only, remove before merge) |
 
+## Working Notes
+
+- **Check the full PR scope before assuming a failure is
+  pre-existing.** This PR has many commits touching many files.
+  When a test fails, check `git log origin/main..HEAD -- <file>`
+  to see if the PR touched the relevant code. "Pre-existing" is
+  usually wrong — it's more often a side effect of an earlier
+  commit in the branch.
+
 ## What's Left
 
 - Wire `StorageConfigurator` into admin panel

@@ -48,7 +48,7 @@ export class GoLiveControl extends Disposable {
    * Bring Grist into service by setting GRIST_IN_SERVICE=true,
    * then restart to apply.
    */
-  public async goLive(): Promise<void> {
+  public async goLive(body?: Record<string, any>): Promise<void> {
     this.status.set("working");
     this.error.set("");
     try {
@@ -56,6 +56,7 @@ export class GoLiveControl extends Disposable {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
+        body: body ? JSON.stringify(body) : undefined,
       });
       if (!resp.ok) {
         const body = await resp.json().catch(() => ({}));
@@ -86,9 +87,13 @@ export class GoLiveControl extends Disposable {
     mode: "restart" | "go-live";
     canProceed?: Observable<boolean> | (() => boolean);
     onSuccess?: () => void;
+    /** Called before go-live to collect extra data for the request body. */
+    getBody?: () => Record<string, any>;
   }) {
-    const { mode, canProceed, onSuccess } = options;
-    const action = mode === "go-live" ? () => this.goLive() : () => this.restart();
+    const { mode, canProceed, onSuccess, getBody } = options;
+    const action = mode === "go-live" ?
+      () => this.goLive(getBody?.()) :
+      () => this.restart();
     const buttonLabel = mode === "go-live" ? t("Go Live") : t("Apply & Restart");
 
     return cssGoLiveContainer(

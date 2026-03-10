@@ -392,6 +392,10 @@ export function createBootKeyLoginPage(appModel: AppModel) {
   function buildOwnPanel() {
     return cssBootTabContent(
       cssBootPanelText(
+        "If you cannot access server logs or cannot find your boot key, " +
+        "you can set it yourself.",
+        dom("br"),
+        dom("br"),
         "Add the environment variable ",
         dom("code", cssBootCode.cls(""), "GRIST_BOOT_KEY"),
         " with any secret value you choose to your Grist configuration, " +

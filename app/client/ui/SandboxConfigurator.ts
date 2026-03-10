@@ -36,29 +36,29 @@ const FLAVOR_META: Record<string, {
   gvisor: {
     label: "gVisor",
     desc: t("Fast, battle-tested isolation. Each document's formulas run in their own " +
-           "container, separated from each other and the network."),
+      "container, separated from each other and the network."),
     heroDesc: t("Your system supports gVisor — the fastest and most battle-tested sandbox. " +
-               "Each document's formulas run in their own isolated container, separated from " +
-               "each other and the network."),
+      "Each document's formulas run in their own isolated container, separated from " +
+      "each other and the network."),
     recommended: true,
   },
   pyodide: {
     label: "Pyodide",
     desc: t("Works on any platform. Formulas run in WebAssembly — fully compatible " +
-           "but slower than gVisor."),
+      "but slower than gVisor."),
     heroDesc: t("Pyodide runs Python formulas in WebAssembly — it works on any platform with " +
-               "no extra setup. Fully compatible with all Grist formulas, though slower than gVisor."),
+      "no extra setup. Fully compatible with all Grist formulas, though slower than gVisor."),
   },
   macSandboxExec: {
     label: t("macOS Sandbox"),
     desc: t("Uses the built-in macOS sandbox. Good isolation for local use on a Mac."),
     heroDesc: t("Your Mac's built-in sandbox provides good formula isolation. " +
-               "Fine for local use — for a production server, gVisor is recommended."),
+      "Fine for local use — for a production server, gVisor is recommended."),
   },
   unsandboxed: {
     label: t("No Sandbox"),
     desc: t("Formulas have full system access. Only appropriate when you trust " +
-           "every document and its authors."),
+      "every document and its authors."),
     heroDesc: "",
     warning: true,
   },
@@ -255,10 +255,10 @@ export class SandboxConfigurator extends Disposable {
         // Only show real sandbox flavors (not "unsandboxed") plus the
         // configured one if it's unsandboxed.
         const relevant = flavors.filter(f =>
-          f.name !== "unsandboxed" || configured === "unsandboxed"
+          f.name !== "unsandboxed" || configured === "unsandboxed",
         );
 
-        return relevant.map(f => {
+        return relevant.map((f) => {
           const meta = FLAVOR_META[f.name] || { label: f.name, desc: "" };
           const isCurrent = f.name === configured;
           const isAvailable = f.status === "available";
@@ -303,12 +303,12 @@ export class SandboxConfigurator extends Disposable {
         t("Checking your system ({{checked}} of {{total}})...", { checked, total }),
       ),
       cssProbingList(
-        ...flavors.map(f => {
+        ...flavors.map((f) => {
           const meta = FLAVOR_META[f.name] || { label: f.name };
           return cssProbingRow(
             cssProbingIcon(
               f.status === "checking" ? "\u2022" :
-              f.status === "available" ? "\u2713" : "\u2717",
+                f.status === "available" ? "\u2713" : "\u2717",
               cssProbingIcon.cls("-checking", f.status === "checking"),
               cssProbingIcon.cls("-ok", f.status === "available"),
               cssProbingIcon.cls("-fail", f.status === "unavailable"),
@@ -316,13 +316,38 @@ export class SandboxConfigurator extends Disposable {
             cssProbingLabel(meta.label),
             f.status === "checking" ?
               cssProbingStatus(t("checking...")) :
-            f.status === "available" ?
-              cssProbingStatus(cssProbingStatus.cls("-ok"), t("available")) :
-              cssProbingStatus(cssProbingStatus.cls("-fail"), t("not available")),
+              f.status === "available" ?
+                cssProbingStatus(cssProbingStatus.cls("-ok"), t("available")) :
+                cssProbingStatus(cssProbingStatus.cls("-fail"), t("not available")),
           );
         }),
       ),
+      cssSkipChecksButton(
+        t("Skip checks"),
+        dom.on("click", () => this._skipProbing()),
+        testId("sandbox-skip-checks"),
+      ),
     );
+  }
+
+  /**
+   * Skip probing and show all options immediately.
+   * Marks any still-checking flavors as unavailable.
+   */
+  private _skipProbing() {
+    const current = this.flavors.get();
+    this.flavors.set(current.map(f =>
+      f.status === "checking" ? { ...f, status: "unavailable" as FlavorStatus } : f,
+    ));
+    this._appendUnsandboxedIfNeeded();
+    const best = this._bestAvailable();
+    if (best) {
+      this.selected.set(best);
+    } else {
+      const hero = this._getHeroFlavor(this.flavors.get());
+      if (hero) { this.selected.set(hero.name); }
+    }
+    this.status.set("ready");
   }
 
   /** The best available sandbox by preference order, or null. */
@@ -372,19 +397,17 @@ export class SandboxConfigurator extends Disposable {
   private _buildHeroCard(f: FlavorInfo) {
     const meta = FLAVOR_META[f.name] || { label: f.name, desc: "", heroDesc: "" };
     const isWarning = !!meta.warning;
-    const canSelect = f.status === "available";
 
     return cssHeroCard(
       cssHeroCard.cls("-warning", isWarning),
       cssHeroCard.cls("-selected", use => use(this.selected) === f.name),
-      canSelect ? dom.on("click", () => this.selected.set(f.name)) : null,
+      dom.on("click", () => this.selected.set(f.name)),
       cssRadio(
         dom.attr("type", "radio"),
         dom.attr("name", "sandbox-flavor"),
         dom.attr("value", f.name),
         dom.prop("checked", use => use(this.selected) === f.name),
-        dom.prop("disabled", !canSelect),
-        canSelect ? dom.on("change", () => this.selected.set(f.name)) : null,
+        dom.on("change", () => this.selected.set(f.name)),
       ),
       cssHeroBody(
         cssHeroNameRow(
@@ -409,9 +432,9 @@ export class SandboxConfigurator extends Disposable {
         dom.on("click", () => this._showAlternatives.set(!this._showAlternatives.get())),
         dom.text(use => use(this._showAlternatives) ? "\u25BC" : "\u25B6"),
         cssAlternativesToggleText(
-          dom.text(use => use(this._showAlternatives)
-            ? t("Hide other options")
-            : t("Other options...")),
+          dom.text(use => use(this._showAlternatives) ?
+            t("Hide other options") :
+            t("Other options...")),
         ),
         testId("sandbox-show-alternatives"),
       ),
@@ -432,20 +455,20 @@ export class SandboxConfigurator extends Disposable {
     const isChecking = f.status === "checking";
     const isUnavailable = f.status === "unavailable";
     const isWarning = !!meta.warning;
-    const canSelect = isAvailable && !["saving"].includes(this.status.get());
+    const isBusy = ["saving"].includes(this.status.get());
 
     return cssAltCard(
       cssAltCard.cls("-selected", use => use(this.selected) === f.name),
-      cssAltCard.cls("-disabled", !canSelect && !isChecking),
-      cssAltCard.cls("-warning", isWarning && canSelect),
-      canSelect ? dom.on("click", () => this.selected.set(f.name)) : null,
+      cssAltCard.cls("-disabled", isChecking || isBusy),
+      cssAltCard.cls("-warning", isWarning),
+      (!isChecking && !isBusy) ? dom.on("click", () => this.selected.set(f.name)) : null,
       cssRadio(
         dom.attr("type", "radio"),
         dom.attr("name", "sandbox-flavor"),
         dom.attr("value", f.name),
         dom.prop("checked", use => use(this.selected) === f.name),
-        dom.prop("disabled", !canSelect),
-        canSelect ? dom.on("change", () => this.selected.set(f.name)) : null,
+        dom.prop("disabled", isChecking || isBusy),
+        (!isChecking && !isBusy) ? dom.on("change", () => this.selected.set(f.name)) : null,
       ),
       cssAltBody(
         cssAltNameRow(
@@ -592,6 +615,25 @@ const cssProbingStatus = styled("span", `
   &-fail { color: #999; }
 `);
 
+const cssSkipChecksButton = styled("button", `
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 2px 0;
+  font-size: 12px;
+  color: ${theme.lightText};
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+  transition: color 0.15s;
+
+  &:hover {
+    color: ${theme.text};
+    text-decoration-style: solid;
+  }
+`);
+
 // --- Hero card: the recommended/best-available option ---
 
 const cssHeroCard = styled("div", `
@@ -707,8 +749,9 @@ const cssAltCard = styled("div", `
     background-color: ${theme.lightHover};
   }
   &-disabled {
-    opacity: 0.4;
+    opacity: 0.5;
     cursor: default;
+    pointer-events: none;
   }
   &-warning {
     border-left: 3px solid #d97706;
