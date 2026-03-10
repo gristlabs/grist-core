@@ -130,10 +130,9 @@ export class SandboxConfigurator extends Disposable {
       this.configured.set(serverConfigured);
       this.selected.set(serverConfigured);
       this.status.set("saved");
-    } else {
-      // Auto-select the best available flavor by preference order.
-      // Falls back to the hero flavor (unsandboxed) if no real sandbox
-      // is available, so the action button is always visible.
+    } else if (this.status.get() !== "ready") {
+      // _updateFlavor may have already set status to "ready" when a
+      // top-preference flavor was found. Only finalize if still probing.
       const best = this._bestAvailable();
       if (best) {
         this.selected.set(best);
@@ -350,6 +349,22 @@ export class SandboxConfigurator extends Disposable {
     this.status.set("ready");
   }
 
+  /**
+   * Return the best available flavor, but only if every higher-preference
+   * flavor has already been resolved.  Returns null if any higher-preference
+   * flavor is still "checking" — we can't recommend yet.
+   */
+  private _bestAvailableIfDecided(): string | null {
+    const flavors = this.flavors.get();
+    for (const name of PREFERENCE_ORDER) {
+      const f = flavors.find(fl => fl.name === name);
+      if (!f || f.status === "checking") { return null; }  // still pending — wait
+      if (f.status === "available") { return name; }        // resolved and available — recommend
+      // "unavailable" — continue to next preference
+    }
+    return null;
+  }
+
   /** The best available sandbox by preference order, or null. */
   private _bestAvailable(): string | null {
     const flavors = this.flavors.get();
@@ -381,6 +396,16 @@ export class SandboxConfigurator extends Disposable {
     ));
     if (status === "available") {
       this._appendUnsandboxedIfNeeded();
+      if (this.status.get() === "probing") {
+        // We can recommend early only if every higher-preference flavor
+        // has already been resolved as unavailable.  E.g. if gvisor is
+        // still checking, don't jump to pyodide yet.
+        const best = this._bestAvailableIfDecided();
+        if (best) {
+          this.selected.set(best);
+          this.status.set("ready");
+        }
+      }
     }
   }
 
