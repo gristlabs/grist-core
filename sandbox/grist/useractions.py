@@ -1150,12 +1150,17 @@ class UserActions(object):
 
     result = {
       # All record ids (added or updated), in the same order they were provided to this action
-      'recordIds': [],
-      # All new record ids (in same order as above)
+      # Need a placeholder array so the values can be set by index later.
+      'recordIds': [-1] * length,
+      # All new record ids (in same order as above) - populated after the rows are created.
       'createdRecordIds': [],
       # All updated record ids (in same order as above)
       'updatedRecordIds': [],
     }
+
+    # Indexes in recordIds where new record ids will be inserted later,
+    # as we don't know them until the records are created.
+    new_record_indexes = []
 
     for i in range(length):
       current_require = {key: vals[i] for key, vals in decoded_require.items()}
@@ -1166,8 +1171,7 @@ class UserActions(object):
         add_record_ids.append(values.pop("id", None))
         for key, value in values.items():
           add_record_values[key].append(value)
-        # ID of None marks that the ID should be filled in later
-        result['recordIds'].append(None)
+        new_record_indexes.append(i)
 
       if records and update:
         if len(records) > 1:
@@ -1181,17 +1185,14 @@ class UserActions(object):
           for key, vals in col_values.items():
             update_record_values[key].append(vals[i])
           result['updatedRecordIds'].append(record.id)
-          result['recordIds'].append(record.id)
+          result['recordIds'][i] = record.id
 
     if add_record_ids:
       # The new IDs should be in the same order as the records were provided in add_record_values
       result['createdRecordIds'] = self.BulkAddRecord(table_id, add_record_ids, add_record_values)
-      # Fill any 'None' placeholders in recordIds with the record id of the added row
-      new_record_index = 0
-      for i, recordId in enumerate(result['recordIds']):
-        if recordId is None:
-          result['recordIds'][i] = result['createdRecordIds'][new_record_index]
-          new_record_index += 1
+      # Fill in recordIds with the IDs of the new records
+      for i, new_record_index in enumerate(new_record_indexes):
+        result['recordIds'][new_record_index] = result['createdRecordIds'][i]
 
     if update_record_ids:
       self.BulkUpdateRecord(table_id, update_record_ids, update_record_values)
