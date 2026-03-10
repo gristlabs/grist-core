@@ -42,6 +42,9 @@ export interface CommentContent {
    * Id of a section where the comment was created.
    */
   sectionId?: number | null;
+
+  /** Relative anchor link for a cell  */
+  anchorLink?: string | null;
 }
 
 /**
@@ -75,15 +78,18 @@ export function makeDocComment(
 ): DocComment | null {
   const parsed = safeJsonParse(record.content, {}) as CommentContent;
   if (!parsed.text) { return null; }
+
+  const anchorLink = parsed.anchorLink ?? makeAnchorLinkValue({
+    rowId: record.rowId,
+    colRef: record.colRef,
+    sectionId: parsed.sectionId ?? undefined,
+    comments: true,
+  });
+
   return {
     id: record.rowId,
     text: replaceMentionsInText(parsed.text),
-    anchorLink: makeAnchorLinkValue({
-      rowId: record.rowId,
-      colRef: record.colRef,
-      sectionId: parsed.sectionId ?? undefined,
-      comments: true,
-    }),
+    anchorLink,
     audience,
     mentions,
   };

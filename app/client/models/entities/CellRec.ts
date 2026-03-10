@@ -16,6 +16,7 @@ export interface CellRec extends IRowModel<"_grist_Cells"> {
   text: modelUtil.KoSaveableObservable<string | undefined>;
   userName: modelUtil.KoSaveableObservable<string | undefined>;
   mentions: modelUtil.KoSaveableObservable<string[] | undefined>;
+  anchorLink: modelUtil.KoSaveableObservable<string | undefined>;
   sectionId: modelUtil.KoSaveableObservable<number | undefined>;
 }
 
@@ -35,5 +36,6 @@ export function createCellRec(this: CellRec, docModel: DocModel): void {
   this.text = optionJson.prop("text");
   this.userName = optionJson.prop("userName");
   this.mentions = optionJson.prop("mentions");
+  this.anchorLink = optionJson.prop("anchorLink");
   this.sectionId = optionJson.prop("sectionId");
 }
