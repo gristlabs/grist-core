@@ -733,7 +733,7 @@ export class FlexServer implements GristServer {
     // Sets GRIST_ADMIN_EMAIL in process.env so the getgrist.com auth flow
     // can be demoed without restarting.  No auth, no security — throwaway code.
     this.app.post("/api/setup/mockup-set-admin-email", express.json(), async (req, res) => {
-      if (this._isInService()) {
+      if (this.isInService()) {
         return res.status(404).json({ error: "Not found" });
       }
       const email = req.body?.email;
@@ -753,7 +753,7 @@ export class FlexServer implements GristServer {
     // Exposes the boot key so reviewers without server log access can use the
     // mockup controls on the setup page.  No auth, no security — throwaway code.
     this.app.get("/api/setup/mockup-boot-key", async (_req, res) => {
-      if (this._isInService()) {
+      if (this.isInService()) {
         return res.status(404).json({ error: "Not found" });
       }
       // If the boot key wasn't set (old activation record), create one now.
@@ -780,7 +780,7 @@ export class FlexServer implements GristServer {
     });
 
     this.app.use((req, res, next) => {
-      if (this._isInService()) {
+      if (this.isInService()) {
         return next();
       }
 
@@ -1031,7 +1031,7 @@ export class FlexServer implements GristServer {
     // process.env directly (not via appSettings) picks them up.  Only set
     // values that aren't already in process.env — real env vars (from Docker,
     // shell, or test harness) take precedence over DB-stored values.
-    // Skip GRIST_IN_SERVICE — it's handled by _isInService() which checks
+    // Skip GRIST_IN_SERVICE — it's handled by isInService() which checks
     // _dbInService directly and has test-environment awareness.
     for (const [key, value] of Object.entries(dbEnvVars)) {
       if (key === "GRIST_IN_SERVICE") {
@@ -2409,7 +2409,7 @@ export class FlexServer implements GristServer {
    * Check whether this Grist installation is "in service" (should serve
    * normal requests) or needs initial setup.
    */
-  private _isInService(): boolean {
+  public isInService(): boolean {
     // Explicit GRIST_IN_SERVICE always takes precedence (set by admin
     // in Docker/shell, or by Go Live endpoint at runtime).
     const envVal = process.env.GRIST_IN_SERVICE;
