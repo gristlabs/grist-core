@@ -126,7 +126,7 @@ describe("LinkingErrors", function() {
     await gu.openWidgetPanel();
     await driver.findContent(".test-right-panel button", /Change widget/).click();
 
-    assert.equal(await driver.find(".test-wselect-table-label[class*=-selected]").getText(), "Moons");
+    assert.equal(await driver.findWait(".test-wselect-table-label[class*=-selected]", 1000).getText(), "Moons");
     await driver.findContent(".test-wselect-table", /Planets/).click();
     assert.match(await driver.find(".test-wselect-selectby").value(), /Select widget/);
 
