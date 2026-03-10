@@ -1,7 +1,7 @@
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
 
-import { assert, driver, Key, stackWrapFunc, WebElement } from "mocha-webdriver";
+import { assert, driver, Key, stackWrapFunc, until, WebElement } from "mocha-webdriver";
 
 const normalFont = { bold: false, underline: false, italic: false, strikethrough: false };
 const bold = true;
@@ -130,8 +130,13 @@ async function clickEntry(label: string) {
 }
 
 async function saveChoiceEntries() {
-  await driver.find(".test-choice-list-entry-save").click();
+  await driver.find(".test-choice-list-entry-save").doClick();
+  await waitForLeavingEditionMode();
   await gu.waitForServer();
+}
+
+async function waitForLeavingEditionMode() {
+  await driver.wait(async () => (await driver.findAll(".test-choice-list-entry-save")).length === 0);
 }
 
 describe("ChoiceList", function() {
@@ -280,7 +285,7 @@ describe("ChoiceList", function() {
 
     // Start typing to replace content with a token; check values.
     await gu.getCell({ rowNum: 1, col: "B" }).click();
-    await driver.sendKeys("foo");
+    await gu.enterCell(["foo"], { validate: false });
     assert.deepEqual(await getEditorTokens(), []);
     assert.equal(await getEditorInput().value(), "foo");
     await driver.sendKeys(Key.TAB);
@@ -299,6 +304,7 @@ describe("ChoiceList", function() {
 
     // Click away to save: new token should be added.
     await gu.getCell({ rowNum: 2, col: "B" }).click();
+    await gu.waitAppFocus();
     await gu.waitForServer();
     assert.equal(await driver.find(".cell_editor").isPresent(), false);
     assert.equal(await gu.getCell({ rowNum: 1, col: "B" }).getText(), "Blue\nGreen\nBlack");
@@ -314,9 +320,9 @@ describe("ChoiceList", function() {
       }],
     ]);
     await gu.getCell({ rowNum: 1, col: "Accents" }).click();
-    await driver.sendKeys("Ade", Key.ENTER);
-    await driver.sendKeys("Agne", Key.ENTER);
-    await driver.sendKeys("Ame", Key.ENTER);
+    await gu.enterCell(["Ade", Key.ENTER]);
+    await gu.enterCell(["Agne", Key.ENTER]);
+    await gu.enterCell(["Ame", Key.ENTER]);
     assert.deepEqual(await getEditorTokens(), ["Adélaïde", "Agnès", "Amélie"]);
   });
 
@@ -545,9 +551,9 @@ describe("ChoiceList", function() {
 
     // Add some more values to this columm.
     await gu.getCell({ rowNum: 2, col: "B" }).click();
-    await driver.sendKeys("Black", Key.ENTER, Key.ENTER);
+    await gu.enterCell(["Black", Key.ENTER, Key.ENTER]);
     await gu.waitForServer();
-    await driver.sendKeys("Green", Key.ENTER, Key.ENTER);
+    await gu.enterCell(["Green", Key.ENTER, Key.ENTER]);
     await gu.waitForServer();
     assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: ["B"] }), [
       "Green\nOrange\nApricot",
@@ -618,7 +624,7 @@ describe("ChoiceList", function() {
     const [greenColorBtn, , , apricotColorBtn] = await driver
       .findAll(".test-tokenfield .test-color-button");
     await apricotColorBtn.click();
-    await gu.setColor(driver.find(".test-fill-input"), "rgb(254, 204, 129)");
+    await gu.setColor(driver.findWait(".test-fill-input",  1000), "rgb(254, 204, 129)");
     await gu.setColor(driver.find(".test-text-input"), "rgb(70, 13, 129)");
     await gu.setFont("bold", true);
     await gu.setFont("italic", true);
@@ -626,7 +632,7 @@ describe("ChoiceList", function() {
 
     // Change 'Green' to a darker shade with white text.
     await greenColorBtn.click();
-    await gu.setColor(driver.find(".test-fill-input"), "rgb(18, 110, 14)");
+    await gu.setColor(driver.findWait(".test-fill-input", 1000), "rgb(18, 110, 14)");
     await gu.setColor(driver.find(".test-text-input"), "rgb(255, 255, 255)");
     await gu.setFont("strikethrough", true);
     await gu.setFont("underline", true);
@@ -716,14 +722,18 @@ describe("ChoiceList", function() {
     const [, , , apricotColorBtn] = await driver
       .findAll(".test-tokenfield .test-color-button");
     await apricotColorBtn.click();
-    await gu.setColor(driver.find(".test-fill-input"), "rgb(255, 255, 255)");
+    await gu.setColor(driver.findWait(".test-fill-input", 1000), "rgb(255, 255, 255)");
     await gu.setColor(driver.find(".test-text-input"), "rgb(0, 0, 0)");
     await gu.setFont("bold", false);
     await gu.setFont("italic", false);
     await gu.setFont("underline", true);
 
     await driver.sendKeys(Key.ENTER);
-    assert.deepEqual(await getEditModeFillColors(), [DARK_GREEN_FILL, BLUE_FILL,  BLACK_FILL, WHITE_FILL]);
+    await gu.waitAppFocus(false);
+    // waitToPass used to avoid "stale element not found in the current frame" error with getEditModeFillColors
+    await gu.waitToPass(async () => {
+      assert.deepEqual(await getEditModeFillColors(), [DARK_GREEN_FILL, BLUE_FILL,  BLACK_FILL, WHITE_FILL]);
+    }, 1000);
     assert.deepEqual(await getEditModeTextColors(), [WHITE_TEXT,      BLACK_TEXT, WHITE_TEXT, BLACK_TEXT]);
     assert.deepEqual(await getEditModeFontOptions(), [{ bold, underline, strikethrough }, {}, {}, { underline }]);
 
@@ -809,14 +819,14 @@ describe("ChoiceList", function() {
       const editorDashedName = columnName.toLowerCase().replace(/list/, "-list");
       // Add two new options: one, two.
       await gu.getCell(columnName, 2).click();
-      await gu.sendKeys("one");
+      await gu.enterCell(["one"], { validate: false });
       await driver.findWait(`.test-${editorDashedName}-editor-new-item`, 300).click();
       if (columnName === "ChoiceList") {
         await gu.sendKeys(Key.ENTER);
       }
       await gu.waitForServer();
       await gu.getCell(columnName, 3).click();
-      await gu.sendKeys("two");
+      await gu.enterCell(["two"], { validate: false });
       await driver.findWait(`.test-${editorDashedName}-editor-new-item`, 300).click();
       if (columnName === "ChoiceList") {
         await gu.sendKeys(Key.ENTER);
@@ -888,8 +898,12 @@ describe("ChoiceList", function() {
       await editChoiceEntries();
       const [barColor] = await driver.findAll(".test-tokenfield .test-color-button");
       await barColor.click();
-      await gu.setColor(driver.find(".test-text-input"), "rgb(70, 13, 129)");
+      await gu.setColor(driver.findWait(".test-text-input", 1000), "rgb(70, 13, 129)");
       await driver.sendKeys(Key.ENTER);
+
+      // Avoid a "StaleElementReferenceError" when calling renameEntry below
+      await driver.wait(until.stalenessOf(barColor));
+
       await renameEntry("bar", "foo");
       await saveChoiceEntries();
       await editChoiceEntries();
@@ -945,11 +959,11 @@ describe("ChoiceList", function() {
 
     // Work on ChoiceList column, add two new options: one, two
     await gu.getCell("ChoiceList", 2).click();
-    await gu.sendKeys("one");
+    await gu.enterCell(["one"], { validate: false });
     await driver.findWait(`.test-choice-list-editor-new-item`, 300).click();
     await gu.sendKeys(Key.ENTER);
     await gu.getCell("ChoiceList", 3).click();
-    await gu.sendKeys("one", Key.ENTER, "foo", Key.ENTER, Key.ENTER);
+    await gu.enterCell(["one", Key.ENTER, "foo", Key.ENTER, Key.ENTER], { validate: false });
     await gu.waitForServer();
     // Make sure column looks like this:
     assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3, 4], cols: ["ChoiceList"] }), [
