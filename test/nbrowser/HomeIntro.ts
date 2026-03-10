@@ -118,14 +118,14 @@ describe("HomeIntro", function() {
       assert.isFalse(await driver.find(".test-welcome-menu").isPresent());
     } else {
       await driver.find(".test-welcome-menu").click();
-      await driver.find(".test-welcome-menu-only-show-documents").click();
+      await driver.findWait(".test-welcome-menu-only-show-documents", 1000).click();
       await gu.waitForServer();
       assert.isFalse(await driver.find(".test-intro-cards").isPresent());
       await driver.navigate().refresh();
       await gu.waitForDocMenuToLoad();
       assert.isFalse(await driver.find(".test-intro-cards").isPresent());
       await driver.find(".test-welcome-menu").click();
-      await driver.find(".test-welcome-menu-only-show-documents").click();
+      await driver.findWait(".test-welcome-menu-only-show-documents", 1000).click();
       await gu.waitForServer();
       assert.isTrue(await driver.find(".test-intro-cards").isDisplayed());
     }
