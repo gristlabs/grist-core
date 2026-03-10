@@ -50,11 +50,9 @@ export class GristWebDriverUtils {
     );
   }
 
-  public async waitForSidePanel(which: "left" | "right") {
-    await this.driver.executeAsyncScript(`
-      const done = [...arguments].at(-1);
-      document.querySelector(".test-${which}-panel").addEventListener("transitionend", done, { once: true });
-    `);
+  public async waitForSidePanel(which: "left" | "right", state: "expanded" | "collapsed") {
+    // This part is fragile, makes tests flaky and should be replaced.
+    await this.driver.findWait(`.test-${which}-panel[data-fully-${state}]`, 5000);
   }
 
   /*
@@ -62,8 +60,8 @@ export class GristWebDriverUtils {
    * argument can specify the desired state.
    */
   public async toggleSidePanel(which: "right" | "left", goal: "open" | "close" | "toggle" = "toggle") {
-    if ((goal === "open" && await this.isSidePanelOpen(which)) ||
-      (goal === "close" && !await this.isSidePanelOpen(which))) {
+    const isOpen = await this.isSidePanelOpen(which);
+    if ((goal === "open" && isOpen) || (goal === "close" && !isOpen)) {
       return;
     }
 
@@ -72,7 +70,8 @@ export class GristWebDriverUtils {
 
     // click the opener and wait for the duration of the transition
     await this.driver.find(`.test-${which}-opener${suffix}`).doClick();
-    await this.waitForSidePanel(which);
+    const newState = isOpen ? "collapsed" : "expanded";
+    await this.waitForSidePanel(which, newState);
   }
 
   /**
