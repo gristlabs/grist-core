@@ -266,12 +266,11 @@ export function createBootKeyLoginPage(appModel: AppModel) {
 
   const bootKeyValue = observable("");
   const emailValue = observable("");
-  const tipsOpen = observable(false);
   // "idle" → "checking" → "key-ok" → "signing-in"
   const status = observable<"idle" | "checking" | "key-ok" | "signing-in" | "error">("idle");
   const errorMsg = observable(serverError);
-  // Whether boot key field should be disabled (after successful check).
   const keyConfirmed = observable(false);
+  const activeTab = observable<"find" | "own" | "skip">("find");
 
   // If the user navigates back after submitting, the browser restores the
   // page from bfcache with status still "signing-in". Reset it.
@@ -330,17 +329,118 @@ export function createBootKeyLoginPage(appModel: AppModel) {
     form.submit();
   }
 
-  // Close the tips panel, syncing both the observable and DOM state.
-  function closeTips(context: HTMLElement) {
-    if (!tipsOpen.get()) { return; }
-    tipsOpen.set(false);
-    const tips = context
-      .closest("." + cssBootFieldGroup.className)
-      ?.querySelector("." + cssBootTips.className) as HTMLElement | null;
-    if (tips) {
-      tips.setAttribute("data-open", "false");
-      tips.style.maxHeight = "0";
-    }
+  function buildTab(id: "find" | "own" | "skip", label: string) {
+    return cssBootTab(
+      label,
+      dom.cls("active", use => use(activeTab) === id),
+      dom.on("click", () => activeTab.set(id)),
+      testId(`boot-key-tab-${id}`),
+    );
+  }
+
+  function buildFindPanel() {
+    return cssBootTabContent(
+      cssBootFindGuidance(
+        cssBootFindHeading("Look for this in your server output:"),
+        dom("pre", cssBootBannerPre.cls(""),
+          "┌──────────────────────────────────────────┐\n" +
+          "│                                          │\n" +
+          "│   BOOT KEY: •••••••••••••••••••••        │\n" +
+          "│                                          │\n" +
+          "└──────────────────────────────────────────┘",
+        ),
+        cssBootFindCaption(
+          "This banner appears near the top of Grist's startup output\u2009—\u2009" +
+          "check your terminal, container logs, or hosting panel.",
+        ),
+      ),
+      cssBootFieldGroup(
+        cssBootLoginLabel("Boot key"),
+        cssBootKeyInput(
+          dom.prop("value", bootKeyValue),
+          dom.on("input", (_e: Event, elem: HTMLInputElement) => bootKeyValue.set(elem.value)),
+          dom.prop("disabled", keyConfirmed),
+          { placeholder: "Paste boot key here", autofocus: true },
+          dom.on("keydown", (ev: KeyboardEvent) => {
+            if (ev.key === "Enter" && !keyConfirmed.get()) { void checkKey(); }
+          }),
+          testId("boot-key-login-input"),
+        ),
+        dom.maybe(keyConfirmed, () =>
+          cssBootFieldCaption(
+            { style: "color: #1e7e34;" },
+            "\u2713 Boot key verified",
+          ),
+        ),
+        dom.maybe(use => !use(keyConfirmed), () =>
+          cssBootFieldCaption(
+            "Can't find your boot key? You can ",
+            cssBootTabLink(
+              "set your own",
+              dom.on("click", () => activeTab.set("own")),
+            ),
+            " or ",
+            cssBootTabLink(
+              "turn off this check",
+              dom.on("click", () => activeTab.set("skip")),
+            ),
+            ".",
+          ),
+        ),
+      ),
+    );
+  }
+
+  function buildOwnPanel() {
+    return cssBootTabContent(
+      cssBootPanelText(
+        "Add the environment variable ",
+        dom("code", cssBootCode.cls(""), "GRIST_BOOT_KEY"),
+        " with any secret value you choose to your Grist configuration, " +
+        "then restart Grist.",
+      ),
+      cssBootPanelCaption(
+        "For Docker, add ",
+        dom("code", cssBootCode.cls(""), "-e GRIST_BOOT_KEY=\u2026"),
+        " to your run command. For other setups, " +
+        "set it in your environment or configuration file.",
+      ),
+      cssBootRestartNote(
+        cssBootRestartIcon("\u21bb"),
+        "After restarting, return to this page and enter your chosen key.",
+      ),
+    );
+  }
+
+  function buildSkipPanel() {
+    return cssBootTabContent(
+      cssBootPanelText(
+        "Set ",
+        dom("code", cssBootCode.cls(""), "GRIST_IN_SERVICE=true"),
+        " in your Grist configuration, then restart. " +
+        "Grist will start without requiring a boot key.",
+      ),
+      cssBootPanelCaption(
+        "For Docker, add ",
+        dom("code", cssBootCode.cls(""), "-e GRIST_IN_SERVICE=true"),
+        " to your run command. For other setups, " +
+        "set it in your environment or configuration file.",
+      ),
+      cssBootWarningBox(
+        cssBootWarningTitle("Why does this check exist?"),
+        cssBootWarningBody(
+          "The boot key proves you have access to the server " +
+          "running Grist\u2009—\u2009it keeps out anyone who can reach this page " +
+          "but isn't the administrator. ",
+          "Skipping it is fine on a private, trusted network where only " +
+          "authorized people can connect.",
+        ),
+      ),
+      cssBootRestartNote(
+        cssBootRestartIcon("\u21bb"),
+        "After restarting, Grist will be available without this sign-in step.",
+      ),
+    );
   }
 
   return pagePanels({
@@ -352,111 +452,35 @@ export function createBootKeyLoginPage(appModel: AppModel) {
         cssBigIcon({ style: "animation: bootFadeUp 0.5s ease both;" }),
         cssBootLoginHeading(
           "Welcome to Grist",
-          { style: "animation: bootFadeUp 0.5s ease 0.1s both;" },
+          { style: "animation: bootFadeUp 0.5s ease 0.08s both;" },
         ),
         cssBootLoginSubheading(
-          "Let's get you set up.",
-          { style: "animation: bootFadeUp 0.5s ease 0.2s both;" },
+          "Verify that you have access to this server to continue.",
+          { style: "animation: bootFadeUp 0.5s ease 0.14s both;" },
         ),
         cssBootLoginCard(
-          { style: "animation: bootFadeUp 0.5s ease 0.3s both;" },
+          { style: "animation: bootFadeUp 0.5s ease 0.22s both;" },
 
-          // Boot key field
-          cssBootFieldGroup(
-            cssBootLoginLabel("Boot key"),
-            cssBootKeyInput(
-              dom.prop("value", bootKeyValue),
-              dom.on("input", (_e: Event, elem: HTMLInputElement) => {
-                bootKeyValue.set(elem.value);
-                if (elem.value.trim()) { closeTips(elem); }
-              }),
-              dom.prop("disabled", keyConfirmed),
-              { placeholder: "Paste boot key here", autofocus: true },
-              dom.on("keydown", (ev: KeyboardEvent) => {
-                if (ev.key === "Enter" && !keyConfirmed.get()) { void checkKey(); }
-              }),
-              testId("boot-key-login-input"),
-            ),
-            dom.domComputed(keyConfirmed, (confirmed) => {
-              if (confirmed) {
-                return cssBootFieldCaption(
-                  { style: "color: #1e7e34;" },
-                  "\u2713 Boot key verified",
-                );
-              }
-              return [
-                cssBootFieldCaption(
-                  "Find ",
-                  dom("b", "BOOT KEY"),
-                  " in your server logs. ",
-                  dom("span",
-                    cssBootHelpLink.cls(""),
-                    dom.on("click", (ev: MouseEvent) => {
-                      const tips = (ev.currentTarget as HTMLElement)
-                        .closest("." + cssBootFieldGroup.className)
-                        ?.querySelector("." + cssBootTips.className) as HTMLElement | null;
-                      if (tips) {
-                        const open = tipsOpen.get();
-                        tipsOpen.set(!open);
-                        tips.setAttribute("data-open", String(!open));
-                        if (open) {
-                          tips.style.maxHeight = tips.scrollHeight + "px";
-                          requestAnimationFrame(() => { tips.style.maxHeight = "0"; });
-                        } else {
-                          tips.style.maxHeight = "none";
-                        }
-                      }
-                    }),
-                    dom.text(use => use(tipsOpen) ? "\u25B4 Hide help" : "\u25BE Need help?"),
-                  ),
-                ),
-                cssBootHelpWrap(
-                  dom.cls("collapsed", use => !!use(bootKeyValue).trim() && !use(tipsOpen)),
-                  dom("div",
-                    cssBootTips(
-                      { "data-open": "false" },
-                      cssBootTip(
-                        cssBootTipTitle("What to look for"),
-                        dom("pre", cssBootBannerPre.cls(""),
-                          "┌──────────────────────────────────────────┐\n" +
-                          "│                                          │\n" +
-                          "│   BOOT KEY: abc123-your-key-here...      │\n" +
-                          "│                                          │\n" +
-                          "└──────────────────────────────────────────┘",
-                        ),
-                        cssBootTipCaption("This banner appears near the top of the server output."),
-                      ),
-                      cssBootTip(
-                        cssBootTipTitle("Or set your own"),
-                        cssBootTipBody(
-                          "Set the environment variable ",
-                          dom("code", cssBootCode.cls(""), "GRIST_BOOT_KEY"),
-                          " to any value you choose, then restart Grist.",
-                        ),
-                      ),
-                      cssBootTip(
-                        cssBootTipTitle("Why boot keys?"),
-                        cssBootTipBody(
-                          "Entering a boot key proves that you are the person installing Grist, " +
-                          "and not someone nefarious. If you are in a private trusted network, " +
-                          "you can set ",
-                          dom("code", cssBootCode.cls(""), "GRIST_IN_SERVICE"),
-                          " to turn off this check.",
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ];
-            }),
+          // Tab bar
+          cssBootTabBar(
+            buildTab("find", "Enter boot key"),
+            buildTab("own", "Set your boot key"),
+            buildTab("skip", "Turn off this check"),
           ),
+
+          // Tab content (reactive)
+          dom.domComputed(activeTab, tab => {
+            if (tab === "find") { return buildFindPanel(); }
+            if (tab === "own") { return buildOwnPanel(); }
+            return buildSkipPanel();
+          }),
 
           dom.maybe(errorMsg, err =>
             cssSetupError(err, testId("boot-key-login-error")),
           ),
 
-          // Email field — revealed after boot key is verified.
-          dom.maybe(keyConfirmed, () =>
+          // Email field — revealed after boot key is verified (only on "find" tab).
+          dom.maybe(use => use(keyConfirmed) && use(activeTab) === "find", () =>
             cssBootFieldGroup(
               cssBootLoginLabel("Administrator email"),
               cssBootEmailInput(
@@ -477,27 +501,29 @@ export function createBootKeyLoginPage(appModel: AppModel) {
             ),
           ),
 
-          // Buttons: "Check key" before verification, "Continue" after.
-          dom.domComputed(keyConfirmed, (confirmed) => {
-            if (!confirmed) {
+          // Submit button — only on "find" tab.
+          dom.maybe(use => use(activeTab) === "find", () =>
+            dom.domComputed(keyConfirmed, (confirmed) => {
+              if (!confirmed) {
+                return cssBootSubmitButton(
+                  dom.domComputed(status, s =>
+                    s === "checking" ? "Checking\u2026" : "Check key"),
+                  dom.prop("disabled", use =>
+                    !use(bootKeyValue).trim() || use(status) === "checking"),
+                  dom.on("click", () => void checkKey()),
+                  testId("boot-key-login-submit"),
+                );
+              }
               return cssBootSubmitButton(
                 dom.domComputed(status, s =>
-                  s === "checking" ? "Checking\u2026" : "Check key"),
+                  s === "signing-in" ? "Signing in\u2026" : "Continue"),
                 dom.prop("disabled", use =>
-                  !use(bootKeyValue).trim() || use(status) === "checking"),
-                dom.on("click", () => void checkKey()),
+                  !use(emailValue).trim() || use(status) === "signing-in"),
+                dom.on("click", () => submitLogin()),
                 testId("boot-key-login-submit"),
               );
-            }
-            return cssBootSubmitButton(
-              dom.domComputed(status, s =>
-                s === "signing-in" ? "Signing in\u2026" : "Continue"),
-              dom.prop("disabled", use =>
-                !use(emailValue).trim() || use(status) === "signing-in"),
-              dom.on("click", () => submitLogin()),
-              testId("boot-key-login-submit"),
-            );
-          }),
+            }),
+          ),
         ),
       ),
 
@@ -511,6 +537,7 @@ export function createBootKeyLoginPage(appModel: AppModel) {
               const body = await resp.json();
               if (body.bootKey) {
                 bootKeyValue.set(body.bootKey);
+                activeTab.set("find");
               }
             } catch (e) {
               errorMsg.set((e as Error).message);
@@ -647,15 +674,15 @@ const cssBootLoginPage = styled("div", `
 // Subtle radial glow behind the card — gives depth without being flashy.
 const cssBootLoginGlow = styled("div", `
   position: absolute;
-  top: 15%;
+  top: 12%;
   left: 50%;
   transform: translateX(-50%);
-  width: 600px;
-  height: 400px;
+  width: 700px;
+  height: 500px;
   border-radius: 50%;
   background: radial-gradient(
     ellipse at center,
-    ${theme.controlPrimaryBg}11 0%,
+    ${theme.controlPrimaryBg}0d 0%,
     transparent 70%
   );
   pointer-events: none;
@@ -664,79 +691,95 @@ const cssBootLoginGlow = styled("div", `
 const cssBootLoginCenter = styled("div", `
   position: relative;
   text-align: center;
-  padding: 80px 24px 64px;
-  max-width: 520px;
+  padding: 56px 24px 64px;
+  max-width: 580px;
   margin: 0 auto;
 `);
 
 const cssBootLoginHeading = styled("div", `
   font-weight: 700;
-  font-size: 32px;
+  font-size: 28px;
   letter-spacing: -0.5px;
   color: ${theme.text};
-  margin-top: 20px;
-  margin-bottom: 8px;
+  margin-top: 16px;
+  margin-bottom: 6px;
 `);
 
 const cssBootLoginSubheading = styled("div", `
   font-size: 15px;
   color: ${theme.lightText};
-  margin-bottom: 36px;
+  margin-bottom: 28px;
   line-height: 1.5;
 `);
 
 const cssBootLoginCard = styled("div", `
   text-align: left;
-  max-width: 460px;
   margin: 0 auto;
-  padding: 32px;
+  padding: 0;
   border: 1px solid ${theme.pagePanelsBorder};
   border-radius: 12px;
   background: ${theme.mainPanelBg};
   box-shadow:
     0 1px 3px rgba(0, 0, 0, 0.04),
     0 8px 24px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
 `);
 
-const cssBootLoginLabel = styled("label", `
-  display: block;
-  font-weight: 600;
+// -- Tab bar and tabs ---------------------------------------------------------
+
+const cssBootTabBar = styled("div", `
+  display: flex;
+  border-bottom: 1px solid ${theme.pagePanelsBorder};
+  background: ${theme.pagePanelsBorder}44;
+`);
+
+const cssBootTab = styled("div", `
+  flex: 1;
+  text-align: center;
+  padding: 12px 8px;
   font-size: 13px;
-  color: ${theme.text};
-  margin-bottom: 6px;
-`);
-
-const cssBootFieldGroup = styled("div", `
-  margin-bottom: 4px;
-  &:not(:first-child) {
-    margin-top: 20px;
-  }
-`);
-
-const cssBootHelpWrap = styled("div", `
-  display: grid;
-  grid-template-rows: 1fr;
-  opacity: 1;
-  transition: grid-template-rows 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-              opacity 0.3s ease;
-  &.collapsed {
-    grid-template-rows: 0fr;
-    opacity: 0;
-    pointer-events: none;
-  }
-  & > * {
-    overflow: hidden;
-  }
-`);
-
-const cssBootFieldCaption = styled("div", `
-  font-size: 13px;
+  font-weight: 500;
   color: ${theme.lightText};
-  line-height: 1.5;
-  margin-bottom: 4px;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.15s, background 0.15s;
+  user-select: none;
+
+  &:not(:last-child) {
+    border-right: 1px solid ${theme.pagePanelsBorder};
+  }
+
+  &:hover {
+    color: ${theme.text};
+    background: ${theme.mainPanelBg};
+  }
+
+  &.active {
+    color: ${theme.text};
+    font-weight: 600;
+    background: ${theme.mainPanelBg};
+  }
+  &.active::after {
+    content: "";
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: ${theme.controlPrimaryBg};
+  }
 `);
 
-const cssBootHelpLink = styled("span", `
+// -- Tab content area ---------------------------------------------------------
+
+const cssBootTabContent = styled("div", `
+  padding: 24px 28px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`);
+
+const cssBootTabLink = styled("span", `
   color: ${theme.controlPrimaryBg};
   cursor: pointer;
   text-decoration: underline;
@@ -748,58 +791,138 @@ const cssBootHelpLink = styled("span", `
   }
 `);
 
-const cssBootTips = styled("div", `
-  display: flex;
-  flex-direction: column;
-  margin-top: 8px;
-  max-height: 0;
-  opacity: 0;
-  overflow: hidden;
-  border-left: 3px solid transparent;
-  padding-left: 0;
-  background: transparent;
-  border-radius: 0 6px 6px 0;
-  transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              opacity 0.25s ease,
-              border-color 0.3s ease,
-              padding 0.3s ease,
-              background 0.3s ease;
-  &[data-open="true"] {
-    max-height: none;
-    opacity: 1;
-    overflow: visible;
-    border-left-color: ${theme.controlPrimaryBg};
-    padding-left: 12px;
-    background: ${theme.mainPanelBg};
-    padding-top: 4px;
-    padding-bottom: 4px;
-  }
+// -- Find-in-logs guidance ----------------------------------------------------
+
+const cssBootFindGuidance = styled("div", `
 `);
 
-const cssBootTip = styled("div", `
-  font-size: 13px;
-  color: ${theme.lightText};
+const cssBootFindHeading = styled("div", `
+  font-size: 14px;
   line-height: 1.5;
-  padding: 6px 0;
-  &:last-child {
-    padding-bottom: 0;
-  }
+  color: ${theme.lightText};
+  margin-bottom: 6px;
 `);
 
-const cssBootTipTitle = styled("div", `
+const cssBootFindCaption = styled("div", `
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: ${theme.lightText};
+  margin-top: 10px;
+`);
+
+// -- Plain text for tab panels (no card wrapper) -----------------------------
+
+const cssBootPanelText = styled("div", `
+  font-size: 14px;
+  line-height: 1.6;
+  color: ${theme.text};
+`);
+
+const cssBootPanelCaption = styled("div", `
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: ${theme.lightText};
+  margin-top: -8px;
+`);
+
+// -- Warning box (used in the "skip" tab) ------------------------------------
+
+const cssBootWarningBox = styled("div", `
+  border-radius: 8px;
+  background: #fef7e0;
+  border: 1px solid #f5e6b8;
+  padding: 14px 16px;
+`);
+
+const cssBootWarningTitle = styled("div", `
   font-weight: 600;
+  font-size: 12.5px;
+  color: #92400e;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+`);
+
+const cssBootWarningBody = styled("div", `
+  font-size: 13px;
+  line-height: 1.6;
+  color: #78350f;
+`);
+
+// -- Restart note (tabs 2 & 3) -----------------------------------------------
+
+const cssBootRestartNote = styled("div", `
+  display: flex;
+  align-items: center;
+  gap: 14px;
   font-size: 13px;
   color: ${theme.text};
-  margin-bottom: 4px;
-`);
-
-const cssBootTipBody = styled("div", `
   line-height: 1.5;
+  padding: 16px 18px;
+  border-radius: 10px;
+  background: linear-gradient(
+    135deg,
+    ${theme.controlPrimaryBg}0a 0%,
+    ${theme.controlPrimaryBg}06 100%
+  );
+  border: 1px solid ${theme.controlPrimaryBg}1a;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 100%;
+    background: linear-gradient(
+      180deg,
+      ${theme.controlPrimaryBg}66 0%,
+      ${theme.controlPrimaryBg}22 100%
+    );
+    border-radius: 3px 0 0 3px;
+  }
 `);
 
-const cssBootTipCaption = styled("div", `
-  margin-top: 6px;
+const cssBootRestartIcon = styled("span", `
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: ${theme.controlPrimaryBg}14;
+  font-size: 18px;
+  color: ${theme.controlPrimaryBg};
+  flex-shrink: 0;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  .${cssBootRestartNote.className}:hover & {
+    transform: rotate(180deg);
+  }
+`);
+
+// -- Shared form elements (used in "find" tab) --------------------------------
+
+const cssBootLoginLabel = styled("label", `
+  display: block;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   color: ${theme.lightText};
+  margin-bottom: 6px;
+`);
+
+const cssBootFieldGroup = styled("div", `
+`);
+
+const cssBootFieldCaption = styled("div", `
+  font-size: 12.5px;
+  color: ${theme.lightText};
+  line-height: 1.5;
+  margin-bottom: 4px;
 `);
 
 const cssBootBannerPre = styled("pre", `
@@ -807,11 +930,10 @@ const cssBootBannerPre = styled("pre", `
   font-size: 10.5px;
   line-height: 1.4;
   color: ${theme.text};
-  background: ${theme.mainPanelBg};
-  border: 1px solid ${theme.pagePanelsBorder};
+  background: ${theme.pagePanelsBorder}33;
   border-radius: 4px;
   padding: 8px 10px;
-  margin: 0;
+  margin: 4px 0 0;
   overflow-x: auto;
   white-space: pre;
 `);
@@ -892,5 +1014,5 @@ const cssBootSubmitButton = styled("button", `
 const cssSetupError = styled("div", `
   font-size: ${vars.mediumFontSize};
   color: ${theme.errorText};
-  margin-bottom: 8px;
+  margin: 12px 28px 0;
 `);
