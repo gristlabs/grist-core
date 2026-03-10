@@ -1032,8 +1032,8 @@
         "Delete data and this page.": "Radera data och denna sida.",
         "The following tables will no longer be visible_one": "Följande tabell kommer inte längre att vara synlig",
         "The following tables will no longer be visible_other": "Följande tabeller kommer inte längre att vara synlig",
-        "Keep data and delete page. Table will remain available in {{rawDataLink}}": "Behåll data och radera sidan. Tabellen är fortsatt tillgänglig i {{rawDataLink}}",
-        "raw data page": "rådata sida",
+        "Keep data and delete page. Table will remain available in {{rawDataLink}}": "Behåll data och radera sidan. Tabellen är fortsatt tillgänglig på {{rawDataLink}}",
+        "raw data page": "rådatasidan",
         "Document pages": "Dokumentsidor"
     },
     "PermissionsWidget": {
@@ -2078,7 +2078,7 @@
         "Delete": "Radera",
         "Delete data and this widget.": "Radera data och denna widget.",
         "Raw Data page": "Rådatasida",
-        "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "Behåll datan och radera widget. Tabellen kommer fortsatt avar tillgänglig på {{rawDataLink}}",
+        "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "Behåll datan och radera widget. Tabellen kommer fortsatt vara tillgänglig på {{rawDataLink}}",
         "Table {{tableName}} will no longer be visible": "Tabell {{tableName}} kommer inte längre att vara synlig"
     },
     "AdminPanelName": {
