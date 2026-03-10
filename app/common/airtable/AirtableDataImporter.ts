@@ -16,6 +16,7 @@ import {
   TableReferenceTracker,
 } from "app/common/airtable/AirtableReferenceTracker";
 import { BulkColValues, CellValue, GristObjCode } from "app/plugin/GristData";
+import { AirtableIdColumnLabel } from "app/common/airtable/AirtableSchemaImporter";
 
 export async function importDataFromAirtableBase(
   { listRecords, addOrUpdateRows, updateRows, uploadAttachment, schemaCrosswalk, onProgress }: AirtableDataImportParams,
@@ -24,6 +25,20 @@ export async function importDataFromAirtableBase(
   const attachmentTracker = new AttachmentTracker();
 
   const addRowsPromises: Promise<any>[] = [];
+
+  // Verify every table has an airtable ID column.
+  let missingIdColumnCount = 0;
+  for (const table of schemaCrosswalk.tables.values()) {
+    if (table.airtableIdColumn === undefined) {
+      missingIdColumnCount += 1;
+    }
+  }
+  if (missingIdColumnCount > 0) {
+    // TODO - Raise this issue with the user in a more helpful way. This is just for testing purposes.
+    throw new Error(
+      `${missingIdColumnCount} tables are missing an Airtable ID column (labelled ${AirtableIdColumnLabel}`
+    );
+  }
 
   // TODO: Strings passed to onProgress calls in common code aren't translatable.
   onProgress?.({ percent: 0, status: "Importing records from Airtable..." });
