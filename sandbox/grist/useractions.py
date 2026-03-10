@@ -1148,6 +1148,15 @@ class UserActions(object):
     update_record_ids = []
     update_record_values = {k: [] for k in col_keys - {'id'}}
 
+    result = {
+      # All record ids (added or updated), in the same order they were provided to this action
+      'recordIds': [],
+      # All new record ids (in same order as above)
+      'createdRecordIds': [],
+      # All updated record ids (in same order as above)
+      'updatedRecordIds': [],
+    }
+
     for i in range(length):
       current_require = {key: vals[i] for key, vals in decoded_require.items()}
       records = list(table.lookup_records(**current_require))
@@ -1157,6 +1166,8 @@ class UserActions(object):
         add_record_ids.append(values.pop("id", None))
         for key, value in values.items():
           add_record_values[key].append(value)
+        # ID of None marks that the ID should be filled in later
+        result['recordIds'].append(None)
 
       if records and update:
         if len(records) > 1:
@@ -1169,12 +1180,24 @@ class UserActions(object):
           update_record_ids.append(record.id)
           for key, vals in col_values.items():
             update_record_values[key].append(vals[i])
+          result['updatedRecordIds'].append(record.id)
+          result['recordIds'].append(record.id)
 
     if add_record_ids:
-      self.BulkAddRecord(table_id, add_record_ids, add_record_values)
+      # The new IDs should be in the same order as the records were provided in add_record_values
+      result['createdRecordIds'] = self.BulkAddRecord(table_id, add_record_ids, add_record_values)
+      # Fill any 'None' placeholders in recordIds with the record id of the added row
+      new_record_index = 0
+      for i, recordId in enumerate(result['recordIds']):
+        if recordId is None:
+          result['recordIds'][i] = result['createdRecordIds'][new_record_index]
+          new_record_index += 1
 
     if update_record_ids:
       self.BulkUpdateRecord(table_id, update_record_ids, update_record_values)
+
+    print(result)
+    return result
 
   @useraction
   def AddOrUpdateRecord(self, table_id, require, col_values, options):
