@@ -117,6 +117,10 @@ export class ActivationsManager {
         "GRIST_ADMIN_EMAIL",
         "GRIST_SANDBOX_FLAVOR",
         "GRIST_IN_SERVICE",
+        "GRIST_ORG_CREATION_ANYONE",
+        "GRIST_PERSONAL_ORGS",
+        "GRIST_FORCE_LOGIN",
+        "GRIST_ANON_PLAYGROUND",
       ));
       // If any values are undefined or null, remove them.
       for (const key of Object.keys(delta)) {

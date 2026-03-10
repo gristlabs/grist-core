@@ -361,14 +361,14 @@ describe("SetupConfigureSandbox", function() {
       await driver.findContentWait("div", /Quick Setup/, 5000);
       // Use the browser's native fetch (with session cookies) to call the API.
       // Must use a string script to avoid capturing the node-fetch import.
-      const result = await driver.executeScript<{status: number; body: string}>(
+      const result = await driver.executeScript<{ status: number; body: string }>(
         `return window.fetch("/api/config/auth-providers", {
           headers: { "X-Requested-With": "XMLHttpRequest" }
         }).then(function(resp) {
           return resp.text().then(function(body) {
             return { status: resp.status, body: body };
           });
-        });`
+        });`,
       );
       assert.equal(result.status, 200,
         `Expected 200 but got ${result.status}: ${result.body}`);
@@ -415,14 +415,14 @@ describe("SetupConfigureSandbox", function() {
       await driver.get(wizardUrl);
       await driver.findContentWait("div", /Quick Setup/, 5000);
       // Use browser's native fetch with session cookies (same as the wizard does).
-      const result = await driver.executeScript<{status: number; body: string}>(
+      const result = await driver.executeScript<{ status: number; body: string }>(
         `return window.fetch("/api/config/auth-providers", {
           headers: { "X-Requested-With": "XMLHttpRequest" }
         }).then(function(resp) {
           return resp.text().then(function(body) {
             return { status: resp.status, body: body };
           });
-        });`
+        });`,
       );
       assert.equal(result.status, 200,
         `Expected 200 but got ${result.status}: ${result.body}`);
@@ -430,14 +430,14 @@ describe("SetupConfigureSandbox", function() {
 
     it("install prefs API works via browser session despite GRIST_DEFAULT_EMAIL", async function() {
       // The AuthenticationSection also calls getInstallPrefs which requires admin auth.
-      const result = await driver.executeScript<{status: number; body: string}>(
+      const result = await driver.executeScript<{ status: number; body: string }>(
         `return window.fetch("/api/install/prefs", {
           headers: { "X-Requested-With": "XMLHttpRequest" }
         }).then(function(resp) {
           return resp.text().then(function(body) {
             return { status: resp.status, body: body };
           });
-        });`
+        });`,
       );
       assert.equal(result.status, 200,
         `Expected 200 but got ${result.status}: ${result.body}`);
@@ -483,28 +483,28 @@ describe("SetupConfigureSandbox", function() {
       const wizardUrl = `${server.getHost()}/admin/setup?no-mockup`;
       await driver.get(wizardUrl);
       await driver.findContentWait("div", /Quick Setup/, 5000);
-      const result = await driver.executeScript<{status: number; body: string}>(
+      const result = await driver.executeScript<{ status: number; body: string }>(
         `return window.fetch("/api/probes", {
           headers: { "X-Requested-With": "XMLHttpRequest" }
         }).then(function(resp) {
           return resp.text().then(function(body) {
             return { status: resp.status, body: body };
           });
-        });`
+        });`,
       );
       assert.equal(result.status, 200,
         `Expected 200 but got ${result.status}: ${result.body}`);
     });
 
     it("auth providers API works via browser session with changed email", async function() {
-      const result = await driver.executeScript<{status: number; body: string}>(
+      const result = await driver.executeScript<{ status: number; body: string }>(
         `return window.fetch("/api/config/auth-providers", {
           headers: { "X-Requested-With": "XMLHttpRequest" }
         }).then(function(resp) {
           return resp.text().then(function(body) {
             return { status: resp.status, body: body };
           });
-        });`
+        });`,
       );
       assert.equal(result.status, 200,
         `Expected 200 but got ${result.status}: ${result.body}`);

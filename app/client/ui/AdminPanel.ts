@@ -30,6 +30,7 @@ import { AuditLogStreamingConfig, getDestinationDisplayName } from "app/client/u
 import { AuthenticationSection } from "app/client/ui/AuthenticationSection";
 import { InstallConfigsAPI } from "app/client/ui/ConfigsAPI";
 import { pagePanels } from "app/client/ui/PagePanels";
+import { PermissionsConfigurator } from "app/client/ui/PermissionsConfigurator";
 import { SandboxConfigurator } from "app/client/ui/SandboxConfigurator";
 import { buildSetupWizard } from "app/client/ui/SetupWizard";
 import { StorageConfigurator } from "app/client/ui/StorageConfigurator";
@@ -150,6 +151,7 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
   private _loginProvider: Observable<string | undefined>;
   private _sandboxConfigurator = SandboxConfigurator.create(this, this._installAPI);
   private _storageConfigurator = StorageConfigurator.create(this, this._installAPI);
+  private _permissions = new PermissionsConfigurator(this, this._installAPI);
 
   constructor(private _appModel: AppModel) {
     super();
@@ -180,6 +182,7 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
         // Start shared component probes only when we know the user is an admin.
         void this._sandboxConfigurator.probe();
         void this._storageConfigurator.probe();
+        void this._permissions.load();
         return this._buildMainContentForAdmin();
       }
       return this._buildMainContentForOthers();
@@ -322,6 +325,13 @@ Please log in as an administrator.`)),
           description: t("Key for initial setup and emergency access"),
           value: this._buildBootKeyDisplay(),
           expandedContent: this._buildBootKeyDetail(),
+        }),
+        dom.create(AdminSectionItem, {
+          id: "permissions",
+          name: t("Default Permissions"),
+          description: t("Controls for team creation, personal sites, and anonymous access"),
+          value: this._buildPermissionsDisplay(),
+          expandedContent: this._permissions.buildDom({ showSaveButton: true }),
         }),
       ]),
       dom.create(AdminSection, t("External Storage"), [
@@ -547,6 +557,16 @@ Please log in as an administrator.`)),
     return t("Grist signs user session cookies with a secret key. Please set this key via the environment variable \
 GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice \
 in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.");
+  }
+
+  private _buildPermissionsDisplay() {
+    return dom.domComputed((use) => {
+      const profile = use(this._permissions.activeProfile);
+      if (profile === "locked-down") { return cssValueLabel(t("Locked down")); }
+      if (profile === "recommended") { return cssValueLabel(t("Recommended")); }
+      if (profile === "open") { return cssValueLabel(t("Open")); }
+      return cssValueLabel(t("Custom"));
+    });
   }
 
   private _buildBootKeyDisplay() {

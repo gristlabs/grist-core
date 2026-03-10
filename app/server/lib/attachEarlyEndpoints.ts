@@ -170,7 +170,8 @@ export function attachEarlyEndpoints(options: AttachOptions) {
   );
 
   // Bring Grist into service (open the setup gate).  Persists
-  // GRIST_IN_SERVICE=true and optionally sets GRIST_ADMIN_EMAIL.
+  // GRIST_IN_SERVICE=true and optionally sets GRIST_ADMIN_EMAIL
+  // and permission defaults from the pre-launch checklist.
   app.post(
     "/api/admin/go-live",
     json({ limit: "1kb" }),
@@ -181,6 +182,27 @@ export function attachEarlyEndpoints(options: AttachOptions) {
         await activations.updateAppEnvFile({ GRIST_ADMIN_EMAIL: reqAdminEmail });
         process.env.GRIST_ADMIN_EMAIL = reqAdminEmail;
         gristServer.getInstallAdmin().clearCaches();
+      }
+      // Persist permission defaults from the pre-launch checklist.
+      const perms = req.body?.permissions;
+      if (perms && typeof perms === "object") {
+        const permEnvVars: Record<string, string> = {};
+        const permKeys = [
+          "GRIST_ORG_CREATION_ANYONE",
+          "GRIST_PERSONAL_ORGS",
+          "GRIST_FORCE_LOGIN",
+          "GRIST_ANON_PLAYGROUND",
+        ];
+        for (const key of permKeys) {
+          if (key in perms) {
+            const val = String(perms[key]);
+            permEnvVars[key] = val;
+            process.env[key] = val;
+          }
+        }
+        if (Object.keys(permEnvVars).length > 0) {
+          await activations.updateAppEnvFile(permEnvVars);
+        }
       }
       await activations.updateAppEnvFile({ GRIST_IN_SERVICE: "true" });
       process.env.GRIST_IN_SERVICE = "true";
@@ -193,6 +215,39 @@ export function attachEarlyEndpoints(options: AttachOptions) {
         });
       }
       return res.status(200).send({ msg: "ok", restarting });
+    }),
+  );
+
+  // Save permission defaults without restarting.  Used by the admin
+  // panel's permissions section.
+  app.post(
+    "/api/admin/save-permissions",
+    json({ limit: "1kb" }),
+    expressWrap(async (req, res) => {
+      const activations = gristServer.getActivations();
+      const perms = req.body?.permissions;
+      if (!perms || typeof perms !== "object") {
+        return res.status(400).send({ error: "Missing permissions object" });
+      }
+      const permEnvVars: Record<string, string> = {};
+      const permKeys = [
+        "GRIST_ORG_CREATION_ANYONE",
+        "GRIST_PERSONAL_ORGS",
+        "GRIST_FORCE_LOGIN",
+        "GRIST_ANON_PLAYGROUND",
+      ];
+      for (const key of permKeys) {
+        if (key in perms) {
+          const val = String(perms[key]);
+          permEnvVars[key] = val;
+          process.env[key] = val;
+        }
+      }
+      if (Object.keys(permEnvVars).length === 0) {
+        return res.status(400).send({ error: "No recognized permission keys" });
+      }
+      await activations.updateAppEnvFile(permEnvVars);
+      return res.status(200).send({ msg: "ok" });
     }),
   );
 

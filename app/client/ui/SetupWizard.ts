@@ -6,6 +6,7 @@ import { GoLiveControl } from "app/client/ui/GoLiveControl";
 import {
   buildMockupPanel, cssMockupButton, cssMockupDesc, cssMockupRow, cssMockupSection,
 } from "app/client/ui/MockupPanel";
+import { PermissionsConfigurator } from "app/client/ui/PermissionsConfigurator";
 import { SandboxConfigurator } from "app/client/ui/SandboxConfigurator";
 import { StorageConfigurator } from "app/client/ui/StorageConfigurator";
 import { basicButton, primaryButton } from "app/client/ui2018/buttons";
@@ -52,6 +53,7 @@ export class SetupWizard extends Disposable {
   private _sandboxConfirmed = Observable.create<boolean>(this, false);
   private _authConfirmed = Observable.create<boolean>(this, false);
   private _storageConfirmed = Observable.create<boolean>(this, false);
+  private _permissions = new PermissionsConfigurator(this, this._installAPI);
 
   // Auth section needs loginSystemId from the authentication probe.
   private _checks = new AdminChecks(this, this._installAPI);
@@ -111,6 +113,9 @@ export class SetupWizard extends Disposable {
     // to avoid confusing background activity and unnecessary requests.
     void this._sandbox.probe();
 
+    // Load current permission env vars so toggles reflect server state.
+    void this._permissions.load();
+
     const triggerStepProbes = (step: Step) => {
       if (step >= 2) { void this._checks.fetchAvailableChecks(); }
       if (step >= 3) { void this._storage.probe(); }
@@ -119,7 +124,7 @@ export class SetupWizard extends Disposable {
     // Trigger probes for the restored step (if user reloads mid-wizard).
     triggerStepProbes(this._activeStep.get());
 
-    this.autoDispose(this._activeStep.addListener((step) => triggerStepProbes(step)));
+    this.autoDispose(this._activeStep.addListener(step => triggerStepProbes(step)));
 
     // Save progress whenever meaningful state changes.
     this.autoDispose(this._activeStep.addListener(() => this._saveState()));
@@ -242,11 +247,13 @@ export class SetupWizard extends Disposable {
             cssStepTitle(t("Apply & Restart")),
           ),
           cssStepDesc(
-            t("Restart Grist to apply any configuration changes made in the previous steps."),
+            t("Review these defaults before going live. You can change them later from the admin panel."),
           ),
+          this._permissions.buildDom(),
           this._goLive.buildDom({
-            mode: "restart",
+            mode: "go-live",
             canProceed: Observable.create(this, true),
+            getBody: () => ({ permissions: this._permissions.getEnvVars() }),
           }),
           testId("setup-step-go-live"),
         ),
@@ -327,7 +334,7 @@ export class SetupWizard extends Disposable {
         }
         return cssSkipRow(
           basicButton(
-            t("Skip for now"),
+            t("Continue"),
             dom.on("click", () => {
               this._authSkipped.set(true);
               this._authConfirmed.set(true);
@@ -464,6 +471,16 @@ export class SetupWizard extends Disposable {
           this._storage.selected.set("");
           this._storage.status.set("ready");
         })),
+      ),
+
+      // --- Single org toggle ---
+      cssMockupSection("Single org"),
+      cssMockupDesc("Toggle GRIST_SINGLE_ORG note on the pre-launch checklist."),
+      cssMockupRow(
+        cssMockupButton(
+          dom.domComputed(this._permissions.hasSingleOrg, on => on ? "Disable single org" : "Enable single org"),
+          dom.on("click", () => this._permissions.hasSingleOrg.set(!this._permissions.hasSingleOrg.get())),
+        ),
       ),
     );
   }
