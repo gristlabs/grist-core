@@ -341,7 +341,10 @@ export function createBootKeyLoginPage(appModel: AppModel) {
   function buildFindPanel() {
     return cssBootTabContent(
       cssBootFindGuidance(
-        cssBootFindHeading("Look for this in your server output:"),
+        cssBootFindText(
+          "Look for this banner near the top of Grist's startup output\u2009—\u2009" +
+          "check your terminal, container logs, or hosting panel:",
+        ),
         dom("pre", cssBootBannerPre.cls(""),
           "┌──────────────────────────────────────────┐\n" +
           "│                                          │\n" +
@@ -349,13 +352,8 @@ export function createBootKeyLoginPage(appModel: AppModel) {
           "│                                          │\n" +
           "└──────────────────────────────────────────┘",
         ),
-        cssBootFindCaption(
-          "This banner appears near the top of Grist's startup output\u2009—\u2009" +
-          "check your terminal, container logs, or hosting panel.",
-        ),
       ),
       cssBootFieldGroup(
-        cssBootLoginLabel("Boot key"),
         cssBootKeyInput(
           dom.prop("value", bootKeyValue),
           dom.on("input", (_e: Event, elem: HTMLInputElement) => bootKeyValue.set(elem.value)),
@@ -469,60 +467,63 @@ export function createBootKeyLoginPage(appModel: AppModel) {
           ),
 
           // Tab content (reactive)
-          dom.domComputed(activeTab, tab => {
+          dom.domComputed(activeTab, (tab) => {
             if (tab === "find") { return buildFindPanel(); }
             if (tab === "own") { return buildOwnPanel(); }
             return buildSkipPanel();
           }),
 
-          dom.maybe(errorMsg, err =>
-            cssSetupError(err, testId("boot-key-login-error")),
-          ),
+          // Error, email field, and submit button — padded to match tab content.
+          cssBootCardSection(
+            dom.maybe(errorMsg, err =>
+              cssSetupError(err, testId("boot-key-login-error")),
+            ),
 
-          // Email field — revealed after boot key is verified (only on "find" tab).
-          dom.maybe(use => use(keyConfirmed) && use(activeTab) === "find", () =>
-            cssBootFieldGroup(
-              cssBootLoginLabel("Administrator email"),
-              cssBootEmailInput(
-                dom.prop("value", emailValue),
-                dom.on("input", (_e: Event, elem: HTMLInputElement) => emailValue.set(elem.value)),
-                { placeholder: "you@example.com", type: "email", autofocus: true },
-                dom.on("keydown", (ev: KeyboardEvent) => {
-                  if (ev.key === "Enter") { submitLogin(); }
-                }),
-                testId("boot-key-login-email"),
-              ),
-              cssBootFieldCaption(
-                dom.domComputed(emailValue, val =>
-                  val ? "Confirm or change the administrator email address." :
-                    "This will be your admin account for managing Grist.",
+            // Email field — revealed after boot key is verified (only on "find" tab).
+            dom.maybe(use => use(keyConfirmed) && use(activeTab) === "find", () =>
+              cssBootFieldGroup(
+                cssBootLoginLabel("Administrator email"),
+                cssBootEmailInput(
+                  dom.prop("value", emailValue),
+                  dom.on("input", (_e: Event, elem: HTMLInputElement) => emailValue.set(elem.value)),
+                  { placeholder: "you@example.com", type: "email", autofocus: true },
+                  dom.on("keydown", (ev: KeyboardEvent) => {
+                    if (ev.key === "Enter") { submitLogin(); }
+                  }),
+                  testId("boot-key-login-email"),
+                ),
+                cssBootFieldCaption(
+                  dom.domComputed(emailValue, val =>
+                    val ? "Confirm or change the administrator email address." :
+                      "This will be your admin account for managing Grist.",
+                  ),
                 ),
               ),
             ),
-          ),
 
-          // Submit button — only on "find" tab.
-          dom.maybe(use => use(activeTab) === "find", () =>
-            dom.domComputed(keyConfirmed, (confirmed) => {
-              if (!confirmed) {
+            // Submit button — only on "find" tab.
+            dom.maybe(use => use(activeTab) === "find", () =>
+              dom.domComputed(keyConfirmed, (confirmed) => {
+                if (!confirmed) {
+                  return cssBootSubmitButton(
+                    dom.domComputed(status, s =>
+                      s === "checking" ? "Checking\u2026" : "Check key"),
+                    dom.prop("disabled", use =>
+                      !use(bootKeyValue).trim() || use(status) === "checking"),
+                    dom.on("click", () => void checkKey()),
+                    testId("boot-key-login-submit"),
+                  );
+                }
                 return cssBootSubmitButton(
                   dom.domComputed(status, s =>
-                    s === "checking" ? "Checking\u2026" : "Check key"),
+                    s === "signing-in" ? "Signing in\u2026" : "Continue"),
                   dom.prop("disabled", use =>
-                    !use(bootKeyValue).trim() || use(status) === "checking"),
-                  dom.on("click", () => void checkKey()),
+                    !use(emailValue).trim() || use(status) === "signing-in"),
+                  dom.on("click", () => submitLogin()),
                   testId("boot-key-login-submit"),
                 );
-              }
-              return cssBootSubmitButton(
-                dom.domComputed(status, s =>
-                  s === "signing-in" ? "Signing in\u2026" : "Continue"),
-                dom.prop("disabled", use =>
-                  !use(emailValue).trim() || use(status) === "signing-in"),
-                dom.on("click", () => submitLogin()),
-                testId("boot-key-login-submit"),
-              );
-            }),
+              }),
+            ),
           ),
         ),
       ),
@@ -722,51 +723,40 @@ const cssBootLoginCard = styled("div", `
   box-shadow:
     0 1px 3px rgba(0, 0, 0, 0.04),
     0 8px 24px rgba(0, 0, 0, 0.06);
-  overflow: hidden;
 `);
 
-// -- Tab bar and tabs ---------------------------------------------------------
+// -- Segmented control --------------------------------------------------------
 
 const cssBootTabBar = styled("div", `
   display: flex;
-  border-bottom: 1px solid ${theme.pagePanelsBorder};
-  background: ${theme.pagePanelsBorder}44;
+  margin: 24px 28px 0;
+  padding: 3px;
+  border-radius: 10px;
+  background: ${theme.inputBorder};
+  gap: 3px;
 `);
 
 const cssBootTab = styled("div", `
   flex: 1;
   text-align: center;
-  padding: 12px 8px;
-  font-size: 13px;
+  padding: 8px 6px;
+  font-size: 12.5px;
   font-weight: 500;
   color: ${theme.lightText};
   cursor: pointer;
-  position: relative;
-  transition: color 0.15s, background 0.15s;
+  border-radius: 7px;
+  transition: color 0.2s, background 0.2s, box-shadow 0.2s;
   user-select: none;
 
-  &:not(:last-child) {
-    border-right: 1px solid ${theme.pagePanelsBorder};
-  }
-
-  &:hover {
+  &:hover:not(.active) {
     color: ${theme.text};
-    background: ${theme.mainPanelBg};
   }
 
   &.active {
     color: ${theme.text};
     font-weight: 600;
     background: ${theme.mainPanelBg};
-  }
-  &.active::after {
-    content: "";
-    position: absolute;
-    bottom: -1px;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: ${theme.controlPrimaryBg};
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.1);
   }
 `);
 
@@ -777,6 +767,10 @@ const cssBootTabContent = styled("div", `
   display: flex;
   flex-direction: column;
   gap: 16px;
+`);
+
+const cssBootCardSection = styled("div", `
+  padding: 0 28px 28px;
 `);
 
 const cssBootTabLink = styled("span", `
@@ -794,20 +788,18 @@ const cssBootTabLink = styled("span", `
 // -- Find-in-logs guidance ----------------------------------------------------
 
 const cssBootFindGuidance = styled("div", `
+  & > pre {
+    display: block;
+    width: fit-content;
+    margin: 10px auto 0;
+  }
 `);
 
-const cssBootFindHeading = styled("div", `
-  font-size: 14px;
+const cssBootFindText = styled("div", `
+  font-size: 13px;
   line-height: 1.5;
   color: ${theme.lightText};
-  margin-bottom: 6px;
-`);
-
-const cssBootFindCaption = styled("div", `
-  font-size: 12.5px;
-  line-height: 1.5;
-  color: ${theme.lightText};
-  margin-top: 10px;
+  margin-bottom: 10px;
 `);
 
 // -- Plain text for tab panels (no card wrapper) -----------------------------
@@ -933,7 +925,7 @@ const cssBootBannerPre = styled("pre", `
   background: ${theme.pagePanelsBorder}33;
   border-radius: 4px;
   padding: 8px 10px;
-  margin: 4px 0 0;
+  margin: 0;
   overflow-x: auto;
   white-space: pre;
 `);
@@ -947,9 +939,9 @@ const cssBootCode = styled("code", `
 
 const cssBootKeyInput = styled("input", `
   width: 100%;
-  font-size: 15px;
-  padding: 10px 14px;
-  border: 1px solid ${theme.inputBorder};
+  font-size: 16px;
+  padding: 14px 16px;
+  border: 1.5px solid ${theme.inputBorder};
   border-radius: 8px;
   background: ${theme.inputBg};
   color: ${theme.inputFg};
@@ -957,7 +949,8 @@ const cssBootKeyInput = styled("input", `
   font-family: "SFMono-Regular", "Consolas", "Liberation Mono", "Menlo", monospace;
   letter-spacing: 1px;
   margin-bottom: 8px;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  box-shadow: 0 0 0 3px ${theme.controlPrimaryBg}0d;
+  transition: border-color 0.2s, box-shadow 0.2s;
   &:focus {
     border-color: ${theme.controlPrimaryBg};
     box-shadow: 0 0 0 3px ${theme.controlPrimaryBg}22;
@@ -1014,5 +1007,5 @@ const cssBootSubmitButton = styled("button", `
 const cssSetupError = styled("div", `
   font-size: ${vars.mediumFontSize};
   color: ${theme.errorText};
-  margin: 12px 28px 0;
+  margin-bottom: 8px;
 `);
