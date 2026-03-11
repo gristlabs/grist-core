@@ -167,7 +167,7 @@ describe("HomeIntro", function() {
       if (!isLoggedIn) {
         assert.equal(await driver.find(".test-tb-share-action").getText(), "Save Document");
         await driver.find(".test-tb-share").click();
-        assert.equal(await driver.find(".test-save-copy").isPresent(), true);
+        assert.equal(await driver.findWait(".test-save-copy", 1000).isPresent(), true);
         // There is no original of this document.
         assert.equal(await driver.find(".test-open-original").isPresent(), false);
       } else {
