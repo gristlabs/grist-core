@@ -58,7 +58,7 @@ describe("Summaries.ntest", function() {
 
     // Add another field, "Date".
     await $(".test-pwc-editDataSelection").click();
-    await $(`.test-wselect-column:contains(Date)`).click();
+    await $(`.test-wselect-column:contains(Date)`).wait().click();
 
     // Cancel, and verify contents of multiselect.
     await gu.sendKeys($.ESCAPE);
