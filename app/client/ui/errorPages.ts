@@ -1,3 +1,4 @@
+import { copyToClipboard } from "app/client/lib/clipboardUtils";
 import { makeT } from "app/client/lib/localization";
 import { getLoginUrl, getSignupUrl } from "app/client/lib/urlUtils";
 import { AppModel } from "app/client/models/AppModel";
@@ -14,7 +15,7 @@ import { cssLink } from "app/client/ui2018/links";
 import { commonUrls, getPageTitleSuffix } from "app/common/gristUrls";
 import { getGristConfig } from "app/common/urlUtils";
 
-import { dom, DomContents, DomElementArg, makeTestId, observable, styled } from "grainjs";
+import { dom, DomContents, DomElementArg, makeTestId, observable, Observable, styled } from "grainjs";
 
 const testId = makeTestId("test-");
 
@@ -390,7 +391,10 @@ export function createBootKeyLoginPage(appModel: AppModel) {
   }
 
   function buildOwnPanel() {
+    const exampleKey = _longCodeForExample();
+    const copied = Observable.create(null, false);
     return cssBootTabContent(
+      dom.autoDispose(copied),
       cssBootPanelText(
         "If you cannot access server logs or cannot find your boot key, " +
         "you can set it yourself.",
@@ -398,12 +402,25 @@ export function createBootKeyLoginPage(appModel: AppModel) {
         dom("br"),
         "Add the environment variable ",
         dom("code", cssBootCode.cls(""), "GRIST_BOOT_KEY"),
-        " with any secret value you choose to your Grist configuration, " +
-        "then restart Grist.",
+        " with a secret value to your Grist configuration, " +
+        "then restart Grist. Here's a random key you can use:",
+      ),
+      cssBootKeyBox(
+        cssBootKeyValue(exampleKey),
+        cssBootKeyCopyButton(
+          dom.domComputed(copied, c => c ? "Copied!" : "Copy"),
+          dom.on("click", async () => {
+            await copyToClipboard(exampleKey);
+            copied.set(true);
+            setTimeout(() => { if (!copied.isDisposed()) { copied.set(false); } }, 2000);
+          }),
+        ),
       ),
       cssBootPanelCaption(
         "For Docker, add ",
-        dom("code", cssBootCode.cls(""), "-e GRIST_BOOT_KEY=\u2026"),
+        dom("code", cssBootCode.cls(""),
+          `-e GRIST_BOOT_KEY=${exampleKey}`,
+        ),
         " to your run command. For other setups, " +
         "set it in your environment or configuration file.",
       ),
@@ -579,6 +596,20 @@ export function createOtherErrorPage(appModel: AppModel, message?: string) {
       urlState().setLinkUrl({}))),
     cssButtonWrap(bigBasicButtonLink(t("Contact support"), { href: commonUrls.contactSupport })),
   ]);
+}
+
+/**
+ * Make a long code to use as an example boot key, so that if people copy
+ * and paste it lazily, they end up decently secure.
+ */
+function _longCodeForExample() {
+  // Crypto in insecure contexts doesn't have randomUUID
+  if (window.isSecureContext) {
+    return "example-a" + window.crypto.randomUUID();
+  }
+  return "example-b" + "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx".replace(/x/g, () => {
+    return Math.floor(Math.random() * 16).toString(16);
+  });
 }
 
 function addPeriod(msg: string): string {
@@ -846,6 +877,43 @@ const cssBootWarningBody = styled("div", `
 `);
 
 // -- Restart note (tabs 2 & 3) -----------------------------------------------
+
+const cssBootKeyBox = styled("div", `
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid ${theme.inputBorder};
+  border-radius: 8px;
+  background: ${theme.inputBg};
+`);
+
+const cssBootKeyValue = styled("div", `
+  flex: 1;
+  font-family: "SFMono-Regular", "Consolas", "Liberation Mono", "Menlo", monospace;
+  font-size: 12px;
+  line-height: 1.4;
+  word-break: break-all;
+  user-select: all;
+  color: ${theme.text};
+`);
+
+const cssBootKeyCopyButton = styled("button", `
+  padding: 4px 12px;
+  border: 1px solid ${theme.inputBorder};
+  border-radius: 4px;
+  background: ${theme.mainPanelBg};
+  color: ${theme.controlFg};
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  &:hover {
+    background: ${theme.hover};
+  }
+`);
 
 const cssBootRestartNote = styled("div", `
   display: flex;

@@ -1,5 +1,6 @@
 import { makeT } from "app/client/lib/localization";
 import { getHomeUrl } from "app/client/models/AppModel";
+import { bigPrimaryButton } from "app/client/ui2018/buttons";
 import { testId, theme } from "app/client/ui2018/cssVars";
 import { InstallAPI } from "app/common/InstallAPI";
 import { getGristConfig } from "app/common/urlUtils";
@@ -240,11 +241,18 @@ export class PermissionsConfigurator extends Disposable {
           testId(`checklist-item-${item.id}`),
         );
       }),
-      dom.maybe(this.hasSingleOrg, () => cssChecklistNote(
-        t("With GRIST_SINGLE_ORG set, users only see one team site — but personal sites " +
-          "and team creation still work behind the scenes. Worth locking down unless you " +
-          "have a specific reason to keep them."),
-      )),
+      dom.maybe(this.hasSingleOrg, () => {
+        const orgName = getGristConfig().singleOrg || "";
+        const prefix = orgName ?
+          t("You have GRIST_SINGLE_ORG={{orgName}} set.", { orgName }) :
+          t("You have GRIST_SINGLE_ORG set.");
+        return cssChecklistNote(
+          prefix + " " +
+          t("With this, users only see one team site — but personal sites " +
+            "and team creation still work behind the scenes. Worth locking down unless you " +
+            "have a specific reason to keep them."),
+        );
+      }),
       options?.showSaveButton ? this._buildSaveButton() : null,
       testId("pre-launch-checklist"),
     );
@@ -255,7 +263,7 @@ export class PermissionsConfigurator extends Disposable {
     const saveError = Observable.create(this, "");
     return [
       dom.maybe(saveError, err => cssSaveError(err)),
-      cssSaveButton(
+      bigPrimaryButton(
         dom.domComputed((use) => {
           if (use(saving)) { return t("Saving..."); }
           return use(this.dirty) ? t("Save permissions") : t("Saved");
@@ -413,30 +421,6 @@ const cssChecklistNote = styled("div", `
   border-radius: 8px;
   background: #fef7e0;
   color: #b45309;
-`);
-
-const cssSaveButton = styled("button", `
-  margin-top: 16px;
-  padding: 8px 24px;
-  border: none;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  color: white;
-  background-color: ${theme.controlPrimaryBg};
-  transition: background-color 0.15s, transform 0.1s;
-
-  &:hover:not(:disabled) {
-    background-color: ${theme.controlPrimaryHoverBg};
-  }
-  &:active:not(:disabled) {
-    transform: scale(0.98);
-  }
-  &:disabled {
-    opacity: 0.4;
-    cursor: default;
-  }
 `);
 
 const cssSaveError = styled("div", `
