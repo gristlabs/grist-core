@@ -112,6 +112,7 @@ export class ActivationsManager {
       activation.prefs ??= {};
       activation.prefs.envVars ??= {};
       Object.assign(activation.prefs.envVars, pick(delta,
+        "APP_HOME_URL",
         "GRIST_LOGIN_SYSTEM_TYPE",
         "GRIST_GETGRISTCOM_SECRET",
         "GRIST_ADMIN_EMAIL",

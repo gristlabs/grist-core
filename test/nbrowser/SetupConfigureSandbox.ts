@@ -163,17 +163,26 @@ describe("SetupConfigureSandbox", function() {
 
     // --- Browser tests ---
     // The setup gate redirects to /admin?adminPanel=setup which renders
-    // the SetupWizard (Sandboxing, Authentication, Backups, Apply & Restart).
+    // the SetupWizard (Server, Sandboxing, Authentication, Backups, Apply & Restart).
     // The wizard uses session auth — probes auto-start on load.
 
     // Navigate directly to /admin/setup (the wizard URL) to avoid
     // re-triggering the gate redirect to boot-key login on each test.
     const wizardUrl = () => `${server.getHost()}/admin/setup`;
 
-    it("wizard shows title and sandbox options on load", async function() {
+    it("wizard starts on server step with URL configurator", async function() {
       await driver.get(wizardUrl());
       await driver.findContentWait("div", /Quick Setup/, 5000);
-      // Step 1 (Sandboxing) is active by default.
+      // Server step is first — should show the URL section.
+      await driver.findWait(".test-server-configurator", 10000);
+      await driver.findWait(".test-server-url-section", 5000);
+    });
+
+    it("sandbox step shows options after navigating to it", async function() {
+      await driver.get(wizardUrl() + "?no-mockup");
+      await driver.findContentWait("div", /Quick Setup/, 5000);
+      // Navigate to sandbox tab.
+      await driver.find(".test-setup-tab-sandbox").click();
       // Wait for sandbox probe to complete and submit button to appear.
       await driver.findWait(".test-sandbox-submit", 30000);
       // "unsandboxed" is available via the "Other options" toggle.
