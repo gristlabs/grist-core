@@ -20,21 +20,25 @@ const t = makeT("SetupWizard");
 
 const STORAGE_KEY = "grist-setup-wizard";
 
-type Step = 1 | 2 | 3 | 4;
+type StepId = string;
 
 interface WizardState {
-  activeStep: Step;
-  sandboxConfigured: string;   // flavor name, or "" if not done
-  sandboxConfirmed: boolean;   // admin clicked Configure or Continue
-  authConfirmed: boolean;      // admin clicked Continue or Skip
-  storageSelected: string;     // backend name, or "" if not done
-  storageConfirmed: boolean;   // admin clicked Continue
+  activeStep: StepId;
+  sandboxConfigured: string;
+  sandboxConfirmed: boolean;
+  authConfirmed: boolean;
+  storageSelected: string;
+  storageConfirmed: boolean;
 }
 
 interface StepDef {
-  step: Step;
+  id: StepId;
   label: string;
+  iconName: string;
+  desc: string;
   done: (use: (obs: Observable<any>) => any) => boolean;
+  buildContent: () => DomContents;
+  onEnter?: () => void;
 }
 
 /**
@@ -43,7 +47,6 @@ interface StepDef {
  * into a three-step guided flow.
  */
 export class SetupWizard extends Disposable {
-  private _activeStep = Observable.create<Step>(this, 1);
   private _installAPI = new InstallAPIImpl(getHomeUrl());
   private _sandbox = SandboxConfigurator.create(this, this._installAPI);
   private _storage = StorageConfigurator.create(this, this._installAPI);
@@ -75,29 +78,70 @@ export class SetupWizard extends Disposable {
     return !!provider && provider !== "no-logins" && provider !== "boot-key" && provider !== "minimal";
   });
 
+  /**
+   * Step definitions — the single source of truth for ordering, labels, icons,
+   * content, and lifecycle hooks. Reorder, add, or remove entries here and
+   * the progress rail, navigation, and save/restore all adapt automatically.
+   */
   private _steps: StepDef[] = [
     {
-      step: 1,
+      id: "sandbox",
       label: t("Sandboxing"),
+      iconName: "Code",
+      desc: t("Grist runs user formulas as Python code. Sandboxing isolates this execution " +
+        "to protect your server. Without it, document formulas can access the full system."),
       done: use => use(this._sandboxConfirmed),
+      buildContent: () => this._sandbox.buildDom({
+        onContinue: () => {
+          this._sandboxConfirmed.set(true);
+          this._goToNextStep("sandbox");
+        },
+      }),
+      onEnter: () => { void this._sandbox.probe(); },
     },
     {
-      step: 2,
+      id: "auth",
       label: t("Authentication"),
+      iconName: "Lock",
+      desc: t("Configure how users sign in to Grist. Without authentication, anyone who " +
+        "can reach your server gets unrestricted access as an admin user."),
       done: use => use(this._authConfirmed),
+      buildContent: () => this._buildAuthStep(),
+      onEnter: () => { void this._checks.fetchAvailableChecks(); },
     },
     {
-      step: 3,
+      id: "storage",
       label: t("Backups"),
+      iconName: "Database",
+      desc: t("Store document backups on an external service like S3 or Azure. " +
+        "This protects against data loss if the server's disk fails."),
       done: use => use(this._storageConfirmed),
+      buildContent: () => this._storage.buildDom({
+        onContinue: () => {
+          this._storageConfirmed.set(true);
+          this._goToNextStep("storage");
+        },
+      }),
+      onEnter: () => { void this._storage.probe(); },
     },
     {
-      step: 4,
+      id: "apply",
       label: t("Apply & Restart"),
+      iconName: "Settings",
+      desc: t("Review these defaults before going live. You can change them later from the admin panel."),
       done: use => use(this._goLive.status) === "success",
+      buildContent: () => [
+        this._permissions.buildDom(),
+        this._goLive.buildDom({
+          mode: "go-live",
+          canProceed: Observable.create(this, true),
+          getBody: () => ({ permissions: this._permissions.getEnvVars() }),
+        }),
+      ],
     },
   ];
 
+  private _activeStep = Observable.create<StepId>(this, this._steps[0].id);
   private _appModel: AppModel;
 
   constructor(appModel: AppModel) {
@@ -108,26 +152,28 @@ export class SetupWizard extends Disposable {
     // active step survive page reloads.
     this._restoreState();
 
-    // Probe sandbox immediately (step 1 is visible on load).
-    // Defer storage and auth probes until their steps become active,
-    // to avoid confusing background activity and unnecessary requests.
-    void this._sandbox.probe();
+    // Fire onEnter for the initial step and all preceding steps
+    // (so probes for earlier steps are triggered on reload mid-wizard).
+    const activeIdx = this._stepIndex(this._activeStep.get());
+    for (let i = 0; i <= activeIdx; i++) {
+      this._steps[i].onEnter?.();
+    }
 
     // Load current permission env vars so toggles reflect server state.
     void this._permissions.load();
 
-    const triggerStepProbes = (step: Step) => {
-      if (step >= 2) { void this._checks.fetchAvailableChecks(); }
-      if (step >= 3) { void this._storage.probe(); }
-    };
-
-    // Trigger probes for the restored step (if user reloads mid-wizard).
-    triggerStepProbes(this._activeStep.get());
-
-    this.autoDispose(this._activeStep.addListener(step => triggerStepProbes(step)));
+    this.autoDispose(this._activeStep.addListener((newStep, oldStep) => {
+      // Fire onEnter hooks for all steps up to and including the new step
+      // that haven't been triggered yet (i.e. steps between old and new).
+      const oldIdx = this._stepIndex(oldStep);
+      const newIdx = this._stepIndex(newStep);
+      for (let i = oldIdx + 1; i <= newIdx; i++) {
+        this._steps[i].onEnter?.();
+      }
+      this._saveState();
+    }));
 
     // Save progress whenever meaningful state changes.
-    this.autoDispose(this._activeStep.addListener(() => this._saveState()));
     this.autoDispose(this._sandboxConfirmed.addListener(() => this._saveState()));
     this.autoDispose(this._authConfirmed.addListener(() => this._saveState()));
     this.autoDispose(this._storageConfirmed.addListener(() => this._saveState()));
@@ -135,6 +181,7 @@ export class SetupWizard extends Disposable {
 
   public buildDom() {
     const hideMockup = new URLSearchParams(window.location.search).has("no-mockup");
+    const lastIdx = this._steps.length - 1;
 
     return cssWizardPage(
       cssWizardGlow(),
@@ -153,115 +200,66 @@ export class SetupWizard extends Disposable {
         // Progress rail — horizontal track with connected step dots.
         cssProgressRail(
           { style: "animation: wizFadeUp 0.5s ease 0.2s both;" },
-          // Filled portion of the rail, width tracks active step.
           cssProgressFill(
             dom.style("width", (use) => {
-              const step = use(this._activeStep);
-              // 0% at step 1, 33% at step 2, 67% at step 3, 100% at step 4.
-              return `${((step - 1) / 3) * 100}%`;
+              const idx = this._stepIndex(use(this._activeStep));
+              return `${(idx / lastIdx) * 100}%`;
             }),
           ),
-          ...this._steps.map(({ step, label, done }) =>
+          ...this._steps.map(({ id, label, done }, i) =>
             cssProgressStep(
-              dom.style("left", `${((step - 1) / 3) * 100}%`),
+              dom.style("left", `${(i / lastIdx) * 100}%`),
               cssProgressDot(
-                cssProgressDot.cls("-active", use => use(this._activeStep) === step),
+                cssProgressDot.cls("-active", use => use(this._activeStep) === id),
                 cssProgressDot.cls("-done", done),
                 dom.domComputed(done, isDone =>
                   isDone ?
                     cssProgressDotCheck("\u2713") :
-                    cssProgressDotNumber(String(step)),
+                    cssProgressDotNumber(String(i + 1)),
                 ),
-                dom.on("click", () => this._activeStep.set(step)),
+                dom.on("click", () => this._activeStep.set(id)),
               ),
               cssProgressLabel(
                 label,
-                cssProgressLabel.cls("-active", use => use(this._activeStep) === step),
+                cssProgressLabel.cls("-active", use => use(this._activeStep) === id),
               ),
-              testId(`setup-tab-${step}`),
+              testId(`setup-tab-${id}`),
             ),
           ),
         ),
 
-        // Step panels — cards with entrance animation.
-        // Step 1: Sandboxing
-        cssStepCard(
-          dom.show(use => use(this._activeStep) === 1),
-          cssStepHeader(
-            cssStepIcon(icon("Code")),
-            cssStepTitle(t("Sandboxing")),
+        // Step panels — one card per step definition.
+        ...this._steps.map(stepDef =>
+          cssStepCard(
+            dom.show(use => use(this._activeStep) === stepDef.id),
+            cssStepHeader(
+              cssStepIcon(icon(stepDef.iconName as any)),
+              cssStepTitle(stepDef.label),
+            ),
+            cssStepDesc(stepDef.desc),
+            stepDef.buildContent(),
+            testId(`setup-step-${stepDef.id}`),
           ),
-          cssStepDesc(
-            t("Grist runs user formulas as Python code. Sandboxing isolates this execution " +
-              "to protect your server. Without it, document formulas can access the full system."),
-          ),
-          this._sandbox.buildDom({
-            onContinue: () => {
-              this._sandboxConfirmed.set(true);
-              this._activeStep.set(2);
-            },
-          }),
-          testId("setup-step-sandbox"),
-        ),
-
-        // Step 2: Authentication
-        cssStepCard(
-          dom.show(use => use(this._activeStep) === 2),
-          cssStepHeader(
-            cssStepIcon(icon("Lock")),
-            cssStepTitle(t("Authentication")),
-          ),
-          cssStepDesc(
-            t("Configure how users sign in to Grist. Without authentication, anyone who " +
-              "can reach your server gets unrestricted access as an admin user."),
-          ),
-          this._buildAuthStep(),
-          testId("setup-step-auth"),
-        ),
-
-        // Step 3: Backups / External Storage
-        cssStepCard(
-          dom.show(use => use(this._activeStep) === 3),
-          cssStepHeader(
-            cssStepIcon(icon("Database")),
-            cssStepTitle(t("Backups")),
-          ),
-          cssStepDesc(
-            t("Store document backups on an external service like S3 or Azure. " +
-              "This protects against data loss if the server's disk fails."),
-          ),
-          this._storage.buildDom({
-            onContinue: () => {
-              this._storageConfirmed.set(true);
-              this._activeStep.set(4);
-            },
-          }),
-          testId("setup-step-storage"),
-        ),
-
-        // Step 4: Apply & Restart
-        cssStepCard(
-          dom.show(use => use(this._activeStep) === 4),
-          cssStepHeader(
-            cssStepIcon(icon("Settings")),
-            cssStepTitle(t("Apply & Restart")),
-          ),
-          cssStepDesc(
-            t("Review these defaults before going live. You can change them later from the admin panel."),
-          ),
-          this._permissions.buildDom(),
-          this._goLive.buildDom({
-            mode: "go-live",
-            canProceed: Observable.create(this, true),
-            getBody: () => ({ permissions: this._permissions.getEnvVars() }),
-          }),
-          testId("setup-step-go-live"),
         ),
 
         testId("setup-page"),
       ),
       hideMockup ? null : this._buildMockupControls(),
     );
+  }
+
+  /** Get the array index of a step by its ID. */
+  private _stepIndex(id: StepId): number {
+    const idx = this._steps.findIndex(s => s.id === id);
+    return idx >= 0 ? idx : 0;
+  }
+
+  /** Navigate to the step after the given one, if any. */
+  private _goToNextStep(currentId: StepId) {
+    const idx = this._stepIndex(currentId);
+    if (idx < this._steps.length - 1) {
+      this._activeStep.set(this._steps[idx + 1].id);
+    }
   }
 
   private _saveState() {
@@ -281,7 +279,7 @@ export class SetupWizard extends Disposable {
       const raw = sessionStorage.getItem(STORAGE_KEY);
       if (!raw) { return; }
       const state: WizardState = JSON.parse(raw);
-      if (state.activeStep >= 1 && state.activeStep <= 4) {
+      if (state.activeStep && this._steps.some(s => s.id === state.activeStep)) {
         this._activeStep.set(state.activeStep);
       }
       if (state.sandboxConfigured) {
@@ -327,7 +325,7 @@ export class SetupWizard extends Disposable {
             t("Continue"),
             dom.on("click", () => {
               this._authConfirmed.set(true);
-              this._activeStep.set(3);
+              this._goToNextStep("auth");
             }),
             testId("auth-submit"),
           );
@@ -338,7 +336,7 @@ export class SetupWizard extends Disposable {
             dom.on("click", () => {
               this._authSkipped.set(true);
               this._authConfirmed.set(true);
-              this._activeStep.set(3);
+              this._goToNextStep("auth");
             }),
             testId("auth-skip"),
           ),
@@ -376,7 +374,7 @@ export class SetupWizard extends Disposable {
           this._storage.error.set("");
           this._goLive.status.set("idle");
           this._goLive.error.set("");
-          this._activeStep.set(1);
+          this._activeStep.set(this._steps[0].id);
           void this._sandbox.probe();
           void this._storage.probe();
         })),
