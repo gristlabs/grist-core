@@ -13,7 +13,9 @@
     },
     "admin": {
         "emptyOrg": "Ez da `GRIST_INSTALL_ADMIN_ORG={{org}}`administrazio-erakundean zehaztutako jaberik aurkitu",
-        "orgUser": "Erabiltzailea `GRIST_INSTALL_ADMIN_ORG={{org}}`administrazio-erakundean zehaztutako jabea da"
+        "orgUser": "Erabiltzailea `GRIST_INSTALL_ADMIN_ORG={{org}}`administrazio-erakundean zehaztutako jabea da",
+        "noAdminEmail": "Administratzailearen kontua falta da ez direlako `GRIST_ADMIN_EMAIL` eta `GRIST_DEFAULT_EMAIL` ezarri",
+        "accountByEmail": "Administratzailearen kontua `GRIST_DEFAULT_EMAIL={{defaultEmail}}`k zehazten du"
     },
     "DocApi": {
         "UntitledDocument": "Izenik gabeko dokumentua"
