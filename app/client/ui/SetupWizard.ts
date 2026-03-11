@@ -8,8 +8,9 @@ import {
 } from "app/client/ui/MockupPanel";
 import { PermissionsConfigurator } from "app/client/ui/PermissionsConfigurator";
 import { SandboxConfigurator } from "app/client/ui/SandboxConfigurator";
+import { ServerConfigurator } from "app/client/ui/ServerConfigurator";
 import { StorageConfigurator } from "app/client/ui/StorageConfigurator";
-import { basicButton, primaryButton } from "app/client/ui2018/buttons";
+import { bigBasicButton, bigPrimaryButton } from "app/client/ui2018/buttons";
 import { testId, theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { InstallAPIImpl } from "app/common/InstallAPI";
@@ -24,6 +25,11 @@ type StepId = string;
 
 interface WizardState {
   activeStep: StepId;
+  serverConfirmed: boolean;
+  urlConfirmed?: boolean;
+  editionConfirmed?: boolean;
+  selectedEdition?: "full" | "trial" | "community";
+  activationKey?: string;
   sandboxConfigured: string;
   sandboxConfirmed: boolean;
   authConfirmed: boolean;
@@ -48,11 +54,13 @@ interface StepDef {
  */
 export class SetupWizard extends Disposable {
   private _installAPI = new InstallAPIImpl(getHomeUrl());
+  private _server: ServerConfigurator;
   private _sandbox = SandboxConfigurator.create(this, this._installAPI);
   private _storage = StorageConfigurator.create(this, this._installAPI);
   private _goLive = GoLiveControl.create(this);
   private _authSkipped = Observable.create<boolean>(this, false);
   // Explicit confirmation flags — checkmarks require admin action, not just detection.
+  private _serverConfirmed = Observable.create<boolean>(this, false);
   private _sandboxConfirmed = Observable.create<boolean>(this, false);
   private _authConfirmed = Observable.create<boolean>(this, false);
   private _storageConfirmed = Observable.create<boolean>(this, false);
@@ -84,6 +92,20 @@ export class SetupWizard extends Disposable {
    * the progress rail, navigation, and save/restore all adapt automatically.
    */
   private _steps: StepDef[] = [
+    {
+      id: "server",
+      label: t("Server"),
+      iconName: "Home",
+      desc: t("Set your server's base URL and choose which edition of Grist to run."),
+      done: use => use(this._serverConfirmed),
+      buildContent: () => this._server.buildDom({
+        onContinue: () => {
+          this._serverConfirmed.set(true);
+          this._goToNextStep("server");
+        },
+      }),
+      onEnter: () => { void this._server.load(); },
+    },
     {
       id: "sandbox",
       label: t("Sandboxing"),
@@ -135,7 +157,10 @@ export class SetupWizard extends Disposable {
         this._goLive.buildDom({
           mode: "go-live",
           canProceed: Observable.create(this, true),
-          getBody: () => ({ permissions: this._permissions.getEnvVars() }),
+          getBody: () => ({
+            permissions: this._permissions.getEnvVars(),
+            ...this._server.getEnvVars(),
+          }),
         }),
       ],
     },
@@ -147,6 +172,7 @@ export class SetupWizard extends Disposable {
   constructor(appModel: AppModel) {
     super();
     this._appModel = appModel;
+    this._server = ServerConfigurator.create(this, this._installAPI, appModel.notifier);
 
     // Restore progress from sessionStorage so checkmarks and
     // active step survive page reloads.
@@ -174,6 +200,11 @@ export class SetupWizard extends Disposable {
     }));
 
     // Save progress whenever meaningful state changes.
+    this.autoDispose(this._serverConfirmed.addListener(() => this._saveState()));
+    this.autoDispose(this._server.urlConfirmed.addListener(() => this._saveState()));
+    this.autoDispose(this._server.editionConfirmed.addListener(() => this._saveState()));
+    this.autoDispose(this._server.selectedEdition.addListener(() => this._saveState()));
+    this.autoDispose(this._server.activationKey.addListener(() => this._saveState()));
     this.autoDispose(this._sandboxConfirmed.addListener(() => this._saveState()));
     this.autoDispose(this._authConfirmed.addListener(() => this._saveState()));
     this.autoDispose(this._storageConfirmed.addListener(() => this._saveState()));
@@ -265,6 +296,11 @@ export class SetupWizard extends Disposable {
   private _saveState() {
     const state: WizardState = {
       activeStep: this._activeStep.get(),
+      serverConfirmed: this._serverConfirmed.get(),
+      urlConfirmed: this._server.urlConfirmed.get(),
+      editionConfirmed: this._server.editionConfirmed.get(),
+      selectedEdition: this._server.selectedEdition.get(),
+      activationKey: this._server.activationKey.get(),
       sandboxConfigured: this._sandbox.configured.get(),
       sandboxConfirmed: this._sandboxConfirmed.get(),
       authConfirmed: this._authConfirmed.get(),
@@ -281,6 +317,21 @@ export class SetupWizard extends Disposable {
       const state: WizardState = JSON.parse(raw);
       if (state.activeStep && this._steps.some(s => s.id === state.activeStep)) {
         this._activeStep.set(state.activeStep);
+      }
+      if (state.serverConfirmed) {
+        this._serverConfirmed.set(true);
+      }
+      if (state.urlConfirmed) {
+        this._server.urlConfirmed.set(true);
+      }
+      if (state.editionConfirmed) {
+        this._server.editionConfirmed.set(true);
+      }
+      if (state.selectedEdition) {
+        this._server.selectedEdition.set(state.selectedEdition);
+      }
+      if (state.activationKey) {
+        this._server.activationKey.set(state.activationKey);
       }
       if (state.sandboxConfigured) {
         this._sandbox.configured.set(state.sandboxConfigured);
@@ -321,7 +372,7 @@ export class SetupWizard extends Disposable {
       }),
       dom.domComputed((use) => {
         if (use(this._hasRealAuth) || use(this._authSkipped)) {
-          return primaryButton(
+          return bigPrimaryButton(
             t("Continue"),
             dom.on("click", () => {
               this._authConfirmed.set(true);
@@ -331,7 +382,7 @@ export class SetupWizard extends Disposable {
           );
         }
         return cssSkipRow(
-          basicButton(
+          bigBasicButton(
             t("Continue"),
             dom.on("click", () => {
               this._authSkipped.set(true);
@@ -359,6 +410,11 @@ export class SetupWizard extends Disposable {
       cssMockupRow(
         cssMockupButton("Reset all", dom.on("click", () => {
           try { sessionStorage.removeItem(STORAGE_KEY); } catch (_) { /* ok */ }
+          this._serverConfirmed.set(false);
+          this._server.urlConfirmed.set(false);
+          this._server.editionConfirmed.set(false);
+          this._server.selectedEdition.set("community");
+          this._server.activationKey.set("");
           this._sandbox.flavors.set([]);
           this._sandbox.selected.set("");
           this._sandbox.configured.set("");
@@ -469,6 +525,24 @@ export class SetupWizard extends Disposable {
           this._storage.selected.set("");
           this._storage.status.set("ready");
         })),
+      ),
+
+      // --- Full Grist availability ---
+      cssMockupSection("Edition availability"),
+      cssMockupDesc("Control whether Full Grist appears as available in the edition selector."),
+      cssMockupRow(
+        cssMockupButton(
+          "Make available",
+          dom.on("click", () => this._server.mockFullGristAvailable.set(true)),
+        ),
+        cssMockupButton(
+          "Make unavailable",
+          dom.on("click", () => this._server.mockFullGristAvailable.set(false)),
+        ),
+        cssMockupButton(
+          "Use real",
+          dom.on("click", () => this._server.mockFullGristAvailable.set(null)),
+        ),
       ),
 
       // --- Single org toggle ---
@@ -621,12 +695,20 @@ const cssProgressDot = styled("div", `
   }
   &-active {
     border-color: ${theme.controlPrimaryBg};
-    color: ${theme.controlPrimaryBg};
+    background: ${theme.controlPrimaryBg};
+    color: white;
+    box-shadow: 0 0 0 4px ${theme.controlPrimaryBg}33;
   }
   &-done {
     border-color: #1e7e34;
-    background: #1e7e34;
+    background: #e6f4ea;
+    color: #1e7e34;
+  }
+  &-done&-active {
+    border-color: ${theme.controlPrimaryBg};
+    background: ${theme.controlPrimaryBg};
     color: white;
+    box-shadow: 0 0 0 4px ${theme.controlPrimaryBg}33;
   }
 `);
 
