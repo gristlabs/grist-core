@@ -221,7 +221,7 @@ export class SetupWizard extends Disposable {
       cssWizardContent(
         cssLogo({ style: "animation: wizFadeUp 0.5s ease both;" }),
         cssTitle(
-          t("Quick Setup"),
+          t("Quick setup"),
           { style: "animation: wizFadeUp 0.5s ease 0.08s both;" },
           testId("setup-title"),
         ),
