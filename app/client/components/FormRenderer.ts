@@ -179,7 +179,7 @@ class SubmitRenderer extends FormRenderer {
       css.submitButtons(
         css.resetButton(
           t("Reset"),
-          dom.attr("aria-disabled", use => use(this.context.disabled) ? "true" : "false"),
+          dom.attr("data-disabled", use => use(this.context.disabled) ? "true" : "false"),
           { type: "button" },
           dom.on("click", (event) => {
             if (this.context.disabled.get()) {
@@ -195,7 +195,7 @@ class SubmitRenderer extends FormRenderer {
         ),
         css.submitButton(
           dom("button",
-            dom.attr("aria-disabled", use => use(this.context.disabled) ? "true" : "false"),
+            dom.attr("data-disabled", use => use(this.context.disabled) ? "true" : "false"),
             { type: "submit" },
             dom.domComputed((use) => {
               return use(this.context.disabled) ?
