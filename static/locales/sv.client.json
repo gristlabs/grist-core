@@ -2717,7 +2717,9 @@
         "{{count}} warnings_one": "{{count}} varningar",
         "{{count}} warnings_other": "{{count}} varningar",
         "OAuth credentials not configured. Please set OAUTH2_AIRTABLE_CLIENT_ID and OAUTH2_AIRTABLE_CLIENT_SECRET, or use personal access token.": "OAuth nycklarna är inte valda. Ställ in OAUTH2_AIRTABLE_CLIENT_ID och OAUTH2_AIRTABLE_CLIENT_SECRET, eller använd en personlig behörighetstoken.",
-        "[Generate a token]({{url}}) in your Airtable account with scopes that include at least **\\`schema.bases:read\\`** and **\\`data.records:read\\`**.\n\nYour token is never sent to Grist's servers, and is only used to make API calls to Airtable from your browser.": "[Generera en token]({{url}}) på ditt Airtable acctount med behörighet som inkluderar minst **\\`schema.bases:read\\`** och **\\`data.records:read\\`**.\n\nDin token skickas aldrig till Grists servrar, den avvänds bara för att göra API-anrop till Airtable från din webbläsare."
+        "[Generate a token]({{url}}) in your Airtable account with scopes that include at least **\\`schema.bases:read\\`** and **\\`data.records:read\\`**.\n\nYour token is never sent to Grist's servers, and is only used to make API calls to Airtable from your browser.": "[Generera en token]({{url}}) på ditt Airtable acctount med behörighet som inkluderar minst **\\`schema.bases:read\\`** och **\\`data.records:read\\`**.\n\nDin token skickas aldrig till Grists servrar, den avvänds bara för att göra API-anrop till Airtable från din webbläsare.",
+        "Use personal access token": "Använd personlig behörighetstoken",
+        "The more convenient ‘Connect with Airtable’ option can be configured by the installation administrator. [Learn more.]({{url}})": "Alternativet ‘Anslut till Airtable’ som är smidigare kan ställas in av installationsadministratören. [Lär dig mer.]({{url}})"
     },
     "ChangeAdminModal": {
         "New admin": "Ny administratör",
@@ -2729,7 +2731,8 @@
         "Import from Airtable": "Importera från Airtable"
     },
     "startHomeAirtableImport": {
-        "Import from Airtable": "Importera från Airtable"
+        "Import from Airtable": "Importera från Airtable",
+        "The current workspace can't be imported to.": "Det går inte att importera till nuvarande arbetsyta."
     },
     "AirtableImporter": {
         "Creating a new Grist document...": "Skapar ett nytt Gristdokument...",
