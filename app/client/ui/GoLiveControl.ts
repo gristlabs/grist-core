@@ -117,7 +117,7 @@ export class GoLiveControl extends Disposable {
               testId("go-live-success"),
             ),
             onSuccess ? null : bigBasicButton(
-              t("Back to Installation"),
+              t("Back to installation"),
               dom.on("click", () => { void urlState().pushUrl({ adminPanel: "admin" }); }),
               testId("go-live-admin-link"),
             ),

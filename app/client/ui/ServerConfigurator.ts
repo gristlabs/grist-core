@@ -342,7 +342,7 @@ export class ServerConfigurator extends Disposable {
                 ),
                 dom("div",
                   dom.style("margin-top", "8px"),
-                  t("Downgrade to Community Edition at any time — your core " +
+                  t("Switch to and from Community Edition at any time — your core " +
                     "functionality and data will stay fully available."),
                 ),
               ] : dom("div",
@@ -444,9 +444,9 @@ export class ServerConfigurator extends Disposable {
           const url = use(this.urlConfirmed);
           const edition = use(this.editionConfirmed);
           if (url && edition) { return t("Continue"); }
-          if (!url && !edition) { return t("Set Base URL and Edition"); }
-          if (!url) { return t("Set Base URL"); }
-          return t("Set Edition");
+          if (!url && !edition) { return t("Set base URL and edition to continue"); }
+          if (!url) { return t("Set base URL to continue"); }
+          return t("Set edition to continue");
         }),
         dom.prop("disabled", use => !use(this.serverReady)),
         dom.on("click", () => { void onContinue(); }),

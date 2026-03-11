@@ -182,6 +182,28 @@ without being flashy.
 | Code block | 6px | 10px 14px | 12px mono | — |
 | Text input | 8px | 10px 14px | 15px | — |
 
+### Capitalization
+
+Follow the dominant Grist convention: **sentence case everywhere
+except single-word buttons.**
+
+| Element | Rule | Examples |
+|---|---|---|
+| Single-word buttons | Capitalized (trivially sentence case) | Save, Cancel, Continue, Delete |
+| Multi-word buttons | Sentence case — capitalize first word only | Confirm URL, Do later, Save permissions, Skip checks |
+| Special action buttons | Title Case when the phrase is a proper name or brand-like action | Go Live, Apply & Restart |
+| Section headers | Sentence case | Base URL, Default permissions, Sandboxing |
+| Page titles | Sentence case | Quick Setup |
+| Badges / tags | Sentence case, lowercase | Recommended, Not available, Unsaved changes |
+| Segmented controls | Sentence case for multi-word, capitalized for single-word | Full Grist, Community Edition, Locked down, Open |
+| Status indicators | Sentence case | Confirmed, Will do later in administrator panel, Saved |
+
+**Why sentence case?** It reads as natural language rather than
+shouting. Grist's UI already leans this way — admin panel headers,
+badge text, and multi-word buttons all use sentence case. The only
+Title Case buttons are single words (which are trivially sentence
+case anyway) and a few brand-like actions (Go Live, Apply & Restart).
+
 ### Status colors
 
 | Meaning | Background | Text |
