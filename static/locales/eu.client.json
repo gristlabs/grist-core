@@ -234,7 +234,8 @@
         "Reject": "Bota atzera",
         "ACCESS LEVEL": "SARBIDE-MAILA",
         "Custom URL": "URL pertsonalizatua",
-        "Widget": "Widgeta"
+        "Widget": "Widgeta",
+        "Change custom widget": "Aldatu widget pertsonalizatua"
     },
     "DataTables": {
         "Click to copy": "Egin klik kopiatzeko",
@@ -605,7 +606,8 @@
         "Workspaces": "Lan-eremuak",
         "Delete {{workspace}} and all included documents?": "{{workspace}} eta barne dituen dokumentu guztiak ezabatu?",
         "Tutorial": "Tutoriala",
-        "Grist Resources": "Gristen baliabideak"
+        "Grist Resources": "Gristen baliabideak",
+        "context menu - {{- workspaceName }}": "laster-menua - {{- workspaceName }}"
     },
     "LeftPanelCommon": {
         "Help Center": "Laguntza-gunea",
@@ -795,7 +797,8 @@
         "Exporting is only available from document pages. Please select a document page and try again.": "Esportazioa dokumentuaren orrietatik bakarrik egin daiteke. Hautatu dokumentuko orrialde bat eta saiatu berriro.",
         "Suggest Changes": "Iradoki aldaketak",
         "current version": "uneko bertsioa",
-        "original": "jatorrizkoa"
+        "original": "jatorrizkoa",
+        "Suggest changes": "Iradoki aldaketak"
     },
     "SiteSwitcher": {
         "Create new team site": "Sortu taldearen gune berria",
@@ -843,7 +846,10 @@
         "Preview the tutorial": "Aurreikusi tutoriala",
         "Proposed Changes": "Proposatutako aldaketak",
         "Suggest Changes": "Iradokitutako aldaketak",
-        "Suggestions": "Iradokizunak"
+        "Suggestions": "Iradokizunak",
+        "context menu - Access Rules": "laster-menua - Sarbide arauak",
+        "Proposed changes": "Iradokitutako aldaketak",
+        "Suggest changes": "Iradoki aldaketak"
     },
     "TopBar": {
         "Manage team": "Kudeatu taldea"
@@ -919,7 +925,9 @@
         "Show {{label}}": "Erakutsi {{label}}",
         "Hidden {{label}}": "{{label}} ezkutatuta",
         "Visible {{label}}": "{{label}} ikusgai",
-        "Cannot drop items into Hidden Fields": "Ezin dira elementuak ezkutatutako eremuetan jarri"
+        "Cannot drop items into Hidden Fields": "Ezin dira elementuak ezkutatutako eremuetan jarri",
+        "Hide {{label}} (batch mode)": "Ezkutatu {{label}} (batch mode)",
+        "Show {{label}} (batch mode)": "Erakutsi {{label}} (batch mode)"
     },
     "WelcomeQuestions": {
         "Education": "Hezkuntza",
@@ -988,7 +996,8 @@
         "We could not unsubscribe you": "Ezin izan dizugu harpidetza utzi",
         "You can still unsubscribe from this document by updating your preferences in the document settings": "Dokumentuaren harpidetza utzi dezakezu zure hobespenak eguneratuz dokumentuko ezarpenetan",
         "You will no longer receive email notifications about {{changes}} in {{docName}} at {{email}}.": "Aurrerantzean ez duzu {{email}} helbidean {{docName}}-n egindako {{changes}} jakinarazpenik jasoko.",
-        "You will no longer receive email notifications about {{comments}} in {{docName}} at {{email}}.": "Aurrerantzean ez duzu {{email}} helbidean {{docName}}-ri buruzko {{comments}} jakinarazpenik jasoko."
+        "You will no longer receive email notifications about {{comments}} in {{docName}} at {{email}}.": "Aurrerantzean ez duzu {{email}} helbidean {{docName}}-ri buruzko {{comments}} jakinarazpenik jasoko.",
+        "suggestions": "iradokizunak"
     },
     "menus": {
         "Select fields": "Hautatu eremuak",
@@ -1038,7 +1047,8 @@
         "Collapse {{maybeDefault}}": "Tolestu {{maybeDefault}}",
         "Expand {{maybeDefault}}": "Hedatu {{maybeDefault}}",
         "Set default: Collapse": "Ezarri defektuzkoa: Tolestu",
-        "Set default: Expand": "Ezarri defektuzkoa: Hedatu"
+        "Set default: Expand": "Ezarri defektuzkoa: Hedatu",
+        "context menu - {{- pageName }}": "laster-menua - {{- pageName }}"
     },
     "search": {
         "Find Previous ": "Bilatu aurrekoa ",
@@ -1131,7 +1141,10 @@
         "Save field settings for {{colId}} as common": "Gorde {{colId}} eremu-ezarpenak arrunt gisa",
         "Use separate field settings for {{colId}}": "Erabili {{colId}} eremu-ezarpen bereiziak",
         "Revert field settings for {{colId}} to common": "Itzuli {{colId}} eremu-ezarpenak defektuzkora",
-        "Common": "Komuna"
+        "Common": "Komuna",
+        "Separate": "Banandu",
+        "Field in {{count}} views_one": "Eremua bista bakarrean",
+        "Field in {{count}} views_other": "Eremua {{count}} bistatan"
     },
     "FormulaEditor": {
         "Column or field is required": "Beharrezkoa da zutabea edo eremua",
@@ -1265,7 +1278,10 @@
         "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!": "Ulertu, moldatu eta egin lan zure datu eta formulekin Gristen AA laguntzaile berriari esker!",
         "Comments are here!": "Hemen dira iruzkinak!",
         "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "Gelaxketan iruzkinak gehitu, harietako iruzkinei erantzun eta lankideak @-aipatu ditzakezu.",
-        "Set the maximum number of lines for multi-line text.": "Ezarri lerroanitzeko testuaren gehienezko lerro-kopurua."
+        "Set the maximum number of lines for multi-line text.": "Ezarri lerroanitzeko testuaren gehienezko lerro-kopurua.",
+        "When checked, this field’s default value can be prefilled from the URL using query parameters.": "Hautatuta dagoenean, eremuko defektuzko balioa URLtik aurrez bete daiteke kontsulta-parametroak erabiliz.",
+        "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "Iradokizunekin, erabiltzaileek aldaketak egiten dituzte kopia pertsonal batean, jatorrizko dokumentua aldatu gabe, eta, ondoren, iradokizun horiek aurkezten dituzte dokumentuaren jabeak berrikusi ditzan, onartu aurretik.",
+        "Unpin to hide the button while keeping the filter.": "Utzi finkatzeari botoia ezkutatzeko iragazkia mantendu bitartean."
     },
     "ColumnTitle": {
         "Column ID copied to clipboard": "Zutabearen IDa arbelera kopiatu da",
@@ -1280,7 +1296,8 @@
     },
     "Clipboard": {
         "Got it": "Ulertuta",
-        "Unavailable Command": "Komandoa ez dago erabilgarri"
+        "Unavailable Command": "Komandoa ez dago erabilgarri",
+        "The {{action}} menu command is not available in this browser. You can still {{action}} by using the keyboard shortcut {{shortcut}}.": "{{action}} menuko komandoa ez dago erabilgarri nabigatzaile honetan. Hala ere, {{action}} egin dezakezu {{shortcut}} laster-tekla erabiliz."
     },
     "FieldContextMenu": {
         "Clear field": "Garbitu eremua",
@@ -1382,7 +1399,13 @@
         "Show markers": "Erakutsi markatzaileak",
         "Stack series": "Metatu serieak",
         "Split Series": "Banandu serieak",
-        "selected new x-axis": "hautatutako x-ardatz berria"
+        "selected new x-axis": "hautatutako x-ardatz berria",
+        "Pie chart": "Zirkularra",
+        "Donut chart": "Uztaia",
+        "Area chart": "Gainazala",
+        "Line chart": "Lerroa",
+        "Scatter plot": "Barreiadura",
+        "Kaplan-Meier plot": "Kaplan-Meier"
     },
     "FilterBar": {
         "SearchColumns": "Bilatu zutabeak",
@@ -1457,7 +1480,8 @@
         "Import from file": "Inportatu fitxategitik",
         "Added new linked section to view {{viewName}}": "{{viewName}} ikusteko lotutako atal berria gehitu da",
         "go to webhook settings": "Joan webhooken ezarpenetara",
-        "Saved linked section {{title}} in view {{name}}": "{{title}} lotutako atala {{name}} bistan gorde da"
+        "Saved linked section {{title}} in view {{name}}": "{{title}} lotutako atala {{name}} bistan gorde da",
+        "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "Aldaketa berriak bertan behera geratu dira behin-behinean. Webhook-en ilarak gainezka egin du. Egiaztatu webhook ezarpenak, kendu baliozkoak ez direnak, eta garbitu ilara."
     },
     "OpenVideoTour": {
         "Grist Video Tour": "Gristen bideo-bisitaldia",
@@ -1548,7 +1572,10 @@
         "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.": "Zure sarbidea kendu ondoren, ezingo duzu berreskuratu {{resourceType}}(e)rako sarbide nahikoa duen beste norbaiten laguntzarik gabe.",
         "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.": "Erabiltzaileak {{resource}}-rako bistarako sarbidea du, barneko baliabideetarako sarbidea eskuz ezartzearen ondorioz. Hemendik kenduz gero, barruan dauden baliabideetarako sarbidea galduko du.",
         "Inherit access: ": "Jarauntsi sarbidea: ",
-        "Access overview": "Sarbidearen ikuspegi orokorra"
+        "Access overview": "Sarbidearen ikuspegi orokorra",
+        "Share it publicly": "Partekatu publikoki",
+        "Verify your sensitive data before sharing publicly": "Ziurtatu datu sentikorrik ez dagoela publikoki partekatu baino lehen",
+        "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing.": "{{resourceType}} lotura duen edonorentzat eskuragarri egongo da, zuzenean partekatuta edo bilatzaile baten bidez aurkituta. \n Ziurtatu {{resourceType}}(e)k ez duela datu sentikorrik partekatu aurretik."
     },
     "SupportGristNudge": {
         "Help Center": "Laguntza-gunea",
@@ -1638,7 +1665,9 @@
         "# **Form Title**": "# **Formularioaren titulua**",
         "Your form description goes here.": "Hau formularioaren deskribapena da.",
         "Publishing your form will generate a share link. Anyone with the link can see the empty form and submit a response.": "Formularioa argitaratzean partekatzeko esteka bat sortuko da. Esteka duen edonork ikus dezake formularioa eta erantzun bat bidali.",
-        "Unpublishing the form will disable the share link so that users accessing your form via that link will see an error.": "Formularioa publiko egiteari uzteak partekatzeko esteka desgaituko du, esteka horren bidez zure formulariora sartzen diren erabiltzaileek errore bat ikus dezaten."
+        "Unpublishing the form will disable the share link so that users accessing your form via that link will see an error.": "Formularioa publiko egiteari uzteak partekatzeko esteka desgaituko du, esteka horren bidez zure formulariora sartzen diren erabiltzaileek errore bat ikus dezaten.",
+        "Users are limited to submitting entries (records in your table) and reading pre-set values in designated fields, such as reference and choice columns.": "Erabiltzaileak sarrerak (taulako erregistroak) aurkeztera eta aurrez ezarritako balioak irakurtzera mugatzen dira zehaztutako eremuetan, hala nola erreferentzia eta aukeraketa zutabeetan.",
+        "Your form is published. Every change is live and visible to users with access to the form. If you want to make changes in draft, unpublish the form.": "Formularioa argitaratu da. Aldaketa guztiak egin ahala ikusten dituzte formulariorako sarbidea duten erabiltzaileek. Zirriborroan aldaketak egin nahi badituzu, utzi formularioa argitaratzeari."
     },
     "Editor": {
         "Delete": "Ezabatu"
@@ -1680,7 +1709,9 @@
         "Horizontal": "Horizontala",
         "Options Alignment": "Lerrokatzea-aukerak",
         "Options Sort Order": "Sailkatze-aukerak",
-        "Hidden field": "Ezkutatutako eremua"
+        "Hidden field": "Ezkutatutako eremua",
+        "Accept value from URL": "Onartu balioa URLtik",
+        "URL parameter:\n{{colId}}=VALUE": "URL parametroa:\n{{colId}}=BALIOA"
     },
     "FormModel": {
         "Oops! The form you're looking for doesn't exist.": "Hara! Bilatzen ari zaren formularioa ez da existitzen.",
