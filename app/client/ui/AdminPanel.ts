@@ -32,6 +32,7 @@ import { InstallConfigsAPI } from "app/client/ui/ConfigsAPI";
 import { pagePanels } from "app/client/ui/PagePanels";
 import { PermissionsConfigurator } from "app/client/ui/PermissionsConfigurator";
 import { SandboxConfigurator } from "app/client/ui/SandboxConfigurator";
+import { ServerConfigurator } from "app/client/ui/ServerConfigurator";
 import { buildSetupWizard } from "app/client/ui/SetupWizard";
 import { StorageConfigurator } from "app/client/ui/StorageConfigurator";
 import { SupportGristPage } from "app/client/ui/SupportGristPage";
@@ -149,6 +150,7 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
   private readonly _configAPI: ConfigAPI = new ConfigAPI(getHomeUrl());
   private _authCheck: Observable<AdminCheckRequest | undefined>;
   private _loginProvider: Observable<string | undefined>;
+  private _serverConfigurator = ServerConfigurator.create(this, this._installAPI, this._appModel.notifier);
   private _sandboxConfigurator = SandboxConfigurator.create(this, this._installAPI);
   private _storageConfigurator = StorageConfigurator.create(this, this._installAPI);
   private _permissions = new PermissionsConfigurator(this, this._installAPI);
@@ -180,6 +182,7 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
     return dom.maybe(use => use(this._checks.probes), (probes) => {
       if ((probes as any[]).length > 0) {
         // Start shared component probes only when we know the user is an admin.
+        void this._serverConfigurator.load();
         void this._sandboxConfigurator.probe();
         void this._storageConfigurator.probe();
         void this._permissions.load();
@@ -290,6 +293,16 @@ Please log in as an administrator.`)),
           expandedContent: this._supportGrist.buildSponsorshipSection(),
         }),
       ]),
+      dom.create(AdminSection, t("Server"), [
+        dom.create(AdminSectionItem, {
+          id: "home-url",
+          name: t("Base URL"),
+          description: t("The URL where users and integrations reach this server"),
+          value: this._serverConfigurator.buildStatusDisplay(),
+          expandedContent: this._serverConfigurator.buildDom({ showSaveButton: true }),
+        }),
+        this._maybeAddEnterpriseToggle(),
+      ]),
       dom.create(AdminSection, t("Security Settings"), [
         dom.create(AdminSectionItem, {
           id: "admins",
@@ -352,7 +365,6 @@ Please log in as an administrator.`)),
           description: t("Current version of Grist"),
           value: cssValueLabel(t("Version {{versionNumber}}", { versionNumber: version.version })),
         }),
-        this._maybeAddEnterpriseToggle(),
         dom.create(this._buildUpdates.bind(this)),
       ]),
       dom.create(AdminSection, t("Self Checks"), [

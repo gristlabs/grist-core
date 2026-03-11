@@ -117,6 +117,7 @@ derive from it.
 
 | Step ID | Label | What it does |
 |---|---|---|
+| `server` | Server | Confirm base URL (APP_HOME_URL), edition toggle if available. Loads on enter. |
 | `sandbox` | Sandboxing | Probes flavors, recommends best available. Probe runs on enter. |
 | `auth` | Authentication | Shows current auth status. Continue or Skip. Auth check deferred until step becomes active. |
 | `storage` | Backups | Probes storage backends. Storage probe deferred until step becomes active. |
@@ -201,6 +202,15 @@ yet. Use `theme.*` tokens for everything else.
   `requireInstallAdmin` middleware works for boot-key and real-auth
   sessions. No separate auth paths needed.
 
+- **APP_HOME_URL saved mid-wizard without restart.** The server step
+  saves `APP_HOME_URL` to the DB and `process.env` immediately so
+  that the auth step has a valid base URL for callback configuration.
+  We deliberately skip a restart here to avoid disrupting the wizard
+  flow. **TODO:** Verify that auth configuration works correctly in
+  this state — some auth middleware reads `APP_HOME_URL` at startup
+  and may not pick up the mid-process change. If that's a problem,
+  auth setup may need to re-read it, or the go-live restart covers it.
+
 - **DB env vars merge on startup.** DB-persisted env vars merge into
   `process.env` during `addHomeDBManager()`, before `isInService()`
   runs. Precedence: real env var > DB > not set. So `isInService()`
@@ -226,6 +236,7 @@ yet. Use `theme.*` tokens for everything else.
 
 | Component | File | Used by |
 |---|---|---|
+| `ServerConfigurator` | `app/client/ui/ServerConfigurator.ts` | Wizard "server" step, admin panel Server section |
 | `SandboxConfigurator` | `app/client/ui/SandboxConfigurator.ts` | Wizard "sandbox" step, admin panel Security |
 | `StorageConfigurator` | `app/client/ui/StorageConfigurator.ts` | Wizard "storage" step (admin panel: not yet) |
 | `GoLiveControl` | `app/client/ui/GoLiveControl.ts` | Wizard "apply" step (admin panel Maintenance: not yet) |
@@ -266,15 +277,29 @@ MOCHA_WEBDRIVER_HEADLESS=1 GREP_TESTS="SetupPage" yarn test:nbrowser
 
 Tests use semantic step IDs, not numeric positions:
 
-- `.test-setup-tab-sandbox`, `.test-setup-tab-auth`,
+- `.test-setup-tab-server`, `.test-setup-tab-sandbox`, `.test-setup-tab-auth`,
   `.test-setup-tab-storage`, `.test-setup-tab-apply` — progress rail dots
-- `.test-setup-step-sandbox`, `.test-setup-step-auth`,
+- `.test-setup-step-server`, `.test-setup-step-sandbox`, `.test-setup-step-auth`,
   `.test-setup-step-storage`, `.test-setup-step-apply` — step card containers
 
 These match the `id` field in the `_steps` array, so reordering
 steps doesn't break tests.
 
 ## What's Left
+
+- **TODO (big): "See how to enable it" instructions for Full Grist.**
+  The "See how to enable it" link in the edition selector currently
+  points to `github.com/gristlabs/grist-core/#building-from-source`.
+  These instructions need to be completely custom-written. The real
+  audience is upstream packagers (Docker image maintainers, distro
+  package builders) who can bundle the full edition into their builds —
+  not the end installer clicking through the wizard. The current
+  GitHub build-from-source docs are developer-oriented and assume a
+  contributor workflow. We need a dedicated page (on support.getgrist.com
+  or similar) that speaks to packagers: what to include, how the
+  enterprise toggle works, licensing terms, and how the activation key
+  flow works for their users. Until that page exists, the link is a
+  placeholder.
 
 - Wire `StorageConfigurator` into admin panel
 - Wire `GoLiveControl` into admin panel Maintenance section

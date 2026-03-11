@@ -182,6 +182,17 @@ export function attachEarlyEndpoints(options: AttachOptions) {
         process.env.GRIST_ADMIN_EMAIL = reqAdminEmail;
         gristServer.getInstallAdmin().clearCaches();
       }
+      // Persist APP_HOME_URL from the server step.
+      const homeUrl = req.body?.APP_HOME_URL;
+      if (homeUrl && typeof homeUrl === "string") {
+        try {
+          new URL(homeUrl);
+          await activations.updateAppEnvFile({ APP_HOME_URL: homeUrl });
+          process.env.APP_HOME_URL = homeUrl;
+        } catch {
+          // Invalid URL — skip silently during go-live.
+        }
+      }
       // Persist permission defaults from the pre-launch checklist.
       const perms = req.body?.permissions;
       if (perms && typeof perms === "object") {
@@ -246,6 +257,38 @@ export function attachEarlyEndpoints(options: AttachOptions) {
         return res.status(400).send({ error: "No recognized permission keys" });
       }
       await activations.updateAppEnvFile(permEnvVars);
+      return res.status(200).send({ msg: "ok" });
+    }),
+  );
+
+  // Read current APP_HOME_URL (from env or DB-persisted env vars).
+  app.get(
+    "/api/admin/server-config",
+    expressWrap(async (_req, res) => {
+      return res.status(200).send({
+        APP_HOME_URL: process.env.APP_HOME_URL || "",
+      });
+    }),
+  );
+
+  // Save APP_HOME_URL without restart.
+  app.post(
+    "/api/admin/save-server-config",
+    json({ limit: "1kb" }),
+    expressWrap(async (req, res) => {
+      const activations = gristServer.getActivations();
+      const url = req.body?.APP_HOME_URL;
+      if (typeof url !== "string" || !url) {
+        return res.status(400).send({ error: "Missing APP_HOME_URL" });
+      }
+      // Basic URL validation
+      try {
+        new URL(url);
+      } catch {
+        return res.status(400).send({ error: "Invalid URL" });
+      }
+      await activations.updateAppEnvFile({ APP_HOME_URL: url });
+      process.env.APP_HOME_URL = url;
       return res.status(200).send({ msg: "ok" });
     }),
   );

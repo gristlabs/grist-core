@@ -6,6 +6,8 @@ import { basicButton, bigPrimaryButton, primaryButton } from "app/client/ui2018/
 import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
 import { testId, theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
+import { cssLink } from "app/client/ui2018/links";
+import { commonUrls } from "app/common/gristUrls";
 import { InstallAPI } from "app/common/InstallAPI";
 
 import { Computed, Disposable, dom, DomContents, Observable, styled } from "grainjs";
@@ -33,10 +35,11 @@ export class ServerConfigurator extends Disposable {
 
   public readonly urlConfirmed = Observable.create<boolean>(this, false);
 
-  // Edition selection: "full", "trial", or "community"
-  public readonly selectedEdition = Observable.create<"full" | "trial" | "community">(this, "full");
+  // Edition selection: "full" or "community"
+  public readonly selectedEdition = Observable.create<"full" | "community">(this, "full");
   public readonly editionConfirmed = Observable.create<boolean>(this, false);
-  public readonly activationKey = Observable.create<string>(this, "");
+  public readonly urlSkipped = Observable.create<boolean>(this, false);
+  public readonly editionSkipped = Observable.create<boolean>(this, false);
 
   // Mockup override: controls whether Full Grist appears as available.
   // null = use real availability; true/false = override.
@@ -258,6 +261,7 @@ export class ServerConfigurator extends Disposable {
           basicButton(
             t("Do later"),
             dom.on("click", () => {
+              this.urlSkipped.set(true);
               this.urlConfirmed.set(true);
             }),
             testId("server-url-skip"),
@@ -268,11 +272,16 @@ export class ServerConfigurator extends Disposable {
       showInlineConfirm ? dom.maybe(this.urlConfirmed, () =>
         cssSavedRow(
           cssSavedIndicator(
-            t("Answered"),
+            this.urlSkipped.get() ?
+              t("Will do later in administrator panel") :
+              t("Confirmed"),
           ),
           cssEditIcon(
             icon("Pencil"),
-            dom.on("click", () => this.urlConfirmed.set(false)),
+            dom.on("click", () => {
+              this.urlConfirmed.set(false);
+              this.urlSkipped.set(false);
+            }),
           ),
           testId("server-url-confirmed"),
         ),
@@ -287,9 +296,9 @@ export class ServerConfigurator extends Disposable {
   private _buildEditionSection(): DomContents {
     const showInlineConfirm = !this._hasStandaloneSave;
 
-    // Whether the current selection is blocked (Full Grist or Trial selected but not available).
+    // Whether the current selection is blocked (Full Grist selected but not available).
     const selectionBlocked = Computed.create(null, use =>
-      use(this.selectedEdition) !== "community" && !use(this.fullGristAvailable));
+      use(this.selectedEdition) === "full" && !use(this.fullGristAvailable));
 
     return cssSectionBox(
       dom.autoDispose(selectionBlocked),
@@ -299,16 +308,10 @@ export class ServerConfigurator extends Disposable {
       ),
       cssEditionBar(
         cssEditionSegment(
-          t("Full"),
+          t("Full Grist"),
           dom.cls("active", use => use(this.selectedEdition) === "full"),
           dom.on("click", () => this.selectedEdition.set("full")),
           testId("edition-full"),
-        ),
-        cssEditionSegment(
-          t("Trial"),
-          dom.cls("active", use => use(this.selectedEdition) === "trial"),
-          dom.on("click", () => this.selectedEdition.set("trial")),
-          testId("edition-trial"),
         ),
         cssEditionSegment(
           t("Community Edition"),
@@ -322,40 +325,34 @@ export class ServerConfigurator extends Disposable {
         ([edition, available]) => {
           if (edition === "full") {
             return cssEditionNote(
-              t("The best Grist edition for your full team and all its functions. " +
-                "Activation keys are available for free to individuals and orgs with " +
-                "less than US $1 million in total funding. Enterprise-grade plans available."),
-              !available ? cssEditionWarning(
-                t("Your installation does not bundle the Full Grist edition."),
+              t("The full Grist experience, with all features enabled for improved " +
+                "security, governance, and collaboration."),
+              available ? [
+                dom("div",
+                  dom.style("margin-top", "8px"),
+                  t("You have 30 days to enter an activation key. Free activation keys " +
+                    "are available to individuals and small orgs with less than " +
+                    "US $1 million in total annual funding. "),
+                  cssLink({ href: commonUrls.enterpriseKeyFaq, target: "_blank" },
+                    t("Learn more.")),
+                  " ",
+                  t("For larger orgs, "),
+                  cssLink({ href: commonUrls.plans, target: "_blank" },
+                    t("see pricing.")),
+                ),
+                dom("div",
+                  dom.style("margin-top", "8px"),
+                  t("Downgrade to Community Edition at any time — your core " +
+                    "functionality and data will stay fully available."),
+                ),
+              ] : dom("div",
+                dom.style("margin-top", "8px"),
+                t("Your installation does not bundle the Full Grist edition. " +
+                  "Want Full Grist? "),
+                cssLink({ href: commonUrls.githubBuildFromSource, target: "_blank" },
+                  t("See how to enable it.")),
                 testId("edition-unavailable"),
-              ) : cssKeyInputBox(
-                cssKeyLabel(t("Activation key")),
-                cssKeyInput(
-                  dom.attr("type", "text"),
-                  dom.attr("placeholder", t("Paste your activation key")),
-                  dom.prop("value", this.activationKey),
-                  dom.on("input", (_e, el) => this.activationKey.set(el.value)),
-                  testId("key-input"),
-                ),
-                cssSmallLink(
-                  t("No key? There's a free trial."),
-                  dom.on("click", () => this.selectedEdition.set("trial")),
-                  testId("edition-try-trial"),
-                ),
               ),
-              testId("edition-note"),
-            );
-          }
-          if (edition === "trial") {
-            return cssEditionNote(
-              t("You can use Full Grist under a free trial for one month. To continue " +
-                "to use it after that, you'll need an activation key. Activation keys " +
-                "are available for free to individuals and orgs with less than " +
-                "US $1 million in total funding. Enterprise-grade plans available."),
-              !available ? cssEditionWarning(
-                t("Your installation does not bundle the Full Grist edition."),
-                testId("edition-unavailable"),
-              ) : null,
               testId("edition-note"),
             );
           }
@@ -373,10 +370,17 @@ export class ServerConfigurator extends Disposable {
         ([confirmed, blocked]) => {
           if (confirmed) {
             return cssSavedRow(
-              cssSavedIndicator(t("Answered")),
+              cssSavedIndicator(
+                this.editionSkipped.get() ?
+                  t("Will do later in administrator panel") :
+                  t("Confirmed"),
+              ),
               cssEditIcon(
                 icon("Pencil"),
-                dom.on("click", () => this.editionConfirmed.set(false)),
+                dom.on("click", () => {
+                  this.editionConfirmed.set(false);
+                  this.editionSkipped.set(false);
+                }),
               ),
               testId("edition-confirmed"),
             );
@@ -399,6 +403,7 @@ export class ServerConfigurator extends Disposable {
             basicButton(
               t("Do later"),
               dom.on("click", () => {
+                this.editionSkipped.set(true);
                 this.editionConfirmed.set(true);
               }),
               testId("edition-skip"),
@@ -435,7 +440,14 @@ export class ServerConfigurator extends Disposable {
   ): DomContents {
     return cssActionRow(
       bigPrimaryButton(
-        t("Continue"),
+        dom.domComputed((use) => {
+          const url = use(this.urlConfirmed);
+          const edition = use(this.editionConfirmed);
+          if (url && edition) { return t("Continue"); }
+          if (!url && !edition) { return t("Set Base URL and Edition"); }
+          if (!url) { return t("Set Base URL"); }
+          return t("Set Edition");
+        }),
         dom.prop("disabled", use => !use(this.serverReady)),
         dom.on("click", () => { void onContinue(); }),
         testId("server-continue"),
@@ -607,55 +619,6 @@ const cssEditionNote = styled("div", `
   font-size: 12px;
   color: ${theme.lightText};
   line-height: 1.5;
-`);
-
-const cssKeyInputBox = styled("div", `
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-top: 8px;
-`);
-
-const cssKeyLabel = styled("div", `
-  font-weight: 600;
-  font-size: 12px;
-  color: ${theme.text};
-`);
-
-const cssKeyInput = styled("input", `
-  padding: 8px 12px;
-  border: 1px solid ${theme.inputBorder};
-  border-radius: 6px;
-  font-size: 13px;
-  font-family: inherit;
-  color: ${theme.text};
-  background: ${theme.inputBg};
-  outline: none;
-  transition: border-color 0.15s;
-
-  &:focus {
-    border-color: ${theme.controlFg};
-  }
-
-  &::placeholder {
-    color: ${theme.inputPlaceholderFg};
-  }
-`);
-
-const cssSmallLink = styled("span", `
-  font-size: 12px;
-  color: ${theme.controlFg};
-  cursor: pointer;
-
-  &:hover {
-    text-decoration: underline;
-  }
-`);
-
-const cssEditionWarning = styled("div", `
-  margin-top: 4px;
-  color: #b45309;
-  font-weight: 500;
 `);
 
 const cssActionRow = styled("div", `

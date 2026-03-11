@@ -1,4 +1,5 @@
 import { makeT } from "app/client/lib/localization";
+import { bigPrimaryButton } from "app/client/ui2018/buttons";
 import { testId, theme, vars } from "app/client/ui2018/cssVars";
 import { BootProbeResult } from "app/common/BootProbe";
 import { InstallAPI } from "app/common/InstallAPI";
@@ -217,7 +218,7 @@ export class StorageConfigurator extends Disposable {
   }
 
   private _buildActionButton(onContinue?: () => void) {
-    return cssActionButton(
+    return bigPrimaryButton(
       t("Continue"),
       dom.prop("disabled", use => !use(this.selected)),
       dom.on("click", () => { if (onContinue) { onContinue(); } }),
@@ -359,29 +360,4 @@ const cssCodeBlock = styled("pre", `
   font-family: "SFMono-Regular", "Consolas", "Liberation Mono", "Menlo", monospace;
   overflow-x: auto;
   line-height: 1.5;
-`);
-
-const cssActionButton = styled("button", `
-  align-self: flex-start;
-  padding: 10px 28px;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  color: white;
-  background-color: ${theme.controlPrimaryBg};
-  letter-spacing: 0.2px;
-  transition: background-color 0.15s, transform 0.1s;
-
-  &:hover:not(:disabled) {
-    background-color: ${theme.controlPrimaryHoverBg};
-  }
-  &:active:not(:disabled) {
-    transform: scale(0.98);
-  }
-  &:disabled {
-    opacity: 0.4;
-    cursor: default;
-  }
 `);

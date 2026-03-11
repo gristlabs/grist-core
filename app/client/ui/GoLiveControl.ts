@@ -1,6 +1,7 @@
 import { makeT } from "app/client/lib/localization";
 import { getHomeUrl } from "app/client/models/AppModel";
 import { urlState } from "app/client/models/gristUrlState";
+import { bigBasicButton, bigPrimaryButton } from "app/client/ui2018/buttons";
 import { testId, theme, vars } from "app/client/ui2018/cssVars";
 
 import { Disposable, dom, Observable, styled } from "grainjs";
@@ -115,7 +116,7 @@ export class GoLiveControl extends Disposable {
               ),
               testId("go-live-success"),
             ),
-            onSuccess ? null : cssAdminLink(
+            onSuccess ? null : bigBasicButton(
               t("Back to Installation"),
               dom.on("click", () => { void urlState().pushUrl({ adminPanel: "admin" }); }),
               testId("go-live-admin-link"),
@@ -128,7 +129,7 @@ export class GoLiveControl extends Disposable {
       dom.domComputed(this.status, (status) => {
         if (status === "success" || status === "restarting") { return null; }
         const busy = status === "working";
-        return cssActionButton(
+        return bigPrimaryButton(
           buttonLabel,
           dom.prop("disabled", (use) => {
             if (busy) { return true; }
@@ -222,46 +223,4 @@ const cssError = styled("div", `
   color: #c5221f;
   border-radius: 4px;
   font-size: ${vars.mediumFontSize};
-`);
-
-const cssActionButton = styled("button", `
-  align-self: flex-start;
-  padding: 10px 28px;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  color: white;
-  background-color: ${theme.controlPrimaryBg};
-  letter-spacing: 0.2px;
-  transition: background-color 0.15s, transform 0.1s;
-
-  &:hover:not(:disabled) {
-    background-color: ${theme.controlPrimaryHoverBg};
-  }
-  &:active:not(:disabled) {
-    transform: scale(0.98);
-  }
-  &:disabled {
-    opacity: 0.4;
-    cursor: default;
-  }
-`);
-
-const cssAdminLink = styled("button", `
-  align-self: flex-start;
-  padding: 10px 28px;
-  border: 1.5px solid ${theme.controlFg};
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  color: ${theme.controlFg};
-  background-color: transparent;
-  transition: background-color 0.15s;
-
-  &:hover {
-    background-color: ${theme.lightHover};
-  }
 `);

@@ -27,9 +27,10 @@ interface WizardState {
   activeStep: StepId;
   serverConfirmed: boolean;
   urlConfirmed?: boolean;
+  urlSkipped?: boolean;
   editionConfirmed?: boolean;
-  selectedEdition?: "full" | "trial" | "community";
-  activationKey?: string;
+  editionSkipped?: boolean;
+  selectedEdition?: "full" | "community";
   sandboxConfigured: string;
   sandboxConfirmed: boolean;
   authConfirmed: boolean;
@@ -202,9 +203,10 @@ export class SetupWizard extends Disposable {
     // Save progress whenever meaningful state changes.
     this.autoDispose(this._serverConfirmed.addListener(() => this._saveState()));
     this.autoDispose(this._server.urlConfirmed.addListener(() => this._saveState()));
+    this.autoDispose(this._server.urlSkipped.addListener(() => this._saveState()));
     this.autoDispose(this._server.editionConfirmed.addListener(() => this._saveState()));
+    this.autoDispose(this._server.editionSkipped.addListener(() => this._saveState()));
     this.autoDispose(this._server.selectedEdition.addListener(() => this._saveState()));
-    this.autoDispose(this._server.activationKey.addListener(() => this._saveState()));
     this.autoDispose(this._sandboxConfirmed.addListener(() => this._saveState()));
     this.autoDispose(this._authConfirmed.addListener(() => this._saveState()));
     this.autoDispose(this._storageConfirmed.addListener(() => this._saveState()));
@@ -298,9 +300,10 @@ export class SetupWizard extends Disposable {
       activeStep: this._activeStep.get(),
       serverConfirmed: this._serverConfirmed.get(),
       urlConfirmed: this._server.urlConfirmed.get(),
+      urlSkipped: this._server.urlSkipped.get(),
       editionConfirmed: this._server.editionConfirmed.get(),
+      editionSkipped: this._server.editionSkipped.get(),
       selectedEdition: this._server.selectedEdition.get(),
-      activationKey: this._server.activationKey.get(),
       sandboxConfigured: this._sandbox.configured.get(),
       sandboxConfirmed: this._sandboxConfirmed.get(),
       authConfirmed: this._authConfirmed.get(),
@@ -324,14 +327,17 @@ export class SetupWizard extends Disposable {
       if (state.urlConfirmed) {
         this._server.urlConfirmed.set(true);
       }
+      if (state.urlSkipped) {
+        this._server.urlSkipped.set(true);
+      }
       if (state.editionConfirmed) {
         this._server.editionConfirmed.set(true);
       }
+      if (state.editionSkipped) {
+        this._server.editionSkipped.set(true);
+      }
       if (state.selectedEdition) {
         this._server.selectedEdition.set(state.selectedEdition);
-      }
-      if (state.activationKey) {
-        this._server.activationKey.set(state.activationKey);
       }
       if (state.sandboxConfigured) {
         this._sandbox.configured.set(state.sandboxConfigured);
@@ -412,9 +418,10 @@ export class SetupWizard extends Disposable {
           try { sessionStorage.removeItem(STORAGE_KEY); } catch (_) { /* ok */ }
           this._serverConfirmed.set(false);
           this._server.urlConfirmed.set(false);
+          this._server.urlSkipped.set(false);
           this._server.editionConfirmed.set(false);
+          this._server.editionSkipped.set(false);
           this._server.selectedEdition.set("community");
-          this._server.activationKey.set("");
           this._sandbox.flavors.set([]);
           this._sandbox.selected.set("");
           this._sandbox.configured.set("");
