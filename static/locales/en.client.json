@@ -964,7 +964,9 @@
         "Suggestions": "Suggestions"
     },
     "TopBar": {
-        "Manage team": "Manage team"
+        "Manage team": "Manage team",
+        "Redo": "Redo",
+        "Undo": "Undo"
     },
     "TriggerFormulas": {
         "Any field": "Any field",
