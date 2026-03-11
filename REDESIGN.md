@@ -108,13 +108,19 @@ they reset on a new browser session.
 
 ### Steps
 
-1. **Sandboxing** — probes flavors, recommends best available, admin
-   confirms. Probe runs on load (step 1 is immediately visible).
-2. **Authentication** — shows current auth status. Continue or Skip.
-   Auth check deferred until step becomes active.
-3. **Backups** — probes storage backends. Storage probe deferred
-   until step becomes active.
-4. **Apply & Restart** — go live. Requires explicit click.
+Steps are defined as a single `_steps` array in `SetupWizard.ts`.
+Each entry has a string `id`, label, icon, description, `done`
+condition, `buildContent` builder, and optional `onEnter` hook.
+Reordering, adding, or removing steps only requires editing this
+array — progress rail, navigation, save/restore, and tests all
+derive from it.
+
+| Step ID | Label | What it does |
+|---|---|---|
+| `sandbox` | Sandboxing | Probes flavors, recommends best available. Probe runs on enter. |
+| `auth` | Authentication | Shows current auth status. Continue or Skip. Auth check deferred until step becomes active. |
+| `storage` | Backups | Probes storage backends. Storage probe deferred until step becomes active. |
+| `apply` | Apply & Restart | Pre-launch permission checklist + go live. Requires explicit click. |
 
 ### Sandbox flavors
 
@@ -220,10 +226,11 @@ yet. Use `theme.*` tokens for everything else.
 
 | Component | File | Used by |
 |---|---|---|
-| `SandboxConfigurator` | `app/client/ui/SandboxConfigurator.ts` | Wizard step 1, admin panel Security |
-| `StorageConfigurator` | `app/client/ui/StorageConfigurator.ts` | Wizard step 3 (admin panel: not yet) |
-| `GoLiveControl` | `app/client/ui/GoLiveControl.ts` | Wizard step 4 (admin panel Maintenance: not yet) |
-| `AuthenticationSection` | `app/client/ui/AuthenticationSection.ts` | Wizard step 2, admin panel Security |
+| `SandboxConfigurator` | `app/client/ui/SandboxConfigurator.ts` | Wizard "sandbox" step, admin panel Security |
+| `StorageConfigurator` | `app/client/ui/StorageConfigurator.ts` | Wizard "storage" step (admin panel: not yet) |
+| `GoLiveControl` | `app/client/ui/GoLiveControl.ts` | Wizard "apply" step (admin panel Maintenance: not yet) |
+| `AuthenticationSection` | `app/client/ui/AuthenticationSection.ts` | Wizard "auth" step, admin panel Security |
+| `PermissionsConfigurator` | `app/client/ui/PermissionsConfigurator.ts` | Wizard "apply" step, admin panel Security |
 | `MockupPanel` | `app/client/ui/MockupPanel.ts` | Wizard (dev/testing only, remove before merge) |
 
 ## Working Notes
@@ -234,6 +241,38 @@ yet. Use `theme.*` tokens for everything else.
   to see if the PR touched the relevant code. "Pre-existing" is
   usually wrong — it's more often a side effect of an earlier
   commit in the branch.
+
+## Tests
+
+| File | What it covers |
+|---|---|
+| `test/nbrowser/SetupPage.ts` | Setup gate, boot-key login flow, auth fallback, `GRIST_IN_SERVICE` bypass |
+| `test/nbrowser/SetupConfigureSandbox.ts` | Wizard UI (all steps), sandbox/storage probe APIs, configure-sandbox API, go-live endpoint, boot-key email scenarios, maintenance mode |
+
+### Running
+
+```bash
+# All setup tests (headless):
+MOCHA_WEBDRIVER_HEADLESS=1 GREP_TESTS="Setup" yarn test:nbrowser 2>&1 | tee /tmp/setup-tests.txt
+
+# Just the wizard/sandbox tests:
+MOCHA_WEBDRIVER_HEADLESS=1 GREP_TESTS="SetupConfigureSandbox" yarn test:nbrowser
+
+# Just the gate/boot-key tests:
+MOCHA_WEBDRIVER_HEADLESS=1 GREP_TESTS="SetupPage" yarn test:nbrowser
+```
+
+### Test IDs
+
+Tests use semantic step IDs, not numeric positions:
+
+- `.test-setup-tab-sandbox`, `.test-setup-tab-auth`,
+  `.test-setup-tab-storage`, `.test-setup-tab-apply` — progress rail dots
+- `.test-setup-step-sandbox`, `.test-setup-step-auth`,
+  `.test-setup-step-storage`, `.test-setup-step-apply` — step card containers
+
+These match the `id` field in the `_steps` array, so reordering
+steps doesn't break tests.
 
 ## What's Left
 

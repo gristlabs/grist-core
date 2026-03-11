@@ -163,7 +163,7 @@ describe("SetupConfigureSandbox", function() {
 
     // --- Browser tests ---
     // The setup gate redirects to /admin?adminPanel=setup which renders
-    // the new SetupWizard (3-step: Sandboxing, Backups, Apply & Restart).
+    // the SetupWizard (Sandboxing, Authentication, Backups, Apply & Restart).
     // The wizard uses session auth — probes auto-start on load.
 
     // Navigate directly to /admin/setup (the wizard URL) to avoid
@@ -182,21 +182,21 @@ describe("SetupConfigureSandbox", function() {
       await driver.findWait(".test-sandbox-option-unsandboxed", 5000);
     });
 
-    it("step 2 shows authentication providers", async function() {
+    it("auth step shows authentication providers", async function() {
       await driver.get(wizardUrl() + "?no-mockup");
       await driver.findContentWait("div", /Quick Setup/, 5000);
       // Click tab 2 to see authentication options.
-      await driver.find(".test-setup-tab-2").click();
+      await driver.find(".test-setup-tab-auth").click();
       await driver.findWait(".test-setup-step-auth", 5000);
       // Should show either a provider list or a skip button.
       await driver.findWait(".test-auth-skip", 10000);
     });
 
-    it("step 3 shows storage backend cards", async function() {
+    it("storage step shows backend cards", async function() {
       await driver.get(wizardUrl() + "?no-mockup");
       await driver.findContentWait("div", /Quick Setup/, 5000);
       // Click tab 3 to see storage options.
-      await driver.find(".test-setup-tab-3").click();
+      await driver.find(".test-setup-tab-storage").click();
       // Wait for storage detection to complete — should show backend cards.
       await driver.findWait(".test-storage-option-minio", 15000);
       await driver.findWait(".test-storage-option-s3", 5000);
@@ -204,11 +204,11 @@ describe("SetupConfigureSandbox", function() {
       await driver.findWait(".test-storage-option-none", 5000);
     });
 
-    it("step 3 minio is selectable; s3/azure are greyed out", async function() {
+    it("storage step: minio is selectable; s3/azure are greyed out", async function() {
       await driver.get(wizardUrl() + "?no-mockup");
       await driver.findContentWait("div", /Quick Setup/, 5000);
       // Click tab 3 to see storage options.
-      await driver.find(".test-setup-tab-3").click();
+      await driver.find(".test-setup-tab-storage").click();
       await driver.findWait(".test-storage-option-minio", 15000);
       // MinIO should be selectable (not disabled), s3/azure should be greyed out.
       const minioCard = await driver.find(".test-storage-option-minio");
@@ -219,13 +219,13 @@ describe("SetupConfigureSandbox", function() {
       assert.include(await azureCard.getAttribute("class"), "-disabled");
     });
 
-    it("step 4 shows apply & restart panel", async function() {
+    it("apply step shows apply & restart panel", async function() {
       // Append no-mockup to hide the mockup controls panel that can overlap tabs.
       await driver.get(wizardUrl() + "?no-mockup");
       await driver.findContentWait("div", /Quick Setup/, 5000);
       // Click tab 4 to see Apply & Restart step.
-      await driver.find(".test-setup-tab-4").click();
-      await driver.findWait(".test-setup-step-go-live", 5000);
+      await driver.find(".test-setup-tab-apply").click();
+      await driver.findWait(".test-setup-step-apply", 5000);
     });
   });
 
@@ -333,7 +333,7 @@ describe("SetupConfigureSandbox", function() {
       await driver.get(wizardUrl);
       await driver.findContentWait("div", /Quick Setup/, 5000);
       // Click tab 2 to see authentication options.
-      await driver.find(".test-setup-tab-2").click();
+      await driver.find(".test-setup-tab-auth").click();
       await driver.findWait(".test-setup-step-auth", 5000);
       // Should show auth providers or a skip button — NOT an access denied error.
       await driver.findWait(".test-auth-skip", 10000);
