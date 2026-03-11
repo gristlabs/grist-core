@@ -107,7 +107,7 @@ class DropdownWithSearch<T> extends Disposable {
     this._ariaLabelListObs = _options.ariaLabelList ? Observable.create(this, _options.ariaLabelList) : undefined;
     this._simpleList = this._buildSimpleList();
     this._simpleList.listenKeys(this._inputElem);
-    this._inputElem.setAttribute("aria-controls", this._simpleList.domId);
+    this._inputElem.setAttribute("aria-controls", this._simpleList.listboxId);
     this._update();
     // auto-focus the search input
     setTimeout(() => this._inputElem.focus(), 1);

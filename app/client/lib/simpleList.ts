@@ -35,7 +35,8 @@ export interface ISimpleListOpt<T, U extends IOption<T> = IOption<T>> {
 
 export class SimpleList<T, U extends IOption<T> = IOption<T>> extends Disposable {
   public readonly content: HTMLElement;
-  public readonly domId: string;
+  public readonly containerId: string;
+  public readonly listboxId: string;
   private _menuContent: HTMLElement;
   private _selected: HTMLElement;
   private _selectedIndex: number = -1;
@@ -47,7 +48,8 @@ export class SimpleList<T, U extends IOption<T> = IOption<T>> extends Disposable
     private _action: (value: T) => void,
     opt: ISimpleListOpt<T, U> = {}) {
     super();
-    this.domId = `simple-list-${uniqueId()}`;
+    this.containerId = `simple-list-${uniqueId()}`;
+    this.listboxId = `${this.containerId}-listbox`;
     this._onSelectedChange = opt.onSelectedChange;
     const renderItem = opt.renderItem || ((item: U) => getOptionFull(item).label);
     this.content = cssMenuWrap(
@@ -60,19 +62,19 @@ export class SimpleList<T, U extends IOption<T> = IOption<T>> extends Disposable
             style.marginRight = "0px";
           }
         },
-        { class: menuCssClass + " grist-floating-menu " + kbFocusHighlighterClass },
+        { id: this.containerId, class: menuCssClass + " grist-floating-menu " + kbFocusHighlighterClass },
         cssMenu.cls(""),
         cssMenuExt.cls(""),
         opt.headerDom?.(),
         this._menuContent = cssMenuList(
-          { id: this.domId, role: "listbox" },
+          { id: this.listboxId, role: "listbox" },
           dom.attr("aria-label", opt.ariaLabel),
           dom.forEach(this._items, (i) => {
             const item = getOptionFull(i);
             return cssOptionRow(
               {
                 // we expose unique DOM ids, for external components that need to reference them for screen readers
-                id: `${this.domId}-item-${slugify(item.label)}`,
+                id: `${this.listboxId}-item-${slugify(item.label)}`,
                 role: "option",
                 class: menuItem.className + " " + cssMenuItem.className,
               },
@@ -91,6 +93,9 @@ export class SimpleList<T, U extends IOption<T> = IOption<T>> extends Disposable
       this._menuContent,
       ev => this.setSelected(this._findTargetItem(ev.target)),
     );
+    const triggerElem = this._ctl.getTriggerElem();
+    triggerElem.setAttribute("aria-owns", this.containerId);
+    this.onDispose(() => triggerElem.removeAttribute("aria-owns"));
     this._update();
   }
 
