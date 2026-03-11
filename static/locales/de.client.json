@@ -196,7 +196,7 @@
         "SERIES": "SERIEN",
         "non-numeric columns are not shown": "nicht-numerische Spalten werden nicht angezeigt",
         "Remove": "Entfernen",
-        "non-numeric column is not shown": "nicht-numerische Spalten werden nicht angezeigt",
+        "non-numeric column is not shown": "nicht-numerische Spalte wird nicht angezeigt",
         "Add series": "Serie hinzufügen",
         "selected new x-axis": "ausgewählte neue x-Achse"
     },
@@ -357,7 +357,7 @@
         "Document settings": "Dokument-Einstellungen",
         "Engine (experimental {{span}} change at own risk):": "Motor (experimental {{span}} auf eigene Gefahr ändern):",
         "Local currency ({{currency}})": "Lokale Währung ({{currency}})",
-        "Locale:": "Lokale:",
+        "Locale:": "Region:",
         "Save": "Speichern",
         "Save and Reload": "Speichern und neu laden",
         "This document's ID (for API use):": "Die ID dieses Dokuments (für API-Verwendung):",
@@ -365,18 +365,18 @@
         "API": "API",
         "Document ID copied to clipboard": "Dokument-ID in die Zwischenablage kopiert",
         "Ok": "OK",
-        "Webhooks": "Webhaken",
-        "Manage Webhooks": "Webhaken verwalten",
+        "Webhooks": "Webhooks",
+        "Manage Webhooks": "Webhooks verwalten",
         "API console": "API-Konsole",
         "Coming soon": "Demnächst verfügbar",
         "For number and date formats": "Für Zahlen- und Datumsformate",
         "Formula times": "Formelzeiten",
-        "Locale": "Lokale",
+        "Locale": "Region",
         "Time zone": "Zeitzone",
         "Find slow formulas": "Langsame Formeln finden",
         "Manage webhooks": "Webhooks verwalten",
         "For currency columns": "Für Währungsspalten",
-        "Notify other services on doc changes": "Benachrichtigen Sie andere Dienstleistungen bei doc Änderungen",
+        "Notify other services on doc changes": "Andere Services bei Änderungen an Dokumenten benachrichtigen",
         "Hard reset of data engine": "Hartes Zurücksetzen der Datenmaschine",
         "Python": "Python",
         "ID for API use": "ID für API-Verwendung",
@@ -451,7 +451,7 @@
     "DocumentUsage": {
         "Size of attachments": "Größe der Anhänge",
         "Contact the site owner to upgrade the plan to raise limits.": "Wenden Sie sich an den Eigentümer der Seite, um den Plan zu aktualisieren und die Grenzwerte zu erhöhen.",
-        "Data size": "Daten Größe",
+        "Data size": "Datengröße",
         "Document limits {{- link}}.": "Dokumentgrenzwerte {{- link}}.",
         "Document limits {{- link}}. In {{gracePeriodDays}} days, this document will be read-only.": "Dokumentgrenzen {{- link}}. In {{gracePeriodDays}} Tagen wird dieses Dokument schreibgeschützt sein.",
         "For higher limits, ": "Für höhere Grenzwerte, ",
@@ -1260,7 +1260,7 @@
         "Cancel": "Abbrechen"
     },
     "ChoiceTextBox": {
-        "CHOICES": "WAHLEN"
+        "CHOICES": "AUSWAHLMÖGLICHKEITEN"
     },
     "ColumnEditor": {
         "COLUMN DESCRIPTION": "SPALTENBESCHREIBUNG",
@@ -1444,7 +1444,8 @@
         "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "Sie können Kommentare zu Zellen hinzufügen, auf Kommentar-Threads antworten und @-Mitarbeiter erwähnen."
     },
     "DescriptionConfig": {
-        "DESCRIPTION": "BESCHREIBUNG"
+        "DESCRIPTION": "BESCHREIBUNG",
+        "Set description": "Beschreibung festlegen"
     },
     "PagePanels": {
         "Close Creator Panel": "Ersteller-Panel schließen",
@@ -1483,7 +1484,7 @@
     },
     "WebhookPage": {
         "Clear queue": "Warteschlange löschen",
-        "Webhook settings": "Webhaken Einstellungen",
+        "Webhook settings": "Webhook-Einstellungen",
         "Enabled": "Aktiviert",
         "Event Types": "Ereignisarten",
         "Memo": "Memo",
@@ -1932,7 +1933,7 @@
         "Number of Calls": "Anzahl der Anrufe",
         "Table ID": "Tabelle ID",
         "Total Time (s)": "Gesamtzeit(en)",
-        "Formula timer": "Formel Timer",
+        "Formula timer": "Formel-Timer",
         "Average Time (s)": "Durchschnittliche Zeit(en)",
         "Loading timing data. Don't close this tab.": "Zeitpunktsdaten laden. Schließen Sie diese Registerkarte nicht.",
         "Column ID": "Spalte ID"
