@@ -46,7 +46,7 @@ describe("FieldEditor", function() {
     // Open a cell in 'add-row' for editing, and start typing.
     await driver.find("body").sendKeys(Key.chord(await gu.modKey(), Key.DOWN));
     assert.deepEqual(await gu.getCursorPosition(), { rowNum: 7, col: 0 });
-    await driver.sendKeys("FieldEditor1");
+    await gu.enterCell(["FieldEditor1"], { validate: false });
     assert.equal(await driver.find(".cell_editor").isDisplayed(), true);
 
     // Click another page.
@@ -107,7 +107,7 @@ describe("FieldEditor", function() {
     assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), "Toy Story");
     await gu.getCell({ rowNum: 1, col: 0 }).click();
 
-    await gu.sendKeys("FieldEditor3");
+    await gu.enterCell(["FieldEditor3"], { validate: false });
     assert.equal(await driver.find(".cell_editor").isPresent(), true);
 
     // Navigating away, we should get a prompt. Dismiss it to stay on the page.
@@ -155,7 +155,7 @@ describe("FieldEditor", function() {
         await gu.getCell(0, 1, "TABLE1").click();
         // Scroll
         await gu.scrollActiveView(0, 23 * rowCount); // 23 is row height.
-        await driver.sendKeys(sampleText);
+        await gu.enterCell([sampleText], { validate: false });
         await gu.checkTextEditor(gu.exactMatch(sampleText));
         await driver.sendKeys(Key.ESCAPE);
         await gu.waitAppFocus(true);
@@ -169,7 +169,7 @@ describe("FieldEditor", function() {
         await gu.getDetailCell("A", 1, "TABLE1 Card List").click();
         // Scroll (for CardList it will not scroll exactly, but close enough for the test).
         await gu.scrollActiveView(0, 100 * rowCount); // 100 is card height.
-        await driver.sendKeys(sampleText);
+        await gu.enterCell([sampleText], { validate: false });
         await gu.checkTextEditor(gu.exactMatch(sampleText));
         await driver.sendKeys(Key.ESCAPE);
         await gu.waitAppFocus(true);
