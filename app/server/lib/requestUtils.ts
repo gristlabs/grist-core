@@ -215,7 +215,7 @@ export async function sendReply<T>(
       email: mreq.user?.loginEmail,
       org: mreq.org,
       params: req.params,
-      ...(docId ? {docId} : {}),
+      ...(docId ? { docId } : {}),
     });
   }
   res.status(result.status);
