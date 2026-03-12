@@ -100,6 +100,7 @@ import {
   CreatableArchiveFormats,
   DocReplacementOptions,
   Document as APIDocument,
+  ExpandTableOption,
   NEW_DOCUMENT_CODE,
 } from "app/common/UserAPI";
 import { convertFromColumn } from "app/common/ValueConverter";
@@ -108,7 +109,7 @@ import { parseUserAction } from "app/common/ValueParser";
 import { Document } from "app/gen-server/entity/Document";
 import { Share } from "app/gen-server/entity/Share";
 import { Scope } from "app/gen-server/lib/homedb/HomeDBManager";
-import { RecordWithStringId } from "app/plugin/DocApiTypes";
+import { ColumnMetadata, TableMetadata } from "app/plugin/DocApiTypes";
 import { ParseFileResult, ParseOptions } from "app/plugin/FileParserAPI";
 import { AccessTokenOptions, AccessTokenResult, GristDocAPI, UIRowId } from "app/plugin/GristAPI";
 import { ActionHistory } from "app/server/lib/ActionHistory";
@@ -1522,42 +1523,56 @@ export class ActiveDoc extends EventEmitter {
   }
 
   /**
+   * Returns table metadata for all tables in the document.
+   *
+   * @returns {Promise<TableMetadata[]>} Records containing metadata for all tables.
+   */
+  public async getTables(
+    docSession: OptDocSession,
+    expand: ExpandTableOption[] = []): Promise<TableMetadata[]> {
+    const metaTables = await this.fetchMetaTables(docSession);
+    const [, , tableRefs, tableData] = metaTables._grist_Tables;
+
+    const includeColumns = expand.includes("column");
+
+    // tableId is pulled out of fields and used as the root id
+    const fieldNames = without(Object.keys(tableData), "tableId");
+
+    const tables: TableMetadata[] = [];
+    (tableData.tableId as string[]).forEach((id, index) => {
+      if (!id) {
+        return;
+      }
+      const tableRef = tableRefs[index];
+      const table: TableMetadata = { id, fields: { tableRef } };
+      for (const key of fieldNames) {
+        table.fields[key] = tableData[key][index];
+      }
+      if (includeColumns) {
+        table.columns = this._colMetadataRecords(metaTables, tableRef);
+      }
+      tables.push(table);
+    });
+    return tables;
+  }
+
+  /**
    * Returns column metadata for all visible columns from `tableId`.
    *
    * @param {string} tableId Table to retrieve column metadata for.
-   * @returns {Promise<TableRecordValue[]>} Records containing metadata about the visible columns
+   * @returns {Promise<ColumnMetadata[]>} Records containing metadata about the visible columns
    * from `tableId`.
    */
   public async getTableCols(
     docSession: OptDocSession,
     tableId: string,
-    includeHidden = false): Promise<RecordWithStringId[]> {
+    includeHidden = false): Promise<ColumnMetadata[]> {
     const metaTables = await this.fetchMetaTables(docSession);
     if (tableId.startsWith("_grist_")) {
       throw new Error("getTableCols not available for meta tables");
     }
     const tableRef = tableIdToRef(metaTables, tableId);
-    const [, , colRefs, columnData] = metaTables._grist_Tables_column;
-
-    // colId is pulled out of fields and used as the root id
-    const fieldNames = without(Object.keys(columnData), "colId");
-
-    const columns: RecordWithStringId[] = [];
-    (columnData.colId as string[]).forEach((id, index) => {
-      const hasNoId = !id;
-      const isHidden = hasNoId || id === "manualSort" || id.startsWith("gristHelper_");
-      const fromDifferentTable = columnData.parentId[index] !== tableRef;
-      const skip = (isHidden && !includeHidden) || hasNoId || fromDifferentTable;
-      if (skip) {
-        return;
-      }
-      const column: RecordWithStringId = { id, fields: { colRef: colRefs[index] } };
-      for (const key of fieldNames) {
-        column.fields[key] = columnData[key][index];
-      }
-      columns.push(column);
-    });
-    return columns;
+    return this._colMetadataRecords(metaTables, tableRef, includeHidden);
   }
 
   /**
@@ -3586,6 +3601,38 @@ export class ActiveDoc extends EventEmitter {
    */
   private _registerSQLiteDB() {
     this._docManager.registerSQLiteDB(this.docName, this.docStorage.getDB());
+  }
+
+  private _colMetadataRecords(
+    metaTables: { [p: string]: TableDataAction },
+    tableRef: number,
+    includeHidden = false): ColumnMetadata[] {
+    const [, , colRefs, columnData] = metaTables._grist_Tables_column;
+
+    // colId is pulled out of fields and used as the root id
+    const fieldNames = without(Object.keys(columnData), "colId");
+
+    const columns: ColumnMetadata[] = [];
+    (columnData.colId as string[]).forEach((id, index) => {
+      const hasNoId = !id;
+      const isHidden = hasNoId || id === "manualSort" || id.startsWith("gristHelper_");
+      const fromDifferentTable = columnData.parentId[index] !== tableRef;
+      const skip = (isHidden && !includeHidden) || hasNoId || fromDifferentTable;
+      if (skip) {
+        return;
+      }
+      const column: ColumnMetadata = { id, fields: {
+        colRef: colRefs[index],
+        label: String(columnData.label?.[index] ?? ""),
+        isFormula: Boolean(columnData.isFormula?.[index]),
+      } };
+      const otherFieldNames = without(fieldNames, "label", "isFormula");
+      for (const key of otherFieldNames) {
+        column.fields[key] = columnData[key][index];
+      }
+      columns.push(column);
+    });
+    return columns;
   }
 }
 

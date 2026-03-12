@@ -23,17 +23,7 @@ export interface ExistingColumnSchema {
   isFormula: boolean;
 }
 
-export type DocSchemaSqlResult = {
-  tableRef: number,
-  tableId: string,
-  colRef: number,
-  colId: string,
-  colLabel: string,
-  colIsFormula: number,
-}[];
-
 const Checkers = createCheckers(typeSuite);
 export const ExistingDocSchemaChecker = Checkers.ExistingDocSchema as CheckerT<ExistingDocSchema>;
 export const ExistingTableSchemaChecker = Checkers.ExistingTableSchema as CheckerT<ExistingTableSchema>;
 export const ExistingColumnSchemaChecker = Checkers.ExistingColumnSchema as CheckerT<ExistingColumnSchema>;
-export const DocSchemaSqlResultChecker = Checkers.DocSchemaSqlResult as CheckerT<DocSchemaSqlResult>;

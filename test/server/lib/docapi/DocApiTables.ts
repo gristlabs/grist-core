@@ -12,6 +12,7 @@
  * - Direct to docworker (requires Redis)
  */
 
+import { TableMetadata } from "app/plugin/DocApiTypes";
 import { addAllScenarios, TestContext } from "test/server/lib/docapi/helpers";
 import * as testUtils from "test/server/testUtils";
 
@@ -228,12 +229,15 @@ function addTablesTests(getCtx: () => TestContext) {
       },
     );
 
-    // Check the created columns.
-    // TODO these columns should probably be included in the GET /tables response.
+    // GET /tables: Check the created columns using the `expand` parameter.
+    const url = new URL(`${serverUrl}/api/docs/${docIds.Timesheets}/tables`);
+    url.searchParams.set("expand", "column");
+    const tablesWithColsResp = await axios.get(url.href, chimpy);
+    assert.equal(tablesWithColsResp.status, 200);
+
     async function checkColumns(tableId: string, expected: { colId: string, label: string }[]) {
-      const colsResp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/${tableId}/columns`, chimpy);
-      assert.equal(colsResp.status, 200);
-      const actual = colsResp.data.columns.map((c: any) => ({
+      const table = tablesWithColsResp.data.tables.find((t: TableMetadata) => t.id === tableId);
+      const actual = table.columns.map((c: any) => ({
         colId: c.id,
         label: c.fields.label,
       }));
@@ -261,9 +265,11 @@ function addTablesTests(getCtx: () => TestContext) {
       { colId: "NewCol6", label: "NewCol6" },
     ]);
 
+    // NewTable2_2 is hidden by ACL.
+    assert.isUndefined(tablesWithColsResp.data.tables.NewTable2_2);
     resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/NewTable2_2/columns`, chimpy);
     assert.equal(resp.status, 404);
-    assert.deepEqual(resp.data, { error: 'Table not found "NewTable2_2"' });  // hidden by ACL
+    assert.deepEqual(resp.data, { error: 'Table not found "NewTable2_2"' });
 
     // Clean up the created tables for other tests
     // TODO add a DELETE endpoint for /tables and /columns. Probably best to do alongside DELETE /records.
