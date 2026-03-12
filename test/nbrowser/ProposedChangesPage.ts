@@ -951,8 +951,7 @@ describe("ProposedChangesPage", function() {
     await gu.getCell("A", 1).click();
     await gu.waitAppFocus();
     await gu.sendKeys(Key.chord(await gu.modKey(), Key.DELETE));
-    // Confirm the deletion in the popup.
-    await driver.findWait(".test-confirm-save", 2000).click();
+    await gu.confirm();
     await gu.waitForServer();
 
     // Verify the deleted row appears with diff-local-remove styling.
@@ -989,7 +988,7 @@ describe("ProposedChangesPage", function() {
     await gu.getCell("A", 1).click();
     await gu.waitAppFocus();
     await gu.sendKeys(Key.chord(await gu.modKey(), Key.DELETE));
-    await driver.findWait(".test-confirm-save", 2000).click();
+    await gu.confirm();
     await gu.waitForServer();
 
     // Verify both columns show original values in the removed row.
@@ -1025,7 +1024,7 @@ describe("ProposedChangesPage", function() {
     await gu.getCell("A", 1).click();
     await gu.waitAppFocus();
     await gu.sendKeys(Key.chord(await gu.modKey(), Key.DELETE));
-    await driver.findWait(".test-confirm-save", 2000).click();
+    await gu.confirm();
     await gu.waitForServer();
 
     // Verify the deleted row shows with diff-local-remove.
@@ -1062,7 +1061,7 @@ describe("ProposedChangesPage", function() {
     await gu.getCell("A", 3).click();
     await gu.waitAppFocus();
     await gu.sendKeys(Key.chord(await gu.modKey(), Key.DELETE));
-    await driver.findWait(".test-confirm-save", 2000).click();
+    await gu.confirm();
     await gu.waitForServer();
 
     // The add and delete should cancel out — no diff rows at all.

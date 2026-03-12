@@ -34,9 +34,6 @@ export function buildConfirmDelete(
       dom.autoDispose(remember),
       testId("confirm-deleteRows"),
       testId("confirm-popup"),
-      // Note: FocusLayer.grabFocus() defers via setTimeout(0), so focus isn't immediate.
-      // Tests should click .test-confirm-save rather than sending Enter, to avoid racing
-      // with the deferred focus transfer.
       (elem) => { FocusLayer.create(ctl, { defaultFocusElem: elem, pauseMousetrap: true }); },
       dom.onKeyDown({
         Escape: () => ctl.close(),
