@@ -245,7 +245,7 @@ class FieldRenderer extends FormRenderer {
     const field = this.layoutNode.leaf ? this.context.fields[this.layoutNode.leaf] : null;
     if (!field) { throw new Error(); }
 
-    const Renderer = FieldRenderers[field.type as keyof typeof FieldRenderers] ?? TextRenderer;
+    const Renderer = FieldRenderers[field.type as keyof typeof FieldRenderers] ?? BaseTextRenderer;
     this.renderer = this.autoDispose(new Renderer(field, context));
   }
 
@@ -319,31 +319,12 @@ abstract class BaseFieldRenderer extends Disposable {
   }
 }
 
-class TextRenderer extends BaseFieldRenderer {
+class BaseTextRenderer extends BaseFieldRenderer {
   protected inputType = "text";
+  protected value = Observable.create<string>(this, this.getInitialValue() ?? "");
 
   private _format = this.field.options.formTextFormat ?? "singleline";
   private _lineCount = String(this.field.options.formTextLineCount || 3);
-  private _value = Observable.create<string>(this, this.getInitialValue() ?? "");
-
-  public label() {
-    const maximumLength = this.field.options.formTextMaximumLength;
-
-    if (maximumLength == null) {
-      return super.label();
-    }
-
-    return labelRow(
-      super.label(),
-      constraintLabel(
-        dom.text(use => t("({{length}} / {{maximum}})", {
-          maximum: maximumLength,
-          length: use(this._value).length,
-        })),
-        testId("text-constraint"),
-      ),
-    );
-  }
 
   public input() {
     let element: HTMLInputElement | HTMLTextAreaElement;
@@ -363,7 +344,7 @@ class TextRenderer extends BaseFieldRenderer {
   }
 
   public resetInput(): void {
-    this._value.setAndTrigger(this.getInitialValue() ?? "");
+    this.value.setAndTrigger(this.getInitialValue() ?? "");
   }
 
   private _renderSingleLineInput() {
@@ -374,9 +355,9 @@ class TextRenderer extends BaseFieldRenderer {
         id: this.id(),
         required: this.field.options.formRequired,
       },
-      dom.prop("value", this._value),
+      dom.prop("value", this.value),
       preventSubmitOnEnter(),
-      dom.on("input", (_e, elem) => this._value.set(elem.value)),
+      dom.on("input", (_e, elem) => this.value.set(elem.value)),
     );
   }
 
@@ -388,8 +369,26 @@ class TextRenderer extends BaseFieldRenderer {
         required: this.field.options.formRequired,
         rows: this._lineCount,
       },
-      dom.prop("value", this._value),
-      dom.on("input", (_e, elem) => this._value.set(elem.value)),
+      dom.prop("value", this.value),
+      dom.on("input", (_e, elem) => this.value.set(elem.value)),
+    );
+  }
+}
+
+class TextRenderer extends BaseTextRenderer {
+  public label() {
+    const maximumLength = this.field.options.formTextMaximumLength;
+
+    if (maximumLength == null) {
+      return super.label();
+    }
+
+    return labelRow(
+      super.label(),
+      constraintLabel(
+        dom.text(use => `(${use(this.value).length} / ${maximumLength})`),
+        testId("text-constraint"),
+      ),
     );
   }
 }
@@ -450,11 +449,11 @@ class NumericRenderer extends BaseFieldRenderer {
   }
 }
 
-class DateRenderer extends TextRenderer {
+class DateRenderer extends BaseTextRenderer {
   protected inputType = "date";
 }
 
-class DateTimeRenderer extends TextRenderer {
+class DateTimeRenderer extends BaseTextRenderer {
   protected inputType = "datetime-local";
 }
 

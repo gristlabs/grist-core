@@ -103,7 +103,6 @@ export class NTextBox extends NewAbstractWidget {
           ),
         ),
       ),
-      cssLabel(t("Length constraints")),
       cssRow(
         cssNumericSpinner(
           fromKo(maximumLength),
