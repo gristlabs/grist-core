@@ -819,7 +819,7 @@ export class DocWorkerApi {
           const columns = await handleSandboxError("", [],
             activeDoc.getTableCols(docSessionFromRequest(req), tableId));
           const columnsToRemove = columns
-            .map(col => col.fields.colRef as number)
+            .map(col => col.fields.colRef)
             .filter(colRef => !updatedColumnsIds.has(colRef));
 
           return ["BulkRemoveRecord", "_grist_Tables_column", columnsToRemove];
