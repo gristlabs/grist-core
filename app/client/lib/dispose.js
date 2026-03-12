@@ -7,7 +7,6 @@
 
 
 var ko = require("knockout");
-var util = require("util");
 var _ = require("underscore");
 
 // Use the browser globals in a way that allows replacing them with mocks in tests.
@@ -329,17 +328,8 @@ function disposeHelper(owner, disposer, obj) {
   try {
     disposer.call(owner, obj);
   } catch (e) {
-    console.error("While disposing %s, error disposing %s: %s",
-      describe(owner), describe(obj), e);
+    console.warn("Error while disposing", e);
   }
-}
-
-/**
- * Helper for reporting errors during disposal. Try to report the type of the object.
- */
-function describe(obj) {
-  return (obj && obj.constructor && obj.constructor.name ? obj.constructor.name :
-    util.inspect(obj, {depth: 1}));
 }
 
 /**
