@@ -380,7 +380,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
         originalId: field.id,
         desiredGristId: field.name,
         label: field.name,
-        type: "RefList",
+        type: field.options?.prefersSingleRecordLink ? "Ref" : "RefList",
         ref: {
           originalTableId: field.options?.linkedTableId,
         },
