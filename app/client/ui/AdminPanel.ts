@@ -150,7 +150,7 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
   private readonly _configAPI: ConfigAPI = new ConfigAPI(getHomeUrl());
   private _authCheck: Observable<AdminCheckRequest | undefined>;
   private _loginProvider: Observable<string | undefined>;
-  private _serverConfigurator = ServerConfigurator.create(this, this._installAPI, this._appModel.notifier);
+  private _serverConfigurator = ServerConfigurator.create(this, this._installAPI);
   private _sandboxConfigurator = SandboxConfigurator.create(this, this._installAPI);
   private _storageConfigurator = StorageConfigurator.create(this, this._installAPI);
   private _permissions = new PermissionsConfigurator(this, this._installAPI);

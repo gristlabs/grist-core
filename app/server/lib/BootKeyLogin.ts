@@ -76,7 +76,7 @@ export class BootKeyLoginMiddleware implements GristLoginMiddleware {
 
 /**
  * Register the /auth/boot-key GET and POST routes. Extracted so that
- * ErrorInLoginMiddleware can reuse them as a fallback login page.
+ * BootKeyLoginMiddleware can reuse them as a fallback login page.
  */
 export function addBootKeyRoutes(app: Express, gristServer: GristServer) {
   // Serve the boot key login form as a Grist-styled client page.
@@ -155,7 +155,9 @@ async function completeLogin(
   };
   await setUserInSession(req, gristServer, adminProfile);
   log.info("Boot key login successful for %s", adminProfile.email);
-  return res.redirect(next);
+  // Only allow relative redirects to prevent open redirect attacks.
+  const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/";
+  return res.redirect(safeNext);
 }
 
 async function sendBootKeyPage(
