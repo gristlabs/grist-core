@@ -1115,7 +1115,9 @@
         "Suggestions": "Förslag"
     },
     "TopBar": {
-        "Manage team": "Hantera arbetslag"
+        "Manage team": "Hantera arbetslag",
+        "Redo": "Gör om",
+        "Undo": "Ångra"
     },
     "TriggerFormulas": {
         "Any field": "Valfritt fällt",
