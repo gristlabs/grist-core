@@ -108,7 +108,7 @@ export class NTextBox extends NewAbstractWidget {
         cssNumericSpinner(
           fromKo(maximumLength),
           {
-            label: t("Maximum length"),
+            label: t("Maximum characters"),
             defaultValue: undefined,
             minValue: 0,
             save: async val => maximumLength.setAndSave((val == null ? "" : Math.floor(val))),
