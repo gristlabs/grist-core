@@ -100,6 +100,29 @@ export interface TablePost extends ColumnsPost {
   id?: string;
 }
 
+export interface ColumnMetadata {
+  id: string;
+  fields: {
+    colRef: number;
+    label: string;
+    isFormula: boolean;
+    [coldId: string]: CellValue;
+  };
+}
+
+export interface TableMetadata {
+  id: string;
+  fields: {
+    tableRef: number;
+    [coldId: string]: CellValue;
+  };
+  columns?: ColumnMetadata[];
+}
+
+export interface TablesGet {
+  tables: [TableMetadata, ...TableMetadata[]];
+}
+
 export interface TablesPost {
   tables: [TablePost, ...TablePost[]]; // at least one table is required
 }

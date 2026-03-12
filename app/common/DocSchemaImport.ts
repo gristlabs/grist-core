@@ -1,11 +1,8 @@
 import { ApplyUAResult } from "app/common/ActiveDocAPI";
 import { UserAction } from "app/common/DocActions";
-import {
-  DocSchemaSqlResult,
-  ExistingDocSchema,
-  ExistingTableSchema,
-} from "app/common/DocSchemaImportTypes";
+import { ExistingDocSchema, ExistingTableSchema } from "app/common/DocSchemaImportTypes";
 import { RecalcWhen } from "app/common/gristTypes";
+import { TableMetadata } from "app/plugin/DocApiTypes";
 import { GristType } from "app/plugin/GristData";
 
 import cloneDeep from "lodash/cloneDeep";
@@ -281,28 +278,16 @@ export class DocSchemaImportTool {
   }
 }
 
-export const GET_DOC_SCHEMA_SQL = `
-  SELECT
-    tables.id AS tableRef, tableId,
-    columns.id AS colRef,
-    columns.colId,
-    columns.label as colLabel,
-    columns.isFormula as colIsFormula
-  FROM _grist_Tables AS tables
-  INNER JOIN _grist_Tables_column AS columns ON tableRef=parentId
-`.trim();
-
-export function formatDocSchemaSqlResult(result: DocSchemaSqlResult): ExistingDocSchema {
-  const tables = new Map<string, ExistingTableSchema>();
-  for (const { tableRef, tableId, colRef, colId, colLabel, colIsFormula } of result) {
-    let existingTable = tables.get(tableId);
-    if (!existingTable) {
-      existingTable = { id: tableId, ref: tableRef, columns: [] };
-      tables.set(tableId, existingTable);
+export function tablesToSchema(tables: TableMetadata[]): ExistingDocSchema {
+  const tableSchemas = new Map<string, ExistingTableSchema>();
+  for (const { id: tableId, fields: { tableRef }, columns = [] } of tables) {
+    const tableSchema: ExistingTableSchema = { id: tableId, ref: tableRef, columns: [] };
+    tableSchemas.set(tableId, tableSchema);
+    for (const { id: colId, fields: { colRef, label, isFormula } } of columns) {
+      tableSchema.columns.push({ id: colId, ref: colRef, label, isFormula });
     }
-    existingTable.columns.push({ id: colId, ref: colRef, label: colLabel, isFormula: colIsFormula > 0 });
   }
-  return { tables: Array.from(tables.values()) };
+  return { tables: Array.from(tableSchemas.values()) };
 }
 
 /**
