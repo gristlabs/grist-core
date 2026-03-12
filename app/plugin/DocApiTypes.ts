@@ -8,7 +8,7 @@ export interface NewRecord {
    * Initial values of cells in record. Optional, if not set cells are left
    * blank.
    */
-  fields?: { [coldId: string]: CellValue };
+  fields?: { [colId: string]: CellValue };
 }
 
 export interface NewRecordWithStringId {
@@ -17,7 +17,7 @@ export interface NewRecordWithStringId {
    * Initial values of cells in record. Optional, if not set cells are left
    * blank.
    */
-  fields?: { [coldId: string]: CellValue };
+  fields?: { [colId: string]: CellValue };
 }
 
 /**
@@ -25,12 +25,12 @@ export interface NewRecordWithStringId {
  */
 export interface Record {
   id: number;
-  fields: { [coldId: string]: CellValue };
+  fields: { [colId: string]: CellValue };
 }
 
 export interface RecordWithStringId {
   id: string;  // tableId or colId
-  fields: { [coldId: string]: CellValue };
+  fields: { [colId: string]: CellValue };
 }
 
 /**
@@ -41,13 +41,13 @@ export interface AddOrUpdateRecord {
    * The values we expect to have in particular columns, either by matching with
    * an existing record, or creating a new record.
    */
-  require: { [coldId: string]: CellValue } & { id?: number };
+  require: { [colId: string]: CellValue } & { id?: number };
 
   /**
    * The values we will place in particular columns, either overwriting values in
    * an existing record, or setting initial values in a new record.
    */
-  fields?: { [coldId: string]: CellValue };
+  fields?: { [colId: string]: CellValue };
 }
 
 /**
@@ -106,7 +106,7 @@ export interface ColumnMetadata {
     colRef: number;
     label: string;
     isFormula: boolean;
-    [coldId: string]: CellValue;
+    [colId: string]: CellValue;
   };
 }
 
@@ -114,7 +114,7 @@ export interface TableMetadata {
   id: string;
   fields: {
     tableRef: number;
-    [coldId: string]: CellValue;
+    [colId: string]: CellValue;
   };
   columns?: ColumnMetadata[];
 }

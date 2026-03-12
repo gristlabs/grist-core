@@ -32,7 +32,7 @@ import {
   ArchiveUploadResult,
   CreatableArchiveFormats,
   DocReplacementOptions,
-  ExpandableTableObject,
+  ExpandTableOption,
   NEW_DOCUMENT_CODE,
 } from "app/common/UserAPI";
 import { Document } from "app/gen-server/entity/Document";
@@ -318,9 +318,9 @@ export class DocWorkerApi {
     this._app.get("/api/docs/:docId/tables", canView,
       withDoc(async (activeDoc, req, res) => {
         const expand = optStringParam(req.query.expand, "expand")?.split(",") ?? [];
-        ExpandableTableObject.checkAll(expand);
+        const expandOptions = ExpandTableOption.checkAll(expand);
         const tables = await handleSandboxError("", [],
-          activeDoc.getTables(docSessionFromRequest(req), expand as ExpandableTableObject[]));
+          activeDoc.getTables(docSessionFromRequest(req), expandOptions));
         res.json({ tables });
       }),
     );

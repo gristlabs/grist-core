@@ -502,11 +502,11 @@ export const DocAttachmentsLocation = StringUnion(
 );
 export type DocAttachmentsLocation = typeof DocAttachmentsLocation.type;
 
-export const ExpandableTableObject = StringUnion("column");
-export type ExpandableTableObject = typeof ExpandableTableObject.type;
+export const ExpandTableOption = StringUnion("column");
+export type ExpandTableOption = typeof ExpandTableOption.type;
 
 interface GetTablesParams {
-  expand?: ExpandableTableObject[];
+  expand?: ExpandTableOption[];
 }
 
 /**

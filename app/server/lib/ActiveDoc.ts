@@ -100,7 +100,7 @@ import {
   CreatableArchiveFormats,
   DocReplacementOptions,
   Document as APIDocument,
-  ExpandableTableObject,
+  ExpandTableOption,
   NEW_DOCUMENT_CODE,
 } from "app/common/UserAPI";
 import { convertFromColumn } from "app/common/ValueConverter";
@@ -1529,7 +1529,7 @@ export class ActiveDoc extends EventEmitter {
    */
   public async getTables(
     docSession: OptDocSession,
-    expand: ExpandableTableObject[] = []): Promise<TableMetadata[]> {
+    expand: ExpandTableOption[] = []): Promise<TableMetadata[]> {
     const metaTables = await this.fetchMetaTables(docSession);
     const [, , tableRefs, tableData] = metaTables._grist_Tables;
 
@@ -3621,8 +3621,13 @@ export class ActiveDoc extends EventEmitter {
       if (skip) {
         return;
       }
-      const column = { id, fields: { colRef: colRefs[index] } } as ColumnMetadata;
-      for (const key of fieldNames) {
+      const column: ColumnMetadata = { id, fields: {
+        colRef: colRefs[index],
+        label: String(columnData.label?.[index] ?? ""),
+        isFormula: Boolean(columnData.isFormula?.[index]),
+      } };
+      const otherFieldNames = without(fieldNames, "label", "isFormula");
+      for (const key of otherFieldNames) {
         column.fields[key] = columnData[key][index];
       }
       columns.push(column);

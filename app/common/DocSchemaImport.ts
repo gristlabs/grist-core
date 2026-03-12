@@ -279,15 +279,15 @@ export class DocSchemaImportTool {
 }
 
 export function tablesToSchema(tables: TableMetadata[]): ExistingDocSchema {
-  const tableSchemas = new Map<string, ExistingTableSchema>();
+  const tableSchemas: ExistingTableSchema[] = [];
   for (const { id: tableId, fields: { tableRef }, columns = [] } of tables) {
     const tableSchema: ExistingTableSchema = { id: tableId, ref: tableRef, columns: [] };
-    tableSchemas.set(tableId, tableSchema);
     for (const { id: colId, fields: { colRef, label, isFormula } } of columns) {
       tableSchema.columns.push({ id: colId, ref: colRef, label, isFormula });
     }
+    tableSchemas.push(tableSchema);
   }
-  return { tables: Array.from(tableSchemas.values()) };
+  return { tables: tableSchemas };
 }
 
 /**
