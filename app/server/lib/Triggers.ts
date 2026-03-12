@@ -260,9 +260,20 @@ export class DocTriggers {
     const meta = { numTriggers: triggers.length, numRecords: bulkColValues.id.length };
     this._log(`Processing triggers`, meta);
 
-    const makePayload = _.memoize((rowIndex: number) =>
-      _.mapValues(bulkColValues, col => col[rowIndex]) as RowRecord,
-    );
+    const makePayload = _.memoize((rowIndex: number) => {
+      const payload = _.mapValues(bulkColValues, col => col[rowIndex]) as RowRecord;
+      const rowId = bulkColValues.id[rowIndex];
+      const recordDelta = recordDeltas.get(rowId)!;
+      if (recordDelta.existedBefore) {
+        return {
+          payload,
+          previous: {
+            ...payload, ...rowRecordFromCellDeltas(tableDelta, rowId),
+          },
+        };
+      }
+      return { payload };
+    });
 
     const result: ActionPayload[] = [];
     for (const trigger of triggers) {
@@ -315,7 +326,7 @@ export class DocTriggers {
 
       for (const action of actions) {
         for (const rowIndex of rowIndexesToSend) {
-          const event = { id: action.id, action, payload: makePayload(rowIndex) };
+          const event = { id: action.id, action, ...makePayload(rowIndex) };
           result.push(event);
         }
       }
