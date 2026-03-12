@@ -173,7 +173,7 @@ export class SetupWizard extends Disposable {
   constructor(appModel: AppModel) {
     super();
     this._appModel = appModel;
-    this._server = ServerConfigurator.create(this, this._installAPI, appModel.notifier);
+    this._server = ServerConfigurator.create(this, this._installAPI);
 
     // Restore progress from sessionStorage so checkmarks and
     // active step survive page reloads.

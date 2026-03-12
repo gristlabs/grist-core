@@ -60,8 +60,8 @@ export class GoLiveControl extends Disposable {
         body: body ? JSON.stringify(body) : undefined,
       });
       if (!resp.ok) {
-        const body = await resp.json().catch(() => ({}));
-        throw new Error(body.error || `Server returned ${resp.status}`);
+        const errBody = await resp.json().catch(() => ({}));
+        throw new Error(errBody.error || `Server returned ${resp.status}`);
       }
       const result = await resp.json();
       if (result.restarting) {

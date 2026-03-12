@@ -1,6 +1,5 @@
 import { makeT } from "app/client/lib/localization";
 import { getHomeUrl } from "app/client/models/AppModel";
-import { Notifier } from "app/client/models/NotifyModel";
 import { showEnterpriseToggle } from "app/client/ui/ActivationPage";
 import { basicButton, bigPrimaryButton, primaryButton } from "app/client/ui2018/buttons";
 import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
@@ -59,7 +58,7 @@ export class ServerConfigurator extends Disposable {
   // Whether the admin panel's standalone Save button is shown (vs wizard's go-live flow).
   private _hasStandaloneSave = false;
 
-  constructor(_installAPI: InstallAPI, _notifier?: Notifier) {
+  constructor(_installAPI: InstallAPI) {
     super();
 
     // Detect URL from the browser
@@ -89,13 +88,6 @@ export class ServerConfigurator extends Disposable {
       this.editedUrl.set(this.detectedUrl.get());
       this.urlStatus.set("loaded");
     }
-  }
-
-  /**
-   * Whether the URL has unsaved changes.
-   */
-  public get urlDirty(): boolean {
-    return this.editedUrl.get() !== this.savedUrl.get();
   }
 
   /**
@@ -189,12 +181,9 @@ export class ServerConfigurator extends Disposable {
   }
 
   private _buildUrlEditor(showInlineConfirm: boolean): DomContents {
-    const isDirty = Observable.create(null, false);
-    const updateDirty = () => isDirty.set(this.editedUrl.get() !== this.savedUrl.get());
     const confirmBusy = Observable.create(null, false);
 
     return cssUrlEditor(
-      dom.autoDispose(isDirty),
       dom.autoDispose(confirmBusy),
       cssUrlInputRow(
         cssUrlInput(
@@ -203,7 +192,6 @@ export class ServerConfigurator extends Disposable {
           dom.prop("value", this.editedUrl),
           dom.on("input", (_e, el) => {
             this.editedUrl.set(el.value);
-            updateDirty();
           }),
           testId("server-url-input"),
         ),
@@ -222,7 +210,6 @@ export class ServerConfigurator extends Disposable {
             this.detectedUrl.get(),
             dom.on("click", () => {
               this.editedUrl.set(this.detectedUrl.get());
-              updateDirty();
             }),
           ),
           testId("server-url-detected-hint"),
