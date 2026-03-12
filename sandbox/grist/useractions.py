@@ -1197,7 +1197,6 @@ class UserActions(object):
     if update_record_ids:
       self.BulkUpdateRecord(table_id, update_record_ids, update_record_values)
 
-    print(result)
     return result
 
   @useraction
@@ -1212,7 +1211,11 @@ class UserActions(object):
     """
     require = {k: [v] for k, v in require.items()}
     col_values = {k: [v] for k, v in col_values.items()}
-    self.BulkAddOrUpdateRecord(table_id, require, col_values, options)
+    result = self.BulkAddOrUpdateRecord(table_id, require, col_values, options)
+    return {
+      'id': result['recordIds'][0],
+      'action': "ADDED" if len(result['createdRecordIds']) > 0 else 'UPDATED',
+    }
 
   #----------------------------------------
   # RemoveRecords & co.
