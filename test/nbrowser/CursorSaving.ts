@@ -239,9 +239,7 @@ describe("CursorSaving", function() {
   });
 
   async function getAnchorLink() {
-    let anchor: string = "";
-    await clipboard.lockAndPerform(async () => { anchor = await gu.getAnchor(); });
-    return anchor;
+    return await clipboard.lockAndPerform(async () => gu.getAnchor());
   }
 
   async function getDifferentAnchorLink(oldAnchorLink?: string) {

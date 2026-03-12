@@ -3909,7 +3909,7 @@ namespace gristUtils {
 
     }
 
-    public async lockAndPerform(callback: (clipboard: IClipboard) => Promise<void>) {
+    public async lockAndPerform<T>(callback: (clipboard: IClipboard) => Promise<T>) {
       this._unlock = await lock(path.resolve(getAppRoot(), "test"), {
         lockfilePath: path.join(path.resolve(getAppRoot(), "test"), ".clipboard.lock"),
         retries: {
@@ -3920,7 +3920,7 @@ namespace gristUtils {
         },
       });
       try {
-        await callback(new Clipboard());
+        return await callback(new Clipboard());
       } finally {
         await this.unlock();
       }
