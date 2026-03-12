@@ -388,6 +388,7 @@ describe("ChoiceList", function() {
     assert.equal(await cell.getText(), "");
     await cell.click();
     await driver.sendKeys(Key.ENTER);
+    await gu.waitForCellEditor();
     await driver.findContent(".test-autocomplete li", /Green/).click();
     assert.deepEqual(await getEditorTokens(), ["Green"]);
 
@@ -793,7 +794,7 @@ describe("ChoiceList", function() {
     await gu.setType(gu.exactMatch("Choice List"));
     const cell = await gu.getCell("ChoiceList", 1);
     await cell.click();
-    await gu.sendKeys("foo");
+    await gu.enterCell(["foo"], { validate: false });
     const plus = await driver.findWait(".test-choice-list-editor-new-item", 100);
     await plus.click();
     await gu.sendKeys(Key.ENTER);
@@ -806,7 +807,7 @@ describe("ChoiceList", function() {
     await gu.setType(gu.exactMatch("Choice"));
     const cell = await gu.getCell("Choice", 1);
     await cell.click();
-    await gu.sendKeys("foo");
+    await gu.enterCell(["foo"], { validate: false });
     const plus = await driver.findWait(".test-choice-editor-new-item", 100);
     await plus.click();
     await gu.waitForServer();
@@ -926,12 +927,12 @@ describe("ChoiceList", function() {
   it("should allow renaming multiple tokens on ChoiceList", gu.revertChanges(async function() {
     // Work on ChoiceList column, add one new option "one"
     await gu.getCell("ChoiceList", 2).click();
-    await gu.sendKeys("one");
+    await gu.enterCell(["one"], { validate: false });
     await driver.findWait(`.test-choice-list-editor-new-item`, 300).click();
     await gu.sendKeys(Key.ENTER);
     await gu.waitForServer();
     await gu.getCell("ChoiceList", 3).click();
-    await gu.sendKeys("one", Key.ENTER, "foo", Key.ENTER);
+    await gu.enterCell(["one", Key.ENTER, "foo", Key.ENTER]);
     await gu.waitForServer();
 
     // Make sure right panel is open and has right focus.
