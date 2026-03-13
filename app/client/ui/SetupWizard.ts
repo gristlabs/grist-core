@@ -1,7 +1,6 @@
 import { makeT } from "app/client/lib/localization";
-import { AdminChecks } from "app/client/models/AdminChecks";
 import { AppModel, getHomeUrl } from "app/client/models/AppModel";
-import { AuthenticationSection } from "app/client/ui/AuthenticationSection";
+import { AuthConfigurator } from "app/client/ui/AuthConfigurator";
 import { GoLiveControl } from "app/client/ui/GoLiveControl";
 import {
   buildMockupPanel, cssMockupButton, cssMockupDesc, cssMockupRow, cssMockupSection,
@@ -10,12 +9,11 @@ import { PermissionsConfigurator } from "app/client/ui/PermissionsConfigurator";
 import { SandboxConfigurator } from "app/client/ui/SandboxConfigurator";
 import { ServerConfigurator } from "app/client/ui/ServerConfigurator";
 import { StorageConfigurator } from "app/client/ui/StorageConfigurator";
-import { bigBasicButton, bigPrimaryButton } from "app/client/ui2018/buttons";
 import { testId, theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { InstallAPIImpl } from "app/common/InstallAPI";
 
-import { Computed, Disposable, dom, DomContents, Observable, styled } from "grainjs";
+import { Disposable, dom, DomContents, Observable, styled } from "grainjs";
 
 const t = makeT("SetupWizard");
 
@@ -59,33 +57,13 @@ export class SetupWizard extends Disposable {
   private _sandbox = SandboxConfigurator.create(this, this._installAPI);
   private _storage = StorageConfigurator.create(this, this._installAPI);
   private _goLive = GoLiveControl.create(this);
-  private _authSkipped = Observable.create<boolean>(this, false);
+  private _auth: AuthConfigurator;
   // Explicit confirmation flags — checkmarks require admin action, not just detection.
   private _serverConfirmed = Observable.create<boolean>(this, false);
   private _sandboxConfirmed = Observable.create<boolean>(this, false);
   private _authConfirmed = Observable.create<boolean>(this, false);
   private _storageConfirmed = Observable.create<boolean>(this, false);
   private _permissions = new PermissionsConfigurator(this, this._installAPI);
-
-  // Auth section needs loginSystemId from the authentication probe.
-  private _checks = new AdminChecks(this, this._installAPI);
-  private _authCheck = Computed.create(this, (use) => {
-    return this._checks.requestCheckById(use, "authentication");
-  });
-
-  private _loginProvider = Computed.create<string | undefined>(this, (use) => {
-    const req = use(this._authCheck);
-    const result = req ? use(req.result) : undefined;
-    if (result?.status === "success") {
-      return result.details?.provider as string | undefined;
-    }
-    return undefined;
-  });
-
-  private _hasRealAuth = Computed.create(this, (use) => {
-    const provider = use(this._loginProvider);
-    return !!provider && provider !== "no-logins" && provider !== "boot-key" && provider !== "minimal";
-  });
 
   /**
    * Step definitions — the single source of truth for ordering, labels, icons,
@@ -129,8 +107,13 @@ export class SetupWizard extends Disposable {
       desc: t("Configure how users sign in to Grist. Without authentication, anyone who " +
         "can reach your server gets unrestricted access as an admin user."),
       done: use => use(this._authConfirmed),
-      buildContent: () => this._buildAuthStep(),
-      onEnter: () => { void this._checks.fetchAvailableChecks(); },
+      buildContent: () => this._auth.buildDom({
+        onContinue: () => {
+          this._authConfirmed.set(true);
+          this._goToNextStep("auth");
+        },
+      }),
+      onEnter: () => { void this._auth.probe(); },
     },
     {
       id: "storage",
@@ -168,12 +151,10 @@ export class SetupWizard extends Disposable {
   ];
 
   private _activeStep = Observable.create<StepId>(this, this._steps[0].id);
-  private _appModel: AppModel;
-
   constructor(appModel: AppModel) {
     super();
-    this._appModel = appModel;
     this._server = ServerConfigurator.create(this, this._installAPI);
+    this._auth = AuthConfigurator.create(this, this._installAPI, appModel);
 
     // Restore progress from sessionStorage so checkmarks and
     // active step survive page reloads.
@@ -349,10 +330,6 @@ export class SetupWizard extends Disposable {
       }
       if (state.authConfirmed) {
         this._authConfirmed.set(true);
-        // Restore authSkipped too — it was set when auth was confirmed via skip.
-        // The exact value doesn't matter for the checkmark, but it keeps
-        // the auth step UI consistent (showing "Continue" vs "Skip").
-        this._authSkipped.set(true);
       }
       if (state.storageSelected) {
         this._storage.selected.set(state.storageSelected);
@@ -361,45 +338,6 @@ export class SetupWizard extends Disposable {
         this._storageConfirmed.set(true);
       }
     } catch (_) { /* ok — corrupted or unavailable */ }
-  }
-
-  /**
-   * Build the authentication step content. Mounts the shared
-   * AuthenticationSection (same component used by the admin panel)
-   * with a "Continue" button. If auth is already configured,
-   * the step shows as done.
-   */
-  private _buildAuthStep(): DomContents {
-    return cssAuthStepContent(
-      dom.create(AuthenticationSection, {
-        appModel: this._appModel,
-        loginSystemId: this._loginProvider,
-        installAPI: this._installAPI,
-      }),
-      dom.domComputed((use) => {
-        if (use(this._hasRealAuth) || use(this._authSkipped)) {
-          return bigPrimaryButton(
-            t("Continue"),
-            dom.on("click", () => {
-              this._authConfirmed.set(true);
-              this._goToNextStep("auth");
-            }),
-            testId("auth-submit"),
-          );
-        }
-        return cssSkipRow(
-          bigBasicButton(
-            t("Continue"),
-            dom.on("click", () => {
-              this._authSkipped.set(true);
-              this._authConfirmed.set(true);
-              this._goToNextStep("auth");
-            }),
-            testId("auth-skip"),
-          ),
-        );
-      }),
-    );
   }
 
   /**
@@ -428,7 +366,8 @@ export class SetupWizard extends Disposable {
           this._sandbox.status.set("idle");
           this._sandbox.error.set("");
           this._sandboxConfirmed.set(false);
-          this._authSkipped.set(false);
+          this._auth.noAuthAcknowledged.set(false);
+          this._auth.status.set("idle");
           this._authConfirmed.set(false);
           this._storageConfirmed.set(false);
           this._storage.backends.set([]);
@@ -483,29 +422,21 @@ export class SetupWizard extends Disposable {
       cssMockupSection("Force auth provider"),
       cssMockupDesc("Simulate an auth provider being configured."),
       cssMockupRow(
-        cssMockupButton("getgrist.com", dom.on("click", () => {
-          this._checks.forceCheckResult("authentication", {
-            status: "success",
-            details: { provider: "getgrist-com" },
-          });
-        })),
         cssMockupButton("OIDC", dom.on("click", () => {
-          this._checks.forceCheckResult("authentication", {
-            status: "success",
-            details: { provider: "oidc" },
-          });
+          this._auth.activeProvider.set("oidc");
+          this._auth.status.set("ready");
         })),
         cssMockupButton("SAML", dom.on("click", () => {
-          this._checks.forceCheckResult("authentication", {
-            status: "success",
-            details: { provider: "saml" },
-          });
+          this._auth.activeProvider.set("saml");
+          this._auth.status.set("ready");
+        })),
+        cssMockupButton("Forward auth", dom.on("click", () => {
+          this._auth.activeProvider.set("forward-auth");
+          this._auth.status.set("ready");
         })),
         cssMockupButton("None (boot-key)", dom.on("click", () => {
-          this._checks.forceCheckResult("authentication", {
-            status: "success",
-            details: { provider: "boot-key" },
-          });
+          this._auth.activeProvider.set("boot-key");
+          this._auth.status.set("ready");
         })),
       ),
 
@@ -781,16 +712,4 @@ const cssStepDesc = styled("div", `
   color: ${theme.lightText};
   margin-bottom: 16px;
   line-height: 1.55;
-`);
-
-const cssAuthStepContent = styled("div", `
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-`);
-
-const cssSkipRow = styled("div", `
-  display: flex;
-  align-items: center;
-  gap: 12px;
 `);
