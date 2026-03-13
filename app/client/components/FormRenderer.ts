@@ -321,10 +321,10 @@ abstract class BaseFieldRenderer extends Disposable {
 
 class BaseTextRenderer extends BaseFieldRenderer {
   protected inputType = "text";
-  protected value = Observable.create<string>(this, this.getInitialValue() ?? "");
 
   private _format = this.field.options.formTextFormat ?? "singleline";
   private _lineCount = String(this.field.options.formTextLineCount || 3);
+  private _value = Observable.create<string>(this, this.getInitialValue() ?? "");
 
   public input() {
     let element: HTMLInputElement | HTMLTextAreaElement;
@@ -334,17 +334,11 @@ class BaseTextRenderer extends BaseFieldRenderer {
       element = this._renderMultiLineInput();
     }
 
-    const maximumLength = this.field.options.formTextMaximumLength;
-
-    if (maximumLength != null) {
-      element.maxLength = maximumLength;
-    }
-
     return element;
   }
 
   public resetInput(): void {
-    this.value.setAndTrigger(this.getInitialValue() ?? "");
+    this._value.setAndTrigger(this.getInitialValue() ?? "");
   }
 
   private _renderSingleLineInput() {
@@ -355,9 +349,8 @@ class BaseTextRenderer extends BaseFieldRenderer {
         id: this.id(),
         required: this.field.options.formRequired,
       },
-      dom.prop("value", this.value),
+      dom.prop("value", this._value),
       preventSubmitOnEnter(),
-      dom.on("input", (_e, elem) => this.value.set(elem.value)),
     );
   }
 
@@ -369,27 +362,44 @@ class BaseTextRenderer extends BaseFieldRenderer {
         required: this.field.options.formRequired,
         rows: this._lineCount,
       },
-      dom.prop("value", this.value),
-      dom.on("input", (_e, elem) => this.value.set(elem.value)),
+      dom.prop("value", this._value),
     );
   }
 }
 
 class TextRenderer extends BaseTextRenderer {
+  private _counter = Observable.create<number>(this, this.getInitialValue()?.length ?? 0);
+
   public label() {
     const maximumLength = this.field.options.formTextMaximumLength;
 
-    if (maximumLength == null) {
+    if (maximumLength === undefined || maximumLength === 0) {
       return super.label();
     }
 
     return labelRow(
       super.label(),
       constraintLabel(
-        dom.text(use => `(${use(this.value).length} / ${maximumLength})`),
+        dom.text(use => `(${use(this._counter)} / ${maximumLength})`),
         testId("text-constraint"),
       ),
     );
+  }
+
+  public input(): HTMLTextAreaElement | HTMLInputElement {
+    const element = super.input();
+
+    const maximumLength = this.field.options.formTextMaximumLength;
+
+    if (maximumLength !== undefined && maximumLength !== 0) {
+      element.maxLength = maximumLength;
+
+      dom.update(element,
+        dom.on("input", (_e, elem: HTMLTextAreaElement | HTMLInputElement) => this._counter.set(elem.value.length)),
+      );
+    }
+
+    return element;
   }
 }
 

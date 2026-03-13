@@ -110,7 +110,7 @@ export class NTextBox extends NewAbstractWidget {
             label: t("Maximum characters"),
             defaultValue: undefined,
             minValue: 0,
-            save: async val => maximumLength.setAndSave((val == null ? "" : Math.floor(val))),
+            save: async val => maximumLength.setAndSave((val === undefined ? 0 : Math.floor(val))),
           },
           testId("tb-form-field-constraint"),
         ),
