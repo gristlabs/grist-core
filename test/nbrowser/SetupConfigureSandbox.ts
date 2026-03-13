@@ -197,8 +197,9 @@ describe("SetupConfigureSandbox", function() {
       // Click tab 2 to see authentication options.
       await driver.find(".test-setup-tab-auth").click();
       await driver.findWait(".test-setup-step-auth", 5000);
-      // Should show either a provider list or a skip button.
-      await driver.findWait(".test-auth-skip", 10000);
+      // Should show the auth configurator with hero card and submit button.
+      await driver.findWait(".test-auth-configurator", 10000);
+      await driver.findWait(".test-auth-submit", 5000);
     });
 
     it("storage step shows backend cards", async function() {
@@ -344,8 +345,10 @@ describe("SetupConfigureSandbox", function() {
       // Click tab 2 to see authentication options.
       await driver.find(".test-setup-tab-auth").click();
       await driver.findWait(".test-setup-step-auth", 5000);
-      // Should show auth providers or a skip button — NOT an access denied error.
-      await driver.findWait(".test-auth-skip", 10000);
+      // Should show auth configurator with hero card — NOT an access denied error.
+      await driver.findWait(".test-auth-configurator", 10000);
+      // The submit button should appear (may be disabled until auth acknowledged).
+      await driver.findWait(".test-auth-submit", 5000);
       // Verify no error text about access denied.
       const pageText = await driver.find(".test-setup-step-auth").getText();
       assert.notMatch(pageText, /access denied/i);
