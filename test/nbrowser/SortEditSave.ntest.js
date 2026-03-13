@@ -25,14 +25,14 @@ describe("SortEditSave.ntest", function() {
     // Edit one of the numbers so that it doesn't get re-sorted. Assert that the cursor
     // moves down one cell
     await gu.clickCellRC(1, 1);
-    await gu.sendKeys("2.5", $.ENTER);
+    await gu.enterCell("2.5");
     await gu.waitForServer();
     assert.equal(await $(".field_clip.has_cursor").text(), "3");
 
     // Edit one of the numbers so that it gets re-sorted. Assert that the cursor stays
     // on the cell
     await gu.clickCellRC(1, 1);
-    await gu.sendKeys("3.5", $.ENTER);
+    await gu.enterCell("3.5");
     await gu.waitForServer();
     assert.equal(await $(".field_clip.has_cursor").text(), "3.5");
   });
@@ -40,6 +40,7 @@ describe("SortEditSave.ntest", function() {
   it("should not jump to next row when a formula update causes the field to jump", async function() {
     // Enter a formula in the next column, and sort by the column
     await gu.clickCellRC(0, 2);
+    await gu.waitAppFocus();
     await gu.sendKeys("=");
     await $(".test-editor-tooltip-convert").click();      // Convert to a formula
     await gu.sendKeys("$B", $.ENTER);
@@ -49,14 +50,14 @@ describe("SortEditSave.ntest", function() {
     // Edit the formula so that the row stays in the same place. Assert that the cursor
     // does NOT move down (since editing a column-wide formula, not doing data entry).
     await gu.clickCellRC(0, 2);
-    await gu.sendKeys($.ENTER, [$.MOD, "a"], "$B+5", $.ENTER);
+    await gu.enterCell("$B+5");
     await gu.waitForServer();
     assert.equal(await $(".field_clip.has_cursor").text(), "6");
 
     // Edit the formula so that the row moves. Assert that the cursor says on the cell
     // in this case too.
     await gu.clickCellRC(0, 2);
-    await gu.sendKeys($.ENTER, [$.MOD, "a"], "10-$B", $.ENTER);
+    await gu.enterCell("10-$B");
     await gu.waitForServer();
     assert.equal(await $(".field_clip.has_cursor").text(), "9");
   });

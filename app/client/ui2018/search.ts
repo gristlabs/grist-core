@@ -245,6 +245,8 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
     testId("wrapper"),
     searchWrapper.cls("-expand", model.isOpen),
     dom.cls(wrapperClass),
+    dom.cls(`${wrapperClass}-expanded`, model.isExpanded),
+    dom.cls(`${wrapperClass}-collapsed`, model.isCollapsed),
     dom.autoDispose(commandGroup),
     dom.onKeyDown({
       // The $ indicates to grainjs we don't want to stop propagation of the event here.
@@ -255,6 +257,15 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
           toggleMenu(false);
         }
       },
+    }),
+    dom.on("transitionstart", (ev, elem) => {
+      model.isExpanded.set(false);
+      model.isCollapsed.set(false);
+    }),
+    dom.on("transitionend", (ev, elem) => {
+      console.log("transitionend model.isOpen() === ", model.isOpen.get());
+      model.isExpanded.set(model.isOpen.get());
+      model.isCollapsed.set(!model.isOpen.get());
     }),
     dom.onDispose(() => {
       toggleMenu.cancel(); // Make sure we don't attempt to call delayed callback after disposal.

@@ -30,6 +30,7 @@ describe("TextEditor.ntest", function() {
 
   it("should allow saving values into new Reference column", async function() {
     await gu.getCellRC(0, 0).wait().click();
+    await gu.waitAppFocus();
     await gu.sendKeys("foo", $.ENTER);
     await gu.waitForServer();
     await gu.sendKeys("bar", $.ENTER);
@@ -42,12 +43,14 @@ describe("TextEditor.ntest", function() {
     await gu.toggleSidePanel("left", "close");
     await $(".viewsection_title:contains(TABLE2)").click();
     await gu.getCellRC(0, 0).click();
+    await gu.waitAppFocus();
     await gu.setType("Reference");
     await gu.setRefTable("Table1");
     await gu.setVisibleCol("A");
 
     // Populate some of the reference column.
     await gu.getCellRC(0, 0).click();
+    await gu.waitAppFocus();
 
     // Select "foo" from autocomplete dropdown with keyboard.
     await autoCompleteSelect({input: "f"});
@@ -75,6 +78,7 @@ describe("TextEditor.ntest", function() {
 
     // Esc should Cancel.
     await gu.getCellRC(4, 0).click();
+    await gu.waitAppFocus();
     await autoCompleteSelect({input: "baz"});
     await gu.sendKeys($.ESCAPE);
     assert.equal(await gu.getCellRC(4, 0).text(), "");
@@ -91,6 +95,7 @@ describe("TextEditor.ntest", function() {
     // Add new by tab
     await $(".viewsection_title:contains(TABLE2)").click();
     await gu.getCellRC(4, 0).click();
+    await gu.waitAppFocus();
     await autoCompleteSelect({input: "foobar1", keys: [$.UP]});
     await gu.sendKeys($.TAB);
     await gu.waitForServer();
@@ -100,6 +105,7 @@ describe("TextEditor.ntest", function() {
     // Add new by click
     await $(".viewsection_title:contains(TABLE2)").click();
     await gu.getCellRC(5, 0).click();
+    await gu.waitAppFocus();
     await autoCompleteSelect({input: "foobar2", click: "foobar2"});
     await gu.waitForServer();
     await $(".viewsection_title:contains(TABLE1)").click();
@@ -108,6 +114,7 @@ describe("TextEditor.ntest", function() {
     // Cancel with escape
     await $(".viewsection_title:contains(TABLE2)").click();
     await gu.getCellRC(5, 0).click();
+    await gu.waitAppFocus();
     await autoCompleteSelect({input: "foobar3", keys: [$.UP]});
     await gu.sendKeys($.ESCAPE);
     await gu.waitForServer();
@@ -118,6 +125,7 @@ describe("TextEditor.ntest", function() {
     // Once add new is selected it should not be possible to change the input.
     await $(".viewsection_title:contains(TABLE2)").click();
     await gu.getCellRC(6, 0).click();
+    await gu.waitAppFocus();
     await autoCompleteSelect({input: "foobar4", keys: [$.UP]});
     await gu.sendKeys("567");
     // Make sure add item loses selection
@@ -142,12 +150,14 @@ describe("TextEditor.ntest", function() {
     // Add another column. We have to hover over the column header first.
     await addColumnRightOf(0);
     await gu.getCellRC(0, 1).click();
+    await gu.waitAppFocus();
 
     // Convert to Date. No need to "Apply conversion" since it's a new empty column.
     await gu.setType("Date");
 
     // Enter a new value and check that it's parsed and shows correctly.
     await gu.getCellRC(0, 1).click();
+    await gu.waitAppFocus();
     await gu.sendKeys("2016/04/20", $.ENTER);
     await gu.waitForServer();
     assert.equal(await gu.getCellRC(0, 1).text(), "2016-04-20");
@@ -201,12 +211,14 @@ describe("TextEditor.ntest", function() {
   it("should allow saving values into new Checkbox column", async function() {
     await addColumnRightOf(1);
     await gu.getCellRC(0, 2).click();
+    await gu.waitAppFocus();
 
     // Convert to Toggle. No need to "Apply conversion" since it's a new empty column.
     await  gu.setType("Toggle");
 
     // Toggle a value in the new column.
     await gu.getCellRC(1, 2).find(".widget_checkbox").click();
+    await gu.waitAppFocus();
     await gu.waitForServer();
 
     // To ensure it got saved to the server, convert to text, and check the text.
@@ -221,12 +233,14 @@ describe("TextEditor.ntest", function() {
     await gu.getColumnHeader("A").scrollIntoView({inline: "end"});
     await addColumnRightOf(0);
     await gu.getCellRC(0, 1).click();
+    await gu.waitAppFocus();
     await gu.setType("Date");
 
     assert.equal(await gu.getCellRC(6, 1).text(), "");    // Last "add new" row.
     await assert.isPresent(gu.getCellRC(7, 1), false);    // Check that there is no next row.
 
     await gu.getCellRC(0, 1).click();
+    await gu.waitAppFocus();
     await gu.sendKeys([$.MOD, $.DOWN]);    // Jump to last row.
     await gu.sendKeys("2001/11/23", $.ENTER);
     await gu.waitForServer();
@@ -242,6 +256,7 @@ describe("TextEditor.ntest", function() {
 
     // Replace it with a formula that uses another date column B.
     await gu.getCellRC(0, 1).click();
+    await gu.waitAppFocus();
     await gu.sendKeys("=");
     await $(".test-editor-tooltip-convert").click();      // Convert to a formula
     await gu.sendKeys("$D and $D.replace(day=2)", $.ENTER);
@@ -259,6 +274,7 @@ describe("TextEditor.ntest", function() {
 
     // Enter a new value, make sure that works.
     await gu.getCellRC(6, 1).click();
+    await gu.waitAppFocus();
     await gu.sendKeys("2016/05/01", $.ENTER);
     await gu.waitForServer();
     assert.equal(await gu.getCellRC(0, 1).text(), "2016-04-02");

@@ -23,9 +23,10 @@ describe("TypeChange.ntest", function() {
   it("should not use transform to convert type for an empty column", async function() {
     await gu.openSidePane("field");
     await gu.getCellRC(0, 0).click();
+    await gu.waitAppFocus();
     await gu.sendKeys([$.ALT, "="]);
     await gu.waitForServer();
-    gu.sendKeys($.ESCAPE);
+    await gu.sendKeys($.ESCAPE);
 
     // Click on new column
     await gu.getCellRC(0, 1).click();
@@ -45,7 +46,7 @@ describe("TypeChange.ntest", function() {
   it("should use transform to convert type for non-empty columns", async function() {
     // Enter text into numeric column
     await gu.getCellRC(0, 1).click();
-    await gu.sendKeys("one", $.ENTER);
+    await gu.enterCell("one");
     await gu.waitForServer();
     assert.hasClass(await gu.getCellRC(0, 1).find(".field_clip"), "invalid", true);
 
@@ -89,9 +90,9 @@ describe("TypeChange.ntest", function() {
   it("should allow cancelling type changes", async function() {
     // Enter bools into text column
     await gu.getCellRC(0, 1).click();
-    await gu.sendKeys("false", $.ENTER);
+    await gu.enterCell("false");
     await gu.getCellRC(1, 1).click();
-    await gu.sendKeys("true", $.ENTER);
+    await gu.enterCell("true");
 
     // Change text to bool
     await gu.setType("Toggle");
@@ -148,10 +149,9 @@ describe("TypeChange.ntest", function() {
     // Change type to reference column
     await gu.actions.viewSection("Table1").selectSection();
     await gu.getCellRC(0, 3).click();
-    await gu.waitAppFocus();
-    await gu.sendKeys("blue", $.ENTER);
+    await gu.enterCell("blue");
     await gu.getCellRC(1, 3).click();
-    await gu.sendKeys("green", $.ENTER);
+    await gu.enterCell("green");
     await gu.waitForServer();
     await gu.userActionsCollect();
     await gu.setType("Reference");
@@ -207,9 +207,9 @@ describe("TypeChange.ntest", function() {
   it("should allow configuring date and datetime changes", async function() {
     await gu.toggleSidePanel("left", "close");
     await gu.getCellRC(0, 2).scrollIntoView({inline: "end"}).click();
-    await gu.sendKeys("4/2/93", $.ENTER);
+    await gu.enterCell("4/2/93");
     await gu.getCellRC(1, 2).click();
-    await gu.sendKeys("4/26/16", $.ENTER);
+    await gu.enterCell("4/26/16");
 
     // Convert to Date
     await gu.setType("Date");
@@ -239,9 +239,9 @@ describe("TypeChange.ntest", function() {
     ]);
 
     await gu.getCellRC(0, 2).click();
-    await gu.sendKeys($.ENTER, " 12:00am");
+    await gu.enterCell([" 12:00am"], { clear: false });
     await gu.getCellRC(1, 2).click();
-    await gu.sendKeys($.ENTER, " 4:00am", $.ENTER);
+    await gu.enterCell([" 4:00am"], { clear: false });
 
     // Convert to DateTime and assert formula matches options
     await gu.setType("DateTime");
@@ -427,11 +427,11 @@ describe("TypeChange.ntest", function() {
   it("should properly convert from integer/numeric to boolean", async function() {
     // Update the Numeric column to include some falsy/truthy numbers and alttext.
     await gu.clickCellRC(0, 2);
-    await gu.sendKeys("0");
+    await gu.enterCell("0");
     await gu.clickCellRC(4, 2);
-    await gu.sendKeys("False", $.ENTER);
+    await gu.enterCell("False");
     await gu.waitForServer();
-    await gu.sendKeys("true", $.ENTER);
+    await gu.enterCell("true");
     await gu.waitForServer();
 
     // Assert that the values are set up properly.

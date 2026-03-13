@@ -428,6 +428,7 @@ describe("FormulaAutocomplete", function() {
 async function startFormulaAutocomplete(formula: string) {
   await gu.waitAppFocus();
   await driver.sendKeys("=");
+  await gu.waitForCellEditor();
   await gu.waitAppFocus(false);
   // Send the keys separately. (Sending them together seems to cause the
   // autocomplete to not show up from time to time.)

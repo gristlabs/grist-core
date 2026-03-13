@@ -30,7 +30,7 @@ describe("DetailView.ntest", function () {
       // Open the 'Performances' view
       await gu.actions.viewSection("Performances detail").selectSection();
       await $(".test-right-panel button:contains(Change widget)").click();
-      await $(".test-wselect-type:contains(Card List)").click();
+      await $(".test-wselect-type:contains(Card List)").wait().click();
       await $(".test-wselect-addBtn").click();
       await gu.waitForServer();
       await gu.openSelectByForSection("Performances detail");

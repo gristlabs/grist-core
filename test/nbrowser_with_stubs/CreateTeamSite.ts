@@ -15,7 +15,7 @@ describe("Create Team Site", function() {
 
   async function openCreateTeamModal() {
     await driver.findWait(".test-dm-org", 500).click();
-    assert.equal(await driver.find(".test-site-switcher-create-new-site").isPresent(), true);
+    await driver.wait(async () => await driver.find(".test-site-switcher-create-new-site").isPresent(), 1000);
     await driver.find(".test-site-switcher-create-new-site").click();
   }
 

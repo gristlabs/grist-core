@@ -22,6 +22,14 @@ const t = makeT("SearchModel");
 export interface SearchModel {
   value: Observable<string>;       // string in the search input
   isOpen: Observable<boolean>;     // indicates whether the search bar is expanded to show the input
+  /**
+   * True when the search menu is fully expanded (transition has finished)
+   */
+  isExpanded: Observable<boolean>;
+  /**
+   * True when the search menu is fully collapsed (transition has finished)
+   */
+  isCollapsed: Observable<boolean>;
   noMatch: Observable<boolean>;    // indicates if there are no search matches
   isEmpty: Observable<boolean>;     // indicates whether the value is empty
   isRunning: Observable<boolean>;  // indicates that matching is in progress
@@ -457,6 +465,8 @@ class FinderImpl implements IFinder {
 export class SearchModelImpl extends Disposable implements SearchModel {
   public readonly value = Observable.create(this, "");
   public readonly isOpen = Observable.create(this, false);
+  public readonly isExpanded = Observable.create(this, false);
+  public readonly isCollapsed = Observable.create(this, true);
   public readonly isRunning = Observable.create(this, false);
   public readonly noMatch = Observable.create(this, true);
   public readonly isEmpty = Observable.create(this, true);

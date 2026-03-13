@@ -6,7 +6,7 @@ import { assert, driver, Key, WebElement } from "mocha-webdriver";
  * Find .test-rule-table element for the given tableId.
  */
 export function findTable(tableId: RegExp | "*"): WebElement {
-  const header = driver.findContent(".test-rule-table-header", tableId === "*" ? "Default rules" : tableId);
+  const header = driver.findContentWait(".test-rule-table-header", tableId === "*" ? "Default rules" : tableId, 1000);
   return header.findClosest(".test-rule-table");
 }
 

@@ -496,10 +496,13 @@ describe("Fork", function() {
         // helper that get the number of items in the add new menu
         async function getAddNewEntryCount() {
           await driver.find(".test-dp-add-new").click();
-          const items = await driver.findAll(".grist-floating-menu li", e => e.getText());
-          assert.include(items, "Import from file");
+          let items: string[];
+          await gu.waitToPass(async () => {
+            items = await driver.findAll(".grist-floating-menu li", e => e.getText());
+            assert.include(items, "Import from file");
+          }, 1000);
           await driver.sendKeys(Key.ESCAPE);
-          return items.length;
+          return items!.length;
         }
       });
 
@@ -598,7 +601,7 @@ describe("Fork", function() {
         assert.equal(await driver.findWait(".test-unsaved-tag", 4000).isPresent(), true);
         // check Replace Original gives a scarier button, and press it anyway.
         await driver.find(".test-tb-share").click();
-        await driver.find(".test-replace-original").click();
+        await driver.findWait(".test-replace-original", 1000).click();
         confirmButton = driver.findWait(".test-modal-confirm", 3000);
         assert.equal(await confirmButton.getText(), "Overwrite");
         await confirmButton.click();
@@ -613,7 +616,7 @@ describe("Fork", function() {
         assert.equal(await driver.findWait(".test-unsaved-tag", 4000).isPresent(), true);
         // check Replace Original mentions that the document is the same as the trunk.
         await driver.find(".test-tb-share").click();
-        await driver.find(".test-replace-original").click();
+        await driver.findWait(".test-replace-original", 1000).click();
         confirmButton = driver.findWait(".test-modal-confirm", 3000);
         assert.equal(await confirmButton.getText(), "Update");
         assert.match(await driver.find(".test-modal-dialog").getText(),

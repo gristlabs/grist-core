@@ -197,6 +197,8 @@ function setupTest() {
   const searchModel = {
     value: observable(""),
     isOpen: observable(false),
+    isExpanded: observable(false),
+    isCollapsed: observable(true),
     noMatch: observable(true),
     isEmpty: observable(true),
     isRunning: observable(false),

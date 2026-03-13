@@ -72,6 +72,7 @@ function getIconFromName(name: string) {
   return parts
     .slice(0, 2)
     .map(w => [...w][0])
+    .filter(w => !isEmoji(w))
     .join("")
     // https://www.regular-expressions.info/unicode.html
     .replace(/[^\p{L}\p{Nd}]$/u, "")
