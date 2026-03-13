@@ -119,7 +119,7 @@ derive from it.
 |---|---|---|
 | `server` | Server | Confirm base URL (APP_HOME_URL), edition toggle if available. Loads on enter. |
 | `sandbox` | Sandboxing | Probes flavors, recommends best available. Probe runs on enter. |
-| `auth` | Authentication | Shows current auth status. Continue or Skip. Auth check deferred until step becomes active. |
+| `auth` | Authentication | Hero card with auth status. Requires acknowledgment if no auth. Auth probe deferred until step becomes active. |
 | `storage` | Backups | Probes storage backends. Storage probe deferred until step becomes active. |
 | `apply` | Apply & Restart | Pre-launch permission checklist + go live. Requires explicit click. |
 
@@ -262,7 +262,7 @@ yet. Use `theme.*` tokens for everything else.
 | `SandboxConfigurator` | `app/client/ui/SandboxConfigurator.ts` | Wizard "sandbox" step, admin panel Security |
 | `StorageConfigurator` | `app/client/ui/StorageConfigurator.ts` | Wizard "storage" step (admin panel: not yet) |
 | `GoLiveControl` | `app/client/ui/GoLiveControl.ts` | Wizard "apply" step (admin panel Maintenance: not yet) |
-| `AuthenticationSection` | `app/client/ui/AuthenticationSection.ts` | Wizard "auth" step, admin panel Security |
+| `AuthConfigurator` | `app/client/ui/AuthConfigurator.ts` | Wizard "auth" step (wizard mode), admin panel Security (panel mode) |
 | `PermissionsConfigurator` | `app/client/ui/PermissionsConfigurator.ts` | Wizard "apply" step, admin panel Security |
 | `MockupPanel` | `app/client/ui/MockupPanel.ts` | Wizard (dev/testing only, remove before merge) |
 

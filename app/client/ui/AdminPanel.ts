@@ -2,7 +2,7 @@ import { buildHomeBanners } from "app/client/components/Banners";
 import { makeT } from "app/client/lib/localization";
 import { markdown } from "app/client/lib/markdown";
 import { getTimeFromNow } from "app/client/lib/timeUtils";
-import { AdminCheckRequest, AdminChecks, ProbeDetails } from "app/client/models/AdminChecks";
+import { AdminChecks, ProbeDetails } from "app/client/models/AdminChecks";
 import { AppModel, getHomeUrl, reportError } from "app/client/models/AppModel";
 import { AuditLogsModel, AuditLogsModelImpl } from "app/client/models/AuditLogsModel";
 import { urlState } from "app/client/models/gristUrlState";
@@ -27,7 +27,7 @@ import {
 import { getAdminPanelName } from "app/client/ui/AdminPanelName";
 import { App } from "app/client/ui/App";
 import { AuditLogStreamingConfig, getDestinationDisplayName } from "app/client/ui/AuditLogStreamingConfig";
-import { AuthenticationSection } from "app/client/ui/AuthenticationSection";
+import { AuthConfigurator } from "app/client/ui/AuthConfigurator";
 import { InstallConfigsAPI } from "app/client/ui/ConfigsAPI";
 import { pagePanels } from "app/client/ui/PagePanels";
 import { PermissionsConfigurator } from "app/client/ui/PermissionsConfigurator";
@@ -51,7 +51,6 @@ import { ConfigAPI } from "app/common/ConfigAPI";
 import { delay } from "app/common/delay";
 import { AdminPanelPage, commonUrls, getPageTitleSuffix, LatestVersionAvailable } from "app/common/gristUrls";
 import { InstallAPI, InstallAPIImpl } from "app/common/InstallAPI";
-import { MINIMAL_PROVIDER_KEY } from "app/common/loginProviders";
 import { InstallAdminInfo } from "app/common/LoginSessionAPI";
 import { getGristConfig } from "app/common/urlUtils";
 import * as version from "app/common/version";
@@ -119,10 +118,13 @@ export class AdminPanel extends Disposable {
 
   private _buildMainContent() {
     return cssPageContainer(
-      // Setting tabIndex allows selecting and copying text. This is helpful on admin pages, e.g.
-      // to copy GRIST_BOOT_KEY or version number. But we don't set it for buidAdminData() pages
-      // because it messes with focus in GridViews, and its unclear how to undo its effect.
-      dom.attr("tabindex", use => use(this._page) === "admin" ? "-1" : null as any),
+      // Setting tabIndex allows selecting and copying text. This is helpful on admin/setup pages,
+      // e.g. to copy env var names or error messages. But we don't set it for buildAdminData()
+      // pages because it messes with focus in GridViews, and its unclear how to undo its effect.
+      dom.attr("tabindex", (use) => {
+        const page = use(this._page);
+        return (page === "admin" || page === "setup") ? "-1" : null as any;
+      }),
 
       dom.domComputed(this._page, (page) => {
         if (page === "setup") {
@@ -148,26 +150,18 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
   private _checks: AdminChecks;
   private readonly _installAPI: InstallAPI = new InstallAPIImpl(getHomeUrl());
   private readonly _configAPI: ConfigAPI = new ConfigAPI(getHomeUrl());
-  private _authCheck: Observable<AdminCheckRequest | undefined>;
-  private _loginProvider: Observable<string | undefined>;
   private _serverConfigurator = ServerConfigurator.create(this, this._installAPI);
   private _sandboxConfigurator = SandboxConfigurator.create(this, this._installAPI);
   private _storageConfigurator = StorageConfigurator.create(this, this._installAPI);
+  private _authConfigurator: AuthConfigurator;
   private _permissions = new PermissionsConfigurator(this, this._installAPI);
 
   constructor(private _appModel: AppModel) {
     super();
     this._checks = new AdminChecks(this, this._installAPI);
-    this._authCheck = Computed.create(this, (use) => {
-      return this._checks.requestCheckById(use, "authentication");
-    });
-    this._loginProvider = Computed.create(this, (use) => {
-      const req = use(this._authCheck);
-      const result = req ? use(req.result) : undefined;
-      if (result?.status === "success") {
-        return result.details?.provider;
-      }
-      return undefined;
+    this._authConfigurator = AuthConfigurator.create(this, this._installAPI, this._appModel, {
+      mode: "panel",
+      controls: this,
     });
   }
 
@@ -184,6 +178,7 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
         // Start shared component probes only when we know the user is an admin.
         void this._serverConfigurator.load();
         void this._sandboxConfigurator.probe();
+        void this._authConfigurator.probe();
         void this._storageConfigurator.probe();
         void this._permissions.load();
         return this._buildMainContentForAdmin();
@@ -322,8 +317,8 @@ Please log in as an administrator.`)),
           id: "authentication",
           name: t("Authentication"),
           description: t("Current authentication method"),
-          value: this._buildAuthenticationDisplay(),
-          expandedContent: this._buildAuthenticationPanelExtraContent(),
+          value: this._authConfigurator.buildStatusDisplay(),
+          expandedContent: this._authConfigurator.buildDom(),
         }),
         dom.create(AdminSectionItem, {
           id: "session",
@@ -490,64 +485,6 @@ Please log in as an administrator.`)),
         );
       }),
     );
-  }
-
-  private _buildAuthenticationDisplay() {
-    return dom.domComputed(
-      (use) => {
-        const req = use(this._authCheck);
-        const result = req ? use(req.result) : undefined;
-        if (!result) {
-          return cssValueLabel(
-            cssErrorText(t("unavailable")),
-            testId("admin-panel-value-label-error"),
-          );
-        }
-
-        const { status, details, verdict } = result;
-        const success = status === "success";
-
-        const provider = details?.provider ?? details?.label;
-
-        if (!success && !provider) {
-          return cssValueLabel(
-            cssErrorText(t("auth error")),
-            verdict ? { title: verdict } : undefined,
-            testId("admin-panel-value-label-error"),
-          );
-        }
-
-        if (provider === MINIMAL_PROVIDER_KEY) {
-          return cssValueLabel(
-            cssDangerText(t("no authentication")),
-            verdict ? { title: verdict } : undefined,
-            testId("admin-panel-value-label-danger"),
-          );
-        }
-
-        if (!success) {
-          return cssValueLabel(
-            cssErrorText(t("auth error")),
-            verdict ? { title: t("error in {{provider}}: {{verdict}}", { provider, verdict }) } : undefined,
-            testId("admin-panel-value-label-error"),
-          );
-        }
-
-        return cssValueLabel(
-          cssHappyText(provider),
-          testId("admin-panel-value-label-success"),
-        );
-      },
-    );
-  }
-
-  private _buildAuthenticationPanelExtraContent() {
-    return dom.create(AuthenticationSection, {
-      appModel: this._appModel,
-      loginSystemId: this._loginProvider,
-      controls: this,
-      installAPI: this._installAPI,
-    });
   }
 
   private _buildSessionSecretDisplay() {
