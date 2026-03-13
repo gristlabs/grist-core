@@ -30,7 +30,7 @@ However you try it, you'll quickly see that Grist is a hybrid database/spreadshe
 
 This difference can confuse people coming directly from Excel or Google Sheets. Give it a chance! There's also a [Grist for Spreadsheet Users](https://www.getgrist.com/blog/grist-for-spreadsheet-users/) article to help get you oriented. If you're coming from Airtable, you'll find the model familiar (and there's also our [Grist vs Airtable](https://www.getgrist.com/blog/grist-v-airtable/) article for a direct comparison).
 
-Here are some specific feature highlights of Grist (🇫🇷 marks heavy French gov contributions):
+Here are some specific feature highlights of Grist (🇫🇷 marks heavy French govt. contributions):
 
   * Python formulas.
     - Full [Python syntax is supported](https://support.getgrist.com/formulas/#python), including the standard library.
@@ -51,7 +51,7 @@ Here are some specific feature highlights of Grist (🇫🇷 marks heavy French 
     - [Attachments](https://support.getgrist.com/col-types/#attachment-columns), to include media or document files in records.
     - Dates and times, toggles, and special numerics such as currency all have specialized editors and formatting options.
     - [Conditional Formatting](https://support.getgrist.com/conditional-formatting/), letting you control the style of cells with formulas to draw attention to important information.
-    - [Markdown formatting](https://support.getgrist.com/col-types/#text-columns) in text cells.
+    - [Markdown formatting](https://support.getgrist.com/col-types/#markdown) in text cells.
   * Drag-and-drop dashboards.
     - [Charts](https://support.getgrist.com/widget-chart/), [card views](https://support.getgrist.com/widget-card/) and a [calendar widget](https://support.getgrist.com/widget-calendar/) for visualization.
     - [Summary tables](https://support.getgrist.com/summary-tables/) for summing and counting across groups.
@@ -60,18 +60,18 @@ Here are some specific feature highlights of Grist (🇫🇷 marks heavy French 
     without cramming mixed material into a table.
     - [Filter bar](https://support.getgrist.com/search-sort-filter/#filter-buttons) for quick slicing and dicing.
     - Duplicate widgets to quickly build variations of a view.
-    - [Compare documents](https://support.getgrist.com/copying-docs/#comparing-documents) to see what changed.
+    - [Compare documents](https://support.getgrist.com/copying-docs/#trying-out-changes) to see what changed.
   * [Incremental imports](https://support.getgrist.com/imports/#updating-existing-records).
     - Import a CSV of the last three months activity from your bank...
     - ...and import new activity a month later without fuss or duplication.
   * [Native forms](https://support.getgrist.com/widget-form/). Create forms that feed directly into your spreadsheet without fuss.
     - Supports file attachments, hidden fields, and pre-population via URL parameters.
   * Integrations.
-    - A [REST API](https://support.getgrist.com/api/) with an interactive [API console](https://support.getgrist.com/rest-api/), [Zapier actions/triggers](https://support.getgrist.com/integrators/#integrations-via-zapier), and support from similar [integrators](https://support.getgrist.com/integrators/).
-    - Import/export to Google drive, Excel format, CSV. [Import directly from Airtable](https://support.getgrist.com/imports/#importing-from-airtable).
+    - A [REST API](https://support.getgrist.com/api/) with an interactive [API console](https://docs.getgrist.com/apiconsole), [Zapier actions/triggers](https://support.getgrist.com/integrators/#integrations-via-zapier), and support from similar [integrators](https://support.getgrist.com/integrators/).
+    - Import/export to Google Drive, Excel format, CSV. [Import directly from Airtable.](https://support.getgrist.com/imports/#import-from-airtable)
     - Link data with [custom widgets](https://support.getgrist.com/widget-custom/#_top), hosted externally.
     - Configurable outgoing [webhooks](https://support.getgrist.com/webhooks/), with support for authorization headers, column-specific triggers, and formula conditions.
-    - [Service accounts](https://support.getgrist.com/install/service-accounts/) for fine-tuned API access (🇫🇷).
+    - [Service accounts](https://support.getgrist.com/api/#tag/service-accounts) for fine-tuned API access (🇫🇷).
     - [SCIM](https://support.getgrist.com/install/scim/) for standard user and group provisioning (🇫🇷).
   * [Many templates](https://templates.getgrist.com/) to get you started, from investment research to organizing treasure hunts.
   * Access control options.
@@ -81,20 +81,20 @@ Here are some specific feature highlights of Grist (🇫🇷 marks heavy French 
     - Control access based on cell values and user attributes.
     - [OIDC](https://support.getgrist.com/install/oidc/) (🇫🇷) and [SAML](https://support.getgrist.com/install/saml/) support for single sign-on.
   * Collaboration.
-    - [Comments](https://support.getgrist.com/comments/) on cells, with threaded replies and @-mentions.
+    - [Comments](https://support.getgrist.com/sharing/#comments) on cells, with threaded replies and @-mentions.
     - See who else is viewing a document in real time.
-    - [Suggest changes](https://support.getgrist.com/proposed-changes/) for others to review and approve, inspired by source control workflows.
+    - [Suggest changes](https://support.getgrist.com/sharing/#suggestions) for others to review and approve, inspired by source control workflows.
   * Self-maintainable.
     - Useful for intranet operation and specific compliance requirements.
-    - [Sign in with getgrist.com](https://support.getgrist.com/install/sign-in-with-getgrist/) for easy authentication without running your own auth server.
-    - Store [attachments externally](https://support.getgrist.com/install/cloud-storage/#attachment-stores) in S3-compatible storage to keep `.grist` files small (🇫🇷).
+    - [Sign in with getgrist.com](https://support.getgrist.com/install/sign-in-with-grist/) for easy authentication without running your own auth server.
+    - Store [attachments externally](https://support.getgrist.com/document-settings/#external-attachments) in S3-compatible storage to keep `.grist` files small (🇫🇷).
     - [HTTP long polling](https://support.getgrist.com/self-managed/#what-if-websocket-connections-are-not-available) as an alternative to WebSockets for restrictive network environments (🇫🇷).
   * Sandboxing options for untrusted documents.
     - On Linux or with Docker, you can enable [gVisor](https://github.com/google/gvisor) sandboxing at the individual document level.
     - On macOS, you can use native sandboxing.
-    - On any OS, including Windows, you can use a wasm-based sandbox via [Deno](https://deno.com/) and [Pyodide](https://pyodide.org/).
+    - On any OS, including Windows, you can use a Wasm-based sandbox via [Deno](https://deno.com/) and [Pyodide](https://pyodide.org/).
   * Translated to many languages (🇫🇷).
-  * A [high-contrast theme](https://support.getgrist.com/toggle-widget/#light-high-contrast) meeting WCAG level AA requirements (🇫🇷).
+  * A [high-contrast theme](https://support.getgrist.com/newsletters/2025-05/#high-contrast-theme) meeting WCAG level AA requirements (🇫🇷).
   * `F1` key brings up some quick help. This used to go without saying, but in general Grist has good keyboard support (🇫🇷).
   * We post progress on [𝕏 or Twitter or whatever](https://twitter.com/getgrist) and publish [monthly newsletters](https://support.getgrist.com/newsletters/).
 
