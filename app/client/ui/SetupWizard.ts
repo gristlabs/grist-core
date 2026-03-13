@@ -498,9 +498,32 @@ export class SetupWizard extends Disposable {
 
 /**
  * Top-level builder for use in AdminPanel routing.
+ * Checks admin auth before rendering the wizard — if the session is
+ * invalid, shows a "sign in with boot key" prompt instead of a broken wizard.
  */
 export function buildSetupWizard(owner: Disposable, appModel: AppModel) {
-  return dom.create(SetupWizard, appModel);
+  const installAPI = new InstallAPIImpl(getHomeUrl());
+  const authed = Observable.create<boolean | null>(owner, null); // null = checking
+  installAPI.getInstallPrefs().then(
+    () => { if (!authed.isDisposed()) { authed.set(true); } },
+    () => { if (!authed.isDisposed()) { authed.set(false); } },
+  );
+  return dom.domComputed(authed, (ok) => {
+    if (ok === null) { return null; } // loading
+    if (!ok) {
+      return cssSessionExpired(
+        dom("p", t("Your session has expired or you are not signed in as an administrator.")),
+        dom("p",
+          dom("a",
+            { href: "/auth/boot-key", style: "font-weight: 600;" },
+            t("Sign in with boot key"),
+          ),
+        ),
+        testId("setup-session-expired"),
+      );
+    }
+    return dom.create(SetupWizard, appModel);
+  });
 }
 
 // --- Styles ---
@@ -712,4 +735,12 @@ const cssStepDesc = styled("div", `
   color: ${theme.lightText};
   margin-bottom: 16px;
   line-height: 1.55;
+`);
+
+const cssSessionExpired = styled("div", `
+  padding: 40px 32px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.6;
+  color: ${theme.text};
 `);
