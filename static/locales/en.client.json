@@ -1964,7 +1964,9 @@
         "Select...": "Select...",
         "Submit": "Submit",
         "Submitting…": "Submitting…",
-        "Clear selection for: {{-inputLabel}}": "Clear selection for: {{-inputLabel}}"
+        "Clear selection for: {{-inputLabel}}": "Clear selection for: {{-inputLabel}}",
+        "Options for {{-inputLabel}}": "Options for {{-inputLabel}}",
+        "Search options for {{-inputLabel}}": "Search options for {{-inputLabel}}"
     },
     "widgetTypesMap": {
         "Calendar": "Calendar",

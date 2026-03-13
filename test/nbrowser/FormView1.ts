@@ -23,7 +23,7 @@ import { EnvironmentSnapshot, fixturesRoot } from "test/server/testUtils";
 
 import path from "path";
 
-import { addToRepl, assert, driver, Key } from "mocha-webdriver";
+import { addToRepl, assert, driver, Key, WebElement } from "mocha-webdriver";
 
 describe("FormView1", function() {
   this.timeout(20_000);   // Default for each test or hook.
@@ -165,6 +165,26 @@ describe("FormView1", function() {
     await gu.waitForServer();
     assert.isFalse(await driver.find(".test-form-success-page").isPresent());
   }
+
+  // tests to check after a select field click (when a dropdown shows up)
+  async function assertDropdownScreenReaderBehavior(dropdownContainer: WebElement) {
+    const searchInput = await dropdownContainer.find(".test-sd-search input");
+    // Check that the search input is focused on dropdown opening
+    assert.isTrue(await searchInput.hasFocus());
+    // Check that screen-reader related attributes are there
+    assert.equal(await searchInput.getAttribute("role"), "combobox");
+    assert.equal(await searchInput.getAttribute("aria-autocomplete"), "list");
+    assert.equal(await searchInput.getAttribute("aria-expanded"), "true");
+    const listbox = await dropdownContainer.find('[role="listbox"]');
+    assert.equal(await searchInput.getAttribute("aria-controls"), await listbox.getAttribute("id"));
+    assert.match(await searchInput.getAttribute("aria-label"), /^Search options for/);
+    assert.match(await listbox.getAttribute("aria-label"), /^Options for/);
+    const options = await listbox.findAll('[role="option"]');
+    // check that screen reader related attribute are correctly updated when navigating
+    await gu.sendKeys(Key.ARROW_DOWN);
+    assert.equal(await options[0].getAttribute("aria-selected"), "true");
+    assert.equal(await searchInput.getAttribute("aria-activedescendant"), await options[0].getAttribute("id"));
+  };
 
   describe("on personal site", async function() {
     before(async function() {
@@ -457,6 +477,7 @@ describe("FormView1", function() {
             await driver.findAll(".test-sd-searchable-list-item", e => e.getText()), ["Foo", "Bar", "Baz"],
           ),
         500);
+        await assertDropdownScreenReaderBehavior(await driver.findWait(".grist-floating-menu", 1000));
         await gu.sendKeys("Baz", Key.ENTER);
         assert.equal(await driver.find('select[name="D"]').value(), "Baz");
         await driver.find(".test-form-reset").click();
@@ -768,6 +789,7 @@ describe("FormView1", function() {
         assert.deepEqual(
           await driver.findAll(".test-sd-searchable-list-item", e => e.getText()), ["Foo", "Bar", "Baz"],
         );
+        await assertDropdownScreenReaderBehavior(await driver.findWait(".grist-floating-menu", 1000));
         await gu.sendKeys("Baz", Key.ENTER);
         assert.equal(await driver.find('select[name="D"]').value(), "3");
         await driver.find(".test-form-reset").click();
