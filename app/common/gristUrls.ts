@@ -60,7 +60,7 @@ export type AuditLogsPage = typeof AuditLogsPage.type;
 export const LoginPage = StringUnion("signup", "login", "verified", "forgot-password");
 export type LoginPage = typeof LoginPage.type;
 
-export const AdminPanelPage = StringUnion("admin", "docs", "users", "workspaces", "orgs");
+export const AdminPanelPage = StringUnion("admin", "docs", "users", "workspaces", "orgs", "setup");
 export type AdminPanelPage = typeof AdminPanelPage.type;
 
 export const AdminPanelTab = StringUnion("users", "workspaces", "docs", "orgs", "details");
@@ -132,6 +132,8 @@ export const getCommonUrls = () => withAdminDefinedUrls({
   helpTeamAuditLogs: "https://support.getgrist.com/install/audit-log-overview/",
   helpTelemetryLimited: "https://support.getgrist.com/telemetry-limited",
   helpEnterpriseOptIn: "https://support.getgrist.com/self-managed/#how-do-i-enable-grist-enterprise",
+  enterpriseKeyFaq: "https://www.getgrist.com/enterprise-lite-free-activation-key-faq/",
+  githubBuildFromSource: "https://github.com/gristlabs/grist-core/#building-from-source",
   helpCalendarWidget: "https://support.getgrist.com/widget-calendar",
   helpLinkKeys: "https://support.getgrist.com/examples/2021-04-link-keys",
   helpFilteringReferenceChoices: "https://support.getgrist.com/col-refs/#filtering-reference-choices-in-dropdown-lists",

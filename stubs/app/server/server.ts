@@ -15,6 +15,8 @@ import { getAdminOrDefaultEmail } from "app/server/lib/InstallAdmin";
 import log from "app/server/lib/log";
 import { runPrometheusExporter } from "app/server/prometheus-exporter";
 
+import { ChildProcess, fork } from "child_process";
+
 import * as fse from "fs-extra";
 
 const debugging = isAffirmative(process.env.DEBUG) || isAffirmative(process.env.VERBOSE);
@@ -224,6 +226,13 @@ export async function main() {
     const db = await createOrUpdateDb();
     await setUpAdminEmail(db);
     await setUpSingleOrg(db);
+
+    // Log the boot key for initial setup access.
+    const activation = await new ActivationsManager(db).current();
+    if (activation.prefs?.bootKey) {
+      console.log(`Boot key for initial setup: ${activation.prefs.bootKey}`);
+    }
+
     log.info("Database setup complete.");
   }
 
@@ -240,8 +249,62 @@ export async function main() {
   return mergedServer.flexServer;
 }
 
+/**
+ * Auto-supervisor: fork self as a child process with IPC, so the server
+ * can always be restarted from the admin panel.  When GRIST_TESTING_SOCKET
+ * is set the server runs directly — tests use SIGSTOP/SIGCONT to pause the
+ * server process and those signals can't be forwarded through a supervisor.
+ *
+ * grist-desktop imports MergedServer.create() as a library and never runs
+ * server.ts as main, so the auto-supervisor is safely skipped for Electron.
+ */
+function runAsSupervisor() {
+  let child: ChildProcess;
+  let restartRequested = false;
+
+  function startChild() {
+    restartRequested = false;
+    // Printing the user helps with setting volume permissions in a container.
+    if (process.getuid) {
+      console.log(`Running Grist as user ${process.getuid()} with primary group ${process.getgid!()}`);
+    }
+    child = fork(__filename, {
+      // fork() defaults: inherit stdio + IPC channel, child output appears
+      // in the parent terminal.  We only need to add the env override.
+      env: { ...process.env, GRIST_RUNNING_UNDER_SUPERVISOR: "true" },
+    });
+
+    child.on("message", (msg: any) => {
+      if (msg?.action === "restart") {
+        console.log("Restarting Grist with new configuration");
+        restartRequested = true;
+        child.kill("SIGINT");
+      }
+    });
+
+    child.on("exit", (code) => {
+      if (restartRequested) {
+        startChild();
+      } else {
+        process.exit(code ?? 0);
+      }
+    });
+  }
+
+  // Forward termination signals to the child.
+  for (const sig of ["SIGINT", "SIGTERM", "SIGHUP", "SIGUSR2"] as NodeJS.Signals[]) {
+    process.on(sig, () => child?.kill(sig));
+  }
+
+  startChild();
+}
+
 if (require.main === module) {
-  main().catch((err) => {
-    log.error(err);
-  });
+  if (process.env.GRIST_RUNNING_UNDER_SUPERVISOR || process.env.GRIST_TESTING_SOCKET) {
+    // Already a supervised child, or running under a test harness.
+    main().catch(err => log.error(err));
+  } else {
+    // Become the supervisor — fork self as child with IPC.
+    runAsSupervisor();
+  }
 }

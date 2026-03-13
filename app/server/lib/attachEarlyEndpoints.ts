@@ -99,12 +99,12 @@ export function attachEarlyEndpoints(options: AttachOptions) {
         // Docker) tell the parent that we have a new environment so it
         // can restart us.
         log.rawDebug(`Restart[${mreq.method}] finishing:`, meta);
-        if (process.send && process.env.GRIST_RUNNING_UNDER_SUPERVISOR) {
+        if (process.send) {
           log.rawDebug(`Restart[${mreq.method}] requesting supervisor to restart home server:`, meta);
           process.send({ action: "restart" });
         }
       });
-      if (!process.env.GRIST_RUNNING_UNDER_SUPERVISOR) {
+      if (!process.send) {
         // On the topic of http response codes, thus spake MDN:
         // "409: This response is sent when a request conflicts with the current state of the server."
         return res.status(409).send({
@@ -114,6 +114,215 @@ export function attachEarlyEndpoints(options: AttachOptions) {
       }
       // We're going down, so we're no longer ready to serve requests.
       gristServer.setReady(false);
+      return res.status(200).send({ msg: "ok" });
+    }),
+  );
+
+  // Query current maintenance / service state.
+  app.get(
+    "/api/admin/maintenance",
+    expressWrap(async (_req, res) => {
+      const inService = gristServer.isInService();
+      return res.status(200).send({ maintenance: !inService, inService });
+    }),
+  );
+
+  // Toggle maintenance mode (take Grist out of / back into service).
+  app.post(
+    "/api/admin/maintenance",
+    json({ limit: "1kb" }),
+    expressWrap(async (req, res) => {
+      const enable = req.body?.maintenance;
+      if (typeof enable !== "boolean") {
+        return res.status(400).send({ error: "Missing boolean 'maintenance' field" });
+      }
+      const activations = gristServer.getActivations();
+      if (enable) {
+        await activations.updateAppEnvFile({ GRIST_IN_SERVICE: "false" });
+        process.env.GRIST_IN_SERVICE = "false";
+      } else {
+        await activations.updateAppEnvFile({ GRIST_IN_SERVICE: "true" });
+        process.env.GRIST_IN_SERVICE = "true";
+      }
+      return res.status(200).send({ msg: "ok", maintenance: enable });
+    }),
+  );
+
+  // Configure sandbox flavor.  Persists to activation prefs so the
+  // value survives restarts.
+  app.post(
+    "/api/admin/configure-sandbox",
+    json({ limit: "1kb" }),
+    expressWrap(async (req, res) => {
+      const flavor = req.body?.GRIST_SANDBOX_FLAVOR;
+      if (!flavor || typeof flavor !== "string") {
+        return res.status(400).send({ error: "Missing GRIST_SANDBOX_FLAVOR" });
+      }
+      const known = ["gvisor", "pyodide", "macSandboxExec", "unsandboxed"];
+      if (!known.includes(flavor)) {
+        return res.status(400).send({ error: `Unknown sandbox flavor: ${flavor}` });
+      }
+      const activations = gristServer.getActivations();
+      await activations.updateAppEnvFile({ GRIST_SANDBOX_FLAVOR: flavor });
+      return res.status(200).send({ msg: "ok", flavor });
+    }),
+  );
+
+  // Bring Grist into service (open the setup gate).  Persists
+  // GRIST_IN_SERVICE=true and optionally sets GRIST_ADMIN_EMAIL
+  // and permission defaults from the pre-launch checklist.
+  app.post(
+    "/api/admin/go-live",
+    json({ limit: "1kb" }),
+    expressWrap(async (req, res) => {
+      const activations = gristServer.getActivations();
+      const reqAdminEmail = req.body?.adminEmail;
+      if (reqAdminEmail && typeof reqAdminEmail === "string") {
+        await activations.updateAppEnvFile({ GRIST_ADMIN_EMAIL: reqAdminEmail });
+        process.env.GRIST_ADMIN_EMAIL = reqAdminEmail;
+        gristServer.getInstallAdmin().clearCaches();
+      }
+      // Persist APP_HOME_URL from the server step.
+      const homeUrl = req.body?.APP_HOME_URL;
+      if (homeUrl && typeof homeUrl === "string") {
+        try {
+          new URL(homeUrl);
+          await activations.updateAppEnvFile({ APP_HOME_URL: homeUrl });
+          process.env.APP_HOME_URL = homeUrl;
+        } catch {
+          // Invalid URL — skip silently during go-live.
+        }
+      }
+      // Persist permission defaults from the pre-launch checklist.
+      const perms = req.body?.permissions;
+      if (perms && typeof perms === "object") {
+        const permEnvVars: Record<string, string> = {};
+        const permKeys = [
+          "GRIST_ORG_CREATION_ANYONE",
+          "GRIST_PERSONAL_ORGS",
+          "GRIST_FORCE_LOGIN",
+          "GRIST_ANON_PLAYGROUND",
+        ];
+        for (const key of permKeys) {
+          if (key in perms) {
+            const val = String(perms[key]);
+            permEnvVars[key] = val;
+            process.env[key] = val;
+          }
+        }
+        if (Object.keys(permEnvVars).length > 0) {
+          await activations.updateAppEnvFile(permEnvVars);
+        }
+      }
+      await activations.updateAppEnvFile({ GRIST_IN_SERVICE: "true" });
+      process.env.GRIST_IN_SERVICE = "true";
+      // Trigger a restart if we have IPC with a parent process.
+      const restarting = typeof process.send === "function";
+      if (restarting) {
+        gristServer.setReady(false);
+        res.on("finish", () => {
+          process.send!({ action: "restart" });
+        });
+      }
+      return res.status(200).send({ msg: "ok", restarting });
+    }),
+  );
+
+  // Save permission defaults without restarting.  Used by the admin
+  // panel's permissions section.
+  app.post(
+    "/api/admin/save-permissions",
+    json({ limit: "1kb" }),
+    expressWrap(async (req, res) => {
+      const activations = gristServer.getActivations();
+      const perms = req.body?.permissions;
+      if (!perms || typeof perms !== "object") {
+        return res.status(400).send({ error: "Missing permissions object" });
+      }
+      const permEnvVars: Record<string, string> = {};
+      const permKeys = [
+        "GRIST_ORG_CREATION_ANYONE",
+        "GRIST_PERSONAL_ORGS",
+        "GRIST_FORCE_LOGIN",
+        "GRIST_ANON_PLAYGROUND",
+      ];
+      for (const key of permKeys) {
+        if (key in perms) {
+          const val = String(perms[key]);
+          permEnvVars[key] = val;
+          process.env[key] = val;
+        }
+      }
+      if (Object.keys(permEnvVars).length === 0) {
+        return res.status(400).send({ error: "No recognized permission keys" });
+      }
+      await activations.updateAppEnvFile(permEnvVars);
+      return res.status(200).send({ msg: "ok" });
+    }),
+  );
+
+  // Read current APP_HOME_URL (from env or DB-persisted env vars).
+  app.get(
+    "/api/admin/server-config",
+    expressWrap(async (_req, res) => {
+      return res.status(200).send({
+        APP_HOME_URL: process.env.APP_HOME_URL || "",
+      });
+    }),
+  );
+
+  // Save APP_HOME_URL without restart.
+  app.post(
+    "/api/admin/save-server-config",
+    json({ limit: "1kb" }),
+    expressWrap(async (req, res) => {
+      const activations = gristServer.getActivations();
+      const url = req.body?.APP_HOME_URL;
+      if (typeof url !== "string" || !url) {
+        return res.status(400).send({ error: "Missing APP_HOME_URL" });
+      }
+      // Basic URL validation
+      try {
+        new URL(url);
+      } catch {
+        return res.status(400).send({ error: "Invalid URL" });
+      }
+      await activations.updateAppEnvFile({ APP_HOME_URL: url });
+      process.env.APP_HOME_URL = url;
+      return res.status(200).send({ msg: "ok" });
+    }),
+  );
+
+  // Generate a new boot key and store it in activation prefs.
+  app.post(
+    "/api/admin/boot-key/generate",
+    json({ limit: "1kb" }),
+    expressWrap(async (_req, res) => {
+      const crypto = await import("crypto");
+      const newKey = crypto.randomBytes(12).toString("hex");
+      const activations = gristServer.getActivations();
+      const activation = await activations.current();
+      if (!activation.prefs) { activation.prefs = {}; }
+      activation.prefs.bootKey = newKey;
+      await activation.save();
+      (gristServer as any)._bootKey = newKey;
+      return res.status(200).send({ msg: "ok", bootKey: newKey });
+    }),
+  );
+
+  // Clear the boot key from activation prefs.
+  app.post(
+    "/api/admin/boot-key/clear",
+    json({ limit: "1kb" }),
+    expressWrap(async (_req, res) => {
+      const activations = gristServer.getActivations();
+      const activation = await activations.current();
+      if (activation.prefs?.bootKey) {
+        delete activation.prefs.bootKey;
+        await activation.save();
+      }
+      // Also clear the cached value so getBootKey() returns the env var (or undefined).
+      (gristServer as any)._bootKey = process.env.GRIST_BOOT_KEY || undefined;
       return res.status(200).send({ msg: "ok" });
     }),
   );
