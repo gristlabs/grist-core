@@ -47,8 +47,13 @@ describe("ValueFormatter", function() {
   });
 
   describe("NumericFormatter", function() {
+    // Normalize Unicode right single quotation mark (U+2019) to ASCII apostrophe (U+0027).
+    // ICU versions disagree on which to use as the de-CH grouping separator:
+    // ICU 72-77 uses U+2019, ICU 78 reverted to U+0027. Since ICU has changed this
+    // multiple times, this workaround should stay until the separator stabilizes across
+    // all Node versions we test against.
     function fmt(options: NumberFormatOptions, value: number, docSettings: DocumentSettings) {
-      return createFormatter("Numeric", options, docSettings).formatAny(value);
+      return createFormatter("Numeric", options, docSettings).formatAny(value).replace(/\u2019/g, "'");
     }
 
     function checkDefault(options: NumberFormatOptions, value: number, expected: string) {
@@ -108,7 +113,7 @@ describe("ValueFormatter", function() {
       // Test currency formatting with custom locales.
       assert.equal(fmt({ numMode: "currency" }, 1000000, { locale: "es-ES" }), "1.000.000,00 €");
       assert.equal(fmt({ numMode: "currency", decimals: 4 }, 1000000, { locale: "en-NZ" }), "$1,000,000.0000");
-      assert.equal(fmt({ numMode: "currency" }, -1234.565, { locale: "de-CH" }), "CHF-1’234.57");
+      assert.equal(fmt({ numMode: "currency" }, -1234.565, { locale: "de-CH" }), "CHF-1'234.57");
       assert.equal(fmt({ numMode: "currency" }, -121e+25, { locale: "es-AR" }),
         "-$ 1.210.000.000.000.000.000.000.000.000,00");
       assert.equal(fmt({ numMode: "currency" }, 0.1234567, { locale: "fr-BE" }), "0,12 €");
@@ -123,7 +128,7 @@ describe("ValueFormatter", function() {
       assert.equal(
         fmt({ numMode: "currency", decimals: 4 }, 1000000, { locale: "en-NZ", currency: "JPY" }),
         "¥1,000,000.0000");
-      assert.equal(fmt({ numMode: "currency" }, -1234.565, { locale: "de-CH", currency: "JMD" }), "$-1’234.57");
+      assert.equal(fmt({ numMode: "currency" }, -1234.565, { locale: "de-CH", currency: "JMD" }), "$-1'234.57");
       assert.equal(
         fmt({ numMode: "currency" }, -121e+25, { locale: "es-AR", currency: "GBP" }),
         "-£ 1.210.000.000.000.000.000.000.000.000,00");
