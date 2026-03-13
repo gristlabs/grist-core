@@ -35,7 +35,7 @@ Here are some specific feature highlights of Grist (🇫🇷 marks heavy French 
   * Python formulas.
     - Full [Python syntax is supported](https://support.getgrist.com/formulas/#python), including the standard library.
     - Many [Excel functions](https://support.getgrist.com/functions/) also available.
-    - An [AI Formula Assistant](https://www.getgrist.com/ai-formula-assistant/) specifically tuned for formula generation (works with OpenAI, [Llama](https://ai.meta.com/llama/), and many other models via [OpenRouter](https://openrouter.ai/) or any OpenAI-compatible endpoint).
+    - An [AI Formula Assistant](https://support.getgrist.com/ai-assistant-legacy/) specifically tuned for formula generation (works with OpenAI, [Llama](https://ai.meta.com/llama/), and many other models via [OpenRouter](https://openrouter.ai/) or any OpenAI-compatible endpoint).
     - A [formula timer](https://support.getgrist.com/formula-timer/) for diagnosing slow formulas.
   * A portable, self-contained format.
     - Based on SQLite, the most widely deployed database engine.
@@ -88,7 +88,7 @@ Here are some specific feature highlights of Grist (🇫🇷 marks heavy French 
     - Useful for intranet operation and specific compliance requirements.
     - [Sign in with getgrist.com](https://support.getgrist.com/install/sign-in-with-grist/) for easy authentication without running your own auth server.
     - Store [attachments externally](https://support.getgrist.com/document-settings/#external-attachments) in S3-compatible storage to keep `.grist` files small (🇫🇷).
-    - [HTTP long polling](https://support.getgrist.com/self-managed/#what-if-websocket-connections-are-not-available) as an alternative to WebSockets for restrictive network environments (🇫🇷).
+    - [HTTP long polling](https://support.getgrist.com/newsletters/2024-04/#networking-improvements) as an alternative to WebSockets for restrictive network environments (🇫🇷).
   * Sandboxing options for untrusted documents.
     - On Linux or with Docker, you can enable [gVisor](https://github.com/google/gvisor) sandboxing at the individual document level.
     - On macOS, you can use native sandboxing.
