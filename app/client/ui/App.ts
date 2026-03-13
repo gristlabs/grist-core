@@ -41,6 +41,7 @@ export interface App extends DisposableWithEvents {
   topAppModel: TopAppModel;
   pageModel?: DocPageModel;
   regionFocusSwitcher?: RegionFocusSwitcher;
+  clipboard?: Clipboard;
 }
 
 /**
@@ -60,6 +61,8 @@ export class AppImpl extends DisposableWithEvents implements App {
 
   // Track the RegionFocusSwitcher created by pagePanels, so that the codebase can access it.
   public regionFocusSwitcher?: RegionFocusSwitcher;
+
+  public clipboard?: Clipboard;
 
   private _settings: ko.Observable<{ features?: ISupportedFeatures }>;
 
@@ -83,8 +86,10 @@ export class AppImpl extends DisposableWithEvents implements App {
 
     KeyboardFocusHighlighter.create(this);
 
+    this.topAppModel = this.autoDispose(TopAppModelImpl.create(null, G.window));
+
     if (isDesktop()) {
-      Clipboard.create(this, this);
+      this.clipboard = Clipboard.create(this, this);
     } else {
       // On mobile, we do not want to keep focus on a special textarea (which would cause unwanted
       // scrolling and showing of mobile keyboard). But we still rely on 'clipboard_focus' and
@@ -98,8 +103,6 @@ export class AppImpl extends DisposableWithEvents implements App {
         onDefaultBlur: () => this.trigger("clipboard_blur"),
       });
     }
-
-    this.topAppModel = this.autoDispose(TopAppModelImpl.create(null, G.window));
 
     const isHelpPaneVisible = ko.observable(false);
 
@@ -139,6 +142,20 @@ export class AppImpl extends DisposableWithEvents implements App {
     this.autoDispose(commands.createGroup({
       shortcuts() { isHelpPaneVisible(true); },
       accessibility() { openAccessibilityModal(this.topAppModel.appObs); },
+      toggleScreenReaderMode() {
+        const appModel = this.topAppModel.appObs.get();
+        if (appModel) {
+          appModel.screenReaderMode.set(!appModel.screenReaderMode.get());
+          appModel.notifier.createUserMessage(
+            appModel.screenReaderMode.get() ?
+              t("Enabled screen reader mode") : t("Disabled screen reader mode"),
+            {
+              level: "success",
+              key: "sr-mode-change",
+            },
+          );
+        }
+      },
       historyBack() { G.window.history.back(); },
       historyForward() { G.window.history.forward(); },
     }, this, true));

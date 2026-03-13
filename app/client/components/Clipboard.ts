@@ -61,6 +61,15 @@ export class Clipboard extends Disposable {
   };
 
   /**
+   * String used as a DOM element id that identifies the currently active item in a View.
+   * It is used by the clipboard's hidden input to correctly announce the active item to screen readers.
+   *
+   * A View is meant to place this id on the element that should be announced as active to screen readers,
+   * for example, the currently active cell in a GridView.
+   */
+  public static readonly srActiveId = "current-screenreader-item";
+
+  /**
    * Helper to determine if the currently active element deserves to keep its own focus, and capture copy-paste events.
    *
    * By default, focus is automatically allowed if:
@@ -101,9 +110,17 @@ export class Clipboard extends Disposable {
 
   constructor(private _app: App) {
     super();
-    this.copypasteField = dom("textarea", dom.cls("copypaste"), dom.cls("mousetrap"),
+    this.copypasteField = dom("textarea",
+      {
+        "id": "copypaste-field",
+        "class": "copypaste mousetrap",
+        // These 2 attributes expose to screen readers the current active item of the view (i.e the current grid cell),
+        // SRs more-or-less act as if the DOM focus is on the target element of aria-activedescendant
+        "aria-owns": "main-content",
+        "aria-activedescendant": Clipboard.srActiveId,
+      },
       dom.on("input", (event, elem) => {
-        const value = elem.value;
+        const value = (event as InputEvent).data;
         elem.value = "";
         event.stopPropagation();
         event.preventDefault();
