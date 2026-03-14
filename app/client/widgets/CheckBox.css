@@ -7,7 +7,7 @@
 }
 
 .widget_checkbox:has(> .widget_checkmark[style*="display: none"]) {
-  background-color: aliceblue;
+  background-color: #f0f8ff8c;
   border: 1px solid gray;
   border-radius: 3px;
 }
