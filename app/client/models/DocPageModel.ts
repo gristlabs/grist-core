@@ -21,6 +21,7 @@ import { mapGetOrSet, MapWithTTL } from "app/common/AsyncCreate";
 import { AsyncFlow, CancelledError, FlowRunner } from "app/common/AsyncFlow";
 import { delay } from "app/common/delay";
 import { OpenDocMode, OpenDocOptions, OpenLocalDocResult, UserOverride } from "app/common/DocListAPI";
+import { createEmptyDocStateComparison } from "app/common/DocState";
 import { FilteredDocUsageSummary } from "app/common/DocUsage";
 import { Features, mergedFeatures, Product } from "app/common/Features";
 import { buildUrlId, CompareEmphasis, IGristUrlState, parseUrlId, UrlIdParts } from "app/common/gristUrls";
@@ -526,12 +527,29 @@ contact the document owners to attempt a document recovery. [{{error}}]", { erro
     });
 
     // If a document for comparison is given, load the comparison, and provide it to the Gristdoc.
-    const comparison = comparisonUrlId ?
+    let comparison = comparisonUrlId ?
       await this._api.getDocAPI(urlId).compareDoc(comparisonUrlId, { detail: true }) : undefined;
+    let effectiveCompareEmphasis = compareEmphasis;
+
+    // In suggestion mode, automatically set up comparison to highlight changes.
+    if (!comparison) {
+      const isProposable = Boolean(doc.options?.proposedChanges?.acceptProposals);
+      if (isProposable && doc.isFork) {
+        // Returning to an existing suggestion fork: fetch comparison against trunk.
+        comparison = await this._api.getDocAPI(urlId).compareDoc(
+          doc.idParts.trunkId, { detail: true });
+      } else if (isProposable && doc.isPreFork) {
+        // Fresh suggestion session: empty comparison that will track live edits.
+        comparison = createEmptyDocStateComparison();
+      }
+      if (comparison) {
+        effectiveCompareEmphasis = "local";
+      }
+    }
 
     const gristDoc = gdModule.GristDocImpl.create(flow, this._appObj, this.appModel, docComm, this, openDocResponse,
       this.appModel.topAppModel.plugins,
-      { comparison, compareEmphasis });
+      { comparison, compareEmphasis: effectiveCompareEmphasis });
 
     // Move ownership of docComm to GristDoc.
     gristDoc.autoDispose(flow.release(docComm));

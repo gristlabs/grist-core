@@ -161,7 +161,7 @@ class DateConverter extends ValueConverter {
     // so that the data engine knows what to do in do_convert, especially regarding timezones.
     // If the source column is a Reference to a Date/DateTime then `value` is already
     // an encoded object from the display column which has type Any.
-    value = gristTypes.reencodeAsAny(value, this._sourceType);
+    value = gristTypes.reencodeAsTypedCellValue(value, this._sourceType);
     if (Array.isArray(value) && (
       value[0] === GristObjCode.Date ||
       value[0] === GristObjCode.DateTime

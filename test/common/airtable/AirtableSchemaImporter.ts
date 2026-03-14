@@ -448,34 +448,47 @@ describe("AirtableSchemaImporter", function() {
       });
     });
 
-    it("correctly converts a multipleRecordLinks column", () => {
-      const field = {
-        ...createBasicAirtableField("A multipleRecordLinks column", "multipleRecordLinks"),
-        options: {
-          linkedTableId: firstTableId,
-          isReversed: false,
-          prefersSingleRecordLink: false,
-          inverseLinkFieldId: "",
-        },
-      };
-      const inverseField = {
-        ...createBasicAirtableField("An inverse multipleRecordLinks column", "multipleRecordLinks"),
-        options: {
-          linkedTableId: firstTableId,
-          isReversed: true,
-          prefersSingleRecordLink: false,
-          inverseLinkFieldId: field.id,
-        },
-      };
-      field.options.inverseLinkFieldId = inverseField.id;
-      const fieldDependenciesByTable = {
-        [firstTableId]: [inverseField],
-      };
-      const { testField, testColumn } = convertAirtableField({ field, fieldDependenciesByTable });
-      runBasicFieldTest(testField, testColumn);
-      assert.deepInclude(testColumn, {
-        type: "RefList",
-        ref: { originalTableId: firstTableId },
+    [
+      {
+        name: "single record",
+        options: { prefersSingleRecordLink: true },
+        expectedColProps: { type: "Ref" },
+      },
+      {
+        name: "multiple records",
+        options: { prefersSingleRecordLink: false },
+        expectedColProps: { type: "RefList" },
+      },
+    ].forEach(({ name: variantName, options: variantOptions, expectedColProps }) => {
+      it(`correctly converts a multipleRecordLinks column - ${variantName}`, () => {
+        const field = {
+          ...createBasicAirtableField("A multipleRecordLinks column", "multipleRecordLinks"),
+          options: {
+            linkedTableId: firstTableId,
+            isReversed: false,
+            inverseLinkFieldId: "",
+            ...variantOptions,
+          },
+        };
+        const inverseField = {
+          ...createBasicAirtableField("An inverse multipleRecordLinks column", "multipleRecordLinks"),
+          options: {
+            linkedTableId: firstTableId,
+            isReversed: true,
+            inverseLinkFieldId: field.id,
+            ...variantOptions,
+          },
+        };
+        field.options.inverseLinkFieldId = inverseField.id;
+        const fieldDependenciesByTable = {
+          [firstTableId]: [inverseField],
+        };
+        const { testField, testColumn } = convertAirtableField({ field, fieldDependenciesByTable });
+        runBasicFieldTest(testField, testColumn);
+        assert.deepInclude(testColumn, {
+          ref: { originalTableId: firstTableId },
+          ...expectedColProps,
+        });
       });
     });
 

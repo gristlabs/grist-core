@@ -17,9 +17,11 @@ import * as testUtils from "test/server/testUtils";
 import { tmpdir } from "os";
 import * as path from "path";
 
-import { AxiosRequestConfig } from "axios";
+import axios, { AxiosRequestConfig } from "axios";
+import { assert } from "chai";
 import FormData from "form-data";
 import * as fse from "fs-extra";
+import defaultsDeep from "lodash/defaultsDeep";
 import fetch from "node-fetch";
 import { createClient } from "redis";
 
@@ -300,15 +302,18 @@ export function addAllScenarios(
   testSuiteName: string = "docapi",
   options: ScenarioOptions = {},
 ) {
+  let oldEnv: testUtils.EnvironmentSnapshot;
+
   // Global setup runs once before any scenario
   before(async function() {
+    oldEnv = new testUtils.EnvironmentSnapshot();
     await globalSetup(testSuiteName);
   });
 
-  // Note: We intentionally don't restore oldEnv in after() because
-  // when multiple test files share the same globalSetupDone flag,
-  // the first file's after() would clear the database path before
-  // subsequent files run. The test process exits anyway.
+  after(async function() {
+    oldEnv.restore();
+    globalSetupDone.delete(testSuiteName);
+  });
 
   addScenario("merged server", "merged", addTests, options);
 
@@ -316,4 +321,20 @@ export function addAllScenarios(
     addScenario("home + docworker", "separated", addTests, options);
     addScenario("direct to docworker", "direct", addTests, options);
   }
+}
+
+export async function addAttachmentsToDoc(
+  serverUrl: string,
+  docId: string,
+  attachments: { name: string; contents: string }[],
+  config: AxiosRequestConfig,
+) {
+  const formData = new FormData();
+  for (const attachment of attachments) {
+    formData.append("upload", attachment.contents, attachment.name);
+  }
+  const resp = await axios.post(`${serverUrl}/api/docs/${docId}/attachments`, formData,
+    defaultsDeep({ headers: formData.getHeaders() }, config));
+  assert.equal(resp.status, 200);
+  return resp;
 }

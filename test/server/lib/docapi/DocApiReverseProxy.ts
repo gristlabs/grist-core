@@ -30,6 +30,7 @@ import { createClient } from "redis";
 const username = process.env.USER || "nobody";
 const tmpDir = path.join(tmpdir(), `grist_test_${username}_docapi_reverse_proxy`);
 let dataDir: string;
+let oldEnv: testUtils.EnvironmentSnapshot;
 
 let homeUrl: string;
 let extraHeadersForConfig: { [key: string]: any };
@@ -47,8 +48,13 @@ describe("DocApiReverseProxy", function() {
 
   before(async function() {
     await prepareFilesystemDirectoryForTests(tmpDir);
+    oldEnv = new testUtils.EnvironmentSnapshot();
     await prepareDatabase(tmpDir);
     dataDir = path.join(tmpDir, "data");
+  });
+
+  after(async function() {
+    oldEnv.restore();
   });
 
   async function flushAllRedis() {

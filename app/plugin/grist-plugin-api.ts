@@ -41,6 +41,7 @@ export * from "app/plugin/StorageAPI";
 export * from "app/plugin/RenderOptions";
 export * from "app/plugin/WidgetAPI";
 export * from "app/plugin/CustomSectionAPI";
+export { decodeObject, mapValues } from "app/plugin/objtypes";
 
 import { IRpcLogger, Rpc } from "grain-rpc";
 import isEqual from "lodash/isEqual";

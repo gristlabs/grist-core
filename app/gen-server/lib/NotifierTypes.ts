@@ -137,6 +137,7 @@ export const DocNotificationEvents = StringUnion(
   "docChanges",
   "comments",
   "suggestions",
+  "rowChanges",
 );
 export type DocNotificationEvent = typeof DocNotificationEvents.type;
 

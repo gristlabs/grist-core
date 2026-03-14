@@ -100,6 +100,7 @@ import {
   CreatableArchiveFormats,
   DocReplacementOptions,
   Document as APIDocument,
+  ExpandTableOption,
   NEW_DOCUMENT_CODE,
 } from "app/common/UserAPI";
 import { convertFromColumn } from "app/common/ValueConverter";
@@ -108,7 +109,7 @@ import { parseUserAction } from "app/common/ValueParser";
 import { Document } from "app/gen-server/entity/Document";
 import { Share } from "app/gen-server/entity/Share";
 import { Scope } from "app/gen-server/lib/homedb/HomeDBManager";
-import { RecordWithStringId } from "app/plugin/DocApiTypes";
+import { ColumnMetadata, TableMetadata } from "app/plugin/DocApiTypes";
 import { ParseFileResult, ParseOptions } from "app/plugin/FileParserAPI";
 import { AccessTokenOptions, AccessTokenResult, GristDocAPI, UIRowId } from "app/plugin/GristAPI";
 import { ActionHistory } from "app/server/lib/ActionHistory";
@@ -170,7 +171,7 @@ import { TableMetadataLoader } from "app/server/lib/TableMetadataLoader";
 import { DocTriggers } from "app/server/lib/Triggers";
 import { fetchURL, FileUploadInfo, globalUploadSet, UploadInfo } from "app/server/lib/uploads";
 import { UserPresence } from "app/server/lib/UserPresence";
-import { WebhookQueue } from "app/server/lib/WebhookQueue";
+import { ComposedActionQueue, WebhookQueue } from "app/server/lib/WebhookQueue";
 
 import assert from "assert";
 import { EventEmitter } from "events";
@@ -449,7 +450,21 @@ export class ActiveDoc extends EventEmitter {
     this.docClients = new DocClients(this);
     this._userPresence = new UserPresence(this.docClients);
     this._webhookQueue = new WebhookQueue(this);
-    this._triggers = new DocTriggers(this, this._webhookQueue);
+
+    // We will create a wrapper around the action queue, and reroute actions to different queues/handlers.
+    // Webhooks are delivered through the webhook queue, tightly coupled with particular doc worker, and it will
+    // - stop the processing of further actions if queue is too long
+    // - send any request from within the doc worker server
+    // Emails are delivered through the DocNotificationManager, which is a service running on the home server
+    // and has its own batching-job queue mechanism.
+    // NOTICE: this is just a 'plugin' mechanism for other flavors of Grist to implement. Emails are currently
+    // only supported in Grist Cloud or in Enterprise installations.
+    const actionRoute = new ComposedActionQueue();
+    actionRoute.use("webhook", this._webhookQueue);
+    actionRoute.use("email",
+      ev => this._server.getDocNotificationManager()?.rowNotification(this._docName, ev) ?? Promise.resolve());
+
+    this._triggers = new DocTriggers(this, actionRoute);
     this._requests = new DocRequests(this);
     this._actionHistory = new ActionHistoryImpl(this.docStorage);
     this.docPluginManager = _docManager.pluginManager ?
@@ -1508,42 +1523,56 @@ export class ActiveDoc extends EventEmitter {
   }
 
   /**
+   * Returns table metadata for all tables in the document.
+   *
+   * @returns {Promise<TableMetadata[]>} Records containing metadata for all tables.
+   */
+  public async getTables(
+    docSession: OptDocSession,
+    expand: ExpandTableOption[] = []): Promise<TableMetadata[]> {
+    const metaTables = await this.fetchMetaTables(docSession);
+    const [, , tableRefs, tableData] = metaTables._grist_Tables;
+
+    const includeColumns = expand.includes("column");
+
+    // tableId is pulled out of fields and used as the root id
+    const fieldNames = without(Object.keys(tableData), "tableId");
+
+    const tables: TableMetadata[] = [];
+    (tableData.tableId as string[]).forEach((id, index) => {
+      if (!id) {
+        return;
+      }
+      const tableRef = tableRefs[index];
+      const table: TableMetadata = { id, fields: { tableRef } };
+      for (const key of fieldNames) {
+        table.fields[key] = tableData[key][index];
+      }
+      if (includeColumns) {
+        table.columns = this._colMetadataRecords(metaTables, tableRef);
+      }
+      tables.push(table);
+    });
+    return tables;
+  }
+
+  /**
    * Returns column metadata for all visible columns from `tableId`.
    *
    * @param {string} tableId Table to retrieve column metadata for.
-   * @returns {Promise<TableRecordValue[]>} Records containing metadata about the visible columns
+   * @returns {Promise<ColumnMetadata[]>} Records containing metadata about the visible columns
    * from `tableId`.
    */
   public async getTableCols(
     docSession: OptDocSession,
     tableId: string,
-    includeHidden = false): Promise<RecordWithStringId[]> {
+    includeHidden = false): Promise<ColumnMetadata[]> {
     const metaTables = await this.fetchMetaTables(docSession);
     if (tableId.startsWith("_grist_")) {
       throw new Error("getTableCols not available for meta tables");
     }
     const tableRef = tableIdToRef(metaTables, tableId);
-    const [, , colRefs, columnData] = metaTables._grist_Tables_column;
-
-    // colId is pulled out of fields and used as the root id
-    const fieldNames = without(Object.keys(columnData), "colId");
-
-    const columns: RecordWithStringId[] = [];
-    (columnData.colId as string[]).forEach((id, index) => {
-      const hasNoId = !id;
-      const isHidden = hasNoId || id === "manualSort" || id.startsWith("gristHelper_");
-      const fromDifferentTable = columnData.parentId[index] !== tableRef;
-      const skip = (isHidden && !includeHidden) || hasNoId || fromDifferentTable;
-      if (skip) {
-        return;
-      }
-      const column: RecordWithStringId = { id, fields: { colRef: colRefs[index] } };
-      for (const key of fieldNames) {
-        column.fields[key] = columnData[key][index];
-      }
-      columns.push(column);
-    });
-    return columns;
+    return this._colMetadataRecords(metaTables, tableRef, includeHidden);
   }
 
   /**
@@ -3572,6 +3601,38 @@ export class ActiveDoc extends EventEmitter {
    */
   private _registerSQLiteDB() {
     this._docManager.registerSQLiteDB(this.docName, this.docStorage.getDB());
+  }
+
+  private _colMetadataRecords(
+    metaTables: { [p: string]: TableDataAction },
+    tableRef: number,
+    includeHidden = false): ColumnMetadata[] {
+    const [, , colRefs, columnData] = metaTables._grist_Tables_column;
+
+    // colId is pulled out of fields and used as the root id
+    const fieldNames = without(Object.keys(columnData), "colId");
+
+    const columns: ColumnMetadata[] = [];
+    (columnData.colId as string[]).forEach((id, index) => {
+      const hasNoId = !id;
+      const isHidden = hasNoId || id === "manualSort" || id.startsWith("gristHelper_");
+      const fromDifferentTable = columnData.parentId[index] !== tableRef;
+      const skip = (isHidden && !includeHidden) || hasNoId || fromDifferentTable;
+      if (skip) {
+        return;
+      }
+      const column: ColumnMetadata = { id, fields: {
+        colRef: colRefs[index],
+        label: String(columnData.label?.[index] ?? ""),
+        isFormula: Boolean(columnData.isFormula?.[index]),
+      } };
+      const otherFieldNames = without(fieldNames, "label", "isFormula");
+      for (const key of otherFieldNames) {
+        column.fields[key] = columnData[key][index];
+      }
+      columns.push(column);
+    });
+    return columns;
   }
 }
 

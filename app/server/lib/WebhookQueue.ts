@@ -1,8 +1,9 @@
 import { MapWithTTL } from "app/common/AsyncCreate";
 import { WebhookMessageType } from "app/common/CommTypes";
-import { RowRecord } from "app/common/DocActions";
 import {
+  EmailAction,
   TriggerAction,
+  WebhookAction,
   WebhookBatchStatus,
   WebHookSecret,
   WebhookStatus,
@@ -10,6 +11,7 @@ import {
   WebhookSummaryCollection,
   WebhookUsage,
 } from "app/common/Triggers";
+import { RowRecord } from "app/plugin/GristData";
 import { decodeObject } from "app/plugin/objtypes";
 import { ActiveDoc } from "app/server/lib/ActiveDoc";
 import log from "app/server/lib/log";
@@ -25,10 +27,21 @@ import { createClient, Multi, RedisClient } from "redis";
 
 promisifyAll(RedisClient.prototype);
 
-interface WebHookEvent {
-  payload: RowRecord;
-  id: string;
+/**
+ * A payload calculated for the action to use. Each action has only access to a single record. Notice
+ * that this is a whole record, without any restrictions.
+ */
+export interface ActionPayload<A extends TriggerAction = TriggerAction> {
+  id: string; // Action id (each action has unique id, for webhooks this a an id from home db)
+  payload: RowRecord; // The record data to use with the action
+  action: A;
 }
+
+/** Payload for webhook actions specifically. */
+export type WebhookActionPayload = ActionPayload<WebhookAction>;
+
+/** Payload for email actions specifically. */
+export type EmailActionPayload = ActionPayload<EmailAction>;
 
 const MAX_QUEUE_SIZE =
   process.env.GRIST_MAX_QUEUE_SIZE ? parseInt(process.env.GRIST_MAX_QUEUE_SIZE, 10) : 1000;
@@ -44,17 +57,65 @@ const TRIGGER_WAIT_DELAY =
 const TRIGGER_MAX_ATTEMPTS =
   process.env.GRIST_TRIGGER_MAX_ATTEMPTS ? parseInt(process.env.GRIST_TRIGGER_MAX_ATTEMPTS, 10) : 20;
 
+export interface ActionQueue<T extends ActionPayload = ActionPayload> {
+  enqueue(events: T[]): Promise<void>;
+}
+
+type ActionExecutor<T extends ActionPayload = ActionPayload> = ActionQueue<T> | ((events: T[]) => Promise<void>);
+
+// Maps action type discriminator strings to their specific payload types.
+interface ActionPayloadMap {
+  webhook: WebhookActionPayload;
+  email: EmailActionPayload;
+}
+
+/**
+ * An ActionQueue that routes events to different queues based on action type.
+ * It accepts the general ActionPayload union and is responsible for casting
+ * each event to the correct specific payload type before handing it off to
+ * the registered queue or function for that action type.
+ */
+export class ComposedActionQueue implements ActionQueue {
+  private _queueMap = new Map<string, ActionQueue<ActionPayload>>();
+
+  public use<K extends keyof ActionPayloadMap>(
+    type: K,
+    queue: ActionExecutor<ActionPayloadMap[K]>,
+  ) {
+    if (typeof queue === "function") {
+      this._queueMap.set(type, { enqueue: queue });
+    } else {
+      this._queueMap.set(type, queue);
+    }
+  }
+
+  public async enqueue(events: ActionPayload[]) {
+    const eventsByType = _.groupBy(events, e => e.action.type);
+    const promises: Promise<void>[] = [];
+    for (const [type, typeEvents] of Object.entries(eventsByType)) {
+      const queue = this._queueMap.get(type);
+      if (queue) {
+        promises.push(queue.enqueue(typeEvents));
+      } else {
+        log.warn("ComposedActionQueue: no queue for action type", type);
+      }
+    }
+    await Promise.allSettled(promises);
+    await Promise.all(promises); // Rethrow any errors.
+  }
+}
+
 // Manages webhook event queuing and HTTP delivery.
 // Events are placed on an in-memory queue which is replicated on redis as backup.
 // The same class instance consumes the queue and sends webhook requests in the background - see _sendLoop().
 // This class is used by DocTriggers which handles the trigger logic and delegates
 // webhook delivery to this class.
-export class WebhookQueue {
+export class WebhookQueue implements ActionQueue<WebhookActionPayload> {
   // Events that need to be sent to webhooks in FIFO order.
   // This is the primary place where events are stored and consumed,
   // while a copy of this queue is kept on redis as a backup.
   // Modifications to this queue should be replicated on the redis queue.
-  private _webHookEventQueue: WebHookEvent[] = [];
+  private _webHookEventQueue: WebhookActionPayload[] = [];
 
   // DB cache for webhook secrets
   private _webhookCache = new MapWithTTL<string, WebHookSecret>(WEBHOOK_CACHE_TTL);
@@ -90,7 +151,7 @@ export class WebhookQueue {
     }
   }
 
-  public async enqueue(events: WebHookEvent[]) {
+  public async enqueue(events: WebhookActionPayload[]) {
     await this._pushToRedisQueue(events);
     this._webHookEventQueue.push(...events);
     this._startSendLoop();
@@ -249,7 +310,7 @@ export class WebhookQueue {
     });
   }
 
-  private async _pushToRedisQueue(events: WebHookEvent[]) {
+  private async _pushToRedisQueue(events: WebhookActionPayload[]) {
     const strings = events.map(e => JSON.stringify(e));
     try {
       await this._redisClient?.rpushAsync(this._redisQueueKey, ...strings);
@@ -601,7 +662,7 @@ class WebhookStatistics extends PersistedStore<StatsKey> {
    * @param id Webhook ID
    * @param queue Current webhook task queue
    */
-  public async getUsage(id: string, queue: WebHookEvent[]): Promise<WebhookUsage | null> {
+  public async getUsage(id: string, queue: WebhookActionPayload[]): Promise<WebhookUsage | null> {
     // Get all the keys from the store for this webhook, and create a dictionary.
     const values: Record<StatsKey, string> = _.fromPairs(await this.get(id, [
       `batchStatus`,

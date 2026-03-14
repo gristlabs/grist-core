@@ -964,7 +964,9 @@
         "Suggestions": "Suggestions"
     },
     "TopBar": {
-        "Manage team": "Manage team"
+        "Manage team": "Manage team",
+        "Redo": "Redo",
+        "Undo": "Undo"
     },
     "TriggerFormulas": {
         "Any field": "Any field",
@@ -2717,7 +2719,9 @@
         "loading your tables...": "loading your tables...",
         "or": "or",
         "{{count}} warnings_one": "{{count}} warnings",
-        "{{count}} warnings_other": "{{count}} warnings"
+        "{{count}} warnings_other": "{{count}} warnings",
+        "The more convenient ‘Connect with Airtable’ option can be configured by the installation administrator. [Learn more.]({{url}})": "The more convenient ‘Connect with Airtable’ option can be configured by the installation administrator. [Learn more.]({{url}})",
+        "Use personal access token": "Use personal access token"
     },
     "AirtableImporter": {
         "Creating a new Grist document...": "Creating a new Grist document...",
@@ -2734,6 +2738,7 @@
         "Import from Airtable": "Import from Airtable"
     },
     "startHomeAirtableImport": {
-        "Import from Airtable": "Import from Airtable"
+        "Import from Airtable": "Import from Airtable",
+        "The current workspace can't be imported to.": "The current workspace can't be imported to."
     }
 }

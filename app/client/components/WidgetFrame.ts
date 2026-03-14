@@ -11,19 +11,22 @@ import { reportError } from "app/client/models/errors";
 import { gristThemeObs } from "app/client/ui2018/theme";
 import { AccessLevel, ICustomWidget, isSatisfied, matchWidget } from "app/common/CustomWidget";
 import { DisposableWithEvents } from "app/common/DisposableWithEvents";
-import { BulkColValues, fromTableDataAction, RowRecord } from "app/common/DocActions";
-import { extractInfoFromColType, reencodeAsAny } from "app/common/gristTypes";
+import { BulkColValues, CellValue, fromTableDataAction, RowRecord } from "app/common/DocActions";
+import { extractInfoFromColType, GristTypeInfo, reencodeAsTypedCellValue } from "app/common/gristTypes";
 import { convertThemeKeysToCssVars } from "app/common/ThemePrefs";
 import { getGristConfig } from "app/common/urlUtils";
 import {
   AccessTokenOptions, CursorPos, CustomSectionAPI, FetchSelectedOptions, GristDocAPI, GristView,
   InteractionOptionsRequest, WidgetAPI, WidgetColumnMap,
 } from "app/plugin/grist-plugin-api";
+import { CellFormatType } from "app/plugin/GristAPI";
+import { GristObjCode } from "app/plugin/GristData";
 
 import { MsgType, Rpc } from "grain-rpc";
 import { Computed, Disposable, dom, Observable } from "grainjs";
 import debounce from "lodash/debounce";
 import flatMap from "lodash/flatMap";
+import identity from "lodash/identity";
 import isEqual from "lodash/isEqual";
 import noop from "lodash/noop";
 
@@ -458,14 +461,15 @@ export class GristViewImpl implements GristView {
     const columns: ColumnRec[] = this._visibleColumns(options);
     const rowIds = this._baseView.sortedRows.getKoArray().peek().filter(id => id != "new");
     const data: BulkColValues = {};
-    const expandRefs = options.expandRefs !== false;
+    const expandRefs = options.expandRefs ?? (options.cellFormat === "typed" ? false : true);
+    const reencode = getReencode(options.cellFormat);
     for (const column of columns) {
       // Use the colId of the displayCol when expanding references, so
       // we don't get the underlying refId instead.
       const colId: string = expandRefs ? column.displayColModel.peek().colId.peek() : column.colId.peek();
       const getter = this._baseView.tableModel.tableData.getRowPropFunc(colId);
       const typeInfo = extractInfoFromColType(column.type.peek());
-      data[column.colId.peek()] = rowIds.map(r => reencodeAsAny(getter(r)!, typeInfo));
+      data[column.colId.peek()] = rowIds.map(r => reencode(getter(r)!, typeInfo));
     }
     data.id = rowIds;
     return data;
@@ -479,11 +483,12 @@ export class GristViewImpl implements GristView {
     // information here.
     const columns: ColumnRec[] = this._visibleColumns(options);
     const data: RowRecord = { id: rowId };
-    const expandRefs = options.expandRefs !== false;
+    const expandRefs = options.expandRefs ?? (options.cellFormat === "typed" ? false : true);
+    const reencode = getReencode(options.cellFormat);
     for (const column of columns) {
       const typeInfo = extractInfoFromColType(column.type.peek());
       const colId: string = expandRefs ? column.displayColModel.peek().colId.peek() : column.colId.peek();
-      data[column.colId.peek()] = reencodeAsAny(
+      data[column.colId.peek()] = reencode(
         this._baseView.tableModel.tableData.getValue(rowId, colId)!,
         typeInfo,
       );
@@ -815,4 +820,35 @@ export class CustomSectionAPIImpl extends Disposable implements CustomSectionAPI
       this._section.allowSelectBy(settings.allowSelectBy);
     }
   }
+}
+
+function getReencode(cellFormat: CellFormatType | undefined): typeof reencodeAsAny {
+  switch (cellFormat) {
+    case "normal": return identity;
+    case "typed": return reencodeAsTypedCellValue;
+    default: return reencodeAsAny;
+  }
+}
+
+/**
+ * This function has been used by the Custom Widget API, but it has a defect in that it doesn't
+ * re-encode values of type RefList or Attachments. But changing it may break existing widgets.
+ *
+ * For new code, it's recommended to use `cellFormat: "typed"` option, which uses the more
+ * complete reencodeAsTypedCell() in gristTypes.ts. REST API now supports `?cellFormat=typed` too.
+ *
+ * Re-encodes a CellValue of a given Grist type as a value suitable to use in an Any column. E.g.
+ *    reencodeAsAny(123, 'Numeric') -> 123
+ *    reencodeAsAny(123, 'Date') -> ['d', 123]
+ *    reencodeAsAny(123, 'Reference', 'Table1') -> ['R', 'Table1', 123]
+ */
+function reencodeAsAny(value: CellValue, typeInfo: GristTypeInfo): CellValue {
+  if (typeof value === "number") {
+    switch (typeInfo.type) {
+      case "Date": return [GristObjCode.Date, value];
+      case "DateTime": return [GristObjCode.DateTime, value, typeInfo.timezone];
+      case "Ref": return [GristObjCode.Reference, typeInfo.tableId, value];
+    }
+  }
+  return value;
 }

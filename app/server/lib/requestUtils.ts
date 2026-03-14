@@ -207,6 +207,7 @@ export async function sendReply<T>(
   const data = pruneAPIResult(result.data, options.allowedFields);
   if (shouldLogApiDetails && req) {
     const mreq = req as RequestWithLogin;
+    const docId = mreq.docAuth?.docId;
     log.rawDebug("api call", {
       url: req.url,
       userId: mreq.userId,
@@ -214,8 +215,7 @@ export async function sendReply<T>(
       email: mreq.user?.loginEmail,
       org: mreq.org,
       params: req.params,
-      body: req.body,
-      result: data,
+      ...(docId ? { docId } : {}),
     });
   }
   res.status(result.status);

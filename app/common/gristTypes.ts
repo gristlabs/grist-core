@@ -67,16 +67,25 @@ export function extractInfoFromColType(colType: string): GristTypeInfo {
 
 /**
  * Re-encodes a CellValue of a given Grist type as a value suitable to use in an Any column. E.g.
- *    reencodeAsAny(123, 'Numeric') -> 123
- *    reencodeAsAny(123, 'Date') -> ['d', 123]
- *    reencodeAsAny(123, 'Reference', 'Table1') -> ['R', 'Table1', 123]
+ *    reencodeAsTypedCellValue(123, {type: "Numeric"}) -> 123
+ *    reencodeAsTypedCellValue(123, {type: "Date"}) -> ["d", 123]
+ *    reencodeAsTypedCellValue(123, {type: "Ref", tableId: "Table1"}) -> ["R", "Table1", 123]
+ *    reencodeAsTypedCellValue(["L", 123], {type: "RefList", tableId: "Table1"}) -> ["r", "Table1", [123]]
+ *    reencodeAsTypedCellValue(["L", 123], {type: "Attachments"}) -> ["r", "_grist_Attachments", [123]]
  */
-export function reencodeAsAny(value: CellValue, typeInfo: GristTypeInfo): CellValue {
+export function reencodeAsTypedCellValue(value: CellValue, typeInfo: GristTypeInfo): CellValue {
   if (typeof value === "number") {
     switch (typeInfo.type) {
       case "Date": return [GristObjCode.Date, value];
       case "DateTime": return [GristObjCode.DateTime, value, typeInfo.timezone];
       case "Ref": return [GristObjCode.Reference, typeInfo.tableId, value];
+    }
+  } else if (isList(value) || value === null) {
+    const items = value ? value.slice(1) : [];
+    switch (typeInfo.type) {
+      case "ChoiceList": return [GristObjCode.List, ...items];
+      case "RefList": return [GristObjCode.ReferenceList, typeInfo.tableId, items];
+      case "Attachments": return [GristObjCode.ReferenceList, "_grist_Attachments", items];
     }
   }
   return value;

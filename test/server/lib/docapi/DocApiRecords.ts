@@ -8,9 +8,10 @@
  */
 
 import { BulkColValues, CellValue } from "app/common/DocActions";
+import { isRaisedException } from "app/common/gristTypes";
 import { AddOrUpdateRecord } from "app/plugin/DocApiTypes";
 import { GristObjCode } from "app/plugin/GristData";
-import { addAllScenarios, TestContext } from "test/server/lib/docapi/helpers";
+import { addAllScenarios, addAttachmentsToDoc, TestContext } from "test/server/lib/docapi/helpers";
 import * as testUtils from "test/server/testUtils";
 
 import axios, { AxiosResponse } from "axios";
@@ -178,6 +179,149 @@ function addRecordsTests(getCtx: () => TestContext) {
         ],
       },
     );
+  });
+
+  it("GET /docs/{did}/tables/{tid}/records supports cellFormat=typed", async function() {
+    // Create a new document with various column types.
+    const { serverUrl, userApi, chimpy } = getCtx();
+    const wid = (await userApi.getOrgWorkspaces("current")).find(w => w.name === "Private")!.id;
+    const docId = await userApi.newDoc({ name: "TypedCells" }, wid);
+    const docUrl = `${serverUrl}/api/docs/${docId}`;
+
+    // Set up columns with different types and add data.
+    const setupActions = [
+      ["AddColumn", "Table1", "Attachments", { type: "Attachments" }],
+      ["AddColumn", "Table1", "Bool", { type: "Bool" }],
+      ["AddColumn", "Table1", "Choice", { type: "Choice" }],
+      ["AddColumn", "Table1", "ChoiceList", { type: "ChoiceList" }],
+      ["AddColumn", "Table1", "Date", { type: "Date" }],
+      ["AddColumn", "Table1", "DateTime", { type: "DateTime:America/New_York" }],
+      ["AddColumn", "Table1", "Int", { type: "Int" }],
+      ["AddColumn", "Table1", "Numeric", { type: "Numeric" }],
+      ["AddColumn", "Table1", "Ref", { type: "Ref:Table1" }],
+      ["AddColumn", "Table1", "RefList", { type: "RefList:Table1" }],
+      ["AddColumn", "Table1", "Text", { type: "Text" }],
+      ["AddColumn", "Table1", "ALL", { type: "Any", isFormula: true, formula:
+        "[$Attachments, $Bool, $Choice, $ChoiceList, $Date, $DateTime, $Int, $Numeric, $Ref, $RefList, $Text]",
+      }],
+    ];
+    await axios.post(`${docUrl}/apply`, setupActions, chimpy);
+
+    const fields = setupActions.map(a => a[2]).slice(0, -1);
+    assert.deepEqual(fields, [
+      "Attachments", "Bool", "Choice", "ChoiceList", "Date", "DateTime",
+      "Int", "Numeric", "Ref", "RefList", "Text",
+    ]);
+
+    // Add a row with data.
+    const addActions = [
+      ["AddRecord", "Table1", null, {
+        Bool: true,
+        Choice: "Yes",
+        ChoiceList: ["L", "Yes", "No"],
+        Date: 1707868800,
+        DateTime: 1707868800,
+        Int: 42,
+        Numeric: -8.5,
+        Ref: 1,
+        RefList: ["L", 2, 1],
+        Text: "hello world",
+      }],
+
+      // Add an empty row, with default values.
+      ["AddRecord", "Table1", null, {}],
+
+      // Add a row with invalid values.
+      ["AddRecord", "Table1", null, {
+        Attachments: ["E", "ValueError"],
+        Bool: ["E", "ValueError"],
+        Choice: ["E", "ValueError"],
+        ChoiceList: ["E", "ValueError"],
+        Date: ["E", "ValueError"],
+        DateTime: ["E", "ValueError"],
+        Int: ["E", "ZeroDivisionError"],
+        Numeric: ["E", "ZeroDivisionError"],
+        Ref: ["E", "ValueError"],
+        RefList: ["E", "ValueError"],
+        Text: ["E", "ValueError"],
+      }],
+    ];
+    await axios.post(`${docUrl}/apply`, addActions, chimpy);
+
+    // To test attachments, add some attachments.
+    const uploadResp = await addAttachmentsToDoc(serverUrl, docId, [
+      { name: "hello.doc", contents: "foobar" },
+      { name: "world.jpg", contents: "123456" },
+    ], chimpy);
+    assert.deepEqual(uploadResp.data, [1, 2]);
+    await axios.post(`${docUrl}/apply`, [["UpdateRecord", "Table1", 1, { Attachments: ["L", 1, 2] }]], chimpy);
+
+    // Fetch with and without cellFormat=typed.
+    const respDefault = await axios.get(`${docUrl}/tables/Table1/records`, chimpy);
+    const respNormal = await axios.get(`${docUrl}/tables/Table1/records`,
+      { ...chimpy, params: { cellFormat: "normal" } });
+    const respTyped = await axios.get(`${docUrl}/tables/Table1/records`,
+      { ...chimpy, params: { cellFormat: "typed" } });
+    assert.equal(respDefault.status, 200);
+    assert.equal(respNormal.status, 200);
+    assert.equal(respTyped.status, 200);
+
+    assert.deepEqual(respDefault.data, respNormal.data);
+    const normalRecords = respNormal.data.records;
+    const typedRecords = respTyped.data.records;
+    assert.lengthOf(normalRecords, 3);
+    assert.lengthOf(typedRecords, 3);
+
+    function check(rowIndex: number, colId: string, expNormalValue: unknown, expTypedValue: unknown) {
+      assert.deepEqual(normalRecords[rowIndex].fields[colId], expNormalValue);
+      assert.deepEqual(typedRecords[rowIndex].fields[colId], expTypedValue);
+
+      const indexIntoALL = fields.indexOf(colId);
+      assert.notEqual(indexIntoALL, -1);
+      // The "ALL" column should have the form ["L", values...], and they should all be typed,
+      // regardless of cellFormat argument, because the column has type "Any".
+      // But we skip testing error values; the "ALL" column doesn't return a list in that case.
+      if (!isRaisedException(expTypedValue as CellValue)) {
+        assert.deepEqual(normalRecords[rowIndex].fields.ALL[indexIntoALL + 1], expTypedValue);
+        assert.deepEqual(typedRecords[rowIndex].fields.ALL[indexIntoALL + 1], expTypedValue);
+      }
+    }
+
+    check(0, "Attachments", ["L", 1, 2], ["r", "_grist_Attachments", [1, 2]]);
+    check(0, "Bool", true, true);
+    check(0, "Choice", "Yes", "Yes");
+    check(0, "ChoiceList", ["L", "Yes", "No"], ["L", "Yes", "No"]);
+    check(0, "Date", 1707868800, ["d", 1707868800]);
+    check(0, "DateTime", 1707868800, ["D", 1707868800, "America/New_York"]);
+    check(0, "Int", 42, 42);
+    check(0, "Numeric", -8.5, -8.5);
+    check(0, "Ref", 1, ["R", "Table1", 1]);
+    check(0, "RefList", ["L", 2, 1], ["r", "Table1", [2, 1]]);
+    check(0, "Text", "hello world", "hello world");
+
+    check(1, "Attachments", null, ["r", "_grist_Attachments", []]);
+    check(1, "Bool", false, false);
+    check(1, "Choice", "", "");
+    check(1, "ChoiceList", null, ["L"]);
+    check(1, "Date", null, null);
+    check(1, "DateTime", null, null);
+    check(1, "Int", 0, 0);
+    check(1, "Numeric", 0, 0);
+    check(1, "Ref", 0, ["R", "Table1", 0]);
+    check(1, "RefList", null, ["r", "Table1", []]);
+    check(1, "Text", "", "");
+
+    check(2, "Attachments", null, ["E", "ValueError"]);
+    check(2, "Bool", null, ["E", "ValueError"]);
+    check(2, "Choice", null, ["E", "ValueError"]);
+    check(2, "ChoiceList", null, ["E", "ValueError"]);
+    check(2, "Date", null, ["E", "ValueError"]);
+    check(2, "DateTime", null, ["E", "ValueError"]);
+    check(2, "Int", null, ["E", "ZeroDivisionError"]);
+    check(2, "Numeric", null, ["E", "ZeroDivisionError"]);
+    check(2, "Ref", null, ["E", "ValueError"]);
+    check(2, "RefList", null, ["E", "ValueError"]);
+    check(2, "Text", null, ["E", "ValueError"]);
   });
 
   it("GET /docs/{did}/tables/{tid}/data returns 404 for non-existent doc", async function() {

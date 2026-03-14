@@ -24,7 +24,7 @@ import {
   WebhookUpdate,
 } from "app/common/Triggers";
 import { addCurrentOrgToPath, getGristConfig } from "app/common/urlUtils";
-import { AttachmentStore, AttachmentStoreDesc } from "app/plugin/DocApiTypes";
+import { AttachmentStore, AttachmentStoreDesc, TablesGet } from "app/plugin/DocApiTypes";
 
 import { AxiosProgressEvent } from "axios";
 import omitBy from "lodash/omitBy";
@@ -502,6 +502,13 @@ export const DocAttachmentsLocation = StringUnion(
 );
 export type DocAttachmentsLocation = typeof DocAttachmentsLocation.type;
 
+export const ExpandTableOption = StringUnion("column");
+export type ExpandTableOption = typeof ExpandTableOption.type;
+
+interface GetTablesParams {
+  expand?: ExpandTableOption[];
+}
+
 /**
  * Collect endpoints related to the content of a single document that we've been thinking
  * of as the (restful) "Doc API".  A few endpoints that could be here are not, for historical
@@ -510,6 +517,7 @@ export type DocAttachmentsLocation = typeof DocAttachmentsLocation.type;
 export interface DocAPI {
   readonly options: IOptions;
   getBaseUrl(): string;
+  getTables(options?: GetTablesParams): Promise<TablesGet>;
   // Immediate flag is a currently not-advertised feature, allowing a query to proceed without
   // waiting for a document to be initialized. This is useful if the calculations done when
   // opening a document are irrelevant.
@@ -1064,6 +1072,14 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
 
   public getBaseUrl(): string { return this._url; }
 
+  public async getTables(options?: GetTablesParams): Promise<TablesGet> {
+    const url = new URL(`${this._url}/tables`);
+    if (options?.expand) {
+      url.searchParams.set("expand", options.expand.join(","));
+    }
+    return this.requestJson(url.href);
+  }
+
   public async getRows(tableId: string, options?: GetRowsParams): Promise<TableColValues> {
     return this._getRecords(tableId, "data", options);
   }
@@ -1090,6 +1106,20 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     });
   }
 
+  /**
+   * Adds rows to a table.
+   *
+   * Example:
+   * ```typescript
+   * const newRowIds = await docApi.addRows("tableId", {
+   *   "Column1": [value1, value2],
+   *   "Column2": [value3, value4],
+   * });
+   * ```
+   * @param tableId Table ID to add rows to.
+   * @param additions JSON object with column values for the new rows.
+   * @returns Array of new row IDs.
+   */
   public async addRows(tableId: string, additions: BulkColValues): Promise<number[]> {
     return this.requestJson(`${this._url}/tables/${tableId}/data`, {
       body: JSON.stringify(additions),

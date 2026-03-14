@@ -31,11 +31,14 @@ export const GristDocAPI = t.iface([], {
   "getAccessToken": t.func("AccessTokenResult", t.param("options", "AccessTokenOptions")),
 });
 
+export const CellFormatType = t.union(t.lit("normal"), t.lit("typed"));
+
 export const FetchSelectedOptions = t.iface([], {
   "keepEncoded": t.opt("boolean"),
   "format": t.opt(t.union(t.lit("rows"), t.lit("columns"))),
   "includeColumns": t.opt(t.union(t.lit("shown"), t.lit("normal"), t.lit("all"))),
   "expandRefs": t.opt("boolean"),
+  "cellFormat": t.opt("CellFormatType"),
 });
 
 export const GristView = t.iface([], {
@@ -62,6 +65,7 @@ const exportedTypeSuite: t.ITypeSuite = {
   ComponentKind,
   GristAPI,
   GristDocAPI,
+  CellFormatType,
   FetchSelectedOptions,
   GristView,
   AccessTokenOptions,

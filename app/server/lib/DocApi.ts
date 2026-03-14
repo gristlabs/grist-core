@@ -15,11 +15,13 @@ import { DocData } from "app/common/DocData";
 import { DocState, DocStateComparison, DocStates } from "app/common/DocState";
 import { INITIAL_FIELDS_COUNT } from "app/common/Forms";
 import {
+  extractInfoFromColType,
   extractTypeFromColType,
   getReferencedTableId,
   isBlankValue,
   isFullReferencingType,
   isRaisedException,
+  reencodeAsTypedCellValue,
 } from "app/common/gristTypes";
 import { buildUrlId, parseUrlId, SHARE_KEY_PREFIX } from "app/common/gristUrls";
 import { isAffirmative, safeJsonParse } from "app/common/gutil";
@@ -30,6 +32,7 @@ import {
   ArchiveUploadResult,
   CreatableArchiveFormats,
   DocReplacementOptions,
+  ExpandTableOption,
   NEW_DOCUMENT_CODE,
 } from "app/common/UserAPI";
 import { Document } from "app/gen-server/entity/Document";
@@ -38,6 +41,7 @@ import { HomeDBManager, makeDocAuthResult } from "app/gen-server/lib/homedb/Home
 import { QueryResult } from "app/gen-server/lib/homedb/Interfaces";
 import * as Types from "app/plugin/DocApiTypes";
 import DocApiTypesTI from "app/plugin/DocApiTypes-ti";
+import { CellFormatType } from "app/plugin/GristAPI";
 import GristDataTI from "app/plugin/GristData-ti";
 import { OpOptions } from "app/plugin/TableOperations";
 import { TableOperationsImpl, TableOperationsPlatform } from "app/plugin/TableOperationsImpl";
@@ -209,7 +213,8 @@ export class DocWorkerApi {
       activeDoc: ActiveDoc,
       tableId: string,
       filters: QueryFilters,
-      params: QueryParameters & { immediate?: boolean }) {
+      params: QueryParameters & { immediate?: boolean },
+    ) {
       // Option to skip waiting for document initialization.
       const immediate = isAffirmative(params.immediate);
       if (!Object.keys(filters).every(col => Array.isArray(filters[col]))) {
@@ -242,6 +247,7 @@ export class DocWorkerApi {
         optTableId?: string;
         includeHidden?: boolean;
         includeId?: boolean;
+        cellFormat?: CellFormatType;
       },
     ): TableRecordValue[] {
       const fieldNames = Object.keys(columnData).filter((k) => {
@@ -256,11 +262,12 @@ export class DocWorkerApi {
         }
         return true;
       });
+      const keepExceptions = (opts?.cellFormat === "typed");
       return columnData.id.map((id, index) => {
         const result: TableRecordValue = { id, fields: {} };
         for (const key of fieldNames) {
           let value = columnData[key][index];
-          if (isRaisedException(value)) {
+          if (!keepExceptions && isRaisedException(value)) {
             _.set(result, ["errors", key], (value as string[])[1]);
             value = null;
           }
@@ -271,7 +278,8 @@ export class DocWorkerApi {
     }
 
     async function getTableRecords(
-      activeDoc: ActiveDoc, req: RequestWithLogin, opts?: { optTableId?: string; includeHidden?: boolean },
+      activeDoc: ActiveDoc, req: RequestWithLogin,
+      opts?: { optTableId?: string; includeHidden?: boolean, cellFormat?: CellFormatType },
     ): Promise<TableRecordValue[]> {
       const columnData = await getTableData(activeDoc, req, opts?.optTableId);
       return asRecords(columnData, opts);
@@ -287,8 +295,9 @@ export class DocWorkerApi {
     // Get the specified table in record-oriented format
     this._app.get("/api/docs/:docId/tables/:tableId/records", canView,
       withDoc(async (activeDoc, req, res) => {
+        const cellFormat = getCellFormatParameter(req);
         const records = await getTableRecords(activeDoc, req,
-          { includeHidden: isAffirmative(req.query.hidden) },
+          { includeHidden: isAffirmative(req.query.hidden), cellFormat },
         );
         res.json({ records });
       }),
@@ -308,14 +317,10 @@ export class DocWorkerApi {
     // Get the tables of the specified document in recordish format
     this._app.get("/api/docs/:docId/tables", canView,
       withDoc(async (activeDoc, req, res) => {
-        const records = await getTableRecords(activeDoc, req, { optTableId: "_grist_Tables" });
-        const tables: Types.RecordWithStringId[] = records.map(record => ({
-          id: String(record.fields.tableId),
-          fields: {
-            ..._.omit(record.fields, "tableId"),
-            tableRef: record.id,
-          },
-        })).filter(({ id }) => id);
+        const expand = optStringParam(req.query.expand, "expand")?.split(",") ?? [];
+        const expandOptions = ExpandTableOption.checkAll(expand);
+        const tables = await handleSandboxError("", [],
+          activeDoc.getTables(docSessionFromRequest(req), expandOptions));
         res.json({ tables });
       }),
     );
@@ -814,7 +819,7 @@ export class DocWorkerApi {
           const columns = await handleSandboxError("", [],
             activeDoc.getTableCols(docSessionFromRequest(req), tableId));
           const columnsToRemove = columns
-            .map(col => col.fields.colRef as number)
+            .map(col => col.fields.colRef)
             .filter(colRef => !updatedColumnsIds.has(colRef));
 
           return ["BulkRemoveRecord", "_grist_Tables_column", columnsToRemove];
@@ -2360,6 +2365,7 @@ export interface QueryParameters {
   // prepend "-" for descending order, can contain flags,
   // see more in Sort.SortSpec).
   limit?: number;   // Limit on number of rows to return.
+  cellFormat?: CellFormatType;
 }
 
 /**
@@ -2390,6 +2396,12 @@ function getLimitParameter(req: Request): number | undefined {
   return limit;
 }
 
+function getCellFormatParameter(req: Request): CellFormatType | undefined {
+  const allowedCellFormats: CellFormatType[] = ["normal", "typed"];
+  return optStringParam(req.query.cellFormat, "cellFormat",
+    { allowed: allowedCellFormats }) as CellFormatType | undefined;
+}
+
 /**
  * Extract sort and limit parameters from request, if they are present.
  */
@@ -2397,6 +2409,7 @@ function getQueryParameters(req: Request): QueryParameters {
   return {
     sort: getSortParameter(req),
     limit: getLimitParameter(req),
+    cellFormat: getCellFormatParameter(req),
   };
 }
 
@@ -2469,9 +2482,19 @@ function applyLimit(values: TableColValues, limit: number) {
 export function applyQueryParameters(
   values: TableColValues,
   params: QueryParameters,
-  columns: TableRecordValue[] | null = null): TableColValues {
+  columns: TableRecordValue[] | null = null,
+): TableColValues {
   if (params.sort) { applySort(values, params.sort, columns); }
   if (params.limit) { applyLimit(values, params.limit); }
+
+  if (params.cellFormat === "typed") {
+    const colIdToType = new Map(columns?.map(c => [c.id, c.fields.type as string]));
+    for (const [colId, colValues] of Object.entries(values)) {
+      const colType = colIdToType.get(colId) || "Any";
+      const typeInfo = extractInfoFromColType(colType);
+      values[colId] = colValues.map(val => reencodeAsTypedCellValue(val, typeInfo));
+    }
+  }
   return values;
 }
 
