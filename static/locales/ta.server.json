@@ -1,5 +1,23 @@
 {
     "oidc": {
         "emailNotVerifiedError": "அடையாள வழங்குநருடன் உங்கள் மின்னஞ்சலைச் சரிபார்த்து, மீண்டும் உள்நுழைக."
+    },
+    "sendAppPage": {
+        "Loading...": "ஏற்றுகிறது...",
+        "og-description": "கட்டத்திற்கு அப்பாற்பட்ட ஒரு நவீன, திறந்த மூல விரிதாள்",
+        "og-title": "கிரிச்ட், விரிதாள்களின் பரிணாமம்"
+    },
+    "access": {
+        "docDisabled": "இந்த ஆவணம் முடக்கப்பட்டுள்ளது.",
+        "docNoAccess": "இந்த ஆவணத்திற்கான அணுகல் உங்களிடம் இல்லை."
+    },
+    "admin": {
+        "emptyOrg": "`GRIST_INSTALL_ADMIN_ORG={{org}}` ஆல் வரையறுக்கப்பட்ட நிர்வாக அமைப்பில் உரிமையாளர்கள் இல்லை",
+        "orgUser": "பயனர் `GRIST_INSTALL_ADMIN_ORG={{org}}` ஆல் வரையறுக்கப்பட்ட நிர்வாக அமைப்பின் உரிமையாளர்",
+        "noAdminEmail": "`GRIST_ADMIN_EMAIL` மற்றும் `GRIST_DEFAULT_EMAIL` அமைக்கப்படாததால் நிர்வாகி கணக்கு இல்லை",
+        "accountByEmail": "நிர்வாகி கணக்கு `GRIST_DEFAULT_EMAIL={{defaultEmail}}` ஆல் வரையறுக்கப்பட்டது"
+    },
+    "DocApi": {
+        "UntitledDocument": "பெயரிடப்படாத ஆவணம்"
     }
 }
