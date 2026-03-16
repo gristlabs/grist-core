@@ -22,19 +22,9 @@ export const ExistingColumnSchema = t.iface([], {
   "isFormula": "boolean",
 });
 
-export const DocSchemaSqlResult = t.array(t.iface([], {
-  "tableRef": "number",
-  "tableId": "string",
-  "colRef": "number",
-  "colId": "string",
-  "colLabel": "string",
-  "colIsFormula": "number",
-}));
-
 const exportedTypeSuite: t.ITypeSuite = {
   ExistingDocSchema,
   ExistingTableSchema,
   ExistingColumnSchema,
-  DocSchemaSqlResult,
 };
 export default exportedTypeSuite;

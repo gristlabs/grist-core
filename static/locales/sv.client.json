@@ -1032,8 +1032,8 @@
         "Delete data and this page.": "Radera data och denna sida.",
         "The following tables will no longer be visible_one": "Följande tabell kommer inte längre att vara synlig",
         "The following tables will no longer be visible_other": "Följande tabeller kommer inte längre att vara synlig",
-        "Keep data and delete page. Table will remain available in {{rawDataLink}}": "Behåll data och radera sidan. Tabellen är fortsatt tillgänglig i {{rawDataLink}}",
-        "raw data page": "rådata sida",
+        "Keep data and delete page. Table will remain available in {{rawDataLink}}": "Behåll data och radera sidan. Tabellen är fortsatt tillgänglig på {{rawDataLink}}",
+        "raw data page": "rådatasidan",
         "Document pages": "Dokumentsidor"
     },
     "PermissionsWidget": {
@@ -1115,7 +1115,9 @@
         "Suggestions": "Förslag"
     },
     "TopBar": {
-        "Manage team": "Hantera arbetslag"
+        "Manage team": "Hantera arbetslag",
+        "Redo": "Gör om",
+        "Undo": "Ångra"
     },
     "TriggerFormulas": {
         "Any field": "Valfritt fällt",
@@ -2078,7 +2080,7 @@
         "Delete": "Radera",
         "Delete data and this widget.": "Radera data och denna widget.",
         "Raw Data page": "Rådatasida",
-        "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "Behåll datan och radera widget. Tabellen kommer fortsatt avar tillgänglig på {{rawDataLink}}",
+        "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "Behåll datan och radera widget. Tabellen kommer fortsatt vara tillgänglig på {{rawDataLink}}",
         "Table {{tableName}} will no longer be visible": "Tabell {{tableName}} kommer inte längre att vara synlig"
     },
     "AdminPanelName": {
@@ -2717,7 +2719,9 @@
         "{{count}} warnings_one": "{{count}} varningar",
         "{{count}} warnings_other": "{{count}} varningar",
         "OAuth credentials not configured. Please set OAUTH2_AIRTABLE_CLIENT_ID and OAUTH2_AIRTABLE_CLIENT_SECRET, or use personal access token.": "OAuth nycklarna är inte valda. Ställ in OAUTH2_AIRTABLE_CLIENT_ID och OAUTH2_AIRTABLE_CLIENT_SECRET, eller använd en personlig behörighetstoken.",
-        "[Generate a token]({{url}}) in your Airtable account with scopes that include at least **\\`schema.bases:read\\`** and **\\`data.records:read\\`**.\n\nYour token is never sent to Grist's servers, and is only used to make API calls to Airtable from your browser.": "[Generera en token]({{url}}) på ditt Airtable acctount med behörighet som inkluderar minst **\\`schema.bases:read\\`** och **\\`data.records:read\\`**.\n\nDin token skickas aldrig till Grists servrar, den avvänds bara för att göra API-anrop till Airtable från din webbläsare."
+        "[Generate a token]({{url}}) in your Airtable account with scopes that include at least **\\`schema.bases:read\\`** and **\\`data.records:read\\`**.\n\nYour token is never sent to Grist's servers, and is only used to make API calls to Airtable from your browser.": "[Generera en token]({{url}}) på ditt Airtable acctount med behörighet som inkluderar minst **\\`schema.bases:read\\`** och **\\`data.records:read\\`**.\n\nDin token skickas aldrig till Grists servrar, den avvänds bara för att göra API-anrop till Airtable från din webbläsare.",
+        "Use personal access token": "Använd personlig behörighetstoken",
+        "The more convenient ‘Connect with Airtable’ option can be configured by the installation administrator. [Learn more.]({{url}})": "Alternativet ‘Anslut till Airtable’ som är smidigare kan ställas in av installationsadministratören. [Lär dig mer.]({{url}})"
     },
     "ChangeAdminModal": {
         "New admin": "Ny administratör",
@@ -2729,7 +2733,8 @@
         "Import from Airtable": "Importera från Airtable"
     },
     "startHomeAirtableImport": {
-        "Import from Airtable": "Importera från Airtable"
+        "Import from Airtable": "Importera från Airtable",
+        "The current workspace can't be imported to.": "Det går inte att importera till nuvarande arbetsyta."
     },
     "AirtableImporter": {
         "Creating a new Grist document...": "Skapar ett nytt Gristdokument...",

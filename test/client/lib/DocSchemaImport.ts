@@ -1,6 +1,6 @@
 import { getExistingDocSchema } from "app/client/lib/DocSchemaImport";
-import { DocSchemaSqlResult } from "app/common/DocSchemaImportTypes";
 import { DocAPI } from "app/common/UserAPI";
+import { TableMetadata } from "app/plugin/DocApiTypes";
 import clientUtil from "test/client/clientUtil";
 
 import { assert } from "chai";
@@ -11,41 +11,51 @@ describe("DocSchemaImport", function() {
 
   describe("getExistingDocSchema", () => {
     it("returns a correctly formatted document description from an SQL response", async () => {
-      const records: { fields: DocSchemaSqlResult[0] }[] = [
+      const tables: TableMetadata[] = [
         {
+          id: "Table1",
           fields: {
             tableRef: 1,
-            tableId: "Table1",
-            colRef: 1,
-            colId: "Col1",
-            colLabel: "Column 1",
-            colIsFormula: 0,
           },
+          columns: [
+            {
+              id: "Col1",
+              fields: {
+                colRef: 1,
+                label: "Column 1",
+                isFormula: false,
+              },
+            },
+            {
+              id: "Col2",
+              fields: {
+                colRef: 2,
+                label: "Column 2",
+                isFormula: true,
+              },
+            },
+          ],
         },
         {
-          fields: {
-            tableRef: 1,
-            tableId: "Table1",
-            colRef: 2,
-            colId: "Col2",
-            colLabel: "Column 2",
-            colIsFormula: 1,
-          },
-        },
-        {
+          id: "Table2",
           fields: {
             tableRef: 2,
-            tableId: "Table2",
-            colRef: 3,
-            colId: "Col3",
-            colLabel: "Column 3",
-            colIsFormula: 0,
           },
+          columns: [
+            {
+              id: "Col3",
+              fields: {
+                colRef: 3,
+                label: "Column 3",
+                isFormula: false,
+              },
+            },
+          ],
         },
       ];
 
       const docApi = {
-        sql: sinon.fake((sql: string) => ({ statement: sql, records })),
+        getTables: sinon.fake(() => ({ tables })),
       } as unknown as DocAPI;
 
       const schema = await getExistingDocSchema(docApi);
@@ -59,22 +69,6 @@ describe("DocSchemaImport", function() {
       assert.deepEqual(table1.columns.map(col => col.ref), [1, 2]);
       assert.deepEqual(table1.columns.map(col => col.label), ["Column 1", "Column 2"]);
       assert.deepEqual(table1.columns.map(col => col.isFormula), [false, true]);
-    });
-
-    it("throws on a malformed SQL response", async () => {
-      const records = [
-        {
-          fields: {
-            frodo: "baggins",
-          },
-        },
-      ];
-
-      const docApi = {
-        sql: sinon.fake((sql: string) => ({ statement: sql, records })),
-      } as unknown as DocAPI;
-
-      await assert.isRejected(getExistingDocSchema(docApi), "value[0].tableRef is missing");
     });
   });
 });
