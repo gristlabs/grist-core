@@ -66,7 +66,7 @@ describe("Summaries.ntest", function() {
 
     // Add another field, "Date", again.
     await $(".test-pwc-editDataSelection").click();
-    await $(`.test-wselect-column:contains(Date)`).click();
+    await $(`.test-wselect-column:contains(Date)`).wait().click();
 
     // Save, and verify contents of multiselect.
     await $(".test-wselect-addBtn").click();
@@ -82,11 +82,7 @@ describe("Summaries.ntest", function() {
 
     // Remove both "Date" and "Category", and save.
     await $(".test-pwc-editDataSelection").click();
-    // The element may take a little long to be rendered, use waitToPass for that.
-    await gu.waitToPass(
-      async () => await $(".test-wselect-column[class*=-selected]:contains(Date)").click(),
-      1000,
-    );
+    await $(".test-wselect-column[class*=-selected]:contains(Date)").wait().click();
     await $(".test-wselect-column[class*=-selected]:contains(Category)").click();
     await $(".test-wselect-addBtn").click();
     await gu.waitForServer();
