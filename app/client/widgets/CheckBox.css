@@ -1,4 +1,3 @@
-
 .widget_checkbox {
   position: relative;
   margin: -1px auto;
@@ -6,9 +5,9 @@
   height: 16px;
 }
 
-.widget_checkbox:has(> .widget_checkmark[style*="display: none"]) {
-  background-color: #f0f8ff8c;
-  border: 1px solid gray;
+.widget_checkbox-unchecked {
+  background-color: var(--grist-theme-toggle-checkbox-bg, #f0f8ff);
+  border: 1px solid var(--grist-theme-toggle-checkbox-border, #d9d9d9);
   border-radius: 3px;
 }
 
@@ -16,17 +15,18 @@
   cursor: pointer;
   box-shadow: inset 0 0 0 1px #606060;
   border-radius: 3px;
-  background: linear-gradient(to bottom, rgba(255,255,255,1) 0%, rgba(252,252,252,1) 29%, rgba(239,239,239,1) 50%, rgba(232,232,232,1) 50%, rgba(242,242,242,1) 100%);
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 1) 0%, rgba(252, 252, 252, 1) 29%, rgba(239, 239, 239, 1) 50%, rgba(232, 232, 232, 1) 50%, rgba(242, 242, 242, 1) 100%);
 }
+
 :not(.formula_field)>.field_clip>.widget_checkbox:hover:not(.disabled) {
   cursor: pointer;
   box-shadow: inset 0 0 0 1px #606060;
   border-radius: 3px;
-  background: linear-gradient(to bottom, rgba(255,255,255,1) 0%, rgba(252,252,252,1) 29%, rgba(239,239,239,1) 50%, rgba(232,232,232,1) 50%, rgba(242,242,242,1) 100%);
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 1) 0%, rgba(252, 252, 252, 1) 29%, rgba(239, 239, 239, 1) 50%, rgba(232, 232, 232, 1) 50%, rgba(242, 242, 242, 1) 100%);
 }
 
 :not(.formula_field)>.field_clip>.widget_checkbox:active:not(.disabled) {
-  background: linear-gradient(to bottom, rgba(147,180,242,1) 0%, rgba(135,168,233,1) 10%, rgba(115,149,218,1) 25%, rgba(115,150,224,1) 37%, rgba(115,153,230,1) 50%, rgba(86,134,219,1) 51%, rgba(130,174,235,1) 83%, rgba(151,194,243,1) 100%);
+  background: linear-gradient(to bottom, rgba(147, 180, 242, 1) 0%, rgba(135, 168, 233, 1) 10%, rgba(115, 149, 218, 1) 25%, rgba(115, 150, 224, 1) 37%, rgba(115, 153, 230, 1) 50%, rgba(86, 134, 219, 1) 51%, rgba(130, 174, 235, 1) 83%, rgba(151, 194, 243, 1) 100%);
 }
 
 .widget_checkbox:focus {
@@ -37,8 +37,10 @@
   position: relative;
   width: 6px;
   height: 12px;
-  -ms-transform: rotate(40deg); /* IE 9 */
-  -webkit-transform: rotate(40deg); /* Chrome, Safari, Opera */
+  -ms-transform: rotate(40deg);
+  /* IE 9 */
+  -webkit-transform: rotate(40deg);
+  /* Chrome, Safari, Opera */
   transform: rotate(40deg);
   left: 4px;
   top: 2px;
