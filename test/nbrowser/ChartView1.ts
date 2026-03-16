@@ -444,7 +444,7 @@ describe("ChartView1", function() {
     await driver.findContent("button", "Change widget").click();
 
     // click sum symbol
-    await driver.findContent(".test-wselect-table", "People").click();
+    await driver.findContentWait(".test-wselect-table", "People", 1000).click();
 
     // click save
     await driver.find(".test-wselect-addBtn").click();
@@ -761,7 +761,7 @@ describe("ChartView1", function() {
     await driver.findContent(".test-right-panel button", "Change widget").click();
 
     // click the summarize button
-    await driver.findContent(".test-wselect-table", "ChartData").find(".test-wselect-pivot").click();
+    await driver.findContentWait(".test-wselect-table", "ChartData", 1000).find(".test-wselect-pivot").click();
 
     // click save
     await driver.find(".test-wselect-addBtn").click();
