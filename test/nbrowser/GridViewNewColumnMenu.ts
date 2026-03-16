@@ -316,6 +316,11 @@ describe("GridViewNewColumnMenu", function() {
             ).isDisplayed(),
           ), 5000);
           await gu.dismissBehavioralPrompts();
+
+          // Wait for the right panel to be fully expanded before closing,
+          // just for the test stability.
+          await gu.waitForSidePanel("right", "expanded");
+
           await gu.toggleSidePanel("right", "close");
           await gu.undo(1);
         });
@@ -1359,7 +1364,7 @@ describe("GridViewNewColumnMenu", function() {
     describe("UUID", function() {
       it("should create new column that generates a UUID on new record", async function() {
         await gu.getCell(2, 1).click();
-        await gu.sendKeys("A", Key.ENTER);
+        await gu.enterCell("A");
         await gu.waitForServer();
         await clickAddColumn();
         await driver.findWait(".test-new-columns-menu-shortcuts-uuid", STANDARD_WAITING_TIME).click();
@@ -1368,7 +1373,7 @@ describe("GridViewNewColumnMenu", function() {
         assert.match(cells1[0], /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/);
         assert.equal(cells1[1], "");
         await gu.getCell(2, 2).click();
-        await gu.sendKeys("B", Key.ENTER);
+        await gu.enterCell("B");
         await gu.waitForServer();
         const cells2 = await gu.getVisibleGridCells({ col: "UUID", rowNums: [1, 2, 3] });
         assert.match(cells2[0], /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/);
