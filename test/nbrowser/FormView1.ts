@@ -824,6 +824,7 @@ describe("FormView1", function() {
           ["", "1", "2", "3"],
         );
         await driver.find(".test-form-search-select").click();
+        await driver.findWait(".test-sd-searchable-list-item", 1000);
         assert.deepEqual(
           await driver.findAll(".test-sd-searchable-list-item", e => e.getText()), ["Foo", "Bar", "Baz"],
         );
@@ -845,7 +846,10 @@ describe("FormView1", function() {
         // Check keyboard shortcuts work.
         assert.equal(await driver.find(".test-form-search-select").getText(), "Bar");
         await gu.sendKeys(Key.BACK_SPACE);
-        assert.equal(await driver.find(".test-form-search-select").getText(), "Select...");
+        // Sometimes leads to flakiness, use waitToPass for this check:
+        await gu.waitToPass(async () => {
+          assert.equal(await driver.find(".test-form-search-select").getText(), "Select...");
+        });
         await gu.sendKeys(Key.ENTER);
         await driver.findContentWait(".test-sd-searchable-list-item", "Bar", 2000).click();
         await driver.find('button[type="submit"]').click();
