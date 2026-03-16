@@ -20,3 +20,6 @@ export const SAML_PROVIDER_KEY = "saml";
 export const DEPRECATED_PROVIDERS: string[] = [
   GRIST_CONNECT_PROVIDER_KEY,
 ];
+
+// Boot key provider key — admin login via boot key when no real auth is configured.
+export const BOOT_KEY_PROVIDER_KEY = "boot-key";

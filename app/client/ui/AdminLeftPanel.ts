@@ -34,6 +34,7 @@ export function getPageNames() {
     adminControls,
     pages: {
       admin: { section: settings, name: t("Installation") },
+      setup: { section: settings, name: t("Quick Setup") },
       users: { section: adminControls, name: t("Users") },
       orgs: { section: adminControls, name: t("Orgs") },
       workspaces: { section: adminControls, name: t("Workspaces") },
@@ -43,8 +44,22 @@ export function getPageNames() {
 }
 
 export function buildAdminLeftPanel(owner: MultiHolder, appModel: AppModel): PageSidePanel {
-  const panelOpen = Observable.create(owner, true);
   const pageObs = Computed.create(owner, use => use(urlState().state).adminPanel);
+  const isSetup = pageObs.get() === "setup";
+  const panelOpen = Observable.create(owner, !isSetup);
+
+  // On the setup page, the panel starts fully collapsed (0px). Once
+  // the user opens it via the opener handle, subsequent collapses
+  // go to the normal thin strip (48px) — not back to fully hidden.
+  const collapsedWidth = isSetup ? Observable.create(owner, 0) : undefined;
+  if (collapsedWidth) {
+    const lis = panelOpen.addListener((open) => {
+      if (open && collapsedWidth.get() === 0) {
+        collapsedWidth.set(48);
+      }
+    });
+    owner.autoDispose(lis);
+  }
   const pageNames = getPageNames();
 
   function buildPageEntry(page: AdminPanelPage, icon: IconName, available: boolean = true) {
@@ -67,6 +82,7 @@ export function buildAdminLeftPanel(owner: MultiHolder, appModel: AppModel): Pag
       css.cssTools.cls("-collapsed", use => !use(panelOpen)),
       css.cssSectionHeader(css.cssSectionHeaderText(pageNames.settings)),
       buildPageEntry("admin", "Home"),
+      buildPageEntry("setup", "Settings"),
       css.cssSectionHeader(css.cssSectionHeaderText(pageNames.adminControls),
         (adminControlsAvailable ?
           infoTooltip("adminControls", { popupOptions: { placement: "bottom-start" } }) :
@@ -90,6 +106,7 @@ export function buildAdminLeftPanel(owner: MultiHolder, appModel: AppModel): Pag
   return {
     panelWidth: Observable.create(owner, 240),
     panelOpen: panelOpen,
+    collapsedWidth,
     content,
     header: dom.create(AppHeader, appModel),
   };

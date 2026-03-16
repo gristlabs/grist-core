@@ -4,7 +4,7 @@ import { delay } from "app/common/delay";
 import { encodeUrl, getSlugIfNeeded, GristDeploymentType, GristDeploymentTypes,
   GristLoadConfig, IGristUrlState, isOrgInPathOnly, LatestVersionAvailable, parseSubdomain,
   sanitizePathTail } from "app/common/gristUrls";
-import { getOrgUrlInfo } from "app/common/gristUrls";
+import { extractOrgParts, getOrgUrlInfo } from "app/common/gristUrls";
 import { isAffirmative } from "app/common/gutil";
 import { UserProfile } from "app/common/LoginSessionAPI";
 import { SandboxInfo } from "app/common/SandboxInfo";
@@ -36,6 +36,7 @@ import {
 import { addRequestUser, getUser, getUserId, isAnonymousUser,
   isSingleUserMode, redirectToLoginUnconditionally } from "app/server/lib/Authorizer";
 import { redirectToLogin, RequestWithLogin, signInStatusMiddleware } from "app/server/lib/Authorizer";
+import { addBootKeyRoutes, BootKeyLoginMiddleware } from "app/server/lib/BootKeyLogin";
 import { forceSessionChange } from "app/server/lib/BrowserSession";
 import { Comm } from "app/server/lib/Comm";
 import { ConfigBackendAPI } from "app/server/lib/ConfigBackendAPI";
@@ -66,7 +67,6 @@ import { EmitNotifier, INotifier } from "app/server/lib/INotifier";
 import { InstallAdmin } from "app/server/lib/InstallAdmin";
 import log, { logAsJson } from "app/server/lib/log";
 import { disableCache, noop } from "app/server/lib/middleware";
-import { ErrorInLoginMiddleware } from "app/server/lib/MinimalLogin";
 import { OAuth2Clients } from "app/server/lib/OAuth2Clients";
 import { IPermitStore } from "app/server/lib/Permit";
 import { getAppPathTo, getAppRoot, getInstanceRoot, getUnpackedAppRoot } from "app/server/lib/places";
@@ -214,6 +214,8 @@ export class FlexServer implements GristServer {
   private _emitNotifier: EmitNotifier = new EmitNotifier();
   private _latestVersionAvailable?: LatestVersionAvailable;
   private _oauth2Clients?: OAuth2Clients;
+  private _bootKey: string | undefined;
+  private _dbInService: string | undefined;  // GRIST_IN_SERVICE from activation DB prefs
 
   constructor(public port: number, public name: string = "flexServer",
     public readonly options: FlexServerOptions = {}) {
@@ -661,16 +663,148 @@ export class FlexServer implements GristServer {
    */
   public addBootPage() {
     if (this._check("boot")) { return; }
+    this.app.get("/boot/:key", async (req, res) => {
+      const bootKey = this.getBootKey();
+      if (bootKey && req.params.key === bootKey) {
+        res.redirect(`/admin?boot-key=${encodeURIComponent(bootKey)}`);
+      } else {
+        res.status(403).send("Invalid boot key. Check server logs for the correct key.");
+      }
+    });
     this.app.get("/boot(/*)?", async (req, res) => {
-      // Doing a good redirect is actually pretty subtle and we might
-      // get it wrong, so just say /boot got moved.
-      res.send("The /boot/KEY page is now /admin?boot-key=KEY");
+      res.send("Visit /boot/YOUR_KEY to access admin setup, or use /admin?boot-key=YOUR_KEY directly.");
     });
   }
 
   public getBootKey(): string | undefined {
+    if (this._bootKey !== undefined) {
+      return this._bootKey;
+    }
     return appSettings.section("boot").flag("key").readString({
       envVar: "GRIST_BOOT_KEY",
+    });
+  }
+
+  /**
+   * Add a setup gate that blocks access to a fresh Grist installation
+   * until the operator configures authentication or provides a boot key.
+   */
+  public async addSetupGate() {
+    // Read boot key from activation prefs, with GRIST_BOOT_KEY env var as override.
+    const envBootKey = process.env.GRIST_BOOT_KEY;
+    if (envBootKey !== undefined) {
+      // Empty string means disable boot key.
+      this._bootKey = envBootKey || undefined;
+    } else {
+      const activation = await this.getActivations().current();
+      this._bootKey = activation.prefs?.bootKey;
+    }
+
+    if (this._bootKey) {
+      log.rawInfo("Boot key for initial setup", { bootKey: this._bootKey });
+      // Print a prominent banner so the boot key is easy to find in logs.
+      console.log("");
+      console.log("  ┌──────────────────────────────────────────┐");
+      console.log("  │                                          │");
+      console.log(`  │   BOOT KEY: ${this._bootKey.padEnd(29)}│`);
+      console.log("  │                                          │");
+      console.log("  │   Use this key in the setup wizard or    │");
+      console.log("  │   at /auth/boot-key to sign in.          │");
+      console.log("  │                                          │");
+      console.log("  └──────────────────────────────────────────┘");
+      console.log("");
+    }
+
+    // Ensure /auth/boot-key routes exist even if boot-key login isn't the active
+    // login system. The gate redirects browser requests here for authentication.
+    // If BootKeyLoginMiddleware later registers its own routes, Express will use
+    // whichever is registered first (this one), which is fine since they're identical.
+    addBootKeyRoutes(this.app, this);
+
+    // Paths that should always be accessible, even when the setup gate is active.
+    const allowedPrefixes = [
+      "/health", "/status", "/boot", "/admin", "/api/admin",
+      "/api/install", "/api/probes", "/api/setup", "/api/session", "/api/config",
+      "/auth/",
+      "/v/",
+    ];
+
+    // MOCKUP ONLY — will be removed before merge.
+    // Sets GRIST_ADMIN_EMAIL in process.env so the getgrist.com auth flow
+    // can be demoed without restarting.  No auth, no security — throwaway code.
+    this.app.post("/api/setup/mockup-set-admin-email", express.json(), async (req, res) => {
+      if (this.isInService()) {
+        return res.status(404).json({ error: "Not found" });
+      }
+      const email = req.body?.email;
+      if (!email || typeof email !== "string") {
+        return res.status(400).json({ error: "Missing email" });
+      }
+      process.env.GRIST_ADMIN_EMAIL = email;
+      return res.json({ msg: "ok", email });
+    });
+
+    this.app.post("/api/setup/mockup-reset-admin-email", async (_req, res) => {
+      delete process.env.GRIST_ADMIN_EMAIL;
+      return res.json({ msg: "ok" });
+    });
+
+    // MOCKUP ONLY — will be removed before merge.
+    // Exposes the boot key so reviewers without server log access can use the
+    // mockup controls on the setup page.  No auth, no security — throwaway code.
+    this.app.get("/api/setup/mockup-boot-key", async (_req, res) => {
+      if (this.isInService()) {
+        return res.status(404).json({ error: "Not found" });
+      }
+      // If the boot key wasn't set (old activation record), create one now.
+      let bootKey = this.getBootKey();
+      if (!bootKey) {
+        const crypto = await import("crypto");
+        bootKey = crypto.randomBytes(12).toString("hex");
+        this._bootKey = bootKey;
+      }
+      return res.json({ bootKey });
+    });
+
+    // MOCKUP ONLY — will be removed before merge.
+    // Exposes the boot key for the boot-key login page mockup control.
+    // Works regardless of service state so it's available post-Go Live.
+    this.app.get("/api/setup/mockup-boot-key-login", async (_req, res) => {
+      let bootKey = this.getBootKey();
+      if (!bootKey) {
+        const crypto = await import("crypto");
+        bootKey = crypto.randomBytes(12).toString("hex");
+        this._bootKey = bootKey;
+      }
+      return res.json({ bootKey });
+    });
+
+    this.app.use((req, res, next) => {
+      if (this.isInService()) {
+        return next();
+      }
+
+      // Allow specific paths through the gate.  Strip the /o/ORG prefix
+      // that GRIST_ORG_IN_PATH adds, since this runs before inspectTag.
+      const rawPath = req.originalUrl.split("?")[0];
+      const path = extractOrgParts(req.hostname, rawPath).pathRemainder;
+      if (allowedPrefixes.some(prefix => path.startsWith(prefix))) {
+        return next();
+      }
+
+      // For API requests, return a 503 JSON response.
+      const isApi = path.startsWith("/api/") ||
+        req.headers.accept?.includes("application/json");
+      if (isApi) {
+        return res.status(503).json({
+          error: "Grist is not yet configured. Visit /admin to set up this installation.",
+        });
+      }
+
+      // For browser requests, redirect to boot-key login which will redirect
+      // to the setup wizard after authentication. If already authenticated,
+      // the boot-key POST handler redirects to 'next' immediately.
+      return res.redirect("/auth/boot-key?next=" + encodeURIComponent("/admin/setup"));
     });
   }
 
@@ -891,7 +1025,23 @@ export class FlexServer implements GristServer {
     this.info.push(["database", getDatabaseUrl(this._dbManager.connection.options, false)]);
     // If the installation appears to be new, give it an id and a creation date.
     this._activations = new ActivationsManager(this._dbManager);
-    appSettings.setEnvVars((await this._activations.current()).prefs?.envVars || {});
+    const dbEnvVars = (await this._activations.current()).prefs?.envVars || {};
+    appSettings.setEnvVars(dbEnvVars);
+    // Propagate DB-stored env vars into process.env so that code reading
+    // process.env directly (not via appSettings) picks them up.  Only set
+    // values that aren't already in process.env — real env vars (from Docker,
+    // shell, or test harness) take precedence over DB-stored values.
+    // Skip GRIST_IN_SERVICE — it's handled by isInService() which checks
+    // _dbInService directly and has test-environment awareness.
+    for (const [key, value] of Object.entries(dbEnvVars)) {
+      if (key === "GRIST_IN_SERVICE") {
+        this._dbInService = value ?? undefined;
+        continue;
+      }
+      if (value != null && process.env[key] === undefined) {
+        process.env[key] = value;
+      }
+    }
     await this._activations.current();
     this._installAdmin = await this.create.createInstallAdmin(this._dbManager);
   }
@@ -1192,11 +1342,14 @@ export class FlexServer implements GristServer {
       baseDomain: this._defaultBaseDomain,
     });
 
-    const forceLogin = appSettings.section("login").flag("forced").readBool({
+    const forceLoginEnv = appSettings.section("login").flag("forced").readBool({
       envVar: "GRIST_FORCE_LOGIN",
     });
 
-    const forcedLoginMiddleware = forceLogin ? this._redirectToLoginWithoutExceptionsMiddleware : noop;
+    // Force login when explicitly requested via GRIST_FORCE_LOGIN.
+    const forcedLoginMiddleware: express.RequestHandler = forceLoginEnv ?
+      this._redirectToLoginWithoutExceptionsMiddleware :
+      (_req, _res, next) => next();
 
     const welcomeNewUser: express.RequestHandler = isSingleUserMode() ?
       (req, res, next) => next() :
@@ -1325,7 +1478,7 @@ export class FlexServer implements GristServer {
       // We don't fallback to MinimalLogin here, as it imposes some security risks if enabled
       // unintentionally. This way, the admin is made aware of the problem and can take action using boot
       // page instructions.
-      this._loginMiddleware = new ErrorInLoginMiddleware();
+      this._loginMiddleware = new BootKeyLoginMiddleware(this);
     }
     this._getLoginRedirectUrl = tbind(this._loginMiddleware.getLoginRedirectUrl, this._loginMiddleware);
     this._getSignUpRedirectUrl = tbind(this._loginMiddleware.getSignUpRedirectUrl, this._loginMiddleware);
@@ -2250,6 +2403,32 @@ export class FlexServer implements GristServer {
    */
   public getUserIdMiddleware(): express.RequestHandler {
     return this._userIdMiddleware;
+  }
+
+  /**
+   * Check whether this Grist installation is "in service" (should serve
+   * normal requests) or needs initial setup.
+   */
+  public isInService(): boolean {
+    // Explicit GRIST_IN_SERVICE always takes precedence (set by admin
+    // in Docker/shell, or by Go Live endpoint at runtime).
+    const envVal = process.env.GRIST_IN_SERVICE;
+    if (envVal !== undefined) {
+      return isAffirmative(envVal);
+    }
+    // In test environments, default to in-service unless the test
+    // explicitly forces the setup gate on.
+    if (process.env.GRIST_TESTING_SOCKET) {
+      return !isAffirmative(process.env.GRIST_FORCE_SETUP_GATE);
+    }
+    // Check DB-persisted value (set by setup wizard / admin panel).
+    // Fresh installs persist GRIST_IN_SERVICE=false (see ActivationsManager).
+    // This is NOT propagated to process.env to keep test environments clean.
+    if (this._dbInService !== undefined) {
+      return isAffirmative(this._dbInService);
+    }
+    // No value anywhere — existing installation upgrading, default to in-service.
+    return true;
   }
 
   // Adds endpoints that support imports and exports.
