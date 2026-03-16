@@ -195,6 +195,10 @@ class SubmitRenderer extends FormRenderer {
         ),
         css.submitButton(
           dom("button",
+            // We could use aria-disabled here to, on paper, better expose the state to screen readers.
+            // But we don't on purpose, to prevent too much verbosity, as the submit button *always* gets disabled
+            // on form submission, while it is submitting. Since the text of the button changes when submitting,
+            // it's actually better to not expose it as aria-disabled in addition to the text change.
             dom.attr("data-disabled", use => use(this.context.disabled) ? "true" : "false"),
             { type: "submit" },
             dom.domComputed((use) => {
