@@ -44,6 +44,10 @@ export class FormPage extends Disposable {
 
         return this._buildFormPageDom();
       }),
+      () => {
+        document.documentElement.classList.add(htmlStyles.className);
+        document.body.classList.add(bodyStyles.className);
+      },
     );
   }
 
@@ -123,11 +127,24 @@ export class FormPage extends Disposable {
   }
 }
 
+/**
+ * The `html` and `body` styles below are manually set on form page load.
+ * They are meant to override the default Grist app CSS rules, where height is fixed to 100% of the viewport.
+ * Here, we actually want a usual browser behavior with a normally scrolling page.
+ * We'd rather 'fix' the html and body styles like this, rather than having a child div that scrolls:
+ * this prevents an additional keyboard focus on a scrollable wrapper div when pressing Tab, when using Firefox.
+ */
+const htmlStyles = styled("html", `
+  height: auto;
+  overflow: visible;
+`);
+
+const bodyStyles = styled("body", `
+  height: auto;
+`);
+
 const cssPageContainer = styled("div", `
-  height: 100%;
-  width: 100%;
   padding: 20px;
-  overflow: auto;
 `);
 
 const cssFormBorder = styled("div", `
