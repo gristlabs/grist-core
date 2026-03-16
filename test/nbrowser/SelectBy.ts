@@ -163,7 +163,7 @@ describe("SelectBy", function() {
     await section.find(".detail-button.detail-add-btn").click();
     assert.equal(await gu.getDetailCell({ section, rowNum: 1, col: "A" }).getText(), "");
     await gu.getDetailCell({ section, rowNum: 1, col: "A" }).click();
-    await gu.sendKeys("1", Key.ENTER);
+    await gu.enterCell("1");
     await gu.waitForServer();
 
     // Check that this group now has 2 records.
