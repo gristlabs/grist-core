@@ -170,6 +170,7 @@ describe("FormView1", function() {
   async function assertDropdownScreenReaderBehavior(dropdownContainer: WebElement) {
     const searchInput = await dropdownContainer.find(".test-sd-search input");
     // Check that the search input is focused on dropdown opening
+    await driver.wait(async () => await searchInput.hasFocus(), 100);
     assert.isTrue(await searchInput.hasFocus());
     // Check that screen-reader related attributes are there
     assert.equal(await searchInput.getAttribute("role"), "combobox");
