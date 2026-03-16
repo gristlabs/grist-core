@@ -69,12 +69,16 @@ export class SimpleList<T, U extends IOption<T> = IOption<T>> extends Disposable
         this._menuContent = cssMenuList(
           { id: this.listboxId, role: "listbox" },
           dom.attr("aria-label", opt.ariaLabel),
-          dom.forEach(this._items, (i) => {
+          dom.forEach(this._items, (i, index) => {
             const item = getOptionFull(i);
             return cssOptionRow(
               {
-                // we expose unique DOM ids, for external components that need to reference them for screen readers
-                id: `${this.listboxId}-item-${slugify(item.label)}`,
+                // We expose unique DOM ids, for external components that need to reference them for screen readers.
+                // Note: we don't rely solely on the index because items in the list can move around, for example
+                // when used in a search dropdown. In that case, screen readers need to correctly understand when items
+                // move, and they don't understand if the first item of the list is always id "0". They understand
+                // when it is "0-foo" and then "0-bar".
+                id: `${this.listboxId}-item-${index}-${slugify(item.label)}`,
                 role: "option",
                 class: menuItem.className + " " + cssMenuItem.className,
               },
