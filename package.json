@@ -136,7 +136,7 @@
     "@gristlabs/express-session": "1.18.1-grist1",
     "@gristlabs/grist-widget": "^0.0.5",
     "@gristlabs/moment-guess": "1.2.4-grist.1",
-    "@gristlabs/sqlite3": "5.1.4-grist.8",
+    "@gristlabs/sqlite3": "5.1.4-grist.12",
     "@popperjs/core": "2.11.8",
     "@types/tar-stream": "^3.1.3",
     "@types/zip-stream": "^7.0.0",
@@ -236,7 +236,7 @@
     "**/ip": "https://registry.npmjs.org/neoip/-/neoip-2.1.0.tgz",
     "jquery": "3.5.0",
     "ts-interface-checker": "1.0.2",
-    "@gristlabs/sqlite3": "5.1.4-grist.8"
+    "@gristlabs/sqlite3": "5.1.4-grist.12"
   },
   "mocha": {
     "require": [
