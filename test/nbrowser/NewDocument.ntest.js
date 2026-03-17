@@ -157,7 +157,7 @@ describe("NewDocument.ntest", function() {
         // should clear a selection of cells with a formula column
         await gu.enterGridValues(0, 0, [["A1", "A2"], ["B1", "B2"]]);
         await gu.clickCellRC(0, 2);
-        await gu.sendKeys("=", "$A", $.ENTER);
+        await gu.enterCell(["=", "$A", $.ENTER]);
         await gu.waitForServer();
         assert.deepEqual(await gu.getGridValues({ rowNums: [1, 2], cols: [0, 1, 2] }),
           ["A1", "B1", "A1", "A2", "B2", "A2"]);
