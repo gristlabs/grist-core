@@ -391,7 +391,7 @@ class TextRenderer extends BaseTextRenderer {
 
     const maximumLength = this.field.options.formTextMaximumLength;
 
-    if (!maximumLength) {
+    if (maximumLength) {
       element.maxLength = maximumLength;
 
       dom.update(element,
