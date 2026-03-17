@@ -108,7 +108,10 @@ describe("ValueFormatter", function() {
       // Test currency formatting with custom locales.
       assert.equal(fmt({ numMode: "currency" }, 1000000, { locale: "es-ES" }), "1.000.000,00 €");
       assert.equal(fmt({ numMode: "currency", decimals: 4 }, 1000000, { locale: "en-NZ" }), "$1,000,000.0000");
-      assert.equal(fmt({ numMode: "currency" }, -1234.565, { locale: "de-CH" }), "CHF-1’234.57");
+
+      // NOTE: Maybe a nodejs regression:
+      // https://github.com/nodejs/node/issues/61861#issuecomment-3932974204
+      assert.oneOf(fmt({ numMode: "currency" }, -1234.565, { locale: "de-CH" }), ["CHF-1’234.57", "CHF-1'234.57"]);
       assert.equal(fmt({ numMode: "currency" }, -121e+25, { locale: "es-AR" }),
         "-$ 1.210.000.000.000.000.000.000.000.000,00");
       assert.equal(fmt({ numMode: "currency" }, 0.1234567, { locale: "fr-BE" }), "0,12 €");
@@ -123,7 +126,12 @@ describe("ValueFormatter", function() {
       assert.equal(
         fmt({ numMode: "currency", decimals: 4 }, 1000000, { locale: "en-NZ", currency: "JPY" }),
         "¥1,000,000.0000");
-      assert.equal(fmt({ numMode: "currency" }, -1234.565, { locale: "de-CH", currency: "JMD" }), "$-1’234.57");
+
+      // NOTE: Maybe a nodejs regression:
+      // https://github.com/nodejs/node/issues/61861#issuecomment-3932974204
+      assert.oneOf(fmt({ numMode: "currency" }, -1234.565, { locale: "de-CH", currency: "JMD" }),
+        ["$-1’234.57", "$-1'234.57"]);
+
       assert.equal(
         fmt({ numMode: "currency" }, -121e+25, { locale: "es-AR", currency: "GBP" }),
         "-£ 1.210.000.000.000.000.000.000.000.000,00");
