@@ -2,7 +2,7 @@
 
 set -e
 
-CHROME_VERSION="145.0.7632.116-1"
+CHROME_VERSION="146.0.7680.80-1"
 
 if [[ "$1" != "-y" ]]; then
   echo "Usage: $0 -y"
