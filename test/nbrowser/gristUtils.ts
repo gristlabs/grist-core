@@ -114,6 +114,7 @@ namespace gristUtils {
   export const getSection = webdriverUtils.getSection.bind(webdriverUtils);
   export const getVisibleGridCells = webdriverUtils.getVisibleGridCells.bind(webdriverUtils);
   export const getCell = webdriverUtils.getCell.bind(webdriverUtils);
+  export const waitCellFocus = webdriverUtils.waitCellFocus.bind(webdriverUtils);
   export const selectSectionByTitle = webdriverUtils.selectSectionByTitle.bind(webdriverUtils);
   export const selectSectionByIndex = webdriverUtils.selectSectionByIndex.bind(webdriverUtils);
 

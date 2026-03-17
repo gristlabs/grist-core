@@ -450,6 +450,10 @@ export class GristWebDriverUtils {
     return new WebElementPromise(this.driver, this.getVisibleGridCells(options).then(elems => elems[0]));
   }
 
+  public waitCellFocus(cell: WebElement | WebElementPromise, timeout: number = 1000) {
+    return cell.findWait(".has_cursor", timeout);
+  }
+
   /**
    * Returns a WebElementPromise for the .viewsection_content element for the section which contains
    * the given text (case insensitive) content.

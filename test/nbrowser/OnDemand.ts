@@ -87,7 +87,7 @@ describe("OnDemand", function() {
 
     // Wait for the page to reload, i.e. "confirm" dialog to close, and then check wait for title
     // to be present again.
-    await gu.waitForServer(4000);   // This could take longer, since it waits for doc to re-open
+    await gu.waitForServer(10_000);   // This could take longer, since it waits for doc to re-open
     await driver.navigate().refresh();
     await gu.waitForDocToLoad();
 
@@ -142,7 +142,8 @@ describe("OnDemand", function() {
     await gu.waitAppFocus();
     await clipboard.lockAndPerform(async (cb: IClipboard) => {
       await cb.copy();
-      await gu.getCell(1, 4).click();
+      const cell = await gu.getCell(1, 4).doClick();
+      await gu.waitCellFocus(cell);
       await cb.paste();
     });
     await gu.waitAppFocus();
@@ -192,12 +193,12 @@ describe("OnDemand", function() {
     await gu.waitAppFocus();
     await clipboard.lockAndPerform(async (cb: IClipboard) => {
       await cb.copy();
-      await gu.getCell(1, 2).click();
+      const cell = await gu.getCell(1, 2).doClick();
+      await gu.waitCellFocus(cell);
       await cb.paste();
     });
     await gu.waitForServer();
     await gu.waitAppFocus();
-    // FIXME: Despite the waitToPass, there is some flakiness here. Needs help.
     await gu.waitToPass(async () => {
       assert.deepEqual(await gu.getVisibleGridCells({ cols: [0, 1, 2], rowNums: [1, 2, 3, 4] }), [
         "hello", "brown", "",
@@ -214,7 +215,8 @@ describe("OnDemand", function() {
       "quick", "jumped", ""]);
 
     // Remove a row from the table.
-    await gu.getCell(0, 2).click();
+    const cell = await gu.getCell(0, 2).doClick();
+    await gu.waitCellFocus(cell);
     await gu.sendKeys(Key.chord(await gu.modKey(), Key.DELETE));
     await gu.waitForServer();
     await gu.confirm(true, true);
