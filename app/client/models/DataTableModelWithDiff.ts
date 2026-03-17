@@ -20,6 +20,14 @@ import { Emitter } from "grainjs";
 const ROW_ID_SKIP = -1;
 
 /**
+ * Returns true if the row ID is a synthetic negative ID used for diff display
+ * (removed rows, remotely-added rows). These rows don't exist in the real table.
+ */
+export function isSyntheticRowId(rowId: unknown): boolean {
+  return typeof rowId === "number" && rowId < 0;
+}
+
+/**
  * Represent extra rows in a table that correspond to rows added in a remote (right) document,
  * or removed in the local (left) document relative to a common ancestor.
  *
@@ -212,24 +220,25 @@ export class DataTableModelWithDiff extends DisposableWithEvents implements Data
 }
 
 /**
- * A variant of TableData that shows a live diff between the document's state when it was
- * first opened (the "comparison base") and its current state.
+ * A variant of TableData that shows a live diff between the comparison base
+ * (trunk at fork time) and the current fork state. The live session must
+ * match what the server's ActionSummarizer produces on reload.
  *
- * For cell edits, the diff is straightforward: `leftTableDelta` stores [oldValue, newValue]
- * pairs and `getValue()` returns them as CellVersions so the UI can render old/new side by side.
+ * `leftTableDelta` stores `[parentValue, newValue]` per cell, where parent is
+ * always the trunk value and new is the current fork value. The `before()` method
+ * intercepts each DocAction before it's applied, updating the delta to maintain
+ * this invariant across edits, adds, deletes, undos, and redos.
  *
- * Row deletions are trickier: the deleted row disappears from the real table data, but the
- * diff needs to keep showing it (struck-through) with its original values. We handle this by
- * injecting a *synthetic row ID* (via ExtraRows) into the grid's row source. The synthetic ID
- * maps back to the original row, and `getValue()` returns the pre-deletion values from
- * `leftTableDelta`. The synthetic row is added to ExtendedRowSource dynamically via
- * `changeEmitter`, so the grid updates in real time.
+ * Deleted rows get synthetic negative row IDs (via ExtraRows) injected into the
+ * grid's row source so they remain visible. These synthetic rows are read-only —
+ * all mutation paths must be guarded against them (see `isSyntheticRowId()`).
  *
- * When operations cancel out (add then delete the same row, or delete then undo), the
- * bookkeeping is cleaned up and the synthetic row is removed - leaving no diff artifact.
- *
- * `leftTableDelta` accumulates across all edits for the lifetime of the document view,
- * so the diff always shows the total change from the comparison base, not incremental changes.
+ * When a deleted row's ID is reused (undo or ID recycling), the add's values are
+ * compared to the removal's stored pre-deletion values. If they match (undo),
+ * the synthetic row is removed and the pre-deletion diff state is restored
+ * (preserving any prior edit diffs). If they differ (recycled ID), both the
+ * deletion and the add are kept — the grid shows a struck-through row AND a
+ * green added row with the new values.
  */
 export class TableDataWithDiff {
   public dataLoadedEmitter: any;
@@ -239,6 +248,9 @@ export class TableDataWithDiff {
   private _leftRemovals: Set<number>;
   private _rightRemovals: Set<number>;
   private _updates: Set<number>;
+  // Stores pre-deletion column values for each removed row, keyed by rowId.
+  // Used to distinguish undo (values match) from ID recycling (values differ).
+  private _removedRowValues = new Map<number, Record<string, CellDelta[0]>>();
 
   constructor(public core: TableData, public leftTableDelta: TableDelta,
     public rightTableDelta: TableDelta, public extraRows: ExtraRows) {
@@ -413,12 +425,35 @@ export class TableDataWithDiff {
   /**
    * Record locally-added rows. The parent value (index 0) is null since the row
    * didn't exist in the comparison base.
+   *
+   * If a row ID was previously removed, we check whether this is an undo
+   * (pre-deletion values match the add) or ID recycling (values differ):
+   * - Undo: remove the synthetic row and restore the pre-deletion diff state
+   *   (any prior edit diffs are preserved).
+   * - Recycling: leave the remove intact, process the add normally. The grid
+   *   shows both a struck-through deleted row and a green added row. This
+   *   matches what the server's ActionSummarizer produces on reload.
    */
   private _processAddRows(tableDelta: TableDelta): void {
     for (const rowId of tableDelta.addRows) {
       const syntheticId = this.extraRows.encodeLeftRemoveRow(rowId);
       if (this.extraRows.leftRemoveRows.has(syntheticId)) {
-        this._cleanupRemovedRow(rowId);
+        if (this._addMatchesRemoval(rowId, tableDelta)) {
+          // Undo: values match the original removal — restore diff state.
+          this._cleanupRemovedRow(rowId, tableDelta);
+          continue;
+        }
+        // Recycled ID with different values: leave the remove intact
+        // (the struck-through row stays). Mark the row as added so it gets
+        // green highlighting, but don't create delta entries — the removal's
+        // deltas must stay intact for the synthetic row's getValue() to work.
+        // Remove from _updates so the real row's values come from
+        // core.getValue() instead of the removal's stale CellVersions.
+        this._updates.delete(rowId);
+        this.extraRows.leftAddRows.add(rowId);
+        if (!this.leftTableDelta.addRows.includes(rowId)) {
+          this.leftTableDelta.addRows.push(rowId);
+        }
         continue;
       }
 
@@ -454,6 +489,13 @@ export class TableDataWithDiff {
         continue;
       }
 
+      // If this row was previously in updateRows (e.g., edited then deleted),
+      // clean up the update bookkeeping before recording it as a remove.
+      if (this.leftTableDelta.updateRows.includes(rowId)) {
+        this.leftTableDelta.updateRows =
+          this.leftTableDelta.updateRows.filter(id => id !== rowId);
+      }
+
       const syntheticId = this.extraRows.encodeLeftRemoveRow(rowId);
       const isNew = !this.extraRows.leftRemoveRows.has(syntheticId);
 
@@ -461,16 +503,29 @@ export class TableDataWithDiff {
         this._ensureColumnExists(colId);
 
         if (!this.leftTableDelta.columnDeltas[colId][rowId]) {
-          this.leftTableDelta.columnDeltas[colId][rowId] = [null, null];
-          if (!this.leftTableDelta.removeRows.includes(rowId)) {
-            this.leftTableDelta.removeRows.push(rowId);
-          }
+          // First time seeing this cell — snapshot the pre-deletion value as parent.
+          this.leftTableDelta.columnDeltas[colId][rowId] = [
+            tableDelta.columnDeltas[colId]?.[rowId]?.[0] ?? null,
+            null,
+          ];
         }
-
-        this.leftTableDelta.columnDeltas[colId][rowId][0] =
-          tableDelta.columnDeltas[colId]?.[rowId]?.[0];
+        // If the delta already existed (e.g., from a prior edit), keep the
+        // original parent — it reflects the comparison base, not the current
+        // (possibly edited) value.
       }
 
+      // Store pre-deletion values for undo detection. When the same row ID
+      // reappears (via undo or recycling), we compare the add's values against
+      // these to distinguish the two cases.
+      const snapshot: Record<string, CellDelta[0]> = {};
+      for (const colId of Object.keys(tableDelta.columnDeltas)) {
+        snapshot[colId] = tableDelta.columnDeltas[colId]?.[rowId]?.[0] ?? null;
+      }
+      this._removedRowValues.set(rowId, snapshot);
+
+      if (!this.leftTableDelta.removeRows.includes(rowId)) {
+        this.leftTableDelta.removeRows.push(rowId);
+      }
       this._updates.add(rowId);
       this.extraRows.leftRemoveRows.add(syntheticId);
 
@@ -495,15 +550,70 @@ export class TableDataWithDiff {
     }
   }
 
-  private _cleanupRemovedRow(rowId: number): void {
+  /**
+   * Check whether an AddRecord for a previously-removed row ID is an undo
+   * (restoring the original values) or ID recycling (a genuinely new row).
+   * Compares the add's new values against the stored removal's parent values.
+   */
+  private _addMatchesRemoval(rowId: number, tableDelta: TableDelta): boolean {
+    // Compare the add's new values against the pre-deletion values stored
+    // when the row was removed. If they match, this is an undo. If they
+    // differ, it's a genuinely new row that reused the same ID.
+    const snapshot = this._removedRowValues.get(rowId);
+    if (!snapshot) { return false; }
+    for (const colId of Object.keys(tableDelta.columnDeltas)) {
+      if (!tableDelta.columnDeltas[colId]?.[rowId]) { continue; }
+      const oldVal = snapshot[colId] ?? null;
+      const newVal = tableDelta.columnDeltas[colId][rowId][1];
+      if (JSON.stringify(oldVal) !== JSON.stringify(newVal)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Undo a removal: remove the synthetic row and restore the diff state to
+   * what it was before the deletion. For columns that were edited before
+   * deletion, the edit delta (parent=trunk, new=edited) is preserved. For
+   * columns that had no prior edit, the delta entry (created by the removal)
+   * is cleaned up. The row returns to its pre-deletion diff state.
+   */
+  private _cleanupRemovedRow(rowId: number, tableDelta: TableDelta): void {
     const syntheticId = this.extraRows.encodeLeftRemoveRow(rowId);
     this.extraRows.leftRemoveRows.delete(syntheticId);
-    this._updates.delete(rowId);
     this.leftTableDelta.removeRows = this.leftTableDelta.removeRows.filter(id => id !== rowId);
-    for (const colId of Object.keys(this.leftTableDelta.columnDeltas)) {
-      delete this.leftTableDelta.columnDeltas[colId][rowId];
-    }
     this.extraRows.changeEmitter.emit("remove", [syntheticId]);
+    this._removedRowValues.delete(rowId);
+
+    // Restore each column's delta to its pre-deletion state.
+    let hasRemainingDelta = false;
+    for (const colId of Object.keys(this.leftTableDelta.columnDeltas)) {
+      const delta = this.leftTableDelta.columnDeltas[colId][rowId];
+      if (!delta) { continue; }
+      // If this delta was created by the removal (parent came from the
+      // removal's tableDelta, not from a prior edit), clean it up.
+      // We detect this by checking: if the only source of this delta was
+      // the removal, delta[1] will be null (removals set [0] but leave [1]).
+      if (delta[1] === null) {
+        delete this.leftTableDelta.columnDeltas[colId][rowId];
+      } else {
+        // This delta existed before the removal (from a prior edit).
+        // Update [1] with the restored value from the undo's add.
+        delta[1] = tableDelta.columnDeltas[colId]?.[rowId]?.[1] ?? delta[1];
+        hasRemainingDelta = true;
+      }
+    }
+
+    if (hasRemainingDelta) {
+      // Row still has edit diffs — keep it in _updates and updateRows.
+      if (!this.leftTableDelta.updateRows.includes(rowId)) {
+        this.leftTableDelta.updateRows.push(rowId);
+      }
+    } else {
+      // No remaining diffs — fully clean.
+      this._updates.delete(rowId);
+    }
   }
 }
 

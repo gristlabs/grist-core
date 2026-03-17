@@ -1,5 +1,6 @@
 import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
 import { simpleStringHash } from "app/client/lib/textUtils";
+import { isSyntheticRowId } from "app/client/models/DataTableModelWithDiff";
 import TableModel from "app/client/models/TableModel";
 import { safeJsonParse } from "app/common/gutil";
 import { tsvEncode } from "app/common/tsvFormat";
@@ -183,7 +184,8 @@ export function makeDeleteAction(selection: CopySelection): BulkUpdateRecord | n
  * Fills currently selected grid with the contents of the top row in that selection.
  */
 export function fillSelectionDown(selection: CopySelection, tableModel: TableModel) {
-  const rowIds = selection.rowIds.filter((r): r is number => (typeof r === "number"));
+  // Filter out "new" row and synthetic rows used for diff display.
+  const rowIds = selection.rowIds.filter((r): r is number => (typeof r === "number" && !isSyntheticRowId(r)));
   if (rowIds.length <= 1) {
     return;
   }
