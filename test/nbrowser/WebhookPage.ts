@@ -285,7 +285,8 @@ describe("WebhookPage", function() {
     await gu.waitForServer();
     await clipboard.lockAndPerform(async (cb) => {
       await cb.copy();
-      await gu.getDetailCell({ col: "Memo", rowNum: 1 }).click();
+      const cell = await gu.getDetailCell({ col: "Memo", rowNum: 1 }).doClick();
+      await driver.wait(() => cell.find(".has_cursor"), 1000);
       await cb.paste();
     });
     await gu.waitForServer();
