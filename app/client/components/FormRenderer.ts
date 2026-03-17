@@ -373,7 +373,7 @@ class TextRenderer extends BaseTextRenderer {
   public label() {
     const maximumLength = this.field.options.formTextMaximumLength;
 
-    if (maximumLength === undefined || maximumLength === 0) {
+    if (!maximumLength) {
       return super.label();
     }
 
@@ -391,7 +391,7 @@ class TextRenderer extends BaseTextRenderer {
 
     const maximumLength = this.field.options.formTextMaximumLength;
 
-    if (maximumLength !== undefined && maximumLength !== 0) {
+    if (!maximumLength) {
       element.maxLength = maximumLength;
 
       dom.update(element,
