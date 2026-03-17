@@ -789,7 +789,7 @@ namespace gristUtils {
  * and joins them with newlines.
  */
   export async function checkTokenEditor(value: RegExp | string) {
-    assert.equal(await driver.findWait(".test-widget-text-editor", 500).isDisplayed(), true);
+    assert.equal(await driver.findWait(".test-widget-text-editor", 1000).isDisplayed(), true);
     const valueRe = typeof value === "string" ? exactMatch(value) : value;
     const allTokens = await driver.findAll(
       ".test-widget-text-editor .test-tokenfield .test-tokenfield-token", e => e.getText());
