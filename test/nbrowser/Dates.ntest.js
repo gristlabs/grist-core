@@ -63,7 +63,7 @@ describe("Dates.ntest", function() {
     // with YYYY-MM-DD
     await cell.click();
     await gu.sendKeys($.ENTER);
-    assert.equal(await $(".celleditor_text_editor").first().val(), "2008-01-10");
+    assert.equal(await $(".celleditor_text_editor").wait().first().val(), "2008-01-10");
 
     // Date should be changable by clicking the calendar dates
     await $(".celleditor_text_editor").first().sendKeys($.DOWN);   // Opens date picker even if window has no focus.
@@ -78,15 +78,17 @@ describe("Dates.ntest", function() {
     await gu.timeFormat("h:mma");
     await cell.click();
     await gu.sendKeys($.ENTER);
-    assert.deepEqual(await $(".celleditor_text_editor").array().val(),
-      ["January 19th, 2008", "1:20pm"]);
+    await gu.waitToPass(async () => {
+      assert.deepEqual(await $(".celleditor_text_editor").array().val(),
+        ["January 19th, 2008", "1:20pm"]);
+    }, 1000);
     await gu.sendKeys($.SELECT_ALL, "February 20th, 2009", $.TAB, "8:15am", $.ENTER);
     await gu.waitForServer();
     assert.equal(await cell.text(), "February 20th, 2009 8:15am");
 
     // DateTime editor should close and save value when the user clicks away
     await cell.click();
-    await gu.sendKeys($.ENTER, $.SELECT_ALL, $.DELETE);
+    await gu.enterCell([""], {validate: false});
     await gu.getCellRC(0, 3).click(); // click away
     await gu.waitForServer();
     // Since only the date value was removed, the cell should give AltText of the time value
@@ -95,7 +97,8 @@ describe("Dates.ntest", function() {
 
     // DateTime editor should close and revert value when the user presses escape
     await cell.click();
-    await gu.sendKeys($.ENTER, "April 2, 1993", $.ESCAPE);
+    await gu.enterCell(["April 2, 1993", $.ESCAPE], {clear: false, validate: false});
+    await gu.waitAppFocus();
     assert.equal(await cell.text(), "8:15am");
   });
 
@@ -104,7 +107,7 @@ describe("Dates.ntest", function() {
 
     // Move to the first column
     await cell.click();
-    await gu.sendKeys("2016-01-08", $.ENTER);
+    await gu.enterCell("2016-01-08");
 
     // Change type to 'Date'
     await gu.setType("Date");
@@ -139,7 +142,7 @@ describe("Dates.ntest", function() {
     // Date editor should open and replace incomplete format with YYYY-MM-DD
     await cell.click();
     await gu.sendKeys($.ENTER);
-    assert.equal(await $(".celleditor_text_editor").val(), "2016-01-08");
+    assert.equal(await $(".celleditor_text_editor").wait().val(), "2016-01-08");
 
     // Date should be changable by clicking the calendar dates
     await $(".celleditor_text_editor").sendKeys($.DOWN);   // Opens date picker even if window has no focus.
@@ -154,36 +157,37 @@ describe("Dates.ntest", function() {
     await gu.dateFormat("MMMM Do, YYYY");
     await cell.click();
     await gu.sendKeys($.ENTER);
-    assert.equal(await $(".celleditor_text_editor").val(), "January 19th, 2016");
+    assert.equal(await $(".celleditor_text_editor").wait().val(), "January 19th, 2016");
     await gu.sendKeys($.SELECT_ALL, "February 20th, 2016", $.ENTER);
     await gu.waitForServer();
     assert.equal(await cell.text(), "February 20th, 2016");
 
     // Date editor should close and save value when the user clicks away
     await cell.click();
-    await gu.sendKeys($.ENTER, $.SELECT_ALL, $.DELETE);
+    await gu.enterCell([""], {validate: false});
     await gu.getCellRC(0, 3).click(); // click away
     await gu.waitForServer();
     assert.equal(await cell.text(), "");
 
     // Date editor should close and revert value when the user presses escape
     await cell.click();
-    await gu.sendKeys($.ENTER, "April 2, 1993", $.ESCAPE);
+    await gu.enterCell(["April 2, 1993", $.ESCAPE], {validate: false, clear: false});
+    await gu.waitAppFocus();
     assert.equal(await cell.text(), "");
   });
 
   it("should reload values correctly after reopen", async function() {
     await gu.getCellRC(0, 0).click();
-    await gu.sendKeys("February 20th, 2009", $.TAB, "8:15am", $.ENTER);
+    await gu.enterCell(["February 20th, 2009", $.TAB, "8:15am"]);
     await gu.getCellRC(0, 1).click();
-    await gu.sendKeys("January 19th, 1968", $.ENTER);
+    await gu.enterCell("January 19th, 1968");
     await gu.getCellRC(1, 1).click();
     await gu.sendKeys($.DELETE);
     await gu.waitForServer();
     await gu.getCellRC(0, 2).click();
     await gu.waitAppFocus();
     await gu.sendKeys("=");
-    await $(".test-editor-tooltip-convert").click();
+    await $(".test-editor-tooltip-convert").wait().click();
     await gu.sendKeys("$A", $.ENTER);
     await gu.waitForServer();
     await gu.waitAppFocus();
@@ -247,12 +251,14 @@ describe("Dates.ntest", function() {
       // Type the Date-only shortcut into each cell in the second row.
       await gu.clickCellRC(1, 0);
       for (var i = 0; i < 6; i++) {
+        await gu.waitAppFocus();
         await gu.sendKeys([$.MOD, ";"], $.TAB);
       }
 
       // Type the Date-Time shortcut into each cell in the third row.
       await gu.clickCellRC(2, 0);
       for (i = 0; i < 6; i++) {
+        await gu.waitAppFocus();
         await gu.sendKeys([$.MOD, $.SHIFT, ";"], $.TAB);
       }
     }
@@ -414,7 +420,7 @@ describe("Dates.ntest", function() {
     await gu.setType("Text");
     await gu.applyTypeConversion();
     await gu.clickCellRC(2, 1);
-    await gu.sendKeys("banana", $.ENTER);
+    await gu.enterCell("banana");
     await gu.waitForServer();
     assert.equal(await gu.getCellRC(2, 1).text(), "banana");
 
