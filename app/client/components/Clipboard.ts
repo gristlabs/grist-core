@@ -27,6 +27,7 @@ import { makeT } from "app/client/lib/localization";
 import { makePasteHtml, makePasteText, parsePasteHtml, PasteData } from "app/client/lib/tableUtil";
 import { ShortcutKey, ShortcutKeyContent } from "app/client/ui/ShortcutKey";
 import { confirmModal } from "app/client/ui2018/modals";
+import { visuallyHidden } from "app/client/ui2018/visuallyHidden";
 import { isNonNullish } from "app/common/gutil";
 import { tsvDecode } from "app/common/tsvFormat";
 
@@ -101,7 +102,23 @@ export class Clipboard extends Disposable {
 
   constructor(private _app: App) {
     super();
-    this.copypasteField = dom("textarea", dom.cls("copypaste"), dom.cls("mousetrap"),
+    this.copypasteField = dom("textarea",
+      {
+        "id": "copypaste-field",
+        "class": "copypaste mousetrap",
+        // This "fake active descendant" helps handling screen readers.
+        // Context:
+        //   when focused on an input, SRs try to help you understanding what's happening.
+        //   For example, NVDA announces the current input value when pressing arrow keys.
+        //   But in our case, we use this clipboard input as a trick to handle keyboard focus as a whole in Grist.
+        //   We don't really want SRs to help us on understanding this input. We actually want to make it so that they
+        //   don't even know there is an input.
+        // So, this dummy activedescendant makes SRs think focus is actually on the targetted thing, not the input.
+        // So, "input helpers" are disabled. And the targetted thing is an empty element, so the idea is that SRs
+        // don't say anything about it. Note that it's not _exactly_ what happens, but we are close.
+        "aria-owns": "fake-active-descendant",
+        "aria-activedescendant": "fake-active-descendant",
+      },
       dom.on("input", (event, elem) => {
         const value = elem.value;
         elem.value = "";
@@ -113,8 +130,28 @@ export class Clipboard extends Disposable {
       dom.on("cut", this._onCut.bind(this)),
       dom.on("paste", this._onPaste.bind(this)),
     );
-    document.body.appendChild(this.copypasteField);
-    this.onDispose(() => { dom.domDispose(this.copypasteField); this.copypasteField.remove(); });
+    const fakeActiveDescendant = dom("div", {
+      id: "fake-active-descendant",
+      // The role "application" helps some screen readers automatically change their navigation mode to navigate
+      // in widgets through grist keyboard shortcuts directly, without having to enable focus/app mode manually.
+      // [*]: One downside is the word "application" can literally be announced when focus gets on the clipboard.
+      // I'm guessing it's an okay downside compared to the benefit of automatic app mode switching, but this definitely
+      // needs feedback from actual screen reader users.
+      role: "application",
+    });
+    // The element is added to a container div, and not to the body directly. This helps preventing NVDA announce
+    // the document `<title>` when focusing back on the clipboard, when coming from a region (panels).
+    // The `aria-owns` attr is used to make SRs think that the #floating-editor, appearing when editing a grid cell,
+    // is a child of this container, again to prevent SRs from announcing unnecessary context switching.
+    const copypasteContainer = visuallyHidden({ "id": "copypaste-container", "aria-owns": "floating-editor" });
+    copypasteContainer.appendChild(this.copypasteField);
+    copypasteContainer.appendChild(fakeActiveDescendant);
+    document.body.appendChild(copypasteContainer);
+
+    this.onDispose(() => {
+      dom.domDispose(this.copypasteField);
+      copypasteContainer.remove();
+    });
 
     FocusLayer.create(this, {
       defaultFocusElem: this.copypasteField,
