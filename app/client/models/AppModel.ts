@@ -1,4 +1,5 @@
 import { BehavioralPromptsManager } from "app/client/components/BehavioralPromptsManager";
+import { ScreenReaderAnnouncer } from "app/client/components/ScreenReaderAnnouncer";
 import { hooks } from "app/client/Hooks";
 import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
 import { makeT } from "app/client/lib/localization";
@@ -57,6 +58,7 @@ export interface TopAppModel {
   currentSubdomain: Observable<string | undefined>;
 
   notifier: Notifier;
+  screenReaderAnnouncer: ScreenReaderAnnouncer;
   plugins: LocalPlugin[];
 
   // Everything else gets fully rebuilt when the org/user changes. This is to ensure that
@@ -132,6 +134,7 @@ export interface AppModel {
   needsOrg: Observable<boolean>;
 
   notifier: Notifier;
+  screenReaderAnnouncer: ScreenReaderAnnouncer;
   planName: string | null;
 
   behavioralPromptsManager: BehavioralPromptsManager;
@@ -160,6 +163,7 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
 
   public readonly currentSubdomain = Computed.create(this, urlState().state, (use, s) => s.org);
   public readonly notifier = Notifier.create(this);
+  public readonly screenReaderAnnouncer = ScreenReaderAnnouncer.create(this);
   public readonly appObs = Observable.create<AppModel | null>(this, null);
   public readonly orgs = Observable.create<Organization[]>(this, []);
   public readonly users = Observable.create<FullUser[]>(this, []);
@@ -357,6 +361,7 @@ export class AppModelImpl extends Disposable implements AppModel {
     });
 
   public readonly notifier = this.topAppModel.notifier;
+  public readonly screenReaderAnnouncer = this.topAppModel.screenReaderAnnouncer;
 
   public readonly behavioralPromptsManager: BehavioralPromptsManager =
     BehavioralPromptsManager.create(this, this);
