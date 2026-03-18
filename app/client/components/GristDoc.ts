@@ -746,6 +746,11 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       }
       // finally set the current view as fully loaded
       this.currentView.set(view);
+      if (view) {
+        this.appModel.screenReaderAnnouncer?.announce(t("{{title}} widget", {
+          title: view.viewSection.titleDef(),
+        }), "view-change");
+      }
     }));
 
     // create observable for current cursor position
