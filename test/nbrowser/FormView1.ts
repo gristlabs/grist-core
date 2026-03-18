@@ -327,7 +327,7 @@ describe("FormView1", function() {
     it("max length for single-line Text field", async function() {
       const formUrl = await createFormWith("Text");
       await gu.openColumnPanel();
-      await gu.waitForSidePanel();
+      await gu.waitForSidePanel("right", "expanded");
       const constraintInput = await driver.find(".test-tb-form-field-constraint input");
       await constraintInput.sendKeys(5);
       await constraintInput.sendKeys(Key.ENTER);
@@ -382,7 +382,7 @@ describe("FormView1", function() {
     it("max length for multi-line Text field", async function() {
       const formUrl = await createFormWith("Text");
       await gu.openColumnPanel();
-      await gu.waitForSidePanel();
+      await gu.waitForSidePanel("right", "expanded");
       await driver.findContent(".test-tb-form-field-format .test-select-button", /Multi line/).click();
       const constraintInput = await driver.find(".test-tb-form-field-constraint input");
       await constraintInput.sendKeys(7);
