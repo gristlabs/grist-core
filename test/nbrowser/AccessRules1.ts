@@ -2,7 +2,7 @@
  * Test of the UI for Granular Access Control, part 1.
  */
 import { enterRulePart, findDefaultRuleSet, findDefaultRuleSetWait, findRuleSet,
-  findTable, startEditingAccessRules, triggerAutoComplete } from "test/nbrowser/aclTestUtils";
+  findTable, findTableWait, startEditingAccessRules, triggerAutoComplete } from "test/nbrowser/aclTestUtils";
 import * as gu from "test/nbrowser/gristUtils";
 import { server } from "test/nbrowser/testServer";
 import { setupTestSuite } from "test/nbrowser/testUtils";
@@ -120,7 +120,7 @@ describe("AccessRules1", function() {
     // Make RumorsColumn of ClientsTable private to user1.
     await driver.findContentWait("button", /Add table rules/, 2000).click();
     await gu.findOpenMenuItem("li", /ClientsTable/).click();
-    await findTable(/ClientsTable/).findWait(".test-rule-table-menu-btn", 300).click();
+    await findTableWait(/ClientsTable/).findWait(".test-rule-table-menu-btn", 300).click();
     await gu.findOpenMenuItem("li", /Add column rule/).click();
     ruleSet = findRuleSet(/ClientsTable/, 1);
 
