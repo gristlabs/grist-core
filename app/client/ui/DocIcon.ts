@@ -75,6 +75,11 @@ function getIconFromName(name: string) {
     .join("")
     // https://www.regular-expressions.info/unicode.html
     .replace(/[^\p{L}\p{Nd}]$/u, "")
+    // Circumvent weird behavior (regression?) found in Chromium since r1566276
+    // Normally at this point, the above regex should have removed any emoji.
+    // See this discussion for more information:
+    // https://github.com/gristlabs/grist-core/pull/2170/changes#r2923385260
+    .replace(emojiRegex(), "")
     .toUpperCase();
 }
 
