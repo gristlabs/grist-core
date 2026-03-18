@@ -754,6 +754,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
         this.appModel.screenReaderAnnouncer?.announce(t("{{title}} widget", {
           title: view.viewSection.titleDef(),
         }), "view-change");
+        view.announceCurrentItem();
       }
     }));
 
