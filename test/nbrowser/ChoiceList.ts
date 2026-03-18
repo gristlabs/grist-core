@@ -204,8 +204,8 @@ describe("ChoiceList", function() {
 
     // Enter by typing into an empty cell: valid value, invalue value, then check the editor.
     await gu.getCell({ rowNum: 1, col: "B" }).click();
-    await driver.sendKeys("Gre", Key.ENTER);
-    await driver.sendKeys("fake", Key.ENTER);
+    await gu.enterCell("Gre");
+    await gu.enterCell("fake");
     assert.deepEqual(await getEditorTokens(), ["Green", "fake"]);
     assert.deepEqual(await getEditorTokensIsInvalid(), [false, true]);
     assert.deepEqual(
@@ -224,7 +224,7 @@ describe("ChoiceList", function() {
 
     // Type invalid value, then select from dropdown valid
     await gu.getCell({ rowNum: 1, col: "B" }).click();
-    await driver.sendKeys("fake", Key.ENTER);
+    await gu.enterCell("fake");
     await getEditorInput().click();
     const blueChoice = await driver.findContent(".test-autocomplete li", /Blue/);
     assert.equal(
@@ -265,7 +265,8 @@ describe("ChoiceList", function() {
     );
 
     // Enter to edit. Enter token, remove two tokens, with a key and with an x-click.
-    await gu.getCell({ rowNum: 1, col: "B" }).click();
+    const cell = await gu.getCell({ rowNum: 1, col: "B" }).doClick();
+    await gu.waitCellFocus(cell);
     await driver.sendKeys(Key.ENTER);
     assert.deepEqual(await getEditorTokens(), ["fake", "Blue", "Black"]);
     await driver.sendKeys("Gre", Key.TAB);
@@ -351,9 +352,8 @@ describe("ChoiceList", function() {
     ]);
 
     // Type a couple new tokens.
-    await gu.getCell({ rowNum: 1, col: "B" }).click();
-    await driver.sendKeys(Key.ENTER);
-    await driver.sendKeys("fake", Key.TAB, "Bla", Key.TAB);
+    await gu.getCell({ rowNum: 1, col: "B" }).doClick();
+    await gu.enterCell(["fake", Key.TAB, "Bla", Key.TAB], { clear: false });
 
     // Enter to save; check formula got updated
     await driver.sendKeys(Key.ENTER);
@@ -363,7 +363,8 @@ describe("ChoiceList", function() {
     ]);
 
     // Hit delete. ChoiceList cell and formula should clear.
-    await gu.getCell({ rowNum: 1, col: "B" }).click();
+    const cell = await gu.getCell({ rowNum: 1, col: "B" }).doClick();
+    await gu.waitCellFocus(cell);
     await driver.sendKeys(Key.DELETE);
     await gu.waitForServer();
     assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: ["B", "C"] }), [
@@ -386,6 +387,7 @@ describe("ChoiceList", function() {
     // Select a token from autocomplete
     const cell = gu.getCell({ rowNum: 1, col: "B" });
     assert.equal(await cell.getText(), "");
+    await gu.waitCellFocus(cell);
     await cell.click();
     await driver.sendKeys(Key.ENTER);
     await gu.waitForCellEditor();
@@ -507,7 +509,8 @@ describe("ChoiceList", function() {
     );
 
     // Open a cell to see the actual tags.
-    await gu.getCell({ rowNum: 3, col: "A" }).click();
+    const cell = await gu.getCell({ rowNum: 3, col: "A" }).doClick();
+    await gu.waitCellFocus(cell);
     await driver.sendKeys(Key.ENTER);
     assert.deepEqual(await getEditorTokens(), ["Foo", "Bar;Baz!", "Qux, quux corge", "80's"]);
     assert.deepEqual(await getEditorTokensIsInvalid(), [false, false, false, false]);
