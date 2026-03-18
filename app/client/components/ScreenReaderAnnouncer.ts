@@ -41,6 +41,19 @@ export class ScreenReaderAnnouncer extends Disposable {
     this._debouncedByKey[key](Array.isArray(announcements) ? announcements : [announcements]);
   }
 
+  public listenToNotifier(notifier: Notifier) {
+    const { toasts } = notifier.getStateForUI();
+    this.autoDispose(toasts.addListener((newToasts) => {
+      for (const toast of newToasts) {
+        const { title, message } = toast.options;
+        this.announce(
+          t("Notification: {{notification}}", { notification: `${title ? `${title} - ` : ""}${message}` }),
+          toast.options.key ? `toast-${toast.options.key}` : undefined,
+        );
+      }
+    }));
+  }
+
   private _announce(announcements: string[]) {
     if (!announcements.length) {
       return;
