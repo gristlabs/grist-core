@@ -127,7 +127,7 @@ describe("ChartView1", function() {
 
   it("should update as the underlying data changes", async function() {
     await gu.getCell({ section: "ChartData", col: 0, rowNum: 1 }).click();
-    await driver.sendKeys(Key.ENTER, "1", Key.ENTER);   // Change from 6 to 61
+    await gu.enterCell(["1"], { clear: false });   // Change from 6 to 61
     await gu.waitForServer();
 
     const chartDom = await driver.find(".test-chart-container");
@@ -137,7 +137,7 @@ describe("ChartView1", function() {
     assert.deepEqual(data[0].y, [1, 2, 3, 4, 5, 6]);
 
     await gu.getCell({ section: "ChartData", col: 1, rowNum: 1 }).click();
-    await driver.sendKeys(Key.ENTER, "6", Key.ENTER);              // Change from 1 to 16
+    await gu.enterCell(["6"], { clear: false });              // Change from 1 to 16
     await gu.waitForServer();
 
     data = (await getChartData(chartDom)).data;
@@ -155,11 +155,11 @@ describe("ChartView1", function() {
     // Enter some blank values and a zero. The zero should be included in the plot, but blanks
     // should not.
     await gu.getCell({ col: 1, rowNum: 1 }).click();
-    await driver.sendKeys(Key.DELETE);
+    await gu.pressKeysOnCell(Key.DELETE);
     await gu.getCell({ col: 1, rowNum: 4 }).click();
-    await driver.sendKeys(Key.DELETE);
+    await gu.pressKeysOnCell(Key.DELETE);
     await gu.getCell({ col: 1, rowNum: 6 }).click();
-    await driver.sendKeys("0", Key.ENTER);
+    await gu.enterCell("0");
     await gu.waitForServer();
 
     data = (await getChartData(chartDom)).data;
