@@ -92,6 +92,15 @@ export class ConfigAPI extends BaseAPI {
   }
 
   /**
+   * Removes a provider's configuration from the DB, deactivating it on next restart.
+   */
+  public async deactivateProvider(provider: string): Promise<void> {
+    const url = new URL(`${this._url}/api/config/auth-providers`);
+    url.searchParams.append("provider", provider);
+    await this.request(url.toString(), { method: "DELETE" });
+  }
+
+  /**
    * Gets the configuration of an authentication provider.
    */
   public async getAuthProviderConfig(provider: string): Promise<Record<string, any>> {

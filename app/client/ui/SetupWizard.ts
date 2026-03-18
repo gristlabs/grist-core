@@ -423,18 +423,47 @@ export class SetupWizard extends Disposable {
       cssMockupDesc("Simulate an auth provider being configured."),
       cssMockupRow(
         cssMockupButton("OIDC", dom.on("click", () => {
+          this._auth.providers.set([]);
           this._auth.activeProvider.set("oidc");
           this._auth.status.set("ready");
         })),
         cssMockupButton("SAML", dom.on("click", () => {
+          this._auth.providers.set([]);
           this._auth.activeProvider.set("saml");
           this._auth.status.set("ready");
         })),
         cssMockupButton("Forward auth", dom.on("click", () => {
+          this._auth.providers.set([]);
           this._auth.activeProvider.set("forward-auth");
           this._auth.status.set("ready");
         })),
         cssMockupButton("None (boot-key)", dom.on("click", () => {
+          this._auth.providers.set([]);
+          this._auth.activeProvider.set("boot-key");
+          this._auth.status.set("ready");
+        })),
+      ),
+      cssMockupDesc("Simulate getgrist.com states."),
+      cssMockupRow(
+        cssMockupButton("ggc active", dom.on("click", () => {
+          this._auth.providers.set([{
+            name: "getgrist.com", key: "getgrist.com", isActive: true, isConfigured: true,
+          }]);
+          this._auth.activeProvider.set("getgrist.com");
+          this._auth.status.set("ready");
+        })),
+        cssMockupButton("ggc active+error", dom.on("click", () => {
+          this._auth.providers.set([{
+            name: "getgrist.com", key: "getgrist.com", isActive: true, isConfigured: true,
+            activeError: "The Identity provider does not propose end_session_endpoint",
+          }]);
+          this._auth.activeProvider.set("getgrist.com");
+          this._auth.status.set("ready");
+        })),
+        cssMockupButton("ggc pending", dom.on("click", () => {
+          this._auth.providers.set([{
+            name: "getgrist.com", key: "getgrist.com", willBeActive: true, isConfigured: true,
+          }]);
           this._auth.activeProvider.set("boot-key");
           this._auth.status.set("ready");
         })),

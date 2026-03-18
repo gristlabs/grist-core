@@ -183,7 +183,6 @@ export class AuthConfigurator extends Disposable {
     try {
       // Boot probe — always reports provider in details, even on fault.
       const result = await this._installAPI.runCheck("authentication");
-      console.log("AuthConfigurator: boot probe:", JSON.stringify(result));
       if (!this.isDisposed() && result?.details?.provider) {
         this.activeProvider.set(String(result.details.provider));
       }
@@ -191,7 +190,6 @@ export class AuthConfigurator extends Disposable {
       // Provider list — authoritative source for config/error state.
       try {
         const providers = await this._configAPI.getAuthProviders();
-        console.log("AuthConfigurator: providers:", JSON.stringify(providers));
         if (!this.isDisposed()) {
           this.providers.set(providers);
         }
@@ -349,6 +347,12 @@ export class AuthConfigurator extends Disposable {
               dom.on("click", () => this._configureGetGristCom()),
               cssSmallButton.cls(""),
               testId("auth-configure-getgrist"),
+            ) : null,
+          provider === GETGRIST_COM_PROVIDER_KEY ?
+            basicButton(t("Deactivate"),
+              dom.on("click", () => this._deactivateGetGristCom()),
+              cssSmallButton.cls(""),
+              testId("auth-deactivate-getgrist"),
             ) : null,
         ),
       ),
@@ -621,6 +625,26 @@ export class AuthConfigurator extends Disposable {
       return this._refreshProviders().catch(reportError);
     });
     this.onDispose(() => configModal.isDisposed() ? void 0 : configModal.dispose());
+  }
+
+  private _deactivateGetGristCom() {
+    confirmModal(
+      t("Deactivate getgrist.com?"),
+      t("Deactivate"),
+      async () => {
+        await this._configAPI.deactivateProvider(GETGRIST_COM_PROVIDER_KEY);
+        this._recentlyConfigured.add(GETGRIST_COM_PROVIDER_KEY);
+        await this._refreshProviders();
+      },
+      {
+        explanation: dom("div",
+          dom("p", t("This will remove the getgrist.com configuration. " +
+            "The change takes effect after restarting Grist.")),
+          dom("p", t("If getgrist.com was set via an environment variable, " +
+            "the environment variable will still take precedence.")),
+        ),
+      },
+    );
   }
 
   private _showChangeAdminModal() {

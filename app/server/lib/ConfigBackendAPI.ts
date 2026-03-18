@@ -83,6 +83,15 @@ export class ConfigBackendAPI {
       return sendOkReply(req, resp, { msg: "ok" });
     }));
 
+    // DELETE /api/config/auth-providers?provider=getgrist.com
+    // Removes the provider's configuration from the DB, deactivating it on next restart.
+    app.delete("/api/config/auth-providers", requireInstallAdmin, expressWrap(async (req, resp) => {
+      stringParam(req.query.provider, "provider", { allowed: [GETGRIST_COM_PROVIDER_KEY] });
+      await this._activations.updateAppEnvFile({ GRIST_GETGRISTCOM_SECRET: null });
+      await this._activations.updatePrefs({ onRestartClearSessions: true });
+      return sendOkReply(req, resp, { msg: "ok" });
+    }));
+
     // Returns the getgrist.com host for the current configuration, needed for initial handshake.
     // Notice: while the code is using current settings to determine the host, the secret key doesn't contain
     // the GRIST_GETGRISTCOM_SP_HOST variable. It can be only set via env var. We still read from the current
