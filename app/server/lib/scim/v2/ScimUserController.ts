@@ -59,14 +59,14 @@ class ScimUserController extends BaseController {
         const { op, value } = match;
         // Let's fix the maximum number of results to 200 (the default value set by Scimmy
         // for the maximum number of resources returned in a response).
-        // It's a reasonnable limit for a query to the DB.
+        // It's a reasonable limit for a query to the DB.
         const filterMaxResults = SCIMMY.Config.get().filter.maxResults;
         users = await this.dbManager.findUsers({
           where: {
             logins: this._filterByLoginEmail(op, value),
             type: "login",
           },
-          take: parseInt(filterMaxResults) + 1,
+          take: filterMaxResults + 1,
         });
         // Cf https://datatracker.ietf.org/doc/html/rfc7644#section-3.4.2.1
         //
