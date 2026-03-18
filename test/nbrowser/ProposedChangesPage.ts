@@ -1443,6 +1443,54 @@ describe("ProposedChangesPage", function() {
     await returnToTrunk(url);
   });
 
+  it("preserves deleted rows after delete-all add-one undo in suggestion mode", async function() {
+    await makeLifeDoc();
+    const url = await driver.getCurrentUrl();
+
+    await workOnCopy(url);
+
+    // Delete both rows.
+    await gu.getCell("A", 1).click();
+    await gu.waitAppFocus();
+    await gu.sendKeys(Key.chord(await gu.modKey(), Key.DELETE));
+    await gu.confirm();
+    await gu.waitForServer();
+
+    await gu.getCell("A", 2).click();
+    await gu.waitAppFocus();
+    await gu.sendKeys(Key.chord(await gu.modKey(), Key.DELETE));
+    await gu.confirm();
+    await gu.waitForServer();
+
+    // Both should show as removed.
+    let removedRecords = await driver.findAll(".record.diff-local-remove");
+    assert.lengthOf(removedRecords, 2);
+
+    // Add a new row (gets recycled ID).
+    await gu.getCell("B", 3).click();
+    await gu.waitAppFocus();
+    await gu.enterCell("Whale");
+
+    // Undo the add.
+    await gu.undo();
+
+    // Both deleted rows should still show with their original values.
+    removedRecords = await driver.findAll(".record.diff-local-remove");
+    assert.lengthOf(removedRecords, 2);
+
+    // Verify deleted rows have content (not blank).
+    for (let i = 0; i < removedRecords.length; i++) {
+      const cells = await removedRecords[i].findAll(".field_clip");
+      const texts = await Promise.all(cells.map((c: any) => c.getText()));
+      const hasContent = texts.some(t => t !== "" && t !== "0");
+      assert.isTrue(hasContent, `removed row ${i} should have content, got ${JSON.stringify(texts)}`);
+    }
+
+    await gu.checkForErrors();
+
+    await returnToTrunk(url);
+  });
+
   it("shows all rows after delete-all and add-one then reload in suggestion mode", async function() {
     await makeLifeDoc();
     const url = await driver.getCurrentUrl();

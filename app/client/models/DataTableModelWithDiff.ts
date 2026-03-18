@@ -543,10 +543,17 @@ export class TableDataWithDiff {
 
   private _cleanupAddedRow(rowId: number): void {
     this.extraRows.leftAddRows.delete(rowId);
-    this._updates.delete(rowId);
     this.leftTableDelta.addRows = this.leftTableDelta.addRows.filter(id => id !== rowId);
-    for (const colId of Object.keys(this.leftTableDelta.columnDeltas)) {
-      delete this.leftTableDelta.columnDeltas[colId][rowId];
+
+    // If this row also has a coexisting removal (recycled ID case), don't
+    // delete the column deltas or _updates — they belong to the removal and
+    // are needed for the synthetic row's getValue() to show trunk values.
+    const syntheticId = this.extraRows.encodeLeftRemoveRow(rowId);
+    if (!this.extraRows.leftRemoveRows.has(syntheticId)) {
+      this._updates.delete(rowId);
+      for (const colId of Object.keys(this.leftTableDelta.columnDeltas)) {
+        delete this.leftTableDelta.columnDeltas[colId][rowId];
+      }
     }
   }
 
