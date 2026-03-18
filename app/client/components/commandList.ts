@@ -4,6 +4,7 @@ const t = makeT("commandList");
 
 export type CommandName =
   | "accessibility" |
+  "toggleScreenReaderMode" |
   "shortcuts" |
   "help" |
   "undo" |
@@ -155,13 +156,22 @@ export interface CommendGroupDef {
 
 // The top-level groups, and the ordering within them are for user-facing documentation.
 export const groups: CommendGroupDef[] = [{
-  group: "General",
+  group: "Accessibility",
   commands: [
     {
       name: "accessibility",
       keys: ["F4"],
       desc: () => t("Show accessibility options"),
     },
+    {
+      name: "toggleScreenReaderMode",
+      keys: ["Shift+F4"],
+      desc: () => t("Toggle the screen reader improvements"),
+    },
+  ],
+}, {
+  group: "General",
+  commands: [
     {
       name: "shortcuts",
       keys: ["F1", "Mod+/"],

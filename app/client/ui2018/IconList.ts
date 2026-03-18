@@ -159,6 +159,7 @@ export const IconList = [
   "Video",
   "VideoPlay",
   "VideoPlay2",
+  "VolumeUp",
   "Warning",
   "Warning2",
   "Widget",
