@@ -122,6 +122,7 @@ export interface AppModel {
 
   userPrefsObs: Observable<UserPrefs>;
   themePrefs: Observable<ThemePrefs>;
+  screenReaderMode: Observable<boolean>;
   experiments?: Experiments;
   /**
    * Popups that user has seen.
@@ -311,6 +312,10 @@ export class AppModelImpl extends Disposable implements AppModel {
   public readonly themePrefs = getUserPrefObs(this.userPrefsObs, "theme", {
     defaultValue: getDefaultThemePrefs(),
   }) as Observable<ThemePrefs>;
+
+  public readonly screenReaderMode = getUserPrefObs(this.userPrefsObs, "screenReaderMode", {
+    defaultValue: false,
+  }) as Observable<boolean>;
 
   public readonly experiments?: Experiments;
 

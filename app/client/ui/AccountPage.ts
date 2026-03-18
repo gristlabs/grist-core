@@ -14,6 +14,7 @@ import { translateLocale } from "app/client/ui/LanguageMenu";
 import { MFAConfig } from "app/client/ui/MFAConfig";
 import { OAuthAppsUI } from "app/client/ui/OAuthApps";
 import { pagePanels } from "app/client/ui/PagePanels";
+import { ScreenReaderConfig } from "app/client/ui/ScreenReaderConfig";
 import { cssSectionTag, SectionCard, SettingsPage } from "app/client/ui/SettingsLayout";
 import { ThemeConfig } from "app/client/ui/ThemeConfig";
 import { createTopBarHome } from "app/client/ui/TopBar";
@@ -171,7 +172,9 @@ designed to ensure that you're the only person who can access your account, even
           testId("language"),
         ),
       ]),
-
+      SectionCard(t("Accessibility"), [
+        dom.create(ScreenReaderConfig, this._appModel),
+      ]),
       !getGristConfig().canCloseAccount ? null : [
         dom.create(DeleteAccountDialog, user),
       ],
@@ -182,6 +185,7 @@ designed to ensure that you're the only person who can access your account, even
   private _buildDeveloperContent() {
     return SettingsPage(t("Developer"), [
       SectionCard(t("API Key"), [
+        css.header(t("API")),
         css.dataRow(css.inlineSubHeader(t("API Key")), css.content(
           dom.create(ApiKey, {
             apiKey: this._apiKey,
