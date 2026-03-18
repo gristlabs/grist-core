@@ -1211,7 +1211,8 @@
         "Field Format": "Field Format",
         "Lines": "Lines",
         "Multi line": "Multi line",
-        "Single line": "Single line"
+        "Single line": "Single line",
+        "Maximum characters": "Maximum characters"
     },
     "ACLUsers": {
         "Example Users": "Example Users",
