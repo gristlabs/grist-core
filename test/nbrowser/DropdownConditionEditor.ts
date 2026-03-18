@@ -353,7 +353,7 @@ describe("DropdownConditionEditor", function() {
     // Filter dropdown values based on a user attribute.
     await gu.getCell(1, 1).click();
     await driver.find(".test-field-set-dropdown-condition").click();
-    await gu.waitAppFocus(false);
+    await gu.waitForAceEditor(driver, { hasFocus: true });
     await gu.sendKeysSlowly("user.");
     await gu.waitToPass(async () => {
       const completions = await driver.findAll(".ace_autocomplete .ace_line", el => el.getText());

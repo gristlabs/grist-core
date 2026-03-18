@@ -2273,6 +2273,19 @@ namespace gristUtils {
     return state || {};
   }
 
+  /**
+   * Wait for the ace editor to appear.
+   * If hasFocus is set, also wait for the editor to get the focus.
+   */
+  export async function waitForAceEditor(parent: WebElement | WebDriver = driver, options?: { hasFocus: boolean }) {
+    const el = await parent.findWait(".ace_editor", 2000);
+    if (options?.hasFocus) {
+      const input = el.find(".ace_text-input");
+      await driver.wait(() => input.hasFocus());
+    }
+    return el;
+  }
+
   // Get the full text from an element containing an Ace editor.
   export async function getAceText(el: WebElement): Promise<string> {
     return driver.executeScript("return ace.edit(arguments[0]).getValue()",
