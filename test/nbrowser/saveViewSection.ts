@@ -56,7 +56,7 @@ describe("saveViewSection", function() {
     await driver.find(".test-pwc-editDataSelection").doClick();
 
     // create a new table
-    await driver.findContent(".test-wselect-table", /New Table/).doClick();
+    await driver.findContentWait(".test-wselect-table", /New Table/, 1000).doClick();
     await driver.find(".test-wselect-addBtn").doClick();
 
     // wait for server
@@ -150,7 +150,7 @@ describe("saveViewSection", function() {
 
     // Change the duplicated page's data to summarize Orders, grouping by column Test.
     await driver.find(".test-pwc-editDataSelection").doClick();
-    await driver.findContent(".test-wselect-table", /Orders/).find(".test-wselect-pivot").doClick();
+    await driver.findContentWait(".test-wselect-table", /Orders/, 1000).find(".test-wselect-pivot").doClick();
     await driver.findContent(".test-wselect-column", /Test/).doClick();
     await driver.find(".test-wselect-addBtn").doClick();
     await gu.waitForServer();
@@ -162,7 +162,7 @@ describe("saveViewSection", function() {
   it("should disable summary when form type is selected", async () => {
     // select form type
     await driver.find(".test-dp-add-new").doClick();
-    await driver.find(".test-dp-add-new-page").doClick();
+    await driver.findWait(".test-dp-add-new-page", 1000).doClick();
     await driver.findContentWait(".test-wselect-type", gu.exactMatch("Form"), 1000).doClick();
 
     // check that summary is disabled
