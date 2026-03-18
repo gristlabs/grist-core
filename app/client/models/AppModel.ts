@@ -182,6 +182,7 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
   ) {
     super();
     setErrorNotifier(this.notifier);
+    this.screenReaderAnnouncer.listenToNotifier(this.notifier);
     this.isSingleOrg = Boolean(this._gristConfig?.singleOrg);
     this.productFlavor = getFlavor(this._gristConfig?.org);
     this._widgets = new AsyncCreate<ICustomWidget[]>(async () => {
