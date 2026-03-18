@@ -393,17 +393,17 @@ export const groups: CommendGroupDef[] = [{
       desc: () => t("Open previous page"),
     }, {
       name: "nextRegion",
-      keys: ["Mod+o"],
+      keys: ["Ctrl+o"],
       desc: () => t("Focus next page panel or widget"),
       alwaysOn: true,
     }, {
       name: "prevRegion",
-      keys: ["Mod+Shift+O"],
+      keys: ["Ctrl+Shift+O"],
       desc: () => t("Focus previous page panel or widget"),
       alwaysOn: true,
     }, {
       name: "creatorPanel",
-      keys: ["Mod+Alt+o"],
+      keys: ["Ctrl+Alt+o"],
       desc: () => t("Toggle creator panel keyboard focus"),
       alwaysOn: true,
     }, {
