@@ -68,7 +68,14 @@
         "Permission to access the document in full by all users": "Minden felhasználó számára teljes hozzáférés engedélyezése a dokumentumhoz",
         "Permission to access the document in full by unrestricted users": "Minden korlátozás nélküli felhasználó számára teljes hozzáférés engedélyezése a dokumentumhoz",
         "Restrict non-Owners from copying or downloading the full document. Note: this only affects users without read restrictions, since others will be restricted regardless of this setting.": "Megtiltja a nem Tulajdonos szerepkörű felhasználók számára a teljes dokumentum másolását vagy letöltését. Fontos, hogy ez csak az olvasási korlátozás nélküli felhasználókra vonatkozik, mivel a többiek hozzáférése ettől a beállítástól függetlenül korlátozott.",
-        "Special rules for templates": "Különleges szabályok sablonokhoz"
+        "Special rules for templates": "Különleges szabályok sablonokhoz",
+        "Allow Editors to edit structure (e.g. modify and delete tables, columns, and layouts) and write formulas.  Important: if checked, Editors will be able to edit formulas, which can access all data, regardless of table and column access rules!": "A struktúra módosításának (azaz a táblázatok, oszlopok és elrendezések módosításának, törlésének) és képletek szerkesztésének engedélyzése Szerkesztők számára.  Fontos: ha be van pipálva, a Szerkesztők módosíthatják a képleteket, amelyeknek minden adathoz hozzáférésük van, függetlenül a táblázat- vagy oszlopszintű hozzáférési szabályoktól!",
+        "Allow everyone to view access rules.": "A hozzáférési szabályok megtekintésének engedélyezése mindenki számára.",
+        "Circumvent all read restrictions and allow everyone to copy the entire document, or view it in full in fiddle mode. Only use for for examples and templates, not for documents with sensitive data.": "Az olvasási korlátozások megkerülése, hogy mindenki képes legyen másolni a teljes dokumentumot, vagy megtekinteni játszó módban. Csak példák és sablonok esetében használd, érzékeny adatokat tartalmazó dokumentumoknál soha.",
+        "Continue": "Folytatás",
+        "Disable Access Rules": "Hozzáférési szabályok letiltása",
+        "Disable and save": "Letiltás és mentés",
+        "This options should be off if Editors' access is to be limited. ": "Ezeknek a beállításoknak kikapcsolt állapotúnak kell lenni, ha a Szerkesztők hozzáférését korlátozni szeretnéd. "
     },
     "AccountPage": {
         "API Key": "API kulcs",
@@ -494,7 +501,12 @@
         "Tutorial: Manage Business Data": "Gyakorlat: Üzleti adatok kezelése",
         "Welcome to the Afterschool Program template": "Üdvözöllek az Iskola Utáni Program sablonban",
         "Welcome to the Investment Research template": "Üdvözöllek a Befektetései Elemzés sablonban",
-        "Welcome to the Lightweight CRM template": "Üdvözöllek az Egyszerű CRM sablonban"
+        "Welcome to the Lightweight CRM template": "Üdvözöllek az Egyszerű CRM sablonban",
+        "Check out our related tutorial for how to link data, and create high-productivity layouts.": "Nézd meg a kapcsolódó tananyagunkat, hogy hogyan kapcsolj össze adatokat és hozz létre hasznos elrendezéseket.",
+        "Check out our related tutorial for how to model business data, use formulas, and manage complexity.": "Nézd meg a kapcsolódó tananyagunkat, hogy hogyan modellezd az üzleti adatokat, hogyan használj képleteket és kezeld a komplexitást.",
+        "Check out our related tutorial to learn how to create summary tables and charts, and to link charts dynamically.": "Nézd meg a kapcsolódó tananyagunkat, hogy hogyan készíts összegző táblázatokat és grafikonokat, és hogyan kapcsolj össze dinamikusan grafikonokat.",
+        "Tutorial: Analyze & Visualize": "Tananyag: elemzés és vizualizáció",
+        "Tutorial: Create a CRM": "Tananyag: készíts egy CRM (ügyfélkapcsolati) rendszert"
     },
     "FieldConfig": {
         "COLUMN BEHAVIOR": "OSZLOP MŰKÖDÉS",
@@ -614,7 +626,12 @@
         "Attachment": "Csatolmány"
     },
     "GristDoc": {
-        "Import from file": "Importálás fájlból"
+        "Import from file": "Importálás fájlból",
+        "Added new linked section to view {{viewName}}": "Új kapcsolt szakasz hozzáadva {{viewName}} nézethez",
+        "Saved linked section {{title}} in view {{name}}": "{{title}} kapcsolt szakasz mentve {{name}} nézetben",
+        "go to webhook settings": "menjünk a webhook beállításaihoz",
+        "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "Az új változtatásokat átmenetileg felfüggesztettük. A webhook várakozási sora megtelt. Ellenőrizd a webhook beállításait, töröld a hibás webhook-okat, és tisztítsd a várakozási sort.",
+        "Import from Airtable": "Importálás Airtable-ből"
     },
     "HomeIntro": {
         "Help Center": "Súgóközpont",
@@ -637,7 +654,13 @@
         "To use Grist, please either sign up or sign in.": "Jelentkezz be vagy regisztrálj a Grist használatához!",
         "Visit our {{link}} to learn more about Grist.": "Ha többet szeretnél megtudni a Gristről, látogasd meg {{link}} oldalunkat!",
         "Learn more in our {{helpCenterLink}}.": "Tudj meg többet a {{helpCenterLink}} oldalunkon.",
-        "Only show documents": "Csak dokumentumok mutatása"
+        "Only show documents": "Csak dokumentumok mutatása",
+        "Any documents created in this site will appear here.": "Itt jelennek meg az oldalon létrehozott dokumentumok.",
+        "Browse Templates": "Sablonok böngészése",
+        "Create empty document": "Üres dokumentum létrehozása",
+        "Get started by creating your first Grist document.": "Hozd létre az első Grist dokumentumodat!",
+        "Get started by exploring templates, or creating your first Grist document.": "Fedezd fel a sablonokat, vagy hozd létre az első Grist dokumentumodat!",
+        "Get started by inviting your team and creating your first Grist document.": "Hívd meg a csapatod tagjait és hozd létre az első Grist dokumentumodat!"
     },
     "HomeLeftPane": {
         "Access Details": "Hozzáférés részletei",
@@ -1153,6 +1176,189 @@
         "You do not have edit access to this document": "Nincs szerkesztési jogosultságod ehhez a dokumentumhoz",
         "(default)": "(alapértelmezett)",
         "Collapse {{maybeDefault}}": "Összezár {{maybeDefault}}",
-        "Expand {{maybeDefault}}": "Kibont {{maybeDefault}}"
+        "Expand {{maybeDefault}}": "Kibont {{maybeDefault}}",
+        "Set default: Collapse": "Alapértelmezetten összezár",
+        "Set default: Expand": "Alapértelmezetten kibont",
+        "context menu - {{- pageName }}": "kontextus-menü - {{- pageName }}"
+    },
+    "search": {
+        "Find Next ": "Következő keresése ",
+        "Find Previous ": "Előző keresése ",
+        "No results": "Nincs eredmény",
+        "Search in document": "Keresés a dokumentumban",
+        "Search": "Keresés",
+        "Close search bar": "Kereső bezárása"
+    },
+    "sendToDrive": {
+        "Sending file to Google Drive": "Fájl küldése a Google Drive-ra"
+    },
+    "NTextBox": {
+        "false": "hamis",
+        "true": "igaz",
+        "Field Format": "Mező formátuma",
+        "Lines": "Sorok",
+        "Multi line": "Többsoros",
+        "Single line": "Egysoros"
+    },
+    "ACLUsers": {
+        "Example Users": "Példa felhasználók",
+        "Users from table": "A táblázat felhasználói",
+        "View as": "Megtekintés mint",
+        "Other users from table": "A táblázat más felhasználói",
+        "Shared users": "Megosztott felhasználók"
+    },
+    "TypeTransform": {
+        "Apply": "Alkalmaz",
+        "Cancel": "Mégse",
+        "Preview": "Előnézet",
+        "Revise": "Felülvizsgál",
+        "Update formula (Shift+Enter)": "Képlet frissítése (Shift+Enter)"
+    },
+    "CellStyle": {
+        "CELL STYLE": "CELLA STÍLUSA",
+        "Cell style": "Cella stílusa",
+        "Default cell style": "Alapértelmezett cellastílus",
+        "Mixed style": "Kevert stílus",
+        "Open row styles": "Sor stílusának megnyitása",
+        "Default header style": "Alapértelmezett fejléc stílus",
+        "Header Style": "Fejléc stíluss",
+        "HEADER STYLE": "FEJLÉC STÍLUSA"
+    },
+    "ChoiceTextBox": {
+        "CHOICES": "VÁLASZTÁSOK"
+    },
+    "ColumnEditor": {
+        "COLUMN DESCRIPTION": "OSZLOP LEÍRÁSA",
+        "COLUMN LABEL": "OSZLOP CÍMKÉJE"
+    },
+    "ColumnInfo": {
+        "COLUMN DESCRIPTION": "OSZLOP LEÍRÁSA",
+        "COLUMN ID: ": "OSZLOP AZONOSÍTÓ: ",
+        "COLUMN LABEL": "OSZLOP CÍMKÉJE",
+        "Cancel": "Mégse",
+        "Save": "Mentés"
+    },
+    "ConditionalStyle": {
+        "Add another rule": "Szabály hozzáadása",
+        "Add conditional style": "Feltételes stílus hozzáadása",
+        "Error in style rule": "Hiba a stílus-szabályban",
+        "Row style": "Sor stílusa",
+        "Rule must return True or False": "A szabálynak True (igaz) vagy False (hamis) értéket kell visszaadnia",
+        "Conditional Style": "Feltételes stílus",
+        "IF...": "HA...",
+        "Row Style": "Sor stílusa"
+    },
+    "CurrencyPicker": {
+        "Invalid currency": "Hibás pénznem"
+    },
+    "DiscussionEditor": {
+        "{{count}} comments_one": "{{count}} megjegyzés",
+        "{{count}} comments_other": "{{count}} megjegyzés",
+        "Cancel": "Mégse",
+        "Comment": "Megjegyzés",
+        "Copy link": "Hivatkozás másolása",
+        "Edit": "Szerkesztés",
+        "Marked as resolved": "Megjelölés megoldottként",
+        "Only current page": "Csak a jelenlegi lap",
+        "Only my threads": "Csak az én szálaim",
+        "Open": "Megnyitás",
+        "Remove": "Eltávolítás",
+        "Reply": "Válaszol",
+        "Reply to a comment": "Válaszolás egy megjegyzésre",
+        "Resolve": "Megold",
+        "Save": "Mentés",
+        "Show resolved comments": "Mutasd a megoldott megjegyzéseket",
+        "Showing last {{nb}} comments": "Mutatom az utolsó {{nb}} megjegyzést",
+        "Started discussion": "Megbeszélés kezdődött",
+        "Write a comment": "Megjegyzés írása",
+        "Remove thread": "Szál eltávolítása",
+        "updated": "frissítve"
+    },
+    "EditorTooltip": {
+        "Convert column to formula": "Oszlop átalakítása képletté"
+    },
+    "FieldBuilder": {
+        "Apply formula to data": "Képlet alkalmazása az adatokra",
+        "CELL FORMAT": "CELLA FORMÁTUMA",
+        "Changing multiple column types": "Több oszlop típusának változtatása",
+        "DATA FROM TABLE": "ADATOK A TÁBLÁZATBÓL",
+        "Mixed format": "Kevert formátum",
+        "Mixed types": "Kevert típus",
+        "Revert field settings for {{colId}} to common": "{{colId}} mezőbeállításainak visszaállítása az általánosra",
+        "Save field settings for {{colId}} as common": "{{colId}} mezőbeállításainak mentése általánosként",
+        "Use separate field settings for {{colId}}": "Egyedi mezdőbeállítások használata {{colId}} esetében",
+        "Changing column type": "Oszlop típusának megváltoztatása",
+        "Common": "Általános",
+        "Separate": "Egyedi",
+        "Field in {{count}} views_one": "Mező egy nézetben",
+        "Field in {{count}} views_other": "Mező {{count}} nézetben"
+    },
+    "FieldEditor": {
+        "It should be impossible to save a plain data value into a formula column": "Nem lehetséges adatot rögzíteni egy képlet-oszlopba",
+        "Unable to finish saving edited cell": "Nem tudtam menteni a cella módosításait"
+    },
+    "FormulaEditor": {
+        "Column or field is required": "Kötelező oszlop vagy mező",
+        "Error in the cell": "Hiba a cellában",
+        "Errors in all {{numErrors}} cells": "Hibák vannak {{numErrors}} cellában",
+        "Errors in {{numErrors}} of {{numCells}} cells": "{{numErrors}} hiba van {{numCells}} cellában",
+        "editingFormula is required": "Kötelező képletszerkesztő",
+        "Enter formula or {{button}}.": "Írd be a képletet vagy {{button}}.",
+        "Enter formula.": "Írd be a képletet.",
+        "Expand Editor": "Szerkesztő nagyobbítása",
+        "use AI Assistant": "MI-segéd használata"
+    },
+    "HyperLinkEditor": {
+        "[link label] url": "[link label] URL"
+    },
+    "NumericTextBox": {
+        "Currency": "Pénznem",
+        "Decimals": "Szám",
+        "Default currency ({{defaultCurrency}})": "Alapértelmezett pénznem ({{defaultCurrency}})",
+        "Number Format": "Számformátum",
+        "Field Format": "Mezőformátum",
+        "Spinner": "Állítógomb",
+        "Text": "Szöveg",
+        "max": "max",
+        "min": "min"
+    },
+    "Reference": {
+        "CELL FORMAT": "CELLA FORMÁTUMA",
+        "Row ID": "Sor ID",
+        "SHOW COLUMN": "OSZLOP MUTATÁSA"
+    },
+    "WelcomeTour": {
+        "Add new": "Új hozzáadása",
+        "Browse our {{templateLibrary}} to discover what's possible and get inspired.": "Fedezd fel a(z) {{templateLibrary}}, hogy inspirálódj és meglásd, mennyi minden lehetséges!",
+        "Building up": "Összeállítás",
+        "Configuring your document": "A dokumentumod beállítása",
+        "Customizing columns": "Oszlopok testreszabása",
+        "Double-click or hit {{enter}} on a cell to edit it. ": "Kattints duplán vagy nyomd meg az {{enter}} billentyűt egy cellán a szerkesztéshez! ",
+        "Editing Data": "Adat szerkesztése",
+        "Enter": "Enter",
+        "Flying higher": "Szállj feljebb",
+        "Help Center": "Súgóközpont",
+        "Make it relational! Use the {{ref}} type to link tables. ": "Hozz létre kapcsolatokat! Használd a {{ref}} típust táblázatok összekapcsolására. ",
+        "Reference": "Hivatkozás",
+        "Set formatting options, formulas, or column types, such as dates, choices, or attachments. ": "Állíts be formázást, képleteket vagy oszloptípusokat, például dátumokat, választási lehetőségeket, vagy csatolmányokat. ",
+        "Share": "Megosztás",
+        "Sharing": "Megosztás",
+        "Start with {{equal}} to enter a formula.": "Kezdd {{equal}} jellel a képlet beírását.",
+        "Toggle the {{creatorPanel}} to format columns, ": "Kapcsold ki-be a {{creatorPanel}}-t az oszlopok formázásához, ",
+        "Use the Share button ({{share}}) to share the document or export data.": "Használt a Megosztás gombot ({{share}}) a dokumentumok megosztásához vagy az adatok exportálásához.",
+        "Use {{addNew}} to add widgets, pages, or import more data. ": "Használd az {{addNew}}-t widgetek vagy oldalak hozzáadásához, vagy további adatok importálásához. ",
+        "Use {{helpCenter}} for documentation or questions.": "A {{helpCenter}}ban találod a dokumentációt és kérdéseket.",
+        "Welcome to Grist!": "Üdvözöl a Grist!",
+        "convert to card view, select data, and more.": "átalakítás kártya nézetre, adatok kiválasztása és egyebek.",
+        "creator panel": "alkotó panel",
+        "template library": "sablonkönyvtár",
+        "AI Assistant": "MI-segéd"
+    },
+    "LanguageMenu": {
+        "Language": "Nyelv"
+    },
+    "GristTooltips": {
+        "Apply conditional formatting to cells in this column when formula conditions are met.": "Feltételes formázás alkalmazása az ebben az oszlopban lévő olyan cellákra, amelyeknél a képletben leírt feltételek fennállnak.",
+        "Apply conditional formatting to rows based on formulas.": "Feltételes formázás alkalmazása sorokra képletek alapján."
     }
 }
