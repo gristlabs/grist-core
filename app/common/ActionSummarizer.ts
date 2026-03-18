@@ -493,8 +493,16 @@ function mergeColumn(present1: RowChanges, present2: RowChanges,
     v2 = v2 || bulkCellFor(present2[key]);
     if (!v2)    { e2.write()[key] = e1[key]; continue; }
     if (!v1[1]) {
+      // Row was deleted in e1. If it was re-added in e2 (remove-then-add,
+      // e.g., row ID recycling), carry the old value from e1 forward so the
+      // deleted row's original values are preserved in the comparison.
+      // Only do this when the row was specifically removed (not just added
+      // without values for this column).
+      if (present1[key].removed && v2[1]) {
+        e2.write()[key] = [v1[0], v2[1]];
+      }
       continue;
-    }  // Deleted row.
+    }
     e2.write()[key] = [v1[0], v2[1]];  // Change is from initial value in e1 to final value in e2.
   }
   return e2.read();

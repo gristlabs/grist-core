@@ -1443,6 +1443,62 @@ describe("ProposedChangesPage", function() {
     await returnToTrunk(url);
   });
 
+  it("shows all rows after delete-all and add-one then reload in suggestion mode", async function() {
+    await makeLifeDoc();
+    const url = await driver.getCurrentUrl();
+
+    await workOnCopy(url);
+
+    // Delete both rows.
+    await gu.getCell("A", 1).click();
+    await gu.waitAppFocus();
+    await gu.sendKeys(Key.chord(await gu.modKey(), Key.DELETE));
+    await gu.confirm();
+    await gu.waitForServer();
+
+    await gu.getCell("A", 2).click();
+    await gu.waitAppFocus();
+    await gu.sendKeys(Key.chord(await gu.modKey(), Key.DELETE));
+    await gu.confirm();
+    await gu.waitForServer();
+
+    // Both should show as removed.
+    let removedRecords = await driver.findAll(".record.diff-local-remove");
+    assert.lengthOf(removedRecords, 2);
+
+    // Add a new row.
+    await gu.getCell("B", 3).click();
+    await gu.waitAppFocus();
+    await gu.enterCell("Delta");
+
+    // Verify state before reload: 2 removed + 1 added.
+    removedRecords = await driver.findAll(".record.diff-local-remove");
+    const addedRecords = await driver.findAll(".record.diff-local-add");
+    assert.lengthOf(removedRecords, 2, "2 removed rows before reload");
+    assert.lengthOf(addedRecords, 1, "1 added row before reload");
+
+    // Reload.
+    await gu.refreshDismiss({ ignore: true });
+
+    // After reload, should still have same diff rows, all populated.
+    removedRecords = await driver.findAll(".record.diff-local-remove");
+    for (let i = 0; i < removedRecords.length; i++) {
+      const cells = await removedRecords[i].findAll(".field_clip");
+      const texts = await Promise.all(cells.map((c: any) => c.getText()));
+      // Every removed row should show trunk values (not blank).
+      const hasContent = texts.some(t => t !== "" && t !== "0");
+      assert.isTrue(hasContent, `removed row ${i} should have content, got ${JSON.stringify(texts)}`);
+    }
+
+    const addedAfterReload = await driver.findAll(".record.diff-local-add");
+    assert.isAtLeast(removedRecords.length + addedAfterReload.length, 3,
+      "should have at least 3 diff rows after reload");
+
+    await gu.checkForErrors();
+
+    await returnToTrunk(url);
+  });
+
   it("does not crash on copy-paste within a new row in suggestion mode", async function() {
     await makeLifeDoc();
     const url = await driver.getCurrentUrl();
