@@ -341,6 +341,9 @@ return [
     });
 
     // Click the link part: it should open a new tab to a documentation URL.
+    // FIXME: ues waitToPass to circumvent an error that happens from time to time:
+    // "StaleElementReferenceError: stale element reference: stale element not found in the current frame"
+    // The fix is not ideal though, but can't find a reason of why it happens.
     await gu.waitToPass(async () => {
       await driver.findContent(".ace_autocomplete .ace_line span", /DIAN/).click();
     });
@@ -386,7 +389,12 @@ return [
     }, 4000);
 
     // Again, click the link part.
-    await driver.findContent(".ace_autocomplete .ace_line span", /lookupRecords/).click();
+    // FIXME: ues waitToPass to circumvent an error that happens from time to time:
+    // "StaleElementReferenceError: stale element reference: stale element not found in the current frame"
+    // The fix is not ideal though, but can't find a reason of why it happens.
+    await gu.waitToPass(async () => {
+      await driver.findContent(".ace_autocomplete .ace_line span", /lookupRecords/).click();
+    });
     handles = await driver.getAllWindowHandles();
     await driver.switchTo().window(handles[1]);
     await gu.waitForUrl("support.getgrist.com");
