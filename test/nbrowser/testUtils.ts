@@ -37,6 +37,11 @@ setOptionsModifyFunc(({ chromeOpts, firefoxOpts }) => {
   // (non-headless) Chrome. On headless Chrome, no dialog or output occurs regardless.
   chromeOpts.addArguments("--kiosk-printing");
 
+  // See https://www.selenium.dev/blog/2024/chrome-browser-woes/
+  chromeOpts.addArguments("--disable-search-engine-choice-screen");
+  chromeOpts.addArguments("--disable-features=OptimizationGuideModelDownloading," +
+    "OptimizationHintsFetching,OptimizationTargetPrediction,OptimizationHints");
+
   // In headless, make sure we have a decent window size
   if (isAffirmative(process.env.MOCHA_WEBDRIVER_HEADLESS)) {
     chromeOpts.windowSize({
