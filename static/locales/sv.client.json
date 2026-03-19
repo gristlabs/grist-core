@@ -1324,7 +1324,8 @@
         "Field Format": "Fälltformat",
         "Lines": "Rader",
         "Multi line": "Flerradig",
-        "Single line": "En rad"
+        "Single line": "En rad",
+        "Maximum characters": "Max antal tecken"
     },
     "ACLUsers": {
         "Example Users": "Exempelanvändare",
