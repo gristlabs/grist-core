@@ -23,7 +23,7 @@ export class FormErrorPage extends Disposable {
   public buildDom() {
     return buildFormMessagePage(() => [
       cssFormErrorMessageImageContainer(
-        cssFormErrorMessageImage({ src: "img/form-error.svg" }),
+        cssFormErrorMessageImage({ src: "img/form-error.svg", tabIndex: "-1", id: "form-heading" }),
       ),
       cssFormMessageText(this._message, testId("error-page-text")),
     ], testId("error-page"));
