@@ -2741,5 +2741,8 @@
     "startHomeAirtableImport": {
         "Import from Airtable": "Import from Airtable",
         "The current workspace can't be imported to.": "The current workspace can't be imported to."
+    },
+    "NotifyModel": {
+        "Still working...": "Still working..."
     }
 }
