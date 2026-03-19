@@ -160,7 +160,9 @@ describe("TypeChange.ntest", function() {
     assert.equal(await $(".test-fbuilder-ref-table-select .test-select-row").getText(), "Table2");
     assert.equal(await $(".test-fbuilder-ref-col-select .test-select-row").getText(), "A");
     await $(".test-type-transform-revise").click();
-    var aceText = await gu.getAceText($(".test-type-transform-formula").elem());
+    let typeTransformFormula = $(".test-type-transform-formula").elem();
+    await gu.waitForAceEditor(typeTransformFormula);
+    let aceText = await gu.getAceText(typeTransformFormula);
     assert.equal(aceText, "rec.gristHelper_Converted");
 
     // Apply transform and check that field is a reference
@@ -198,7 +200,9 @@ describe("TypeChange.ntest", function() {
     // Check conversion back to text
     await gu.setType("Text");
     await $(".test-type-transform-revise").click();
-    aceText = await gu.getAceText($(".test-type-transform-formula").elem());
+    typeTransformFormula = $(".test-type-transform-formula").elem();
+    await gu.waitForAceEditor(typeTransformFormula);
+    aceText = await gu.getAceText(typeTransformFormula);
     assert.equal(aceText, "rec.gristHelper_Converted");
     await gu.applyTypeConversion();
     assert.equal(await gu.getCellRC(0, 3).find(".field_clip").getText(), "blue");
@@ -222,7 +226,9 @@ describe("TypeChange.ntest", function() {
     await gu.waitForServer();
     // Check formula
     await $(".test-type-transform-revise").wait().click();
-    var aceText = await gu.getAceText($(".test-type-transform-formula").elem());
+    let typeTransformFormula = $(".test-type-transform-formula").elem();
+    await gu.waitForAceEditor(typeTransformFormula);
+    let aceText = await gu.getAceText(typeTransformFormula);
     assert.equal(aceText, "rec.gristHelper_Converted");
 
     // Apply transform and check that field has correct value
@@ -252,7 +258,9 @@ describe("TypeChange.ntest", function() {
     assert.equal(await gu.dateFormat(), "MM/DD/YYYY");
     assert.equal(await gu.timeFormat(), "h:mma");
     await $(".test-type-transform-revise").click();
-    aceText = await gu.getAceText($(".test-type-transform-formula").elem());
+    typeTransformFormula = $(".test-type-transform-formula").elem();
+    await gu.waitForAceEditor(typeTransformFormula);
+    aceText = await gu.getAceText(typeTransformFormula);
     assert.equal(aceText, "rec.gristHelper_Converted");
 
     // Apply transform and check that field has correct value
