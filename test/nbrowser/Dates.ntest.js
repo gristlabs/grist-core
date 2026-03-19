@@ -251,14 +251,14 @@ describe("Dates.ntest", function() {
       // Type the Date-only shortcut into each cell in the second row.
       await gu.clickCellRC(1, 0);
       for (var i = 0; i < 6; i++) {
-        await gu.waitAppFocus();
+        await gu.waitCellFocus(gu.getCellRC(1, i));
         await gu.sendKeys([$.MOD, ";"], $.TAB);
       }
 
       // Type the Date-Time shortcut into each cell in the third row.
       await gu.clickCellRC(2, 0);
       for (i = 0; i < 6; i++) {
-        await gu.waitAppFocus();
+        await gu.waitCellFocus(gu.getCellRC(2, i));
         await gu.sendKeys([$.MOD, $.SHIFT, ";"], $.TAB);
       }
     }
