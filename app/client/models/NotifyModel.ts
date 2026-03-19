@@ -1,3 +1,4 @@
+import { makeT } from "app/client/lib/localization";
 import * as log from "app/client/lib/log";
 import { ConnectState, ConnectStateManager } from "app/client/models/ConnectState";
 import { isNarrowScreenObs, testId } from "app/client/ui2018/cssVars";
@@ -22,6 +23,7 @@ import {
 import clamp from "lodash/clamp";
 import defaults from "lodash/defaults";
 
+const t = makeT("NotifyModel");
 // When rendering app errors, we'll only show the last few.
 const maxAppErrors = 5;
 
@@ -337,7 +339,7 @@ export class Notifier extends Disposable implements INotifier {
     if (await isLongerThan(promise, optTimeout)) {
       if (this._slowNotificationToast.isEmpty()) {
         this._slowNotificationToast.autoDispose(this.createNotification({
-          message: "Still working...",
+          message: t("Still working..."),
           canUserClose: false,
           inToast: true,
           level: "message",
