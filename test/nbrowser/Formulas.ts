@@ -341,7 +341,9 @@ return [
     });
 
     // Click the link part: it should open a new tab to a documentation URL.
-    await driver.findContent(".ace_autocomplete .ace_line span", /DIAN/).click();
+    await gu.waitToPass(async () => {
+      await driver.findContent(".ace_autocomplete .ace_line span", /DIAN/).click();
+    });
     // Switch to the new tab, and wait for the page to load.
     let handles = await driver.getAllWindowHandles();
     await driver.switchTo().window(handles[1]);
