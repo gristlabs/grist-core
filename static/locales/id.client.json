@@ -631,7 +631,8 @@
         "Import from file": "Impor dari file",
         "Saved linked section {{title}} in view {{name}}": "Bagian tertaut yang disimpan {{title}} dalam tampilan {{name}}",
         "go to webhook settings": "buka pengaturan webhook",
-        "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "Perubahan baru ditangguhkan sementara. Antrean webhook meluap. Harap periksa pengaturan webhook, hapus webhook yang tidak valid, dan bersihkan antrean."
+        "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "Perubahan baru ditangguhkan sementara. Antrean webhook meluap. Harap periksa pengaturan webhook, hapus webhook yang tidak valid, dan bersihkan antrean.",
+        "Import from Airtable": "Impor dari Airtable"
     },
     "HomeIntro": {
         "Any documents created in this site will appear here.": "Dokumen apa pun yang dibuat di situs ini akan muncul di sini.",
@@ -679,7 +680,8 @@
         "Tutorial": "Tutorial",
         "Terms of service": "Ketentuan Layanan",
         "Grist Resources": "Sumber Daya Grist",
-        "context menu - {{- workspaceName }}": "menu konteks - {{- workspaceName }}"
+        "context menu - {{- workspaceName }}": "menu konteks - {{- workspaceName }}",
+        "Import from Airtable": "Impor dari Airtable"
     },
     "Importer": {
         "Merge rows that match these fields:": "Gabungkan baris yang cocok dengan bidang ini:",
@@ -843,7 +845,7 @@
         "Reset form": "Atur ulang formulir",
         "Configuration": "Konfigurasi",
         "Default field value": "Nilai bidang default",
-        "Display button": "Tombol tampilan",
+        "Display button": "Tampilkan tombol",
         "Enter text": "Masukkan teks",
         "Field rules": "Aturan bidang",
         "Field title": "Judul bidang",
@@ -861,7 +863,7 @@
         "No field selected": "Tidak ada bidang yang dipilih",
         "Select a field in the form widget to configure.": "Pilih bidang di widget formulir untuk dikonfigurasi.",
         "Submit": "Kirim",
-        "Thank you! Your response has been recorded.": "Terima kasih! Tanggapan Anda telah dicatat.",
+        "Thank you! Your response has been recorded.": "Terima kasih! Tanggapan Anda telah disimpan.",
         "Chart options": "Opsi diagram"
     },
     "RowContextMenu": {
@@ -962,7 +964,9 @@
         "Suggestions": "Saran"
     },
     "TopBar": {
-        "Manage team": "Kelola tim"
+        "Manage team": "Kelola tim",
+        "Redo": "Redo",
+        "Undo": "Undo"
     },
     "TriggerFormulas": {
         "Any field": "Bidang apa saja",
@@ -1135,7 +1139,9 @@
         "changes": "perubahan",
         "comments": "komentar",
         "this document": "dokumen ini",
-        "your email": "email Anda"
+        "your email": "email Anda",
+        "You will no longer receive email notifications about {{suggestions}} in {{docName}} at {{email}}.": "Anda tidak akan lagi menerima pemberitahuan email tentang {{suggestions}} di {{docName}} di {{email}}.",
+        "suggestions": "saran"
     },
     "menus": {
         "* Workspaces are available on team plans. ": "* Ruang kerja tersedia pada paket tim. ",
@@ -1205,7 +1211,8 @@
         "Field Format": "Format Bidang",
         "Lines": "Garis",
         "Multi line": "Multi baris",
-        "Single line": "Garis tunggal"
+        "Single line": "Garis tunggal",
+        "Maximum characters": "Jumlah karakter maksimum"
     },
     "ACLUsers": {
         "Example Users": "Contoh Pengguna",
@@ -1445,7 +1452,8 @@
         "Comments are here!": "Komentar ada di sini!",
         "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "Anda dapat menambahkan komentar ke sel, membalas rangkaian komentar, dan @-menyebut kolaborator.",
         "When checked, this field’s default value can be prefilled from the URL using query parameters.": "Jika dicentang, nilai default bidang ini dapat diisi sebelumnya dari URL menggunakan parameter kueri.",
-        "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "Dengan saran, pengguna membuat perubahan pada salinan pribadi tanpa memodifikasi dokumen asli, lalu mengirimkan saran ini untuk ditinjau oleh pemilik dokumen sebelum integrasi."
+        "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "Dengan saran, pengguna membuat perubahan pada salinan pribadi tanpa memodifikasi dokumen asli, lalu mengirimkan saran ini untuk ditinjau oleh pemilik dokumen sebelum integrasi.",
+        "Unpin to hide the button while keeping the filter.": "Lepaskan pin untuk menyembunyikan tombol sambil tetap menampilkan filter."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "KETERANGAN",
@@ -1602,7 +1610,10 @@
         "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "Pengguna mewarisi izin dari {{parent}}. Untuk menghapus, atur opsi 'Warisi akses' ke 'Tidak Ada'.",
         "You are about to remove your own access to this {{resourceType}}": "Anda akan menghapus akses Anda sendiri ke {{resourceType}} ini",
         "Inherit access: ": "Mewarisi akses: ",
-        "Access overview": "Ikhtisar akses"
+        "Access overview": "Ikhtisar akses",
+        "Share it publicly": "Bagikan secara publik",
+        "Verify your sensitive data before sharing publicly": "Verifikasi data sensitif Anda sebelum membagikannya secara publik",
+        "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing.": "{{resourceType}} Anda akan dapat diakses oleh siapa pun yang memiliki tautan tersebut, baik yang dibagikan secara langsung maupun yang ditemukan melalui mesin pencari. \n Pastikan {{resourceType}} Anda tidak berisi data sensitif sebelum dibagikan."
     },
     "SearchModel": {
         "Search all pages": "Cari semua halaman",
@@ -1752,7 +1763,8 @@
         "Vertical": "Vertikal",
         "Accept value from URL": "Setujui nilai dari URL",
         "Hidden field": "Bidang tersembunyi",
-        "URL parameter:\n{{colId}}=VALUE": "Parameter URL:\n{{colId}}=NILAI"
+        "URL parameter:\n{{colId}}=VALUE": "Parameter URL:\n{{colId}}=NILAI",
+        "Options limit": "Batasan opsi"
     },
     "CustomView": {
         "Some required columns aren't mapped": "Beberapa kolom yang diperlukan tidak dipetakan",
@@ -1876,7 +1888,10 @@
         "Restarting Grist...": "Memulai ulang Grist...",
         "This will apply any pending changes and briefly interrupt access for all users.": "Ini akan menerapkan semua perubahan yang tertunda dan akan menghentikan akses untuk semua pengguna dalam waktu singkat.",
         "You can still restart Grist manually.": "Anda masih dapat memulai ulang Grist secara manual.",
-        "error in {{provider}}: {{verdict}}": "kesalahan di {{provider}}: {{verdict}}"
+        "error in {{provider}}: {{verdict}}": "kesalahan di {{provider}}: {{verdict}}",
+        "Please restart Grist manually.": "Silakan mulai ulang Grist secara manual.",
+        "Restart Grist to apply pending changes.": "Restart Grist untuk menerapkan perubahan yang tertunda.",
+        "Restart unavailable": "Restart tidak tersedia"
     },
     "GridViewMenusDateHelpers": {
         "Day of week": "Hari dalam sepekan",
@@ -2590,7 +2605,65 @@
         "No authentication method is active.": "Tidak ada metode otentikasi yang aktif.",
         "Set as active method": "Tetapkan sebagai metode aktif",
         "Set as active method?": "Tetapkan sebagai metode aktif?",
-        "The new method will go into effect after you restart Grist.": "Metode baru ini akan berlaku setelah Anda memulai ulang Grist."
+        "The new method will go into effect after you restart Grist.": "Metode baru ini akan berlaku setelah Anda memulai ulang Grist.",
+        "**Forwarded headers** allows your Grist server to trust authentication performed by an external proxy (e.g. Traefik ForwardAuth).": "**Header yang diteruskan** memungkinkan server Grist Anda untuk mempercayai autentikasi yang dilakukan oleh proxy eksternal (misalnya, Traefik ForwardAuth).",
+        "**Grist Connect** is a login solution built and maintained by Grist Labs that integrates seamlessly with your Grist server.": "**Grist Connect** adalah solusi login yang dibangun dan dikelola oleh Grist Labs yang terintegrasi secara mulus dengan server Grist Anda.",
+        "**OIDC** allows users on your Grist server to sign in using an external identity provider that supports the OpenID Connect standard.": "**OIDC** memungkinkan pengguna di server Grist Anda untuk masuk menggunakan penyedia identitas eksternal yang mendukung standar OpenID Connect.",
+        "**SAML** allows users on your Grist server to sign in using an external identity provider that supports the SAML 2.0 standard.": "**SAML** memungkinkan pengguna di server Grist Anda untuk masuk menggunakan penyedia identitas eksternal yang mendukung standar SAML 2.0.",
+        "Change admin user": "Ubah pengguna admin",
+        "If Grist is accessible on your network, or is available to multiple people, configure one of the authentication methods below.": "Jika Grist dapat diakses di jaringan Anda, atau tersedia untuk beberapa orang, konfigurasikan salah satu metode autentikasi di bawah ini.",
+        "No authentication: unrestricted sign-in as demo user": "Tidak ada otentikasi: masuk tanpa batasan sebagai pengguna demo",
+        "Prepare changes": "Siapkan perubahan",
+        "Restart required. Authentication change may affect your access": "Restart diperlukan. Perubahan otentikasi dapat memengaruhi akses Anda",
+        "Revert change of admin user": "Batalkan perubahan pengguna admin",
+        "See \"Restart Grist\" section on top of this page to restart.": "Lihat bagian \"Mulai Ulang Grist\" di bagian atas halaman ini untuk memulai ulang.",
+        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "grist-connect": {
+                            ").": "Untuk mengatur **Grist Connect**, ikuti petunjuk di [artikel dukungan Grist untuk Grist Connect](https://support.getgrist.com/install/grist-connect/)."
+                        }
+                    }
+                }
+            }
+        },
+        "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "oidc).": "Untuk mengatur **OIDC**, ikuti petunjuk di [artikel dukungan Grist untuk OIDC](https://support.getgrist.com/install/oidc)."
+                    }
+                }
+            }
+        },
+        "To set up **SAML**, follow the instructions in [the Grist support article for SAML](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "saml": {
+                            ").": "Untuk mengatur **SAML**, ikuti petunjuk di [artikel dukungan Grist untuk SAML](https://support.getgrist.com/install/saml/)."
+                        }
+                    }
+                }
+            }
+        },
+        "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "forwarded-headers": {
+                            ").": "Untuk mengatur **header yang diteruskan**, ikuti petunjuk di [artikel dukungan Grist untuk header yang diteruskan](https://support.getgrist.com/install/forwarded-headers/)."
+                        }
+                    }
+                }
+            }
+        },
+        "When a user accesses Grist, the proxy handles authentication and forwards verified user information through HTTP headers. Grist uses these headers to identify the user.": "Saat pengguna mengakses Grist, proxy menangani otentikasi dan meneruskan informasi pengguna yang terverifikasi melalui header HTTP. Grist menggunakan header ini untuk mengidentifikasi pengguna.",
+        "When signing in, users will be redirected to a Grist Connect login page where they can authenticate using various identity providers. After authentication, they'll be redirected back to your Grist server and signed in.": "Saat masuk, pengguna akan dialihkan ke halaman login Grist Connect tempat mereka dapat melakukan autentikasi menggunakan berbagai penyedia identitas. Setelah autentikasi, mereka akan dialihkan kembali ke server Grist Anda dan masuk.",
+        "When signing in, users will be redirected to your chosen identity provider's login page to authenticate. After successful authentication, they'll be redirected back to your Grist server and signed in as the user verified by the provider.": "Saat masuk, pengguna akan dialihkan ke halaman masuk penyedia identitas pilihan Anda untuk melakukan autentikasi. Setelah autentikasi berhasil, mereka akan dialihkan kembali ke server Grist Anda dan masuk sebagai pengguna yang telah diverifikasi oleh penyedia tersebut.",
+        "You are signed in as {{email}}. After restart, the new administrative user will be {{newEmail}}.": "Anda masuk sebagai {{email}}. Setelah restart, pengguna administratif yang baru adalah {{newEmail}}.",
+        "You are signed in as {{email}}. You may lose access to this server if you cannot sign in as this user after switching the authentication system.": "Anda masuk sebagai {{email}}. Anda mungkin kehilangan akses ke server ini jika Anda tidak dapat masuk sebagai pengguna ini setelah mengganti sistem otentikasi."
     },
     "DetailView": {
         "This row is unavailable or does not exist": "Baris ini tidak tersedia atau tidak ada"
@@ -2608,5 +2681,67 @@
         "Sign in with getgrist.com": "Masuk dengan getgrist.com",
         "To set up {{provider}}, you need to register your Grist server on getgrist.com and paste the configuration key you receive below.": "Untuk mengatur {{provider}}, Anda perlu mendaftarkan server Grist Anda di getgrist.com dan menempelkan kunci konfigurasi yang Anda terima di bawah ini.",
         "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.": "Saat masuk, pengguna akan dialihkan ke halaman login getgrist.com untuk masuk atau mendaftar. Setelah melakukan autentikasi di getgrist.com, mereka akan dialihkan kembali ke server Grist Anda dan masuk sebagai pengguna yang telah mereka gunakan untuk autentikasi."
+    },
+    "AirtableImportUI": {
+        "Back": "Kembali",
+        "Cancel": "Batal",
+        "Choose an Airtable base to import from": "Pilih basis data Airtable untuk diimpor",
+        "Choose destination": "Pilih tujuan",
+        "Connect": "Hubungkan",
+        "Connect with Airtable": "Terhubung dengan Airtable",
+        "Connect your Airtable account to access your bases.": "Hubungkan akun Airtable Anda untuk mengakses basis data Anda.",
+        "Connected via {{method}}": "Terhubung melalui {{method}}",
+        "Connecting...": "Menghubungkan...",
+        "Continue": "Lanjutkan",
+        "Destination": "Tujuan",
+        "Disconnect": "Putuskan",
+        "Existing tables": "Tabel yang sudah ada",
+        "Failed to fetch base schema": "Gagal mengambil skema dasar",
+        "Failed to fetch bases": "Gagal mengambil basis",
+        "Grist configuration required": "Konfigurasi Grist diperlukan",
+        "Import from {{baseName}} in progress. Do not navigate away from this page.": "Impor dari {{baseName}} sedang berlangsung. Jangan tinggalkan halaman ini.",
+        "Import tables": "Tabel impor",
+        "Import {{count}} tables_one": "Impor {{count}} tabel",
+        "Import {{count}} tables_other": "Impor {{count}} tabel",
+        "Make sure your token has the correct permissions.": "Pastikan token Anda memiliki izin yang benar.",
+        "New table": "Tabel baru",
+        "New table: structure only": "Tabel baru: hanya strukturnya saja",
+        "No bases found": "Basis data tidak ditemukan",
+        "OAuth": "OAuth",
+        "OAuth credentials not configured. Please set OAUTH2_AIRTABLE_CLIENT_ID and OAUTH2_AIRTABLE_CLIENT_SECRET, or use personal access token.": "Kredensial OAuth belum dikonfigurasi. Harap atur OAUTH2_AIRTABLE_CLIENT_ID dan OAUTH2_AIRTABLE_CLIENT_SECRET, atau gunakan token akses pribadi.",
+        "Personal access token": "Token akses pribadi",
+        "Please enter a personal access token": "Silakan masukkan token akses pribadi",
+        "Refresh": "Segarkan",
+        "Select tables to import from {{baseName}}": "Pilih tabel yang akan diimpor dari {{baseName}}",
+        "Skip": "Lewati",
+        "Source tables": "Tabel sumber",
+        "Structure only": "Hanya struktur",
+        "Use personal access token instead": "Gunakan token akses pribadi sebagai gantinya",
+        "[Generate a token]({{url}}) in your Airtable account with scopes that include at least **\\`schema.bases:read\\`** and **\\`data.records:read\\`**.\n\nYour token is never sent to Grist's servers, and is only used to make API calls to Airtable from your browser.": "[Buat token]({{url}}) di akun Airtable Anda dengan cakupan yang mencakup setidaknya **\\`schema.bases:read\\`** dan **\\`data.records:read\\`**.\n\nToken Anda tidak pernah dikirim ke server Grist, dan hanya digunakan untuk melakukan panggilan API ke Airtable dari browser Anda.",
+        "loading your bases...": "Memuat basis data anda...",
+        "loading your tables...": "Memuat tabel Anda...",
+        "or": "atau",
+        "{{count}} warnings_one": "{{count}} peringatan",
+        "{{count}} warnings_other": "{{count}} peringatan",
+        "The more convenient ‘Connect with Airtable’ option can be configured by the installation administrator. [Learn more.]({{url}})": "Opsi yang lebih praktis, yaitu ‘Hubungkan dengan Airtable’, dapat dikonfigurasi oleh administrator instalasi. [Pelajari selengkapnya.]({{url}})",
+        "Use personal access token": "Gunakan token akses pribadi"
+    },
+    "AirtableImporter": {
+        "Creating a new Grist document...": "Membuat dokumen Grist baru...",
+        "Preparing to import base from Airtable...": "Bersiap untuk mengimpor basis data dari Airtable...",
+        "Setting up tables...": "Menata tabel..."
+    },
+    "ChangeAdminModal": {
+        "Enter new admin email": "Masukkan email admin baru",
+        "Make the new email the installation admin. Orgs, workspaces, and documents will remain owned by {{email}}. These changes will take effect after you restart this Grist server.": "Jadikan email baru ini sebagai admin instalasi. Organisasi, ruang kerja, dan dokumen akan tetap dimiliki oleh {{email}}. Perubahan ini akan berlaku setelah Anda memulai ulang server Grist ini.",
+        "New admin": "Admin baru",
+        "Replace {{email}} with the new email throughout. The new email will become the installation admin, as well as the owner of all materials previously owned by you@example.com.": "Ganti {{email}} dengan email baru di seluruh teks. Email baru ini akan menjadi admin instalasi, serta pemilik semua materi yang sebelumnya dimiliki oleh you@example.com."
+    },
+    "startDocAirtableImport": {
+        "Import from Airtable": "Impor dari Airtable"
+    },
+    "startHomeAirtableImport": {
+        "Import from Airtable": "Impor dari Airtable",
+        "The current workspace can't be imported to.": "Ruang kerja saat ini tidak dapat diimpor."
     }
 }
