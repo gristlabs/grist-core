@@ -3,7 +3,7 @@ import * as gu from "test/nbrowser/gristUtils";
 import { addToRepl, driver, WebElementPromise } from "mocha-webdriver";
 
 export async function openRelativeOptionsMenu(minMax: "min" | "max") {
-  if (!await driver.find(".grist-floatin-menu").isPresent()) {
+  if (!await driver.find(".grist-floating-menu").isPresent()) {
     await driver.find(`.test-filter-menu-${minMax}`).click();
   }
 }
