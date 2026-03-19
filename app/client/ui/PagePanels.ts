@@ -182,7 +182,7 @@ export function pagePanels(page: PageContents) {
         cssLeftPane.cls("-open", left.panelOpen),
 
         dom.boolAttr(FULLY_EXPANDED_PANEL_DATASET_KEY, left.panelOpen),
-        dom.boolAttr(FULLY_COLLAPSED_PANEL_DATASET_KEY, left.panelOpen),
+        dom.boolAttr(FULLY_COLLAPSED_PANEL_DATASET_KEY, use => !use(left.panelOpen)),
         transition(use => (use(isNarrowScreenObs()) ? false : use(left.panelOpen)), {
           prepare(elem, open) {
             elem.style.width = (open ? 48 : left.panelWidth.get()) + "px";
@@ -367,7 +367,7 @@ export function pagePanels(page: PageContents) {
           // Opening/closing the right pane, with transitions.
           cssRightPane.cls("-open", right.panelOpen),
           dom.boolAttr(FULLY_EXPANDED_PANEL_DATASET_KEY, right.panelOpen),
-          dom.boolAttr(FULLY_COLLAPSED_PANEL_DATASET_KEY, right.panelOpen),
+          dom.boolAttr(FULLY_COLLAPSED_PANEL_DATASET_KEY, use => !use(right.panelOpen)),
           transition(use => (use(isNarrowScreenObs()) ? false : use(right.panelOpen)), {
             prepare(elem, open) {
               elem.style.marginLeft = (open ? -1 : 1) * right.panelWidth.get() + "px";
