@@ -63,7 +63,7 @@ describe("DetailView.ntest", function () {
 
     // Swap to Card List view, check values.
     await $(".test-right-panel button:contains(Change widget)").click();
-    await $(".test-wselect-type:contains(Card List)").click();
+    await $(".test-wselect-type:contains(Card List)").wait().click();
     await $(".test-wselect-addBtn").click();
     await gu.waitForServer();
     assert.deepEqual(await gu.getVisibleDetailCells("Actor", [1, 2]),
@@ -71,7 +71,7 @@ describe("DetailView.ntest", function () {
 
     // Swap back to Card view, re-check values.
     await $(".test-right-panel button:contains(Change widget)").click();
-    await $(".test-wselect-type:contains(Card)").click();
+    await $(".test-wselect-type:contains(Card)").wait().click();
     await $(".test-wselect-addBtn").click();
     await gu.waitForServer();
     assert.deepEqual(await gu.getVisibleDetailCells("Actor", [1]), ["Tim Allen"]);
@@ -97,7 +97,7 @@ describe("DetailView.ntest", function () {
     // Switch to Card List view and enter a formula. This should cause the scrolly to resize all rows.
     // If the detail view rowModel is wrongly resized, the action will fail.
     await $(".test-right-panel button:contains(Change widget)").click();
-    await $(".test-wselect-type:contains(Card List)").click();
+    await $(".test-wselect-type:contains(Card List)").wait().click();
     await $(".test-wselect-addBtn").click();
     await gu.waitForServer();
     await gu.sendKeys("=");
@@ -118,7 +118,7 @@ describe("DetailView.ntest", function () {
     assert.deepEqual(await gu.getVisibleDetailCells("Film", [14]), ["Jurassic Park"]);
     // Check that adding 'Star Wars' to the detail view add record row adds it as a row.
     await $(".test-right-panel button:contains(Change widget)").click();
-    await $(".test-wselect-type:contains(Card)").click();
+    await $(".test-wselect-type:contains(Card)").wait().click();
     await $(".test-wselect-addBtn").click();
     await gu.waitForServer();
     await $(".detail-add-btn").wait().click();
