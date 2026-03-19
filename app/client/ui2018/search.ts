@@ -263,7 +263,6 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
       model.isCollapsed.set(false);
     }),
     dom.on("transitionend", (ev, elem) => {
-      console.log("transitionend model.isOpen() === ", model.isOpen.get());
       model.isExpanded.set(model.isOpen.get());
       model.isCollapsed.set(!model.isOpen.get());
     }),
