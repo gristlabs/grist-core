@@ -179,7 +179,7 @@ for i in {1..20}; do GREP_TESTS="^yourTestSuiteHere\b" yarn test:nbrowser:ci -- 
 ```bash
 # Example below for projects tests
 # You can adapt the value for --cpu-limit
-for i in {1..20}; do GREP_TESTS="^yourTestSuiteHere\b" systemd-run --scope -p CPUQuota=50% --user yarn run test:nbrowser:ci -- -- --bail || break; echo "✅ Step $i 🎉"; end
+for i in {1..20}; do GREP_TESTS="^yourTestSuiteHere\b" systemd-run --scope -p CPUQuota=50% --user yarn run test:nbrowser:ci -- -- --bail || break; echo "✅ Step $i 🎉"; done
 ```
 
 ### Browser version issues
