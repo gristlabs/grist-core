@@ -2741,5 +2741,8 @@
         "Creating a new Grist document...": "Skapar ett nytt Gristdokument...",
         "Preparing to import base from Airtable...": "Förbereder för art importera databas från Airtable...",
         "Setting up tables...": "Ställer in tabeller..."
+    },
+    "NotifyModel": {
+        "Still working...": "Arbetar fortfarande..."
     }
 }
