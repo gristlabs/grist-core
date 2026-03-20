@@ -33,7 +33,7 @@ jobs:
         id: scan-keys
         run: |
           git checkout -b translation-keys
-          yarn run generate:translation
+          yarn run generate:translation 2>&1 | tee /tmp/scan-output.txt
           git status --porcelain
           if [[ $(git status --porcelain | wc -l) -eq "0" ]]; then
             echo "No changes"
@@ -48,14 +48,18 @@ jobs:
           git config user.name "Paul's Grist Bot"
           git config user.email "<paul+bot@getgrist.com>"
 
-      - name: Prepare PR
+      - name: Create PR and merge
         if: env.CHANGED == 'true'
         run: |
           git commit -m "automated update to translation keys" -a
           git push --set-upstream origin HEAD:translation-keys -f
           num=$(gh pr list --search "automated update to translation keys" --json number -q ".[].number")
-          if [[ "$num" = "" ]]; then
-            gh pr create --fill
+          if [[ "$num" != "" ]]; then
+            echo "Existing translation keys PR #$num is open, skipping"
+            exit 0
           fi
+          sed -n '/TRANSLATION_SUMMARY_START/,/TRANSLATION_SUMMARY_END/{//d;p;}' /tmp/scan-output.txt > /tmp/pr-body.txt
+          gh pr create --title "automated update to translation keys" --body-file /tmp/pr-body.txt
+          gh pr merge --merge --delete-branch
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
