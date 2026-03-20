@@ -327,7 +327,7 @@ describe("FormView1", function() {
     it("max length for single-line Text field", async function() {
       const formUrl = await createFormWith("Text");
       await gu.openColumnPanel();
-      await gu.waitForSidePanel();
+      await gu.waitForSidePanel("right", "expanded");
       const constraintInput = await driver.find(".test-tb-form-field-constraint input");
       await constraintInput.sendKeys(5);
       await constraintInput.sendKeys(Key.ENTER);
@@ -357,7 +357,6 @@ describe("FormView1", function() {
     it("can submit a form with multi-line Text field", async function() {
       const formUrl = await createFormWith("Text");
       await gu.openColumnPanel();
-      await gu.waitForSidePanel();
       await driver.findContent(".test-tb-form-field-format .test-select-button", /Multi line/).click();
       await gu.waitForServer();
       // We are in a new window.
@@ -383,7 +382,7 @@ describe("FormView1", function() {
     it("max length for multi-line Text field", async function() {
       const formUrl = await createFormWith("Text");
       await gu.openColumnPanel();
-      await gu.waitForSidePanel();
+      await gu.waitForSidePanel("right", "expanded");
       await driver.findContent(".test-tb-form-field-format .test-select-button", /Multi line/).click();
       const constraintInput = await driver.find(".test-tb-form-field-constraint input");
       await constraintInput.sendKeys(7);
@@ -825,6 +824,7 @@ describe("FormView1", function() {
           ["", "1", "2", "3"],
         );
         await driver.find(".test-form-search-select").click();
+        await driver.findWait(".test-sd-searchable-list-item", 1000);
         assert.deepEqual(
           await driver.findAll(".test-sd-searchable-list-item", e => e.getText()), ["Foo", "Bar", "Baz"],
         );
@@ -846,7 +846,10 @@ describe("FormView1", function() {
         // Check keyboard shortcuts work.
         assert.equal(await driver.find(".test-form-search-select").getText(), "Bar");
         await gu.sendKeys(Key.BACK_SPACE);
-        assert.equal(await driver.find(".test-form-search-select").getText(), "Select...");
+        // Sometimes leads to flakiness, use waitToPass for this check:
+        await gu.waitToPass(async () => {
+          assert.equal(await driver.find(".test-form-search-select").getText(), "Select...");
+        });
         await gu.sendKeys(Key.ENTER);
         await driver.findContentWait(".test-sd-searchable-list-item", "Bar", 2000).click();
         await driver.find('button[type="submit"]').click();
@@ -881,6 +884,7 @@ describe("FormView1", function() {
         await driver.findWait('select[name="D"]', 2000);
         await driver.findWait('label[for="D"]', 2000);
         await driver.find(".test-form-search-select").click();
+        await driver.findWait(".test-sd-searchable-list-item", 2000);
         assert.deepEqual(
           await driver.findAll(".test-sd-searchable-list-item", e => e.getText()),
           twoLettersCombination.slice(0, 100),
@@ -1510,6 +1514,7 @@ describe("FormView1", function() {
     it("cutting works", async function() {
       const revert = await gu.begin();
       await question("A").click();
+      await gu.waitAppFocus();
       // Send copy command.
       await clipboard.lockAndPerform(async (cb) => {
         await cb.cut();
@@ -1531,6 +1536,7 @@ describe("FormView1", function() {
       await clickMenu("Paragraph");
       await gu.waitForServer();
       await element("Paragraph", 5).click();
+      await gu.waitAppFocus();
       await clipboard.lockAndPerform(async (cb) => {
         await cb.cut();
         // Go over A and paste there.

@@ -145,7 +145,9 @@ describe("RightPanelSelectBy", function() {
     await gu.waitForServer();
     await gu.addNewSection(/Card/, /Films/);
     await gu.openSelectByForSection("Films Card");
-    assert.equal(await driver.findContent(".test-select-row", /FRIENDS.*Favorite Film/).isPresent(), true);
+    await gu.waitToPass(async () => {
+      assert.equal(await driver.findContent(".test-select-row", /FRIENDS.*Favorite Film/).isPresent(), true);
+    });
     await gu.findOpenMenuItem(".test-select-row", /FRIENDS.*Favorite Film/).click();
     await gu.waitForServer();
 

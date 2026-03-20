@@ -27,7 +27,7 @@ describe("CardView", function() {
 
     // Change the section to be scroll-linked.
     await driver.find(".test-right-select-by").click();
-    await driver.findContent(".test-select-menu li", /Performances record/).click();
+    await driver.findContentWait(".test-select-menu li", /Performances record/, 100).click();
     await gu.waitForServer();
 
     // Assert that the controls are now not displayed.
@@ -35,7 +35,7 @@ describe("CardView", function() {
 
     // Change the section to be filter-linked.
     await driver.find(".test-right-select-by").click();
-    await driver.findContent(".test-select-menu li", /Performances record • Film/).click();
+    await driver.findContentWait(".test-select-menu li", /Performances record • Film/, 100).click();
     await gu.waitForServer();
 
     // Assert that the controls are displayed again.
@@ -43,7 +43,7 @@ describe("CardView", function() {
 
     // Reset linking.
     await driver.find(".test-right-select-by").click();
-    await driver.findContent(".test-select-menu li", /Select widget/).click();
+    await driver.findContentWait(".test-select-menu li", /Select widget/, 100).click();
     await gu.waitForServer();
 
     // Assert that the controls are still displayed.
@@ -57,7 +57,7 @@ describe("CardView", function() {
     await driver.find(".test-wselect-addBtn").click();
     await gu.waitForServer();
     await driver.find(".test-right-select-by").click();
-    await driver.findContent(".test-select-menu li", /Performances record • Film/).click();
+    await driver.findContentWait(".test-select-menu li", /Performances record • Film/, 100).click();
     await gu.waitForServer();
 
     // Assert that the controls are not displayed.
@@ -65,7 +65,7 @@ describe("CardView", function() {
 
     // Reset linking and section type.
     await driver.find(".test-right-select-by").click();
-    await driver.findContent(".test-select-menu li", /Select widget/).click();
+    await driver.findContentWait(".test-select-menu li", /Select widget/, 100).click();
     await driver.find(".test-pwc-editDataSelection").click();
     await driver.findContentWait(".test-wselect-type", /Table/, 100).click();
     await driver.find(".test-wselect-addBtn").click();

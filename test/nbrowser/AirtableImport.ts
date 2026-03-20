@@ -563,7 +563,7 @@ describe("AirtableImport", function() {
         await driver.find(".test-import-airtable-continue").click();
 
         // Make sure Table2 isn't shown.
-        await driver.find(".test-import-airtable-table-tbl79ux7qppckp8hr-destination").click();
+        await driver.findWait(".test-import-airtable-table-tbl79ux7qppckp8hr-destination", 1000).click();
         assert.deepEqual(await gu.findOpenMenuAllItems("li", el => el.getText()), [
           "New table",
           "New table: structure only",

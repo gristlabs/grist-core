@@ -66,7 +66,8 @@ describe("WebhookOverflow", function() {
     await gu.openPage("Table2");
     await gu.getCell("A", 1).click();
     await gu.enterCell(new Date().toString());
-    await gu.getCell("B", 1).click();
+    const cell = await gu.getCell("B", 1).doClick();
+    await gu.waitCellFocus(cell);
     await enterCellWithoutWaitingOnServer(new Date().toString());
     await gu.waitToPass(async () => {
       const toast = await gu.getToasts();

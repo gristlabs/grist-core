@@ -596,6 +596,7 @@ async function checkGridCells(expected: string[]) {
 async function paste(cb: gu.IClipboard) {
   // Click the first cell rather than the column header so that it doesn't try renaming the column
   await gu.getCell({ col: "Parsed", rowNum: 1 }).click();
+  await gu.waitAppFocus();
   await cb.paste();
   await gu.waitForServer();
   await gu.checkForErrors();
@@ -604,6 +605,7 @@ async function paste(cb: gu.IClipboard) {
 // Copy the contents of fromCol into the Parsed column
 async function copy(cb: gu.IClipboard, fromCol: "Text" | "Parsed") {
   await gu.getColumnHeader({ col: fromCol }).click();
+  await gu.waitAppFocus();
   await cb.copy();
   await paste(cb);
 }
