@@ -737,6 +737,18 @@ namespace gristUtils {
   }
 
   /**
+   * Run an action on a cell for which we wait for the content to change.
+   */
+  export async function withCellChange<T extends WebElement | WebElementPromise, R>(
+    cell: T, cb: (cell: T) => R,
+  ): Promise<R> {
+    const before = await cell.getText();
+    const ret = await cb(cell);
+    await driver.wait(async () => before !== await cell.getText());
+    return ret;
+  }
+
+  /**
  * Enter a formula into the currently selected cell.
  *
  * You can insert newlines by embedding `${Key.chord(Key.SHIFT, Key.ENTER)}` into the formula

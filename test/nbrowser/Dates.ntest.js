@@ -251,15 +251,17 @@ describe("Dates.ntest", function() {
       // Type the Date-only shortcut into each cell in the second row.
       await gu.clickCellRC(1, 0);
       for (var i = 0; i < 6; i++) {
-        await gu.waitCellFocus(gu.getCellRC(1, i));
-        await gu.sendKeys([$.MOD, ";"], $.TAB);
+        await gu.withCellChange(gu.getCellRC(1, i),
+          () => gu.sendKeys([$.MOD, ";"], $.TAB)
+        );
       }
 
       // Type the Date-Time shortcut into each cell in the third row.
       await gu.clickCellRC(2, 0);
       for (i = 0; i < 6; i++) {
-        await gu.waitCellFocus(gu.getCellRC(2, i));
-        await gu.sendKeys([$.MOD, $.SHIFT, ";"], $.TAB);
+        await gu.withCellChange(gu.getCellRC(2, i),
+          () => gu.sendKeys([$.MOD, $.SHIFT, ";"], $.TAB)
+        );
       }
     }
 
@@ -506,6 +508,7 @@ async function setGlobalTimezone(name) {
   await $(".test-dm-doc-settings").wait().click();
   await $(".test-tz-autocomplete").click();
   await $(`.test-acselect-dropdown li:contains(${name})`).click();
+  await driver.sleep(100); // the request is not always triggered immediately, we wait a little bit.
   await gu.waitForServer();
   await driver.navigate().back();
 }
