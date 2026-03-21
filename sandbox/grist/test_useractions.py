@@ -1192,12 +1192,14 @@ class TestUserActions(test_engine.EngineTestCase):
     })
     self.load_sample(sample)
 
-    def check(require, values, options, stored):
+    def check(require, values, options, stored, retValues):
+      result = self.apply_user_action(["BulkAddOrUpdateRecord", "Table1", require, values, options])
       self.assertPartialOutActions(
-        self.apply_user_action(["BulkAddOrUpdateRecord", "Table1", require, values, options]),
-        {"stored": stored},
+        result,
+        {"stored": stored, "retValues": retValues},
       )
 
+    # Check bulk syntax
     check(
       {
         "first_name": [
@@ -1230,6 +1232,98 @@ class TestUserActions(test_engine.EngineTestCase):
         }],
         ["BulkUpdateRecord", "Table1", [1, 2], {"color": ["red", "blue"]}],
       ],
+      [
+        {
+          "recordIds": [1,2,3,4],
+          "createdRecordIds": [3,4],
+          "updatedRecordIds": [1,2],
+        }
+      ]
+    )
+
+    # Check record syntax, with varying require columns and value columns
+    check(
+      [
+        # Check unique last name match
+        {
+          "last_name": "Doe",
+        },
+        # Check another last name match in the same field group
+        {
+          "last_name": "Smith",
+        },
+        # Check unique first name match
+        {
+          "first_name": "Bob",
+        },
+        # Check no match creates a new record
+        {
+          "first_name": "Frodo",
+          "last_name": "Baggins",
+        },
+        # Check a double-update (matches the same as "first_name": "Bob")
+        {
+          "first_name": "Bob",
+          "last_name": "Johnson",
+        },
+      ],
+      [
+        { "color": "pink" },
+        { "color": "purple" },
+        { "color": "blue" },
+        { "color": "green" },
+        { "color": "turquoise" },
+      ],
+      {},
+      [
+        ["BulkUpdateRecord", "Table1", [1, 2], {"color": ["pink", "purple"]}],
+        ["UpdateRecord", "Table1", 4, {"color": "blue"}],
+        ["AddRecord", "Table1", 5, {"color": "green", "first_name": "Frodo", "last_name": "Baggins"}],
+        ["UpdateRecord", "Table1", 4, {"color": "turquoise"}],
+      ],
+      [
+        {
+          "recordIds": [1,2,4,5,4],
+          "createdRecordIds": [5],
+          "updatedRecordIds": [1,2,4,4],
+        }
+      ]
+    )
+
+    # Check the return value if multiple records were updated
+    check(
+      [
+        # Check all "Johns" get updated and return their row IDs
+        {
+          "first_name": "John",
+        },
+        # Add another single update to ensure return values handle mixed types
+        {
+          "first_name": "Bob",
+        },
+        # Add a new record to ensure that doesn't conflict with multiple IDs being returned
+        {
+          "first_name": "Peregrin",
+          "last_name": "Took",
+        },
+      ],
+      [
+        { "color": "grey" },
+        { "color": "silver" },
+        {},
+      ],
+      { "on_many": "all"},
+      [
+        ["BulkUpdateRecord", "Table1", [1, 2, 3, 4], {"color": ["grey", "grey", "grey", "silver"]}],
+        ["AddRecord", "Table1", 6, {"first_name": "Peregrin", "last_name": "Took"}],
+      ],
+      [
+        {
+          "recordIds": [[1,2,3], 4, 6],
+          "createdRecordIds": [6],
+          "updatedRecordIds": [[1,2,3], 4],
+        }
+      ]
     )
 
     with self.assertRaises(ValueError) as cm:
@@ -1237,6 +1331,7 @@ class TestUserActions(test_engine.EngineTestCase):
         {"color": ["yellow"]},
         {"color": ["red", "blue", "green"]},
         {},
+        [],
         [],
       )
     self.assertEqual(
@@ -1259,6 +1354,7 @@ class TestUserActions(test_engine.EngineTestCase):
         {},
         {},
         [],
+        [],
       )
     self.assertEqual(
       str(cm.exception),
@@ -1280,6 +1376,7 @@ class TestUserActions(test_engine.EngineTestCase):
         },
         {},
         {},
+        [],
         [],
       )
     self.assertEqual(

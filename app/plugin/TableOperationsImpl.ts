@@ -62,10 +62,21 @@ export class TableOperationsImpl implements TableOperations {
       };
       const recordOptions: OpOptions = pick(upsertOptions, "parseStrings");
 
+      /*
+       * TODO:
+       *   Record the index positions of each record. That's its ID now.
+       *   When grouping records, remember the index position of each item in the group.
+       *   Loop through recordIds in group results, and restore them to the right index position.
+       *   Combine created and updated ID arrays by just concatenating? Preserving order is a huge
+       *   headache for minimal gain, given recordIds are in order - they can't be indexed by
+       *   position either as position varies.
+       */
+
       // Group records based on having the same keys in `require` and `fields`.
       // A single bulk action will be applied to each group.
       // We don't want one bulk action for all records that might have different shapes,
-      // because that would require filling arrays with null values.
+      // because that would require filling arrays with null values, which would result in the
+      // incorrect behaviour (e.g. checking a column is empty, or deleting a cell entry)
       const recGroups = groupBy(records, (rec) => {
         const requireKeys = Object.keys(rec.require).sort().join(",");
         const fieldsKeys = Object.keys(rec.fields || {}).sort().join(",");
@@ -76,8 +87,9 @@ export class TableOperationsImpl implements TableOperations {
         const fields = convertToBulkColValues(group.map(r => ({ fields: r.fields || {} })));
         return ["BulkAddOrUpdateRecord", tableId, require, fields, options];
       });
-      await this._applyUserActions(tableId, [...fieldNames(records)],
+      const applyResult = await this._applyUserActions(tableId, [...fieldNames(records)],
         actions, recordOptions);
+
       return [];
     });
   }
