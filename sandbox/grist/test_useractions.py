@@ -1198,6 +1198,7 @@ class TestUserActions(test_engine.EngineTestCase):
         {"stored": stored},
       )
 
+    # Check bulk syntax
     check(
       {
         "first_name": [
@@ -1229,6 +1230,48 @@ class TestUserActions(test_engine.EngineTestCase):
           "last_name": ["Johnson", "Johnson"],
         }],
         ["BulkUpdateRecord", "Table1", [1, 2], {"color": ["red", "blue"]}],
+      ],
+    )
+
+    # Check record syntax, with varying require columns and value columns
+    check(
+      [
+        # Check unique last name match
+        {
+          "last_name": "Doe",
+        },
+        # Check another last name match in the same field group
+        {
+          "last_name": "Smith",
+        },
+        # Check unique first name match
+        {
+          "first_name": "Bob",
+        },
+        # Check no match
+        {
+          "first_name": "Frodo",
+          "last_name": "Baggins",
+        },
+        # Check a double-update (matches the same as "first_name": "Bob")
+        {
+          "last_name": "Johnson",
+          "color": "yellow",
+        },
+      ],
+      [
+        { "color": "pink" },
+        { "color": "purple" },
+        { "color": "blue" },
+        { "color": "green" },
+        { "last_name": "Quinn" },
+      ],
+      {},
+      [
+        ["BulkUpdateRecord", "Table1", [1, 2], {"color": ["pink", "purple"]}],
+        ["UpdateRecord", "Table1", 4, {"color": "blue"}],
+        ["AddRecord", "Table1", 5, {"color": "green", "first_name": "Frodo", "last_name": "Baggins"}],
+        ["AddRecord", "Table1", 6, {"color": "yellow", "last_name": "Quinn"}],
       ],
     )
 
