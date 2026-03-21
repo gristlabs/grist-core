@@ -1120,7 +1120,7 @@ class UserActions(object):
 
       However, it does mean later groups might match records modified by earlier groups.
     """
-    field_groups = {}
+    change_groups = {}
 
     def make_group_key(require_keys, value_keys):
       return frozenset(require_keys), frozenset(value_keys)
@@ -1135,13 +1135,13 @@ class UserActions(object):
         require_keys = require[index].keys()
         value_keys = col_values[index].keys()
         group_key = make_group_key(require_keys, value_keys)
-        if not group_key in field_groups:
-          field_groups[group_key] = {
+        if not group_key in change_groups:
+          change_groups[group_key] = {
             'require': {key: [] for key in require_keys},
             'col_values': {key: [] for key in value_keys},
             'indexes': [],
           }
-        group = field_groups[group_key]
+        group = change_groups[group_key]
         for key in require_keys:
           group['require'][key].append(require[index][key])
         for key in value_keys:
@@ -1161,14 +1161,14 @@ class UserActions(object):
 
       # In bulk syntax, the require columns and value columns are the same for all records - just need one field group.
       group_key = make_group_key(require.keys(), col_values.keys())
-      field_groups[group_key] = {
+      change_groups[group_key] = {
         'require': require,
         'col_values': col_values,
         'indexes': list(range(input_length))
       }
 
     allow_empty_require = options.get("allow_empty_require", False)
-    if not allow_empty_require and any(len(require_keys) == 0 for (require_keys, value_keys) in field_groups.keys()):
+    if not allow_empty_require and any(len(require_keys) == 0 for (require_keys, value_keys) in change_groups.keys()):
       raise ValueError("at least one record has no require fields but allow_empty_require isn't set")
 
     # Return value for the bulk add/update operation
@@ -1189,7 +1189,7 @@ class UserActions(object):
     # Validate that each group has unique require values - i.e. the same rows shouldn't be updated twice.
     # This doesn't offer guarantees with record syntax - the same record may still get multiple updates.
     # e.g  { "first_name": "John" } and { "last_name": "Doe" } might match the same records.
-    for group in field_groups.values():
+    for group in change_groups.values():
       # Cache this value for re-use later
       group['decoded_require'] = actions.decode_bulk_values(group['require'])
       num_unique_keys = len(set(zip(*group['decoded_require'].values())))
@@ -1197,10 +1197,10 @@ class UserActions(object):
         raise ValueError("require values must be unique")
 
     # Avoid implementation-defined ordering with multiple field groups.
-    sorted_field_group_keys = sorted(field_groups.keys())
+    sorted_field_group_keys = sorted(change_groups.keys())
 
     for field_group_key in sorted_field_group_keys:
-      group = field_groups[field_group_key]
+      group = change_groups[field_group_key]
       # Column IDs in `require` that can be used to set values when creating new records,
       # i.e. not formula columns that don't allow setting values.
       # `col_values` is not checked for this because setting such a column there should raise an error
