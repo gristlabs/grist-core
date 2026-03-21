@@ -1228,6 +1228,7 @@ class UserActions(object):
       new_record_indexes = []
 
       for i in range(group_length):
+        result_index = group['indexes'][i]
         current_require = {key: vals[i] for key, vals in decoded_require.items()}
         records = list(table.lookup_records(**current_require))
         if not records and add:
@@ -1236,7 +1237,7 @@ class UserActions(object):
           add_record_ids.append(values.pop("id", None))
           for key, value in values.items():
             add_record_values[key].append(value)
-          new_record_indexes.append(i)
+          new_record_indexes.append(result_index)
 
         if records and update:
           if len(records) > 1:
@@ -1249,15 +1250,19 @@ class UserActions(object):
             update_record_ids.append(record.id)
             for key, vals in group['col_values'].items():
               update_record_values[key].append(vals[i])
-            result['updatedRecordIds'].append(record.id)
-            result['recordIds'][i] = record.id
+
+          # This should only happen if on_many is all - we return an array of updated records.
+          matched_record_ids = records[0].id if len(records) == 1 else [record.id for record in records]
+          result['updatedRecordIds'].append(matched_record_ids)
+          result['recordIds'][result_index] = matched_record_ids
 
       if add_record_ids:
         # The new IDs should be in the same order as the records were provided in add_record_values
-        result['createdRecordIds'] = self.BulkAddRecord(table_id, add_record_ids, add_record_values)
+        new_record_ids = self.BulkAddRecord(table_id, add_record_ids, add_record_values)
+        result['createdRecordIds'].extend(new_record_ids)
         # Fill in recordIds with the IDs of the new records
         for i, new_record_index in enumerate(new_record_indexes):
-          result['recordIds'][new_record_index] = result['createdRecordIds'][i]
+          result['recordIds'][new_record_index] = new_record_ids[i]
 
       if update_record_ids:
         self.BulkUpdateRecord(table_id, update_record_ids, update_record_values)
