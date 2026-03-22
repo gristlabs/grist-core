@@ -1243,21 +1243,22 @@ class UserActions(object):
             add_record_values[key].append(value)
           new_record_indexes.append(result_index)
 
-        if records and update:
+        if records:
           if len(records) > 1:
             if on_many == "first":
               records = records[:1]
             elif on_many == "none":
               continue
 
-          for record in records:
-            update_record_ids.append(record.id)
-            for key, vals in group['col_values'].items():
-              update_record_values[key].append(vals[i])
-
           matched_record_ids = [record.id for record in records] if can_affect_multiple_records else records[0].id
-          result['updatedRecordIds'].append(matched_record_ids)
           result['recordIds'][result_index] = matched_record_ids
+
+          if update:
+            for record in records:
+              update_record_ids.append(record.id)
+              for key, vals in group['col_values'].items():
+                update_record_values[key].append(vals[i])
+            result['updatedRecordIds'].append(matched_record_ids)
 
       if add_record_ids:
         # The new IDs should be in the same order as the records were provided in add_record_values
