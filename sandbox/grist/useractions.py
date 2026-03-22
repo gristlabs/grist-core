@@ -1282,6 +1282,12 @@ class UserActions(object):
 
     See `BulkAddOrUpdateRecord` for more details.
     """
+    if not require and not col_values:
+      return {
+        'recordIds': [],
+        'action': 'NONE',
+      }
+
     result = self.BulkAddOrUpdateRecord(table_id, [require], [col_values], options)
     if len(result['recordIds']) == 0:
       return {
