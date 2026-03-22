@@ -1289,7 +1289,8 @@ class UserActions(object):
       }
 
     result = self.BulkAddOrUpdateRecord(table_id, [require], [col_values], options)
-    if len(result['recordIds']) == 0:
+    # No result, or a failure to update (e.g. on_many is "none" and multiple rows are matched)
+    if len(result['recordIds']) == 0 or result['recordIds'] == [-1]:
       return {
         'recordIds': [],
         'action': 'NONE',
