@@ -1005,10 +1005,10 @@ class TestUserActions(test_engine.EngineTestCase):
     })
     self.load_sample(sample)
 
-    def check(require, values, options, stored):
+    def check(require, values, options, stored, retValue):
       self.assertPartialOutActions(
         self.apply_user_action(["AddOrUpdateRecord", "Table1", require, values, options]),
-        {"stored": stored},
+        {"stored": stored, "retValues": [retValue]},
       )
 
     # Exactly one match, so on_many=none has no effect
@@ -1017,6 +1017,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {"pet": "dog", "color": "red"},
       {"on_many": "none"},
       [["UpdateRecord", "Table1", 2, {"color": "red", "pet": "dog"}]],
+      [],
     )
 
     # Look for a record with pet=dog and change it to pet=cat
@@ -1025,6 +1026,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {"pet": "cat"},
       {},
       [["UpdateRecord", "Table1", 2, {"pet": "cat"}]],
+      [],
     )
 
     # Two records match first_name=John, by default we only update the first
@@ -1033,6 +1035,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {"color": "blue"},
       {},
       [["UpdateRecord", "Table1", 1, {"color": "blue"}]],
+      [],
     )
 
     # Update all matching records
@@ -1043,6 +1046,7 @@ class TestUserActions(test_engine.EngineTestCase):
       [
         ["BulkUpdateRecord", "Table1", [1, 2], {"color": ["green", "green"]}],
       ],
+      [],
     )
 
     # Update all records with empty require and allow_empty_require
@@ -1053,6 +1057,7 @@ class TestUserActions(test_engine.EngineTestCase):
       [
         ["BulkUpdateRecord", "Table1", [1, 2], {"color": ["greener", "greener"]}],
       ],
+      [],
     )
 
     # Missing allow_empty_require
@@ -1062,6 +1067,7 @@ class TestUserActions(test_engine.EngineTestCase):
         {"color": "greenest"},
         {},
         [],
+        [],
       )
 
     # Don't update any records when there's several matches
@@ -1069,6 +1075,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {"first_name": "John"},
       {"color": "yellow"},
       {"on_many": "none"},
+      [],
       [],
     )
 
@@ -1079,6 +1086,7 @@ class TestUserActions(test_engine.EngineTestCase):
         {"color": "yellow"},
         {"on_many": "other"},
         [],
+        [],
       )
 
     # Since there's at least one matching record and update=False, do nothing
@@ -1087,6 +1095,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {"color": "yellow"},
       {"update": False},
       [],
+      [],
     )
 
     # Since there's no matching records and add=False, do nothing
@@ -1094,6 +1103,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {"first_name": "John", "last_name": "Johnson"},
       {"first_name": "Jack", "color": "yellow"},
       {"add": False},
+      [],
       [],
     )
 
@@ -1107,6 +1117,7 @@ class TestUserActions(test_engine.EngineTestCase):
         ["AddRecord", "Table1", 3,
         {"color": "yellow", "first_name": "Jack", "last_name": "Johnson"}]
       ],
+      [],
     )
 
     # Specifying a row ID in `require` is allowed
@@ -1115,6 +1126,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {"pet": "fish"},
       {},
       [["AddRecord", "Table1", 100, {"first_name": "Bob", "pet": "fish"}]],
+      [],
     )
 
     # Now the row already exists
@@ -1122,6 +1134,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {"first_name": "Bob", "id": 100},
       {"pet": "fish"},
       {},
+      [],
       [],
     )
 
@@ -1132,6 +1145,7 @@ class TestUserActions(test_engine.EngineTestCase):
         {"pet": "fish"},
         {},
         [],
+        [],
       )
 
     # Formula columns in `require` can't be used as values when creating records
@@ -1140,6 +1154,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {"first_name": "Alice"},
       {},
       [["AddRecord", "Table1", 101, {"first_name": "Alice"}]],
+      [],
     )
 
     with self.assertRaises(ValueError):
@@ -1149,6 +1164,7 @@ class TestUserActions(test_engine.EngineTestCase):
         {"pet": "fish"},
         {},
         [],
+        [],
       )
 
     # Check that encoded objects are decoded correctly
@@ -1157,12 +1173,14 @@ class TestUserActions(test_engine.EngineTestCase):
       {},
       {},
       [["AddRecord", "Table1", 102, {"date": 950400}]],
+      [],
     )
     check(
       {"date": ['d', 950400]},
       {"date": ['d', 1900800]},
       {},
       [["UpdateRecord", "Table1", 102, {"date": 1900800}]],
+      [],
     )
 
     # Empty both does nothing
@@ -1170,6 +1188,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {},
       {},
       {"allow_empty_require": True},
+      [],
       [],
     )
 
@@ -1261,11 +1280,15 @@ class TestUserActions(test_engine.EngineTestCase):
           "first_name": "Frodo",
           "last_name": "Baggins",
         },
-        # Check a double-update (matches the same as "first_name": "Bob")
+        # Check a double-update (matches the same as a previous require)
         {
           "first_name": "Bob",
           "last_name": "Johnson",
         },
+        # Check an update that should hit multiple records, and only affect 1 of them
+        {
+          "first_name": "John",
+        }
       ],
       [
         { "color": "pink" },
@@ -1273,6 +1296,7 @@ class TestUserActions(test_engine.EngineTestCase):
         { "color": "blue" },
         { "color": "green" },
         { "color": "turquoise" },
+        {},
       ],
       {},
       [
@@ -1283,9 +1307,9 @@ class TestUserActions(test_engine.EngineTestCase):
       ],
       [
         {
-          "recordIds": [1,2,4,5,4],
+          "recordIds": [1,2,4,5,4,1],
           "createdRecordIds": [5],
-          "updatedRecordIds": [1,2,4,4],
+          "updatedRecordIds": [1,2,1,4,4],
         }
       ]
     )
@@ -1319,9 +1343,9 @@ class TestUserActions(test_engine.EngineTestCase):
       ],
       [
         {
-          "recordIds": [[1,2,3], 4, 6],
-          "createdRecordIds": [6],
-          "updatedRecordIds": [[1,2,3], 4],
+          "recordIds": [[1,2,3], [4], [6]],
+          "createdRecordIds": [[6]],
+          "updatedRecordIds": [[1,2,3], [4]],
         }
       ]
     )

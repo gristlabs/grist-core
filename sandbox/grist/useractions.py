@@ -1114,6 +1114,7 @@ class UserActions(object):
     on_many = options.get("on_many", "first")
     if on_many not in ("first", "none", "all"):
       raise ValueError("on_many should be 'first', 'none', or 'all', not %r" % on_many)
+    can_affect_multiple_records = on_many == "all"
 
     """
       Records with different 'col_values' keys need to be sent in separate BulkUpdateRecord actions to avoid
@@ -1254,18 +1255,17 @@ class UserActions(object):
             for key, vals in group['col_values'].items():
               update_record_values[key].append(vals[i])
 
-          # This should only happen if on_many is all - we return an array of updated records.
-          matched_record_ids = records[0].id if len(records) == 1 else [record.id for record in records]
+          matched_record_ids = [record.id for record in records] if can_affect_multiple_records else records[0].id
           result['updatedRecordIds'].append(matched_record_ids)
           result['recordIds'][result_index] = matched_record_ids
 
       if add_record_ids:
         # The new IDs should be in the same order as the records were provided in add_record_values
         new_record_ids = self.BulkAddRecord(table_id, add_record_ids, add_record_values)
-        result['createdRecordIds'].extend(new_record_ids)
         # Fill in recordIds with the IDs of the new records
         for i, new_record_index in enumerate(new_record_indexes):
-          result['recordIds'][new_record_index] = new_record_ids[i]
+          result['recordIds'][new_record_index] = [new_record_ids[i]] if can_affect_multiple_records else new_record_ids[i]
+          result['createdRecordIds'].append([new_record_ids[i]] if can_affect_multiple_records else new_record_ids[i])
 
       if update_record_ids:
         self.BulkUpdateRecord(table_id, update_record_ids, update_record_values)
@@ -1285,12 +1285,14 @@ class UserActions(object):
     result = self.BulkAddOrUpdateRecord(table_id, [require], [col_values], options)
     if len(result['recordIds']) == 0:
       return {
-        'id': None,
+        'recordIds': [],
         'action': 'NONE',
       }
 
+    ids = result['recordIds'][0]
+
     return {
-      'id': result['recordIds'][0],
+      'recordIds': ids if isinstance(ids, list) else [ids],
       'action': 'ADDED' if len(result['createdRecordIds']) > 0 else 'UPDATED',
     }
 
