@@ -1326,6 +1326,22 @@ class TestUserActions(test_engine.EngineTestCase):
       ]
     )
 
+    # Check an error is raised if record and bulk formats are both used
+    with self.assertRaises(ValueError) as cm:
+      check(
+        # Record format
+        [{ "first_name": "John" }],
+        # Bulk format
+        { "color": ["red"] },
+        {},
+        [],
+        []
+      )
+    self.assertEqual(
+      str(cm.exception),
+      'require and column values must use the same format'
+    )
+
     with self.assertRaises(ValueError) as cm:
       check(
         {"color": ["yellow"]},

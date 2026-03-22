@@ -1103,6 +1103,9 @@ class UserActions(object):
     """
     is_record_syntax = isinstance(require, list)
 
+    if is_record_syntax and not isinstance(col_values, list):
+      raise ValueError("require and column values must use the same format")
+
     table = self._engine.tables[table_id]
 
     update = options.get("update", True)
