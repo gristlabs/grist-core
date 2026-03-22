@@ -1101,9 +1101,9 @@ class UserActions(object):
       which would mean that every record in the table is matched.
       Otherwise this will raise an error to prevent mistakes like updating an entire column.
     """
-    is_record_syntax = isinstance(require, list)
+    is_record_syntax = isinstance(require, list) or isinstance(col_values, list)
 
-    if is_record_syntax and not isinstance(col_values, list):
+    if is_record_syntax and (not isinstance(require, list) or not isinstance(col_values, list)):
       raise ValueError("require and column values must use the same format")
 
     table = self._engine.tables[table_id]
