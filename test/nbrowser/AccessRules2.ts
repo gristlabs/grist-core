@@ -1,10 +1,10 @@
 /**
  * Test of the UI for Granular Access Control, part 2.
  */
-import { enterRulePart, findDefaultRuleSet, findDefaultRuleSetWait, findRuleSet, findRuleSetWait, findTable,
-  findTableWait,
-  getRuleText,
-  startEditingAccessRules,
+import {
+  enterRulePart, expandRulesetColumns, findDefaultRuleSet, findDefaultRuleSetWait,
+  findRuleSet, findRuleSetWait, findTable,
+  findTableWait, getRuleText, startEditingAccessRules,
 } from "test/nbrowser/aclTestUtils";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
@@ -185,9 +185,9 @@ describe("AccessRules2", function() {
     await findTableWait(/ClientsTable/).find(".test-rule-table-menu-btn").click();
     await gu.findOpenMenuItem("li", /Add column rule/).click();
     let ruleSet = findRuleSetWait(/ClientsTable/, 1);
-    await ruleSet.findWait(".test-rule-resource .test-select-open", 300).click();
+    await expandRulesetColumns(ruleSet);
     await gu.findOpenMenuItem("li", "First_Name").click();
-    await ruleSet.findWait(".test-rule-resource .test-select-open", 300).click();
+    await expandRulesetColumns(ruleSet);
     await gu.findOpenMenuItem("li", "Last_Name").click();
     await enterRulePart(ruleSet, 1, null, { R: "deny" });
 
@@ -211,7 +211,7 @@ describe("AccessRules2", function() {
     ruleSet = findRuleSetWait(/ClientsTable/, 1);
     await ruleSet.find(".test-rule-resource").click();
     await ruleSet.findContent(".test-acl-column", "Last_Name").find(".test-acl-col-remove").click();
-    await ruleSet.find(".test-rule-resource .test-select-open").click();
+    await expandRulesetColumns(ruleSet);
     assert.equal(await gu.findOpenMenuItem("li", "Last_Name").isPresent(), true);
     await driver.sendKeys(Key.ESCAPE);    // Close menu.
     await gu.waitForMenuToClose();
@@ -237,7 +237,7 @@ describe("AccessRules2", function() {
     ruleSet = findRuleSetWait(/ClientsTable/, 1);
     await ruleSet.find(".test-rule-resource").click();
     await ruleSet.findContent(".test-acl-column", "First_Name").find(".test-acl-col-remove").click();
-    await ruleSet.find(".test-rule-resource .test-select-open").click();
+    await expandRulesetColumns(ruleSet);
     await gu.findOpenMenuItem("li", "Last_Name").click();
 
     // Add back FinancialsTable to be blocked.
@@ -637,11 +637,11 @@ describe("AccessRules2", function() {
     await findTable(/TmpTable2/).find(".test-rule-table-menu-btn").click();
     await gu.findOpenMenuItem("li", /Add column rule/).click();
     ruleSet = findRuleSet(/TmpTable2/, 1);
-    await ruleSet.find(".test-rule-resource .test-select-open").click();
+    await expandRulesetColumns(ruleSet);
     await gu.findOpenMenuItem("li", "A").click();
-    await ruleSet.find(".test-rule-resource .test-select-open").click();
+    await expandRulesetColumns(ruleSet);
     await gu.findOpenMenuItem("li", "B").click();
-    await ruleSet.find(".test-rule-resource .test-select-open").click();
+    await expandRulesetColumns(ruleSet);
     await gu.findOpenMenuItem("li", "C").click();
     await enterRulePart(ruleSet, 1, "True", { R: "allow" });
 

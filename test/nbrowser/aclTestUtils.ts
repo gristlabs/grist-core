@@ -250,3 +250,10 @@ export async function startEditingAccessRules() {
   await driver.findWait(".test-rule-set", 200);
   await gu.waitForServer();  // Assert also for any validity checking to complete.
 }
+
+export async function expandRulesetColumns(ruleSet: WebElement) {
+  // weasel popups uses setTimeout(0). Retry until the column rule set appears in the DOM.
+  await gu.waitToPass(async () => {
+    await ruleSet.find(".test-rule-resource .test-select-open").click();
+  }, 2000);
+}
