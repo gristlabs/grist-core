@@ -1223,7 +1223,7 @@ class UserActions(object):
 
       # Arguments for `BulkAddRecord` and `BulkUpdateRecord` below
       add_record_ids = []
-      add_record_values = {k: [] for k in col_keys | require_add_keys - {'id'}}
+      add_record_values = {k: [] for k in (col_keys | require_add_keys) - {'id'}}
       update_record_ids = []
       update_record_values = {k: [] for k in col_keys - {'id'}}
 
