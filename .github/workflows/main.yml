@@ -189,7 +189,9 @@ jobs:
         run: |
           mkdir -p $MOCHA_WEBDRIVER_LOGDIR
           export GREP_TESTS=$(echo $TESTS | sed "s/.*:nbrowser-\([^:]*\).*/\1/")
-          MOCHA_WEBDRIVER_SKIP_CLEANUP=1 MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser --parallel --jobs 3
+          for i in $(seq 1 20); do
+            MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser || exit 1
+          done
         env:
           TESTS: ${{ matrix.tests }}
           MOCHA_WEBDRIVER_LOGDIR: ${{ runner.temp }}/test-logs/webdriver
@@ -201,7 +203,9 @@ jobs:
         if: contains(matrix.tests, ':projects:')
         run: |
           mkdir -p $MOCHA_WEBDRIVER_LOGDIR
-          yarn run test:projects
+          for i in $(seq 1 20); do
+            yarn run test:projects || exit 1
+          done
         env:
           MOCHA_WEBDRIVER_LOGDIR: ${{ runner.temp }}/test-logs/webdriver
           TESTDIR: ${{ runner.temp }}/test-logs
