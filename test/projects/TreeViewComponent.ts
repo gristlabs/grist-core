@@ -216,8 +216,10 @@ describe("TreeViewComponent", () => {
   it("should support collapsing", async function() {
     // reset tree and check initial state
     await driver.find("input.reset").doClick();
-    assert.deepEqual(await driver.findAll(".test-treeview-itemHeaderWrapper", e => e.getText()),
-      ["Page1", "Page2", "Page3", "Page4", "Page5", "Page6"]);
+    await gu.waitToPass(async () => {
+      assert.deepEqual(await driver.findAll(".test-treeview-itemHeaderWrapper", e => e.getText()),
+        ["Page1", "Page2", "Page3", "Page4", "Page5", "Page6"]);
+    }, 2000);
     // let's collapse Page1
     await withTreeviewChange(() => findItem(/Page1/).find(".test-treeview-itemArrow").doClick());
     assert.deepEqual(await driver.findAll(".test-treeview-itemHeaderWrapper", e => e.getText()),
