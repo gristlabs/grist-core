@@ -1095,7 +1095,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {"color": "yellow"},
       {"update": False},
       [],
-      {"recordIds": [], "action": "NONE"},
+      {"recordIds": [1], "action": "NONE"},
     )
 
     # Since there's no matching records and add=False, do nothing

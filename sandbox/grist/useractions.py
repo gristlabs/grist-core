@@ -1299,9 +1299,16 @@ class UserActions(object):
 
     ids = result['recordIds'][0]
 
+    action = 'NONE'
+    if len(result['createdRecordIds']) > 0:
+      action = 'ADDED'
+
+    if len(result['updatedRecordIds']) > 0:
+      action = 'UPDATED'
+
     return {
       'recordIds': ids if isinstance(ids, list) else [ids],
-      'action': 'ADDED' if len(result['createdRecordIds']) > 0 else 'UPDATED',
+      'action': action
     }
 
   #----------------------------------------
