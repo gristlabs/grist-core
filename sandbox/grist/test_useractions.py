@@ -1017,7 +1017,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {"pet": "dog", "color": "red"},
       {"on_many": "none"},
       [["UpdateRecord", "Table1", 2, {"color": "red", "pet": "dog"}]],
-      [],
+      {"recordIds": [2], "action": "UPDATED"},
     )
 
     # Look for a record with pet=dog and change it to pet=cat
@@ -1026,7 +1026,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {"pet": "cat"},
       {},
       [["UpdateRecord", "Table1", 2, {"pet": "cat"}]],
-      [],
+      {"recordIds": [2], "action": "UPDATED"},
     )
 
     # Two records match first_name=John, by default we only update the first
@@ -1035,7 +1035,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {"color": "blue"},
       {},
       [["UpdateRecord", "Table1", 1, {"color": "blue"}]],
-      [],
+      {"recordIds": [1], "action": "UPDATED"},
     )
 
     # Update all matching records
@@ -1046,7 +1046,7 @@ class TestUserActions(test_engine.EngineTestCase):
       [
         ["BulkUpdateRecord", "Table1", [1, 2], {"color": ["green", "green"]}],
       ],
-      [],
+      {"recordIds": [1, 2], "action": "UPDATED"},
     )
 
     # Update all records with empty require and allow_empty_require
@@ -1057,7 +1057,7 @@ class TestUserActions(test_engine.EngineTestCase):
       [
         ["BulkUpdateRecord", "Table1", [1, 2], {"color": ["greener", "greener"]}],
       ],
-      [],
+      {"recordIds": [1, 2], "action": "UPDATED"},
     )
 
     # Missing allow_empty_require
@@ -1076,7 +1076,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {"color": "yellow"},
       {"on_many": "none"},
       [],
-      [],
+      {"recordIds": [], "action": "NONE"},
     )
 
     # Invalid value of on_many
@@ -1095,7 +1095,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {"color": "yellow"},
       {"update": False},
       [],
-      [],
+      {"recordIds": [], "action": "NONE"},
     )
 
     # Since there's no matching records and add=False, do nothing
@@ -1104,7 +1104,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {"first_name": "Jack", "color": "yellow"},
       {"add": False},
       [],
-      [],
+      {"recordIds": [], "action": "NONE"},
     )
 
     # No matching record, make a new one.
@@ -1117,7 +1117,7 @@ class TestUserActions(test_engine.EngineTestCase):
         ["AddRecord", "Table1", 3,
         {"color": "yellow", "first_name": "Jack", "last_name": "Johnson"}]
       ],
-      [],
+      {"recordIds": [3], "action": "ADDED"},
     )
 
     # Specifying a row ID in `require` is allowed
@@ -1126,7 +1126,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {"pet": "fish"},
       {},
       [["AddRecord", "Table1", 100, {"first_name": "Bob", "pet": "fish"}]],
-      [],
+      {"recordIds": [100], "action": "ADDED"},
     )
 
     # Now the row already exists
@@ -1135,7 +1135,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {"pet": "fish"},
       {},
       [],
-      [],
+      {"recordIds": [100], "action": "UPDATED"},
     )
 
     # Nothing matches this `require`, but the row ID already exists
@@ -1154,7 +1154,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {"first_name": "Alice"},
       {},
       [["AddRecord", "Table1", 101, {"first_name": "Alice"}]],
-      [],
+      {"recordIds": [101], "action": "ADDED"},
     )
 
     with self.assertRaises(ValueError):
@@ -1173,14 +1173,14 @@ class TestUserActions(test_engine.EngineTestCase):
       {},
       {},
       [["AddRecord", "Table1", 102, {"date": 950400}]],
-      [],
+      {"recordIds": [102], "action": "ADDED"},
     )
     check(
       {"date": ['d', 950400]},
       {"date": ['d', 1900800]},
       {},
       [["UpdateRecord", "Table1", 102, {"date": 1900800}]],
-      [],
+      {"recordIds": [102], "action": "UPDATED"},
     )
 
     # Empty both does nothing
@@ -1189,7 +1189,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {},
       {"allow_empty_require": True},
       [],
-      [],
+      {"recordIds": [], "action": "NONE"},
     )
 
   def test_bulk_add_or_update(self):
