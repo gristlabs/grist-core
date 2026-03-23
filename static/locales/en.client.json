@@ -713,7 +713,8 @@
     "LeftPanelCommon": {
         "Help Center": "Help Center",
         "Accessibility": "Accessibility",
-        "(Screen reader improvements enabled)": "(Screen reader improvements enabled)"
+        "(Screen reader improvements enabled)": "(Screen reader improvements enabled)",
+        "Screen reader improvements enabled": "Screen reader improvements enabled"
     },
     "MakeCopyMenu": {
         "As template": "As template",
@@ -2410,7 +2411,7 @@
         "Please first read the \"Keyboard navigation\" section above to understand how to navigate across the interface's regions: specific keyboard shortcuts need to be used.": "Please first read the \"Keyboard navigation\" section above to understand how to navigate across the interface's regions: specific keyboard shortcuts need to be used.",
         "Screen reader navigation": "Screen reader navigation",
         "Warning: screen reader support is a work-in-progress in Grist and is improving over time. Feedback is greatly appreciated!": "Warning: screen reader support is a work-in-progress in Grist and is improving over time. Feedback is greatly appreciated!",
-        "While not mandatory for things to work, you can enable screen reader improvements for a better navigation experience:": "While not mandatory for things to work, you can enable screen reader improvements for a better navigation experience:"
+        "While not mandatory, you can enable screen reader improvements for a better navigation experience:": "While not mandatory, you can enable screen reader improvements for a better navigation experience:"
     },
     "ProposedChangesPage": {
         "Proposed changes": "Proposed changes",
