@@ -51,27 +51,26 @@ export class TableOperationsImpl implements TableOperations {
 
   public async upsert(recordOrRecords: Types.AddOrUpdateRecord | Types.AddOrUpdateRecord[],
     upsertOptions?: UpsertOptions): Promise<any> {
-    await withRecords(recordOrRecords, async (records) => {
-      const tableId = await this._platform.getTableId();
-      const options = {
-        add: upsertOptions?.add,
-        update: upsertOptions?.update,
-        on_many: upsertOptions?.onMany,
-        allow_empty_require: upsertOptions?.allowEmptyRequire,
-      };
-      const recordOptions: OpOptions = pick(upsertOptions, "parseStrings");
-      const actions = [[
-        "BulkAddOrUpdateRecord",
-        tableId,
-        records.map(record => record.require),
-        records.map(record => record.fields),
-        options,
-      ]];
-      const sandboxRes = await this._applyUserActions(tableId, [...fieldNames(records)],
-        actions, recordOptions);
+    const records = Array.isArray(recordOrRecords) ? recordOrRecords : [recordOrRecords];
+    const tableId = await this._platform.getTableId();
+    const options = {
+      add: upsertOptions?.add,
+      update: upsertOptions?.update,
+      on_many: upsertOptions?.onMany,
+      allow_empty_require: upsertOptions?.allowEmptyRequire,
+    };
+    const recordOptions: OpOptions = pick(upsertOptions, "parseStrings");
+    const actions = [[
+      "BulkAddOrUpdateRecord",
+      tableId,
+      records.map(record => record.require),
+      records.map(record => record.fields),
+      options,
+    ]];
+    const sandboxRes = await this._applyUserActions(tableId, [...fieldNames(records)],
+      actions, recordOptions);
 
-      return sandboxRes.retValues[0];
-    });
+    return sandboxRes.retValues[0];
   }
 
   public async destroy(recordIdOrRecordIds: Types.RecordId | Types.RecordId[]): Promise<void> {
