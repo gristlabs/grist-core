@@ -880,7 +880,7 @@ function addRecordsTests(getCtx: () => TestContext) {
         records: [{ require: {} }],
       }, chimpy);
       assert.equal(resp.status, 400);
-      assert.match(resp.data.error, /require is empty but allow_empty_require isn't set/);
+      assert.match(resp.data.error, /at least one record has no require fields but allow_empty_require isn't set/);
     });
 
     it("should validate request schema", async function() {
