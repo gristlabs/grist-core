@@ -58,7 +58,7 @@ Here are some specific feature highlights of Grist (🇫🇷 marks heavy French 
     - [Widget linking](https://support.getgrist.com/linking-widgets/) streamlines filtering and editing data.
     Grist has a unique approach to visualization, where you can lay out and link distinct widgets to show together,
     without cramming mixed material into a table.
-    - [Filter bar](https://support.getgrist.com/search-sort-filter/#filter-buttons) for quick slicing and dicing.
+    - [Filter bar](https://support.getgrist.com/search-sort-filter/#pinning-filters) for quick slicing and dicing.
     - Duplicate widgets to quickly build variations of a view.
     - [Compare documents](https://support.getgrist.com/copying-docs/#trying-out-changes) to see what changed.
   * [Incremental imports](https://support.getgrist.com/imports/#updating-existing-records).
@@ -67,9 +67,9 @@ Here are some specific feature highlights of Grist (🇫🇷 marks heavy French 
   * [Native forms](https://support.getgrist.com/widget-form/). Create forms that feed directly into your spreadsheet without fuss.
     - Supports file attachments, hidden fields, and pre-population via URL parameters.
   * Integrations.
-    - A [REST API](https://support.getgrist.com/api/) with an interactive [API console](https://docs.getgrist.com/apiconsole), [Zapier actions/triggers](https://support.getgrist.com/integrators/#integrations-via-zapier), and support from similar [integrators](https://support.getgrist.com/integrators/).
+    - A [REST API](https://support.getgrist.com/api/) with an interactive [API console](https://docs.getgrist.com/apiconsole), [Zapier actions/triggers](https://zapier.com/apps/grist/integrations), and support from similar [integrators](https://support.getgrist.com/integrators/).
     - Import/export to Google Drive, Excel format, CSV. [Import directly from Airtable.](https://support.getgrist.com/imports/#import-from-airtable)
-    - Link data with [custom widgets](https://support.getgrist.com/widget-custom/#_top), hosted externally.
+    - Link data with [custom widgets](https://support.getgrist.com/widget-custom/), hosted externally.
     - Configurable outgoing [webhooks](https://support.getgrist.com/webhooks/), with support for authorization headers, column-specific triggers, and formula conditions.
     - [Service accounts](https://support.getgrist.com/api/#tag/service-accounts) for fine-tuned API access (🇫🇷).
     - [SCIM](https://support.getgrist.com/install/scim/) for standard user and group provisioning (🇫🇷).
