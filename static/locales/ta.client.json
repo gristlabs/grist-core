@@ -127,7 +127,7 @@
         "Legacy": "மரபு",
         "Personal Site": "தனிப்பட்ட தளம்",
         "Billing account": "பட்டியலிடல் கணக்கு",
-        "{{- organizationName }} - Back to home": "{{- அமைப்பின் பெயர் }} - வீட்டிற்குத் திரும்பு"
+        "{{- organizationName }} - Back to home": "{{- organizationName }} - வீட்டிற்குத் திரும்பு"
     },
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "இந்த குழு தளம் இடைநிறுத்தப்பட்டுள்ளது. ஆவணங்களைப் படிக்கலாம், ஆனால் மாற்றியமைக்கப்படவில்லை."
@@ -296,7 +296,7 @@
         "Hard reset of data engine": "தரவு இயந்திரத்தின் கடின மீட்டமைப்பு",
         "ID for API use": "பநிஇ பயன்பாட்டிற்கான ஐடி",
         "Locale": "மொழி",
-        "Notify other services on doc changes": "DOC மாற்றங்கள் குறித்த பிற சேவைகளுக்கு அறிவிக்கவும்",
+        "Notify other services on doc changes": "ஆவண மாற்றங்கள்குறித்த பிற சேவைகளுக்கு அறிவிக்கவும்",
         "Python": "பைதான்",
         "Python version used": "பயன்படுத்தப்பட்ட பைதான் பதிப்பு",
         "Reload": "ஏற்றவும்",
@@ -511,7 +511,7 @@
         "Workspaces": "பணியிடங்கள்",
         "Tutorial": "பயிற்சி",
         "Terms of service": "பணி விதிமுறைகள்",
-        "context menu - {{- workspaceName }}": "சூழல் பட்டியல் - {{- WorkspaceName }}",
+        "context menu - {{- workspaceName }}": "சூழல் பட்டியல் - {{- workspaceName }}",
         "Import from Airtable": "Airtable இலிருந்து இறக்குமதி செய்யவும்"
     },
     "Importer": {
@@ -2399,7 +2399,8 @@
         "{{creatorPanelShortcut}} Focus to and from the creator panel": "{{creatorPanelShortcut}} கிரியேட்டர் பேனலில் கவனம் செலுத்தவும்",
         "{{nextRegionShortcut}} Focus on the next region": "{{nextRegionShortcut}} அடுத்த பகுதியில் கவனம் செலுத்தவும்",
         "{{prevRegionShortcut}} Focus on the previous region": "{{prevRegionShortcut}} முந்தைய பகுதியில் கவனம் செலுத்தவும்",
-        "{{shortcutsModal}} Show the complete list of keyboard shortcuts": "{{shortcutsModal}} விசைப்பலகை குறுக்குவழிகளின் முழுமையான பட்டியலைக் காட்டு"
+        "{{shortcutsModal}} Show the complete list of keyboard shortcuts": "{{shortcutsModal}} விசைப்பலகை குறுக்குவழிகளின் முழுமையான பட்டியலைக் காட்டு",
+        "On non-document pages, the main content area is a region.": "ஆவணம் அல்லாத பக்கங்களில், முக்கிய உள்ளடக்க பகுதி ஒரு பகுதி."
     },
     "ProposedChangesPage": {
         "Proposed changes": "முன்மொழியப்பட்ட மாற்றங்கள்",
@@ -2463,6 +2464,285 @@
         "Edit label of the currently-selected field": "தற்போது தேர்ந்தெடுக்கப்பட்ட புலத்தின் லேபிளைத் திருத்தவும்",
         "Edit record layout": "பதிவு தளவமைப்பைத் திருத்தவும்",
         "Enter text into currently-selected cell and start editing": "தற்போது தேர்ந்தெடுக்கப்பட்ட கலத்தில் உரையை உள்ளிட்டு திருத்தத் தொடங்கவும்",
-        "Enters section linking mode in the current view": "தற்போதைய பார்வையில் பிரிவு இணைக்கும் பயன்முறையில் நுழைகிறது"
+        "Enters section linking mode in the current view": "தற்போதைய பார்வையில் பிரிவு இணைக்கும் பயன்முறையில் நுழைகிறது",
+        "Adds all elements to the left of the cursor to the selected range": "தேர்ந்தெடுக்கப்பட்ட வரம்பில் கர்சரின் இடதுபுறத்தில் உள்ள அனைத்து கூறுகளையும் சேர்க்கிறது",
+        "Clears the current copy selection, if any": "தற்போதைய நகல் தேர்வு ஏதேனும் இருந்தால் அழிக்கும்",
+        "Duplicate the currently selected record(s)": "தற்போது தேர்ந்தெடுக்கப்பட்ட பதிவை(களை) நகலெடுக்கவும்",
+        "Exits section linking mode in the current view": "தற்போதைய பார்வையில் பிரிவு இணைக்கும் பயன்முறையிலிருந்து வெளியேறுகிறது",
+        "Expand collapsed viewsection": "சுருக்கப்பட்ட காட்சிப் பகுதியை விரிவாக்கு",
+        "Fills current selection with the contents of the top row in the selection": "தேர்வில் உள்ள மேல் வரிசையின் உள்ளடக்கங்களுடன் தற்போதைய தேர்வை நிரப்புகிறது",
+        "Find": "கண்டுபிடி",
+        "Find next occurrence": "அடுத்த நிகழ்வைக் கண்டறி",
+        "Find previous occurrence": "முந்தைய நிகழ்வைக் கண்டறி",
+        "Finish editing a cell and save without moving to next record": "கலத்தைத் திருத்துவதை முடித்துவிட்டு, அடுத்த பதிவுக்கு நகராமல் சேமிக்கவும்",
+        "Finish editing a cell, saving the value": "கலத்தைத் திருத்துவதை முடித்து, மதிப்பைச் சேமிக்கவும்",
+        "Focus next page panel or widget": "அடுத்த பக்க பேனல் அல்லது விட்செட்டில் கவனம் செலுத்துங்கள்",
+        "Focus previous page panel or widget": "முந்தைய பக்க பேனல் அல்லது விட்செட்டை கவனம் செய்யவும்",
+        "Freeze or unfreeze selected columns": "தேர்ந்தெடுக்கப்பட்ட நெடுவரிசைகளை முடக்கவும் அல்லது முடக்கவும்",
+        "Hide the currently selected columns": "தற்போது தேர்ந்தெடுக்கப்பட்ட நெடுவரிசைகளை மறை",
+        "Hide the currently selected fields": "தற்போது தேர்ந்தெடுக்கப்பட்ட புலங்களை மறை",
+        "Insert a new column, after the currently selected one": "தற்போது தேர்ந்தெடுக்கப்பட்ட நெடுவரிசைக்குப் பிறகு புதிய நெடுவரிசையைச் செருகவும்",
+        "Insert a new column, before the currently selected one": "தற்போது தேர்ந்தெடுக்கப்பட்ட நெடுவரிசைக்கு முன் புதிய நெடுவரிசையைச் செருகவும்",
+        "Insert a new record, after the currently selected one in an unsorted table": "வரிசைப்படுத்தப்படாத அட்டவணையில் தற்போது தேர்ந்தெடுக்கப்பட்ட பதிவிற்குப் பிறகு புதிய பதிவைச் செருகவும்",
+        "Insert a new record, before the currently selected one in an unsorted table": "வரிசைப்படுத்தப்படாத அட்டவணையில் தற்போது தேர்ந்தெடுக்கப்பட்ட பதிவிற்கு முன் புதிய பதிவைச் செருகவும்",
+        "Insert new column in default location": "இயல்புநிலை இடத்தில் புதிய நெடுவரிசையைச் செருகவும்",
+        "Insert the current date": "தற்போதைய தேதியைச் செருகவும்",
+        "Insert the current date and time": "தற்போதைய தேதி மற்றும் நேரத்தைச் செருகவும்",
+        "Maximize the active section": "செயலில் உள்ள பகுதியை அதிகரிக்கவும்",
+        "Move down one page of records, or to next record in a card list": "பதிவுகளின் ஒரு பக்கத்தை கீழே நகர்த்தவும் அல்லது அட்டை பட்டியலில் அடுத்த பதிவுக்கு நகர்த்தவும்",
+        "Move down to the last record": "கடைசி பதிவுக்கு கீழே செல்லவும்",
+        "Move downward five records": "ஐந்து பதிவுகளை கீழ்நோக்கி நகர்த்தவும்",
+        "Move downward to next record or field": "அடுத்த பதிவு அல்லது புலத்திற்கு கீழ்நோக்கி நகர்த்தவும்",
+        "Move left to the previous field": "இடதுபுறம் முந்தைய புலத்திற்கு நகர்த்தவும்",
+        "Move right to the next field": "வலதுபுறம் அடுத்த புலத்திற்குச் செல்லவும்",
+        "Move to the first field or the beginning of a row": "முதல் புலத்திற்கு அல்லது வரிசையின் தொடக்கத்திற்குச் செல்லவும்",
+        "Move to the last field or the end of a row": "கடைசி புலத்திற்கு அல்லது ஒரு வரிசையின் முடிவுக்கு நகர்த்தவும்",
+        "Move to the next field, saving changes if editing a value": "மதிப்பைத் திருத்தினால், மாற்றங்களைச் சேமிக்கும் அடுத்த புலத்திற்குச் செல்லவும்",
+        "Move to the previous field, saving changes if editing a value": "முந்தைய புலத்திற்குச் செல்லவும், மதிப்பைத் திருத்தினால் மாற்றங்களைச் சேமிக்கவும்",
+        "Move up one page of records, or to previous record in a card list": "பதிவுகளின் ஒரு பக்கத்தை மேலே நகர்த்தவும் அல்லது அட்டைப் பட்டியலில் முந்தைய பதிவுக்கு நகர்த்தவும்",
+        "Move up to the first record": "முதல் பதிவு வரை செல்லவும்",
+        "Move upward five records": "ஐந்து பதிவுகளை மேல்நோக்கி நகர்த்தவும்",
+        "Move upward to previous record or field": "முந்தைய பதிவு அல்லது புலத்திற்கு மேல்நோக்கி நகர்த்தவும்",
+        "Moves the cursor to the correct location": "கர்சரை சரியான இடத்திற்கு நகர்த்துகிறது",
+        "Open Custom widget configuration screen": "தனிப்பயன் விட்செட் உள்ளமைவுத் திரையைத் திறக்கவும்",
+        "Open comment thread": "கருத்துத் தொடரை திறக்கவும்",
+        "Open next page": "அடுத்த பக்கத்தைத் திறக்கவும்",
+        "Open previous page": "முந்தைய பக்கத்தைத் திறக்கவும்",
+        "Opens document list": "ஆவணப் பட்டியலைத் திறக்கும்",
+        "Paste clipboard contents at cursor": "இடைநிலைப்பலகை உள்ளடக்கங்களை கர்சரில் ஒட்டவும்",
+        "Print currently selected page widget": "தற்போது தேர்ந்தெடுக்கப்பட்ட பக்க விட்செட்டை அச்சிடுக",
+        "Push an undo action": "செயல்தவிர்க்க அழுத்தவும்",
+        "Redo last action": "கடைசி செயலை மீண்டும் வெற்றி",
+        "Rename the currently selected column": "தற்போது தேர்ந்தெடுக்கப்பட்ட நெடுவரிசைக்கு மறுபெயரிடவும்",
+        "Reverts the sections links to the saved links the current view": "சேமித்த இணைப்புகளின் தற்போதைய பார்வைக்கு பிரிவு இணைப்புகளை மாற்றியமைக்கிறது",
+        "Saves the sections links in the current view": "தற்போதைய பார்வையில் பிரிவுகளின் இணைப்புகளைச் சேமிக்கிறது",
+        "Selects all currently displayed cells": "தற்போது காட்டப்படும் அனைத்து கலங்களையும் தேர்ந்தெடுக்கிறது",
+        "Shortcut to data selection tab": "தரவு தேர்வு தாவலுக்கு குறுக்குவழி",
+        "Shortcut to focus view tab if creator panel is open": "கிரியேட்டர் பேனல் திறந்திருந்தால், பார்வை தாவலை மையப்படுத்த சார்ட்கட்",
+        "Shortcut to open document tab": "ஆவணத் தாவலைத் திறப்பதற்கான குறுக்குவழி",
+        "Shortcut to open field tab": "புலத் தாவலைத் திறப்பதற்கான குறுக்குவழி",
+        "Shortcut to open sort & filter menu": "வரிசைப்படுத்துதல் & வடிகட்டி மெனுவைத் திறப்பதற்கான குறுக்குவழி",
+        "Shortcut to open the left panel": "இடது பேனலைத் திறக்க குறுக்குவழி",
+        "Shortcut to open the right panel": "வலது பேனலைத் திறக்க குறுக்குவழி",
+        "Shortcut to open view tab": "பார்வை தாவலைத் திறப்பதற்கான குறுக்குவழி",
+        "Shortcut to sort & filter tab": "வரிசைப்படுத்த & வடிகட்டுவதற்கான குறுக்குவழி தாவல்",
+        "Show hidden columns": "மறைக்கப்பட்ட நெடுவரிசைகளைக் காட்டு",
+        "Show raw data widget for table of currently selected page widget": "தற்போது தேர்ந்தெடுக்கப்பட்ட பக்க விட்செட்டின் அட்டவணைக்கான மூல தரவு விட்செட்டைக் காட்டு",
+        "Show the record card widget of the selected record": "தேர்ந்தெடுக்கப்பட்ட பதிவின் பதிவு அட்டை விட்செட்டைக் காட்டு",
+        "Sort the view data by the currently selected field in ascending order": "காட்சி தரவை தற்போது தேர்ந்தெடுக்கப்பட்ட புலத்தின் மூலம் ஏறுவரிசையில் வரிசைப்படுத்தவும்",
+        "Sort the view data by the currently selected field in descending order": "காட்சி தரவை தற்போது தேர்ந்தெடுக்கப்பட்ட புலத்தின் மூலம் இறங்கு வரிசையில் வரிசைப்படுத்தவும்",
+        "Start editing the currently-selected cell": "தற்போது தேர்ந்தெடுக்கப்பட்ட கலத்தைத் திருத்தத் தொடங்கவும்",
+        "Toggle creator panel keyboard focus": "கிரியேட்டர் பேனல் கீபோர்டு ஃபோகசை நிலைமாற்று",
+        "Toggle the currently selected checkbox or switch cell": "தற்போது தேர்ந்தெடுக்கப்பட்ட தேர்வுப்பெட்டியை மாற்றவும் அல்லது கலத்தை மாற்றவும்",
+        "Undo last action": "கடைசி செயலைச் செயல்தவிர்க்கவும்",
+        "Use the currently selected row as table headers": "தற்போது தேர்ந்தெடுக்கப்பட்ட வரிசையை அட்டவணை தலைப்புகளாகப் பயன்படுத்தவும்",
+        "When in the search bar, close it and focus the current match": "தேடல் பட்டியில் இருக்கும்போது, அதை மூடிவிட்டு தற்போதைய பொருத்தத்தை மையப்படுத்தவும்",
+        "When typed at the start of a cell, make this a formula column": "கலத்தின் தொடக்கத்தில் தட்டச்சு செய்யும் போது, இதை ஃபார்முலா நெடுவரிசையாக மாற்றவும்",
+        "showing a behavioral popup": "ஒரு நடத்தை பாப்அப்பைக் காட்டுகிறது",
+        "Filter this column by just this cell's value": "இந்த கலத்தின் மதிப்பால் இந்த நெடுவரிசையை வடிகட்டவும்"
+    },
+    "GridViewMenusDateHelpers": {
+        "12-hour format": "12-மணிநேர வடிவம்",
+        "24-hour format": "24-மணிநேர வடிவம்",
+        "AM": {
+            "PM": "AM/PM"
+        },
+        "Calendar": "நாள்காட்டி",
+        "Date helpers…": "தேதி உதவியாளர்கள்…",
+        "Day": "நாள்",
+        "Day of month": "மாதத்தின் நாள்",
+        "Day of week": "வாரத்தின் நாள்",
+        "Day of week (abbrev)": "வாரத்தின் நாள் (சுருக்கம்)",
+        "Day of week (full)": "வாரத்தின் நாள் (முழு)",
+        "Day of week (numeric)": "வாரத்தின் நாள் (எண்)",
+        "Days since": "இருந்து நாட்கள்",
+        "Days until": "நாட்கள் வரை",
+        "Default": "இயல்புநிலை",
+        "End of": "முடிவு",
+        "Full date": "முழு தேதி",
+        "Full name with year": "ஆண்டுடன் முழு பெயர்",
+        "Hour": "மணி",
+        "Intervals": "இடைவெளிகள்",
+        "Is weekend?": "வார இறுதியா?",
+        "Minute": "மணித்துளி",
+        "Month": "மாதம்",
+        "Months since": "மாதங்கள் ஆகிவிட்டது",
+        "Months until": "மாதங்கள் வரை",
+        "Name only": "பெயர் மட்டும்",
+        "Number only": "எண் மட்டுமே",
+        "Quarter": "காலாண்டு",
+        "Quick Picks": "விரைவான தேர்வுகள்",
+        "Relative": "உறவினர்",
+        "Short with year": "வருடத்துடன் குறுகியது",
+        "Sortable": "வரிசைப்படுத்தக்கூடியது",
+        "Start of": "தொடக்கம்",
+        "Time": "நேரம்",
+        "Time bucket": "நேர வாளி",
+        "Week": "வாரம்",
+        "Week of year": "ஆண்டின் வாரம்",
+        "Year": "ஆண்டு",
+        "Years since": "வருடங்கள்",
+        "Years until": "ஆண்டுகள் வரை"
+    },
+    "selectBy": {
+        "Select widget": "விட்செட்டைத் தேர்ந்தெடுக்கவும்"
+    },
+    "CoreNewDocMethods": {
+        "Untitled document": "பெயரிடப்படாத ஆவணம்"
+    },
+    "AuthenticationSection": {
+        "Active": "செயலில்",
+        "Active method is controlled by an environment variable. Unset variable to change active method.": "செயலில் உள்ள முறை சுற்றுச்சூழல் மாறியால் கட்டுப்படுத்தப்படுகிறது. செயலில் உள்ள முறையை மாற்ற மாறியை அமைக்கவில்லை.",
+        "Active on restart": "மறுதொடக்கம் செய்யும்போது செயலில் உள்ளது",
+        "Are you sure you want to set **{{name}}** as the active authentication method?": "**{{name}}** செயலில் உள்ள அங்கீகார முறையாக அமைக்க விரும்புகிறீர்களா?",
+        "Close": "மூடு",
+        "Configure": "கட்டமைக்கவும்",
+        "Configured": "கட்டமைக்கப்பட்டது",
+        "Confirm": "உறுதிப்படுத்தவும்",
+        "Disabled on restart": "மறுதொடக்கம் செய்யும்போது முடக்கப்பட்டது",
+        "Error": "பிழை",
+        "Error details": "பிழை விவரங்கள்",
+        "Instructions": "வழிமுறைகள்",
+        "No authentication method is active.": "எந்த அங்கீகார முறையும் செயலில் இல்லை.",
+        "Set as active method": "செயலில் உள்ள முறையாக அமைக்கவும்",
+        "Set as active method?": "செயலில் உள்ள முறையாக அமைக்கவா?",
+        "The new method will go into effect after you restart Grist.": "நீங்கள் Grist ஐ மறுதொடக்கம் செய்த பிறகு புதிய முறை நடைமுறைக்கு வரும்.",
+        "**Forwarded headers** allows your Grist server to trust authentication performed by an external proxy (e.g. Traefik ForwardAuth).": "**முன்னனுப்பப்பட்ட தலைப்புகள்** வெளிப்புற பதிலாள் (எ.கா. Traefik ForwardAuth) மூலம் செய்யப்படும் அங்கீகாரத்தை நம்புவதற்கு உங்கள் Grist சேவையகத்தை அனுமதிக்கிறது.",
+        "**Grist Connect** is a login solution built and maintained by Grist Labs that integrates seamlessly with your Grist server.": "**கிரிச்ட் கனெக்ட்** என்பது உங்கள் கிரிச்ட் சர்வருடன் தடையின்றி ஒருங்கிணைக்கும் கிரிச்ட் லேப்சால் கட்டமைக்கப்பட்டு பராமரிக்கப்படும் உள்நுழைவு தீர்வாகும்.",
+        "**OIDC** allows users on your Grist server to sign in using an external identity provider that supports the OpenID Connect standard.": "**OIDC** உங்கள் Grist சர்வரில் உள்ள பயனர்களை OpenID இணை தரநிலையை ஆதரிக்கும் வெளிப்புற அடையாள வழங்குநரைப் பயன்படுத்தி உள்நுழைய அனுமதிக்கிறது.",
+        "**SAML** allows users on your Grist server to sign in using an external identity provider that supports the SAML 2.0 standard.": "**SAML** உங்கள் கடன் சேவையகத்தில் உள்ள பயனர்களை SAML 2.0 தரநிலையை ஆதரிக்கும் வெளிப்புற அடையாள வழங்குநரைப் பயன்படுத்தி உள்நுழைய அனுமதிக்கிறது.",
+        "Change admin user": "நிர்வாக பயனரை மாற்றவும்",
+        "If Grist is accessible on your network, or is available to multiple people, configure one of the authentication methods below.": "உங்கள் நெட்வொர்க்கில் கிரிச்ட் அணுகக்கூடியதாக இருந்தால் அல்லது பலருக்குக் கிடைத்தால், கீழே உள்ள அங்கீகார முறைகளில் ஒன்றை உள்ளமைக்கவும்.",
+        "No authentication: unrestricted sign-in as demo user": "ஏற்பு இல்லை: டெமோ பயனராக கட்டுப்பாடற்ற உள்நுழைவு",
+        "Prepare changes": "மாற்றங்களைத் தயாரிக்கவும்",
+        "Restart required. Authentication change may affect your access": "மறுதொடக்கம் தேவை. அங்கீகார மாற்றம் உங்கள் அணுகலைப் பாதிக்கலாம்",
+        "Revert change of admin user": "நிர்வாக பயனரின் மாற்றத்தை மாற்றவும்",
+        "See \"Restart Grist\" section on top of this page to restart.": "மறுதொடக்கம் செய்ய இந்தப் பக்கத்தின் மேல் உள்ள \"ரிச்டார்ட் கிரிச்ட்\" பகுதியைப் பார்க்கவும்.",
+        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "grist-connect": {
+                            ").": "**Grist Connect**ஐ அமைக்க, [Grist இணை க்கான Grist உதவி கட்டுரை](https://support.getgrist.com/install/grist-connect/) உள்ள வழிமுறைகளைப் பின்பற்றவும்."
+                        }
+                    }
+                }
+            }
+        },
+        "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "oidc).": "**OIDC**ஐ அமைக்க, [OIDCக்கான Grist ஆதரவுக் கட்டுரை](https://support.getgrist.com/install/oidc) உள்ள வழிமுறைகளைப் பின்பற்றவும்."
+                    }
+                }
+            }
+        },
+        "To set up **SAML**, follow the instructions in [the Grist support article for SAML](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "saml": {
+                            ").": "**SAML** ஐ அமைக்க, [SAML க்கான Grist உதவி கட்டுரை](https://support.getgrist.com/install/saml/) உள்ள வழிமுறைகளைப் பின்பற்றவும்."
+                        }
+                    }
+                }
+            }
+        },
+        "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "forwarded-headers": {
+                            ").": "** முன்னனுப்பப்பட்ட தலைப்புகளை** அமைக்க, [ஃபார்வர்டு செய்யப்பட்ட தலைப்புகளுக்கான கிரிச்ட் ஆதரவுக் கட்டுரை] (https://support.getgrist.com/install/forwarded-headers/) உள்ள வழிமுறைகளைப் பின்பற்றவும்."
+                        }
+                    }
+                }
+            }
+        },
+        "When a user accesses Grist, the proxy handles authentication and forwards verified user information through HTTP headers. Grist uses these headers to identify the user.": "ஒரு பயனர் Grist ஐ அணுகும்போது, ப்ராக்சி அங்கீகாரத்தைக் கையாளுகிறது மற்றும் HTTP தலைப்புகள் மூலம் சரிபார்க்கப்பட்ட பயனர் தகவலை அனுப்புகிறது. பயனரை அடையாளம் காண கிரிச்ட் இந்த தலைப்புகளைப் பயன்படுத்துகிறார்.",
+        "When signing in, users will be redirected to a Grist Connect login page where they can authenticate using various identity providers. After authentication, they'll be redirected back to your Grist server and signed in.": "உள்நுழையும் போது, பயனர்கள் Grist இணை உள்நுழைவு பக்கத்திற்கு திருப்பி விடப்படுவார்கள், அங்கு அவர்கள் பல்வேறு அடையாள வழங்குநர்களைப் பயன்படுத்தி அங்கீகரிக்க முடியும். அங்கீகாரத்திற்குப் பிறகு, அவை உங்கள் கிரிச்ட் சேவையகத்திற்குத் திருப்பிவிடப்பட்டு உள்நுழையப்படும்.",
+        "When signing in, users will be redirected to your chosen identity provider's login page to authenticate. After successful authentication, they'll be redirected back to your Grist server and signed in as the user verified by the provider.": "உள்நுழையும்போது, அங்கீகரிப்பதற்காக நீங்கள் தேர்ந்தெடுத்த அடையாள வழங்குநரின் உள்நுழைவுப் பக்கத்திற்குப் பயனர்கள் திருப்பிவிடப்படுவார்கள். வெற்றிகரமான அங்கீகாரத்திற்குப் பிறகு, அவை உங்கள் கிரிச்ட் சேவையகத்திற்குத் திருப்பிவிடப்பட்டு வழங்குநரால் சரிபார்க்கப்பட்ட பயனராக உள்நுழையப்படும்.",
+        "You are signed in as {{email}}. After restart, the new administrative user will be {{newEmail}}.": "நீங்கள் {{email}} ஆக உள்நுழைந்துள்ளீர்கள். மறுதொடக்கம் செய்த பிறகு, புதிய நிர்வாகப் பயனர் {{newEmail}} ஆக இருப்பார்.",
+        "You are signed in as {{email}}. You may lose access to this server if you cannot sign in as this user after switching the authentication system.": "நீங்கள் {{email}} ஆக உள்நுழைந்துள்ளீர்கள். அங்கீகார அமைப்பை மாற்றிய பிறகு இந்த பயனராக உங்களால் உள்நுழைய முடியாவிட்டால், இந்த சேவையகத்திற்கான அணுகலை நீங்கள் இழக்க நேரிடும்."
+    },
+    "DetailView": {
+        "This row is unavailable or does not exist": "இந்த வரிசை கிடைக்கவில்லை அல்லது இல்லை"
+    },
+    "GetGristComProvider": {
+        "**Sign in with getgrist.com** allows users on your Grist server to sign in using their account on getgrist.com, the cloud version of Grist managed by Grist Labs.": "**getgrist.com மூலம் உள்நுழைக** உங்கள் Grist சர்வரில் உள்ள பயனர்கள் Grist Labs நிர்வகிக்கும் Grist இன் முகில் பதிப்பான getgrist.com இல் தங்கள் கணக்கைப் பயன்படுத்தி உள்நுழைய அனுமதிக்கிறது.",
+        "Cancel": "ரத்துசெய்",
+        "Configure": "கட்டமைக்கவும்",
+        "Configure Sign in with getgrist.com": "getgrist.com உடன் உள்நுழைவை உள்ளமைக்கவும்",
+        "Home URL is not set; cannot configure Sign in with getgrist.com": "முகப்பு முகவரி அமைக்கப்படவில்லை; getgrist.com உடன் உள்நுழைய முடியாது",
+        "Instructions": "வழிமுறைகள்",
+        "Learn more about Sign in with getgrist.com": "getgrist.com மூலம் உள்நுழைவது பற்றி மேலும் அறிக",
+        "Paste configuration key here": "உள்ளமைவு விசையை இங்கே ஒட்டவும்",
+        "Register your Grist server": "உங்கள் கிரிச்ட் சர்வரை பதிவு செய்யவும்",
+        "Sign in with getgrist.com": "getgrist.com மூலம் உள்நுழையவும்",
+        "To set up {{provider}}, you need to register your Grist server on getgrist.com and paste the configuration key you receive below.": "{{provider}} ஐ அமைக்க, உங்கள் Grist சேவையகத்தை getgrist.com இல் பதிவு செய்து, நீங்கள் பெறும் உள்ளமைவு விசையை கீழே ஒட்ட வேண்டும்.",
+        "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.": "உள்நுழையும் போது, பயனர்கள் உள்நுழைய அல்லது பதிவு செய்ய getgrist.com உள்நுழைவு பக்கத்திற்கு திருப்பி விடப்படுவார்கள். getgrist.com இல் அங்கீகரித்த பிறகு, அவர்கள் உங்கள் Grist சேவையகத்திற்குத் திருப்பிவிடப்பட்டு, அவர்கள் அங்கீகரித்த பயனராக உள்நுழைவார்கள்."
+    },
+    "AirtableImportUI": {
+        "Back": "பின்",
+        "Cancel": "ரத்துசெய்",
+        "Choose an Airtable base to import from": "இறக்குமதி செய்ய ஏர்டேபிள் தளத்தைத் தேர்வு செய்யவும்",
+        "Choose destination": "சேருமிடத்தைத் தேர்வுசெய்க",
+        "Connect": "இணை",
+        "Connect with Airtable": "Airtable உடன் இணைக்கவும்",
+        "Connect your Airtable account to access your bases.": "உங்கள் தளங்களை அணுக உங்கள் Airtable கணக்கை இணைக்கவும்.",
+        "Connected via {{method}}": "{{method}} வழியாக இணைக்கப்பட்டது",
+        "Connecting...": "இணைக்கிறது...",
+        "Continue": "தொடரவும்",
+        "Destination": "இலக்கு",
+        "Disconnect": "துண்டிக்கவும்",
+        "Existing tables": "இருக்கும் அட்டவணைகள்",
+        "Failed to fetch base schema": "அடிப்படைத் திட்டத்தைப் பெறுவதில் தோல்வி",
+        "Failed to fetch bases": "தளங்களைப் பெறுவதில் தோல்வி",
+        "Grist configuration required": "கிரிச்ட் உள்ளமைவு தேவை",
+        "Import from {{baseName}} in progress. Do not navigate away from this page.": "{{baseName}} இலிருந்து இறக்குமதி செய்யப்படுகிறது. இந்தப் பக்கத்திலிருந்து விலகிச் செல்ல வேண்டாம்.",
+        "Import tables": "அட்டவணைகளை இறக்குமதி செய்யவும்",
+        "Import {{count}} tables_one": "இறக்குமதி {{count}} அட்டவணைகள்",
+        "Import {{count}} tables_other": "{{count}} அட்டவணைகளை இறக்குமதி வெற்றி",
+        "Make sure your token has the correct permissions.": "உங்கள் டோக்கனில் சரியான அனுமதிகள் உள்ளதா என்பதை உறுதிப்படுத்தவும்.",
+        "New table": "புதிய அட்டவணை",
+        "New table: structure only": "புதிய அட்டவணை: கட்டமைப்பு மட்டும்",
+        "No bases found": "எந்த அடிப்படையும் இல்லை",
+        "OAuth": "OAuth",
+        "OAuth credentials not configured. Please set OAUTH2_AIRTABLE_CLIENT_ID and OAUTH2_AIRTABLE_CLIENT_SECRET, or use personal access token.": "OAuth நற்சான்றிதழ்கள் உள்ளமைக்கப்படவில்லை. OAUTH2_AIRTABLE_CLIENT_ID மற்றும் OAUTH2_AIRTABLE_CLIENT_SECRET ஐ அமைக்கவும் அல்லது தனிப்பட்ட அணுகல் கிள்ளாக்கைப் பயன்படுத்தவும்.",
+        "Personal access token": "Personal access கிள்ளாக்கு",
+        "Please enter a personal access token": "தனிப்பட்ட அணுகல் கிள்ளாக்கை உள்ளிடவும்",
+        "Refresh": "புதுப்பிப்பு",
+        "Select tables to import from {{baseName}}": "{{baseName}} இலிருந்து இறக்குமதி செய்ய அட்டவணைகளைத் தேர்ந்தெடுக்கவும்",
+        "Skip": "தவிர்",
+        "Source tables": "ஆதார அட்டவணைகள்",
+        "Structure only": "கட்டமைப்பு மட்டுமே",
+        "Use personal access token instead": "அதற்குப் பதிலாக தனிப்பட்ட அணுகல் கிள்ளாக்கைப் பயன்படுத்தவும்",
+        "[Generate a token]({{url}}) in your Airtable account with scopes that include at least **\\`schema.bases:read\\`** and **\\`data.records:read\\`**.\n\nYour token is never sent to Grist's servers, and is only used to make API calls to Airtable from your browser.": "உங்கள் ஏர்டேபிள் கணக்கில் குறைந்தபட்சம் **\\`schema.bases:read\\`** மற்றும் **\\`data.records:read\\`** ஆகியவற்றை உள்ளடக்கிய ச்கோப்புடன் [டோக்கனை உருவாக்கவும்]({{url}}). \n\nஉங்கள் கிள்ளாக்கு Grist இன் சேவையகங்களுக்கு அனுப்பப்படாது, மேலும் உங்கள் உலாவியில் இருந்து Airtable க்கு பநிஇ அழைப்புகளைச் செய்ய மட்டுமே பயன்படுத்தப்படும்.",
+        "loading your bases...": "உங்கள் தளங்களை ஏற்றுகிறது...",
+        "loading your tables...": "உங்கள் அட்டவணைகளை ஏற்றுகிறது...",
+        "or": "அல்லது",
+        "{{count}} warnings_one": "{{count}} எச்சரிக்கைகள்",
+        "{{count}} warnings_other": "{{count}} எச்சரிக்கைகள்",
+        "The more convenient ‘Connect with Airtable’ option can be configured by the installation administrator. [Learn more.]({{url}})": "மிகவும் வசதியான 'ஏர்டேபிளுடன் இணைக்கவும்' விருப்பத்தை நிறுவல் நிர்வாகியால் கட்டமைக்க முடியும். [மேலும் அறிக.]({{url}})",
+        "Use personal access token": "தனிப்பட்ட அணுகல் கிள்ளாக்கைப் பயன்படுத்தவும்"
+    },
+    "AirtableImporter": {
+        "Creating a new Grist document...": "புதிய Grist ஆவணத்தை உருவாக்குகிறது...",
+        "Preparing to import base from Airtable...": "Airtable இலிருந்து தளத்தை இறக்குமதி செய்யத் தயாராகிறது...",
+        "Setting up tables...": "அட்டவணைகளை அமைக்கிறது..."
+    },
+    "ChangeAdminModal": {
+        "Enter new admin email": "புதிய நிர்வாக மின்னஞ்சலை உள்ளிடவும்",
+        "Make the new email the installation admin. Orgs, workspaces, and documents will remain owned by {{email}}. These changes will take effect after you restart this Grist server.": "புதிய மின்னஞ்சலை நிறுவல் நிர்வாகியாக்கு. அமைப்புகள், பணியிடங்கள் மற்றும் ஆவணங்கள் {{email}}க்கு சொந்தமானதாக இருக்கும். இந்த Grist சேவையகத்தை நீங்கள் மறுதொடக்கம் செய்த பிறகு இந்த மாற்றங்கள் நடைமுறைக்கு வரும்.",
+        "New admin": "புதிய நிர்வாகி",
+        "Replace {{email}} with the new email throughout. The new email will become the installation admin, as well as the owner of all materials previously owned by you@example.com.": "{{email}}ஐ புதிய மின்னஞ்சலை முழுவதுமாக மாற்றவும். புதிய மின்னஞ்சலானது நிறுவல் நிர்வாகியாகவும், முன்பு you@example.com க்கு சொந்தமான அனைத்து பொருட்களின் உரிமையாளராகவும் மாறும்."
+    },
+    "startDocAirtableImport": {
+        "Import from Airtable": "Airtable இலிருந்து இறக்குமதி செய்யவும்"
+    },
+    "startHomeAirtableImport": {
+        "Import from Airtable": "Airtable இலிருந்து இறக்குமதி செய்யவும்",
+        "The current workspace can't be imported to.": "தற்போதைய பணியிடத்தை இறக்குமதி செய்ய முடியாது."
     }
 }
