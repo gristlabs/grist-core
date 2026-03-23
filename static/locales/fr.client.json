@@ -2748,5 +2748,8 @@
     "startHomeAirtableImport": {
         "Import from Airtable": "Importer depuis Airtable",
         "The current workspace can't be imported to.": "Le dossier actuel ne peut pas être importé."
+    },
+    "NotifyModel": {
+        "Still working...": "Toujours en cours..."
     }
 }
