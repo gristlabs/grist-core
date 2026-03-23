@@ -388,6 +388,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
     };
   },
   multipleSelects({ field }) {
+    const choices: AirtableChoiceValue[] = field.options?.choices ?? [];
     return {
       column: {
         originalId: field.id,
@@ -395,9 +396,8 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
         label: field.name,
         type: "ChoiceList",
         widgetOptions: {
-          choices: field.options?.choices.map((choice: AirtableChoiceValue) => choice.name),
-          // We could import the color by mapping choice.color (e.g. tealLight2) to a hex color
-          choiceOptions: {},
+          choices: choices.map(choice => choice.name),
+          choiceOptions: buildChoiceOptions(choices),
         },
       },
     };
@@ -514,6 +514,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
     };
   },
   singleSelect({ field }) {
+    const choices: AirtableChoiceValue[] = field.options?.choices ?? [];
     return {
       column: {
         originalId: field.id,
@@ -521,9 +522,8 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
         label: field.name,
         type: "Choice",
         widgetOptions: {
-          choices: field.options?.choices.map((choice: AirtableChoiceValue) => choice.name),
-          // We could import the color by mapping choice.color (e.g. tealLight2) to a hex color
-          choiceOptions: {},
+          choices: choices.map(choice => choice.name),
+          choiceOptions: buildChoiceOptions(choices),
         },
       },
     };
@@ -581,4 +581,63 @@ class CountLimitationWarning implements DocSchemaImportWarning {
   constructor(fieldName: string, public readonly ref: OriginalTableRef) {
     this.message = `Count field "${fieldName}" may not match Airtable. Filter conditions are not supported.`;
   }
+}
+
+// Maps Airtable's named color codes to Grist hex fill/text color pairs.
+// Airtable has 10 color families x 4 shades each (Light2, Light1, Bright, Dark1).
+// Light shades (Light2, Light1) get black text; dark shades (Bright, Dark1) get white text.
+const AIRTABLE_COLOR_TO_GRIST_HEX: Record<string, { fillColor: string; textColor: string }> = {
+  blueLight2: { fillColor: "#D3E7FE", textColor: "#000000" },
+  blueLight1: { fillColor: "#75B5FC", textColor: "#000000" },
+  blueBright: { fillColor: "#157AFB", textColor: "#FFFFFF" },
+  blueDark1: { fillColor: "#084794", textColor: "#FFFFFF" },
+  cyanLight2: { fillColor: "#CCFEFE", textColor: "#000000" },
+  cyanLight1: { fillColor: "#8AFCFE", textColor: "#000000" },
+  cyanBright: { fillColor: "#24D6DB", textColor: "#FFFFFF" },
+  cyanDark1: { fillColor: "#0C686A", textColor: "#FFFFFF" },
+  tealLight2: { fillColor: "#CCFEFE", textColor: "#000000" },
+  tealLight1: { fillColor: "#8AFCFE", textColor: "#000000" },
+  tealBright: { fillColor: "#24D6DB", textColor: "#FFFFFF" },
+  tealDark1: { fillColor: "#0C686A", textColor: "#FFFFFF" },
+  greenLight2: { fillColor: "#E1FEDE", textColor: "#000000" },
+  greenLight1: { fillColor: "#98FD90", textColor: "#000000" },
+  greenBright: { fillColor: "#2AE028", textColor: "#FFFFFF" },
+  greenDark1: { fillColor: "#126E0E", textColor: "#FFFFFF" },
+  yellowLight2: { fillColor: "#FFFACD", textColor: "#000000" },
+  yellowLight1: { fillColor: "#FEF47A", textColor: "#000000" },
+  yellowBright: { fillColor: "#E8D62F", textColor: "#FFFFFF" },
+  yellowDark1: { fillColor: "#928619", textColor: "#FFFFFF" },
+  orangeLight2: { fillColor: "#FEE7C3", textColor: "#000000" },
+  orangeLight1: { fillColor: "#FECC81", textColor: "#000000" },
+  orangeBright: { fillColor: "#FD9D28", textColor: "#FFFFFF" },
+  orangeDark1: { fillColor: "#B36F19", textColor: "#FFFFFF" },
+  redLight2: { fillColor: "#FECBCC", textColor: "#000000" },
+  redLight1: { fillColor: "#FD8182", textColor: "#000000" },
+  redBright: { fillColor: "#E00A17", textColor: "#FFFFFF" },
+  redDark1: { fillColor: "#740206", textColor: "#FFFFFF" },
+  pinkLight2: { fillColor: "#FED6FB", textColor: "#000000" },
+  pinkLight1: { fillColor: "#FD79F4", textColor: "#000000" },
+  pinkBright: { fillColor: "#E621D7", textColor: "#FFFFFF" },
+  pinkDark1: { fillColor: "#760C6E", textColor: "#FFFFFF" },
+  purpleLight2: { fillColor: "#E8D0FE", textColor: "#000000" },
+  purpleLight1: { fillColor: "#BC77FC", textColor: "#000000" },
+  purpleBright: { fillColor: "#8725FB", textColor: "#FFFFFF" },
+  purpleDark1: { fillColor: "#460D81", textColor: "#FFFFFF" },
+  grayLight2: { fillColor: "#DCDCDC", textColor: "#000000" },
+  grayLight1: { fillColor: "#888888", textColor: "#000000" },
+  grayBright: { fillColor: "#000000", textColor: "#FFFFFF" },
+  grayDark1: { fillColor: "#000000", textColor: "#FFFFFF" },
+};
+
+function buildChoiceOptions(
+  choices: AirtableChoiceValue[],
+): Record<string, { fillColor: string; textColor: string }> {
+  const choiceOptions: Record<string, { fillColor: string; textColor: string }> = {};
+  for (const choice of choices) {
+    const colors = choice.color ? AIRTABLE_COLOR_TO_GRIST_HEX[choice.color] : undefined;
+    if (colors) {
+      choiceOptions[choice.name] = colors;
+    }
+  }
+  return choiceOptions;
 }
