@@ -158,7 +158,7 @@ across the interface's regions: specific keyboard shortcuts need to be used.")),
     dom("p", t("Navigation in widgets (i.e. tables) is meant to be done with your screen reader's focus mode, or with \
 Quick Nav disabled in VoiceOver. While navigation when positioned in other regions (i.e. panels) can be done in either \
 browse or focus mode, we advise on staying in focus mode.")),
-    dom("p", t("While not mandatory for things to work, you can enable screen reader improvements for a better \
+    dom("p", t("While not mandatory, you can enable screen reader improvements for a better \
 navigation experience:")),
     dom("p",
       labeledSquareCheckbox(
