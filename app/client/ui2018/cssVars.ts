@@ -211,13 +211,18 @@ const cssBody = styled("body", `
   height: 100%;
 `);
 
-const cssRoot = styled("html", `
-  height: 100%;
-  overflow: hidden;
+// Font rendering — applied globally, also reused by Storybook via attachCssBaseStyles().
+const cssRootFonts = styled("html", `
   font-family: ${vars.fontFamily};
   font-size: ${vars.mediumFontSize};
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
+`);
+
+// Full-viewport layout — only for the main Grist app.
+const cssRootLayout = styled("html", `
+  height: 100%;
+  overflow: hidden;
 `);
 
 // Also make a globally available testId, with a simple "test-" prefix (i.e. in tests, query css
@@ -293,11 +298,10 @@ export function isScreenResizing(): Observable<boolean> {
 }
 
 /**
- * Attaches the global css properties to the document's root to make them available in the page.
+ * Attaches base CSS: variables, reset rules, and font rendering styles.
+ * Does not require the full app model — safe to call from Storybook or tests.
  */
-export function attachCssRootVars(productFlavor: ProductFlavor, varsOnly: boolean = false) {
-  /* Initiate the grist-layers before any other css to make sure it's understood by all styles,
-   * and apply all base grist rules and styles in the grist-base layer. */
+export function attachCssBaseStyles(varsOnly: boolean = false) {
   getOrCreateStyleElement("grist-root-css", {
     position: "beforebegin",
     element: document.head.querySelector('style, link[rel="stylesheet"]'),
@@ -310,7 +314,15 @@ export function attachCssRootVars(productFlavor: ProductFlavor, varsOnly: boolea
   ${!varsOnly && cssReset}
 }`;
 
-  document.documentElement.classList.add(cssRoot.className);
+  document.documentElement.classList.add(cssRootFonts.className);
+}
+
+/**
+ * Attaches the global css properties to the document's root to make them available in the page.
+ */
+export function attachCssRootVars(productFlavor: ProductFlavor, varsOnly: boolean = false) {
+  attachCssBaseStyles(varsOnly);
+  document.documentElement.classList.add(cssRootLayout.className);
   document.body.classList.add(cssBody.className);
   const customTheme = getTheme(productFlavor);
   if (customTheme.bodyClassName) {

@@ -25,6 +25,8 @@ module.exports = defineConfig([
     "!buildtools/",
     "!ext/",
     "!core/",
+    "!storybook/",
+    "!.storybook/",
     "core/static/*.js",
     "test/video-scripts/",
   ]),
