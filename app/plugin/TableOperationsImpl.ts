@@ -4,7 +4,6 @@ import { arrayRepeat } from "app/plugin/gutil";
 import { OpOptions, TableOperations, UpsertOptions } from "app/plugin/TableOperations";
 
 import flatMap from "lodash/flatMap";
-import groupBy from "lodash/groupBy";
 import isEqual from "lodash/isEqual";
 import pick from "lodash/pick";
 
@@ -51,7 +50,7 @@ export class TableOperationsImpl implements TableOperations {
   }
 
   public async upsert(recordOrRecords: Types.AddOrUpdateRecord | Types.AddOrUpdateRecord[],
-    upsertOptions?: UpsertOptions): Promise<void> {
+    upsertOptions?: UpsertOptions): Promise<any> {
     await withRecords(recordOrRecords, async (records) => {
       const tableId = await this._platform.getTableId();
       const options = {
@@ -61,36 +60,17 @@ export class TableOperationsImpl implements TableOperations {
         allow_empty_require: upsertOptions?.allowEmptyRequire,
       };
       const recordOptions: OpOptions = pick(upsertOptions, "parseStrings");
-
-      /*
-       * TODO:
-       *   Record the index positions of each record. That's its ID now.
-       *   When grouping records, remember the index position of each item in the group.
-       *   Loop through recordIds in group results, and restore them to the right index position.
-       *   Combine created and updated ID arrays by just concatenating? Preserving order is a huge
-       *   headache for minimal gain, given recordIds are in order - they can't be indexed by
-       *   position either as position varies.
-       */
-
-      // Group records based on having the same keys in `require` and `fields`.
-      // A single bulk action will be applied to each group.
-      // We don't want one bulk action for all records that might have different shapes,
-      // because that would require filling arrays with null values, which would result in the
-      // incorrect behaviour (e.g. checking a column is empty, or deleting a cell entry)
-      const recGroups = groupBy(records, (rec) => {
-        const requireKeys = Object.keys(rec.require).sort().join(",");
-        const fieldsKeys = Object.keys(rec.fields || {}).sort().join(",");
-        return `${requireKeys}:${fieldsKeys}`;
-      });
-      const actions = Object.values(recGroups).map((group) => {
-        const require = convertToBulkColValues(group.map(r => ({ fields: r.require })));
-        const fields = convertToBulkColValues(group.map(r => ({ fields: r.fields || {} })));
-        return ["BulkAddOrUpdateRecord", tableId, require, fields, options];
-      });
-      const applyResult = await this._applyUserActions(tableId, [...fieldNames(records)],
+      const actions = [[
+        "BulkAddOrUpdateRecord",
+        tableId,
+        records.map(record => record.require),
+        records.map(record => record.fields),
+        options,
+      ]];
+      const sandboxRes = await this._applyUserActions(tableId, [...fieldNames(records)],
         actions, recordOptions);
 
-      return [];
+      return sandboxRes.retValues[0];
     });
   }
 

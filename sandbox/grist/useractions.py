@@ -1136,8 +1136,8 @@ class UserActions(object):
 
       # Go through each record, find/create the appropriate field group, and add the record to it.
       for index in range(input_length):
-        require_keys = require[index].keys()
-        value_keys = col_values[index].keys()
+        require_keys = (require[index] or {}).keys()
+        value_keys = (col_values[index] or {}).keys()
         group_key = make_group_key(require_keys, value_keys)
         if not group_key in change_groups:
           change_groups[group_key] = {

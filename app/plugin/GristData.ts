@@ -46,6 +46,7 @@ export enum GristObjCode {
 export type CellValue = number | string | boolean | null | [GristObjCode, ...unknown[]];
 
 export interface BulkColValues { [colId: string]: CellValue[]; }
+export type BulkRecordValues = { [colId: string]: CellValue[]  }[];
 
 /**
  * Map of column ids to {@link CellValue}'s.

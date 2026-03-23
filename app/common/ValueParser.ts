@@ -15,6 +15,7 @@ import { encodeObject } from "app/plugin/objtypes";
 
 import flatMap from "lodash/flatMap";
 import mapValues from "lodash/mapValues";
+import { BulkRecordValues } from "app/plugin/GristData";
 
 export class ValueParser {
   constructor(public type: string, public widgetOpts: FormatOptions, public docSettings: DocumentSettings) {
@@ -297,17 +298,17 @@ export function createParserOrFormatterArgumentsRaw(
  * Returns a copy of `colValues` with string values parsed according to the type and options of each column.
  * `bulk` should be `true` if `colValues` is of type `BulkColValues`.
  */
-function parseColValues<T extends ColValues | BulkColValues>(
-  tableId: string, colValues: T, docData: DocData, bulk: boolean,
-): T {
+function makeColValueParser<T extends ColValues | BulkColValues>(
+  tableId: string, docData: DocData, bulk: boolean,
+): (colValues: T) => T {
   const columnsTable = docData.getMetaTable("_grist_Tables_column");
   const tablesTable = docData.getMetaTable("_grist_Tables");
   const tableRef = tablesTable.findRow("tableId", tableId);
   if (!tableRef) {
-    return colValues;
+    return colValues => colValues;
   }
 
-  return mapValues(colValues, (values, colId) => {
+  return (colValues: T) => mapValues(colValues, (values, colId) => {
     const colRef = columnsTable.findMatchingRowId({ colId, parentId: tableRef });
     if (!colRef) {
       // Column not found - let something else deal with that
@@ -371,7 +372,13 @@ function _parseUserActionColValues(ua: UserAction, docData: DocData, parseBulk: 
   if (index === undefined) {
     index = ua.length - 1;
   }
-  const colValues = ua[index] as ColValues | BulkColValues;
-  ua[index] = parseColValues(tableId, colValues, docData, parseBulk);
+  const colValues = ua[index] as ColValues | BulkColValues | BulkRecordValues;
+  if (Array.isArray(colValues)) {
+    const parseColValues = makeColValueParser(tableId, docData, false);
+    ua[index] = colValues.map(record => parseColValues(record));
+  } else {
+    const parseColValues = makeColValueParser(tableId, docData, parseBulk);
+    ua[index] = parseColValues(colValues);
+  }
   return ua;
 }
