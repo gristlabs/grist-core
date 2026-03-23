@@ -1201,6 +1201,7 @@ class UserActions(object):
         raise ValueError("require values must be unique")
 
     # Avoid implementation-defined ordering with multiple field groups.
+    # This doesn't guarantee an ordering to the user, but keeps it consistent / deterministic.
     sorted_field_group_keys = sorted(change_groups.keys())
 
     for field_group_key in sorted_field_group_keys:
