@@ -150,8 +150,8 @@
         "Key": "Clé",
         "Memory Error": "Erreur mémoire",
         "Translators: please translate this only when your language is ready to be offered to users": "Traducteurs : merci de ne traduire ceci que lorsque votre langue sera prête à être proposée aux utilisateurs",
-        "Disabled screen reader improvements": "Désactivé: améliorations pour lecteurs d'écran",
-        "Enabled screen reader improvements": "Activé: améliorations pour lecteurs d'écran"
+        "Disabled screen reader improvements": "Désactivé : améliorations pour lecteurs d'écran",
+        "Enabled screen reader improvements": "Activé : améliorations pour lecteurs d'écran"
     },
     "AppHeader": {
         "Home page": "Page d’accueil",
@@ -716,7 +716,8 @@
     "LeftPanelCommon": {
         "Help Center": "Centre d'aide",
         "Accessibility": "Accessibilité",
-        "(Screen reader improvements enabled)": "(Améliorations pour lecteurs d'écran activées)"
+        "(Screen reader improvements enabled)": "(Améliorations pour lecteurs d'écran activées)",
+        "Screen reader improvements enabled": "Améliorations pour lecteurs d'écran activées"
     },
     "MakeCopyMenu": {
         "Replacing the original requires editing rights on the original document.": "Le remplacement de l'original nécessite des droits d'édition sur le document d'origine.",
@@ -2464,12 +2465,12 @@
         "{{nextRegionShortcut}} Focus on the next region": "{{nextRegionShortcut}} Focaliser la région suivante",
         "{{prevRegionShortcut}} Focus on the previous region": "{{prevRegionShortcut}} Focaliser la région précédente",
         "{{shortcutsModal}} Show the complete list of keyboard shortcuts": "{{shortcutsModal}} Afficher la liste complète des raccourcis claviers",
-        "Enable screen reader improvements (keyboard shortcut: {{shortcut}})": "Activer les améliorations pour lecteurs d'écran (raccourci clavier: {{shortcut}})",
-        "Navigation in widgets (i.e. tables) is meant to be done with your screen reader's focus mode, or with Quick Nav disabled in VoiceOver. While navigation when positioned in other regions (i.e. panels) can be done in either browse or focus mode, we advise on staying in focus mode.": "La navigation dans les vues (ex: les tables) est destinée à être faite via le mode focus de votre lecteur d'écran, ou avec Quick Nav désactivé dans VoiceOver. La navigation dans les autres régions (ex: les panneaux) peut être faite tant en mode navigation que focus, mais nous vous conseillons d'utiliser le mode focus.",
+        "Enable screen reader improvements (keyboard shortcut: {{shortcut}})": "Activer les améliorations pour lecteurs d'écran (raccourci clavier : {{shortcut}})",
+        "Navigation in widgets (i.e. tables) is meant to be done with your screen reader's focus mode, or with Quick Nav disabled in VoiceOver. While navigation when positioned in other regions (i.e. panels) can be done in either browse or focus mode, we advise on staying in focus mode.": "La navigation dans les vues (ex. les tables) est destinée à être faite via le mode focus de votre lecteur d'écran, ou avec Quick Nav désactivé dans VoiceOver. La navigation dans les autres régions (ex. les panneaux) peut être faite tant en mode navigation que focus, mais nous vous conseillons d'utiliser le mode focus.",
         "Please first read the \"Keyboard navigation\" section above to understand how to navigate across the interface's regions: specific keyboard shortcuts need to be used.": "Lisez d'abord la section \"Navigation au clavier\" ci-dessus pour comprendre comment naviguer entre les régions de l'interface : des raccourcis clavier spécifiques doivent être utilisés.",
         "Screen reader navigation": "Navigation avec lecteur d'écran",
-        "Warning: screen reader support is a work-in-progress in Grist and is improving over time. Feedback is greatly appreciated!": "Attention: le support des lecteurs d'écran est en cours de développement dans Grist et s'améliore régulièrement. N'hésitez pas à nous faire part de vos retours.",
-        "While not mandatory for things to work, you can enable screen reader improvements for a better navigation experience:": "Même si ce n'est pas obligatoire pour que tout fonctionne, vous pouvez activer les améliorations pour lecteurs d'écran pour une meilleure expérience de navigation:"
+        "Warning: screen reader support is a work-in-progress in Grist and is improving over time. Feedback is greatly appreciated!": "Attention : le support des lecteurs d'écran est en cours de développement dans Grist et s'améliore régulièrement. N'hésitez pas à nous faire part de vos retours.",
+        "While not mandatory, you can enable screen reader improvements for a better navigation experience:": "Même si ce n'est pas obligatoire, vous pouvez activer les améliorations pour lecteurs d'écran pour une meilleure expérience de navigation :"
     },
     "ProposedChangesPage": {
         "Proposed changes": "Suggestions de modifications",
@@ -3091,7 +3092,7 @@
         "Store document backups on an external service like S3 or Azure.           This protects against data loss if the server's disk fails.": "Conserver les sauvegardes des documents sur un service externe comme S3 ou Azure.           Cela vous protège contre la perte de données si le disque dur du serveur dysfonctionne."
     },
     "ScreenReaderAnnouncer": {
-        "Notification: {{notification}}": "Notification: {{notification}}"
+        "Notification: {{notification}}": "Notification : {{notification}}"
     },
     "ScreenReaderConfig": {
         "Enable screen reader improvements": "Activer les améliorations pour lecteurs d'écran",
