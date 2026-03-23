@@ -1128,7 +1128,7 @@ describe("UsersManager", function() {
           id: user.id,
           name: newInfo.name,
           picture: newInfo.picture,
-          options: { locale: newInfo.locale },
+          options: { locale: newInfo.locale } as UserOptions,
         });
         assert.deepInclude(updatedUser.logins[0], {
           email: newInfo.email.toLowerCase(),
