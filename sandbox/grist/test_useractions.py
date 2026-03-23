@@ -1288,7 +1288,7 @@ class TestUserActions(test_engine.EngineTestCase):
         # Check an update that should hit multiple records, and only affect 1 of them
         {
           "first_name": "John",
-        }
+        },
       ],
       [
         { "color": "pink" },
@@ -1346,6 +1346,41 @@ class TestUserActions(test_engine.EngineTestCase):
           "recordIds": [[1,2,3], [4], [6]],
           "createdRecordIds": [[6]],
           "updatedRecordIds": [[1,2,3], [4]],
+        }
+      ]
+    )
+
+    # Check the return value if records couldn't be updated due to on_many (or added=false)
+    check(
+      [
+        # Successful update of one row to validate mixed values in the return type
+        {
+          "first_name": "Bob",
+        },
+        # Should be "None" as multiple Johns were matched
+        {
+          "first_name": "John",
+        },
+        # Should be "None" as we can't add new values
+        {
+          "first_name": "Samwise",
+          "last_name": "Gamgee",
+        },
+      ],
+      [
+        { "color": "grey" },
+        { "color": "silver" },
+        {},
+      ],
+      { "on_many": "none", "add": False },
+      [
+        ["UpdateRecord", "Table1", 4, {"color": "grey"}],
+      ],
+      [
+        {
+          "recordIds": [4, None, None],
+          "createdRecordIds": [],
+          "updatedRecordIds": [4],
         }
       ]
     )

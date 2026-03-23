@@ -1179,7 +1179,7 @@ class UserActions(object):
     result = {
       # All record ids (added or updated), in the same order they were provided to this action
       # Need a placeholder array so the values can be set by index later.
-      'recordIds': [-1] * input_length,
+      'recordIds': [None] * input_length,
       # All new record ids (in same order as above) - populated after the rows are created.
       'createdRecordIds': [],
       # All updated record ids (in same order as above)
@@ -1291,7 +1291,7 @@ class UserActions(object):
 
     result = self.BulkAddOrUpdateRecord(table_id, [require], [col_values], options)
     # No result, or a failure to update (e.g. on_many is "none" and multiple rows are matched)
-    if len(result['recordIds']) == 0 or result['recordIds'] == [-1]:
+    if len(result['recordIds']) == 0 or result['recordIds'] == [None]:
       return {
         'recordIds': [],
         'action': 'NONE',
