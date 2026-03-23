@@ -26,6 +26,10 @@ export const BulkColValues = t.iface([], {
   [t.indexKey]: t.array("CellValue"),
 });
 
+export const BulkRecordValues = t.array(t.iface([], {
+  [t.indexKey]: t.array("CellValue"),
+}));
+
 export const RowRecord = t.iface([], {
   "id": "number",
   [t.indexKey]: "CellValue",
@@ -42,6 +46,7 @@ const exportedTypeSuite: t.ITypeSuite = {
   GristObjCode,
   CellValue,
   BulkColValues,
+  BulkRecordValues,
   RowRecord,
   RowRecords,
   GristType,
