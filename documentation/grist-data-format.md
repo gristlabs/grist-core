@@ -147,6 +147,14 @@ Common exception names:
 | `ValueError`         | `#ValueError`  | Invalid value |
 | `InvalidTypedValue`  | `#Invalid ...` | Value doesn't match column type |
 
+### Lookups
+
+When setting Reference or ReferenceList values, you may use a "reference lookup" of the form `["l", value, options?]`, to look up a record by value rather than specify a row ID directly. Here, `options` is an optional object with optional properties:
+- `column` — optional colId to look up in the referenced table; defaults to the column's configured "Show Column".
+- `raw` — fallback alt-text if the lookup fails; defaults to `value`.
+
+Example: `["l", "inv_123"]` or `["l", "inv_123", {"column": "Invoice_ID"}]`.
+
 ## Naming Rules
 
 Table and column identifiers must match `[A-Za-z][A-Za-z0-9_]*` — they start with a
