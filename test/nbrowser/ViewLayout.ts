@@ -2,7 +2,7 @@ import { UserAPI } from "app/common/UserAPI";
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
 
-import { addToRepl, assert, driver, Key } from "mocha-webdriver";
+import { addToRepl, assert, driver } from "mocha-webdriver";
 
 describe("ViewLayout", function() {
   this.timeout(20000);
@@ -62,14 +62,6 @@ describe("ViewLayout", function() {
   });
 
   it("should allow to cycle through sections using shortcuts", async () => {
-    async function nextSection(count: number = 1) {
-      return gu.sendKeys(...Array(count).fill(Key.chord(await gu.modKey(), "o")));
-    }
-
-    async function prevSection(count: number = 1) {
-      return gu.sendKeys(...Array(count).fill(Key.chord(await gu.modKey(), Key.SHIFT, "o")));
-    }
-
     // import World.grist
     const doc = await gu.importFixturesDoc("chimpy", "nasa", "Horizon", "World.grist", false);
 
@@ -80,13 +72,13 @@ describe("ViewLayout", function() {
     assert.equal(await gu.getActiveSectionTitle(), "COUNTRY");
 
     // go to next section
-    await nextSection();
+    await gu.focusNextSection();
 
     // check the active section is COUNTRY Card List
     assert.equal(await gu.getActiveSectionTitle(), "COUNTRY Card List");
 
     // go to previous section
-    await prevSection();
+    await gu.focusPrevSection();
 
     // check the active section is COUNTRY
     assert.equal(await gu.getActiveSectionTitle(), "COUNTRY");
@@ -95,13 +87,13 @@ describe("ViewLayout", function() {
     await gu.getSection("COUNTRYLANGUAGE").click();
 
     // go to next section: now it is the left panel, then top panel, then the first section again.
-    await nextSection(3);
+    await gu.focusNextSection(3);
 
     // check the active section is COUNTRY
     assert.equal(await gu.getActiveSectionTitle(), "COUNTRY");
 
     // go to previous section
-    await prevSection(3);
+    await gu.focusPrevSection(3);
 
     // check the active section is COUNTRYLANGUAGE
     assert.equal(await gu.getActiveSectionTitle(), "COUNTRYLANGUAGE");

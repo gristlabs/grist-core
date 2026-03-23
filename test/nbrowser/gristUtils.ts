@@ -4254,6 +4254,34 @@ namespace gristUtils {
     });
   }
 
+  export async function focusNextSection(count: number = 1) {
+    return sendKeys(...Array(count).fill(Key.chord(Key.CONTROL, "o")));
+  }
+
+  export async function focusPrevSection(count: number = 1) {
+    return sendKeys(...Array(count).fill(Key.chord(Key.CONTROL, Key.SHIFT, "o")));
+  }
+
+  /**
+   * Asserts that the screen reader recently announced the given text.
+   *
+   * By default, we verify that the given text is part of the latest announcement.
+   */
+  export async function assertScreenReaderAnnouncement(expected: string, mustBeLast: boolean = true) {
+    // We always wait a bit for the test to pass because announcements are not done synchronously
+    await driver.wait(async () => {
+      // We manually get textContent instead of relying on selenium's getText because the text is visually hidden.
+      const text = await driver.executeScript<string>((onlyLast: boolean) => {
+        const el = document.querySelector(onlyLast ?
+          "#screen-reader-announcer span:last-child" :
+          "#screen-reader-announcer",
+        );
+        return (el?.textContent || "").toLowerCase();
+      }, mustBeLast);
+      return text.includes(expected.toLowerCase());
+    }, 500);
+  }
+
 } // end of namespace gristUtils
 
 stackWrapOwnMethods(gristUtils);
