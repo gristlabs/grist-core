@@ -345,7 +345,9 @@ describe("DateRangeFilter", function() {
     await gu.findOpenMenu();
     assert.deepEqual(await fu.getSelectedOption(), []);
     await fu.pickDateInCurrentMonth("18");
-    assert.deepEqual(await fu.getSelectedOption(), ["2022-09-18"]);
+    await gu.waitToPass(async () => {
+      assert.deepEqual(await fu.getSelectedOption(), ["2022-09-18"]);
+    });
     await driver.sendKeys(Key.ARROW_DOWN);
     assert.deepEqual(await fu.getSelectedOption(), ["2 days ago"]);
   });
