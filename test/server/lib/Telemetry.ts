@@ -265,7 +265,6 @@ describe("Telemetry", function() {
                 "eventSource",
                 "watchTimeSeconds",
                 "userId",
-                "altSessionId",
               ]);
               assert.equal(metadata.watchTimeSeconds, 30);
               assert.equal(metadata.userId, 1);
@@ -324,7 +323,6 @@ describe("Telemetry", function() {
               assert.containsAllKeys(metadata, [
                 "watchTimeSeconds",
                 "userId",
-                "altSessionId",
               ]);
               assert.equal(metadata.watchTimeSeconds, 30);
               assert.equal(metadata.userId, 1);
