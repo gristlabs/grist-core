@@ -127,8 +127,10 @@ describe("LinkingSelector", function() {
     await gu.openColumnFilter("Start_Date")
       .then(x => x.toggleValue("2018-09-13"))
       .then(x => x.close());
-    // Make sure that List is updated in the first row.
-    assert.equal(await gu.getCell("Start_Date", 1, "List").getText(), "2018-09-14");
+    await gu.waitToPass(async () => {
+      // Make sure that List is updated in the first row.
+      assert.equal(await gu.getCell("Start_Date", 1, "List").getText(), "2018-09-14");
+    }, 1000);
     // Make sure that Card is updated accordingly.
     assert.equal(await gu.getDetailCell("Start_Date", 1, "Card").getText(), "2018-09-14");
   });
