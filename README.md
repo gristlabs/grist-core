@@ -102,7 +102,7 @@ If you are curious about where Grist is heading, see [our roadmap](https://githu
 
 If you evaluate Grist by using the hosted version at [getgrist.com](https://getgrist.com), be aware that it includes some features that aren't present in `grist-core`. To be sure you're seeing exactly what is present in `grist-core`, you can run the [desktop app](https://github.com/gristlabs/grist-desktop), or use [`docker`](#using-grist).
 
-Here is a list of features you may see in Grist Labs' hosted offering or the full edition of self-hosted Grist that are not in `grist-core`, in chronological order of creation. If self-hosting, you can get access to a free trial of all of them by toggling on the full edition of Grist on the [Admin Panel](https://support.getgrist.com/admin-panel/).
+Here is a list of features available in the full edition of Grist that are not in `grist-core`, in chronological order of creation. If self-hosting, you can get access to a free trial of all of them by selecting the full edition of Grist on the [Admin Panel](https://support.getgrist.com/admin-panel/). The full edition of Grist is free for individuals and small orgs with less than US $1 million in total annual funding. Learn more about that [here](https://www.getgrist.com/free-grist-activation-key-faq/).
 
   * [GristConnect](https://support.getgrist.com/install/grist-connect/) (2022)
     - Any site that has plugins for letting Discourse use its logins (such as WordPress) can also let Grist use its logins.
