@@ -2,7 +2,7 @@ import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
 
 import { describe } from "mocha";
-import { driver, Key } from "mocha-webdriver";
+import { assert, driver, Key } from "mocha-webdriver";
 
 describe("ScreenReader", function() {
   this.timeout(20000);
@@ -13,6 +13,19 @@ describe("ScreenReader", function() {
     await session.tempDoc(cleanup, "GridWithAllFields.grist");
     // Make sure the doc is loaded before continuing
     await driver.wait(async () => await gu.getActiveCell(), 5000);
+  });
+
+  it("has correct markup on the screen reader announcer children", async function() {
+    // It may seem insignificant, but it's actually very important to use `divs` rather than `spans` as the
+    // #screen-reader-announcer children.
+    // If using spans, Edge announces the whole #screen-reader-announcer content when something is added,
+    // even with the `aria-atomic="false"` set.
+    // @see https://a11ysupport.io/tests/tech__aria__aria-atomic-spans#support-summary-by-at-sr
+    try {
+      await driver.findWait("#screen-reader-announcer > div", 1000);
+    } catch (e) {
+      assert.fail("#screen-reader-announcer children should be `div` elements");
+    }
   });
 
   it("has announced current widget state on load", async function() {
