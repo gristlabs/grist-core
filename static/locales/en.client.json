@@ -2417,7 +2417,8 @@
         "Please first read the \"Keyboard navigation\" section above to understand how to navigate across the interface's regions: specific keyboard shortcuts need to be used.": "Please first read the \"Keyboard navigation\" section above to understand how to navigate across the interface's regions: specific keyboard shortcuts need to be used.",
         "Screen reader navigation": "Screen reader navigation",
         "Warning: screen reader support is a work-in-progress in Grist and is improving over time. Feedback is greatly appreciated!": "Warning: screen reader support is a work-in-progress in Grist and is improving over time. Feedback is greatly appreciated!",
-        "While not mandatory, you can enable screen reader improvements for a better navigation experience:": "While not mandatory, you can enable screen reader improvements for a better navigation experience:"
+        "While not mandatory, you can enable screen reader improvements for a better navigation experience:": "While not mandatory, you can enable screen reader improvements for a better navigation experience:",
+        "We recommend using Firefox, Chrome or Edge in order to use Grist with a screen reader.": "We recommend using Firefox, Chrome or Edge in order to use Grist with a screen reader."
     },
     "ProposedChangesPage": {
         "Proposed changes": "Proposed changes",
