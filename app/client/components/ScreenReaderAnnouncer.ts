@@ -66,7 +66,8 @@ export class ScreenReaderAnnouncer extends Disposable {
     if (!toAnnounce.endsWith(".")) {
       toAnnounce += ".";
     }
-    this._container.appendChild(dom("span", toAnnounce));
+    this._container.appendChild(dom("div", toAnnounce));
+
     // Make sure the DOM doesn't get too big
     while (this._container.children.length > 10) {
       this._container.removeChild(this._container.firstChild!);
