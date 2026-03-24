@@ -259,10 +259,18 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
       },
     }),
     dom.on("transitionstart", (ev, elem) => {
+      // Ignore if the event comes from a descendent.
+      if (ev.target !== elem) {
+        return;
+      }
       model.isExpanded.set(false);
       model.isCollapsed.set(false);
     }),
     dom.on("transitionend", (ev, elem) => {
+      // Ignore if the event comes from a descendent.
+      if (ev.target !== elem) {
+        return;
+      }
       model.isExpanded.set(model.isOpen.get());
       model.isCollapsed.set(!model.isOpen.get());
     }),
