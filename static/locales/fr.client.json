@@ -2417,7 +2417,8 @@
         "Please first read the \"Keyboard navigation\" section above to understand how to navigate across the interface's regions: specific keyboard shortcuts need to be used.": "Lisez d'abord la section \"Navigation au clavier\" ci-dessus pour comprendre comment naviguer entre les régions de l'interface : des raccourcis clavier spécifiques doivent être utilisés.",
         "Screen reader navigation": "Navigation avec lecteur d'écran",
         "Warning: screen reader support is a work-in-progress in Grist and is improving over time. Feedback is greatly appreciated!": "Attention : le support des lecteurs d'écran est en cours de développement dans Grist et s'améliore régulièrement. N'hésitez pas à nous faire part de vos retours.",
-        "While not mandatory, you can enable screen reader improvements for a better navigation experience:": "Même si ce n'est pas obligatoire, vous pouvez activer les améliorations pour lecteurs d'écran pour une meilleure expérience de navigation :"
+        "While not mandatory, you can enable screen reader improvements for a better navigation experience:": "Même si ce n'est pas obligatoire, vous pouvez activer les améliorations pour lecteurs d'écran pour une meilleure expérience de navigation :",
+        "We recommend using Firefox, Chrome or Edge in order to use Grist with a screen reader.": "Nous recommandons d'utiliser Firefox, Chrome ou Edge pour utiliser Grist avec un lecteur d'écran."
     },
     "ProposedChangesPage": {
         "Proposed changes": "Suggestions de modifications",
