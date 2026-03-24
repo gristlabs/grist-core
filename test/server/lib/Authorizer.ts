@@ -155,13 +155,21 @@ describe("Authorizer", function() {
     assert.equal(resp.status, 404);
   });
 
-  it("viewer does not generate session when calling the API with an authorization header", async function() {
+  it("does not generate sessions when calling the API with an authorization header", async function() {
     const nbSessionsBefore = countSessions();
-    const docId = docs.Bananas.id;
-    const resp = await axios.get(`${serverUrl}/o/pr/${docId}`, chimpy);
+    const resp = await axios.get(`${serverUrl}/o/pr`, chimpy);
     const nbSessionsAfter = countSessions();
     assert.equal(resp.status, 200);
-    assert.equal(nbSessionsBefore, nbSessionsAfter, "No new session should have been created during the API call");
+    assert.equal(nbSessionsAfter, nbSessionsBefore, "No new session should have been created during the API call");
+  });
+
+  it("does generate a session when calling the API with a cookie", async function() {
+    const nbSessionsBefore = countSessions();
+    const resp = await axios.get(`${serverUrl}/o/pr`, await getChimpyCookie());
+    const nbSessionsAfter = countSessions();
+    assert.equal(resp.status, 200);
+    assert.equal(nbSessionsAfter, nbSessionsBefore + 1,
+      "A new session should have been created during the API call with cookie");
   });
 
   it("websocket allows openDoc for viewer", async function() {
