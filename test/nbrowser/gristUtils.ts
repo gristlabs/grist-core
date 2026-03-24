@@ -4343,7 +4343,7 @@ namespace gristUtils {
       // We manually get textContent instead of relying on selenium's getText because the text is visually hidden.
       const text = await driver.executeScript<string>((onlyLast: boolean) => {
         const el = document.querySelector(onlyLast ?
-          "#screen-reader-announcer span:last-child" :
+          "#screen-reader-announcer div:last-child" :
           "#screen-reader-announcer",
         );
         return (el?.textContent || "").toLowerCase();
