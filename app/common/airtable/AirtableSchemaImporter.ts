@@ -589,8 +589,8 @@ function convertFormulaFieldReferences(
   const fieldRefs = Array.from(new Set(formula.match(/{fld[A-Za-z0-9]+}/g) ?? []));
 
   let newFormula = formula;
-  fieldRefs.forEach((fieldId, index) => {
-    newFormula = newFormula.split(fieldId).join(`$[R${index}]`);
+  fieldRefs.forEach((fieldRef, index) => {
+    newFormula = newFormula.split(fieldRef).join(`$[R${index}]`);
   });
 
   const replacements = fieldRefs.map((fieldRef) => {
