@@ -18,7 +18,7 @@ import pick from "lodash/pick";
 import moment from "moment";
 import * as sinon from "sinon";
 
-const assert = chai.assert;
+const assert: Chai.AssertStatic = chai.assert;
 
 let server: TestServer;
 let dbManager: HomeDBManager;
