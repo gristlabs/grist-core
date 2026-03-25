@@ -288,6 +288,7 @@ Please log in as an administrator.`)),
           expandedContent: this._supportGrist.buildSponsorshipSection(),
         }),
       ]),
+      this._buildMaintenanceSection(),
       dom.create(AdminSection, t("Server"), [
         dom.create(AdminSectionItem, {
           id: "home-url",
@@ -351,7 +352,6 @@ Please log in as an administrator.`)),
           expandedContent: this._storageConfigurator.buildDom({ showAction: false }),
         }),
       ]),
-      this._buildMaintenanceSection(),
       this._buildAuditLogsSection(),
       dom.create(AdminSection, t("Version"), [
         dom.create(AdminSectionItem, {
@@ -995,7 +995,7 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
         return dom.create(AdminSection, t("Maintenance"), []);
       }
       if (!isInService) {
-        // OUT OF SERVICE — prominent card with restore button directly visible.
+        // OUT OF SERVICE — prominent card with action button directly visible.
         return dom.create(AdminSection, t("Maintenance"), [
           cssOutOfServiceCard(
             cssOutOfServiceHeader(
@@ -1005,28 +1005,47 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
             ),
             cssOutOfServiceBody(
               t("Non-admin users are blocked. Documents and the API are not accessible " +
-                "until service is restored."),
+                "until Grist is put into service."),
             ),
             cssOutOfServiceActions(
               bigPrimaryButton(
-                t("Restore service"),
+                t("Put into service"),
                 dom.prop("disabled", use => use(status) === "working"),
-                dom.on("click", async () => {
-                  status.set("working");
-                  try {
-                    await this._configAPI.setMaintenanceMode(false);
-                    await this._configAPI.restartServer();
-                  } catch (err) {
-                    // Restart kills the connection, so errors are expected.
-                  }
-                  // Poll until the server is back, then reload.
-                  const poll = setInterval(async () => {
-                    try {
-                      await this._configAPI.healthcheck();
-                      clearInterval(poll);
-                      window.location.reload();
-                    } catch { /* not ready yet */ }
-                  }, 1000);
+                dom.on("click", () => {
+                  confirmModal(
+                    t("Put Grist into service?"),
+                    t("Confirm"),
+                    async () => {
+                      status.set("working");
+                      try {
+                        await this._configAPI.setMaintenanceMode(false);
+                        await this._configAPI.restartServer();
+                      } catch (err) {
+                        // Restart kills the connection, so errors are expected.
+                      }
+                      // Poll until the server is back, then reload.
+                      const poll = setInterval(async () => {
+                        try {
+                          await this._configAPI.healthcheck();
+                          clearInterval(poll);
+                          window.location.reload();
+                        } catch { /* not ready yet */ }
+                      }, 1000);
+                    },
+                    {
+                      explanation: dom("div",
+                        dom("p",
+                          t("This will make Grist available to all users. " +
+                            "Before proceeding, confirm that:"),
+                        ),
+                        cssConfirmList(
+                          dom("li", t("Authentication is configured correctly")),
+                          dom("li", t("Sandboxing is enabled for untrusted documents")),
+                          dom("li", t("Default permissions are appropriate")),
+                        ),
+                      ),
+                    },
+                  );
                 }),
                 testId("admin-panel-restore-button"),
               ),
@@ -1068,7 +1087,7 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
                   {
                     explanation: dom("div",
                       dom("p",
-                        t("Non-admin users will see a maintenance page until service is restored."),
+                        t("Non-admin users will see a maintenance page until Grist is put back into service."),
                       ),
                     ),
                   },
@@ -1293,7 +1312,7 @@ const cssAdminAccountItemPart = styled("span", `
   }
 `);
 
-// Out-of-service card: prominent, warm warning with direct restore action.
+// Out-of-service card: prominent, warm warning with direct action.
 const cssOutOfServiceCard = styled("div", `
   padding: 20px 24px;
   background: #fef7e0;
@@ -1332,6 +1351,12 @@ const cssOutOfServiceBody = styled("div", `
 const cssOutOfServiceActions = styled("div", `
   display: flex;
   gap: 12px;
+`);
+
+const cssConfirmList = styled("ul", `
+  margin: 8px 0 0 0;
+  padding-left: 20px;
+  line-height: 1.6;
 `);
 
 const cssMaintenanceHint = styled("span", `
