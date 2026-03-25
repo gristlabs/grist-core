@@ -158,5 +158,15 @@ describe("ScreenReader", function() {
     await gu.assertScreenReaderAnnouncement("row 1 Any");
   });
 
+  it("has cleaned up the announcements DOM on the fly", async function() {
+    await driver.sleep(3000);
+    // After all this navigation, we announced a lot of things, but the announcer should be empty after a brief pause
+    // in interactions. We actually intend that "clean up" = "remove all children", because how we "clean up" is a
+    // rather sensitive thing in a `aria-live` region. After a few tests, removing everything in one shot seems to be
+    // the most reliable way to prevent SRs from announcing weird things.
+    const children = await driver.findAll("#screen-reader-announcer > div");
+    assert.equal(children.length, 0);
+  });
+
   afterEach(() => gu.checkForErrors());
 });
