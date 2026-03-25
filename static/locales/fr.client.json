@@ -1154,7 +1154,9 @@
         "By Name": "Par Nom",
         "By Date Modified": "Par Date de modification",
         "Light": "Clair",
-        "Custom": "Personnalisé"
+        "Custom": "Personnalisé",
+        "Dark": "Sombre",
+        "Light (High Contrast)": "Clair (contraste élevé)"
     },
     "modals": {
         "Save": "Enregistrer",
