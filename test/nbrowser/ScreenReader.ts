@@ -158,5 +158,13 @@ describe("ScreenReader", function() {
     await gu.assertScreenReaderAnnouncement("row 1 Any");
   });
 
+  it("has cleaned up the announcements DOM on the fly", async function() {
+    await driver.sleep(2000);
+    // After all this navigation, we announced a lot of things, but the announcer should not keep everything in the DOM.
+    // This test is strongly tied to the implementation but we can't really test actual SRs behavior,
+    // so we have to make assumptions.
+    assert.isBelow((await driver.findAll("#screen-reader-announcer > div")).length, 11);
+  });
+
   afterEach(() => gu.checkForErrors());
 });
