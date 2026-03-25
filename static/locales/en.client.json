@@ -1163,7 +1163,9 @@
         "By Name": "By Name",
         "By Date Modified": "By date Modified",
         "Light": "Light",
-        "Custom": "Custom"
+        "Custom": "Custom",
+        "Dark": "Dark",
+        "Light (High Contrast)": "Light (High Contrast)"
     },
     "modals": {
         "Cancel": "Cancel",
