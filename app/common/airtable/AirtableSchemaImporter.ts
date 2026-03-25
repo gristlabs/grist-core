@@ -586,11 +586,11 @@ class CountLimitationWarning implements DocSchemaImportWarning {
 function convertFormulaFieldReferences(
   formula: string, getTableIdForField: (fieldId: string) => string,
 ): FormulaTemplate {
-  const fieldRefs = Array.from(new Set(formula.match(/{fld[A-Za-z0-9]+}/g)));
+  const fieldRefs = Array.from(new Set(formula.match(/{fld[A-Za-z0-9]+}/g) ?? []));
 
   let newFormula = formula;
   fieldRefs.forEach((fieldId, index) => {
-    newFormula = newFormula.replace(new RegExp(fieldId, "g"), `$[R${index}]`);
+    newFormula = newFormula.split(fieldId).join(`$[R${index}]`);
   });
 
   const replacements = fieldRefs.map((fieldRef) => {
