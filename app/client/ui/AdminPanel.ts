@@ -1182,11 +1182,13 @@ learn more.",
   }
 }
 
-// Ugh I'm not a front end person. h5 small-caps, sure why not.
-// Hopefully someone with taste will edit someday!
 const cssCheckHeader = styled("h5", `
-  margin-bottom: 5px;
-  font-variant: small-caps;
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: ${theme.lightText};
 `);
 
 const cssStatus = styled("div", `
@@ -1205,6 +1207,11 @@ const cssPageContainer = styled("div", `
   font-size: ${vars.introFontSize};
   color: ${theme.text};
   outline: none;
+  background: radial-gradient(
+    ellipse at 50% 0%,
+    color-mix(in srgb, ${theme.controlPrimaryBg} 5%, transparent) 0%,
+    transparent 70%
+  );
 
   &-admin-pages {
     padding: 12px;

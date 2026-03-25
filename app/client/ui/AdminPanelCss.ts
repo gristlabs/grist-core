@@ -75,7 +75,11 @@ export function AdminSectionItem(owner: IDisposableOwner, options: {
     const isCollapsed = Observable.create(owner, true);
     return cssItem(
       cssItemShort(
-        itemContent(dom.domComputed(isCollapsed, c => cssCollapseIcon(c ? "Expand" : "Collapse"))),
+        itemContent(),
+        cssExpandIndicator(
+          cssExpandChevron("Dropdown"),
+          cssExpandChevron.cls("-open", use => !use(isCollapsed)),
+        ),
         cssItemShort.cls("-expandable"),
         dom.on("click", () => isCollapsed.set(!isCollapsed.get())),
       ),
@@ -106,20 +110,39 @@ export function AdminSectionItem(owner: IDisposableOwner, options: {
 }
 
 export const cssSection = styled("div", `
-  padding: 24px;
+  padding: 28px 32px;
   max-width: 750px;
   width: 100%;
   margin: 16px auto;
   border: 1px solid ${theme.widgetBorder};
-  border-radius: 4px;
+  border-radius: 10px;
+  background: ${theme.mainPanelBg};
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04),
+              0 2px 8px 0 rgba(0, 0, 0, 0.03);
+  transition: box-shadow 0.2s ease;
   & > div + div {
     margin-top: 8px;
   }
 
+  animation: adminFadeUp 0.3s ease both;
+
+  @keyframes adminFadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Stagger entrance: each section gets a slightly later start. */
+  &:nth-child(2) { animation-delay: 0.06s; }
+  &:nth-child(3) { animation-delay: 0.12s; }
+  &:nth-child(4) { animation-delay: 0.18s; }
+  &:nth-child(5) { animation-delay: 0.24s; }
+  &:nth-child(6) { animation-delay: 0.30s; }
+  &:nth-child(7) { animation-delay: 0.36s; }
+
   @media ${mediaSmall} {
     & {
       width: auto;
-      padding: 12px;
+      padding: 16px;
       margin: 8px;
     }
   }
@@ -128,9 +151,12 @@ export const cssSection = styled("div", `
 export const cssSectionTitle = styled("div", `
   height: 32px;
   line-height: 32px;
-  margin-bottom: 8px;
-  font-size: ${vars.headerControlFontSize};
-  font-weight: ${vars.headerControlTextWeight};
+  margin-bottom: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: ${theme.lightText};
 `);
 
 export const cssItem = styled("div", `
@@ -144,11 +170,12 @@ const cssItemShort = styled("div", `
   row-gap: 4px;
   flex-wrap: nowrap;
   align-items: center;
-  padding: 8px;
-  margin: 0 -8px;
-  border-radius: 4px;
+  padding: 10px 12px;
+  margin: 0 -12px;
+  border-radius: 8px;
   justify-content: space-around;
   flex-direction: row;
+  transition: background-color 0.15s ease;
   &-expandable {
     cursor: pointer;
   }
@@ -170,17 +197,15 @@ const cssItemShort = styled("div", `
 
 const cssItemName = styled("div", `
   width: 230px;
-  font-weight: bold;
+  font-weight: 600;
   display: flex;
   align-items: center;
   margin-right: 14px;
   font-size: ${vars.largeFontSize};
-  padding-left: 24px;
   &-prefixed {
     padding-left: 0;
   }
   &-full {
-    padding-left: 0;
     width: unset;
   }
   &-flash {
@@ -190,15 +215,7 @@ const cssItemName = styled("div", `
     0%   { background-color: var(--grist-theme-primary-emphasis, inherit); }
     100% { background-color: inherit; }
   }
-  @container line (max-width: 500px) {
-    & {
-      padding-left: 0;
-    }
-  }
   @media ${mediaSmall} {
-    & {
-      padding-left: 0;
-    }
     &:first-child {
       margin-left: 0;
     }
@@ -209,6 +226,9 @@ const cssItemDescription = styled("div", `
   width: 250px;
   margin-right: auto;
   margin-bottom: -1px; /* aligns with the value */
+  color: ${theme.lightText};
+  font-size: 13px;
+  line-height: 1.4;
 `);
 
 const cssItemValue = styled("div", `
@@ -224,12 +244,30 @@ const cssItemValue = styled("div", `
   }
 `);
 
-const cssCollapseIcon = styled(icon, `
-  width: 24px;
-  height: 24px;
-  margin-right: 4px;
-  margin-left: -4px;
+const cssExpandIndicator = styled("div", `
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  margin-left: 8px;
+  transition: background-color 0.15s ease;
+  .${cssItemShort.className}:hover & {
+    background-color: color-mix(in srgb, ${theme.lightText} 12%, transparent);
+  }
+`);
+
+const cssExpandChevron = styled(icon, `
+  width: 16px;
+  height: 16px;
   --icon-color: ${theme.lightText};
+  transform: rotate(-90deg);
+  transition: transform 0.2s ease;
+  &-open {
+    transform: rotate(0deg);
+  }
 `);
 
 const cssExpandedContentWrap = styled("div", `
@@ -239,25 +277,22 @@ const cssExpandedContentWrap = styled("div", `
 `);
 
 const cssExpandedContent = styled("div", `
-  margin-left: 24px;
-  padding: 18px 0;
-  border-bottom: 1px solid ${theme.widgetBorder};
+  margin-left: 8px;
+  padding: 16px 0 18px;
+  border-bottom: 1px solid color-mix(in srgb, ${theme.widgetBorder} 50%, transparent);
   .${cssItem.className}:last-child & {
     padding-bottom: 0;
     border-bottom: none;
   }
-  @container line (max-width: 500px) {
-    & {
-      margin-left: 0px;
-    }
-  }
 `);
 
 export const cssValueLabel = styled("div", `
-  padding: 4px 8px;
+  padding: 4px 10px;
   color: ${theme.text};
   border: 1px solid ${theme.inputBorder};
-  border-radius: ${vars.controlBorderRadius};
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 500;
 `);
 
 export const cssTextArea = styled(textarea, `
