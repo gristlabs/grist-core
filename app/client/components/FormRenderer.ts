@@ -189,7 +189,7 @@ class SubmitRenderer extends FormRenderer {
       css.submitButtons(
         css.resetButton(
           t("Reset"),
-          dom.attr("aria-disabled", use => use(this.context.disabled) ? "true" : "false"),
+          dom.attr("data-disabled", use => use(this.context.disabled) ? "true" : "false"),
           { type: "button" },
           dom.on("click", (event) => {
             if (this.context.disabled.get()) {
@@ -205,7 +205,11 @@ class SubmitRenderer extends FormRenderer {
         ),
         css.submitButton(
           dom("button",
-            dom.attr("aria-disabled", use => use(this.context.disabled) ? "true" : "false"),
+            // We could use aria-disabled here to, on paper, better expose the state to screen readers.
+            // But we don't on purpose, to prevent too much verbosity, as the submit button *always* gets disabled
+            // on form submission, while it is submitting. Since the text of the button changes when submitting,
+            // it's actually better to not expose it as aria-disabled in addition to the text change.
+            dom.attr("data-disabled", use => use(this.context.disabled) ? "true" : "false"),
             { type: "submit" },
             dom.domComputed((use) => {
               return use(this.context.disabled) ?
@@ -269,6 +273,7 @@ abstract class BaseFieldRenderer extends Disposable {
       this.label(),
       dom("div", this.input()),
       this.fieldDomAttributes(),
+      testId("field"),
     );
   }
 
@@ -564,6 +569,8 @@ class ChoiceRenderer extends BaseFieldRenderer  {
             })),
             onClose: () => { setTimeout(() => this._selectElement.focus()); },
             placeholder: t("Search"),
+            ariaLabelInput: t("Search options for {{-inputLabel}}", { inputLabel: this.field.question }),
+            ariaLabelList: t("Options for {{-inputLabel}}", { inputLabel: this.field.question }),
             acOptions: { maxResults: 100, keepOrder: false, showEmptyItems: true },
             popupOptions: {
               trigger: [
@@ -637,6 +644,7 @@ class BoolRenderer extends BaseFieldRenderer {
   public render() {
     return css.field(
       dom("div", this.input()),
+      testId("field"),
     );
   }
 
@@ -926,6 +934,8 @@ class RefRenderer extends BaseFieldRenderer {
             onClose: () => { setTimeout(() => this._selectElement.focus()); },
             acOptions: { maxResults: 100, keepOrder: false, showEmptyItems: true },
             placeholder: "Search",
+            ariaLabelInput: t("Search options for {{-inputLabel}}", { inputLabel: this.field.question }),
+            ariaLabelList: t("Options for {{-inputLabel}}", { inputLabel: this.field.question }),
             popupOptions: {
               trigger: [
                 "click",

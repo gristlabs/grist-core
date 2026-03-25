@@ -1969,7 +1969,9 @@
         "Search": "Rechercher",
         "Reset": "Réinitialiser",
         "Submitting…": "En cours de soumission…",
-        "Clear selection for: {{-inputLabel}}": "Effacer la sélection pour : {{-inputLabel}}"
+        "Clear selection for: {{-inputLabel}}": "Effacer la sélection pour : {{-inputLabel}}",
+        "Options for {{-inputLabel}}": "Options pour {{-inputLabel}}",
+        "Search options for {{-inputLabel}}": "Rechercher des options pour {{-inputLabel}}"
     },
     "widgetTypesMap": {
         "Table": "Table",
