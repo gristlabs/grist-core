@@ -989,27 +989,71 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
       .then(result => inService.set(result.inService))
       .catch(() => inService.set(null));
 
-    return dom.create(AdminSection, t("Maintenance"), [
-      dom.create(AdminSectionItem, {
-        id: "maintenance-mode",
-        name: t("Service Status"),
-        description: t("Take Grist out of service for maintenance. " +
-          "Non-admin users will be blocked until service is restored."),
-        value: dom.domComputed(inService, (isInService) => {
-          if (isInService === null) { return null; }
-          return isInService ?
-            cssValueLabel(cssHappyText(t("In Service")), testId("admin-panel-service-status")) :
-            cssValueLabel(cssDangerText(t("Out of Service")), testId("admin-panel-service-status"));
-        }),
-        expandedContent: dom.domComputed(inService, (isInService) => {
-          if (isInService === null) { return null; }
-          if (isInService) {
-            return basicButton(
-              t("Take Out of Service"),
+    return dom.domComputed(inService, (isInService) => {
+      if (isInService === null) {
+        // Still loading — show an empty section placeholder.
+        return dom.create(AdminSection, t("Maintenance"), []);
+      }
+      if (!isInService) {
+        // OUT OF SERVICE — prominent card with restore button directly visible.
+        return dom.create(AdminSection, t("Maintenance"), [
+          cssOutOfServiceCard(
+            cssOutOfServiceHeader(
+              cssOutOfServiceIcon("Warning"),
+              cssOutOfServiceTitle(t("Grist is out of service")),
+              testId("admin-panel-service-status"),
+            ),
+            cssOutOfServiceBody(
+              t("Non-admin users are blocked. Documents and the API are not accessible " +
+                "until service is restored."),
+            ),
+            cssOutOfServiceActions(
+              bigPrimaryButton(
+                t("Restore service"),
+                dom.prop("disabled", use => use(status) === "working"),
+                dom.on("click", async () => {
+                  status.set("working");
+                  try {
+                    await this._configAPI.setMaintenanceMode(false);
+                    await this._configAPI.restartServer();
+                  } catch (err) {
+                    // Restart kills the connection, so errors are expected.
+                  }
+                  // Poll until the server is back, then reload.
+                  const poll = setInterval(async () => {
+                    try {
+                      await this._configAPI.healthcheck();
+                      clearInterval(poll);
+                      window.location.reload();
+                    } catch { /* not ready yet */ }
+                  }, 1000);
+                }),
+                testId("admin-panel-restore-button"),
+              ),
+            ),
+          ),
+        ]);
+      }
+      // IN SERVICE — compact row, destructive action tucked behind collapse.
+      return dom.create(AdminSection, t("Maintenance"), [
+        dom.create(AdminSectionItem, {
+          id: "maintenance-mode",
+          name: t("Service"),
+          description: t("Grist is running normally."),
+          value: cssValueLabel(cssHappyText(t("In service")),
+            testId("admin-panel-service-status")),
+          expandedContent: dom("div",
+            dom("p", cssMaintenanceHint(
+              t("Taking Grist out of service blocks all non-admin access. " +
+                "Use this for maintenance windows or when switching auth providers."),
+            )),
+            basicButton(
+              t("Take out of service"),
+              dom.cls("admin-panel-maintenance-button"),
               dom.prop("disabled", use => use(status) === "working"),
               dom.on("click", () => {
                 confirmModal(
-                  t("Take Grist Out of Service?"),
+                  t("Take out of service?"),
                   t("Confirm"),
                   async () => {
                     status.set("working");
@@ -1024,41 +1068,18 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
                   {
                     explanation: dom("div",
                       dom("p",
-                        t("This will take Grist out of service. Non-admin users will see " +
-                          "the boot-key login page until service is restored."),
+                        t("Non-admin users will see a maintenance page until service is restored."),
                       ),
                     ),
                   },
                 );
               }),
               testId("admin-panel-maintenance-button"),
-            );
-          }
-          return basicButton(
-            t("Restore Service"),
-            dom.prop("disabled", use => use(status) === "working"),
-            dom.on("click", async () => {
-              status.set("working");
-              try {
-                await this._configAPI.setMaintenanceMode(false);
-                await this._configAPI.restartServer();
-              } catch (err) {
-                // Restart kills the connection, so errors are expected.
-              }
-              // Poll until the server is back, then reload.
-              const poll = setInterval(async () => {
-                try {
-                  await this._configAPI.healthcheck();
-                  clearInterval(poll);
-                  window.location.reload();
-                } catch { /* not ready yet */ }
-              }, 1000);
-            }),
-            testId("admin-panel-restore-button"),
-          );
+            ),
+          ),
         }),
-      }),
-    ]);
+      ]);
+    });
   }
 
   private _buildAuditLogsSection() {
@@ -1270,6 +1291,53 @@ const cssAdminAccountItemPart = styled("span", `
   &>:not(div) {
     padding: 12px 24px 12px 16px;
   }
+`);
+
+// Out-of-service card: prominent, warm warning with direct restore action.
+const cssOutOfServiceCard = styled("div", `
+  padding: 20px 24px;
+  background: #fef7e0;
+  border: 1px solid #f0d78e;
+  border-radius: 8px;
+  border-left: 4px solid #b45309;
+`);
+
+const cssOutOfServiceHeader = styled("div", `
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+`);
+
+const cssOutOfServiceIcon = styled(icon, `
+  width: 20px;
+  height: 20px;
+  --icon-color: #b45309;
+  flex-shrink: 0;
+`);
+
+const cssOutOfServiceTitle = styled("div", `
+  font-size: 15px;
+  font-weight: 600;
+  color: #92400e;
+`);
+
+const cssOutOfServiceBody = styled("div", `
+  font-size: 13px;
+  color: #78350f;
+  line-height: 1.5;
+  margin-bottom: 16px;
+`);
+
+const cssOutOfServiceActions = styled("div", `
+  display: flex;
+  gap: 12px;
+`);
+
+const cssMaintenanceHint = styled("span", `
+  color: ${theme.lightText};
+  font-size: 13px;
+  line-height: 1.5;
 `);
 
 async function reloadSafe() {
