@@ -38,7 +38,7 @@ describe("Smoke", function() {
     await gu.getCell("A", 1).click();
 
     await gu.enterCell("123");
-    // Also ensure that we don't require typing Enter to enter in editor mode
+    // Also ensure that we can enter content by just typing values directly on cells.
     await gu.getCell("B", 1).click();
     await gu.pressKeysOnCell("3");
     await driver.wait(() => driver.find(".cell_editor").isDisplayed(), 1000);
