@@ -1,8 +1,10 @@
 /**
  * Test of the UI for Granular Access Control, part 1.
  */
-import { enterRulePart, expandRulesetColumns, findDefaultRuleSet, findDefaultRuleSetWait, findRuleSet,
-  findTable, findTableWait, startEditingAccessRules, triggerAutoComplete } from "test/nbrowser/aclTestUtils";
+import {
+  enterRulePart, findDefaultRuleSet, findDefaultRuleSetWait, findRuleSet, findRuleSetColumnWait,
+  findTable, findTableWait, startEditingAccessRules, triggerAutoComplete,
+} from "test/nbrowser/aclTestUtils";
 import * as gu from "test/nbrowser/gristUtils";
 import { server } from "test/nbrowser/testServer";
 import { setupTestSuite } from "test/nbrowser/testUtils";
@@ -124,7 +126,7 @@ describe("AccessRules1", function() {
     await gu.findOpenMenuItem("li", /Add column rule/).click();
     ruleSet = findRuleSet(/ClientsTable/, 1);
 
-    await expandRulesetColumns(ruleSet);
+    await ruleSet.find(".test-rule-resource .test-select-open").click();
     assert.deepEqual(
       await gu.findOpenMenuAllItems("li", el => el.getText()),
       [
@@ -365,8 +367,8 @@ describe("AccessRules1", function() {
     // Add a column rule that uses rec but doesn't set read permission.
     await findTable(/FinancialsTable/).find(".test-rule-table-menu-btn").click();
     await gu.findOpenMenuItem("li", /Add column rule/).click();
-    let ruleSet = findRuleSet(/FinancialsTable/, 1);
-    await expandRulesetColumns(ruleSet);
+    let ruleSet = await findRuleSetColumnWait(/FinancialsTable/);
+    await ruleSet.find(".test-rule-resource .test-select-open").click();
     assert.deepEqual(
       await gu.findOpenMenuAllItems("li", el => el.getText()),
       ["Expenses", "Income", "Year"],
@@ -396,28 +398,28 @@ describe("AccessRules1", function() {
     await driver.findWait(".test-rule-set", 2000);
     await findTable(/FinancialsTable/).find(".test-rule-table-menu-btn").click();
     await gu.findOpenMenuItem("li", /Add column rule/).click();
-    let ruleSet = findRuleSet(/FinancialsTable/, 1);
-    await expandRulesetColumns(ruleSet);
+    let ruleSet = await findRuleSetColumnWait(/FinancialsTable/);
+    await ruleSet.find(".test-rule-resource .test-select-open").click();
     assert.deepEqual(
       await gu.findOpenMenuAllItems("li", el => el.getText()),
       ["Expenses", "Income", "Year"],
     );
     await gu.findOpenMenuItem("li", "Year").click();
-    await expandRulesetColumns(ruleSet);
+    await ruleSet.find(".test-rule-resource .test-select-open").click();
     await gu.findOpenMenuItem("li", "Income").click();
     await enterRulePart(ruleSet, 1, 'user.Email == "noone1"', { R: "deny" });
 
     // Make a rule for FinancialsTable.Year and FinancialsTable.Expenses that allows something.
     await findTable(/FinancialsTable/).find(".test-rule-table-menu-btn").click();
     await gu.findOpenMenuItem("li", /Add column rule/).click();
-    ruleSet = findRuleSet(/FinancialsTable/, 2);
-    await expandRulesetColumns(ruleSet);
+    ruleSet = findRuleSetColumnWait(/FinancialsTable/, 2);
+    await ruleSet.find(".test-rule-resource .test-select-open").click();
     assert.deepEqual(
       await gu.findOpenMenuAllItems("li", el => el.getText()),
       ["Expenses", "Income", "Year"],
     );
     await gu.findOpenMenuItem("li", "Year").click();
-    await expandRulesetColumns(ruleSet);
+    await ruleSet.find(".test-rule-resource .test-select-open").click();
     await gu.findOpenMenuItem("li", "Expenses").click();
     await enterRulePart(ruleSet, 1, 'user.Email == "noone2"', { R: "allow" });
 

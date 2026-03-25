@@ -1,9 +1,11 @@
 /**
  * Test of the UI for Granular Access Control, part 3.
  */
-import { assertChanged, assertSaved, enterRulePart, expandRulesetColumns, findDefaultRuleSet,
-  findRuleSet, findRuleSetWait, findTableWait, getRules, hasExtraAdd, removeRules,
-  removeTable, startEditingAccessRules } from "test/nbrowser/aclTestUtils";
+import {
+  assertChanged, assertSaved, enterRulePart, findDefaultRuleSet,
+  findRuleSetColumnWait, findRuleSetWait, findTableWait, getRules, hasExtraAdd, removeRules,
+  removeTable, startEditingAccessRules,
+} from "test/nbrowser/aclTestUtils";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
 
@@ -333,8 +335,8 @@ describe("AccessRules3", function() {
       let fin = findTableWait(/FinancialsTable/);
       await fin.find(".test-rule-table-menu-btn").click();
       await gu.findOpenMenuItem("li", /Add column rule/).click();
-      const ruleSet = findRuleSet(/FinancialsTable/, 1);
-      await expandRulesetColumns(ruleSet);
+      const ruleSet = findRuleSetColumnWait(/FinancialsTable/);
+      await ruleSet.find(".test-rule-resource .test-select-open").click();
       await gu.findOpenMenuItem("li", "Year").click();
       assert.deepEqual(await getRules(fin),
         [{ formula: "user.Access in [OWNER]", perm: "+R+U", res: "Year\n[Add Column]" },

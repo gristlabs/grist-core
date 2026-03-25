@@ -74,6 +74,12 @@ export function findRuleSetWait(tableId: RegExp | "*", ruleNum: number): WebElem
   return table.find(`.test-rule-set:nth-child(${ruleNum + 1})`);
 }
 
+export function findRuleSetColumnWait(tableId: RegExp | "*", ruleNum?: number) {
+  const table = findTableWait(tableId);
+  const maybeNth = ruleNum !== undefined ? `:nth-child(${ruleNum + 1})` : "";
+  return table.findWait(`.test-rule-set-column${maybeNth}`, 5000);
+}
+
 /**
  * PartNum should be 1-based. Permissions is either the text of an option in the permission
  * widget's dropdown menu (e.g. "Allow All") or a mapping of single-character bit to desired
@@ -249,11 +255,4 @@ export async function startEditingAccessRules() {
   }
   await driver.findWait(".test-rule-set", 200);
   await gu.waitForServer();  // Assert also for any validity checking to complete.
-}
-
-export async function expandRulesetColumns(ruleSet: WebElement) {
-  // weasel popups uses setTimeout(0). Retry until the column rule set appears in the DOM.
-  await gu.waitToPass(async () => {
-    await ruleSet.find(".test-rule-resource .test-select-open").click();
-  }, 2000);
 }
