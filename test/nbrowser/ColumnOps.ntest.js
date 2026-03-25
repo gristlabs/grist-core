@@ -283,7 +283,7 @@ describe("ColumnOps.ntest", function() {
 
 async function showColumn(name) {
   await gu.waitForServer();
-  await $(`.test-new-columns-menu-hidden-column-inlined:contains(${name})`).click();
+  await $(`.test-new-columns-menu-hidden-column-inlined:contains(${name})`).wait().click();
 }
 
 async function shouldHaveColumnHeader(name) {

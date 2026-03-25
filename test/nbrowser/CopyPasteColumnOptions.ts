@@ -52,10 +52,12 @@ describe("CopyPasteColumnOptions", function() {
 
     // Copy all the data from Table1 to Table2, which will copy the column options
     await gu.getCell({ section: "TABLE1", col: 0, rowNum: 1 }).click();
+    await gu.waitAppFocus();
     await gu.sendKeys(await gu.selectAllKey());
     await clipboard.lockAndPerform(async (cb) => {
       await cb.copy();
       await gu.getCell({ section: "TABLE2", col: 0, rowNum: 1 }).click();
+      await gu.waitAppFocus();
       await cb.paste();
     });
     await gu.waitForServer();

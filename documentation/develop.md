@@ -164,6 +164,24 @@ Running in headless mode allows you to run the tests in background, without the 
 
 Running in normal mode helps you understand better what happens when writing or debugging tests.
 
+### Flakiness on CI
+
+When you discover flakiness on the CI, these options are offered to you (which are non-exclusive):
+
+1. Run tests 20 times and stop at the first error:
+```bash
+# Example below for nbrowser tests
+for i in {1..20}; do GREP_TESTS="^yourTestSuiteHere\b" yarn test:nbrowser:ci -- -- --bail || break; echo "✅ Step $i 🎉"; done
+```
+  - NB: You can also change the code to add a for-loop around a `describe()` section in tests, that's recommended for `projects` tests due to the build of the webpack assets
+2. Download the assets, check the snapshots when the errors occurred
+3. On Linux: Use [systemd-run](https://manpages.debian.org/trixie/systemd/systemd-run.1.en.html) on Linux to make nodejs and the browser run slower
+```bash
+# Example below for projects tests
+# You can adapt the value for --cpu-limit
+for i in {1..20}; do GREP_TESTS="^yourTestSuiteHere\b" systemd-run --scope -p CPUQuota=50% --user yarn run test:nbrowser:ci -- -- --bail || break; echo "✅ Step $i 🎉"; done
+```
+
 ### Browser version issues
 
 End-to-end tests are run in the GitHub CI with a specific _Chrome_ version that is known to run the tests smoothly.

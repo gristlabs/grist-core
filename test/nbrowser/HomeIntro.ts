@@ -118,14 +118,14 @@ describe("HomeIntro", function() {
       assert.isFalse(await driver.find(".test-welcome-menu").isPresent());
     } else {
       await driver.find(".test-welcome-menu").click();
-      await driver.find(".test-welcome-menu-only-show-documents").click();
+      await driver.findWait(".test-welcome-menu-only-show-documents", 1000).click();
       await gu.waitForServer();
       assert.isFalse(await driver.find(".test-intro-cards").isPresent());
       await driver.navigate().refresh();
       await gu.waitForDocMenuToLoad();
       assert.isFalse(await driver.find(".test-intro-cards").isPresent());
       await driver.find(".test-welcome-menu").click();
-      await driver.find(".test-welcome-menu-only-show-documents").click();
+      await driver.findWait(".test-welcome-menu-only-show-documents", 1000).click();
       await gu.waitForServer();
       assert.isTrue(await driver.find(".test-intro-cards").isDisplayed());
     }
@@ -167,7 +167,7 @@ describe("HomeIntro", function() {
       if (!isLoggedIn) {
         assert.equal(await driver.find(".test-tb-share-action").getText(), "Save Document");
         await driver.find(".test-tb-share").click();
-        assert.equal(await driver.find(".test-save-copy").isPresent(), true);
+        assert.equal(await driver.findWait(".test-save-copy", 1000).isPresent(), true);
         // There is no original of this document.
         assert.equal(await driver.find(".test-open-original").isPresent(), false);
       } else {
@@ -339,7 +339,7 @@ async function waitAndDismiss() {
 async function deleteFirstDoc() {
   assert.equal(await driver.find(".test-dm-doc").isPresent(), true);
   await driver.find(".test-dm-doc").mouseMove().find(".test-dm-doc-options").click();
-  await driver.find(".test-dm-delete-doc").click();
+  await driver.findWait(".test-dm-delete-doc", 1000).click();
   await driver.find(".test-modal-confirm").click();
   await gu.waitForServer();
   await driver.wait(async () => !(await driver.find(".test-modal-dialog").isPresent()), 3000);

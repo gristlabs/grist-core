@@ -174,8 +174,7 @@ describe("FieldConfigTab.ntest", function() {
     await gu.waitForServer();
     var cell = await gu.getCellRC(0, 2);
     await cell.click();     // row index 0, column index 2
-    await gu.sendKeys("17", $.ENTER);
-    await gu.waitForServer();
+    await gu.enterCell("17");
     assert.equal(await cell.text(), "17");
     await assert.hasClass(cell.find(".field_clip"), "invalid", false);
 
@@ -186,8 +185,7 @@ describe("FieldConfigTab.ntest", function() {
     await gu.waitForServer();
     cell = await gu.getCellRC(0, 2);
     await cell.click();     // row index 0, column index 2
-    await gu.sendKeys("23", $.ENTER);
-    await gu.waitForServer();
+    await gu.enterCell("23");
     assert.equal(await cell.text(), "23");
     await assert.hasClass(cell.find(".field_clip"), "invalid", false);
   });

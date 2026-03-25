@@ -222,7 +222,7 @@ describe("UserManager", function() {
     await driver.get(`${server.getHost()}/o/fish`);
     await gu.waitForDocMenuToLoad();
     await gu.openWsDropdown("Small");
-    assert(await driver.find(".test-dm-rename-workspace").matches(".disabled"));
+    assert(await driver.findWait(".test-dm-rename-workspace", 1000).matches(".disabled"));
     assert(await driver.find(".test-dm-delete-workspace").matches(".disabled"));
     await canEditAccess(driver.find(".test-dm-workspace-access"), false);
 

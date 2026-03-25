@@ -14,7 +14,7 @@ describe("DuplicateDocument", function() {
 
     // Open the share menu and click item to work on a copy.
     await driver.find(".test-tb-share").click();
-    await driver.find(".test-save-copy").click();
+    await driver.findWait(".test-save-copy", 1000).click();
 
     // Should not allow saving a copy to an empty name.
     await driver.findWait(".test-modal-dialog", 1000);
@@ -42,7 +42,7 @@ describe("DuplicateDocument", function() {
 
     // Open the share menu and click item to work on a copy.
     await driver.find(".test-tb-share").click();
-    await driver.find(".test-work-on-copy").click();
+    await driver.findWait(".test-work-on-copy", 1000).click();
 
     await gu.waitForUrl(/~/);
     await gu.waitForDocToLoad();
@@ -58,10 +58,10 @@ describe("DuplicateDocument", function() {
   it("should allow saving the fork as a new copy", async function() {
     // Make a change to the fork to ensure it's saved.
     await gu.getCell({ col: "A", rowNum: 1 }).click();
-    await driver.sendKeys("hello to duplicates", Key.ENTER);
+    await gu.enterCell("hello to duplicates");
 
     await driver.find(".test-tb-share").click();
-    await driver.find(".test-save-copy").click();
+    await driver.findWait(".test-save-copy", 1000).click();
     await gu.completeCopy({ destName: "DuplicateTest2", destWorkspace: "Test Workspace" });
     urlId = (await gu.getCurrentUrlId())!;
 
@@ -75,7 +75,7 @@ describe("DuplicateDocument", function() {
       this.skip();
     }
     await driver.find(".test-tb-share").click();
-    await driver.find(".test-save-copy").click();
+    await driver.findWait(".test-save-copy", 1000).click();
     await driver.findWait(".test-modal-dialog", 1000);
     assert.equal(await driver.find(".test-copy-dest-name").value(), "DuplicateTest2 (copy)");
     assert.equal(await driver.find(".test-copy-dest-org").isPresent(), true);
@@ -111,7 +111,7 @@ describe("DuplicateDocument", function() {
     await session2.loadDoc(`/doc/${urlId}`);
 
     await driver.find(".test-tb-share").click();
-    await driver.find(".test-save-copy").click();
+    await driver.findWait(".test-save-copy", 1000).click();
     await driver.findWait(".test-modal-dialog", 1000);
     assert.equal(await driver.find(".test-copy-dest-name").value(), "DuplicateTest2 (copy)");
     // No choice of orgs
@@ -149,7 +149,7 @@ describe("DuplicateDocument", function() {
     await session2.loadDoc(`/doc/${urlId}`);
 
     await driver.find(".test-tb-share").click();
-    await driver.find(".test-save-copy").click();
+    await driver.findWait(".test-save-copy", 1000).click();
     await driver.findWait(".test-modal-dialog", 1000);
     assert.equal(await driver.find(".test-copy-dest-name").value(), "DuplicateTest2 (copy)");
 
@@ -194,7 +194,7 @@ describe("DuplicateDocument", function() {
 
     // Open the "Duplicate Document" dialog.
     await driver.find(".test-tb-share").click();
-    await driver.find(".test-save-copy").click();
+    await driver.findWait(".test-save-copy", 1000).click();
     await driver.findWait(".test-modal-dialog", 1000);
     assert.equal(await driver.find(".test-copy-dest-name").value(), "DuplicateTest2 (copy)");
 
@@ -228,7 +228,7 @@ describe("DuplicateDocument", function() {
     await gu.waitForServer();
 
     await driver.find(".test-tb-share").click();
-    await driver.find(".test-save-copy").click();
+    await driver.findWait(".test-save-copy", 1000).click();
     await driver.findWait(".test-modal-dialog", 1000);
     await driver.find(".test-save-as-template").click();
     await gu.completeCopy({ destName: "DuplicateTest3", destWorkspace: "Test Workspace" });
