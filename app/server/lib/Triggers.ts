@@ -14,7 +14,8 @@ import { CompiledPredicateFormula, compilePredicateFormula, ParsedPredicateFormu
 import { StringUnion } from "app/common/StringUnion";
 import { MetaRowRecord } from "app/common/TableData";
 import { CellDelta } from "app/common/TabularDiff";
-import { TriggerAction } from "app/common/Triggers";
+import { CompiledTriggerConfig, compileTriggerConfig } from "app/common/TriggerConditionEval";
+import { ConditionType, TriggerAction } from "app/common/Triggers";
 import TriggersTI from "app/common/Triggers-ti";
 import { ActiveDoc } from "app/server/lib/ActiveDoc";
 import { makeExceptionalDocSession } from "app/server/lib/DocSession";
@@ -83,9 +84,15 @@ interface Task {
 // then delegates actual webhook queue management and HTTP delivery to WebhookQueue.
 // Triggers are configured in the document, while details of webhooks (URLs) are kept
 // in the Secrets table of the Home DB.
+// A compiled condition is either a text-mode predicate formula or a config-mode evaluator.
+type CompiledCondition =
+  | { mode: "text"; formula: CompiledPredicateFormula } |
+  { mode: "config"; compiled: CompiledTriggerConfig } |
+  null;
+
 export class DocTriggers {
-  // Cache for compiled trigger expressions, keyed by the expression text.
-  private _conditionCache = new Map<string, CompiledPredicateFormula | null>();
+  // Cache for compiled predicate formulas (text mode), keyed by the condition string.
+  private _formulaCache = new Map<string, CompiledCondition>();
 
   constructor(
     private _activeDoc: ActiveDoc,
@@ -96,7 +103,7 @@ export class DocTriggers {
    * Clears the cache for compiled trigger expressions.
    */
   public clearCache(): void {
-    this._conditionCache.clear();
+    this._formulaCache.clear();
   }
 
   // Called after applying actions to a document and updating its data.
@@ -119,7 +126,15 @@ export class DocTriggers {
     const triggersTable = docData.getMetaTable("_grist_Triggers");
     const getTableId = docData.getMetaTable("_grist_Tables").getRowPropFunc("tableId");
 
-    const triggersByTableRef = _.groupBy(triggersTable.getRecords().filter(t => t.enabled), "tableRef");
+    const triggersByTableRef = _.groupBy(
+      triggersTable.getRecords().filter((t) => {
+        if (t.enabled) { return true; }
+        // Include disabled triggers that have monitor enabled.
+        const opts = safeJsonParse(t.options as string, {});
+        return opts.monitor === true;
+      }),
+      "tableRef",
+    );
     const triggersByTableId: [string, Trigger[]][] = [];
 
     // First we need a list of columns which must be included in full in the action summary
@@ -266,13 +281,21 @@ export class DocTriggers {
 
     const result: ActionPayload[] = [];
     for (const trigger of triggers) {
-      const actions = JSON.parse(trigger.actions) as TriggerAction[];
-      if (!actions.length) {
+      const actions = trigger.actions ? JSON.parse(trigger.actions) as TriggerAction[] : [];
+      const triggerOptions = trigger.options ? JSON.parse(trigger.options as string) : {};
+      const isMonitorEnabled = triggerOptions.monitor !== false;
+
+      if (!actions.length && !isMonitorEnabled) {
         continue;
       }
 
-      // Validate trigger actions and skip trigger if any action is invalid, while logging stats about it.
-      actions.forEach(action => TriggerActionTI.check(action));
+      // Validate trigger actions and skip trigger if any action is invalid.
+      try {
+        actions.forEach(action => TriggerActionTI.check(action));
+      } catch (e) {
+        this._log(`Skipping trigger ${trigger.id}: malformed action — ${e}`, { level: "warn" });
+        continue;
+      }
 
       if (trigger.isReadyColRef) {
         if (!this._validateColId(trigger.isReadyColRef, trigger.tableRef)) {
@@ -313,9 +336,31 @@ export class DocTriggers {
       },
       );
 
+      if (isMonitorEnabled && rowIndexesToSend.length > 0) {
+        // Monitor enabled: broadcast matched rows to connected clients via docChatter.
+        const monitorRows = rowIndexesToSend.map(rowIndex => ({
+          rowId: bulkColValues.id[rowIndex],
+          data: makePayload(rowIndex),
+        }));
+        const triggerEnabled = Boolean(trigger.enabled);
+
+        const getBlockedReason = (): string | undefined => {
+          if (!triggerEnabled) { return "Trigger disabled"; }
+          return undefined;
+        };
+
+        this._activeDoc.docClients.broadcastDocMessage(null, "docChatter", {
+          trigger: {
+            triggerId: trigger.id,
+            rows: monitorRows,
+            actions: actions.map(action => ({ id: action.id, type: action.type, blocked: getBlockedReason() })),
+          },
+        }).catch(e => this._log(`Error broadcasting monitor result: ${e}`, { level: "warn" }));
+      }
+
       for (const action of actions) {
         for (const rowIndex of rowIndexesToSend) {
-          const event = { id: action.id, action, payload: makePayload(rowIndex) };
+          const event = { id: action.id, action, payload: makePayload(rowIndex), triggerLabel: trigger.label };
           result.push(event);
         }
       }
@@ -408,21 +453,18 @@ export class DocTriggers {
       return false;
     }
 
-    // Check custom expression if present
-    const compiledFormula = getSetMapValue(
-      this._conditionCache,
-      trigger.condition,
-      () => this._compileFormula(trigger),
-    );
-    if (compiledFormula) {
+    // Check custom expression / config if present
+    const compiledCondition = this._compileCondition(trigger);
+    if (compiledCondition) {
       try {
-        // Compile and evaluate the expression using 'trigger' variant
-        return Boolean(compiledFormula(triggerFormulaContext(
-          { bulkColValues, rowIndex, rowId, recordDelta, tableDelta },
-        )));
+        const ctx = triggerFormulaContext({ bulkColValues, rowIndex, rowId, recordDelta, tableDelta });
+        if (compiledCondition.mode === "text") {
+          return Boolean(compiledCondition.formula(ctx));
+        } else {
+          return compiledCondition.compiled.matchesTrigger(ctx.rec, ctx.oldRec);
+        }
       } catch (e) {
         this._log(`Error evaluating trigger expression: ${e}`, { level: "warn", trigger: trigger.id });
-        // On error, don't trigger (safer default)
         return false;
       }
     }
@@ -430,23 +472,64 @@ export class DocTriggers {
     return true;
   }
 
-  private _compileFormula(trigger: Trigger) {
-    const condition: Partial<TriggerCondition> = safeJsonParse(trigger.condition as string, {});
-    const parsed = condition.parsed;
-    if (parsed) {
+  private _compileCondition(trigger: Trigger): CompiledCondition {
+    const conditionStr = trigger.condition as string;
+    if (!conditionStr) { return null; }
+
+    const condition: Partial<ConditionType> | null = safeJsonParse(conditionStr, {});
+    if (!condition) { return null; }
+
+    if (condition.config && !condition.parsed) {
       try {
-        // Compile and evaluate the expression using 'trigger' variant
-        const compiledFormula = compilePredicateFormula(
-          parsed,
-          { variant: "trigger" },
+        const config = condition.config;
+        const compiled = compileTriggerConfig(
+          config,
+          colId => this._getColumnType(colId, trigger.tableRef),
+          ref => this._getColId(ref) || undefined,
         );
-        return compiledFormula;
+        return { mode: "config", compiled };
       } catch (e) {
-        this._log(`Error evaluating trigger expression: ${e}`, { level: "warn", trigger: trigger.id });
-        // On error, don't trigger (safer default)
+        this._log(`Error compiling trigger config: ${e}`, { level: "warn", trigger: trigger.id });
         return null;
       }
     }
+
+    // Text mode: compiled predicate formula (cached — pure function of the parsed AST).
+    const parsed = condition.parsed;
+    if (parsed) {
+      return getSetMapValue(this._formulaCache, conditionStr, () => {
+        try {
+          const formula = compilePredicateFormula(
+            parsed as ParsedPredicateFormula,
+            { variant: "trigger" },
+          );
+          return { mode: "text", formula };
+        } catch (e) {
+          this._log(`Error compiling trigger expression: ${e}`, { level: "warn", trigger: trigger.id });
+          return null;
+        }
+      });
+    }
+
+    return null;
+  }
+
+  /**
+   * Gets the column type string (e.g. "Date", "DateTime:America/New_York") for a column
+   * identified by colId within a table identified by tableRef.
+   * Builds a lookup map on first call per tableRef for efficiency.
+   */
+  private _getColumnType(colId: string, tableRef: number): string {
+    const docData = this._activeDoc.docData;
+    if (!docData) { return ""; }
+    const columnsTable = docData.getMetaTable("_grist_Tables_column");
+    for (const rowId of columnsTable.getRowIds()) {
+      if (columnsTable.getValue(rowId, "parentId") === tableRef &&
+        columnsTable.getValue(rowId, "colId") === colId) {
+        return (columnsTable.getValue(rowId, "type") as string) || "";
+      }
+    }
+    return "";
   }
 }
 

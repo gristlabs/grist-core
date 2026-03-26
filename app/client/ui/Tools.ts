@@ -23,6 +23,7 @@ import {
   cssSplitPageEntry,
   cssTools,
 } from "app/client/ui/LeftPanelCommon";
+import { createPlatformTools } from "app/client/ui/PlatformTools";
 import { theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { confirmModal } from "app/client/ui2018/modals";
@@ -132,6 +133,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
       ),
       testId("code"),
     ),
+    createPlatformTools(gristDoc, isDocOwner),
     cssPageEntry(
       cssPageEntry.cls("-selected", use => use(gristDoc.activeViewId) === "settings"),
       cssPageLink(cssPageIcon("Settings"),

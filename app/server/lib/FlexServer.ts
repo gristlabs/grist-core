@@ -1072,6 +1072,9 @@ export class FlexServer implements GristServer {
     if (this.httpsServer) { this.httpsServer.close(); }
     if (this.housekeeper) { await this.housekeeper.stop(); }
     if (this._jobs)       { await this._jobs.stop(); }
+    if (this._docNotificationManager) {
+      this._docNotificationManager.shutdown();
+    }
     await this._shutdown();
     if (this._accessTokens) { await this._accessTokens.close(); }
     // Do this after _shutdown, since DocWorkerMap is used during shutdown.

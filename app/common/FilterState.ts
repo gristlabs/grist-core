@@ -4,6 +4,12 @@ import { IRelativeDateSpec, isEquivalentRelativeDate, isRelativeBound } from "ap
 export type { IRelativeDateSpec } from "app/common/RelativeDates";
 export { isRelativeBound } from "app/common/RelativeDates";
 
+/** A column filter entry: column id + JSON-serialized FilterSpec. */
+export interface ColumnFilterEntry {
+  colId: string;
+  filter: string;
+}
+
 // Filter object as stored in the db
 export interface FilterSpec {
   included?: CellValue[];

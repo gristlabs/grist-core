@@ -57,7 +57,7 @@ describe("disabledAt", function() {
 
   it("lets admin disable a document via API", async function() {
     await adminApi.disableDoc(docId);
-    assert.typeOf((await adminApi.getDoc(docId)).disabledAt, "string");
+    assert.typeOf((await ownerApi.getDoc(docId)).disabledAt, "string");
   });
 
   it("blocks owner from moving, renaming, or accessing disabled doc", async function() {
@@ -113,7 +113,7 @@ describe("disabledAt", function() {
 
   it("lets admin enable the document via API", async function() {
     await adminApi.enableDoc(docId);
-    const doc = await adminApi.getDoc(docId);
+    const doc = await ownerApi.getDoc(docId);
     assert.isUndefined(doc.disabledAt);
   });
 

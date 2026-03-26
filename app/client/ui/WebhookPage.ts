@@ -473,15 +473,14 @@ function _prepareWebhookInitialActions(tableId: string): DocAction[] {
  */
 function _mapWebhookValues(webhookSummary: UIWebhookSummary): Partial<WebhookSchemaType> {
   const fields = webhookSummary.fields;
-  const { eventTypes, watchedColIdsText } = fields;
-  const watchedColIds = watchedColIdsText ?
-    watchedColIdsText.split(";").filter(colId => colId.trim() !== "") :
-    [];
+  const { eventTypes, watchedColIdsText = "" } = fields;
+  const safeEventTypes = Array.isArray(eventTypes) ? eventTypes : [];
+  const watchedColIds = watchedColIdsText.split(";").filter(colId => colId.trim() !== "");
   return {
     ...fields,
     webhookId: webhookSummary.id,
     status: JSON.stringify(webhookSummary.usage),
-    eventTypes: [GristObjCode.List, ...eventTypes],
+    eventTypes: [GristObjCode.List, ...safeEventTypes],
     watchedColIds: [GristObjCode.List, ...watchedColIds],
   };
 }

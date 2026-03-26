@@ -1,7 +1,16 @@
 import { ApiError } from "app/common/ApiError";
-import { timeoutReached } from "app/common/gutil";
+import { safeJsonParse, timeoutReached } from "app/common/gutil";
 import { SchemaTypes } from "app/common/schema";
-import { WebhookAction, WebhookFields, WebHookSecret } from "app/common/Triggers";
+import {
+  ActionSecretData,
+  TriggerAction,
+  TriggerAddRequest,
+  TriggerDeletionRequest,
+  TriggerUpdateRequest,
+  WebhookAction,
+  WebhookFields,
+  WebHookSecret,
+} from "app/common/Triggers";
 import TriggersTI from "app/common/Triggers-ti";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { GristObjCode } from "app/plugin/GristData";
@@ -20,17 +29,180 @@ import { v4 as uuidv4 } from "uuid";
 // Maximum amount of time that a webhook endpoint can hold the mutex for in withDocTriggersLock.
 const MAX_DOC_TRIGGERS_LOCK_MS = 15_000;
 
+/**
+ * Field names on action objects that are considered secret and should be stored
+ * in homeDB rather than inline in the document. On write (POST/PATCH), these
+ * fields are extracted from the action and saved as a homeDB secret. On read
+ * (GET), they are fetched from homeDB and merged back into the action.
+ */
+const ACTION_SECRET_FIELDS = ["url", "authorization", "unsubscribeKey"] as const;
+
+/** Action types that store secret fields in homeDB (e.g. webhook stores url/authorization). */
+const ACTION_TYPES_WITH_SECRETS = new Set(["webhook"]);
+
+/**
+ * Parse an actions value (string or array) into an array of action objects.
+ */
+function parseActions(actions: string | TriggerAction[] | undefined | null): TriggerAction[] {
+  if (!actions) { return []; }
+  if (typeof actions === "string") {
+    return safeJsonParse(actions, []);
+  }
+  return Array.isArray(actions) ? actions : [];
+}
+
+// Schema checker for validating individual trigger actions against TriggerAction union type.
+const TriggerActionChecker = t.createCheckers(TriggersTI).TriggerAction;
+
+/**
+ * Validate that each action in the array conforms to the TriggerAction schema.
+ * Throws ApiError(400) if any action is malformed.
+ *
+ * Actions from the client may not have an `id` yet (assigned server-side),
+ * so we default it to "" before checking the schema.
+ */
+function validateActions(actions: unknown[]): asserts actions is TriggerAction[] {
+  for (const action of actions) {
+    try {
+      // id is assigned server-side; default to "" so the schema check passes.
+      const obj = typeof action === "object" && action ? action : {};
+      TriggerActionChecker.check({ id: "", ...obj });
+    } catch (e) {
+      throw new ApiError(`Invalid trigger action: ${e}`, 400);
+    }
+  }
+}
+
+/**
+ * Split an action into a doc-stored part (without secrets) and a secret-data part.
+ */
+function extractSecrets(action: TriggerAction | ActionSecretData): {
+  docAction: TriggerAction;
+  secretData: ActionSecretData;
+} {
+  const docAction: Record<string, unknown> = {};
+  const secretData: ActionSecretData = {};
+  for (const [key, value] of Object.entries(action)) {
+    if ((ACTION_SECRET_FIELDS as readonly string[]).includes(key)) {
+      (secretData as Record<string, unknown>)[key] = value;
+    } else {
+      docAction[key] = value;
+    }
+  }
+  return { docAction: docAction as unknown as TriggerAction, secretData };
+}
+
+/**
+ * Validate that a webhook action's URL is allowed by the server configuration.
+ * Throws 403 if the URL is present but forbidden.
+ */
+function validateActionUrl(action: TriggerAction & ActionSecretData): void {
+  if (action.type !== "webhook") { return; }
+  const url = "url" in action && action.url;
+  if (typeof url === "string" && !isUrlAllowed(url)) {
+    throw new ApiError("Provided url is forbidden", 403);
+  }
+}
+
+/**
+ * Create a new homeDB secret for an action's secret fields.
+ * Returns the cleaned action with a server-generated `id` (the homeDB secret key).
+ * If the action has no secret fields, returns it with a generated UUID id.
+ *
+ * Note: any user-supplied `id` is ignored on creation — IDs are always server-generated
+ * to prevent storing secrets with non-standard or insecure keys.
+ */
+async function createActionSecret(
+  action: TriggerAction & ActionSecretData,
+  dbManager: HomeDBManager,
+  docId: string,
+): Promise<TriggerAction> {
+  validateActionUrl(action);
+  const { docAction, secretData } = extractSecrets(action);
+  if (Object.keys(secretData).length === 0) {
+    // No secret fields (e.g. email actions) — always assign a server-generated id.
+    return { ...docAction, id: uuidv4() };
+  }
+  // Always generate an unsubscribeKey when creating a new secret
+  if (!secretData.unsubscribeKey) {
+    secretData.unsubscribeKey = uuidv4();
+  }
+  const secret = await dbManager.addSecret(JSON.stringify(secretData), docId);
+  return { ...docAction, id: secret.id };
+}
+
+/**
+ * Update an existing homeDB secret for an action that already has an `id`.
+ * Reads the current secret, merges in any changed secret fields, writes it back.
+ * Returns the sanitized action with secret fields stripped out (only type + id remain
+ * for actions with secrets).
+ */
+async function extractAndUpdateActionSecret(
+  action: TriggerAction & Record<string, unknown>,
+  dbManager: HomeDBManager,
+  docId: string,
+): Promise<TriggerAction> {
+  if (!action.id || !ACTION_TYPES_WITH_SECRETS.has(action.type)) { return action; }
+  validateActionUrl(action);
+  const { docAction, secretData } = extractSecrets(action);
+  if (Object.keys(secretData).length > 0) {
+    // Read existing secret, merge updated fields, and write back
+    const existing = await dbManager.getSecret(action.id, docId);
+    const existingData: ActionSecretData = existing ? JSON.parse(existing) : {};
+    const merged = { ...existingData, ...secretData };
+    await dbManager.updateSecret(action.id, docId, JSON.stringify(merged));
+  }
+  return docAction;
+}
+
+/**
+ * Load secrets from homeDB and merge them back into the action for API responses.
+ * If the action has no id or the secret is not found, returns unchanged.
+ */
+async function loadActionSecrets(
+  action: TriggerAction,
+  dbManager: HomeDBManager,
+  docId: string,
+): Promise<TriggerAction & ActionSecretData> {
+  if (!action.id || !ACTION_TYPES_WITH_SECRETS.has(action.type)) { return action; }
+  const secretValue = await dbManager.getSecret(action.id, docId);
+  if (!secretValue) { return action; }
+  try {
+    const secretData: ActionSecretData = JSON.parse(secretValue);
+    return { ...action, ...secretData };
+  } catch (e) {
+    log.warn(`Failed to parse secret data for action ${action.id}: ${e}`);
+    return action;
+  }
+}
+
+/**
+ * Remove a secret from homeDB for an action. No-op if the action has no id
+ * or if its type doesn't use homeDB secrets.
+ */
+async function removeSecret(
+  action: TriggerAction,
+  dbManager: HomeDBManager,
+  docId: string,
+): Promise<void> {
+  if (!action.id || !ACTION_TYPES_WITH_SECRETS.has(action.type)) { return; }
+  // removeWebhook is the only way to delete a secret; pass empty key and skip check
+  await dbManager.removeWebhook(action.id, docId, "", false);
+}
+
 export interface WebhookSubscription {
   unsubscribeKey: string;
   webhookId: string;
 }
 
 // Schema validators for api endpoints that creates or updates records.
-const {
-  WebhookPatch,
-  WebhookSubscribe,
-  WebhookSubscribeCollection,
-} = t.createCheckers(TriggersTI);
+const Checkers = t.createCheckers(TriggersTI);
+const WebhookPatchChecker = Checkers.WebhookPatch;
+const WebhookSubscribeChecker = Checkers.WebhookSubscribe;
+const WebhookSubscribeCollectionChecker = Checkers.WebhookSubscribeCollection;
+const TriggerAddRequestChecker = Checkers.TriggerAddRequest;
+const TriggerUpdateRequestChecker = Checkers.TriggerUpdateRequest;
+const TriggerDeletionRequestChecker = Checkers.TriggerDeletionRequest;
 
 export class DocApiTriggers {
   constructor(
@@ -182,9 +354,9 @@ export class DocApiTriggers {
               throw new ApiError(`Cannot find columns "${watchedColIds}" because table is not known`, 404);
             }
             fields.watchedColRefList = [GristObjCode.List, ...watchedColIds
-              .filter(colId => colId.trim() !== "")
+              .filter((colId: string) => colId.trim() !== "")
               .map(
-                (colId) => { return colIdToReference(metaTables, tableId, colId.trim().replace(/^\$/, "")); },
+                (colId: string) => { return colIdToReference(metaTables, tableId, colId.trim().replace(/^\$/, "")); },
               )];
           }
         } else {
@@ -223,7 +395,7 @@ export class DocApiTriggers {
     }
 
     // Add a new webhook and trigger
-    this._app.post("/api/docs/:docId/webhooks", isOwner, validate(WebhookSubscribeCollection),
+    this._app.post("/api/docs/:docId/webhooks", isOwner, validate(WebhookSubscribeCollectionChecker),
       withDocTriggersLock(async (activeDoc, req, res) => {
         const registeredWebhooks: WebhookSubscription[] = [];
         for (const webhook of req.body.webhooks) {
@@ -237,14 +409,20 @@ export class DocApiTriggers {
     );
 
     /**
-     @deprecated please call to POST /webhooks instead, this endpoint is only for sake of backward
-        compatibility
+     * @deprecated Use POST /webhooks instead. Kept for backward compatibility.
      */
-    this._app.post("/api/docs/:docId/tables/:tableId/_subscribe", isOwner, validate(WebhookSubscribe),
+    this._app.post("/api/docs/:docId/tables/:tableId/_subscribe", isOwner, validate(WebhookSubscribeChecker),
       withDocTriggersLock(async (activeDoc, req, res) => {
         const registeredWebhook = await registerWebhook(activeDoc, req, req.body);
         res.json(registeredWebhook);
       }),
+    );
+
+    /**
+     * @deprecated Use DELETE /webhooks/:webhookId instead. Kept for backward compatibility.
+     */
+    this._app.post("/api/docs/:docId/tables/:tableId/_unsubscribe", canEdit,
+      withDocTriggersLock(removeWebhook),
     );
 
     // Clears all outgoing webhooks in the queue for this document.
@@ -262,17 +440,9 @@ export class DocApiTriggers {
       withDocTriggersLock(removeWebhook),
     );
 
-    /**
-     @deprecated please call to DEL /webhooks instead, this endpoint is only for sake of backward
-        compatibility
-     */
-    this._app.post("/api/docs/:docId/tables/:tableId/_unsubscribe", canEdit,
-      withDocTriggersLock(removeWebhook),
-    );
-
     // Update a webhook
     this._app.patch(
-      "/api/docs/:docId/webhooks/:webhookId", isOwner, validate(WebhookPatch),
+      "/api/docs/:docId/webhooks/:webhookId", isOwner, validate(WebhookPatchChecker),
       withDocTriggersLock(async (activeDoc, req, res) => {
         const docId = activeDoc.docName;
         const webhookId = req.params.webhookId;
@@ -318,6 +488,240 @@ export class DocApiTriggers {
     this._app.get("/api/docs/:docId/webhooks", isOwner,
       withDocTriggersLock(async (activeDoc, req, res) => {
         res.json(await activeDoc.webhooksSummary());
+      }),
+    );
+
+    // --- Trigger CRUD endpoints ---
+
+    // List all triggers
+    this._app.get("/api/docs/:docId/triggers", isOwner,
+      withDocTriggersLock(async (activeDoc, req, res) => {
+        const docData = activeDoc.docData!;
+        const triggersTable = docData.getMetaTable("_grist_Triggers");
+        const records = await Promise.all(triggersTable.getRecords().map(async (rec) => {
+          // Load secrets from homeDB and merge them back into each action
+          const actions = parseActions(rec.actions as string);
+          const enrichedActions = await Promise.all(
+            actions.map(a => loadActionSecrets(a, this._dbManager, activeDoc.docName)),
+          );
+          return {
+            id: rec.id,
+            fields: {
+              tableRef: rec.tableRef,
+              label: rec.label,
+              memo: rec.memo,
+              enabled: rec.enabled,
+              actions: JSON.stringify(enrichedActions),
+              condition: rec.condition,
+              eventTypes: rec.eventTypes,
+              watchedColRefList: rec.watchedColRefList,
+              isReadyColRef: rec.isReadyColRef,
+            },
+          };
+        }));
+        res.json({ records });
+      }),
+    );
+
+    // Add triggers
+    this._app.post("/api/docs/:docId/triggers", isOwner, validate(TriggerAddRequestChecker),
+      withDocTriggersLock(async (activeDoc, req, res) => {
+        if (activeDoc.isFork) {
+          throw new ApiError("Unsaved document copies cannot have triggers", 400);
+        }
+        const { records } = req.body as TriggerAddRequest;
+
+        const tablesTable = activeDoc.docData!.getMetaTable("_grist_Tables");
+        const results: { id: number }[] = [];
+        for (const record of records) {
+          const fields = { ...record.fields };
+
+          if (!tablesTable.getRecord(fields.tableRef)) {
+            throw new ApiError(`Table not found: ${fields.tableRef}`, 404);
+          }
+
+          // Extract secret fields from actions and store in homeDB
+          if (fields.actions) {
+            const actions = parseActions(fields.actions);
+            validateActions(actions);
+            const processedActions = await Promise.all(
+              actions.map(a => createActionSecret(a, this._dbManager, activeDoc.docName)),
+            );
+            fields.actions = JSON.stringify(processedActions);
+          }
+
+          const sandboxRes = await handleSandboxError("_grist_Triggers", [],
+            activeDoc.applyUserActions(
+              docSessionFromRequest(req),
+              [["AddRecord", "_grist_Triggers", null, {
+                enabled: true,
+                ...fields,
+              }]],
+            ),
+          );
+          results.push({ id: sandboxRes.retValues[0] });
+        }
+
+        await activeDoc.sendWebhookNotification();
+        res.json({ records: results });
+      }),
+    );
+
+    // Update triggers
+    this._app.patch("/api/docs/:docId/triggers", isOwner, validate(TriggerUpdateRequestChecker),
+      withDocTriggersLock(async (activeDoc, req, res) => {
+        if (activeDoc.isFork) {
+          throw new ApiError("Unsaved document copies cannot have triggers", 400);
+        }
+        const { records } = req.body as TriggerUpdateRequest;
+
+        const docData = activeDoc.docData!;
+        const triggersTable = docData.getMetaTable("_grist_Triggers");
+
+        for (const record of records) {
+          const { id: triggerRowId, fields } = record;
+
+          if (fields.actions) {
+            const newActions = parseActions(fields.actions);
+            validateActions(newActions);
+
+            // Load old actions to detect removals
+            const existingTrigger = triggersTable.getRecord(triggerRowId);
+            const oldActions = existingTrigger ?
+              parseActions(existingTrigger.actions as string) :
+              [];
+
+            // Process new actions: create secrets for new ones, update existing ones
+            const processedActions = await Promise.all(
+              newActions.map(a => a.id ?
+                extractAndUpdateActionSecret(a as TriggerAction & Record<string, unknown>,
+                  this._dbManager, activeDoc.docName) :
+                createActionSecret(a as TriggerAction & Record<string, unknown>,
+                  this._dbManager, activeDoc.docName),
+              ),
+            );
+
+            // Remove secrets for old actions no longer present in the new array
+            const newActionIds = new Set(processedActions.map(a => a.id).filter(Boolean));
+            for (const oldAction of oldActions) {
+              if (oldAction.id && !newActionIds.has(oldAction.id)) {
+                try {
+                  await removeSecret(oldAction, this._dbManager, activeDoc.docName);
+                  activeDoc.webhookQueue.clearWebhookCache(oldAction.id);
+                } catch (e) {
+                  log.warn(`Failed to remove action secret ${oldAction.id}: ${e}`);
+                }
+              }
+            }
+
+            // Clear webhook caches for updated actions
+            for (const action of processedActions) {
+              if (action.id) {
+                activeDoc.webhookQueue.clearWebhookCache(action.id);
+              }
+            }
+
+            fields.actions = JSON.stringify(processedActions);
+          }
+
+          activeDoc.triggers.clearCache();
+          await handleSandboxError("_grist_Triggers", [],
+            activeDoc.applyUserActions(
+              docSessionFromRequest(req),
+              [["UpdateRecord", "_grist_Triggers", triggerRowId, fields]],
+            ),
+          );
+        }
+
+        await activeDoc.sendWebhookNotification();
+        res.json({ success: true });
+      }),
+    );
+
+    // Remove triggers
+    this._app.post("/api/docs/:docId/triggers/delete", isOwner, validate(TriggerDeletionRequestChecker),
+      withDocTriggersLock(async (activeDoc, req, res) => {
+        const { ids } = req.body as TriggerDeletionRequest;
+
+        const docData = activeDoc.docData!;
+        const triggersTable = docData.getMetaTable("_grist_Triggers");
+
+        for (const triggerRowId of ids) {
+          // Clean up secrets from homeDB for all actions that have secret fields
+          const trigger = triggersTable.getRecord(triggerRowId);
+          if (trigger) {
+            const actions = parseActions(trigger.actions as string);
+            for (const action of actions) {
+              try {
+                await removeSecret(action, this._dbManager, activeDoc.docName);
+                if (action.id) {
+                  activeDoc.webhookQueue.clearWebhookCache(action.id);
+                }
+              } catch (e) {
+                log.warn(`Failed to remove action secret ${action.id}: ${e}`);
+              }
+            }
+          }
+
+          activeDoc.triggers.clearCache();
+          await handleSandboxError("_grist_Triggers", [],
+            activeDoc.applyUserActions(
+              docSessionFromRequest(req),
+              [["RemoveRecord", "_grist_Triggers", triggerRowId]],
+            ),
+          );
+        }
+
+        await activeDoc.sendWebhookNotification();
+        res.json({ success: true });
+      }),
+    );
+
+    // Monitoring endpoints — read-only, no lock needed.
+
+    this._app.get("/api/docs/:docId/triggers/monitor", isOwner,
+      withDoc(async (activeDoc, req, res) => {
+        const entries = await activeDoc.notifMgr?.getDeliveryLog(activeDoc.docName) ?? [];
+        const delivered = entries.map((e) => {
+          const meta = activeDoc.webhookQueue.resolveTriggerMeta(e.actionId);
+          return {
+            id: e.id,
+            fields: {
+              timestamp: e.timestamp,
+              actionId: e.actionId,
+              actionType: e.actionType,
+              triggerName: meta.triggerName,
+              tableName: meta.tableName,
+              destination: e.destination,
+              rowIds: e.rowIds,
+              status: e.status,
+              httpStatus: e.httpStatus,
+              errorMessage: e.errorMessage,
+            },
+          };
+        });
+
+        const webhookPending = await activeDoc.webhookQueue.getPendingItems(activeDoc.docName);
+        const emailPending = await activeDoc.notifMgr?.getPendingItems(activeDoc.docName) ?? [];
+        const items = [...webhookPending, ...emailPending];
+        const pending = items.map((item, i) => {
+          const meta = activeDoc.webhookQueue.resolveTriggerMeta(item.actionId);
+          return {
+            id: i + 1,
+            fields: {
+              actionId: item.actionId,
+              actionType: item.actionType,
+              triggerName: meta.triggerName,
+              tableName: meta.tableName,
+              rowId: item.rowId,
+              destination: item.destination,
+              status: item.status,
+              lastResult: item.lastResult,
+            },
+          };
+        });
+
+        res.json({ delivered, pending });
       }),
     );
   }

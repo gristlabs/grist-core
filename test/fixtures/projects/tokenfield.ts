@@ -88,8 +88,8 @@ function setupTest() {
   };
 
   const renderToken = (item: IToken) => item.label;
-  const tokenFieldPlain = TokenField.create(null, { initialValue, createToken, renderToken });
-  const tokenFieldAC = TokenField.create(null, { initialValue, createToken: create2, acOptions, renderToken });
+  const tokenFieldPlain = new TokenField<Item>({ initialValue, createToken, renderToken });
+  const tokenFieldAC = new TokenField<Item>({ initialValue, createToken: create2, acOptions, renderToken });
 
   return cssTestBox(
     cssExample(
@@ -97,7 +97,7 @@ function setupTest() {
       elem => tokenFieldPlain.attach(elem),
       cssValue(
         dom.text(use => JSON.stringify(
-          (use(tokenFieldPlain.tokensObs) as Item[])
+          (use(tokenFieldPlain.tokensObs))
             .map((t: Item) => t.value()),
         )),
         testId("json-value"),
@@ -109,7 +109,7 @@ function setupTest() {
       elem => tokenFieldAC.attach(elem),
       cssValue(
         dom.text(use => JSON.stringify(
-          (use(tokenFieldAC.tokensObs) as Item[])
+          (use(tokenFieldAC.tokensObs))
             .map((t: Item) => t.value()),
         )),
         testId("json-value"),

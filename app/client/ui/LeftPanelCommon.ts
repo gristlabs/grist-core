@@ -17,7 +17,7 @@ import { allCommands } from "app/client/components/commands";
 import { beaconOpenMessage } from "app/client/lib/helpScout";
 import { makeT } from "app/client/lib/localization";
 import { AppModel } from "app/client/models/AppModel";
-import { testId, theme, vars } from "app/client/ui2018/cssVars";
+import { colors, testId, theme, vars } from "app/client/ui2018/cssVars";
 import { colorIcon, icon } from "app/client/ui2018/icons";
 import { unstyledButton } from "app/client/ui2018/unstyled";
 import { visuallyHidden } from "app/client/ui2018/visuallyHidden";
@@ -306,4 +306,16 @@ export const cssMenuTrigger = styled(unstyledButton, `
   .${cssPageEntry.className}-selected &:hover, .${cssPageEntry.className}-selected &.weasel-popup-open {
     background-color: ${theme.pageOptionsSelectedHoverBg};
   }
+`);
+
+export const cssPill = styled("div", `
+  display: block;
+  flex: none;
+  padding: 2px 4px;
+  margin: 0 8px;
+  border-radius: 4px;
+  line-height: normal;
+  font-size: ${vars.smallFontSize};
+  background-color: ${colors.orange};
+  color: white;
 `);

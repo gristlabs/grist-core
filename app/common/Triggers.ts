@@ -1,3 +1,31 @@
+/** A column filter entry stored by ref, so it's immune to column renames. */
+export interface TriggerColumnFilter {
+  colRef: number;
+  filter: string; // JSON-serialized FilterSpec
+}
+
+export type NotifyWhen = "enters" | "leaves" | "updated";
+
+export interface ConditionConfig {
+  columnFilters?: TriggerColumnFilter[];
+  requiredColumns?: number[];
+  customExpression?: string;
+  /** Parsed AST of customExpression, set by Python. */
+  customExpressionParsed?: object;
+  notifyWhen?: NotifyWhen;
+}
+
+/**
+ * Two modes:
+ * 1. Text mode: { text, parsed } — raw Python expression for advanced control.
+ * 2. Config mode: { config } — structured filters evaluated directly by JS.
+ */
+export interface ConditionType {
+  text?: string;
+  parsed?: object;
+  config?: ConditionConfig;
+}
+
 export interface WebhookSubscribeCollection {
   webhooks: Webhook[]
 }
@@ -106,21 +134,79 @@ export interface WebhookUsage {
   },
 }
 
-// Union type for trigger actions. Currently only WebhookAction is supported, but this is
-// designed as a discriminated union to support additional action types in the future (e.g., emails).
+// Union type for trigger actions.
 export type TriggerAction = WebhookAction | EmailAction;
 
-export interface WebhookAction {
-  // The type field is used to discriminate between different action types.
-  // For now we have only webhook, but next types in the pipeline are emails.
-  type: "webhook";
-  id: string; // Unique id of the action, used as a key in homeDB secrets for webhooks
+/** Secret data extracted from an action (url, authorization, unsubscribeKey). */
+export interface ActionSecretData {
+  url?: string;
+  authorization?: string;
+  unsubscribeKey?: string;
 }
 
-export interface EmailAction {
+export interface ActionBase {
   id: string;
+  type: string;
+}
+
+/** Stored in the document — only type + homeDB secret key, no secrets inline. */
+export interface WebhookAction extends ActionBase {
+  type: "webhook";
+}
+
+export interface EmailAction extends ActionBase {
   type: "email";
   to: string; // Comma-separated list of email addresses, user refs.
+  dynamicTo?: string; // Comma-separated col ids for dynamic recipients.
   subject: string;
   body: string;
+}
+
+/// //////////////// Checkers for the Trigger API.
+
+/** Fields accepted when creating a new trigger. */
+export interface TriggerFields {
+  tableRef: number;
+  label?: string;
+  memo?: string;
+  enabled?: boolean;
+  actions?: string;
+  condition?: string;
+  options?: string;
+}
+
+/** Fields accepted when updating an existing trigger (all optional). */
+export interface TriggerPatchFields {
+  tableRef?: number;
+  label?: string;
+  memo?: string;
+  enabled?: boolean;
+  actions?: string;
+  condition?: string;
+  options?: string;
+}
+
+export interface TriggerAddRequest {
+  records: { fields: TriggerFields }[];
+}
+
+export interface TriggerUpdateRequest {
+  records: { id: number; fields: TriggerPatchFields }[];
+}
+
+export interface TriggerDeletionRequest {
+  ids: number[];
+}
+
+export interface TriggerRecord {
+  id: number;
+  fields: TriggerFields;
+}
+
+export interface TriggerListResponse {
+  records: TriggerRecord[];
+}
+
+export interface TriggerAddResponse {
+  records: { id: number }[];
 }

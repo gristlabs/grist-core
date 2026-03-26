@@ -7,7 +7,13 @@ import IORedis from "ioredis";
 
 // Name of the queue for doc-notification emails. Let's define queue names in this file, to ensure
 // that different users of GristJobs don't accidentally use conflicting queue names.
-export const docEmailsQueue = "deq";
+// Read prefix dynamically (not as a constant) so that tests can set the env var after module load.
+const getQueuePrefix = () => process.env.GRIST_TEST_REDIS_QUEUE_PREFIX || "";
+
+export const docEmailsQueue = () => `${getQueuePrefix()}deq`;
+export const deliveryLogKey = () => `${getQueuePrefix()}delivery-log`;
+export const batchJobKey = () => `${getQueuePrefix()}job`;
+export const batchPayloadKey = () => `${getQueuePrefix()}payload`;
 
 /**
  *
@@ -263,6 +269,11 @@ export class GristBullMQQueueScope extends GristQueueScopeBase<Worker, BullMQJob
   public getJobRedisKey(jobId: string): string {
     // This isn't a well-documented method, so this was confirmed empirically.
     return this._getQueue().toKey(jobId);
+  }
+
+  public override async stop(options: StopOptions = {}) {
+    await super.stop(options);
+    await this._queue?.close();
   }
 
   protected override async obliterate() {

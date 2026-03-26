@@ -9,8 +9,8 @@
  * (4) RowModels (defined in {Data,Meta}TableModel.js) maintains data for one record in a table.
  *     For built-in tables, the records are defined in this module, below.
  */
-import { KoArray } from "app/client/lib/koArray";
 import * as koArray from "app/client/lib/koArray";
+import { KoArray } from "app/client/lib/koArray";
 import * as koUtil from "app/client/lib/koUtil";
 import DataTableModel from "app/client/models/DataTableModel";
 import { DocData } from "app/client/models/DocData";
@@ -24,6 +24,7 @@ import { createPageRec, PageRec } from "app/client/models/entities/PageRec";
 import { createShareRec, ShareRec } from "app/client/models/entities/ShareRec";
 import { createTabBarRec, TabBarRec } from "app/client/models/entities/TabBarRec";
 import { createTableRec, TableRec } from "app/client/models/entities/TableRec";
+import { createTriggerRec, TriggerRec } from "app/client/models/entities/TriggerRec";
 import { createValidationRec, ValidationRec } from "app/client/models/entities/ValidationRec";
 import { createViewFieldRec, ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
 import { createViewRec, ViewRec } from "app/client/models/entities/ViewRec";
@@ -50,7 +51,7 @@ import memoize from "lodash/memoize";
 // Re-export all the entity types available. The recommended usage is like this:
 //    import {ColumnRec, ViewFieldRec} from 'app/client/models/DocModel';
 export type { ColumnRec, DocInfoRec, FilterRec, PageRec, TabBarRec, TableRec, ValidationRec,
-  ViewFieldRec, ViewRec, ViewSectionRec, CellRec };
+  ViewFieldRec, ViewRec, ViewSectionRec, CellRec, TriggerRec };
 
 /**
  * Creates the type for a MetaRowModel containing a KoSaveableObservable for each field listed in
@@ -129,6 +130,7 @@ export class DocModel extends Disposable {
   public rules: MTM<ACLRuleRec> = this._metaTableModel("_grist_ACLRules", createACLRuleRec);
   public filters: MTM<FilterRec> = this._metaTableModel("_grist_Filters", createFilterRec);
   public cells: MTM<CellRec> = this._metaTableModel("_grist_Cells", createCellRec);
+  public triggers: MTM<TriggerRec> = this._metaTableModel("_grist_Triggers", createTriggerRec);
 
   public docInfoRow: DocInfoRec;
 

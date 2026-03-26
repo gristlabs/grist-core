@@ -203,7 +203,7 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
 
   // Set to true when a second pinned filter is added, to trigger a behavioral prompt. Note that
   // the popup is only shown once, even if this observable is set to true again in the future.
-  showNestedFilteringPopup: Observable<boolean>;
+  showNestedFilteringPopup?: Observable<boolean>;
 
   // Customizable version of the JSON-stringified sort spec. It may diverge from the saved one.
   activeSortJson: modelUtil.CustomComputed<string>;

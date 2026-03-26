@@ -87,6 +87,8 @@ export interface Features {
 
   teamAuditLogs?: boolean; // Access to team-level audit logging.
 
+  automations?: boolean; // Access to automations (triggers & actions).
+
   maxNewUserInvitesPerOrg?: number; // Maximum number of site/workspace/doc invites to new users before
   // additional requests are blocked (until invited users log in or are
   // uninvited).

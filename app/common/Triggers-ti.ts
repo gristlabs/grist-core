@@ -4,6 +4,27 @@
 import * as t from "ts-interface-checker";
 // tslint:disable:object-literal-key-quotes
 
+export const TriggerColumnFilter = t.iface([], {
+  "colRef": "number",
+  "filter": "string",
+});
+
+export const NotifyWhen = t.union(t.lit("enters"), t.lit("leaves"), t.lit("updated"));
+
+export const ConditionConfig = t.iface([], {
+  "columnFilters": t.opt(t.array("TriggerColumnFilter")),
+  "requiredColumns": t.opt(t.array("number")),
+  "customExpression": t.opt("string"),
+  "customExpressionParsed": t.opt("object"),
+  "notifyWhen": t.opt("NotifyWhen"),
+});
+
+export const ConditionType = t.iface([], {
+  "text": t.opt("string"),
+  "parsed": t.opt("object"),
+  "config": t.opt("ConditionConfig"),
+});
+
 export const WebhookSubscribeCollection = t.iface([], {
   "webhooks": t.array("Webhook"),
 });
@@ -108,20 +129,86 @@ export const WebhookUsage = t.iface([], {
 
 export const TriggerAction = t.union("WebhookAction", "EmailAction");
 
-export const WebhookAction = t.iface([], {
-  "type": t.lit("webhook"),
-  "id": "string",
+export const ActionSecretData = t.iface([], {
+  "url": t.opt("string"),
+  "authorization": t.opt("string"),
+  "unsubscribeKey": t.opt("string"),
 });
 
-export const EmailAction = t.iface([], {
+export const ActionBase = t.iface([], {
   "id": "string",
+  "type": "string",
+});
+
+export const WebhookAction = t.iface(["ActionBase"], {
+  "type": t.lit("webhook"),
+});
+
+export const EmailAction = t.iface(["ActionBase"], {
   "type": t.lit("email"),
   "to": "string",
+  "dynamicTo": t.opt("string"),
   "subject": "string",
   "body": "string",
 });
 
+export const TriggerFields = t.iface([], {
+  "tableRef": "number",
+  "label": t.opt("string"),
+  "memo": t.opt("string"),
+  "enabled": t.opt("boolean"),
+  "actions": t.opt("string"),
+  "condition": t.opt("string"),
+  "options": t.opt("string"),
+});
+
+export const TriggerPatchFields = t.iface([], {
+  "tableRef": t.opt("number"),
+  "label": t.opt("string"),
+  "memo": t.opt("string"),
+  "enabled": t.opt("boolean"),
+  "actions": t.opt("string"),
+  "condition": t.opt("string"),
+  "options": t.opt("string"),
+});
+
+export const TriggerAddRequest = t.iface([], {
+  "records": t.array(t.iface([], {
+    "fields": "TriggerFields",
+  })),
+});
+
+export const TriggerUpdateRequest = t.iface([], {
+  "records": t.array(t.iface([], {
+    "id": "number",
+    "fields": "TriggerPatchFields",
+  })),
+});
+
+export const TriggerDeletionRequest = t.iface([], {
+  "ids": t.array("number"),
+});
+
+export const TriggerRecord = t.iface([], {
+  "id": "number",
+  "fields": "TriggerFields",
+});
+
+export const TriggerListResponse = t.iface([], {
+  "records": t.array("TriggerRecord"),
+});
+
+export const TriggerAddResponse = t.iface([], {
+  "records": t.array(t.iface([], {
+    "id": "number",
+  })),
+});
+
 const exportedTypeSuite: t.ITypeSuite = {
+  TriggerColumnFilter,
+  NotifyWhen,
+  ConditionConfig,
+  ConditionType,
   WebhookSubscribeCollection,
   Webhook,
   WebhookFields,
@@ -135,7 +222,17 @@ const exportedTypeSuite: t.ITypeSuite = {
   WebhookPatch,
   WebhookUsage,
   TriggerAction,
+  ActionSecretData,
+  ActionBase,
   WebhookAction,
   EmailAction,
+  TriggerFields,
+  TriggerPatchFields,
+  TriggerAddRequest,
+  TriggerUpdateRequest,
+  TriggerDeletionRequest,
+  TriggerRecord,
+  TriggerListResponse,
+  TriggerAddResponse,
 };
 export default exportedTypeSuite;

@@ -14,6 +14,7 @@ const G = getBrowserGlobals("document", "window");
 
 const EXPERIMENTS = {
   newRecordButton: () => t("New record button"),
+  notifications: () => t("Notifications"),
 };
 
 type Experiment = keyof typeof EXPERIMENTS;

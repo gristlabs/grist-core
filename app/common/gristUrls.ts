@@ -23,7 +23,7 @@ import * as t from "ts-interface-checker";
 const { ICommonUrls: ICommonUrlsChecker } = t.createCheckers(ICommonUrlsTI);
 
 export const SpecialDocPage = StringUnion(
-  "code", "acl", "data", "GristDocTour",
+  "code", "acl", "data", "GristDocTour", "automations",
   "settings", "suggestions", "webhook", "timing",
 );
 type SpecialDocPage = typeof SpecialDocPage.type;
@@ -65,6 +65,10 @@ export type AdminPanelPage = typeof AdminPanelPage.type;
 
 export const AdminPanelTab = StringUnion("users", "workspaces", "docs", "orgs", "details");
 export type AdminPanelTab = typeof AdminPanelTab.type;
+
+export const SpecialDocSubPage = StringUnion("log");
+export type SpecialDocSubPage = typeof SpecialDocSubPage.type;
+export type IDocSubPage = number | SpecialDocSubPage;
 
 export const PREFERRED_STORAGE_ANCHOR = "preferredStorage";
 export const PersistentAnchor = StringUnion(PREFERRED_STORAGE_ANCHOR);
@@ -126,6 +130,7 @@ export const getCommonUrls = () => withAdminDefinedUrls({
   helpUnderstandingReferenceColumns: "https://support.getgrist.com/col-refs/#understanding-reference-columns",
   helpTriggerFormulas: "https://support.getgrist.com/formulas/#trigger-formulas",
   helpTryingOutChanges: "https://support.getgrist.com/copying-docs/#trying-out-changes",
+  helpWebhooks: "https://support.getgrist.com/webhooks/",
   helpWidgets: "https://support.getgrist.com/page-widgets/#widgets",
   helpCustomWidgets: "https://support.getgrist.com/widget-custom",
   helpInstallAuditLogs: "https://support.getgrist.com/install/audit-log-overview/",
@@ -219,6 +224,7 @@ export interface IGristUrlState {
     assistantPrompt?: string;
     assistantState?: string;
   };
+  docSubPage?: IDocSubPage;  // Sub-page within a docPage (e.g. "log" or triggerId for automations)
   hash?: HashLink;   // if present, this specifies an individual row within a section of a page.
   api?: boolean;     // indicates that the URL should be encoded as an API URL, not as a landing page.
   // But this barely works, and is suitable only for documents. For decoding it
@@ -374,6 +380,9 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
     }
     if (state.docPage) {
       parts.push(`/p/${state.docPage}`);
+      if (state.docSubPage != null) {
+        parts.push(`/${state.docSubPage}`);
+      }
     }
     if (state.form) {
       parts.push(`/f/${state.form.vsId}`);
@@ -525,7 +534,11 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
     const fork = parseUrlId(map.get("doc")!);
     if (fork.forkId) { state.fork = fork; }
     if (map.has("slug")) { state.slug = map.get("slug"); }
-    if (map.has("p")) { state.docPage = parseDocPage(map.get("p")!); }
+    if (map.has("p")) {
+      state.docPage = parseDocPage(map.get("p")!);
+      const subPage = parseSubPage(state.docPage, parts);
+      if (subPage != null) { state.docSubPage = subPage; }
+    }
     if (map.has("f")) { state.form = { vsId: parseInt(map.get("f")!, 10) }; }
   } else {
     if (map.has("p")) {
@@ -716,6 +729,22 @@ export function userOverrideParams(email: string | null, extraState?: IGristUrlS
     delete linkParameters.aclAsUserId;
     return { ...combined, params: { ...combined.params, linkParameters } };
   };
+}
+
+function parseSubPage(docPage: IDocPage | undefined, parts: string[]): IDocSubPage | undefined {
+  const pIdx = parts.indexOf("p");
+  const sub = pIdx !== -1 ? parts[pIdx + 2] : undefined;
+  if (!sub) { return undefined; }
+
+  switch (docPage) {
+    case "automations": {
+      if (SpecialDocSubPage.guard(sub)) { return sub; }
+      const n = parseInt(sub, 10);
+      if (!isNaN(n)) { return n; }
+      return undefined;
+    }
+  }
+  return undefined;
 }
 
 /**

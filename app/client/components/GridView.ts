@@ -159,6 +159,7 @@ export default class GridView extends BaseView {
   protected _colClickTime: number;  // Units: milliseconds.
   private _assignCursorTimeoutId: ReturnType<typeof setTimeout> | undefined;
   protected colLine: HTMLElement;
+  public highlightPredicate: Observable<((rowId: UIRowId) => boolean) | null> = Observable.create(this, null);
   protected colShadow: HTMLElement;
   protected rowLine: HTMLElement;
   protected rowShadow: HTMLElement;
@@ -1613,6 +1614,12 @@ export default class GridView extends BaseView {
         dom.autoDispose(fontStrikethrough),
 
         dom.cls("link_selector_row", use => use(this.isLinkSource) && use(isRowActive)),
+        dom.cls("highlight_match_row", (use) => {
+          const predicate = use(this.highlightPredicate);
+          if (!predicate) { return false; }
+          const rowId = use(row.id);
+          try { return predicate(rowId); } catch { return false; }
+        }),
 
         // rowid dom
         dom("div.gridview_data_row_num",

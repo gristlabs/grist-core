@@ -112,6 +112,11 @@ export interface CommDocChatter extends CommMessageBase {
       status: "active" | "disabled";
     },
     attachmentTransfer?: AttachmentTransferStatus;
+    trigger?: {
+      triggerId: number;
+      rows: { rowId: number; data: Record<string, any> }[];
+      actions: { id: string; type: string; blocked?: string }[];
+    };
   };
 }
 

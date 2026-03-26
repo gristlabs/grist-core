@@ -44,6 +44,7 @@ import { getFilterFunc, QuerySetManager } from "app/client/models/QuerySet";
 import { getUserOrgPrefObs, getUserOrgPrefsObs, markAsSeen } from "app/client/models/UserPrefs";
 import { UserPresenceModel, UserPresenceModelImpl } from "app/client/models/UserPresenceModel";
 import { App } from "app/client/ui/App";
+import { TriggersPage } from "app/client/ui/Automations/TriggersPage";
 import { showCustomWidgetGallery } from "app/client/ui/CustomWidgetGallery";
 import { DocHistory } from "app/client/ui/DocHistory";
 import { startDocTour } from "app/client/ui/DocTour";
@@ -836,7 +837,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
     return cssViewContentPane(
       testId("gristdoc"),
       cssViewContentPane.cls("-special-page", use =>
-        ["data", "settings", "code"].includes(use(this.activeViewId) as string)),
+        ["data", "settings", "code", "automations"].includes(use(this.activeViewId) as string)),
       dom.cls("diff-emphasize-local", this.compareEmphasis === "local"),
       dom.maybe(this._isRickRowing, () => cssStopRickRowingButton(
         cssCloseIcon("CrossBig"),
@@ -854,50 +855,51 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
                 content === "suggestions" ? dom.create(ProposedChangesPage, this) :
                   content === "settings" ? dom.create(DocSettingsPage, this) :
                     content === "webhook" ? dom.create(WebhookPage, this) :
-                      content === "timing" ? dom.create(TimingPage, this) :
-                        content === "GristDocTour" ? null :
-                          [
-                            dom.create((owner) => {
-                              this.viewLayout = ViewLayout.create(owner, this, content);
-                              this.viewLayout.maximized.addListener((sectionId) => {
-                                this.maximizedSectionId.set(sectionId);
+                      content === "automations" ? dom.create(TriggersPage, this) :
+                        content === "timing" ? dom.create(TimingPage, this) :
+                          content === "GristDocTour" ? null :
+                            [
+                              dom.create((owner) => {
+                                this.viewLayout = ViewLayout.create(owner, this, content);
+                                this.viewLayout.maximized.addListener((sectionId) => {
+                                  this.maximizedSectionId.set(sectionId);
 
-                                if (sectionId === null && !this._isShowingPopupSection) {
+                                  if (sectionId === null && !this._isShowingPopupSection) {
                                   // If we didn't navigate to another section in the popup, move focus
                                   // back to the previous section.
-                                  this._focusPreviousSection();
-                                }
-                              });
-                              owner.onDispose(() => this.viewLayout = null);
-                              return this.viewLayout;
-                            }),
-                            dom.maybe(this._popupSectionOptions, (popupOptions) => {
-                              return dom.create((owner) => {
-                                // In case user changes a page, close the popup.
-                                owner.autoDispose(this.activeViewId.addListener(popupOptions.close));
-
-                                // In case the section is removed, close the popup.
-                                popupOptions.viewSection.autoDispose({ dispose: popupOptions.close });
-
-                                const { recordCard, rowId } = popupOptions.hash;
-                                if (recordCard) {
-                                  if (!rowId || rowId === "new") {
-                                    // Should be unreachable, but just to be sure (and to satisfy type checking)...
-                                    throw new Error("Unable to open Record Card: undefined row id");
+                                    this._focusPreviousSection();
                                   }
+                                });
+                                owner.onDispose(() => this.viewLayout = null);
+                                return this.viewLayout;
+                              }),
+                              dom.maybe(this._popupSectionOptions, (popupOptions) => {
+                                return dom.create((owner) => {
+                                // In case user changes a page, close the popup.
+                                  owner.autoDispose(this.activeViewId.addListener(popupOptions.close));
 
-                                  return dom.create(RecordCardPopup, {
-                                    gristDoc: this,
-                                    rowId,
-                                    viewSection: popupOptions.viewSection,
-                                    onClose: popupOptions.close,
-                                  });
-                                } else {
-                                  return dom.create(RawDataPopup, this, popupOptions.viewSection, popupOptions.close);
-                                }
-                              });
-                            }),
-                          ]
+                                  // In case the section is removed, close the popup.
+                                  popupOptions.viewSection.autoDispose({ dispose: popupOptions.close });
+
+                                  const { recordCard, rowId } = popupOptions.hash;
+                                  if (recordCard) {
+                                    if (!rowId || rowId === "new") {
+                                    // Should be unreachable, but just to be sure (and to satisfy type checking)...
+                                      throw new Error("Unable to open Record Card: undefined row id");
+                                    }
+
+                                    return dom.create(RecordCardPopup, {
+                                      gristDoc: this,
+                                      rowId,
+                                      viewSection: popupOptions.viewSection,
+                                      onClose: popupOptions.close,
+                                    });
+                                  } else {
+                                    return dom.create(RawDataPopup, this, popupOptions.viewSection, popupOptions.close);
+                                  }
+                                });
+                              }),
+                            ]
         );
       }),
       dom.maybe(this._showBackgroundVideoPlayer, () => [
@@ -1399,6 +1401,9 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue."))
       // This is message about the attachments transfer job. Look at the comment
       // for the observable for more info.
       this.attachmentTransfer.set(message.data.attachmentTransfer);
+    }
+    if (message.data.trigger) {
+      this.trigger("trigger", message.data.trigger);
     }
   }
 
