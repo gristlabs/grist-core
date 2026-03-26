@@ -14,7 +14,7 @@ import { forceSessionChange, getSessionProfiles, getSessionUser, getSignInStatus
 import { expressWrap } from "app/server/lib/expressWrap";
 import { RequestWithOrg } from "app/server/lib/extractOrg";
 import { GristServer } from "app/server/lib/GristServer";
-import { COOKIE_MAX_AGE,
+import { COOKIE_MAX_AGE, COOKIE_MAX_AGE_ANONYMOUS,
   cookieName as sessionCookieName, getAllowedOrgForSessionID, getCookieDomain } from "app/server/lib/gristSessions";
 import { makeId } from "app/server/lib/idUtils";
 import log from "app/server/lib/log";
@@ -134,11 +134,18 @@ export function getRequestProfile(req: Request | IncomingMessage,
 }
 
 function setRequestUser(mreq: RequestWithLogin, dbManager: HomeDBAuth, user: User) {
+  console.log("🔥 user", mreq.session?.users);
   mreq.user = user;
   mreq.userId = user.id;
   mreq.userIsAuthorized = (user.id !== dbManager.getAnonymousUserId());
-
   const fullUser = dbManager.makeFullUser(user);
+
+  // FIXME: make a comment
+  if (!mreq.session?.users && Number.isInteger(mreq.session?.cookie?.maxAge)) {
+    delete mreq.session.cookie.maxAge;
+    forceSessionChange(mreq.session);
+  }
+
   // This is dumb, but historically, we used 'email' field inconsistently; in this Authorizer
   // flow, it was set to the normalized email, rather than the display email. The difference is
   // visible in the value of the `user.Email` attribute seen by access rules for **API requests**,
@@ -304,8 +311,14 @@ export async function addRequestUser(
     // If we haven't selected a user by other means, and have profiles available in the
     // session, then select a user based on those profiles.
     const session = mreq.session;
+    const genShortLivingSessionID: boolean = isAnonymousUser(mreq) && mreq.xhr;
+    if (genShortLivingSessionID) {
+      session.cookie ||= {};
+      session.cookie.maxAge = COOKIE_MAX_AGE_ANONYMOUS;
+    }
+
     if (session && !session.altSessionId &&
-      !hasApiKey && !isAnonymousUser(mreq)) { // Skip session creation for api calls and anonymous users
+      !hasApiKey) { // Skip session creation for api calls
       // Create a default alternative session id for use in documents.
       session.altSessionId = makeId();
       forceSessionChange(session);
