@@ -142,6 +142,9 @@ export interface SqlPost {
   // not increased. Note timeout of a query could affect
   // other queued queries on same document, because of
   // limitations of API node-sqlite3 exposes.
+  granular?: boolean;  // When true: support DML/DDL, decode values,
+  // return column metadata, use granular ACL.
+  cellFormat?: string; // "typed" returns Grist-encoded values (matching REST API cellFormat=typed).
 }
 
 export interface SetAttachmentStorePost {

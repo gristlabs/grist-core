@@ -399,6 +399,19 @@ export interface ActiveDocAPI {
   applyUserActions(actions: UserAction[], options?: ApplyUAOptions): Promise<ApplyUAResult>;
 
   /**
+   * Executes a SQL statement against the document. Supports SELECT, INSERT,
+   * UPDATE, DELETE, DDL, and transaction control (BEGIN/COMMIT/ROLLBACK).
+   * Returns a result with command, rowCount, and optionally columns/records.
+   */
+  sql(sql: string): Promise<{
+    statement: string;
+    command: string;
+    rowCount: number;
+    columns?: { id: string, type: string }[];
+    records?: { fields: { [colId: string]: any } }[];
+  }>;
+
+  /**
    * A variant of applyUserActions where actions are passed in by ids (actionNum, actionHash)
    * rather than by value.
    */

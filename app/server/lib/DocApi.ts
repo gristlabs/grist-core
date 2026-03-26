@@ -583,11 +583,22 @@ export class DocWorkerApi {
 
     // A POST /sql endpoint, accepting a body like:
     // { "sql": "select * from Table1 where name = ?", "args": ["Paul"] }
-    // Only SELECT statements are currently supported.
+    // Only SELECT statements are supported on this endpoint.
     this._app.post(
       "/api/docs/:docId/sql", canView, validate(SqlPost),
       withDoc(async (activeDoc, req, res) => {
         await this._runSql(activeDoc, req, res, req.body);
+      }));
+
+    // A POST /sql/full endpoint: supports SELECT, INSERT, UPDATE, DELETE, DDL.
+    // Returns typed/decoded values with column metadata. Uses granular ACL
+    // (row-level filtering for restricted users). See SQL_DESIGN.md.
+    this._app.post(
+      "/api/docs/:docId/sql/full", canView, validate(SqlPost),
+      withDoc(async (activeDoc, req, res) => {
+        await this._runSql(activeDoc, req, res, {
+          ...req.body, granular: true, cellFormat: getCellFormatParameter(req),
+        });
       }));
 
     // Create columns in a table, given as records of the _grist_Tables_column metatable.
@@ -2026,16 +2037,22 @@ export class DocWorkerApi {
     options: Types.SqlPost,
   ) {
     try {
-      const records = await runSQLQuery(req, activeDoc, options);
+      const result = await runSQLQuery(req, activeDoc, options);
       this._logRunSQLQueryEvents(activeDoc, req, options);
-      res.status(200).json({
-        statement: options.sql,
-        records: records.map(
-          rec => ({
-            fields: rec,
-          }),
-        ),
-      });
+      if (options.granular) {
+        // Granular path returns a structured result object directly
+        res.status(200).json(result);
+      } else {
+        // Legacy path returns raw rows
+        res.status(200).json({
+          statement: options.sql,
+          records: (result as any[]).map(
+            rec => ({
+              fields: rec,
+            }),
+          ),
+        });
+      }
     } catch (e) {
       if (e?.code === "SQLITE_INTERRUPT") {
         res.status(400).json({
