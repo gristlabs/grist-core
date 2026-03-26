@@ -6,7 +6,7 @@ import { DocCreationInfo, DocEntry, DocListAPI,
   OpenDocMode, OpenDocOptions, OpenLocalDocResult } from "app/common/DocListAPI";
 import { DocumentSettings, DocumentSettingsChecker } from "app/common/DocumentSettings";
 import { FilteredDocUsageSummary } from "app/common/DocUsage";
-import { parseUrlId } from "app/common/gristUrls";
+import { parseUrlId, SHARE_KEY_PREFIX } from "app/common/gristUrls";
 import { safeJsonParse } from "app/common/gutil";
 import { tbind } from "app/common/tbind";
 import { TelemetryMetadataByLevel } from "app/common/Telemetry";
@@ -687,9 +687,14 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
 
   private async _getDocUrls(doc: Document) {
     try {
+      // If the document was accessed via a share key, doc.urlId will be
+      // share-key-prefixed (e.g. "s.abc123").  These URLs are passed to
+      // the sandbox as DOC_URL for SELF_HYPERLINK() and persist for the
+      // lifetime of the ActiveDoc, so use the canonical doc id instead.
+      const effectiveUrlId = doc.urlId?.startsWith(SHARE_KEY_PREFIX) ? doc.id : undefined;
       return {
-        docUrl: await this.gristServer.getResourceUrl(doc),
-        docApiUrl: await this.gristServer.getResourceUrl(doc, "api"),
+        docUrl: await this.gristServer.getResourceUrl(doc, { effectiveUrlId }),
+        docApiUrl: await this.gristServer.getResourceUrl(doc, { purpose: "api", effectiveUrlId }),
       };
     } catch (e) {
       // If there is no home url, we cannot construct links.  Accept this, for the benefit

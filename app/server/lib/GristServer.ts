@@ -48,6 +48,12 @@ export interface StorageCoordinator {
   hardDeleteDoc(docId: string): Promise<void>;
 }
 
+export interface ResourceUrlOptions {
+  purpose?: "api" | "html";
+  /** If set, use this as the document identifier in the URL instead of resource.urlId. */
+  effectiveUrlId?: string;
+}
+
 /**
  * Basic information about a Grist server.  Accessible in many
  * contexts, including request handlers and ActiveDoc methods.
@@ -63,7 +69,7 @@ export interface GristServer extends StorageCoordinator {
   getOrgUrl(orgKey: string | number): Promise<string>;
   getMergedOrgUrl(req: RequestWithLogin, pathname?: string): string;
   getResourceUrl(resource: Organization | Workspace | Document,
-    purpose?: "api" | "html"): Promise<string>;
+    options?: ResourceUrlOptions): Promise<string>;
   getGristConfig(): GristLoadConfig;
   getPermitStore(): IPermitStore;
   getExternalPermitStore(): IPermitStore;

@@ -1232,7 +1232,7 @@ export class DocWorkerApi {
       const doc = await this._dbManager.getDoc(req);
       const options = await this._getDownloadOptions(req, doc);
       const tableSchema = await collectTableSchemaInFrictionlessFormat(activeDoc, req, options);
-      const apiPath = await this._grist.getResourceUrl(doc, "api");
+      const apiPath = await this._grist.getResourceUrl(doc, { purpose: "api" });
       const query = new URLSearchParams(req.query as { [key: string]: string });
       const tableSchemaPath = `${apiPath}/download/csv?${query.toString()}`;
       res.send({

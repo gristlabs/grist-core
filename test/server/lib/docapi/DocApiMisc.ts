@@ -220,6 +220,73 @@ function addMiscTests(getCtx: () => TestContext) {
     assert.equal(resp.status, 404);
   });
 
+  it("SELF_HYPERLINK uses correct URL when doc first opened via share link", async function() {
+    const { serverUrl, userApi, chimpy } = getCtx();
+    const wid = (await userApi.getOrgWorkspaces("current")).find(w => w.name === "Private")!.id;
+    const docId = await userApi.newDoc({ name: "HyperlinkShareTest" }, wid);
+
+    // Add a SELF_HYPERLINK formula column to Table1.
+    let resp: AxiosResponse;
+    resp = await axios.post(`${serverUrl}/api/docs/${docId}/apply`, [
+      ["AddColumn", "Table1", "Link", { isFormula: true, formula: "SELF_HYPERLINK()" }],
+      ["AddRecord", "Table1", null, {}],
+    ], chimpy);
+    assert.equal(resp.status, 200);
+
+    // Read the SELF_HYPERLINK value when the doc was first opened normally — should
+    // contain a URL based on the docId (possibly a prefix/slug), not a share key.
+    resp = await axios.get(`${serverUrl}/api/docs/${docId}/tables/Table1/records`, chimpy);
+    assert.equal(resp.status, 200);
+    const normalLink: string = resp.data.records[0]?.fields?.Link;
+    assert.isString(normalLink, "Link should be a string");
+    assert.notInclude(normalLink, SHARE_KEY_PREFIX,
+      "Link should not contain a share key prefix when opened normally");
+
+    // Create a share on the document.
+    resp = await axios.post(`${serverUrl}/api/docs/${docId}/apply`, [
+      ["AddRecord", "_grist_Shares", null, {
+        linkId: "x",
+        options: '{"publish": true}',
+      }],
+      ["UpdateRecord", "_grist_Views_section", 1,
+        { shareOptions: '{"publish": true, "form": true}' }],
+      ["UpdateRecord", "_grist_Pages", 1, { shareRef: 1 }],
+    ], chimpy);
+    assert.equal(resp.status, 200);
+
+    // Get the share key from the database.
+    const db = await getDatabase();
+    const shares = await db.connection.query(
+      "select * from shares where doc_id = ?", [docId],
+    );
+    assert.isAbove(shares.length, 0, "Should have at least one share");
+    const { key } = shares[0];
+
+    // Force-reload the document so the ActiveDoc is evicted from cache.
+    resp = await axios.post(`${serverUrl}/api/docs/${docId}/force-reload`, null, chimpy);
+    assert.equal(resp.status, 200);
+
+    // Now access the doc via the share URL FIRST, so the ActiveDoc is re-created
+    // in the context of a share-key request.
+    resp = await axios.get(
+      `${serverUrl}/api/s/${key}/tables/Table1/records`, chimpy,
+    );
+    assert.equal(resp.status, 200);
+
+    // Now read the SELF_HYPERLINK value via the normal doc URL.
+    resp = await axios.get(
+      `${serverUrl}/api/docs/${docId}/tables/Table1/records`, chimpy,
+    );
+    assert.equal(resp.status, 200);
+    const linkAfterShareOpen: string = resp.data.records[0]?.fields?.Link;
+    assert.isString(linkAfterShareOpen, "Link should be a string");
+
+    // After the doc was first opened via a share link, SELF_HYPERLINK()
+    // should still return a URL based on the real docId, not the share key.
+    assert.notInclude(linkAfterShareOpen, SHARE_KEY_PREFIX,
+      "Link should not contain a share key prefix after share-first open");
+  });
+
   it("document is protected during upload-and-import sequence", async function() {
     const { userApi, chimpy, kiwi, home } = getCtx();
     if (!process.env.TEST_REDIS_URL) {

@@ -55,7 +55,7 @@ import { Hosts, RequestWithOrg } from "app/server/lib/extractOrg";
 import { addGoogleAuthEndpoint } from "app/server/lib/GoogleAuth";
 import { createGristJobs, GristJobs } from "app/server/lib/GristJobs";
 import { DocTemplate, GristLoginMiddleware, GristLoginSystem, GristServer,
-  RequestWithGrist } from "app/server/lib/GristServer";
+  RequestWithGrist, ResourceUrlOptions } from "app/server/lib/GristServer";
 import { initGristSessions, SessionStore } from "app/server/lib/gristSessions";
 import { IAssistant } from "app/server/lib/IAssistant";
 import { IAuditLogger } from "app/server/lib/IAuditLogger";
@@ -2029,7 +2029,7 @@ export class FlexServer implements GristServer {
    * Get a url for an organization, workspace, or document.
    */
   public async getResourceUrl(resource: Organization | Workspace | Document,
-    purpose?: "api" | "html"): Promise<string> {
+    options?: ResourceUrlOptions): Promise<string> {
     if (!this._dbManager) { throw new Error("database missing"); }
     const gristConfig = this.getGristConfig();
     const state: IGristUrlState = {};
@@ -2041,11 +2041,11 @@ export class FlexServer implements GristServer {
       state.ws = resource.id;
     } else {
       org = resource.workspace.org;
-      state.doc = resource.urlId || resource.id;
+      state.doc = options?.effectiveUrlId ?? resource.urlId ?? resource.id;
       state.slug = getSlugIfNeeded(resource);
     }
     state.org = this._dbManager.normalizeOrgDomain(org.id, org.domain, org.ownerId);
-    state.api = purpose === "api";
+    state.api = options?.purpose === "api";
     if (!gristConfig.homeUrl) { throw new Error("Computing a resource URL requires a home URL"); }
     return encodeUrl(gristConfig, state, new URL(gristConfig.homeUrl));
   }
