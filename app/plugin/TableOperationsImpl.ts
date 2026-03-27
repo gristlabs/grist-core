@@ -4,6 +4,7 @@ import { arrayRepeat } from "app/plugin/gutil";
 import { OpOptions, TableOperations, UpsertOptions } from "app/plugin/TableOperations";
 
 import flatMap from "lodash/flatMap";
+import groupBy from "lodash/groupBy";
 import isEqual from "lodash/isEqual";
 import pick from "lodash/pick";
 
@@ -50,27 +51,35 @@ export class TableOperationsImpl implements TableOperations {
   }
 
   public async upsert(recordOrRecords: Types.AddOrUpdateRecord | Types.AddOrUpdateRecord[],
-    upsertOptions?: UpsertOptions): Promise<any> {
-    const records = Array.isArray(recordOrRecords) ? recordOrRecords : [recordOrRecords];
-    const tableId = await this._platform.getTableId();
-    const options = {
-      add: upsertOptions?.add,
-      update: upsertOptions?.update,
-      on_many: upsertOptions?.onMany,
-      allow_empty_require: upsertOptions?.allowEmptyRequire,
-    };
-    const recordOptions: OpOptions = pick(upsertOptions, "parseStrings");
-    const actions = [[
-      "BulkAddOrUpdateRecord",
-      tableId,
-      records.map(record => record.require),
-      records.map(record => record.fields),
-      options,
-    ]];
-    const sandboxRes = await this._applyUserActions(tableId, [...fieldNames(records)],
-      actions, recordOptions);
+    upsertOptions?: UpsertOptions): Promise<void> {
+    await withRecords(recordOrRecords, async (records) => {
+      const tableId = await this._platform.getTableId();
+      const options = {
+        add: upsertOptions?.add,
+        update: upsertOptions?.update,
+        on_many: upsertOptions?.onMany,
+        allow_empty_require: upsertOptions?.allowEmptyRequire,
+      };
+      const recordOptions: OpOptions = pick(upsertOptions, "parseStrings");
 
-    return sandboxRes.retValues[0];
+      // Group records based on having the same keys in `require` and `fields`.
+      // A single bulk action will be applied to each group.
+      // We don't want one bulk action for all records that might have different shapes,
+      // because that would require filling arrays with null values.
+      const recGroups = groupBy(records, (rec) => {
+        const requireKeys = Object.keys(rec.require).sort().join(",");
+        const fieldsKeys = Object.keys(rec.fields || {}).sort().join(",");
+        return `${requireKeys}:${fieldsKeys}`;
+      });
+      const actions = Object.values(recGroups).map((group) => {
+        const require = convertToBulkColValues(group.map(r => ({ fields: r.require })));
+        const fields = convertToBulkColValues(group.map(r => ({ fields: r.fields || {} })));
+        return ["BulkAddOrUpdateRecord", tableId, require, fields, options];
+      });
+      await this._applyUserActions(tableId, [...fieldNames(records)],
+        actions, recordOptions);
+      return [];
+    });
   }
 
   public async destroy(recordIdOrRecordIds: Types.RecordId | Types.RecordId[]): Promise<void> {
