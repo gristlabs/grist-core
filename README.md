@@ -2,16 +2,14 @@
 
 Grist is a modern relational spreadsheet. It combines the flexibility of a spreadsheet with the robustness of a database.
 
-* `grist-core` (this repo) has what you need to run a powerful server for hosting spreadsheets.
-
+* `grist-core` (this repo – also known as Grist Community edition) has what you need to run a powerful server for hosting spreadsheets.
 * [`grist-desktop`](https://github.com/gristlabs/grist-desktop) is a Linux/macOS/Windows desktop app for viewing and editing spreadsheets stored locally.
 * [`grist-static`](https://github.com/gristlabs/grist-static) is a fully in-browser build of Grist for displaying spreadsheets on a website without back-end support.
 
 Grist is developed by [Grist Labs](https://www.linkedin.com/company/grist-labs/), an NYC-based company 🇺🇸🗽. The French government 🇫🇷 organizations [ANCT Données et Territoires](https://donnees.incubateur.anct.gouv.fr/toolbox/grist) and [DINUM (Direction Interministérielle du Numérique)](https://www.numerique.gouv.fr/dinum/) have also made significant contributions to the codebase.
 
-The `grist-core`, `grist-desktop`, and `grist-static` repositories are all open source (Apache License, Version 2.0).
-Grist Labs offers free and paid hosted services at [getgrist.com](https://getgrist.com), sells an Enterprise product,
-and offers [cloud packaging](https://support.getgrist.com/install/grist-builder-edition/).
+The `grist-core`, `grist-desktop`, and `grist-static` repositories are all open-source (Apache License, Version 2.0). Grist Labs sells an edition of Grist with [additional features](#features-not-in-grist-core). Grist Labs also offers free and paid hosted services at [getgrist.com](https://getgrist.com),
+as well as [cloud packaging](https://support.getgrist.com/install/grist-builder-edition/).
 
 > Questions? Feedback? Want to share what you're building with Grist? Join our [official Discord server](https://discord.gg/MYKpYQ3fbP) or visit our [Community forum](https://community.getgrist.com/). 
 >
@@ -21,7 +19,7 @@ https://github.com/user-attachments/assets/fe152f60-3d15-4b11-8cb2-05731a90d273
 
 ## Features in `grist-core`
 
-To see exactly what is present in `grist-core`, you can run the [desktop app](https://github.com/gristlabs/grist-desktop), or use [`docker`](#using-grist). The absolute fastest way to try Grist out is to visit [docs.getgrist.com](https://docs.getgrist.com) and play with a spreadsheet there immediately – though if you do, please read the list of [extra extensions](#features-not-in-grist-core) that are not in `grist-core`.
+To see exactly what is present in `grist-core`, you can run the [desktop app](https://github.com/gristlabs/grist-desktop), or use [`docker`](#using-grist). The absolute fastest way to try Grist out is to visit [docs.getgrist.com](https://docs.getgrist.com) and play with a spreadsheet there immediately – though if you do, please read the list of [additional features](#features-not-in-grist-core) that are not in `grist-core`.
 
 However you try it, you'll quickly see that Grist is a hybrid database/spreadsheet, meaning that:
 
@@ -102,7 +100,9 @@ If you are curious about where Grist is heading, see [our roadmap](https://githu
 
 ## Features not in `grist-core`
 
-If you evaluate Grist by using the hosted version at [getgrist.com](https://getgrist.com), be aware that it includes some extensions to Grist that aren't present in `grist-core`. To be sure you're seeing exactly what is present in `grist-core`, you can run the [desktop app](https://github.com/gristlabs/grist-desktop), or use [`docker`](#using-grist). Here is a list of features you may see in Grist Labs' hosting or Enterprise offerings that are not in `grist-core`, in chronological order of creation. If self-hosting, you can get access to a free trial of all of them using the Enterprise toggle on the [Admin Panel](https://support.getgrist.com/admin-panel/).
+If you evaluate Grist by using the hosted version at [getgrist.com](https://getgrist.com), be aware that it includes some features that aren't present in `grist-core`. To be sure you're seeing exactly what is present in `grist-core`, you can run the [desktop app](https://github.com/gristlabs/grist-desktop), or use [`docker`](#using-grist).
+
+Here is a list of features available in the full edition of Grist that are not in `grist-core`, in chronological order of creation. If self-hosting, you can get access to a free trial of all of them by selecting the full edition of Grist on the [Admin Panel](https://support.getgrist.com/admin-panel/). The full edition of Grist is free for individuals and small orgs with less than US $1 million in total annual funding. Learn more about that [here](https://www.getgrist.com/free-grist-activation-key-faq/).
 
   * [GristConnect](https://support.getgrist.com/install/grist-connect/) (2022)
     - Any site that has plugins for letting Discourse use its logins (such as WordPress) can also let Grist use its logins.
@@ -163,7 +163,7 @@ environments.
 
 You can find a lot more about configuring Grist, setting up authentication,
 and running it on a public server in our
-[Self-Managed Grist](https://support.getgrist.com/self-managed/) handbook.
+[Self-Managed Grist](https://support.getgrist.com/self-managed/) documentation.
 
 ## Using Grist with OpenRouter for Model Agnostic and Claude Support
 
@@ -225,20 +225,18 @@ Note: Make sure not to set the OPENAI_API_KEY variable when using OpenRouter, as
 ## Available Docker images
 
 The default Docker image is `gristlabs/grist`. This contains all of
-the standard Grist functionality, as well as extra source-available
-code for enterprise customers taken from the
-[grist-ee](https://github.com/gristlabs/grist-ee) repository. This
-extra code is not under a free or open source license. By default,
-however, the code from the `grist-ee` repository is completely inert
+the Grist Community edition features, as well as extra source-available
+code for the full edition of Grist. This
+extra code is not under a free or open-source license, though by default is completely inert
 and inactive. This code becomes active only when enabled from the
-administrator panel.
+Admin Panel.
 
 If you would rather use an image that contains exclusively free and
-open source code, the `gristlabs/grist-oss` Docker image is available
+open-source code, the `gristlabs/grist-oss` Docker image is available
 for this purpose. It is by default functionally equivalent to the
 `gristlabs/grist` image.
 
-## The administrator panel
+## The Admin Panel
 
 You can turn on a special admininistrator panel to inspect the status
 of your installation. Just visit `/admin` on your Grist server for
@@ -281,11 +279,7 @@ These sandboxing methods have been written for our own use at Grist Labs and
 may need tweaking to work in your own environment - pull requests
 very welcome here!
 
-If you wish to include Grist Labs enterprise extensions in your build,
-the steps are as follows. Note that this will add non-OSS code to your
-build. It will also place a directory called `node_modules` one level
-up, at the same level as the Grist repo. If that is a problem for you,
-just move everything into a subdirectory first.
+If you wish to include full Grist extensions in your build, the steps are as follows. Note that this will add non-OSS code to your build. It will also place a directory called `node_modules` one level up, at the same level as the Grist repo. If that is a problem for you, just move everything into a subdirectory first.
 
     yarn install
     yarn install:ee
@@ -294,8 +288,7 @@ just move everything into a subdirectory first.
     yarn start
     # Grist will be available at http://localhost:8484/
 
-The enterprise code will by default not be used. You need to explicitly enable
-it in the [Admin Panel](https://support.getgrist.com/self-managed/#how-do-i-enable-grist-enterprise).
+You may toggle between the full Grist and Community editions in the [Admin Panel](https://support.getgrist.com/self-managed/#how-do-i-enable-the-full-edition-of-grist).
 
 ## Logins
 
@@ -330,7 +323,7 @@ did the hard work of making a good chunk of the application localizable. Merci b
 
 [![Translation detail](https://hosted.weblate.org/widgets/grist/-/multi-green.svg)](https://hosted.weblate.org/engage/grist/)
 
-## Why free and open source software
+## Why free and open-source software?
 
 This repository, `grist-core`, is maintained by Grist Labs. Our flagship product available at [getgrist.com](https://www.getgrist.com) is built from the code you see here, combined with business-specific software designed to scale to many users, handle billing, etc.
 
@@ -347,7 +340,7 @@ By opening its source code and offering an [OSI](https://opensource.org/)-approv
   an option. Vulnerabilities in the code can be found by others and reported before they cause
   damage.
 - **Independence.** Grist is available to you regardless of the fortunes of the Grist Labs business,
-  since it is open source and can be self-hosted. Using our hosted solution is convenient, but you
+  since it is open-source and can be self-hosted. Using our hosted solution is convenient, but you
   are not locked in.
 - **Price flexibility.** If you are low on funds but have time to invest, self-hosting is a great
   option to have. And DIY users may have the technical savvy and motivation to delve in and make improvements,
