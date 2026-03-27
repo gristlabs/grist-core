@@ -1104,7 +1104,6 @@ class UserActions(object):
     on_many = options.get("on_many", "first")
     if on_many not in ("first", "none", "all"):
       raise ValueError("on_many should be 'first', 'none', or 'all', not %r" % on_many)
-    can_affect_multiple_records = on_many == "all"
 
     allow_empty_require = options.get("allow_empty_require", False)
     if not require and not allow_empty_require:
@@ -1157,7 +1156,7 @@ class UserActions(object):
     update_record_values = {k: [] for k in col_keys - {'id'}}
 
     # Need a placeholder array so the values can be set by index later.
-    result['recordIds'] = [None] * length
+    result['recordIds'] = [[] for i in range(length)]
     # Indexes in recordIds where new record ids will be inserted later,
     # as we don't know them until the records are created.
     new_record_indexes = []
@@ -1180,22 +1179,22 @@ class UserActions(object):
           elif on_many == "none":
             continue
 
-        matched_record_ids = [record.id for record in records] if can_affect_multiple_records else records[0].id
-        result['recordIds'][i] = matched_record_ids
-
         if update:
           for record in records:
             update_record_ids.append(record.id)
             for key, vals in col_values.items():
               update_record_values[key].append(vals[i])
+
+          matched_record_ids = [record.id for record in records]
+          result['recordIds'][i] = matched_record_ids
           result['updatedRecordIds'].append(matched_record_ids)
 
     if add_record_ids:
       new_record_ids = self.BulkAddRecord(table_id, add_record_ids, add_record_values)
       # Fill in recordIds with the IDs of the new records
       for i, new_record_index in enumerate(new_record_indexes):
-        result['recordIds'][new_record_index] = [new_record_ids[i]] if can_affect_multiple_records else new_record_ids[i]
-        result['createdRecordIds'].append([new_record_ids[i]] if can_affect_multiple_records else new_record_ids[i])
+        result['recordIds'][new_record_index] = [new_record_ids[i]]
+        result['createdRecordIds'].append(new_record_ids[i])
 
     if update_record_ids:
       self.BulkUpdateRecord(table_id, update_record_ids, update_record_values)
@@ -1238,7 +1237,7 @@ class UserActions(object):
       action = 'UPDATED'
 
     return {
-      'recordIds': ids if isinstance(ids, list) else [ids],
+      'recordIds': ids,
       'action': action
     }
 

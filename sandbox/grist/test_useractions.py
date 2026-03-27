@@ -1095,7 +1095,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {"color": "yellow"},
       {"update": False},
       [],
-      {"recordIds": [1], "action": "NONE"},
+      {"recordIds": [], "action": "NONE"},
     )
 
     # Since there's no matching records and add=False, do nothing
@@ -1252,9 +1252,38 @@ class TestUserActions(test_engine.EngineTestCase):
       ],
       [
         {
-          "recordIds": [1,2,3,4],
+          "recordIds": [[1],[2],[3],[4]],
           "createdRecordIds": [3,4],
-          "updatedRecordIds": [1,2],
+          "updatedRecordIds": [[1],[2]],
+        }
+      ]
+    )
+
+    # Check that unworkable values (additions with add: False, updates with update: False, and on_many: none)
+    # have the right result
+    check(
+      {
+        "first_name": [
+          "John",
+          "Frodo",
+          "Bob",
+        ],
+      },
+      {
+        "color": [
+          "red",
+          "silver",
+          "Johnson",
+        ],
+      },
+      { "on_many": "none", "add": False, "update": False },
+      [],
+      [
+        {
+          # No action (matched many), no action (no add), no action (no update),
+          "recordIds": [[],[],[]],
+          "createdRecordIds": [],
+          "updatedRecordIds": [],
         }
       ]
     )

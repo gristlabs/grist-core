@@ -54,17 +54,10 @@ export interface AddOrUpdateRecord {
  * Results from the BulkAddOrUpdateRecord user action.
  * Returned by PUT /record endpoint for adding or updating records.
  */
-export type BulkAddOrUpdateRecordResult = BulkAddOrUpdateRecordResultSingleMatch | BulkAddOrUpdateRecordResultManyMatch;
 
-interface BulkAddOrUpdateRecordResultSingleMatch {
-  recordIds: (number | null)[];
+export interface BulkAddOrUpdateRecordResult {
+  recordIds: number[][];
   createdRecordIds: number[];
-  updatedRecordIds: number[];
-}
-
-interface BulkAddOrUpdateRecordResultManyMatch {
-  recordIds: (number | null)[][];
-  createdRecordIds: number[][];
   updatedRecordIds: number[][];
 }
 
