@@ -8,6 +8,7 @@ import {
   cssPageLink,
   cssPill,
 } from "app/client/ui/LeftPanelCommon";
+import { isFeatureEnabled } from "app/common/gristUrls";
 import { getGristConfig } from "app/common/urlUtils";
 
 import { DomContents, makeTestId } from "grainjs";
@@ -16,6 +17,7 @@ const testId = makeTestId("test-tools-");
 const t = makeT("Tools");
 
 export function createPlatformTools(gristDoc: GristDoc, isDocOwner: boolean): DomContents {
+  if (!isFeatureEnabled("automations")) { return null; }
   if (!isDocOwner) { return null; }
   const { deploymentType } = getGristConfig();
   if (deploymentType === "electron" || deploymentType === "static") { return null; }

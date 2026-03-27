@@ -1044,12 +1044,13 @@ export const Features = StringUnion(
   "tutorials",
   "supportGrist",
   "themes",
+  "automations",
 );
 export type IFeature = typeof Features.type;
 
 // Features that are enabled, even if not explicitly listed in GRIST_UI_FEATURES.
 // These should be still be disabled if listed in GRIST_HIDE_UI_ELEMENTS.
-export const ImplicitlyEnabledFeatures: IFeature[] = ["importFromAirtable"];
+export const ImplicitlyEnabledFeatures: IFeature[] = ["importFromAirtable", "automations"];
 
 export function isFeatureEnabled(feature: IFeature): boolean {
   return (getGristConfig().features || []).includes(feature);
