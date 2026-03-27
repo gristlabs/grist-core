@@ -285,7 +285,8 @@ describe("WebhookPage", function() {
     await gu.waitForServer();
     await clipboard.lockAndPerform(async (cb) => {
       await cb.copy();
-      await gu.getDetailCell({ col: "Memo", rowNum: 1 }).click();
+      const cell = await gu.getDetailCell({ col: "Memo", rowNum: 1 }).doClick();
+      await driver.wait(() => cell.find(".has_cursor"), 1000);
       await cb.paste();
     });
     await gu.waitForServer();
@@ -301,7 +302,7 @@ describe("WebhookPage", function() {
 
     // Now let's make sure it's not in a fork
     await driver.find(".test-tb-share").click();
-    await driver.find(".test-work-on-copy").click();
+    await driver.findWait(".test-work-on-copy", 1000).click();
     await gu.waitForUrl(/~/);
     await gu.waitForDocToLoad();
     await gu.wipeToasts();

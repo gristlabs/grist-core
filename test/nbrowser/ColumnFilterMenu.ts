@@ -20,7 +20,7 @@ function getCount() {
 
 // find a filter value by name
 function findByName(regex: RegExp | string) {
-  return driver.findContent(".test-filter-menu-list label", regex);
+  return driver.findContentWait(".test-filter-menu-list label", regex, 1000);
 }
 
 describe("ColumnFilterMenu", function() {
@@ -75,6 +75,7 @@ describe("ColumnFilterMenu", function() {
   it("should show only first 500", async function() {
     const session = await gu.session().teamSite.login();
     await session.tempDoc(cleanup, "World.grist");
+    await gu.waitForDocToLoad();
 
     // check row count is > 4000
     const total = await gu.getGridRowCount() - 1;
@@ -183,8 +184,10 @@ describe("ColumnFilterMenu", function() {
     await gu.findOpenMenuItem("li", /Count/).click();
 
     // Check that there's only 5 values left ('3' is missing)
-    assert.deepEqual(await driver.findAll(".test-filter-menu-list .test-filter-menu-value", e => e.getText()),
-      ["n/a", "-1", "1", "2", "5"]);
+    await gu.waitToPass(async () => {
+      assert.deepEqual(await driver.findAll(".test-filter-menu-list .test-filter-menu-value", e => e.getText()),
+        ["n/a", "-1", "1", "2", "5"]);
+    }, 1000);
 
     // Check `Others` shows unique count
     assert.equal(await driver.find(".test-filter-menu-summary").getText(),
@@ -204,10 +207,13 @@ describe("ColumnFilterMenu", function() {
 
     // Open the Name menu filter
     await driver.findContent(".test-filter-field", /Name/).click();
+    await gu.waitForServer();
 
     // Check there's only 4 values left
-    assert.deepEqual(await driver.findAll(".test-filter-menu-list .test-filter-menu-value", e => e.getText()),
-      ["Bananas", "Clementines", "Grapefruit", "Grapes"]);
+    await gu.waitToPass(async () => {
+      assert.deepEqual(await driver.findAll(".test-filter-menu-list .test-filter-menu-value", e => e.getText()),
+        ["Bananas", "Clementines", "Grapefruit", "Grapes"]);
+    });
 
     // check `Others` shows 2 unique values
     assert.equal(await driver.find(".test-filter-menu-summary").getText(),
@@ -238,15 +244,17 @@ describe("ColumnFilterMenu", function() {
     await driver.findContent(".test-filter-field", /Count/).click();
 
     // Click all and click Apply
-    await driver.findContent(".test-filter-menu-bulk-action", /All/).click();
+    await driver.findContentWait(".test-filter-menu-bulk-action", /All/, 1000).click();
     await driver.find(".test-filter-menu-apply-btn").click();
 
     // open Name filter menu
     await driver.findContent(".test-filter-field", /Name/).click();
 
     // Check Apples and Oranges are unchecked
-    assert.deepEqual(await driver.findAll(".test-filter-menu-list .test-filter-menu-value", e => e.getText()),
-      ["Apples", "Bananas", "Clementines", "Grapefruit", "Grapes", "Oranges"]);
+    await gu.waitToPass(async () => {
+      assert.deepEqual(await driver.findAll(".test-filter-menu-list .test-filter-menu-value", e => e.getText()),
+        ["Apples", "Bananas", "Clementines", "Grapefruit", "Grapes", "Oranges"]);
+    }, 1000);
     assert.equal(await findByName("Apples").find("input").matches(":checked"), false);
     assert.equal(await findByName("Oranges").find("input").matches(":checked"), false);
 
@@ -257,8 +265,10 @@ describe("ColumnFilterMenu", function() {
     await driver.findContent(".test-filter-field", /Count/).click();
 
     // Check there's only 4 values left
-    assert.deepEqual(await driver.findAll(".test-filter-menu-list .test-filter-menu-value", e => e.getText()),
-      ["n/a", "-1", "2", "5"]);
+    await gu.waitToPass(async () => {
+      assert.deepEqual(await driver.findAll(".test-filter-menu-list .test-filter-menu-value", e => e.getText()),
+        ["n/a", "-1", "2", "5"]);
+    });
 
     // Click Others
     await driver.find(".test-filter-menu-summary").click();
@@ -270,7 +280,7 @@ describe("ColumnFilterMenu", function() {
     await driver.findContent(".test-filter-field", /Name/).click();
 
     // Check Others is unchecked
-    assert.equal(await driver.find(".test-filter-menu-summary").find("input").matches(":checked"), false);
+    assert.equal(await driver.findWait(".test-filter-menu-summary", 1000).find("input").matches(":checked"), false);
     assert.equal(await driver.find(".test-filter-menu-summary").find("input").matches(":indeterminate"), false);
 
     // Click Others
@@ -281,7 +291,7 @@ describe("ColumnFilterMenu", function() {
     await driver.findContent(".test-filter-field", /Count/).click();
 
     // Click All and click apply
-    await driver.findContent(".test-filter-menu-bulk-action", /All/).click();
+    await driver.findContentWait(".test-filter-menu-bulk-action", /All/, 1000).click();
     await driver.find(".test-filter-menu-apply-btn").click();
 
     // open Name filter menu
@@ -297,13 +307,14 @@ describe("ColumnFilterMenu", function() {
 
     // Open Count filter menu and click All
     await driver.findContent(".test-filter-field", /Count/).click();
-    await driver.findContent(".test-filter-menu-bulk-action", /All/).click();
+    await driver.findContentWait(".test-filter-menu-bulk-action", /All/, 1000).click();
     await driver.find(".test-filter-menu-apply-btn").click();
   });
 
   it("should show count of unique values next to summaries", async () => {
     // add another Apples
     await driver.find(".record-add .field").click();
+    await gu.waitAppFocus();
     await driver.sendKeys("Apples", Key.ENTER);
     await gu.waitForServer();
     assert.deepEqual(
@@ -331,8 +342,10 @@ describe("ColumnFilterMenu", function() {
     await driver.findContent(".test-filter-field", /Name/).click();
 
     // check Apples is missing
-    assert.deepEqual(await driver.findAll(".test-filter-menu-list .test-filter-menu-value", e => e.getText()),
-      ["Bananas", "Clementines", "Grapefruit", "Grapes", "Oranges"]);
+    await gu.waitToPass(async () => {
+      assert.deepEqual(await driver.findAll(".test-filter-menu-list .test-filter-menu-value", e => e.getText()),
+        ["Bananas", "Clementines", "Grapefruit", "Grapes", "Oranges"]);
+    });
 
     // check count is (1)
     assert.deepEqual(
@@ -426,10 +439,11 @@ describe("ColumnFilterMenu", function() {
     await gu.setRangeFilterBound("min", "2019-07-16");
 
     // Click Cancel, and check that the filter is no longer applied to the table data.
+    await driver.findWait(".test-filter-menu-cancel-btn", 1000).click();
     await gu.waitToPass(async () => {
-      await driver.find(".test-filter-menu-cancel-btn").click();
       assert.isFalse(await driver.find(".test-filter-menu-wrapper").isPresent());
     });
+
     assert.deepEqual(
       await gu.getVisibleGridCells({ cols: ["Name", "Count"], rowNums: [1, 2, 3, 4, 5, 6, 7] }),
       ["Apples", "1",
@@ -460,7 +474,7 @@ describe("ColumnFilterMenu", function() {
     await driver.findContent(".test-filter-field", /Count/).click();
 
     // Filter out 1 and 2.
-    await driver.findContent(".test-filter-menu-list label", /1/).click();
+    await driver.findContentWait(".test-filter-menu-list label", /1/, 1000).click();
     await driver.findContent(".test-filter-menu-list label", /2/).click();
 
     // Unpin the filter.
@@ -603,7 +617,7 @@ describe("ColumnFilterMenu", function() {
     await driver.findContent(".test-filter-field", "Date").click();
 
     // start typing date in min bounds and send TAB
-    await driver.find(".test-filter-menu-min").click();
+    await driver.findWait(".test-filter-menu-min", 1000).click();
     await gu.sendKeys("2019-07-14", Key.TAB);
 
     // check min is set to a valid date

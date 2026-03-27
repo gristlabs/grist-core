@@ -15,6 +15,7 @@ import { PasteData } from "app/client/lib/tableUtil";
 import * as tableUtil from "app/client/lib/tableUtil";
 import BaseRowModel from "app/client/models/BaseRowModel";
 import { DataRowModel } from "app/client/models/DataRowModel";
+import { isSyntheticRowId } from "app/client/models/DataTableModelWithDiff";
 import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
 import { ViewSectionRec } from "app/client/models/entities/ViewSectionRec";
 import { CardContextMenu } from "app/client/ui/CardContextMenu";
@@ -222,7 +223,9 @@ export default class DetailView extends BaseView {
 
   protected selectedRows() {
     if (!this._isAddRow()) {
-      return [this.viewData.getRowId(this.cursor.rowIndex()!)];
+      const rowId = this.viewData.getRowId(this.cursor.rowIndex()!);
+      if (isSyntheticRowId(rowId)) { return []; }
+      return [rowId];
     }
     return [];
   }

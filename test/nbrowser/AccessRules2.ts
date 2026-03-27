@@ -1,16 +1,16 @@
 /**
  * Test of the UI for Granular Access Control, part 2.
  */
-import { enterRulePart, findDefaultRuleSet, findDefaultRuleSetWait, findRuleSet, findRuleSetWait, findTable,
-  findTableWait,
-  getRuleText,
-  startEditingAccessRules,
+import {
+  enterRulePart, findDefaultRuleSet, findDefaultRuleSetWait,
+  findRuleSet, findRuleSetColumnWait, findRuleSetWait, findTable,
+  findTableWait, getRuleText, startEditingAccessRules,
 } from "test/nbrowser/aclTestUtils";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
 
 import escapeRegExp from "lodash/escapeRegExp";
-import { assert, driver, Key, WebElement } from "mocha-webdriver";
+import { assert, driver, Key, until, WebElement } from "mocha-webdriver";
 
 async function isChecked(el: WebElement): Promise<boolean> {
   return await el.getAttribute("checked") !== null;
@@ -18,6 +18,13 @@ async function isChecked(el: WebElement): Promise<boolean> {
 
 async function isDisabled(el: WebElement): Promise<boolean> {
   return await el.getAttribute("disabled") !== null;
+}
+
+async function save(): Promise<void> {
+  const save = driver.find(".test-rules-save");
+  await driver.wait(() => save.isDisplayed());
+  await save.click();
+  await driver.wait(until.stalenessOf(save));
 }
 
 // Just a shortcut.
@@ -184,10 +191,10 @@ describe("AccessRules2", function() {
     // Add rules hiding First_Name, Last_Name columns.
     await findTableWait(/ClientsTable/).find(".test-rule-table-menu-btn").click();
     await gu.findOpenMenuItem("li", /Add column rule/).click();
-    let ruleSet = findRuleSetWait(/ClientsTable/, 1);
-    await ruleSet.findWait(".test-rule-resource .test-select-open", 300).click();
+    let ruleSet = await findRuleSetColumnWait(/ClientsTable/);
+    await ruleSet.find(".test-rule-resource .test-select-open").click();
     await gu.findOpenMenuItem("li", "First_Name").click();
-    await ruleSet.findWait(".test-rule-resource .test-select-open", 300).click();
+    await ruleSet.find(".test-rule-resource .test-select-open").click();
     await gu.findOpenMenuItem("li", "Last_Name").click();
     await enterRulePart(ruleSet, 1, null, { R: "deny" });
 
@@ -198,7 +205,7 @@ describe("AccessRules2", function() {
     await enterRulePart(ruleSet, 1, null, { R: "deny" });
 
     // Save and reload.
-    await driver.find(".test-rules-save").click();
+    await save();
     await gu.waitForServer();
     await driver.navigate().refresh();
     await driver.findWait(".test-rule-set", 5000);
@@ -208,7 +215,7 @@ describe("AccessRules2", function() {
 
     // Remove Last_Name column from being blocked. Check that it's now available in dropdown.
     await driver.findWait(".test-rule-set", 2000);
-    ruleSet = findRuleSetWait(/ClientsTable/, 1);
+    ruleSet = findRuleSetColumnWait(/ClientsTable/);
     await ruleSet.find(".test-rule-resource").click();
     await ruleSet.findContent(".test-acl-column", "Last_Name").find(".test-acl-col-remove").click();
     await ruleSet.find(".test-rule-resource .test-select-open").click();
@@ -230,11 +237,11 @@ describe("AccessRules2", function() {
     await driver.sendKeys(Key.ESCAPE);
 
     // Save
-    await driver.find(".test-rules-save").click();
+    await save();
     await gu.waitForServer();
 
     // Remove First_Name column from being blocked, and add back Last_Name column.
-    ruleSet = findRuleSetWait(/ClientsTable/, 1);
+    ruleSet = findRuleSetColumnWait(/ClientsTable/);
     await ruleSet.find(".test-rule-resource").click();
     await ruleSet.findContent(".test-acl-column", "First_Name").find(".test-acl-col-remove").click();
     await ruleSet.find(".test-rule-resource .test-select-open").click();
@@ -249,7 +256,7 @@ describe("AccessRules2", function() {
     await enterRulePart(ruleSet, 1, null, { R: "deny" });
 
     // Save and reload.
-    await driver.find(".test-rules-save").click();
+    await save();
     await gu.waitForServer();
     await driver.navigate().refresh();
     await driver.findWait(".test-rule-set", 5000);
@@ -262,7 +269,7 @@ describe("AccessRules2", function() {
     // Remove the installed "Deny" rules to restore the initial state.
     await findRuleSet(/ClientsTable/, 1).find(".test-rule-remove").click();
     await findRuleSet(/FinancialsTable/, 1).find(".test-rule-remove").click();
-    await driver.find(".test-rules-save").click();
+    await save();
     await gu.waitForServer();
   });
 
@@ -300,15 +307,19 @@ describe("AccessRules2", function() {
     // Select a table and check that the Column field offers a dropdown.
     await gu.findOpenMenuItem("li", "ClientsTable").click();
     await userAttrRule.find(".test-rule-userattr-col").click();
-    assert.includeMembers(await gu.findOpenMenuAllItems("li", el => el.getText()),
-      ["Agent_Email", "Email", "First_Name"]);
+    await gu.waitToPass(async () => {
+      assert.includeMembers(await gu.findOpenMenuAllItems("li", el => el.getText()),
+        ["Agent_Email", "Email", "First_Name"]);
+    });
 
     // Select a different table, and check that the Column field dropdown gets updated.
     await userAttrRule.find(".test-rule-userattr-table").click();
     await driver.sendKeys("Access", Key.ENTER);
     await userAttrRule.find(".test-rule-userattr-col").click();
-    assert.deepEqual(await gu.findOpenMenuAllItems("li", el => el.getText()),
-      ["Email", "SharedOnly", "id"]);
+    await gu.waitToPass(async () => {
+      assert.deepEqual(await gu.findOpenMenuAllItems("li", el => el.getText()),
+        ["Email", "SharedOnly", "id"]);
+    });
     await driver.sendKeys("Email", Key.ENTER);
 
     // Remove ClientTable rules, and add a new one using the new UserAttribute.
@@ -324,7 +335,7 @@ describe("AccessRules2", function() {
     await enterRulePart(ruleSet, 1, `not user.MyAccess.SharedOnly or rec.Shared or newRec.Shared`,
       { R: "allow" });
     await enterRulePart(ruleSet, 2, null, "Deny all");
-    await driver.find(".test-rules-save").click();
+    await save();
     await gu.waitToPass(async () => {
       await gu.openPage("ClientsTable");
       assert.equal(await gu.getGridRowCount(), 6);
@@ -386,7 +397,7 @@ describe("AccessRules2", function() {
     assert.equal(await ruleSet.find(".test-rule-extra-add").isPresent(), true);
 
     // Save
-    await driver.find(".test-rules-save").click();
+    await save();
     await gu.waitForServer();
     await driver.findWait(".test-rule-set", 2000);
 
@@ -521,7 +532,7 @@ describe("AccessRules2", function() {
     // It also causes the 'Restrict copying' permission to become visible.
     assert.deepEqual(await driver.findAll(".test-rule-special-checkbox", isChecked), [false, false, true, true]);
     assert.deepEqual(await driver.findAll(".test-rule-special-checkbox", isShown), [true, true, true, true]);
-    await driver.find(".test-rules-save").click();
+    await save();
     await gu.waitForServer();
 
     // Verify that it's checked after saving.
@@ -552,7 +563,7 @@ describe("AccessRules2", function() {
     await gu.scrollIntoView(driver.find(".test-rule-special-FullCopies .test-rule-special-checkbox")).click();
 
     // Save and reload the page.
-    await driver.find(".test-rules-save").click();
+    await save();
     await gu.waitForServer();
     await driver.navigate().refresh();
     await driver.findWait(".test-rule-set", 5000);
@@ -594,9 +605,9 @@ describe("AccessRules2", function() {
     await driver.findContent(".test-rule-table-header", / #Invalid \(ClientsTable\)$/)
       .find(".test-rule-table-menu-btn").click();
     await gu.findOpenMenuItem("li", /Delete/).click();
-    await driver.find(".test-rules-save").click();
+    await save();
     await gu.waitForServer();
-    assert.isTrue(await driver.find(".test-rules-non-save").isPresent());
+    assert.isTrue(await driver.find(".test-rules-non-save").isDisplayed());
   });
 
   it("should offer fixes for rules referring to deleted tables/columns", async function() {
@@ -636,7 +647,7 @@ describe("AccessRules2", function() {
     await enterRulePart(ruleSet, 1, null, "Allow all");
     await findTable(/TmpTable2/).find(".test-rule-table-menu-btn").click();
     await gu.findOpenMenuItem("li", /Add column rule/).click();
-    ruleSet = findRuleSet(/TmpTable2/, 1);
+    ruleSet = findRuleSetColumnWait(/TmpTable2/);
     await ruleSet.find(".test-rule-resource .test-select-open").click();
     await gu.findOpenMenuItem("li", "A").click();
     await ruleSet.find(".test-rule-resource .test-select-open").click();
@@ -646,7 +657,7 @@ describe("AccessRules2", function() {
     await enterRulePart(ruleSet, 1, "True", { R: "allow" });
 
     // Save the rules.
-    await driver.find(".test-rules-save").click();
+    await save();
     await gu.waitForServer();
 
     // Now remove TmpTable1 and some columns of TmpTable2.
@@ -673,7 +684,7 @@ describe("AccessRules2", function() {
     await driver.findContentWait("button", /Remove column B from TmpTable2 rules/, 5000).click();
     await driver.findContentWait("button", /Remove column C from TmpTable2 rules/, 5000).click();
     await driver.findContentWait("button", /Remove Zig user attribute/, 5000).click();
-    await driver.find(".test-rules-save").click();
+    await save();
     await gu.waitForServer();
 
     // Check the list of rules looks cleaner.
@@ -698,7 +709,7 @@ describe("AccessRules2", function() {
     await driver.find(".test-rules-revert").click();
     await gu.waitForServer();
     await driver.findContentWait("button", /Remove TmpTable2 rules/, 5000).click();
-    await driver.find(".test-rules-save").click();
+    await save();
     await gu.waitForServer();
 
     // Check the list of rules looks cleaner.
@@ -721,7 +732,7 @@ describe("AccessRules2", function() {
 
     // Add a rule, and save.
     await driver.find(".test-rule-special-AccessRules .test-rule-special-checkbox").click();
-    await driver.find(".test-rules-save").click();
+    await save();
     await gu.waitForServer();
 
     // Check that it worked.
@@ -745,7 +756,7 @@ describe("AccessRules2", function() {
 
     // Remove the rule we added, and save.
     await driver.find(".test-rule-special-AccessRules .test-rule-special-checkbox").click();
-    await driver.find(".test-rules-save").click();
+    await save();
     await gu.waitForServer();
     assert.isFalse(await isChecked(await driver.find(".test-rule-special-AccessRules .test-rule-special-checkbox")));
 

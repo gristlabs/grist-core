@@ -23,7 +23,7 @@ import { EnvironmentSnapshot, fixturesRoot } from "test/server/testUtils";
 
 import path from "path";
 
-import { addToRepl, assert, driver, Key } from "mocha-webdriver";
+import { addToRepl, assert, driver, Key, WebElement } from "mocha-webdriver";
 
 describe("FormView1", function() {
   this.timeout(20_000);   // Default for each test or hook.
@@ -165,6 +165,27 @@ describe("FormView1", function() {
     await gu.waitForServer();
     assert.isFalse(await driver.find(".test-form-success-page").isPresent());
   }
+
+  // tests to check after a select field click (when a dropdown shows up)
+  async function assertDropdownScreenReaderBehavior(dropdownContainer: WebElement) {
+    const searchInput = await dropdownContainer.find(".test-sd-search input");
+    // Check that the search input is focused on dropdown opening
+    await driver.wait(async () => await searchInput.hasFocus(), 100);
+    assert.isTrue(await searchInput.hasFocus());
+    // Check that screen-reader related attributes are there
+    assert.equal(await searchInput.getAttribute("role"), "combobox");
+    assert.equal(await searchInput.getAttribute("aria-autocomplete"), "list");
+    assert.equal(await searchInput.getAttribute("aria-expanded"), "true");
+    const listbox = await dropdownContainer.find('[role="listbox"]');
+    assert.equal(await searchInput.getAttribute("aria-controls"), await listbox.getAttribute("id"));
+    assert.match(await searchInput.getAttribute("aria-label"), /^Search options for/);
+    assert.match(await listbox.getAttribute("aria-label"), /^Options for/);
+    const options = await listbox.findAll('[role="option"]');
+    // check that screen reader related attribute are correctly updated when navigating
+    await gu.sendKeys(Key.ARROW_DOWN);
+    assert.equal(await options[0].getAttribute("aria-selected"), "true");
+    assert.equal(await searchInput.getAttribute("aria-activedescendant"), await options[0].getAttribute("id"));
+  };
 
   describe("on personal site", async function() {
     before(async function() {
@@ -327,7 +348,7 @@ describe("FormView1", function() {
     it("max length for single-line Text field", async function() {
       const formUrl = await createFormWith("Text");
       await gu.openColumnPanel();
-      await gu.waitForSidePanel();
+      await gu.waitForSidePanel("right", "expanded");
       const constraintInput = await driver.find(".test-tb-form-field-constraint input");
       await constraintInput.sendKeys(5);
       await constraintInput.sendKeys(Key.ENTER);
@@ -357,7 +378,6 @@ describe("FormView1", function() {
     it("can submit a form with multi-line Text field", async function() {
       const formUrl = await createFormWith("Text");
       await gu.openColumnPanel();
-      await gu.waitForSidePanel();
       await driver.findContent(".test-tb-form-field-format .test-select-button", /Multi line/).click();
       await gu.waitForServer();
       // We are in a new window.
@@ -383,7 +403,7 @@ describe("FormView1", function() {
     it("max length for multi-line Text field", async function() {
       const formUrl = await createFormWith("Text");
       await gu.openColumnPanel();
-      await gu.waitForSidePanel();
+      await gu.waitForSidePanel("right", "expanded");
       await driver.findContent(".test-tb-form-field-format .test-select-button", /Multi line/).click();
       const constraintInput = await driver.find(".test-tb-form-field-constraint input");
       await constraintInput.sendKeys(7);
@@ -517,6 +537,7 @@ describe("FormView1", function() {
             await driver.findAll(".test-sd-searchable-list-item", e => e.getText()), ["Foo", "Bar", "Baz"],
           ),
         500);
+        await assertDropdownScreenReaderBehavior(await driver.findWait(".grist-floating-menu", 1000));
         await gu.sendKeys("Baz", Key.ENTER);
         assert.equal(await driver.find('select[name="D"]').value(), "Baz");
         await driver.find(".test-form-reset").click();
@@ -825,9 +846,11 @@ describe("FormView1", function() {
           ["", "1", "2", "3"],
         );
         await driver.find(".test-form-search-select").click();
+        await driver.findWait(".test-sd-searchable-list-item", 1000);
         assert.deepEqual(
           await driver.findAll(".test-sd-searchable-list-item", e => e.getText()), ["Foo", "Bar", "Baz"],
         );
+        await assertDropdownScreenReaderBehavior(await driver.findWait(".grist-floating-menu", 1000));
         await gu.sendKeys("Baz", Key.ENTER);
         assert.equal(await driver.find('select[name="D"]').value(), "3");
         await driver.find(".test-form-reset").click();
@@ -846,7 +869,10 @@ describe("FormView1", function() {
         // Check keyboard shortcuts work.
         assert.equal(await driver.find(".test-form-search-select").getText(), "Bar");
         await gu.sendKeys(Key.BACK_SPACE);
-        assert.equal(await driver.find(".test-form-search-select").getText(), "Select...");
+        // Sometimes leads to flakiness, use waitToPass for this check:
+        await gu.waitToPass(async () => {
+          assert.equal(await driver.find(".test-form-search-select").getText(), "Select...");
+        });
         await gu.sendKeys(Key.ENTER);
         await driver.findContentWait(".test-sd-searchable-list-item", "Bar", 2000).click();
         await driver.find('button[type="submit"]').click();
@@ -881,6 +907,7 @@ describe("FormView1", function() {
         await driver.findWait('select[name="D"]', 2000);
         await driver.findWait('label[for="D"]', 2000);
         await driver.find(".test-form-search-select").click();
+        await driver.findWait(".test-sd-searchable-list-item", 2000);
         assert.deepEqual(
           await driver.findAll(".test-sd-searchable-list-item", e => e.getText()),
           twoLettersCombination.slice(0, 100),
@@ -1510,6 +1537,7 @@ describe("FormView1", function() {
     it("cutting works", async function() {
       const revert = await gu.begin();
       await question("A").click();
+      await gu.waitAppFocus();
       // Send copy command.
       await clipboard.lockAndPerform(async (cb) => {
         await cb.cut();
@@ -1531,6 +1559,7 @@ describe("FormView1", function() {
       await clickMenu("Paragraph");
       await gu.waitForServer();
       await element("Paragraph", 5).click();
+      await gu.waitAppFocus();
       await clipboard.lockAndPerform(async (cb) => {
         await cb.cut();
         // Go over A and paste there.

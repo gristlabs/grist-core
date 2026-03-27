@@ -19,28 +19,38 @@ import { menuCssClass, menuItem } from "app/client/ui2018/menus";
 
 import { Disposable, dom, DomArg, Observable, styled } from "grainjs";
 import { cssMenu, cssMenuItem, cssMenuWrap, getOptionFull, IOpenController, IOption } from "popweasel";
+import slugify from "slugify";
+import { uniqueId } from "underscore";
 
 export type { IOption, IOptionFull } from "popweasel";
 export { getOptionFull } from "popweasel";
 
 export interface ISimpleListOpt<T, U extends IOption<T> = IOption<T>> {
   matchTriggerElemWidth?: boolean;
+  ariaLabel?: Observable<string | undefined>;
   headerDom?(): DomArg<HTMLElement>;
   renderItem?(item: U): DomArg<HTMLElement>;
+  onSelectedChange?(selectedItem: HTMLElement | null): void;
 }
 
 export class SimpleList<T, U extends IOption<T> = IOption<T>> extends Disposable {
   public readonly content: HTMLElement;
+  public readonly containerId: string;
+  public readonly listboxId: string;
   private _menuContent: HTMLElement;
   private _selected: HTMLElement;
   private _selectedIndex: number = -1;
   private _mouseOver: { reset(): void };
+  private _onSelectedChange?: (selectedItem: HTMLElement | null) => void;
 
   constructor(private _ctl: IOpenController,
     private _items: Observable<U[]>,
     private _action: (value: T) => void,
     opt: ISimpleListOpt<T, U> = {}) {
     super();
+    this.containerId = `simple-list-${uniqueId()}`;
+    this.listboxId = `${this.containerId}-listbox`;
+    this._onSelectedChange = opt.onSelectedChange;
     const renderItem = opt.renderItem || ((item: U) => getOptionFull(item).label);
     this.content = cssMenuWrap(
       dom("div",
@@ -52,15 +62,26 @@ export class SimpleList<T, U extends IOption<T> = IOption<T>> extends Disposable
             style.marginRight = "0px";
           }
         },
-        { class: menuCssClass + " grist-floating-menu " + kbFocusHighlighterClass },
+        { id: this.containerId, class: menuCssClass + " grist-floating-menu " + kbFocusHighlighterClass },
         cssMenu.cls(""),
         cssMenuExt.cls(""),
         opt.headerDom?.(),
         this._menuContent = cssMenuList(
-          dom.forEach(this._items, (i) => {
+          { id: this.listboxId, role: "listbox" },
+          dom.attr("aria-label", opt.ariaLabel),
+          dom.forEach(this._items, (i, index) => {
             const item = getOptionFull(i);
             return cssOptionRow(
-              { class: menuItem.className + " " + cssMenuItem.className },
+              {
+                // We expose unique DOM ids, for external components that need to reference them for screen readers.
+                // Note: we don't rely solely on the index because items in the list can move around, for example
+                // when used in a search dropdown. In that case, screen readers need to correctly understand when items
+                // move, and they don't understand if the first item of the list is always id "0". They understand
+                // when it is "0-foo" and then "0-bar".
+                id: `${this.listboxId}-item-${index}-${slugify(item.label)}`,
+                role: "option",
+                class: menuItem.className + " " + cssMenuItem.className,
+              },
               dom.on("click", () => this._doAction(item.value)),
               renderItem(i),
               dom.cls("disabled", Boolean(item.disabled)),
@@ -76,6 +97,9 @@ export class SimpleList<T, U extends IOption<T> = IOption<T>> extends Disposable
       this._menuContent,
       ev => this.setSelected(this._findTargetItem(ev.target)),
     );
+    const triggerElem = this._ctl.getTriggerElem();
+    triggerElem.setAttribute("aria-owns", this.containerId);
+    this.onDispose(() => triggerElem.removeAttribute("aria-owns"));
     this._update();
   }
 
@@ -95,14 +119,19 @@ export class SimpleList<T, U extends IOption<T> = IOption<T>> extends Disposable
     const prev = this._selected;
     if (elem !== prev) {
       const clsName = cssMenuItem.className + "-sel";
-      if (prev) { prev.classList.remove(clsName); }
+      if (prev) {
+        prev.classList.remove(clsName);
+        prev.removeAttribute("aria-selected");
+      }
       if (elem) {
         elem.classList.add(clsName);
+        elem.setAttribute("aria-selected", "true");
         elem.scrollIntoView({ block: "nearest" });
       }
     }
     this._selected = elem;
     this._selectedIndex = elem ? index : -1;
+    this._onSelectedChange?.(elem);
   }
 
   private _update() {

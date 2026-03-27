@@ -357,7 +357,9 @@ describe("CustomWidgets", function() {
         await useManifest(url);
         await reloadWidgets();
         await recreatePanel();
-        assert.include(await getErrorMessage(), error);
+        await gu.waitToPass(async () => {
+          assert.include(await getErrorMessage(), error);
+        }, 1000);
         await gu.wipeToasts();
         // Gallery should only contain the Custom URL widget.
         await gu.openCustomWidgetGallery();
@@ -492,7 +494,9 @@ describe("CustomWidgets", function() {
 
       // Switch section, and test if prompt is hidden
       await recreatePanel();
-      assert.isTrue(await hasPrompt());
+      await gu.waitToPass(async () => {
+        assert.isTrue(await hasPrompt());
+      }, 1000);
       assert.equal(await access(), AccessLevel.none);
       assert.equal(await content(), AccessLevel.none);
     });

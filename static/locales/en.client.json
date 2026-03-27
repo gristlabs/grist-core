@@ -1163,7 +1163,9 @@
         "By Name": "By Name",
         "By Date Modified": "By date Modified",
         "Light": "Light",
-        "Custom": "Custom"
+        "Custom": "Custom",
+        "Dark": "Dark",
+        "Light (High Contrast)": "Light (High Contrast)"
     },
     "modals": {
         "Cancel": "Cancel",
@@ -1965,7 +1967,9 @@
         "Select...": "Select...",
         "Submit": "Submit",
         "Submitting…": "Submitting…",
-        "Clear selection for: {{-inputLabel}}": "Clear selection for: {{-inputLabel}}"
+        "Clear selection for: {{-inputLabel}}": "Clear selection for: {{-inputLabel}}",
+        "Options for {{-inputLabel}}": "Options for {{-inputLabel}}",
+        "Search options for {{-inputLabel}}": "Search options for {{-inputLabel}}"
     },
     "widgetTypesMap": {
         "Calendar": "Calendar",

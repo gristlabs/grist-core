@@ -1,3 +1,5 @@
+import { isVersions } from "app/common/gristTypes";
+
 import type { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
 import type { CellValue } from "app/common/DocActions";
 import type { TableData } from "app/common/TableData";
@@ -41,7 +43,14 @@ export class CopySelection {
       return {
         colId: this.colIds[i],
         fmtGetter: rowId => formatter.formatAny(_fmtGetter(rowId)),
-        rawGetter: rowId => _rawGetter(rowId),
+        rawGetter: (rowId) => {
+          const val = _rawGetter(rowId);
+          // In comparison/suggestion mode, getRowPropFunc returns CellVersions
+          // for cells with diffs. Unwrap to the "local" (current) value so the
+          // clipboard gets a plain value, not the CellVersions wrapper.
+          if (val !== undefined && isVersions(val)) { return val[1].local ?? val[1].parent; }
+          return val;
+        },
       };
     });
   }

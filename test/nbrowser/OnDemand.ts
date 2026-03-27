@@ -87,7 +87,7 @@ describe("OnDemand", function() {
 
     // Wait for the page to reload, i.e. "confirm" dialog to close, and then check wait for title
     // to be present again.
-    await gu.waitForServer(4000);   // This could take longer, since it waits for doc to re-open
+    await gu.waitForServer(10_000);   // This could take longer, since it waits for doc to re-open
     await driver.navigate().refresh();
     await gu.waitForDocToLoad();
 
@@ -115,8 +115,7 @@ describe("OnDemand", function() {
 
     // Add a record to column A of the new table. This also tests a bug with adding records to
     // a previously empty formula column of an on-demand table.
-    await gu.sendKeys("hello", Key.ENTER);
-    await gu.waitForServer();
+    await gu.enterCell("hello");
     assert.deepEqual(await gu.getVisibleGridCells({ cols: [0, 1, 2], rowNums: [1] }), [
       "hello", "", ""]);
 
@@ -140,34 +139,41 @@ describe("OnDemand", function() {
 
     // Add multiple records to the table.
     await gu.selectGridArea([2, 0], [3, 1]);
+    await gu.waitAppFocus();
     await clipboard.lockAndPerform(async (cb: IClipboard) => {
       await cb.copy();
-      await gu.getCell(1, 4).click();
+      const cell = await gu.getCell(1, 4).doClick();
+      await gu.waitCellFocus(cell);
       await cb.paste();
     });
+    await gu.waitAppFocus();
     await gu.waitForServer();
-    assert.deepEqual(await gu.getVisibleGridCells({ cols: [0, 1, 2], rowNums: [1, 2, 3, 4, 5] }), [
-      "hello", "brown",  "",
-      "the",   "fox",    "",
-      "quick", "jumped", "",
-      "",      "the",    "fox",
-      "",      "quick",  "jumped"]);
+    await gu.waitToPass(async () => {
+      assert.deepEqual(await gu.getVisibleGridCells({ cols: [0, 1, 2], rowNums: [1, 2, 3, 4, 5] }), [
+        "hello", "brown",  "",
+        "the",   "fox",    "",
+        "quick", "jumped", "",
+        "",      "the",    "fox",
+        "",      "quick",  "jumped"]);
+    }, 1000);
 
     // Undo bulk add action.
     await gu.undo();
-    assert.deepEqual(await gu.getVisibleGridCells({ cols: [0, 1, 2], rowNums: [1, 2, 3, 4, 5] }), [
-      "hello", "brown",  "",
-      "the",   "fox",    "",
-      "quick", "jumped", "",
-      "",      "",       "",
-      undefined, undefined, undefined]);
+    await gu.waitToPass(async () => {
+      assert.deepEqual(await gu.getVisibleGridCells({ cols: [0, 1, 2], rowNums: [1, 2, 3, 4, 5] }), [
+        "hello", "brown",  "",
+        "the",   "fox",    "",
+        "quick", "jumped", "",
+        "",      "",       "",
+        undefined, undefined, undefined]);
+    }, 1000);
 
     // Update individual records in the table.
     await gu.getCell(1, 2).click();
-    await gu.sendKeys("dog", Key.ENTER);
+    await gu.enterCell("dog");
     await gu.waitForServer();
     await gu.getCell(0, 3).click();
-    await gu.sendKeys("lazy", Key.ENTER);
+    await gu.enterCell("lazy");
     await gu.waitForServer();
     assert.deepEqual(await gu.getVisibleGridCells({ cols: [0, 1, 2], rowNums: [1, 2, 3] }), [
       "hello", "brown",  "",
@@ -184,17 +190,22 @@ describe("OnDemand", function() {
     // Update multiple records in the table.
     await gu.waitAppFocus(true);
     await gu.selectGridArea([1, 0], [3, 0]);
+    await gu.waitAppFocus();
     await clipboard.lockAndPerform(async (cb: IClipboard) => {
       await cb.copy();
-      await gu.getCell(1, 2).click();
+      const cell = await gu.getCell(1, 2).doClick();
+      await gu.waitCellFocus(cell);
       await cb.paste();
     });
     await gu.waitForServer();
-    assert.deepEqual(await gu.getVisibleGridCells({ cols: [0, 1, 2], rowNums: [1, 2, 3, 4] }), [
-      "hello", "brown", "",
-      "the",   "hello", "",
-      "quick", "the",   "",
-      "",      "quick", ""]);
+    await gu.waitAppFocus();
+    await gu.waitToPass(async () => {
+      assert.deepEqual(await gu.getVisibleGridCells({ cols: [0, 1, 2], rowNums: [1, 2, 3, 4] }), [
+        "hello", "brown", "",
+        "the",   "hello", "",
+        "quick", "the",   "",
+        "",      "quick", ""]);
+    }, 1000);
 
     // Undo bulk update action.
     await gu.undo();
@@ -204,7 +215,8 @@ describe("OnDemand", function() {
       "quick", "jumped", ""]);
 
     // Remove a row from the table.
-    await gu.getCell(0, 2).click();
+    const cell = await gu.getCell(0, 2).doClick();
+    await gu.waitCellFocus(cell);
     await gu.sendKeys(Key.chord(await gu.modKey(), Key.DELETE));
     await gu.waitForServer();
     await gu.confirm(true, true);
@@ -240,10 +252,8 @@ describe("OnDemand", function() {
   it("should always add records at the end", async function() {
     // Add rows in a bunch of different locations and assert their positions.
     await gu.getCell(0, 4).click();
-    await gu.sendKeys("1", Key.ENTER);
-    await gu.waitForServer();
-    await gu.sendKeys("2", Key.ENTER);
-    await gu.waitForServer();
+    await gu.enterCell("1");
+    await gu.enterCell("2");
     assert.deepEqual(await gu.getVisibleGridCells({ cols: [0, 1, 2], rowNums: [1, 2, 3, 4, 5] }), [
       "hello", "brown",  "",
       "the",   "fox",    "",
@@ -252,11 +262,9 @@ describe("OnDemand", function() {
       "2",     "",       ""]);
 
     // Perform removal actions and assert that the rows are re-added to the correct places on undo.
-    await gu.getCell(0, 4).click();
-    await gu.sendKeys(Key.chord(await gu.modKey(), Key.DELETE));
-    await gu.waitForServer();
-    await gu.sendKeys(Key.chord(await gu.modKey(), Key.DELETE));
-    await gu.waitForServer();
+    await gu.deleteRow(4);
+
+    await gu.deleteRow(4);
 
     await gu.undo();
     assert.deepEqual(await gu.getVisibleGridCells({ cols: [0, 1, 2], rowNums: [1, 2, 3, 4] }), [
@@ -291,11 +299,10 @@ describe("OnDemand", function() {
     await gu.waitAppFocus(true);
     // Add values to the new columns and make sure no errors arise.
     await gu.getCell(3, 1).click();
-    await gu.sendKeys("abcd", Key.ENTER);
+    await gu.enterCell("abcd");
     await gu.waitForServer();
     await gu.waitAppFocus(true);
-    await gu.sendKeys("defg", Key.ENTER);
-    await gu.waitForServer();
+    await gu.enterCell("defg");
     await gu.waitAppFocus(true);
     assert.deepEqual(await gu.getVisibleGridCells({ cols: [0, 1, 2, 3], rowNums: [1, 2, 3] }), [
       "hello", "brown",  "", "abcd",

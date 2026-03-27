@@ -1,7 +1,8 @@
+import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/projects/testUtils";
 
 import { delay } from "bluebird";
-import { addToRepl, assert, driver } from "mocha-webdriver";
+import { addToRepl, assert, driver, WebElementPromise } from "mocha-webdriver";
 
 describe("TreeViewComponent", () => {
   setupTestSuite();
@@ -28,7 +29,7 @@ describe("TreeViewComponent", () => {
 
   it("should reflect model update", async function() {
     // test insertion
-    await driver.find("input.insert").doClick();
+    await withTreeviewChange(() => driver.find("input.insert").doClick());
     assert.deepEqual(await driver.findAll(".test-treeview-itemHeaderWrapper", e => e.getText()),
       ["Page1", "Page2", "Page3", "Page4", "Page5", "Page6", "New Page"]);
     assert.deepEqual(await driver.findAll(".test-treeview-itemHeaderWrapper .test-treeview-offset",
@@ -39,7 +40,7 @@ describe("TreeViewComponent", () => {
     [true, false, true, false, false, false, false]);
 
     // test insertion in a subfolder
-    await driver.find("input.subInsert").doClick();
+    await withTreeviewChange(() => driver.find("input.subInsert").doClick());
     assert.deepEqual(await driver.findAll(".test-treeview-itemHeaderWrapper", e => e.getText()),
       ["Page1", "Page2", "Page3", "Page4", "New Page 5", "Page5", "Page6", "New Page"]);
     assert.deepEqual(await driver.findAll(".test-treeview-itemHeaderWrapper .test-treeview-offset",
@@ -55,7 +56,7 @@ describe("TreeViewComponent", () => {
     assert.deepEqual(await findItem(/Page3/).find(".test-treeview-itemArrow").getCssValue("visibility"), "hidden");
 
     // reset tree
-    await driver.find("input.reset").doClick();
+    await withTreeviewChange(() => driver.find("input.reset").doClick());
   });
 
   it("should have a working handle", async function() {
@@ -201,24 +202,30 @@ describe("TreeViewComponent", () => {
 
     // select one item
     await driver.findContent(".test-treeview-label", /Page1/).doClick();
-    assert.deepEqual(await driver.findAll(`.test-treeview-itemHeader.selected`, e => e.getText()), ["Page1"]);
+    await gu.waitToPass(async () => {
+      assert.deepEqual(await driver.findAll(`.test-treeview-itemHeader.selected`, e => e.getText()), ["Page1"]);
+    });
 
     // select another item
     await driver.findContent(".test-treeview-label", /Page4/).doClick();
-    assert.deepEqual(await driver.findAll(`.test-treeview-itemHeader.selected`, e => e.getText()), ["Page4"]);
+    await gu.waitToPass(async () => {
+      assert.deepEqual(await driver.findAll(`.test-treeview-itemHeader.selected`, e => e.getText()), ["Page4"]);
+    });
   });
 
   it("should support collapsing", async function() {
     // reset tree and check initial state
     await driver.find("input.reset").doClick();
-    assert.deepEqual(await driver.findAll(".test-treeview-itemHeaderWrapper", e => e.getText()),
-      ["Page1", "Page2", "Page3", "Page4", "Page5", "Page6"]);
+    await gu.waitToPass(async () => {
+      assert.deepEqual(await driver.findAll(".test-treeview-itemHeaderWrapper", e => e.getText()),
+        ["Page1", "Page2", "Page3", "Page4", "Page5", "Page6"]);
+    }, 2000);
     // let's collapse Page1
-    await findItem(/Page1/).find(".test-treeview-itemArrow").doClick();
+    await withTreeviewChange(() => findItem(/Page1/).find(".test-treeview-itemArrow").doClick());
     assert.deepEqual(await driver.findAll(".test-treeview-itemHeaderWrapper", e => e.getText()),
       ["Page1", "", "", "", "Page5", "Page6"]);
     // uncollapse
-    await findItem(/Page1/).find(".test-treeview-itemArrow").doClick();
+    await withTreeviewChange(() => findItem(/Page1/).find(".test-treeview-itemArrow").doClick());
     assert.deepEqual(await driver.findAll(".test-treeview-itemHeaderWrapper", e => e.getText()),
       ["Page1", "Page2", "Page3", "Page4", "Page5", "Page6"]);
   });
@@ -237,7 +244,7 @@ describe("TreeViewComponent", () => {
     await driver.find("input.clearLogs").doClick();
 
     // let's collapse Page1
-    await findItem(/Page1/).find(".test-treeview-itemArrow").doClick();
+    await withTreeviewChange(() => findItem(/Page1/).find(".test-treeview-itemArrow").doClick());
     assert.deepEqual(await driver.findAll(".test-treeview-itemHeaderWrapper", e => e.getText()),
       ["Page1", "", "", "", "Page5", "Page6"]);
     await startDrag(/Page6/);
@@ -279,7 +286,7 @@ describe("TreeViewComponent", () => {
   it("should not auto expand when leaving item before timeout", async function() {
     this.timeout(4000);
     // let's collapse Page1
-    await findItem(/Page1/).find(".test-treeview-itemArrow").doClick();
+    await withTreeviewChange(() => findItem(/Page1/).find(".test-treeview-itemArrow").doClick());
     assert.deepEqual(await driver.findAll(".test-treeview-itemHeaderWrapper", e => e.getText()),
       ["Page1", "", "", "", "Page5", "Page6"]);
     await startDrag(/Page6/);
@@ -296,7 +303,7 @@ describe("TreeViewComponent", () => {
   it("auto expand should not cause target to change when the item was already expanded", async function() {
     this.timeout(4000);
     // let's expand Page1
-    await findItem(/Page1/).find(".test-treeview-itemArrow").doClick();
+    await withTreeviewChange(() => findItem(/Page1/).find(".test-treeview-itemArrow").doClick());
     assert.deepEqual(await driver.findAll(".test-treeview-itemHeaderWrapper", e => e.getText()),
       ["Page1", "Page2", "Page3", "Page4", "Page5", "Page6"]);
     const target = findTarget();
@@ -332,9 +339,12 @@ describe("TreeViewComponent", () => {
   it("should flatten tree if isOpen is false", async function() {
     await driver.find("input.reset").doClick();
 
-    assert.deepEqual(await driver.findAll(".test-treeview-itemHeaderWrapper .test-treeview-offset",
-      e => e.getCssValue("display")),
-    ["block", "block", "block", "block", "block", "block"]);
+    // Some flakiness due to staleness, there we use waitToPass
+    await gu.waitToPass(async () => {
+      assert.deepEqual(await driver.findAll(".test-treeview-itemHeaderWrapper .test-treeview-offset",
+        e => e.getCssValue("display")),
+      ["block", "block", "block", "block", "block", "block"]);
+    });
     assert.deepEqual(await driver.findAll(".test-treeview-itemHeaderWrapper .test-treeview-itemArrow",
       e => e.getCssValue("display")),
     ["flex", "flex", "flex", "flex", "flex", "flex"]);
@@ -387,35 +397,35 @@ describe("TreeViewComponent", () => {
      * another one. So if we collapse Page3 and then move it before Page6 it should remain
      * collapsed.
      */
-    await driver.find("input.reset").doClick();
+    await withTreeviewChange(() => driver.find("input.reset").doClick());
     // lets' check no pages are collapsed
     assert.deepEqual(await driver.findAll(".test-treeview-itemHeaderWrapper", e => e.getText()),
       ["Page1", "Page2", "Page3", "Page4", "Page5", "Page6"]);
 
     // let's collapse Page3.
-    await findItem(/Page3/).find(".test-treeview-itemArrow").doClick();
+    await withTreeviewChange(() => findItem(/Page3/).find(".test-treeview-itemArrow").doClick());
     assert.deepEqual(await driver.findAll(".test-treeview-itemHeaderWrapper", e => e.getText()),
       // We can tell that Page3 is collapsed because '' shows instead of 'Page4'
       ["Page1", "Page2", "Page3", "", "Page5", "Page6"]);
 
     // let's move Page3 and check that it remained collapsed.
-    await driver.find("input.move").doClick();
+    await withTreeviewChange(() => driver.find("input.move").doClick());
     assert.deepEqual(await driver.findAll(".test-treeview-itemHeaderWrapper", e => e.getText()),
       // Even though Page3 has moved we can tell it remained collapsed because '' still show in place of 'Page4'
       ["Page1", "Page2", "Page5", "Page3", "", "Page6"]);
 
     // let's expand Page3
-    await findItem(/Page3/).find(".test-treeview-itemArrow").doClick();
+    await withTreeviewChange(() => findItem(/Page3/).find(".test-treeview-itemArrow").doClick());
     assert.deepEqual(await driver.findAll(".test-treeview-itemHeaderWrapper", e => e.getText()),
       ["Page1", "Page2", "Page5", "Page3", "Page4", "Page6"]);
   });
 
   it("should dispose element that are not reused", async function() {
-    await driver.find("input.reset").doClick();
+    await withTreeviewChange(() => driver.find("input.reset").doClick());
     await delay(100);
     await driver.find("input.clearLogs").doClick();
     assert.deepEqual(await driver.findAll(".disposed-items", e => e.getText()), []);
-    await driver.find("input.remove").doClick();
+    await withTreeviewChange(() => driver.find("input.remove").doClick());
     assert.deepEqual(await driver.findAll(".test-treeview-itemHeaderWrapper", e => e.getText()),
       ["Page5", "Page6"]);
     assert.deepEqual(await driver.findAll(".disposed-items", e => e.getText()),
@@ -425,7 +435,7 @@ describe("TreeViewComponent", () => {
   describe("isReadonly mode", function() {
     it("should hide the handle", async function() {
       // reset
-      await driver.find("input.reset").doClick();
+      await withTreeviewChange(() => driver.find("input.reset").doClick());
 
       // enable isReadonly mode
       await driver.find(".isReadonly").click();
@@ -498,4 +508,12 @@ async function findItemRectangles(pattern: RegExp) {
 
 function findTarget() {
   return driver.find(".test-treeview-target");
+}
+
+async function withTreeviewChange(cb: () => WebElementPromise | Promise<void>) {
+  const getItemTexts = async () =>
+    (await driver.findAll(".test-treeview-itemHeaderWrapper", e => e.getText())).join(",");
+  const before = await getItemTexts();
+  await cb();
+  await driver.wait(async () => (await getItemTexts()) !== before);
 }

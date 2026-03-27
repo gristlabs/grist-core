@@ -234,7 +234,9 @@ describe("DescriptionColumn", function() {
     await pressClose();
 
     // Make sure popup is gone.
-    assert.isFalse(await popupVisible());
+    await gu.waitToPass(async () => {
+      assert.isFalse(await popupVisible());
+    }, 1000);
     // Make sure column D exists.
     assert.isTrue(await gu.getColumnHeader({ col: "D" }).isDisplayed());
     await gu.undo();
@@ -282,7 +284,9 @@ describe("DescriptionColumn", function() {
     await addColumn();
     await popupIsAt("D");
     await gu.sendKeys(Key.ESCAPE);
-    assert.isFalse(await popupVisible());
+    await gu.waitToPass(async () => {
+      assert.isFalse(await popupVisible());
+    });
     // Column D is still there.
     assert.isTrue(await gu.getColumnHeader({ col: "D" }).isDisplayed());
     await gu.undo();
@@ -291,7 +295,9 @@ describe("DescriptionColumn", function() {
     await addColumn();
     await popupIsAt("D");
     await gu.sendKeys(Key.ENTER);
-    assert.isFalse(await popupVisible());
+    await gu.waitToPass(async () => {
+      assert.isFalse(await popupVisible());
+    });
     assert.isTrue(await gu.getColumnHeader({ col: "D" }).isDisplayed());
     await gu.undo();
   });
@@ -448,7 +454,9 @@ describe("DescriptionColumn", function() {
     await makeCancel();
     await gu.waitForServer();
     // Make sure that there is no tooltip.
-    assert.isFalse(await gu.getColumnHeader({ col: "A" }).find(".test-column-info-tooltip").isPresent());
+    await gu.waitToPass(async () => {
+      assert.isFalse(await gu.getColumnHeader({ col: "A" }).find(".test-column-info-tooltip").isPresent());
+    }, 1000);
   };
 
   it("should support canceling by cancel", async () => {
@@ -496,7 +504,7 @@ describe("DescriptionColumn", function() {
     await gu.sendKeys("ColumnB");
     // Press tab.
     await gu.sendKeys(Key.TAB);
-    await gu.waitForServer();
+    await gu.waitCellFocus(gu.getCell({ col: "C", rowNum: 1 }));
 
     // Make sure it is renamed.
     await gu.getColumnHeader({ col: "ColumnB" }, { waitMs: 100 });
@@ -517,6 +525,7 @@ describe("DescriptionColumn", function() {
     await gu.sendKeys(Key.SHIFT, Key.TAB, Key.NULL);
     await gu.waitForServer();
     // Make sure we are now at column B.
+    await gu.waitCellFocus(await gu.getCell({ col: "ColumnB", rowNum: 1 }));
     await popupIsAt("ColumnB");
     // Make sure the label has focus.
     await waitForFocus("label");
@@ -551,7 +560,9 @@ describe("DescriptionColumn", function() {
     const revert = await gu.begin();
     await doubleClickHeader("E");
     await gu.sendKeys(Key.TAB);
-    assert.isFalse(await popupVisible());
+    await gu.waitToPass(async () => {
+      assert.isFalse(await popupVisible());
+    }, 1000);
 
     await addColumn();
     assert.isTrue(await popupVisible());

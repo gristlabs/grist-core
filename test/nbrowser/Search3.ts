@@ -50,9 +50,9 @@ describe("Search3", async function() {
     await gu.search("a");
     await gu.moveToVisible("B");
 
-    await driver.find(".test-tb-search-icon").click();
-    await driver.sleep(500);
-    await driver.find(".test-tb-search-next").click();
+    await driver.findWait(".grist-doc-search-bar-collapsed .test-tb-search-icon", 2000).click();
+
+    await driver.findWait(".grist-doc-search-bar-expanded .test-tb-search-next", 5000).click();
     await gu.checkForErrors();
   });
 

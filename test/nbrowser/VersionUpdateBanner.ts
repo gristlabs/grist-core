@@ -67,7 +67,6 @@ describe("VersionUpdateBanner", function() {
     assert.equal((await driver.findAll(".test-version-update-banner-text")).length, 0);
 
     // Let's make sure it's still not there after being dismissed once
-    await driver.navigate().refresh();
     await session.loadDocMenu("/");
     await driver.findWait(".test-top-panel", 100);
     assert.equal((await driver.findAll(".test-version-update-banner-text")).length, 0);
