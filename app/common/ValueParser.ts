@@ -11,7 +11,6 @@ import NumberParse from "app/common/NumberParse";
 import { parseDateStrict, parseDateTime } from "app/common/parseDate";
 import { MetaRowRecord, TableData } from "app/common/TableData";
 import { DateFormatOptions, DateTimeFormatOptions, formatDecoded, FormatOptions } from "app/common/ValueFormatter";
-import { BulkRecordValues } from "app/plugin/GristData";
 import { encodeObject } from "app/plugin/objtypes";
 
 import flatMap from "lodash/flatMap";
@@ -298,17 +297,17 @@ export function createParserOrFormatterArgumentsRaw(
  * Returns a copy of `colValues` with string values parsed according to the type and options of each column.
  * `bulk` should be `true` if `colValues` is of type `BulkColValues`.
  */
-function makeColValueParser<T extends ColValues | BulkColValues>(
-  tableId: string, docData: DocData, bulk: boolean,
-): (colValues: T) => T {
+function parseColValues<T extends ColValues | BulkColValues>(
+  tableId: string, colValues: T, docData: DocData, bulk: boolean,
+): T {
   const columnsTable = docData.getMetaTable("_grist_Tables_column");
   const tablesTable = docData.getMetaTable("_grist_Tables");
   const tableRef = tablesTable.findRow("tableId", tableId);
   if (!tableRef) {
-    return colValues => colValues;
+    return colValues;
   }
 
-  return (colValues: T) => mapValues(colValues, (values, colId) => {
+  return mapValues(colValues, (values, colId) => {
     const colRef = columnsTable.findMatchingRowId({ colId, parentId: tableRef });
     if (!colRef) {
       // Column not found - let something else deal with that
@@ -372,13 +371,7 @@ function _parseUserActionColValues(ua: UserAction, docData: DocData, parseBulk: 
   if (index === undefined) {
     index = ua.length - 1;
   }
-  const colValues = ua[index] as ColValues | BulkColValues | BulkRecordValues;
-  if (Array.isArray(colValues)) {
-    const parseColValues = makeColValueParser(tableId, docData, false);
-    ua[index] = colValues.map(record => parseColValues(record));
-  } else {
-    const parseColValues = makeColValueParser(tableId, docData, parseBulk);
-    ua[index] = parseColValues(colValues);
-  }
+  const colValues = ua[index] as ColValues | BulkColValues;
+  ua[index] = parseColValues(tableId, colValues, docData, parseBulk);
   return ua;
 }

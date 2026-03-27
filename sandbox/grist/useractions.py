@@ -1,5 +1,5 @@
 # pylint: disable=too-many-lines
-from collections import namedtuple, Counter, OrderedDict, defaultdict
+from collections import namedtuple, Counter, OrderedDict
 import re
 import json
 import logging
@@ -1080,13 +1080,8 @@ class UserActions(object):
     Add or Update ('upsert') records depending on `options`
     and on whether records matching `require` already exist.
 
-    Two syntaxes are supported for require and col_values, bulk syntax and record syntax.
-
-    - Bulk syntax: `require` and `col_values` are dictionaries mapping column IDs to lists of cell values.
-      All lists across both dictionaries must have the same length.
-    - Record syntax: `require` and `col_values` are lists of dictionaries that map column IDs to a cell value.
-      This has slightly higher overhead, but allows records to use different require or values columns from other records.
-      Note: If two require entries match the same records, order of operations is not guaranteed.
+    `require` and `col_values` are dictionaries mapping column IDs to lists of cell values.
+    All lists across both dictionaries must have the same length.
 
     By default, for a single record, if `table.lookupRecords(**require)` returns any records,
     update the first one with the values in `col_values`.
@@ -1101,11 +1096,6 @@ class UserActions(object):
       which would mean that every record in the table is matched.
       Otherwise this will raise an error to prevent mistakes like updating an entire column.
     """
-    is_record_syntax = isinstance(require, list) or isinstance(col_values, list)
-
-    if is_record_syntax and (not isinstance(require, list) or not isinstance(col_values, list)):
-      raise ValueError("require and column values must use the same format")
-
     table = self._engine.tables[table_id]
 
     update = options.get("update", True)
@@ -1116,161 +1106,99 @@ class UserActions(object):
       raise ValueError("on_many should be 'first', 'none', or 'all', not %r" % on_many)
     can_affect_multiple_records = on_many == "all"
 
-    """
-      Records with different 'col_values' keys need to be sent in separate BulkUpdateRecord actions to avoid
-      accidentally writing blank values to fields that shouldn't be updated.
-
-      Grouping early allows the rest of the code to handle both record and bulk syntax without changes.
-
-      However, it does mean later groups might match records modified by earlier groups.
-    """
-    change_groups = {}
-
-    def make_group_key(require_keys, value_keys):
-      return frozenset(require_keys), frozenset(value_keys)
-
-    if is_record_syntax:
-      input_length = len(require)
-      if len(require) != len(col_values):
-        raise ValueError("require and column value lists must have the same length")
-
-      # Go through each record, find/create the appropriate field group, and add the record to it.
-      for index in range(input_length):
-        require_keys = (require[index] or {}).keys()
-        value_keys = (col_values[index] or {}).keys()
-        group_key = make_group_key(require_keys, value_keys)
-        if not group_key in change_groups:
-          change_groups[group_key] = {
-            'require': {key: [] for key in require_keys},
-            'col_values': {key: [] for key in value_keys},
-            'indexes': [],
-          }
-        group = change_groups[group_key]
-        for key in require_keys:
-          group['require'][key].append(require[index][key])
-        for key in value_keys:
-          group['col_values'][key].append(col_values[index][key])
-        group['indexes'].append(index)
-    else:
-      lengths = {}
-      lengths.update({'require ' + k:
-                        len(v) for k, v in require.items()})
-      lengths.update({'col_values ' + k:
-                        len(v) for k, v in col_values.items()})
-      unique_lengths = set(lengths.values())
-      if len(unique_lengths) > 1:
-        raise ValueError("Value lists must all have the same length, got %s" %
-                         json.dumps(lengths, sort_keys=True))
-      [input_length] = unique_lengths or [0]
-
-      # In bulk syntax, the require columns and value columns are the same for all records - just need one field group.
-      group_key = make_group_key(require.keys(), col_values.keys())
-      change_groups[group_key] = {
-        'require': require,
-        'col_values': col_values,
-        'indexes': list(range(input_length))
-      }
-
     allow_empty_require = options.get("allow_empty_require", False)
-    if not allow_empty_require and any(len(require_keys) == 0 for (require_keys, value_keys) in change_groups.keys()):
-      raise ValueError("at least one record has no require fields but allow_empty_require isn't set")
+    if not require and not allow_empty_require:
+      raise ValueError("require is empty but allow_empty_require isn't set")
 
     # Return value for the bulk add/update operation
     result = {
-      # All record ids (added or updated), in the same order they were provided to this action
-      # Need a placeholder array so the values can be set by index later.
-      'recordIds': [None] * input_length,
-      # All new record ids (in same order as above) - populated after the rows are created.
+      'recordIds': [],
       'createdRecordIds': [],
-      # All updated record ids (in same order as above)
       'updatedRecordIds': [],
     }
 
-    # Nothing to do
-    if input_length == 0:
+    if not require and not col_values:
       return result
 
-    # Validate that each group has unique require values - i.e. the same rows shouldn't be updated twice.
-    # This doesn't offer guarantees with record syntax - the same record may still get multiple updates.
-    # e.g  { "first_name": "John" } and { "last_name": "Doe" } might match the same records.
-    for group in change_groups.values():
-      # Cache this value for re-use later
-      group['decoded_require'] = actions.decode_bulk_values(group['require'])
-      num_unique_keys = len(set(zip(*group['decoded_require'].values())))
-      if group['require'] and num_unique_keys < len(group['indexes']):
-        raise ValueError("require values must be unique")
+    lengths = {}
+    lengths.update({'require ' + k:
+                      len(v) for k, v in require.items()})
+    lengths.update({'col_values ' + k:
+                      len(v) for k, v in col_values.items()})
+    unique_lengths = set(lengths.values())
+    if len(unique_lengths) != 1:
+      raise ValueError("Value lists must all have the same length, got %s" %
+                       json.dumps(lengths, sort_keys=True))
+    [length] = unique_lengths
 
-    # Avoid implementation-defined ordering with multiple field groups.
-    # This doesn't guarantee an ordering to the user, but keeps it consistent / deterministic.
-    sorted_field_group_keys = sorted(change_groups.keys())
+    decoded_require = actions.decode_bulk_values(require)
+    num_unique_keys = len(set(zip(*decoded_require.values())))
+    if require and num_unique_keys < length:
+      raise ValueError("require values must be unique")
 
-    for field_group_key in sorted_field_group_keys:
-      group = change_groups[field_group_key]
-      # Column IDs in `require` that can be used to set values when creating new records,
-      # i.e. not formula columns that don't allow setting values.
-      # `col_values` is not checked for this because setting such a column there should raise an error
-      # This doesn't apply to `require` since it's also used to match existing records.
-      require_add_keys = {
-        key for key in group['require']
-        if not (
-            table.get_column(key).is_formula() and
-            # Check that there actually is a formula and this isn't just an empty column
-            self._engine.docmodel.get_column_rec(table_id, key).formula
-        )
-      }
-      col_keys = set(group['col_values'].keys())
-      group_length = len(group['indexes'])
-      decoded_require = group['decoded_require']
+    # Column IDs in `require` that can be used to set values when creating new records,
+    # i.e. not formula columns that don't allow setting values.
+    # `col_values` is not checked for this because setting such a column there should raise an error
+    # This doesn't apply to `require` since it's also used to match existing records.
+    require_add_keys = {
+      key for key in require
+      if not (
+          table.get_column(key).is_formula() and
+          # Check that there actually is a formula and this isn't just an empty column
+          self._engine.docmodel.get_column_rec(table_id, key).formula
+      )
+    }
+    col_keys = set(col_values.keys())
 
-      # Arguments for `BulkAddRecord` and `BulkUpdateRecord` below
-      add_record_ids = []
-      add_record_values = {k: [] for k in (col_keys | require_add_keys) - {'id'}}
-      update_record_ids = []
-      update_record_values = {k: [] for k in col_keys - {'id'}}
+    # Arguments for `BulkAddRecord` and `BulkUpdateRecord` below
+    add_record_ids = []
+    add_record_values = {k: [] for k in col_keys | require_add_keys - {'id'}}
+    update_record_ids = []
+    update_record_values = {k: [] for k in col_keys - {'id'}}
 
-      # Indexes in recordIds where new record ids will be inserted later,
-      # as we don't know them until the records are created.
-      new_record_indexes = []
+    # Need a placeholder array so the values can be set by index later.
+    result['recordIds'] = [None] * length
+    # Indexes in recordIds where new record ids will be inserted later,
+    # as we don't know them until the records are created.
+    new_record_indexes = []
 
-      for i in range(group_length):
-        result_index = group['indexes'][i]
-        current_require = {key: vals[i] for key, vals in decoded_require.items()}
-        records = list(table.lookup_records(**current_require))
-        if not records and add:
-          values = {key: group['require'][key][i] for key in require_add_keys}
-          values.update({key: vals[i] for key, vals in group['col_values'].items()})
-          add_record_ids.append(values.pop("id", None))
-          for key, value in values.items():
-            add_record_values[key].append(value)
-          new_record_indexes.append(result_index)
+    for i in range(length):
+      current_require = {key: vals[i] for key, vals in decoded_require.items()}
+      records = list(table.lookup_records(**current_require))
+      if not records and add:
+        values = {key: require[key][i] for key in require_add_keys}
+        values.update({key: vals[i] for key, vals in col_values.items()})
+        add_record_ids.append(values.pop("id", None))
+        for key, value in values.items():
+          add_record_values[key].append(value)
+        new_record_indexes.append(i)
 
-        if records:
-          if len(records) > 1:
-            if on_many == "first":
-              records = records[:1]
-            elif on_many == "none":
-              continue
+      if records:
+        if len(records) > 1:
+          if on_many == "first":
+            records = records[:1]
+          elif on_many == "none":
+            continue
 
-          matched_record_ids = [record.id for record in records] if can_affect_multiple_records else records[0].id
-          result['recordIds'][result_index] = matched_record_ids
+        matched_record_ids = [record.id for record in records] if can_affect_multiple_records else records[0].id
+        result['recordIds'][i] = matched_record_ids
 
-          if update:
-            for record in records:
-              update_record_ids.append(record.id)
-              for key, vals in group['col_values'].items():
-                update_record_values[key].append(vals[i])
-            result['updatedRecordIds'].append(matched_record_ids)
+        if update:
+          for record in records:
+            update_record_ids.append(record.id)
+            for key, vals in col_values.items():
+              update_record_values[key].append(vals[i])
+          result['updatedRecordIds'].append(matched_record_ids)
 
-      if add_record_ids:
-        # The new IDs should be in the same order as the records were provided in add_record_values
-        new_record_ids = self.BulkAddRecord(table_id, add_record_ids, add_record_values)
-        # Fill in recordIds with the IDs of the new records
-        for i, new_record_index in enumerate(new_record_indexes):
-          result['recordIds'][new_record_index] = [new_record_ids[i]] if can_affect_multiple_records else new_record_ids[i]
-          result['createdRecordIds'].append([new_record_ids[i]] if can_affect_multiple_records else new_record_ids[i])
+    if add_record_ids:
+      new_record_ids = self.BulkAddRecord(table_id, add_record_ids, add_record_values)
+      # Fill in recordIds with the IDs of the new records
+      for i, new_record_index in enumerate(new_record_indexes):
+        result['recordIds'][new_record_index] = [new_record_ids[i]] if can_affect_multiple_records else new_record_ids[i]
+        result['createdRecordIds'].append([new_record_ids[i]] if can_affect_multiple_records else new_record_ids[i])
 
-      if update_record_ids:
-        self.BulkUpdateRecord(table_id, update_record_ids, update_record_values)
+    if update_record_ids:
+      self.BulkUpdateRecord(table_id, update_record_ids, update_record_values)
 
     return result
 
@@ -1290,7 +1218,9 @@ class UserActions(object):
         'action': 'NONE',
       }
 
-    result = self.BulkAddOrUpdateRecord(table_id, [require], [col_values], options)
+    require = {k: [v] for k, v in require.items()}
+    col_values = {k: [v] for k, v in col_values.items()}
+    result = self.BulkAddOrUpdateRecord(table_id, require, col_values, options)
     # No result, or a failure to update (e.g. on_many is "none" and multiple rows are matched)
     if len(result['recordIds']) == 0 or result['recordIds'] == [None]:
       return {
