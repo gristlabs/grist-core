@@ -13,7 +13,7 @@ import BaseRowModel from "app/client/models/BaseRowModel";
 import { ClientColumnGetters } from "app/client/models/ClientColumnGetters";
 import { DataRowModel } from "app/client/models/DataRowModel";
 import DataTableModel from "app/client/models/DataTableModel";
-import { ExtraRows } from "app/client/models/DataTableModelWithDiff";
+import { ExtraRows, isSyntheticRowId } from "app/client/models/DataTableModelWithDiff";
 import { ColumnRec } from "app/client/models/entities/ColumnRec";
 import { TableRec } from "app/client/models/entities/TableRec";
 import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
@@ -144,7 +144,17 @@ export default class BaseView extends DisposableWithEvents {
       // Assign extra row ids for any rows added in the remote (right) table or removed in the
       // local (left) table.
       const extraRowIds = this.extraRows.getExtraRows();
-      this._mainRowSource = rowset.ExtendedRowSource.create(this, this._mainRowSource, extraRowIds);
+      const extendedRowSource = rowset.ExtendedRowSource.create(this, this._mainRowSource, extraRowIds);
+      this._mainRowSource = extendedRowSource;
+      this.autoDispose(this.extraRows.changeEmitter.addListener(
+        (changeType: rowset.ChangeType, rows: number[]) => {
+          if (changeType === "add") {
+            extendedRowSource.addExtraRows(rows);
+          } else if (changeType === "remove") {
+            extendedRowSource.removeExtraRows(rows);
+          }
+        },
+      ));
     }
 
     // Rows that should temporarily be visible even if they don't match filters.
@@ -474,6 +484,11 @@ export default class BaseView extends DisposableWithEvents {
       return;
     }
     const rowId = this.viewData.getRowId(this.cursor.rowIndex()!);
+    // Don't allow editing synthetic rows used for diff display — they don't
+    // exist in the real table, so edits would fail with a sandbox error.
+    if (isSyntheticRowId(rowId)) {
+      return;
+    }
     // LazyArrayModel row model which is also used to build the cell dom. Needed since
     // it may be used as a key to retrieve the cell dom, which is useful for editor placement.
     const lazyRow = this.getRenderedRowModel(rowId);
