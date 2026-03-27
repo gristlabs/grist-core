@@ -42,6 +42,20 @@ export const AddOrUpdateRecord = t.iface([], {
   })),
 });
 
+export const BulkAddOrUpdateRecordResult = t.union("BulkAddOrUpdateRecordResultSingleMatch", "BulkAddOrUpdateRecordResultManyMatch");
+
+export const BulkAddOrUpdateRecordResultSingleMatch = t.iface([], {
+  "recordIds": t.array(t.union("number", "null")),
+  "createdRecordIds": t.array("number"),
+  "updatedRecordIds": t.array("number"),
+});
+
+export const BulkAddOrUpdateRecordResultManyMatch = t.iface([], {
+  "recordIds": t.array(t.array(t.union("number", "null"))),
+  "createdRecordIds": t.array(t.array("number")),
+  "updatedRecordIds": t.array(t.array("number")),
+});
+
 export const RecordsPatch = t.iface([], {
   "records": t.tuple("Record", t.rest(t.array("Record"))),
 });
@@ -129,6 +143,9 @@ const exportedTypeSuite: t.ITypeSuite = {
   Record,
   RecordWithStringId,
   AddOrUpdateRecord,
+  BulkAddOrUpdateRecordResult,
+  BulkAddOrUpdateRecordResultSingleMatch,
+  BulkAddOrUpdateRecordResultManyMatch,
   RecordsPatch,
   RecordsPost,
   RecordsPut,

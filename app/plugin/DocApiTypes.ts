@@ -34,7 +34,7 @@ export interface RecordWithStringId {
 }
 
 /**
- * JSON schema for api /record endpoint. Used in PUT method for adding or updating records.
+ * JSON schema for api /record endpoint. Used with PUT method for adding or updating records.
  */
 export interface AddOrUpdateRecord {
   /**
@@ -48,6 +48,17 @@ export interface AddOrUpdateRecord {
    * an existing record, or setting initial values in a new record.
    */
   fields?: { [colId: string]: CellValue };
+}
+
+/**
+ * Results from the BulkAddOrUpdateRecord user action.
+ * Returned by PUT /record endpoint for adding or updating records.
+ */
+
+export interface BulkAddOrUpdateRecordResult {
+  recordIds: number[][];
+  createdRecordIds: number[];
+  updatedRecordIds: number[][];
 }
 
 /**

@@ -9,7 +9,7 @@
 
 import { BulkColValues, CellValue } from "app/common/DocActions";
 import { isRaisedException } from "app/common/gristTypes";
-import { AddOrUpdateRecord } from "app/plugin/DocApiTypes";
+import { AddOrUpdateRecord, BulkAddOrUpdateRecordResult } from "app/plugin/DocApiTypes";
 import { GristObjCode } from "app/plugin/GristData";
 import { addAllScenarios, addAttachmentsToDoc, TestContext } from "test/server/lib/docapi/helpers";
 import * as testUtils from "test/server/testUtils";
@@ -664,13 +664,19 @@ function addRecordsTests(getCtx: () => TestContext) {
       const docId = await userApi.newDoc({ name: "BlankTest" }, wid);
       const url = `${serverUrl}/api/docs/${docId}/tables/Table1/records`;
 
-      async function check(records: AddOrUpdateRecord[], expectedTableData: BulkColValues, params: any = {}) {
+      async function check(
+        records: AddOrUpdateRecord[],
+        expectedTableData: BulkColValues,
+        expectedReturnValue: BulkAddOrUpdateRecordResult,
+        params: any = {},
+      ) {
         const resp = await axios.put(url, { records }, { ...chimpy, params });
         assert.equal(resp.status, 200);
         const table = await userApi.getTable(docId, "Table1");
         delete table.manualSort;
         delete table.C;
         assert.deepStrictEqual(table, expectedTableData);
+        assert.deepStrictEqual(resp.data, expectedReturnValue);
       }
 
       // Add 3 new records, since the table is empty so nothing matches `requires`
@@ -692,6 +698,7 @@ function addRecordsTests(getCtx: () => TestContext) {
           },
         ],
         { id: [1, 2, 3], A: [1, 3, 4], B: [0, 0, 5] },
+        { recordIds: [[1], [2], [3]], createdRecordIds: [1, 2, 3], updatedRecordIds: [] },
       );
 
       // Update all three records since they all match the `require` values here
@@ -713,6 +720,7 @@ function addRecordsTests(getCtx: () => TestContext) {
           },
         ],
         { id: [1, 2, 3], A: [1, 33, 4], B: [0, 0, 6] },
+        { recordIds: [[1], [2], [3]], createdRecordIds: [], updatedRecordIds: [[1], [2], [3]] },
       );
 
       // This would normally add a record, but noadd suppresses that
@@ -722,6 +730,7 @@ function addRecordsTests(getCtx: () => TestContext) {
         },
       ],
       { id: [1, 2, 3], A: [1, 33, 4], B: [0, 0, 6] },
+      { recordIds: [[]], createdRecordIds: [], updatedRecordIds: [] },
       { noadd: "1" },
       );
 
@@ -733,6 +742,7 @@ function addRecordsTests(getCtx: () => TestContext) {
         },
       ],
       { id: [1, 2, 3], A: [1, 33, 4], B: [0, 0, 6] },
+      { recordIds: [[]], createdRecordIds: [], updatedRecordIds: [] },
       { noupdate: "1" },
       );
 
@@ -745,6 +755,7 @@ function addRecordsTests(getCtx: () => TestContext) {
         },
       ],
       { id: [1, 2, 3], A: [1, 33, 4], B: [1, 1, 6] },
+      { recordIds: [[1, 2]], createdRecordIds: [], updatedRecordIds: [[1, 2]] },
       { onmany: "all" },
       );
 
@@ -758,6 +769,7 @@ function addRecordsTests(getCtx: () => TestContext) {
         },
       ],
       { id: [1, 2, 3], A: [1, 33, 4], B: [2, 1, 6] },
+      { recordIds: [[1]], createdRecordIds: [], updatedRecordIds: [[1]] },
       );
 
       // By default, strings in `require` and `fields` are parsed based on column type,
@@ -770,6 +782,7 @@ function addRecordsTests(getCtx: () => TestContext) {
         },
       ],
       { id: [1, 2, 3], A: [1, 33, 44], B: [2, 1, 6] },
+      { recordIds: [[3]], createdRecordIds: [], updatedRecordIds: [[3]] },
       );
 
       // Turn off the default string parsing with noparse=1
@@ -783,6 +796,7 @@ function addRecordsTests(getCtx: () => TestContext) {
         },
       ],
       { id: [1, 2, 3], A: [1, 33, "$55"], B: [2, 1, 6] },
+      { recordIds: [[3]], createdRecordIds: [], updatedRecordIds: [[3]] },
       { noparse: 1 },
       );
 
@@ -795,6 +809,7 @@ function addRecordsTests(getCtx: () => TestContext) {
         { require: { A: "$33" } },
       ],
       { id: [1, 2, 3, 4], A: [1, 33, "$55", "$33"], B: [2, 1, 6, 0] },
+      { recordIds: [[1], [2], [3], [4]], createdRecordIds: [4], updatedRecordIds: [[1], [2], [3]] },
       { noparse: 1 },
       );
 
@@ -806,6 +821,7 @@ function addRecordsTests(getCtx: () => TestContext) {
         },
       ],
       { id: [1, 2, 3, 4], A: [1, 33, 66, "$33"], B: [2, 1, 6, 0] },
+      { recordIds: [[3]], createdRecordIds: [], updatedRecordIds: [[3]] },
       );
 
       // Test bulk case with a mixture of record shapes
@@ -824,6 +840,7 @@ function addRecordsTests(getCtx: () => TestContext) {
         },
       ],
       { id: [1, 2, 3, 4], A: [111, 222, 555, "$33"], B: [2, 444, 666, 0] },
+      { recordIds: [[1], [2], [3]], createdRecordIds: [], updatedRecordIds: [[1], [2], [3]] },
       );
 
       // allow_empty_require option with empty `require` updates all records
@@ -834,6 +851,7 @@ function addRecordsTests(getCtx: () => TestContext) {
         },
       ],
       { id: [1, 2, 3, 4], A: [99, 99, 99, 99], B: [99, 99, 99, 99] },
+      { recordIds: [[1, 2, 3, 4]], createdRecordIds: [], updatedRecordIds: [[1, 2, 3, 4]] },
       { allow_empty_require: "1", onmany: "all" },
       );
     });
@@ -880,7 +898,7 @@ function addRecordsTests(getCtx: () => TestContext) {
         records: [{ require: {} }],
       }, chimpy);
       assert.equal(resp.status, 400);
-      assert.match(resp.data.error, /require is empty but allow_empty_require isn't set/);
+      assert.match(resp.data.error, /ValueError require is empty but allow_empty_require isn't set/);
     });
 
     it("should validate request schema", async function() {
