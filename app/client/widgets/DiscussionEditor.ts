@@ -7,6 +7,7 @@ import { makeT } from "app/client/lib/localization";
 import { localStorageBoolObs } from "app/client/lib/localStorageObs";
 import { CellRec, ViewSectionRec } from "app/client/models/DocModel";
 import { reportError } from "app/client/models/errors";
+import { getCurrentDocUrl, urlState } from "app/client/models/gristUrlState";
 import { INotification } from "app/client/models/NotifyModel";
 import { RowSource, RowWatcher } from "app/client/models/rowset";
 import { renderCellMarkdown } from "app/client/ui/MarkdownCellRenderer";
@@ -135,6 +136,11 @@ export class DiscussionModelImpl extends Disposable implements DiscussionModel {
     const rowId = Number(pos.rowId);
     const tableRef = section.table.peek().id.peek();
     const author = commentAuthor(this.gristDoc);
+    const hashForSection = this.gristDoc.currentView.get()?.getAnchorLinkForSection(pos.sectionId);
+    const commentsHash = { hash: { ...hashForSection, comments: true } };
+    const fullUrl = hashForSection ? urlState().makeUrl(commentsHash) : undefined;
+    // Anchor link has a format: /p/1#anchor-link, so it also includes the page we are expected to land.
+    const anchorLink = fullUrl ? fullUrl.replace(getCurrentDocUrl(), "") : undefined;
     await this.gristDoc.docData.sendActions([[
       "AddRecord",
       "_grist_Cells",
@@ -147,7 +153,7 @@ export class DiscussionModelImpl extends Disposable implements DiscussionModel {
         root: true,
         content: JSON.stringify({
           userName: author?.name ?? "",
-          sectionId: pos.sectionId,
+          anchorLink,
           ...commentText,
         } as CommentContent),
       },
@@ -168,6 +174,7 @@ export class DiscussionModelImpl extends Disposable implements DiscussionModel {
           content: JSON.stringify({
             userName: author?.name ?? "",
             sectionId: comment.sectionId.peek(),
+            anchorLink: comment.anchorLink.peek(),
             ...commentText,
           } as CommentContent),
           tableRef: comment.tableRef.peek(),

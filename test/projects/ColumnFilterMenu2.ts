@@ -24,13 +24,20 @@ describe("ColumnFilterMenu2", function() {
 
   beforeEach(async () => {
     // reset filter to all selected
-    await driver.find(".fixture-limit-shown").click();
-    await driver.find(".fixture-limit-shown").sendKeys(await selectAllKey(), Key.DELETE);
+    const limitShownEl = await driver.findWait(".fixture-limit-shown", 1000).doClick();
+    await driver.wait(async () => limitShownEl.hasFocus());
+    await limitShownEl.sendKeys(await selectAllKey(), Key.DELETE);
     if (limitShown !== undefined) {
       await driver.sendKeys(limitShown.toString());
     }
     await driver.find(".fixture-reset").click();
   });
+
+  async function enterSearch(...keys: string[]) {
+    const searchValueEl = driver.find(".fixture-stored-menu .test-filter-menu-search-input");
+    await driver.wait(() => searchValueEl.hasFocus());
+    await driver.sendKeys(...keys);
+  }
 
   describe("opt.limitShown", function() {
     before(() => {
@@ -121,7 +128,7 @@ describe("ColumnFilterMenu2", function() {
     describe("when searching", function() {
       it("should have a `Other Matching` group", async () => {
         // enter 'A'
-        await driver.sendKeys("A");
+        await enterSearch("A");
 
         // Check `Other Matching` is shown
         assert.deepEqual(await driver.findAll(".test-filter-menu-summary", e => e.find("label").getText()),
@@ -169,7 +176,7 @@ describe("ColumnFilterMenu2", function() {
 
       it("should maintain selection across shown item when click `Other Matching`", async () => {
         // enter 'A'
-        await driver.sendKeys("A");
+        await enterSearch("A");
 
         // click 'Apple'
         await driver.findWait(".test-filter-menu-list label", 100);
@@ -191,7 +198,7 @@ describe("ColumnFilterMenu2", function() {
 
       it("should also have a working `Other Non-Matching` group", async () => {
         // enter 'A'
-        await driver.sendKeys("A");
+        await enterSearch("A");
 
         await driver.findWait(".test-filter-menu-summary label", 100);
         // check 'Other Non-Matching' is checked
@@ -204,7 +211,7 @@ describe("ColumnFilterMenu2", function() {
         assert.equal(await driver.find(".fixture-json").getText(), JSON.stringify({ excluded: [] }));
 
         // click 'Other Non-Matching'
-        await driver.findContent(".test-filter-menu-summary label", /Other Non-Matching/).click();
+        await driver.findContentWait(".test-filter-menu-summary label", /Other Non-Matching/, 1000).click();
 
         // check 'Other Non-Matching' is un-checked
         assert.equal(

@@ -20,8 +20,8 @@ describe("AirtableImport", function() {
   this.timeout("20s");
   const cleanup = setupTestSuite();
   let oldEnv: testUtils.EnvironmentSnapshot;
-  let mainSession: gu.Session;
-  let otherSession: gu.Session;
+  let ownerSession: gu.Session;
+  let editorSession: gu.Session;
   let docId: string;
   let otherDocId: string;
   let testHelperServer: http.Server;
@@ -209,8 +209,8 @@ describe("AirtableImport", function() {
 
     describe("and anonymous", function() {
       before(async function() {
-        mainSession = await gu.session().anon.login();
-        await mainSession.loadDocMenu("/");
+        ownerSession = await gu.session().anon.login();
+        await ownerSession.loadDocMenu("/");
         await driver.find(".test-intro-create-doc").click();
         await gu.waitForDocToLoad();
         await gu.dismissWelcomeTourIfNeeded();
@@ -223,7 +223,7 @@ describe("AirtableImport", function() {
 
         await gu.checkLoginPage();
 
-        await mainSession.loadDocMenu("/");
+        await ownerSession.loadDocMenu("/");
         await driver.findWait(".test-dm-add-new", 2000).click();
         await driver.findWait(".test-dm-import-from-airtable", 500).click();
 
@@ -233,12 +233,12 @@ describe("AirtableImport", function() {
 
     describe("and signed in", function() {
       before(async function() {
-        mainSession = await gu.session().teamSite.user("user1").login();
-        docId = await mainSession.tempNewDoc(cleanup, "AirtableImport", { load: false });
+        ownerSession = await gu.session().teamSite.user("user1").login();
+        docId = await ownerSession.tempNewDoc(cleanup, "AirtableImport", { load: false });
       });
 
       it("should go through oauth2 flow and fetch bases", async function() {
-        await mainSession.loadDoc(`/doc/${docId}`);
+        await ownerSession.loadDoc(`/doc/${docId}`);
 
         await openAirtableDocImporter();
 
@@ -268,8 +268,8 @@ describe("AirtableImport", function() {
       });
 
       it("should associate access_token with a user", async function() {
-        otherSession = await gu.session().personalSite.user("user2").addLogin();
-        otherDocId = await otherSession.tempNewDoc(cleanup, "AirtableImport2");
+        editorSession = await gu.session().personalSite.user("user2").addLogin();
+        otherDocId = await editorSession.tempNewDoc(cleanup, "AirtableImport2");
 
         await openAirtableDocImporter();
 
@@ -285,7 +285,7 @@ describe("AirtableImport", function() {
       });
 
       it("should allow disconnecting", async function() {
-        await mainSession.loadDoc(`/doc/${docId}`);
+        await ownerSession.loadDoc(`/doc/${docId}`);
         await openAirtableDocImporter();
         await driver.findWait(".test-import-airtable-settings", 2000).click();
         await gu.findOpenMenuItem("li", /Disconnect/).click();
@@ -300,7 +300,7 @@ describe("AirtableImport", function() {
         assert.equal(await driver.findWait(".test-import-airtable-connect", 2000).isPresent(), true);
 
         // Check that the other session is still connected.
-        await otherSession.loadDoc(`/doc/${otherDocId}`);
+        await editorSession.loadDoc(`/doc/${otherDocId}`);
         await openAirtableDocImporter();
         const bases = await driver.findWait(".test-import-airtable-bases", 2000);
         assert.deepEqual(await bases.findAll(".test-import-airtable-name", el => el.getText()),
@@ -313,7 +313,7 @@ describe("AirtableImport", function() {
       });
 
       it("should show error if oauth2 is canceled", async function() {
-        await mainSession.loadDoc(`/doc/${docId}`);
+        await ownerSession.loadDoc(`/doc/${docId}`);
         await openAirtableDocImporter();
         cancelNextOAuthRequest = true;
         await driver.findWait(".test-import-airtable-connect:not(:disabled)", 2000).click();
@@ -333,8 +333,8 @@ describe("AirtableImport", function() {
 
       it("should list all tables from the selected base", async function() {
         // Switch to the team site for importing, enabling checks that the doc is in the right site/workspace.
-        await mainSession.tempWorkspace(cleanup, "Airtable");
-        await mainSession.loadDocMenu("/");
+        await ownerSession.tempWorkspace(cleanup, "Airtable");
+        await ownerSession.loadDocMenu("/");
         await openAirtableDocImporter("home");
 
         const bases = await driver.findWait(".test-import-airtable-bases", 2000);
@@ -535,13 +535,96 @@ describe("AirtableImport", function() {
           "", "", "", "", "",
         ]);
       });
+
+      it("should allow editors to import to documents with access rules", async function() {
+        docId = await ownerSession.tempNewDoc(cleanup, "AirtableImportAccessRules", { load: false });
+
+        const api = ownerSession.createHomeApi();
+        await api.updateDocPermissions(docId, { users: {
+          [editorSession.email]: "editors",
+        } });
+
+        // Add a hidden table.
+        await api.applyUserActions(docId, [
+          ["AddEmptyTable", "Table2"],
+          ["AddRecord", "_grist_ACLResources", -1, { tableId: "Table2", colIds: "*" }],
+          ["AddRecord", "_grist_ACLRules", null, {
+            resource: -1, aclFormula: "", permissionsText: "-R",
+          }],
+        ]);
+
+        editorSession = await gu.session().teamSite.user("user2").login();
+        await editorSession.loadDoc(`/doc/${docId}`);
+
+        await openAirtableDocImporter("doc");
+        await driver.findWait(".test-import-airtable-connect:not(:disabled)", 2000).click();
+        const bases = await driver.findWait(".test-import-airtable-bases", 2000);
+        await bases.findContent(".test-import-airtable-name", "Product planning").click();
+        await driver.find(".test-import-airtable-continue").click();
+
+        // Make sure Table2 isn't shown.
+        await driver.findWait(".test-import-airtable-table-tbl79ux7qppckp8hr-destination", 1000).click();
+        assert.deepEqual(await gu.findOpenMenuAllItems("li", el => el.getText()), [
+          "New table",
+          "New table: structure only",
+          "Skip",
+          "Table1",
+        ]);
+        await gu.sendKeys(Key.ESCAPE);
+
+        await driver.findWait(".test-import-airtable-import", 2000).click();
+        await waitForModalToClose();
+
+        assert.deepEqual(await gu.getPageNames(), ["Table1", "Products", "Suppliers", "Orders"]);
+
+        await gu.getPageItem("Products").click();
+        assert.deepEqual(await gu.getColumnNames(), [
+          "Airtable Id",
+          "Name",
+          "Price",
+          "Category",
+          "Suppliers",
+        ]);
+        assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: [0, 1, 2, 3, 4] }), [
+          "reccaegwskzka7wi1", "Widget X", "99.99", "Electronics", "Suppliers[1]",
+          "recigwb4bc7vq2fhd", "Gadget Y", "149.99", "Electronics", "Suppliers[2]",
+          "", "", "", "", "",
+        ]);
+
+        await gu.getPageItem("Suppliers").click();
+        assert.deepEqual(await gu.getColumnNames(), [
+          "Airtable Id",
+          "Name",
+          "Email",
+          "Phone",
+        ]);
+        assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: [0, 1, 2, 3] }), [
+          "recoa4mwyeytxu3fb", "Wow Widgets", "wowwidgets@example.com", "(123) 456-7890",
+          "recw7cwwskv1q5jck", "Grand Gadgets", "grandgadgets@example.com", "(111) 222-3333",
+          "", "", "", "",
+        ]);
+
+        await gu.getPageItem("Orders").click();
+        assert.deepEqual(await gu.getColumnNames(), [
+          "Airtable Id",
+          "Order Number",
+          "Order Date",
+          "Products",
+          "Total Amount",
+        ]);
+        assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: [0, 1, 2, 3, 4] }), [
+          "recjngmiw6qy39v53", "ord5q3rxaa95gyvrw", "01/05/2023", "Products[1]", "99.99",
+          "recua5n4ir46dn5t6", "ordx37praxl2m95wj", "01/06/2023", "Products[1]\nProducts[2]", "249.98",
+          "", "", "", "", "",
+        ]);
+      });
     });
   });
 
   describe("when oauth variables are unset", function() {
     before(async function() {
-      mainSession = await gu.session().teamSite.user("user1").login();
-      await mainSession.loadDocMenu("/");
+      ownerSession = await gu.session().teamSite.user("user1").login();
+      await ownerSession.loadDocMenu("/");
     });
 
     it("should hide 'Connect with Airtable' button", async function() {

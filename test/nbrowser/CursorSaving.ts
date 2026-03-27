@@ -87,42 +87,43 @@ describe("CursorSaving", function() {
       await gu.openRowMenu(1);
 
       const anchorLinks: string[] = [];
-      await clipboard.lockAndPerform(async () => { anchorLinks.push(await gu.getAnchor()); });
+      anchorLinks.push(await getAnchorLink());
 
       // Now select a different Tag, but the same Item.
       await clickAndCheck({ section: "Tags", rowNum: 2, col: 0 }, "b");
       await clickAndCheck({ section: "Items", rowNum: 1, col: 0 }, "Apple");
-      await clipboard.lockAndPerform(async () => { anchorLinks.push(await gu.getAnchor()); });
+      anchorLinks.push(await getDifferentAnchorLink(anchorLinks.at(-1)));
 
       // Try the third section.
       await clickAndCheck({ section: "Items", rowNum: 3, col: 0 }, "Orange");
       await clickAndCheckCard({ section: "ITEMS Card", col: "Name", rowNum: 1 }, "Orange");
-      await clipboard.lockAndPerform(async () => { anchorLinks.push(await gu.getAnchor()); });
+      anchorLinks.push(await getDifferentAnchorLink(anchorLinks.at(-1)));
 
       // A different way to get to the same value in third section.
       await clickAndCheck({ section: "Tags", rowNum: 1, col: 0 }, "a");
       await clickAndCheck({ section: "Items", rowNum: 2, col: 0 }, "Orange");
       await gu.getCardCell("Name", "ITEMS Card").click();
-      await clipboard.lockAndPerform(async () => { anchorLinks.push(await gu.getAnchor()); });
+      anchorLinks.push(await getDifferentAnchorLink(anchorLinks.at(-1)));
 
       // Now go through the anchor links, and make sure each gets us to the expected point.
-      await driver.get(anchorLinks[0]);
+      await navigateToAnchor(anchorLinks[0]);
+      // It can take a small amount of time for the cursor positions to update
       assert.deepEqual(await gu.getCursorPosition("Tags"), { rowNum: 1, col: 0 });
       assert.deepEqual(await gu.getCursorPosition("Items"), { rowNum: 1, col: 0 });
       assert.equal(await gu.getCardCell("Name", "Items Card").getText(), "Apple");
 
-      await driver.get(anchorLinks[1]);
+      await navigateToAnchor(anchorLinks[1]);
       assert.deepEqual(await gu.getCursorPosition("Tags"), { rowNum: 2, col: 0 });
       assert.deepEqual(await gu.getCursorPosition("Items"), { rowNum: 1, col: 0 });
       assert.equal(await gu.getCardCell("Name", "Items Card").getText(), "Apple");
 
-      await driver.get(anchorLinks[2]);
+      await navigateToAnchor(anchorLinks[2]);
       assert.deepEqual(await gu.getCursorPosition("Tags"), { rowNum: 2, col: 0 });
       assert.deepEqual(await gu.getCursorPosition("Items"), { rowNum: 3, col: 0 });
       assert.equal(await gu.getActiveSectionTitle(), "ITEMS Card");
       assert.equal(await gu.getCardCell("Name", "ITEMS Card").getText(), "Orange");
 
-      await driver.get(anchorLinks[3]);
+      await navigateToAnchor(anchorLinks[3]);
       assert.deepEqual(await gu.getCursorPosition("Tags"), { rowNum: 1, col: 0 });
       assert.deepEqual(await gu.getCursorPosition("Items"), { rowNum: 2, col: 0 });
       assert.equal(await gu.getActiveSectionTitle(), "ITEMS Card");
@@ -136,23 +137,22 @@ describe("CursorSaving", function() {
       await clickAndCheck({ section: "Tags", rowNum: 2, col: 0 }, "b");
       await clickAndCheck({ section: "Items", rowNum: 4, col: 0 }, "");
       await clickAndCheckCard({ section: "ITEMS Card", col: "Tags", rowNum: 1 }, "");
-
-      await clipboard.lockAndPerform(async () => { anchorLinks.push(await gu.getAnchor()); });
+      anchorLinks.push(await getDifferentAnchorLink(""));
 
       // Try a position when when the grandparent parent record is on a "new" row.
       await clickAndCheck({ section: "Tags", rowNum: 5, col: 0 }, "");
       assert.match(await gu.getSection("Items").find(".disable_viewpane").getText(), /No row selected/);
       await clickAndCheckCard({ section: "ITEMS Card", col: "Tags", rowNum: 1 }, "");
 
-      await clipboard.lockAndPerform(async () => { anchorLinks.push(await gu.getAnchor()); });
+      anchorLinks.push(await getDifferentAnchorLink(anchorLinks.at(-1)));
 
-      await driver.get(anchorLinks[0]);
+      await navigateToAnchor(anchorLinks[0]);
       assert.deepEqual(await gu.getCursorPosition("Tags"), { rowNum: 2, col: 0 });
       assert.deepEqual(await gu.getCursorPosition("Items"), { rowNum: 4, col: 0 });
       assert.equal(await gu.getActiveSectionTitle(), "ITEMS Card");
       assert.equal(await gu.getCardCell("Tags", "ITEMS Card").getText(), "");
 
-      await driver.get(anchorLinks[1]);
+      await navigateToAnchor(anchorLinks[1]);
       assert.deepEqual(await gu.getCursorPosition("Tags"), { rowNum: 5, col: 0 });
       assert.match(await gu.getSection("Items").find(".disable_viewpane").getText(), /No row selected/);
       assert.equal(await gu.getActiveSectionTitle(), "ITEMS Card");
@@ -192,19 +192,19 @@ describe("CursorSaving", function() {
       // Select a country and a city within it.
       await clickAndCheck({ section: "Country", rowNum: 2, col: 0 }, "AFG");
       await clickAndCheck({ section: "City", rowNum: 4, col: 1 }, "Balkh");
-      await clipboard.lockAndPerform(async () => { anchorLinks.push(await gu.getAnchor()); });
+      anchorLinks.push(await getAnchorLink());
 
       // Now select a country, and the "new" row in the linked City widget.
       await clickAndCheck({ section: "Country", rowNum: 3, col: 0 }, "AGO");
       await clickAndCheck({ section: "City", rowNum: 6, col: 1 }, "");
 
-      await clipboard.lockAndPerform(async () => { anchorLinks.push(await gu.getAnchor()); });
+      anchorLinks.push(await getDifferentAnchorLink(anchorLinks.at(-1)));
 
-      await driver.get(anchorLinks[0]);
+      await navigateToAnchor(anchorLinks[0]);
       assert.deepEqual(await gu.getCursorPosition("Country"), { rowNum: 2, col: 0 });
       assert.deepEqual(await gu.getCursorPosition("City"), { rowNum: 4, col: 1 });
 
-      await driver.get(anchorLinks[1]);
+      await navigateToAnchor(anchorLinks[1]);
       assert.deepEqual(await gu.getCursorPosition("Country"), { rowNum: 3, col: 0 });
       assert.deepEqual(await gu.getCursorPosition("City"), { rowNum: 6, col: 1 });
     });
@@ -226,7 +226,7 @@ describe("CursorSaving", function() {
       await clickAndCheck({ section: "Selector", rowNum: 1, col: 0 }, "a");
       // Set the reference from "a" to "d", whose only valid item is "Papaya".
       // The other tags all reference other items, so the stored cursor position will be invalid.
-      await gu.enterCell(Key.DELETE, Key.ENTER);
+      await gu.sendKeys(Key.DELETE, Key.ENTER);
       await driver.findContentWait(".test-ref-editor-item", "d", 1000).click();
       await clickAndCheck({ section: "Selector", rowNum: 1, col: 0 }, "d");
 
@@ -237,11 +237,31 @@ describe("CursorSaving", function() {
       assert.equal(name, "Papaya");
     });
   });
+
+  async function getAnchorLink() {
+    return await clipboard.lockAndPerform(async () => gu.getAnchor());
+  }
+
+  async function getDifferentAnchorLink(oldAnchorLink?: string) {
+    let anchor: string = "";
+    await gu.waitToPass(async () => {
+      anchor = await getAnchorLink();
+      assert.notEqual(anchor, oldAnchorLink);
+    });
+    return anchor;
+  }
 });
+
+async function navigateToAnchor(anchorLink: string) {
+  await gu.clearTestState();
+  await driver.get(anchorLink);
+  await gu.waitForAnchor();
+}
 
 async function clickAndCheck(options: gu.ICellSelect, expectedValue: string) {
   const cell = gu.getCell(options);
   await cell.click();
+  await gu.waitAppFocus();
   assert.equal(await cell.getText(), expectedValue);
 }
 

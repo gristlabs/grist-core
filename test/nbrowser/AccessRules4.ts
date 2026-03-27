@@ -118,8 +118,11 @@ describe("AccessRules4", function() {
     await driver.findContentWait("button", /Add user attributes/, 2000).click();
     const userAttrRule = await driver.findWait(".test-rule-userattr", 200);
     await userAttrRule.find(".test-rule-userattr-name").click();
+    await gu.waitForFocus(".test-rule-userattr-name");
     await driver.sendKeys("Custom", Key.ENTER);
+    await gu.waitAppFocus();
     await userAttrRule.find(".test-rule-userattr-attr").click();
+    await gu.waitForFocus(".ace_text-input");
     await driver.sendKeys("Email", Key.ENTER);
     await userAttrRule.find(".test-rule-userattr-table").click();
     await gu.findOpenMenuItem("li", "Users").click();

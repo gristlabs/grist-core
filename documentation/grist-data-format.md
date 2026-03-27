@@ -1,227 +1,184 @@
 # Grist Data Format
 
-Grist Data Format is used to send and receive data from a Grist document. For example, an implementer of an import module would need to translate data to Grist Data Format. A user of Grist Basket APIs would fetch and upload data in Grist Data Format.
+This document describes the data format used in the Grist REST API and Custom
+Widget API. It covers how column types map to cell values, and the encoding of
+special types.
 
-The format is optimized for tabular data. A table consists of rows and columns, containing a single value for each row for each column. Various types are supported for the values.
+For API endpoint details, see the [Grist API reference](https://support.getgrist.com/api/).
 
-Each column has a name and a type. The type is not strict: a column may contain values of other types. However, the type is the intended type of the value for that column, and allows those values to be represented more efficiently.
+## Cell Values
 
-Grist Data Format is readily serialized to JSON. Other serializations are possible, for example, see below for a .proto file that allows to serialize Grist Data Format as a protocol buffer.
+Each cell in a Grist table holds a `CellValue`. In JSON, a CellValue is one of:
 
-## Format Specification
+- `number` — used for Numeric, Int, Date, DateTime, Ref, and similar types
+- `string` — used for Text, Choice, and for mismatched values (e.g. `"N/A"` in a Numeric column)
+- `boolean` — used for Bool (`true` / `false`)
+- `null` — represents an empty cell
+- `[code, args...]` — a typed cell value, for lists, errors, and other special values (see below)
 
-### Document
+The interpretation of a raw `number` or `string` depends on the column's type. For
+example, `86400` in a Date column means one day after the Unix epoch (1970-01-02),
+while in a Numeric column it is simply the number 86400.
 
-At the top, Grist Data Format is a Document object with a single key “tables” mapping to an array of Tables:
+## Column Types and Their Values
 
-```javascript
-    {
-       tables: [Tables…]
-    }
-```
+A column's type is a string. Some types include a parameter after a colon, for
+example `Ref:People` or `DateTime:America/New_York`.
 
-### Table
+The base types (the part before any colon) are:
 
-```javascript
-   {
-      name: "TableName",
-      colinfo: [ColInfo…],
-      columns: ColData
-   }
-```
+| Column Type   | Cell Value Format                      | Default Value | Notes |
+|---------------|----------------------------------------|---------------|-------|
+| `Text`        | `string`                               | `""`          | |
+| `Numeric`     | `number`                               | `0`           | Double-precision float |
+| `Int`         | `number`                               | `0`           | Integer |
+| `Bool`        | `boolean`                              | `false`       | |
+| `Date`        | `number` (seconds since Unix epoch)    | `null`        | Seconds to midnight UTC of that date |
+| `DateTime`    | `number` (seconds since Unix epoch)    | `null`        | Full type is `DateTime:<timezone>`, e.g. `DateTime:America/New_York`. May be fractional for sub-second precision |
+| `Choice`      | `string`                               | `""`          | One of a configured set of options |
+| `ChoiceList`  | `["L", string, ...]`                   | `null`        | List of chosen options |
+| `Ref`         | `number` (row ID)                      | `0`           | Full type is `Ref:<TableId>`, e.g. `Ref:People`. A value of `0` means empty |
+| `RefList`     | `["L", number, ...]`                   | `null`        | Full type is `RefList:<TableId>`. List of row IDs |
+| `Attachments` | `["L", number, ...]`                   | `null`        | List of attachment IDs (a RefList to `_grist_Attachments`) |
+| `Any`         | any CellValue                          | `null`        | No type constraint |
 
-The `name` is the name of the table. The `colinfo` array has an item to describe each column, and `columns` is the actual table data in column-oriented layout.
+Internal types (used by Grist internally, not available to create via the UI):
 
-### ColInfo
+| Column Type      | Cell Value Format | Default Value |
+|------------------|-------------------|---------------|
+| `Id`             | `number`          | `0`           |
+| `ManualSortPos`  | `number`          | `Infinity`    |
+| `PositionNumber` | `number`          | `Infinity`    |
 
-```javascript
-   {
-      name: "ColName",
-      type: "ColType",
-      options: <arbitrary options>
-   }
-```
+### Date and DateTime
 
-The `name` is the name of the column, and `type` is its type. The field `options` optionally specifies type-specific options that affect the column (e.g. the number of decimal places to display for a floating-point number).
+Date and DateTime values are stored as **seconds since the Unix epoch** (1970-01-01
+00:00:00 UTC). This is _not_ milliseconds — divide by 1000 if converting from
+JavaScript `Date.getTime()`.
 
-### ColData
+- **Date** columns store whole-day values. The number represents seconds to midnight
+  UTC on that date. For example, `86400` = 1970-01-02.
+- **DateTime** columns store full timestamps as floating-point numbers, supporting
+  sub-second precision (e.g. `1704945919.123`). The column type includes a timezone,
+  e.g. `DateTime:Europe/London`. The stored number is always in UTC; the timezone
+  controls display formatting.
 
-```javascript
-   {
-          <colName1>: ColValues,
-          <colName2>: ColValues,
-          ...
-   }
-```
+### References
 
-The data in the table is represented as an object mapping a column name to an array of values for the column. This column-oriented representation allows for the representation of data to be more concise.
+- **Ref** columns store the `id` (row ID) of the referenced record as a plain
+  number. A value of `0` means the reference is empty.
+- **RefList** columns store a list of row IDs as `["L", id1, id2, ...]`, or `null`
+  when empty.
 
-### ColValues
+### ChoiceList
 
-```javascript
-   [CellValue, CellValue, ...]
-```
+A ChoiceList cell contains `null` (no choices selected) or a list encoded as
+`["L", "option1", "option2", ...]`.
 
-ColValues is an array of all values for the column. We'll refer to the type of each value as `CellValue`. ColValues has an entry for each row in the table. In particular, each ColValues array in a ColData object has the same number of entries.
+## Typed Cell Values
 
-### CellValue
+When a cell value is an array, its first element is a single-character type code.
+These are called "typed cell values" and represent lists, errors, and other
+structured data.
 
-CellValue represents the value in one cell. We support various types of values, documented below. When represented as JSON, CellValue is one  of the following JSON types:
-  - string
-  - number
-  - bool
-  - null
-  - array of the form `[typeCode, args...]`
+| Code | Name           | Format                              | Description |
+|------|----------------|-------------------------------------|-------------|
+| `L`  | List           | `["L", item, ...]`                  | A list of values. Used for ChoiceList, RefList, and Attachments |
+| `l`  | LookUp         | `["l", value, options]`             | An instruction to set a Ref/RefList by looking up the given value rather than specifying a row ID directly. Used when sending values via the API, not in responses |
+| `O`  | Dict           | `["O", {key: value}]`              | A dictionary/object |
+| `D`  | DateTime       | `["D", timestamp, timezone]`        | DateTime value, e.g. `["D", 1704945919, "UTC"]` |
+| `d`  | Date           | `["d", timestamp]`                  | Date value, e.g. `["d", 1704844800]` |
+| `R`  | Reference      | `["R", tableId, rowId]`             | Reference, e.g. `["R", "People", 17]` |
+| `r`  | ReferenceList  | `["r", tableId, [rowId, ...]]`      | Reference list, e.g. `["r", "People", [1, 2]]` |
+| `E`  | Exception      | `["E", name, message?, details?]`   | A formula error |
+| `P`  | Pending        | `["P"]`                             | Value is not yet computed |
+| `C`  | Censored       | `["C"]`                             | Value hidden by access rules |
+| `U`  | Unmarshallable | `["U", repr]`                       | Value that could not be serialized |
+| `V`  | Versions       | `["V", versionObj]`                 | Used in document comparisons |
+| `S`  | Skip           | `["S"]`                             | Placeholder used in diffs to indicate unchanged rows |
 
-The interpretation of CellValue is affected by the column’s type, and described in more detail below.
+### When Typed Cell Values Appear
 
-## JSON Schema
+By default, most API responses use compact representations: a Date is just a
+`number`, a Ref is just a `number`, Text is just a `string`. The typed forms
+(`["d", ...]`, `["R", ...]`, etc.) appear in responses in these cases:
 
-The description above can be summarized by this JSON Schema:
+- **List types** (ChoiceList, RefList, Attachments) — always `["L", ...]`.
+- **Errors** — appear as `["E", ...]`.
+- **Type mismatches** — in formula columns, when a cell holds a typed value that
+  doesn't match the column's type (e.g. `["d", 1704844800]` appearing in a
+  Numeric column).
+- **`Any` columns** — where values carry their own type information.
 
-```json
-{
-  "definitions": {
-    "Table": {
-      "type": "object",
-      "properties": {
-        "name":    { "type": "string" },
-        "colinfo": { "type": "array", "items": { "$ref": "#/definitions/ColInfo" } }
-        "columns": { "$ref": "#/definitions/ColData" }
-      }
-    },
-    "ColInfo": {
-      "type": "object",
-      "properties": {
-        "name":     { "type": "string" },
-        "type":     { "type": "string" },
-        "options":  { "type": "object" }
-      }
-    },
-    "ColData": {
-      "type": "object",
-      "additionalProperties": { "$ref": "#/definitions/ColValues" }
-    },
-    "ColValues": {
-      "type": "array",
-      "items": { "type": "CellValue" }
-    }
-  },
+### `cellFormat=typed`
 
-  "type": "object",
-  "properties": {
-    "tables": { "type": "array", "items": { "$ref": "#/definitions/Table" } }
-  }
-}
-```
+Both the REST API (`/records` and `/data` endpoints) and the Custom Widget API
+support an option to return all values using typed cell values. With
+`?cellFormat=typed`, every cell value carries its type explicitly:
 
-## Record identifiers
+- Date values become `["d", timestamp]` instead of bare numbers
+- DateTime values become `["D", timestamp, timezone]`
+- Ref values become `["R", tableId, rowId]`
+- RefList values become `["r", tableId, [rowIds...]]` instead of `["L", ...]`
+- Attachments become `["r", "_grist_Attachments", [ids...]]`
+- ChoiceList stays `["L", ...]`
+- Errors remain as `["E", ...]` (in `/records`, they are no longer separated into
+  the `errors` field)
+- Primitives (Text, Numeric, Int, Bool) remain as primitives
 
-Each table should have a column named `id`, whose values should be unique across the table. It is used to identify records in queries and actions. Its details, including its type, are left for now outside the scope of this specification, because the format isn't affected by them.
+This is useful when reading data from a table without knowing the column types
+in advance, since every value is self-describing.
 
-## Naming
+### Errors
 
-Names for tables and columns must consist of alphanumeric ASCII characters or underscore (i.e. `[0-9a-zA-Z_]`). They may not start with an underscore or a digit. Different tables and different columns within a table must have unique names case-insensitively (i.e. they cannot differ in case only).
+When a formula produces an error, the cell value is encoded as
+`["E", exceptionName, message?, details?]`.
 
-Certain names (`id` being one of them) may be reserved, e.g. by Grist, for internal purposes, and would not be usable for user data. Such restrictions are outside the scope of this specification.
+In the default `/records` response format, errors are extracted into a separate
+`errors` field on the record, and the cell value is returned as `null`. With
+`?cellFormat=typed`, errors remain inline as `["E", ...]` values.
 
-Note that this combination of rules allows tables and column names to be valid identifiers in pretty much every programming language (including Python and Javascript), as well as valid names of columns in databases.
+Common exception names:
 
-## Value Types
+| Exception Name       | Displayed As   | Meaning |
+|----------------------|----------------|---------|
+| `ZeroDivisionError`  | `#DIV/0!`      | Division by zero |
+| `TypeError`          | `#TypeError`   | Wrong type in formula |
+| `ValueError`         | `#ValueError`  | Invalid value |
+| `InvalidTypedValue`  | `#Invalid ...` | Value doesn't match column type |
 
-> [!WARNING]
-> This section is out of date.
+### Lookups
 
-The format supports a number of data types. Some types have a short representation (e.g. `Numeric` as a JSON `number`, and `Text` as a JSON `string`), but all types have an explicit representation as well.
+When setting Reference or ReferenceList values, you may use a "reference lookup" of the form `["l", value, options?]`, to look up a record by value rather than specify a row ID directly. Here, `options` is an optional object with optional properties:
+- `column` — optional colId to look up in the referenced table; defaults to the column's configured "Show Column".
+- `raw` — fallback alt-text if the lookup fails; defaults to `value`.
 
-The explicit representation of a value is an array `[typeCode, args...]`. The first member of the array is a string code that defines the type of the value. The rest of the elements are arguments used to construct the actual value.
+Example: `["l", "inv_123"]` or `["l", "inv_123", {"column": "Invoice_ID"}]`.
 
-The following table lists currently supported types and their short and explicit representations.
+## Naming Rules
 
-| **Type Name**    | **Short Repr** | **[Type Code, Args...]**      | **Description**                                                                                                               |
-|------------------|----------------|-------------------------------|-------------------------------------------------------------------------------------------------------------------------------|
-| `Numeric`        | `number`*      | `['n',number]`                | double-precision floating point number                                                                                        |
-| `Text`           | `string`*      | `['s',string]`                | Unicode string                                                                                                                |
-| `Bool`           | `bool`*        | `['b',bool]`                  | Boolean value (true or false)                                                                                                 |
-| `Null`           | `null`*        | `null`                        | Null value (no special explicit representation)                                                                               |
-| `Int`            | `number`       | `['i',number]`                | 32-bit integer                                                                                                                |
-| `Date`           | `number`       | `['d',number]`                | Calendar date, represented as seconds since Epoch to 00:00 UTC on that date.                                                  |
-| `DateTime`       | `number`       | `['D',number]`                | Instance in time, represented as seconds since Epoch                                                                          |
-| `Reference`      | `number`       | `['R',number]`                | Identifier of a record in a table.                                                                                            |
-| `ReferenceList`  |                | `['L',number,...]`            | List of record identifiers                                                                                                    |
-| `Choice`         | `string`       | `['C',string]`                | Unicode string selected from a list of choices.                                                                               |
-| `PositionNumber` | `number`       | `['P',number]`                | a double used to order records relative to each other.                                                                        |
-| `Image`          |                | `['I',string]`                | Binary data representing an image, encoded as base64                                                                          |
-| `List`           |                | `['l',values,...]`            | List of values of any type.                                                                                                   |
-| `JSON`           |                | `['J',object]`                | JSON-serializable object                                                                                                      |
-| `Error`          |                | `['E',string,string?,value?]` | Exception, with first argument exception type, second an optional message, and optionally a third containing additional info. |
+Table and column identifiers must match `[A-Za-z][A-Za-z0-9_]*` — they start with a
+letter, followed by letters, digits, or underscores. Names are case-sensitive but
+must be unique case-insensitively (i.e. you cannot have both `Name` and `name` in
+the same table).
 
-An important goal is to represent data efficiently in the common case. When a value matches the column's type, the short representation is used. For example, in a Numeric column, a Numeric value is represented as a `number`, and in a Date column, a Date value is represented as a `number`.
+Some identifiers are reserved for internal use, such as `id`, `manualSort`, and
+columns starting with `gristHelper_`.
 
-If a value does not match the column's type, then the short representation is used when it's one of the starred types in the table AND the short type is different from the column's short type.
+## SQL Endpoint
 
-For example:
-- In a Numeric column, Numeric is `number`, Text is `string` (being a starred type), but a Date is `['d',number]`.
-- In a Date column, Date is `number`, and Numeric value is `['n',number]`, because even though it's starred, it conflicts with Date's own short type.
-- In a Text column, Text is `string`, Numeric is `number` (starred), and Date is `['d',number]` (not starred).
+`POST /api/docs/{docId}/sql` accepts a SQL query against the document's SQLite
+database. See the [Grist API reference](https://support.getgrist.com/api/) for
+details.
 
-Note how for the common case of a value matching the column's type, we can always use the short representation. But the format still allows values to have an explicit type that's different from the specified one.
+The SQL endpoint queries the SQLite database directly, so values appear in their
+storage representation rather than the API's JSON format. The storage details
+below reflect current implementation and may change in future versions.
 
-Note also that columns of any of the starred types use the same interpretation for contained values.
-
-The primary use case is to allow, for example, storing a value like "N/A" or "TBD" or "Ask Bob" in a column of type Numeric or Date. Another important case is to store errors produced by a computation.
-
-Other complex types may be added in the future.
-
-## Column Types
-
-Any of the types listed in the table above may be specified as a column type.
-
-In addition, a column type may specify type `Any`. For the purpose of type interpretations, it works the same as any of the starred types, but it does not convey anything about the expected type of value for the column.
-
-## Other serializations
-
-Grist Data Format is naturally serialized to JSON, which is fast and convenient to use in Javascript code. It is also possible to serialize it in other ways, e.g. as a Google protobuf.
-
-Here is a `.proto` definition file that allows for efficient protobuf representation of data in Grist Data Format.
-
-```proto
-message Document {
-   repeated Table tables = 1;
-}
-message Table {
-   string name = 1;
-   repeated ColInfo colinfo = 2;
-   repeated ColData columns = 3;
-}
-message ColInfo {
-   string name = 1;
-   string type = 2;
-   string options = 3;
-}
-message ColData {
-  repeated Value value = 1;
-}
-message Value {
-  oneof value {
-    double vNumeric = 1;
-    string vText = 2;
-    bool vBool = 3;
-    // Absence of a set field represents a null
-    int32 vInt = 5;
-    double vDate = 6;
-    double vDateTime = 7;
-    int32 vReference = 8;
-    List vReferenceList = 9;
-    string vChoice = 10;
-    double vPositionNumber = 11;
-    bytes vImage = 12;
-    List vList = 13;
-    string vJSON = 14;
-    List vError = 15;
-  }
-}
-message ValueList {
-   repeated Value value = 1;
-}
-```
+- **Bool** values are stored as `0`/`1`, not `true`/`false`.
+- **ChoiceList** values are stored as JSON arrays of strings, e.g.
+  `'["red","blue"]'` rather than the API's `["L", "red", "blue"]`.
+- **RefList** and **Attachments** values are stored as JSON arrays of row IDs,
+  e.g. `'[1,2,3]'` rather than the API's `["L", 1, 2, 3]`.
+- Some non-primitive values (errors, complex objects) are stored as binary
+  [Python marshal](https://docs.python.org/3/library/marshal.html) blobs.

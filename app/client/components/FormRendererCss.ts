@@ -71,7 +71,7 @@ export const resetButton = styled("button", `
     color: ${vars.primaryBgHover};
     border-color: ${vars.primaryBgHover};
   }
-  &[aria-disabled="true"] {
+  &[data-disabled="true"] {
     cursor: not-allowed;
     color: ${colors.light};
     background-color: ${colors.slate};
@@ -103,7 +103,7 @@ export const submitButton = styled("div", `
     border-color: ${vars.primaryBgHover};
     background-color: ${vars.primaryBgHover};
   }
-  & button[type="submit"][aria-disabled="true"] {
+  & button[type="submit"][data-disabled="true"] {
     cursor: not-allowed;
     color: ${colors.light};
     background-color: ${colors.slate};

@@ -90,6 +90,29 @@ export const TablePost = t.iface(["ColumnsPost"], {
   "id": t.opt("string"),
 });
 
+export const ColumnMetadata = t.iface([], {
+  "id": "string",
+  "fields": t.iface([], {
+    "colRef": "number",
+    "label": "string",
+    "isFormula": "boolean",
+    [t.indexKey]: "CellValue",
+  }),
+});
+
+export const TableMetadata = t.iface([], {
+  "id": "string",
+  "fields": t.iface([], {
+    "tableRef": "number",
+    [t.indexKey]: "CellValue",
+  }),
+  "columns": t.opt(t.array("ColumnMetadata")),
+});
+
+export const TablesGet = t.iface([], {
+  "tables": t.tuple("TableMetadata", t.rest(t.array("TableMetadata"))),
+});
+
 export const TablesPost = t.iface([], {
   "tables": t.tuple("TablePost", t.rest(t.array("TablePost"))),
 });
@@ -132,6 +155,9 @@ const exportedTypeSuite: t.ITypeSuite = {
   ColumnsPatch,
   ColumnsPut,
   TablePost,
+  ColumnMetadata,
+  TableMetadata,
+  TablesGet,
   TablesPost,
   TablesPatch,
   SqlPost,

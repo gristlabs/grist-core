@@ -142,7 +142,7 @@
         "Description": "Description",
         "Key": "Clé",
         "Memory Error": "Erreur mémoire",
-        "Translators: please translate this only when your language is ready to be offered to users": "[TRANSLATED]"
+        "Translators: please translate this only when your language is ready to be offered to users": "Traducteurs : merci de ne traduire ceci que lorsque votre langue sera prête à être proposée aux utilisateurs"
     },
     "AppHeader": {
         "Home page": "Page d’accueil",
@@ -388,7 +388,7 @@
         "API": "API",
         "Ok": "OK",
         "Manage Webhooks": "Gérer les points d’ancrage Web",
-        "Webhooks": "Points d’ancrage Web",
+        "Webhooks": "Points d’ancrage Web (Webhooks)",
         "API console": "Console de l'API",
         "Reload": "Recharger",
         "Python": "Python",
@@ -460,7 +460,7 @@
         "**Some existing attachments are still [external]({{externalLink}})**.": "Certaines pièces jointes existantes sont toujours [externes]({{externalLink}}).",
         "[Learn more.]({{learnLink}})": "[En savoir plus.]({{learnLink}})",
         "**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).": "**Certaines pièces jointes existantes sont toujours [internes]({{internalLink}})** (stockées dans un fichier SQLite).",
-        "Upload missing attachments": "Importer les PJ manquantes",
+        "Upload missing attachments": "Importer les pièces jointes manquantes",
         "Uploading...": "Import en cours...",
         "Upload": "Importer",
         "Default": "Classique",
@@ -692,7 +692,7 @@
         "Grist column": "Colonne Grist",
         "Revert": "Annuler",
         "Skip Import": "Ignorer l'import",
-        "New Table": "Nouvelle table",
+        "New Table": "Nouvelle Table",
         "Skip": "Passer",
         "Column Mapping": "Cartographie de Colonne",
         "Destination table": "Table de destination",
@@ -738,9 +738,9 @@
         "Download document": "Télécharger le document",
         "Learn more": "En savoir plus",
         "Download full document and history": "Télécharger le document complet avec l'historique des modifications",
-        "Download an archive of all the attachments present in this document.": "Télécharger une archive de toutes les PJ présentes dans ce document.",
-        "download attachments": "télécharger les PJ",
-        "Download attachments": "Télécharger les PJ",
+        "Download an archive of all the attachments present in this document.": "Télécharger une archive de toutes les pièces jointes présentes dans ce document.",
+        "download attachments": "télécharger les pièces jointes",
+        "Download attachments": "Télécharger les pièces jointes",
         ".zip": ".zip",
         "Format:": "Format :",
         ".tar (recommended)": ".tar (recommandé)",
@@ -860,7 +860,7 @@
         "No field selected": "Aucun champ sélectionné",
         "Select a field in the form widget to configure.": "Sélectionnez un champ du formulaire à configurer.",
         "Submit": "Valider",
-        "Thank you! Your response has been recorded.": "Merci ! Votre réponse a été enregistrée.",
+        "Thank you! Your response has been recorded.": "Nous vous remercions. Votre réponse a été enregistrée.",
         "Chart options": "Options du graphique"
     },
     "RowContextMenu": {
@@ -905,7 +905,7 @@
         "DOO Separated Values (.dsv)": "DOO Separated Values (.dsv)",
         "Tab Separated Values (.tsv)": "Valeurs séparées par des tabulations (.tsv)",
         "Download document...": "Télécharger le document...",
-        "Download attachments...": "Télécharger les PJ...",
+        "Download attachments...": "Télécharger les pièces jointes...",
         "Exporting is only available from document pages. Please select a document page and try again.": "L'export n'est possible qu'à partir des pages du document. Veuillez sélectionner une page du document et réessayer.",
         "Suggest changes": "Suggérer des modifications",
         "current version": "version actuelle",
@@ -961,7 +961,9 @@
         "Suggestions": "Suggestions"
     },
     "TopBar": {
-        "Manage team": "Gérer les équipes"
+        "Manage team": "Gérer les équipes",
+        "Redo": "Rétablir",
+        "Undo": "Annuler"
     },
     "TriggerFormulas": {
         "Any field": "N'importe quel champ",
@@ -1005,7 +1007,7 @@
         "Edit card layout": "Disposition de la fiche",
         "Plugin: ": "Plugin : ",
         "Section: ": "Section : ",
-        "On-Demand Tables have been deprecated due to lack of functionality and usability concerns.": "Les tables à la demande ne sont plus disponibles en raison d'un manque de fonctionnalités et de problèmes d'UX.",
+        "On-Demand Tables have been deprecated due to lack of functionality and usability concerns.": "Les tables à la demande ne sont plus disponibles en raison d'un manque de fonctionnalités et de problèmes d'expérience utilisateur.",
         "⚠️ Deprecated Feature": "⚠️ Fonctionnalité obsolète"
     },
     "ViewLayoutMenu": {
@@ -1152,7 +1154,9 @@
         "By Name": "Par Nom",
         "By Date Modified": "Par Date de modification",
         "Light": "Clair",
-        "Custom": "Personnalisé"
+        "Custom": "Personnalisé",
+        "Dark": "Sombre",
+        "Light (High Contrast)": "Clair (contraste élevé)"
     },
     "modals": {
         "Save": "Enregistrer",
@@ -1200,7 +1204,8 @@
         "Single line": "Ligne unique",
         "Multi line": "Multi-lignes",
         "Lines": "Lignes",
-        "Field Format": "Format du champ"
+        "Field Format": "Format du champ",
+        "Maximum characters": "Nombre de caractères max"
     },
     "ViewAsDropdown": {
         "View as": "Voir en tant que",
@@ -1294,7 +1299,7 @@
         "Apply": "Ok",
         "Revise": "Amender",
         "Preview": "Aperçu",
-        "Update formula (Shift+Enter)": "Modifier la formule (MAJ+Entrée)"
+        "Update formula (Shift+Enter)": "Modifier la formule (Maj+Entrée)"
     },
     "ColumnEditor": {
         "COLUMN DESCRIPTION": "DESCRIPTION DE LA COLONNE",
@@ -1443,10 +1448,10 @@
         "The new Grist Assistant is here!": "Le nouvel assistant Grist est là !",
         "Formulas support many Excel functions and full Python syntax.": "Les formules prennent en charge de nombreuses fonctions Excel et la syntaxe Python complète.",
         "Creates a new Reference List column in the target table, with both this and the target columns editable and synchronized.": "Crée une nouvelle colonne de type \"Référence multiple\" dans la table cible. Cette colonne et la colonne cible sont modifiables et synchronisées.",
-        "Internal storage means all attachments are stored in the document SQLite file, while external storage indicates all attachments are stored in the same external storage.": "Le stockage interne signifie que toutes les PJ sont stockées dans le fichier SQLite du document, tandis que le stockage externe indique que toutes les PJ sont stockées dans le même stockage externe.",
+        "Internal storage means all attachments are stored in the document SQLite file, while external storage indicates all attachments are stored in the same external storage.": "Le stockage interne signifie que toutes les pièces jointes sont stockées dans le fichier SQLite du document, tandis que le stockage externe indique que toutes les pièces jointes sont stockées dans le même stockage externe.",
         "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!": "Comprenez, modifiez et travaillez vos données et formules avec l'aide du nouvel assistant IA de Grist !",
         "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "Ce formulaire a été créé par une personne utilisant Grist et n’est pas vérifié par Grist Labs. N’utilisez pas ce formulaire pour communiquer vos mots de passe et faites preuve de vigilance concernant les liens qu’il contient. Signalez tout formulaire malveillant à {{mail}}",
-        "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.": "Cela vous permet d'ajouter des PJ manquantes, par exemple lorsque vous importez un document dont les PJ étaient externalisées. Seules les archives de PJ au format .tar téléchargées depuis Grist peuvent être chargées ici.",
+        "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.": "Cela vous permet d'ajouter des pièces jointes manquantes, par exemple lorsque vous importez un document dont les pièces jointes étaient externalisées. Seules les archives de pièces jointes au format .tar téléchargées depuis Grist peuvent être chargées ici.",
         "Set the maximum number of lines for multi-line text.": "Définir le nombre maximum de lignes pour un texte multi-ligne.",
         "This form is created by a Grist user, and is not endorsed by Grist Labs, Inc. or any party providing this service. For your security, do not submit passwords through this form, and be careful when clicking embedded links. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "Ce formulaire a été créé par un utilisateur de Grist. Il n'est pas validé par Grist Labs ni aucune des parties fournissant ce service. Pour votre sécurité, ne fournissez pas vos mots de passe via ce formulaire, et faites attention quand vous cliquez sur des liens. Rapportez les formulaires malveillants à [{{mail}}](mailto:{{mail}}).",
         "Comments are here!": "Les commentaires sont ici !",
@@ -1758,7 +1763,8 @@
         "Select": "Sélectionner",
         "Accept value from URL": "Accepter une valeur depuis l'URL",
         "Hidden field": "Champ caché",
-        "URL parameter:\n{{colId}}=VALUE": "Paramètre d'URL :\n{{colId}}=VALEUR"
+        "URL parameter:\n{{colId}}=VALUE": "Paramètre d'URL :\n{{colId}}=VALEUR",
+        "Options limit": "Limite du nombre d'options"
     },
     "Editor": {
         "Delete": "Supprimer"
@@ -1965,7 +1971,9 @@
         "Search": "Rechercher",
         "Reset": "Réinitialiser",
         "Submitting…": "En cours de soumission…",
-        "Clear selection for: {{-inputLabel}}": "Effacer la sélection pour : {{-inputLabel}}"
+        "Clear selection for: {{-inputLabel}}": "Effacer la sélection pour : {{-inputLabel}}",
+        "Options for {{-inputLabel}}": "Options pour {{-inputLabel}}",
+        "Search options for {{-inputLabel}}": "Rechercher des options pour {{-inputLabel}}"
     },
     "widgetTypesMap": {
         "Table": "Table",
@@ -2620,9 +2628,132 @@
         "Set as active method": "Définir comme méthode active",
         "Set as active method?": "Définir comme une méthode active ?",
         "The new method will go into effect after you restart Grist.": "Cette nouvelle méthode prendra effet quand vous redémarrerez Grist.",
-        "Active on restart": "Active au redémarrage"
+        "Active on restart": "Active au redémarrage",
+        "**Forwarded headers** allows your Grist server to trust authentication performed by an external proxy (e.g. Traefik ForwardAuth).": "**Forwarded headers** autorise votre serveur Grist à faire confiance à une authentification faites par un proxy externe (ex. Traefik ForwardAuth).",
+        "**Grist Connect** is a login solution built and maintained by Grist Labs that integrates seamlessly with your Grist server.": "**Grist Connect** est une solution de connexion construite et maintenue par Grist Labs qui s'intègre sans effort avec votre serveur Grist.",
+        "**OIDC** allows users on your Grist server to sign in using an external identity provider that supports the OpenID Connect standard.": "L'**OIDC** permet aux utilisateurs sur votre serveur Grist de s'identifier en utilisant un fournisseur d'identité externe qui supporte le standard OpenId Connect.",
+        "**SAML** allows users on your Grist server to sign in using an external identity provider that supports the SAML 2.0 standard.": "Le **SAML** permets aux utilisateurs de votre serveur Grist de s'identifier en utilisant un fournisseur d'identité externe qui support le standard SAML 2.0.",
+        "Change admin user": "Changer l'utilisateur administrateur",
+        "If Grist is accessible on your network, or is available to multiple people, configure one of the authentication methods below.": "Si Grist est accessible sur votre réseau, ou s'il est disponible pour plusieurs personnes, configurez l'une des méthodes d'authentification suivantes.",
+        "No authentication: unrestricted sign-in as demo user": "Aucune authentification : connexion sans restriction en tant qu'utilisateur de démo",
+        "Prepare changes": "Préparer les changements",
+        "Restart required. Authentication change may affect your access": "Redémarrage nécessaire. Les changements d'authentification peuvent impacter votre accès",
+        "Revert change of admin user": "Annuler les changement d'utilisateur d'administration",
+        "See \"Restart Grist\" section on top of this page to restart.": "Consultez la section \"Redémarrer Grist\" en haut de cette page pour redémarrer.",
+        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "grist-connect": {
+                            ").": "Pour installer **Grist Connect**, suivez les instructions dans [l'article du support Grist pour Grist Connect](https://support.getgrist.com/install/grist-connect/)."
+                        }
+                    }
+                }
+            }
+        },
+        "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "oidc).": "Pour installer l'**OIDC**, suivez les instructions dans [l'article du support Grist pour l'OIDC](https://support.getgrist.com/install/oidc)."
+                    }
+                }
+            }
+        },
+        "To set up **SAML**, follow the instructions in [the Grist support article for SAML](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "saml": {
+                            ").": "Pour installer le **SAML**, suivez les instructions dans [l'article du support Grist pour le SAML](https://support.getgrist.com/install/saml/)."
+                        }
+                    }
+                }
+            }
+        },
+        "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "forwarded-headers": {
+                            ").": "Pour installer les **forwarded headers**, suivez les instructions dans [l'article du support Grist pour les forwarded headers](https://support.getgrist.com/install/forwarded-headers/)."
+                        }
+                    }
+                }
+            }
+        },
+        "When a user accesses Grist, the proxy handles authentication and forwards verified user information through HTTP headers. Grist uses these headers to identify the user.": "Quand un utilisateur accède à Grist, le proxy prend en charge l'authentification et transfert les information vérifiées de l'utilisateur au travers des entêtes HTTP. Grist utilise ces entêtes pour identifier l'utilisateur.",
+        "When signing in, users will be redirected to a Grist Connect login page where they can authenticate using various identity providers. After authentication, they'll be redirected back to your Grist server and signed in.": "Lors de la connexion, les utilisateurs seront redirigés vers une page d'identification Grist Connect où ils pourront s'authentifier en utilisant divers fournisseurs d'identité. Après l'authentification, il seront renvoyé vers votre serveur Grist et connectés.",
+        "When signing in, users will be redirected to your chosen identity provider's login page to authenticate. After successful authentication, they'll be redirected back to your Grist server and signed in as the user verified by the provider.": "Lorsqu'ils se connectent, les utilisateurs seront redirigés vers la page de connexion de fournisseur d'identité de votre choix afin de s'authentifier. Après une authentification réussi, ils seront renvoyés vers votre serveur Grist et connectés en tant que l'utilisateur vérifié par le fournisseur.",
+        "You are signed in as {{email}}. After restart, the new administrative user will be {{newEmail}}.": "Vous êtes connecté en tant que {{email}}. Après le redémarrage, le nouvel utilisateur d’administration sera {{newEmail}}.",
+        "You are signed in as {{email}}. You may lose access to this server if you cannot sign in as this user after switching the authentication system.": "Vous êtes connecté en tant que {{email}}. Vous allez peut-être perdre vos accès à ce serveur si vous ne pouvez plus vous connecter en tant que cet utilisateur après avoir changé le mode d'authentification."
     },
     "DetailView": {
         "This row is unavailable or does not exist": "Cette ligne est indisponible ou n’existe pas"
+    },
+    "AirtableImportUI": {
+        "Back": "Retour",
+        "Cancel": "Annuler",
+        "Choose an Airtable base to import from": "Choisissez une base Airtable depuis laquelle importer",
+        "Choose destination": "Choisissez une destination",
+        "Connect": "Se connecter",
+        "Connect with Airtable": "Se connecter avec Airtable",
+        "Connect your Airtable account to access your bases.": "Connectez-vous à votre compte Airtable pour accéder à vos bases.",
+        "Connected via {{method}}": "Connecté via {{method}}",
+        "Connecting...": "Connexion en cours...",
+        "Continue": "Continuer",
+        "Destination": "Destination",
+        "Disconnect": "Déconnexion",
+        "Existing tables": "Tables existantes",
+        "Failed to fetch base schema": "Échec de la récupération du schéma de base",
+        "Failed to fetch bases": "Échec de la récupération des bases",
+        "Grist configuration required": "Configuration de Grist nécessaire",
+        "Import from {{baseName}} in progress. Do not navigate away from this page.": "Import depuis {{baseName}} en cours. Ne quittez pas cette page.",
+        "Import tables": "Importer les tables",
+        "Import {{count}} tables_one": "Import de {{count}} table",
+        "Import {{count}} tables_other": "Import de {{count}} tables",
+        "Make sure your token has the correct permissions.": "Assurez-vous que votre jeton a les bonnes permissions.",
+        "New table": "Nouvelle table",
+        "New table: structure only": "Nouvelle Table : structure uniquement",
+        "No bases found": "Aucune base trouvée",
+        "OAuth": "OAuth",
+        "OAuth credentials not configured. Please set OAUTH2_AIRTABLE_CLIENT_ID and OAUTH2_AIRTABLE_CLIENT_SECRET, or use personal access token.": "Les informations d'identification OAuth ne sont pas configurées. Merci de configurer OAUTH2_AIRTABLE_CLIENT_ID and OAUTH2_AIRTABLE_CLIENT_SECRET, ou d'utiliser un jeton d'accès personnel.",
+        "Personal access token": "Jeton d'accès personnel",
+        "Please enter a personal access token": "Merci de saisir un jeton d'accès personnel",
+        "Refresh": "Rafraîchir",
+        "Select tables to import from {{baseName}}": "Sélectionner les tables à importer depuis {{baseName}}",
+        "Skip": "Passer",
+        "Source tables": "Tables sources",
+        "Structure only": "Structure uniquement",
+        "Use personal access token instead": "Utiliser un jeton d'accès à la place",
+        "[Generate a token]({{url}}) in your Airtable account with scopes that include at least **\\`schema.bases:read\\`** and **\\`data.records:read\\`**.\n\nYour token is never sent to Grist's servers, and is only used to make API calls to Airtable from your browser.": "[Générer un jeton]({{url}}) dans votre compte Airtable avec une portée qui inclue à minima **\\`schema.bases:read\\`** et **\\`data.records:read\\`**.\n\nVotre jeton ne sera jamais envoyé aux serveurs de Grist, et il n'est utiliser que pour faire des appels API vers Airtable depuis votre navigateur.",
+        "loading your bases...": "Chargement de vos bases...",
+        "loading your tables...": "Chargement de vos tables...",
+        "or": "ou",
+        "{{count}} warnings_one": "{{count}} alerte",
+        "{{count}} warnings_other": "{{count}} alertes",
+        "The more convenient ‘Connect with Airtable’ option can be configured by the installation administrator. [Learn more.]({{url}})": "L'option plus pratique \"Connexion avec Airtable\" peut être configurée par l'administrateur système. [En savoir plus.]({{url}})",
+        "Use personal access token": "Utiliser votre jeton d'accès personnel"
+    },
+    "AirtableImporter": {
+        "Creating a new Grist document...": "Création d'un nouveau document Grist en cours...",
+        "Preparing to import base from Airtable...": "Préparation de l'import de la base depuis Airtable...",
+        "Setting up tables...": "Configuration des tables..."
+    },
+    "ChangeAdminModal": {
+        "Enter new admin email": "Entrez le nouvel e-mail d'administration",
+        "Make the new email the installation admin. Orgs, workspaces, and documents will remain owned by {{email}}. These changes will take effect after you restart this Grist server.": "Faire du nouvel e-mail l'administrateur d'installation. Les Espaces d'équipes, Dossiers, et documents resteront la propriété de {{email}}. Ces changements seront effectifs après le redémarrage du serveur Grist.",
+        "New admin": "Nouvel administrateur",
+        "Replace {{email}} with the new email throughout. The new email will become the installation admin, as well as the owner of all materials previously owned by you@example.com.": "Remplacer complètement {{email}} par le nouvel e-mail d'administration. Le nouvel e-mail deviendra l'administrateur d'installation, ainsi que le propriétaire de tout les éléments appartenant précédemment à vous@exemple.fr."
+    },
+    "startDocAirtableImport": {
+        "Import from Airtable": "Importer depuis Airtable"
+    },
+    "startHomeAirtableImport": {
+        "Import from Airtable": "Importer depuis Airtable",
+        "The current workspace can't be imported to.": "Le dossier actuel ne peut pas être importé."
+    },
+    "NotifyModel": {
+        "Still working...": "Toujours en cours..."
     }
 }

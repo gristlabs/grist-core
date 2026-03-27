@@ -155,12 +155,15 @@ describe("ActionLog", function() {
   });
 
   it("should show clickable tabular diffs", async function() {
-    const item0 = await getActionLogItem(0);
-    assert.equal(await item0.find("table caption").getText(), "Table1 >");
-    assert.equal(await item0.find("table th:nth-child(2)").getText(), "A");
-    assert.equal(await item0.find("table td:nth-child(2)").getText(), "f");
+    let item0: WebElement;
+    await gu.waitToPass(async () => {
+      item0 = await getActionLogItem(0);
+      assert.equal(await item0.find("table caption").getText(), "Table1 >");
+      assert.equal(await item0.find("table th:nth-child(2)").getText(), "A");
+      assert.equal(await item0.find("table td:nth-child(2)").getText(), "f");
+    }, 1000);
     assert.equal(await gu.getActiveCell().getText(), "a");
-    await item0.find("table td:nth-child(2)").click();
+    await item0!.find("table td:nth-child(2)").click();
     assert.equal(await gu.getActiveCell().getText(), "f");
   });
 
@@ -175,12 +178,15 @@ describe("ActionLog", function() {
     // Check that it's still usable. (It doesn't reflect the new names in the content of prior
     // actions though -- e.g. the action below still mentions 'A' for column name -- and it's
     // unclear if it should.)
-    const item2 = await getActionLogItem(2);
-    assert.equal(await item2.find("table caption").getText(), "Table1 >");
-    assert.equal(await item2.find("table td:nth-child(2)").getText(), "f");
+    let item2: WebElement;
+    await gu.waitToPass(async () => {
+      item2 = await getActionLogItem(2);
+      assert.equal(await item2.find("table caption").getText(), "Table1 >");
+      assert.equal(await item2.find("table td:nth-child(2)").getText(), "f");
+    }, 1000);
     await gu.getCell({ rowNum: 1, col: 0 }).click();
     assert.notEqual(await gu.getActiveCell().getText(), "f");
-    await item2.find("table td:nth-child(2)").click();
+    await item2!.find("table td:nth-child(2)").click();
     assert.equal(await gu.getActiveCell().getText(), "f");
 
     // Delete Table1Renamed.
@@ -217,8 +223,10 @@ describe("ActionLog", function() {
       "Rename Table1 to Table1Renamed");
 
     await gu.renameColumn({ col: "A" }, "ARenamed");
-    assert.equal(await getActionLogItem(0).find(".action_log_rename").getText(),
-      "Rename Table1Renamed.A to ARenamed");
+    await gu.waitToPass(async () => {
+      assert.equal(await getActionLogItem(0).find(".action_log_rename").getText(),
+        "Rename Table1Renamed.A to ARenamed");
+    }, 1000);
     await gu.getPageItem("Table2").click();
     assert.equal(await getActionLogItem(0).find("table:not([style*='display: none']) caption").getText(), "Table2 >");
     await gu.getPageItem("Table3").click();

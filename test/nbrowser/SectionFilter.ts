@@ -234,8 +234,10 @@ describe("SectionFilter", function() {
       ]);
       await menu.findContent("label .test-filter-menu-value", /^$/).click();
       await menu.findContent("label", /Bar/).click();
-      assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3, 4, 5, 6, 7]),
-        ["Foo", "1", "2.0", "2016-01-01", "5+6", "", undefined]);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3, 4, 5, 6, 7]),
+          ["Foo", "1", "2.0", "2016-01-01", "5+6", "", undefined]);
+      });
       await menu.find(".test-filter-menu-cancel-btn").click();
     });
 
@@ -256,8 +258,10 @@ describe("SectionFilter", function() {
       await menu.findContent("label .test-filter-menu-value", /^$/).click();
       await menu.findContent("label", /7/).click();
       await menu.findContent("label", /foo/).click();
-      assert.deepEqual(await gu.getVisibleGridCells(1, [1, 2, 3, 4, 5, 6]),
-        ["5.00", "6.00", "-1.00", "0.00", "", undefined]);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await gu.getVisibleGridCells(1, [1, 2, 3, 4, 5, 6]),
+          ["5.00", "6.00", "-1.00", "0.00", "", undefined]);
+      });
       await menu.find(".test-filter-menu-cancel-btn").click();
     });
 
@@ -278,8 +282,10 @@ describe("SectionFilter", function() {
       await menu.findContent("label .test-filter-menu-value", /^$/).click();
       await menu.findContent("label", /2019-06-05/).click();
       await menu.findContent("label", /bar/).click();
-      assert.deepEqual(await gu.getVisibleGridCells(2, [1, 2, 3, 4, 5, 6]),
-        ["2019-06-03", "2019-06-07", "2019-06-123", "0", "", undefined]);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await gu.getVisibleGridCells(2, [1, 2, 3, 4, 5, 6]),
+          ["2019-06-03", "2019-06-07", "2019-06-123", "0", "", undefined]);
+      });
       await menu.find(".test-filter-menu-cancel-btn").click();
     });
 
@@ -320,8 +326,10 @@ describe("SectionFilter", function() {
       await menu.findContent("label", /#TypeError/).click();
       await menu.findContent("label", /25/).click();
 
-      assert.deepEqual(await gu.getVisibleGridCells(3, [1, 2, 3, 4, 5]),
-        ["36", "49", "1", "", undefined]);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await gu.getVisibleGridCells(3, [1, 2, 3, 4, 5]),
+          ["36", "49", "1", "", undefined]);
+      });
       await menu.find(".test-filter-menu-cancel-btn").click();
     });
 
@@ -343,8 +351,10 @@ describe("SectionFilter", function() {
       await menu.findContent("label", /#Invalid Ref: denis/).click();
       await menu.findContent("label", /bob/).click();
 
-      assert.deepEqual(await gu.getVisibleGridCells(4, [1, 2, 3, 4, 5]),
-        ["alice", "carol", "0", "", undefined]);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await gu.getVisibleGridCells(4, [1, 2, 3, 4, 5]),
+          ["alice", "carol", "0", "", undefined]);
+      });
       await menu.find(".test-filter-menu-cancel-btn").click();
     });
 
@@ -389,8 +399,10 @@ describe("SectionFilter", function() {
       await menu.findContent("label", /Bar/).click();
       await menu.findContent("label", /Baz/).click();
 
-      assert.deepEqual(await gu.getVisibleGridCells(5, [1, 2, 3, 4, 5]),
-        ["Foo\nBar\nBaz", "Foo\nBar", "Foo", "InvalidChoice", ""]);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await gu.getVisibleGridCells(5, [1, 2, 3, 4, 5]),
+          ["Foo\nBar\nBaz", "Foo\nBar", "Foo", "InvalidChoice", ""]);
+      });
       await menu.find(".test-filter-menu-cancel-btn").click();
     });
 
@@ -419,8 +431,10 @@ describe("SectionFilter", function() {
       await menu.findContent("label", /36\.0/).click();
       await menu.findContent("label", /49\.0/).click();
 
-      assert.deepEqual(await gu.getVisibleGridCells(6, [1, 2]),
-        ["1.0", ""]);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await gu.getVisibleGridCells(6, [1, 2]),
+          ["1.0", ""]);
+      });
       await menu.find(".test-filter-menu-cancel-btn").click();
     });
 
@@ -465,8 +479,10 @@ describe("SectionFilter", function() {
       await menu.findContent("label", /Orange/).click();
       await menu.findContent("label", /Yellow/).click();
 
-      assert.deepEqual(await gu.getVisibleGridCells(7, [1, 2, 3, 4, 5]),
-        ["Red", "", "Red", "", ""]);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await gu.getVisibleGridCells(7, [1, 2, 3, 4, 5]),
+          ["Red", "", "Red", "", ""]);
+      });
       await menu.find(".test-filter-menu-cancel-btn").click();
     });
 
@@ -497,8 +513,10 @@ describe("SectionFilter", function() {
       await menu.findContent("label", /bob/).click();
       await menu.findContent("label", /#Invalid RefList: \[u'0'\]/).click();
 
-      assert.deepEqual(await gu.getVisibleGridCells(8, [1, 2, 3, 4, 5]),
-        ["alice\ncarol", "carol\nbob\nalice", "[u'denis']", "[u'denis', u'edward']", ""]);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await gu.getVisibleGridCells(8, [1, 2, 3, 4, 5]),
+          ["alice\ncarol", "carol\nbob\nalice", "[u'denis']", "[u'denis', u'edward']", ""]);
+      });
       await menu.find(".test-filter-menu-cancel-btn").click();
     });
 

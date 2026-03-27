@@ -4,14 +4,24 @@ import { getBrowserGlobals } from "app/client/lib/browserGlobals";
 import { makeT } from "app/client/lib/localization";
 import { FormField, FormOptionsSortOrder, getFormOptionsLimit } from "app/client/ui/FormAPI";
 import { dropdownWithSearch } from "app/client/ui/searchDropdown";
-import { isXSmallScreenObs } from "app/client/ui2018/cssVars";
+import { isXSmallScreenObs, theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { confirmModal } from "app/client/ui2018/modals";
 import { toggleSwitch } from "app/client/ui2018/toggleSwitch";
 import { isAffirmative, isNumber } from "app/common/gutil";
 import { CellValue } from "app/plugin/GristData";
 
-import { Disposable, dom, DomContents, IAttrObj, makeTestId, MutableObsArray, obsArray, Observable } from "grainjs";
+import {
+  Disposable,
+  dom,
+  DomContents,
+  IAttrObj,
+  makeTestId,
+  MutableObsArray,
+  obsArray,
+  Observable,
+  styled,
+} from "grainjs";
 import { IPopupOptions, PopupControl } from "popweasel";
 
 const testId = makeTestId("test-form-");
@@ -179,7 +189,7 @@ class SubmitRenderer extends FormRenderer {
       css.submitButtons(
         css.resetButton(
           t("Reset"),
-          dom.attr("aria-disabled", use => use(this.context.disabled) ? "true" : "false"),
+          dom.attr("data-disabled", use => use(this.context.disabled) ? "true" : "false"),
           { type: "button" },
           dom.on("click", (event) => {
             if (this.context.disabled.get()) {
@@ -195,7 +205,11 @@ class SubmitRenderer extends FormRenderer {
         ),
         css.submitButton(
           dom("button",
-            dom.attr("aria-disabled", use => use(this.context.disabled) ? "true" : "false"),
+            // We could use aria-disabled here to, on paper, better expose the state to screen readers.
+            // But we don't on purpose, to prevent too much verbosity, as the submit button *always* gets disabled
+            // on form submission, while it is submitting. Since the text of the button changes when submitting,
+            // it's actually better to not expose it as aria-disabled in addition to the text change.
+            dom.attr("data-disabled", use => use(this.context.disabled) ? "true" : "false"),
             { type: "submit" },
             dom.domComputed((use) => {
               return use(this.context.disabled) ?
@@ -235,7 +249,7 @@ class FieldRenderer extends FormRenderer {
     const field = this.layoutNode.leaf ? this.context.fields[this.layoutNode.leaf] : null;
     if (!field) { throw new Error(); }
 
-    const Renderer = FieldRenderers[field.type as keyof typeof FieldRenderers] ?? TextRenderer;
+    const Renderer = FieldRenderers[field.type as keyof typeof FieldRenderers] ?? BaseTextRenderer;
     this.renderer = this.autoDispose(new Renderer(field, context));
   }
 
@@ -259,6 +273,7 @@ abstract class BaseFieldRenderer extends Disposable {
       this.label(),
       dom("div", this.input()),
       this.fieldDomAttributes(),
+      testId("field"),
     );
   }
 
@@ -270,7 +285,7 @@ abstract class BaseFieldRenderer extends Disposable {
     return this.name().replace(/\s+/g, "-");
   }
 
-  public label() {
+  public label(): HTMLElement {
     return dom("label",
       css.label.cls(""),
       css.label.cls("-required", Boolean(this.field.options.formRequired)),
@@ -309,7 +324,7 @@ abstract class BaseFieldRenderer extends Disposable {
   }
 }
 
-class TextRenderer extends BaseFieldRenderer {
+class BaseTextRenderer extends BaseFieldRenderer {
   protected inputType = "text";
 
   private _format = this.field.options.formTextFormat ?? "singleline";
@@ -317,11 +332,14 @@ class TextRenderer extends BaseFieldRenderer {
   private _value = Observable.create<string>(this, this.getInitialValue() ?? "");
 
   public input() {
+    let element: HTMLInputElement | HTMLTextAreaElement;
     if (this._format === "singleline") {
-      return this._renderSingleLineInput();
+      element = this._renderSingleLineInput();
     } else {
-      return this._renderMultiLineInput();
+      element = this._renderMultiLineInput();
     }
+
+    return element;
   }
 
   public resetInput(): void {
@@ -350,8 +368,43 @@ class TextRenderer extends BaseFieldRenderer {
         rows: this._lineCount,
       },
       dom.prop("value", this._value),
-      dom.on("input", (_e, elem) => this._value.set(elem.value)),
     );
+  }
+}
+
+class TextRenderer extends BaseTextRenderer {
+  private _counter = Observable.create<number>(this, this.getInitialValue()?.length ?? 0);
+
+  public label() {
+    const maximumLength = this.field.options.formTextMaximumLength;
+
+    if (!maximumLength) {
+      return super.label();
+    }
+
+    return labelRow(
+      super.label(),
+      constraintLabel(
+        dom.text(use => `(${use(this._counter)} / ${maximumLength})`),
+        testId("text-constraint"),
+      ),
+    );
+  }
+
+  public input(): HTMLTextAreaElement | HTMLInputElement {
+    const element = super.input();
+
+    const maximumLength = this.field.options.formTextMaximumLength;
+
+    if (maximumLength) {
+      element.maxLength = maximumLength;
+
+      dom.update(element,
+        dom.on("input", (_e, elem: HTMLTextAreaElement | HTMLInputElement) => this._counter.set(elem.value.length)),
+      );
+    }
+
+    return element;
   }
 }
 
@@ -411,11 +464,11 @@ class NumericRenderer extends BaseFieldRenderer {
   }
 }
 
-class DateRenderer extends TextRenderer {
+class DateRenderer extends BaseTextRenderer {
   protected inputType = "date";
 }
 
-class DateTimeRenderer extends TextRenderer {
+class DateTimeRenderer extends BaseTextRenderer {
   protected inputType = "datetime-local";
 }
 
@@ -516,6 +569,8 @@ class ChoiceRenderer extends BaseFieldRenderer  {
             })),
             onClose: () => { setTimeout(() => this._selectElement.focus()); },
             placeholder: t("Search"),
+            ariaLabelInput: t("Search options for {{-inputLabel}}", { inputLabel: this.field.question }),
+            ariaLabelList: t("Options for {{-inputLabel}}", { inputLabel: this.field.question }),
             acOptions: { maxResults: 100, keepOrder: false, showEmptyItems: true },
             popupOptions: {
               trigger: [
@@ -589,6 +644,7 @@ class BoolRenderer extends BaseFieldRenderer {
   public render() {
     return css.field(
       dom("div", this.input()),
+      testId("field"),
     );
   }
 
@@ -878,6 +934,8 @@ class RefRenderer extends BaseFieldRenderer {
             onClose: () => { setTimeout(() => this._selectElement.focus()); },
             acOptions: { maxResults: 100, keepOrder: false, showEmptyItems: true },
             placeholder: "Search",
+            ariaLabelInput: t("Search options for {{-inputLabel}}", { inputLabel: this.field.question }),
+            ariaLabelList: t("Options for {{-inputLabel}}", { inputLabel: this.field.question }),
             popupOptions: {
               trigger: [
                 "click",
@@ -1046,3 +1104,14 @@ export function sortChoicesInPlace<T>(
     }
   }
 }
+
+const constraintLabel = styled("span", `
+  color: ${theme.text};
+  font-size: ${vars.xsmallFontSize};
+  margin-left: 8px;
+`);
+
+const labelRow = styled("div", `
+  display: flex;
+  align-items: center;
+`);

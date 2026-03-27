@@ -150,7 +150,7 @@ describe("DateRangeFilter", function() {
 
     // check menus till offer 2 days ago
     await fu.openRelativeOptionsMenu("min");
-    assert.equal(await driver.findContent(".grist-floating-menu li", "2 days ago").isPresent(), true);
+    assert.equal(await driver.findContentWait(".grist-floating-menu li", "2 days ago", 1000).isPresent(), true);
     await driver.sendKeys(Key.ESCAPE);
   });
 
@@ -283,10 +283,13 @@ describe("DateRangeFilter", function() {
 
   it("should hide options on Escape", async function() {
     await fu.findBound("max").click();
-    assert.equal(await fu.isOptionsVisible(), true);
+    await gu.waitToPass(async () => {
+      assert.equal(await fu.isOptionsVisible(), true);
+    });
     await driver.sendKeys(Key.ESCAPE);
-    await gu.waitForMenuToClose();
-    assert.equal(await fu.isOptionsVisible(), false);
+    await gu.waitToPass(async () => {
+      assert.equal(await fu.isOptionsVisible(), false);
+    });
   });
 
   it("should show relative dates options when value changes", async function() {
@@ -345,7 +348,9 @@ describe("DateRangeFilter", function() {
     await gu.findOpenMenu();
     assert.deepEqual(await fu.getSelectedOption(), []);
     await fu.pickDateInCurrentMonth("18");
-    assert.deepEqual(await fu.getSelectedOption(), ["2022-09-18"]);
+    await gu.waitToPass(async () => {
+      assert.deepEqual(await fu.getSelectedOption(), ["2022-09-18"]);
+    });
     await driver.sendKeys(Key.ARROW_DOWN);
     assert.deepEqual(await fu.getSelectedOption(), ["2 days ago"]);
   });

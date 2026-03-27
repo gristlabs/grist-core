@@ -61,7 +61,40 @@
         "Remove column {{- colId }} from {{- tableId }} rules": "Αφαίρεση στήλης {{- colId }} από τους κανόνες {{- tableId }}",
         "Type message to display when this rule blocks an action…": "Πληκτρολογήστε μήνυμα που θα εμφανίζεται όταν αυτός ο κανόνας αποκλείει μια ενέργεια…",
         "This default should be changed if editors' access is to be limited. ": "Αυτή η προεπιλογή θα πρέπει να αλλάξει εάν πρόκειται να περιοριστεί η πρόσβαση των συντακτών. ",
-        "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "Να επιτρέπεται στους συντάκτες να επεξεργάζονται τη δομή (π.χ., να τροποποιούν και να διαγράφουν πίνακες, στήλες και διατάξεις) και να γράφουν τύπους. Ανεξάρτητα από τα δικαιώματα που έχουν οριστεί σε επίπεδο πίνακα και στήλης, οι τύποι εξακολουθούν να μπορούν να υποβάλλονται σε επεξεργασία και να έχουν πρόσβαση σε όλα τα δεδομένα."
+        "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "Να επιτρέπεται στους συντάκτες να επεξεργάζονται τη δομή (π.χ., να τροποποιούν και να διαγράφουν πίνακες, στήλες και διατάξεις) και να γράφουν τύπους. Ανεξάρτητα από τα δικαιώματα που έχουν οριστεί σε επίπεδο πίνακα και στήλης, οι τύποι εξακολουθούν να μπορούν να υποβάλλονται σε επεξεργασία και να έχουν πρόσβαση σε όλα τα δεδομένα.",
+        "Access rules have changed. Click Reset to revert your changes and refresh the rules.": "Οι κανόνες πρόσβασης έχουν αλλάξει. Κάντε κλικ στην επιλογή Επαναφορά για να επαναφέρετε τις αλλαγές σας και να ανανεώσετε τους κανόνες.",
+        "All": "Όλα",
+        "Column {{colId}} appears in multiple rules for table {{tableId}} that might be order-dependent. Try splitting rules up differently?": "Η στήλη {{colId}} εμφανίζεται σε πολλούς κανόνες για τον πίνακα {{tableId}} που ενδέχεται να εξαρτώνται από τη σειρά. Θέλετε να δοκιμάσετε να χωρίσετε τους κανόνες διαφορετικά;",
+        "Columns": "Στήλες",
+        "Condition cannot be blank": "Η συνθήκη δεν μπορεί να είναι κενή",
+        "Default resource missing in resource map": "Λείπει ο προεπιλεγμένος πόρος στον χάρτη πόρων",
+        "Invalid columns in table {{tableId}}: {{invalidColIds}}": "Μη έγκυρες στήλες στον πίνακα {{tableId}}: {{invalidColIds}}",
+        "Invalid table: {{tableId}}": "Μη έγκυρος πίνακας: {{tableId}}",
+        "Invalid user attribute rule: {{prop}} must be set": "Μη έγκυρος κανόνας χαρακτηριστικού χρήστη: Πρέπει να οριστεί το {{prop}}",
+        "Invalid user attribute to look up": "Μη έγκυρο χαρακτηριστικό χρήστη για αναζήτηση",
+        "No columns listed in a column rule for table {{tableId}}": "Δεν υπάρχουν στήλες σε έναν κανόνα στήλης για τον πίνακα {{tableId}}",
+        "Not a valid user attribute": "Μη έγκυρο χαρακτηριστικό χρήστη",
+        "Resource missing in resource map: {{resourceKey}}": "Λείπει πόρος στον χάρτη πόρων: {{resourceKey}}",
+        "Trying to add TableRules for existing table {{tableId}}": "Προσπάθεια προσθήκης TableRules για τον υπάρχοντα πίνακα {{tableId}}",
+        "Use a simple attribute of user.LinkKey, e.g. user.LinkKey.something": "Χρησιμοποιήστε ένα απλό χαρακτηριστικό του user.LinkKey, π.χ. user.LinkKey.something",
+        "hidden": "κρυφό",
+        "## Access Rules\n\nBasic access to this document is controlled using the 'Manage Users' option in the 'Share' menu, where you can assign collaborator roles such as Owner, Editor, or Viewer.\n\nFor more granular control, you can create Access Rules to limit who can view or edit specific\ntables, columns, or rows — useful for sensitive data or role-based permissions.\n[Learn more.]({{helpAccessRules}})": "## Κανόνες Πρόσβασης\n\nΗ βασική πρόσβαση σε αυτό το έγγραφο ελέγχεται χρησιμοποιώντας την επιλογή «Διαχείριση Χρηστών» στο μενού «Κοινή χρήση», όπου μπορείτε να αναθέσετε ρόλους συνεργατών όπως Κάτοχος, Επεξεργαστής ή Προβολέας.\n\nΓια πιο λεπτομερή έλεγχο, μπορείτε να δημιουργήσετε Κανόνες Πρόσβασης για να περιορίσετε ποιος μπορεί να βλέπει ή να επεξεργάζεται συγκεκριμένους πίνακες, στήλες ή γραμμές — χρήσιμο για ευαίσθητα δεδομένα ή δικαιώματα που βασίζονται σε ρόλους.\n[Μάθετε περισσότερα.]({{helpAccessRules}})",
+        "## Access Rules\n\nYou don't have permission to view or edit access rules for this document.": "## Κανόνες Πρόσβασης\n\nΔεν έχετε άδεια προβολής ή επεξεργασίας κανόνων πρόσβασης για αυτό το έγγραφο.",
+        "**Special rules** (expand each rule to customize who it applies to)": "**Ειδικοί κανόνες** (αναπτύξτε κάθε κανόνα για να προσαρμόσετε σε ποιους ισχύει)",
+        "After disabling Access Rules, Editors will be able to change the structure of the document and edit formulas. Editors and Viewers will be able to see all data in the document, as well as copy or download it.": "Μετά την απενεργοποίηση των Κανόνων Πρόσβασης, οι Επεξεργαστές θα μπορούν να αλλάξουν τη δομή του εγγράφου και να επεξεργαστούν τύπους. Οι Επεξεργαστές και οι Αναγνώστες θα μπορούν να δουν όλα τα δεδομένα στο έγγραφο, καθώς και να το αντιγράψουν ή να το κατεβάσουν.",
+        "After enabling Access Rules, Editors will no longer be able to change the structure of the\ndocument or edit formulas. Only Owners will be able to copy or download the document.\n\nThese settings can be changed under 'Special rules'.": "Μετά την ενεργοποίηση των Κανόνων Πρόσβασης, οι Επεξεργαστές δεν θα μπορούν πλέον να αλλάξουν τη δομή του \nεγγράφου ή να επεξεργαστούν τύπους. Μόνο οι Κάτοχοι θα μπορούν να αντιγράψουν ή να κατεβάσουν το έγγραφο.\n\nΑυτές οι ρυθμίσεις μπορούν να αλλάξουν στην ενότητα \"Ειδικοί κανόνες\".",
+        "Allow Editors to edit structure (e.g. modify and delete tables, columns, and layouts) and write formulas.  Important: if checked, Editors will be able to edit formulas, which can access all data, regardless of table and column access rules!": "Επιτρέψτε στους Επεξεργαστές να επεξεργάζονται τη δομή (π.χ. να τροποποιούν και να διαγράφουν πίνακες, στήλες και διατάξεις) και να γράφουν τύπους. Σημαντικό: εάν είναι επιλεγμένο, οι Επεξεργαστές θα μπορούν να επεξεργάζονται τύπους, οι οποίοι θα έχουν πρόσβαση σε όλα τα δεδομένα, ανεξάρτητα από τους κανόνες πρόσβασης σε πίνακες και στήλες!",
+        "Allow everyone to view access rules.": "Να επιτρέπεται σε όλους η προβολή των Κανόνων Πρόσβασης.",
+        "Circumvent all read restrictions and allow everyone to copy the entire document, or view it in full in fiddle mode. Only use for for examples and templates, not for documents with sensitive data.": "Παρακάμψτε όλους τους περιορισμούς ανάγνωσης και επιτρέψτε σε όλους να αντιγράψουν ολόκληρο το έγγραφο ή να το δουν ολόκληρο σε λειτουργία βιολιού. Χρησιμοποιήστε μόνο για παραδείγματα και πρότυπα, όχι για έγγραφα με ευαίσθητα δεδομένα.",
+        "Continue": "Συνέχεια",
+        "Disable Access Rules": "Απενεργοποίηση Κανόνων Πρόσβασης",
+        "Disable and save": "Απενεργοποίηση και αποθήκευση",
+        "Enable Access Rules": "Ενεργοποίηση Κανόνων Πρόσβασης",
+        "Permission to access the document in full by all users": "Άδεια πρόσβασης στο έγγραφο στο σύνολό του από όλους τους χρήστες",
+        "Permission to access the document in full by unrestricted users": "Άδεια πρόσβασης στο έγγραφο στο σύνολό του από χρήστες χωρίς περιορισμούς",
+        "Restrict non-Owners from copying or downloading the full document. Note: this only affects users without read restrictions, since others will be restricted regardless of this setting.": "Περιορίστε την αντιγραφή ή τη λήψη ολόκληρου του εγγράφου από μη κατόχους. Σημείωση: αυτό επηρεάζει μόνο χρήστες χωρίς περιορισμούς ανάγνωσης, καθώς οι υπόλοιποι θα υπόκεινται σε περιορισμούς ανεξάρτητα από αυτήν τη ρύθμιση.",
+        "Special rules for templates": "Ειδικοί κανόνες για πρότυπα",
+        "This options should be off if Editors' access is to be limited. ": "Αυτές οι επιλογές θα πρέπει να είναι απενεργοποιημένες εάν πρόκειται να περιοριστεί η πρόσβαση των Συντακτών. "
     },
     "ACUserManager": {
         "Enter email address": "Εισαγάγετε διεύθυνση ηλεκτρονικού ταχυδρομείου",
@@ -127,7 +160,8 @@
         "This row was subsequently removed in action {{action.actionNum}}": "Αυτή η σειρά αφαιρέθηκε στη συνέχεια στην ενέργεια {{action.actionNum}}",
         "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "Η στήλη {{colId}} αφαιρέθηκε στη συνέχεια στην ενέργεια #{{action.actionNum}}",
         "Column {{colId}} was subsequently removed in action #{{actionNum}}": "Η στήλη {{colId}} αφαιρέθηκε στην συνέχεια στην ενέργεια #{{actionNum}}",
-        "This row was subsequently removed in action {{actionNum}}": "Αυτή η γραμμή αφαιρέθηκε στην συνέχεια στην ενέργεια {{actionNum}}"
+        "This row was subsequently removed in action {{actionNum}}": "Αυτή η γραμμή αφαιρέθηκε στην συνέχεια στην ενέργεια {{actionNum}}",
+        "History blocked because of access rules.": "Το ιστορικό αποκλείστηκε λόγω κανόνων πρόσβασης."
     },
     "AddNewButton": {
         "Add new": "Προσθήκη Νέου"
@@ -311,7 +345,9 @@
         "Documents stay in Trash for 30 days, after which they get deleted permanently.": "Τα έγγραφα παραμένουν στον Κάδο για 30 ημέρες και μετά διαγράφονται οριστικά.",
         "Pinned Documents": "Καρφιτσωμένα Έγγραφα",
         "You are on the {{siteName}} site. You also have access to the following sites:": "Βρίσκεστε στον ιστότοπο {{siteName}}. Έχετε επίσης πρόσβαση στους ακόλουθους ιστότοπους:",
-        "Trash is empty.": "Ο κάδος απορριμμάτων είναι άδειος."
+        "Trash is empty.": "Ο κάδος απορριμμάτων είναι άδειος.",
+        "Grid view": "Προβολή πλέγματος",
+        "List view": "Προβολή λίστας"
     },
     "DocPageModel": {
         "Add empty table": "Προσθήκη Κενού Πίνακα",
@@ -421,7 +457,11 @@
         "Uploading...": "Μεταφόρτωση...",
         "Default": "Προκαθορισμένο",
         "Default, template, or tutorial": "Προκαθορισμένο, πρότυπο, ή εκπαιδευτικό",
-        "Document type": "Τύπος αρχείου"
+        "Document type": "Τύπος αρχείου",
+        "Allow others to suggest changes": "Επιτρέψτε σε άλλους να προτείνουν αλλαγές",
+        "Enable suggestions": "Ενεργοποίηση προτάσεων",
+        "Suggestions": "Προτάσεις",
+        "experiment": "πείραμα"
     },
     "DocumentUsage": {
         "Data size": "Μέγεθος δεδομένων",
@@ -572,7 +612,8 @@
         "Saved linked section {{title}} in view {{name}}": "Αποθηκευμένη συνδεδεμένη ενότητα {{title}} στην προβολή {{name}}",
         "go to webhook settings": "μεταβείτε στις ρυθμίσεις του webhook",
         "Added new linked section to view {{viewName}}": "Προστέθηκε νέα συνδεδεμένη ενότητα στην προβολή {{viewName}}",
-        "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "Οι νέες αλλαγές έχουν προσωρινά ανασταλεί. Η ουρά webhooks έχει υπερχειλίσει. Ελέγξτε τις ρυθμίσεις των webhooks, καταργήστε τα μη έγκυρα webhooks και καθαρίστε την ουρά."
+        "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "Οι νέες αλλαγές έχουν προσωρινά ανασταλεί. Η ουρά webhooks έχει υπερχειλίσει. Ελέγξτε τις ρυθμίσεις των webhooks, καταργήστε τα μη έγκυρα webhooks και καθαρίστε την ουρά.",
+        "Import from Airtable": "Εισαγωγή από Airtable"
     },
     "HomeIntro": {
         "Any documents created in this site will appear here.": "Οποιαδήποτε έγγραφα δημιουργούνται σε αυτόν τον ιστότοπο θα εμφανίζονται εδώ.",
@@ -620,7 +661,8 @@
         "Grist Resources": "Πόροι Grist",
         "Delete {{workspace}} and all included documents?": "Διαγραφή του {{workspace}} και όλων των εγγράφων που περιλαμβάνονται;",
         "Trash": "Κάδος Απορριμμάτων",
-        "context menu - {{- workspaceName }}": "μενού περιβάλλοντος - {{- workspaceName }}"
+        "context menu - {{- workspaceName }}": "μενού περιβάλλοντος - {{- workspaceName }}",
+        "Import from Airtable": "Εισαγωγή από Airtable"
     },
     "Importer": {
         "{{count}} unmatched field in import_one": "{{count}} μη αντιστοιχισμένο πεδίο στην εισαγωγή",
@@ -686,7 +728,8 @@
         "Overwrite": "Αντικατάσταση",
         "Replacing the original requires editing rights on the original document.": "Η αντικατάσταση του πρωτοτύπου απαιτεί δικαιώματα επεξεργασίας στο πρωτότυπο έγγραφο.",
         "Download an archive of all the attachments present in this document.": "Κατεβάστε ένα αρχείο με όλα τα συνημμένα που υπάρχουν σε αυτό το έγγραφο.",
-        "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "Τα συνημμένα είναι εξωτερικά και δεν περιλαμβάνονται σε αυτό το στοιχείο λήψης. Εάν ανεβάσετε το έγγραφο σε ξεχωριστή εγκατάσταση του Grist, θα χρειαστεί επίσης να το {{downloadLink}} ξεχωριστά. "
+        "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "Τα συνημμένα είναι εξωτερικά και δεν περιλαμβάνονται σε αυτό το στοιχείο λήψης. Εάν ανεβάσετε το έγγραφο σε ξεχωριστή εγκατάσταση του Grist, θα χρειαστεί επίσης να το {{downloadLink}} ξεχωριστά. ",
+        "If you're planning to upload this document to a Grist installation, you will need the archive in the \".tar\" format to restore attachments. ": "Αν σκοπεύετε να ανεβάσετε αυτό το έγγραφο σε μια εγκατάσταση του Grist, θα χρειαστείτε το αρχείο σε μορφή \".tar\" για να επαναφέρετε τα συνημμένα. "
     },
     "NotifyUI": {
         "Ask for help": "Ζητήστε βοήθεια",
@@ -715,7 +758,9 @@
         "Group by": "Ομαδοποίηση κατά",
         "Select widget": "Επιλογή Γραφικού Στοιχείου (widget)",
         "Select data": "Επιλογή Δεδομένων",
-        "Add to page": "Προσθήκη στη Σελίδα"
+        "Add to page": "Προσθήκη στη Σελίδα",
+        "New Table": "Νέος Πίνακας",
+        "SELECT BY": "ΕΠΙΛΟΓΗ ΜΕ"
     },
     "Pages": {
         "Delete": "Διαγραφή",
@@ -724,7 +769,8 @@
         "The following tables will no longer be visible_one": "Ο παρακάτω πίνακας δεν θα είναι πλέον ορατός",
         "Keep data and delete page. Table will remain available in {{rawDataLink}}": "Διατήρηση δεδομένων και διαγραφή σελίδας. Ο πίνακας θα παραμείνει διαθέσιμος στο {{rawDataLink}}",
         "Raw Data page": "σελίδα ακατέργαστων δεδομένων",
-        "Document pages": "Σελίδες εγγράφων"
+        "Document pages": "Σελίδες εγγράφων",
+        "raw data page": "σελίδα ακατέργαστων δεδομένων"
     },
     "PermissionsWidget": {
         "Allow all": "Επιτρέπονται Όλα",
@@ -845,7 +891,10 @@
         "Unsaved": "Μη αποθηκευμένο",
         "Exporting is only available from document pages. Please select a document page and try again.": "Η εξαγωγή είναι διαθέσιμη μόνο από σελίδες εγγράφων. Επιλέξτε μια σελίδα εγγράφου και δοκιμάστε ξανά.",
         "Work on a copy": "Εργασία σε ένα Aντίγραφο",
-        "Download...": "Λήψη..."
+        "Download...": "Λήψη...",
+        "Suggest changes": "Προτείνετε αλλαγές",
+        "current version": "τρέχουσα έκδοση",
+        "original": "πρωτότυπο"
     },
     "SortConfig": {
         "Natural sort": "Φυσική ταξινόμηση",
@@ -888,10 +937,14 @@
         "context menu - Access Rules": "μενού περιβάλλοντος - Κανόνες πρόσβασης",
         "Delete document tour": "Διαγραφή περιήγησης εγγράφου",
         "Preview the tutorial": "Προεπισκόπηση του οδηγού εκμάθησης",
-        "Proposed changes": "Προτεινόμενες αλλαγές"
+        "Proposed changes": "Προτεινόμενες αλλαγές",
+        "Suggest changes": "Προτείνετε αλλαγές",
+        "Suggestions": "Προτάσεις"
     },
     "TopBar": {
-        "Manage team": "Διαχείριση ομάδας"
+        "Manage team": "Διαχείριση ομάδας",
+        "Redo": "Επανάληψη",
+        "Undo": "Αναίρεση"
     },
     "TriggerFormulas": {
         "Any field": "Οποιοδήποτε πεδίο",
@@ -1004,7 +1057,10 @@
         "recovery mode": "λειτουργία ανάκτησης",
         "snapshot": "στιγμιότυπο",
         "unsaved": "μη αποθηκευμένο",
-        "You may make edits, but they will create a new copy and will\nnot affect the original document.": "Μπορείτε να κάνετε αλλαγές, αλλά αυτές θα δημιουργήσουν ένα νέο αντίγραφο και δεν \nθα επηρεάσουν το αρχικό έγγραφο."
+        "You may make edits, but they will create a new copy and will\nnot affect the original document.": "Μπορείτε να κάνετε αλλαγές, αλλά αυτές θα δημιουργήσουν ένα νέο αντίγραφο και δεν \nθα επηρεάσουν το αρχικό έγγραφο.",
+        "You may make edits,\nbut they will not affect the original document.\nYou can propose them as suggestions.": "Μπορείτε να κάνετε αλλαγές,\nαλλά αυτές δεν θα επηρεάσουν το αρχικό έγγραφο.\nΜπορείτε να τις προτείνετε ως προτάσεις.",
+        "editing": "επεξεργασία",
+        "suggesting": "προτείνοντας"
     },
     "errorPages": {
         "Access denied{{suffix}}": "Δεν επιτρέπεται η πρόσβαση{{suffix}}",
@@ -1045,7 +1101,9 @@
         "changes": "αλλαγές",
         "comments": "σχόλια",
         "this document": "αυτό το έγγραφο",
-        "your email": "το email σας"
+        "your email": "το email σας",
+        "You will no longer receive email notifications about {{suggestions}} in {{docName}} at {{email}}.": "Δεν θα λαμβάνετε πλέον ειδοποιήσεις μέσω email σχετικά με τις {{suggestions}} στο {{docName}} στη διεύθυνση {{email}}.",
+        "suggestions": "προτάσεις"
     },
     "menus": {
         "* Workspaces are available on team plans. ": "* Οι χώροι εργασίας είναι διαθέσιμοι στα ομαδικά προγράμματα. ",
@@ -1148,7 +1206,8 @@
         "IF...": "ΑΝ...",
         "Error in style rule": "Σφάλμα στον κανόνα στυλ",
         "Rule must return True or False": "Ο κανόνας πρέπει να επιστρέφει True ή False",
-        "Add another rule": "Προσθήκη άλλου κανόνα"
+        "Add another rule": "Προσθήκη άλλου κανόνα",
+        "Row Style": "Στυλ σειράς"
     },
     "CurrencyPicker": {
         "Invalid currency": "Μη έγκυρο νόμισμα"
@@ -1319,7 +1378,10 @@
         "This form is created by a Grist user, and is not endorsed by Grist Labs, Inc. or any party providing this service. For your security, do not submit passwords through this form, and be careful when clicking embedded links. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "Αυτή η φόρμα δημιουργήθηκε από έναν χρήστη της Grist και δεν έχει εγκριθεί από την Grist Labs, Inc. ή από οποιοδήποτε μέρος που παρέχει αυτήν την υπηρεσία. Για την ασφάλειά σας, μην υποβάλλετε κωδικούς πρόσβασης μέσω αυτής της φόρμας και να είστε προσεκτικοί όταν κάνετε κλικ σε ενσωματωμένους συνδέσμους. Αναφέρετε κακόβουλες φόρμες στο [{{mail}}](mailto:{{mail}}).",
         "Set the maximum number of lines for multi-line text.": "Ορίστε τον μέγιστο αριθμό γραμμών για κείμενο πολλαπλών γραμμών.",
         "Comments are here!": "Τα σχόλια είναι εδώ!",
-        "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "Μπορείτε να προσθέσετε σχόλια σε κελιά, να απαντήσετε σε νήματα σχολίων και να κάνετε συνεργάτες με @-αναφορά."
+        "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "Μπορείτε να προσθέσετε σχόλια σε κελιά, να απαντήσετε σε νήματα σχολίων και να κάνετε συνεργάτες με @-αναφορά.",
+        "When checked, this field’s default value can be prefilled from the URL using query parameters.": "Όταν είναι επιλεγμένο, η προεπιλεγμένη τιμή αυτού του πεδίου μπορεί να συμπληρωθεί εκ των προτέρων από τη διεύθυνση URL χρησιμοποιώντας παραμέτρους ερωτήματος.",
+        "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "Με τις προτάσεις, οι χρήστες κάνουν αλλαγές σε ένα προσωπικό αντίγραφο χωρίς να τροποποιήσουν το αρχικό έγγραφο και, στη συνέχεια, υποβάλλουν αυτές τις προτάσεις για έλεγχο από τον κάτοχο του εγγράφου πριν από την ενσωμάτωση.",
+        "Unpin to hide the button while keeping the filter.": "Ξεκαρφιτσώστε για να αποκρύψετε το κουμπί διατηρώντας παράλληλα το φίλτρο."
     },
     "ColumnTitle": {
         "Add description": "Προσθήκη περιγραφής",
@@ -1451,7 +1513,10 @@
         "No default access allows access to be         granted to individual documents or workspaces, rather than the full team site.": "Δεν υπάρχει προεπιλεγμένη πρόσβαση που να επιτρέπει την          παραχώρηση πρόσβασης σε μεμονωμένα έγγραφα ή χώρους εργασίας, αντί για ολόκληρη την τοποθεσία της ομάδας.",
         "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.": "Ο χρήστης έχει πρόσβαση προβολής στο {{resource}} ως αποτέλεσμα της μη αυτόματης ρύθμισης πρόσβασης στους πόρους που βρίσκονται μέσα. Εάν καταργηθεί από εδώ, αυτός ο χρήστης θα χάσει την πρόσβαση στους πόρους που βρίσκονται μέσα.",
         "Once you have removed your own access,             you will not be able to get it back without assistance              from someone else with sufficient access to the {{name}}.": "Αφού καταργήσετε τη δική σας πρόσβαση,              δεν θα μπορείτε να την ανακτήσετε χωρίς βοήθεια              από κάποιον άλλο με επαρκή πρόσβαση στο {{name}}.",
-        "Access overview": "Επισκόπηση πρόσβασης"
+        "Access overview": "Επισκόπηση πρόσβασης",
+        "Share it publicly": "Κοινοποιήστε το δημόσια",
+        "Verify your sensitive data before sharing publicly": "Επαληθεύστε τα ευαίσθητα δεδομένα σας πριν τα κοινοποιήσετε δημόσια",
+        "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing.": "Το {{resourceType}} σας θα είναι προσβάσιμο σε οποιονδήποτε διαθέτει τον σύνδεσμο, είτε κοινοποιήθηκε απευθείας είτε βρέθηκε μέσω μιας μηχανής αναζήτησης.\n\nΒεβαιωθείτε ότι το {{resourceType}} σας δεν περιέχει ευαίσθητα δεδομένα πριν από την κοινοποίηση."
     },
     "SupportGristPage": {
         "Help Center": "Κέντρο Βοήθειας",
@@ -1535,7 +1600,11 @@
         "Options Sort Order": "Σειρά Ταξινόμησης Επιλογών",
         "Select": "Επιλογή",
         "Radio": "Κουμπί επιλογής (radio)",
-        "Vertical": "Κάθετη"
+        "Vertical": "Κάθετη",
+        "Accept value from URL": "Αποδοχή τιμής από URL",
+        "Hidden field": "Κρυφό πεδίο",
+        "URL parameter:\n{{colId}}=VALUE": "Παράμετρος URL:\n{{colId}}=VALUE",
+        "Options limit": "Όριο επιλογών"
     },
     "DateRangeOptions": {
         "Today": "Σήμερα",
@@ -1627,7 +1696,27 @@
         "default": "Προεπιλογή",
         "more...": "περισσότερα...",
         "no authentication": "χωρίς έλεγχο ταυτότητας",
-        "unavailable": "μη διαθέσιμο"
+        "unavailable": "μη διαθέσιμο",
+        "{{count}} admin accounts_one": "{{count}} λογαριασμός διαχειριστή",
+        "{{count}} admin accounts_other": "{{count}} λογαριασμοί διαχειριστή",
+        "Admin account not found": "Δεν βρέθηκε λογαριασμός διαχειριστή",
+        "Administrative accounts": "Διαχειριστικοί λογαριασμοί",
+        "The users with administrative accounts": "Οι χρήστες με λογαριασμούς διαχειριστή",
+        "Version {{versionNumber}}": "Έκδοση {{versionNumber}}",
+        "no admin accounts": "χωρίς λογαριασμούς διαχειριστή",
+        "Are you sure you want to restart Grist?": "Είστε σίγουροι ότι θέλετε να επανεκκινήσετε το Grist;",
+        "Grist is running in an environment that doesn't support restarting from the admin panel.": "Το Grist εκτελείται σε ένα περιβάλλον που δεν υποστηρίζει επανεκκίνηση από τον πίνακα διαχείρισης.",
+        "Restart": "Επανεκκίνηση",
+        "Restart Grist": "Επανεκκίνηση Grist",
+        "Restart Grist to apply pending changes or resolve issues.": "Επανεκκινήστε το Grist για να εφαρμόσετε τις αλλαγές που εκκρεμούν ή να επιλύσετε προβλήματα.",
+        "Restart Grist?": "Επανεκκίνηση του Grist;",
+        "Restarting Grist...": "Επανεκκίνηση του Grist...",
+        "This will apply any pending changes and briefly interrupt access for all users.": "Αυτό θα εφαρμόσει τυχόν εκκρεμείς αλλαγές και θα διακόψει για λίγο την πρόσβαση για όλους τους χρήστες.",
+        "You can still restart Grist manually.": "Μπορείτε ακόμα να επανεκκινήσετε το Grist χειροκίνητα.",
+        "error in {{provider}}: {{verdict}}": "σφάλμα στον {{provider}}: {{verdict}}",
+        "Please restart Grist manually.": "Παρακαλώ επανεκκινήστε το Grist χειροκίνητα.",
+        "Restart Grist to apply pending changes.": "Επανεκκινήστε το Grist για να εφαρμόσετε τις αλλαγές που εκκρεμούν.",
+        "Restart unavailable": "Η επανεκκίνηση δεν είναι διαθέσιμη"
     },
     "ChoiceListEditor": {
         "No choices to select": "Δεν υπάρχουν επιλογές για να διαλέξετε",
@@ -1803,7 +1892,8 @@
         "Workspace": "Χώρος εργασίας",
         "context menu - {{- documentName }}": "μενού περιβάλλοντος - {{- documentName }}",
         "Documents list": "Λίστα εγγράφων",
-        "Download document...": "Λήψη εγγράφου..."
+        "Download document...": "Λήψη εγγράφου...",
+        "Deleted {{at}}": "Διαγράφηκε {{at}}"
     },
     "RightPanelUtils": {
         "series_one": "Σειρές",
@@ -2095,7 +2185,8 @@
         "(customized)": "(προσαρμοσμένο)",
         "(empty)": "(άδειο)",
         "SORT": "ΤΑΞΙΝΟΜΗΣΗ",
-        "Update Sort&Filter settings": "Ενημέρωση ρυθμίσεων Ταξινόμησης&Φιλτραρίσματος"
+        "Update Sort&Filter settings": "Ενημέρωση ρυθμίσεων Ταξινόμησης&Φιλτραρίσματος",
+        "Sort and filter": "Ταξινόμηση και φιλτράρισμα"
     },
     "Reference": {
         "CELL FORMAT": "ΜΟΡΦΗ ΚΕΛΙΟΥ",
@@ -2135,7 +2226,11 @@
         "Schedule call": "Προγραμματισμός Κλήσης",
         "Schedule your {{freeCoachingCall}} with a member of our team.": "Κλείστε ραντεβού για το {{freeCoachingCall}} με ένα μέλος της ομάδας μας.",
         "You may also check out {{ourWeeklyWebinars}} to learn more about Grist.": "Μπορείτε επίσης να δείτε τα {{ourWeeklyWebinars}} για να μάθετε περισσότερα για τον Grist.",
-        "our weekly webinars": "τα εβδομαδιαία διαδικτυακά μας σεμινάρια"
+        "our weekly webinars": "τα εβδομαδιαία διαδικτυακά μας σεμινάρια",
+        "Free coaching call": "Δωρεάν κλήση καθοδήγησης",
+        "Grist 101": "Grist 101",
+        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users                navigate the fundamentals of Grist.": "Μπορείτε επίσης να δείτε το εισαγωγικό μας διαδικτυακό σεμινάριο, {{ourWeeklyWebinars}}, το οποίο έχει σχεδιαστεί για να βοηθήσει τους νέους χρήστες να κατανοήσουν τα βασικά του Grist.",
+        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users navigate the fundamentals of Grist.": "Μπορείτε επίσης να δείτε το εισαγωγικό μας διαδικτυακό σεμινάριο, {{ourWeeklyWebinars}}, το οποίο έχει σχεδιαστεί για να βοηθήσει τους νέους χρήστες να κατανοήσουν τα βασικά του Grist."
     },
     "ChoiceTextBox": {
         "CHOICES": "ΕΠΙΛΟΓΕΣ"
@@ -2154,7 +2249,8 @@
         "Open navigation panel (left panel)": "Άνοιγμα του πίνακα πλοήγησης (αριστερό πλαίσιο)"
     },
     "DescriptionConfig": {
-        "DESCRIPTION": "ΠΕΡΙΓΡΑΦΗ"
+        "DESCRIPTION": "ΠΕΡΙΓΡΑΦΗ",
+        "Set description": "Ορισμός περιγραφής"
     },
     "HiddenQuestionConfig": {
         "Hidden fields": "Κρυφά πεδία"
@@ -2172,7 +2268,8 @@
         }
     },
     "MentionTextBox": {
-        "no access": "χωρίς πρόσβαση"
+        "no access": "χωρίς πρόσβαση",
+        "...loading": "...φόρτωση"
     },
     "VersionUpdateBanner": {
         "There is a critical Grist update available.\nConsider upgrading to version {{version}} as soon as possible.": "Υπάρχει διαθέσιμη μια κρίσιμη ενημέρωση του Grist.\nΕξετάστε το ενδεχόμενο αναβάθμισης στην έκδοση {{version}} το συντομότερο δυνατό.",
@@ -2208,7 +2305,9 @@
     },
     "duplicateWidget": {
         "Duplicate widget": "Διπλότυπο γραφικό στοιχείο",
-        "Duplicate widgets": "Διπλότυπα γραφικά στοιχεία"
+        "Duplicate widgets": "Διπλότυπα γραφικά στοιχεία",
+        "Active": "Ενεργό",
+        "Create new page": "Δημιουργία νέας σελίδας"
     },
     "AttachmentsWidget": {
         "Uploading, please wait…": "Μεταφόρτωση, παρακαλώ περιμένετε…"
@@ -2306,9 +2405,344 @@
     "ProposedChangesPage": {
         "Proposed changes": "Προτεινόμενες αλλαγές",
         "Replace original": "Αντικατάσταση πρωτοτύπου",
-        "This is a list of changes relative to the original document.": "Αυτή είναι μια λίστα αλλαγών σε σχέση με το αρχικό έγγραφο."
+        "This is a list of changes relative to the original document.": "Αυτή είναι μια λίστα αλλαγών σε σχέση με το αρχικό έγγραφο.",
+        "Accept": "Αποδοχή",
+        "Accepted {{at}}.": "Αποδεκτό {{at}}.",
+        "Dismiss": "Παράβλεψη",
+        "Dismissed {{at}}.": "Απορρίφθηκε {{at}}.",
+        "Learn more": "Μάθετε περισσότερα",
+        "No changes found to suggest. Please make some edits.": "Δεν βρέθηκαν αλλαγές που να προτείνονται. Παρακαλώ κάντε μερικές αλλαγές.",
+        "Retract suggestion": "Απόσυρση πρότασης",
+        "Retracted {{at}}.": "Αποσύρθηκε {{at}}.",
+        "Suggest change": "Πρόταση αλλαγής",
+        "Suggest changes": "Προτείνετε αλλαγές",
+        "Suggestion made {{at}}.": "Πρόταση που έγινε {{at}}.",
+        "Suggestions": "Προτάσεις",
+        "The original document isn't asking for proposed changes.": "Το αρχικό έγγραφο δεν ζητά προτεινόμενες αλλαγές.",
+        "There are fresh changes that haven't been added to the suggestion yet.": "Υπάρχουν νέες αλλαγές που δεν έχουν προστεθεί ακόμη στην πρόταση.",
+        "This is a list of changes relative to the {{originalDocument}}.": "Αυτή είναι μια λίστα αλλαγών σε σχέση με το {{originalDocument}}.",
+        "Update suggestion": "Ενημέρωση πρότασης",
+        "Work on a copy": "Εργασία σε ένα αντίγραφο",
+        "Your suggestions": "Οι προτάσεις σας",
+        "experiment": "πείραμα",
+        "original document": "πρωτότυπο έγγραφο",
+        "Undo dismissal": "Αναίρεση απόρριψης"
     },
     "commandList": {
-        "showing a behavioral popup": "εμφάνιση ενός αναδυόμενου παραθύρου συμπεριφοράς"
+        "showing a behavioral popup": "εμφάνιση ενός αναδυόμενου παραθύρου συμπεριφοράς",
+        "Show accessibility options": "Εμφάνιση επιλογών προσβασιμότητας",
+        "Activate assistant": "Ενεργοποίηση βοηθού",
+        "Add a new viewsection to the currently active view": "Προσθήκη νέας ενότητας προβολής στην τρέχουσα ενεργή προβολή",
+        "Adds all elements above the cursor to the selected range": "Προσθέτει όλα τα στοιχεία πάνω από τον κέρσορα στο επιλεγμένο εύρος",
+        "Adds all elements below the cursor to the selected range": "Προσθέτει όλα τα στοιχεία κάτω από τον κέρσορα στο επιλεγμένο εύρος",
+        "Adds all elements to the left of the cursor to the selected range": "Προσθέτει όλα τα στοιχεία αριστερά από τον κέρσορα στην επιλεγμένη περιοχή",
+        "Adds all elements to the right of the cursor to the selected range": "Προσθέτει όλα τα στοιχεία στα δεξιά του δρομέα στην επιλεγμένη περιοχή",
+        "Adds the currently selected column(ascending) to the current view's sort spec": "Προσθέτει την τρέχουσα επιλεγμένη στήλη (σε αύξουσα σειρά) στην προδιαγραφή ταξινόμησης της τρέχουσας προβολής",
+        "Adds the currently selected column(descending) to the current view's sort spec": "Προσθέτει την τρέχουσα επιλεγμένη στήλη (φθίνουσα) στην προδιαγραφή ταξινόμησης της τρέχουσας προβολής",
+        "Adds the element above the cursor to the selected range": "Προσθέτει το στοιχείο πάνω από τον κέρσορα στο επιλεγμένο εύρος",
+        "Adds the element below the cursor to the selected range": "Προσθέτει το στοιχείο κάτω από τον κέρσορα στο επιλεγμένο εύρος",
+        "Adds the element to the left of the cursor to the selected range": "Προσθέτει το στοιχείο αριστερά από τον κέρσορα στο επιλεγμένο εύρος",
+        "Adds the element to the right of the cursor to the selected range": "Προσθέτει το στοιχείο στα δεξιά του δρομέα στο επιλεγμένο εύρος",
+        "Clear the selected columns": "Διαγραφή των επιλεγμένων στηλών",
+        "Clears the current copy selection, if any": "Διαγράφει την τρέχουσα επιλογή αντιγραφής, εάν υπάρχει",
+        "Clears the currently selected cells": "Διαγράφει τα επιλεγμένα κελιά",
+        "Clears the section links in the current view": "Διαγράφει τους συνδέσμους ενότητας στην τρέχουσα προβολή",
+        "Clears the section links in the current viewsection": "Καθαρίζει τους συνδέσμους ενότητας στην τρέχουσα ενότητα προβολής",
+        "Collapse the currently active viewsection": "Σύμπτυξη της τρέχουσας ενεργής ενότητας προβολής",
+        "Convert the selected columns from formula to data": "Μετατροπή των επιλεγμένων στηλών από τύπο σε δεδομένα",
+        "Copy anchor link": "Αντιγραφή συνδέσμου αγκύρωσης",
+        "Copy current selection to clipboard": "Αντιγραφή τρέχουσας επιλογής στο πρόχειρο",
+        "Copy current selection to clipboard including headers": "Αντιγραφή της τρέχουσας επιλογής στο πρόχειρο, συμπεριλαμβανομένων των κεφαλίδων",
+        "Creates form for active table": "Δημιουργεί φόρμα για ενεργό πίνακα",
+        "Cut current selection to clipboard": "Αποκοπή της τρέχουσας επιλογής στο πρόχειρο",
+        "Delete collapsed viewsection": "Διαγραφή συμπτυγμένης ενότητας προβολής",
+        "Delete the currently active viewsection": "Διαγραφή της τρέχουσας ενεργής ενότητας προβολής",
+        "Delete the currently selected columns": "Διαγραφή των επιλεγμένων στηλών",
+        "Delete the currently selected record(s)": "Διαγραφή της/των τρέχουσας επιλεγμένης/ων εγγραφής/ών",
+        "Detach active editor": "Αποσύνδεση ενεργού επεξεργαστή",
+        "Discard changes to a cell value": "Απόρριψη αλλαγών σε μια τιμή κελιού",
+        "Display Grist documentation": "Εμφάνιση τεκμηρίωσης Grist",
+        "Display shortcuts pane": "Εμφάνιση παραθύρου συντομεύσεων",
+        "Duplicate the currently active viewsection": "Διπλασιάστε την τρέχουσα ενεργή ενότητα προβολής",
+        "Duplicate the currently selected record(s)": "Αντιγραφή των τρεχόντων επιλεγμένων εγγραφών",
+        "Edit label of the currently-selected field": "Επεξεργασία ετικέτας του τρέχοντος επιλεγμένου πεδίου",
+        "Edit record layout": "Επεξεργασία διάταξης εγγραφής",
+        "Enter text into currently-selected cell and start editing": "Εισαγάγετε κείμενο στο τρέχον επιλεγμένο κελί και ξεκινήστε την επεξεργασία",
+        "Enters section linking mode in the current view": "Εισέρχεται σε λειτουργία σύνδεσης ενοτήτων στην τρέχουσα προβολή",
+        "Exits section linking mode in the current view": "Έξοδος από τη λειτουργία σύνδεσης ενότητας στην τρέχουσα προβολή",
+        "Expand collapsed viewsection": "Ανάπτυξη συμπτυγμένης ενότητας προβολής",
+        "Fills current selection with the contents of the top row in the selection": "Γεμίζει την τρέχουσα επιλογή με τα περιεχόμενα της πρώτης γραμμής στην επιλογή",
+        "Find": "Εύρεση",
+        "Find next occurrence": "Εύρεση επόμενης εμφάνισης",
+        "Find previous occurrence": "Εύρεση προηγούμενης εμφάνισης",
+        "Finish editing a cell and save without moving to next record": "Ολοκλήρωση επεξεργασίας ενός κελιού και αποθήκευση χωρίς μετακίνηση στην επόμενη εγγραφή",
+        "Finish editing a cell, saving the value": "Ολοκλήρωση επεξεργασίας ενός κελιού, αποθήκευση της τιμής",
+        "Focus next page panel or widget": "Εστίαση σε πάνελ ή γραφικό στοιχείο επόμενης σελίδας",
+        "Focus previous page panel or widget": "Εστίαση σε προηγούμενο πλαίσιο ή γραφικό στοιχείο σελίδας",
+        "Freeze or unfreeze selected columns": "Πάγωμα ή κατάργηση παγώματος επιλεγμένων στηλών",
+        "Hide the currently selected columns": "Απόκρυψη των τρεχόντων επιλεγμένων στηλών",
+        "Hide the currently selected fields": "Απόκρυψη των επιλεγμένων πεδίων",
+        "Insert a new column, after the currently selected one": "Εισαγωγή νέας στήλης, μετά την τρέχουσα επιλεγμένη",
+        "Insert a new column, before the currently selected one": "Εισαγωγή νέας στήλης, πριν από την τρέχουσα επιλεγμένη",
+        "Insert a new record, after the currently selected one in an unsorted table": "Εισαγωγή νέας εγγραφής, μετά την τρέχουσα επιλεγμένη σε έναν μη ταξινομημένο πίνακα",
+        "Insert a new record, before the currently selected one in an unsorted table": "Εισαγωγή νέας εγγραφής, πριν από την τρέχουσα επιλεγμένη σε έναν μη ταξινομημένο πίνακα",
+        "Insert new column in default location": "Εισαγωγή νέας στήλης στην προεπιλεγμένη θέση",
+        "Insert the current date": "Εισαγάγετε την τρέχουσα ημερομηνία",
+        "Insert the current date and time": "Εισαγάγετε την τρέχουσα ημερομηνία και ώρα",
+        "Maximize the active section": "Μεγιστοποίηση της ενεργής ενότητας",
+        "Move down one page of records, or to next record in a card list": "Μετακίνηση προς τα κάτω κατά μία σελίδα εγγραφών ή στην επόμενη εγγραφή σε μια λίστα καρτών",
+        "Move down to the last record": "Μετακίνηση προς τα κάτω στην τελευταία εγγραφή",
+        "Move downward five records": "Μετακίνηση προς τα κάτω κατά πέντε εγγραφές",
+        "Move downward to next record or field": "Μετακίνηση προς τα κάτω στην επόμενη εγγραφή ή πεδίο",
+        "Move left to the previous field": "Μετακίνηση αριστερά στο προηγούμενο πεδίο",
+        "Move right to the next field": "Μετακίνηση δεξιά στο επόμενο πεδίο",
+        "Move to the first field or the beginning of a row": "Μετακίνηση στο πρώτο πεδίο ή στην αρχή μιας γραμμής",
+        "Move to the last field or the end of a row": "Μετακίνηση στο τελευταίο πεδίο ή στο τέλος μιας γραμμής",
+        "Move to the next field, saving changes if editing a value": "Μετακίνηση στο επόμενο πεδίο, αποθήκευση αλλαγών εάν επεξεργάζεστε μια τιμή",
+        "Move to the previous field, saving changes if editing a value": "Μετακίνηση στο προηγούμενο πεδίο, αποθήκευση αλλαγών σε περίπτωση επεξεργασίας μιας τιμής",
+        "Move up one page of records, or to previous record in a card list": "Μετακίνηση προς τα πάνω κατά μία σελίδα εγγραφών ή στην προηγούμενη εγγραφή σε μια λίστα καρτών",
+        "Move up to the first record": "Μετακίνηση προς τα πάνω στην πρώτη εγγραφή",
+        "Move upward five records": "Μετακίνηση προς τα πάνω κατά πέντε εγγραφές",
+        "Move upward to previous record or field": "Μετακίνηση προς τα πάνω στην προηγούμενη εγγραφή ή πεδίο",
+        "Moves the cursor to the correct location": "Μετακινεί τον κέρσορα στη σωστή θέση",
+        "Open Custom widget configuration screen": "Άνοιγμα οθόνης διαμόρφωσης προσαρμοσμένου γραφικού στοιχείου",
+        "Open comment thread": "Άνοιγμα νήματος σχολίων",
+        "Open next page": "Άνοιγμα επόμενης σελίδας",
+        "Open previous page": "Άνοιγμα προηγούμενης σελίδας",
+        "Opens document list": "Ανοίγει τη λίστα εγγράφων",
+        "Paste clipboard contents at cursor": "Επικόλληση περιεχομένων προχείρου στον κέρσορα",
+        "Print currently selected page widget": "Εκτύπωση γραφικού στοιχείου τρέχουσας επιλεγμένης σελίδας",
+        "Push an undo action": "Πιέστε μια ενέργεια αναίρεσης",
+        "Redo last action": "Επανάληψη τελευταίας ενέργειας",
+        "Rename the currently selected column": "Μετονομασία της τρέχουσας επιλεγμένης στήλης",
+        "Reverts the sections links to the saved links the current view": "Επαναφέρει τους συνδέσμους ενοτήτων στους αποθηκευμένους συνδέσμους της τρέχουσας προβολής",
+        "Saves the sections links in the current view": "Αποθηκεύει τους συνδέσμους ενοτήτων στην τρέχουσα προβολή",
+        "Selects all currently displayed cells": "Επιλέγει όλα τα κελιά που εμφανίζονται αυτήν τη στιγμή",
+        "Shortcut to data selection tab": "Συντόμευση για την καρτέλα επιλογής δεδομένων",
+        "Shortcut to focus view tab if creator panel is open": "Συντόμευση για την εστίαση στην καρτέλα προβολής εάν ο πίνακας δημιουργού είναι ανοιχτός",
+        "Shortcut to open document tab": "Συντόμευση για άνοιγμα καρτέλας εγγράφου",
+        "Shortcut to open field tab": "Συντόμευση για άνοιγμα καρτέλας πεδίου",
+        "Shortcut to open sort & filter menu": "Συντόμευση για άνοιγμα του μενού ταξινόμησης και φιλτραρίσματος",
+        "Shortcut to open the left panel": "Συντόμευση για άνοιγμα του αριστερού πίνακα",
+        "Shortcut to open the right panel": "Συντόμευση για άνοιγμα του δεξιού πίνακα",
+        "Shortcut to open view tab": "Συντόμευση για άνοιγμα καρτέλας προβολής",
+        "Shortcut to sort & filter tab": "Συντόμευση για την καρτέλα ταξινόμησης και φιλτραρίσματος",
+        "Show hidden columns": "Εμφάνιση κρυφών στηλών",
+        "Show raw data widget for table of currently selected page widget": "Εμφάνιση γραφικού στοιχείου ακατέργαστων δεδομένων για τον πίνακα του γραφικού στοιχείου σελίδας που έχει επιλεγεί αυτήν τη στιγμή",
+        "Show the record card widget of the selected record": "Εμφάνιση του γραφικού στοιχείου κάρτας εγγραφής της επιλεγμένης εγγραφής",
+        "Sort the view data by the currently selected field in ascending order": "Ταξινόμηση των δεδομένων προβολής με βάση το τρέχον επιλεγμένο πεδίο σε αύξουσα σειρά",
+        "Sort the view data by the currently selected field in descending order": "Ταξινόμηση των δεδομένων προβολής με βάση το τρέχον επιλεγμένο πεδίο σε φθίνουσα σειρά",
+        "Start editing the currently-selected cell": "Έναρξη επεξεργασίας του τρέχοντος επιλεγμένου κελιού",
+        "Toggle creator panel keyboard focus": "Εναλλαγή εστίασης πληκτρολογίου πίνακα δημιουργού",
+        "Toggle the currently selected checkbox or switch cell": "Εναλλαγή του τρέχοντος επιλεγμένου πλαισίου ελέγχου ή εναλλαγή κελιού",
+        "Undo last action": "Αναίρεση τελευταίας ενέργειας",
+        "Use the currently selected row as table headers": "Χρήση της τρέχουσας επιλεγμένης γραμμής ως κεφαλίδων πίνακα",
+        "When in the search bar, close it and focus the current match": "Όταν βρίσκεστε στη γραμμή αναζήτησης, κλείστε την και εστιάστε στην τρέχουσα αντιστοίχιση",
+        "When typed at the start of a cell, make this a formula column": "Όταν πληκτρολογείται στην αρχή ενός κελιού, μετατρέπεται σε στήλη τύπου",
+        "Filter this column by just this cell's value": "Φιλτράρισμα αυτής της στήλης μόνο με βάση την τιμή αυτού του κελιού"
+    },
+    "startHomeAirtableImport": {
+        "Import from Airtable": "Εισαγωγή από Airtable",
+        "The current workspace can't be imported to.": "Δεν είναι δυνατή η εισαγωγή στον τρέχοντα χώρο εργασίας."
+    },
+    "GridViewMenusDateHelpers": {
+        "12-hour format": "Μορφή 12 ωρών",
+        "24-hour format": "24ωρη μορφή",
+        "AM": {
+            "PM": "πμ/μμ"
+        },
+        "Calendar": "Ημερολόγιο",
+        "Date helpers…": "Βοηθοί ημερομηνιών…",
+        "Day": "Ημέρα",
+        "Day of month": "Ημέρα του μήνα",
+        "Day of week": "Ημέρα της εβδομάδας",
+        "Day of week (abbrev)": "Ημέρα της εβδομάδας (συντομογραφία)",
+        "Day of week (full)": "Ημέρα της εβδομάδας (πλήρης)",
+        "Day of week (numeric)": "Ημέρα της εβδομάδας (αριθμητική)",
+        "Days since": "Ημέρες από τότε",
+        "Days until": "Ημέρες μέχρι",
+        "Default": "Προεπιλεγμένη",
+        "End of": "Τέλος του",
+        "Full date": "Πλήρης ημερομηνία",
+        "Full name with year": "Ονοματεπώνυμο με έτος",
+        "Hour": "Ωρα",
+        "Intervals": "Διαστήματα",
+        "Is weekend?": "Είναι Σαββατοκύριακο;",
+        "Minute": "Λεπτό",
+        "Month": "Μήνας",
+        "Months since": "Μήνες από τότε",
+        "Months until": "Μήνες μέχρι",
+        "Name only": "Μόνο όνομα",
+        "Number only": "Μόνο αριθμός",
+        "Quarter": "Τέταρτο",
+        "Quick Picks": "Γρήγορες επιλογές",
+        "Relative": "Σχετικός",
+        "Short with year": "Σύντομο με το έτος",
+        "Sortable": "Ταξινομήσιμο",
+        "Start of": "Έναρξη του",
+        "Time": "Ώρα",
+        "Time bucket": "Χρονικό κάδος",
+        "Week": "Εβδομάδα",
+        "Week of year": "Εβδομάδα του έτους",
+        "Year": "Ετος",
+        "Years since": "Χρόνια από τότε",
+        "Years until": "Χρόνια μέχρι"
+    },
+    "selectBy": {
+        "Select widget": "Επιλογή Γραφικού Στοιχείου (widget)"
+    },
+    "CoreNewDocMethods": {
+        "Untitled document": "Έγγραφο χωρίς τίτλο"
+    },
+    "AuthenticationSection": {
+        "Active": "Ενεργό",
+        "Active method is controlled by an environment variable. Unset variable to change active method.": "Η ενεργή μέθοδος ελέγχεται από μια μεταβλητή περιβάλλοντος. Απορυθμίστε τη μεταβλητή για να αλλάξετε την ενεργή μέθοδο.",
+        "Active on restart": "Ενεργό κατά την επανεκκίνηση",
+        "Are you sure you want to set **{{name}}** as the active authentication method?": "Είστε βέβαιοι ότι θέλετε να ορίσετε το **{{name}}** ως την ενεργή μέθοδο ελέγχου ταυτότητας;",
+        "Close": "Κλείσιμο",
+        "Configure": "Ρύθμιση παραμέτρων",
+        "Configured": "Διαμορφωμένο",
+        "Confirm": "Επιβεβαίωση",
+        "Disabled on restart": "Απενεργοποιήθηκε κατά την επανεκκίνηση",
+        "Error": "Σφάλμα",
+        "Error details": "Λεπτομέρειες σφάλματος",
+        "Instructions": "Οδηγίες",
+        "No authentication method is active.": "Δεν υπάρχει ενεργή μέθοδος ελέγχου ταυτότητας.",
+        "Set as active method": "Ορισμός ως ενεργής μεθόδου",
+        "Set as active method?": "Ορισμός ως ενεργής μεθόδου",
+        "The new method will go into effect after you restart Grist.": "Η νέα μέθοδος θα τεθεί σε ισχύ μετά την επανεκκίνηση του Grist.",
+        "**Forwarded headers** allows your Grist server to trust authentication performed by an external proxy (e.g. Traefik ForwardAuth).": "Οι **προωθημένες κεφαλίδες** επιτρέπουν στον διακομιστή Grist σας να εμπιστεύεται τον έλεγχο ταυτότητας που εκτελείται από εξωτερικό διακομιστή μεσολάβησης (π.χ. Traefik ForwardAuth).",
+        "**Grist Connect** is a login solution built and maintained by Grist Labs that integrates seamlessly with your Grist server.": "Το **Grist Connect** είναι μια λύση σύνδεσης που έχει κατασκευαστεί και συντηρείται από την Grist Labs και ενσωματώνεται άψογα με τον διακομιστή Grist σας.",
+        "**OIDC** allows users on your Grist server to sign in using an external identity provider that supports the OpenID Connect standard.": "Το **OIDC** επιτρέπει στους χρήστες στον διακομιστή Grist να συνδέονται χρησιμοποιώντας έναν εξωτερικό πάροχο ταυτότητας που υποστηρίζει το πρότυπο OpenID Connect.",
+        "**SAML** allows users on your Grist server to sign in using an external identity provider that supports the SAML 2.0 standard.": "Το **SAML** επιτρέπει στους χρήστες στον διακομιστή Grist να συνδέονται χρησιμοποιώντας έναν εξωτερικό πάροχο ταυτότητας που υποστηρίζει το πρότυπο SAML 2.0.",
+        "Change admin user": "Αλλαγή χρήστη διαχειριστή",
+        "If Grist is accessible on your network, or is available to multiple people, configure one of the authentication methods below.": "Εάν το Grist είναι προσβάσιμο στο δίκτυό σας ή είναι διαθέσιμο σε πολλά άτομα, διαμορφώστε μία από τις παρακάτω μεθόδους ελέγχου ταυτότητας.",
+        "No authentication: unrestricted sign-in as demo user": "Χωρίς έλεγχο ταυτότητας: απεριόριστη σύνδεση ως χρήστης επίδειξης",
+        "Prepare changes": "Προετοιμασία αλλαγών",
+        "Restart required. Authentication change may affect your access": "Απαιτείται επανεκκίνηση. Η αλλαγή στον έλεγχο ταυτότητας ενδέχεται να επηρεάσει την πρόσβασή σας",
+        "Revert change of admin user": "Επαναφορά αλλαγής χρήστη διαχειριστή",
+        "See \"Restart Grist\" section on top of this page to restart.": "Ανατρέξτε στην ενότητα \"Επανεκκίνηση του Grist\" στο επάνω μέρος αυτής της σελίδας για επανεκκίνηση.",
+        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "grist-connect": {
+                            ").": "Για να ρυθμίσετε το **Grist Connect**, ακολουθήστε τις οδηγίες στο [άρθρο υποστήριξης του Grist για το Grist Connect](https://support.getgrist.com/install/grist-connect/)."
+                        }
+                    }
+                }
+            }
+        },
+        "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "oidc).": "Για να ρυθμίσετε το **OIDC**, ακολουθήστε τις οδηγίες στο [άρθρο υποστήριξης του Grist για το OIDC](https://support.getgrist.com/install/oidc)."
+                    }
+                }
+            }
+        },
+        "To set up **SAML**, follow the instructions in [the Grist support article for SAML](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "saml": {
+                            ").": "Για να ρυθμίσετε το **SAML**, ακολουθήστε τις οδηγίες στο [άρθρο υποστήριξης του Grist για το SAML](https://support.getgrist.com/install/saml/)."
+                        }
+                    }
+                }
+            }
+        },
+        "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "forwarded-headers": {
+                            ").": "Για να ρυθμίσετε **προωθημένες κεφαλίδες**, ακολουθήστε τις οδηγίες στο [άρθρο υποστήριξης του Grist για προωθημένες κεφαλίδες](https://support.getgrist.com/install/forwarded-headers/)."
+                        }
+                    }
+                }
+            }
+        },
+        "When a user accesses Grist, the proxy handles authentication and forwards verified user information through HTTP headers. Grist uses these headers to identify the user.": "Όταν ένας χρήστης αποκτά πρόσβαση στο Grist, ο διακομιστής μεσολάβησης χειρίζεται τον έλεγχο ταυτότητας και προωθεί επαληθευμένες πληροφορίες χρήστη μέσω κεφαλίδων HTTP. Το Grist χρησιμοποιεί αυτές τις κεφαλίδες για την αναγνώριση του χρήστη.",
+        "When signing in, users will be redirected to a Grist Connect login page where they can authenticate using various identity providers. After authentication, they'll be redirected back to your Grist server and signed in.": "Κατά τη σύνδεση, οι χρήστες θα ανακατευθύνονται σε μια σελίδα σύνδεσης του Grist Connect όπου μπορούν να επαληθεύσουν τον έλεγχο ταυτότητας χρησιμοποιώντας διάφορους παρόχους ταυτότητας. Μετά τον έλεγχο ταυτότητας, θα ανακατευθύνονται πίσω στον διακομιστή Grist και θα συνδέονται.",
+        "When signing in, users will be redirected to your chosen identity provider's login page to authenticate. After successful authentication, they'll be redirected back to your Grist server and signed in as the user verified by the provider.": "Κατά τη σύνδεση, οι χρήστες θα ανακατευθύνονται στη σελίδα σύνδεσης του παρόχου ταυτότητας που έχετε επιλέξει για έλεγχο ταυτότητας. Μετά την επιτυχή έλεγχο ταυτότητας, θα ανακατευθύνονται πίσω στον διακομιστή Grist και θα συνδέονται ως ο χρήστης που έχει επαληθευτεί από τον πάροχο.",
+        "You are signed in as {{email}}. After restart, the new administrative user will be {{newEmail}}.": "Έχετε συνδεθεί ως {{email}}. Μετά την επανεκκίνηση, ο νέος χρήστης διαχειριστή θα είναι {{newEmail}}.",
+        "You are signed in as {{email}}. You may lose access to this server if you cannot sign in as this user after switching the authentication system.": "Έχετε συνδεθεί ως {{email}}. Ενδέχεται να χάσετε την πρόσβαση σε αυτόν τον διακομιστή εάν δεν μπορείτε να συνδεθείτε ως αυτός ο χρήστης μετά την εναλλαγή του συστήματος ελέγχου ταυτότητας."
+    },
+    "DetailView": {
+        "This row is unavailable or does not exist": "Αυτή η σειρά δεν είναι διαθέσιμη ή δεν υπάρχει"
+    },
+    "GetGristComProvider": {
+        "**Sign in with getgrist.com** allows users on your Grist server to sign in using their account on getgrist.com, the cloud version of Grist managed by Grist Labs.": "Η σύνδεση με το getgrist.com** επιτρέπει στους χρήστες στον διακομιστή Grist σας να συνδέονται χρησιμοποιώντας τον λογαριασμό τους στο getgrist.com, την έκδοση cloud του Grist που διαχειρίζεται η Grist Labs.",
+        "Configure Sign in with getgrist.com": "Ρύθμιση παραμέτρων σύνδεσης με το getgrist.com",
+        "Home URL is not set; cannot configure Sign in with getgrist.com": "Η διεύθυνση URL της αρχικής σελίδας δεν έχει οριστεί. Δεν είναι δυνατή η διαμόρφωση. Σύνδεση με getgrist.com",
+        "Instructions": "Οδηγίες",
+        "Learn more about Sign in with getgrist.com": "Μάθετε περισσότερα σχετικά με την Σύνδεση με το getgrist.com",
+        "Paste configuration key here": "Επικολλήστε το κλειδί διαμόρφωσης εδώ",
+        "Register your Grist server": "Εγγράψτε τον διακομιστή Grist σας",
+        "Sign in with getgrist.com": "Συνδεθείτε με το getgrist.com",
+        "To set up {{provider}}, you need to register your Grist server on getgrist.com and paste the configuration key you receive below.": "Για να ρυθμίσετε τον {{provider}}, πρέπει να καταχωρήσετε τον διακομιστή Grist στο getgrist.com και να επικολλήσετε το κλειδί διαμόρφωσης που λαμβάνετε παρακάτω.",
+        "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.": "Κατά τη σύνδεση, οι χρήστες θα ανακατευθύνονται στη σελίδα σύνδεσης του getgrist.com για να συνδεθούν ή να εγγραφούν. Μετά τον έλεγχο ταυτότητας στο getgrist.com, θα ανακατευθύνονται πίσω στον διακομιστή Grist και θα συνδέονται ως ο χρήστης με τον οποίο έχουν πιστοποιηθεί.",
+        "Cancel": "Ακύρωση",
+        "Configure": "Ρύθμιση παραμέτρων"
+    },
+    "AirtableImportUI": {
+        "Back": "Πίσω",
+        "Cancel": "Ακύρωση",
+        "Choose an Airtable base to import from": "Επιλέξτε μια βάση Airtable από την οποία θα κάνετε εισαγωγή",
+        "Choose destination": "Επιλέξτε προορισμό",
+        "Connect": "Σύνδεση",
+        "Connect with Airtable": "Συνδεθείτε με το Airtable",
+        "Connect your Airtable account to access your bases.": "Συνδέστε τον λογαριασμό σας στο Airtable για να αποκτήσετε πρόσβαση στις βάσεις σας.",
+        "Connected via {{method}}": "Συνδέθηκε μέσω {{method}}",
+        "Connecting...": "Γίνεται σύνδεση...",
+        "Continue": "Συνέχεια",
+        "Destination": "Προορισμός",
+        "Disconnect": "Αποσύνδεση",
+        "Existing tables": "Υπάρχοντες πίνακες",
+        "Failed to fetch base schema": "Αποτυχία ανάκτησης βασικού σχήματος",
+        "Failed to fetch bases": "Αποτυχία ανάκτησης βάσεων",
+        "Grist configuration required": "Απαιτείται διαμόρφωση Grist",
+        "Import from {{baseName}} in progress. Do not navigate away from this page.": "Εισαγωγή από {{baseName}} σε εξέλιξη. Μην απομακρυνθείτε από αυτήν τη σελίδα.",
+        "Import tables": "Εισαγωγή πινάκων",
+        "Import {{count}} tables_one": "Εισαγωγή {{count}} πινάκων",
+        "Import {{count}} tables_other": "Εισαγωγή {{count}} πινάκων",
+        "Make sure your token has the correct permissions.": "Βεβαιωθείτε ότι το διακριτικό σας έχει τα σωστά δικαιώματα.",
+        "New table": "Νέος πίνακας",
+        "New table: structure only": "Νέος πίνακας: μόνο δομή",
+        "No bases found": "Δεν βρέθηκαν βάσεις",
+        "OAuth": "OAuth",
+        "OAuth credentials not configured. Please set OAUTH2_AIRTABLE_CLIENT_ID and OAUTH2_AIRTABLE_CLIENT_SECRET, or use personal access token.": "Δεν έχουν ρυθμιστεί τα διαπιστευτήρια OAuth. Ορίστε τα OAUTH2_AIRTABLE_CLIENT_ID και OAUTH2_AIRTABLE_CLIENT_SECRET ή χρησιμοποιήστε προσωπικό διακριτικό πρόσβασης.",
+        "Personal access token": "Προσωπικό διακριτικό πρόσβασης",
+        "Please enter a personal access token": "Παρακαλώ εισάγετε ένα προσωπικό διακριτικό πρόσβασης",
+        "Refresh": "Ανανέωση",
+        "Select tables to import from {{baseName}}": "Επιλέξτε πίνακες για εισαγωγή από το {{baseName}}",
+        "Skip": "Παράλειψη",
+        "Source tables": "Πίνακες προέλευσης",
+        "Structure only": "Μόνο δομή",
+        "Use personal access token instead": "Χρησιμοποιήστε προσωπικό διακριτικό πρόσβασης αντ' αυτού",
+        "[Generate a token]({{url}}) in your Airtable account with scopes that include at least **\\`schema.bases:read\\`** and **\\`data.records:read\\`**.\n\nYour token is never sent to Grist's servers, and is only used to make API calls to Airtable from your browser.": "[Δημιουργήστε ένα διακριτικό]({{url}}) στον λογαριασμό σας στο Airtable με εμβέλειες που περιλαμβάνουν τουλάχιστον **\\`schema.bases:read\\`** και **\\`data.records:read\\`**.\n\nΤο διακριτικό σας δεν αποστέλλεται ποτέ στους διακομιστές του Grist και χρησιμοποιείται μόνο για την πραγματοποίηση κλήσεων API στο Airtable από το πρόγραμμα περιήγησής σας.",
+        "loading your bases...": "φορτώνονται οι βάσεις σας...",
+        "loading your tables...": "φορτώνονται οι πίνακές σας...",
+        "or": "ή",
+        "{{count}} warnings_one": "{{count}} προειδοποιήσεις",
+        "{{count}} warnings_other": "{{count}} προειδοποιήσεις",
+        "The more convenient ‘Connect with Airtable’ option can be configured by the installation administrator. [Learn more.]({{url}})": "Η πιο βολική επιλογή «Σύνδεση με το Airtable» μπορεί να ρυθμιστεί από τον διαχειριστή εγκατάστασης. [Μάθετε περισσότερα.]({{url}})",
+        "Use personal access token": "Χρήση προσωπικού διακριτικού πρόσβασης"
+    },
+    "AirtableImporter": {
+        "Creating a new Grist document...": "Δημιουργία νέου εγγράφου Grist...",
+        "Preparing to import base from Airtable...": "Προετοιμασία εισαγωγής βάσης από το Airtable...",
+        "Setting up tables...": "Στήσιμο τραπεζιών..."
+    },
+    "ChangeAdminModal": {
+        "Enter new admin email": "Εισαγάγετε νέο email διαχειριστή",
+        "Make the new email the installation admin. Orgs, workspaces, and documents will remain owned by {{email}}. These changes will take effect after you restart this Grist server.": "Ορίστε το νέο email ως διαχειριστή εγκατάστασης. Οι οργανισμοί, οι χώροι εργασίας και τα έγγραφα θα παραμείνουν ιδιοκτησία του {{email}}. Αυτές οι αλλαγές θα τεθούν σε ισχύ μετά την επανεκκίνηση αυτού του διακομιστή Grist.",
+        "New admin": "Νέος διαχειριστής",
+        "Replace {{email}} with the new email throughout. The new email will become the installation admin, as well as the owner of all materials previously owned by you@example.com.": "Αντικαταστήστε το {{email}} με τη νέα διεύθυνση ηλεκτρονικού ταχυδρομείου σε όλο το κείμενο. Η νέα διεύθυνση ηλεκτρονικού ταχυδρομείου θα γίνει του διαχειριστή εγκατάστασης, καθώς και του κατόχου όλων των υλικών που ανήκαν προηγουμένως στο you@example.com."
+    },
+    "startDocAirtableImport": {
+        "Import from Airtable": "Εισαγωγή από Airtable"
     }
 }

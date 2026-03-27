@@ -94,10 +94,10 @@ describe("NewDocument.ntest", function() {
     it("should add rows on entering new data", async function() {
       assert.equal(await gu.getGridRowCount(), 1);
       await gu.getCellRC(0, 0).click();
-      await gu.sendKeys("hello", $.ENTER);
+      await gu.enterCell("hello");
       await gu.waitForServer();
       await gu.getCellRC(1, 1).click();
-      await gu.sendKeys("world", $.ENTER);
+      await gu.enterCell("world");
       await gu.waitForServer();
       assert.equal(await gu.getGridRowCount(), 3);
     });
@@ -139,12 +139,10 @@ describe("NewDocument.ntest", function() {
         // should clear a single cell
         var cell_1_a = gu.getCellRC(0, 0);
         await cell_1_a.click();
-        await gu.sendKeys("A1", $.ENTER);
-        await gu.waitForServer();
+        await gu.enterCell(["A1", $.ENTER]);
         assert.equal(await cell_1_a.text(), "A1");
         await cell_1_a.click();
-        await gu.sendKeys(delKey);
-        await gu.waitForServer();
+        await gu.pressKeysOnCell(delKey);
         assert.equal(await cell_1_a.text(), "");
 
         // should clear a selection of cells
@@ -159,7 +157,7 @@ describe("NewDocument.ntest", function() {
         // should clear a selection of cells with a formula column
         await gu.enterGridValues(0, 0, [["A1", "A2"], ["B1", "B2"]]);
         await gu.clickCellRC(0, 2);
-        await gu.sendKeys("=", "$A", $.ENTER);
+        await gu.enterCell(["=", "$A", $.ENTER]);
         await gu.waitForServer();
         assert.deepEqual(await gu.getGridValues({ rowNums: [1, 2], cols: [0, 1, 2] }),
           ["A1", "B1", "A1", "A2", "B2", "A2"]);

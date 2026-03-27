@@ -6,7 +6,7 @@ import { addToRepl, assert, driver, Key } from "mocha-webdriver";
 
 async function contextMenu(x?: number, y?: number) {
   const rect = await driver.find("body").getRect();
-  return driver.withActions((actions) => {
+  await driver.withActions((actions) => {
     if (x !== undefined && y !== undefined) {
       // passing {orign: 'viewport'} to `actions.move` does not work in bridge mode, so we need to
       // adjust x, y to position relative to body
@@ -16,13 +16,24 @@ async function contextMenu(x?: number, y?: number) {
     }
     actions.contextClick();
   });
+  const floatingMenu = await driver.findWait(".grist-floating-menu", 1000);
+  await driver.wait(() => floatingMenu.hasFocus());
+}
+
+async function checkLogs(expected: string[]) {
+  const logs = driver.findAll(".test-logs", e => e.getText());
+  // await driver.wait(async () => (await logs).length === expected.length, 5000);
+  await driver.wait(async () => {
+    return (await driver.findAll(".test-logs", e => e.getText())).length === expected.length;
+  }, 5000);
+  assert.deepEqual(await logs, expected);
 }
 
 describe("contextMenu", function() {
   setupTestSuite();
+  this.timeout(20000);
 
   before(async function() {
-    this.timeout(20000);
     await driver.get(`${server.getHost()}/contextMenu`);
     addToRepl("contextMenu", contextMenu);
   });
@@ -40,36 +51,24 @@ describe("contextMenu", function() {
     assert.equal(await driver.find(".grist-floating-menu").isPresent(), false);
 
     // check action worked
-    assert.deepEqual(
-      await driver.findAll(".test-logs", e => e.getText()),
-      ["foo added"],
-    );
+    await checkLogs(["foo added"]);
 
     // click Bar
     await contextMenu();
 
     // check action worked
     await gu.findOpenMenuItem("li", "Bar").click();
-    assert.deepEqual(
-      await driver.findAll(".test-logs", e => e.getText()),
-      ["foo added", "bar added"],
-    );
+    await checkLogs(["foo added", "bar added"]);
 
     // click Reset
     await contextMenu();
 
     // check action worked
-    await driver.findContentWait(".grist-floating-menu li", "Reset", 100).click();
-    assert.deepEqual(
-      await driver.findAll(".test-logs", e => e.getText()),
-      [],
-    );
+    await driver.findContent(".grist-floating-menu li", "Reset").click();
+    await checkLogs([]);
 
     // open context menu
     await contextMenu();
-
-    // check menu is open
-    assert.equal(await driver.findWait(".grist-floating-menu", 100).isPresent(), true);
 
     // send Escape
     await driver.sendKeys(Key.ESCAPE);
@@ -80,10 +79,7 @@ describe("contextMenu", function() {
 
   it("should support arrow navigation", async function() {
     // check logs is empty
-    assert.deepEqual(
-      await driver.findAll(".test-logs", e => e.getText()),
-      [],
-    );
+    await checkLogs([]);
 
     // open context menu
     await contextMenu();
@@ -92,10 +88,7 @@ describe("contextMenu", function() {
     await driver.sendKeys(Key.DOWN, Key.ENTER);
 
     // check foo was added
-    assert.deepEqual(
-      await driver.findAll(".test-logs", e => e.getText()),
-      ["foo added"],
-    );
+    await checkLogs(["foo added"]);
   });
 
   it("should keep menu within viewport", async function() {
