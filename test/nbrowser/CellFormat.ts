@@ -114,10 +114,7 @@ describe("CellFormat", function() {
   it("can display Markdown-formatted text", async function() {
     await gu.getCell(0, 1).click();
     await gu.setFieldWidgetType("TextBox");
-    await gu.sendKeys(
-      Key.ENTER,
-      await gu.selectAllKey(),
-      Key.DELETE,
+    await gu.enterCell([
       "# Heading",
       Key.chord(Key.SHIFT, Key.ENTER),
       Key.chord(Key.SHIFT, Key.ENTER),
@@ -143,7 +140,7 @@ describe("CellFormat", function() {
       Key.chord(Key.SHIFT, Key.ENTER),
       "![Images too](https://example.com)",
       Key.ENTER,
-    );
+    ]);
     await gu.waitForServer();
     assert.equal(
       await gu.getCell(0, 1).getText(),

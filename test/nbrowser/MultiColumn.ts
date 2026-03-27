@@ -994,8 +994,8 @@ const choiceEditor = {
   async rename(label: string, label2: string) {
     const entry = await driver.findWait(`.test-choice-list-entry .test-token-label[value='${label}']`, 100);
     await entry.click();
-    await gu.sendKeys(label2);
-    await gu.sendKeys(Key.ENTER);
+    await driver.wait(() => entry.hasFocus());
+    await gu.sendKeys(label2, Key.ENTER);
   },
   async color(token: string, color: string) {
     const label = await driver.findWait(`.test-choice-list-entry .test-token-label[value='${token}']`, 100);

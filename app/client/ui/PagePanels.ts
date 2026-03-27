@@ -27,6 +27,10 @@ const AUTO_EXPAND_TIMEOUT_MS = 400;
 // delay must be greater than the time needed for transientInput to update focus (ie: 10ms);
 const DELAY_BEFORE_TESTING_FOCUS_CHANGE_MS = 12;
 
+// data attributes added when panels are fully collapsed or expanded
+const FULLY_COLLAPSED_PANEL_DATASET_KEY = "data-fully-collapsed";
+const FULLY_EXPANDED_PANEL_DATASET_KEY = "data-fully-expanded";
+
 export interface PageSidePanel {
   // Note that widths need to start out with a correct default in JS (having them in CSS is not
   // enough), needed for open/close transitions.
@@ -176,17 +180,22 @@ export function pagePanels(page: PageContents) {
 
         // Opening/closing the left pane, with transitions.
         cssLeftPane.cls("-open", left.panelOpen),
+
+        dom.boolAttr(FULLY_EXPANDED_PANEL_DATASET_KEY, left.panelOpen),
+        dom.boolAttr(FULLY_COLLAPSED_PANEL_DATASET_KEY, use => !use(left.panelOpen)),
         transition(use => (use(isNarrowScreenObs()) ? false : use(left.panelOpen)), {
           prepare(elem, open) {
             elem.style.width = (open ? 48 : left.panelWidth.get()) + "px";
+            onPanelTransitionStart(elem);
           },
           run(elem, open) {
             elem.style.width = contentWrapper.style.width = (open ? left.panelWidth.get() : 48) + "px";
           },
-          finish() {
+          finish(elem, open) {
             onResize();
             contentWrapper.style.width = "";
             onLeftTransitionFinish();
+            onPanelTransitionFinished(elem, open);
           },
         }),
 
@@ -357,10 +366,18 @@ export function pagePanels(page: PageContents) {
 
           // Opening/closing the right pane, with transitions.
           cssRightPane.cls("-open", right.panelOpen),
+          dom.boolAttr(FULLY_EXPANDED_PANEL_DATASET_KEY, right.panelOpen),
+          dom.boolAttr(FULLY_COLLAPSED_PANEL_DATASET_KEY, use => !use(right.panelOpen)),
           transition(use => (use(isNarrowScreenObs()) ? false : use(right.panelOpen)), {
-            prepare(elem, open) { elem.style.marginLeft = (open ? -1 : 1) * right.panelWidth.get() + "px"; },
+            prepare(elem, open) {
+              elem.style.marginLeft = (open ? -1 : 1) * right.panelWidth.get() + "px";
+              onPanelTransitionStart(elem);
+            },
             run(elem, open) { elem.style.marginLeft = ""; },
-            finish: onResize,
+            finish(elem, open) {
+              onResize();
+              onPanelTransitionFinished(elem, open);
+            },
           }),
         )] : null
       ),
@@ -720,4 +737,14 @@ function watchHeightElem(elem: HTMLElement, callback: (height: number) => void) 
   observer.observe(elem, { childList: true, subtree: true, attributes: true });
   dom.onDisposeElem(elem, () => observer.disconnect());
   onChange();
+}
+
+function onPanelTransitionStart(elem: HTMLElement) {
+  elem.removeAttribute(FULLY_COLLAPSED_PANEL_DATASET_KEY);
+  elem.removeAttribute(FULLY_EXPANDED_PANEL_DATASET_KEY);
+}
+
+function onPanelTransitionFinished(elem: HTMLElement, open: boolean) {
+  const key = open ? FULLY_EXPANDED_PANEL_DATASET_KEY : FULLY_COLLAPSED_PANEL_DATASET_KEY;
+  elem.setAttribute(key, "");
 }

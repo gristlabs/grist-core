@@ -37,10 +37,24 @@ export class FormPage extends Disposable {
     return cssPageContainer(
       dom.domComputed((use) => {
         const error = use(this._model.error);
-        if (error) { return dom.create(FormErrorPage, error); }
+        if (error) {
+          return [
+            dom.create(FormErrorPage, error),
+            () => {
+              window.setTimeout(() => document.getElementById("form-heading")?.focus(), 0);
+            },
+          ];
+        }
 
         const submitted = use(this._model.submitted);
-        if (submitted) { return dom.create(FormSuccessPage, this._model); }
+        if (submitted) {
+          return [
+            dom.create(FormSuccessPage, this._model),
+            () => {
+              window.setTimeout(() => document.getElementById("form-heading")?.focus(), 0);
+            },
+          ];
+        }
 
         return this._buildFormPageDom();
       }),

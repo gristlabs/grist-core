@@ -860,7 +860,7 @@
         "No field selected": "Aucun champ sélectionné",
         "Select a field in the form widget to configure.": "Sélectionnez un champ du formulaire à configurer.",
         "Submit": "Valider",
-        "Thank you! Your response has been recorded.": "Merci ! Votre réponse a été enregistrée.",
+        "Thank you! Your response has been recorded.": "Nous vous remercions. Votre réponse a été enregistrée.",
         "Chart options": "Options du graphique"
     },
     "RowContextMenu": {
@@ -1154,7 +1154,9 @@
         "By Name": "Par Nom",
         "By Date Modified": "Par Date de modification",
         "Light": "Clair",
-        "Custom": "Personnalisé"
+        "Custom": "Personnalisé",
+        "Dark": "Sombre",
+        "Light (High Contrast)": "Clair (contraste élevé)"
     },
     "modals": {
         "Save": "Enregistrer",
@@ -1969,7 +1971,9 @@
         "Search": "Rechercher",
         "Reset": "Réinitialiser",
         "Submitting…": "En cours de soumission…",
-        "Clear selection for: {{-inputLabel}}": "Effacer la sélection pour : {{-inputLabel}}"
+        "Clear selection for: {{-inputLabel}}": "Effacer la sélection pour : {{-inputLabel}}",
+        "Options for {{-inputLabel}}": "Options pour {{-inputLabel}}",
+        "Search options for {{-inputLabel}}": "Rechercher des options pour {{-inputLabel}}"
     },
     "widgetTypesMap": {
         "Table": "Table",
@@ -2748,5 +2752,8 @@
     "startHomeAirtableImport": {
         "Import from Airtable": "Importer depuis Airtable",
         "The current workspace can't be imported to.": "Le dossier actuel ne peut pas être importé."
+    },
+    "NotifyModel": {
+        "Still working...": "Toujours en cours..."
     }
 }

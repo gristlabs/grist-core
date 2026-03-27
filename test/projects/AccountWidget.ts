@@ -11,10 +11,12 @@ describe("AccountWidget", function() {
     await driver.get(`${server.getHost()}/DocMenu#org=${org}&user=santa`);
 
     // The sign-in buttons shouldn't be shown on top.
+    const userIcon = driver.findWait(".test-user-icon", 1000);
+    assert.equal(await userIcon.isDisplayed(), true);
     assert.equal(await driver.find(".test-user-sign-in").isPresent(), false);
     assert.equal(await driver.find(".test-user-sign-up").isPresent(), false);
 
-    await driver.find(".test-user-icon").click();   // open the menu
+    await userIcon.click();   // open the menu
     assert.equal(await driver.findWait(".test-usermenu-email", 100).getText(), "santa@getgrist.com");
     assert.deepEqual(await driver.findAll(".test-site-switcher-org-tick", x => x.isDisplayed()),
       selectedOrgs);
@@ -22,13 +24,13 @@ describe("AccountWidget", function() {
 
     // With an anonymous user, should see "Sign In" and "Sign Up", but NOT a user icon.
     await driver.get(`${server.getHost()}/DocMenu#org=${org}&user=anon`);
-    assert.equal(await driver.find(".test-user-sign-in").getText(), "Sign in");
+    assert.equal(await driver.findWait(".test-user-sign-in", 1000).getText(), "Sign in");
     assert.equal(await driver.find(".test-user-sign-up").getText(), "Sign up");
     assert.equal(await driver.find(".test-user-icon").isPresent(), false);
 
     // Same with a null user.
     await driver.get(`${server.getHost()}/DocMenu#org=${org}&user=null`);
-    assert.equal(await driver.find(".test-user-sign-in").getText(), "Sign in");
+    assert.equal(await driver.findWait(".test-user-sign-in", 1000).getText(), "Sign in");
     assert.equal(await driver.find(".test-user-sign-up").getText(), "Sign up");
     assert.equal(await driver.find(".test-user-icon").isPresent(), false);
   });

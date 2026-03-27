@@ -245,7 +245,7 @@ async function checkSelectingRecords(selectBy: string, sourceData: string[][], n
     await driver.withActions(a => a.click(anchorCell.find(".test-tb-link")));
 
     // Check that navigation to the link target worked
-    assert.equal(await gu.getActiveSectionTitle(), "LINKTARGET");
+    await gu.waitToPass(async () => assert.equal(await gu.getActiveSectionTitle(), "LINKTARGET"), 1000);
     assert.equal(await gu.getActiveCell().getText(), String(rowNum));
 
     // Check that the link target is still filtered correctly by the link source,

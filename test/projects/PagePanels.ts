@@ -26,11 +26,16 @@ describe("PagePanels", function() {
     this.timeout(60000);      // Set a longer default timeout.
     await driver.get(`${server.getHost()}/PagePanels`);
     // Wait for some element to load
-    await driver.findWait(".test-pp-addNew", 100);
+    await driver.findWait(".test-pp-addNew", 1000);
   });
 
-  function dragByX(x: number) {
-    return driver.withActions(a => a.press().move({ x, origin: Origin.POINTER }).release());
+  async function dragByX(x: number) {
+    await driver.withActions((a) => {
+      a.press()
+        .move({ x, origin: Origin.POINTER, duration: 20 })
+        .pause(500) // Required at least since Chrome version 146
+        .release();
+    });
   }
 
   // Available test elements:
@@ -149,7 +154,7 @@ describe("PagePanels", function() {
 
       // shrink window <768px and check the bottom bar is displayed
       await gu.setViewportDimensions(760, oldDimensions.height);
-      assert.equal(await driver.find(".test-pp-bottom-footer").isDisplayed(), true);
+      assert.equal(await driver.findWait(".test-pp-bottom-footer", 1000).isDisplayed(), true);
 
       // check that only openers for narrow screen (-ns) shows.
       assert.equal(await driver.find(".test-pp-left-opener").isDisplayed(), false);
@@ -298,8 +303,10 @@ describe("PagePanels", function() {
       await gu.setViewportDimensions(760, oldDimensions.height);
 
       // Check that left and right are closed
-      assert.equal(await isSidePanelOpen("left"), false);
-      assert.equal(await isSidePanelOpen("right"), false);
+      await gu.waitToPass(async () => {
+        assert.equal(await isSidePanelOpen("left"), false);
+        assert.equal(await isSidePanelOpen("right"), false);
+      }, 1000);
 
       // check the overlay disappeard
       assert.equal(await driver.find(".test-pp-overlay").isDisplayed(), false);
@@ -335,7 +342,7 @@ describe("PagePanels", function() {
       // shrink window again
       await gu.setViewportDimensions(760, oldDimensions.height);
 
-      await driver.find(".test-pp-right-opener-ns").click();
+      await driver.findWait(".test-pp-right-opener-ns", 1000).click();
       await driver.sleep(500);
 
       // check that left is closed and right opened
@@ -379,7 +386,9 @@ describe("PagePanels", function() {
       assert.isTrue(await driver.findWait(".test-wselect-data", 100).isDisplayed());
     });
     const assertNoPicker = stackWrapFunc(async function() {
-      assert.isFalse(await driver.find(".test-wselect-data").isPresent());
+      await gu.waitToPass(async () => {
+        assert.isFalse(await driver.find(".test-wselect-data").isPresent());
+      }, 1000);
     });
 
     it("should trigger properly from the add new menu", async () => {
@@ -568,7 +577,7 @@ describe("PagePanels", function() {
       await driver.find(".test-docpage-dots").click();
 
       // move mouse to the middle of the menu
-      await driver.find(".grist-floating-menu").mouseMove();
+      await driver.findWait(".grist-floating-menu", 1000).mouseMove();
       await driver.sleep(500);
 
       // check panel is still expanded
@@ -609,7 +618,7 @@ describe("PagePanels", function() {
       // using driver.findContent(...).click(). But it does when using a script call.
       await driver.executeScript(
         (el: any) => el.click(),
-        driver.findContent(".grist-floating-menu li", "Rename"),
+        driver.findContentWait(".grist-floating-menu li", "Rename", 1000),
       );
       await driver.sleep(20);
 

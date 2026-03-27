@@ -1414,6 +1414,12 @@ class ColumnObsRuleSet extends ObsRuleSet {
     return aclColumnList(this._colIds, this._getValidColIdsList());
   }
 
+  public buildRuleSetDom(): HTMLDivElement {
+    const ruleSet = super.buildRuleSetDom();
+    dom.update(ruleSet, testId("rule-set-column"));
+    return ruleSet;
+  }
+
   public getColIdList(): string[] {
     return this._colIds.get();
   }

@@ -488,7 +488,7 @@ describe("AirtableSchemaImporter", function() {
         assert.deepInclude(testColumn, {
           ref: { originalTableId: firstTableId },
           ...expectedColProps,
-        });
+        } as ColumnImportSchema);
       });
     });
 

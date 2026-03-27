@@ -140,9 +140,10 @@ describe("DuplicatePage", async function() {
             (await e.find(".test-filter-menu-value").getText()) :
             "")
       ).filter(x => x);
-    const selectColumn = (name: string) => driver.findContent(".grist-floating-menu li", name).click();
-    const clickNone = () => driver.findContent(".test-filter-menu-bulk-action", /None/).click();
-    const clickFilterValue = (name: string) => driver.findContent(".test-filter-menu-list label", name).click();
+    const selectColumn = (name: string) => driver.findContentWait(".grist-floating-menu li", name, 1000).click();
+    const clickNone = () => driver.findContentWait(".test-filter-menu-bulk-action", /None/, 1000).click();
+    const clickFilterValue = (name: string) =>
+      driver.findContentWait(".test-filter-menu-list label", name, 1000).click();
     const othersSelected = () =>
       driver
         .findContent(".test-filter-menu-summary label", /Others/)
@@ -217,12 +218,18 @@ describe("DuplicatePage", async function() {
     await gu.selectSectionByTitle("COUNTRY");
     assert.deepEqual(await filters(), ["Code", "Continent"]);
     await openFilter("Code");
-    assert.deepEqual(await selectedFilters(), ["ARG", "BOL", "BRA"]);
+    await gu.waitToPass(async () => {
+      assert.deepEqual(await selectedFilters(), ["ARG", "BOL", "BRA"]);
+    });
     assert.isFalse(await othersSelected());
     await driver.sendKeys(Key.ESCAPE);
 
-    await openFilter("Continent");
-    assert.deepEqual(await selectedFilters(), ["South America"]);
+    await gu.waitToPass(async () => {
+      await openFilter("Continent");
+    });
+    await gu.waitToPass(async () => {
+      assert.deepEqual(await selectedFilters(), ["South America"]);
+    });
     assert.isFalse(await othersSelected());
     await driver.sendKeys(Key.ESCAPE);
 
@@ -232,12 +239,16 @@ describe("DuplicatePage", async function() {
     await gu.selectSectionByTitle("COUNTRYLANGUAGE");
     assert.deepEqual(await filters(), ["Language"]);
     await openFilter("Language");
-    assert.deepEqual(await selectedFilters(), ["German", "Italian"]);
+    await gu.waitToPass(async () => {
+      assert.deepEqual(await selectedFilters(), ["German", "Italian"]);
+    });
     assert.isFalse(await futureSelected());
     await driver.sendKeys(Key.ESCAPE);
 
     await gu.selectSectionByTitle("CITY");
-    assert.deepEqual(await selectedFilters(), []);
+    await gu.waitToPass(async () => {
+      assert.deepEqual(await selectedFilters(), []);
+    });
 
     await gu.undo();
     assert.deepEqual(await gu.getPageNames(), ["City", "Country", "CountryLanguage", "City (copy)"]);

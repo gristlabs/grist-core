@@ -19,7 +19,7 @@ import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import * as chai from "chai";
 import omit from "lodash/omit";
 
-const assert = chai.assert;
+const assert: Chai.AssertStatic = chai.assert;
 
 let server: TestServer;
 let dbManager: HomeDBManager;

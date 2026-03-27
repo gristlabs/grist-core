@@ -449,7 +449,7 @@ describe("DocTutorial", function() {
     it("always opens the same fork whenever the document is opened", async function() {
       assert.deepEqual(await gu.getVisibleGridCells({ cols: [0], rowNums: [1] }), ["Zane Rails"]);
       await gu.getCell(0, 1).click();
-      await gu.sendKeys("Redacted", Key.ENTER);
+      await gu.enterCell("Redacted");
       await gu.waitForServer();
       await editorSession.loadDoc(`/doc/grist-basics`);
       let currentUrl: string;
@@ -550,7 +550,7 @@ describe("DocTutorial", function() {
 
       // Replace the original via the Share menu.
       await driver.find(".test-tb-share").click();
-      await driver.find(".test-replace-original").click();
+      await driver.findWait(".test-replace-original", 1000).click();
       await driver.findWait(".test-modal-confirm", 3000).click();
       await gu.waitForServer();
 

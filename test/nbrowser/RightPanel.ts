@@ -256,7 +256,7 @@ describe("RightPanel", function() {
     await driver.find(".test-pwc-editDataSelection").click();
 
     // remove link
-    await driver.find(".test-wselect-selectby").doClick();
+    await driver.findWait(".test-wselect-selectby", 1000).doClick();
     await driver.findContent(".test-wselect-selectby option", /Select widget/).doClick();
 
     // click save
@@ -275,7 +275,7 @@ describe("RightPanel", function() {
     // re-set the link
     await gu.getSection("CITY").click();
     await driver.find(".test-pwc-editDataSelection").click();
-    await driver.find(".test-wselect-selectby").click();
+    await driver.findWait(".test-wselect-selectby", 1000).click();
     await driver.findContent(".test-wselect-selectby option", /Country$/).click();
     await driver.find(".test-wselect-addBtn").doClick();
     await gu.waitForServer();

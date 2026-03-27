@@ -13,8 +13,10 @@ describe("simpleList", function() {
     return driver.findAll(".test-logs div", e => e.getText());
   }
 
-  function toggle() {
-    return driver.find("input").click();
+  async function toggle() {
+    await driver.findWait("input", 1000).doClick();
+    // Wait for the weasel popup to appear
+    return driver.findWait("input.weasel-popup-open", 1000);
   }
 
   function getSelected() {
@@ -31,13 +33,13 @@ describe("simpleList", function() {
 
   it("should trigger action on click", async function() {
     await toggle();
-    await driver.findContent(".grist-floating-menu li", "bar").click();
+    await driver.findContentWait(".grist-floating-menu li", "bar", 1000).click();
     assert.deepEqual(await getLogs(), ["bar"]);
   });
 
   it("should update selected on mouse hover", async function() {
     await toggle();
-    await driver.findContent(".grist-floating-menu li", "bar").mouseMove();
+    await driver.findContentWait(".grist-floating-menu li", "bar", 1000).mouseMove();
     assert.deepEqual(await getSelected(), ["bar"]);
   });
 });

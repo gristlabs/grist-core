@@ -13,12 +13,22 @@ describe("searchDropdown", function() {
     await driver.get(`${server.getHost()}/searchDropdown`);
   });
 
-  function open() {
-    return driver.findContent("button", "Add column").click();
+  async function open() {
+    await driver.findContent("button", "Add column").click();
+    await driver.wait(isOpened, 1000);
+    const input = driver.find(".test-sd-search input");
+    await driver.wait(() => input.hasFocus(), 1000);
   }
 
   function isOpened() {
     return driver.find(".grist-floating-menu").isPresent();
+  }
+
+  async function shouldPopupEventuallyBeClosed() {
+    await driver.wait(
+      async () => (await isOpened()) === false,
+      1000,
+    );
   }
 
   function findItem(name: string) {
@@ -62,7 +72,7 @@ describe("searchDropdown", function() {
   it("Escape should close", async function() {
     await open();
     await driver.sendKeys(Key.ESCAPE);
-    assert.equal(await isOpened(), false);
+    await shouldPopupEventuallyBeClosed();
   });
 
   it("Should support arrow navigation", async function() {
@@ -108,8 +118,7 @@ describe("searchDropdown", function() {
     await open();
     await driver.sendKeys("Rome");
     await driver.find("div[style*=icon-Search]").click();
+    await driver.sleep(50); // Wait a little bit before checking the state of the popup
     assert.equal(await isOpened(), true);
-    await driver.sendKeys(Key.ESCAPE);
-    assert.equal(await isOpened(), false);
   });
 });
