@@ -30,7 +30,7 @@ import {
 } from "app/common/Triggers";
 import { addCurrentOrgToPath, getGristConfig } from "app/common/urlUtils";
 import { AttachmentStore, AttachmentStoreDesc,  Record as ApiRecord, TablesGet } from "app/plugin/DocApiTypes";
-import { AddOrUpdateRecord } from "app/plugin/DocApiTypes";
+import { AddOrUpdateRecord, BulkAddOrUpdateRecordResult } from "app/plugin/DocApiTypes";
 
 import { AxiosProgressEvent } from "axios";
 import omitBy from "lodash/omitBy";
@@ -554,8 +554,9 @@ export interface DocAPI {
   sql(sql: string, args?: any[]): Promise<SqlResult>;
   updateRows(tableId: string, changes: TableColValues): Promise<number[]>;
   addRows(tableId: string, additions: BulkColValues): Promise<number[]>;
-  addOrUpdateRows(tableId: string, records: AddOrUpdateRecord[],
-    options?: AddOrUpdateRowsOptions): Promise<void>;
+  addOrUpdateRows(
+    tableId: string, records: AddOrUpdateRecord[], options?: AddOrUpdateRowsOptions
+  ): Promise<BulkAddOrUpdateRecordResult>;
   removeRows(tableId: string, removals: number[]): Promise<number[]>;
   fork(): Promise<ForkResult>;
   replace(source: DocReplacementOptions): Promise<void>;
@@ -1171,14 +1172,14 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
 
   public async addOrUpdateRows(
     tableId: string, records: AddOrUpdateRecord[], options: AddOrUpdateRowsOptions = {},
-  ): Promise<void> {
+  ): Promise<BulkAddOrUpdateRecordResult> {
     const params = new URLSearchParams();
     if (options.add === false) { params.set("noadd", "1"); }
     if (options.update === false) { params.set("noupdate", "1"); }
     if (options.onMany !== undefined) { params.set("onmany", options.onMany); }
     if (options.allowEmptyRequire) { params.set("allow_empty_require", "1"); }
     const query = params.toString() ? `?${params.toString()}` : "";
-    await this.requestJson(`${this._url}/tables/${tableId}/records${query}`, {
+    return this.requestJson(`${this._url}/tables/${tableId}/records${query}`, {
       body: JSON.stringify({ records }),
       method: "PUT",
     });

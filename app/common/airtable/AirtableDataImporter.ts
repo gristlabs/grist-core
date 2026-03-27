@@ -8,15 +8,15 @@ import {
 } from "app/common/airtable/AirtableAttachmentTracker";
 import { AirtableDataImportParams } from "app/common/airtable/AirtableDataImporterTypes";
 import {
-  createEmptyBulkColValues,
   extractRefFromRecordField,
   isRefField,
   ReferenceTracker,
   RefValuesByColumnId,
   TableReferenceTracker,
 } from "app/common/airtable/AirtableReferenceTracker";
-import { BulkColValues, CellValue, GristObjCode } from "app/plugin/GristData";
 import { AirtableIdColumnLabel } from "app/common/airtable/AirtableSchemaImporter";
+import { AddOrUpdateRecord } from "app/plugin/DocApiTypes";
+import { CellValue, GristObjCode } from "app/plugin/GristData";
 
 export async function importDataFromAirtableBase(
   { listRecords, addOrUpdateRows, updateRows, uploadAttachment, schemaCrosswalk, onProgress }: AirtableDataImportParams,
@@ -24,7 +24,7 @@ export async function importDataFromAirtableBase(
   const referenceTracker = new ReferenceTracker();
   const attachmentTracker = new AttachmentTracker();
 
-  const addRowsPromises: Promise<any>[] = [];
+  const addOrUpdateRowsPromises: Promise<any>[] = [];
 
   // Verify every table has an airtable ID column.
   let missingIdColumnCount = 0;
@@ -36,7 +36,7 @@ export async function importDataFromAirtableBase(
   if (missingIdColumnCount > 0) {
     // TODO - Raise this issue with the user in a more helpful way. This is just for testing purposes.
     throw new Error(
-      `${missingIdColumnCount} tables are missing an Airtable ID column (labelled ${AirtableIdColumnLabel}`
+      `${missingIdColumnCount} tables are missing an Airtable ID column (labelled ${AirtableIdColumnLabel})`,
     );
   }
 
@@ -76,12 +76,13 @@ export async function importDataFromAirtableBase(
     while (listRecordsResult.records.length > 0) {
       const { records } = listRecordsResult;
 
-      const colValues: BulkColValues = createEmptyBulkColValues(gristColumnIds);
       const airtableRecordIds: string[] = [];
+      const addOrUpdateRecords: AddOrUpdateRecord[] = [];
       const refsByColumnIdForRecords: RefValuesByColumnId[] = [];
       const attachmentsByColumnIdForRecords: AttachmentsByColumnId[] = [];
 
       for (const record of records) {
+        const addOrUpdateRecord: Required<AddOrUpdateRecord> = { require: {}, fields: {} };
         const refsByColumnId: RefValuesByColumnId = {};
         const attachmentsByColumnId: AttachmentsByColumnId = {};
 
@@ -100,7 +101,7 @@ export async function importDataFromAirtableBase(
 
           if (isRefField(airtableField) || isAttachmentField(airtableField)) {
             // Column should remain blank until it's filled in by a later step.
-            colValues[gristColumn.id].push(null);
+            addOrUpdateRecord.fields[gristColumn.id] = null;
             continue;
           }
 
@@ -109,14 +110,14 @@ export async function importDataFromAirtableBase(
 
           const value = converter(fieldMapping.airtableField, record.fields[fieldMapping.airtableField.name]);
 
-          // Always push, even if the value is undefined, so that row values are always at the right index.
-          colValues[fieldMapping.gristColumn.id].push(value ?? null);
+          addOrUpdateRecord.fields[fieldMapping.gristColumn.id] = value ?? null;
         }
 
         if (tableCrosswalk.airtableIdColumn) {
-          colValues[tableCrosswalk.airtableIdColumn.id].push(record.id);
+          addOrUpdateRecord.require[tableCrosswalk.airtableIdColumn.id] = record.id;
         }
 
+        addOrUpdateRecords.push(addOrUpdateRecord);
         refsByColumnIdForRecords.push(refsByColumnId);
         attachmentsByColumnIdForRecords.push(attachmentsByColumnId);
       }
@@ -124,23 +125,25 @@ export async function importDataFromAirtableBase(
       // Need to check if addOrUpdateRows can handle just adding.
       // If so - let's move everything over to record syntax? Maybe Claude can help.
 
-      const addRowsPromise = addOrUpdateRows(tableCrosswalk.gristTable.id, colValues)
-        .then(() => {
-          airtableRecordIds.forEach((airtableRecordId, index) => {
-            // Only add entries to the reference and attachment trackers once we know they're added to the table.
-            referenceTracker.addRecordIdMapping(airtableRecordId, gristRowIds[index]);
-            tableReferenceTracker?.addUnresolvedRecord({
-              gristRecordId: gristRowIds[index],
-              refsByColumnId: refsByColumnIdForRecords[index],
-            });
-            tableAttachmentTracker?.addRecord({
-              gristRecordId: gristRowIds[index],
-              attachmentsByColumnId: attachmentsByColumnIdForRecords[index],
-            });
+      const addOrUpdateRowsPromise = addOrUpdateRows(
+        tableCrosswalk.gristTable.id, addOrUpdateRecords, { onMany: "first" },
+      ).then((result) => {
+        airtableRecordIds.forEach((airtableRecordId, index) => {
+          const gristRecordId = result.recordIds[index][0];
+          // Only add entries to the reference and attachment trackers once we know they're added to the table.
+          referenceTracker.addRecordIdMapping(airtableRecordId, gristRecordId);
+          tableReferenceTracker?.addUnresolvedRecord({
+            gristRecordId,
+            refsByColumnId: refsByColumnIdForRecords[index],
+          });
+          tableAttachmentTracker?.addRecord({
+            gristRecordId,
+            attachmentsByColumnId: attachmentsByColumnIdForRecords[index],
           });
         });
+      });
 
-      addRowsPromises.push(addRowsPromise);
+      addOrUpdateRowsPromises.push(addOrUpdateRowsPromise);
 
       listRecordsResult = await listRecordsResult.fetchNextPage();
     }
@@ -148,7 +151,7 @@ export async function importDataFromAirtableBase(
 
   // Future improvement - report all errors here using Promise.allSettled, or continue even if
   //                      a few sets of rows throw errors
-  await Promise.all(addRowsPromises);
+  await Promise.all(addOrUpdateRowsPromises);
 
   for (const tableReferenceTracker of referenceTracker.getTables()) {
     await tableReferenceTracker.bulkUpdateRowsWithUnresolvedReferences(updateRows);
