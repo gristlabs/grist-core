@@ -16,7 +16,7 @@ export interface ICommonUrls {
   helpUnderstandingReferenceColumns: string;
   helpTriggerFormulas: string;
   helpTryingOutChanges: string;
-  helpWebhooks: string;
+  helpAutomations: string;
   helpWidgets: string;
   helpCustomWidgets: string;
   helpInstallAuditLogs: string;
