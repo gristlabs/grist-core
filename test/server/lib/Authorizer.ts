@@ -6,7 +6,7 @@ import { TestSession } from "test/gen-server/apiUtils";
 import { createInitialDb, removeConnection, setUpDB } from "test/gen-server/seed";
 import { configForUser, getGristConfig } from "test/gen-server/testUtils";
 import { createDocTools } from "test/server/docTools";
-import { openClient } from "test/server/gristClient";
+import { GristClient, openClient } from "test/server/gristClient";
 import * as testUtils from "test/server/testUtils";
 
 import axios from "axios";
@@ -47,6 +47,10 @@ async function activateServer(home: FlexServer, docManager: DocManager) {
   await home.finalizePlugins(null);
   home.setReady(true);
   serverUrl = home.getOwnUrl();
+}
+
+function countSessions(flexServer: FlexServer = server) {
+  return flexServer.getSessions()["_sessions"].size;
 }
 
 const chimpy = configForUser("Chimpy");
@@ -151,6 +155,23 @@ describe("Authorizer", function() {
     assert.equal(resp.status, 404);
   });
 
+  it("does not generate sessions when calling the API with an authorization header", async function() {
+    const nbSessionsBefore = countSessions();
+    const resp = await axios.get(`${serverUrl}/o/pr`, chimpy);
+    const nbSessionsAfter = countSessions();
+    assert.equal(resp.status, 200);
+    assert.equal(nbSessionsAfter, nbSessionsBefore, "No new session should have been created during the API call");
+  });
+
+  it("does generate a session when calling the API with a cookie", async function() {
+    const nbSessionsBefore = countSessions();
+    const resp = await axios.get(`${serverUrl}/o/pr`, await getChimpyCookie());
+    const nbSessionsAfter = countSessions();
+    assert.equal(resp.status, 200);
+    assert.equal(nbSessionsAfter, nbSessionsBefore + 1,
+      "A new session should have been created during the API call with cookie");
+  });
+
   it("websocket allows openDoc for viewer", async function() {
     const cli = await openClient(server, "chimpy@getgrist.com", "pr");
     cli.ignoreTrivialActions();
@@ -209,6 +230,36 @@ describe("Authorizer", function() {
     assert.equal(fetchTable.error, undefined);
     assert.include(JSON.stringify(fetchTable.data), nonce);
     await cli.close();
+  });
+
+  it("websocket creates a new session except for anonymous users", async function() {
+    const authHeader = "X-email";
+    process.env.GRIST_PROXY_AUTH_HEADER = authHeader;
+    let localServer: FlexServer | null = null;
+    let cli: GristClient | null = null;
+    try {
+      localServer = new FlexServer(0);
+      await activateServer(localServer, docTools.getDocManager());
+
+      const nbSessionBefore = countSessions(localServer);
+      cli = await openClient(localServer, "chimpy@getgrist.com", "nasa", authHeader);
+      const nbSessionAfterChimpyOpenedClient = countSessions(localServer);
+      assert.equal(nbSessionAfterChimpyOpenedClient, nbSessionBefore + 1, "Chimpy should have created a new session");
+
+      // Create another session
+      await cli.close();
+      cli = await openClient(localServer, "anon@getgrist.com", "nasa", authHeader);
+
+      const nbSessionAfterAnonOpenedClient = countSessions(localServer);
+      assert.equal(nbSessionAfterAnonOpenedClient, nbSessionAfterChimpyOpenedClient,
+        "Anon should NOT have created a new session");
+    } finally {
+      await cli?.close();
+      await localServer?.close();
+
+      // Restore previous server
+      await activateServer(server, docTools.getDocManager());
+    }
   });
 
   it("can keep different simultaneous clients of a doc straight", async function() {
