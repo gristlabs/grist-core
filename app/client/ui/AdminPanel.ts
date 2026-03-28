@@ -2,10 +2,11 @@ import { buildHomeBanners } from "app/client/components/Banners";
 import { makeT } from "app/client/lib/localization";
 import { markdown } from "app/client/lib/markdown";
 import { getTimeFromNow } from "app/client/lib/timeUtils";
-import { AdminCheckRequest, AdminChecks, probeDetails, ProbeDetails } from "app/client/models/AdminChecks";
+import { AdminChecks, ProbeDetails } from "app/client/models/AdminChecks";
 import { AppModel, getHomeUrl, reportError } from "app/client/models/AppModel";
 import { AuditLogsModel, AuditLogsModelImpl } from "app/client/models/AuditLogsModel";
 import { urlState } from "app/client/models/gristUrlState";
+import { AccountWidget } from "app/client/ui/AccountWidget";
 import { cssEmail, cssUserInfo, cssUserName } from "app/client/ui/AccountWidgetCss";
 import { showEnterpriseToggle } from "app/client/ui/ActivationPage";
 import { buildAdminData } from "app/client/ui/AdminControls";
@@ -26,9 +27,14 @@ import {
 import { getAdminPanelName } from "app/client/ui/AdminPanelName";
 import { App } from "app/client/ui/App";
 import { AuditLogStreamingConfig, getDestinationDisplayName } from "app/client/ui/AuditLogStreamingConfig";
-import { AuthenticationSection } from "app/client/ui/AuthenticationSection";
+import { AuthConfigurator } from "app/client/ui/AuthConfigurator";
 import { InstallConfigsAPI } from "app/client/ui/ConfigsAPI";
 import { pagePanels } from "app/client/ui/PagePanels";
+import { PermissionsConfigurator } from "app/client/ui/PermissionsConfigurator";
+import { SandboxConfigurator } from "app/client/ui/SandboxConfigurator";
+import { ServerConfigurator } from "app/client/ui/ServerConfigurator";
+import { buildSetupWizard } from "app/client/ui/SetupWizard";
+import { StorageConfigurator } from "app/client/ui/StorageConfigurator";
 import { SupportGristPage } from "app/client/ui/SupportGristPage";
 import { ToggleEnterpriseWidget } from "app/client/ui/ToggleEnterpriseWidget";
 import { createTopBarHome } from "app/client/ui/TopBar";
@@ -45,7 +51,6 @@ import { ConfigAPI } from "app/common/ConfigAPI";
 import { delay } from "app/common/delay";
 import { AdminPanelPage, commonUrls, getPageTitleSuffix, LatestVersionAvailable } from "app/common/gristUrls";
 import { InstallAPI, InstallAPIImpl } from "app/common/InstallAPI";
-import { MINIMAL_PROVIDER_KEY } from "app/common/loginProviders";
 import { InstallAdminInfo } from "app/common/LoginSessionAPI";
 import { getGristConfig } from "app/common/urlUtils";
 import * as version from "app/common/version";
@@ -69,19 +74,27 @@ export class AdminPanel extends Disposable {
 
   public buildDom() {
     const pageObs = Computed.create(this, use => use(urlState().state).adminPanel || "admin");
+    const leftPanel = buildAdminLeftPanel(this, this._appModel);
     return pagePanels({
-      leftPanel: buildAdminLeftPanel(this, this._appModel),
-      headerMain: this._buildMainHeader(pageObs),
+      leftPanel,
+      headerMain: this._buildMainHeader(pageObs, leftPanel.collapsedWidth),
       contentTop: buildHomeBanners(this._appModel),
       contentMain: this._buildMainContent(),
       app: this._appObj,
     });
   }
 
-  private _buildMainHeader(pageObs: Computed<AdminPanelPage>) {
+  private _buildMainHeader(pageObs: Computed<AdminPanelPage>, collapsedWidth?: Observable<number>) {
     const pageNames = getPageNames();
+    // When the left panel is fully collapsed (collapsedWidth === 0), hide the breadcrumbs
+    // and extra buttons so the top bar is mostly empty — just the opener on the left
+    // and user account on the right.
+    const isFullyCollapsed = collapsedWidth ?
+      Computed.create(this, use => use(collapsedWidth) === 0) :
+      Observable.create(this, false);
     return [
       cssBreadcrumbs({ style: "margin-left: 16px;" },
+        dom.show(use => !use(isFullyCollapsed)),
         cssLink(
           urlState().setLinkUrl({}),
           t("Grist Instance"),
@@ -93,19 +106,31 @@ export class AdminPanel extends Disposable {
         separator(" / "),
         dom("span", dom.domComputed(use => pageNames.pages[use(pageObs)].name)),
       ),
-      createTopBarHome(this._appModel),
+      dom.domComputed(isFullyCollapsed, (collapsed) => {
+        if (collapsed) {
+          // Minimal header: just a spacer and account widget.
+          return [dom("div", { style: "flex: 1;" }), dom("div", dom.create(AccountWidget, this._appModel))];
+        }
+        return createTopBarHome(this._appModel);
+      }),
     ];
   }
 
   private _buildMainContent() {
     return cssPageContainer(
-      // Setting tabIndex allows selecting and copying text. This is helpful on admin pages, e.g.
-      // to copy GRIST_BOOT_KEY or version number. But we don't set it for buidAdminData() pages
-      // because it messes with focus in GridViews, and its unclear how to undo its effect.
-      dom.attr("tabindex", use => use(this._page) === "admin" ? "-1" : null as any),
+      // Setting tabIndex allows selecting and copying text. This is helpful on admin/setup pages,
+      // e.g. to copy env var names or error messages. But we don't set it for buildAdminData()
+      // pages because it messes with focus in GridViews, and its unclear how to undo its effect.
+      dom.attr("tabindex", (use) => {
+        const page = use(this._page);
+        return (page === "admin" || page === "setup") ? "-1" : null as any;
+      }),
 
-      dom.domComputed(use => use(this._page) === "admin", (isInstallationAdminPage) => {
-        return isInstallationAdminPage ?
+      dom.domComputed(this._page, (page) => {
+        if (page === "setup") {
+          return buildSetupWizard(this, this._appModel);
+        }
+        return page === "admin" ?
           dom.create(AdminInstallationPanel, this._appModel) :
           dom.create(buildAdminData, this._appModel);
       }),
@@ -125,22 +150,18 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
   private _checks: AdminChecks;
   private readonly _installAPI: InstallAPI = new InstallAPIImpl(getHomeUrl());
   private readonly _configAPI: ConfigAPI = new ConfigAPI(getHomeUrl());
-  private _authCheck: Observable<AdminCheckRequest | undefined>;
-  private _loginProvider: Observable<string | undefined>;
+  private _serverConfigurator = ServerConfigurator.create(this, this._installAPI);
+  private _sandboxConfigurator = SandboxConfigurator.create(this, this._installAPI);
+  private _storageConfigurator = StorageConfigurator.create(this, this._installAPI);
+  private _authConfigurator: AuthConfigurator;
+  private _permissions = new PermissionsConfigurator(this, this._installAPI);
 
   constructor(private _appModel: AppModel) {
     super();
     this._checks = new AdminChecks(this, this._installAPI);
-    this._authCheck = Computed.create(this, (use) => {
-      return this._checks.requestCheckById(use, "authentication");
-    });
-    this._loginProvider = Computed.create(this, (use) => {
-      const req = use(this._authCheck);
-      const result = req ? use(req.result) : undefined;
-      if (result?.status === "success") {
-        return result.details?.provider;
-      }
-      return undefined;
+    this._authConfigurator = AuthConfigurator.create(this, this._installAPI, this._appModel, {
+      mode: "panel",
+      controls: this,
     });
   }
 
@@ -152,11 +173,18 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
     // If probes are available, show the panel as normal.
     // Otherwise say it is unavailable, and describe a fallback
     // mechanism for access.
-    return dom.maybe(use => use(this._checks.probes), probes => [
-      (probes as any[]).length > 0 ?
-        this._buildMainContentForAdmin() :
-        this._buildMainContentForOthers(),
-    ]);
+    return dom.maybe(use => use(this._checks.probes), (probes) => {
+      if ((probes as any[]).length > 0) {
+        // Start shared component probes only when we know the user is an admin.
+        void this._serverConfigurator.load();
+        void this._sandboxConfigurator.probe();
+        void this._authConfigurator.probe();
+        void this._storageConfigurator.probe();
+        void this._permissions.load();
+        return this._buildMainContentForAdmin();
+      }
+      return this._buildMainContentForOthers();
+    });
   }
 
   public async restartGrist(): Promise<void> {
@@ -192,16 +220,18 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
    * which could include a legit administrator if auth is misconfigured.
    */
   private _buildMainContentForOthers() {
-    const exampleKey = _longCodeForExample();
     return dom.create(AdminSection, t("Administrator Panel Unavailable"), [
       dom("p", t(`You do not have access to the administrator panel.
 Please log in as an administrator.`)),
       dom(
         "p",
-        t(`Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}`, {
-          bootKey: dom("pre", `GRIST_BOOT_KEY=${exampleKey}`),
-          url: dom("pre", `/admin?boot-key=${exampleKey}`),
-        }),
+        t(`If you are the server operator, you can sign in using the boot key from your server logs:`),
+      ),
+      dom("p",
+        dom("a",
+          { href: "/auth/boot-key", style: "font-weight: 600;" },
+          t("Sign in with boot key"),
+        ),
       ),
       testId("admin-panel-error"),
     ]);
@@ -258,6 +288,17 @@ Please log in as an administrator.`)),
           expandedContent: this._supportGrist.buildSponsorshipSection(),
         }),
       ]),
+      this._buildMaintenanceSection(),
+      dom.create(AdminSection, t("Server"), [
+        dom.create(AdminSectionItem, {
+          id: "home-url",
+          name: t("Base URL"),
+          description: t("The URL where users and integrations reach this server"),
+          value: this._serverConfigurator.buildStatusDisplay(),
+          expandedContent: this._serverConfigurator.buildDom({ showSaveButton: true }),
+        }),
+        this._maybeAddEnterpriseToggle(),
+      ]),
       dom.create(AdminSection, t("Security Settings"), [
         dom.create(AdminSectionItem, {
           id: "admins",
@@ -271,14 +312,14 @@ Please log in as an administrator.`)),
           name: t("Sandboxing"),
           description: t("Sandbox settings for data engine"),
           value: this._buildSandboxingDisplay(),
-          expandedContent: this._buildSandboxingNotice(),
+          expandedContent: this._sandboxConfigurator.buildDom(),
         }),
         dom.create(AdminSectionItem, {
           id: "authentication",
           name: t("Authentication"),
           description: t("Current authentication method"),
-          value: this._buildAuthenticationDisplay(),
-          expandedContent: this._buildAuthenticationPanelExtraContent(),
+          value: this._authConfigurator.buildStatusDisplay(),
+          expandedContent: this._authConfigurator.buildDom(),
         }),
         dom.create(AdminSectionItem, {
           id: "session",
@@ -286,6 +327,29 @@ Please log in as an administrator.`)),
           description: t("Key to sign sessions with"),
           value: this._buildSessionSecretDisplay(),
           expandedContent: this._buildSessionSecretNotice(),
+        }),
+        dom.create(AdminSectionItem, {
+          id: "boot-key",
+          name: t("Boot Key"),
+          description: t("Key for initial setup and emergency access"),
+          value: this._buildBootKeyDisplay(),
+          expandedContent: this._buildBootKeyDetail(),
+        }),
+        dom.create(AdminSectionItem, {
+          id: "permissions",
+          name: t("Default Permissions"),
+          description: t("Controls for team creation, personal sites, and anonymous access"),
+          value: this._buildPermissionsDisplay(),
+          expandedContent: this._permissions.buildDom({ showSaveButton: true }),
+        }),
+      ]),
+      dom.create(AdminSection, t("External Storage"), [
+        dom.create(AdminSectionItem, {
+          id: "storage",
+          name: t("Document Storage"),
+          description: t("External storage for document snapshots and backups"),
+          value: this._storageConfigurator.buildStatusDisplay(),
+          expandedContent: this._storageConfigurator.buildDom({ showAction: false }),
         }),
       ]),
       this._buildAuditLogsSection(),
@@ -296,7 +360,6 @@ Please log in as an administrator.`)),
           description: t("Current version of Grist"),
           value: cssValueLabel(t("Version {{versionNumber}}", { versionNumber: version.version })),
         }),
-        this._maybeAddEnterpriseToggle(),
         dom.create(this._buildUpdates.bind(this)),
       ]),
       dom.create(AdminSection, t("Self Checks"), [
@@ -367,19 +430,6 @@ Please log in as an administrator.`)),
     );
   }
 
-  private _buildSandboxingNotice() {
-    return [
-      // Use AdminChecks text for sandboxing, in order not to
-      // duplicate.
-      probeDetails.sandboxing.info,
-      dom(
-        "div",
-        { style: "margin-top: 8px" },
-        cssLink({ href: commonUrls.helpSandboxing, target: "_blank" }, t("Learn more.")),
-      ),
-    ];
-  }
-
   private _buildAdminUsersComputed(
     use: UseCBOwner,
     renderSuccess: (users: InstallAdminInfo[]) => Element,
@@ -437,64 +487,6 @@ Please log in as an administrator.`)),
     );
   }
 
-  private _buildAuthenticationDisplay() {
-    return dom.domComputed(
-      (use) => {
-        const req = use(this._authCheck);
-        const result = req ? use(req.result) : undefined;
-        if (!result) {
-          return cssValueLabel(
-            cssErrorText(t("unavailable")),
-            testId("admin-panel-value-label-error"),
-          );
-        }
-
-        const { status, details, verdict } = result;
-        const success = status === "success";
-
-        const provider = details?.provider ?? details?.label;
-
-        if (!success && !provider) {
-          return cssValueLabel(
-            cssErrorText(t("auth error")),
-            verdict ? { title: verdict } : undefined,
-            testId("admin-panel-value-label-error"),
-          );
-        }
-
-        if (provider === MINIMAL_PROVIDER_KEY) {
-          return cssValueLabel(
-            cssDangerText(t("no authentication")),
-            verdict ? { title: verdict } : undefined,
-            testId("admin-panel-value-label-danger"),
-          );
-        }
-
-        if (!success) {
-          return cssValueLabel(
-            cssErrorText(t("auth error")),
-            verdict ? { title: t("error in {{provider}}: {{verdict}}", { provider, verdict }) } : undefined,
-            testId("admin-panel-value-label-error"),
-          );
-        }
-
-        return cssValueLabel(
-          cssHappyText(provider),
-          testId("admin-panel-value-label-success"),
-        );
-      },
-    );
-  }
-
-  private _buildAuthenticationPanelExtraContent() {
-    return dom.create(AuthenticationSection, {
-      appModel: this._appModel,
-      loginSystemId: this._loginProvider,
-      controls: this,
-      installAPI: this._installAPI,
-    });
-  }
-
   private _buildSessionSecretDisplay() {
     return dom.domComputed(
       (use) => {
@@ -514,6 +506,167 @@ Please log in as an administrator.`)),
     return t("Grist signs user session cookies with a secret key. Please set this key via the environment variable \
 GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice \
 in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.");
+  }
+
+  private _buildPermissionsDisplay() {
+    return dom.domComputed((use) => {
+      const profile = use(this._permissions.activeProfile);
+      if (profile === "locked-down") { return cssValueLabel(t("Locked down")); }
+      if (profile === "recommended") { return cssValueLabel(t("Recommended")); }
+      if (profile === "open") { return cssValueLabel(t("Open")); }
+      return cssValueLabel(t("Custom"));
+    });
+  }
+
+  private _buildBootKeyDisplay() {
+    return dom.domComputed(
+      (use) => {
+        const req = this._checks.requestCheckById(use, "boot-key");
+        const result = req ? use(req.result) : undefined;
+        if (!result) { return cssValueLabel(t("loading...")); }
+
+        const details = result.details as { set: boolean; source: string } | undefined;
+        if (!details?.set) {
+          return cssValueLabel(cssHappyText(t("not set")));
+        }
+        if (details.source === "env") {
+          return cssValueLabel(cssHappyText(t("set via environment")));
+        }
+        return cssValueLabel(cssDangerText(t("auto-generated")));
+      },
+    );
+  }
+
+  private _buildBootKeyDetail() {
+    const working = Observable.create(null, false);
+    const actionDone = Observable.create<"cleared" | "generated" | null>(null, null);
+    const generatedKey = Observable.create<string>(null, "");
+
+    const refreshProbe = async () => {
+      try {
+        const result = await this._installAPI.runCheck("boot-key");
+        const probe = this._checks.probes.get().find(p => p.id === "boot-key");
+        if (probe) {
+          const req = this._checks.requestCheck(probe);
+          req.result.set(result);
+        }
+      } catch (e) {
+        // Not critical — the display just won't update.
+      }
+    };
+
+    const callBootKeyApi = async (action: "generate" | "clear") => {
+      working.set(true);
+      try {
+        const resp = await fetch(getHomeUrl() + `/api/admin/boot-key/${action}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: "{}",
+        });
+        if (!resp.ok) { throw new Error(await resp.text()); }
+        if (action === "generate") {
+          const body = await resp.json();
+          generatedKey.set(body.bootKey || "");
+        }
+        actionDone.set(action === "clear" ? "cleared" : "generated");
+      } catch (e) {
+        reportError(e as Error);
+      } finally {
+        working.set(false);
+      }
+    };
+
+    return dom.domComputed(
+      (use) => {
+        const req = this._checks.requestCheckById(use, "boot-key");
+        const result = req ? use(req.result) : undefined;
+        const details = result?.details as { set: boolean; source: string } | undefined;
+        const done = use(actionDone);
+
+        if (done === "cleared") {
+          return dom("div",
+            dom("div",
+              cssHappyText(t("Boot key cleared.")),
+              " " + t("It will no longer be active after the next restart."),
+            ),
+            dom("div",
+              { style: "margin-top: 12px;" },
+              basicButton(t("OK"), dom.on("click", async () => {
+                actionDone.set(null);
+                await refreshProbe();
+              })),
+            ),
+          );
+        }
+        if (done === "generated") {
+          const key = use(generatedKey);
+          return dom("div",
+            dom("div",
+              cssHappyText(t("Boot key generated.")),
+              " " + t("Copy it now — it will not be shown again."),
+            ),
+            key ? cssBootKeyValue(key, testId("boot-key-value")) : null,
+            dom("div",
+              t("You can use it to sign in at /auth/boot-key when no other authentication is configured. ") +
+              t("It will also appear in the server logs on startup."),
+            ),
+            dom("div",
+              { style: "margin-top: 12px;" },
+              basicButton(t("OK"), dom.on("click", async () => {
+                actionDone.set(null);
+                generatedKey.set("");
+                await refreshProbe();
+              })),
+            ),
+          );
+        }
+
+        if (!details?.set) {
+          return dom("div",
+            dom("div",
+              t("No boot key is active. Without a boot key, the emergency login system at /auth/boot-key ") +
+              t("is unavailable. You can set one via the GRIST_BOOT_KEY environment variable, or generate ") +
+              t("one that will be stored in the database."),
+            ),
+            dom("div",
+              { style: "margin-top: 12px;" },
+              basicButton(
+                dom.domComputed(working, w => w ? t("Generating...") : t("Generate boot key")),
+                dom.prop("disabled", working),
+                dom.on("click", () => callBootKeyApi("generate")),
+                testId("boot-key-generate"),
+              ),
+            ),
+          );
+        }
+
+        if (details.source === "env") {
+          return dom("div",
+            t("The boot key is explicitly set via the GRIST_BOOT_KEY environment variable. ") +
+            t("To remove it, unset the variable and restart Grist."),
+          );
+        }
+
+        // Auto-generated boot key — offer to clear it.
+        return dom("div",
+          dom("div",
+            t("An auto-generated boot key is stored in the database. Anyone with access to the server logs ") +
+            t("can use it to sign in as admin. If you no longer need it, clear it to avoid leaving ") +
+            t("credentials lying around."),
+          ),
+          dom("div",
+            { style: "margin-top: 12px;" },
+            basicButton(
+              dom.domComputed(working, w => w ? t("Clearing...") : t("Clear boot key")),
+              dom.prop("disabled", working),
+              dom.on("click", () => callBootKeyApi("clear")),
+              testId("boot-key-clear"),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   private _buildUpdates(owner: MultiHolder) {
@@ -827,6 +980,127 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
     }
   }
 
+  private _buildMaintenanceSection() {
+    const status = Observable.create<"idle" | "working">(this, "idle");
+    const inService = Observable.create<boolean | null>(this, null);
+
+    // Fetch current service state.
+    void this._configAPI.getMaintenanceMode()
+      .then(result => inService.set(result.inService))
+      .catch(() => inService.set(null));
+
+    return dom.domComputed(inService, (isInService) => {
+      if (isInService === null) {
+        // Still loading — show an empty section placeholder.
+        return dom.create(AdminSection, t("Maintenance"), []);
+      }
+      if (!isInService) {
+        // OUT OF SERVICE — prominent card with action button directly visible.
+        return dom.create(AdminSection, t("Maintenance"), [
+          cssOutOfServiceCard(
+            cssOutOfServiceHeader(
+              cssOutOfServiceIcon("Warning"),
+              cssOutOfServiceTitle(t("Grist is out of service")),
+              testId("admin-panel-service-status"),
+            ),
+            cssOutOfServiceBody(
+              t("Non-admin users are blocked. Documents and the API are not accessible " +
+                "until Grist is put into service."),
+            ),
+            cssOutOfServiceActions(
+              bigPrimaryButton(
+                t("Put into service"),
+                dom.prop("disabled", use => use(status) === "working"),
+                dom.on("click", () => {
+                  confirmModal(
+                    t("Put Grist into service?"),
+                    t("Confirm"),
+                    async () => {
+                      status.set("working");
+                      try {
+                        await this._configAPI.setMaintenanceMode(false);
+                        await this._configAPI.restartServer();
+                      } catch (err) {
+                        // Restart kills the connection, so errors are expected.
+                      }
+                      // Poll until the server is back, then reload.
+                      const poll = setInterval(async () => {
+                        try {
+                          await this._configAPI.healthcheck();
+                          clearInterval(poll);
+                          window.location.reload();
+                        } catch { /* not ready yet */ }
+                      }, 1000);
+                    },
+                    {
+                      explanation: dom("div",
+                        dom("p",
+                          t("This will make Grist available to all users. " +
+                            "Before proceeding, confirm that:"),
+                        ),
+                        cssConfirmList(
+                          dom("li", t("Authentication is configured correctly")),
+                          dom("li", t("Sandboxing is enabled for untrusted documents")),
+                          dom("li", t("Default permissions are appropriate")),
+                        ),
+                      ),
+                    },
+                  );
+                }),
+                testId("admin-panel-restore-button"),
+              ),
+            ),
+          ),
+        ]);
+      }
+      // IN SERVICE — compact row, destructive action tucked behind collapse.
+      return dom.create(AdminSection, t("Maintenance"), [
+        dom.create(AdminSectionItem, {
+          id: "maintenance-mode",
+          name: t("Service"),
+          description: t("Grist is running normally."),
+          value: cssValueLabel(cssHappyText(t("In service")),
+            testId("admin-panel-service-status")),
+          expandedContent: dom("div",
+            dom("p", cssMaintenanceHint(
+              t("Taking Grist out of service blocks all non-admin access. " +
+                "Use this for maintenance windows or when switching auth providers."),
+            )),
+            basicButton(
+              t("Take out of service"),
+              dom.cls("admin-panel-maintenance-button"),
+              dom.prop("disabled", use => use(status) === "working"),
+              dom.on("click", () => {
+                confirmModal(
+                  t("Take out of service?"),
+                  t("Confirm"),
+                  async () => {
+                    status.set("working");
+                    try {
+                      await this._configAPI.setMaintenanceMode(true);
+                      window.location.href = "/admin";
+                    } catch (err) {
+                      status.set("idle");
+                      reportError(err as Error);
+                    }
+                  },
+                  {
+                    explanation: dom("div",
+                      dom("p",
+                        t("Non-admin users will see a maintenance page until Grist is put back into service."),
+                      ),
+                    ),
+                  },
+                );
+              }),
+              testId("admin-panel-maintenance-button"),
+            ),
+          ),
+        }),
+      ]);
+    });
+  }
+
   private _buildAuditLogsSection() {
     const { deploymentType } = getGristConfig();
     switch (deploymentType) {
@@ -908,11 +1182,13 @@ learn more.",
   }
 }
 
-// Ugh I'm not a front end person. h5 small-caps, sure why not.
-// Hopefully someone with taste will edit someday!
 const cssCheckHeader = styled("h5", `
-  margin-bottom: 5px;
-  font-variant: small-caps;
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: ${theme.lightText};
 `);
 
 const cssStatus = styled("div", `
@@ -931,6 +1207,11 @@ const cssPageContainer = styled("div", `
   font-size: ${vars.introFontSize};
   color: ${theme.text};
   outline: none;
+  background: radial-gradient(
+    ellipse at 50% 0%,
+    color-mix(in srgb, ${theme.controlPrimaryBg} 5%, transparent) 0%,
+    transparent 70%
+  );
 
   &-admin-pages {
     padding: 12px;
@@ -977,6 +1258,18 @@ const cssDangerText = styled("div", `
 
 const cssHappyText = styled("span", `
   color: ${theme.controlFg};
+`);
+
+const cssBootKeyValue = styled("div", `
+  font-family: monospace;
+  font-size: ${vars.mediumFontSize};
+  padding: 8px 12px;
+  margin: 8px 0;
+  background: ${theme.inputBg};
+  border: 1px solid ${theme.inputBorder};
+  border-radius: 4px;
+  user-select: all;
+  word-break: break-all;
 `);
 
 const cssLabel = styled("div", `
@@ -1026,20 +1319,58 @@ const cssAdminAccountItemPart = styled("span", `
   }
 `);
 
-/**
- * Make a long code to use in the example, so that if people copy
- * and paste it lazily, they end up decently secure, or at least a
- * lot more secure than a key like "REPLACE_WITH_YOUR_SECRET"
- */
-function _longCodeForExample() {
-  // Crypto in insecure contexts doesn't have randomUUID
-  if (window.isSecureContext) {
-    return "example-a" + window.crypto.randomUUID();
-  }
-  return "example-b" + "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx".replace(/x/g, () => {
-    return Math.floor(Math.random() * 16).toString(16);
-  });
-}
+// Out-of-service card: prominent, warm warning with direct action.
+const cssOutOfServiceCard = styled("div", `
+  padding: 20px 24px;
+  background: #fef7e0;
+  border: 1px solid #f0d78e;
+  border-radius: 8px;
+  border-left: 4px solid #b45309;
+`);
+
+const cssOutOfServiceHeader = styled("div", `
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+`);
+
+const cssOutOfServiceIcon = styled(icon, `
+  width: 20px;
+  height: 20px;
+  --icon-color: #b45309;
+  flex-shrink: 0;
+`);
+
+const cssOutOfServiceTitle = styled("div", `
+  font-size: 15px;
+  font-weight: 600;
+  color: #92400e;
+`);
+
+const cssOutOfServiceBody = styled("div", `
+  font-size: 13px;
+  color: #78350f;
+  line-height: 1.5;
+  margin-bottom: 16px;
+`);
+
+const cssOutOfServiceActions = styled("div", `
+  display: flex;
+  gap: 12px;
+`);
+
+const cssConfirmList = styled("ul", `
+  margin: 8px 0 0 0;
+  padding-left: 20px;
+  line-height: 1.6;
+`);
+
+const cssMaintenanceHint = styled("span", `
+  color: ${theme.lightText};
+  font-size: 13px;
+  line-height: 1.5;
+`);
 
 async function reloadSafe() {
   // Reload the page.

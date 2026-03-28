@@ -60,6 +60,8 @@ export const ICommonUrls = t.iface([], {
   "attachmentStorage": "string",
   "signInWithGristRegister": "string",
   "signInWithGristHelp": "string",
+  "enterpriseKeyFaq": "string",
+  "githubBuildFromSource": "string",
 });
 
 const exportedTypeSuite: t.ITypeSuite = {
