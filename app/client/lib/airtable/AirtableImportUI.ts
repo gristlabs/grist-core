@@ -730,7 +730,9 @@ Your token is never sent to Grist's servers, and is only used to make API calls 
             structureOnly: false,
           }),
         })));
-      } catch {
+      } catch (e) {
+        // Log error to console so the root cause of the issue is available somewhere.
+        console.error(e);
         throw new Error(t("Failed to fetch base schema"));
       }
     }, { loading: this._loadingBaseSchema });
