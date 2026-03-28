@@ -108,6 +108,7 @@ namespace gristUtils {
   export const openAccountMenu = webdriverUtils.openAccountMenu.bind(webdriverUtils);
   export const openProfileSettingsPage = webdriverUtils.openProfileSettingsPage.bind(webdriverUtils);
   export const undo = webdriverUtils.undo.bind(webdriverUtils);
+  export const resizeWindowForSuite = webdriverUtils.resizeWindowForSuite.bind(webdriverUtils);
   export const bigScreen = webdriverUtils.bigScreen.bind(webdriverUtils);
   export const narrowScreen = webdriverUtils.narrowScreen.bind(webdriverUtils);
   export const exactMatch = webdriverUtils.exactMatch.bind(webdriverUtils);

@@ -50,15 +50,24 @@ setOptionsModifyFunc(({ chromeOpts, firefoxOpts }) => {
     });
   }
 
-  chromeOpts.enableBidi();
-  chromeOpts.set(Capability.UNHANDLED_PROMPT_BEHAVIOR, {
-    alert: "ignore",
-    beforeUnload: "ignore",
-    confirm: "ignore",
-    default: "ignore",
-    file: "ignore",
-    prompt: "ignore",
-  });
+  // TODO: Remove any after mocha-webdriver in private repo is upgraded to match
+  // version in gristlabs/grist-core.
+  (chromeOpts as any).enableBidi?.();
+
+  // TODO: Remove GRIST_TEST_LEGACY_UNHANDLED_PROMPT_BEHAVIOR after mocha-webdriver
+  // in private repo is upgraded to match version in gristlabs/grist-core.
+  if (process.env.GRIST_TEST_LEGACY_UNHANDLED_PROMPT_BEHAVIOR) {
+    chromeOpts.set(Capability.UNHANDLED_PROMPT_BEHAVIOR, "ignore");
+  } else {
+    chromeOpts.set(Capability.UNHANDLED_PROMPT_BEHAVIOR, {
+      alert: "ignore",
+      beforeUnload: "ignore",
+      confirm: "ignore",
+      default: "ignore",
+      file: "ignore",
+      prompt: "ignore",
+    });
+  }
 
   if (process.env.GRIST_TEST_FORCE_LIGHT_MODE) {
     chromeOpts.addArguments(

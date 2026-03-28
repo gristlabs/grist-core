@@ -1,7 +1,7 @@
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
 
-import { assert, By, chromium, driver, Key } from "mocha-webdriver";
+import { assert, By, driver, Key } from "mocha-webdriver";
 
 const findSyncWithOSCheckbox = () => driver.find(".test-theme-config-sync-with-os");
 const appearanceSelectCssSelector = ".test-theme-config-appearance .test-select-open:not(.disabled)";
@@ -83,15 +83,18 @@ describe("Themes", function() {
       await assertAppliedTheme("GristLight");
 
       // if using chromium web driver, fake the system color scheme to dark and wait for the theme to change
-      if ((driver as chromium.ChromiumWebDriver).sendDevToolsCommand) {
-        await (driver as chromium.ChromiumWebDriver).sendDevToolsCommand("Emulation.setEmulatedMedia", { features: [
+      //
+      // TODO: Replace any with chromium.ChromiumWebDriver after mocha-webdriver in private repo is upgraded
+      // to match version in gristlabs/grist-core.
+      if ((driver as any).sendDevToolsCommand) {
+        await (driver as any).sendDevToolsCommand("Emulation.setEmulatedMedia", { features: [
           { name: "prefers-color-scheme", value: "dark" },
         ] });
         await driver.sleep(500);
         await assertAppliedTheme("GristDark");
 
         // reset back to default light system appearance
-        await (driver as chromium.ChromiumWebDriver).sendDevToolsCommand("Emulation.setEmulatedMedia", { features: [
+        await (driver as any).sendDevToolsCommand("Emulation.setEmulatedMedia", { features: [
           { name: "prefers-color-scheme", value: "light" },
         ] });
         await driver.sleep(500);
