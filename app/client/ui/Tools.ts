@@ -3,6 +3,7 @@ import { GristDoc } from "app/client/components/GristDoc";
 import { makeT } from "app/client/lib/localization";
 import { urlState } from "app/client/models/gristUrlState";
 import { getUserOrgPrefObs, markAsSeen } from "app/client/models/UserPrefs";
+import { createAutomationsPageEntry } from "app/client/ui/AutomationsPageEntry";
 import { showExampleCard } from "app/client/ui/ExampleCard";
 import { buildExamples } from "app/client/ui/ExampleInfo";
 import {
@@ -23,7 +24,6 @@ import {
   cssSplitPageEntry,
   cssTools,
 } from "app/client/ui/LeftPanelCommon";
-import { createPlatformTools } from "app/client/ui/PlatformTools";
 import { theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { confirmModal } from "app/client/ui2018/modals";
@@ -133,7 +133,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
       ),
       testId("code"),
     ),
-    createPlatformTools(gristDoc, isDocOwner),
+    createAutomationsPageEntry(gristDoc, isDocOwner),
     cssPageEntry(
       cssPageEntry.cls("-selected", use => use(gristDoc.activeViewId) === "settings"),
       cssPageLink(cssPageIcon("Settings"),

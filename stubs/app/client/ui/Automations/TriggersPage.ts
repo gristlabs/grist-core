@@ -4,6 +4,6 @@ import { buildAutomationsUpsell } from "app/client/ui/Automations/TriggersPageUp
 import { Disposable, DomContents } from "grainjs";
 
 export class TriggersPage extends Disposable {
-  constructor(_gristDoc: GristDoc) { super(); }
-  public buildDom(): DomContents { return buildAutomationsUpsell(); }
+  constructor(private _gristDoc: GristDoc) { super(); }
+  public buildDom(): DomContents { return buildAutomationsUpsell(this._gristDoc.appModel); }
 }

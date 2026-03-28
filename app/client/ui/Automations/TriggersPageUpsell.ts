@@ -1,8 +1,12 @@
 import { makeT } from "app/client/lib/localization";
 import { markdown } from "app/client/lib/markdown";
-import { bigPrimaryButton } from "app/client/ui2018/buttons";
-import { mediaSmall, theme, vars } from "app/client/ui2018/cssVars";
+import { AppModel } from "app/client/models/AppModel";
+import { bigPrimaryButton, bigPrimaryButtonLink } from "app/client/ui2018/buttons";
+import { mediaSmall, theme } from "app/client/ui2018/cssVars";
+import { cssNestedLinks } from "app/client/ui2018/links";
 import { commonUrls } from "app/common/gristUrls";
+import { tokens } from "app/common/ThemePrefs";
+import { getGristConfig } from "app/common/urlUtils";
 
 import { dom, DomContents, makeTestId, styled } from "grainjs";
 
@@ -10,68 +14,52 @@ const testId = makeTestId("test-automations-");
 
 const t = makeT("TriggersPage");
 
-export function buildAutomationsUpsell(): DomContents {
-  return cssIntroSection(
-    cssIntroImage({ alt: "", src: "img/process.svg" }),
-    cssIntroContent(
-      markdown(t(`\
-## Automations
+export function buildAutomationsUpsell(appModel: AppModel): DomContents {
+  const { deploymentType } = getGristConfig();
+  const canUpgrade = deploymentType === "saas" && appModel.isOwner() && appModel.isBillingManager();
 
-Send emails and call webhooks automatically when your data changes. \
-Set conditions to control exactly which updates should trigger an action. \
-More action types are on the way.`),
-      ),
-      cssIntroButton(
-        bigPrimaryButton(t("Upgrade"),
-          dom.on("click", () => window.open(commonUrls.plans, "_blank")),
-        ),
-      ),
+  return cssIntroSection({ tabIndex: "-1" },
+    cssNestedLinks(markdown(t(`\
+## Automate workflows from within Grist
+
+![Automations Screenshot](img/automation-triggers.png)
+
+Trigger automations based on data changes, and design actions such as custom email notifications
+and webhook integrations. [Learn more.]({{ helpAutomations }})`,
+    { helpAutomations: commonUrls.helpAutomations }),
+    )),
+    (canUpgrade ?
+      bigPrimaryButton(t("Try for free"), dom.on("click", () => appModel.showUpgradeModal())) :
+      bigPrimaryButtonLink(
+        deploymentType === "core" ? t("Try full Grist") : t("Try for free"),
+        { href: commonUrls.plans, target: "_blank" },
+      )
     ),
     testId("upsell"),
   );
 }
 
 const cssIntroSection = styled("div", `
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 60px;
-  padding: 48px;
+  padding: 24px;
   width: 100%;
-  max-width: 900px;
-  margin: 0 auto;
+  max-width: 600px;
+  margin: 16px auto;
   color: ${theme.text};
-  font-size: ${vars.introFontSize};
+  font-size: ${tokens.introFontSize};
   line-height: 1.6;
+  text-align: center;
+
+  & img {
+    max-width: 100%;
+    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, .3);
+    border-radius: 4px 4px 0 0;
+  }
 
   @media ${mediaSmall} {
     & {
-      flex-direction: column;
-      padding: 24px 12px;
-      gap: 24px;
+      width: auto;
+      padding: 12px;
+      margin: 8px;
     }
   }
-`);
-
-const cssIntroImage = styled("img", `
-  display: block;
-  flex: 0 0 auto;
-  width: 320px;
-  max-width: 100%;
-
-  @media ${mediaSmall} {
-    & {
-      width: 200px;
-    }
-  }
-`);
-
-const cssIntroContent = styled("div", `
-  flex: 1 1 auto;
-  min-width: 0;
-  max-width: 420px;
-`);
-
-const cssIntroButton = styled("div", `
-  margin-top: 32px;
 `);
