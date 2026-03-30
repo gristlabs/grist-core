@@ -379,7 +379,9 @@ export class ProposedChangesForkPage extends Disposable {
             return dom("p", t("No changes found to suggest. Please make some edits."));
           }),
           cssDataRow(
-            details ? buildComparisonDetails(this, this.gristDoc, details, this._comparison) : null,
+            details ? buildComparisonDetails(
+              this, this.gristDoc, details, this._comparison, { localChanges: true },
+            ) : null,
           ),
           [
             dom("p",
@@ -439,6 +441,7 @@ class ActionLogPartInProposal extends ActionLogPart {
     private _gristDoc: GristDoc,
     private _details: DocStateComparisonDetails,
     private _comparison: DocStateComparison | undefined,
+    private _options?: { localChanges?: boolean },
   ) {
     super(_gristDoc);
   }
@@ -491,7 +494,7 @@ class ActionLogPartInProposal extends ActionLogPart {
       return null;
     }
     const lst = Object.entries(diffs).map(([table, tdiff]: [string, TabularDiff]) => {
-      const data = convertTabularDiffToTableData(table, tdiff);
+      const data = convertTabularDiffToTableData(table, tdiff, this._options);
       // Careful, there can be blank rowModels if tables were removed.
       const tableRow = this._gristDoc.docModel.tables.rowModels.find(tr => tr?.tableId() === table);
       const columnRows = tableRow ? this._gristDoc.docModel.columns.rowModels.filter(
@@ -600,7 +603,9 @@ function getProposalActionSummary(proposal: Proposal | null) {
  * Transforms cell deltas into the appropriate format for display.
  * Also adds a special column '_gristChangeType' to track the type of change.
  */
-function convertTabularDiffToTableData(table: string, tdiff: TabularDiff): TableDataAction {
+function convertTabularDiffToTableData(
+  table: string, tdiff: TabularDiff, options?: { localChanges?: boolean },
+): TableDataAction {
   const data: TableDataAction = ["TableData", table, [], {}];
 
   for (const row of tdiff.cells) {
@@ -623,7 +628,7 @@ function convertTabularDiffToTableData(table: string, tdiff: TabularDiff): Table
         } else {
           item = ["V", {
             parent: pre?.[0],
-            remote: post?.[0],
+            [options?.localChanges ? "local" : "remote"]: post?.[0],
           }];
         }
       }
@@ -641,6 +646,7 @@ function buildComparisonDetails(
   gristDoc: GristDoc,
   origDetails: DocStateComparisonDetails,
   origComparison: DocStateComparison | undefined,
+  options?: { localChanges?: boolean },
 ) {
   // The change we want to render is based on a calculation
   // done on the fork document. The calculation treated the
@@ -649,7 +655,7 @@ function buildComparisonDetails(
   const { details, leftHadMetadata } = removeMetadataChangesFromDetails(origDetails);
   // We want to look at the changes from their most recent
   // common ancestor and the current doc.
-  const part = new ActionLogPartInProposal(gristDoc, details, origComparison);
+  const part = new ActionLogPartInProposal(gristDoc, details, origComparison, options);
   owner.autoDispose(part);
 
   return [

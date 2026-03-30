@@ -890,6 +890,32 @@ describe("ProposedChangesPage", function() {
     await returnToTrunk(url);
   });
 
+  it("uses correct diff classes on fork suggestions tab", async function() {
+    await makeLifeDoc();
+    const url = await driver.getCurrentUrl();
+
+    await workOnCopy(url);
+
+    // Edit cell B row 1 from "Fish" to "Cat".
+    await gu.getCell("B", 1).click();
+    await gu.waitAppFocus();
+    await gu.enterCell("Cat");
+
+    // Go to the fork's suggestions tab.
+    await driver.find(".test-tools-proposals").click();
+    await driver.findContentWait(".test-main-content", /Suggest changes/, 2000);
+    const clip = await driver.findWait(".test-actionlog-tabular-diffs .field_clip", 2000);
+
+    // On the fork's suggestions tab, the fork's new value should use
+    // diff-local (not diff-remote), so that diff-emphasize-local renders
+    // it with the correct (green) color.
+    assert.equal(await clip.find(".diff-local").getText(), "Cat");
+    assert.equal(await clip.find(".diff-parent").getText(), "Fish");
+    assert.equal(await clip.find(".diff-remote").isPresent(), false);
+
+    await returnToTrunk(url);
+  });
+
   it("highlights cells after reload in suggestion mode", async function() {
     await makeLifeDoc();
     const url = await driver.getCurrentUrl();
