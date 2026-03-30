@@ -1614,7 +1614,7 @@ describe("GranularAccess", function() {
     await gu.sendKeys("user.Name", Key.ENTER);
     await gu.waitForServer();
     await driver.find(".test-field-formula-apply-on-changes").click();
-    await driver.find(".test-field-triggers-select").click();
+    await driver.findWait(".test-field-triggers-select", 100).click();
     await driver.findContentWait(".test-field-triggers-dropdown label", "Any field", 100).click();
     await driver.find(".test-trigger-deps-apply").click();
     await gu.waitForServer();

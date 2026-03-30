@@ -14,11 +14,17 @@ describe("DocMenu", function() {
   });
 
   const openDocMenu = stackWrapFunc(async function(docRegex: RegExp) {
+    // Ensure there is no menu popup already open, or wait for them to be closed.
+    await gu.waitForMenuToClose();
+
     // Note that this matches all text of doc entry, including "Edited ..." text. It's a bit
     // tricky to avoid that. If element is out of view, the first mouseMove() will scroll it into
     // view. It seems that a second one is needed to actually move the mouse over it.
     await driver.findContent(".test-dm-doc", docRegex).mouseMove().mouseMove()
       .find(".test-dm-doc-options").click();
+
+    // Wait for the popup menu to be opened
+    await gu.findOpenMenu();
   });
 
   const getDocs = stackWrapFunc(async function(workspace?: string) {

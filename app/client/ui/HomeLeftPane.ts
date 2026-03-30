@@ -45,7 +45,7 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
   const creating = observable<boolean>(false);
   const renaming = observable<Workspace | null>(null);
   const isAnonymous = !home.app.currentValidUser;
-  const { enableAnonPlayground, templateOrg, onboardingTutorialDocId } = getGristConfig();
+  const { enableAnonPlayground, templateOrg, onboardingTutorialDocId, deploymentType } = getGristConfig();
   const canCreate = !isAnonymous || enableAnonPlayground;
 
   // Show version when hovering over the application icon.
@@ -171,7 +171,7 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
           ),
         ),
         createVideoTourToolsButton(),
-        (home.app.isInstallAdmin() ?
+        (home.app.isInstallAdmin() && deploymentType !== "electron" ?
           cssPageEntry(
             cssPageLink(cssPageIcon("Settings"), cssLinkText(getAdminPanelName()),
               urlState().setLinkUrl({ adminPanel: "admin" }),
