@@ -306,13 +306,21 @@ describe("AirtableSchemaImporter", function() {
       }),
     ));
 
-    it("correctly converts a formula column", () => basicDeepIncludeFieldTest(
-      {
+    it("correctly converts a formula column", () => {
+      const referencedField = createBasicAirtableField("Referenced field", "checkbox");
+      const referencedField2 = createBasicAirtableField("Referenced field2", "multilineText");
+
+      const fieldDependenciesByTable = {
+        [firstTableId]: [referencedField, referencedField2],
+      };
+
+      const formulaField = {
+        id: fieldNameToId("A formula column"),
         name: "A formula column",
         type: "formula",
         options: {
-          formula: "DATETIME_DIFF({fldBSBtZ30nsLogpl}, TODAY(), 'days')",
-          referencedFieldIds: ["fldBSBtZ30nsLogpl"],
+          formula: `DATETIME_DIFF({${referencedField.id}}, TODAY(), {${referencedField2.id}}) + {${referencedField.id}}`,
+          referencedFieldIds: [referencedField.id, referencedField2.id],
           result: {
             type: "number",
             options: {
@@ -320,16 +328,26 @@ describe("AirtableSchemaImporter", function() {
             },
           },
         },
-      },
-      (testField, testColumn) => ({
-        type: "Any",
-        isFormula: true,
-        formula: {
-          // Expect to find a commented out version of the formula
-          formula: `#${testField.options?.formula}`,
+      };
+
+      const { testField, testColumn } = convertAirtableField({ field: formulaField, fieldDependenciesByTable });
+      runBasicFieldTest(testField, testColumn);
+
+      assert.deepInclude(
+        testColumn,
+        {
+          type: "Any",
+          isFormula: true,
+          formula: {
+            formula: `#DATETIME_DIFF($[R0], TODAY(), $[R1]) + $[R0]`,
+            replacements: [
+              { originalTableId: firstTableId, originalColId: referencedField.id },
+              { originalTableId: firstTableId, originalColId: referencedField2.id },
+            ],
+          },
         },
-      }),
-    ));
+      );
+    });
 
     it("correctly converts a lastModifiedBy column", () => basicDeepIncludeFieldTest(
       { name: "A lastModifiedBy column", type: "lastModifiedBy" },
