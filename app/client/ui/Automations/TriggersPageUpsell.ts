@@ -19,15 +19,14 @@ export function buildAutomationsUpsell(appModel: AppModel): DomContents {
   const canUpgrade = deploymentType === "saas" && appModel.isOwner() && appModel.isBillingManager();
 
   return cssIntroSection({ tabIndex: "-1" },
-    cssNestedLinks(markdown(t(`\
-## Automate workflows from within Grist
+    cssNestedLinks(markdown(`\
+## ${t("Automate workflows from within Grist")}
 
-![Automations Screenshot](img/automation-triggers.png)
+![${t("Automations Screenshot")}](img/automation-triggers.png)
 
-Trigger automations based on data changes, and design actions such as custom email notifications
-and webhook integrations. [Learn more.]({{ helpAutomations }})`,
-    { helpAutomations: commonUrls.helpAutomations }),
-    )),
+${t("Trigger automations based on data changes, and design actions such as custom email notifications\
+ and webhook integrations.")} [${t("Learn more.")}](${commonUrls.helpAutomations})`),
+    ),
     (canUpgrade ?
       bigPrimaryButton(t("Try for free"), dom.on("click", () => appModel.showUpgradeModal())) :
       bigPrimaryButtonLink(
