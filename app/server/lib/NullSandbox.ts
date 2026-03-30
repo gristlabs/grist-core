@@ -7,7 +7,7 @@ export class UnavailableSandboxMethodError extends Error {
 }
 
 export class NullSandbox implements ISandbox {
-  public async shutdown(): Promise<unknown> {
+  public async shutdown(): Promise<void> {
     throw new UnavailableSandboxMethodError("shutdown is not available");
   }
 
