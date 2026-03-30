@@ -198,7 +198,7 @@ TEST_CHROME_BINARY_PATH="/usr/bin/google-chrome" yarn run test:nbrowser
 
 #### Using an older Chrome version than the one you have already installed
 
-You might already have a newer version of Chrome already installed and feel stuck!
+You might already have a newer version of Chrome installed and feel stuck!
 
 One solution is to build yourself a docker container matching what the GitHub actions does. Meaning, with node, python etc, an integrated Chrome binary as expected by the CI, and run tests inside that container.
 
@@ -215,6 +215,26 @@ curl -sS -o /tmp/chrome.deb https://dl.google.com/linux/chrome/deb/pool/main/g/g
   && sudo apt-get install --allow-downgrades -y /tmp/chrome.deb \
   && rm /tmp/chrome.deb \
 ```
+
+Open `google-chrome-beta` one time manually to confirm any first-loads modals that would prevent tests to run correctly.
+
+Then run tests with:
+
+```
+SE_BROWSER_VERSION=... \
+SE_DRIVER_VERSION=... \
+TEST_CHROME_BINARY_PATH="/usr/bin/google-chrome-beta" \
+yarn run test:nbrowser
+```
+
+#### Archlinux
+
+Download the google-chrome-beta AUR tarball matching the version you want, and manually install it.
+
+- explore the [google-chrome-beta AUR package history](https://aur.archlinux.org/cgit/aur.git/log/PKGBUILD?h=google-chrome-beta)
+- click on the commit details of the version you are interested in. For example, [this is the latest commit for chrome beta v146](https://aur.archlinux.org/cgit/aur.git/commit/PKGBUILD?h=google-chrome-beta&id=1426cfb8dbd2bac4ed8dcef72856cc18a9654995)
+- download and extract the tarball tied to this commit, which is the "download" link on the commit details page. [Example file for v146](https://aur.archlinux.org/cgit/aur.git/snapshot/aur-1426cfb8dbd2bac4ed8dcef72856cc18a9654995.tar.gz).
+- `cd` in the extracted directory and `makepkg -si`.
 
 Open `google-chrome-beta` one time manually to confirm any first-loads modals that would prevent tests to run correctly.
 
