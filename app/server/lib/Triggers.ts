@@ -358,10 +358,14 @@ export class DocTriggers {
         }).catch(e => this._log(`Error broadcasting monitor result: ${e}`, { level: "warn" }));
       }
 
-      for (const action of actions) {
-        for (const rowIndex of rowIndexesToSend) {
-          const event = { id: action.id, action, payload: makePayload(rowIndex), triggerLabel: trigger.label };
-          result.push(event);
+      // Only enqueue actual action events when the trigger is enabled.
+      // Disabled triggers are still included (for the monitor above) but should not fire actions.
+      if (trigger.enabled) {
+        for (const action of actions) {
+          for (const rowIndex of rowIndexesToSend) {
+            const event = { id: action.id, action, payload: makePayload(rowIndex), triggerLabel: trigger.label };
+            result.push(event);
+          }
         }
       }
     }
