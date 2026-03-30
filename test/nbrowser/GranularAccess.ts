@@ -623,7 +623,7 @@ describe("GranularAccess", function() {
     assert.deepEqual(await gu.getColumnNames(), ["A", "B", "C", "D", "E"]);
 
     // Open doc as an editor, viewing it as a viewer
-    await mainSession.loadDoc(`/doc/${doc.id}/m/fork`);
+    await mainSession.loadDoc(`/doc/${doc.id}/m/fork`, { skipAlert: true });
     await driver.find(".test-tools-access-rules").click();
     await driver.findContentWait("button", /View as/, 3000).click();
     await gu.findOpenMenuItem(".test-acl-user-item", "viewer@example.com").click();
@@ -1330,7 +1330,8 @@ describe("GranularAccess", function() {
     assert.equal(await censoredCell.find(".invalid.field-error-C" /* C = censored */).getText(), "CENSORED");
     await gu.getCell({ rowNum: 1, col: 1 }).click();
     await gu.waitAppFocus();
-    await gu.enterCell("Red");
+    await gu.sendKeys("Red", Key.ENTER);
+    await gu.waitForServer();
     assert.equal(await gu.getCell({ rowNum: 1, col: 1 }).getText(), "CENSORED");
     assert.lengthOf(await gu.getToasts(), 0);
 
@@ -1613,7 +1614,7 @@ describe("GranularAccess", function() {
     await gu.sendKeys("user.Name", Key.ENTER);
     await gu.waitForServer();
     await driver.find(".test-field-formula-apply-on-changes").click();
-    await driver.find(".test-field-triggers-select").click();
+    await driver.findWait(".test-field-triggers-select", 100).click();
     await driver.findContentWait(".test-field-triggers-dropdown label", "Any field", 100).click();
     await driver.find(".test-trigger-deps-apply").click();
     await gu.waitForServer();
