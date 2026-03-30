@@ -6,9 +6,11 @@ import {
   isAttachmentField,
   TableAttachmentTracker,
 } from "app/common/airtable/AirtableAttachmentTracker";
+import { AirtableBaseSchemaCrosswalk } from "app/common/airtable/AirtableCrosswalk";
 import { AirtableDataImportParams } from "app/common/airtable/AirtableDataImporterTypes";
 import {
   extractRefFromRecordField,
+  getRefFieldLinkedTableId,
   isRefField,
   ReferenceTracker,
   RefValuesByColumnId,
@@ -47,15 +49,18 @@ export async function importDataFromAirtableBase(
       gristColumnIds.push(tableCrosswalk.airtableIdColumn.id);
     }
 
-    const referenceColumnIds = Array.from(tableCrosswalk.fields.values())
+    const referenceColumns = Array.from(tableCrosswalk.fields.values())
       .filter(mapping => isRefField(mapping.airtableField))
-      .map(mapping => mapping.gristColumn.id);
+      .map(mapping => ({
+        id: mapping.gristColumn.id,
+        tableId: resolveLinkedTableId(schemaCrosswalk, mapping.airtableField),
+      }));
 
     let tableReferenceTracker: TableReferenceTracker | undefined;
-    if (referenceColumnIds.length > 0) {
+    if (referenceColumns.length > 0) {
       tableReferenceTracker = referenceTracker.addTable(
         tableCrosswalk.gristTable.id,
-        referenceColumnIds,
+        referenceColumns,
         { airtableIdColumnId: tableCrosswalk.airtableIdColumn?.id },
       );
     }
@@ -226,3 +231,11 @@ const AirtableFieldValueConverters: Record<string, AirtableFieldValueConverter> 
 };
 
 const formatCollaborator = (collaborator: any) => collaborator?.name;
+
+const resolveTableId = (schemaCrosswalk: AirtableBaseSchemaCrosswalk, airtableTableId: string) =>
+  schemaCrosswalk.tables.get(airtableTableId)?.gristTable.id;
+
+function resolveLinkedTableId(schemaCrosswalk: AirtableBaseSchemaCrosswalk, field: AirtableFieldSchema) {
+  const linkedTableId = getRefFieldLinkedTableId(field);
+  return linkedTableId && resolveTableId(schemaCrosswalk, linkedTableId);
+}
