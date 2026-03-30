@@ -53,7 +53,11 @@ export async function importDataFromAirtableBase(
 
     let tableReferenceTracker: TableReferenceTracker | undefined;
     if (referenceColumnIds.length > 0) {
-      tableReferenceTracker = referenceTracker.addTable(tableCrosswalk.gristTable.id, referenceColumnIds);
+      tableReferenceTracker = referenceTracker.addTable(
+        tableCrosswalk.gristTable.id,
+        referenceColumnIds,
+        { airtableIdColumnId: tableCrosswalk.airtableIdColumn?.id },
+      );
     }
 
     const attachmentColumnIds = Array.from(tableCrosswalk.fields.values())
@@ -109,8 +113,6 @@ export async function importDataFromAirtableBase(
 
         if (tableCrosswalk.airtableIdColumn) {
           addOrUpdateRecord.require[tableCrosswalk.airtableIdColumn.id] = record.id;
-          // Simplifies bulk-column conversion to have all fields in one object.
-          addOrUpdateRecord.fields[tableCrosswalk.airtableIdColumn.id] = record.id;
         }
 
         addOrUpdateRecords.push(addOrUpdateRecord);

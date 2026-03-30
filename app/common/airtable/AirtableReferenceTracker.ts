@@ -27,8 +27,8 @@ export class ReferenceTracker {
     return this._rowIdLookup.get(originalRecordId);
   }
 
-  public addTable(gristTableId: string, columnIdsToUpdate: string[]) {
-    const tableTracker = new TableReferenceTracker(this, gristTableId, columnIdsToUpdate);
+  public addTable(gristTableId: string, columnIdsToUpdate: string[], options: { airtableIdColumnId?: string } = {}) {
+    const tableTracker = new TableReferenceTracker(this, gristTableId, columnIdsToUpdate, options);
     this._tableReferenceTrackers.set(gristTableId, tableTracker);
     return tableTracker;
   }
@@ -41,10 +41,16 @@ export class ReferenceTracker {
 // Store and resolve references per-table to enable bulk updates.
 export class TableReferenceTracker {
   private _unresolvedRefsForRecords: UnresolvedRefsForRecord[] = [];
+  private _airtableIdColumnId?: string;
 
   // To perform bulk updates, all reference columns need updating at the same time.
   // Enforce this by explicitly listing the column ids to use during instantiation.
-  public constructor(private _parent: ReferenceTracker, private _tableId: string, private _columnIds: string[]) {
+  public constructor(
+    private _parent: ReferenceTracker,
+    private _tableId: string,
+    private _columnIds: string[],
+    _options: { airtableIdColumnId?: string } = {}) {
+    this._airtableIdColumnId = _options.airtableIdColumnId;
   }
 
   public addUnresolvedRecord(unresolvedRefsForRecord: UnresolvedRefsForRecord) {
@@ -68,8 +74,22 @@ export class TableReferenceTracker {
         const references = unresolvedRefsForRecord.refsByColumnId[columnId];
         // TODO - Unresolvable references are currently just skipped silently. Find a way to display
         //        them in the cell / UI.
-        const resolvedReferences = references ?
-          references.map(originalRecordId => this._parent.resolve(originalRecordId)).filter(isNonNullish) : [];
+        if (!references) {
+          pendingUpdate[columnId].push([GristObjCode.List]);
+          continue;
+        }
+
+        // If there's an Airtable ID column, the sandbox can perform the lookup for us.
+        if (this._airtableIdColumnId) {
+          pendingUpdate[columnId].push(
+            [GristObjCode.LookUp, references, { column: this._airtableIdColumnId }],
+          );
+          continue;
+        }
+
+        const resolvedReferences =
+          references.map(originalRecordId => this._parent.resolve(originalRecordId)).filter(isNonNullish);
+
         pendingUpdate[columnId].push(
           [GristObjCode.List, ...resolvedReferences],
         );
