@@ -14,31 +14,25 @@ import {
   RefValuesByColumnId,
   TableReferenceTracker,
 } from "app/common/airtable/AirtableReferenceTracker";
-import { AirtableIdColumnLabel } from "app/common/airtable/AirtableSchemaImporter";
 import { AddOrUpdateRecord } from "app/plugin/DocApiTypes";
 import { CellValue, GristObjCode } from "app/plugin/GristData";
+import { convertToBulkColValues } from "app/plugin/TableOperationsImpl";
 
 export async function importDataFromAirtableBase(
-  { listRecords, addOrUpdateRows, updateRows, uploadAttachment, schemaCrosswalk, onProgress }: AirtableDataImportParams,
+  {
+    listRecords,
+    addRows,
+    addOrUpdateRows,
+    updateRows,
+    uploadAttachment,
+    schemaCrosswalk,
+    onProgress,
+  }: AirtableDataImportParams,
 ) {
   const referenceTracker = new ReferenceTracker();
   const attachmentTracker = new AttachmentTracker();
 
   const addOrUpdateRowsPromises: Promise<any>[] = [];
-
-  // Verify every table has an airtable ID column.
-  let missingIdColumnCount = 0;
-  for (const table of schemaCrosswalk.tables.values()) {
-    if (table.airtableIdColumn === undefined) {
-      missingIdColumnCount += 1;
-    }
-  }
-  if (missingIdColumnCount > 0) {
-    // TODO - Raise this issue with the user in a more helpful way. This is just for testing purposes.
-    throw new Error(
-      `${missingIdColumnCount} tables are missing an Airtable ID column (labelled ${AirtableIdColumnLabel})`,
-    );
-  }
 
   // TODO: Strings passed to onProgress calls in common code aren't translatable.
   onProgress?.({ percent: 0, status: "Importing records from Airtable..." });
@@ -77,7 +71,7 @@ export async function importDataFromAirtableBase(
       const { records } = listRecordsResult;
 
       const airtableRecordIds: string[] = [];
-      const addOrUpdateRecords: AddOrUpdateRecord[] = [];
+      const addOrUpdateRecords: Required<AddOrUpdateRecord>[] = [];
       const refsByColumnIdForRecords: RefValuesByColumnId[] = [];
       const attachmentsByColumnIdForRecords: AttachmentsByColumnId[] = [];
 
@@ -115,6 +109,8 @@ export async function importDataFromAirtableBase(
 
         if (tableCrosswalk.airtableIdColumn) {
           addOrUpdateRecord.require[tableCrosswalk.airtableIdColumn.id] = record.id;
+          // Simplifies bulk-column conversion to have all fields in one object.
+          addOrUpdateRecord.fields[tableCrosswalk.airtableIdColumn.id] = record.id;
         }
 
         addOrUpdateRecords.push(addOrUpdateRecord);
@@ -122,14 +118,21 @@ export async function importDataFromAirtableBase(
         attachmentsByColumnIdForRecords.push(attachmentsByColumnId);
       }
 
-      // Need to check if addOrUpdateRows can handle just adding.
-      // If so - let's move everything over to record syntax? Maybe Claude can help.
+      let addOrUpdateRowsPromise: Promise<number[]> = Promise.resolve([]);
 
-      const addOrUpdateRowsPromise = addOrUpdateRows(
-        tableCrosswalk.gristTable.id, addOrUpdateRecords, { onMany: "first" },
-      ).then((result) => {
+      if (tableCrosswalk.airtableIdColumn) {
+        addOrUpdateRowsPromise =
+          addOrUpdateRows(tableCrosswalk.gristTable.id, addOrUpdateRecords, { onMany: "first" })
+            .then(result => result.recordIds.map(ids => ids[0]));
+      } else {
+        addOrUpdateRowsPromise = addRows(
+          tableCrosswalk.gristTable.id, convertToBulkColValues(addOrUpdateRecords),
+        );
+      }
+
+      const finishedProcessingPromise = addOrUpdateRowsPromise.then((recordIds) => {
         airtableRecordIds.forEach((airtableRecordId, index) => {
-          const gristRecordId = result.recordIds[index][0];
+          const gristRecordId = recordIds[index];
           // Only add entries to the reference and attachment trackers once we know they're added to the table.
           referenceTracker.addRecordIdMapping(airtableRecordId, gristRecordId);
           tableReferenceTracker?.addUnresolvedRecord({
@@ -143,7 +146,7 @@ export async function importDataFromAirtableBase(
         });
       });
 
-      addOrUpdateRowsPromises.push(addOrUpdateRowsPromise);
+      addOrUpdateRowsPromises.push(finishedProcessingPromise);
 
       listRecordsResult = await listRecordsResult.fetchNextPage();
     }
