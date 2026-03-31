@@ -148,7 +148,8 @@ export class DataTableModelWithDiff extends DisposableWithEvents implements Data
    * The _comparison provided to this DataTableModelWithDiff may be mutated. It is used
    * to store and track local changes.
    */
-  public constructor(public core: DataTableModel, private _comparison: DocStateComparisonDetails) {
+  public constructor(public core: DataTableModel, private _comparison: DocStateComparisonDetails,
+    options?: { showAllRows?: boolean }) {
     super();
     this.tableMetaRow = core.tableMetaRow;
     this.tableQuerySets = core.tableQuerySets;
@@ -163,6 +164,7 @@ export class DataTableModelWithDiff extends DisposableWithEvents implements Data
       _comparison.leftChanges.tableDeltas[tableId],
       _comparison.rightChanges.tableDeltas[remoteTableId],
       this.extraRows,
+      { showAllRows: options?.showAllRows },
     ) as any;
     this.tableData = tableDataWithDiff;
     this.isLoaded = core.isLoaded;
@@ -253,7 +255,8 @@ export class TableDataWithDiff {
   private _removedRowValues = new Map<number, Record<string, CellDelta[0]>>();
 
   constructor(public core: TableData, public leftTableDelta: TableDelta,
-    public rightTableDelta: TableDelta, public extraRows: ExtraRows) {
+    public rightTableDelta: TableDelta, public extraRows: ExtraRows,
+    private _options?: { showAllRows?: boolean }) {
     this.dataLoadedEmitter = core.dataLoadedEmitter;
     this.tableActionEmitter = core.tableActionEmitter;
     this.preTableActionEmitter = core.preTableActionEmitter;
@@ -303,6 +306,7 @@ export class TableDataWithDiff {
   }
 
   public getKeepFunc(): undefined | ((rowId: number | "new") => boolean) {
+    if (this._options?.showAllRows) { return undefined; }
     return (rowId: number | "new") => {
       return rowId === "new" || this._updates.has(rowId) || rowId < 0 ||
         this._leftRemovals.has(rowId) || this._rightRemovals.has(rowId);

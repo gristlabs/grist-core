@@ -431,6 +431,35 @@ describe("ProposedChangesPage", function() {
       "Suggest changes (1)");
   });
 
+  it("shows all rows in suggestion mode, not skip rows with ellipses", async function() {
+    const { doc, api } = await makeLifeDoc();
+    const url = await driver.getCurrentUrl();
+
+    // Add enough rows so that a "compare to original" view would
+    // start skipping some.
+    for (let i = 0; i <= 10; i++) {
+      await api.applyUserActions(doc.id, [
+        ["AddRecord", "Life", null, { A: i * 10, B: `Species${i}` }],
+      ]);
+    }
+
+    // Count the rows via the API before entering suggestion mode.
+    const rows = await api.getDocAPI(doc.id).getRows("Life");
+    const expectedRowCount = rows.id.length;
+    assert.isAtLeast(expectedRowCount, 10);
+
+    // Work on a copy (enters suggestion mode with comparison active).
+    await workOnCopy(url);
+
+    // Every row should be visible, no "..." skip rows, no blank rows.
+    const rowNums = Array.from({ length: expectedRowCount }, (_, i) => i + 1);
+    const visibleB = await gu.getVisibleGridCells("B", rowNums);
+    assert.notInclude(visibleB, "...");
+    assert.deepEqual(visibleB, rows.B);
+
+    await returnToTrunk(url);
+  });
+
   it("can make and apply a proposed change affecting two tables", async function() {
     const { api, doc } = await makeLifeDoc();
     const url = await driver.getCurrentUrl();
