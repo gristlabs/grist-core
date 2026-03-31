@@ -133,7 +133,7 @@ export type CommandName =
 
 export interface CommandDef {
   name: CommandName;
-  keys: string[];
+  keys: CommandKey[];
   desc: (() => string) | null;
   bindKeys?: boolean;
   /**
@@ -142,6 +142,13 @@ export interface CommandDef {
   alwaysOn?: boolean;
   deprecated?: boolean;
 }
+
+export interface PlatformSpecificCommandKey {
+  default: string;
+  mac?: string;
+}
+
+export type CommandKey = string | PlatformSpecificCommandKey;
 
 export interface MenuCommand {
   humanKeys: string[];
