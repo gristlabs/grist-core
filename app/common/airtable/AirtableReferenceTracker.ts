@@ -1,7 +1,7 @@
 import { AirtableFieldSchema } from "app/common/airtable/AirtableAPITypes";
 import { AirtableFieldMappingInfo } from "app/common/airtable/AirtableCrosswalk";
 import { UpdateRowsFunc } from "app/common/airtable/AirtableDataImporterTypes";
-import { TableColValues } from "app/common/DocActions";
+import { CellValue, TableColValues } from "app/common/DocActions";
 import { isNonNullish } from "app/common/gutil";
 import { BulkColValues, GristObjCode } from "app/plugin/GristData";
 
@@ -28,8 +28,27 @@ export class ReferenceTracker {
     this._rowIdLookup.set(originalRecordId, gristRecordId);
   }
 
-  public resolve(originalRecordId: string): number | undefined {
+  public lookupRowIdForRecord(originalRecordId: string): number | undefined {
     return this._rowIdLookup.get(originalRecordId);
+  }
+
+  public resolveCellValue(column: RefColumn, originalRecordIds: string[] | undefined): CellValue {
+    if (!originalRecordIds) {
+      return [GristObjCode.List];
+    }
+
+    // If there's an Airtable ID column, the sandbox can perform the lookup for us.
+    const otherTableAirtableIdColumnId =
+      column.tableId && this.getTable(column.tableId)?.airtableIdColumnId;
+
+    if (otherTableAirtableIdColumnId) {
+      return [GristObjCode.LookUp, originalRecordIds, { column: otherTableAirtableIdColumnId }];
+    }
+
+    const internallyKnownRowIds =
+      originalRecordIds.map(originalRecordId => this.lookupRowIdForRecord(originalRecordId)).filter(isNonNullish);
+
+    return [GristObjCode.List, ...internallyKnownRowIds];
   }
 
   public addTable(gristTableId: string, columnIdsToUpdate: RefColumn[], options: { airtableIdColumnId?: string } = {}) {
@@ -84,28 +103,7 @@ export class TableReferenceTracker {
         const references = unresolvedRefsForRecord.refsByColumnId[column.id];
         // TODO - Unresolvable references are currently just skipped silently. Find a way to display
         //        them in the cell / UI.
-        if (!references) {
-          pendingUpdate[column.id].push([GristObjCode.List]);
-          continue;
-        }
-
-        // If there's an Airtable ID column, the sandbox can perform the lookup for us.
-        const otherTableAirtableIdColumnId =
-          column.tableId && this._parent.getTable(column.tableId)?.airtableIdColumnId;
-
-        if (otherTableAirtableIdColumnId) {
-          pendingUpdate[column.id].push(
-            [GristObjCode.LookUp, references, { column: otherTableAirtableIdColumnId }],
-          );
-          continue;
-        }
-
-        const resolvedReferences =
-          references.map(originalRecordId => this._parent.resolve(originalRecordId)).filter(isNonNullish);
-
-        pendingUpdate[column.id].push(
-          [GristObjCode.List, ...resolvedReferences],
-        );
+        pendingUpdate[column.id].push(this._parent.resolveCellValue(column, references));
       }
 
       if (pendingUpdate.id.length >= batchSize) {

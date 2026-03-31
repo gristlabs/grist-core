@@ -188,14 +188,14 @@ describe("AirtableDataImporter", function() {
       tracker.addRecordIdMapping("airtable-rec-1", 42);
       tracker.addRecordIdMapping("airtable-rec-2", 99);
 
-      assert.equal(tracker.resolve("airtable-rec-1"), 42);
-      assert.equal(tracker.resolve("airtable-rec-2"), 99);
+      assert.equal(tracker.lookupRowIdForRecord("airtable-rec-1"), 42);
+      assert.equal(tracker.lookupRowIdForRecord("airtable-rec-2"), 99);
     });
 
     it("returns undefined for unknown record ids", () => {
       const tracker = new ReferenceTracker();
 
-      assert.isUndefined(tracker.resolve("unknown-rec-id"));
+      assert.isUndefined(tracker.lookupRowIdForRecord("unknown-rec-id"));
     });
   });
 
