@@ -138,7 +138,7 @@ export class AdminPanel extends Disposable {
         if (page === "admin") {
           return dom.create(AdminInstallationPanel, this._appModel);
         } else if (page === "setup") {
-          return dom.create(QuickSetup);
+          return dom.create(QuickSetup, this._appModel);
         } else {
           return dom.create(buildAdminData, this._appModel);
         }
