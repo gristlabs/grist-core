@@ -125,6 +125,7 @@ export type CommandName =
   "detachEditor" |
   "activateAssistant" |
   "viewAsCard" |
+  "openContextMenu" |
   "showColumns" |
   "createForm" |
   "insertField" |
@@ -417,6 +418,12 @@ export const groups: CommendGroupDef[] = [{
       name: "viewAsCard",
       keys: ["Space"],
       desc: () => t("Show the record card widget of the selected record"),
+    }, {
+      // This matches browser's default `contextmenu` event keybindings. This is here to show the keyboard shortcut
+      // to the user, but we rely on the `contextmenu` event rather than the `openContextMenu` command in the code.
+      name: "openContextMenu",
+      keys: [{ default: "Menu", mac: "Ctrl+Enter" }, "Shift+F10"],
+      desc: () => t("Open the context menu"),
     },
   ],
 }, {
