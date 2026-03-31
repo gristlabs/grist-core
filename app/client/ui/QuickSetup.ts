@@ -1,8 +1,10 @@
 import { makeT } from "app/client/lib/localization";
 import { AdminChecks } from "app/client/models/AdminChecks";
+import { AppModel } from "app/client/models/AppModel";
 import { reportError } from "app/client/models/errors";
 import { getHomeUrl } from "app/client/models/homeUrl";
 import { cssFadeUp, cssFadeUpGristLogo, cssFadeUpHeading, cssFadeUpSubHeading } from "app/client/ui/AdminPanelCss";
+import { AuthenticationSection } from "app/client/ui/AuthenticationSection";
 import { BackupsSection } from "app/client/ui/BackupsSection";
 import { PermissionsSetupSection } from "app/client/ui/PermissionsSetupSection";
 import { QuickSetupServerStep } from "app/client/ui/QuickSetupServerStep";
@@ -12,9 +14,10 @@ import { Stepper } from "app/client/ui2018/Stepper";
 import { InstallAPIImpl } from "app/common/InstallAPI";
 import { tokens } from "app/common/ThemePrefs";
 
-import { Disposable, dom, DomContents, observable, Observable, styled } from "grainjs";
+import { Disposable, dom, DomContents, makeTestId, observable, Observable, styled } from "grainjs";
 
 const t = makeT("QuickSetup");
+const testId = makeTestId("test-quick-setup-");
 
 interface Step {
   completed: Observable<boolean>;
@@ -46,8 +49,9 @@ export class QuickSetup extends Disposable {
     },
     {
       label: t("Authentication"),
-      completed: Observable.create(this, false),
-      buildDom: () => null,
+      completed: observable(false),
+      plain: true,
+      buildDom: () => this._buildAuthStep(),
     },
     {
       label: t("Backups"),
@@ -63,7 +67,7 @@ export class QuickSetup extends Disposable {
     },
   ];
 
-  constructor() {
+  constructor(private _appModel: AppModel) {
     super();
     this._checks.fetchAvailableChecks().catch(reportError);
   }
@@ -96,6 +100,30 @@ export class QuickSetup extends Disposable {
     const i = this._activeStep.get();
     this._steps[i].completed.set(true);
     this._activeStep.set(i + 1);
+  }
+
+  private _buildAuthStep(): DomContents {
+    return dom.create((owner) => {
+      const section = AuthenticationSection.create(owner, {
+        appModel: this._appModel,
+        showRestartWarning: false,
+      });
+      return dom("div",
+        section.buildDom(),
+        cssContinueRow(
+          bigPrimaryButton(
+            t("Continue"),
+            dom.boolAttr("disabled", use => !use(section.canProceed)),
+            dom.on("click", () => {
+              const activeStepIndex = this._activeStep.get();
+              this._steps[activeStepIndex].completed.set(true);
+              this._activeStep.set(activeStepIndex + 1);
+            }),
+            testId("auth-continue"),
+          ),
+        ),
+      );
+    });
   }
 
   private _buildBackupsStep(): DomContents {
