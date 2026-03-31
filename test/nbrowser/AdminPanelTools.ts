@@ -58,6 +58,20 @@ export async function isEnabled(switchElem: WebElement | string) {
   return (await switchElem.find("input").getAttribute("checked")) === null ? false : true;
 }
 
+/**
+ * If the authentication provider list is collapsed, click the header to expand it.
+ */
+export async function expandProviderList() {
+  // Wait for the provider list header to appear. It may be non-collapsible
+  // (no aria-expanded) or collapsible (aria-expanded="false" when collapsed).
+  const header = await driver.findWait(".test-admin-auth-provider-list-header", 2000);
+  if (await header.getAttribute("aria-expanded") === "false") {
+    await header.click();
+    // Wait for the provider rows to render after expanding.
+    await driver.findWait(".test-admin-auth-provider-row", 2000);
+  }
+}
+
 export async function currentVersion() {
   const currentVersionText = await driver.find(".test-admin-panel-item-value-version").getText();
   const currentVersion = currentVersionText.match(/Version (.+)/)![1];

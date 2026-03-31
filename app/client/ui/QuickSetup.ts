@@ -1,15 +1,26 @@
 import { makeT } from "app/client/lib/localization";
-import { cssFadeUp, cssFadeUpGristLogo, cssFadeUpHeading, cssFadeUpSubHeading } from "app/client/ui/AdminPanelCss";
+import { AppModel } from "app/client/models/AppModel";
+import {
+  cssFadeUp,
+  cssFadeUpGristLogo,
+  cssFadeUpHeading,
+  cssFadeUpSubHeading,
+} from "app/client/ui/AdminPanelCss";
+import { AuthenticationSection } from "app/client/ui/AuthenticationSection";
+import { bigPrimaryButton } from "app/client/ui2018/buttons";
 import { Stepper } from "app/client/ui2018/Stepper";
 import { tokens } from "app/common/ThemePrefs";
 
-import { Disposable, dom, DomContents, observable, Observable, styled } from "grainjs";
+import { Disposable, dom, DomContents, makeTestId, observable, Observable, styled } from "grainjs";
 
 const t = makeT("QuickSetup");
+const testId = makeTestId("test-quick-setup-");
 
 interface Step {
   completed: Observable<boolean>;
   label: string;
+  /** When true, step content card has no border or padding. */
+  plain?: boolean;
   buildDom(): DomContents;
 }
 
@@ -29,7 +40,8 @@ export class QuickSetup extends Disposable {
     {
       label: t("Authentication"),
       completed: observable(false),
-      buildDom: () => null,
+      buildDom: () => this._buildAuthStep(),
+      plain: true,
     },
     {
       label: t("Backups"),
@@ -43,7 +55,7 @@ export class QuickSetup extends Disposable {
     },
   ];
 
-  constructor() {
+  constructor(private _appModel: AppModel) {
     super();
   }
 
@@ -56,9 +68,30 @@ export class QuickSetup extends Disposable {
         dom.create(Stepper, { activeStep: this._activeStep, steps: this._steps }),
       ),
       dom.domComputed(this._activeStep, i => cssStepContent(
+        cssStepContent.cls("-plain", Boolean(this._steps[i].plain)),
         this._steps[i].buildDom(),
       )),
     );
+  }
+
+  private _buildAuthStep(): DomContents {
+    return dom.create((owner) => {
+      const section = AuthenticationSection.create(owner, {
+        appModel: this._appModel,
+        showRestartWarning: false,
+      });
+      return dom("div",
+        section.buildDom(),
+        cssContinueRow(
+          bigPrimaryButton(
+            t("Continue"),
+            dom.boolAttr("disabled", use => !use(section.canProceed)),
+            dom.on("click", () => this._activeStep.set(this._activeStep.get() + 1)),
+            testId("auth-continue"),
+          ),
+        ),
+      );
+    });
   }
 }
 
@@ -84,4 +117,16 @@ const cssStepContent = styled("div", `
   margin: 24px auto;
   max-width: 520px;
   padding: 28px 32px;
+  &-plain {
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    background: none;
+  }
+`);
+
+const cssContinueRow = styled("div", `
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24px;
 `);
