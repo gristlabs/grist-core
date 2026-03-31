@@ -2622,7 +2622,9 @@
         "showing a behavioral popup": "showing a behavioral popup",
         "Filter this column by just this cell's value": "Filter this column by just this cell's value",
         "Open the context menu": "Open the context menu",
-        "Toggle the screen reader improvements": "Toggle the screen reader improvements"
+        "Toggle the screen reader improvements": "Toggle the screen reader improvements",
+        "Open the current column menu": "Open the current column menu",
+        "Open the current row menu": "Open the current row menu"
     },
     "GridViewMenusDateHelpers": {
         "12-hour format": "12-hour format",
