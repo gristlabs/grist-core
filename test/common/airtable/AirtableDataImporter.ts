@@ -379,6 +379,41 @@ describe("AirtableDataImporter", function() {
         getAddOrUpdateSyntaxForRecords(schemaCrosswalk.tables.get("tblMain")!, [mockRecord]));
     });
 
+    it("calls addRows for tables which don't have an Airtable ID column", async () => {
+      const mockRecord = {
+        id: "rec123",
+        fields: {
+          Name: "Test Name",
+          Count: 42,
+        },
+      };
+
+      const listRecords = createListRecordsFake(new Map([["tblMain", [mockRecord]]]));
+
+      const schemaCrosswalk = createBasicSchemaCrosswalk([["tblMain", "Main"]]);
+
+      // Remove the airtable ID column from the mapping, so the importer doesn't know it exists.
+      schemaCrosswalk.tables.forEach((tableMapping) => {
+        tableMapping.airtableIdColumn = undefined;
+      });
+
+      await importDataFromAirtableBase({
+        listRecords,
+        addRows: addRowsMock,
+        addOrUpdateRows: addOrUpdateRowsMock,
+        updateRows: updateRowsMock,
+        uploadAttachment: uploadAttachmentMock,
+        schemaCrosswalk,
+      });
+
+      assert.isTrue(addRowsMock.called);
+      const call = addRowsMock.getCall(0);
+      assert.equal(call.args[0], "Main");
+      assert.deepEqual(
+        call.args[1],
+        getBulkColSyntaxForRecords(schemaCrosswalk.tables.get("tblMain")!, [mockRecord]));
+    });
+
     it("excludes formula columns from import", async () => {
       const mockRecord = {
         id: "rec123",
@@ -438,19 +473,24 @@ describe("AirtableDataImporter", function() {
         schemaCrosswalk,
       });
 
+      if (params.omitAirtableId) {
+        const call = addRowsMock.getCall(0);
+        return call.args[1];
+      }
+
       const call = addOrUpdateRowsMock.getCall(0);
       const records: AddOrUpdateRecord[] = call.args[1];
       return records[0];
     }
 
     it("stores airtable id when airtableIdColumn is configured", async () => {
-      const record = await testAirtableIdColumn({ omitAirtableId: false });
+      const record = await testAirtableIdColumn({ omitAirtableId: false }) as AddOrUpdateRecord;
       assert.equal(record.require.Airtable_Id, "rec999", "Airtable ID column data missing");
     });
 
     it("skips airtable id when airtableIdColumn is missing", async () => {
-      const record = await testAirtableIdColumn({ omitAirtableId: true });
-      assert.isUndefined(record.require.Airtable_Id, "Airtable ID column present when it shouldn't be");
+      const bulkValues = await testAirtableIdColumn({ omitAirtableId: true }) as BulkColValues;
+      assert.isUndefined(bulkValues.Airtable_Id, "Airtable ID column present when it shouldn't be");
     });
 
     it("handles multipleRecordLinks references and defers resolution", async () => {
@@ -807,7 +847,6 @@ describe("AirtableDataImporter", function() {
 
 type AirtableRecordKeyFieldsOnly = Pick<Airtable.Record<any>, "id" | "fields">;
 
-/*
 // Converts Airtable records into the expected bulk-column syntax
 function getBulkColSyntaxForRecords(tableCrosswalk: AirtableTableCrosswalk, records: AirtableRecordKeyFieldsOnly[]) {
   const fieldMappings = Array.from(tableCrosswalk.fields.values()).filter(mapping => !mapping.gristColumn.isFormula);
@@ -834,7 +873,6 @@ function getBulkColSyntaxForRecords(tableCrosswalk: AirtableTableCrosswalk, reco
   }
   return bulkCol;
 }
-*/
 
 // Converts Airtable records into the expected bulk-column syntax
 function getAddOrUpdateSyntaxForRecords(
