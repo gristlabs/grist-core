@@ -48,8 +48,8 @@ describe("Search4", function() {
     await driver.sendKeys(Key.ENTER);
     assert.deepEqual(await gu.getCursorPosition(), { rowNum: 2922, col: 2 });
 
-	// Add more letters with accents and case
-	await driver.sendKeys("ÀlTénängô"); // The search term is now "QuètzÀlTénängô"
+    // Add more letters with accents and case
+    await driver.sendKeys("ÀlTénängô"); // The search term is now "QuètzÀlTénängô"
     await driver.sleep(120);
     assert.include(await gu.getActiveCell().getText(), "Quetzaltenango");
   });
