@@ -521,9 +521,9 @@ describe("AirtableSchemaImporter", function() {
         widgetOptions: {
           choices: ["Tag 1", "Tag 2", "Tag 3"],
           choiceOptions: {
-            "Tag 1": { fillColor: "#D3E7FE", textColor: "#000000" },
-            "Tag 2": { fillColor: "#CCFEFE", textColor: "#000000" },
-            "Tag 3": { fillColor: "#CCFEFE", textColor: "#000000" },
+            "Tag 1": { fillColor: "#CFDFFF", textColor: "#000000" },
+            "Tag 2": { fillColor: "#D0F0FD", textColor: "#000000" },
+            "Tag 3": { fillColor: "#C2F5E9", textColor: "#000000" },
           },
         },
       }),
@@ -675,9 +675,9 @@ describe("AirtableSchemaImporter", function() {
         widgetOptions: {
           choices: ["Tag 1", "Tag 2", "Tag 3"],
           choiceOptions: {
-            "Tag 1": { fillColor: "#D3E7FE", textColor: "#000000" },
-            "Tag 2": { fillColor: "#CCFEFE", textColor: "#000000" },
-            "Tag 3": { fillColor: "#CCFEFE", textColor: "#000000" },
+            "Tag 1": { fillColor: "#CFDFFF", textColor: "#000000" },
+            "Tag 2": { fillColor: "#D0F0FD", textColor: "#000000" },
+            "Tag 3": { fillColor: "#C2F5E9", textColor: "#000000" },
           },
         },
       }),
@@ -711,7 +711,7 @@ describe("AirtableSchemaImporter", function() {
         widgetOptions: {
           choices: ["Known", "Unknown", "No Color"],
           choiceOptions: {
-            Known: { fillColor: "#E00A17", textColor: "#FFFFFF" },
+            Known: { fillColor: "#F82B60", textColor: "#FFFFFF" },
           },
         },
       }),
