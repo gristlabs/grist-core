@@ -101,3 +101,6 @@ xunit.xml
 /test/assistant/data/cache/
 /test/assistant/data/results/
 /test/assistant/data/templates/
+
+# Storybook
+/storybook-static/

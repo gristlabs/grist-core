@@ -25,6 +25,8 @@ import * as _ from "lodash";
 import { AbortController, AbortSignal } from "node-abort-controller";
 import { createClient, Multi, RedisClient } from "redis";
 
+import type { IDocNotificationManager, PendingItem } from "app/server/lib/IDocNotificationManager";
+
 promisifyAll(RedisClient.prototype);
 
 /**
@@ -35,6 +37,7 @@ export interface ActionPayload<A extends TriggerAction = TriggerAction> {
   id: string; // Action id (each action has unique id, for webhooks this a an id from home db)
   payload: RowRecord; // The record data to use with the action
   action: A;
+  triggerLabel?: string; // Label of the trigger that generated this event.
 }
 
 /** Payload for webhook actions specifically. */
@@ -56,6 +59,10 @@ const TRIGGER_WAIT_DELAY =
 
 const TRIGGER_MAX_ATTEMPTS =
   process.env.GRIST_TRIGGER_MAX_ATTEMPTS ? parseInt(process.env.GRIST_TRIGGER_MAX_ATTEMPTS, 10) : 20;
+
+function extractHost(url: string): string {
+  try { return new URL(url).host; } catch { return url; }
+}
 
 export interface ActionQueue<T extends ActionPayload = ActionPayload> {
   enqueue(events: T[]): Promise<void>;
@@ -140,7 +147,7 @@ export class WebhookQueue implements ActionQueue<WebhookActionPayload> {
 
   private _sanitizer = new LogSanitizer();
   private _stats: WebhookStatistics;
-  constructor(private _activeDoc: ActiveDoc) {
+  constructor(private _activeDoc: ActiveDoc, private _notifMgr?: IDocNotificationManager) {
     const redisUrl = process.env.REDIS_URL;
     this._stats = new WebhookStatistics(this._docId, _activeDoc, () => this._redisClient ?? null);
 
@@ -167,6 +174,7 @@ export class WebhookQueue implements ActionQueue<WebhookActionPayload> {
     this._shuttingDown = true;
     this._loopAbort?.abort();
     this._webhookCache.clear();
+    void this._stats.clear().catch(e => this._log("Error clearing stats during shutdown: " + e, { level: "warn" }));
     if (!this._sending) {
       void (this._redisClientField?.quitAsync());
     }
@@ -286,6 +294,37 @@ export class WebhookQueue implements ActionQueue<WebhookActionPayload> {
     this._log("Single webhook queue cleared", { numRemoved: removed, webhookId });
   }
 
+  /**
+   * Returns a list of pending items in the queue.
+   */
+  public async getPendingItems(docId: string): Promise<PendingItem[]> {
+    if (docId !== this._docId) { return []; }
+    const urlCache = new Map<string, string>();
+    const usageCache = new Map<string, WebhookUsage | null>();
+    const result: PendingItem[] = [];
+    for (const item of this._webHookEventQueue.slice()) {
+      if (!urlCache.has(item.id)) {
+        const url = await this._getWebHookUrl(item.id);
+        urlCache.set(item.id, url ? extractHost(url) : "");
+      }
+      if (!usageCache.has(item.id)) {
+        usageCache.set(item.id, await this._stats.getUsage(item.id, this._webHookEventQueue));
+      }
+      const usage = usageCache.get(item.id);
+      result.push({
+        actionId: item.id,
+        actionType: "webhook",
+        rowId: item.payload.id,
+        destination: urlCache.get(item.id)!,
+        status: usage?.status ?? "queued",
+        lastResult: usage?.lastErrorMessage ?
+          `${usage.lastHttpStatus ?? ""} ${usage.lastErrorMessage}`.trim() :
+          "",
+      });
+    }
+    return result;
+  }
+
   private get _docId() {
     return this._activeDoc.docName;
   }
@@ -296,6 +335,25 @@ export class WebhookQueue implements ActionQueue<WebhookActionPayload> {
 
   private get _drainingQueue() {
     return this._webHookEventQueue.length >= MAX_QUEUE_SIZE;
+  }
+
+  public resolveTriggerMeta(actionId: string): { triggerName: string; tableName: string } {
+    const docData = this._activeDoc.docData;
+    if (!docData) { return { triggerName: "", tableName: "" }; }
+    const triggersTable = docData.getMetaTable("_grist_Triggers");
+    const tablesTable = docData.getMetaTable("_grist_Tables");
+    const getTableId = tablesTable.getRowPropFunc("tableId");
+    for (const rec of triggersTable.getRecords()) {
+      let actions: any[] = [];
+      try { actions = JSON.parse(rec.actions as string); } catch { /* skip */ }
+      if (actions.some((a: any) => a.id === actionId)) {
+        return {
+          triggerName: (rec.label as string) || "",
+          tableName: (getTableId(rec.tableRef as number) as string) || "",
+        };
+      }
+    }
+    return { triggerName: "", tableName: "" };
   }
 
   private _log(msg: string, { level = "info", ...meta }: any = {}) {
@@ -463,6 +521,20 @@ export class WebhookQueue implements ActionQueue<WebhookActionPayload> {
         }
       }
 
+      // Log delivery event for the monitoring page.
+      if (meta) {
+        const usage = await this._stats.getUsage(id, this._webHookEventQueue);
+        await this._notifMgr?.logDelivery([[this._docId, {
+          actionId: id,
+          actionType: "webhook",
+          destination: meta.host,
+          rowIds: batch.map(e => e.payload.id),
+          status: success ? "success" : (this._drainingQueue ? "rejected" : "failed"),
+          httpStatus: usage?.lastEventBatch?.httpStatus ?? null,
+          errorMessage: usage?.lastEventBatch?.errorMessage ?? "",
+        }]]);
+      }
+
       await multi?.execAsync();
     }
 
@@ -614,7 +686,7 @@ class PersistedStore<Keys> {
 
   public async clear() {
     this._statsCache.clear();
-    if (this._redisClient) {
+    if (this._redisClient?.connected) {
       await this._redisClient.delAsync(this._redisKey).catch(() => {});
     }
   }

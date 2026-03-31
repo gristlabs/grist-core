@@ -51,4 +51,18 @@ describe("Features", function() {
     assert.isFalse(await driver.find(".test-left-feedback").isPresent());
     assert.isFalse(await driver.find(".test-dm-templates-page").isDisplayed());
   });
+
+  it("can hide automations with GRIST_HIDE_UI_ELEMENTS", async function() {
+    process.env.GRIST_HIDE_UI_ELEMENTS = "automations";
+    delete process.env.GRIST_UI_FEATURES;
+    await server.restart();
+    // Login fresh after restart and create a doc to check the left panel.
+    const s = await gu.session().personalSite.login();
+    const api = s.createHomeApi();
+    const wss = await api.getOrgWorkspaces("current");
+    const docId = await api.newDoc({ name: "TestFeatures" }, wss[0].id);
+    await s.loadDoc(`/doc/${docId}`);
+    assert.isFalse(await driver.find(".test-tools-automations").isPresent());
+    await api.deleteDoc(docId);
+  });
 });

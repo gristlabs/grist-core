@@ -236,12 +236,16 @@ export class AccountWidget extends Disposable {
 
   private _maybeBuildAdminPanelMenuItem() {
     // Only show Admin Panel item to the installation admins.
-    if (this._appModel.currentUser?.isInstallAdmin) {
+    // Hide in electron (Grist Desktop) where the admin panel is not useful.
+    const { deploymentType } = getGristConfig();
+    if (this._appModel.currentUser?.isInstallAdmin && deploymentType !== "electron") {
       return menuItemLink(
         getAdminPanelName(),
         urlState().setLinkUrl({ adminPanel: "admin" }),
         testId("usermenu-admin-panel"),
       );
+    } else {
+      return null;
     }
   }
 

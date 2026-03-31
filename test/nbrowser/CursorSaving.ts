@@ -228,6 +228,7 @@ describe("CursorSaving", function() {
       // The other tags all reference other items, so the stored cursor position will be invalid.
       await gu.sendKeys(Key.DELETE, Key.ENTER);
       await driver.findContentWait(".test-ref-editor-item", "d", 1000).click();
+      await gu.waitForServer();
       await clickAndCheck({ section: "Selector", rowNum: 1, col: 0 }, "d");
 
       // Open the previously primed page and check that it shows "Papaya" (the first and only row)

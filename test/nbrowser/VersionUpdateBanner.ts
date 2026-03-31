@@ -20,6 +20,7 @@ describe("VersionUpdateBanner", function() {
     oldEnv = new testUtils.EnvironmentSnapshot();
     process.env.GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING = "true";
     process.env.GRIST_TEST_IMMEDIATE_VERSION_CHECK = "true";
+    process.env.GRIST_TEST_SERVER_DEPLOYMENT_TYPE = "core";
     process.env.GRIST_DEFAULT_EMAIL = gu.session().email;
     fakeServer = await startFakeUpdateServer();
     process.env.GRIST_TEST_VERSION_CHECK_URL = `${fakeServer.url()}/version`;

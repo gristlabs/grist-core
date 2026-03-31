@@ -18,13 +18,18 @@ import { OrgPrefs, UserOrgPrefs, UserPrefs } from "app/common/Prefs";
 import * as roles from "app/common/roles";
 import { StringUnion } from "app/common/StringUnion";
 import {
+  TriggerAddRequest,
+  TriggerAddResponse,
+  TriggerDeletionRequest,
+  TriggerListResponse,
+  TriggerUpdateRequest,
   WebhookFields,
   WebhookSubscribe,
   WebhookSummaryCollection,
   WebhookUpdate,
 } from "app/common/Triggers";
 import { addCurrentOrgToPath, getGristConfig } from "app/common/urlUtils";
-import { AttachmentStore, AttachmentStoreDesc, TablesGet } from "app/plugin/DocApiTypes";
+import { AttachmentStore, AttachmentStoreDesc,  Record as ApiRecord, TablesGet } from "app/plugin/DocApiTypes";
 
 import { AxiosProgressEvent } from "axios";
 import omitBy from "lodash/omitBy";
@@ -77,6 +82,16 @@ export interface Organization extends OrganizationWithoutAccessInfo {
   access: roles.Role;
 }
 
+// This type is for billing account status information.  Intended for stuff
+// like "free trial running out in N days".
+export interface BillingAccountStatus {
+  stripeStatus?: string;
+  currentPeriodStart?: string;
+  currentPeriodEnd?: string;
+  // Used only for tests
+  message?: string;
+}
+
 // Basic information about a billing account associated with an org or orgs.
 export interface BillingAccount {
   id: number;
@@ -85,6 +100,7 @@ export interface BillingAccount {
   stripePlanId: string; // Stripe price id.
   isManager: boolean;
   inGoodStanding: boolean;
+  status?: BillingAccountStatus;
   features?: Features; // Features override, not the final set of features.
   externalOptions?: {
     invoiceId?: string;
@@ -571,13 +587,25 @@ export interface DocAPI {
   // Get users that are worth proposing to "View As" for access control purposes.
   getUsersForViewAs(): Promise<PermissionDataWithExtraUsers>;
 
+  // New trigger API methods
+  getTriggers(): Promise<TriggerListResponse>;
+  addTriggers(request: TriggerAddRequest): Promise<TriggerAddResponse>;
+  updateTriggers(request: TriggerUpdateRequest): Promise<void>;
+  removeTriggers(request: TriggerDeletionRequest): Promise<void>;
+
+  // Old webhook specific methods, all considred legacy and subject to removal once the new trigger
+  // API is fully in place.
   getWebhooks(): Promise<WebhookSummaryCollection>;
   addWebhook(webhook: WebhookFields): Promise<{ webhookId: string }>;
   removeWebhook(webhookId: string, tableId: string): Promise<void>;
-  // Update webhook
   updateWebhook(webhook: WebhookUpdate): Promise<void>;
+
+  // Methods for webhook queue management, not deprecated.
   flushWebhooks(): Promise<void>;
   flushWebhook(webhookId: string): Promise<void>;
+
+  // Monitoring endpoint for trigger delivery history and pending queue.
+  getTriggerMonitor(): Promise<{ delivered: ApiRecord[]; pending: ApiRecord[] }>;
 
   getAssistance(params: AssistanceRequest): Promise<AssistanceResponse>;
   /**
@@ -1196,10 +1224,39 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     });
   }
 
+  public async getTriggers(): Promise<TriggerListResponse> {
+    return this.requestJson(`${this._url}/triggers`);
+  }
+
+  public async addTriggers(request: TriggerAddRequest): Promise<TriggerAddResponse> {
+    return this.requestJson(`${this._url}/triggers`, {
+      method: "POST",
+      body: JSON.stringify(request),
+    });
+  }
+
+  public async updateTriggers(request: TriggerUpdateRequest): Promise<void> {
+    return this.requestJson(`${this._url}/triggers`, {
+      method: "PATCH",
+      body: JSON.stringify(request),
+    });
+  }
+
+  public async removeTriggers(request: TriggerDeletionRequest): Promise<void> {
+    return this.requestJson(`${this._url}/triggers/delete`, {
+      method: "POST",
+      body: JSON.stringify(request),
+    });
+  }
+
   public async flushWebhooks(): Promise<void> {
     await this.request(`${this._url}/webhooks/queue`, {
       method: "DELETE",
     });
+  }
+
+  public async getTriggerMonitor() {
+    return this.requestJson(`${this._url}/triggers/monitor`);
   }
 
   public async flushWebhook(id: string): Promise<void> {

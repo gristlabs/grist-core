@@ -26,7 +26,7 @@ export function filterBar(
     dom.maybe(viewSection.showNestedFilteringPopup, () => {
       return dom("div",
         gristDoc.behavioralPromptsManager.attachPopup("nestedFiltering", {
-          onDispose: () => viewSection.showNestedFilteringPopup.set(false),
+          onDispose: () => viewSection.showNestedFilteringPopup?.set(false),
         }),
       );
     }),

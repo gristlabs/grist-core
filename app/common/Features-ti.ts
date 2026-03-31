@@ -37,6 +37,7 @@ export const Features = t.iface([], {
   "minimumUnits": t.opt("number"),
   "meteredSeats": t.opt("boolean"),
   "teamAuditLogs": t.opt("boolean"),
+  "automations": t.opt("boolean"),
   "maxNewUserInvitesPerOrg": t.opt("number"),
   "installationEnabled": t.opt("boolean"),
   "installationSeats": t.opt("number"),

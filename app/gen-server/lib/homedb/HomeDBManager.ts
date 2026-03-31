@@ -640,7 +640,7 @@ export class HomeDBManager implements HomeDBAuth {
         name: "Anonymous",
         owner: this.makeFullUser(this._usersManager.getAnonymousUser()),
         access: "viewers",
-        billingAccount: {
+        billingAccount: Object.assign(new BillingAccount(), {
           id: 0,
           individual: true,
           product: {
@@ -651,7 +651,7 @@ export class HomeDBManager implements HomeDBAuth {
           isManager: false,
           inGoodStanding: true,
           features: {},
-        },
+        }) as BillingAccount as any,
         host: null,
       };
       return { status: 200, data: anonOrg as any };
@@ -861,7 +861,7 @@ export class HomeDBManager implements HomeDBAuth {
     orgQuery = this._addFeatures(orgQuery);
     const orgQueryResult = await verifyEntity(orgQuery);
     const org: Organization = this.unwrapQueryResult(orgQueryResult);
-    const productFeatures = org.billingAccount.getFeatures();
+    const productFeatures = org.billingAccount.getEffectiveFeatures();
 
     // Grab all the non-removed documents in the org.
     let docsQuery = this._docs()
@@ -1086,8 +1086,14 @@ export class HomeDBManager implements HomeDBAuth {
       if (docs.length === 0) { throw new ApiError("document not found", 404); }
       if (docs.length > 1) { throw new ApiError("ambiguous document request", 400); }
       doc = docs[0];
-      const features = doc.workspace.org.billingAccount?.getFeatures() || {};
-      if (features.readOnlyDocs || this.isReadonly()) {
+      if (!doc.workspace.org.billingAccount.product) {
+        throw new ApiError("billing account has no product", 500);
+      }
+      const features = doc.workspace.org.billingAccount.getEffectiveFeatures();
+      if (features.readOnlyDocs ||
+        this.isReadonly() ||
+        !doc.workspace.org.billingAccount.inGoodStanding
+      ) {
         // Don't allow any access to docs that is stronger than "viewers".
         doc.access = roles.getWeakestRole("viewers", doc.access);
       }
@@ -1571,7 +1577,7 @@ export class HomeDBManager implements HomeDBAuth {
         return queryResult;
       }
       const org: Organization = queryResult.data;
-      const features = org.billingAccount.getFeatures();
+      const features = org.billingAccount.getEffectiveFeatures();
       if (features.maxWorkspacesPerOrg !== undefined) {
         // we need to count how many workspaces are in the current org, and if we
         // are already at or above the limit, then fail.
@@ -2266,7 +2272,7 @@ export class HomeDBManager implements HomeDBAuth {
         await this._updateUserPermissions(groups, userIdDelta, manager);
         this._checkUserChangeAllowed(userId, groups);
         const nonOrgMembersAfter = this._usersManager.getUserDifference(groups, orgGroups);
-        const features = org.billingAccount.getFeatures();
+        const features = org.billingAccount.getEffectiveFeatures();
         const limit = features.maxSharesPerWorkspace;
         if (limit !== undefined) {
           this._restrictShares(null, limit, removeRole(nonOrgMembersBefore),
@@ -2343,7 +2349,7 @@ export class HomeDBManager implements HomeDBAuth {
         await this._updateUserPermissions(groups, userIdDelta, manager);
         this._checkUserChangeAllowed(userId, groups);
         const nonOrgMembersAfter = this._usersManager.getUserDifference(groups, orgGroups);
-        const features = org.billingAccount.getFeatures();
+        const features = org.billingAccount.getEffectiveFeatures();
         this._restrictAllDocShares(features, nonOrgMembersBefore, nonOrgMembersAfter);
       }
       await manager.save(groups);
@@ -2659,7 +2665,7 @@ export class HomeDBManager implements HomeDBAuth {
           const destOrgGroups = getNonGuestGroups(destOrg);
           const nonOrgMembersBefore = this._usersManager.getUserDifference(docGroups, sourceOrgGroups);
           const nonOrgMembersAfter = this._usersManager.getUserDifference(docGroups, destOrgGroups);
-          const features = destOrg.billingAccount.getFeatures();
+          const features = destOrg.billingAccount.getEffectiveFeatures();
           this._restrictAllDocShares(features, nonOrgMembersBefore, nonOrgMembersAfter, false);
         }
       }
@@ -3012,7 +3018,7 @@ export class HomeDBManager implements HomeDBAuth {
         // This API shouldn't be called, it should be checked first if the org is valid.
         throw new ApiError(`Can't create a limit for non-existing organization`, 500);
       }
-      const features = org?.billingAccount?.getFeatures();
+      const features = org?.billingAccount?.getEffectiveFeatures();
       if (!features) {
         throw new ApiError(`No product found for org ${org.id}`, 500);
       }
@@ -3787,7 +3793,7 @@ export class HomeDBManager implements HomeDBAuth {
       existing = new Limit();
       existing.billingAccountId = ba.id;
       existing.type = limitType;
-      existing.limit = ba.getFeatures().baseMaxAssistantCalls ?? 0;
+      existing.limit = ba.getEffectiveFeatures().baseMaxAssistantCalls ?? 0;
       existing.usage = 0;
       await manager.save(existing);
       return existing;
@@ -4191,7 +4197,7 @@ export class HomeDBManager implements HomeDBAuth {
     const { foundUserDelta, foundUsers, notFoundUserDelta } = analysis;
 
     const max =
-      billingAccount.getFeatures().maxNewUserInvitesPerOrg ??
+      billingAccount.getEffectiveFeatures().maxNewUserInvitesPerOrg ??
       Deps.defaultMaxNewUserInvitesPerOrg.value;
     if (max === undefined) { return; }
 
@@ -4743,7 +4749,7 @@ export class HomeDBManager implements HomeDBAuth {
     if (value.billingAccount) {
       // This is an organization with billing account information available.  Check limits.
       const org = value as Organization;
-      const features = org.billingAccount.getFeatures();
+      const features = org.billingAccount.getEffectiveFeatures();
       if (!features.vanityDomain) {
         // Vanity domain not allowed for this org.
         options = { ...options, suppressDomain: true };
@@ -5161,7 +5167,15 @@ export class HomeDBManager implements HomeDBAuth {
 
   // Throw an error if there's no room for adding another document.
   private async _checkRoomForAnotherDoc(workspace: Workspace, manager: EntityManager) {
-    const features = workspace.org.billingAccount.getFeatures();
+    const features = workspace.org.billingAccount.getEffectiveFeatures();
+    if (features.readOnlyDocs) {
+      // Send payment required error.
+      throw new ApiError("Site is in readonly mode", 402);
+    }
+    const billingOk = workspace.org.billingAccount.inGoodStanding;
+    if (!billingOk) {
+      throw new ApiError("Site is in readonly mode due to billing issues", 429);
+    }
     if (features.maxDocsPerOrg !== undefined) {
       // we need to count how many docs are in the current org, and if we
       // are already at or above the limit, then fail.

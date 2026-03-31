@@ -46,6 +46,8 @@ export interface ITokenFieldOptions<Token extends IToken> {
   tokensToClipboard?: (tokens: Token[], clipboard: DataTransfer) => void;
   clipboardToTokens?: (clipboard: DataTransfer) => Token[];
 
+  // Allows validating tokens before they are added to the list.
+  validateToken?: (token: Token) => boolean;
   // Defaults to horizontal.
   variant?: ITokenFieldVariant;
 }
@@ -162,6 +164,10 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
             Tab$: ev => addSelectedItem() && stop(ev),
           }),
           dom.on("input", openAutocomplete),
+          dom.attr("type", "text"),
+          dom.attr("autocomplete", "new-password"),  // Disable autocomplete and password manager dropdowns.
+          // More context on this:
+          // https://adamsilver.io/blog/stopping-chrome-from-ignoring-autocomplete-off/
           testId("tokenfield-input"),
         ),
       ),
@@ -270,7 +276,9 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
       item = this._options.createToken(textInput);
     }
     if (item) {
-      this._tokens.push(new TokenWrap(item));
+      if (!this._options.validateToken || this._options.validateToken(item)) {
+        this._tokens.push(new TokenWrap(item));
+      }
       this._textInput.value = "";
       this._acHolder.clear();
       return true;

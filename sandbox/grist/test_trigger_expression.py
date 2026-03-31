@@ -103,6 +103,85 @@ class TestConditionParsing(unittest.TestCase):
     for cond in wrong_conditions:
       self.assertEqual(parse_trigger_condition(cond), cond)
 
+  def test_parse_condition_invalid_syntax_raises(self):
+    """Test that invalid Python syntax raises SyntaxError."""
+    condition = json.dumps({'text': 'rec.A =='})
+    with self.assertRaises(SyntaxError):
+      parse_trigger_condition(condition)
+
+  def test_parse_config_mode_filters_only(self):
+    """Test config mode with columnFilters only (no customExpression)."""
+    condition = json.dumps({
+      'config': {
+        'columnFilters': [{'colRef': 1, 'filter': '{"included": ["a"]}'}],
+        'requiredColumns': [2],
+      }
+    })
+    result = parse_trigger_condition(condition)
+    result_data = json.loads(result)
+
+    self.assertIn('config', result_data)
+    self.assertNotIn('text', result_data)
+    self.assertNotIn('parsed', result_data)
+    self.assertNotIn('customExpressionParsed', result_data['config'])
+
+  def test_parse_config_mode_with_custom_expression(self):
+    """Test config mode parses customExpression into customExpressionParsed."""
+    condition = json.dumps({
+      'config': {
+        'columnFilters': [],
+        'customExpression': 'rec.A > 5',
+      }
+    })
+    result = parse_trigger_condition(condition)
+    result_data = json.loads(result)
+
+    self.assertIn('config', result_data)
+    self.assertEqual(
+      result_data['config']['customExpressionParsed'],
+      parse_predicate_formula('rec.A > 5')
+    )
+
+  def test_parse_config_mode_skips_already_parsed(self):
+    """Test config mode skips parsing if customExpressionParsed is already set."""
+    existing_parsed = ['Const', True]
+    condition = json.dumps({
+      'config': {
+        'customExpression': 'rec.A > 5',
+        'customExpressionParsed': existing_parsed,
+      }
+    })
+    result = parse_trigger_condition(condition)
+    result_data = json.loads(result)
+
+    # Should keep the existing parsed value, not re-parse.
+    self.assertEqual(result_data['config']['customExpressionParsed'], existing_parsed)
+
+  def test_parse_config_mode_with_text_uses_text_mode(self):
+    """Test that if both config and text are present, text mode is used."""
+    condition = json.dumps({
+      'text': '$A == "Foo"',
+      'config': {
+        'columnFilters': [],
+      }
+    })
+    result = parse_trigger_condition(condition)
+    result_data = json.loads(result)
+
+    # Text mode takes precedence when text field is present.
+    self.assertIn('parsed', result_data)
+    self.assertEqual(result_data['text'], '$A == "Foo"')
+
+  def test_parse_config_mode_invalid_custom_expression_raises(self):
+    """Test that invalid customExpression syntax raises SyntaxError."""
+    condition = json.dumps({
+      'config': {
+        'customExpression': 'rec.A ==',
+      }
+    })
+    with self.assertRaises(SyntaxError):
+      parse_trigger_condition(condition)
+
 
 class TestTriggerActions(test_engine.EngineTestCase):
   def test_condition_parsed_on_add_and_update(self):
@@ -230,7 +309,6 @@ class TestTriggerConditionRenames(test_engine.EngineTestCase):
     }])
 
   def get_condition(self, index=0):
-    # Get the condition from the text of the trigger at the given index
     trigger_table = self.engine.fetch_table('_grist_Triggers')
     condition_json = json.loads(trigger_table.columns['condition'][index])
     return condition_json['text']
@@ -276,3 +354,42 @@ class TestTriggerConditionRenames(test_engine.EngineTestCase):
     # Check that both trigger conditions were updated correctly
     self.assertEqual(self.get_condition(0), '$A2 == 1')
     self.assertEqual(self.get_condition(1), '$A3 == 2')
+
+  def test_config_mode_rename_custom_expression(self):
+    """Test that renaming a column updates customExpression in config mode."""
+    self.set_condition(json.dumps({
+      'config': {
+        'columnFilters': [{'colRef': 1, 'filter': '{"included": ["x"]}'}],
+        'customExpression': 'rec.A != oldRec.A',
+      }
+    }))
+
+    self.apply_user_action(['RenameColumn', 'Table1', 'A', 'A2'])
+
+    trigger_table = self.engine.fetch_table('_grist_Triggers')
+    condition_data = json.loads(trigger_table.columns['condition'][0])
+    config = condition_data['config']
+
+    self.assertEqual(config['customExpression'], 'rec.A2 != oldRec.A2')
+    self.assertIn('customExpressionParsed', config)
+    # columnFilters use colRefs, so they should be unchanged.
+    self.assertEqual(config['columnFilters'][0]['colRef'], 1)
+
+  def test_config_mode_rename_no_custom_expression(self):
+    """Test that renaming a column doesn't affect config mode without customExpression."""
+    self.set_condition(json.dumps({
+      'config': {
+        'columnFilters': [{'colRef': 1, 'filter': '{"included": ["x"]}'}],
+        'requiredColumns': [2],
+      }
+    }))
+
+    self.apply_user_action(['RenameColumn', 'Table1', 'A', 'A2'])
+
+    trigger_table = self.engine.fetch_table('_grist_Triggers')
+    condition_data = json.loads(trigger_table.columns['condition'][0])
+    config = condition_data['config']
+
+    # Nothing should change — colRefs are stable, no customExpression to rename.
+    self.assertEqual(config['columnFilters'][0]['colRef'], 1)
+    self.assertEqual(config['requiredColumns'], [2])

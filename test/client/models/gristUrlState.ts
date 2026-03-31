@@ -150,6 +150,37 @@ describe("gristUrlState", function() {
       "http://localhost:8080/o/baz/api/docs/bar");
   });
 
+  it("should decode automation sub-page paths correctly", function() {
+    assert.deepEqual(
+      prod.decodeUrl(new URL("http://localhost:8484/o/foo/doc/bar/p/automations")),
+      { org: "foo", doc: "bar", docPage: "automations" },
+    );
+    assert.deepEqual(
+      prod.decodeUrl(new URL("http://localhost:8484/o/foo/doc/bar/p/automations/42")),
+      { org: "foo", doc: "bar", docPage: "automations", docSubPage: 42 },
+    );
+    assert.deepEqual(
+      prod.decodeUrl(new URL("http://localhost:8484/o/foo/doc/bar/p/automations/log")),
+      { org: "foo", doc: "bar", docPage: "automations", docSubPage: "log" },
+    );
+  });
+
+  it("should encode automation sub-page paths correctly", function() {
+    const localBase = new URL("http://localhost:8484");
+    assert.equal(
+      prod.encodeUrl({ org: "foo", doc: "bar", docPage: "automations" }, localBase),
+      "http://localhost:8484/o/foo/doc/bar/p/automations",
+    );
+    assert.equal(
+      prod.encodeUrl({ org: "foo", doc: "bar", docPage: "automations", docSubPage: 42 }, localBase),
+      "http://localhost:8484/o/foo/doc/bar/p/automations/42",
+    );
+    assert.equal(
+      prod.encodeUrl({ org: "foo", doc: "bar", docPage: "automations", docSubPage: "log" }, localBase),
+      "http://localhost:8484/o/foo/doc/bar/p/automations/log",
+    );
+  });
+
   it("should encode state in billing URLs correctly", function() {
     const hostBase = new URL("https://bar.example.com");
 

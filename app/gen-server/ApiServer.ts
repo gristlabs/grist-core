@@ -582,6 +582,10 @@ export class ApiServer {
         domain, req, scope => this._dbManager.getOrg(scope, domain),
       )) : null;
       const orgError = (org?.errMessage) ? { error: org.errMessage, status: org.status } : undefined;
+      if (org?.data?.billingAccount) {
+      // Flatten features into single object for client side code that is using BillingAccount client side model.
+        org.data.billingAccount.features = org.data.billingAccount.getEffectiveFeatures();
+      }
       return sendOkReply(req, res, {
         user: { ...fullUser,
           helpScoutSignature: helpScoutSign(fullUser.email),

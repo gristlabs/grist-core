@@ -269,7 +269,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       },
     };
   },
-  formula({ field }) {
+  formula({ field, getTableIdForField }) {
     const formula = typeof field.options?.formula === "string" ? field.options?.formula : "No formula set";
     // Store the formula as a comment to prevent it showing errors.
     const formattedFormula = formula.split("\n").map(line => `#${line.trim()}`).join("\n");
@@ -282,7 +282,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
         // such as field type, options and referenced fields.
         // The logic to implement that however doesn't seem worth the time investment.
         type: "Any",
-        formula: { formula: formattedFormula },
+        formula: convertFormulaFieldReferences(formattedFormula, getTableIdForField),
         isFormula: true,
       },
     };
@@ -649,4 +649,29 @@ function buildChoiceOptions(
     }
   }
   return choiceOptions;
+}
+
+function convertFormulaFieldReferences(
+  formula: string, getTableIdForField: (fieldId: string) => string,
+): FormulaTemplate {
+  const fieldRefs = Array.from(new Set(formula.match(/{fld[A-Za-z0-9]+}/g) ?? []));
+
+  let newFormula = formula;
+  fieldRefs.forEach((fieldRef, index) => {
+    newFormula = newFormula.split(fieldRef).join(`$[R${index}]`);
+  });
+
+  const replacements = fieldRefs.map((fieldRef) => {
+    // Remove the {} brackets from around the ID
+    const fieldId = fieldRef.slice(1, -1);
+    return {
+      originalTableId: getTableIdForField(fieldId),
+      originalColId: fieldId,
+    };
+  });
+
+  return {
+    formula: newFormula,
+    replacements,
+  };
 }

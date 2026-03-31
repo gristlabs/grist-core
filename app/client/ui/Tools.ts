@@ -3,6 +3,7 @@ import { GristDoc } from "app/client/components/GristDoc";
 import { makeT } from "app/client/lib/localization";
 import { urlState } from "app/client/models/gristUrlState";
 import { getUserOrgPrefObs, markAsSeen } from "app/client/models/UserPrefs";
+import { createAutomationsPageEntry } from "app/client/ui/AutomationsPageEntry";
 import { showExampleCard } from "app/client/ui/ExampleCard";
 import { buildExamples } from "app/client/ui/ExampleInfo";
 import {
@@ -132,6 +133,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
       ),
       testId("code"),
     ),
+    createAutomationsPageEntry(gristDoc, isDocOwner),
     cssPageEntry(
       cssPageEntry.cls("-selected", use => use(gristDoc.activeViewId) === "settings"),
       cssPageLink(cssPageIcon("Settings"),

@@ -57,6 +57,7 @@ export interface IFilterMenuOptions {
   valueCounts: Map<CellValue, IFilterCount>;
   rangeInputOptions?: IRangeInputOptions;
   showAllFiltersButton?: boolean;
+  showPinButton?: boolean;
   doCancel(): void;
   doSave(): void;
   renderValue(key: CellValue, value: IFilterCount): DomElementArg;
@@ -75,7 +76,8 @@ export type IColumnFilterViewType = "listView" | "calendarView";
  * For use with setPopupToCreateDom().
  */
 export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptions): HTMLElement {
-  const { model, doCancel, doSave, onClose, renderValue, valueParser, showAllFiltersButton } = opts;
+  const { model, doCancel, doSave, onClose, renderValue, valueParser, showAllFiltersButton,
+    showPinButton = true } = opts;
   const { columnFilter, filterInfo, gristDoc } = model;
   const valueFormatter = opts.valueFormatter || (val => val?.toString() || "");
 
@@ -373,7 +375,7 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
               testId("all-filters-btn"),
             ),
           ),
-          dom("div",
+          !showPinButton ? null : dom("div",
             cssPinButton(
               icon("PinTilted"),
               cssPinButton.cls("-pinned", model.filterInfo.isPinned),
@@ -638,6 +640,8 @@ function getEmptyCountMap(fieldOrColumn: ViewFieldRec | ColumnRec): Map<CellValu
 export interface IColumnFilterMenuOptions {
   /** If true, shows a button that opens the sort & filter widget menu. */
   showAllFiltersButton?: boolean;
+  /** If false, hides the pin/unpin button. Defaults to true. */
+  showPinButton?: boolean;
   /** Callback for when the filter menu is closed. */
   onClose?: () => void;
 }
@@ -663,6 +667,7 @@ export function createFilterMenu(params: ICreateFilterMenuParams) {
     tableData,
     gristDoc,
     showAllFiltersButton,
+    showPinButton,
     onClose = noop,
   } = params;
 
@@ -730,8 +735,8 @@ export function createFilterMenu(params: ICreateFilterMenuParams) {
       // it is the second pinned filter in the section, trigger a tip that explains how multiple
       // filters in the same section work.
       const isNewPinnedFilter = columnFilter.initialFilterJson === NEW_FILTER_JSON && isPinned();
-      if (isNewPinnedFilter && viewSection.pinnedActiveFilters.get().length === 2) {
-        viewSection.showNestedFilteringPopup.set(true);
+      if (isNewPinnedFilter && viewSection.pinnedActiveFilters?.get().length === 2) {
+        viewSection.showNestedFilteringPopup?.set(true);
       }
     },
     doCancel: () => {
@@ -751,6 +756,7 @@ export function createFilterMenu(params: ICreateFilterMenuParams) {
     valueParser,
     valueFormatter,
     showAllFiltersButton,
+    showPinButton,
   });
 }
 

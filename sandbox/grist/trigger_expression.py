@@ -31,26 +31,43 @@ def perform_trigger_condition_renames(useractions, renames):
     if not trigger.condition:
       continue
 
-    # Parse the condition JSON
     try:
       condition_data = json.loads(trigger.condition)
-      if not isinstance(condition_data, dict) or 'text' not in condition_data:
+      if not isinstance(condition_data, dict):
         continue
-      condition_formula = condition_data['text']
     except (ValueError, KeyError, TypeError):
       continue
 
-    def renamer(subject, table_id=trigger.tableRef.tableId):
-      # subject.type is recCol, see _TriggerEntityCollector
-      return renames.get((table_id, subject.name))
+    table_id = trigger.tableRef.tableId
+    changed = False
 
-    new_condition_formula = predicate_formula.process_renames(
-      condition_formula, _TriggerEntityCollector(), renamer)
+    def renamer(subject, _table_id=table_id):
+      return renames.get((_table_id, subject.name))
 
-    # Only update if the formula actually changed
-    if new_condition_formula != condition_formula:
-      condition_data['text'] = new_condition_formula
-      condition_data['parsed'] = parse_predicate_formula(new_condition_formula)
+    # Config mode: columnFilters use colRefs (stable across renames),
+    # so only customExpression needs AST-based renaming.
+    config = condition_data.get('config')
+    if config and isinstance(config, dict):
+      custom_expr = config.get('customExpression', '')
+      if custom_expr:
+        new_custom_expr = predicate_formula.process_renames(
+          custom_expr, _TriggerEntityCollector(), renamer)
+        if new_custom_expr != custom_expr:
+          config['customExpression'] = new_custom_expr
+          config['customExpressionParsed'] = parse_predicate_formula(new_custom_expr)
+          changed = True
+
+    # Text mode: rename in the text formula.
+    if 'text' in condition_data:
+      condition_formula = condition_data['text']
+      new_condition_formula = predicate_formula.process_renames(
+        condition_formula, _TriggerEntityCollector(), renamer)
+      if new_condition_formula != condition_formula:
+        condition_data['text'] = new_condition_formula
+        condition_data['parsed'] = parse_predicate_formula(new_condition_formula)
+        changed = True
+
+    if changed:
       updates.append((trigger, {"condition": json.dumps(condition_data)}))
 
   # Update the trigger conditions in the database
@@ -100,6 +117,17 @@ def parse_trigger_condition(condition_str):
 
   assert condition_json
 
+  # Config mode: structured condition evaluated directly by JS.
+  # Only parse customExpression if present.
+  config = condition_json.get('config')
+  if config and isinstance(config, dict) and 'text' not in condition_json:
+    custom_expr = config.get('customExpression', '')
+    if custom_expr and 'customExpressionParsed' not in config:
+      config['customExpressionParsed'] = parse_predicate_formula(custom_expr)
+    # Config mode is valid even without customExpression (filters only).
+    return json.dumps(condition_json)
+
+  # Text mode.
   text = condition_json.get('text', '')
 
   if not text:
@@ -112,6 +140,7 @@ def parse_trigger_condition(condition_str):
     return condition_str
 
   condition_json['parsed'] = parse_predicate_formula(text)
+
   return json.dumps(condition_json)
 
 

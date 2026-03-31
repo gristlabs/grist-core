@@ -1072,6 +1072,9 @@ export class FlexServer implements GristServer {
     if (this.httpsServer) { this.httpsServer.close(); }
     if (this.housekeeper) { await this.housekeeper.stop(); }
     if (this._jobs)       { await this._jobs.stop(); }
+    if (this._docNotificationManager) {
+      this._docNotificationManager.shutdown();
+    }
     await this._shutdown();
     if (this._accessTokens) { await this._accessTokens.close(); }
     // Do this after _shutdown, since DocWorkerMap is used during shutdown.
@@ -1270,7 +1273,7 @@ export class FlexServer implements GristServer {
           // If "welcomeNewUser" is ever added to billing pages, we'd need
           // to avoid a redirect loop.
 
-          if (orgInfo.billingAccount.isManager && orgInfo.billingAccount.getFeatures().vanityDomain) {
+          if (orgInfo.billingAccount.isManager && orgInfo.billingAccount.getEffectiveFeatures().vanityDomain) {
             const prefix: string = isOrgInPathOnly(req.hostname) ? `/o/${mreq.org}` : "";
             return res.redirect(`${prefix}/billing/payment?billingTask=signUpLite`);
           }

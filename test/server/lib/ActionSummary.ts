@@ -472,6 +472,53 @@ describe("ActionSummary", function() {
     assert.deepEqual(result, summary3);
   });
 
+  it("can compose remove-then-add of same rowId preserving old values", async function() {
+    // When a row is removed in one summary and a new row reuses the same ID
+    // in the next summary, the composed result should have the row in both
+    // removeRows and addRows, with the column delta preserving the old
+    // (pre-removal) value at index 0 and the new (post-add) value at index 1.
+    const summary1: ActionSummary = {
+      tableRenames: [],
+      tableDeltas: {
+        Animals: {
+          updateRows: [],
+          removeRows: [1],
+          addRows: [],
+          columnDeltas: {
+            name: {
+              1: [["Fish"], null],
+            },
+          },
+          columnRenames: [],
+        },
+      },
+    };
+    const summary2: ActionSummary = {
+      tableRenames: [],
+      tableDeltas: {
+        Animals: {
+          updateRows: [],
+          removeRows: [],
+          addRows: [1],
+          columnDeltas: {
+            name: {
+              1: [null, ["Elephant"]],
+            },
+          },
+          columnRenames: [],
+        },
+      },
+    };
+    const result = concatenateSummariesCleanly([summary1, summary2]);
+    const td = result.tableDeltas.Animals;
+    // Row 1 should be in both removeRows and addRows.
+    assert.include(td.removeRows, 1);
+    assert.include(td.addRows, 1);
+    // The column delta should preserve the old value from the removal
+    // and the new value from the add.
+    assert.deepEqual(td.columnDeltas.name[1], [["Fish"], ["Elephant"]]);
+  });
+
   it("can work through full history of a test file", async function() {
     // At the time of writing, this fixture has 216 rows in its ActionHistory.
     const doc = await docTools.loadFixtureDoc("Favorite_Films.grist");

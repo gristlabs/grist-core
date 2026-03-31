@@ -5,7 +5,6 @@ import { AppHeader } from "app/client/ui/AppHeader";
 import * as css from "app/client/ui/LeftPanelCommon";
 import { PageSidePanel } from "app/client/ui/PagePanels";
 import { infoTooltip } from "app/client/ui/tooltips";
-import { colors, vars } from "app/client/ui2018/cssVars";
 import { IconName } from "app/client/ui2018/IconList";
 import { cssLink } from "app/client/ui2018/links";
 import { AdminPanelPage } from "app/common/gristUrls";
@@ -70,7 +69,7 @@ export function buildAdminLeftPanel(owner: MultiHolder, appModel: AppModel): Pag
       css.cssSectionHeader(css.cssSectionHeaderText(pageNames.adminControls),
         (adminControlsAvailable ?
           infoTooltip("adminControls", { popupOptions: { placement: "bottom-start" } }) :
-          cssEnterprisePill("Enterprise", testId("enterprise-tag"))
+          css.cssPill(t("Enterprise"), testId("enterprise-tag"))
         ),
       ),
       buildPageEntry("users", "AddUser", adminControlsAvailable),
@@ -94,17 +93,6 @@ export function buildAdminLeftPanel(owner: MultiHolder, appModel: AppModel): Pag
     header: dom.create(AppHeader, appModel),
   };
 }
-
-const cssEnterprisePill = styled("div", `
-  display: inline;
-  padding: 2px 4px;
-  margin: 0 8px;
-  border-radius: 4px;
-  vertical-align: middle;
-  font-size: ${vars.smallFontSize};
-  background-color: ${colors.orange};
-  color: white;
-`);
 
 const cssPanelLink = styled("div", `
   margin: 8px 24px;

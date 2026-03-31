@@ -1,4 +1,5 @@
 import { Features, mergedFeatures } from "app/common/Features";
+import { BillingAccountStatus } from "app/common/UserAPI";
 import { BillingAccountManager } from "app/gen-server/entity/BillingAccountManager";
 import { Limit } from "app/gen-server/entity/Limit";
 import { Organization } from "app/gen-server/entity/Organization";
@@ -6,15 +7,6 @@ import { Product } from "app/gen-server/entity/Product";
 import { nativeValues } from "app/gen-server/lib/values";
 
 import { BaseEntity, Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-
-// This type is for billing account status information.  Intended for stuff
-// like "free trial running out in N days".
-export interface BillingAccountStatus {
-  stripeStatus?: string;
-  currentPeriodStart?: string;
-  currentPeriodEnd?: string;
-  message?: string;
-}
 
 // A structure for billing options relevant to an external authority, for sites
 // created outside of Grist's regular billing flow.
@@ -90,7 +82,11 @@ export class BillingAccount extends BaseEntity {
   // (No @Column needed since calculation is done in javascript not sql)
   public isManager?: boolean;
 
-  public getFeatures(): Features {
+  /**
+   * Returns the effective features for this billing account, which is a merge of the features
+   * on the billing account and the features on the product, with the billing account features taking precedence.
+   */
+  public getEffectiveFeatures(): Features {
     return mergedFeatures(this.features, this.product?.features) ?? {};
   }
 }

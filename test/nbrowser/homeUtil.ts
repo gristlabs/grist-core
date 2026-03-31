@@ -138,6 +138,11 @@ export class HomeUtil {
       if (!await this.isWelcomePage() && (options.freshAccount || options.isFirstLogin)) {
         await this._recreateCurrentUser(email, org, name);
       }
+      if (showTips) {
+        await this._toggleTipsViaAPI(true);
+      } else {
+        await this._toggleTipsViaAPI(false);
+      }
     }
     if (options.freshAccount) {
       this._apiKey.delete(email);
@@ -500,6 +505,29 @@ export class HomeUtil {
         }));
       `);
     }
+  }
+
+  /**
+   * Toggle tips on an external server by calling the API via the browser's fetch.
+   * Must be called after login, when the browser is on a Grist page.
+   */
+  private async _toggleTipsViaAPI(enabled: boolean) {
+    const prefs = enabled ? ALL_TIPS_ENABLED : ALL_TIPS_DISABLED;
+    await this.driver.executeScript(`
+      return fetch('/api/orgs', {credentials: 'include'})
+        .then(r => r.json())
+        .then(orgs => {
+          const personalOrg = orgs.find(o => o.owner);
+          if (!personalOrg) throw new Error('No personal org found for tips toggle');
+          return fetch('/api/orgs/' + personalOrg.id, {
+            method: 'PATCH',
+            credentials: 'include',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({userPrefs: ${JSON.stringify(prefs)}})
+          });
+        })
+        .then(r => { if (!r.ok) throw new Error('Failed to update tips prefs: ' + r.status); });
+    `);
   }
 
   private async _acceptAlertIfPresent() {

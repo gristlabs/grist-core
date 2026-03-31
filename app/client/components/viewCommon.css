@@ -277,6 +277,10 @@
   }
 }
 
+.highlight_match_row > .record {
+  background-color: var(--grist-theme-selection-opaque-bg, #e6f4ea);
+}
+
 .gridview_data_row_info.linked_dst::before {
   position: absolute;
   content: '\25B8';

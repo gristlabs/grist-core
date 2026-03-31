@@ -25,6 +25,7 @@ import * as tableUtil from "app/client/lib/tableUtil";
 import BaseRowModel from "app/client/models/BaseRowModel";
 import { NEW_FILTER_JSON } from "app/client/models/ColumnFilter";
 import { DataRowModel } from "app/client/models/DataRowModel";
+import { isSyntheticRowId } from "app/client/models/DataTableModelWithDiff";
 import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
 import { ColInfo, NewColInfo, ViewSectionRec } from "app/client/models/entities/ViewSectionRec";
 import { reportWarning } from "app/client/models/errors";
@@ -159,6 +160,7 @@ export default class GridView extends BaseView {
   protected _colClickTime: number;  // Units: milliseconds.
   private _assignCursorTimeoutId: ReturnType<typeof setTimeout> | undefined;
   protected colLine: HTMLElement;
+  public highlightPredicate: Observable<((rowId: UIRowId) => boolean) | null> = Observable.create(this, null);
   protected colShadow: HTMLElement;
   protected rowLine: HTMLElement;
   protected rowShadow: HTMLElement;
@@ -826,6 +828,19 @@ export default class GridView extends BaseView {
       return [];
     }
 
+    // Filter out synthetic rows used for diff display. These rows don't exist
+    // in the real table — pasting into them would cause a server error.
+    // We must also remove the corresponding values from bulkUpdate to keep alignment.
+    const syntheticIndices = new Set(
+      rowIds.map((id, i) => isSyntheticRowId(id) ? i : -1).filter(i => i >= 0),
+    );
+    if (syntheticIndices.size > 0) {
+      rowIds = rowIds.filter((_, i) => !syntheticIndices.has(i));
+      bulkUpdate = _.mapObject(bulkUpdate, values =>
+        values.filter((_: any, i: number) => !syntheticIndices.has(i)),
+      );
+    }
+
     const addRows = rowIds.filter(rowId => rowId === null || rowId === "new").length;
     const updateRows = rowIds.length - addRows;
 
@@ -1013,7 +1028,8 @@ export default class GridView extends BaseView {
 
   protected selectedRows() {
     const selection = this.getSelection();
-    return selection.rowIds.filter((r): r is number => (r !== "new"));
+    // Filter out "new" row and synthetic rows used for diff display.
+    return selection.rowIds.filter((r): r is number => (r !== "new" && !isSyntheticRowId(r)));
   }
 
   protected async deleteRows(rowIds: number[]) {
@@ -1613,6 +1629,12 @@ export default class GridView extends BaseView {
         dom.autoDispose(fontStrikethrough),
 
         dom.cls("link_selector_row", use => use(this.isLinkSource) && use(isRowActive)),
+        dom.cls("highlight_match_row", (use) => {
+          const predicate = use(this.highlightPredicate);
+          if (!predicate) { return false; }
+          const rowId = use(row.id);
+          try { return predicate(rowId); } catch { return false; }
+        }),
 
         // rowid dom
         dom("div.gridview_data_row_num",

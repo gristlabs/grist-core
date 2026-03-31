@@ -297,6 +297,7 @@ export class ActiveDoc extends EventEmitter {
   private _log = new LogMethods("ActiveDoc ", (s: OptDocSession | null) => this.getLogMeta(s));
   private _triggers: DocTriggers;
   private _webhookQueue: WebhookQueue;
+  private _notifMgr = this._server.getDocNotificationManager();
   private _requests: DocRequests;
   private _dataEngine: Promise<ISandbox> | null = null;
   private _activeDocImport: ActiveDocImport;
@@ -416,7 +417,7 @@ export class ActiveDoc extends EventEmitter {
       const { gracePeriodStart, workspace, usage } = _options.doc;
       const billingAccount = workspace.org.billingAccount;
       this._product = billingAccount?.product;
-      this._features = billingAccount?.getFeatures();
+      this._features = billingAccount?.getEffectiveFeatures();
       this._gracePeriodStart = gracePeriodStart;
 
       if (billingAccount) {
@@ -449,8 +450,7 @@ export class ActiveDoc extends EventEmitter {
     this.docStorage = new DocStorage(_docManager.storageManager, _docName);
     this.docClients = new DocClients(this);
     this._userPresence = new UserPresence(this.docClients);
-    this._webhookQueue = new WebhookQueue(this);
-
+    this._webhookQueue = new WebhookQueue(this, this._notifMgr);
     // We will create a wrapper around the action queue, and reroute actions to different queues/handlers.
     // Webhooks are delivered through the webhook queue, tightly coupled with particular doc worker, and it will
     // - stop the processing of further actions if queue is too long
@@ -461,8 +461,9 @@ export class ActiveDoc extends EventEmitter {
     // only supported in Grist Cloud or in Enterprise installations.
     const actionRoute = new ComposedActionQueue();
     actionRoute.use("webhook", this._webhookQueue);
-    actionRoute.use("email",
-      ev => this._server.getDocNotificationManager()?.rowNotification(this._docName, ev) ?? Promise.resolve());
+    actionRoute.use("email", async (events) => {
+      await (this._notifMgr?.rowNotification(this._docName, events) ?? Promise.resolve());
+    });
 
     this._triggers = new DocTriggers(this, actionRoute);
     this._requests = new DocRequests(this);
@@ -535,6 +536,8 @@ export class ActiveDoc extends EventEmitter {
   public get triggers(): DocTriggers { return this._triggers; }
 
   public get webhookQueue(): WebhookQueue { return this._webhookQueue; }
+
+  public get notifMgr() { return this._notifMgr; }
 
   public get rowLimitRatio(): number {
     return getUsageRatio(

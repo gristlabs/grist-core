@@ -2240,7 +2240,8 @@
         "Users": "Users",
         "Workspaces": "Workspaces",
         "Admin Controls": "Admin Controls",
-        "Settings": "Settings"
+        "Settings": "Settings",
+        "Enterprise": "Enterprise"
     },
     "Assistant": {
         "AI Assistant is only available for logged in users.": "AI Assistant is only available for logged in users.",
@@ -2295,7 +2296,8 @@
         "You are about to disable this experimental feature: {{experiment}}": "You are about to disable this experimental feature: {{experiment}}",
         "You are about to enable this experimental feature: {{experiment}}": "You are about to enable this experimental feature: {{experiment}}",
         "{{experiment}} disabled.": "{{experiment}} disabled.",
-        "{{experiment}} enabled.": "{{experiment}} enabled."
+        "{{experiment}} enabled.": "{{experiment}} enabled.",
+        "Notifications": "Notifications"
     },
     "NewRecordButton": {
         "New card": "New card",
@@ -2748,5 +2750,18 @@
     },
     "NotifyModel": {
         "Still working...": "Still working..."
+    },
+    "TriggersPageUpsell": {
+        "Upgrade": "Upgrade",
+        "Automate workflows from within Grist": "Automate workflows from within Grist",
+        "Automations Screenshot": "Automations Screenshot",
+        "Learn more.": "Learn more.",
+        "Trigger automations based on data changes, and design actions such as custom email notifications and webhook integrations.": "Trigger automations based on data changes, and design actions such as custom email notifications and webhook integrations.",
+        "Try for free": "Try for free",
+        "Try full Grist": "Try full Grist"
+    },
+    "AutomationsPageEntry": {
+        "Automations": "Automations",
+        "New": "New"
     }
 }
