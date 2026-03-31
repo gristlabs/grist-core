@@ -1172,22 +1172,21 @@ class UserActions(object):
           add_record_values[key].append(value)
         new_record_indexes.append(i)
 
-      if records:
+      if records and update:
         if len(records) > 1:
           if on_many == "first":
             records = records[:1]
           elif on_many == "none":
             continue
 
-        if update:
-          for record in records:
-            update_record_ids.append(record.id)
-            for key, vals in col_values.items():
-              update_record_values[key].append(vals[i])
+        for record in records:
+          update_record_ids.append(record.id)
+          for key, vals in col_values.items():
+            update_record_values[key].append(vals[i])
 
-          matched_record_ids = [record.id for record in records]
-          result['recordIds'][i] = matched_record_ids
-          result['updatedRecordIds'].append(matched_record_ids)
+        matched_record_ids = [record.id for record in records]
+        result['recordIds'][i] = matched_record_ids
+        result['updatedRecordIds'].append(matched_record_ids)
 
     if add_record_ids:
       new_record_ids = self.BulkAddRecord(table_id, add_record_ids, add_record_values)
