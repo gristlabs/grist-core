@@ -532,15 +532,18 @@ contact the document owners to attempt a document recovery. [{{error}}]", { erro
     let effectiveCompareEmphasis = compareEmphasis;
 
     // In suggestion mode, automatically set up comparison to highlight changes.
+    let isSuggestionMode = false;
     if (!comparison) {
       const isProposable = Boolean(doc.options?.proposedChanges?.acceptProposals);
       if (isProposable && doc.isFork) {
         // Returning to an existing suggestion fork: fetch comparison against trunk.
         comparison = await this._api.getDocAPI(urlId).compareDoc(
           doc.idParts.trunkId, { detail: true });
+        isSuggestionMode = true;
       } else if (isProposable && doc.isPreFork) {
         // Fresh suggestion session: empty comparison that will track live edits.
         comparison = createEmptyDocStateComparison();
+        isSuggestionMode = true;
       }
       if (comparison) {
         effectiveCompareEmphasis = "local";
@@ -549,7 +552,8 @@ contact the document owners to attempt a document recovery. [{{error}}]", { erro
 
     const gristDoc = gdModule.GristDocImpl.create(flow, this._appObj, this.appModel, docComm, this, openDocResponse,
       this.appModel.topAppModel.plugins,
-      { comparison, compareEmphasis: effectiveCompareEmphasis });
+      { comparison, compareEmphasis: effectiveCompareEmphasis,
+        showAllRowsInComparison: isSuggestionMode });
 
     // Move ownership of docComm to GristDoc.
     gristDoc.autoDispose(flow.release(docComm));
