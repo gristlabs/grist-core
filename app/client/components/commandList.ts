@@ -126,6 +126,8 @@ export type CommandName =
   "activateAssistant" |
   "viewAsCard" |
   "openContextMenu" |
+  "openColumnMenu" |
+  "openRowMenu" |
   "showColumns" |
   "createForm" |
   "insertField" |
@@ -424,6 +426,14 @@ export const groups: CommendGroupDef[] = [{
       name: "openContextMenu",
       keys: [{ default: "Menu", mac: "Ctrl+Enter" }, "Shift+F10"],
       desc: () => t("Open the context menu"),
+    }, {
+      name: "openColumnMenu",
+      keys: [{ default: "Ctrl+Menu", mac: "Ctrl+Shift+Enter" }, "Ctrl+Shift+F10"],
+      desc: () => t("Open the current column menu"),
+    }, {
+      name: "openRowMenu",
+      keys: [{ default: "Alt+Menu", mac: "Ctrl+Alt+Enter" }, "Alt+Shift+F10"],
+      desc: () => t("Open the current row menu"),
     },
   ],
 }, {
