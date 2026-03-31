@@ -1229,11 +1229,12 @@ class UserActions(object):
     ids = result['recordIds'][0]
 
     action = 'NONE'
-    if len(result['createdRecordIds']) > 0:
-      action = 'ADDED'
-
+    # Only one change was requested, so only one of these arrays should have entries - it was either added or updated
     if len(result['updatedRecordIds']) > 0:
       action = 'UPDATED'
+    elif len(result['createdRecordIds']) > 0:
+      action = 'ADDED'
+
 
     return {
       'recordIds': ids,

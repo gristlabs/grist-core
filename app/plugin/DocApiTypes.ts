@@ -54,10 +54,16 @@ export interface AddOrUpdateRecord {
  * Results from the BulkAddOrUpdateRecord user action.
  * Returned by PUT /record endpoint for adding or updating records.
  */
-
 export interface BulkAddOrUpdateRecordResult {
+  // The IDs of records affected by each operation.
+  // Each entry corresponds to the operation at the same index in the request,
+  // and contains the IDs of all records that operation modified.
   recordIds: number[][];
+  // Any created record IDs, in no defined order.
+  // An operation can create at most one record, so this array only contains numbers, not arrays.
   createdRecordIds: number[];
+  // Any updated records IDs, in no defined order.
+  // Each operation may have updated any number of records, so each member is an array of numbers.
   updatedRecordIds: number[][];
 }
 
