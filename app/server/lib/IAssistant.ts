@@ -157,7 +157,7 @@ interface OpenAIToolCall {
 
 export type OpenAITool = OpenAIFunction;
 
-interface OpenAIFunction {
+export interface OpenAIFunction {
   type: "function";
   function: {
     /**
