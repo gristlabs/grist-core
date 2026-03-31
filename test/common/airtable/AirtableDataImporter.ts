@@ -209,13 +209,21 @@ describe("AirtableDataImporter", function() {
       tracker.addRecordIdMapping("airtable-food-1", 101);
       tracker.addRecordIdMapping("airtable-food-2", 102);
 
-      const tableTracker = tracker.addTable("country", ["cities", "foods"]);
+      // Provide airtableIdColumnId so the tracker asks the sandbox to find the right row
+      tracker.addTable("cities", [], { airtableIdColumnId: "Airtable_Id" });
+      // Omit airtableIdColumnId to so the tracker looks at its known rows for the right row
+      tracker.addTable("foods", [], { airtableIdColumnId: undefined });
+
+      const tableTracker = tracker.addTable("country", [
+        { id: "cities", tableId: "cities" },
+        { id: "local_foods", tableId: "foods" },
+      ]);
 
       tableTracker.addUnresolvedRecord({
         gristRecordId: 1,
         refsByColumnId: {
           cities: ["airtable-rec-1", "airtable-rec-2"],
-          foods: ["airtable-food-1", "airtable-food-2"],
+          local_foods: ["airtable-food-1", "airtable-food-2"],
         },
       });
 
@@ -236,10 +244,10 @@ describe("AirtableDataImporter", function() {
       assert.deepEqual(updates, {
         id: [1, 2],
         cities: [
-          [GristObjCode.List, 10, 20],
-          [GristObjCode.List, 30],
+          [GristObjCode.LookUp, ["airtable-rec-1", "airtable-rec-2"], { column: "Airtable_Id" }],
+          [GristObjCode.LookUp, ["airtable-rec-3"], { column: "Airtable_Id" }],
         ],
-        foods: [
+        local_foods: [
           [GristObjCode.List, 101, 102],
           [GristObjCode.List],
         ],
@@ -251,13 +259,17 @@ describe("AirtableDataImporter", function() {
 
       tracker.addRecordIdMapping("airtable-rec-1", 10);
 
-      const tableTracker = tracker.addTable("users", ["friends"]);
+      const tableTracker = tracker.addTable("users", [
+        { id: "friends", tableId: "people" },
+        { id: "email", tableId: "emails" },
+      ]);
 
       // Reference to an unmapped record
       tableTracker.addUnresolvedRecord({
         gristRecordId: 1,
         refsByColumnId: {
           friends: ["airtable-rec-1", "airtable-rec-unknown"],
+          emails: ["airtable-rec-unknown-email"],
         },
       });
 
@@ -268,13 +280,16 @@ describe("AirtableDataImporter", function() {
 
       // Only the resolvable reference should be included
       assert.deepEqual(updates.friends, [[GristObjCode.List, 10]]);
+      // TODO - Got to here
     });
 
     it("handles batch updates with default batch size", async () => {
       const tracker = new ReferenceTracker();
 
       tracker.addRecordIdMapping("airtable-rec-1", 10);
-      const tableTracker = tracker.addTable("users", ["col1"]);
+      const tableTracker = tracker.addTable("users", [{
+        id: "col1", tableId: "users",
+      }]);
 
       // Add more than default batch size (100) records
       for (let i = 0; i < 150; i++) {
@@ -302,7 +317,7 @@ describe("AirtableDataImporter", function() {
       const tracker = new ReferenceTracker();
 
       tracker.addRecordIdMapping("airtable-rec-1", 10);
-      const tableTracker = tracker.addTable("users", ["col1"]);
+      const tableTracker = tracker.addTable("users", [{ id: "col1", tableId: "users" }]);
 
       // Add 25 records
       for (let i = 0; i < 25; i++) {
@@ -323,7 +338,7 @@ describe("AirtableDataImporter", function() {
 
     it("does not update if there are no unresolved records", async () => {
       const tracker = new ReferenceTracker();
-      const tableTracker = tracker.addTable("users", ["friends"]);
+      const tableTracker = tracker.addTable("users", [{ id: "friends", tableId: "users" }]);
 
       const updateRowsMock = sinon.stub().resolves([]);
 
