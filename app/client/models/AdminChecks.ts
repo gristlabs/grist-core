@@ -79,6 +79,13 @@ export class AdminChecks {
     if (!probe) { return; }
     return this.requestCheck(probe);
   }
+
+  public async reloadChecks() {
+    this._results.forEach(r => r.dispose());
+    this._results.clear();
+    this._requests.clear();
+    await this.fetchAvailableChecks();
+  }
 }
 
 /**

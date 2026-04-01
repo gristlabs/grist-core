@@ -1,5 +1,6 @@
 import { sanitizeHTMLIntoDOM } from "app/client/ui/sanitizeHTML";
 import { theme } from "app/client/ui2018/cssVars";
+import { tokens } from "app/common/ThemePrefs";
 
 import { BindableValue, dom, DomContents, IDomArgs, styled } from "grainjs";
 import { marked } from "marked";
@@ -52,6 +53,16 @@ const cssMarkdownLine = styled("span", `
     color: ${theme.linkHover};
     --icon-color: ${theme.linkHover};
     text-decoration: underline;
+  }
+  & code {
+    background-color: ${tokens.bgTertiary};
+    border: 0;
+    border-radius: 6px;
+    color: ${tokens.body};
+    font-size: 85%;
+    margin: 0;
+    padding: .2em .4em;
+    word-break: break-all;
   }
 `);
 

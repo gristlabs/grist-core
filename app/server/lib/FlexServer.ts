@@ -4,7 +4,7 @@ import { delay } from "app/common/delay";
 import { encodeUrl, getSlugIfNeeded, GristDeploymentType, GristDeploymentTypes,
   GristLoadConfig, IGristUrlState, isOrgInPathOnly, LatestVersionAvailable, parseSubdomain,
   sanitizePathTail } from "app/common/gristUrls";
-import { getOrgUrlInfo } from "app/common/gristUrls";
+import { extractOrgParts, getOrgUrlInfo } from "app/common/gristUrls";
 import { isAffirmative } from "app/common/gutil";
 import { UserProfile } from "app/common/LoginSessionAPI";
 import { SandboxInfo } from "app/common/SandboxInfo";
@@ -36,6 +36,7 @@ import {
 import { addRequestUser, getUser, getUserId, isAnonymousUser,
   isSingleUserMode, redirectToLoginUnconditionally } from "app/server/lib/Authorizer";
 import { redirectToLogin, RequestWithLogin, signInStatusMiddleware } from "app/server/lib/Authorizer";
+import { BootKeyLoginMiddleware, getBootKey } from "app/server/lib/Boot";
 import { forceSessionChange } from "app/server/lib/BrowserSession";
 import { Comm } from "app/server/lib/Comm";
 import { ConfigBackendAPI } from "app/server/lib/ConfigBackendAPI";
@@ -54,8 +55,8 @@ import { expressWrap, jsonErrorHandler, secureJsonErrorHandler } from "app/serve
 import { Hosts, RequestWithOrg } from "app/server/lib/extractOrg";
 import { addGoogleAuthEndpoint } from "app/server/lib/GoogleAuth";
 import { createGristJobs, GristJobs } from "app/server/lib/GristJobs";
-import { DocTemplate, GristLoginMiddleware, GristLoginSystem, GristServer,
-  RequestWithGrist, ResourceUrlOptions } from "app/server/lib/GristServer";
+import { DocTemplate, GristLoginMiddleware, GristLoginSystem, GristServer, RequestWithGrist,
+  ResourceUrlOptions } from "app/server/lib/GristServer";
 import { initGristSessions, SessionStore } from "app/server/lib/gristSessions";
 import { IAssistant } from "app/server/lib/IAssistant";
 import { IAuditLogger } from "app/server/lib/IAuditLogger";
@@ -66,7 +67,6 @@ import { EmitNotifier, INotifier } from "app/server/lib/INotifier";
 import { InstallAdmin } from "app/server/lib/InstallAdmin";
 import log, { logAsJson } from "app/server/lib/log";
 import { disableCache, noop } from "app/server/lib/middleware";
-import { ErrorInLoginMiddleware } from "app/server/lib/MinimalLogin";
 import { OAuth2Clients } from "app/server/lib/OAuth2Clients";
 import { IPermitStore } from "app/server/lib/Permit";
 import { getAppPathTo, getAppRoot, getInstanceRoot, getUnpackedAppRoot } from "app/server/lib/places";
@@ -79,6 +79,7 @@ import { adaptServerUrl, getOrgUrl, getOriginUrl, getScope, integerParam, isPara
 import { buildScimRouter } from "app/server/lib/scim";
 import { ISendAppPageOptions, makeGristConfig, makeMessagePage, makeSendAppPage } from "app/server/lib/sendAppPage";
 import { getDatabaseUrl, listenPromise, timeoutReached } from "app/server/lib/serverUtils";
+import { getServiceStatus, ServiceStatus } from "app/server/lib/ServiceStatus";
 import { Sessions } from "app/server/lib/Sessions";
 import * as shutdown from "app/server/lib/shutdown";
 import { TagChecker } from "app/server/lib/TagChecker";
@@ -96,6 +97,7 @@ import { AddressInfo } from "net";
 import * as path from "path";
 
 import axios from "axios";
+import boxen from "boxen";
 import express from "express";
 import * as fse from "fs-extra";
 import { i18n } from "i18next";
@@ -214,6 +216,7 @@ export class FlexServer implements GristServer {
   private _emitNotifier: EmitNotifier = new EmitNotifier();
   private _latestVersionAvailable?: LatestVersionAvailable;
   private _oauth2Clients?: OAuth2Clients;
+  private _serviceStatus?: ServiceStatus;
 
   constructor(public port: number, public name: string = "flexServer",
     public readonly options: FlexServerOptions = {}) {
@@ -634,44 +637,81 @@ export class FlexServer implements GristServer {
   }
 
   /**
-   *
-   * Adds a /boot/$GRIST_BOOT_KEY page that shows diagnostics.
-   * Accepts any /boot/... URL in order to let the front end
-   * give some guidance if the user is stumbling around trying
-   * to find the boot page, but won't actually provide diagnostics
-   * unless GRIST_BOOT_KEY is set in the environment, and is present
-   * in the URL.
-   *
-   * We take some steps to make the boot page available even when
-   * things are going wrong, and should take more in future.
-   *
-   * When rendering the page a hardcoded 'boot' tag is used, which
-   * is used to ensure that static assets are served locally and
-   * we aren't relying on APP_STATIC_URL being set correctly.
-   *
-   * We use a boot key so that it is more acceptable to have this
-   * boot page living outside of the authentication system, which
-   * could be broken.
-   *
-   * TODO: there are some configuration problems that currently
-   * result in Grist not running at all. ideally they would result in
-   * Grist running in a limited mode that is enough to bring up the boot
-   * page.
-   *
+   * Add a setup gate that limits access to a Grist installation to administrators until service
+   * is restored.
    */
-  public addBootPage() {
-    if (this._check("boot")) { return; }
-    this.app.get("/boot(/*)?", async (req, res) => {
-      // Doing a good redirect is actually pretty subtle and we might
-      // get it wrong, so just say /boot got moved.
-      res.send("The /boot/KEY page is now /admin?boot-key=KEY");
-    });
-  }
+  public async addSetupGate() {
+    const bootKey = getBootKey();
+    if (bootKey) {
+      console.log(boxen(`BOOT KEY: ${bootKey.value}\n\nUse this key at /boot to sign in.`, {
+        padding: 1,
+      }));
+    }
 
-  public getBootKey(): string | undefined {
-    return appSettings.section("boot").flag("key").readString({
-      envVar: "GRIST_BOOT_KEY",
+    // Ensure BootKeyLoginMiddleware endpoints exist even if it isn't the active
+    // login system. The gate redirects browser requests here for authentication.
+    // If BootKeyLoginMiddleware later registers its own routes, Express will use
+    // whichever is registered first (this one), which is fine since they're identical.
+    const middleware = new BootKeyLoginMiddleware(this);
+    await middleware.addEndpoints(this.app);
+
+    // Paths that are always allowed, even when service is unavailable.
+    const allowedPaths = [
+      // The admin and boot landing pages, and all /boot API endpoints.
+      /^\/admin(?:\/.*)?(?:\?.*)?$/,
+      /^\/boot(?:\/.*)?(?:\?.*)?$/,
+
+      // The client logging endpoint.
+      /^\/api\/log(?:\/.*)?(?:\?.*)?$/,
+
+      // The session endpoints. Used on /admin to list users in user switcher.
+      /^\/api\/session(?:\/.*)?(?:\?.*)?$/,
+
+      // The healthcheck endpoint.
+      /^\/status(?:\/.*)?(?:\?.*)?$/,
+    ];
+
+    // Use a router so we can skip the user ID middleware (and the rest of the gate)
+    // with next("router") when gating isn't needed.
+    const gateRouter = express.Router();
+
+    gateRouter.use((req, _res, next) => {
+      if (this.getServiceStatus().inService.value) {
+        return next("router");
+      }
+
+      // Allow whitelisted paths through the gate.
+      const rawPath = req.originalUrl.split("?")[0];
+      const path = extractOrgParts(req.hostname, rawPath).pathRemainder;
+      if (allowedPaths.some(allowedPath => allowedPath.test(path))) {
+        return next("router");
+      }
+
+      return next();
     });
+
+    // Identify the user so we can check if they're an admin.
+    gateRouter.use(this._userIdMiddleware);
+
+    gateRouter.use(expressWrap(async (req, res, next) => {
+      // Allow admin users through the gate.
+      if (await this._installAdmin.isAdminReq(req)) {
+        return next();
+      }
+
+      // For API requests, return a 503 response.
+      const rawPath = req.originalUrl.split("?")[0];
+      const path = extractOrgParts(req.hostname, rawPath).pathRemainder;
+      const isApi = path.startsWith("/api/") || req.headers.accept?.includes("application/json");
+      if (isApi) {
+        throw new ApiError("Grist is not yet configured. Visit /boot to set up this installation.", 503);
+      }
+
+      // For browser requests, redirect to the boot page.
+      return res.redirect(getOrgUrl(req, "/boot"));
+    }));
+
+    this.app.use(gateRouter);
   }
 
   public denyRequestsIfNotReady() {
@@ -1325,10 +1365,10 @@ export class FlexServer implements GristServer {
       // can fix the problem using the admin UI.
       log.error("Error initializing login middleware:", err);
       appSettings.section("login").flag("error").set((err as Error).message);
-      // We don't fallback to MinimalLogin here, as it imposes some security risks if enabled
-      // unintentionally. This way, the admin is made aware of the problem and can take action using boot
-      // page instructions.
-      this._loginMiddleware = new ErrorInLoginMiddleware();
+      // We don't fall back to MinimalLogin here, as it imposes some security risks if enabled
+      // unintentionally. This way, the admin is made aware of the problem and can take action using
+      // boot key instructions.
+      this._loginMiddleware = new BootKeyLoginMiddleware(this);
     }
     this._getLoginRedirectUrl = tbind(this._loginMiddleware.getLoginRedirectUrl, this._loginMiddleware);
     this._getSignUpRedirectUrl = tbind(this._loginMiddleware.getSignUpRedirectUrl, this._loginMiddleware);
@@ -2194,6 +2234,14 @@ export class FlexServer implements GristServer {
 
   public isRestrictedMode() {
     return this.getHomeDBManager().isReadonly();
+  }
+
+  public getServiceStatus(): ServiceStatus {
+    return this._serviceStatus ||= getServiceStatus();
+  }
+
+  public refreshServiceStatus(): void {
+    this._serviceStatus = getServiceStatus();
   }
 
   public onUserChange(callback: (change: UserChange) => Promise<void>) {

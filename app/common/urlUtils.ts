@@ -1,7 +1,18 @@
-import { extractOrgParts, GristLoadConfig } from "app/common/gristUrls";
+import { AdminPageConfig, extractOrgParts, GristLoadConfig } from "app/common/gristUrls";
 
 export function getGristConfig(): GristLoadConfig {
   return (window as any).gristConfig || {};
+}
+
+export function getAdminConfig(): AdminPageConfig {
+  const config = getGristConfig();
+
+  // TODO: Use a discriminated union to narrow type.
+  if (!("runningUnderSupervisor" in config)) {
+    throw new Error("getAdminConfig called on non-admin page");
+  }
+
+  return config as AdminPageConfig;
 }
 
 /**

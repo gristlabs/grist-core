@@ -172,6 +172,17 @@ export class AppSettings {
   }
 
   /**
+   * As for readBool() but fail if nothing was found.
+   */
+  public requireBool(query: AppSettingQuery): boolean {
+    const result = this.readBool(query);
+    if (result === undefined) {
+      throw new Error(`missing environment variable: ${query.envVar}`);
+    }
+    return result;
+  }
+
+  /**
    * As for read() but type (and store, and report) the result as
    * a boolean.
    */
@@ -355,7 +366,17 @@ export interface AppSettingQueryResult {
   found: boolean;
   query: AppSettingQuery;
   envVar?: string;
-  source?: "env" | "db";
+  source?: AppSettingSource;
+}
+
+type AppSettingSource = "env" | "db";
+
+/**
+ * A value read from AppSettings with its source.
+ */
+export interface ValueWithSource<T> {
+  value: T;
+  source: AppSettingSource | undefined;
 }
 
 /**

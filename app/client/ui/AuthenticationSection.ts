@@ -18,6 +18,7 @@ import { AuthProvider, ConfigAPI } from "app/common/ConfigAPI";
 import { PendingChanges } from "app/common/Install";
 import { InstallAPI } from "app/common/InstallAPI";
 import {
+  BOOT_KEY_PROVIDER_KEY,
   DEPRECATED_PROVIDERS,
   FORWARD_AUTH_PROVIDER_KEY,
   GETGRIST_COM_PROVIDER_KEY,
@@ -59,6 +60,10 @@ export class AuthenticationSection extends Disposable {
     return use(this._loginSystemId) === MINIMAL_PROVIDER_KEY && !use(this._hasActiveOnRestartProvider);
   });
 
+  private _showBootKeyWarning = Computed.create(this, (use) => {
+    return use(this._loginSystemId) === BOOT_KEY_PROVIDER_KEY && !use(this._hasActiveOnRestartProvider);
+  });
+
   private _getgristLoginOwner = Computed.create(this, this._providers, (_use, providers) => {
     const getgristLogin = providers.find(p => p.key === GETGRIST_COM_PROVIDER_KEY);
     return getgristLogin?.metadata?.owner ?? null;
@@ -74,6 +79,7 @@ export class AuthenticationSection extends Disposable {
   public buildDom() {
     return [
       dom.maybe(this._showNoAuthenticationWarning, () => this._buildNoAuthenticationWarning()),
+      dom.maybe(this._showBootKeyWarning, () => this._buildBootKeyWarning()),
       dom.maybe(this._hasActiveOnRestartProvider, () => this._buildAuthenticationChangeWarning()),
       dom.domComputed(this._providers, providers => this._buildListOfProviders(providers)),
     ];
@@ -187,6 +193,23 @@ export class AuthenticationSection extends Disposable {
           cssWellContent(
             dom("p", t("If Grist is accessible on your network, or is available to multiple people, \
 configure one of the authentication methods below.")),
+          ),
+        ),
+      ),
+    ];
+  }
+
+  private _buildBootKeyWarning() {
+    return [
+      cssWell(
+        dom.style("margin-bottom", "24px"),
+        cssWell.cls("-warning"),
+        cssIconWrapper(icon("Warning")),
+        dom("div",
+          cssWellTitle(t("No authentication: using boot key as fallback method")),
+          cssWellContent(
+            dom("p", t("If Grist is accessible on your network, or is available to multiple people, \
+configure one of the authentication methods below and remove your boot key from Security Settings → Boot key.")),
           ),
         ),
       ),

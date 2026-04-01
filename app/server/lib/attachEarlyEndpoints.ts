@@ -5,6 +5,8 @@ import {
   ConfigValue,
   ConfigValueCheckers,
 } from "app/common/Config";
+import { AdminPageConfig } from "app/common/gristUrls";
+import { isAffirmative } from "app/common/gutil";
 import { InstallPrefs } from "app/common/Install";
 import { getOrgKey } from "app/gen-server/ApiServer";
 import { Config } from "app/gen-server/entity/Config";
@@ -12,6 +14,7 @@ import {
   PreviousAndCurrent,
   QueryResult,
 } from "app/gen-server/lib/homedb/Interfaces";
+import { appSettings } from "app/server/lib/AppSettings";
 import { RequestWithLogin } from "app/server/lib/Authorizer";
 import { BootProbes } from "app/server/lib/BootProbes";
 import { expressWrap } from "app/server/lib/expressWrap";
@@ -65,10 +68,14 @@ export function attachEarlyEndpoints(options: AttachOptions) {
     "/admin/:subpath(*)?",
     userIdMiddleware,
     expressWrap(async (req, res) => {
+      const config: Partial<AdminPageConfig> = {
+        runningUnderSupervisor: isAffirmative(process.env.GRIST_RUNNING_UNDER_SUPERVISOR),
+        adminControls: gristServer.create.areAdminControlsAvailable(),
+      };
       return gristServer.sendAppPage(req, res, {
         path: "app.html",
         status: 200,
-        config: { adminControls: gristServer.create.areAdminControlsAvailable() },
+        config,
       });
     }),
   );
@@ -134,11 +141,21 @@ export function attachEarlyEndpoints(options: AttachOptions) {
       const prefs = req.body;
       await gristServer.getActivations().updatePrefs(prefs);
 
-      if ((prefs as InstallPrefs).telemetry) {
+      const { telemetry, envVars } = prefs as InstallPrefs;
+
+      if (telemetry) {
         // Make sure the Telemetry singleton picks up the changes to telemetry preferences.
         // TODO: if there are multiple home server instances, notify them all of changes to
         // preferences (via Redis Pub/Sub).
         await gristServer.getTelemetry().fetchTelemetryPrefs();
+      }
+
+      if (envVars) {
+        // TODO: Similar to above, we need to notify other servers of updates to env vars.
+        appSettings.setEnvVars((await gristServer.getActivations().current()).prefs?.envVars || {});
+
+        if ("GRIST_ADMIN_EMAIL" in envVars) { gristServer.getInstallAdmin().clearCaches(); }
+        if ("GRIST_IN_SERVICE" in envVars) { gristServer.refreshServiceStatus(); }
       }
 
       return res.status(200).send();

@@ -2,6 +2,7 @@ import { ApiError } from "app/common/ApiError";
 import { BootProbeIds, BootProbeResult } from "app/common/BootProbe";
 import { removeTrailingSlash } from "app/common/gutil";
 import { appSettings } from "app/server/lib/AppSettings";
+import { getBootKey } from "app/server/lib/Boot";
 import { expressWrap, jsonErrorHandler } from "app/server/lib/expressWrap";
 import { GristServer } from "app/server/lib/GristServer";
 import { DEFAULT_SESSION_SECRET } from "app/server/lib/ICreate";
@@ -61,13 +62,14 @@ export class BootProbes {
     this._probes.push(_homeUrlReachableProbe);
     this._probes.push(_statusCheckProbe);
     this._probes.push(_userProbe);
-    this._probes.push(_bootProbe);
+    this._probes.push(_bootKeyProbe);
     this._probes.push(_hostHeaderProbe);
     this._probes.push(_sandboxingProbe);
     this._probes.push(_authenticationProbe);
     this._probes.push(_webSocketsProbe);
     this._probes.push(_sessionSecretProbe);
     this._probes.push(_admins);
+    this._probes.push(_serviceStatusProbe);
     this._probeById = new Map(this._probes.map(p => [p.id, p]));
   }
 }
@@ -221,31 +223,28 @@ const _userProbe: Probe = {
   },
 };
 
-const _bootProbe: Probe = {
-  id: "boot-page",
-  name: "Is the boot page adequately protected",
+const _bootKeyProbe: Probe = {
+  id: "boot-key",
+  name: "Is boot key authentication disabled",
   apply: async (server) => {
-    const bootKey = server.getBootKey() || "";
-    const hasBoot = Boolean(bootKey);
-    const details: Record<string, any> = {
-      bootKeySet: hasBoot,
-    };
-    if (!hasBoot) {
-      return { status: "success", details };
-    }
-    details.bootKeyLength = bootKey.length;
-    if (bootKey.length < 10) {
+    const bootKey = getBootKey();
+    if (!bootKey || bootKey.value === "") {
       return {
-        verdict: "Boot key length is shorter than 10.",
-        details,
-        status: "fault",
+        status: "success",
+        details: {
+          disabled: true,
+        },
+      };
+    } else {
+      return {
+        status: "warning",
+        verdict: "Boot key should be removed after installation",
+        details: {
+          disabled: false,
+          source: bootKey.source,
+        },
       };
     }
-    return {
-      verdict: "Boot key ideally should be removed after installation.",
-      details,
-      status: "warning",
-    };
   },
 };
 
@@ -336,5 +335,31 @@ const _sessionSecretProbe: Probe = {
         GRIST_SESSION_SECRET: process.env.GRIST_SESSION_SECRET ? "set" : "not set",
       },
     };
+  },
+};
+
+const _serviceStatusProbe: Probe = {
+  id: "service-status",
+  name: "Service status",
+  apply: async (server) => {
+    const { inService: { value, source } } = server.getServiceStatus();
+    if (value) {
+      return {
+        status: "success",
+        details: {
+          inService: value,
+          source,
+        },
+      };
+    } else {
+      return {
+        status: "warning",
+        verdict: "Server is out of service for maintenance",
+        details: {
+          inService: value,
+          source,
+        },
+      };
+    }
   },
 };

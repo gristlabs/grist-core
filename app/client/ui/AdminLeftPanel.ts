@@ -9,7 +9,7 @@ import { IconName } from "app/client/ui2018/IconList";
 import { cssLink } from "app/client/ui2018/links";
 import { AdminPanelPage } from "app/common/gristUrls";
 import { commonUrls } from "app/common/gristUrls";
-import { getGristConfig } from "app/common/urlUtils";
+import { getAdminConfig } from "app/common/urlUtils";
 
 import { Computed, dom, DomContents, MultiHolder, Observable, styled } from "grainjs";
 
@@ -20,7 +20,7 @@ const testId = makeTestId("test-admin-controls-");
 
 // Check if the AdminControls feature is available, so that we can show it as such in the UI.
 export function areAdminControlsAvailable(): boolean {
-  return Boolean(getGristConfig().adminControls);
+  return Boolean(getAdminConfig().adminControls);
 }
 
 // Collects and exposes translations, used for buildAdminLeftPanel() below, and for breadcrumbs in

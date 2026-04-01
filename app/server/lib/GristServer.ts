@@ -30,6 +30,7 @@ import { IPermitStore } from "app/server/lib/Permit";
 import { IPubSubManager } from "app/server/lib/PubSubManager";
 import { ISendAppPageOptions } from "app/server/lib/sendAppPage";
 import { fromCallback } from "app/server/lib/serverUtils";
+import { ServiceStatus } from "app/server/lib/ServiceStatus";
 import { Sessions } from "app/server/lib/Sessions";
 import { ITelemetry } from "app/server/lib/Telemetry";
 import { IWidgetRepository } from "app/server/lib/WidgetRepository";
@@ -98,7 +99,6 @@ export interface GristServer extends StorageCoordinator {
   getPlugins(): LocalPlugin[];
   servesPlugins(): boolean;
   getBundledWidgets(): ICustomWidget[];
-  getBootKey(): string | undefined;
   getSandboxInfo(): Promise<SandboxInfo>;
   getInfo(key: string): any;
   getJobs(): GristJobs;
@@ -110,6 +110,8 @@ export interface GristServer extends StorageCoordinator {
   setRestrictedMode(restrictedMode?: boolean): void;
   getDocManager(): DocManager;
   isRestrictedMode(): boolean;
+  getServiceStatus(): ServiceStatus;
+  refreshServiceStatus(): void;
   onUserChange(callback: (change: UserChange) => Promise<void>): void;
   onStreamingDestinationsChange(callback: (orgId?: number) => Promise<void>): void;
   setReady(value: boolean): void;
@@ -214,7 +216,6 @@ export function createDummyGristServer(): GristServer {
     servesPlugins() { return false; },
     getPlugins() { return []; },
     getBundledWidgets() { return []; },
-    getBootKey() { return undefined; },
     getSandboxInfo() { throw new Error("no sandbox"); },
     getInfo(key: string) { return undefined; },
     getJobs(): GristJobs { throw new Error("no job system"); },
@@ -226,6 +227,8 @@ export function createDummyGristServer(): GristServer {
     setRestrictedMode() { /* do nothing */ },
     getDocManager() { throw new Error("no DocManager"); },
     isRestrictedMode() { return false; },
+    getServiceStatus() { return { inService: { value: true, source: undefined } }; },
+    refreshServiceStatus() { /* do nothing */ },
     onUserChange() { /* do nothing */ },
     onStreamingDestinationsChange() { /* do nothing */ },
     hardDeleteDoc() { return Promise.resolve(); },

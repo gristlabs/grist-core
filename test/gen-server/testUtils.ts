@@ -8,6 +8,7 @@ import { EmitNotifier } from "app/server/lib/INotifier";
 
 import { AxiosRequestConfig } from "axios";
 import { delay } from "bluebird";
+import omit from "lodash/omit";
 
 export function configForApiKey(apiKey?: string): AxiosRequestConfig {
   return {
@@ -37,7 +38,7 @@ export function configWithPermit(config: AxiosRequestConfig, permitKey: string):
   return {
     ...config,
     headers: {
-      ...config.headers,
+      ...omit(config.headers, "Authorization"),
       Permit: permitKey,
     },
   };

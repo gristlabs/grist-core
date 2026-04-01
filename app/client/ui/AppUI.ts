@@ -7,6 +7,7 @@ import {
   loadAdminPanel,
   loadAuditLogsPage,
   loadBillingPage,
+  loadBootPage,
 } from "app/client/lib/imports";
 import { createSessionObs, isBoolean, isNumber } from "app/client/lib/sessionObs";
 import { AppModel, TopAppModel } from "app/client/models/AppModel";
@@ -93,6 +94,8 @@ function createMainPage(appModel: AppModel, appObj: App) {
       return domAsync(loadActivationPage().then(ap => dom.create(ap.getActivationPage(), appModel)));
     } else if (pageType === "audit-logs") {
       return domAsync(loadAuditLogsPage().then(m => dom.create(m.AuditLogsPage, appModel, appObj)));
+    } else if (pageType === "boot") {
+      return domAsync(loadBootPage().then(m => dom.create(m.BootPage, appModel, appObj)));
     } else {
       return dom.create(pagePanelsDoc, appModel, appObj);
     }

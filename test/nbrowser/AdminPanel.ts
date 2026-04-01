@@ -438,6 +438,45 @@ describe("AdminPanel", function() {
     assert.equal(await names[0].getText(), "Admin account not found\n" +
     "Missing admin account because GRIST_ADMIN_EMAIL and GRIST_DEFAULT_EMAIL are not set");
   });
+
+  async function assertAdminPanelUnavailable() {
+    assert.isTrue(
+      await driver.findContentWait(".test-admin-panel-error", "Administrator Panel Unavailable", 2000).isDisplayed(),
+    );
+    assert.isTrue(
+      await driver.findContent("a", "Sign in with boot key").isDisplayed(),
+    );
+  }
+
+  it("should show error page if unauthorized", async function() {
+    await driver.get(`${server.getHost()}/admin`);
+    await assertAdminPanelUnavailable();
+  });
+
+  describe("with boot-key parameter", function() {
+    let oldEnvBootKey: testUtils.EnvironmentSnapshot;
+
+    before(async function() {
+      oldEnvBootKey = new testUtils.EnvironmentSnapshot();
+      process.env.GRIST_BOOT_KEY = "lala";
+      await server.restart();
+    });
+
+    after(async function() {
+      oldEnvBootKey.restore();
+      await server.restart();
+    });
+
+    it("should show error page when boot key is invalid", async function() {
+      await driver.get(`${server.getHost()}/admin?boot-key=bilbo`);
+      await assertAdminPanelUnavailable();
+    });
+
+    it("should show admin page when boot key is valid", async function() {
+      await driver.get(`${server.getHost()}/admin?boot-key=lala`);
+      await driver.findContentWait("div", /Is home page available/, 2000);
+    });
+  });
 });
 
 async function assertTelemetryLevel(level: TelemetryLevel) {

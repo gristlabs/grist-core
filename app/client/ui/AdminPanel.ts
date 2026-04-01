@@ -27,14 +27,16 @@ import { getAdminPanelName } from "app/client/ui/AdminPanelName";
 import { App } from "app/client/ui/App";
 import { AuditLogStreamingConfig, getDestinationDisplayName } from "app/client/ui/AuditLogStreamingConfig";
 import { AuthenticationSection } from "app/client/ui/AuthenticationSection";
+import { BootKeyStatus } from "app/client/ui/BootKeyStatus";
 import { InstallConfigsAPI } from "app/client/ui/ConfigsAPI";
 import { pagePanels } from "app/client/ui/PagePanels";
+import { ServiceStatus } from "app/client/ui/ServiceStatus";
 import { SupportGristPage } from "app/client/ui/SupportGristPage";
 import { ToggleEnterpriseWidget } from "app/client/ui/ToggleEnterpriseWidget";
 import { createTopBarHome } from "app/client/ui/TopBar";
 import { createUserImage } from "app/client/ui/UserImage";
 import { cssBreadcrumbs, separator } from "app/client/ui2018/breadcrumbs";
-import { basicButton, bigPrimaryButton } from "app/client/ui2018/buttons";
+import { basicButton, bigPrimaryButton, bigPrimaryButtonLink } from "app/client/ui2018/buttons";
 import { mediaSmall, testId, theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { cssLink, makeLinks } from "app/client/ui2018/links";
@@ -45,9 +47,9 @@ import { ConfigAPI } from "app/common/ConfigAPI";
 import { delay } from "app/common/delay";
 import { AdminPanelPage, commonUrls, getPageTitleSuffix, LatestVersionAvailable } from "app/common/gristUrls";
 import { InstallAPI, InstallAPIImpl } from "app/common/InstallAPI";
-import { MINIMAL_PROVIDER_KEY } from "app/common/loginProviders";
+import { BOOT_KEY_PROVIDER_KEY, MINIMAL_PROVIDER_KEY } from "app/common/loginProviders";
 import { InstallAdminInfo } from "app/common/LoginSessionAPI";
-import { getGristConfig } from "app/common/urlUtils";
+import { getAdminConfig, getGristConfig } from "app/common/urlUtils";
 import * as version from "app/common/version";
 
 import { Computed, Disposable, dom, IDisposable, MultiHolder, Observable, styled, UseCBOwner } from "grainjs";
@@ -119,8 +121,7 @@ export class AdminPanel extends Disposable {
 
 class AdminInstallationPanel extends Disposable implements AdminPanelControls {
   public needsRestart = Observable.create(this, false);
-  private _supportsRestart = !!getGristConfig().runningUnderSupervisor;
-  private _supportGrist = SupportGristPage.create(this, this._appModel);
+  private _supportsRestart = !!getAdminConfig().runningUnderSupervisor;
   private _toggleEnterprise = ToggleEnterpriseWidget.create(this, this._appModel.notifier);
   private _checks: AdminChecks;
   private readonly _installAPI: InstallAPI = new InstallAPIImpl(getHomeUrl());
@@ -145,6 +146,10 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
   }
 
   public buildDom() {
+    if (!this._appModel.currentValidUser) {
+      return this._buildMainContentForOthers();
+    }
+
     this._checks.fetchAvailableChecks().catch((err) => {
       reportError(err);
     });
@@ -192,22 +197,26 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
    * which could include a legit administrator if auth is misconfigured.
    */
   private _buildMainContentForOthers() {
-    const exampleKey = _longCodeForExample();
     return dom.create(AdminSection, t("Administrator Panel Unavailable"), [
       dom("p", t(`You do not have access to the administrator panel.
 Please log in as an administrator.`)),
       dom(
         "p",
-        t(`Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}`, {
-          bootKey: dom("pre", `GRIST_BOOT_KEY=${exampleKey}`),
-          url: dom("pre", `/admin?boot-key=${exampleKey}`),
-        }),
+        t(`If you are the server operator, you can sign in using the boot key from your server logs.`),
+      ),
+      dom("p",
+        bigPrimaryButtonLink(
+          urlState().setLinkUrl({ boot: "boot" }),
+          t("Sign in with boot key"),
+        ),
       ),
       testId("admin-panel-error"),
     ]);
   }
 
   private _buildMainContentForAdmin() {
+    const supportGrist = SupportGristPage.create(this, this._appModel);
+
     return [
       dom.maybe(this.needsRestart, () => [
         cssSection(
@@ -245,17 +254,26 @@ Please log in as an administrator.`)),
           description: t("Help us make Grist better"),
           value: dom.create(
             HidableToggle,
-            this._supportGrist.getTelemetryOptInObservable(),
+            supportGrist.getTelemetryOptInObservable(),
             { labelId: "admin-panel-item-description-telemetry" },
           ),
-          expandedContent: this._supportGrist.buildTelemetrySection(),
+          expandedContent: supportGrist.buildTelemetrySection(),
         }),
         dom.create(AdminSectionItem, {
           id: "sponsor",
           name: t("Sponsor"),
           description: t("Support Grist Labs on GitHub"),
-          value: this._supportGrist.buildSponsorshipSmallButton(),
-          expandedContent: this._supportGrist.buildSponsorshipSection(),
+          value: supportGrist.buildSponsorshipSmallButton(),
+          expandedContent: supportGrist.buildSponsorshipSection(),
+        }),
+      ]),
+      dom.create(AdminSection, t("Maintenance"), [
+        dom.create(AdminSectionItem, {
+          id: "service-status",
+          name: t("Service status"),
+          description: t("Take Grist out of service for maintenance"),
+          value: this._buildServiceStatusDisplay(),
+          expandedContent: this._buildServiceStatusContent(),
         }),
       ]),
       dom.create(AdminSection, t("Security Settings"), [
@@ -265,6 +283,13 @@ Please log in as an administrator.`)),
           description: t("The users with administrative accounts"),
           value: this._buildAdminUsersDisplay(),
           expandedContent: this._buildAdminUsersDetail(),
+        }),
+        dom.create(AdminSectionItem, {
+          id: "boot-key",
+          name: t("Boot key"),
+          description: t("Fallback authentication method"),
+          value: this._buildBootKeyDisplay(),
+          expandedContent: this._buildBootKeyContent(),
         }),
         dom.create(AdminSectionItem, {
           id: "sandboxing",
@@ -400,6 +425,28 @@ Please log in as an administrator.`)),
     return renderSuccess(users);
   }
 
+  private _buildServiceStatusDisplay() {
+    return dom.domComputed(
+      (use) => {
+        const req = this._checks.requestCheckById(use, "service-status");
+        const result = req ? use(req.result) : undefined;
+
+        if (result?.details?.inService) {
+          return cssValueLabel(cssHappyText(t("in service")));
+        } else {
+          return cssValueLabel(cssDangerText(t("out of service")));
+        }
+      },
+    );
+  }
+
+  private _buildServiceStatusContent() {
+    return dom.create(ServiceStatus, {
+      adminChecks: this._checks,
+      installAPI: this._installAPI,
+    });
+  }
+
   private _buildAdminUsersDisplay() {
     return cssValueLabel(
       dom.domComputed(
@@ -437,6 +484,28 @@ Please log in as an administrator.`)),
     );
   }
 
+  private _buildBootKeyDisplay() {
+    return dom.domComputed(
+      (use) => {
+        const req = this._checks.requestCheckById(use, "boot-key");
+        const result = req ? use(req.result) : undefined;
+
+        if (result?.details?.disabled) {
+          return cssValueLabel(cssHappyText(t("disabled")));
+        } else {
+          return cssValueLabel(cssDangerText(t("enabled")));
+        }
+      },
+    );
+  }
+
+  private _buildBootKeyContent() {
+    return dom.create(BootKeyStatus, {
+      adminChecks: this._checks,
+      installAPI: this._installAPI,
+    });
+  }
+
   private _buildAuthenticationDisplay() {
     return dom.domComputed(
       (use) => {
@@ -465,6 +534,14 @@ Please log in as an administrator.`)),
         if (provider === MINIMAL_PROVIDER_KEY) {
           return cssValueLabel(
             cssDangerText(t("no authentication")),
+            verdict ? { title: verdict } : undefined,
+            testId("admin-panel-value-label-danger"),
+          );
+        }
+
+        if (provider === BOOT_KEY_PROVIDER_KEY) {
+          return cssValueLabel(
+            cssDangerText(t("boot key")),
             verdict ? { title: verdict } : undefined,
             testId("admin-panel-value-label-danger"),
           );
@@ -749,9 +826,11 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
       use => [
         ...use(this._checks.probes).map((probe) => {
           const isRedundant = [
+            "boot-key",
             "sandboxing",
             "authentication",
             "session-secret",
+            "service-status",
           ].includes(probe.id);
           const show = isRedundant ? options.showRedundant : options.showNovel;
           if (!show) { return null; }
@@ -1025,21 +1104,6 @@ const cssAdminAccountItemPart = styled("span", `
     padding: 12px 24px 12px 16px;
   }
 `);
-
-/**
- * Make a long code to use in the example, so that if people copy
- * and paste it lazily, they end up decently secure, or at least a
- * lot more secure than a key like "REPLACE_WITH_YOUR_SECRET"
- */
-function _longCodeForExample() {
-  // Crypto in insecure contexts doesn't have randomUUID
-  if (window.isSecureContext) {
-    return "example-a" + window.crypto.randomUUID();
-  }
-  return "example-b" + "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx".replace(/x/g, () => {
-    return Math.floor(Math.random() * 16).toString(16);
-  });
-}
 
 async function reloadSafe() {
   // Reload the page.

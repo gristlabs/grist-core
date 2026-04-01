@@ -106,7 +106,7 @@ async function setUpAdminEmail(db: HomeDBManager) {
       if (onRestartSetAdminEmail) {
         log.info(`Setting GRIST_ADMIN_EMAIL to "${onRestartSetAdminEmail}".`);
         const newEnvVars = { ...envVars, GRIST_ADMIN_EMAIL: onRestartSetAdminEmail };
-        await activations.updateAppEnvFile(newEnvVars, manager);
+        await activations.updateEnvVars(newEnvVars, manager);
         settings.setEnvVars(newEnvVars);
         log.info(`Successfully set GRIST_ADMIN_EMAIL to "${onRestartSetAdminEmail}".`);
       }

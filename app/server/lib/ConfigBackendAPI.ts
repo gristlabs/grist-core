@@ -46,7 +46,7 @@ export class ConfigBackendAPI {
         return;
       }
 
-      await this._activations.updateAppEnvFile({ GRIST_LOGIN_SYSTEM_TYPE: providerKey });
+      await this._activations.updateEnvVars({ GRIST_LOGIN_SYSTEM_TYPE: providerKey });
 
       await this._activations.updatePrefs({ onRestartClearSessions: true });
 
@@ -76,7 +76,7 @@ export class ConfigBackendAPI {
         // as the check function thinks nothing is configured, if the key was invalid it would have thrown earlier.
         throw new ApiError("Error configuring provider with the provided key.", 400);
       }
-      await this._activations.updateAppEnvFile({ [gristComSecret]: key });
+      await this._activations.updateEnvVars({ [gristComSecret]: key });
       // TODO: Restart may not always be required. When this endpoint evolves to support other
       // providers, be more nuanced about setting this.
       await this._activations.updatePrefs({ onRestartClearSessions: true });

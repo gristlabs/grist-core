@@ -9,6 +9,7 @@ import { User } from "app/gen-server/entity/User";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { DocAuthResult, HomeDBAuth } from "app/gen-server/lib/homedb/Interfaces";
 import { AccessTokenInfo } from "app/server/lib/AccessTokens";
+import { getBootKey } from "app/server/lib/Boot";
 import { forceSessionChange, getSessionProfiles, getSessionUser, getSignInStatus, linkOrgWithEmail, SessionObj,
   SessionUserObj, SignInStatus } from "app/server/lib/BrowserSession";
 import { expressWrap } from "app/server/lib/expressWrap";
@@ -173,6 +174,7 @@ export async function addRequestUser(
   req: Request, res: Response, next: NextFunction,
 ) {
   const mreq = req as RequestWithLogin;
+
   let profile: UserProfile | undefined;
 
   // We support multiple method of authentication. This flag gets set once
@@ -181,13 +183,20 @@ export async function addRequestUser(
   // about this case.
   let authDone: boolean = false;
 
-  let hasApiKey: boolean = false;
+  // This function may be called multiple times with the request (e.g. by the setup gate and
+  // the user ID middleware). Skip authentication if we've already associated a user with
+  // the request.
+  if (mreq.userId !== undefined) {
+    authDone = true;
+  }
+
+  let logApiTelemetry: boolean = false;
 
   // Support providing an access token via an `auth` query parameter.
   // This is useful for letting the browser load assets like image
   // attachments.
   const auth = optStringParam(mreq.query.auth, "auth");
-  if (auth) {
+  if (!authDone && auth) {
     const tokens = options.gristServer.getAccessTokens();
     const token = await tokens.verify(auth);
     mreq.accessToken = token;
@@ -221,7 +230,8 @@ export async function addRequestUser(
         return res.status(401).send("Credentials cannot be presented for the anonymous user account via API key");
       }
       setRequestUser(mreq, dbManager, user);
-      hasApiKey = true;
+      logApiTelemetry = true;
+      authDone = true;
     }
   }
 
@@ -230,8 +240,8 @@ export async function addRequestUser(
   // to the environment.
   if (!authDone && mreq.headers?.["x-boot-key"]) {
     const reqBootKey = String(mreq.headers["x-boot-key"]);
-    const bootKey = options.gristServer.getBootKey();
-    if (!bootKey || bootKey !== reqBootKey) {
+    const bootKey = getBootKey();
+    if (bootKey?.value !== reqBootKey) {
       return res.status(401).send("Bad request: invalid Boot key");
     }
     const admin = options.gristServer.getInstallAdmin();
@@ -449,7 +459,7 @@ export async function addRequestUser(
     altSessionId: mreq.altSessionId,
   };
   log.rawDebug(`Auth[${meta.method}]: ${meta.host} ${meta.path}`, meta);
-  if (hasApiKey) {
+  if (logApiTelemetry) {
     options.gristServer.getTelemetry().logEvent(mreq, "apiUsage", {
       full: {
         method: mreq.method,

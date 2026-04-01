@@ -26,8 +26,9 @@ export async function getCoreLoginSystem(): Promise<GristLoginSystem> {
       return loginSystem;
     }
   }
+
   // Fallback to minimal login system if none configured.
-  return await getMinimalLoginSystem(appSettings);
+  return getMinimalLoginSystem();
 }
 
 /**

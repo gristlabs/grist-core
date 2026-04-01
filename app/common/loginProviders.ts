@@ -16,6 +16,9 @@ export const GETGRIST_COM_PROVIDER_KEY = "getgrist.com";
 // SAML provider key.
 export const SAML_PROVIDER_KEY = "saml";
 
+// Special provider that uses boot key to authenticate as install admin.
+export const BOOT_KEY_PROVIDER_KEY = "boot-key";
+
 // Deprecated/unmaintained providers, hidden unless already configured or active.
 export const DEPRECATED_PROVIDERS: string[] = [
   GRIST_CONNECT_PROVIDER_KEY,

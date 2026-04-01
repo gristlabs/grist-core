@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+export GRIST_IN_SERVICE="true"
 export GRIST_SESSION_COOKIE="grist_test_cookie"
 export LANGUAGE="en_US"
 export TEST_CLEAN_DATABASE="true"

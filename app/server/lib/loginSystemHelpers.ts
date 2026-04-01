@@ -1,4 +1,4 @@
-import { AppSettings } from "app/server/lib/AppSettings";
+import { appSettings, AppSettings } from "app/server/lib/AppSettings";
 import { GristLoginSystem } from "app/server/lib/GristServer";
 
 /**
@@ -80,8 +80,8 @@ export function createLoginProviderFactory(
 export function getFallbackLoginProvider(
   key: string,
   builder: (settings: AppSettings) => Promise<GristLoginSystem>,
-): (settings: AppSettings) => Promise<GristLoginSystem> {
-  return async (settings: AppSettings) => {
+): (settings?: AppSettings) => Promise<GristLoginSystem> {
+  return async (settings = appSettings) => {
     const system = await builder(settings);
     // If we are here, the provider is configured, set it as active.
     settings.section("login").flag("active").set(key);

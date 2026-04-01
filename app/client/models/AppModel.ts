@@ -38,14 +38,15 @@ export { reportError } from "app/client/models/errors";
 export { getHomeUrl } from "app/client/models/homeUrl";
 
 export type PageType =
-  | "doc" |
+  "doc" |
   "home" |
   "billing" |
   "welcome" |
   "account" |
   "admin" |
   "activation" |
-  "audit-logs";
+  "audit-logs" |
+  "boot";
 
 const G = getBrowserGlobals("document", "window");
 
@@ -335,6 +336,8 @@ export class AppModelImpl extends Disposable implements AppModel {
         return "activation";
       } else if (state.auditLogs) {
         return "audit-logs";
+      } else if (state.boot) {
+        return "boot";
       } else {
         return "home";
       }
@@ -347,7 +350,8 @@ export class AppModelImpl extends Disposable implements AppModel {
         state.billing === "scheduled" ||
         Boolean(state.account) ||
         Boolean(state.activation) ||
-        Boolean(state.adminPanel)
+        Boolean(state.adminPanel) ||
+        Boolean(state.boot)
       );
     });
 

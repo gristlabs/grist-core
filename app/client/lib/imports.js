@@ -11,6 +11,7 @@ exports.loadActivationPage = () => import("app/client/ui/ActivationPage" /* webp
 exports.loadAirtableImportUI = () => import("app/client/lib/airtable/AirtableImportUI" /* webpackChunkName: "AirtableImport" */);
 exports.loadAuditLogsPage = () => import("app/client/ui/AuditLogsPage" /* webpackChunkName: "AuditLogsPage" */);
 exports.loadBillingPage = () => import("app/client/ui/BillingPage" /* webpackChunkName: "BillingModule" */);
+exports.loadBootPage = () => import("app/client/ui/BootPage" /* webpackChunkName: "BootPage" */);
 exports.loadAdminPanel = () => import("app/client/ui/AdminPanel" /* webpackChunkName: "AdminPanel" */);
 exports.loadGristDoc = () => import("app/client/components/GristDoc" /* webpackChunkName: "GristDoc" */);
 // When importing this way, the module is under the "default" member, not sure why (maybe

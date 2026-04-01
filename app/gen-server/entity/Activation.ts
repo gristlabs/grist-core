@@ -4,6 +4,7 @@ import { InstallPrefs } from "app/common/Install";
 import { InstallProperties, installPropertyKeys } from "app/common/InstallAPI";
 import { nativeValues } from "app/gen-server/lib/values";
 
+import pick from "lodash/pick";
 import { BaseEntity, Column, Entity, PrimaryColumn } from "typeorm";
 
 @Entity({ name: "activations" })
@@ -65,6 +66,9 @@ export class Activation extends BaseEntity {
     if (props.prefs === null) {
       this.prefs = null;
     } else {
+      if (typeof this.prefs === "string") {
+        this.prefs = JSON.parse(this.prefs);
+      }
       this.prefs = this.prefs || {};
       if (props.prefs.telemetry !== undefined) {
         this.prefs.telemetry = this.prefs.telemetry || {};
@@ -87,6 +91,28 @@ export class Activation extends BaseEntity {
 
       if (props.prefs.onRestartClearSessions !== undefined) {
         this.prefs.onRestartClearSessions = props.prefs.onRestartClearSessions;
+      }
+
+      if (props.prefs.envVars) {
+        this.prefs.envVars = this.prefs.envVars || {};
+
+        Object.assign(this.prefs.envVars, pick(props.prefs.envVars,
+          "GRIST_LOGIN_SYSTEM_TYPE",
+          "GRIST_GETGRISTCOM_SECRET",
+          "GRIST_ADMIN_EMAIL",
+          "GRIST_BOOT_KEY",
+          "GRIST_IN_SERVICE",
+        ));
+
+        for (const key of Object.keys(props.prefs.envVars)) {
+          if (props.prefs.envVars[key] === null || props.prefs.envVars[key] === undefined) {
+            delete this.prefs.envVars[key];
+          }
+        }
+
+        if (Object.keys(this.prefs.envVars).length === 0) {
+          delete this.prefs.envVars;
+        }
       }
 
       for (const key of Object.keys(this.prefs) as (keyof InstallPrefs)[]) {

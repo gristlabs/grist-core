@@ -5,6 +5,8 @@ import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { makeId } from "app/server/lib/idUtils";
 import { getTelemetryPrefs } from "app/server/lib/Telemetry";
 
+import * as crypto from "crypto";
+
 import omit from "lodash/omit";
 import pick from "lodash/pick";
 import { EntityManager } from "typeorm";
@@ -31,7 +33,13 @@ export class ActivationsManager {
       if (!activation) {
         activation = manager.create(Activation);
         activation.id = makeId();
-        activation.prefs = { checkForLatestVersion: true };
+        activation.prefs = {
+          checkForLatestVersion: true,
+          envVars: {
+            GRIST_BOOT_KEY: crypto.randomBytes(12).toString("hex"),
+            GRIST_IN_SERVICE: "false",
+          },
+        };
         await activation.save();
       }
       return activation;
@@ -90,28 +98,11 @@ export class ActivationsManager {
   }
 
   /**
-   * Updates a key/value pair in the app env file stored in the activation record.
-   * TODO: Notify other servers that the env file has changed and they should refresh their copy of appSettings.
+   * Updates a key/value pair in the env vars stored in the activation record.
+   * TODO: Notify other servers that the env vars have changed and they should refresh their copy of appSettings.
    */
-  public async updateAppEnvFile(delta: Record<string, string | null>, transaction?: EntityManager) {
-    return await this._db.runInTransaction(transaction, async (manager) => {
-      const activation = await this.current(manager);
-      activation.prefs ??= {};
-      activation.prefs.envVars ??= {};
-      // For now we just support 3 keys here, as these ones are tested.
-      Object.assign(activation.prefs.envVars, pick(delta,
-        "GRIST_LOGIN_SYSTEM_TYPE",
-        "GRIST_GETGRISTCOM_SECRET",
-        "GRIST_ADMIN_EMAIL",
-      ));
-      // If any values are undefined or null, remove them.
-      for (const key of Object.keys(delta)) {
-        if (delta[key] === null || delta[key] === undefined) {
-          delete activation.prefs.envVars[key];
-        }
-      }
-      await manager.save(activation);
-    });
+  public async updateEnvVars(delta: Record<string, string | null>, transaction?: EntityManager) {
+    return this.updatePrefs({ envVars: delta }, transaction);
   }
 
   /**
@@ -130,12 +121,12 @@ export class ActivationsManager {
   /**
    * Updates the specified `prefs`.
    */
-  public async updatePrefs(prefs: Partial<InstallPrefs>): Promise<void> {
+  public async updatePrefs(prefs: Partial<InstallPrefs>, transaction?: EntityManager): Promise<void> {
     await this._updateActivation((activation) => {
       const props = { prefs };
       activation.checkProperties(props);
       activation.updateFromProperties(props);
-    });
+    }, transaction);
   }
 
   /**

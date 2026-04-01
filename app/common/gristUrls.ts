@@ -70,6 +70,9 @@ export const SpecialDocSubPage = StringUnion("log");
 export type SpecialDocSubPage = typeof SpecialDocSubPage.type;
 export type IDocSubPage = number | SpecialDocSubPage;
 
+export const BootPage = StringUnion("boot");
+export type BootPage = typeof BootPage.type;
+
 export const PREFERRED_STORAGE_ANCHOR = "preferredStorage";
 export const PersistentAnchor = StringUnion(PREFERRED_STORAGE_ANCHOR);
 export type PersistentAnchor = typeof PersistentAnchor.type;
@@ -200,6 +203,7 @@ export interface IGristUrlState {
   welcome?: WelcomePage;
   adminPanel?: AdminPanelPage;
   adminPanelTab?: AdminPanelTab;
+  boot?: BootPage;
   welcomeTour?: boolean;
   docTour?: boolean;
   manageUsers?: boolean;
@@ -415,6 +419,8 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
     parts.push(state.adminPanel === "admin" ? "admin" : `admin/${state.adminPanel}`);
   }
 
+  if (state.boot) { parts.push(state.boot); }
+
   const queryParams = pickBy(state.params, (v, k) => k !== "linkParameters") as { [key: string]: string };
   for (const [k, v] of Object.entries(state.params?.linkParameters || {})) {
     queryParams[`${k}_`] = v;
@@ -558,6 +564,9 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
   if (map.has("welcome")) { state.welcome = WelcomePage.parse(map.get("welcome")); }
   if (map.has("admin")) {
     state.adminPanel = AdminPanelPage.parse(map.get("admin")) || "admin";
+  }
+  if (map.has("boot")) {
+    state.boot = BootPage.parse(map.get("boot")) || "boot";
   }
   if (sp.has("planType")) { state.params!.planType = sp.get("planType")!; }
   if (sp.has("billingPlan")) { state.params!.billingPlan = sp.get("billingPlan")!; }
@@ -1016,9 +1025,6 @@ export interface GristLoadConfig {
   // If backend has an email service for sending notifications.
   notifierEnabled?: boolean;
 
-  // Set on /admin pages only, when AdminControls are available and should be enabled in UI.
-  adminControls?: boolean;
-
   formFraming?: FormFraming;
 
   adminDefinedUrls?: string;
@@ -1027,9 +1033,17 @@ export interface GristLoadConfig {
   userPresenceMaxUsers?: number;
 
   warnBeforeSharingPublicly?: boolean;
+}
 
-  // Whether there is a parent process that can restart Grist.
-  runningUnderSupervisor?: boolean;
+/**
+ * Settings sent with all Grist admin pages (/admin).
+ */
+export interface AdminPageConfig extends GristLoadConfig {
+  /** Whether there is a parent process that can restart Grist. */
+  runningUnderSupervisor: boolean;
+
+  /** Whether AdminControls are available and should be enabled in UI. */
+  adminControls?: boolean;
 }
 
 export const Features = StringUnion(

@@ -143,6 +143,10 @@ export const textButton = styled(cssButton, `
     border-color: transparent;
     background-color: transparent;
   }
+  &:focus-visible {
+    outline: 3px solid ${tokens.primary};
+    outline-offset: 2px;
+  }
 `);
 
 const cssButtonLink = styled("a", `

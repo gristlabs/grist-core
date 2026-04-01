@@ -42,7 +42,7 @@ export interface PageSidePanel {
 }
 
 export interface PageContents {
-  leftPanel: PageSidePanel;
+  leftPanel?: PageSidePanel;      // If omitted, the left panel isn't shown at all.
   rightPanel?: PageSidePanel;     // If omitted, the right panel isn't shown at all.
 
   headerMain: DomElementArg;
@@ -69,7 +69,7 @@ export function pagePanels(page: PageContents) {
 
   const appObj = page.app;
 
-  let lastLeftOpen = left.panelOpen.get();
+  let lastLeftOpen = left?.panelOpen.get() || false;
   let lastRightOpen = right?.panelOpen.get() || false;
   let leftPaneDom: HTMLElement;
   let rightPaneDom: HTMLElement;
@@ -88,10 +88,10 @@ export function pagePanels(page: PageContents) {
   // last desktop state.
   const sub1 = subscribe(isNarrowScreenObs(), (use, narrow) => {
     if (narrow) {
-      lastLeftOpen = leftOverlap.get() ? false : left.panelOpen.get();
+      lastLeftOpen = !left || leftOverlap.get() ? false : left.panelOpen.get();
       lastRightOpen = right?.panelOpen.get() || false;
     }
-    left.panelOpen.set(narrow ? false : lastLeftOpen);
+    left?.panelOpen.set(narrow ? false : lastLeftOpen);
     right?.panelOpen.set(narrow ? false : lastRightOpen);
 
     // overlap should always be OFF when switching screen mode
@@ -104,17 +104,22 @@ export function pagePanels(page: PageContents) {
   //   - reset the focus switcher to behave like a normal browser navigation (lose focus).
   const sub2 = subscribe(isNarrowScreenObs(), urlState().state, (use, narrow, state) => {
     if (narrow) {
-      left.panelOpen.set(false);
+      left?.panelOpen.set(false);
     }
     regionFocusSwitcher?.reset();
   });
 
   const pauseSavingLeft = (yesNo: boolean) => {
-    (left.panelOpen as SessionObs<boolean>)?.pauseSaving?.(yesNo);
+    (left?.panelOpen as SessionObs<boolean>)?.pauseSaving?.(yesNo);
   };
 
   const commandsGroup = commands.createGroup({
-    leftPanelOpen: () => new Promise((resolve) => {
+    leftPanelOpen: () => new Promise((resolve, reject) => {
+      if (!left) {
+        reject(new Error("PagePanels leftPanelOpen called while left panel is undefined"));
+        return;
+      }
+
       const watcher = new TransitionWatcher(leftPaneDom);
       watcher.onDispose(() => resolve(undefined));
       left.panelOpen.set(true);
@@ -156,150 +161,152 @@ export function pagePanels(page: PageContents) {
       (el) => {
         regionFocusSwitcher?.onPageDomLoaded(el);
       },
-      leftPaneDom = cssLeftPane(
-        testId("left-panel"),
-        regionFocusSwitcher?.panelAttrs("left", t("Main navigation and document settings (left panel)")),
-        cssOverflowContainer(
-          contentWrapper = cssLeftPanelContainer(
-            cssLeftPaneHeader(
-              left.header,
-              dom.style("margin-bottom", use => use(bannerHeight) + "px"),
+      (left ? [
+        leftPaneDom = cssLeftPane(
+          testId("left-panel"),
+          regionFocusSwitcher?.panelAttrs("left", t("Main navigation and document settings (left panel)")),
+          cssOverflowContainer(
+            contentWrapper = cssLeftPanelContainer(
+              cssLeftPaneHeader(
+                left.header,
+                dom.style("margin-bottom", use => use(bannerHeight) + "px"),
+              ),
+              left.content,
             ),
-            left.content,
           ),
-        ),
 
-        // Show plain border when the resize handle is hidden.
-        cssResizeDisabledBorder(
-          dom.hide(use => use(left.panelOpen) && !use(leftOverlap)),
-          cssHideForNarrowScreen.cls(""),
-          testId("left-disabled-resizer"),
-        ),
+          // Show plain border when the resize handle is hidden.
+          cssResizeDisabledBorder(
+            dom.hide(use => use(left.panelOpen) && !use(leftOverlap)),
+            cssHideForNarrowScreen.cls(""),
+            testId("left-disabled-resizer"),
+          ),
 
-        dom.style("width", use => use(left.panelOpen) ? use(left.panelWidth) + "px" : ""),
+          dom.style("width", use => use(left.panelOpen) ? use(left.panelWidth) + "px" : ""),
 
-        // Opening/closing the left pane, with transitions.
-        cssLeftPane.cls("-open", left.panelOpen),
+          // Opening/closing the left pane, with transitions.
+          cssLeftPane.cls("-open", left.panelOpen),
 
-        dom.boolAttr(FULLY_EXPANDED_PANEL_DATASET_KEY, left.panelOpen),
-        dom.boolAttr(FULLY_COLLAPSED_PANEL_DATASET_KEY, use => !use(left.panelOpen)),
-        transition(use => (use(isNarrowScreenObs()) ? false : use(left.panelOpen)), {
-          prepare(elem, open) {
-            elem.style.width = (open ? 48 : left.panelWidth.get()) + "px";
-            onPanelTransitionStart(elem);
-          },
-          run(elem, open) {
-            elem.style.width = contentWrapper.style.width = (open ? left.panelWidth.get() : 48) + "px";
-          },
-          finish(elem, open) {
-            onResize();
-            contentWrapper.style.width = "";
-            onLeftTransitionFinish();
-            onPanelTransitionFinished(elem, open);
-          },
-        }),
+          dom.boolAttr(FULLY_EXPANDED_PANEL_DATASET_KEY, left.panelOpen),
+          dom.boolAttr(FULLY_COLLAPSED_PANEL_DATASET_KEY, use => !use(left.panelOpen)),
+          transition(use => (use(isNarrowScreenObs()) ? false : use(left.panelOpen)), {
+            prepare(elem, open) {
+              elem.style.width = (open ? 48 : left.panelWidth.get()) + "px";
+              onPanelTransitionStart(elem);
+            },
+            run(elem, open) {
+              elem.style.width = contentWrapper.style.width = (open ? left.panelWidth.get() : 48) + "px";
+            },
+            finish(elem, open) {
+              onResize();
+              contentWrapper.style.width = "";
+              onLeftTransitionFinish();
+              onPanelTransitionFinished(elem, open);
+            },
+          }),
 
-        // opening left panel on hover
-        dom.on("mouseenter", (evt1, elem) => {
-          if (left.panelOpen.get() ||
+          // opening left panel on hover
+          dom.on("mouseenter", (evt1, elem) => {
+            if (left.panelOpen.get() ||
 
             // when no opener should not auto-expand
-            left.hideOpener ||
+              left.hideOpener ||
 
             // if user is resizing the window, don't expand.
-            isScreenResizingObs.get()) { return; }
+              isScreenResizingObs.get()) { return; }
 
-          let isMouseInsideLeftPane = true;
-          let isFocusInsideLeftPane = false;
-          let isMouseDragging = false;
+            let isMouseInsideLeftPane = true;
+            let isFocusInsideLeftPane = false;
+            let isMouseDragging = false;
 
-          const owner = new MultiHolder();
-          const startExpansion = () => {
-            leftOverlap.set(true);
-            pauseSavingLeft(true); // prevents from updating state in the window storage
-            left.panelOpen.set(true);
-            onLeftTransitionFinish = noop;
-            watchBlur();
-          };
-          const startCollapse = () => {
-            left.panelOpen.set(false);
-            pauseSavingLeft(false);
-            // turns overlap off only when the transition finishes
-            onLeftTransitionFinish = once(() => leftOverlap.set(false));
-            clear();
-          };
-          const clear = () => {
-            if (owner.isDisposed()) { return; }
-            clearTimeout(timeoutId);
-            owner.dispose();
-          };
-          dom.onDisposeElem(elem, clear);
+            const owner = new MultiHolder();
+            const startExpansion = () => {
+              leftOverlap.set(true);
+              pauseSavingLeft(true); // prevents from updating state in the window storage
+              left.panelOpen.set(true);
+              onLeftTransitionFinish = noop;
+              watchBlur();
+            };
+            const startCollapse = () => {
+              left.panelOpen.set(false);
+              pauseSavingLeft(false);
+              // turns overlap off only when the transition finishes
+              onLeftTransitionFinish = once(() => leftOverlap.set(false));
+              clear();
+            };
+            const clear = () => {
+              if (owner.isDisposed()) { return; }
+              clearTimeout(timeoutId);
+              owner.dispose();
+            };
+            dom.onDisposeElem(elem, clear);
 
-          // updates isFocusInsideLeftPane and starts watch for blur on activeElement.
-          const watchBlur = debounce(() => {
-            if (owner.isDisposed()) { return; }
-            isFocusInsideLeftPane = Boolean(leftPaneDom.contains(document.activeElement) ||
-              document.activeElement?.closest(".grist-floating-menu"));
-            maybeStartCollapse();
-            if (document.activeElement) {
-              maybePatchDomAndChangeFocus(); // This is to support projects test environment
-              watchElementForBlur(document.activeElement, watchBlur);
-            }
-          }, DELAY_BEFORE_TESTING_FOCUS_CHANGE_MS);
+            // updates isFocusInsideLeftPane and starts watch for blur on activeElement.
+            const watchBlur = debounce(() => {
+              if (owner.isDisposed()) { return; }
+              isFocusInsideLeftPane = Boolean(leftPaneDom.contains(document.activeElement) ||
+                document.activeElement?.closest(".grist-floating-menu"));
+              maybeStartCollapse();
+              if (document.activeElement) {
+                maybePatchDomAndChangeFocus(); // This is to support projects test environment
+                watchElementForBlur(document.activeElement, watchBlur);
+              }
+            }, DELAY_BEFORE_TESTING_FOCUS_CHANGE_MS);
 
-          // starts collapsed only if neither mouse nor focus are inside the left pane. Return true
-          // if started collapsed, false otherwise.
-          const maybeStartCollapse = () => {
-            if (!isMouseInsideLeftPane && !isFocusInsideLeftPane && !isMouseDragging) {
-              startCollapse();
-            }
-          };
+            // starts collapsed only if neither mouse nor focus are inside the left pane. Return true
+            // if started collapsed, false otherwise.
+            const maybeStartCollapse = () => {
+              if (!isMouseInsideLeftPane && !isFocusInsideLeftPane && !isMouseDragging) {
+                startCollapse();
+              }
+            };
 
-          // mouse events
-          const onMouseEvt = (evt: MouseEvent) => {
-            const rect = leftPaneDom.getBoundingClientRect();
-            isMouseInsideLeftPane = evt.clientX <= rect.right;
-            isMouseDragging = evt.buttons !== 0;
-            maybeStartCollapse();
-          };
-          owner.autoDispose(dom.onElem(document, "mousemove", onMouseEvt));
-          owner.autoDispose(dom.onElem(document, "mouseup", onMouseEvt));
+            // mouse events
+            const onMouseEvt = (evt: MouseEvent) => {
+              const rect = leftPaneDom.getBoundingClientRect();
+              isMouseInsideLeftPane = evt.clientX <= rect.right;
+              isMouseDragging = evt.buttons !== 0;
+              maybeStartCollapse();
+            };
+            owner.autoDispose(dom.onElem(document, "mousemove", onMouseEvt));
+            owner.autoDispose(dom.onElem(document, "mouseup", onMouseEvt));
 
-          // Enables collapsing when the cursor leaves the window. This comes handy in a split
-          // screen setup, especially when Grist is on the right side: moving the cursor back and
-          // forth between the 2 windows, the cursor is likely to hover the left pane and expand it
-          // inadvertendly. This line collapses it back.
-          const onMouseLeave = () => {
-            isMouseInsideLeftPane = false;
-            maybeStartCollapse();
-          };
-          owner.autoDispose(dom.onElem(document.body, "mouseleave", onMouseLeave));
+            // Enables collapsing when the cursor leaves the window. This comes handy in a split
+            // screen setup, especially when Grist is on the right side: moving the cursor back and
+            // forth between the 2 windows, the cursor is likely to hover the left pane and expand it
+            // inadvertendly. This line collapses it back.
+            const onMouseLeave = () => {
+              isMouseInsideLeftPane = false;
+              maybeStartCollapse();
+            };
+            owner.autoDispose(dom.onElem(document.body, "mouseleave", onMouseLeave));
 
-          // schedule start of expansion
-          const timeoutId = setTimeout(startExpansion, AUTO_EXPAND_TIMEOUT_MS);
-        }),
-        cssLeftPane.cls("-overlap", leftOverlap),
-        cssLeftPane.cls("-dragging", dragResizer),
-      ),
+            // schedule start of expansion
+            const timeoutId = setTimeout(startExpansion, AUTO_EXPAND_TIMEOUT_MS);
+          }),
+          cssLeftPane.cls("-overlap", leftOverlap),
+          cssLeftPane.cls("-dragging", dragResizer),
+        ),
 
-      // Resizer for the left pane.
-      // TODO: resizing to small size should collapse. possibly should allow expanding too
-      cssResizeFlexVHandle(
-        { target: "left", onSave: (val) => {
-          left.panelWidth.set(val); onResize();
-          leftPaneDom.style.width = val + "px";
-          setTimeout(() => dragResizer.set(false), 0);
-        },
-        onDrag: (val) => { dragResizer.set(true); } },
-        testId("left-resizer"),
-        dom.show(use => use(left.panelOpen) && !use(leftOverlap)),
-        cssHideForNarrowScreen.cls("")),
+        // Resizer for the left pane.
+        // TODO: resizing to small size should collapse. possibly should allow expanding too
+        cssResizeFlexVHandle(
+          { target: "left", onSave: (val) => {
+            left.panelWidth.set(val); onResize();
+            leftPaneDom.style.width = val + "px";
+            setTimeout(() => dragResizer.set(false), 0);
+          },
+          onDrag: (val) => { dragResizer.set(true); } },
+          testId("left-resizer"),
+          dom.show(use => use(left.panelOpen) && !use(leftOverlap)),
+          cssHideForNarrowScreen.cls("")),
+      ] : null),
 
       cssMainPane(
         mainHeaderDom = cssTopHeader(
           testId("top-header"),
           regionFocusSwitcher?.panelAttrs("top", t("Document header")),
-          (left.hideOpener ? null :
+          (!left || left.hideOpener ? null :
             unstyledButton(
               { "aria-label": left.panelOpen.get() ?
                 t("Close navigation panel (left panel)") :
@@ -382,9 +389,9 @@ export function pagePanels(page: PageContents) {
         )] : null
       ),
       cssContentOverlay(
-        dom.show(use => use(left.panelOpen) || Boolean(right && use(right.panelOpen))),
+        dom.show(use => Boolean(left && use(left.panelOpen)) || Boolean(right && use(right.panelOpen))),
         dom.on("click", () => {
-          left.panelOpen.set(false);
+          if (left) { left.panelOpen.set(false); }
           if (right) { right.panelOpen.set(false); }
         }),
         testId("overlay"),
@@ -392,16 +399,18 @@ export function pagePanels(page: PageContents) {
       dom.maybe(isNarrowScreenObs(), () =>
         cssBottomFooter(
           testId("bottom-footer"),
-          cssPanelOpenerNarrowScreenBtn(
-            cssPanelOpenerNarrowScreen(
-              "FieldTextbox",
-              dom.on("click", () => {
-                right?.panelOpen.set(false);
-                toggleObs(left.panelOpen);
-              }),
-              testId("left-opener-ns"),
-            ),
-            cssPanelOpenerNarrowScreenBtn.cls("-open", left.panelOpen),
+          (!left ? null :
+            cssPanelOpenerNarrowScreenBtn(
+              cssPanelOpenerNarrowScreen(
+                "FieldTextbox",
+                dom.on("click", () => {
+                  right?.panelOpen.set(false);
+                  toggleObs(left.panelOpen);
+                }),
+                testId("left-opener-ns"),
+              ),
+              cssPanelOpenerNarrowScreenBtn.cls("-open", left.panelOpen),
+            )
           ),
           page.contentBottom,
           (!right ? null :
@@ -409,7 +418,7 @@ export function pagePanels(page: PageContents) {
               cssPanelOpenerNarrowScreen(
                 "Settings",
                 dom.on("click", () => {
-                  left.panelOpen.set(false);
+                  left?.panelOpen.set(false);
                   toggleObs(right.panelOpen);
                 }),
                 testId("right-opener-ns"),

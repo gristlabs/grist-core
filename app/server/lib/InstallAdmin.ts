@@ -74,6 +74,8 @@ export class SimpleInstallAdmin extends InstallAdmin {
   }
 
   public override clearCaches(): void {
+    this._installAdminEmail = getAdminEmail();
+    this._defaultEmail = getDefaultEmail();
   }
 
   private get _adminEmail(): string {
@@ -113,7 +115,7 @@ export function getAdminOrDefaultEmail(settings = appSettings): string | undefin
 /**
  * Returns the value of `GRIST_ADMIN_EMAIL` from `settings`.
  */
-function getAdminEmail(settings = appSettings): string | undefined {
+export function getAdminEmail(settings = appSettings): string | undefined {
   return settings.section("access").flag("installAdminEmail").readString({
     envVar: "GRIST_ADMIN_EMAIL",
   });

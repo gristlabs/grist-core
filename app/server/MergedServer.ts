@@ -98,9 +98,6 @@ export class MergedServer {
     }
 
     ms.flexServer.addHealthCheck();
-    if (ms.hasComponent("home") || ms.hasComponent("app")) {
-      ms.flexServer.addBootPage();
-    }
     ms.flexServer.denyRequestsIfNotReady();
 
     if (ms.hasComponent("home") || ms.hasComponent("static") || ms.hasComponent("app")) {
@@ -119,15 +116,21 @@ export class MergedServer {
       await ms.flexServer.addAssetsForPlugins();
     }
 
-    if (ms.hasComponent("home")) {
-      ms.flexServer.addEarlyWebhooks();
-    }
-
+    // Must be available before setup gate so boot key logins can create sessions.
     if (ms.hasComponent("home") || ms.hasComponent("docs") || ms.hasComponent("app")) {
       ms.flexServer.addSessions();
     }
 
+    if (ms.hasComponent("home")) {
+      ms.flexServer.addEarlyWebhooks();
+    }
+
     ms.flexServer.addAccessMiddleware();
+
+    if (ms.hasComponent("home") || ms.hasComponent("app")) {
+      await ms.flexServer.addSetupGate();
+    }
+
     ms.flexServer.addApiMiddleware();
     ms.flexServer.addBillingMiddleware();
 

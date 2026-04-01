@@ -112,7 +112,8 @@ export class UrlStateImpl {
       newState.activation ||
       newState.auditLogs ||
       newState.welcome ||
-      newState.adminPanel ?
+      newState.adminPanel ||
+      newState.boot ?
         prevState.org ?
           { org: prevState.org } :
           {} :
@@ -148,8 +149,10 @@ export class UrlStateImpl {
     const linkKeysReload = !isEqual(prevState.params?.linkParameters, newState.params?.linkParameters);
     // Always reload on login pages.
     const loginReload = prevState.login || newState.login;
-    // Reload when moving to/from the support Grist page.
+    // Reload when moving to/from the Admin Panel.
     const adminPanelReload = Boolean(prevState.adminPanel) !== Boolean(newState.adminPanel);
+    // Reload when moving to/from the boot page.
+    const bootReload = Boolean(prevState.boot) !== Boolean(newState.boot);
     return Boolean(
       orgReload ||
       accountReload ||
@@ -161,7 +164,8 @@ export class UrlStateImpl {
       welcomeReload ||
       linkKeysReload ||
       loginReload ||
-      adminPanelReload,
+      adminPanelReload ||
+      bootReload,
     );
   }
 
