@@ -348,6 +348,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
   private _prevSectionId: number | null = null;
   private _assistantPopup = buildAssistantPopup(this);
   private _diffModels: Record<string, DataTableModelWithDiff> = {};
+  private _showAllRowsInComparison: boolean = false;
 
   constructor(
     public readonly app: App,
@@ -359,6 +360,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
     options: {
       comparison?: DocStateComparison,  // initial comparison with another document
       compareEmphasis?: CompareEmphasis,
+      showAllRowsInComparison?: boolean, // show all rows in diff view, not just changed ones
     } = {},
   ) {
     super();
@@ -709,6 +711,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
 
     this.comparison = options.comparison || null;
     this.compareEmphasis = options.compareEmphasis ?? "remote";
+    this._showAllRowsInComparison = options.showAllRowsInComparison ?? false;
 
     // We need prevent default here to allow drop events to fire.
     this.autoDispose(dom.onElem(window, "dragover", ev => ev.preventDefault()));
@@ -979,7 +982,8 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       return tableModel;
     }
     if (!this._diffModels[tableId]) {
-      this._diffModels[tableId] = this.autoDispose(new DataTableModelWithDiff(tableModel, this.comparison.details));
+      this._diffModels[tableId] = this.autoDispose(new DataTableModelWithDiff(
+        tableModel, this.comparison.details, { showAllRows: this._showAllRowsInComparison }));
     }
     return this._diffModels[tableId];
   }

@@ -29,7 +29,7 @@ export function createAutomationsPageEntry(gristDoc: GristDoc, isDocOwner: boole
     cssPageEntry.cls("-disabled", !isDocOwner),
     cssPageLink(cssPageIcon("Repl"),
       cssLinkText(t("Automations")),
-      cssBetaTag(t("NEW")),
+      cssBetaTag(t("New")),
       isDocOwner ? urlState().setLinkUrl({ docPage: "automations" }) : null,
     ),
     testId("automations"),

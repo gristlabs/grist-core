@@ -431,6 +431,35 @@ describe("ProposedChangesPage", function() {
       "Suggest changes (1)");
   });
 
+  it("shows all rows in suggestion mode, not skip rows with ellipses", async function() {
+    const { doc, api } = await makeLifeDoc();
+    const url = await driver.getCurrentUrl();
+
+    // Add enough rows so that a "compare to original" view would
+    // start skipping some.
+    for (let i = 0; i <= 10; i++) {
+      await api.applyUserActions(doc.id, [
+        ["AddRecord", "Life", null, { A: i * 10, B: `Species${i}` }],
+      ]);
+    }
+
+    // Count the rows via the API before entering suggestion mode.
+    const rows = await api.getDocAPI(doc.id).getRows("Life");
+    const expectedRowCount = rows.id.length;
+    assert.isAtLeast(expectedRowCount, 10);
+
+    // Work on a copy (enters suggestion mode with comparison active).
+    await workOnCopy(url);
+
+    // Every row should be visible, no "..." skip rows, no blank rows.
+    const rowNums = Array.from({ length: expectedRowCount }, (_, i) => i + 1);
+    const visibleB = await gu.getVisibleGridCells("B", rowNums);
+    assert.notInclude(visibleB, "...");
+    assert.deepEqual(visibleB, rows.B);
+
+    await returnToTrunk(url);
+  });
+
   it("can make and apply a proposed change affecting two tables", async function() {
     const { api, doc } = await makeLifeDoc();
     const url = await driver.getCurrentUrl();
@@ -886,6 +915,32 @@ describe("ProposedChangesPage", function() {
     cell = await gu.getCell("B", 1);
     assert.equal(await cell.find(".diff-parent").getText(), "Fish");
     assert.equal(await cell.find(".diff-local").getText(), "Cat");
+
+    await returnToTrunk(url);
+  });
+
+  it("uses correct diff classes on fork suggestions tab", async function() {
+    await makeLifeDoc();
+    const url = await driver.getCurrentUrl();
+
+    await workOnCopy(url);
+
+    // Edit cell B row 1 from "Fish" to "Cat".
+    await gu.getCell("B", 1).click();
+    await gu.waitAppFocus();
+    await gu.enterCell("Cat");
+
+    // Go to the fork's suggestions tab.
+    await driver.find(".test-tools-proposals").click();
+    await driver.findContentWait(".test-main-content", /Suggest changes/, 2000);
+    const clip = await driver.findWait(".test-actionlog-tabular-diffs .field_clip", 2000);
+
+    // On the fork's suggestions tab, the fork's new value should use
+    // diff-local (not diff-remote), so that diff-emphasize-local renders
+    // it with the correct (green) color.
+    assert.equal(await clip.find(".diff-local").getText(), "Cat");
+    assert.equal(await clip.find(".diff-parent").getText(), "Fish");
+    assert.equal(await clip.find(".diff-remote").isPresent(), false);
 
     await returnToTrunk(url);
   });

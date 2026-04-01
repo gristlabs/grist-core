@@ -2752,7 +2752,16 @@
         "Still working...": "Still working..."
     },
     "TriggersPageUpsell": {
-        "## Automations\n\nSend emails and call webhooks automatically when your data changes. Set conditions to control exactly which updates should trigger an action. More action types are on the way.": "## Automations\n\nSend emails and call webhooks automatically when your data changes. Set conditions to control exactly which updates should trigger an action. More action types are on the way.",
-        "Upgrade": "Upgrade"
+        "Upgrade": "Upgrade",
+        "Automate workflows from within Grist": "Automate workflows from within Grist",
+        "Automations Screenshot": "Automations Screenshot",
+        "Learn more.": "Learn more.",
+        "Trigger automations based on data changes, and design actions such as custom email notifications and webhook integrations.": "Trigger automations based on data changes, and design actions such as custom email notifications and webhook integrations.",
+        "Try for free": "Try for free",
+        "Try full Grist": "Try full Grist"
+    },
+    "AutomationsPageEntry": {
+        "Automations": "Automations",
+        "New": "New"
     }
 }
