@@ -901,7 +901,7 @@ describe("GranularAccess", function() {
       assert.isFalse(await driver.find(".test-notifier-toast-wrapper").isPresent());
       await cell.click();
       await gu.waitAppFocus();
-      await gu.sendKeys("XYZ");
+      await gu.enterCell(["XYZ"], { validate: false });
       if (save === "enter") {
         await gu.sendKeys(Key.ENTER);
       } else {
@@ -1093,7 +1093,7 @@ describe("GranularAccess", function() {
     // Check anon can create a fork.
     await anon.loadDoc(`/doc/${doc.id}/m/fork?aclUI=1`);
     await gu.getCell({ rowNum: 1, col: 0 }).click();
-    await gu.sendKeys("Testing2", Key.ENTER);
+    await gu.enterCell("Testing2");
     await gu.waitForServer(10000);
     assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), "Testing2");
     const forkUrl = await driver.getCurrentUrl();
