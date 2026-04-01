@@ -840,7 +840,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
     return cssViewContentPane(
       testId("gristdoc"),
       cssViewContentPane.cls("-special-page", use =>
-        ["data", "settings", "code"].includes(use(this.activeViewId) as string)),
+        ["data", "settings", "code", "automations"].includes(use(this.activeViewId) as string)),
       dom.cls("diff-emphasize-local", this.compareEmphasis === "local"),
       dom.maybe(this._isRickRowing, () => cssStopRickRowingButton(
         cssCloseIcon("CrossBig"),
