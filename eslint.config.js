@@ -3,6 +3,7 @@ const path = require("path");
 
 const babelParser = require("@babel/eslint-parser");
 const js = require("@eslint/js");
+const localRules = require("./eslint-rules/local-rules");
 const stylistic = require("@stylistic/eslint-plugin");
 const tsParser = require("@typescript-eslint/parser");
 const typescriptEslint = require("@typescript-eslint/eslint-plugin");
@@ -107,6 +108,7 @@ module.exports = defineConfig([
       "@typescript-eslint": typescriptEslint,
       "@stylistic": stylistic,
       "@import-x": importX,
+      "local": localRules,
     },
 
     ignores: [
@@ -287,6 +289,8 @@ module.exports = defineConfig([
       "@typescript-eslint/no-unsafe-function-type": "off",
       "@typescript-eslint/no-base-to-string": "off",
       "@typescript-eslint/no-unsafe-enum-comparison": "off",
+
+      "local/makeT-filename": "error",
     },
   },
 ]);
