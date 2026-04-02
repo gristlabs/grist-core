@@ -1017,7 +1017,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {"pet": "dog", "color": "red"},
       {"on_many": "none"},
       [["UpdateRecord", "Table1", 2, {"color": "red", "pet": "dog"}]],
-      {"recordIds": [2], "action": "UPDATED"},
+      {"recordIds": [2], "action": "UPDATE"},
     )
 
     # Look for a record with pet=dog and change it to pet=cat
@@ -1026,7 +1026,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {"pet": "cat"},
       {},
       [["UpdateRecord", "Table1", 2, {"pet": "cat"}]],
-      {"recordIds": [2], "action": "UPDATED"},
+      {"recordIds": [2], "action": "UPDATE"},
     )
 
     # Two records match first_name=John, by default we only update the first
@@ -1035,7 +1035,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {"color": "blue"},
       {},
       [["UpdateRecord", "Table1", 1, {"color": "blue"}]],
-      {"recordIds": [1], "action": "UPDATED"},
+      {"recordIds": [1], "action": "UPDATE"},
     )
 
     # Update all matching records
@@ -1046,7 +1046,7 @@ class TestUserActions(test_engine.EngineTestCase):
       [
         ["BulkUpdateRecord", "Table1", [1, 2], {"color": ["green", "green"]}],
       ],
-      {"recordIds": [1, 2], "action": "UPDATED"},
+      {"recordIds": [1, 2], "action": "UPDATE"},
     )
 
     # Update all records with empty require and allow_empty_require
@@ -1057,7 +1057,7 @@ class TestUserActions(test_engine.EngineTestCase):
       [
         ["BulkUpdateRecord", "Table1", [1, 2], {"color": ["greener", "greener"]}],
       ],
-      {"recordIds": [1, 2], "action": "UPDATED"},
+      {"recordIds": [1, 2], "action": "UPDATE"},
     )
 
     # Missing allow_empty_require
@@ -1117,7 +1117,7 @@ class TestUserActions(test_engine.EngineTestCase):
         ["AddRecord", "Table1", 3,
         {"color": "yellow", "first_name": "Jack", "last_name": "Johnson"}]
       ],
-      {"recordIds": [3], "action": "ADDED"},
+      {"recordIds": [3], "action": "ADD"},
     )
 
     # Specifying a row ID in `require` is allowed
@@ -1126,7 +1126,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {"pet": "fish"},
       {},
       [["AddRecord", "Table1", 100, {"first_name": "Bob", "pet": "fish"}]],
-      {"recordIds": [100], "action": "ADDED"},
+      {"recordIds": [100], "action": "ADD"},
     )
 
     # Now the row already exists
@@ -1135,7 +1135,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {"pet": "fish"},
       {},
       [],
-      {"recordIds": [100], "action": "UPDATED"},
+      {"recordIds": [100], "action": "UPDATE"},
     )
 
     # Nothing matches this `require`, but the row ID already exists
@@ -1154,7 +1154,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {"first_name": "Alice"},
       {},
       [["AddRecord", "Table1", 101, {"first_name": "Alice"}]],
-      {"recordIds": [101], "action": "ADDED"},
+      {"recordIds": [101], "action": "ADD"},
     )
 
     with self.assertRaises(ValueError):
@@ -1173,14 +1173,14 @@ class TestUserActions(test_engine.EngineTestCase):
       {},
       {},
       [["AddRecord", "Table1", 102, {"date": 950400}]],
-      {"recordIds": [102], "action": "ADDED"},
+      {"recordIds": [102], "action": "ADD"},
     )
     check(
       {"date": ['d', 950400]},
       {"date": ['d', 1900800]},
       {},
       [["UpdateRecord", "Table1", 102, {"date": 1900800}]],
-      {"recordIds": [102], "action": "UPDATED"},
+      {"recordIds": [102], "action": "UPDATE"},
     )
 
     # Empty both does nothing
