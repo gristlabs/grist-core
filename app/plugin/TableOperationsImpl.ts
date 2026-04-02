@@ -108,9 +108,9 @@ export class TableOperationsImpl implements TableOperations {
       // Order is guaranteed to match order given in recordOrRecords, and the result will be at the same index.
       recordIds: [],
       // Order not guaranteed
-      createdRecordIds: [],
+      addRecordIds: [],
       // Order not guaranteed
-      updatedRecordIds: [],
+      updateRecordIds: [],
     };
 
     actionResults.retValues.forEach((actionResult: BulkAddOrUpdateRecordResult, index: number) => {
@@ -118,8 +118,8 @@ export class TableOperationsImpl implements TableOperations {
       actionResult.recordIds.forEach((rowResultIds, index) => {
         result.recordIds[group.indexes[index]] = rowResultIds;
       });
-      result.createdRecordIds.push(...actionResult.createdRecordIds);
-      result.updatedRecordIds.push(...actionResult.updatedRecordIds);
+      result.addRecordIds.push(...actionResult.addRecordIds);
+      result.updateRecordIds.push(...actionResult.updateRecordIds);
     });
 
     return result;

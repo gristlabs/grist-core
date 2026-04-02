@@ -1112,8 +1112,8 @@ class UserActions(object):
     # Return value for the bulk add/update operation
     result = {
       'recordIds': [],
-      'createdRecordIds': [],
-      'updatedRecordIds': [],
+      'addRecordIds': [],
+      'updateRecordIds': [],
     }
 
     if not require and not col_values:
@@ -1186,14 +1186,14 @@ class UserActions(object):
 
         matched_record_ids = [record.id for record in records]
         result['recordIds'][i] = matched_record_ids
-        result['updatedRecordIds'].append(matched_record_ids)
+        result['updateRecordIds'].append(matched_record_ids)
 
     if add_record_ids:
       new_record_ids = self.BulkAddRecord(table_id, add_record_ids, add_record_values)
       # Fill in recordIds with the IDs of the new records
       for i, new_record_index in enumerate(new_record_indexes):
         result['recordIds'][new_record_index] = [new_record_ids[i]]
-        result['createdRecordIds'].append(new_record_ids[i])
+        result['addRecordIds'].append(new_record_ids[i])
 
     if update_record_ids:
       self.BulkUpdateRecord(table_id, update_record_ids, update_record_values)
@@ -1230,9 +1230,9 @@ class UserActions(object):
 
     action = 'NONE'
     # Only one change was requested, so only one of these arrays should have entries - it was either added or updated
-    if len(result['updatedRecordIds']) > 0:
+    if len(result['updateRecordIds']) > 0:
       action = 'UPDATED'
-    elif len(result['createdRecordIds']) > 0:
+    elif len(result['addRecordIds']) > 0:
       action = 'ADDED'
 
 

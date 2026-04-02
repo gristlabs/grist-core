@@ -61,10 +61,10 @@ export interface BulkAddOrUpdateRecordResult {
   recordIds: number[][];
   // Any created record IDs, in no defined order.
   // An operation can create at most one record, so this array only contains numbers, not arrays.
-  createdRecordIds: number[];
+  addRecordIds: number[];
   // Any updated records IDs, in no defined order.
   // Each operation may have updated any number of records, so each member is an array of numbers.
-  updatedRecordIds: number[][];
+  updateRecordIds: number[][];
 }
 
 /**

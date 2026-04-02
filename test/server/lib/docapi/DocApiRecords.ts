@@ -698,7 +698,7 @@ function addRecordsTests(getCtx: () => TestContext) {
           },
         ],
         { id: [1, 2, 3], A: [1, 3, 4], B: [0, 0, 5] },
-        { recordIds: [[1], [2], [3]], createdRecordIds: [1, 2, 3], updatedRecordIds: [] },
+        { recordIds: [[1], [2], [3]], addRecordIds: [1, 2, 3], updateRecordIds: [] },
       );
 
       // Update all three records since they all match the `require` values here
@@ -720,7 +720,7 @@ function addRecordsTests(getCtx: () => TestContext) {
           },
         ],
         { id: [1, 2, 3], A: [1, 33, 4], B: [0, 0, 6] },
-        { recordIds: [[1], [2], [3]], createdRecordIds: [], updatedRecordIds: [[1], [2], [3]] },
+        { recordIds: [[1], [2], [3]], addRecordIds: [], updateRecordIds: [[1], [2], [3]] },
       );
 
       // This would normally add a record, but noadd suppresses that
@@ -730,7 +730,7 @@ function addRecordsTests(getCtx: () => TestContext) {
         },
       ],
       { id: [1, 2, 3], A: [1, 33, 4], B: [0, 0, 6] },
-      { recordIds: [[]], createdRecordIds: [], updatedRecordIds: [] },
+      { recordIds: [[]], addRecordIds: [], updateRecordIds: [] },
       { noadd: "1" },
       );
 
@@ -742,7 +742,7 @@ function addRecordsTests(getCtx: () => TestContext) {
         },
       ],
       { id: [1, 2, 3], A: [1, 33, 4], B: [0, 0, 6] },
-      { recordIds: [[]], createdRecordIds: [], updatedRecordIds: [] },
+      { recordIds: [[]], addRecordIds: [], updateRecordIds: [] },
       { noupdate: "1" },
       );
 
@@ -755,7 +755,7 @@ function addRecordsTests(getCtx: () => TestContext) {
         },
       ],
       { id: [1, 2, 3], A: [1, 33, 4], B: [1, 1, 6] },
-      { recordIds: [[1, 2]], createdRecordIds: [], updatedRecordIds: [[1, 2]] },
+      { recordIds: [[1, 2]], addRecordIds: [], updateRecordIds: [[1, 2]] },
       { onmany: "all" },
       );
 
@@ -769,7 +769,7 @@ function addRecordsTests(getCtx: () => TestContext) {
         },
       ],
       { id: [1, 2, 3], A: [1, 33, 4], B: [2, 1, 6] },
-      { recordIds: [[1]], createdRecordIds: [], updatedRecordIds: [[1]] },
+      { recordIds: [[1]], addRecordIds: [], updateRecordIds: [[1]] },
       );
 
       // By default, strings in `require` and `fields` are parsed based on column type,
@@ -782,7 +782,7 @@ function addRecordsTests(getCtx: () => TestContext) {
         },
       ],
       { id: [1, 2, 3], A: [1, 33, 44], B: [2, 1, 6] },
-      { recordIds: [[3]], createdRecordIds: [], updatedRecordIds: [[3]] },
+      { recordIds: [[3]], addRecordIds: [], updateRecordIds: [[3]] },
       );
 
       // Turn off the default string parsing with noparse=1
@@ -796,7 +796,7 @@ function addRecordsTests(getCtx: () => TestContext) {
         },
       ],
       { id: [1, 2, 3], A: [1, 33, "$55"], B: [2, 1, 6] },
-      { recordIds: [[3]], createdRecordIds: [], updatedRecordIds: [[3]] },
+      { recordIds: [[3]], addRecordIds: [], updateRecordIds: [[3]] },
       { noparse: 1 },
       );
 
@@ -809,7 +809,7 @@ function addRecordsTests(getCtx: () => TestContext) {
         { require: { A: "$33" } },
       ],
       { id: [1, 2, 3, 4], A: [1, 33, "$55", "$33"], B: [2, 1, 6, 0] },
-      { recordIds: [[1], [2], [3], [4]], createdRecordIds: [4], updatedRecordIds: [[1], [2], [3]] },
+      { recordIds: [[1], [2], [3], [4]], addRecordIds: [4], updateRecordIds: [[1], [2], [3]] },
       { noparse: 1 },
       );
 
@@ -821,7 +821,7 @@ function addRecordsTests(getCtx: () => TestContext) {
         },
       ],
       { id: [1, 2, 3, 4], A: [1, 33, 66, "$33"], B: [2, 1, 6, 0] },
-      { recordIds: [[3]], createdRecordIds: [], updatedRecordIds: [[3]] },
+      { recordIds: [[3]], addRecordIds: [], updateRecordIds: [[3]] },
       );
 
       // Test bulk case with a mixture of record shapes
@@ -840,7 +840,7 @@ function addRecordsTests(getCtx: () => TestContext) {
         },
       ],
       { id: [1, 2, 3, 4], A: [111, 222, 555, "$33"], B: [2, 444, 666, 0] },
-      { recordIds: [[1], [2], [3]], createdRecordIds: [], updatedRecordIds: [[1], [2], [3]] },
+      { recordIds: [[1], [2], [3]], addRecordIds: [], updateRecordIds: [[1], [2], [3]] },
       );
 
       // allow_empty_require option with empty `require` updates all records
@@ -851,7 +851,7 @@ function addRecordsTests(getCtx: () => TestContext) {
         },
       ],
       { id: [1, 2, 3, 4], A: [99, 99, 99, 99], B: [99, 99, 99, 99] },
-      { recordIds: [[1, 2, 3, 4]], createdRecordIds: [], updatedRecordIds: [[1, 2, 3, 4]] },
+      { recordIds: [[1, 2, 3, 4]], addRecordIds: [], updateRecordIds: [[1, 2, 3, 4]] },
       { allow_empty_require: "1", onmany: "all" },
       );
     });

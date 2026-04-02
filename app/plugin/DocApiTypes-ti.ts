@@ -44,8 +44,8 @@ export const AddOrUpdateRecord = t.iface([], {
 
 export const BulkAddOrUpdateRecordResult = t.iface([], {
   "recordIds": t.array(t.array("number")),
-  "createdRecordIds": t.array("number"),
-  "updatedRecordIds": t.array(t.array("number")),
+  "addRecordIds": t.array("number"),
+  "updateRecordIds": t.array(t.array("number")),
 });
 
 export const RecordsPatch = t.iface([], {

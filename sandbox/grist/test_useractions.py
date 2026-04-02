@@ -1253,8 +1253,8 @@ class TestUserActions(test_engine.EngineTestCase):
       [
         {
           "recordIds": [[1],[2],[3],[4]],
-          "createdRecordIds": [3,4],
-          "updatedRecordIds": [[1],[2]],
+          "addRecordIds": [3,4],
+          "updateRecordIds": [[1],[2]],
         }
       ]
     )
@@ -1282,8 +1282,8 @@ class TestUserActions(test_engine.EngineTestCase):
         {
           # No action (matched many), no action (no add), no action (no update),
           "recordIds": [[],[],[]],
-          "createdRecordIds": [],
-          "updatedRecordIds": [],
+          "addRecordIds": [],
+          "updateRecordIds": [],
         }
       ]
     )
