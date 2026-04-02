@@ -45,7 +45,7 @@ import { MaybePromise } from "app/plugin/gutil";
 
 import { Computed, Disposable, dom, DomElementArg, IDisposableOwner, Observable, styled } from "grainjs";
 
-const t = makeT("AirtableImport");
+const t = makeT("AirtableImportUI");
 
 interface AirtableBase {
   id: string;                    // Base ID (e.g., "appXXXXXXXXXXXXXX")
@@ -278,10 +278,10 @@ the installation administrator. [Learn more.]({{url}})`, {
           dom.onKeyPress({ Enter: this._handlePersonalAccessTokenLogin.bind(this) }),
         ),
         cssHelperText(markdown(
-          t(`[Generate a token]({{url}}) in your Airtable \
-account with scopes that include at least **\`schema.bases:read\`** and **\`data.records:read\`**.
-
-Your token is never sent to Grist's servers, and is only used to make API calls to Airtable from your browser.`,
+          t("[Generate a token]({{url}}) in your Airtable \
+account with scopes that include at least **\\`schema.bases:read\\`** and **\\`data.records:read\\`**.\n\
+\n\
+Your token is never sent to Grist's servers, and is only used to make API calls to Airtable from your browser.",
           { url: "https://airtable.com/create/tokens" }),
         )),
       ),

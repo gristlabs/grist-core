@@ -8,7 +8,7 @@ import { styled } from "grainjs";
 
 import type { AirtableImportResult } from "app/client/lib/airtable/AirtableImporter";
 
-const t = makeT("AirtableImport");
+const t = makeT("startHomeAirtableImport");
 
 export async function startHomeAirtableImport(home: HomeModel) {
   const { AirtableImport } = await loadAirtableImportUI();
