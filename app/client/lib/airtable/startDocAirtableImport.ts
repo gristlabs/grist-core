@@ -6,7 +6,7 @@ import { ExistingDocSchema } from "app/common/DocSchemaImportTypes";
 
 import { Computed, styled } from "grainjs";
 
-const t = makeT("AirtableImport");
+const t = makeT("startDocAirtableImport");
 
 export async function startDocAirtableImport(gristDoc: GristDoc) {
   const { AirtableImport } = await loadAirtableImportUI();

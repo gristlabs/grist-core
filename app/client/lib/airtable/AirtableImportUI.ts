@@ -45,7 +45,7 @@ import { MaybePromise } from "app/plugin/gutil";
 
 import { Computed, Disposable, dom, DomElementArg, IDisposableOwner, Observable, styled } from "grainjs";
 
-const t = makeT("AirtableImport");
+const t = makeT("AirtableImportUI");
 
 interface AirtableBase {
   id: string;                    // Base ID (e.g., "appXXXXXXXXXXXXXX")
