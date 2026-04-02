@@ -74,6 +74,8 @@ export class SimpleInstallAdmin extends InstallAdmin {
   }
 
   public override clearCaches(): void {
+    this._installAdminEmail = getAdminEmail();
+    this._defaultEmail = getDefaultEmail();
   }
 
   private get _adminEmail(): string {

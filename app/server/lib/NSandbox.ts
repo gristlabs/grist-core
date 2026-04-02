@@ -4,6 +4,7 @@
 
 import { arrayToString } from "app/common/arrayToString";
 import * as marshal from "app/common/marshal";
+import { appSettings } from "app/server/lib/AppSettings";
 import { create } from "app/server/lib/create";
 import { ISandbox, ISandboxCreationOptions, ISandboxCreator } from "app/server/lib/ISandbox";
 import log from "app/server/lib/log";
@@ -1188,7 +1189,11 @@ function getCommandArgsFromEnv() {
  * TODO: This machinery can likely be removed now.
  */
 export function createSandbox(defaultFlavorSpec: string, options: ISandboxCreationOptions): ISandbox {
-  const flavors = (process.env.GRIST_SANDBOX_FLAVOR || defaultFlavorSpec).split(",");
+  const sandboxFlavor = appSettings.section("sandbox").flag("flavor").readString({
+    envVar: "GRIST_SANDBOX_FLAVOR",
+    defaultValue: defaultFlavorSpec,
+  }) || defaultFlavorSpec;
+  const flavors = sandboxFlavor.split(",");
   const preferredPythonVersion = options.preferredPythonVersion || "3";
   for (const flavorAndVersion of flavors) {
     const parts = flavorAndVersion.trim().split(":", 2);

@@ -38,7 +38,16 @@ export function buildHomeIntroCards(
   let videoPlayButtonElement: HTMLElement;
 
   return dom.maybe(use => !use(homeModel.onlyShowDocuments), () => cssHomeIntroCards(
-    cssVideoTour(
+    homeModel.app.isInstallAdmin() ? cssAdminCard(
+      cssAdminCardIcon("Settings"),
+      unstyledH2(t("Administration")),
+      cssAdminCardText(t("Manage your Grist installation")),
+      cssAdminCardButton(
+        t("Admin panel"),
+        { href: urlState().makeUrl({ adminPanel: "admin" }) },
+        testId("admin-panel"),
+      ),
+    ) : cssVideoTour(
       cssVideoTourThumbnail(
         cssVideoTourThumbnailSpacer(),
         videoPlayButtonElement = cssVideoTourPlayButton(
@@ -356,6 +365,38 @@ const cssSecondaryCardImage = styled("img", `
 `);
 
 const cssSecondaryCardButton = styled(basicButtonLink, `
+  font-weight: 400;
+  font-size: ${vars.mediumFontSize};
+  margin-top: 8px;
+`);
+
+const cssAdminCard = styled(cssSecondaryCard, `
+  grid-area: 1 / 1 / 2 / 2;
+  flex-shrink: 0;
+  width: 239px;
+
+  @media ${mediaSmall} {
+    & {
+      width: unset;
+    }
+  }
+`);
+
+const cssAdminCardIcon = styled(icon, `
+  --icon-color: ${theme.controlPrimaryBg};
+  width: 32px;
+  height: 32px;
+  margin-bottom: 8px;
+`);
+
+const cssAdminCardText = styled("div", `
+  font-weight: 400;
+  font-size: ${vars.smallFontSize};
+  color: ${theme.lightText};
+  margin-bottom: 8px;
+`);
+
+const cssAdminCardButton = styled(basicButtonLink, `
   font-weight: 400;
   font-size: ${vars.mediumFontSize};
   margin-top: 8px;

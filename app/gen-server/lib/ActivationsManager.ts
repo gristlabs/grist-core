@@ -5,6 +5,8 @@ import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { makeId } from "app/server/lib/idUtils";
 import { getTelemetryPrefs } from "app/server/lib/Telemetry";
 
+import * as crypto from "crypto";
+
 import omit from "lodash/omit";
 import pick from "lodash/pick";
 import { EntityManager } from "typeorm";
@@ -31,7 +33,18 @@ export class ActivationsManager {
       if (!activation) {
         activation = manager.create(Activation);
         activation.id = makeId();
-        activation.prefs = { checkForLatestVersion: true };
+        activation.prefs = {
+          checkForLatestVersion: true,
+          bootKey: crypto.randomBytes(12).toString("hex"),
+        };
+        // On a truly fresh install, persist GRIST_IN_SERVICE=false so the
+        // setup gate activates. The env var (if set) takes precedence over
+        // the persisted value, so admins who set GRIST_IN_SERVICE=true in
+        // their environment will bypass the gate. Existing installations
+        // already have an activation row, so they're unaffected.
+        if (process.env.GRIST_IN_SERVICE === undefined) {
+          activation.prefs.envVars = { GRIST_IN_SERVICE: "false" };
+        }
         await activation.save();
       }
       return activation;
@@ -98,11 +111,17 @@ export class ActivationsManager {
       const activation = await this.current(manager);
       activation.prefs ??= {};
       activation.prefs.envVars ??= {};
-      // For now we just support 3 keys here, as these ones are tested.
       Object.assign(activation.prefs.envVars, pick(delta,
+        "APP_HOME_URL",
         "GRIST_LOGIN_SYSTEM_TYPE",
         "GRIST_GETGRISTCOM_SECRET",
         "GRIST_ADMIN_EMAIL",
+        "GRIST_SANDBOX_FLAVOR",
+        "GRIST_IN_SERVICE",
+        "GRIST_ORG_CREATION_ANYONE",
+        "GRIST_PERSONAL_ORGS",
+        "GRIST_FORCE_LOGIN",
+        "GRIST_ANON_PLAYGROUND",
       ));
       // If any values are undefined or null, remove them.
       for (const key of Object.keys(delta)) {

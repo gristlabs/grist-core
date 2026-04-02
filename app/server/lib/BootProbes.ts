@@ -2,9 +2,11 @@ import { ApiError } from "app/common/ApiError";
 import { BootProbeIds, BootProbeResult } from "app/common/BootProbe";
 import { removeTrailingSlash } from "app/common/gutil";
 import { appSettings } from "app/server/lib/AppSettings";
+import { checkMinIOBucket, checkMinIOExternalStorage } from "app/server/lib/configureMinIOExternalStorage";
 import { expressWrap, jsonErrorHandler } from "app/server/lib/expressWrap";
 import { GristServer } from "app/server/lib/GristServer";
 import { DEFAULT_SESSION_SECRET } from "app/server/lib/ICreate";
+import { NSandboxCreator } from "app/server/lib/NSandbox";
 
 import * as express from "express";
 import fetch from "node-fetch";
@@ -64,9 +66,12 @@ export class BootProbes {
     this._probes.push(_bootProbe);
     this._probes.push(_hostHeaderProbe);
     this._probes.push(_sandboxingProbe);
+    this._probes.push(_sandboxAvailabilityProbe);
     this._probes.push(_authenticationProbe);
     this._probes.push(_webSocketsProbe);
     this._probes.push(_sessionSecretProbe);
+    this._probes.push(_bootKeyProbe);
+    this._probes.push(_externalStorageProbe);
     this._probes.push(_admins);
     this._probeById = new Map(this._probes.map(p => [p.id, p]));
   }
@@ -335,6 +340,118 @@ const _sessionSecretProbe: Probe = {
       details: {
         GRIST_SESSION_SECRET: process.env.GRIST_SESSION_SECRET ? "set" : "not set",
       },
+    };
+  },
+};
+
+const _bootKeyProbe: Probe = {
+  id: "boot-key",
+  name: "Boot key",
+  apply: async (server, req) => {
+    const envKey = process.env.GRIST_BOOT_KEY;
+    const bootKey = server.getBootKey();
+    if (!bootKey) {
+      return {
+        status: "success",
+        details: { set: false, source: "none" },
+      };
+    }
+    // If GRIST_BOOT_KEY env var is set, the key is explicitly configured.
+    const source = envKey !== undefined ? "env" : "auto";
+    return {
+      status: source === "auto" ? "warning" : "success",
+      details: { set: true, source },
+    };
+  },
+};
+
+const _externalStorageProbe: Probe = {
+  id: "external-storage",
+  name: "External storage configuration",
+  apply: async (server, req) => {
+    const config = checkMinIOExternalStorage();
+    if (!config) {
+      return {
+        status: "none",
+        details: { configured: false },
+      };
+    }
+    try {
+      await checkMinIOBucket();
+      return {
+        status: "success",
+        details: {
+          configured: true,
+          backend: "minio",
+          bucket: config.bucket,
+          endpoint: config.endPoint,
+          prefix: config.prefix,
+        },
+      };
+    } catch (e) {
+      return {
+        status: "fault",
+        details: {
+          configured: true,
+          backend: "minio",
+          bucket: config.bucket,
+          endpoint: config.endPoint,
+          error: String(e),
+        },
+      };
+    }
+  },
+};
+
+const SANDBOX_TEST_TIMEOUT_MS = process.env.GRIST_TESTING_SOCKET ? 2_000 : 10_000;
+// Ordered by preference: gvisor is most secure, pyodide is most portable.
+const SANDBOX_CANDIDATES = ["gvisor", "pyodide", "macSandboxExec"];
+
+async function _testSandboxFlavor(flavor: string): Promise<{ name: string; available: boolean; error?: string }> {
+  let sandbox: ReturnType<NSandboxCreator["create"]> | undefined;
+  try {
+    const creator = new NSandboxCreator({
+      defaultFlavor: flavor,
+      preferredPythonVersion: "3",
+    });
+    sandbox = creator.create({
+      comment: `test-${flavor}`,
+      preferredPythonVersion: "3",
+    });
+    const version = await new Promise<any>((resolve, reject) => {
+      const timer = setTimeout(() => { reject(new Error("Timed out")); }, SANDBOX_TEST_TIMEOUT_MS);
+      sandbox!.pyCall("get_version").then(
+        (v) => { clearTimeout(timer); resolve(v); },
+        (e: unknown) => { clearTimeout(timer); reject(e instanceof Error ? e : new Error(String(e))); },
+      );
+    });
+    if (typeof version !== "number") {
+      throw new Error(`Unexpected response: ${version}`);
+    }
+    await sandbox.shutdown();
+    sandbox = undefined;
+    return { name: flavor, available: true };
+  } catch (e) {
+    if (sandbox) {
+      try { await sandbox.shutdown(); } catch { /* best effort */ }
+    }
+    return { name: flavor, available: false, error: String(e) };
+  }
+}
+
+const _sandboxAvailabilityProbe: Probe = {
+  id: "sandbox-availability",
+  name: "Which sandbox flavors are available",
+  apply: async (server, req) => {
+    // If ?flavor=X is given, test just that one flavor.
+    const single = req.query.flavor as string | undefined;
+    const candidates = single && SANDBOX_CANDIDATES.includes(single) ?
+      [single] : SANDBOX_CANDIDATES;
+    const results = await Promise.all(candidates.map(_testSandboxFlavor));
+    const configured = process.env.GRIST_SANDBOX_FLAVOR || "";
+    return {
+      status: results.some(r => r.available) ? "success" : "fault",
+      details: { flavors: results, configured },
     };
   },
 };
