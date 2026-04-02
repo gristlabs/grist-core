@@ -287,7 +287,7 @@ Stores `users` information.
 | disabled_at | If not null, the date at which the user was disabled |
 | is_first_time_user | Whether the user discovers Grist (used to trigger the Welcome Tour) |
 | options | Serialized options as described in [UserOptions](https://github.com/gristlabs/grist-core/blob/513e13e6ab57c918c0e396b1d56686e45644ee1a/app/common/UserAPI.ts#L169-L179) interface |
-| connect_id | Used by [GristConnect](https://github.com/gristlabs/grist-ee/blob/5ae19a7dfb436c8a3d67470b993076e51cf83f21/ext/app/server/lib/GristConnect.ts) in Enterprise Edition to identify user in external provider |
+| connect_id | Used by [GristConnect](https://support.getgrist.com/install/grist-connect/) in the full edition of Grist to identify user in external provider |
 | ref | Used to identify a user in the automated tests |
 
 ### `logins` table

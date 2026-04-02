@@ -43,7 +43,7 @@ export interface AirtableImportResult {
   crosswalkWarnings?: AirtableCrosswalkWarning[];
 }
 
-const t = makeT("AirtableImport");
+const t = makeT("AirtableImporter");
 
 export async function applyAirtableImportSchemaAndImportData(params: {
   importSchema: ImportSchema,
