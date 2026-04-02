@@ -9,6 +9,7 @@ module.exports = {
           description:
             "Enforce that makeT() is called with the filename (without extension) as its first argument",
         },
+        fixable: "code",
         schema: [],
         messages: {
           mismatch:
@@ -24,7 +25,7 @@ module.exports = {
             if (
               node.callee.type === "Identifier" &&
               node.callee.name === "makeT" &&
-              node.arguments.length > 0 &&
+              node.arguments.length === 1 &&
               node.arguments[0].type === "Literal" &&
               typeof node.arguments[0].value === "string" &&
               node.arguments[0].value !== expected
@@ -36,6 +37,9 @@ module.exports = {
                   actual: node.arguments[0].value,
                   expected,
                 },
+                *fix(fixer) {
+                  yield fixer.replaceText(node.arguments[0], `"${expected}"`);
+                }
               });
             }
           },
