@@ -128,8 +128,8 @@ describe("AirtableDataImporter", function() {
   const addOrUpdateRowsMock = sinon.fake(async (tableId, records, options) => {
     const result: BulkAddOrUpdateRecordResult = {
       recordIds: [],
-      createdRecordIds: [],
-      updatedRecordIds: [],
+      addRecordIds: [],
+      updateRecordIds: [],
     };
 
     for (const record of records) {
@@ -140,12 +140,12 @@ describe("AirtableDataImporter", function() {
 
       if (existing != null) {
         result.recordIds.push([existing]);
-        result.updatedRecordIds.push([existing]);
+        result.updateRecordIds.push([existing]);
       } else {
         const id = nextRowId++;
         knownRows.set(key, id);
         result.recordIds.push([id]);
-        result.createdRecordIds.push(id);
+        result.addRecordIds.push(id);
       }
     }
 
