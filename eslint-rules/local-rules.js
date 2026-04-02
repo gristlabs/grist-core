@@ -7,7 +7,7 @@ module.exports = {
         type: "problem",
         docs: {
           description:
-            "Enforce that makeT() is called with the filename (without extension) as its first argument",
+            "Enforce that `makeT()` is called with the filename (without extension) as its first argument when its results is assigned to `t`",
         },
         fixable: "code",
         schema: [],
@@ -25,6 +25,8 @@ module.exports = {
             if (
               node.callee.type === "Identifier" &&
               node.callee.name === "makeT" &&
+              node.parent.type === "VariableDeclarator" &&
+              node.parent.id.name === "t" &&
               node.arguments.length === 1 &&
               node.arguments[0].type === "Literal" &&
               typeof node.arguments[0].value === "string" &&
