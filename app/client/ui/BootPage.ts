@@ -4,6 +4,13 @@ import { makeT } from "app/client/lib/localization";
 import { cssMarkdownSpan } from "app/client/lib/markdown";
 import { AppModel, reportError } from "app/client/models/AppModel";
 import { urlState } from "app/client/models/gristUrlState";
+import {
+  cssFadeUp,
+  cssFadeUpGristLogo,
+  cssFadeUpHeading,
+  cssFadeUpSubHeading,
+  cssFlexSpace,
+} from "app/client/ui/AdminPanelCss";
 import { App } from "app/client/ui/App";
 import { BootAPI } from "app/client/ui/BootAPI";
 import { textInput } from "app/client/ui/inputs";
@@ -17,7 +24,7 @@ import { ApiError } from "app/common/ApiError";
 import { isEmail } from "app/common/gutil";
 import { tokens } from "app/common/ThemePrefs";
 
-import { Computed, Disposable, dom, keyframes, makeTestId, Observable, styled } from "grainjs";
+import { Computed, Disposable, dom, makeTestId, Observable, styled } from "grainjs";
 
 const t = makeT("BootPage");
 
@@ -85,9 +92,9 @@ export class BootPage extends Disposable {
   private _buildMainContent() {
     return cssMainContent(
       { tabIndex: "-1" },
-      cssGristLogo(),
-      cssHeading(t("Welcome to Grist")),
-      cssSubHeading(t("Verify that you have access to this server to continue.")),
+      cssFadeUpGristLogo(),
+      cssFadeUpHeading(t("Welcome to Grist")),
+      cssFadeUpSubHeading(t("Verify that you have access to this server to continue.")),
       cssCard(
         cssTabs(
           this._buildTab("enter-key", t("Enter boot key")),
@@ -345,55 +352,12 @@ function getRandomBootKey() {
   }
 }
 
-const cssFlexSpace = styled("div", `
-  flex: 1 1 0;
-`);
-
-const cssFadeUp = keyframes(`
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-`);
-
 const cssMainContent = styled("div", `
   color: ${tokens.body};
   margin: 0 auto;
   max-width: 580px;
   padding: 56px 24px 64px;
   width: 100%;
-`);
-
-const cssGristLogo = styled("div", `
-  animation: ${cssFadeUp} 0.5s ease both;
-  background-image: var(--icon-GristLogo);
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  height: 48px;
-`);
-
-const cssHeading = styled("div", `
-  animation: ${cssFadeUp} 0.5s ease 0.08s both;
-  font-size: 28px;
-  font-weight: 700;
-  letter-spacing: -0.5px;
-  margin: 16px 0px 8px 0px;
-  text-align: center;
-`);
-
-const cssSubHeading = styled("div", `
-  animation: ${cssFadeUp} 0.5s ease 0.16s both;
-  color: ${tokens.secondary};
-  font-size: 15px;
-  line-height: 1.5;
-  margin-bottom: 24px;
-  text-align: center;
 `);
 
 const cssCard = styled("div", `

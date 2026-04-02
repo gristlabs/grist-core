@@ -6,6 +6,7 @@ import { AdminCheckRequest, AdminChecks, probeDetails, ProbeDetails } from "app/
 import { AppModel, getHomeUrl, reportError } from "app/client/models/AppModel";
 import { AuditLogsModel, AuditLogsModelImpl } from "app/client/models/AuditLogsModel";
 import { urlState } from "app/client/models/gristUrlState";
+import { AccountWidget } from "app/client/ui/AccountWidget";
 import { cssEmail, cssUserInfo, cssUserName } from "app/client/ui/AccountWidgetCss";
 import { showEnterpriseToggle } from "app/client/ui/ActivationPage";
 import { buildAdminData } from "app/client/ui/AdminControls";
@@ -14,6 +15,7 @@ import {
   AdminPanelControls,
   AdminSection,
   AdminSectionItem,
+  cssFlexSpace,
   cssIconWrapper as cssWellIcon,
   cssSection,
   cssSectionTitle,
@@ -30,6 +32,7 @@ import { AuthenticationSection } from "app/client/ui/AuthenticationSection";
 import { BootKeyStatus } from "app/client/ui/BootKeyStatus";
 import { InstallConfigsAPI } from "app/client/ui/ConfigsAPI";
 import { pagePanels } from "app/client/ui/PagePanels";
+import { QuickSetup } from "app/client/ui/QuickSetup";
 import { ServiceStatus } from "app/client/ui/ServiceStatus";
 import { SupportGristPage } from "app/client/ui/SupportGristPage";
 import { ToggleEnterpriseWidget } from "app/client/ui/ToggleEnterpriseWidget";
@@ -46,13 +49,24 @@ import { BootProbeInfo, BootProbeResult, SandboxingBootProbeDetails } from "app/
 import { ConfigAPI } from "app/common/ConfigAPI";
 import { delay } from "app/common/delay";
 import { AdminPanelPage, commonUrls, getPageTitleSuffix, LatestVersionAvailable } from "app/common/gristUrls";
+import { useBindable } from "app/common/gutil";
 import { InstallAPI, InstallAPIImpl } from "app/common/InstallAPI";
 import { BOOT_KEY_PROVIDER_KEY, MINIMAL_PROVIDER_KEY } from "app/common/loginProviders";
 import { InstallAdminInfo } from "app/common/LoginSessionAPI";
 import { getAdminConfig, getGristConfig } from "app/common/urlUtils";
 import * as version from "app/common/version";
 
-import { Computed, Disposable, dom, IDisposable, MultiHolder, Observable, styled, UseCBOwner } from "grainjs";
+import {
+  BindableValue,
+  Computed,
+  Disposable,
+  dom,
+  IDisposable,
+  MultiHolder,
+  Observable,
+  styled,
+  UseCBOwner,
+} from "grainjs";
 
 const t = makeT("AdminPanel");
 
@@ -70,33 +84,47 @@ export class AdminPanel extends Disposable {
   }
 
   public buildDom() {
-    const pageObs = Computed.create(this, use => use(urlState().state).adminPanel || "admin");
+    const leftPanel = buildAdminLeftPanel(this, this._appModel);
+
+    // When left panel is fully hidden, hide breadcrumbs and extra buttons so top bar is mostly empty.
+    const width = leftPanel.collapsedWidth;
+    const minimal = Computed.create(this, use => width ? useBindable(use, width) === 0 : false);
+
     return pagePanels({
-      leftPanel: buildAdminLeftPanel(this, this._appModel),
-      headerMain: this._buildMainHeader(pageObs),
+      leftPanel,
+      headerMain: this._buildMainHeader(minimal),
       contentTop: buildHomeBanners(this._appModel),
       contentMain: this._buildMainContent(),
       app: this._appObj,
     });
   }
 
-  private _buildMainHeader(pageObs: Computed<AdminPanelPage>) {
+  private _buildMainHeader(minimal: BindableValue<boolean> = false) {
     const pageNames = getPageNames();
-    return [
-      cssBreadcrumbs({ style: "margin-left: 16px;" },
-        cssLink(
-          urlState().setLinkUrl({}),
-          t("Grist Instance"),
-        ),
-        separator(" / "),
-        dom("span", getAdminPanelName()),
-        separator(" / "),
-        dom("span", dom.domComputed(use => pageNames.pages[use(pageObs)].section)),
-        separator(" / "),
-        dom("span", dom.domComputed(use => pageNames.pages[use(pageObs)].name)),
-      ),
-      createTopBarHome(this._appModel),
-    ];
+    return dom.domComputed(minimal, (m) => {
+      if (m) {
+        return [
+          cssFlexSpace(),
+          dom.create(AccountWidget, this._appModel),
+        ];
+      } else {
+        return [
+          cssBreadcrumbs({ style: "margin-left: 16px;" },
+            cssLink(
+              urlState().setLinkUrl({}),
+              t("Grist Instance"),
+            ),
+            separator(" / "),
+            dom("span", getAdminPanelName()),
+            separator(" / "),
+            dom("span", dom.domComputed(use => pageNames.pages[use(this._page)].section)),
+            separator(" / "),
+            dom("span", dom.domComputed(use => pageNames.pages[use(this._page)].name)),
+          ),
+          createTopBarHome(this._appModel),
+        ];
+      }
+    });
   }
 
   private _buildMainContent() {
@@ -104,12 +132,16 @@ export class AdminPanel extends Disposable {
       // Setting tabIndex allows selecting and copying text. This is helpful on admin pages, e.g.
       // to copy GRIST_BOOT_KEY or version number. But we don't set it for buidAdminData() pages
       // because it messes with focus in GridViews, and its unclear how to undo its effect.
-      dom.attr("tabindex", use => use(this._page) === "admin" ? "-1" : null as any),
+      dom.attr("tabindex", use => ["admin", "setup"].includes(use(this._page)) ? "-1" : null),
 
-      dom.domComputed(use => use(this._page) === "admin", (isInstallationAdminPage) => {
-        return isInstallationAdminPage ?
-          dom.create(AdminInstallationPanel, this._appModel) :
-          dom.create(buildAdminData, this._appModel);
+      dom.domComputed(this._page, (page) => {
+        if (page === "admin") {
+          return dom.create(AdminInstallationPanel, this._appModel);
+        } else if (page === "setup") {
+          return dom.create(QuickSetup);
+        } else {
+          return dom.create(buildAdminData, this._appModel);
+        }
       }),
 
       cssPageContainer.cls("-admin-pages", use => use(this._page) !== "admin"),

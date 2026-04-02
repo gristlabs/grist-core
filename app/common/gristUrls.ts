@@ -60,7 +60,7 @@ export type AuditLogsPage = typeof AuditLogsPage.type;
 export const LoginPage = StringUnion("signup", "login", "verified", "forgot-password");
 export type LoginPage = typeof LoginPage.type;
 
-export const AdminPanelPage = StringUnion("admin", "docs", "users", "workspaces", "orgs");
+export const AdminPanelPage = StringUnion("admin", "setup", "docs", "users", "workspaces", "orgs");
 export type AdminPanelPage = typeof AdminPanelPage.type;
 
 export const AdminPanelTab = StringUnion("users", "workspaces", "docs", "orgs", "details");

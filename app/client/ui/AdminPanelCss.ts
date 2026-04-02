@@ -6,7 +6,7 @@ import { icon } from "app/client/ui2018/icons";
 import { toggleSwitch } from "app/client/ui2018/toggleSwitch";
 import { components, tokens } from "app/common/ThemePrefs";
 
-import { dom, DomContents, DomElementArg, IDisposableOwner, Observable, styled } from "grainjs";
+import { dom, DomContents, DomElementArg, IDisposableOwner, keyframes, Observable, styled } from "grainjs";
 
 export interface AdminPanelControls {
   needsRestart: Observable<boolean>;
@@ -317,4 +317,47 @@ export const cssWellContent = styled("div", `
   & > p + p {
     margin-top: 8px;
   }
+`);
+
+export const cssFlexSpace = styled("div", `
+  flex: 1 1 0;
+`);
+
+export const cssFadeUp = keyframes(`
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`);
+
+export const cssFadeUpGristLogo = styled("div", `
+  animation: ${cssFadeUp} 0.5s ease both;
+  background-image: var(--icon-GristLogo);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  height: 48px;
+`);
+
+export const cssFadeUpHeading = styled("div", `
+  animation: ${cssFadeUp} 0.5s ease 0.08s both;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin: 16px 0px 8px 0px;
+  text-align: center;
+`);
+
+export const cssFadeUpSubHeading = styled("div", `
+  animation: ${cssFadeUp} 0.5s ease 0.16s both;
+  color: ${tokens.secondary};
+  font-size: 15px;
+  line-height: 1.5;
+  margin-bottom: 24px;
+  text-align: center;
 `);

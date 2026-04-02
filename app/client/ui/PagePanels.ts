@@ -12,9 +12,20 @@ import { cssHideForNarrowScreen, isScreenResizing, mediaNotSmall, mediaSmall, th
 import { isNarrowScreenObs } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { unstyledButton } from "app/client/ui2018/unstyled";
+import { useBindable } from "app/common/gutil";
 
 import {
-  dom, DomElementArg, DomElementMethod, MultiHolder, noTestId, Observable, styled, subscribe, TestId,
+  BindableValue,
+  Computed,
+  dom,
+  DomElementArg,
+  DomElementMethod,
+  MultiHolder,
+  noTestId,
+  Observable,
+  styled,
+  subscribe,
+  TestId,
 } from "grainjs";
 import debounce from "lodash/debounce";
 import noop from "lodash/noop";
@@ -32,11 +43,22 @@ const FULLY_COLLAPSED_PANEL_DATASET_KEY = "data-fully-collapsed";
 const FULLY_EXPANDED_PANEL_DATASET_KEY = "data-fully-expanded";
 
 export interface PageSidePanel {
-  // Note that widths need to start out with a correct default in JS (having them in CSS is not
-  // enough), needed for open/close transitions.
+  /**
+   * Width in pixels when panel is expanded.
+   *
+   * Note that widths need to start out with a correct default in JS (having them in CSS is not
+   * enough), needed for open/close transitions.
+   */
   panelWidth: Observable<number>;
   panelOpen: Observable<boolean>;
-  hideOpener?: boolean;           // If true, don't show the opener handle.
+  /**
+   * Width in pixels when panel is collapsed (default: 48). Set to 0 to fully hide panel.
+   */
+  collapsedWidth?: BindableValue<number | undefined>;
+  /**
+   * If true, don't show the opener handle.
+   */
+  hideOpener?: boolean;
   header?: DomElementArg;
   content: DomElementArg;
 }
@@ -113,6 +135,11 @@ export function pagePanels(page: PageContents) {
     (left?.panelOpen as SessionObs<boolean>)?.pauseSaving?.(yesNo);
   };
 
+  const leftCollapsedWidth = Computed.create(null, (use) => {
+    const width = left?.collapsedWidth ? useBindable(use, left.collapsedWidth) : undefined;
+    return width ?? 48;
+  });
+
   const commandsGroup = commands.createGroup({
     leftPanelOpen: () => new Promise((resolve, reject) => {
       if (!left) {
@@ -141,6 +168,7 @@ export function pagePanels(page: PageContents) {
     dom.autoDispose(sub2),
     dom.autoDispose(commandsGroup),
     dom.autoDispose(leftOverlap),
+    dom.autoDispose(leftCollapsedWidth),
     regionFocusSwitcher ? dom.autoDispose(regionFocusSwitcher) : null,
     dom("div", testId("top-panel"), page.contentTop, (elem) => { contentTopDom = elem; }),
     dom.maybe(page.banner, () => {
@@ -182,7 +210,15 @@ export function pagePanels(page: PageContents) {
             testId("left-disabled-resizer"),
           ),
 
-          dom.style("width", use => use(left.panelOpen) ? use(left.panelWidth) + "px" : ""),
+          dom.style("width", (use) => {
+            if (use(left.panelOpen)) {
+              return use(left.panelWidth) + "px";
+            } else if (left.collapsedWidth) {
+              return use(leftCollapsedWidth) + "px";
+            } else {
+              return "";
+            }
+          }),
 
           // Opening/closing the left pane, with transitions.
           cssLeftPane.cls("-open", left.panelOpen),
@@ -191,11 +227,14 @@ export function pagePanels(page: PageContents) {
           dom.boolAttr(FULLY_COLLAPSED_PANEL_DATASET_KEY, use => !use(left.panelOpen)),
           transition(use => (use(isNarrowScreenObs()) ? false : use(left.panelOpen)), {
             prepare(elem, open) {
-              elem.style.width = (open ? 48 : left.panelWidth.get()) + "px";
+              const width = (open ? leftCollapsedWidth.get() : left.panelWidth.get()) + "px";
+              elem.style.width = width;
               onPanelTransitionStart(elem);
             },
             run(elem, open) {
-              elem.style.width = contentWrapper.style.width = (open ? left.panelWidth.get() : 48) + "px";
+              const width = (open ? left.panelWidth.get() : leftCollapsedWidth.get()) + "px";
+              elem.style.width = width;
+              contentWrapper.style.width = width;
             },
             finish(elem, open) {
               onResize();

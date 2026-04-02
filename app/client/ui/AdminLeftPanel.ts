@@ -33,6 +33,7 @@ export function getPageNames() {
     adminControls,
     pages: {
       admin: { section: settings, name: t("Installation") },
+      setup: { section: settings, name: t("Quick setup") },
       users: { section: adminControls, name: t("Users") },
       orgs: { section: adminControls, name: t("Orgs") },
       workspaces: { section: adminControls, name: t("Workspaces") },
@@ -42,8 +43,16 @@ export function getPageNames() {
 }
 
 export function buildAdminLeftPanel(owner: MultiHolder, appModel: AppModel): PageSidePanel {
-  const panelOpen = Observable.create(owner, true);
   const pageObs = Computed.create(owner, use => use(urlState().state).adminPanel);
+
+  const isSetup = pageObs.get() === "setup";
+  const panelOpen = Observable.create(owner, !isSetup);
+
+  // On the setup page, fully hide the collapsed left panel and revert back to default collapsed
+  // width after panel has been opened.
+  const collapsedWidth = Observable.create(owner, isSetup ? 0 : undefined);
+  owner.autoDispose(panelOpen.addListener(() => collapsedWidth.set(undefined)));
+
   const pageNames = getPageNames();
 
   function buildPageEntry(page: AdminPanelPage, icon: IconName, available: boolean = true) {
@@ -66,6 +75,8 @@ export function buildAdminLeftPanel(owner: MultiHolder, appModel: AppModel): Pag
       css.cssTools.cls("-collapsed", use => !use(panelOpen)),
       css.cssSectionHeader(css.cssSectionHeaderText(pageNames.settings)),
       buildPageEntry("admin", "Home"),
+      // TODO: Uncomment when setup page is ready.
+      // buildPageEntry("setup", "Settings"),
       css.cssSectionHeader(css.cssSectionHeaderText(pageNames.adminControls),
         (adminControlsAvailable ?
           infoTooltip("adminControls", { popupOptions: { placement: "bottom-start" } }) :
@@ -89,6 +100,7 @@ export function buildAdminLeftPanel(owner: MultiHolder, appModel: AppModel): Pag
   return {
     panelWidth: Observable.create(owner, 240),
     panelOpen: panelOpen,
+    collapsedWidth,
     content,
     header: dom.create(AppHeader, appModel),
   };
