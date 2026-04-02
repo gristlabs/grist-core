@@ -25,6 +25,8 @@ module.exports = {
             if (
               node.callee.type === "Identifier" &&
               node.callee.name === "makeT" &&
+              node.parent.type === "VariableDeclarator" &&
+              node.parent.id.name === "t" &&
               node.arguments.length === 1 &&
               node.arguments[0].type === "Literal" &&
               typeof node.arguments[0].value === "string" &&
