@@ -109,6 +109,11 @@ export interface DocAuthResult {
   // write access. Null on error.
   error?: ApiError;
   cachedDoc?: Document;       // For cases where stale info is ok.
+
+  // If access is granted by virtue of an "auth" token in the URL, this is the user whose access
+  // was used. The overall Request remains for an anonymous user to avoid accidentally granting
+  // auth-token requests more access than intended. See getOrSetDocAuth() in Authorizer.ts.
+  authTokenUser?: User;
 }
 
 // Defines a subset of HomeDBManager used for logins. In practice we still just pass around
