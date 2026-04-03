@@ -221,7 +221,8 @@ export class WidgetFrame extends DisposableWithEvents {
       dom.cls("clipboard_allow_focus"),
       dom.cls("custom_view"),
       dom.attr("src", this._url),
-      // Allow widgets to write to the clipboard via the Clipboard API.
+      // Allow widgets to write to the clipboard via the Clipboard API
+      // and to access geolocation API whatever domain the custom widget is on
       { allow: "clipboard-write; geolocation *" },
       hooks.iframeAttributes,
       testId("ready", use => use(this._readyCalled) && !use(this._isEmpty)),
