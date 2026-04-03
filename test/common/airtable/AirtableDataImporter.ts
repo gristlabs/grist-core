@@ -280,7 +280,6 @@ describe("AirtableDataImporter", function() {
 
       // Only the resolvable reference should be included
       assert.deepEqual(updates.friends, [[GristObjCode.List, 10]]);
-      // TODO - Got to here
     });
 
     it("handles batch updates with default batch size", async () => {
