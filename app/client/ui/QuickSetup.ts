@@ -1,19 +1,52 @@
 import { makeT } from "app/client/lib/localization";
-import { cssFadeUp, cssFadeUpGristLogo, cssFadeUpHeading, cssFadeUpSubHeading } from "app/client/ui/AdminPanelCss";
+import { AdminChecks } from "app/client/models/AdminChecks";
+import { AppModel, getHomeUrl, reportError } from "app/client/models/AppModel";
+import {
+  AdminPanelControls,
+  cssFadeUp,
+  cssFadeUpGristLogo,
+  cssFadeUpHeading,
+  cssFadeUpSubHeading,
+} from "app/client/ui/AdminPanelCss";
+import { AuthenticationSection } from "app/client/ui/AuthenticationSection";
 import { Stepper } from "app/client/ui2018/Stepper";
+import { ConfigAPI } from "app/common/ConfigAPI";
+import { InstallAPI, InstallAPIImpl } from "app/common/InstallAPI";
 import { tokens } from "app/common/ThemePrefs";
 
-import { Disposable, dom, DomContents, observable, Observable, styled } from "grainjs";
+import { Computed, Disposable, dom, DomContents, observable, Observable, styled } from "grainjs";
 
 const t = makeT("QuickSetup");
 
 interface Step {
   completed: Observable<boolean>;
   label: string;
+  /** When true, step content card has no border or padding. */
+  plain?: boolean;
   buildDom(): DomContents;
 }
 
-export class QuickSetup extends Disposable {
+export class QuickSetup extends Disposable implements AdminPanelControls {
+  // --- Shared plumbing (same pattern as AdminInstallationPanel) -----------
+  public needsRestart = Observable.create(this, false);
+
+  private _installAPI: InstallAPI = new InstallAPIImpl(getHomeUrl());
+  private _configAPI: ConfigAPI = new ConfigAPI(getHomeUrl());
+  private _checks: AdminChecks = new AdminChecks(this, this._installAPI);
+  private _authCheck = Computed.create(this, (use) => {
+    return this._checks.requestCheckById(use, "authentication");
+  });
+
+  private _loginProvider = Computed.create(this, (use) => {
+    const req = use(this._authCheck);
+    const result = req ? use(req.result) : undefined;
+    if (result?.status === "success") {
+      return result.details?.provider;
+    }
+    return undefined;
+  });
+
+  // --- Steps -------------------------------------------------------------
   private _activeStep = Observable.create<number>(this, 0);
   private _steps: Step[] = [
     {
@@ -29,7 +62,8 @@ export class QuickSetup extends Disposable {
     {
       label: t("Authentication"),
       completed: observable(false),
-      buildDom: () => null,
+      buildDom: () => this._buildAuthStep(),
+      plain: true,
     },
     {
       label: t("Backups"),
@@ -43,11 +77,17 @@ export class QuickSetup extends Disposable {
     },
   ];
 
-  constructor() {
+  constructor(private _appModel: AppModel) {
     super();
   }
 
+  public async restartGrist(): Promise<void> {
+    await this._configAPI.restartServer();
+  }
+
   public buildDom() {
+    this._checks.fetchAvailableChecks().catch(reportError);
+
     return cssMainContent(
       cssFadeUpGristLogo(),
       cssFadeUpHeading(t("Quick setup")),
@@ -56,9 +96,22 @@ export class QuickSetup extends Disposable {
         dom.create(Stepper, { activeStep: this._activeStep, steps: this._steps }),
       ),
       dom.domComputed(this._activeStep, i => cssStepContent(
+        cssStepContent.cls("-plain", Boolean(this._steps[i].plain)),
         this._steps[i].buildDom(),
       )),
     );
+  }
+
+  // --- Step builders -----------------------------------------------------
+
+  private _buildAuthStep(): DomContents {
+    return dom.create(AuthenticationSection, {
+      appModel: this._appModel,
+      loginSystemId: this._loginProvider,
+      controls: this,
+      installAPI: this._installAPI,
+      showRestartWarning: false,
+    });
   }
 }
 
@@ -84,4 +137,10 @@ const cssStepContent = styled("div", `
   margin: 24px auto;
   max-width: 520px;
   padding: 28px 32px;
+  &-plain {
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    background: none;
+  }
 `);

@@ -23,6 +23,12 @@ const testId = makeTestId("test-admin-auth-");
  * Modal for configuring "Sign in with getgrist.com" login system.
  */
 export class GetGristComProviderInfoModal extends Disposable {
+  public description = t("Sign in with getgrist.com: managed authentication by Grist Labs.");
+  public heroDesc = t("Your server uses getgrist.com authentication. \
+Users sign in with their getgrist.com account.");
+
+  public docsUrl = "https://support.getgrist.com/install/getgrist-com/";
+
   private _onConfigure: (() => void) | undefined;
   private readonly _configKey: Observable<string> = Observable.create(this, "");
   private readonly _working: Observable<boolean> = Observable.create(this, false);
