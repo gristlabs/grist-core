@@ -1,10 +1,11 @@
 import * as Types from "app/plugin/DocApiTypes";
+import { BulkAddOrUpdateRecordResult } from "app/plugin/DocApiTypes";
 import { BulkColValues } from "app/plugin/GristData";
 import { arrayRepeat } from "app/plugin/gutil";
 import { OpOptions, TableOperations, UpsertOptions } from "app/plugin/TableOperations";
 
+import { sortBy } from "lodash";
 import flatMap from "lodash/flatMap";
-import groupBy from "lodash/groupBy";
 import isEqual from "lodash/isEqual";
 import pick from "lodash/pick";
 
@@ -51,35 +52,77 @@ export class TableOperationsImpl implements TableOperations {
   }
 
   public async upsert(recordOrRecords: Types.AddOrUpdateRecord | Types.AddOrUpdateRecord[],
-    upsertOptions?: UpsertOptions): Promise<void> {
-    await withRecords(recordOrRecords, async (records) => {
-      const tableId = await this._platform.getTableId();
-      const options = {
-        add: upsertOptions?.add,
-        update: upsertOptions?.update,
-        on_many: upsertOptions?.onMany,
-        allow_empty_require: upsertOptions?.allowEmptyRequire,
-      };
-      const recordOptions: OpOptions = pick(upsertOptions, "parseStrings");
+    upsertOptions?: UpsertOptions): Promise<BulkAddOrUpdateRecordResult> {
+    const records = Array.isArray(recordOrRecords) ? recordOrRecords : [recordOrRecords];
+    const tableId = await this._platform.getTableId();
+    const options = {
+      add: upsertOptions?.add,
+      update: upsertOptions?.update,
+      on_many: upsertOptions?.onMany,
+      allow_empty_require: upsertOptions?.allowEmptyRequire,
+    };
+    const recordOptions: OpOptions = pick(upsertOptions, "parseStrings");
 
-      // Group records based on having the same keys in `require` and `fields`.
-      // A single bulk action will be applied to each group.
-      // We don't want one bulk action for all records that might have different shapes,
-      // because that would require filling arrays with null values.
-      const recGroups = groupBy(records, (rec) => {
-        const requireKeys = Object.keys(rec.require).sort().join(",");
-        const fieldsKeys = Object.keys(rec.fields || {}).sort().join(",");
-        return `${requireKeys}:${fieldsKeys}`;
-      });
-      const actions = Object.values(recGroups).map((group) => {
-        const require = convertToBulkColValues(group.map(r => ({ fields: r.require })));
-        const fields = convertToBulkColValues(group.map(r => ({ fields: r.fields || {} })));
-        return ["BulkAddOrUpdateRecord", tableId, require, fields, options];
-      });
-      await this._applyUserActions(tableId, [...fieldNames(records)],
-        actions, recordOptions);
-      return [];
+    // Records with different 'col_values' keys need to be sent in separate BulkUpdateRecord
+    // actions to avoid: - requiring an empty column when the row doesn't actually care what
+    // the value is (row has null in require) - accidentally writing blank values to fields
+    // that shouldn't be updated (row has null in fields) Group records based on having the
+    // same keys in `require` and `fields`, a single bulk action will be applied to each group.
+    // Caveat: later groups might match records modified by earlier groups.
+
+    const recordsGroupedByColumns = new Map<string, {
+      require: BulkColValues,
+      fields: BulkColValues,
+      indexes: number[]
+    }>();
+
+    records.forEach((rec, index) => {
+      const requireKeys = Object.keys(rec.require).sort();
+      const fieldsKeys = Object.keys(rec.fields || {}).sort();
+      const groupKey = `${requireKeys.join(",")}:${fieldsKeys.join(",")}`;
+
+      const group = recordsGroupedByColumns.get(groupKey) ?? {
+        require: Object.fromEntries(requireKeys.map(requireKey => [requireKey, []])),
+        fields: Object.fromEntries(fieldsKeys.map(fieldsKey => [fieldsKey, []])),
+        indexes: [],
+      };
+
+      recordsGroupedByColumns.set(groupKey, group);
+
+      requireKeys.forEach((requireKey) => { group.require[requireKey].push(rec.require[requireKey] ?? null); });
+      fieldsKeys.forEach((fieldsKey) => { group.fields[fieldsKey].push(rec.fields?.[fieldsKey] ?? null); });
+      group.indexes.push(index);
     });
+
+    // Guarantee a consistent ordering across multiple executions with the same data.
+    // This intention isn't to guarantee an ordering to the user, but to keep it deterministic.
+    const orderedGroups = sortBy(Array.from(recordsGroupedByColumns.entries()), ([key]) => key)
+      .map(([,group]) => group);
+    const actions = orderedGroups.map(
+      group => ["BulkAddOrUpdateRecord", tableId, group.require, group.fields, options],
+    );
+
+    const actionResults = await this._applyUserActions(tableId, [...fieldNames(records)], actions, recordOptions);
+
+    const result: BulkAddOrUpdateRecordResult = {
+      // Order is guaranteed to match order given in recordOrRecords, and the result will be at the same index.
+      recordIds: [],
+      // Order not guaranteed
+      addRecordIds: [],
+      // Order not guaranteed
+      updateRecordIds: [],
+    };
+
+    actionResults.retValues.forEach((actionResult: BulkAddOrUpdateRecordResult, index: number) => {
+      const group = orderedGroups[index];
+      actionResult.recordIds.forEach((rowResultIds, index) => {
+        result.recordIds[group.indexes[index]] = rowResultIds;
+      });
+      result.addRecordIds.push(...actionResult.addRecordIds);
+      result.updateRecordIds.push(...actionResult.updateRecordIds);
+    });
+
+    return result;
   }
 
   public async destroy(recordIdOrRecordIds: Types.RecordId | Types.RecordId[]): Promise<void> {
@@ -100,8 +143,8 @@ export class TableOperationsImpl implements TableOperations {
   }
 
   /**
-   * Adds records to a table. If columnValues is an empty object (or not provided) it will create empty records.
-   * This is exposed as a public method to support the older /data endpoint.
+   * Adds records to a table. If columnValues is an empty object (or not provided) it will create
+   * empty records. This is exposed as a public method to support the older /data endpoint.
    * @param columnValues Optional values for fields (can be an empty object to add empty records)
    * @param count Number of records to add
    */

@@ -1,4 +1,5 @@
 import * as Types from "app/plugin/DocApiTypes";
+import { BulkAddOrUpdateRecordResult } from "app/plugin/DocApiTypes";
 
 /**
  * Offer CRUD-style operations on a table.
@@ -24,7 +25,7 @@ export interface TableOperations {
    * Add or update a record or records.
    */
   upsert(records: Types.AddOrUpdateRecord | Types.AddOrUpdateRecord[],
-    options?: UpsertOptions): Promise<void>;
+    options?: UpsertOptions): Promise<BulkAddOrUpdateRecordResult>;
 
   /**
    * Determine the tableId of the table.

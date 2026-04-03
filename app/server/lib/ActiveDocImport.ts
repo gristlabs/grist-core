@@ -145,7 +145,7 @@ export class ActiveDocImport {
 
     // Initialize container for updated column values in the expected format (ColumnDelta).
     const updatedRecords: { [colId: string]: ColumnDelta } = {};
-    const updatedRecordIds: number[] = [];
+    const updateRecordIds: number[] = [];
     const srcColIds = srcAndDestColIds.map(([srcColId, _destColId]) => srcColId);
     for (const id of srcColIds) {
       updatedRecords[id] = {};
@@ -187,7 +187,7 @@ export class ActiveDocImport {
         }
       }
 
-      updatedRecordIds.push(srcRowId);
+      updateRecordIds.push(srcRowId);
     }
 
     return {
@@ -202,7 +202,7 @@ export class ActiveDocImport {
           tableDeltas: {
             [hiddenTableId]: {
               removeRows: [],
-              updateRows: updatedRecordIds,
+              updateRows: updateRecordIds,
               addRows: [],  // Since deltas are relative to the source table, we can't (yet) use this.
               columnRenames: [],
               columnDeltas: updatedRecords,
@@ -508,7 +508,7 @@ export class ActiveDocImport {
     const newRecords: BulkColValues = {};
     let numNewRecords = 0;
     const updatedRecords: BulkColValues = {};
-    const updatedRecordIds: number[] = [];
+    const updateRecordIds: number[] = [];
 
     // Destination columns with a blank formula (i.e. skipped columns).
     const skippedColumnIds = new Set(
@@ -551,15 +551,15 @@ export class ActiveDocImport {
             updatedRecords[id].push(merge(srcVal, destVal));
           });
         }
-        updatedRecordIds.push(comparisonResult[destTableId + ".id"][i] as number);
+        updateRecordIds.push(comparisonResult[destTableId + ".id"][i] as number);
       }
     }
 
     // We no longer need the temporary import table, so remove it.
     const actions: UserAction[] = [["RemoveTable", hiddenTableId]];
 
-    if (updatedRecordIds.length > 0) {
-      actions.push(["BulkUpdateRecord", destTableId, updatedRecordIds, updatedRecords]);
+    if (updateRecordIds.length > 0) {
+      actions.push(["BulkUpdateRecord", destTableId, updateRecordIds, updatedRecords]);
     }
 
     if (numNewRecords > 0) {

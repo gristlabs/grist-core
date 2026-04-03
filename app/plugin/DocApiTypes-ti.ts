@@ -42,6 +42,12 @@ export const AddOrUpdateRecord = t.iface([], {
   })),
 });
 
+export const BulkAddOrUpdateRecordResult = t.iface([], {
+  "recordIds": t.array(t.array("number")),
+  "addRecordIds": t.array("number"),
+  "updateRecordIds": t.array(t.array("number")),
+});
+
 export const RecordsPatch = t.iface([], {
   "records": t.tuple("Record", t.rest(t.array("Record"))),
 });
@@ -129,6 +135,7 @@ const exportedTypeSuite: t.ITypeSuite = {
   Record,
   RecordWithStringId,
   AddOrUpdateRecord,
+  BulkAddOrUpdateRecordResult,
   RecordsPatch,
   RecordsPost,
   RecordsPut,

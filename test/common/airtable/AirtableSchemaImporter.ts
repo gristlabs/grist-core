@@ -538,7 +538,11 @@ describe("AirtableSchemaImporter", function() {
         type: "ChoiceList",
         widgetOptions: {
           choices: ["Tag 1", "Tag 2", "Tag 3"],
-          choiceOptions: {},
+          choiceOptions: {
+            "Tag 1": { fillColor: "#CFDFFF", textColor: "#000000" },
+            "Tag 2": { fillColor: "#D0F0FD", textColor: "#000000" },
+            "Tag 3": { fillColor: "#C2F5E9", textColor: "#000000" },
+          },
         },
       }),
     ));
@@ -688,7 +692,45 @@ describe("AirtableSchemaImporter", function() {
         type: "Choice",
         widgetOptions: {
           choices: ["Tag 1", "Tag 2", "Tag 3"],
-          choiceOptions: {},
+          choiceOptions: {
+            "Tag 1": { fillColor: "#CFDFFF", textColor: "#000000" },
+            "Tag 2": { fillColor: "#D0F0FD", textColor: "#000000" },
+            "Tag 3": { fillColor: "#C2F5E9", textColor: "#000000" },
+          },
+        },
+      }),
+    ));
+
+    it("omits unrecognized colors from choiceOptions", () => basicDeepIncludeFieldTest(
+      {
+        name: "A singleSelect with unknown color",
+        type: "singleSelect",
+        options: {
+          choices: [
+            {
+              id: "sel1",
+              name: "Known",
+              color: "redBright",
+            },
+            {
+              id: "sel2",
+              name: "Unknown",
+              color: "magentaLight2",
+            },
+            {
+              id: "sel3",
+              name: "No Color",
+            },
+          ],
+        },
+      },
+      (testField, testColumn) => ({
+        type: "Choice",
+        widgetOptions: {
+          choices: ["Known", "Unknown", "No Color"],
+          choiceOptions: {
+            Known: { fillColor: "#F82B60", textColor: "#FFFFFF" },
+          },
         },
       }),
     ));

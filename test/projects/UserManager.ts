@@ -49,8 +49,8 @@ describe("UserManager", () => {
   });
 
   it("should reflect role changes", async function() {
-    await driver.find(".test-um-member .test-um-member-role").doClick();
-    await driver.findContent(".test-um-role-option", /Editor/).doClick();
+    await driver.findWait(".test-um-member .test-um-member-role", 100).doClick();
+    await driver.findContentWait(".test-um-role-option", /Editor/, 100).doClick();
     assert.deepEqual(await getRenderedMembers(), [
       ["foo@example.com", "Editor"],
       ["bar@example.com", "Editor"],
