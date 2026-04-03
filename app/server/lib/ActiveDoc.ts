@@ -167,6 +167,7 @@ import {
 } from "app/server/lib/sessionUtils";
 import { findOrAddAllEnvelope, Sharing } from "app/server/lib/Sharing";
 import { shortDesc } from "app/server/lib/shortDesc";
+import { SqlSession } from "app/server/lib/SqlSession";
 import { TableMetadataLoader } from "app/server/lib/TableMetadataLoader";
 import { DocTriggers } from "app/server/lib/Triggers";
 import { fetchURL, FileUploadInfo, globalUploadSet, UploadInfo } from "app/server/lib/uploads";
@@ -308,6 +309,7 @@ export class ActiveDoc extends EventEmitter {
   /**
    * If set, changes to this document should not propagate to outside world
    */
+  private _sqlSessions = new WeakMap<OptDocSession, SqlSession>();
   private _muted: boolean = false;
   /**
    * If positive, a migration is in progress
@@ -1052,6 +1054,9 @@ export class ActiveDoc extends EventEmitter {
    */
   public async closeDoc(docSession: DocSession): Promise<void> {
     // Note that it's async only to satisfy the Rpc interface that expects a promise.
+    // Clean up any SQL session (releases transaction lock if held).
+    this._sqlSessions.get(docSession)?.endSession();
+    this._sqlSessions.delete(docSession);
     this.docClients.removeClient(docSession);
 
     // If no more clients, schedule a shutdown.
@@ -1352,6 +1357,16 @@ export class ActiveDoc extends EventEmitter {
     return this._granularAccess.canCopyEverything(docSession);
   }
 
+  // Check if user has any read access to a specific table.
+  public async hasTableAccess(docSession: OptDocSession, tableId: string) {
+    return this._granularAccess.hasTableAccess(docSession, tableId);
+  }
+
+  // Get the current ACL rule collection (for SQL ACL translation).
+  public getACLRuleCollection(): ACLRuleCollection {
+    return this._granularAccess.getRuleCollection();
+  }
+
   // Check if it is appropriate for the user to be treated as an owner of
   // the document for granular access purposes when in "prefork" mode
   // (meaning a document has been opened with the intent to fork it, but
@@ -1619,7 +1634,73 @@ export class ActiveDoc extends EventEmitter {
   }
 
   /**
-   * A variant of applyUserActions where actions are passed in by ids (actionNum, actionHash)
+   * Apply user actions built by a `prepare` callback that runs inside the action lock.
+   * The callback receives docStorage for SQLite reads. This eliminates TOCTOU races
+   * between reading row IDs and applying changes — both happen atomically.
+   */
+  public async applyPreparedUserActions(
+    docSession: OptDocSession,
+    prepare: (docStorage: DocStorage) => Promise<UserAction[]>,
+    unsanitizedOptions?: ApplyUAOptions,
+  ): Promise<ApplyUAResult> {
+    await this.waitForInitialization();
+    const release = await this._sharing.acquireUserActionLock();
+    try {
+      const actions = await prepare(this.docStorage);
+      if (actions.length === 0) {
+        return { actionNum: 0, actionHash: null, retValues: [], isModification: false };
+      }
+      return await this.applyUserActionsWithinTransaction(docSession, actions, unsanitizedOptions);
+    } finally {
+      release();
+    }
+  }
+
+  /**
+   * Apply user actions while the action lock is held (used by applyPreparedUserActions).
+   */
+  public async applyUserActionsWithinTransaction(
+    docSession: OptDocSession,
+    actions: UserAction[],
+    unsanitizedOptions?: ApplyUAOptions,
+  ): Promise<ApplyUAResult> {
+    const options = sanitizeApplyUAOptions(unsanitizedOptions);
+    await this._granularAccess.checkUserActions(docSession, actions);
+    return this._sharing.applyUserActionsWithinLock(
+      docSession, this._makeInfo(docSession, options), actions, options);
+  }
+
+  /**
+   * Execute a SQL statement. Supports SELECT, DML, DDL, and transactions
+   * (BEGIN/COMMIT/ROLLBACK). Transaction state is per-session. Callable
+   * over WebSocket as the "sql" method.
+   */
+  public async sql(docSession: OptDocSession, sql: string): Promise<any> {
+    let session = this._sqlSessions.get(docSession);
+    if (!session) {
+      session = new SqlSession(this, docSession);
+      this._sqlSessions.set(docSession, session);
+    }
+    return session.exec(sql);
+  }
+
+  /** Acquire the document write lock for a transaction. Returns a release function. */
+  public async acquireTransactionLock(): Promise<() => void> {
+    await this.waitForInitialization();
+    return this._sharing.acquireUserActionLock();
+  }
+
+  /** Get the undo actions for a list of action numbers (used by SqlSession for rollback). */
+  public async getUndoActions(actionNums: number[]): Promise<DocAction[]> {
+    const bundles = await this._actionHistory.getActions(actionNums);
+    const undoActions: DocAction[] = [];
+    for (const bundle of bundles) {
+      if (bundle?.undo) { undoActions.push(...bundle.undo); }
+    }
+    return undoActions;
+  }
+
+  /**
    * rather than by value.
    *
    * @param docSession: The client session originating this action.

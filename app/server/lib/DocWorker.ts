@@ -150,6 +150,7 @@ export class DocWorker {
       listActiveUserProfiles: activeDocMethod.bind(null, null, "listActiveUserProfiles"),
       applyProposal: activeDocMethod.bind(null, "owners", "applyProposal"),
       getAssistance: activeDocMethod.bind(null, "viewers", "getAssistance"),
+      sql: activeDocMethod.bind(null, "viewers", "sql"),
     });
   }
 
