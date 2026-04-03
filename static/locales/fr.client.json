@@ -2547,7 +2547,8 @@
         "When in the search bar, close it and focus the current match": "Quand on est dans la barre de recherche, la fermer et mettre le focus sur la correspondance actuelle",
         "When typed at the start of a cell, make this a formula column": "Quand tapé au début d'une cellule, transformer celle-ci en colonne de formule",
         "showing a behavioral popup": "affichage d'une fenêtre contextuelle comportementale",
-        "Filter this column by just this cell's value": "Filtrer cette colonne par la valeur de cette cellule uniquement"
+        "Filter this column by just this cell's value": "Filtrer cette colonne par la valeur de cette cellule uniquement",
+        "Open the context menu": "Ouvrir le menu contextuel"
     },
     "GridViewMenusDateHelpers": {
         "12-hour format": "format 12-heures",
