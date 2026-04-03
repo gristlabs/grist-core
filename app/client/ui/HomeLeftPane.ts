@@ -180,7 +180,7 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
           ) : null
         ),
         createHelpTools(home.app),
-        createAccessibilityTools(),
+        createAccessibilityTools(home.app),
         (commonUrls.termsOfService ?
           cssPageEntry(
             cssPageLink(cssPageIcon("Memo"), cssLinkText(t("Terms of service")),
