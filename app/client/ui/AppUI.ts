@@ -82,8 +82,8 @@ function createMainPage(appModel: AppModel, appObj: App) {
   return dom.domComputed(appModel.pageType, (pageType) => {
     if (pageType === "home") {
       return dom.create(pagePanelsHome, appModel, appObj);
-    } else if (pageType === "billing") {
-      return domAsync(loadBillingPage().then(bp => dom.create(bp.BillingPage, appModel)));
+    } else if (["billing", "site-settings"].includes(pageType)) {
+      return domAsync(loadBillingPage().then(bp => bp.buildMainBillingPage(appModel)));
     } else if (pageType === "welcome") {
       return dom.create(WelcomePage, appModel, appObj);
     } else if (pageType === "account") {

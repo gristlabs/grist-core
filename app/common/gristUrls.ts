@@ -57,6 +57,9 @@ export type ActivationPage = typeof ActivationPage.type;
 export const AuditLogsPage = StringUnion("audit-logs");
 export type AuditLogsPage = typeof AuditLogsPage.type;
 
+export const SiteSettingsPage = StringUnion("site-settings");
+export type SiteSettingsPage = typeof SiteSettingsPage.type;
+
 export const LoginPage = StringUnion("signup", "login", "verified", "forgot-password");
 export type LoginPage = typeof LoginPage.type;
 
@@ -93,7 +96,7 @@ export const MIN_URLID_PREFIX_LENGTH = 12;
 
 // Values meeting MIN_URLID_PREFIX_LENGTH that appear in non-document URLs and
 // should not be recognized as urlId prefixes when decoding URLs.
-const RESERVED_URLID_PREFIXES = new Set(["forgot-password"]);
+const RESERVED_URLID_PREFIXES = new Set(["forgot-password", "site-settings"]);
 
 // A prefix that identifies a urlId as a share key.
 // Important that this not be part of a valid docId.
@@ -199,6 +202,7 @@ export interface IGristUrlState {
   billing?: BillingPage;
   activation?: ActivationPage;
   auditLogs?: AuditLogsPage;
+  siteSettings?: SiteSettingsPage;
   login?: LoginPage;
   welcome?: WelcomePage;
   adminPanel?: AdminPanelPage;
@@ -409,6 +413,8 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
 
   if (state.auditLogs) { parts.push(state.auditLogs); }
 
+  if (state.siteSettings) { parts.push(state.siteSettings); }
+
   if (state.login) { parts.push(state.login); }
 
   if (state.welcome) {
@@ -560,6 +566,9 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
   }
   if (map.has("audit-logs")) {
     state.auditLogs = AuditLogsPage.parse(map.get("audit-logs")) || "audit-logs";
+  }
+  if (map.has("site-settings")) {
+    state.siteSettings = SiteSettingsPage.parse(map.get("site-settings")) || "site-settings";
   }
   if (map.has("welcome")) { state.welcome = WelcomePage.parse(map.get("welcome")); }
   if (map.has("admin")) {

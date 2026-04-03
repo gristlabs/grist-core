@@ -420,6 +420,7 @@ export interface UserAPI {
   renameWorkspace(workspaceId: number, name: string): Promise<void>;
   renameDoc(docId: string, name: string, options?: RenameDocOptions): Promise<void>;
   updateOrg(orgId: number | string, props: Partial<OrganizationProperties>): Promise<void>;
+  checkDomain(domain: string): Promise<{ valid: boolean; available: boolean }>;
   updateDoc(docId: string, props: Partial<DocumentProperties>): Promise<void>;
   deleteOrg(orgId: number | string): Promise<void>;
   deleteWorkspace(workspaceId: number): Promise<void>;     // delete workspace permanently
@@ -795,6 +796,13 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
     });
   }
 
+  public async checkDomain(domain: string): Promise<{ valid: boolean; available: boolean }> {
+    return this.requestJson(`${this._homeUrl}/api/domains/check`, {
+      method: "POST",
+      body: JSON.stringify({ domain }),
+    });
+  }
+
   public async updateDoc(docId: string, props: Partial<DocumentProperties>): Promise<void> {
     await this.request(`${this._url}/api/docs/${docId}`, {
       method: "PATCH",
@@ -953,7 +961,7 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
   }
 
   public getBillingAPI(): BillingAPI {
-    return new BillingAPIImpl(this._url, this._options);
+    return new BillingAPIImpl(this._homeUrl, this._options);
   }
 
   public getDocAPI(docId: string): DocAPI {
