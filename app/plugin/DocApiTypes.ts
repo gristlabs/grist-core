@@ -123,6 +123,7 @@ export interface ColumnMetadata {
     colRef: number;
     label: string;
     isFormula: boolean;
+    type: string;
     [colId: string]: CellValue;
   };
 }

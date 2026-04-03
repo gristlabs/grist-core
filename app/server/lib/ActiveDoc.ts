@@ -3628,8 +3628,9 @@ export class ActiveDoc extends EventEmitter {
         colRef: colRefs[index],
         label: String(columnData.label?.[index] ?? ""),
         isFormula: Boolean(columnData.isFormula?.[index]),
+        type: String(columnData.type?.[index] ?? ""),
       } };
-      const otherFieldNames = without(fieldNames, "label", "isFormula");
+      const otherFieldNames = without(fieldNames, "label", "isFormula", "type");
       for (const key of otherFieldNames) {
         column.fields[key] = columnData[key][index];
       }

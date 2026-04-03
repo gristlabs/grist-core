@@ -1,13 +1,15 @@
 import { AirtableTableId } from "app/common/airtable/AirtableAPITypes";
 import {
   AirtableBaseSchemaCrosswalk,
-  AirtableTableCrosswalk, GristTableId,
+  AirtableTableCrosswalk,
+  GristTableId,
 } from "app/common/airtable/AirtableCrosswalk";
 import { importDataFromAirtableBase } from "app/common/airtable/AirtableDataImporter";
 import { AirtableDataImportParams } from "app/common/airtable/AirtableDataImporterTypes";
 import { ReferenceTracker } from "app/common/airtable/AirtableReferenceTracker";
 import { AirtableIdColumnLabel } from "app/common/airtable/AirtableSchemaImporter";
 import { ExistingColumnSchema } from "app/common/DocSchemaImportTypes";
+import { AddOrUpdateRecord, BulkAddOrUpdateRecordResult } from "app/plugin/DocApiTypes";
 import { BulkColValues, GristObjCode } from "app/plugin/GristData";
 
 import Airtable from "airtable";
@@ -18,6 +20,7 @@ import fetch from "node-fetch";
 import * as sinon from "sinon";
 
 describe("AirtableDataImporter", function() {
+  const AirtableIdColumnId = "Airtable_Id";
   const basicCrosswalkFields = [
     {
       airtableField: { id: "fld0", name: "Name", type: "singleLineText" as const, options: {} },
@@ -84,7 +87,7 @@ describe("AirtableDataImporter", function() {
       fields.set(fieldPair.airtableField.name, fieldPair);
     }
 
-    const airtableIdColumn = { id: "Airtable_Id", ref: 111, label: AirtableIdColumnLabel, isFormula: false };
+    const airtableIdColumn = { id: AirtableIdColumnId, ref: 111, label: AirtableIdColumnLabel, isFormula: false };
     gristColumns.push(airtableIdColumn);
 
     return {
@@ -120,6 +123,35 @@ describe("AirtableDataImporter", function() {
       return Promise.resolve(newIds);
     }) satisfies AirtableDataImportParams["addRows"];
 
+  let nextRowId = 1;
+  const knownRows = new Map<string, number>();
+  const addOrUpdateRowsMock = sinon.fake(async (tableId, records, options) => {
+    const result: BulkAddOrUpdateRecordResult = {
+      recordIds: [],
+      addRecordIds: [],
+      updateRecordIds: [],
+    };
+
+    for (const record of records) {
+      // Sorted keys array as replacer ensures consistent serialization regardless of property order.
+      const requireKeys = Object.keys(record.require).sort();
+      const key = `${tableId}:${JSON.stringify(record.require, requireKeys)}`;
+      const existing = knownRows.get(key);
+
+      if (existing != null) {
+        result.recordIds.push([existing]);
+        result.updateRecordIds.push([existing]);
+      } else {
+        const id = nextRowId++;
+        knownRows.set(key, id);
+        result.recordIds.push([id]);
+        result.addRecordIds.push(id);
+      }
+    }
+
+    return result;
+  }) satisfies AirtableDataImportParams["addOrUpdateRows"];
+
   const updateRowsMock =
     sinon.fake((tableId, rows) => Promise.resolve(rows.id)) satisfies AirtableDataImportParams["updateRows"];
 
@@ -145,6 +177,8 @@ describe("AirtableDataImporter", function() {
     nock.cleanAll();
     nock.enableNetConnect();
     sinon.reset();
+    nextRowId = 1;
+    knownRows.clear();
   });
 
   describe("ReferenceTracker", () => {
@@ -154,14 +188,14 @@ describe("AirtableDataImporter", function() {
       tracker.addRecordIdMapping("airtable-rec-1", 42);
       tracker.addRecordIdMapping("airtable-rec-2", 99);
 
-      assert.equal(tracker.resolve("airtable-rec-1"), 42);
-      assert.equal(tracker.resolve("airtable-rec-2"), 99);
+      assert.equal(tracker.lookupRowIdForRecord("airtable-rec-1"), 42);
+      assert.equal(tracker.lookupRowIdForRecord("airtable-rec-2"), 99);
     });
 
     it("returns undefined for unknown record ids", () => {
       const tracker = new ReferenceTracker();
 
-      assert.isUndefined(tracker.resolve("unknown-rec-id"));
+      assert.isUndefined(tracker.lookupRowIdForRecord("unknown-rec-id"));
     });
   });
 
@@ -175,13 +209,21 @@ describe("AirtableDataImporter", function() {
       tracker.addRecordIdMapping("airtable-food-1", 101);
       tracker.addRecordIdMapping("airtable-food-2", 102);
 
-      const tableTracker = tracker.addTable("country", ["cities", "foods"]);
+      // Provide airtableIdColumnId so the tracker asks the sandbox to find the right row
+      tracker.addTable("cities", [], { airtableIdColumnId: "Airtable_Id" });
+      // Omit airtableIdColumnId to so the tracker looks at its known rows for the right row
+      tracker.addTable("foods", [], { airtableIdColumnId: undefined });
+
+      const tableTracker = tracker.addTable("country", [
+        { id: "cities", tableId: "cities" },
+        { id: "local_foods", tableId: "foods" },
+      ]);
 
       tableTracker.addUnresolvedRecord({
         gristRecordId: 1,
         refsByColumnId: {
           cities: ["airtable-rec-1", "airtable-rec-2"],
-          foods: ["airtable-food-1", "airtable-food-2"],
+          local_foods: ["airtable-food-1", "airtable-food-2"],
         },
       });
 
@@ -202,10 +244,10 @@ describe("AirtableDataImporter", function() {
       assert.deepEqual(updates, {
         id: [1, 2],
         cities: [
-          [GristObjCode.List, 10, 20],
-          [GristObjCode.List, 30],
+          [GristObjCode.LookUp, ["airtable-rec-1", "airtable-rec-2"], { column: "Airtable_Id" }],
+          [GristObjCode.LookUp, ["airtable-rec-3"], { column: "Airtable_Id" }],
         ],
-        foods: [
+        local_foods: [
           [GristObjCode.List, 101, 102],
           [GristObjCode.List],
         ],
@@ -217,13 +259,17 @@ describe("AirtableDataImporter", function() {
 
       tracker.addRecordIdMapping("airtable-rec-1", 10);
 
-      const tableTracker = tracker.addTable("users", ["friends"]);
+      const tableTracker = tracker.addTable("users", [
+        { id: "friends", tableId: "people" },
+        { id: "email", tableId: "emails" },
+      ]);
 
       // Reference to an unmapped record
       tableTracker.addUnresolvedRecord({
         gristRecordId: 1,
         refsByColumnId: {
           friends: ["airtable-rec-1", "airtable-rec-unknown"],
+          emails: ["airtable-rec-unknown-email"],
         },
       });
 
@@ -240,7 +286,9 @@ describe("AirtableDataImporter", function() {
       const tracker = new ReferenceTracker();
 
       tracker.addRecordIdMapping("airtable-rec-1", 10);
-      const tableTracker = tracker.addTable("users", ["col1"]);
+      const tableTracker = tracker.addTable("users", [{
+        id: "col1", tableId: "users",
+      }]);
 
       // Add more than default batch size (100) records
       for (let i = 0; i < 150; i++) {
@@ -268,7 +316,7 @@ describe("AirtableDataImporter", function() {
       const tracker = new ReferenceTracker();
 
       tracker.addRecordIdMapping("airtable-rec-1", 10);
-      const tableTracker = tracker.addTable("users", ["col1"]);
+      const tableTracker = tracker.addTable("users", [{ id: "col1", tableId: "users" }]);
 
       // Add 25 records
       for (let i = 0; i < 25; i++) {
@@ -289,7 +337,7 @@ describe("AirtableDataImporter", function() {
 
     it("does not update if there are no unresolved records", async () => {
       const tracker = new ReferenceTracker();
-      const tableTracker = tracker.addTable("users", ["friends"]);
+      const tableTracker = tracker.addTable("users", [{ id: "friends", tableId: "users" }]);
 
       const updateRowsMock = sinon.stub().resolves([]);
 
@@ -300,7 +348,7 @@ describe("AirtableDataImporter", function() {
   });
 
   describe("importDataFromAirtableBase", () => {
-    it("calls addRows for each table with converted field values", async () => {
+    it("calls addOrUpdateRows for each table with converted field values", async () => {
       const mockRecord = {
         id: "rec123",
         fields: {
@@ -316,6 +364,42 @@ describe("AirtableDataImporter", function() {
       await importDataFromAirtableBase({
         listRecords,
         addRows: addRowsMock,
+        addOrUpdateRows: addOrUpdateRowsMock,
+        updateRows: updateRowsMock,
+        uploadAttachment: uploadAttachmentMock,
+        schemaCrosswalk,
+      });
+
+      assert.isTrue(addOrUpdateRowsMock.called);
+      const call = addOrUpdateRowsMock.getCall(0);
+      assert.equal(call.args[0], "Main");
+      assert.deepEqual(
+        call.args[1],
+        getAddOrUpdateSyntaxForRecords(schemaCrosswalk.tables.get("tblMain")!, [mockRecord]));
+    });
+
+    it("calls addRows for tables which don't have an Airtable ID column", async () => {
+      const mockRecord = {
+        id: "rec123",
+        fields: {
+          Name: "Test Name",
+          Count: 42,
+        },
+      };
+
+      const listRecords = createListRecordsFake(new Map([["tblMain", [mockRecord]]]));
+
+      const schemaCrosswalk = createBasicSchemaCrosswalk([["tblMain", "Main"]]);
+
+      // Remove the airtable ID column from the mapping, so the importer doesn't know it exists.
+      schemaCrosswalk.tables.forEach((tableMapping) => {
+        tableMapping.airtableIdColumn = undefined;
+      });
+
+      await importDataFromAirtableBase({
+        listRecords,
+        addRows: addRowsMock,
+        addOrUpdateRows: addOrUpdateRowsMock,
         updateRows: updateRowsMock,
         uploadAttachment: uploadAttachmentMock,
         schemaCrosswalk,
@@ -348,18 +432,20 @@ describe("AirtableDataImporter", function() {
       await importDataFromAirtableBase({
         listRecords,
         addRows: addRowsMock,
+        addOrUpdateRows: addOrUpdateRowsMock,
         updateRows: updateRowsMock,
         uploadAttachment: uploadAttachmentMock,
         schemaCrosswalk,
       });
 
-      const call = addRowsMock.getCall(0);
-      const bulkColValues = call.args[1];
-      assert.notProperty(bulkColValues, "Formula");
-      assert.notProperty(bulkColValues, "Count");
-      assert.notProperty(bulkColValues, "Rollup");
-      assert.notProperty(bulkColValues, "Lookup");
-      assert.property(bulkColValues, "Name");
+      const call = addOrUpdateRowsMock.getCall(0);
+      const records: AddOrUpdateRecord[] = call.args[1];
+      const fields = records[0].fields!;
+      assert.notProperty(fields, "Formula");
+      assert.notProperty(fields, "Count");
+      assert.notProperty(fields, "Rollup");
+      assert.notProperty(fields, "Lookup");
+      assert.property(fields, "Name");
     });
 
     async function testAirtableIdColumn(params = { omitAirtableId: false }) {
@@ -380,23 +466,30 @@ describe("AirtableDataImporter", function() {
       await importDataFromAirtableBase({
         listRecords,
         addRows: addRowsMock,
+        addOrUpdateRows: addOrUpdateRowsMock,
         updateRows: updateRowsMock,
         uploadAttachment: uploadAttachmentMock,
         schemaCrosswalk,
       });
 
-      const call = addRowsMock.getCall(0);
-      return call.args[1];
+      if (params.omitAirtableId) {
+        const call = addRowsMock.getCall(0);
+        return call.args[1];
+      }
+
+      const call = addOrUpdateRowsMock.getCall(0);
+      const records: AddOrUpdateRecord[] = call.args[1];
+      return records[0];
     }
 
     it("stores airtable id when airtableIdColumn is configured", async () => {
-      const bulkColValues = await testAirtableIdColumn({ omitAirtableId: false });
-      assert.deepEqual(bulkColValues.Airtable_Id, ["rec999"], "Airtable ID column data missing");
+      const record = await testAirtableIdColumn({ omitAirtableId: false }) as AddOrUpdateRecord;
+      assert.equal(record.require.Airtable_Id, "rec999", "Airtable ID column data missing");
     });
 
     it("skips airtable id when airtableIdColumn is missing", async () => {
-      const bulkColValues = await testAirtableIdColumn({ omitAirtableId: true });
-      assert.isUndefined(bulkColValues.Airtable_Id, "Airtable ID column present when it shouldn't be");
+      const bulkValues = await testAirtableIdColumn({ omitAirtableId: true }) as BulkColValues;
+      assert.isUndefined(bulkValues.Airtable_Id, "Airtable ID column present when it shouldn't be");
     });
 
     it("handles multipleRecordLinks references and defers resolution", async () => {
@@ -425,15 +518,16 @@ describe("AirtableDataImporter", function() {
       await importDataFromAirtableBase({
         listRecords,
         addRows: addRowsMock,
+        addOrUpdateRows: addOrUpdateRowsMock,
         updateRows: updateRowsMock,
         uploadAttachment: uploadAttachmentMock,
         schemaCrosswalk,
       });
 
       // First add rows with links as null
-      const addRowsCall = addRowsMock.getCall(0);
-      const initialBulkValues = addRowsCall.args[1];
-      assert.deepEqual(initialBulkValues.Links, [null, null, null]);
+      const addOrUpdateCall = addOrUpdateRowsMock.getCall(0);
+      const records: AddOrUpdateRecord[] = addOrUpdateCall.args[1];
+      assert.deepEqual(records.map(r => r.fields!.Links), [null, null, null]);
 
       // Update rows with resolved links
       assert.isTrue(updateRowsMock.called);
@@ -464,14 +558,15 @@ describe("AirtableDataImporter", function() {
       await importDataFromAirtableBase({
         listRecords,
         addRows: addRowsMock,
+        addOrUpdateRows: addOrUpdateRowsMock,
         updateRows: updateRowsMock,
         uploadAttachment: uploadAttachmentMock,
         schemaCrosswalk,
       });
 
       // Expect 4 pages - 3 pages of 3, and 1 of 1.
-      assert.equal(addRowsMock.callCount, 4);
-      const totalRows = sum(addRowsMock.getCalls().map(call => call.args[1].Name.length));
+      assert.equal(addOrUpdateRowsMock.callCount, 4);
+      const totalRows = sum(addOrUpdateRowsMock.getCalls().map(call => call.args[1].length));
       // Expect all rows to have been added.
       assert.equal(totalRows, 10);
     });
@@ -492,31 +587,29 @@ describe("AirtableDataImporter", function() {
       await importDataFromAirtableBase({
         listRecords,
         addRows: addRowsMock,
+        addOrUpdateRows: addOrUpdateRowsMock,
         updateRows: updateRowsMock,
         uploadAttachment: uploadAttachmentMock,
         schemaCrosswalk,
       });
 
-      let bulkColValues: BulkColValues;
-      let colId: string;
+      const colId = schemaCrosswalk.tables.get("tblMain")!.fields.get(fieldName)!.gristColumn.id;
       if (fieldName === "Attachments") {
         const call = updateRowsMock.getCall(1);
-        bulkColValues = call.args[1];
-        colId = schemaCrosswalk.tables.get("tblMain")!.fields.get(fieldName)!.gristColumn.id;
+        const bulkColValues: BulkColValues = call.args[1];
         if (bulkColValues[colId] === undefined) {
           throw new Error("Expected column not in updateRows call");
         }
         return bulkColValues[colId][0];
       } else {
-        const call = addRowsMock.getCall(0);
-        bulkColValues = call.args[1];
-        colId = schemaCrosswalk.tables.get("tblMain")!.fields.get(fieldName)!.gristColumn.id;
-        if (bulkColValues[colId] === undefined) {
-          throw new Error("Expected column not in addRows call");
+        const call = addOrUpdateRowsMock.getCall(0);
+        const records: AddOrUpdateRecord[] = call.args[1];
+        const fields = records[0].fields!;
+        if (!(colId in fields)) {
+          throw new Error("Expected column not in addOrUpdateRows call");
         }
+        return fields[colId];
       }
-
-      return bulkColValues[colId][0];
     }
 
     it("converts aiText fields correctly", async () => {
@@ -636,28 +729,28 @@ describe("AirtableDataImporter", function() {
     it("skips count field data conversion because it's a formula column", async () => {
       await assert.isRejected(
         testFieldValueConversion("Count", 42),
-        "Expected column not in addRows call",
+        "Expected column not in addOrUpdateRows call",
       );
     });
 
     it("skips formula field data conversion because it's a formula column", async () => {
       await assert.isRejected(
         testFieldValueConversion("Formula", "computed result"),
-        "Expected column not in addRows call",
+        "Expected column not in addOrUpdateRows call",
       );
     });
 
     it("skips lookup field data conversion because it's a formula column", async () => {
       await assert.isRejected(
         testFieldValueConversion("Lookup", ["value1", "value2"]),
-        "Expected column not in addRows call",
+        "Expected column not in addOrUpdateRows call",
       );
     });
 
     it("skips rollup field data conversion because it's a formula column", async () => {
       await assert.isRejected(
         testFieldValueConversion("Rollup", {}),
-        "Expected column not in addRows call",
+        "Expected column not in addOrUpdateRows call",
       );
     });
 
@@ -689,15 +782,17 @@ describe("AirtableDataImporter", function() {
       await importDataFromAirtableBase({
         listRecords,
         addRows: addRowsMock,
+        addOrUpdateRows: addOrUpdateRowsMock,
         updateRows: updateRowsMock,
         uploadAttachment: uploadAttachmentMock,
         schemaCrosswalk,
       });
 
-      const call = addRowsMock.getCall(0);
-      const bulkColValues = call.args[1];
-      assert.deepEqual(bulkColValues.Name, [null]);
-      assert.deepEqual(bulkColValues.CreatedBy, [null]);
+      const call = addOrUpdateRowsMock.getCall(0);
+      const records: AddOrUpdateRecord[] = call.args[1];
+      const fields = records[0].fields!;
+      assert.deepEqual(fields.Name, null);
+      assert.deepEqual(fields.CreatedBy, null);
     });
 
     it("propagates errors thrown from listRecords", async () => {
@@ -711,6 +806,7 @@ describe("AirtableDataImporter", function() {
         await importDataFromAirtableBase({
           listRecords,
           addRows: addRowsMock,
+          addOrUpdateRows: addOrUpdateRowsMock,
           updateRows: updateRowsMock,
           uploadAttachment: uploadAttachmentMock,
           schemaCrosswalk,
@@ -736,6 +832,7 @@ describe("AirtableDataImporter", function() {
       await importDataFromAirtableBase({
         listRecords: listEmptyResult,
         addRows: addRowsMock,
+        addOrUpdateRows: addOrUpdateRowsMock,
         updateRows: updateRowsMock,
         uploadAttachment: uploadAttachmentMock,
         schemaCrosswalk,
@@ -774,6 +871,28 @@ function getBulkColSyntaxForRecords(tableCrosswalk: AirtableTableCrosswalk, reco
     }
   }
   return bulkCol;
+}
+
+// Converts Airtable records into the expected bulk-column syntax
+function getAddOrUpdateSyntaxForRecords(
+  tableCrosswalk: AirtableTableCrosswalk, records: AirtableRecordKeyFieldsOnly[],
+) {
+  const fieldMappings = Array.from(tableCrosswalk.fields.values()).filter(mapping => !mapping.gristColumn.isFormula);
+
+  const addOrUpdateRecords: AddOrUpdateRecord[] = records.map((record) => {
+    const addOrUpdate: Required<AddOrUpdateRecord> = { require: {}, fields: {} };
+    for (const fieldMapping of fieldMappings) {
+      addOrUpdate.fields[fieldMapping.gristColumn.id] = record.fields[fieldMapping.airtableField.name] ?? null;
+    }
+
+    if (tableCrosswalk.airtableIdColumn) {
+      addOrUpdate.require[tableCrosswalk.airtableIdColumn.id] = record.id;
+    }
+
+    return addOrUpdate;
+  });
+
+  return addOrUpdateRecords;
 }
 
 function createListRecordsFake(

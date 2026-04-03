@@ -128,6 +128,7 @@ export async function applyAirtableImportSchemaAndImportData(params: {
   await importDataFromAirtableBase({
     listRecords: tableId => listRecords(api.base(baseId), tableId, {}),
     addRows: docApi.addRows.bind(docApi),
+    addOrUpdateRows: docApi.addOrUpdateRows.bind(docApi),
     updateRows: docApi.updateRows.bind(docApi),
     uploadAttachment: docApi.uploadAttachment.bind(docApi),
     schemaCrosswalk,
