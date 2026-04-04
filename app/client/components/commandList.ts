@@ -125,6 +125,9 @@ export type CommandName =
   "detachEditor" |
   "activateAssistant" |
   "viewAsCard" |
+  "openContextMenu" |
+  "openColumnMenu" |
+  "openRowMenu" |
   "showColumns" |
   "createForm" |
   "insertField" |
@@ -133,7 +136,7 @@ export type CommandName =
 
 export interface CommandDef {
   name: CommandName;
-  keys: string[];
+  keys: CommandKey[];
   desc: (() => string) | null;
   bindKeys?: boolean;
   /**
@@ -142,6 +145,13 @@ export interface CommandDef {
   alwaysOn?: boolean;
   deprecated?: boolean;
 }
+
+export interface PlatformSpecificCommandKey {
+  default: string;
+  mac?: string;
+}
+
+export type CommandKey = string | PlatformSpecificCommandKey;
 
 export interface MenuCommand {
   humanKeys: string[];
@@ -410,6 +420,20 @@ export const groups: CommendGroupDef[] = [{
       name: "viewAsCard",
       keys: ["Space"],
       desc: () => t("Show the record card widget of the selected record"),
+    }, {
+      // This matches browser's default `contextmenu` event keybindings. This is here to show the keyboard shortcut
+      // to the user, but we rely on the `contextmenu` event rather than the `openContextMenu` command in the code.
+      name: "openContextMenu",
+      keys: [{ default: "Menu", mac: "Ctrl+Enter" }, "Shift+F10"],
+      desc: () => t("Open the context menu"),
+    }, {
+      name: "openColumnMenu",
+      keys: [{ default: "Ctrl+Menu", mac: "Ctrl+Shift+Enter" }, "Ctrl+Shift+F10"],
+      desc: () => t("Open the current column menu"),
+    }, {
+      name: "openRowMenu",
+      keys: [{ default: "Alt+Menu", mac: "Ctrl+Alt+Enter" }, "Alt+Shift+F10"],
+      desc: () => t("Open the current row menu"),
     },
   ],
 }, {

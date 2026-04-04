@@ -510,6 +510,21 @@ export default class GridView extends BaseView {
 
       this.viewSelectedRecordAsCard();
     },
+    openColumnMenu: function() {
+      const fieldIndex = this.cursor.fieldIndex();
+      this._scrollColumnIntoView(fieldIndex);
+      this.viewPane.querySelector<HTMLElement>(
+        `.column_name.field[data-col-index="${fieldIndex}"] .g-column-menu-btn`,
+      )?.click();
+    },
+    openRowMenu: function() {
+      const rowIndex = this.cursor.rowIndex();
+      if (rowIndex == null) {
+        return;
+      }
+      this.scrolly.scrollRowIntoView(rowIndex);
+      this.viewPane.querySelector<HTMLElement>(`.gridview_row[data-row-index="${rowIndex}"] .menu_toggle`)?.click();
+    },
   };
 
   protected onTableLoaded() {
@@ -1476,6 +1491,7 @@ export default class GridView extends BaseView {
                     dom.cls("font-italic", use => use(field.headerFontItalic) || false),
                     dom.cls("font-underline", use => use(field.headerFontUnderline) || false),
                     dom.cls("font-strikethrough", use => use(field.headerFontStrikethrough) || false),
+                    dom.attr("data-col-index", String(field._index())),
                     kd.style("--frozen-position", () => ko.unwrap(this.frozenPositions.at(field._index()!)!)),
                     kd.toggleClass("frozen", () => ko.unwrap(this.frozenMap.at(field._index()!)!)),
                     dom.autoDispose(isEditingLabel),
@@ -1627,6 +1643,7 @@ export default class GridView extends BaseView {
         dom.autoDispose(fontItalic),
         dom.autoDispose(fontUnderline),
         dom.autoDispose(fontStrikethrough),
+        dom.attr("data-row-index", String(row._index())),
 
         dom.cls("link_selector_row", use => use(this.isLinkSource) && use(isRowActive)),
         dom.cls("highlight_match_row", (use) => {
