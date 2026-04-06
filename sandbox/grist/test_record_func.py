@@ -46,6 +46,96 @@ class TestRecordFunc(test_engine.EngineTestCase):
       [4,     {'address': RecordStub('Address', 14), 'Bar': 4, 'id': 4, 'name': 'Yale'}],
     ])
 
+  def test_record_methods_match_record(self):
+    self.load_sample(testsamples.sample_students)
+
+    expected = [
+      [1, {'address': RecordStub('Address', 11), 'id': 1, 'name': 'Columbia'}],
+      [2, {'address': RecordStub('Address', 12), 'id': 2, 'name': 'Columbia'}],
+      [3, {'address': RecordStub('Address', 13), 'id': 3, 'name': 'Yale'}],
+      [4, {'address': RecordStub('Address', 14), 'id': 4, 'name': 'Yale'}],
+    ]
+
+    self.add_column("Schools", "Foo", formula='rec._asdict()')
+    self.assertPartialData("Schools", ["id", "Foo"], expected)
+
+    self.modify_column("Schools", "Foo", formula='RECORD(rec)')
+    self.assertPartialData("Schools", ["id", "Foo"], expected)
+
+    self.modify_column("Schools", "Foo", formula='rec.to_dict()')
+    self.assertPartialData("Schools", ["id", "Foo"], expected)
+
+    # Ensure updates continue to work through method-based conversion
+    self.update_record("Schools", 3, name="UConn")
+    self.assertPartialData("Schools", ["id", "Foo"], [
+      [1, {'address': RecordStub('Address', 11), 'id': 1, 'name': 'Columbia'}],
+      [2, {'address': RecordStub('Address', 12), 'id': 2, 'name': 'Columbia'}],
+      [3, {'address': RecordStub('Address', 13), 'id': 3, 'name': 'UConn'}],
+      [4, {'address': RecordStub('Address', 14), 'id': 4, 'name': 'Yale'}],
+    ])
+
+    self.add_column("Schools", "Bar", formula='len($name)')
+    self.assertPartialData("Schools", ["id", "Foo"], [
+      [1, {'address': RecordStub('Address', 11), 'Bar': 8, 'id': 1, 'name': 'Columbia'}],
+      [2, {'address': RecordStub('Address', 12), 'Bar': 8, 'id': 2, 'name': 'Columbia'}],
+      [3, {'address': RecordStub('Address', 13), 'Bar': 5, 'id': 3, 'name': 'UConn'}],
+      [4, {'address': RecordStub('Address', 14), 'Bar': 4, 'id': 4, 'name': 'Yale'}],
+    ])
+
+  def test_record_methods_match_record_options(self):
+    self.load_sample(testsamples.sample_students)
+    self.add_column("Schools", "Foo", formula='rec._asdict(expand_refs=1)')
+    self.add_column("Address", "student", type="Ref:Students")
+    self.update_record("Address", 12, student=6)
+
+    expected_expand_refs = [
+      [1, {'address': {'city': 'New York', 'id': 11, 'student': RecordStub("Students", 0)},
+        'id': 1, 'name': 'Columbia'}],
+      [2, {'address': {'city': 'Colombia', 'id': 12, 'student': RecordStub("Students", 6)},
+        'id': 2, 'name': 'Columbia'}],
+      [3, {'address': {'city': 'New Haven', 'id': 13, 'student': RecordStub("Students", 0)},
+        'id': 3, 'name': 'Yale'}],
+      [4, {'address': {'city': 'West Haven', 'id': 14, 'student': RecordStub("Students", 0)},
+        'id': 4, 'name': 'Yale'}],
+    ]
+
+    self.assertPartialData("Schools", ["id", "Foo"], expected_expand_refs)
+    self.modify_column("Schools", "Foo", formula='RECORD(rec, expand_refs=1)')
+    self.assertPartialData("Schools", ["id", "Foo"], expected_expand_refs)
+    self.modify_column("Schools", "Foo", formula='rec.to_dict(expand_refs=1)')
+    self.assertPartialData("Schools", ["id", "Foo"], expected_expand_refs)
+
+    self.add_column("Address", "DT", type='DateTime')
+    self.add_column("Address", "D", type='Date', formula="$DT and $DT.date()")
+    self.update_records("Address", ['id', 'DT'], [
+      [11, 1600000000],
+      [13, 1500000000],
+    ])
+
+    d1 = datetime.datetime(2020, 9, 13, 8, 26, 40, tzinfo=moment.tzinfo('America/New_York'))
+    d2 = datetime.datetime(2017, 7, 13, 22, 40, tzinfo=moment.tzinfo('America/New_York'))
+    expected_iso_dates = [
+      [1, {'address': {'city': 'New York', 'DT': d1.isoformat(), 'id': 11,
+                       'D': d1.date().isoformat(), 'student': RecordStub("Students", 0)},
+           'id': 1, 'name': 'Columbia'}],
+      [2, {'address': {'city': 'Colombia', 'DT': None, 'id': 12, 'D': None,
+                       'student': RecordStub("Students", 6)},
+           'id': 2, 'name': 'Columbia'}],
+      [3, {'address': {'city': 'New Haven', 'DT': d2.isoformat(), 'id': 13,
+                       'D': d2.date().isoformat(), 'student': RecordStub("Students", 0)},
+           'id': 3, 'name': 'Yale'}],
+      [4, {'address': {'city': 'West Haven', 'DT': None, 'id': 14, 'D': None,
+                       'student': RecordStub("Students", 0)},
+           'id': 4, 'name': 'Yale'}],
+    ]
+
+    self.modify_column("Schools", "Foo", formula='rec._asdict(expand_refs=1, dates_as_iso=True)')
+    self.assertPartialData("Schools", ["id", "Foo"], expected_iso_dates)
+    self.modify_column("Schools", "Foo", formula='RECORD(rec, expand_refs=1, dates_as_iso=True)')
+    self.assertPartialData("Schools", ["id", "Foo"], expected_iso_dates)
+    self.modify_column("Schools", "Foo", formula='rec.to_dict(expand_refs=1, dates_as_iso=True)')
+    self.assertPartialData("Schools", ["id", "Foo"], expected_iso_dates)
+
   def test_reference(self):
     self.load_sample(testsamples.sample_students)
     self.add_column("Schools", "Foo", formula='RECORD($address)')
