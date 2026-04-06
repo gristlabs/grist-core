@@ -61,7 +61,7 @@ describe("Search2", async function() {
     await gu.getSection("CITY Card List").click();
     await gu.toggleSidePanel("right", "open");
     await driver.findContent(".test-right-panel button", /Change widget/).click();
-    await driver.find(".test-wselect-selectby").doClick();
+    await driver.findWait(".test-wselect-selectby", 1000).doClick();
     await driver.findContent(".test-wselect-selectby option", /CITY/).doClick();
     await driver.find(".test-wselect-addBtn").doClick();
     await gu.waitForServer();
