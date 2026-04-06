@@ -457,11 +457,14 @@ describe("AccessRules2", function() {
       ["RenameColumn", "ACCESS2", "SharedOnly", "ONLY_SHARED"],
     ]);
     await gu.waitForServer();
+    // The renames trigger _onChange → update() which makes a fresh getAclResources()
+    // call. waitForServer() only covers the original API call, not the cascading one.
+    // Wait for the UI to reflect the rename before checking assertions.
+    await driver.findContentWait(".test-rule-table-header", /CLIENT LIST/, 2000);
 
     // Rules should auto-update.
     assert.deepEqual(await driver.findAll(".test-rule-userattr .test-select-open", el => el.getText()),
       ["ACCESS2", "EMAIL_ADDR"]);
-    assert.match(await driver.find(".test-rule-table-header").getText(), / CLIENT LIST/);
     assert.lengthOf(await driver.findAll(".test-rule-set"), 2);
     assert.deepEqual(await driver.find(".test-rule-set").findAll(".test-rule-acl-formula", getRuleText),
       ["not user.MyAccess.ONLY_SHARED or rec.PUBLIC or newRec.PUBLIC", "Everyone Else"]);
@@ -501,11 +504,11 @@ describe("AccessRules2", function() {
     ]);
     await gu.waitForServer();
 
-    // Check results; it should be what we started with.
-    await gu.waitToPass(async () =>
-      assert.deepEqual(await driver.findAll(".test-rule-userattr .test-select-open", el => el.getText()),
-        ["Access", "Email"]));
-    assert.match(await driver.find(".test-rule-table-header").getText(), / ClientsTable$/);
+    // Check results; it should be what we started with. Wait for the UI to
+    // reflect the renames (update() makes a fresh getAclResources() call).
+    await driver.findContentWait(".test-rule-table-header", /ClientsTable$/, 2000);
+    assert.deepEqual(await driver.findAll(".test-rule-userattr .test-select-open", el => el.getText()),
+      ["Access", "Email"]);
     assert.lengthOf(await driver.findAll(".test-rule-set"), 2);
     assert.deepEqual(await driver.find(".test-rule-set").findAll(".test-rule-acl-formula", getRuleText),
       ["not user.MyAccess.SharedOnly or rec.Shared or newRec.Shared", "Everyone Else"]);
