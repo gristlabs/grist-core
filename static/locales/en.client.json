@@ -1141,6 +1141,9 @@
         "this document": "this document",
         "your email": "your email",
         "You will no longer receive email notifications about {{suggestions}} in {{docName}} at {{email}}.": "You will no longer receive email notifications about {{suggestions}} in {{docName}} at {{email}}.",
+        "You will no longer receive email notifications about {{automations}} in {{docName}} at {{email}}.": "You will no longer receive email notifications about {{automations}} in {{docName}} at {{email}}.",
+        "You have been unsubscribed from automation notifications for {{docName}}. You can update your preferences anytime in the document settings.": "You have been unsubscribed from automation notifications for {{docName}}. You can update your preferences anytime in the document settings.",
+        "automations": "automations",
         "suggestions": "suggestions"
     },
     "menus": {
