@@ -134,15 +134,16 @@ export function getRequestProfile(req: Request | IncomingMessage,
 }
 
 function setRequestUser(mreq: RequestWithLogin, dbManager: HomeDBAuth, user: User) {
-  console.log("🔥 user", mreq.session?.users);
   mreq.user = user;
   mreq.userId = user.id;
   mreq.userIsAuthorized = (user.id !== dbManager.getAnonymousUserId());
   const fullUser = dbManager.makeFullUser(user);
 
-  // FIXME: make a comment
-  if (!mreq.session?.users && Number.isInteger(mreq.session?.cookie?.maxAge)) {
-    delete mreq.session.cookie.maxAge;
+  const { originalMaxAge, maxAge } = mreq.session.cookie;
+  // FIXME: If the user got authenticated and the
+  if (mreq.userIsAuthorized && COOKIE_MAX_AGE !== null && originalMaxAge && originalMaxAge < COOKIE_MAX_AGE) {
+    mreq.session.cookie.originalMaxAge = COOKIE_MAX_AGE;
+    mreq.session.cookie.expires = new Date(Date.now() + COOKIE_MAX_AGE - (Math.max(maxAge ?? 0, 0)));
     forceSessionChange(mreq.session);
   }
 
