@@ -521,7 +521,7 @@ async function withTreeviewChange(cb: () => WebElementPromise | Promise<void>) {
     try {
       return (await getItemTexts()) !== before;
     } catch (e) {
-      if (e instanceof Error && e.name === 'StaleElementReferenceError') { return false; }
+      if (e instanceof Error && e.name === "StaleElementReferenceError") { return false; }
       throw e;
     }
   });
