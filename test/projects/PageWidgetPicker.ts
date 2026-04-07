@@ -35,7 +35,7 @@ describe("PageWidgetPicker", () => {
   it("should reflect `.value` on open", async function() {
     // set value option to [`Card List`, 'Companies', ['company_id', 'city']]
     await driver.find(".test-option-value").click();
-    await driver.findContent(".test-wselect-type", /Card List/).click();
+    await driver.findContentWait(".test-wselect-type", /Card List/, 500).click();
     await driver.findContent(".test-wselect-table", /History/).click();
     await driver.findContent(".test-wselect-table", /History/).find(".test-wselect-pivot").click();
     await driver.findContent(".test-wselect-column", /company_id/).doClick();
