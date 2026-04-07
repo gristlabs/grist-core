@@ -49,6 +49,10 @@ async function activateServer(home: FlexServer, docManager: DocManager) {
   serverUrl = home.getOwnUrl();
 }
 
+function countSessions(flexServer: FlexServer = server) {
+  return flexServer.getSessions()["_sessions"].size;
+}
+
 const chimpy = configForUser("Chimpy");
 const charon = configForUser("Charon");
 
@@ -149,6 +153,14 @@ describe("Authorizer", function() {
   it("viewer cannot access document from wrong org", async function() {
     const resp = await axios.get(`${serverUrl}/o/nasa/doc/sampledocid_6`, chimpy);
     assert.equal(resp.status, 404);
+  });
+
+  it("does not generate sessions when calling the API with an authorization header", async function() {
+    const nbSessionsBefore = countSessions();
+    const resp = await axios.get(`${serverUrl}/o/pr`, chimpy);
+    const nbSessionsAfter = countSessions();
+    assert.equal(resp.status, 200);
+    assert.equal(nbSessionsAfter, nbSessionsBefore, "No new session should have been created during the API call");
   });
 
   it("websocket allows openDoc for viewer", async function() {
