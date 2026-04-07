@@ -133,19 +133,26 @@ export function getRequestProfile(req: Request | IncomingMessage,
   return profile;
 }
 
+/**
+ * Expand the user session lifetime if they're just got logged in (as the anonymous session lifetime is shorter).
+ * Therefore it reflect the value set in COOKIE_MAX_AGE.
+ */
+function expandUserSessionIfNewlyLoggedIn(mreq: RequestWithLogin) {
+  const { originalMaxAge, maxAge } = mreq.session.cookie;
+  if (mreq.userIsAuthorized && COOKIE_MAX_AGE !== null && originalMaxAge && originalMaxAge < COOKIE_MAX_AGE) {
+    mreq.session.cookie.originalMaxAge = COOKIE_MAX_AGE;
+    mreq.session.cookie.expires = new Date(Date.now() + COOKIE_MAX_AGE + maxAge - originalMaxAge);
+    forceSessionChange(mreq.session);
+  }
+}
+
 function setRequestUser(mreq: RequestWithLogin, dbManager: HomeDBAuth, user: User) {
   mreq.user = user;
   mreq.userId = user.id;
   mreq.userIsAuthorized = (user.id !== dbManager.getAnonymousUserId());
   const fullUser = dbManager.makeFullUser(user);
 
-  const { originalMaxAge, maxAge } = mreq.session.cookie;
-  // FIXME: If the user got authenticated and the
-  if (mreq.userIsAuthorized && COOKIE_MAX_AGE !== null && originalMaxAge && originalMaxAge < COOKIE_MAX_AGE) {
-    mreq.session.cookie.originalMaxAge = COOKIE_MAX_AGE;
-    mreq.session.cookie.expires = new Date(Date.now() + COOKIE_MAX_AGE - (Math.max(maxAge ?? 0, 0)));
-    forceSessionChange(mreq.session);
-  }
+  expandUserSessionIfNewlyLoggedIn(mreq);
 
   // This is dumb, but historically, we used 'email' field inconsistently; in this Authorizer
   // flow, it was set to the normalized email, rather than the display email. The difference is

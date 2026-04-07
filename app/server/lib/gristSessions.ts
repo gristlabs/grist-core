@@ -6,6 +6,7 @@ import log from "app/server/lib/log";
 import { fromCallback } from "app/server/lib/serverUtils";
 import { Sessions } from "app/server/lib/Sessions";
 
+import assert from "assert";
 import * as crypto from "crypto";
 import * as path from "path";
 
@@ -32,6 +33,10 @@ export const COOKIE_MAX_AGE_ANONYMOUS = parseMaxAge(
   process.env.COOKIE_MAX_AGE_ANONYMOUS,
   5 * 60 * 1000,
 );
+
+assert.ok((COOKIE_MAX_AGE_ANONYMOUS ?? Infinity) <= (COOKIE_MAX_AGE ?? Infinity),
+  "COOKIE_MAX_AGE_ANONYMOUS cannot be greater than COOKIE_MAX_AGE as anonymous session " +
+  "cannot live longer than regular sessions");
 
 // RedisStore and SqliteStore are expected to provide a set/get interface for sessions.
 export interface SessionStore {
