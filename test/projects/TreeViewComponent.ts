@@ -515,5 +515,14 @@ async function withTreeviewChange(cb: () => WebElementPromise | Promise<void>) {
     (await driver.findAll(".test-treeview-itemHeaderWrapper", e => e.getText())).join(",");
   const before = await getItemTexts();
   await cb();
-  await driver.wait(async () => (await getItemTexts()) !== before);
+  // If the DOM is rebuilt mid-query, findAll returns elements that become stale
+  // before getText() runs. Retry on StaleElementReferenceError.
+  await driver.wait(async () => {
+    try {
+      return (await getItemTexts()) !== before;
+    } catch (e) {
+      if (e instanceof Error && e.name === 'StaleElementReferenceError') { return false; }
+      throw e;
+    }
+  });
 }
