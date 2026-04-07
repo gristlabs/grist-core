@@ -43,6 +43,7 @@ export interface RequestWithLogin extends Request {
   specialPermit?: Permit;
   accessToken?: AccessTokenInfo;
   altSessionId?: string;   // a session id for use in trigger formulas and granular access rules
+  isApiKeyAuth?: boolean;  // Whether the request was authenticated via API key.
   activation?: ActivationState;
 }
 
@@ -156,6 +157,288 @@ function setRequestUser(mreq: RequestWithLogin, dbManager: HomeDBAuth, user: Use
 }
 
 /**
+ * Validate an API key from a request's Authorization header.
+ * Returns the authenticated User if a valid "Bearer <key>" is found.
+ * Returns undefined if no Authorization header or not a Bearer token (caller should try other auth).
+ * Throws ApiError if credentials are present but invalid (bad key, expired service account, etc).
+ *
+ * Used by both the REST API middleware (addRequestUser) and the WebSocket connection handler (Comm).
+ */
+export async function getApiKeyUser(
+  req: IncomingMessage,
+  dbManager: HomeDBAuth,
+): Promise<User | undefined> {
+  if (!req.headers?.authorization) {
+    return undefined;
+  }
+  // header needs to be of form "Bearer XXXXXXXXX" to apply
+  const parts = String(req.headers.authorization).split(" ");
+  if (parts[0] !== "Bearer") {
+    throw new ApiError("Bad request: unsupported Authorization scheme, expected 'Bearer'", 401);
+  }
+  const user = parts[1] ? await dbManager.getUserByKey(parts[1]) : undefined;
+  if (!user) {
+    throw new ApiError("Bad request: invalid API key", 401);
+  }
+  if (user.type === "service") {
+    const serviceAccount = (await dbManager.getServiceAccountByLoginWithOwner(user.loginEmail!))!;
+    if (serviceAccount.owner.disabledAt) {
+      throw new ApiError("Owner account is disabled", 403);
+    }
+    if (!serviceAccount.isActive()) {
+      throw new ApiError("Service Account has expired", 401);
+    }
+  }
+  // We forbid the anonymous user from presenting an API key. That saves us
+  // having to think through the consequences of authorized access to the
+  // anonymous user's profile via the API (e.g. how should the API key be managed).
+  if (user.id === dbManager.getAnonymousUserId()) {
+    throw new ApiError("Credentials cannot be presented for the anonymous user account via API key", 401);
+  }
+  return user;
+}
+
+/**
+ * Resolve a User from a session profile.
+ * Returns the matching User if the profile has an email, or the anonymous user otherwise.
+ */
+async function getUserFromProfile(
+  dbManager: HomeDBAuth,
+  profile: UserProfile | null,
+  userOptions?: UserOptions,
+): Promise<User> {
+  if (!profile?.email) {
+    return dbManager.getAnonymousUser();
+  }
+  return await dbManager.getUserByLoginWithRetry(profile.email, { profile, userOptions });
+}
+
+/**
+ * Result of resolving a user's identity from a request.
+ * Used by both REST (addRequestUser) and WebSocket (Comm) auth paths.
+ */
+export interface IdentityResult {
+  user: User;                    // The resolved user (or anonymous)
+  accessToken?: AccessTokenInfo; // Set if ?auth token was used
+  specialPermit?: Permit;        // Set if permit header was used
+  hasApiKey: boolean;            // Whether API key was used (for telemetry)
+  // True when the user presented explicit credentials (API key, boot key, permit,
+  // access token). False for ambient browser-based auth (session cookie, forward-auth
+  // header) and anonymous. Used by REST middleware for CSRF protection: mutating
+  // requests without explicit credentials must include a CORS-triggering header
+  // (X-Requested-With or Content-Type: application/json) to guard against
+  // cross-site form submissions that the browser would send with session cookies.
+  explicitAuth: boolean;
+}
+
+/**
+ * Shared auth resolution for both REST and WebSocket paths.
+ * Priority: access token, API key, boot key, permit, override profile,
+ * session profile, anonymous fallback.
+ *
+ * Each method either succeeds (returns immediately) or fails (throws).
+ * Once a method claims the request, later methods are not consulted.
+ *
+ * Throws ApiError on auth failures (bad key, invalid permit, etc.).
+ * Does NOT check user.disabledAt — callers handle that with their own policies.
+ */
+export async function resolveIdentity(
+  req: IncomingMessage,
+  dbManager: HomeDBAuth,
+  options: {
+    gristServer: GristServer;
+    permitStore: IPermitStore;
+    overrideProfile?: (req: IncomingMessage) => Promise<UserProfile | null | undefined>;
+    getSessionProfile?: () => Promise<{
+      profile: UserProfile | null;
+      userOptions?: UserOptions;
+    }>;
+  },
+): Promise<IdentityResult> {
+  // Access token via ?auth query parameter.
+  const url = new URL(req.url!, "http://localhost");
+  const auth = url.searchParams.get("auth");
+  if (auth) {
+    const tokens = options.gristServer.getAccessTokens();
+    const accessToken = await tokens.verify(auth);
+    // Access tokens don't set a userId, so CSRF protection still applies
+    // (explicitAuth: false). In practice these are GET requests for
+    // attachments, but we keep the check for safety.
+    return {
+      user: dbManager.getAnonymousUser(),
+      accessToken,
+      hasApiKey: false,
+      explicitAuth: false,
+    };
+  }
+
+  // API key (Bearer header).
+  const apiKeyUser = await getApiKeyUser(req, dbManager);
+  if (apiKeyUser) {
+    return { user: apiKeyUser, hasApiKey: true, explicitAuth: true };
+  }
+
+  // Boot key (x-boot-key header).
+  if (req.headers?.["x-boot-key"]) {
+    const reqBootKey = String(req.headers["x-boot-key"]);
+    const bootKey = getBootKey();
+    if (bootKey?.value !== reqBootKey) {
+      throw new ApiError("Bad request: invalid Boot key", 401);
+    }
+    const admin = options.gristServer.getInstallAdmin();
+    const user = await admin.getAdminUser();
+    if (!user) {
+      throw new ApiError("No admin user available", 500);
+    }
+    return { user, hasApiKey: false, explicitAuth: true };
+  }
+
+  // Special permission header for internal housekeeping tasks.
+  if (req.headers?.permit) {
+    const permitKey = String(req.headers.permit);
+    let permit: Permit | null;
+    try {
+      permit = await options.permitStore.getPermit(permitKey);
+    } catch (err) {
+      log.error(`problem reading permit: ${err}`);
+      throw new ApiError("Bad request: permit could not be read", 401);
+    }
+    if (!permit) {
+      throw new ApiError("Bad request: unknown permit", 401);
+    }
+    return {
+      user: dbManager.getAnonymousUser(),
+      specialPermit: permit,
+      hasApiKey: false,
+      explicitAuth: true,
+    };
+  }
+
+  // Override profile (e.g. forward-auth header).
+  if (options.overrideProfile) {
+    const candidateProfile = await options.overrideProfile(req);
+    if (candidateProfile !== undefined) {
+      if (candidateProfile) {
+        const user = await getUserFromProfile(dbManager, candidateProfile);
+        return { user, hasApiKey: false, explicitAuth: false };
+      }
+      // null means explicitly anonymous, skip session.
+      return { user: dbManager.getAnonymousUser(), hasApiKey: false, explicitAuth: false };
+    }
+  }
+
+  // Session profile.
+  if (options.getSessionProfile) {
+    const { profile, userOptions } = await options.getSessionProfile();
+    if (profile) {
+      const user = await getUserFromProfile(dbManager, profile, userOptions);
+      return { user, hasApiKey: false, explicitAuth: false };
+    }
+  }
+
+  // Anonymous fallback.
+  return { user: dbManager.getAnonymousUser(), hasApiKey: false, explicitAuth: false };
+}
+
+/**
+ * Extract a session profile from the Express session for the current request.
+ * Handles custom-domain sessionID validation, profile-to-org linking,
+ * and cookie maxAge bookkeeping.
+ *
+ * Side effects: sets mreq.users and may mutate session state (cookie maxAge, orgToUser).
+ * Returns `{ profile, userOptions, customHostSession }`.
+ * Throws ApiError on session-hijack detection.
+ */
+async function getExpressSessionProfile(
+  mreq: RequestWithLogin,
+  dbManager: HomeDBAuth,
+): Promise<{
+  profile: UserProfile | null;
+  userOptions?: UserOptions;
+  customHostSession: string;
+}> {
+  let customHostSession = "";
+  const session = mreq.session;
+  if (!(session?.users && session.users.length > 0 && mreq.org !== undefined)) {
+    return { profile: null, customHostSession };
+  }
+
+  // Prevent using custom-domain sessionID to authorize to a different domain, since
+  // custom-domain owner could hijack such sessions.
+  const allowedOrg = getAllowedOrgForSessionID(mreq.sessionID);
+  if (allowedOrg) {
+    if (allowHost(mreq, allowedOrg.host)) {
+      customHostSession = ` custom-host-match ${allowedOrg.host}`;
+    } else {
+      // We need an exception for internal forwarding from home server to doc-workers. These use
+      // internal hostnames, so we can't expect a custom domain. These requests do include an
+      // Organization header, which we'll use to grant the exception, but security issues remain.
+      // TODO Issue 1: an attacker can use a custom-domain request to get an API key, which is an
+      // open door to all orgs accessible by this user.
+      // TODO Issue 2: Organization header is easy for an attacker (who has stolen a session
+      // cookie) to include too; it does nothing to prove that the request is internal.
+      const org = mreq.header("organization");
+      if (org && org === allowedOrg.org) {
+        customHostSession = ` custom-host-fwd ${org}`;
+      } else {
+        // Log error and fail.
+        log.warn("Auth[%s]: sessionID for host %s org %s; wrong for host %s org %s", mreq.method,
+          allowedOrg.host, allowedOrg.org, mreq.get("host"), mreq.org);
+        throw new ApiError("Bad request: invalid session ID", 403);
+      }
+    }
+  }
+
+  mreq.users = getSessionProfiles(session);
+
+  // If we haven't set a maxAge yet, set it now.
+  if (session?.cookie && !session.cookie.maxAge) {
+    if (COOKIE_MAX_AGE !== null) {
+      session.cookie.maxAge = COOKIE_MAX_AGE;
+      forceSessionChange(session);
+    }
+  }
+
+  // See if we have a profile linked with the active organization already.
+  // TODO: implement userSelector for rest API, to allow "sticky" user selection on pages.
+  let sessionUser: SessionUserObj | null = getSessionUser(session, mreq.org,
+    optStringParam(mreq.query.user, "user") || "");
+
+  if (!sessionUser) {
+    // No profile linked yet, so let's elect one.
+    // Choose a profile that is no worse than the others available.
+    const option = await dbManager.getBestUserForOrg(mreq.users, mreq.org);
+    if (option) {
+      // Modify request session object to link the current org with our choice of
+      // profile.  Express-session will save this change.
+      sessionUser = linkOrgWithEmail(session, option.email, mreq.org);
+    } else {
+      // No profile has access to this org.  We could choose to
+      // link no profile, in which case user will end up
+      // immediately presented with a sign-in page, or choose to
+      // link an arbitrary profile (say, the first one the user
+      // logged in as), in which case user will end up with a
+      // friendlier page explaining the situation and offering to
+      // add an account to resolve it.  We go ahead and pick an
+      // arbitrary profile.
+      sessionUser = session.users[0];
+      if (!session.orgToUser) { throw new Error("Session misconfigured"); }
+      // Express-session will save this change.
+      session.orgToUser[mreq.org] = 0;
+    }
+  }
+
+  const profile = sessionUser?.profile ?? null;
+  const userOptions: UserOptions = {};
+  if (profile?.loginMethod === "Email + Password") {
+    // Link the session authSubject, if present, to the user. This has no effect
+    // if the user already has an authSubject set in the db.
+    userOptions.authSubject = sessionUser?.authSubject;
+  }
+  return { profile, userOptions, customHostSession };
+}
+
+/**
  * Returns the express request object with user information added, if it can be
  * found based on passed in headers or the session.  Specifically, sets:
  *   - req.userId: the id of the user in the database users table
@@ -175,109 +458,64 @@ export async function addRequestUser(
 ) {
   const mreq = req as RequestWithLogin;
 
-  let profile: UserProfile | undefined;
-
-  // We support multiple method of authentication. This flag gets set once
-  // we need not try any more. Specifically, it is used to avoid processing
-  // anything else after setting an access token, for simplicity in reasoning
-  // about this case.
-  let authDone: boolean = false;
-
-  // This function may be called multiple times with the request (e.g. by the setup gate and
-  // the user ID middleware). Skip authentication if we've already associated a user with
-  // the request.
+  // This function may be called multiple times for the same request (e.g. by the setup gate
+  // and then again by the user ID middleware). Skip if we've already resolved the identity.
   if (mreq.userId !== undefined) {
-    authDone = true;
+    return next();
   }
 
-  let logApiTelemetry: boolean = false;
+  // A bit of extra info we'll add to the "Auth" log message when this request passes the check
+  // for custom-host-specific sessionID.
+  let customHostSession = "";
 
-  // Support providing an access token via an `auth` query parameter.
-  // This is useful for letting the browser load assets like image
-  // attachments.
-  const auth = optStringParam(mreq.query.auth, "auth");
-  if (!authDone && auth) {
-    const tokens = options.gristServer.getAccessTokens();
-    const token = await tokens.verify(auth);
-    mreq.accessToken = token;
-    // Once an accessToken is supplied, we don't consider anything else.
-    // User is treated as anonymous apart from having an accessToken.
-    authDone = true;
-  }
+  const skipSession = options.skipSession;
 
-  // Now, check for an apiKey
-  if (!authDone && mreq.headers?.authorization) {
-    // header needs to be of form "Bearer XXXXXXXXX" to apply
-    const parts = String(mreq.headers.authorization).split(" ");
-    if (parts[0] === "Bearer") {
-      const user = parts[1] ? await dbManager.getUserByKey(parts[1]) : undefined;
-      if (!user) {
-        return res.status(401).send("Bad request: invalid API key");
-      }
-      if (user.type === "service") {
-        const serviceAccount = (await dbManager.getServiceAccountByLoginWithOwner(user.loginEmail!))!;
-        if (serviceAccount.owner.disabledAt) {
-          return res.status(403).send("Owner account is disabled");
-        }
-        if (!serviceAccount.isActive()) {
-          return res.status(401).send("Service Account has expired");
-        }
-      }
-      if (user.id === dbManager.getAnonymousUserId()) {
-        // We forbid the anonymous user to present an api key.  That saves us
-        // having to think through the consequences of authorized access to the
-        // anonymous user's profile via the api (e.g. how should the api key be managed).
-        return res.status(401).send("Credentials cannot be presented for the anonymous user account via API key");
-      }
-      setRequestUser(mreq, dbManager, user);
-      logApiTelemetry = true;
-      authDone = true;
+  // Resolve the user identity. Errors (invalid API key, expired token, etc.)
+  // propagate to Express's JSON error handler via expressWrap.
+  const identity = await resolveIdentity(mreq, dbManager, {
+    gristServer: options.gristServer,
+    permitStore,
+    overrideProfile: options.overrideProfile,
+    getSessionProfile: skipSession ? undefined : async () => {
+      const { customHostSession: chs, ...sessionResult } = await getExpressSessionProfile(mreq, dbManager);
+      customHostSession = chs;
+      return sessionResult;
+    },
+  });
+
+  // Initialize altSessionId from the session. The original code guarded this with
+  // `!authDone && !skipSession`, which excluded access-token and boot-key paths.
+  // We now use just `!skipSession`, which is slightly broader: access-token and
+  // boot-key requests will also get an altSessionId. This is harmless because
+  // access-token requests are GETs for attachments (no trigger formulas) and
+  // boot-key requests are admin-only. The alternative — threading authDone through
+  // the IdentityResult — would complicate the interface for no practical benefit.
+  if (!skipSession) {
+    const session = mreq.session;
+    if (session && !session.altSessionId) {
+      session.altSessionId = makeId();
+      forceSessionChange(session);
     }
+    mreq.altSessionId = session?.altSessionId;
   }
 
-  // Check if we have a boot key. This is a fallback mechanism for an
-  // administrator to authenticate themselves by demonstrating access
-  // to the environment.
-  if (!authDone && mreq.headers?.["x-boot-key"]) {
-    const reqBootKey = String(mreq.headers["x-boot-key"]);
-    const bootKey = getBootKey();
-    if (bootKey?.value !== reqBootKey) {
-      return res.status(401).send("Bad request: invalid Boot key");
-    }
-    const admin = options.gristServer.getInstallAdmin();
-    const user = await admin.getAdminUser();
-    if (!user) {
-      return res.status(500).send("No admin user available");
-    }
-    setRequestUser(mreq, dbManager, user);
-    authDone = true;
-  }
+  // Set mreq fields from the identity result.
+  setRequestUser(mreq, dbManager, identity.user);
+  if (identity.accessToken) { mreq.accessToken = identity.accessToken; }
+  if (identity.specialPermit) { mreq.specialPermit = identity.specialPermit; }
+  if (identity.hasApiKey) { mreq.isApiKeyAuth = true; }
 
-  // Special permission header for internal housekeeping tasks
-  if (!authDone && mreq.headers?.permit) {
-    const permitKey = String(mreq.headers.permit);
-    try {
-      const permit = await permitStore.getPermit(permitKey);
-      if (!permit) { return res.status(401).send("Bad request: unknown permit"); }
-      setRequestUser(mreq, dbManager, dbManager.getAnonymousUser());
-      mreq.specialPermit = permit;
-    } catch (err) {
-      log.error(`problem reading permit: ${err}`);
-      return res.status(401).send("Bad request: permit could not be read");
-    }
-  }
-
-  // If we haven't already been authenticated, and this is not a GET/HEAD/OPTIONS, then
-  // require a header that would trigger a CORS pre-flight request, either:
+  // When the user was NOT authenticated by explicit credentials (API key, boot key,
+  // permit, or access token), require mutating requests to include a header that would
+  // trigger a CORS pre-flight request. This guards against cross-site form submissions
+  // where the browser would automatically include the session cookie. Accepted headers:
   //   - X-Requested-With: XMLHttpRequest
   //       - https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#use-of-custom-request-headers
   //       - https://markitzeroday.com/x-requested-with/cors/2017/06/29/csrf-mitigation-for-ajax-requests.html
   //   - Content-Type: application/json
   //       - https://www.directdefense.com/csrf-in-the-age-of-json/
-  // This is trivial for legitimate web clients to do, and an obstacle to
-  // nefarious ones.
   if (
-    !mreq.userId &&
+    !identity.explicitAuth &&
     !(mreq.xhr || mreq.get("content-type") === "application/json") &&
     !["GET", "HEAD", "OPTIONS"].includes(mreq.method)
   ) {
@@ -285,134 +523,6 @@ export async function addRequestUser(
       error: "Unauthenticated requests require one of the headers" +
         "'Content-Type: application/json' or 'X-Requested-With: XMLHttpRequest'",
     });
-  }
-
-  // For some configurations, the user profile can be determined from the request.
-  // If this is the case, we won't use session information.
-  let skipSession: boolean = options.skipSession || authDone;
-  if (!authDone && !mreq.userId) {
-    const candidateProfile = await options.overrideProfile?.(mreq);
-    if (candidateProfile !== undefined) {
-      // Either a valid or a null profile tells us that another login system determined the user,
-      // and that we should skip sessions.
-      skipSession = true;
-      if (candidateProfile) {
-        profile = candidateProfile;
-        const user = await dbManager.getUserByLoginWithRetry(profile.email, { profile });
-        if (user) {
-          setRequestUser(mreq, dbManager, user);
-        }
-      }
-    }
-  }
-
-  // A bit of extra info we'll add to the "Auth" log message when this request passes the check
-  // for custom-host-specific sessionID.
-  let customHostSession = "";
-
-  if (!authDone && !skipSession) {
-    // If we haven't selected a user by other means, and have profiles available in the
-    // session, then select a user based on those profiles.
-    const session = mreq.session;
-    if (session && !session.altSessionId) {
-      // Create a default alternative session id for use in documents.
-      session.altSessionId = makeId();
-      forceSessionChange(session);
-    }
-    mreq.altSessionId = session?.altSessionId;
-    if (!mreq.userId && session?.users && session.users.length > 0 &&
-      mreq.org !== undefined) {
-      // Prevent using custom-domain sessionID to authorize to a different domain, since
-      // custom-domain owner could hijack such sessions.
-      const allowedOrg = getAllowedOrgForSessionID(mreq.sessionID);
-      if (allowedOrg) {
-        if (allowHost(req, allowedOrg.host)) {
-          customHostSession = ` custom-host-match ${allowedOrg.host}`;
-        } else {
-          // We need an exception for internal forwarding from home server to doc-workers. These use
-          // internal hostnames, so we can't expect a custom domain. These requests do include an
-          // Organization header, which we'll use to grant the exception, but security issues remain.
-          // TODO Issue 1: an attacker can use a custom-domain request to get an API key, which is an
-          // open door to all orgs accessible by this user.
-          // TODO Issue 2: Organization header is easy for an attacker (who has stolen a session
-          // cookie) to include too; it does nothing to prove that the request is internal.
-          const org = req.header("organization");
-          if (org && org === allowedOrg.org) {
-            customHostSession = ` custom-host-fwd ${org}`;
-          } else {
-            // Log error and fail.
-            log.warn("Auth[%s]: sessionID for host %s org %s; wrong for host %s org %s", mreq.method,
-              allowedOrg.host, allowedOrg.org, mreq.get("host"), mreq.org);
-            return res.status(403).send("Bad request: invalid session ID");
-          }
-        }
-      }
-
-      mreq.users = getSessionProfiles(session);
-
-      // If we haven't set a maxAge yet, set it now.
-      if (session?.cookie && !session.cookie.maxAge) {
-        if (COOKIE_MAX_AGE !== null) {
-          session.cookie.maxAge = COOKIE_MAX_AGE;
-          forceSessionChange(session);
-        }
-      }
-
-      // See if we have a profile linked with the active organization already.
-      // TODO: implement userSelector for rest API, to allow "sticky" user selection on pages.
-      let sessionUser: SessionUserObj | null = getSessionUser(session, mreq.org,
-        optStringParam(mreq.query.user, "user") || "");
-
-      if (!sessionUser) {
-        // No profile linked yet, so let's elect one.
-        // Choose a profile that is no worse than the others available.
-        const option = await dbManager.getBestUserForOrg(mreq.users, mreq.org);
-        if (option) {
-          // Modify request session object to link the current org with our choice of
-          // profile.  Express-session will save this change.
-          sessionUser = linkOrgWithEmail(session, option.email, mreq.org);
-          const userOptions: UserOptions = {};
-          if (sessionUser?.profile?.loginMethod === "Email + Password") {
-            // Link the session authSubject, if present, to the user. This has no effect
-            // if the user already has an authSubject set in the db.
-            userOptions.authSubject = sessionUser.authSubject;
-          }
-          // In this special case of initially linking a profile, we need to look up the user's info.
-          const user = await dbManager.getUserByLogin(option.email, { userOptions });
-          setRequestUser(mreq, dbManager, user);
-        } else {
-          // No profile has access to this org.  We could choose to
-          // link no profile, in which case user will end up
-          // immediately presented with a sign-in page, or choose to
-          // link an arbitrary profile (say, the first one the user
-          // logged in as), in which case user will end up with a
-          // friendlier page explaining the situation and offering to
-          // add an account to resolve it.  We go ahead and pick an
-          // arbitrary profile.
-          sessionUser = session.users[0];
-          if (!session.orgToUser) { throw new Error("Session misconfigured"); }
-          // Express-session will save this change.
-          session.orgToUser[mreq.org] = 0;
-        }
-      }
-
-      profile = sessionUser?.profile ?? undefined;
-
-      // If we haven't computed a userId yet, check for one using an email address in the profile.
-      // A user record will be created automatically for emails we've never seen before.
-      if (profile && !mreq.userId) {
-        const userOptions: UserOptions = {};
-        if (profile?.loginMethod === "Email + Password") {
-          // Link the session authSubject, if present, to the user. This has no effect
-          // if the user already has an authSubject set in the db.
-          userOptions.authSubject = sessionUser.authSubject;
-        }
-        const user = await dbManager.getUserByLoginWithRetry(profile.email, { profile, userOptions });
-        if (user) {
-          setRequestUser(mreq, dbManager, user);
-        }
-      }
-    }
   }
 
   // Disabled users get no rights, not even public pages. Almost
@@ -435,11 +545,6 @@ export async function addRequestUser(
     }
   }
 
-  // If no userId has been found yet fall back on anonymous.
-  if (!mreq.userId) {
-    setRequestUser(mreq, dbManager, dbManager.getAnonymousUser());
-  }
-
   if (mreq.userId) {
     if (mreq.user?.options?.locale) {
       mreq.language = mreq.user.options.locale;
@@ -459,7 +564,7 @@ export async function addRequestUser(
     altSessionId: mreq.altSessionId,
   };
   log.rawDebug(`Auth[${meta.method}]: ${meta.host} ${meta.path}`, meta);
-  if (logApiTelemetry) {
+  if (identity.hasApiKey) {
     options.gristServer.getTelemetry().logEvent(mreq, "apiUsage", {
       full: {
         method: mreq.method,

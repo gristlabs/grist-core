@@ -2596,7 +2596,7 @@ describe("ApiServer", function() {
         const accessOfServiceAccountAfter = await axios.get(`${homeUrl}/api/orgs/${oid}`, serviceAccountReqConfig);
         assert.equal(accessOfServiceAccountAfter.status, 401,
           "Service Account should not be granted access to NASA org");
-        assert.match(accessOfServiceAccountAfter.data, /invalid API key/);
+        assert.match(accessOfServiceAccountAfter.data.error, /invalid API key/);
       });
 
       // outdated service account can't do api calls
@@ -2614,7 +2614,7 @@ describe("ApiServer", function() {
         // The error is checked below in any case.
         const accessToNasa = await axios.get(`${homeUrl}/api/orgs/${oid}`, serviceAccountConfig);
         assert.equal(accessToNasa.status, 401);
-        assert.equal(accessToNasa.data, "Service Account has expired");
+        assert.equal(accessToNasa.data.error, "Service Account has expired");
       });
 
       describe("On owner disabled", function() {

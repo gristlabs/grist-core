@@ -60,6 +60,7 @@ export class OptDocSession extends AuthSession {
   public get userId() { return this._authSession.userId; }
   public get userIsAuthorized() { return this._authSession.userIsAuthorized; }
   public get fullUser() { return this._authSession.fullUser; }
+  public get isApiKeyAuth() { return this._authSession.isApiKeyAuth; }
 
   // Like AuthSession.getLogMeta(), but includes a bit more info when we have a Client.
   public getLogMeta() { return this.client?.getLogMeta() || super.getLogMeta(); }

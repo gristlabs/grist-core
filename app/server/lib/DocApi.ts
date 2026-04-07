@@ -46,7 +46,6 @@ import GristDataTI from "app/plugin/GristData-ti";
 import { OpOptions } from "app/plugin/TableOperations";
 import { TableOperationsImpl, TableOperationsPlatform } from "app/plugin/TableOperationsImpl";
 import { ActiveDoc, getRealTableId } from "app/server/lib/ActiveDoc";
-import { appSettings } from "app/server/lib/AppSettings";
 import { getDocPoolIdFromDocInfo } from "app/server/lib/AttachmentStore";
 import {
   getConfiguredAttachmentStoreConfigs,
@@ -63,6 +62,7 @@ import {
   RequestWithLogin,
 } from "app/server/lib/Authorizer";
 import { DocApiTriggers } from "app/server/lib/DocApiTriggers";
+import { DocApiUsageTracker } from "app/server/lib/DocApiUsageTracker";
 import {
   getErrorPlatform,
   handleSandboxError,
@@ -125,12 +125,6 @@ import * as moment from "moment";
 import fetch from "node-fetch";
 import * as t from "ts-interface-checker";
 
-// This is NOT the number of docs that can be handled at a time.
-// It's a very generous upper bound of what that number might be.
-// If there are more docs than this for which API requests are being regularly made at any moment,
-// then the _dailyUsage cache may become unreliable and users may be able to exceed their allocated requests.
-const MAX_ACTIVE_DOCS_USAGE_CACHE = 1000;
-
 // Schema validators for api endpoints that creates or updates records.
 const {
   RecordsPatch, RecordsPost, RecordsPut,
@@ -146,28 +140,16 @@ for (const checker of [RecordsPatch, RecordsPost, RecordsPut, ColumnsPost, Colum
 }
 
 export class DocWorkerApi {
-  // Map from docId to number of requests currently being handled for that doc
-  private _currentUsage = new Map<string, number>();
-
-  // Map from (docId, time period) combination produced by docPeriodicApiUsageKey
-  // to number of requests previously served for that combination.
-  // We multiply by 5 because there are 5 relevant keys per doc at any time (current/next day/hour and current minute).
-  private _dailyUsage = new LRUCache<string, number>({ max: 5 * MAX_ACTIVE_DOCS_USAGE_CACHE });
-
-  // Cap on the number of requests that can be outstanding on a single
-  // document via the rest doc api. When this limit is exceeded,
-  // incoming requests receive an immediate reply with status 429.
-  private _maxParallelRequestsPerDoc = appSettings.section("docApi").flag("maxParallelRequestsPerDoc")
-    .requireInt({
-      envVar: "GRIST_MAX_PARALLEL_REQUESTS_PER_DOC",
-      defaultValue: 10,
-      minValue: 0,
-    });
+  private _tracker: DocApiUsageTracker;
 
   constructor(private _app: Application, private _docWorker: DocWorker,
     private _docWorkerMap: IDocWorkerMap, private _docManager: DocManager,
     private _dbManager: HomeDBManager, private _attachmentStoreProvider: IAttachmentStoreProvider,
-    private _grist: GristServer) {}
+    private _grist: GristServer, tracker?: DocApiUsageTracker) {
+    this._tracker = tracker ?? new DocApiUsageTracker({
+      getRedisClient: () => this._docWorkerMap.getRedisClient(),
+    });
+  }
 
   /**
    * Adds endpoints for the doc api.
@@ -1777,100 +1759,17 @@ export class DocWorkerApi {
     return async (req, res, next) => {
       const docId = getDocId(req);
       try {
-        const count = this._currentUsage.get(docId) || 0;
-        this._currentUsage.set(docId, count + 1);
-        if (this._maxParallelRequestsPerDoc > 0 && count + 1 > this._maxParallelRequestsPerDoc) {
-          throw new ApiError(`Too many backlogged requests for document ${docId} - ` +
-            `try again later?`, 429);
-        }
-
-        if (await this._checkDailyDocApiUsage(req, docId)) {
-          throw new ApiError(`Exceeded daily limit for document ${docId}`, 429);
-        }
-
+        const doc = (req as RequestWithLogin).docAuth!.cachedDoc!;
+        const dailyMax = doc.workspace.org.billingAccount
+          ?.getEffectiveFeatures().baseMaxApiUnitsPerDocumentPerDay;
+        this._tracker.acquire(docId, dailyMax);
         await callback(req as RequestWithLogin, res, next);
       } catch (err) {
         next(err);
       } finally {
-        const count = this._currentUsage.get(docId);
-        if (count) {
-          if (count === 1) {
-            this._currentUsage.delete(docId);
-          } else {
-            this._currentUsage.set(docId, count - 1);
-          }
-        }
+        this._tracker.release(docId);
       }
     };
-  }
-
-  /**
-   * Usually returns true if too many requests (based on the user's product plan)
-   * have been made today for this document and the request should be rejected.
-   * Access to a document must already have been authorized.
-   * This is called frequently so it uses caches to check quickly in the common case,
-   * which allows a few ways for users to exceed the limit slightly if the timing works out,
-   * but these should be acceptable.
-   */
-  private async _checkDailyDocApiUsage(req: Request, docId: string): Promise<boolean> {
-    // Use the cached doc to avoid a database call.
-    // This leaves a small window (currently 5 seconds) for the user to bypass this limit after downgrading,
-    // or to be wrongly rejected after upgrading.
-    const doc = (req as RequestWithLogin).docAuth!.cachedDoc!;
-
-    const max = doc.workspace.org.billingAccount?.getEffectiveFeatures().baseMaxApiUnitsPerDocumentPerDay;
-    if (!max) {
-      // This doc has no associated product (happens to new unsaved docs)
-      // or the product has no API limit. Allow the request through.
-      return false;
-    }
-
-    // Check the counts in the dailyUsage cache rather than waiting for redis.
-    // The cache will not have counts if this is the first request for this document served by this worker process
-    // or if so many other documents have been served since then that the keys were evicted from the LRU cache.
-    // Both scenarios are temporary and unlikely when usage has been exceeded.
-    // Note that if the limits are exceeded then `keys` below will be undefined,
-    // otherwise it will be an array of three keys corresponding to a day, hour, and minute.
-    const m = moment.utc();
-    const keys = getDocApiUsageKeysToIncr(docId, this._dailyUsage, max, m);
-    if (!keys) {
-      // The limit has been exceeded, reject the request.
-      return true;
-    }
-
-    // If Redis isn't configured, this is as far as we can go with checks.
-    if (!process.env.REDIS_URL) { return false; }
-
-    // Note the increased API usage on redis and in our local cache.
-    // Update redis in the background so that the rest of the request can continue without waiting for redis.
-    const cli = this._docWorkerMap.getRedisClient();
-    if (!cli) { throw new Error("redis unexpectedly not available"); }
-    const multi = cli.multi();
-    for (let i = 0; i < keys.length; i++) {
-      const key = keys[i];
-      // Incrementing the local count immediately prevents many requests from being squeezed through every minute
-      // before counts are received from redis.
-      // But this cache is not 100% reliable and the count from redis may be higher.
-      this._dailyUsage.set(key, (this._dailyUsage.get(key) ?? 0) + 1);
-      const period = docApiUsagePeriods[i];
-      // Expire the key just so that it cleans itself up and saves memory on redis.
-      // Expire after two periods to handle 'next' buckets.
-      const expiry = 2 * 24 * 60 * 60 / period.periodsPerDay;
-      multi.incr(key).expire(key, expiry);
-    }
-    multi.execAsync().then((result) => {
-      for (let i = 0; i < keys.length; i++) {
-        const key = keys[i];
-        const newCount = Number(result![i * 2]);  // incrs are at even positions, expires at odd positions
-        // Theoretically this could be overwritten by a lower count that was requested earlier
-        // but somehow arrived after.
-        // This doesn't really matter, and the count on redis will still increase reliably.
-        this._dailyUsage.set(key, newCount);
-      }
-    }).catch(e => console.error(`Error tracking API usage for doc ${docId}`, e));
-
-    // Allow the request through.
-    return false;
   }
 
   /**
@@ -2348,9 +2247,10 @@ export class DocWorkerApi {
 
 export function addDocApiRoutes(
   app: Application, docWorker: DocWorker, docWorkerMap: IDocWorkerMap, docManager: DocManager, dbManager: HomeDBManager,
-  attachmentStoreProvider: IAttachmentStoreProvider, grist: GristServer,
+  attachmentStoreProvider: IAttachmentStoreProvider, grist: GristServer, tracker?: DocApiUsageTracker,
 ) {
-  const api = new DocWorkerApi(app, docWorker, docWorkerMap, docManager, dbManager, attachmentStoreProvider, grist);
+  const api = new DocWorkerApi(app, docWorker, docWorkerMap, docManager, dbManager, attachmentStoreProvider,
+    grist, tracker);
   api.addEndpoints();
 }
 
