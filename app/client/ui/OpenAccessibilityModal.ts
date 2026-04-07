@@ -156,9 +156,7 @@ const screenReaderSection = (appObs: Observable<AppModel | null>) => {
     dom("p", t("Please first read the \"Keyboard navigation\" section above to understand how to navigate \
 across the interface's regions: specific keyboard shortcuts need to be used.")),
     dom("p", t("We recommend using Firefox, Chrome or Edge in order to use Grist with a screen reader.")),
-    dom("p", t("Navigation in widgets (i.e. tables) is meant to be done with your screen reader's focus mode, or with \
-Quick Nav disabled in VoiceOver. While navigation when positioned in other regions (i.e. panels) can be done in either \
-browse or focus mode, we advise on staying in focus mode.")),
+    dom("p", t("Use your screen reader's focus mode, or disable Quick Nav if you use VoiceOver.")),
     dom("p", t("While not mandatory, you can enable screen reader improvements for a better \
 navigation experience:")),
     dom("p",
