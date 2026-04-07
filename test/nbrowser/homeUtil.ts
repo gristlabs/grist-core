@@ -508,26 +508,30 @@ export class HomeUtil {
   }
 
   /**
-   * Toggle tips on an external server by calling the API via the browser's fetch.
+   * Toggle tips on an external server via the app's own API client.
    * Must be called after login, when the browser is on a Grist page.
    */
   private async _toggleTipsViaAPI(enabled: boolean) {
     const prefs = enabled ? ALL_TIPS_ENABLED : ALL_TIPS_DISABLED;
-    await this.driver.executeScript(`
-      return fetch('/api/orgs', {credentials: 'include'})
-        .then(r => r.json())
+    await this.driver.wait(() => this.driver.executeAsyncScript(`
+      const done = arguments[arguments.length - 1];
+      const app = window.gristApp;
+      if (!app) { done(false); return; }
+      const api = app.topAppModel.api;
+      api.getOrgs()
         .then(orgs => {
           const personalOrg = orgs.find(o => o.owner);
           if (!personalOrg) throw new Error('No personal org found for tips toggle');
-          return fetch('/api/orgs/' + personalOrg.id, {
-            method: 'PATCH',
-            credentials: 'include',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({userPrefs: ${JSON.stringify(prefs)}})
+          return api.updateOrg(personalOrg.id, {
+            userPrefs: {...personalOrg.userPrefs, ...${JSON.stringify(prefs)}}
           });
         })
-        .then(r => { if (!r.ok) throw new Error('Failed to update tips prefs: ' + r.status); });
-    `);
+        .then(() => done(true))
+        .catch(err => done(err.message));
+    `).then((result) => {
+      if (typeof result === "string") { throw new Error(result); }
+      return result;
+    }), 4000);
   }
 
   private async _acceptAlertIfPresent() {
