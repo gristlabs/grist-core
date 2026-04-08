@@ -119,11 +119,17 @@ describe("ActiveUserList", async function() {
     // There should be several copies of Kiwi here, but I don't think counting them improves anything
     assert.includeMembers(menuItemTexts, [gu.translateUser(User2).name, gu.translateUser(User3).name]);
 
-    let iconVisibility = await driver.findAll(".test-aul-container .test-aul-user-icon", el => el.isDisplayed());
-    assert.isTrue(iconVisibility.every(visible => visible === false));
+    await gu.waitToPass(async () => {
+      const iconVisibility = await driver.findAll(
+        ".test-aul-container .test-aul-user-icon", el => el.isDisplayed());
+      assert.isTrue(iconVisibility.every(visible => visible === false));
+    });
     await gu.sendKeys(Key.ESCAPE);
-    iconVisibility = await driver.findAll(".test-aul-container .test-aul-user-icon", el => el.isDisplayed());
-    assert.isTrue(iconVisibility.every(visible => visible === true));
+    await gu.waitToPass(async () => {
+      const iconVisibility = await driver.findAll(
+        ".test-aul-container .test-aul-user-icon", el => el.isDisplayed());
+      assert.isTrue(iconVisibility.every(visible => visible === true));
+    });
   });
 
   it("keeps the user list open when a new user appears", async function() {

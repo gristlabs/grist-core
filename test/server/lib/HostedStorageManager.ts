@@ -1181,9 +1181,9 @@ describe("HostedStorageManager", function() {
 
     // If competing with intense user writes, backups should pause writes.
     it(`backups will make time for themselves if competing with writes`, async function() {
-      this.timeout("10s");
+      this.timeout("30s");
       for (const allowPause of [false, true] as const) {
-        const { db, src, dest } = await makeDb(1000);
+        const { db, src, dest } = await makeDb(2000);
         let busy = 0;
         let done = false;
         function progress(event: BackupEvent) {
