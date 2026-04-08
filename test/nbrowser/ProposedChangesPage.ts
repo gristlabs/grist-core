@@ -1816,6 +1816,46 @@ describe("ProposedChangesPage", function() {
     await returnToTrunk(url);
   });
 
+  it("keeps wrapped row height in suggestion mode after editing the cell", async function() {
+    await makeLifeDoc();
+    const url = await driver.getCurrentUrl();
+
+    // Helper to measure B cell.
+    const getHeight = async () => (await gu.getCell("B", 1).getRect()).height;
+
+    // Remember the normal height of the row.
+    const normalHeight = await getHeight();
+
+    // Add some text and wrap it.
+    const lorem =
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do " +
+      "eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim";
+    await gu.sendActions([
+      ["UpdateRecord", "Life", 1, { B: lorem }],
+    ]);
+    await gu.getCell("B", 1).click();
+    await gu.openColumnPanel();
+    await driver.findWait(".test-tb-wrap-text", 500).click();
+    await gu.waitForServer();
+
+    // Make sure the row is now taller.
+    const wrappedHeight = await getHeight();
+    assert.isAbove(wrappedHeight, normalHeight);
+
+    // Now on suggestions change it to some shorter text, and make sure it stays wrapped.
+    await workOnCopy(url);
+    await gu.getCell("B", 1).click();
+    await gu.waitAppFocus();
+    await gu.enterCell("Foo");
+
+    // Now the row should be at least as tall as before.
+    await gu.waitToPass(async () => {
+      assert.isAtLeast((await gu.getCell("B", 1).getRect()).height, wrappedHeight);
+    }, 2000);
+
+    await returnToTrunk(url);
+  });
+
   async function makeLifeDoc() {
     // Load a test document.
     const session = await gu.session().teamSite.login();
