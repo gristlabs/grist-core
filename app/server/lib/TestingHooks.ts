@@ -104,17 +104,17 @@ export class TestingHooks implements ITestingHooks {
 
   public async commShutdown(): Promise<void> {
     log.info("TestingHooks.commShutdown called");
-    await this._comm.testServerShutdown();
+    await this._comm.shutdown();
     for (const server of this._workerServers) {
-      await server.getComm().testServerShutdown();
+      await server.getComm().shutdown();
     }
   }
 
   public async commRestart(): Promise<void> {
     log.info("TestingHooks.commRestart called");
-    await this._comm.testServerRestart();
+    await this._comm.restart();
     for (const server of this._workerServers) {
-      await server.getComm().testServerRestart();
+      await server.getComm().restart();
     }
   }
 

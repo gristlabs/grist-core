@@ -69,7 +69,8 @@ export function attachEarlyEndpoints(options: AttachOptions) {
     userIdMiddleware,
     expressWrap(async (req, res) => {
       const config: Partial<AdminPageConfig> = {
-        runningUnderSupervisor: isAffirmative(process.env.GRIST_RUNNING_UNDER_SUPERVISOR),
+        runningUnderSupervisor: isAffirmative(process.env.GRIST_RUNNING_UNDER_SUPERVISOR) ||
+          isAffirmative(process.env.GRIST_CAN_RESTART),
         adminControls: gristServer.create.areAdminControlsAvailable(),
       };
       return gristServer.sendAppPage(req, res, {
@@ -110,8 +111,15 @@ export function attachEarlyEndpoints(options: AttachOptions) {
           log.rawDebug(`Restart[${mreq.method}] requesting supervisor to restart home server:`, meta);
           process.send({ action: "restart" });
         }
+        if (process.env.GRIST_CAN_RESTART) {
+          try {
+            gristServer.triggerRestart();
+          } catch (err) {
+            log.error("Restart: triggerRestart failed:", err);
+          }
+        }
       });
-      if (!process.env.GRIST_RUNNING_UNDER_SUPERVISOR) {
+      if (!process.env.GRIST_RUNNING_UNDER_SUPERVISOR && !process.env.GRIST_CAN_RESTART) {
         // On the topic of http response codes, thus spake MDN:
         // "409: This response is sent when a request conflicts with the current state of the server."
         return res.status(409).send({

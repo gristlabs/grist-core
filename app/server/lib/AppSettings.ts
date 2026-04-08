@@ -289,6 +289,17 @@ export class AppSettings {
   }
 
   /**
+   * Clear all cached values, children, and info. Used during in-process
+   * restart so that stale configuration doesn't persist.
+   */
+  public reset(): void {
+    this._value = undefined;
+    this._children = undefined;
+    this._info = undefined;
+    this._envFile = undefined;
+  }
+
+  /**
    * As for describe(), but include all nested settings also.
    * Used dotted notation for setting names. Omit settings that
    * are undefined and without useful information about how they
