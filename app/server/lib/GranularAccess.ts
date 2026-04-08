@@ -460,6 +460,10 @@ export class GranularAccess implements GranularAccessForBundle {
     return this.getReadPermission(pset) !== "deny";
   }
 
+  public getRuleCollection(): ACLRuleCollection {
+    return this._ruler.ruleCollection;
+  }
+
   /**
    * Checks if user has read access to a cell. Optionally takes docData that will be used
    * to retrieve the cell value instead of the current docData.

@@ -117,6 +117,8 @@ export const SqlPost = t.iface([], {
   "sql": "string",
   "args": t.opt(t.union(t.array("any"), "null")),
   "timeout": t.opt("number"),
+  "granular": t.opt("boolean"),
+  "cellFormat": t.opt("string"),
 });
 
 export const SetAttachmentStorePost = t.iface([], {

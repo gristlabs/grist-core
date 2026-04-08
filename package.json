@@ -205,6 +205,7 @@
     "multiparty": "4.2.2",
     "node-abort-controller": "3.0.1",
     "node-fetch": "2.6.7",
+    "node-sql-parser": "5.4.0",
     "openid-client": "5.6.1",
     "p-limit": "7.3.0",
     "pg": "8.6.0",
