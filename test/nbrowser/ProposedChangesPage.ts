@@ -69,8 +69,7 @@ describe("ProposedChangesPage", function() {
     await gu.enterCell("test2");
 
     // Go to the propose-changes page.
-    assert.equal(await driver.find(".test-tools-proposals").getText(),
-      "Suggest changes (1)");
+    await assertProposalsCount(1);
     await driver.find(".test-tools-proposals").click();
 
     // Make sure the expected change is shown.
@@ -286,34 +285,28 @@ describe("ProposedChangesPage", function() {
     await gu.waitAppFocus();
     await gu.enterCell("Bird");
 
-    assert.equal(await driver.find(".test-tools-proposals").getText(),
-      "Suggest changes (1)");
+    await assertProposalsCount(1);
 
     // Make another change.
     await gu.getCell("A", 2).click();
     await gu.waitAppFocus();
     await gu.enterCell("15");
 
-    assert.equal(await driver.find(".test-tools-proposals").getText(),
-      "Suggest changes (2)");
+    await assertProposalsCount(2);
 
     await gu.undo();
-    assert.equal(await driver.find(".test-tools-proposals").getText(),
-      "Suggest changes (1)");
+    await assertProposalsCount(1);
 
     await gu.redo();
-    assert.equal(await driver.find(".test-tools-proposals").getText(),
-      "Suggest changes (2)");
+    await assertProposalsCount(2);
 
     await gu.refreshDismiss({ ignore: true });
-    assert.equal(await driver.find(".test-tools-proposals").getText(),
-      "Suggest changes (2)");
+    await assertProposalsCount(2);
 
     assert.notInclude(await driver.find(".test-undo").getAttribute("class"), "-disable");
 
     await proposeChange();
-    assert.equal(await driver.find(".test-tools-proposals").getText(),
-      "Suggest changes");
+    await assertProposalsCount(0);
 
     assert.include(await driver.find(".test-undo").getAttribute("class"), "-disable");
 
@@ -321,12 +314,10 @@ describe("ProposedChangesPage", function() {
     await gu.getCell("A", 1).click();
     await gu.waitAppFocus();
     await gu.enterCell("13");
-    assert.equal(await driver.find(".test-tools-proposals").getText(),
-      "Suggest changes (1)");
+    await assertProposalsCount(1);
     assert.notInclude(await driver.find(".test-undo").getAttribute("class"), "-disable");
     await proposeChange();
-    assert.equal(await driver.find(".test-tools-proposals").getText(),
-      "Suggest changes");
+    await assertProposalsCount(0);
     assert.include(await driver.find(".test-undo").getAttribute("class"), "-disable");
 
     await driver.findContentWait("span", /original document/, 2000).click();
@@ -340,20 +331,16 @@ describe("ProposedChangesPage", function() {
     await gu.getCell("A", 1).click();
     await gu.waitAppFocus();
     await gu.enterCell("99");
-    assert.equal(await driver.find(".test-tools-proposals").getText(),
-      "Suggest changes (1)");
+    await assertProposalsCount(1);
     await proposeChange();
-    assert.equal(await driver.find(".test-tools-proposals").getText(),
-      "Suggest changes");
+    await assertProposalsCount(0);
     await gu.openPage("Life");
     await gu.getCell("A", 1).click();
     await gu.waitAppFocus();
     await gu.enterCell("999");
-    assert.equal(await driver.find(".test-tools-proposals").getText(),
-      "Suggest changes (1)");
+    await assertProposalsCount(1);
     await proposeChange();
-    assert.equal(await driver.find(".test-tools-proposals").getText(),
-      "Suggest changes");
+    await assertProposalsCount(0);
 
     await returnToTrunk(url);
   });
@@ -414,21 +401,18 @@ describe("ProposedChangesPage", function() {
     // The action count should show exactly 1 change. Without the fix,
     // the count would be wrong because baseAction from the copy (not
     // the fork) would be used.
-    assert.equal(await driver.find(".test-tools-proposals").getText(),
-      "Suggest changes (1)");
+    await assertProposalsCount(1);
 
     // Make a second change and verify count updates.
     await gu.getCell("A", 2).click();
     await gu.waitAppFocus();
     await gu.enterCell("99");
 
-    assert.equal(await driver.find(".test-tools-proposals").getText(),
-      "Suggest changes (2)");
+    await assertProposalsCount(2);
 
     // Undo and verify count goes back down.
     await gu.undo();
-    assert.equal(await driver.find(".test-tools-proposals").getText(),
-      "Suggest changes (1)");
+    await assertProposalsCount(1);
   });
 
   it("shows all rows in suggestion mode, not skip rows with ellipses", async function() {
@@ -488,9 +472,7 @@ describe("ProposedChangesPage", function() {
     await gu.waitAppFocus();
     await gu.enterCell("Deciduous Tree");
 
-    // Check that the count shows 2 changes
-    assert.equal(await driver.find(".test-tools-proposals").getText(),
-      "Suggest changes (2)");
+    await assertProposalsCount(2);
 
     await proposeChange();
 
@@ -565,9 +547,7 @@ describe("ProposedChangesPage", function() {
     await gu.waitAppFocus();
     await gu.enterCell("Desert");
 
-    // Check that the count shows 1 change
-    assert.equal(await driver.find(".test-tools-proposals").getText(),
-      "Suggest changes (1)");
+    await assertProposalsCount(1);
 
     await proposeChange();
 
@@ -632,9 +612,7 @@ describe("ProposedChangesPage", function() {
     await gu.enterCell("Ocean", Key.ENTER, "Desert", Key.ENTER, "Arctic", Key.ENTER, Key.ENTER);
     await gu.waitForServer();
 
-    // Check that the count shows 1 change
-    assert.equal(await driver.find(".test-tools-proposals").getText(),
-      "Suggest changes (1)");
+    await assertProposalsCount(1);
 
     await proposeChange();
 
@@ -701,9 +679,7 @@ describe("ProposedChangesPage", function() {
     await driver.find(".test-ref-editor-new-item").click();
     await gu.waitForServer();
 
-    // Check that the count shows 2 changes.
-    assert.equal(await driver.find(".test-tools-proposals").getText(),
-      "Suggest changes (2)");
+    await assertProposalsCount(2);
 
     await proposeChange();
 
@@ -787,9 +763,7 @@ describe("ProposedChangesPage", function() {
     await driver.sendKeys(Key.ENTER);
     await gu.waitForServer();
 
-    // Check that the count shows 2 changes.
-    assert.equal(await driver.find(".test-tools-proposals").getText(),
-      "Suggest changes (2)");
+    await assertProposalsCount(2);
 
     await proposeChange();
 
@@ -1910,6 +1884,19 @@ describe("ProposedChangesPage", function() {
     await gu.waitForServer();
   }
 });
+
+async function getProposalsCount(): Promise<string> {
+  return driver.find(".test-tools-proposals-count").getAttribute("value");
+}
+
+async function hasChangesDot(): Promise<boolean> {
+  return driver.find(".test-tools-proposals-dot").isPresent();
+}
+
+async function assertProposalsCount(expected: number | "...") {
+  assert.equal(await getProposalsCount(), String(expected));
+  assert.equal(await hasChangesDot(), expected !== 0);
+}
 
 async function getColumns(section: string): Promise<string[]> {
   const title = await driver.findContentWait(".test-viewsection-title", section, 2000);

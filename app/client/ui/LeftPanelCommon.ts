@@ -22,6 +22,7 @@ import { colorIcon, icon } from "app/client/ui2018/icons";
 import { unstyledButton } from "app/client/ui2018/unstyled";
 import { visuallyHidden } from "app/client/ui2018/visuallyHidden";
 import { commonUrls, isFeatureEnabled } from "app/common/gristUrls";
+import { tokens } from "app/common/ThemePrefs";
 import { getGristConfig } from "app/common/urlUtils";
 
 import { dom, DomContents, Observable, styled } from "grainjs";
@@ -318,4 +319,14 @@ export const cssPill = styled("div", `
   font-size: ${vars.smallFontSize};
   background-color: ${colors.orange};
   color: white;
+`);
+
+export const cssChangeDot = styled("span", `
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: ${tokens.warningLight};
+  margin-left: 6px;
+  vertical-align: baseline;
 `);

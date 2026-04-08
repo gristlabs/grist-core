@@ -9,6 +9,7 @@ import { buildExamples } from "app/client/ui/ExampleInfo";
 import {
   createAccessibilityTools,
   createHelpTools,
+  cssChangeDot,
   cssLinkText,
   cssMenuTrigger,
   cssPageButton,
@@ -114,12 +115,17 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
           cssPageEntry.cls("-selected", use => use(gristDoc.activeViewId) === "suggestions"),
           cssPageLink(
             cssPageIcon("MobileChat"),
-            dom.domComputed((use) => {
-              const proposable = use(canMakeProposal);
-              const changes = proposable ? use(docPageModel.proposalNewChangesCount) : 0;
-              const text = proposable ? t("Suggest changes") : t("Suggestions");
-              return cssLinkText(changes ? [text, cssChangeCount(` (${changes})`)] : text);
-            }),
+            cssLinkText(
+              dom.text(use => use(canMakeProposal) ? t("Suggest changes") : t("Suggestions")),
+              dom.maybe(
+                use => use(canMakeProposal) && Boolean(use(docPageModel.proposalNewChangesCount)),
+                () => cssChangeDot(testId("proposals-dot")),
+              ),
+            ),
+            dom.maybe(canMakeProposal, () => dom("input", { type: "hidden" },
+              dom.prop("value", use => String(use(docPageModel.proposalNewChangesCount) ?? 0)),
+              testId("proposals-count"),
+            )),
             testId("proposals"),
             urlState().setLinkUrl({ docPage: "suggestions" }),
           ),
@@ -271,8 +277,4 @@ const cssExampleCardOpener = styled(unstyledButton, `
   .${cssTools.className}-collapsed & {
     display: none;
   }
-`);
-
-const cssChangeCount = styled("span", `
-  font-weight: bold;
 `);

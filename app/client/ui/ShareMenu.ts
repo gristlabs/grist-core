@@ -6,6 +6,7 @@ import { AppModel, reportError } from "app/client/models/AppModel";
 import { DocInfo, DocPageModel } from "app/client/models/DocPageModel";
 import { reportWarning } from "app/client/models/errors";
 import { docUrl, urlState } from "app/client/models/gristUrlState";
+import { cssChangeDot } from "app/client/ui/LeftPanelCommon";
 import {
   downloadAttachmentsModal,
   downloadDocModal,
@@ -81,7 +82,7 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
         return shareButton([
           t("Suggest changes"),
           dom.maybe(pageModel.proposalNewChangesCount,
-            changes => cssChangeCount(` (${changes})`)),
+            () => cssChangeDot(testId("share-button-dot"))),
         ], () => [
           menuManageUsers(doc, pageModel),
           menuSaveCopy({ pageModel, doc, saveActionTitle: t("Save copy") }),
@@ -477,8 +478,4 @@ const cssMenuIconLink = styled("a", `
 
 const cssMenuIcon = styled(icon, `
   display: block;
-`);
-
-const cssChangeCount = styled("span", `
-  font-weight: bold;
 `);
