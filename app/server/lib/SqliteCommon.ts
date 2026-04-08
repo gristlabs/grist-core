@@ -138,28 +138,38 @@ interface GristMarshalIntermediateValue {
 }
 
 /**
+ * Quote a string as a SQL string literal (single quotes, with escaping).
+ */
+export function quoteLiteral(s: string): string {
+  return "'" + s.replace(/'/g, "''") + "'";
+}
+
+/**
  * Run Grist marshalling as a SQLite query, assuming
  * a custom aggregation has been added as "grist_marshal".
  * The marshalled result needs to contain the column
- * identifiers embedded in it. This is a little awkward
- * to organize - hence the hacky UNION here. This is
- * for compatibility with the existing marshalling method,
- * which could be replaced instead.
+ * identifiers embedded in it. The first row of the UNION
+ * embeds column names as single-quoted string literals
+ * (not double-quoted identifiers, which would rely on DQS).
  */
 export async function allMarshalQuery(db: MinDB, sql: string, ...params: any[]): Promise<Buffer> {
   const statement = await db.prepare(sql);
   const columns = statement.columns();
   const quotedColumnList = columns.map(quoteIdent).join(",");
+  const nameExprs = columns.map(
+    (c: string) => quoteLiteral(c) + " AS " + quoteIdent(c)
+  ).join(",");
   const query = await db.all(`select grist_marshal(${quotedColumnList}) as buf FROM ` +
-    `(select ${quotedColumnList} UNION ALL select * from (` + sql + "))", ..._fixParameters(params));
+    `(select ${nameExprs} UNION ALL select * from (` + sql + "))", ...fixParameters(params));
   return query[0].buf;
 }
 
 /**
  * Booleans need to be cast to 1 or 0 for SQLite.
  * The node-sqlite3 wrapper does this automatically, but other
- * wrappers do not.
+ * wrappers do not. Also converts undefined to null for wrappers
+ * that reject undefined (e.g. node:sqlite).
  */
-function _fixParameters(params: any[]) {
-  return params.map(p => p === true ? 1 : (p === false ? 0 : p));
+export function fixParameters(params: any[]) {
+  return params.map(p => p === true ? 1 : (p === false ? 0 : (p === undefined ? null : p)));
 }
