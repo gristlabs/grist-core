@@ -171,7 +171,7 @@ describe("DateRangeFilter", function() {
 
     // check menus still offer 4 days from now
     await fu.openRelativeOptionsMenu("min");
-    assert.equal(await driver.findContent(".grist-floating-menu li", "4 days from now").isPresent(), true);
+    assert.equal(await gu.findOpenMenuItem("li", "4 days from now").isPresent(), true);
     await driver.sendKeys(Key.ESCAPE);
   });
 
@@ -420,7 +420,7 @@ describe("DateRangeFilter", function() {
       // click Last week
       await driver.findContent(".test-filter-menu-presets-links button", "More").click();
       await gu.findOpenMenu();
-      await driver.findContent(".grist-floating-menu li", "Last week").click();
+      await gu.findOpenMenuItem("li", "Last week").click();
 
       // check min bounds shows '1st day of last week'
       assert.equal(await fu.getBoundText("min"), "1st day of last week");

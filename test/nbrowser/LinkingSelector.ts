@@ -116,6 +116,13 @@ describe("LinkingSelector", function() {
     // when it was filtered out, for self-linking.
     await gu.selectSectionByTitle("List");
     await gu.removeFilters();
+    await gu.waitForServer();
+
+    // Make sure all filters are removed and all rows are visible.
+    await gu.waitToPass(async () => {
+      assert.equal(await gu.getCell("Start_Date", 1, "List").getText(), "2018-09-13");
+      assert.equal(await gu.getCell("Start_Date", 2, "List").getText(), "2018-09-14");
+    }, 1000);
 
     // Select first row.
     await gu.getCell("Start_Date", 1).click();

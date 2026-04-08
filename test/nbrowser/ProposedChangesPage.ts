@@ -1765,7 +1765,7 @@ describe("ProposedChangesPage", function() {
     // Right-click on it and select Delete.
     try {
       await gu.openRowMenu(1);
-      const deleteItem = await driver.findContent(".grist-floating-menu li", /Delete/);
+      const deleteItem = await gu.findOpenMenuItem("li", /Delete/);
       await deleteItem.click();
       await gu.confirm();
       await gu.waitForServer();

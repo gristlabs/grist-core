@@ -330,7 +330,7 @@ describe("SortFilterSectionOptions", function() {
 
     // Filter this column and apply.
     await gu.openColumnMenu("Name", "Filter");
-    await driver.findContent(".test-filter-menu-wrapper .test-filter-menu-value", /Apples/).click();
+    await driver.findContentWait(".test-filter-menu-wrapper .test-filter-menu-value", /Apples/, 200).click();
     await driver.find(".test-filter-menu-apply-btn").click();
 
     // The section-filter button should highlight, and menu should show the filtered column.
@@ -347,7 +347,7 @@ describe("SortFilterSectionOptions", function() {
   it("should not change filter state when a filtered column is hidden", async function() {
     // Filter a column and apply.
     await gu.openColumnMenu("Name", "Filter");
-    await driver.findContent(".test-filter-menu-wrapper .test-filter-menu-value", /Apples/).click();
+    await driver.findContentWait(".test-filter-menu-wrapper .test-filter-menu-value", /Apples/, 200).click();
     await driver.find(".test-filter-menu-apply-btn").click();
 
     // Check that the section-filter button is highlighted.
@@ -435,7 +435,7 @@ describe("SortFilterSectionOptions", function() {
 
     // uncheck Bananas
     const menu2 = await driver.findWait(".test-filter-menu-wrapper", 2000);
-    await menu2.findContent(".test-filter-menu-value", /Bananas/).click();
+    await menu2.findContentWait(".test-filter-menu-value", /Bananas/, 500).click();
     await menu2.find(".test-filter-menu-apply-btn").click();
 
     // check the grid is filtered correclty
@@ -478,7 +478,7 @@ describe("SortFilterSectionOptions", function() {
     }, 1000);
 
     // click Name
-    await driver.findContent(".grist-floating-menu li", /Name/).click();
+    await gu.findOpenMenuItem("li", /Name/).click();
 
     // check the filter menu is shown (wait for it to render after clicking Name)
     await driver.findWait(".test-filter-menu-wrapper", 2000);

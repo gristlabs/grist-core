@@ -160,7 +160,8 @@ describe("FieldEditor", function() {
         await driver.sendKeys(Key.ESCAPE);
         await gu.waitAppFocus(true);
         // Second cell should be clickable - this means view was scrolled to the active record.
-        await gu.getCell(1, 1).click();
+        // The scroll-back may still be rendering, so retry if the cell element is stale.
+        await gu.waitToPass(async () => gu.getCell(1, 1).click());
         await gu.waitForServer();
         await gu.checkForErrors();
       });

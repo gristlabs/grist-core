@@ -262,6 +262,7 @@ describe("RecordLayout", function() {
     await editLayoutMenu.findContent("button", "Cancel").click();
 
     // check Mumbai is still selected
+    await driver.findWait(".active_section .selected_cursor", 1000);
     assert.equal(await gu.getActiveCell().getText(), "Mumbai (Bombay)");
 
     // open editor for Mumbai name
