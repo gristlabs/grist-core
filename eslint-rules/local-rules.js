@@ -17,7 +17,7 @@ module.exports = {
         },
       },
       create(context) {
-        const filename = context.filename ?? context.getFilename();
+        const filename = context.filename;
         const expected = path.basename(filename, path.extname(filename));
 
         return {
