@@ -7,7 +7,7 @@ module.exports = {
         type: "problem",
         docs: {
           description:
-            "Enforce that `makeT()` is called with the filename (without extension) as its first argument when its results is assigned to `t`",
+            "Enforce that `makeT()` is called with the filename (without extension) as its first argument when its result is assigned to `t`",
         },
         fixable: "code",
         schema: [],
