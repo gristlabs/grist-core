@@ -480,16 +480,14 @@ describe("SortFilterSectionOptions", function() {
     // click Name
     await driver.findContent(".grist-floating-menu li", /Name/).click();
 
-    // check the filter menu is shown
-    assert.isTrue(
-      await driver.find(".test-filter-menu-wrapper").isPresent(),
-    );
+    // check the filter menu is shown (wait for it to render after clicking Name)
+    await driver.findWait(".test-filter-menu-wrapper", 2000);
 
     // check a filter was added and pinned
     await assertPinnedFilters([{ name: "Name", hasUnsavedChanges: true }]);
 
     // click Apple
-    await driver.findContent(".test-filter-menu-list .test-filter-menu-value", /Apples/).click();
+    await driver.findContentWait(".test-filter-menu-list .test-filter-menu-value", /Apples/, 2000).click();
 
     // click Apply
     await driver.find(".test-filter-menu-apply-btn").click();
@@ -550,7 +548,7 @@ describe("SortFilterSectionOptions", function() {
     // add a filter and check that it's pinned by default
     await driver.find(".test-filter-config-add-filter-btn").click();
     await driver.findContentWait(".grist-floating-menu li", /Name/, 2000).click();
-    await driver.findContent(".test-filter-menu-list .test-filter-menu-value", /Apples/).click();
+    await driver.findContentWait(".test-filter-menu-list .test-filter-menu-value", /Apples/, 2000).click();
     await driver.find(".test-filter-menu-apply-btn").click();
     await assertPinnedFilters([{ name: "Name", hasUnsavedChanges: true }]);
 
