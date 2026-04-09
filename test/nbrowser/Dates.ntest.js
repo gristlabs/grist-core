@@ -251,6 +251,7 @@ describe("Dates.ntest", function() {
         await gu.waitCellFocus(gu.getCellRC(1, i));
         await gu.sendKeys([$.MOD, ";"]);
         await gu.waitForServer();
+        await gu.waitAppFocus();
         await gu.sendKeys($.TAB);
       }
 
@@ -260,6 +261,7 @@ describe("Dates.ntest", function() {
         await gu.waitCellFocus(gu.getCellRC(2, i));
         await gu.sendKeys([$.MOD, $.SHIFT, ";"]);
         await gu.waitForServer();
+        await gu.waitAppFocus();
         await gu.sendKeys($.TAB);
       }
     }
