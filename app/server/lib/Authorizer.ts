@@ -315,8 +315,7 @@ export async function addRequestUser(
     // If we haven't selected a user by other means, and have profiles available in the
     // session, then select a user based on those profiles.
     const session = mreq.session;
-    if (session && !session.altSessionId &&
-      !mreq.headers?.authorization) { // Skip session creation for api calls with authorization headers
+    if (session && !session.altSessionId) {
       generateAltSessionID(session);
     }
     mreq.altSessionId = session?.altSessionId;

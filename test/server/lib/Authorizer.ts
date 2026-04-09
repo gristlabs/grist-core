@@ -9,6 +9,8 @@ import { createDocTools } from "test/server/docTools";
 import { openClient } from "test/server/gristClient";
 import * as testUtils from "test/server/testUtils";
 
+import { promisify } from "util";
+
 import axios from "axios";
 import { assert } from "chai";
 import { toPairs } from "lodash";
@@ -49,10 +51,13 @@ async function activateServer(home: FlexServer, docManager: DocManager) {
   serverUrl = home.getOwnUrl();
 }
 
-function countSessions(flexServer: FlexServer = server) {
-  return flexServer.getSessions()["_sessions"].size;
+async function countSessions(flexServer: FlexServer = server) {
+  const store = flexServer.getSessions()["_sessionStore"] as any;
+  const length = promisify(store.length);
+  return length.call(store);
 }
 
+const anon = configForUser("Anonymous");
 const chimpy = configForUser("Chimpy");
 const charon = configForUser("Charon");
 
@@ -156,11 +161,22 @@ describe("Authorizer", function() {
   });
 
   it("does not generate sessions when calling the API with an authorization header", async function() {
-    const nbSessionsBefore = countSessions();
-    const resp = await axios.get(`${serverUrl}/o/pr`, chimpy);
-    const nbSessionsAfter = countSessions();
+    const nbSessionsBefore = await countSessions();
+    const resp = await axios.get(`${serverUrl}/api/orgs`, chimpy);
+    const nbSessionsAfter = await countSessions();
     assert.equal(resp.status, 200);
     assert.equal(nbSessionsAfter, nbSessionsBefore, "No new session should have been created during the API call");
+  });
+
+  // This checks we create an altSessionID for Anonymous users. Useful in particular to give them
+  // rights through Access Rules.
+  it("does generate a session when calling the API as anonymous", async function() {
+    const nbSessionsBefore = await countSessions(server);
+    const resp = await axios.get(`${serverUrl}/api/orgs`, anon);
+
+    const nbSessionsAfter = await countSessions(server);
+    assert.equal(resp.status, 200);
+    assert.equal(nbSessionsAfter, nbSessionsBefore + 1, "A new session should have been created during the API call");
   });
 
   it("websocket allows openDoc for viewer", async function() {
