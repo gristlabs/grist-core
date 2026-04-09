@@ -9,6 +9,7 @@ import { LinkConfig } from "app/client/ui/LinkConfig";
 import { FilterColValues, QueryOperation } from "app/common/ActiveDocAPI";
 import { isList, isListType, isRefListType } from "app/common/gristTypes";
 import * as gutil from "app/common/gutil";
+import { LinkType } from "app/plugin/CustomSectionAPI";
 import { UIRowId } from "app/plugin/GristAPI";
 import { CellValue } from "app/plugin/GristData";
 import { encodeObject } from "app/plugin/objtypes";
@@ -20,19 +21,11 @@ import merge from "lodash/merge";
 import pick from "lodash/pick";
 import pickBy from "lodash/pickBy";
 
-// Descriptive string enum for each case of linking
-// Currently used for rendering user-facing link info
+// LinkType is defined in app/plugin/CustomSectionAPI.ts so it can also be exposed to custom widgets
+// via InteractionOptions.linking. See that file for the enum values.
 // TODO JV: Eventually, switching the main block of linking logic in LinkingState constructor to be a big
 //          switch(linkType){} would make things cleaner.
 // TODO JV: also should add "Custom-widget-linked" to this, but holding off until Jarek's changes land
-type LinkType = "Filter:Summary-Group" |
-  "Filter:Col->Col" |
-  "Filter:Row->Col" |
-  "Summary" |
-  "Show-Referenced-Records" |
-  "Cursor:Same-Table" |
-  "Cursor:Reference" |
-  "Error:Invalid";
 
 // If this LinkingState represents a filter link, it will set its filterState to this object
 // The filterColValues portion is just the data needed for filtering (same as manual filtering), and is passed

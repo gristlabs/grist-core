@@ -66,6 +66,34 @@ export interface InteractionOptionsRequest {
 }
 
 /**
+ * Descriptive enum of how this section is linked to another section.
+ * See app/client/components/LinkingState.ts for classification logic.
+ */
+export type LinkType = "Filter:Summary-Group" |
+  "Filter:Col->Col" |
+  "Filter:Row->Col" |
+  "Summary" |
+  "Show-Referenced-Records" |
+  "Cursor:Same-Table" |
+  "Cursor:Reference" |
+  "Error:Invalid";
+
+/**
+ * Linking state of a custom widget's section, reported to the widget via InteractionOptions.
+ */
+export interface LinkingInfo {
+  /**
+   * If this section is a link target (driven by another section), the type of that link.
+   * Null if no incoming link.
+   */
+  asTarget: LinkType | null;
+  /**
+   * True if at least one other section uses this section as its link source.
+   */
+  asSource: boolean;
+}
+
+/**
  * Widget configuration set and approved by Grist, sent as part of ready message.
  */
 export interface InteractionOptions {
@@ -73,6 +101,11 @@ export interface InteractionOptions {
    * Granted access level.
    */
   accessLevel: string,
+  /**
+   * Linking state of this section at the time of the message. Always present; fields inside
+   * describe whether this section is a link target and/or a link source.
+   */
+  linking?: LinkingInfo,
 }
 
 /**
