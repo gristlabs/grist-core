@@ -850,9 +850,6 @@ namespace gristUtils {
       const end = await getCell({ rowNum: endRowNum, col: endCol });
       await driver.withActions(a => a.click(start).keyDown(Key.SHIFT).click(end).keyUp(Key.SHIFT));
     }
-    // driver.withActions uses raw pointer input that doesn't always transfer focus
-    // to the grid's hidden .copypaste textarea reliably. Without this wait, a
-    // subsequent Ctrl+X / Ctrl+C / sendKeys can be dropped. (nbrowser Pattern 4.)
     await waitAppFocus();
   }
 
@@ -3404,9 +3401,6 @@ namespace gristUtils {
  */
   export async function removeFilters(save = false) {
     const sectionFilter = await sortAndFilter();
-    // Wait for the filter config panel to finish rendering its items — it opens
-    // via a popweasel popup (setTimeout(0)) and its filter rows are rendered
-    // reactively, so an immediate findAll can miss them.
     await driver.findWait(".test-filter-config-container", 1000);
     for (const filter of await sectionFilter.filters()) {
       await filter.remove();
@@ -3577,8 +3571,6 @@ namespace gristUtils {
   export async function renameActiveSection(name: string) {
     await driver.find(".active_section .test-viewsection-title .test-widget-title-text").click();
     await doRenameSection(name);
-    // Wait for the section title to update in the DOM — the reactive re-render
-    // can lag slightly after waitForServer(), causing getSection() lookups to fail.
     if (name) {
       await waitToPass(async () => {
         const title = await driver.find(".active_section .test-viewsection-title").getText();
@@ -3773,6 +3765,9 @@ namespace gristUtils {
           await driver.find(`.test-filter-menu-${minMax}`).click();
         }
         await findOpenMenuItem("li", value.relative).click();
+      });
+      await waitToPass(async () => {
+        assert.isFalse(await driver.find(".grist-floating-menu").isPresent());
       });
     }
   }

@@ -513,10 +513,7 @@ function findTarget() {
 async function withTreeviewChange(cb: () => WebElementPromise | Promise<void>) {
   const getItemTexts = async () =>
     (await driver.findAll(".test-treeview-itemHeaderWrapper", e => e.getText())).join(",");
-  // Retry on StaleElementReferenceError: the treeview re-renders in response
-  // to `cb()`, which can invalidate element references that `findAll` collected
-  // a microtask earlier, causing `getText()` to throw mid-poll. We want the
-  // wait to just try again on the next tick.
+  // Retry on StaleElementReferenceError
   const getItemTextsSafe = async () => {
     try {
       return await getItemTexts();
