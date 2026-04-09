@@ -160,7 +160,8 @@ describe("Authorizer", function() {
     assert.equal(resp.status, 404);
   });
 
-  it("does not generate sessions when calling the API with an authorization header", async function() {
+  it("does not generate sessions when using an API key to avoid polluting " +
+    "the store session needlessly", async function() {
     const nbSessionsBefore = await countSessions();
     const resp = await axios.get(`${serverUrl}/api/orgs`, chimpy);
     const nbSessionsAfter = await countSessions();
