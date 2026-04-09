@@ -321,13 +321,15 @@ describe("UI2018", () => {
 
       // Open the menu and check 2 more option, triggering the error observable from the fixture to be true.
       await driver.find("#menus .test-multi-select").click();
-      await driver.findContent(
+      await driver.findContentWait(
         ".test-multi-select-menu .test-multi-select-menu-option",
         /Text/,
+        1000,
       ).click();
-      await driver.findContent(
+      await driver.findContentWait(
         ".test-multi-select-menu .test-multi-select-menu-option",
         /Date/,
+        1000,
       ).click();
 
       // Check that the outline is now red.
