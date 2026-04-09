@@ -283,13 +283,10 @@ describe("DateRangeFilter", function() {
 
   it("should hide options on Escape", async function() {
     await fu.findBound("max").click();
-    await gu.waitToPass(async () => {
-      assert.equal(await fu.isOptionsVisible(), true);
-    });
+    await fu.assertOptionsVisible();
     await driver.sendKeys(Key.ESCAPE);
-    await gu.waitToPass(async () => {
-      assert.equal(await fu.isOptionsVisible(), false);
-    });
+    await gu.waitForMenuToClose();
+    await fu.assertOptionsNotRendered();
   });
 
   it("should show relative dates options when value changes", async function() {
@@ -297,10 +294,10 @@ describe("DateRangeFilter", function() {
     await gu.findOpenMenu();
     await driver.sendKeys(Key.ESCAPE);
     await gu.waitForMenuToClose();
-    assert.equal(await fu.isOptionsVisible(), false);
+    await fu.assertOptionsNotRendered();
     await fu.pickDateInCurrentMonth("18");
     await gu.findOpenMenu();
-    assert.equal(await fu.isOptionsVisible(), true);
+    await fu.assertOptionsVisible();
     await driver.sendKeys(Key.ESCAPE);
     await gu.waitForMenuToClose();
   });
@@ -310,19 +307,19 @@ describe("DateRangeFilter", function() {
     await gu.findOpenMenu();
     await driver.sendKeys(Key.ESCAPE);
     await gu.waitForMenuToClose();
-    assert.equal(await fu.isOptionsVisible(), false);
+    await fu.assertOptionsNotRendered();
     await driver.sendKeys(Key.TAB);
     await gu.findOpenMenu();
-    assert.equal(await fu.isOptionsVisible(), true);
+    await fu.assertOptionsVisible();
   });
 
   it("should toggle relative dates on click", async function() {
     await fu.findBound("min").click();
     await gu.findOpenMenu();
-    assert.equal(await fu.isOptionsVisible(), true);
+    await fu.assertOptionsVisible();
     await fu.findBound("min").click();
     await gu.waitForMenuToClose();
-    assert.equal(await fu.isOptionsVisible(), false);
+    await fu.assertOptionsNotRendered();
   });
 
   it("should show relative dates options when pressing Enter while the options are closed", async function() {
@@ -330,10 +327,10 @@ describe("DateRangeFilter", function() {
     await gu.findOpenMenu();
     await driver.sendKeys(Key.ESCAPE); // Escape to close
     await gu.waitForMenuToClose();
-    assert.equal(await fu.isOptionsVisible(), false);
+    await fu.assertOptionsNotRendered();
     await driver.sendKeys(Key.ENTER); // Enter to reopen
     await gu.findOpenMenu();
-    assert.equal(await fu.isOptionsVisible(), true);
+    await fu.assertOptionsVisible();
     assert.equal(await fu.getSelected(), "min");
   });
 

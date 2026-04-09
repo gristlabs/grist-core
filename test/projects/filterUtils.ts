@@ -1,6 +1,6 @@
 import * as gu from "test/nbrowser/gristUtils";
 
-import { addToRepl, driver, WebElementPromise } from "mocha-webdriver";
+import { addToRepl, assert, driver, WebElementPromise } from "mocha-webdriver";
 
 export async function openRelativeOptionsMenu(minMax: "min" | "max") {
   if (!await driver.find(".grist-floating-menu").isPresent()) {
@@ -16,8 +16,12 @@ export async function findCalendarDates(selector: string): Promise<string[]> {
   return res;
 }
 
-export function isOptionsVisible() {
-  return driver.find(".test-filter-menu-wrapper .grist-floating-menu").isPresent();
+export async function assertOptionsVisible() {
+  await driver.findWait(".test-filter-menu-wrapper .grist-floating-menu", 1000);
+}
+
+export async function assertOptionsNotRendered() {
+  assert.isFalse(await driver.find(".test-filter-menu-wrapper .grist-floating-menu").isPresent());
 }
 
 export async function isBoundSelected(minMax: "min" | "max") {
@@ -67,7 +71,8 @@ export function addFilterUtilsToRepl() {
   addToRepl("findCalendarDates", findCalendarDates);
   addToRepl("setBound", setBound);
   addToRepl("getSelected", getSelected);
-  addToRepl("isOptionsVisible", isOptionsVisible);
+  addToRepl("assertOptionsVisible", assertOptionsVisible);
+  addToRepl("assertOptionsNotRendered", assertOptionsNotRendered);
   addToRepl("pickDateInCurrentMonth", pickDateInCurrentMonth);
   addToRepl("getViewType", getViewType);
   addToRepl("getSelectedOption", getSelectedOption);

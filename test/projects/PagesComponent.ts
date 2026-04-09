@@ -17,7 +17,7 @@ describe("PagesComponent", function() {
 
   async function beginRenaming(name: RegExp) {
     await findPage(name).mouseMove().find(".test-docpage-dots").click();
-    await driver.find(".test-docpage-rename").doClick();
+    await driver.findWait(".test-docpage-rename", 1000).doClick();
     // A textbox should open and get selected: wait for it, since it's not immediate, and
     // trying to type into it too soon may miss some initial characters.
     await driver.wait(() => driver.executeScript(
@@ -49,7 +49,7 @@ describe("PagesComponent", function() {
     // starts renaming People
     const page = driver.findContent(".test-treeview-label", /People/);
     await page.mouseMove().find(".test-docpage-dots").click();
-    await driver.find(".test-docpage-rename").doClick();
+    await driver.findWait(".test-docpage-rename", 1000).doClick();
 
     // click on the text input
     await driver.find(".test-docpage-editor").click();

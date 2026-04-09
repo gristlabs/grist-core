@@ -310,7 +310,7 @@ describe("TreeViewComponent", () => {
     await startDrag(/Page6/);
     await findItem(/Page1/).mouseMove();
     // target is above Page1
-    assert.equal(await driver.find(".test-treeview-target").isDisplayed(), true);
+    assert.equal(await driver.findWait(".test-treeview-target", 1000).isDisplayed(), true);
     assert.deepEqual(await driver.findAll(`.test-treeview-itemHeader.highlight`, e => e.getText()), []);
     await assertTargetPos(await target.rect(), "above", await findItemRectangles(/Page1/));
     await delay(1200);

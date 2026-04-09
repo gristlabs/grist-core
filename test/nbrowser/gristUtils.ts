@@ -1397,7 +1397,7 @@ namespace gristUtils {
     }
     if (newName === undefined) { throw new Error("newName must be specified"); }
     await openPageMenu(oldName);
-    await driver.find(".test-docpage-rename").click();
+    await driver.findWait(".test-docpage-rename", 1000).click();
     await driver.find(".test-docpage-editor").sendKeys(newName, Key.ENTER);
     await waitForServer();
   }
