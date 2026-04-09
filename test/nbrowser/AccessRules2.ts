@@ -471,7 +471,9 @@ describe("AccessRules2", function() {
 
     // Table options should update
     await driver.findContentWait("button", /Add table rules/, 2000).click();
-    const options = await driver.findAll(".grist-floating-menu li", e => e.getText());
+    // Wait for the menu to actually open; popweasel opens via setTimeout(0) and
+    // findAll can otherwise return [] before any items render.
+    const options = await gu.findOpenMenuAllItems("li", e => e.getText(), 1000);
     assert.deepEqual(options, ["ACCESS2", "CLIENT LIST", "CLIENT LIST [by Shared]", "FinancialsTable"]);
     await driver.sendKeys(Key.ESCAPE);    // Close menu.
 
@@ -842,9 +844,11 @@ describe("AccessRules2", function() {
       .map(name => new RegExp(escapeRegExp(name), "i"));
 
     // All users the doc is shared with should be listed, with correct Access.
+    // Wait for menu items to render before reading them, otherwise the name1
+    // absence check can pass spuriously and the name2/name3 reads can race.
+    assert.include(await driver.findContentWait(".grist-floating-menu a", name2, 1000).getText(), "(Owner)");
+    assert.include(await driver.findContentWait(".grist-floating-menu a", name3, 1000).getText(), "(Editor)");
     assert.equal(await driver.findContent(".grist-floating-menu a", name1).isPresent(), false);
-    assert.include(await driver.findContent(".grist-floating-menu a", name2).getText(), "(Owner)");
-    assert.include(await driver.findContent(".grist-floating-menu a", name3).getText(), "(Editor)");
 
     await driver.findContent(".grist-floating-menu a", name3).click();
     await gu.waitForUrl(/aclAsUser/);
