@@ -91,7 +91,7 @@ export interface SessionOIDCInfo {
 /**
  * Create a default alternative session id for use in documents.
  *
- * This sessionID is also used client side on formulas (like user.SessionIS) when the user is anonymous.
+ * This sessionID is also used client side on formulas (`user.SessionID`) when the user is anonymous
  *
  * Also force express-session to persist the sessionin the store.
  */
