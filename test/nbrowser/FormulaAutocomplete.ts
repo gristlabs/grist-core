@@ -229,6 +229,7 @@ describe("FormulaAutocomplete", function() {
     await gu.addColumn("B");
     await gu.getCell({ rowNum: 1, col: "B" }).click();
     await startFormulaAutocomplete("$A");
+    await gu.waitForServer();
     await gu.waitToPass(async () => {
       const completions = await getCompletionLines();
       assert.lengthOf(completions, 3);

@@ -3404,6 +3404,10 @@ namespace gristUtils {
  */
   export async function removeFilters(save = false) {
     const sectionFilter = await sortAndFilter();
+    // Wait for the filter config panel to finish rendering its items — it opens
+    // via a popweasel popup (setTimeout(0)) and its filter rows are rendered
+    // reactively, so an immediate findAll can miss them.
+    await driver.findWait(".test-filter-config-container", 1000);
     for (const filter of await sectionFilter.filters()) {
       await filter.remove();
     }

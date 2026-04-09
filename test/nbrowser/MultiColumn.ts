@@ -959,11 +959,15 @@ async function testChoices(colA: string = "Left", colB: string = "Right") {
   await choiceEditor.save();
   await gu.waitForServer();
   // Test if grid is ok.
-  assert.equal(await gu.getCell(colA, 1).getText(), "one renamed");
-  assert.equal(await gu.getCell(colB, 1).getText(), "one renamed");
+  await gu.waitToPass(async () => {
+    assert.equal(await gu.getCell(colA, 1).getText(), "one renamed");
+    assert.equal(await gu.getCell(colB, 1).getText(), "one renamed");
+  });
   await undo();
-  assert.equal(await gu.getCell(colA, 1).getText(), "one");
-  assert.equal(await gu.getCell(colB, 1).getText(), "one");
+  await gu.waitToPass(async () => {
+    assert.equal(await gu.getCell(colA, 1).getText(), "one");
+    assert.equal(await gu.getCell(colB, 1).getText(), "one");
+  });
 
   // Test that colors are also treated as different.
   await selectColumns(colA, colB);
