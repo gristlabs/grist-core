@@ -14,7 +14,7 @@ import {
   PreviousAndCurrent,
   QueryResult,
 } from "app/gen-server/lib/homedb/Interfaces";
-import { appSettings } from "app/server/lib/AppSettings";
+import { appSettings, canRestart } from "app/server/lib/AppSettings";
 import { RequestWithLogin } from "app/server/lib/Authorizer";
 import { BootProbes } from "app/server/lib/BootProbes";
 import { expressWrap } from "app/server/lib/expressWrap";
@@ -26,7 +26,6 @@ import {
   sendReply,
   stringParam,
 } from "app/server/lib/requestUtils";
-import { canRestart } from "app/server/lib/ServerShell";
 import { updateGristServerLatestVersion } from "app/server/lib/updateChecker";
 
 import {
@@ -111,8 +110,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
         if (process.send && process.env.GRIST_RUNNING_UNDER_SUPERVISOR) {
           log.rawDebug(`Restart[${mreq.method}] requesting supervisor to restart home server:`, meta);
           process.send({ action: "restart" });
-        }
-        if (canRestart()) {
+        } else if (canRestart()) {
           try {
             gristServer.triggerRestart();
           } catch (err) {

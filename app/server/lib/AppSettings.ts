@@ -327,6 +327,15 @@ export class AppSettings {
 export const appSettings = new AppSettings("grist");
 
 /**
+ * Whether in-process restart is enabled (GRIST_CAN_RESTART).
+ */
+export function canRestart() {
+  return appSettings.section("server").flag("canRestart").readBool({
+    envVar: "GRIST_CAN_RESTART",
+  });
+}
+
+/**
  * Hints for how to define a setting, including possible
  * environment variables and default values.
  */

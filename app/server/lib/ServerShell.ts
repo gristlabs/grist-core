@@ -12,7 +12,7 @@
  * MergedServer without the restart-capable shell.
  */
 
-import { appSettings } from "app/server/lib/AppSettings";
+import { appSettings, canRestart } from "app/server/lib/AppSettings";
 import { FlexServer, getGristHost, getServerFlags } from "app/server/lib/FlexServer";
 import log from "app/server/lib/log";
 import { listenPromise } from "app/server/lib/serverUtils";
@@ -25,12 +25,6 @@ export const Deps = {
   testWaitBeforeReadyMs: 0,     // ms to wait before setting ready=true (for tests)
   restartTimeoutMs: 60000,      // mark unhealthy if restart takes longer than this
 };
-
-export function canRestart() {
-  return appSettings.section("server").flag("canRestart").readBool({
-    envVar: "GRIST_CAN_RESTART",
-  });
-}
 
 export interface ServerShellOptions {
   port: number;
@@ -121,7 +115,9 @@ class ServerShell {
       }
       if (this._currentApp) {
         this._currentApp(req, res);
-      } else if (new URL(req.url, "http://localhost").searchParams.get("ready") === "1") {
+      // Simple string match is fine here -- this is our own /status
+      // endpoint, not user input, and avoids URL parsing edge cases.
+      } else if (req.url.includes("ready=1")) {
         res.writeHead(503, { "Content-Type": "text/plain" });
         res.end("not ready");
       } else {
