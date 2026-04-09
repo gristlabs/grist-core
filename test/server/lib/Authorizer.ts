@@ -9,8 +9,6 @@ import { createDocTools } from "test/server/docTools";
 import { openClient } from "test/server/gristClient";
 import * as testUtils from "test/server/testUtils";
 
-import { promisify } from "util";
-
 import axios from "axios";
 import { assert } from "chai";
 import { toPairs } from "lodash";
@@ -51,10 +49,12 @@ async function activateServer(home: FlexServer, docManager: DocManager) {
   serverUrl = home.getOwnUrl();
 }
 
-async function countSessions(flexServer: FlexServer = server) {
-  const store = flexServer.getSessions()["_sessionStore"] as any;
-  const length = promisify(store.length);
-  return length.call(store);
+/**
+ * Count the number of sessions in the session store (whenever we use SQLite or Redis).
+ */
+function countSessions(flexServer: FlexServer = server): Promise<number> {
+  const store = flexServer["_sessionStore"];
+  return store.lengthAsync();
 }
 
 const anon = configForUser("Anonymous");
