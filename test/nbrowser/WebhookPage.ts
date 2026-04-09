@@ -332,5 +332,7 @@ async function openWebhookPage() {
 async function waitForWebhookPage() {
   await driver.findContentWait("button", /Clear queue/, 3000);
   // No section, so no easy utility for setting focus. Click on a random cell.
-  await gu.getDetailCell({ col: "Webhook Id", rowNum: 1 }).click();
+  await gu.waitToPass(async () => {
+    await gu.getDetailCell({ col: "Webhook Id", rowNum: 1 }).click();
+  });
 }

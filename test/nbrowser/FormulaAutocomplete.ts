@@ -196,6 +196,7 @@ describe("FormulaAutocomplete", function() {
     // Add a new column 'T' of type Text
     await gu.addColumn("T");
     await gu.getCell({ rowNum: 1, col: "T" }).click();
+    await gu.waitAppFocus();
     await gu.enterCell("abc");
 
     // Write a new formula starting with `$Title.` and check that the autocomplete options are correct
