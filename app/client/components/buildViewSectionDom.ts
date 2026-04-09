@@ -17,7 +17,7 @@ import { undef } from "app/common/gutil";
 import { Computed, dom, DomElementArg, Observable, styled } from "grainjs";
 import { defaultMenuOptions } from "popweasel";
 
-const t = makeT("ViewSection");
+const t = makeT("buildViewSectionDom");
 
 export function buildCollapsedSectionDom(options: {
   gristDoc: GristDoc,

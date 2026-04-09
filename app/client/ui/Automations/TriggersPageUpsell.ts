@@ -12,7 +12,7 @@ import { dom, DomContents, makeTestId, styled } from "grainjs";
 
 const testId = makeTestId("test-automations-");
 
-const t = makeT("TriggersPage");
+const t = makeT("TriggersPageUpsell");
 
 export function buildAutomationsUpsell(appModel: AppModel): DomContents {
   const { deploymentType } = getGristConfig();

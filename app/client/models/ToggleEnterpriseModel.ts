@@ -9,7 +9,7 @@ import { getGristConfig } from "app/common/urlUtils";
 
 import { Disposable, Observable } from "grainjs";
 
-const t = makeT("ToggleEnterprise");
+const t = makeT("ToggleEnterpriseModel");
 
 export class ToggleEnterpriseModel extends Disposable {
   public readonly edition: Observable<GristDeploymentType | null> = Observable.create(this, null);

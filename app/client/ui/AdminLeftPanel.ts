@@ -15,7 +15,7 @@ import { Computed, dom, DomContents, MultiHolder, Observable, styled } from "gra
 
 import type { AppModel } from "app/client/models/AppModel";
 
-const t = makeT("AdminPanel");
+const t = makeT("AdminLeftPanel");
 const testId = makeTestId("test-admin-controls-");
 
 // Check if the AdminControls feature is available, so that we can show it as such in the UI.

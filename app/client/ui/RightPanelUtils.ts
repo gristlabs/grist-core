@@ -5,7 +5,7 @@ import { IWidgetType } from "app/common/widgetTypes";
 
 import { dom, DomElementArg } from "grainjs";
 
-const t = makeT("RightPanel");
+const t = makeT("RightPanelUtils");
 
 // Returns the icon and label of a type, default to those associate to 'record' type.
 export function getFieldType(widgetType: IWidgetType | null) {
