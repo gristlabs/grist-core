@@ -70,7 +70,7 @@ describe("ServerShell", function() {
     // Wait for the timeout to fire.
     await delay(1000);
 
-    // /status should return 500 while restart is still in progress.
+    // /status should return 503 while restart is still in progress.
     const unhealthyResp = await axios.get(`${serverUrl}/status`, { validateStatus: () => true });
     assert.equal(unhealthyResp.status, 503);
 

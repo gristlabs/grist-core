@@ -2819,7 +2819,7 @@ export class FlexServer implements GristServer {
  * better if long imports were made using a mechanism that
  * isn't just a single http request)
  */
-function getServerFlags(): https.ServerOptions {
+export function getServerFlags(): https.ServerOptions {
   const flags: https.ServerOptions = {};
 
   // We used to set the socket timeout to 0, but that has been

@@ -12,9 +12,8 @@
  * MergedServer without the restart-capable shell.
  */
 
-import { isAffirmative } from "app/common/gutil";
 import { appSettings } from "app/server/lib/AppSettings";
-import { FlexServer, getGristHost } from "app/server/lib/FlexServer";
+import { FlexServer, getGristHost, getServerFlags } from "app/server/lib/FlexServer";
 import log from "app/server/lib/log";
 import { listenPromise } from "app/server/lib/serverUtils";
 import * as shutdown from "app/server/lib/shutdown";
@@ -26,6 +25,12 @@ export const Deps = {
   testWaitBeforeReadyMs: 0,     // ms to wait before setting ready=true (for tests)
   restartTimeoutMs: 60000,      // mark unhealthy if restart takes longer than this
 };
+
+export function canRestart() {
+  return appSettings.section("server").flag("canRestart").readBool({
+    envVar: "GRIST_CAN_RESTART",
+  });
+}
 
 export interface ServerShellOptions {
   port: number;
@@ -45,7 +50,7 @@ export interface ServerShellOptions {
  * MergedServer start.
  */
 export async function startServer(options: ServerShellOptions) {
-  if (isAffirmative(process.env.GRIST_CAN_RESTART)) {
+  if (canRestart()) {
     const shell = new ServerShell(options);
     await shell.start();
     return shell;
@@ -78,7 +83,8 @@ class ServerShell {
 
   public async start() {
     const host = getGristHost();
-    this._server = http.createServer();
+    const flags = getServerFlags();
+    this._server = http.createServer(flags);
     await listenPromise(this._server.listen(this._options.port, host));
     this._port = (this._server.address() as { port: number }).port;
     log.info(`ServerShell listening on ${host}:${this._port}`);
@@ -91,7 +97,8 @@ class ServerShell {
 
   public async shutdown() {
     await this._mergedServer?.close();
-    this._server.close();
+    await new Promise<void>((resolve, reject) =>
+      this._server.close(err => err ? reject(err) : resolve()));
   }
 
   // All requests pass through this handler. During restart, /status
