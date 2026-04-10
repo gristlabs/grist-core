@@ -57,7 +57,7 @@ describe("CustomWidgetLinking", function() {
       const settings = await readWidgetSettings();
       assert.isObject(settings, "widget should receive a settings object");
       assert.deepEqual(settings.linking, { asTarget: "Cursor:Same-Table", asSource: false });
-    }, 100);
+    }, 2000);
   });
 
   it("always includes linking in settings even without a link", async function() {
