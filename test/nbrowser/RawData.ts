@@ -224,6 +224,7 @@ describe("RawData", function() {
     await driver.findContent(".test-raw-data-table-title", "Empire").click();
     await gu.waitForServer();
     await gu.getCell(2, 9).click();
+    await gu.waitAppFocus();
     await driver.sendKeys("123456789");
     await gu.refreshDismiss();
     await gu.waitForDocToLoad();
@@ -521,18 +522,22 @@ describe("RawData", function() {
   });
 
   it("should open raw data as a popup", async () => {
-    // We are at City table, in first row/first cell.
+    // Navigate to City table, first row/first cell.
     // Send some keys, to make sure we have focus on active section.
     // RawData popup is manipulating what section has focus, so we need to make sure that
     // focus is properly restored.
+    await gu.openPage("City");
+    await gu.waitForServer();
     assert.deepEqual(await gu.getCursorPosition(), { rowNum: 1, col: 0 });
     await gu.getCell(0, 2).click();
+    await gu.waitAppFocus();
     await gu.sendKeys("abc");
     await gu.checkTextEditor("abc");
     await gu.sendKeys(Key.ESCAPE);
     await gu.showRawData();
     assert.equal(await gu.getActiveSectionTitle(3_000), "City");
     assert.deepEqual(await gu.getCursorPosition(), { rowNum: 20, col: 0 }); // raw popup is not sorted
+    await gu.waitAppFocus();
     await gu.sendKeys("abc");
     await gu.checkTextEditor("abc");
     await gu.sendKeys(Key.ESCAPE);

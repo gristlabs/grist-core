@@ -53,6 +53,7 @@ describe("TwoWayReference", function() {
     // Change Rex owner to Alice.
     await gu.selectSectionByTitle("PETS");
     await gu.getCell("Owner", 1).click();
+    await gu.waitAppFocus();
     await gu.sendKeys("Alice", Key.ENTER);
     await gu.waitForServer();
     await gu.selectSectionByTitle("OWNERS");
@@ -130,6 +131,7 @@ describe("TwoWayReference", function() {
     // Now reasign Azor to Bob using Owners table.
     await gu.selectSectionByTitle("OWNERS");
     await gu.getCell("Pets", 2).click();
+    await gu.waitAppFocus();
     await gu.sendKeys(Key.ENTER, "Azor", Key.ENTER, Key.ENTER);
     await gu.waitForServer();
 
@@ -183,6 +185,7 @@ describe("TwoWayReference", function() {
 
     await gu.selectSectionByTitle("Pets");
     await gu.getCell("Owner", 1).click();
+    await gu.waitAppFocus();
     await gu.sendKeys(Key.DELETE);
     await gu.waitForServer();
 

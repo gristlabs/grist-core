@@ -91,6 +91,7 @@ describe("AccessRules1", function() {
     await gu.openPage("ClientsTable");
     await gu.waitForServer();
     await gu.getCell(0, 1).click();
+    await gu.waitAppFocus();
     await gu.sendKeys("Will it work?", Key.ENTER);
     await gu.waitForServer();
     if (memo === "") {

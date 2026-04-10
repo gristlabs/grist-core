@@ -939,6 +939,7 @@ async function testChoices(colA: string = "Left", colB: string = "Right") {
   await choiceEditor.add("two");
   await choiceEditor.save();
   await gu.getCell(colA, 1).click();
+  await gu.waitAppFocus();
   await gu.sendKeys("one", Key.ENTER);
   // If this is choice list we need one more enter.
   if (await getColumnType() === "Choice List") {
@@ -946,6 +947,7 @@ async function testChoices(colA: string = "Left", colB: string = "Right") {
   }
   await gu.waitForServer();
   await gu.getCell(colB, 1).click();
+  await gu.waitAppFocus();
   await gu.sendKeys("one", Key.ENTER);
   if (await getColumnType() === "Choice List") {
     await gu.sendKeys(Key.ENTER);

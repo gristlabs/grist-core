@@ -28,6 +28,7 @@ describe("FieldEditor", function() {
     await (await gu.openRowMenu(1)).findContent("li", /Insert row above/).click();
     await gu.waitForServer();
     await gu.getCell(0, 1).click();
+    await gu.waitAppFocus();
     await gu.sendKeys(Key.ENTER);
     await gu.checkTextEditor(gu.exactMatch(""));
     await gu.getCell(2, 1).click(); // Click away to save
@@ -85,6 +86,7 @@ describe("FieldEditor", function() {
     await driver.findContent(".test-treeview-itemHeader", /Friends/).doClick();
     assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), "Roger");
     await gu.getCell({ rowNum: 1, col: 0 }).click();
+    await gu.waitAppFocus();
     await gu.sendKeys("FieldEditor2");
     assert.equal(await driver.find(".cell_editor").isDisplayed(), true);
 

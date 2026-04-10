@@ -800,6 +800,7 @@ describe("ReferenceList", function() {
 
       // Check that for the same cell, the dropdown no longer has an "add new" option.
       await cell.click();
+      await gu.waitAppFocus();
       await driver.sendKeys(Key.ENTER, "hello");
       await driver.findWait(".test-ref-editor-item", 1000);
       assert.equal(await driver.find(".test-ref-editor-item.selected").isPresent(), false);

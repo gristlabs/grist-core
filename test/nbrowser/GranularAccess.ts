@@ -1665,6 +1665,7 @@ describe("GranularAccess", function() {
     await gu.getPageItem(/Data1/).click();
     await gu.waitForServer();
     await gu.getCell("Pics", 1).click();
+    await gu.waitAppFocus();
     await driver.sendKeys(Key.ENTER);
     await gu.fileDialogUpload("uploads/sample.pdf,uploads/file1.mov", () => driver.find(".test-pw-add").click());
     await driver.findContentWait(".test-pw-counter", /of 2/, 3000);
@@ -1672,6 +1673,7 @@ describe("GranularAccess", function() {
     await gu.waitForServer();
 
     await gu.getCell("Pics", 2).click();
+    await gu.waitAppFocus();
     await driver.sendKeys(Key.ENTER);
     await gu.fileDialogUpload("uploads/grist.png", () => driver.find(".test-pw-add").click());
     await driver.findContentWait(".test-pw-counter", /of 1/, 3000);
@@ -1679,6 +1681,7 @@ describe("GranularAccess", function() {
     await gu.waitForServer();
 
     await gu.getCell("Pics", 3).click();
+    await gu.waitAppFocus();
     await driver.sendKeys(Key.ENTER);
     await gu.fileDialogUpload("uploads/gplaypattern.png", () => driver.find(".test-pw-add").click());
     await driver.findContentWait(".test-pw-counter", /of 1/, 3000);

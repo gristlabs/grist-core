@@ -29,6 +29,7 @@ async function testDateFormat(initialDateStr: string, newDay: string, finalDateS
 
   // Reopen the editor, check that our previously-selected date is still selected.
   await gu.getCell({ col: "A", rowNum: 1 }).click();
+  await gu.waitAppFocus();
   await driver.sendKeys(Key.ENTER);
   await gu.checkTextEditor(new RegExp(escapeRegExp(finalDateStr)));
   assert.isTrue(await driver.findContent("td.day", newDay).matches(".active"));
@@ -65,6 +66,7 @@ describe("DateEditor", function() {
 
     // Use shortcut to populate today's date, mainly to ensure that our date-mocking is working.
     await gu.getCell({ col: "A", rowNum: 1 }).click();
+    await gu.waitAppFocus();
     await gu.sendKeys(Key.chord(await gu.modKey(), ";"));
     await gu.waitForServer();
     assert.equal(await gu.getCell({ col: "A", rowNum: 1 }).getText(), "2020-02-01");
@@ -85,6 +87,7 @@ describe("DateEditor", function() {
   it("should allow editing invalid alt-text", async function() {
     let cell = await gu.getCell({ col: "A", rowNum: 2 });
     await cell.click();
+    await gu.waitAppFocus();
     await driver.sendKeys(Key.ENTER);
     await gu.waitAppFocus(false);
 
@@ -99,6 +102,7 @@ describe("DateEditor", function() {
 
     // Open for editing, and check that the invalid value is present in the editor.
     await cell.click();
+    await gu.waitAppFocus();
     await driver.sendKeys(Key.ENTER);
     await gu.waitAppFocus(false);
     await gu.checkTextEditor(/2020-03-14pi/);
@@ -113,6 +117,7 @@ describe("DateEditor", function() {
 
   async function openCellEditor(cell: WebElement) {
     await cell.click();
+    await gu.waitAppFocus();
     await driver.sendKeys(Key.ENTER);
     await gu.waitAppFocus(false);
   }
