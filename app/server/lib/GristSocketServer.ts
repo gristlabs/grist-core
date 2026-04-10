@@ -66,11 +66,10 @@ export class GristSocketServer {
   /**
    * Closes the WS servers and removes any associated connection handlers.
    *
-   * Removal of connection handlers is done as a precaution for scenarios where
-   * a new GristSocketServer is instantiated after a previous one was closed.
-   * Currently, this only happens during tests where the Comm object is shut
-   * down or restarted. (See `Comm.testServerShutdown` and
-   * `Comm.testServerRestart`.)
+   * Removal of connection handlers is done for scenarios where a new
+   * GristSocketServer is instantiated after a previous one was closed,
+   * such as in-process restart (see ServerShell) or tests (see
+   * `Comm.shutdown` and `Comm.restart`).
    *
    * If handlers are not removed, requests to the HTTP server associated with
    * this GristSocketServer will continue to be handled by listeners for a

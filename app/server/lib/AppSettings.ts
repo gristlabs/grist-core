@@ -289,6 +289,17 @@ export class AppSettings {
   }
 
   /**
+   * Clear all cached values, children, and info. Used during in-process
+   * restart so that stale configuration doesn't persist.
+   */
+  public reset(): void {
+    this._value = undefined;
+    this._children = undefined;
+    this._info = undefined;
+    this._envFile = undefined;
+  }
+
+  /**
    * As for describe(), but include all nested settings also.
    * Used dotted notation for setting names. Omit settings that
    * are undefined and without useful information about how they
@@ -314,6 +325,18 @@ export class AppSettings {
  * A global object for Grist application settings.
  */
 export const appSettings = new AppSettings("grist");
+
+/**
+ * Whether to wrap the server in a ServerShell that supports in-process
+ * restart while keeping the HTTP socket alive. Defaults to false.
+ * Enabled with GRIST_SERVER_SHELL_ENABLED=true.
+ */
+export function isServerShellEnabled() {
+  return appSettings.section("server").flag("shellEnabled").readBool({
+    envVar: "GRIST_SERVER_SHELL_ENABLED",
+    defaultValue: false,
+  });
+}
 
 /**
  * Hints for how to define a setting, including possible

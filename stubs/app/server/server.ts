@@ -47,8 +47,10 @@ setDefaultEnv("GRIST_WIDGET_LIST_URL", commonUrls.gristLabsWidgetRepository);
 // It's important that this comes after the setDefaultEnv calls above. MergedServer reads
 // some env vars at import time, including GRIST_WIDGET_LIST_URL.
 // TODO: Fix this reliance on side effects during import.
-// eslint-disable-next-line @import-x/order
-import { MergedServer, parseServerTypes } from "app/server/MergedServer";
+/* eslint-disable @import-x/order */
+import { parseServerTypes } from "app/server/MergedServer";
+import { startServer } from "app/server/lib/ServerShell";
+/* eslint-enable @import-x/order */
 
 const G = {
   port: parseInt(process.env.PORT!, 10) || 8484,
@@ -219,25 +221,28 @@ export async function main() {
 
   await fse.mkdirp(process.env.GRIST_DATA_DIR!);
 
-  if (serverTypes.includes("home")) {
-    log.info("Setting up database...");
-    const db = await createOrUpdateDb();
-    await setUpAdminEmail(db);
-    await setUpSingleOrg(db);
-    log.info("Database setup complete.");
-  }
-
-  // Launch single-port, self-contained version of Grist.
-  const mergedServer = await MergedServer.create(G.port, serverTypes);
-  await mergedServer.run();
-  if (process.env.GRIST_TESTING_SOCKET) {
-    await mergedServer.flexServer.addTestingHooks();
-  }
-  if (process.env.GRIST_SERVE_PLUGINS_PORT) {
-    await mergedServer.flexServer.startCopy("pluginServer", parseInt(process.env.GRIST_SERVE_PLUGINS_PORT, 10));
-  }
-
-  return mergedServer.flexServer;
+  const handle = await startServer({
+    port: G.port,
+    serverTypes,
+    beforeCreate: async () => {
+      if (serverTypes.includes("home")) {
+        log.info("Setting up database...");
+        const db = await createOrUpdateDb();
+        await setUpAdminEmail(db);
+        await setUpSingleOrg(db);
+        log.info("Database setup complete.");
+      }
+    },
+    afterRun: async (flexServer) => {
+      if (process.env.GRIST_TESTING_SOCKET) {
+        await flexServer.addTestingHooks();
+      }
+      if (process.env.GRIST_SERVE_PLUGINS_PORT) {
+        await flexServer.startCopy("pluginServer", parseInt(process.env.GRIST_SERVE_PLUGINS_PORT, 10));
+      }
+    },
+  });
+  return handle.flexServer;
 }
 
 if (require.main === module) {

@@ -105,6 +105,51 @@ export function cleanupOnSignals(varSignalNames) {
 }
 
 /**
+ * Reset cleanup state so that a fresh set of handlers can be registered.
+ * Used during in-process restart. Signal handlers (registered via
+ * installProcessHandlers) are intentionally NOT reset -- they are
+ * process-global and must only be registered once.
+ */
+export function resetCleanupHandlers() {
+  cleanupHandlers = [];
+  _cleanupHandlersPromise = null;
+}
+
+/**
+ * Register signal handlers and an uncaughtException handler that
+ * runs cleanup before exiting. Safe to call once per process.
+ * Used by both FlexServer (standalone) and ServerShell (restart mode).
+ */
+var _processHandlersInstalled = false;
+export function installProcessHandlers() {
+  if (_processHandlersInstalled) { return; }
+  _processHandlersInstalled = true;
+
+  // Set up signal handlers. Note that nodemon sends SIGUSR2 to restart node.
+  cleanupOnSignals("SIGINT", "SIGTERM", "SIGHUP", "SIGUSR2");
+
+  // We listen for uncaughtExceptions / unhandledRejections, but do exit when they happen. It is
+  // a strong recommendation, which seems best to follow
+  // (https://nodejs.org/docs/latest-v18.x/api/process.html#warning-using-uncaughtexception-correctly).
+  // We do try to shutdown cleanly (i.e. do any planned cleanup), which goes somewhat against
+  // the recommendation to do only synchronous work.
+
+  let counter = 0;
+
+  // Note that this event catches also 'unhandledRejection' (origin should be either
+  // 'uncaughtException' or 'unhandledRejection').
+  process.on("uncaughtException", (err, origin) => {
+    log.error(`UNHANDLED ERROR ${origin} (${counter}):`, err);
+    if (counter === 0) {
+      // Only call shutdown once. It's async and could in theory fail, in which case it would be
+      // another unhandledRejection, and would get caught and reported by this same handler.
+      void (exit(1));
+    }
+    counter++;
+  });
+}
+
+/**
  * Run cleanup handlers and exit the process with the given exit code (0 if omitted).
  */
 export function exit(optExitCode) {

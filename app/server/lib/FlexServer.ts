@@ -121,6 +121,12 @@ const DOC_ID_NEW_USER_INFO = process.env.DOC_ID_NEW_USER_INFO;
 // PubSub channel we use to inform all servers when a new available Grist version is detected.
 const latestVersionChannel = "latestVersionAvailable";
 
+// The host that the HTTP server binds to. Read from GRIST_HOST,
+// defaulting to "localhost". Exported so that ServerShell (which
+// owns the socket when running in restart mode) and FlexServer
+// (which records the host for getOwnUrl) agree on the same value.
+export function getGristHost() { return process.env.GRIST_HOST || "localhost"; }
+
 export interface FlexServerOptions {
   dataDir?: string;
 
@@ -131,6 +137,10 @@ export interface FlexServerOptions {
 
   // Global grist config options
   settings?: IGristCoreConfig;
+
+  // An existing http.Server to use instead of creating a new one.
+  // When provided, FlexServer will not close it on shutdown.
+  server?: http.Server;
 }
 
 export class FlexServer implements GristServer {
@@ -184,6 +194,8 @@ export class FlexServer implements GristServer {
   private _internalPermitStore: IPermitStore;  // store for permits that stay within our servers
   private _externalPermitStore: IPermitStore;  // store for permits that pass through outside servers
   private _disabled: boolean = false;
+  private _ownsServer: boolean;
+  private _restartCallback: (() => void) | null = null;
   private _disableExternalStorage: boolean = false;
   private _healthy: boolean = true;  // becomes false if a serious error has occurred and
   // server cannot do its work.
@@ -221,12 +233,13 @@ export class FlexServer implements GristServer {
   constructor(public port: number, public name: string = "flexServer",
     public readonly options: FlexServerOptions = {}) {
     this._getLoginSystem = create.getLoginSystem.bind(create);
+    this._ownsServer = !options.server;
     this.settings = options.settings;
     this.app = express();
     this.app.set("port", port);
 
     this.appRoot = getAppRoot();
-    this.host = process.env.GRIST_HOST || "localhost";
+    this.host = getGristHost();
     log.info(`== Grist version is ${version.version} (commit ${version.gitcommit})`);
     this.info.push(["appRoot", this.appRoot]);
     // Initialize locales files.
@@ -746,28 +759,9 @@ export class FlexServer implements GristServer {
 
   public addCleanup() {
     if (this._check("cleanup")) { return; }
-    // Set up signal handlers. Note that nodemon sends SIGUSR2 to restart node.
-    shutdown.cleanupOnSignals("SIGINT", "SIGTERM", "SIGHUP", "SIGUSR2");
-
-    // We listen for uncaughtExceptions / unhandledRejections, but do exit when they happen. It is
-    // a strong recommendation, which seems best to follow
-    // (https://nodejs.org/docs/latest-v18.x/api/process.html#warning-using-uncaughtexception-correctly).
-    // We do try to shutdown cleanly (i.e. do any planned cleanup), which goes somewhat against
-    // the recommendation to do only synchronous work.
-
-    let counter = 0;
-
-    // Note that this event catches also 'unhandledRejection' (origin should be either
-    // 'uncaughtException' or 'unhandledRejection').
-    process.on("uncaughtException", (err, origin) => {
-      log.error(`UNHANDLED ERROR ${origin} (${counter}):`, err);
-      if (counter === 0) {
-        // Only call shutdown once. It's async and could in theory fail, in which case it would be
-        // another unhandledRejection, and would get caught and reported by this same handler.
-        void (shutdown.exit(1));
-      }
-      counter++;
-    });
+    // installProcessHandlers is idempotent -- safe to call from both
+    // FlexServer (standalone) and ServerShell (restart mode).
+    shutdown.installProcessHandlers();
   }
 
   public addTagChecker() {
@@ -1108,8 +1102,11 @@ export class FlexServer implements GristServer {
     this._emitNotifier.removeAllListeners();
     this._dbManager?.clearCaches();
     this._installAdmin?.clearCaches();
-    if (this.server)      { this.server.close(); }
-    if (this.httpsServer) { this.httpsServer.close(); }
+    if (this._ownsServer) {
+      if (this.server)      { this.server.close(); }
+      if (this.httpsServer) { this.httpsServer.close(); }
+    }
+    if (this._comm) { await this._comm.shutdown(); }
     if (this.housekeeper) { await this.housekeeper.stop(); }
     if (this._jobs)       { await this._jobs.stop(); }
     if (this._docNotificationManager) {
@@ -1172,8 +1169,10 @@ export class FlexServer implements GristServer {
           this._comm.destroyAllClients();
         }
       }
-      this.server.close();
-      if (this.httpsServer) { this.httpsServer.close(); }
+      if (this._ownsServer) {
+        this.server.close();
+        if (this.httpsServer) { this.httpsServer.close(); }
+      }
     }
   }
 
@@ -1990,6 +1989,26 @@ export class FlexServer implements GristServer {
     this._isReady = value;
   }
 
+  public onRestart(cb: () => void) {
+    this._restartCallback = cb;
+  }
+
+  /**
+   * Request an in-process restart. The restart happens asynchronously:
+   * this method returns immediately, but the callback registered via
+   * onRestart() begins tearing down this FlexServer and building a new
+   * one. After triggerRestart() returns, this FlexServer instance is
+   * being shut down -- do not use it for further work. When running
+   * under ServerShell, the shell holds the HTTP socket open and creates
+   * a replacement FlexServer; callers that need the new instance should
+   * obtain it from the ServerShell handle. Has no effect if no
+   * restart callback has been registered (e.g. when
+   * GRIST_SERVER_SHELL_ENABLED is not set).
+   */
+  public triggerRestart() {
+    this._restartCallback?.();
+  }
+
   public checkOptionCombinations() {
     // Check for some bad combinations we should warn about.
     const allowedWebhookDomains = appSettings.section("integrations").flag("allowedWebhookDomains").readString({
@@ -2009,10 +2028,14 @@ export class FlexServer implements GristServer {
   public async start() {
     if (this._check("start")) { return; }
 
-    const servers = this._createServers();
-    this.server = servers.server;
-    this.httpsServer = servers.httpsServer;
-    await this._startServers(this.server, this.httpsServer, this.name, this.port, true);
+    if (this.options.server) {
+      this.server = this.options.server;
+    } else {
+      const servers = this._createServers();
+      this.server = servers.server;
+      this.httpsServer = servers.httpsServer;
+      await this._startServers(this.server, this.httpsServer, this.name, this.port, true);
+    }
   }
 
   public addNotifier() {
@@ -2800,7 +2823,7 @@ export class FlexServer implements GristServer {
  * better if long imports were made using a mechanism that
  * isn't just a single http request)
  */
-function getServerFlags(): https.ServerOptions {
+export function getServerFlags(): https.ServerOptions {
   const flags: https.ServerOptions = {};
 
   // We used to set the socket timeout to 0, but that has been

@@ -14,7 +14,7 @@ import {
   PreviousAndCurrent,
   QueryResult,
 } from "app/gen-server/lib/homedb/Interfaces";
-import { appSettings } from "app/server/lib/AppSettings";
+import { appSettings, isServerShellEnabled } from "app/server/lib/AppSettings";
 import { RequestWithLogin } from "app/server/lib/Authorizer";
 import { BootProbes } from "app/server/lib/BootProbes";
 import { expressWrap } from "app/server/lib/expressWrap";
@@ -69,7 +69,8 @@ export function attachEarlyEndpoints(options: AttachOptions) {
     userIdMiddleware,
     expressWrap(async (req, res) => {
       const config: Partial<AdminPageConfig> = {
-        runningUnderSupervisor: isAffirmative(process.env.GRIST_RUNNING_UNDER_SUPERVISOR),
+        runningUnderSupervisor: isAffirmative(process.env.GRIST_RUNNING_UNDER_SUPERVISOR) ||
+          isServerShellEnabled(),
         adminControls: gristServer.create.areAdminControlsAvailable(),
       };
       return gristServer.sendAppPage(req, res, {
@@ -109,9 +110,15 @@ export function attachEarlyEndpoints(options: AttachOptions) {
         if (process.send && process.env.GRIST_RUNNING_UNDER_SUPERVISOR) {
           log.rawDebug(`Restart[${mreq.method}] requesting supervisor to restart home server:`, meta);
           process.send({ action: "restart" });
+        } else if (isServerShellEnabled()) {
+          try {
+            gristServer.triggerRestart();
+          } catch (err) {
+            log.error("Restart: triggerRestart failed:", err);
+          }
         }
       });
-      if (!process.env.GRIST_RUNNING_UNDER_SUPERVISOR) {
+      if (!process.env.GRIST_RUNNING_UNDER_SUPERVISOR && !isServerShellEnabled()) {
         // On the topic of http response codes, thus spake MDN:
         // "409: This response is sent when a request conflicts with the current state of the server."
         return res.status(409).send({

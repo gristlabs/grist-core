@@ -131,7 +131,7 @@ export class Comm extends EventEmitter {
     this._clients.delete(client.clientId);
   }
 
-  public async testServerShutdown() {
+  public async shutdown() {
     if (this._wss) {
       for (const wssi of this._wss) {
         await fromCallback(cb => wssi.close(cb));
@@ -140,8 +140,8 @@ export class Comm extends EventEmitter {
     }
   }
 
-  public async testServerRestart() {
-    await this.testServerShutdown();
+  public async restart() {
+    await this.shutdown();
     this._wss = this._startServer();
   }
 
