@@ -29,6 +29,7 @@ import { createDocTools } from "test/server/docTools";
 import { GristClient, openClient } from "test/server/gristClient";
 import * as testUtils from "test/server/testUtils";
 
+import axios from "axios";
 import { assert } from "chai";
 import { cloneDeep, isMatch, pick } from "lodash";
 import * as sinon from "sinon";
