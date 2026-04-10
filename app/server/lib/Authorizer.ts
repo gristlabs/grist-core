@@ -15,7 +15,7 @@ import { forceSessionChange, getSessionProfiles, getSessionUser, getSignInStatus
 import { expressWrap } from "app/server/lib/expressWrap";
 import { RequestWithOrg } from "app/server/lib/extractOrg";
 import { GristServer } from "app/server/lib/GristServer";
-import { COOKIE_MAX_AGE,
+import { COOKIE_MAX_AGE, COOKIE_MAX_AGE_ANONYMOUS,
   cookieName as sessionCookieName, getAllowedOrgForSessionID, getCookieDomain } from "app/server/lib/gristSessions";
 import { makeId } from "app/server/lib/idUtils";
 import log from "app/server/lib/log";
@@ -134,12 +134,27 @@ export function getRequestProfile(req: Request | IncomingMessage,
   return profile;
 }
 
+/**
+ * Expand the user session lifetime if they're just got logged in (as the anonymous session lifetime is shorter).
+ * Therefore it reflect the value set in COOKIE_MAX_AGE.
+ */
+function expandUserSessionIfNewlyLoggedIn(mreq: RequestWithLogin) {
+  const { originalMaxAge, maxAge } = mreq.session.cookie;
+  if (mreq.userIsAuthorized && COOKIE_MAX_AGE !== null && originalMaxAge && originalMaxAge < COOKIE_MAX_AGE) {
+    mreq.session.cookie.originalMaxAge = COOKIE_MAX_AGE;
+    mreq.session.cookie.expires = new Date(Date.now() + COOKIE_MAX_AGE + maxAge - originalMaxAge);
+    forceSessionChange(mreq.session);
+  }
+}
+
 function setRequestUser(mreq: RequestWithLogin, dbManager: HomeDBAuth, user: User) {
   mreq.user = user;
   mreq.userId = user.id;
   mreq.userIsAuthorized = (user.id !== dbManager.getAnonymousUserId());
-
   const fullUser = dbManager.makeFullUser(user);
+
+  expandUserSessionIfNewlyLoggedIn(mreq);
+
   // This is dumb, but historically, we used 'email' field inconsistently; in this Authorizer
   // flow, it was set to the normalized email, rather than the display email. The difference is
   // visible in the value of the `user.Email` attribute seen by access rules for **API requests**,
@@ -314,7 +329,14 @@ export async function addRequestUser(
     // If we haven't selected a user by other means, and have profiles available in the
     // session, then select a user based on those profiles.
     const session = mreq.session;
-    if (session && !session.altSessionId) {
+    const genShortLivingSessionID: boolean = isAnonymousUser(mreq) && mreq.xhr;
+    if (genShortLivingSessionID) {
+      session.cookie ||= {};
+      session.cookie.maxAge = COOKIE_MAX_AGE_ANONYMOUS;
+    }
+
+    if (session && !session.altSessionId &&
+      !hasApiKey) { // Skip session creation for api calls
       // Create a default alternative session id for use in documents.
       session.altSessionId = makeId();
       forceSessionChange(session);

@@ -1,6 +1,7 @@
 import { normalizeEmail } from "app/common/emails";
 import { UserProfile } from "app/common/LoginSessionAPI";
 import { SessionStore } from "app/server/lib/gristSessions";
+import { makeId } from "app/server/lib/idUtils";
 import log from "app/server/lib/log";
 import { fromCallback } from "app/server/lib/serverUtils";
 
@@ -90,6 +91,16 @@ export interface SessionOIDCInfo {
 // Make an artificial change to a session to encourage express-session to set a cookie.
 export function forceSessionChange(session: SessionObj) {
   session.alive = Number(session.alive || 0) + 1;
+}
+
+/**
+ * Create a default alternative session id for use in documents.
+ *
+ * This sessionID is also used client side on formulas (like user.SessionIS) when the user is anonymous.
+ */
+export function generateAltSessionID(session: SessionObj) {
+  session.altSessionId = makeId();
+  forceSessionChange(session);
 }
 
 // We expose a sign-in status in a cookie accessible to all subdomains, to assist in auto-signin.
