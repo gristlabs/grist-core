@@ -1,7 +1,7 @@
 import { DocumentUsage } from "app/common/DocUsage";
 import { Role } from "app/common/roles";
 import { Document } from "app/gen-server/entity/Document";
-import {DocAuthResult} from 'app/gen-server/lib/homedb/Interfaces';
+import { DocAuthResult } from "app/gen-server/lib/homedb/Interfaces";
 import { RequestWithLogin } from "app/server/lib/Authorizer";
 import { AuthSession } from "app/server/lib/AuthSession";
 import { OptDocSession } from "app/server/lib/DocSession";
@@ -103,7 +103,7 @@ export function getDocSessionUsage(docSession: OptDocSession): DocumentUsage | n
   return getDocSessionDocAuth(docSession)?.cachedDoc?.usage || null;
 }
 
-export function getDocSessionDocAuth(docSession: OptDocSession): DocAuthResult|null {
+export function getDocSessionDocAuth(docSession: OptDocSession): DocAuthResult | null {
   if (docSession.authorizer) {
     return docSession.authorizer.getCachedAuth() || null;
   }

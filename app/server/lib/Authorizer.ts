@@ -681,7 +681,7 @@ export async function getOrSetDocAuth(
       }
 
       const authTokenUser = await dbManager.getUser(effectiveUserId);
-      mreq.docAuth = {...mreq.docAuth, authTokenUser};
+      mreq.docAuth = { ...mreq.docAuth, authTokenUser };
     }
 
     // A permit with a user set to the anonymous user and linked to this document
