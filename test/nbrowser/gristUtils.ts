@@ -4282,7 +4282,7 @@ namespace gristUtils {
     return driver.findWait(".grist-floating-menu", timeoutMsec);
   }
 
-  export function findOpenMenuItem(itemSelector: string, itemContentMatcher?: string | RegExp,  timeoutMsec = 100) {
+  export function findOpenMenuItem(itemSelector: string, itemContentMatcher?: string | RegExp, timeoutMsec = 100) {
     return itemContentMatcher ?
       driver.findContentWait(`.grist-floating-menu ${itemSelector}`, itemContentMatcher, timeoutMsec) :
       driver.findWait(`.grist-floating-menu ${itemSelector}`, timeoutMsec);
