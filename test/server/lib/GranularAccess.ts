@@ -3850,15 +3850,15 @@ describe("GranularAccess", function() {
       { id: [1], MoreTexts: [[GristObjCode.List, i6]] },
     ), /403.*Cannot access attachment/);
 
-    const readTokenResult = (await cliEditor.send("getAccessToken", 0, {readOnly: true})).data;
+    const readTokenResult = (await cliEditor.send("getAccessToken", 0, { readOnly: true })).data;
     await assert.isRejected(postAttachment(editor, docId, readTokenResult.token, "dataError", "error.txt"));
 
-    const tokenResult = (await cliEditor.send("getAccessToken", 0, {readOnly: false})).data;
+    const tokenResult = (await cliEditor.send("getAccessToken", 0, { readOnly: false })).data;
     const i7 = await postAttachment(editor, docId, tokenResult.token, "content7", "7.txt");
     await assert.isFulfilled(getAttachment(owner, docId, i7));
     // New attachments are not accessible through the web API
     // await assert.isFulfilled(getAttachment(editor, docId, i7));
-    await editor.getDocAPI(docId).updateRows('Data1', {id: [1], Texts: [[GristObjCode.List, i7]]});
+    await editor.getDocAPI(docId).updateRows("Data1", { id: [1], Texts: [[GristObjCode.List, i7]] });
     await assert.isFulfilled(getAttachment(editor, docId, i7));
 
     // Attachment check is not applied for undos of actions by the same user.
@@ -4589,11 +4589,11 @@ async function getAttachment(api: UserAPI, docId: string, attId: number) {
 // Upload an attachment.
 async function postAttachment(api: UserAPI, docId: string, token: string, content: string, filename: string) {
   const formData = new FormData();
-  formData.append('upload', new Blob([content]), filename);
+  formData.append("upload", new Blob([content]), filename);
   const url = api.getBaseUrl() + `/api/docs/${docId}/attachments?auth=${token}`;
   const response = await axios.request({
     url,
-    method: 'POST',
+    method: "POST",
     data: formData,
     headers: {
       "X-Requested-With": "XMLHttpRequest",
