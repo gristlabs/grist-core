@@ -4,15 +4,6 @@ import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
 
 import { assert, driver } from "mocha-webdriver";
-
-/**
- * Tests that a custom widget receives linking state (asTarget, asSource) via
- * the InteractionOptions.linking field of the ready/onOptions message.
- *
- * Uses the config fixture at test/fixtures/sites/config/, which renders the
- * second argument of grist.onOptions into the #onOptionsSettings DOM element
- * as JSON. The test reads that element inside the iframe.
- */
 describe("CustomWidgetLinking", function() {
   this.timeout("30s");
 
@@ -30,9 +21,7 @@ describe("CustomWidgetLinking", function() {
   });
 
   after(async function() {
-    if (serving && !gu.noCleanup) {
-      await serving.shutdown();
-    }
+    await serving.shutdown();
   });
 
   afterEach(() => gu.checkForErrors());
@@ -49,15 +38,13 @@ describe("CustomWidgetLinking", function() {
   }
 
   it("reports asTarget=Cursor:Same-Table when linked by a same-table source", async function() {
-    // Page with TABLE1 grid.
     await gu.addNewTable("Data");
     await gu.sendActions([
       ["AddRecord", "Data", null, { A: "one" }],
       ["AddRecord", "Data", null, { A: "two" }],
     ]);
 
-    // Add a custom widget on the same table. addNewSection leaves the widget gallery open
-    // when no customWidget is specified, so setCustomWidgetUrl can run with openGallery: false.
+    // Add a custom widget on the same table.
     await gu.openWidgetPanel("widget");
     await gu.addNewSection("Custom", "Data");
     await gu.setCustomWidgetUrl(`${serving.url}/config`, { openGallery: false });
@@ -71,5 +58,82 @@ describe("CustomWidgetLinking", function() {
       assert.isObject(settings, "widget should receive a settings object");
       assert.deepEqual(settings.linking, { asTarget: "Cursor:Same-Table", asSource: false });
     }, 100);
+  });
+
+  it("always includes linking in settings even without a link", async function() {
+    // Close any open panel/menu from the previous test.
+    await gu.toggleSidePanel("right", "close");
+    // Create a standalone custom widget with no selectBy — no link at all.
+    await gu.addNewPage("Custom", "Data", { customWidget: /Custom URL/ });
+    await gu.setCustomWidgetUrl(`${serving.url}/config`);
+    await gu.widgetAccess(AccessLevel.read_table);
+
+    await gu.waitToPass(async () => {
+      const settings = await readWidgetSettings();
+      assert.isObject(settings, "widget should receive a settings object");
+      // linking must always be present (not undefined) so widgets that are aware of the linking
+      // can be run on grist that doesn't support it yet. So undefined means "linking not supported".
+      assert.deepEqual(settings.linking, { asTarget: null, asSource: false });
+    }, 2000);
+  });
+
+  it("reports asSource=true when another section is linked by this widget", async function() {
+    // New page: custom widget as source, grid linked by it.
+    await gu.addNewPage("Custom", "Data", { customWidget: /Custom URL/ });
+    await gu.setCustomWidgetUrl(`${serving.url}/config`);
+    await gu.widgetAccess(AccessLevel.read_table);
+    // Tell Grist this widget can be used as a linking source.
+    await gu.customCode(grist => grist.sectionApi.configure({ allowSelectBy: true }));
+    // Add a grid linked by the custom widget.
+    await gu.addNewSection("Table", "Data", { selectBy: /DATA custom/i });
+    // Switch back to the custom widget to read its settings.
+    await gu.selectSectionByTitle("DATA custom");
+
+    await gu.waitToPass(async () => {
+      const settings = await readWidgetSettings();
+      assert.deepEqual(settings.linking, { asTarget: null, asSource: true });
+    }, 2000);
+
+    // Remove the link from the grid so the widget is no longer a source.
+    await gu.selectSectionByTitle("DATA");
+    await gu.selectBy(/Select widget/);
+    await gu.selectSectionByTitle("DATA custom");
+
+    await gu.waitToPass(async () => {
+      const settings = await readWidgetSettings();
+      assert.deepEqual(settings.linking, { asTarget: null, asSource: false });
+    }, 2000);
+  });
+
+  it("updates linking reactively when selectBy changes", async function() {
+    // New page: grid + custom widget on the same table, linked by the grid.
+    await gu.addNewPage("Table", "Data");
+    await gu.addNewSection("Custom", "Data", { selectBy: "DATA", customWidget: /Custom URL/ });
+    await gu.setCustomWidgetUrl(`${serving.url}/config`);
+    await gu.widgetAccess(AccessLevel.read_table);
+
+    // Verify initial linked state.
+    await gu.waitToPass(async () => {
+      const settings = await readWidgetSettings();
+      assert.deepEqual(settings.linking, { asTarget: "Cursor:Same-Table", asSource: false });
+    }, 2000);
+
+    // Remove the link.
+    await gu.selectBy(/Select widget/);
+
+    // Widget should now report no incoming link.
+    await gu.waitToPass(async () => {
+      const settings = await readWidgetSettings();
+      assert.deepEqual(settings.linking, { asTarget: null, asSource: false });
+    }, 2000);
+
+    // Re-add the link.
+    await gu.selectBy("DATA");
+
+    // Widget should now report the link again.
+    await gu.waitToPass(async () => {
+      const settings = await readWidgetSettings();
+      assert.deepEqual(settings.linking, { asTarget: "Cursor:Same-Table", asSource: false });
+    }, 2000);
   });
 });

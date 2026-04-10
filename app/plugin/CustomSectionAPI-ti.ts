@@ -32,7 +32,7 @@ export const LinkingInfo = t.iface([], {
 
 export const InteractionOptions = t.iface([], {
   "accessLevel": "string",
-  "linking": t.opt("LinkingInfo"),
+  "linking": "LinkingInfo",
 });
 
 export const WidgetColumnMap = t.iface([], {

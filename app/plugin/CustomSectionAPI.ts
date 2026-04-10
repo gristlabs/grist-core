@@ -105,7 +105,7 @@ export interface InteractionOptions {
    * Linking state of this section at the time of the message. Always present; fields inside
    * describe whether this section is a link target and/or a link source.
    */
-  linking?: LinkingInfo,
+  linking: LinkingInfo,
 }
 
 /**

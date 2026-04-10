@@ -21,8 +21,6 @@ import merge from "lodash/merge";
 import pick from "lodash/pick";
 import pickBy from "lodash/pickBy";
 
-// LinkType is defined in app/plugin/CustomSectionAPI.ts so it can also be exposed to custom widgets
-// via InteractionOptions.linking. See that file for the enum values.
 // TODO JV: Eventually, switching the main block of linking logic in LinkingState constructor to be a big
 //          switch(linkType){} would make things cleaner.
 // TODO JV: also should add "Custom-widget-linked" to this, but holding off until Jarek's changes land
