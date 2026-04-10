@@ -21,7 +21,9 @@ describe("CustomWidgetLinking", function() {
   });
 
   after(async function() {
-    await serving.shutdown();
+    if (serving && !gu.noCleanup) {
+      await serving.shutdown();
+    }
   });
 
   afterEach(() => gu.checkForErrors());
