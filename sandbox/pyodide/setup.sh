@@ -6,13 +6,14 @@ echo ""
 echo "###############################################################"
 echo "## Get pyodide node package"
 
+source env.sh
 if [[ ! -e _build/worker ]]; then
   mkdir -p _build/worker
   cd _build/worker
   yarn init --yes
   touch yarn.lock
-  yarn add pyodide@0.23.4
   yarn add deno@2.6.3
+  yarn add pyodide@$PYODIDE_VERSION
   cd ../..
 fi
 
