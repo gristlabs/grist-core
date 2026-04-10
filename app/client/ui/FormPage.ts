@@ -97,7 +97,7 @@ export class FormPage extends Disposable {
                   pending: this._model.submitting,
                   onSubmit: (_formData, formElement) => this._handleFormSubmit(formElement),
                   onSuccess: (recordId: number) => this._handleFormSubmitSuccess(recordId),
-                  onError: (e) => this._handleFormError(e),
+                  onError: e => this._handleFormError(e),
                 }),
               ),
             ),
@@ -119,7 +119,7 @@ export class FormPage extends Disposable {
     const formLayout = this._model.formLayout.get();
     if (!formLayout) { throw new Error("formLayout is not defined"); }
 
-    const {successURL} = formLayout;
+    const { successURL } = formLayout;
     if (successURL) {
       const url = sanitizeHttpUrl(successURL)?.replace("{{ID}}", `${recordId}`);
       if (url) {
