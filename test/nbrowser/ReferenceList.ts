@@ -666,7 +666,7 @@ describe("ReferenceList", function() {
     });
 
     it("should return to text-as-typed when nothing is selected", async function() {
-      const cell = await gu.getCell({ section: "References", col: "Colors", rowNum: 2 }).doClick();
+      await gu.getCell({ section: "References", col: "Colors", rowNum: 2 }).doClick();
       await gu.enterCell(["da"], { validate: false });
       assert.deepEqual(await getACOptions(2), ["Dark Blue", "Dark Cyan"]);
 
@@ -701,14 +701,24 @@ describe("ReferenceList", function() {
       // Re-enter the typed-in text and click away. Check the cell is now empty since
       // no reference items were added.
       await driver.sendKeys("da", Key.UP);
-      await gu.getCell({ section: "References", col: "Colors", rowNum: 1 }).doClick();
+      await gu.getCell({ section: "References", col: "Colors", rowNum: 1 }).click();
       await gu.waitForServer();
-      assert.equal(await cell.getText(), "");
-      assert.equal(await cell.find(".field_clip").matches(".invalid"), false);
+      await gu.waitToPass(async () => {
+        assert.equal(
+          await gu.getCell({ section: "References", col: "Colors", rowNum: 2 }).getText(), "");
+      });
+      assert.equal(
+        await gu.getCell({ section: "References", col: "Colors", rowNum: 2 })
+          .find(".field_clip").matches(".invalid"), false);
 
       await gu.undo();
-      assert.equal(await cell.getText(), "Red");
-      assert.equal(await cell.find(".field_clip").matches(".invalid"), false);
+      await gu.waitToPass(async () => {
+        assert.equal(
+          await gu.getCell({ section: "References", col: "Colors", rowNum: 2 }).getText(), "Red");
+      });
+      assert.equal(
+        await gu.getCell({ section: "References", col: "Colors", rowNum: 2 })
+          .find(".field_clip").matches(".invalid"), false);
     });
 
     it("should save text as typed when nothing is selected", async function() {
