@@ -20,6 +20,7 @@ describe("FilteringBugs", function() {
     // Change column A of the first record from foo to bar; bar should still be
     // visible, even though it's excluded by a filter.
     await gu.getCell({ section: "TABLE2 Filtered", rowNum: 1, col: "A" }).click();
+    await gu.waitAppFocus();
     await gu.sendKeys(Key.ENTER, Key.ARROW_DOWN, Key.ENTER);
     await gu.waitForServer();
     assert.deepEqual(
@@ -30,6 +31,7 @@ describe("FilteringBugs", function() {
     // With the same record selected, change column C in the linked card section.
     await gu.getCell({ section: "TABLE2 Filtered", rowNum: 1, col: "A" }).click();
     await gu.getCardCell("C", "TABLE2 Card").click();
+    await gu.waitAppFocus();
     await gu.sendKeys("2", Key.ENTER);
     await gu.waitForServer();
 

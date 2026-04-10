@@ -106,6 +106,7 @@ describe("WebhookPage", function() {
     // Remove the webhook and make sure it is no longer listed.
     assert.equal(await gu.getCardListCount(), 2);
     await gu.getDetailCell({ col: "Name", rowNum: 1 }).click();
+    await gu.waitAppFocus();
     await gu.sendKeys(Key.chord(await gu.modKey(), Key.DELETE));
     await gu.confirm(true, true);
     await gu.waitForServer();
@@ -134,6 +135,7 @@ describe("WebhookPage", function() {
       assert.equal(await getField(1, "Header Authorization"), "Bearer 1234");
     });
     await gu.getDetailCell({ col: "Header Authorization", rowNum: 1 }).click();
+    await gu.waitAppFocus();
     await gu.sendKeys(Key.DELETE);
     await gu.waitForServer();
   });
@@ -166,10 +168,12 @@ describe("WebhookPage", function() {
     assert.lengthOf((await docApi.getRows("Table3")).A, 1);
     // Break everything down.
     await gu.getDetailCell({ col: "Name", rowNum: 1 }).click();
+    await gu.waitAppFocus();
     await gu.sendKeys(Key.chord(await gu.modKey(), Key.DELETE));
     await gu.confirm(true, true);
     await gu.waitForServer();
     await gu.getDetailCell({ col: "Memo", rowNum: 1 }).click();
+    await gu.waitAppFocus();
     await gu.sendKeys(Key.chord(await gu.modKey(), Key.DELETE));
     await gu.waitForServer();
     assert.equal(await gu.getCardListCount(), 1);
@@ -208,6 +212,7 @@ describe("WebhookPage", function() {
 
     // Break everything down.
     await gu.getDetailCell({ col: "Name", rowNum: 1 }).click();
+    await gu.waitAppFocus();
     await gu.sendKeys(Key.chord(await gu.modKey(), Key.DELETE));
     await gu.confirm(true, true);
     await gu.waitForServer();
@@ -264,6 +269,7 @@ describe("WebhookPage", function() {
     });
 
     await gu.getDetailCell({ col: "Name", rowNum: 1 }).click();
+    await gu.waitAppFocus();
     await gu.sendKeys(Key.chord(await gu.modKey(), Key.DELETE));
     await gu.confirm(true, true);
     await driver.switchTo().window(ownerTab);
@@ -332,5 +338,7 @@ async function openWebhookPage() {
 async function waitForWebhookPage() {
   await driver.findContentWait("button", /Clear queue/, 3000);
   // No section, so no easy utility for setting focus. Click on a random cell.
-  await gu.getDetailCell({ col: "Webhook Id", rowNum: 1 }).click();
+  await gu.waitToPass(async () => {
+    await gu.getDetailCell({ col: "Webhook Id", rowNum: 1 }).click();
+  });
 }

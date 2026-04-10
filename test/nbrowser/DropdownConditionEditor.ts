@@ -108,12 +108,14 @@ describe("DropdownConditionEditor", function() {
       ]);
       await gu.sendKeys(Key.ESCAPE);
       await gu.getCell(1, 4).click();
+      await gu.waitAppFocus();
       await gu.sendKeys(Key.ENTER);
       assert.deepEqual(await driver.findAll(".test-autocomplete li", el => el.getText()), [
         "Trainee",
       ]);
       await gu.sendKeys(Key.ESCAPE);
       await gu.getCell(1, 6).click();
+      await gu.waitAppFocus();
       await gu.sendKeys(Key.ENTER);
       assert.deepEqual(await driver.findAll(".test-autocomplete li", el => el.getText()), [
         "Trainee",
@@ -128,6 +130,7 @@ describe("DropdownConditionEditor", function() {
         "choice not in $Role",
       );
       await gu.getCell(1, 4).click();
+      await gu.waitAppFocus();
       await gu.sendKeys(Key.ENTER);
       assert.deepEqual(await driver.findAll(".test-autocomplete li", el => el.getText()), [
         "Trainee",
@@ -232,6 +235,7 @@ describe("DropdownConditionEditor", function() {
 
       // Should be no options on row 2 because of $id != 2 part of condition.
       await gu.getCell(2, 2).click();
+      await gu.waitAppFocus();
       await gu.sendKeys(Key.ENTER);
       assert.deepEqual(await driver.findAll(".test-autocomplete li", el => el.getText()), [
       ]);
@@ -239,6 +243,7 @@ describe("DropdownConditionEditor", function() {
 
       // Row 3 should be like row 1.
       await gu.getCell(2, 3).click();
+      await gu.waitAppFocus();
       await gu.sendKeys(Key.ENTER);
       assert.deepEqual(await driver.findAll(".test-autocomplete li", el => el.getText()), [
         "Pavan Madilyn",
@@ -247,10 +252,12 @@ describe("DropdownConditionEditor", function() {
       await gu.sendKeys(Key.ESCAPE);
 
       await gu.getCell(2, 4).click();
+      await gu.waitAppFocus();
       await gu.sendKeys(Key.ENTER);
       assert.isEmpty(await driver.findAll(".test-autocomplete li", el => el.getText()));
       await gu.sendKeys(Key.ESCAPE);
       await gu.getCell(2, 6).click();
+      await gu.waitAppFocus();
       await gu.sendKeys(Key.ENTER);
       assert.deepEqual(await driver.findAll(".test-autocomplete li", el => el.getText()), [
         "Marie Ziyad",
@@ -265,6 +272,7 @@ describe("DropdownConditionEditor", function() {
         'choice.Role == "Supervisor" and $Role != "Supervisor" and $id != 2\n',
       );
       await gu.getCell(2, 4).click();
+      await gu.waitAppFocus();
       await gu.sendKeys(Key.ENTER);
       assert.isEmpty(await driver.findAll(".test-autocomplete li", el => el.getText()));
       await gu.sendKeys(Key.ESCAPE);
@@ -386,6 +394,7 @@ describe("DropdownConditionEditor", function() {
     const session = await gu.session().user("user2").login();
     await session.loadDoc(`/doc/${docId}`);
     await gu.getCell(1, 1).click();
+    await gu.waitAppFocus();
     await gu.sendKeys(Key.ENTER);
     assert.deepEqual(await driver.findAll(".test-autocomplete li", el => el.getText()), []);
     await gu.sendKeys(Key.ESCAPE);

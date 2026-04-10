@@ -64,7 +64,7 @@ describe("contextMenu", function() {
     await contextMenu();
 
     // check action worked
-    await driver.findContent(".grist-floating-menu li", "Reset").click();
+    await gu.findOpenMenuItem("li", "Reset").click();
     await checkLogs([]);
 
     // open context menu

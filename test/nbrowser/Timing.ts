@@ -34,7 +34,7 @@ describe("Timing", function() {
   async function assertOff() {
     await gu.waitToPass(async () => {
       assert.equal(await timingText.text(), "Find slow formulas");
-    });
+    }, 10000);
     assert.isTrue(await startTiming.visible());
     assert.isFalse(await stopTiming.present());
   }

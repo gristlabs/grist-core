@@ -189,7 +189,7 @@ describe("Pages", function() {
   it("should allow renaming table", async () => {
     // open dots menu and click rename
     await gu.openPageMenu("People");
-    await driver.find(".test-docpage-rename").doClick();
+    await driver.findWait(".test-docpage-rename", 1000).doClick();
 
     // do rename
     await driver.find(".test-docpage-editor").sendKeys("PeopleRenamed", Key.ENTER);
@@ -230,7 +230,7 @@ describe("Pages", function() {
   it("should not allow blank page name", async () => {
     // Begin renaming of People page
     await gu.openPageMenu("People");
-    await driver.find(".test-docpage-rename").doClick();
+    await driver.findWait(".test-docpage-rename", 1000).doClick();
 
     // Delete page name and check editor's value equals ''
     await driver.find(".test-docpage-editor").sendKeys(Key.DELETE);
@@ -253,7 +253,7 @@ describe("Pages", function() {
     // rename pages.
     async function renamePage(origName: string | RegExp, newName: string) {
       await gu.openPageMenu(origName);
-      await driver.find(".test-docpage-rename").doClick();
+      await driver.findWait(".test-docpage-rename", 1000).doClick();
       const editor = await driver.find(".test-docpage-editor");
       await driver.executeScript((el: HTMLInputElement, text: string) => { el.value = text; }, editor, newName);
       await editor.sendKeys(Key.ENTER);
@@ -286,7 +286,7 @@ describe("Pages", function() {
 
   it("should show tooltip for long page names on hover", async () => {
     await gu.openPageMenu("People");
-    await driver.find(".test-docpage-rename").doClick();
+    await driver.findWait(".test-docpage-rename", 1000).doClick();
     await driver.find(".test-docpage-editor")
       .sendKeys("People, Persons, Humans, Ladies & Gentlemen", Key.ENTER);
     await gu.waitForServer();
@@ -310,7 +310,7 @@ describe("Pages", function() {
 
     // start renaming Documents and click the input
     await gu.openPageMenu("Documents");
-    await driver.find(".test-docpage-rename").doClick();
+    await driver.findWait(".test-docpage-rename", 1000).doClick();
     await driver.find(".test-docpage-editor").click();
 
     // check that People is still the selected page.

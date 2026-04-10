@@ -310,7 +310,7 @@ describe("TreeViewComponent", () => {
     await startDrag(/Page6/);
     await findItem(/Page1/).mouseMove();
     // target is above Page1
-    assert.equal(await driver.find(".test-treeview-target").isDisplayed(), true);
+    assert.equal(await driver.findWait(".test-treeview-target", 1000).isDisplayed(), true);
     assert.deepEqual(await driver.findAll(`.test-treeview-itemHeader.highlight`, e => e.getText()), []);
     await assertTargetPos(await target.rect(), "above", await findItemRectangles(/Page1/));
     await delay(1200);
@@ -513,7 +513,19 @@ function findTarget() {
 async function withTreeviewChange(cb: () => WebElementPromise | Promise<void>) {
   const getItemTexts = async () =>
     (await driver.findAll(".test-treeview-itemHeaderWrapper", e => e.getText())).join(",");
-  const before = await getItemTexts();
+  // Retry on StaleElementReferenceError
+  const getItemTextsSafe = async () => {
+    try {
+      return await getItemTexts();
+    } catch (e) {
+      if (e.name === "StaleElementReferenceError") { return null; }
+      throw e;
+    }
+  };
+  const before = await getItemTextsSafe();
   await cb();
-  await driver.wait(async () => (await getItemTexts()) !== before);
+  await driver.wait(async () => {
+    const now = await getItemTextsSafe();
+    return now !== null && now !== before;
+  });
 }

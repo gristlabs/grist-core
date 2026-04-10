@@ -63,11 +63,13 @@ describe("AccessRules2", function() {
 
     const [email1, email2, email3] = ["user1", "user2", "user3"].map(u => gu.translateUser(u as any).email);
     // All users the doc is shared with should be listed, with correct Access.
-    assert.equal(await driver.findContent(".test-acl-user-item", email1).isPresent(), false);
-    assert.equal(await driver.findContent(".test-acl-user-item", email2)
-      .find(".test-acl-user-access").getText(), "(Owner)");
-    assert.equal(await driver.findContent(".test-acl-user-item", email3)
-      .find(".test-acl-user-access").getText(), "(Editor)");
+    await gu.waitToPass(async () => {
+      assert.equal(await driver.findContent(".test-acl-user-item", email1).isPresent(), false);
+      assert.equal(await driver.findContent(".test-acl-user-item", email2)
+        .find(".test-acl-user-access").getText(), "(Owner)");
+      assert.equal(await driver.findContent(".test-acl-user-item", email3)
+        .find(".test-acl-user-access").getText(), "(Editor)");
+    });
 
     // Check examples are present.
     assert.deepEqual(
@@ -414,14 +416,16 @@ describe("AccessRules2", function() {
     await gu.undo();
     await driver.findWait(".test-rule-set", 2000);
 
-    ruleSet = findDefaultRuleSet(/ClientsTable/);
-    assert.lengthOf(await ruleSet.findAll(".test-rule-part"), 2);
-    assert.lengthOf(await ruleSet.findAll(".test-rule-add"), 2);
-    assert.equal(
-      await ruleSet.find(".test-rule-part-and-memo:nth-child(2) .test-rule-acl-formula").getText(),
-      "Everyone Else",
-    );
-    assert.equal(await ruleSet.find(".test-rule-extra-add").isPresent(), false);
+    await gu.waitToPass(async () => {
+      ruleSet = findDefaultRuleSet(/ClientsTable/);
+      assert.lengthOf(await ruleSet.findAll(".test-rule-part"), 2);
+      assert.lengthOf(await ruleSet.findAll(".test-rule-add"), 2);
+      assert.equal(
+        await ruleSet.find(".test-rule-part-and-memo:nth-child(2) .test-rule-acl-formula").getText(),
+        "Everyone Else",
+      );
+      assert.equal(await ruleSet.find(".test-rule-extra-add").isPresent(), false);
+    });
   });
 
   it("should support renames and refresh rules when they get updated", async function() {
@@ -471,7 +475,9 @@ describe("AccessRules2", function() {
 
     // Table options should update
     await driver.findContentWait("button", /Add table rules/, 2000).click();
-    const options = await driver.findAll(".grist-floating-menu li", e => e.getText());
+    // Wait for the menu to actually open; popweasel opens via setTimeout(0) and
+    // findAll can otherwise return [] before any items render.
+    const options = await gu.findOpenMenuAllItems("li", e => e.getText(), 1000);
     assert.deepEqual(options, ["ACCESS2", "CLIENT LIST", "CLIENT LIST [by Shared]", "FinancialsTable"]);
     await driver.sendKeys(Key.ESCAPE);    // Close menu.
 
@@ -842,9 +848,14 @@ describe("AccessRules2", function() {
       .map(name => new RegExp(escapeRegExp(name), "i"));
 
     // All users the doc is shared with should be listed, with correct Access.
-    assert.equal(await driver.findContent(".grist-floating-menu a", name1).isPresent(), false);
-    assert.include(await driver.findContent(".grist-floating-menu a", name2).getText(), "(Owner)");
-    assert.include(await driver.findContent(".grist-floating-menu a", name3).getText(), "(Editor)");
+    // Wait for menu items to render before reading them, otherwise the name1
+    // absence check can pass spuriously and the name2/name3 reads can race.
+    // Use waitToPass to avoid StaleElementReferenceError if the menu re-renders.
+    await gu.waitToPass(async () => {
+      assert.include(await driver.findContentWait(".grist-floating-menu a", name2, 1000).getText(), "(Owner)");
+      assert.include(await driver.findContentWait(".grist-floating-menu a", name3, 1000).getText(), "(Editor)");
+      assert.equal(await driver.findContent(".grist-floating-menu a", name1).isPresent(), false);
+    });
 
     await driver.findContent(".grist-floating-menu a", name3).click();
     await gu.waitForUrl(/aclAsUser/);

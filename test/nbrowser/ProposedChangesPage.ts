@@ -1612,10 +1612,12 @@ describe("ProposedChangesPage", function() {
 
     // Copy the value from the new row's B cell.
     await gu.getCell("B", 3).click();
+    await gu.waitAppFocus();
     await gu.sendKeys(Key.chord(await gu.modKey(), "c"));
 
     // Paste into the new row's A cell.
     await gu.getCell("A", 3).click();
+    await gu.waitAppFocus();
     await gu.sendKeys(Key.chord(await gu.modKey(), "v"));
     await gu.waitForServer();
 
@@ -1630,10 +1632,12 @@ describe("ProposedChangesPage", function() {
 
     // Copy the edited cell (B1 now shows Fish→Cat diff, has CellVersions).
     await gu.getCell("B", 1).click();
+    await gu.waitAppFocus();
     await gu.sendKeys(Key.chord(await gu.modKey(), "c"));
 
     // Paste into A1.
     await gu.getCell("A", 1).click();
+    await gu.waitAppFocus();
     await gu.sendKeys(Key.chord(await gu.modKey(), "v"));
     await gu.waitForServer();
 
@@ -1660,6 +1664,7 @@ describe("ProposedChangesPage", function() {
 
     // Select a range spanning the deleted row (position 1) and the real row (position 2).
     await gu.getCell("B", 1).click();
+    await gu.waitAppFocus();
     await gu.sendKeys(Key.chord(Key.SHIFT, Key.DOWN));
 
     // Attempt fill-down (Mod+D). The selection includes a synthetic row ID.
@@ -1765,7 +1770,7 @@ describe("ProposedChangesPage", function() {
     // Right-click on it and select Delete.
     try {
       await gu.openRowMenu(1);
-      const deleteItem = await driver.findContent(".grist-floating-menu li", /Delete/);
+      const deleteItem = await gu.findOpenMenuItem("li", /Delete/);
       await deleteItem.click();
       await gu.confirm();
       await gu.waitForServer();

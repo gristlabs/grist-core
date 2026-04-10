@@ -227,14 +227,11 @@ describe("Dates.ntest", function() {
     await gu.assertType("DateTime");
     await gu.clickCellRC(0, 1);
     await gu.assertType("Date");
-    // Insert a few more columns: empty, Text, Numeric.
-    await addColumn();
-    await addColumn();
-    await addColumn();
-    await gu.clickCellRC(0, 3);
-    await gu.setType("Numeric");
-    await gu.clickCellRC(0, 4);
-    await gu.setType("Text");
+    // Insert a few more columns at the cursor position: empty, Numeric, Text.
+    // Cursor is on B (col 1) from above, so these land at visible positions 2, 3, 4.
+    await gu.insertColumn();
+    await gu.insertColumn("Numeric");
+    await gu.insertColumn("Text");
 
     // Override Date.now() and timezone in the current browser page to return a consistent value,
     // used e.g. for the default for the year and month.
@@ -252,14 +249,20 @@ describe("Dates.ntest", function() {
       await gu.clickCellRC(1, 0);
       for (var i = 0; i < 6; i++) {
         await gu.waitCellFocus(gu.getCellRC(1, i));
-        await gu.sendKeys([$.MOD, ";"], $.TAB);
+        await gu.sendKeys([$.MOD, ";"]);
+        await gu.waitForServer();
+        await gu.waitAppFocus();
+        await gu.sendKeys($.TAB);
       }
 
       // Type the Date-Time shortcut into each cell in the third row.
       await gu.clickCellRC(2, 0);
       for (i = 0; i < 6; i++) {
         await gu.waitCellFocus(gu.getCellRC(2, i));
-        await gu.sendKeys([$.MOD, $.SHIFT, ";"], $.TAB);
+        await gu.sendKeys([$.MOD, $.SHIFT, ";"]);
+        await gu.waitForServer();
+        await gu.waitAppFocus();
+        await gu.sendKeys($.TAB);
       }
     }
 
@@ -268,14 +271,17 @@ describe("Dates.ntest", function() {
     await setGlobalTimezone("US/Hawaii");
     await fillWithShortcuts();
     // Compare the values. NOTE: this assumes EST timezone for the browser's local time.
-    assert.deepEqual(await gu.getGridValues({rowNums: [2, 3], cols: [0, 1, 2, 3, 4]}), [
-      // Note that column A has Los_Angeles timezone set, so time differs from Hawaii.
-      // Note that Date column gets the date in Hawaii, not local or UTC (both 2016-10-27).
-      // The originally empty column had its type guessed as Date when the current date was first entered,
-      // hence "2016-10-26" appears in both rows.
-      "October 26th, 2016 11:04pm", "October 26th, 2016", "2016-10-26", "0", "2016-10-26",
-      "October 26th, 2016 11:04pm", "October 26th, 2016", "2016-10-26", "0", "2016-10-26 20:04:56",
-    ]);
+    // Wrap in waitToPass: grainjs may not have flushed observables to DOM after waitForServer.
+    await gu.waitToPass(async () => {
+      assert.deepEqual(await gu.getGridValues({rowNums: [2, 3], cols: [0, 1, 2, 3, 4]}), [
+        // Note that column A has Los_Angeles timezone set, so time differs from Hawaii.
+        // Note that Date column gets the date in Hawaii, not local or UTC (both 2016-10-27).
+        // The originally empty column had its type guessed as Date when the current date was first entered,
+        // hence "2016-10-26" appears in both rows.
+        "October 26th, 2016 11:04pm", "October 26th, 2016", "2016-10-26", "0", "2016-10-26",
+        "October 26th, 2016 11:04pm", "October 26th, 2016", "2016-10-26", "0", "2016-10-26 20:04:56",
+      ]);
+    }, 2000);
 
     // Undo the 8 cells we actually filled in, and check that the empty column reverted to Any
     await gu.undo(8);
@@ -286,11 +292,13 @@ describe("Dates.ntest", function() {
     await setGlobalTimezone("America/New_York");
     await fillWithShortcuts();
     // Compare the values. NOTE: this assumes EST timezone for the browser's local time.
-    assert.deepEqual(await gu.getGridValues({rowNums: [2, 3], cols: [0, 1, 2, 3, 4]}), [
-      // Note that column A has Los_Angeles timezone set, so date differs by one from New_York.
-      "October 26th, 2016 11:04pm", "October 27th, 2016", "2016-10-27", "0", "2016-10-27",
-      "October 26th, 2016 11:04pm", "October 27th, 2016", "2016-10-27", "0", "2016-10-27 02:04:56",
-    ]);
+    await gu.waitToPass(async () => {
+      assert.deepEqual(await gu.getGridValues({rowNums: [2, 3], cols: [0, 1, 2, 3, 4]}), [
+        // Note that column A has Los_Angeles timezone set, so date differs by one from New_York.
+        "October 26th, 2016 11:04pm", "October 27th, 2016", "2016-10-27", "0", "2016-10-27",
+        "October 26th, 2016 11:04pm", "October 27th, 2016", "2016-10-27", "0", "2016-10-27 02:04:56",
+      ]);
+    }, 2000);
   });
 
   it("should allow navigating the datepicker with the keyboard", async function() {
@@ -307,6 +315,7 @@ describe("Dates.ntest", function() {
     // Do the same in the datetime editor.
     cell = await gu.getCellRC(1, 0);
     await cell.click();
+    await gu.waitAppFocus();
     await gu.sendKeys($.ENTER);
     await gu.waitAppFocus(false);
     await gu.sendKeys($.UP, $.RIGHT, $.RIGHT, $.ENTER);
@@ -319,12 +328,19 @@ describe("Dates.ntest", function() {
     await cell.click();
     // The first backspace should return to cell edit mode, then the following keys should
     // change the year to 2009.
+    await gu.waitAppFocus();
+
     await gu.sendKeys($.ENTER);
     await gu.waitAppFocus(false);
+    // Wait for the datepicker to mount before sending keys — its key handler is bound
+    // asynchronously and BACK_SPACE can be eaten if it arrives first.
+    await driver.findWait(".datepicker", 1000);
     await gu.sendKeys($.DOWN, $.RIGHT, $.BACK_SPACE, "9", $.LEFT, $.BACK_SPACE, "0", $.ENTER);
     await gu.waitAppFocus(true);
     await gu.waitForServer();
-    assert.equal(await cell.text(), "October 27th, 2009");
+    await gu.waitToPass(async () => {
+      assert.equal(await cell.text(), "October 27th, 2009");
+    }, 1000);
   });
 
   // NOTE: This addresses a bug where typical date entry formats were not recognized.
@@ -457,7 +473,7 @@ describe("Dates.ntest", function() {
 
   it("should default timezone to document's timezone", async function() {
     // add a DateTime column
-    await addDateTimeColumn();
+    await gu.insertColumn("DateTime");
     await gu.timeFormat("HH:mm:ss");
     // BUG: it is required to click somewhere after setting the type of a column for the shortcut to
     // work
@@ -472,7 +488,7 @@ describe("Dates.ntest", function() {
     // set global document timezone to 'Europe/Paris'
     await setGlobalTimezone("America/Los_Angeles");
     // add another DateTime column
-    await addDateTimeColumn();
+    await gu.insertColumn("DateTime");
     await gu.timeFormat("HH:mm:ss");
     // todo: same as for gu.getCellRC(1, 3).click();
     await gu.getCellRC(1, 4).click();
@@ -490,17 +506,6 @@ describe("Dates.ntest", function() {
   });
 });
 
-async function addDateTimeColumn() {
-  await addColumn();
-  return gu.setType("DateTime");
-}
-
-async function addColumn() {
-  await gu.sendKeys([$.ALT, "="]);
-  await gu.waitForServer();
-  return gu.sendKeys($.ESCAPE);
-}
-
 async function setGlobalTimezone(name) {
   await $(".test-user-icon").click();   // open the user menu
   await $(".test-dm-doc-settings").wait().click();
@@ -509,4 +514,5 @@ async function setGlobalTimezone(name) {
   await driver.sleep(100); // the request is not always triggered immediately, we wait a little bit.
   await gu.waitForServer();
   await driver.navigate().back();
+  await gu.waitForDocToLoad();
 }
