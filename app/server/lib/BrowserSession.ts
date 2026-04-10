@@ -1,6 +1,7 @@
 import { normalizeEmail } from "app/common/emails";
 import { UserProfile } from "app/common/LoginSessionAPI";
 import { SessionStore } from "app/server/lib/gristSessions";
+import { makeId } from "app/server/lib/idUtils";
 import log from "app/server/lib/log";
 import { fromCallback } from "app/server/lib/serverUtils";
 
@@ -87,7 +88,23 @@ export interface SessionOIDCInfo {
   idToken?: string;
 }
 
-// Make an artificial change to a session to encourage express-session to set a cookie.
+/**
+ * Create a default alternative session id for use in documents.
+ *
+ * This sessionID is also used client side on formulas (`user.SessionID`) when the user is anonymous
+ *
+ * Also force express-session to persist the sessionin the store.
+ */
+export function generateAltSessionID(session: SessionObj) {
+  session.altSessionId = makeId();
+  forceSessionChange(session);
+}
+
+/**
+ * Make an artificial change to a session to encourage express-session to set a cookie.
+ *
+ * This way, express-session will persist the session in the store.
+ */
 export function forceSessionChange(session: SessionObj) {
   session.alive = Number(session.alive || 0) + 1;
 }
