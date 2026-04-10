@@ -17,6 +17,7 @@ import { allCommands } from "app/client/components/commands";
 import { beaconOpenMessage } from "app/client/lib/helpScout";
 import { makeT } from "app/client/lib/localization";
 import { AppModel } from "app/client/models/AppModel";
+import { hoverTooltip } from "app/client/ui/tooltips";
 import { colors, testId, theme, vars } from "app/client/ui2018/cssVars";
 import { colorIcon, icon } from "app/client/ui2018/icons";
 import { unstyledButton } from "app/client/ui2018/unstyled";
@@ -56,12 +57,13 @@ export function createHelpTools(appModel: AppModel): DomContents {
   );
 }
 
-export function createAccessibilityTools(): DomContents {
+export function createAccessibilityTools(appModel: AppModel): DomContents {
   // The accessibility is sometimes not available, make sure to not render the button in that case
   // (e.g. when rendering error pages)
   if (!allCommands.accessibility) {
     return [];
   }
+
   return cssPageEntry(
     cssPageButton(
       cssPageIcon("Accessibility"),
@@ -69,6 +71,16 @@ export function createAccessibilityTools(): DomContents {
       visuallyHidden(t("Accessibility")),
       // hide the visible text from screen readers to prevent duplicate labels with the visually hidden one
       cssLinkText(t("Accessibility"), { "aria-hidden": "true" }),
+      dom.maybe(appModel.screenReaderMode, () => {
+        return [
+          visuallyHidden(t("(Screen reader improvements enabled)")),
+          cssContextIcon(
+            "VolumeUp",
+            testId("accessibility-shortcut-sr-icon"),
+            hoverTooltip(t("Screen reader improvements enabled")),
+          ),
+        ];
+      }),
       cssKeyboardShortcut(
         "F4",
         testId("accessibility-shortcut-keys"),
@@ -91,7 +103,7 @@ export function leftPanelBasic(appModel: AppModel, panelOpen: Observable<boolean
         cssTools.cls("-collapsed", use => !use(panelOpen)),
         cssSpacer(),
         createHelpTools(appModel),
-        createAccessibilityTools(),
+        createAccessibilityTools(appModel),
       ),
     ),
   );
@@ -220,6 +232,16 @@ export const cssPageIcon = styled(icon, `
   margin-right: var(--page-icon-margin, 8px);
   .${cssTools.className}-collapsed & {
     margin-right: 0;
+  }
+`);
+
+const cssContextIcon = styled(icon, `
+  width: 18px;
+  height: 18px;
+  margin-left: 4px;
+  --icon-color: currentColor;
+  .${cssTools.className}-collapsed & {
+    display: none;
   }
 `);
 

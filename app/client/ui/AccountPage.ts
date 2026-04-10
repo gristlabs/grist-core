@@ -12,6 +12,7 @@ import { translateLocale } from "app/client/ui/LanguageMenu";
 import { leftPanelBasic } from "app/client/ui/LeftPanelCommon";
 import { MFAConfig } from "app/client/ui/MFAConfig";
 import { pagePanels } from "app/client/ui/PagePanels";
+import { ScreenReaderConfig } from "app/client/ui/ScreenReaderConfig";
 import { ThemeConfig } from "app/client/ui/ThemeConfig";
 import { createTopBarHome } from "app/client/ui/TopBar";
 import { transientInput } from "app/client/ui/transientInput";
@@ -158,6 +159,8 @@ designed to ensure that you're the only person who can access your account, even
           }),
           testId("language"),
         ),
+        css.header(t("Accessibility")),
+        dom.create(ScreenReaderConfig, this._appModel),
         css.header(t("API")),
         css.dataRow(css.inlineSubHeader(t("API Key")), css.content(
           dom.create(ApiKey, {
