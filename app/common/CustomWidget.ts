@@ -106,8 +106,13 @@ export function matchWidget(widgets: ICustomWidget[], options: {
   pluginId?: string,
 }): ICustomWidget | undefined {
   const prefs = sortBy(widgets, (w) => {
-    return [w.widgetId !== options.widgetId,
-      (w.source?.pluginId || "") !== options.pluginId];
+    return [
+      w.widgetId !== options.widgetId,
+      // Prefer the widget to be from a specific plugin
+      (w.source?.pluginId || "") !== options.pluginId,
+      // Prefer a bundled widget copy over a remotely sourced one
+      Boolean(w.source?.pluginId),
+    ];
   });
   if (prefs.length === 0) { return; }
   if (prefs[0].widgetId !== options.widgetId) { return; }
