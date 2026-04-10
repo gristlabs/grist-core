@@ -574,6 +574,9 @@ export async function getOrSetDocAuth(
       if (tokenObj.readOnly) {
         mreq.docAuth = { ...mreq.docAuth, access: getWeakestRole("viewers", mreq.docAuth.access) };
       }
+
+      const authTokenUser = await dbManager.getUser(effectiveUserId);
+      mreq.docAuth = { ...mreq.docAuth, authTokenUser };
     }
 
     // A permit with a user set to the anonymous user and linked to this document
