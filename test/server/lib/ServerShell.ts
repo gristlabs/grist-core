@@ -21,7 +21,7 @@ describe("ServerShell", function() {
 
   before(function() {
     oldEnv = new EnvironmentSnapshot();
-    process.env.GRIST_CAN_RESTART = "true";
+    process.env.GRIST_SERVER_SHELL_ENABLED = "true";
     setUpDB(this);
   });
 

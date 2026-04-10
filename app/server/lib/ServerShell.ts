@@ -4,15 +4,27 @@
  *
  * The shell creates and owns the http.Server and the listening socket.
  * On each (re)start, it creates a new MergedServer that attaches to
- * the existing socket. The /status health-check endpoint is handled
- * directly by the shell so it stays reachable even while the inner
- * server is being torn down and rebuilt.
+ * the existing socket.
  *
- * When GRIST_CAN_RESTART is not set, falls back to a plain
+ * Health check behavior:
+ * - During normal operation, /status (and variants like ?db=1) is
+ *   delegated to the inner Express app for a real check.
+ * - During a restart, when there is no Express app, the shell answers
+ *   /status directly with 200 (liveness: the process is alive, just
+ *   restarting). /status?ready=1 returns 503 since the app is not yet
+ *   serving requests.
+ * - If a restart fails or hangs past restartTimeoutMs, the shell
+ *   marks itself unhealthy and /status starts returning 503 so that
+ *   orchestration can recreate the container.
+ * - If a restart eventually completes after the timeout fired, the
+ *   shell resets itself to healthy and /status returns to normal.
+ *   This handles the case where a restart was just slow, not stuck.
+ *
+ * When GRIST_SERVER_SHELL_ENABLED is not set, falls back to a plain
  * MergedServer without the restart-capable shell.
  */
 
-import { appSettings, canRestart } from "app/server/lib/AppSettings";
+import { appSettings, isServerShellEnabled } from "app/server/lib/AppSettings";
 import { FlexServer, getGristHost, getServerFlags } from "app/server/lib/FlexServer";
 import log from "app/server/lib/log";
 import { listenPromise } from "app/server/lib/serverUtils";
@@ -32,19 +44,19 @@ export interface ServerShellOptions {
 
   // Hook that runs before each MergedServer.create(), e.g. for DB setup.
   // Called on initial start and on every restart.
-  beforeStart?: () => Promise<void>;
+  beforeCreate?: () => Promise<void>;
 
   // Hook that runs after MergedServer.run(), e.g. for testing hooks.
-  afterStart?: (flexServer: FlexServer) => Promise<void>;
+  afterRun?: (flexServer: FlexServer) => Promise<void>;
 }
 
 /**
- * Start a Grist server. When GRIST_CAN_RESTART is set, wraps it in
+ * Start a Grist server. When GRIST_SERVER_SHELL_ENABLED is set, wraps it in
  * a shell that supports in-process restart. Otherwise does a plain
  * MergedServer start.
  */
 export async function startServer(options: ServerShellOptions) {
-  if (canRestart()) {
+  if (isServerShellEnabled()) {
     const shell = new ServerShell(options);
     await shell.start();
     return shell;
@@ -54,10 +66,10 @@ export async function startServer(options: ServerShellOptions) {
 
 async function _startPlain(options: ServerShellOptions) {
   const { port, serverTypes } = options;
-  await options.beforeStart?.();
+  await options.beforeCreate?.();
   const mergedServer = await MergedServer.create(port, serverTypes);
   await mergedServer.run();
-  await options.afterStart?.(mergedServer.flexServer);
+  await options.afterRun?.(mergedServer.flexServer);
   return {
     flexServer: mergedServer.flexServer,
     async shutdown() { await mergedServer.close(); },
@@ -91,8 +103,10 @@ class ServerShell {
 
   public async shutdown() {
     await this._mergedServer?.close();
-    await new Promise<void>((resolve, reject) =>
-      this._server.close(err => err ? reject(err) : resolve()));
+    if (this._server) {
+      await new Promise<void>((resolve, reject) =>
+        this._server.close(err => err ? reject(err) : resolve()));
+    }
   }
 
   // All requests pass through this handler. During restart, /status
@@ -134,23 +148,24 @@ class ServerShell {
     this._currentApp(req, res);
   }
 
+  // Build a fresh MergedServer attached to the existing socket. The
+  // Express app is hooked up between MergedServer.create() and .run(),
+  // so /status requests can reach FlexServer's health-check handler
+  // during startup -- this matters for worker registration, which
+  // polls /status to confirm the server is reachable. Non-health
+  // endpoints remain gated by FlexServer's denyRequestsIfNotReady
+  // middleware until run() calls setReady(true).
   private async _startGrist() {
     this._currentApp = undefined;
 
     shutdown.resetCleanupHandlers();
     appSettings.reset();
 
-    await this._options.beforeStart?.();
+    await this._options.beforeCreate?.();
 
     this._mergedServer = await MergedServer.create(this._port, this._options.serverTypes, {
       server: this._server,
     });
-    // Wire up the Express app before run(), so that /status requests
-    // can reach the health-check handler during startup. This matters
-    // for worker registration, which polls /status to confirm the
-    // server is reachable. Non-health endpoints are still gated by
-    // FlexServer's denyRequestsIfNotReady middleware until run()
-    // calls setReady(true).
     this._currentApp = this._mergedServer.flexServer.app;
     if (Deps.testWaitBeforeReadyMs) {
       await new Promise<void>((resolve) => {
@@ -161,13 +176,17 @@ class ServerShell {
     }
     await this._mergedServer.run();
     this.flexServer = this._mergedServer.flexServer;
-    this._healthy = true;
 
-    await this._options.afterStart?.(this.flexServer);
+    await this._options.afterRun?.(this.flexServer);
 
     this.flexServer.onRestart(() => this._doRestart());
   }
 
+  // Tear down the current MergedServer and start a fresh one. Marks
+  // the shell unhealthy if either step fails or takes longer than
+  // restartTimeoutMs (so orchestration can detect a hung restart and
+  // recreate the container). On a successful restart, _healthy is
+  // reset to true.
   private async _doRestart() {
     if (!this._currentApp) { return; }  // Already restarting.
     log.info("ServerShell: restart requested");
@@ -182,6 +201,7 @@ class ServerShell {
     try {
       await this._mergedServer!.close();
       await this._startGrist();
+      this._healthy = true;  // recover from any earlier timeout
     } catch (err) {
       log.error("ServerShell: error during restart", err);
       this._healthy = false;

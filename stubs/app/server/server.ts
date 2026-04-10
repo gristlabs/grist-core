@@ -224,7 +224,7 @@ export async function main() {
   const handle = await startServer({
     port: G.port,
     serverTypes,
-    beforeStart: async () => {
+    beforeCreate: async () => {
       if (serverTypes.includes("home")) {
         log.info("Setting up database...");
         const db = await createOrUpdateDb();
@@ -233,7 +233,7 @@ export async function main() {
         log.info("Database setup complete.");
       }
     },
-    afterStart: async (flexServer) => {
+    afterRun: async (flexServer) => {
       if (process.env.GRIST_TESTING_SOCKET) {
         await flexServer.addTestingHooks();
       }

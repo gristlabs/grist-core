@@ -327,11 +327,14 @@ export class AppSettings {
 export const appSettings = new AppSettings("grist");
 
 /**
- * Whether in-process restart is enabled (GRIST_CAN_RESTART).
+ * Whether to wrap the server in a ServerShell that supports in-process
+ * restart while keeping the HTTP socket alive. Defaults to false.
+ * Enabled with GRIST_SERVER_SHELL_ENABLED=true.
  */
-export function canRestart() {
-  return appSettings.section("server").flag("canRestart").readBool({
-    envVar: "GRIST_CAN_RESTART",
+export function isServerShellEnabled() {
+  return appSettings.section("server").flag("shellEnabled").readBool({
+    envVar: "GRIST_SERVER_SHELL_ENABLED",
+    defaultValue: false,
   });
 }
 

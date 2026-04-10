@@ -121,6 +121,10 @@ const DOC_ID_NEW_USER_INFO = process.env.DOC_ID_NEW_USER_INFO;
 // PubSub channel we use to inform all servers when a new available Grist version is detected.
 const latestVersionChannel = "latestVersionAvailable";
 
+// The host that the HTTP server binds to. Read from GRIST_HOST,
+// defaulting to "localhost". Exported so that ServerShell (which
+// owns the socket when running in restart mode) and FlexServer
+// (which records the host for getOwnUrl) agree on the same value.
 export function getGristHost() { return process.env.GRIST_HOST || "localhost"; }
 
 export interface FlexServerOptions {
@@ -1998,8 +2002,8 @@ export class FlexServer implements GristServer {
    * under ServerShell, the shell holds the HTTP socket open and creates
    * a replacement FlexServer; callers that need the new instance should
    * obtain it from the ServerShell handle. Has no effect if no
-   * restart callback has been registered (e.g. when GRIST_CAN_RESTART
-   * is not set).
+   * restart callback has been registered (e.g. when
+   * GRIST_SERVER_SHELL_ENABLED is not set).
    */
   public triggerRestart() {
     this._restartCallback?.();
