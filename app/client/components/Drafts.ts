@@ -11,7 +11,7 @@ import {
   IDomArgs, MultiHolder, styled, TagElem,
 } from "grainjs";
 
-const t = makeT("components.Drafts");
+const t = makeT("Drafts");
 
 /**
  * Component that keeps track of editor's state (draft value). If user hits an escape button

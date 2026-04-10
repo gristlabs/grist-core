@@ -13,7 +13,7 @@ import { getGristConfig } from "app/common/urlUtils";
 
 import { Computed, Disposable, dom, DomContents, Observable, styled } from "grainjs";
 
-const t = makeT("SupportGristNudge");
+const t = makeT("SupportGristButton");
 
 /**
  * Button that nudges users to support Grist by opting in to telemetry or sponsoring on Github.
