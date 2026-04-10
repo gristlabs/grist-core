@@ -102,10 +102,11 @@ export interface InteractionOptions {
    */
   accessLevel: string,
   /**
-   * Linking state of this section at the time of the message. Always present; fields inside
+   * Linking state of this section at the time of the message. May be absent on older
+   * Grist builds that do not support linking information; when present, fields inside
    * describe whether this section is a link target and/or a link source.
    */
-  linking: LinkingInfo,
+  linking?: LinkingInfo,
 }
 
 /**
