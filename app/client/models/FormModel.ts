@@ -18,7 +18,7 @@ export interface FormModel {
   readonly submitted: Observable<boolean>;
   readonly error: Observable<string | null>;
   fetchForm(): Promise<void>;
-  submitForm(formData: TypedFormData): Promise<void>;
+  submitForm(formData: TypedFormData): Promise<number>;
 }
 
 export class FormModelImpl extends Disposable implements FormModel {
@@ -76,7 +76,7 @@ export class FormModelImpl extends Disposable implements FormModel {
     }
   }
 
-  public async submitForm(formData: TypedFormData): Promise<void> {
+  public async submitForm(formData: TypedFormData): Promise<number> {
     const form = this.form.get();
     if (!form) { throw new Error("form is not defined"); }
 
@@ -96,7 +96,7 @@ export class FormModelImpl extends Disposable implements FormModel {
       this.submitting.set(true);
       // we virtually wait for at least a second to actually consider the form submitted;
       // this makes for a tiny bit of a delay allowing users to see the "submitting…" state of the FormRenderer
-      await Promise.all([
+      const results = await Promise.all([
         this._formAPI.createRecord({
           ...this._getDocIdOrShareKeyParam(),
           tableId: form.formTableId,
@@ -104,6 +104,7 @@ export class FormModelImpl extends Disposable implements FormModel {
         }),
         new Promise(resolve => setTimeout(resolve, 1000)),
       ]);
+      return results[0];
     } finally {
       this.submitting.set(false);
     }
