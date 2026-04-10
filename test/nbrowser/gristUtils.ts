@@ -2832,7 +2832,6 @@ namespace gristUtils {
    */
   export async function insertColumn(type?: string) {
     await sendKeys(Key.chord(Key.ALT, "="));
-    await waitForServer();
     // Wait for the rename popup to actually open, otherwise Escape is racy.
     await driver.findWait(".test-column-title-popup", 1000);
     await sendKeys(Key.ESCAPE);
