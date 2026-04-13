@@ -1,11 +1,11 @@
-import { expandProviderList, itemValue, toggleItem } from "test/nbrowser/AdminPanelTools";
+import { itemValue, toggleItem } from "test/nbrowser/AdminPanelTools";
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
 import { serveSomething, Serving } from "test/server/customUtil";
 import * as testUtils from "test/server/testUtils";
 
 import * as express from "express";
-import { assert, driver, WebElementPromise } from "mocha-webdriver";
+import { assert, driver } from "mocha-webdriver";
 
 describe("AuthProvider", function() {
   this.timeout("2m");
@@ -153,7 +153,8 @@ describe("AuthProvider", function() {
       assert.equal(await itemValue("authentication"), "auth error");
     });
 
-    assert.deepEqual(await badges("OIDC"), ["ACTIVE", "ERROR"]);
+    // We see 3 badges on OIDC provider: CONFIGURED, ACTIVE ON RESTART, and ERROR
+    assert.deepEqual(await badges("OIDC"), ["CONFIGURED", "ACTIVE", "ERROR"]);
 
     // The 'Set as active method' button is not present, as it is already active.
     assert.isFalse(await activeButton("OIDC").isPresent(), "Set as active method button should not be present");
@@ -175,11 +176,11 @@ describe("AuthProvider", function() {
     await restartAdmin();
 
     // OIDC should still be active (but with error)
-    assert.deepEqual(await badges("OIDC"), ["ACTIVE", "ERROR"]);
+    assert.deepEqual(await badges("OIDC"), ["CONFIGURED", "ACTIVE", "ERROR"]);
 
     // ForwardAuth should now be configured and offer to switch
     await gu.waitToPass(async () => {
-      assert.deepEqual(await badges("Forwarded headers"), []);
+      assert.deepEqual(await badges("Forwarded headers"), ["CONFIGURED"]);
     }, 1000);
 
     // ForwardAuth should have "Set as active method" button since it's configured but not active
@@ -204,21 +205,18 @@ describe("AuthProvider", function() {
 
     // We should see "Active on restart" badge
     const forwardAuthBadges = await badges("Forwarded headers");
-    assert.includeMembers(forwardAuthBadges, ["ACTIVE ON RESTART"]);
+    assert.includeMembers(forwardAuthBadges, ["CONFIGURED", "ACTIVE ON RESTART"]);
 
     // OIDC should still be configured, and disabled on restart
     const oidcBadges = await badges("OIDC");
-    assert.includeMembers(oidcBadges, ["DISABLED ON RESTART", "ERROR"]);
+    assert.includeMembers(oidcBadges, ["CONFIGURED", "DISABLED ON RESTART", "ERROR"]);
 
     // But there should be a button to set it active again
     assert.isTrue(await activeButton("OIDC").isPresent());
   });
 });
 
-const providerRow = (text: string) => new WebElementPromise(driver,
-  expandProviderList().then(() =>
-    driver.findContentWait(".test-admin-auth-provider-row", text, 1000),
-  ));
+const providerRow = (text: string) => driver.findContentWait(".test-admin-auth-provider-row", text, 1000);
 
 const badges = (text: string) => providerRow(text).findAll(".test-admin-auth-badge", e => e.getText());
 

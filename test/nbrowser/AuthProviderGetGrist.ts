@@ -1,5 +1,5 @@
 import { Activation } from "app/gen-server/entity/Activation";
-import { expandProviderList, itemValue, toggleItem } from "test/nbrowser/AdminPanelTools";
+import { itemValue, toggleItem } from "test/nbrowser/AdminPanelTools";
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
 import { Defer, serveSomething, Serving } from "test/server/customUtil";
@@ -115,9 +115,9 @@ describe("AuthProviderGetGrist", function() {
     await gu.waitForServer();
     await waitForModalToClose();
 
-    // We should see Active on restart badge. GetGrist.com was picked by order.
+    // We should see two badges: Configured and Active on restart. GetGrist.com was picked by order.
     const providerBadges = await badges();
-    assert.includeMembers(providerBadges, ["ACTIVE ON RESTART"]);
+    assert.includeMembers(providerBadges, ["CONFIGURED", "ACTIVE ON RESTART"]);
   });
 
   it("should store config in database", async function() {
@@ -138,9 +138,6 @@ describe("AuthProviderGetGrist", function() {
     await toggleItem("authentication");
     assert.equal(await itemValue("authentication"), "getgrist.com");
 
-    // Expand the provider list (collapsed when a real provider is active).
-    await expandProviderList();
-
     // And check that we still see at least 2 providers, including getgrist.com and OIDC
     const providerItems = await driver.findAll(".test-admin-auth-provider-row");
     assert.isAtLeast(providerItems.length, 2);
@@ -151,69 +148,17 @@ describe("AuthProviderGetGrist", function() {
     // Second one should be OIDC provider.
     assert.match(await providerItems[1].getText(), /OIDC/);
 
-    // The getgrist.com provider should have Active badge
+    // The getgrist.com provider should have Active badge and Configured badge
     const getGristRow = providerItems[0];
     const activeBadges = await getGristRow.findAll(".test-admin-auth-badge-active");
     assert.lengthOf(activeBadges, 1);
+    const configuredBadges = await getGristRow.findAll(".test-admin-auth-badge-configured");
+    assert.lengthOf(configuredBadges, 1);
 
     // Second one should have no badges
     const oidcRow = providerItems[1];
     const oidcBadges = await oidcRow.findAll(".test-admin-auth-badge");
     assert.lengthOf(oidcBadges, 0);
-  });
-
-  it("should deactivate getgrist.com and preserve config", async function() {
-    // The previous test left us on the admin panel with getgrist.com active.
-    // Click Deactivate on the hero card.
-    const deactivateButton = await driver.findWait(".test-admin-auth-hero-deactivate", 2000);
-    await deactivateButton.click();
-
-    // Confirm in the modal.
-    const confirmButton = await driver.findWait(".test-modal-confirm", 2000);
-    await confirmButton.click();
-    await gu.waitForServer();
-
-    // After deactivation, getgrist.com should show "Disabled on restart" badge.
-    await expandProviderList();
-    const getGristBadges = await badges();
-    assert.includeMembers(getGristBadges, ["DISABLED ON RESTART"]);
-
-    // The config should still be in the database (preserved, not deleted).
-    const db = await server.getDatabase();
-    const activation = await db.connection.manager.findOne(Activation, { where: {} });
-    assert.isDefined(activation!.prefs!.envVars!.GRIST_GETGRISTCOM_SECRET);
-
-    // After restart, should be back to no authentication.
-    await server.restart();
-    await server.simulateLogin("user1", process.env.GRIST_DEFAULT_EMAIL!, "docs");
-    await driver.get(`${server.getHost()}/admin`);
-    await gu.waitForAdminPanel();
-    await toggleItem("authentication");
-
-    await gu.waitToPass(async () => {
-      assert.equal(await itemValue("authentication"), "no authentication");
-    }, 500);
-
-    // Re-activate getgrist.com — it should still be configured (secret preserved).
-    await expandProviderList();
-    const setActiveButton = await providerRow().find(".test-admin-auth-set-active-button");
-    await setActiveButton.click();
-    const reactivateConfirm = await driver.findWait(".test-modal-confirm", 2000);
-    await reactivateConfirm.click();
-    await gu.waitForServer();
-
-    // Should now show "Active on restart".
-    const reactivatedBadges = await badges();
-    assert.includeMembers(reactivatedBadges, ["ACTIVE ON RESTART"]);
-
-    // Restart and verify it's active again.
-    await server.restart();
-    await server.removeLogin();
-    await server.simulateLogin("user1", process.env.GRIST_DEFAULT_EMAIL!, "docs");
-    await driver.get(`${server.getHost()}/admin`);
-    await gu.waitForAdminPanel();
-    await toggleItem("authentication");
-    assert.equal(await itemValue("authentication"), "getgrist.com");
   });
 
   it("should respect GRIST_GETGRISTCOM_SP_HOST env override", async function() {
@@ -248,8 +193,6 @@ async function waitForModalToClose() {
 }
 
 const providerRow = (n = 0) => new WebElementPromise(driver,
-  expandProviderList().then(() =>
-    driver.findAll(".test-admin-auth-provider-row").then(rows => rows[n]),
-  ));
+  driver.findAll(".test-admin-auth-provider-row").then(rows => rows[n]));
 
 const badges = (n = 0) => providerRow(n).findAll(".test-admin-auth-badge", e => e.getText());

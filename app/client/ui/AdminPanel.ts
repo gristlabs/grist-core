@@ -138,7 +138,7 @@ export class AdminPanel extends Disposable {
         if (page === "admin") {
           return dom.create(AdminInstallationPanel, this._appModel);
         } else if (page === "setup") {
-          return dom.create(QuickSetup, this._appModel);
+          return dom.create(QuickSetup);
         } else {
           return dom.create(buildAdminData, this._appModel);
         }
@@ -167,7 +167,14 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
     this._authCheck = Computed.create(this, (use) => {
       return this._checks.requestCheckById(use, "authentication");
     });
-    this._loginProvider = this._checks.getLoginProvider();
+    this._loginProvider = Computed.create(this, (use) => {
+      const req = use(this._authCheck);
+      const result = req ? use(req.result) : undefined;
+      if (result?.status === "success") {
+        return result.details?.provider;
+      }
+      return undefined;
+    });
   }
 
   public buildDom() {
