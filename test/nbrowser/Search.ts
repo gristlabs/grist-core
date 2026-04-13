@@ -262,4 +262,18 @@ describe("Search", function() {
       assert.deepEqual(await getActiveCellPos(), ["2614", "Country"]);
     }, 100);
   });
+
+  it("should support accent-insensitive search", async function() {
+    // Check that the search with diacritics finds text that has none.
+    await gu.search("Àlbûquérquè");
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 631, col: "Name" });
+    assert.include(await gu.getActiveCell().getText(), "Albuquerque");
+
+    // Check that the search without diacritics ("Quebec") matches a value that contains one ("Québec").
+    await gu.search("Quebec");
+
+    // Check that Québec is found.
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 941, col: "District" });
+    assert.include(await gu.getActiveCell().getText(), "Québec");
+  });
 });

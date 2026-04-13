@@ -1,7 +1,6 @@
 // TODO: Add documentation and clean up log statements.
 
 import { GristDoc } from "app/client/components/GristDoc";
-import { normalizeText } from "app/client/lib/ACIndex";
 import { makeT } from "app/client/lib/localization";
 import { PageRec, ViewFieldRec, ViewSectionRec } from "app/client/models/DocModel";
 import { reportError } from "app/client/models/errors";
@@ -14,6 +13,7 @@ import { CursorPos } from "app/plugin/GristAPI";
 
 import { Computed, Disposable, Observable } from "grainjs";
 import debounce from "lodash/debounce";
+import deburr from "lodash/deburr";
 
 const t = makeT("SearchModel");
 
@@ -579,4 +579,8 @@ function makeRegexp(value: string) {
   const escaped = value.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
   const normalized = normalizeText(escaped);
   return new RegExp(normalized, "i");
+}
+
+function normalizeText(value: string) {
+  return deburr(value).trim();
 }
