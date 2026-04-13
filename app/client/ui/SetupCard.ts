@@ -11,6 +11,7 @@ import { basicButton, textButton } from "app/client/ui2018/buttons";
 import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
 import { theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
+import { cssRadioInput } from "app/client/ui2018/radio";
 import { useBindable } from "app/common/gutil";
 
 import {
@@ -55,11 +56,7 @@ export class HeroCard extends Disposable {
     const hasControls = o.checkbox || o.buttons;
     const hasFooter = o.footer;
 
-    return cssHeroCard(
-      // Indicator
-      dom.cls(use => `${cssHeroCard.className}-${useBindable(use, o.indicator)}`),
-      testId("hero"),
-
+    const content = cssHeroCardContent(
       // Header
       cssHeroHeader(
         cssHeroTitle(dom.text(o.header)),
@@ -91,6 +88,22 @@ export class HeroCard extends Disposable {
         ) : null,
         ...(o.footer!.actions ?? []).map(a => textButton(a.label, dom.on("click", a.action))),
       ) : null,
+    );
+
+    return cssHeroCard(
+      // Indicator
+      dom.cls(use => `${cssHeroCard.className}-${useBindable(use, o.indicator)}`),
+      testId("hero"),
+
+      // Radio + content
+      o.radio ? cssCardWithRadio(
+        cssRadioInput({ type: "radio" },
+          dom.prop("checked", o.radio.checked),
+          dom.on("change", () => o.radio!.onSelect()),
+          o.radio.name ? dom.attr("name", o.radio.name) : null,
+        ),
+        content,
+      ) : content,
 
       ...(o.args ?? []),
     );
@@ -105,11 +118,23 @@ export class HeroCard extends Disposable {
  *   indicator: "active",
  *   header: "OIDC",
  *   badges: [{ label: "Active", variant: "primary" }],
- *   buttons: [
- *     { label: "Configure", action: () => configure() },
- *   ],
+ *   buttons: [{ label: "Configure", action: () => configure() }],
  *   text: "Works with most identity providers.",
- *   error: { header: "Error details", message: "Missing GRIST_OIDC_IDP_CLIENT_ID" },
+ * })
+ * ```
+ *
+ * With a radio button for single-selection lists:
+ *
+ * ```
+ * const selected = Observable.create(owner, "oidc");
+ * dom.create(ItemCard, {
+ *   radio: {
+ *     checked: use => use(selected) === "oidc",
+ *     onSelect: () => selected.set("oidc"),
+ *     name: "provider",
+ *   },
+ *   header: "OIDC",
+ *   text: "Works with most identity providers.",
  * })
  * ```
  */
@@ -121,11 +146,7 @@ export class ItemCard extends Disposable {
   public buildDom() {
     const o = this._options;
 
-    return cssItemRow(
-      // Indicator
-      o.indicator ? cssItemRow.cls(`-border-${o.indicator}`) : null,
-      testId("item"),
-
+    const content = cssItemContent(
       // Header
       cssItemHeader(
         cssItemLabel(dom.text(o.header)),
@@ -149,6 +170,22 @@ export class ItemCard extends Disposable {
 
       // Info
       o.info ? cssItemInfo(dom.text(o.info)) : null,
+    );
+
+    return cssItemRow(
+      // Indicator
+      o.indicator ? cssItemRow.cls(`-border-${o.indicator}`) : null,
+      testId("item"),
+
+      // Radio
+      o.radio ? cssCardWithRadio(
+        cssRadioInput({ type: "radio" },
+          dom.prop("checked", o.radio.checked),
+          dom.on("change", () => o.radio!.onSelect()),
+          o.radio.name ? dom.attr("name", o.radio.name) : null,
+        ),
+        content,
+      ) : content,
 
       ...(o.args ?? []),
     );
@@ -256,6 +293,8 @@ export interface ItemButtonConfig {
 export interface HeroCardOptions {
   /** Indicator — left border color. */
   indicator: BindableValue<HeroVariant>;
+  /** Radio button on the left side of the card. */
+  radio?: RadioConfig;
   /** Header — title text. */
   header: BindableValue<string>;
   /** Header › Badges. */
@@ -277,9 +316,20 @@ export interface HeroCardOptions {
   args?: DomElementArg[];
 }
 
+export interface RadioConfig {
+  /** Whether this radio is currently selected. */
+  checked: BindableValue<boolean>;
+  /** Called when the user clicks this radio. */
+  onSelect: () => void;
+  /** Shared radio group name (for native radio exclusivity). */
+  name?: string;
+}
+
 export interface ItemCardOptions {
   /** Indicator — left border color. */
   indicator?: ItemBorderVariant;
+  /** Radio button on the left side of the card. */
+  radio?: RadioConfig;
   /** Header — title text. */
   header: BindableValue<string>;
   /** Header › Badges. */
@@ -428,6 +478,26 @@ const cssItemRow = styled("div", `
   &-border-error {
     border-left-color: ${theme.errorText};
   }
+`);
+
+const cssCardWithRadio = styled("div", `
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+`);
+
+const cssHeroCardContent = styled("div", `
+  flex: 1;
+  min-width: 0;
+`);
+
+const cssItemContent = styled("div", `
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+  min-width: 0;
 `);
 
 const cssItemHeader = styled("div", `

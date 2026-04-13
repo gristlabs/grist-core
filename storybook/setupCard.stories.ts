@@ -225,6 +225,42 @@ export const ItemError = {
 };
 
 // ---------------------------------------------------------------------------
+// ItemCard with radio selection
+// ---------------------------------------------------------------------------
+
+export const ItemCardRadioSelection = () => {
+  const selected = Observable.create(null, "oidc");
+  const makeRadio = (key: string) => ({
+    checked: (use: any) => use(selected) === key,
+    onSelect: () => { action(`Select ${key}`)(); selected.set(key); },
+    name: "provider",
+  });
+  return cssColumn(
+    dom.create(CardList, {
+      header: "Choose a provider",
+      items: [
+        dom.create(ItemCard, {
+          radio: makeRadio("oidc"),
+          indicator: "configured",
+          header: "OIDC",
+          text: "Works with most identity providers (Google, Azure AD, Keycloak, etc.).",
+        }),
+        dom.create(ItemCard, {
+          radio: makeRadio("saml"),
+          header: "SAML",
+          text: "For enterprise identity providers (Okta, OneLogin, etc.).",
+        }),
+        dom.create(ItemCard, {
+          radio: makeRadio("forward"),
+          header: "Forwarded headers",
+          text: "For reverse proxy setups (Traefik, Authelia, etc.).",
+        }),
+      ],
+    }),
+  );
+};
+
+// ---------------------------------------------------------------------------
 // CardList
 // ---------------------------------------------------------------------------
 
