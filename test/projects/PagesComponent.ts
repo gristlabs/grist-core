@@ -17,7 +17,7 @@ describe("PagesComponent", function() {
 
   async function beginRenaming(name: RegExp) {
     await findPage(name).mouseMove().find(".test-docpage-dots").click();
-    await driver.findWait(".test-docpage-rename", 1000).doClick();
+    await driver.findWait(".test-docpage-rename", 1000).click();
     // A textbox should open and get selected: wait for it, since it's not immediate, and
     // trying to type into it too soon may miss some initial characters.
     await driver.wait(() => driver.executeScript(

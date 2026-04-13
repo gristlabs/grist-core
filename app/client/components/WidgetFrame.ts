@@ -15,6 +15,7 @@ import { BulkColValues, CellValue, fromTableDataAction, RowRecord } from "app/co
 import { extractInfoFromColType, GristTypeInfo, reencodeAsTypedCellValue } from "app/common/gristTypes";
 import { convertThemeKeysToCssVars } from "app/common/ThemePrefs";
 import { getGristConfig } from "app/common/urlUtils";
+import { LinkingInfo } from "app/plugin/CustomSectionAPI";
 import {
   AccessTokenOptions, CursorPos, CustomSectionAPI, FetchSelectedOptions, GristDocAPI, GristView,
   InteractionOptionsRequest, WidgetAPI, WidgetColumnMap,
@@ -684,18 +685,32 @@ export class ConfigNotifier extends BaseEventSource {
     return options;
   });
 
+  // Tracks the incoming link type (asTarget). linkingState is a ko.pureComputed that depends
+  // on linkSrcSectionRef, linkSrcColRef, linkTargetColRef, and column types (via LinkConfig),
+  // so this grainjs Computed catches any change to the incoming link configuration.
+  private _currentLinkTarget = Computed.create(this, (use) => {
+    const linkingState = use(this._section.linkingState);
+    if (linkingState?.isDisposed() === false) {
+      return use(linkingState.linkTypeDescription) ?? null;
+    }
+    return null;
+  });
+
+  // Tracks whether other sections link to us (asSource). linkedSections is a recordSet
+  // (ko.Computed<KoArray>) — grainjs use() can't subscribe to KoArray mutations, so we
+  // derive a boolean Computed separately.
+  private _currentLinkSource = Computed.create(this, (use) => {
+    return use(use(this._section.linkedSections).getObservable()).length > 0;
+  });
+
   // Debounced call to let the view know linked cursor changed.
   private _debounced = debounce((options?: { fromReady?: boolean }) => this._update(options), 0);
 
   constructor(private _section: ViewSectionRec, private _options: ConfigNotifierOptions) {
     super();
-    this.autoDispose(
-      this._currentConfig.addListener((newConfig, oldConfig) => {
-        if (isEqual(newConfig, oldConfig)) { return; }
-
-        this._debounced();
-      }),
-    );
+    this._debouncedOnChange(this._currentConfig);
+    this._debouncedOnChange(this._currentLinkTarget);
+    this._debouncedOnChange(this._currentLinkSource);
   }
 
   protected _ready() {
@@ -703,13 +718,26 @@ export class ConfigNotifier extends BaseEventSource {
     this._debounced({ fromReady: true });
   }
 
+  /** Subscribes to a Computed and calls _debounced() when the value changes (deep equality). */
+  private _debouncedOnChange<T>(obs: Computed<T>) {
+    this.autoDispose(obs.addListener((newVal, oldVal) => {
+      if (isEqual(newVal, oldVal)) { return; }
+      this._debounced();
+    }));
+  }
+
   private _update({ fromReady}: { fromReady?: boolean } = {}) {
     if (this.isDisposed()) { return; }
 
+    const linking: LinkingInfo = {
+      asTarget: this._currentLinkTarget.get(),
+      asSource: this._currentLinkSource.get(),
+    };
     this._notify({
       options: this._currentConfig.get(),
       settings: {
         accessLevel: this._accessLevel,
+        linking,
       },
       fromReady,
     });
