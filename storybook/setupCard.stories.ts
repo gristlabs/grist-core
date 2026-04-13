@@ -225,6 +225,41 @@ export const ItemError = {
 };
 
 // ---------------------------------------------------------------------------
+// HeroCard with radio selection
+// ---------------------------------------------------------------------------
+
+export const HeroCardRadioSelection = () => {
+  const selected = Observable.create(null, "oidc");
+  const makeRadio = (key: string) => ({
+    checked: (use: any) => use(selected) === key,
+    onSelect: () => { action(`Select ${key}`)(); selected.set(key); },
+    name: "plan",
+  });
+  return cssGrid(
+    cssColumn(
+      dom.create(HeroCard, {
+        indicator: "success",
+        radio: makeRadio("oidc"),
+        header: "OIDC",
+        badges: [{ label: "Active", variant: "primary" }],
+        text: "Your server authenticates users via OpenID Connect.",
+        footer: {
+          text: "Installation admin: ",
+          boldText: "admin@example.com",
+        },
+      }),
+      dom.create(HeroCard, {
+        indicator: "pending",
+        radio: makeRadio("saml"),
+        header: "SAML",
+        badges: [{ label: "Available", variant: "warning" }],
+        text: "For enterprise identity providers.",
+      }),
+    ),
+  );
+};
+
+// ---------------------------------------------------------------------------
 // ItemCard with radio selection
 // ---------------------------------------------------------------------------
 
@@ -374,6 +409,13 @@ export const FullSectionNoAuth = () => cssColumn(
 // ---------------------------------------------------------------------------
 // Styles
 // ---------------------------------------------------------------------------
+
+const cssGrid = styled("div", `
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 32px;
+  padding: 16px;
+`);
 
 const cssColumn = styled("div", `
   max-width: 520px;
