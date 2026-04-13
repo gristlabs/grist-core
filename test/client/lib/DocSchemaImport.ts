@@ -24,6 +24,7 @@ describe("DocSchemaImport", function() {
                 colRef: 1,
                 label: "Column 1",
                 isFormula: false,
+                type: "Text",
               },
             },
             {
@@ -32,6 +33,7 @@ describe("DocSchemaImport", function() {
                 colRef: 2,
                 label: "Column 2",
                 isFormula: true,
+                type: "Text",
               },
             },
           ],
@@ -48,6 +50,7 @@ describe("DocSchemaImport", function() {
                 colRef: 3,
                 label: "Column 3",
                 isFormula: false,
+                type: "Text",
               },
             },
           ],

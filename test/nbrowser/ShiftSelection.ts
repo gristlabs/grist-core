@@ -100,30 +100,35 @@ describe("ShiftSelection", function() {
 
   it("Shift+Up extends the selection up", async function() {
     await gu.getCell(1, 2).click();
+    await gu.waitAppFocus();
     await gu.sendKeys(Key.chord(Key.SHIFT, Key.UP));
     await assertCellSelection({ colStart: 1, colEnd: 1, rowStart: 0, rowEnd: 1 });
   });
 
   it("Shift+Down extends the selection down", async function() {
     await gu.getCell(1, 2).click();
+    await gu.waitAppFocus();
     await gu.sendKeys(Key.chord(Key.SHIFT, Key.DOWN));
     await assertCellSelection({ colStart: 1, colEnd: 1, rowStart: 1, rowEnd: 2 });
   });
 
   it("Shift+Left extends the selection left", async function() {
     await gu.getCell(1, 2).click();
+    await gu.waitAppFocus();
     await gu.sendKeys(Key.chord(Key.SHIFT, Key.LEFT));
     await assertCellSelection({ colStart: 0, colEnd: 1, rowStart: 1, rowEnd: 1 });
   });
 
   it("Shift+Right extends the selection right", async function() {
     await gu.getCell(1, 2).click();
+    await gu.waitAppFocus();
     await gu.sendKeys(Key.chord(Key.SHIFT, Key.RIGHT));
     await assertCellSelection({ colStart: 1, colEnd: 2, rowStart: 1, rowEnd: 1 });
   });
 
   it("Shift+Right + Shift+Left leads to the initial selection", async function() {
     await gu.getCell(1, 2).click();
+    await gu.waitAppFocus();
     await gu.sendKeys(Key.chord(Key.SHIFT, Key.RIGHT));
     await gu.sendKeys(Key.chord(Key.SHIFT, Key.LEFT));
     await assertCellSelection({ colStart: 1, colEnd: 1, rowStart: 1, rowEnd: 1 });
@@ -131,6 +136,7 @@ describe("ShiftSelection", function() {
 
   it("Shift+Up + Shift+Down leads to the initial selection", async function() {
     await gu.getCell(1, 2).click();
+    await gu.waitAppFocus();
     await gu.sendKeys(Key.chord(Key.SHIFT, Key.UP));
     await gu.sendKeys(Key.chord(Key.SHIFT, Key.DOWN));
     await assertCellSelection({ colStart: 1, colEnd: 1, rowStart: 1, rowEnd: 1 });
@@ -206,6 +212,7 @@ describe("ShiftSelection", function() {
     await assertCellSelection({ colStart: 3, colEnd: 4, rowStart: 2, rowEnd: 6 });
 
     await gu.getCell(4, 7).click();
+    await gu.waitAppFocus();
     await gu.sendKeys(Key.chord(Key.SHIFT, Key.LEFT));
     await gu.sendKeys(Key.chord(ctrlKey, Key.SHIFT, Key.UP));
     await assertCellSelection({ colStart: 3, colEnd: 4, rowStart: 4, rowEnd: 6 });

@@ -8,6 +8,16 @@
         "og-description": "Ein modernes, offenes Quell-Spreadsheet, das über das Raster hinausgeht"
     },
     "access": {
-        "docNoAccess": "Sie haben keinen Zugang zu diesem Dokument."
+        "docNoAccess": "Sie haben keinen Zugang zu diesem Dokument.",
+        "docDisabled": "Dieses Dokument ist deaktiviert."
+    },
+    "admin": {
+        "emptyOrg": "Keine Besitzer in der Administrator Organisation gesetzt von `GRIST_INSTALL_ADMIN_ORG={{org}}` gefunden",
+        "orgUser": "Benutzer ist ein Besitzer der Admin Organisation gesetzt durch `GRIST_INSTALL_ADMIN_ORG={{org}}`",
+        "noAdminEmail": "Fehlendes Administratorkonto, weil `GRIST_ADMIN_EMAIL` und `GRIST_DEFAULT_EMAIL` nicht gesetzt sind",
+        "accountByEmail": "Administratorkonto gesetzt durch `GRIST_DEFAULT_EMAIL={{defaultEmail}}`"
+    },
+    "DocApi": {
+        "UntitledDocument": "Unbetiteltes Dokument"
     }
 }

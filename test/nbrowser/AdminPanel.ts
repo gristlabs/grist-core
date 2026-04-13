@@ -193,7 +193,9 @@ describe("AdminPanel", function() {
     assert.equal(await adminAccounts.isDisplayed(), true);
     const adminDisplay = await driver.find(".test-admin-panel-admin-accounts-display");
 
-    assert.equal("1 admin account", await adminDisplay.getText());
+    await gu.waitToPass(async () => {
+      assert.equal("1 admin account", await adminDisplay.getText());
+    }, 3000);
 
     await toggleItem("admins");
 

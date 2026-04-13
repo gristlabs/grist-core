@@ -94,6 +94,7 @@ describe("RecordCards", function() {
 
     it("updates popup when reference icon is clicked within Record Card popup", async function() {
       await gu.getCell(0, 4).find(".test-ref-text").click();
+      await gu.waitAppFocus();
       await gu.sendKeys(Key.SPACE);
       assert.isTrue(await driver.findWait(".test-record-card-popup-overlay", 100).isDisplayed());
       assert.equal(
@@ -112,6 +113,7 @@ describe("RecordCards", function() {
 
     it("does not open popup if cell is empty", async function() {
       await gu.getCell(0, 4).find(".test-ref-text").click();
+      await gu.waitAppFocus();
       await driver.sendKeys(Key.DELETE);
       await gu.waitForServer();
       await gu.getCell(0, 4).find(".test-ref-link-icon").click();
@@ -169,6 +171,7 @@ describe("RecordCards", function() {
 
     it("updates popup when reference icon is clicked within Record Card popup", async function() {
       await gu.getCell(0, 4).click();
+      await gu.waitAppFocus();
       await gu.sendKeys(Key.SPACE);
       assert.isTrue(await driver.findWait(".test-record-card-popup-overlay", 100).isDisplayed());
       assert.equal(

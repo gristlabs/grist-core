@@ -382,14 +382,16 @@ describe("ColumnFilterMenu", function() {
     await gu.setRangeFilterBound("max", "4");
     await driver.find(".test-filter-menu-apply-btn").click();
 
-    assert.deepEqual(
-      await gu.getVisibleGridCells({ cols: ["Name", "Count"], rowNums: [1, 2, 3, 4] }),
-      ["Oranges", "3",
-        "Bananas", "2",
-        "", "",
-        undefined, undefined,
-      ],
-    );
+    await gu.waitToPass(async () => {
+      assert.deepEqual(
+        await gu.getVisibleGridCells({ cols: ["Name", "Count"], rowNums: [1, 2, 3, 4] }),
+        ["Oranges", "3",
+          "Bananas", "2",
+          "", "",
+          undefined, undefined,
+        ],
+      );
+    });
 
     // remove both min and max
     await driver.findContent(".test-filter-field", /Count/).click();
@@ -482,17 +484,19 @@ describe("ColumnFilterMenu", function() {
 
     // Click Cancel, and check that the filter is no longer applied to the table data.
     await driver.find(".test-filter-menu-cancel-btn").click();
-    assert.deepEqual(
-      await gu.getVisibleGridCells({ cols: ["Name", "Count"], rowNums: [1, 2, 3, 4, 5, 6, 7] }),
-      ["Apples", "1",
-        "Oranges", "3",
-        "Bananas", "2",
-        "Grapes", "-1",
-        "Grapefruit", "n/a",
-        "Clementines", "5",
-        "Apples", "0",
-      ],
-    );
+    await gu.waitToPass(async () => {
+      assert.deepEqual(
+        await gu.getVisibleGridCells({ cols: ["Name", "Count"], rowNums: [1, 2, 3, 4, 5, 6, 7] }),
+        ["Apples", "1",
+          "Oranges", "3",
+          "Bananas", "2",
+          "Grapes", "-1",
+          "Grapefruit", "n/a",
+          "Clementines", "5",
+          "Apples", "0",
+        ],
+      );
+    });
 
     // Check that Count is still pinned to the filter bar.
     assert.deepEqual(

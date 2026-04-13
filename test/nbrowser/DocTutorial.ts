@@ -533,14 +533,12 @@ describe("DocTutorial", function() {
       // Make an edit to one of the tutorial slides.
       await gu.openPage("GristDocTutorial");
       await gu.getCell(1, 1).click();
-      await gu.sendKeys(
+      await gu.enterCell(
         "# Intro",
         Key.chord(Key.SHIFT, Key.ENTER),
         Key.chord(Key.SHIFT, Key.ENTER),
         "Welcome to the Grist Basics tutorial V2.",
-        Key.ENTER,
       );
-      await gu.waitForServer();
 
       // Check that the update is immediately reflected in the tutorial popup.
       assert.equal(

@@ -14,7 +14,8 @@
     "admin": {
         "emptyOrg": "Nenhum proprietário encontrado na organização administrativa definida por `GRIST_INSTALL_ADMIN_ORG={org}} \"",
         "orgUser": "O usuário é proprietário da organização de administração definida por `GRIST_INSTALL_ADMIN_ORG={{org}}`",
-        "accountByEmail": "Conta de administrador definida por `GRIST_DEFAULT_EMAIL={{defaultEmail}}`"
+        "accountByEmail": "Conta de administrador definida por `GRIST_DEFAULT_EMAIL={{defaultEmail}}`",
+        "noAdminEmail": "Conta de administrador ausente porque `GRIST_ADMIN_EMAIL` e `GRIST_DEFAULT_EMAIL` não estão configurados"
     },
     "DocApi": {
         "UntitledDocument": "Documento sem título"

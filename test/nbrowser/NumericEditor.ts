@@ -135,6 +135,7 @@ describe("NumericEditor", function() {
       it("should allow editing and saving a formatted value", async function() {
         for (const [i, entry] of Object.entries(entriesByColumn)) {
           await gu.getCell({ rowNum: 1, col: Number(i) }).click();
+          await gu.waitAppFocus();
           await gu.sendKeys(Key.ENTER);
           await gu.waitAppFocus(false);
           // Save the value the way it's opened in the editor. It's important that it doesn't

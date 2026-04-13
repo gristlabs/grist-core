@@ -718,7 +718,7 @@ namespace gristUtils {
     }, ...(clear ? [""] : []));
     // Wait for the editor to appear
     await waitForCellEditor();
-    // Select the content (so it is cleared) and press the keys requested by the caller
+    await waitAppFocus(false);
     await sendKeys(...keys);
     await waitForServer();    // Wait for the value to be saved
   }
@@ -734,7 +734,7 @@ namespace gristUtils {
   }
 
   export async function waitForCellEditor() {
-    await driver.wait(() => driver.find(".cell_editor").isDisplayed(), 1000);
+    await driver.wait(() => driver.find(".cell_editor").isDisplayed(), 1000, undefined, 20);
   }
 
   /**
@@ -850,6 +850,7 @@ namespace gristUtils {
       const end = await getCell({ rowNum: endRowNum, col: endCol });
       await driver.withActions(a => a.click(start).keyDown(Key.SHIFT).click(end).keyUp(Key.SHIFT));
     }
+    await waitAppFocus();
   }
 
   /**
@@ -1396,7 +1397,7 @@ namespace gristUtils {
     }
     if (newName === undefined) { throw new Error("newName must be specified"); }
     await openPageMenu(oldName);
-    await driver.find(".test-docpage-rename").click();
+    await driver.findWait(".test-docpage-rename", 1000).click();
     await driver.find(".test-docpage-editor").sendKeys(newName, Key.ENTER);
     await waitForServer();
   }
@@ -1605,7 +1606,7 @@ namespace gristUtils {
  */
   export async function openWidgetPanel(tab: "widget" | "sortAndFilter" | "data" = "widget") {
     await toggleSidePanel("right", "open");
-    await retryOnStale(() => driver.findWait(".test-right-tab-pagewidget", 100).click());
+    await waitToPass(() => driver.findWait(".test-right-tab-pagewidget", 100).click(), 500);
     await driver.find(`.test-config-${tab}`).click();
   }
 
@@ -2823,6 +2824,27 @@ namespace gristUtils {
     }
   }
 
+  /**
+   * Inserts a new column at the current cursor position using the Alt+= shortcut,
+   * keeping the server-generated name. Waits for the rename popup to open before
+   * dismissing it with Escape — without that wait, the Escape can race the popup
+   * mount and the next keystroke can land on a still-open popup, eating it.
+   */
+  export async function insertColumn(type?: string) {
+    await sendKeys(Key.chord(Key.ALT, "="));
+    // Wait for the rename popup to actually open, otherwise Escape is racy.
+    await driver.findWait(".test-column-title-popup", 1000);
+    await sendKeys(Key.ESCAPE);
+    // Make sure the popup is gone before returning, so a subsequent insertColumn
+    // call doesn't have its Alt+= swallowed by a still-closing popup.
+    await waitToPass(async () => {
+      assert.isFalse(await driver.find(".test-column-title-popup").isPresent());
+    });
+    if (type) {
+      await setType(exactMatch(type));
+    }
+  }
+
   export async function showColumn(name: string) {
     await scrollIntoView(await driver.find(".active_section .mod-add-column"));
     await driver.find(".active_section .mod-add-column").click();
@@ -3378,6 +3400,7 @@ namespace gristUtils {
  */
   export async function removeFilters(save = false) {
     const sectionFilter = await sortAndFilter();
+    await driver.findWait(".test-filter-config-container", 1000);
     for (const filter of await sectionFilter.filters()) {
       await filter.remove();
     }
@@ -3402,7 +3425,7 @@ namespace gristUtils {
         return this;
       },
       async close() {
-        await driver.find(".test-filter-menu-apply-btn").click();
+        await driver.findWait(".test-filter-menu-apply-btn", 1000).click();
         return this;
       },
       async save() {
@@ -3414,7 +3437,7 @@ namespace gristUtils {
      * Clicks the filter icon in the current section (can be used to close the filter menu or open it)
      */
       async click() {
-        await driver.find(".active_section .test-section-menu-filter-icon").click();
+        await driver.findWait(".active_section .test-section-menu-filter-icon", 200).click();
         return this;
       },
       async filters() {
@@ -3547,6 +3570,12 @@ namespace gristUtils {
   export async function renameActiveSection(name: string) {
     await driver.find(".active_section .test-viewsection-title .test-widget-title-text").click();
     await doRenameSection(name);
+    if (name) {
+      await waitToPass(async () => {
+        const title = await driver.find(".active_section .test-viewsection-title").getText();
+        assert.equal(title.trim(), name);
+      }, 1000);
+    }
   }
 
   async function doRenameSection(name: string) {
@@ -3735,6 +3764,9 @@ namespace gristUtils {
           await driver.find(`.test-filter-menu-${minMax}`).click();
         }
         await findOpenMenuItem("li", value.relative).click();
+      });
+      await waitToPass(async () => {
+        assert.isFalse(await driver.find(".grist-floating-menu").isPresent());
       });
     }
   }
@@ -4250,8 +4282,10 @@ namespace gristUtils {
     return driver.findWait(".grist-floating-menu", timeoutMsec);
   }
 
-  export function findOpenMenuItem(itemSelector: string, itemContentMatcher: string | RegExp,  timeoutMsec = 100) {
-    return driver.findContentWait(`.grist-floating-menu ${itemSelector}`, itemContentMatcher, timeoutMsec);
+  export function findOpenMenuItem(itemSelector: string, itemContentMatcher?: string | RegExp, timeoutMsec = 100) {
+    return itemContentMatcher ?
+      driver.findContentWait(`.grist-floating-menu ${itemSelector}`, itemContentMatcher, timeoutMsec) :
+      driver.findWait(`.grist-floating-menu ${itemSelector}`, timeoutMsec);
   }
 
   export async function findOpenMenuAllItems<T>(
@@ -4259,8 +4293,12 @@ namespace gristUtils {
     mapper: (e: WebElement) => Promise<T>,
     timeoutMsec = 100,
   ): Promise<T[]>   {
-  // Find at least one item to ensure the menu is open.
-    await driver.findWait(`.grist-floating-menu ${itemSelector}`, timeoutMsec);
+    try {
+      // Find at least one item to ensure the menu is open.
+      await driver.findWait(`.grist-floating-menu ${itemSelector}`, timeoutMsec);
+    } catch {
+      // Keep going if we find nothing after the brief wait; we may be expecting to find 0 elements.
+    }
     return await driver.findAll(`.grist-floating-menu ${itemSelector}`, mapper);
   }
 

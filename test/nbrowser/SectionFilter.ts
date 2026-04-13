@@ -79,8 +79,10 @@ describe("SectionFilter", function() {
         ["Oranges", "Bananas", "Bananas"]);
 
       await menu.find(".test-filter-menu-cancel-btn").click();
-      assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3, 4, 5, 6]),
-        ["Apples", "Oranges", "Bananas", "Apples", "Bananas", "Apples"]);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3, 4, 5, 6]),
+          ["Apples", "Oranges", "Bananas", "Apples", "Bananas", "Apples"]);
+      });
     });
 
     it("should display new/updated rows even when only certain values are filtered in", async () => {
@@ -108,8 +110,10 @@ describe("SectionFilter", function() {
 
       await driver.find(".test-filter-menu-apply-btn").click();
 
-      assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3, 4]),
-        ["Apples", "Apples", "Apples", ""]);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3, 4]),
+          ["Apples", "Apples", "Apples", ""]);
+      });
 
       // Update first row to Oranges; it should remain shown.
       await gu.getCell(0, 1).click();
@@ -123,8 +127,10 @@ describe("SectionFilter", function() {
       await gu.enterCell("Bananas");
 
       // Ensure all 3 changes are visible.
-      assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3, 4, 5, 6]),
-        ["Oranges", "Apples", "", "Apples", "Bananas", ""]);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3, 4, 5, 6]),
+          ["Oranges", "Apples", "", "Apples", "Bananas", ""]);
+      });
 
       // Check that the filter menu looks as expected.
       menu = await gu.openColumnMenu("A", "Filter");
@@ -137,8 +143,10 @@ describe("SectionFilter", function() {
 
       // Apply the filter to make it only-Apples again.
       await menu.find(".test-filter-menu-apply-btn").click();
-      assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3]),
-        ["Apples", "Apples", ""]);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3]),
+          ["Apples", "Apples", ""]);
+      });
 
       // Reset the filter
       menu = await gu.openColumnMenu("A", "Filter");
@@ -147,13 +155,17 @@ describe("SectionFilter", function() {
         ["All", "None"]);
       await driver.findContent(".test-filter-menu-bulk-action", /All/).click();
       await menu.find(".test-filter-menu-apply-btn").click();
-      assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3, 4, 5, 6, 7, 8]),
-        ["Oranges", "Oranges", "Bananas", "Apples", "Bananas", "", "Apples", "Bananas"]);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3, 4, 5, 6, 7, 8]),
+          ["Oranges", "Oranges", "Bananas", "Apples", "Bananas", "", "Apples", "Bananas"]);
+      });
 
       // Restore changes of this test case.
       await gu.undo(3);
-      assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3, 4, 5, 6]),
-        ["Apples", "Oranges", "Bananas", "Apples", "Bananas", "Apples"]);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3, 4, 5, 6]),
+          ["Apples", "Oranges", "Bananas", "Apples", "Bananas", "Apples"]);
+      });
     });
 
     it("should display new/updated rows even when filtered, but refilter on menu changes", async () => {
@@ -165,8 +177,10 @@ describe("SectionFilter", function() {
       await menu.findContent("label", /Apples/).click();
       await driver.find(".test-filter-menu-apply-btn").click();
 
-      assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3]),
-        ["Oranges", "Bananas", "Bananas"]);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3]),
+          ["Oranges", "Bananas", "Bananas"]);
+      });
 
       // Update Oranges to Apples and make sure it's not filtered out
       await (await gu.getCell(0, 1)).click();

@@ -41,6 +41,7 @@ describe("TokenField", function() {
 
     // Add a second value to the first row.
     await gu.getCell("A", 1).click();
+    await gu.waitAppFocus();
     await gu.sendKeys(Key.ENTER);
     await gu.sendKeys("two", Key.ENTER);
     await gu.sendKeys(Key.ENTER);
@@ -55,6 +56,7 @@ describe("TokenField", function() {
     // Clicking on the cell twice will put it in edit mode, so we will first click other cell.
     await gu.getDetailCell("B", 1).click();
     await gu.getDetailCell("A", 1).click();
+    await gu.waitAppFocus();
     await gu.sendKeys(Key.DELETE);
     await gu.waitForServer();
     assert.isEmpty(await gu.getDetailCell("A", 1).getText());
@@ -64,6 +66,7 @@ describe("TokenField", function() {
     assert.equal(await gu.getDetailCell("A", 1).getText(), "one\ntwo");
     await gu.getDetailCell("B", 1).click();
     await gu.getDetailCell("A", 1).click();
+    await gu.waitAppFocus();
     await gu.sendKeys(Key.BACK_SPACE);
     await gu.waitForServer();
     assert.isEmpty(await gu.getDetailCell("A", 1).getText());
@@ -102,6 +105,7 @@ describe("TokenField", function() {
 
     // Make sure it works in Grid view.
     await gu.getCell(0, 1).click();
+    await gu.waitAppFocus();
     await gu.sendKeys(Key.DELETE);
     await gu.waitForServer();
     assert.equal(await gu.getCell(0, 1).getText(), "");

@@ -2,6 +2,8 @@ import { ListAirtableRecordsResult } from "app/common/airtable/AirtableAPI";
 import { AirtableTableId } from "app/common/airtable/AirtableAPITypes";
 import { AirtableBaseSchemaCrosswalk, GristTableId } from "app/common/airtable/AirtableCrosswalk";
 import { BulkColValues, TableColValues } from "app/common/DocActions";
+import { AddOrUpdateRowsOptions } from "app/common/UserAPI";
+import { AddOrUpdateRecord, BulkAddOrUpdateRecordResult } from "app/plugin/DocApiTypes";
 
 /**
  * Parameters for importing data from Airtable into Grist.
@@ -12,6 +14,7 @@ export interface AirtableDataImportParams {
 
   // Grist data API operations. Used to import data into Grist.
   addRows: AddRowsFunc,
+  addOrUpdateRows: AddOrUpdateRowsFunc,
   updateRows: UpdateRowsFunc,
   uploadAttachment: UploadAttachmentFunc,
 
@@ -41,6 +44,10 @@ export type ListRecordsFunc = (tableId: AirtableTableId) => Promise<ListAirtable
  * Function that adds rows to a Grist table.
  */
 type AddRowsFunc = (tableId: GristTableId, rows: BulkColValues) => Promise<number[]>;
+
+type AddOrUpdateRowsFunc = (
+  tableId: GristTableId, records: AddOrUpdateRecord[], options: AddOrUpdateRowsOptions,
+) => Promise<BulkAddOrUpdateRecordResult>;
 
 /**
  * Function that updates the column value(s) of a set of rows in a Grist table.

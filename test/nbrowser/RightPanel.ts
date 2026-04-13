@@ -413,8 +413,8 @@ describe("RightPanel", function() {
 
     // click on the first cell on the grid: make sure keyboard nav is reset
     await gu.getCell({ col: 0, rowNum: 1 }).click();
-    await gu.sendKeys(Key.TAB);
     await gu.waitAppFocus();
+    await gu.sendKeys(Key.TAB);
   });
 
   it("should not disable tabbing in active widget when clicking on tabs", async function() {

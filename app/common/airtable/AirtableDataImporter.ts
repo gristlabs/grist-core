@@ -6,24 +6,35 @@ import {
   isAttachmentField,
   TableAttachmentTracker,
 } from "app/common/airtable/AirtableAttachmentTracker";
+import { AirtableBaseSchemaCrosswalk } from "app/common/airtable/AirtableCrosswalk";
 import { AirtableDataImportParams } from "app/common/airtable/AirtableDataImporterTypes";
 import {
-  createEmptyBulkColValues,
   extractRefFromRecordField,
+  getRefFieldLinkedTableId,
   isRefField,
   ReferenceTracker,
   RefValuesByColumnId,
   TableReferenceTracker,
 } from "app/common/airtable/AirtableReferenceTracker";
-import { BulkColValues, CellValue, GristObjCode } from "app/plugin/GristData";
+import { AddOrUpdateRecord } from "app/plugin/DocApiTypes";
+import { CellValue, GristObjCode } from "app/plugin/GristData";
+import { convertToBulkColValues } from "app/plugin/TableOperationsImpl";
 
 export async function importDataFromAirtableBase(
-  { listRecords, addRows, updateRows, uploadAttachment, schemaCrosswalk, onProgress }: AirtableDataImportParams,
+  {
+    listRecords,
+    addRows,
+    addOrUpdateRows,
+    updateRows,
+    uploadAttachment,
+    schemaCrosswalk,
+    onProgress,
+  }: AirtableDataImportParams,
 ) {
   const referenceTracker = new ReferenceTracker();
   const attachmentTracker = new AttachmentTracker();
 
-  const addRowsPromises: Promise<any>[] = [];
+  const addOrUpdateRowsPromises: Promise<any>[] = [];
 
   // TODO: Strings passed to onProgress calls in common code aren't translatable.
   onProgress?.({ percent: 0, status: "Importing records from Airtable..." });
@@ -38,13 +49,20 @@ export async function importDataFromAirtableBase(
       gristColumnIds.push(tableCrosswalk.airtableIdColumn.id);
     }
 
-    const referenceColumnIds = Array.from(tableCrosswalk.fields.values())
+    const referenceColumns = Array.from(tableCrosswalk.fields.values())
       .filter(mapping => isRefField(mapping.airtableField))
-      .map(mapping => mapping.gristColumn.id);
+      .map(mapping => ({
+        id: mapping.gristColumn.id,
+        tableId: resolveLinkedTableId(schemaCrosswalk, mapping.airtableField),
+      }));
 
     let tableReferenceTracker: TableReferenceTracker | undefined;
-    if (referenceColumnIds.length > 0) {
-      tableReferenceTracker = referenceTracker.addTable(tableCrosswalk.gristTable.id, referenceColumnIds);
+    if (referenceColumns.length > 0) {
+      tableReferenceTracker = referenceTracker.addTable(
+        tableCrosswalk.gristTable.id,
+        referenceColumns,
+        { airtableIdColumnId: tableCrosswalk.airtableIdColumn?.id },
+      );
     }
 
     const attachmentColumnIds = Array.from(tableCrosswalk.fields.values())
@@ -61,12 +79,13 @@ export async function importDataFromAirtableBase(
     while (listRecordsResult.records.length > 0) {
       const { records } = listRecordsResult;
 
-      const colValues: BulkColValues = createEmptyBulkColValues(gristColumnIds);
       const airtableRecordIds: string[] = [];
+      const addOrUpdateRecords: Required<AddOrUpdateRecord>[] = [];
       const refsByColumnIdForRecords: RefValuesByColumnId[] = [];
       const attachmentsByColumnIdForRecords: AttachmentsByColumnId[] = [];
 
       for (const record of records) {
+        const addOrUpdateRecord: Required<AddOrUpdateRecord> = { require: {}, fields: {} };
         const refsByColumnId: RefValuesByColumnId = {};
         const attachmentsByColumnId: AttachmentsByColumnId = {};
 
@@ -85,7 +104,7 @@ export async function importDataFromAirtableBase(
 
           if (isRefField(airtableField) || isAttachmentField(airtableField)) {
             // Column should remain blank until it's filled in by a later step.
-            colValues[gristColumn.id].push(null);
+            addOrUpdateRecord.fields[gristColumn.id] = null;
             continue;
           }
 
@@ -94,35 +113,47 @@ export async function importDataFromAirtableBase(
 
           const value = converter(fieldMapping.airtableField, record.fields[fieldMapping.airtableField.name]);
 
-          // Always push, even if the value is undefined, so that row values are always at the right index.
-          colValues[fieldMapping.gristColumn.id].push(value ?? null);
+          addOrUpdateRecord.fields[fieldMapping.gristColumn.id] = value ?? null;
         }
 
         if (tableCrosswalk.airtableIdColumn) {
-          colValues[tableCrosswalk.airtableIdColumn.id].push(record.id);
+          addOrUpdateRecord.require[tableCrosswalk.airtableIdColumn.id] = record.id;
         }
 
+        addOrUpdateRecords.push(addOrUpdateRecord);
         refsByColumnIdForRecords.push(refsByColumnId);
         attachmentsByColumnIdForRecords.push(attachmentsByColumnId);
       }
 
-      const addRowsPromise = addRows(tableCrosswalk.gristTable.id, colValues)
-        .then((gristRowIds) => {
-          airtableRecordIds.forEach((airtableRecordId, index) => {
-            // Only add entries to the reference and attachment trackers once we know they're added to the table.
-            referenceTracker.addRecordIdMapping(airtableRecordId, gristRowIds[index]);
-            tableReferenceTracker?.addUnresolvedRecord({
-              gristRecordId: gristRowIds[index],
-              refsByColumnId: refsByColumnIdForRecords[index],
-            });
-            tableAttachmentTracker?.addRecord({
-              gristRecordId: gristRowIds[index],
-              attachmentsByColumnId: attachmentsByColumnIdForRecords[index],
-            });
+      let addOrUpdateRowsPromise: Promise<number[]> = Promise.resolve([]);
+
+      if (tableCrosswalk.airtableIdColumn) {
+        addOrUpdateRowsPromise =
+          addOrUpdateRows(tableCrosswalk.gristTable.id, addOrUpdateRecords, { onMany: "first" })
+            .then(result => result.recordIds.map(ids => ids[0]));
+      } else {
+        addOrUpdateRowsPromise = addRows(
+          tableCrosswalk.gristTable.id, convertToBulkColValues(addOrUpdateRecords),
+        );
+      }
+
+      const finishedProcessingPromise = addOrUpdateRowsPromise.then((recordIds) => {
+        airtableRecordIds.forEach((airtableRecordId, index) => {
+          const gristRecordId = recordIds[index];
+          // Only add entries to the reference and attachment trackers once we know they're added to the table.
+          referenceTracker.addRecordIdMapping(airtableRecordId, gristRecordId);
+          tableReferenceTracker?.addUnresolvedRecord({
+            gristRecordId,
+            refsByColumnId: refsByColumnIdForRecords[index],
+          });
+          tableAttachmentTracker?.addRecord({
+            gristRecordId,
+            attachmentsByColumnId: attachmentsByColumnIdForRecords[index],
           });
         });
+      });
 
-      addRowsPromises.push(addRowsPromise);
+      addOrUpdateRowsPromises.push(finishedProcessingPromise);
 
       listRecordsResult = await listRecordsResult.fetchNextPage();
     }
@@ -130,7 +161,7 @@ export async function importDataFromAirtableBase(
 
   // Future improvement - report all errors here using Promise.allSettled, or continue even if
   //                      a few sets of rows throw errors
-  await Promise.all(addRowsPromises);
+  await Promise.all(addOrUpdateRowsPromises);
 
   for (const tableReferenceTracker of referenceTracker.getTables()) {
     await tableReferenceTracker.bulkUpdateRowsWithUnresolvedReferences(updateRows);
@@ -200,3 +231,11 @@ const AirtableFieldValueConverters: Record<string, AirtableFieldValueConverter> 
 };
 
 const formatCollaborator = (collaborator: any) => collaborator?.name;
+
+const resolveTableId = (schemaCrosswalk: AirtableBaseSchemaCrosswalk, airtableTableId: string) =>
+  schemaCrosswalk.tables.get(airtableTableId)?.gristTable.id;
+
+function resolveLinkedTableId(schemaCrosswalk: AirtableBaseSchemaCrosswalk, field: AirtableFieldSchema) {
+  const linkedTableId = getRefFieldLinkedTableId(field);
+  return linkedTableId && resolveTableId(schemaCrosswalk, linkedTableId);
+}

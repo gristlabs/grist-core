@@ -662,7 +662,8 @@
         "Import from file": "Importação de arquivo",
         "Saved linked section {{title}} in view {{name}}": "Seção vinculada salva {{title}} em exibição {{name}}",
         "go to webhook settings": "ir para configurações webhook",
-        "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "Novas alterações estão temporariamente suspensas. A fila de webhooks transbordou. Verifique as configurações dos webhooks, remova os webhooks inválidos e limpe a fila."
+        "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "Novas alterações estão temporariamente suspensas. A fila de webhooks transbordou. Verifique as configurações dos webhooks, remova os webhooks inválidos e limpe a fila.",
+        "Import from Airtable": "Importar de Airtable"
     },
     "HomeIntro": {
         ", or find an expert via our ": ", ou encontre um especialista através do nosso",
@@ -711,7 +712,8 @@
         "Tutorial": "Tutorial",
         "Terms of service": "Termos de serviço",
         "Grist Resources": "Recursos do Grist",
-        "context menu - {{- workspaceName }}": "menu de contexto - {{- workspaceName }}"
+        "context menu - {{- workspaceName }}": "menu de contexto - {{- workspaceName }}",
+        "Import from Airtable": "Importar de Airtable"
     },
     "Importer": {
         "Merge rows that match these fields:": "Mesclar linhas que correspondem a estes campos:",
@@ -786,7 +788,8 @@
         "Field Format": "Formato do campo",
         "Lines": "Linhas",
         "Multi line": "Multilinha",
-        "Single line": "Linha única"
+        "Single line": "Linha única",
+        "Maximum characters": "Máximo de caracteres"
     },
     "NotifyUI": {
         "Ask for help": "Peça ajuda",
@@ -1016,7 +1019,9 @@
         "Suggestions": "Sugestões"
     },
     "TopBar": {
-        "Manage team": "Gerenciar a equipe"
+        "Manage team": "Gerenciar a equipe",
+        "Redo": "Refazer",
+        "Undo": "Desfazer"
     },
     "TriggerFormulas": {
         "(data cleaning)": "(limpeza de dados)",
@@ -1193,7 +1198,9 @@
         "changes": "alterações",
         "comments": "comentários",
         "this document": "este documento",
-        "your email": "seu e-mail"
+        "your email": "seu e-mail",
+        "You will no longer receive email notifications about {{suggestions}} in {{docName}} at {{email}}.": "Você não receberá mais notificações por e-mail sobre {{suggestions}} em {{docName}} em {{email}}.",
+        "suggestions": "sugestões"
     },
     "menus": {
         "* Workspaces are available on team plans. ": "* As áreas de trabalho estão disponíveis nos planos de equipe. ",
@@ -1215,7 +1222,9 @@
         "Light": "Claro",
         "Custom": "Personalizado",
         "By Name": "Por Nome",
-        "By Date Modified": "Por Data de Modificação"
+        "By Date Modified": "Por Data de Modificação",
+        "Dark": "Escuro",
+        "Light (High Contrast)": "Claro (Alto Contraste)"
     },
     "modals": {
         "Cancel": "Cancelar",
@@ -1511,7 +1520,8 @@
         "Comments are here!": "Os comentários estão aqui!",
         "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "Você pode adicionar comentários às células, responder a tópicos de comentários e @mencionar colaboradores.",
         "When checked, this field’s default value can be prefilled from the URL using query parameters.": "Quando selecionado, o valor padrão deste campo pode ser preenchido previamente a partir da URL usando parâmetros de consulta.",
-        "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "Com a função de sugestões, os usuários fazem alterações em uma cópia pessoal sem modificar o documento original e, em seguida, enviam essas sugestões para serem revisadas pelo proprietário do documento antes da integração."
+        "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "Com a função de sugestões, os usuários fazem alterações em uma cópia pessoal sem modificar o documento original e, em seguida, enviam essas sugestões para serem revisadas pelo proprietário do documento antes da integração.",
+        "Unpin to hide the button while keeping the filter.": "Desafixar para ocultar o botão, mantendo o filtro."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIÇÃO",
@@ -1707,7 +1717,9 @@
         "No default access allows access to be granted to individual documents or workspaces, rather than the full team site.": "Nenhum acesso padrão permite que o acesso seja concedido a documentos ou espaços de trabalho individuais, em vez do site de equipe completo.",
         "You are about to remove your own access to this {{resourceType}}": "Você está prestes a remover seu próprio acesso a este {{resourceType}}",
         "Inherit access: ": "Acesso herdado: ",
-        "Access overview": "Visão geral do acesso"
+        "Access overview": "Visão geral do acesso",
+        "Share it publicly": "Compartilhe publicamente",
+        "Verify your sensitive data before sharing publicly": "Verifique seus dados confidenciais antes de compartilhá-los publicamente"
     },
     "SearchModel": {
         "Search all tables": "Procurar todas as tabelas",
@@ -1954,7 +1966,15 @@
         "Grist is running in an environment that doesn't support restarting from the admin panel.": "O Grist está sendo executado em um ambiente que não suporta reinicialização a partir do painel de administração.",
         "Restart": "Reiniciar",
         "Restart Grist": "Reiniciar Grist",
-        "Restart Grist to apply pending changes or resolve issues.": "Reinicie o Grist para aplicar as alterações pendentes ou resolver problemas."
+        "Restart Grist to apply pending changes or resolve issues.": "Reinicie o Grist para aplicar as alterações pendentes ou resolver problemas.",
+        "Restart Grist?": "Reiniciar Grist?",
+        "Restarting Grist...": "Reiniciando Grist...",
+        "This will apply any pending changes and briefly interrupt access for all users.": "Isso aplicará todas as alterações pendentes e interromperá brevemente o acesso de todos os usuários.",
+        "You can still restart Grist manually.": "Você ainda pode reiniciar o Grist manualmente.",
+        "error in {{provider}}: {{verdict}}": "erro em {{provider}}: {{verdict}}",
+        "Please restart Grist manually.": "Por favor, reinicie o Grist manualmente.",
+        "Restart Grist to apply pending changes.": "Reinicie o Grist para aplicar as alterações pendentes.",
+        "Restart unavailable": "Reiniciar indisponível"
     },
     "Field": {
         "No choices configured": "Nenhuma opção configurada",
@@ -2011,7 +2031,10 @@
         "Search": "Pesquisar",
         "Select...": "Selecionar...",
         "Submit": "Enviar",
-        "Submitting…": "Enviando…"
+        "Submitting…": "Enviando…",
+        "Clear selection for: {{-inputLabel}}": "Limpar seleção para: {{-inputLabel}}",
+        "Options for {{-inputLabel}}": "Opções para {{-inputLabel}}",
+        "Search options for {{-inputLabel}}": "Opções de pesquisa para {{-inputLabel}}"
     },
     "widgetTypesMap": {
         "Calendar": "Calendário",
@@ -2243,7 +2266,9 @@
         "Manage users": "Gerenciar Usuarios",
         "Move": "Mover",
         "context menu - {{- documentName }}": "menu de contexto - {{- documentName }}",
-        "Documents list": "Lista de documentos"
+        "Documents list": "Lista de documentos",
+        "Download document...": "Baixar documento...",
+        "Deleted {{at}}": "{{at}} excluído"
     },
     "RenameDocModal": {
         "Choose icon": "Escolha o ícone",
@@ -2282,7 +2307,8 @@
         "Admin area": "Área administrativa",
         "Orgs": "Organizações",
         "Users": "Usuários",
-        "Workspaces": "Áreas de Trabalho"
+        "Workspaces": "Áreas de Trabalho",
+        "Enterprise": "Empresarial"
     },
     "Assistant": {
         "AI Assistant is only available for logged in users.": "O Assistente de IA só está disponível para usuários conectados.",
@@ -2311,7 +2337,8 @@
         "Deletion was not confirmed, skipping.": "A exclusão não foi confirmada, pulando."
     },
     "MentionTextBox": {
-        "no access": "sem acesso"
+        "no access": "sem acesso",
+        "...loading": "...carregando"
     },
     "VersionUpdateBanner": {
         "There is a critical Grist update available.\nConsider upgrading to version {{version}} as soon as possible.": "Há uma atualização crítica do Grist disponível.\nConsidere fazer o upgrade para a versão {{version}} assim que possível.",
@@ -2336,7 +2363,8 @@
         "You are about to disable this experimental feature: {{experiment}}": "Você está prestes a desativar este recurso experimental: {{experiment}}",
         "You are about to enable this experimental feature: {{experiment}}": "Você está prestes a ativar este recurso experimental: {{experiment}}",
         "{{experiment}} disabled.": "{{experiment}} desativado.",
-        "{{experiment}} enabled.": "{{experiment}} activado."
+        "{{experiment}} enabled.": "{{experiment}} activado.",
+        "Notifications": "Notificações"
     },
     "NewRecordButton": {
         "New card": "Novo cartão",
@@ -2347,7 +2375,9 @@
     },
     "duplicateWidget": {
         "Duplicate widget": "Duplicar widget",
-        "Duplicate widgets": "Widgets duplicados"
+        "Duplicate widgets": "Widgets duplicados",
+        "Active": "Ativo",
+        "Create new page": "Criar nova página"
     },
     "AttachmentsWidget": {
         "Uploading, please wait…": "Carregando, aguarde…"
@@ -2417,6 +2447,126 @@
         "Character encoding. See [the supported codecs]({{link}})": "Codificação de caracteres. Consulte [os codecs compatíveis]({{link}})"
     },
     "GetGristComProvider": {
-        "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.": "Ao fazer login, os usuários serão redirecionados para a página de login do getgrist.com para entrar ou se cadastrar. Após a autenticação no getgrist.com, eles serão redirecionados de volta para o seu servidor Grist e farão login com a conta do usuário que utilizaram para autenticação."
+        "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.": "Ao fazer login, os usuários serão redirecionados para a página de login do getgrist.com para entrar ou se cadastrar. Após a autenticação no getgrist.com, eles serão redirecionados de volta para o seu servidor Grist e farão login com a conta do usuário que utilizaram para autenticação.",
+        "Instructions": "Instruções"
+    },
+    "OpenAccessibilityModal": {
+        " or ": " ou ",
+        "Accessibility": "Acessibilidade",
+        "Close": "Fechar",
+        "Focus on other parts of the user interface using the following shortcuts:": "Para interagir com outras partes da interface do usuário, utilize os seguintes atalhos:",
+        "High contrast theme": "Tema de alto contraste",
+        "Other important keyboard shortcuts": "Outros atalhos de teclado importantes",
+        "To see other available themes, go to your {{profileSettingsLink}}.": "Para ver outros temas disponíveis, acesse seu {{profileSettingsLink}}.",
+        "Use the high contrast theme (light appearance)": "Use o tema de alto contraste (aparência clara)",
+        "You are currently **not using** the high contrast theme.": "Você **não está usando** o tema de alto contraste no momento.",
+        "You are currently using the high contrast theme.": "Você está usando o tema de alto contraste.",
+        "profile settings": "configurações de perfil",
+        "{{shortcutsModal}} Show the complete list of keyboard shortcuts": "{{shortcutsModal}} Exibir a lista completa de atalhos de teclado",
+        "\"Regions\" are what we call the different parts of the user interface:": "\"Regiões\" são como chamamos as diferentes partes da interface do usuário:",
+        "Keyboard navigation": "Navegação pelo teclado"
+    },
+    "ProposedChangesPage": {
+        "Proposed changes": "Mudanças propostas",
+        "Replace original": "Substituir o original",
+        "This is a list of changes relative to the original document.": "Esta é uma lista de alterações em relação ao documento original.",
+        "Accept": "Aceitar",
+        "Accepted {{at}}.": "Aceito em {{at}}.",
+        "Dismiss": "Descartar",
+        "Dismissed {{at}}.": "Descartado em {{at}}.",
+        "Learn more": "Saiba mais",
+        "No changes found to suggest. Please make some edits.": "Nenhuma alteração sugerida. Por favor, faça algumas edições.",
+        "Retract suggestion": "Retirar sugestão",
+        "Retracted {{at}}.": "Retirado em {{at}}.",
+        "Suggest change": "Sugerir alteração",
+        "Suggest changes": "Sugerir alterações",
+        "Suggestion made {{at}}.": "Sugestão feita em {{at}}.",
+        "Suggestions": "Sugestões",
+        "This is a list of changes relative to the {{originalDocument}}.": "Esta é uma lista de alterações relativas ao {{originalDocument}}.",
+        "Work on a copy": "Trabalhar em uma cópia",
+        "Your suggestions": "Suas sugestões",
+        "original document": "documento original"
+    },
+    "commandList": {
+        "Show accessibility options": "Mostrar opções de acessibilidade",
+        "Activate assistant": "Ativar assistente",
+        "Copy current selection to clipboard": "Copiar a seleção atual para a área de transferência",
+        "Copy current selection to clipboard including headers": "Copiar a seleção atual para a área de transferência, incluindo os cabeçalhos",
+        "Display Grist documentation": "Exibir documentação do Grist",
+        "Insert the current date": "Inserir a data atual",
+        "Insert the current date and time": "Inserir a data e hora atuais",
+        "Undo last action": "Desfazer a última ação",
+        "Freeze or unfreeze selected columns": "Congelar ou descongelar as colunas selecionadas",
+        "Hide the currently selected columns": "Ocultar as colunas atualmente selecionadas",
+        "Redo last action": "Refazer a última ação",
+        "Show hidden columns": "Mostrar colunas ocultas",
+        "Use the currently selected row as table headers": "Usar a linha atualmente selecionada como cabeçalho da tabela"
+    },
+    "GridViewMenusDateHelpers": {
+        "12-hour format": "Formato de 12 horas",
+        "24-hour format": "Formato de 24 horas",
+        "Calendar": "Calendário",
+        "Day": "Dia",
+        "Day of month": "Dia do mês",
+        "Day of week": "Dia da semana",
+        "Day of week (abbrev)": "Dia da semana (abreviado)",
+        "Day of week (full)": "Dia da semana (por extenso)",
+        "Day of week (numeric)": "Dia da semana (numérico)",
+        "Days since": "Dias desde",
+        "Days until": "Dias até",
+        "Full date": "Data completa",
+        "Hour": "Hora",
+        "Intervals": "Intervalos",
+        "Is weekend?": "É fim de semana?",
+        "Minute": "Minuto",
+        "Month": "Mês",
+        "Months since": "Meses desde",
+        "Months until": "Meses até",
+        "Week": "Semana",
+        "Week of year": "Semana do ano",
+        "Year": "Ano",
+        "Years until": "Anos até"
+    },
+    "AuthenticationSection": {
+        "Close": "Fechar",
+        "Configure": "Configurar",
+        "Configured": "Configurado",
+        "Confirm": "Confirmar",
+        "Error": "Erro",
+        "Error details": "Detalhes do erro",
+        "Instructions": "Instruções"
+    },
+    "DetailView": {
+        "This row is unavailable or does not exist": "Esta linha não está disponível ou não existe"
+    },
+    "AirtableImportUI": {
+        "Back": "Voltar",
+        "Cancel": "Cancelar",
+        "Connecting...": "Conectando...",
+        "Continue": "Continuar",
+        "Disconnect": "Desconectar",
+        "Existing tables": "Tabelas existentes",
+        "Import tables": "Importar tabelas",
+        "Import {{count}} tables_one": "Importar {{count}} tabelas",
+        "Import {{count}} tables_other": "Importar {{count}} tabelas",
+        "New table": "Nova tabela",
+        "New table: structure only": "Nova tabela: somente estrutura",
+        "OAuth": "OAuth",
+        "Refresh": "Atualizar",
+        "Skip": "Pular",
+        "Structure only": "Somente estrutura",
+        "loading your tables...": "carregando suas tabelas...",
+        "or": "ou",
+        "{{count}} warnings_one": "{{count}} avisos",
+        "{{count}} warnings_other": "{{count}} avisos"
+    },
+    "AirtableImporter": {
+        "Creating a new Grist document...": "Criando um novo documento Grist..."
+    },
+    "startDocAirtableImport": {
+        "Import from Airtable": "Importar de Airtable"
+    },
+    "startHomeAirtableImport": {
+        "Import from Airtable": "Importar de Airtable"
     }
 }

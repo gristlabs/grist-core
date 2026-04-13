@@ -23,8 +23,16 @@ export const InteractionOptionsRequest = t.iface([], {
   "allowSelectBy": t.opt("boolean"),
 });
 
+export const LinkType = t.union(t.lit("Filter:Summary-Group"), t.lit("Filter:Col->Col"), t.lit("Filter:Row->Col"), t.lit("Summary"), t.lit("Show-Referenced-Records"), t.lit("Cursor:Same-Table"), t.lit("Cursor:Reference"), t.lit("Error:Invalid"));
+
+export const LinkingInfo = t.iface([], {
+  "asTarget": t.union("LinkType", "null"),
+  "asSource": "boolean",
+});
+
 export const InteractionOptions = t.iface([], {
   "accessLevel": "string",
+  "linking": "LinkingInfo",
 });
 
 export const WidgetColumnMap = t.iface([], {
@@ -40,6 +48,8 @@ const exportedTypeSuite: t.ITypeSuite = {
   ColumnToMap,
   ColumnsToMap,
   InteractionOptionsRequest,
+  LinkType,
+  LinkingInfo,
   InteractionOptions,
   WidgetColumnMap,
   CustomSectionAPI,

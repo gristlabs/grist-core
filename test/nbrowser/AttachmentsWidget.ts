@@ -69,6 +69,7 @@ describe("AttachmentsWidget", function() {
     await gu.waitForServer();
 
     await gu.getCell(0, 2).click();
+    await gu.waitAppFocus();
     await driver.sendKeys(Key.ENTER);
 
     await gu.fileDialogUpload("uploads/sample.pdf,uploads/grist.png", () =>
@@ -197,6 +198,7 @@ describe("AttachmentsWidget", function() {
   it("should get correct headers from the server", async function() {
     const cell: any = gu.getCell(0, 2);
     await cell.click();
+    await gu.waitAppFocus();
     await driver.sendKeys(Key.ENTER);
 
     const fetchOptions = {
@@ -319,6 +321,7 @@ describe("AttachmentsWidget", function() {
     // Then do it again via the attachment editor.
     await gu.fileDialogUpload("uploads/grist.png", async () => {
       await gu.getCell({ col: 0, rowNum: 6 }).click();
+      await gu.waitAppFocus();
       await driver.sendKeys(Key.ENTER);
       await driver.sleep(500);
       await driver.find(".test-pw-add").click();
@@ -616,6 +619,7 @@ describe("AttachmentsWidget", function() {
     await driver.executeScript("window.testGrist = {fakeSlowUploads: true}");
     await gu.fileDialogUpload("uploads/grist.png", async () => {
       await cell.click();
+      await gu.waitAppFocus();
       await driver.sendKeys(Key.ENTER);
       await driver.sleep(500);
       await driver.find(".test-pw-add").click();

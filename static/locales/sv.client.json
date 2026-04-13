@@ -1293,7 +1293,9 @@
         "By Name": "Efter namn",
         "By Date Modified": "Efter ändringsdatum",
         "Light": "Ljust",
-        "Custom": "Anpassad"
+        "Custom": "Anpassad",
+        "Dark": "Mörkt",
+        "Light (High Contrast)": "Ljust (Hög kontrast)"
     },
     "pages": {
         "Duplicate page": "Duplicera sida",
@@ -1996,7 +1998,9 @@
         "Select...": "Välj...",
         "Submit": "Skicka in",
         "Submitting…": "Skickar in…",
-        "Clear selection for: {{-inputLabel}}": "Rensa val för: {{-inputLabel}}"
+        "Clear selection for: {{-inputLabel}}": "Rensa val för: {{-inputLabel}}",
+        "Options for {{-inputLabel}}": "Inställningar för {{-inputLabel}}",
+        "Search options for {{-inputLabel}}": "Sökinställningar för {{-inputLabel}}"
     },
     "widgetTypesMap": {
         "Calendar": "Kalender",
@@ -2245,7 +2249,8 @@
         "Users": "Användare",
         "Workspaces": "Arbetsytor",
         "Admin Controls": "Administrationsintällningar",
-        "Settings": "Inställningar"
+        "Settings": "Inställningar",
+        "Enterprise": "Företagsversion"
     },
     "Assistant": {
         "AI Assistant is only available for logged in users.": "AIassistenten är bara tillgänglig för inloggade användare.",
@@ -2300,7 +2305,8 @@
         "You are about to disable this experimental feature: {{experiment}}": "Du håller på att stänga av denna experimentella funktion: {{experiment}}",
         "You are about to enable this experimental feature: {{experiment}}": "Du håller på att slå på denna experimentella funktion: {{experiment}}",
         "{{experiment}} disabled.": "{{experiment}} avstängd.",
-        "{{experiment}} enabled.": "{{experiment}} påslagen."
+        "{{experiment}} enabled.": "{{experiment}} påslagen.",
+        "Notifications": "Notiser"
     },
     "NewRecordButton": {
         "New card": "Nytt kort",
@@ -2744,5 +2750,18 @@
     },
     "NotifyModel": {
         "Still working...": "Arbetar fortfarande..."
+    },
+    "TriggersPageUpsell": {
+        "Upgrade": "Upgradera",
+        "Automate workflows from within Grist": "Automatisera arbetsflöden inifrån Grist",
+        "Automations Screenshot": "Automationsflöden skärmbump",
+        "Learn more.": "Lär dig mer.",
+        "Try for free": "Testa gratis",
+        "Trigger automations based on data changes, and design actions such as custom email notifications and webhook integrations.": "Aktivera automatiserade flöden när data ändras och anpassa åtgärder så som anpassade e-postnotiser och webhook integrationer.",
+        "Try full Grist": "Testa fullversion av Grist"
+    },
+    "AutomationsPageEntry": {
+        "New": "Ny",
+        "Automations": "Automatiserade flöden"
     }
 }

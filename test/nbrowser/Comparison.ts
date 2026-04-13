@@ -552,6 +552,7 @@ describe("Comparison", function() {
     await gu.switchToWindow(windowHandles[1]);
     await gu.waitForDocToLoad();
     await gu.getCell(0, 1).click();
+    await gu.waitAppFocus();
     await gu.sendKeys(Key.chord(Key.SHIFT, Key.ARROW_RIGHT));
     assert.isFalse(await driver.find(".test-selection-summary-count").isPresent());
     await gu.checkForErrors();

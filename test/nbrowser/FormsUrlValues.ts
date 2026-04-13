@@ -103,6 +103,7 @@ describe("FormsUrlValues", function() {
 
     // Open the form with some URL parameters in a new tab.
     await gu.onNewTabForUrl(formUrl.href, async () => {
+      await waitForFormLoaded();
       // Check that fields are empty.
       assert.deepEqual(await getFieldValue("Field_Text"), "");
       assert.deepEqual(await getFieldValue("Field_Numeric"), "");
@@ -142,7 +143,7 @@ describe("FormsUrlValues", function() {
 
     // Open the form with some URL parameters again.
     await gu.onNewTabForUrl(formUrl.href, async () => {
-      await driver.get(formUrl.href);
+      await waitForFormLoaded();
       // Fill in some fields and submit.
       await setFieldValue("Field_Text", "my text");
       await setFieldValue("Field_Spinner", "1000");
@@ -190,6 +191,7 @@ describe("FormsUrlValues", function() {
     const formUrl = new URL(formLink);
     formUrl.search = sampleUrlParameters.toString();
     await gu.onNewTabForUrl(formUrl.href, async () => {
+      await waitForFormLoaded();
       // Check that the expected half of the fields are non-empty.
       assert.deepEqual(await getFieldValue("Field_Text"), "url text");
       assert.deepEqual(await getFieldValue("Field_Numeric"), "17");
@@ -240,6 +242,7 @@ describe("FormsUrlValues", function() {
 
     // Open the form with some URL parameters again.
     await gu.onNewTabForUrl(formUrl.href, async () => {
+      await waitForFormLoaded();
       // The first half of the fields should now be empty (url value ignored).
       assert.deepEqual(await getFieldValue("Field_Text"), "");
       assert.deepEqual(await getFieldValue("Field_Numeric"), "");
@@ -299,6 +302,7 @@ describe("FormsUrlValues", function() {
     const formUrl = new URL(formLink);
     formUrl.search = sampleUrlParameters.toString();
     await gu.onNewTabForUrl(formUrl.href, async () => {
+      await waitForFormLoaded();
       // We expect precisely the same values as in the previous test case.
       assert.deepEqual(await getFieldValue("Field_Text"), "");
       assert.deepEqual(await getFieldValue("Field_Numeric"), "");
@@ -385,4 +389,8 @@ async function toggleFieldConfigCheckbox(field: string, selector: string) {
 
 function isFieldDisplayed(name: string) {
   return driver.findWait(`input[name="${name}"], select[name="${name}"]`, 500).isDisplayed();
+}
+
+async function waitForFormLoaded() {
+  await driver.findWait("body.interface-full", 5_000);
 }

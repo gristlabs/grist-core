@@ -1,7 +1,7 @@
 import { AirtableFieldSchema } from "app/common/airtable/AirtableAPITypes";
 import { AirtableFieldMappingInfo } from "app/common/airtable/AirtableCrosswalk";
 import { UpdateRowsFunc } from "app/common/airtable/AirtableDataImporterTypes";
-import { TableColValues } from "app/common/DocActions";
+import { CellValue, TableColValues } from "app/common/DocActions";
 import { isNonNullish } from "app/common/gutil";
 import { BulkColValues, GristObjCode } from "app/plugin/GristData";
 
@@ -10,6 +10,11 @@ export type RefValuesByColumnId = Record<string, string[] | undefined>;
 interface UnresolvedRefsForRecord {
   gristRecordId: number;
   refsByColumnId: RefValuesByColumnId;
+}
+
+interface RefColumn {
+  tableId?: string;
+  id: string;
 }
 
 export class ReferenceTracker {
@@ -23,14 +28,37 @@ export class ReferenceTracker {
     this._rowIdLookup.set(originalRecordId, gristRecordId);
   }
 
-  public resolve(originalRecordId: string): number | undefined {
+  public lookupRowIdForRecord(originalRecordId: string): number | undefined {
     return this._rowIdLookup.get(originalRecordId);
   }
 
-  public addTable(gristTableId: string, columnIdsToUpdate: string[]) {
-    const tableTracker = new TableReferenceTracker(this, gristTableId, columnIdsToUpdate);
+  public resolveCellValue(column: RefColumn, originalRecordIds: string[] | undefined): CellValue {
+    if (!originalRecordIds) {
+      return [GristObjCode.List];
+    }
+
+    // If there's an Airtable ID column, the sandbox can perform the lookup for us.
+    const otherTableAirtableIdColumnId =
+      column.tableId && this.getTable(column.tableId)?.airtableIdColumnId;
+
+    if (otherTableAirtableIdColumnId) {
+      return [GristObjCode.LookUp, originalRecordIds, { column: otherTableAirtableIdColumnId }];
+    }
+
+    const internallyKnownRowIds =
+      originalRecordIds.map(originalRecordId => this.lookupRowIdForRecord(originalRecordId)).filter(isNonNullish);
+
+    return [GristObjCode.List, ...internallyKnownRowIds];
+  }
+
+  public addTable(gristTableId: string, columnIdsToUpdate: RefColumn[], options: { airtableIdColumnId?: string } = {}) {
+    const tableTracker = new TableReferenceTracker(this, gristTableId, columnIdsToUpdate, options);
     this._tableReferenceTrackers.set(gristTableId, tableTracker);
     return tableTracker;
+  }
+
+  public getTable(gristTableId: string): TableReferenceTracker | undefined {
+    return this._tableReferenceTrackers.get(gristTableId);
   }
 
   public getTables(): TableReferenceTracker[] {
@@ -40,11 +68,17 @@ export class ReferenceTracker {
 
 // Store and resolve references per-table to enable bulk updates.
 export class TableReferenceTracker {
+  public readonly airtableIdColumnId?: string;
   private _unresolvedRefsForRecords: UnresolvedRefsForRecord[] = [];
 
   // To perform bulk updates, all reference columns need updating at the same time.
   // Enforce this by explicitly listing the column ids to use during instantiation.
-  public constructor(private _parent: ReferenceTracker, private _tableId: string, private _columnIds: string[]) {
+  public constructor(
+    private _parent: ReferenceTracker,
+    private _tableId: string,
+    private _refColumns: RefColumn[],
+    _options: { airtableIdColumnId?: string } = {}) {
+    this.airtableIdColumnId = _options.airtableIdColumnId;
   }
 
   public addUnresolvedRecord(unresolvedRefsForRecord: UnresolvedRefsForRecord) {
@@ -56,28 +90,25 @@ export class TableReferenceTracker {
     options?: { batchSize?: number },
   ) {
     const batchSize = options?.batchSize ?? 100;
+    const refColumnIds = this._refColumns.map(col => col.id);
 
-    let pendingUpdate: TableColValues = { id: [], ...createEmptyBulkColValues(this._columnIds) };
+    let pendingUpdate: TableColValues = { id: [], ...createEmptyBulkColValues(refColumnIds) };
 
     for (const unresolvedRefsForRecord of this._unresolvedRefsForRecords) {
       pendingUpdate.id.push(unresolvedRefsForRecord.gristRecordId);
 
       // Every row needs an entry in its respective column in the bulk update, so always loop through
       // the same columns for every row.
-      for (const columnId of this._columnIds) {
-        const references = unresolvedRefsForRecord.refsByColumnId[columnId];
+      for (const column of this._refColumns) {
+        const references = unresolvedRefsForRecord.refsByColumnId[column.id];
         // TODO - Unresolvable references are currently just skipped silently. Find a way to display
         //        them in the cell / UI.
-        const resolvedReferences = references ?
-          references.map(originalRecordId => this._parent.resolve(originalRecordId)).filter(isNonNullish) : [];
-        pendingUpdate[columnId].push(
-          [GristObjCode.List, ...resolvedReferences],
-        );
+        pendingUpdate[column.id].push(this._parent.resolveCellValue(column, references));
       }
 
       if (pendingUpdate.id.length >= batchSize) {
         await updateRows(this._tableId, pendingUpdate);
-        pendingUpdate = { id: [], ...createEmptyBulkColValues(this._columnIds) };
+        pendingUpdate = { id: [], ...createEmptyBulkColValues(refColumnIds) };
       }
     }
 
@@ -89,6 +120,10 @@ export class TableReferenceTracker {
 
 export function isRefField(field: AirtableFieldSchema) {
   return field.type === "multipleRecordLinks";
+}
+
+export function getRefFieldLinkedTableId(field: AirtableFieldSchema): string | undefined {
+  return field.options?.linkedTableId;
 }
 
 export function extractRefFromRecordField(
