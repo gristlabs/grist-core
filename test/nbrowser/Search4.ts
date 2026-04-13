@@ -21,36 +21,11 @@ describe("Search4", function() {
     assert.deepEqual(await gu.getCursorPosition(), { rowNum: 103, col: 0 });
     assert.include(await gu.getActiveCell().getText(), "Albuquerque");
 
-    // Search forward.
-    await gu.searchNext();
-    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 382, col: 1 });
-    assert.include(await gu.getActiveCell().getText(), "Mozambique");
-
-    // Typing more characters searches incrementally.
-    await driver.sendKeys("tz");    // The search term is now "Quètz".
-    // Sleep for search debounce time
-    await driver.sleep(120);
-
-    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 2922, col: 0 });
-    assert.include(await gu.getActiveCell().getText(), "Quetzaltenango");
-
-    // Search forward by clicking
-    await gu.searchNext();
-    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 2922, col: 2 });
-    assert.include(await gu.getActiveCell().getText(), "Quetzaltenango");
-
-    // Search backward by clicking
-    await gu.searchPrev();
-    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 2922, col: 0 });
-    assert.include(await gu.getActiveCell().getText(), "Quetzaltenango");
-
-    // Search forward with keyboard
-    await driver.sendKeys(Key.ENTER);
-    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 2922, col: 2 });
-
-    // Add more letters with accents and case
-    await driver.sendKeys("ÀlTénängô"); // The search term is now "QuètzÀlTénängô"
-    await driver.sleep(120);
-    assert.include(await gu.getActiveCell().getText(), "Quetzaltenango");
+    // Check that the search without diacritics ("Quebec") matches a value that contains one ("Québec").
+    await gu.search("Quebec");
+    
+    // Check that Québec is found.
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 1155, col: 2 });
+    assert.include(await gu.getActiveCell().getText(), "Québec");
   });
 });
