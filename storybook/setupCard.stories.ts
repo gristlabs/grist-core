@@ -23,6 +23,7 @@ export const HeroCardStory = {
   args: {
     indicator: "success",
     header: "OIDC",
+    tag: "",
     badgeLabel: "Active",
     badgeVariant: "primary",
     text: "Your server is configured to authenticate users via OpenID Connect.",
@@ -43,7 +44,7 @@ export const HeroCardStory = {
     },
     badgeVariant: {
       control: "select",
-      options: ["primary", "warning", "error"],
+      options: ["primary", "warning", "error", "accent"],
     },
   },
   render: (args: any) => {
@@ -51,6 +52,7 @@ export const HeroCardStory = {
     return dom.create(HeroCard, {
       indicator: args.indicator as HeroVariant,
       header: args.header,
+      tags: args.tag ? [{ label: args.tag }] : [],
       badges: args.badgeLabel
         ? [{ label: args.badgeLabel, variant: args.badgeVariant as BadgeVariant }]
         : [],
@@ -84,6 +86,7 @@ export const ItemCardStory = {
   args: {
     indicator: "",
     header: "OIDC",
+    tag: "",
     badgeLabel: "",
     badgeVariant: "primary",
     text: "Works with most identity providers (Google, Azure AD, Keycloak, etc.).",
@@ -101,12 +104,13 @@ export const ItemCardStory = {
     },
     badgeVariant: {
       control: "select",
-      options: ["primary", "warning", "error"],
+      options: ["primary", "warning", "error", "accent"],
     },
   },
   render: (args: any) => dom.create(ItemCard, {
     indicator: (args.indicator || undefined) as ItemBorderVariant | undefined,
     header: args.header,
+    tags: args.tag ? [{ label: args.tag }] : [],
     badges: args.badgeLabel
       ? [{ label: args.badgeLabel, variant: args.badgeVariant as BadgeVariant }]
       : [],
@@ -164,6 +168,20 @@ export const HeroError = {
     badgeVariant: "error",
     text: "Authentication is misconfigured or unreachable.",
     error: "Failed to fetch OIDC discovery document",
+  },
+};
+
+export const HeroWithTag = {
+  ...HeroCardStory,
+  args: {
+    ...HeroCardStory.args,
+    indicator: "success",
+    header: "gVisor",
+    tag: "Recommended",
+    badgeLabel: "Ready",
+    badgeVariant: "primary",
+    text: "Your system supports gVisor — the fastest and most battle-tested sandbox.",
+    showButtons: false,
   },
 };
 

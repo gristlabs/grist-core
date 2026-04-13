@@ -34,13 +34,11 @@ export const SandboxingStep = () => {
             "protect your server. Without it, document formulas can access the full system.",
           ),
           dom.create(HeroCard, {
-            indicator: "success",
+            indicator: (use: any) => use(selected) === "gvisor" ? "success" : "pending",
             radio: makeRadio("gvisor"),
             header: "gVisor",
-            badges: [
-              { label: "Recommended", variant: "warning" },
-              { label: "Ready", variant: "primary" },
-            ],
+            tags: [{ label: "Recommended" }],
+            badges: [{ label: "Ready", variant: "primary" }],
             text: "Your system supports gVisor — the fastest and most battle-tested sandbox. " +
               "Each document's formulas run in their own isolated container, separated from " +
               "each other and the network.",
@@ -51,7 +49,7 @@ export const SandboxingStep = () => {
             initiallyCollapsed: true,
             items: [
               dom.create(ItemCard, {
-                radio: makeRadio("pyodide"),
+                radio: { ...makeRadio("pyodide"), disabled: true },
                 header: "Pyodide",
                 badges: [{ label: "Not available", variant: "error" }],
                 text: "Works on any platform. Formulas run in WebAssembly — fully compatible " +
@@ -59,14 +57,14 @@ export const SandboxingStep = () => {
                 error: { header: "", message: "Pyodide not installed" },
               }),
               dom.create(ItemCard, {
-                radio: makeRadio("macos"),
+                radio: { ...makeRadio("macos"), disabled: true },
                 header: "macOS Sandbox",
                 badges: [{ label: "Not available", variant: "error" }],
                 text: "Uses the built-in macOS sandbox. Good isolation for local use on a Mac.",
                 error: { header: "", message: "Not macOS" },
               }),
               dom.create(ItemCard, {
-                indicator: "error",
+                indicator: (use: any) => use(selected) === "none" ? "active" : undefined,
                 radio: makeRadio("none"),
                 header: "No Sandbox",
                 badges: [{ label: "Not recommended", variant: "warning" }],

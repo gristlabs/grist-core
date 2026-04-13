@@ -57,19 +57,15 @@ export class HeroCard extends Disposable {
     const hasFooter = o.footer;
 
     const content = cssHeroCardContent(
-      // Header
       cssHeroHeader(
-        cssHeroTitle(dom.text(o.header)),
+        cssHeroTitle(
+          dom.text(o.header),
+          ...(o.tags ?? []).map(t => cssTag(t.label)),
+        ),
         ...(o.badges ?? []).map(b => buildBadge(b.label, b.variant)),
       ),
-
-      // Text
       o.text ? cssHeroText(dom.text(o.text)) : null,
-
-      // Error
       o.error ? cssHeroError(dom.text(o.error)) : null,
-
-      // Controls
       hasControls ? cssHeroControls(
         o.checkbox
           ? labeledSquareCheckbox(o.checkbox.checked, o.checkbox.label)
@@ -80,8 +76,6 @@ export class HeroCard extends Disposable {
             )
           : null,
       ) : null,
-
-      // Footer
       hasFooter ? cssHeroFooter(
         o.footer!.text ? dom("span", o.footer!.text,
           o.footer!.boldText ? dom("strong", o.footer!.boldText) : null,
@@ -91,20 +85,13 @@ export class HeroCard extends Disposable {
     );
 
     return cssHeroCard(
-      // Indicator
       dom.cls(use => `${cssHeroCard.className}-${useBindable(use, o.indicator)}`),
       testId("hero"),
-
-      // Radio + content
       o.radio ? cssCardWithRadio(
-        cssRadioInput({ type: "radio" },
-          dom.prop("checked", o.radio.checked),
-          dom.on("change", () => o.radio!.onSelect()),
-          o.radio.name ? dom.attr("name", o.radio.name) : null,
-        ),
+        buildRadioInput(o.radio),
         content,
       ) : content,
-
+      o.radio?.disabled ? dom.cls(DISABLED_CLASS, o.radio.disabled) : null,
       ...(o.args ?? []),
     );
   }
@@ -149,7 +136,10 @@ export class ItemCard extends Disposable {
     const content = cssItemContent(
       // Header
       cssItemHeader(
-        cssItemLabel(dom.text(o.header)),
+        cssItemLabel(
+          dom.text(o.header),
+          ...(o.tags ?? []).map(t => cssTag(t.label)),
+        ),
         ...(o.badges ?? []).map(b => buildBadge(b.label, b.variant)),
         cssFlex(),
         ...(o.buttons ?? []).map(b => basicButton(
@@ -159,34 +149,29 @@ export class ItemCard extends Disposable {
         )),
       ),
 
-      // Text
       o.text ? cssItemText(dom.text(o.text)) : null,
-
-      // Error
       o.error ? dom("div",
         cssErrorHeader(dom.text(o.error.header)),
         cssErrorMessage(dom.text(o.error.message)),
       ) : null,
-
-      // Info
       o.info ? cssItemInfo(dom.text(o.info)) : null,
     );
 
     return cssItemRow(
-      // Indicator
-      o.indicator ? cssItemRow.cls(`-border-${o.indicator}`) : null,
+      o.indicator != null
+        ? typeof o.indicator === "string"
+          ? (o.indicator ? cssItemRow.cls(`-border-${o.indicator}`) : null)
+          : dom.cls(use => {
+              const val = useBindable(use, o.indicator!);
+              return val ? `${cssItemRow.className}-border-${val}` : '';
+            })
+        : null,
       testId("item"),
-
-      // Radio
       o.radio ? cssCardWithRadio(
-        cssRadioInput({ type: "radio" },
-          dom.prop("checked", o.radio.checked),
-          dom.on("change", () => o.radio!.onSelect()),
-          o.radio.name ? dom.attr("name", o.radio.name) : null,
-        ),
+        buildRadioInput(o.radio),
         content,
       ) : content,
-
+      o.radio?.disabled ? dom.cls(DISABLED_CLASS, o.radio.disabled) : null,
       ...(o.args ?? []),
     );
   }
@@ -260,6 +245,17 @@ export class CardList extends Disposable {
   }
 }
 
+function buildRadioInput(radio: RadioConfig): HTMLElement {
+  return cssRadioInput({ type: "radio" },
+    dom.prop("checked", radio.checked),
+    radio.disabled ? dom.prop("disabled", radio.disabled) : null,
+    dom.on("change", () => radio.onSelect()),
+    radio.name ? dom.attr("name", radio.name) : null,
+  );
+}
+
+const DISABLED_CLASS = "setup-card-disabled";
+
 export function buildBadge(label: string, variant: BadgeVariant, ...args: DomElementArg[]): HTMLElement {
   return cssBadge(label, cssBadge.cls(`-${variant}`), ...args);
 }
@@ -272,11 +268,15 @@ export type HeroVariant = "success" | "pending" | "warning" | "error";
 
 export type ItemBorderVariant = "active" | "configured" | "error";
 
-export type BadgeVariant = "primary" | "warning" | "error";
+export type BadgeVariant = "primary" | "warning" | "error" | "accent";
 
 export interface BadgeConfig {
   label: string;
   variant: BadgeVariant;
+}
+
+export interface TagConfig {
+  label: string;
 }
 
 export interface ButtonConfig {
@@ -297,6 +297,8 @@ export interface HeroCardOptions {
   radio?: RadioConfig;
   /** Header — title text. */
   header: BindableValue<string>;
+  /** Header › Tags (superscript accent labels, e.g. "Recommended"). */
+  tags?: TagConfig[];
   /** Header › Badges. */
   badges?: BadgeConfig[];
   /** Text — description below header. */
@@ -323,15 +325,19 @@ export interface RadioConfig {
   onSelect: () => void;
   /** Shared radio group name (for native radio exclusivity). */
   name?: string;
+  /** When true, radio is disabled and the whole card is grayed out. */
+  disabled?: BindableValue<boolean>;
 }
 
 export interface ItemCardOptions {
   /** Indicator — left border color. */
-  indicator?: ItemBorderVariant;
+  indicator?: BindableValue<ItemBorderVariant | undefined>;
   /** Radio button on the left side of the card. */
   radio?: RadioConfig;
   /** Header — title text. */
   header: BindableValue<string>;
+  /** Header › Tags (superscript accent labels). */
+  tags?: TagConfig[];
   /** Header › Badges. */
   badges?: BadgeConfig[];
   /** Header › Buttons. */
@@ -380,6 +386,20 @@ const cssBadge = styled("div", `
     border-color: ${theme.errorText};
     color: ${theme.errorText};
   }
+  &-accent {
+    border-color: ${theme.accentText};
+    color: ${theme.accentText};
+  }
+`);
+
+const cssTag = styled("span", `
+  text-transform: uppercase;
+  vertical-align: super;
+  font-size: ${vars.xsmallFontSize};
+  font-weight: 600;
+  line-height: 1;
+  color: ${theme.accentText};
+  margin-left: 6px;
 `);
 
 const cssHeroCard = styled("div", `
@@ -401,12 +421,17 @@ const cssHeroCard = styled("div", `
   &-error {
     border-left-color: ${theme.errorText};
   }
+
+  &.${DISABLED_CLASS} {
+    background-color: ${theme.pageBg};
+    pointer-events: none;
+  }
 `);
 
 const cssHeroHeader = styled("div", `
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   margin-bottom: 8px;
 `);
 
@@ -478,6 +503,11 @@ const cssItemRow = styled("div", `
   &-border-error {
     border-left-color: ${theme.errorText};
   }
+
+  &.${DISABLED_CLASS} {
+    background-color: ${theme.pageBg};
+    pointer-events: none;
+  }
 `);
 
 const cssCardWithRadio = styled("div", `
@@ -485,6 +515,10 @@ const cssCardWithRadio = styled("div", `
   flex-direction: row;
   align-items: flex-start;
   gap: 12px;
+
+  & > input[type="radio"] {
+    margin-top: 2px;
+  }
 `);
 
 const cssHeroCardContent = styled("div", `
@@ -505,7 +539,7 @@ const cssItemHeader = styled("div", `
   flex-direction: row;
   align-items: center;
   flex: 1;
-  gap: 12px;
+  gap: 16px;
 `);
 
 const cssItemLabel = styled("div", `
