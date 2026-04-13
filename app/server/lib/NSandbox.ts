@@ -3,6 +3,7 @@
  */
 
 import { arrayToString } from "app/common/arrayToString";
+import { SandboxOption } from "app/common/ConfigAPI";
 import * as marshal from "app/common/marshal";
 import { create } from "app/server/lib/create";
 import { ISandbox, ISandboxCreationOptions, ISandboxCreator } from "app/server/lib/ISandbox";
@@ -625,6 +626,61 @@ export type SpawnFn = (options: ISandboxOptions) => SandboxProcess;
 
 const hasRunsc = checkCommandExists("runsc");
 const hasSandboxExec = checkCommandExists("sandbox-exec");
+const hasPyodide = _checkPyodideAvailable();
+
+/**
+ * Returns available sandbox options with their detection status.
+ * Used by the setup wizard to show what's available on this system.
+ */
+export function getAvailableSandboxes(): SandboxOption[] {
+  return [
+    {
+      key: "gvisor",
+      label: "gVisor",
+      available: hasRunsc,
+      unavailableReason: hasRunsc ? undefined : "runsc not found",
+      effective: true,
+    },
+    {
+      key: "pyodide",
+      label: "Pyodide",
+      available: hasPyodide,
+      unavailableReason: hasPyodide ? undefined : "Pyodide runtime not installed",
+      effective: true,
+    },
+    {
+      key: "macSandboxExec",
+      label: "macOS Sandbox",
+      available: hasSandboxExec,
+      unavailableReason: hasSandboxExec ? undefined : "Not macOS or sandbox-exec not found",
+      effective: true,
+    },
+    {
+      key: "unsandboxed",
+      label: "No Sandbox",
+      available: true,
+      effective: false,
+    },
+  ];
+}
+
+/**
+ * Returns the recommended sandbox key, or undefined if there is no
+ * clear recommendation.  Only gVisor qualifies as "recommended".
+ */
+export function getRecommendedSandbox(): string | undefined {
+  return hasRunsc ? "gvisor" : undefined;
+}
+
+function _checkPyodideAvailable(): boolean {
+  try {
+    const base = getUnpackedAppRoot();
+    const scriptPath = path.resolve(base, "sandbox", "pyodide", "pipe.js");
+    return fs.existsSync(scriptPath);
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Currently for sandboxing use gvisor if available, otherwise

@@ -1,5 +1,5 @@
 import { ApiError } from "app/common/ApiError";
-import { AuthProvider } from "app/common/ConfigAPI";
+import { AuthProvider, SandboxingStatus } from "app/common/ConfigAPI";
 import { GETGRIST_COM_PROVIDER_KEY } from "app/common/loginProviders";
 import { ActivationsManager } from "app/gen-server/lib/ActivationsManager";
 import { appSettings, AppSettings } from "app/server/lib/AppSettings";
@@ -13,6 +13,7 @@ import {
   NotConfiguredError,
 } from "app/server/lib/loginSystemHelpers";
 import { LOGIN_SYSTEMS } from "app/server/lib/loginSystems";
+import { getAvailableSandboxes, getRecommendedSandbox } from "app/server/lib/NSandbox";
 import { sendOkReply, stringParam } from "app/server/lib/requestUtils";
 
 import * as express from "express";
@@ -95,6 +96,45 @@ export class ConfigBackendAPI {
       });
     }));
 
+    // GET /api/config/sandboxing
+    // Returns available sandbox options, current status, and recommendation.
+    app.get("/api/config/sandboxing", requireInstallAdmin, expressWrap(async (req, res) => {
+      const status = await this._buildSandboxingStatus();
+      return sendOkReply(req, res, status);
+    }));
+
+    // PATCH /api/config/sandboxing
+    // Set sandbox flavor (takes effect after restart).
+    app.patch("/api/config/sandboxing", requireInstallAdmin, expressWrap(async (req, res) => {
+      const { flavor } = req.body;
+      if (!flavor || typeof flavor !== "string") {
+        throw new ApiError("flavor is required", 400);
+      }
+
+      // Block changes when flavor is fixed by a real environment variable.
+      const status = await this._buildSandboxingStatus();
+      if (status.isSelectedByEnv) {
+        throw new ApiError(
+          "Sandbox flavor is set via GRIST_SANDBOX_FLAVOR environment variable and cannot be changed here",
+          409,
+        );
+      }
+
+      const option = status.available.find(o => o.key === flavor);
+      if (!option) {
+        throw new ApiError(`Unknown sandbox flavor: ${flavor}`, 400);
+      }
+      if (!option.available) {
+        throw new ApiError(
+          `Sandbox '${flavor}' is not available: ${option.unavailableReason}`,
+          400,
+        );
+      }
+
+      await this._activations.updateEnvVars({ GRIST_SANDBOX_FLAVOR: flavor });
+      return sendOkReply(req, res, { msg: "ok", needsRestart: true });
+    }));
+
     app.get("/api/config/:key", requireInstallAdmin, expressWrap((req, resp) => {
       log.debug("config: requesting configuration", req.params);
 
@@ -119,6 +159,39 @@ export class ConfigBackendAPI {
         resp.status(400).send({ error: "Invalid configuration key" });
       }
     }));
+  }
+
+  /**
+   * Build sandboxing status: what's available, what's active, what's recommended.
+   */
+  private async _buildSandboxingStatus(): Promise<SandboxingStatus> {
+    const available = getAvailableSandboxes();
+    const recommended = getRecommendedSandbox();
+
+    // Current flavor from process env (what's running now).
+    const current = process.env.GRIST_SANDBOX_FLAVOR || "unsandboxed";
+    const currentOption = available.find(o => o.key === current);
+    const currentEffective = currentOption?.effective ?? false;
+
+    // Check if there's a pending change in the database.
+    const activation = await this._activations.current();
+    const dbEnvVars = activation.prefs?.envVars ?? {};
+    const pendingFlavor = dbEnvVars.GRIST_SANDBOX_FLAVOR;
+    const pendingRestart = (pendingFlavor && pendingFlavor !== current)
+      ? pendingFlavor : undefined;
+
+    // process.env is never populated from DB envVars, so its presence
+    // means the value was set outside our control and is immutable.
+    const isSelectedByEnv = process.env.GRIST_SANDBOX_FLAVOR !== undefined;
+
+    return {
+      current,
+      currentEffective,
+      available,
+      recommended,
+      pendingRestart,
+      isSelectedByEnv,
+    };
   }
 
   /**

@@ -2,6 +2,29 @@ import { BaseAPI, IOptions } from "app/common/BaseAPI";
 import { addCurrentOrgToPath } from "app/common/urlUtils";
 
 /**
+ * Describes a single sandbox option and its availability on the system.
+ */
+export interface SandboxOption {
+  key: string;
+  label: string;
+  available: boolean;
+  unavailableReason?: string;
+  effective: boolean;           // Whether it provides real isolation (not just runs code)
+}
+
+/**
+ * Status of the sandboxing configuration on the server.
+ */
+export interface SandboxingStatus {
+  current: string;
+  currentEffective: boolean;
+  available: SandboxOption[];
+  recommended?: string;
+  pendingRestart?: string;      // Flavor that will activate after restart
+  isSelectedByEnv: boolean;     // Set via env var — cannot be changed by wizard
+}
+
+/**
  * Interface for authentication providers.
  */
 export interface AuthProvider {
@@ -86,6 +109,23 @@ export class ConfigAPI extends BaseAPI {
     const url = new URL(`${this._url}/api/config/auth-providers/config`);
     url.searchParams.append("provider", provider);
     return await this.requestJson(url.toString(), { method: "GET" });
+  }
+
+  /**
+   * Fetches available sandbox options and current sandboxing status.
+   */
+  public async getSandboxingStatus(): Promise<SandboxingStatus> {
+    return await this.requestJson(`${this._url}/api/config/sandboxing`, { method: "GET" });
+  }
+
+  /**
+   * Sets the sandbox flavor (takes effect after restart).
+   */
+  public async setSandboxFlavor(flavor: string): Promise<void> {
+    await this.request(`${this._url}/api/config/sandboxing`, {
+      method: "PATCH",
+      body: JSON.stringify({ flavor }),
+    });
   }
 
   private get _url(): string {
