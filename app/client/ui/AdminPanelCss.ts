@@ -76,6 +76,17 @@ export const cssWell = styled("div", `
     border: 1px solid ${components.errorText};
     --icon-color: ${components.errorText};
   }
+
+  &-success {
+    border: 1px solid ${components.widgetBorder};
+    --icon-color: ${components.controlFg};
+  }
+
+  &-muted {
+    border: 1px solid ${components.widgetBorder};
+    --icon-color: ${components.lightText};
+    color: ${components.lightText};
+  }
 `);
 
 export const cssIconWrapper = styled("div", `

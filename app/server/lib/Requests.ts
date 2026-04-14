@@ -3,6 +3,7 @@ import { ActiveDoc } from "app/server/lib/ActiveDoc";
 import { makeExceptionalDocSession } from "app/server/lib/DocSession";
 import { httpEncoding } from "app/server/lib/httpEncoding";
 import log from "app/server/lib/log";
+import { isRequestFunctionEnabled } from "app/server/lib/outgoingRequests";
 import { fetchUntrustedWithAgent } from "app/server/lib/ProxyAgent";
 
 import * as path from "path";
@@ -81,7 +82,7 @@ export class DocRequests {
 
   private async _handleSingleRequestRaw(request: SandboxRequest): Promise<Response> {
     try {
-      if (process.env.GRIST_ENABLE_REQUEST_FUNCTION != "1") {
+      if (!isRequestFunctionEnabled()) {
         throw new Error("REQUEST is not enabled");
       }
       const { url, method, body, params, headers } = request;
