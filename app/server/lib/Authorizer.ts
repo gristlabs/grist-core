@@ -491,7 +491,7 @@ export async function addRequestUser(
   // access-token requests are GETs for attachments (no trigger formulas) and
   // boot-key requests are admin-only. The alternative — threading authDone through
   // the IdentityResult — would complicate the interface for no practical benefit.
-  if (!skipSession) {
+  if (!skipSession && !identity.hasApiKey) {
     const session = mreq.session;
     if (session && !session.altSessionId) {
       generateAltSessionID(session);
