@@ -1,11 +1,24 @@
 import { ApiError } from "app/common/ApiError";
-import { BootProbeIds, BootProbeResult } from "app/common/BootProbe";
+import {
+  BootProbeIds,
+  BootProbeResult,
+  OutgoingRequestsFeatureCheck,
+  OutgoingRequestsFeatureState,
+  OutgoingRequestsProbeDetails,
+  worstStatus,
+} from "app/common/BootProbe";
 import { removeTrailingSlash } from "app/common/gutil";
 import { appSettings } from "app/server/lib/AppSettings";
 import { expressWrap, jsonErrorHandler } from "app/server/lib/expressWrap";
 import { GristServer } from "app/server/lib/GristServer";
 import { getBootKey, getInService } from "app/server/lib/gristSettings";
 import { DEFAULT_SESSION_SECRET } from "app/server/lib/ICreate";
+import {
+  getAllowedWebhookDomains,
+  isAllowedWebhookWildcard,
+  isRequestFunctionEnabled,
+} from "app/server/lib/outgoingRequests";
+import { getProxyAgentConfiguration, isUntrustedRequestBehaviorSet } from "app/server/lib/ProxyAgent";
 
 import * as express from "express";
 import fetch from "node-fetch";
@@ -71,6 +84,7 @@ export class BootProbes {
     this._probes.push(_admins);
     this._probes.push(_serviceStatusProbe);
     this._probes.push(_backupsProbe);
+    this._probes.push(_outgoingRequestsProbe);
     this._probeById = new Map(this._probes.map(p => [p.id, p]));
   }
 }
@@ -325,6 +339,91 @@ const _sessionSecretProbe: Probe = {
         GRIST_SESSION_SECRET: process.env.GRIST_SESSION_SECRET ? "set" : "not set",
       },
     };
+  },
+};
+
+/**
+ * Reports on whether user-triggerable outgoing-request vectors (webhooks,
+ * the REQUEST() formula function, and Import-from-URL) are gated by a
+ * proxy. See plans/OUTGOING_REQUESTS_PROBE.md for the rationale.
+ *
+ * Pure env inspection; no network calls.
+ */
+
+interface ProxyContext {
+  proxyConfigured: boolean;
+  untrustedDirect: boolean;
+}
+
+function _featureState(enabled: boolean, ctx: ProxyContext): OutgoingRequestsFeatureState {
+  if (!enabled) { return "off"; }
+  if (ctx.untrustedDirect) { return "on-direct"; }
+  return ctx.proxyConfigured ? "on-proxied" : "on-unproxied";
+}
+
+function _checkRequestFunction(ctx: ProxyContext): OutgoingRequestsFeatureCheck {
+  const enabled = isRequestFunctionEnabled();
+  const state = _featureState(enabled, ctx);
+  return {
+    id: "request-function",
+    state,
+    status: state === "on-unproxied" ? "fault" : "success",
+  };
+}
+
+function _checkWebhooks(ctx: ProxyContext): OutgoingRequestsFeatureCheck {
+  const allowedDomains = getAllowedWebhookDomains();
+  const wildcard = isAllowedWebhookWildcard();
+  const enabled = allowedDomains.length > 0;
+  const state = _featureState(enabled, ctx);
+  const status: OutgoingRequestsFeatureCheck["status"] =
+    !enabled ? "success" :
+      (wildcard && !ctx.proxyConfigured) ? "fault" :
+        (!wildcard && !ctx.proxyConfigured) ? "warning" :
+          "success";
+  return {
+    id: "webhooks",
+    state,
+    status,
+    allowedDomains,
+    wildcardAllowed: wildcard,
+  };
+}
+
+// ActiveDoc.fetchURL self-gates on the proxy, so "enabled" here is just
+// "proxy is configured at all". Included for admin visibility of the full
+// outgoing-request surface.
+function _checkImportFromUrl(ctx: ProxyContext): OutgoingRequestsFeatureCheck {
+  const enabled = ctx.proxyConfigured;
+  return {
+    id: "import-from-url",
+    state: _featureState(enabled, ctx),
+    status: "success",
+  };
+}
+
+export const _outgoingRequestsProbe: Probe = {
+  id: "outgoing-requests",
+  name: "Are outgoing-request vectors protected",
+  apply: async () => {
+    const proxyConfigured = isUntrustedRequestBehaviorSet();
+    const { proxyForTrustedRequestsUrl, proxyForUntrustedRequestsUrl } = getProxyAgentConfiguration();
+    const untrustedDirect = proxyForUntrustedRequestsUrl === "direct";
+    const trustedConfigured = proxyForTrustedRequestsUrl !== undefined;
+    const ctx: ProxyContext = { proxyConfigured, untrustedDirect };
+
+    const checks = [_checkRequestFunction(ctx), _checkWebhooks(ctx), _checkImportFromUrl(ctx)];
+    const status = worstStatus(checks.map(c => c.status));
+    const verdict =
+      status === "fault" ? "Outgoing-request vectors are enabled without a proxy gate." :
+        status === "warning" ? "Outgoing-request vectors are enabled; review proxy configuration." :
+          "No unprotected outgoing-request vectors detected.";
+
+    const details: OutgoingRequestsProbeDetails = {
+      proxy: { untrustedConfigured: proxyConfigured, untrustedDirect, trustedConfigured },
+      checks,
+    };
+    return { status, verdict, details };
   },
 };
 
