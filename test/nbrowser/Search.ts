@@ -267,8 +267,8 @@ describe("Search", function() {
     // Check that the search with diacritics finds text that has none.
     await gu.search("Àlbûquérquè");
     await driver.sleep(120);
-    
-	assert.deepEqual(await gu.getCursorPosition(), { rowNum: 631, col: "Name" });
+
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 631, col: "Name" });
     assert.include(await gu.getActiveCell().getText(), "Albuquerque");
 
     // Check that the search without diacritics ("Quebec") matches a value that contains one ("Québec").
