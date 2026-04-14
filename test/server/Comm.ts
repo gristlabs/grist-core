@@ -5,9 +5,14 @@ import * as log from "app/client/lib/log";
 import { CommClientConnect } from "app/common/CommTypes";
 import { delay } from "app/common/delay";
 import { isLongerThan } from "app/common/gutil";
+import { User } from "app/gen-server/entity/User";
+import { HomeDBAuth } from "app/gen-server/lib/homedb/Interfaces";
 import { Client, ClientMethod } from "app/server/lib/Client";
 import { Comm } from "app/server/lib/Comm";
 import { Hosts, RequestOrgInfo } from "app/server/lib/extractOrg";
+import { createDummyGristServer, GristServer } from "app/server/lib/GristServer";
+import { InstallAdmin } from "app/server/lib/InstallAdmin";
+import { IPermitStore, Permit } from "app/server/lib/Permit";
 import { fromCallback, listenPromise } from "app/server/lib/serverUtils";
 import { Sessions } from "app/server/lib/Sessions";
 import { TcpForwarder } from "test/server/tcpForwarder";
@@ -514,6 +519,161 @@ describe("Comm", function() {
       await waitForCondition(() => eventSpy.callCount > 0);
       assert.deepEqual(eventSpy.getCalls().map(call => call.args[0].n), [n - 1]);
     }
+  });
+
+  describe("websocket auth", function() {
+    const ANONYMOUS_ID = 1;
+
+    function makeUser(id: number, name: string, extra?: Partial<User>): User {
+      return { id, name, disabledAt: null, type: "login", ...extra } as User;
+    }
+
+    const anonymous = makeUser(ANONYMOUS_ID, "Anonymous");
+    const chimpy = makeUser(10, "Chimpy", { loginEmail: "chimpy@getgrist.com" });
+    const ham = makeUser(99, "Ham", { loginEmail: "ham@getgrist.com" });
+
+    function makeDbManager(overrides?: Partial<HomeDBAuth>): HomeDBAuth {
+      return {
+        getAnonymousUserId: () => ANONYMOUS_ID,
+        getSupportUserId: () => 2,
+        getAnonymousUser: () => anonymous,
+        getUser: async () => undefined,
+        getUserByKey: async () => undefined,
+        getUserByLogin: async () => chimpy,
+        getUserByLoginWithRetry: async () => chimpy,
+        getBestUserForOrg: async () => null,
+        getServiceAccountByLoginWithOwner: async () => null,
+        makeFullUser: (user: User) => ({
+          id: user.id, name: user.name, email: user.loginEmail || "", loginEmail: user.loginEmail || "",
+          ...(user.id === ANONYMOUS_ID ? { anonymous: true } : {}),
+        }),
+        ...overrides,
+      } as HomeDBAuth;
+    }
+
+    function makePermitStore(overrides?: Partial<IPermitStore>): IPermitStore {
+      return {
+        getPermit: async () => null,
+        setPermit: async () => "",
+        removePermit: async () => {},
+        close: async () => {},
+        getKeyPrefix: () => "test",
+        ...overrides,
+      };
+    }
+
+    function startAuthComm(db: HomeDBAuth, options?: {
+      gristServer?: GristServer,
+      permitStore?: IPermitStore,
+    }) {
+      server = http.createServer();
+      fakeHosts = new FakeHosts();
+      comm = new Comm(server, {
+        sessions,
+        hosts: fakeHosts.asHosts,
+        dbManager: db,
+        gristServer: options?.gristServer ?? createDummyGristServer(),
+        permitStore: options?.permitStore ?? makePermitStore(),
+      });
+      comm.registerMethods(assortedMethods);
+      return listenPromise(server.listen(0, "localhost"));
+    }
+
+    // Wait for the websocket to be closed by the server (e.g. after an auth error).
+    function waitForClose(ws: GristClientSocket): Promise<void> {
+      return new Promise((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error("expected connection to be terminated")), 2000);
+        ws.onclose = () => { clearTimeout(timer); resolve(); };
+        ws.onerror = () => { clearTimeout(timer); resolve(); };
+      });
+    }
+
+    afterEach(async function() {
+      await stopComm();
+    });
+
+    it("should authenticate via API key", async function() {
+      const db = makeDbManager({
+        getUserByKey: async key => key === "api_key_for_chimpy" ? chimpy : undefined,
+      });
+      await startAuthComm(db);
+
+      const ws = await connect({ headers: { authorization: "Bearer api_key_for_chimpy" } });
+      const msgs = await getMessages(ws, 1);
+      assert.equal(msgs[0].type, "clientConnect");
+      const client = comm!.getClient(msgs[0].clientId);
+      assert.equal(client.authSession.userId, chimpy.id);
+      assert.isTrue(client.authSession.userIsAuthorized);
+      assert.isTrue(client.authSession.isApiKeyAuth);
+    });
+
+    it("should terminate connection on invalid API key", async function() {
+      const db = makeDbManager({ getUserByKey: async () => undefined });
+      await startAuthComm(db);
+      await testUtils.captureLog("error", async () => {
+        const ws = await connect({ headers: { authorization: "Bearer bad-key" } });
+        await waitForClose(ws);
+      });
+    });
+
+    it("should terminate connection for disabled user", async function() {
+      const kiwi = makeUser(20, "Kiwi", { disabledAt: new Date(), loginEmail: "kiwi@getgrist.com" });
+      const db = makeDbManager({ getUserByKey: async () => kiwi });
+      await startAuthComm(db);
+      await testUtils.captureLog("error", async () => {
+        const ws = await connect({ headers: { authorization: "Bearer api_key_for_kiwi" } });
+        await waitForClose(ws);
+      });
+    });
+
+    it("should fall back to anonymous without credentials", async function() {
+      await startAuthComm(makeDbManager());
+      const ws = await connect();
+      const msgs = await getMessages(ws, 1);
+      assert.equal(msgs[0].type, "clientConnect");
+      const client = comm!.getClient(msgs[0].clientId);
+      assert.equal(client.authSession.userId, ANONYMOUS_ID);
+      assert.isFalse(client.authSession.userIsAuthorized);
+      assert.isFalse(client.authSession.isApiKeyAuth);
+    });
+
+    it("should authenticate via boot key", async function() {
+      const oldBootKey = process.env.GRIST_BOOT_KEY;
+      try {
+        process.env.GRIST_BOOT_KEY = "secret-boot";
+        const gristServer: GristServer = {
+          ...createDummyGristServer(),
+          getInstallAdmin: () => ({ getAdminUser: async () => ham } as InstallAdmin),
+        };
+        await startAuthComm(makeDbManager(), { gristServer });
+        const ws = await connect({ headers: { "x-boot-key": "secret-boot" } });
+        const msgs = await getMessages(ws, 1);
+        assert.equal(msgs[0].type, "clientConnect");
+        const client = comm!.getClient(msgs[0].clientId);
+        assert.equal(client.authSession.userId, ham.id);
+        assert.isTrue(client.authSession.userIsAuthorized);
+        assert.isFalse(client.authSession.isApiKeyAuth);
+      } finally {
+        if (oldBootKey === undefined) {
+          delete process.env.GRIST_BOOT_KEY;
+        } else {
+          process.env.GRIST_BOOT_KEY = oldBootKey;
+        }
+      }
+    });
+
+    it("should authenticate via permit header", async function() {
+      const permit: Permit = { docId: "doc1" };
+      const permitStore = makePermitStore({
+        getPermit: async key => key === "pk" ? permit : null,
+      });
+      await startAuthComm(makeDbManager(), { permitStore });
+      const ws = await connect({ headers: { permit: "pk" } });
+      const msgs = await getMessages(ws, 1);
+      assert.equal(msgs[0].type, "clientConnect");
+      const client = comm!.getClient(msgs[0].clientId);
+      assert.equal(client.authSession.userId, ANONYMOUS_ID);
+    });
   });
 
   describe("Allowed Origin", function() {

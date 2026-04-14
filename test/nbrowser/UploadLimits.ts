@@ -104,6 +104,7 @@ describe("UploadLimits", function() {
 
     // Clear the first cell.
     await gu.getCell(0, 1).click();
+    await gu.waitAppFocus();
     await driver.sendKeys(Key.DELETE);
     await gu.waitForServer();
 

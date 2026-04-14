@@ -206,7 +206,17 @@ export class AccountWidget extends Disposable {
 
   private _maybeBuildBillingPageMenuItem() {
     const { deploymentType } = getGristConfig();
-    if (deploymentType !== "saas") { return null; }
+    if (deploymentType !== "saas") {
+      // In non-saas (core/enterprise), show "Site settings" for team sites if user has edit access.
+      const { currentOrg, isTeamSite } = this._appModel;
+      if (!isTeamSite || !currentOrg) { return null; }
+      if (!roles.canEdit(currentOrg.access)) { return null; }
+      return menuItemLink(
+        urlState().setLinkUrl({ siteSettings: "site-settings" }),
+        t("Site settings"),
+        testId("dm-site-settings"),
+      );
+    }
 
     const { currentValidUser, currentOrg, isTeamSite } = this._appModel;
     const canViewBillingPage = Boolean(

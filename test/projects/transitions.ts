@@ -40,7 +40,7 @@ describe("transitions", function() {
 
   it("should run callbacks and transition properties", async function() {
     await driver.get(`${server.getHost()}/transitions`);
-    await driver.find(".test-duration").doClear().doSendKeys(`${kDelayMs * 2}ms`, Key.ENTER);
+    await driver.findWait(".test-duration", 2000).doClear().doSendKeys(`${kDelayMs * 2}ms`, Key.ENTER);
     leftDiv = driver.find(".test-left");
     countFinishedDiv = driver.find(".test-finished");
     await assertState({ width: 30, opacity: 1, finished: 0 });
@@ -68,7 +68,7 @@ describe("transitions", function() {
   it("should handle interrupted transitions well", async function() {
     // Load the page fresh (for new counts) and give more time for this transition.
     await driver.get(`${server.getHost()}/transitions`);
-    await driver.find(".test-duration").doClear().doSendKeys(`${kDelayMs * 4}ms`, Key.ENTER);
+    await driver.findWait(".test-duration", 2000).doClear().doSendKeys(`${kDelayMs * 4}ms`, Key.ENTER);
 
     leftDiv = driver.find(".test-left");
     countFinishedDiv = driver.find(".test-finished");

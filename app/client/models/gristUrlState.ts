@@ -111,6 +111,7 @@ export class UrlStateImpl {
       newState.billing ||
       newState.activation ||
       newState.auditLogs ||
+      newState.siteSettings ||
       newState.welcome ||
       newState.adminPanel ||
       newState.boot ?
@@ -143,6 +144,8 @@ export class UrlStateImpl {
     const activationReload = Boolean(prevState.activation) !== Boolean(newState.activation);
     // Reload when moving to/from the audit logs page.
     const auditLogsReload = Boolean(prevState.auditLogs) !== Boolean(newState.auditLogs);
+    // Reload when moving to/from the site settings page.
+    const siteSettingsReload = Boolean(prevState.siteSettings) !== Boolean(newState.siteSettings);
     // Reload when moving to/from a welcome page.
     const welcomeReload = Boolean(prevState.welcome) !== Boolean(newState.welcome);
     // Reload when link keys change, which changes what the user can access
@@ -159,6 +162,7 @@ export class UrlStateImpl {
       billingReload ||
       activationReload ||
       auditLogsReload ||
+      siteSettingsReload ||
       gristConfig.errPage ||
       docReload ||
       welcomeReload ||

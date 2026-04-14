@@ -1222,7 +1222,9 @@
         "Light": "Claro",
         "Custom": "Personalizado",
         "By Name": "Por Nome",
-        "By Date Modified": "Por Data de Modificação"
+        "By Date Modified": "Por Data de Modificação",
+        "Dark": "Escuro",
+        "Light (High Contrast)": "Claro (Alto Contraste)"
     },
     "modals": {
         "Cancel": "Cancelar",
@@ -2029,7 +2031,10 @@
         "Search": "Pesquisar",
         "Select...": "Selecionar...",
         "Submit": "Enviar",
-        "Submitting…": "Enviando…"
+        "Submitting…": "Enviando…",
+        "Clear selection for: {{-inputLabel}}": "Limpar seleção para: {{-inputLabel}}",
+        "Options for {{-inputLabel}}": "Opções para {{-inputLabel}}",
+        "Search options for {{-inputLabel}}": "Opções de pesquisa para {{-inputLabel}}"
     },
     "widgetTypesMap": {
         "Calendar": "Calendário",
@@ -2262,7 +2267,8 @@
         "Move": "Mover",
         "context menu - {{- documentName }}": "menu de contexto - {{- documentName }}",
         "Documents list": "Lista de documentos",
-        "Download document...": "Baixar documento..."
+        "Download document...": "Baixar documento...",
+        "Deleted {{at}}": "{{at}} excluído"
     },
     "RenameDocModal": {
         "Choose icon": "Escolha o ícone",
@@ -2301,7 +2307,8 @@
         "Admin area": "Área administrativa",
         "Orgs": "Organizações",
         "Users": "Usuários",
-        "Workspaces": "Áreas de Trabalho"
+        "Workspaces": "Áreas de Trabalho",
+        "Enterprise": "Empresarial"
     },
     "Assistant": {
         "AI Assistant is only available for logged in users.": "O Assistente de IA só está disponível para usuários conectados.",
@@ -2356,7 +2363,8 @@
         "You are about to disable this experimental feature: {{experiment}}": "Você está prestes a desativar este recurso experimental: {{experiment}}",
         "You are about to enable this experimental feature: {{experiment}}": "Você está prestes a ativar este recurso experimental: {{experiment}}",
         "{{experiment}} disabled.": "{{experiment}} desativado.",
-        "{{experiment}} enabled.": "{{experiment}} activado."
+        "{{experiment}} enabled.": "{{experiment}} activado.",
+        "Notifications": "Notificações"
     },
     "NewRecordButton": {
         "New card": "Novo cartão",
@@ -2454,7 +2462,9 @@
         "You are currently **not using** the high contrast theme.": "Você **não está usando** o tema de alto contraste no momento.",
         "You are currently using the high contrast theme.": "Você está usando o tema de alto contraste.",
         "profile settings": "configurações de perfil",
-        "{{shortcutsModal}} Show the complete list of keyboard shortcuts": "{{shortcutsModal}} Exibir a lista completa de atalhos de teclado"
+        "{{shortcutsModal}} Show the complete list of keyboard shortcuts": "{{shortcutsModal}} Exibir a lista completa de atalhos de teclado",
+        "\"Regions\" are what we call the different parts of the user interface:": "\"Regiões\" são como chamamos as diferentes partes da interface do usuário:",
+        "Keyboard navigation": "Navegação pelo teclado"
     },
     "ProposedChangesPage": {
         "Proposed changes": "Mudanças propostas",

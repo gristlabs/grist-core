@@ -12,6 +12,11 @@ import {
   WebHookSecret,
 } from "app/common/Triggers";
 import TriggersTI from "app/common/Triggers-ti";
+import {
+  TriggerDeliveryRecord,
+  TriggerMonitorResponse,
+  TriggerPendingRecord,
+} from "app/common/UserAPI";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { GristObjCode } from "app/plugin/GristData";
 import { ActiveDoc, colIdToRef as colIdToReference, getRealTableId, tableIdToRef } from "app/server/lib/ActiveDoc";
@@ -682,7 +687,7 @@ export class DocApiTriggers {
     this._app.get("/api/docs/:docId/triggers/monitor", isOwner,
       withDoc(async (activeDoc, req, res) => {
         const entries = await activeDoc.notifMgr?.getDeliveryLog(activeDoc.docName) ?? [];
-        const delivered = entries.map((e) => {
+        const delivered: TriggerDeliveryRecord[] = entries.map((e) => {
           const meta = activeDoc.webhookQueue.resolveTriggerMeta(e.actionId);
           return {
             id: e.id,
@@ -704,7 +709,7 @@ export class DocApiTriggers {
         const webhookPending = await activeDoc.webhookQueue.getPendingItems(activeDoc.docName);
         const emailPending = await activeDoc.notifMgr?.getPendingItems(activeDoc.docName) ?? [];
         const items = [...webhookPending, ...emailPending];
-        const pending = items.map((item, i) => {
+        const pending: TriggerPendingRecord[] = items.map((item, i) => {
           const meta = activeDoc.webhookQueue.resolveTriggerMeta(item.actionId);
           return {
             id: i + 1,
@@ -721,7 +726,8 @@ export class DocApiTriggers {
           };
         });
 
-        res.json({ delivered, pending });
+        const response: TriggerMonitorResponse = { delivered, pending };
+        res.json(response);
       }),
     );
   }

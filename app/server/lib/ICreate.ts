@@ -1,6 +1,7 @@
 import { GristDeploymentType } from "app/common/gristUrls";
 import { getThemeBackgroundSnippet } from "app/common/Themes";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
+import { TeamSettings } from "app/gen-server/lib/TeamSettings";
 import {
   AttachmentStoreCreationError,
   ExternalStorageAttachmentStore, storageSupportsAttachments,
@@ -13,7 +14,7 @@ import { createDummyTelemetry, GristLoginSystem, GristServer } from "app/server/
 import { HostedStorageManager } from "app/server/lib/HostedStorageManager";
 import { IAssistant } from "app/server/lib/IAssistant";
 import { createNullAuditLogger, IAuditLogger } from "app/server/lib/IAuditLogger";
-import { EmptyBilling, IBilling } from "app/server/lib/IBilling";
+import { IBilling } from "app/server/lib/IBilling";
 import { IDocNotificationManager } from "app/server/lib/IDocNotificationManager";
 import { IDocStorageManager } from "app/server/lib/IDocStorageManager";
 import { INotifier } from "app/server/lib/INotifier";
@@ -132,7 +133,7 @@ export class BaseCreate implements ICreate {
 
   public deploymentType(): GristDeploymentType { return this._deploymentType; }
   public Billing(dbManager: HomeDBManager, gristConfig: GristServer): IBilling {
-    return new EmptyBilling();
+    return new TeamSettings(gristConfig);
   }
 
   public Notifier(dbManager: HomeDBManager, gristConfig: GristServer): INotifier | undefined {

@@ -691,6 +691,7 @@ describe("Importer2", function() {
       // Delete the first row of the Country column. (Needed for a later assertion.)
       await gu.sendKeys(Key.chord(await gu.modKey(), Key.UP));
       await gu.getCell(3, 1).click();
+      await gu.waitAppFocus();
       await gu.sendKeys(Key.DELETE);
       await gu.waitForServer();
 

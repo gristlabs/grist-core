@@ -647,7 +647,7 @@ export class FieldBuilder extends Disposable {
       return { style: new CombinedStyle(styles, flags) };
     }, this).extend({ deferred: true })).previousOnUndefined();
 
-    const widgetObs = koUtil.withKoUtils(ko.computed(() => {
+    const widgetComputed = ko.computed(() => {
       // TODO: Accessing row values like this doesn't always work (row and field might not be updated
       // simultaneously).
       if (this.isDisposed()) { return null; }   // Work around JS errors during field removal.
@@ -660,7 +660,20 @@ export class FieldBuilder extends Disposable {
       } else {
         return null;
       }
-    }).extend({ deferred: true })).onlyNotifyUnequal();
+    });
+
+    // In comparison mode, DiffBox must mount synchronously before scrolly's
+    // resetItemHeights measures the row on rowModelNotify — otherwise the
+    // deferred component swap is delayed and scrolly caches a stale single-line row height.
+    // The only reason for this being deferred is to mitigate some errors that might happen
+    // during undoing column renames (covered by tests). For suggestions we can safely
+    // assume that users won't be undoing column renames (as this generally is a feature
+    // for editing data, not modifying structure). Relevant test:
+    // test/nbrowser/ColumnOps.ntest.js:109 "should allow renaming columns"
+    if (!this.gristDoc.comparison) {
+      widgetComputed.extend({ deferred: true });
+    }
+    const widgetObs = koUtil.withKoUtils(widgetComputed).onlyNotifyUnequal();
 
     const ruleText = koUtil.withKoUtils(ko.computed(() => {
       if (this.isDisposed()) { return null; }

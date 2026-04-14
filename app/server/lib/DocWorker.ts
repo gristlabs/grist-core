@@ -8,6 +8,7 @@ import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { assertAccess, getOrSetDocAuth, RequestWithLogin } from "app/server/lib/Authorizer";
 import { Client } from "app/server/lib/Client";
 import { Comm } from "app/server/lib/Comm";
+import { DocApiUsageTracker } from "app/server/lib/DocApiUsageTracker";
 import { DocSession, docSessionFromRequest } from "app/server/lib/DocSession";
 import { filterDocumentInPlace } from "app/server/lib/filterUtils";
 import { GristServer } from "app/server/lib/GristServer";
@@ -28,14 +29,17 @@ import * as mimeTypes from "mime-types";
 export interface AttachOptions {
   comm: Comm;                             // Comm object for methods called via websocket
   gristServer: GristServer;
+  tracker?: DocApiUsageTracker;           // Shared API usage tracker for rate-limiting
 }
 
 export class DocWorker {
   private _comm: Comm;
   private _gristServer: GristServer;
+  private _tracker?: DocApiUsageTracker;
   constructor(private _dbManager: HomeDBManager, options: AttachOptions) {
     this._comm = options.comm;
     this._gristServer = options.gristServer;
+    this._tracker = options.tracker;
   }
 
   public async getAttachment(req: express.Request, res: express.Response): Promise<void> {
@@ -116,51 +120,54 @@ export class DocWorker {
   // Register main methods related to documents.
   public registerCommCore(): void {
     const comm = this._comm;
+    const tracker = this._tracker;
+    const method = activeDocMethod.bind(null, tracker);
     comm.registerMethods({
-      closeDoc: activeDocMethod.bind(null, null, "closeDoc"),
-      fetchTable: activeDocMethod.bind(null, "viewers", "fetchTable"),
-      fetchPythonCode: activeDocMethod.bind(null, "viewers", "fetchPythonCode"),
-      useQuerySet: activeDocMethod.bind(null, "viewers", "useQuerySet"),
-      disposeQuerySet: activeDocMethod.bind(null, "viewers", "disposeQuerySet"),
-      applyUserActions: activeDocMethod.bind(null, "editors", "applyUserActions"),
-      applyUserActionsById: activeDocMethod.bind(null, "editors", "applyUserActionsById"),
-      findColFromValues: activeDocMethod.bind(null, "viewers", "findColFromValues"),
-      getFormulaError: activeDocMethod.bind(null, "viewers", "getFormulaError"),
-      importFiles: activeDocMethod.bind(null, "editors", "importFiles"),
-      finishImportFiles: activeDocMethod.bind(null, "editors", "finishImportFiles"),
-      cancelImportFiles: activeDocMethod.bind(null, "editors", "cancelImportFiles"),
-      generateImportDiff: activeDocMethod.bind(null, "editors", "generateImportDiff"),
-      addAttachments: activeDocMethod.bind(null, "editors", "addAttachments"),
-      startBundleUserActions: activeDocMethod.bind(null, "editors", "startBundleUserActions"),
-      stopBundleUserActions: activeDocMethod.bind(null, "editors", "stopBundleUserActions"),
-      autocomplete: activeDocMethod.bind(null, "viewers", "autocomplete"),
-      fetchURL: activeDocMethod.bind(null, "viewers", "fetchURL"),
-      getActionSummaries: activeDocMethod.bind(null, "viewers", "getActionSummaries"),
-      reloadDoc: activeDocMethod.bind(null, "editors", "reloadDoc"),
-      fork: activeDocMethod.bind(null, "viewers", "fork"),
-      checkAclFormula: activeDocMethod.bind(null, "viewers", "checkAclFormula"),
-      getAclResources: activeDocMethod.bind(null, "viewers", "getAclResources"),
-      waitForInitialization: activeDocMethod.bind(null, "viewers", "waitForInitialization"),
-      getUsersForViewAs: activeDocMethod.bind(null, "viewers", "getUsersForViewAs"),
-      getAccessToken: activeDocMethod.bind(null, "viewers", "getAccessToken"),
-      getShare: activeDocMethod.bind(null, "owners", "getShare"),
-      startTiming: activeDocMethod.bind(null, "owners", "startTiming"),
-      stopTiming: activeDocMethod.bind(null, "owners", "stopTiming"),
-      getAssistantState: activeDocMethod.bind(null, "owners", "getAssistantState"),
-      listActiveUserProfiles: activeDocMethod.bind(null, null, "listActiveUserProfiles"),
-      applyProposal: activeDocMethod.bind(null, "owners", "applyProposal"),
-      getAssistance: activeDocMethod.bind(null, "viewers", "getAssistance"),
+      closeDoc: method(null, "closeDoc"),
+      fetchTable: method("viewers", "fetchTable"),
+      fetchPythonCode: method("viewers", "fetchPythonCode"),
+      useQuerySet: method("viewers", "useQuerySet"),
+      disposeQuerySet: method("viewers", "disposeQuerySet"),
+      applyUserActions: method("editors", "applyUserActions"),
+      applyUserActionsById: method("editors", "applyUserActionsById"),
+      findColFromValues: method("viewers", "findColFromValues"),
+      getFormulaError: method("viewers", "getFormulaError"),
+      importFiles: method("editors", "importFiles"),
+      finishImportFiles: method("editors", "finishImportFiles"),
+      cancelImportFiles: method("editors", "cancelImportFiles"),
+      generateImportDiff: method("editors", "generateImportDiff"),
+      addAttachments: method("editors", "addAttachments"),
+      startBundleUserActions: method("editors", "startBundleUserActions"),
+      stopBundleUserActions: method("editors", "stopBundleUserActions"),
+      autocomplete: method("viewers", "autocomplete"),
+      fetchURL: method("viewers", "fetchURL"),
+      getActionSummaries: method("viewers", "getActionSummaries"),
+      reloadDoc: method("editors", "reloadDoc"),
+      fork: method("viewers", "fork"),
+      checkAclFormula: method("viewers", "checkAclFormula"),
+      getAclResources: method("viewers", "getAclResources"),
+      waitForInitialization: method("viewers", "waitForInitialization"),
+      getUsersForViewAs: method("viewers", "getUsersForViewAs"),
+      getAccessToken: method("viewers", "getAccessToken"),
+      getShare: method("owners", "getShare"),
+      startTiming: method("owners", "startTiming"),
+      stopTiming: method("owners", "stopTiming"),
+      getAssistantState: method("owners", "getAssistantState"),
+      listActiveUserProfiles: method(null, "listActiveUserProfiles"),
+      applyProposal: method("owners", "applyProposal"),
+      getAssistance: method("viewers", "getAssistance"),
     });
   }
 
   // Register methods related to plugins.
   public registerCommPlugin(): void {
+    const method = activeDocMethod.bind(null, this._tracker);
     this._comm.registerMethods({
-      forwardPluginRpc: activeDocMethod.bind(null, "editors", "forwardPluginRpc"),
+      forwardPluginRpc: method("editors", "forwardPluginRpc"),
       // TODO: consider not providing reloadPlugins on hosted grist, since it affects the
       // plugin manager shared across docs on a given doc worker, and seems useful only in
       // standalone case.
-      reloadPlugins: activeDocMethod.bind(null, "editors", "reloadPlugins"),
+      reloadPlugins: method("editors", "reloadPlugins"),
     });
   }
 
@@ -207,13 +214,37 @@ export class DocWorker {
 /**
  * Translates calls from the browser client into calls of the form
  * `activeDoc.method(docSession, ...args)`.
+ *
+ * When a tracker is provided and the client authenticated via API key,
+ * enforces the same parallel and daily usage limits as the REST API.
  */
-async function activeDocMethod(role: "viewers" | "editors" | "owners" | null, methodName: string, client: Client,
-  docFD: number, ...args: any[]): Promise<any> {
-  const docSession = client.getDocSession(docFD);
-  const activeDoc = docSession.activeDoc;
-  if (role) { await docSession.authorizer.assertAccess(role); }
-  // Include a basic log record for each ActiveDoc method call.
-  log.rawDebug("activeDocMethod", activeDoc.getLogMeta(docSession, methodName));
-  return (activeDoc as any)[methodName](docSession, ...args);
+function activeDocMethod(tracker: DocApiUsageTracker | undefined,
+  role: "viewers" | "editors" | "owners" | null, methodName: string) {
+  return async (client: Client, docFD: number, ...args: any[]): Promise<any> => {
+    const docSession = client.getDocSession(docFD);
+    const activeDoc = docSession.activeDoc;
+    if (role) { await docSession.authorizer.assertAccess(role); }
+    // Include a basic log record for each ActiveDoc method call.
+    log.rawDebug("activeDocMethod", activeDoc.getLogMeta(docSession, methodName));
+
+    if (tracker && client.authSession.isApiKeyAuth) {
+      let dailyMax: number | undefined;
+      if (role) {
+        // assertAccess was already called above, so getCachedAuth() is available.
+        const cachedDoc = docSession.authorizer.getCachedAuth().cachedDoc;
+        dailyMax = cachedDoc?.workspace?.org?.billingAccount
+          ?.getEffectiveFeatures()?.baseMaxApiUnitsPerDocumentPerDay;
+      }
+      // acquire + method call are in the same try so release runs even if acquire throws
+      // (acquire increments the parallel counter before checking limits).
+      try {
+        tracker.acquire(activeDoc.docName, dailyMax);
+        return await (activeDoc as any)[methodName](docSession, ...args);
+      } finally {
+        tracker.release(activeDoc.docName);
+      }
+    }
+
+    return (activeDoc as any)[methodName](docSession, ...args);
+  };
 }

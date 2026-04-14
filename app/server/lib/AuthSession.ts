@@ -29,8 +29,9 @@ export abstract class AuthSession {
     return new AuthSessionForReq(req);
   }
 
-  public static fromUser(fullUser: FullUser, org: string, altSessionId?: string): AuthSession {
-    return new AuthSessionForUser(fullUser, org, altSessionId);
+  public static fromUser(fullUser: FullUser, org: string, altSessionId?: string,
+    isApiKeyAuth: boolean = false): AuthSession {
+    return new AuthSessionForUser(fullUser, org, altSessionId, isApiKeyAuth);
   }
 
   public static unauthenticated(): AuthSession { return new UnauthenticatedAuthSession(); }
@@ -40,6 +41,7 @@ export abstract class AuthSession {
   public abstract userId: number | null;
   public abstract userIsAuthorized: boolean;
   public abstract fullUser: FullUser | null;
+  public abstract isApiKeyAuth: boolean;
 
   public get normalizedEmail(): string | undefined { return this.fullUser?.loginEmail ?? this.fullUser?.email; }
   public get displayEmail(): string | undefined { return this.fullUser?.email; }
@@ -76,10 +78,12 @@ class UnauthenticatedAuthSession extends AuthSession {
   public readonly userId = null;
   public readonly userIsAuthorized = false;
   public readonly fullUser = null;
+  public readonly isApiKeyAuth = false;
 }
 
 class AuthSessionForReq extends AuthSession {
   constructor(private _req: RequestWithLogin) { super(); }
+  public get isApiKeyAuth() { return this._req.isApiKeyAuth || false; }
   public get org() { return this._req.org; }
   public get altSessionId() { return this._req.altSessionId ?? null; }
   public get userId() { return this._req.userId ?? null; }
@@ -88,7 +92,13 @@ class AuthSessionForReq extends AuthSession {
 }
 
 class AuthSessionForUser extends AuthSession {
-  constructor(private _fullUser: FullUser, private _org: string, private _altSessionId?: string) { super(); }
+  public readonly isApiKeyAuth: boolean;
+  constructor(private _fullUser: FullUser, private _org: string,
+    private _altSessionId?: string, isApiKeyAuth: boolean = false) {
+    super();
+    this.isApiKeyAuth = isApiKeyAuth;
+  }
+
   public get org() { return this._org; }
   public get altSessionId() { return this._altSessionId ?? null; }
   public get userId() { return this._fullUser.id; }

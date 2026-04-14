@@ -29,8 +29,13 @@ import {
   WebhookUpdate,
 } from "app/common/Triggers";
 import { addCurrentOrgToPath, getGristConfig } from "app/common/urlUtils";
-import { AttachmentStore, AttachmentStoreDesc,  Record as ApiRecord, TablesGet } from "app/plugin/DocApiTypes";
-import { AddOrUpdateRecord, BulkAddOrUpdateRecordResult } from "app/plugin/DocApiTypes";
+import {
+  AddOrUpdateRecord,
+  AttachmentStore,
+  AttachmentStoreDesc,
+  BulkAddOrUpdateRecordResult,
+  TablesGet,
+} from "app/plugin/DocApiTypes";
 
 import { AxiosProgressEvent } from "axios";
 import omitBy from "lodash/omitBy";
@@ -432,6 +437,7 @@ export interface UserAPI {
   renameWorkspace(workspaceId: number, name: string): Promise<void>;
   renameDoc(docId: string, name: string, options?: RenameDocOptions): Promise<void>;
   updateOrg(orgId: number | string, props: Partial<OrganizationProperties>): Promise<void>;
+  checkDomain(domain: string): Promise<{ valid: boolean; available: boolean }>;
   updateDoc(docId: string, props: Partial<DocumentProperties>): Promise<void>;
   deleteOrg(orgId: number | string): Promise<void>;
   deleteWorkspace(workspaceId: number): Promise<void>;     // delete workspace permanently
@@ -542,6 +548,44 @@ interface GetTablesParams {
  * of as the (restful) "Doc API".  A few endpoints that could be here are not, for historical
  * reasons, such as downloads.
  */
+/** A single entry in the trigger delivery log. */
+export interface TriggerDeliveryRecord {
+  id: number;
+  fields: {
+    timestamp: number;
+    actionId: string;
+    actionType: string;
+    triggerName: string;
+    tableName: string;
+    destination: string;
+    rowIds: number[];
+    status: "success" | "failed" | "rejected";
+    httpStatus: number | null;
+    errorMessage: string;
+  };
+}
+
+/** A pending item in the trigger queue (webhook or email). */
+export interface TriggerPendingRecord {
+  id: number;
+  fields: {
+    actionId: string;
+    actionType: string;
+    triggerName: string;
+    tableName: string;
+    rowId: number;
+    destination: string;
+    status: string;
+    lastResult: string;
+  };
+}
+
+/** Response from the trigger monitor endpoint. */
+export interface TriggerMonitorResponse {
+  delivered: TriggerDeliveryRecord[];
+  pending: TriggerPendingRecord[];
+}
+
 export interface DocAPI {
   readonly options: IOptions;
   getBaseUrl(): string;
@@ -620,7 +664,7 @@ export interface DocAPI {
   flushWebhook(webhookId: string): Promise<void>;
 
   // Monitoring endpoint for trigger delivery history and pending queue.
-  getTriggerMonitor(): Promise<{ delivered: ApiRecord[]; pending: ApiRecord[] }>;
+  getTriggerMonitor(): Promise<TriggerMonitorResponse>;
 
   getAssistance(params: AssistanceRequest): Promise<AssistanceResponse>;
   /**
@@ -810,6 +854,13 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
     });
   }
 
+  public async checkDomain(domain: string): Promise<{ valid: boolean; available: boolean }> {
+    return this.requestJson(`${this._homeUrl}/api/domains/check`, {
+      method: "POST",
+      body: JSON.stringify({ domain }),
+    });
+  }
+
   public async updateDoc(docId: string, props: Partial<DocumentProperties>): Promise<void> {
     await this.request(`${this._url}/api/docs/${docId}`, {
       method: "PATCH",
@@ -968,7 +1019,7 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
   }
 
   public getBillingAPI(): BillingAPI {
-    return new BillingAPIImpl(this._url, this._options);
+    return new BillingAPIImpl(this._homeUrl, this._options);
   }
 
   public getDocAPI(docId: string): DocAPI {
@@ -1285,7 +1336,7 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     });
   }
 
-  public async getTriggerMonitor() {
+  public async getTriggerMonitor(): Promise<TriggerMonitorResponse> {
     return this.requestJson(`${this._url}/triggers/monitor`);
   }
 

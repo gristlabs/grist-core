@@ -13,8 +13,9 @@ function setup() {
 
   grist.ready(ready);
 
-  grist.onOptions(data => {
+  grist.onOptions((data, settings) => {
     document.getElementById("onOptions").innerHTML = JSON.stringify(data);
+    document.getElementById("onOptionsSettings").innerHTML = JSON.stringify(settings);
   });
 
   grist.onRecord((data, mappings) => {

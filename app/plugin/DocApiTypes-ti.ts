@@ -88,6 +88,7 @@ export const ColumnMetadata = t.iface([], {
     "colRef": "number",
     "label": "string",
     "isFormula": "boolean",
+    "type": "string",
     [t.indexKey]: "CellValue",
   }),
 });

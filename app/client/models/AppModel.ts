@@ -46,7 +46,8 @@ export type PageType =
   "admin" |
   "activation" |
   "audit-logs" |
-  "boot";
+  "boot" |
+  "site-settings";
 
 const G = getBrowserGlobals("document", "window");
 
@@ -338,6 +339,8 @@ export class AppModelImpl extends Disposable implements AppModel {
         return "audit-logs";
       } else if (state.boot) {
         return "boot";
+      } else if (state.siteSettings) {
+        return "site-settings";
       } else {
         return "home";
       }

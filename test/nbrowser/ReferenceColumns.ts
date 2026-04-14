@@ -83,6 +83,7 @@ describe("ReferenceColumns", function() {
       await server.pauseUntil(async () => {
         assert.equal(await cell.getText(), "Films[1]");
         await cell.click();
+        await gu.waitAppFocus();
         await driver.sendKeys(Key.ENTER);
         await gu.waitForCellEditor();
         await gu.sendKeys(await gu.selectAllKey(), "5");
@@ -403,6 +404,7 @@ describe("ReferenceColumns", function() {
 
       // Check that for the same cell, the dropdown no longer has an "add new" option.
       await cell.click();
+      await gu.waitAppFocus();
       await driver.sendKeys(Key.ENTER);
       assert.equal(await driver.find(".celleditor_text_editor").value(), "hello");
       await driver.findWait(".test-ref-editor-item", 1000);

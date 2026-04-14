@@ -958,9 +958,11 @@ describe("GranularAccess", function() {
     assert.deepEqual(await gu.getSectionTitles(), ["TABLE1", "TABLE2"]);
 
     // Editor can't add a section.
-    const otherSession = await gu.session().teamSite.user("user2").addLogin();
+    const otherSession = await gu.session().teamSite.user("user2").login({
+      showTips: false,
+      retainExistingLogin: true,
+    });
     await otherSession.loadDoc(`/doc/${doc.id}`);
-    await gu.disableTips(gu.translateUser("user2").email);
     await gu.getPageItem(/Table1/).click();
     await gu.waitForServer();
     // TODO: Can remove dismissTips after a fix has landed for user prefs not loading correctly.
@@ -1613,8 +1615,9 @@ describe("GranularAccess", function() {
     await gu.waitAppFocus(false);
     await gu.sendKeys("user.Name", Key.ENTER);
     await gu.waitForServer();
-    await driver.find(".test-field-formula-apply-on-changes").click();
-    await driver.findWait(".test-field-triggers-select", 100).click();
+    await driver.findWait(".test-field-formula-apply-on-changes", 1000).click();
+    await gu.waitForServer();
+    await driver.findWait(".test-field-triggers-select", 3000).click();
     await driver.findContentWait(".test-field-triggers-dropdown label", "Any field", 100).click();
     await driver.find(".test-trigger-deps-apply").click();
     await gu.waitForServer();
@@ -1662,6 +1665,7 @@ describe("GranularAccess", function() {
     await gu.getPageItem(/Data1/).click();
     await gu.waitForServer();
     await gu.getCell("Pics", 1).click();
+    await gu.waitAppFocus();
     await driver.sendKeys(Key.ENTER);
     await gu.fileDialogUpload("uploads/sample.pdf,uploads/file1.mov", () => driver.find(".test-pw-add").click());
     await driver.findContentWait(".test-pw-counter", /of 2/, 3000);
@@ -1669,6 +1673,7 @@ describe("GranularAccess", function() {
     await gu.waitForServer();
 
     await gu.getCell("Pics", 2).click();
+    await gu.waitAppFocus();
     await driver.sendKeys(Key.ENTER);
     await gu.fileDialogUpload("uploads/grist.png", () => driver.find(".test-pw-add").click());
     await driver.findContentWait(".test-pw-counter", /of 1/, 3000);
@@ -1676,6 +1681,7 @@ describe("GranularAccess", function() {
     await gu.waitForServer();
 
     await gu.getCell("Pics", 3).click();
+    await gu.waitAppFocus();
     await driver.sendKeys(Key.ENTER);
     await gu.fileDialogUpload("uploads/gplaypattern.png", () => driver.find(".test-pw-add").click());
     await driver.findContentWait(".test-pw-counter", /of 1/, 3000);

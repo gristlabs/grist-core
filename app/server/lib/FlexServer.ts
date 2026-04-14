@@ -46,6 +46,7 @@ import { create } from "app/server/lib/create";
 import { createSavedDoc } from "app/server/lib/createSavedDoc";
 import { addDiscourseConnectEndpoints } from "app/server/lib/DiscourseConnect";
 import { addDocApiRoutes } from "app/server/lib/DocApi";
+import { DocApiUsageTracker } from "app/server/lib/DocApiUsageTracker";
 import { DocManager } from "app/server/lib/DocManager";
 import { getSqliteMode } from "app/server/lib/DocStorage";
 import { DocWorker } from "app/server/lib/DocWorker";
@@ -1389,6 +1390,8 @@ export class FlexServer implements GristServer {
       httpsServer: this.httpsServer,
       i18Instance: this.i18Instance,
       dbManager: this.getHomeDBManager(),
+      gristServer: this,
+      permitStore: this._internalPermitStore,
     });
   }
 
@@ -1601,8 +1604,14 @@ export class FlexServer implements GristServer {
       this._serveDocPage();
     }
 
+    // Create a shared tracker for API usage limits (parallel + daily), shared between
+    // the REST API and WebSocket paths.
+    const tracker = new DocApiUsageTracker({
+      getRedisClient: () => this._docWorkerMap.getRedisClient(),
+    });
+
     // Attach docWorker endpoints and Comm methods.
-    const docWorker = new DocWorker(this._dbManager, { comm: this._comm, gristServer: this });
+    const docWorker = new DocWorker(this._dbManager, { comm: this._comm, gristServer: this, tracker });
     this._docWorker = docWorker;
 
     // Register the websocket comm functions associated with the docworker.
@@ -1620,7 +1629,7 @@ export class FlexServer implements GristServer {
 
     if (!isSingleUserMode()) {
       addDocApiRoutes(this.app, docWorker, this._docWorkerMap, docManager, this._dbManager,
-        this._attachmentStoreProvider, this);
+        this._attachmentStoreProvider, this, tracker);
     }
   }
 

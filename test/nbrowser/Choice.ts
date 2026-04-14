@@ -41,8 +41,11 @@ describe("Choice", function() {
 
     // Start editing a cell in column A and click away to close the editor.
     await gu.getCell({ rowNum: 1, col: "A" }).click();
+    await gu.waitAppFocus();
     await gu.sendKeys(Key.ENTER);
+    await gu.waitAppFocus(false);
     await gu.getCell({ rowNum: 1, col: "C" }).click();
+    await gu.waitAppFocus();
     await gu.waitForServer();
 
     // Check that the values in column A are unchanged.

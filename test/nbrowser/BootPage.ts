@@ -310,7 +310,7 @@ describe("BootPage", function() {
       await gu.waitForAdminPanel();
 
       assert.equal(
-        await driver.find(".test-admin-panel-item-value-boot-key").getText(),
+        await driver.findWait(".test-admin-panel-item-value-boot-key", 2000).getText(),
         "enabled",
       );
 
@@ -320,7 +320,8 @@ describe("BootPage", function() {
     });
 
     it("can remove boot key via Admin Panel", async function() {
-      await driver.find(".test-boot-key-status-remove-boot-key").click();
+      await gu.waitToPass(async () =>
+        driver.find(".test-boot-key-status-remove-boot-key").click());
       await driver.find(".test-modal-confirm").click();
       await gu.waitForServer();
       await gu.waitToPass(async () =>

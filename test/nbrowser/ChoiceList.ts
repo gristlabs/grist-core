@@ -341,6 +341,7 @@ describe("ChoiceList", function() {
 
     // Hit enter, click to delete a token, save.
     await gu.getCell({ rowNum: 1, col: "B" }).click();
+    await gu.waitAppFocus();
     await driver.sendKeys(Key.ENTER);
     await driver.sendKeys(Key.BACK_SPACE);
     await driver.sendKeys(Key.ENTER);
@@ -389,6 +390,7 @@ describe("ChoiceList", function() {
     assert.equal(await cell.getText(), "");
     await gu.waitCellFocus(cell);
     await cell.click();
+    await gu.waitAppFocus();
     await driver.sendKeys(Key.ENTER);
     await gu.waitForCellEditor();
     await driver.findContent(".test-autocomplete li", /Green/).click();
@@ -605,6 +607,7 @@ describe("ChoiceList", function() {
       ],
     );
     await gu.getCell({ rowNum: 1, col: "B" }).click();
+    await gu.waitAppFocus();
     await driver.sendKeys(Key.ENTER);
     assert.deepEqual(await getEditorTokens(), ["Green", "Orange", "Apricot"]);
     assert.deepEqual(await getEditorTokensIsInvalid(), [false, true, false]);

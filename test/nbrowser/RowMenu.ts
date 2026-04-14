@@ -85,8 +85,10 @@ describe("RowMenu", function() {
   it("should work even when no columns are visible", async function() {
     // Previously, a bug would cause an error to be thrown instead.
     await gu.openColumnMenu({ col: 0 }, "Hide column");
+    await gu.waitForServer();
     // After hiding the first column, the second one will be the new first column.
     await gu.openColumnMenu({ col: 0 }, "Hide column");
+    await gu.waitForServer();
     await assertRowMenuOpensAndCloses();
     await assertRowMenuOpensWithRightClick();
   });

@@ -1,6 +1,7 @@
 import { ApiError } from "app/common/ApiError";
 import { isAffirmative } from "app/common/gutil";
 import { FullUser } from "app/common/LoginSessionAPI";
+import { checkSubdomainValidity } from "app/common/orgNameUtils";
 import { BasicRole } from "app/common/roles";
 import * as SATypes from "app/common/ServiceAccountTypes";
 import ServiceAccountTI from "app/common/ServiceAccountTypes-ti";
@@ -647,6 +648,23 @@ export class ApiServer {
       const { data, ...result } = await this._dbManager.deleteUser(getScope(req), userIdToDelete, req.body.name);
       if (data) { this._logDeleteUserEvents(req, data); }
       return sendReply(req, res, result);
+    }));
+
+    // POST /api/domains/check
+    // Validates a subdomain and checks whether it is available.
+    // Returns { valid, available } — never throws for validation/availability failures.
+    this._app.post("/api/domains/check", expressWrap(async (req, res) => {
+      void getAuthorizedUserId(req); // Require authorization (not anonymous user)
+      const { domain } = req.body;
+      if (!domain) { throw new ApiError("domain required", 400); }
+      let valid = true;
+      try {
+        checkSubdomainValidity(domain);
+      } catch {
+        valid = false;
+      }
+      const available = valid ? await this._dbManager.isDomainAvailable(domain) : false;
+      return sendOkReply(req, res, { valid, available });
     }));
 
     if (isAffirmative(process.env.GRIST_ENABLE_SERVICE_ACCOUNTS)) {

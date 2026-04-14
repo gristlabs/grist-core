@@ -150,6 +150,23 @@ export function createUnsubscribedPage(
         docName: dom("b", docName),
       },
     );
+  } else if (notification === "rowChanges") {
+    message = t(
+      "You will no longer receive email notifications about {{automations}} in {{docName}} at {{email}}.",
+      {
+        automations: dom("b", t("automations")),
+        docName: dom("b", docName),
+        email: dom("b", email || t("your email")),
+      },
+    );
+
+    description = t(
+      "You have been unsubscribed from automation notifications for {{docName}}. You can update " +
+      "your preferences anytime in the document settings.",
+      {
+        docName: dom("b", docName),
+      },
+    );
   } else if (notification === "suggestions") {
     message = t(
       "You will no longer receive email notifications about {{suggestions}} in {{docName}} at {{email}}.",

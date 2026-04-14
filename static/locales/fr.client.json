@@ -64,7 +64,7 @@
         "## Access Rules\n\nBasic access to this document is controlled using the 'Manage Users' option in the 'Share' menu, where you can assign collaborator roles such as Owner, Editor, or Viewer.\n\nFor more granular control, you can create Access Rules to limit who can view or edit specific\ntables, columns, or rows — useful for sensitive data or role-based permissions.\n[Learn more.]({{helpAccessRules}})": "## Règles d'accès\n\nLes accès de base à ce document sont configurés en utilisant l'option 'Gérer les utilisateurs' dans le menu 'Partager', où vous pouvez assigner à vos collaborateurs des rôles tels que Propriétaire, Éditeur, ou Lecture seule.\n\nPour un controle plus fin, vous pouvez créer des Permissions Avancées pour limiter qui peut voir ou éditer\ndes tables, colonnes, or lignes spécifiques — utile pour les données sensibles ou les permissions basées sur des rôles.\n[En savoir plus.]({{helpAccessRules}})",
         "**Special rules** (expand each rule to customize who it applies to)": "**Règles spéciales** (développez chaque règle pour personnaliser à qui elle s'applique.)",
         "After disabling Access Rules, Editors will be able to change the structure of the document and edit formulas. Editors and Viewers will be able to see all data in the document, as well as copy or download it.": "Après avoir désactivé les Permissions Avancées, les Éditeurs pourront changer la structure du document et modifier les formules. Les Éditeurs et les Spectateurs pourront voir toutes les données du document et également le copier et le télécharger.",
-        "After enabling Access Rules, Editors will no longer be able to change the structure of the\ndocument or edit formulas. Only Owners will be able to copy or download the document.\n\nThese settings can be changed under 'Special rules'.": "Après avoir activé les Permissions Avancées, les Éditeurs ne pourront plus modifier la structure du\ndocument ou modifier les formules. Seuls les Propriétaires pourront copier ou télécharger le document.\n\nCes paramètres peuvent être modifier dans les 'Règles spéciales''.",
+        "After enabling Access Rules, Editors will no longer be able to change the structure of the\ndocument or edit formulas. Only Owners will be able to copy or download the document.\n\nThese settings can be changed under 'Special rules'.": "Après avoir activé les Permissions Avancées, les Éditeurs ne pourront plus modifier la structure du\ndocument ou modifier les formules. Seuls les Propriétaires pourront copier ou télécharger le document.\n\nCes paramètres peuvent être modifiés dans les 'Règles spéciales''.",
         "Allow Editors to edit structure (e.g. modify and delete tables, columns, and layouts) and write formulas.  Important: if checked, Editors will be able to edit formulas, which can access all data, regardless of table and column access rules!": "Autoriser les Éditeurs à modifier la structure (ex. modifier at supprimer les tables, colonnes et dispositions) et écrire des formules. Important : Si cette option est cochée, les Éditeurs pourront modifier les formules, qui peuvent accéder à toutes les données, malgré les Permissions Avancées sur les tables ou les colonnes !",
         "Allow everyone to view access rules.": "Autoriser tout le monde à voir les permissions avancées.",
         "Circumvent all read restrictions and allow everyone to copy the entire document, or view it in full in fiddle mode. Only use for for examples and templates, not for documents with sensitive data.": "Contourner toutes les restrictions de lecture et autoriser tout le monde à copier l'entièreté du document, ou le voir en entier en mode bac à sable. À n'utiliser que pour les exemples ou les modèles, pas pour les documents avec des données sensibles.",
@@ -126,7 +126,7 @@
         "History blocked because of access rules.": "Historique non accessible à cause des permissions avancées."
     },
     "AddNewButton": {
-        "Add new": "Nouveau"
+        "Add new": "Ajouter"
     },
     "ApiKey": {
         "You're about to delete an API key. This will cause all future requests using this API key to be rejected. Do you still want to delete?": "Vous êtes sur le point de supprimer une clé API. Cela causera le rejet de toutes les requêtes futures utilisant cette clé API. Voulez-vous toujours la supprimer ?",
@@ -1271,7 +1271,7 @@
         "Customizing columns": "Personnaliser les colonnes",
         "template library": "Bibliothèque de modèles",
         "Share": "Partager",
-        "Add new": "Nouveau",
+        "Add new": "Ajouter",
         "Building up": "En construction",
         "Configuring your document": "Configuration de votre document",
         "Double-click or hit {{enter}} on a cell to edit it. ": "Double-cliquer ou appuyer sur {{enter}} sur une cellule pour la modifier ",
@@ -1410,7 +1410,7 @@
         "Access Rules": "Règles d'accès",
         "Learn more.": "En savoir plus.",
         "They allow for one record to point (or refer) to another.": "Ils permettent à une ligne de pointer (ou de faire référence) vers une autre.",
-        "Add new": "Nouveau",
+        "Add new": "Ajouter",
         "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "Les règles d'accès vous donnent le pouvoir de créer des règles nuancées pour déterminer qui peut voir ou modifier quelles parties de votre document.",
         "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "Utilisez l'icône 𝚺 pour créer des tables récapitulatives (ou tables croisées dynamiques), pour les totaux ou les sous-totaux.",
         "Unpin to hide the the button while keeping the filter.": "Détachez pour cacher le bouton tout en conservant le filtre.",
@@ -2246,7 +2246,8 @@
         "Admin Controls": "Contrôles administrateur",
         "Settings": "Paramètres",
         "Admin area": "Zone d'administration",
-        "Docs": "Documentation"
+        "Docs": "Documentation",
+        "Enterprise": "Entreprise"
     },
     "Assistant": {
         "Learn more.": "En savoir plus.",
@@ -2301,7 +2302,8 @@
         "You are about to disable this experimental feature: {{experiment}}": "Vous êtes sur le point de désactiver cette fonctionnalité expérimentale : {{experiment}}",
         "You are about to enable this experimental feature: {{experiment}}": "Vous êtes sur le point d'activer cette fonctionnalité expérimentale : {{experiment}}",
         "{{experiment}} disabled.": "{{experiment}} désactivé.",
-        "{{experiment}} enabled.": "{{experiment}} activé."
+        "{{experiment}} enabled.": "{{experiment}} activé.",
+        "Notifications": "Notifications"
     },
     "NewRecordButton": {
         "New card": "Nouvelle fiche",
@@ -2393,8 +2395,8 @@
         "High contrast theme": "Thème contraste élevé",
         "Keyboard navigation": "Navigation au clavier",
         "On a document page, keyboard navigation is first locked on the current widget.": "Dans un document, la navigation au clavier est d'abord bloquée dans la vue active.",
-        "On document pages, each [widget]({{supportPageUrl}}) is a region that can receive focus.": "dans un document, chaque [vue]({{supportPageUrl}}) est une région qui peut être focalisée,",
-        "On non-document pages, the main content area is a region.": "sur les autres pages, la zone affichant le contenu principal est une région,",
+        "On document pages, each [widget]({{supportPageUrl}}) is a region that can receive focus.": "Dans un document, chaque [vue]({{supportPageUrl}}) est une région qui peut être focalisée.",
+        "On non-document pages, the main content area is a region.": "Sur les autres pages, la zone affichant le contenu principal est une région.",
         "Other important keyboard shortcuts": "Autres raccourcis clavier importants",
         "The left panel, home of the main navigation.": "le panneau latéral gauche, qui contient la navigation principale,",
         "The top panel, or the document header.": "le panneau supérieur, qui est l'entête du document,",
@@ -2755,5 +2757,18 @@
     },
     "NotifyModel": {
         "Still working...": "Toujours en cours..."
+    },
+    "TriggersPageUpsell": {
+        "Upgrade": "Amélioration",
+        "Learn more.": "En savoir plus.",
+        "Try for free": "Essayez gratuitement",
+        "Try full Grist": "Essayez la version complète de Grist",
+        "Automate workflows from within Grist": "Automatisez les flux de travail depuis Grist",
+        "Trigger automations based on data changes, and design actions such as custom email notifications and webhook integrations.": "Déclenchez des automatisations en fonction des modifications de données, et concevez des actions telles que des notifications par e-mail personnalisées et des intégrations de points d'ancrage Web.",
+        "Automations Screenshot": "Capture d'écran des automatisations"
+    },
+    "AutomationsPageEntry": {
+        "Automations": "Automatisations",
+        "New": "Nouveau"
     }
 }

@@ -292,6 +292,10 @@ export class MockUserAPI implements UserAPI, DocWorkerAPI {
     return Promise.resolve();
   }
 
+  public async checkDomain(_domain: string): Promise<{ valid: boolean; available: boolean }> {
+    return { valid: true, available: true };
+  }
+
   public async deleteOrg(orgId: number): Promise<void> {
     for (const workspaceId of this._orgs[orgId].workspaces) {
       await this.deleteWorkspace(workspaceId);

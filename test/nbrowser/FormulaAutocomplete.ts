@@ -196,8 +196,8 @@ describe("FormulaAutocomplete", function() {
     // Add a new column 'T' of type Text
     await gu.addColumn("T");
     await gu.getCell({ rowNum: 1, col: "T" }).click();
-    await driver.sendKeys("abc");
-    await driver.sendKeys(Key.ENTER);
+    await gu.waitAppFocus();
+    await gu.enterCell("abc");
 
     // Write a new formula starting with `$Title.` and check that the autocomplete options are correct
     await gu.addColumn("A");
@@ -230,12 +230,15 @@ describe("FormulaAutocomplete", function() {
     await gu.addColumn("B");
     await gu.getCell({ rowNum: 1, col: "B" }).click();
     await startFormulaAutocomplete("$A");
+    await gu.waitForServer();
     await gu.waitToPass(async () => {
       const completions = await getCompletionLines();
       assert.lengthOf(completions, 3);
       // Initially 'A' has no visible column, so these are the only options
       assert.isTrue(completions[0].startsWith("$A"));
       assert.isTrue(completions[1].startsWith("$Release_Date"));
+      // $T appears because ACE fuzzy-matches "$A" against captions including example
+      // values, and $T's example 'abc' (set above) contains 'a'.
       assert.isTrue(completions[2].startsWith("$T"));
     });
     await driver.sendKeys(".");

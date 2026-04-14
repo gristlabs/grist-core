@@ -111,14 +111,14 @@ describe("RangeFilter", function() {
 
   it("should toggle relative options on click only for date column", async function() {
     await setFilterType("Numeric");
-    assert.equal(await fu.isOptionsVisible(), false);
+    await fu.assertOptionsNotRendered();
     await fu.findBound("min").click();
-    assert.equal(await fu.isOptionsVisible(), false);
+    await fu.assertOptionsNotRendered();
 
     await setFilterType("Date");
-    assert.equal(await fu.isOptionsVisible(), false);
+    await fu.assertOptionsNotRendered();
     await fu.findBound("min").click();
-    assert.equal(await fu.isOptionsVisible(), true);
+    await fu.assertOptionsVisible();
   });
 
   it("should handle Date column correctly", async function() {

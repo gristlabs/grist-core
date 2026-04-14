@@ -58,6 +58,7 @@ describe("CopyPasteFiles", function() {
 
     // Check in more detail the content in one of the cells.
     await gu.getCell({ rowNum: 2, col: "Photo" }).click();
+    await gu.waitAppFocus();
     await driver.sendKeys(Key.ENTER);
     assert.equal(await driver.findWait(".test-pw-counter", 500).getText(), "1 of 2");
     assert.equal(await driver.find(".test-pw-name").value(), "flower.png");

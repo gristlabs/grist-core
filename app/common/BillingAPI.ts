@@ -199,7 +199,6 @@ export interface PlanSelection {
 }
 
 export interface BillingAPI {
-  isDomainAvailable(domain: string): Promise<boolean>;
   getPlans(plan?: PlanSelection): Promise<IBillingPlan[]>;
   getSubscription(): Promise<IBillingSubscription>;
   getBillingAccount(): Promise<FullBillingAccount>;
@@ -229,13 +228,6 @@ export interface BillingAPI {
 export class BillingAPIImpl extends BaseAPI implements BillingAPI {
   constructor(private _homeUrl: string, options: IOptions = {}) {
     super(options);
-  }
-
-  public async isDomainAvailable(domain: string): Promise<boolean> {
-    return this.requestJson(`${this._url}/api/billing/domain`, {
-      method: "POST",
-      body: JSON.stringify({ domain }),
-    });
   }
 
   public async getPlans(plan?: PlanSelection): Promise<IBillingPlan[]> {
