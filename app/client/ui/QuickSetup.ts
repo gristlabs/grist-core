@@ -5,9 +5,9 @@ import { SetupWizard } from "app/client/ui/SetupWizard";
 import { bigPrimaryButton } from "app/client/ui2018/buttons";
 import { theme, vars } from "app/client/ui2018/cssVars";
 import { loadingSpinner } from "app/client/ui2018/loaders";
-import { ConfigAPI, SandboxingStatus } from "app/common/ConfigAPI";
+import { ConfigAPI, SandboxingStatus, SandboxOption } from "app/common/ConfigAPI";
 
-import { Computed, Disposable, dom, DomContents, makeTestId, MultiHolder, Observable, styled, UseCB } from "grainjs";
+import { Disposable, dom, DomContents, makeTestId, Observable, styled, UseCB } from "grainjs";
 
 const t = makeT("QuickSetup");
 const testId = makeTestId("test-quick-setup-");
@@ -60,41 +60,21 @@ export class QuickSetup extends Disposable {
 
   private _buildSandboxingStep(activeStep: Observable<number>): DomContents {
     const status = Observable.create<SandboxingStatus | null>(null, null);
-    const testResults = Observable.create<Map<string, {functional: boolean, error?: string}>>(null, new Map());
     const selected = Observable.create<string | null>(null, null);
     const error = Observable.create<string>(null, "");
 
     this._configAPI.getSandboxingStatus().then(s => {
+      if (this.isDisposed()) { return; }
       status.set(s);
-      if (this._mode === "reconfigure") {
-        selected.set(s.pendingRestart ?? s.current);
-      } else {
-        selected.set(s.recommended ?? "sandboxed");
-      }
-
-      // Test all available flavors in parallel.
-      const flavorsToTest = s.available
-        .filter(o => o.available && o.effective)
-        .map(o => o.key);
-
-      const testPromises = flavorsToTest.map(flavor =>
-        this._configAPI.testSandbox(flavor).then(result => ({ flavor, result }))
-      );
-
-      Promise.all(testPromises).then(results => {
-        const newMap = new Map(testResults.get());
-        for (const { flavor, result } of results) {
-          newMap.set(flavor, result);
-        }
-        testResults.set(newMap);
-      });
+      // Always select the first option — backend sorts best-available first.
+      selected.set(s.available[0]?.key ?? "unsandboxed");
     }).catch(e => {
+      if (this.isDisposed()) { return; }
       error.set(String(e));
     });
 
     return dom("div",
       dom.autoDispose(status),
-      dom.autoDispose(testResults),
       dom.autoDispose(selected),
       dom.autoDispose(error),
       testId("sandboxing"),
@@ -103,45 +83,46 @@ export class QuickSetup extends Disposable {
 
       dom.domComputed(status, (s) => {
         if (!s) { return cssLoading(loadingSpinner(), t("Detecting sandbox options…")); }
-        return this._buildSandboxingContent(s, testResults, selected, activeStep);
+        return this._buildSandboxingContent(s, selected, activeStep, error);
       }),
     );
   }
 
   private _buildSandboxingContent(
     status: SandboxingStatus,
-    testResults: Observable<Map<string, TestResult>>,
     selected: Observable<string | null>,
     activeStep: Observable<number>,
+    error: Observable<string>,
   ): DomContents {
-    const {available, recommended, isSelectedByEnv, current} = status;
+    const {available, recommended, isSelectedByEnv} = status;
     const locked = isSelectedByEnv;
 
-    // Hero is fixed: in install mode show recommended, in reconfigure show current.
-    const heroKey = this._mode === "reconfigure" ? current : (recommended ?? "unsandboxed");
-    const heroOption = available.find(o => o.key === heroKey)!;
-    const otherOptions = available.filter(o => o.key !== heroKey);
-    const owner = new MultiHolder();
-    const badges = (flavor: string): Computed<BadgeConfig[]> => {
-      const option = available.find(o => o.key === flavor);
-      return Computed.create(owner, use => {
-        const result: BadgeConfig[] = [];
-        if (option && !option.available) {
-          result.push({label: t("Not available"), variant: "error"});
-        } else if (option && !option.effective) {
-          result.push({label: t("Not recommended"), variant: "warning"});
-        } else {
-          const test = use(testResults).get(flavor);
-          if (!test) {
-            result.push({label: t("Checking…"), variant: "warning"});
-          } else if (test.functional) {
-            result.push({label: t("Ready"), variant: "primary"});
-          } else {
-            result.push({label: t("Not working"), variant: "error"});
-          }
-        }
-        return result;
-      });
+    // Hero is always the first option from the backend list; the rest go into "Other options".
+    const heroOption = available[0];
+    const heroKey = heroOption.key;
+    const otherOptions = available.slice(1);
+
+    const canSelect = (opt: SandboxOption) => opt.available && opt.functional !== false;
+
+    const badgesFor = (opt: SandboxOption): BadgeConfig[] => {
+      const badges: BadgeConfig[] = [];
+      if (opt.isActive && this._mode === "reconfigure") {
+        badges.push({label: t("Active"), variant: "primary"});
+      }
+      if (!opt.available) {
+        badges.push({label: t("Not available"), variant: "error"});
+        return badges;
+      }
+      if (opt.functional === false) {
+        badges.push({label: t("Not working"), variant: "error"});
+        return badges;
+      }
+      if (!opt.effective) {
+        badges.push({label: t("Not recommended"), variant: "warning"});
+        return badges;
+      }
+      badges.push({label: t("Ready"), variant: "primary"});
+      return badges;
     };
 
     const makeRadio = (key: string, disabled?: boolean) => ({
@@ -152,7 +133,6 @@ export class QuickSetup extends Disposable {
     });
 
     return dom("div",
-      dom.autoDispose(owner),
       cssStepTitle(t("Sandboxing")),
       cssStepDescription(
         t("Grist runs user formulas as Python code. Sandboxing isolates this execution " +
@@ -164,41 +144,37 @@ export class QuickSetup extends Disposable {
           "and cannot be changed here. Remove the variable and restart to configure via this wizard."),
       ) : null,
 
-      // Hero card — current selection.
+      // Hero card — first option from the backend.
       dom.create(HeroCard, {
-        indicator: (use: UseCB) => use(selected) === heroKey ? "success" : "",
-        radio: makeRadio(heroKey, !heroOption.available),
+        indicator: (use: UseCB) => use(selected) === heroKey
+          ? (heroKey === recommended ? "success" : "warning") : "",
+        radio: makeRadio(heroKey, !canSelect(heroOption)),
         header: heroOption.label,
         tags: heroKey === recommended ? [{ label: t("Recommended") }] : [],
-        badges: badges(heroKey),
+        badges: badgesFor(heroOption),
         text: sandboxDescription(heroKey),
-        error: (use: UseCB) => {
-          const test = use(testResults).get(heroKey);
-          return test && !test.functional ? (test.error ?? "") : "";
-        },
+        error: heroOption.functional === false ? (heroOption.testError ?? "") : undefined,
       }),
 
-      // Other options.
+      // Other options — expanded by default when hero is not the selected option.
       otherOptions.length > 0
         ? dom.create(CardList, {
             header: t("Other options"),
             collapsible: true,
-            initiallyCollapsed: true,
+            initiallyCollapsed: selected.get() === heroKey,
             items: otherOptions.map(opt =>
               dom.create(ItemCard, {
                 indicator: (use: UseCB) => {
-                  return use(selected) === opt.key ? "active" : undefined;
+                  if (use(selected) !== opt.key) { return undefined; }
+                  return opt.key === recommended ? "active" : "warning";
                 },
-                radio: makeRadio(opt.key, !opt.available || locked),
+                radio: makeRadio(opt.key, !canSelect(opt) || locked),
                 header: opt.label,
                 tags: opt.key === recommended ? [{ label: t("Recommended") }] : [],
-                badges: badges(opt.key),
+                badges: badgesFor(opt),
                 text: sandboxDescription(opt.key),
                 info: !opt.available ? opt.unavailableReason : undefined,
-                error: (use: UseCB) => {
-                  const test = use(testResults).get(opt.key);
-                  return test && !test.functional ? (test.error ?? "") : "";
-                },
+                error: opt.functional === false ? (opt.testError ?? "") : undefined,
               }),
             ),
           })
@@ -209,7 +185,12 @@ export class QuickSetup extends Disposable {
           dom.on("click", async () => {
             const flavor = selected.get();
             if (flavor && !locked) {
-              await this._configAPI.setSandboxFlavor(flavor);
+              try {
+                await this._configAPI.setSandboxFlavor(flavor);
+              } catch (e) {
+                error.set(String(e));
+                return;
+              }
             }
             activeStep.set(activeStep.get() + 1);
           }),
@@ -218,11 +199,6 @@ export class QuickSetup extends Disposable {
       ),
     );
   }
-}
-
-interface TestResult {
-  functional: boolean;
-  error?: string;
 }
 
 function sandboxDescription(key: string): string {

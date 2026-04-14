@@ -208,6 +208,9 @@ if args.mount:
 
 for directory in os.listdir('/'):
   directory_realpath = os.path.realpath("/" + directory)
+  # Ignore files at the root level (like swap files).
+  if not os.path.isdir(directory_realpath):
+    continue
   if directory_realpath not in exceptions and directory_realpath not in preserved:
     tmpfs_mounts.append({
       # This places an empty directory at this destination.

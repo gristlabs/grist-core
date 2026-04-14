@@ -5,6 +5,7 @@
 import { arrayToString } from "app/common/arrayToString";
 import { SandboxOption } from "app/common/ConfigAPI";
 import * as marshal from "app/common/marshal";
+import { appSettings } from "app/server/lib/AppSettings";
 import { create } from "app/server/lib/create";
 import { ISandbox, ISandboxCreationOptions, ISandboxCreator } from "app/server/lib/ISandbox";
 import log from "app/server/lib/log";
@@ -16,7 +17,7 @@ import {
   ProcessInfo,
   SubprocessControl,
 } from "app/server/lib/SandboxControl";
-import { getPyodideSettings } from "app/server/lib/SandboxPyodide";
+import { checkPyodideDeno, getPyodideSettings } from "app/server/lib/SandboxPyodide";
 import * as sandboxUtil from "app/server/lib/sandboxUtil";
 import * as shutdown from "app/server/lib/shutdown";
 
@@ -626,7 +627,7 @@ export type SpawnFn = (options: ISandboxOptions) => SandboxProcess;
 
 const hasRunsc = checkCommandExists("runsc");
 const hasSandboxExec = checkCommandExists("sandbox-exec");
-const hasPyodide = _checkPyodideAvailable();
+const pyodideCheck = _checkPyodideAvailable();
 
 /**
  * Returns available sandbox options with their detection status.
@@ -644,8 +645,8 @@ export function getAvailableSandboxes(): SandboxOption[] {
     {
       key: "pyodide",
       label: "Pyodide",
-      available: hasPyodide,
-      unavailableReason: hasPyodide ? undefined : "Pyodide runtime not installed",
+      available: pyodideCheck.available,
+      unavailableReason: pyodideCheck.reason,
       effective: true,
     },
     {
@@ -672,13 +673,19 @@ export function getRecommendedSandbox(): string | undefined {
   return hasRunsc ? "gvisor" : undefined;
 }
 
-function _checkPyodideAvailable(): boolean {
+function _checkPyodideAvailable(): {available: boolean; reason?: string} {
   try {
     const base = getUnpackedAppRoot();
     const scriptPath = path.resolve(base, "sandbox", "pyodide", "pipe.js");
-    return fs.existsSync(scriptPath);
-  } catch {
-    return false;
+    if (!fs.existsSync(scriptPath)) {
+      return {available: false, reason: "Pyodide runtime not installed"};
+    }
+    if (!checkPyodideDeno()) {
+      return {available: false, reason: "Deno binary not found (npm deno package not installed)"};
+    }
+    return {available: true};
+  } catch (e) {
+    return {available: false, reason: String(e)};
   }
 }
 
@@ -704,7 +711,10 @@ export async function testSandboxFlavor(flavor: string): Promise<SandboxTestResu
       logTimes: false,
       preferredPythonVersion: "3",
     });
-    const result = await sandbox.pyCall("get_version");
+    const timeout = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("Sandbox test timed out after 30s")), 30000).unref()
+    );
+    const result = await Promise.race([sandbox.pyCall("get_version"), timeout]);
     if (typeof result !== "number") {
       throw new Error(`Expected a number: ${result}`);
     }
@@ -1278,7 +1288,10 @@ function getCommandArgsFromEnv() {
  * TODO: This machinery can likely be removed now.
  */
 export function createSandbox(defaultFlavorSpec: string, options: ISandboxCreationOptions): ISandbox {
-  const flavors = (process.env.GRIST_SANDBOX_FLAVOR || defaultFlavorSpec).split(",");
+  const sandboxFlavor = appSettings.section("sandbox").flag("flavor").readString({
+    envVar: "GRIST_SANDBOX_FLAVOR",
+  });
+  const flavors = (sandboxFlavor || defaultFlavorSpec).split(",");
   const preferredPythonVersion = options.preferredPythonVersion || "3";
   for (const flavorAndVersion of flavors) {
     const parts = flavorAndVersion.trim().split(":", 2);

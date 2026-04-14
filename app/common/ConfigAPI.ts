@@ -10,6 +10,9 @@ export interface SandboxOption {
   available: boolean;
   unavailableReason?: string;
   effective: boolean;           // Whether it provides real isolation (not just runs code)
+  functional?: boolean;         // Whether sandbox actually works (tested on server)
+  testError?: string;           // Error message if functional test failed
+  isActive?: boolean;           // Whether this is the currently running sandbox
 }
 
 /**
@@ -129,16 +132,7 @@ export class ConfigAPI extends BaseAPI {
     });
   }
 
-  /**
-   * Tests if a specific sandbox flavor works.
-   * Creates a test sandbox and runs a simple Python command.
-   */
-  public async testSandbox(flavor: string): Promise<{ functional: boolean; error?: string }> {
-    return await this.requestJson(`${this._url}/api/config/sandboxing/test`, {
-      method: "POST",
-      body: JSON.stringify({ flavor }),
-    });
-  }
+
 
   private get _url(): string {
     return addCurrentOrgToPath(this._homeUrl);

@@ -266,7 +266,7 @@ export function buildBadge(label: string, variant: BadgeVariant, ...args: DomEle
 
 export type HeroVariant = "success" | "pending" | "warning" | "error" | "";
 
-export type ItemBorderVariant = "active" | "configured" | "error";
+export type ItemBorderVariant = "active" | "configured" | "warning" | "error";
 
 export type BadgeVariant = "primary" | "warning" | "error" | "accent";
 
@@ -499,6 +499,9 @@ const cssItemRow = styled("div", `
   }
   &-border-configured {
     border-left-color: ${theme.controlPrimaryBg};
+  }
+  &-border-warning {
+    border-left-color: ${theme.toastWarningBg};
   }
   &-border-error {
     border-left-color: ${theme.errorText};

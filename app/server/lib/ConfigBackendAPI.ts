@@ -1,5 +1,5 @@
 import { ApiError } from "app/common/ApiError";
-import { AuthProvider, SandboxingStatus } from "app/common/ConfigAPI";
+import { AuthProvider, SandboxOption, SandboxingStatus } from "app/common/ConfigAPI";
 import { GETGRIST_COM_PROVIDER_KEY } from "app/common/loginProviders";
 import { ActivationsManager } from "app/gen-server/lib/ActivationsManager";
 import { appSettings, AppSettings } from "app/server/lib/AppSettings";
@@ -107,28 +107,6 @@ export class ConfigBackendAPI {
       return sendOkReply(req, res, status);
     }));
 
-    // POST /api/config/sandboxing/test
-    // Functional test: actually create a sandbox with the given flavor and run Python.
-    app.post("/api/config/sandboxing/test", requireInstallAdmin, expressWrap(async (req, res) => {
-      const { flavor } = req.body;
-      if (!flavor || typeof flavor !== "string") {
-        throw new ApiError("flavor is required", 400);
-      }
-      const available = getAvailableSandboxes();
-      const option = available.find(o => o.key === flavor);
-      if (!option) {
-        throw new ApiError(`Unknown sandbox flavor: ${flavor}`, 400);
-      }
-      if (!option.available) {
-        return sendOkReply(req, res, {
-          functional: false,
-          error: option.unavailableReason,
-        });
-      }
-      const result = await testSandboxFlavor(flavor);
-      return sendOkReply(req, res, result);
-    }));
-
     // PATCH /api/config/sandboxing
     // Set sandbox flavor (takes effect after restart).
     app.patch("/api/config/sandboxing", requireInstallAdmin, expressWrap(async (req, res) => {
@@ -194,11 +172,45 @@ export class ConfigBackendAPI {
     const available = getAvailableSandboxes();
     const recommended = getRecommendedSandbox();
 
+    // Test all available and effective sandboxes in parallel.
+    const testPromises = available
+      .filter(o => o.available && o.effective)
+      .map(async (o) => {
+        const result = await testSandboxFlavor(o.key);
+        o.functional = result.functional;
+        o.testError = result.error;
+      });
+    await Promise.all(testPromises);
+
+    // Mark unsandboxed as always functional (no test needed).
+    for (const o of available) {
+      if (!o.effective && o.available) {
+        o.functional = true;
+      }
+    }
+
     // Use server's sandbox info — knows the deployment default, caches result.
     const sandboxInfo = await this._server.getSandboxInfo();
     const current = sandboxInfo.flavor === "unknown" ? "unsandboxed" : sandboxInfo.flavor;
     const currentOption = available.find(o => o.key === current);
     const currentEffective = currentOption?.effective ?? false;
+
+    // Mark the currently active sandbox.
+    if (currentOption) {
+      currentOption.isActive = true;
+    }
+
+    // Sort: best option first. Priority: recommended+functional > functional+effective > functional > rest.
+    available.sort((a, b) => {
+      const score = (o: SandboxOption) => {
+        if (!o.available || o.functional === false) { return 0; }
+        if (o.key === recommended && o.functional) { return 3; }
+        if (o.effective && o.functional) { return 2; }
+        if (o.functional) { return 1; }
+        return 0;
+      };
+      return score(b) - score(a);
+    });
 
     // Check if there's a pending change in the database.
     const activation = await this._activations.current();

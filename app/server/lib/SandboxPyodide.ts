@@ -173,3 +173,21 @@ function findDenoBinaryUncached(dir: string): string {
 }
 
 const denoBinaryCache: Record<string, string> = {};
+
+/**
+ * Checks whether the deno binary required by pyodide is available.
+ * Returns true if GRIST_PYODIDE_SKIP_DENO is set (node mode) or if the
+ * deno npm package is installed with a native binary.
+ */
+export function checkPyodideDeno(): boolean {
+  if (isAffirmative(process.env.GRIST_PYODIDE_SKIP_DENO)) {
+    return true;
+  }
+  try {
+    const base = getUnpackedAppRoot();
+    findDenoBinary(path.join(base, "sandbox", "pyodide", "_build", "worker"));
+    return true;
+  } catch {
+    return false;
+  }
+}
