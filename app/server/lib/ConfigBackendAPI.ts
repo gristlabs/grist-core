@@ -6,6 +6,7 @@ import { appSettings, AppSettings } from "app/server/lib/AppSettings";
 import { expressWrap } from "app/server/lib/expressWrap";
 import { getGetGristComHost, readGetGristComConfigFromSettings } from "app/server/lib/GetGristComConfig";
 import { getGlobalConfig } from "app/server/lib/globalConfig";
+import { GristServer } from "app/server/lib/GristServer";
 import log from "app/server/lib/log";
 import {
   getActiveLoginSystemType,
@@ -13,13 +14,16 @@ import {
   NotConfiguredError,
 } from "app/server/lib/loginSystemHelpers";
 import { LOGIN_SYSTEMS } from "app/server/lib/loginSystems";
-import { getAvailableSandboxes, getRecommendedSandbox } from "app/server/lib/NSandbox";
+import { getAvailableSandboxes, getRecommendedSandbox, testSandboxFlavor } from "app/server/lib/NSandbox";
 import { sendOkReply, stringParam } from "app/server/lib/requestUtils";
 
 import * as express from "express";
 
 export class ConfigBackendAPI {
-  constructor(private _activations: ActivationsManager) {
+  constructor(
+    private _activations: ActivationsManager,
+    private _server: GristServer,
+  ) {
   }
 
   public addEndpoints(app: express.Express, requireInstallAdmin: express.RequestHandler) {
@@ -98,9 +102,32 @@ export class ConfigBackendAPI {
 
     // GET /api/config/sandboxing
     // Returns available sandbox options, current status, and recommendation.
+    // Does NOT test flavors - that's done client-side via POST /api/config/sandboxing/test.
     app.get("/api/config/sandboxing", requireInstallAdmin, expressWrap(async (req, res) => {
       const status = await this._buildSandboxingStatus();
       return sendOkReply(req, res, status);
+    }));
+
+    // POST /api/config/sandboxing/test
+    // Functional test: actually create a sandbox with the given flavor and run Python.
+    app.post("/api/config/sandboxing/test", requireInstallAdmin, expressWrap(async (req, res) => {
+      const { flavor } = req.body;
+      if (!flavor || typeof flavor !== "string") {
+        throw new ApiError("flavor is required", 400);
+      }
+      const available = getAvailableSandboxes();
+      const option = available.find(o => o.key === flavor);
+      if (!option) {
+        throw new ApiError(`Unknown sandbox flavor: ${flavor}`, 400);
+      }
+      if (!option.available) {
+        return sendOkReply(req, res, {
+          functional: false,
+          error: option.unavailableReason,
+        });
+      }
+const result = await testSandboxFlavor(flavor);
+      return sendOkReply(req, res, result);
     }));
 
     // PATCH /api/config/sandboxing
@@ -168,8 +195,9 @@ export class ConfigBackendAPI {
     const available = getAvailableSandboxes();
     const recommended = getRecommendedSandbox();
 
-    // Current flavor from process env (what's running now).
-    const current = process.env.GRIST_SANDBOX_FLAVOR || "unsandboxed";
+    // Use server's sandbox info — knows the deployment default, caches result.
+    const sandboxInfo = await this._server.getSandboxInfo();
+    const current = sandboxInfo.flavor === "unknown" ? "unsandboxed" : sandboxInfo.flavor;
     const currentOption = available.find(o => o.key === current);
     const currentEffective = currentOption?.effective ?? false;
 
@@ -184,6 +212,9 @@ export class ConfigBackendAPI {
     // means the value was set outside our control and is immutable.
     const isSelectedByEnv = process.env.GRIST_SANDBOX_FLAVOR !== undefined;
 
+    // Explicitly configured = set via env var OR previously saved to DB.
+    const isConfigured = isSelectedByEnv || !!dbEnvVars.GRIST_SANDBOX_FLAVOR;
+
     return {
       current,
       currentEffective,
@@ -191,6 +222,7 @@ export class ConfigBackendAPI {
       recommended,
       pendingRestart,
       isSelectedByEnv,
+      isConfigured,
     };
   }
 

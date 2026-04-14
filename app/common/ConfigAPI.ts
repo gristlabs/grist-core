@@ -22,6 +22,7 @@ export interface SandboxingStatus {
   recommended?: string;
   pendingRestart?: string;      // Flavor that will activate after restart
   isSelectedByEnv: boolean;     // Set via env var — cannot be changed by wizard
+  isConfigured: boolean;        // Explicitly configured (env or DB) — false on fresh install
 }
 
 /**
@@ -124,6 +125,17 @@ export class ConfigAPI extends BaseAPI {
   public async setSandboxFlavor(flavor: string): Promise<void> {
     await this.request(`${this._url}/api/config/sandboxing`, {
       method: "PATCH",
+      body: JSON.stringify({ flavor }),
+    });
+  }
+
+  /**
+   * Tests if a specific sandbox flavor works.
+   * Creates a test sandbox and runs a simple Python command.
+   */
+  public async testSandbox(flavor: string): Promise<{ functional: boolean; error?: string }> {
+    return await this.requestJson(`${this._url}/api/config/sandboxing/test`, {
+      method: "POST",
       body: JSON.stringify({ flavor }),
     });
   }

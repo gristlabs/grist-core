@@ -682,6 +682,38 @@ function _checkPyodideAvailable(): boolean {
   }
 }
 
+export interface SandboxTestResult {
+  functional: boolean;
+  error?: string;
+}
+
+/**
+ * Test whether a specific sandbox flavor actually works by creating
+ * a sandbox, running a Python call, and shutting it down.
+ */
+export async function testSandboxFlavor(flavor: string): Promise<SandboxTestResult> {
+  try {
+    const creator = new NSandboxCreator({
+      defaultFlavor: flavor,
+      preferredPythonVersion: "3",
+    });
+    const sandbox = creator.create({
+      comment: "test",
+      logCalls: false,
+      logTimes: false,
+      preferredPythonVersion: "3",
+    });
+    const result = await sandbox.pyCall("get_version");
+    if (typeof result !== "number") {
+      throw new Error(`Expected a number: ${result}`);
+    }
+    await sandbox.shutdown();
+    return { functional: true };
+  } catch (e) {
+    return { functional: false, error: String(e) };
+  }
+}
+
 /**
  * Currently for sandboxing use gvisor if available, otherwise
  * try native sandboxing on macs, otherwise fall back on pyodide.
@@ -1264,6 +1296,7 @@ export function createSandbox(defaultFlavorSpec: string, options: ISandboxCreati
   }
   throw new Error("Failed to create a sandbox");
 }
+
 
 /**
  * The realpath function may not be available, just return the

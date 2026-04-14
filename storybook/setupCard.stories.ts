@@ -115,9 +115,7 @@ export const ItemCardStory = {
       ? [{ label: args.badgeLabel, variant: args.badgeVariant as BadgeVariant }]
       : [],
     text: args.text || undefined,
-    error: args.errorHeader
-      ? { header: args.errorHeader, message: args.errorMessage }
-      : undefined,
+    error: args.errorMessage || undefined,
     info: args.info || undefined,
     buttons: [
       {

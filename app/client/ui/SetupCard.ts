@@ -16,7 +16,7 @@ import { useBindable } from "app/common/gutil";
 
 import {
   BindableValue, Disposable, dom, DomContents, DomElementArg,
-  makeTestId, Observable, styled,
+  makeTestId, MaybeObsArray, Observable, styled,
 } from "grainjs";
 
 const testId = makeTestId("test-setup-card-");
@@ -62,7 +62,7 @@ export class HeroCard extends Disposable {
           dom.text(o.header),
           ...(o.tags ?? []).map(t => cssTag(t.label)),
         ),
-        ...(o.badges ?? []).map(b => buildBadge(b.label, b.variant)),
+        o.badges ? dom.forEach(o.badges, b => buildBadge(b.label, b.variant)) : null,
       ),
       o.text ? cssHeroText(dom.text(o.text)) : null,
       o.error ? cssHeroError(dom.text(o.error)) : null,
@@ -85,7 +85,10 @@ export class HeroCard extends Disposable {
     );
 
     return cssHeroCard(
-      dom.cls(use => `${cssHeroCard.className}-${useBindable(use, o.indicator)}`),
+      dom.cls(use => {
+        const v = useBindable(use, o.indicator);
+        return v ? `${cssHeroCard.className}-${v}` : '';
+      }),
       testId("hero"),
       o.radio ? cssCardWithRadio(
         buildRadioInput(o.radio),
@@ -140,7 +143,7 @@ export class ItemCard extends Disposable {
           dom.text(o.header),
           ...(o.tags ?? []).map(t => cssTag(t.label)),
         ),
-        ...(o.badges ?? []).map(b => buildBadge(b.label, b.variant)),
+        o.badges ? dom.forEach(o.badges, b => buildBadge(b.label, b.variant)) : null,
         cssFlex(),
         ...(o.buttons ?? []).map(b => basicButton(
           b.label,
@@ -150,10 +153,7 @@ export class ItemCard extends Disposable {
       ),
 
       o.text ? cssItemText(dom.text(o.text)) : null,
-      o.error ? dom("div",
-        cssErrorHeader(dom.text(o.error.header)),
-        cssErrorMessage(dom.text(o.error.message)),
-      ) : null,
+      o.error ? dom.maybe(o.error, (e) => cssErrorMessage(e)) : null,
       o.info ? cssItemInfo(dom.text(o.info)) : null,
     );
 
@@ -264,7 +264,7 @@ export function buildBadge(label: string, variant: BadgeVariant, ...args: DomEle
 // Types
 // =========================================================================
 
-export type HeroVariant = "success" | "pending" | "warning" | "error";
+export type HeroVariant = "success" | "pending" | "warning" | "error" | "";
 
 export type ItemBorderVariant = "active" | "configured" | "error";
 
@@ -300,7 +300,7 @@ export interface HeroCardOptions {
   /** Header › Tags (superscript accent labels, e.g. "Recommended"). */
   tags?: TagConfig[];
   /** Header › Badges. */
-  badges?: BadgeConfig[];
+  badges?: MaybeObsArray<BadgeConfig>;
   /** Text — description below header. */
   text?: BindableValue<string>;
   /** Error — error message. */
@@ -339,14 +339,14 @@ export interface ItemCardOptions {
   /** Header › Tags (superscript accent labels). */
   tags?: TagConfig[];
   /** Header › Badges. */
-  badges?: BadgeConfig[];
+  badges?: MaybeObsArray<BadgeConfig>;
   /** Header › Buttons. */
   buttons?: ItemButtonConfig[];
   /** Text — description/hint below header. */
   text?: BindableValue<string>;
-  /** Error — header + message. */
-  error?: { header: BindableValue<string>; message: BindableValue<string> };
-  /** Info — informational text. */
+  /** Error message — shown in red. */
+  error?: BindableValue<string>;
+  /** Info — informational text (gray). */
   info?: BindableValue<string>;
   args?: DomElementArg[];
 }
@@ -557,14 +557,6 @@ const cssItemText = styled("div", `
 
 const cssItemInfo = styled("div", `
   color: ${theme.lightText};
-`);
-
-const cssErrorHeader = styled("div", `
-  color: ${theme.errorText};
-  font-weight: 600;
-  font-size: ${vars.smallFontSize};
-  margin-top: 8px;
-  margin-bottom: 4px;
 `);
 
 const cssErrorMessage = styled("div", `

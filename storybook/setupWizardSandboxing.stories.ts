@@ -54,14 +54,14 @@ export const SandboxingStep = () => {
                 badges: [{ label: "Not available", variant: "error" }],
                 text: "Works on any platform. Formulas run in WebAssembly — fully compatible " +
                   "but slower than gVisor.",
-                error: { header: "", message: "Pyodide not installed" },
+                error: "Pyodide not installed",
               }),
               dom.create(ItemCard, {
                 radio: { ...makeRadio("macos"), disabled: true },
                 header: "macOS Sandbox",
                 badges: [{ label: "Not available", variant: "error" }],
                 text: "Uses the built-in macOS sandbox. Good isolation for local use on a Mac.",
-                error: { header: "", message: "Not macOS" },
+                error: "Not macOS",
               }),
               dom.create(ItemCard, {
                 indicator: (use: any) => use(selected) === "none" ? "active" : undefined,

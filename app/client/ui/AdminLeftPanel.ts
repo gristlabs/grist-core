@@ -76,7 +76,7 @@ export function buildAdminLeftPanel(owner: MultiHolder, appModel: AppModel): Pag
       css.cssSectionHeader(css.cssSectionHeaderText(pageNames.settings)),
       buildPageEntry("admin", "Home"),
       // TODO: Uncomment when setup page is ready.
-      // buildPageEntry("setup", "Settings"),
+      buildPageEntry("setup", "Settings"),
       css.cssSectionHeader(css.cssSectionHeaderText(pageNames.adminControls),
         (adminControlsAvailable ?
           infoTooltip("adminControls", { popupOptions: { placement: "bottom-start" } }) :
