@@ -1,12 +1,13 @@
 import { makeT } from "app/client/lib/localization";
 import { getHomeUrl } from "app/client/models/AppModel";
-import { BadgeConfig, BadgeVariant, CardList, HeroCard, ItemCard } from "app/client/ui/SetupCard";
+import { BadgeConfig, CardList, HeroCard, ItemCard } from "app/client/ui/SetupCard";
 import { SetupWizard } from "app/client/ui/SetupWizard";
 import { bigPrimaryButton } from "app/client/ui2018/buttons";
+import { theme, vars } from "app/client/ui2018/cssVars";
+import { loadingSpinner } from "app/client/ui2018/loaders";
 import { ConfigAPI, SandboxingStatus } from "app/common/ConfigAPI";
 
 import { Computed, Disposable, dom, DomContents, makeTestId, MultiHolder, Observable, styled, UseCB } from "grainjs";
-import { loadingSpinner } from "app/client/ui2018/loaders";
 
 const t = makeT("QuickSetup");
 const testId = makeTestId("test-quick-setup-");
@@ -126,17 +127,17 @@ export class QuickSetup extends Disposable {
       return Computed.create(owner, use => {
         const result: BadgeConfig[] = [];
         if (option && !option.available) {
-          result.push(makeBadge(t("Not available"), "error"));
+          result.push({label: t("Not available"), variant: "error"});
         } else if (option && !option.effective) {
-          result.push(makeBadge(t("Not recommended"), "warning"));
+          result.push({label: t("Not recommended"), variant: "warning"});
         } else {
           const test = use(testResults).get(flavor);
           if (!test) {
-            result.push(makeBadge(t("Checking…"), "warning"));
+            result.push({label: t("Checking…"), variant: "warning"});
           } else if (test.functional) {
-            result.push(makeBadge(t("Ready"), "primary"));
+            result.push({label: t("Ready"), variant: "primary"});
           } else {
-            result.push(makeBadge(t("Not working"), "error"));
+            result.push({label: t("Not working"), variant: "error"});
           }
         }
         return result;
@@ -224,10 +225,6 @@ interface TestResult {
   error?: string;
 }
 
-function makeBadge(label: string, variant: BadgeVariant): BadgeConfig {
-  return { label, variant };
-}
-
 function sandboxDescription(key: string): string {
   switch (key) {
     case "gvisor":
@@ -258,7 +255,7 @@ const cssStepTitle = styled("div", `
 
 const cssStepDescription = styled("div", `
   font-size: 14px;
-  color: #666;
+  color: ${theme.lightText};
   line-height: 1.5;
   margin-bottom: 20px;
 `);
@@ -280,24 +277,22 @@ const cssLoading = styled("div", `
   justify-content: center;
   gap: 12px;
   padding: 48px 32px;
-  color: #888;
+  color: ${theme.lightText};
 `);
 
 const cssError = styled("div", `
-  background: #fef2f2;
-  border: 1px solid #fecaca;
+  background: ${theme.toastErrorBg};
   border-radius: 8px;
-  color: #991b1b;
+  color: white;
   padding: 12px 16px;
   margin-bottom: 16px;
 `);
 
 const cssEnvWarning = styled("div", `
-  background: #fffbeb;
-  border: 1px solid #fde68a;
+  background: ${theme.toastWarningBg};
   border-radius: 8px;
-  color: #92400e;
+  color: white;
   padding: 12px 16px;
   margin-bottom: 16px;
-  font-size: 13px;
+  font-size: ${vars.smallFontSize};
 `);

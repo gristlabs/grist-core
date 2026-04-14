@@ -692,12 +692,13 @@ export interface SandboxTestResult {
  * a sandbox, running a Python call, and shutting it down.
  */
 export async function testSandboxFlavor(flavor: string): Promise<SandboxTestResult> {
+  let sandbox: ISandbox | undefined;
   try {
     const creator = new NSandboxCreator({
       defaultFlavor: flavor,
       preferredPythonVersion: "3",
     });
-    const sandbox = creator.create({
+    sandbox = creator.create({
       comment: "test",
       logCalls: false,
       logTimes: false,
@@ -707,10 +708,11 @@ export async function testSandboxFlavor(flavor: string): Promise<SandboxTestResu
     if (typeof result !== "number") {
       throw new Error(`Expected a number: ${result}`);
     }
-    await sandbox.shutdown();
     return { functional: true };
   } catch (e) {
     return { functional: false, error: String(e) };
+  } finally {
+    await sandbox?.shutdown();
   }
 }
 
@@ -1296,7 +1298,6 @@ export function createSandbox(defaultFlavorSpec: string, options: ISandboxCreati
   }
   throw new Error("Failed to create a sandbox");
 }
-
 
 /**
  * The realpath function may not be available, just return the

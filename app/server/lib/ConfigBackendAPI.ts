@@ -102,7 +102,6 @@ export class ConfigBackendAPI {
 
     // GET /api/config/sandboxing
     // Returns available sandbox options, current status, and recommendation.
-    // Does NOT test flavors - that's done client-side via POST /api/config/sandboxing/test.
     app.get("/api/config/sandboxing", requireInstallAdmin, expressWrap(async (req, res) => {
       const status = await this._buildSandboxingStatus();
       return sendOkReply(req, res, status);
@@ -126,7 +125,7 @@ export class ConfigBackendAPI {
           error: option.unavailableReason,
         });
       }
-const result = await testSandboxFlavor(flavor);
+      const result = await testSandboxFlavor(flavor);
       return sendOkReply(req, res, result);
     }));
 
