@@ -54,8 +54,11 @@ function listTestFiles(dir) {
   const out = [];
   for (const entry of fs.readdirSync(dir, {withFileTypes: true})) {
     const p = path.join(dir, entry.name);
-    if (entry.isDirectory()) { out.push(...listTestFiles(p)); }
-    else if (entry.isFile() && entry.name.endsWith(".js")) { out.push(p); }
+    if (entry.isDirectory()) {
+      out.push(...listTestFiles(p));
+    } else if (entry.isFile() && entry.name.endsWith(".js")) {
+      out.push(p);
+    }
   }
   return out;
 }
