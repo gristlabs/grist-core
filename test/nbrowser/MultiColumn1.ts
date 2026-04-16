@@ -37,7 +37,7 @@ import { setupTestSuite } from "test/nbrowser/testUtils";
 
 import { assert, driver, Key } from "mocha-webdriver";
 
-describe("MultiColumn", function() {
+describe("MultiColumn1", function() {
   this.timeout(80000);
   const cleanup = setupTestSuite();
   before(async function() {

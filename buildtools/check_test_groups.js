@@ -23,46 +23,6 @@ const path = require("path");
 const WORKFLOW = ".github/workflows/main.yml";
 const TEST_DIR = "_build/test/nbrowser";
 
-function extractGroupPatterns(workflowText) {
-  // Matches lines like:  - ':nbrowser-^[A-D]:'   or   - ":nbrowser-^[A-D]:"
-  const re = /['"]:nbrowser-([^:'"]+):['"]/g;
-  const out = [];
-  let m;
-  while ((m = re.exec(workflowText))) {
-    out.push(m[1]);
-  }
-  if (out.length === 0) {
-    throw new Error(`No :nbrowser-...: patterns found in ${WORKFLOW}`);
-  }
-  return out;
-}
-
-function findTopLevelDescribes(filePath) {
-  // Top-level describe() in the compiled JS sits at column 0; nested ones are
-  // indented. Match both quote styles.
-  const text = fs.readFileSync(filePath, "utf8");
-  const re = /^describe\s*\(\s*(['"`])([^'"`]+)\1/gm;
-  const names = [];
-  let m;
-  while ((m = re.exec(text))) {
-    names.push(m[2]);
-  }
-  return names;
-}
-
-function listTestFiles(dir) {
-  const out = [];
-  for (const entry of fs.readdirSync(dir, {withFileTypes: true})) {
-    const p = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      out.push(...listTestFiles(p));
-    } else if (entry.isFile() && entry.name.endsWith(".js")) {
-      out.push(p);
-    }
-  }
-  return out;
-}
-
 function main() {
   const workflowText = fs.readFileSync(WORKFLOW, "utf8");
   const patterns = extractGroupPatterns(workflowText);
@@ -120,6 +80,46 @@ function main() {
     process.exit(1);
   }
   console.log("\nOK: every top-level describe is in exactly one group.");
+}
+
+function extractGroupPatterns(workflowText) {
+  // Matches lines like:  - ':nbrowser-^[A-D]:'   or   - ":nbrowser-^[A-D]:"
+  const re = /['"]:nbrowser-([^:'"]+):['"]/g;
+  const out = [];
+  let m;
+  while ((m = re.exec(workflowText))) {
+    out.push(m[1]);
+  }
+  if (out.length === 0) {
+    throw new Error(`No :nbrowser-...: patterns found in ${WORKFLOW}`);
+  }
+  return out;
+}
+
+function findTopLevelDescribes(filePath) {
+  // Top-level describe() in the compiled JS sits at column 0; nested ones are
+  // indented. Match both quote styles.
+  const text = fs.readFileSync(filePath, "utf8");
+  const re = /^describe\s*\(\s*(['"`])([^'"`]+)\1/gm;
+  const names = [];
+  let m;
+  while ((m = re.exec(text))) {
+    names.push(m[2]);
+  }
+  return names;
+}
+
+function listTestFiles(dir) {
+  const out = [];
+  for (const entry of fs.readdirSync(dir, {withFileTypes: true})) {
+    const p = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      out.push(...listTestFiles(p));
+    } else if (entry.isFile() && entry.name.endsWith(".js")) {
+      out.push(p);
+    }
+  }
+  return out;
 }
 
 main();
