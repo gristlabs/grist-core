@@ -3,8 +3,9 @@ import { server, setupTestSuite } from "test/projects/testUtils";
 
 import { assert, driver, Key } from "mocha-webdriver";
 
-describe("PageWidgetPicker", () => {
+describe("PageWidgetPicker", function() {
   setupTestSuite();
+  this.timeout(60000);
 
   async function setOption(options: { value?: string, isNewPage?: boolean }) {
     // set value
@@ -297,6 +298,86 @@ describe("PageWidgetPicker", () => {
     // check the spinner does not show within
     assert.equal(await driver.find(".test-modal-spinner").isPresent(), false);
   });
+
+  it("should allow complete keyboard navigation", async function() {
+    await driver.sendKeys(Key.ESCAPE);
+    await driver.find(".test-option-omit-value").click();
+    await openPicker();
+
+    // Pressing Tab makes Grist aware that keyboard navigation is in use, in that case we show kb-specific help text
+    await driver.sendKeys(Key.TAB);
+    assert.match(await driver.find(".test-wselect-kb-help").getText(), /Use up and down arrow keys/);
+
+    // Pressing Tab should not have changed selection
+    assert.deepEqual(await findAllSelected("type"), ["Table"]);
+
+    // Pressing arrows move the focus in the list, but does not change selection
+    await driver.sendKeys(Key.ARROW_DOWN);
+    assert.equal(await driver.switchTo().activeElement().getText(), "Card");
+    assert.deepEqual(await findAllSelected("type"), ["Table"]);
+
+    // Pressing Enter selects the focused element in the list, and moves focus to the table column.
+    // Focus should end up on the first available item in the table column, without selecting it.
+    await driver.sendKeys(Key.ENTER);
+    await assertActiveEl(/test-wselect-table-label/);
+    assert.deepEqual(await findAllSelected("type"), ["Card"]);
+    assert.equal((await findAllSelected("table")).length, 0);
+
+    // Arrow nav should include the "pivot" buttons, and not change selection
+    await driver.sendKeys(Key.ARROW_DOWN);
+    await assertActiveEl(/test-wselect-pivot/);
+    assert.equal((await findAllSelected("table")).length, 0);
+
+    // Pressing Enter selects the pivot button, opens the "Group by" panel, focuses the first item in it
+    await driver.sendKeys(Key.ENTER);
+    assert.equal(await driver.findContent(".test-wselect-heading", /Group by/).isDisplayed(), true);
+    await assertActiveEl(/test-wselect-column/);
+    assert.equal((await findAllSelected("table")).length, 1);
+
+    // Pressing Enter while in the Group by panel moves focus to the submit button, without selecting anything
+    await driver.sendKeys(Key.ENTER);
+    await assertActiveEl(/test-wselect-addBtn/);
+    assert.equal((await findAllSelected("column")).length, 0);
+
+    // Pressing Escape should focus back the Group by panel
+    await driver.sendKeys(Key.ESCAPE);
+    await assertActiveEl(/test-wselect-column/);
+
+    // Pressing Space selects the current column
+    await driver.sendKeys(Key.SPACE);
+    assert.equal((await findAllSelected("column")).length, 1);
+
+    // Pressing Esc focus back each step of the navigation, unselecting things on the go
+    await driver.sendKeys(Key.ESCAPE);
+    await assertActiveEl(/test-wselect-pivot/);
+    assert.equal(await driver.findContent(".test-wselect-heading", /Group by/).isDisplayed(), false);
+
+    await driver.sendKeys(Key.ESCAPE);
+    await assertActiveEl(/test-wselect-type/);
+    assert.equal((await findAllSelected("table")).length, 0);
+    assert.equal((await findAllSelected("pivot")).length, 0);
+
+    // We should have successfully closed the picker after all this nav
+    await driver.sendKeys(Key.ESCAPE);
+    await assertActiveEl(/interface-full/);
+    assert.equal(await driver.find(".test-wselect-container").isPresent(), false);
+
+    // We should be able to press Enter until successfully submitting the selection
+    await openPicker();
+    // select widget
+    await driver.sendKeys(Key.ENTER);
+    // select table
+    await driver.sendKeys(Key.ENTER);
+    // activate "add to page" button
+    await driver.sendKeys(Key.ENTER);
+
+    assert.equal(
+      await driver.find(".test-call-log:last-child .test-call-value").getText(),
+      JSON.stringify(
+        { type: "record", table: "New Table", summarize: false, columns: [], link: "[0,0,0]", section: 0 }),
+    );
+    await driver.findContent(".test-call-log:last-child button", "Resolve").click();
+  });
 });
 
 async function findAllDisabled(cat: "type" | "table" | "column"): Promise<string[]> {
@@ -311,4 +392,8 @@ async function findAllSelected(cat: "type" | "table" | "column" | "pivot"): Prom
     return await driver.findAll(".test-wselect-table .test-wselect-pivot[class*=-selected]", e => e.getText());
   }
   return await driver.findAll(`.test-wselect-${cat}[class*=-selected]`, e => e.getText());
+}
+
+async function assertActiveEl(className: RegExp) {
+  assert.match(await driver.switchTo().activeElement().getAttribute("class"), className);
 }

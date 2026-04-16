@@ -779,7 +779,10 @@
         "Select data": "Select data",
         "Select widget": "Select widget",
         "New Table": "New Table",
-        "SELECT BY": "SELECT BY"
+        "SELECT BY": "SELECT BY",
+        "{{table}} grouped by… (press to select fields)": "{{table}} grouped by… (press to select fields)",
+        "Press Space to add fields": "Press Space to add fields",
+        "Use up and down arrow keys to move through options. Press Enter and Esc to move between steps.": "Use up and down arrow keys to move through options. Press Enter and Esc to move between steps."
     },
     "Pages": {
         "Delete": "Delete",
