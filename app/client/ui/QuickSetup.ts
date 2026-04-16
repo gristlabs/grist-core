@@ -1,6 +1,6 @@
 import { makeT } from "app/client/lib/localization";
 import { getHomeUrl } from "app/client/models/AppModel";
-import { BadgeConfig, CardList, HeroCard, ItemCard } from "app/client/ui/SetupCard";
+import { BadgeConfig, buildCardList, buildHeroCard, buildItemCard } from "app/client/ui/SetupCard";
 import { SetupWizard } from "app/client/ui/SetupWizard";
 import { bigPrimaryButton } from "app/client/ui2018/buttons";
 import { theme, vars } from "app/client/ui2018/cssVars";
@@ -12,6 +12,7 @@ import { Disposable, dom, DomContents, makeTestId, Observable, styled, UseCB } f
 const t = makeT("QuickSetup");
 const testId = makeTestId("test-quick-setup-");
 
+// TODO: this is probably not needed.
 export type SetupMode = "install" | "reconfigure";
 
 export class QuickSetup extends Disposable {
@@ -78,9 +79,7 @@ export class QuickSetup extends Disposable {
       dom.autoDispose(selected),
       dom.autoDispose(error),
       testId("sandboxing"),
-
       dom.maybe(error, (err) => cssError(err)),
-
       dom.domComputed(status, (s) => {
         if (!s) { return cssLoading(loadingSpinner(), t("Detecting sandbox options…")); }
         return this._buildSandboxingContent(s, selected, activeStep, error);
@@ -95,7 +94,6 @@ export class QuickSetup extends Disposable {
     error: Observable<string>,
   ): DomContents {
     const {available, recommended, isSelectedByEnv} = status;
-    const locked = isSelectedByEnv;
 
     // Hero is always the first option from the backend list; the rest go into "Other options".
     const heroOption = available[0];
@@ -111,25 +109,24 @@ export class QuickSetup extends Disposable {
       }
       if (!opt.available) {
         badges.push({label: t("Not available"), variant: "error"});
-        return badges;
-      }
-      if (opt.functional === false) {
+        return badges; // Notice quick returns here.
+      } else if (opt.functional === false) {
         badges.push({label: t("Not working"), variant: "error"});
         return badges;
-      }
-      if (!opt.effective) {
+      } else if (!opt.effective) {
         badges.push({label: t("Not recommended"), variant: "warning"});
         return badges;
+      } else {
+        badges.push({label: t("Ready"), variant: "primary"});
+        return badges;
       }
-      badges.push({label: t("Ready"), variant: "primary"});
-      return badges;
     };
 
     const makeRadio = (key: string, disabled?: boolean) => ({
       checked: (use: UseCB) => use(selected) === key,
-      onSelect: () => { if (!locked) { selected.set(key); } },
+      onSelect: () => { if (!isSelectedByEnv) { selected.set(key); } },
       name: "sandbox",
-      disabled: disabled || locked,
+      disabled: disabled || isSelectedByEnv,
     });
 
     return dom("div",
@@ -139,15 +136,14 @@ export class QuickSetup extends Disposable {
           "to protect your server. Without it, document formulas can access the full system."),
       ),
 
-      locked ? cssEnvWarning(
+      isSelectedByEnv ? cssEnvWarning(
         t("Sandbox type is set via the GRIST_SANDBOX_FLAVOR environment variable " +
           "and cannot be changed here. Remove the variable and restart to configure via this wizard."),
       ) : null,
 
       // Hero card — first option from the backend.
-      dom.create(HeroCard, {
-        indicator: (use: UseCB) => use(selected) === heroKey
-          ? (heroKey === recommended ? "success" : "warning") : "",
+      buildHeroCard( {
+        indicator: (use: UseCB) => use(selected) === heroKey ? (heroKey === recommended ? "success" : "warning") : "",
         radio: makeRadio(heroKey, !canSelect(heroOption)),
         header: heroOption.label,
         tags: heroKey === recommended ? [{ label: t("Recommended") }] : [],
@@ -158,17 +154,17 @@ export class QuickSetup extends Disposable {
 
       // Other options — expanded by default when hero is not the selected option.
       otherOptions.length > 0
-        ? dom.create(CardList, {
+        ? buildCardList( {
             header: t("Other options"),
             collapsible: true,
             initiallyCollapsed: selected.get() === heroKey,
             items: otherOptions.map(opt =>
-              dom.create(ItemCard, {
+              buildItemCard({
                 indicator: (use: UseCB) => {
                   if (use(selected) !== opt.key) { return undefined; }
                   return opt.key === recommended ? "active" : "warning";
                 },
-                radio: makeRadio(opt.key, !canSelect(opt) || locked),
+                radio: makeRadio(opt.key, !canSelect(opt) || isSelectedByEnv),
                 header: opt.label,
                 tags: opt.key === recommended ? [{ label: t("Recommended") }] : [],
                 badges: badgesFor(opt),
@@ -184,7 +180,7 @@ export class QuickSetup extends Disposable {
         bigPrimaryButton(t("Continue"),
           dom.on("click", async () => {
             const flavor = selected.get();
-            if (flavor && !locked) {
+            if (flavor && !isSelectedByEnv) {
               try {
                 await this._configAPI.setSandboxFlavor(flavor);
               } catch (e) {
@@ -218,10 +214,6 @@ function sandboxDescription(key: string): string {
       return "";
   }
 }
-
-// =========================================================================
-// Styled components
-// =========================================================================
 
 const cssStepTitle = styled("div", `
   font-size: 18px;

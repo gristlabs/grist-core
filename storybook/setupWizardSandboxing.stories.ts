@@ -1,4 +1,4 @@
-import { CardList, HeroCard, ItemCard } from "app/client/ui/SetupCard";
+import { buildCardList, buildHeroCard, buildItemCard } from "app/client/ui/SetupCard";
 import { SetupWizard } from "app/client/ui/SetupWizard";
 import { bigPrimaryButton } from "app/client/ui2018/buttons";
 
@@ -33,7 +33,7 @@ export const SandboxingStep = () => {
             "Grist runs user formulas as Python code. Sandboxing isolates this execution to " +
             "protect your server. Without it, document formulas can access the full system.",
           ),
-          dom.create(HeroCard, {
+          buildHeroCard( {
             indicator: (use: any) => use(selected) === "gvisor" ? "success" : "pending",
             radio: makeRadio("gvisor"),
             header: "gVisor",
@@ -43,12 +43,12 @@ export const SandboxingStep = () => {
               "Each document's formulas run in their own isolated container, separated from " +
               "each other and the network.",
           }),
-          dom.create(CardList, {
+          buildCardList( {
             header: "Hide other options",
             collapsible: true,
             initiallyCollapsed: true,
             items: [
-              dom.create(ItemCard, {
+              buildItemCard({
                 radio: { ...makeRadio("pyodide"), disabled: true },
                 header: "Pyodide",
                 badges: [{ label: "Not available", variant: "error" }],
@@ -56,14 +56,14 @@ export const SandboxingStep = () => {
                   "but slower than gVisor.",
                 error: "Pyodide not installed",
               }),
-              dom.create(ItemCard, {
+              buildItemCard({
                 radio: { ...makeRadio("macos"), disabled: true },
                 header: "macOS Sandbox",
                 badges: [{ label: "Not available", variant: "error" }],
                 text: "Uses the built-in macOS sandbox. Good isolation for local use on a Mac.",
                 error: "Not macOS",
               }),
-              dom.create(ItemCard, {
+              buildItemCard({
                 indicator: (use: any) => use(selected) === "none" ? "active" : undefined,
                 radio: makeRadio("none"),
                 header: "No Sandbox",

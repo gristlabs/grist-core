@@ -1,12 +1,14 @@
 import {
   BadgeVariant,
-  buildBadge,
-  CardList,
-  HeroCard,
+  buildCardList,
+  buildHeroCard,
   HeroVariant,
   ItemBorderVariant,
-  ItemCard,
+  buildItemCard,
 } from "app/client/ui/SetupCard";
+
+import { basicButton, textButton } from "app/client/ui2018/buttons";
+import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
 
 import { action } from "@storybook/addon-actions";
 import { dom, Observable, styled } from "grainjs";
@@ -49,7 +51,7 @@ export const HeroCardStory = {
   },
   render: (args: any) => {
     const checked = Observable.create(null, false);
-    return dom.create(HeroCard, {
+    return buildHeroCard( {
       indicator: args.indicator as HeroVariant,
       header: args.header,
       tags: args.tag ? [{ label: args.tag }] : [],
@@ -59,21 +61,22 @@ export const HeroCardStory = {
       text: args.text || undefined,
       error: args.error || undefined,
       checkbox: args.showCheckbox
-        ? { label: args.checkboxLabel, checked }
+        ? labeledSquareCheckbox(checked, args.checkboxLabel)
         : undefined,
       buttons: args.showButtons
         ? [
-            { label: args.button1Label, action: action("Button 1") },
-            ...(args.button2Label ? [{ label: args.button2Label, action: action("Button 2") }] : []),
+            basicButton(args.button1Label, dom.on("click", action("Button 1"))),
+            ...(args.button2Label ? [basicButton(args.button2Label, dom.on("click", action("Button 2")))] : []),
           ]
         : undefined,
-      footer: args.footerText ? {
-        text: args.footerText,
-        boldText: args.footerBoldText || undefined,
-        actions: args.footerActionLabel
-          ? [{ label: args.footerActionLabel, action: action("Footer action") }]
-          : undefined,
-      } : undefined,
+      footer: args.footerText ? [
+        dom("span", args.footerText,
+          args.footerBoldText ? dom("strong", args.footerBoldText) : null,
+        ),
+        ...(args.footerActionLabel
+          ? [textButton(args.footerActionLabel, dom.on("click", action("Footer action")))]
+          : []),
+      ] : undefined,
     });
   },
 };
@@ -107,7 +110,7 @@ export const ItemCardStory = {
       options: ["primary", "warning", "error", "accent"],
     },
   },
-  render: (args: any) => dom.create(ItemCard, {
+  render: (args: any) => buildItemCard({
     indicator: (args.indicator || undefined) as ItemBorderVariant | undefined,
     header: args.header,
     tags: args.tag ? [{ label: args.tag }] : [],
@@ -253,18 +256,15 @@ export const HeroCardRadioSelection = () => {
   });
   return cssGrid(
     cssColumn(
-      dom.create(HeroCard, {
+      buildHeroCard( {
         indicator: "success",
         radio: makeRadio("oidc"),
         header: "OIDC",
         badges: [{ label: "Active", variant: "primary" }],
         text: "Your server authenticates users via OpenID Connect.",
-        footer: {
-          text: "Installation admin: ",
-          boldText: "admin@example.com",
-        },
+        footer: dom("span", "Installation admin: ", dom("strong", "admin@example.com")),
       }),
-      dom.create(HeroCard, {
+      buildHeroCard( {
         indicator: "pending",
         radio: makeRadio("saml"),
         header: "SAML",
@@ -287,21 +287,21 @@ export const ItemCardRadioSelection = () => {
     name: "provider",
   });
   return cssColumn(
-    dom.create(CardList, {
+    buildCardList( {
       header: "Choose a provider",
       items: [
-        dom.create(ItemCard, {
+        buildItemCard({
           radio: makeRadio("oidc"),
           indicator: "configured",
           header: "OIDC",
           text: "Works with most identity providers (Google, Azure AD, Keycloak, etc.).",
         }),
-        dom.create(ItemCard, {
+        buildItemCard({
           radio: makeRadio("saml"),
           header: "SAML",
           text: "For enterprise identity providers (Okta, OneLogin, etc.).",
         }),
-        dom.create(ItemCard, {
+        buildItemCard({
           radio: makeRadio("forward"),
           header: "Forwarded headers",
           text: "For reverse proxy setups (Traefik, Authelia, etc.).",
@@ -321,22 +321,22 @@ export const CardListStory = {
     collapsible: false,
     initiallyCollapsed: false,
   },
-  render: (args: any) => dom.create(CardList, {
+  render: (args: any) => buildCardList( {
     header: args.header,
     collapsible: args.collapsible,
     initiallyCollapsed: args.initiallyCollapsed,
     items: [
-      dom.create(ItemCard, {
+      buildItemCard({
         header: "OIDC",
         text: "Works with most identity providers.",
         buttons: [{ label: "Configure", action: action("Configure OIDC") }],
       }),
-      dom.create(ItemCard, {
+      buildItemCard({
         header: "SAML",
         text: "For enterprise identity providers.",
         buttons: [{ label: "Configure", action: action("Configure SAML") }],
       }),
-      dom.create(ItemCard, {
+      buildItemCard({
         header: "Forwarded headers",
         text: "For reverse proxy setups.",
         buttons: [{ label: "Configure", action: action("Configure Forwarded headers") }],
@@ -350,32 +350,31 @@ export const CardListStory = {
 // ---------------------------------------------------------------------------
 
 export const FullSectionActive = () => cssColumn(
-  dom.create(HeroCard, {
+  buildHeroCard( {
     indicator: "success",
     header: "OIDC",
     badges: [{ label: "Active", variant: "primary" }],
     text: "Your server is configured to authenticate users via OpenID Connect.",
     buttons: [
-      { label: "Reconfigure", action: action("Reconfigure") },
-      { label: "Deactivate", action: action("Deactivate") },
+      basicButton("Reconfigure", dom.on("click", action("Reconfigure"))),
+      basicButton("Deactivate", dom.on("click", action("Deactivate"))),
     ],
-    footer: {
-      text: "Installation admin: ",
-      boldText: "admin@example.com",
-      actions: [{ label: "Change installation admin", action: action("Change admin") }],
-    },
+    footer: [
+      dom("span", "Installation admin: ", dom("strong", "admin@example.com")),
+      textButton("Change installation admin", dom.on("click", action("Change admin"))),
+    ],
   }),
-  dom.create(CardList, {
+  buildCardList( {
     header: "Other authentication methods",
     collapsible: true,
     initiallyCollapsed: true,
     items: [
-      dom.create(ItemCard, {
+      buildItemCard({
         header: "SAML",
         text: "For enterprise identity providers.",
         buttons: [{ label: "Configure", action: action("Configure SAML") }],
       }),
-      dom.create(ItemCard, {
+      buildItemCard({
         indicator: "configured",
         header: "Forwarded headers",
         badges: [{ label: "Active on restart", variant: "warning" }],
@@ -390,30 +389,26 @@ export const FullSectionActive = () => cssColumn(
 );
 
 export const FullSectionNoAuth = () => cssColumn(
-  dom.create(HeroCard, {
+  buildHeroCard( {
     indicator: "error",
     header: "No authentication",
     badges: [{ label: "Not recommended", variant: "warning" }],
     text: "Anyone who can reach this server can access all data without signing in.",
-    checkbox: {
-      label: "I understand this server has no authentication",
-      checked: Observable.create(null, false),
-    },
-    footer: {
-      text: "Installation admin: ",
-      boldText: "admin@example.com",
-      actions: [{ label: "Change installation admin", action: action("Change admin") }],
-    },
+    checkbox: labeledSquareCheckbox(Observable.create(null, false), "I understand this server has no authentication"),
+    footer: [
+      dom("span", "Installation admin: ", dom("strong", "admin@example.com")),
+      textButton("Change installation admin", dom.on("click", action("Change admin"))),
+    ],
   }),
-  dom.create(CardList, {
+  buildCardList( {
     header: "Available methods",
     items: [
-      dom.create(ItemCard, {
+      buildItemCard({
         header: "OIDC",
         text: "Works with most identity providers.",
         buttons: [{ label: "Configure", action: action("Configure OIDC") }],
       }),
-      dom.create(ItemCard, {
+      buildItemCard({
         header: "SAML",
         text: "For enterprise identity providers.",
         buttons: [{ label: "Configure", action: action("Configure SAML") }],

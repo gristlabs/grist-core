@@ -627,34 +627,39 @@ export type SpawnFn = (options: ISandboxOptions) => SandboxProcess;
 
 const hasRunsc = checkCommandExists("runsc");
 const hasSandboxExec = checkCommandExists("sandbox-exec");
-const pyodideCheck = _checkPyodideAvailable();
 
 /**
- * Returns available sandbox options with their detection status.
- * Used by the setup wizard to show what's available on this system.
+ * Returns available sandbox options with their detection status. Checks on the fly, doesn't cache anything.
+ * Note: this doesn't check if those commands actually work, it just checks if they are reachable by us.
  */
 export function getAvailableSandboxes(): SandboxOption[] {
+  const pyodideCheck = _checkPyodideAvailable();
+  const currentGvisor = checkCommandExists("runsc");
+  const currentMacSandboxExec = checkCommandExists("sandbox-exec");
   return [
     {
       key: "gvisor",
       label: "gVisor",
-      available: hasRunsc,
-      unavailableReason: hasRunsc ? undefined : "runsc not found",
+      available: currentGvisor,
+      unavailableReason: currentGvisor ? undefined : "runsc not found",
       effective: true,
+      functional: undefined, // just a mark that we haven't checked this.
     },
     {
       key: "pyodide",
       label: "Pyodide",
-      available: pyodideCheck.available,
+      available: true,
       unavailableReason: pyodideCheck.reason,
       effective: true,
+      functional: undefined,
     },
     {
       key: "macSandboxExec",
       label: "macOS Sandbox",
-      available: hasSandboxExec,
-      unavailableReason: hasSandboxExec ? undefined : "Not macOS or sandbox-exec not found",
+      available: currentMacSandboxExec,
+      unavailableReason: currentMacSandboxExec ? undefined : "Not macOS or sandbox-exec not found",
       effective: true,
+      functional: undefined,
     },
     {
       key: "unsandboxed",
@@ -665,13 +670,6 @@ export function getAvailableSandboxes(): SandboxOption[] {
   ];
 }
 
-/**
- * Returns the recommended sandbox key, or undefined if there is no
- * clear recommendation.  Only gVisor qualifies as "recommended".
- */
-export function getRecommendedSandbox(): string | undefined {
-  return hasRunsc ? "gvisor" : undefined;
-}
 
 function _checkPyodideAvailable(): {available: boolean; reason?: string} {
   try {
@@ -1274,6 +1272,20 @@ function getCommandArgsFromEnv() {
   };
 }
 
+export function getSandboxFlavor(): string|undefined {
+  return appSettings.section("sandbox").flag("flavor").readString({
+    envVar: "GRIST_SANDBOX_FLAVOR",
+    defaultValue: "unsandboxed",
+  });
+}
+
+export function getSandboxFlavorSource() {
+  return appSettings.section("sandbox").flag("flavor").read({
+    envVar: "GRIST_SANDBOX_FLAVOR"
+  }).describe().source;
+}
+
+
 /**
  * Create a sandbox. The defaultFlavorSpec is a guide to which sandbox
  * to create, based on the desired python version. Examples:
@@ -1288,9 +1300,7 @@ function getCommandArgsFromEnv() {
  * TODO: This machinery can likely be removed now.
  */
 export function createSandbox(defaultFlavorSpec: string, options: ISandboxCreationOptions): ISandbox {
-  const sandboxFlavor = appSettings.section("sandbox").flag("flavor").readString({
-    envVar: "GRIST_SANDBOX_FLAVOR",
-  });
+  const sandboxFlavor = getSandboxFlavor();
   const flavors = (sandboxFlavor || defaultFlavorSpec).split(",");
   const preferredPythonVersion = options.preferredPythonVersion || "3";
   for (const flavorAndVersion of flavors) {

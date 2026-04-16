@@ -102,6 +102,7 @@ export class Activation extends BaseEntity {
           "GRIST_ADMIN_EMAIL",
           "GRIST_BOOT_KEY",
           "GRIST_IN_SERVICE",
+          "GRIST_SANDBOX_FLAVOR",
         ));
 
         for (const key of Object.keys(props.prefs.envVars)) {
@@ -123,6 +124,8 @@ export class Activation extends BaseEntity {
 
       if (Object.keys(this.prefs).length === 0) {
         this.prefs = null;
+      } else {
+        this.prefs = { ...this.prefs };
       }
     }
   }

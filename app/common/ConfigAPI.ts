@@ -5,22 +5,24 @@ import { addCurrentOrgToPath } from "app/common/urlUtils";
  * Describes a single sandbox option and its availability on the system.
  */
 export interface SandboxOption {
+  // Unique key for the sandbox runner or unsandboxed.
   key: string;
+  isActive?: boolean;           // Whether this is the currently running sandbox
+  // User-friendly label for the sandbox option.
   label: string;
+  // Whether the sandbox option is available on the current system.
   available: boolean;
+  // If not available, an optional reason why it's not available.
   unavailableReason?: string;
   effective: boolean;           // Whether it provides real isolation (not just runs code)
   functional?: boolean;         // Whether sandbox actually works (tested on server)
   testError?: string;           // Error message if functional test failed
-  isActive?: boolean;           // Whether this is the currently running sandbox
 }
 
 /**
  * Status of the sandboxing configuration on the server.
  */
 export interface SandboxingStatus {
-  current: string;
-  currentEffective: boolean;
   available: SandboxOption[];
   recommended?: string;
   pendingRestart?: string;      // Flavor that will activate after restart

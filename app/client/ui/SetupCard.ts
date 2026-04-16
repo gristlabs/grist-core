@@ -1,110 +1,105 @@
 /**
  * Generic card components for setup UI sections.
  *
- * Provides reusable building blocks: HeroCard, ItemCard, CardList,
- * and buildBadge. No domain-specific logic — callers compose these
- * to build section-specific UIs.
+ * Provides reusable building blocks: HeroCard, buildItemCard, CardList,
+ * and buildBadge.
  *
  * All options are data-driven: plain values or Bindable<T> for reactivity.
  */
-import { basicButton, textButton } from "app/client/ui2018/buttons";
-import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
+import { basicButton } from "app/client/ui2018/buttons";
 import { theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { cssRadioInput } from "app/client/ui2018/radio";
 import { useBindable } from "app/common/gutil";
 
 import {
-  BindableValue, Disposable, dom, DomContents, DomElementArg,
+  BindableValue, dom, DomContents, DomElementArg,
   makeTestId, MaybeObsArray, Observable, styled,
 } from "grainjs";
 
 const testId = makeTestId("test-setup-card-");
 
-// =========================================================================
-// Components
-// =========================================================================
-
 /**
- * A prominent status card with indicator, header, controls, and footer.
+ * First card in the setup - a Hero card.
  *
  * ```
- * dom.create(HeroCard, {
+ * buildHeroCard({
  *   indicator: "success",
  *   header: "OIDC",
  *   badges: [{ label: "Active", variant: "primary" }],
  *   text: "Your server authenticates users via OpenID Connect.",
- *   buttons: [
- *     { label: "Reconfigure", action: () => reconfigure() },
- *     { label: "Deactivate", action: () => deactivate() },
+ *   checkbox: labeledSquareCheckbox(myObs, "Enable feature"),
+ *   buttons: [basicButton("Reconfigure", dom.on("click", reconfigure)), basicButton("Deactivate", dom.on("click", deactivate))],
+ *   footer: [
+ *     dom("span", "Installation admin:", dom("strong", "admin@example.com")),
+ *     textButton("Change admin", dom.on("click", () => changeAdmin())),
  *   ],
- *   footer: {
- *     text: "Installation admin:",
- *     boldText: "admin@example.com",
- *     actions: [{ label: "Change admin", action: () => changeAdmin() }],
- *   },
  * })
  * ```
  */
-export class HeroCard extends Disposable {
-  constructor(private _options: HeroCardOptions) {
-    super();
-  }
+export function buildHeroCard(props: {
+  /** Indicator — left border color. */
+  indicator: BindableValue<HeroVariant>;
+  /** Radio button on the left side of the card. */
+  radio?: RadioConfig;
+  /** Header text. */
+  header: BindableValue<string>;
+  /** Header tag, like Recommended */
+  tags?: TagConfig[];
+  /** Header badges. */
+  badges?: MaybeObsArray<BadgeConfig>;
+  /** Text - main content. */
+  text?: BindableValue<string>;
+  /** Error message. */
+  error?: BindableValue<string>;
+  /** Controls / Checkbox (e.g. labeledSquareCheckbox(...)). */
+  checkbox?: DomContents;
+  /** Controls / Buttons (e.g. basicButton(...)). */
+  buttons?: DomContents;
+  /** Footer content (rendered inside a styled footer bar). */
+  footer?: DomContents;
+  args?: DomElementArg[];
+}) {
+  const hasControls = props.checkbox || props.buttons;
+  const hasFooter = props.footer;
 
-  public buildDom() {
-    const o = this._options;
-    const hasControls = o.checkbox || o.buttons;
-    const hasFooter = o.footer;
-
-    const content = cssHeroCardContent(
-      cssHeroHeader(
-        cssHeroTitle(
-          dom.text(o.header),
-          ...(o.tags ?? []).map(t => cssTag(t.label)),
-        ),
-        o.badges ? dom.forEach(o.badges, b => buildBadge(b.label, b.variant)) : null,
+  const content = cssHeroCardContent(
+    cssHeroHeader(
+      cssHeroTitle(
+        dom.text(props.header),
+        ...(props.tags ?? []).map(t => cssTag(t.label)),
       ),
-      o.text ? cssHeroText(dom.text(o.text)) : null,
-      o.error ? cssHeroError(dom.text(o.error)) : null,
-      hasControls ? cssHeroControls(
-        o.checkbox
-          ? labeledSquareCheckbox(o.checkbox.checked, o.checkbox.label)
-          : null,
-        o.buttons?.length
-          ? cssHeroControlButtons(
-              ...o.buttons.map(b => basicButton(b.label, dom.on("click", b.action))),
-            )
-          : null,
-      ) : null,
-      hasFooter ? cssHeroFooter(
-        o.footer!.text ? dom("span", o.footer!.text,
-          o.footer!.boldText ? dom("strong", o.footer!.boldText) : null,
-        ) : null,
-        ...(o.footer!.actions ?? []).map(a => textButton(a.label, dom.on("click", a.action))),
-      ) : null,
-    );
+      props.badges ? dom.forEach(props.badges, b => buildBadge(b.label, b.variant)) : null,
+    ),
+    props.text ? cssHeroText(dom.text(props.text)) : null,
+    props.error ? cssHeroError(dom.text(props.error)) : null,
+    hasControls ? cssHeroControls(
+      props.checkbox ?? null,
+      props.buttons ? cssHeroControlButtons(props.buttons) : null,
+    ) : null,
+    hasFooter ? cssHeroFooter(props.footer!) : null,
+  );
 
-    return cssHeroCard(
-      dom.cls(use => {
-        const v = useBindable(use, o.indicator);
-        return v ? `${cssHeroCard.className}-${v}` : '';
-      }),
-      testId("hero"),
-      o.radio ? cssCardWithRadio(
-        buildRadioInput(o.radio),
-        content,
-      ) : content,
-      o.radio?.disabled ? dom.cls(DISABLED_CLASS, o.radio.disabled) : null,
-      ...(o.args ?? []),
-    );
-  }
+  return cssHeroCard(
+    dom.cls(use => {
+      const v = useBindable(use, props.indicator);
+      return v ? `${cssHeroCard.className}-${v}` : '';
+    }),
+    testId("hero"),
+    props.radio ? cssCardWithRadio(
+      buildRadioInput(props.radio),
+      content,
+    ) : content,
+    props.radio?.disabled ? dom.cls(DISABLED_CLASS, props.radio.disabled) : null,
+    ...(props.args ?? []),
+  );
 }
 
 /**
  * A row card for use inside a CardList, with indicator, header, and optional error.
  *
  * ```
- * dom.create(ItemCard, {
+ * buildItemCard({
  *   indicator: "active",
  *   header: "OIDC",
  *   badges: [{ label: "Active", variant: "primary" }],
@@ -112,137 +107,116 @@ export class HeroCard extends Disposable {
  *   text: "Works with most identity providers.",
  * })
  * ```
- *
- * With a radio button for single-selection lists:
- *
- * ```
- * const selected = Observable.create(owner, "oidc");
- * dom.create(ItemCard, {
- *   radio: {
- *     checked: use => use(selected) === "oidc",
- *     onSelect: () => selected.set("oidc"),
- *     name: "provider",
- *   },
- *   header: "OIDC",
- *   text: "Works with most identity providers.",
- * })
- * ```
  */
-export class ItemCard extends Disposable {
-  constructor(private _options: ItemCardOptions) {
-    super();
-  }
-
-  public buildDom() {
-    const o = this._options;
-
-    const content = cssItemContent(
-      // Header
-      cssItemHeader(
-        cssItemLabel(
-          dom.text(o.header),
-          ...(o.tags ?? []).map(t => cssTag(t.label)),
-        ),
-        o.badges ? dom.forEach(o.badges, b => buildBadge(b.label, b.variant)) : null,
-        cssFlex(),
-        ...(o.buttons ?? []).map(b => basicButton(
-          b.label,
-          b.disabled ? dom.prop("disabled", true) : null,
-          b.action ? dom.on("click", b.action) : null,
-        )),
+export function buildItemCard(props: {
+  /** Indicator — left border color. */
+  indicator?: BindableValue<ItemBorderVariant | undefined>;
+  /** Radio button on the left side of the card. */
+  radio?: RadioConfig;
+  /** Header — title text. */
+  header: BindableValue<string>;
+  /** Header › Tags (superscript accent labels). */
+  tags?: TagConfig[];
+  /** Header › Badges. */
+  badges?: MaybeObsArray<BadgeConfig>;
+  /** Header › Buttons. */
+  buttons?: ItemButtonConfig[];
+  /** Text — description/hint below header. */
+  text?: BindableValue<string>;
+  /** Error message — shown in red. */
+  error?: BindableValue<string>;
+  /** Info — informational text (gray). */
+  info?: BindableValue<string>;
+  args?: DomElementArg[];
+}) {
+  const content = cssItemContent(
+    // Header
+    cssItemHeader(
+      cssItemLabel(
+        dom.text(props.header),
+        ...(props.tags ?? []).map(t => cssTag(t.label)),
       ),
+      props.badges ? dom.forEach(props.badges, b => buildBadge(b.label, b.variant)) : null,
+      cssFlex(),
+      ...(props.buttons ?? []).map(b => basicButton(
+        b.label,
+        b.disabled ? dom.prop("disabled", true) : null,
+        b.action ? dom.on("click", b.action) : null,
+      )),
+    ),
 
-      o.text ? cssItemText(dom.text(o.text)) : null,
-      o.error ? dom.maybe(o.error, (e) => cssErrorMessage(e)) : null,
-      o.info ? cssItemInfo(dom.text(o.info)) : null,
-    );
+    props.text ? cssItemText(dom.text(props.text)) : null,
+    props.error ? dom.maybe(props.error, (e) => cssErrorMessage(e)) : null,
+    props.info ? cssItemInfo(dom.text(props.info)) : null,
+  );
 
-    return cssItemRow(
-      o.indicator != null
-        ? typeof o.indicator === "string"
-          ? (o.indicator ? cssItemRow.cls(`-border-${o.indicator}`) : null)
-          : dom.cls(use => {
-              const val = useBindable(use, o.indicator!);
-              return val ? `${cssItemRow.className}-border-${val}` : '';
-            })
-        : null,
-      testId("item"),
-      o.radio ? cssCardWithRadio(
-        buildRadioInput(o.radio),
-        content,
-      ) : content,
-      o.radio?.disabled ? dom.cls(DISABLED_CLASS, o.radio.disabled) : null,
-      ...(o.args ?? []),
-    );
-  }
+  return cssItemRow(
+    props.indicator != null
+      ? typeof props.indicator === "string"
+        ? (props.indicator ? cssItemRow.cls(`-border-${props.indicator}`) : null)
+        : dom.cls(use => {
+            const val = useBindable(use, props.indicator!);
+            return val ? `${cssItemRow.className}-border-${val}` : '';
+          })
+      : null,
+    testId("item"),
+    props.radio ? cssCardWithRadio(
+      buildRadioInput(props.radio),
+      content,
+    ) : content,
+    props.radio?.disabled ? dom.cls(DISABLED_CLASS, props.radio.disabled) : null,
+    ...(props.args ?? []),
+  );
 }
 
 /**
  * A collapsible list of ItemCards with a section header.
  *
  * ```
- * dom.create(CardList, {
+ * buildCardList({
  *   header: "Other authentication methods",
  *   collapsible: true,
  *   initiallyCollapsed: true,
  *   collapseObs: someCheckboxObs,
  *   items: [
- *     dom.create(ItemCard, { header: "OIDC", ... }),
- *     dom.create(ItemCard, { header: "SAML", ... }),
+ *     buildItemCard({ header: "OIDC", ... }),
+ *     buildItemCard({ header: "SAML", ... }),
  *   ],
  * })
  * ```
  */
-export class CardList extends Disposable {
-  private _collapsed: Observable<boolean> | null = null;
+export function buildCardList(props: {
+  header: string;
+  items: DomContents[];
+  collapsible?: boolean;
+  initiallyCollapsed?: boolean;
+  args?: DomElementArg[];
+}) {
+  const { header, items, collapsible, args } = props;
+  if (items.length === 0) { return dom("div"); }
 
-  constructor(private _options: CardListOptions) {
-    super();
+  const buildCards = () => cssItemsContainer(...items);
 
-    if (_options.collapsible) {
-      this._collapsed = Observable.create(this, _options.initiallyCollapsed ?? false);
-
-      if (_options.collapseObs) {
-        this.autoDispose(_options.collapseObs.addListener(val => this._collapsed!.set(val)));
-      }
-    }
-  }
-
-  public buildDom() {
-    const { header, items, collapsible, args } = this._options;
-    if (items.length === 0) { return dom("div"); }
-
-    const buildCards = () => cssItemsContainer(...items);
-
-    if (!collapsible || !this._collapsed) {
-      return dom("div",
-        cssListHeader(header, ...(args ?? [])),
-        buildCards(),
-      );
-    }
-
-    const collapsed = this._collapsed;
-    const toggle = () => collapsed.set(!collapsed.get());
-
+  if (!collapsible) {
     return dom("div",
-      cssListHeaderClickable(
-        dom.domComputed(collapsed, c => cssCollapseIcon(c ? "Expand" : "Collapse")),
-        header,
-        dom.on("click", toggle),
-        dom.on("keydown", (ev: KeyboardEvent) => {
-          if (ev.key === "Enter" || ev.key === " ") {
-            ev.preventDefault();
-            toggle();
-          }
-        }),
-        dom.attr("tabindex", "0"),
-        dom.attr("role", "button"),
-        dom.attr("aria-expanded", use => String(!use(collapsed))),
-        ...(args ?? []),
-      ),
-      dom.maybe(use => !use(collapsed), buildCards),
+      cssListHeader(header, ...(args ?? [])),
+      buildCards(),
     );
   }
+
+  const collapsed = Observable.create(null, props.initiallyCollapsed ?? false);
+  const toggle = () => collapsed.set(!collapsed.get());
+
+  return dom("div",
+    dom.autoDispose(collapsed),
+    cssListHeaderClickable(
+      dom.domComputed(collapsed, c => cssCollapseIcon(c ? "Expand" : "Collapse")),
+      header,
+      dom.on("click", toggle),
+      ...(args ?? []),
+    ),
+    dom.maybe(use => !use(collapsed), buildCards),
+  );
 }
 
 function buildRadioInput(radio: RadioConfig): HTMLElement {
@@ -279,44 +253,12 @@ export interface TagConfig {
   label: string;
 }
 
-export interface ButtonConfig {
-  label: string;
-  action: () => void;
-}
-
 export interface ItemButtonConfig {
   label: string;
   action?: () => void;
   disabled?: boolean;
 }
 
-export interface HeroCardOptions {
-  /** Indicator — left border color. */
-  indicator: BindableValue<HeroVariant>;
-  /** Radio button on the left side of the card. */
-  radio?: RadioConfig;
-  /** Header — title text. */
-  header: BindableValue<string>;
-  /** Header › Tags (superscript accent labels, e.g. "Recommended"). */
-  tags?: TagConfig[];
-  /** Header › Badges. */
-  badges?: MaybeObsArray<BadgeConfig>;
-  /** Text — description below header. */
-  text?: BindableValue<string>;
-  /** Error — error message. */
-  error?: BindableValue<string>;
-  /** Controls › Checkbox. */
-  checkbox?: { label: string; checked: Observable<boolean> };
-  /** Controls › Buttons. */
-  buttons?: ButtonConfig[];
-  /** Footer. */
-  footer?: {
-    text?: string;
-    boldText?: string;
-    actions?: ButtonConfig[];
-  };
-  args?: DomElementArg[];
-}
 
 export interface RadioConfig {
   /** Whether this radio is currently selected. */
@@ -329,37 +271,7 @@ export interface RadioConfig {
   disabled?: BindableValue<boolean>;
 }
 
-export interface ItemCardOptions {
-  /** Indicator — left border color. */
-  indicator?: BindableValue<ItemBorderVariant | undefined>;
-  /** Radio button on the left side of the card. */
-  radio?: RadioConfig;
-  /** Header — title text. */
-  header: BindableValue<string>;
-  /** Header › Tags (superscript accent labels). */
-  tags?: TagConfig[];
-  /** Header › Badges. */
-  badges?: MaybeObsArray<BadgeConfig>;
-  /** Header › Buttons. */
-  buttons?: ItemButtonConfig[];
-  /** Text — description/hint below header. */
-  text?: BindableValue<string>;
-  /** Error message — shown in red. */
-  error?: BindableValue<string>;
-  /** Info — informational text (gray). */
-  info?: BindableValue<string>;
-  args?: DomElementArg[];
-}
 
-export interface CardListOptions {
-  header: string;
-  items: DomContents[];
-  collapsible?: boolean;
-  initiallyCollapsed?: boolean;
-  /** External observable to drive collapse state. */
-  collapseObs?: Observable<boolean>;
-  args?: DomElementArg[];
-}
 
 // =========================================================================
 // Styled components
@@ -588,11 +500,6 @@ const cssListHeaderClickable = styled(cssListHeader, `
   gap: 4px;
   &:hover {
     color: ${theme.text};
-  }
-  &:focus-visible {
-    outline: 2px solid ${theme.controlFg};
-    outline-offset: 2px;
-    border-radius: 2px;
   }
 `);
 

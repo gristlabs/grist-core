@@ -1,5 +1,5 @@
 import { ApiError } from "app/common/ApiError";
-import { AuthProvider, SandboxOption, SandboxingStatus } from "app/common/ConfigAPI";
+import { AuthProvider, SandboxingStatus } from "app/common/ConfigAPI";
 import { GETGRIST_COM_PROVIDER_KEY } from "app/common/loginProviders";
 import { ActivationsManager } from "app/gen-server/lib/ActivationsManager";
 import { appSettings, AppSettings } from "app/server/lib/AppSettings";
@@ -14,17 +14,17 @@ import {
   NotConfiguredError,
 } from "app/server/lib/loginSystemHelpers";
 import { LOGIN_SYSTEMS } from "app/server/lib/loginSystems";
-import { getAvailableSandboxes, getRecommendedSandbox, testSandboxFlavor } from "app/server/lib/NSandbox";
+import { getAvailableSandboxes, getSandboxFlavor, getSandboxFlavorSource, testSandboxFlavor } from "app/server/lib/NSandbox";
 import { sendOkReply, stringParam } from "app/server/lib/requestUtils";
 
 import * as express from "express";
 
 export class ConfigBackendAPI {
-  constructor(
-    private _activations: ActivationsManager,
-    private _server: GristServer,
-  ) {
+  private get _activations(): ActivationsManager {
+    return this._server.getActivations();
   }
+
+  constructor(private _server: GristServer) {}
 
   public addEndpoints(app: express.Express, requireInstallAdmin: express.RequestHandler) {
     // GET /api/config/auth-providers
@@ -110,33 +110,41 @@ export class ConfigBackendAPI {
     // PATCH /api/config/sandboxing
     // Set sandbox flavor (takes effect after restart).
     app.patch("/api/config/sandboxing", requireInstallAdmin, expressWrap(async (req, res) => {
-      const { flavor } = req.body;
-      if (!flavor || typeof flavor !== "string") {
-        throw new ApiError("flavor is required", 400);
-      }
+      const flavor = stringParam(req.body.flavor, "flavor");
 
       // Block changes when flavor is fixed by a real environment variable.
-      const status = await this._buildSandboxingStatus();
-      if (status.isSelectedByEnv) {
+      if (getSandboxFlavorSource() === "env") {
         throw new ApiError(
           "Sandbox flavor is set via GRIST_SANDBOX_FLAVOR environment variable and cannot be changed here",
           409,
         );
       }
 
-      const option = status.available.find(o => o.key === flavor);
+      // Don't do anything if the flavor is the same as current, to avoid unnecessary restart.
+      if (getSandboxFlavor() === flavor) {
+        return sendOkReply(req, res, { msg: "Sandbox flavor is already set to the requested value." });
+      }
+
+      // Validate the flavor name, while the flag itself allows expressions (like fallbacks), we don't allow
+      // it here in this endpoint.
+      const option = getAvailableSandboxes().find(o => o.key === flavor);
       if (!option) {
         throw new ApiError(`Unknown sandbox flavor: ${flavor}`, 400);
       }
+
+      // And make sure it is reachable (don't trust the UI).
       if (!option.available) {
         throw new ApiError(
-          `Sandbox '${flavor}' is not available: ${option.unavailableReason}`,
+          `Sandbox '${flavor}' is not available: ${option.unavailableReason || "unknown reason"}`,
           400,
         );
       }
 
+      // Now update Grist settings to switch to the new flavor on next restart.
       await this._activations.updateEnvVars({ GRIST_SANDBOX_FLAVOR: flavor });
-      return sendOkReply(req, res, { msg: "ok", needsRestart: true });
+
+      // And return to the UI that we need restart
+      return sendOkReply(req, res, { needsRestart: true });
     }));
 
     app.get("/api/config/:key", requireInstallAdmin, expressWrap((req, resp) => {
@@ -166,70 +174,67 @@ export class ConfigBackendAPI {
   }
 
   /**
-   * Build sandboxing status: what's available, what's active, what's recommended.
+   * Build sandboxing status, testing if available sandboxes are functional, and determining the recommended option.
    */
   private async _buildSandboxingStatus(): Promise<SandboxingStatus> {
     const available = getAvailableSandboxes();
-    const recommended = getRecommendedSandbox();
 
     // Test all available and effective sandboxes in parallel.
     const testPromises = available
       .filter(o => o.available && o.effective)
       .map(async (o) => {
-        const result = await testSandboxFlavor(o.key);
-        o.functional = result.functional;
-        o.testError = result.error;
+        const result = await testSandboxFlavor(o.key).catch((e) => { /** should not happen */});
+        o.functional = result!.functional;
+        o.testError = result!.error;
       });
+
+    // Wait for all tests to complete, non should fail.
     await Promise.all(testPromises);
 
     // Mark unsandboxed as always functional (no test needed).
-    for (const o of available) {
-      if (!o.effective && o.available) {
-        o.functional = true;
-      }
-    }
+    available.filter(o => !o.effective && o.available).forEach(o => o.functional = true);
 
-    // Use server's sandbox info — knows the deployment default, caches result.
+    // Use server's sandbox info, it is cached and tested, what the server is actually using know.
     const sandboxInfo = await this._server.getSandboxInfo();
-    const current = sandboxInfo.flavor === "unknown" ? "unsandboxed" : sandboxInfo.flavor;
-    const currentOption = available.find(o => o.key === current);
-    const currentEffective = currentOption?.effective ?? false;
+    const active = sandboxInfo.flavor === "unknown" ? "unsandboxed" : sandboxInfo.flavor;
+    const activeOption = available.find(o => o.key === active);
 
     // Mark the currently active sandbox.
-    if (currentOption) {
-      currentOption.isActive = true;
+    if (activeOption) {
+      activeOption.isActive = true;
     }
 
-    // Sort: best option first. Priority: recommended+functional > functional+effective > functional > rest.
-    available.sort((a, b) => {
-      const score = (o: SandboxOption) => {
-        if (!o.available || o.functional === false) { return 0; }
-        if (o.key === recommended && o.functional) { return 3; }
-        if (o.effective && o.functional) { return 2; }
-        if (o.functional) { return 1; }
-        return 0;
-      };
-      return score(b) - score(a);
-    });
+
+    // Sort: best option first. Priority: functional+effective > functional > rest.
+    // Note: functional means available (we checked that before).
+    const sorted = [
+      ...available.filter(o => o.functional && o.effective),
+      ...available.filter(o => o.functional && !o.effective),
+      ...available.filter(o => !o.functional),
+    ];
+
+    // The recommended sandbox is the first available, functional, and effective option. Might be none.
+    const recommended = sorted.find(o => o.functional && o.effective)?.key;
 
     // Check if there's a pending change in the database.
     const activation = await this._activations.current();
     const dbEnvVars = activation.prefs?.envVars ?? {};
-    const pendingFlavor = dbEnvVars.GRIST_SANDBOX_FLAVOR;
-    const pendingRestart = (pendingFlavor && pendingFlavor !== current)
-      ? pendingFlavor : undefined;
+    const flavorInDb = dbEnvVars.GRIST_SANDBOX_FLAVOR;
+
+    // Read the settings as sandbox creator see it (so what is configurd currently)
+    const flavorCurrentlyConfigured = getSandboxFlavor();
+    const currentConfigSource = getSandboxFlavorSource();
+    const pendingRestart = flavorInDb && flavorInDb !== flavorCurrentlyConfigured ? flavorInDb : undefined;
 
     // process.env is never populated from DB envVars, so its presence
     // means the value was set outside our control and is immutable.
-    const isSelectedByEnv = process.env.GRIST_SANDBOX_FLAVOR !== undefined;
+    const isSelectedByEnv = currentConfigSource === "env"
 
     // Explicitly configured = set via env var OR previously saved to DB.
-    const isConfigured = isSelectedByEnv || !!dbEnvVars.GRIST_SANDBOX_FLAVOR;
+    const isConfigured = !!currentConfigSource;
 
     return {
-      current,
-      currentEffective,
-      available,
+      available: sorted,
       recommended,
       pendingRestart,
       isSelectedByEnv,
