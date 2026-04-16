@@ -24,7 +24,7 @@
  */
 
 import { StringUnion } from "app/common/StringUnion";
-import { appSettings, AppSettingSource } from "app/server/lib/AppSettings";
+import { AppSettings, appSettings, AppSettingSource } from "app/server/lib/AppSettings";
 
 import { MemoizedFunction } from "lodash";
 import memoize from "lodash/memoize";
@@ -181,11 +181,33 @@ export function getPersonalOrgsEnabledSource(): AppSettingSource | undefined {
  * NOTE: This value is memoized for the life of the server process; changes to the DB
  * are not reflected until server restart.
  */
-export const getSandboxFlavor = memoize(() =>
-  appSettings.section("sandbox").flag("flavor").readString({
+export const getSandboxFlavor = memoize(readSandboxFlavor.bind(null, appSettings));
+
+/**
+ * Returns the value of `GRIST_SANDBOX_FLAVOR` from the provided `settings`.
+ */
+export function readSandboxFlavor(settings: AppSettings): string | undefined {
+  return settings.section("sandbox").flag("flavor").readString({
     envVar: "GRIST_SANDBOX_FLAVOR",
-  }),
-);
+  });
+}
+
+/**
+ * Returns the source of `GRIST_SANDBOX_FLAVOR` from {@link appSettings}.
+ *
+ * NOTE: This value is memoized for the life of the server process; changes to the DB
+ * are not reflected until server restart.
+ */
+export const getSandboxFlavorSource = memoize(readSandboxFlavorSource.bind(null, appSettings));
+
+/**
+ * Returns the source of `GRIST_SANDBOX_FLAVOR` from the provided `settings`.
+ */
+export function readSandboxFlavorSource(settings: AppSettings) {
+  return settings.section("sandbox").flag("flavor").read({
+    envVar: "GRIST_SANDBOX_FLAVOR",
+  }).describe().source;
+}
 
 /**
  * Returns the value of `GRIST_TEMPLATE_ORG` from {@link appSettings}.

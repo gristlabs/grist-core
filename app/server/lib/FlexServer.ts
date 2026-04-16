@@ -23,7 +23,6 @@ import { HomeDBManager, UserChange } from "app/gen-server/lib/homedb/HomeDBManag
 import { Housekeeper } from "app/gen-server/lib/Housekeeper";
 import { Usage } from "app/gen-server/lib/Usage";
 import { AccessTokens, IAccessTokens } from "app/server/lib/AccessTokens";
-import { createSandbox } from "app/server/lib/ActiveDoc";
 import { attachAppEndpoint } from "app/server/lib/AppEndpoint";
 import { appSettings } from "app/server/lib/AppSettings";
 import { attachEarlyEndpoints } from "app/server/lib/attachEarlyEndpoints";
@@ -59,7 +58,7 @@ import { createGristJobs, GristJobs } from "app/server/lib/GristJobs";
 import { DocTemplate, GristLoginMiddleware, GristLoginSystem, GristServer, RequestWithGrist,
   ResourceUrlOptions } from "app/server/lib/GristServer";
 import { initGristSessions, SessionStore } from "app/server/lib/gristSessions";
-import { getBootKey, getForceLogin, getHomeUrl, getInService, getSandboxFlavor } from "app/server/lib/gristSettings";
+import { getBootKey, getForceLogin, getHomeUrl, getInService } from "app/server/lib/gristSettings";
 import { IAssistant } from "app/server/lib/IAssistant";
 import { IAuditLogger } from "app/server/lib/IAuditLogger";
 import { IBilling } from "app/server/lib/IBilling";
@@ -69,6 +68,7 @@ import { EmitNotifier, INotifier } from "app/server/lib/INotifier";
 import { InstallAdmin } from "app/server/lib/InstallAdmin";
 import log, { logAsJson } from "app/server/lib/log";
 import { disableCache, noop } from "app/server/lib/middleware";
+import { testSandboxFlavor } from "app/server/lib/NSandbox";
 import { OAuth2Clients } from "app/server/lib/OAuth2Clients";
 import { IPermitStore } from "app/server/lib/Permit";
 import { getAppPathTo, getAppRoot, getInstanceRoot, getUnpackedAppRoot } from "app/server/lib/places";
@@ -1637,41 +1637,19 @@ export class FlexServer implements GristServer {
 
   public async getSandboxInfo(): Promise<SandboxInfo> {
     if (this._sandboxInfo) { return this._sandboxInfo; }
-
-    const flavor = getSandboxFlavor() || "unknown";
-    const info = this._sandboxInfo = {
-      flavor,
-      configured: flavor !== "unsandboxed",
-      functional: false,
-      effective: false,
-      sandboxed: false,
-      lastSuccessfulStep: "none",
-    } as SandboxInfo;
     // Only meaningful on instances that handle documents.
-    if (!this._docManager) { return info; }
-    try {
-      const sandbox = createSandbox({
-        server: this,
-        docId: "test",  // The id is just used in logging - no
-        // document is created or read at this level.
-        preferredPythonVersion: "3",
-      });
-      info.flavor = sandbox.getFlavor();
-      info.configured = info.flavor !== "unsandboxed";
-      info.lastSuccessfulStep = "create";
-      const result = await sandbox.pyCall("get_version");
-      if (typeof result !== "number") {
-        throw new Error(`Expected a number: ${result}`);
-      }
-      info.lastSuccessfulStep = "use";
-      await sandbox.shutdown();
-      info.lastSuccessfulStep = "all";
-      info.functional = true;
-      info.effective = !["skip", "unsandboxed"].includes(info.flavor);
-    } catch (e) {
-      info.error = String(e);
+    if (!this._docManager) {
+      // "unknown" means this server doesn't handle documents, so we didn't test any sandbox.
+      return this._sandboxInfo = {
+        flavor: "unknown",
+        configured: false,
+        functional: false,
+        effective: false,
+        lastSuccessfulStep: "none",
+      } as SandboxInfo;
     }
-    return info;
+    // No flavor argument — uses the deployment's default via create.NSandbox().
+    return this._sandboxInfo = await testSandboxFlavor();
   }
 
   public getInfo(key: string): any {
@@ -2167,7 +2145,7 @@ export class FlexServer implements GristServer {
     // Need to be an admin to change the Grist config
     const requireInstallAdmin = this.getInstallAdmin().getMiddlewareRequireAdmin();
 
-    const configBackendAPI = new ConfigBackendAPI(this.getActivations());
+    const configBackendAPI = new ConfigBackendAPI(this);
     configBackendAPI.addEndpoints(this.app, requireInstallAdmin);
 
     // Some configurations may add extra endpoints. This seems a fine time to add them.

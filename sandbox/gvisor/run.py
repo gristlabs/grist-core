@@ -208,6 +208,9 @@ if args.mount:
 
 for directory in os.listdir('/'):
   directory_realpath = os.path.realpath("/" + directory)
+  # Skip non-directory entries (e.g. /swapfile) since tmpfs can only overlay directories.
+  if not os.path.isdir(directory_realpath):
+    continue
   if directory_realpath not in exceptions and directory_realpath not in preserved:
     tmpfs_mounts.append({
       # This places an empty directory at this destination.

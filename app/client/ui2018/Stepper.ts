@@ -110,16 +110,12 @@ const cssStepIcon = styled("div", `
   font-weight: 700;
   justify-content: center;
   height: ${STEP_ICON_SIZE}px;
-  transition: background 0.3s, border-color 0.3s, color 0.3s, transform 0.2s;
+  transition: background 0.3s, border-color 0.3s, color 0.3s;
   width: ${STEP_ICON_SIZE}px;
 
-  .${cssStep.className}:hover & {
-    transform: scale(1.08);
-  }
-
   .${cssStep.className}-completed & {
-    background: ${tokens.secondary};
-    border-color: ${tokens.secondary};
+    background: ${tokens.primary};
+    border-color: ${tokens.primary};
     color: ${tokens.white};
   }
 

@@ -1,3 +1,6 @@
+/**
+ * Information about the current sandbox environment.
+ */
 export interface SandboxInfo {
   flavor: string;       // the type of sandbox in use (gvisor, unsandboxed, etc)
   functional: boolean;  // whether the sandbox can run code
@@ -6,4 +9,6 @@ export interface SandboxInfo {
   // if sandbox fails to run, this records the last step that worked
   lastSuccessfulStep: "none" | "create" | "use" | "all";
   error?: string;       // if sandbox fails, this stores an error
+  available?: boolean;  // whether the sandbox option is available on the current system
+  unavailableReason?: string; // if not available, why
 }
