@@ -21,7 +21,7 @@ if (typeof window === "undefined") {
   // Minus is different on Gecko:
   // see https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/keyCode
   // and https://github.com/ccampbell/mousetrap/pull/215
-  Mousetrap.addKeycodes({173: "-"});
+  Mousetrap.addKeycodes({173: "-", 93: "menu"});
 
   var customStopCallbacks = new WeakMap();
 
