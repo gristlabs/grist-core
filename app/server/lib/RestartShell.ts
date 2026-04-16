@@ -266,7 +266,10 @@ export class RestartShell {
 
     const exited = new Promise<ExitInfo>((resolve) => {
       c.once("exit", (code, signal) => resolve({ code, signal }));
-      c.once("error", () => resolve({ code: null, signal: null }));
+      c.once("error", (err) => {
+        log.error("RestartShell: child error event:", err);
+        resolve({ code: null, signal: null });
+      });
     });
 
     const ready = new Promise<void>((resolve, reject) => {
@@ -359,15 +362,19 @@ export function shouldRunAsRestartShell() {
   if (isUnderRestartShell()) { return false; }  // never recurse
   const explicit = process.env.GRIST_RESTART_SHELL;
   if (explicit !== undefined && explicit !== "") { return isAffirmative(explicit); }
+  // Tests use SIGSTOP/SIGCONT on the spawned process to pause the server;
+  // under RestartShell that only pauses the shell while the worker keeps
+  // serving, breaking pauseUntil() in browser tests.
+  if (process.env.GRIST_TESTING_SOCKET) { return false; }
   const isElectron = Boolean((process.versions as { electron?: string }).electron);
   return process.platform === "linux" && !isElectron;
 }
 
 /** Bind `server` to `port` on the Grist host; return the actual bound port. */
 async function bindPublicSocket(server: net.Server, port: number): Promise<number> {
+  server.on("error", err => log.error("RestartShell: server error:", err));
   const listening = listenPromise(server);
   server.listen(port, getGristHost());
   await listening;
-  server.on("error", err => log.error("RestartShell: server error:", err));
   return (server.address() as net.AddressInfo).port;
 }
