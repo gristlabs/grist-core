@@ -167,17 +167,19 @@ describe("RestartShell", function() {
     const keepAliveAgent = new http.Agent({ keepAlive: true });
     const client = axios.create({ baseURL: serverUrl, httpAgent: keepAliveAgent });
 
-    const before = await client.get("/status?ready=1");
-    assert.equal(before.status, 200);
-    assert.include(before.data, "alive");
+    try {
+      const before = await client.get("/status?ready=1");
+      assert.equal(before.status, 200);
+      assert.include(before.data, "alive");
 
-    await handle.restart();
+      await handle.restart();
 
-    const after = await client.get("/status?ready=1");
-    assert.equal(after.status, 200);
-    assert.include(after.data, "alive");
-
-    keepAliveAgent.destroy();
+      const after = await client.get("/status?ready=1");
+      assert.equal(after.status, 200);
+      assert.include(after.data, "alive");
+    } finally {
+      keepAliveAgent.destroy();
+    }
   });
 
   it("should serve API requests", async function() {

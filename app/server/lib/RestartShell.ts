@@ -15,7 +15,7 @@ import {
   ShellToWorker,
   WorkerToShell,
 } from "app/server/lib/RestartShellWorker";
-import { exitPromise, listenPromise } from "app/server/lib/serverUtils";
+import { listenPromise } from "app/server/lib/serverUtils";
 import * as shutdownLib from "app/server/lib/shutdown";
 
 import * as childProcess from "child_process";
@@ -43,13 +43,13 @@ export const Deps = {
 // A failed spawn sets a non-zero exitCode and queues shutdown().
 type ShellStatus =
   { kind: "starting" } |
-  { kind: "running", child: childProcess.ChildProcess } |
+  { kind: "running", child: childProcess.ChildProcess, exited: Promise<ExitInfo> } |
   { kind: "restarting" } |
   { kind: "stopping" } |
   { kind: "stopped" };
 
 type SpawnResult =
-  { ok: true, child: childProcess.ChildProcess } |
+  { ok: true, child: childProcess.ChildProcess, exited: Promise<ExitInfo> } |
   { ok: false, err: unknown };
 
 interface ExitInfo { code: number | null; signal: NodeJS.Signals | null; }
@@ -110,7 +110,7 @@ export class RestartShell {
       await this.shutdown();
       throw new Error(`RestartShell: initial spawn failed: ${result.err}`);
     }
-    this._status = { kind: "running", child: result.child };
+    this._status = { kind: "running", child: result.child, exited: result.exited };
   }
 
   public get port(): number { return this._actualPort; }
@@ -129,14 +129,14 @@ export class RestartShell {
 
   private async _doRestart(): Promise<void> {
     if (this._status.kind !== "running") { return; }
-    const oldChild = this._status.child;
+    const { child: oldChild, exited: oldExited } = this._status;
     this._status = { kind: "restarting" };
     log.info("RestartShell: restart requested");
     try {
-      await this._stopChild(oldChild);
+      await this._stopChild(oldChild, oldExited);
       const result = await this._spawnOrFail();
       if (result.ok) {
-        this._status = { kind: "running", child: result.child };
+        this._status = { kind: "running", child: result.child, exited: result.exited };
       } else {
         log.error("RestartShell: restart failed; shutting down");
         this._failFast();
@@ -148,7 +148,7 @@ export class RestartShell {
 
   private async _doShutdown(killSig: NodeJS.Signals): Promise<void> {
     if (this._status.kind === "stopping" || this._status.kind === "stopped") { return; }
-    const liveChild = this._status.kind === "running" ? this._status.child : undefined;
+    const live = this._status.kind === "running" ? this._status : undefined;
     this._status = { kind: "stopping" };
     shutdownLib.removeCleanupHandlers(this);
 
@@ -160,7 +160,7 @@ export class RestartShell {
       // which can take the full _stopChild timeout. The synchronous
       // effect (stop accepting new connections) is all we need.
       this._server.close();
-      if (liveChild) { await this._stopChild(liveChild, killSig); }
+      if (live) { await this._stopChild(live.child, live.exited, killSig); }
     } catch (err) {
       // Defensive: the steps above are designed not to throw. Reach
       // "stopped" anyway so the op queue isn't left broken.
@@ -266,6 +266,7 @@ export class RestartShell {
 
     const exited = new Promise<ExitInfo>((resolve) => {
       c.once("exit", (code, signal) => resolve({ code, signal }));
+      c.once("error", () => resolve({ code: null, signal: null }));
     });
 
     const ready = new Promise<void>((resolve, reject) => {
@@ -301,13 +302,17 @@ export class RestartShell {
 
   private async _stopChild(
     child: childProcess.ChildProcess,
+    exited: Promise<ExitInfo>,
     sig: NodeJS.Signals = "SIGTERM",
     timeoutMs = 10000,
   ): Promise<void> {
-    if (child.exitCode === null) {
-      child.kill(sig);
-      await waitForExit(child, timeoutMs);
-    }
+    if (child.exitCode !== null) { return; }
+    child.kill(sig);
+    const timer = setTimeout(() => {
+      log.warn("RestartShell: child did not exit in time, sending SIGKILL");
+      child.kill("SIGKILL");
+    }, timeoutMs);
+    try { await exited; } finally { clearTimeout(timer); }
   }
 
   /**
@@ -328,7 +333,7 @@ export class RestartShell {
       this._healthy = true;
       // Pre-ready exits reject `ready`; this only fires for post-ready.
       void exited.then(({ code, signal }) => this._onChildExitAfterReady(code, signal));
-      return { ok: true, child };
+      return { ok: true, child, exited };
     } catch (err) {
       log.error("RestartShell: child failed to start:", err);
       return { ok: false, err };
@@ -365,15 +370,4 @@ async function bindPublicSocket(server: net.Server, port: number): Promise<numbe
   await listening;
   server.on("error", err => log.error("RestartShell: server error:", err));
   return (server.address() as net.AddressInfo).port;
-}
-
-/** Wait for `child` to exit; SIGKILL it if it doesn't within timeoutMs. */
-async function waitForExit(child: childProcess.ChildProcess, timeoutMs: number): Promise<void> {
-  if (child.exitCode !== null) { return; }
-  const exited = exitPromise(child).catch(() => { /* treat errors as exit */ });
-  const timer = setTimeout(() => {
-    log.warn("RestartShell: child did not exit in time, sending SIGKILL");
-    child.kill("SIGKILL");
-  }, timeoutMs);
-  try { await exited; } finally { clearTimeout(timer); }
 }
