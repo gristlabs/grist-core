@@ -122,6 +122,10 @@ const DOC_ID_NEW_USER_INFO = process.env.DOC_ID_NEW_USER_INFO;
 // PubSub channel we use to inform all servers when a new available Grist version is detected.
 const latestVersionChannel = "latestVersionAvailable";
 
+// Host that the HTTP server binds to. Shared with RestartShell so
+// shell and child agree on the same value.
+export function getGristHost() { return process.env.GRIST_HOST || "localhost"; }
+
 export interface FlexServerOptions {
   dataDir?: string;
 
@@ -132,6 +136,9 @@ export interface FlexServerOptions {
 
   // Global grist config options
   settings?: IGristCoreConfig;
+
+  // An existing http.Server to use instead of creating a new one.
+  server?: http.Server;
 }
 
 export class FlexServer implements GristServer {
@@ -227,7 +234,7 @@ export class FlexServer implements GristServer {
     this.app.set("port", port);
 
     this.appRoot = getAppRoot();
-    this.host = process.env.GRIST_HOST || "localhost";
+    this.host = getGristHost();
     log.info(`== Grist version is ${version.version} (commit ${version.gitcommit})`);
     this.info.push(["appRoot", this.appRoot]);
     // Initialize locales files.
@@ -374,8 +381,11 @@ export class FlexServer implements GristServer {
   // Get the port number the server listens on.  This may be different from the port
   // number the client expects when communicating with the server if there are intermediaries.
   public getOwnPort(): number {
-    // Get the port from the server in case it was started with port 0.
-    return this.server ? (this.server.address() as AddressInfo).port : this.port;
+    // Prefer server.address() in case we were started with port 0.
+    // Under RestartShell the worker's server never listens, so
+    // address() returns null and this.port is authoritative.
+    const addr = this.server?.address();
+    return (addr && typeof addr === "object") ? addr.port : this.port;
   }
 
   /**
@@ -2018,10 +2028,15 @@ export class FlexServer implements GristServer {
   public async start() {
     if (this._check("start")) { return; }
 
-    const servers = this._createServers();
-    this.server = servers.server;
-    this.httpsServer = servers.httpsServer;
-    await this._startServers(this.server, this.httpsServer, this.name, this.port, true);
+    if (this.options.server) {
+      this.server = this.options.server;
+      this.server.on("request", this.app);
+    } else {
+      const servers = this._createServers();
+      this.server = servers.server;
+      this.httpsServer = servers.httpsServer;
+      await this._startServers(this.server, this.httpsServer, this.name, this.port, true);
+    }
   }
 
   public addNotifier() {
@@ -2809,7 +2824,7 @@ export class FlexServer implements GristServer {
  * better if long imports were made using a mechanism that
  * isn't just a single http request)
  */
-function getServerFlags(): https.ServerOptions {
+export function getServerFlags(): https.ServerOptions {
   const flags: https.ServerOptions = {};
 
   // We used to set the socket timeout to 0, but that has been

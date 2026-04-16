@@ -47,8 +47,13 @@ setDefaultEnv("GRIST_WIDGET_LIST_URL", commonUrls.gristLabsWidgetRepository);
 // It's important that this comes after the setDefaultEnv calls above. MergedServer reads
 // some env vars at import time, including GRIST_WIDGET_LIST_URL.
 // TODO: Fix this reliance on side effects during import.
-// eslint-disable-next-line @import-x/order
+/* eslint-disable @import-x/order */
 import { MergedServer, parseServerTypes } from "app/server/MergedServer";
+import { runRestartShell, shouldRunAsRestartShell } from "app/server/lib/RestartShell";
+import {
+  createRestartShellWorkerServer, isUnderRestartShell, signalRestartShellReady,
+} from "app/server/lib/RestartShellWorker";
+/* eslint-enable @import-x/order */
 
 const G = {
   port: parseInt(process.env.PORT!, 10) || 8484,
@@ -200,6 +205,15 @@ export async function main() {
     console.log("For full logs, re-run with DEBUG=1");
   }
 
+  if (shouldRunAsRestartShell()) {
+    // Shell owns the socket and manages a forked worker. Returns the
+    // RestartShell handle instead of a FlexServer.
+    return runRestartShell({
+      publicPort: G.port,
+      childEntryPoint: __filename,
+    });
+  }
+
   if (process.env.GRIST_PROMCLIENT_PORT) {
     runPrometheusExporter(parseInt(process.env.GRIST_PROMCLIENT_PORT, 10));
   }
@@ -227,14 +241,21 @@ export async function main() {
     log.info("Database setup complete.");
   }
 
-  // Launch single-port, self-contained version of Grist.
-  const mergedServer = await MergedServer.create(G.port, serverTypes);
+  // Under a RestartShell parent we receive connections via IPC;
+  // otherwise MergedServer creates its own http.Server and listens.
+  const serverOpts = isUnderRestartShell() ?
+    { server: createRestartShellWorkerServer() } :
+    {};
+  const mergedServer = await MergedServer.create(G.port, serverTypes, serverOpts);
   await mergedServer.run();
   if (process.env.GRIST_TESTING_SOCKET) {
     await mergedServer.flexServer.addTestingHooks();
   }
   if (process.env.GRIST_SERVE_PLUGINS_PORT) {
     await mergedServer.flexServer.startCopy("pluginServer", parseInt(process.env.GRIST_SERVE_PLUGINS_PORT, 10));
+  }
+  if (isUnderRestartShell()) {
+    await signalRestartShellReady();
   }
 
   return mergedServer.flexServer;
