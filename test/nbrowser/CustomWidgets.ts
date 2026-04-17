@@ -21,6 +21,20 @@ const widgetEndpoint = "/widget";
 // Custom URL label in selectbox.
 const CUSTOM_URL = "Custom URL";
 
+const STATIC_EXT_CUSTOM_CSS_PATH = path.join(getAppRoot(), "static_ext", "custom.css");
+const CUSTOM_CSS_WIDGET_TEST_FIXTURE = path.join(getAppRoot(), "test/fixtures/nbrowser/custom.css");
+
+async function useCustomCss(): Promise<void> {
+  await fse.mkdirp(path.dirname(STATIC_EXT_CUSTOM_CSS_PATH));
+  await fse.copy(CUSTOM_CSS_WIDGET_TEST_FIXTURE, STATIC_EXT_CUSTOM_CSS_PATH);
+  process.env.APP_STATIC_INCLUDE_CUSTOM_CSS = "true";
+}
+
+async function removeCustomCss(): Promise<void> {
+  delete process.env.APP_STATIC_INCLUDE_CUSTOM_CSS;
+  await fse.remove(STATIC_EXT_CUSTOM_CSS_PATH);
+}
+
 // Create some widgets:
 const widget1: ICustomWidget = {
   widgetId: "1",
@@ -332,6 +346,36 @@ describe("CustomWidgets", function() {
 
       // Check that the widget is back to using the GristLight text color.
       assert.equal(await getWidgetColor(), "rgba(38, 38, 51, 1)");
+    });
+
+    it("should support custom CSS", async function() {
+      await useCustomCss();
+      await server.restart();
+      await gu.reloadDoc();
+
+      await driver.switchTo().frame(await getCustomWidgetFrame());
+
+      const [primary, dim, muted, emphasis] = await driver.executeScript<
+        [string, string, string, string]
+      >(function() {
+        const getVar = (name: string) =>
+          window.getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+        return [
+          getVar("--grist-theme-primary"),
+          getVar("--grist-theme-primary-dim"),
+          getVar("--grist-theme-primary-muted"),
+          getVar("--grist-theme-primary-emphasis"),
+        ];
+      });
+      assert.equal(primary, "#ff0000");
+      assert.equal(dim, "#ff0000");
+      assert.equal(muted, "#000000");
+      assert.equal(emphasis, "#b1ffe2");
+
+      await driver.switchTo().defaultContent();
+      await removeCustomCss();
+      await server.restart();
+      await gu.reloadDoc();
     });
 
     it("should support widgets that don't use the plugin api", async () => {
@@ -933,40 +977,6 @@ describe("CustomWidgets", function() {
         const result = await fetch(tokenResult.baseUrl + `/tables/Table1/records?auth=${tokenResult.token}`);
         assert.sameMembers(Object.keys(await result.json()), ["records"]);
       });
-    });
-
-    it("should support custom CSS", async () => {
-      try {
-        // Enable custom CSS
-        process.env.APP_STATIC_INCLUDE_CUSTOM_CSS = "true";
-        await server.restart();
-        await gu.reloadDoc();
-
-        widgets = [widgetWithTheme];
-        await reloadWidgets();
-        await gu.toggleSidePanel("right", "open");
-        await recreatePanel();
-        await gu.setCustomWidget(widgetWithTheme.name);
-
-        // Check that the widget iframe has the custom CSS link tag
-        const iframe = await getCustomWidgetFrame();
-        await driver.switchTo().frame(iframe);
-        const customCssLink = await driver.find("link#grist-custom-css");
-        assert.isTrue(await customCssLink.isPresent());
-
-        // Check the widget-specific data attribute is there in the iframe document
-        const inWidgetAttribute = await driver.executeScript<string>(
-          "return document.documentElement.getAttribute('data-grist-widget')",
-        );
-        assert.equal(inWidgetAttribute, "true");
-
-        await driver.switchTo().defaultContent();
-      } finally {
-        // Restore old env and restart
-        delete process.env.APP_STATIC_INCLUDE_CUSTOM_CSS;
-        await server.restart();
-        await gu.reloadDoc();
-      }
     });
   });
 

@@ -4,6 +4,7 @@ import * as commands from "app/client/components/commands";
 import { GristDoc } from "app/client/components/GristDoc";
 import { hooks } from "app/client/Hooks";
 import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
+import { withCustomCssVars } from "app/client/lib/customCssParser";
 import { makeTestId } from "app/client/lib/domUtils";
 import { sanitizeHttpUrl } from "app/client/lib/sanitizeUrl";
 import { ColumnRec, ViewSectionRec } from "app/client/models/DocModel";
@@ -766,19 +767,15 @@ export class ThemeNotifier extends BaseEventSource {
   private _update({ fromReady}: { fromReady?: boolean } = {}) {
     if (this.isDisposed()) { return; }
 
+    let themePayload = convertThemeKeysToCssVars(gristThemeObs().get());
+    if (getGristConfig().enableCustomCss) {
+      themePayload = withCustomCssVars(themePayload);
+    }
+
     this._notify({
-      theme: convertThemeKeysToCssVars(gristThemeObs().get()),
+      theme: themePayload,
       fromReady,
     });
-
-    const gristConfig = getGristConfig();
-    if (gristConfig.enableCustomCss && fromReady) {
-      // We tell the plugin API to load our instance's custom CSS file.
-      // That way, we don't care about where the grist-plugin-api.js file is hosted.
-      this._notify({
-        customCssUrl: new URL("custom.css", document.querySelector("base")!.href).href,
-      });
-    }
   }
 }
 

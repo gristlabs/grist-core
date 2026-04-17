@@ -446,14 +446,6 @@ function onThemeChange(callback: (theme: any) => unknown) {
   });
 }
 
-function onCustomCss(callback: (customCssUrl: string) => unknown) {
-  on("message", function(msg) {
-    if (msg.customCssUrl) {
-      callback(msg.customCssUrl);
-    }
-  });
-}
-
 /**
  * Calling `addImporter(...)` adds a safeBrowser importer. It is a short-hand for forwarding calls
  * to an `ImportSourceAPI` implementation registered in the file at `path`. It takes care of
@@ -599,21 +591,6 @@ onThemeChange((newTheme) => {
   attachCssThemeVars(_theme);
 });
 
-onCustomCss((customCssUrl) => {
-  const customCssLink = document.getElementById("grist-custom-css");
-  if (customCssLink) {
-    (customCssLink as HTMLLinkElement).href = customCssUrl;
-    return;
-  }
-  const link = document.createElement("link");
-  link.id = "grist-custom-css";
-  link.rel = "stylesheet";
-  link.href = customCssUrl;
-  document.head.append(link as Node);
-  // This data-attribute helps the custom CSS authors apply widget-specific styles if needed.
-  document.documentElement.setAttribute("data-grist-widget", "true");
-});
-
 function attachCssThemeVars({ appearance, name, colors: cssVars }: any) {
   // Prepare the custom properties needed for applying the theme.
   const properties = Object.entries(cssVars)
@@ -638,6 +615,7 @@ ${properties.join("\n")}
   // Add data-attributes to let plugins easily identify theme name and appearance with CSS.
   document.documentElement.setAttribute("data-grist-theme", name);
   document.documentElement.setAttribute("data-grist-appearance", appearance);
+  document.documentElement.setAttribute("data-grist-widget", "true");
 }
 
 function getCssScrollbarProperties(appearance: "light" | "dark") {
