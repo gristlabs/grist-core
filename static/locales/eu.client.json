@@ -65,12 +65,17 @@
         "Default resource missing in resource map": "Baliabide-mapan lehenetsitako baliabidea falta da",
         "Not a valid user attribute": "Ez da baliozko erabiltzaile atributua",
         "Resource missing in resource map: {{resourceKey}}": "Baliabidea ez dago baliabide-mapan: {{resourceKey}}",
-        "## Access Rules\n\nBasic access to this document is controlled using the 'Manage Users' option in the 'Share' menu, where you can assign collaborator roles such as Owner, Editor, or Viewer.\n\nFor more granular control, you can create Access Rules to limit who can view or edit specific\ntables, columns, or rows — useful for sensitive data or role-based permissions.\n[Learn more.]({{helpAccessRules}})": "## Sarbide-arauak\n\nDokumentu honetarako oinarrizko sarbidea 'Partekatu' menuko 'Kudeatu erabiltzaileak' aukeraren bidez kontrolatzen da. Kolaboratzaile-rolak eslei ditzakezu, hala nola jabea, editorea edo ikuslea.\n\nKontrol pikordunagoa lortzeko, Sarbide-arauak sor ditzakezu, taula, zutabe edo errenkada zehatzak nork ikusi\nedo editatu ditzakeen mugatzeko — erabilgarria datu sentikorretarako edo roletan oinarritutako baimenetarako.\n[Ikasi gehiago.]({{helpAccessRules}})",
+        "## Access Rules\n\nBasic access to this document is controlled using the 'Manage Users' option in the 'Share' menu, where you can assign collaborator roles such as Owner, Editor, or Viewer.\n\nFor more granular control, you can create Access Rules to limit who can view or edit specific\ntables, columns, or rows — useful for sensitive data or role-based permissions.\n[Learn more.]({{helpAccessRules}})": "## Sarbide-arauak\n\nDokumentu honetarako oinarrizko sarbidea 'Partekatu' menuko 'Kudeatu erabiltzaileak' aukeraren bidez kontrolatzen da. Kolaboratzaile-rolak eslei ditzakezu, hala nola jabea, editorea edo ikuslea.\n\nKontrol pikordunagoa lortzeko, Sarbide-arauak sor ditzakezu, taula, zutabe edo errenkada zehatzak nork ikusi\nedo editatu ditzakeen mugatzeko — erabilgarria datu sentikorretarako edo roletan oinarritutako baimenetarako.\n[Irakurri gehiago.]({{helpAccessRules}})",
         "Permission to access the document in full by all users": "Erabiltzaile guztiek dokumentua osorik eskuratzeko baimena",
         "Permission to access the document in full by unrestricted users": "Mugatu gabeko erabiltzaileek dokumentua osorik eskuratzeko baimena",
         "Restrict non-Owners from copying or downloading the full document. Note: this only affects users without read restrictions, since others will be restricted regardless of this setting.": "Eragotzi jabe ez direnei dokumentu osoa kopiatzea edo deskargatzea. Oharra: honek irakurketa-murrizketarik gabeko erabiltzaileei bakarrik eragiten die, beste batzuk murriztuta egongo baitira ezarpen hau kontuan hartu gabe.",
         "This options should be off if Editors' access is to be limited. ": "Aukera honek desaktibatuta egon behar du Editoreen sarbidea mugatua izango bada. ",
-        "Circumvent all read restrictions and allow everyone to copy the entire document, or view it in full in fiddle mode. Only use for for examples and templates, not for documents with sensitive data.": "Saihestu irakurtzeko muga guztiak eta utzi guztiei dokumentu osoa kopiatzen, edo osorik ikusteko jolas egiteko moduan. Adibide eta txantiloietarako erabili bakarrik, ez datu sentikorrak dituzten dokumentuetarako."
+        "Circumvent all read restrictions and allow everyone to copy the entire document, or view it in full in fiddle mode. Only use for for examples and templates, not for documents with sensitive data.": "Saihestu irakurtzeko muga guztiak eta utzi guztiei dokumentu osoa kopiatzen, edo osorik ikusteko jolas egiteko moduan. Adibide eta txantiloietarako erabili bakarrik, ez datu sentikorrak dituzten dokumentuetarako.",
+        "Invalid user attribute rule: {{prop}} must be set": "Erabiltzaile-atributuaren araua ez da baliozkoa: beharrezkoa da {{prop}} ezartzea",
+        "Invalid user attribute to look up": "Erabiltzaile-atributua ez da baliozkoa bilaketa egiteko",
+        "No columns listed in a column rule for table {{tableId}}": "Ez da zerrendatu zutaberik {{tableId}} taularako zutabe-arau batean",
+        "Trying to add TableRules for existing table {{tableId}}": "Lehendik dagoen {{tableId}} taularako TableRules gehitzen saiatzen",
+        "Use a simple attribute of user.LinkKey, e.g. user.LinkKey.something": "Erabili atributu sinple bat user.LinkKey-rako, adibidez user.LinkKey.zerbait"
     },
     "AccountPage": {
         "API": "APIa",
@@ -107,7 +112,7 @@
         "Activation": "Aktibazioa",
         "Billing account": "Fakturazio-kontua",
         "Toggle Mobile Mode": "Sakelako modua bai/ez",
-        "Upgrade Plan": "Hobetu plana"
+        "Upgrade Plan": "Kontratatu plan garestiagoa"
     },
     "ViewAsDropdown": {
         "View as": "Ikusi honela",
@@ -121,7 +126,8 @@
         "Table {{tableId}} was subsequently removed in action #{{actionNum}}": "{{tableId}} taula #{{actionNum}} ekintza eta gero kendu da",
         "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "{{colId}} zutabea #{{action.actionNum}} ekintza eta gero kendu da",
         "History blocked because of access rules.": "Historia blokeatuta dago sarbide-arauak direla-eta.",
-        "This row was subsequently removed in action {{actionNum}}": "Errenkada hau {{actionNum}} ekintzaren ondorioz kendu da"
+        "This row was subsequently removed in action {{actionNum}}": "Errenkada hau {{actionNum}} ekintzaren ondorioz kendu da",
+        "Column {{colId}} was subsequently removed in action #{{actionNum}}": "{{colId}} zutabea #{{actionNum}} ekintzaren ondorioz kendu da"
     },
     "AddNewButton": {
         "Add new": "Gehitu berria"
@@ -219,7 +225,7 @@
         "Widget does not require any permissions.": "Widgetak ez du baimenik behar.",
         "Clear selection": "Garbitu hautaketa",
         "Pick a {{columnType}} column": "Aukeratu {{columnType}} zutabe bat",
-        "Learn more about custom widgets": "Ikasi gehiago widget pertsonalizatuei buruz",
+        "Learn more about custom widgets": "Irakurri gehiago widget pertsonalizatuei buruz",
         "No document access": "Sarbiderik ez dokumentura",
         "Widget needs to {{read}} the current table.": "Widgetak uneko taula {{read}} behar du.",
         "Select Custom Widget": "Hautatu widget pertsonalizatua",
@@ -291,18 +297,18 @@
         "Trash is empty.": "Zakarrontzia hutsik dago.",
         "Unpin Document": "Utzi dokumentua finkatzeari",
         "(The organization needs a paid plan)": "(Erakundeak plan ordaindua behar du)",
-        "Current workspace": "Uneko lan-eremua",
+        "Current workspace": "Uneko lan-area",
         "Deleted {{at}}": "{{at}} ezabatua",
         "Edited {{at}}": "{{at}} editatua",
         "Examples & Templates": "Adibideak & Txantiloiak",
-        "Move {{name}} to workspace": "Mugitu {{name}} lan-eremura",
+        "Move {{name}} to workspace": "Mugitu {{name}} lan-areara",
         "Permanently Delete \"{{name}}\"?": "Betiko ezabatu \"{{name}}\"?",
         "Restore": "Leheneratu",
-        "To restore this document, restore the workspace first.": "Dokumentu hau leheneratzeko, leheneratu lan-eremua aurrenik.",
-        "Workspace not found": "Ez da lan-eremua aurkitu",
+        "To restore this document, restore the workspace first.": "Dokumentu hau leheneratzeko, leheneratu lan-area aurrenik.",
+        "Workspace not found": "Ez da lan-area aurkitu",
         "You are on the {{siteName}} site. You also have access to the following sites:": "{{siteName}} gunean zaude. Honako gune hauetara ere sar zaitezke:",
         "You are on your personal site. You also have access to the following sites:": "Zure leku pertsonalean zaude. Honako gune hauetara ere sar zaitezke:",
-        "You may delete a workspace forever once it has no documents in it.": "Lan-eremu bat betiko ezabatzeko ezin du barruan dokumenturik izan.",
+        "You may delete a workspace forever once it has no documents in it.": "Lan-area bat betiko ezabatzeko ezin du barruan dokumenturik izan.",
         "Create my first document": "Sortu nire lehen dokumentua",
         "Any documents created in this site will appear here.": "Gune honetan sortutako dokumentuak hemen agertuko dira.",
         "personal site": "gune pertsonala",
@@ -374,7 +380,7 @@
         "Manage webhooks": "Kudeatu webhookak",
         "Force reload the document while timing formulas, and show the result.": "Behartu dokumentua berriro kargatzera formulak kronometratu bitartean, eta erakutsi emaitzak.",
         "Notify other services on doc changes": "Jakinarazi beste zerbitzu batzuei dokumentuak aldatzerakoan",
-        "python2 (legacy)": "python2 (legatua)",
+        "python2 (legacy)": "python2 (zaharkitua)",
         "python3 (recommended)": "python3 (gomendatua)",
         "Time reload": "Kronometratu birkarga",
         "Normal document behavior. All users work on the same copy of the document.": "Dokumentu arruntaren jokaera. Erabiltzaile guztiek egiten dute lan dokumentuaren kopia berberean.",
@@ -408,7 +414,7 @@
         "**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).": "**Lehendik dauden fitxategi erantsi batzuk [barnekoak]({{internalLink}}) dira oraindik** (SQLite fitxategian gordeta).",
         "Internal": "Barnekoa",
         "Transfer in progress": "Transferentzia abian da",
-        "[Learn more.]({{learnLink}})": "[Ikasi gehiago.]({{learnLink}})",
+        "[Learn more.]({{learnLink}})": "[Irakurri gehiago.]({{learnLink}})",
         "Upload": "Igo",
         "Upload missing attachments": "Igo falta diren eranskinak",
         "Uploading...": "Igotzen…",
@@ -567,7 +573,7 @@
         "Browse Templates": "Arakatu txantiloiak",
         "Create empty document": "Sortu dokumentu hutsa",
         "Invite Team Members": "Gonbidatu taldeko kideak",
-        "Visit our {{link}} to learn more.": "Bisitatu {{link}} gehiago ikasteko.",
+        "Visit our {{link}} to learn more.": "Bisitatu {{link}} gehiago irakurtzeko.",
         "Welcome to Grist!": "Ongi etorri Grist-era!",
         "Welcome to Grist, {{name}}!": "Ongi etorri Grist-era, {{name}}!",
         "personal site": "gune pertsonala",
@@ -576,16 +582,16 @@
         "Welcome to {{- orgName}}": "Ongi etorri {{- orgName}}(e)ra",
         "Sign in": "Hasi saioa",
         "To use Grist, please either sign up or sign in.": "Grist erabiltzeko eman izena edo hasi saioa.",
-        "Visit our {{link}} to learn more about Grist.": "Bisitatu {{link}} Grist-i buruz gehiago ikasteko.",
+        "Visit our {{link}} to learn more about Grist.": "Bisitatu {{link}} Grist-i buruz gehiago jakiteko.",
         "Help Center": "Laguntza-gunea",
         "Import document": "Inportatu dokumentua",
         "Welcome to {{orgName}}": "Ongi etorri {{orgName}}(e)ra",
         "Sign up": "Eman izena",
         "Any documents created in this site will appear here.": "Hemen agertuko dira gune honetan sortzen diren dokumentuak.",
         "Get started by creating your first Grist document.": "Has zaitez zure lehen Grist dokumentua sortuz.",
-        "This workspace is empty.": "Lan-eremu hau hutsik dago.",
+        "This workspace is empty.": "Lan-area hau hutsik dago.",
         "You have read-only access to this site. Currently there are no documents.": "Soilik irakurtzeko sarbidea duzu gune honetan. Unean ez dago dokumenturik.",
-        "Learn more in our {{helpCenterLink}}.": "Informazio gehiago gure {{helpCenterLink}}n.",
+        "Learn more in our {{helpCenterLink}}.": "Irakurri gehiago gure {{helpCenterLink}}n.",
         "Get started by exploring templates, or creating your first Grist document.": "Has zaitez txantiloiak arakatuz edo zure lehen Grist dokumentua sortuz.",
         "Get started by inviting your team and creating your first Grist document.": "Has zaitez zure taldea gonbidatuz eta zure lehen Grist dokumentua sortuz.",
         "Interested in using Grist outside of your team? Visit your free ": "Grist zure taldetik kanpo erabili nahi duzu? Bisitatu zure doako ",
@@ -603,9 +609,9 @@
         "Terms of service": "Zerbitzuaren baldintzak",
         "Access Details": "Sarbidearen xehetasunak",
         "Create empty document": "Sortu dokumentu hutsa",
-        "Create workspace": "Sortu lan-eremua",
-        "Workspace will be moved to Trash.": "Lan-eremua zakarrontzira mugituko da.",
-        "Workspaces": "Lan-eremuak",
+        "Create workspace": "Sortu lan-area",
+        "Workspace will be moved to Trash.": "Lan-area zakarrontzira mugituko da.",
+        "Workspaces": "Lan-areak",
         "Delete {{workspace}} and all included documents?": "{{workspace}} eta barne dituen dokumentu guztiak ezabatu?",
         "Tutorial": "Tutoriala",
         "Grist Resources": "Gristen baliabideak",
@@ -629,12 +635,12 @@
         "Original Has Modifications": "Jatorrizkoak moldaketak ditu",
         "Enter document name": "Sartu dokumentuaren izena",
         "Sign up": "Eman izena",
-        "No destination workspace": "Ez dago helmugako lan-eremurik",
+        "No destination workspace": "Ez dago helburuko lan-arearik",
         "Original Looks Unrelated": "Badirudi jatorrizkoak ez duela zerikusirik",
         "Overwrite": "Gainidatzi",
-        "Workspace": "Lan-eremua",
+        "Workspace": "Lan-area",
         "You do not have write access to this site": "Ez duzu gune honetarako idazketa-sarbiderik",
-        "You do not have write access to the selected workspace": "Ez duzu hautatutako lan-eremurako idazketa-sarbiderik",
+        "You do not have write access to the selected workspace": "Ez duzu hautatutako lan-arearako idazketa-sarbiderik",
         "Download document and history": "Jaitsi dokumentu osoa eta historia",
         "However, it appears to be already identical.": "Hala ere, badirudi lehendik berdina dela.",
         "Include the structure without any of the data.": "Sartu egitura, daturik gabe.",
@@ -650,10 +656,11 @@
         "Download attachments": "Deskargatu eranskinak",
         "Download full document and history": "Deskargatu dokumentu osoa eta historia",
         "Format:": "Formatua:",
-        "Learn more": "Ikasi gehiago",
+        "Learn more": "Irakurri gehiago",
         "download attachments": "deskargatu eranskinak",
         "Download an archive of all the attachments present in this document.": "Deskargatu artxibo bat dokumentu honetan dauden eranskinekin.",
-        "If you're planning to upload this document to a Grist installation, you will need the archive in the \".tar\" format to restore attachments. ": "Dokumentu hau Grist instantzia batera igotzeko asmoa baduzu, .tar formatuan beharko duzu artxiboa eranskinak leheneratu ahal izateko. "
+        "If you're planning to upload this document to a Grist installation, you will need the archive in the \".tar\" format to restore attachments. ": "Dokumentu hau Grist instantzia batera igotzeko asmoa baduzu, .tar formatuan beharko duzu artxiboa eranskinak leheneratu ahal izateko. ",
+        "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "Erantsitako fitxategiak kanpokoak dira eta ez daude deskarga honen barnean. Dokumentua Grist-en beste instalazio batera igotzen baduzu, {{downloadLink}} egin beharko duzu bereizita. "
     },
     "NotifyUI": {
         "Ask for help": "Eskatu laguntza",
@@ -665,7 +672,7 @@
         "Renew": "Berriztu",
         "Report a problem": "Eman akats baten berri",
         "Manage billing": "Kudeatu fakturazioa",
-        "Upgrade Plan": "Hobetu plana"
+        "Upgrade Plan": "Kontratatu plan garestiagoa"
     },
     "OnBoardingPopups": {
         "Finish": "Amaitu",
@@ -709,7 +716,7 @@
         "Sort & filter": "Sailkatu eta Iragazi",
         "Theme": "Gaia",
         "You do not have edit access to this document": "Ez duzu dokumentu hau editatzeko sarbiderik",
-        "Reset form": "Berrezarri formularioa",
+        "Reset form": "Berrezarri inprimakia",
         "Field title": "Eremuko izena",
         "Hidden field": "Ezkutuko eremua",
         "Layout": "Antolaketa",
@@ -742,7 +749,7 @@
         "Redirect automatically after submission": "Birbideratu automatikoki bidali ondoren",
         "Submission": "Bidalketa",
         "Table column name": "Taularen zutabearen izena",
-        "Select a field in the form widget to configure.": "Hautatu widgetaren formularioko eremu bat konfiguratzeko.",
+        "Select a field in the form widget to configure.": "Hautatu inprimakiko widgetaren eremu bat konfiguratzeko.",
         "Submit button label": "Bidaltzeko botoiaren testua",
         "Success text": "Bidali denean erakusteko testua",
         "WIDGET TITLE": "WIDGETAREN IZENA",
@@ -855,7 +862,9 @@
         "Suggest changes": "Iradoki aldaketak"
     },
     "TopBar": {
-        "Manage team": "Kudeatu taldea"
+        "Manage team": "Kudeatu taldea",
+        "Redo": "Berregin",
+        "Undo": "Desegin"
     },
     "TriggerFormulas": {
         "Cancel": "Utzi",
@@ -878,7 +887,7 @@
         "In full": "Osorik"
     },
     "ViewConfigTab": {
-        "Form": "Formularioa",
+        "Form": "Inprimakia",
         "Section: ": "Atala: ",
         "Advanced settings": "Ezarpen aurreratuak",
         "Big tables may be marked as \"on-demand\" to avoid loading them into the data engine.": "Taula handiak \"nahieran\" gisa marka litezke datu-motorrean kargatzea saihesteko.",
@@ -888,7 +897,8 @@
         "Plugin: ": "Plugina: ",
         "Unmark On-Demand": "Utzi nahieran egiteari",
         "Blocks": "Blokeak",
-        "⚠️ Deprecated Feature": "⚠️ Zaharkitutako ezaugarria"
+        "⚠️ Deprecated Feature": "⚠️ Zaharkitutako ezaugarria",
+        "On-Demand Tables have been deprecated due to lack of functionality and usability concerns.": "Nahieran taulak erabiltzeari utzi zaio, funtzionaltasun urrikoak izateagatik eta erabilgarritasunari buruzko zalantzak sortzeagatik."
     },
     "ViewLayoutMenu": {
         "Advanced sort & filter": "Sailkatu eta Iragazi aurreratua",
@@ -897,7 +907,7 @@
         "Open configuration": "Ireki konfigurazioa",
         "Show raw data": "Erakutsi datu gordinak",
         "Add to page": "Gehitu orrira",
-        "Create a form": "Sortu formularioa",
+        "Create a form": "Sortu inprimakia",
         "Print widget": "Inprimatu widgeta",
         "Widget options": "Widgetaren aukerak",
         "Collapse widget": "Tolestu widgeta",
@@ -929,8 +939,8 @@
         "Hidden {{label}}": "{{label}} ezkutatuta",
         "Visible {{label}}": "{{label}} ikusgai",
         "Cannot drop items into Hidden Fields": "Ezin dira elementuak ezkutatutako eremuetan jarri",
-        "Hide {{label}} (batch mode)": "Ezkutatu {{label}} (batch mode)",
-        "Show {{label}} (batch mode)": "Erakutsi {{label}} (batch mode)"
+        "Hide {{label}} (batch mode)": "Ezkutatu {{label}} (batch modua)",
+        "Show {{label}} (batch mode)": "Erakutsi {{label}} (batch modua)"
     },
     "WelcomeQuestions": {
         "Education": "Hezkuntza",
@@ -973,7 +983,7 @@
         "Sign up": "Eman izena",
         "Your account has been deleted.": "Zure kontua ezabatu da.",
         "An unknown error occurred.": "Errore ezezagun bat gertatu da.",
-        "Form not found": "Ez da formularioa aurkitu",
+        "Form not found": "Ez da inprimakia aurkitu",
         "Access denied{{suffix}}": "Sarbidea ukatu da{{suffix}}",
         "Error{{suffix}}": "Errorea{{suffix}}",
         "Page not found{{suffix}}": "Ez da orria aurkitu {{suffix}}",
@@ -982,7 +992,7 @@
         "The requested page could not be found.{{separator}}Please check the URL and try again.": "Ezin izan da eskatutako orria aurkitu.{{separator}}Egiaztatu URLa eta saiatu berriro.",
         "You are now signed out.": "Saioa amaitu duzu.",
         "You are signed in as {{email}}. You can sign in with a different account, or ask an administrator for access.": "{{email}} gisa hasi duzu saioa. Beste kontu batekin hasi dezakezu saioa, edo administratzaile bati sarbidea eskatu.",
-        "Build your own form": "Sortu zure formularioa",
+        "Build your own form": "Sortu zure inprimakia",
         "Powered by": "Honi esker:",
         "Account deleted{{suffix}}": "Kontua ezabatu da{{suffix}}",
         "Failed to log in.{{separator}}Please try again or contact support.": "Saioaren hasierak huts egin du.{{separator}}Saiatu berriro edo jarri harremanetan laguntza eskatzeko.",
@@ -1012,8 +1022,8 @@
         "Choice": "Aukera",
         "Choice List": "Aukeren zerrenda",
         "Attachment": "Eranskina",
-        "* Workspaces are available on team plans. ": "* Lan-eremuak TEAM planean daude eskuragarri. ",
-        "Upgrade now": "Hobetu orain",
+        "* Workspaces are available on team plans. ": "* Lan-areak TEAM planean daude eskuragarri. ",
+        "Upgrade now": "Kontratatu plan garestiagoa orain",
         "Numeric": "Zenbakizkoa",
         "Integer": "Osoa",
         "DateTime": "Data eta Ordua",
@@ -1023,7 +1033,9 @@
         "Custom": "Norberak ezarritakoa",
         "By Name": "Izenaren arabera",
         "By Date Modified": "Moldatutako dataren arabera",
-        "Light": "Argia"
+        "Light": "Argia",
+        "Dark": "Iluna",
+        "Light (High Contrast)": "Argia (kontraste handia)"
     },
     "modals": {
         "Cancel": "Utzi",
@@ -1071,7 +1083,8 @@
         "true": "egia",
         "Field Format": "Eremuaren formatua",
         "Multi line": "Lerro bat baino gehiago",
-        "Single line": "Lerro bakarra"
+        "Single line": "Lerro bakarra",
+        "Maximum characters": "Gehienezko karaktereak"
     },
     "ACLUsers": {
         "View as": "Ikusi honela",
@@ -1197,7 +1210,7 @@
         "Make it relational! Use the {{ref}} type to link tables. ": "Egizu erlazional! Erabili {{ref}} mota taulak lotzeko. ",
         "Use {{helpCenter}} for documentation or questions.": "Erabili {{helpCenter}} dokumentaziorako edo galderetarako.",
         "Use {{addNew}} to add widgets, pages, or import more data. ": "Erabili {{addNew}} widgetak edo orriak gehitzeko, edo datu gehiago inportatzeko. ",
-        "creator panel": "sortzailearen mahaigaina",
+        "creator panel": "sortzailearen panela",
         "Start with {{equal}} to enter a formula.": "Hasi {{equal}}ekin formula bat sartzeko.",
         "Set formatting options, formulas, or column types, such as dates, choices, or attachments. ": "Ezarri formatu-aukerak, formulak, edo zutabe-motak; datak, aukerak edo eranskinak adibidez. ",
         "Toggle the {{creatorPanel}} to format columns, ": "Erabili {{creatorPanel}} zutabeei formatua emateko, ",
@@ -1208,14 +1221,14 @@
         "Language": "Hizkuntza"
     },
     "GristTooltips": {
-        "Learn more.": "Ikasi gehiago.",
+        "Learn more.": "Irakurri gehiago.",
         "Pinning Filters": "Finkatutako iragazkiak",
         "Add new": "Gehitu berria",
-        "Forms are here!": "Hemen dira formularioak!",
+        "Forms are here!": "Hemen dira inprimakiak!",
         "Updates every 5 minutes.": "5 minuturo eguneratzen da.",
         "Calendar": "Egutegia",
         "Example: {{example}}": "Adibidea: {{example}}",
-        "Learn more": "Ikasi gehiago",
+        "Learn more": "Irakurri gehiago",
         "Editing Card Layout": "Txartelen antolaketa editatzen",
         "Formulas that trigger in certain cases, and store the calculated value as data.": "Kasu jakin batzuetan abiarazten diren formulak, eta kalkulatutako balioak datu gisa gordetzen dute.",
         "Link your new widget to an existing widget on this page.": "Lotu zure widget berria orrialde honetan lehendik dagoen widget batekin.",
@@ -1229,12 +1242,12 @@
         "They allow for one record to point (or refer) to another.": "Erregistro batek beste bati erreferentzi egiteko (edo aipatzeko) aukera ematen dute.",
         "You can filter by more than one column.": "Zutabe bat baino gehiago erabiliz iragaz dezakezu.",
         "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "Formulek Excel funtzio asko onartzen dituzte, Python sintaxi osoa, eta AA laguntzaile dakarte.",
-        "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Sortu formulario sinpleak Grist-en eta partekatu klik batekin gure widget berriari esker. {{learnMoreButton}}",
+        "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Sortu inprimaki sinpleak Grist-en eta partekatu klik batekin gure widget berriari esker. {{learnMoreButton}}",
         "These rules are applied after all column rules have been processed, if applicable.": "Arau horiek zutabeko arau guztiak prozesatu ondoren aplikatzen dira, badagokio.",
         "Filter displayed dropdown values with a condition.": "Iragazi baldintza batekin goitibeherak erakusten dituen balioak.",
         "Apply conditional formatting to cells in this column when formula conditions are met.": "Aplikatu baldintza-formatua zutabe honetako gelaxkei formulako baldintzak betetzen direnean.",
         "Apply conditional formatting to rows based on formulas.": "Aplikatu baldintza-formatua formuletan oinarritzen diren errenkadei.",
-        "Click the Add new button to create new documents or workspaces, or import data.": "Egin klik \"Gehitu berria\" botoian dokumentu edo lan-eremu berriak sortzeko, edo datuak inportatzeko.",
+        "Click the Add new button to create new documents or workspaces, or import data.": "Egin klik \"Gehitu berria\" botoian dokumentu edo lan-area berriak sortzeko, edo datuak inportatzeko.",
         "Click on “Open row styles” to apply conditional formatting to rows.": "Egin klik \"Ireki errenkada-estiloak\"-en errenkadei formatu-baldintzak aplikatzeko.",
         "Nested Filtering": "iragazki habiratuak",
         "Pinned filters are displayed as buttons above the widget.": "Finkatutako iragazkiak botoi gisa ageri dira widgetaren gainean.",
@@ -1274,7 +1287,7 @@
         "This limitation occurs when one column in a two-way reference has the Reference type.": "Muga hau bi noranzkoko erreferentzia bateko zutabetako bat erreferentzia mota gisa konfiguratuta dagoenean ematen da.",
         "Two-way references are not currently supported for Formula or Trigger Formula columns": "Bi noranzkoko erreferentziak ez dira unean bateragarriak Formula edo formula-abiarazle zutabeekin.",
         "The preview below this header shows how the selected user will see this document": "Hautatutako erabiltzaileak dokumentua nola ikusiko duen erakusten du goiburuaren azpiko aurrebistak",
-        "[Learn more.]({{link}})": "[Ikasi gehiago.]({{link}})",
+        "[Learn more.]({{link}})": "[Irakurri gehiago.]({{link}})",
         "Summary tables can only contain formula columns.": "Laburpen-taulek formula-zutabeak besterik ezin dituzte eduki.",
         "The new Grist Assistant is here!": "Hemen da Grist Laguntzaile berria!",
         "Manage users and resources in a Grist installation.": "Kudeatu Grist instalazio bateko erabiltzaileak eta baliabideak.",
@@ -1288,7 +1301,8 @@
         "Unpin to hide the button while keeping the filter.": "Utzi finkatzeari botoia ezkutatzeko iragazkia mantendu bitartean.",
         "Creates a new Reference List column in the target table, with both this and the target columns editable and synchronized.": "Erreferentzia-zerrenda zutabe berri bat sortzen du helburu-taulan, zutabe editagarri eta sinkronizatuekin.",
         "Internal storage means all attachments are stored in the document SQLite file, while external storage indicates all attachments are stored in the same external storage.": "Barne-biltegiratzeak esan nahi du fitxategi erantsi guztiak SQLite dokumentu-fitxategian gordetzen direla, eta kanpo-biltegiratzeak, berriz, fitxategi erantsi guztiak kanpo-biltegi berean gordetzen direla adierazten du.",
-        "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.": "Honek kanpoko biltegiratzean falta diren eranskinak gehitzeko aukera ematen du, adibidez inportatutako dokumentu batean. Grist-etik deskargatutako eranskinen .tar fitxategiak bakarrik igo daitezke hemen."
+        "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.": "Honek kanpoko biltegiratzean falta diren eranskinak gehitzeko aukera ematen du, adibidez inportatutako dokumentu batean. Grist-etik deskargatutako eranskinen .tar fitxategiak bakarrik igo daitezke hemen.",
+        "This form is created by a Grist user, and is not endorsed by Grist Labs, Inc. or any party providing this service. For your security, do not submit passwords through this form, and be careful when clicking embedded links. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "Inprimaki hau Grist-en erabiltzaile batek sortu du, eta ez du Grist Labs, Inc.-ek edo zerbitzu hau eskaintzen duenak babesten. Zure segurtasunerako, ez bidali pasahitzik inprimaki honen bidez, eta kontuz ibili txertatutako esteketan klik egitean. Eman inprimaki maltzurren berri: [{{mail}}](mailto:{{mail}})."
     },
     "ColumnTitle": {
         "Column ID copied to clipboard": "Zutabearen IDa arbelera kopiatu da",
@@ -1332,7 +1346,8 @@
         "Webhook Id": "Webhook IDa",
         "Ready Column": "Zutabe abiarazlea",
         "Filter for changes in these columns (semicolon-separated ids)": "Iragazki aldaketetarako zutabe hauetan (\";\" bidez bareizi IDak)",
-        "Header Authorization": "Goiburuko baimena"
+        "Header Authorization": "Goiburuko baimena",
+        "Webhooks Unavailable In Unsaved Document Copies": "Webhook-ak ez daude erabilgai gorde gabeko dokumentuen kopietan"
     },
     "FormulaAssistant": {
         "Ask the bot.": "Galdetu BOTari.",
@@ -1345,7 +1360,7 @@
         "AI Assistant": "AA laguntzailea",
         "Apply": "Aplikatu",
         "Cancel": "Utzi",
-        "Learn more": "Ikasi gehiago",
+        "Learn more": "Irakurri gehiago",
         "Clear conversation": "Garbitu elkarrizketa",
         "Save": "Gorde",
         "New Chat": "Txat berria",
@@ -1370,7 +1385,7 @@
         "You have {{numCredits}} remaining credits.": "{{numCredits}} kreditu gelditzen zaizkizu.",
         "I can only help with formulas. I cannot build tables, columns, and views, or write access rules.": "Formulekin bakarrik lagundu dezaket. Ezin ditut taulak, zutabeak eta bistak sortu, ezta sarbide-arauak idatzi ere.",
         "You have used all available credits.": "Kreditu guztiak erabili dituzu.",
-        "upgrade your plan": "hobetu zure plana",
+        "upgrade your plan": "kontratatu plan garestiagoa",
         "For more help with formulas, check out our {{functionList}} and {{formulaCheatSheet}}, or visit our {{community}} for more help.": "Formulekin laguntza gehiagorako, begiratu {{functionList}} eta {{formulaCheatSheet}}, edo bisitatu {{community}} laguntza gehiagorako.",
         "When you talk to me, your questions and your document structure (visible in {{codeView}}) are sent to OpenAI. {{learnMore}}.": "Nirekin zabiltzanean, galderak eta dokumentuen egitura ({{codeView}}(e)n ikusgai) OpenAI-ra bidaliko dira. {{learnMore}}.",
         "Talk to me like a person. No need to specify tables and column names. For example, you can ask \"Please calculate the total invoice amount.\"": "Hitz egidazu gizakia banintz. Ez da beharrezkoa taulen eta zutabeen izenak zehaztea. Adibidez, eska diezadakezu \"Mesedez, kalkulatu fakturaren zenbateko osoa.\""
@@ -1412,7 +1427,9 @@
         "Area chart": "Gainazala",
         "Line chart": "Lerroa",
         "Scatter plot": "Barreiadura",
-        "Kaplan-Meier plot": "Kaplan-Meier"
+        "Kaplan-Meier plot": "Kaplan-Meier",
+        "Split series": "Banandutako serieak",
+        "Log scale Y-axis": "Logaritmo-eskala Y ardatza"
     },
     "FilterBar": {
         "SearchColumns": "Bilatu zutabeak",
@@ -1431,7 +1448,7 @@
         "{{count}} unmatched field in import_one": "Bat ez datorren eremu {{count}} inportazioan",
         "{{count}} unmatched field in import_other": "Bat ez datozen {{count}} eremu inportazioan",
         "{{count}} unmatched field_one": "Bat ez datorren eremu {{count}}",
-        "Destination table": "Helmuga-taula",
+        "Destination table": "Helburu-taula",
         "Revert": "Itzuli",
         "Skip": "Egin gabe utzi",
         "Skip Import": "Ez inportatu",
@@ -1563,7 +1580,7 @@
         "Create a team to share with more people": "Sortu talde bat jende gehiagorekin partekatzeko",
         "Grist support": "Grist-en laguntza",
         "Manage members of team site": "Kudeatu guneko taldeko kideak",
-        "No default access allows access to be         granted to individual documents or workspaces, rather than the full team site.": "Ez dago dokumentu indibidualetarako edo lan-guneetarako defektuzko-sarbiderik, lantaldearen gune osora baizik.",
+        "No default access allows access to be         granted to individual documents or workspaces, rather than the full team site.": "Ez dago dokumentu indibidualetarako edo lan-areatarako defektuzko-sarbiderik, lantaldearen gune osora baizik.",
         "Off": "Itzalita",
         "Open Access Rules": "Ireki sarbide-arauak",
         "Outside collaborator": "Kanpoko kolaboratzailea",
@@ -1573,7 +1590,7 @@
         "Your role for this team site": "Talde honen guneko zure rola",
         "Your role for this {{resourceType}}": "{{resourceType}} honetarako zure rola",
         "guest": "gonbidatua",
-        "No default access allows access to be granted to individual documents or workspaces, rather than the full team site.": "Ez dago dokumentu indibidualetarako edo lan-guneetarako defektuzko-sarbiderik, lantaldearen gune osora baizik.",
+        "No default access allows access to be granted to individual documents or workspaces, rather than the full team site.": "Ez dago dokumentu indibidualetarako edo lan-areatarako defektuzko-sarbiderik, lantaldearen gune osora baizik.",
         "You are about to remove your own access to this {{resourceType}}": "{{resourceType}} honetarako zure sarbidea ezabatzear zaude",
         "User inherits permissions from {{parent})}. To remove,           set 'Inherit access' option to 'None'.": "Erabiltzaileak {{parent})}(r)en baimenak jasotzen ditu. Kentzeko, ezarri \"Jarauntsi sarbidea\" aukera \"Bat ere ez\" aukerara.",
         "free collaborator": "kolaboratzaile askea",
@@ -1594,7 +1611,7 @@
         "Close": "Itxi",
         "Contribute": "Hartu parte",
         "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Mila esker! Zure konfiantza eta babesa oso estimatuak dira. Edozein unetan bidaltzeari utzi diezaiokezu erabiltzailearen menuko {{link}}tik.",
-        "Admin Panel": "Administratzailearen mahaigaina"
+        "Admin Panel": "Administratzailearen panela"
     },
     "SupportGristPage": {
         "GitHub Sponsors page": "GitHub Sponsors orria",
@@ -1645,37 +1662,38 @@
         "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "Deian zehar zure beharrak aztertuko ditugu. Grist-en oinarrizko erabilera erakutsiko dizugu, edo zure datuekin lanean hasiko gara behar dituzun taulak eraikitzeko.",
         "Schedule call": "Programatu deia",
         "Schedule your {{freeCoachingCall}} with a member of our team.": "Programatu zure {{freeCoachingCall}} gure taldeko kide batekin.",
-        "You may also check out {{ourWeeklyWebinars}} to learn more about Grist.": "{{ourWeeklyWebinars}} ere begiratu ditzakezu Grsit-i buruz gehiago ikasteko.",
+        "You may also check out {{ourWeeklyWebinars}} to learn more about Grist.": "{{ourWeeklyWebinars}} ere begiratu ditzakezu Grsit-i buruz gehiago jakiteko.",
         "our weekly webinars": "gure asteroko web-mintegiak",
         "Grist 101": "Grist 101",
         "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users                navigate the fundamentals of Grist.": "Hastapeneko web-mintegia ere eta {{ourWeeklyWebinars}} begiratu ditzakezu, erabiltzaile berriei Grist-en oinarriak                erakusteko pentsatuak.",
-        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users navigate the fundamentals of Grist.": "Hastapeneko web-mintegia ere eta {{ourWeeklyWebinars}} begiratu ditzakezu, erabiltzaile berriei Grist-en oinarriak erakusteko pentsatuak."
+        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users navigate the fundamentals of Grist.": "Hastapeneko web-mintegia ere eta {{ourWeeklyWebinars}} begiratu ditzakezu, erabiltzaile berriei Grist-en oinarriak erakusteko pentsatuak.",
+        "Free coaching call": "Doako coaching deia"
     },
     "FormView": {
         "Code copied to clipboard": "Kodea arbelera kopiatu da",
-        "Share this form": "Partekatu formulario hau",
+        "Share this form": "Partekatu inprimaki hau",
         "View": "Ikusi",
         "Publish": "Argitaratu",
-        "Publish your form?": "Zure formularioa argitaratu?",
+        "Publish your form?": "Zure inprimakia argitaratu?",
         "Unpublish": "Utzi argitaratzeari",
-        "Unpublish your form?": "Zure formularioa argitaratzeari utzi?",
-        "Anyone with the link below can see the empty form and submit a response.": "Beheko esteka duen edonork ikus eta erantzun dezake formularioa.",
-        "Are you sure you want to reset your form?": "Ziur zaude formularioa berrezarri nahi duzula?",
+        "Unpublish your form?": "Zure inprimakia argitaratzeari utzi?",
+        "Anyone with the link below can see the empty form and submit a response.": "Beheko esteka duen edonork ikus eta erantzun dezake inprimakia.",
+        "Are you sure you want to reset your form?": "Ziur zaude inprimakia berrezarri nahi duzula?",
         "Copy code": "Kopiatu kodea",
         "Copy link": "Kopiatu esteka",
-        "Embed this form": "Txertatu formulario hau",
+        "Embed this form": "Txertatu inprimaki hau",
         "Link copied to clipboard": "Esteka arbelera kopiatu da",
         "Reset": "Berrezarri",
-        "Reset form": "Berrezarri formularioa",
+        "Reset form": "Berrezarri inprimakia",
         "Share": "Partekatu",
-        "Save your document to publish this form.": "Gorde dokumentua formularioa argitaratzeko.",
+        "Save your document to publish this form.": "Gorde dokumentua inprimakia argitaratzeko.",
         "Preview": "Aurrebista",
-        "# **Form Title**": "# **Formularioaren titulua**",
-        "Your form description goes here.": "Hau formularioaren deskribapena da.",
-        "Publishing your form will generate a share link. Anyone with the link can see the empty form and submit a response.": "Formularioa argitaratzean partekatzeko esteka bat sortuko da. Esteka duen edonork ikus dezake formularioa eta erantzun bat bidali.",
-        "Unpublishing the form will disable the share link so that users accessing your form via that link will see an error.": "Formularioa publiko egiteari uzteak partekatzeko esteka desgaituko du, esteka horren bidez zure formulariora sartzen diren erabiltzaileek errore bat ikus dezaten.",
+        "# **Form Title**": "# **inprimakiaren titulua**",
+        "Your form description goes here.": "Hau inprimakiaren deskribapena da.",
+        "Publishing your form will generate a share link. Anyone with the link can see the empty form and submit a response.": "inprimakia argitaratzean partekatzeko esteka bat sortuko da. Esteka duen edonork ikus dezake inprimakia eta erantzun bat bidali.",
+        "Unpublishing the form will disable the share link so that users accessing your form via that link will see an error.": "Inprimakia publiko egiteari uzteak partekatzeko esteka desgaituko du, esteka horren bidez zure inprimakira sartzen diren erabiltzaileek errore bat ikus dezaten.",
         "Users are limited to submitting entries (records in your table) and reading pre-set values in designated fields, such as reference and choice columns.": "Erabiltzaileak sarrerak (taulako erregistroak) aurkeztera eta aurrez ezarritako balioak irakurtzera mugatzen dira zehaztutako eremuetan, hala nola erreferentzia eta aukeraketa zutabeetan.",
-        "Your form is published. Every change is live and visible to users with access to the form. If you want to make changes in draft, unpublish the form.": "Formularioa argitaratu da. Aldaketa guztiak egin ahala ikusten dituzte formulariorako sarbidea duten erabiltzaileek. Zirriborroan aldaketak egin nahi badituzu, utzi formularioa argitaratzeari."
+        "Your form is published. Every change is live and visible to users with access to the form. If you want to make changes in draft, unpublish the form.": "inprimakia argitaratu da. Aldaketa guztiak egin ahala ikusten dituzte inprimakirako sarbidea duten erabiltzaileek. Zirriborroan aldaketak egin nahi badituzu, utzi inprimakia argitaratzeari."
     },
     "Editor": {
         "Delete": "Ezabatu"
@@ -1723,16 +1741,16 @@
         "Options limit": "Aukeren muga"
     },
     "FormModel": {
-        "Oops! The form you're looking for doesn't exist.": "Hara! Bilatzen ari zaren formularioa ez da existitzen.",
-        "There was a problem loading the form.": "Arazo bat egon da formularioa kargatzean.",
-        "You don't have access to this form.": "Ez duzu formulario honetarako sarbiderik.",
-        "Oops! This form is no longer published.": "Hara! Formularioak argitaratuta egoteari utzi dio."
+        "Oops! The form you're looking for doesn't exist.": "Hara! Bilatzen ari zaren inprimakia ez da existitzen.",
+        "There was a problem loading the form.": "Arazo bat egon da inprimakia kargatzean.",
+        "You don't have access to this form.": "Ez duzu inprimaki honetarako sarbiderik.",
+        "Oops! This form is no longer published.": "Hara! inprimakiak argitaratuta egoteari utzi dio."
     },
     "FormPage": {
-        "There was an error submitting your form. Please try again.": "Errore bat egon da zure formularioa bidaltzean. Saiatu berriro."
+        "There was an error submitting your form. Please try again.": "Errore bat egon da zure inprimakia bidaltzean. Saiatu berriro."
     },
     "FormSuccessPage": {
-        "Form Submitted": "Formularioa bidali da",
+        "Form Submitted": "inprimakia bidali da",
         "Thank you! Your response has been recorded.": "Mila esker! Zure erantzuna erregistratu da.",
         "Submit new response": "Bidali erantzun berria"
     },
@@ -1754,7 +1772,7 @@
         "Unmapped": "Esleitu gabe",
         "Unmap fields": "Utzi eremuak esleitzeari",
         "Hide {{label}}": "Ezkutatu {{label}}",
-        "Hide {{label}} (batch mode)": "Ezkutatu {{label}} (batch mode)"
+        "Hide {{label}} (batch mode)": "Ezkutatu {{label}} (batch modua)"
     },
     "CreateTeamModal": {
         "Cancel": "Utzi",
@@ -1772,7 +1790,7 @@
     },
     "AdminPanel": {
         "Current version of Grist": "Grist-en uneko bertsioa",
-        "Admin Panel": "Administratzailearen mahaigaina",
+        "Admin Panel": "Administratzailearen panela",
         "Current": "Unekoa",
         "Help us make Grist better": "Lagun gaitzazu Grist hobetzen",
         "Home": "Hasiera",
@@ -1785,13 +1803,13 @@
         "Error checking for updates": "Errorea eguneraketak bilatzean",
         "Grist is up to date": "Grist egunean dago",
         "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future since session IDs have been updated to be inherently cryptographically secure.": "Grist-ek erabiltzaileen saioen cookieak gako sekretu batekin sinatzen ditu. Ezarri gako hau GRIST_SESSION_SECRET aldagaiaren bidez. Ezarrita ez dagoenean, defektuzkora joko du. Abisu hau etorkizunean ezaba dezakegu v1.1.16tik aurrera kriptografikoki seguruak diren saio-identifikazioak sortzen direlako.",
-        "Learn more.": "Ikasi gehiago.",
+        "Learn more.": "Irakurri gehiago.",
         "Newer version available": "Eskuragarri dago bertsio berriago bat",
         "OK": "Ados",
         "Sandbox settings for data engine": "Datu-motorrarentzako sandboxing konfigurazioa",
         "Sandboxing": "Sandboxinga",
         "unknown": "ezezaguna",
-        "Administrator Panel Unavailable": "Administratzailearen mahaigaina ez dago erabilgarri",
+        "Administrator Panel Unavailable": "Administratzailearen panela ez dago erabilgarri",
         "Authentication": "Autentifikazioa",
         "Check failed.": "Egiaztaketak huts egin du.",
         "Details": "Xehetasunak",
@@ -1814,7 +1832,7 @@
         "Current authentication method": "Uneko autentifikazio-metodoa",
         "No fault detected.": "Ez da akatsik antzeman.",
         "Notes": "Oharrak",
-        "You do not have access to the administrator panel.\nPlease log in as an administrator.": "Ez duzu administratzailearen mahaigainera sarbiderik.\nHasi saioa administratzaile gisa.",
+        "You do not have access to the administrator panel.\nPlease log in as an administrator.": "Ez duzu administratzailearen panelera sarbiderik.\nHasi saioa administratzaile gisa.",
         "Key to sign sessions with": "Saioak sinatzeko gakoa",
         "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Gristek formula oso boteretsuak onartzen ditu, Python erabiliz. Dokumentu bakoitzean beste dokumentu batzuetatik eta saretik isolatutako sandbox baten barruan formulak exekutatzeko, GRIST_SANDBOX_FLAVOR aldagaia gvisor-era aldatzea gomendatzen dugu, zure hardwarea bateragarria bada (gehienak badira).",
         "Session Secret": "Saioaren gakoa",
@@ -1856,7 +1874,9 @@
         "no authentication": "autentifikaziorik ez",
         "Please restart Grist manually.": "Berrabiarazi Grist eskuz.",
         "Restart Grist to apply pending changes.": "Berrabiarazi Grist zain dauden aldaketak aplikatzeko.",
-        "Restart unavailable": "Berrabioa ez dago eskuragarri"
+        "Restart unavailable": "Berrabioa ez dago eskuragarri",
+        "You can set up streaming of audit events from Grist to an external security information and event management (SIEM) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.": "Auditoretza-ekitaldien streaming-a konfigura dezakezu Grist-etik kanpoko segurtasunari buruzko informazio- eta kudeaketa-sistema batera (SIEM), Grist Enterprise gaitzen baduzu. {{contactUsLink}} gehiago jakiteko.",
+        "Grist is running in an environment that doesn't support restarting from the admin panel.": "Grist administrazio paneletik berrabiaraztea onartzen ez duen ingurune batean exekutatzen ari da."
     },
     "Columns": {
         "Remove Column": "Kendu zutabea"
@@ -1892,12 +1912,14 @@
         "Reset": "Berrezarri",
         "Submit": "Bidali",
         "Submitting…": "Bidaltzen…",
-        "Clear selection for: {{-inputLabel}}": "Garbitu hautaketa honentzat: {{-inputLabel}}"
+        "Clear selection for: {{-inputLabel}}": "Garbitu hautaketa honentzat: {{-inputLabel}}",
+        "Options for {{-inputLabel}}": "{{-inputLabel}}-erako aukerak",
+        "Search options for {{-inputLabel}}": "Bilaketa aukerak {{-inputLabel}}-erako"
     },
     "widgetTypesMap": {
         "Chart": "Grafikoa",
         "Custom": "Pertsonalizatua",
-        "Form": "Formularioa",
+        "Form": "inprimakia",
         "Table": "Taula",
         "Calendar": "Egutegia",
         "Card": "Txartela",
@@ -1927,26 +1949,26 @@
         "Showing {{displayedCount}} of {{totalCount}} items. Search for more.": "{{totalCount}} elementutatik {{displayedCount}} erakusten. Bilatu gehiagorako."
     },
     "PagePanels": {
-        "Close Creator Panel": "Itxi sortzailearen mahaigaina",
-        "Open creator panel": "Ireki sortzailearen mahaigaina",
+        "Close Creator Panel": "Itxi sortzailearen panela",
+        "Open creator panel": "Ireki sortzailearen panela",
         "Document header": "Dokumentuaren goiburua",
         "Main content": "Eduki nagusia",
-        "Creator panel (right panel)": "Sortzailearen mahaigaina (eskuman)",
-        "Main navigation and document settings (left panel)": "Nabigazio nagusia eta dokumentuaren ezarpenak (ezkerrean)",
-        "Close navigation panel (left panel)": "Itxi nabigazioa (ezkerrean)",
-        "Open navigation panel (left panel)": "Ireki nabigazioa (ezkerrean)"
+        "Creator panel (right panel)": "Sortzailearen panela (eskuman)",
+        "Main navigation and document settings (left panel)": "Nabigazio nagusia eta dokumentuaren ezarpenak (ezkerreko panela)",
+        "Close navigation panel (left panel)": "Itxi nabigazioa (ezkerreko panela)",
+        "Open navigation panel (left panel)": "Ireki nabigazioa (ezkerreko panela)"
     },
     "HiddenQuestionConfig": {
         "Hidden fields": "Ezkutatutako eremuak"
     },
     "CustomView": {
         "Some required columns aren't mapped": "Nahitaezko zutabe batzuk ez daude esleituta",
-        "To use this widget, please map all non-optional columns from the creator panel on the right.": "Widget hau erabiltzeko, esleitu aukerakoak ez diren zutabeak sortzaileen mahaigainetik, eskuinean.",
+        "To use this widget, please map all non-optional columns from the creator panel on the right.": "Widget hau erabiltzeko, esleitu aukerakoak ez diren zutabeak sortzaileen paneletik, eskuinean.",
         "Some required columns are hidden by access rules": "Sarbide-arauak beharrezko zutabe batzuk ezkutatzen ari dira",
         "To use this widget, all mapped columns must be visible. Please contact document owner or modify access rules.": "Widgeta erabili ahal izateko, esleitutako zutabe guztiak ikusgai egon behar dira. Jarri harremanetan dokumentuaren jabearekin edo aldatu sarbide-arauak."
     },
     "FormContainer": {
-        "Build your own form": "Sortu zure formularioa",
+        "Build your own form": "Sortu zure inprimakia",
         "Powered by": "Honi esker:",
         "Powered by Grist": "Gristi esker"
     },
@@ -2008,8 +2030,8 @@
         "Grist Enterprise is **enabled**.": "Grist Enterprise **gaituta** dago.",
         "Disable Grist Enterprise": "Ezgaitu Grist Enterprise",
         "Enable Grist Enterprise": "Gaitu Grist Enterprise",
-        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Aktibazio-gako bat erabili da 30 eguneko epea iraungi eta probaldiaren\nondoren Grist Enterprise exekutatzeko. Eskuratu aktibazio-gako bat [Grist\nEnterprise-n izena eman]({{signupLink}})ez. Ez duzu aktibazio-gakorik behar\nGrist Core exekutatzeko.\n\nLortu informazio gehiago gure [Laguntza-gunea]({{helpCenter}})n.",
-        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Aktibazio-gako bat erabili da 30 eguneko epea iraungi eta probaldiaren ondoren Grist Enterprise exekutatzeko.\nEskuratu aktibazio-gako bat gaur bertan [gurekin harremanetan jarri]({{contactLink}})z.\nEz duzu aktibazio-gakorik behar Grist Core exekutatzeko.\n\nLortu informazio gehiago gure [Laguntza-gunea]({{helpCenter}})n.",
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Aktibazio-gako bat erabili da 30 eguneko epea iraungi eta probaldiaren\nondoren Grist Enterprise exekutatzeko. Eskuratu aktibazio-gako bat [Grist\nEnterprise-n izena eman]({{signupLink}})ez. Ez duzu aktibazio-gakorik behar\nGrist Core exekutatzeko.\n\nIrakurri gehiago gure [Laguntza-gunea]({{helpCenter}})n.",
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Aktibazio-gako bat erabili da 30 eguneko epea iraungi eta probaldiaren ondoren Grist Enterprise exekutatzeko.\nEskuratu aktibazio-gako bat gaur bertan [gurekin harremanetan jarri]({{contactLink}})z.\nEz duzu aktibazio-gakorik behar Grist Core exekutatzeko.\n\nIrakurri gehiago gure [Laguntza-gunea]({{helpCenter}})n.",
         "Activate": "Aktibatu",
         "Copy to clipboard": "Kopiatu arlebera",
         "Activation key": "Aktibatzeko gakoa",
@@ -2019,7 +2041,7 @@
         "Paste your activation key": "Itsatsi aktibazio-gakoa",
         "An active subscription is required to continue using Grist Enterprise. You can\nyou activate your subscription by [signing up for Grist Enterprise ]({{signupLink}}) and pasting your\nactivation key below.": "Grist Enterprise erabiltzen jarraitzeko harpidetza behar da.\nZure harpidetza aktiba dezakezu [Grist Enterprise]({{signupLink}})(e)n izena emanda\neta aktibazio-gakoa azpian itsatsita.",
         "An activation key is used to run Grist Enterprise after a trial period\n        of 30 days has expired. Get an activation key by [signing up for Grist\n        Enterprise]({{signupLink}}). You do not need an activation key to run\n        Grist Core.": "Aktibazio-gako bat erabiltzen da Grist Enterprise exekutatzeko\n        30 eguneko probaldia amaitu ondoren. Lortu aktibazio-gako bat\n        [Grist Enterprisen izena emanda]({{signupLink}}).\n        Ez duzu aktibazio-gakorik behar Grist Core exekutatzeko.",
-        "Learn more in our [Help Center]({{helpCenter}}).": "Informazio gehiago gure [Laguntza-gunea]({{helpCenter}})n.",
+        "Learn more in our [Help Center]({{helpCenter}}).": "Irakurri gehiago gure [Laguntza-gunea]({{helpCenter}})n.",
         "Plan name": "Planaren izena",
         "To continue using Grist Enterprise, you need to\n                  [contact us]({{signupLink}}) to get your activation key.": "Grist Enterprise erabiltzen jarraitzeko,\n                  [gurekin harremanetan jarri]({{signupLink}}) behar duzu aktibazio-gakoa lortzeko.",
         "You are currently trialing Grist Enterprise.": "Une honetan Grist Enterprise probatzen ari zara.",
@@ -2053,7 +2075,7 @@
         "Choose custom widget": "Aukeratu widget pertsonalizatua",
         "Community Widget": "Komunitatearen widgetak",
         "Custom URL": "URL pertsonalizatua",
-        "Learn more about custom widgets": "Ikasi gehiago widget pertsonalizatuei buruz"
+        "Learn more about custom widgets": "Irakurri gehiago widget pertsonalizatuei buruz"
     },
     "HomeIntroCards": {
         "Help center": "Laguntza-gunea",
@@ -2068,7 +2090,7 @@
         "Webinars": "Web-mintegiak",
         "Find solutions and explore more resources {{helpCenterLink}}": "Ikusi adibideak eta arakatu baliabide gehiago {{helpCenterLink}}",
         "Find solutions and explore more resources": "Soluzioak bilatu eta baliabide gehiago aztertu",
-        "Learn more": "Ikasi gehiago"
+        "Learn more": "Irakurri gehiago"
     },
     "ReverseReferenceConfig": {
         "Delete": "Ezabatu",
@@ -2079,17 +2101,19 @@
         "Add two-way reference": "Gehitu bi noranzkoko erreferentzia",
         "Two-way Reference": "Bi noranzkoko erreferentzia",
         "Delete two-way reference?": "Bi noranzkoko erreferentzia ezabatu?",
-        "It is the reverse of the reference column {{column}} in table {{table}}.": "{{table}} taulako {{column}} zutabearen alderantzizko erreferentzia da."
+        "It is the reverse of the reference column {{column}} in table {{table}}.": "{{table}} taulako {{column}} zutabearen alderantzizko erreferentzia da.",
+        "This will delete the reference column {{refCol}} in table {{refTable}}. The reference column {{myName}} will remain in the current table {{myTable}}.": "Honek {{refCol}} erreferentzia-zutabea ezabatuko du {{refTable}} taulatik. {{myName}} erreferentzia-zutabeak {{myTable}} taulan egoten jarraituko du."
     },
     "SupportGristButton": {
         "Close": "Itxi",
         "Help Center": "Laguntza-gunea",
-        "Admin Panel": "Administratzailearen mahaigaina",
+        "Admin Panel": "Administratzailearen panela",
         "Support Grist": "Eman babesa Grist-i",
         "Opted In": "Telemetria bidaltzen da",
         "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Mila esker! Zure konfiantza eta babesa oso estimatuak dira. Edozein unetan bidaltzeari utzi diezaiokezu erabiltzailearen menuko {{link}}tik.",
         "Opt in to Telemetry": "Bidali telemetria",
-        "Opt in to telemetry to help us understand how the product is used, so that we can prioritize future improvements.": "Aukeratu telemetria bidaltzea produktua nola erabiltzen den ulertzen laguntzeko, etorkizuneko hobekuntzei lehentasuna eman ahal izateko."
+        "Opt in to telemetry to help us understand how the product is used, so that we can prioritize future improvements.": "Aukeratu telemetria bidaltzea produktua nola erabiltzen den ulertzen laguntzeko, etorkizuneko hobekuntzei lehentasuna eman ahal izateko.",
+        "We only collect usage statistics, as detailed in our {{helpCenterLink}}, never document contents. Opt out any time from the {{supportGristLink}} in the user menu.": "Erabilera-estatistikak baino ez ditugu biltzen, gure {{helpCenterLink}} zehazten den bezala, inoiz ez dokumentuetako edukia. Edozein unetan bidaltzeari diezaiokezu erabiltzailearen menuko {{supportGristLink}}-tik."
     },
     "buildReassignModal": {
         "Cancel": "Utzi",
@@ -2102,7 +2126,7 @@
         "{{targetTable}} record {{targetName}} is already assigned to {{sourceTable}} record          {{oldSourceName}}.": "{{targetTable}}(e)ko {{targetName}} erregistroa lehendik dago {{sourceTable}}(e)ko {{oldSourceName}} erregistroari esleituta."
     },
     "AdminPanelName": {
-        "Admin Panel": "Administratzailearen mahaigaina"
+        "Admin Panel": "Administratzailearen panela"
     },
     "markdown": {
         "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
@@ -2131,17 +2155,18 @@
         "Destinations": "Helburuak",
         "Enter URL": "Sartu URLa",
         "Enter token": "Sartu tokena",
-        "Learn more": "Ikasi gehiago",
+        "Learn more": "Irakurri gehiago",
         "Save": "Gorde",
         "Splunk": "Splunk",
         "Token": "Tokena",
         "URL": "URLa",
         "Delete streaming destination?": "Jarioaren helburua ezabatu?",
         "Add streaming destination": "Gehitu jariorako helburua",
-        "Are you sure you want to delete this streaming destination? This action cannot be undone.": "Ziur jarioaren helmuga ezabatu nahi duzula? Eragiketa ezin da desegin.",
-        "Edit streaming destination": "Editatu jarioaren helmuga",
+        "Are you sure you want to delete this streaming destination? This action cannot be undone.": "Ziur jarioaren helburua ezabatu nahi duzula? Eragiketa ezin da desegin.",
+        "Edit streaming destination": "Editatu jarioaren helburua",
         "Other": "Besteren bat",
-        "Start streaming": "Hasi jarioa"
+        "Start streaming": "Hasi jarioa",
+        "Set up streaming of audit events from Grist to an external security information and event management (SIEM) system like Splunk. {{learnMoreLink}}.": "Konfiguratu ikuskapen-ekitaldien streaming-a Grist-etik Splunk bezalako kanpoko segurtasun-informazio eta gertaerak kudeatzeko sistema batera (SIEM). {{learnMoreLink}}."
     },
     "AuditLogsPage": {
         "Contact us": "Jarri harremanetan",
@@ -2150,7 +2175,9 @@
         "Only site owners may access audit logs.": "Guneko jabeek bakarrik atzitu ditzakete errgistro-auditoretzak.",
         "Audit Logs": "Erregistro-auditoretza",
         "Home": "Hasiera",
-        "upgrade your plan": "hobetu zure plana"
+        "upgrade your plan": "kontratatu plan garestiagoa",
+        "You can set up streaming of audit events from Grist to an external SIEM (security information and event management) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.": "Auditoretza-ekitaldien streaming-a konfigura dezakezu Grist-etik kanpoko SIEM sistema batera (segurtasunari buruzko informazioa eta ekitaldien kudeaketa), Grist Enterprise gaitzen baduzu. {{contactUsLink}} gehiago jakiteko.",
+        "You can set up streaming of audit events from Grist to an external SIEM (security information and event management) system if you {{upgradePlanButton}}.": "Ikuskapen-gertaeren streaming-a konfigura dezakezu Grist-etik kanpoko SIEM sistema batera (segurtasunari buruzko informazioa eta gertaeren kudeaketa), {{upgradePlanButton}} baduzu."
     },
     "DocList": {
         "Delete {{name}}": "Ezabatu {{name}}",
@@ -2162,8 +2189,8 @@
         "Edited {{at}}": "Editatua: {{at}}",
         "Last edited": "Azkenekoz editatua",
         "Move": "Mugitu",
-        "Move {{name}} to workspace": "Mugitu {{name}} lan-eremura",
-        "Current workspace": "Uneko lan-eremua",
+        "Move {{name}} to workspace": "Mugitu {{name}} lan-areara",
+        "Current workspace": "Uneko lan-area",
         "Pin": "Finaktu",
         "Pinned": "Finkatuta",
         "Rename and set icon": "Berrizendatu eta ezarri ikonoa",
@@ -2174,7 +2201,7 @@
         "Sort by date": "Antolatu dataren arabera",
         "Sort by name": "Antolatu izenaren arabera",
         "Unpin": "Utzi finkatzeari",
-        "Workspace": "Lan-eremua",
+        "Workspace": "Lan-area",
         "Documents list": "Dokumentuen zerrenda",
         "Download document...": "Deskargatu dokumentua…",
         "Deleted {{at}}": "{{at}}(e)an ezabatua",
@@ -2211,7 +2238,7 @@
         "For higher limits, contact the site owner.": "Muga altuagoetarako, jarri harremanetan gunearen jabearekin.",
         "AI Assistant is only available for logged in users.": "AA laguntzailea saioa hasita duten erabiltzaileentzat dago soilik erabilgarri.",
         "Apply": "Aplikatu",
-        "Learn more.": "Ikasi gehiago.",
+        "Learn more.": "Irakurri gehiago.",
         "Press Enter to apply suggested formula.": "Sakatu Enter iradokitutako formula aplikatzeko.",
         "Sign up for a free Grist account to start using the AI Assistant.": "Eman izena Grist doako kontu batean AA laguntzailea erabiltzen hasteko.",
         "Sign Up for Free": "Eman izena doan",
@@ -2219,7 +2246,7 @@
         "What do you need help with?": "Zertan behar duzu laguntza?",
         "You have used all available credits.": "Kreditu guztiak erabili dituzu.",
         "You have {{numCredits}} remaining credits.": "{{numCredits}} kreditu gelditzen zaizkizu.",
-        "Upgrade to Grist Enterprise to try the new Grist Assistant. {{learnMoreLink}}": "Grist Enterprise planera pasa zaitez Grist laguntzaile berria probatzeko. {{learnMoreLink}}",
+        "Upgrade to Grist Enterprise to try the new Grist Assistant. {{learnMoreLink}}": "Grist Enterprise planera pasa zaitez Grist-en laguntzaile berria probatzeko. {{learnMoreLink}}",
         "start a new chat": "hasi txat berria",
         "upgrade your plan": "hobetu zure plana",
         "upgrade to the Pro Team plan": "Pro Team planera pasa zaitez",
@@ -2231,11 +2258,12 @@
         "Admin area": "Administratzailearen gunea",
         "Admin controls": "Administratzailearen kontrolak",
         "Installation": "Instalazioa",
-        "Learn more": "Ikasi gehiago",
+        "Learn more": "Irakurri gehiago",
         "Orgs": "Erakundeak",
         "Users": "Erabiltzaileak",
         "Docs": "Dokumentuak",
-        "Workspaces": "Lan-eremuak"
+        "Workspaces": "Lan-areak",
+        "Enterprise": "Enpresa"
     },
     "apiconsole": {
         "Delete": "Ezabatu",
@@ -2256,7 +2284,8 @@
         "New record button": "Erregistro berriaren botoia",
         "You are about to disable this experimental feature: {{experiment}}": "Ezaugarri esperimental hau ezgaitzear zaude: {{experiment}}",
         "You are about to enable this experimental feature: {{experiment}}": "Ezaugarri esperimental hau gaitzear zaude: {{experiment}}",
-        "Visit this URL at any time to stop using this feature: {{url}}": "Bisitatu URL hau edozein unetan ezaugarri hau erabiltzeari uzteko: {{url}}"
+        "Visit this URL at any time to stop using this feature: {{url}}": "Bisitatu URL hau edozein unetan ezaugarri hau erabiltzeari uzteko: {{url}}",
+        "Notifications": "Jakinarazpenak"
     },
     "duplicateWidget": {
         "Duplicate widget": "Bikoiztu widgeta",
@@ -2277,14 +2306,15 @@
         "Recommendation: {{storageRecommendation}}\nWhen storing large attachments, or many of them, we recommend\nkeeping them in external storage. This document is currently\nusing internal storage for attachments, which keeps it\nself-contained but may limit performance.": "Gomendioa: {{storageRecommendation}}\nFitxategi erantsi handiak edo ugari gordetzean,\nkanpoko biltegian gordetzea gomendatzen dugu.\nDokumentu hau, une honetan, barne-biltegiratzea erabiltzen ari da\nfitxategi erantsietarako, eta horrek eduki propioa mantentzen du,\nbaina errendimendua mugatu dezake."
     },
     "ToggleEnterpriseModel": {
-        "Please wait for the previous operation to complete.": "Itxaron aurreko eragiketa burutu arte."
+        "Please wait for the previous operation to complete.": "Itxaron aurreko eragiketa burutu arte.",
+        "Timed out on waiting for the Grist backend to restart": "Denbora agortu da Grist-en backend-a berrabiarazi arte itxaroten"
     },
     "NewRecordButton": {
         "New card": "Txartel berria",
         "New record": "Erregistro berria"
     },
     "RegionFocusSwitcher": {
-        "Trying to access the creator panel? Use {{key}}.": "Sortzailearen mahaigaina erabili nahi duzu? Erabili {{key}}."
+        "Trying to access the creator panel? Use {{key}}.": "Sortzailearen panela erabili nahi duzu? Erabili {{key}}."
     },
     "AttachmentsWidget": {
         "Uploading, please wait…": "Igotzen, itxaron…"
@@ -2319,7 +2349,10 @@
         "Grist has a small built-in health check often used when running it as a container.": "Grist-ek osasun-kontrol txiki bat du, askotan edukiontzi gisa exekutatzen denean erabiltzen dena.",
         "It is good practice not to run Grist as the root user.": "Praktika ona da ez exekutatzea Grist root erabiltzaile gisa.",
         "The main page of Grist should be available.": "Grist-en orri nagusia erabilgarri egon beharko litzateke.",
-        "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Gristek oso formula ahaltsuak ahalbidetzen ditu, Python erabiliz. GRIST_SANDBOX_FLAVOR ingurune-aldagaia gvisor-erako ezartzea gomendatzen dugu, hardwareak onartzen badu (gehienetan), dokumentu bakoitzean formulak exekutatzeko beste dokumentu batzuetatik isolatutako eta saretik isolatutako sandbox baten barruan."
+        "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Gristek oso formula ahaltsuak ahalbidetzen ditu, Python erabiliz. GRIST_SANDBOX_FLAVOR ingurune-aldagaia gvisor-erako ezartzea gomendatzen dugu, hardwareak onartzen badu (gehienetan), dokumentu bakoitzean formulak exekutatzeko beste dokumentu batzuetatik isolatutako eta saretik isolatutako sandbox baten barruan.",
+        "Requests arriving to Grist should have an accurate Host header. This is essential when GRIST_SERVE_SAME_ORIGIN is set.": "Grist-era iristen diren eskaerek Host goiburu zehatza izan behar dute; ezinbestekoa da GRIST_SERVE_SAME_ORIGIN ezarrita dagoenean.",
+        "This boot page should not be too easy to access. Either turn it off when configuration is ok (by unsetting GRIST_BOOT_KEY) or make GRIST_BOOT_KEY long and cryptographically secure.": "Abio-orri honek ez luke sarbide erraza izan beharko. Itzali ezazu konfigurazioa ondo dagoenean (GRIST_BOOT_KEY deskonfiguratuz) edo egin GRIST_BOOT_KEY luzea eta kriptografikoki segurua.",
+        "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.": "Websocket konexioek HTTP 1.1 eta aparteko goiburu batzuk pasatzeko gaitasuna behar dute lan egin ahal izateko. Batzuetan, alderantzizko proxy batek baldintza horiek oztopa ditzake."
     },
     "ChoiceListEntry": {
         "+{{count}} more_one": "+{{count}} gehiago",
@@ -2354,11 +2387,11 @@
         " or ": " edo ",
         "Accessibility": "Irisgarritasuna",
         "Close": "Itxi",
-        "Finally, the right panel – or the creator panel – is only available through its own shortcut and is not included in the next and previous region cycle.": "Azkenik, eskumako mahaigaina —edo sortzailearena— lasterbide propioaren bidez bakarrik dago erabilgarri, ez hurrengo eta aurreko eremu-ziklotik kanpo.",
+        "Finally, the right panel – or the creator panel – is only available through its own shortcut and is not included in the next and previous region cycle.": "Azkenik, eskumako panela —edo sortzailearena— lasterbide propioaren bidez bakarrik dago erabilgarri, ez hurrengo eta aurreko eremu-ziklotik kanpo.",
         "Focus on other parts of the user interface using the following shortcuts:": "Jarri arreta erabiltzailearen interfazearen beste zati batzuetan, lasterbide hauek erabiliz:",
         "High contrast theme": "Kontraste handiko gaia",
-        "The left panel, home of the main navigation.": "Ezkerreko mahaigaina: nabigazio nagusia.",
-        "The top panel, or the document header.": "Goiko mahaigaina edo dokumentuaren goiburua.",
+        "The left panel, home of the main navigation.": "Ezkerreko panela: nabigazio nagusia.",
+        "The top panel, or the document header.": "Goiko panela edo dokumentuaren goiburua.",
         "To see other available themes, go to your {{profileSettingsLink}}.": "Erabilgarri dauden beste gai batzuk ikusteko, joan zure {{profileSettingsLink}}.",
         "Use the high contrast theme (light appearance)": "Erabili kontraste handiko gaia (itxura argia)",
         "Other important keyboard shortcuts": "Beste laster-tekla garrantzitsu batzuk",
@@ -2371,7 +2404,8 @@
         "{{accessibilityModal}} Show the accessibility options (this modal)": "{{accessibilityModal}} Erakutsi irisgarritasun-aukerak (honako leihoa)",
         "{{nextRegionShortcut}} Focus on the next region": "{{nextRegionShortcut}} Fokatu hurrengo eskualdean",
         "{{prevRegionShortcut}} Focus on the previous region": "{{prevRegionShortcut}} Fokatu aurreko eskualdean",
-        "{{shortcutsModal}} Show the complete list of keyboard shortcuts": "{{shortcutsModal}} Erakutsi laster-teklen zerrenda osoa"
+        "{{shortcutsModal}} Show the complete list of keyboard shortcuts": "{{shortcutsModal}} Erakutsi laster-teklen zerrenda osoa",
+        "{{creatorPanelShortcut}} Focus to and from the creator panel": "{{creatorPanelShortcut}} Fokatu sortzailearen paneletik edo panelean"
     },
     "AuthenticationSection": {
         "Error": "Errorea",
@@ -2400,7 +2434,54 @@
         "When signing in, users will be redirected to a Grist Connect login page where they can authenticate using various identity providers. After authentication, they'll be redirected back to your Grist server and signed in.": "Saioa hastean, erabiltzaileak Grist Connect saio-hasierako orri batera bideratuko dira, eta bertan hainbat identitate-hornitzaile erabiliz autentifikatu ahal izango dira. Autentifikatu ondoren, zure Grist zerbitzarira birbideratuko dira, eta saioa hasiko da.",
         "When signing in, users will be redirected to your chosen identity provider's login page to authenticate. After successful authentication, they'll be redirected back to your Grist server and signed in as the user verified by the provider.": "Saioa hastean, erabiltzaileak hautatutako identitate-hornitzailearen saio-hasierako orrira birbideratuko dira, autentifikatzeko. Autentifikazioa behar bezala egin ondoren, zure Grist zerbitzarira birbideratuko dira eta hornitzaileak egiaztatutako erabiltzaile gisa hasiko dute saioa.",
         "You are signed in as {{email}}. After restart, the new administrative user will be {{newEmail}}.": "{{email}} gisa duzu hasita saioa. Berrabiarazi ondoren, administrazio-erabiltzaile berria {{newEmail}} izango da.",
-        "You are signed in as {{email}}. You may lose access to this server if you cannot sign in as this user after switching the authentication system.": "{{email}} gisa duzu hasita saioa. Zerbitzari honetarako sarbidea gal dezakezu, autentifikatze-sistema aldatu ondoren erabiltzaile gisa saioa hasi ezin baduzu."
+        "You are signed in as {{email}}. You may lose access to this server if you cannot sign in as this user after switching the authentication system.": "{{email}} gisa duzu hasita saioa. Zerbitzari honetarako sarbidea gal dezakezu, autentifikatze-sistema aldatu ondoren erabiltzaile gisa saioa hasi ezin baduzu.",
+        "**Forwarded headers** allows your Grist server to trust authentication performed by an external proxy (e.g. Traefik ForwardAuth).": "**Birbidalitako goiburuak** erabilita, Grist zerbitzariak kanpoko proxy-ak egindako autentifikazioa fidagarritzat izan dezake (adib. Traefik ForwardAuth).",
+        "**Grist Connect** is a login solution built and maintained by Grist Labs that integrates seamlessly with your Grist server.": "**Grist Connect** saioa hasteko Grist Labs-ek sortutako eta mantendutako aukera da, zure Grist zerbitzariarekin arazorik gabe integratzen dena.",
+        "**OIDC** allows users on your Grist server to sign in using an external identity provider that supports the OpenID Connect standard.": "**OIDC**-ek erabiltzaileek zure Grist zerbitzarian OpenID Connect estandarra onartzen duen kanpoko identitate-hornitzaile baten bidez saioa hasteko aukera ematen du.",
+        "**SAML** allows users on your Grist server to sign in using an external identity provider that supports the SAML 2.0 standard.": "**SAML**-ek SAML 2.0 estandarra onartzen duen kanpoko identitate-hornitzaile baten bidez saioa hasteko aukera ematen die Grist zerbitzariko erabiltzaileei.",
+        "Revert change of admin user": "Administratzaile-erabiltzailearen aldaketa desegin",
+        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "grist-connect": {
+                            ").": "**Grist Connect** konfiguratzeko, jarraitu [Grist Connect-erako Grist laguntza-artikuluko jarraibideei](https://support.getgrist.com/install/grist-connect/)."
+                        }
+                    }
+                }
+            }
+        },
+        "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "oidc).": "**OIDC** konfiguratzeko, jarraitu [OIDC-rako Grist laguntza-artikuluko jarraibideei](https://support.getgrist.com/install/oidc)."
+                    }
+                }
+            }
+        },
+        "To set up **SAML**, follow the instructions in [the Grist support article for SAML](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "saml": {
+                            ").": "**SAML** konfiguratzeko, jarraitu [SAML-erako Grist laguntza-artikuluko jarraibideei](https://support.getgrist.com/install/saml/)."
+                        }
+                    }
+                }
+            }
+        },
+        "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "forwarded-headers": {
+                            ").": "**Goiburuen birbidalketa** konfiguratzeko, jarraitu [Goiburuen birbidalketarako Grist laguntza-artikuluko jarraibideei](https://support.getgrist.com/install/forwarded-headers/)."
+                        }
+                    }
+                }
+            }
+        }
     },
     "commandList": {
         "Copy anchor link": "Kopiatu esteka",
@@ -2420,7 +2501,7 @@
         "Convert the selected columns from formula to data": "Bihurtu hautatutako zutabeak formuletatik datuetara",
         "Copy current selection to clipboard": "Kopiatu hautaketa arbelera",
         "Copy current selection to clipboard including headers": "Kopiatu hautaketa arbelera, baita goiburuak ere",
-        "Creates form for active table": "Formularioa sortzen du aktibo dagoen taularentzat",
+        "Creates form for active table": "inprimakia sortzen du aktibo dagoen taularentzat",
         "Cut current selection to clipboard": "Ebaki hautaketa arbelera",
         "Delete the currently selected columns": "Ezabatu hautatutako zutabeak",
         "Delete the currently selected record(s)": "Ezabatu hautatutako erregistroa(k)",
@@ -2488,7 +2569,30 @@
         "Use the currently selected row as table headers": "Erabili unean hautatutako errenkada taulen goiburu gisa",
         "When in the search bar, close it and focus the current match": "Bilaketa-barran dagoenean, itxi eta fokatu uneko parekatzean",
         "When typed at the start of a cell, make this a formula column": "Gelaxka baten hasieran idazten denean, bihurtu formula-zutabe",
-        "Filter this column by just this cell's value": "Iragazi zutabe hau gelaxka honen balioaren arabera"
+        "Filter this column by just this cell's value": "Iragazi zutabe hau gelaxka honen balioaren arabera",
+        "Clears the current copy selection, if any": "Uneko kopiaren hautapena garbitzen du, baldin badago",
+        "Clears the section links in the current view": "Atalen estekak garbitzen ditu uneko ikuspegian",
+        "Clears the section links in the current viewsection": "Atalen estekak garbitzen ditu uneko atal-ikuspegian",
+        "Discard changes to a cell value": "Baztertu gelaxka-balio baten aldaketak",
+        "Reverts the sections links to the saved links the current view": "Atalen estekak gordetako esteketara itzultzen ditu uneko ikuspegian",
+        "Saves the sections links in the current view": "Atalen estekak uneko ikuspegian gordetzen ditu",
+        "Focus next page panel or widget": "Fokatu hurrengo orriko panela edo widget-a",
+        "Focus previous page panel or widget": "Fokatu aurreko orriko panela edo widget-a",
+        "Open Custom widget configuration screen": "Ireki widget pertsonalizatua konfiguratzeko pantaila",
+        "Print currently selected page widget": "Inprimatu unean hautatutako widgetaren orria",
+        "Show raw data widget for table of currently selected page widget": "Erakutsi unean hautatutako orrialde-widgetaren taularako datu gordinen widgeta",
+        "showing a behavioral popup": "laster-menu bat erakusten",
+        "Add a new viewsection to the currently active view": "Gehitu atal-ikuspegi berria unean aktibo dagoen ikuspegian",
+        "Collapse the currently active viewsection": "Tolestu unean aktibo dagoen atal-ikuspegia",
+        "Delete collapsed viewsection": "Ezabatu tolestutako atal-ikuspegia",
+        "Delete the currently active viewsection": "Ezabatu unean aktibo dagoen atal-ikuspegia",
+        "Duplicate the currently active viewsection": "Bikoiztu unean aktibo dagoen atal-ikuspegia",
+        "Expand collapsed viewsection": "Hedatu tolestutako atal-ikuspegia",
+        "Adds the currently selected column(ascending) to the current view's sort spec": "Unean hautatutako zutabea (goranzkoa) uneko ikuspegiaren ordenazio-zehaztapenari gehitzen dio",
+        "Adds the currently selected column(descending) to the current view's sort spec": "Unean hautatutako zutabea (beheranzkoa) uneko ikuspegiaren ordenazio-zehaztapenari gehitzen dio",
+        "Enters section linking mode in the current view": "Uneko ikuspegian atala estekatzeko modua sartzen du",
+        "Move down one page of records, or to next record in a card list": "Egin behera erregistro-orri batean, edo joan hurrengo erregistro-orrira txartel-zerrenda batean",
+        "Move up one page of records, or to previous record in a card list": "Egin gora erregistro-orri batean, edo joan aurreko erregistro-orrira txartel-zerrenda batean"
     },
     "ProposedChangesPage": {
         "Proposed changes": "Iradokitutako aldaketak",
@@ -2498,7 +2602,7 @@
         "Accepted {{at}}.": "{{at}}(e)an onartua.",
         "Dismiss": "Baztertu",
         "Dismissed {{at}}.": "{{at}}(e)an baztertua.",
-        "Learn more": "Ikasi gehiago",
+        "Learn more": "Irakurri gehiago",
         "No changes found to suggest. Please make some edits.": "Ez da aurkitu aldaketa proposamenik. Egin edizioren bat.",
         "Retract suggestion": "Bota iradokizuna atzera",
         "Retracted {{at}}.": "{{at}}(e)an atzera bota da.",
@@ -2512,7 +2616,8 @@
         "Work on a copy": "Egin lan kopia batean",
         "Your suggestions": "Zure iradokizunak",
         "experiment": "esperimentua",
-        "original document": "jatorrizko dokumentua"
+        "original document": "jatorrizko dokumentua",
+        "This is a list of changes relative to the {{originalDocument}}.": "Honakoa {{originalDocument}}-en egindako aldaketen zerrenda da."
     },
     "GridViewMenusDateHelpers": {
         "Day of month": "Hileko eguna",
@@ -2552,7 +2657,10 @@
         "Months since": "Hilabete _tik",
         "Months until": "Hilabete _arte",
         "Years since": "Urte _tik",
-        "Years until": "Urte _arte"
+        "Years until": "Urte _arte",
+        "Date helpers…": "Daten laguntzak…",
+        "Quick Picks": "Hautaketa azkarrak",
+        "Relative": "Erlatiboa"
     },
     "selectBy": {
         "Select widget": "Hautatu widgeta"
@@ -2570,7 +2678,12 @@
         "Paste configuration key here": "Itsatsi konfigurazio-gakoa hemen",
         "Sign in with getgrist.com": "Eman izena getgrist.com-ekin",
         "To set up {{provider}}, you need to register your Grist server on getgrist.com and paste the configuration key you receive below.": "{{provider}} ezartzeko, zure Grist zerbitzaria getgrist.com-en erregistratu eta behean ageri den konfigurazio-gakoa itsatsi behar duzu.",
-        "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.": "Saioa hastean, erabiltzaileak getgrist.com-en saioa hasteko orrira birbideratuko dira, saioa hasteko edo izena emateko. getgrist.com-en autentifikatu ondoren, zure Grist zerbitzarira birbideratuko dira eta autentifikatu diren erabiltzaile gisa hasiko dute saioa."
+        "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.": "Saioa hastean, erabiltzaileak getgrist.com-en saioa hasteko orrira birbideratuko dira, saioa hasteko edo izena emateko. getgrist.com-en autentifikatu ondoren, zure Grist zerbitzarira birbideratuko dira eta autentifikatu diren erabiltzaile gisa hasiko dute saioa.",
+        "**Sign in with getgrist.com** allows users on your Grist server to sign in using their account on getgrist.com, the cloud version of Grist managed by Grist Labs.": "**Hasi saioa getgrist.com**-ek, Grist Labs-ek kudeatutako Grist-en hodeiko bertsioa getgrist.com erabiliz zure Grist zerbitzariko erabiltzaileek saioa hastea ahalbidetzen du.",
+        "Configure Sign in with getgrist.com": "Konfiguratu Hasi saioa getgrist.com-ekin",
+        "Home URL is not set; cannot configure Sign in with getgrist.com": "Ez da zerbitzariko URLa zehaztu; ezin da Hasi saioa getgrist.com-ekin konfiguratu",
+        "Learn more about Sign in with getgrist.com": "Irakurri gehiago Hasi saioa getgrist.com-i buruz",
+        "Register your Grist server": "Erregistratu zure Grist zerbitzaria"
     },
     "AirtableImportUI": {
         "Back": "Atzera",
@@ -2596,21 +2709,58 @@
         "loading your tables...": "zure taulak kargatzen…",
         "or": "edo",
         "{{count}} warnings_one": "abisu {{count}}",
-        "{{count}} warnings_other": "{{count}} abisu"
+        "{{count}} warnings_other": "{{count}} abisu",
+        "Choose destination": "Aukeratu helburua",
+        "Connected via {{method}}": "{{method}} bidez konektatuta",
+        "Existing tables": "Lehendik dauden taulak",
+        "Failed to fetch base schema": "Huts egin du oinarrizko eskema eskuratzeak",
+        "Grist configuration required": "Beharrezkoa da Grist konfiguratzea",
+        "New table: structure only": "Taula berria: egitura bakarrik",
+        "Structure only": "Egitura bakarrik",
+        "Use personal access token": "Erabili sarbide-token pertsonala",
+        "Choose an Airtable base to import from": "Aukeratu Airtable datu-base bat inportatzeko",
+        "Connect with Airtable": "Konektatu Airtable-rekin",
+        "Connect your Airtable account to access your bases.": "Konektatu zure Airtable kontua zure datu-baseak atzitzeko.",
+        "Failed to fetch bases": "Huts egin du datu-baseak ekartzeak",
+        "Import from {{baseName}} in progress. Do not navigate away from this page.": "Ari da {{baseName}} datu-basea inportatzen. Ez alde agin orrialde honetatik.",
+        "No bases found": "Ez da datu-baserik aurkitu",
+        "Source tables": "Jatorrizko taulak",
+        "[Generate a token]({{url}}) in your Airtable account with scopes that include at least **\\`schema.bases:read\\`** and **\\`data.records:read\\`**.\n\nYour token is never sent to Grist's servers, and is only used to make API calls to Airtable from your browser.": "[Sortu token bat]({{url}}) zure Airtable kontuan, gutxienez **\\`schema.bases:read\\`** eta **\\`data.records:read\\`** esparruak barne dituena.\n\nZure tokena ez da inoiz Grist-en zerbitzarietara bidaltzen, eta zure nabigatzailetik Airtablera API deiak egiteko bakarrik erabiltzen da.",
+        "The more convenient ‘Connect with Airtable’ option can be configured by the installation administrator. [Learn more.]({{url}})": "'Konektatu Airtable-rekin' aukera egokiena instalazio-administratzaileak konfigura dezake. [Ikasi gehiago.]({{url}})",
+        "OAuth credentials not configured. Please set OAUTH2_AIRTABLE_CLIENT_ID and OAUTH2_AIRTABLE_CLIENT_SECRET, or use personal access token.": "OAuth egiaztagiriak ez daude konfiguratuta. Ezarri OAUTH2_AIRTABLE_CLIENT_ID eta OAUTH2_AIRTABLE_CLIENT_SECRET, edo erabili sarbide-token pertsonala."
     },
     "AirtableImporter": {
         "Creating a new Grist document...": "Grist dokumentu berria sortzen…",
-        "Setting up tables...": "Taulak ezartzen…"
+        "Setting up tables...": "Taulak ezartzen…",
+        "Preparing to import base from Airtable...": "Airtable-rik datu-basea inportatzeko prestatzen…"
     },
     "ChangeAdminModal": {
         "Enter new admin email": "Sartu administratzailearen ePosta berria",
-        "Make the new email the installation admin. Orgs, workspaces, and documents will remain owned by {{email}}. These changes will take effect after you restart this Grist server.": "Egin mezu elektroniko berria instalazio-administratzaile. Orgs, lan-espazio eta dokumentuek {{email}}-en jabetza izaten jarraituko dute. Aldaketa hauek Grist zerbitzari hau berrabiarazi ondoren izango dute eragina.",
-        "New admin": "Administratzaile berria"
+        "Make the new email the installation admin. Orgs, workspaces, and documents will remain owned by {{email}}. These changes will take effect after you restart this Grist server.": "Egin mezu elektroniko berria instalazio-administratzaile. Orgs, lan-areak eta dokumentuek {{email}}-en jabetza izaten jarraituko dute. Aldaketa hauek Grist zerbitzari hau berrabiarazi ondoren izango dute eragina.",
+        "New admin": "Administratzaile berria",
+        "Replace {{email}} with the new email throughout. The new email will become the installation admin, as well as the owner of all materials previously owned by you@example.com.": "Ordeztu {{email}} helbide elektroniko berriarekin atal guztietan. Helbide elektroniko berria instalazioko administratzaile bihurtuko da, bai eta lehendik zu@adibidea.eus jabetzakoak ziren material guztien jabe ere."
     },
     "startDocAirtableImport": {
         "Import from Airtable": "Inportatu Airtable-tik"
     },
     "startHomeAirtableImport": {
-        "Import from Airtable": "Inportatu Airtable-tik"
+        "Import from Airtable": "Inportatu Airtable-tik",
+        "The current workspace can't be imported to.": "Uneko lan-areara ezin da ezer inportatu."
+    },
+    "NotifyModel": {
+        "Still working...": "Oraindik lanean…"
+    },
+    "TriggersPageUpsell": {
+        "Learn more.": "Irakurri gehiago.",
+        "Try for free": "Probatu debalde",
+        "Try full Grist": "Probatu Grist bere osotasunean",
+        "Automate workflows from within Grist": "Automatizatu lan-fluxuak Grist-etik bertatik",
+        "Automations Screenshot": "Automatizazioen pantaila-argazkia",
+        "Trigger automations based on data changes, and design actions such as custom email notifications and webhook integrations.": "Abiarazi automatizazioak datuen aldaketetan oinarrituta, eta diseinatu ekintzak, hala nola posta elektroniko bidezko jakinarazpen pertsonalizatuak eta webhook integrazioak.",
+        "Upgrade": "Kontratatu plan garestiagoa"
+    },
+    "AutomationsPageEntry": {
+        "Automations": "Automatizazioak",
+        "New": "Berria"
     }
 }
