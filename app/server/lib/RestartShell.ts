@@ -36,6 +36,7 @@ export const Deps = {
 };
 
 // Shell lifecycle.
+//   stopped    -> starting             start() called
 //   starting   -> running              initial spawn succeeded
 //   running    -> restarting           restart() begins
 //   restarting -> running              restart succeeded
@@ -68,8 +69,9 @@ const ALIVE = plain(200, "Grist server is alive.");
  * to a forked child worker. Construct, then `await start()`; hold onto
  * the instance to `restart()` or `shutdown()`.
  */
-export class RestartShell {
-  private _status: ShellStatus = { kind: "starting" };
+export type { RestartShell };
+class RestartShell {
+  private _status: ShellStatus = { kind: "stopped" };
   private _healthy = true;
 
   // Serializes restart/shutdown.
@@ -92,6 +94,7 @@ export class RestartShell {
   /** Bind the listening socket and spawn the first child. */
   public async start(): Promise<void> {
     log.info("RestartShell: starting");
+    this._status = { kind: "starting" };
     this._actualPort = await bindPublicSocket(this._server, this._options.publicPort);
     log.info(`RestartShell: listening on port ${this._actualPort}`);
 
@@ -221,10 +224,10 @@ export class RestartShell {
   }
 
   private _fallbackResponse(req: http.IncomingMessage): FallbackResponse {
-    const url = new URL(req.url || "/", "http://x");
-    if (url.pathname !== "/status") { return RESTARTING; }
+    const [pathname, query = ""] = (req.url || "/").split("?");
+    if (pathname !== "/status") { return RESTARTING; }
     if (!this._healthy) { return UNHEALTHY; }
-    if (isParameterOn(url.searchParams.get("ready"))) { return NOT_READY; }
+    if (isParameterOn(new URLSearchParams(query).get("ready"))) { return NOT_READY; }
     return ALIVE;
   }
 
