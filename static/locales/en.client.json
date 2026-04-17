@@ -112,7 +112,8 @@
         "Support Grist": "Support Grist",
         "Upgrade Plan": "Upgrade Plan",
         "Sign up": "Sign up",
-        "Use This Template": "Use This Template"
+        "Use This Template": "Use This Template",
+        "Site settings": "Site settings"
     },
     "ViewAsDropdown": {
         "View as": "View as",
@@ -1926,7 +1927,19 @@
         "error in {{provider}}: {{verdict}}": "error in {{provider}}: {{verdict}}",
         "Please restart Grist manually.": "Please restart Grist manually.",
         "Restart Grist to apply pending changes.": "Restart Grist to apply pending changes.",
-        "Restart unavailable": "Restart unavailable"
+        "Restart unavailable": "Restart unavailable",
+        "Boot key": "Boot key",
+        "Fallback authentication method": "Fallback authentication method",
+        "If you are the server operator, you can sign in using the boot key from your server logs.": "If you are the server operator, you can sign in using the boot key from your server logs.",
+        "Maintenance": "Maintenance",
+        "Service status": "Service status",
+        "Sign in with boot key": "Sign in with boot key",
+        "Take Grist out of service for maintenance": "Take Grist out of service for maintenance",
+        "boot key": "boot key",
+        "disabled": "disabled",
+        "enabled": "enabled",
+        "in service": "in service",
+        "out of service": "out of service"
     },
     "Columns": {
         "Remove Column": "Remove Column"
@@ -2244,7 +2257,8 @@
         "Workspaces": "Workspaces",
         "Admin Controls": "Admin Controls",
         "Settings": "Settings",
-        "Enterprise": "Enterprise"
+        "Enterprise": "Enterprise",
+        "Quick setup": "Quick setup"
     },
     "Assistant": {
         "AI Assistant is only available for logged in users.": "AI Assistant is only available for logged in users.",
@@ -2670,7 +2684,9 @@
         "When signing in, users will be redirected to a Grist Connect login page where they can authenticate using various identity providers. After authentication, they'll be redirected back to your Grist server and signed in.": "When signing in, users will be redirected to a Grist Connect login page where they can authenticate using various identity providers. After authentication, they'll be redirected back to your Grist server and signed in.",
         "When signing in, users will be redirected to your chosen identity provider's login page to authenticate. After successful authentication, they'll be redirected back to your Grist server and signed in as the user verified by the provider.": "When signing in, users will be redirected to your chosen identity provider's login page to authenticate. After successful authentication, they'll be redirected back to your Grist server and signed in as the user verified by the provider.",
         "You are signed in as {{email}}. After restart, the new administrative user will be {{newEmail}}.": "You are signed in as {{email}}. After restart, the new administrative user will be {{newEmail}}.",
-        "You are signed in as {{email}}. You may lose access to this server if you cannot sign in as this user after switching the authentication system.": "You are signed in as {{email}}. You may lose access to this server if you cannot sign in as this user after switching the authentication system."
+        "You are signed in as {{email}}. You may lose access to this server if you cannot sign in as this user after switching the authentication system.": "You are signed in as {{email}}. You may lose access to this server if you cannot sign in as this user after switching the authentication system.",
+        "If Grist is accessible on your network, or is available to multiple people, configure one of the authentication methods below and remove your boot key from Security Settings → Boot key.": "If Grist is accessible on your network, or is available to multiple people, configure one of the authentication methods below and remove your boot key from Security Settings → Boot key.",
+        "No authentication: using boot key as fallback method": "No authentication: using boot key as fallback method"
     },
     "DetailView": {
         "This row is unavailable or does not exist": "This row is unavailable or does not exist"
@@ -2766,5 +2782,72 @@
     "AutomationsPageEntry": {
         "Automations": "Automations",
         "New": "New"
+    },
+    "BootKeyStatus": {
+        "Every new Grist installation includes a random boot key: a secret whose value is only obtainable by an installation operator.": "Every new Grist installation includes a random boot key: a secret whose value is only obtainable by an installation operator.",
+        "Make sure you have configured an authentication system that lets you sign in as an admin before removing the boot key.": "Make sure you have configured an authentication system that lets you sign in as an admin before removing the boot key.",
+        "Remove boot key": "Remove boot key",
+        "Remove boot key?": "Remove boot key?",
+        "The boot key should only be used as a temporary means of authentication until a more secure and robust authentication method is configured via Security Settings → Authentication. We recommend removing the boot key once you've finished setting up Grist.": "The boot key should only be used as a temporary means of authentication until a more secure and robust authentication method is configured via Security Settings → Authentication. We recommend removing the boot key once you've finished setting up Grist.",
+        "This setting is currently being managed by an environment variable (`GRIST_BOOT_KEY`).": "This setting is currently being managed by an environment variable (`GRIST_BOOT_KEY`).",
+        "Unset the environment variable to manage this setting via the Admin Panel.": "Unset the environment variable to manage this setting via the Admin Panel.",
+        "You will no longer be able to authenticate as the install admin on the `": {
+            "boot-key` page.": "You will no longer be able to authenticate as the install admin on the `/boot-key` page."
+        }
+    },
+    "BootPage": {
+        "Administrator email": "Administrator email",
+        "After restarting, Grist will be available without this sign-in step.": "After restarting, Grist will be available without this sign-in step.",
+        "After restarting, return to this page and enter your chosen key.": "After restarting, return to this page and enter your chosen key.",
+        "Boot key": "Boot key",
+        "Can't find your boot key? You can {{setBootKeyButton}} or {{disableCheckButton}}.": "Can't find your boot key? You can {{setBootKeyButton}} or {{disableCheckButton}}.",
+        "Check key": "Check key",
+        "Checking key": "Checking key",
+        "Confirm or change the administrator email address.": "Confirm or change the administrator email address.",
+        "Continue": "Continue",
+        "Copied!": "Copied!",
+        "Copy": "Copy",
+        "Enter boot key": "Enter boot key",
+        "For Docker, add \\`-e GRIST_BOOT_KEY={{bootKey}}\\` to your run command. For other setups, set it in your environment or configuration file.": "For Docker, add \\`-e GRIST_BOOT_KEY={{bootKey}}\\` to your run command. For other setups, set it in your environment or configuration file.",
+        "For Docker, add \\`-e GRIST_IN_SERVICE=true\\` to your run command. For other setups, set it in your environment or configuration file.": "For Docker, add \\`-e GRIST_IN_SERVICE=true\\` to your run command. For other setups, set it in your environment or configuration file.",
+        "Here's a random key you can use:": "Here's a random key you can use:",
+        "If you cannot access server logs or cannot find your boot key, you can set it yourself. Add the environment variable \\`GRIST_BOOT_KEY\\` with a secret value to your Grist configuration, then restart Grist.": "If you cannot access server logs or cannot find your boot key, you can set it yourself. Add the environment variable \\`GRIST_BOOT_KEY\\` with a secret value to your Grist configuration, then restart Grist.",
+        "Look for this banner near the top of Grist's startup output — check your terminal, container logs, or hosting panel: {{exampleBootKeyBanner}}": "Look for this banner near the top of Grist's startup output — check your terminal, container logs, or hosting panel: {{exampleBootKeyBanner}}",
+        "Paste boot key here": "Paste boot key here",
+        "Set \\`GRIST_IN_SERVICE=true\\` in your Grist configuration, then restart. Grist will start without requiring a boot key.": "Set \\`GRIST_IN_SERVICE=true\\` in your Grist configuration, then restart. Grist will start without requiring a boot key.",
+        "Set your boot key": "Set your boot key",
+        "Skipping it is fine on a private, trusted network where only authorized people can connect.": "Skipping it is fine on a private, trusted network where only authorized people can connect.",
+        "The boot key proves you have access to the server running Grist — it keeps out anyone who can reach this page but isn't the administrator.": "The boot key proves you have access to the server running Grist — it keeps out anyone who can reach this page but isn't the administrator.",
+        "This will be your admin account for managing Grist.": "This will be your admin account for managing Grist.",
+        "Turn off this check": "Turn off this check",
+        "Valid boot key": "Valid boot key",
+        "Verify that you have access to this server to continue.": "Verify that you have access to this server to continue.",
+        "Welcome to Grist": "Welcome to Grist",
+        "Why does this check exist?": "Why does this check exist?",
+        "disable this check": "disable this check",
+        "set your own": "set your own"
+    },
+    "QuickSetup": {
+        "Apply & restart": "Apply & restart",
+        "Authentication": "Authentication",
+        "Backups": "Backups",
+        "Configure Grist for your environment.": "Configure Grist for your environment.",
+        "Quick setup": "Quick setup",
+        "Sandboxing": "Sandboxing",
+        "Server": "Server"
+    },
+    "ServiceStatus": {
+        "Enter maintenance mode": "Enter maintenance mode",
+        "Enter maintenance mode?": "Enter maintenance mode?",
+        "Non-admin users will be blocked until service is restored.": "Non-admin users will be blocked until service is restored.",
+        "Non-admin users will no longer be blocked.": "Non-admin users will no longer be blocked.",
+        "Restore service": "Restore service",
+        "Restore service?": "Restore service?",
+        "This setting is currently being managed by an environment variable (`GRIST_IN_SERVICE`).": "This setting is currently being managed by an environment variable (`GRIST_IN_SERVICE`).",
+        "Unset the environment variable to manage this setting via the Admin Panel.": "Unset the environment variable to manage this setting via the Admin Panel."
+    },
+    "TeamSettingsPage": {
+        "Domain is already taken.": "Domain is already taken.",
+        "Invalid domain.": "Invalid domain."
     }
 }
