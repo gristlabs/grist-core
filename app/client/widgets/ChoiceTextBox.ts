@@ -8,40 +8,64 @@ import { GristDoc } from "app/client/components/GristDoc";
 import { makeT } from "app/client/lib/localization";
 import { DataRowModel } from "app/client/models/DataRowModel";
 import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
-import { KoSaveableObservable } from "app/client/models/modelUtil";
 import { Style } from "app/client/models/Styles";
 import { cssLabel, cssRow } from "app/client/ui/RightPanelStyles";
 import { testId, theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { ChoiceListEntry } from "app/client/widgets/ChoiceListEntry";
-import { choiceToken } from "app/client/widgets/ChoiceToken";
+import { choiceToken, IChoiceTokenOptions } from "app/client/widgets/ChoiceToken";
 import { NTextBox } from "app/client/widgets/NTextBox";
+import { WidgetOptions } from "app/common/WidgetOptions";
 
-import { Computed, dom, styled } from "grainjs";
+import { Computed, dom, DomElementArg, styled } from "grainjs";
 
 export type IChoiceOptions = Style;
 export type ChoiceOptions = Record<string, IChoiceOptions | undefined>;
 export type ChoiceOptionsByName = Map<string, IChoiceOptions | undefined>;
+export type ChoiceOptionsMap = Map<string, IChoiceOptions>;
 
 const t = makeT("ChoiceTextBox");
+
+export class ChoiceRenderer {
+  private _choiceMap: ChoiceOptionsMap;
+
+  constructor(options: WidgetOptions) {
+    const { choices, choiceOptions } = options;
+    this._choiceMap = new Map((choices || []).map(c => [c, choiceOptions?.[c] || {}]));
+  }
+
+  public renderChoiceToken(token: string, ...args: DomElementArg[]) {
+    const blank = (token.trim() === "");
+    return choiceToken(
+      blank ? "[Blank]" : token,
+      this.getChoiceTokenOptions(token, blank),
+      ...args,
+    );
+  }
+
+  public getChoiceTokenOptions(token: string, blank?: boolean): IChoiceTokenOptions {
+    return {
+      ...this._choiceMap.get(token),
+      invalid: !this._choiceMap.has(token),
+      blank,
+    };
+  }
+}
 
 /**
  * ChoiceTextBox - A textbox for choice values.
  */
 export class ChoiceTextBox extends NTextBox {
-  private _choices: KoSaveableObservable<string[]>;
+  protected _choiceRenderer: Computed<ChoiceRenderer>;
+
   private _choiceValues: Computed<string[]>;
-  private _choiceValuesSet: Computed<Set<string>>;
-  private _choiceOptions: KoSaveableObservable<ChoiceOptions | null | undefined>;
   private _choiceOptionsByName: Computed<ChoiceOptionsByName>;
 
   constructor(field: ViewFieldRec) {
     super(field);
-    this._choices = this.options.prop("choices");
-    this._choiceOptions = this.options.prop("choiceOptions");
-    this._choiceValues = Computed.create(this, use => use(this._choices) || []);
-    this._choiceValuesSet = Computed.create(this, this._choiceValues, (_use, values) => new Set(values));
-    this._choiceOptionsByName = Computed.create(this, use => toMap(use(this._choiceOptions)));
+    this._choiceRenderer = Computed.create(this, use => new ChoiceRenderer(use(this.options)));
+    this._choiceValues = Computed.create(this, use => use(this.options.prop("choices")) || []);
+    this._choiceOptionsByName = Computed.create(this, use => toMap(use(this.options.prop("choiceOptions"))));
   }
 
   public buildDom(row: DataRowModel) {
@@ -59,12 +83,8 @@ export class ChoiceTextBox extends NTextBox {
           const formattedValue = use(this.valueFormatter).formatAny(use(value));
           if (formattedValue === "") { return null; }
 
-          return choiceToken(
+          return use(this._choiceRenderer).renderChoiceToken(
             formattedValue,
-            {
-              ...(use(this._choiceOptionsByName).get(formattedValue) || {}),
-              invalid: !use(this._choiceValuesSet).has(formattedValue),
-            },
             dom.cls(cssChoiceText.className),
             testId("choice-token"),
           );
@@ -100,14 +120,6 @@ export class ChoiceTextBox extends NTextBox {
     return [
       this.buildChoicesConfigDom(),
     ];
-  }
-
-  protected getChoiceValuesSet(): Computed<Set<string>> {
-    return this._choiceValuesSet;
-  }
-
-  protected getChoiceOptions(): Computed<ChoiceOptionsByName> {
-    return this._choiceOptionsByName;
   }
 
   protected save(choices: string[], choiceOptions: ChoiceOptionsByName, renames: Record<string, string>) {
