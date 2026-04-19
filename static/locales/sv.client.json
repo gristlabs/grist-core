@@ -1954,7 +1954,10 @@
         "error in {{provider}}: {{verdict}}": "fel i {{provider}}: {{verdict}}",
         "Please restart Grist manually.": "Start om Grist manuellt.",
         "Restart Grist to apply pending changes.": "Start om Grist för att aktivera väntande ändringar.",
-        "Restart unavailable": "Om start inte tillgänglig"
+        "Restart unavailable": "Om start inte tillgänglig",
+        "Maintenance": "Underhåll",
+        "disabled": "avstängd",
+        "enabled": "påslagen"
     },
     "Columns": {
         "Remove Column": "Ta bort kolumn"
