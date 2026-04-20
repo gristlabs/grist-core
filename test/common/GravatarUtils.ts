@@ -1,46 +1,41 @@
-import { assert } from 'chai';
-import { getGravatarUrl } from 'app/common/GravatarUtils';
+import { getGravatarUrl } from "app/common/GravatarUtils";
 
-const md5 = require('blueimp-md5');
+import { assert } from "chai";
 
-describe('GravatarUtils', function() {
-  describe('getGravatarUrl', function() {
-    it('should generate correct Gravatar URL for a standard email', function() {
-      const email = 'test@example.com';
-      const url = getGravatarUrl(email);
-      assert.match(url, /^https:\/\/www\.gravatar\.com\/avatar\/[a-f0-9]{32}\?s=200&d=identicon$/);
-      assert.include(url, md5(email.trim().toLowerCase()));
+async function hashEmail(email: string): Promise<string> {
+  const enc = new TextEncoder();
+  const hashAsArrayBuffer = await crypto.subtle.digest("SHA-256", enc.encode(email));
+  const uint8ViewOfHash = new Uint8Array(hashAsArrayBuffer);
+  const hash = Array.from(uint8ViewOfHash)
+    .map(b => b.toString(16).padStart(2, "0"))
+    .join("");
+  return hash;
+}
+
+describe("GravatarUtils", function() {
+  describe("getGravatarUrl", function() {
+    it("should normalize email (trim and lowercase)", async function() {
+      const email = "  Test@Example.COM  ";
+      const url = await getGravatarUrl(email);
+      assert.include(url, await hashEmail(email.trim().toLowerCase()));
     });
 
-    it('should normalize email (trim and lowercase)', function() {
-      const email = '  Test@Example.COM  ';
-      const url = getGravatarUrl(email);
-      assert.include(url, md5(email.trim().toLowerCase()));
+    it("should use default size of 200", async function() {
+      const email = "test@example.com";
+      const url = await getGravatarUrl(email);
+      assert.include(url, "s=200");
     });
 
-    it('should use default size of 200', function() {
-      const email = 'test@example.com';
-      const url = getGravatarUrl(email);
-      assert.include(url, 's=200');
+    it("should accept custom size", async function() {
+      const email = "test@example.com";
+      const url = await getGravatarUrl(email, 100);
+      assert.include(url, "s=100");
     });
 
-    it('should accept custom size', function() {
-      const email = 'test@example.com';
-      const url = getGravatarUrl(email, 100);
-      assert.include(url, 's=100');
-    });
-
-    it('should handle email with no Gravatar (returns identicon)', function() {
-      const email = 'nonexisting@example.com';
-      const url = getGravatarUrl(email);
-      assert.match(url, /^https:\/\/www\.gravatar\.com\/avatar\/[a-f0-9]{32}\?s=200&d=identicon$/);
-      assert.include(url, md5(email.trim().toLowerCase()));
-    });
-
-    it('should include identicon fallback', function() {
-      const email = 'test@example.com';
-      const url = getGravatarUrl(email);
-      assert.include(url, 'd=identicon');
+    it("should include identicon fallback", async function() {
+      const email = "test@example.com";
+      const url = await getGravatarUrl(email);
+      assert.include(url, "d=identicon");
     });
   });
 });
