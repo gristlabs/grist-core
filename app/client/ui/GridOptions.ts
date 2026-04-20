@@ -47,6 +47,14 @@ export class GridOptions extends Disposable {
           testId("zebra-stripe-button"),
         ),
 
+        cssRow(
+          labeledSquareCheckbox(
+            setSaveValueFromKo(this, section.optionsObj.prop("rtlDirection")),
+            t("RTL direction"),
+          ),
+          testId("rtl-direction-button"),
+        ),
+
         testId("grid-options"),
       ]),
     );
