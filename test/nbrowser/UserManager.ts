@@ -73,14 +73,11 @@ const assertMaxInheritedRole = stackWrapFunc(async function(inheritLabel: string
 });
 
 describe("UserManager", function() {
-  let envSnapshot: EnvironmentSnapshot;
   this.timeout(20000);
   gu.bigScreen();
   const cleanup = setupTestSuite();
 
   before(async function() {
-    envSnapshot = new EnvironmentSnapshot();
-
     // Initially teamSite is created with users user1 (gristoid+chimpy@) and support@ as owners,
     // but some tests call resetSite(), leaving it owned only by user1. This test assumes that
     // support@ is among owners, so we ensure that by resetting and adding support@ manually.
@@ -89,10 +86,6 @@ describe("UserManager", function() {
     await session.createHomeApi().updateOrgPermissions(session.settings.orgDomain, {
       users: { "support@getgrist.com": "owners" },
     });
-  });
-
-  afterEach(function() {
-    envSnapshot.restore();
   });
 
   it("allows updating org permissions", async () => {
@@ -873,50 +866,56 @@ describe("UserManager", function() {
   });
 
   it("should give access publicly with a confirmation dialog", async function() {
-    const driver = gu.currentDriver();
-    // This test currently only works in grist-core because it relies on behavior
-    // unique to the minimal login system, which is the default when deployment type
-    // is core. Specifically, when a redirect to login happens, it automatically
-    // authenticates the user as the install admin (default: you@example.com).
-    process.env.GRIST_TEST_SERVER_DEPLOYMENT_TYPE = "core";
-    process.env.GRIST_WARN_BEFORE_SHARING_PUBLICLY = "true";
-    await server.restart();
-    const owner = gu.translateUser("owner");
-    const anon = gu.translateUser("anon");
+    const envSnapshot = new EnvironmentSnapshot();
+    try {
+      const driver = gu.currentDriver();
+      // This test currently only works in grist-core because it relies on behavior
+      // unique to the minimal login system, which is the default when deployment type
+      // is core. Specifically, when a redirect to login happens, it automatically
+      // authenticates the user as the install admin (default: you@example.com).
+      process.env.GRIST_TEST_SERVER_DEPLOYMENT_TYPE = "core";
+      process.env.GRIST_WARN_BEFORE_SHARING_PUBLICLY = "true";
+      await server.restart();
+      const owner = gu.translateUser("owner");
+      const anon = gu.translateUser("anon");
 
-    const checkAnonAccessDenied = async (docId: string) => {
-      await gu.openDocAs(anon, docId, { wait: false });
-      await gu.currentDriver().findContentWait(".test-error-header", "Access denied", 1000);
-    };
+      const checkAnonAccessDenied = async (docId: string) => {
+        await gu.openDocAs(anon, docId, { wait: false });
+        await gu.currentDriver().findContentWait(".test-error-header", "Access denied", 1000);
+      };
 
-    const changePublicAccess = async (value: "On" | "Off") => {
-      await gu.editDocAcls();
-      const publicAccess = await driver.find(".test-um-public-access");
-      const sharingPublicly = value === "On";
-      // Check prior to the change that the previous value was the contrary.
-      assert.equal(await publicAccess.getText(), sharingPublicly ? "Off" : "On");
-      await publicAccess.click();
-      await driver.findContentWait(".test-um-public-option", value, 1000).click();
-      await gu.saveAcls({ sharePubliclyDialog: sharingPublicly });
-    };
+      const changePublicAccess = async (value: "On" | "Off") => {
+        await gu.editDocAcls();
+        const publicAccess = await driver.find(".test-um-public-access");
+        const sharingPublicly = value === "On";
+        // Check prior to the change that the previous value was the contrary.
+        assert.equal(await publicAccess.getText(), sharingPublicly ? "Off" : "On");
+        await publicAccess.click();
+        await driver.findContentWait(".test-um-public-option", value, 1000).click();
+        await gu.saveAcls({ sharePubliclyDialog: sharingPublicly });
+      };
 
-    const session = await gu.session().teamSite.login(owner);
+      const session = await gu.session().teamSite.login(owner);
 
-    // Make a document
-    const doc = await session.tempDoc(cleanup, "Hello.grist", { load: true });
+      // Make a document
+      const doc = await session.tempDoc(cleanup, "Hello.grist", { load: true });
 
-    await checkAnonAccessDenied(doc.id);
-    await gu.openDocAs(owner, doc.id);
+      await checkAnonAccessDenied(doc.id);
+      await gu.openDocAs(owner, doc.id);
 
-    await changePublicAccess("On");
+      await changePublicAccess("On");
 
-    // Let's check whether anonymous user can access to the doc now
-    await gu.openDocAs(anon, doc.id, { wait: true });
-    await gu.openDocAs(owner, doc.id);
+      // Let's check whether anonymous user can access to the doc now
+      await gu.openDocAs(anon, doc.id, { wait: true });
+      await gu.openDocAs(owner, doc.id);
 
-    await changePublicAccess("Off");
-    // Now anonymous access should be disabled again
-    await checkAnonAccessDenied(doc.id);
+      await changePublicAccess("Off");
+      // Now anonymous access should be disabled again
+      await checkAnonAccessDenied(doc.id);
+    } finally {
+      envSnapshot.restore();
+      await server.restart();
+    }
   });
 });
 

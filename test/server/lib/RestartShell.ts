@@ -3,6 +3,7 @@
  * shell in-process that forks a Grist child via stubs/app/server/server.
  */
 
+import { GristClientSocket } from "app/client/components/GristClientSocket";
 import { delay } from "app/common/delay";
 import { Deps, runRestartShell } from "app/server/lib/RestartShell";
 import { createInitialDb, removeConnection, setUpDB } from "test/gen-server/seed";
@@ -209,7 +210,6 @@ describe("RestartShell", function() {
 
   it("should handle WebSocket connections after restart", async function() {
     this.timeout(60000);
-    const { GristClientSocket } = await import("app/client/components/GristClientSocket");
 
     const docId = await createTestDoc(serverUrl, "WsTest");
 
