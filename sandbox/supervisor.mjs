@@ -1,3 +1,9 @@
+// Deprecated: Grist now starts under its own RestartShell by default
+// on Linux (see app/server/lib/RestartShell.ts), which handles
+// admin-triggered restarts without dropping the listening socket.
+// The Dockerfile no longer invokes this script; it is kept for
+// external builds that still point at it. New deployments should
+// run Grist directly and rely on RestartShell.
 import {spawn} from "child_process";
 
 let grist;
