@@ -459,6 +459,7 @@ export interface UserAPI {
   moveDoc(docId: string, workspaceId: number): Promise<void>;
   getUserProfile(): Promise<FullUser>;
   updateUserName(name: string): Promise<void>;
+  updateUserPicture(picture: string): Promise<void>;
   updateUserLocale(locale: string | null): Promise<void>;
   updateAllowGoogleLogin(allowGoogleLogin: boolean): Promise<void>;
   disableUser(userId: number): Promise<void>;
@@ -964,6 +965,13 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
     await this.request(`${this._url}/api/profile/user/name`, {
       method: "POST",
       body: JSON.stringify({ name }),
+    });
+  }
+
+  public async updateUserPicture(picture: string): Promise<void> {
+    await this.request(`${this._url}/api/profile/user/picture`, {
+      method: "POST",
+      body: JSON.stringify({ picture }),
     });
   }
 

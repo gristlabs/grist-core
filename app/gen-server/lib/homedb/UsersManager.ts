@@ -315,6 +315,10 @@ export class UsersManager {
         user.name = props.name;
         needsSave = true;
       }
+      if (props.picture !== undefined && props.picture !== user.picture) {
+        user.picture = props.picture;
+        needsSave = true;
+      }
       if (props.disabledAt !== undefined && props.disabledAt !== user.disabledAt) {
         user.disabledAt = props.disabledAt;
         needsSave = true;
