@@ -189,8 +189,7 @@ ENV \
 
 EXPOSE 8484
 
-# When run without any arguments, we run the Grist server within
-# a simple supervisor.
+# When run without any arguments, we run the Grist server directly.
 # When arguments are supplied they are treated as a command to run,
 # as is default for docker. We arrange to have a "cli" command that
 # is the same as "yarn cli" run from the source code repo.
@@ -200,4 +199,4 @@ EXPOSE 8484
 #  --json "select * from _gristsys_ActionHistory"
 
 ENTRYPOINT ["./sandbox/docker_entrypoint.sh"]
-CMD ["node", "./sandbox/supervisor.mjs"]
+CMD ["./sandbox/run.sh"]

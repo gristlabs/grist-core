@@ -38,6 +38,11 @@ import {
 } from "express";
 import pick from "lodash/pick";
 
+function canRestart() {
+  return isAffirmative(process.env.GRIST_RUNNING_UNDER_SUPERVISOR) ||
+    isAffirmative(process.env.GRIST_UNDER_RESTART_SHELL);
+}
+
 export interface AttachOptions {
   app: Application;
   gristServer: GristServer;
@@ -69,7 +74,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
     userIdMiddleware,
     expressWrap(async (req, res) => {
       const config: Partial<AdminPageConfig> = {
-        runningUnderSupervisor: isAffirmative(process.env.GRIST_RUNNING_UNDER_SUPERVISOR),
+        runningUnderSupervisor: canRestart(),
         adminControls: gristServer.create.areAdminControlsAvailable(),
       };
       return gristServer.sendAppPage(req, res, {
@@ -106,12 +111,12 @@ export function attachEarlyEndpoints(options: AttachOptions) {
         // Docker) tell the parent that we have a new environment so it
         // can restart us.
         log.rawDebug(`Restart[${mreq.method}] finishing:`, meta);
-        if (process.send && process.env.GRIST_RUNNING_UNDER_SUPERVISOR) {
-          log.rawDebug(`Restart[${mreq.method}] requesting supervisor to restart home server:`, meta);
+        if (process.send && canRestart()) {
+          log.rawDebug(`Restart[${mreq.method}] requesting restart:`, meta);
           process.send({ action: "restart" });
         }
       });
-      if (!process.env.GRIST_RUNNING_UNDER_SUPERVISOR) {
+      if (!canRestart()) {
         // On the topic of http response codes, thus spake MDN:
         // "409: This response is sent when a request conflicts with the current state of the server."
         return res.status(409).send({
