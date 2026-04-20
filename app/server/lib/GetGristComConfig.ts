@@ -11,6 +11,7 @@
 import { GETGRIST_COM_PROVIDER_KEY } from "app/common/loginProviders";
 import { appSettings, AppSettings } from "app/server/lib/AppSettings";
 import { GristLoginSystem, GristServer } from "app/server/lib/GristServer";
+import { getHomeUrl } from "app/server/lib/gristSettings";
 import { createLoginProviderFactory, NotConfiguredError } from "app/server/lib/loginSystemHelpers";
 import { OIDCBuilder, OIDCConfig } from "app/server/lib/OIDCConfig";
 import { stringParam } from "app/server/lib/requestUtils";
@@ -86,7 +87,7 @@ export function getGetGristComHost(settings = appSettings): string | undefined {
     .flag("spHost")
     .readString({
       envVar: "GRIST_GETGRISTCOM_SP_HOST",
-      defaultValue: process.env.APP_HOME_URL,
+      defaultValue: getHomeUrl(),
     });
 }
 

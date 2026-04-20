@@ -27,6 +27,7 @@ import { getAuthorizedUserId, RequestWithLogin } from "app/server/lib/Authorizer
 import { SessionOIDCInfo, SessionUserObj } from "app/server/lib/BrowserSession";
 import { expressWrap, secureJsonErrorHandler } from "app/server/lib/expressWrap";
 import { GristServer } from "app/server/lib/GristServer";
+import { getHomeUrl } from "app/server/lib/gristSettings";
 import log from "app/server/lib/log";
 import { ProtectionsManager } from "app/server/lib/oidc/Protections";
 import { agents } from "app/server/lib/ProxyAgent";
@@ -49,7 +50,7 @@ const testOverrides = safeJsonParse(process.env.TEST_GRIST_OAUTH2_CLIENTS_OVERRI
  */
 const redirectHost = () => appSettings.section("oauth2").flag("redirectHost").readString({
   envVar: "OAUTH2_GRIST_HOST",
-  defaultValue: process.env.APP_HOME_URL,   // NOTE: This variable may not be set.
+  defaultValue: getHomeUrl(),   // NOTE: This may be undefined.
 });
 
 /**

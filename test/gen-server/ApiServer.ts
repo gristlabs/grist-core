@@ -9,6 +9,7 @@ import { Organization } from "app/gen-server/entity/Organization";
 import { Product } from "app/gen-server/entity/Product";
 import { HomeDBManager, UserChange } from "app/gen-server/lib/homedb/HomeDBManager";
 import { testGetPreparedStatementCount, testResetPreparedStatements } from "app/gen-server/lib/TypeORMPatches";
+import { getTemplateOrg } from "app/server/lib/gristSettings";
 import { TestServer } from "test/gen-server/apiUtils";
 import {
   configForApiKey, configForUser, configWithPermit, getRowCounts as getRowCountsForDb,
@@ -54,6 +55,7 @@ describe("ApiServer", function() {
   before(async function() {
     oldEnv = new testUtils.EnvironmentSnapshot();
     process.env.GRIST_TEMPLATE_ORG = "templates";
+    getTemplateOrg.cache.clear();
     // ham (as in dramatic actor) is the admin
     process.env.GRIST_DEFAULT_EMAIL = hamEmail;
     process.env.GRIST_ENABLE_SERVICE_ACCOUNTS = "true";
@@ -82,6 +84,7 @@ describe("ApiServer", function() {
 
   after(async function() {
     oldEnv.restore();
+    getTemplateOrg.cache.clear();
     await server.stop();
   });
 

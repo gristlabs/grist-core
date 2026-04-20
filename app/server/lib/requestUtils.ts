@@ -8,6 +8,7 @@ import { appSettings } from "app/server/lib/AppSettings";
 import { getUserId, RequestWithLogin } from "app/server/lib/Authorizer";
 import { RequestWithOrg } from "app/server/lib/extractOrg";
 import { RequestWithGrist } from "app/server/lib/GristServer";
+import { getHomeUrl } from "app/server/lib/gristSettings";
 import log from "app/server/lib/log";
 import { Permit } from "app/server/lib/Permit";
 
@@ -431,8 +432,9 @@ export function buildXForwardedForHeader(req: Request): { "X-Forwarded-For": str
  * the protocol of the request itself.
  */
 export function getEndUserProtocol(req: IncomingMessage) {
-  if (process.env.APP_HOME_URL) {
-    return new URL(process.env.APP_HOME_URL).protocol.replace(":", "");
+  const homeUrl = getHomeUrl();
+  if (homeUrl) {
+    return new URL(homeUrl).protocol.replace(":", "");
   }
   // TODO we shouldn't blindly trust X-Forwarded-Proto. See the Express approach:
   // https://expressjs.com/en/5x/api.html#trust.proxy.options.table

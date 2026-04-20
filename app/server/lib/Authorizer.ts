@@ -9,7 +9,6 @@ import { User } from "app/gen-server/entity/User";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { DocAuthResult, HomeDBAuth } from "app/gen-server/lib/homedb/Interfaces";
 import { AccessTokenInfo } from "app/server/lib/AccessTokens";
-import { getBootKey } from "app/server/lib/Boot";
 import { forceSessionChange, getSessionProfiles, getSessionUser, getSignInStatus, linkOrgWithEmail, SessionObj,
   SessionUserObj, SignInStatus } from "app/server/lib/BrowserSession";
 import { expressWrap } from "app/server/lib/expressWrap";
@@ -17,6 +16,7 @@ import { RequestWithOrg } from "app/server/lib/extractOrg";
 import { GristServer } from "app/server/lib/GristServer";
 import { COOKIE_MAX_AGE,
   cookieName as sessionCookieName, getAllowedOrgForSessionID, getCookieDomain } from "app/server/lib/gristSessions";
+import { getBootKey } from "app/server/lib/gristSettings";
 import { makeId } from "app/server/lib/idUtils";
 import log from "app/server/lib/log";
 import { IPermitStore, Permit } from "app/server/lib/Permit";

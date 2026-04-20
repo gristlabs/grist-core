@@ -154,13 +154,6 @@ WORKDIR /grist
 #   docker run -p 8484:8484 -it <image>
 # Variables will need to be overridden for other setups.
 #
-# GRIST_SANDBOX_FLAVOR is set to unsandboxed by default, because it
-# appears that the services people use to run docker containers have
-# a wide variety of security settings and the functionality needed for
-# sandboxing may not be possible in every case. For default docker
-# settings, you can get sandboxing as follows:
-#   docker run --env GRIST_SANDBOX_FLAVOR=gvisor -p 8484:8484 -it <image>
-#
 # "NODE_OPTIONS=--no-deprecation" is set because there is a punycode
 # deprecation nag that is relevant to developers but not to users.
 # TODO: upgrade package.json to avoid using all package versions
@@ -182,7 +175,6 @@ ENV \
   GRIST_SESSION_COOKIE=grist_core \
   GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING=${GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING} \
   GVISOR_FLAGS="-unprivileged -ignore-cgroups" \
-  GRIST_SANDBOX_FLAVOR=unsandboxed \
   NODE_OPTIONS="--no-deprecation" \
   NODE_ENV=production \
   TYPEORM_DATABASE=/persist/home.sqlite3

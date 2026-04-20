@@ -16,6 +16,7 @@ import { AuthSession } from "app/server/lib/AuthSession";
 import { Client } from "app/server/lib/Client";
 import { DummyAuthorizer } from "app/server/lib/DocAuthorizer";
 import { makeExceptionalDocSession, makeOptDocSession, OptDocSession } from "app/server/lib/DocSession";
+import { getSandboxFlavor } from "app/server/lib/gristSettings";
 import { guessExt } from "app/server/lib/guessExt";
 import log from "app/server/lib/log";
 import { timeoutReached } from "app/server/lib/serverUtils";
@@ -991,10 +992,12 @@ describe("ActiveDoc", async function() {
       // Set environment variable that currently determines whether a sandbox choice is allowed.
       process.env.GRIST_EXPERIMENTAL_PLUGINS = "1";
       delete process.env.GRIST_SANDBOX_FLAVOR;
+      getSandboxFlavor.cache.clear();
     });
 
     after(async function() {
       oldEnv?.restore();
+      getSandboxFlavor.cache.clear();
     });
 
     // Adds an Info table containing `sys.version`, and checks python

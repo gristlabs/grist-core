@@ -72,6 +72,7 @@ import { appSettings, AppSettings } from "app/server/lib/AppSettings";
 import { RequestWithLogin } from "app/server/lib/Authorizer";
 import { SessionObj } from "app/server/lib/BrowserSession";
 import { GristLoginSystem, GristServer } from "app/server/lib/GristServer";
+import { getHomeUrl } from "app/server/lib/gristSettings";
 import log from "app/server/lib/log";
 import { createLoginProviderFactory, NotConfiguredError } from "app/server/lib/loginSystemHelpers";
 import { EnabledProtection, EnabledProtectionString, ProtectionsManager } from "app/server/lib/oidc/Protections";
@@ -162,7 +163,7 @@ export function readOIDCConfigFromSettings(settings: AppSettings): OIDCConfig {
 
   const spHost = section.flag("spHost").requireString({
     envVar: "GRIST_OIDC_SP_HOST",
-    defaultValue: process.env.APP_HOME_URL,
+    defaultValue: getHomeUrl(),
   });
 
   const clientId = section.flag("clientId").requireString({

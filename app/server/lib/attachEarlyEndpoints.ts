@@ -19,6 +19,7 @@ import { RequestWithLogin } from "app/server/lib/Authorizer";
 import { BootProbes } from "app/server/lib/BootProbes";
 import { expressWrap } from "app/server/lib/expressWrap";
 import { GristServer } from "app/server/lib/GristServer";
+import { invalidateReloadableSettings } from "app/server/lib/gristSettings";
 import log from "app/server/lib/log";
 import {
   getScope,
@@ -36,6 +37,7 @@ import {
   RequestHandler,
   Response,
 } from "express";
+import isEmpty from "lodash/isEmpty";
 import pick from "lodash/pick";
 
 export interface AttachOptions {
@@ -150,12 +152,10 @@ export function attachEarlyEndpoints(options: AttachOptions) {
         await gristServer.getTelemetry().fetchTelemetryPrefs();
       }
 
-      if (envVars) {
+      if (!isEmpty(envVars)) {
         // TODO: Similar to above, we need to notify other servers of updates to env vars.
         appSettings.setEnvVars((await gristServer.getActivations().current()).prefs?.envVars || {});
-
-        if ("GRIST_ADMIN_EMAIL" in envVars) { gristServer.getInstallAdmin().clearCaches(); }
-        if ("GRIST_IN_SERVICE" in envVars) { gristServer.refreshServiceStatus(); }
+        invalidateReloadableSettings(...Object.keys(envVars!));
       }
 
       return res.status(200).send();
