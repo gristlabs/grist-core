@@ -1367,7 +1367,7 @@ export default class GridView extends BaseView {
     return dom(
       "div.gridview_data_pane.flexvbox",
       // RTL direction support for the grid
-      dom.attr("dir", (use) => use(vRtlDirection) ? "rtl" : "ltr"),
+      dom.attr("dir", use => use(vRtlDirection) ? "rtl" : "ltr"),
       // offset for frozen columns - how much move them to the left
       styleCustomVar("--frozen-offset", this.frozenOffset),
       // total width of frozen columns
