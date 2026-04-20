@@ -444,6 +444,7 @@ describe("PagePanels", function() {
       await waitAssertPickerShown();
       await driver.findContent(".test-wselect-table", /New Table/).doClick();
       await driver.sendKeys(Key.ENTER);
+      await driver.sendKeys(Key.ENTER);
 
       // check that the picker is gone
       await assertNoPicker();
