@@ -20,9 +20,15 @@ build_packages:
 save_packages:
 	aws s3 sync _build/packages s3://grist-pynbox/pyodide/packages/v$(GRIST_PYODIDE_VERSION)
 
+clean: clean_packages clean_code
+
 clean_packages:
 	rm -rf _build/packages
 	rm -rf _build/pyodide/grist-packages
+
+clean_code:
+	rm -rf _build/worker
+	rm -rf _build/pyodide
 
 setup:
 	./setup.sh

@@ -19,9 +19,7 @@ if [ -f "$VERSION_FILE" ]; then
   if [ "$CURRENT_VERSION" != "$TARGET_VERSION" ]; then
     echo "Version mismatch: $CURRENT_VERSION != $TARGET_VERSION"
     echo "Cleaning packages and resetting worker..."
-    make clean_packages
-    rm -rf _build/worker
-    rm -rf _build/pyodide
+    make clean
     ./setup.sh
     echo "$TARGET_VERSION" > "$VERSION_FILE"
   else
