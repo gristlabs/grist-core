@@ -95,6 +95,25 @@ export class ConfigBackendAPI {
       });
     }));
 
+    // GET /api/config/server
+    // Returns the persisted APP_HOME_URL, or null if unset (client falls
+    // back to auto-detecting from window.location). Reads directly from
+    // activation prefs + process.env rather than through the memoized
+    // gristSettings accessor -- APP_HOME_URL is restart-required, so the
+    // memoized value lags the DB until restart, which isn't what the admin
+    // panel wants to show after a write.
+    //
+    // Writes go through PATCH /api/install/prefs with
+    // `{ envVars: { APP_HOME_URL: ... } }` followed by a restart.
+    app.get("/api/config/server", requireInstallAdmin, expressWrap(async (req, resp) => {
+      const activation = await this._activations.current();
+      const fromDb = activation.prefs?.envVars?.APP_HOME_URL as string | undefined;
+      const fromEnv = process.env.APP_HOME_URL;
+      return sendOkReply(req, resp, {
+        APP_HOME_URL: fromDb || fromEnv || null,
+      });
+    }));
+
     app.get("/api/config/:key", requireInstallAdmin, expressWrap((req, resp) => {
       log.debug("config: requesting configuration", req.params);
 
