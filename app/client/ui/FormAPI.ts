@@ -161,7 +161,7 @@ export class FormAPIImpl extends BaseAPI implements FormAPI {
         body: JSON.stringify({ records: [{ fields: colValues }] }),
       },
     );
-    return response?.records?.[0]?.id;
+    return response?.records?.[0]?.id || 0;
   }
 
   public async createAttachments(options: CreateAttachmentOptions): Promise<number[]> {
