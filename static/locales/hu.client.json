@@ -112,7 +112,8 @@
         "Activation": "Aktiválás",
         "Billing account": "Számlázási fiók",
         "Support Grist": "A Grist támogatása",
-        "Upgrade Plan": "Előfizetés"
+        "Upgrade Plan": "Előfizetés",
+        "Site settings": "Oldal beállítások"
     },
     "ViewAsDropdown": {
         "View as": "Megjelenítés mint",
@@ -639,7 +640,7 @@
         "Interested in using Grist outside of your team? Visit your free ": "Érdekel a Grist használata a csapatodon kívül is? Látogasd meg ingyenes ",
         "Invite Team Members": "Csapattagok meghívása",
         "Sign up": "Regisztráció",
-        "Sprouts Program": "Sprouts Program",
+        "Sprouts Program": "Rügyfakadás program",
         "This workspace is empty.": "Ez a munkaterület üres.",
         "Visit our {{link}} to learn more.": "További tudnivalókért látogasd meg {{link}} oldalunkat.",
         "Welcome to Grist!": "Üdvözöl a Grist!",
@@ -679,7 +680,8 @@
         "Tutorial": "Gyakorlat",
         "Terms of service": "Szolgáltatási feltételek",
         "Grist Resources": "Grist eszközök és tudástár",
-        "context menu - {{- workspaceName }}": "kontextus-menü - {{- workspaceName }}"
+        "context menu - {{- workspaceName }}": "kontextus-menü - {{- workspaceName }}",
+        "Import from Airtable": "Importálás Airtable-ből"
     },
     "Importer": {
         "Column Mapping": "Oszlopok megfeleltetése",
@@ -695,7 +697,14 @@
         "Source column": "Forrás oszlop",
         "Import options": "Importálás beállításai",
         "Cancel": "Mégse",
-        "Import": "Importálás"
+        "Import": "Importálás",
+        "Merge rows that match these fields:": "Egyesítse az ezeknek a mezőknek megfelelő sorokat:",
+        "Select fields to match on": "Válasszon mezőket az egyesítéshez",
+        "Update existing records": "Létező rekordok frissítése",
+        "{{count}} unmatched field in import_one": "{{count}} nem párosítható mező az importban",
+        "{{count}} unmatched field in import_other": "{{count}} nem párosítható mező az importban",
+        "{{count}} unmatched field_one": "{{count}} nem párosítható mező",
+        "{{count}} unmatched field_other": "{{count}} nem párosíthetó mező"
     },
     "LeftPanelCommon": {
         "Help Center": "Súgóközpont",
@@ -1359,6 +1368,22 @@
     },
     "GristTooltips": {
         "Apply conditional formatting to cells in this column when formula conditions are met.": "Feltételes formázás alkalmazása az ebben az oszlopban lévő olyan cellákra, amelyeknél a képletben leírt feltételek fennállnak.",
-        "Apply conditional formatting to rows based on formulas.": "Feltételes formázás alkalmazása sorokra képletek alapján."
+        "Apply conditional formatting to rows based on formulas.": "Feltételes formázás alkalmazása sorokra képletek alapján.",
+        "Updates every 5 minutes.": "Ötpercenként frissül.",
+        "Use the \\u{1D6BA} icon to create summary (or pivot) tables, for totals or subtotals.": "Használd a \\u{1D6BA} ikont, hogy összegző (összefoglaló) táblázatot hozz létre összegekhez és részösszegekhez.",
+        "Raw Data page": "Nyersadat oldal",
+        "Cells in a reference column always identify an {{entire}} record in that table, but you may select which column from that record to show.": "A referencia típusú oszlop cellái mindig egy {{entire}} rekordot tartalmaznak, de kiválaszthatod, hogy melyik oszlop legyen ebből a rekordból megjelenítve.",
+        "Click on “Open row styles” to apply conditional formatting to rows.": "Kattints a \"Sor stílusok megnyitása\" gombra a sorok feltételes formázásához.",
+        "Click the Add new button to create new documents or workspaces, or import data.": "Kattints az Új hozzáadása gombra új dokumentum vagy munkaterület létrehozásához, vagy adatok importálásához.",
+        "Clicking {{EyeHideIcon}} in each cell hides the field from this view without deleting it.": "Minden cellában az {{EyeHideIcon}} ikonra kattintva elrejti a mezőt ebből a nézetből anélkül, hogy törölné.",
+        "Editing Card Layout": "Kártya elrendezése módosítása",
+        "Formulas that trigger in certain cases, and store the calculated value as data.": "Képletek, amelyek bizonyos esetekben aktiválódnak, és a kiszámított értéket adatként tárolják.",
+        "Learn more.": "További információk.",
+        "Link your new widget to an existing widget on this page.": "Kapcsold az új widgetedet egy már létező widgethez ezen az oldalon.",
+        "Linking Widgets": "Widgetek összekapcsolása",
+        "Nested Filtering": "Beágyazott szűrés",
+        "Only those rows will appear which match all of the filters.": "Csak azok a sorok jelennek meg, amelyek minden szűrőfeltételnek megfelelnek.",
+        "Pinned filters are displayed as buttons above the widget.": "A rögzített szűrők gombokként jelennek meg a widget felett.",
+        "Pinning Filters": "Rögzített szűrők"
     }
 }
