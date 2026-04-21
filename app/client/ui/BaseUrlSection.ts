@@ -55,6 +55,7 @@ export class BaseUrlSection extends Disposable {
   private _isGrist = false;
   private _testResult = Observable.create<TestResult>(this, "idle");
   private _testError = Observable.create<string>(this, "");
+  private _testDetailOpen = Observable.create<boolean>(this, false);
   private _testAbort?: AbortController;
 
   private _configAPI = new ConfigAPI(getHomeUrl());
@@ -224,7 +225,11 @@ Auth callbacks, API links, and email notifications all depend on this being corr
       );
     }
     if (result === "failed") {
-      const showDetail = Observable.create(this, false);
+      // Reset on each render so a fresh failure shows the detail collapsed;
+      // the observable is reused (instance field) so we don't leak across
+      // repeated failures.
+      this._testDetailOpen.set(false);
+      const showDetail = this._testDetailOpen;
       const detailId = "base-url-test-error-detail";
       return cssErrorMsg(
         dom("div",

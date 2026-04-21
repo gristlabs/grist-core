@@ -87,10 +87,13 @@ export class EditionSection extends Disposable {
       this._toggleEnterprise?.getEnterpriseToggleObservable().get() ? "enterprise" : "core",
     );
 
-    // Initial wizard selection. Default to Full Grist when it's available
-    // (or community isn't); the buttons let the user change it. Set here
-    // rather than in `_buildSelector` so a re-render can't reset it.
-    this._selectedEdition.set(
+    // In admin-panel mode, start selection at the server's current edition so
+    // the section isn't dirty before the user acts. In wizard mode, default to
+    // Full Grist when available (or when community isn't); the user can change
+    // it via the buttons. Done here rather than in `_buildSelector` so a
+    // re-render can't reset it.
+    this._selectedEdition.set(this._options.controls ?
+      this._serverEdition.get() :
       (this.fullGristAvailable || !this.communityAvailable) ? "enterprise" : "core",
     );
 

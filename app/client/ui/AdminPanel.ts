@@ -225,6 +225,7 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
 
     // Restart banner appears when a section's pending changes require one.
     // Sections without needsRestart are saved inline without needing the banner.
+    this.needsRestart.set(this._pending.needsRestart.get());
     this.autoDispose(this._pending.needsRestart.addListener(v => this.needsRestart.set(v)));
 
     // Mirror visibility into the shared controller so the left-panel entry

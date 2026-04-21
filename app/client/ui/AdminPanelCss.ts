@@ -53,7 +53,7 @@ export function focusAdminItem(itemId: string): void {
     const wrap = row.querySelector("." + cssExpandedContentWrap.className);
     const header = row.querySelector("." + cssItemShort.className);
     const isCollapsed = wrap instanceof HTMLElement &&
-      (wrap.style.maxHeight === "" || wrap.style.maxHeight === "0px");
+      (wrap.style.maxHeight === "" || wrap.style.maxHeight === "0" || wrap.style.maxHeight === "0px");
     if (header instanceof HTMLElement && isCollapsed) {
       header.click();
     }
