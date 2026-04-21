@@ -45,7 +45,6 @@ export interface ValueWithSource<T> {
  */
 export const RestartRequiredSettingEnvVar = StringUnion(
   "APP_HOME_URL",
-  "GRIST_ANON_PLAYGROUND",
   "GRIST_FORCE_LOGIN",
   "GRIST_GETGRISTCOM_SECRET",
   "GRIST_LOGIN_SYSTEM_TYPE",
@@ -63,6 +62,7 @@ export type RestartRequiredSettingEnvVar = typeof RestartRequiredSettingEnvVar.v
  */
 export const ReloadableSettingEnvVar = StringUnion(
   "GRIST_ADMIN_EMAIL",
+  "GRIST_ANON_PLAYGROUND",
   "GRIST_BOOT_KEY",
   "GRIST_IN_SERVICE",
 );
@@ -330,6 +330,12 @@ export function invalidateReloadableSettings(...envVars: string[]) {
   for (const envVar of envVars) {
     if (!ReloadableSettingEnvVar.guard(envVar)) { continue; }
 
+    settingsByEnvVar[envVar].cache.clear();
+  }
+}
+
+export function invalidateAllReloadableSettings() {
+  for (const envVar of ReloadableSettingEnvVar.values) {
     settingsByEnvVar[envVar].cache.clear();
   }
 }
