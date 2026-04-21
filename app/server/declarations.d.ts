@@ -72,5 +72,10 @@ declare namespace NodeJS {
 
     // Testing and development
     GRIST_TEST_SERVER_DEPLOYMENT_TYPE?: "core" | "enterprise" | "saas" | "static" | "electron";
+
+    // When set, run as a restart shell that holds the listening
+    // socket and spawns a child Grist server, enabling restart
+    // without dropping /status.
+    GRIST_RESTART_SHELL?: string;
   }
 }

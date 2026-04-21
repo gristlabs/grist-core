@@ -1131,9 +1131,9 @@ export class HomeDBManager implements HomeDBAuth {
     await mapSetOrClear(this._docAuthCache, stringifyDocAuthKey(key), makeDocAuthResult(promise));
     const doc = await promise;
     // Filter the result for removed / non-removed documents.
-    if (!scope.showAll && scope.showRemoved ?
+    if (!scope.showAll && (scope.showRemoved ?
       (doc.removedAt === null && doc.workspace.removedAt === null) :
-      (doc.removedAt || doc.workspace.removedAt)) {
+      (doc.removedAt || doc.workspace.removedAt))) {
       throw new ApiError("document not found", 404);
     }
     return doc;

@@ -6,6 +6,7 @@ import { HomeDBAuth } from "app/gen-server/lib/homedb/Interfaces";
 import { AccessTokenInfo, IAccessTokens } from "app/server/lib/AccessTokens";
 import { resolveIdentity } from "app/server/lib/Authorizer";
 import { createDummyGristServer, GristServer } from "app/server/lib/GristServer";
+import { getBootKey } from "app/server/lib/gristSettings";
 import { InstallAdmin } from "app/server/lib/InstallAdmin";
 import { IPermitStore, Permit } from "app/server/lib/Permit";
 
@@ -62,6 +63,11 @@ function opts(extra?: Partial<Parameters<typeof resolveIdentity>[2]>): Parameter
     permitStore: makePermitStore(),
     ...extra,
   };
+}
+
+function setBootKey(key: string) {
+  process.env.GRIST_BOOT_KEY = key;
+  getBootKey.cache.clear();
 }
 
 describe("resolveIdentity", function() {
@@ -208,17 +214,21 @@ describe("resolveIdentity", function() {
 
   describe("boot key", function() {
     let oldBootKey: string | undefined;
-    beforeEach(function() { oldBootKey = process.env.GRIST_BOOT_KEY; });
+    beforeEach(function() {
+      oldBootKey = process.env.GRIST_BOOT_KEY;
+      getBootKey.cache.clear();
+    });
     afterEach(function() {
       if (oldBootKey === undefined) {
         delete process.env.GRIST_BOOT_KEY;
       } else {
         process.env.GRIST_BOOT_KEY = oldBootKey;
       }
+      getBootKey.cache.clear();
     });
 
     it("resolves admin user from valid boot key", async function() {
-      process.env.GRIST_BOOT_KEY = "secret-boot";
+      setBootKey("secret-boot");
       const result = await resolveIdentity(
         makeRequest("/test", { "x-boot-key": "secret-boot" }), makeDbManager(),
         opts({
@@ -233,7 +243,7 @@ describe("resolveIdentity", function() {
     });
 
     it("throws on invalid boot key", async function() {
-      process.env.GRIST_BOOT_KEY = "real-key";
+      setBootKey("real-key");
       try {
         await resolveIdentity(
           makeRequest("/test", { "x-boot-key": "wrong" }), makeDbManager(),
@@ -247,7 +257,7 @@ describe("resolveIdentity", function() {
     });
 
     it("API key takes priority over boot key", async function() {
-      process.env.GRIST_BOOT_KEY = "bk";
+      setBootKey("bk");
       const db = makeDbManager({ getUserByKey: async () => chimpy });
       const result = await resolveIdentity(
         makeRequest("/test", { "authorization": "Bearer good", "x-boot-key": "bk" }), db,
@@ -371,17 +381,21 @@ describe("resolveIdentity", function() {
 
   describe("priority", function() {
     let oldBootKey: string | undefined;
-    beforeEach(function() { oldBootKey = process.env.GRIST_BOOT_KEY; });
+    beforeEach(function() {
+      oldBootKey = process.env.GRIST_BOOT_KEY;
+      getBootKey.cache.clear();
+    });
     afterEach(function() {
       if (oldBootKey === undefined) {
         delete process.env.GRIST_BOOT_KEY;
       } else {
         process.env.GRIST_BOOT_KEY = oldBootKey;
       }
+      getBootKey.cache.clear();
     });
 
     it("full priority: access token > API key > boot key > permit > override > session", async function() {
-      process.env.GRIST_BOOT_KEY = "bk";
+      setBootKey("bk");
       // When everything is present except access token, API key wins.
       const db = makeDbManager({ getUserByKey: async () => chimpy });
       const permit: Permit = { docId: "d" };

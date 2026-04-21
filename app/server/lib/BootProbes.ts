@@ -2,9 +2,9 @@ import { ApiError } from "app/common/ApiError";
 import { BootProbeIds, BootProbeResult } from "app/common/BootProbe";
 import { removeTrailingSlash } from "app/common/gutil";
 import { appSettings } from "app/server/lib/AppSettings";
-import { getBootKey } from "app/server/lib/Boot";
 import { expressWrap, jsonErrorHandler } from "app/server/lib/expressWrap";
 import { GristServer } from "app/server/lib/GristServer";
+import { getBootKey, getInService } from "app/server/lib/gristSettings";
 import { DEFAULT_SESSION_SECRET } from "app/server/lib/ICreate";
 
 import * as express from "express";
@@ -226,25 +226,14 @@ const _userProbe: Probe = {
 const _bootKeyProbe: Probe = {
   id: "boot-key",
   name: "Is boot key authentication disabled",
-  apply: async (server) => {
-    const bootKey = getBootKey();
-    if (!bootKey || bootKey.value === "") {
-      return {
-        status: "success",
-        details: {
-          disabled: true,
-        },
-      };
-    } else {
-      return {
-        status: "warning",
-        verdict: "Boot key should be removed after installation",
-        details: {
-          disabled: false,
-          source: bootKey.source,
-        },
-      };
-    }
+  apply: async () => {
+    const { value, source } = getBootKey();
+    const disabled = !value;
+    return {
+      status: disabled ? "success" : "warning",
+      verdict: disabled ? undefined : "Boot key should be removed after installation",
+      details: { disabled, source },
+    };
   },
 };
 
@@ -341,25 +330,12 @@ const _sessionSecretProbe: Probe = {
 const _serviceStatusProbe: Probe = {
   id: "service-status",
   name: "Service status",
-  apply: async (server) => {
-    const { inService: { value, source } } = server.getServiceStatus();
-    if (value) {
-      return {
-        status: "success",
-        details: {
-          inService: value,
-          source,
-        },
-      };
-    } else {
-      return {
-        status: "warning",
-        verdict: "Server is out of service for maintenance",
-        details: {
-          inService: value,
-          source,
-        },
-      };
-    }
+  apply: async () => {
+    const { value: inService, source } = getInService();
+    return {
+      status: inService ? "success" : "warning",
+      verdict: inService ? undefined : "Server is out of service for maintenance",
+      details: { inService, source },
+    };
   },
 };

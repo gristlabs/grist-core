@@ -406,6 +406,36 @@ describe("removedAt", function() {
       await assert.isRejected(api.undeleteWorkspace(tmp2));
     });
 
+    it("getRawDocById can access soft-deleted docs via showAll", async function() {
+      // Create a doc, soft-delete it, then verify getRawDocById can still find it.
+      // This tests that the showAll flag properly bypasses the removal filter in getDoc().
+      const ws = await api.newWorkspace({ name: "wsShowAll" }, "testy");
+      const docId = await api.newDoc({ name: "docShowAll" }, ws);
+
+      // Before soft-delete, getRawDocById should work.
+      const beforeDelete = await home.dbManager.getRawDocById(docId);
+      assert.equal(beforeDelete.name, "docShowAll");
+
+      // Soft-delete the doc.
+      await api.softDeleteDoc(docId);
+
+      // Verify the doc is actually soft-deleted (regular API rejects it).
+      await assert.isRejected(api.getDoc(docId), /not found/);
+
+      // Flush cache to ensure getRawDocById hits the DB fresh.
+      home.dbManager.flushDocAuthCache();
+
+      // After soft-delete, getRawDocById (which uses showAll: true) should still work.
+      // This is the core assertion: showAll should bypass removal filtering.
+      const afterDelete = await home.dbManager.getRawDocById(docId);
+      assert.equal(afterDelete.name, "docShowAll");
+      assert.isNotNull(afterDelete.removedAt);
+
+      // Clean up.
+      await api.undeleteDoc(docId);
+      await api.deleteWorkspace(ws);
+    });
+
     // This checks that the following problem is fixed:
     //   If I shared a doc with a friend, and then soft-deleted a doc in the same workspace,
     //   that friend used to see the workspace in their trash (empty, but there).

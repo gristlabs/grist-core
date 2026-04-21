@@ -2,29 +2,15 @@ import { ApiError } from "app/common/ApiError";
 import { normalizeEmail } from "app/common/emails";
 import { isEmail } from "app/common/gutil";
 import { UserProfile } from "app/common/UserAPI";
-import { appSettings, ValueWithSource } from "app/server/lib/AppSettings";
+import { appSettings } from "app/server/lib/AppSettings";
 import { RequestWithLogin } from "app/server/lib/Authorizer";
 import { expressWrap, secureJsonErrorHandler } from "app/server/lib/expressWrap";
 import { GristLoginMiddleware, GristLoginSystem, GristServer, setUserInSession } from "app/server/lib/GristServer";
-import { getAdminEmail } from "app/server/lib/InstallAdmin";
+import { getAdminEmail, getBootKey, invalidateReloadableSettings } from "app/server/lib/gristSettings";
 import { getFallbackLoginProvider } from "app/server/lib/loginSystemHelpers";
 import { stringParam } from "app/server/lib/requestUtils";
 
 import express, { Express, Request } from "express";
-
-/**
- * Returns the value of `GRIST_BOOT_KEY` from `appSettings` and its source, or `null` if not found.
- */
-export function getBootKey(): ValueWithSource<string> | null {
-  const setting = appSettings.section("boot").flag("key");
-  const value = setting.readString({
-    envVar: "GRIST_BOOT_KEY",
-  });
-  if (!value) { return null; }
-
-  const { source } = setting.describe();
-  return { value, source: source! };
-}
 
 /**
  * Returns a login system that authenticates a user via a boot key: a secret whose value is only
@@ -122,7 +108,7 @@ export class BootKeyLoginMiddleware implements GristLoginMiddleware {
         const newEnvVars = { GRIST_ADMIN_EMAIL: adminEmail };
         await activations.updateEnvVars(newEnvVars);
         appSettings.setEnvVars({ ...envVars, ...newEnvVars });
-        this._server.getInstallAdmin().clearCaches();
+        invalidateReloadableSettings("GRIST_ADMIN_EMAIL");
       }
 
       // Clear session prior to setting admin user in session so that we have a clean

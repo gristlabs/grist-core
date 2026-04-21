@@ -1,6 +1,6 @@
 import { isAffirmative, isNumber } from "app/common/gutil";
 
-type EnvFile = Record<string, string>;
+type EnvVars = Record<string, string>;
 
 /**
  * A bundle of settings for the application. May contain
@@ -12,7 +12,7 @@ export class AppSettings {
   private _value?: JSONValue;
   private _children?: { [key: string]: AppSettings };
   private _info?: AppSettingQueryResult;
-  private _envFile?: EnvFile;
+  private _envVars?: EnvVars;
   private get _root(): AppSettings {
     return this._parent?._root ?? this;
   }
@@ -22,13 +22,13 @@ export class AppSettings {
   }
 
   /**
-   * Set the env file stack to a specific value, replacing any previous stack.
+   * Set the env vars stack to a specific value, replacing any previous stack.
    */
-  public setEnvVars(envVars: EnvFile): void {
+  public setEnvVars(envVars: EnvVars): void {
     if (this._parent) {
-      throw new Error("setEnvFile should be called on root AppSettings object");
+      throw new Error("setEnvVars should be called on root AppSettings object");
     }
-    this._envFile = envVars;
+    this._envVars = envVars;
   }
 
   /* access the setting - undefined if not set */
@@ -91,8 +91,8 @@ export class AppSettings {
     }
 
     const sources = [{ name: "env", vars: process.env }];
-    if (this._root._envFile) {
-      sources.push({ name: "db", vars: this._root._envFile });
+    if (this._root._envVars) {
+      sources.push({ name: "db", vars: this._root._envVars });
     }
 
     let envVar = envVars[0];
@@ -369,15 +369,7 @@ export interface AppSettingQueryResult {
   source?: AppSettingSource;
 }
 
-type AppSettingSource = "env" | "db";
-
-/**
- * A value read from AppSettings with its source.
- */
-export interface ValueWithSource<T> {
-  value: T;
-  source: AppSettingSource | undefined;
-}
+export type AppSettingSource = "env" | "db";
 
 /**
  * Output of AppSettings.describe().
@@ -385,7 +377,7 @@ export interface ValueWithSource<T> {
 interface AppSettingDescription {
   name: string;            // name of the setting.
   value?: JSONValue;       // value of the setting, if available.
-  source?: "env" | "db";         // source of the setting, if available, available values: 'env', 'db'.
+  source?: AppSettingSource;         // source of the setting, if available, available values: 'env', 'db'.
   foundInEnvVar?: string;  // environment variable the setting was read from, if available.
   wouldFindInEnvVar?: string;  // environment variable that would be checked for the setting.
   usedDefault: boolean;    // whether a default value was used for the setting.

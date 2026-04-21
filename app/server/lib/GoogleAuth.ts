@@ -1,6 +1,7 @@
 import { ApiError } from "app/common/ApiError";
 import { parseSubdomain } from "app/common/gristUrls";
 import { expressWrap } from "app/server/lib/expressWrap";
+import { getHomeUrl } from "app/server/lib/gristSettings";
 import log from "app/server/lib/log";
 import { getOriginUrl, optStringParam, stringParam } from "app/server/lib/requestUtils";
 
@@ -74,7 +75,7 @@ const AUTH_SUBDOMAIN = process.env.GRIST_ID_PREFIX ? `docs-${process.env.GRIST_I
  * https://docs.getgrist.com in prod
  */
 function getFullAuthEndpointUrl(): string {
-  const homeUrl = process.env.APP_HOME_URL;
+  const homeUrl = getHomeUrl();
   // if homeUrl is localhost - (in dev environment) - use the development url
   if (homeUrl && new URL(homeUrl).hostname === "localhost") {
     return `${homeUrl}${authHandlerPath}`;

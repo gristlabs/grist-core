@@ -9,9 +9,11 @@ import { commonUrls } from "app/common/gristUrls";
 import { isAffirmative } from "app/common/gutil";
 import { ActivationsManager } from "app/gen-server/lib/ActivationsManager";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
-import { AppSettings } from "app/server/lib/AppSettings";
+import { appSettings } from "app/server/lib/AppSettings";
 import { updateDb } from "app/server/lib/dbUtils";
-import { getAdminOrDefaultEmail } from "app/server/lib/InstallAdmin";
+import { getAdminEmail, invalidateReloadableSettings } from "app/server/lib/gristSettings";
+import { initializeAppSettings } from "app/server/lib/initializeAppSettings";
+import { getDefaultEmail } from "app/server/lib/InstallAdmin";
 import log from "app/server/lib/log";
 import { runPrometheusExporter } from "app/server/prometheus-exporter";
 
@@ -47,8 +49,13 @@ setDefaultEnv("GRIST_WIDGET_LIST_URL", commonUrls.gristLabsWidgetRepository);
 // It's important that this comes after the setDefaultEnv calls above. MergedServer reads
 // some env vars at import time, including GRIST_WIDGET_LIST_URL.
 // TODO: Fix this reliance on side effects during import.
-// eslint-disable-next-line @import-x/order
+/* eslint-disable @import-x/order */
 import { MergedServer, parseServerTypes } from "app/server/MergedServer";
+import { runRestartShell, shouldRunAsRestartShell } from "app/server/lib/RestartShell";
+import {
+  createRestartShellWorkerServer, isUnderRestartShell, signalRestartShellReady,
+} from "app/server/lib/RestartShellWorker";
+/* eslint-enable @import-x/order */
 
 const G = {
   port: parseInt(process.env.PORT!, 10) || 8484,
@@ -63,8 +70,6 @@ function setDefaultEnv(name: string, value: string) {
 
 /**
  * Creates the database if needed and applies pending migrations.
- *
- * Returns an instance of {@link HomeDBManager} connected to the database.
  */
 async function createOrUpdateDb() {
   // Make a blank db if needed.
@@ -75,10 +80,6 @@ async function createOrUpdateDb() {
   } else {
     await updateDb();
   }
-  const db = new HomeDBManager();
-  await db.connect();
-  await db.initializeSpecialIds({ skipWorkspaces: true });
-  return db;
 }
 
 /**
@@ -99,20 +100,18 @@ async function setUpAdminEmail(db: HomeDBManager) {
         { transaction: manager },
       );
 
-      const settings = new AppSettings("grist");
-      const envVars = (await activations.current(manager)).prefs?.envVars || {};
-      settings.setEnvVars(envVars);
-
       if (onRestartSetAdminEmail) {
         log.info(`Setting GRIST_ADMIN_EMAIL to "${onRestartSetAdminEmail}".`);
+        const envVars = (await activations.current(manager)).prefs?.envVars || {};
         const newEnvVars = { ...envVars, GRIST_ADMIN_EMAIL: onRestartSetAdminEmail };
         await activations.updateEnvVars(newEnvVars, manager);
-        settings.setEnvVars(newEnvVars);
+        appSettings.setEnvVars(newEnvVars);
+        invalidateReloadableSettings("GRIST_ADMIN_EMAIL");
         log.info(`Successfully set GRIST_ADMIN_EMAIL to "${onRestartSetAdminEmail}".`);
       }
 
       if (onRestartReplaceEmailWithAdmin) {
-        const adminEmail = getAdminOrDefaultEmail(settings);
+        const adminEmail = getAdminEmail() || getDefaultEmail();
         if (!adminEmail) {
           // We can reach this if GRIST_DEFAULT_EMAIL is set to "". The `setDefaultEnv`
           // call that sets "you@example.com" as the default value for GRIST_DEFAULT_EMAIL
@@ -158,7 +157,8 @@ async function setUpAdminEmail(db: HomeDBManager) {
 
 /**
  * If `GRIST_SINGLE_ORG` is set to a value other than `"docs"`, checks that the org
- * exists and creates it if needed (with `getAdminOrDefaultEmail()` as the owner).
+ * exists and creates it if needed (with `GRIST_ADMIN_EMAIL` or `GRIST_DEFAULT_EMAIL`
+ * as the owner).
  */
 async function setUpSingleOrg(db: HomeDBManager) {
   // If a team/organization is specified, make sure it exists.
@@ -173,10 +173,7 @@ async function setUpSingleOrg(db: HomeDBManager) {
       if (!String(e).match(/organization not found/)) {
         throw e;
       }
-      const activations = new ActivationsManager(db);
-      const settings = new AppSettings("grist");
-      settings.setEnvVars((await activations.current()).prefs?.envVars || {});
-      const email = getAdminOrDefaultEmail(settings);
+      const email = getAdminEmail() || getDefaultEmail();
       if (!email) {
         throw new Error("need GRIST_ADMIN_EMAIL or GRIST_DEFAULT_EMAIL to create site");
       }
@@ -200,6 +197,15 @@ export async function main() {
     console.log("For full logs, re-run with DEBUG=1");
   }
 
+  if (shouldRunAsRestartShell()) {
+    // Shell owns the socket and manages a forked worker. Returns the
+    // RestartShell handle instead of a FlexServer.
+    return runRestartShell({
+      publicPort: G.port,
+      childEntryPoint: __filename,
+    });
+  }
+
   if (process.env.GRIST_PROMCLIENT_PORT) {
     runPrometheusExporter(parseInt(process.env.GRIST_PROMCLIENT_PORT, 10));
   }
@@ -221,20 +227,38 @@ export async function main() {
 
   if (serverTypes.includes("home")) {
     log.info("Setting up database...");
-    const db = await createOrUpdateDb();
+    await createOrUpdateDb();
+  }
+
+  // TODO: This and code below create throwaway HomeDBManager instances. See if there's a sensible
+  // way to pass down dependencies like HomeDBManager to MergedServer, so we only have one instance
+  // to keep track of.
+  await initializeAppSettings();
+
+  if (serverTypes.includes("home")) {
+    const db = new HomeDBManager();
+    await db.connect();
+    await db.initializeSpecialIds({ skipWorkspaces: true });
     await setUpAdminEmail(db);
     await setUpSingleOrg(db);
     log.info("Database setup complete.");
   }
 
-  // Launch single-port, self-contained version of Grist.
-  const mergedServer = await MergedServer.create(G.port, serverTypes);
+  // Under a RestartShell parent we receive connections via IPC;
+  // otherwise MergedServer creates its own http.Server and listens.
+  const serverOpts = isUnderRestartShell() ?
+    { server: createRestartShellWorkerServer() } :
+    {};
+  const mergedServer = await MergedServer.create(G.port, serverTypes, serverOpts);
   await mergedServer.run();
   if (process.env.GRIST_TESTING_SOCKET) {
     await mergedServer.flexServer.addTestingHooks();
   }
   if (process.env.GRIST_SERVE_PLUGINS_PORT) {
     await mergedServer.flexServer.startCopy("pluginServer", parseInt(process.env.GRIST_SERVE_PLUGINS_PORT, 10));
+  }
+  if (isUnderRestartShell()) {
+    await signalRestartShellReady();
   }
 
   return mergedServer.flexServer;

@@ -112,7 +112,8 @@
         "Activation": "Aktibazioa",
         "Billing account": "Fakturazio-kontua",
         "Toggle Mobile Mode": "Sakelako modua bai/ez",
-        "Upgrade Plan": "Kontratatu plan garestiagoa"
+        "Upgrade Plan": "Kontratatu plan garestiagoa",
+        "Site settings": "Gunearen ezarpenak"
     },
     "ViewAsDropdown": {
         "View as": "Ikusi honela",
@@ -1011,7 +1012,9 @@
         "You will no longer receive email notifications about {{changes}} in {{docName}} at {{email}}.": "Aurrerantzean ez duzu {{email}} helbidean {{docName}}-n egindako {{changes}} jakinarazpenik jasoko.",
         "You will no longer receive email notifications about {{comments}} in {{docName}} at {{email}}.": "Aurrerantzean ez duzu {{email}} helbidean {{docName}}-ri buruzko {{comments}} jakinarazpenik jasoko.",
         "suggestions": "iradokizunak",
-        "You will no longer receive email notifications about {{suggestions}} in {{docName}} at {{email}}.": "Ez duzu {{docName}}(e)an egindako {{suggestions}}(e)i buruzko jakinarazpenik gehiago jasoko {{email}}(e)n."
+        "You will no longer receive email notifications about {{suggestions}} in {{docName}} at {{email}}.": "Ez duzu {{docName}}(e)an egindako {{suggestions}}(e)i buruzko jakinarazpenik gehiago jasoko {{email}}(e)n.",
+        "You will no longer receive email notifications about {{automations}} in {{docName}} at {{email}}.": "Aurrerantzean ez duzu posta bidezko jakinarazpenik jasoko {{docName}}(e)ko {{automations}}(e)i buruz {{email}} helbidean.",
+        "automations": "automatizazioak"
     },
     "menus": {
         "Select fields": "Hautatu eremuak",
@@ -1876,7 +1879,18 @@
         "Restart Grist to apply pending changes.": "Berrabiarazi Grist zain dauden aldaketak aplikatzeko.",
         "Restart unavailable": "Berrabioa ez dago eskuragarri",
         "You can set up streaming of audit events from Grist to an external security information and event management (SIEM) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.": "Auditoretza-ekitaldien streaming-a konfigura dezakezu Grist-etik kanpoko segurtasunari buruzko informazio- eta kudeaketa-sistema batera (SIEM), Grist Enterprise gaitzen baduzu. {{contactUsLink}} gehiago jakiteko.",
-        "Grist is running in an environment that doesn't support restarting from the admin panel.": "Grist administrazio paneletik berrabiaraztea onartzen ez duen ingurune batean exekutatzen ari da."
+        "Grist is running in an environment that doesn't support restarting from the admin panel.": "Grist administrazio paneletik berrabiaraztea onartzen ez duen ingurune batean exekutatzen ari da.",
+        "Maintenance": "Mantentzea",
+        "Service status": "Zerbitzuaren egoera",
+        "disabled": "desgaituta",
+        "enabled": "gaituta",
+        "Boot key": "Abio-gakoa",
+        "If you are the server operator, you can sign in using the boot key from your server logs.": "Zerbitzariko arduraduna bazara, zerbitzariko erregistroetako abio-gakoa erabiliz has dezakezu saioa.",
+        "Sign in with boot key": "Hasi saioa abio-gakoarekin",
+        "boot key": "abio-gakoa",
+        "in service": "martxan",
+        "out of service": "zerbitzuz kanpo",
+        "Take Grist out of service for maintenance": "Mugatu Grist-en sarbidea mantze-lanak egin bitartean"
     },
     "Columns": {
         "Remove Column": "Kendu zutabea"
@@ -2080,7 +2094,7 @@
     "HomeIntroCards": {
         "Help center": "Laguntza-gunea",
         "Learn more {{webinarsLinks}}": "Ikasi gehiago {{webinarsLinks}}",
-        "Start a new document": "Hasi dokuemntu berria",
+        "Start a new document": "Hasi dokumentu berria",
         "Templates": "Txantiloiak",
         "Blank document": "Dokumentu zuria",
         "Import file": "Inportatu fitxategia",
@@ -2263,7 +2277,8 @@
         "Users": "Erabiltzaileak",
         "Docs": "Dokumentuak",
         "Workspaces": "Lan-areak",
-        "Enterprise": "Enpresa"
+        "Enterprise": "Enpresa",
+        "Quick setup": "Konfigurazio bizkorra"
     },
     "apiconsole": {
         "Delete": "Ezabatu",
@@ -2481,7 +2496,9 @@
                     }
                 }
             }
-        }
+        },
+        "If Grist is accessible on your network, or is available to multiple people, configure one of the authentication methods below and remove your boot key from Security Settings → Boot key.": "Grist zure sarean eskuragai badago, edo jende gehiagorentzat eskuragarri badago, konfiguratu honako autentifikazio-metodoren bat, eta kendu abio-gakoa Segurtasun ezarpenak → Abio-gakoa atalean.",
+        "No authentication: using boot key as fallback method": "Ez dago autentifikaziorik: abio-gakoa erabiltzen ari da behin-behinean"
     },
     "commandList": {
         "Copy anchor link": "Kopiatu esteka",
@@ -2762,5 +2779,65 @@
     "AutomationsPageEntry": {
         "Automations": "Automatizazioak",
         "New": "Berria"
+    },
+    "BootPage": {
+        "Administrator email": "Administratzailearen ePosta",
+        "Checking key": "Gakoa egiaztatzen",
+        "Confirm or change the administrator email address.": "Baieztatu edo aldatu administratzailearen posta helbidea.",
+        "Continue": "Jarraitu",
+        "Copied!": "Kopiatuta!",
+        "Copy": "Kopiatu",
+        "Enter boot key": "Sartu abio-gakoa",
+        "Here's a random key you can use:": "Hemen duzu gakotzat erabil dezakezun zenbaki aleatorio bat:",
+        "Paste boot key here": "Itsatsi hemen abio-gakoa",
+        "Set your boot key": "Konfiguratu zure abio-gakoa",
+        "This will be your admin account for managing Grist.": "Hau izango da Grist zerbitzaria kudeatzeko administratzaile-kontua.",
+        "Valid boot key": "Baliozko abio-gakoa",
+        "Verify that you have access to this server to continue.": "Egiaztatu zerbitzarira sarbidea duzula jarraitu ahal izateko.",
+        "Welcome to Grist": "Ongi etorri Grist-era",
+        "set your own": "konfiguratu zurea",
+        "Boot key": "Abio-gakoa",
+        "Can't find your boot key? You can {{setBootKeyButton}} or {{disableCheckButton}}.": "Ez duzu abio-gakoa aurkitzen? {{setBootKeyButton}} edo {{disableCheckButton}} dezakezu.",
+        "If you cannot access server logs or cannot find your boot key, you can set it yourself. Add the environment variable \\`GRIST_BOOT_KEY\\` with a secret value to your Grist configuration, then restart Grist.": "Zerbitzariaren erregistroetara sartu ezin bazara edo zure abioko-gakoa aurkitu ezin baduzu, zuk zeuk ezar dezakezu. Gehitu Grist-en konfigurazioari \\`GRIST_BOOT_KEY\\` ingurune-aldagaia balio sekretu batekin, eta berrabiarazi Grist.",
+        "Set \\`GRIST_IN_SERVICE=true\\` in your Grist configuration, then restart. Grist will start without requiring a boot key.": "Ezarri \\`GRIST_IN_SERVICE=true\\` Grist-en konfigurazioan, eta berrabiarazi. Grist abio-gakorik behar izan gabe hasiko da.",
+        "The boot key proves you have access to the server running Grist — it keeps out anyone who can reach this page but isn't the administrator.": "Abio-gakoak Grist exekutatzen ari den zerbitzarian sarbidea duzula frogatzen du — orri honetara irits daitekeen baina administratzailea ez den edonor kanpoan uzten du.",
+        "After restarting, Grist will be available without this sign-in step.": "Berrabiarazi ondoren, Grist erabilgarri egongo da saioa hasteko urrats hori egin gabe.",
+        "After restarting, return to this page and enter your chosen key.": "Berrabiarazi ondoren, itzuli orri honetara eta sartu aukeratutako gakoa.",
+        "Check key": "Egiaztatu gakoa",
+        "Skipping it is fine on a private, trusted network where only authorized people can connect.": "Muzin egin diezaiokezu konfiantzazko sare pribatu batean, non baimendutako pertsonak bakarrik konektatu daitezkeen.",
+        "Turn off this check": "Kendu kontrol-laukiko marka",
+        "Why does this check exist?": "Zergatik dago markatuta?",
+        "disable this check": "desgaitu marka hau"
+    },
+    "QuickSetup": {
+        "Apply & restart": "Aplikatu eta berrabiarazi",
+        "Authentication": "Autentifikazioa",
+        "Backups": "Babeskopiak",
+        "Quick setup": "Konfigurazio bizkorra",
+        "Server": "Zerbitzaria",
+        "Configure Grist for your environment.": "Konfiguratu Grist zure ingurunerako."
+    },
+    "ServiceStatus": {
+        "Restore service": "Berrezarri zerbitzua",
+        "Restore service?": "Zerbitzua berrezarri?",
+        "Enter maintenance mode": "Sartu mantentze-moduan",
+        "Enter maintenance mode?": "Mantentze-moduan sartu?",
+        "Non-admin users will be blocked until service is restored.": "Administratzaile ez diren erabiltzaileek sarbidea galduko dute zerbitzua berrezarri arte.",
+        "Non-admin users will no longer be blocked.": "Administratzaile ez diren erabiltzaileek sarbidea berreskuratuko dute.",
+        "This setting is currently being managed by an environment variable (`GRIST_IN_SERVICE`).": "Ezarpen hau, unean, ingurune-aldagai batek kudeatzen du (`GRIST_IN_SERVICE`).",
+        "Unset the environment variable to manage this setting via the Admin Panel.": "Ezarpen hau Administrazio panelaren bidez kudeatzeko deskonfiguratu ingurune-aldagaia."
+    },
+    "TeamSettingsPage": {
+        "Invalid domain.": "Domeinuak ez du balio.",
+        "Domain is already taken.": "Domeinua lehendik ere erabiltzen ari da."
+    },
+    "BootKeyStatus": {
+        "Every new Grist installation includes a random boot key: a secret whose value is only obtainable by an installation operator.": "Grist-en instalazio berri guztiek dakarte abio-gako aleatorio bat: instalazio-arduradunak baino eskuratu ezin duen ezkutuko gako bat.",
+        "Make sure you have configured an authentication system that lets you sign in as an admin before removing the boot key.": "Egiaztatu administratzaile gisa saioa hasteko autentifikazio sistema bat konfiguratu duzula abio-gakoa kendu baino lehen.",
+        "Remove boot key": "Kendu abio-gakoa",
+        "Remove boot key?": "Abio-gakoa kendu?",
+        "The boot key should only be used as a temporary means of authentication until a more secure and robust authentication method is configured via Security Settings → Authentication. We recommend removing the boot key once you've finished setting up Grist.": "Abio-gakoa soilik aldi baterako autentifikazio gisa erabili behar da, autentifikazio-metodo seguruago eta sendoago bat konfiguratu arte, Segurtasun-ezarpenak → Autentifikazioa atalaren bidez. Grist konfiguratzen amaitu ondoren, abio-gakoa kentzea gomendatzen dugu.",
+        "This setting is currently being managed by an environment variable (`GRIST_BOOT_KEY`).": "Ezarpen hori, unean, ingurune-aldagai batek kudeatzen du (`GRIST_BOOT_KEY`).",
+        "Unset the environment variable to manage this setting via the Admin Panel.": "Ezarpen hau Administrazio panelaren bidez kudeatzeko deskonfiguratu ingurune-aldagaia."
     }
 }
