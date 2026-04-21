@@ -1,3 +1,4 @@
+import { StorageBackendName } from "app/common/ExternalStorage";
 import { GristDeploymentType } from "app/common/gristUrls";
 import { getThemeBackgroundSnippet } from "app/common/Themes";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
@@ -88,7 +89,7 @@ export interface ICreate {
   // Return a string containing 1 or more HTML tags to insert into the head element of every
   // static page.
   getExtraHeadHtml?(): string;
-  getAvailableStorageBackends(): string[];
+  getAvailableStorageBackends(): StorageBackendName[];
   getStorageOptions?(name: string): ICreateStorageOptions | undefined;
   getAttachmentStoreOptions(): { [key: string]: ICreateAttachmentStoreOptions | undefined };
   getSqliteVariant?(): SqliteVariant;
@@ -105,7 +106,7 @@ export interface ICreate {
 type StopCallback = () => void;
 
 export interface ICreateStorageOptions {
-  name: string;
+  name: StorageBackendName;
   check(): boolean;
   checkBackend?(): Promise<void>;
   create(purpose: "doc" | "meta" | "attachments", extraPrefix: string): ExternalStorage | undefined;

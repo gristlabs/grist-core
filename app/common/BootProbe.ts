@@ -1,3 +1,4 @@
+import { StorageBackendName } from "app/common/ExternalStorage";
 import { SandboxInfo } from "app/common/SandboxInfo";
 
 export type BootProbeIds =
@@ -35,6 +36,6 @@ export type SandboxingBootProbeDetails = SandboxInfo;
 
 export interface BackupsBootProbeDetails {
   active: boolean;
-  backend?: string;
-  availableBackends: string[];
+  availableBackends: StorageBackendName[];
+  backend?: StorageBackendName;
 }

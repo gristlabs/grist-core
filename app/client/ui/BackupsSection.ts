@@ -6,16 +6,17 @@ import { icon } from "app/client/ui2018/icons";
 import { cssLink } from "app/client/ui2018/links";
 import { loadingSpinner } from "app/client/ui2018/loaders";
 import { BackupsBootProbeDetails } from "app/common/BootProbe";
+import { StorageBackendName } from "app/common/ExternalStorage";
 import { commonUrls } from "app/common/gristUrls";
+import { StringUnion } from "app/common/StringUnion";
 import { components, tokens } from "app/common/ThemePrefs";
 
 import { Computed, Disposable, dom, DomContents, Observable, styled, UseCBOwner } from "grainjs";
 
 const t = makeT("BackupsSection");
 
-type BackendName = "minio" | "s3" | "azure";
-
-type OptionalBackendName = BackendName | "none";
+const BackendName = StringUnion(...StorageBackendName.values, "none");
+type BackendName = typeof BackendName.type;
 
 interface BackendInfo {
   label: () => DomContents;
@@ -23,7 +24,7 @@ interface BackendInfo {
   disabledTag?: () => DomContents;
 }
 
-const STORAGE_BACKENDS: Record<BackendName | "none", BackendInfo> = {
+const STORAGE_BACKENDS: Record<BackendName, BackendInfo> = {
   minio: {
     label: () => t("S3 (MinIO client)"),
     description: () => t("AWS S3-compatible service via MinIO client library. Works with AWS S3, MinIO, and others."),
@@ -69,14 +70,9 @@ export class BackupsSection extends Disposable {
   public readonly canProceed: Computed<boolean>;
 
   private readonly _backupsProbeDetails = Computed.create(this, use => this._getBackupsProbeDetails(use));
-
-  private readonly _activeBackend = Computed.create(this, use =>
-    use(this._backupsProbeDetails)?.backend as BackendName | undefined);
-
-  private readonly _availableBackends = Computed.create(this, use =>
-    use(this._backupsProbeDetails)?.availableBackends as BackendName[] | undefined);
-
-  private readonly _selectedBackend = Observable.create<OptionalBackendName | undefined>(this, undefined);
+  private readonly _activeBackend = Computed.create(this, use => use(this._backupsProbeDetails)?.backend);
+  private readonly _availableBackends = Computed.create(this, use => use(this._backupsProbeDetails)?.availableBackends);
+  private readonly _selectedBackend = Observable.create<BackendName | undefined>(this, undefined);
 
   constructor(private _props: BackupsSectionProps) {
     super();
@@ -119,10 +115,8 @@ export class BackupsSection extends Disposable {
         );
       }
 
-      const enabledBackends = Object.keys(STORAGE_BACKENDS)
-        .filter((name): name is BackendName => availableBackends.includes(name as BackendName));
-      const disabledBackends = Object.keys(STORAGE_BACKENDS)
-        .filter((name): name is BackendName => !availableBackends.includes(name as BackendName) && name !== "none");
+      const enabledBackends = StorageBackendName.values.filter(name => availableBackends.includes(name));
+      const disabledBackends = StorageBackendName.values.filter(name => !availableBackends.includes(name));
       return [
         cssBackendCards(
           enabledBackends.map(name => this._buildBackendCard(name)),
@@ -134,7 +128,7 @@ export class BackupsSection extends Disposable {
     });
   }
 
-  private _buildBackendCard(name: OptionalBackendName, disabled = false) {
+  private _buildBackendCard(name: BackendName, disabled = false) {
     return cssBackendCard(
       cssBackendCard.cls("-selected", use => use(this._selectedBackend) === name),
       cssBackendCard.cls("-disabled", disabled),

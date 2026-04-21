@@ -347,17 +347,17 @@ const _backupsProbe: Probe = {
   apply: async (server) => {
     const externalStorage = appSettings.section("externalStorage");
     const active = externalStorage.flag("active").getAsBool();
+    const availableBackends = server.create.getAvailableStorageBackends();
     const backend = Object.values(externalStorage.nested)
       .find(storage => storage.flag("active").getAsBool())
       ?.name;
-    const availableBackends = server.create.getAvailableStorageBackends();
     return {
       status: active ? "success" : "warning",
-      verdict: active ? undefined : "Backups are disabled",
+      verdict: active ? undefined : "Backups are not enabled",
       details: {
         active,
-        backend,
         availableBackends,
+        backend,
       },
     };
   },
