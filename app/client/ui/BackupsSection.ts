@@ -150,7 +150,7 @@ export class BackupsSection extends Disposable {
       cssBackendBody(
         cssBackendNameRow(
           cssBackendName(STORAGE_BACKENDS[name].label),
-          dom.maybe(use => use(this._activeBackend) ?? "none" === name, () =>
+          dom.maybe(use => (use(this._activeBackend) ?? "none") === name, () =>
             cssBackendTag(cssBackendTag.cls("-active"), t("Active")),
           ),
           disabled ? cssBackendTag(cssBackendTag.cls("-disabled"), STORAGE_BACKENDS[name].disabledTag?.()) : null,
@@ -183,7 +183,7 @@ export class BackupsSection extends Disposable {
             ),
           );
         }
-        case "azure": {
+        case "s3": {
           return cssInstructions(
             dom("div", t("Set these environment variables and restart Grist to enable S3 storage:")),
             cssCodeBlock(
@@ -198,7 +198,7 @@ export class BackupsSection extends Disposable {
             ),
           );
         }
-        case "s3": {
+        case "azure": {
           return cssInstructions(
             dom("div", t("Set these environment variables and restart Grist to enable Azure storage:")),
             cssCodeBlock(
