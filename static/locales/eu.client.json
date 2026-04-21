@@ -318,7 +318,7 @@
         "List view": "Zerrenda-bista"
     },
     "DocPageModel": {
-        "Add empty table": "Gehitu taula hutsa",
+        "Add empty table": "Gehitu taula zuria",
         "Add page": "Gehitu orria",
         "Reload": "Birkargatu",
         "You do not have edit access to this document": "Ez duzu dokumentu hau editatzeko sarbiderik",
@@ -572,7 +572,7 @@
     },
     "HomeIntro": {
         "Browse Templates": "Arakatu txantiloiak",
-        "Create empty document": "Sortu dokumentu hutsa",
+        "Create empty document": "Sortu dokumentu zuria",
         "Invite Team Members": "Gonbidatu taldeko kideak",
         "Visit our {{link}} to learn more.": "Bisitatu {{link}} gehiago irakurtzeko.",
         "Welcome to Grist!": "Ongi etorri Grist-era!",
