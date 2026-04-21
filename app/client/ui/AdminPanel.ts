@@ -15,7 +15,10 @@ import {
   AdminPanelControls,
   AdminSection,
   AdminSectionItem,
+  cssDangerText,
+  cssErrorText,
   cssFlexSpace,
+  cssHappyText,
   cssIconWrapper as cssWellIcon,
   cssSection,
   cssSectionTitle,
@@ -29,6 +32,7 @@ import { getAdminPanelName } from "app/client/ui/AdminPanelName";
 import { App } from "app/client/ui/App";
 import { AuditLogStreamingConfig, getDestinationDisplayName } from "app/client/ui/AuditLogStreamingConfig";
 import { AuthenticationSection } from "app/client/ui/AuthenticationSection";
+import { BackupsSection } from "app/client/ui/BackupsSection";
 import { BootKeyStatus } from "app/client/ui/BootKeyStatus";
 import { InstallConfigsAPI } from "app/client/ui/ConfigsAPI";
 import { pagePanels } from "app/client/ui/PagePanels";
@@ -345,6 +349,7 @@ Please log in as an administrator.`)),
           expandedContent: this._buildSessionSecretNotice(),
         }),
       ]),
+      this._buildBackupsSection(),
       this._buildAuditLogsSection(),
       dom.create(AdminSection, t("Version"), [
         dom.create(AdminSectionItem, {
@@ -863,6 +868,7 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
             "authentication",
             "session-secret",
             "service-status",
+            "backups",
           ].includes(probe.id);
           const show = isRedundant ? options.showRedundant : options.showNovel;
           if (!show) { return null; }
@@ -936,6 +942,19 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
         // should not arrive here
         return "??";
     }
+  }
+
+  private _buildBackupsSection() {
+    const backups = BackupsSection.create(this, { checks: this._checks, hideTitle: true });
+    return dom.create(AdminSection, t("Storage"), [
+      dom.create(AdminSectionItem, {
+        id: "backups",
+        name: t("Backups"),
+        description: t("Back up documents externally"),
+        value: backups.buildStatusDisplay(),
+        expandedContent: backups.buildDom(),
+      }),
+    ]);
   }
 
   private _buildAuditLogsSection() {
@@ -1076,18 +1095,6 @@ const cssCheckNowButton = styled(basicButton, `
 
 const cssGrayed = styled("span", `
   color: ${theme.lightText};
-`);
-
-const cssErrorText = styled("span", `
-  color: ${theme.errorText};
-`);
-
-const cssDangerText = styled("div", `
-  color: ${theme.dangerText};
-`);
-
-const cssHappyText = styled("span", `
-  color: ${theme.controlFg};
 `);
 
 const cssLabel = styled("div", `

@@ -11,7 +11,8 @@ export type BootProbeIds =
   "authentication" |
   "websockets" |
   "session-secret" |
-  "service-status"
+  "service-status" |
+  "backups"
 ;
 
 export interface BootProbeResult {
@@ -31,3 +32,9 @@ export interface BootProbeInfo {
 }
 
 export type SandboxingBootProbeDetails = SandboxInfo;
+
+export interface BackupsBootProbeDetails {
+  active: boolean;
+  backend?: string;
+  availableBackends: string[];
+}

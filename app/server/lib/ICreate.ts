@@ -88,6 +88,7 @@ export interface ICreate {
   // Return a string containing 1 or more HTML tags to insert into the head element of every
   // static page.
   getExtraHeadHtml?(): string;
+  getAvailableStorageBackends(): string[];
   getStorageOptions?(name: string): ICreateStorageOptions | undefined;
   getAttachmentStoreOptions(): { [key: string]: ICreateAttachmentStoreOptions | undefined };
   getSqliteVariant?(): SqliteVariant;
@@ -193,6 +194,10 @@ export class BaseCreate implements ICreate {
     }
     elements.push(getThemeBackgroundSnippet());
     return elements.join("\n");
+  }
+
+  public getAvailableStorageBackends() {
+    return this._storage.map(s => s.name);
   }
 
   public getStorageOptions(name: string) {

@@ -70,6 +70,7 @@ export class BootProbes {
     this._probes.push(_sessionSecretProbe);
     this._probes.push(_admins);
     this._probes.push(_serviceStatusProbe);
+    this._probes.push(_backupsProbe);
     this._probeById = new Map(this._probes.map(p => [p.id, p]));
   }
 }
@@ -336,6 +337,28 @@ const _serviceStatusProbe: Probe = {
       status: inService ? "success" : "warning",
       verdict: inService ? undefined : "Server is out of service for maintenance",
       details: { inService, source },
+    };
+  },
+};
+
+const _backupsProbe: Probe = {
+  id: "backups",
+  name: "Backups",
+  apply: async (server) => {
+    const externalStorage = appSettings.section("externalStorage");
+    const active = externalStorage.flag("active").getAsBool();
+    const backend = Object.values(externalStorage.nested)
+      .find(storage => storage.flag("active").getAsBool())
+      ?.name;
+    const availableBackends = server.create.getAvailableStorageBackends();
+    return {
+      status: active ? "success" : "warning",
+      verdict: active ? undefined : "Backups are disabled",
+      details: {
+        active,
+        backend,
+        availableBackends,
+      },
     };
   },
 };
