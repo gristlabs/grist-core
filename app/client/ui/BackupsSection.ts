@@ -365,7 +365,7 @@ const cssInstructions = styled("div", `
 const cssCodeBlock = styled("pre", `
   margin: 0;
   padding: 10px 14px;
-  background-color: ${tokens.white};
+  background-color: ${tokens.bg};
   border: 1px solid ${tokens.decorationTertiary};
   border-radius: 6px;
   font-size: 12px;
