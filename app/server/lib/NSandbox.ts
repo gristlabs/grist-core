@@ -776,11 +776,11 @@ export async function testSandboxFlavor(flavor?: string): Promise<SandboxInfo> {
  * Resolve a flavor string to a specific sandbox flavor. This is used to interpret the "sandboxed" and
  * "skip" flavors during testing.
  */
-function resolveSandboxFlavor(flavor?: string): string|undefined {
+function resolveSandboxFlavor(flavor?: string): string | undefined {
   if (flavor === "skip") {
     return "unsandboxed";
   } else if (flavor === "sandboxed") {
-    switch(true) {
+    switch (true) {
       case hasRunsc: return "gvisor";
       case hasSandboxExec: return "macSandboxExec";
       default: return "pyodide";

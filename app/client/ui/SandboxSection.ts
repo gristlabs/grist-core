@@ -34,35 +34,18 @@ abstract class SandboxSectionBase extends Disposable {
     });
   }
 
-  private async _loadStatus() {
-    const model = sortedByPreference(await this._configAPI.getSandboxingStatus());
-    if (this.isDisposed()) { return; }
-
-    this._model.set(model);
-    if (model.flavorInEnv) {
-      // Locked by env — select the current flavor (read-only).
-      this._selected.set(model.current ?? "unsandboxed");
-    } else {
-      // Pre-select the best option: first functional+effective, else first functional, else unsandboxed.
-      const best = model.options[0];
-      this._selected.set(best.flavor ?? "unsandboxed");
-    }
-    function sortedByPreference(status: SandboxingStatus): SandboxingStatus {
-      const goodOnes = status.options.filter(o => o.functional && o.effective);
-
-      // Sort the good ones by preference: gVisor > mac sandbox > pyodide > unsandboxed.
-      goodOnes.sort((a, b) => {
-        const order = ["gvisor", "macSandboxExec", "pyodide", "unsandboxed"];
-        return order.indexOf(a.flavor) - order.indexOf(b.flavor);
-      });
-
-      const sortedOptions = [
-        ...goodOnes,
-        ...status.options.filter(o => o.functional && !o.effective),
-        ...status.options.filter(o => !o.functional),
-      ];
-      return { ...status, options: sortedOptions };
-    }
+  public buildDom(): DomContents {
+    return dom("div",
+      testId("sandboxing"),
+      dom.maybe(this._error, err => cssError(err)),
+      dom.domComputed(this._model, (s) => {
+        if (!s) { return cssLoading(loadingSpinner(), t("Detecting sandbox options...")); }
+        return dom("div",
+          this._buildContent(s),
+          this._buildFooter(),
+        );
+      }),
+    );
   }
 
   protected _isLockedByEnv() {
@@ -88,22 +71,36 @@ abstract class SandboxSectionBase extends Disposable {
     }
   }
 
-  public buildDom(): DomContents {
-    return dom("div",
-      testId("sandboxing"),
-      dom.maybe(this._error, err => cssError(err)),
-      dom.domComputed(this._model, (s) => {
-        if (!s) { return cssLoading(loadingSpinner(), t("Detecting sandbox options...")); }
-        return dom("div",
-          this._buildContent(s),
-          this._buildFooter(),
-        );
-      }),
-    );
-  }
-
   protected _buildFooter(): DomContents {
     return null;
+  }
+
+  private async _loadStatus() {
+    const model = sortedByPreference(await this._configAPI.getSandboxingStatus());
+    if (this.isDisposed()) { return; }
+
+    this._model.set(model);
+    if (model.flavorInEnv) {
+      this._selected.set(model.current ?? "unsandboxed");
+    } else {
+      const best = model.options[0];
+      this._selected.set(best.flavor ?? "unsandboxed");
+    }
+    function sortedByPreference(status: SandboxingStatus): SandboxingStatus {
+      const goodOnes = status.options.filter(o => o.functional && o.effective);
+
+      goodOnes.sort((a, b) => {
+        const order = ["gvisor", "macSandboxExec", "pyodide", "unsandboxed"];
+        return order.indexOf(a.flavor) - order.indexOf(b.flavor);
+      });
+
+      const sortedOptions = [
+        ...goodOnes,
+        ...status.options.filter(o => o.functional && !o.effective),
+        ...status.options.filter(o => !o.functional),
+      ];
+      return { ...status, options: sortedOptions };
+    }
   }
 
   private _buildContent(status: SandboxingStatus): DomContents {
