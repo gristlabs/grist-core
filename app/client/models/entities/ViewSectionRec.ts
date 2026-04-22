@@ -90,7 +90,7 @@ export interface ViewSectionOptions extends ChartOptions {
   numFrozen?: number;
   rowHeight?: number;           // Optional limit on height of rows, in lines.
   rowHeightUniform?: boolean;   // Whether rowHeight should make rows uniform height, by expanding shorter rows.
-  rtlDirection?: boolean;       // Whether the grid should render in right-to-left direction.
+  rtlDirection?: boolean|null;   // true = RTL, false = LTR, null/undefined = use default.
 
   // Other options.
   customView?: string;    // Configuration for custom widgets in JSON format.
