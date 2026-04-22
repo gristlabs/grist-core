@@ -75,7 +75,7 @@ function setSaveValueFromKo(owner: IDisposableOwner, obs: KoSaveableObservable<b
 // Like setSaveValueFromKo, but stores true when checked and null (not false) when unchecked.
 // This allows distinguishing "no preference" (null) from an explicit false value.
 function setNullableSaveValueFromKo(
-  owner: IDisposableOwner, obs: KoSaveableObservable<boolean | null | undefined>
+  owner: IDisposableOwner, obs: KoSaveableObservable<boolean | null | undefined>,
 ) {
   const ret = Computed.create(null, use => Boolean(use(obs)));
   ret.onWrite(async (val) => {
