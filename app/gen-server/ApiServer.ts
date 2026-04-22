@@ -25,7 +25,7 @@ import { expressWrap } from "app/server/lib/expressWrap";
 import { RequestWithOrg } from "app/server/lib/extractOrg";
 import { GristServer } from "app/server/lib/GristServer";
 import { getCookieDomain } from "app/server/lib/gristSessions";
-import { getCanAnyoneCreateOrgs, getTemplateOrg } from "app/server/lib/gristSettings";
+import { getCanAnyoneCreateOrgs, getPersonalOrgsEnabled, getTemplateOrg } from "app/server/lib/gristSettings";
 import log from "app/server/lib/log";
 import { clearSessionCacheIfNeeded, getDocScope, getScope, integerParam,
   isParameterOn, optStringParam, sendOkReply, sendReply, stringParam } from "app/server/lib/requestUtils";
@@ -582,7 +582,10 @@ export class ApiServer {
       const org = domain ? (await this._withPrivilegedViewForUser(
         domain, req, scope => this._dbManager.getOrg(scope, domain),
       )) : null;
-      const orgError = (org?.errMessage) ? { error: org.errMessage, status: org.status } : undefined;
+      let orgError = (org?.errMessage) ? { error: org.errMessage, status: org.status } : undefined;
+      if (!domain && !fullUser.anonymous && !getPersonalOrgsEnabled()) {
+        orgError = { error: "Personal orgs are disabled and no team site is available", status: 404 };
+      }
       if (org?.data?.billingAccount) {
       // Flatten features into single object for client side code that is using BillingAccount client side model.
         org.data.billingAccount.features = org.data.billingAccount.getEffectiveFeatures();
