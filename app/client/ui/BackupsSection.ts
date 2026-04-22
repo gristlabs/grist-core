@@ -28,7 +28,6 @@ const STORAGE_BACKENDS: Record<BackendName, BackendInfo> = {
   minio: {
     label: () => t("S3 (MinIO client)"),
     description: () => t("AWS S3-compatible service via MinIO client library. Works with AWS S3, MinIO, and others."),
-    disabledTag: () => t("Available in full edition"),
   },
   s3: {
     label: () => t("S3 (AWS client)"),
@@ -48,7 +47,7 @@ const STORAGE_BACKENDS: Record<BackendName, BackendInfo> = {
 
 export interface BackupsSectionProps {
   checks: AdminChecks;
-  /** Default: `false`. */
+  /** Hides the "Backups" title above the list of available backends (default: `false`). */
   hideTitle?: boolean;
 }
 
