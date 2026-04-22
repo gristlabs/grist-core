@@ -13,13 +13,9 @@ import { buildAdminData } from "app/client/ui/AdminControls";
 import { buildAdminLeftPanel, getPageNames } from "app/client/ui/AdminLeftPanel";
 import {
   AdminPanelControls,
-  AdminSection,
-  AdminSectionItem,
   cssFlexSpace,
   cssIconWrapper as cssWellIcon,
-  cssSection,
-  cssSectionTitle,
-  cssValueLabel,
+  cssPageContainer,
   cssWell,
   cssWellContent,
   cssWellTitle,
@@ -34,13 +30,14 @@ import { InstallConfigsAPI } from "app/client/ui/ConfigsAPI";
 import { pagePanels } from "app/client/ui/PagePanels";
 import { QuickSetup } from "app/client/ui/QuickSetup";
 import { ServiceStatus } from "app/client/ui/ServiceStatus";
+import { cssPageTitle, cssValueLabel, SectionCard, SectionItem } from "app/client/ui/SettingsLayout";
 import { SupportGristPage } from "app/client/ui/SupportGristPage";
 import { ToggleEnterpriseWidget } from "app/client/ui/ToggleEnterpriseWidget";
 import { createTopBarHome } from "app/client/ui/TopBar";
 import { createUserImage } from "app/client/ui/UserImage";
-import { cssBreadcrumbs, separator } from "app/client/ui2018/breadcrumbs";
+import { fullBreadcrumbs } from "app/client/ui2018/breadcrumbs";
 import { basicButton, bigPrimaryButton, bigPrimaryButtonLink } from "app/client/ui2018/buttons";
-import { mediaSmall, testId, theme, vars } from "app/client/ui2018/cssVars";
+import { testId, theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { cssLink, makeLinks } from "app/client/ui2018/links";
 import { confirmModal, spinnerModal } from "app/client/ui2018/modals";
@@ -109,17 +106,10 @@ export class AdminPanel extends Disposable {
         ];
       } else {
         return [
-          cssBreadcrumbs({ style: "margin-left: 16px;" },
-            cssLink(
-              urlState().setLinkUrl({}),
-              t("Grist Instance"),
-            ),
-            separator(" / "),
-            dom("span", getAdminPanelName()),
-            separator(" / "),
-            dom("span", dom.domComputed(use => pageNames.pages[use(this._page)].section)),
-            separator(" / "),
-            dom("span", dom.domComputed(use => pageNames.pages[use(this._page)].name)),
+          fullBreadcrumbs(
+            cssLink(urlState().setLinkUrl({}), t("Home")),
+            getAdminPanelName(),
+            dom.domComputed(this._page, page => pageNames.pages[page].name),
           ),
           createTopBarHome(this._appModel),
         ];
@@ -190,7 +180,7 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
     // Otherwise say it is unavailable, and describe a fallback
     // mechanism for access.
     return dom.maybe(use => use(this._checks.probes), probes => [
-      (probes as any[]).length > 0 ?
+      probes.length > 0 ?
         this._buildMainContentForAdmin() :
         this._buildMainContentForOthers(),
     ]);
@@ -229,7 +219,7 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
    * which could include a legit administrator if auth is misconfigured.
    */
   private _buildMainContentForOthers() {
-    return dom.create(AdminSection, t("Administrator Panel Unavailable"), [
+    return SectionCard(t("Administrator Panel Unavailable"), [
       dom("p", t(`You do not have access to the administrator panel.
 Please log in as an administrator.`)),
       dom(
@@ -250,9 +240,9 @@ Please log in as an administrator.`)),
     const supportGrist = SupportGristPage.create(this, this._appModel);
 
     return [
+      cssPageTitle(t("Installation")),
       dom.maybe(this.needsRestart, () => [
-        cssSection(
-          cssSectionTitle(t("Restart Grist")),
+        SectionCard(t("Restart Grist"), [
           dom("p", t("Restart Grist to apply pending changes.")),
           cssWell(
             cssWell.cls("-warning"),
@@ -277,10 +267,10 @@ Please log in as an administrator.`)),
             testId("admin-panel-restart-button"),
             dom.show(this._supportsRestart),
           ),
-        ),
+        ]),
       ]),
-      dom.create(AdminSection, t("Support Grist"), [
-        dom.create(AdminSectionItem, {
+      SectionCard(t("Support Grist"), [
+        SectionItem({
           id: "telemetry",
           name: t("Telemetry"),
           description: t("Help us make Grist better"),
@@ -291,7 +281,7 @@ Please log in as an administrator.`)),
           ),
           expandedContent: supportGrist.buildTelemetrySection(),
         }),
-        dom.create(AdminSectionItem, {
+        SectionItem({
           id: "sponsor",
           name: t("Sponsor"),
           description: t("Support Grist Labs on GitHub"),
@@ -299,8 +289,8 @@ Please log in as an administrator.`)),
           expandedContent: supportGrist.buildSponsorshipSection(),
         }),
       ]),
-      dom.create(AdminSection, t("Maintenance"), [
-        dom.create(AdminSectionItem, {
+      SectionCard(t("Maintenance"), [
+        SectionItem({
           id: "service-status",
           name: t("Service status"),
           description: t("Take Grist out of service for maintenance"),
@@ -308,36 +298,36 @@ Please log in as an administrator.`)),
           expandedContent: this._buildServiceStatusContent(),
         }),
       ]),
-      dom.create(AdminSection, t("Security Settings"), [
-        dom.create(AdminSectionItem, {
+      SectionCard(t("Security Settings"), [
+        SectionItem({
           id: "admins",
           name: t("Administrative accounts"),
           description: t("The users with administrative accounts"),
           value: this._buildAdminUsersDisplay(),
           expandedContent: this._buildAdminUsersDetail(),
         }),
-        dom.create(AdminSectionItem, {
+        SectionItem({
           id: "boot-key",
           name: t("Boot key"),
           description: t("Fallback authentication method"),
           value: this._buildBootKeyDisplay(),
           expandedContent: this._buildBootKeyContent(),
         }),
-        dom.create(AdminSectionItem, {
+        SectionItem({
           id: "sandboxing",
           name: t("Sandboxing"),
           description: t("Sandbox settings for data engine"),
           value: this._buildSandboxingDisplay(),
           expandedContent: this._buildSandboxingNotice(),
         }),
-        dom.create(AdminSectionItem, {
+        SectionItem({
           id: "authentication",
           name: t("Authentication"),
           description: t("Current authentication method"),
           value: this._buildAuthenticationDisplay(),
           expandedContent: this._buildAuthenticationPanelExtraContent(),
         }),
-        dom.create(AdminSectionItem, {
+        SectionItem({
           id: "session",
           name: t("Session Secret"),
           description: t("Key to sign sessions with"),
@@ -346,8 +336,8 @@ Please log in as an administrator.`)),
         }),
       ]),
       this._buildAuditLogsSection(),
-      dom.create(AdminSection, t("Version"), [
-        dom.create(AdminSectionItem, {
+      SectionCard(t("Version"), [
+        SectionItem({
           id: "version",
           name: t("Current"),
           description: t("Current version of Grist"),
@@ -356,12 +346,12 @@ Please log in as an administrator.`)),
         this._maybeAddEnterpriseToggle(),
         dom.create(this._buildUpdates.bind(this)),
       ]),
-      dom.create(AdminSection, t("Self Checks"), [
+      SectionCard(t("Self Checks"), [
         this._buildProbeItems({
           showRedundant: false,
           showNovel: true,
         }),
-        dom.create(AdminSectionItem, {
+        SectionItem({
           id: "probe-other",
           name: t("more..."),
           description: "",
@@ -391,7 +381,7 @@ Please log in as an administrator.`)),
       makeToggle = () => cssValueLabel(cssHappyText(t("On")));
     }
 
-    return dom.create(AdminSectionItem, {
+    return SectionItem({
       id: "enterprise",
       name: t("Enterprise"),
       description: t("Enable Grist Enterprise"),
@@ -773,7 +763,7 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
       }
     });
 
-    return dom.create(AdminSectionItem, {
+    return SectionItem({
       id: "updates",
       name: t("Updates"),
       description: dom("span", testId("admin-panel-updates-message"), dom.text(description)),
@@ -880,7 +870,7 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
     result: BootProbeResult,
     details: ProbeDetails | undefined) {
     const status = this._encodeSuccess(result);
-    return dom.create(AdminSectionItem, {
+    return SectionItem({
       id: `probe-${info.id}`,
       name: info.id,
       description: info.name,
@@ -945,8 +935,7 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
       case "core":
       case "enterprise":
       case "saas": {
-        return dom.create(
-          AdminSection,
+        return SectionCard(
           [t("Audit Logs"), cssSectionTag(t("New, Enterprise"))],
           [this._buildLogStreamingSection(deploymentType)],
         );
@@ -961,7 +950,7 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
     deploymentType: "core" | "enterprise" | "saas",
   ) {
     if (deploymentType === "core") {
-      return dom.create(AdminSectionItem, {
+      return SectionItem({
         id: "log-streaming",
         name: t("Log Streaming"),
         expandedContent: t(
@@ -983,7 +972,7 @@ learn more.",
       });
       model.fetchStreamingDestinations().catch(reportError);
 
-      return dom.create(AdminSectionItem, {
+      return SectionItem({
         id: "log-streaming",
         name: t("Log Streaming"),
         value: this._buildLogStreamingStatus(model),
@@ -1031,29 +1020,6 @@ const cssStatus = styled("div", `
   text-align: center;
   width: 40px;
   padding: 5px;
-`);
-
-const cssPageContainer = styled("div", `
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: auto;
-  padding: 40px;
-  font-size: ${vars.introFontSize};
-  color: ${theme.text};
-  outline: none;
-
-  &-admin-pages {
-    padding: 12px;
-    font-size: ${vars.mediumFontSize};
-  }
-
-  @media ${mediaSmall} {
-    & {
-      padding: 0px;
-      font-size: ${vars.mediumFontSize};
-    }
-  }
 `);
 
 const cssExpandedContent = styled("div", `
