@@ -61,6 +61,7 @@ export class BootProbes {
 
   private _addProbes() {
     this._probes.push(_homeUrlReachableProbe);
+    this._probes.push(_homeUrlProbe);
     this._probes.push(_statusCheckProbe);
     this._probes.push(_userProbe);
     this._probes.push(_bootKeyProbe);
@@ -325,6 +326,32 @@ const _sessionSecretProbe: Probe = {
       status: usingDefaultSessionSecret ? "warning" : "success",
       details: {
         GRIST_SESSION_SECRET: process.env.GRIST_SESSION_SECRET ? "set" : "not set",
+      },
+    };
+  },
+};
+
+// Reports whether APP_HOME_URL is configured, and whether it came from env or
+// from the activation prefs DB. Reads appSettings directly rather than the
+// memoized getHomeUrl() helper in gristSettings.ts, so that nested sections
+// (e.g. an admin re-reading this flag) see the same live view of env+DB state
+// that appSettings maintains. APP_HOME_URL is restart-required, so the DB
+// value that was loaded at boot is the value the rest of the server is using.
+const _homeUrlProbe: Probe = {
+  id: "home-url",
+  name: "Home URL",
+  apply: async () => {
+    const setting = appSettings.flag("homeUrl");
+    setting.readString({ envVar: "APP_HOME_URL" });
+    const described = setting.describe();
+    const value = (typeof described.value === "string" && described.value) ? described.value : null;
+    return {
+      status: value ? "success" : "warning",
+      verdict: value ? undefined :
+        "APP_HOME_URL is not set; server auto-detects the URL from each request",
+      details: {
+        value,
+        source: described.source ?? null,
       },
     };
   },

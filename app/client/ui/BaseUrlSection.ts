@@ -13,7 +13,7 @@ import { basicButton, primaryButton } from "app/client/ui2018/buttons";
 import { theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { unstyledButton } from "app/client/ui2018/unstyled";
-import { ConfigAPI, ServerConfig } from "app/common/ConfigAPI";
+import { HomeUrlBootProbeDetails } from "app/common/BootProbe";
 import { InstallAPIImpl } from "app/common/InstallAPI";
 
 import { Computed, Disposable, dom, DomContents, input, makeTestId,
@@ -58,7 +58,6 @@ export class BaseUrlSection extends Disposable {
   private _testDetailOpen = Observable.create<boolean>(this, false);
   private _testAbort?: AbortController;
 
-  private _configAPI = new ConfigAPI(getHomeUrl());
   private _installAPI = new InstallAPIImpl(getHomeUrl());
 
   constructor(_options: BaseUrlSectionOptions = {}) {
@@ -288,13 +287,15 @@ Auth callbacks, API links, and email notifications all depend on this being corr
 
   private async _load() {
     try {
-      const config: ServerConfig = await this._configAPI.getServerConfig();
+      const result = await this._installAPI.runCheck("home-url");
       if (this.isDisposed()) { return; }
-      this._serverUrl.set(config.APP_HOME_URL || "");
-      this._editedUrl.set(config.APP_HOME_URL || this._detectedUrl);
+      const details = (result.details ?? {}) as Partial<HomeUrlBootProbeDetails>;
+      const value = details.value ?? "";
+      this._serverUrl.set(value);
+      this._editedUrl.set(value || this._detectedUrl);
       this._status.set("loaded");
     } catch (err) {
-      // Silently continue on error (endpoint may not exist during early startup).
+      // Silently continue on error (probe may not exist during early startup).
       if (this.isDisposed()) { return; }
       this._editedUrl.set(this._detectedUrl);
       this._status.set("loaded");
