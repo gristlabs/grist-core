@@ -1939,7 +1939,10 @@
         "disabled": "disabled",
         "enabled": "enabled",
         "in service": "in service",
-        "out of service": "out of service"
+        "out of service": "out of service",
+        "Back up documents externally": "Back up documents externally",
+        "Backups": "Backups",
+        "Storage": "Storage"
     },
     "Columns": {
         "Remove Column": "Remove Column"
@@ -2834,7 +2837,8 @@
         "Configure Grist for your environment.": "Configure Grist for your environment.",
         "Quick setup": "Quick setup",
         "Sandboxing": "Sandboxing",
-        "Server": "Server"
+        "Server": "Server",
+        "Continue": "Continue"
     },
     "ServiceStatus": {
         "Enter maintenance mode": "Enter maintenance mode",
@@ -2849,5 +2853,25 @@
     "TeamSettingsPage": {
         "Domain is already taken.": "Domain is already taken.",
         "Invalid domain.": "Invalid domain."
+    },
+    "BackupsSection": {
+        "AWS S3 via native AWS SDK. Supports IAM roles and AWS-native auth.": "AWS S3 via native AWS SDK. Supports IAM roles and AWS-native auth.",
+        "AWS S3-compatible service via MinIO client library. Works with AWS S3, MinIO, and others.": "AWS S3-compatible service via MinIO client library. Works with AWS S3, MinIO, and others.",
+        "Active": "Active",
+        "Available in full edition": "Available in full edition",
+        "Azure Blob Storage": "Azure Blob Storage",
+        "Backups": "Backups",
+        "Documents stored on local disk only.": "Documents stored on local disk only.",
+        "Learn more.": "Learn more.",
+        "Loading backup providers...": "Loading backup providers...",
+        "Microsoft Azure Blob Storage via native Azure SDK.": "Microsoft Azure Blob Storage via native Azure SDK.",
+        "No external storage": "No external storage",
+        "Off": "Off",
+        "S3 (AWS client)": "S3 (AWS client)",
+        "S3 (MinIO client)": "S3 (MinIO client)",
+        "Set these environment variables and restart Grist to enable Azure storage:": "Set these environment variables and restart Grist to enable Azure storage:",
+        "Set these environment variables and restart Grist to enable MinIO storage:": "Set these environment variables and restart Grist to enable MinIO storage:",
+        "Set these environment variables and restart Grist to enable S3 storage:": "Set these environment variables and restart Grist to enable S3 storage:",
+        "Store document backups on an external service like S3 or Azure.           This protects against data loss if the server's disk fails.": "Store document backups on an external service like S3 or Azure.           This protects against data loss if the server's disk fails."
     }
 }
