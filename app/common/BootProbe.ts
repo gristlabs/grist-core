@@ -1,3 +1,4 @@
+import { StorageBackendName } from "app/common/ExternalStorage";
 import { SandboxInfo } from "app/common/SandboxInfo";
 
 export type BootProbeIds =
@@ -11,7 +12,8 @@ export type BootProbeIds =
   "authentication" |
   "websockets" |
   "session-secret" |
-  "service-status"
+  "service-status" |
+  "backups"
 ;
 
 export interface BootProbeResult {
@@ -31,3 +33,9 @@ export interface BootProbeInfo {
 }
 
 export type SandboxingBootProbeDetails = SandboxInfo;
+
+export interface BackupsBootProbeDetails {
+  active: boolean;
+  availableBackends: StorageBackendName[];
+  backend?: StorageBackendName;
+}

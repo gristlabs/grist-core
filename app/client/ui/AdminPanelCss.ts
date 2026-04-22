@@ -260,6 +260,18 @@ export const cssValueLabel = styled("div", `
   border-radius: ${vars.controlBorderRadius};
 `);
 
+export const cssErrorText = styled("span", `
+  color: ${theme.errorText};
+`);
+
+export const cssDangerText = styled("div", `
+  color: ${theme.dangerText};
+`);
+
+export const cssHappyText = styled("span", `
+  color: ${theme.controlFg};
+`);
+
 export const cssTextArea = styled(textarea, `
   color: ${theme.inputFg};
   background-color: ${theme.inputBg};
