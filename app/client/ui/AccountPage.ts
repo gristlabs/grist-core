@@ -1,6 +1,7 @@
 import { detectCurrentLang, makeT } from "app/client/lib/localization";
 import { checkName } from "app/client/lib/nameUtils";
 import { AppModel, reportError } from "app/client/models/AppModel";
+import { reportSuccess } from "app/client/models/errors";
 import { urlState } from "app/client/models/gristUrlState";
 import * as css from "app/client/ui/AccountPageCss";
 import { ApiKey } from "app/client/ui/ApiKey";
@@ -15,10 +16,12 @@ import { pagePanels } from "app/client/ui/PagePanels";
 import { ThemeConfig } from "app/client/ui/ThemeConfig";
 import { createTopBarHome } from "app/client/ui/TopBar";
 import { transientInput } from "app/client/ui/transientInput";
+import { createUserImage } from "app/client/ui/UserImage";
 import { cssBreadcrumbs, separator } from "app/client/ui2018/breadcrumbs";
 import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
 import { cssLink } from "app/client/ui2018/links";
 import { select } from "app/client/ui2018/menus";
+import { getGravatarUrl } from "app/common/GravatarUtils";
 import { getPageTitleSuffix, isFeatureEnabled } from "app/common/gristUrls";
 import { getGristConfig } from "app/common/urlUtils";
 import { FullUser } from "app/common/UserAPI";
@@ -40,6 +43,9 @@ export class AccountPage extends Disposable {
   private _isNameValid = Computed.create(this, this._nameEdit, (_use, val) => checkName(val));
   private _allowGoogleLogin = Computed.create(this, use => use(this._userObs)?.allowGoogleLogin ?? false)
     .onWrite(val => this._updateAllowGooglelogin(val));
+
+  private _isApplyingGravatar = Observable.create(this, false);
+  private _isDeletingGravatar = Observable.create(this, false);
 
   constructor(private _appModel: AppModel, private _appObj: App) {
     super();
@@ -87,6 +93,27 @@ export class AccountPage extends Disposable {
         css.dataRow(
           css.inlineSubHeader(t("Email")),
           css.email(user.email),
+        ),
+        css.dataRow(
+          css.inlineSubHeader(t("Picture")),
+          cssPictureSection(
+            createUserImage(user, "medium"),
+            css.textBtn(
+              css.icon("Pencil"),
+              t("Apply Gravatar"),
+              dom.on("click", () => this._applyGravatarWithLoader()),
+              dom.prop("disabled", this._isApplyingGravatar),
+            ),
+            testId("apply-gravatar"),
+            css.textBtn(
+              css.icon("Remove"),
+              t("Remove Gravatar"),
+              dom.on("click", () => this._deleteGravatarPicture()),
+              dom.prop("disabled", this._isDeletingGravatar),
+            ),
+            testId("remove-gravatar"),
+          ),
+          testId("user-picture"),
         ),
         css.dataRow(
           css.inlineSubHeader(t("Name")),
@@ -253,6 +280,34 @@ designed to ensure that you're the only person who can access your account, even
       }
     }));
   }
+
+  private async _applyGravatarWithLoader() {
+    this._isApplyingGravatar.set(true);
+    try {
+      const user = this._userObs.get();
+      if (!user?.email) {
+        return;
+      }
+
+      const gravatarUrl = await getGravatarUrl(user.email);
+      await this._appModel.api.updateUserPicture(gravatarUrl);
+      await this._fetchAll();
+      reportSuccess(t("Gravatar picture applied successfully"));
+    } finally {
+      this._isApplyingGravatar.set(false);
+    }
+  }
+
+  private async _deleteGravatarPicture() {
+    this._isDeletingGravatar.set(true);
+    try {
+      await this._appModel.api.updateUserPicture("");
+      await this._fetchAll();
+      reportSuccess(t("Gravatar picture removed successfully"));
+    } finally {
+      this._isDeletingGravatar.set(false);
+    }
+  }
 }
 
 const cssWarnings = styled(css.warning, `
@@ -263,4 +318,10 @@ const cssFirstUpper = styled("div", `
   & > div::first-letter {
     text-transform: capitalize;
   }
+`);
+
+const cssPictureSection = styled("div", `
+  display: flex;
+  align-items: center;
+  gap: 16px;
 `);
