@@ -5,8 +5,8 @@ import { getHomeUrl } from "app/client/models/homeUrl";
 import { cssFadeUp, cssFadeUpGristLogo, cssFadeUpHeading, cssFadeUpSubHeading } from "app/client/ui/AdminPanelCss";
 import { BackupsSection } from "app/client/ui/BackupsSection";
 import { BaseUrlSection } from "app/client/ui/BaseUrlSection";
+import { DraftChangesManager } from "app/client/ui/DraftChanges";
 import { EditionSection } from "app/client/ui/EditionSection";
-import { PendingChangesManager } from "app/client/ui/PendingChanges";
 import { PermissionsSetupSection } from "app/client/ui/PermissionsSetupSection";
 import { SandboxSetupSection } from "app/client/ui/SandboxSection";
 import { bigPrimaryButton } from "app/client/ui2018/buttons";
@@ -94,9 +94,9 @@ export class QuickSetup extends Disposable {
     return dom.create((owner) => {
       const baseUrl = BaseUrlSection.create(owner);
       const edition = EditionSection.create(owner);
-      const pending = PendingChangesManager.create(owner);
-      pending.addSection(baseUrl);
-      pending.addSection(edition);
+      const drafts = DraftChangesManager.create(owner);
+      drafts.addSection(baseUrl);
+      drafts.addSection(edition);
       const canProceed = Computed.create(owner, use =>
         use(baseUrl.canProceed) && use(edition.canProceed),
       );
@@ -124,12 +124,12 @@ export class QuickSetup extends Disposable {
               if (!urlOk && !edOk) { return t("Confirm base URL and edition to continue"); }
               if (!urlOk) { return t("Confirm base URL to continue"); }
               if (!edOk) { return t("Confirm edition to continue"); }
-              return use(pending.hasPendingChanges) ? t("Apply and Continue") : t("Continue");
+              return use(drafts.hasDraftChanges) ? t("Apply and Continue") : t("Continue");
             }),
-            dom.boolAttr("disabled", use => !use(canProceed) || use(pending.isApplying)),
+            dom.boolAttr("disabled", use => !use(canProceed) || use(drafts.isApplying)),
             dom.on("click", async () => {
               try {
-                await pending.applyAll();
+                await drafts.applyAll();
                 const activeStepIndex = this._activeStep.get();
                 this._steps[activeStepIndex].completed.set(true);
                 this._activeStep.set(activeStepIndex + 1);

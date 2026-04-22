@@ -1,11 +1,16 @@
 /**
- * Accumulates pending configuration changes from multiple sections,
+ * Accumulates draft configuration changes from multiple sections,
  * then applies them together. Used by both the setup wizard and the
  * admin panel to batch saves and minimize restarts.
  *
  * Each section registers itself via `addSection()`. The manager
  * tracks aggregate dirty state and provides `applyAll()` to persist
  * everything, restart if needed, and reset dirty tracking.
+ *
+ * "Draft" here is an in-memory, session-scoped concept: changes the
+ * user has made in the current page load but not yet saved. Not to
+ * be confused with `PendingChanges` in `app/common/Install.ts`, which
+ * is the server-side durable list of on-restart directives.
  */
 import { getHomeUrl } from "app/client/models/AppModel";
 import { ConfigAPI } from "app/common/ConfigAPI";
@@ -14,11 +19,11 @@ import { delay } from "app/common/delay";
 import { Computed, Disposable, Observable } from "grainjs";
 
 /**
- * A human-readable description of a pending change. The `label` is
+ * A human-readable description of a draft change. The `label` is
  * translated (e.g. "Base URL"); the `value` is a literal (e.g. a URL)
  * that shouldn't pass through the translation pipeline.
  */
-export interface PendingChangeDescription {
+export interface DraftChangeDescription {
   label: string;
   value: string;
 }
@@ -33,12 +38,12 @@ export interface ConfigSection {
   /** Update internal tracking so isDirty becomes false. */
   markApplied(): void;
   /**
-   * Describe the pending change for display in the restart banner.
+   * Describe the draft change for display in the restart banner.
    * Only called when isDirty is true. Re-read whenever any section's
    * `isDirty` fires -- sections whose described value can drift while
    * `isDirty` stays true should toggle `isDirty` to trigger a refresh.
    */
-  describeChange?(): PendingChangeDescription;
+  describeChange?(): DraftChangeDescription;
 }
 
 /**
@@ -65,24 +70,24 @@ export class PartialApplyError extends Error {
 }
 
 /** Aggregate state across all registered sections, recomputed whenever any section's `isDirty` flips. */
-export interface PendingState {
-  hasPendingChanges: boolean;
+export interface DraftState {
+  hasDraftChanges: boolean;
   needsRestart: boolean;
-  changes: PendingChangeDescription[];
+  changes: DraftChangeDescription[];
 }
 
-const EMPTY_STATE: PendingState = { hasPendingChanges: false, needsRestart: false, changes: [] };
+const EMPTY_STATE: DraftState = { hasDraftChanges: false, needsRestart: false, changes: [] };
 
-export class PendingChangesManager extends Disposable {
+export class DraftChangesManager extends Disposable {
   /**
-   * Aggregate pending-state derived from all registered sections. Readers
+   * Aggregate draft-state derived from all registered sections. Readers
    * bind to `state` for reactive UI, or to the convenience projections
-   * (`hasPendingChanges`, `needsRestart`, `changes`) that unwrap fields.
+   * (`hasDraftChanges`, `needsRestart`, `changes`) that unwrap fields.
    */
-  public readonly state: Computed<PendingState>;
-  public readonly hasPendingChanges: Computed<boolean>;
+  public readonly state: Computed<DraftState>;
+  public readonly hasDraftChanges: Computed<boolean>;
   public readonly needsRestart: Computed<boolean>;
-  public readonly changes: Computed<PendingChangeDescription[]>;
+  public readonly changes: Computed<DraftChangeDescription[]>;
 
   private _sections: Observable<ConfigSection[]> = Observable.create(this, []);
   private _configAPI = new ConfigAPI(getHomeUrl());
@@ -94,12 +99,12 @@ export class PendingChangesManager extends Disposable {
       const dirty = use(this._sections).filter(s => use(s.isDirty));
       if (dirty.length === 0) { return EMPTY_STATE; }
       return {
-        hasPendingChanges: true,
+        hasDraftChanges: true,
         needsRestart: dirty.some(s => s.needsRestart),
         changes: dirty.flatMap(s => s.describeChange ? [s.describeChange()] : []),
       };
     });
-    this.hasPendingChanges = Computed.create(this, use => use(this.state).hasPendingChanges);
+    this.hasDraftChanges = Computed.create(this, use => use(this.state).hasDraftChanges);
     this.needsRestart = Computed.create(this, use => use(this.state).needsRestart);
     this.changes = Computed.create(this, use => use(this.state).changes);
   }
@@ -115,7 +120,7 @@ export class PendingChangesManager extends Disposable {
   }
 
   /**
-   * Persist all pending changes without restarting. Use when the server
+   * Persist all draft changes without restarting. Use when the server
    * can't auto-restart (no supervisor); the user restarts manually.
    */
   public async applyWithoutRestart(): Promise<void> {
@@ -123,7 +128,7 @@ export class PendingChangesManager extends Disposable {
   }
 
   /** One-shot accessor; prefer binding to `state`/`changes` for reactive UI. */
-  public describeChanges(): PendingChangeDescription[] {
+  public describeChanges(): DraftChangeDescription[] {
     return this.state.get().changes;
   }
 
@@ -158,7 +163,7 @@ export class PendingChangesManager extends Disposable {
       }
 
       // Only restart when every dirty section succeeded. Restarting with a
-      // half-applied set would either strand pending changes behind another
+      // half-applied set would either strand draft changes behind another
       // restart (if we re-try later) or advertise the run as complete when
       // it isn't. Better to require retry first.
       if (restart && failures.length === 0 && applied.some(s => s.needsRestart)) {

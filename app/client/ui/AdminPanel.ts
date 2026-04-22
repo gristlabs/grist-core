@@ -36,9 +36,9 @@ import { BackupsSection } from "app/client/ui/BackupsSection";
 import { BaseUrlSection } from "app/client/ui/BaseUrlSection";
 import { BootKeyStatus } from "app/client/ui/BootKeyStatus";
 import { InstallConfigsAPI } from "app/client/ui/ConfigsAPI";
+import { DraftChangesManager } from "app/client/ui/DraftChanges";
 import { EditionSection } from "app/client/ui/EditionSection";
 import { pagePanels } from "app/client/ui/PagePanels";
-import { PendingChangesManager } from "app/client/ui/PendingChanges";
 import { QuickSetup } from "app/client/ui/QuickSetup";
 import { ServiceStatus } from "app/client/ui/ServiceStatus";
 import { SupportGristPage } from "app/client/ui/SupportGristPage";
@@ -202,7 +202,7 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
     notifier: this._appModel.notifier,
   });
 
-  private _pending = PendingChangesManager.create(this);
+  private _drafts = DraftChangesManager.create(this);
 
   private _checks: AdminChecks;
   private readonly _installAPI: InstallAPI = new InstallAPIImpl(getHomeUrl());
@@ -220,13 +220,13 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
   constructor(private _appModel: AppModel, private _restartBanner: RestartBannerController) {
     super();
     this._checks = new AdminChecks(this, this._installAPI);
-    this._pending.addSection(this._baseUrlSection);
-    this._pending.addSection(this._editionSection);
+    this._drafts.addSection(this._baseUrlSection);
+    this._drafts.addSection(this._editionSection);
 
     // Restart banner appears when a section's pending changes require one.
     // Sections without needsRestart are saved inline without needing the banner.
-    this.needsRestart.set(this._pending.needsRestart.get());
-    this.autoDispose(this._pending.needsRestart.addListener(v => this.needsRestart.set(v)));
+    this.needsRestart.set(this._drafts.needsRestart.get());
+    this.autoDispose(this._drafts.needsRestart.addListener(v => this.needsRestart.set(v)));
 
     // Mirror visibility into the shared controller so the left-panel entry
     // appears/disappears with the banner.
@@ -290,11 +290,11 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
   }
 
   private async _performRestart() {
-    // When a section needs a restart, PendingChangesManager handles the
+    // When a section needs a restart, DraftChangesManager handles the
     // apply+restart+wait cycle. Otherwise the banner was shown for another
     // reason (e.g. a section saved inline) and we restart directly.
-    if (this._pending.needsRestart.get()) {
-      await this._pending.applyAll();
+    if (this._drafts.needsRestart.get()) {
+      await this._drafts.applyAll();
     } else {
       await this._configAPI.restartServer();
     }
@@ -303,7 +303,7 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
 
   private async _applyWithoutRestart() {
     try {
-      await spinnerModal(t("Saving..."), this._pending.applyWithoutRestart());
+      await spinnerModal(t("Saving..."), this._drafts.applyWithoutRestart());
       this._awaitingManualRestart.set(true);
     } catch (err) {
       reportError(err as Error);
@@ -346,15 +346,15 @@ Please log in as an administrator.`)),
               t("Changes have been saved. Restart Grist to apply them.") :
               t("Restart Grist to apply pending changes.")),
           ),
-          dom.domComputed(this._pending.changes, (changes) => {
+          dom.domComputed(this._drafts.changes, (changes) => {
             if (changes.length === 0) { return null; }
-            return cssPendingChangesList(
+            return cssDraftChangesList(
               changes.map(c => dom("li",
-                cssPendingChangeLabel(c.label + ":"),
+                cssDraftChangeLabel(c.label + ":"),
                 " ",
                 dom("span", c.value),
               )),
-              testId("admin-panel-pending-changes"),
+              testId("admin-panel-draft-changes"),
             );
           }),
           cssWell(
@@ -372,7 +372,7 @@ Please log in as an administrator.`)),
                 ),
                 // Allow persisting pending changes to the DB so a manual
                 // restart picks them up.
-                dom.maybe(this._pending.hasPendingChanges, () =>
+                dom.maybe(this._drafts.hasDraftChanges, () =>
                   dom("p",
                     basicButton(
                       t("Apply changes (manual restart required)"),
@@ -1241,7 +1241,7 @@ const cssRestartBannerShell = styled("div", `
 
 const cssRestartBanner = styled(cssSection, ``);
 
-const cssPendingChangesList = styled("ul", `
+const cssDraftChangesList = styled("ul", `
   margin: 0 0 12px 0;
   padding-left: 20px;
   color: ${theme.text};
@@ -1250,7 +1250,7 @@ const cssPendingChangesList = styled("ul", `
   }
 `);
 
-const cssPendingChangeLabel = styled("span", `
+const cssDraftChangeLabel = styled("span", `
   font-weight: 600;
 `);
 

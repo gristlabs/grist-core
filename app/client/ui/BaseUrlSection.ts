@@ -303,7 +303,7 @@ Auth callbacks, API links, and email notifications all depend on this being corr
   }
 
   // url=null clears APP_HOME_URL (revert to auto-detect); url=string pins it.
-  // Caller (PendingChangesManager) invokes markApplied() on success, which
+  // Caller (DraftChangesManager) invokes markApplied() on success, which
   // updates _serverUrl, so we only manage transient status flags here.
   private async _persist(url: string | null) {
     this._status.set("saving");
