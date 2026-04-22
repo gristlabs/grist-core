@@ -656,6 +656,11 @@ export class HomeDBManager implements HomeDBAuth {
       };
       return { status: 200, data: anonOrg as any };
     }
+    // If the request is for the user's personal org but personal orgs are disabled,
+    // surface a clear message rather than silently producing an empty query result.
+    if (this.isMergedOrg(orgKey) && !getPersonalOrgsEnabled()) {
+      return { status: 404, errMessage: "Personal orgs are disabled" };
+    }
     let qb = this.org(scope, orgKey, {
       ...(options?.requirePermissions ? {
         markPermissions: options.requirePermissions,
