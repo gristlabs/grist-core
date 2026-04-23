@@ -275,7 +275,7 @@ Grist is now in service and available to users.")),
 
 const PRESETS: Record<string, Record<string, boolean>> = {
   locked: { teamSites: false, personalSites: false, anonAccess: false, playground: false },
-  recommended: { teamSites: false, personalSites: false, anonAccess: true,  playground: false },
+  recommended: { teamSites: false, personalSites: true, anonAccess: true,  playground: false },
   open: { teamSites: true,  personalSites: true,  anonAccess: true,  playground: true },
 };
 

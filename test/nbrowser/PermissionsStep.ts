@@ -36,7 +36,7 @@ describe("PermissionsStep", function() {
     // Should start with "Recommended" preset active.
     assert.isTrue(await isPresetActive("recommended"));
     assert.isFalse(await isToggleChecked("orgCreationAnyone"));
-    assert.isFalse(await isToggleChecked("personalOrgs"));
+    assert.isTrue(await isToggleChecked("personalOrgs"));
     assert.isTrue(await isToggleChecked("forceLogin"));
     assert.isFalse(await isToggleChecked("anonPlayground"));
 
