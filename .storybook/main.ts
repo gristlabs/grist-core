@@ -1,9 +1,14 @@
 import path from "path";
+import { fileURLToPath } from "url";
 
 import type { StorybookConfig } from "@storybook/html-webpack5";
 
 // Root of grist-core (whether standalone or as core/ inside grist-saas).
-const coreRoot = path.resolve(__dirname, "..");
+// Works under both CommonJS and ESM module loaders.
+const here = typeof __dirname !== "undefined" ?
+  __dirname :
+  path.dirname(fileURLToPath(import.meta.url));
+const coreRoot = path.resolve(here, "..");
 
 const config: StorybookConfig = {
   stories: [

@@ -35,6 +35,7 @@ import { AuthenticationSection } from "app/client/ui/AuthenticationSection";
 import { BackupsSection } from "app/client/ui/BackupsSection";
 import { BootKeyStatus } from "app/client/ui/BootKeyStatus";
 import { InstallConfigsAPI } from "app/client/ui/ConfigsAPI";
+import { buildOutgoingRequestsPanel, buildOutgoingRequestsSummary } from "app/client/ui/OutgoingRequestsStatus";
 import { pagePanels } from "app/client/ui/PagePanels";
 import { QuickSetup } from "app/client/ui/QuickSetup";
 import { ServiceStatus } from "app/client/ui/ServiceStatus";
@@ -348,6 +349,13 @@ Please log in as an administrator.`)),
           value: this._buildSessionSecretDisplay(),
           expandedContent: this._buildSessionSecretNotice(),
         }),
+        dom.create(AdminSectionItem, {
+          id: "outgoing-requests",
+          name: t("Outgoing requests"),
+          description: t("How user actions can reach the outside world"),
+          value: this._buildOutgoingRequestsDisplay(),
+          expandedContent: this._buildOutgoingRequestsContent(),
+        }),
       ]),
       this._buildBackupsSection(),
       this._buildAuditLogsSection(),
@@ -630,6 +638,20 @@ GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not se
 in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.");
   }
 
+  private _buildOutgoingRequestsDisplay() {
+    return dom.domComputed((use) => {
+      const req = this._checks.requestCheckById(use, "outgoing-requests");
+      return buildOutgoingRequestsSummary(req ? use(req.result) : undefined);
+    });
+  }
+
+  private _buildOutgoingRequestsContent() {
+    return dom.domComputed((use) => {
+      const req = this._checks.requestCheckById(use, "outgoing-requests");
+      return buildOutgoingRequestsPanel(req ? use(req.result) : undefined);
+    });
+  }
+
   private _buildUpdates(owner: MultiHolder) {
     // We can be in those states:
     enum State {
@@ -869,6 +891,7 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
             "session-secret",
             "service-status",
             "backups",
+            "outgoing-requests",
           ].includes(probe.id);
           const show = isRedundant ? options.showRedundant : options.showNovel;
           if (!show) { return null; }
@@ -1113,7 +1136,6 @@ const cssSectionTag = styled("span", `
   margin-left: 4px;
   font-weight: bold;
 `);
-
 const cssAdminAccountList = styled("ul", `
   list-style: none;
   padding: 0;
