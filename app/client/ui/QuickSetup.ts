@@ -4,6 +4,7 @@ import { reportError } from "app/client/models/errors";
 import { getHomeUrl } from "app/client/models/homeUrl";
 import { cssFadeUp, cssFadeUpGristLogo, cssFadeUpHeading, cssFadeUpSubHeading } from "app/client/ui/AdminPanelCss";
 import { BackupsSection } from "app/client/ui/BackupsSection";
+import { PermissionsSetupSection } from "app/client/ui/PermissionsSetupSection";
 import { bigPrimaryButton } from "app/client/ui2018/buttons";
 import { Stepper } from "app/client/ui2018/Stepper";
 import { InstallAPIImpl } from "app/common/InstallAPI";
@@ -49,7 +50,8 @@ export class QuickSetup extends Disposable {
     {
       label: t("Apply & restart"),
       completed: observable(false),
-      buildDom: () => null,
+      plain: true,
+      buildDom: () => this._buildApplyStep(),
     },
   ];
 
@@ -90,6 +92,13 @@ export class QuickSetup extends Disposable {
           ),
         ),
       );
+    });
+  }
+
+  private _buildApplyStep(): DomContents {
+    return dom.create((owner) => {
+      const section = PermissionsSetupSection.create(owner);
+      return section.buildDom();
     });
   }
 }
