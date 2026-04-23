@@ -2873,5 +2873,33 @@
         "Set these environment variables and restart Grist to enable MinIO storage:": "Set these environment variables and restart Grist to enable MinIO storage:",
         "Set these environment variables and restart Grist to enable S3 storage:": "Set these environment variables and restart Grist to enable S3 storage:",
         "Store document backups on an external service like S3 or Azure.           This protects against data loss if the server's disk fails.": "Store document backups on an external service like S3 or Azure.           This protects against data loss if the server's disk fails."
+    },
+    "PermissionsSetupSection": {
+        "Allow anonymous access": "Allow anonymous access",
+        "Allow anonymous playground": "Allow anonymous playground",
+        "Allow anyone to create team sites": "Allow anyone to create team sites",
+        "Allow personal sites": "Allow personal sites",
+        "Any logged-in user can create new team sites. Turn off to restrict team creation to admins only.": "Any logged-in user can create new team sites. Turn off to restrict team creation to admins only.",
+        "Apply & Restart": "Apply & Restart",
+        "Apply and Go Live!": "Apply and Go Live!",
+        "Applying settings and restarting…": "Applying settings and restarting…",
+        "Back to installation": "Back to installation",
+        "Conflict": "Conflict",
+        "DEFAULT PERMISSIONS": "DEFAULT PERMISSIONS",
+        "Environment": "Environment",
+        "Grist is live!": "Grist is live!",
+        "Loading permissions…": "Loading permissions…",
+        "Locked down": "Locked down",
+        "Open": "Open",
+        "Recommended": "Recommended",
+        "Review these defaults before going live. You can change them later from the admin panel.": "Review these defaults before going live. You can change them later from the admin panel.",
+        "Server did not restart in time. Please refresh the page.": "Server did not restart in time. Please refresh the page.",
+        "Some settings are controlled by environment variables and cannot be changed here: {{vars}}. To modify them, update the corresponding variables in your server configuration and restart.": "Some settings are controlled by environment variables and cannot be changed here: {{vars}}. To modify them, update the corresponding variables in your server configuration and restart.",
+        "The personal org is the only org available — personal sites must stay enabled or Grist will be non-functional.": "The personal org is the only org available — personal sites must stay enabled or Grist will be non-functional.",
+        "Users can create their own personal sites with documents. Turn off to restrict all documents to team sites managed by admins.": "Users can create their own personal sites with documents. Turn off to restrict all documents to team sites managed by admins.",
+        "Visitors who aren't signed in can create and edit documents in a temporary playground. Turn off to require sign-in before creating any documents.": "Visitors who aren't signed in can create and edit documents in a temporary playground. Turn off to require sign-in before creating any documents.",
+        "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.": "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.",
+        "You have GRIST_SINGLE_ORG={{value}} set. With this, users only see one site — but personal sites and team creation still work behind the scenes. Worth locking down unless you have a specific reason to keep them.": "You have GRIST_SINGLE_ORG={{value}} set. With this, users only see one site — but personal sites and team creation still work behind the scenes. Worth locking down unless you have a specific reason to keep them.",
+        "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users."
     }
 }
