@@ -157,6 +157,7 @@ abstract class SandboxSectionBase extends Disposable {
       isLockedByEnv ? cssEnvWarning(
         t("Sandbox type is set via the GRIST_SANDBOX_FLAVOR environment variable " +
           "and cannot be changed here. Remove the variable and restart to configure via this wizard."),
+        testId("env-warning"),
       ) : null,
 
       buildHeroCard({
@@ -169,6 +170,7 @@ abstract class SandboxSectionBase extends Disposable {
         badges: badgesFor(heroOption),
         text: sandboxDescription(heroOption.flavor),
         error: heroOption.functional === false ? (heroOption.error ?? "") : undefined,
+        args: [testId(`flavor-${heroOption.flavor}`), testId("flavor-0")],
       }),
 
       otherOptions.length > 0 ?
@@ -176,7 +178,7 @@ abstract class SandboxSectionBase extends Disposable {
           header: t("Other options"),
           collapsible: true,
           initiallyCollapsed: this._selected.get() === heroOption.flavor,
-          items: otherOptions.map(opt =>
+          items: otherOptions.map((opt, i) =>
             buildItemCard({
               indicator: (use: UseCB) => {
                 if (use(this._selected) !== opt.flavor) { return undefined; }
@@ -189,6 +191,7 @@ abstract class SandboxSectionBase extends Disposable {
               text: sandboxDescription(opt.flavor),
               info: !opt.available ? opt.unavailableReason : undefined,
               error: opt.functional === false ? (opt.error ?? "") : undefined,
+              args: [testId(`flavor-${opt.flavor}`), testId(`flavor-${i + 1}`)],
             }),
           ),
         }) :

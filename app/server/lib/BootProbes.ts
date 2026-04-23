@@ -369,6 +369,12 @@ const _sandboxProvidersProbe: Probe = {
   id: "sandbox-providers",
   name: "Available sandbox providers",
   apply: async (server) => {
+    // Allow tests to inject a canned result, since real sandboxes aren't available in CI.
+    const override = process.env.GRIST_TEST_SANDBOX_PROVIDERS_PROBE_RESULT;
+    if (override) {
+      return JSON.parse(override) as BootProbeResult;
+    }
+
     const available = getAvailableSandboxes().map(o => ({ ...o }));
 
     // Get current sandbox info.

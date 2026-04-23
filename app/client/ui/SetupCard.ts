@@ -69,9 +69,10 @@ export function buildHeroCard(props: {
     cssHeroHeader(
       cssHeroTitle(
         dom.text(props.header),
-        ...(props.tags ?? []).map(t => cssTag(t.label)),
+        ...(props.tags ?? []).map(t => cssTag(t.label, testId("tag"))),
+        testId("header"),
       ),
-      props.badges ? dom.forEach(props.badges, b => buildBadge(b.label, b.variant)) : null,
+      props.badges ? dom.forEach(props.badges, b => buildBadge(b.label, b.variant, testId("badge"))) : null,
     ),
     props.text ? cssHeroText(dom.text(props.text)) : null,
     props.error ? buildCollapsibleError(props.error) : null,
@@ -136,9 +137,10 @@ export function buildItemCard(props: {
     cssItemHeader(
       cssItemLabel(
         dom.text(props.header),
-        ...(props.tags ?? []).map(t => cssTag(t.label)),
+        ...(props.tags ?? []).map(t => cssTag(t.label, testId("tag"))),
+        testId("header"),
       ),
-      props.badges ? dom.forEach(props.badges, b => buildBadge(b.label, b.variant)) : null,
+      props.badges ? dom.forEach(props.badges, b => buildBadge(b.label, b.variant, testId("badge"))) : null,
       cssFlex(),
       ...(props.buttons ?? []).map(b => basicButton(
         b.label,
