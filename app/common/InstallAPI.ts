@@ -27,6 +27,18 @@ export interface PrefWithSource<T> {
 
 export type PrefSource = "environment-variable" | "preferences";
 
+export interface PermissionSetting {
+  value: boolean | undefined;
+  source: PrefSource | undefined;
+}
+
+export interface PermissionsStatus {
+  orgCreationAnyone: PermissionSetting;
+  personalOrgs: PermissionSetting;
+  forceLogin: PermissionSetting;
+  anonPlayground: PermissionSetting;
+}
+
 export interface InstallAPI {
   getInstallPrefs(): Promise<InstallPrefsWithSources>;
   updateInstallPrefs(prefs: Partial<InstallPrefs>): Promise<void>;
@@ -36,6 +48,7 @@ export interface InstallAPI {
   checkUpdates(): Promise<LatestVersionAvailable>;
   getChecks(): Promise<{ probes: BootProbeInfo[] }>;
   runCheck(id: string): Promise<BootProbeResult>;
+  getPermissionsStatus(): Promise<PermissionsStatus>;
 }
 
 export class InstallAPIImpl extends BaseAPI implements InstallAPI {
@@ -64,6 +77,10 @@ export class InstallAPIImpl extends BaseAPI implements InstallAPI {
 
   public runCheck(id: string): Promise<BootProbeResult> {
     return this.requestJson(`${this._url}/api/probes/${id}`, { method: "GET" });
+  }
+
+  public async getPermissionsStatus(): Promise<PermissionsStatus> {
+    return this.requestJson(`${this._url}/api/install/permissions`, { method: "GET" });
   }
 
   private get _url(): string {

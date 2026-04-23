@@ -3,7 +3,9 @@ import { unstyledButton } from "app/client/ui2018/unstyled";
 import { inlineStyle } from "app/common/gutil";
 import { tokens } from "app/common/ThemePrefs";
 
-import { BindableValue, Disposable, dom, DomContents, Observable, styled } from "grainjs";
+import { BindableValue, Disposable, dom, DomContents, makeTestId, Observable, styled } from "grainjs";
+
+const testId = makeTestId("test-stepper-");
 
 export interface StepperProps {
   activeStep: Observable<number>;
@@ -39,6 +41,7 @@ export class Stepper extends Disposable {
           cssStep.cls("-active", use => use(this._activeStep) === i),
           cssStep.cls("-completed", completed),
           dom.on("click", () => this._activeStep.set(i)),
+          testId(`step-${i}`),
           cssStepIcon(
             dom.domComputed(completed, c => c ? cssIcon("Tick") : String(i + 1)),
           ),
