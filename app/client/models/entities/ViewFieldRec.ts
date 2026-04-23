@@ -10,6 +10,7 @@ import { DropdownCondition, DropdownConditionCompilationResult } from "app/commo
 import { compilePredicateFormula } from "app/common/PredicateFormula";
 import { BaseFormatter } from "app/common/ValueFormatter";
 import { createParser } from "app/common/ValueParser";
+import { WidgetType } from "app/common/widgetTypes";
 
 import { Computed } from "grainjs";
 import * as ko from "knockout";
@@ -231,8 +232,17 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
 
   // The widgetOptions to read and write: either the column's or the field's own.
   this._widgetOptionsStr = this.autoDispose(modelUtil.savingComputed({
-    read: () => this._fieldOrColumn().widgetOptions(),
-    write: (setter, val) => setter(this._fieldOrColumn().widgetOptions, val),
+    read: () => {
+      const isForm = this.viewSection().widgetType() === WidgetType.Form;
+      return isForm && !this.widgetOptions() ? this.column().widgetOptions() : this._fieldOrColumn().widgetOptions();
+    },
+    write: (setter, val) => {
+      if (this.viewSection().widgetType() === WidgetType.Form) {
+        setter(this.widgetOptions, val);
+      } else {
+        setter(this._fieldOrColumn().widgetOptions, val);
+      }
+    },
   }));
 
   // Observable for the object with the current options, either for the field or for the column,
