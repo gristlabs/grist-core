@@ -149,6 +149,41 @@ describe("PermissionsStep", function() {
     await server.restart();
   });
 
+  it("should show warning when GRIST_SINGLE_ORG is a non-docs value", async function() {
+    process.env.GRIST_SINGLE_ORG = "myteam";
+    await server.restart();
+    session = await gu.session().personalSite.login();
+    await navigateToStep();
+
+    // Single-org warning should be shown with the value.
+    const warning = await driver.find(".test-permissions-setup-single-org-warning");
+    assert.isTrue(await warning.isDisplayed());
+    assert.include(await warning.getText(), "GRIST_SINGLE_ORG=myteam");
+
+    // No conflict badge — conflict only applies to docs.
+    assert.isFalse(await hasConflictBadge("personalOrgs"));
+    assert.isFalse(await hasConflictBadge("orgCreationAnyone"));
+    assert.isFalse(await hasConflictBadge("forceLogin"));
+    assert.isFalse(await hasConflictBadge("anonPlayground"));
+
+    // No env badges.
+    assert.lengthOf(await driver.findAll(".test-permissions-setup-env-badge"), 0);
+    assert.isFalse(await driver.find(".test-permissions-setup-env-warning").isPresent());
+
+    // All toggles should be enabled (not disabled).
+    assert.isFalse(await isToggleDisabled("orgCreationAnyone"));
+    assert.isFalse(await isToggleDisabled("personalOrgs"));
+    assert.isFalse(await isToggleDisabled("forceLogin"));
+    assert.isFalse(await isToggleDisabled("anonPlayground"));
+
+    // Recommended preset should still be active.
+    assert.isTrue(await isPresetActive("recommended"));
+
+    // Restore and restart for subsequent tests.
+    delete process.env.GRIST_SINGLE_ORG;
+    await server.restart();
+  });
+
   it("should save permissions and show restart error", async function() {
     await (await gu.session().personalSite.login()).loadDocMenu("/");
     // Before saving, all permissions should be at defaults (no source).
