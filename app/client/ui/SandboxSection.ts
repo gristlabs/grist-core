@@ -108,21 +108,16 @@ abstract class SandboxSectionBase extends Disposable {
     const { current } = status;
     const isLockedByEnv = this._isLockedByEnv();
 
-    // Sort: best option first. Priority: functional+effective > functional > rest.
-    const sorted = [
-      ...status.options.filter(o => o.functional && o.effective),
-      ...status.options.filter(o => o.functional && !o.effective),
-      ...status.options.filter(o => !o.functional),
-    ];
-
     // The recommended sandbox is the first functional and effective option.
-    const recommended = sorted.find(o => o.functional && o.effective)?.flavor;
+    // (status.options is already sorted by preference in _loadStatus.)
+    const options = status.options;
+    const recommended = options.find(o => o.functional && o.effective)?.flavor;
 
     // When locked by env, hero is the current one; otherwise the recommended one.
     const heroOption = isLockedByEnv ?
-      sorted.find(o => o.flavor === current) ?? sorted[0] :
-      sorted.find(o => o.flavor === recommended) ?? sorted[0];
-    const otherOptions = sorted.filter(o => o !== heroOption);
+      options.find(o => o.flavor === current) ?? options[0] :
+      options.find(o => o.flavor === recommended) ?? options[0];
+    const otherOptions = options.filter(o => o !== heroOption);
 
     const canSelect = (opt: SandboxInfo) => opt.available && opt.functional !== false;
 
