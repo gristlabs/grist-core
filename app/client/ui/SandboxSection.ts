@@ -334,9 +334,9 @@ const cssLoading = styled("div", `
 `);
 
 const cssError = styled("div", `
-  background: ${theme.toastErrorBg};
+  border: 2px solid ${theme.toastErrorBg};
   border-radius: 8px;
-  color: white;
+  color: ${theme.errorText};
   padding: 12px 16px;
   margin-bottom: 16px;
 `);
