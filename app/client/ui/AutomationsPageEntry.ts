@@ -15,7 +15,7 @@ import { isFeatureEnabled } from "app/common/gristUrls";
 import { DomContents, makeTestId, styled } from "grainjs";
 
 const testId = makeTestId("test-tools-");
-const t = makeT("Tools");
+const t = makeT("AutomationsPageEntry");
 
 /**
  * Return the page entry for automations, except when inappliable or explicitly disabled.

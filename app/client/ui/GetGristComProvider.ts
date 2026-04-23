@@ -15,7 +15,7 @@ import { getGristConfig } from "app/common/urlUtils";
 
 import { Disposable, dom, makeTestId, Observable, styled } from "grainjs";
 
-const t = makeT("AdminPanel");
+const t = makeT("GetGristComProvider");
 
 const testId = makeTestId("test-admin-auth-");
 

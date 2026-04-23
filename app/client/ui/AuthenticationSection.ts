@@ -30,7 +30,7 @@ import {
 
 import { Computed, Disposable, dom, makeTestId, Observable, styled } from "grainjs";
 
-const t = makeT("AdminPanel");
+const t = makeT("AuthenticationSection");
 
 const testId = makeTestId("test-admin-auth-");
 
