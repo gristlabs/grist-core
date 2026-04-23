@@ -118,9 +118,6 @@ export class Activation extends BaseEntity {
 
       if (Object.keys(this.prefs).length === 0) {
         this.prefs = null;
-      } else {
-        // To trigger TypeORM change detection, we need to assign a new object to this.prefs.
-        this.prefs = { ...this.prefs };
       }
     }
   }

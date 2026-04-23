@@ -1,16 +1,5 @@
 import { BaseAPI, IOptions } from "app/common/BaseAPI";
-import { SandboxInfo } from "app/common/SandboxInfo";
 import { addCurrentOrgToPath } from "app/common/urlUtils";
-
-/**
- * Status of the sandboxing configuration on the server.
- */
-export interface SandboxingStatus {
-  options: SandboxInfo[];
-  current?: string;             // Flavor currently running on the server
-  flavorInEnv?: string;         // Flavor set via GRIST_SANDBOX_FLAVOR env var
-  flavorInDB?: string;          // Flavor saved in DB (takes effect after restart)
-}
 
 /**
  * Interface for authentication providers.
@@ -97,23 +86,6 @@ export class ConfigAPI extends BaseAPI {
     const url = new URL(`${this._url}/api/config/auth-providers/config`);
     url.searchParams.append("provider", provider);
     return await this.requestJson(url.toString(), { method: "GET" });
-  }
-
-  /**
-   * Fetches available sandbox options and current sandboxing status.
-   */
-  public async getSandboxingStatus(): Promise<SandboxingStatus> {
-    return await this.requestJson(`${this._url}/api/config/sandboxing`, { method: "GET" });
-  }
-
-  /**
-   * Sets the sandbox flavor (takes effect after restart).
-   */
-  public async setSandboxFlavor(flavor: string): Promise<void> {
-    await this.request(`${this._url}/api/config/sandboxing`, {
-      method: "PATCH",
-      body: JSON.stringify({ flavor }),
-    });
   }
 
   private get _url(): string {

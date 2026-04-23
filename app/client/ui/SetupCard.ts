@@ -375,9 +375,6 @@ const cssHeroCard = styled("div", `
   &-error {
     border-left-color: ${theme.errorText};
   }
-
-  &.${DISABLED_CLASS} {
-  }
 `);
 
 const cssHeroHeader = styled("div", `
@@ -451,9 +448,6 @@ const cssItemRow = styled("div", `
   }
   &-border-error {
     border-left-color: ${theme.errorText};
-  }
-
-  &.${DISABLED_CLASS} {
   }
 `);
 

@@ -4,8 +4,9 @@ import { removeTrailingSlash } from "app/common/gutil";
 import { appSettings } from "app/server/lib/AppSettings";
 import { expressWrap, jsonErrorHandler } from "app/server/lib/expressWrap";
 import { GristServer } from "app/server/lib/GristServer";
-import { getBootKey, getInService } from "app/server/lib/gristSettings";
+import { getBootKey, getInService, getSandboxFlavor, getSandboxFlavorSource } from "app/server/lib/gristSettings";
 import { DEFAULT_SESSION_SECRET } from "app/server/lib/ICreate";
+import { getAvailableSandboxes, testSandboxFlavor } from "app/server/lib/NSandbox";
 
 import * as express from "express";
 import fetch from "node-fetch";
@@ -71,6 +72,7 @@ export class BootProbes {
     this._probes.push(_admins);
     this._probes.push(_serviceStatusProbe);
     this._probes.push(_backupsProbe);
+    this._probes.push(_sandboxProvidersProbe);
     this._probeById = new Map(this._probes.map(p => [p.id, p]));
   }
 }
@@ -358,6 +360,50 @@ const _backupsProbe: Probe = {
         active,
         availableBackends,
         backend,
+      },
+    };
+  },
+};
+
+const _sandboxProvidersProbe: Probe = {
+  id: "sandbox-providers",
+  name: "Available sandbox providers",
+  apply: async (server) => {
+    const available = getAvailableSandboxes().map(o => ({ ...o }));
+
+    // Get current sandbox info.
+    const sandboxInfo = await server.getSandboxInfo();
+
+    // Test all available and effective sandboxes in parallel.
+    const testPromises = available
+      .filter(o => o.available && o.effective)
+      .map(async (o) => {
+        const result = o.flavor === sandboxInfo.flavor ? sandboxInfo :
+          await testSandboxFlavor(o.flavor).catch(() => undefined);
+        if (result) {
+          o.functional = result.functional;
+          o.error = result.error;
+          o.lastSuccessfulStep = result.lastSuccessfulStep;
+        }
+      });
+    await Promise.all(testPromises);
+
+    // Read what's saved in the database.
+    const activation = await server.getActivations().current();
+    const dbEnvVars = activation.prefs?.envVars || {};
+    const flavorInDB = dbEnvVars.GRIST_SANDBOX_FLAVOR || undefined;
+
+    // Check if set via environment variable (not changeable from UI).
+    const flavorInEnv = getSandboxFlavorSource() === "env" ? getSandboxFlavor() : undefined;
+
+    const hasFunctionalSandbox = available.some(o => o.functional && o.effective);
+    return {
+      status: hasFunctionalSandbox ? "success" : "warning",
+      details: {
+        options: available,
+        current: sandboxInfo.flavor,
+        flavorInEnv,
+        flavorInDB,
       },
     };
   },

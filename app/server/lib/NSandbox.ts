@@ -628,21 +628,6 @@ export type SpawnFn = (options: ISandboxOptions) => SandboxProcess;
 const hasRunsc = checkCommandExists("runsc");
 const hasSandboxExec = checkCommandExists("sandbox-exec");
 
-export function isAvailableSandboxFlavor(flavor: string): boolean {
-  if (flavor === "gvisor") {
-    return hasRunsc;
-  } else if (flavor === "macSandboxExec") {
-    return hasSandboxExec;
-  } else if (flavor === "pyodide") {
-    return _checkPyodideAvailable().available;
-  } else if (flavor === "unsandboxed" || flavor === "skip") {
-    return true;
-  } else {
-    const variants = create.getSandboxVariants?.();
-    return Boolean(variants?.[flavor]);
-  }
-}
-
 /**
  * Returns available sandbox options with their detection status.
  * Note: this doesn't check if those commands actually work, it just checks if they are reachable by us.
@@ -653,6 +638,7 @@ export function getAvailableSandboxes(): SandboxInfo[] {
     {
       flavor: "gvisor",
       available: hasRunsc,
+      unavailableReason: hasRunsc ? undefined : "runsc binary not found",
       effective: true,
       functional: false,
       configured: true,
@@ -670,6 +656,7 @@ export function getAvailableSandboxes(): SandboxInfo[] {
     {
       flavor: "macSandboxExec",
       available: hasSandboxExec,
+      unavailableReason: hasSandboxExec ? undefined : "sandbox-exec not found (macOS only)",
       effective: true,
       functional: false,
       configured: true,

@@ -1,13 +1,11 @@
 import { ApiError } from "app/common/ApiError";
-import { AuthProvider, SandboxingStatus } from "app/common/ConfigAPI";
+import { AuthProvider } from "app/common/ConfigAPI";
 import { GETGRIST_COM_PROVIDER_KEY } from "app/common/loginProviders";
 import { ActivationsManager } from "app/gen-server/lib/ActivationsManager";
 import { appSettings, AppSettings } from "app/server/lib/AppSettings";
 import { expressWrap } from "app/server/lib/expressWrap";
 import { getGetGristComHost, readGetGristComConfigFromSettings } from "app/server/lib/GetGristComConfig";
 import { getGlobalConfig } from "app/server/lib/globalConfig";
-import { GristServer } from "app/server/lib/GristServer";
-import { getSandboxFlavor, getSandboxFlavorSource } from "app/server/lib/gristSettings";
 import log from "app/server/lib/log";
 import {
   getActiveLoginSystemType,
@@ -15,17 +13,13 @@ import {
   NotConfiguredError,
 } from "app/server/lib/loginSystemHelpers";
 import { LOGIN_SYSTEMS } from "app/server/lib/loginSystems";
-import { getAvailableSandboxes, testSandboxFlavor } from "app/server/lib/NSandbox";
 import { sendOkReply, stringParam } from "app/server/lib/requestUtils";
 
 import * as express from "express";
 
 export class ConfigBackendAPI {
-  private get _activations(): ActivationsManager {
-    return this._server.getActivations();
+  constructor(private _activations: ActivationsManager) {
   }
-
-  constructor(private _server: GristServer) {}
 
   public addEndpoints(app: express.Express, requireInstallAdmin: express.RequestHandler) {
     // GET /api/config/auth-providers
@@ -99,84 +93,6 @@ export class ConfigBackendAPI {
       return sendOkReply(req, resp, {
         GRIST_GETGRISTCOM_SP_HOST: getGetGristComHost(appSettings),
       });
-    }));
-
-    // GET /api/config/sandboxing
-    // Returns available sandbox options, current status, and recommendation.
-    app.get("/api/config/sandboxing", requireInstallAdmin, expressWrap(async (req, res) => {
-      const available = getAvailableSandboxes().map(o => ({ ...o }));
-
-      // Get current sandbox info
-      const sandboxInfo = await this._server.getSandboxInfo();
-
-      // Test all available and effective sandboxes in parallel.
-      const testPromises = available
-        .filter(o => o.available && o.effective)
-        .map(async (o) => {
-          const result = o.flavor === sandboxInfo.flavor ? sandboxInfo :
-            await testSandboxFlavor(o.flavor).catch((e) => { /** should not happen */ });
-          o.functional = result!.functional;
-          o.error = result!.error;
-          o.lastSuccessfulStep = result!.lastSuccessfulStep;
-        });
-
-      // Wait for all tests to complete, none should fail.
-      await Promise.all(testPromises);
-
-      // Read what's saved in the database.
-      const activation = await this._activations.current();
-      const dbEnvVars = activation.prefs?.envVars || {};
-      const flavorInDB = dbEnvVars.GRIST_SANDBOX_FLAVOR || undefined;
-
-      // Then what is set in the environment (and if it is set we can't change it from the UI).
-      const flavorInEnv = getSandboxFlavorSource() === "env" ? getSandboxFlavor() : undefined;
-
-      const status: SandboxingStatus = {
-        options: available,
-        current: sandboxInfo.flavor,
-        flavorInEnv,
-        flavorInDB,
-      };
-      return sendOkReply(req, res, status);
-    }));
-
-    // PATCH /api/config/sandboxing
-    // Set sandbox flavor (takes effect after restart).
-    app.patch("/api/config/sandboxing", requireInstallAdmin, expressWrap(async (req, res) => {
-      const flavor = stringParam(req.body.flavor, "flavor");
-
-      // Block changes when flavor is fixed by a real environment variable.
-      if (getSandboxFlavorSource() === "env") {
-        throw new ApiError(
-          "Sandbox flavor is set via GRIST_SANDBOX_FLAVOR environment variable and cannot be changed here",
-          409,
-        );
-      }
-
-      // Don't do anything if the flavor is the same as current, to avoid unnecessary restart.
-      if (getSandboxFlavor() === flavor) {
-        return sendOkReply(req, res, { msg: "Sandbox flavor is already set to the requested value." });
-      }
-
-      // Validate the flavor name, while the flag itself allows expressions (like fallbacks), we don't allow
-      // it here in this endpoint.
-      const option = getAvailableSandboxes().find(o => o.flavor === flavor);
-      if (!option) {
-        throw new ApiError(`Unknown sandbox flavor: ${flavor}`, 400);
-      }
-
-      // And make sure it is reachable (don't trust the UI).
-      if (!option.available) {
-        throw new ApiError(
-          `Sandbox '${flavor}' is not available: ${option.unavailableReason || "unknown reason"}`,
-          400,
-        );
-      }
-
-      // Save to envVars — takes effect after restart.
-      await this._activations.updateEnvVars({ GRIST_SANDBOX_FLAVOR: flavor });
-
-      return sendOkReply(req, res, { needsRestart: true });
     }));
 
     app.get("/api/config/:key", requireInstallAdmin, expressWrap((req, resp) => {

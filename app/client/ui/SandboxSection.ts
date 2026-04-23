@@ -5,9 +5,10 @@ import { BadgeConfig, buildCardList, buildHeroCard, buildItemCard } from "app/cl
 import { bigPrimaryButton } from "app/client/ui2018/buttons";
 import { theme, vars } from "app/client/ui2018/cssVars";
 import { loadingSpinner } from "app/client/ui2018/loaders";
-import { ConfigAPI, SandboxingStatus } from "app/common/ConfigAPI";
+import { ConfigAPI } from "app/common/ConfigAPI";
 import { delay } from "app/common/delay";
-import { SandboxInfo } from "app/common/SandboxInfo";
+import { InstallAPIImpl } from "app/common/InstallAPI";
+import { SandboxInfo, SandboxingStatus } from "app/common/SandboxInfo";
 
 import { Disposable, dom, DomContents, makeTestId, Observable, styled, UseCB } from "grainjs";
 
@@ -20,6 +21,7 @@ const testId = makeTestId("test-sandbox-section-");
  */
 abstract class SandboxSectionBase extends Disposable {
   protected _configAPI = new ConfigAPI(getHomeUrl());
+  protected _installAPI = new InstallAPIImpl(getHomeUrl());
   // Data read from the server.
   protected _model = Observable.create<SandboxingStatus | null>(this, null);
   // If there was error loading or saving.
@@ -64,7 +66,7 @@ abstract class SandboxSectionBase extends Disposable {
     const isSelectedByEnv = this._isLockedByEnv();
     if (flavor && !isSelectedByEnv) {
       try {
-        await this._configAPI.setSandboxFlavor(flavor);
+        await this._installAPI.updateInstallPrefs({ envVars: { GRIST_SANDBOX_FLAVOR: flavor } });
       } catch (e) {
         this._error.set(String(e));
         throw e;
@@ -77,7 +79,8 @@ abstract class SandboxSectionBase extends Disposable {
   }
 
   private async _loadStatus() {
-    const model = sortedByPreference(await this._configAPI.getSandboxingStatus());
+    const result = await this._installAPI.runCheck("sandbox-providers");
+    const model = sortedByPreference(result.details as SandboxingStatus);
     if (this.isDisposed()) { return; }
 
     this._model.set(model);
@@ -240,12 +243,6 @@ export class SandboxSetupSection extends SandboxSectionBase {
     this._saving.set(false);
     this._onContinue();
   }
-}
-
-/**
- * Sandbox section for the Admin Panel.
- */
-export class SandboxAdminSection extends SandboxSectionBase {
 }
 
 /**

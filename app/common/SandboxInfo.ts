@@ -12,3 +12,13 @@ export interface SandboxInfo {
   available?: boolean;  // whether the sandbox option is available on the current system
   unavailableReason?: string; // if not available, why
 }
+
+/**
+ * Status of all sandbox providers on the server.
+ */
+export interface SandboxingStatus {
+  options: SandboxInfo[];
+  current?: string;             // Flavor currently running on the server
+  flavorInEnv?: string;         // Flavor set via GRIST_SANDBOX_FLAVOR env var
+  flavorInDB?: string;          // Flavor saved in DB (takes effect after restart)
+}

@@ -13,7 +13,8 @@ export type BootProbeIds =
   "websockets" |
   "session-secret" |
   "service-status" |
-  "backups"
+  "backups" |
+  "sandbox-providers"
 ;
 
 export interface BootProbeResult {
