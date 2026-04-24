@@ -5,6 +5,7 @@ import { getHomeUrl } from "app/client/models/homeUrl";
 import { cssFadeUp, cssFadeUpGristLogo, cssFadeUpHeading, cssFadeUpSubHeading } from "app/client/ui/AdminPanelCss";
 import { BackupsSection } from "app/client/ui/BackupsSection";
 import { PermissionsSetupSection } from "app/client/ui/PermissionsSetupSection";
+import { SandboxSetupSection } from "app/client/ui/SandboxSection";
 import { bigPrimaryButton } from "app/client/ui2018/buttons";
 import { Stepper } from "app/client/ui2018/Stepper";
 import { InstallAPIImpl } from "app/common/InstallAPI";
@@ -34,7 +35,13 @@ export class QuickSetup extends Disposable {
     {
       label: t("Sandboxing"),
       completed: observable(false),
-      buildDom: () => null,
+      plain: true,
+      buildDom: () => {
+        const section = SandboxSetupSection.create(
+          this, () => this._activeStep.set(this._activeStep.get() + 1),
+        );
+        return section.buildDom();
+      },
     },
     {
       label: t("Authentication"),
