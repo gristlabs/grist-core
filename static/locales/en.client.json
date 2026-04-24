@@ -2901,5 +2901,23 @@
         "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.": "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.",
         "You have GRIST_SINGLE_ORG={{value}} set. With this, users only see one site — but personal sites and team creation still work behind the scenes. Worth locking down unless you have a specific reason to keep them.": "You have GRIST_SINGLE_ORG={{value}} set. With this, users only see one site — but personal sites and team creation still work behind the scenes. Worth locking down unless you have a specific reason to keep them.",
         "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users."
+    },
+    "SandboxSection": {
+        "Active": "Active",
+        "Apply and Continue": "Apply and Continue",
+        "Applying...": "Applying...",
+        "Continue": "Continue",
+        "Detecting sandbox options...": "Detecting sandbox options...",
+        "Error": "Error",
+        "No Sandbox": "No Sandbox",
+        "Not available": "Not available",
+        "Not recommended": "Not recommended",
+        "Other options": "Other options",
+        "Ready": "Ready",
+        "Recommended": "Recommended",
+        "Sandboxing": "Sandboxing",
+        "Skip and Continue": "Skip and Continue",
+        "Uses the built-in macOS sandbox. Good isolation for local use on a Mac.": "Uses the built-in macOS sandbox. Good isolation for local use on a Mac.",
+        "macOS Sandbox": "macOS Sandbox"
     }
 }
