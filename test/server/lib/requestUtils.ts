@@ -16,6 +16,8 @@ describe("requestUtils", function() {
       ["https://nasa.efc-r.com", "docs.getgrist.com", false],
       ["https://nasa.efc-r.com", "docs.efc-r.com", true],
       ["https://nasa.efc-r.com", "api.efc-r.com", true],
+      ["null", "docs.getgrist.com", false],
+      ["some invalid URL", "docs.getgrist.com", false],
     ];
     for (const [origin, host, permitted] of combinations) {
       it(`${origin} can${permitted ? "" : "not"} access ${host} in browser`, function() {
