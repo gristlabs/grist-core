@@ -18,13 +18,6 @@ export type BootProbeIds =
   "sandbox-providers"
 ;
 
-export interface HomeUrlBootProbeDetails {
-  // Effective APP_HOME_URL, or null if unset (server auto-detects from request).
-  value: string | null;
-  // Where the value came from: "env" (process.env), "db" (activation prefs), or null if unset.
-  source: "env" | "db" | null;
-}
-
 export interface BootProbeResult {
   verdict?: string;
   // Result of check.

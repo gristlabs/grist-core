@@ -342,16 +342,14 @@ const _homeUrlProbe: Probe = {
   name: "Home URL",
   apply: async () => {
     const setting = appSettings.flag("homeUrl");
-    setting.readString({ envVar: "APP_HOME_URL" });
-    const described = setting.describe();
-    const value = (typeof described.value === "string" && described.value) ? described.value : null;
+    const value = setting.readString({ envVar: "APP_HOME_URL" }) || null;
     return {
       status: value ? "success" : "warning",
       verdict: value ? undefined :
         "APP_HOME_URL is not set; server auto-detects the URL from each request",
       details: {
         value,
-        source: described.source ?? null,
+        source: setting.describe().source ?? null,
       },
     };
   },

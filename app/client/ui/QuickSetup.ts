@@ -4,22 +4,17 @@ import { reportError } from "app/client/models/errors";
 import { getHomeUrl } from "app/client/models/homeUrl";
 import { cssFadeUp, cssFadeUpGristLogo, cssFadeUpHeading, cssFadeUpSubHeading } from "app/client/ui/AdminPanelCss";
 import { BackupsSection } from "app/client/ui/BackupsSection";
-import { BaseUrlSection } from "app/client/ui/BaseUrlSection";
-import { DraftChangesManager } from "app/client/ui/DraftChanges";
-import { EditionSection } from "app/client/ui/EditionSection";
 import { PermissionsSetupSection } from "app/client/ui/PermissionsSetupSection";
+import { QuickSetupServerStep } from "app/client/ui/QuickSetupServerStep";
 import { SandboxSetupSection } from "app/client/ui/SandboxSection";
 import { bigPrimaryButton } from "app/client/ui2018/buttons";
-import { theme } from "app/client/ui2018/cssVars";
-import { icon } from "app/client/ui2018/icons";
 import { Stepper } from "app/client/ui2018/Stepper";
 import { InstallAPIImpl } from "app/common/InstallAPI";
 import { tokens } from "app/common/ThemePrefs";
 
-import { Computed, Disposable, dom, DomContents, makeTestId, observable, Observable, styled } from "grainjs";
+import { Disposable, dom, DomContents, observable, Observable, styled } from "grainjs";
 
 const t = makeT("QuickSetup");
-const testId = makeTestId("test-quick-setup-");
 
 interface Step {
   completed: Observable<boolean>;
@@ -92,56 +87,15 @@ export class QuickSetup extends Disposable {
 
   private _buildServerStep(): DomContents {
     return dom.create((owner) => {
-      const baseUrl = BaseUrlSection.create(owner);
-      const edition = EditionSection.create(owner);
-      const drafts = DraftChangesManager.create(owner);
-      drafts.addSection(baseUrl);
-      drafts.addSection(edition);
-      const canProceed = Computed.create(owner, use =>
-        use(baseUrl.canProceed) && use(edition.canProceed),
-      );
-      return dom("div",
-        cssStepHeading(
-          cssStepHeadingIcon(icon("Home")),
-          t("Server"),
-        ),
-        cssStepDescription(
-          t("Set your server's base URL and choose which edition of Grist to run."),
-        ),
-        cssStepSection(
-          cssStepSectionTitle(t("Base URL")),
-          baseUrl.buildWizardDom(),
-        ),
-        cssStepSection(
-          cssStepSectionTitle(t("Edition")),
-          edition.buildWizardDom(),
-        ),
-        cssContinueRow(
-          bigPrimaryButton(
-            dom.text((use) => {
-              const urlOk = use(baseUrl.canProceed);
-              const edOk = use(edition.canProceed);
-              if (!urlOk && !edOk) { return t("Confirm base URL and edition to continue"); }
-              if (!urlOk) { return t("Confirm base URL to continue"); }
-              if (!edOk) { return t("Confirm edition to continue"); }
-              return use(drafts.hasDraftChanges) ? t("Apply and Continue") : t("Continue");
-            }),
-            dom.boolAttr("disabled", use => !use(canProceed) || use(drafts.isApplying)),
-            dom.on("click", async () => {
-              try {
-                await drafts.applyAll();
-                const activeStepIndex = this._activeStep.get();
-                this._steps[activeStepIndex].completed.set(true);
-                this._activeStep.set(activeStepIndex + 1);
-              } catch (err) {
-                reportError(err as Error);
-              }
-            }),
-            testId("server-continue"),
-          ),
-        ),
-      );
+      const step = QuickSetupServerStep.create(owner, () => this._advanceStep());
+      return step.buildDom();
     });
+  }
+
+  private _advanceStep() {
+    const i = this._activeStep.get();
+    this._steps[i].completed.set(true);
+    this._activeStep.set(i + 1);
   }
 
   private _buildBackupsStep(): DomContents {
@@ -200,37 +154,6 @@ const cssStepContent = styled("div", `
     padding: 0;
     background: none;
   }
-`);
-
-const cssStepHeading = styled("div", `
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 4px;
-`);
-
-const cssStepHeadingIcon = styled("div", `
-  display: flex;
-  --icon-color: ${theme.controlPrimaryBg};
-`);
-
-const cssStepDescription = styled("div", `
-  color: ${tokens.secondary};
-  font-size: 14px;
-  line-height: 1.5;
-  margin-bottom: 20px;
-`);
-
-const cssStepSection = styled("div", `
-  margin-bottom: 24px;
-`);
-
-const cssStepSectionTitle = styled("h3", `
-  font-size: 14px;
-  font-weight: 600;
-  margin: 0 0 8px 0;
 `);
 
 const cssContinueRow = styled("div", `

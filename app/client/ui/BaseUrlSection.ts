@@ -13,7 +13,6 @@ import { basicButton, primaryButton } from "app/client/ui2018/buttons";
 import { theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { unstyledButton } from "app/client/ui2018/unstyled";
-import { HomeUrlBootProbeDetails } from "app/common/BootProbe";
 import { InstallAPIImpl } from "app/common/InstallAPI";
 
 import { Computed, Disposable, dom, DomContents, input, makeTestId,
@@ -88,15 +87,10 @@ export class BaseUrlSection extends Disposable {
 
   public async apply() {
     if (!this.isDirty.get()) { return; }
-    await this._persist(this._urlSkipped.get() ? null : this._editedUrl.get().trim());
-  }
-
-  public markApplied() {
-    if (this._urlSkipped.get()) {
-      this._serverUrl.set("");
-    } else {
-      this._serverUrl.set(this._editedUrl.get().trim());
-    }
+    const skipped = this._urlSkipped.get();
+    const url = skipped ? null : this._editedUrl.get().trim();
+    await this._persist(url);
+    this._serverUrl.set(skipped ? "" : url!);
   }
 
   public describeChange() {
@@ -289,8 +283,7 @@ Auth callbacks, API links, and email notifications all depend on this being corr
     try {
       const result = await this._installAPI.runCheck("home-url");
       if (this.isDisposed()) { return; }
-      const details = (result.details ?? {}) as Partial<HomeUrlBootProbeDetails>;
-      const value = details.value ?? "";
+      const value = (result.details?.value as string | null | undefined) ?? "";
       this._serverUrl.set(value);
       this._editedUrl.set(value || this._detectedUrl);
       this._status.set("loaded");
@@ -303,8 +296,6 @@ Auth callbacks, API links, and email notifications all depend on this being corr
   }
 
   // url=null clears APP_HOME_URL (revert to auto-detect); url=string pins it.
-  // Caller (DraftChangesManager) invokes markApplied() on success, which
-  // updates _serverUrl, so we only manage transient status flags here.
   private async _persist(url: string | null) {
     this._status.set("saving");
     this._error.set("");

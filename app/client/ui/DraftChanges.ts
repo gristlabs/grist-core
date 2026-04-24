@@ -7,6 +7,16 @@
  * tracks aggregate dirty state and provides `applyAll()` to persist
  * everything, restart if needed, and reset dirty tracking.
  *
+ * Sections report two things about their draft changes:
+ *   - `isDirty`: there is an unsaved change to persist.
+ *   - `needsRestart`: the change, once persisted, requires a server
+ *     restart to take effect.
+ * A section can be dirty without needing a restart -- e.g. a setting
+ * stored in the DB that the server picks up live. We still route it
+ * through here so the Apply button can save *all* draft changes in
+ * one click and so the restart banner only triggers when at least one
+ * dirty section actually needs a restart.
+ *
  * "Draft" here is an in-memory, session-scoped concept: changes the
  * user has made in the current page load but not yet saved. Not to
  * be confused with `PendingChanges` in `app/common/Install.ts`, which
@@ -14,7 +24,6 @@
  */
 import { getHomeUrl } from "app/client/models/AppModel";
 import { ConfigAPI } from "app/common/ConfigAPI";
-import { delay } from "app/common/delay";
 
 import { Computed, Disposable, Observable } from "grainjs";
 
@@ -33,61 +42,28 @@ export interface ConfigSection {
   isDirty: Computed<boolean>;
   /** True when the section's changes require a server restart to take effect. */
   needsRestart: boolean;
-  /** Persist this section's changes to the server. No-op if not dirty. */
+  /**
+   * Persist the section's changes to the server and update its own view of
+   * the server state so `isDirty` goes false. No-op if not dirty. On error,
+   * throws without updating; `isDirty` stays true.
+   */
   apply(): Promise<void>;
-  /** Update internal tracking so isDirty becomes false. */
-  markApplied(): void;
   /**
    * Describe the draft change for display in the restart banner.
    * Only called when isDirty is true. Re-read whenever any section's
    * `isDirty` fires -- sections whose described value can drift while
    * `isDirty` stays true should toggle `isDirty` to trigger a refresh.
    */
-  describeChange?(): DraftChangeDescription;
+  describeChange(): DraftChangeDescription;
 }
-
-/**
- * Thrown by `applyAll` / `applyWithoutRestart` when one or more sections
- * failed to persist. Successful sections will already have been marked
- * applied by the time this is thrown; only the listed `failures` remain
- * dirty. When `restartSkipped` is true, the manager declined to restart
- * the server because the set of changes wasn't fully applied.
- */
-export class PartialApplyError extends Error {
-  public readonly name = "PartialApplyError";
-
-  constructor(
-    public readonly failures: readonly { label: string; error: Error }[],
-    public readonly restartSkipped: boolean,
-  ) {
-    const parts = failures.map(f => `${f.label}: ${f.error.message || String(f.error)}`);
-    const prefix = failures.length === 1 ?
-      "Could not apply change" :
-      `Could not apply ${failures.length} changes`;
-    const suffix = restartSkipped ? " -- server was not restarted" : "";
-    super(`${prefix}${suffix}: ${parts.join("; ")}`);
-  }
-}
-
-/** Aggregate state across all registered sections, recomputed whenever any section's `isDirty` flips. */
-export interface DraftState {
-  hasDraftChanges: boolean;
-  needsRestart: boolean;
-  changes: DraftChangeDescription[];
-}
-
-const EMPTY_STATE: DraftState = { hasDraftChanges: false, needsRestart: false, changes: [] };
 
 export class DraftChangesManager extends Disposable {
-  /**
-   * Aggregate draft-state derived from all registered sections. Readers
-   * bind to `state` for reactive UI, or to the convenience projections
-   * (`hasDraftChanges`, `needsRestart`, `changes`) that unwrap fields.
-   */
-  public readonly state: Computed<DraftState>;
+  /** List of draft changes, one per dirty section. Drives the banner's bullet list. */
+  public readonly changes: Computed<readonly DraftChangeDescription[]>;
+  /** True when at least one section has an unsaved change. */
   public readonly hasDraftChanges: Computed<boolean>;
+  /** True when at least one dirty section requires a restart to take effect. */
   public readonly needsRestart: Computed<boolean>;
-  public readonly changes: Computed<DraftChangeDescription[]>;
 
   private _sections: Observable<ConfigSection[]> = Observable.create(this, []);
   private _configAPI = new ConfigAPI(getHomeUrl());
@@ -95,18 +71,13 @@ export class DraftChangesManager extends Disposable {
 
   constructor() {
     super();
-    this.state = Computed.create(this, (use) => {
-      const dirty = use(this._sections).filter(s => use(s.isDirty));
-      if (dirty.length === 0) { return EMPTY_STATE; }
-      return {
-        hasDraftChanges: true,
-        needsRestart: dirty.some(s => s.needsRestart),
-        changes: dirty.flatMap(s => s.describeChange ? [s.describeChange()] : []),
-      };
-    });
-    this.hasDraftChanges = Computed.create(this, use => use(this.state).hasDraftChanges);
-    this.needsRestart = Computed.create(this, use => use(this.state).needsRestart);
-    this.changes = Computed.create(this, use => use(this.state).changes);
+    this.changes = Computed.create(this, use =>
+      use(this._sections).filter(s => use(s.isDirty)).map(s => s.describeChange()),
+    );
+    this.hasDraftChanges = Computed.create(this, use => use(this.changes).length > 0);
+    this.needsRestart = Computed.create(this, use =>
+      use(this._sections).some(s => use(s.isDirty) && s.needsRestart),
+    );
   }
 
   public addSection(section: ConfigSection) {
@@ -127,67 +98,41 @@ export class DraftChangesManager extends Disposable {
     await this._apply({ restart: false });
   }
 
-  /** One-shot accessor; prefer binding to `state`/`changes` for reactive UI. */
-  public describeChanges(): DraftChangeDescription[] {
-    return this.state.get().changes;
-  }
-
   private async _apply({ restart }: { restart: boolean }): Promise<void> {
     if (this._applying.get()) { return; }
     this._applying.set(true);
     try {
-      // Apply sections sequentially so one section's failure doesn't leave
-      // another mid-flight. We collect per-section outcomes and only mark
-      // successful ones applied -- any failure keeps its section dirty so the
-      // UI stays aligned with the server and the user can retry.
+      // Snapshot labels before apply() -- a section's state can change as
+      // it applies, and we want the error message to name the change the
+      // user asked for, not whatever it looks like after the attempt.
       const dirty = this._sections.get().filter(s => s.isDirty.get());
-      const applied: ConfigSection[] = [];
-      const failures: { label: string; error: Error }[] = [];
+      const labels = new Map(dirty.map(s => [s, s.describeChange().label]));
 
+      const failures: { label: string; error: Error }[] = [];
       for (const section of dirty) {
         try {
           await section.apply();
-          applied.push(section);
         } catch (err) {
-          failures.push({
-            label: section.describeChange?.().label ?? "change",
-            error: err as Error,
-          });
+          failures.push({ label: labels.get(section)!, error: err as Error });
         }
       }
 
-      // Reflect DB state: sections that persisted successfully should appear
-      // clean regardless of whether a peer failed.
-      for (const section of applied) {
-        section.markApplied();
-      }
-
-      // Only restart when every dirty section succeeded. Restarting with a
-      // half-applied set would either strand draft changes behind another
-      // restart (if we re-try later) or advertise the run as complete when
-      // it isn't. Better to require retry first.
-      if (restart && failures.length === 0 && applied.some(s => s.needsRestart)) {
+      // Only restart when every dirty section succeeded -- a half-applied
+      // set would either strand changes behind another restart or look
+      // complete when it wasn't.
+      if (restart && failures.length === 0 && dirty.some(s => s.needsRestart)) {
         await this._configAPI.restartServer();
-        await this._waitForServer();
+        if (!await this._configAPI.waitUntilReady()) {
+          throw new Error("Timed out waiting for Grist server to restart");
+        }
       }
 
       if (failures.length > 0) {
-        throw new PartialApplyError(failures, restart && dirty.some(s => s.needsRestart));
+        const parts = failures.map(f => `${f.label}: ${f.error.message || String(f.error)}`);
+        throw new Error(`Could not apply: ${parts.join("; ")}`);
       }
     } finally {
-      this._applying.set(false);
+      if (!this.isDisposed()) { this._applying.set(false); }
     }
-  }
-
-  private async _waitForServer() {
-    for (let i = 0; i < 30; i++) {
-      try {
-        await this._configAPI.healthcheck();
-        return;
-      } catch {
-        await delay(1000);
-      }
-    }
-    throw new Error("Timed out waiting for Grist server to restart");
   }
 }

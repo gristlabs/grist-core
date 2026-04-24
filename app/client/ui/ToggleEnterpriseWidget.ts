@@ -367,19 +367,26 @@ function copyHandler(value: () => string, confirmation: string) {
 
 /**
  * Standard "Installation ID: <id> [copy]" row, shared by any admin-panel
- * surface that surfaces the installation ID. Shows the full ID (this is
- * an install-admin-only context) and copies it to clipboard on click.
- * Rendered only once the ID has loaded; null renders nothing.
+ * surface that shows the installation ID. The displayed ID is redacted
+ * (first 6 characters, rest replaced with `*`) so it's safe to include
+ * in screenshots and screen shares; the full ID is still copied to the
+ * clipboard when the row is clicked. Rendered only once the ID has
+ * loaded; null renders nothing.
  */
 export function buildInstallationIdDisplay(installationId: Observable<string | null>) {
   return dom.maybe(installationId, id => cssInstallationId(
     dom("span", t("Installation ID:")),
-    dom("span", id),
+    dom("span", redactInstallationId(id)),
     copyHandler(() => id, t("Installation ID copied to clipboard")),
     testId("installation-id"),
     cssCopyButton(icon("Copy")),
     hoverTooltip(t("Copy to clipboard"), { key: TOOLTIP_KEY }),
   ));
+}
+
+function redactInstallationId(id: string): string {
+  if (id.length <= 6) { return id; }
+  return id.slice(0, 6) + "*".repeat(id.length - 6);
 }
 
 export const cssInput = styled(input, `

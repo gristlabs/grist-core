@@ -11,6 +11,7 @@ import {
   cssSectionDescription,
   cssValueLabel,
 } from "app/client/ui/AdminPanelCss";
+import { ConfigSection } from "app/client/ui/DraftChanges";
 import { ToggleEnterpriseWidget } from "app/client/ui/ToggleEnterpriseWidget";
 import { primaryButton } from "app/client/ui2018/buttons";
 import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
@@ -38,7 +39,7 @@ interface EditionSectionOptions {
   };
 }
 
-export class EditionSection extends Disposable {
+export class EditionSection extends Disposable implements ConfigSection {
   /**
    * Short description shown next to the item name in the admin panel
    * collapsed row. Exposed so stubs (e.g. the legacy "Enterprise" item)
@@ -152,7 +153,7 @@ export class EditionSection extends Disposable {
     return this._selectedEdition.get();
   }
 
-  /** Null in wizard mode (no ToggleEnterpriseWidget). */
+  /** Undefined in wizard mode (no ToggleEnterpriseWidget). */
   public getEnterpriseToggleObservable() {
     return this._toggleEnterprise?.getEnterpriseToggleObservable();
   }
@@ -167,11 +168,7 @@ export class EditionSection extends Disposable {
     const selected = this._selectedEdition.get();
     if (!selected) { return; }
     await this._configAPI.setValue({ edition: selected });
-  }
-
-  public markApplied() {
-    const selected = this._selectedEdition.get();
-    if (selected) { this._serverEdition.set(selected); }
+    this._serverEdition.set(selected);
   }
 
   public describeChange() {
@@ -181,8 +178,6 @@ export class EditionSection extends Disposable {
       value: selected === "enterprise" ? t("Full Grist") : t("Community Edition"),
     };
   }
-
-  // --- Shared core + mode-specific parts ---
 
   /**
    * Shared core: description, edition selector tabs, per-selection text.
@@ -280,9 +275,6 @@ providers, and much more."),
 
   private _buildUnavailableCore(): DomContents {
     const selectedTab = Observable.create(this, "core");
-    const acknowledged = Observable.create(this, this._editionConfirmed.get());
-    acknowledged.addListener((val) => { this._editionConfirmed.set(val); });
-    this._editionConfirmed.addListener((val) => { if (!val) { acknowledged.set(false); } });
     return [
       cssSectionDescription(
         t("Choose which edition of Grist to run on this server."),
@@ -318,7 +310,7 @@ Want Full Grist? {{enableLink}}", {
               }),
             ),
             dom.maybe(use => !use(this._editionConfirmed), () =>
-              labeledSquareCheckbox(acknowledged,
+              labeledSquareCheckbox(this._editionConfirmed,
                 t("I understand I am running Grist Community Edition"),
                 testId("acknowledge"),
               ),

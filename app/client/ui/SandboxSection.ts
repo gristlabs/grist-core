@@ -236,7 +236,10 @@ export class SandboxSetupSection extends SandboxSectionBase {
       await this._save();
       if (this._needsRestart()) {
         await this._configAPI.restartServer();
-        await waitForServerReady(this._configAPI);
+        // Brief delay so we don't catch the server before it's begun
+        // restarting; waitUntilReady then polls for ~30s.
+        await delay(2000);
+        await this._configAPI.waitUntilReady();
       }
     } catch (e) {
       reportError(e);
@@ -245,17 +248,6 @@ export class SandboxSetupSection extends SandboxSectionBase {
     }
     this._saving.set(false);
     this._onContinue();
-  }
-}
-
-/**
- * Poll the server's healthcheck until it responds OK (up to ~12s).
- */
-async function waitForServerReady(configAPI: ConfigAPI) {
-  await delay(2000);
-  for (let i = 0; i < 10; i++) {
-    try { await configAPI.healthcheck(); return; } catch { /* not ready */ }
-    await delay(1000);
   }
 }
 

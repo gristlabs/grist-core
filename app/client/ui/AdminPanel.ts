@@ -190,10 +190,15 @@ export class AdminPanel extends Disposable {
 }
 
 class AdminInstallationPanel extends Disposable implements AdminPanelControls {
+  // Signal from legacy sections (e.g. AuthenticationSection) that their own
+  // state change now requires a restart. Draft-tracked sections contribute
+  // separately via `_drafts.needsRestart`; both are combined into
+  // `_showRestartBanner`.
   public needsRestart = Observable.create(this, false);
   // Sticky flag: true after the user has applied changes without a restart
   // in an environment that doesn't support auto-restart. Keeps the manual
-  // restart reminder on screen until the user reloads the page.
+  // restart reminder on screen until the user reloads the page. Cleared only
+  // by a full page reload (see reloadSafe at the bottom of this file).
   private _awaitingManualRestart = Observable.create<boolean>(this, false);
   private _supportsRestart = !!getAdminConfig().runningUnderSupervisor;
   private _baseUrlSection = BaseUrlSection.create(this, { controls: this });
@@ -210,11 +215,13 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
   private _authCheck: Observable<AdminCheckRequest | undefined>;
   private _loginProvider: Observable<string | undefined>;
 
-  // Banner visibility: shown when there are pending changes to apply OR
-  // when the user has already applied changes and still owes us a manual
-  // restart.
+  // Banner visibility: shown when draft-tracked sections have pending
+  // changes, or a legacy section has flagged that a restart is required,
+  // or the user has applied changes without a restart and still owes us one.
   private _showRestartBanner = Computed.create(this, use =>
-    use(this.needsRestart) || use(this._awaitingManualRestart),
+    use(this._drafts.needsRestart) ||
+    use(this.needsRestart) ||
+    use(this._awaitingManualRestart),
   );
 
   constructor(private _appModel: AppModel, private _restartBanner: RestartBannerController) {
@@ -223,16 +230,10 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
     this._drafts.addSection(this._baseUrlSection);
     this._drafts.addSection(this._editionSection);
 
-    // Restart banner appears when a section's pending changes require one.
-    // Sections without needsRestart are saved inline without needing the banner.
-    this.needsRestart.set(this._drafts.needsRestart.get());
-    this.autoDispose(this._drafts.needsRestart.addListener(v => this.needsRestart.set(v)));
-
     // Mirror visibility into the shared controller so the left-panel entry
     // appears/disappears with the banner.
-    this.autoDispose(this._showRestartBanner.addListener(v => this._restartBanner.isVisible.set(v)));
-    // Initial sync.
     this._restartBanner.isVisible.set(this._showRestartBanner.get());
+    this.autoDispose(this._showRestartBanner.addListener(v => this._restartBanner.isVisible.set(v)));
 
     this._authCheck = Computed.create(this, (use) => {
       return this._checks.requestCheckById(use, "authentication");
@@ -293,6 +294,11 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
     // When a section needs a restart, DraftChangesManager handles the
     // apply+restart+wait cycle. Otherwise the banner was shown for another
     // reason (e.g. a section saved inline) and we restart directly.
+    //
+    // Note: individual sections never call `configAPI.restartServer()` on
+    // their own. They only mark themselves `needsRestart` and route through
+    // here, so a single user click always produces exactly one restart even
+    // when several sections are dirty at once.
     if (this._drafts.needsRestart.get()) {
       await this._drafts.applyAll();
     } else {
@@ -304,6 +310,7 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
   private async _applyWithoutRestart() {
     try {
       await spinnerModal(t("Saving..."), this._drafts.applyWithoutRestart());
+      // Stays on until the page is reloaded by the user (see reloadSafe()).
       this._awaitingManualRestart.set(true);
     } catch (err) {
       reportError(err as Error);
@@ -336,8 +343,7 @@ Please log in as an administrator.`)),
     const supportGrist = SupportGristPage.create(this, this._appModel);
 
     return [
-      cssRestartBannerShell(
-        cssRestartBannerShell.cls("-open", this._showRestartBanner),
+      dom.maybe(this._showRestartBanner, () => cssRestartBannerShell(
         (elem) => { this._restartBanner.bannerElem.current = elem; },
         cssRestartBanner(
           cssSectionTitle(t("Restart Grist")),
@@ -392,7 +398,7 @@ Please log in as an administrator.`)),
             dom.show(this._supportsRestart),
           ),
         ),
-      ),
+      )),
       dom.create(AdminSection, t("Support Grist"), [
         dom.create(AdminSectionItem, {
           id: "telemetry",
@@ -1215,25 +1221,22 @@ const cssStatus = styled("div", `
   padding: 5px;
 `);
 
-// Smooth reveal of the restart banner. We keep the banner always in the
-// DOM and animate an outer grid shell's grid-template-rows from 0fr to 1fr.
-// This makes the content below slide down smoothly instead of jumping.
+// Brief highlight applied when the user clicks "Apply changes" in the left
+// panel to locate the banner.
 const cssRestartBannerFlash = keyframes(`
   0%, 100% { box-shadow: none; }
   30%      { box-shadow: 0 0 0 3px ${theme.controlFg}; }
 `);
 
+const cssRestartBannerReveal = keyframes(`
+  from { max-height: 0; opacity: 0; }
+  to   { max-height: 400px; opacity: 1; }
+`);
+
 const cssRestartBannerShell = styled("div", `
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 0.4s ease-out, opacity 0.4s ease-out;
-  opacity: 0;
-  & > * { overflow: hidden; }
-  &-open {
-    grid-template-rows: 1fr;
-    opacity: 1;
-  }
-  &.-flash > * {
+  animation: ${cssRestartBannerReveal} 0.3s ease-out;
+  overflow: hidden;
+  &.-flash {
     animation: ${cssRestartBannerFlash} 1s ease-out;
     border-radius: 4px;
   }
