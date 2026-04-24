@@ -36,9 +36,16 @@ export class ToggleEnterpriseWidget extends Disposable {
   private _activation = Observable.create<ActivationState | null>(this, null);
 
   private _state = Computed.create<State | null>(this, (use) => {
-    const status = use(this._model.status);
-    if (!use(this._isEnterpriseEdition) || !status) {
+    // "core" -- the opt-in state -- only applies when actually on Community.
+    // When we're on Full Grist but status hasn't loaded, return null so the
+    // section renders nothing rather than flashing an "Enable Full Grist"
+    // button.
+    if (!use(this._isEnterpriseEdition)) {
       return "core";
+    }
+    const status = use(this._model.status);
+    if (!status) {
+      return null;
     } else if (status.key) {
       return "activated";
     } else if (status.trial && status.trial.daysLeft > 0) {
@@ -75,16 +82,12 @@ export class ToggleEnterpriseWidget extends Disposable {
       testId("enterprise-content", this._isEnterpriseEdition),
       dom.domComputed(this._state, (state) => {
         switch (state) {
-          case "trial":
-            return this._trialCopy();
-          case "activated":
-            return this._activatedCopy();
-          case "no-key":
-            return this._noKeyCopy();
-          case "error":
-            return this._errorCopy();
-          default:
-            return this._coreCopy();
+          case "trial":    return this._trialCopy();
+          case "activated": return this._activatedCopy();
+          case "no-key":   return this._noKeyCopy();
+          case "error":    return this._errorCopy();
+          case "core":     return this._coreCopy();
+          default:         return null; // status not yet loaded
         }
       }),
       testId("enterprise-opt-in-section"),

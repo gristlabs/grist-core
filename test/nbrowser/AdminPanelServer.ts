@@ -98,6 +98,8 @@ describe("AdminPanelServer", function() {
       const confirmBtn = await driver.findContent(".test-base-url-save", /Confirm URL/);
       await confirmBtn.click();
       await driver.findWait(".test-base-url-confirmed-row", 2000);
+
+      await driver.findContentWait(".test-admin-panel-restart-button", /Restart Grist/, 2000);
     });
 
     it("should persist the URL via the API", async function() {

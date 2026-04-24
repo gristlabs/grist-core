@@ -32,10 +32,16 @@ type Edition = "enterprise" | "core";
 interface EditionSectionOptions {
   controls?: AdminPanelControls;
   notifier?: Notifier;
-  /** Override runtime detection of edition availability; used by storybook. */
-  availability?: {
-    fullGristAvailable: boolean;
-    communityAvailable: boolean;
+  /**
+   * Optional overrides for state that's normally derived from globals
+   * (`showEnterpriseToggle()`, `getGristConfig().forceEnableEnterprise`, and
+   * the toggle widget's initial value). Used by storybook so stories can
+   * exercise each render state without launching a real server.
+   */
+  overrides?: {
+    fullGristAvailable?: boolean;
+    editionForced?: boolean;
+    initialServerEdition?: Edition;
   };
 }
 
@@ -53,7 +59,6 @@ export class EditionSection extends Disposable implements ConfigSection {
   public isDirty: Computed<boolean>;
 
   public readonly fullGristAvailable: boolean;
-  public readonly communityAvailable: boolean;
   public readonly editionForced: boolean;
   public readonly needsRestart = true;
 
@@ -69,15 +74,9 @@ export class EditionSection extends Disposable implements ConfigSection {
   constructor(private _options: EditionSectionOptions = {}) {
     super();
 
-    if (_options.availability) {
-      this.fullGristAvailable = _options.availability.fullGristAvailable;
-      this.communityAvailable = _options.availability.communityAvailable;
-    } else {
-      this.fullGristAvailable = showEnterpriseToggle();
-      this.communityAvailable = true;
-    }
-
-    this.editionForced = !!getGristConfig().forceEnableEnterprise;
+    const overrides = _options.overrides ?? {};
+    this.fullGristAvailable = overrides.fullGristAvailable ?? showEnterpriseToggle();
+    this.editionForced = overrides.editionForced ?? !!getGristConfig().forceEnableEnterprise;
 
     const notifier = this._options.notifier;
     this._toggleEnterprise = notifier ?
@@ -85,17 +84,17 @@ export class EditionSection extends Disposable implements ConfigSection {
       null;
 
     this._serverEdition.set(
-      this._toggleEnterprise?.getEnterpriseToggleObservable().get() ? "enterprise" : "core",
+      overrides.initialServerEdition ??
+      (this._toggleEnterprise?.getEnterpriseToggleObservable().get() ? "enterprise" : "core"),
     );
 
     // In admin-panel mode, start selection at the server's current edition so
     // the section isn't dirty before the user acts. In wizard mode, default to
-    // Full Grist when available (or when community isn't); the user can change
-    // it via the buttons. Done here rather than in `_buildSelector` so a
-    // re-render can't reset it.
+    // Full Grist when available; the user can change it via the buttons.
+    // Done here rather than in `_buildSelector` so a re-render can't reset it.
     this._selectedEdition.set(this._options.controls ?
       this._serverEdition.get() :
-      (this.fullGristAvailable || !this.communityAvailable) ? "enterprise" : "core",
+      this.fullGristAvailable ? "enterprise" : "core",
     );
 
     this.canProceed = Computed.create(this, use => use(this._editionConfirmed));
@@ -127,10 +126,17 @@ export class EditionSection extends Disposable implements ConfigSection {
   }
 
   public buildDom(): DomContents {
+    const toggle = this._toggleEnterprise;
     return cssSectionContainer(
       this._buildCore(),
-      this.fullGristAvailable && !this.editionForced && this._toggleEnterprise ?
-        this._toggleEnterprise.buildEnterpriseSection() :
+      // Only show ToggleEnterpriseWidget when the server is actually running
+      // Full Grist -- that's where its activation-key / trial / license UI
+      // does useful work. In "core" mode its "Enable Full Grist" button
+      // duplicates the selector above.
+      this.fullGristAvailable && !this.editionForced && toggle ?
+        dom.maybe(use => use(this._serverEdition) === "enterprise", () =>
+          toggle.buildEnterpriseSection(),
+        ) :
         null,
       testId("section"),
     );
@@ -237,18 +243,6 @@ to individuals and small orgs with less than US $1 million in total annual fundi
             ) : null,
           ];
         }
-        if (!this.communityAvailable) {
-          return [
-            cssSectionDescription(
-              t("The free and open-source heart of Grist, with everything you need to open and edit \
-Grist documents, control access, create forms, connect to single sign-on (SSO) \
-providers, and much more."),
-            ),
-            cssSectionDescription(
-              t("Community Edition is not available in this installation."),
-            ),
-          ];
-        }
         return cssSectionDescription(
           t("The free and open-source heart of Grist, with everything you need to open and edit \
 Grist documents, control access, create forms, connect to single sign-on (SSO) \
@@ -256,9 +250,7 @@ providers, and much more."),
         );
       }),
       dom.domComputed((use) => {
-        const ed = use(selectedEdition);
         const confirmed = use(this._editionConfirmed);
-        if (ed === "core" && !this.communityAvailable) { return null; }
         if (confirmed) { return null; }
         return cssSectionButtonRow(
           primaryButton(

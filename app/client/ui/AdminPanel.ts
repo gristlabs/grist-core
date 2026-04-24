@@ -271,15 +271,11 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
     confirmModal(
       t("Restart Grist?"),
       t("Restart"),
-      async () => {
-        try {
-          await spinnerModal(
-            t("Restarting Grist..."),
-            this._performRestart(),
-          );
-        } catch (err) {
-          reportError(err as Error);
-        }
+      () => {
+        // Fire-and-forget so confirmModal closes immediately; otherwise it
+        // hangs on top of the spinner for the whole restart duration.
+        spinnerModal(t("Restarting Grist..."), this._performRestart())
+          .catch(err => reportError(err as Error));
       },
       {
         explanation: dom("div",
@@ -344,7 +340,17 @@ Please log in as an administrator.`)),
 
     return [
       dom.maybe(this._showRestartBanner, () => cssRestartBannerShell(
-        (elem) => { this._restartBanner.bannerElem.current = elem; },
+        (elem) => {
+          this._restartBanner.bannerElem.current = elem;
+          // Without the slide-in, confirming (e.g.) Base URL shoves the
+          // user's focal section down by ~150px in one layout step -- the
+          // thing they just clicked jumps away from their cursor. Nested
+          // rAF lets the closed state paint first so the grid-rows
+          // transition has a "from" frame to interpolate against.
+          requestAnimationFrame(() =>
+            requestAnimationFrame(() => elem.classList.add("-open")),
+          );
+        },
         cssRestartBanner(
           cssSectionTitle(t("Restart Grist")),
           dom.domComputed(this._awaitingManualRestart, waiting =>
@@ -440,6 +446,17 @@ Please log in as an administrator.`)),
           description: t("Take Grist out of service for maintenance"),
           value: this._buildServiceStatusDisplay(),
           expandedContent: this._buildServiceStatusContent(),
+        }),
+        dom.create(AdminSectionItem, {
+          id: "restart",
+          name: t("Restart"),
+          description: t("Restart the Grist server"),
+          value: this._supportsRestart ?
+            basicButton(t("Restart"),
+              dom.on("click", () => this.restartGrist()),
+              testId("admin-panel-restart-item"),
+            ) :
+            cssValueLabel(t("unavailable")),
         }),
       ]),
       dom.create(AdminSection, t("Security Settings"), [
@@ -1228,14 +1245,20 @@ const cssRestartBannerFlash = keyframes(`
   30%      { box-shadow: 0 0 0 3px ${theme.controlFg}; }
 `);
 
-const cssRestartBannerReveal = keyframes(`
-  from { max-height: 0; opacity: 0; }
-  to   { max-height: 400px; opacity: 1; }
-`);
-
+// Reveal uses a grid-template-rows transition rather than an animation so
+// it doesn't collide with the `-flash` keyframe animation (adding a shared
+// `animation:` declaration in `-flash` would replace the reveal mid-flight).
 const cssRestartBannerShell = styled("div", `
-  animation: ${cssRestartBannerReveal} 0.3s ease-out;
-  overflow: hidden;
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s ease-out;
+  & > * {
+    overflow: hidden;
+    min-height: 0;
+  }
+  &.-open {
+    grid-template-rows: 1fr;
+  }
   &.-flash {
     animation: ${cssRestartBannerFlash} 1s ease-out;
     border-radius: 4px;
