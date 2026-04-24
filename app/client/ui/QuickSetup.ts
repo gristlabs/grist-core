@@ -5,6 +5,7 @@ import { getHomeUrl } from "app/client/models/homeUrl";
 import { cssFadeUp, cssFadeUpGristLogo, cssFadeUpHeading, cssFadeUpSubHeading } from "app/client/ui/AdminPanelCss";
 import { BackupsSection } from "app/client/ui/BackupsSection";
 import { PermissionsSetupSection } from "app/client/ui/PermissionsSetupSection";
+import { QuickSetupServerStep } from "app/client/ui/QuickSetupServerStep";
 import { SandboxSetupSection } from "app/client/ui/SandboxSection";
 import { bigPrimaryButton } from "app/client/ui2018/buttons";
 import { Stepper } from "app/client/ui2018/Stepper";
@@ -29,8 +30,8 @@ export class QuickSetup extends Disposable {
   private _steps: Step[] = [
     {
       label: t("Server"),
-      completed: observable(false),
-      buildDom: () => null,
+      completed: Observable.create(this, false),
+      buildDom: () => this._buildServerStep(),
     },
     {
       label: t("Sandboxing"),
@@ -45,7 +46,7 @@ export class QuickSetup extends Disposable {
     },
     {
       label: t("Authentication"),
-      completed: observable(false),
+      completed: Observable.create(this, false),
       buildDom: () => null,
     },
     {
@@ -71,7 +72,9 @@ export class QuickSetup extends Disposable {
     return cssMainContent(
       cssFadeUpGristLogo(),
       cssFadeUpHeading(t("Quick setup")),
-      cssFadeUpSubHeading(t("Configure Grist for your environment.")),
+      cssFadeUpSubHeading(
+        t("Configure Grist for your environment."),
+      ),
       cssStepper(
         dom.create(Stepper, { activeStep: this._activeStep, steps: this._steps }),
       ),
@@ -80,6 +83,19 @@ export class QuickSetup extends Disposable {
         this._steps[i].buildDom(),
       )),
     );
+  }
+
+  private _buildServerStep(): DomContents {
+    return dom.create((owner) => {
+      const step = QuickSetupServerStep.create(owner, () => this._advanceStep());
+      return step.buildDom();
+    });
+  }
+
+  private _advanceStep() {
+    const i = this._activeStep.get();
+    this._steps[i].completed.set(true);
+    this._activeStep.set(i + 1);
   }
 
   private _buildBackupsStep(): DomContents {

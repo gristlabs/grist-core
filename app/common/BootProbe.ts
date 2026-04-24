@@ -5,6 +5,7 @@ export type BootProbeIds =
   "admins" |
   "boot-key" |
   "health-check" |
+  "home-url" |
   "reachable" |
   "host-header" |
   "sandboxing" |

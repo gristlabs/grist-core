@@ -5,7 +5,6 @@ import { theme, vars } from "app/client/ui2018/cssVars";
 import { loadingSpinner } from "app/client/ui2018/loaders";
 import { toggleSwitch } from "app/client/ui2018/toggleSwitch";
 import { ConfigAPI } from "app/common/ConfigAPI";
-import { delay } from "app/common/delay";
 import { not } from "app/common/gutil";
 import { InstallAPIImpl, PermissionsStatus } from "app/common/InstallAPI";
 import { tokens } from "app/common/ThemePrefs";
@@ -150,18 +149,11 @@ export class PermissionsSetupSection extends Disposable {
     }
   }
 
-  private async _waitForReady(maxAttempts = 30) {
-    for (let i = 0; i < maxAttempts; i++) {
-      await delay(1000);
+  private async _waitForReady() {
+    if (!await this._configAPI.waitUntilReady()) {
       if (this.isDisposed()) { return; }
-      try {
-        await this._configAPI.healthcheck();
-        return;
-      } catch {
-        // Server not ready yet, keep polling.
-      }
+      throw new Error(t("Server did not restart in time. Please refresh the page."));
     }
-    throw new Error(t("Server did not restart in time. Please refresh the page."));
   }
 
   private _goHome() {

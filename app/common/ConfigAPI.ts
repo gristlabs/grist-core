@@ -1,4 +1,5 @@
 import { BaseAPI, IOptions } from "app/common/BaseAPI";
+import { delay } from "app/common/delay";
 import { addCurrentOrgToPath } from "app/common/urlUtils";
 
 /**
@@ -47,6 +48,25 @@ export class ConfigAPI extends BaseAPI {
     if (!resp.ok) {
       throw new Error(await resp.text());
     }
+  }
+
+  /**
+   * Polls `healthcheck()` until it succeeds or `attempts` polls have elapsed.
+   * Returns true on success, false on timeout; callers decide how to surface
+   * the timeout (throw, silent, page reload, etc).
+   */
+  public async waitUntilReady({
+    attempts = 30,
+    intervalMs = 1000,
+  }: { attempts?: number; intervalMs?: number } = {}): Promise<boolean> {
+    for (let i = 0; i < attempts; i++) {
+      try {
+        await this.healthcheck();
+        return true;
+      } catch { /* not ready */ }
+      await delay(intervalMs);
+    }
+    return false;
   }
 
   /**

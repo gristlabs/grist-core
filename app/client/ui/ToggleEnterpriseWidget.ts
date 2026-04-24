@@ -36,9 +36,16 @@ export class ToggleEnterpriseWidget extends Disposable {
   private _activation = Observable.create<ActivationState | null>(this, null);
 
   private _state = Computed.create<State | null>(this, (use) => {
-    const status = use(this._model.status);
-    if (!use(this._isEnterpriseEdition) || !status) {
+    // "core" -- the opt-in state -- only applies when actually on Community.
+    // When we're on Full Grist but status hasn't loaded, return null so the
+    // section renders nothing rather than flashing an "Enable Full Grist"
+    // button.
+    if (!use(this._isEnterpriseEdition)) {
       return "core";
+    }
+    const status = use(this._model.status);
+    if (!status) {
+      return null;
     } else if (status.key) {
       return "activated";
     } else if (status.trial && status.trial.daysLeft > 0) {
@@ -61,21 +68,26 @@ export class ToggleEnterpriseWidget extends Disposable {
     return this._isEnterpriseEdition;
   }
 
+  /**
+   * Observable for the install's installation ID. Populated by the existing
+   * enterprise activation-status fetch; null on community builds (where the
+   * `/api/activation/status` endpoint isn't mounted).
+   */
+  public getInstallationIdObservable() {
+    return this._model.installationId;
+  }
+
   public buildEnterpriseSection() {
     return cssSection(
       testId("enterprise-content", this._isEnterpriseEdition),
       dom.domComputed(this._state, (state) => {
         switch (state) {
-          case "trial":
-            return this._trialCopy();
-          case "activated":
-            return this._activatedCopy();
-          case "no-key":
-            return this._noKeyCopy();
-          case "error":
-            return this._errorCopy();
-          default:
-            return this._coreCopy();
+          case "trial":    return this._trialCopy();
+          case "activated": return this._activatedCopy();
+          case "no-key":   return this._noKeyCopy();
+          case "error":    return this._errorCopy();
+          case "core":     return this._coreCopy();
+          default:         return null; // status not yet loaded
         }
       }),
       testId("enterprise-opt-in-section"),
@@ -83,26 +95,10 @@ export class ToggleEnterpriseWidget extends Disposable {
   }
 
   private _buildPasteYourKey(show: BindableValue<boolean> = Observable.create(this, true)) {
-    const redactedInstallationId = Computed.create(this, this._model.installationId, (use, id) => {
-      // Leave only 6 first letter, rest convert to *.
-      return id ? id.slice(0, 6) + "*".repeat(id.length - 6) : "";
-    });
     return cssParagraph(
-      dom.autoDispose(redactedInstallationId),
       cssTextLine(
         dom("b", t(`Activation key`)),
-        cssInstallationId(
-          dom("span", t("Installation ID:")),
-          dom.text(redactedInstallationId),
-          copyHandler(() => this._model.installationId.get()!, t("Installation ID copied to clipboard")),
-          testId("installation-id"),
-          cssCopyButton(
-            icon("Copy"),
-          ),
-          hoverTooltip(t("Copy to clipboard"), {
-            key: TOOLTIP_KEY,
-          }),
-        ),
+        buildInstallationIdDisplay(this._model.installationId),
       ),
       cssInput(
         this._activationKey, { onInput: true }, { placeholder: t("Paste your activation key") },
@@ -129,12 +125,12 @@ export class ToggleEnterpriseWidget extends Disposable {
   private _trialCopy() {
     return [
       cssParagraph(
-        dom("b", t("You are currently trialing Grist Enterprise.")),
+        dom("b", t("You are currently trialing Full Grist.")),
       ),
       cssParagraph(
-        markdown(t(`An activation key is used to run Grist Enterprise after a trial period
+        markdown(t(`An activation key is used to run Full Grist after a trial period
 of 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do
-not need an activation key to run Grist Core.
+not need an activation key to run Grist Community Edition.
 
 Learn more in our [Help Center]({{helpCenter}}).`, {
           contactLink: commonUrls.contact,
@@ -200,7 +196,7 @@ Learn more in our [Help Center]({{helpCenter}}).`, {
         dom.autoDispose(owner),
         cssRow(
           cssLabel(t("Plan name") + ":"),
-          dom("div", dom.text("Grist Enterprise")),
+          dom("div", dom.text("Full Grist")),
           testId("plan-name"),
         ),
         dom.maybe(expireAt, date => [
@@ -260,7 +256,7 @@ Learn more in our [Help Center]({{helpCenter}}).`, {
           testId("expired-info"),
           dom.domComputed(graceText, txt => cssParagraph(
             markdown((txt ? txt + " " : "") + t(
-              `To continue using Grist Enterprise, you need to
+              `To continue using Full Grist, you need to
                   [contact us]({{signupLink}}) to get your activation key.`, {
                 signupLink: commonUrls.contact,
               })),
@@ -277,7 +273,7 @@ Learn more in our [Help Center]({{helpCenter}}).`, {
       cssParagraph(
         enterpriseNotEnabledCopy(),
       ),
-      cssOptInButton(t("Enable Grist Enterprise"),
+      cssOptInButton(t("Enable Full Grist"),
         dom.on("click", () => this._isEnterpriseEdition.set(true)),
       ),
     ];
@@ -307,8 +303,8 @@ Learn more in our [Help Center]({{helpCenter}}).`, {
       dom.maybe(trialExpiredLocal, expireAt => [
         cssParagraph(
           markdown(t(
-            `Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to
-[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.`, {
+            `Your trial period has expired on **{{expireAt}}**. To continue using Full Grist, you need to
+[sign up for Full Grist]({{signupLink}}) and paste your activation key below.`, {
               signupLink: commonUrls.plans,
               expireAt,
             })),
@@ -317,8 +313,8 @@ Learn more in our [Help Center]({{helpCenter}}).`, {
       ]),
       dom.maybe(not(trialExpired), () => [
         cssParagraph(
-          markdown(t(`An active subscription is required to continue using Grist Enterprise. You can
-you activate your subscription by [signing up for Grist Enterprise ]({{signupLink}}) and pasting your
+          markdown(t(`An active subscription is required to continue using Full Grist. You can
+you activate your subscription by [signing up for Full Grist ]({{signupLink}}) and pasting your
 activation key below.`, {
             signupLink: commonUrls.plans,
           })),
@@ -344,10 +340,10 @@ activation key below.`, {
 function enterpriseNotEnabledCopy() {
   return [
     cssParagraph(
-      markdown(t(`An activation key is used to run Grist Enterprise after a trial period
+      markdown(t(`An activation key is used to run Full Grist after a trial period
         of 30 days has expired. Get an activation key by [signing up for Grist
         Enterprise]({{signupLink}}). You do not need an activation key to run
-        Grist Core.`, { signupLink: commonUrls.plans })),
+        Grist Community Edition.`, { signupLink: commonUrls.plans })),
     ),
     learnMoreLink(),
   ];
@@ -370,6 +366,30 @@ function copyHandler(value: () => string, confirmation: string) {
     });
     await copyToClipboard(value());
   });
+}
+
+/**
+ * Standard "Installation ID: <id> [copy]" row, shared by any admin-panel
+ * surface that shows the installation ID. The displayed ID is redacted
+ * (first 6 characters, rest replaced with `*`) so it's safe to include
+ * in screenshots and screen shares; the full ID is still copied to the
+ * clipboard when the row is clicked. Rendered only once the ID has
+ * loaded; null renders nothing.
+ */
+export function buildInstallationIdDisplay(installationId: Observable<string | null>) {
+  return dom.maybe(installationId, id => cssInstallationId(
+    dom("span", t("Installation ID:")),
+    dom("span", redactInstallationId(id)),
+    copyHandler(() => id, t("Installation ID copied to clipboard")),
+    testId("installation-id"),
+    cssCopyButton(icon("Copy")),
+    hoverTooltip(t("Copy to clipboard"), { key: TOOLTIP_KEY }),
+  ));
+}
+
+function redactInstallationId(id: string): string {
+  if (id.length <= 6) { return id; }
+  return id.slice(0, 6) + "*".repeat(id.length - 6);
 }
 
 export const cssInput = styled(input, `

@@ -163,6 +163,12 @@ from the network."),
     info: t("The main page of Grist should be available."),
   },
 
+  "home-url": {
+    info: t("APP_HOME_URL is the base URL where users and integrations reach \
+this Grist server. Auth callbacks, API links, and email notifications \
+all depend on this being correct."),
+  },
+
   "websockets": {
     // TODO: add a link to https://support.getgrist.com/self-managed/#how-do-i-run-grist-on-a-server
     info: t("Websocket connections need HTTP 1.1 and the ability to pass a few \
