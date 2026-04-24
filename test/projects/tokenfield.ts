@@ -25,9 +25,6 @@ describe("tokenfield", function() {
   type TFType = "plain" | "ac";
 
   const checkTokenText = stackWrapFunc(async function(type: TFType, expectedValues: string[]) {
-    if (expectedValues.length) {
-      await driver.findContentWait(`.test-tokenfield-${type} .test-tokenfield-token`, expectedValues[0], 100);
-    }
     assert.deepEqual(await driver.findAll(`.test-tokenfield-${type} .test-tokenfield-token`, el => el.getText()),
       expectedValues.map(v => v.split("=")[0]));
     assert.equal(await driver.find(`.test-tokenfield-${type} .test-json-value`).getText(),
