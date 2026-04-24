@@ -95,7 +95,7 @@ export function getOrgUrl(req: Request, path: string = "/") {
  */
 export function parseOrigin(origin: string | undefined): URL | "null" | undefined {
   if (origin === undefined) { return undefined; }
-  if (origin.toLowerCase() === "null") { return "null" as const; }
+  if (origin === "null") { return "null" as const; }
   try {
     return new URL(origin);
   } catch {
