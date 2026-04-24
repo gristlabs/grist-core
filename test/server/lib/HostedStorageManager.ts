@@ -1341,7 +1341,7 @@ describe("HostedStorageManager", function() {
           assert.equal(restartCount, 0);
           // There may be one slowish step at the end if a lot of edits
           // happen during backup.
-          assert.isBelow(slowSteps, 5); // Changed from 2 to 5 on 2026-04-26
+          assert.isBelow(slowSteps, 2);
           // For this test, slow step shouldn't be too long, though
           // that's hardware dependent.
           // Could exceed busy time, but that isn't a problem now we
