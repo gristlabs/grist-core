@@ -86,6 +86,24 @@ export function getOrgUrl(req: Request, path: string = "/") {
 }
 
 /**
+ * Parse a request's origin header safely into a URL.
+ * Handles Opaque Origins (https://developer.mozilla.org/en-US/docs/Glossary/Origin#opaque_origin)
+ * and malformed URLs safely.
+ * @returns {URL | "null" | undefined} - A URL if a valid URL was provided,
+ *                                       undefined if no URL was provided,
+ *                                       and an Opaque Origin otherwise.
+ */
+export function parseOrigin(origin: string | undefined): URL | "null" | undefined {
+  if (origin === undefined) { return undefined; }
+  if (origin === "null") { return "null" as const; }
+  try {
+    return new URL(origin);
+  } catch {
+    throw new ApiError(`Invalid origin: ${origin}`, 400);
+  }
+}
+
+/**
  * Returns true for requests from permitted origins.  For such requests, if
  * a Response object is provided, an "Access-Control-Allow-Origin" header is added
  * to the response.  Vary: Origin is also set to reflect the fact that the headers
@@ -94,13 +112,15 @@ export function getOrgUrl(req: Request, path: string = "/") {
 export function trustOrigin(req: IncomingMessage, resp?: Response): boolean {
   // TODO: We may want to consider changing allowed origin values in the future.
   // Note that the request origin is undefined for non-CORS requests.
-  const origin = req.headers.origin;
-  if (!origin) { return true; } // Not a CORS request.
-  if (!allowHost(req, new URL(origin))) { return false; }
+  const originUrl = parseOrigin(req.headers.origin);
+  if (originUrl === undefined) { return true; } // Not a CORS request.
+  // Opaque origin: https://developer.mozilla.org/en-US/docs/Glossary/Origin#opaque_origin
+  if (originUrl === "null") { return false; }
+  if (!allowHost(req, originUrl)) { return false; }
 
   if (resp) {
     // For a request to a custom domain, the full hostname must match.
-    resp.header("Access-Control-Allow-Origin", origin);
+    resp.header("Access-Control-Allow-Origin", originUrl.origin);
     resp.header("Vary", "Origin");
   }
   return true;
