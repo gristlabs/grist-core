@@ -27,7 +27,7 @@ clean_packages:
 	rm -rf _build/pyodide/grist-packages
 
 clean_code:
-	rm -rf _build/worker
+	rm -rf worker/node_modules
 	rm -rf _build/pyodide
 
 setup:
