@@ -17,11 +17,17 @@ describe("tokenfield", function() {
 
   beforeEach(async function() {
     await driver.get(`${server.getHost()}/tokenfield`);
+    // Wait for the tokenfield to render — the fixture initializes asynchronously
+    // via withLocale(), so tokens may not be in the DOM when driver.get() resolves.
+    await driver.findWait(".test-tokenfield-plain .test-tokenfield-token", 2000);
   });
 
   type TFType = "plain" | "ac";
 
   const checkTokenText = stackWrapFunc(async function(type: TFType, expectedValues: string[]) {
+    if (expectedValues.length) {
+      await driver.findContentWait(`.test-tokenfield-${type} .test-tokenfield-token`, expectedValues[0], 100);
+    }
     assert.deepEqual(await driver.findAll(`.test-tokenfield-${type} .test-tokenfield-token`, el => el.getText()),
       expectedValues.map(v => v.split("=")[0]));
     assert.equal(await driver.find(`.test-tokenfield-${type} .test-json-value`).getText(),

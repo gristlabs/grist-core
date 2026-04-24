@@ -77,6 +77,7 @@ describe("TokenField", function() {
     await gu.checkTokenEditor("one\ntwo");
     await gu.sendKeys(Key.ESCAPE);
     // Any other key also works
+    await gu.waitAppFocus();
     await gu.sendKeys("a");
     await gu.checkTokenEditor("a");
     await gu.sendKeys(Key.ESCAPE);
