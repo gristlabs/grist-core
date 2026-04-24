@@ -470,14 +470,14 @@
         "Formula columns_one": "Formula-zutabea",
         "Formula columns_other": "Formula-zutabeak",
         "Make into data column": "Bihurtu datu-zutabe",
-        "TRIGGER FORMULA": "ABIARAZI FORMULA",
+        "TRIGGER FORMULA": "FORMULA ABIARAZLEA",
         "COLUMN BEHAVIOR": "ZUTABEAREN PORTAERA",
         "COLUMN LABEL AND ID": "ZUTABEEN ETIKETA ETA ID-a",
         "Clear and make into formula": "Garbitu eta bilakatu formula",
-        "Convert to trigger formula": "Bilakatu formula abiarazteko",
+        "Convert to trigger formula": "Bilakatu formula-abiarazle",
         "Data columns_one": "Datu-zutabea",
         "Mixed Behavior": "Portaera mistoa",
-        "Set trigger formula": "Ezarri abiarazlearen formula"
+        "Set trigger formula": "Ezarri formula abiarazlea"
     },
     "FieldMenus": {
         "Revert to common settings": "Itzuli ohiko ezarpenetara",
@@ -1234,7 +1234,7 @@
         "Example: {{example}}": "Adibidea: {{example}}",
         "Learn more": "Irakurri gehiago",
         "Editing Card Layout": "Txartelen antolaketa editatzen",
-        "Formulas that trigger in certain cases, and store the calculated value as data.": "Kasu jakin batzuetan abiarazten diren formulak, eta kalkulatutako balioak datu gisa gordetzen dute.",
+        "Formulas that trigger in certain cases, and store the calculated value as data.": "Kasu jakin batzuetan abiarazten diren eta kalkulatutako balioak datu gisa gordetzen duten formulak.",
         "Link your new widget to an existing widget on this page.": "Lotu zure widget berria orrialde honetan lehendik dagoen widget batekin.",
         "Raw Data page": "Datu gordinen orria",
         "Rearrange the fields in your card by dragging and resizing cells.": "Berrantolatu zure txarteleko eremuak gelaxkak arrastatuz eta tamaina aldatuz.",
@@ -1289,7 +1289,7 @@
         "Community widgets are created and maintained by Grist community members.": "Komunitatearen widgetak Gristen komunitateko kideek sortzen eta mantentzen dituztenak dira.",
         "To allow multiple assignments, change the referenced column's type to Reference List.": "Esleipen bat baino gehiago baimentzeko, aldatu erreferentzia-zutabearen mota Erreferentzia zerrendara.",
         "This limitation occurs when one column in a two-way reference has the Reference type.": "Muga hau bi noranzkoko erreferentzia bateko zutabetako bat erreferentzia mota gisa konfiguratuta dagoenean ematen da.",
-        "Two-way references are not currently supported for Formula or Trigger Formula columns": "Bi noranzkoko erreferentziak ez dira unean bateragarriak Formula edo formula-abiarazle zutabeekin",
+        "Two-way references are not currently supported for Formula or Trigger Formula columns": "Bi noranzkoko erreferentziak ez dira unean bateragarriak Formula edo formula abiarazle zutabeekin",
         "The preview below this header shows how the selected user will see this document": "Hautatutako erabiltzaileak dokumentua nola ikusiko duen erakusten du goiburuaren azpiko aurrebistak",
         "[Learn more.]({{link}})": "[Irakurri gehiago.]({{link}})",
         "Summary tables can only contain formula columns.": "Laburpen-taulek formula-zutabeak besterik ezin dituzte eduki.",
@@ -1894,7 +1894,10 @@
         "in service": "martxan",
         "out of service": "zerbitzuz kanpo",
         "Take Grist out of service for maintenance": "Mugatu Grist-en sarbidea mantze-lanak egin bitartean",
-        "Fallback authentication method": "Bigarren aukerako autentifikazio-metodoa"
+        "Fallback authentication method": "Bigarren aukerako autentifikazio-metodoa",
+        "Backups": "Babeskopiak",
+        "Storage": "Biltegiratzea",
+        "Back up documents externally": "Gorde dokumentuen babeskopia zerbitzaritik kanpo"
     },
     "Columns": {
         "Remove Column": "Kendu zutabea"
@@ -2679,12 +2682,12 @@
         "Day": "Eguna",
         "Days since": "Egun _tik",
         "Days until": "Egun _arte",
-        "End of": "_ren amaiera",
+        "End of": "Amaiera",
         "Months since": "Hilabete _tik",
         "Months until": "Hilabete _arte",
         "Years since": "Urte _tik",
         "Years until": "Urte _arte",
-        "Date helpers…": "Daten laguntzak…",
+        "Date helpers…": "Data-laguntzaileak…",
         "Quick Picks": "Hautaketa azkarrak",
         "Relative": "Erlatiboa"
     },
@@ -2828,7 +2831,8 @@
         "Quick setup": "Konfigurazio bizkorra",
         "Server": "Zerbitzaria",
         "Configure Grist for your environment.": "Konfiguratu Grist zure ingurunerako.",
-        "Sandboxing": "Ingurune isolatua"
+        "Sandboxing": "Ingurune isolatua",
+        "Continue": "Jarraitu"
     },
     "ServiceStatus": {
         "Restore service": "Berrezarri zerbitzua",
@@ -2855,5 +2859,25 @@
         "You will no longer be able to authenticate as the install admin on the `": {
             "boot-key` page.": "Aurrerantzean ezingo zara instalazioko administratzaile gisa autentifikatu `/boot-key` orrialdean."
         }
+    },
+    "BackupsSection": {
+        "AWS S3 via native AWS SDK. Supports IAM roles and AWS-native auth.": "AWS S3, AWS SDK-ren bidez. Bateragarria da IAM rolekin eta AWS-native autentifikazioarekin.",
+        "AWS S3-compatible service via MinIO client library. Works with AWS S3, MinIO, and others.": "AWS S3-rekin bateragarria den zerbitzua, MinIO bezero-liburutegiaren bidez. AWS S3, MinIO, eta beste batzuekin dabil.",
+        "Active": "Aktibo",
+        "Azure Blob Storage": "Azure Blob Storage",
+        "Backups": "Babeskopiak",
+        "Documents stored on local disk only.": "Dokumentuak disko lokalean bakarrik daude gordeta.",
+        "Learn more.": "Irakurri gehiago.",
+        "Loading backup providers...": "Babeskopia hornitzaileak kargatzen…",
+        "Microsoft Azure Blob Storage via native Azure SDK.": "Microsoft Azure Blob Storage, jatorrizko Azure SDK-ren bidez.",
+        "No external storage": "Ez dago kanpoko biltegiratzerik",
+        "Off": "Itzalita",
+        "S3 (AWS client)": "S3 (AWS bezeroa)",
+        "S3 (MinIO client)": "S3 (MinIO bezeroa)",
+        "Set these environment variables and restart Grist to enable Azure storage:": "Ezarri ingurune-aldagai horiek eta berrabiarazi Grist Azure biltegiratzea gaitzeko:",
+        "Set these environment variables and restart Grist to enable MinIO storage:": "Ezarri ingurune-aldagai horiek eta berrabiarazi Grist MinIO biltegiratzea gaitzeko:",
+        "Set these environment variables and restart Grist to enable S3 storage:": "Ezarri ingurune-aldagai horiek eta berrabiarazi Grist S3 biltegiratzea gaitzeko:",
+        "Store document backups on an external service like S3 or Azure.           This protects against data loss if the server's disk fails.": "Gorde dokumentuaren babeskopiak kanpoko zerbitzu batean (S3, Azure…). Datuen galera eragozten du honek zerbitzariko diskoek huts egiten badute.",
+        "Available in full edition": "Edizio osoan eskuragarri"
     }
 }
