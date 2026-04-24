@@ -1404,6 +1404,11 @@
         "relational": "relációs",
         "Access Rules": "Hozzáférési szabályok",
         "Add new": "Új hozzáadása",
-        "Calendar": "Naptár"
+        "Calendar": "Naptár",
+        "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Nem találod a megfelelő oszlopokat? Kattints a Widget megváltoztatására, hogy kiválaszd az esemény adatokat tartalmazó táblázatot.",
+        "To configure your calendar, select columns for start": {
+            "end dates and event titles. Note each column's type.": "A naptárad beállításához válassz oszlopokat a kezdő és végdátumhoz és az események címéhez. Figyeld meg az egyes oszlopok típusát."
+        },
+        "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "Az UUID azonosító véletlenszerűen generált karaktersorozat, amely alkalmazható egyedi azonosítóként és hivatkozások kulcsaként."
     }
 }
