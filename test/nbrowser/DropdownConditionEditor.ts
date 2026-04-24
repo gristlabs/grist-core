@@ -37,6 +37,7 @@ describe("DropdownConditionEditor", function() {
     await userAttrRule.find(".test-rule-userattr-name").click();
     await driver.sendKeys("Roles", Key.ENTER);
     await userAttrRule.find(".test-rule-userattr-attr").click();
+    await gu.waitForAceEditor(userAttrRule, { hasFocus: true });
     await driver.sendKeys("Email", Key.ENTER);
     await userAttrRule.find(".test-rule-userattr-table").click();
     await gu.findOpenMenuItem("li", "Roles").click();

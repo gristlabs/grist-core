@@ -751,11 +751,11 @@ describe("AccessRules2", function() {
 
     // Try to change public access to editor. It should downgrade to viewer with a warning toast.
     await driver.find(".test-tb-share").click();
-    await driver.findContent(".test-tb-share-option", /Manage users/).doClick();
+    await driver.findContentWait(".test-tb-share-option", /Manage users/, 1000).doClick();
     await driver.findWait(".test-um-public-access", 3000).click();
-    assert.match(await driver.find(".test-um-public-member .test-um-member-role").getText(), /Viewer/);
+    assert.match(await driver.findWait(".test-um-public-member .test-um-member-role", 100).getText(), /Viewer/);
     await driver.find(".test-um-public-member .test-um-member-role").click();
-    await driver.findContent(".test-um-role-option", /Editor/).click();
+    await driver.findContentWait(".test-um-role-option", /Editor/, 1000).click();
     await gu.saveAcls();
     await gu.waitForServer();
 
@@ -771,11 +771,11 @@ describe("AccessRules2", function() {
 
     // Now change public access to editor. There should be no warning notifications.
     await driver.find(".test-tb-share").click();
-    await driver.findContent(".test-tb-share-option", /Manage users/).doClick();
+    await driver.findContentWait(".test-tb-share-option", /Manage users/, 1000).doClick();
     await driver.findWait(".test-um-public-access", 3000).click();
     assert.match(await driver.find(".test-um-public-member .test-um-member-role").getText(), /Viewer/);
     await driver.find(".test-um-public-member .test-um-member-role").click();
-    await driver.findContent(".test-um-role-option", /Editor/).click();
+    await driver.findContentWait(".test-um-role-option", /Editor/, 1000).click();
     await gu.saveAcls();
     await gu.waitForServer();
     assert.lengthOf(await gu.getToasts(), 0);

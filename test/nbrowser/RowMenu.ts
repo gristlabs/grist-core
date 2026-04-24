@@ -70,7 +70,8 @@ describe("RowMenu", function() {
     await driver.sendKeys(Key.ESCAPE);
 
     // check that the context menu is gone
-    assert.isFalse(await driver.find(".grist-floating-menu").isPresent());
+    await gu.waitToPass(async () =>
+      assert.isFalse(await driver.find(".grist-floating-menu").isPresent()));
   });
 
   it("can rename headers from the selected line", async function() {
