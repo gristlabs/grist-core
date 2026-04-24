@@ -469,6 +469,7 @@ describe("ReferenceList", function() {
     it("should update sort when display column is changed", async function() {
       // Change a film title to cause the sort order to change.
       await gu.getCell("Title", 5, "Films record").doClick();
+      await gu.waitAppFocus();
       await gu.sendKeys("Batman Begins", Key.ENTER);
       await gu.waitForServer();
 
