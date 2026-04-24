@@ -56,6 +56,7 @@ describe("ViewLayoutCollapse", function() {
   it("creator panel shows active widget after duplicating page with collapsed widgets", async function() {
     // After duplicating a page that has collapsed widgets, the active widget is the first visible
     // one (correct), but the creator panel used to show configuration for a collapsed widget.
+    const revert = await gu.begin();
 
     // Add a new page with two widgets.
     await gu.addNewPage("Table", "New Table", { tableName: "PanelTest" });
@@ -82,6 +83,7 @@ describe("ViewLayoutCollapse", function() {
     assert.equal(await driver.find(".test-right-widget-title").value(), "Right");
 
     await gu.checkForErrors();
+    await revert();
   });
 
   it("fix:copies collapsed sections properly", async function() {
