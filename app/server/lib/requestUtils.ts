@@ -99,8 +99,7 @@ export function parseOrigin(origin: string | undefined): URL | "null" | undefine
   try {
     return new URL(origin);
   } catch {
-    // Malformed origin URL - treat it as an Opaque Origin (which cannot be safely used for security checks)
-    return "null" as const;
+    throw new ApiError(`Invalid origin: ${origin}`, 400);
   }
 }
 

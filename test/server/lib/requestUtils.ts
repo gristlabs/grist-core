@@ -17,7 +17,6 @@ describe("requestUtils", function() {
       ["https://nasa.efc-r.com", "docs.efc-r.com", true],
       ["https://nasa.efc-r.com", "api.efc-r.com", true],
       ["null", "docs.getgrist.com", false],
-      ["some invalid URL", "docs.getgrist.com", false],
     ];
     for (const [origin, host, permitted] of combinations) {
       it(`${origin} can${permitted ? "" : "not"} access ${host} in browser`, function() {
@@ -27,5 +26,14 @@ describe("requestUtils", function() {
         );
       });
     }
+
+    [
+      "",
+      "invalid url",
+    ].forEach((origin) => {
+      it(`throws an ApiError on invalid origin '${origin}'`, function() {
+        assert.throws(() => trustOrigin({ headers: { origin } } as any));
+      });
+    });
   });
 });
