@@ -113,15 +113,15 @@ export function parseOrigin(origin: string | undefined): URL | "null" | undefine
 export function trustOrigin(req: IncomingMessage, resp?: Response): boolean {
   // TODO: We may want to consider changing allowed origin values in the future.
   // Note that the request origin is undefined for non-CORS requests.
-  const origin = parseOrigin(req.headers.origin);
-  if (origin === undefined) { return true; } // Not a CORS request.
+  const originUrl = parseOrigin(req.headers.origin);
+  if (originUrl === undefined) { return true; } // Not a CORS request.
   // Opaque origin: https://developer.mozilla.org/en-US/docs/Glossary/Origin#opaque_origin
-  if (origin === "null") { return false; }
-  if (!allowHost(req, origin)) { return false; }
+  if (originUrl === "null") { return false; }
+  if (!allowHost(req, originUrl)) { return false; }
 
   if (resp) {
     // For a request to a custom domain, the full hostname must match.
-    resp.header("Access-Control-Allow-Origin", origin.toString());
+    resp.header("Access-Control-Allow-Origin", originUrl.origin);
     resp.header("Vary", "Origin");
   }
   return true;
