@@ -962,98 +962,8 @@ describe("CustomWidgets", function() {
           CUSTOM_URL, widget1.name,
         ]);
 
-        // Get a temporary directory that will be cleaned up,
-        // and populated it as follows ('flat' variant)
-        //   plugins/
-        //     my-widgets/
-        //       manifest.yml   # a plugin manifest, listing widgets.json
-        //       widgets.json   # a widget set manifest, grist-widget style
-        //       p1.html        # one of the widgets in widgets.json
-        //       p2.html        # another of the widgets in widgets.json
-        //       grist-plugin-api.js   # a dummy api file, to check it is overridden
-        // In 'nested' variant, widgets.json and the files it refers to are in
-        // a subdirectory.
-        const dir = await createTmpDir();
-        const pluginDir = path.join(dir, "plugins", "my-widgets");
-        const widgetDir = variant === "nested" ? path.join(pluginDir, "nested") : pluginDir;
-        await fse.mkdirp(pluginDir);
-        await fse.mkdirp(widgetDir);
-
-        // A plugin, with some widgets in it.
-        await fse.writeFile(
-          path.join(pluginDir, "manifest.yml"),
-          `name: My Widgets\n` +
-          `components:\n` +
-          `  widgets: ${variant === "nested" ? "nested/" : ""}widgets.json\n`,
-        );
-
-        // A list of a pair of custom widgets, with the widget
-        // source in the same directory.
-        await fse.writeFile(
-          path.join(widgetDir, "widgets.json"),
-          JSON.stringify([
-            {
-              widgetId: "p1",
-              name: "P1",
-              url: "./p1.html",
-            },
-            {
-              widgetId: "p2",
-              name: "P2",
-              url: "./p2.html",
-            },
-            {
-              widgetId: "p3",
-              name: "P3",
-              url: "./p3.html",
-              published: false,
-            },
-          ]),
-        );
-
-        // The first widget - just contains the text P1.
-        await fse.writeFile(
-          path.join(widgetDir, "p1.html"),
-          "<html><body>P1</body></html>",
-        );
-
-        // The second widget. This contains the text P2
-        // if grist is defined after loading grist-plugin-api.js
-        // (but the js bundled with the widget just throws an
-        // alert).
-        await fse.writeFile(
-          path.join(widgetDir, "p2.html"),
-          `
-          <html>
-          <head><script src="./grist-plugin-api.js"></script></head>
-          <body>
-          <div id="readout"></div>
-          <script>
-            if (typeof grist !== 'undefined') {
-              document.getElementById('readout').innerText = 'P2';
-            }
-          </script>
-          </body>
-          </html>
-          `,
-        );
-
-        // The third widget - just contains the text P3.
-        await fse.writeFile(
-          path.join(widgetDir, "p3.html"),
-          "<html><body>P3</body></html>",
-        );
-
-        // A dummy grist-plugin-api.js - hopefully the actual
-        // js for the current version of Grist will be served in
-        // its place.
-        await fse.writeFile(
-          path.join(widgetDir, "grist-plugin-api.js"),
-          'alert("Error: built in api version used");',
-        );
-
         // Restart server and reload doc now plugins are in place.
-        process.env.GRIST_USER_ROOT = dir;
+        process.env.GRIST_USER_ROOT = await createBundledCustomWidgetDirectory(variant);
         await server.restart();
         await gu.reloadDoc();
 
@@ -1106,3 +1016,101 @@ describe("CustomWidgets", function() {
     }
   });
 });
+
+/**
+ *
+ * Get a temporary directory that will be cleaned up,
+ * and populated it as follows ('flat' variant)
+ *   plugins/
+ *     my-widgets/
+ *       manifest.yml   # a plugin manifest, listing widgets.json
+ *       widgets.json   # a widget set manifest, grist-widget style
+ *       p1.html        # one of the widgets in widgets.json
+ *       p2.html        # another of the widgets in widgets.json
+ *       grist-plugin-api.js   # a dummy api file, to check it is overridden
+ * In 'nested' variant, widgets.json and the files it refers to are in
+ * a subdirectory.
+ * @returns {Promise<void>}
+ */
+async function createBundledCustomWidgetDirectory(variant: "nested" | "flat") {
+  const dir = await createTmpDir();
+  const pluginDir = path.join(dir, "plugins", "my-widgets");
+  const widgetDir = variant === "nested" ? path.join(pluginDir, "nested") : pluginDir;
+  await fse.mkdirp(pluginDir);
+  await fse.mkdirp(widgetDir);
+
+  // A plugin, with some widgets in it.
+  await fse.writeFile(
+    path.join(pluginDir, "manifest.yml"),
+    `name: My Widgets\n` +
+    `components:\n` +
+    `  widgets: ${variant === "nested" ? "nested/" : ""}widgets.json\n`,
+  );
+
+  // A list of a pair of custom widgets, with the widget
+  // source in the same directory.
+  await fse.writeFile(
+    path.join(widgetDir, "widgets.json"),
+    JSON.stringify([
+      {
+        widgetId: "p1",
+        name: "P1",
+        url: "./p1.html",
+      },
+      {
+        widgetId: "p2",
+        name: "P2",
+        url: "./p2.html",
+      },
+      {
+        widgetId: "p3",
+        name: "P3",
+        url: "./p3.html",
+        published: false,
+      },
+    ]),
+  );
+
+  // The first widget - just contains the text P1.
+  await fse.writeFile(
+    path.join(widgetDir, "p1.html"),
+    "<html><body>P1</body></html>",
+  );
+
+  // The second widget. This contains the text P2
+  // if grist is defined after loading grist-plugin-api.js
+  // (but the js bundled with the widget just throws an
+  // alert).
+  await fse.writeFile(
+    path.join(widgetDir, "p2.html"),
+    `
+          <html>
+          <head><script src="./grist-plugin-api.js"></script></head>
+          <body>
+          <div id="readout"></div>
+          <script>
+            if (typeof grist !== 'undefined') {
+              document.getElementById('readout').innerText = 'P2';
+            }
+          </script>
+          </body>
+          </html>
+          `,
+  );
+
+  // The third widget - just contains the text P3.
+  await fse.writeFile(
+    path.join(widgetDir, "p3.html"),
+    "<html><body>P3</body></html>",
+  );
+
+  // A dummy grist-plugin-api.js - hopefully the actual
+  // js for the current version of Grist will be served in
+  // its place.
+  await fse.writeFile(
+    path.join(widgetDir, "grist-plugin-api.js"),
+    'alert("Error: built in api version used");',
+  );
+
+  return dir;
+}
