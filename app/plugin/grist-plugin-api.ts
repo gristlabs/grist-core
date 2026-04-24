@@ -615,6 +615,7 @@ ${properties.join("\n")}
   // Add data-attributes to let plugins easily identify theme name and appearance with CSS.
   document.documentElement.setAttribute("data-grist-theme", name);
   document.documentElement.setAttribute("data-grist-appearance", appearance);
+  document.documentElement.setAttribute("data-grist-widget", "true");
 }
 
 function getCssScrollbarProperties(appearance: "light" | "dark") {

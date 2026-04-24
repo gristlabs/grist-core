@@ -1,0 +1,18 @@
+/* Used to test custom CSS support in widgets */
+@layer grist-custom {
+  :root {
+    --fake-design-system-variable: #ff0000;
+    --really-fake-design-system-variable: var(--fake-design-system-variable);
+    --grist-theme-primary: var(--really-fake-design-system-variable);
+    --grist-theme-primary-dim: var(--fake-design-system-variable);
+    --grist-theme-primary-muted: #0000ff;
+  }
+
+  [data-grist-appearance="light"] {
+    --grist-theme-primary-muted: #000000;
+  }
+
+  [data-grist-appearance="dark"] {
+    --grist-theme-primary-muted: #ffff00;
+  }
+}
