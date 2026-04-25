@@ -312,7 +312,6 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
                   }
                 }),
                 (elem) => { elem.checked = columnFilter.includes(key); checkboxMap.set(key, elem); },
-                dom.style("position", "relative"),
               ),
               dom("span", renderValue(key, value), testId("value")),
               cssItemCount(value.count.toLocaleString(), testId("count")),
