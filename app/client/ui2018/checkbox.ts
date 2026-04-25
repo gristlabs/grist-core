@@ -42,6 +42,8 @@ export const cssCheckboxSquare = styled("input", `
   margin: 0 !important;
   padding: 0;
 
+  /* Positioning context for the ::before/::after pseudos (border + tick) painted below. */
+  position: relative;
   flex-shrink: 0;
 
   display: inline-block;
@@ -194,8 +196,6 @@ export const cssRadioCheckboxOptions = styled("div", `
   gap: 10px;
 `);
 
-// We need to reset top and left of ::before element, as it is wrongly set
-// on the inline checkbox.
 // To simulate radio button behavior, we will block user input after option is selected, because
 // checkbox doesn't support two-way binding.
 const cssBlockCheckbox = styled("div", `
@@ -204,10 +204,6 @@ const cssBlockCheckbox = styled("div", `
   border: 1px solid ${theme.controlSecondaryDisabledFg};
   border-radius: 3px;
   cursor: pointer;
-  & input::before, & input::after  {
-    top: unset;
-    left: unset;
-  }
   &:hover {
     border-color: ${theme.controlFg};
   }
