@@ -7,22 +7,18 @@ echo "###############################################################"
 echo "## Get pyodide node package"
 
 source env.sh
-if [[ ! -e _build/worker ]]; then
-  mkdir -p _build/worker
-  cd _build/worker
-  yarn init --yes
-  touch yarn.lock
-  yarn add deno@2.6.3
-  yarn add pyodide@$PYODIDE_VERSION
-  cd ../..
+
+# make sure we have the right version of pyodide defined
+CUR_PYODIDE_VERSION=`node -p 'require("./worker/package.json").dependencies.pyodide'`
+if [[ "${CUR_PYODIDE_VERSION}" != "${PYODIDE_VERSION}" ]]; then
+  echo "Worker pyodide version ${CUR_PYODIDE_VERSION} != ${PYODIDE_VERSION}, aborting."
+  exit 1
 fi
 
-# Warn if install is old.
-if [[ ! -e _build/worker/node_modules/deno ]]; then
-  echo "Deno not present in worker packages."
-  echo "Deno is now required."
-  echo "please delete _build/worker and retry."
-  exit 1
+# make sure we have the right version of pyodide installed (in case package.json was updated after install)
+INST_PYODIDE_VERSION=`node -p 'require("./worker/node_modules/pyodide/package.json").version' 2>/dev/null || true`
+if [[ "${INST_PYODIDE_VERSION}" != "${PYODIDE_VERSION}" ]]; then
+  yarn install --frozen-lockfile --cwd worker
 fi
 
 # Need an area for pyodide package cache.

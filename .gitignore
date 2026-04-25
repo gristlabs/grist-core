@@ -58,6 +58,7 @@ build/Release
 
 # Dependency directories
 /node_modules/
+/sandbox/pyodide/**/node_modules/
 jspm_packages/
 /docs
 
