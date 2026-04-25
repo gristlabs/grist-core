@@ -8,16 +8,17 @@ echo "## Get pyodide node package"
 
 source env.sh
 
-# make sure we have the right version of pyodide
+# make sure we have the right version of pyodide defined
 CUR_PYODIDE_VERSION=`node -p 'require("./worker/package.json").dependencies.pyodide'`
 if [[ "${CUR_PYODIDE_VERSION}" != "${PYODIDE_VERSION}" ]]; then
-  echo "## Updating pyodide to ${PYODIDE_VERSION}"
-  yarn add "pyodide@${PYODIDE_VERSION}" --cwd worker
+  echo "Worker pyodide version ${CUR_PYODIDE_VERSION} != ${PYODIDE_VERSION}, aborting."
+  exit 1
 fi
 
-# make sure pyodide is installed
-if [[ ! -d worker/node_modules/pyodide ]]; then
-  yarn install --cwd worker
+# make sure we have the right version of pyodide installed (in case package.json was updated after install)
+INST_PYODIDE_VERSION=`node -p 'require("./worker/node_modules/pyodide/package.json").version' 2>/dev/null || true`
+if [[ "${INST_PYODIDE_VERSION}" != "${PYODIDE_VERSION}" ]]; then
+  yarn install --frozen-lockfile --cwd worker
 fi
 
 # Need an area for pyodide package cache.

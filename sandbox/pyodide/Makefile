@@ -28,6 +28,7 @@ clean_packages:
 
 clean_code:
 	rm -rf worker/node_modules
+	rm -rf _build/worker # old path
 	rm -rf _build/pyodide
 
 setup:
