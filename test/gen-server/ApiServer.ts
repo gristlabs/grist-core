@@ -2149,6 +2149,37 @@ describe("ApiServer", function() {
     assert.equal(await getName(nobody), "Anonymous");
   });
 
+  it("POST /api/profile/user/picture updates user picture", async function() {
+    let resp: AxiosResponse<any>;
+    async function getPicture(config: AxiosRequestConfig = chimpy) {
+      return (await axios.get(`${homeUrl}/api/profile/user`, config)).data.picture;
+    }
+
+    assert.equal(await getPicture(), null);
+
+    const gravatarUrl = "https://www.gravatar.com/avatar/1234567890abcdef?s=200&d=identicon";
+    resp = await axios.post(`${homeUrl}/api/profile/user/picture`, { picture: gravatarUrl }, chimpy);
+    assert.equal(resp.status, 200);
+
+    assert.equal(await getPicture(), gravatarUrl);
+
+    resp = await axios.post(`${homeUrl}/api/profile/user/picture`, { picture: "" }, chimpy);
+    assert.equal(resp.status, 200);
+    assert.equal(await getPicture(), "");
+
+    resp = await axios.post(`${homeUrl}/api/profile/user/picture`, { picture: null }, chimpy);
+    assert.equal(resp.status, 200);
+    assert.equal(await getPicture(), null);
+
+    resp = await axios.post(`${homeUrl}/api/profile/user/picture`, null, chimpy);
+    assert.equal(resp.status, 400);
+    assert.match(resp.data.error, /Picture URL expected/i);
+
+    resp = await axios.post(`${homeUrl}/api/profile/user/picture`, { picture: "test" }, nobody);
+    assert.equal(resp.status, 401);
+    assert.match(resp.data.error, /not authorized/i);
+  });
+
   it("POST /api/profile/allowGoogleLogin updates Google login preference", async function() {
     let loginCookie: AxiosRequestConfig = await server.getCookieLogin("nasa", {
       email: "chimpy@getgrist.com",

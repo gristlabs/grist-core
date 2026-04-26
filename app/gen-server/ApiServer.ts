@@ -475,6 +475,19 @@ export class ApiServer {
       res.sendStatus(200);
     }));
 
+    // POST /api/profile/user/picture
+    // Body params: { picture: string }
+    // Update users profile picture.
+    this._app.post("/api/profile/user/picture", expressWrap(async (req, res) => {
+      const userId = getAuthorizedUserId(req);
+      if (req.body?.picture === undefined) {
+        throw new ApiError("Picture URL expected in the body", 400);
+      }
+      const picture = req.body.picture;
+      await this._dbManager.updateUser(userId, { picture });
+      res.sendStatus(200);
+    }));
+
     // POST /api/profile/user/locale
     // Body params: string
     // Update users profile.

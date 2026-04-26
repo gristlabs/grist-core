@@ -489,6 +489,10 @@ export class MockUserAPI implements UserAPI, DocWorkerAPI {
     // do nothing
   }
 
+  public async updateUserPicture(picture: string): Promise<void> {
+
+  }
+
   public async updateUserLocale(locale: string): Promise<void> {
     // do nothing
   }
