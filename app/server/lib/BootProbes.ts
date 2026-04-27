@@ -4,8 +4,9 @@ import { removeTrailingSlash } from "app/common/gutil";
 import { appSettings } from "app/server/lib/AppSettings";
 import { expressWrap, jsonErrorHandler } from "app/server/lib/expressWrap";
 import { GristServer } from "app/server/lib/GristServer";
-import { getBootKey, getInService } from "app/server/lib/gristSettings";
+import { getBootKey, getInService, getSandboxFlavor, getSandboxFlavorSource } from "app/server/lib/gristSettings";
 import { DEFAULT_SESSION_SECRET } from "app/server/lib/ICreate";
+import { getAvailableSandboxes, testSandboxFlavor } from "app/server/lib/NSandbox";
 
 import * as express from "express";
 import fetch from "node-fetch";
@@ -60,6 +61,7 @@ export class BootProbes {
 
   private _addProbes() {
     this._probes.push(_homeUrlReachableProbe);
+    this._probes.push(_homeUrlProbe);
     this._probes.push(_statusCheckProbe);
     this._probes.push(_userProbe);
     this._probes.push(_bootKeyProbe);
@@ -70,6 +72,8 @@ export class BootProbes {
     this._probes.push(_sessionSecretProbe);
     this._probes.push(_admins);
     this._probes.push(_serviceStatusProbe);
+    this._probes.push(_backupsProbe);
+    this._probes.push(_sandboxProvidersProbe);
     this._probeById = new Map(this._probes.map(p => [p.id, p]));
   }
 }
@@ -327,6 +331,30 @@ const _sessionSecretProbe: Probe = {
   },
 };
 
+// Reports whether APP_HOME_URL is configured, and whether it came from env or
+// from the activation prefs DB. Reads appSettings directly rather than the
+// memoized getHomeUrl() helper in gristSettings.ts, so that nested sections
+// (e.g. an admin re-reading this flag) see the same live view of env+DB state
+// that appSettings maintains. APP_HOME_URL is restart-required, so the DB
+// value that was loaded at boot is the value the rest of the server is using.
+const _homeUrlProbe: Probe = {
+  id: "home-url",
+  name: "Home URL",
+  apply: async () => {
+    const setting = appSettings.flag("homeUrl");
+    const value = setting.readString({ envVar: "APP_HOME_URL" }) || null;
+    return {
+      status: value ? "success" : "warning",
+      verdict: value ? undefined :
+        "APP_HOME_URL is not set; server auto-detects the URL from each request",
+      details: {
+        value,
+        source: setting.describe().source ?? null,
+      },
+    };
+  },
+};
+
 const _serviceStatusProbe: Probe = {
   id: "service-status",
   name: "Service status",
@@ -336,6 +364,78 @@ const _serviceStatusProbe: Probe = {
       status: inService ? "success" : "warning",
       verdict: inService ? undefined : "Server is out of service for maintenance",
       details: { inService, source },
+    };
+  },
+};
+
+const _backupsProbe: Probe = {
+  id: "backups",
+  name: "Backups",
+  apply: async (server) => {
+    const externalStorage = appSettings.section("externalStorage");
+    const active = externalStorage.flag("active").getAsBool();
+    const availableBackends = server.create.getAvailableStorageBackends();
+    const backend = Object.values(externalStorage.nested)
+      .find(storage => storage.flag("active").getAsBool())
+      ?.name;
+    return {
+      status: active ? "success" : "warning",
+      verdict: active ? undefined : "Backups are not enabled",
+      details: {
+        active,
+        availableBackends,
+        backend,
+      },
+    };
+  },
+};
+
+const _sandboxProvidersProbe: Probe = {
+  id: "sandbox-providers",
+  name: "Available sandbox providers",
+  apply: async (server) => {
+    // Allow tests to inject a canned result, since real sandboxes aren't available in CI.
+    const override = process.env.GRIST_TEST_SANDBOX_PROVIDERS_PROBE_RESULT;
+    if (override) {
+      return JSON.parse(override) as BootProbeResult;
+    }
+
+    const available = getAvailableSandboxes().map(o => ({ ...o }));
+
+    // Get current sandbox info.
+    const sandboxInfo = await server.getSandboxInfo();
+
+    // Test all available and effective sandboxes in parallel.
+    const testPromises = available
+      .filter(o => o.available && o.effective)
+      .map(async (o) => {
+        const result = o.flavor === sandboxInfo.flavor ? sandboxInfo :
+          await testSandboxFlavor(o.flavor).catch(() => undefined);
+        if (result) {
+          o.functional = result.functional;
+          o.error = result.error;
+          o.lastSuccessfulStep = result.lastSuccessfulStep;
+        }
+      });
+    await Promise.all(testPromises);
+
+    // Read what's saved in the database.
+    const activation = await server.getActivations().current();
+    const dbEnvVars = activation.prefs?.envVars || {};
+    const flavorInDB = dbEnvVars.GRIST_SANDBOX_FLAVOR || undefined;
+
+    // Check if set via environment variable (not changeable from UI).
+    const flavorInEnv = getSandboxFlavorSource() === "env" ? getSandboxFlavor() : undefined;
+
+    const hasFunctionalSandbox = available.some(o => o.functional && o.effective);
+    return {
+      status: hasFunctionalSandbox ? "success" : "warning",
+      details: {
+        options: available,
+        current: sandboxInfo.flavor,
+        flavorInEnv,
+        flavorInDB,
+      },
     };
   },
 };

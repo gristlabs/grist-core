@@ -3,6 +3,7 @@
   "include": [
     "*",
     "**/*",
+    "../eslint-rules/**/*.js",
     "../app/client/declarations.d.ts",
     "../app/common/declarations.d.ts",
     "../app/server/declarations.d.ts",

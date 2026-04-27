@@ -24,7 +24,7 @@
  */
 
 import { StringUnion } from "app/common/StringUnion";
-import { appSettings, AppSettingSource } from "app/server/lib/AppSettings";
+import { AppSettings, appSettings, AppSettingSource } from "app/server/lib/AppSettings";
 
 import { MemoizedFunction } from "lodash";
 import memoize from "lodash/memoize";
@@ -100,6 +100,12 @@ export const getAnonPlaygroundEnabled = memoize(() =>
   }),
 );
 
+/** Returns where the `GRIST_ANON_PLAYGROUND` value came from ("env" or "db"), or undefined if using the default. */
+export function getAnonPlaygroundEnabledSource(): AppSettingSource | undefined {
+  getAnonPlaygroundEnabled(); // ensure the flag is read/initialized
+  return appSettings.section("orgs").flag("enableAnonPlayground").describe().source;
+}
+
 /**
  * Returns the value of `GRIST_FORCE_LOGIN` from {@link appSettings}.
  *
@@ -112,6 +118,12 @@ export const getForceLogin = memoize(() =>
     defaultValue: false,
   }),
 );
+
+/** Returns where the `GRIST_FORCE_LOGIN` value came from ("env" or "db"), or undefined if using the default. */
+export function getForceLoginSource(): AppSettingSource | undefined {
+  getForceLogin(); // ensure the flag is read/initialized
+  return appSettings.section("login").flag("forced").describe().source;
+}
 
 /**
  * Returns the value of `GRIST_ONBOARDING_TUTORIAL_DOC_ID` from {@link appSettings}.
@@ -138,6 +150,12 @@ export const getCanAnyoneCreateOrgs = memoize(() =>
   }),
 );
 
+/** Returns where the `GRIST_ORG_CREATION_ANYONE` value came from ("env" or "db"), or undefined if using the default. */
+export function getCanAnyoneCreateOrgsSource(): AppSettingSource | undefined {
+  getCanAnyoneCreateOrgs(); // ensure the flag is read/initialized
+  return appSettings.section("orgs").flag("canAnyoneCreateOrgs").describe().source;
+}
+
 /**
  * Returns the value of `GRIST_PERSONAL_ORGS` from {@link appSettings}.
  *
@@ -151,17 +169,45 @@ export const getPersonalOrgsEnabled = memoize(() =>
   }),
 );
 
+/** Returns where the `GRIST_PERSONAL_ORGS` value came from ("env" or "db"), or undefined if using the default. */
+export function getPersonalOrgsEnabledSource(): AppSettingSource | undefined {
+  getPersonalOrgsEnabled(); // ensure the flag is read/initialized
+  return appSettings.section("orgs").flag("enablePersonalOrgs").describe().source;
+}
+
 /**
  * Returns the value of `GRIST_SANDBOX_FLAVOR` from {@link appSettings}.
  *
  * NOTE: This value is memoized for the life of the server process; changes to the DB
  * are not reflected until server restart.
  */
-export const getSandboxFlavor = memoize(() =>
-  appSettings.section("sandbox").flag("flavor").readString({
+export const getSandboxFlavor = memoize(readSandboxFlavor.bind(null, appSettings));
+
+/**
+ * Returns the value of `GRIST_SANDBOX_FLAVOR` from the provided `settings`.
+ */
+export function readSandboxFlavor(settings: AppSettings): string | undefined {
+  return settings.section("sandbox").flag("flavor").readString({
     envVar: "GRIST_SANDBOX_FLAVOR",
-  }),
-);
+  });
+}
+
+/**
+ * Returns the source of `GRIST_SANDBOX_FLAVOR` from {@link appSettings}.
+ *
+ * NOTE: This value is memoized for the life of the server process; changes to the DB
+ * are not reflected until server restart.
+ */
+export const getSandboxFlavorSource = memoize(readSandboxFlavorSource.bind(null, appSettings));
+
+/**
+ * Returns the source of `GRIST_SANDBOX_FLAVOR` from the provided `settings`.
+ */
+export function readSandboxFlavorSource(settings: AppSettings) {
+  return settings.section("sandbox").flag("flavor").read({
+    envVar: "GRIST_SANDBOX_FLAVOR",
+  }).describe().source;
+}
 
 /**
  * Returns the value of `GRIST_TEMPLATE_ORG` from {@link appSettings}.

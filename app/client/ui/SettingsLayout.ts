@@ -50,6 +50,38 @@ export function SectionCard(title: DomContents | null, content: DomElementArg[])
   );
 }
 
+/**
+ * Scrolls the admin panel item with the given id into view and briefly
+ * flashes it, so users notice where they landed. Safe to call with an
+ * id that doesn't exist yet (no-op).
+ */
+export function focusAdminItem(itemId: string): void {
+  const elem = document.getElementById(itemId);
+  if (!elem) { return; }
+  // The id lands on the tiny item name span; scroll the surrounding
+  // full-width row into view so the whole item is visible, not just
+  // the label.
+  const row = elem.closest("." + cssItem.className);
+  (row ?? elem).scrollIntoView({ behavior: "smooth", block: "center" });
+
+  // If the item is expandable and currently collapsed, expand it by
+  // clicking its header — the existing click handler toggles state.
+  if (row) {
+    const wrap = row.querySelector("." + cssExpandedContentWrap.className);
+    const header = row.querySelector("." + cssItemShort.className);
+    const isCollapsed = wrap instanceof HTMLElement &&
+      (wrap.style.maxHeight === "" || wrap.style.maxHeight === "0" || wrap.style.maxHeight === "0px");
+    if (header instanceof HTMLElement && isCollapsed) {
+      header.click();
+    }
+  }
+
+  elem.classList.remove(cssItemName.className + "-flash");
+  // Force reflow so the animation restarts if it's already applied.
+  void elem.offsetWidth;
+  elem.classList.add(cssItemName.className + "-flash");
+}
+
 export function SectionItem(options: {
   id: string,
   name?: DomContents,

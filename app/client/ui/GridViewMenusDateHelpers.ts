@@ -18,7 +18,7 @@ import { dom, styled } from "grainjs";
 import moment from "moment-timezone";
 import * as weasel from "popweasel";
 
-const t = makeT("GridViewMenus");
+const t = makeT("GridViewMenusDateHelpers");
 
 // Formula constants - uses $Column as placeholder for column ID
 const FORMULAS = {

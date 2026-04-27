@@ -14,7 +14,7 @@ import { decodeObject, encodeObject } from "app/plugin/objtypes";
 import { dom, Observable, styled } from "grainjs";
 import mapValues from "lodash/mapValues";
 
-const t = makeT("ReassignModal");
+const t = makeT("buildReassignModal");
 
 /**
  * Builds a modal that shows the user that they can't reassign records because of uniqueness

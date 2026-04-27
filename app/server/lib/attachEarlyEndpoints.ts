@@ -8,6 +8,7 @@ import {
 import { AdminPageConfig } from "app/common/gristUrls";
 import { isAffirmative } from "app/common/gutil";
 import { InstallPrefs } from "app/common/Install";
+import { PermissionsStatus, PrefSource } from "app/common/InstallAPI";
 import { getOrgKey } from "app/gen-server/ApiServer";
 import { Config } from "app/gen-server/entity/Config";
 import {
@@ -19,7 +20,13 @@ import { RequestWithLogin } from "app/server/lib/Authorizer";
 import { BootProbes } from "app/server/lib/BootProbes";
 import { expressWrap } from "app/server/lib/expressWrap";
 import { GristServer } from "app/server/lib/GristServer";
-import { invalidateReloadableSettings } from "app/server/lib/gristSettings";
+import {
+  getAnonPlaygroundEnabled, getAnonPlaygroundEnabledSource,
+  getCanAnyoneCreateOrgs, getCanAnyoneCreateOrgsSource,
+  getForceLogin, getForceLoginSource,
+  getPersonalOrgsEnabled, getPersonalOrgsEnabledSource,
+  invalidateReloadableSettings,
+} from "app/server/lib/gristSettings";
 import log from "app/server/lib/log";
 import {
   getScope,
@@ -138,6 +145,22 @@ export function attachEarlyEndpoints(options: AttachOptions) {
     expressWrap(async (_req, res) => {
       const prefs = await gristServer.getActivations().getPrefsWithSources();
       return sendOkReply(null, res, prefs);
+    }),
+  );
+
+  // Returns current default permission settings with their sources.
+  app.get(
+    "/api/install/permissions",
+    expressWrap(async (_req, res) => {
+      const toPrefSource = (s: "env" | "db" | undefined): PrefSource | undefined =>
+        s === "env" ? "environment-variable" : s === "db" ? "preferences" : undefined;
+      const status: PermissionsStatus = {
+        orgCreationAnyone: { value: getCanAnyoneCreateOrgs(), source: toPrefSource(getCanAnyoneCreateOrgsSource()) },
+        personalOrgs: { value: getPersonalOrgsEnabled(), source: toPrefSource(getPersonalOrgsEnabledSource()) },
+        forceLogin: { value: getForceLogin(), source: toPrefSource(getForceLoginSource()) },
+        anonPlayground: { value: getAnonPlaygroundEnabled(), source: toPrefSource(getAnonPlaygroundEnabledSource()) },
+      };
+      return sendOkReply(null, res, status);
     }),
   );
 

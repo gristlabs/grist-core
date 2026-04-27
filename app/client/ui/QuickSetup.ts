@@ -1,6 +1,15 @@
 import { makeT } from "app/client/lib/localization";
+import { AdminChecks } from "app/client/models/AdminChecks";
+import { reportError } from "app/client/models/errors";
+import { getHomeUrl } from "app/client/models/homeUrl";
 import { cssFadeUp, cssFadeUpGristLogo, cssFadeUpHeading, cssFadeUpSubHeading } from "app/client/ui/AdminPanelCss";
+import { BackupsSection } from "app/client/ui/BackupsSection";
+import { PermissionsSetupSection } from "app/client/ui/PermissionsSetupSection";
+import { QuickSetupServerStep } from "app/client/ui/QuickSetupServerStep";
+import { SandboxSetupSection } from "app/client/ui/SandboxSection";
+import { bigPrimaryButton } from "app/client/ui2018/buttons";
 import { Stepper } from "app/client/ui2018/Stepper";
+import { InstallAPIImpl } from "app/common/InstallAPI";
 import { tokens } from "app/common/ThemePrefs";
 
 import { Disposable, dom, DomContents, observable, Observable, styled } from "grainjs";
@@ -10,55 +19,110 @@ const t = makeT("QuickSetup");
 interface Step {
   completed: Observable<boolean>;
   label: string;
+  /** When true, step content card has no border or padding. */
+  plain?: boolean;
   buildDom(): DomContents;
 }
 
 export class QuickSetup extends Disposable {
   private _activeStep = Observable.create<number>(this, 0);
+  private _checks = new AdminChecks(this, new InstallAPIImpl(getHomeUrl()));
   private _steps: Step[] = [
     {
       label: t("Server"),
-      completed: observable(false),
-      buildDom: () => null,
+      completed: Observable.create(this, false),
+      buildDom: () => this._buildServerStep(),
     },
     {
       label: t("Sandboxing"),
       completed: observable(false),
-      buildDom: () => null,
+      plain: true,
+      buildDom: () => {
+        const section = SandboxSetupSection.create(
+          this, () => this._activeStep.set(this._activeStep.get() + 1),
+        );
+        return section.buildDom();
+      },
     },
     {
       label: t("Authentication"),
-      completed: observable(false),
+      completed: Observable.create(this, false),
       buildDom: () => null,
     },
     {
       label: t("Backups"),
       completed: observable(false),
-      buildDom: () => null,
+      plain: true,
+      buildDom: () => this._buildBackupsStep(),
     },
     {
       label: t("Apply & restart"),
       completed: observable(false),
-      buildDom: () => null,
+      plain: true,
+      buildDom: () => this._buildApplyStep(),
     },
   ];
 
   constructor() {
     super();
+    this._checks.fetchAvailableChecks().catch(reportError);
   }
 
   public buildDom() {
     return cssMainContent(
       cssFadeUpGristLogo(),
       cssFadeUpHeading(t("Quick setup")),
-      cssFadeUpSubHeading(t("Configure Grist for your environment.")),
+      cssFadeUpSubHeading(
+        t("Configure Grist for your environment."),
+      ),
       cssStepper(
         dom.create(Stepper, { activeStep: this._activeStep, steps: this._steps }),
       ),
       dom.domComputed(this._activeStep, i => cssStepContent(
+        cssStepContent.cls("-plain", Boolean(this._steps[i].plain)),
         this._steps[i].buildDom(),
       )),
     );
+  }
+
+  private _buildServerStep(): DomContents {
+    return dom.create((owner) => {
+      const step = QuickSetupServerStep.create(owner, () => this._advanceStep());
+      return step.buildDom();
+    });
+  }
+
+  private _advanceStep() {
+    const i = this._activeStep.get();
+    this._steps[i].completed.set(true);
+    this._activeStep.set(i + 1);
+  }
+
+  private _buildBackupsStep(): DomContents {
+    return dom.create((owner) => {
+      const section = BackupsSection.create(owner, { checks: this._checks });
+      return dom("div",
+        section.buildDom(),
+        cssContinueRow(
+          bigPrimaryButton(
+            t("Continue"),
+            dom.boolAttr("disabled", use => !use(section.canProceed)),
+            dom.on("click", () => {
+              const activeStepIndex = this._activeStep.get();
+              this._steps[activeStepIndex].completed.set(true);
+              this._activeStep.set(activeStepIndex + 1);
+            }),
+          ),
+        ),
+      );
+    });
+  }
+
+  private _buildApplyStep(): DomContents {
+    return dom.create((owner) => {
+      const section = PermissionsSetupSection.create(owner);
+      return section.buildDom();
+    });
   }
 }
 
@@ -84,4 +148,16 @@ const cssStepContent = styled("div", `
   margin: 24px auto;
   max-width: 520px;
   padding: 28px 32px;
+  &-plain {
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    background: none;
+  }
+`);
+
+const cssContinueRow = styled("div", `
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24px;
 `);

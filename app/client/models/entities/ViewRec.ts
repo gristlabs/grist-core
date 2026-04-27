@@ -66,7 +66,7 @@ export function createViewRec(this: ViewRec, docModel: DocModel): void {
 
     if (this.isDisposed() || !this.getRowId()) { return 0; }
     const all = this.viewSections().all();
-    const collapsed = new Set(this.activeCollapsedSections());
+    const collapsed = new Set(this.collapsedSections());
     const visible = all.filter(x => !collapsed.has(x.id()));
 
     // Default to the first leaf from layoutSpec (which corresponds to the top-left section), or

@@ -53,6 +53,39 @@ describe("ViewLayoutCollapse", function() {
     await revert();
   });
 
+  it("creator panel shows active widget after duplicating page with collapsed widgets", async function() {
+    // After duplicating a page that has collapsed widgets, the active widget is the first visible
+    // one (correct), but the creator panel used to show configuration for a collapsed widget.
+    const revert = await gu.begin();
+
+    // Add a new page with two widgets.
+    await gu.addNewPage("Table", "New Table", { tableName: "PanelTest" });
+    // Rename first section, then select it to make it active.
+    await gu.renameActiveSection("Left");
+    await gu.addNewSection("Table", "PanelTest");
+    await gu.renameActiveSection("Right");
+
+    // Collapse "Left" (currently active) — this makes "Right" the active section.
+    await collapseByMenu("Left");
+    assert.deepEqual(await mainSectionTitles(), ["Right"]);
+    assert.deepEqual(await collapsedSectionTitles(), ["Left"]);
+
+    // Open the creator panel — it should show "Right" (the visible widget).
+    await gu.openWidgetPanel("widget");
+    assert.equal(await driver.find(".test-right-widget-title").value(), "Right");
+
+    // Duplicate the page.
+    await gu.duplicatePage("PanelTest");
+
+    // After duplication, "Right" should still be the active visible widget,
+    // and the creator panel should show it — not the collapsed "Left".
+    assert.equal(await gu.getActiveSectionTitle(), "Right");
+    assert.equal(await driver.find(".test-right-widget-title").value(), "Right");
+
+    await gu.checkForErrors();
+    await revert();
+  });
+
   it("fix:copies collapsed sections properly", async function() {
     // When one of 2 widget was collapsed, the resulting widget can become a root section. Then,
     // when a page was duplicated, the layout was duplicated incorrectly (with wrong collapsed

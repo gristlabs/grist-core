@@ -112,7 +112,8 @@
         "Support Grist": "Stöd Grist",
         "Upgrade Plan": "Uppgradera abonnemang",
         "Sign up": "Registrera",
-        "Use This Template": "Använd denna mall"
+        "Use This Template": "Använd denna mall",
+        "Site settings": "SajtInställningar"
     },
     "ViewAsDropdown": {
         "View as": "Visa som",
@@ -1271,7 +1272,8 @@
         "this document": "detta dokument",
         "your email": "din e-post",
         "You will no longer receive email notifications about {{suggestions}} in {{docName}} at {{email}}.": "Du kommer inte längre få e-postnotiser om {{suggestions}} i {{docName}} till {{email}}.",
-        "suggestions": "ändringsförslag"
+        "suggestions": "ändringsförslag",
+        "automations": "automatiserade flöden"
     },
     "menus": {
         "* Workspaces are available on team plans. ": "* Arbetsytor är tillgängliga i arbetslagsprenumerationer. ",
@@ -1954,7 +1956,13 @@
         "error in {{provider}}: {{verdict}}": "fel i {{provider}}: {{verdict}}",
         "Please restart Grist manually.": "Start om Grist manuellt.",
         "Restart Grist to apply pending changes.": "Start om Grist för att aktivera väntande ändringar.",
-        "Restart unavailable": "Om start inte tillgänglig"
+        "Restart unavailable": "Om start inte tillgänglig",
+        "Maintenance": "Underhåll",
+        "disabled": "avstängd",
+        "enabled": "påslagen",
+        "Boot key": "Uppstartsnyckel",
+        "boot key": "uppstartsnyckel",
+        "Storage": "Lagring"
     },
     "Columns": {
         "Remove Column": "Ta bort kolumn"
@@ -2763,5 +2771,34 @@
     "AutomationsPageEntry": {
         "New": "Ny",
         "Automations": "Automatiserade flöden"
+    },
+    "BootKeyStatus": {
+        "Remove boot key": "Ta bort uppstartsnyckeln",
+        "Remove boot key?": "Ta bort uppstartsnyckeln?"
+    },
+    "BootPage": {
+        "Boot key": "Uppstartsnyckel",
+        "Check key": "Kontrollera nyckel",
+        "Checking key": "Kontrollerar nyckel",
+        "Continue": "Fortsätt",
+        "Copied!": "Kopierad!",
+        "Copy": "Kopiera",
+        "Enter boot key": "Fyll i uppstartsnyckel",
+        "Paste boot key here": "Klistra in uppstartsnyckel här"
+    },
+    "QuickSetup": {
+        "Backups": "Säkerhetskopior",
+        "Sandboxing": "Sandboxning",
+        "Server": "Server",
+        "Continue": "Fortsätt"
+    },
+    "BackupsSection": {
+        "Active": "Aktiv",
+        "Backups": "Säkerhetskopior",
+        "Learn more.": "Lär dig mer.",
+        "Off": "Av",
+        "S3 (MinIO client)": "S3 (MinIO klient)",
+        "S3 (AWS client)": "S3 (AWS klient)",
+        "No external storage": "Ingen extern lagring"
     }
 }

@@ -18,7 +18,7 @@ import { Disposable, dom, Observable, styled } from "grainjs";
 import noop from "lodash/noop";
 import { cssMenu, cssMenuWrap, defaultMenuOptions, IMenuOptions, IPopupOptions, setPopupToCreateDom } from "popweasel";
 
-const t = makeT("ViewAsDropdown");
+const t = makeT("ACLUsers");
 const userT = makeT("UserManagerModel");
 
 function isSpecialEmail(email: string) {

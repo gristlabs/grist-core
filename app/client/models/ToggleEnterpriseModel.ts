@@ -9,7 +9,7 @@ import { getGristConfig } from "app/common/urlUtils";
 
 import { Disposable, Observable } from "grainjs";
 
-const t = makeT("ToggleEnterprise");
+const t = makeT("ToggleEnterpriseModel");
 
 export class ToggleEnterpriseModel extends Disposable {
   public readonly edition: Observable<GristDeploymentType | null> = Observable.create(this, null);
@@ -70,22 +70,11 @@ export class ToggleEnterpriseModel extends Disposable {
   }
 
   private async _reloadWhenReady() {
-    // Now wait about 30 seconds for the server to come back up, and
-    // refresh the page.
-    let maxTries = 30;
-    while (maxTries-- > 0) {
-      try {
-        await this._configAPI.healthcheck();
-        // We're done, last step is to reload the page.
-        this.busy.set(false);
-        window.location.reload();
-        return;
-      } catch (err) {
-        console.warn("Server not ready yet, will retry", err);
-        await delay(1000);
-      }
+    if (!await this._configAPI.waitUntilReady()) {
+      throw new Error(t("Timed out on waiting for the Grist backend to restart"));
     }
-    throw new Error(t("Timed out on waiting for the Grist backend to restart"));
+    this.busy.set(false);
+    window.location.reload();
   }
 }
 

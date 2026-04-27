@@ -3,7 +3,7 @@
 
 import { makeT } from "app/client/lib/localization";
 
-const t = makeT("AdminPanel");
+const t = makeT("AdminPanelName");
 
 // Translated "Admin Panel" name, made available to other modules.
 export function getAdminPanelName() {

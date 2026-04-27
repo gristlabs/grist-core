@@ -67,7 +67,7 @@ function createMainPage(appModel: AppModel, appObj: App) {
   if (!appModel.currentOrg && appModel.needsOrg.get()) {
     const err = appModel.orgError;
     if (err?.status === 404) {
-      return createNotFoundPage(appModel);
+      return createNotFoundPage(appModel, err.error);
     } else if (err && (err.status === 401 || err.status === 403)) {
       // Generally give access denied error.
       // The exception is for document pages, where we want to allow access to documents

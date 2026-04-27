@@ -3,7 +3,9 @@ import { unstyledButton } from "app/client/ui2018/unstyled";
 import { inlineStyle } from "app/common/gutil";
 import { tokens } from "app/common/ThemePrefs";
 
-import { BindableValue, Disposable, dom, DomContents, Observable, styled } from "grainjs";
+import { BindableValue, Disposable, dom, DomContents, makeTestId, Observable, styled } from "grainjs";
+
+const testId = makeTestId("test-stepper-");
 
 export interface StepperProps {
   activeStep: Observable<number>;
@@ -39,6 +41,7 @@ export class Stepper extends Disposable {
           cssStep.cls("-active", use => use(this._activeStep) === i),
           cssStep.cls("-completed", completed),
           dom.on("click", () => this._activeStep.set(i)),
+          testId(`step-${i}`),
           cssStepIcon(
             dom.domComputed(completed, c => c ? cssIcon("Tick") : String(i + 1)),
           ),
@@ -107,16 +110,12 @@ const cssStepIcon = styled("div", `
   font-weight: 700;
   justify-content: center;
   height: ${STEP_ICON_SIZE}px;
-  transition: background 0.3s, border-color 0.3s, color 0.3s, transform 0.2s;
+  transition: background 0.3s, border-color 0.3s, color 0.3s;
   width: ${STEP_ICON_SIZE}px;
 
-  .${cssStep.className}:hover & {
-    transform: scale(1.08);
-  }
-
   .${cssStep.className}-completed & {
-    background: ${tokens.secondary};
-    border-color: ${tokens.secondary};
+    background: ${tokens.primary};
+    border-color: ${tokens.primary};
     color: ${tokens.white};
   }
 
