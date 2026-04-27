@@ -64,4 +64,5 @@ export interface ICommonUrls {
 
   signInWithGristRegister: string; // Registration for Sign in with getgrist.com.
   signInWithGristHelp: string; // Help for Sign in with getgrist.com.
+  signInWithGristDocs: string; // Setup docs for Sign in with getgrist.com.
 }
