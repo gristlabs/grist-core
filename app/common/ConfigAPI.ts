@@ -54,11 +54,18 @@ export class ConfigAPI extends BaseAPI {
    * Polls `healthcheck()` until it succeeds or `attempts` polls have elapsed.
    * Returns true on success, false on timeout; callers decide how to surface
    * the timeout (throw, silent, page reload, etc).
+   *
+   * All callers invoke this after `restartServer()`. The server returns from
+   * `restartServer` before tearing down its listener, so the very first poll
+   * can otherwise hit the still-up old process and return true immediately.
+   * A brief initial delay lets the server begin its restart first.
    */
   public async waitUntilReady({
     attempts = 30,
     intervalMs = 1000,
-  }: { attempts?: number; intervalMs?: number } = {}): Promise<boolean> {
+    initialDelayMs = 500,
+  }: { attempts?: number; intervalMs?: number; initialDelayMs?: number } = {}): Promise<boolean> {
+    await delay(initialDelayMs);
     for (let i = 0; i < attempts; i++) {
       try {
         await this.healthcheck();

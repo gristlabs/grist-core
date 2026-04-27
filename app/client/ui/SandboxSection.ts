@@ -1,11 +1,11 @@
 import { makeT } from "app/client/lib/localization";
 import { getHomeUrl } from "app/client/models/AppModel";
+import { ConfigSection, DraftChangesManager } from "app/client/ui/DraftChanges";
 import { quickSetupStepHeader } from "app/client/ui/QuickSetupStepHeader";
 import { BadgeConfig, buildCardList, buildHeroCard, buildItemCard } from "app/client/ui/SetupCard";
 import { theme, vars } from "app/client/ui2018/cssVars";
 import { loadingSpinner } from "app/client/ui2018/loaders";
 import { ConfigAPI } from "app/common/ConfigAPI";
-import { delay } from "app/common/delay";
 import { InstallAPIImpl } from "app/common/InstallAPI";
 import { SandboxInfo, SandboxingStatus } from "app/common/SandboxInfo";
 
@@ -202,36 +202,36 @@ abstract class SandboxSectionBase extends Disposable {
 }
 
 /**
- * Sandbox section for QuickSetup. Conforms to {@link QuickSetupSection} so
- * the QuickSetup step builder can drop in a shared continue button.
+ * Sandbox section for QuickSetup. Conforms to {@link QuickSetupSection}
+ * by delegating dirty/apply/restart through a {@link DraftChangesManager}
+ * with a single registered {@link ConfigSection} adapter for the sandbox
+ * flavor pref. This keeps the apply pipeline (persist + restart + wait,
+ * with shared failure handling) the same as the Server step.
  */
 export class SandboxSetupSection extends SandboxSectionBase {
   /** Always true once the model has loaded — there's always a default selection. */
   public readonly canProceed: Computed<boolean> = Computed.create(this, this._selected, (_, s) => !!s);
 
-  /** True when a different flavor is selected than what's currently active (and not env-locked). */
-  public readonly isDirty = this._needsRestart;
+  public readonly isDirty: Computed<boolean>;
+  public readonly isApplying: Observable<boolean>;
 
-  /** True while {@link apply} is in flight. */
-  public readonly isApplying: Observable<boolean> = Observable.create(this, false);
+  private readonly _drafts = DraftChangesManager.create(this);
+  private readonly _draftSection: ConfigSection = {
+    isDirty: this._needsRestart,
+    needsRestart: true,
+    apply: () => this._save(),
+    describeChange: () => ({ label: t("Sandbox"), value: sandboxLabel(this._selected.get() ?? "") }),
+  };
 
-  /** Persist the selected flavor and restart the server. No-op when env-locked or unchanged. */
+  constructor() {
+    super();
+    this._drafts.addSection(this._draftSection);
+    this.isDirty = this._drafts.hasDraftChanges;
+    this.isApplying = this._drafts.isApplying;
+  }
+
   public async apply(): Promise<void> {
-    if (this.isApplying.get()) { return; }
-    const willRestart = this.isDirty.get();
-    this.isApplying.set(true);
-    try {
-      await this._save();
-      if (willRestart) {
-        await this._configAPI.restartServer();
-        // Brief delay so we don't catch the server before it's begun
-        // restarting; waitUntilReady then polls.
-        await delay(500);
-        await this._configAPI.waitUntilReady();
-      }
-    } finally {
-      if (!this.isDisposed()) { this.isApplying.set(false); }
-    }
+    await this._drafts.applyAll();
   }
 
   /** Returns "Skip and Continue" when env-locked; otherwise null to use shared defaults. */
