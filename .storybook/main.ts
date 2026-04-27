@@ -3,7 +3,9 @@ import path from "path";
 import type { StorybookConfig } from "@storybook/html-webpack5";
 
 // Root of grist-core (whether standalone or as core/ inside grist-saas).
-const coreRoot = path.resolve(__dirname, "..");
+// `yarn run storybook` sets cwd to the package root. Using process.cwd()
+// instead of __dirname so this works under Node 23+'s ESM loader too.
+const coreRoot = process.cwd();
 
 const config: StorybookConfig = {
   stories: [
