@@ -93,7 +93,11 @@
         "Theme": "Theme",
         "Two-factor authentication": "Two-factor authentication",
         "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.",
-        "Language": "Language"
+        "Language": "Language",
+        "Basic info": "Basic info",
+        "Developer": "Developer",
+        "Home": "Home",
+        "Profile": "Profile"
     },
     "AccountWidget": {
         "Access Details": "Access Details",
@@ -113,7 +117,8 @@
         "Upgrade Plan": "Upgrade Plan",
         "Sign up": "Sign up",
         "Use This Template": "Use This Template",
-        "Site settings": "Site settings"
+        "Site settings": "Site settings",
+        "Account settings": "Account settings"
     },
     "ViewAsDropdown": {
         "View as": "View as",
@@ -1954,7 +1959,8 @@
         "Server → Edition": "Server → Edition",
         "The URL where users and integrations reach this Grist server": "The URL where users and integrations reach this Grist server",
         "What used to be called \"Grist Enterprise\" is now called \"Full Grist\".": "What used to be called \"Grist Enterprise\" is now called \"Full Grist\".",
-        "moved to Edition": "moved to Edition"
+        "moved to Edition": "moved to Edition",
+        "Installation": "Installation"
     },
     "Columns": {
         "Remove Column": "Remove Column"
@@ -3000,5 +3006,26 @@
         "Edition": "Edition",
         "Server": "Server",
         "Set your server's base URL and choose which edition of Grist to run.": "Set your server's base URL and choose which edition of Grist to run."
+    },
+    "AccountLeftPanel": {
+        "Account settings": "Account settings",
+        "Developer": "Developer",
+        "Profile": "Profile"
+    },
+    "SettingsLayout": {
+        "Authentication": "Authentication",
+        "Current authentication method": "Current authentication method",
+        "Installation": "Installation",
+        "Sandbox settings for data engine": "Sandbox settings for data engine",
+        "Sandboxing": "Sandboxing",
+        "Security Settings": "Security Settings"
+    },
+    "SettingsLayout.d": {
+        "Authentication": "Authentication",
+        "Current authentication method": "Current authentication method",
+        "Installation": "Installation",
+        "Sandbox settings for data engine": "Sandbox settings for data engine",
+        "Sandboxing": "Sandboxing",
+        "Security Settings": "Security Settings"
     }
 }
