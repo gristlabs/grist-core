@@ -12,6 +12,17 @@ const { importX } = require("eslint-plugin-import-x");
 
 const projectRoot = process.cwd();
 
+// Only lint ext/ if tsconfig.eslint.json covers it; otherwise the TS parser
+// errors per-file.
+function shouldLintExt() {
+  try {
+    const tsconfig = require(path.join(projectRoot, "tsconfig.eslint.json"));
+    return (tsconfig.include || []).some((p) => p.startsWith("ext/"));
+  } catch {
+    return false;
+  }
+}
+
 module.exports = defineConfig([
   globalIgnores([
     "*",
@@ -24,7 +35,7 @@ module.exports = defineConfig([
     "sandbox/pyodide/_build/",
     "!stubs/",
     "!buildtools/",
-    "!ext/",
+    ...(shouldLintExt() ? ["!ext/"] : ["ext/"]),
     "!core/",
     "!storybook/",
     "!.storybook/",

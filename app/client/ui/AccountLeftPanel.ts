@@ -11,7 +11,7 @@ import type { PageSidePanel } from "app/client/ui/PagePanels";
 import type { IconName } from "app/client/ui2018/IconList";
 import type { AccountPage } from "app/common/gristUrls";
 
-const t = makeT("AccountPage");
+const t = makeT("AccountLeftPanel");
 
 // Whether OAuth Apps feature is available (EE/SaaS only, not core).
 export function areOAuthAppsAvailable(): boolean {
