@@ -1942,7 +1942,19 @@
         "out of service": "out of service",
         "Back up documents externally": "Back up documents externally",
         "Backups": "Backups",
-        "Storage": "Storage"
+        "Storage": "Storage",
+        "Apply changes (manual restart required)": "Apply changes (manual restart required)",
+        "Base URL": "Base URL",
+        "Changes have been saved. Restart Grist to apply them.": "Changes have been saved. Restart Grist to apply them.",
+        "Edition": "Edition",
+        "Its controls have moved to {{editionLink}} above.": "Its controls have moved to {{editionLink}} above.",
+        "Restart the Grist server": "Restart the Grist server",
+        "Saving...": "Saving...",
+        "Server": "Server",
+        "Server → Edition": "Server → Edition",
+        "The URL where users and integrations reach this Grist server": "The URL where users and integrations reach this Grist server",
+        "What used to be called \"Grist Enterprise\" is now called \"Full Grist\".": "What used to be called \"Grist Enterprise\" is now called \"Full Grist\".",
+        "moved to Edition": "moved to Edition"
     },
     "Columns": {
         "Remove Column": "Remove Column"
@@ -2067,7 +2079,14 @@
         "Your activation key has expired due to exceeding limits.": "Your activation key has expired due to exceeding limits.",
         "Your instance will be in **read-only** mode in **{{days}}** day(s).": "Your instance will be in **read-only** mode in **{{days}}** day(s).",
         "Your subscription expired on {{date}}.": "Your subscription expired on {{date}}.",
-        "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.": "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below."
+        "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.": "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.",
+        "An activation key is used to run Full Grist after a trial period\n        of 30 days has expired. Get an activation key by [signing up for Grist\n        Enterprise]({{signupLink}}). You do not need an activation key to run\n        Grist Community Edition.": "An activation key is used to run Full Grist after a trial period\n        of 30 days has expired. Get an activation key by [signing up for Grist\n        Enterprise]({{signupLink}}). You do not need an activation key to run\n        Grist Community Edition.",
+        "An activation key is used to run Full Grist after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Community Edition.\n\nLearn more in our [Help Center]({{helpCenter}}).": "An activation key is used to run Full Grist after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Community Edition.\n\nLearn more in our [Help Center]({{helpCenter}}).",
+        "An active subscription is required to continue using Full Grist. You can\nyou activate your subscription by [signing up for Full Grist ]({{signupLink}}) and pasting your\nactivation key below.": "An active subscription is required to continue using Full Grist. You can\nyou activate your subscription by [signing up for Full Grist ]({{signupLink}}) and pasting your\nactivation key below.",
+        "Enable Full Grist": "Enable Full Grist",
+        "To continue using Full Grist, you need to\n                  [contact us]({{signupLink}}) to get your activation key.": "To continue using Full Grist, you need to\n                  [contact us]({{signupLink}}) to get your activation key.",
+        "You are currently trialing Full Grist.": "You are currently trialing Full Grist.",
+        "Your trial period has expired on **{{expireAt}}**. To continue using Full Grist, you need to\n[sign up for Full Grist]({{signupLink}}) and paste your activation key below.": "Your trial period has expired on **{{expireAt}}**. To continue using Full Grist, you need to\n[sign up for Full Grist]({{signupLink}}) and paste your activation key below."
     },
     "ViewLayout": {
         "Delete": "Delete",
@@ -2261,7 +2280,8 @@
         "Admin Controls": "Admin Controls",
         "Settings": "Settings",
         "Enterprise": "Enterprise",
-        "Quick setup": "Quick setup"
+        "Quick setup": "Quick setup",
+        "Apply changes": "Apply changes"
     },
     "Assistant": {
         "AI Assistant is only available for logged in users.": "AI Assistant is only available for logged in users.",
@@ -2368,7 +2388,8 @@
         "This boot page should not be too easy to access. Either turn it off when configuration is ok (by unsetting GRIST_BOOT_KEY) or make GRIST_BOOT_KEY long and cryptographically secure.": "This boot page should not be too easy to access. Either turn it off when configuration is ok (by unsetting GRIST_BOOT_KEY) or make GRIST_BOOT_KEY long and cryptographically secure.",
         "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.": "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.",
         "It is good practice not to run Grist as the root user.": "It is good practice not to run Grist as the root user.",
-        "The main page of Grist should be available.": "The main page of Grist should be available."
+        "The main page of Grist should be available.": "The main page of Grist should be available.",
+        "APP_HOME_URL is the base URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "APP_HOME_URL is the base URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct."
     },
     "ChoiceListEntry": {
         "+{{count}} more_one": "+{{count}} more",
@@ -2919,5 +2940,65 @@
         "Skip and Continue": "Skip and Continue",
         "Uses the built-in macOS sandbox. Good isolation for local use on a Mac.": "Uses the built-in macOS sandbox. Good isolation for local use on a Mac.",
         "macOS Sandbox": "macOS Sandbox"
+    },
+    "AdminPanelCss": {
+        "Confirmed": "Confirmed",
+        "For later": "For later"
+    },
+    "BaseUrlSection": {
+        "Already set on this server.": "Already set on this server.",
+        "Automatic": "Automatic",
+        "Base URL": "Base URL",
+        "Confirm URL": "Confirm URL",
+        "Could not reach server": "Could not reach server",
+        "Could not reach server at this URL. ": "Could not reach server at this URL. ",
+        "Failed to save": "Failed to save",
+        "Grist is reachable": "Grist is reachable",
+        "Leave automatic": "Leave automatic",
+        "Test URL": "Test URL",
+        "Testing...": "Testing...",
+        "The URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "The URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.",
+        "This URL was auto-detected — confirm it is correct, then save.": "This URL was auto-detected — confirm it is correct, then save.",
+        "URL is reachable": "URL is reachable",
+        "automatic": "automatic",
+        "checking": "checking",
+        "https:": {
+            "": {
+                "grist.example.com": "https://grist.example.com"
+            }
+        },
+        "not set": "not set",
+        "set": "set"
+    },
+    "EditionSection": {
+        "Choose which edition of Grist to run on this server": "Choose which edition of Grist to run on this server",
+        "Choose which edition of Grist to run on this server.": "Choose which edition of Grist to run on this server.",
+        "Community Edition": "Community Edition",
+        "Confirm edition": "Confirm edition",
+        "Edition": "Edition",
+        "Full Grist": "Full Grist",
+        "Full Grist is enabled via environment variable.": "Full Grist is enabled via environment variable.",
+        "I understand I am running Grist Community Edition": "I understand I am running Grist Community Edition",
+        "Learn more.": "Learn more.",
+        "On": "On",
+        "See how to enable it.": "See how to enable it.",
+        "The free and open-source heart of Grist, with everything you need to open and edit Grist documents, control access, create forms, connect to single sign-on (SSO) providers, and much more.": "The free and open-source heart of Grist, with everything you need to open and edit Grist documents, control access, create forms, connect to single sign-on (SSO) providers, and much more.",
+        "The full Grist experience, with all features enabled for improved security, governance, and collaboration.": "The full Grist experience, with all features enabled for improved security, governance, and collaboration.",
+        "You have 30 days to enter an activation key. Free activation keys are available to individuals and small orgs with less than US $1 million in total annual funding. {{learnMoreLink}} For larger orgs, see {{pricingLink}}.": "You have 30 days to enter an activation key. Free activation keys are available to individuals and small orgs with less than US $1 million in total annual funding. {{learnMoreLink}} For larger orgs, see {{pricingLink}}.",
+        "Your installation does not bundle the Full Grist edition. Want Full Grist? {{enableLink}}": "Your installation does not bundle the Full Grist edition. Want Full Grist? {{enableLink}}",
+        "community": "community",
+        "full": "full",
+        "pricing": "pricing"
+    },
+    "QuickSetupServerStep": {
+        "Apply and Continue": "Apply and Continue",
+        "Base URL": "Base URL",
+        "Confirm base URL and edition to continue": "Confirm base URL and edition to continue",
+        "Confirm base URL to continue": "Confirm base URL to continue",
+        "Confirm edition to continue": "Confirm edition to continue",
+        "Continue": "Continue",
+        "Edition": "Edition",
+        "Server": "Server",
+        "Set your server's base URL and choose which edition of Grist to run.": "Set your server's base URL and choose which edition of Grist to run."
     }
 }
