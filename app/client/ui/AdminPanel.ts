@@ -235,7 +235,7 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
     this._authCheck = Computed.create(this, (use) => {
       return this._checks.requestCheckById(use, "authentication");
     });
-    this._loginProvider = this._checks.getLoginProvider();
+    this._loginProvider = this._checks.buildLoginProviderObs(this);
   }
 
   public buildDom() {

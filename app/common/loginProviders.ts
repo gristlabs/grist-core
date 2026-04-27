@@ -27,7 +27,10 @@ export const DEPRECATED_PROVIDERS: string[] = [
   GRIST_CONNECT_PROVIDER_KEY,
 ];
 
-// Providers that are not "real" authentication — they don't involve a login flow.
+// Providers without a real login flow. BOOT_KEY_PROVIDER_KEY is deliberately
+// listed here: it does authenticate the install admin via a shared secret, but
+// the admin panel treats it as a no-auth fallback that should still prompt the
+// operator to configure a real provider.
 const NON_AUTH_PROVIDERS = new Set([
   MINIMAL_PROVIDER_KEY,
   BOOT_KEY_PROVIDER_KEY,

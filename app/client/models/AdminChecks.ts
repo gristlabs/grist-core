@@ -81,11 +81,12 @@ export class AdminChecks {
   }
 
   /**
-   * Returns an observable of the current login provider name from the
-   * authentication boot probe (e.g. "oidc", "saml", "minimal").
+   * Builds an observable of the current login provider name from the
+   * authentication boot probe (e.g. "oidc", "saml", "minimal"). The caller
+   * owns the returned observable via the `owner` argument.
    */
-  public getLoginProvider(): Observable<string | undefined> {
-    return Computed.create(this._parent, (use) => {
+  public buildLoginProviderObs(owner: Disposable): Observable<string | undefined> {
+    return Computed.create(owner, (use) => {
       const req = this.requestCheckById(use, "authentication");
       const result = req ? use(req.result) : undefined;
       if (result?.status === "success") {

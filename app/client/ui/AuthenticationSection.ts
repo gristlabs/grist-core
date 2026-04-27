@@ -11,7 +11,7 @@ import {
   cssWellTitle,
 } from "app/client/ui/AdminPanelCss";
 import { ChangeAdminModal } from "app/client/ui/ChangeAdminModal";
-import { GetGristComProviderInfoModal } from "app/client/ui/GetGristComProvider";
+import { GetGristComProviderInfoModal, getGristComProviderMeta } from "app/client/ui/GetGristComProvider";
 import { basicButton, bigBasicButton, bigPrimaryButton, textButton } from "app/client/ui2018/buttons";
 import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
 import { theme, vars } from "app/client/ui2018/cssVars";
@@ -28,10 +28,10 @@ import {
   GETGRIST_COM_PROVIDER_KEY,
   GRIST_CONNECT_PROVIDER_KEY,
   isRealProvider,
-  MINIMAL_PROVIDER_KEY,
   OIDC_PROVIDER_KEY,
   SAML_PROVIDER_KEY,
 } from "app/common/loginProviders";
+import { getGristConfig } from "app/common/urlUtils";
 
 import { Computed, Disposable, dom, makeTestId, Observable, styled } from "grainjs";
 
@@ -39,7 +39,12 @@ const t = makeT("AuthenticationSection");
 
 const testId = makeTestId("test-admin-auth-");
 
-const noAuthAcknowledged = localStorageBoolObs("noAuthAcknowledged");
+// Scope the acknowledgement to this installation, so the same browser used
+// to administer multiple Grist installations doesn't carry the dismissal across.
+const installationId = getGristConfig().activation?.installationId;
+const noAuthAcknowledged = localStorageBoolObs(
+  installationId ? `noAuthAcknowledged:${installationId}` : "noAuthAcknowledged",
+);
 
 interface AuthenticationSectionOptions {
   appModel: AppModel;
@@ -120,7 +125,7 @@ export class AuthenticationSection extends Disposable {
   private _makeLoginSystemId(): Observable<string | undefined> {
     const checks = new AdminChecks(this, this._installAPI);
     checks.fetchAvailableChecks().catch(reportError);
-    return checks.getLoginProvider();
+    return checks.buildLoginProviderObs(this);
   }
 
   private async _fetchProviders() {
@@ -236,13 +241,17 @@ authentication system.",
   }
 
   private _configureProvider(provider: AuthProvider) {
-    const configModal = BaseInformationModal.for(provider);
-    if (configModal) {
-      configModal.show(() => {
+    if (provider.key === GETGRIST_COM_PROVIDER_KEY) {
+      const m = new GetGristComProviderInfoModal();
+      m.show(() => {
         this._recentlyConfigured.add(provider.key);
         this._fetchProviders().catch(reportError);
       });
-      this.onDispose(() => configModal.isDisposed() ? void 0 : configModal.dispose());
+      this.onDispose(() => m.isDisposed() ? void 0 : m.dispose());
+    } else if (PROVIDER_META_BUILDERS[provider.key]) {
+      const m = new InformationModal(provider);
+      m.show();
+      this.onDispose(() => m.isDisposed() ? void 0 : m.dispose());
     }
   }
 
@@ -336,72 +345,135 @@ authentication system.",
 }
 
 /**
- * Base class for authentication provider info/configuration modals.
- *
- * Each subclass holds per-provider metadata (description, heroDesc, docsUrl)
- * used by both the modal and the hero/card rendering. The `for()` factory
- * creates the right subclass for a given provider key.
+ * Per-provider metadata used by both the auth section rendering and the
+ * read-only configuration modal (`InformationModal`). Held as plain data --
+ * no Disposable lifecycle, no subclasses -- so render functions can read it
+ * without any object construction.
  */
 interface ProviderMeta {
+  /** Short description for provider cards. */
   description: string;
+  /** Longer description for the hero card when this provider is active. */
   heroDesc: string;
+  /** Link to setup documentation. */
   docsUrl: string;
+  /** Paragraphs shown in the configuration modal. */
+  modalDescription: string[];
+  /** Instruction shown at the bottom of the configuration modal. */
+  modalInstruction: string;
 }
 
-abstract class BaseInformationModal extends Disposable {
-  /**
-   * Factory method to create the appropriate modal for a provider.
-   */
-  public static for(provider: AuthProvider) {
-    switch (provider.key) {
-      case OIDC_PROVIDER_KEY:
-        return new OIDCInformationModal(provider);
-      case SAML_PROVIDER_KEY:
-        return new SAMLInformationModal(provider);
-      case FORWARD_AUTH_PROVIDER_KEY:
-        return new ForwardedHeadersInfoModal(provider);
-      case GRIST_CONNECT_PROVIDER_KEY:
-        return new GristConnectInfoModal(provider);
-      case GETGRIST_COM_PROVIDER_KEY:
-        return new GetGristComProviderInfoModal();
-      default:
-        throw new Error(`No configuration modal available for provider key: ${provider.key}`);
-    }
-  }
+const DEFAULT_PROVIDER_META: ProviderMeta = {
+  description: "",
+  heroDesc: "",
+  docsUrl: "",
+  modalDescription: [],
+  modalInstruction: "",
+};
 
-  /**
-   * Returns provider metadata without creating a Disposable modal instance.
-   * Results are cached — safe to call from render functions.
-   */
-  public static metaFor(provider: AuthProvider): ProviderMeta {
-    let meta = BaseInformationModal._metaCache.get(provider.key);
-    if (!meta) {
-      const instance = BaseInformationModal.for(provider);
-      meta = {
-        description: instance.description,
-        heroDesc: instance.heroDesc,
-        docsUrl: instance.docsUrl,
-      };
-      instance.dispose();
-      BaseInformationModal._metaCache.set(provider.key, meta);
-    }
-    return meta;
-  }
+// Translation calls are deferred to first read so locale changes are picked up.
+const PROVIDER_META_BUILDERS: Record<string, () => ProviderMeta> = {
+  [OIDC_PROVIDER_KEY]: () => {
+    const docsUrl = "https://support.getgrist.com/install/oidc";
+    return {
+      description: t("Works with most identity providers (Google, Azure AD, Keycloak, etc.)."),
+      heroDesc: t("Your server is configured to authenticate users via OpenID Connect. \
+Users sign in through your identity provider."),
+      docsUrl,
+      modalDescription: [
+        t("**OIDC** allows users on your Grist server to sign in using an external identity provider that \
+supports the OpenID Connect standard."),
+        t("When signing in, users will be redirected to your chosen identity provider's login page to \
+authenticate. After successful authentication, they'll be redirected back to your Grist server and \
+signed in as the user verified by the provider."),
+      ],
+      modalInstruction: t("To set up **OIDC**, follow the instructions in \
+[the Grist support article for OIDC]({{url}}).", { url: docsUrl }),
+    };
+  },
+  [SAML_PROVIDER_KEY]: () => {
+    const docsUrl = "https://support.getgrist.com/install/saml/";
+    return {
+      description: t("For enterprise identity providers (Okta, OneLogin, etc.)."),
+      heroDesc: t("Your server is configured to authenticate users via SAML 2.0. \
+Users sign in through your enterprise identity provider."),
+      docsUrl,
+      modalDescription: [
+        t("**SAML** allows users on your Grist server to sign in using an external identity provider that \
+supports the SAML 2.0 standard."),
+        t("When signing in, users will be redirected to your chosen identity provider's login page to \
+authenticate. After successful authentication, they'll be redirected back to your Grist server and \
+signed in as the user verified by the provider."),
+      ],
+      modalInstruction: t("To set up **SAML**, follow the instructions in \
+[the Grist support article for SAML]({{url}}).", { url: docsUrl }),
+    };
+  },
+  [FORWARD_AUTH_PROVIDER_KEY]: () => {
+    const docsUrl = "https://support.getgrist.com/install/forwarded-headers/";
+    return {
+      description: t("For reverse proxy setups (Traefik, Authelia, etc.)."),
+      heroDesc: t("Your server trusts authentication from a reverse proxy. \
+Make sure only your proxy can reach the Grist backend."),
+      docsUrl,
+      modalDescription: [
+        t("**Forwarded headers** allows your Grist server to trust authentication performed by an external \
+proxy (e.g. Traefik ForwardAuth)."),
+        t("When a user accesses Grist, the proxy handles authentication and forwards verified user information \
+through HTTP headers. Grist uses these headers to identify the user."),
+      ],
+      modalInstruction: t("To set up **forwarded headers**, follow the instructions in \
+[the Grist support article for forwarded headers]({{url}}).", { url: docsUrl }),
+    };
+  },
+  [GRIST_CONNECT_PROVIDER_KEY]: () => {
+    const docsUrl = "https://support.getgrist.com/install/grist-connect/";
+    return {
+      description: t("Managed login solution by Grist Labs (deprecated)."),
+      heroDesc: t("This login mechanism is deprecated."),
+      docsUrl,
+      modalDescription: [
+        t("**Grist Connect** is a login solution built and maintained by Grist Labs that integrates seamlessly \
+with your Grist server."),
+        t("When signing in, users will be redirected to a Grist Connect login page where they can authenticate \
+using various identity providers. After authentication, they'll be redirected back to your Grist server \
+and signed in."),
+      ],
+      modalInstruction: t("To set up **Grist Connect**, follow the instructions in \
+[the Grist support article for Grist Connect]({{url}}).", { url: docsUrl }),
+    };
+  },
+  // The getgrist.com modal has its own custom UI; only the card/hero fields are needed here.
+  [GETGRIST_COM_PROVIDER_KEY]: () => ({
+    ...getGristComProviderMeta(),
+    modalDescription: [],
+    modalInstruction: "",
+  }),
+};
 
-  private static _metaCache = new Map<string, ProviderMeta>();
+const _providerMetaCache = new Map<string, ProviderMeta>();
 
-  /** Short description for provider cards. */
-  public description: string = "";
-  /** Longer description for the hero card when this provider is active. */
-  public heroDesc: string = t("Your server has authentication configured.");
-  /** Link to setup documentation. */
-  public docsUrl: string = "";
+function getProviderMeta(provider: AuthProvider): ProviderMeta {
+  const cached = _providerMetaCache.get(provider.key);
+  if (cached) { return cached; }
+  const builder = PROVIDER_META_BUILDERS[provider.key];
+  const meta = builder ? builder() : DEFAULT_PROVIDER_META;
+  _providerMetaCache.set(provider.key, meta);
+  return meta;
+}
 
-  constructor(protected _provider: AuthProvider) {
+/**
+ * Read-only configuration modal for providers that just describe themselves
+ * and link to setup docs (OIDC, SAML, ForwardAuth, Grist Connect). The
+ * getgrist.com provider has its own modal (`GetGristComProviderInfoModal`).
+ */
+class InformationModal extends Disposable {
+  constructor(private _provider: AuthProvider) {
     super();
   }
 
   public show() {
+    const meta = getProviderMeta(this._provider);
     return modal((ctl, owner) => [
       () => {
         this.onDispose(() => {
@@ -418,11 +490,11 @@ abstract class BaseInformationModal extends Disposable {
         testId("modal-header"),
       ),
       cssModalDescription(
-        ...this.getDescription().map(desc => dom("p", cssMarkdownSpan(desc))),
+        ...meta.modalDescription.map(desc => dom("p", cssMarkdownSpan(desc))),
       ),
       cssModalInstructions(
         dom("h3", t("Instructions")),
-        cssMarkdownSpan(this.getInstruction()),
+        cssMarkdownSpan(meta.modalInstruction),
       ),
       cssModalButtons(
         bigPrimaryButton(
@@ -434,110 +506,6 @@ abstract class BaseInformationModal extends Disposable {
       ),
     ]);
   }
-
-  protected abstract getDescription(): string[];
-  protected abstract getInstruction(): string;
-}
-
-/**
- * Modal for configuring OIDC authentication.
- */
-class OIDCInformationModal extends BaseInformationModal {
-  public description = t("Works with most identity providers (Google, Azure AD, Keycloak, etc.).");
-  public heroDesc = t("Your server is configured to authenticate users via OpenID Connect. \
-Users sign in through your identity provider.");
-
-  public docsUrl = "https://support.getgrist.com/install/oidc";
-
-  protected getDescription(): string[] {
-    return [
-      t("**OIDC** allows users on your Grist server to sign in using an external identity provider that \
-supports the OpenID Connect standard."),
-      t("When signing in, users will be redirected to your chosen identity provider's login page to \
-authenticate. After successful authentication, they'll be redirected back to your Grist server and \
-signed in as the user verified by the provider."),
-    ];
-  }
-
-  protected getInstruction(): string {
-    return t("To set up **OIDC**, follow the instructions in \
-[the Grist support article for OIDC]({{url}}).", { url: this.docsUrl });
-  }
-}
-
-/**
- * Modal for configuring SAML authentication.
- */
-class SAMLInformationModal extends BaseInformationModal {
-  public description = t("For enterprise identity providers (Okta, OneLogin, etc.).");
-  public heroDesc = t("Your server is configured to authenticate users via SAML 2.0. \
-Users sign in through your enterprise identity provider.");
-
-  public docsUrl = "https://support.getgrist.com/install/saml/";
-
-  protected getDescription(): string[] {
-    return [
-      t("**SAML** allows users on your Grist server to sign in using an external identity provider that \
-supports the SAML 2.0 standard."),
-      t("When signing in, users will be redirected to your chosen identity provider's login page to \
-authenticate. After successful authentication, they'll be redirected back to your Grist server and \
-signed in as the user verified by the provider."),
-    ];
-  }
-
-  protected getInstruction(): string {
-    return t("To set up **SAML**, follow the instructions in \
-[the Grist support article for SAML]({{url}}).", { url: this.docsUrl });
-  }
-}
-
-/**
- * Modal for configuring forwarded headers authentication.
- */
-class ForwardedHeadersInfoModal extends BaseInformationModal {
-  public description = t("For reverse proxy setups (Traefik, Authelia, etc.).");
-  public heroDesc = t("Your server trusts authentication from a reverse proxy. \
-Make sure only your proxy can reach the Grist backend.");
-
-  public docsUrl = "https://support.getgrist.com/install/forwarded-headers/";
-
-  protected getDescription(): string[] {
-    return [
-      t("**Forwarded headers** allows your Grist server to trust authentication performed by an external \
-proxy (e.g. Traefik ForwardAuth)."),
-      t("When a user accesses Grist, the proxy handles authentication and forwards verified user information \
-through HTTP headers. Grist uses these headers to identify the user."),
-    ];
-  }
-
-  protected getInstruction(): string {
-    return t("To set up **forwarded headers**, follow the instructions in \
-[the Grist support article for forwarded headers]({{url}}).", { url: this.docsUrl });
-  }
-}
-
-/**
- * Modal for configuring Grist Connect authentication.
- */
-class GristConnectInfoModal extends BaseInformationModal {
-  public description = t("Managed login solution by Grist Labs (deprecated).");
-  public heroDesc = t("This login mechanism is deprecated.");
-  public docsUrl = "https://support.getgrist.com/install/grist-connect/";
-
-  protected getDescription(): string[] {
-    return [
-      t("**Grist Connect** is a login solution built and maintained by Grist Labs that integrates seamlessly \
-with your Grist server."),
-      t("When signing in, users will be redirected to a Grist Connect login page where they can authenticate \
-using various identity providers. After authentication, they'll be redirected back to your Grist server \
-and signed in."),
-    ];
-  }
-
-  protected getInstruction(): string {
-    return t("To set up **Grist Connect**, follow the instructions in \
-[the Grist support article for Grist Connect]({{url}}).", { url: this.docsUrl });
-  }
 }
 
 // =========================================================================
@@ -545,14 +513,14 @@ and signed in."),
 // panel (via AuthenticationSection) and Storybook (via buildAuthSectionPreview).
 // =========================================================================
 
-interface HeroCardContext {
+export interface HeroCardContext {
   adminEmail: string;
   onChangeAdmin?: () => void;
   onReconfigure?: () => void;
   onDeactivate?: () => void;
 }
 
-interface ProviderListContext {
+export interface ProviderListContext {
   onSetActive?: (provider: AuthProvider) => void;
   onConfigure?: (provider: AuthProvider) => void;
   collapsible?: boolean;
@@ -560,7 +528,7 @@ interface ProviderListContext {
   collapseOnNoAuth?: boolean;
 }
 
-interface AuthSectionContext {
+export interface AuthSectionContext {
   heroCtx: HeroCardContext;
   listCtx: ProviderListContext;
   recentlyConfigured?: ReadonlySet<string>;
@@ -573,7 +541,7 @@ interface AuthSectionContext {
  * Assembles the complete auth section: hero card + provider list.
  * Single code path shared by the live admin panel and the Storybook preview.
  */
-function buildAuthSection(
+export function buildAuthSection(
   providers: AuthProvider[],
   ctx: AuthSectionContext,
 ): HTMLElement {
@@ -686,7 +654,7 @@ Configure one of the authentication methods below."),
   }
 
   const error = getVisibleError(hero, recentlyConfigured);
-  const meta = BaseInformationModal.metaFor(hero);
+  const meta = getProviderMeta(hero);
   const variant = error ? "-error" : hero.isActive ? "-success" : "-pending";
 
   let descText: string | undefined;
@@ -732,7 +700,7 @@ function buildProviderCard(
   ctx: ProviderListContext = {},
 ): HTMLElement {
   const error = getVisibleError(provider, recentlyConfigured);
-  const meta = BaseInformationModal.metaFor(provider);
+  const meta = getProviderMeta(provider);
   let borderVariant: string | null = null;
   if (provider.isActive) {
     borderVariant = "-border-active";
@@ -827,29 +795,6 @@ function buildProviderList(
   );
 }
 
-/**
- * Renders a static preview of the authentication section for a given
- * list of providers. Used by Storybook to visualize every hero/card
- * state without needing the full app model or API layer.
- */
-export function buildAuthSectionPreview(providers: AuthProvider[]): HTMLElement {
-  return cssPreviewContainer(
-    buildAuthSection(providers, {
-      heroCtx: {
-        adminEmail: "admin@example.com",
-        onReconfigure: () => {},
-        onDeactivate: () => {},
-      },
-      listCtx: {},
-      loginSystemId: MINIMAL_PROVIDER_KEY,
-    }),
-  );
-}
-
-const cssPreviewContainer = styled("div", `
-  max-width: 700px;
-`);
-
 const cssHeroCard = styled("div", `
   padding: 16px 20px;
   border-radius: 8px;
@@ -936,10 +881,14 @@ const cssProviderListHeaderClickable = styled(cssProviderListHeader, `
   &:hover {
     color: ${theme.text};
   }
+  /* Inset the focus ring with box-shadow so it isn't clipped by ancestor
+     overflow boundaries (the section sits inside a card with overflow:hidden). */
   &:focus-visible {
-    outline: 2px solid ${theme.controlFg};
-    outline-offset: 2px;
-    border-radius: 2px;
+    outline: none;
+    box-shadow: inset 0 0 0 2px ${theme.controlFg};
+    border-radius: 4px;
+    padding: 2px 4px;
+    margin: -2px -4px;
   }
 `);
 

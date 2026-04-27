@@ -1,7 +1,31 @@
-import { buildAuthSectionPreview } from "app/client/ui/AuthenticationSection";
+import { buildAuthSection } from "app/client/ui/AuthenticationSection";
 import { AuthProvider } from "app/common/ConfigAPI";
+import { MINIMAL_PROVIDER_KEY } from "app/common/loginProviders";
 
 import { dom, styled } from "grainjs";
+
+/**
+ * Storybook-only preview wrapper. Renders the auth section against fixture
+ * providers, with no-op admin actions and a "minimal" boot probe so the
+ * no-auth hero shows when nothing is active.
+ */
+function buildAuthSectionPreview(providers: AuthProvider[]): HTMLElement {
+  return cssPreviewContainer(
+    buildAuthSection(providers, {
+      heroCtx: {
+        adminEmail: "admin@example.com",
+        onReconfigure: () => {},
+        onDeactivate: () => {},
+      },
+      listCtx: {},
+      loginSystemId: MINIMAL_PROVIDER_KEY,
+    }),
+  );
+}
+
+const cssPreviewContainer = styled("div", `
+  max-width: 700px;
+`);
 
 export default {
   title: "Admin / Authentication Section",
