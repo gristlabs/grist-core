@@ -1,8 +1,7 @@
 import { makeT } from "app/client/lib/localization";
 import { getHomeUrl } from "app/client/models/AppModel";
-import { reportError } from "app/client/models/errors";
+import { quickSetupStepHeader } from "app/client/ui/QuickSetupStepHeader";
 import { BadgeConfig, buildCardList, buildHeroCard, buildItemCard } from "app/client/ui/SetupCard";
-import { bigPrimaryButton } from "app/client/ui2018/buttons";
 import { theme, vars } from "app/client/ui2018/cssVars";
 import { loadingSpinner } from "app/client/ui2018/loaders";
 import { ConfigAPI } from "app/common/ConfigAPI";
@@ -10,7 +9,7 @@ import { delay } from "app/common/delay";
 import { InstallAPIImpl } from "app/common/InstallAPI";
 import { SandboxInfo, SandboxingStatus } from "app/common/SandboxInfo";
 
-import { Disposable, dom, DomContents, makeTestId, Observable, styled, UseCB } from "grainjs";
+import { Computed, Disposable, dom, DomContents, makeTestId, Observable, styled, UseCB, UseCBOwner } from "grainjs";
 
 const t = makeT("SandboxSection");
 const testId = makeTestId("test-sandbox-section-");
@@ -55,10 +54,12 @@ abstract class SandboxSectionBase extends Disposable {
     return !!this._model.get()?.flavorInEnv;
   }
 
-  protected _needsRestart() {
-    if (this._isLockedByEnv()) { return false; }
-    const selected = this._selected.get();
-    return !!selected && selected !== this._model.get()?.current;
+  /** Computed: true when a different flavor is selected than currently active and not env-locked. */
+  protected _needsRestart(): Computed<boolean> {
+    return Computed.create(this, this._model, this._selected, (_, model, selected) => {
+      if (model?.flavorInEnv) { return false; }
+      return !!selected && selected !== model?.current;
+    });
   }
 
   protected async _save() {
@@ -148,11 +149,12 @@ abstract class SandboxSectionBase extends Disposable {
     });
 
     return dom("div",
-      cssStepTitle(t("Sandboxing")),
-      cssStepDescription(
-        t("Grist runs user formulas as Python code. Sandboxing isolates this execution " +
+      quickSetupStepHeader({
+        icon: "Lock",
+        title: t("Sandboxing"),
+        description: t("Grist runs user formulas as Python code. Sandboxing isolates this execution " +
           "to protect your server. Without it, document formulas can access the full system."),
-      ),
+      }),
 
       isLockedByEnv ? cssEnvWarning(
         t("Sandbox type is set via the GRIST_SANDBOX_FLAVOR environment variable " +
@@ -201,53 +203,41 @@ abstract class SandboxSectionBase extends Disposable {
 }
 
 /**
- * Sandbox section for the Setup wizard. Includes a Continue button that
- * saves the selection and advances to the next step.
+ * Sandbox section for QuickSetup. Conforms to {@link QuickSetupSection} so
+ * the QuickSetup step builder can drop in a shared continue button.
  */
 export class SandboxSetupSection extends SandboxSectionBase {
-  private _saving = Observable.create(this, false);
+  /** Always true once the model has loaded — there's always a default selection. */
+  public readonly canProceed: Computed<boolean> = Computed.create(this, this._selected, (_, s) => !!s);
 
-  constructor(private _onContinue: () => void) {
-    super();
-  }
+  /** True when a different flavor is selected than what's currently active (and not env-locked). */
+  public readonly hasPendingChanges = this._needsRestart();
 
-  protected _buildFooter(): DomContents {
-    return cssContinueRow(
-      bigPrimaryButton(
-        dom.domComputed((use) => {
-          if (use(this._saving)) { return cssInlineSpinner(cssSmallSpinner(), t("Applying...")); }
-          const s = use(this._model);
-          if (s?.flavorInEnv) { return t("Skip and Continue"); }
-          const selected = use(this._selected);
-          return selected && selected !== s?.current ?
-            t("Apply and Continue") : t("Continue");
-        }),
-        dom.boolAttr("disabled", this._saving),
-        dom.on("click", () => this._saveAndContinue()),
-        testId("continue"),
-      ),
-    );
-  }
+  /** True while {@link applyPendingChanges} is in flight. */
+  public readonly isApplying: Observable<boolean> = Observable.create(this, false);
 
-  private async _saveAndContinue() {
-    if (this._saving.get()) { return; }
-    this._saving.set(true);
+  /** Persist the selected flavor and restart the server. No-op when env-locked or unchanged. */
+  public async applyPendingChanges(): Promise<void> {
+    if (this.isApplying.get()) { return; }
+    const willRestart = this.hasPendingChanges.get();
+    this.isApplying.set(true);
     try {
       await this._save();
-      if (this._needsRestart()) {
+      if (willRestart) {
         await this._configAPI.restartServer();
         // Brief delay so we don't catch the server before it's begun
         // restarting; waitUntilReady then polls for ~30s.
         await delay(2000);
         await this._configAPI.waitUntilReady();
       }
-    } catch (e) {
-      reportError(e);
-      this._saving.set(false);
-      return;
+    } finally {
+      if (!this.isDisposed()) { this.isApplying.set(false); }
     }
-    this._saving.set(false);
-    this._onContinue();
+  }
+
+  /** Returns "Skip and Continue" when env-locked; otherwise null to use shared defaults. */
+  public customLabel(use: UseCBOwner): string | null {
+    return use(this._model)?.flavorInEnv ? t("Skip and Continue") : null;
   }
 }
 
@@ -278,42 +268,6 @@ function sandboxDescription(key: string): string {
       return "";
   }
 }
-
-const cssStepTitle = styled("div", `
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 8px;
-`);
-
-const cssStepDescription = styled("div", `
-  font-size: 14px;
-  color: ${theme.lightText};
-  line-height: 1.5;
-  margin-bottom: 20px;
-`);
-
-const cssContinueRow = styled("div", `
-  display: flex;
-  justify-content: stretch;
-  margin-top: 24px;
-  gap: 12px;
-  & > * {
-    flex: 1;
-  }
-`);
-
-const cssInlineSpinner = styled("div", `
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-`);
-
-const cssSmallSpinner = styled(loadingSpinner, `
-  width: 16px;
-  height: 16px;
-  border-width: 2px;
-`);
 
 const cssLoading = styled("div", `
   display: flex;

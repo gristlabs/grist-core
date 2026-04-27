@@ -1,9 +1,9 @@
 import { makeT } from "app/client/lib/localization";
 import { AdminChecks } from "app/client/models/AdminChecks";
 import { AdminPanelControls, cssDangerText, cssHappyText } from "app/client/ui/AdminPanelCss";
-import { cssValueLabel } from "app/client/ui/SettingsLayout";
+import { quickSetupStepHeader } from "app/client/ui/QuickSetupStepHeader";
+import { cssCardSurface, cssValueLabel } from "app/client/ui/SettingsLayout";
 import { colors } from "app/client/ui2018/cssVars";
-import { icon } from "app/client/ui2018/icons";
 import { cssLink } from "app/client/ui2018/links";
 import { loadingSpinner } from "app/client/ui2018/loaders";
 import { BackupsBootProbeDetails } from "app/common/BootProbe";
@@ -76,6 +76,15 @@ export interface BackupsSectionProps {
 export class BackupsSection extends Disposable {
   public readonly canProceed: Computed<boolean>;
 
+  /**
+   * Backups is currently informational -- enabling a backend is done out of
+   * band by setting env vars and restarting. So nothing is ever pending here
+   * and {@link applyPendingChanges} is a no-op. Both are kept as part of the
+   * shared {@link QuickSetupSection} shape across all setup steps.
+   */
+  public readonly hasPendingChanges = Computed.create(this, () => false);
+  public readonly isApplying = Observable.create<boolean>(this, false);
+
   private readonly _backupsProbeDetails = Computed.create(this, use => this._getBackupsProbeDetails(use));
   private readonly _activeBackend = Computed.create(this, use => use(this._backupsProbeDetails)?.backend);
   private readonly _availableBackends = Computed.create(this, use => use(this._backupsProbeDetails)?.availableBackends);
@@ -87,16 +96,19 @@ export class BackupsSection extends Disposable {
     this.canProceed = Computed.create(this, this._selectedBackend, (_use, backend) => !!backend);
   }
 
+  public async applyPendingChanges(): Promise<void> { /* no-op */ }
+
   public buildDom() {
     return cssSection(
-      this._props.controls ? null : cssTitle(
-        icon("Database"),
-        cssTitleText(t("Backups")),
-      ),
-      cssDescription(
+      this._props.controls ? cssDescription(
         t("Store document backups on an external service like S3 or Azure. \
           This protects against data loss if the server's disk fails."),
-      ),
+      ) : quickSetupStepHeader({
+        icon: "Database",
+        title: t("Backups"),
+        description: t("Store document backups on an external service like S3 or Azure. " +
+          "This protects against data loss if the server's disk fails."),
+      }),
       this._buildBackendCards(),
     );
   }
@@ -234,20 +246,6 @@ const cssSection = styled("div", `
   gap: 12px;
 `);
 
-const cssTitle = styled("div", `
-  --icon-color: ${tokens.primary};
-  align-items: center;
-  display: flex;
-  gap: 10px;
-  margin-bottom: 4px;
-`);
-
-const cssTitleText = styled("div", `
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: -0.2px;
-`);
-
 const cssDescription = styled("div", `
   color: ${tokens.secondary};
   line-height: 1.55;
@@ -270,24 +268,20 @@ const cssBackendCards = styled("div", `
   gap: 8px;
 `);
 
-const cssBackendCard = styled("div", `
+const cssBackendCard = styled(cssCardSurface, `
   align-items: flex-start;
-  border: 1px solid ${tokens.decoration};
-  border-radius: 8px;
   cursor: pointer;
   display: flex;
   gap: 12px;
   padding: 14px 18px;
-  transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
+  transition: border-color 0.2s, background-color 0.2s;
 
   &:hover {
     border-color: ${tokens.primary};
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   }
   &-selected {
     background-color: ${components.lightHover};
     border-color: ${tokens.primary};
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   }
   &-disabled {
     border-color: ${tokens.decorationSecondary};

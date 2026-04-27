@@ -12,6 +12,8 @@ import {
 } from "app/client/ui/AdminPanelCss";
 import { ChangeAdminModal } from "app/client/ui/ChangeAdminModal";
 import { GetGristComProviderInfoModal, getGristComProviderMeta } from "app/client/ui/GetGristComProvider";
+import { quickSetupStepHeader } from "app/client/ui/QuickSetupStepHeader";
+import { cssCardSurface } from "app/client/ui/SettingsLayout";
 import { basicButton, bigBasicButton, bigPrimaryButton, textButton } from "app/client/ui2018/buttons";
 import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
 import { theme, vars } from "app/client/ui2018/cssVars";
@@ -68,6 +70,17 @@ export class AuthenticationSection extends Disposable {
    */
   public canProceed: Computed<boolean>;
 
+  /**
+   * True when there are saved changes that won't take effect until the
+   * server restarts: a provider that will be active on next boot, or
+   * deferred install-prefs (admin email changes). Drives the QuickSetup
+   * "Apply and Continue" / "Continue" button label.
+   */
+  public hasPendingChanges: Computed<boolean>;
+
+  /** True while {@link applyPendingChanges} is in flight. */
+  public isApplying = Observable.create<boolean>(this, false);
+
   private _appModel = this._options.appModel;
   private _installAPI = this._options.installAPI ?? new InstallAPIImpl(getHomeUrl());
   /** True when embedded in the admin panel (vs. the setup wizard). */
@@ -113,12 +126,50 @@ export class AuthenticationSection extends Disposable {
       return !!loginSystemId && isRealProvider(loginSystemId);
     });
 
+    this.hasPendingChanges = Computed.create(this, (use) => {
+      if (use(this._hasActiveOnRestartProvider)) { return true; }
+      const prefs = use(this._prefsPendingChanges);
+      return Boolean(prefs?.onRestartSetAdminEmail || prefs?.onRestartReplaceEmailWithAdmin);
+    });
+
     this._fetchProviders().catch(reportError);
     this._fetchPrefsPendingChanges().catch(reportError);
   }
 
+  /**
+   * Apply pending auth changes by restarting the server and waiting until
+   * it's ready again. The relevant config writes have already happened
+   * inline (via the configuration modals); this is purely the restart so
+   * the new config takes effect. After restart, re-fetches providers and
+   * prefs so the section reflects the post-restart state.
+   *
+   * No-op when there are no pending changes. Throws on restart timeout.
+   */
+  public async applyPendingChanges(): Promise<void> {
+    if (!this.hasPendingChanges.get()) { return; }
+    if (this.isApplying.get()) { return; }
+    this.isApplying.set(true);
+    try {
+      await this._configAPI.restartServer();
+      if (!await this._configAPI.waitUntilReady()) {
+        throw new Error("Timed out waiting for Grist server to restart");
+      }
+      if (this.isDisposed()) { return; }
+      await this._fetchProviders();
+      if (this.isDisposed()) { return; }
+      await this._fetchPrefsPendingChanges();
+    } finally {
+      if (!this.isDisposed()) { this.isApplying.set(false); }
+    }
+  }
+
   public buildDom() {
     return [
+      this._inAdminPanel ? null : quickSetupStepHeader({
+        icon: "AddUser",
+        title: t("Authentication"),
+        description: t("Choose how users sign in to Grist."),
+      }),
       dom.domComputed((use) => {
         const providers = use(this._providers);
         const loginSystemId = use(this._loginSystemId);
@@ -802,10 +853,8 @@ function buildProviderList(
   );
 }
 
-const cssHeroCard = styled("div", `
+const cssHeroCard = styled(cssCardSurface, `
   padding: 16px 20px;
-  border-radius: 8px;
-  border: 1px solid ${theme.menuBorder};
   border-left-width: 4px;
   margin-bottom: 24px;
 
@@ -905,11 +954,9 @@ const cssCollapseIcon = styled(icon, `
   --icon-color: ${theme.lightText};
 `);
 
-const cssMethodsContainer = styled("div", `
+const cssMethodsContainer = styled(cssCardSurface, `
   display: flex;
   flex-direction: column;
-  border: 1px solid ${theme.menuBorder};
-  border-radius: 8px;
   overflow: hidden;
 `);
 

@@ -6,6 +6,7 @@
  *
  * All options are data-driven: plain values or Bindable<T> for reactivity.
  */
+import { cssCardSurface } from "app/client/ui/SettingsLayout";
 import { basicButton } from "app/client/ui2018/buttons";
 import { theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
@@ -358,10 +359,8 @@ const cssTag = styled("span", `
   margin-left: 6px;
 `);
 
-const cssHeroCard = styled("div", `
+const cssHeroCard = styled(cssCardSurface, `
   padding: 16px 20px;
-  border-radius: 8px;
-  border: 1px solid ${theme.menuBorder};
   border-left-width: 4px;
   margin-bottom: 24px;
 
@@ -420,11 +419,9 @@ const cssHeroFooter = styled("div", `
   color: ${theme.lightText};
 `);
 
-const cssItemsContainer = styled("div", `
+const cssItemsContainer = styled(cssCardSurface, `
   display: flex;
   flex-direction: column;
-  border: 1px solid ${theme.menuBorder};
-  border-radius: 8px;
   overflow: hidden;
 `);
 

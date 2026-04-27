@@ -326,7 +326,7 @@ describe("QuickSetupSandbox", function() {
 
   /** Returns the continue button text. */
   async function buttonText() {
-    return driver.find(".test-sandbox-section-continue").getText();
+    return driver.find(".test-quick-setup-sandbox-continue").getText();
   }
 
   /** Returns whether the env-lock warning is visible. */

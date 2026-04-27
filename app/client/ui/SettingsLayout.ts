@@ -187,15 +187,40 @@ export const cssPageTitle = styled("h1", `
   font-weight: ${tokens.headerControlTextWeight};
 `);
 
-export const cssSection = styled("div", `
+/**
+ * Soft drop shadow shared by bordered cards and prominent buttons in the
+ * admin panel and QuickSetup, so both surfaces sit at the same visual depth.
+ * Use as a CSS value: `box-shadow: ${cardSurfaceShadow};`.
+ */
+export const cardSurfaceShadow = `2px 2px 12px 0px ${theme.widgetPickerShadow}`;
+
+/**
+ * Shared visual "card" surface: bordered, rounded, soft drop shadow,
+ * solid background. Used by the admin panel's outer section card and by
+ * the inner cards inside QuickSetup steps so both share the same look.
+ *
+ * Nested instances drop the shadow -- a card-inside-a-card would
+ * otherwise stack two shadows and look heavy. This handles the case
+ * where a section (e.g. AuthenticationSection) renders the same cards
+ * both standalone in QuickSetup and inside the admin panel's outer
+ * SectionCard.
+ */
+export const cssCardSurface = styled("div", `
+  border: 1px solid ${theme.widgetBorder};
+  border-radius: 12px;
+  box-shadow: ${cardSurfaceShadow};
+  background-color: ${tokens.bg};
+
+  & & {
+    box-shadow: none;
+  }
+`);
+
+export const cssSection = styled(cssCardSurface, `
   padding: 16px 32px 24px 32px;
   max-width: 750px;
   width: 100%;
   margin: 0 auto;
-  border: 1px solid ${theme.widgetBorder};
-  border-radius: 12px;
-  box-shadow: 2px 2px 12px 0px ${theme.widgetPickerShadow};
-  background-color: ${tokens.bg};
   &-bare {
     border: none;
     padding: 0px;
