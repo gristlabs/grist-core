@@ -117,6 +117,29 @@ export const RadioOptions = {
 };
 
 /**
+ * Checkboxes with a padded, bordered wrapper — the kind of box-style affordance used
+ * for radio-style options or settings groups. Extend any checkbox builder with
+ * `styled(squareCheckbox, …)` (or `styled(labeledSquareCheckbox, …)`) to add padding,
+ * border, hover styles, etc. directly on the surrounding `cssLabel`.
+ *
+ * `radioCheckboxOption` is the built-in helper that follows this pattern; it composes
+ * `labeledCircleCheckbox` with `cssBlockCheckbox` (padding + border + radio-like
+ * pointer-events) and ties a group of options to a shared observable.
+ */
+export const PaddedWrapper = {
+  render: (_args: any, { owner }: any) => {
+    const a = Observable.create(owner, true);
+    const b = Observable.create(owner, false);
+    const role = Observable.create<"a" | "b">(owner, "a");
+    return cssColumn(
+      cssPaddedSquareCheckbox(a),
+      cssPaddedLabeledSquareCheckbox(b, "labeledSquareCheckbox with padding"),
+      radioCheckboxOption(role, "a", dom("span", "radioCheckboxOption")),
+    );
+  },
+};
+
+/**
  * Toggle switch with animated slide transition.
  * Pass an `Observable<boolean>` and optional `{ label }`.
  */
@@ -152,3 +175,11 @@ const cssColumn = styled("div", `
   align-items: flex-start;
   gap: 12px;
 `);
+
+const cssPadded = `
+  padding: 10px 8px;
+  border: 1px solid #888;
+  border-radius: 3px;
+`;
+const cssPaddedSquareCheckbox = styled(squareCheckbox, cssPadded);
+const cssPaddedLabeledSquareCheckbox = styled(labeledSquareCheckbox, cssPadded);
