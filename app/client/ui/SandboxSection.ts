@@ -28,6 +28,13 @@ abstract class SandboxSectionBase extends Disposable {
   // Observable for user selection.
   protected _selected = Observable.create<string | null>(this, null);
 
+  /** True when a different flavor is selected than what's currently active and not env-locked. */
+  protected readonly _needsRestart: Computed<boolean> =
+    Computed.create(this, this._model, this._selected, (_, model, selected) => {
+      if (model?.flavorInEnv) { return false; }
+      return !!selected && selected !== model?.current;
+    });
+
   constructor() {
     super();
     this._loadStatus().catch((e) => {
@@ -52,14 +59,6 @@ abstract class SandboxSectionBase extends Disposable {
 
   protected _isLockedByEnv() {
     return !!this._model.get()?.flavorInEnv;
-  }
-
-  /** Computed: true when a different flavor is selected than currently active and not env-locked. */
-  protected _needsRestart(): Computed<boolean> {
-    return Computed.create(this, this._model, this._selected, (_, model, selected) => {
-      if (model?.flavorInEnv) { return false; }
-      return !!selected && selected !== model?.current;
-    });
   }
 
   protected async _save() {
@@ -211,23 +210,23 @@ export class SandboxSetupSection extends SandboxSectionBase {
   public readonly canProceed: Computed<boolean> = Computed.create(this, this._selected, (_, s) => !!s);
 
   /** True when a different flavor is selected than what's currently active (and not env-locked). */
-  public readonly hasPendingChanges = this._needsRestart();
+  public readonly isDirty = this._needsRestart;
 
-  /** True while {@link applyPendingChanges} is in flight. */
+  /** True while {@link apply} is in flight. */
   public readonly isApplying: Observable<boolean> = Observable.create(this, false);
 
   /** Persist the selected flavor and restart the server. No-op when env-locked or unchanged. */
-  public async applyPendingChanges(): Promise<void> {
+  public async apply(): Promise<void> {
     if (this.isApplying.get()) { return; }
-    const willRestart = this.hasPendingChanges.get();
+    const willRestart = this.isDirty.get();
     this.isApplying.set(true);
     try {
       await this._save();
       if (willRestart) {
         await this._configAPI.restartServer();
         // Brief delay so we don't catch the server before it's begun
-        // restarting; waitUntilReady then polls for ~30s.
-        await delay(2000);
+        // restarting; waitUntilReady then polls.
+        await delay(500);
         await this._configAPI.waitUntilReady();
       }
     } finally {

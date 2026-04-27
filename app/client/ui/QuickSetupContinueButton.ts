@@ -15,7 +15,7 @@
  */
 import { makeT } from "app/client/lib/localization";
 import { reportError } from "app/client/models/errors";
-import { cssShadowedPrimaryButton } from "app/client/ui/QuickSetupStepHeader";
+import { cssShadowedPrimaryButton } from "app/client/ui/SettingsLayout";
 
 import { Computed, dom, DomElementArg, Observable, styled, UseCBOwner } from "grainjs";
 
@@ -25,14 +25,14 @@ export interface QuickSetupSection {
   /** True when the step's content is in a state the user can move past. */
   canProceed: Computed<boolean>;
   /** True when there are saved-but-not-yet-effective changes (e.g. waiting on a restart). */
-  hasPendingChanges: Computed<boolean>;
-  /** True while {@link applyPendingChanges} is in flight. */
+  isDirty: Computed<boolean>;
+  /** True while {@link apply} is in flight. */
   isApplying: Observable<boolean>;
   /**
    * Persist any pending changes and (if needed) restart the server.
    * No-op if nothing is pending. Owns its own `isApplying` flag.
    */
-  applyPendingChanges(): Promise<void>;
+  apply(): Promise<void>;
   /** Optional per-step label override. Return null/undefined to use the default labels. */
   customLabel?(use: UseCBOwner): string | null | undefined;
 }
@@ -52,13 +52,13 @@ export function quickSetupContinueButton(
         if (use(section.isApplying)) { return t("Applying..."); }
         const override = section.customLabel?.(use);
         if (override) { return override; }
-        return use(section.hasPendingChanges) ? t("Apply and Continue") : t("Continue");
+        return use(section.isDirty) ? t("Apply and Continue") : t("Continue");
       }),
       dom.boolAttr("disabled", use => !use(section.canProceed) || use(section.isApplying)),
       dom.on("click", async () => {
         if (section.isApplying.get()) { return; }
         try {
-          await section.applyPendingChanges();
+          await section.apply();
         } catch (err) {
           reportError(err as Error);
           return;

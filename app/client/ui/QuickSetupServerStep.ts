@@ -3,7 +3,8 @@ import { BaseUrlSection } from "app/client/ui/BaseUrlSection";
 import { DraftChangesManager } from "app/client/ui/DraftChanges";
 import { EditionSection } from "app/client/ui/EditionSection";
 import { quickSetupContinueButton, QuickSetupSection } from "app/client/ui/QuickSetupContinueButton";
-import { cssQuickSetupCard, quickSetupStepHeader } from "app/client/ui/QuickSetupStepHeader";
+import { quickSetupStepHeader } from "app/client/ui/QuickSetupStepHeader";
+import { cssQuickSetupCard } from "app/client/ui/SettingsLayout";
 
 import { Computed, Disposable, dom, DomContents, makeTestId, Observable, styled, UseCBOwner } from "grainjs";
 
@@ -21,7 +22,7 @@ const testId = makeTestId("test-quick-setup-");
  */
 export class QuickSetupServerStep extends Disposable implements QuickSetupSection {
   public canProceed: Computed<boolean>;
-  public hasPendingChanges: Computed<boolean>;
+  public isDirty: Computed<boolean>;
   public isApplying: Observable<boolean>;
 
   private _baseUrl = BaseUrlSection.create(this);
@@ -35,7 +36,7 @@ export class QuickSetupServerStep extends Disposable implements QuickSetupSectio
     this.canProceed = Computed.create(this, use =>
       use(this._baseUrl.canProceed) && use(this._edition.canProceed),
     );
-    this.hasPendingChanges = this._drafts.hasDraftChanges;
+    this.isDirty = this._drafts.hasDraftChanges;
     this.isApplying = this._drafts.isApplying;
   }
 
@@ -49,7 +50,7 @@ export class QuickSetupServerStep extends Disposable implements QuickSetupSectio
     return null;
   }
 
-  public async applyPendingChanges(): Promise<void> {
+  public async apply(): Promise<void> {
     await this._drafts.applyAll();
   }
 

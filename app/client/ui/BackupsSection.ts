@@ -79,10 +79,10 @@ export class BackupsSection extends Disposable {
   /**
    * Backups is currently informational -- enabling a backend is done out of
    * band by setting env vars and restarting. So nothing is ever pending here
-   * and {@link applyPendingChanges} is a no-op. Both are kept as part of the
+   * and {@link apply} is a no-op. Both are kept as part of the
    * shared {@link QuickSetupSection} shape across all setup steps.
    */
-  public readonly hasPendingChanges = Computed.create(this, () => false);
+  public readonly isDirty = Computed.create(this, () => false);
   public readonly isApplying = Observable.create<boolean>(this, false);
 
   private readonly _backupsProbeDetails = Computed.create(this, use => this._getBackupsProbeDetails(use));
@@ -96,7 +96,7 @@ export class BackupsSection extends Disposable {
     this.canProceed = Computed.create(this, this._selectedBackend, (_use, backend) => !!backend);
   }
 
-  public async applyPendingChanges(): Promise<void> { /* no-op */ }
+  public async apply(): Promise<void> { /* no-op */ }
 
   public buildDom() {
     return cssSection(

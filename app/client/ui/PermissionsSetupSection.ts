@@ -1,6 +1,7 @@
 import { makeT } from "app/client/lib/localization";
 import { getHomeUrl } from "app/client/models/homeUrl";
-import { cssQuickSetupCard, cssShadowedPrimaryButton, quickSetupStepHeader } from "app/client/ui/QuickSetupStepHeader";
+import { quickSetupStepHeader } from "app/client/ui/QuickSetupStepHeader";
+import { cssQuickSetupCard, cssShadowedPrimaryButton } from "app/client/ui/SettingsLayout";
 import { bigBasicButton } from "app/client/ui2018/buttons";
 import { theme, vars } from "app/client/ui2018/cssVars";
 import { loadingSpinner } from "app/client/ui2018/loaders";

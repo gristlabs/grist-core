@@ -14,6 +14,7 @@ import { ChangeAdminModal } from "app/client/ui/ChangeAdminModal";
 import { GetGristComProviderInfoModal, getGristComProviderMeta } from "app/client/ui/GetGristComProvider";
 import { quickSetupStepHeader } from "app/client/ui/QuickSetupStepHeader";
 import { cssCardSurface } from "app/client/ui/SettingsLayout";
+import { cssHeroCard } from "app/client/ui/SetupCard";
 import { basicButton, bigBasicButton, bigPrimaryButton, textButton } from "app/client/ui2018/buttons";
 import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
 import { theme, vars } from "app/client/ui2018/cssVars";
@@ -76,9 +77,9 @@ export class AuthenticationSection extends Disposable {
    * deferred install-prefs (admin email changes). Drives the QuickSetup
    * "Apply and Continue" / "Continue" button label.
    */
-  public hasPendingChanges: Computed<boolean>;
+  public isDirty: Computed<boolean>;
 
-  /** True while {@link applyPendingChanges} is in flight. */
+  /** True while {@link apply} is in flight. */
   public isApplying = Observable.create<boolean>(this, false);
 
   private _appModel = this._options.appModel;
@@ -126,7 +127,7 @@ export class AuthenticationSection extends Disposable {
       return !!loginSystemId && isRealProvider(loginSystemId);
     });
 
-    this.hasPendingChanges = Computed.create(this, (use) => {
+    this.isDirty = Computed.create(this, (use) => {
       if (use(this._hasActiveOnRestartProvider)) { return true; }
       const prefs = use(this._prefsPendingChanges);
       return Boolean(prefs?.onRestartSetAdminEmail || prefs?.onRestartReplaceEmailWithAdmin);
@@ -145,8 +146,8 @@ export class AuthenticationSection extends Disposable {
    *
    * No-op when there are no pending changes. Throws on restart timeout.
    */
-  public async applyPendingChanges(): Promise<void> {
-    if (!this.hasPendingChanges.get()) { return; }
+  public async apply(): Promise<void> {
+    if (!this.isDirty.get()) { return; }
     if (this.isApplying.get()) { return; }
     this.isApplying.set(true);
     try {
@@ -155,9 +156,7 @@ export class AuthenticationSection extends Disposable {
         throw new Error("Timed out waiting for Grist server to restart");
       }
       if (this.isDisposed()) { return; }
-      await this._fetchProviders();
-      if (this.isDisposed()) { return; }
-      await this._fetchPrefsPendingChanges();
+      await Promise.all([this._fetchProviders(), this._fetchPrefsPendingChanges()]);
     } finally {
       if (!this.isDisposed()) { this.isApplying.set(false); }
     }
@@ -852,25 +851,6 @@ function buildProviderList(
     dom.maybe(use => !use(collapsed), buildCards),
   );
 }
-
-const cssHeroCard = styled(cssCardSurface, `
-  padding: 16px 20px;
-  border-left-width: 4px;
-  margin-bottom: 24px;
-
-  &-success {
-    border-left-color: ${theme.toastSuccessBg};
-  }
-  &-pending {
-    border-left-color: ${theme.controlPrimaryBg};
-  }
-  &-warning {
-    border-left-color: ${theme.toastWarningBg};
-  }
-  &-error {
-    border-left-color: ${theme.errorText};
-  }
-`);
 
 const cssHeroHeader = styled("div", `
   display: flex;

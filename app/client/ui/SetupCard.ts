@@ -359,7 +359,13 @@ const cssTag = styled("span", `
   margin-left: 6px;
 `);
 
-const cssHeroCard = styled(cssCardSurface, `
+/**
+ * Hero card with a colored 4px left border indicating state. Shared by
+ * the sandbox setup card and the authentication section's hero. Use
+ * `cssHeroCard.cls("-success" | "-pending" | "-warning" | "-error")` to
+ * pick the left-border color.
+ */
+export const cssHeroCard = styled(cssCardSurface, `
   padding: 16px 20px;
   border-left-width: 4px;
   margin-bottom: 24px;

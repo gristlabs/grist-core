@@ -1,5 +1,6 @@
 import { hoverTooltip } from "app/client/ui/tooltips";
 import { transition } from "app/client/ui/transitions";
+import { bigPrimaryButton } from "app/client/ui2018/buttons";
 import { mediaSmall, testId, theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { tokens } from "app/common/ThemePrefs";
@@ -234,6 +235,34 @@ export const cssSection = styled(cssCardSurface, `
     & {
       padding: 12px;
     }
+  }
+`);
+
+/**
+ * Bordered card used to wrap a sub-section of a QuickSetup step
+ * (e.g. Base URL or Edition inside the Server step, the toggle list
+ * inside the Apply & Restart step). Inherits the shared bordered look
+ * from {@link cssCardSurface} so it tracks the admin panel's outer cards.
+ */
+export const cssQuickSetupCard = styled(cssCardSurface, `
+  padding: 16px 20px;
+  margin-bottom: 16px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+`);
+
+/**
+ * Big primary button with the shared card-surface drop shadow, so
+ * "Continue" / "Apply and Continue" / "Go Live" all sit at the same
+ * visual depth as the bordered cards on the page. The shadow drops
+ * when the button is disabled.
+ */
+export const cssShadowedPrimaryButton = styled(bigPrimaryButton, `
+  box-shadow: ${cardSurfaceShadow};
+  &:disabled, &[disabled] {
+    box-shadow: none;
   }
 `);
 
