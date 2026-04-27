@@ -5,6 +5,7 @@ const babelParser = require("@babel/eslint-parser");
 const js = require("@eslint/js");
 const localRules = require("./eslint-rules/local-rules");
 const stylistic = require("@stylistic/eslint-plugin");
+const ts = require("typescript");
 const tsParser = require("@typescript-eslint/parser");
 const typescriptEslint = require("@typescript-eslint/eslint-plugin");
 const { defineConfig, globalIgnores } = require("eslint/config");
@@ -16,8 +17,9 @@ const projectRoot = process.cwd();
 // errors per-file.
 function shouldLintExt() {
   try {
-    const tsconfig = require(path.join(projectRoot, "tsconfig.eslint.json"));
-    return (tsconfig.include || []).some((p) => p.startsWith("ext/"));
+    const file = path.join(projectRoot, "tsconfig.eslint.json");
+    const { config } = ts.readConfigFile(file, ts.sys.readFile);
+    return (config?.include || []).some((p) => p.startsWith("ext/"));
   } catch {
     return false;
   }
