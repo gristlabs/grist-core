@@ -173,7 +173,7 @@ const FIXTURE_ONLY_UNSANDBOXED: BootProbeResult = {
   },
 };
 
-describe("SandboxStep", function() {
+describe("QuickSetupSandbox", function() {
   this.timeout(process.env.DEBUG ? "10m" : "20s");
   setupTestSuite();
   gu.bigScreen();

@@ -1,6 +1,6 @@
 import { makeT } from "app/client/lib/localization";
 import { AdminChecks } from "app/client/models/AdminChecks";
-import { cssDangerText, cssHappyText } from "app/client/ui/AdminPanelCss";
+import { AdminPanelControls, cssDangerText, cssHappyText } from "app/client/ui/AdminPanelCss";
 import { cssValueLabel } from "app/client/ui/SettingsLayout";
 import { colors } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
@@ -48,8 +48,15 @@ const STORAGE_BACKENDS: Record<BackendName, BackendInfo> = {
 
 export interface BackupsSectionProps {
   checks: AdminChecks;
-  /** Hides the "Backups" title above the list of available backends (default: `false`). */
-  hideTitle?: boolean;
+  /**
+   * Present when this section is rendered inside the admin panel. Absent in the
+   * setup wizard. Sections use this as the single signal for "am I in the admin
+   * panel?" -- it's also the channel through which they report needsRestart.
+   *
+   * BackupsSection has no restart-required settings of its own, but accepts the
+   * option so all sections share one mode flag.
+   */
+  controls?: AdminPanelControls;
 }
 
 /**
@@ -82,7 +89,7 @@ export class BackupsSection extends Disposable {
 
   public buildDom() {
     return cssSection(
-      this._props.hideTitle ? null : cssTitle(
+      this._props.controls ? null : cssTitle(
         icon("Database"),
         cssTitleText(t("Backups")),
       ),

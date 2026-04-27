@@ -106,7 +106,6 @@ export class QuickSetup extends Disposable {
     return dom.create((owner) => {
       const section = AuthenticationSection.create(owner, {
         appModel: this._appModel,
-        showRestartWarning: false,
       });
       return dom("div",
         section.buildDom(),

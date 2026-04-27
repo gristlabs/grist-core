@@ -49,11 +49,16 @@ const noAuthAcknowledged = localStorageBoolObs(
 interface AuthenticationSectionOptions {
   appModel: AppModel;
   loginSystemId?: Observable<string | undefined>;
+  /**
+   * Present when this section is rendered inside the admin panel. Absent in the
+   * setup wizard. The single signal for "am I in the admin panel?" -- also the
+   * channel through which the section reports needsRestart.
+   *
+   * When absent, the per-section restart warning is suppressed (the wizard
+   * handles continuation via its own Continue button).
+   */
   controls?: AdminPanelControls;
   installAPI?: InstallAPI;
-  /** When false, suppress the restart warning banner and needsRestart signal.
-   *  Used by the setup wizard where a single restart happens at the end. */
-  showRestartWarning?: boolean;
 }
 
 export class AuthenticationSection extends Disposable {
@@ -65,6 +70,8 @@ export class AuthenticationSection extends Disposable {
 
   private _appModel = this._options.appModel;
   private _installAPI = this._options.installAPI ?? new InstallAPIImpl(getHomeUrl());
+  /** True when embedded in the admin panel (vs. the setup wizard). */
+  private _inAdminPanel = Boolean(this._options.controls);
   private _controls = this._options.controls ?? {
     needsRestart: Observable.create(this, false),
     restartGrist: async () => { await new ConfigAPI(getHomeUrl()).restartServer(); },
@@ -117,7 +124,7 @@ export class AuthenticationSection extends Disposable {
         const loginSystemId = use(this._loginSystemId);
         return this._buildSection(providers, loginSystemId);
       }),
-      this._options.showRestartWarning !== false ?
+      this._inAdminPanel ?
         dom.maybe(this._hasActiveOnRestartProvider, () => this._buildAuthenticationChangeWarning()) : null,
     ];
   }
@@ -328,7 +335,7 @@ authentication system.",
   };
 
   private _checkIfRestartNeeded() {
-    if (this._options.showRestartWarning === false) { return; }
+    if (!this._inAdminPanel) { return; }
 
     const hasActiveOnRestartProvider = this._hasActiveOnRestartProvider.get();
 
