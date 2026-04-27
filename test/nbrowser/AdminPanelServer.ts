@@ -81,7 +81,6 @@ describe("AdminPanelServer", function() {
         input,
       );
       await driver.sendKeys(`${server.getHost()}/`);
-      await driver.sleep(300);
 
       // Still in Test URL phase.
       assert.isTrue(await driver.findContent(".test-base-url-test", /Test URL/).isPresent());
@@ -221,25 +220,11 @@ describe("AdminPanelServer", function() {
         assert.isTrue(await confirmBtn.isDisplayed());
       });
 
-      it("should disable input after confirming", async function() {
-        const confirmBtn = await driver.findContent("button", /Confirm URL/);
-        await confirmBtn.click();
-        await driver.sleep(300);
+      it("should revert to Test URL when URL is changed after a passing test", async function() {
+        // Precondition: Confirm URL is visible (set by the previous test) and Test URL is not.
+        assert.isTrue(await driver.findContent(".test-base-url-save", /Confirm URL/).isPresent());
+        assert.isFalse(await driver.findContent(".test-base-url-test", /Test URL/).isPresent());
 
-        const input = await driver.find(".test-base-url-input");
-        assert.isNotNull(await input.getAttribute("disabled"));
-      });
-
-      it("should re-enable input after clicking edit", async function() {
-        const editBtn = await driver.find(".test-base-url-edit");
-        await editBtn.click();
-        await driver.sleep(300);
-
-        const input = await driver.find(".test-base-url-input");
-        assert.isNull(await input.getAttribute("disabled"));
-      });
-
-      it("should revert to Test URL when URL is changed", async function() {
         const input = await driver.find(".test-base-url-input");
         await input.click();
         await driver.executeScript(
@@ -248,11 +233,10 @@ describe("AdminPanelServer", function() {
           input,
         );
         await driver.sendKeys("http://nonexistent.invalid");
-        await driver.sleep(200);
 
-        // Should show Test URL again, not Confirm URL.
-        const testBtn = await driver.findContentWait("button", /Test URL/, 1000);
-        assert.isTrue(await testBtn.isDisplayed());
+        // Should revert to Test URL; Confirm URL should be gone.
+        await driver.findContentWait(".test-base-url-test", /Test URL/, 1000);
+        assert.isFalse(await driver.findContent(".test-base-url-save", /Confirm URL/).isPresent());
       });
 
       it("should show error when test fails", async function() {
@@ -261,6 +245,33 @@ describe("AdminPanelServer", function() {
         // BaseUrlSection._testUrl aborts after 10s; wait longer so a slow
         // DNS/network failure has time to surface.
         await driver.findContentWait(".test-base-url-test-status", /Could not reach/i, 15000);
+      });
+
+      it("should disable input after confirming", async function() {
+        // Restore a working URL and re-test so we have a Confirm URL button to click.
+        const input = await driver.find(".test-base-url-input");
+        await driver.executeScript(
+          `arguments[0].value = arguments[1];
+           arguments[0].dispatchEvent(new Event('input', { bubbles: true }));`,
+          input, server.getHost(),
+        );
+        const testBtn = await driver.findContent("button", /Test URL/);
+        await testBtn.click();
+        await driver.findContentWait(".test-base-url-test-status", /reachable/i, 5000);
+
+        const confirmBtn = await driver.findContentWait("button", /Confirm URL/, 3000);
+        await confirmBtn.click();
+
+        await driver.findWait(".test-base-url-confirmed-row", 2000);
+        assert.isNotNull(await driver.find(".test-base-url-input").getAttribute("disabled"));
+      });
+
+      it("should re-enable input after clicking edit", async function() {
+        const editBtn = await driver.find(".test-base-url-edit");
+        await editBtn.click();
+
+        await driver.wait(async () =>
+          (await driver.find(".test-base-url-input").getAttribute("disabled")) === null, 2000);
       });
     });
 
