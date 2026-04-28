@@ -19,6 +19,7 @@ fi
 INST_PYODIDE_VERSION=`node -p 'JSON.parse(require("fs").readFileSync("./worker/node_modules/pyodide/package.json")).version' 2>/dev/null || true`
 if [[ "${INST_PYODIDE_VERSION}" != "${PYODIDE_VERSION}" ]]; then
   yarn install --frozen-lockfile --cwd worker
+  make clean_packages # avoid package versioning issues when Pyodide version changed
 fi
 
 # Need an area for pyodide package cache.
