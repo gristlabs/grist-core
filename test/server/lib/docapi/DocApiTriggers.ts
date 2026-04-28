@@ -128,6 +128,9 @@ function addTriggersTests(getCtx: () => TestContext) {
     assert.equal(actions[0].to, "test@example.com");
     assert.equal(actions[0].subject, "Hello");
     assert.equal(actions[0].body, "World");
+
+    const webhooksRes = await docApi.getWebhooks();
+    assert.deepEqual(webhooksRes.webhooks, []);
   });
 
   it("should update trigger with webhook action and store secrets", async function() {
@@ -241,5 +244,15 @@ function addTriggersTests(getCtx: () => TestContext) {
     const updatedActions = JSON.parse(updated.records.find(r => r.id === id)!.fields.actions!);
     assert.equal(updatedActions[0].subject, "Updated");
     assert.equal(updatedActions[1].url, "https://example.com/w");
+  });
+
+  it("GET /webhooks ignores triggers with no actions", async function() {
+    const tableRef = await getTableRef(docApi, "Table1");
+    await docApi.addTriggers({
+      records: [{ fields: { tableRef, label: "no-actions trigger" } }],
+    });
+
+    const res = await docApi.getWebhooks();
+    assert.deepEqual(res.webhooks, []);
   });
 }
