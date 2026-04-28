@@ -1,5 +1,6 @@
 import { MapWithTTL } from "app/common/AsyncCreate";
 import { WebhookMessageType } from "app/common/CommTypes";
+import { safeJsonParse } from "app/common/gutil";
 import {
   EmailAction,
   TriggerAction,
@@ -197,7 +198,7 @@ export class WebhookQueue implements ActionQueue<WebhookActionPayload> {
     // Go through all triggers int the document that we have.
     for (const t of triggersTable.getRecords()) {
       // Each trigger has associated table and a bunch of trigger actions (currently only 1 that is webhook).
-      const actions = JSON.parse(t.actions) as TriggerAction[];
+      const actions = safeJsonParse(t.actions, []) as TriggerAction[];
       // Get only webhooks for this trigger.
       const webhookActions = actions.filter(act => act.type === "webhook");
       for (const act of webhookActions) {
