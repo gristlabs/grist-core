@@ -12,10 +12,6 @@ import { dom, IDisposableOwner, keyframes, Observable, styled } from "grainjs";
 export interface AdminPanelControls {
   // Pending changes need a restart to take effect; drives the banner.
   needsRestart: Observable<boolean>;
-  // Pending changes will sign the admin out on apply, so route through
-  // /login afterwards instead of reloading. Today this matches needsRestart,
-  // but they're conceptually distinct.
-  needsLogin: Observable<boolean>;
   restartGrist: () => Promise<void>;
 }
 

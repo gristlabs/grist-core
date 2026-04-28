@@ -2,7 +2,6 @@ import { buildHomeBanners } from "app/client/components/Banners";
 import { makeT } from "app/client/lib/localization";
 import { markdown } from "app/client/lib/markdown";
 import { getTimeFromNow } from "app/client/lib/timeUtils";
-import { redirectToLogin } from "app/client/lib/urlUtils";
 import { AdminCheckRequest, AdminChecks, probeDetails, ProbeDetails } from "app/client/models/AdminChecks";
 import { AppModel, getHomeUrl, reportError } from "app/client/models/AppModel";
 import { AuditLogsModel, AuditLogsModelImpl } from "app/client/models/AuditLogsModel";
@@ -206,14 +205,10 @@ export class AdminPanel extends Disposable {
 }
 
 class AdminInstallationPanel extends Disposable implements AdminPanelControls {
-  // Signal from legacy sections (e.g. AuthenticationSection) that their own
-  // state change now requires a restart. Draft-tracked sections contribute
-  // separately via `_drafts.needsRestart`; both are combined into
-  // `_showRestartBanner`.
+  // Legacy `needsRestart` channel kept for any remaining non-draft sections
+  // that signal a restart imperatively. Auth no longer uses it (it's now a
+  // ConfigSection registered with `_drafts`).
   public needsRestart = Observable.create(this, false);
-  // Set when a pending change will sign the admin out on apply. Read
-  // after restart to route through /login.
-  public needsLogin = Observable.create(this, false);
   // Sticky flag: true after the user has applied changes without a restart
   // in an environment that doesn't support auto-restart. Keeps the manual
   // restart reminder on screen until the user reloads the page. Cleared only
@@ -235,6 +230,12 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
   private readonly _configAPI: ConfigAPI = new ConfigAPI(getHomeUrl());
   private _authCheck: Observable<AdminCheckRequest | undefined>;
   private _loginProvider: Observable<string | undefined>;
+  // Created in the constructor body since it depends on `_loginProvider`,
+  // which is itself initialized after `_checks`. Undefined when there is
+  // no signed-in admin user -- the section reads the user's email at
+  // construction time and the "no valid user" admin path renders
+  // alternative content that doesn't need the section anyway.
+  private _authSection: AuthenticationSection | undefined;
 
   // Banner visibility: shown when draft-tracked sections have pending
   // changes, or a legacy section has flagged that a restart is required,
@@ -248,19 +249,32 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
   constructor(private _appModel: AppModel, private _restartBanner: RestartBannerController) {
     super();
     this._checks = new AdminChecks(this, this._installAPI);
-    this._drafts.addSection(this._baseUrlSection);
-    this._drafts.addSection(this._editionSection);
-    this._drafts.addSection(this._permissionsModel);
-
-    // Mirror visibility into the shared controller so the left-panel entry
-    // appears/disappears with the banner.
-    this._restartBanner.isVisible.set(this._showRestartBanner.get());
-    this.autoDispose(this._showRestartBanner.addListener(v => this._restartBanner.isVisible.set(v)));
 
     this._authCheck = Computed.create(this, (use) => {
       return this._checks.requestCheckById(use, "authentication");
     });
     this._loginProvider = this._checks.buildLoginProviderObs(this);
+
+    if (this._appModel.currentValidUser) {
+      this._authSection = AuthenticationSection.create(this, {
+        appModel: this._appModel,
+        loginSystemId: this._loginProvider,
+        inAdminPanel: true,
+        installAPI: this._installAPI,
+      });
+    }
+
+    this._drafts.addSection(this._baseUrlSection);
+    this._drafts.addSection(this._editionSection);
+    this._drafts.addSection(this._permissionsModel);
+    if (this._authSection) {
+      this._drafts.addSection(this._authSection);
+    }
+
+    // Mirror visibility into the shared controller so the left-panel entry
+    // appears/disappears with the banner.
+    this._restartBanner.isVisible.set(this._showRestartBanner.get());
+    this.autoDispose(this._showRestartBanner.addListener(v => this._restartBanner.isVisible.set(v)));
   }
 
   public buildDom() {
@@ -310,21 +324,18 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
     // their own. They only mark themselves `needsRestart` and route through
     // here, so a single user click always produces exactly one restart even
     // when several sections are dirty at once.
-    // Snapshot before applying: the restart clears it.
-    const willInvalidateSession = this.needsLogin.get();
-
     if (this._drafts.needsRestart.get()) {
-      await this._drafts.applyAll();
+      const result = await this._drafts.applyAll();
+      // A section's afterApply may have already navigated us elsewhere
+      // (e.g. auth changes redirect through sign-in). Don't clobber that
+      // with a reload.
+      if (result?.redirected) { return; }
     } else {
       await this._configAPI.restartServer();
       if (!await this._configAPI.waitUntilReady()) {
         await reloadSafe();
         return;
       }
-    }
-    if (willInvalidateSession) {
-      redirectToLogin();
-      return;
     }
     await reloadSafe();
   }
@@ -807,12 +818,7 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
   }
 
   private _buildAuthenticationPanelExtraContent() {
-    return dom.create(AuthenticationSection, {
-      appModel: this._appModel,
-      loginSystemId: this._loginProvider,
-      controls: this,
-      installAPI: this._installAPI,
-    });
+    return this._authSection?.buildDom();
   }
 
   private _buildSessionSecretDisplay() {

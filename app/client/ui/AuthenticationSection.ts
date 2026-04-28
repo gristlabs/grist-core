@@ -5,13 +5,13 @@ import { redirectToLogin } from "app/client/lib/urlUtils";
 import { AdminChecks } from "app/client/models/AdminChecks";
 import { AppModel, getHomeUrl, reportError } from "app/client/models/AppModel";
 import {
-  AdminPanelControls,
   cssIconWrapper,
   cssWell,
   cssWellContent,
   cssWellTitle,
 } from "app/client/ui/AdminPanelCss";
 import { ChangeAdminModal } from "app/client/ui/ChangeAdminModal";
+import { ConfigSection, DraftChangeDescription } from "app/client/ui/DraftChanges";
 import {
   armSetupReturnFromGetGristCom,
   clearSetupReturnFromGetGristCom,
@@ -61,18 +61,16 @@ interface AuthenticationSectionOptions {
   appModel: AppModel;
   loginSystemId?: Observable<string | undefined>;
   /**
-   * Present when this section is rendered inside the admin panel. Absent in the
-   * setup wizard. The single signal for "am I in the admin panel?" -- also the
-   * channel through which the section reports needsRestart.
-   *
-   * When absent, the per-section restart warning is suppressed (the wizard
-   * handles continuation via its own Continue button).
+   * True when rendered inside the admin panel; false in the setup wizard.
+   * Controls admin-only affordances (the in-panel "Restart required"
+   * warning with Change-admin-user controls). Restart routing happens
+   * via the parent's DraftChangesManager regardless.
    */
-  controls?: AdminPanelControls;
+  inAdminPanel?: boolean;
   installAPI?: InstallAPI;
 }
 
-export class AuthenticationSection extends Disposable {
+export class AuthenticationSection extends Disposable implements ConfigSection {
   /**
    * True when authentication is in a state the user can proceed with:
    * a real provider is active, configured, or pending — or the user acknowledged no-auth.
@@ -90,15 +88,13 @@ export class AuthenticationSection extends Disposable {
   /** True while {@link apply} is in flight. */
   public isApplying = Observable.create<boolean>(this, false);
 
+  /** Auth changes always require a restart to take effect. */
+  public readonly needsRestart = true;
+
   private _appModel = this._options.appModel;
   private _installAPI = this._options.installAPI ?? new InstallAPIImpl(getHomeUrl());
   /** True when embedded in the admin panel (vs. the setup wizard). */
-  private _inAdminPanel = Boolean(this._options.controls);
-  private _controls = this._options.controls ?? {
-    needsRestart: Observable.create(this, false),
-    needsLogin: Observable.create(this, false),
-    restartGrist: async () => { await new ConfigAPI(getHomeUrl()).restartServer(); },
-  };
+  private _inAdminPanel = Boolean(this._options.inAdminPanel);
 
   private _loginSystemId = this._options.loginSystemId ?? this._makeLoginSystemId();
 
@@ -154,31 +150,44 @@ export class AuthenticationSection extends Disposable {
   }
 
   /**
-   * Apply pending auth changes by restarting the server and waiting until
-   * it's ready again. The relevant config writes have already happened
-   * inline (via the configuration modals); this is purely the restart so
-   * the new config takes effect.
+   * No-op for now: the configure / set-active / deactivate modals persist
+   * their changes inline, so by the time `apply()` runs the server already
+   * has the env-var updates queued for restart. We're declared dirty
+   * because of the server-side `willBeActive`, not because of any
+   * client-side draft. The DraftChangesManager fires the actual restart;
+   * `afterApply()` then routes the now-signed-out admin through sign-in.
    *
-   * On success, fires a top-level navigation through sign-in (the admin's
-   * session is gone after the restart) and returns `{ redirected: true }`
-   * so the caller knows not to run any post-apply step. No-op when there
-   * are no pending changes. Throws on restart timeout.
+   * Phase 3 of the migration will move the inline mutations into true
+   * drafts that this method persists.
    */
-  public async apply(): Promise<ApplyResult> {
+  public async apply(): Promise<void> {
     if (!this.isDirty.get()) { return; }
-    if (this.isApplying.get()) { return; }
-    this.isApplying.set(true);
-    try {
-      await this._configAPI.restartServer();
-      if (!await this._configAPI.waitUntilReady()) {
-        throw new Error("Timed out waiting for Grist server to restart");
-      }
-    } finally {
-      if (!this.isDisposed()) { this.isApplying.set(false); }
-    }
+  }
+
+  /**
+   * Auth changes invalidate the admin's session, so once the manager has
+   * restarted we redirect through sign-in rather than trying to refetch
+   * (the API would 401 anyway). Returning `{ redirected: true }` tells the
+   * manager and its caller to skip any post-apply work.
+   */
+  public async afterApply(): Promise<ApplyResult> {
     if (this.isDisposed()) { return; }
     redirectToLogin();
     return { redirected: true };
+  }
+
+  public describeChange(): DraftChangeDescription {
+    const provider = this._providers.get().find(p => p.willBeActive);
+    if (provider) {
+      return { label: t("Authentication"), value: provider.name };
+    }
+    const prefs = this._prefsPendingChanges.get();
+    if (prefs?.onRestartSetAdminEmail) {
+      return { label: t("Admin user"), value: prefs.onRestartSetAdminEmail };
+    }
+    // describeChange is only consulted when isDirty is true; one of the
+    // above branches should have hit. Fall back rather than throw.
+    return { label: t("Authentication"), value: "" };
   }
 
   public buildDom() {
@@ -210,7 +219,6 @@ export class AuthenticationSection extends Disposable {
       return;
     }
     this._providers.set(providers);
-    this._checkIfRestartNeeded();
   }
 
   private async _fetchPrefsPendingChanges() {
@@ -404,7 +412,6 @@ authentication system.",
     if (this.isDisposed()) { return; }
 
     await this._fetchPrefsPendingChanges();
-    this._checkIfRestartNeeded();
   };
 
   private async _revertSetInstallAdmin() {
@@ -416,23 +423,6 @@ authentication system.",
 
     await this._fetchPrefsPendingChanges();
   };
-
-  private _checkIfRestartNeeded() {
-    if (!this._inAdminPanel) { return; }
-
-    const hasActiveOnRestartProvider = this._hasActiveOnRestartProvider.get();
-
-    const prefsPendingChanges = this._prefsPendingChanges.get();
-    const hasUnappliedRestartPrefs = Boolean(
-      prefsPendingChanges?.onRestartSetAdminEmail ||
-      prefsPendingChanges?.onRestartReplaceEmailWithAdmin,
-    );
-    const needsRestart = hasActiveOnRestartProvider || hasUnappliedRestartPrefs;
-    if (needsRestart) {
-      this._controls.needsRestart.set(true);
-      this._controls.needsLogin.set(true);
-    }
-  }
 }
 
 /**

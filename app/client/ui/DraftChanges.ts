@@ -23,6 +23,7 @@
  * is the server-side durable list of on-restart directives.
  */
 import { getHomeUrl } from "app/client/models/AppModel";
+import { ApplyResult } from "app/client/ui/QuickSetupContinueButton";
 import { ConfigAPI } from "app/common/ConfigAPI";
 
 import { Computed, Disposable, Observable } from "grainjs";
@@ -48,6 +49,17 @@ export interface ConfigSection {
    * throws without updating; `isDirty` stays true.
    */
   apply(): Promise<void>;
+  /**
+   * Optional post-restart hook. Called by the manager after `restartServer`
+   * and `waitUntilReady` complete -- a chance for sections whose persisted
+   * state only becomes visible to the API post-restart (e.g. auth, where
+   * `willBeActive` flips to `isActive`) to refetch and clear `isDirty`.
+   * Errors are logged but do not fail the apply. May return
+   * `{ redirected: true }` to tell the manager (and its caller) that a
+   * top-level navigation has been fired, so no further post-apply work
+   * should run.
+   */
+  afterApply?(): Promise<ApplyResult>;
   /**
    * Describe the draft change for display in the restart banner.
    * Only called when isDirty is true. Re-read whenever any section's
@@ -86,19 +98,19 @@ export class DraftChangesManager extends Disposable {
 
   public get isApplying() { return this._applying; }
 
-  public async applyAll(): Promise<void> {
-    await this._apply({ restart: true });
+  public async applyAll(): Promise<ApplyResult> {
+    return this._apply({ restart: true });
   }
 
   /**
    * Persist all draft changes without restarting. Use when the server
    * can't auto-restart (no supervisor); the user restarts manually.
    */
-  public async applyWithoutRestart(): Promise<void> {
-    await this._apply({ restart: false });
+  public async applyWithoutRestart(): Promise<ApplyResult> {
+    return this._apply({ restart: false });
   }
 
-  private async _apply({ restart }: { restart: boolean }): Promise<void> {
+  private async _apply({ restart }: { restart: boolean }): Promise<ApplyResult> {
     if (this._applying.get()) { return; }
     this._applying.set(true);
     try {
@@ -120,10 +132,21 @@ export class DraftChangesManager extends Disposable {
       // Only restart when every dirty section succeeded -- a half-applied
       // set would either strand changes behind another restart or look
       // complete when it wasn't.
+      let redirected = false;
       if (restart && failures.length === 0 && dirty.some(s => s.needsRestart)) {
         await this._configAPI.restartServer();
         if (!await this._configAPI.waitUntilReady()) {
           throw new Error("Timed out waiting for Grist server to restart");
+        }
+        for (const section of dirty) {
+          try {
+            const result = await section.afterApply?.();
+            if (result?.redirected) { redirected = true; }
+          } catch (err) {
+            // Best-effort: log and continue. The section may show stale
+            // state but won't block the rest of the apply from finishing.
+            console.warn("afterApply failed:", err);
+          }
         }
       }
 
@@ -131,6 +154,7 @@ export class DraftChangesManager extends Disposable {
         const parts = failures.map(f => `${f.label}: ${f.error.message || String(f.error)}`);
         throw new Error(`Could not apply: ${parts.join("; ")}`);
       }
+      if (redirected) { return { redirected: true }; }
     } finally {
       if (!this.isDisposed()) { this._applying.set(false); }
     }
