@@ -2746,7 +2746,9 @@
         "Your server is configured to authenticate users via OpenID Connect. Users sign in through your identity provider.": "Your server is configured to authenticate users via OpenID Connect. Users sign in through your identity provider.",
         "Your server is configured to authenticate users via SAML 2.0. Users sign in through your enterprise identity provider.": "Your server is configured to authenticate users via SAML 2.0. Users sign in through your enterprise identity provider.",
         "Your server is using a boot key as a fallback login method. Configure one of the authentication methods below.": "Your server is using a boot key as a fallback login method. Configure one of the authentication methods below.",
-        "Your server trusts authentication from a reverse proxy. Make sure only your proxy can reach the Grist backend.": "Your server trusts authentication from a reverse proxy. Make sure only your proxy can reach the Grist backend."
+        "Your server trusts authentication from a reverse proxy. Make sure only your proxy can reach the Grist backend.": "Your server trusts authentication from a reverse proxy. Make sure only your proxy can reach the Grist backend.",
+        "Authentication": "Authentication",
+        "Choose how users sign in to Grist.": "Choose how users sign in to Grist."
     },
     "DetailView": {
         "This row is unavailable or does not exist": "This row is unavailable or does not exist"
@@ -2977,7 +2979,8 @@
         "Sandboxing": "Sandboxing",
         "Skip and Continue": "Skip and Continue",
         "Uses the built-in macOS sandbox. Good isolation for local use on a Mac.": "Uses the built-in macOS sandbox. Good isolation for local use on a Mac.",
-        "macOS Sandbox": "macOS Sandbox"
+        "macOS Sandbox": "macOS Sandbox",
+        "Sandbox": "Sandbox"
     },
     "AdminPanelCss": {
         "Confirmed": "Confirmed",
@@ -3059,5 +3062,10 @@
         "Sandbox settings for data engine": "Sandbox settings for data engine",
         "Sandboxing": "Sandboxing",
         "Security Settings": "Security Settings"
+    },
+    "QuickSetupContinueButton": {
+        "Apply and Continue": "Apply and Continue",
+        "Applying...": "Applying...",
+        "Continue": "Continue"
     }
 }
