@@ -1,6 +1,8 @@
 import { makeT } from "app/client/lib/localization";
 import { getHomeUrl } from "app/client/models/homeUrl";
-import { bigBasicButton, bigPrimaryButton } from "app/client/ui2018/buttons";
+import { quickSetupStepHeader } from "app/client/ui/QuickSetupStepHeader";
+import { cssQuickSetupCard, cssShadowedPrimaryButton } from "app/client/ui/SettingsLayout";
+import { bigBasicButton } from "app/client/ui2018/buttons";
 import { theme, vars } from "app/client/ui2018/cssVars";
 import { loadingSpinner } from "app/client/ui2018/loaders";
 import { toggleSwitch } from "app/client/ui2018/toggleSwitch";
@@ -162,11 +164,12 @@ export class PermissionsSetupSection extends Disposable {
 
   private _buildContent(status: PermissionsStatus): DomContents {
     return dom("div",
-      cssStepTitle(t("Apply & Restart")),
-      cssStepDescription(
-        t("Review these defaults before going live. \
-You can change them later from the admin panel."),
-      ),
+      quickSetupStepHeader({
+        icon: "Settings",
+        title: t("Apply & Restart"),
+        description: t("Review these defaults before going live. " +
+          "You can change them later from the admin panel."),
+      }),
       cssPermissionsSection(
         dom.cls("disabled", this._saving),
         cssSectionLabel(t("DEFAULT PERMISSIONS")),
@@ -241,8 +244,7 @@ stay enabled or Grist will be non-functional."),
       ),
       dom.maybe(not(this._saving), () =>
         cssBottomRow(
-          bigPrimaryButton(t("Apply and Go Live!"),
-            cssGoLiveButton.cls(""),
+          cssGoLiveButton(t("Apply and Go Live!"),
             dom.on("click", () => this._handleGoLive()),
             testId("go-live"),
           ),
@@ -342,23 +344,7 @@ const cssError = styled("div", `
   margin-bottom: 16px;
 `);
 
-const cssStepTitle = styled("div", `
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 8px;
-`);
-
-const cssStepDescription = styled("div", `
-  font-size: 14px;
-  color: ${theme.lightText};
-  line-height: 1.5;
-  margin-bottom: 20px;
-`);
-
-const cssPermissionsSection = styled("div", `
-  border: 1px solid ${theme.pagePanelsBorder};
-  border-radius: 8px;
-  padding: 16px 20px;
+const cssPermissionsSection = styled(cssQuickSetupCard, `
   transition: opacity 0.2s;
 
   &.disabled {
@@ -494,7 +480,7 @@ const cssRestartingRow = styled("div", `
   font-size: 14px;
 `);
 
-const cssGoLiveButton = styled("div", `
+const cssGoLiveButton = styled(cssShadowedPrimaryButton, `
   background-color: ${theme.toastSuccessBg};
   border-color: ${theme.toastSuccessBg};
   &:hover {

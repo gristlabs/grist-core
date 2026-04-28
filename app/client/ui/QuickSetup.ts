@@ -7,12 +7,11 @@ import { cssFadeUp, cssFadeUpGristLogo, cssFadeUpHeading, cssFadeUpSubHeading } 
 import { AuthenticationSection } from "app/client/ui/AuthenticationSection";
 import { BackupsSection } from "app/client/ui/BackupsSection";
 import { PermissionsSetupSection } from "app/client/ui/PermissionsSetupSection";
+import { quickSetupContinueButton } from "app/client/ui/QuickSetupContinueButton";
 import { QuickSetupServerStep } from "app/client/ui/QuickSetupServerStep";
 import { SandboxSetupSection } from "app/client/ui/SandboxSection";
-import { bigPrimaryButton } from "app/client/ui2018/buttons";
 import { Stepper } from "app/client/ui2018/Stepper";
 import { InstallAPIImpl } from "app/common/InstallAPI";
-import { tokens } from "app/common/ThemePrefs";
 
 import { Disposable, dom, DomContents, makeTestId, observable, Observable, styled } from "grainjs";
 
@@ -22,8 +21,6 @@ const testId = makeTestId("test-quick-setup-");
 interface Step {
   completed: Observable<boolean>;
   label: string;
-  /** When true, step content card has no border or padding. */
-  plain?: boolean;
   buildDom(): DomContents;
 }
 
@@ -39,30 +36,21 @@ export class QuickSetup extends Disposable {
     {
       label: t("Sandboxing"),
       completed: observable(false),
-      plain: true,
-      buildDom: () => {
-        const section = SandboxSetupSection.create(
-          this, () => this._activeStep.set(this._activeStep.get() + 1),
-        );
-        return section.buildDom();
-      },
+      buildDom: () => this._buildSandboxStep(),
     },
     {
       label: t("Authentication"),
       completed: observable(false),
-      plain: true,
       buildDom: () => this._buildAuthStep(),
     },
     {
       label: t("Backups"),
       completed: observable(false),
-      plain: true,
       buildDom: () => this._buildBackupsStep(),
     },
     {
       label: t("Apply & restart"),
       completed: observable(false),
-      plain: true,
       buildDom: () => this._buildApplyStep(),
     },
   ];
@@ -83,7 +71,6 @@ export class QuickSetup extends Disposable {
         dom.create(Stepper, { activeStep: this._activeStep, steps: this._steps }),
       ),
       dom.domComputed(this._activeStep, i => cssStepContent(
-        cssStepContent.cls("-plain", Boolean(this._steps[i].plain)),
         this._steps[i].buildDom(),
       )),
     );
@@ -102,26 +89,22 @@ export class QuickSetup extends Disposable {
     this._activeStep.set(i + 1);
   }
 
-  private _buildAuthStep(): DomContents {
+  private _buildSandboxStep(): DomContents {
     return dom.create((owner) => {
-      const section = AuthenticationSection.create(owner, {
-        appModel: this._appModel,
-        showRestartWarning: false,
-      });
+      const section = SandboxSetupSection.create(owner);
       return dom("div",
         section.buildDom(),
-        cssContinueRow(
-          bigPrimaryButton(
-            t("Continue"),
-            dom.boolAttr("disabled", use => !use(section.canProceed)),
-            dom.on("click", () => {
-              const activeStepIndex = this._activeStep.get();
-              this._steps[activeStepIndex].completed.set(true);
-              this._activeStep.set(activeStepIndex + 1);
-            }),
-            testId("auth-continue"),
-          ),
-        ),
+        quickSetupContinueButton(section, () => this._advanceStep(), testId("sandbox-continue")),
+      );
+    });
+  }
+
+  private _buildAuthStep(): DomContents {
+    return dom.create((owner) => {
+      const section = AuthenticationSection.create(owner, { appModel: this._appModel });
+      return dom("div",
+        section.buildDom(),
+        quickSetupContinueButton(section, () => this._advanceStep(), testId("auth-continue")),
       );
     });
   }
@@ -131,17 +114,7 @@ export class QuickSetup extends Disposable {
       const section = BackupsSection.create(owner, { checks: this._checks });
       return dom("div",
         section.buildDom(),
-        cssContinueRow(
-          bigPrimaryButton(
-            t("Continue"),
-            dom.boolAttr("disabled", use => !use(section.canProceed)),
-            dom.on("click", () => {
-              const activeStepIndex = this._activeStep.get();
-              this._steps[activeStepIndex].completed.set(true);
-              this._activeStep.set(activeStepIndex + 1);
-            }),
-          ),
-        ),
+        quickSetupContinueButton(section, () => this._advanceStep(), testId("backups-continue")),
       );
     });
   }
@@ -167,25 +140,6 @@ const cssStepper = styled("div", `
 
 const cssStepContent = styled("div", `
   animation: ${cssFadeUp} 0.5s ease 0.24s both;
-  background: ${tokens.bg};
-  border: 1px solid ${tokens.decorationSecondary};
-  border-radius: 12px;
-  box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.04),
-    0 8px 24px rgba(0, 0, 0, 0.06);
   margin: 24px auto;
   max-width: 520px;
-  padding: 28px 32px;
-  &-plain {
-    border: none;
-    box-shadow: none;
-    padding: 0;
-    background: none;
-  }
-`);
-
-const cssContinueRow = styled("div", `
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 24px;
 `);

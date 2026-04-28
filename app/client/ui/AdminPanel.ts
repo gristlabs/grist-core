@@ -1122,7 +1122,7 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
   }
 
   private _buildBackupsSection() {
-    const backups = BackupsSection.create(this, { checks: this._checks, hideTitle: true });
+    const backups = BackupsSection.create(this, { checks: this._checks, controls: this });
     return SectionCard(t("Storage"), [
       SectionItem({
         id: "backups",

@@ -12,6 +12,9 @@ import {
 } from "app/client/ui/AdminPanelCss";
 import { ChangeAdminModal } from "app/client/ui/ChangeAdminModal";
 import { GetGristComProviderInfoModal, getGristComProviderMeta } from "app/client/ui/GetGristComProvider";
+import { quickSetupStepHeader } from "app/client/ui/QuickSetupStepHeader";
+import { cssCardSurface } from "app/client/ui/SettingsLayout";
+import { cssHeroCard } from "app/client/ui/SetupCard";
 import { basicButton, bigBasicButton, bigPrimaryButton, textButton } from "app/client/ui2018/buttons";
 import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
 import { theme, vars } from "app/client/ui2018/cssVars";
@@ -49,11 +52,16 @@ const noAuthAcknowledged = localStorageBoolObs(
 interface AuthenticationSectionOptions {
   appModel: AppModel;
   loginSystemId?: Observable<string | undefined>;
+  /**
+   * Present when this section is rendered inside the admin panel. Absent in the
+   * setup wizard. The single signal for "am I in the admin panel?" -- also the
+   * channel through which the section reports needsRestart.
+   *
+   * When absent, the per-section restart warning is suppressed (the wizard
+   * handles continuation via its own Continue button).
+   */
   controls?: AdminPanelControls;
   installAPI?: InstallAPI;
-  /** When false, suppress the restart warning banner and needsRestart signal.
-   *  Used by the setup wizard where a single restart happens at the end. */
-  showRestartWarning?: boolean;
 }
 
 export class AuthenticationSection extends Disposable {
@@ -63,8 +71,21 @@ export class AuthenticationSection extends Disposable {
    */
   public canProceed: Computed<boolean>;
 
+  /**
+   * True when there are saved changes that won't take effect until the
+   * server restarts: a provider that will be active on next boot, or
+   * deferred install-prefs (admin email changes). Drives the QuickSetup
+   * "Apply and Continue" / "Continue" button label.
+   */
+  public isDirty: Computed<boolean>;
+
+  /** True while {@link apply} is in flight. */
+  public isApplying = Observable.create<boolean>(this, false);
+
   private _appModel = this._options.appModel;
   private _installAPI = this._options.installAPI ?? new InstallAPIImpl(getHomeUrl());
+  /** True when embedded in the admin panel (vs. the setup wizard). */
+  private _inAdminPanel = Boolean(this._options.controls);
   private _controls = this._options.controls ?? {
     needsRestart: Observable.create(this, false),
     restartGrist: async () => { await new ConfigAPI(getHomeUrl()).restartServer(); },
@@ -106,18 +127,54 @@ export class AuthenticationSection extends Disposable {
       return !!loginSystemId && isRealProvider(loginSystemId);
     });
 
+    this.isDirty = Computed.create(this, (use) => {
+      if (use(this._hasActiveOnRestartProvider)) { return true; }
+      const prefs = use(this._prefsPendingChanges);
+      return Boolean(prefs?.onRestartSetAdminEmail || prefs?.onRestartReplaceEmailWithAdmin);
+    });
+
     this._fetchProviders().catch(reportError);
     this._fetchPrefsPendingChanges().catch(reportError);
   }
 
+  /**
+   * Apply pending auth changes by restarting the server and waiting until
+   * it's ready again. The relevant config writes have already happened
+   * inline (via the configuration modals); this is purely the restart so
+   * the new config takes effect. After restart, re-fetches providers and
+   * prefs so the section reflects the post-restart state.
+   *
+   * No-op when there are no pending changes. Throws on restart timeout.
+   */
+  public async apply(): Promise<void> {
+    if (!this.isDirty.get()) { return; }
+    if (this.isApplying.get()) { return; }
+    this.isApplying.set(true);
+    try {
+      await this._configAPI.restartServer();
+      if (!await this._configAPI.waitUntilReady()) {
+        throw new Error("Timed out waiting for Grist server to restart");
+      }
+      if (this.isDisposed()) { return; }
+      await Promise.all([this._fetchProviders(), this._fetchPrefsPendingChanges()]);
+    } finally {
+      if (!this.isDisposed()) { this.isApplying.set(false); }
+    }
+  }
+
   public buildDom() {
     return [
+      this._inAdminPanel ? null : quickSetupStepHeader({
+        icon: "AddUser",
+        title: t("Authentication"),
+        description: t("Choose how users sign in to Grist."),
+      }),
       dom.domComputed((use) => {
         const providers = use(this._providers);
         const loginSystemId = use(this._loginSystemId);
         return this._buildSection(providers, loginSystemId);
       }),
-      this._options.showRestartWarning !== false ?
+      this._inAdminPanel ?
         dom.maybe(this._hasActiveOnRestartProvider, () => this._buildAuthenticationChangeWarning()) : null,
     ];
   }
@@ -328,7 +385,7 @@ authentication system.",
   };
 
   private _checkIfRestartNeeded() {
-    if (this._options.showRestartWarning === false) { return; }
+    if (!this._inAdminPanel) { return; }
 
     const hasActiveOnRestartProvider = this._hasActiveOnRestartProvider.get();
 
@@ -795,27 +852,6 @@ function buildProviderList(
   );
 }
 
-const cssHeroCard = styled("div", `
-  padding: 16px 20px;
-  border-radius: 8px;
-  border: 1px solid ${theme.menuBorder};
-  border-left-width: 4px;
-  margin-bottom: 24px;
-
-  &-success {
-    border-left-color: ${theme.toastSuccessBg};
-  }
-  &-pending {
-    border-left-color: ${theme.controlPrimaryBg};
-  }
-  &-warning {
-    border-left-color: ${theme.toastWarningBg};
-  }
-  &-error {
-    border-left-color: ${theme.errorText};
-  }
-`);
-
 const cssHeroHeader = styled("div", `
   display: flex;
   align-items: center;
@@ -898,11 +934,9 @@ const cssCollapseIcon = styled(icon, `
   --icon-color: ${theme.lightText};
 `);
 
-const cssMethodsContainer = styled("div", `
+const cssMethodsContainer = styled(cssCardSurface, `
   display: flex;
   flex-direction: column;
-  border: 1px solid ${theme.menuBorder};
-  border-radius: 8px;
   overflow: hidden;
 `);
 
