@@ -49,6 +49,14 @@ export interface ConfigSection {
    */
   apply(): Promise<void>;
   /**
+   * Optional post-restart hook. Called by the manager after `restartServer`
+   * and `waitUntilReady` complete -- a chance for sections whose persisted
+   * state only becomes visible to the API post-restart (e.g. auth, where
+   * `willBeActive` flips to `isActive`) to refetch and clear `isDirty`.
+   * Errors are logged but do not fail the apply.
+   */
+  afterApply?(): Promise<void>;
+  /**
    * Describe the draft change for display in the restart banner.
    * Only called when isDirty is true. Re-read whenever any section's
    * `isDirty` fires -- sections whose described value can drift while
@@ -124,6 +132,15 @@ export class DraftChangesManager extends Disposable {
         await this._configAPI.restartServer();
         if (!await this._configAPI.waitUntilReady()) {
           throw new Error("Timed out waiting for Grist server to restart");
+        }
+        for (const section of dirty) {
+          try {
+            await section.afterApply?.();
+          } catch (err) {
+            // Best-effort: log and continue. The section may show stale
+            // state but won't block the rest of the apply from finishing.
+            console.warn("afterApply failed:", err);
+          }
         }
       }
 
