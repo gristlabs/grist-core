@@ -17,9 +17,10 @@ describe("requestUtils", function() {
       ["https://nasa.efc-r.com", "docs.efc-r.com", true],
       ["https://nasa.efc-r.com", "api.efc-r.com", true],
       ["null", "docs.getgrist.com", false],
+      ["", "docs.getgrist.com", true],
     ];
     for (const [origin, host, permitted] of combinations) {
-      it(`${origin} can${permitted ? "" : "not"} access ${host} in browser`, function() {
+      it(`'${origin}' can${permitted ? "" : "not"} access '${host}' in browser`, function() {
         assert.equal(
           trustOrigin({ headers: { origin, host } } as any, { header: (a: string, b: string) => true } as any),
           permitted,
@@ -28,7 +29,6 @@ describe("requestUtils", function() {
     }
 
     [
-      "",
       "invalid url",
     ].forEach((origin) => {
       it(`throws an ApiError on invalid origin '${origin}'`, function() {

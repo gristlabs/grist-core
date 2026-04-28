@@ -90,11 +90,11 @@ export function getOrgUrl(req: Request, path: string = "/") {
  * Handles Opaque Origins (https://developer.mozilla.org/en-US/docs/Glossary/Origin#opaque_origin)
  * and malformed URLs safely.
  * @returns {URL | "null" | undefined} - A URL if a valid URL was provided,
- *                                       undefined if no URL was provided,
+ *                                       undefined if origin was falsey (e.g. empty) or undefined,
  *                                       and an Opaque Origin otherwise.
  */
 export function parseOrigin(origin: string | undefined): URL | "null" | undefined {
-  if (origin === undefined) { return undefined; }
+  if (!origin) { return undefined; }
   if (origin === "null") { return "null" as const; }
   try {
     return new URL(origin);
