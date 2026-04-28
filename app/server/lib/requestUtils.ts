@@ -89,15 +89,13 @@ export function getOrgUrl(req: Request, path: string = "/") {
  * Parse a request's origin header safely into a URL.
  * Handles Opaque Origins (https://developer.mozilla.org/en-US/docs/Glossary/Origin#opaque_origin)
  * and malformed URLs safely.
- * @returns {URL | "null" | undefined} - A URL if a valid URL was provided,
- *                                       undefined if origin was falsey (e.g. empty) or undefined,
- *                                       and an Opaque Origin otherwise.
+ *
+ * Throws an ApiError if origin is invalid (not a valid URL or "null")
  */
-export function parseOrigin(origin: string | undefined): URL | "null" | undefined {
-  if (!origin) { return undefined; }
+export function parseOrigin(origin: string): { raw: string, url: URL } | "null" {
   if (origin === "null") { return "null" as const; }
   try {
-    return new URL(origin);
+    return { raw: origin, url: new URL(origin) };
   } catch {
     throw new ApiError(`Invalid origin: ${origin}`, 400);
   }
@@ -112,15 +110,16 @@ export function parseOrigin(origin: string | undefined): URL | "null" | undefine
 export function trustOrigin(req: IncomingMessage, resp?: Response): boolean {
   // TODO: We may want to consider changing allowed origin values in the future.
   // Note that the request origin is undefined for non-CORS requests.
-  const originUrl = parseOrigin(req.headers.origin);
-  if (originUrl === undefined) { return true; } // Not a CORS request.
+  if (!req.headers.origin) { return true; } // Not a CORS request
+  const origin = parseOrigin(req.headers.origin);
   // Opaque origin: https://developer.mozilla.org/en-US/docs/Glossary/Origin#opaque_origin
-  if (originUrl === "null") { return false; }
-  if (!allowHost(req, originUrl)) { return false; }
+  if (origin === "null") { return false; }
+  if (!allowHost(req, origin.url)) { return false; }
 
   if (resp) {
     // For a request to a custom domain, the full hostname must match.
-    resp.header("Access-Control-Allow-Origin", originUrl.origin);
+    // Access-Control-Allow-Origin should match the Origin value exactly (https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Allow-Origin)
+    resp.header("Access-Control-Allow-Origin", origin.raw);
     resp.header("Vary", "Origin");
   }
   return true;

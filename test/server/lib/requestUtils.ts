@@ -28,12 +28,13 @@ describe("requestUtils", function() {
       });
     }
 
-    [
+    const apiErrorTestCases = [
       "invalid url",
-    ].forEach((origin) => {
+    ];
+    for (const origin of apiErrorTestCases) {
       it(`throws an ApiError on invalid origin '${origin}'`, function() {
         assert.throws(() => trustOrigin({ headers: { origin } } as any));
       });
-    });
+    }
   });
 });
