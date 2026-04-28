@@ -2879,5 +2879,24 @@
         "Set these environment variables and restart Grist to enable S3 storage:": "Ezarri ingurune-aldagai horiek eta berrabiarazi Grist S3 biltegiratzea gaitzeko:",
         "Store document backups on an external service like S3 or Azure.           This protects against data loss if the server's disk fails.": "Gorde dokumentuaren babeskopiak kanpoko zerbitzu batean (S3, Azure…). Datuen galera eragozten du honek zerbitzariko diskoek huts egiten badute.",
         "Available in full edition": "Edizio osoan eskuragarri"
+    },
+    "PermissionsSetupSection": {
+        "Loading permissions…": "Baimenak kargatzen…",
+        "Open": "Ireki",
+        "Recommended": "Gomendatutakoa",
+        "Allow anonymous access": "Baimendu saiorik hasi gabekoak sartzea",
+        "Allow anonymous playground": "Baimendu saiorik hasi gabekoek esperimentatzea",
+        "Allow anyone to create team sites": "Baimendu edonork taldearen guneak sortzea",
+        "Allow personal sites": "Baimendu gune pertsonalak"
+    },
+    "SandboxSection": {
+        "Active": "Aktibo",
+        "Continue": "Jarraitu",
+        "Error": "Errorea",
+        "Not available": "Ez dago erabilgarri",
+        "Not recommended": "Ez da gomendatzen",
+        "Other options": "Beste aukera batzuk",
+        "Ready": "Prest",
+        "Recommended": "Gomendatutakoa"
     }
 }
