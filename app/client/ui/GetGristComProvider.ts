@@ -13,6 +13,39 @@ import { GETGRIST_COM_PROVIDER_KEY } from "app/common/loginProviders";
 import { components } from "app/common/ThemePrefs";
 import { getGristConfig } from "app/common/urlUtils";
 
+/**
+ * Validate a getgrist.com configuration key at the level the server's
+ * `readGetGristComConfigFromSettings` does: must be base64 of a JSON
+ * object containing `oidcClientId`, `oidcClientSecret`, and `oidcIssuer`.
+ * Returns null when valid, or a short reason string when not.
+ *
+ * Apply-time still revalidates server-side, so this only catches the
+ * obvious paste mistakes (truncation, wrong format) early.
+ */
+export function validateGetGristComKey(key: string): string | null {
+  let decoded: string;
+  try {
+    decoded = atob(key);
+  } catch {
+    return "Configuration key is not valid base64";
+  }
+  let parsed: any;
+  try {
+    parsed = JSON.parse(decoded);
+  } catch {
+    return "Configuration key does not decode to JSON";
+  }
+  if (!parsed || typeof parsed !== "object") {
+    return "Configuration key is not a JSON object";
+  }
+  for (const field of ["oidcClientId", "oidcClientSecret", "oidcIssuer"]) {
+    if (typeof parsed[field] !== "string" || !parsed[field]) {
+      return `Configuration key is missing ${field}`;
+    }
+  }
+  return null;
+}
+
 import { Disposable, dom, makeTestId, Observable, styled } from "grainjs";
 
 const t = makeT("GetGristComProvider");
@@ -33,12 +66,14 @@ Users sign in with their getgrist.com account."),
 }
 
 /**
- * Modal for configuring "Sign in with getgrist.com" login system.
+ * Modal for configuring "Sign in with getgrist.com". Validates the pasted
+ * key client-side, then hands it to the caller's `onSubmit` -- the modal
+ * does not talk to the server itself. `AuthenticationSection` stores the
+ * key in its draft state and persists it through the apply pipeline.
  */
 export class GetGristComProviderInfoModal extends Disposable {
-  private _onConfigure: (() => void) | undefined;
+  private _onSubmit: ((key: string) => void) | undefined;
   private readonly _configKey: Observable<string> = Observable.create(this, "");
-  private readonly _working: Observable<boolean> = Observable.create(this, false);
   private readonly _error: Observable<boolean> = Observable.create(this, false);
   private readonly _configAPI: ConfigAPI = new ConfigAPI(getHomeUrl());
 
@@ -55,10 +90,8 @@ export class GetGristComProviderInfoModal extends Disposable {
     }));
   }
 
-  public show(
-    onConfigure?: () => void,
-  ): void {
-    this._onConfigure = onConfigure;
+  public show(onSubmit: (key: string) => void): void {
+    this._onSubmit = onSubmit;
     modal((ctl, owner) => {
       this.onDispose(() => ctl.close());
       const registerUrlObs: Observable<string> = Observable.create<string>(owner, "");
@@ -128,7 +161,7 @@ getgrist.com and paste the configuration key you receive below.", {
           ),
           bigPrimaryButton(
             t("Configure"),
-            dom.prop("disabled", use => use(this._working) || !use(this._configKey)),
+            dom.prop("disabled", use => !use(this._configKey)),
             dom.on("click", () => this._handleConfigure()),
             testId("modal-configure"),
           ),
@@ -137,30 +170,16 @@ getgrist.com and paste the configuration key you receive below.", {
     });
   }
 
-  private async _handleConfigure() {
-    if (!this._configKey.get()) {
+  private _handleConfigure() {
+    const key = this._configKey.get().split(/\s+/).join("");
+    const reason = validateGetGristComKey(key);
+    if (reason !== null) {
       this._error.set(true);
+      reportError(new Error(t("Error configuring provider with the provided key: {{reason}}", { reason })));
       return;
     }
-    this._working.set(true);
-    try {
-      await this._configAPI.configureProvider(
-        GETGRIST_COM_PROVIDER_KEY,
-        { GRIST_GETGRISTCOM_SECRET: this._configKey.get() },
-      );
-      this._onConfigure?.();
-      this.dispose();
-    } catch (e) {
-      if (this.isDisposed()) {
-        return;
-      }
-      reportError(e as Error);
-      this._error.set(true);
-    } finally {
-      if (!this.isDisposed()) {
-        this._working.set(false);
-      }
-    }
+    this._onSubmit?.(key);
+    this.dispose();
   }
 }
 

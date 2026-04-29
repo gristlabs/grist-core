@@ -103,7 +103,34 @@ export class AuthenticationSection extends Disposable implements ConfigSection {
    */
   private _recentlyConfigured = new Set<string>();
 
-  private _hasActiveOnRestartProvider = Computed.create(this, this._providers, (_use, providers) => {
+  /**
+   * Per-provider configuration drafts (currently only the getgrist.com
+   * secret). The map's value is the body that will be PATCHed to
+   * `/api/config/auth-providers` on apply. Drafts disappear once apply
+   * has persisted them.
+   */
+  private _draftConfigs = Observable.create<Map<string, Record<string, string>>>(this, new Map());
+
+  /**
+   * Pending choice for the active authentication provider. `null` means
+   * the user has not chosen one in this session; otherwise it is a
+   * provider key (or `FALLBACK_PROVIDER_KEY` for "deactivate").
+   */
+  private _draftActiveProvider = Observable.create<string | null>(this, null);
+
+  /**
+   * Server providers merged with local drafts. Drafts win over server
+   * state, so the user sees their pending choices reflected in the
+   * hero card and the provider list before they apply.
+   */
+  private _displayProviders = Computed.create(
+    this, this._providers, this._draftConfigs, this._draftActiveProvider,
+    (_use, providers, draftConfigs, draftActive) => {
+      return providers.map(p => mergeProviderWithDrafts(p, draftConfigs, draftActive));
+    },
+  );
+
+  private _hasActiveOnRestartProvider = Computed.create(this, this._displayProviders, (_use, providers) => {
     return providers.some(p => p.willBeActive);
   });
 
@@ -118,13 +145,15 @@ export class AuthenticationSection extends Disposable implements ConfigSection {
     this.canProceed = Computed.create(this, (use) => {
       if (use(noAuthAcknowledged)) { return true; }
       if (use(this._hasActiveOnRestartProvider)) { return true; }
-      const providers = use(this._providers);
+      const providers = use(this._displayProviders);
       if (providers.some(p => (p.isActive || p.isConfigured) && isRealProvider(p.key))) { return true; }
       const loginSystemId = use(this._loginSystemId);
       return !!loginSystemId && isRealProvider(loginSystemId);
     });
 
     this.isDirty = Computed.create(this, (use) => {
+      if (use(this._draftConfigs).size > 0) { return true; }
+      if (use(this._draftActiveProvider) !== null) { return true; }
       if (use(this._hasActiveOnRestartProvider)) { return true; }
       const prefs = use(this._prefsPendingChanges);
       return Boolean(prefs?.onRestartSetAdminEmail || prefs?.onRestartReplaceEmailWithAdmin);
@@ -135,18 +164,26 @@ export class AuthenticationSection extends Disposable implements ConfigSection {
   }
 
   /**
-   * No-op for now: the configure / set-active / deactivate modals persist
-   * their changes inline, so by the time `apply()` runs the server already
-   * has the env-var updates queued for restart. We're declared dirty
-   * because of the server-side `willBeActive`, not because of any
-   * client-side draft. The DraftChangesManager fires the actual restart;
-   * `afterApply()` then refreshes our view of post-restart state.
-   *
-   * Phase 3 of the migration will move the inline mutations into true
-   * drafts that this method persists.
+   * Persist drafts to the server. Configure calls go first because a
+   * provider must be configured server-side before it can be set active.
+   * Each draft is cleared once its API call succeeds, so a partial
+   * failure leaves the remaining drafts in place for a retry. The
+   * DraftChangesManager fires the restart afterwards, and `afterApply`
+   * refreshes our view of post-restart state.
    */
   public async apply(): Promise<void> {
-    if (!this.isDirty.get()) { return; }
+    for (const [providerKey, config] of this._draftConfigs.get()) {
+      await this._configAPI.configureProvider(providerKey, config);
+      this._updateDraftConfigs(draft => draft.delete(providerKey));
+      this._recentlyConfigured.add(providerKey);
+    }
+
+    const activeChoice = this._draftActiveProvider.get();
+    if (activeChoice !== null) {
+      await this._configAPI.setActiveAuthProvider(activeChoice);
+      this._draftActiveProvider.set(null);
+      this._recentlyConfigured.add(activeChoice);
+    }
   }
 
   public async afterApply(): Promise<void> {
@@ -155,13 +192,24 @@ export class AuthenticationSection extends Disposable implements ConfigSection {
   }
 
   public describeChange(): DraftChangeDescription {
-    const provider = this._providers.get().find(p => p.willBeActive);
-    if (provider) {
-      return { label: t("Authentication"), value: provider.name };
+    const providers = this._displayProviders.get();
+    const willBeActive = providers.find(p => p.willBeActive);
+    if (willBeActive) {
+      return { label: t("Authentication"), value: willBeActive.name };
+    }
+    const willBeDisabled = providers.find(p => p.willBeDisabled);
+    if (willBeDisabled) {
+      return { label: t("Authentication"), value: t("disabled") };
+    }
+    if (this._draftConfigs.get().size > 0) {
+      return { label: t("Authentication"), value: t("configuration updated") };
     }
     const prefs = this._prefsPendingChanges.get();
     if (prefs?.onRestartSetAdminEmail) {
       return { label: t("Admin user"), value: prefs.onRestartSetAdminEmail };
+    }
+    if (prefs?.onRestartReplaceEmailWithAdmin) {
+      return { label: t("Admin user"), value: t("updated") };
     }
     // describeChange is only consulted when isDirty is true; one of the
     // above branches should have hit. Fall back rather than throw.
@@ -176,13 +224,20 @@ export class AuthenticationSection extends Disposable implements ConfigSection {
         description: t("Choose how users sign in to Grist."),
       }),
       dom.domComputed((use) => {
-        const providers = use(this._providers);
+        const providers = use(this._displayProviders);
         const loginSystemId = use(this._loginSystemId);
         return this._buildSection(providers, loginSystemId);
       }),
       this._inAdminPanel ?
         dom.maybe(this._hasActiveOnRestartProvider, () => this._buildAuthenticationChangeWarning()) : null,
     ];
+  }
+
+  /** Apply a mutation to the draft-configs map immutably. */
+  private _updateDraftConfigs(mutate: (draft: Map<string, Record<string, string>>) => void) {
+    const next = new Map(this._draftConfigs.get());
+    mutate(next);
+    this._draftConfigs.set(next);
   }
 
   private _makeLoginSystemId(): Observable<string | undefined> {
@@ -279,15 +334,11 @@ authentication system.",
     );
   }
 
-  private async _setActiveProvider(provider: AuthProvider) {
+  private _setActiveProvider(provider: AuthProvider) {
     confirmModal(
       t("Set as active method?"),
       t("Confirm"),
-      async () => {
-        await this._configAPI.setActiveAuthProvider(provider.key);
-        this._recentlyConfigured.add(provider.key);
-        await this._fetchProviders();
-      },
+      async () => { this._draftActiveProvider.set(provider.key); },
       {
         explanation: dom("div",
           cssMarkdownSpan(
@@ -295,7 +346,8 @@ authentication system.",
               { name: provider.name }),
           ),
           dom("p",
-            t("The new method will go into effect after you restart Grist."),
+            t("The change will be saved when you apply pending changes, and will go into \
+effect after you restart Grist."),
           ),
         ),
       },
@@ -305,9 +357,16 @@ authentication system.",
   private _configureProvider(provider: AuthProvider) {
     if (provider.key === GETGRIST_COM_PROVIDER_KEY) {
       const m = new GetGristComProviderInfoModal();
-      m.show(() => {
-        this._recentlyConfigured.add(provider.key);
-        this._fetchProviders().catch(reportError);
+      m.show((key: string) => {
+        this._updateDraftConfigs(draft => draft.set(provider.key, { GRIST_GETGRISTCOM_SECRET: key }));
+        // Mirror the server's "first configured provider wins" behavior:
+        // if nothing is currently active and the user has not chosen one
+        // yet in this session, treat the just-configured provider as the
+        // pending active. Saves the user an explicit "Set as active"
+        // click in the simple zero-config-to-getgrist.com path.
+        if (this._draftActiveProvider.get() === null && !this._providers.get().some(p => p.isActive)) {
+          this._draftActiveProvider.set(provider.key);
+        }
       });
       this.onDispose(() => m.isDisposed() ? void 0 : m.dispose());
     } else if (PROVIDER_META_BUILDERS[provider.key]) {
@@ -321,11 +380,7 @@ authentication system.",
     confirmModal(
       t("Deactivate authentication?"),
       t("Deactivate"),
-      async () => {
-        await this._configAPI.setActiveAuthProvider(FALLBACK_PROVIDER_KEY);
-        this._recentlyConfigured.add(provider.key);
-        await this._fetchProviders();
-      },
+      async () => { this._draftActiveProvider.set(FALLBACK_PROVIDER_KEY); },
       {
         explanation: dom("div",
           cssMarkdownSpan(
@@ -335,7 +390,8 @@ authentication system.",
             t("Your configuration will be preserved. You can reactivate it later without reconfiguring."),
           ),
           dom("p",
-            t("The change will take effect after you restart Grist."),
+            t("The change will be saved when you apply pending changes, and will take \
+effect after you restart Grist."),
           ),
         ),
       },
@@ -387,6 +443,53 @@ authentication system.",
 
     await this._fetchPrefsPendingChanges();
   };
+}
+
+/**
+ * Merge a server-reported provider with any client-side drafts so the UI
+ * reflects the user's pending choices.
+ *
+ * - A draft secret marks the provider as configured and (if the server
+ *   has not pinned the active provider via env) able to be activated.
+ * - A draft active-provider choice flips `willBeActive` on the chosen
+ *   provider and `willBeDisabled` on the currently-active one. Choosing
+ *   the fallback (deactivate) just sets `willBeDisabled` on the
+ *   currently-active provider.
+ */
+function mergeProviderWithDrafts(
+  provider: AuthProvider,
+  draftConfigs: Map<string, Record<string, string>>,
+  draftActive: string | null,
+): AuthProvider {
+  const merged: AuthProvider = { ...provider };
+
+  if (draftConfigs.has(provider.key)) {
+    merged.isConfigured = true;
+    merged.configError = undefined;
+    if (!provider.isSelectedByEnv) {
+      merged.canBeActivated = !provider.isActive;
+    }
+  }
+
+  if (draftActive !== null) {
+    const wasActive = !!provider.isActive;
+    // Mirror the server's `isActive = key === active && key === next` so
+    // the ACTIVE badge clears on the outgoing provider as soon as the
+    // user picks a new one.
+    merged.isActive = wasActive && provider.key === draftActive;
+    if (provider.key === draftActive) {
+      merged.willBeActive = !wasActive;
+      merged.willBeDisabled = false;
+      merged.canBeActivated = false;
+    } else {
+      merged.willBeActive = false;
+      if (wasActive) {
+        merged.willBeDisabled = true;
+        merged.canBeActivated = !provider.isSelectedByEnv;
+      }
+    }
+  }
+  return merged;
 }
 
 /**
