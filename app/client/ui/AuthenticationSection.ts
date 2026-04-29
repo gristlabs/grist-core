@@ -77,9 +77,6 @@ export class AuthenticationSection extends Disposable implements ConfigSection {
    */
   public isDirty: Computed<boolean>;
 
-  /** True while {@link apply} is in flight. */
-  public isApplying = Observable.create<boolean>(this, false);
-
   /** Auth changes always require a restart to take effect. */
   public readonly needsRestart = true;
 
@@ -134,6 +131,18 @@ export class AuthenticationSection extends Disposable implements ConfigSection {
     return providers.some(p => p.willBeActive);
   });
 
+  // Server-side state that needs a restart to settle: a provider switch
+  // or a queued admin-email change. Distinct from `isDirty`, which also
+  // counts purely local drafts.
+  private _hasPersistedRestartChange = Computed.create(
+    this, this._hasActiveOnRestartProvider, this._prefsPendingChanges,
+    (_use, hasActive, prefs) => {
+      return hasActive ||
+        Boolean(prefs?.onRestartSetAdminEmail) ||
+        Boolean(prefs?.onRestartReplaceEmailWithAdmin);
+    },
+  );
+
   private _getgristLoginOwner = Computed.create(this, this._providers, (_use, providers) => {
     const getgristLogin = providers.find(p => p.key === GETGRIST_COM_PROVIDER_KEY);
     return getgristLogin?.metadata?.owner ?? null;
@@ -151,12 +160,13 @@ export class AuthenticationSection extends Disposable implements ConfigSection {
       return !!loginSystemId && isRealProvider(loginSystemId);
     });
 
+    // Evaluate every branch: short-circuit returns drop subscriptions to
+    // later deps, leaving `isDirty` stale once an early truthy branch flips.
     this.isDirty = Computed.create(this, (use) => {
-      if (use(this._draftConfigs).size > 0) { return true; }
-      if (use(this._draftActiveProvider) !== null) { return true; }
-      if (use(this._hasActiveOnRestartProvider)) { return true; }
-      const prefs = use(this._prefsPendingChanges);
-      return Boolean(prefs?.onRestartSetAdminEmail || prefs?.onRestartReplaceEmailWithAdmin);
+      const hasDraftConfigs = use(this._draftConfigs).size > 0;
+      const hasDraftActive = use(this._draftActiveProvider) !== null;
+      const hasPersistedRestartChange = use(this._hasPersistedRestartChange);
+      return hasDraftConfigs || hasDraftActive || hasPersistedRestartChange;
     });
 
     this._fetchProviders().catch(reportError);
@@ -191,29 +201,60 @@ export class AuthenticationSection extends Disposable implements ConfigSection {
     await Promise.all([this._fetchProviders(), this._fetchPrefsPendingChanges()]);
   }
 
-  public describeChange(): DraftChangeDescription {
+  /**
+   * Drop every contribution this section makes to the draft list:
+   *   - clear local provider-config and active-provider drafts
+   *   - null both on-restart admin-email prefs server-side
+   * `willBeActive`/`willBeDisabled` rooted in env-var deltas aren't
+   * cleared here -- the user can reverse those via the per-provider
+   * controls in the section itself.
+   */
+  public async dismiss(): Promise<void> {
+    if (!this.isDirty.get()) { return; }
+    this._draftConfigs.set(new Map());
+    this._draftActiveProvider.set(null);
+    this._recentlyConfigured.clear();
+    const prefs = this._prefsPendingChanges.get();
+    if (prefs?.onRestartSetAdminEmail || prefs?.onRestartReplaceEmailWithAdmin) {
+      await this._installAPI.updateInstallPrefs({
+        onRestartSetAdminEmail: null,
+        onRestartReplaceEmailWithAdmin: null,
+      });
+      if (this.isDisposed()) { return; }
+      await this._fetchPrefsPendingChanges();
+    }
+  }
+
+  public describeChange(): DraftChangeDescription[] {
+    const entries: DraftChangeDescription[] = [];
     const providers = this._displayProviders.get();
     const willBeActive = providers.find(p => p.willBeActive);
-    if (willBeActive) {
-      return { label: t("Authentication"), value: willBeActive.name };
-    }
     const willBeDisabled = providers.find(p => p.willBeDisabled);
-    if (willBeDisabled) {
-      return { label: t("Authentication"), value: t("disabled") };
+    if (willBeActive) {
+      entries.push({ label: t("Authentication"), value: willBeActive.name });
+    } else if (willBeDisabled) {
+      entries.push({ label: t("Authentication"), value: t("disabled") });
+    } else if (this._draftConfigs.get().size > 0) {
+      entries.push({ label: t("Authentication"), value: t("configuration updated") });
     }
-    if (this._draftConfigs.get().size > 0) {
-      return { label: t("Authentication"), value: t("configuration updated") };
-    }
+
     const prefs = this._prefsPendingChanges.get();
     if (prefs?.onRestartSetAdminEmail) {
-      return { label: t("Admin user"), value: prefs.onRestartSetAdminEmail };
+      entries.push({ label: t("New admin email"), value: prefs.onRestartSetAdminEmail });
     }
     if (prefs?.onRestartReplaceEmailWithAdmin) {
-      return { label: t("Admin user"), value: t("updated") };
+      entries.push({
+        label: t("Reassign login to admin"),
+        value: prefs.onRestartReplaceEmailWithAdmin,
+      });
     }
+
     // describeChange is only consulted when isDirty is true; one of the
     // above branches should have hit. Fall back rather than throw.
-    return { label: t("Authentication"), value: "" };
+    if (entries.length === 0) {
+      entries.push({ label: t("Authentication"), value: "" });
+    }
+    return entries;
   }
 
   public buildDom() {
@@ -229,7 +270,7 @@ export class AuthenticationSection extends Disposable implements ConfigSection {
         return this._buildSection(providers, loginSystemId);
       }),
       this._inAdminPanel ?
-        dom.maybe(this._hasActiveOnRestartProvider, () => this._buildAuthenticationChangeWarning()) : null,
+        dom.maybe(this._hasPersistedRestartChange, () => this._buildAuthenticationChangeWarning()) : null,
     ];
   }
 

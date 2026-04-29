@@ -123,6 +123,27 @@ describe("AuthProviderGetGrist", function() {
       // (because nothing else was active and it's the first configured).
       assert.includeMembers(await badges(), ["ACTIVE ON RESTART"]);
     });
+
+    it("clears the staged draft when Dismiss changes is confirmed", async function() {
+      // Continues from the previous test, which staged a getgrist.com draft.
+      // Sanity-check it's still there.
+      assert.includeMembers(await badges(), ["ACTIVE ON RESTART"]);
+
+      const dismissButton = await driver.findWait(".test-admin-panel-dismiss-button", 2000);
+      // Banner uses a grid-template-rows animation; retry until the button
+      // is actually clickable (not still mid-reveal with zero height).
+      await gu.waitToPass(async () => { await dismissButton.click(); }, 2000);
+      const confirmButton = await driver.findWait(".test-modal-confirm", 2000);
+      await confirmButton.click();
+      await gu.waitForServer();
+
+      // Banner hides once nothing is dirty; the dismiss button is gated
+      // on hasDraftChanges and disappears with it.
+      await gu.waitToPass(async () => {
+        assert.isFalse(await driver.find(".test-admin-panel-dismiss-button").isPresent());
+      }, 2000);
+      assert.notInclude(await badges(), "ACTIVE ON RESTART");
+    });
   });
 
   // Server-side behavior tests seed the secret directly via env vars and

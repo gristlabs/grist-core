@@ -49,7 +49,7 @@ import { buildInstallationIdDisplay } from "app/client/ui/ToggleEnterpriseWidget
 import { createTopBarHome } from "app/client/ui/TopBar";
 import { createUserImage } from "app/client/ui/UserImage";
 import { fullBreadcrumbs } from "app/client/ui2018/breadcrumbs";
-import { basicButton, bigPrimaryButton, bigPrimaryButtonLink } from "app/client/ui2018/buttons";
+import { basicButton, bigBasicButton, bigPrimaryButton, bigPrimaryButtonLink } from "app/client/ui2018/buttons";
 import { testId, theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { cssLink, makeLinks } from "app/client/ui2018/links";
@@ -212,8 +212,9 @@ class AdminInstallationPanel extends Disposable {
   // alternative content that doesn't need the section anyway.
   private _authSection: AuthenticationSection | undefined;
 
-  // Banner visibility: shown when any tracked section has pending changes,
-  // or the user has applied changes without a restart and still owes us one.
+  // Banner visibility: shown when a tracked section has restart-required
+  // pending changes, or the user has applied changes without a restart and
+  // still owes us one. Non-restart drafts don't surface the banner.
   private _showRestartBanner = Computed.create(this, use =>
     use(this._drafts.needsRestart) ||
     use(this._awaitingManualRestart),
@@ -310,6 +311,24 @@ class AdminInstallationPanel extends Disposable {
     }
   }
 
+  private async _dismissChanges() {
+    if (!this._drafts.hasDraftChanges.get()) { return; }
+    confirmModal(
+      t("Dismiss pending changes?"),
+      t("Dismiss"),
+      async () => {
+        try {
+          await spinnerModal(t("Dismissing..."), this._drafts.dismissAll());
+        } catch (err) {
+          reportError(err as Error);
+        }
+      },
+      {
+        explanation: dom("p", t("Any pending changes will be cleared.")),
+      },
+    );
+  }
+
   /**
    * Show something helpful to those without access to the panel,
    * which could include a legit administrator if auth is misconfigured.
@@ -395,11 +414,20 @@ Please log in as an administrator.`)),
             ),
             dom.hide(this._supportsRestart),
           ),
-          bigPrimaryButton(
-            t("Restart Grist"),
-            dom.on("click", () => this.restartGrist()),
-            testId("admin-panel-restart-button"),
-            dom.show(this._supportsRestart),
+          cssRestartButtonRow(
+            bigPrimaryButton(
+              t("Restart Grist"),
+              dom.on("click", () => this.restartGrist()),
+              testId("admin-panel-restart-button"),
+              dom.show(this._supportsRestart),
+            ),
+            dom.maybe(this._drafts.hasDraftChanges, () =>
+              bigBasicButton(
+                t("Dismiss changes"),
+                dom.on("click", () => this._dismissChanges()),
+                testId("admin-panel-dismiss-button"),
+              ),
+            ),
           ),
         ),
       )),
@@ -1270,6 +1298,13 @@ const cssDraftChangesList = styled("ul", `
 
 const cssDraftChangeLabel = styled("span", `
   font-weight: 600;
+`);
+
+const cssRestartButtonRow = styled("div", `
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
 `);
 
 const cssExpandedContent = styled("div", `
