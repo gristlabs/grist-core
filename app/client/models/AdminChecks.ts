@@ -4,7 +4,7 @@ import { BootProbeIds, BootProbeInfo, BootProbeResult } from "app/common/BootPro
 import { InstallAPI } from "app/common/InstallAPI";
 import { getGristConfig } from "app/common/urlUtils";
 
-import { Disposable, Observable, UseCBOwner } from "grainjs";
+import { Computed, Disposable, Observable, UseCBOwner } from "grainjs";
 
 const t = makeT("AdminChecks");
 /**
@@ -78,6 +78,22 @@ export class AdminChecks {
     const probe = use(this.probes).find(p => p.id === id);
     if (!probe) { return; }
     return this.requestCheck(probe);
+  }
+
+  /**
+   * Builds an observable of the current login provider name from the
+   * authentication boot probe (e.g. "oidc", "saml", "minimal"). The caller
+   * owns the returned observable via the `owner` argument.
+   */
+  public buildLoginProviderObs(owner: Disposable): Observable<string | undefined> {
+    return Computed.create(owner, (use) => {
+      const req = this.requestCheckById(use, "authentication");
+      const result = req ? use(req.result) : undefined;
+      if (result?.status === "success") {
+        return result.details?.provider;
+      }
+      return undefined;
+    });
   }
 
   public async reloadChecks() {
@@ -161,6 +177,12 @@ from the network."),
 
   "reachable": {
     info: t("The main page of Grist should be available."),
+  },
+
+  "home-url": {
+    info: t("APP_HOME_URL is the base URL where users and integrations reach \
+this Grist server. Auth callbacks, API links, and email notifications \
+all depend on this being correct."),
   },
 
   "websockets": {

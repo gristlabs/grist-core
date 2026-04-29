@@ -2650,6 +2650,5 @@ const cssDisableRulesButton = styled(bigBasicButton, `
     border-color: ${tokens.error};
     color:        ${tokens.error};
     --icon-color: ${tokens.error};
-    x;
   }
 `);

@@ -656,6 +656,11 @@ export class HomeDBManager implements HomeDBAuth {
       };
       return { status: 200, data: anonOrg as any };
     }
+    // If the request is for the user's personal org but personal orgs are disabled,
+    // surface a clear message rather than silently producing an empty query result.
+    if (this.isMergedOrg(orgKey) && !getPersonalOrgsEnabled()) {
+      return { status: 404, errMessage: "Personal orgs are disabled" };
+    }
     let qb = this.org(scope, orgKey, {
       ...(options?.requirePermissions ? {
         markPermissions: options.requirePermissions,
@@ -1131,9 +1136,9 @@ export class HomeDBManager implements HomeDBAuth {
     await mapSetOrClear(this._docAuthCache, stringifyDocAuthKey(key), makeDocAuthResult(promise));
     const doc = await promise;
     // Filter the result for removed / non-removed documents.
-    if (!scope.showAll && scope.showRemoved ?
+    if (!scope.showAll && (scope.showRemoved ?
       (doc.removedAt === null && doc.workspace.removedAt === null) :
-      (doc.removedAt || doc.workspace.removedAt)) {
+      (doc.removedAt || doc.workspace.removedAt))) {
       throw new ApiError("document not found", 404);
     }
     return doc;

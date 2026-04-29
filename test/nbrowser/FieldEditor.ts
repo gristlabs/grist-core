@@ -161,6 +161,9 @@ describe("FieldEditor", function() {
         await gu.checkTextEditor(gu.exactMatch(sampleText));
         await driver.sendKeys(Key.ESCAPE);
         await gu.waitAppFocus(true);
+        // Ensure the grid scrolls back to the cursor. The scrollToCursor() in the `input`
+        // command is fire-and-forget; pressing UP at row 0 triggers scrollPaneTop().
+        await gu.sendKeys(Key.UP);
         // Second cell should be clickable - this means view was scrolled to the active record.
         await gu.waitToPass(async () => gu.getCell(1, 1).click());
         await gu.waitForServer();

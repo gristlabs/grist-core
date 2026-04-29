@@ -13,13 +13,13 @@ import { reportError } from "app/client/models/AppModel";
 import { reportWarning } from "app/client/models/errors";
 import { urlState } from "app/client/models/gristUrlState";
 import { KoSaveableObservable } from "app/client/models/modelUtil";
-import { AdminSection, AdminSectionItem } from "app/client/ui/AdminPanelCss";
 import { openFilePicker } from "app/client/ui/FileDialog";
 import { buildNotificationsConfig } from "app/client/ui/Notifications";
+import { cssSettingsPage, SectionCard, SectionItem } from "app/client/ui/SettingsLayout";
 import { hoverTooltip, showTransientTooltip, withInfoTooltip } from "app/client/ui/tooltips";
 import { bigBasicButton, bigPrimaryButton } from "app/client/ui2018/buttons";
 import { cssRadioCheckboxOptions, labeledSquareCheckbox, radioCheckboxOption } from "app/client/ui2018/checkbox";
-import { colors, mediaSmall, theme, vars } from "app/client/ui2018/cssVars";
+import { colors, theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { cssLink } from "app/client/ui2018/links";
 import { loadingSpinner } from "app/client/ui2018/loaders";
@@ -83,20 +83,20 @@ export class DocSettingsPage extends Disposable {
     const isFork = docPageModel.currentDoc.get()?.isFork;
 
     return cssContainer({ tabIndex: "-1" },
-      dom.create(AdminSection, t("Document settings"), [
-        dom.create(AdminSectionItem, {
+      SectionCard(t("Document settings"), [
+        SectionItem({
           id: "timezone",
           name: t("Time zone"),
           description: t("Default for DateTime columns"),
           value: dom.create(cssTZAutoComplete, moment, fromKo(this._timezone), val => this._timezone.saveOnly(val)),
         }),
-        dom.create(AdminSectionItem, {
+        SectionItem({
           id: "locale",
           name: t("Locale"),
           description: t("For number and date formats"),
           value: dom.create(cssLocalePicker, this._locale),
         }),
-        dom.create(AdminSectionItem, {
+        SectionItem({
           id: "currency",
           name: t("Currency"),
           description: t("For currency columns"),
@@ -105,7 +105,7 @@ export class DocSettingsPage extends Disposable {
               { defaultCurrencyLabel: t("Local currency ({{currency}})", { currency: getCurrency(l) }) }),
           ),
         }),
-        dom.create(AdminSectionItem, {
+        SectionItem({
           id: "templateMode",
           name: t("Document type"),
           description: t("Default, template, or tutorial"),
@@ -121,7 +121,7 @@ export class DocSettingsPage extends Disposable {
           ),
           disabled: isDocOwner ? false : t("Only available to document owners"),
         }),
-        !isFork ? dom.create(AdminSectionItem, {
+        !isFork ? SectionItem({
           id: "acceptProposals",
           name: [t("Suggestions"), betaTag(t("experiment"), { style: "margin-left: 4px;" })],
           description: withInfoTooltip(
@@ -158,8 +158,8 @@ export class DocSettingsPage extends Disposable {
 
       dom.create(buildNotificationsConfig, this._gristDoc.docApi, docPageModel.currentDoc.get()),
 
-      dom.create(AdminSection, t("Data engine"), [
-        dom.create(AdminSectionItem, {
+      SectionCard(t("Data engine"), [
+        SectionItem({
           id: "timings",
           name: t("Formula timer"),
           description: dom("div",
@@ -191,7 +191,7 @@ document is first opened, or when a document responds to changes.",
           )),
           disabled: isDocOwner ? false : t("Only available to document owners"),
         }),
-        dom.create(AdminSectionItem, {
+        SectionItem({
           id: "reload",
           name: t("Reload"),
           description: t("Hard reset of data engine"),
@@ -200,8 +200,8 @@ document is first opened, or when a document responds to changes.",
         }),
       ]),
 
-      dom.create(AdminSection, t("API"), [
-        dom.create(AdminSectionItem, {
+      SectionCard(t("API"), [
+        SectionItem({
           id: "documentId",
           name: t("Document ID"),
           description: t("ID for API use"),
@@ -240,7 +240,7 @@ document is first opened, or when a document responds to changes.",
             ]),
           ),
         }),
-        dom.create(AdminSectionItem, {
+        SectionItem({
           id: "api-console",
           name: t("API console"),
           description: t("Try API calls from the browser"),
@@ -249,7 +249,7 @@ document is first opened, or when a document responds to changes.",
             href: getApiConsoleLink(docPageModel),
           }),
         }),
-        this._gristDoc.docPageModel.isFork.get() ? null : dom.create(AdminSectionItem, {
+        this._gristDoc.docPageModel.isFork.get() ? null : SectionItem({
           id: "webhooks",
           name: t("Webhooks"),
           description: t("Notify other services on doc changes"),
@@ -329,8 +329,8 @@ document is first opened, or when a document responds to changes.",
       .then(() => attachmentsReady.set(true))
       .catch(reportError);
 
-    return dom.create(AdminSection, t("Attachment storage"), [
-      dom.create(AdminSectionItem, {
+    return SectionCard(t("Attachment storage"), [
+      SectionItem({
         id: PREFERRED_STORAGE_ANCHOR,
         name: withInfoTooltip(
           dom("span", t("Preferred storage for this document"), testId("transfer-header")),
@@ -414,7 +414,7 @@ document is first opened, or when a document responds to changes.",
       testId("upload-attachment-archive"),
     );
 
-    return dom.create(AdminSectionItem, {
+    return SectionItem({
       id: "uploadAttachments",
       name: withInfoTooltip(
         dom("span", t("Upload missing attachments"), testId("transfer-header")),
@@ -782,17 +782,9 @@ function stillInternalCopy(inProgress: Observable<boolean>, ...args: IDomArgs<HT
   });
 }
 
-const cssContainer = styled("div", `
-  overflow-y: auto;
-  position: relative;
-  height: 100%;
-  padding: 32px 64px 24px 64px;
-  color: ${theme.text};
-  @media ${mediaSmall} {
-    & {
-      padding: 32px 24px 24px 24px;
-    }
-  }
+// Unlike in SettingsPage, we didn't use to increase font-size here, so keep that difference unchanged.
+const cssContainer = styled(cssSettingsPage, `
+  font-size: revert;
 `);
 
 const cssCopyButton = styled("div", `

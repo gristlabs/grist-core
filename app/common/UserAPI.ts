@@ -724,6 +724,9 @@ export interface DocWorkerAPI {
 }
 
 export class UserAPIImpl extends BaseAPI implements UserAPI {
+  /** Home URL without a trailing slash */
+  private _urlWithoutOrg = this._homeUrl.replace(/\/+$/, "");
+
   constructor(private _homeUrl: string, private _options: IOptions = {}) {
     super(_options);
   }
@@ -855,7 +858,7 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
   }
 
   public async checkDomain(domain: string): Promise<{ valid: boolean; available: boolean }> {
-    return this.requestJson(`${this._homeUrl}/api/domains/check`, {
+    return this.requestJson(`${this._urlWithoutOrg}/api/domains/check`, {
       method: "POST",
       body: JSON.stringify({ domain }),
     });

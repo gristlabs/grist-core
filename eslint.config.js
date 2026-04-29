@@ -3,13 +3,27 @@ const path = require("path");
 
 const babelParser = require("@babel/eslint-parser");
 const js = require("@eslint/js");
+const localRules = require("./eslint-rules/local-rules");
 const stylistic = require("@stylistic/eslint-plugin");
+const ts = require("typescript");
 const tsParser = require("@typescript-eslint/parser");
 const typescriptEslint = require("@typescript-eslint/eslint-plugin");
 const { defineConfig, globalIgnores } = require("eslint/config");
 const { importX } = require("eslint-plugin-import-x");
 
 const projectRoot = process.cwd();
+
+// Only lint ext/ if tsconfig.eslint.json covers it; otherwise the TS parser
+// errors per-file.
+function shouldLintExt() {
+  try {
+    const file = path.join(projectRoot, "tsconfig.eslint.json");
+    const { config } = ts.readConfigFile(file, ts.sys.readFile);
+    return (config?.include || []).some((p) => p.startsWith("ext/"));
+  } catch {
+    return false;
+  }
+}
 
 module.exports = defineConfig([
   globalIgnores([
@@ -23,7 +37,7 @@ module.exports = defineConfig([
     "sandbox/pyodide/_build/",
     "!stubs/",
     "!buildtools/",
-    "!ext/",
+    ...(shouldLintExt() ? ["!ext/"] : ["ext/"]),
     "!core/",
     "!storybook/",
     "!.storybook/",
@@ -107,6 +121,7 @@ module.exports = defineConfig([
       "@typescript-eslint": typescriptEslint,
       "@stylistic": stylistic,
       "@import-x": importX,
+      "local": localRules,
     },
 
     ignores: [
@@ -287,6 +302,8 @@ module.exports = defineConfig([
       "@typescript-eslint/no-unsafe-function-type": "off",
       "@typescript-eslint/no-base-to-string": "off",
       "@typescript-eslint/no-unsafe-enum-comparison": "off",
+
+      "local/makeT-filename": "error",
     },
   },
 ]);

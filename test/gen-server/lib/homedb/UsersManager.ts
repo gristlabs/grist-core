@@ -14,6 +14,7 @@ import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { GetUserOptions, NonGuestGroup, Resource } from "app/gen-server/lib/homedb/Interfaces";
 import { SUPPORT_EMAIL, UsersManager } from "app/gen-server/lib/homedb/UsersManager";
 import { updateDb } from "app/server/lib/dbUtils";
+import { getHomeUrl } from "app/server/lib/gristSettings";
 import { EmitNotifier } from "app/server/lib/INotifier";
 import log from "app/server/lib/log";
 import { MergedServer } from "app/server/MergedServer";
@@ -1232,6 +1233,7 @@ describe("UsersManager", function() {
       await server.run();
       db = server.flexServer.getHomeDBManager();
       process.env.APP_HOME_URL = server.flexServer.getOwnUrl();
+      getHomeUrl.cache.clear();
     });
 
     after(async function() {
@@ -1240,6 +1242,7 @@ describe("UsersManager", function() {
       if (dataDir) {
         await fse.remove(dataDir);
       }
+      getHomeUrl.cache.clear();
     });
 
     describe("deleteUser()", function() {

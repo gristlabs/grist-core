@@ -15,9 +15,22 @@ import { getGristConfig } from "app/common/urlUtils";
 
 import { Disposable, dom, makeTestId, Observable, styled } from "grainjs";
 
-const t = makeT("AdminPanel");
+const t = makeT("GetGristComProvider");
 
 const testId = makeTestId("test-admin-auth-");
+
+/**
+ * Static metadata for the getgrist.com login provider, shared with the auth
+ * section rendering. Translations are deferred so locale changes are picked up.
+ */
+export function getGristComProviderMeta() {
+  return {
+    description: t("Managed authentication by Grist Labs."),
+    heroDesc: t("Your server uses getgrist.com authentication. \
+Users sign in with their getgrist.com account."),
+    docsUrl: commonUrls.signInWithGristDocs,
+  };
+}
 
 /**
  * Modal for configuring "Sign in with getgrist.com" login system.

@@ -20,6 +20,8 @@
 
 import { updateDb } from "app/server/lib/dbUtils";
 import { FlexServer } from "app/server/lib/FlexServer";
+import { getHomeUrl } from "app/server/lib/gristSettings";
+import { initializeAppSettings } from "app/server/lib/initializeAppSettings";
 import log from "app/server/lib/log";
 import { MergedServer } from "app/server/MergedServer";
 
@@ -70,6 +72,8 @@ export async function main() {
     await updateDb();
   }
 
+  await initializeAppSettings();
+
   // In V1, we no longer create a config.json file automatically if it is missing.
   // It is convenient to do that in the dev and test environment.
   const appRoot = path.dirname(path.dirname(__dirname));
@@ -96,8 +100,9 @@ export async function main() {
     log.info("==========================================================================");
     log.info("== mergedServer");
     const port = getPort("HOME_PORT", 8080);
-    if (!process.env.APP_HOME_URL) {
+    if (!getHomeUrl()) {
       process.env.APP_HOME_URL = `http://localhost:${port}`;
+      getHomeUrl.cache.clear();
     }
     const mergedServer = await MergedServer.create(port, ["home", "docs", "static"]);
     await mergedServer.run();
@@ -109,12 +114,13 @@ export async function main() {
   // now, but remain distinct in some test setups.
   const homeServerPort = getPort("HOME_PORT", 9000);
   const webServerPort = getPort("PORT", 8080);
-  if (!process.env.APP_HOME_URL) {
+  if (!getHomeUrl()) {
     // All servers need to know a "main" URL for Grist.  This is generally
     // that of the web server.  In some test setups, the web server port is left
     // at 0 to be auto-allocated, but for those tests it suffices to use the home
     // server port.
     process.env.APP_HOME_URL = `http://localhost:${webServerPort || homeServerPort}`;
+    getHomeUrl.cache.clear();
   }
 
   // Bring up the static resource server

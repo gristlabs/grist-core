@@ -3,6 +3,7 @@ import { isEmail, isNonNullish } from "app/common/gutil";
 import { InstallPrefs } from "app/common/Install";
 import { InstallProperties, installPropertyKeys } from "app/common/InstallAPI";
 import { nativeValues } from "app/gen-server/lib/values";
+import { SettingEnvVar } from "app/server/lib/gristSettings";
 
 import pick from "lodash/pick";
 import { BaseEntity, Column, Entity, PrimaryColumn } from "typeorm";
@@ -96,13 +97,7 @@ export class Activation extends BaseEntity {
       if (props.prefs.envVars) {
         this.prefs.envVars = this.prefs.envVars || {};
 
-        Object.assign(this.prefs.envVars, pick(props.prefs.envVars,
-          "GRIST_LOGIN_SYSTEM_TYPE",
-          "GRIST_GETGRISTCOM_SECRET",
-          "GRIST_ADMIN_EMAIL",
-          "GRIST_BOOT_KEY",
-          "GRIST_IN_SERVICE",
-        ));
+        Object.assign(this.prefs.envVars, pick(props.prefs.envVars, SettingEnvVar.values));
 
         for (const key of Object.keys(props.prefs.envVars)) {
           if (props.prefs.envVars[key] === null || props.prefs.envVars[key] === undefined) {

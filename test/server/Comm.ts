@@ -11,6 +11,7 @@ import { Client, ClientMethod } from "app/server/lib/Client";
 import { Comm } from "app/server/lib/Comm";
 import { Hosts, RequestOrgInfo } from "app/server/lib/extractOrg";
 import { createDummyGristServer, GristServer } from "app/server/lib/GristServer";
+import { getBootKey } from "app/server/lib/gristSettings";
 import { InstallAdmin } from "app/server/lib/InstallAdmin";
 import { IPermitStore, Permit } from "app/server/lib/Permit";
 import { fromCallback, listenPromise } from "app/server/lib/serverUtils";
@@ -641,6 +642,7 @@ describe("Comm", function() {
       const oldBootKey = process.env.GRIST_BOOT_KEY;
       try {
         process.env.GRIST_BOOT_KEY = "secret-boot";
+        getBootKey.cache.clear();
         const gristServer: GristServer = {
           ...createDummyGristServer(),
           getInstallAdmin: () => ({ getAdminUser: async () => ham } as InstallAdmin),
@@ -659,6 +661,7 @@ describe("Comm", function() {
         } else {
           process.env.GRIST_BOOT_KEY = oldBootKey;
         }
+        getBootKey.cache.clear();
       }
     });
 

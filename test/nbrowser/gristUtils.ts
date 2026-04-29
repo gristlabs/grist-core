@@ -2110,7 +2110,7 @@ namespace gristUtils {
 
   export async function removeUser(emails: string | string[]): Promise<void> {
     await driver.findWait(".test-user-icon", 5000).click();
-    await driver.find(".test-dm-org-access").click();
+    await driver.findWait(".test-dm-org-access", 1000).click();
     await driver.findWait(".test-um-members", 500);
     for (const email of (Array.isArray(emails) ? emails : [emails])) {
       const userRow = await driver.findContent(".test-um-member", email);

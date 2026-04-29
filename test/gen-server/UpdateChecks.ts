@@ -52,7 +52,7 @@ describe("UpdateChecks", function() {
     sandbox.stub(Deps, "REQUEST_TIMEOUT").value(300);
     sandbox.stub(Deps, "RETRY_TIMEOUT").value(400);
     sandbox.stub(Deps, "GOOD_RESULT_TTL").value(500);
-    sandbox.stub(Deps, "BAD_RESULT_TTL").value(200);
+    sandbox.stub(Deps, "BAD_RESULT_TTL").value(2000);
     sandbox.stub(Deps, "DOCKER_ENDPOINT").value(dockerHub.url + "/tags");
     sandbox.stub(Deps, "OLDEST_RECOMMENDED_VERSION").value("8.8.8");
     sandbox.stub(LogMethods.prototype, "rawLog").callsFake((_level, _info, name, meta) => {
@@ -141,19 +141,19 @@ describe("UpdateChecks", function() {
 
     const r2 = await axios.get(`${homeUrl}/api/version`, chimpy);
     assert.equal(r2.status, 500);
-    assert.equal(r2.data.error, "1"); // since errors are cached for 200ms.
+    assert.equal(r2.data.error, "1"); // since errors are cached for 2000ms.
 
-    await delay(300); // error is cached for 200ms
+    await delay(2500); // error is cached for 2000ms
 
     const r3 = await axios.get(`${homeUrl}/api/version`, chimpy);
     assert.equal(r3.status, 500);
-    assert.equal(r3.data.error, "2"); // second error is different, but still cached for 200ms.
+    assert.equal(r3.data.error, "2"); // second error is different, but still cached for 2000ms.
 
     const r4 = await axios.get(`${homeUrl}/api/version`, chimpy);
     assert.equal(r4.status, 500);
     assert.equal(r4.data.error, "2");
 
-    await delay(300);
+    await delay(2500);
 
     // Now we should get correct result, but it will be cached for 500ms.
 

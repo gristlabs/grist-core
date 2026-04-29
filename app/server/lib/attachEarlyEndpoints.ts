@@ -8,6 +8,7 @@ import {
 import { AdminPageConfig } from "app/common/gristUrls";
 import { isAffirmative } from "app/common/gutil";
 import { InstallPrefs } from "app/common/Install";
+import { PermissionsStatus, PrefSource } from "app/common/InstallAPI";
 import { getOrgKey } from "app/gen-server/ApiServer";
 import { Config } from "app/gen-server/entity/Config";
 import {
@@ -19,6 +20,13 @@ import { RequestWithLogin } from "app/server/lib/Authorizer";
 import { BootProbes } from "app/server/lib/BootProbes";
 import { expressWrap } from "app/server/lib/expressWrap";
 import { GristServer } from "app/server/lib/GristServer";
+import {
+  getAnonPlaygroundEnabled, getAnonPlaygroundEnabledSource,
+  getCanAnyoneCreateOrgs, getCanAnyoneCreateOrgsSource,
+  getForceLogin, getForceLoginSource,
+  getPersonalOrgsEnabled, getPersonalOrgsEnabledSource,
+  invalidateReloadableSettings,
+} from "app/server/lib/gristSettings";
 import log from "app/server/lib/log";
 import {
   getScope,
@@ -36,7 +44,13 @@ import {
   RequestHandler,
   Response,
 } from "express";
+import isEmpty from "lodash/isEmpty";
 import pick from "lodash/pick";
+
+function canRestart() {
+  return isAffirmative(process.env.GRIST_RUNNING_UNDER_SUPERVISOR) ||
+    isAffirmative(process.env.GRIST_UNDER_RESTART_SHELL);
+}
 
 export interface AttachOptions {
   app: Application;
@@ -69,7 +83,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
     userIdMiddleware,
     expressWrap(async (req, res) => {
       const config: Partial<AdminPageConfig> = {
-        runningUnderSupervisor: isAffirmative(process.env.GRIST_RUNNING_UNDER_SUPERVISOR),
+        runningUnderSupervisor: canRestart(),
         adminControls: gristServer.create.areAdminControlsAvailable(),
       };
       return gristServer.sendAppPage(req, res, {
@@ -106,12 +120,12 @@ export function attachEarlyEndpoints(options: AttachOptions) {
         // Docker) tell the parent that we have a new environment so it
         // can restart us.
         log.rawDebug(`Restart[${mreq.method}] finishing:`, meta);
-        if (process.send && process.env.GRIST_RUNNING_UNDER_SUPERVISOR) {
-          log.rawDebug(`Restart[${mreq.method}] requesting supervisor to restart home server:`, meta);
+        if (process.send && canRestart()) {
+          log.rawDebug(`Restart[${mreq.method}] requesting restart:`, meta);
           process.send({ action: "restart" });
         }
       });
-      if (!process.env.GRIST_RUNNING_UNDER_SUPERVISOR) {
+      if (!canRestart()) {
         // On the topic of http response codes, thus spake MDN:
         // "409: This response is sent when a request conflicts with the current state of the server."
         return res.status(409).send({
@@ -134,6 +148,22 @@ export function attachEarlyEndpoints(options: AttachOptions) {
     }),
   );
 
+  // Returns current default permission settings with their sources.
+  app.get(
+    "/api/install/permissions",
+    expressWrap(async (_req, res) => {
+      const toPrefSource = (s: "env" | "db" | undefined): PrefSource | undefined =>
+        s === "env" ? "environment-variable" : s === "db" ? "preferences" : undefined;
+      const status: PermissionsStatus = {
+        orgCreationAnyone: { value: getCanAnyoneCreateOrgs(), source: toPrefSource(getCanAnyoneCreateOrgsSource()) },
+        personalOrgs: { value: getPersonalOrgsEnabled(), source: toPrefSource(getPersonalOrgsEnabledSource()) },
+        forceLogin: { value: getForceLogin(), source: toPrefSource(getForceLoginSource()) },
+        anonPlayground: { value: getAnonPlaygroundEnabled(), source: toPrefSource(getAnonPlaygroundEnabledSource()) },
+      };
+      return sendOkReply(null, res, status);
+    }),
+  );
+
   app.patch(
     "/api/install/prefs",
     json({ limit: "1mb" }),
@@ -150,12 +180,10 @@ export function attachEarlyEndpoints(options: AttachOptions) {
         await gristServer.getTelemetry().fetchTelemetryPrefs();
       }
 
-      if (envVars) {
+      if (!isEmpty(envVars)) {
         // TODO: Similar to above, we need to notify other servers of updates to env vars.
         appSettings.setEnvVars((await gristServer.getActivations().current()).prefs?.envVars || {});
-
-        if ("GRIST_ADMIN_EMAIL" in envVars) { gristServer.getInstallAdmin().clearCaches(); }
-        if ("GRIST_IN_SERVICE" in envVars) { gristServer.refreshServiceStatus(); }
+        invalidateReloadableSettings(...Object.keys(envVars!));
       }
 
       return res.status(200).send();

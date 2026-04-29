@@ -1,18 +1,12 @@
-/**
- * Exports `docBreadcrumbs()` which returns a styled breadcrumb for the current page:
- *
- *  [icon] Workspace (link) / Document name (editable) / Page name (editable)
- *
- * Workspace is a clickable link and document and page names are editable labels.
- */
 import { makeT } from "app/client/lib/localization";
 import { urlState } from "app/client/models/gristUrlState";
 import { cssHideForNarrowScreen, mediaNotSmall, testId, theme } from "app/client/ui2018/cssVars";
 import { editableLabel } from "app/client/ui2018/editableLabel";
 import { icon } from "app/client/ui2018/icons";
 import { cssLink } from "app/client/ui2018/links";
+import { tokens } from "app/common/ThemePrefs";
 
-import { BindableValue, dom, Observable, styled } from "grainjs";
+import { BindableValue, dom, DomContents, Observable, styled } from "grainjs";
 import { tooltip } from "popweasel";
 
 const t = makeT("breadcrumbs");
@@ -22,6 +16,36 @@ export const cssBreadcrumbs = styled("div", `
   white-space: nowrap;
   cursor: default;
 `);
+
+const cssFullBreadcrumbs = styled("ol", `
+  color: ${theme.lightText};
+  white-space: nowrap;
+  cursor: default;
+  display: flex;
+  align-items: center;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  margin-left: 16px;
+  & > li:not(:first-child)::before {
+    content: "/";
+    color: ${theme.lightText};
+    margin: 0 4px;
+    font-weight: normal;
+  }
+  & > li:last-child {
+    color: ${theme.text};
+    font-weight: ${tokens.headerControlTextWeight};
+  }
+`);
+
+/**
+ * fullBreadcrumbs() renders breadcrumbs for the top bar, styled like docBreadcrumbs(), but
+ * generic. Each passed-in argument becomes a level of the breadcrumbs.
+ */
+export function fullBreadcrumbs(...args: DomContents[]) {
+  return cssFullBreadcrumbs(args.map(arg => dom("li", arg)));
+}
 
 export const separator = styled("span", `
   padding: 0 2px;
@@ -84,6 +108,13 @@ interface PartialWorkspace {
   name: string;
 }
 
+/**
+ * `docBreadcrumbs()` returns a styled breadcrumb for a Grist document page:
+ *
+ *  [icon] Workspace (link) / Document name (editable) / Page name (editable)
+ *
+ * Workspace is a clickable link and document and page names are editable labels.
+ */
 export function docBreadcrumbs(
   workspace: Observable<PartialWorkspace | null>,
   docName: Observable<string>,

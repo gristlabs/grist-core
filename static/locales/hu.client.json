@@ -112,7 +112,8 @@
         "Activation": "Aktiválás",
         "Billing account": "Számlázási fiók",
         "Support Grist": "A Grist támogatása",
-        "Upgrade Plan": "Előfizetés"
+        "Upgrade Plan": "Előfizetés",
+        "Site settings": "Oldal beállítások"
     },
     "ViewAsDropdown": {
         "View as": "Megjelenítés mint",
@@ -639,7 +640,7 @@
         "Interested in using Grist outside of your team? Visit your free ": "Érdekel a Grist használata a csapatodon kívül is? Látogasd meg ingyenes ",
         "Invite Team Members": "Csapattagok meghívása",
         "Sign up": "Regisztráció",
-        "Sprouts Program": "Sprouts Program",
+        "Sprouts Program": "Rügyfakadás program",
         "This workspace is empty.": "Ez a munkaterület üres.",
         "Visit our {{link}} to learn more.": "További tudnivalókért látogasd meg {{link}} oldalunkat.",
         "Welcome to Grist!": "Üdvözöl a Grist!",
@@ -679,7 +680,8 @@
         "Tutorial": "Gyakorlat",
         "Terms of service": "Szolgáltatási feltételek",
         "Grist Resources": "Grist eszközök és tudástár",
-        "context menu - {{- workspaceName }}": "kontextus-menü - {{- workspaceName }}"
+        "context menu - {{- workspaceName }}": "kontextus-menü - {{- workspaceName }}",
+        "Import from Airtable": "Importálás Airtable-ből"
     },
     "Importer": {
         "Column Mapping": "Oszlopok megfeleltetése",
@@ -695,7 +697,14 @@
         "Source column": "Forrás oszlop",
         "Import options": "Importálás beállításai",
         "Cancel": "Mégse",
-        "Import": "Importálás"
+        "Import": "Importálás",
+        "Merge rows that match these fields:": "Egyesítse az ezeknek a mezőknek megfelelő sorokat:",
+        "Select fields to match on": "Válasszon mezőket az egyesítéshez",
+        "Update existing records": "Létező rekordok frissítése",
+        "{{count}} unmatched field in import_one": "{{count}} nem párosítható mező az importban",
+        "{{count}} unmatched field in import_other": "{{count}} nem párosítható mező az importban",
+        "{{count}} unmatched field_one": "{{count}} nem párosítható mező",
+        "{{count}} unmatched field_other": "{{count}} nem párosíthetó mező"
     },
     "LeftPanelCommon": {
         "Help Center": "Súgóközpont",
@@ -955,7 +964,9 @@
         "Suggestions": "Javaslatok"
     },
     "TopBar": {
-        "Manage team": "Csapat kezelése"
+        "Manage team": "Csapat kezelése",
+        "Redo": "Újra",
+        "Undo": "Visszavonás"
     },
     "TriggerFormulas": {
         "Any field": "Bármely mező",
@@ -1128,7 +1139,12 @@
         "changes": "változtatások",
         "comments": "hozzászólások",
         "this document": "ez a dokumentum",
-        "your email": "e-mail címed"
+        "your email": "e-mail címed",
+        "You will no longer receive email notifications about {{suggestions}} in {{docName}} at {{email}}.": "Nem kapsz a továbbiakban email értesítést {{email}} emailcímre {{docName}} dokumentum kapcsán {{suggestions}} témában.",
+        "You will no longer receive email notifications about {{automations}} in {{docName}} at {{email}}.": "Nem kapsz a továbbiakban email értesítést {{email}} emailcímre {{docName}} dokumentum kapcsán {{automations}} témában.",
+        "You have been unsubscribed from automation notifications for {{docName}}. You can update your preferences anytime in the document settings.": "Leiratkoztál az automatizmusok értesítéseiről {{docName}} dokumentumban. Bármikor frissítheted a beállításaidat a dokumentum beállításai között.",
+        "automations": "automatizmusok",
+        "suggestions": "javaslatok"
     },
     "menus": {
         "* Workspaces are available on team plans. ": "* A munkaterületek csoport-előfizetésekben érhetők el. ",
@@ -1150,7 +1166,9 @@
         "By Name": "Név szerint",
         "By Date Modified": "Módosítás dátuma szerint",
         "Light": "Világos",
-        "Custom": "Egyéni"
+        "Custom": "Egyéni",
+        "Dark": "Sötét",
+        "Light (High Contrast)": "Világos (nagy kontrasztú)"
     },
     "modals": {
         "Cancel": "Mégse",
@@ -1198,7 +1216,8 @@
         "Field Format": "Mező formátuma",
         "Lines": "Sorok",
         "Multi line": "Többsoros",
-        "Single line": "Egysoros"
+        "Single line": "Egysoros",
+        "Maximum characters": "Maximális karakterszám"
     },
     "ACLUsers": {
         "Example Users": "Példa felhasználók",
@@ -1359,6 +1378,37 @@
     },
     "GristTooltips": {
         "Apply conditional formatting to cells in this column when formula conditions are met.": "Feltételes formázás alkalmazása az ebben az oszlopban lévő olyan cellákra, amelyeknél a képletben leírt feltételek fennállnak.",
-        "Apply conditional formatting to rows based on formulas.": "Feltételes formázás alkalmazása sorokra képletek alapján."
+        "Apply conditional formatting to rows based on formulas.": "Feltételes formázás alkalmazása sorokra képletek alapján.",
+        "Updates every 5 minutes.": "Ötpercenként frissül.",
+        "Use the \\u{1D6BA} icon to create summary (or pivot) tables, for totals or subtotals.": "Használd a \\u{1D6BA} ikont, hogy összegző (összefoglaló) táblázatot hozz létre összegekhez és részösszegekhez.",
+        "Raw Data page": "Nyersadat oldal",
+        "Cells in a reference column always identify an {{entire}} record in that table, but you may select which column from that record to show.": "A referencia típusú oszlop cellái mindig egy {{entire}} rekordot tartalmaznak, de kiválaszthatod, hogy melyik oszlop legyen ebből a rekordból megjelenítve.",
+        "Click on “Open row styles” to apply conditional formatting to rows.": "Kattints a \"Sor stílusok megnyitása\" gombra a sorok feltételes formázásához.",
+        "Click the Add new button to create new documents or workspaces, or import data.": "Kattints az Új hozzáadása gombra új dokumentum vagy munkaterület létrehozásához, vagy adatok importálásához.",
+        "Clicking {{EyeHideIcon}} in each cell hides the field from this view without deleting it.": "Minden cellában az {{EyeHideIcon}} ikonra kattintva elrejti a mezőt ebből a nézetből anélkül, hogy törölné.",
+        "Editing Card Layout": "Kártya elrendezése módosítása",
+        "Formulas that trigger in certain cases, and store the calculated value as data.": "Képletek, amelyek bizonyos esetekben aktiválódnak, és a kiszámított értéket adatként tárolják.",
+        "Learn more.": "További információk.",
+        "Link your new widget to an existing widget on this page.": "Kapcsold az új widgetedet egy már létező widgethez ezen az oldalon.",
+        "Linking Widgets": "Widgetek összekapcsolása",
+        "Nested Filtering": "Beágyazott szűrés",
+        "Only those rows will appear which match all of the filters.": "Csak azok a sorok jelennek meg, amelyek minden szűrőfeltételnek megfelelnek.",
+        "Pinned filters are displayed as buttons above the widget.": "A rögzített szűrők gombokként jelennek meg a widget felett.",
+        "Pinning Filters": "Rögzített szűrők",
+        "Rearrange the fields in your card by dragging and resizing cells.": "Rendezd újra a mezőket a kártyán húzással és a cellák átméretezésével.",
+        "Reference Columns": "Referencia oszlop",
+        "Reference columns are the key to {{relational}} data in Grist.": "A referencia oszlopok a {{relational}} adatok kulcsai a Grist-ben.",
+        "Select the table containing the data to show.": "Válasszd ki az adatokat tartalmazó táblázatot.",
+        "Select the table to link to.": "Válaszd ki a táblázatot, amire hivatkozni szeretnél.",
+        "Selecting Data": "Válassz adatot",
+        "relational": "relációs",
+        "Access Rules": "Hozzáférési szabályok",
+        "Add new": "Új hozzáadása",
+        "Calendar": "Naptár",
+        "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Nem találod a megfelelő oszlopokat? Kattints a Widget megváltoztatására, hogy kiválaszd az esemény adatokat tartalmazó táblázatot.",
+        "To configure your calendar, select columns for start": {
+            "end dates and event titles. Note each column's type.": "A naptárad beállításához válassz oszlopokat a kezdő és végdátumhoz és az események címéhez. Figyeld meg az egyes oszlopok típusát."
+        },
+        "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "Az UUID azonosító véletlenszerűen generált karaktersorozat, amely alkalmazható egyedi azonosítóként és hivatkozások kulcsaként."
     }
 }

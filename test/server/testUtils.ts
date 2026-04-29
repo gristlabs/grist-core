@@ -10,6 +10,7 @@
 /* global before, after */
 
 import * as docUtils from "app/server/lib/docUtils";
+import { getSandboxFlavor } from "app/server/lib/gristSettings";
 import log from "app/server/lib/log";
 import { getAppRoot } from "app/server/lib/places";
 
@@ -398,9 +399,11 @@ export function withoutSandboxing() {
   before(() => {
     env = new EnvironmentSnapshot();
     process.env.GRIST_SANDBOX_FLAVOR = "unsandboxed";
+    getSandboxFlavor.cache.clear();
   });
   after(() => {
     env.restore();
+    getSandboxFlavor.cache.clear();
   });
 }
 

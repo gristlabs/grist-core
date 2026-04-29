@@ -2,20 +2,20 @@ import { detectCurrentLang, makeT } from "app/client/lib/localization";
 import { checkName } from "app/client/lib/nameUtils";
 import { AppModel, reportError } from "app/client/models/AppModel";
 import { urlState } from "app/client/models/gristUrlState";
+import { buildAccountLeftPanel, getAccountSettingsName, getPageName } from "app/client/ui/AccountLeftPanel";
 import * as css from "app/client/ui/AccountPageCss";
 import { ApiKey } from "app/client/ui/ApiKey";
 import { App } from "app/client/ui/App";
-import { AppHeader } from "app/client/ui/AppHeader";
 import { buildChangePasswordDialog } from "app/client/ui/ChangePasswordDialog";
 import { DeleteAccountDialog } from "app/client/ui/DeleteAccountDialog";
 import { translateLocale } from "app/client/ui/LanguageMenu";
-import { leftPanelBasic } from "app/client/ui/LeftPanelCommon";
 import { MFAConfig } from "app/client/ui/MFAConfig";
 import { pagePanels } from "app/client/ui/PagePanels";
+import { SectionCard, SettingsPage } from "app/client/ui/SettingsLayout";
 import { ThemeConfig } from "app/client/ui/ThemeConfig";
 import { createTopBarHome } from "app/client/ui/TopBar";
 import { transientInput } from "app/client/ui/transientInput";
-import { cssBreadcrumbs, separator } from "app/client/ui2018/breadcrumbs";
+import { fullBreadcrumbs } from "app/client/ui2018/breadcrumbs";
 import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
 import { cssLink } from "app/client/ui2018/links";
 import { select } from "app/client/ui2018/menus";
@@ -32,7 +32,10 @@ const t = makeT("AccountPage");
  * Creates the account page where a user can manage their profile settings.
  */
 export class AccountPage extends Disposable {
-  private readonly _currentPage = Computed.create(this, urlState().state, (_use, s) => s.account);
+  private readonly _currentPage = Computed.create(this, urlState().state,
+    (_use, s) => (s.account || "account"),
+  );
+
   private _apiKey = Observable.create<string>(this, "");
   private _userObs = Observable.create<FullUser | null>(this, null);
   private _isEditingName = Observable.create(this, false);
@@ -48,15 +51,8 @@ export class AccountPage extends Disposable {
   }
 
   public buildDom() {
-    const panelOpen = Observable.create(this, false);
     return pagePanels({
-      leftPanel: {
-        panelWidth: Observable.create(this, 240),
-        panelOpen,
-        hideOpener: true,
-        header: dom.create(AppHeader, this._appModel),
-        content: leftPanelBasic(this._appModel, panelOpen),
-      },
+      leftPanel: buildAccountLeftPanel(this, this._appModel),
       headerMain: this._buildHeaderMain(),
       contentMain: this._buildContentMain(),
       testId,
@@ -65,6 +61,15 @@ export class AccountPage extends Disposable {
   }
 
   private _buildContentMain() {
+    return domComputed(this._currentPage, (page) => {
+      switch (page) {
+        case "developer": return this._buildDeveloperContent();
+        default: return this._buildProfileContent();
+      }
+    });
+  }
+
+  private _buildProfileContent() {
     const supportedLngs = getGristConfig().supportedLngs ?? ["en"];
     const languageOptions = supportedLngs
       .map(lng => ({ value: lng, label: translateLocale(lng)! }))
@@ -81,9 +86,8 @@ export class AccountPage extends Disposable {
       window.location.reload();
     });
 
-    return domComputed(this._userObs, user => user && (
-      css.container(css.accountPage(
-        css.header(t("Account settings")),
+    return dom.maybe(this._userObs, user => SettingsPage(t("Profile"), [
+      SectionCard(t("Basic info"), [
         css.dataRow(
           css.inlineSubHeader(t("Email")),
           css.email(user.email),
@@ -122,7 +126,8 @@ export class AccountPage extends Disposable {
         ),
         // show warning for invalid name but not for the empty string
         dom.maybe(use => use(this._nameEdit) && !use(this._isNameValid), this._buildNameWarningsDom.bind(this)),
-        css.header(t("Password & security")),
+      ]),
+      SectionCard(t("Password & security"), [
         css.dataRow(
           css.inlineSubHeader(t("Login method")),
           css.loginMethod(user.loginMethod),
@@ -147,7 +152,8 @@ designed to ensure that you're the only person who can access your account, even
           ),
           dom.create(MFAConfig, user),
         ),
-        css.header(t("Theme")),
+      ]),
+      SectionCard(t("Theme"), [
         isFeatureEnabled("themes") ? dom.create(ThemeConfig, this._appModel) : null,
         css.subHeader(t("Language")),
         css.dataRow({ style: "width: 300px" },
@@ -158,7 +164,18 @@ designed to ensure that you're the only person who can access your account, even
           }),
           testId("language"),
         ),
-        css.header(t("API")),
+      ]),
+
+      !getGristConfig().canCloseAccount ? null : [
+        dom.create(DeleteAccountDialog, user),
+      ],
+      testId("body"),
+    ]));
+  }
+
+  private _buildDeveloperContent() {
+    return SettingsPage(t("Developer"), [
+      SectionCard(t("API Key"), [
         css.dataRow(css.inlineSubHeader(t("API Key")), css.content(
           dom.create(ApiKey, {
             apiKey: this._apiKey,
@@ -168,27 +185,19 @@ designed to ensure that you're the only person who can access your account, even
             inputArgs: [{ size: "5" }], // Lower size so that input can shrink below ~152px.
           }),
         )),
-        !getGristConfig().canCloseAccount ? null : [
-          dom.create(DeleteAccountDialog, user),
-        ],
-      ),
-      testId("body"),
-      )));
+      ]),
+    ]);
   }
 
   private _buildHeaderMain() {
-    return dom.frag(
-      cssBreadcrumbs({ style: "margin-left: 16px;" },
-        cssLink(
-          urlState().setLinkUrl({}),
-          "Home",
-          testId("home"),
-        ),
-        separator(" / "),
-        dom("span", "Account"),
+    return [
+      fullBreadcrumbs(
+        cssLink(urlState().setLinkUrl({}), t("Home"), testId("home")),
+        getAccountSettingsName(),
+        dom.domComputed(this._currentPage, page => getPageName(page)),
       ),
       createTopBarHome(this._appModel),
-    );
+    ];
   }
 
   private async _fetchApiKey() {
@@ -233,7 +242,7 @@ designed to ensure that you're the only person who can access your account, even
   }
 
   /**
-  * Builds dom to show marning messages to the user.
+  * Builds dom to show warning messages to the user.
   */
   private _buildNameWarningsDom() {
     return cssWarnings(
@@ -243,14 +252,9 @@ designed to ensure that you're the only person who can access your account, even
   }
 
   private _setPageTitle() {
-    this.autoDispose(subscribe(this._currentPage, (_use, page): string => {
+    this.autoDispose(subscribe(this._currentPage, (_use, page): void => {
       const suffix = getPageTitleSuffix(getGristConfig());
-      switch (page) {
-        case undefined:
-        case "account": {
-          return document.title = `Account${suffix}`;
-        }
-      }
+      document.title = `${getPageName(page)} - ${getAccountSettingsName()}${suffix}`;
     }));
   }
 }

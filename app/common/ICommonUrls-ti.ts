@@ -38,6 +38,7 @@ export const ICommonUrls = t.iface([], {
   "helpFiddleMode": "string",
   "helpFormUrlValues": "string",
   "helpAirtableIntegration": "string",
+  "helpCloudStorage": "string",
   "freeCoachingCall": "string",
   "contactSupport": "string",
   "termsOfService": t.union("string", "undefined"),
@@ -60,6 +61,7 @@ export const ICommonUrls = t.iface([], {
   "attachmentStorage": "string",
   "signInWithGristRegister": "string",
   "signInWithGristHelp": "string",
+  "signInWithGristDocs": "string",
 });
 
 const exportedTypeSuite: t.ITypeSuite = {

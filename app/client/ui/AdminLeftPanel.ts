@@ -5,6 +5,7 @@ import { AppHeader } from "app/client/ui/AppHeader";
 import * as css from "app/client/ui/LeftPanelCommon";
 import { PageSidePanel } from "app/client/ui/PagePanels";
 import { infoTooltip } from "app/client/ui/tooltips";
+import { theme } from "app/client/ui2018/cssVars";
 import { IconName } from "app/client/ui2018/IconList";
 import { cssLink } from "app/client/ui2018/links";
 import { AdminPanelPage } from "app/common/gristUrls";
@@ -14,8 +15,9 @@ import { getAdminConfig } from "app/common/urlUtils";
 import { Computed, dom, DomContents, MultiHolder, Observable, styled } from "grainjs";
 
 import type { AppModel } from "app/client/models/AppModel";
+import type { RestartBannerController } from "app/client/ui/AdminPanel";
 
-const t = makeT("AdminPanel");
+const t = makeT("AdminLeftPanel");
 const testId = makeTestId("test-admin-controls-");
 
 // Check if the AdminControls feature is available, so that we can show it as such in the UI.
@@ -42,7 +44,11 @@ export function getPageNames() {
   };
 }
 
-export function buildAdminLeftPanel(owner: MultiHolder, appModel: AppModel): PageSidePanel {
+export function buildAdminLeftPanel(
+  owner: MultiHolder,
+  appModel: AppModel,
+  restartBanner?: RestartBannerController,
+): PageSidePanel {
   const pageObs = Computed.create(owner, use => use(urlState().state).adminPanel);
 
   const isSetup = pageObs.get() === "setup";
@@ -77,6 +83,16 @@ export function buildAdminLeftPanel(owner: MultiHolder, appModel: AppModel): Pag
       buildPageEntry("admin", "Home"),
       // TODO: Uncomment when setup page is ready.
       // buildPageEntry("setup", "Settings"),
+      restartBanner ? dom.maybe(restartBanner.isVisible, () =>
+        cssApplyChangesEntry(
+          css.cssPageButton(
+            css.cssPageIcon("Warning"),
+            css.cssLinkText(t("Apply changes")),
+            dom.on("click", () => restartBanner.focus()),
+          ),
+          testId("page-apply-changes"),
+        ),
+      ) : null,
       css.cssSectionHeader(css.cssSectionHeaderText(pageNames.adminControls),
         (adminControlsAvailable ?
           infoTooltip("adminControls", { popupOptions: { placement: "bottom-start" } }) :
@@ -117,4 +133,13 @@ const cssLearnMoreLink = styled(cssLink, `
   display: inline-flex;
   gap: 8px;
   align-items: center;
+`);
+
+const cssApplyChangesEntry = styled(css.cssPageEntry, `
+  color: ${theme.dangerText};
+  --icon-color: ${theme.dangerText};
+  cursor: pointer;
+  & .${css.cssPageLink.className} {
+    color: inherit;
+  }
 `);

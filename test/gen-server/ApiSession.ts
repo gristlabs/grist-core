@@ -1,5 +1,6 @@
 import { UserProfile } from "app/common/LoginSessionAPI";
 import { AccessOptionWithRole } from "app/gen-server/entity/Organization";
+import { getCanAnyoneCreateOrgs, getPersonalOrgsEnabled } from "app/server/lib/gristSettings";
 import { TestServer } from "test/gen-server/apiUtils";
 import * as testUtils from "test/server/testUtils";
 
@@ -131,6 +132,52 @@ describe("ApiSession", function() {
     assert.deepEqual(resp.data.orgError, {
       status: 404,
       error: "organization not found",
+    });
+  });
+
+  describe("with personal orgs disabled", function() {
+    let oldEnv: testUtils.EnvironmentSnapshot;
+
+    before(async function() {
+      oldEnv = new testUtils.EnvironmentSnapshot();
+      process.env.GRIST_PERSONAL_ORGS = "false";
+      getPersonalOrgsEnabled.cache.clear();
+      getCanAnyoneCreateOrgs.cache.clear();
+    });
+
+    after(async function() {
+      oldEnv.restore();
+      getPersonalOrgsEnabled.cache.clear();
+      getCanAnyoneCreateOrgs.cache.clear();
+    });
+
+    it("returns orgErr for /o/docs when personal orgs are disabled", async function() {
+      const cookie = await server.getCookieLogin("nasa", { email: regular, name: "Chimpy" });
+      const resp = await axios.get(`${serverUrl}/o/docs/api/session/access/active`, cookie);
+      assert.equal(resp.status, 200);
+      assert.equal(resp.data.org, null);
+      assert.deepEqual(resp.data.orgError, {
+        status: 404,
+        error: "Personal orgs are disabled",
+      });
+    });
+
+    it("returns orgErr when no org in URL and personal orgs are disabled", async function() {
+      const cookie = await server.getCookieLogin("nasa", { email: regular, name: "Chimpy" });
+      const resp = await axios.get(`${serverUrl}/api/session/access/active`, cookie);
+      assert.equal(resp.status, 200);
+      assert.equal(resp.data.org, null);
+      assert.deepEqual(resp.data.orgError, {
+        status: 404,
+        error: "Personal orgs are disabled and no team site is available",
+      });
+    });
+
+    it("does not set orgErr for anonymous users with no org in URL", async function() {
+      const resp = await axios.get(`${serverUrl}/api/session/access/active`, nobody);
+      assert.equal(resp.status, 200);
+      assert.equal(resp.data.org, null);
+      assert.isUndefined(resp.data.orgError);
     });
   });
 

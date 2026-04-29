@@ -21,15 +21,18 @@ jobs:
         python-version: [3.11]
         node-version: [22.x]
         tests:
-          - ':lint:python:client:common:smoke:stubs:pyodide:'
+          - ':lint:python:client:common:smoke:stubs:pyodide:eslint-unit:'
           - ':server-1-of-2:'
           - ':server-2-of-2:'
           - ':gen-server:'
-          - ':nbrowser-^[A-D]:'
-          - ':nbrowser-^[E-L]:'
-          - ':nbrowser-^[M-N]:'
-          - ':nbrowser-^[O-R]:'
-          - ':nbrowser-^[^A-R]:'
+          # Groups below are kept balanced by first-letter CPU weight, verified
+          # exhaustive by buildtools/check_test_groups.js. The last group is a
+          # catch-all (via negation) so new tests never silently skip CI.
+          - ':nbrowser-^C:'
+          - ':nbrowser-^[FM]:'
+          - ':nbrowser-^[AGIO]:'
+          - ':nbrowser-^[RSTU]:'
+          - ':nbrowser-^[^ACFGIMORSTU]:'
           - ':projects:'
         include:
           - tests: ':lint:python:client:common:smoke:'
@@ -83,6 +86,10 @@ jobs:
 
       - name: Build Node.js code
         run: yarn run build
+
+      - name: Check nbrowser test-group coverage
+        if: contains(matrix.tests, ':lint:')
+        run: node buildtools/check_test_groups.js
 
       - name: Install Google Chrome and chromedriver
         if: contains(matrix.tests, ':nbrowser-') || contains(matrix.tests, ':smoke:') || contains(matrix.tests, ':stubs:') || contains(matrix.tests, ':projects:')
@@ -206,6 +213,10 @@ jobs:
           MOCHA_WEBDRIVER_LOGDIR: ${{ runner.temp }}/test-logs/webdriver
           TESTDIR: ${{ runner.temp }}/test-logs
           MOCHA_WEBDRIVER_HEADLESS: 1
+
+      - name: Run eslint unit tests for custom rules
+        if: contains(matrix.tests, ':eslint-unit:')
+        run: yarn run test:eslint
 
       - name: Prepare for saving artifact
         if: failure()

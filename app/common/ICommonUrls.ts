@@ -35,6 +35,7 @@ export interface ICommonUrls {
   helpFiddleMode: string;
   helpFormUrlValues: string;
   helpAirtableIntegration: string;
+  helpCloudStorage: string;
 
   freeCoachingCall: string; // Link to the human help (example: email adress or meeting scheduling tool)
   contactSupport: string; // Link to contact support on error pages (example: email adress or online form).
@@ -63,4 +64,5 @@ export interface ICommonUrls {
 
   signInWithGristRegister: string; // Registration for Sign in with getgrist.com.
   signInWithGristHelp: string; // Help for Sign in with getgrist.com.
+  signInWithGristDocs: string; // Setup docs for Sign in with getgrist.com.
 }

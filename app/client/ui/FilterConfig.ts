@@ -13,7 +13,7 @@ import { IMenuOptions } from "popweasel";
 
 const testId = makeTestId("test-filter-config-");
 
-const t = makeT("SortConfig");
+const t = makeT("FilterConfig");
 
 export interface FilterConfigOptions {
   /** Options to pass to the menu and popup components. */

@@ -93,7 +93,11 @@
         "Theme": "Theme",
         "Two-factor authentication": "Two-factor authentication",
         "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.",
-        "Language": "Language"
+        "Language": "Language",
+        "Basic info": "Basic info",
+        "Developer": "Developer",
+        "Home": "Home",
+        "Profile": "Profile"
     },
     "AccountWidget": {
         "Access Details": "Access Details",
@@ -112,7 +116,9 @@
         "Support Grist": "Support Grist",
         "Upgrade Plan": "Upgrade Plan",
         "Sign up": "Sign up",
-        "Use This Template": "Use This Template"
+        "Use This Template": "Use This Template",
+        "Site settings": "Site settings",
+        "Account settings": "Account settings"
     },
     "ViewAsDropdown": {
         "View as": "View as",
@@ -1926,7 +1932,35 @@
         "error in {{provider}}: {{verdict}}": "error in {{provider}}: {{verdict}}",
         "Please restart Grist manually.": "Please restart Grist manually.",
         "Restart Grist to apply pending changes.": "Restart Grist to apply pending changes.",
-        "Restart unavailable": "Restart unavailable"
+        "Restart unavailable": "Restart unavailable",
+        "Boot key": "Boot key",
+        "Fallback authentication method": "Fallback authentication method",
+        "If you are the server operator, you can sign in using the boot key from your server logs.": "If you are the server operator, you can sign in using the boot key from your server logs.",
+        "Maintenance": "Maintenance",
+        "Service status": "Service status",
+        "Sign in with boot key": "Sign in with boot key",
+        "Take Grist out of service for maintenance": "Take Grist out of service for maintenance",
+        "boot key": "boot key",
+        "disabled": "disabled",
+        "enabled": "enabled",
+        "in service": "in service",
+        "out of service": "out of service",
+        "Back up documents externally": "Back up documents externally",
+        "Backups": "Backups",
+        "Storage": "Storage",
+        "Apply changes (manual restart required)": "Apply changes (manual restart required)",
+        "Base URL": "Base URL",
+        "Changes have been saved. Restart Grist to apply them.": "Changes have been saved. Restart Grist to apply them.",
+        "Edition": "Edition",
+        "Its controls have moved to {{editionLink}} above.": "Its controls have moved to {{editionLink}} above.",
+        "Restart the Grist server": "Restart the Grist server",
+        "Saving...": "Saving...",
+        "Server": "Server",
+        "Server → Edition": "Server → Edition",
+        "The URL where users and integrations reach this Grist server": "The URL where users and integrations reach this Grist server",
+        "What used to be called \"Grist Enterprise\" is now called \"Full Grist\".": "What used to be called \"Grist Enterprise\" is now called \"Full Grist\".",
+        "moved to Edition": "moved to Edition",
+        "Installation": "Installation"
     },
     "Columns": {
         "Remove Column": "Remove Column"
@@ -2051,7 +2085,14 @@
         "Your activation key has expired due to exceeding limits.": "Your activation key has expired due to exceeding limits.",
         "Your instance will be in **read-only** mode in **{{days}}** day(s).": "Your instance will be in **read-only** mode in **{{days}}** day(s).",
         "Your subscription expired on {{date}}.": "Your subscription expired on {{date}}.",
-        "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.": "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below."
+        "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.": "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.",
+        "An activation key is used to run Full Grist after a trial period\n        of 30 days has expired. Get an activation key by [signing up for Grist\n        Enterprise]({{signupLink}}). You do not need an activation key to run\n        Grist Community Edition.": "An activation key is used to run Full Grist after a trial period\n        of 30 days has expired. Get an activation key by [signing up for Grist\n        Enterprise]({{signupLink}}). You do not need an activation key to run\n        Grist Community Edition.",
+        "An activation key is used to run Full Grist after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Community Edition.\n\nLearn more in our [Help Center]({{helpCenter}}).": "An activation key is used to run Full Grist after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Community Edition.\n\nLearn more in our [Help Center]({{helpCenter}}).",
+        "An active subscription is required to continue using Full Grist. You can\nyou activate your subscription by [signing up for Full Grist ]({{signupLink}}) and pasting your\nactivation key below.": "An active subscription is required to continue using Full Grist. You can\nyou activate your subscription by [signing up for Full Grist ]({{signupLink}}) and pasting your\nactivation key below.",
+        "Enable Full Grist": "Enable Full Grist",
+        "To continue using Full Grist, you need to\n                  [contact us]({{signupLink}}) to get your activation key.": "To continue using Full Grist, you need to\n                  [contact us]({{signupLink}}) to get your activation key.",
+        "You are currently trialing Full Grist.": "You are currently trialing Full Grist.",
+        "Your trial period has expired on **{{expireAt}}**. To continue using Full Grist, you need to\n[sign up for Full Grist]({{signupLink}}) and paste your activation key below.": "Your trial period has expired on **{{expireAt}}**. To continue using Full Grist, you need to\n[sign up for Full Grist]({{signupLink}}) and paste your activation key below."
     },
     "ViewLayout": {
         "Delete": "Delete",
@@ -2244,7 +2285,9 @@
         "Workspaces": "Workspaces",
         "Admin Controls": "Admin Controls",
         "Settings": "Settings",
-        "Enterprise": "Enterprise"
+        "Enterprise": "Enterprise",
+        "Quick setup": "Quick setup",
+        "Apply changes": "Apply changes"
     },
     "Assistant": {
         "AI Assistant is only available for logged in users.": "AI Assistant is only available for logged in users.",
@@ -2351,7 +2394,8 @@
         "This boot page should not be too easy to access. Either turn it off when configuration is ok (by unsetting GRIST_BOOT_KEY) or make GRIST_BOOT_KEY long and cryptographically secure.": "This boot page should not be too easy to access. Either turn it off when configuration is ok (by unsetting GRIST_BOOT_KEY) or make GRIST_BOOT_KEY long and cryptographically secure.",
         "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.": "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.",
         "It is good practice not to run Grist as the root user.": "It is good practice not to run Grist as the root user.",
-        "The main page of Grist should be available.": "The main page of Grist should be available."
+        "The main page of Grist should be available.": "The main page of Grist should be available.",
+        "APP_HOME_URL is the base URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "APP_HOME_URL is the base URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct."
     },
     "ChoiceListEntry": {
         "+{{count}} more_one": "+{{count}} more",
@@ -2670,7 +2714,41 @@
         "When signing in, users will be redirected to a Grist Connect login page where they can authenticate using various identity providers. After authentication, they'll be redirected back to your Grist server and signed in.": "When signing in, users will be redirected to a Grist Connect login page where they can authenticate using various identity providers. After authentication, they'll be redirected back to your Grist server and signed in.",
         "When signing in, users will be redirected to your chosen identity provider's login page to authenticate. After successful authentication, they'll be redirected back to your Grist server and signed in as the user verified by the provider.": "When signing in, users will be redirected to your chosen identity provider's login page to authenticate. After successful authentication, they'll be redirected back to your Grist server and signed in as the user verified by the provider.",
         "You are signed in as {{email}}. After restart, the new administrative user will be {{newEmail}}.": "You are signed in as {{email}}. After restart, the new administrative user will be {{newEmail}}.",
-        "You are signed in as {{email}}. You may lose access to this server if you cannot sign in as this user after switching the authentication system.": "You are signed in as {{email}}. You may lose access to this server if you cannot sign in as this user after switching the authentication system."
+        "You are signed in as {{email}}. You may lose access to this server if you cannot sign in as this user after switching the authentication system.": "You are signed in as {{email}}. You may lose access to this server if you cannot sign in as this user after switching the authentication system.",
+        "If Grist is accessible on your network, or is available to multiple people, configure one of the authentication methods below and remove your boot key from Security Settings → Boot key.": "If Grist is accessible on your network, or is available to multiple people, configure one of the authentication methods below and remove your boot key from Security Settings → Boot key.",
+        "No authentication: using boot key as fallback method": "No authentication: using boot key as fallback method",
+        "Anyone who can reach this server can access all data without signing in. Configure one of the authentication methods below.": "Anyone who can reach this server can access all data without signing in. Configure one of the authentication methods below.",
+        "Are you sure you want to deactivate **{{name}}**?": "Are you sure you want to deactivate **{{name}}**?",
+        "Authentication has been configured and will become active when Grist is restarted.": "Authentication has been configured and will become active when Grist is restarted.",
+        "Authentication is misconfigured or unreachable. Users may not be able to sign in.": "Authentication is misconfigured or unreachable. Users may not be able to sign in.",
+        "Available methods": "Available methods",
+        "Change installation admin": "Change installation admin",
+        "Deactivate": "Deactivate",
+        "Deactivate authentication?": "Deactivate authentication?",
+        "For enterprise identity providers (Okta, OneLogin, etc.).": "For enterprise identity providers (Okta, OneLogin, etc.).",
+        "For reverse proxy setups (Traefik, Authelia, etc.).": "For reverse proxy setups (Traefik, Authelia, etc.).",
+        "I understand this server has no authentication": "I understand this server has no authentication",
+        "Installation admin: ": "Installation admin: ",
+        "Managed login solution by Grist Labs (deprecated).": "Managed login solution by Grist Labs (deprecated).",
+        "No authentication": "No authentication",
+        "No authentication: using boot key": "No authentication: using boot key",
+        "Not recommended": "Not recommended",
+        "Other authentication methods": "Other authentication methods",
+        "Reconfigure": "Reconfigure",
+        "The change will take effect after you restart Grist.": "The change will take effect after you restart Grist.",
+        "This login mechanism is deprecated.": "This login mechanism is deprecated.",
+        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect]({{url}}).": "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect]({{url}}).",
+        "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC]({{url}}).": "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC]({{url}}).",
+        "To set up **SAML**, follow the instructions in [the Grist support article for SAML]({{url}}).": "To set up **SAML**, follow the instructions in [the Grist support article for SAML]({{url}}).",
+        "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers]({{url}}).": "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers]({{url}}).",
+        "Works with most identity providers (Google, Azure AD, Keycloak, etc.).": "Works with most identity providers (Google, Azure AD, Keycloak, etc.).",
+        "Your configuration will be preserved. You can reactivate it later without reconfiguring.": "Your configuration will be preserved. You can reactivate it later without reconfiguring.",
+        "Your server is configured to authenticate users via OpenID Connect. Users sign in through your identity provider.": "Your server is configured to authenticate users via OpenID Connect. Users sign in through your identity provider.",
+        "Your server is configured to authenticate users via SAML 2.0. Users sign in through your enterprise identity provider.": "Your server is configured to authenticate users via SAML 2.0. Users sign in through your enterprise identity provider.",
+        "Your server is using a boot key as a fallback login method. Configure one of the authentication methods below.": "Your server is using a boot key as a fallback login method. Configure one of the authentication methods below.",
+        "Your server trusts authentication from a reverse proxy. Make sure only your proxy can reach the Grist backend.": "Your server trusts authentication from a reverse proxy. Make sure only your proxy can reach the Grist backend.",
+        "Authentication": "Authentication",
+        "Choose how users sign in to Grist.": "Choose how users sign in to Grist."
     },
     "DetailView": {
         "This row is unavailable or does not exist": "This row is unavailable or does not exist"
@@ -2687,7 +2765,9 @@
         "Register your Grist server": "Register your Grist server",
         "Sign in with getgrist.com": "Sign in with getgrist.com",
         "To set up {{provider}}, you need to register your Grist server on getgrist.com and paste the configuration key you receive below.": "To set up {{provider}}, you need to register your Grist server on getgrist.com and paste the configuration key you receive below.",
-        "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.": "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as."
+        "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.": "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.",
+        "Managed authentication by Grist Labs.": "Managed authentication by Grist Labs.",
+        "Your server uses getgrist.com authentication. Users sign in with their getgrist.com account.": "Your server uses getgrist.com authentication. Users sign in with their getgrist.com account."
     },
     "AirtableImportUI": {
         "Back": "Back",
@@ -2766,5 +2846,226 @@
     "AutomationsPageEntry": {
         "Automations": "Automations",
         "New": "New"
+    },
+    "BootKeyStatus": {
+        "Every new Grist installation includes a random boot key: a secret whose value is only obtainable by an installation operator.": "Every new Grist installation includes a random boot key: a secret whose value is only obtainable by an installation operator.",
+        "Make sure you have configured an authentication system that lets you sign in as an admin before removing the boot key.": "Make sure you have configured an authentication system that lets you sign in as an admin before removing the boot key.",
+        "Remove boot key": "Remove boot key",
+        "Remove boot key?": "Remove boot key?",
+        "The boot key should only be used as a temporary means of authentication until a more secure and robust authentication method is configured via Security Settings → Authentication. We recommend removing the boot key once you've finished setting up Grist.": "The boot key should only be used as a temporary means of authentication until a more secure and robust authentication method is configured via Security Settings → Authentication. We recommend removing the boot key once you've finished setting up Grist.",
+        "This setting is currently being managed by an environment variable (`GRIST_BOOT_KEY`).": "This setting is currently being managed by an environment variable (`GRIST_BOOT_KEY`).",
+        "Unset the environment variable to manage this setting via the Admin Panel.": "Unset the environment variable to manage this setting via the Admin Panel.",
+        "You will no longer be able to authenticate as the install admin on the `": {
+            "boot-key` page.": "You will no longer be able to authenticate as the install admin on the `/boot-key` page."
+        }
+    },
+    "BootPage": {
+        "Administrator email": "Administrator email",
+        "After restarting, Grist will be available without this sign-in step.": "After restarting, Grist will be available without this sign-in step.",
+        "After restarting, return to this page and enter your chosen key.": "After restarting, return to this page and enter your chosen key.",
+        "Boot key": "Boot key",
+        "Can't find your boot key? You can {{setBootKeyButton}} or {{disableCheckButton}}.": "Can't find your boot key? You can {{setBootKeyButton}} or {{disableCheckButton}}.",
+        "Check key": "Check key",
+        "Checking key": "Checking key",
+        "Confirm or change the administrator email address.": "Confirm or change the administrator email address.",
+        "Continue": "Continue",
+        "Copied!": "Copied!",
+        "Copy": "Copy",
+        "Enter boot key": "Enter boot key",
+        "For Docker, add \\`-e GRIST_BOOT_KEY={{bootKey}}\\` to your run command. For other setups, set it in your environment or configuration file.": "For Docker, add \\`-e GRIST_BOOT_KEY={{bootKey}}\\` to your run command. For other setups, set it in your environment or configuration file.",
+        "For Docker, add \\`-e GRIST_IN_SERVICE=true\\` to your run command. For other setups, set it in your environment or configuration file.": "For Docker, add \\`-e GRIST_IN_SERVICE=true\\` to your run command. For other setups, set it in your environment or configuration file.",
+        "Here's a random key you can use:": "Here's a random key you can use:",
+        "If you cannot access server logs or cannot find your boot key, you can set it yourself. Add the environment variable \\`GRIST_BOOT_KEY\\` with a secret value to your Grist configuration, then restart Grist.": "If you cannot access server logs or cannot find your boot key, you can set it yourself. Add the environment variable \\`GRIST_BOOT_KEY\\` with a secret value to your Grist configuration, then restart Grist.",
+        "Look for this banner near the top of Grist's startup output — check your terminal, container logs, or hosting panel: {{exampleBootKeyBanner}}": "Look for this banner near the top of Grist's startup output — check your terminal, container logs, or hosting panel: {{exampleBootKeyBanner}}",
+        "Paste boot key here": "Paste boot key here",
+        "Set \\`GRIST_IN_SERVICE=true\\` in your Grist configuration, then restart. Grist will start without requiring a boot key.": "Set \\`GRIST_IN_SERVICE=true\\` in your Grist configuration, then restart. Grist will start without requiring a boot key.",
+        "Set your boot key": "Set your boot key",
+        "Skipping it is fine on a private, trusted network where only authorized people can connect.": "Skipping it is fine on a private, trusted network where only authorized people can connect.",
+        "The boot key proves you have access to the server running Grist — it keeps out anyone who can reach this page but isn't the administrator.": "The boot key proves you have access to the server running Grist — it keeps out anyone who can reach this page but isn't the administrator.",
+        "This will be your admin account for managing Grist.": "This will be your admin account for managing Grist.",
+        "Turn off this check": "Turn off this check",
+        "Valid boot key": "Valid boot key",
+        "Verify that you have access to this server to continue.": "Verify that you have access to this server to continue.",
+        "Welcome to Grist": "Welcome to Grist",
+        "Why does this check exist?": "Why does this check exist?",
+        "disable this check": "disable this check",
+        "set your own": "set your own"
+    },
+    "QuickSetup": {
+        "Apply & restart": "Apply & restart",
+        "Authentication": "Authentication",
+        "Backups": "Backups",
+        "Configure Grist for your environment.": "Configure Grist for your environment.",
+        "Quick setup": "Quick setup",
+        "Sandboxing": "Sandboxing",
+        "Server": "Server",
+        "Continue": "Continue"
+    },
+    "ServiceStatus": {
+        "Enter maintenance mode": "Enter maintenance mode",
+        "Enter maintenance mode?": "Enter maintenance mode?",
+        "Non-admin users will be blocked until service is restored.": "Non-admin users will be blocked until service is restored.",
+        "Non-admin users will no longer be blocked.": "Non-admin users will no longer be blocked.",
+        "Restore service": "Restore service",
+        "Restore service?": "Restore service?",
+        "This setting is currently being managed by an environment variable (`GRIST_IN_SERVICE`).": "This setting is currently being managed by an environment variable (`GRIST_IN_SERVICE`).",
+        "Unset the environment variable to manage this setting via the Admin Panel.": "Unset the environment variable to manage this setting via the Admin Panel."
+    },
+    "TeamSettingsPage": {
+        "Domain is already taken.": "Domain is already taken.",
+        "Invalid domain.": "Invalid domain."
+    },
+    "BackupsSection": {
+        "AWS S3 via native AWS SDK. Supports IAM roles and AWS-native auth.": "AWS S3 via native AWS SDK. Supports IAM roles and AWS-native auth.",
+        "AWS S3-compatible service via MinIO client library. Works with AWS S3, MinIO, and others.": "AWS S3-compatible service via MinIO client library. Works with AWS S3, MinIO, and others.",
+        "Active": "Active",
+        "Available in full edition": "Available in full edition",
+        "Azure Blob Storage": "Azure Blob Storage",
+        "Backups": "Backups",
+        "Documents stored on local disk only.": "Documents stored on local disk only.",
+        "Learn more.": "Learn more.",
+        "Loading backup providers...": "Loading backup providers...",
+        "Microsoft Azure Blob Storage via native Azure SDK.": "Microsoft Azure Blob Storage via native Azure SDK.",
+        "No external storage": "No external storage",
+        "Off": "Off",
+        "S3 (AWS client)": "S3 (AWS client)",
+        "S3 (MinIO client)": "S3 (MinIO client)",
+        "Set these environment variables and restart Grist to enable Azure storage:": "Set these environment variables and restart Grist to enable Azure storage:",
+        "Set these environment variables and restart Grist to enable MinIO storage:": "Set these environment variables and restart Grist to enable MinIO storage:",
+        "Set these environment variables and restart Grist to enable S3 storage:": "Set these environment variables and restart Grist to enable S3 storage:",
+        "Store document backups on an external service like S3 or Azure.           This protects against data loss if the server's disk fails.": "Store document backups on an external service like S3 or Azure.           This protects against data loss if the server's disk fails."
+    },
+    "PermissionsSetupSection": {
+        "Allow anonymous access": "Allow anonymous access",
+        "Allow anonymous playground": "Allow anonymous playground",
+        "Allow anyone to create team sites": "Allow anyone to create team sites",
+        "Allow personal sites": "Allow personal sites",
+        "Any logged-in user can create new team sites. Turn off to restrict team creation to admins only.": "Any logged-in user can create new team sites. Turn off to restrict team creation to admins only.",
+        "Apply & Restart": "Apply & Restart",
+        "Apply and Go Live!": "Apply and Go Live!",
+        "Applying settings and restarting…": "Applying settings and restarting…",
+        "Back to installation": "Back to installation",
+        "Conflict": "Conflict",
+        "DEFAULT PERMISSIONS": "DEFAULT PERMISSIONS",
+        "Environment": "Environment",
+        "Grist is live!": "Grist is live!",
+        "Loading permissions…": "Loading permissions…",
+        "Locked down": "Locked down",
+        "Open": "Open",
+        "Recommended": "Recommended",
+        "Review these defaults before going live. You can change them later from the admin panel.": "Review these defaults before going live. You can change them later from the admin panel.",
+        "Server did not restart in time. Please refresh the page.": "Server did not restart in time. Please refresh the page.",
+        "Some settings are controlled by environment variables and cannot be changed here: {{vars}}. To modify them, update the corresponding variables in your server configuration and restart.": "Some settings are controlled by environment variables and cannot be changed here: {{vars}}. To modify them, update the corresponding variables in your server configuration and restart.",
+        "The personal org is the only org available — personal sites must stay enabled or Grist will be non-functional.": "The personal org is the only org available — personal sites must stay enabled or Grist will be non-functional.",
+        "Users can create their own personal sites with documents. Turn off to restrict all documents to team sites managed by admins.": "Users can create their own personal sites with documents. Turn off to restrict all documents to team sites managed by admins.",
+        "Visitors who aren't signed in can create and edit documents in a temporary playground. Turn off to require sign-in before creating any documents.": "Visitors who aren't signed in can create and edit documents in a temporary playground. Turn off to require sign-in before creating any documents.",
+        "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.": "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.",
+        "You have GRIST_SINGLE_ORG={{value}} set. With this, users only see one site — but personal sites and team creation still work behind the scenes. Worth locking down unless you have a specific reason to keep them.": "You have GRIST_SINGLE_ORG={{value}} set. With this, users only see one site — but personal sites and team creation still work behind the scenes. Worth locking down unless you have a specific reason to keep them.",
+        "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users."
+    },
+    "SandboxSection": {
+        "Active": "Active",
+        "Apply and Continue": "Apply and Continue",
+        "Applying...": "Applying...",
+        "Continue": "Continue",
+        "Detecting sandbox options...": "Detecting sandbox options...",
+        "Error": "Error",
+        "No Sandbox": "No Sandbox",
+        "Not available": "Not available",
+        "Not recommended": "Not recommended",
+        "Other options": "Other options",
+        "Ready": "Ready",
+        "Recommended": "Recommended",
+        "Sandboxing": "Sandboxing",
+        "Skip and Continue": "Skip and Continue",
+        "Uses the built-in macOS sandbox. Good isolation for local use on a Mac.": "Uses the built-in macOS sandbox. Good isolation for local use on a Mac.",
+        "macOS Sandbox": "macOS Sandbox",
+        "Sandbox": "Sandbox"
+    },
+    "AdminPanelCss": {
+        "Confirmed": "Confirmed",
+        "For later": "For later"
+    },
+    "BaseUrlSection": {
+        "Already set on this server.": "Already set on this server.",
+        "Automatic": "Automatic",
+        "Base URL": "Base URL",
+        "Confirm URL": "Confirm URL",
+        "Could not reach server": "Could not reach server",
+        "Could not reach server at this URL. ": "Could not reach server at this URL. ",
+        "Failed to save": "Failed to save",
+        "Grist is reachable": "Grist is reachable",
+        "Leave automatic": "Leave automatic",
+        "Test URL": "Test URL",
+        "Testing...": "Testing...",
+        "The URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "The URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.",
+        "This URL was auto-detected — confirm it is correct, then save.": "This URL was auto-detected — confirm it is correct, then save.",
+        "URL is reachable": "URL is reachable",
+        "automatic": "automatic",
+        "checking": "checking",
+        "https:": {
+            "": {
+                "grist.example.com": "https://grist.example.com"
+            }
+        },
+        "not set": "not set",
+        "set": "set"
+    },
+    "EditionSection": {
+        "Choose which edition of Grist to run on this server": "Choose which edition of Grist to run on this server",
+        "Choose which edition of Grist to run on this server.": "Choose which edition of Grist to run on this server.",
+        "Community Edition": "Community Edition",
+        "Confirm edition": "Confirm edition",
+        "Edition": "Edition",
+        "Full Grist": "Full Grist",
+        "Full Grist is enabled via environment variable.": "Full Grist is enabled via environment variable.",
+        "I understand I am running Grist Community Edition": "I understand I am running Grist Community Edition",
+        "Learn more.": "Learn more.",
+        "On": "On",
+        "See how to enable it.": "See how to enable it.",
+        "The free and open-source heart of Grist, with everything you need to open and edit Grist documents, control access, create forms, connect to single sign-on (SSO) providers, and much more.": "The free and open-source heart of Grist, with everything you need to open and edit Grist documents, control access, create forms, connect to single sign-on (SSO) providers, and much more.",
+        "The full Grist experience, with all features enabled for improved security, governance, and collaboration.": "The full Grist experience, with all features enabled for improved security, governance, and collaboration.",
+        "You have 30 days to enter an activation key. Free activation keys are available to individuals and small orgs with less than US $1 million in total annual funding. {{learnMoreLink}} For larger orgs, see {{pricingLink}}.": "You have 30 days to enter an activation key. Free activation keys are available to individuals and small orgs with less than US $1 million in total annual funding. {{learnMoreLink}} For larger orgs, see {{pricingLink}}.",
+        "Your installation does not bundle the Full Grist edition. Want Full Grist? {{enableLink}}": "Your installation does not bundle the Full Grist edition. Want Full Grist? {{enableLink}}",
+        "community": "community",
+        "full": "full",
+        "pricing": "pricing"
+    },
+    "QuickSetupServerStep": {
+        "Apply and Continue": "Apply and Continue",
+        "Base URL": "Base URL",
+        "Confirm base URL and edition to continue": "Confirm base URL and edition to continue",
+        "Confirm base URL to continue": "Confirm base URL to continue",
+        "Confirm edition to continue": "Confirm edition to continue",
+        "Continue": "Continue",
+        "Edition": "Edition",
+        "Server": "Server",
+        "Set your server's base URL and choose which edition of Grist to run.": "Set your server's base URL and choose which edition of Grist to run."
+    },
+    "AccountLeftPanel": {
+        "Account settings": "Account settings",
+        "Developer": "Developer",
+        "Profile": "Profile"
+    },
+    "SettingsLayout": {
+        "Authentication": "Authentication",
+        "Current authentication method": "Current authentication method",
+        "Installation": "Installation",
+        "Sandbox settings for data engine": "Sandbox settings for data engine",
+        "Sandboxing": "Sandboxing",
+        "Security Settings": "Security Settings"
+    },
+    "SettingsLayout.d": {
+        "Authentication": "Authentication",
+        "Current authentication method": "Current authentication method",
+        "Installation": "Installation",
+        "Sandbox settings for data engine": "Sandbox settings for data engine",
+        "Sandboxing": "Sandboxing",
+        "Security Settings": "Security Settings"
+    },
+    "QuickSetupContinueButton": {
+        "Apply and Continue": "Apply and Continue",
+        "Applying...": "Applying...",
+        "Continue": "Continue"
     }
 }

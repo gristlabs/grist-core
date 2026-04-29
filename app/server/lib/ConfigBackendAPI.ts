@@ -1,6 +1,6 @@
 import { ApiError } from "app/common/ApiError";
 import { AuthProvider } from "app/common/ConfigAPI";
-import { GETGRIST_COM_PROVIDER_KEY } from "app/common/loginProviders";
+import { FALLBACK_PROVIDER_KEY, GETGRIST_COM_PROVIDER_KEY } from "app/common/loginProviders";
 import { ActivationsManager } from "app/gen-server/lib/ActivationsManager";
 import { appSettings, AppSettings } from "app/server/lib/AppSettings";
 import { expressWrap } from "app/server/lib/expressWrap";
@@ -38,10 +38,10 @@ export class ConfigBackendAPI {
         return;
       }
 
-      // Get current providers to validate
+      // Validate: must be a known provider or the fallback (minimal/boot-key).
       const providers = await this._buildProviderList();
-      const provider = providers.find((p: AuthProvider) => p.key === providerKey);
-      if (!provider) {
+      const isKnownProvider = providers.some((p: AuthProvider) => p.key === providerKey);
+      if (!isKnownProvider && providerKey !== FALLBACK_PROVIDER_KEY) {
         resp.status(404).send({ error: "Provider not found" });
         return;
       }

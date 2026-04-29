@@ -1,11 +1,22 @@
 import { makeT } from "app/client/lib/localization";
+import { AdminChecks } from "app/client/models/AdminChecks";
+import { AppModel } from "app/client/models/AppModel";
+import { reportError } from "app/client/models/errors";
+import { getHomeUrl } from "app/client/models/homeUrl";
 import { cssFadeUp, cssFadeUpGristLogo, cssFadeUpHeading, cssFadeUpSubHeading } from "app/client/ui/AdminPanelCss";
+import { AuthenticationSection } from "app/client/ui/AuthenticationSection";
+import { BackupsSection } from "app/client/ui/BackupsSection";
+import { PermissionsSetupSection } from "app/client/ui/PermissionsSetupSection";
+import { quickSetupContinueButton } from "app/client/ui/QuickSetupContinueButton";
+import { QuickSetupServerStep } from "app/client/ui/QuickSetupServerStep";
+import { SandboxSetupSection } from "app/client/ui/SandboxSection";
 import { Stepper } from "app/client/ui2018/Stepper";
-import { tokens } from "app/common/ThemePrefs";
+import { InstallAPIImpl } from "app/common/InstallAPI";
 
-import { Disposable, dom, DomContents, observable, Observable, styled } from "grainjs";
+import { Disposable, dom, DomContents, makeTestId, observable, Observable, styled } from "grainjs";
 
 const t = makeT("QuickSetup");
+const testId = makeTestId("test-quick-setup-");
 
 interface Step {
   completed: Observable<boolean>;
@@ -15,43 +26,47 @@ interface Step {
 
 export class QuickSetup extends Disposable {
   private _activeStep = Observable.create<number>(this, 0);
+  private _checks = new AdminChecks(this, new InstallAPIImpl(getHomeUrl()));
   private _steps: Step[] = [
     {
       label: t("Server"),
-      completed: observable(false),
-      buildDom: () => null,
+      completed: Observable.create(this, false),
+      buildDom: () => this._buildServerStep(),
     },
     {
       label: t("Sandboxing"),
       completed: observable(false),
-      buildDom: () => null,
+      buildDom: () => this._buildSandboxStep(),
     },
     {
       label: t("Authentication"),
       completed: observable(false),
-      buildDom: () => null,
+      buildDom: () => this._buildAuthStep(),
     },
     {
       label: t("Backups"),
       completed: observable(false),
-      buildDom: () => null,
+      buildDom: () => this._buildBackupsStep(),
     },
     {
       label: t("Apply & restart"),
       completed: observable(false),
-      buildDom: () => null,
+      buildDom: () => this._buildApplyStep(),
     },
   ];
 
-  constructor() {
+  constructor(private _appModel: AppModel) {
     super();
+    this._checks.fetchAvailableChecks().catch(reportError);
   }
 
   public buildDom() {
     return cssMainContent(
       cssFadeUpGristLogo(),
       cssFadeUpHeading(t("Quick setup")),
-      cssFadeUpSubHeading(t("Configure Grist for your environment.")),
+      cssFadeUpSubHeading(
+        t("Configure Grist for your environment."),
+      ),
       cssStepper(
         dom.create(Stepper, { activeStep: this._activeStep, steps: this._steps }),
       ),
@@ -59,6 +74,56 @@ export class QuickSetup extends Disposable {
         this._steps[i].buildDom(),
       )),
     );
+  }
+
+  private _buildServerStep(): DomContents {
+    return dom.create((owner) => {
+      const step = QuickSetupServerStep.create(owner, () => this._advanceStep());
+      return step.buildDom();
+    });
+  }
+
+  private _advanceStep() {
+    const i = this._activeStep.get();
+    this._steps[i].completed.set(true);
+    this._activeStep.set(i + 1);
+  }
+
+  private _buildSandboxStep(): DomContents {
+    return dom.create((owner) => {
+      const section = SandboxSetupSection.create(owner);
+      return dom("div",
+        section.buildDom(),
+        quickSetupContinueButton(section, () => this._advanceStep(), testId("sandbox-continue")),
+      );
+    });
+  }
+
+  private _buildAuthStep(): DomContents {
+    return dom.create((owner) => {
+      const section = AuthenticationSection.create(owner, { appModel: this._appModel });
+      return dom("div",
+        section.buildDom(),
+        quickSetupContinueButton(section, () => this._advanceStep(), testId("auth-continue")),
+      );
+    });
+  }
+
+  private _buildBackupsStep(): DomContents {
+    return dom.create((owner) => {
+      const section = BackupsSection.create(owner, { checks: this._checks });
+      return dom("div",
+        section.buildDom(),
+        quickSetupContinueButton(section, () => this._advanceStep(), testId("backups-continue")),
+      );
+    });
+  }
+
+  private _buildApplyStep(): DomContents {
+    return dom.create((owner) => {
+      const section = PermissionsSetupSection.create(owner);
+      return section.buildDom();
+    });
   }
 }
 
@@ -75,13 +140,6 @@ const cssStepper = styled("div", `
 
 const cssStepContent = styled("div", `
   animation: ${cssFadeUp} 0.5s ease 0.24s both;
-  background: ${tokens.bg};
-  border: 1px solid ${tokens.decorationSecondary};
-  border-radius: 12px;
-  box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.04),
-    0 8px 24px rgba(0, 0, 0, 0.06);
   margin: 24px auto;
   max-width: 520px;
-  padding: 28px 32px;
 `);

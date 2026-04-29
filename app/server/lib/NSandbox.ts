@@ -4,7 +4,9 @@
 
 import { arrayToString } from "app/common/arrayToString";
 import * as marshal from "app/common/marshal";
+import { SandboxInfo } from "app/common/SandboxInfo";
 import { create } from "app/server/lib/create";
+import { getSandboxFlavor } from "app/server/lib/gristSettings";
 import { ISandbox, ISandboxCreationOptions, ISandboxCreator } from "app/server/lib/ISandbox";
 import log from "app/server/lib/log";
 import { getAppRoot, getAppRootFor, getUnpackedAppRoot } from "app/server/lib/places";
@@ -15,7 +17,7 @@ import {
   ProcessInfo,
   SubprocessControl,
 } from "app/server/lib/SandboxControl";
-import { getPyodideSettings } from "app/server/lib/SandboxPyodide";
+import { checkPyodideDeno, getPyodideSettings } from "app/server/lib/SandboxPyodide";
 import * as sandboxUtil from "app/server/lib/sandboxUtil";
 import * as shutdown from "app/server/lib/shutdown";
 
@@ -627,6 +629,155 @@ const hasRunsc = checkCommandExists("runsc");
 const hasSandboxExec = checkCommandExists("sandbox-exec");
 
 /**
+ * Returns available sandbox options with their detection status.
+ * Note: this doesn't check if those commands actually work, it just checks if they are reachable by us.
+ */
+export function getAvailableSandboxes(): SandboxInfo[] {
+  const pyodideCheck = _checkPyodideAvailable();
+  return [
+    {
+      flavor: "gvisor",
+      available: hasRunsc,
+      unavailableReason: hasRunsc ? undefined : "runsc binary not found",
+      effective: true,
+      functional: false,
+      configured: true,
+      lastSuccessfulStep: "none",
+    },
+    {
+      flavor: "pyodide",
+      available: pyodideCheck.available,
+      unavailableReason: pyodideCheck.reason,
+      effective: true,
+      functional: false,
+      configured: true,
+      lastSuccessfulStep: "none",
+    },
+    {
+      flavor: "macSandboxExec",
+      available: hasSandboxExec,
+      unavailableReason: hasSandboxExec ? undefined : "sandbox-exec not found (macOS only)",
+      effective: true,
+      functional: false,
+      configured: true,
+      lastSuccessfulStep: "none",
+    },
+    {
+      flavor: "unsandboxed",
+      available: true,
+      effective: false,
+      functional: true,
+      configured: false,
+      lastSuccessfulStep: "none",
+    },
+  ];
+}
+
+function _checkPyodideAvailable(): { available: boolean; reason?: string } {
+  try {
+    const base = getUnpackedAppRoot();
+    const scriptPath = path.resolve(base, "sandbox", "pyodide", "pipe.js");
+    if (!fs.existsSync(scriptPath)) {
+      return { available: false, reason: "Pyodide runtime not installed" };
+    }
+    if (!checkPyodideDeno()) {
+      return { available: false, reason: "Deno binary not found (npm deno package not installed)" };
+    }
+    return { available: true };
+  } catch (e) {
+    return { available: false, reason: String(e) };
+  }
+}
+
+/**
+ * Test whether a sandbox works by creating one, running a Python call, and shutting it down.
+ * Returns a SandboxInfo with full lifecycle details.
+ *
+ * @param flavor - The sandbox flavor to test (e.g. "gvisor", "pyodide", "unsandboxed").
+ *   If not provided, uses `create.NSandbox()` which provides the deployment-specific
+ *   default (e.g. grist-desktop may default to pyodide, core defaults to unsandboxed).
+ *   That path calls `createSandbox()` internally, which respects GRIST_SANDBOX_FLAVOR.
+ */
+export async function testSandboxFlavor(flavor?: string): Promise<SandboxInfo> {
+  // Start with default values. We assume the sandbox does not work until we prove it does.
+  const info: SandboxInfo = {
+    flavor: resolveSandboxFlavor(flavor) ?? "unknown",
+    configured: false,
+    functional: false,
+    effective: false,
+    lastSuccessfulStep: "none",
+  };
+  let sandbox: ISandbox | undefined;
+  try {
+    // Step 1: Create a sandbox. If a flavor is given, create that exact flavor.
+    // If no flavor is given, use the deployment's default (through create.NSandbox).
+    const options: ISandboxCreationOptions = {
+      comment: "test",
+      logCalls: false,
+      logTimes: false,
+      preferredPythonVersion: "3",
+    };
+    sandbox = flavor ?
+      createConcreteSandbox(flavor, options) :
+      create.NSandbox(options);
+    // The actual flavor may differ from what we asked for, so update it.
+    info.flavor = sandbox.getFlavor();
+    info.configured = info.flavor !== "unsandboxed";
+    info.lastSuccessfulStep = "create";
+
+    // Step 2: Run a simple Python call to check if the sandbox can execute code.
+    // Give up after 5 seconds if it takes too long.
+    const timeoutProm = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("Sandbox test timed out after 5s")), 5000).unref(),
+    );
+    const result = await Promise.race([sandbox.pyCall("get_version"), timeoutProm]);
+    if (typeof result !== "number") {
+      throw new Error(`Expected a number: ${result}`);
+    }
+    info.lastSuccessfulStep = "use";
+
+    // Step 3: Stop the sandbox. If we get here, everything worked.
+    await sandbox.shutdown();
+    sandbox = undefined;
+    info.lastSuccessfulStep = "all";
+    info.functional = true;
+    info.effective = !["skip", "unsandboxed"].includes(info.flavor);
+  } catch (e) {
+    // If any step fails, save the error. The lastSuccessfulStep tells us where it broke.
+    info.error = String(e);
+  } finally {
+    // If the sandbox is still running (e.g. after an error), make sure we stop it.
+    if (sandbox) {
+      try {
+        await sandbox.shutdown();
+      } catch (e) {
+        const shutdownError = `Sandbox shutdown failed: ${String(e)}`;
+        info.error = info.error ? `${info.error}; ${shutdownError}` : shutdownError;
+      }
+    }
+  }
+  return info;
+}
+
+/**
+ * Resolve a flavor string to a specific sandbox flavor. This is used to interpret the "sandboxed" and
+ * "skip" flavors during testing.
+ */
+function resolveSandboxFlavor(flavor?: string): string | undefined {
+  if (flavor === "skip") {
+    return "unsandboxed";
+  } else if (flavor === "sandboxed") {
+    switch (true) {
+      case hasRunsc: return "gvisor";
+      case hasSandboxExec: return "macSandboxExec";
+      default: return "pyodide";
+    }
+  } else {
+    return flavor;
+  }
+}
+
+/**
  * Currently for sandboxing use gvisor if available, otherwise
  * try native sandboxing on macs, otherwise fall back on pyodide.
  */
@@ -1175,6 +1326,22 @@ function getCommandArgsFromEnv() {
 }
 
 /**
+ * Create a sandbox for a specific flavor, without reading GRIST_SANDBOX_FLAVOR.
+ */
+export function createConcreteSandbox(flavor: string, options: ISandboxCreationOptions): ISandbox {
+  const args = getCommandArgsFromEnv();
+  const preferredPythonVersion = options.preferredPythonVersion || "3";
+  const creator = new NSandboxCreator({
+    defaultFlavor: flavor,
+    command: getCommandFromEnv(preferredPythonVersion),
+    commandArgs: args.args,
+    commandAppendArgs: args.extraArgs,
+    preferredPythonVersion,
+  });
+  return creator.create(options);
+}
+
+/**
  * Create a sandbox. The defaultFlavorSpec is a guide to which sandbox
  * to create, based on the desired python version. Examples:
  *   unsandboxed               # no sandboxing
@@ -1188,22 +1355,14 @@ function getCommandArgsFromEnv() {
  * TODO: This machinery can likely be removed now.
  */
 export function createSandbox(defaultFlavorSpec: string, options: ISandboxCreationOptions): ISandbox {
-  const flavors = (process.env.GRIST_SANDBOX_FLAVOR || defaultFlavorSpec).split(",");
+  const flavors = (getSandboxFlavor() || defaultFlavorSpec).split(",");
   const preferredPythonVersion = options.preferredPythonVersion || "3";
   for (const flavorAndVersion of flavors) {
     const parts = flavorAndVersion.trim().split(":", 2);
     const flavor = parts[parts.length - 1];
     const version = parts.length === 2 ? parts[0] : "*";
     if (preferredPythonVersion === version || version === "*" || !preferredPythonVersion) {
-      const args = getCommandArgsFromEnv();
-      const creator = new NSandboxCreator({
-        defaultFlavor: flavor,
-        command: getCommandFromEnv(preferredPythonVersion),
-        commandArgs: args.args,
-        commandAppendArgs: args.extraArgs,
-        preferredPythonVersion,
-      });
-      return creator.create(options);
+      return createConcreteSandbox(flavor, options);
     }
   }
   throw new Error("Failed to create a sandbox");

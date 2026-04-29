@@ -13,6 +13,7 @@ import { CursorPos } from "app/plugin/GristAPI";
 
 import { Computed, Disposable, Observable } from "grainjs";
 import debounce from "lodash/debounce";
+import deburr from "lodash/deburr";
 
 const t = makeT("SearchModel");
 
@@ -383,7 +384,8 @@ class FinderImpl implements IFinder {
 
     // TODO: Note that formatting dates is now the bulk of the performance cost.
     const text = formatter[1  /* formatter */].formatAny(value);
-    return this._searchRegexp.test(text);
+    const normalized = normalizeText(text);
+    return this._searchRegexp.test(normalized);
   }
 
   private async _loadSection(step: number): Promise<boolean> {
@@ -575,5 +577,10 @@ export class SearchModelImpl extends Disposable implements SearchModel {
 function makeRegexp(value: string) {
   // From https://stackoverflow.com/a/3561711/328565
   const escaped = value.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
-  return new RegExp(escaped, "i");
+  const normalized = normalizeText(escaped);
+  return new RegExp(normalized, "i");
+}
+
+function normalizeText(value: string) {
+  return deburr(value).trim();
 }

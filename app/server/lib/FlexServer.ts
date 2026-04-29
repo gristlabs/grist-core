@@ -23,7 +23,6 @@ import { HomeDBManager, UserChange } from "app/gen-server/lib/homedb/HomeDBManag
 import { Housekeeper } from "app/gen-server/lib/Housekeeper";
 import { Usage } from "app/gen-server/lib/Usage";
 import { AccessTokens, IAccessTokens } from "app/server/lib/AccessTokens";
-import { createSandbox } from "app/server/lib/ActiveDoc";
 import { attachAppEndpoint } from "app/server/lib/AppEndpoint";
 import { appSettings } from "app/server/lib/AppSettings";
 import { attachEarlyEndpoints } from "app/server/lib/attachEarlyEndpoints";
@@ -36,7 +35,7 @@ import {
 import { addRequestUser, getUser, getUserId, isAnonymousUser,
   isSingleUserMode, redirectToLoginUnconditionally } from "app/server/lib/Authorizer";
 import { redirectToLogin, RequestWithLogin, signInStatusMiddleware } from "app/server/lib/Authorizer";
-import { BootKeyLoginMiddleware, getBootKey } from "app/server/lib/Boot";
+import { BootKeyLoginMiddleware } from "app/server/lib/Boot";
 import { forceSessionChange } from "app/server/lib/BrowserSession";
 import { Comm } from "app/server/lib/Comm";
 import { ConfigBackendAPI } from "app/server/lib/ConfigBackendAPI";
@@ -59,6 +58,7 @@ import { createGristJobs, GristJobs } from "app/server/lib/GristJobs";
 import { DocTemplate, GristLoginMiddleware, GristLoginSystem, GristServer, RequestWithGrist,
   ResourceUrlOptions } from "app/server/lib/GristServer";
 import { initGristSessions, SessionStore } from "app/server/lib/gristSessions";
+import { getBootKey, getForceLogin, getHomeUrl, getInService } from "app/server/lib/gristSettings";
 import { IAssistant } from "app/server/lib/IAssistant";
 import { IAuditLogger } from "app/server/lib/IAuditLogger";
 import { IBilling } from "app/server/lib/IBilling";
@@ -68,6 +68,7 @@ import { EmitNotifier, INotifier } from "app/server/lib/INotifier";
 import { InstallAdmin } from "app/server/lib/InstallAdmin";
 import log, { logAsJson } from "app/server/lib/log";
 import { disableCache, noop } from "app/server/lib/middleware";
+import { testSandboxFlavor } from "app/server/lib/NSandbox";
 import { OAuth2Clients } from "app/server/lib/OAuth2Clients";
 import { IPermitStore } from "app/server/lib/Permit";
 import { getAppPathTo, getAppRoot, getInstanceRoot, getUnpackedAppRoot } from "app/server/lib/places";
@@ -80,7 +81,6 @@ import { adaptServerUrl, getOrgUrl, getOriginUrl, getScope, integerParam, isPara
 import { buildScimRouter } from "app/server/lib/scim";
 import { ISendAppPageOptions, makeGristConfig, makeMessagePage, makeSendAppPage } from "app/server/lib/sendAppPage";
 import { getDatabaseUrl, listenPromise, timeoutReached } from "app/server/lib/serverUtils";
-import { getServiceStatus, ServiceStatus } from "app/server/lib/ServiceStatus";
 import { Sessions } from "app/server/lib/Sessions";
 import * as shutdown from "app/server/lib/shutdown";
 import { TagChecker } from "app/server/lib/TagChecker";
@@ -122,6 +122,10 @@ const DOC_ID_NEW_USER_INFO = process.env.DOC_ID_NEW_USER_INFO;
 // PubSub channel we use to inform all servers when a new available Grist version is detected.
 const latestVersionChannel = "latestVersionAvailable";
 
+// Host that the HTTP server binds to. Shared with RestartShell so
+// shell and child agree on the same value.
+export function getGristHost() { return process.env.GRIST_HOST || "localhost"; }
+
 export interface FlexServerOptions {
   dataDir?: string;
 
@@ -132,6 +136,9 @@ export interface FlexServerOptions {
 
   // Global grist config options
   settings?: IGristCoreConfig;
+
+  // An existing http.Server to use instead of creating a new one.
+  server?: http.Server;
 }
 
 export class FlexServer implements GristServer {
@@ -217,7 +224,6 @@ export class FlexServer implements GristServer {
   private _emitNotifier: EmitNotifier = new EmitNotifier();
   private _latestVersionAvailable?: LatestVersionAvailable;
   private _oauth2Clients?: OAuth2Clients;
-  private _serviceStatus?: ServiceStatus;
 
   constructor(public port: number, public name: string = "flexServer",
     public readonly options: FlexServerOptions = {}) {
@@ -227,7 +233,7 @@ export class FlexServer implements GristServer {
     this.app.set("port", port);
 
     this.appRoot = getAppRoot();
-    this.host = process.env.GRIST_HOST || "localhost";
+    this.host = getGristHost();
     log.info(`== Grist version is ${version.version} (commit ${version.gitcommit})`);
     this.info.push(["appRoot", this.appRoot]);
     // Initialize locales files.
@@ -262,7 +268,7 @@ export class FlexServer implements GristServer {
       this._deploymentType = GristDeploymentTypes.check(process.env.GRIST_TEST_SERVER_DEPLOYMENT_TYPE);
     }
 
-    const homeUrl = process.env.APP_HOME_URL;
+    const homeUrl = getHomeUrl();
     // The "base domain" is only a thing if orgs are encoded as a subdomain.
     if (process.env.GRIST_ORG_IN_PATH === "true" || process.env.GRIST_SINGLE_ORG) {
       this._defaultBaseDomain = options.baseDomain || (homeUrl && new URL(homeUrl).hostname);
@@ -327,7 +333,7 @@ export class FlexServer implements GristServer {
    * via Notifier are incompatible for this reason).
    */
   public getDefaultHomeUrl(): string {
-    const homeUrl = process.env.APP_HOME_URL || (this._has("api") && this.getOwnUrl());
+    const homeUrl = getHomeUrl() || (this._has("api") && this.getOwnUrl());
     if (!homeUrl) { throw new Error("need APP_HOME_URL"); }
     return homeUrl;
   }
@@ -374,8 +380,11 @@ export class FlexServer implements GristServer {
   // Get the port number the server listens on.  This may be different from the port
   // number the client expects when communicating with the server if there are intermediaries.
   public getOwnPort(): number {
-    // Get the port from the server in case it was started with port 0.
-    return this.server ? (this.server.address() as AddressInfo).port : this.port;
+    // Prefer server.address() in case we were started with port 0.
+    // Under RestartShell the worker's server never listens, so
+    // address() returns null and this.port is authoritative.
+    const addr = this.server?.address();
+    return (addr && typeof addr === "object") ? addr.port : this.port;
   }
 
   /**
@@ -642,9 +651,9 @@ export class FlexServer implements GristServer {
    * is restored.
    */
   public async addSetupGate() {
-    const bootKey = getBootKey();
+    const bootKey = getBootKey().value;
     if (bootKey) {
-      console.log(boxen(`BOOT KEY: ${bootKey.value}\n\nUse this key at /boot to sign in.`, {
+      console.log(boxen(`BOOT KEY: ${bootKey}\n\nUse this key at /boot to sign in.`, {
         padding: 1,
       }));
     }
@@ -677,7 +686,7 @@ export class FlexServer implements GristServer {
     const gateRouter = express.Router();
 
     gateRouter.use((req, _res, next) => {
-      if (this.getServiceStatus().inService.value) {
+      if (getInService().value) {
         return next("router");
       }
 
@@ -930,10 +939,7 @@ export class FlexServer implements GristServer {
     await this._dbManager.initializeSpecialIds();
     // Report which database we are using, without sensitive credentials.
     this.info.push(["database", getDatabaseUrl(this._dbManager.connection.options, false)]);
-    // If the installation appears to be new, give it an id and a creation date.
     this._activations = new ActivationsManager(this._dbManager);
-    appSettings.setEnvVars((await this._activations.current()).prefs?.envVars || {});
-    await this._activations.current();
     this._installAdmin = await this.create.createInstallAdmin(this._dbManager);
   }
 
@@ -1236,11 +1242,7 @@ export class FlexServer implements GristServer {
       baseDomain: this._defaultBaseDomain,
     });
 
-    const forceLogin = appSettings.section("login").flag("forced").readBool({
-      envVar: "GRIST_FORCE_LOGIN",
-    });
-
-    const forcedLoginMiddleware = forceLogin ? this._redirectToLoginWithoutExceptionsMiddleware : noop;
+    const forcedLoginMiddleware = getForceLogin() ? this._redirectToLoginWithoutExceptionsMiddleware : noop;
 
     const welcomeNewUser: express.RequestHandler = isSingleUserMode() ?
       (req, res, next) => next() :
@@ -1635,41 +1637,19 @@ export class FlexServer implements GristServer {
 
   public async getSandboxInfo(): Promise<SandboxInfo> {
     if (this._sandboxInfo) { return this._sandboxInfo; }
-
-    const flavor = process.env.GRIST_SANDBOX_FLAVOR || "unknown";
-    const info = this._sandboxInfo = {
-      flavor,
-      configured: flavor !== "unsandboxed",
-      functional: false,
-      effective: false,
-      sandboxed: false,
-      lastSuccessfulStep: "none",
-    } as SandboxInfo;
     // Only meaningful on instances that handle documents.
-    if (!this._docManager) { return info; }
-    try {
-      const sandbox = createSandbox({
-        server: this,
-        docId: "test",  // The id is just used in logging - no
-        // document is created or read at this level.
-        preferredPythonVersion: "3",
-      });
-      info.flavor = sandbox.getFlavor();
-      info.configured = info.flavor !== "unsandboxed";
-      info.lastSuccessfulStep = "create";
-      const result = await sandbox.pyCall("get_version");
-      if (typeof result !== "number") {
-        throw new Error(`Expected a number: ${result}`);
-      }
-      info.lastSuccessfulStep = "use";
-      await sandbox.shutdown();
-      info.lastSuccessfulStep = "all";
-      info.functional = true;
-      info.effective = !["skip", "unsandboxed"].includes(info.flavor);
-    } catch (e) {
-      info.error = String(e);
+    if (!this._docManager) {
+      // "unknown" means this server doesn't handle documents, so we didn't test any sandbox.
+      return this._sandboxInfo = {
+        flavor: "unknown",
+        configured: false,
+        functional: false,
+        effective: false,
+        lastSuccessfulStep: "none",
+      } as SandboxInfo;
     }
-    return info;
+    // No flavor argument — uses the deployment's default via create.NSandbox().
+    return this._sandboxInfo = await testSandboxFlavor();
   }
 
   public getInfo(key: string): any {
@@ -1700,7 +1680,7 @@ export class FlexServer implements GristServer {
       this._redirectToLoginWithoutExceptionsMiddleware,
     ];
 
-    this.app.get("/account", ...middleware, expressWrap(async (req, resp) => {
+    this.app.get(/\/account(\/developer)?$/, ...middleware, expressWrap(async (req, resp) => {
       return this._sendAppPage(req, resp, { path: "app.html", status: 200, config: {} });
     }));
 
@@ -2018,10 +1998,15 @@ export class FlexServer implements GristServer {
   public async start() {
     if (this._check("start")) { return; }
 
-    const servers = this._createServers();
-    this.server = servers.server;
-    this.httpsServer = servers.httpsServer;
-    await this._startServers(this.server, this.httpsServer, this.name, this.port, true);
+    if (this.options.server) {
+      this.server = this.options.server;
+      this.server.on("request", this.app);
+    } else {
+      const servers = this._createServers();
+      this.server = servers.server;
+      this.httpsServer = servers.httpsServer;
+      await this._startServers(this.server, this.httpsServer, this.name, this.port, true);
+    }
   }
 
   public addNotifier() {
@@ -2243,14 +2228,6 @@ export class FlexServer implements GristServer {
 
   public isRestrictedMode() {
     return this.getHomeDBManager().isReadonly();
-  }
-
-  public getServiceStatus(): ServiceStatus {
-    return this._serviceStatus ||= getServiceStatus();
-  }
-
-  public refreshServiceStatus(): void {
-    this._serviceStatus = getServiceStatus();
   }
 
   public onUserChange(callback: (change: UserChange) => Promise<void>) {
@@ -2809,7 +2786,7 @@ export class FlexServer implements GristServer {
  * better if long imports were made using a mechanism that
  * isn't just a single http request)
  */
-function getServerFlags(): https.ServerOptions {
+export function getServerFlags(): https.ServerOptions {
   const flags: https.ServerOptions = {};
 
   // We used to set the socket timeout to 0, but that has been

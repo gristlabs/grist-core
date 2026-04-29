@@ -7,6 +7,8 @@
 
 import { FlexServer, FlexServerOptions } from "app/server/lib/FlexServer";
 import { getGlobalConfig } from "app/server/lib/globalConfig";
+import { getHomeUrl } from "app/server/lib/gristSettings";
+import { initializeAppSettings } from "app/server/lib/initializeAppSettings";
 import log from "app/server/lib/log";
 
 // Allowed server types. We'll start one or a combination based on the value of GRIST_SERVERS
@@ -37,8 +39,9 @@ function checkUserContentPort(): number | null {
     return parseInt(process.env.GRIST_UNTRUSTED_PORT, 10);
   }
   // Checks whether to serve user content on same domain but on different port
-  if (process.env.APP_UNTRUSTED_URL && process.env.APP_HOME_URL) {
-    const homeUrl = new URL(process.env.APP_HOME_URL);
+  const maybeHomeUrl = getHomeUrl();
+  if (process.env.APP_UNTRUSTED_URL && maybeHomeUrl) {
+    const homeUrl = new URL(maybeHomeUrl);
     const pluginUrl = new URL(process.env.APP_UNTRUSTED_URL);
     // If the hostname of both home and plugin url are the same,
     // but the ports are different
@@ -287,6 +290,8 @@ export async function startMain() {
       // we need one fewer extra servers.
       if (serverTypes.includes("docs")) { extraWorkers--; }
     }
+
+    await initializeAppSettings();
 
     const server = await MergedServer.create(port, serverTypes, {
       extraWorkers,
