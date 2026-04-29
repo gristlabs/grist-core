@@ -1,5 +1,4 @@
 import { localeCodes } from "app/common/LocaleCodes";
-import { locales } from "app/common/Locales";
 import log from "app/server/lib/log";
 
 import { IncomingMessage } from "http";
@@ -22,10 +21,7 @@ export function getDefautLocale() {
  * if unable to determine the locale.
  */
 export function localeFromRequest(req: IncomingMessage, defaultLocale: string = getDefautLocale()) {
-  const language = languageParser(req.headers["accept-language"]!)[0];
-  if (!language) { return defaultLocale; }
-
-  const locale = `${language.code}-${language.region}`;
-  const supports = locales.some(l => l.code === locale);
-  return supports ? locale : defaultLocale;
+  const languages = languageParser(req.headers["accept-language"]!);
+  const match = languages.find(l => l.code && l.region && localeCodes.includes(`${l.code}-${l.region}`));
+  return match ? `${match.code}-${match.region}` : defaultLocale;
 }
