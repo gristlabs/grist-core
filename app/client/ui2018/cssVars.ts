@@ -104,6 +104,7 @@ export const zIndexes = {
 export const vars = {
   fontFamily: new CustomProp("font-family", tokens.fontFamily),
   fontFamilyData: new CustomProp("font-family-data", tokens.fontFamilyData),
+  fontFamilyMono: new CustomProp("font-family-mono", tokens.fontFamilyMono),
 
   xxsmallFontSize: new CustomProp("xx-font-size", tokens.xxsmallFontSize),
   xsmallFontSize: new CustomProp("x-small-font-size", tokens.xsmallFontSize),

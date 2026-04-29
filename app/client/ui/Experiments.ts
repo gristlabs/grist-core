@@ -15,6 +15,10 @@ const G = getBrowserGlobals("document", "window");
 const EXPERIMENTS = {
   newRecordButton: () => t("New record button"),
   notifications: () => t("Notifications"),
+  oauthApps: () => t("OAuth apps"),
+
+  // Tells UI to treat deployment type as "core" regardless of the server, for easier testing of UI differences.
+  simulateCoreDeployment: () => t("Simulate deployment as core"),
 };
 
 type Experiment = keyof typeof EXPERIMENTS;
@@ -135,6 +139,7 @@ export class Experiments extends Disposable {
     );
   }
 
+  // NOTE: Called from tests via gu.setExperimentState() in core/test/nbrowser/gristUtils.ts.
   private _setExperimentState(experiment: string, enabled: boolean) {
     getStorage().setItem(
       this._getStorageKey(experiment),

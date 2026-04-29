@@ -99,6 +99,7 @@ export const tokensCssMapping = {
 
   fontFamily: "font-family",
   fontFamilyData: "font-family-data",
+  fontFamilyMono: "font-family-mono",
 
   xxsmallFontSize: "xx-small-font-size",
   xsmallFontSize: "x-small-font-size",
@@ -1006,6 +1007,7 @@ export interface BaseThemeTokens {
 
   fontFamily: Token;
   fontFamilyData: Token;
+  fontFamilyMono: Token;
 
   xxsmallFontSize: Token;
   xsmallFontSize: Token;

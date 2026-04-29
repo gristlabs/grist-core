@@ -39,6 +39,7 @@ export const ICommonUrls = t.iface([], {
   "helpFormUrlValues": "string",
   "helpAirtableIntegration": "string",
   "helpCloudStorage": "string",
+  "integrators": "string",
   "freeCoachingCall": "string",
   "contactSupport": "string",
   "termsOfService": t.union("string", "undefined"),

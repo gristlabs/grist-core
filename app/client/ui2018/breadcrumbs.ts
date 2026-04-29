@@ -47,6 +47,19 @@ export function fullBreadcrumbs(...args: DomContents[]) {
   return cssFullBreadcrumbs(args.map(arg => dom("li", arg)));
 }
 
+const cssHeadingBreadcrumbs = styled(cssFullBreadcrumbs, `
+  margin-left: 0;
+  font-weight: normal;
+  & > li:not(:first-child)::before {
+    content: "\\2022";
+    margin: 0 8px;
+  }
+`);
+
+export function headingBreadcrumbs(...args: DomContents[]) {
+  return cssHeadingBreadcrumbs(args.map(arg => dom("li", arg)));
+}
+
 export const separator = styled("span", `
   padding: 0 2px;
 `);

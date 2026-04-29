@@ -36,7 +36,7 @@ export interface ICommonUrls {
   helpFormUrlValues: string;
   helpAirtableIntegration: string;
   helpCloudStorage: string;
-
+  integrators: string;
   freeCoachingCall: string; // Link to the human help (example: email adress or meeting scheduling tool)
   contactSupport: string; // Link to contact support on error pages (example: email adress or online form).
   termsOfService: string | undefined; // Link to the terms of service (if set, adds a button to the bottom-left corner).

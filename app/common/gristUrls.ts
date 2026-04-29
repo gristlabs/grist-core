@@ -48,7 +48,7 @@ export type HomePageTab = typeof HomePageTab.type;
 export const WelcomePage = StringUnion("teams", "signup", "verify", "select-account");
 export type WelcomePage = typeof WelcomePage.type;
 
-export const AccountPage = StringUnion("account", "developer");
+export const AccountPage = StringUnion("account", "authorized-apps", "developer");
 export type AccountPage = typeof AccountPage.type;
 
 export const ActivationPage = StringUnion("activation");
@@ -156,6 +156,7 @@ export const getCommonUrls = () => withAdminDefinedUrls({
   helpFormUrlValues: "https://support.getgrist.com/widget-form/#accept-value-from-url",
   helpAirtableIntegration: "https://support.getgrist.com/install/integrations/airtable",
   helpCloudStorage: "https://support.getgrist.com/install/cloud-storage",
+  integrators: "https://support.getgrist.com/integrators/",
   freeCoachingCall: getFreeCoachingCallUrl(),
   contactSupport: getContactSupportUrl(),
   termsOfService: getTermsOfServiceUrl(),
@@ -1069,12 +1070,13 @@ export const Features = StringUnion(
   "supportGrist",
   "themes",
   "automations",
+  "oauthApps",
 );
 export type IFeature = typeof Features.type;
 
 // Features that are enabled, even if not explicitly listed in GRIST_UI_FEATURES.
 // These should be still be disabled if listed in GRIST_HIDE_UI_ELEMENTS.
-export const ImplicitlyEnabledFeatures: IFeature[] = ["importFromAirtable", "automations"];
+export const ImplicitlyEnabledFeatures: IFeature[] = ["importFromAirtable", "automations", "oauthApps"];
 
 export function isFeatureEnabled(feature: IFeature): boolean {
   return (getGristConfig().features || []).includes(feature);

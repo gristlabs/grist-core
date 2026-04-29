@@ -818,6 +818,22 @@ export async function waitGrainObs<T>(observable: Observable<T>,
   return res;
 }
 
+/**
+ * Given a promise, returns an observable that starts out undefined and gets set to the resolved
+ * value once the promise is fulfilled. On rejection, calls onError(err) callback without setting
+ * the observable.
+ */
+export function createObsFromPromise<T>(
+  owner: IDisposableOwner, promise: Promise<T>, onError: (err: Error) => void,
+): Observable<T | undefined> {
+  const obs = Observable.create<T | undefined>(owner, undefined);
+  promise.then(
+    (value) => { if (!obs.isDisposed()) { obs.set(value); } },
+    onError,
+  );
+  return obs;
+}
+
 // `dom.style` does not work here because custom css property (ie: `--foo`) needs to be set using
 // `style.setProperty` (credit: https://vanseodesign.com/css/custom-properties-and-javascript/).
 // TODO: consider making PR to fix `dom.style` in grainjs.

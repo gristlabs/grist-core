@@ -411,6 +411,11 @@ export class AppModelImpl extends Disposable implements AppModel {
     if (this.experiments.isRequested()) {
       this.experiments.showModal(this.experiments.getCurrentRequest()!);
     }
+    if (this.experiments.isEnabled("simulateCoreDeployment")) {
+      // Tells UI to treat deployment type as "core" regardless of the server, for easier testing of UI differences.
+      getGristConfig().deploymentType = "core";
+    }
+    G.window.gristExperiments = this.experiments;
   }
 
   public get planName() {

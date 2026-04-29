@@ -11,6 +11,7 @@ import {
 
 import type { TopAppModel } from "app/client/models/AppModel";
 import type { DocPageModel } from "app/client/models/DocPageModel";
+import type { Experiments } from "app/client/ui/Experiments";
 import type { GristLoadConfig } from "app/common/gristUrls";
 import type { TestState } from "app/common/TestState";
 
@@ -29,6 +30,7 @@ declare global {
     isRunningUnderElectron?: boolean;
     resetDismissedPopups?: (seen?: boolean) => void;
     resetOnboarding?: () => void;
+    gristExperiments?: Experiments;
     gristAirtableImport?: (
       apiKey: string, base: string, options: AirtableImportOptions,
     ) => Promise<any>;

@@ -60,8 +60,10 @@ export const Overview = {
     cssRow(
       buttons.basicButton(...context.args.domArgs),
       buttons.primaryButton(...context.args.domArgs),
+      buttons.dangerButton(...context.args.domArgs),
       buttons.bigBasicButton(...context.args.domArgs),
       buttons.bigPrimaryButton(...context.args.domArgs),
+      buttons.bigDangerButton(...context.args.domArgs),
       buttons.textButton(...context.args.domArgs),
     ),
     cssRow(
@@ -78,6 +80,8 @@ export const BasicButton = makeButton("basicButton", "Cancel");
 export const PrimaryButton = makeButton("primaryButton", "Save");
 export const BigBasicButton = makeButton("bigBasicButton", "Cancel");
 export const BigPrimaryButton = makeButton("bigPrimaryButton", "Save");
+export const DangerButton = makeButton("dangerButton", "Delete");
+export const BigDangerButton = makeButton("bigDangerButton", "Delete");
 export const TextButton = makeButton("textButton", "Edit");
 
 /**

@@ -12,7 +12,7 @@
  * `primaryButton('Primary button', dom.prop('disabled', true))`
  */
 
-import { theme, vars } from "app/client/ui2018/cssVars";
+import { colors, theme, vars } from "app/client/ui2018/cssVars";
 import { tbind } from "app/common/tbind";
 import { components, tokens } from "app/common/ThemePrefs";
 
@@ -66,6 +66,14 @@ export const cssButton = styled("button", `
     background-color: ${theme.controlPrimaryHoverBg};
     border-color: ${theme.controlPrimaryHoverBg};
   }
+  &-danger, &-danger:hover {
+    color:        ${colors.error};
+    --icon-color: ${colors.error};
+    border-color: ${colors.error};
+  }
+  &-danger:hover {
+    filter: brightness(0.8);
+  }
   &:disabled {
     cursor: not-allowed;
     color:        ${theme.controlDisabledFg};
@@ -78,6 +86,7 @@ export const cssButton = styled("button", `
 interface IButtonProps {
   large?: BindableValue<boolean>;
   primary?: BindableValue<boolean>;
+  danger?: BindableValue<boolean>;
   link?: boolean;
 }
 
@@ -89,6 +98,7 @@ export function button(props: IButtonProps, ...domArgs: DomElementArg[]) {
   return dom.update(elem,
     cssButton.cls("-large", props.large ?? false),
     cssButton.cls("-primary", props.primary ?? false),
+    cssButton.cls("-danger", props.danger ?? false),
     ...domArgs,
   );
 }
@@ -98,6 +108,8 @@ export const basicButton = tbind(button, null, {});
 export const bigBasicButton = tbind(button, null, { large: true });
 export const primaryButton = tbind(button, null, { primary: true });
 export const bigPrimaryButton = tbind(button, null, { large: true, primary: true });
+export const dangerButton = tbind(button, null, { danger: true });
+export const bigDangerButton = tbind(button, null, { large: true, danger: true });
 
 // Functions that create button-like <a> links, each taking ...DomElementArg arguments.
 export const basicButtonLink = tbind(button, null, { link: true });

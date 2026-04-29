@@ -39,6 +39,8 @@ export const Base: BaseThemeTokens = {
    */
   fontFamilyData:
     `Liberation Sans,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol`,
+  fontFamilyMono:
+    `'Monaco','Menlo','Ubuntu Mono','Consolas','source-code-pro',monospace`,
 
   xxsmallFontSize: "8px",
   xsmallFontSize: "10px",

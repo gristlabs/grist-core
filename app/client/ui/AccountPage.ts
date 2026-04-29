@@ -1,8 +1,10 @@
 import { detectCurrentLang, makeT } from "app/client/lib/localization";
+import { markdown } from "app/client/lib/markdown";
 import { checkName } from "app/client/lib/nameUtils";
 import { AppModel, reportError } from "app/client/models/AppModel";
 import { urlState } from "app/client/models/gristUrlState";
 import { buildAccountLeftPanel, getAccountSettingsName, getPageName } from "app/client/ui/AccountLeftPanel";
+import { areOAuthAppsAvailable } from "app/client/ui/AccountLeftPanel";
 import * as css from "app/client/ui/AccountPageCss";
 import { ApiKey } from "app/client/ui/ApiKey";
 import { App } from "app/client/ui/App";
@@ -10,16 +12,17 @@ import { buildChangePasswordDialog } from "app/client/ui/ChangePasswordDialog";
 import { DeleteAccountDialog } from "app/client/ui/DeleteAccountDialog";
 import { translateLocale } from "app/client/ui/LanguageMenu";
 import { MFAConfig } from "app/client/ui/MFAConfig";
+import { OAuthAppsUI } from "app/client/ui/OAuthApps";
 import { pagePanels } from "app/client/ui/PagePanels";
-import { SectionCard, SettingsPage } from "app/client/ui/SettingsLayout";
+import { cssSectionTag, SectionCard, SettingsPage } from "app/client/ui/SettingsLayout";
 import { ThemeConfig } from "app/client/ui/ThemeConfig";
 import { createTopBarHome } from "app/client/ui/TopBar";
 import { transientInput } from "app/client/ui/transientInput";
 import { fullBreadcrumbs } from "app/client/ui2018/breadcrumbs";
 import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
-import { cssLink } from "app/client/ui2018/links";
+import { cssLink, cssNestedLinks } from "app/client/ui2018/links";
 import { select } from "app/client/ui2018/menus";
-import { getPageTitleSuffix, isFeatureEnabled } from "app/common/gristUrls";
+import { commonUrls, getPageTitleSuffix, isFeatureEnabled } from "app/common/gristUrls";
 import { getGristConfig } from "app/common/urlUtils";
 import { FullUser } from "app/common/UserAPI";
 
@@ -63,7 +66,10 @@ export class AccountPage extends Disposable {
   private _buildContentMain() {
     return domComputed(this._currentPage, (page) => {
       switch (page) {
-        case "developer": return this._buildDeveloperContent();
+        case "developer":
+          return dom.create(OAuthAppsUI.developerPageOverride, this._appModel, () => this._buildDeveloperContent());
+        case "authorized-apps":
+          return dom.create(OAuthAppsUI.authorizedAppsPageContent, this._appModel);
         default: return this._buildProfileContent();
       }
     });
@@ -186,6 +192,21 @@ designed to ensure that you're the only person who can access your account, even
           }),
         )),
       ]),
+      (areOAuthAppsAvailable() === "hidden" ? null :
+        dom.create(owner =>
+          OAuthAppsUI.oauthAppsSection(owner, this._appModel) ||
+          SectionCard([t("OAuth apps"), cssSectionTag(t("Enterprise"))], [
+            css.description(cssNestedLinks(
+              markdown(t(`\
+OAuth apps let you connect external integrations to this Grist server with more security and \
+convenience than when using API keys.
+
+OAuth apps are available with the [full version of Grist]({{fullGrist}}).`,
+              { fullGrist: commonUrls.helpEnterpriseOptIn },
+              )),
+            )),
+          ]))
+      ),
     ]);
   }
 

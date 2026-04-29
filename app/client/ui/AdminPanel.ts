@@ -39,6 +39,7 @@ import { ServiceStatus } from "app/client/ui/ServiceStatus";
 import {
   cssPageTitle,
   cssSection,
+  cssSectionTag,
   cssSectionTitle,
   cssValueLabel,
   focusAdminItem,
@@ -1304,16 +1305,6 @@ const cssLabel = styled("div", `
   min-width: 100px;
   text-align: right;
   padding-right: 5px;
-`);
-
-const cssSectionTag = styled("span", `
-  color: ${theme.accentText};
-  text-transform: uppercase;
-  font-size: 8px;
-  vertical-align: super;
-  margin-top: -4px;
-  margin-left: 4px;
-  font-weight: bold;
 `);
 
 const cssAdminAccountList = styled("ul", `

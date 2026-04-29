@@ -3710,6 +3710,16 @@ namespace gristUtils {
   }
 
   /**
+   * Sets the enabled state of a client-side experiment. Requires a page to be loaded
+   * so that `window.gristExperiments` is available. See core/app/client/ui/Experiments.ts.
+   */
+  export async function setExperimentState(experiment: string, enabled: boolean) {
+    await driver.executeScript((exp: string, en: boolean) => {
+      (window as any).gristExperiments._setExperimentState(exp, en);
+    }, experiment, enabled);
+  }
+
+  /**
  * Helper to scroll creator panel top or bottom. By default bottom.
  */
   export function scrollPanel(top = false): WebElementPromise {

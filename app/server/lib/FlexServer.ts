@@ -1680,7 +1680,7 @@ export class FlexServer implements GristServer {
       this._redirectToLoginWithoutExceptionsMiddleware,
     ];
 
-    this.app.get(/\/account(\/developer)?$/, ...middleware, expressWrap(async (req, resp) => {
+    this.app.get("/account(/developer|/authorized-apps)?", ...middleware, expressWrap(async (req, resp) => {
       return this._sendAppPage(req, resp, { path: "app.html", status: 200, config: {} });
     }));
 

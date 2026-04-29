@@ -37,7 +37,7 @@ import { dom, DomContents, DomElementArg, IDisposableOwner, Observable, styled }
  */
 
 export function SettingsPage(title: DomContents | null, content: DomElementArg[]) {
-  return cssSettingsPage(
+  return cssSettingsPage({ tabIndex: "-1" },
     title !== null ? cssPageTitle(title) : null,
     ...content,
   );
@@ -218,6 +218,19 @@ export const cssSectionTitle = styled("div", `
   margin-bottom: 8px;
   font-size: ${tokens.xxlargeFontSize};
   font-weight: ${tokens.headerControlTextWeight};
+`);
+
+/**
+ * Style for tags in the SectionCard title, like "New" or "Enterprise".
+ */
+export const cssSectionTag = styled("span", `
+  color: ${theme.accentText};
+  text-transform: uppercase;
+  font-size: 8px;
+  vertical-align: super;
+  margin-top: -4px;
+  margin-left: 4px;
+  font-weight: bold;
 `);
 
 export const cssValueLabel = styled("div", `
