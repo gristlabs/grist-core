@@ -179,10 +179,10 @@ export class EditionSection extends Disposable implements ConfigSection {
 
   public describeChange() {
     const selected = this._selectedEdition.get();
-    return {
+    return [{
       label: t("Edition"),
       value: selected === "enterprise" ? t("Full Grist") : t("Community Edition"),
-    };
+    }];
   }
 
   /**

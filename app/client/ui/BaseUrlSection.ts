@@ -95,9 +95,9 @@ export class BaseUrlSection extends Disposable {
 
   public describeChange() {
     if (this._urlSkipped.get()) {
-      return { label: t("Base URL"), value: t("automatic") };
+      return [{ label: t("Base URL"), value: t("automatic") }];
     }
-    return { label: t("Base URL"), value: this._editedUrl.get().trim() };
+    return [{ label: t("Base URL"), value: this._editedUrl.get().trim() }];
   }
 
   public buildStatusDisplay(): DomContents {
