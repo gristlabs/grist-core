@@ -15,11 +15,17 @@ if [[ "${CUR_PYODIDE_VERSION}" != "${PYODIDE_VERSION}" ]]; then
   exit 1
 fi
 
-# make sure we have the right version of pyodide installed (in case package.json was updated after install)
+# if pyodide not present, install dependencies
+if [[ ! -d ./worker/node_modules/pyodide ]]; then
+  yarn install --frozen-lockfile --cwd worker
+fi
+
+# make sure we have the right version of pyodide + packages installed (in case package.json was updated after install)
 INST_PYODIDE_VERSION=`node -p 'JSON.parse(require("fs").readFileSync("./worker/node_modules/pyodide/package.json")).version' 2>/dev/null || true`
 if [[ "${INST_PYODIDE_VERSION}" != "${PYODIDE_VERSION}" ]]; then
-  yarn install --frozen-lockfile --cwd worker
-  make clean_packages # avoid package versioning issues when Pyodide version changed
+  echo "Pyodide is already present at version ${INST_PYODIDE_VERSION} (configured version ${PYODIDE_VERSION})."
+  echo "Run make clean and try again."
+  exit 1
 fi
 
 # Need an area for pyodide package cache.
