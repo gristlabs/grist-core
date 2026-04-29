@@ -62,4 +62,10 @@ const cssNewRecordButton = styled(primaryButton, `
   display: flex;
   align-items: center;
   gap: 6px;
+
+  @media print {
+    & {
+      display: none;
+    }
+  }
 `);
