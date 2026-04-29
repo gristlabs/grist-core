@@ -2589,7 +2589,8 @@
         "When in the search bar, close it and focus the current match": "When in the search bar, close it and focus the current match",
         "When typed at the start of a cell, make this a formula column": "When typed at the start of a cell, make this a formula column",
         "showing a behavioral popup": "showing a behavioral popup",
-        "Filter this column by just this cell's value": "Filter this column by just this cell's value"
+        "Filter this column by just this cell's value": "Filter this column by just this cell's value",
+        "Open the context menu": "Open the context menu"
     },
     "GridViewMenusDateHelpers": {
         "12-hour format": "12-hour format",

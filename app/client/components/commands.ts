@@ -7,7 +7,13 @@
  * command is active at any time.
  */
 
-import { CommandDef, CommandName, CommendGroupDef, groups } from "app/client/components/commandList";
+import {
+  CommandDef,
+  CommandKey,
+  CommandName,
+  CommendGroupDef,
+  groups,
+} from "app/client/components/commandList";
 import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
 import dom from "app/client/lib/dom";
 import * as Mousetrap from "app/client/lib/Mousetrap";
@@ -122,6 +128,13 @@ export function getHumanKey(key: string, mac: boolean): string {
   return keys.join(mac ? "" : " + ");
 }
 
+function resolveKeyForPlatform(key: CommandKey) {
+  if (typeof key === "string") {
+    return key;
+  }
+  return (isMac && key.mac) ? key.mac : key.default;
+}
+
 export interface CommandOptions {
   bindKeys?: boolean;
   deprecated?: boolean;
@@ -152,11 +165,12 @@ export class Command implements CommandDef {
   private _implGroupStack: CommandGroup[] = [];
   private _activeFunc: (...args: any[]) => any = _.noop;
 
-  constructor(name: CommandName, desc: (() => string) | null, keys: string[], options: CommandOptions = {}) {
+  constructor(name: CommandName, desc: (() => string) | null, keys: CommandKey[], options: CommandOptions = {}) {
+    const platformKeys = keys.map(resolveKeyForPlatform);
     this.name = name;
     this.desc = desc;
-    this.humanKeys = keys.map(key => getHumanKey(key, isMac));
-    this.keys = keys.map(function(k) { return k.trim().toLowerCase().replace(/ *\+ */g, "+"); });
+    this.humanKeys = platformKeys.map(key => getHumanKey(key, isMac));
+    this.keys = platformKeys.map(function(k) { return k.trim().toLowerCase().replace(/ *\+ */g, "+"); });
     this.bindKeys = options.bindKeys ?? true;
     this.alwaysOn = options.alwaysOn ?? false;
     this.isActive = ko.observable(false);

@@ -50,13 +50,21 @@ class ContextMenuController extends Disposable implements IOpenController {
 
     // On click anywhere on the page (outside popup content), close it.
     const onClick = (evt: MouseEvent) => {
-      const target: Node | null = evt.target as Node;
-      if (target && !content.contains(target)) {
+      if (evt.target && !content.contains(evt.target as Node)) {
         this.close();
       }
     };
-    this.autoDispose(dom.onElem(document, "contextmenu", onClick, { useCapture: true }));
+    // Handle the specific case if right-clicking/pressing the Menu key inside the menu itself (we ignore it)
+    const onContextMenu = (evt: MouseEvent) => {
+      if (evt.target && content.contains(evt.target as Node)) {
+        evt.preventDefault();
+        evt.stopPropagation();
+        return;
+      }
+      onClick(evt);
+    };
     this.autoDispose(dom.onElem(document, "click", onClick, { useCapture: true }));
+    this.autoDispose(dom.onElem(document, "contextmenu", onContextMenu, { useCapture: true }));
 
     // Cleanup involves removing the element.
     this.onDispose(() => {
