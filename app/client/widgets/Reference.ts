@@ -15,6 +15,7 @@ import { cssLabel, cssRow } from "app/client/ui/RightPanelStyles";
 import { hideInPrintView, testId, theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { IOptionFull, select } from "app/client/ui2018/menus";
+import { ChoiceRenderer } from "app/client/widgets/ChoiceTextBox";
 import { NTextBox } from "app/client/widgets/NTextBox";
 import { ReverseReferenceConfig } from "app/client/widgets/ReverseReferenceConfig";
 import { isFullReferencingType, isVersions } from "app/common/gristTypes";
@@ -29,6 +30,7 @@ const t = makeT("Reference");
  */
 export class Reference extends NTextBox {
   protected _refTable: Computed<TableRec | null>;
+  protected _choiceRenderer: Computed<ChoiceRenderer | null>;
   private _visibleColRef: Computed<number>;
   private _validCols: Computed<IOptionFull<number>[]>;
 
@@ -40,6 +42,12 @@ export class Reference extends NTextBox {
     this._visibleColRef.onWrite(val => this.field.visibleColRef.saveOnly(val));
 
     this._refTable = Computed.create(this, use => use(use(this.field.column).refTable));
+
+    this._choiceRenderer = Computed.create(this, (use) => {
+      const visibleColModel = use(this.field.visibleColModel);
+      const colType = use(visibleColModel.type);
+      return colType === "Choice" ? new ChoiceRenderer(use(visibleColModel.widgetOptionsJson)) : null;
+    });
 
     this._validCols = Computed.create(this, (use) => {
       const refTable = use(this._refTable);
@@ -163,13 +171,16 @@ export class Reference extends NTextBox {
         hideInPrintView(),
         testId("ref-link-icon"),
       ),
-      dom("span",
-        dom.text((use) => {
-          if (use(referenceId) === 0) { return ""; }
-          if (use(formattedValue).hasBlankReference) { return "[Blank]"; }
-          return use(formattedValue).value;
-        }),
-        testId("ref-text"),
+      dom.domComputed(use => [use(this._choiceRenderer), use(referenceId), use(formattedValue)] as const,
+        ([choiceRenderer, refId, formatted]) => {
+          if (choiceRenderer) {
+            return refId == 0 ? null : choiceRenderer.renderChoiceToken(formatted.value, cssRefChoice.cls(""));
+          }
+          return dom("span",
+            (refId === 0 ? "" : formatted.hasBlankReference ? "[Blank]" : formatted.value),
+            testId("ref-text"),
+          );
+        },
       ),
     );
   }
@@ -192,4 +203,10 @@ const cssRef = styled("div.field_clip", `
   &-blank {
     color: ${theme.lightText}
   }
+`);
+
+const cssRefChoice = styled("div", `
+  line-height: 16px;
+  vertical-align: top;
+  margin-top: -1px;
 `);

@@ -6,12 +6,7 @@ import {
 } from "app/client/components/Forms/FormConfig";
 import { DataRowModel } from "app/client/models/DataRowModel";
 import { testId } from "app/client/ui2018/cssVars";
-import {
-  ChoiceOptionsByName,
-  ChoiceTextBox,
-} from "app/client/widgets/ChoiceTextBox";
-import { choiceToken } from "app/client/widgets/ChoiceToken";
-import { CellValue } from "app/common/DocActions";
+import { ChoiceTextBox } from "app/client/widgets/ChoiceTextBox";
 import { decodeObject } from "app/plugin/objtypes";
 
 import { dom, styled } from "grainjs";
@@ -27,32 +22,19 @@ export class ChoiceListCell extends ChoiceTextBox {
       dom.cls("field_clip"),
       cssChoiceList.cls("-wrap", this.wrapping),
       dom.style("justify-content", use => use(this.alignment) === "right" ? "flex-end" : use(this.alignment)),
-      dom.domComputed((use) => {
+      dom.maybe((use) => {
         return use(row._isAddRow) ? null :
-          [
-            use(value), use(this.getChoiceValuesSet()),
-            use(this.getChoiceOptions()),
-          ] as [CellValue, Set<string>, ChoiceOptionsByName];
-      }, (input) => {
-        if (!input) { return null; }
-        const [rawValue, choiceSet, choiceOptionsByName] = input;
+          [use(value), use(this._choiceRenderer)] as const;
+      }, ([rawValue, choiceRenderer]) => {
         const val = decodeObject(rawValue);
         if (!val) { return null; }
         // Handle any unexpected values we might get (non-array, or array with non-strings).
         const tokens: unknown[] = Array.isArray(val) ? val : [val];
-        return tokens.map((token) => {
-          const isBlank = String(token).trim() === "";
-          return choiceToken(
-            isBlank ? "[Blank]" : String(token),
-            {
-              ...(choiceOptionsByName.get(String(token)) || {}),
-              invalid: !choiceSet.has(String(token)),
-              blank: String(token).trim() === "",
-            },
-            dom.cls(cssToken.className),
-            testId("choice-list-cell-token"),
-          );
-        });
+        return tokens.map(token => choiceRenderer.renderChoiceToken(
+          String(token),
+          dom.cls(cssToken.className),
+          testId("choice-list-cell-token"),
+        ));
       }),
     );
   }
