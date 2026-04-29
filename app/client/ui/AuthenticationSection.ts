@@ -11,7 +11,13 @@ import {
   cssWellTitle,
 } from "app/client/ui/AdminPanelCss";
 import { ChangeAdminModal } from "app/client/ui/ChangeAdminModal";
-import { GetGristComProviderInfoModal, getGristComProviderMeta } from "app/client/ui/GetGristComProvider";
+import {
+  armSetupReturnFromGetGristCom,
+  clearSetupReturnFromGetGristCom,
+  GetGristComProviderInfoModal,
+  getGristComProviderMeta,
+  peekSetupReturnFromGetGristCom,
+} from "app/client/ui/GetGristComProvider";
 import { quickSetupStepHeader } from "app/client/ui/QuickSetupStepHeader";
 import { cssCardSurface } from "app/client/ui/SettingsLayout";
 import { cssHeroCard } from "app/client/ui/SetupCard";
@@ -135,6 +141,13 @@ export class AuthenticationSection extends Disposable {
 
     this._fetchProviders().catch(reportError);
     this._fetchPrefsPendingChanges().catch(reportError);
+
+    // Don't clear the breadcrumb here -- the AppModel re-initializes
+    // during boot and may dispose+re-mount this section, and we want
+    // the new mount to also reopen the modal.
+    if (!this._inAdminPanel && peekSetupReturnFromGetGristCom() === "auth") {
+      this._openGetGristComModal();
+    }
   }
 
   /**
@@ -297,14 +310,28 @@ authentication system.",
     );
   }
 
+  private _openGetGristComModal() {
+    const m = new GetGristComProviderInfoModal();
+    if (!this._inAdminPanel) {
+      armSetupReturnFromGetGristCom("auth");
+    }
+    const onUserClose = () => {
+      if (!this._inAdminPanel) { clearSetupReturnFromGetGristCom(); }
+    };
+    m.show({
+      onConfigure: () => {
+        this._recentlyConfigured.add(GETGRIST_COM_PROVIDER_KEY);
+        this._fetchProviders().catch(reportError);
+        onUserClose();
+      },
+      onCancel: onUserClose,
+    });
+    this.onDispose(() => m.isDisposed() ? void 0 : m.dispose());
+  }
+
   private _configureProvider(provider: AuthProvider) {
     if (provider.key === GETGRIST_COM_PROVIDER_KEY) {
-      const m = new GetGristComProviderInfoModal();
-      m.show(() => {
-        this._recentlyConfigured.add(provider.key);
-        this._fetchProviders().catch(reportError);
-      });
-      this.onDispose(() => m.isDisposed() ? void 0 : m.dispose());
+      this._openGetGristComModal();
     } else if (PROVIDER_META_BUILDERS[provider.key]) {
       const m = new InformationModal(provider);
       m.show();
