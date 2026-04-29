@@ -1,7 +1,6 @@
 import { makeT } from "app/client/lib/localization";
 import { getHomeUrl, reportError } from "app/client/models/AppModel";
 import {
-  AdminPanelControls,
   buildConfirmedRow,
   cssHappyText,
   cssSectionButtonRow,
@@ -25,7 +24,8 @@ type UrlStatus = "loading" | "loaded" | "saving" | "saved" | "error";
 type TestResult = "idle" | "testing" | "passed" | "failed";
 
 interface BaseUrlSectionOptions {
-  controls?: AdminPanelControls;
+  /** True when rendered in the admin panel; false / absent in the wizard. */
+  inAdminPanel?: boolean;
 }
 
 export class BaseUrlSection extends Disposable {

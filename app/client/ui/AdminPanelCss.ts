@@ -9,12 +9,6 @@ import { components, tokens } from "app/common/ThemePrefs";
 
 import { dom, IDisposableOwner, keyframes, Observable, styled } from "grainjs";
 
-export interface AdminPanelControls {
-  // Pending changes need a restart to take effect; drives the banner.
-  needsRestart: Observable<boolean>;
-  restartGrist: () => Promise<void>;
-}
-
 export function HidableToggle(
   owner: IDisposableOwner,
   value: Observable<boolean | null>,

@@ -12,7 +12,6 @@ import { buildAdminAccessDeniedCard } from "app/client/ui/AdminAccessDeniedCard"
 import { buildAdminData } from "app/client/ui/AdminControls";
 import { buildAdminLeftPanel, getPageNames } from "app/client/ui/AdminLeftPanel";
 import {
-  AdminPanelControls,
   cssDangerText,
   cssErrorText,
   cssFlexSpace,
@@ -204,20 +203,16 @@ export class AdminPanel extends Disposable {
   }
 }
 
-class AdminInstallationPanel extends Disposable implements AdminPanelControls {
-  // Legacy `needsRestart` channel kept for any remaining non-draft sections
-  // that signal a restart imperatively. Auth no longer uses it (it's now a
-  // ConfigSection registered with `_drafts`).
-  public needsRestart = Observable.create(this, false);
+class AdminInstallationPanel extends Disposable {
   // Sticky flag: true after the user has applied changes without a restart
   // in an environment that doesn't support auto-restart. Keeps the manual
   // restart reminder on screen until the user reloads the page. Cleared only
   // by a full page reload (see reloadSafe at the bottom of this file).
   private _awaitingManualRestart = Observable.create<boolean>(this, false);
   private _supportsRestart = !!getAdminConfig().runningUnderSupervisor;
-  private _baseUrlSection = BaseUrlSection.create(this, { controls: this });
+  private _baseUrlSection = BaseUrlSection.create(this, { inAdminPanel: true });
   private _editionSection = EditionSection.create(this, {
-    controls: this,
+    inAdminPanel: true,
     notifier: this._appModel.notifier,
   });
 
@@ -237,12 +232,10 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
   // alternative content that doesn't need the section anyway.
   private _authSection: AuthenticationSection | undefined;
 
-  // Banner visibility: shown when draft-tracked sections have pending
-  // changes, or a legacy section has flagged that a restart is required,
+  // Banner visibility: shown when any tracked section has pending changes,
   // or the user has applied changes without a restart and still owes us one.
   private _showRestartBanner = Computed.create(this, use =>
     use(this._drafts.needsRestart) ||
-    use(this.needsRestart) ||
     use(this._awaitingManualRestart),
   );
 
@@ -317,13 +310,9 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
 
   private async _performRestart() {
     // When a section needs a restart, DraftChangesManager handles the
-    // apply+restart+wait cycle. Otherwise the banner was shown for another
-    // reason (e.g. a section saved inline) and we restart directly.
-    //
-    // Note: individual sections never call `configAPI.restartServer()` on
-    // their own. They only mark themselves `needsRestart` and route through
-    // here, so a single user click always produces exactly one restart even
-    // when several sections are dirty at once.
+    // apply+restart+wait cycle. Otherwise the banner was shown because the
+    // user previously applied without restart and still owes us one, so we
+    // restart directly.
     if (this._drafts.needsRestart.get()) {
       const result = await this._drafts.applyAll();
       // A section's afterApply may have already navigated us elsewhere
@@ -1157,7 +1146,7 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
   }
 
   private _buildBackupsSection() {
-    const backups = BackupsSection.create(this, { checks: this._checks, controls: this });
+    const backups = BackupsSection.create(this, { checks: this._checks, inAdminPanel: true });
     return SectionCard(t("Storage"), [
       SectionItem({
         id: "backups",
