@@ -1,5 +1,6 @@
 import { makeT } from "app/client/lib/localization";
 import { inlineMarkdown } from "app/client/lib/markdown";
+import { getStorage } from "app/client/lib/storage";
 import { getHomeUrl, reportError } from "app/client/models/AppModel";
 import { cssTextArea } from "app/client/ui/AdminPanelCss";
 import { bigBasicButton, bigPrimaryButton } from "app/client/ui2018/buttons";
@@ -32,11 +33,45 @@ Users sign in with their getgrist.com account."),
   };
 }
 
+// localStorage breadcrumb that carries the user from getgrist.com's
+// "Return to Admin Panel" button (which hard-codes /admin) back into the
+// wizard at the step they were on, with the configure modal reopened.
+//
+// Read by AdminPanel, QuickSetup, and AuthenticationSection during page
+// boot. Cleared only on user-driven dismissal of the modal -- not on
+// plain disposal -- so a transient re-mount (the AppModel reinitializes
+// during boot) leaves it intact for the next mount to act on.
+export const SETUP_RETURN_KEY = "grist:getgristComSetupReturn";
+
+/** Currently always "auth", typed for future steps. */
+export type SetupReturnStep = "auth";
+
+export function armSetupReturnFromGetGristCom(step: SetupReturnStep): void {
+  getStorage().setItem(SETUP_RETURN_KEY, step);
+}
+
+export function peekSetupReturnFromGetGristCom(): SetupReturnStep | null {
+  const value = getStorage().getItem(SETUP_RETURN_KEY);
+  return value === "auth" ? value : null;
+}
+
+export function clearSetupReturnFromGetGristCom(): void {
+  getStorage().removeItem(SETUP_RETURN_KEY);
+}
+
 /**
  * Modal for configuring "Sign in with getgrist.com" login system.
  */
+export interface GetGristComProviderInfoModalOptions {
+  /** Called when the user clicks Configure and the secret is accepted. */
+  onConfigure?: () => void;
+  /** Called when the user dismisses the modal (Cancel / Esc / click-away). */
+  onCancel?: () => void;
+}
+
 export class GetGristComProviderInfoModal extends Disposable {
   private _onConfigure: (() => void) | undefined;
+  private _onCancel: (() => void) | undefined;
   private readonly _configKey: Observable<string> = Observable.create(this, "");
   private readonly _working: Observable<boolean> = Observable.create(this, false);
   private readonly _error: Observable<boolean> = Observable.create(this, false);
@@ -55,10 +90,9 @@ export class GetGristComProviderInfoModal extends Disposable {
     }));
   }
 
-  public show(
-    onConfigure?: () => void,
-  ): void {
-    this._onConfigure = onConfigure;
+  public show(opts: GetGristComProviderInfoModalOptions = {}): void {
+    this._onConfigure = opts.onConfigure;
+    this._onCancel = opts.onCancel;
     modal((ctl, owner) => {
       this.onDispose(() => ctl.close());
       const registerUrlObs: Observable<string> = Observable.create<string>(owner, "");
@@ -123,7 +157,7 @@ getgrist.com and paste the configuration key you receive below.", {
         cssModalButtons(
           bigBasicButton(
             t("Cancel"),
-            dom.on("click", () => this.dispose()),
+            dom.on("click", () => this._handleCancel()),
             testId("modal-cancel"),
           ),
           bigPrimaryButton(
@@ -134,7 +168,18 @@ getgrist.com and paste the configuration key you receive below.", {
           ),
         ),
       ];
+    }, {
+      // Esc / click-away close the modal via `ctl.close()` without disposing
+      // `this` -- route them through the same cleanup path as the Cancel
+      // button so `onCancel` (e.g. clearing the setup-return breadcrumb) runs.
+      onCancel: () => this._handleCancel(),
     });
+  }
+
+  private _handleCancel(): void {
+    if (this.isDisposed()) { return; }
+    this._onCancel?.();
+    this.dispose();
   }
 
   private async _handleConfigure() {
