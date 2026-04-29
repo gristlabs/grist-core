@@ -100,7 +100,7 @@ export async function main() {
     log.info("==========================================================================");
     log.info("== mergedServer");
     const port = getPort("HOME_PORT", 8080);
-    if (!getHomeUrl()) {
+    if (!getHomeUrl() && process.env.APP_HOME_URL !== "") {
       process.env.APP_HOME_URL = `http://localhost:${port}`;
       getHomeUrl.cache.clear();
     }
@@ -114,7 +114,8 @@ export async function main() {
   // now, but remain distinct in some test setups.
   const homeServerPort = getPort("HOME_PORT", 9000);
   const webServerPort = getPort("PORT", 8080);
-  if (!getHomeUrl()) {
+  // An explicit empty string opts out of the auto-set below.
+  if (!getHomeUrl() && process.env.APP_HOME_URL !== "") {
     // All servers need to know a "main" URL for Grist.  This is generally
     // that of the web server.  In some test setups, the web server port is left
     // at 0 to be auto-allocated, but for those tests it suffices to use the home

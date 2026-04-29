@@ -56,12 +56,15 @@ export class QuickSetupServerStep extends Disposable {
       cssContinueRow(
         bigPrimaryButton(
           dom.text((use) => {
+            // Subscribe to all deps up front: a later re-eval that adds a dep
+            // not seen on the first pass can read a stale value once.
             const urlOk = use(this._baseUrl.canProceed);
             const edOk = use(this._edition.canProceed);
+            const hasChanges = use(this._drafts.hasDraftChanges);
             if (!urlOk && !edOk) { return t("Confirm base URL and edition to continue"); }
             if (!urlOk) { return t("Confirm base URL to continue"); }
             if (!edOk) { return t("Confirm edition to continue"); }
-            return use(this._drafts.hasDraftChanges) ? t("Apply and Continue") : t("Continue");
+            return hasChanges ? t("Apply and Continue") : t("Continue");
           }),
           dom.boolAttr("disabled", use => !use(this._canProceed) || use(this._drafts.isApplying)),
           dom.on("click", async () => {

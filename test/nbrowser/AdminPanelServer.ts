@@ -1,43 +1,28 @@
+import { InstallAPIImpl } from "app/common/InstallAPI";
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
 import * as testUtils from "test/server/testUtils";
 
 import { assert, driver } from "mocha-webdriver";
 
-/**
- * Read activation install prefs from the running server. Requires the
- * browser to be on a same-origin admin page so the fetch is authenticated.
- */
-async function getInstallPrefs(): Promise<{ envVars?: Record<string, string | undefined> }> {
-  return driver.executeScript(
-    "return fetch('/api/install/prefs').then(r => r.json())",
-  );
-}
-
-/** PATCH activation envVars. Pass `null` for a key to clear it. */
-async function setEnvVars(envVars: Record<string, string | null>): Promise<void> {
-  const status = await driver.executeScript<number>(`
-    return fetch('/api/install/prefs', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: ${JSON.stringify(JSON.stringify({ envVars }))},
-    }).then(r => r.status);
-  `);
-  assert.equal(status, 200);
-}
-
 describe("AdminPanelServer", function() {
   this.timeout(300000);
   setupTestSuite();
 
   let oldEnv: testUtils.EnvironmentSnapshot;
+  let session: gu.Session;
+  let installApi: InstallAPIImpl;
   afterEach(() => gu.checkForErrors());
 
   before(async function() {
     oldEnv = new testUtils.EnvironmentSnapshot();
     process.env.GRIST_TEST_SERVER_DEPLOYMENT_TYPE = "core";
     process.env.GRIST_DEFAULT_EMAIL = gu.session().email;
+    // Sentinel: disables devServerMain's APP_HOME_URL auto-set.
+    process.env.APP_HOME_URL = "";
     await server.restart(true);
+    session = await gu.session().personalSite.login();
+    installApi = session.createApi(InstallAPIImpl);
   });
 
   after(async function() {
@@ -102,18 +87,17 @@ describe("AdminPanelServer", function() {
     });
 
     it("should persist the URL via the API", async function() {
-      // We can't actually click "Restart Grist" here because it would
-      // restart and reload, so verify persistence via the endpoint that
-      // the Apply and Continue button uses.
-      await setEnvVars({ APP_HOME_URL: "http://test.example.com" });
-      const prefs = await getInstallPrefs();
+      // Clicking "Restart Grist" would reload the page, so verify via the
+      // same prefs API that the wizard's Apply path uses.
+      await installApi.updateInstallPrefs({ envVars: { APP_HOME_URL: "http://test.example.com" } });
+      const prefs = await installApi.getInstallPrefs();
       assert.equal(prefs.envVars?.APP_HOME_URL, "http://test.example.com");
     });
 
     after(async function() {
       // Undo the URL set by the persistence test so the wizard suite
       // below starts from an unset APP_HOME_URL.
-      await setEnvVars({ APP_HOME_URL: null });
+      await installApi.updateInstallPrefs({ envVars: { APP_HOME_URL: null } });
     });
   });
 
@@ -140,17 +124,26 @@ describe("AdminPanelServer", function() {
         /Confirm.*base URL.*edition/i, 3000);
     });
 
-    describe("getting through without changes", function() {
-      // APP_HOME_URL is not set in this test env, so "Leave automatic"
-      // produces no change and the Continue button offers Continue (not
-      // Apply). When APP_HOME_URL is set, the same choice would be dirty
-      // and would clear the URL via PATCH /install/prefs instead.
+    describe("Leave automatic", function() {
       it("should allow leaving Base URL automatic", async function() {
         const skipUrl = await driver.findContentWait("button", /Leave automatic/, 3000);
         await skipUrl.click();
         await driver.sleep(300);
 
         assert.isTrue(await driver.findContent(".test-base-url-confirmed-row", /Automatic/).isDisplayed());
+      });
+    });
+
+    describe("getting through without changes", function() {
+      // Re-load the wizard so we start fresh for this scenario.
+      before(async function() {
+        await driver.get(`${server.getHost()}/admin/setup`);
+        await gu.waitForAdminPanel();
+      });
+
+      it("should produce no Base URL change", async function() {
+        await driver.findContentWait("button", /Leave automatic/, 3000).click();
+        await driver.findWait(".test-base-url-confirmed-row", 2000);
       });
 
       it("should allow confirming Community Edition", async function() {

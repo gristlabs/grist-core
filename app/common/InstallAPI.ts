@@ -16,6 +16,7 @@ export interface InstallPrefsWithSources extends PendingChanges {
     telemetryLevel: PrefWithSource<TelemetryLevel>;
   },
   checkForLatestVersion: boolean;
+  envVars?: Record<string, any>;
 }
 
 export type TelemetryPrefsWithSources = InstallPrefsWithSources["telemetry"];
