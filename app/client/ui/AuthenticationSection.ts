@@ -151,8 +151,9 @@ export class AuthenticationSection extends Disposable {
     if (this.isApplying.get()) { return; }
     this.isApplying.set(true);
     try {
+      const { id: priorRestartId } = await this._configAPI.getRestartIdentity();
       await this._configAPI.restartServer();
-      if (!await this._configAPI.waitUntilReady()) {
+      if (!await this._configAPI.waitUntilReady({ priorRestartId })) {
         throw new Error("Timed out waiting for Grist server to restart");
       }
       if (this.isDisposed()) { return; }

@@ -121,8 +121,9 @@ export class DraftChangesManager extends Disposable {
       // set would either strand changes behind another restart or look
       // complete when it wasn't.
       if (restart && failures.length === 0 && dirty.some(s => s.needsRestart)) {
+        const { id: priorRestartId } = await this._configAPI.getRestartIdentity();
         await this._configAPI.restartServer();
-        if (!await this._configAPI.waitUntilReady()) {
+        if (!await this._configAPI.waitUntilReady({ priorRestartId })) {
           throw new Error("Timed out waiting for Grist server to restart");
         }
       }

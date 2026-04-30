@@ -39,38 +39,42 @@ export class ToggleEnterpriseModel extends Disposable {
   public async updateEnterpriseToggle(edition: GristDeploymentType): Promise<void> {
     // We may be restarting the server, so these requests may well
     // fail if done in quick succession.
-    const task = async () => {
+    const task = async (): Promise<string> => {
       await retryOnNetworkError(() => this._configAPI.setValue({ edition }));
       this.edition.set(edition);
+      const { id } = await this._configAPI.getRestartIdentity();
       await retryOnNetworkError(() => this._configAPI.restartServer());
+      return id;
     };
     await this._doWork(task);
   }
 
   public async activateEnterprise(key: string) {
-    const task = async () => {
+    const task = async (): Promise<string> => {
       await this._activationAPI.activateEnterprise(key);
+      const { id } = await this._configAPI.getRestartIdentity();
       await retryOnNetworkError(() => this._configAPI.restartServer());
+      return id;
     };
     await this._doWork(task);
   }
 
-  private async _doWork(func: () => Promise<void>) {
+  private async _doWork(func: () => Promise<string>) {
     if (this.busy.get()) {
       throw new Error(t("Please wait for the previous operation to complete."));
     }
     this.busy.set(true);
     try {
-      await this._notifier.slowNotification(func());
-      await this._reloadWhenReady();
+      const priorRestartId = await this._notifier.slowNotification(func());
+      await this._reloadWhenReady(priorRestartId);
     } catch (err) {
       this.busy.set(false);
       throw err;
     }
   }
 
-  private async _reloadWhenReady() {
-    if (!await this._configAPI.waitUntilReady()) {
+  private async _reloadWhenReady(priorRestartId: string) {
+    if (!await this._configAPI.waitUntilReady({ priorRestartId })) {
       throw new Error(t("Timed out on waiting for the Grist backend to restart"));
     }
     this.busy.set(false);
