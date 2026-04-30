@@ -93,7 +93,11 @@
         "Two-factor authentication": "Tvåfaktors autentisering",
         "Language": "Språk",
         "Names only allow letters, numbers and certain special characters": "Namn får bara innehålla bokstäver, siffror och vissa specialtecken",
-        "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "Tvåfaktorsautentisering är ett extra lager säkerhet för ditt Gristkonto, för att säkerställa att bara du kan komma åt ditt konto."
+        "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "Tvåfaktorsautentisering är ett extra lager säkerhet för ditt Gristkonto, för att säkerställa att bara du kan komma åt ditt konto.",
+        "Developer": "Utvecklare",
+        "Home": "Hem",
+        "Profile": "Profil",
+        "Basic info": "Grundläggande information"
     },
     "AccountWidget": {
         "Access Details": "Tillgångsdetaljer",
@@ -113,7 +117,8 @@
         "Upgrade Plan": "Uppgradera abonnemang",
         "Sign up": "Registrera",
         "Use This Template": "Använd denna mall",
-        "Site settings": "SajtInställningar"
+        "Site settings": "SajtInställningar",
+        "Account settings": "Kontoinställningar"
     },
     "ViewAsDropdown": {
         "View as": "Visa som",
@@ -1962,7 +1967,21 @@
         "enabled": "påslagen",
         "Boot key": "Uppstartsnyckel",
         "boot key": "uppstartsnyckel",
-        "Storage": "Lagring"
+        "Storage": "Lagring",
+        "Backups": "Säkerhetskopior",
+        "Base URL": "BasURL",
+        "Saving...": "Sparar...",
+        "Server": "Server",
+        "Installation": "Installation",
+        "Service status": "Status för tjänst",
+        "Sign in with boot key": "Logga in med uppstartsnyckel",
+        "in service": "i drift",
+        "out of service": "ej i drift",
+        "Back up documents externally": "Säkerhetskopiera dokument externt",
+        "Apply changes (manual restart required)": "Applicera ändringar (manuell omstart krävs)",
+        "Changes have been saved. Restart Grist to apply them.": "Ändringar har sparats. Starta om Grist för att applicera dom.",
+        "Restart the Grist server": "Starta om Gristservern",
+        "The URL where users and integrations reach this Grist server": "Den URL där användare och integrationer når denna Gristserver"
     },
     "Columns": {
         "Remove Column": "Ta bort kolumn"
@@ -2258,7 +2277,8 @@
         "Workspaces": "Arbetsytor",
         "Admin Controls": "Administrationsintällningar",
         "Settings": "Inställningar",
-        "Enterprise": "Företagsversion"
+        "Enterprise": "Företagsversion",
+        "Apply changes": "Applicera ändringar"
     },
     "Assistant": {
         "AI Assistant is only available for logged in users.": "AIassistenten är bara tillgänglig för inloggade användare.",
@@ -2800,5 +2820,62 @@
         "S3 (MinIO client)": "S3 (MinIO klient)",
         "S3 (AWS client)": "S3 (AWS klient)",
         "No external storage": "Ingen extern lagring"
+    },
+    "QuickSetupContinueButton": {
+        "Continue": "Fortsätt",
+        "Applying...": "Applicerar...",
+        "Apply and Continue": "Applicera och fortsätt"
+    },
+    "SettingsLayout.d": {
+        "Security Settings": "Säkerhetsinställningar",
+        "Installation": "Installation",
+        "Authentication": "Autentisering"
+    },
+    "SettingsLayout": {
+        "Security Settings": "Såkerhetsinställningar",
+        "Installation": "Installation",
+        "Authentication": "Autentisering"
+    },
+    "AccountLeftPanel": {
+        "Profile": "Profil",
+        "Developer": "Utvecklare",
+        "Account settings": "Kontoinställningar"
+    },
+    "QuickSetupServerStep": {
+        "Server": "Server",
+        "Continue": "Fortsätt",
+        "Base URL": "BasURL",
+        "Apply and Continue": "Applicera och fortsätt"
+    },
+    "EditionSection": {
+        "community": "användargrupp",
+        "On": "På",
+        "Learn more.": "Lär dig mer."
+    },
+    "BaseUrlSection": {
+        "set": "ställ in",
+        "not set": "inte inställd",
+        "https:": {
+            "": {
+                "grist.example.com": "https://grist.example.com"
+            }
+        },
+        "checking": "kontrollerar",
+        "Testing...": "Testar...",
+        "Test URL": "Test-URL",
+        "Failed to save": "Kunde inte spara",
+        "Base URL": "Bas-URL"
+    },
+    "AdminPanelCss": {
+        "Confirmed": "Bekräftaf"
+    },
+    "SandboxSection": {
+        "Skip and Continue": "Hoppa över och fortsätt",
+        "Other options": "Andra inställningar",
+        "Not available": "Inte tillgänglig",
+        "Error": "Fel",
+        "Continue": "Fortsätt",
+        "Applying...": "Applicerar...",
+        "Apply and Continue": "Applicera och fortsätt"
     }
 }
