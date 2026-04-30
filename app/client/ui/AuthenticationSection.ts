@@ -194,6 +194,12 @@ export class AuthenticationSection extends Disposable implements ConfigSection {
       this._draftActiveProvider.set(null);
       this._recentlyConfigured.add(activeChoice);
     }
+
+    // Refresh `_providers` here so `isDirty` survives a restart failure --
+    // `afterApply` only runs on success.
+    if (!this.isDisposed()) {
+      await this._fetchProviders();
+    }
   }
 
   public async afterApply(): Promise<void> {
