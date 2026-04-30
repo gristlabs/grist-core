@@ -123,7 +123,6 @@ export class PermissionsToggleModel extends Disposable implements ConfigSection 
         GRIST_PERSONAL_ORGS: String(this.toggles.personalSites.get()),
         GRIST_FORCE_LOGIN: String(!this.toggles.anonAccess.get()),
         GRIST_ANON_PLAYGROUND: String(this.toggles.playground.get()),
-        GRIST_IN_SERVICE: "true",
       },
     });
     if (this.isDisposed()) { return; }

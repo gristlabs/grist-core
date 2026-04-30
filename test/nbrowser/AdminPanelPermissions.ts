@@ -60,6 +60,8 @@ describe("AdminPanelPermissions", function() {
   });
 
   it("flags a draft change and persists via apply-without-restart", async function() {
+    await driver.get(`${server.getHost()}/admin`);
+    await gu.waitForAdminPanel();
     await expandPermissionsItem();
 
     // Default for orgCreationAnyone is `true`. Flip it off.

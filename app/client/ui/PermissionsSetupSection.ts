@@ -16,6 +16,7 @@ import { loadingSpinner } from "app/client/ui2018/loaders";
 import { toggleSwitch } from "app/client/ui2018/toggleSwitch";
 import { ConfigAPI } from "app/common/ConfigAPI";
 import { not } from "app/common/gutil";
+import { InstallAPIImpl } from "app/common/InstallAPI";
 import { tokens } from "app/common/ThemePrefs";
 import { getGristConfig } from "app/common/urlUtils";
 
@@ -34,6 +35,7 @@ const testId = makeTestId("test-permissions-setup-");
 export class PermissionsSetupSection extends Disposable {
   private _model = PermissionsToggleModel.create(this);
   private _configAPI = new ConfigAPI(getHomeUrl());
+  private _installAPI = new InstallAPIImpl(getHomeUrl());
   private _error = Observable.create<string>(this, "");
   private _saving = Observable.create<boolean>(this, false);
   // Whether the server has been restarted after saving. Used to switch to the success page.
@@ -81,6 +83,10 @@ export class PermissionsSetupSection extends Disposable {
     this._error.set("");
     try {
       await this._model.apply();
+      // The wizard's Go Live step is what clears the post-setup gate;
+      // service status is its own concern, so set it via a separate call
+      // rather than bundling it into the permissions write.
+      await this._installAPI.updateInstallPrefs({ envVars: { GRIST_IN_SERVICE: "true" } });
       await this._configAPI.restartServer();
       await this._waitForReady();
       if (this.isDisposed()) { return; }
