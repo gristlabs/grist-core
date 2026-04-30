@@ -185,6 +185,11 @@ export class EditionSection extends Disposable implements ConfigSection {
     }];
   }
 
+  public async dismiss(): Promise<void> {
+    if (!this.isDirty.get()) { return; }
+    this._selectedEdition.set(this._serverEdition.get());
+  }
+
   /**
    * Shared core: description, edition selector tabs, per-selection text.
    * Used by both admin panel and wizard.
