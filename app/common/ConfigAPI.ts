@@ -55,17 +55,14 @@ export class ConfigAPI extends BaseAPI {
    * Returns true on success, false on timeout; callers decide how to surface
    * the timeout (throw, silent, page reload, etc).
    *
-   * All callers invoke this after `restartServer()`. The server returns from
-   * `restartServer` before tearing down its listener, so the very first poll
-   * can otherwise hit the still-up old process and return true immediately.
-   * A brief initial delay lets the server begin its restart first.
+   * The restart endpoint marks the server not-ready before its 200 response
+   * returns, so a poll racing the dying old process gets NOT_READY and we
+   * keep polling -- no initial delay needed.
    */
   public async waitUntilReady({
     attempts = 30,
     intervalMs = 1000,
-    initialDelayMs = 500,
-  }: { attempts?: number; intervalMs?: number; initialDelayMs?: number } = {}): Promise<boolean> {
-    await delay(initialDelayMs);
+  }: { attempts?: number; intervalMs?: number } = {}): Promise<boolean> {
     for (let i = 0; i < attempts; i++) {
       try {
         await this.healthcheck();

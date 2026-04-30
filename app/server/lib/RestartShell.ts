@@ -58,8 +58,10 @@ interface ExitInfo { code: number | null; signal: NodeJS.Signals | null; }
 interface FallbackResponse { status: number; contentType: string; body: string; }
 const plain = (status: number, body: string): FallbackResponse =>
   ({ status, contentType: "text/plain", body });
-const RESTARTING: FallbackResponse =
-  { status: 503, contentType: "application/json", body: JSON.stringify({ error: "restarting" }) };
+const asJson = (status: number, value: unknown): FallbackResponse =>
+  ({ status, contentType: "application/json", body: JSON.stringify(value) });
+const RESTARTING: FallbackResponse = asJson(503, { error: "restarting" });
+const STARTING: FallbackResponse = asJson(503, { error: "starting" });
 const UNHEALTHY = plain(500, "Grist server is unhealthy.");
 const NOT_READY = plain(500, "Grist server is unhealthy (ready not ok).");
 const ALIVE = plain(200, "Grist server is alive.");
@@ -69,8 +71,7 @@ const ALIVE = plain(200, "Grist server is alive.");
  * to a forked child worker. Construct, then `await start()`; hold onto
  * the instance to `restart()` or `shutdown()`.
  */
-export type { RestartShell };
-class RestartShell {
+export class RestartShell {
   private _status: ShellStatus = { kind: "stopped" };
   private _healthy = true;
 
@@ -93,6 +94,16 @@ class RestartShell {
 
   /** Bind the listening socket and spawn the first child. */
   public async start(): Promise<void> {
+    await this.listen();
+    await this.run();
+  }
+
+  /**
+   * Bind the listening socket and arm signal handlers. After this
+   * returns, `port` is set and /status is reachable (answered by the
+   * fallback as "starting" until run() completes).
+   */
+  public async listen(): Promise<void> {
     log.info("RestartShell: starting");
     this._status = { kind: "starting" };
     this._actualPort = await bindPublicSocket(this._server, this._options.publicPort);
@@ -104,7 +115,10 @@ class RestartShell {
     // pid 1 in a container (see grist-core#830, #892).
     shutdownLib.addCleanupHandler(this, () => this.shutdown(), 15000, "RestartShell");
     shutdownLib.cleanupOnSignals("SIGINT", "SIGTERM");
+  }
 
+  /** Spawn the first child and transition to "running" once it's ready. */
+  public async run(): Promise<void> {
     const result = await this._spawnOrFail();
     if (!result.ok) {
       // Shut down so the event loop drains and the process exits
@@ -226,6 +240,7 @@ class RestartShell {
   private _fallbackResponse(req: http.IncomingMessage): FallbackResponse {
     const [pathname, query = ""] = (req.url || "/").split("?");
     if (pathname !== "/status") { return RESTARTING; }
+    if (this._status.kind === "starting") { return STARTING; }
     if (!this._healthy) { return UNHEALTHY; }
     if (isParameterOn(new URLSearchParams(query).get("ready"))) { return NOT_READY; }
     return ALIVE;
