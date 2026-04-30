@@ -1981,7 +1981,9 @@
         "Apply changes (manual restart required)": "Applicera ändringar (manuell omstart krävs)",
         "Changes have been saved. Restart Grist to apply them.": "Ändringar har sparats. Starta om Grist för att applicera dom.",
         "Restart the Grist server": "Starta om Gristservern",
-        "The URL where users and integrations reach this Grist server": "Den URL där användare och integrationer når denna Gristserver"
+        "The URL where users and integrations reach this Grist server": "Den URL där användare och integrationer når denna Gristserver",
+        "What used to be called \"Grist Enterprise\" is now called \"Full Grist\".": "Det som tidigare hette \"Grist företagsversion\" heter nu \"Komplett Grist\".",
+        "Take Grist out of service for maintenance": "Ta Grist ur drift för underhåll"
     },
     "Columns": {
         "Remove Column": "Ta bort kolumn"
@@ -2106,7 +2108,9 @@
         "Your activation key has expired due to exceeding limits.": "Din aktiveringsnyckel har gått ut på grund av att begränsningar överskridits.",
         "Your instance will be in **read-only** mode in **{{days}}** day(s).": "Din instans kommer övergå till **skrivskyddat** läge om **{{days}}** dag(ar).",
         "Your subscription expired on {{date}}.": "Ditt abonnemang tog slut {{date}}.",
-        "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.": "Din provperiod tog slut **{{expireAt}}**. För att fortsätta använda Grist företagsversion, du behöver\n[Registrera dig för Grist företagsversion]({{signupLink}}) och klistra in aktiveringsnyckeln nedan."
+        "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.": "Din provperiod tog slut **{{expireAt}}**. För att fortsätta använda Grist företagsversion, du behöver\n[Registrera dig för Grist företagsversion]({{signupLink}}) och klistra in aktiveringsnyckeln nedan.",
+        "Enable Full Grist": "Aktivera fullständig Grist",
+        "You are currently trialing Full Grist.": "Du testar för närvarande fullständig Grist."
     },
     "ViewLayout": {
         "Delete": "Radera",
@@ -2570,7 +2574,8 @@
         "When in the search bar, close it and focus the current match": "När du är i sökfältet, stäng det och flytta fokus till nuvarande träff",
         "When typed at the start of a cell, make this a formula column": "När det skrivs i början av en cell blir det en formelkolumn",
         "showing a behavioral popup": "visar en beteendepopup",
-        "Filter this column by just this cell's value": "Filtrera denna kolumn bara efter cellernas värde"
+        "Filter this column by just this cell's value": "Filtrera denna kolumn bara efter cellernas värde",
+        "Open the context menu": "Öppna snabbmenyn"
     },
     "GridViewMenusDateHelpers": {
         "12-hour format": "12-timmarsformat",
@@ -2695,7 +2700,17 @@
         "When a user accesses Grist, the proxy handles authentication and forwards verified user information through HTTP headers. Grist uses these headers to identify the user.": "När en användare använder Grist så hanterar proxyn inloggningen och vidarebefordrar verifierad användarinformation genom HTTP headers. Grist använder dessa headers för att identifiera användaren.",
         "When signing in, users will be redirected to a Grist Connect login page where they can authenticate using various identity providers. After authentication, they'll be redirected back to your Grist server and signed in.": "När användare loggar in blir de omdirigerade till Grist Connects inloggnings sida där de kan logga in genom olika identitets leverantörer. Efter inloggning kommer de att omdirigeras tillbaka till din Gristserver inloggade.",
         "When signing in, users will be redirected to your chosen identity provider's login page to authenticate. After successful authentication, they'll be redirected back to your Grist server and signed in as the user verified by the provider.": "Vid inloggning kommer användare att skickas till din vada identitets leverantörs inloggningssida för att logga in. Efter lyckad inloggning kommer de att omdirigeras tillbaka till din Gristserver, inloggade som den användare som verifierats av leverantören.",
-        "You are signed in as {{email}}. You may lose access to this server if you cannot sign in as this user after switching the authentication system.": "Du är inloggad om {{email}}. Du kan förlora tillgången till denna server om du inte kan logga in som denna användare efter byte av inloggninssystem."
+        "You are signed in as {{email}}. You may lose access to this server if you cannot sign in as this user after switching the authentication system.": "Du är inloggad om {{email}}. Du kan förlora tillgången till denna server om du inte kan logga in som denna användare efter byte av inloggninssystem.",
+        "Available methods": "Tillgängliga metoder",
+        "Change installation admin": "Ändra Installationsadministration",
+        "Deactivate": "Stäng av",
+        "Deactivate authentication?": "Stäng av autentisering?",
+        "Installation admin: ": "Installationsadministratör: ",
+        "No authentication": "Ingen autentisering",
+        "No authentication: using boot key": "Ingen autentisering: använder uppstartsnyckel",
+        "Not recommended": "Rekommenderas inte",
+        "Other authentication methods": "Andra autentiseringsmetoder",
+        "Authentication": "Autentisering"
     },
     "DetailView": {
         "This row is unavailable or does not exist": "Denna rad är inte tillgänglig eller finns inte"
@@ -2786,7 +2801,7 @@
         "Learn more.": "Lär dig mer.",
         "Try for free": "Testa gratis",
         "Trigger automations based on data changes, and design actions such as custom email notifications and webhook integrations.": "Aktivera automatiserade flöden när data ändras och anpassa åtgärder så som anpassade e-postnotiser och webhook integrationer.",
-        "Try full Grist": "Testa fullversion av Grist"
+        "Try full Grist": "Testa fullständig Grist"
     },
     "AutomationsPageEntry": {
         "New": "Ny",
@@ -2804,13 +2819,23 @@
         "Copied!": "Kopierad!",
         "Copy": "Kopiera",
         "Enter boot key": "Fyll i uppstartsnyckel",
-        "Paste boot key here": "Klistra in uppstartsnyckel här"
+        "Paste boot key here": "Klistra in uppstartsnyckel här",
+        "Administrator email": "Administratörse-post",
+        "Set your boot key": "Ställ in din uppstartsnyckel",
+        "Turn off this check": "Stäng av denna kontroll",
+        "Valid boot key": "Giltig uppstartsnyckel",
+        "Welcome to Grist": "Välkommen till Grist",
+        "Why does this check exist?": "Varför finns denna kontroll?",
+        "disable this check": "stäng av denna kontroll",
+        "set your own": "ställ in din egen"
     },
     "QuickSetup": {
         "Backups": "Säkerhetskopior",
         "Sandboxing": "Sandboxning",
         "Server": "Server",
-        "Continue": "Fortsätt"
+        "Continue": "Fortsätt",
+        "Apply & restart": "Applicera & starta om",
+        "Authentication": "Autentisering"
     },
     "BackupsSection": {
         "Active": "Aktiv",
@@ -2850,7 +2875,8 @@
     "EditionSection": {
         "community": "användargrupp",
         "On": "På",
-        "Learn more.": "Lär dig mer."
+        "Learn more.": "Lär dig mer.",
+        "Full Grist": "Fullständig Grist"
     },
     "BaseUrlSection": {
         "set": "ställ in",
