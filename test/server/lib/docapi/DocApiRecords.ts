@@ -181,6 +181,126 @@ function addRecordsTests(getCtx: () => TestContext) {
     );
   });
 
+  describe("POST /docs/{did}/tables/{tid}/records/list", function() {
+    it("retrieves the same data as GET /records", async function() {
+      const { serverUrl, docIds, chimpy } = getCtx();
+      const url = `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1`;
+
+      const getResp = await axios.get(`${url}/records`, chimpy);
+      const postResp = await axios.post(`${url}/records/list`, {}, chimpy);
+      assert.equal(postResp.status, 200);
+      assert.deepEqual(postResp.data, getResp.data);
+
+      // Also test with table ref (numeric ID).
+      const urlByRef = `${serverUrl}/api/docs/${docIds.Timesheets}/tables/1`;
+      const getByRef = await axios.get(`${urlByRef}/records`, chimpy);
+      const postByRef = await axios.post(`${urlByRef}/records/list`, {}, chimpy);
+      assert.equal(postByRef.status, 200);
+      assert.deepEqual(postByRef.data, getByRef.data);
+    });
+
+    it("supports filters", async function() {
+      const { serverUrl, docIds, chimpy } = getCtx();
+      const url = `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1`;
+
+      async function checkParity(filter: { [colId: string]: any[] }) {
+        const query = "filter=" + encodeURIComponent(JSON.stringify(filter));
+        const getResp = await axios.get(`${url}/records?${query}`, chimpy);
+        const postResp = await axios.post(`${url}/records/list`, { filter }, chimpy);
+        assert.equal(postResp.status, getResp.status);
+        assert.deepEqual(postResp.data, getResp.data);
+        return postResp;
+      }
+
+      await checkParity({ B: ["world"] });
+      await checkParity({ id: [1] });
+      await checkParity({ B: [""], A: [""] });
+      await checkParity({});
+      await checkParity({ B: ["world"], C: ["Neptune"] });
+
+      // Bad column name.
+      const badCol = await axios.post(`${url}/records/list`, { filter: { BadCol: [""] } }, chimpy);
+      assert.equal(badCol.status, 400);
+      assert.match(badCol.data.error, /BadCol/);
+
+      // Non-array filter value is rejected by schema validation.
+      const badVal = await axios.post(`${url}/records/list`, { filter: { B: "world" } }, chimpy);
+      assert.equal(badVal.status, 400);
+    });
+
+    it("supports sort and limit", async function() {
+      const { serverUrl, docIds, chimpy } = getCtx();
+      const url = `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1`;
+
+      async function checkParity(body: { sort?: string[]; limit?: number }, params: { sort?: string; limit?: number }) {
+        const getResp = await axios.get(`${url}/records`, { ...chimpy, params });
+        const postResp = await axios.post(`${url}/records/list`, body, chimpy);
+        assert.equal(postResp.status, 200);
+        assert.deepEqual(postResp.data, getResp.data);
+      }
+
+      await checkParity({ sort: ["A"] }, { sort: "A" });
+      await checkParity({ sort: ["-A"] }, { sort: "-A" });
+      await checkParity({ sort: ["B", "-A"] }, { sort: "B,-A" });
+      await checkParity({ limit: 1 }, { limit: 1 });
+      await checkParity({ sort: ["B"], limit: 2 }, { sort: "B", limit: 2 });
+    });
+
+    it("includes hidden columns when requested", async function() {
+      const { serverUrl, docIds, chimpy } = getCtx();
+      const url = `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1`;
+
+      const getResp = await axios.get(`${url}/records`, { ...chimpy, params: { hidden: true } });
+      const postResp = await axios.post(`${url}/records/list`, { hidden: true }, chimpy);
+      assert.equal(postResp.status, 200);
+      assert.deepEqual(postResp.data, getResp.data);
+      assert.property(postResp.data.records[0].fields, "manualSort");
+    });
+
+    it("handles errors and hidden columns", async function() {
+      const { serverUrl, docIds, chimpy } = getCtx();
+      const url = `${serverUrl}/api/docs/${docIds.ApiDataRecordsTest}/tables/Table1`;
+
+      // Without hidden: should match GET and exclude hidden columns.
+      const getResp = await axios.get(`${url}/records`, chimpy);
+      const postResp = await axios.post(`${url}/records/list`, {}, chimpy);
+      assert.equal(postResp.status, 200);
+      assert.deepEqual(postResp.data, getResp.data);
+      assert.notProperty(postResp.data.records[0].fields, "manualSort");
+      assert.notProperty(postResp.data.records[0].fields, "gristHelper_Display");
+      assert.deepEqual(postResp.data.records[0].errors, { A: "ZeroDivisionError" });
+
+      // With hidden: should include hidden columns.
+      const getHidden = await axios.get(`${url}/records`, { ...chimpy, params: { hidden: true } });
+      const postHidden = await axios.post(`${url}/records/list`, { hidden: true }, chimpy);
+      assert.equal(postHidden.status, 200);
+      assert.deepEqual(postHidden.data, getHidden.data);
+      assert.property(postHidden.data.records[0].fields, "manualSort");
+      assert.property(postHidden.data.records[0].fields, "gristHelper_Display");
+    });
+
+    it("validates request schema", async function() {
+      const { serverUrl, docIds, chimpy } = getCtx();
+      const url = `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/records/list`;
+
+      const resp1 = await axios.post(url, { sort: "A" }, chimpy);
+      assert.equal(resp1.status, 400);
+
+      const resp2 = await axios.post(url, { limit: "abc" }, chimpy);
+      assert.equal(resp2.status, 400);
+
+      const resp3 = await axios.post(url, { filter: "bad" }, chimpy);
+      assert.equal(resp3.status, 400);
+    });
+
+    it("respects document permissions", async function() {
+      const { serverUrl, docIds, kiwi } = getCtx();
+      const resp = await axios.post(
+        `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/records/list`, {}, kiwi);
+      assert.equal(resp.status, 403);
+    });
+  });
+
   it("GET /docs/{did}/tables/{tid}/records supports cellFormat=typed", async function() {
     // Create a new document with various column types.
     const { serverUrl, userApi, chimpy } = getCtx();

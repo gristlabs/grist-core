@@ -60,6 +60,17 @@ export const RecordsPut = t.iface([], {
   "records": t.tuple("AddOrUpdateRecord", t.rest(t.array("AddOrUpdateRecord"))),
 });
 
+export const RecordsListPost = t.iface([], {
+  "filter": t.opt(t.iface([], {
+    [t.indexKey]: t.array("any"),
+  })),
+  "sort": t.opt(t.array("string")),
+  "limit": t.opt("number"),
+  "hidden": t.opt("boolean"),
+  "immediate": t.opt("boolean"),
+  "cellFormat": t.opt("CellFormatType"),
+});
+
 export const RecordId = t.name("number");
 
 export const MinimalRecord = t.iface([], {
@@ -140,6 +151,7 @@ const exportedTypeSuite: t.ITypeSuite = {
   RecordsPatch,
   RecordsPost,
   RecordsPut,
+  RecordsListPost,
   RecordId,
   MinimalRecord,
   ColumnsPost,

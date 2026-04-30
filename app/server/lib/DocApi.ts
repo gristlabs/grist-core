@@ -42,6 +42,7 @@ import { QueryResult } from "app/gen-server/lib/homedb/Interfaces";
 import * as Types from "app/plugin/DocApiTypes";
 import DocApiTypesTI from "app/plugin/DocApiTypes-ti";
 import { CellFormatType } from "app/plugin/GristAPI";
+import GristApiTI from "app/plugin/GristAPI-ti";
 import GristDataTI from "app/plugin/GristData-ti";
 import { OpOptions } from "app/plugin/TableOperations";
 import { TableOperationsImpl, TableOperationsPlatform } from "app/plugin/TableOperationsImpl";
@@ -128,13 +129,14 @@ import * as t from "ts-interface-checker";
 // Schema validators for api endpoints that creates or updates records.
 const {
   RecordsPatch, RecordsPost, RecordsPut,
+  RecordsListPost,
   ColumnsPost, ColumnsPatch, ColumnsPut,
   SqlPost,
   TablesPost, TablesPatch,
   SetAttachmentStorePost,
-} = t.createCheckers(DocApiTypesTI, GristDataTI);
+} = t.createCheckers(DocApiTypesTI, GristDataTI, GristApiTI);
 
-for (const checker of [RecordsPatch, RecordsPost, RecordsPut, ColumnsPost, ColumnsPatch,
+for (const checker of [RecordsPatch, RecordsPost, RecordsPut, RecordsListPost, ColumnsPost, ColumnsPatch,
   SqlPost, TablesPost, TablesPatch]) {
   checker.setReportedPath("body");
 }
@@ -281,6 +283,17 @@ export class DocWorkerApi {
         const records = await getTableRecords(activeDoc, req,
           { includeHidden: isAffirmative(req.query.hidden), cellFormat },
         );
+        res.json({ records });
+      }),
+    );
+
+    // Get the specified table in record-oriented format, with parameters in the POST body.
+    this._app.post("/api/docs/:docId/tables/:tableId/records/list", canView, validate(RecordsListPost),
+      withDoc(async (activeDoc, req, res) => {
+        const body = req.body as Types.RecordsListPost;
+        const tableId = await getRealTableId(req.params.tableId, { activeDoc, req });
+        const columnData = await readTable(req, activeDoc, tableId, body.filter ?? {}, body);
+        const records = asRecords(columnData, { includeHidden: body.hidden, cellFormat: body.cellFormat });
         res.json({ records });
       }),
     );
@@ -2266,6 +2279,10 @@ export interface QueryParameters {
   limit?: number;   // Limit on number of rows to return.
   cellFormat?: CellFormatType;
 }
+
+/**
+ * *
+ */
 
 /**
  * Extract a sort parameter from a request, if present.  Follows

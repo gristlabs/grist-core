@@ -1,4 +1,5 @@
 import { CellValue } from "app/plugin/GristData";
+import { CellFormatType } from "app/plugin/GristAPI";
 
 /**
  * JSON schema for api /record endpoint. Used in POST method for adding new records.
@@ -68,24 +69,36 @@ export interface BulkAddOrUpdateRecordResult {
 }
 
 /**
- * JSON schema for the body of api /record PATCH endpoint
+ * JSON schema for the body of api /records PATCH endpoint
  */
 export interface RecordsPatch {
   records: [Record, ...Record[]]; // at least one record is required
 }
 
 /**
- * JSON schema for the body of api /record POST endpoint
+ * JSON schema for the body of api /records POST endpoint
  */
 export interface RecordsPost {
   records: [NewRecord, ...NewRecord[]]; // at least one record is required
 }
 
 /**
- * JSON schema for the body of api /record PUT endpoint
+ * JSON schema for the body of api /records PUT endpoint
  */
 export interface RecordsPut {
   records: [AddOrUpdateRecord, ...AddOrUpdateRecord[]]; // at least one record is required
+}
+
+/**
+ * JSON schema for the body of api /records/list POST endpoint
+ */
+export interface RecordsListPost {
+  filter?: { [colId: string]: any[] };  // Column filters, mapping colId to array of allowed values.
+  sort?: string[];    // See QueryParameters in DocApi.
+  limit?: number;     // Limit on number of rows to return.
+  hidden?: boolean;   // Include hidden columns (manualSort, gristHelper_*).
+  immediate?: boolean; // Skip waiting for document initialization.
+  cellFormat?: CellFormatType;
 }
 
 export type RecordId = number;
