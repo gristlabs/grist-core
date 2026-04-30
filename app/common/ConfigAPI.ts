@@ -51,25 +51,36 @@ export class ConfigAPI extends BaseAPI {
   }
 
   /**
-   * Polls `healthcheck()` until it succeeds or `attempts` polls have elapsed.
-   * Returns true on success, false on timeout; callers decide how to surface
-   * the timeout (throw, silent, page reload, etc).
-   *
-   * All callers invoke this after `restartServer()`. The server returns from
-   * `restartServer` before tearing down its listener, so the very first poll
-   * can otherwise hit the still-up old process and return true immediately.
-   * A brief initial delay lets the server begin its restart first.
+   * Snapshot of the server's restart identity. `id` changes on every
+   * (in-process or whole-process) restart; `restarting` is true while
+   * RestartShell is mid-restart and the new child isn't yet serving.
+   */
+  public async getRestartIdentity(): Promise<{ count: number; id: string; restarting: boolean }> {
+    return await this.requestJson(`${this._homeUrl}/status/restart`);
+  }
+
+  /**
+   * Polls until the restart id has changed (and we're no longer in the
+   * shell's mid-restart window) and healthcheck passes. Returns true on
+   * success, false on timeout; callers decide how to surface the
+   * timeout. Snapshot the id BEFORE issuing the restart.
    */
   public async waitUntilReady({
+    priorRestartId,
     attempts = 30,
     intervalMs = 1000,
-    initialDelayMs = 500,
-  }: { attempts?: number; intervalMs?: number; initialDelayMs?: number } = {}): Promise<boolean> {
-    await delay(initialDelayMs);
+  }: {
+    priorRestartId: string;
+    attempts?: number;
+    intervalMs?: number;
+  }): Promise<boolean> {
     for (let i = 0; i < attempts; i++) {
       try {
-        await this.healthcheck();
-        return true;
+        const ident = await this.getRestartIdentity();
+        if (!ident.restarting && ident.id !== priorRestartId) {
+          await this.healthcheck();
+          return true;
+        }
       } catch { /* not ready */ }
       await delay(intervalMs);
     }

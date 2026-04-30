@@ -78,6 +78,7 @@ import { createPubSubManager, IPubSubManager } from "app/server/lib/PubSubManage
 import { adaptServerUrl, getOrgUrl, getOriginUrl, getScope, integerParam, isParameterOn, optIntegerParam,
   optStringParam, RequestWithGristInfo, stringArrayParam, stringParam, TEST_HTTPS_OFFSET,
   trustOrigin } from "app/server/lib/requestUtils";
+import { readRestartIdentity } from "app/server/lib/RestartShell";
 import { buildScimRouter } from "app/server/lib/scim";
 import { ISendAppPageOptions, makeGristConfig, makeMessagePage, makeSendAppPage } from "app/server/lib/sendAppPage";
 import { getDatabaseUrl, listenPromise, timeoutReached } from "app/server/lib/serverUtils";
@@ -565,6 +566,13 @@ export class FlexServer implements GristServer {
 
   public addHealthCheck() {
     if (this._check("health")) { return; }
+    // Identity changes across in-process restarts (count++) and across
+    // process respawns (id changes), so clients polling /status/restart
+    // can detect either reliably. See RestartShell for shell-side state.
+    const restartIdentity = readRestartIdentity();
+    this.app.get("/status/restart", (_req, res) => {
+      res.status(200).json(restartIdentity);
+    });
     // Health check endpoint. if called with /hooks, testing hooks are required in order to be
     // considered healthy.  Testing hooks are used only in server started for tests, and
     // /status/hooks allows the tests to wait for them to be ready.

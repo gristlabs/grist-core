@@ -6,6 +6,7 @@
 import { GristClientSocket } from "app/client/components/GristClientSocket";
 import { delay } from "app/common/delay";
 import { Deps, runRestartShell } from "app/server/lib/RestartShell";
+import { getAvailablePort } from "app/server/lib/serverUtils";
 import { createInitialDb, removeConnection, setUpDB } from "test/gen-server/seed";
 import { configForUser } from "test/gen-server/testUtils";
 import * as testUtils from "test/server/testUtils";
@@ -85,6 +86,108 @@ describe("RestartShell", function() {
     const readyResp = await axios.get(`${serverUrl}/status?ready=1`);
     assert.equal(readyResp.status, 200);
     assert.include(readyResp.data, "alive");
+  });
+
+  it("should not report alive on /status during initial startup", async function() {
+    // Drop the default handle; bring up a fresh shell with a delayed
+    // ready signal so we can poll /status before the first child
+    // becomes available.
+    await handle.shutdown();
+    handle = undefined as any;
+
+    const port = await getAvailablePort(9000);
+    process.env.GRIST_TEST_RESTART_SHELL_READY_DELAY = "1500";
+    const startPromise = runRestartShell({
+      publicPort: port,
+      childEntryPoint: require.resolve("stubs/app/server/server"),
+    });
+
+    try {
+      // Poll until the listening socket is up; the shell binds before
+      // spawning, so this comes well before "ready".
+      const url = `http://localhost:${port}`;
+      let sawStarting = false;
+      const deadline = Date.now() + 5000;
+      while (Date.now() < deadline) {
+        try {
+          const r = await axios.get(`${url}/status`, { validateStatus: () => true });
+          if (r.status === 503 && JSON.stringify(r.data).includes("starting")) {
+            sawStarting = true;
+            break;
+          }
+          // Anything else (esp. 200 alive) is the bug we're guarding against.
+          if (r.status === 200) {
+            assert.fail(`/status returned 200 during initial startup: ${JSON.stringify(r.data)}`);
+          }
+        } catch {
+          // Connection refused before the listening socket is up; retry.
+        }
+        await delay(50);
+      }
+      assert.isTrue(sawStarting, "/status should report 503 starting before first child is ready");
+    } finally {
+      handle = await startPromise;
+    }
+  });
+
+  it("should expose /status/restart with count and id, always available", async function() {
+    // Before any in-process restart, count=0 but id is a fresh random
+    // token (so a container kill+respawn also looks like a restart to
+    // any client comparing ids).
+    const initial = await axios.get(`${serverUrl}/status/restart`);
+    assert.equal(initial.status, 200);
+    assert.equal(initial.data.count, 0);
+    assert.equal(initial.data.restarting, false);
+    assert.match(initial.data.id, /^[0-9a-f]{64}$/, "id should be 32 random bytes hex");
+    const initialId = initial.data.id;
+
+    await handle.restart();
+
+    const after = await axios.get(`${serverUrl}/status/restart`);
+    assert.equal(after.status, 200);
+    assert.equal(after.data.count, 1);
+    assert.equal(after.data.restarting, false);
+    assert.match(after.data.id, /^[0-9a-f]{64}$/);
+    assert.notEqual(after.data.id, initialId);
+    const firstId = after.data.id;
+
+    await handle.restart();
+    const second = await axios.get(`${serverUrl}/status/restart`);
+    assert.equal(second.data.count, 2);
+    assert.notEqual(second.data.id, firstId);
+  });
+
+  it("should serve /status/restart from the shell during a restart window", async function() {
+    // Slow the new child's ready signal so we hit the fallback path,
+    // and confirm /status/restart is still answered (with the new
+    // count/id, since they're bumped before spawn).
+    const before = await axios.get(`${serverUrl}/status/restart`);
+    const beforeId = before.data.id;
+
+    process.env.GRIST_TEST_RESTART_SHELL_READY_DELAY = "500";
+    const restartPromise = handle.restart();
+
+    let sawNewCount = false;
+    const deadline = Date.now() + 5000;
+    while (Date.now() < deadline) {
+      // The request can race with the old child being killed -- the
+      // kernel resets the in-flight TCP connection. Treat that as a
+      // signal to retry, since the next attempt will hit the fallback.
+      try {
+        const r = await axios.get(`${serverUrl}/status/restart`, { validateStatus: () => true });
+        assert.equal(r.status, 200);
+        if (r.data.count === 1 && r.data.id !== beforeId && r.data.restarting === true) {
+          assert.match(r.data.id, /^[0-9a-f]{64}$/);
+          sawNewCount = true;
+          break;
+        }
+      } catch (err: any) {
+        if (err?.code !== "ECONNRESET" && err?.code !== "ECONNREFUSED") { throw err; }
+      }
+      await delay(20);
+    }
+    await restartPromise;
+    assert.isTrue(sawNewCount, "/status/restart should be reachable during restart");
   });
 
   it("should reject and set exitCode when initial spawn fails", async function() {

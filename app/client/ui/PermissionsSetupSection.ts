@@ -138,8 +138,9 @@ export class PermissionsSetupSection extends Disposable {
         GRIST_ANON_PLAYGROUND: String(this._toggles.playground.get()),
         GRIST_IN_SERVICE: "true",
       } });
+      const { id: priorRestartId } = await this._configAPI.getRestartIdentity();
       await this._configAPI.restartServer();
-      await this._waitForReady();
+      await this._waitForReady(priorRestartId);
       if (this.isDisposed()) { return; }
       this._saving.set(false);
       this._restarted.set(true);
@@ -151,8 +152,8 @@ export class PermissionsSetupSection extends Disposable {
     }
   }
 
-  private async _waitForReady() {
-    if (!await this._configAPI.waitUntilReady()) {
+  private async _waitForReady(priorRestartId: string) {
+    if (!await this._configAPI.waitUntilReady({ priorRestartId })) {
       if (this.isDisposed()) { return; }
       throw new Error(t("Server did not restart in time. Please refresh the page."));
     }

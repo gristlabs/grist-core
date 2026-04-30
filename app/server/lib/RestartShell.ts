@@ -19,6 +19,7 @@ import { listenPromise } from "app/server/lib/serverUtils";
 import * as shutdownLib from "app/server/lib/shutdown";
 
 import * as childProcess from "child_process";
+import * as crypto from "crypto";
 import * as http from "http";
 import * as net from "net";
 
@@ -58,8 +59,10 @@ interface ExitInfo { code: number | null; signal: NodeJS.Signals | null; }
 interface FallbackResponse { status: number; contentType: string; body: string; }
 const plain = (status: number, body: string): FallbackResponse =>
   ({ status, contentType: "text/plain", body });
-const RESTARTING: FallbackResponse =
-  { status: 503, contentType: "application/json", body: JSON.stringify({ error: "restarting" }) };
+const asJson = (status: number, value: unknown): FallbackResponse =>
+  ({ status, contentType: "application/json", body: JSON.stringify(value) });
+const RESTARTING: FallbackResponse = asJson(503, { error: "restarting" });
+const STARTING: FallbackResponse = asJson(503, { error: "starting" });
 const UNHEALTHY = plain(500, "Grist server is unhealthy.");
 const NOT_READY = plain(500, "Grist server is unhealthy (ready not ok).");
 const ALIVE = plain(200, "Grist server is alive.");
@@ -73,6 +76,11 @@ export type { RestartShell };
 class RestartShell {
   private _status: ShellStatus = { kind: "stopped" };
   private _healthy = true;
+
+  // id is regenerated per process so clients can also detect
+  // out-of-process restarts (e.g. a container kill+respawn).
+  private _restartCount = 0;
+  private _restartId = newRestartId();
 
   // Serializes restart/shutdown.
   private readonly _ops = new PromiseChain<void>();
@@ -135,6 +143,9 @@ class RestartShell {
     const { child: oldChild, exited: oldExited } = this._status;
     this._status = { kind: "restarting" };
     log.info("RestartShell: restart requested");
+    // Bump before spawning so the new child inherits the new values via env.
+    this._restartCount += 1;
+    this._restartId = newRestartId();
     try {
       await this._stopChild(oldChild, oldExited);
       const result = await this._spawnOrFail();
@@ -225,7 +236,11 @@ class RestartShell {
 
   private _fallbackResponse(req: http.IncomingMessage): FallbackResponse {
     const [pathname, query = ""] = (req.url || "/").split("?");
+    if (pathname === "/status/restart") {
+      return asJson(200, { count: this._restartCount, id: this._restartId, restarting: true });
+    }
     if (pathname !== "/status") { return RESTARTING; }
+    if (this._status.kind === "starting") { return STARTING; }
     if (!this._healthy) { return UNHEALTHY; }
     if (isParameterOn(new URLSearchParams(query).get("ready"))) { return NOT_READY; }
     return ALIVE;
@@ -258,6 +273,8 @@ class RestartShell {
       ...process.env,
       GRIST_UNDER_RESTART_SHELL: "1",
       PORT: String(this._actualPort),
+      [RESTART_COUNT_ENV]: String(this._restartCount),
+      [RESTART_ID_ENV]: this._restartId,
     };
     // Clear GRIST_RESTART_SHELL so the child can't re-detect shell mode.
     delete env.GRIST_RESTART_SHELL;
@@ -371,6 +388,29 @@ export function shouldRunAsRestartShell() {
   if (process.env.GRIST_TESTING_SOCKET) { return false; }
   const isElectron = Boolean((process.versions as { electron?: string }).electron);
   return process.platform === "linux" && !isElectron;
+}
+
+const RESTART_COUNT_ENV = "GRIST_RESTART_COUNT";
+const RESTART_ID_ENV = "GRIST_RESTART_ID";
+
+// 32 bytes / 64 hex chars: enough entropy to make collisions across
+// any sequence of container restarts effectively impossible.
+export function newRestartId(): string {
+  return crypto.randomBytes(32).toString("hex");
+}
+
+/**
+ * Identity for the /status/restart endpoint. Reads from env vars
+ * populated by RestartShell on each fork; falls back to count=0 and
+ * a fresh random id so a standalone (no-shell) process still emits
+ * a unique id that changes across container respawns.
+ */
+export function readRestartIdentity(): { count: number; id: string; restarting: false } {
+  return {
+    count: Number(process.env[RESTART_COUNT_ENV]) || 0,
+    id: process.env[RESTART_ID_ENV] || newRestartId(),
+    restarting: false,
+  };
 }
 
 /** Bind `server` to `port` on the Grist host; return the actual bound port. */
