@@ -702,11 +702,14 @@ class AdminInstallationPanel extends Disposable {
         const req = this._checks.requestCheckById(use, "service-status");
         const result = req ? use(req.result) : undefined;
 
-        if (result?.details?.inService) {
+        // Until the probe lands, show a neutral placeholder rather than the
+        // alarming default. Otherwise a real admin (and our tests) see
+        // "out of service" briefly on every page load.
+        if (!result) { return cssValueLabel(t("checking")); }
+        if (result.details?.inService) {
           return cssValueLabel(cssHappyText(t("in service")));
-        } else {
-          return cssValueLabel(cssDangerText(t("out of service")));
         }
+        return cssValueLabel(cssDangerText(t("out of service")));
       },
     );
   }
@@ -761,11 +764,11 @@ class AdminInstallationPanel extends Disposable {
         const req = this._checks.requestCheckById(use, "boot-key");
         const result = req ? use(req.result) : undefined;
 
-        if (result?.details?.disabled) {
+        if (!result) { return cssValueLabel(t("checking")); }
+        if (result.details?.disabled) {
           return cssValueLabel(cssHappyText(t("disabled")));
-        } else {
-          return cssValueLabel(cssDangerText(t("enabled")));
         }
+        return cssValueLabel(cssDangerText(t("enabled")));
       },
     );
   }
