@@ -25,6 +25,6 @@ export interface ITestingHooks {
   setWidgetRepositoryUrl(url: string): Promise<void>;
   getMemoryUsage(): Promise<object>;  // actually NodeJS.MemoryUsage
   tickleUnhandledErrors(errType: string): Promise<void>;
-  addEnv(env: {[key: string]: string}): Promise<void>;
+  addEnv(env: { [key: string]: string }): Promise<void>;
   resetEnv(): Promise<void>;
 }

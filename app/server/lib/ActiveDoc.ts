@@ -138,6 +138,7 @@ import { createAttachmentsIndex, DocStorage, REMOVE_UNUSED_ATTACHMENTS_DELAY } f
 import { expandQuery, getFormulaErrorForExpandQuery } from "app/server/lib/ExpandedQuery";
 import { GranularAccess, GranularAccessForBundle } from "app/server/lib/GranularAccess";
 import { GristServer } from "app/server/lib/GristServer";
+import { getAnonPlaygroundEnabled } from "app/server/lib/gristSettings";
 import {
   AssistanceFormulaEvaluationResult,
   AssistanceSchemaPromptV1Context,
@@ -193,7 +194,6 @@ import throttle from "lodash/throttle";
 import without from "lodash/without";
 import * as moment from "moment-timezone";
 import fetch from "node-fetch";
-import { getAnonPlaygroundEnabled } from "app/server/lib/gristSettings";
 
 const MAX_RECENT_ACTIONS = 100;
 
