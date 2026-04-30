@@ -1,5 +1,5 @@
-import { CellValue } from "app/plugin/GristData";
 import { CellFormatType } from "app/plugin/GristAPI";
+import { CellValue } from "app/plugin/GristData";
 
 /**
  * JSON schema for api /record endpoint. Used in POST method for adding new records.
