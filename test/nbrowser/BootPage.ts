@@ -93,19 +93,14 @@ describe("BootPage", function() {
     it("reports server is in service in Admin Panel", async function() {
       await driver.get(`${server.getHost()}/admin`);
       await gu.waitForAdminPanel();
-      assert.equal(
-        await driver.find(".test-admin-panel-item-value-service-status").getText(),
-        "in service",
-      );
+      // Probe-driven badge starts at "checking" and settles asynchronously.
+      await driver.findContentWait(".test-admin-panel-item-value-service-status", "in service", 2000);
       await toggleItem("service-status");
       assert.isFalse(await driver.find(".test-service-status-env-variable-notice").isPresent());
     });
 
     it("reports boot key is disabled in Admin Panel", async function() {
-      assert.equal(
-        await driver.find(".test-admin-panel-item-value-boot-key").getText(),
-        "disabled",
-      );
+      await driver.findContentWait(".test-admin-panel-item-value-boot-key", "disabled", 2000);
       await toggleItem("boot-key");
       assert.isFalse(await driver.find(".test-boot-key-status-remove-boot-key").isPresent());
       assert.isFalse(await driver.find(".test-boot-key-status-env-variable-notice").isPresent());
@@ -522,10 +517,7 @@ describe("BootPage", function() {
     it("reports server is out of service in Admin Panel", async function() {
       await driver.get(`${server.getHost()}/admin?boot-key=abc123`);
       await gu.waitForAdminPanel();
-      assert.equal(
-        await driver.find(".test-admin-panel-item-value-service-status").getText(),
-        "out of service",
-      );
+      await driver.findContentWait(".test-admin-panel-item-value-service-status", "out of service", 2000);
       await toggleItem("service-status");
       assert.match(
         await driver.find(".test-service-status-env-variable-notice").getText(),
@@ -540,10 +532,7 @@ describe("BootPage", function() {
 
       await driver.get(`${server.getHost()}/admin?boot-key=abc123`);
       await gu.waitForAdminPanel();
-      assert.equal(
-        await driver.find(".test-admin-panel-item-value-service-status").getText(),
-        "in service",
-      );
+      await driver.findContentWait(".test-admin-panel-item-value-service-status", "in service", 2000);
       await toggleItem("service-status");
       assert.isTrue(await driver.find(".test-service-status-enter-maintenance-mode").isDisplayed());
       assert.isFalse(await driver.find(".test-service-status-env-variable-notice").isPresent());

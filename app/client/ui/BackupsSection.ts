@@ -1,6 +1,6 @@
 import { makeT } from "app/client/lib/localization";
 import { AdminChecks } from "app/client/models/AdminChecks";
-import { AdminPanelControls, cssDangerText, cssHappyText } from "app/client/ui/AdminPanelCss";
+import { cssDangerText, cssHappyText } from "app/client/ui/AdminPanelCss";
 import { quickSetupStepHeader } from "app/client/ui/QuickSetupStepHeader";
 import { cssCardSurface, cssValueLabel } from "app/client/ui/SettingsLayout";
 import { colors } from "app/client/ui2018/cssVars";
@@ -48,15 +48,8 @@ const STORAGE_BACKENDS: Record<BackendName, BackendInfo> = {
 
 export interface BackupsSectionProps {
   checks: AdminChecks;
-  /**
-   * Present when this section is rendered inside the admin panel. Absent in the
-   * setup wizard. Sections use this as the single signal for "am I in the admin
-   * panel?" -- it's also the channel through which they report needsRestart.
-   *
-   * BackupsSection has no restart-required settings of its own, but accepts the
-   * option so all sections share one mode flag.
-   */
-  controls?: AdminPanelControls;
+  /** True when rendered in the admin panel; false / absent in the wizard. */
+  inAdminPanel?: boolean;
 }
 
 /**
@@ -100,7 +93,7 @@ export class BackupsSection extends Disposable {
 
   public buildDom() {
     return cssSection(
-      this._props.controls ? cssDescription(
+      this._props.inAdminPanel ? cssDescription(
         t("Store document backups on an external service like S3 or Azure. \
           This protects against data loss if the server's disk fails."),
       ) : quickSetupStepHeader({

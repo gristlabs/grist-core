@@ -59,7 +59,8 @@ describe("AdminPanel", function() {
     assert.equal(await driver.find(".test-usermenu-admin-panel").isDisplayed(), true);
     assert.match(await driver.find(".test-usermenu-admin-panel").getAttribute("href"), /\/admin$/);
     await driver.find(".test-usermenu-admin-panel").click();
-    assert.equal(await gu.waitForAdminPanel().isDisplayed(), true);
+    await gu.waitForAdminPanel();
+    assert.equal(await driver.find(".test-admin-panel").isDisplayed(), true);
   });
 
   it("should include support-grist section", async function() {

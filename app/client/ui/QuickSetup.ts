@@ -6,8 +6,9 @@ import { getHomeUrl } from "app/client/models/homeUrl";
 import { cssFadeUp, cssFadeUpGristLogo, cssFadeUpHeading, cssFadeUpSubHeading } from "app/client/ui/AdminPanelCss";
 import { AuthenticationSection } from "app/client/ui/AuthenticationSection";
 import { BackupsSection } from "app/client/ui/BackupsSection";
+import { DraftChangesManager } from "app/client/ui/DraftChanges";
 import { PermissionsSetupSection } from "app/client/ui/PermissionsSetupSection";
-import { quickSetupContinueButton } from "app/client/ui/QuickSetupContinueButton";
+import { quickSetupContinueButton, QuickSetupSection } from "app/client/ui/QuickSetupContinueButton";
 import { QuickSetupServerStep } from "app/client/ui/QuickSetupServerStep";
 import { SandboxSetupSection } from "app/client/ui/SandboxSection";
 import { Stepper } from "app/client/ui2018/Stepper";
@@ -102,9 +103,20 @@ export class QuickSetup extends Disposable {
   private _buildAuthStep(): DomContents {
     return dom.create((owner) => {
       const section = AuthenticationSection.create(owner, { appModel: this._appModel });
+      // Per-step DraftChangesManager so Continue drives apply+restart like
+      // Server/Sandbox steps. In admin panel mode, the section registers
+      // with the panel-level manager instead.
+      const drafts = DraftChangesManager.create(owner);
+      drafts.addSection(section);
+      const step: QuickSetupSection = {
+        canProceed: section.canProceed,
+        isDirty: drafts.hasDraftChanges,
+        isApplying: drafts.isApplying,
+        apply: () => drafts.applyAll(),
+      };
       return dom("div",
         section.buildDom(),
-        quickSetupContinueButton(section, () => this._advanceStep(), testId("auth-continue")),
+        quickSetupContinueButton(step, () => this._advanceStep(), testId("auth-continue")),
       );
     });
   }

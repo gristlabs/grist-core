@@ -1,7 +1,6 @@
 import { makeT } from "app/client/lib/localization";
 import { getHomeUrl, reportError } from "app/client/models/AppModel";
 import {
-  AdminPanelControls,
   buildConfirmedRow,
   cssHappyText,
   cssSectionButtonRow,
@@ -15,7 +14,7 @@ import { icon } from "app/client/ui2018/icons";
 import { unstyledButton } from "app/client/ui2018/unstyled";
 import { InstallAPIImpl } from "app/common/InstallAPI";
 
-import { Computed, Disposable, dom, DomContents, input, makeTestId,
+import { bundleChanges, Computed, Disposable, dom, DomContents, input, makeTestId,
   Observable, styled } from "grainjs";
 
 const t = makeT("BaseUrlSection");
@@ -25,7 +24,8 @@ type UrlStatus = "loading" | "loaded" | "saving" | "saved" | "error";
 type TestResult = "idle" | "testing" | "passed" | "failed";
 
 interface BaseUrlSectionOptions {
-  controls?: AdminPanelControls;
+  /** True when rendered in the admin panel; false / absent in the wizard. */
+  inAdminPanel?: boolean;
 }
 
 export class BaseUrlSection extends Disposable {
@@ -95,9 +95,17 @@ export class BaseUrlSection extends Disposable {
 
   public describeChange() {
     if (this._urlSkipped.get()) {
-      return { label: t("Base URL"), value: t("automatic") };
+      return [{ label: t("Base URL"), value: t("automatic") }];
     }
-    return { label: t("Base URL"), value: this._editedUrl.get().trim() };
+    return [{ label: t("Base URL"), value: this._editedUrl.get().trim() }];
+  }
+
+  public async dismiss(): Promise<void> {
+    if (!this.isDirty.get()) { return; }
+    bundleChanges(() => {
+      this._resetEdits();
+      this._editedUrl.set(this._serverUrl.get());
+    });
   }
 
   public buildStatusDisplay(): DomContents {
@@ -115,16 +123,27 @@ export class BaseUrlSection extends Disposable {
   public buildDom(): DomContents { return this._buildSection({ allowSkip: false }); }
   public buildWizardDom(): DomContents { return this._buildSection({ allowSkip: true }); }
 
+  /**
+   * Reset draft state back to "not yet confirmed" with a clean test slate.
+   * Called both from dismiss and from the Edit button on the confirmed row.
+   * Does not touch `_editedUrl` -- the Edit-row case wants to keep what the
+   * user typed.
+   */
+  private _resetEdits() {
+    this._urlConfirmed.set(false);
+    this._urlSkipped.set(false);
+    this._testResult.set("idle");
+    this._testError.set("");
+    this._testDetailOpen.set(false);
+  }
+
   // allowSkip=true shows a "Leave automatic" button alongside Confirm;
   // in admin-panel mode we don't offer it.
   private _buildSection(opts: { allowSkip: boolean }): DomContents {
     return cssSectionContainer(
       this._buildCore(),
-      buildConfirmedRow(this._urlConfirmed, () => {
-        this._urlConfirmed.set(false);
-        this._urlSkipped.set(false);
-        this._testResult.set("idle");
-      }, { skipped: this._urlSkipped, skippedLabel: t("Automatic"), testPrefix: "base-url" }),
+      buildConfirmedRow(this._urlConfirmed, () => this._resetEdits(),
+        { skipped: this._urlSkipped, skippedLabel: t("Automatic"), testPrefix: "base-url" }),
       dom.maybe(use => !use(this._urlConfirmed), () => [
         dom.domComputed(this._testResult, result => this._buildTestStatus(result)),
         cssSectionButtonRow(

@@ -220,7 +220,7 @@ export class SandboxSetupSection extends SandboxSectionBase {
     isDirty: this._needsRestart,
     needsRestart: true,
     apply: () => this._save(),
-    describeChange: () => ({ label: t("Sandbox"), value: sandboxLabel(this._selected.get() ?? "") }),
+    describeChange: () => [{ label: t("Sandbox"), value: sandboxLabel(this._selected.get() ?? "") }],
   };
 
   constructor() {
