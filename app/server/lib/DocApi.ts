@@ -2281,10 +2281,6 @@ export interface QueryParameters {
 }
 
 /**
- * *
- */
-
-/**
  * Extract a sort parameter from a request, if present.  Follows
  * https://jsonapi.org/format/#fetching-sorting for want of a better
  * standard - comma separated, defaulting to ascending order, keys
