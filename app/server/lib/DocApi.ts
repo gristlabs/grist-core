@@ -290,10 +290,10 @@ export class DocWorkerApi {
     // Get the specified table in record-oriented format, with parameters in the POST body.
     this._app.post("/api/docs/:docId/tables/:tableId/records/list", canView, validate(RecordsListPost),
       withDoc(async (activeDoc, req, res) => {
-        const body = req.body as Types.RecordsListPost;
+        const params = req.body as Types.RecordsListPost;
         const tableId = await getRealTableId(req.params.tableId, { activeDoc, req });
-        const columnData = await readTable(req, activeDoc, tableId, body.filter ?? {}, body);
-        const records = asRecords(columnData, { includeHidden: body.hidden, cellFormat: body.cellFormat });
+        const columnData = await readTable(req, activeDoc, tableId, params.filter ?? {}, params);
+        const records = asRecords(columnData, { includeHidden: params.hidden, cellFormat: params.cellFormat });
         res.json({ records });
       }),
     );
