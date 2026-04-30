@@ -233,7 +233,7 @@ export interface GranularAccessForBundle {
  * steps and clients.  We expect modifications to be serialized, and the following
  * pattern of calls for modifications:
  *
- *  - assertCanMaybeApplyUserActions(), called with UserActions for an initial access check.
+ *  - checkUserActions(), called with UserActions for an initial access check.
  *    Since not all checks can be done without analyzing UserActions into DocActions,
  *    it is ok for this call to pass even if a more definitive test later will fail.
  *  - getGranularAccessForBundle(), called once a possible bundle has been prepared
@@ -305,11 +305,6 @@ export class GranularAccess implements GranularAccessForBundle {
     userActions: UserAction[], isDirect: boolean[],
     options: ApplyUAExtendedOptions | null): void {
     if (this._activeBundle) { throw new Error("Cannot start a bundle while one is already in progress"); }
-    // This should never happen - attempts to write to a pre-fork session should be
-    // caught by an Authorizer.  But let's be paranoid, since we may be pretending to
-    // be an owner for granular access purposes, and owners can write if we're not
-    // careful!
-    if (docSession.forkingAsOwner) { throw new Error("Should never modify a prefork"); }
     this._activeBundle = {
       docSession, docActions, undo, userActions, isDirect,
       applied: false, hasDeliberateRuleChange: false, hasAnyRuleChange: false,
@@ -913,6 +908,12 @@ export class GranularAccess implements GranularAccessForBundle {
    */
   public async checkUserActions(docSession: OptDocSession, actions: UserAction[]): Promise<void> {
     if (this._hasExceptionalFullAccess(docSession)) { return; }
+
+    // Reject writes from prefork-as-owner sessions before the data engine is
+    // touched. WS clients are normally caught earlier by Authorizer.assertAccess
+    // downgrading owner→viewer in fork mode; this guard catches server-internal
+    // callers (e.g. the assistant) that bypass that path.
+    if (docSession.forkingAsOwner) { throw new Error("Should never modify a prefork"); }
 
     // Checks are in no particular order.
     await this._checkSimpleDataActions(docSession, actions);

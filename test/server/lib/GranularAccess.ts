@@ -21,7 +21,7 @@ import { UserAPI, UserAPIImpl } from "app/common/UserAPI";
 import { GristObjCode } from "app/plugin/GristData";
 import { Deps as DocClientsDeps } from "app/server/lib/DocClients";
 import { DocManager } from "app/server/lib/DocManager";
-import { docSessionFromRequest, makeExceptionalDocSession } from "app/server/lib/DocSession";
+import { DocSession, docSessionFromRequest, makeExceptionalDocSession } from "app/server/lib/DocSession";
 import { filterColValues, GranularAccess } from "app/server/lib/GranularAccess";
 import { globalUploadSet } from "app/server/lib/uploads";
 import { TestServer } from "test/gen-server/apiUtils";
@@ -192,6 +192,46 @@ describe("GranularAccess", function() {
     }
     await order[1].send("openDoc", docId, options);
   }
+
+  it("rejects writes from prefork-as-owner sessions before touching the engine", async function() {
+    // The assistant calls activeDoc.applyUserActions(docSession, …) server-internally,
+    // bypassing the WS-level Authorizer.assertAccess fork-mode downgrade. Without an
+    // early prefork check in checkUserActions, the engine would mutate and leave
+    // stale state visible to other clients.
+    await freshDoc();
+    await owner.applyUserActions(docId, [
+      ["AddTable", "Contacts", [{ id: "Name", type: "Text" }]],
+      ["AddRecord", "Contacts", null, { Name: "Alice" }],
+    ]);
+
+    // Subscribe before reopening so we catch the DocSessions DocManager.openDoc creates.
+    // The event fires before forkingAsOwner is set on the session, but it's the same
+    // object — by the time reopenClients resolves, the field has been set on it.
+    const activeDoc = await docManager.getActiveDoc(docId);
+    assert.exists(activeDoc);
+    const sessions: DocSession[] = [];
+    const captureSession = (s: DocSession) => { sessions.push(s); };
+    activeDoc!.docClients.addClientAddedListener(captureSession);
+
+    try {
+      await reopenClients({ openMode: "fork" });
+
+      const ownerSession = sessions.find(s => s.forkingAsOwner === true);
+      assert.exists(ownerSession, "expected owner session to be in prefork-as-owner state");
+
+      await assert.isRejected(
+        activeDoc!.applyUserActions(ownerSession!, [["RemoveTable", "Contacts"]]),
+        /Should never modify a prefork/,
+      );
+
+      // The doc should be untouched — neither persistence nor the engine should
+      // see the rejected action.
+      const records = await owner.getDocAPI(docId).getRecords("Contacts");
+      assert.deepEqual(records.map(r => r.fields.Name), ["Alice"]);
+    } finally {
+      activeDoc!.docClients.off("clientAdded", captureSession);
+    }
+  });
 
   // See the comment in PermissionInfo.ts/evaluateRule() for why we need this.
   describe("forces a row check for rules with memo and rec", function() {
