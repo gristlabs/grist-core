@@ -34,6 +34,11 @@ import { InstallConfigsAPI } from "app/client/ui/ConfigsAPI";
 import { DraftChangesManager } from "app/client/ui/DraftChanges";
 import { EditionSection } from "app/client/ui/EditionSection";
 import { pagePanels } from "app/client/ui/PagePanels";
+import {
+  buildPermissionsCard,
+  buildPermissionsStatusDisplay,
+} from "app/client/ui/PermissionsSetupSection";
+import { PermissionsToggleModel } from "app/client/ui/PermissionsToggleModel";
 import { QuickSetup } from "app/client/ui/QuickSetup";
 import { ServiceStatus } from "app/client/ui/ServiceStatus";
 import {
@@ -204,6 +209,8 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
     notifier: this._appModel.notifier,
   });
 
+  private _permissionsModel = PermissionsToggleModel.create(this);
+
   private _drafts = DraftChangesManager.create(this);
 
   private _checks: AdminChecks;
@@ -226,6 +233,7 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
     this._checks = new AdminChecks(this, this._installAPI);
     this._drafts.addSection(this._baseUrlSection);
     this._drafts.addSection(this._editionSection);
+    this._drafts.addSection(this._permissionsModel);
 
     // Mirror visibility into the shared controller so the left-panel entry
     // appears/disappears with the banner.
@@ -485,6 +493,13 @@ Please log in as an administrator.`)),
           description: t("Key to sign sessions with"),
           value: this._buildSessionSecretDisplay(),
           expandedContent: this._buildSessionSecretNotice(),
+        }),
+        SectionItem({
+          id: "default-permissions",
+          name: t("Default permissions"),
+          description: t("Who can create sites, log in, and use the playground"),
+          value: buildPermissionsStatusDisplay(this._permissionsModel),
+          expandedContent: buildPermissionsCard(this._permissionsModel),
         }),
       ]),
       this._buildBackupsSection(),
