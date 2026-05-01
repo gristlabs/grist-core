@@ -1,7 +1,7 @@
 const path = require("path");
 const fs = require("fs");
 
-const { loadPyodide } = require("./_build/worker/node_modules/pyodide");
+const { loadPyodide } = require("./worker/node_modules/pyodide");
 const { listLibs } = require("./packages");
 
 const isDeno = typeof Deno !== "undefined";
