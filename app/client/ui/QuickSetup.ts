@@ -3,6 +3,7 @@ import { AdminChecks } from "app/client/models/AdminChecks";
 import { AppModel } from "app/client/models/AppModel";
 import { reportError } from "app/client/models/errors";
 import { getHomeUrl } from "app/client/models/homeUrl";
+import { buildAdminAccessDeniedCard } from "app/client/ui/AdminAccessDeniedCard";
 import { cssFadeUp, cssFadeUpGristLogo, cssFadeUpHeading, cssFadeUpSubHeading } from "app/client/ui/AdminPanelCss";
 import { AuthenticationSection } from "app/client/ui/AuthenticationSection";
 import { BackupsSection } from "app/client/ui/BackupsSection";
@@ -27,6 +28,9 @@ interface Step {
 export class QuickSetup extends Disposable {
   private _activeStep = Observable.create<number>(this, 0);
   private _checks = new AdminChecks(this, new InstallAPIImpl(getHomeUrl()));
+  // True once `_checks.fetchAvailableChecks()` has settled. Prevents a flash
+  // of the access-denied card while probes are still `[]` from initialization.
+  private _checksLoaded = Observable.create<boolean>(this, false);
   private _steps: Step[] = [
     {
       label: t("Server"),
@@ -57,10 +61,25 @@ export class QuickSetup extends Disposable {
 
   constructor(private _appModel: AppModel) {
     super();
-    this._checks.fetchAvailableChecks().catch(reportError);
   }
 
   public buildDom() {
+    if (!this._appModel.currentValidUser) {
+      return buildAdminAccessDeniedCard();
+    }
+    this._checks.fetchAvailableChecks()
+      .catch(reportError)
+      .finally(() => {
+        if (!this.isDisposed()) { this._checksLoaded.set(true); }
+      });
+    return dom.maybe(this._checksLoaded, () =>
+      this._checks.probes.get().length > 0 ?
+        this._buildSetupContent() :
+        buildAdminAccessDeniedCard(),
+    );
+  }
+
+  private _buildSetupContent() {
     return cssMainContent(
       cssFadeUpGristLogo(),
       cssFadeUpHeading(t("Quick setup")),

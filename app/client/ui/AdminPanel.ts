@@ -8,6 +8,7 @@ import { AuditLogsModel, AuditLogsModelImpl } from "app/client/models/AuditLogsM
 import { urlState } from "app/client/models/gristUrlState";
 import { AccountWidget } from "app/client/ui/AccountWidget";
 import { cssEmail, cssUserInfo, cssUserName } from "app/client/ui/AccountWidgetCss";
+import { buildAdminAccessDeniedCard } from "app/client/ui/AdminAccessDeniedCard";
 import { buildAdminData } from "app/client/ui/AdminControls";
 import { buildAdminLeftPanel, getPageNames } from "app/client/ui/AdminLeftPanel";
 import {
@@ -50,7 +51,7 @@ import { buildInstallationIdDisplay } from "app/client/ui/ToggleEnterpriseWidget
 import { createTopBarHome } from "app/client/ui/TopBar";
 import { createUserImage } from "app/client/ui/UserImage";
 import { fullBreadcrumbs } from "app/client/ui2018/breadcrumbs";
-import { basicButton, bigPrimaryButton, bigPrimaryButtonLink } from "app/client/ui2018/buttons";
+import { basicButton, bigPrimaryButton } from "app/client/ui2018/buttons";
 import { testId, theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { cssLink, makeLinks } from "app/client/ui2018/links";
@@ -86,6 +87,10 @@ const t = makeT("AdminPanel");
 // consider a version check to be stale. It's a big number, but we're
 // still far away from the max at Number.MAX_SAFE_INTEGER
 const STALE_VERSION_CHECK_TIME_IN_MS = 14 * 24 * 60 * 60 * 1000;
+
+function isInstallationPage(page: AdminPanelPage): boolean {
+  return page === "admin" || page === "setup";
+}
 
 /**
  * Shared restart-banner state so the left-panel "Apply changes" entry can
@@ -167,7 +172,7 @@ export class AdminPanel extends Disposable {
       // Setting tabIndex allows selecting and copying text. This is helpful on admin pages, e.g.
       // to copy GRIST_BOOT_KEY or version number. But we don't set it for buidAdminData() pages
       // because it messes with focus in GridViews, and its unclear how to undo its effect.
-      dom.attr("tabindex", use => ["admin", "setup"].includes(use(this._page)) ? "-1" : null),
+      dom.attr("tabindex", use => isInstallationPage(use(this._page)) ? "-1" : null),
 
       dom.domComputed(this._page, (page) => {
         if (page === "admin") {
@@ -179,7 +184,7 @@ export class AdminPanel extends Disposable {
         }
       }),
 
-      cssPageContainer.cls("-admin-pages", use => use(this._page) !== "admin"),
+      cssPageContainer.cls("-admin-pages", use => !isInstallationPage(use(this._page))),
 
       testId("admin-panel"),
     );
@@ -308,21 +313,7 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
    * which could include a legit administrator if auth is misconfigured.
    */
   private _buildMainContentForOthers() {
-    return SectionCard(t("Administrator Panel Unavailable"), [
-      dom("p", t(`You do not have access to the administrator panel.
-Please log in as an administrator.`)),
-      dom(
-        "p",
-        t(`If you are the server operator, you can sign in using the boot key from your server logs.`),
-      ),
-      dom("p",
-        bigPrimaryButtonLink(
-          urlState().setLinkUrl({ boot: "boot" }),
-          t("Sign in with boot key"),
-        ),
-      ),
-      testId("admin-panel-error"),
-    ]);
+    return buildAdminAccessDeniedCard();
   }
 
   private _buildMainContentForAdmin() {
