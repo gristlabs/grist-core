@@ -123,4 +123,20 @@ describe("QuickSetupAuth", function() {
     assert.notMatch(pageText, /Restart required/,
       "Restart warning should not appear in setup wizard");
   });
+
+  it("should show access denied card to a non-admin visitor", async function() {
+    // Sign out and load /admin/setup directly. The page must not render the
+    // configure controls -- it should fall back to the boot-key card so a
+    // misconfigured-or-curious visitor sees the same "go away" UI as on
+    // /admin.
+    await server.removeLogin();
+    await driver.get(`${server.getHost()}/admin/setup`);
+    await driver.findContentWait(
+      ".test-admin-panel-error", "Administrator Panel Unavailable", 2000,
+    );
+    assert.isTrue(await driver.findContent("a", "Sign in with boot key").isDisplayed());
+    // Setup steps must not be rendered.
+    assert.lengthOf(await driver.findAll(".test-quick-setup-auth-continue"), 0);
+    assert.lengthOf(await driver.findAll(".test-quick-setup-server-continue"), 0);
+  });
 });
