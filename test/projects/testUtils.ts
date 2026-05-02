@@ -1,5 +1,8 @@
 import { server } from "test/fixtures/projects/webpack-test-server";
 
+// For the sake of setting chrome options, e.g. to disable password manager.
+import "test/nbrowser/testUtils";
+
 import { addToRepl, driver, enableDebugCapture, Key, useServer } from "mocha-webdriver";
 
 // Exports the webpack-dev-server that we set up in setupTestSuite(), mainly for its getHost()

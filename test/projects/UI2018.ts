@@ -237,6 +237,7 @@ describe("UI2018", () => {
       await driver.find("#menus .test-multi-select").click();
 
       // Check that the correct available options are shown.
+      await driver.findWait(".test-multi-select-menu .test-multi-select-menu-option-text", 500);
       const availableOptions = await driver.findAll(
         ".test-multi-select-menu .test-multi-select-menu-option-text",
         el => el.getText(),

@@ -21,7 +21,7 @@ describe("editableLabel", function() {
 
   describe("test editableLabel component", function() {
     before(async function() {
-      await driver.findContent(".test-select-component option", "editableLabel").click();
+      await driver.findContentWait(".test-select-component option", "editableLabel", 500).click();
     });
 
     testInput();
