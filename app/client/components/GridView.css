@@ -412,3 +412,8 @@
   margin-right: 4px;
   z-index: 1;
 }
+
+/* RTL support: override user-agent unicode-bidi isolation so direction inherits into cells */
+.gridview_data_pane[dir="rtl"] .field_clip {
+  direction: rtl;
+}
