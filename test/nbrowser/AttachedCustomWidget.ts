@@ -64,6 +64,8 @@ describe("AttachedCustomWidget", function() {
   before(async function() {
     await buildWidgetServer();
     oldEnv = new EnvironmentSnapshot();
+    // Disable the bundled Calendar widget so that the version in the remote list is used instead.
+    process.env.GRIST_SKIP_BUNDLED_WIDGETS = "true";
     process.env.GRIST_WIDGET_LIST_URL = `${widgetServerUrl}${manifestEndpoint}`;
     process.env.PERMITTED_CUSTOM_WIDGETS = "calendar";
     await server.restart();
