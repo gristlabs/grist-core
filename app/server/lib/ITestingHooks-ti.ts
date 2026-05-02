@@ -29,6 +29,10 @@ export const ITestingHooks = t.iface([], {
   "setWidgetRepositoryUrl": t.func("void", t.param("url", "string")),
   "getMemoryUsage": t.func("object"),
   "tickleUnhandledErrors": t.func("void", t.param("errType", "string")),
+  "addEnv": t.func("void", t.param("env", t.iface([], {
+    [t.indexKey]: "string",
+  }))),
+  "resetEnv": t.func("void"),
 });
 
 const exportedTypeSuite: t.ITypeSuite = {

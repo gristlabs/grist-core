@@ -5,6 +5,7 @@ import * as Client from "app/server/lib/Client";
 import { Comm } from "app/server/lib/Comm";
 import { Deps as DiscourseConnectDeps } from "app/server/lib/DiscourseConnect";
 import { FlexServer } from "app/server/lib/FlexServer";
+import { invalidateAllReloadableSettings, invalidateReloadableSettings } from "app/server/lib/gristSettings";
 import { ClientJsonMemoryLimits, ITestingHooks } from "app/server/lib/ITestingHooks";
 import ITestingHooksTI from "app/server/lib/ITestingHooks-ti";
 import log from "app/server/lib/log";
@@ -16,6 +17,7 @@ import * as net from "net";
 
 import { Request } from "express";
 import { IMessage, Rpc } from "grain-rpc";
+import clone from "lodash/clone";
 import * as t from "ts-interface-checker";
 
 const tiCheckers = t.createCheckers(ITestingHooksTI, { UserProfile: t.name("object") });
@@ -62,6 +64,8 @@ export async function connectTestingHooks(socketPath: string): Promise<TestingHo
 }
 
 export class TestingHooks implements ITestingHooks {
+  private _oldEnv: NodeJS.ProcessEnv | null = null;
+
   constructor(
     private _port: number,
     private _comm: Comm,
@@ -273,5 +277,32 @@ export class TestingHooks implements ITestingHooks {
     } else {
       throw new Error(`Unrecognized errType ${errType}`);
     }
+  }
+
+  public async addEnv(env: NodeJS.ProcessEnv) {
+    // If `_oldEnv` is not set, this means that we are in the initial state with the env variables
+    // Let's snapshot the environment variables so we can later call `resetEnv`
+    if (!this._oldEnv) {
+      this._oldEnv = clone(process.env);
+    }
+
+    Object.assign(process.env, env);
+    const envKeys = Object.keys(env);
+    invalidateReloadableSettings(...envKeys);
+  }
+
+  public async resetEnv() {
+    if (this._oldEnv === null) {
+      return;
+    }
+
+    Object.assign(process.env, this._oldEnv);
+    for (const key of Object.keys(process.env)) {
+      if (this._oldEnv[key] === undefined) {
+        delete process.env[key];
+      }
+    }
+    this._oldEnv = null;
+    invalidateAllReloadableSettings();
   }
 }
