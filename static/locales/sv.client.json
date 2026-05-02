@@ -1983,7 +1983,8 @@
         "Restart the Grist server": "Starta om Gristservern",
         "The URL where users and integrations reach this Grist server": "Den URL där användare och integrationer når denna Gristserver",
         "What used to be called \"Grist Enterprise\" is now called \"Full Grist\".": "Det som tidigare hette \"Grist företagsversion\" heter nu \"Komplett Grist\".",
-        "Take Grist out of service for maintenance": "Ta Grist ur drift för underhåll"
+        "Take Grist out of service for maintenance": "Ta Grist ur drift för underhåll",
+        "Fallback authentication method": "Reservmetod för autentisering"
     },
     "Columns": {
         "Remove Column": "Ta bort kolumn"
