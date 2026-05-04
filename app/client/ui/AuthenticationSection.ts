@@ -12,6 +12,7 @@ import {
 } from "app/client/ui/AdminPanelCss";
 import { ChangeAdminModal } from "app/client/ui/ChangeAdminModal";
 import { GetGristComProviderInfoModal, getGristComProviderMeta } from "app/client/ui/GetGristComProvider";
+import { mockupState } from "app/client/ui/MockupState";
 import { quickSetupStepHeader } from "app/client/ui/QuickSetupStepHeader";
 import { cssCardSurface } from "app/client/ui/SettingsLayout";
 import { cssHeroCard } from "app/client/ui/SetupCard";
@@ -182,11 +183,18 @@ export class AuthenticationSection extends Disposable {
   private _makeLoginSystemId(): Observable<string | undefined> {
     const checks = new AdminChecks(this, this._installAPI);
     checks.fetchAvailableChecks().catch(reportError);
-    return checks.buildLoginProviderObs(this);
+    const realObs = checks.buildLoginProviderObs(this);
+    // MOCKUP: layer the mockup override on top of the real observable.
+    return Computed.create(this, (use) => {
+      const override = use(mockupState.loginSystemId);
+      return override !== null ? override : use(realObs);
+    });
   }
 
   private async _fetchProviders() {
-    const providers = await this._configAPI.getAuthProviders();
+    // MOCKUP: if the mockup panel has overridden providers, use those.
+    const override = mockupState.authProviders.get();
+    const providers = override ?? await this._configAPI.getAuthProviders();
     if (this.isDisposed()) {
       return;
     }

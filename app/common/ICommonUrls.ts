@@ -65,4 +65,6 @@ export interface ICommonUrls {
   signInWithGristRegister: string; // Registration for Sign in with getgrist.com.
   signInWithGristHelp: string; // Help for Sign in with getgrist.com.
   signInWithGristDocs: string; // Setup docs for Sign in with getgrist.com.
+  enterpriseKeyFaq: string; // FAQ about free activation keys.
+  githubBuildFromSource: string; // GitHub instructions for building from source with Full Grist.
 }

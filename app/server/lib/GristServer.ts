@@ -112,6 +112,7 @@ export interface GristServer extends StorageCoordinator {
   onUserChange(callback: (change: UserChange) => Promise<void>): void;
   onStreamingDestinationsChange(callback: (orgId?: number) => Promise<void>): void;
   setReady(value: boolean): void;
+  isInService(): boolean;
   getSigninUrl(req: express.Request, options: {
     signUp?: boolean;
     nextUrl?: URL;
@@ -228,6 +229,7 @@ export function createDummyGristServer(): GristServer {
     onStreamingDestinationsChange() { /* do nothing */ },
     hardDeleteDoc() { return Promise.resolve(); },
     setReady() { /* do nothing */ },
+    isInService() { return true; },
     getSigninUrl() { return Promise.resolve(""); },
     getUserIdMiddleware() { throw new Error("no user id middleware"); },
   };

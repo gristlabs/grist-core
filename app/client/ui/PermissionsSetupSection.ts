@@ -1,6 +1,7 @@
 import { makeT } from "app/client/lib/localization";
 import { getHomeUrl } from "app/client/models/homeUrl";
 import { cssWell, cssWellContent } from "app/client/ui/AdminPanelCss";
+import { mockupState } from "app/client/ui/MockupState";
 import {
   getEnvLockedVars,
   hasEnvLocked,
@@ -24,6 +25,13 @@ import { Disposable, dom, DomContents, makeTestId, Observable, styled } from "gr
 
 const t = makeT("PermissionsSetupSection");
 const testId = makeTestId("test-permissions-setup-");
+
+// MOCKUP: lets the mockup panel pretend GRIST_SINGLE_ORG is set/unset.
+function getEffectiveSingleOrg(): string | undefined {
+  const override = mockupState.singleOrg.get();
+  if (override !== null) { return override || undefined; }
+  return getGristConfig().singleOrg;
+}
 
 /**
  * Renders the "Apply & Restart" step of the setup wizard.
@@ -68,7 +76,7 @@ export class PermissionsSetupSection extends Disposable {
       this._model.applyPreset("recommended");
       // GRIST_SINGLE_ORG=docs makes the personal org the only org —
       // disabling personal sites would brick Grist.
-      if (getGristConfig().singleOrg === "docs") {
+      if (getEffectiveSingleOrg() === "docs") {
         this._model.toggles.personalSites.set(true);
       }
     } catch (e) {
@@ -219,13 +227,13 @@ in your server configuration and restart.",
         testId("env-warning"),
       ) : null,
 
-      getGristConfig().singleOrg ? cssWell(cssWell.cls("-warning"),
+      getEffectiveSingleOrg() ? cssWell(cssWell.cls("-warning"),
         cssWellContent(
           dom("p", t("You have GRIST_SINGLE_ORG={{value}} set. With this, users only see one \
 site — but personal sites and team creation still work behind the \
 scenes. Worth locking down unless you have a specific reason to keep them.",
-          { value: getGristConfig().singleOrg! })),
-          getGristConfig().singleOrg === "docs" ? dom("p",
+          { value: getEffectiveSingleOrg()! })),
+          getEffectiveSingleOrg() === "docs" ? dom("p",
             t("The personal org is the only org available — personal sites must \
 stay enabled or Grist will be non-functional."),
           ) : null,

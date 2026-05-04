@@ -62,6 +62,8 @@ export const ICommonUrls = t.iface([], {
   "signInWithGristRegister": "string",
   "signInWithGristHelp": "string",
   "signInWithGristDocs": "string",
+  "enterpriseKeyFaq": "string",
+  "githubBuildFromSource": "string",
 });
 
 const exportedTypeSuite: t.ITypeSuite = {

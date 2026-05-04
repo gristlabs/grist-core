@@ -1,9 +1,12 @@
+import { copyToClipboard } from "app/client/lib/clipboardUtils";
 import { makeT } from "app/client/lib/localization";
 import { getLoginUrl, getSignupUrl } from "app/client/lib/urlUtils";
 import { AppModel } from "app/client/models/AppModel";
 import { getMainOrgUrl, urlState } from "app/client/models/gristUrlState";
 import { AppHeader } from "app/client/ui/AppHeader";
+import { buildLanguageMenu } from "app/client/ui/LanguageMenu";
 import { leftPanelBasic } from "app/client/ui/LeftPanelCommon";
+import { buildMockupPanel, cssMockupButton, cssMockupRow, cssMockupSection } from "app/client/ui/MockupPanel";
 import { pagePanels } from "app/client/ui/PagePanels";
 import { createTopBarHome } from "app/client/ui/TopBar";
 import { bigBasicButtonLink, bigPrimaryButtonLink } from "app/client/ui2018/buttons";
@@ -12,7 +15,7 @@ import { cssLink } from "app/client/ui2018/links";
 import { commonUrls, getPageTitleSuffix } from "app/common/gristUrls";
 import { getGristConfig } from "app/common/urlUtils";
 
-import { dom, DomContents, DomElementArg, makeTestId, observable, styled } from "grainjs";
+import { dom, DomContents, DomElementArg, makeTestId, observable, Observable, styled } from "grainjs";
 
 const testId = makeTestId("test-");
 
@@ -38,7 +41,8 @@ export function createErrPage(appModel: AppModel) {
         errPage === "account-deleted" ? createAccountDeletedPage(appModel) :
           errPage === "signin-failed" ? createSigninFailedPage(appModel, errMessage) :
             errPage === "unsubscribed" ? createUnsubscribedPage(appModel, errMessage, errDetails) :
-              createOtherErrorPage(appModel, errMessage);
+              errPage === "boot-key-login" ? createBootKeyLoginPage(appModel) :
+                createOtherErrorPage(appModel, errMessage);
 }
 
 /**
@@ -264,6 +268,337 @@ export function createSigninFailedPage(appModel: AppModel, message?: string) {
     cssButtonWrap(bigBasicButtonLink(t("Contact support"), { href: commonUrls.contactSupport })),
   ]);
 }
+/**
+ * Boot-key login page — styled to match Grist's look and feel.
+ * Shown after Go Live when GRIST_ADMIN_EMAIL is set but no real auth is configured.
+ */
+export function createBootKeyLoginPage(appModel: AppModel) {
+  document.title = `Welcome to Grist${getPageTitleSuffix(getGristConfig())}`;
+
+  const { errDetails } = getGristConfig();
+  const next = errDetails?.next || "/";
+  const BOOT_KEY_ERRORS: Record<string, string> = {
+    "invalid-key": "Invalid boot key. Please try again.",
+  };
+  const serverError = BOOT_KEY_ERRORS[errDetails?.error || ""] || "";
+
+  const bootKeyValue = observable("");
+  const emailValue = observable("");
+  // "idle" → "checking" → "key-ok" → "signing-in"
+  const status = observable<"idle" | "checking" | "key-ok" | "signing-in" | "error">("idle");
+  const errorMsg = observable(serverError);
+  const keyConfirmed = observable(false);
+  const activeTab = observable<"find" | "own" | "skip">("find");
+
+  // If the user navigates back after submitting, the browser restores the
+  // page from bfcache with status still "signing-in". Reset it.
+  window.addEventListener("pageshow", () => {
+    if (status.get() === "signing-in") { status.set("key-ok"); }
+  });
+
+  // Step 1: validate boot key against the server, get admin email.
+  async function checkKey() {
+    if (!bootKeyValue.get().trim()) { return; }
+    status.set("checking");
+    errorMsg.set("");
+    try {
+      const resp = await fetch("/auth/boot-key/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bootKey: bootKeyValue.get().trim() }),
+      });
+      const body = await resp.json();
+      if (!body.valid) {
+        errorMsg.set("Invalid boot key. Please try again.");
+        status.set("error");
+        return;
+      }
+      keyConfirmed.set(true);
+      if (body.email) {
+        emailValue.set(body.email);
+      }
+      status.set("key-ok");
+    } catch (e) {
+      errorMsg.set((e as Error).message);
+      status.set("error");
+    }
+  }
+
+  // Step 2: submit boot key + email to complete login.
+  function submitLogin() {
+    if (!bootKeyValue.get().trim() || !emailValue.get().trim()) { return; }
+    status.set("signing-in");
+    errorMsg.set("");
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = "/auth/boot-key";
+    form.style.display = "none";
+    const addField = (name: string, value: string) => {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = name;
+      input.value = value;
+      form.appendChild(input);
+    };
+    addField("next", next);
+    addField("bootKey", bootKeyValue.get().trim());
+    addField("email", emailValue.get().trim());
+    document.body.appendChild(form);
+    form.submit();
+  }
+
+  function buildTab(id: "find" | "own" | "skip", label: string) {
+    return cssBootTab(
+      label,
+      dom.cls("active", use => use(activeTab) === id),
+      dom.on("click", () => activeTab.set(id)),
+      testId(`boot-key-tab-${id}`),
+    );
+  }
+
+  function buildFindPanel() {
+    return cssBootTabContent(
+      cssBootFindGuidance(
+        cssBootFindText(
+          "Look for this banner near the top of Grist's startup output\u2009—\u2009" +
+          "check your terminal, container logs, or hosting panel:",
+        ),
+        dom("pre", cssBootBannerPre.cls(""),
+          "┌──────────────────────────────────────────┐\n" +
+          "│                                          │\n" +
+          "│   BOOT KEY: •••••••••••••••••••••        │\n" +
+          "│                                          │\n" +
+          "└──────────────────────────────────────────┘",
+        ),
+      ),
+      cssBootFieldGroup(
+        cssBootKeyInput(
+          dom.prop("value", bootKeyValue),
+          dom.on("input", (_e: Event, elem: HTMLInputElement) => bootKeyValue.set(elem.value)),
+          dom.prop("disabled", keyConfirmed),
+          { placeholder: "Paste boot key here", autofocus: true },
+          dom.on("keydown", (ev: KeyboardEvent) => {
+            if (ev.key === "Enter" && !keyConfirmed.get()) { void checkKey(); }
+          }),
+          testId("boot-key-login-input"),
+        ),
+        dom.maybe(keyConfirmed, () =>
+          cssBootFieldCaption(
+            { style: "color: #1e7e34;" },
+            "\u2713 Boot key verified",
+          ),
+        ),
+        dom.maybe(use => !use(keyConfirmed), () =>
+          cssBootFieldCaption(
+            "Can't find your boot key? You can ",
+            cssBootTabLink(
+              "set your own",
+              dom.on("click", () => activeTab.set("own")),
+            ),
+            " or ",
+            cssBootTabLink(
+              "turn off this check",
+              dom.on("click", () => activeTab.set("skip")),
+            ),
+            ".",
+          ),
+        ),
+      ),
+    );
+  }
+
+  function buildOwnPanel() {
+    const exampleKey = _longCodeForExample();
+    const copied = Observable.create(null, false);
+    return cssBootTabContent(
+      dom.autoDispose(copied),
+      cssBootPanelText(
+        "If you cannot access server logs or cannot find your boot key, " +
+        "you can set it yourself.",
+        dom("br"),
+        dom("br"),
+        "Add the environment variable ",
+        dom("code", cssBootCode.cls(""), "GRIST_BOOT_KEY"),
+        " with a secret value to your Grist configuration, " +
+        "then restart Grist. Here's a random key you can use:",
+      ),
+      cssBootKeyBox(
+        cssBootKeyValue(exampleKey),
+        cssBootKeyCopyButton(
+          dom.domComputed(copied, c => c ? "Copied!" : "Copy"),
+          dom.on("click", async () => {
+            await copyToClipboard(exampleKey);
+            copied.set(true);
+            setTimeout(() => { if (!copied.isDisposed()) { copied.set(false); } }, 2000);
+          }),
+        ),
+      ),
+      cssBootPanelCaption(
+        "For Docker, add ",
+        dom("code", cssBootCode.cls(""),
+          `-e GRIST_BOOT_KEY=${exampleKey}`,
+        ),
+        " to your run command. For other setups, " +
+        "set it in your environment or configuration file.",
+      ),
+      cssBootRestartNote(
+        cssBootRestartIcon("\u21bb"),
+        "After restarting, return to this page and enter your chosen key.",
+      ),
+    );
+  }
+
+  function buildSkipPanel() {
+    return cssBootTabContent(
+      cssBootPanelText(
+        "Set ",
+        dom("code", cssBootCode.cls(""), "GRIST_IN_SERVICE=true"),
+        " in your Grist configuration, then restart. " +
+        "Grist will start without requiring a boot key.",
+      ),
+      cssBootPanelCaption(
+        "For Docker, add ",
+        dom("code", cssBootCode.cls(""), "-e GRIST_IN_SERVICE=true"),
+        " to your run command. For other setups, " +
+        "set it in your environment or configuration file.",
+      ),
+      cssBootWarningBox(
+        cssBootWarningTitle("Why does this check exist?"),
+        cssBootWarningBody(
+          "The boot key proves you have access to the server " +
+          "running Grist\u2009—\u2009it keeps out anyone who can reach this page " +
+          "but isn't the administrator. ",
+          "Skipping it is fine on a private, trusted network where only " +
+          "authorized people can connect.",
+        ),
+      ),
+      cssBootRestartNote(
+        cssBootRestartIcon("\u21bb"),
+        "After restarting, Grist will be available without this sign-in step.",
+      ),
+    );
+  }
+
+  return pagePanels({
+    headerMain: cssSetupHeaderMain(buildLanguageMenu(appModel)),
+    contentMain: cssBootLoginPage(
+      cssBootLoginGlow(),
+      cssBootLoginCenter(
+        // Staggered entrance: logo → heading → card
+        cssBigIcon({ style: "animation: bootFadeUp 0.5s ease both;" }),
+        cssBootLoginHeading(
+          "Welcome to Grist",
+          { style: "animation: bootFadeUp 0.5s ease 0.08s both;" },
+        ),
+        cssBootLoginSubheading(
+          "Verify that you have access to this server to continue.",
+          { style: "animation: bootFadeUp 0.5s ease 0.14s both;" },
+        ),
+        cssBootLoginCard(
+          { style: "animation: bootFadeUp 0.5s ease 0.22s both;" },
+
+          // Tab bar
+          cssBootTabBar(
+            buildTab("find", "Enter boot key"),
+            buildTab("own", "Set your boot key"),
+            buildTab("skip", "Turn off this check"),
+          ),
+
+          // Tab content (reactive)
+          dom.domComputed(activeTab, (tab) => {
+            if (tab === "find") { return buildFindPanel(); }
+            if (tab === "own") { return buildOwnPanel(); }
+            return buildSkipPanel();
+          }),
+
+          // Error, email field, and submit button — padded to match tab content.
+          cssBootCardSection(
+            dom.maybe(errorMsg, err =>
+              cssSetupError(err, testId("boot-key-login-error")),
+            ),
+
+            // Email field — revealed after boot key is verified (only on "find" tab).
+            dom.maybe(use => use(keyConfirmed) && use(activeTab) === "find", () =>
+              cssBootFieldGroup(
+                cssBootLoginLabel("Administrator email"),
+                cssBootEmailInput(
+                  dom.prop("value", emailValue),
+                  dom.on("input", (_e: Event, elem: HTMLInputElement) => emailValue.set(elem.value)),
+                  { placeholder: "you@example.com", type: "email", autofocus: true },
+                  dom.on("keydown", (ev: KeyboardEvent) => {
+                    if (ev.key === "Enter") { submitLogin(); }
+                  }),
+                  testId("boot-key-login-email"),
+                ),
+                cssBootFieldCaption(
+                  dom.domComputed(emailValue, val =>
+                    val ? "Confirm or change the administrator email address." :
+                      "This will be your admin account for managing Grist.",
+                  ),
+                ),
+              ),
+            ),
+
+            // Submit button — only on "find" tab.
+            dom.maybe(use => use(activeTab) === "find", () =>
+              dom.domComputed(keyConfirmed, (confirmed) => {
+                if (!confirmed) {
+                  return cssBootSubmitButton(
+                    dom.domComputed(status, s =>
+                      s === "checking" ? "Checking\u2026" : "Check key"),
+                    dom.prop("disabled", use =>
+                      !use(bootKeyValue).trim() || use(status) === "checking"),
+                    dom.on("click", () => void checkKey()),
+                    testId("boot-key-login-submit"),
+                  );
+                }
+                return cssBootSubmitButton(
+                  dom.domComputed(status, s =>
+                    s === "signing-in" ? "Signing in\u2026" : "Continue"),
+                  dom.prop("disabled", use =>
+                    !use(emailValue).trim() || use(status) === "signing-in"),
+                  dom.on("click", () => submitLogin()),
+                  testId("boot-key-login-submit"),
+                );
+              }),
+            ),
+          ),
+        ),
+      ),
+
+      // MOCKUP ONLY — auto-fill the boot key for reviewers.
+      buildMockupPanel("Mockup controls",
+        cssMockupSection("Boot key login"),
+        cssMockupRow(
+          cssMockupButton("Fill in boot key", dom.on("click", async () => {
+            try {
+              const resp = await fetch("/api/setup/mockup-boot-key-login");
+              const body = await resp.json();
+              if (body.bootKey) {
+                bootKeyValue.set(body.bootKey);
+                activeTab.set("find");
+              }
+            } catch (e) {
+              errorMsg.set((e as Error).message);
+            }
+          })),
+        ),
+        cssMockupRow(
+          cssMockupButton("Reset admin email", dom.on("click", async () => {
+            try {
+              await fetch("/api/setup/mockup-reset-admin-email", { method: "POST" });
+              window.location.reload();
+            } catch (e) {
+              errorMsg.set((e as Error).message);
+            }
+          })),
+        ),
+      ),
+
+      testId("boot-key-login-content"),
+    ),
+  });
+}
 
 /**
  * Creates a generic error page with the given message.
@@ -278,6 +613,20 @@ export function createOtherErrorPage(appModel: AppModel, message?: string) {
       urlState().setLinkUrl({}))),
     cssButtonWrap(bigBasicButtonLink(t("Contact support"), { href: commonUrls.contactSupport })),
   ]);
+}
+
+/**
+ * Make a long code to use as an example boot key, so that if people copy
+ * and paste it lazily, they end up decently secure.
+ */
+function _longCodeForExample() {
+  // Crypto in insecure contexts doesn't have randomUUID
+  if (window.isSecureContext) {
+    return "example-a" + window.crypto.randomUUID();
+  }
+  return "example-b" + "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx".replace(/x/g, () => {
+    return Math.floor(Math.random() * 16).toString(16);
+  });
 }
 
 function addPeriod(msg: string): string {
@@ -347,4 +696,401 @@ const cssButtonWrap = styled("div", `
 
 const cssContactSupportDiv = styled("div", `
   margin-top: 24px;
+`);
+
+const cssSetupHeaderMain = styled("div", `
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+`);
+
+// -- Boot login page: full-page layout with atmospheric background ----------
+
+const cssBootLoginPage = styled("div", `
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  position: relative;
+  background: ${theme.mainPanelBg};
+
+  @keyframes bootFadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+`);
+
+// Subtle radial glow behind the card — gives depth without being flashy.
+const cssBootLoginGlow = styled("div", `
+  position: absolute;
+  top: 12%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 700px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    ${theme.controlPrimaryBg}0d 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+`);
+
+const cssBootLoginCenter = styled("div", `
+  position: relative;
+  text-align: center;
+  padding: 56px 24px 64px;
+  max-width: 580px;
+  margin: 0 auto;
+`);
+
+const cssBootLoginHeading = styled("div", `
+  font-weight: 700;
+  font-size: 28px;
+  letter-spacing: -0.5px;
+  color: ${theme.text};
+  margin-top: 16px;
+  margin-bottom: 6px;
+`);
+
+const cssBootLoginSubheading = styled("div", `
+  font-size: 15px;
+  color: ${theme.lightText};
+  margin-bottom: 28px;
+  line-height: 1.5;
+`);
+
+const cssBootLoginCard = styled("div", `
+  text-align: left;
+  margin: 0 auto;
+  padding: 0;
+  border: 1px solid ${theme.pagePanelsBorder};
+  border-radius: 12px;
+  background: ${theme.mainPanelBg};
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.04),
+    0 8px 24px rgba(0, 0, 0, 0.06);
+`);
+
+// -- Segmented control --------------------------------------------------------
+
+const cssBootTabBar = styled("div", `
+  display: flex;
+  margin: 24px 28px 0;
+  padding: 3px;
+  border-radius: 10px;
+  background: ${theme.inputBorder};
+  gap: 3px;
+`);
+
+const cssBootTab = styled("div", `
+  flex: 1;
+  text-align: center;
+  padding: 8px 6px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: ${theme.lightText};
+  cursor: pointer;
+  border-radius: 7px;
+  transition: color 0.2s, background 0.2s, box-shadow 0.2s;
+  user-select: none;
+
+  &:hover:not(.active) {
+    color: ${theme.text};
+  }
+
+  &.active {
+    color: ${theme.text};
+    font-weight: 600;
+    background: ${theme.mainPanelBg};
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.1);
+  }
+`);
+
+// -- Tab content area ---------------------------------------------------------
+
+const cssBootTabContent = styled("div", `
+  padding: 24px 28px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`);
+
+const cssBootCardSection = styled("div", `
+  padding: 0 28px 28px;
+`);
+
+const cssBootTabLink = styled("span", `
+  color: ${theme.controlPrimaryBg};
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+  &:hover {
+    color: ${theme.controlPrimaryHoverBg};
+    text-decoration-style: solid;
+  }
+`);
+
+// -- Find-in-logs guidance ----------------------------------------------------
+
+const cssBootFindGuidance = styled("div", `
+  & > pre {
+    display: block;
+    width: fit-content;
+    margin: 10px auto 0;
+  }
+`);
+
+const cssBootFindText = styled("div", `
+  font-size: 13px;
+  line-height: 1.5;
+  color: ${theme.lightText};
+  margin-bottom: 10px;
+`);
+
+// -- Plain text for tab panels (no card wrapper) -----------------------------
+
+const cssBootPanelText = styled("div", `
+  font-size: 14px;
+  line-height: 1.6;
+  color: ${theme.text};
+`);
+
+const cssBootPanelCaption = styled("div", `
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: ${theme.lightText};
+  margin-top: -8px;
+`);
+
+// -- Warning box (used in the "skip" tab) ------------------------------------
+
+const cssBootWarningBox = styled("div", `
+  border-radius: 8px;
+  background: #fef7e0;
+  border: 1px solid #f5e6b8;
+  padding: 14px 16px;
+`);
+
+const cssBootWarningTitle = styled("div", `
+  font-weight: 600;
+  font-size: 12.5px;
+  color: #92400e;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+`);
+
+const cssBootWarningBody = styled("div", `
+  font-size: 13px;
+  line-height: 1.6;
+  color: #78350f;
+`);
+
+// -- Restart note (tabs 2 & 3) -----------------------------------------------
+
+const cssBootKeyBox = styled("div", `
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid ${theme.inputBorder};
+  border-radius: 8px;
+  background: ${theme.inputBg};
+`);
+
+const cssBootKeyValue = styled("div", `
+  flex: 1;
+  font-family: "SFMono-Regular", "Consolas", "Liberation Mono", "Menlo", monospace;
+  font-size: 12px;
+  line-height: 1.4;
+  word-break: break-all;
+  user-select: all;
+  color: ${theme.text};
+`);
+
+const cssBootKeyCopyButton = styled("button", `
+  padding: 4px 12px;
+  border: 1px solid ${theme.inputBorder};
+  border-radius: 4px;
+  background: ${theme.mainPanelBg};
+  color: ${theme.controlFg};
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  &:hover {
+    background: ${theme.hover};
+  }
+`);
+
+const cssBootRestartNote = styled("div", `
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 13px;
+  color: ${theme.text};
+  line-height: 1.5;
+  padding: 16px 18px;
+  border-radius: 10px;
+  background: linear-gradient(
+    135deg,
+    ${theme.controlPrimaryBg}0a 0%,
+    ${theme.controlPrimaryBg}06 100%
+  );
+  border: 1px solid ${theme.controlPrimaryBg}1a;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 100%;
+    background: linear-gradient(
+      180deg,
+      ${theme.controlPrimaryBg}66 0%,
+      ${theme.controlPrimaryBg}22 100%
+    );
+    border-radius: 3px 0 0 3px;
+  }
+`);
+
+const cssBootRestartIcon = styled("span", `
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: ${theme.controlPrimaryBg}14;
+  font-size: 18px;
+  color: ${theme.controlPrimaryBg};
+  flex-shrink: 0;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  .${cssBootRestartNote.className}:hover & {
+    transform: rotate(180deg);
+  }
+`);
+
+// -- Shared form elements (used in "find" tab) --------------------------------
+
+const cssBootLoginLabel = styled("label", `
+  display: block;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: ${theme.lightText};
+  margin-bottom: 6px;
+`);
+
+const cssBootFieldGroup = styled("div", `
+`);
+
+const cssBootFieldCaption = styled("div", `
+  font-size: 12.5px;
+  color: ${theme.lightText};
+  line-height: 1.5;
+  margin-bottom: 4px;
+`);
+
+const cssBootBannerPre = styled("pre", `
+  font-family: "SFMono-Regular", "Consolas", "Liberation Mono", "Menlo", monospace;
+  font-size: 10.5px;
+  line-height: 1.4;
+  color: ${theme.text};
+  background: ${theme.pagePanelsBorder}33;
+  border-radius: 4px;
+  padding: 8px 10px;
+  margin: 0;
+  overflow-x: auto;
+  white-space: pre;
+`);
+
+const cssBootCode = styled("code", `
+  background: ${theme.pagePanelsBorder};
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 12px;
+`);
+
+const cssBootKeyInput = styled("input", `
+  width: 100%;
+  font-size: 16px;
+  padding: 14px 16px;
+  border: 1.5px solid ${theme.inputBorder};
+  border-radius: 8px;
+  background: ${theme.inputBg};
+  color: ${theme.inputFg};
+  outline: none;
+  font-family: "SFMono-Regular", "Consolas", "Liberation Mono", "Menlo", monospace;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+  box-shadow: 0 0 0 3px ${theme.controlPrimaryBg}0d;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  &:focus {
+    border-color: ${theme.controlPrimaryBg};
+    box-shadow: 0 0 0 3px ${theme.controlPrimaryBg}22;
+  }
+  &::placeholder {
+    font-family: inherit;
+    letter-spacing: normal;
+    color: ${theme.inputPlaceholderFg};
+  }
+`);
+
+const cssBootEmailInput = styled("input", `
+  width: 100%;
+  font-size: 15px;
+  padding: 10px 14px;
+  border: 1px solid ${theme.inputBorder};
+  border-radius: 8px;
+  background: ${theme.inputBg};
+  color: ${theme.inputFg};
+  outline: none;
+  margin-bottom: 8px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  &:focus {
+    border-color: ${theme.controlPrimaryBg};
+    box-shadow: 0 0 0 3px ${theme.controlPrimaryBg}22;
+  }
+`);
+
+const cssBootSubmitButton = styled("button", `
+  width: 100%;
+  font-size: 15px;
+  padding: 12px 24px;
+  margin-top: 12px;
+  border: none;
+  border-radius: 8px;
+  background: ${theme.controlPrimaryBg};
+  color: ${theme.controlPrimaryFg};
+  cursor: pointer;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  transition: background-color 0.15s, transform 0.1s;
+  &:hover:not(:disabled) {
+    background: ${theme.controlPrimaryHoverBg};
+  }
+  &:active:not(:disabled) {
+    transform: scale(0.99);
+  }
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+`);
+
+const cssSetupError = styled("div", `
+  font-size: ${vars.mediumFontSize};
+  color: ${theme.errorText};
+  margin-bottom: 8px;
 `);

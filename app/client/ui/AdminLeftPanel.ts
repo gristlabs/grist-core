@@ -81,8 +81,7 @@ export function buildAdminLeftPanel(
       css.cssTools.cls("-collapsed", use => !use(panelOpen)),
       css.cssSectionHeader(css.cssSectionHeaderText(pageNames.settings)),
       buildPageEntry("admin", "Home"),
-      // TODO: Uncomment when setup page is ready.
-      // buildPageEntry("setup", "Settings"),
+      buildPageEntry("setup", "Settings"),
       restartBanner ? dom.maybe(restartBanner.isVisible, () =>
         cssApplyChangesEntry(
           css.cssPageButton(
