@@ -97,7 +97,10 @@
         "Basic info": "Basic info",
         "Developer": "Developer",
         "Home": "Home",
-        "Profile": "Profile"
+        "Profile": "Profile",
+        "Enterprise": "Enterprise",
+        "OAuth apps": "OAuth apps",
+        "OAuth apps let you connect external integrations to this Grist server with more security and convenience than when using API keys.\n\nOAuth apps are available with the [full version of Grist]({{fullGrist}}).": "OAuth apps let you connect external integrations to this Grist server with more security and convenience than when using API keys.\n\nOAuth apps are available with the [full version of Grist]({{fullGrist}})."
     },
     "AccountWidget": {
         "Access Details": "Access Details",
@@ -2345,7 +2348,9 @@
         "You are about to enable this experimental feature: {{experiment}}": "You are about to enable this experimental feature: {{experiment}}",
         "{{experiment}} disabled.": "{{experiment}} disabled.",
         "{{experiment}} enabled.": "{{experiment}} enabled.",
-        "Notifications": "Notifications"
+        "Notifications": "Notifications",
+        "OAuth apps": "OAuth apps",
+        "Simulate deployment as core": "Simulate deployment as core"
     },
     "NewRecordButton": {
         "New card": "New card",
@@ -3050,7 +3055,8 @@
     "AccountLeftPanel": {
         "Account settings": "Account settings",
         "Developer": "Developer",
-        "Profile": "Profile"
+        "Profile": "Profile",
+        "Authorized apps": "Authorized apps"
     },
     "SettingsLayout": {
         "Authentication": "Authentication",
