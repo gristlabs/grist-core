@@ -1960,7 +1960,9 @@
         "The URL where users and integrations reach this Grist server": "The URL where users and integrations reach this Grist server",
         "What used to be called \"Grist Enterprise\" is now called \"Full Grist\".": "What used to be called \"Grist Enterprise\" is now called \"Full Grist\".",
         "moved to Edition": "moved to Edition",
-        "Installation": "Installation"
+        "Installation": "Installation",
+        "Default permissions": "Default permissions",
+        "Who can create sites, log in, and use the playground": "Who can create sites, log in, and use the playground"
     },
     "Columns": {
         "Remove Column": "Remove Column"
@@ -2962,7 +2964,9 @@
         "Visitors who aren't signed in can create and edit documents in a temporary playground. Turn off to require sign-in before creating any documents.": "Visitors who aren't signed in can create and edit documents in a temporary playground. Turn off to require sign-in before creating any documents.",
         "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.": "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.",
         "You have GRIST_SINGLE_ORG={{value}} set. With this, users only see one site — but personal sites and team creation still work behind the scenes. Worth locking down unless you have a specific reason to keep them.": "You have GRIST_SINGLE_ORG={{value}} set. With this, users only see one site — but personal sites and team creation still work behind the scenes. Worth locking down unless you have a specific reason to keep them.",
-        "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users."
+        "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.",
+        "Custom": "Custom",
+        "loading…": "loading…"
     },
     "SandboxSection": {
         "Active": "Active",
@@ -3074,5 +3078,18 @@
         "If you are the server operator, you can sign in using the boot key from your server logs.": "If you are the server operator, you can sign in using the boot key from your server logs.",
         "Sign in with boot key": "Sign in with boot key",
         "You do not have access to the administrator panel.\nPlease log in as an administrator.": "You do not have access to the administrator panel.\nPlease log in as an administrator."
+    },
+    "PermissionsToggleModel": {
+        "Allow anonymous access": "Allow anonymous access",
+        "Allow anonymous playground": "Allow anonymous playground",
+        "Allow anyone to create team sites": "Allow anyone to create team sites",
+        "Allow personal sites": "Allow personal sites",
+        "Any logged-in user can create new team sites. Turn off to restrict team creation to admins only.": "Any logged-in user can create new team sites. Turn off to restrict team creation to admins only.",
+        "Permissions": "Permissions",
+        "Users can create their own personal sites with documents. Turn off to restrict all documents to team sites managed by admins.": "Users can create their own personal sites with documents. Turn off to restrict all documents to team sites managed by admins.",
+        "Visitors who aren't signed in can create and edit documents in a temporary playground. Turn off to require sign-in before creating any documents.": "Visitors who aren't signed in can create and edit documents in a temporary playground. Turn off to require sign-in before creating any documents.",
+        "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.": "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.",
+        "off": "off",
+        "on": "on"
     }
 }
