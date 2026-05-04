@@ -106,6 +106,12 @@ describe("AttachedCustomWidget", function() {
     assert.exists(widgetMapping, "Widget mapping is expected to be present");
   });
 
+  it("should be loading the server widget, not a bundled version", async () => {
+    const src = await driver.findWait("iframe.custom_view", 1000).getAttribute("src");
+    const srcUrl = new URL(src);
+    assert.equal(srcUrl.origin, widgetServerUrl);
+  });
+
   it("should display the content of the widget", async () => {
     await gu.getSection("TABLE1 Calendar").click();
     try {
