@@ -49,6 +49,15 @@ async function activateServer(home: FlexServer, docManager: DocManager) {
   serverUrl = home.getOwnUrl();
 }
 
+/**
+ * Count the number of sessions in the session store (whenever we use SQLite or Redis).
+ */
+function countSessions(flexServer: FlexServer = server): Promise<number> {
+  const store = flexServer["_sessionStore"];
+  return store.lengthAsync();
+}
+
+const anon = configForUser("Anonymous");
 const chimpy = configForUser("Chimpy");
 const charon = configForUser("Charon");
 
@@ -149,6 +158,26 @@ describe("Authorizer", function() {
   it("viewer cannot access document from wrong org", async function() {
     const resp = await axios.get(`${serverUrl}/o/nasa/doc/sampledocid_6`, chimpy);
     assert.equal(resp.status, 404);
+  });
+
+  it("does not generate sessions when using an API key to avoid polluting " +
+    "the store session needlessly", async function() {
+    const nbSessionsBefore = await countSessions();
+    const resp = await axios.get(`${serverUrl}/api/orgs`, chimpy);
+    const nbSessionsAfter = await countSessions();
+    assert.equal(resp.status, 200);
+    assert.equal(nbSessionsAfter, nbSessionsBefore, "No new session should have been created during the API call");
+  });
+
+  // This checks we create an altSessionID for Anonymous users. Useful in particular to give them
+  // rights through Access Rules.
+  it("does generate a session when calling the API as anonymous", async function() {
+    const nbSessionsBefore = await countSessions(server);
+    const resp = await axios.get(`${serverUrl}/api/orgs`, anon);
+
+    const nbSessionsAfter = await countSessions(server);
+    assert.equal(resp.status, 200);
+    assert.equal(nbSessionsAfter, nbSessionsBefore + 1, "A new session should have been created during the API call");
   });
 
   it("websocket allows openDoc for viewer", async function() {

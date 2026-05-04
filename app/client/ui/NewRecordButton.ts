@@ -1,10 +1,12 @@
 import BaseView from "app/client/components/BaseView";
+import DetailView from "app/client/components/DetailView";
+import GridView from "app/client/components/GridView";
 import { makeT } from "app/client/lib/localization";
 import { primaryButton } from "app/client/ui2018/buttons";
 import { testId, zIndexes } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 
-import { dom, styled } from "grainjs";
+import { dom, DomArg, styled } from "grainjs";
 
 const t = makeT("NewRecordButton");
 
@@ -18,7 +20,10 @@ const translationStrings = {
  *
  * It only renders when the experiment is enabled and the view has focus.
  */
-export function maybeShowNewRecordExperiment(view: BaseView) {
+export function maybeShowNewRecordExperiment(view: BaseView): DomArg {
+  if (!(view instanceof GridView || view instanceof DetailView)) {
+    return undefined;
+  }
   const experimentIsEnabled = view.gristDoc.appModel.experiments?.isEnabled("newRecordButton");
   return dom.maybe(
     use => (experimentIsEnabled && use(view.viewSection.hasFocus) && use(view.enableAddRow)),
@@ -57,4 +62,10 @@ const cssNewRecordButton = styled(primaryButton, `
   display: flex;
   align-items: center;
   gap: 6px;
+
+  @media print {
+    & {
+      display: none;
+    }
+  }
 `);

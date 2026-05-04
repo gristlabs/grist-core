@@ -93,7 +93,11 @@
         "Theme": "Itxura",
         "Language": "Hizkuntza",
         "Two-factor authentication": "Bi faktoreren autentifikazioa",
-        "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "Bi faktoreren autentifikazioa segurtasun-geruza gehigarri bat da zure Grist kontuarentzat. Zure kontura sar daitekeen pertsona bakarra zarela ziurtatzeko diseinatuta dago, nahiz eta norbaitek zure pasahitza ezagutu."
+        "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "Bi faktoreren autentifikazioa segurtasun-geruza gehigarri bat da zure Grist kontuarentzat. Zure kontura sar daitekeen pertsona bakarra zarela ziurtatzeko diseinatuta dago, nahiz eta norbaitek zure pasahitza ezagutu.",
+        "Basic info": "Oinarrizko informazioa",
+        "Developer": "Garatzailea",
+        "Home": "Hasiera",
+        "Profile": "Profila"
     },
     "AccountWidget": {
         "Accounts": "Kontuak",
@@ -113,7 +117,8 @@
         "Billing account": "Fakturazio-kontua",
         "Toggle Mobile Mode": "Sakelako modua bai/ez",
         "Upgrade Plan": "Kontratatu plan garestiagoa",
-        "Site settings": "Gunearen ezarpenak"
+        "Site settings": "Gunearen ezarpenak",
+        "Account settings": "Kontuaren ezarpenak"
     },
     "ViewAsDropdown": {
         "View as": "Ikusi honela",
@@ -1897,7 +1902,20 @@
         "Fallback authentication method": "Bigarren aukerako autentifikazio-metodoa",
         "Backups": "Babeskopiak",
         "Storage": "Biltegiratzea",
-        "Back up documents externally": "Gorde dokumentuen babeskopia zerbitzaritik kanpo"
+        "Back up documents externally": "Gorde dokumentuen babeskopia zerbitzaritik kanpo",
+        "Apply changes (manual restart required)": "Aplikatu aldaketak (eskuz berrabiarazi behar da)",
+        "Changes have been saved. Restart Grist to apply them.": "Aldaketak gorde dira. Berrabiarazi Grist aldaketak aplikatzeko.",
+        "Edition": "Edizioa",
+        "Its controls have moved to {{editionLink}} above.": "Kontrolak {{editionLink}}-era mugitu dira.",
+        "Restart the Grist server": "Berrabiarazi Grist zerbitzaria",
+        "Saving...": "Gordetzen…",
+        "Server": "Zerbitzaria",
+        "Server → Edition": "Zerbitzaria → Edizioa",
+        "What used to be called \"Grist Enterprise\" is now called \"Full Grist\".": "\"Grist Enterprise\" izena zuena orain \"Full Grist\" deitzen da.",
+        "moved to Edition": "Edizioa atalera mugitu da",
+        "Installation": "Instalazioa",
+        "Base URL": "Zerbitzariaren URLa",
+        "The URL where users and integrations reach this Grist server": "Erabiltzaileek eta integrazioek Grist zerbitzaria atzitu dezaketen helbidea"
     },
     "Columns": {
         "Remove Column": "Kendu zutabea"
@@ -2071,7 +2089,9 @@
         "Your subscription expired on {{date}}.": "Zure harpidetza {{date}}(e)an iraungi zen.",
         "Your instance will be in **read-only** mode in **{{days}}** day(s).": "Zure instantzia **bakarrik irakurketa** moduan egongo da **{{days}}** egun barru.",
         "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.": "Probaldia **{{expireAt}}**(e)an iraungi da. Grist Enterprise erabiltzen jarraitzeko,\n[kontratatu Grist Enterprise]({{signupLink}}) eta itsatsi aktibazio-gakoa.",
-        "Installation seats": "Instalazio-idazpenak"
+        "Installation seats": "Instalazio-idazpenak",
+        "Enable Full Grist": "Gaitu Full Grist",
+        "You are currently trialing Full Grist.": "Full Grist probatzen ari zara unean."
     },
     "ViewLayout": {
         "Delete data and this widget.": "Ezabatu datuak eta widgeta.",
@@ -2285,7 +2305,8 @@
         "Docs": "Dokumentuak",
         "Workspaces": "Lan-areak",
         "Enterprise": "Enpresa",
-        "Quick setup": "Konfigurazio bizkorra"
+        "Quick setup": "Konfigurazio bizkorra",
+        "Apply changes": "Aplikatu aldaketak"
     },
     "apiconsole": {
         "Delete": "Ezabatu",
@@ -2507,7 +2528,27 @@
             }
         },
         "If Grist is accessible on your network, or is available to multiple people, configure one of the authentication methods below and remove your boot key from Security Settings → Boot key.": "Grist zure sarean eskuragai badago, edo jende gehiagorentzat eskuragarri badago, konfiguratu honako autentifikazio-metodoren bat, eta kendu abio-gakoa Segurtasun ezarpenak → Abio-gakoa atalean.",
-        "No authentication: using boot key as fallback method": "Ez dago autentifikaziorik: abio-gakoa erabiltzen ari da bigarren aukera gisa"
+        "No authentication: using boot key as fallback method": "Ez dago autentifikaziorik: abio-gakoa erabiltzen ari da bigarren aukera gisa",
+        "Are you sure you want to deactivate **{{name}}**?": "Ziur **{{name}}** desaktibatu nahi duzula?",
+        "Authentication has been configured and will become active when Grist is restarted.": "Autentifikazioa ezarri da eta Grist berrabiaraztean egongo da erabilgarri.",
+        "Authentication is misconfigured or unreachable. Users may not be able to sign in.": "Autentifikazioa ez da zuzen konfiguratu edo ezin da atzitu. Litekeena da erabiltzaileek ezin saioa hastea.",
+        "Available methods": "Erabilgarri dauden moduak",
+        "Change installation admin": "Aldatu instalazioko administratzailea",
+        "Deactivate": "Desaktibatu",
+        "Deactivate authentication?": "Autentifikazioa desaktibatu?",
+        "For enterprise identity providers (Okta, OneLogin, etc.).": "Enpresetako identitate-hornitzaileentzko (Okta, OneLogin, etab.).",
+        "For reverse proxy setups (Traefik, Authelia, etc.).": "Alderantzizko proxy konfigurazioetarako (Traefik, Authelia, etab.).",
+        "I understand this server has no authentication": "Ulertzen dut zerbitzari honek ez duela autentifikaziorik",
+        "Installation admin: ": "Instalazioko administratzailea: ",
+        "No authentication": "Autentifikaziorik ez",
+        "No authentication: using boot key": "Autentifikaziorik ez: abio-gakoa erabiltzen",
+        "Not recommended": "Ez da gomendatzen",
+        "Other authentication methods": "Beste autentifikazio-moduak",
+        "Reconfigure": "Birkonfiguratu",
+        "The change will take effect after you restart Grist.": "Aldaketa Grist berrabiarazi ondoren egongo da indarrean.",
+        "This login mechanism is deprecated.": "Saioa hasteko modu hau erabiltzeari utzi zaio.",
+        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect]({{url}}).": "**Grist Connect** konfiguratzeko, jarraitu [Grist Connect-entzako laguntza-artikuluko argibideak]({{url}}).",
+        "Your configuration will be preserved. You can reactivate it later without reconfiguring.": "Konfigurazioa gordeko da. Aurrerago aktibatu dezakezu berriro hasieratik konfiguratu gabe."
     },
     "commandList": {
         "Copy anchor link": "Kopiatu esteka",
@@ -2712,7 +2753,9 @@
         "Configure Sign in with getgrist.com": "Konfiguratu Hasi saioa getgrist.com-ekin",
         "Home URL is not set; cannot configure Sign in with getgrist.com": "Ez da zerbitzariko URLa zehaztu; ezin da Hasi saioa getgrist.com-ekin konfiguratu",
         "Learn more about Sign in with getgrist.com": "Irakurri gehiago Hasi saioa getgrist.com-i buruz",
-        "Register your Grist server": "Erregistratu zure Grist zerbitzaria"
+        "Register your Grist server": "Erregistratu zure Grist zerbitzaria",
+        "Managed authentication by Grist Labs.": "Grist Labs-ek kudeatutako autentifikazioa.",
+        "Your server uses getgrist.com authentication. Users sign in with their getgrist.com account.": "Zure erabiltzaileek getgrist.com autentifikazioa darabilte. Erabiltzaileek getgrist.com kontuarekin hasten dute saioa."
     },
     "AirtableImportUI": {
         "Back": "Atzera",
@@ -2879,5 +2922,121 @@
         "Set these environment variables and restart Grist to enable S3 storage:": "Ezarri ingurune-aldagai horiek eta berrabiarazi Grist S3 biltegiratzea gaitzeko:",
         "Store document backups on an external service like S3 or Azure.           This protects against data loss if the server's disk fails.": "Gorde dokumentuaren babeskopiak kanpoko zerbitzu batean (S3, Azure…). Datuen galera eragozten du honek zerbitzariko diskoek huts egiten badute.",
         "Available in full edition": "Edizio osoan eskuragarri"
+    },
+    "PermissionsSetupSection": {
+        "Loading permissions…": "Baimenak kargatzen…",
+        "Open": "Ireki",
+        "Recommended": "Gomendatutakoa",
+        "Allow anonymous access": "Baimendu saiorik hasi gabekoak sartzea",
+        "Allow anonymous playground": "Baimendu saiorik hasi gabekoek esperimentatzea",
+        "Allow anyone to create team sites": "Baimendu edonork taldearen guneak sortzea",
+        "Allow personal sites": "Baimendu gune pertsonalak",
+        "Any logged-in user can create new team sites. Turn off to restrict team creation to admins only.": "Saioa hasitako edonork sor ditzake taldearen gune berriak. Desaktibatu soilik administrariek izateko gaitasun hori.",
+        "Apply & Restart": "Aplikatu eta berrabiarazi",
+        "Apply and Go Live!": "Aplikatu eta berrezarri sarbidea!",
+        "Applying settings and restarting…": "Ezarpenak aplikatzen eta berrabiarazten…",
+        "Back to installation": "Itzuli instalaziora",
+        "Conflict": "Gatazka",
+        "DEFAULT PERMISSIONS": "DEFEKTUZKO BAIMENAK",
+        "Environment": "Ingurunea",
+        "Locked down": "Sarbidea mugatu egin da",
+        "Grist is live!": "Sarbide-mugak berrezarri dira!",
+        "Review these defaults before going live. You can change them later from the admin panel.": "Berrikusi defektuzko balio hauek zerbitzaria erabilgarri egin baino lehen. Geroago alda ditzakezu administratzailearen panelean.",
+        "Server did not restart in time. Please refresh the page.": "Zerbitzaria ez da garaiz berrabiarazi. Freskatu orrialdea.",
+        "Some settings are controlled by environment variables and cannot be changed here: {{vars}}. To modify them, update the corresponding variables in your server configuration and restart.": "Ezarpen batzuk ingurune-aldagaien bidez kontrolatzen dira eta hemen ezin dira aldatu: {{vars}}. Aldatzeko, eguneratu dagozkion aldagaiak zerbitzariaren konfigurazioan eta berrabiarazi.",
+        "The personal org is the only org available — personal sites must stay enabled or Grist will be non-functional.": "Erakunde pertsonalak dira erabilgai dauden erakunde bakarrak — gune pertsonalak gaituta mantendu behar dira edo Grist-ek erabilgarri egoteari utziko dio.",
+        "Users can create their own personal sites with documents. Turn off to restrict all documents to team sites managed by admins.": "Erabiltzaileek beren gune pertsonalak sor ditzakete dokumentuekin. Desaktibatu dokumentu guztiak administratzaileek kudeatutako talde-guneetara mugatzeko.",
+        "Visitors who aren't signed in can create and edit documents in a temporary playground. Turn off to require sign-in before creating any documents.": "Saioa hasi gabeko bisitariek dokumentuak sor eta edita ditzakete aldi baterako esperimentaziorako jolastoki batean. Desaktibatu edozein dokumentu sortu ahal izateko saioa hastera behartzeko.",
+        "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.": "Saioa hasi gabeko bisitariek publikoki partekatutako dokumentuak ikus ditzakete. Ezinbestekoa da estekak partekatzeko eta inprimakiak argitaratzeko.",
+        "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Zure konfigurazio-aldaketak aplikatu dira eta zerbitzaria berrabiarazi da. Grist zerbitzuan dago orain, eta erabiltzaileen eskura."
+    },
+    "SandboxSection": {
+        "Active": "Aktibo",
+        "Continue": "Jarraitu",
+        "Error": "Errorea",
+        "Not available": "Ez dago erabilgarri",
+        "Not recommended": "Ez da gomendatzen",
+        "Other options": "Beste aukera batzuk",
+        "Ready": "Prest",
+        "Recommended": "Gomendatutakoa",
+        "Apply and Continue": "Aplikatu eta jarraitu",
+        "Applying...": "Aplikatzen…",
+        "Detecting sandbox options...": "Ingurune isolatuaren aukerak antzematen…",
+        "No Sandbox": "Ez dago ingurune isolaturik",
+        "Sandboxing": "Ingurunea isolatzen",
+        "Skip and Continue": "Egin gabe utzi eta jarraitu",
+        "Uses the built-in macOS sandbox. Good isolation for local use on a Mac.": "macOS-ek barne dakarren ingurune isolatua erabiltzen du.",
+        "macOS Sandbox": "macOS Sandbox"
+    },
+    "AdminPanelCss": {
+        "Confirmed": "Baieztatuta",
+        "For later": "Geroagorako"
+    },
+    "BaseUrlSection": {
+        "Already set on this server.": "Lehendik dago ezarrita zerbitzari honetan.",
+        "Automatic": "Automatikoa",
+        "Base URL": "Zerbitzariko URLa",
+        "Confirm URL": "Baieztatu URLa",
+        "Could not reach server": "Ezin izan da zerbitzaria atzitu",
+        "Could not reach server at this URL. ": "Ezin izan da zerbitzaria URL honetan atzitu. ",
+        "Failed to save": "Huts egin du gordetzeak",
+        "Grist is reachable": "Grist eskuragarri dago",
+        "Leave automatic": "Utzi automatikoa",
+        "Test URL": "Probatu URLa",
+        "Testing...": "Probatzen…",
+        "This URL was auto-detected — confirm it is correct, then save.": "URL hau automatikoki antzeman da — baieztatu zuzena dela, eta ondoren gorde.",
+        "automatic": "automatikoa",
+        "checking": "egiaztatzen",
+        "https:": {
+            "": {
+                "grist.example.com": "https://grist.adibidea.eus"
+            }
+        },
+        "not set": "ezarri gabe",
+        "set": "ezarri"
+    },
+    "EditionSection": {
+        "Choose which edition of Grist to run on this server": "Aukeratu Grist-en zein bertsio exekutatu nahi duzun zerbitzarian",
+        "Choose which edition of Grist to run on this server.": "Aukeratu Grist-en zein bertsio exekutatu nahi duzun zerbitzarian",
+        "Community Edition": "Community edizioa",
+        "Confirm edition": "Baieztatu edizioa",
+        "Edition": "Edizioa",
+        "Full Grist": "Full Grist",
+        "Full Grist is enabled via environment variable.": "Full Grist ingurugiro-aldagai baten bidez gaitzen da.",
+        "I understand I am running Grist Community Edition": "Ulertzen dut Grist Community edizioa erabiltzen ari naizela",
+        "Learn more.": "Irakurri gehiago.",
+        "On": "Aktibo",
+        "See how to enable it.": "Ikusi nola gaitzen den.",
+        "community": "community",
+        "full": "full",
+        "pricing": "prezioak"
+    },
+    "QuickSetupServerStep": {
+        "Apply and Continue": "Aplikatu eta jarraitu",
+        "Base URL": "Zerbitzariko URLa",
+        "Confirm base URL and edition to continue": "Baieztatu zerbitzariko URLa eta edizioa aurrera egiteko",
+        "Confirm base URL to continue": "Baieztatu zerbitzariko URLa aurrera egiteko",
+        "Confirm edition to continue": "Baieztatu edizioa aurrera egiteko",
+        "Continue": "Jarraitu",
+        "Edition": "Edizioa",
+        "Server": "Zerbitzaria"
+    },
+    "AccountLeftPanel": {
+        "Account settings": "Kontuaren ezarpenak",
+        "Developer": "Garatzailea",
+        "Profile": "Profila"
+    },
+    "SettingsLayout": {
+        "Authentication": "Autentifikazioa",
+        "Current authentication method": "Uneko autentifikazio modua",
+        "Installation": "Instalazioa",
+        "Sandbox settings for data engine": "Ingurune isolatuaren ezarpenak datuen motorrerako",
+        "Security Settings": "Segurtasun-ezarpenak"
+    },
+    "SettingsLayout.d": {
+        "Authentication": "Autentifikazioa",
+        "Current authentication method": "Uneko autentifikazio modua",
+        "Installation": "Instalazioa",
+        "Security Settings": "Segurtasun-ezarpenak"
     }
 }

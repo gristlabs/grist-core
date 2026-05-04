@@ -182,6 +182,7 @@ export const getCommonUrls = () => withAdminDefinedUrls({
 
   signInWithGristRegister: "https://login.getgrist.com/oauth/register",
   signInWithGristHelp: "https://support.getgrist.com/install/sign-in-with-grist",
+  signInWithGristDocs: "https://support.getgrist.com/install/getgrist-com/",
 });
 
 export const commonUrls = getCommonUrls();

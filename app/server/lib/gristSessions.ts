@@ -28,6 +28,7 @@ export interface SessionStore {
   setAsync(sid: string, session: any): Promise<void>;
   clearAsync(): Promise<void>;
   close(): Promise<void>;
+  lengthAsync(): Promise<number>;
 }
 
 /**

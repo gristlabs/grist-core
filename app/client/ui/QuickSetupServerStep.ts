@@ -1,119 +1,81 @@
 import { makeT } from "app/client/lib/localization";
-import { reportError } from "app/client/models/errors";
 import { BaseUrlSection } from "app/client/ui/BaseUrlSection";
 import { DraftChangesManager } from "app/client/ui/DraftChanges";
 import { EditionSection } from "app/client/ui/EditionSection";
-import { bigPrimaryButton } from "app/client/ui2018/buttons";
-import { theme } from "app/client/ui2018/cssVars";
-import { icon } from "app/client/ui2018/icons";
+import { quickSetupContinueButton, QuickSetupSection } from "app/client/ui/QuickSetupContinueButton";
+import { quickSetupStepHeader } from "app/client/ui/QuickSetupStepHeader";
+import { cssQuickSetupCard } from "app/client/ui/SettingsLayout";
 
-import { Computed, Disposable, dom, DomContents, makeTestId, styled } from "grainjs";
+import { Computed, Disposable, dom, DomContents, makeTestId, Observable, styled, UseCBOwner } from "grainjs";
 
 const t = makeT("QuickSetupServerStep");
 const testId = makeTestId("test-quick-setup-");
 
 /**
- * First step of the setup wizard: Base URL + Edition. Collects draft
- * changes and applies them in a single batch when the user clicks Continue.
+ * First step of QuickSetup: Base URL + Edition. Collects draft changes
+ * across two sections and applies them in a single batch via the shared
+ * QuickSetup continue button.
  *
- * Extracted into its own file to keep QuickSetup.ts focused on step
- * navigation; the other setup steps (sandboxing, backups, etc.) live in
- * their own modules too.
+ * Implements {@link QuickSetupSection} directly -- the step is itself
+ * the unit the QuickSetup continue button drives, just composed of two
+ * underlying sections via {@link DraftChangesManager}.
  */
-export class QuickSetupServerStep extends Disposable {
+export class QuickSetupServerStep extends Disposable implements QuickSetupSection {
+  public canProceed: Computed<boolean>;
+  public isDirty: Computed<boolean>;
+  public isApplying: Observable<boolean>;
+
   private _baseUrl = BaseUrlSection.create(this);
   private _edition = EditionSection.create(this);
   private _drafts = DraftChangesManager.create(this);
-
-  private _canProceed: Computed<boolean>;
 
   constructor(private _onComplete: () => void) {
     super();
     this._drafts.addSection(this._baseUrl);
     this._drafts.addSection(this._edition);
-    this._canProceed = Computed.create(this, use =>
+    this.canProceed = Computed.create(this, use =>
       use(this._baseUrl.canProceed) && use(this._edition.canProceed),
     );
+    this.isDirty = this._drafts.hasDraftChanges;
+    this.isApplying = this._drafts.isApplying;
+  }
+
+  /** Pre-confirm message when the user hasn't yet confirmed URL/edition. */
+  public customLabel(use: UseCBOwner): string | null {
+    const urlOk = use(this._baseUrl.canProceed);
+    const edOk = use(this._edition.canProceed);
+    if (!urlOk && !edOk) { return t("Confirm base URL and edition to continue"); }
+    if (!urlOk) { return t("Confirm base URL to continue"); }
+    if (!edOk) { return t("Confirm edition to continue"); }
+    return null;
+  }
+
+  public async apply(): Promise<void> {
+    await this._drafts.applyAll();
   }
 
   public buildDom(): DomContents {
     return dom("div",
-      cssStepHeading(
-        cssStepHeadingIcon(icon("Home")),
-        t("Server"),
-      ),
-      cssStepDescription(
-        t("Set your server's base URL and choose which edition of Grist to run."),
-      ),
-      cssStepSection(
+      quickSetupStepHeader({
+        icon: "Home",
+        title: t("Server"),
+        description: t("Set your server's base URL and choose which edition of Grist to run."),
+      }),
+      cssQuickSetupCard(
         cssStepSectionTitle(t("Base URL")),
         this._baseUrl.buildWizardDom(),
       ),
-      cssStepSection(
+      cssQuickSetupCard(
         cssStepSectionTitle(t("Edition")),
         this._edition.buildWizardDom(),
       ),
-      cssContinueRow(
-        bigPrimaryButton(
-          dom.text((use) => {
-            // Subscribe to all deps up front: a later re-eval that adds a dep
-            // not seen on the first pass can read a stale value once.
-            const urlOk = use(this._baseUrl.canProceed);
-            const edOk = use(this._edition.canProceed);
-            const hasChanges = use(this._drafts.hasDraftChanges);
-            if (!urlOk && !edOk) { return t("Confirm base URL and edition to continue"); }
-            if (!urlOk) { return t("Confirm base URL to continue"); }
-            if (!edOk) { return t("Confirm edition to continue"); }
-            return hasChanges ? t("Apply and Continue") : t("Continue");
-          }),
-          dom.boolAttr("disabled", use => !use(this._canProceed) || use(this._drafts.isApplying)),
-          dom.on("click", async () => {
-            try {
-              await this._drafts.applyAll();
-              this._onComplete();
-            } catch (err) {
-              reportError(err as Error);
-            }
-          }),
-          testId("server-continue"),
-        ),
-      ),
+      quickSetupContinueButton(this, () => this._onComplete(), testId("server-continue")),
     );
   }
 }
-
-const cssStepHeading = styled("div", `
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 4px;
-`);
-
-const cssStepHeadingIcon = styled("div", `
-  display: flex;
-  --icon-color: ${theme.controlPrimaryBg};
-`);
-
-const cssStepDescription = styled("div", `
-  font-size: 14px;
-  line-height: 1.5;
-  margin-bottom: 20px;
-`);
-
-const cssStepSection = styled("div", `
-  margin-bottom: 24px;
-`);
 
 const cssStepSectionTitle = styled("h3", `
   font-size: 14px;
   font-weight: 600;
   margin: 0 0 8px 0;
-`);
-
-const cssContinueRow = styled("div", `
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 24px;
 `);

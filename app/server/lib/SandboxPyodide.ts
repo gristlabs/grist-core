@@ -68,7 +68,7 @@ export function getPyodideSettings(options: ISandboxOptions): PyodideSettings {
   }
 
   // We expect to find a deno binary alongside pyodide.
-  const command = findDenoBinary(path.join(base, "sandbox", "pyodide", "_build", "worker"));
+  const command = findDenoBinary(path.join(base, "sandbox", "pyodide", "worker"));
 
   // When running pyodide, we initially need broad read access to the pyodide
   // sandbox directory. We drop this access before running user code with pyodide.
@@ -187,7 +187,7 @@ export function checkPyodideDeno(): boolean {
   try {
     // This method will throw if the binary is not found. Notice we are not using the cached version here, since,
     // user might have installed the deno package after the server started.
-    findDenoBinaryUncached(path.join(getUnpackedAppRoot(), "sandbox", "pyodide", "_build", "worker"));
+    findDenoBinaryUncached(path.join(getUnpackedAppRoot(), "sandbox", "pyodide", "worker"));
     return true;
   } catch {
     return false;

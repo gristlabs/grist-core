@@ -10,8 +10,8 @@ import {
   cssSectionContainer,
   cssSectionDescription,
 } from "app/client/ui/AdminPanelCss";
-import { cssValueLabel } from "app/client/ui/SettingsLayout";
 import { ConfigSection } from "app/client/ui/DraftChanges";
+import { cssValueLabel } from "app/client/ui/SettingsLayout";
 import { ToggleEnterpriseWidget } from "app/client/ui/ToggleEnterpriseWidget";
 import { primaryButton } from "app/client/ui2018/buttons";
 import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";

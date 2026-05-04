@@ -8,6 +8,7 @@ import { AuditLogsModel, AuditLogsModelImpl } from "app/client/models/AuditLogsM
 import { urlState } from "app/client/models/gristUrlState";
 import { AccountWidget } from "app/client/ui/AccountWidget";
 import { cssEmail, cssUserInfo, cssUserName } from "app/client/ui/AccountWidgetCss";
+import { buildAdminAccessDeniedCard } from "app/client/ui/AdminAccessDeniedCard";
 import { buildAdminData } from "app/client/ui/AdminControls";
 import { buildAdminLeftPanel, getPageNames } from "app/client/ui/AdminLeftPanel";
 import {
@@ -34,6 +35,11 @@ import { InstallConfigsAPI } from "app/client/ui/ConfigsAPI";
 import { DraftChangesManager } from "app/client/ui/DraftChanges";
 import { EditionSection } from "app/client/ui/EditionSection";
 import { pagePanels } from "app/client/ui/PagePanels";
+import {
+  buildPermissionsCard,
+  buildPermissionsStatusDisplay,
+} from "app/client/ui/PermissionsSetupSection";
+import { PermissionsToggleModel } from "app/client/ui/PermissionsToggleModel";
 import { QuickSetup } from "app/client/ui/QuickSetup";
 import { ServiceStatus } from "app/client/ui/ServiceStatus";
 import {
@@ -51,7 +57,7 @@ import { buildInstallationIdDisplay } from "app/client/ui/ToggleEnterpriseWidget
 import { createTopBarHome } from "app/client/ui/TopBar";
 import { createUserImage } from "app/client/ui/UserImage";
 import { fullBreadcrumbs } from "app/client/ui2018/breadcrumbs";
-import { basicButton, bigPrimaryButton, bigPrimaryButtonLink } from "app/client/ui2018/buttons";
+import { basicButton, bigPrimaryButton } from "app/client/ui2018/buttons";
 import { testId, theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { cssLink, makeLinks } from "app/client/ui2018/links";
@@ -87,6 +93,10 @@ const t = makeT("AdminPanel");
 // consider a version check to be stale. It's a big number, but we're
 // still far away from the max at Number.MAX_SAFE_INTEGER
 const STALE_VERSION_CHECK_TIME_IN_MS = 14 * 24 * 60 * 60 * 1000;
+
+function isInstallationPage(page: AdminPanelPage): boolean {
+  return page === "admin" || page === "setup";
+}
 
 /**
  * Shared restart-banner state so the left-panel "Apply changes" entry can
@@ -168,19 +178,19 @@ export class AdminPanel extends Disposable {
       // Setting tabIndex allows selecting and copying text. This is helpful on admin pages, e.g.
       // to copy GRIST_BOOT_KEY or version number. But we don't set it for buidAdminData() pages
       // because it messes with focus in GridViews, and its unclear how to undo its effect.
-      dom.attr("tabindex", use => ["admin", "setup"].includes(use(this._page)) ? "-1" : null),
+      dom.attr("tabindex", use => isInstallationPage(use(this._page)) ? "-1" : null),
 
       dom.domComputed(this._page, (page) => {
         if (page === "admin") {
           return dom.create(AdminInstallationPanel, this._appModel, this._restartBanner);
         } else if (page === "setup") {
-          return dom.create(QuickSetup);
+          return dom.create(QuickSetup, this._appModel);
         } else {
           return dom.create(buildAdminData, this._appModel);
         }
       }),
 
-      cssPageContainer.cls("-admin-pages", use => use(this._page) !== "admin"),
+      cssPageContainer.cls("-admin-pages", use => !isInstallationPage(use(this._page))),
 
       testId("admin-panel"),
     );
@@ -205,6 +215,8 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
     notifier: this._appModel.notifier,
   });
 
+  private _permissionsModel = PermissionsToggleModel.create(this);
+
   private _drafts = DraftChangesManager.create(this);
 
   private _checks: AdminChecks;
@@ -227,6 +239,7 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
     this._checks = new AdminChecks(this, this._installAPI);
     this._drafts.addSection(this._baseUrlSection);
     this._drafts.addSection(this._editionSection);
+    this._drafts.addSection(this._permissionsModel);
 
     // Mirror visibility into the shared controller so the left-panel entry
     // appears/disappears with the banner.
@@ -236,14 +249,7 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
     this._authCheck = Computed.create(this, (use) => {
       return this._checks.requestCheckById(use, "authentication");
     });
-    this._loginProvider = Computed.create(this, (use) => {
-      const req = use(this._authCheck);
-      const result = req ? use(req.result) : undefined;
-      if (result?.status === "success") {
-        return result.details?.provider;
-      }
-      return undefined;
-    });
+    this._loginProvider = this._checks.buildLoginProviderObs(this);
   }
 
   public buildDom() {
@@ -316,21 +322,7 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
    * which could include a legit administrator if auth is misconfigured.
    */
   private _buildMainContentForOthers() {
-    return SectionCard(t("Administrator Panel Unavailable"), [
-      dom("p", t(`You do not have access to the administrator panel.
-Please log in as an administrator.`)),
-      dom(
-        "p",
-        t(`If you are the server operator, you can sign in using the boot key from your server logs.`),
-      ),
-      dom("p",
-        bigPrimaryButtonLink(
-          urlState().setLinkUrl({ boot: "boot" }),
-          t("Sign in with boot key"),
-        ),
-      ),
-      testId("admin-panel-error"),
-    ]);
+    return buildAdminAccessDeniedCard();
   }
 
   private _buildMainContentForAdmin() {
@@ -493,6 +485,13 @@ Please log in as an administrator.`)),
           description: t("Key to sign sessions with"),
           value: this._buildSessionSecretDisplay(),
           expandedContent: this._buildSessionSecretNotice(),
+        }),
+        SectionItem({
+          id: "default-permissions",
+          name: t("Default permissions"),
+          description: t("Who can create sites, log in, and use the playground"),
+          value: buildPermissionsStatusDisplay(this._permissionsModel),
+          expandedContent: buildPermissionsCard(this._permissionsModel),
         }),
       ]),
       this._buildBackupsSection(),
@@ -1130,7 +1129,7 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
   }
 
   private _buildBackupsSection() {
-    const backups = BackupsSection.create(this, { checks: this._checks, hideTitle: true });
+    const backups = BackupsSection.create(this, { checks: this._checks, controls: this });
     return SectionCard(t("Storage"), [
       SectionItem({
         id: "backups",

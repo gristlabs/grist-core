@@ -112,6 +112,26 @@ export class Clipboard extends Disposable {
       dom.on("copy", this._onCopy.bind(this)),
       dom.on("cut", this._onCut.bind(this)),
       dom.on("paste", this._onPaste.bind(this)),
+      // The contextmenu event can be triggered with keyboard shortcuts. In that case, we redirect the event to the
+      // active cursor element, if any.
+      dom.on("contextmenu", (event) => {
+        redirectContextmenuEvent(event);
+      }),
+      // On Mac, no contextmenu event is triggered when pressing usual shortcuts, so we
+      // manually check for Shift+F10 or Ctrl+Enter (the default ContextMenu shortcut on macOS)
+      dom.on("keydown", (event) => {
+        if (!isMac) {
+          return;
+        }
+        if (event.key === "F10" && event.shiftKey && !event.metaKey && !event.ctrlKey && !event.altKey) {
+          redirectContextmenuEvent(event);
+          return;
+        }
+        if (event.key === "Enter" && event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey) {
+          redirectContextmenuEvent(event);
+          return;
+        }
+      }),
     );
     document.body.appendChild(this.copypasteField);
     this.onDispose(() => { dom.domDispose(this.copypasteField); this.copypasteField.remove(); });
@@ -284,6 +304,21 @@ const FOCUS_TARGET_TAGS = new Set([
   "SELECT",
   "IFRAME",
 ]);
+
+function redirectContextmenuEvent(event: MouseEvent | KeyboardEvent) {
+  event.preventDefault();
+  event.stopPropagation();
+  const activeCursor = document.querySelector(".active_cursor");
+  if (activeCursor) {
+    const rect = activeCursor.getBoundingClientRect();
+    activeCursor.dispatchEvent(new PointerEvent("contextmenu", {
+      bubbles: true,
+      cancelable: true,
+      clientX: rect.left,
+      clientY: rect.bottom,
+    }));
+  }
+}
 
 /**
  * Returns data formatted as a 2D array of strings, suitable for pasting within Grist.

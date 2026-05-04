@@ -1,7 +1,7 @@
 import { ApiError } from "app/common/ApiError";
 import { AsyncCreate } from "app/common/AsyncCreate";
 import { ICustomWidget } from "app/common/CustomWidget";
-import { isAffirmative, removeTrailingSlash } from "app/common/gutil";
+import { isAffirmative, isNonNullish, removeTrailingSlash } from "app/common/gutil";
 import { GristServer } from "app/server/lib/GristServer";
 import log from "app/server/lib/log";
 import { agents } from "app/server/lib/ProxyAgent";
@@ -153,7 +153,7 @@ export class UrlWidgetRepository implements IWidgetRepository {
 export class WidgetRepositoryImpl implements IWidgetRepository {
   protected _staticUrl: string | undefined;
   private _diskWidgets?: IWidgetRepository;
-  private _urlWidgets: UrlWidgetRepository;
+  private _urlWidgets?: UrlWidgetRepository;
   private _combinedWidgets: CombinedWidgetRepository;
 
   constructor(_options: {
@@ -186,20 +186,24 @@ export class WidgetRepositoryImpl implements IWidgetRepository {
   }
 
   public testSetUrl(overrideUrl: string | undefined) {
-    const repos: IWidgetRepository[] = [];
     this._staticUrl = overrideUrl ?? Deps.STATIC_URL;
     if (this._staticUrl) {
       const optional = isAffirmative(process.env.GRIST_WIDGET_LIST_URL_OPTIONAL);
       this._urlWidgets = new UrlWidgetRepository(this._staticUrl,
         !optional);
-      repos.push(this._urlWidgets);
+    } else {
+      this._urlWidgets = undefined;
     }
-    if (this._diskWidgets) { repos.push(this._diskWidgets); }
-    this._combinedWidgets = new CombinedWidgetRepository(repos);
+    this._refreshCombinedWidgetRepository();
   }
 
   public async getWidgets(): Promise<ICustomWidget[]> {
     return this._combinedWidgets.getWidgets();
+  }
+
+  private _refreshCombinedWidgetRepository() {
+    const repos = [this._diskWidgets, this._urlWidgets].filter(isNonNullish);
+    this._combinedWidgets = new CombinedWidgetRepository(repos);
   }
 }
 

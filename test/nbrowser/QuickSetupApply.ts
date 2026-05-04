@@ -5,7 +5,7 @@ import * as testUtils from "test/server/testUtils";
 
 import { assert, driver } from "mocha-webdriver";
 
-describe("PermissionsStep", function() {
+describe("QuickSetupApply", function() {
   this.timeout(process.env.DEBUG ? "10m" : "20s");
   setupTestSuite();
   gu.bigScreen();

@@ -93,7 +93,11 @@
         "Theme": "Theme",
         "Two-factor authentication": "Two-factor authentication",
         "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.",
-        "Language": "Language"
+        "Language": "Language",
+        "Basic info": "Basic info",
+        "Developer": "Developer",
+        "Home": "Home",
+        "Profile": "Profile"
     },
     "AccountWidget": {
         "Access Details": "Access Details",
@@ -113,7 +117,8 @@
         "Upgrade Plan": "Upgrade Plan",
         "Sign up": "Sign up",
         "Use This Template": "Use This Template",
-        "Site settings": "Site settings"
+        "Site settings": "Site settings",
+        "Account settings": "Account settings"
     },
     "ViewAsDropdown": {
         "View as": "View as",
@@ -1954,7 +1959,10 @@
         "Server → Edition": "Server → Edition",
         "The URL where users and integrations reach this Grist server": "The URL where users and integrations reach this Grist server",
         "What used to be called \"Grist Enterprise\" is now called \"Full Grist\".": "What used to be called \"Grist Enterprise\" is now called \"Full Grist\".",
-        "moved to Edition": "moved to Edition"
+        "moved to Edition": "moved to Edition",
+        "Installation": "Installation",
+        "Default permissions": "Default permissions",
+        "Who can create sites, log in, and use the playground": "Who can create sites, log in, and use the playground"
     },
     "Columns": {
         "Remove Column": "Remove Column"
@@ -2583,7 +2591,8 @@
         "When in the search bar, close it and focus the current match": "When in the search bar, close it and focus the current match",
         "When typed at the start of a cell, make this a formula column": "When typed at the start of a cell, make this a formula column",
         "showing a behavioral popup": "showing a behavioral popup",
-        "Filter this column by just this cell's value": "Filter this column by just this cell's value"
+        "Filter this column by just this cell's value": "Filter this column by just this cell's value",
+        "Open the context menu": "Open the context menu"
     },
     "GridViewMenusDateHelpers": {
         "12-hour format": "12-hour format",
@@ -2710,7 +2719,39 @@
         "You are signed in as {{email}}. After restart, the new administrative user will be {{newEmail}}.": "You are signed in as {{email}}. After restart, the new administrative user will be {{newEmail}}.",
         "You are signed in as {{email}}. You may lose access to this server if you cannot sign in as this user after switching the authentication system.": "You are signed in as {{email}}. You may lose access to this server if you cannot sign in as this user after switching the authentication system.",
         "If Grist is accessible on your network, or is available to multiple people, configure one of the authentication methods below and remove your boot key from Security Settings → Boot key.": "If Grist is accessible on your network, or is available to multiple people, configure one of the authentication methods below and remove your boot key from Security Settings → Boot key.",
-        "No authentication: using boot key as fallback method": "No authentication: using boot key as fallback method"
+        "No authentication: using boot key as fallback method": "No authentication: using boot key as fallback method",
+        "Anyone who can reach this server can access all data without signing in. Configure one of the authentication methods below.": "Anyone who can reach this server can access all data without signing in. Configure one of the authentication methods below.",
+        "Are you sure you want to deactivate **{{name}}**?": "Are you sure you want to deactivate **{{name}}**?",
+        "Authentication has been configured and will become active when Grist is restarted.": "Authentication has been configured and will become active when Grist is restarted.",
+        "Authentication is misconfigured or unreachable. Users may not be able to sign in.": "Authentication is misconfigured or unreachable. Users may not be able to sign in.",
+        "Available methods": "Available methods",
+        "Change installation admin": "Change installation admin",
+        "Deactivate": "Deactivate",
+        "Deactivate authentication?": "Deactivate authentication?",
+        "For enterprise identity providers (Okta, OneLogin, etc.).": "For enterprise identity providers (Okta, OneLogin, etc.).",
+        "For reverse proxy setups (Traefik, Authelia, etc.).": "For reverse proxy setups (Traefik, Authelia, etc.).",
+        "I understand this server has no authentication": "I understand this server has no authentication",
+        "Installation admin: ": "Installation admin: ",
+        "Managed login solution by Grist Labs (deprecated).": "Managed login solution by Grist Labs (deprecated).",
+        "No authentication": "No authentication",
+        "No authentication: using boot key": "No authentication: using boot key",
+        "Not recommended": "Not recommended",
+        "Other authentication methods": "Other authentication methods",
+        "Reconfigure": "Reconfigure",
+        "The change will take effect after you restart Grist.": "The change will take effect after you restart Grist.",
+        "This login mechanism is deprecated.": "This login mechanism is deprecated.",
+        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect]({{url}}).": "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect]({{url}}).",
+        "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC]({{url}}).": "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC]({{url}}).",
+        "To set up **SAML**, follow the instructions in [the Grist support article for SAML]({{url}}).": "To set up **SAML**, follow the instructions in [the Grist support article for SAML]({{url}}).",
+        "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers]({{url}}).": "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers]({{url}}).",
+        "Works with most identity providers (Google, Azure AD, Keycloak, etc.).": "Works with most identity providers (Google, Azure AD, Keycloak, etc.).",
+        "Your configuration will be preserved. You can reactivate it later without reconfiguring.": "Your configuration will be preserved. You can reactivate it later without reconfiguring.",
+        "Your server is configured to authenticate users via OpenID Connect. Users sign in through your identity provider.": "Your server is configured to authenticate users via OpenID Connect. Users sign in through your identity provider.",
+        "Your server is configured to authenticate users via SAML 2.0. Users sign in through your enterprise identity provider.": "Your server is configured to authenticate users via SAML 2.0. Users sign in through your enterprise identity provider.",
+        "Your server is using a boot key as a fallback login method. Configure one of the authentication methods below.": "Your server is using a boot key as a fallback login method. Configure one of the authentication methods below.",
+        "Your server trusts authentication from a reverse proxy. Make sure only your proxy can reach the Grist backend.": "Your server trusts authentication from a reverse proxy. Make sure only your proxy can reach the Grist backend.",
+        "Authentication": "Authentication",
+        "Choose how users sign in to Grist.": "Choose how users sign in to Grist."
     },
     "DetailView": {
         "This row is unavailable or does not exist": "This row is unavailable or does not exist"
@@ -2727,7 +2768,9 @@
         "Register your Grist server": "Register your Grist server",
         "Sign in with getgrist.com": "Sign in with getgrist.com",
         "To set up {{provider}}, you need to register your Grist server on getgrist.com and paste the configuration key you receive below.": "To set up {{provider}}, you need to register your Grist server on getgrist.com and paste the configuration key you receive below.",
-        "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.": "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as."
+        "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.": "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.",
+        "Managed authentication by Grist Labs.": "Managed authentication by Grist Labs.",
+        "Your server uses getgrist.com authentication. Users sign in with their getgrist.com account.": "Your server uses getgrist.com authentication. Users sign in with their getgrist.com account."
     },
     "AirtableImportUI": {
         "Back": "Back",
@@ -2921,7 +2964,9 @@
         "Visitors who aren't signed in can create and edit documents in a temporary playground. Turn off to require sign-in before creating any documents.": "Visitors who aren't signed in can create and edit documents in a temporary playground. Turn off to require sign-in before creating any documents.",
         "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.": "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.",
         "You have GRIST_SINGLE_ORG={{value}} set. With this, users only see one site — but personal sites and team creation still work behind the scenes. Worth locking down unless you have a specific reason to keep them.": "You have GRIST_SINGLE_ORG={{value}} set. With this, users only see one site — but personal sites and team creation still work behind the scenes. Worth locking down unless you have a specific reason to keep them.",
-        "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users."
+        "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.",
+        "Custom": "Custom",
+        "loading…": "loading…"
     },
     "SandboxSection": {
         "Active": "Active",
@@ -2939,7 +2984,8 @@
         "Sandboxing": "Sandboxing",
         "Skip and Continue": "Skip and Continue",
         "Uses the built-in macOS sandbox. Good isolation for local use on a Mac.": "Uses the built-in macOS sandbox. Good isolation for local use on a Mac.",
-        "macOS Sandbox": "macOS Sandbox"
+        "macOS Sandbox": "macOS Sandbox",
+        "Sandbox": "Sandbox"
     },
     "AdminPanelCss": {
         "Confirmed": "Confirmed",
@@ -3000,5 +3046,50 @@
         "Edition": "Edition",
         "Server": "Server",
         "Set your server's base URL and choose which edition of Grist to run.": "Set your server's base URL and choose which edition of Grist to run."
+    },
+    "AccountLeftPanel": {
+        "Account settings": "Account settings",
+        "Developer": "Developer",
+        "Profile": "Profile"
+    },
+    "SettingsLayout": {
+        "Authentication": "Authentication",
+        "Current authentication method": "Current authentication method",
+        "Installation": "Installation",
+        "Sandbox settings for data engine": "Sandbox settings for data engine",
+        "Sandboxing": "Sandboxing",
+        "Security Settings": "Security Settings"
+    },
+    "SettingsLayout.d": {
+        "Authentication": "Authentication",
+        "Current authentication method": "Current authentication method",
+        "Installation": "Installation",
+        "Sandbox settings for data engine": "Sandbox settings for data engine",
+        "Sandboxing": "Sandboxing",
+        "Security Settings": "Security Settings"
+    },
+    "QuickSetupContinueButton": {
+        "Apply and Continue": "Apply and Continue",
+        "Applying...": "Applying...",
+        "Continue": "Continue"
+    },
+    "AdminAccessDeniedCard": {
+        "Administrator Panel Unavailable": "Administrator Panel Unavailable",
+        "If you are the server operator, you can sign in using the boot key from your server logs.": "If you are the server operator, you can sign in using the boot key from your server logs.",
+        "Sign in with boot key": "Sign in with boot key",
+        "You do not have access to the administrator panel.\nPlease log in as an administrator.": "You do not have access to the administrator panel.\nPlease log in as an administrator."
+    },
+    "PermissionsToggleModel": {
+        "Allow anonymous access": "Allow anonymous access",
+        "Allow anonymous playground": "Allow anonymous playground",
+        "Allow anyone to create team sites": "Allow anyone to create team sites",
+        "Allow personal sites": "Allow personal sites",
+        "Any logged-in user can create new team sites. Turn off to restrict team creation to admins only.": "Any logged-in user can create new team sites. Turn off to restrict team creation to admins only.",
+        "Permissions": "Permissions",
+        "Users can create their own personal sites with documents. Turn off to restrict all documents to team sites managed by admins.": "Users can create their own personal sites with documents. Turn off to restrict all documents to team sites managed by admins.",
+        "Visitors who aren't signed in can create and edit documents in a temporary playground. Turn off to require sign-in before creating any documents.": "Visitors who aren't signed in can create and edit documents in a temporary playground. Turn off to require sign-in before creating any documents.",
+        "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.": "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.",
+        "off": "off",
+        "on": "on"
     }
 }

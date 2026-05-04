@@ -1,16 +1,26 @@
 import { makeT } from "app/client/lib/localization";
 import { getHomeUrl } from "app/client/models/homeUrl";
-import { bigBasicButton, bigPrimaryButton } from "app/client/ui2018/buttons";
+import { cssWell, cssWellContent } from "app/client/ui/AdminPanelCss";
+import {
+  getEnvLockedVars,
+  hasEnvLocked,
+  PermissionsToggleModel,
+  PresetName,
+  TOGGLE_DEFS,
+} from "app/client/ui/PermissionsToggleModel";
+import { quickSetupStepHeader } from "app/client/ui/QuickSetupStepHeader";
+import { cssQuickSetupCard, cssShadowedPrimaryButton, cssValueLabel } from "app/client/ui/SettingsLayout";
+import { bigBasicButton } from "app/client/ui2018/buttons";
 import { theme, vars } from "app/client/ui2018/cssVars";
 import { loadingSpinner } from "app/client/ui2018/loaders";
 import { toggleSwitch } from "app/client/ui2018/toggleSwitch";
 import { ConfigAPI } from "app/common/ConfigAPI";
 import { not } from "app/common/gutil";
-import { InstallAPIImpl, PermissionsStatus } from "app/common/InstallAPI";
+import { InstallAPIImpl } from "app/common/InstallAPI";
 import { tokens } from "app/common/ThemePrefs";
 import { getGristConfig } from "app/common/urlUtils";
 
-import { Computed, Disposable, dom, DomContents, makeTestId, Observable, styled } from "grainjs";
+import { Disposable, dom, DomContents, makeTestId, Observable, styled } from "grainjs";
 
 const t = makeT("PermissionsSetupSection");
 const testId = makeTestId("test-permissions-setup-");
@@ -23,43 +33,13 @@ const testId = makeTestId("test-permissions-setup-");
  * after restart completes.
  */
 export class PermissionsSetupSection extends Disposable {
-  // Needed to read and update settings.
-  private _installAPI = new InstallAPIImpl(getHomeUrl());
-  // Needed for restarts.
+  private _model = PermissionsToggleModel.create(this);
   private _configAPI = new ConfigAPI(getHomeUrl());
-  // Data received from the server about current permissions status.
-  private _status = Observable.create<PermissionsStatus | null>(this, null);
-  // Error message holder.
+  private _installAPI = new InstallAPIImpl(getHomeUrl());
   private _error = Observable.create<string>(this, "");
-  // Loading state.
   private _saving = Observable.create<boolean>(this, false);
   // Whether the server has been restarted after saving. Used to switch to the success page.
   private _restarted = Observable.create<boolean>(this, false);
-
-  // Dirty state for the things being toggled. Default values are set to those that
-  // are in grist-core, but it doesn't matter, they are replaced when the real status is loaded.
-  private _toggles: Record<string, Observable<boolean>> = {
-    teamSites: Observable.create<boolean>(this, false), // values are not important
-    personalSites: Observable.create<boolean>(this, false),
-    anonAccess: Observable.create<boolean>(this, false),
-    playground: Observable.create<boolean>(this, false),
-  };
-
-  // Preset detector. Checks state of toggles, and if they match it shows which preset is active.
-  // Env-locked toggles are excluded from matching — they can't be changed, so they shouldn't
-  // prevent a preset from being recognized.
-  private _presetDetector = Computed.create(this, (use) => {
-    const status = use(this._status);
-    for (const [name, values] of Object.entries(PRESETS)) {
-      if (Object.entries(values).every(([k, v]) => {
-        if (status && this._isEnvLocked(status, k)) { return true; }
-        return use(this._toggles[k]) === v;
-      })) {
-        return name;
-      }
-    }
-    return null;
-  });
 
   constructor() {
     super();
@@ -70,16 +50,10 @@ export class PermissionsSetupSection extends Disposable {
     return dom("div",
       testId("section"),
       dom.domComputed(this._restarted, (done) => {
-        // If we are restarted, show the success page.
         if (done) { return this._buildSuccessPage(); }
-
-        // Otherwise show the permissions setup page, with error/loading states.
         return dom("div",
           dom.maybe(this._error, err => cssError(err)),
-          dom.domComputed(this._status, (s) => {
-            if (!s) { return cssLoading(loadingSpinner(), t("Loading permissions…")); }
-            return this._buildContent(s);
-          }),
+          this._buildContent(),
         );
       }),
     );
@@ -87,21 +61,15 @@ export class PermissionsSetupSection extends Disposable {
 
   private async _load() {
     try {
-      const s = await this._installAPI.getPermissionsStatus();
+      await this._model.loaded;
       if (this.isDisposed()) { return; }
-      this._status.set(s);
-      // Initialize all toggles from current server values.
-      this._toggles.teamSites.set(s.orgCreationAnyone.value ?? true);
-      this._toggles.personalSites.set(s.personalOrgs.value ?? true);
-      this._toggles.anonAccess.set(!(s.forceLogin.value ?? false));
-      this._toggles.playground.set(s.anonPlayground.value ?? true);
-      // Apply recommended preset — skips env-locked toggles, so their
-      // server values above are preserved.
-      this._applyPreset("recommended");
-      // When GRIST_SINGLE_ORG=docs, the personal org is the only org —
-      // disabling personal sites would make Grist non-functional.
+      // Recommended is the wizard default; applyPreset skips env-locked
+      // toggles, so their server values from load() are preserved.
+      this._model.applyPreset("recommended");
+      // GRIST_SINGLE_ORG=docs makes the personal org the only org —
+      // disabling personal sites would brick Grist.
       if (getGristConfig().singleOrg === "docs") {
-        this._toggles.personalSites.set(true);
+        this._model.toggles.personalSites.set(true);
       }
     } catch (e) {
       if (this.isDisposed()) { return; }
@@ -109,37 +77,19 @@ export class PermissionsSetupSection extends Disposable {
     }
   }
 
-  private _applyPreset(preset: string) {
-    const status = this._status.get();
-    for (const [toggleName, toggleValue] of Object.entries(PRESETS[preset])) {
-      // Don't override toggles locked by environment variables.
-      if (status && this._isEnvLocked(status, toggleName)) { continue; }
-      this._toggles[toggleName].set(toggleValue);
-    }
-  }
-
-  private _isEnvLocked(status: PermissionsStatus, toggleKey: string): boolean {
-    const def = TOGGLE_DEFS.find(d => d.key === toggleKey);
-    return !!def && status[def.permKey].source === "environment-variable";
-  }
-
   private async _handleGoLive() {
-    // Simple way for preventing multiple clicks.
     if (this._saving.get()) { return; }
     this._saving.set(true);
     this._error.set("");
     try {
-      await this._installAPI.updateInstallPrefs({ envVars: {
-        GRIST_ORG_CREATION_ANYONE: String(this._toggles.teamSites.get()),
-        GRIST_PERSONAL_ORGS: String(this._toggles.personalSites.get()),
-        GRIST_FORCE_LOGIN: String(!this._toggles.anonAccess.get()),
-        GRIST_ANON_PLAYGROUND: String(this._toggles.playground.get()),
-        GRIST_IN_SERVICE: "true",
-      } });
+      await this._model.apply();
+      // The wizard's Go Live step is what clears the post-setup gate;
+      // service status is its own concern, so set it via a separate call
+      // rather than bundling it into the permissions write.
+      await this._installAPI.updateInstallPrefs({ envVars: { GRIST_IN_SERVICE: "true" } });
       await this._configAPI.restartServer();
       await this._waitForReady();
       if (this.isDisposed()) { return; }
-      this._saving.set(false);
       this._restarted.set(true);
     } catch (e) {
       if (this.isDisposed()) { return; }
@@ -160,79 +110,16 @@ export class PermissionsSetupSection extends Disposable {
     window.location.href = getHomeUrl(); // avoid using urlState here, as it is meant for team navigation.
   }
 
-  private _buildContent(status: PermissionsStatus): DomContents {
+  private _buildContent(): DomContents {
     return dom("div",
-      cssStepTitle(t("Apply & Restart")),
-      cssStepDescription(
-        t("Review these defaults before going live. \
-You can change them later from the admin panel."),
-      ),
-      cssPermissionsSection(
-        dom.cls("disabled", this._saving),
-        cssSectionLabel(t("DEFAULT PERMISSIONS")),
-        cssPresetBar(
-          ...([
-            ["locked", t("Locked down")] as const,
-            ["recommended", t("Recommended")] as const,
-            ["open", t("Open")] as const,
-          ].map(([key, label]) =>
-            cssPresetButton(
-              label,
-              dom.cls("active", use => use(this._presetDetector) === key),
-              dom.on("click", () => this._applyPreset(key)),
-              testId(`preset-${key}`),
-            ),
-          )),
-        ),
+      quickSetupStepHeader({
+        icon: "Settings",
+        title: t("Apply & Restart"),
+        description: t("Review these defaults before going live. " +
+          "You can change them later from the admin panel."),
+      }),
+      buildPermissionsCard(this._model, { disabled: this._saving }),
 
-        // Toggle rows.
-        ...TOGGLE_DEFS.map(({ key, permKey, label, description }) => {
-          const locked = status[permKey].source === "environment-variable";
-          const conflict = key === "personalSites" && getGristConfig().singleOrg === "docs";
-          return cssPermissionRow(
-            cssPermissionToggle(
-              toggleSwitch(this._toggles[key], {
-                args: [locked ? dom.cls("disabled") : null],
-                inputArgs: locked ? [dom.prop("disabled", true)] : [],
-              }),
-            ),
-            cssPermissionInfo(
-              cssPermissionLabelRow(
-                cssPermissionLabel(label()),
-                locked ? cssBadge(cssBadge.cls("-warning"), t("Environment"), testId("env-badge")) : null,
-                conflict ? cssBadge(cssBadge.cls("-error"), t("Conflict"), testId("conflict-badge")) : null,
-              ),
-              cssPermissionDescription(description()),
-            ),
-            testId(`perm-${permKey}`),
-          );
-        }),
-
-        // Warning when some settings are locked by environment variables.
-        hasEnvLocked(status) ? cssWarningWell(
-          t("Some settings are controlled by environment variables and cannot be \
-changed here: {{vars}}. To modify them, update the corresponding variables \
-in your server configuration and restart.",
-          { vars: getEnvLockedVars(status).join(", ") }),
-          testId("env-warning"),
-        ) : null,
-
-        // GRIST_SINGLE_ORG warning.
-        getGristConfig().singleOrg ? cssWarningWell(
-          t("You have GRIST_SINGLE_ORG={{value}} set. With this, users only see one \
-site — but personal sites and team creation still work behind the \
-scenes. Worth locking down unless you have a specific reason to keep them.",
-          { value: getGristConfig().singleOrg! }),
-          getGristConfig().singleOrg === "docs" ? dom("div",
-            dom.style("margin-top", "8px"),
-            t("The personal org is the only org available — personal sites must \
-stay enabled or Grist will be non-functional."),
-          ) : null,
-          testId("single-org-warning"),
-        ) : null,
-      ),
-
-      // Bottom area: Go Live / Loading states.
       dom.maybe(this._saving, () =>
         cssRestartingRow(
           loadingSpinner(),
@@ -241,8 +128,7 @@ stay enabled or Grist will be non-functional."),
       ),
       dom.maybe(not(this._saving), () =>
         cssBottomRow(
-          bigPrimaryButton(t("Apply and Go Live!"),
-            cssGoLiveButton.cls(""),
+          cssGoLiveButton(t("Apply and Go Live!"),
             dom.on("click", () => this._handleGoLive()),
             testId("go-live"),
           ),
@@ -265,64 +151,103 @@ Grist is now in service and available to users.")),
   }
 }
 
-const PRESETS: Record<string, Record<string, boolean>> = {
-  locked: { teamSites: false, personalSites: false, anonAccess: false, playground: false },
-  recommended: { teamSites: false, personalSites: true, anonAccess: true,  playground: false },
-  open: { teamSites: true,  personalSites: true,  anonAccess: true,  playground: true },
+const PRESET_LABELS: Record<PresetName, () => string> = {
+  locked: () => t("Locked down"),
+  recommended: () => t("Recommended"),
+  open: () => t("Open"),
 };
 
-function hasEnvLocked(status: PermissionsStatus): boolean {
-  return TOGGLE_DEFS.some(({ permKey }) => status[permKey].source === "environment-variable");
+/**
+ * Renders the shared "Default Permissions" card: preset bar, the four
+ * permission toggle rows, and warning wells for env-locked toggles and
+ * GRIST_SINGLE_ORG. Used by both the QuickSetup wizard's "Apply & Restart"
+ * step and the admin panel's grouped permissions item so the two surfaces
+ * stay visually identical. Shows a spinner until the model's status loads.
+ *
+ * Pass `options.disabled` to grey out and lock the card (the wizard does
+ * this while the Go Live restart is in flight).
+ */
+export function buildPermissionsCard(
+  model: PermissionsToggleModel,
+  options: { disabled?: Observable<boolean> } = {},
+): DomContents {
+  return dom.domComputed(model.status, (status) => {
+    if (!status) { return cssLoading(loadingSpinner(), t("Loading permissions…")); }
+    return cssPermissionsSection(
+      options.disabled ? dom.cls("disabled", options.disabled) : null,
+      cssSectionLabel(t("DEFAULT PERMISSIONS")),
+      cssPresetBar(
+        ...(Object.keys(PRESET_LABELS) as PresetName[]).map(key =>
+          cssPresetButton(
+            PRESET_LABELS[key](),
+            dom.cls("active", use => use(model.presetDetector) === key),
+            dom.on("click", () => model.applyPreset(key)),
+            testId(`preset-${key}`),
+          ),
+        ),
+      ),
+
+      ...TOGGLE_DEFS.map(({ key, permKey, label, description }) => {
+        const locked = status[permKey].source === "environment-variable";
+        const conflict = model.hasConflict(key);
+        return cssPermissionRow(
+          cssPermissionToggle(
+            toggleSwitch(model.toggles[key], {
+              args: [locked ? dom.cls("disabled") : null],
+              inputArgs: locked ? [dom.prop("disabled", true)] : [],
+            }),
+          ),
+          cssPermissionInfo(
+            cssPermissionLabelRow(
+              cssPermissionLabel(label()),
+              locked ? cssBadge(cssBadge.cls("-warning"), t("Environment"), testId("env-badge")) : null,
+              conflict ? cssBadge(cssBadge.cls("-error"), t("Conflict"), testId("conflict-badge")) : null,
+            ),
+            cssPermissionDescription(description()),
+          ),
+          testId(`perm-${permKey}`),
+        );
+      }),
+
+      hasEnvLocked(status) ? cssWell(cssWell.cls("-warning"),
+        cssWellContent(
+          t("Some settings are controlled by environment variables and cannot be \
+changed here: {{vars}}. To modify them, update the corresponding variables \
+in your server configuration and restart.",
+          { vars: getEnvLockedVars(status).join(", ") }),
+        ),
+        testId("env-warning"),
+      ) : null,
+
+      getGristConfig().singleOrg ? cssWell(cssWell.cls("-warning"),
+        cssWellContent(
+          dom("p", t("You have GRIST_SINGLE_ORG={{value}} set. With this, users only see one \
+site — but personal sites and team creation still work behind the \
+scenes. Worth locking down unless you have a specific reason to keep them.",
+          { value: getGristConfig().singleOrg! })),
+          getGristConfig().singleOrg === "docs" ? dom("p",
+            t("The personal org is the only org available — personal sites must \
+stay enabled or Grist will be non-functional."),
+          ) : null,
+        ),
+        testId("single-org-warning"),
+      ) : null,
+    );
+  });
 }
 
-function getEnvLockedVars(status: PermissionsStatus): string[] {
-  return TOGGLE_DEFS
-    .filter(({ permKey }) => status[permKey].source === "environment-variable")
-    .map(({ envVar }) => envVar);
+/**
+ * Compact status for the admin-panel item's collapsed row, naming the
+ * active preset (or "Custom" when toggles match no preset). Mirrors
+ * {@link EditionSection.buildStatusDisplay} on neighbouring items.
+ */
+export function buildPermissionsStatusDisplay(model: PermissionsToggleModel): DomContents {
+  return dom.domComputed((use) => {
+    if (!use(model.status)) { return cssValueLabel(t("loading…")); }
+    const preset = use(model.presetDetector);
+    return cssValueLabel(preset ? PRESET_LABELS[preset]() : t("Custom"));
+  });
 }
-
-type PermissionKey = keyof Omit<PermissionsStatus, "singleOrg">;
-
-const TOGGLE_DEFS: {
-  key: string;
-  permKey: PermissionKey;
-  envVar: string;
-  label: () => string;
-  description: () => string;
-}[] = [
-  {
-    key: "teamSites",
-    permKey: "orgCreationAnyone",
-    envVar: "GRIST_ORG_CREATION_ANYONE",
-    label: () => t("Allow anyone to create team sites"),
-    description: () => t("Any logged-in user can create new team sites. \
-Turn off to restrict team creation to admins only."),
-  },
-  {
-    key: "personalSites",
-    permKey: "personalOrgs",
-    envVar: "GRIST_PERSONAL_ORGS",
-    label: () => t("Allow personal sites"),
-    description: () => t("Users can create their own personal sites with documents. \
-Turn off to restrict all documents to team sites managed by admins."),
-  },
-  {
-    key: "anonAccess",
-    permKey: "forceLogin",
-    envVar: "GRIST_FORCE_LOGIN",
-    label: () => t("Allow anonymous access"),
-    description: () => t("Visitors who aren't signed in can view publicly shared documents. \
-This is needed for link sharing and published forms."),
-  },
-  {
-    key: "playground",
-    permKey: "anonPlayground",
-    envVar: "GRIST_ANON_PLAYGROUND",
-    label: () => t("Allow anonymous playground"),
-    description: () => t("Visitors who aren't signed in can create and edit documents \
-in a temporary playground. Turn off to require sign-in before creating any documents."),
-  },
-];
 
 const cssLoading = styled("div", `
   display: flex;
@@ -342,23 +267,7 @@ const cssError = styled("div", `
   margin-bottom: 16px;
 `);
 
-const cssStepTitle = styled("div", `
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 8px;
-`);
-
-const cssStepDescription = styled("div", `
-  font-size: 14px;
-  color: ${theme.lightText};
-  line-height: 1.5;
-  margin-bottom: 20px;
-`);
-
-const cssPermissionsSection = styled("div", `
-  border: 1px solid ${theme.pagePanelsBorder};
-  border-radius: 8px;
-  padding: 16px 20px;
+const cssPermissionsSection = styled(cssQuickSetupCard, `
   transition: opacity 0.2s;
 
   &.disabled {
@@ -463,16 +372,6 @@ const cssPermissionDescription = styled("div", `
   line-height: 1.4;
 `);
 
-const cssWarningWell = styled("div", `
-  border: 2px solid ${theme.toastWarningBg};
-  border-radius: 8px;
-  padding: 12px 16px;
-  margin-top: 16px;
-  font-size: ${vars.smallFontSize};
-  line-height: 1.4;
-  color: ${theme.text};
-`);
-
 const cssBottomRow = styled("div", `
   display: flex;
   justify-content: stretch;
@@ -494,7 +393,7 @@ const cssRestartingRow = styled("div", `
   font-size: 14px;
 `);
 
-const cssGoLiveButton = styled("div", `
+const cssGoLiveButton = styled(cssShadowedPrimaryButton, `
   background-color: ${theme.toastSuccessBg};
   border-color: ${theme.toastSuccessBg};
   &:hover {

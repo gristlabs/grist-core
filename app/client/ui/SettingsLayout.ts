@@ -1,5 +1,6 @@
 import { hoverTooltip } from "app/client/ui/tooltips";
 import { transition } from "app/client/ui/transitions";
+import { bigPrimaryButton } from "app/client/ui2018/buttons";
 import { mediaSmall, testId, theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { tokens } from "app/common/ThemePrefs";
@@ -187,15 +188,40 @@ export const cssPageTitle = styled("h1", `
   font-weight: ${tokens.headerControlTextWeight};
 `);
 
-export const cssSection = styled("div", `
+/**
+ * Soft drop shadow shared by bordered cards and prominent buttons in the
+ * admin panel and QuickSetup, so both surfaces sit at the same visual depth.
+ * Use as a CSS value: `box-shadow: ${cardSurfaceShadow};`.
+ */
+export const cardSurfaceShadow = `2px 2px 12px 0px ${theme.widgetPickerShadow}`;
+
+/**
+ * Shared visual "card" surface: bordered, rounded, soft drop shadow,
+ * solid background. Used by the admin panel's outer section card and by
+ * the inner cards inside QuickSetup steps so both share the same look.
+ *
+ * Nested instances drop the shadow -- a card-inside-a-card would
+ * otherwise stack two shadows and look heavy. This handles the case
+ * where a section (e.g. AuthenticationSection) renders the same cards
+ * both standalone in QuickSetup and inside the admin panel's outer
+ * SectionCard.
+ */
+export const cssCardSurface = styled("div", `
+  border: 1px solid ${theme.widgetBorder};
+  border-radius: 12px;
+  box-shadow: ${cardSurfaceShadow};
+  background-color: ${tokens.bg};
+
+  & & {
+    box-shadow: none;
+  }
+`);
+
+export const cssSection = styled(cssCardSurface, `
   padding: 16px 32px 24px 32px;
   max-width: 750px;
   width: 100%;
   margin: 0 auto;
-  border: 1px solid ${theme.widgetBorder};
-  border-radius: 12px;
-  box-shadow: 2px 2px 12px 0px ${theme.widgetPickerShadow};
-  background-color: ${tokens.bg};
   &-bare {
     border: none;
     padding: 0px;
@@ -209,6 +235,34 @@ export const cssSection = styled("div", `
     & {
       padding: 12px;
     }
+  }
+`);
+
+/**
+ * Bordered card used to wrap a sub-section of a QuickSetup step
+ * (e.g. Base URL or Edition inside the Server step, the toggle list
+ * inside the Apply & Restart step). Inherits the shared bordered look
+ * from {@link cssCardSurface} so it tracks the admin panel's outer cards.
+ */
+export const cssQuickSetupCard = styled(cssCardSurface, `
+  padding: 16px 20px;
+  margin-bottom: 16px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+`);
+
+/**
+ * Big primary button with the shared card-surface drop shadow, so
+ * "Continue" / "Apply and Continue" / "Go Live" all sit at the same
+ * visual depth as the bordered cards on the page. The shadow drops
+ * when the button is disabled.
+ */
+export const cssShadowedPrimaryButton = styled(bigPrimaryButton, `
+  box-shadow: ${cardSurfaceShadow};
+  &:disabled, &[disabled] {
+    box-shadow: none;
   }
 `);
 
