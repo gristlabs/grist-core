@@ -64,6 +64,8 @@ describe("AttachedCustomWidget", function() {
   before(async function() {
     await buildWidgetServer();
     oldEnv = new EnvironmentSnapshot();
+    // Disable the bundled Calendar widget so that the version in the remote list is used instead.
+    process.env.GRIST_SKIP_BUNDLED_WIDGETS = "true";
     process.env.GRIST_WIDGET_LIST_URL = `${widgetServerUrl}${manifestEndpoint}`;
     process.env.PERMITTED_CUSTOM_WIDGETS = "calendar";
     await server.restart();
@@ -102,6 +104,12 @@ describe("AttachedCustomWidget", function() {
     assert.isEmpty(widgetPermission, "Widget permission is not expected to be present");
     assert.exists(widgetOptions, "Widget options is expected to be present");
     assert.exists(widgetMapping, "Widget mapping is expected to be present");
+  });
+
+  it("should be loading the server widget, not a bundled version", async () => {
+    const src = await driver.findWait("iframe.custom_view", 1000).getAttribute("src");
+    const srcUrl = new URL(src);
+    assert.equal(srcUrl.origin, widgetServerUrl);
   });
 
   it("should display the content of the widget", async () => {

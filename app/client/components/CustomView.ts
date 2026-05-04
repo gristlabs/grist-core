@@ -42,6 +42,7 @@ const testId = makeTestId("test-custom-widget-");
  */
 export interface CustomViewSettings {
   widgetId?: string;
+  pluginId?: string;
   accessLevel?: AccessLevel;
 }
 
@@ -268,7 +269,7 @@ Please contact document owner or modify access rules."),
               access: builtInSettings.accessLevel || (_access as AccessLevel || AccessLevel.none),
               showAfterReady: showAfterReady(),
               widgetId: builtInSettings.widgetId || _widgetId,
-              pluginId: _pluginId,
+              pluginId: builtInSettings.pluginId || _pluginId,
             }),
           ) :
           null,
