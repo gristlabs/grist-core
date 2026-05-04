@@ -21,6 +21,7 @@ import { theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { unstyledButton } from "app/client/ui2018/unstyled";
 import { ApiError } from "app/common/ApiError";
+import { AdminPanelPage } from "app/common/gristUrls";
 import { isEmail } from "app/common/gutil";
 import { tokens } from "app/common/ThemePrefs";
 
@@ -223,7 +224,9 @@ check your terminal, container logs, or hosting panel: {{exampleBootKeyBanner}}`
 
             this._loginError.set(null);
 
-            window.location.assign(urlState().makeUrl({ adminPanel: "admin" }));
+            const nextParam = new URLSearchParams(window.location.search).get("next");
+            const next = AdminPanelPage.parse(nextParam) || "admin";
+            window.location.assign(urlState().makeUrl({ adminPanel: next }));
           },
           onError: (e) => {
             if (this.isDisposed()) { return; }
