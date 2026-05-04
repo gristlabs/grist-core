@@ -2,7 +2,7 @@ import { ICustomWidget, matchWidget } from "app/common/CustomWidget";
 
 import { assert } from "chai";
 
-describe("matchWidget", function() {
+describe("CustomWidget", function() {
   // Helper to create a minimal widget for testing.
   function makeWidget(widgetId: string, opts?: {
     pluginId?: string,
