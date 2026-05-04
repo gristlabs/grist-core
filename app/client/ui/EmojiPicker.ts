@@ -2,7 +2,7 @@ import data from "@emoji-mart/data";
 import { Picker } from "emoji-mart";
 import { DomContents } from "grainjs";
 
-interface EmojiPickerOptions {
+export interface EmojiPickerOptions {
   onEmojiSelect: (emoji: any) => void;
   theme?: "auto" | "dark" | "light";
 }
