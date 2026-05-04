@@ -3068,5 +3068,11 @@
         "Apply and Continue": "Apply and Continue",
         "Applying...": "Applying...",
         "Continue": "Continue"
+    },
+    "AdminAccessDeniedCard": {
+        "Administrator Panel Unavailable": "Administrator Panel Unavailable",
+        "If you are the server operator, you can sign in using the boot key from your server logs.": "If you are the server operator, you can sign in using the boot key from your server logs.",
+        "Sign in with boot key": "Sign in with boot key",
+        "You do not have access to the administrator panel.\nPlease log in as an administrator.": "You do not have access to the administrator panel.\nPlease log in as an administrator."
     }
 }
