@@ -941,6 +941,7 @@ export class FlexServer implements GristServer {
     this.info.push(["database", getDatabaseUrl(this._dbManager.connection.options, false)]);
     this._activations = new ActivationsManager(this._dbManager);
     this._installAdmin = await this.create.createInstallAdmin(this._dbManager);
+    this._dbManager.setInstallAdmin(this._installAdmin);
   }
 
   public addDocWorkerMap() {
