@@ -255,4 +255,59 @@ function addTriggersTests(getCtx: () => TestContext) {
     const res = await docApi.getWebhooks();
     assert.deepEqual(res.webhooks, []);
   });
+
+  it("PATCH /triggers heals orphaned webhook secret on a copied doc", async function() {
+    const { userApi } = getCtx();
+
+    const sourceDocId = await getCtx().getOrCreateTestDoc();
+    const tableRef = await getTableRef(docApi, "Table1");
+    await docApi.addTriggers({
+      records: [{ fields: { tableRef, label: "Mixed", enabled: true, actions: JSON.stringify([
+        // make sure that webhook action is first as, it will be broken by the copy.
+        { type: "webhook", url: "https://example.com" },
+        { type: "email", to: "a@b.com", subject: "S", body: "B" },
+      ]) } }],
+    });
+    const sourceTriggers = await docApi.getTriggers();
+    const sourceActions = JSON.parse(sourceTriggers.records[0].fields.actions!) as any[];
+    const sourceWebhookId = sourceActions.find(a => a.type === "webhook").id;
+
+    // Now make the copy of this document, so that actions ids are pointing to the wrong document in the secrets
+    // table.
+    const wid = (await userApi.getOrgWorkspaces("current")).find(w => w.name === "Private")!.id;
+    const newDocId = await userApi.copyDoc(sourceDocId, wid, { documentName: `orphan-${Date.now()}` });
+    const newDocApi = userApi.getDocAPI(newDocId);
+
+    // Make sure we still have triggers configured.
+    const newTriggers = await newDocApi.getTriggers();
+    assert.lengthOf(newTriggers.records, 1);
+    const newActions = JSON.parse(newTriggers.records[0].fields.actions!) as any[];
+    const orphanWebhook = newActions.find(a => a.type === "webhook");
+    assert.equal(orphanWebhook.id, sourceWebhookId);
+
+    // The API was trying to the the secret for the webhook action and failed to find it, but instead of throwing any
+    // error it just shows the empty webhook.
+    assert.isUndefined(orphanWebhook.url);
+
+    // Also make sure we have 2 actions here.
+    assert.equal(newActions.filter(a => a.type === "email").length, 1);
+
+    // Without the self-heal, updateSecret would throw 404
+    const patched = newActions.map(a =>
+      a.type === "webhook" ? { ...a, url: "https://example.com" } : a,
+    );
+    await newDocApi.updateTriggers({
+      records: [{ id: newTriggers.records[0].id, fields: { actions: JSON.stringify(patched) } }],
+    });
+
+    // Check that the trigger looks ok now.
+    const fromCopy = await newDocApi.getTriggers();
+    const healedActions = JSON.parse(fromCopy.records[0].fields.actions!) as any[];
+    const healedWebhook = healedActions.find(a => a.type === "webhook");
+    assert.notEqual(healedWebhook.id, sourceWebhookId);
+    assert.equal(healedWebhook.url, "https://example.com");
+    assert.equal(healedActions.find(a => a.type === "email").to, "a@b.com");
+    // And it is not enabled
+    assert.equal(fromCopy.records[0].fields.enabled, false);
+  });
 }

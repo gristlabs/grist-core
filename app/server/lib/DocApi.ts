@@ -686,6 +686,7 @@ export class DocWorkerApi {
         removeHistory: false,
         removeFullCopiesSpecialRight: true,
         markAction: true,
+        disableTriggers: true,
       });
       res.json({ srcDocId, docId });
     }));

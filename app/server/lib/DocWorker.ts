@@ -96,6 +96,7 @@ export class DocWorker {
       removeHistory,
       removeFullCopiesSpecialRight: true,
       markAction: true,
+      disableTriggers: true,
     });
     // NOTE: We may want to reconsider the mimeType used for Grist files.
     return res.type("application/x-sqlite3")

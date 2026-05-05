@@ -125,8 +125,8 @@ export class WebhookQueue implements ActionQueue<WebhookActionPayload> {
   // Modifications to this queue should be replicated on the redis queue.
   private _webHookEventQueue: WebhookActionPayload[] = [];
 
-  // DB cache for webhook secrets
-  private _webhookCache = new MapWithTTL<string, WebHookSecret>(WEBHOOK_CACHE_TTL);
+  // DB cache for webhook secrets.
+  private _webhookCache = new MapWithTTL<string, WebHookSecret | null>(WEBHOOK_CACHE_TTL);
 
   // Set to true by shutdown().
   // Indicates that loops (especially for sending requests) should stop.
@@ -393,17 +393,18 @@ export class WebhookQueue implements ActionQueue<WebhookActionPayload> {
   }
 
   private async _getWebHook(id: string): Promise<WebHookSecret | undefined> {
-    let webhook = this._webhookCache.get(id);
-    if (!webhook) {
-      const secret = await this._activeDoc.getHomeDbManager()?.getSecret(id, this._docId);
-      if (!secret) {
-        this._log(`No webhook secret found`, { level: "warn", id });
-        return;
-      }
-      webhook = JSON.parse(secret);
-      this._webhookCache.set(id, webhook!);
+    if (this._webhookCache.has(id)) {
+      return this._webhookCache.get(id) ?? undefined;
     }
-    return webhook!;
+    const secret = await this._activeDoc.getHomeDbManager()?.getSecret(id, this._docId);
+    if (!secret) {
+      this._log(`No webhook secret found`, { level: "warn", id });
+      this._webhookCache.set(id, null);
+      return;
+    }
+    const webhook = JSON.parse(secret) as WebHookSecret;
+    this._webhookCache.set(id, webhook);
+    return webhook;
   }
 
   private async _getWebHookUrl(id: string): Promise<string | undefined> {

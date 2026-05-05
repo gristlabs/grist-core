@@ -151,9 +151,13 @@ async function extractAndUpdateActionSecret(
   validateActionUrl(action);
   const { docAction, secretData } = extractSecrets(action);
   if (Object.keys(secretData).length > 0) {
-    // Read existing secret, merge updated fields, and write back
     const existing = await dbManager.getSecret(action.id, docId);
-    const existingData: ActionSecretData = existing ? JSON.parse(existing) : {};
+    if (!existing) {
+      // Orphaned secret (e.g. after copy/fork): heal by creating a fresh one rather
+      // than letting updateSecret throw 404 and abort sibling actions in the batch.
+      return await createActionSecret(action, dbManager, docId);
+    }
+    const existingData: ActionSecretData = JSON.parse(existing);
     const merged = { ...existingData, ...secretData };
     await dbManager.updateSecret(action.id, docId, JSON.stringify(merged));
   }
