@@ -26,11 +26,14 @@ export class TestServer {
     tempDirectory: string,
     suitename: string,
     customEnv?: NodeJS.ProcessEnv,
-    _homeUrl?: string,
+    _homeUrl?: string | "auto",   // eslint-disable-line @typescript-eslint/no-redundant-type-constituents
     options: { output?: Writable } = {},      // Pipe server output to the given stream
   ): Promise<TestServer> {
     const port = await getAvailablePort(parseInt(process.env.GET_AVAILABLE_PORT_START || "8080", 10));
     const server = new this(serverTypes, port, tempDirectory, suitename);
+    if (_homeUrl === "auto") {
+      _homeUrl = `http://localhost:${port}`;
+    }
     await server.start(_homeUrl, customEnv, options);
     return server;
   }

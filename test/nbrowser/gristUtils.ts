@@ -3686,27 +3686,38 @@ namespace gristUtils {
  *
  * Useful for local testing of features that depend on environment variables, as it avoids the need
  * to restart the server when those variables are already set.
+ *
+ * Returns a `restartWithEnv(moreVars)` helper that applies additional env vars and restarts the
+ * server. Useful when several sibling describes each need the server in a different state: pass
+ * no vars to the outer call (just to own the snapshot) and call the returned helper in each
+ * inner `before`. The outer `after` restores the original env and restarts once at the end.
  */
-  export function withEnvironmentSnapshot(vars: Record<string, any>) {
+  export function withEnvironmentSnapshot(vars: Record<string, any> = {}) {
     let oldEnv: testUtils.EnvironmentSnapshot | null = null;
-    before(async () => {
-    // Test if the vars are already set, and if so, skip.
-      if (Object.keys(vars).every(k => process.env[k] === vars[k])) { return; }
-      oldEnv = new testUtils.EnvironmentSnapshot();
-      for (const key of Object.keys(vars)) {
-        if (vars[key] === undefined || vars[key] === null) {
+    let needsRestoreRestart = false;
+    async function restartWithEnv(newVars: Record<string, any>) {
+      for (const key of Object.keys(newVars)) {
+        if (newVars[key] === undefined || newVars[key] === null) {
           delete process.env[key];
         } else {
-          process.env[key] = vars[key];
+          process.env[key] = newVars[key];
         }
       }
+      needsRestoreRestart = true;
       await server.restart();
+    }
+    before(async () => {
+      oldEnv = new testUtils.EnvironmentSnapshot();
+      // Skip the restart if all requested vars are already set (or if none were requested).
+      if (Object.keys(vars).every(k => process.env[k] === vars[k])) { return; }
+      await restartWithEnv(vars);
     });
     after(async () => {
-      if (!oldEnv || noCleanup) { return; }
+      if (!oldEnv || !needsRestoreRestart || noCleanup) { return; }
       oldEnv.restore();
       await server.restart();
     });
+    return restartWithEnv;
   }
 
   /**

@@ -37,7 +37,7 @@ describe("ViewContextMenu", function() {
 
   it("should hide the context menu when clicking outside of it after opening it with keyboard", async function() {
     await pressShiftF10();
-    assert.isTrue(await gu.findOpenMenu().isDisplayed());
+    assert.isTrue(await gu.findOpenMenu(200).isDisplayed());
     await gu.selectSectionByTitle("Table1");
     await gu.waitForMenuToClose();
   });
