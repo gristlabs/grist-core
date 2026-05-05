@@ -1,8 +1,10 @@
 import { Activation } from "app/gen-server/entity/Activation";
 import { expandProviderList, itemValue, toggleItem } from "test/nbrowser/AdminPanelTools";
 import * as gu from "test/nbrowser/gristUtils";
+import { startMockOIDCIssuer } from "test/nbrowser/oidcMockServer";
+import { useFastSandboxProbe } from "test/nbrowser/sandboxProbeFixture";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
-import { Defer, serveSomething, Serving } from "test/server/customUtil";
+import { Defer, Serving } from "test/server/customUtil";
 import * as testUtils from "test/server/testUtils";
 
 import * as express from "express";
@@ -24,26 +26,12 @@ describe("AuthProviderGetGrist", function() {
     process.env.GRIST_TEST_SERVER_DEPLOYMENT_TYPE = "core";
     // Make sure no APP_HOME_URL is set, to use calculated one.
     delete process.env.APP_HOME_URL;
+    useFastSandboxProbe();
     await server.restart();
 
-    serving = await serveSomething((app) => {
-      app.use((req, res, next) => {
-        currentRequest.set(req);
-        next();
-      });
-      app.use(express.json());
-      app.get("/.well-known/openid-configuration", (req, res) => {
-        res.json({
-          issuer: `${serving.url}?provider=getgrist.com`,
-          authorization_endpoint: `${serving.url}/authorize`,
-        });
-      });
-      app.get("/authorize", (req, res) => {
-        res.sendStatus(200);
-      });
-      app.use((req) => {
-        console.warn(`Unexpected request to test OIDC server: ${req.method} ${req.url}`);
-      });
+    serving = await startMockOIDCIssuer({
+      authorize: true,
+      onRequest: req => currentRequest.set(req),
     });
   });
 

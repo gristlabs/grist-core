@@ -2,6 +2,7 @@ import { buildHomeBanners } from "app/client/components/Banners";
 import { makeT } from "app/client/lib/localization";
 import { markdown } from "app/client/lib/markdown";
 import { getTimeFromNow } from "app/client/lib/timeUtils";
+import { redirectToLogin } from "app/client/lib/urlUtils";
 import { AdminCheckRequest, AdminChecks, probeDetails, ProbeDetails } from "app/client/models/AdminChecks";
 import { AppModel, getHomeUrl, reportError } from "app/client/models/AppModel";
 import { AuditLogsModel, AuditLogsModelImpl } from "app/client/models/AuditLogsModel";
@@ -202,6 +203,9 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
   // separately via `_drafts.needsRestart`; both are combined into
   // `_showRestartBanner`.
   public needsRestart = Observable.create(this, false);
+  // Set when a pending change will sign the admin out on apply. Read
+  // after restart to route through /login.
+  public needsLogin = Observable.create(this, false);
   // Sticky flag: true after the user has applied changes without a restart
   // in an environment that doesn't support auto-restart. Keeps the manual
   // restart reminder on screen until the user reloads the page. Cleared only
@@ -298,10 +302,21 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
     // their own. They only mark themselves `needsRestart` and route through
     // here, so a single user click always produces exactly one restart even
     // when several sections are dirty at once.
+    // Snapshot before applying: the restart clears it.
+    const willInvalidateSession = this.needsLogin.get();
+
     if (this._drafts.needsRestart.get()) {
       await this._drafts.applyAll();
     } else {
       await this._configAPI.restartServer();
+      if (!await this._configAPI.waitUntilReady()) {
+        await reloadSafe();
+        return;
+      }
+    }
+    if (willInvalidateSession) {
+      redirectToLogin();
+      return;
     }
     await reloadSafe();
   }

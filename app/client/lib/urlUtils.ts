@@ -87,6 +87,11 @@ export function getLoginOrSignupUrl(options: GetLoginOrSignupUrlOptions = {}): s
   return getLoginPageUrl("signin", options);
 }
 
+// Navigate the browser to the login page, with the current URL as `nextUrl`.
+export function redirectToLogin() {
+  window.location.assign(getLoginUrl({ nextUrl: window.location.href }));
+}
+
 export function getWelcomeHomeUrl() {
   const url = buildURL("/welcome/home", {
     hash: null,
