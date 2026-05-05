@@ -57,7 +57,7 @@ import { buildInstallationIdDisplay } from "app/client/ui/ToggleEnterpriseWidget
 import { createTopBarHome } from "app/client/ui/TopBar";
 import { createUserImage } from "app/client/ui/UserImage";
 import { fullBreadcrumbs } from "app/client/ui2018/breadcrumbs";
-import { basicButton, bigBasicButton, bigPrimaryButton, bigPrimaryButtonLink } from "app/client/ui2018/buttons";
+import { basicButton, bigBasicButton, bigPrimaryButton } from "app/client/ui2018/buttons";
 import { testId, theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { cssLink, makeLinks } from "app/client/ui2018/links";

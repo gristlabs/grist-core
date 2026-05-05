@@ -131,12 +131,12 @@ export class PermissionsToggleModel extends Disposable implements ConfigSection 
     }
   }
 
-  public describeChange(): DraftChangeDescription {
+  public describeChange(): DraftChangeDescription[] {
     const changed = TOGGLE_DEFS
       .filter(({ key }) => !this.isEnvLocked(key))
       .filter(({ key }) => this.toggles[key].get() !== this._serverValues[key].get())
       .map(({ key, label }) => `${label()}: ${this.toggles[key].get() ? t("on") : t("off")}`);
-    return { label: t("Permissions"), value: changed.join(", ") };
+    return [{ label: t("Permissions"), value: changed.join(", ") }];
   }
 
   private async _load(): Promise<void> {
