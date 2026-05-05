@@ -19,10 +19,6 @@
     "rootDir": "..",
     "outDir": "../_build",
     "paths": {
-      // file-type v17+ is ESM-only. With moduleResolution: "node", TypeScript cannot resolve types
-      // from the "exports" field. This path alias points directly to the type declarations.
-      // Note: if file-type changes its internal layout, this path may need to be updated.
-      "file-type": ["node_modules/file-type/source/index"],
       "*": [
         "*",
         "grist-core/*",

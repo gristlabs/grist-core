@@ -1,5 +1,6 @@
 import * as path from "path";
 
+import { fileTypeFromFile } from "file-type";
 import { extension, lookup } from "mime-types";
 
 /**
@@ -34,7 +35,6 @@ export async function guessExt(filePath: string, fileName: string, mimeType: str
   }
 
   // If not, let's take a look at the file contents.
-  const { fileTypeFromFile } = await import("file-type");
   const detected = await fileTypeFromFile(filePath);
   const detectedExt = detected ? "." + detected.ext : null;
   if (detectedExt) {
