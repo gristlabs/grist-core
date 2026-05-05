@@ -492,7 +492,7 @@ effect after you restart Grist."),
     saveModal((_ctl, owner) => {
       const changeAdminModal = ChangeAdminModal.create(owner, {
         currentUserEmail,
-        defaultEmail: this._getgristLoginOwner.get().email,
+        defaultEmail: this._getgristLoginOwner.get()?.email,
         onSave: async ({ email, replace }) => {
           await this._setInstallAdmin(email, replace);
         },

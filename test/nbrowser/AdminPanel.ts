@@ -63,6 +63,16 @@ describe("AdminPanel", function() {
     assert.equal(await driver.find(".test-admin-panel").isDisplayed(), true);
   });
 
+  it("opens the change-admin modal when no getgrist provider is configured", async function() {
+    session = await gu.session().personalSite.login();
+    await driver.get(`${server.getHost()}/admin`);
+    await gu.waitForAdminPanel();
+    await toggleItem("authentication");
+    await driver.findWait(".test-admin-auth-change-admin", 2000).click();
+    await driver.findWait(".test-modal-dialog", 2000);
+    await driver.sendKeys(Key.ESCAPE);
+  });
+
   it("should include support-grist section", async function() {
     assert.match(
       await driver.findWait(".test-admin-panel-item-sponsor", 3000).getText(),
