@@ -102,6 +102,24 @@ export class AdminChecks {
     this._requests.clear();
     await this.fetchAvailableChecks();
   }
+
+  /**
+   * Force a check result for a given probe ID, creating the probe entry
+   * if it doesn't exist. Used by mockup controls in the setup wizard.
+   */
+  public forceCheckResult(id: BootProbeIds, result: BootProbeResult) {
+    const current = this.probes.get();
+    if (!current.find(p => p.id === id)) {
+      this.probes.set([...current, { id, name: id }]);
+    }
+    let ob = this._results.get(id);
+    if (!ob) {
+      ob = Observable.create(this._parent, result);
+      this._results.set(id, ob);
+    } else {
+      ob.set(result);
+    }
+  }
 }
 
 /**

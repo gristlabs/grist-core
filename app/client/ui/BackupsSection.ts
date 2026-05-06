@@ -1,6 +1,7 @@
 import { makeT } from "app/client/lib/localization";
 import { AdminChecks } from "app/client/models/AdminChecks";
 import { AdminPanelControls, cssDangerText, cssHappyText } from "app/client/ui/AdminPanelCss";
+import { mockupState } from "app/client/ui/MockupState";
 import { quickSetupStepHeader } from "app/client/ui/QuickSetupStepHeader";
 import { cssCardSurface, cssValueLabel } from "app/client/ui/SettingsLayout";
 import { colors } from "app/client/ui2018/cssVars";
@@ -232,6 +233,9 @@ export class BackupsSection extends Disposable {
   }
 
   private _getBackupsProbeDetails(use: UseCBOwner): BackupsBootProbeDetails | undefined {
+    // MOCKUP: if the mockup panel has overridden backups, use that.
+    const override = use(mockupState.backups);
+    if (override) { return override; }
     const req = this._props.checks.requestCheckById(use, "backups");
     const result = req ? use(req.result) : undefined;
     if (!result) { return undefined; }

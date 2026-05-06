@@ -11,6 +11,7 @@ import {
   cssSectionDescription,
 } from "app/client/ui/AdminPanelCss";
 import { ConfigSection } from "app/client/ui/DraftChanges";
+import { mockupState } from "app/client/ui/MockupState";
 import { cssValueLabel } from "app/client/ui/SettingsLayout";
 import { ToggleEnterpriseWidget } from "app/client/ui/ToggleEnterpriseWidget";
 import { primaryButton } from "app/client/ui2018/buttons";
@@ -75,7 +76,10 @@ export class EditionSection extends Disposable implements ConfigSection {
     super();
 
     const overrides = _options.overrides ?? {};
-    this.fullGristAvailable = overrides.fullGristAvailable ?? showEnterpriseToggle();
+    // MOCKUP: if the mockup panel has overridden Full Grist availability, use that.
+    const mockOverride = mockupState.fullGristAvailable.get();
+    this.fullGristAvailable = overrides.fullGristAvailable ??
+      (mockOverride !== null ? mockOverride : showEnterpriseToggle());
     this.editionForced = overrides.editionForced ?? !!getGristConfig().forceEnableEnterprise;
 
     const notifier = this._options.notifier;

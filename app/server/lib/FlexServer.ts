@@ -36,6 +36,7 @@ import { addRequestUser, getUser, getUserId, isAnonymousUser,
   isSingleUserMode, redirectToLoginUnconditionally } from "app/server/lib/Authorizer";
 import { redirectToLogin, RequestWithLogin, signInStatusMiddleware } from "app/server/lib/Authorizer";
 import { BootKeyLoginMiddleware } from "app/server/lib/Boot";
+import { addBootKeyRoutes } from "app/server/lib/BootKeyLogin";
 import { forceSessionChange } from "app/server/lib/BrowserSession";
 import { Comm } from "app/server/lib/Comm";
 import { ConfigBackendAPI } from "app/server/lib/ConfigBackendAPI";
@@ -224,6 +225,7 @@ export class FlexServer implements GristServer {
   private _emitNotifier: EmitNotifier = new EmitNotifier();
   private _latestVersionAvailable?: LatestVersionAvailable;
   private _oauth2Clients?: OAuth2Clients;
+  private _dbInService: string | undefined;  // GRIST_IN_SERVICE from activation DB prefs
 
   constructor(public port: number, public name: string = "flexServer",
     public readonly options: FlexServerOptions = {}) {
@@ -665,17 +667,25 @@ export class FlexServer implements GristServer {
     const middleware = new BootKeyLoginMiddleware(this);
     await middleware.addEndpoints(this.app);
 
+    // POC: also register the front-page mockup's /auth/boot-key routes so the
+    // setup wizard mockup can demo the boot-key login flow.
+    addBootKeyRoutes(this.app, this);
+
     // Paths that are always allowed, even when service is unavailable.
     const allowedPaths = [
       // The admin and boot landing pages, and all /boot API endpoints.
       /^\/admin(?:\/.*)?(?:\?.*)?$/,
       /^\/boot(?:\/.*)?(?:\?.*)?$/,
+      /^\/auth\/boot-key(?:\/.*)?(?:\?.*)?$/,
 
       // The client logging endpoint.
       /^\/api\/log(?:\/.*)?(?:\?.*)?$/,
 
       // The session endpoints. Used on /admin to list users in user switcher.
       /^\/api\/session(?:\/.*)?(?:\?.*)?$/,
+
+      // POC mockup control endpoints (pre-Go-Live demo helpers).
+      /^\/api\/setup\/.*$/,
 
       // The healthcheck endpoint.
       /^\/status(?:\/.*)?(?:\?.*)?$/,
@@ -2287,6 +2297,32 @@ export class FlexServer implements GristServer {
    */
   public getUserIdMiddleware(): express.RequestHandler {
     return this._userIdMiddleware;
+  }
+
+  /**
+   * Check whether this Grist installation is "in service" (should serve
+   * normal requests) or needs initial setup.
+   */
+  public isInService(): boolean {
+    // Explicit GRIST_IN_SERVICE always takes precedence (set by admin
+    // in Docker/shell, or by Go Live endpoint at runtime).
+    const envVal = process.env.GRIST_IN_SERVICE;
+    if (envVal !== undefined) {
+      return isAffirmative(envVal);
+    }
+    // In test environments, default to in-service unless the test
+    // explicitly forces the setup gate on.
+    if (process.env.GRIST_TESTING_SOCKET) {
+      return !isAffirmative(process.env.GRIST_FORCE_SETUP_GATE);
+    }
+    // Check DB-persisted value (set by setup wizard / admin panel).
+    // Fresh installs persist GRIST_IN_SERVICE=false (see ActivationsManager).
+    // This is NOT propagated to process.env to keep test environments clean.
+    if (this._dbInService !== undefined) {
+      return isAffirmative(this._dbInService);
+    }
+    // No value anywhere — existing installation upgrading, default to in-service.
+    return true;
   }
 
   // Adds endpoints that support imports and exports.

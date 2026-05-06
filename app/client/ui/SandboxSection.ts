@@ -1,6 +1,7 @@
 import { makeT } from "app/client/lib/localization";
 import { getHomeUrl } from "app/client/models/AppModel";
 import { ConfigSection, DraftChangesManager } from "app/client/ui/DraftChanges";
+import { mockupState } from "app/client/ui/MockupState";
 import { quickSetupStepHeader } from "app/client/ui/QuickSetupStepHeader";
 import { BadgeConfig, buildCardList, buildHeroCard, buildItemCard } from "app/client/ui/SetupCard";
 import { theme, vars } from "app/client/ui2018/cssVars";
@@ -79,7 +80,9 @@ abstract class SandboxSectionBase extends Disposable {
   }
 
   private async _loadStatus() {
-    const result = await this._installAPI.runCheck("sandbox-providers");
+    // MOCKUP: if the mockup panel has overridden sandbox status, use that.
+    const override = mockupState.sandboxStatus.get();
+    const result = override ? { details: override } : await this._installAPI.runCheck("sandbox-providers");
     const model = sortedByPreference(result.details as SandboxingStatus);
     if (this.isDisposed()) { return; }
 

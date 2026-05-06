@@ -15,6 +15,9 @@ import { App } from "app/client/ui/App";
 import { BootAPI } from "app/client/ui/BootAPI";
 import { textInput } from "app/client/ui/inputs";
 import { buildLanguageMenu } from "app/client/ui/LanguageMenu";
+import {
+  buildMockupPanel, cssMockupButton, cssMockupDesc, cssMockupRow, cssMockupSection,
+} from "app/client/ui/MockupPanel";
 import { pagePanels } from "app/client/ui/PagePanels";
 import { textButton } from "app/client/ui2018/buttons";
 import { theme } from "app/client/ui2018/cssVars";
@@ -91,6 +94,7 @@ export class BootPage extends Disposable {
   }
 
   private _buildMainContent() {
+    const hideMockup = new URLSearchParams(window.location.search).has("no-mockup");
     return cssMainContent(
       { tabIndex: "-1" },
       cssFadeUpGristLogo(),
@@ -116,7 +120,78 @@ export class BootPage extends Disposable {
           }
         }),
       ),
+      hideMockup ? null : this._buildMockupControls(),
       testId("content"),
+    );
+  }
+
+  /**
+   * Marketing-demo controls for the boot page. Append `?no-mockup` to hide.
+   */
+  private _buildMockupControls() {
+    const bootKeyDisplay = Observable.create<string>(this, "");
+    const lastError = Observable.create<string>(this, "");
+
+    const callMockupApi = async (path: string, options: RequestInit = {}) => {
+      try {
+        const resp = await fetch(path, {
+          headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+          ...options,
+        });
+        if (!resp.ok) {
+          const body = await resp.text();
+          lastError.set(`${resp.status}: ${body.slice(0, 200)}`);
+          return null;
+        }
+        lastError.set("");
+        return resp.json();
+      } catch (e) {
+        lastError.set(String(e));
+        return null;
+      }
+    };
+
+    return buildMockupPanel("Mockup controls",
+      cssMockupDesc("For user testing only. Append ?no-mockup to the URL to hide this panel."),
+
+      cssMockupSection("Boot key"),
+      cssMockupRow(
+        cssMockupButton("Show boot key", dom.on("click", async () => {
+          const result = await callMockupApi("/api/setup/mockup-boot-key-login");
+          if (result) { bootKeyDisplay.set(result.bootKey || "(none)"); }
+        })),
+        cssMockupButton("Auto-fill", dom.on("click", async () => {
+          const result = await callMockupApi("/api/setup/mockup-boot-key-login");
+          if (result?.bootKey) {
+            this._bootKey.set(result.bootKey);
+            bootKeyDisplay.set(result.bootKey);
+          }
+        })),
+      ),
+      cssMockupRow(
+        dom.maybe(bootKeyDisplay, key => cssMockupDesc(`Boot key: ${key}`)),
+      ),
+
+      cssMockupSection("Service status"),
+      cssMockupDesc("Flip GRIST_IN_SERVICE on the server. Reload to see the gate appear/disappear."),
+      cssMockupRow(
+        cssMockupButton("Put in service", dom.on("click", async () => {
+          await callMockupApi("/api/setup/mockup-set-in-service", {
+            method: "POST",
+            body: JSON.stringify({ inService: true }),
+          });
+        })),
+        cssMockupButton("Take out of service", dom.on("click", async () => {
+          await callMockupApi("/api/setup/mockup-set-in-service", {
+            method: "POST",
+            body: JSON.stringify({ inService: false }),
+          });
+        })),
+      ),
+
+      cssMockupRow(
+        dom.maybe(lastError, e => cssMockupDesc(`Error: ${e}`)),
+      ),
     );
   }
 
@@ -225,7 +300,8 @@ check your terminal, container logs, or hosting panel: {{exampleBootKeyBanner}}`
             this._loginError.set(null);
 
             const nextParam = new URLSearchParams(window.location.search).get("next");
-            const next = AdminPanelPage.parse(nextParam) || "admin";
+            // Default to Quick Setup after boot-key login, not the Installation page.
+            const next = AdminPanelPage.parse(nextParam) || "setup";
             window.location.assign(urlState().makeUrl({ adminPanel: next }));
           },
           onError: (e) => {
