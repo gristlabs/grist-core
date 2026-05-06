@@ -1,5 +1,9 @@
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import {
+  checkFilesystemExternalStorage,
+  configureFilesystemExternalStorage,
+} from "app/server/lib/configureFilesystemExternalStorage";
+import {
   checkMinIOBucket,
   checkMinIOExternalStorage,
   configureMinIOExternalStorage,
@@ -17,6 +21,12 @@ export class CoreCreate extends BaseCreate {
         check: () => checkMinIOExternalStorage() !== undefined,
         checkBackend: () => checkMinIOBucket(),
         create: configureMinIOExternalStorage,
+      },
+      // filesystem is last so a real backend takes precedence if both are configured.
+      {
+        name: "filesystem",
+        check: () => checkFilesystemExternalStorage() !== undefined,
+        create: configureFilesystemExternalStorage,
       },
     ];
     super("core", storage);

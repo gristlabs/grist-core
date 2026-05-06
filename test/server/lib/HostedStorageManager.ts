@@ -24,6 +24,7 @@ import {
   ExternalStorageSettings,
   wrapWithKeyMappedStorage,
 } from "app/server/lib/ExternalStorage";
+import { FilesystemExternalStorage } from "app/server/lib/FilesystemExternalStorage";
 import { createDummyGristServer, GristServer } from "app/server/lib/GristServer";
 import {
   HostedStorageManager,
@@ -403,7 +404,7 @@ describe("HostedStorageManager", function() {
     await removeConnection();
   });
 
-  for (const storage of ["azure", "s3", "minio", "cached"] as const) {
+  for (const storage of ["azure", "s3", "minio", "filesystem", "cached"] as const) {
     describe(storage, function() {
       const sandbox = sinon.createSandbox();
       let oldEnv: EnvironmentSnapshot;
@@ -412,7 +413,13 @@ describe("HostedStorageManager", function() {
       let cli: RedisClient;
       let store: TestStore;
       let workers: DocWorkerMap;
+      // Local doc-worker dir.  store.removeAll() wipes its contents between tests,
+      // so anything that must survive (e.g. the filesystem-backend snapshot store)
+      // lives elsewhere -- see filesystemSnapshotsDir below.
       let tmpDir: string;
+      // Persistent directory for the filesystem backend's versions + blobs.  Kept
+      // separate from tmpDir so store.removeAll() doesn't trash it between tests.
+      let filesystemSnapshotsDir: string;
 
       before(async function() {
         if (!process.env.TEST_REDIS_URL) { this.skip(); return; }
@@ -467,6 +474,16 @@ describe("HostedStorageManager", function() {
             }
             externalStorageCreate = requireStorage(create.getStorageOptions?.("s3")?.create);
             break;
+          case "filesystem": {
+            // Invoke the factory directly rather than going via GRIST_FS_STORAGE_DIR,
+            // so the env var doesn't leak to other tests.
+            filesystemSnapshotsDir = await createTmpDir();
+            externalStorageCreate = (purpose, extraPrefix) => wrapWithKeyMappedStorage(
+              new FilesystemExternalStorage(filesystemSnapshotsDir),
+              { basePrefix: "docs/", extraPrefix, purpose },
+            );
+            break;
+          }
         }
         store = new TestStore(tmpDir, workerId, workers, externalStorageCreate);
       });
