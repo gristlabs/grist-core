@@ -40,6 +40,10 @@ const STORAGE_BACKENDS: Record<BackendName, BackendInfo> = {
     description: () => t("Microsoft Azure Blob Storage via native Azure SDK."),
     disabledTag: () => t("Available in full edition"),
   },
+  filesystem: {
+    label: () => t("Local filesystem (test only)"),
+    description: () => t("Stores document snapshots on the local filesystem. For tests only, not production."),
+  },
   none: {
     label: () => t("No external storage"),
     description: () => t("Documents stored on local disk only."),
