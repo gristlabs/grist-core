@@ -94,14 +94,18 @@
         "Theme": "Thème",
         "API Key": "Clé d’API",
         "Names only allow letters, numbers and certain special characters": "Les noms d'utilisateur ne doivent contenir que des lettres, des chiffres et certains caractères spéciaux",
-        "Language": "Langue"
+        "Language": "Langue",
+        "Basic info": "Infos de base",
+        "Developer": "Développeur",
+        "Home": "Accueil",
+        "Profile": "Profil"
     },
     "AccountWidget": {
         "Sign in": "Se connecter",
         "Document settings": "Paramètres du document",
         "Toggle Mobile Mode": "Activer/Désactiver le mode mobile",
         "Pricing": "Tarifs",
-        "Profile settings": "Paramètres du compte",
+        "Profile settings": "Paramètres du profil",
         "Manage team": "Gestion de l'équipe",
         "Access Details": "Informations d’accès",
         "Switch Accounts": "Changer de compte",
@@ -113,7 +117,9 @@
         "Billing account": "Facturation",
         "Activation": "Activer",
         "Sign up": "S'inscrire",
-        "Use This Template": "Utiliser ce modèle"
+        "Use This Template": "Utiliser ce modèle",
+        "Site settings": "Paramètres du site",
+        "Account settings": "Paramètres du compte"
     },
     "ActionLog": {
         "Action Log failed to load": "Impossible de charger le journal des actions",
@@ -155,7 +161,7 @@
         "{{- organizationName }} - Back to home": "{{- organizationName }} - Retour à l'accueil"
     },
     "AppModel": {
-        "This team site is suspended. Documents can be read, but not modified.": "Le site de cette équipe est suspendu. Les documents peuvent être lus, mais pas modifiés."
+        "This team site is suspended. Documents can be read, but not modified.": "Cet espace d'équipe est suspendu. Les documents peuvent être lus, mais pas modifiés."
     },
     "CellContextMenu": {
         "Reset {{count}} entire columns_one": "Réinitialiser la colonne entière",
@@ -1132,7 +1138,10 @@
         "your email": "votre email",
         "Unsubscribed{{suffix}}": "Désabonné{{suffix}}",
         "You will no longer receive email notifications about {{suggestions}} in {{docName}} at {{email}}.": "Vous ne recevrez plus de notifications par email au sujet de {{suggestions}} dans {{docName}} sur {{email}}.",
-        "suggestions": "suggestions"
+        "suggestions": "suggestions",
+        "You will no longer receive email notifications about {{automations}} in {{docName}} at {{email}}.": "Vous ne recevrez plus de notifications à l'adresse {{email}} à propos de l'automatisation {{automations}} dans le document {{docName}}.",
+        "You have been unsubscribed from automation notifications for {{docName}}. You can update your preferences anytime in the document settings.": "Vous avez été désabonné·e des notifications concernant les automatisations du document {{docName}}. Vous pouvez changer vos préférences à tout moment dans les paramètres du document.",
+        "automations": "automatisations"
     },
     "menus": {
         "Select fields": "Sélectionner les champs",
@@ -1869,7 +1878,7 @@
         "Key to sign sessions with": "Clé de signature des sessions",
         "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.": "Grist autorise la configuration de différents types d'authentifications, parmi lesquels SAML et OIDC. Nous recommandons d'activer l'une d'entre elles si Grist est accessible sur le réseau ou est rendu accessible à plusieurs personnes.",
         "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.": "Grist signe les cookies des sessions utilisateurs avec une clé secrète. Merci de renseigner cette clé via la variable d'environnement GRIST_SESSION_SECRET. Grist utilise par défaut une clé codée en dur si la variable n'est pas renseignée. Nous retirerons peut-être cet avertissement à l'avenir comme les identifiants de session générés depuis la version 1.1.16 sont intrinsèquement cryptographiquement sûrs.",
-        "Sandboxing": "Bac à sable",
+        "Sandboxing": "Mise en bac à sable",
         "Self Checks": "Auto contrôles",
         "Session Secret": "Secret de session",
         "Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}": "Ou, comme plan B., vous pouvez renseigner : {{bootKey}} dans l'environnement et visiter : {{url}}",
@@ -1913,7 +1922,35 @@
         "error in {{provider}}: {{verdict}}": "erreur dans {{provider}} : {{verdict}}",
         "Please restart Grist manually.": "Redémarrez Grist manuellement s’il vous plaît.",
         "Restart Grist to apply pending changes.": "Redémarrez Grist pour appliquer les changements en attente.",
-        "Restart unavailable": "Redémarrage indisponible"
+        "Restart unavailable": "Redémarrage indisponible",
+        "Boot key": "Clé d'amorçage",
+        "Fallback authentication method": "Méthode d'authentification alternative",
+        "If you are the server operator, you can sign in using the boot key from your server logs.": "Si vous êtes l'administrateur du serveur, vous pouvez vous connecter en utilisant la clé d'amorçage présente dans les logs du serveur.",
+        "Maintenance": "Maintenance",
+        "Service status": "Statut du service",
+        "Sign in with boot key": "Se connecter avec la clé d'amorçage",
+        "Take Grist out of service for maintenance": "Mettre Grist hors service pour maintenance",
+        "boot key": "clé d'amorçage",
+        "disabled": "désactivé",
+        "enabled": "activé",
+        "in service": "en service",
+        "out of service": "hors service",
+        "Back up documents externally": "Sauvegarder des documents en externe",
+        "Backups": "Sauvegardes",
+        "Storage": "Stockage",
+        "Apply changes (manual restart required)": "Appliquer les modifications (redémarrage manuel requis)",
+        "Base URL": "URL de base",
+        "Changes have been saved. Restart Grist to apply them.": "Vos modifications ont été enregistrées. Redémarrez Grist pour les appliquer.",
+        "Edition": "Édition",
+        "Its controls have moved to {{editionLink}} above.": "Ses commandes ont été déplacées au lien ci-dessus : {{editionLink}}.",
+        "Restart the Grist server": "Redémarrer le serveur Grist",
+        "Saving...": "Enregistrement...",
+        "Server": "Serveur",
+        "Server → Edition": "Serveur → Édition",
+        "The URL where users and integrations reach this Grist server": "L'URL à laquelle les utilisateurs et les intégrations peuvent joindre ce serveur Grist",
+        "What used to be called \"Grist Enterprise\" is now called \"Full Grist\".": "Ce qui était auparavant appelé \"Grist Entreprise\" est désormais appelé \"Version complète de Grist\".",
+        "moved to Edition": "basculé en Édition",
+        "Installation": "Installation"
     },
     "Field": {
         "No choices configured": "Aucun choix configuré",
@@ -2052,7 +2089,14 @@
         "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.": "Votre période d'essai a expiré le **{{expireAt}}**. Pour continuer à utiliser Grist Enterprise, vous devez\n[souscrire à Grist Enterprise]({{signupLink}}) et coller votre clé d'activation ci-dessous.",
         "An active subscription is required to continue using Grist Enterprise. You can\nyou activate your subscription by [signing up for Grist Enterprise ]({{signupLink}}) and pasting your\nactivation key below.": "Un abonnement actif est requis pour continuer à utiliser Grist Enterprise. Vous pouvez\nactiver votre abonnement en [vous inscrivant à Grist Enterprise ]({{signupLink}}) et en collant votre\nclé d'activation ci-dessous.",
         "An activation key is used to run Grist Enterprise after a trial period\n        of 30 days has expired. Get an activation key by [signing up for Grist\n        Enterprise]({{signupLink}}). You do not need an activation key to run\n        Grist Core.": "Une clé d'activation est utilisée pour exécuter Grist Enterprise après une période d'essai\n        de 30 jours a expiré. Obtenez une clé d'activation en vous inscrivant à Grist\n        Entreprise]({{signupLink}}). Vous n'avez pas besoin d'une clé d'activation pour exécuter\n        Grist Core.",
-        "Installation seats": "Places sur l'instance"
+        "Installation seats": "Places sur l'instance",
+        "An activation key is used to run Full Grist after a trial period\n        of 30 days has expired. Get an activation key by [signing up for Grist\n        Enterprise]({{signupLink}}). You do not need an activation key to run\n        Grist Community Edition.": "Une clé d'activation est nécessaire pour utiliser la version complète de Grist après l'expiration\n\td'une période d'essai de 30 jours. Vous pouvez obtenir une clé d'activation en souscrivant à\n\tla [version complète]({{signupLink}}). Vous n'avez pas besoin d'une clé d'activation pour\n\tutiliser la version communautaire de Grist.",
+        "An activation key is used to run Full Grist after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Community Edition.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Une clé d'activation est nécessaire pour utiliser la version complète de Grist après l'expiration\n\td'une période d'essai de 30 jours. Obtenez une clé d'activation en [nous contactant]({{contactLink}}).\n\tVous n'avez pas besoin d'une clé d'activation pour utiliser la version communautaire de Grist.\n\nAccédez à notre [Centre d'aide]({{helpCenter}}) pour en savoir plus.",
+        "An active subscription is required to continue using Full Grist. You can\nyou activate your subscription by [signing up for Full Grist ]({{signupLink}}) and pasting your\nactivation key below.": "Une clé d'activation est nécessaire pour continuer à utiliser la version complète de Grist.\n\tVous pouvez activer votre abonnement en [souscrivant à la version complète de Grist]({{signupLink}})\n\tet en copiant-collant votre clé d'activation ci-dessous.",
+        "Enable Full Grist": "Activer la version complète",
+        "To continue using Full Grist, you need to\n                  [contact us]({{signupLink}}) to get your activation key.": "Pour continuer à utiliser la version complète de Grist, vous devez\n                  [nous contacter]({{signupLink}}) pour obtenir votre clé d'activation.",
+        "You are currently trialing Full Grist.": "Vous êtes actuellement en cours d'essai de la version complète de Grist.",
+        "Your trial period has expired on **{{expireAt}}**. To continue using Full Grist, you need to\n[sign up for Full Grist]({{signupLink}}) and paste your activation key below.": "Votre période d'essai a expiré le **{{expireAt}}**. Pour continuer à utiliser la version complète de Grist,\nvous devez [souscrire à la version complète]({{signupLink}}) puis coller votre clé d'activation ci-dessous."
     },
     "ViewLayout": {
         "Delete": "Supprimer",
@@ -2247,7 +2291,9 @@
         "Settings": "Paramètres",
         "Admin area": "Zone d'administration",
         "Docs": "Documentation",
-        "Enterprise": "Entreprise"
+        "Enterprise": "Entreprise",
+        "Quick setup": "Configuration rapide",
+        "Apply changes": "Appliquer les modifications"
     },
     "Assistant": {
         "Learn more.": "En savoir plus.",
@@ -2354,7 +2400,8 @@
         "This boot page should not be too easy to access. Either turn it off when configuration is ok (by unsetting GRIST_BOOT_KEY) or make GRIST_BOOT_KEY long and cryptographically secure.": "Cette page de boot ne devrait pas être facile à atteindre. Soit rendez la indisponible quand la configuration est terminée (en retirant GRIST_BOOT_KEY) ou donnez une valeur suffisamment longue et cryptographiquement sûre à GRIST_BOOT_KEY.",
         "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.": "Les connexions websocket nécessitent HTTP 1.1 et le droit de passer quelques entêtes supplémentaires pour pouvoir fonctionner. Parfois un proxy inverse peut interférer avec ces exigences.",
         "It is good practice not to run Grist as the root user.": "C'est une bonne pratique de ne pas faire tourner Grist en tant qu'utilisateur root.",
-        "The main page of Grist should be available.": "La page principale de Grist devrait être disponible."
+        "The main page of Grist should be available.": "La page principale de Grist devrait être disponible.",
+        "APP_HOME_URL is the base URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "APP_HOME_URL est l'URL de base à laquelle les utilisateurs et les intégrations peuvent joindre votre serveur Grist. Les requêtes d'authentification, les liens d'API et les notifications par courriel dépendent toutes de ce paramètre pour fonctionner correctement."
     },
     "ChoiceListEntry": {
         "Edit": "Modifier",
@@ -2613,7 +2660,9 @@
         "Learn more about Sign in with getgrist.com": "En savoir plus à propose de Se connecter avec getgrist.com",
         "Paste configuration key here": "Collez votre clé de configuration ici",
         "To set up {{provider}}, you need to register your Grist server on getgrist.com and paste the configuration key you receive below.": "Pour mettre en place {{provider}}, vous devez enregistrer votre instance Grist sur getgrist.com et coller la clé de configuration que vous avez reçue ci-dessous.",
-        "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.": "Quand il se connecteront, les utilisateurs seront redirigés sur la page de connexion de getgrist.com pour se connecter ou se créer un compte. Après s'être authentifié sur getgrist.com, ils seront redirigés sur votre instance de Grist et connecté en tant que l'utilisateur qu'ils ont authentifié."
+        "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.": "Quand il se connecteront, les utilisateurs seront redirigés sur la page de connexion de getgrist.com pour se connecter ou se créer un compte. Après s'être authentifié sur getgrist.com, ils seront redirigés sur votre instance de Grist et connecté en tant que l'utilisateur qu'ils ont authentifié.",
+        "Managed authentication by Grist Labs.": "Authentification gérée par Grist Labs.",
+        "Your server uses getgrist.com authentication. Users sign in with their getgrist.com account.": "Vous serveur utilise getgrist.com pour authentifier les utilisateurs. Les utilisateurs se connectent grâce à leur compte sur getgrist.com."
     },
     "AuthenticationSection": {
         "Active": "Active",
@@ -2689,7 +2738,41 @@
         "When signing in, users will be redirected to a Grist Connect login page where they can authenticate using various identity providers. After authentication, they'll be redirected back to your Grist server and signed in.": "Lors de la connexion, les utilisateurs seront redirigés vers une page d'identification Grist Connect où ils pourront s'authentifier en utilisant divers fournisseurs d'identité. Après l'authentification, il seront renvoyé vers votre serveur Grist et connectés.",
         "When signing in, users will be redirected to your chosen identity provider's login page to authenticate. After successful authentication, they'll be redirected back to your Grist server and signed in as the user verified by the provider.": "Lorsqu'ils se connectent, les utilisateurs seront redirigés vers la page de connexion de fournisseur d'identité de votre choix afin de s'authentifier. Après une authentification réussi, ils seront renvoyés vers votre serveur Grist et connectés en tant que l'utilisateur vérifié par le fournisseur.",
         "You are signed in as {{email}}. After restart, the new administrative user will be {{newEmail}}.": "Vous êtes connecté en tant que {{email}}. Après le redémarrage, le nouvel utilisateur d’administration sera {{newEmail}}.",
-        "You are signed in as {{email}}. You may lose access to this server if you cannot sign in as this user after switching the authentication system.": "Vous êtes connecté en tant que {{email}}. Vous allez peut-être perdre vos accès à ce serveur si vous ne pouvez plus vous connecter en tant que cet utilisateur après avoir changé le mode d'authentification."
+        "You are signed in as {{email}}. You may lose access to this server if you cannot sign in as this user after switching the authentication system.": "Vous êtes connecté en tant que {{email}}. Vous allez peut-être perdre vos accès à ce serveur si vous ne pouvez plus vous connecter en tant que cet utilisateur après avoir changé le mode d'authentification.",
+        "If Grist is accessible on your network, or is available to multiple people, configure one of the authentication methods below and remove your boot key from Security Settings → Boot key.": "Si Grist est accessible sur votre réseau, ou est accessible à plusieurs personnes, configurez l'une des méthodes d'authentification ci-dessous et retirez votre clé d'amorçage du menu Paramètres de sécurité → Clé d'amorçage.",
+        "No authentication: using boot key as fallback method": "Sans authentification : utiliser la clé d'amorçage comme méthode alternative",
+        "Anyone who can reach this server can access all data without signing in. Configure one of the authentication methods below.": "Toute personne souhaitant joindre ce serveur peut accéder à toutes les données sans se connecter. Configurez l'une des méthodes d'authentification ci-dessous.",
+        "Are you sure you want to deactivate **{{name}}**?": "Êtes-vous sûr·e de vouloir désactiver **{{name}}** ?",
+        "Authentication has been configured and will become active when Grist is restarted.": "L'authentification a été configurée et sera activée au redémarrage de Grist.",
+        "Authentication is misconfigured or unreachable. Users may not be able to sign in.": "L'authentification a été mal paramétrée ou n'est pas joignable. Les utilisateurs ne pourront peut-être pas se connecter.",
+        "Available methods": "Méthodes disponibles",
+        "Change installation admin": "Modifier l'administrateur de l'installation",
+        "Deactivate": "Désactiver",
+        "Deactivate authentication?": "Désactiver l'authentification ?",
+        "For enterprise identity providers (Okta, OneLogin, etc.).": "Pour les fournisseurs d'identité d'entreprise (Okta, OneLogin, etc.).",
+        "For reverse proxy setups (Traefik, Authelia, etc.).": "Pour les configurations de proxy inverse (Traefik, Authelia, etc.).",
+        "I understand this server has no authentication": "Je comprends que ce serveur n'a pas d'authentification",
+        "Installation admin: ": "Administrateur de l'installation : ",
+        "Managed login solution by Grist Labs (deprecated).": "Solution de connexion managée par Grist Labs (obsolète).",
+        "No authentication": "Pas d'authentification",
+        "No authentication: using boot key": "Pas d'authentification : utiliser la clé d'amorçage",
+        "Not recommended": "Non recommandé",
+        "Other authentication methods": "Autres méthodes d'authentification",
+        "Reconfigure": "Reparamétrer",
+        "The change will take effect after you restart Grist.": "La modification prendra effet après le redémarrage de Grist.",
+        "This login mechanism is deprecated.": "Ce mécanisme de connexion est obsolète.",
+        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect]({{url}}).": "Pour configurer **Grist Connect**, suivez les instructions présentées dans la [page de documentation sur Grist Connect]({{url}}).",
+        "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC]({{url}}).": "Pour configurer **OIDC**, suivez les instructions présentées dans la [page de documentation sur OIDC]({{url}}).",
+        "To set up **SAML**, follow the instructions in [the Grist support article for SAML]({{url}}).": "Pour configurer **SAML**, suivez les instructions présentées dans la [page de documentation sur SAML]({{url}}).",
+        "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers]({{url}}).": "Pour configurer les **en-têtes transférés**, suivez les instructions présentées dans la [page de documentation sur les en-têtes transférés]({{url}}).",
+        "Works with most identity providers (Google, Azure AD, Keycloak, etc.).": "Fonctionne avec la plupart des fournisseurs d'identité (Google, Azure AD, Keycloak, etc.).",
+        "Your configuration will be preserved. You can reactivate it later without reconfiguring.": "Votre configuration sera préservée. Vous pouvez la réactiver plus tard sans avoir à reparamétrer.",
+        "Your server is configured to authenticate users via OpenID Connect. Users sign in through your identity provider.": "Vous serveur est paramétré pour authentifier les utilisateurs via OpenID Connect. Les utilisateurs se connectent grâce à votre fournisseur d'identité.",
+        "Your server is configured to authenticate users via SAML 2.0. Users sign in through your enterprise identity provider.": "Vous serveur est paramétré pour authentifier les utilisateurs via SAML 2.0. Les utilisateurs se connectent grâce à votre fournisseur d'identité.",
+        "Your server is using a boot key as a fallback login method. Configure one of the authentication methods below.": "Votre serveur utilise une clé d'amorçage comme méthode de connexion alternative. Configurez une des méthodes d'authentification ci-dessous.",
+        "Your server trusts authentication from a reverse proxy. Make sure only your proxy can reach the Grist backend.": "Votre serveur fait confiance à une authentification provenant d'un proxy inversé. Assurez-vous que seul votre proxy puisse joindre le backend de Grist.",
+        "Authentication": "Authentification",
+        "Choose how users sign in to Grist.": "Choisissez comment les utilisateurs se connectent à Grist."
     },
     "DetailView": {
         "This row is unavailable or does not exist": "Cette ligne est indisponible ou n’existe pas"
@@ -2771,5 +2854,226 @@
     "AutomationsPageEntry": {
         "Automations": "Automatisations",
         "New": "Nouveau"
+    },
+    "BootKeyStatus": {
+        "Every new Grist installation includes a random boot key: a secret whose value is only obtainable by an installation operator.": "Toute nouvelle installation de Grist inclut une clé d'amorçage aléatoire : il s'agit d'un code secret que seul l'opérateur d'installation peut obtenir.",
+        "Make sure you have configured an authentication system that lets you sign in as an admin before removing the boot key.": "Assurez-vous d'avoir configuré un système d'authentification qui vous permet de vous connecter en tant qu'administrateur avant de supprimer la clé d'amorçage.",
+        "Remove boot key": "Supprimer la clé d'amorçage",
+        "Remove boot key?": "Supprimer la clé d'amorçage ?",
+        "The boot key should only be used as a temporary means of authentication until a more secure and robust authentication method is configured via Security Settings → Authentication. We recommend removing the boot key once you've finished setting up Grist.": "La clé d'amorçage ne devrait être utilisée que comme une solution temporaire d'authentification en attendant la mise en place d'une méthode d'authentification plus robuste et sécurisée via le menu Paramètres de sécurité → Authentification. Nous vous recommandons de supprimer la clé d'amorçage après avoir terminé la configuration de Grist.",
+        "This setting is currently being managed by an environment variable (`GRIST_BOOT_KEY`).": "Ce paramètre est actuellement géré par une variable d'environnement (`GRIST_BOOT_KEY`).",
+        "Unset the environment variable to manage this setting via the Admin Panel.": "Désactivez la variable d'environnement pour gérer ce paramètre via le portail d'administration.",
+        "You will no longer be able to authenticate as the install admin on the `": {
+            "boot-key` page.": "Vous ne pourrez plus vous authentifier en tant qu'administrateur de l'installation sur la page `/boot-key`."
+        }
+    },
+    "PermissionsSetupSection": {
+        "Users can create their own personal sites with documents. Turn off to restrict all documents to team sites managed by admins.": "Les utilisateurs peuvent créer leurs propres espaces personnels avec des documents. Désactivez pour permettre l'ajout de documents uniquement dans des espaces d'équipe gérés par des administrateurs.",
+        "Visitors who aren't signed in can create and edit documents in a temporary playground. Turn off to require sign-in before creating any documents.": "Les visiteurs non connectés peuvent créer et éditer les documents dans un bac à sable temporaire. Désactivez l'option pour exiger une connexion avant de pouvoir créer des documents.",
+        "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.": "Les visiteurs non connectés peuvent voir les documents partagés publiquement. Cela est nécessaire pour permettre le partage par lien et la publication de formulaires.",
+        "You have GRIST_SINGLE_ORG={{value}} set. With this, users only see one site — but personal sites and team creation still work behind the scenes. Worth locking down unless you have a specific reason to keep them.": "La valeur GRIST_SINGLE_ORG = {{value}} est définie. Les utilisateurs ne peuvent donc voir qu'un seul espace — mais les espaces personnels et la création d'espaces d'équipe fonctionnent toujours en coulisses. Il est préférable de bloquer ce comportement à moins d'avoir une bonne raison de le conserver.",
+        "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Vos changements de configuration ont été appliqués et le serveur a été redémarré. Grist est désormais en service et disponible pour les utilisateurs.",
+        "Allow anonymous access": "Autoriser l'accès anonyme",
+        "Allow anonymous playground": "Autoriser le bac à sable anonyme",
+        "Allow anyone to create team sites": "Autoriser n'importe qui à créer des espaces d'équipe",
+        "Allow personal sites": "Autoriser les espaces personnels",
+        "Any logged-in user can create new team sites. Turn off to restrict team creation to admins only.": "Tout utilisateur connecté peut créer de nouveaux espaces d'équipe. Désactivez pour restreindre la création d'espaces d'équipe uniquement aux administrateurs.",
+        "Apply & Restart": "Appliquer et redémarrer",
+        "Apply and Go Live!": "Appliquer et lancer !",
+        "Applying settings and restarting…": "Application des paramètres et redémarrage…",
+        "Back to installation": "Retour à l'installation",
+        "Conflict": "Conflit",
+        "DEFAULT PERMISSIONS": "PERMISSIONS PAR DÉFAUT",
+        "Environment": "Environnement",
+        "Grist is live!": "Grist a démarré !",
+        "Loading permissions…": "Chargement des permissions…",
+        "Locked down": "Verrouillé",
+        "Open": "Ouvert",
+        "Recommended": "Recommandé",
+        "Review these defaults before going live. You can change them later from the admin panel.": "Vérifiez ces paramètres par défaut avant le lancement. Vous pouvez les modifier plus tard depuis le portail d'administration.",
+        "Server did not restart in time. Please refresh the page.": "Le serveur n'a pas redémarré à temps. Merci d'actualiser la page.",
+        "Some settings are controlled by environment variables and cannot be changed here: {{vars}}. To modify them, update the corresponding variables in your server configuration and restart.": "Quelques paramètres sont contrôlés par des variables d'environnement et ne peuvent pas être modifiés ici : {{vars}}. Pour les modifier, mettez à jour les variables correspondantes dans votre configuration de serveur puis redémarrez.",
+        "The personal org is the only org available — personal sites must stay enabled or Grist will be non-functional.": "L'organisation personnelle est la seule disponible — les espaces personnels doivent rester activés sous peine de dysfonctionnement de Grist."
+    },
+    "SandboxSection": {
+        "Active": "Actif",
+        "Apply and Continue": "Appliquer et poursuivre",
+        "Applying...": "En cours d'application...",
+        "Continue": "Continuer",
+        "Detecting sandbox options...": "Détection des options de bac à sable...",
+        "Error": "Erreur",
+        "No Sandbox": "Pas de bac à sable",
+        "Not available": "Non disponible",
+        "Not recommended": "Non recommandé",
+        "Other options": "Autres options",
+        "Ready": "Prêt",
+        "Recommended": "Recommandé",
+        "Sandboxing": "Mise en bac à sable",
+        "Skip and Continue": "Ignorer et poursuivre",
+        "Uses the built-in macOS sandbox. Good isolation for local use on a Mac.": "Utilise le bac à sable macOS préconfiguré. Permet une bonne isolation pour une utilisation locale sur un Mac.",
+        "macOS Sandbox": "Bac à sable macOS",
+        "Sandbox": "Bac à sable"
+    },
+    "AdminPanelCss": {
+        "Confirmed": "Confirmé",
+        "For later": "Pour plus tard"
+    },
+    "BaseUrlSection": {
+        "Already set on this server.": "Déjà défini sur ce serveur.",
+        "Automatic": "Automatique",
+        "Base URL": "URL de base",
+        "Confirm URL": "Confirmer l'URL",
+        "Could not reach server": "Impossible de joindre le serveur",
+        "Could not reach server at this URL. ": "Impossible de joindre le serveur à cette URL. ",
+        "Failed to save": "Enregistrement impossible",
+        "Grist is reachable": "Grist est joignable",
+        "Test URL": "URL de test",
+        "Testing...": "En cours de test...",
+        "This URL was auto-detected — confirm it is correct, then save.": "Cette URL a été détectée automatiquement — veuillez confirmer qu'elle est correcte, puis sauvegarder.",
+        "URL is reachable": "L'URL est joignable",
+        "automatic": "automatique",
+        "checking": "en cours de vérification",
+        "https:": {
+            "": {
+                "grist.example.com": "https://exemple.grist.com"
+            }
+        },
+        "not set": "non défini",
+        "set": "défini",
+        "Leave automatic": "Laisser en automatique",
+        "The URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "L'URL à laquelle les utilisateurs et les intégrations peuvent joindre ce serveur Grist. Les appels d'authentification, les liens d'API et les notifications par courriel dépendent tous de la bonne configuration de ce paramètre."
+    },
+    "EditionSection": {
+        "Choose which edition of Grist to run on this server": "Choisir la version de Grist à utiliser sur ce serveur",
+        "Choose which edition of Grist to run on this server.": "Choisir la version de Grist à utiliser sur ce serveur.",
+        "Community Edition": "Version communautaire",
+        "Confirm edition": "Confirmer la version",
+        "Edition": "Version",
+        "Full Grist": "Version complète",
+        "Full Grist is enabled via environment variable.": "La version complète de Grist est activée via une variable d'environnement.",
+        "I understand I am running Grist Community Edition": "Je comprends que je suis en train d'utiliser la version communautaire de Grist",
+        "Learn more.": "En savoir plus.",
+        "On": "Activé",
+        "See how to enable it.": "Voir comment l'activer.",
+        "The free and open-source heart of Grist, with everything you need to open and edit Grist documents, control access, create forms, connect to single sign-on (SSO) providers, and much more.": "Le cœur gratuit et open-source de Grist, avec tout ce dont vous avez besoin pour ouvrir et éditer des documents Grist, contrôler les accès, créer des formulaires, se connecter à des fournisseurs de SSO (single sign-on), et plus encore.",
+        "The full Grist experience, with all features enabled for improved security, governance, and collaboration.": "L'expérience Grist complète avec toutes les fonctionnalités activées pour une sécurité, une gouvernance et une collaboration améliorées.",
+        "You have 30 days to enter an activation key. Free activation keys are available to individuals and small orgs with less than US $1 million in total annual funding. {{learnMoreLink}} For larger orgs, see {{pricingLink}}.": "Vous disposez de 30 jours pour entrer une clé d'activation. Des clés d'activation gratuites sont disponibles pour les particuliers et les petites organisations ayant un financement annuel de moins de 1 million de dollars américains. {{learnMoreLink}} Pour de plus grandes organisations, voir {{pricingLink}}.",
+        "Your installation does not bundle the Full Grist edition. Want Full Grist? {{enableLink}}": "Votre installation n'inclut pas la version complète de Grist. Vous souhaitez obtenir la version complète ? {{enableLink}}",
+        "community": "communautaire",
+        "full": "complète",
+        "pricing": "tarification"
+    },
+    "QuickSetupServerStep": {
+        "Apply and Continue": "Appliquer et poursuivre",
+        "Base URL": "URL de base",
+        "Confirm base URL and edition to continue": "Confirmer l'URL de base et la version pour continuer",
+        "Confirm base URL to continue": "Confirmer l'URL de base pour continuer",
+        "Confirm edition to continue": "Confirmer la version pour continuer",
+        "Continue": "Continuer",
+        "Edition": "Version",
+        "Server": "Serveur",
+        "Set your server's base URL and choose which edition of Grist to run.": "Définissez l'URL de base de votre serveur et choisissez quelle édition de Grist utiliser."
+    },
+    "AccountLeftPanel": {
+        "Account settings": "Paramètres du compte",
+        "Developer": "Développeur",
+        "Profile": "Profil"
+    },
+    "SettingsLayout": {
+        "Authentication": "Authentification",
+        "Current authentication method": "Méthode actuelle d'authentification",
+        "Installation": "Installation",
+        "Sandbox settings for data engine": "Paramètres du bac à sable pour le moteur de données",
+        "Sandboxing": "Mise en bac à sable",
+        "Security Settings": "Paramètres de sécurité"
+    },
+    "SettingsLayout.d": {
+        "Authentication": "Authentification",
+        "Current authentication method": "Méthode d'authentification actuelle",
+        "Installation": "Installation",
+        "Sandbox settings for data engine": "Paramètres du bac à sable pour le moteur de données",
+        "Sandboxing": "Mise en bac à sable",
+        "Security Settings": "Paramètres de sécurité"
+    },
+    "QuickSetupContinueButton": {
+        "Apply and Continue": "Appliquer et poursuivre",
+        "Applying...": "En cours d'application...",
+        "Continue": "Continuer"
+    },
+    "BootPage": {
+        "Administrator email": "Courriel de l'administrateur",
+        "After restarting, Grist will be available without this sign-in step.": "Après le redémarrage, Grist sera disponible sans cette étape de connexion.",
+        "After restarting, return to this page and enter your chosen key.": "Après le redémarrage, revenez sur cette page et entrez la clé de votre choix.",
+        "Boot key": "Clé d'amorçage",
+        "Can't find your boot key? You can {{setBootKeyButton}} or {{disableCheckButton}}.": "Vous ne trouvez pas votre clé d'amorçage ? Vous pouvez {{setBootKeyButton}} ou {{disableCheckButton}}.",
+        "Check key": "Vérifier la clé",
+        "Checking key": "Clé en cours de vérification",
+        "Confirm or change the administrator email address.": "Confirmez ou modifiez le courriel de l'administrateur.",
+        "Continue": "Continuer",
+        "Copied!": "Copié !",
+        "Copy": "Copier",
+        "Enter boot key": "Entrer la clé d'amorçage",
+        "For Docker, add \\`-e GRIST_BOOT_KEY={{bootKey}}\\` to your run command. For other setups, set it in your environment or configuration file.": "Pour Docker, ajoutez \\`-e GRIST_BOOT_KEY={{bootKey}}\\` à votre instruction de lancement. Pour d'autres configurations, définissez-la dans votre environnement ou dans votre fichier de configuration.",
+        "For Docker, add \\`-e GRIST_IN_SERVICE=true\\` to your run command. For other setups, set it in your environment or configuration file.": "Pour Docker, ajoutez \\`-e GRIST_IN_SERVICE=true\\` à votre instruction de lancement. Pour d'autres configurations, définissez-la dans votre environnement ou dans votre fichier de configuration.",
+        "Here's a random key you can use:": "Voici une clé aléatoire que vous pouvez utiliser :",
+        "If you cannot access server logs or cannot find your boot key, you can set it yourself. Add the environment variable \\`GRIST_BOOT_KEY\\` with a secret value to your Grist configuration, then restart Grist.": "Si vous ne pouvez pas accéder aux logs du serveur ou ne pouvez pas trouver votre clé d'amorçage, vous pouvez la définir vous-même. Ajouter la variable d'environnement \\`GRIST_BOOT_KEY\\` avec une valeur secrète à votre configuration de Grist, puis redémarrez Grist.",
+        "Look for this banner near the top of Grist's startup output — check your terminal, container logs, or hosting panel: {{exampleBootKeyBanner}}": "Recherchez cette bannière en tête des logs de démarrage de Grist — vérifiez dans votre terminal, les logs de votre conteneur, ou votre tableau de bord d'hébergement : {{exampleBootKeyBanner}}",
+        "Paste boot key here": "Copier la clé d'amorçage ici",
+        "Set \\`GRIST_IN_SERVICE=true\\` in your Grist configuration, then restart. Grist will start without requiring a boot key.": "Définissez \\`GRIST_IN_SERVICE=true\\` dans votre configuration de Grist, puis redémarrez. Grist démarrera sans avoir besoin d'une clé d'amorçage.",
+        "Set your boot key": "Définir votre clé d'amorçage",
+        "Skipping it is fine on a private, trusted network where only authorized people can connect.": "Il est possible de l'ignorer uniquement sur un réseau privé de confiance auquel seules les personnes autorisées peuvent se connecter.",
+        "The boot key proves you have access to the server running Grist — it keeps out anyone who can reach this page but isn't the administrator.": "La clé de démarrage prouve que vous avez accès au serveur qui exécute Grist  — elle permet de rejeter toute personne qui peut joindre cette page mais n'est pas administrateur.",
+        "This will be your admin account for managing Grist.": "Il s'agira de votre compte administrateur pour gérer Grist.",
+        "Turn off this check": "Désactiver cette vérification",
+        "Valid boot key": "Clé de démarrage valide",
+        "Verify that you have access to this server to continue.": "Vérifiez que vous avez accès à ce serveur pour continuer.",
+        "Welcome to Grist": "Bienvenue sur Grist",
+        "Why does this check exist?": "Pourquoi cette vérification existe-t-elle ?",
+        "disable this check": "désactiver cette vérification",
+        "set your own": "définissez la vôtre"
+    },
+    "QuickSetup": {
+        "Apply & restart": "Appliquer et redémarrer",
+        "Authentication": "Authentification",
+        "Backups": "Sauvegardes",
+        "Configure Grist for your environment.": "Configurez Grist pour votre environnement.",
+        "Quick setup": "Paramétrage rapide",
+        "Sandboxing": "Mise en bac à sable",
+        "Server": "Serveur",
+        "Continue": "Continuer"
+    },
+    "ServiceStatus": {
+        "Enter maintenance mode": "Entrer en mode maintenance",
+        "Enter maintenance mode?": "Entrer en mode maintenance ?",
+        "Non-admin users will be blocked until service is restored.": "Les utilisateurs non administrateurs seront bloqués jusqu'à ce que le service soit restauré.",
+        "Non-admin users will no longer be blocked.": "Les utilisateurs non administrateurs ne seront plus bloqués.",
+        "Restore service": "Restaurer le service",
+        "Restore service?": "Restaurer le service ?",
+        "This setting is currently being managed by an environment variable (`GRIST_IN_SERVICE`).": "Ce paramètre est actuellement géré par la variable d'environnement (`GRIST_IN_SERVICE`).",
+        "Unset the environment variable to manage this setting via the Admin Panel.": "Désactivez la variable d'environnement pour gérer ce paramètre via le portail d'administration."
+    },
+    "TeamSettingsPage": {
+        "Domain is already taken.": "Ce domaine est déjà pris.",
+        "Invalid domain.": "Domaine invalide."
+    },
+    "BackupsSection": {
+        "AWS S3 via native AWS SDK. Supports IAM roles and AWS-native auth.": "AWS S3 via AWS SDK natif. Supporte les rôles IAM et l'authentification native AWS.",
+        "AWS S3-compatible service via MinIO client library. Works with AWS S3, MinIO, and others.": "Service compatible avec AWS S3 via la librairie cliente MinIO. Fonctionne avec AWS S3, MinIO, et d'autres.",
+        "Active": "Actif",
+        "Available in full edition": "Disponible dans la version complète",
+        "Azure Blob Storage": "Azure Blob Storage",
+        "Backups": "Sauvegardes",
+        "Documents stored on local disk only.": "Documents stockés uniquement sur le disque local.",
+        "Learn more.": "En savoir plus.",
+        "Loading backup providers...": "Chargement des fournisseurs de sauvegarde...",
+        "Microsoft Azure Blob Storage via native Azure SDK.": "Microsoft Azure Blob Storage via Azure SDK natif.",
+        "No external storage": "Pas de stockage externe",
+        "Off": "Désactivé",
+        "S3 (AWS client)": "S3 (client AWS)",
+        "S3 (MinIO client)": "S3 (client MinIO)",
+        "Set these environment variables and restart Grist to enable Azure storage:": "Définissez ces variables d'environnement et redémarrez Grist pour activer le stockage Azure :",
+        "Set these environment variables and restart Grist to enable MinIO storage:": "Définissez ces variables d'environnement et redémarrez Grist pour activer le stockage MinIO :",
+        "Set these environment variables and restart Grist to enable S3 storage:": "Définissez ces variables d'environnement et redémarrez Grist pour activer le stockage S3 :",
+        "Store document backups on an external service like S3 or Azure.           This protects against data loss if the server's disk fails.": "Conserver les sauvegardes des documents sur un service externe comme S3 ou Azure.           Cela vous protège contre la perte de données si le disque dur du serveur dysfonctionne."
     }
 }
