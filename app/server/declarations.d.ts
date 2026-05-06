@@ -42,6 +42,10 @@ declare module "winston/lib/winston/common" {
   export function serialize(meta: any): string;
 }
 
+declare module "file-type" {
+  export * from "file-type/source/index";
+}
+
 /**
  * Type definitions for Grist environment variables.
  *
