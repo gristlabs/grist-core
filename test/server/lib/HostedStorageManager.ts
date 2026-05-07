@@ -732,6 +732,34 @@ describe("HostedStorageManager", function() {
         });
       });
 
+      it("wipes the local cache after closing a document", async function() {
+        const docId = `wipe-cache-${uuidv4()}`;
+        await workers.assignDocWorker(docId);
+        const docPath = store.getDocPath(docId);
+
+        await store.run(async () => {
+          const doc = await store.docManager.fetchDoc(docSession, docId);
+          await doc.docStorage.exec("insert into Table1(id, A) values(1, 'magic word')");
+          await store.waitForUpdates();
+
+          // Sanity check: local cache files exist while the doc is open.
+          assert.isTrue(await fse.pathExists(docPath));
+          assert.isTrue(await fse.pathExists(docPath + "-hash-doc"));
+
+          // Closing the doc should wipe the local cache when an external storage
+          // backend is configured.
+          await store.closeDoc(doc);
+
+          assert.isFalse(await fse.pathExists(docPath));
+          assert.isFalse(await fse.pathExists(docPath + "-hash-doc"));
+          assert.isFalse(await fse.pathExists(docPath + "-hash-meta"));
+
+          const reopenedDoc = await store.docManager.fetchDoc(docSession, docId);
+          const res = await reopenedDoc.docStorage.get("select A from Table1 where id=1");
+          assert.deepEqual(res, { A: "magic word" });
+        });
+      });
+
       // Viewing a document should not mark it as changed (unless a document-level migration
       // needed to run).
       it("viewing a document does not generally change it", async function() {
