@@ -21,6 +21,14 @@ import { Computed, dom, DomElementArg, Observable, styled, UseCBOwner } from "gr
 
 const t = makeT("QuickSetupContinueButton");
 
+/**
+ * What `apply()` reports back. `void` (the default) means the apply
+ * completed and the wizard should run its post-apply action; the
+ * `{ redirected: true }` variant means a top-level navigation has been
+ * fired, and the caller should not run any further post-apply work.
+ */
+export type ApplyResult = void | { redirected: true };
+
 export interface QuickSetupSection {
   /** True when the step's content is in a state the user can move past. */
   canProceed: Computed<boolean>;
@@ -31,8 +39,11 @@ export interface QuickSetupSection {
   /**
    * Persist any pending changes and (if needed) restart the server.
    * No-op if nothing is pending. Owns its own `isApplying` flag.
+   * Returns `{ redirected: true }` when the apply fired a top-level
+   * navigation (e.g. session-clearing auth change → sign-in); the caller
+   * should not run any post-apply action in that case.
    */
-  apply(): Promise<void>;
+  apply(): Promise<ApplyResult>;
   /** Optional per-step label override. Return null/undefined to use the default labels. */
   customLabel?(use: UseCBOwner): string | null | undefined;
 }
@@ -57,12 +68,14 @@ export function quickSetupContinueButton(
       dom.boolAttr("disabled", use => !use(section.canProceed) || use(section.isApplying)),
       dom.on("click", async () => {
         if (section.isApplying.get()) { return; }
+        let result: ApplyResult;
         try {
-          await section.apply();
+          result = await section.apply();
         } catch (err) {
           reportError(err as Error);
           return;
         }
+        if (result?.redirected) { return; }
         onAfter();
       }),
       ...args,

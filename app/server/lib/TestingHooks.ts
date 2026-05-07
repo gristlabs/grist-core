@@ -13,6 +13,7 @@ import { connect, fromCallback } from "app/server/lib/serverUtils";
 import { WidgetRepositoryImpl } from "app/server/lib/WidgetRepository";
 
 import { EventEmitter } from "events";
+import * as fs from "fs";
 import * as net from "net";
 
 import { Request } from "express";
@@ -25,6 +26,13 @@ const tiCheckers = t.createCheckers(ITestingHooksTI, { UserProfile: t.name("obje
 export function startTestingHooks(socketPath: string, port: number,
   comm: Comm, flexServer: FlexServer,
   workerServers: FlexServer[]): Promise<net.Server> {
+  // Unix domain socket files stick around after the previous owner exits,
+  // so reusing the same path on an in-process restart (RestartShell forking
+  // a fresh worker) would fail to bind. Remove it first; the path is
+  // test-private so this is safe.
+  try { fs.unlinkSync(socketPath); } catch (err: any) {
+    if (err?.code !== "ENOENT") { throw err; }
+  }
   // Create socket server listening on the given path for testing connections.
   return new Promise((resolve, reject) => {
     const server = net.createServer();

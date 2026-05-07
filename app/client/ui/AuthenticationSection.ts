@@ -1,6 +1,7 @@
 import { makeT } from "app/client/lib/localization";
 import { localStorageBoolObs } from "app/client/lib/localStorageObs";
 import { cssMarkdownSpan } from "app/client/lib/markdown";
+import { redirectToLogin } from "app/client/lib/urlUtils";
 import { AdminChecks } from "app/client/models/AdminChecks";
 import { AppModel, getHomeUrl, reportError } from "app/client/models/AppModel";
 import {
@@ -12,6 +13,7 @@ import {
 } from "app/client/ui/AdminPanelCss";
 import { ChangeAdminModal } from "app/client/ui/ChangeAdminModal";
 import { GetGristComProviderInfoModal, getGristComProviderMeta } from "app/client/ui/GetGristComProvider";
+import { ApplyResult } from "app/client/ui/QuickSetupContinueButton";
 import { quickSetupStepHeader } from "app/client/ui/QuickSetupStepHeader";
 import { cssCardSurface } from "app/client/ui/SettingsLayout";
 import { cssHeroCard } from "app/client/ui/SetupCard";
@@ -88,6 +90,7 @@ export class AuthenticationSection extends Disposable {
   private _inAdminPanel = Boolean(this._options.controls);
   private _controls = this._options.controls ?? {
     needsRestart: Observable.create(this, false),
+    needsLogin: Observable.create(this, false),
     restartGrist: async () => { await new ConfigAPI(getHomeUrl()).restartServer(); },
   };
 
@@ -141,12 +144,14 @@ export class AuthenticationSection extends Disposable {
    * Apply pending auth changes by restarting the server and waiting until
    * it's ready again. The relevant config writes have already happened
    * inline (via the configuration modals); this is purely the restart so
-   * the new config takes effect. After restart, re-fetches providers and
-   * prefs so the section reflects the post-restart state.
+   * the new config takes effect.
    *
-   * No-op when there are no pending changes. Throws on restart timeout.
+   * On success, fires a top-level navigation through sign-in (the admin's
+   * session is gone after the restart) and returns `{ redirected: true }`
+   * so the caller knows not to run any post-apply step. No-op when there
+   * are no pending changes. Throws on restart timeout.
    */
-  public async apply(): Promise<void> {
+  public async apply(): Promise<ApplyResult> {
     if (!this.isDirty.get()) { return; }
     if (this.isApplying.get()) { return; }
     this.isApplying.set(true);
@@ -155,11 +160,12 @@ export class AuthenticationSection extends Disposable {
       if (!await this._configAPI.waitUntilReady()) {
         throw new Error("Timed out waiting for Grist server to restart");
       }
-      if (this.isDisposed()) { return; }
-      await Promise.all([this._fetchProviders(), this._fetchPrefsPendingChanges()]);
     } finally {
       if (!this.isDisposed()) { this.isApplying.set(false); }
     }
+    if (this.isDisposed()) { return; }
+    redirectToLogin();
+    return { redirected: true };
   }
 
   public buildDom() {
@@ -397,6 +403,7 @@ authentication system.",
     const needsRestart = hasActiveOnRestartProvider || hasUnappliedRestartPrefs;
     if (needsRestart) {
       this._controls.needsRestart.set(true);
+      this._controls.needsLogin.set(true);
     }
   }
 }
