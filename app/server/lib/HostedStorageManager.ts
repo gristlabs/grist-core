@@ -698,6 +698,8 @@ export class HostedStorageManager implements IDocStorageManager {
    */
   private async _removeFromFilesystem(docName: string) {
     // NOTE: fse.remove succeeds also when the file does not exist.
+    //
+    // FIXME: Also unassign the document to the worker.
     await fse.remove(this.getPath(docName));
     await fse.remove(this._getHashFile(this.getPath(docName), "doc"));
     await fse.remove(this._getHashFile(this.getPath(docName), "meta"));
