@@ -46,6 +46,20 @@ export interface AssistantV2 {
   ): Promise<AssistanceResponseV2>;
   addEndpoints?(app: express.Express): void;
   onFirstVisit?(req: express.Request, res: Express.Response): Promise<void>;
+  /**
+   * Call a single tool by name, without an LLM in the loop.
+   * Used by the MCP endpoint.
+   */
+  callTool?(
+    docSession: OptDocSession,
+    doc: AssistanceDoc,
+    toolName: string,
+    params: unknown,
+  ): Promise<FunctionCallResult>;
+  /**
+   * Return the list of available tools.
+   */
+  getTools?(): OpenAITool[];
 }
 
 export interface AssistantV1Options {
@@ -58,6 +72,7 @@ export interface AssistantV1Options {
 
 export interface AssistantV2Options extends AssistantV1Options {
   maxToolCalls?: number;
+  noModel?: boolean;
   structuredOutput?: boolean;
 }
 
@@ -186,7 +201,7 @@ export interface OpenAIFunction {
  *
  * https://platform.openai.com/docs/guides/structured-outputs?api-mode=responses#supported-schemas
  */
-interface JSONSchema {
+export interface JSONSchema {
   /**
    * The property types(s) (e.g. `"string"`, `"null"`, `"array"`).
    */

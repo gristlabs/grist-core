@@ -94,7 +94,7 @@ export interface RecordsPut {
  */
 export interface RecordsListPost {
   filter?: { [colId: string]: any[] };  // Column filters, mapping colId to array of allowed values.
-  sort?: string[];    // See QueryParameters in DocApi.
+  sort?: string[];    // See QueryParameters in DocApiUtils.
   limit?: number;     // Limit on number of rows to return.
   hidden?: boolean;   // Include hidden columns (manualSort, gristHelper_*).
   immediate?: boolean; // Skip waiting for document initialization.

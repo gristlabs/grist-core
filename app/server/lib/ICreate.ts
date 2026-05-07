@@ -98,6 +98,7 @@ export interface ICreate {
   getLoginSystem(): Promise<GristLoginSystem>;
 
   addExtraHomeEndpoints(gristServer: GristServer, app: Express): void;
+  addMcpEndpoints(gristServer: GristServer, app: Express): void;
   areAdminControlsAvailable(): boolean;
   createDocNotificationManager(gristServer: GristServer): IDocNotificationManager | undefined;
   startProcessMonitor(telemetry: ITelemetry): StopCallback | undefined;
@@ -254,6 +255,7 @@ export class BaseCreate implements ICreate {
   }
 
   public addExtraHomeEndpoints(gristServer: GristServer, app: Express) {}
+  public addMcpEndpoints(gristServer: GristServer, app: Express) {}
   public areAdminControlsAvailable(): boolean { return false; }
   public createDocNotificationManager(gristServer: GristServer): IDocNotificationManager | undefined {
     return undefined;

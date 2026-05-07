@@ -5,7 +5,7 @@
  * These are unit tests that don't require server setup.
  */
 
-import { applyQueryParameters } from "app/server/lib/DocApi";
+import { applyQueryParameters } from "app/server/lib/DocApiUtils";
 import * as testUtils from "test/server/testUtils";
 
 import { assert } from "chai";

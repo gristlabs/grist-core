@@ -456,6 +456,14 @@ export class FlexServer implements GristServer {
     return this._docManager;
   }
 
+  public hasDocManager(): boolean {
+    return Boolean(this._docManager);
+  }
+
+  public getDocWorkerMap(): IDocWorkerMap | null {
+    return this._docWorkerMap ?? null;
+  }
+
   public getTelemetry(): ITelemetry {
     if (!this._telemetry) { throw new Error("no telemetry available"); }
     return this._telemetry;
@@ -2034,6 +2042,11 @@ export class FlexServer implements GristServer {
     }
   }
 
+  public addMcp() {
+    if (this._check("mcp")) { return; }
+    this.create.addMcpEndpoints(this, this.app);
+  }
+
   public getGristConfig(): GristLoadConfig {
     return makeGristConfig({
       homeUrl: this.getDefaultHomeUrl(),
@@ -2856,16 +2869,23 @@ function isTestLoginAllowed() {
 
 // Check OPTIONS requests for allowed origins, and return heads to allow the browser to proceed
 // with a POST (or other method) request.
+const _mcpHeaders = appSettings.section("mcp").flag("enabled").readBool({
+  envVar: "GRIST_MCP_ENABLED",
+  defaultValue: false,
+}) ? ", mcp-protocol-version, mcp-session-id" : "";
+
 function trustOriginHandler(req: express.Request, res: express.Response, next: express.NextFunction) {
   res.header("Access-Control-Allow-Methods", "GET, PATCH, PUT, POST, DELETE, OPTIONS");
   if (trustOrigin(req, res)) {
     res.header("Access-Control-Allow-Credentials", "true");
-    res.header("Access-Control-Allow-Headers", "Authorization, Content-Type, X-Requested-With");
+    res.header("Access-Control-Allow-Headers",
+      "Authorization, Content-Type, X-Requested-With" + _mcpHeaders);
   } else {
     // Any origin is allowed, but if it isn't trusted, then we don't allow credentials,
     // i.e. no Cookie or Authorization header.
     res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "Content-Type, X-Requested-With");
+    res.header("Access-Control-Allow-Headers",
+      "Content-Type, X-Requested-With" + _mcpHeaders);
     if (req.get("Cookie") || req.get("Authorization")) {
       // In practice we don't expect to actually reach this point,
       // as the browser should not include credentials in preflight (OPTIONS) requests,
@@ -2924,6 +2944,7 @@ type Part =
   "login" |
   "loginMiddleware" |
   "map" |
+  "mcp" |
   "middleware" |
   "notifier" |
   "org" |

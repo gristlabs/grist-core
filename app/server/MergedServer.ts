@@ -206,6 +206,10 @@ export class MergedServer {
         this.flexServer.addClientSecrets();
       }
 
+      if (this.hasComponent("home") || this.hasComponent("docs")) {
+        this.flexServer.addMcp();
+      }
+
       this.flexServer.finalizeEndpoints();
       await this.flexServer.finalizePlugins(this.hasComponent("home") ? checkUserContentPort() : null);
       this.flexServer.checkOptionCombinations();

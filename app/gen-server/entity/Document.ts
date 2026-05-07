@@ -16,7 +16,7 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn } from 
 // Acceptable ids for use in document urls.
 const urlIdRegex = /^[-a-z0-9]+$/i;
 
-function isValidUrlId(urlId: string) {
+export function isValidUrlId(urlId: string) {
   if (urlId === NEW_DOCUMENT_CODE) { return false; }
   return urlIdRegex.exec(urlId);
 }

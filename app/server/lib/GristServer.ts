@@ -16,6 +16,7 @@ import { Comm } from "app/server/lib/Comm";
 import { IGristCoreConfig, loadGristCoreConfig } from "app/server/lib/configCore";
 import { create } from "app/server/lib/create";
 import { DocManager } from "app/server/lib/DocManager";
+import { IDocWorkerMap } from "app/server/lib/DocWorkerMap";
 import { Hosts } from "app/server/lib/extractOrg";
 import { GristJobs } from "app/server/lib/GristJobs";
 import { IAssistant } from "app/server/lib/IAssistant";
@@ -108,6 +109,8 @@ export interface GristServer extends StorageCoordinator {
   publishLatestVersionAvailable(latestVersionAvailable: LatestVersionAvailable): Promise<void>;
   setRestrictedMode(restrictedMode?: boolean): void;
   getDocManager(): DocManager;
+  hasDocManager(): boolean;
+  getDocWorkerMap(): IDocWorkerMap | null;
   isRestrictedMode(): boolean;
   onUserChange(callback: (change: UserChange) => Promise<void>): void;
   onStreamingDestinationsChange(callback: (orgId?: number) => Promise<void>): void;
@@ -223,6 +226,8 @@ export function createDummyGristServer(): GristServer {
     publishLatestVersionAvailable() { return Promise.resolve(); },
     setRestrictedMode() { /* do nothing */ },
     getDocManager() { throw new Error("no DocManager"); },
+    hasDocManager() { return false; },
+    getDocWorkerMap() { return null; },
     isRestrictedMode() { return false; },
     onUserChange() { /* do nothing */ },
     onStreamingDestinationsChange() { /* do nothing */ },
