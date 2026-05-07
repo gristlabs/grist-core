@@ -115,6 +115,32 @@ export class BaseAPI {
 
   @BaseAPI.countRequest
   protected async request(input: string, init: RequestInit = {}): Promise<Response> {
+    return this._doRequest(input, init);
+  }
+
+  /**
+   * Like `request`, but bypasses the pending-request counter. Use for background work
+   * the user isn't waiting on (e.g. prefetches), so tests' `waitForServer` doesn't block.
+   */
+  protected async requestUncounted(input: string, init: RequestInit = {}): Promise<Response> {
+    return this._doRequest(input, init);
+  }
+
+  /**
+   * Make a request, and read the response as JSON. This allows counting the request as pending
+   * until it has been read, which is relied on by tests.
+   */
+  @BaseAPI.countRequest
+  protected async requestJson(input: string, init: RequestInit = {}): Promise<any> {
+    return (await this._doRequest(input, init)).json();
+  }
+
+  /** Like `requestJson`, but bypasses the pending-request counter. See `requestUncounted`. */
+  protected async requestJsonUncounted(input: string, init: RequestInit = {}): Promise<any> {
+    return (await this._doRequest(input, init)).json();
+  }
+
+  private async _doRequest(input: string, init: RequestInit): Promise<Response> {
     init = Object.assign({ headers: this._headers, credentials: "include" }, init);
     if (this._extraParameters) {
       const url = new URL(input);
@@ -129,15 +155,6 @@ export class BaseAPI {
       throwApiError(input, resp, body);
     }
     return resp;
-  }
-
-  /**
-   * Make a request, and read the response as JSON. This allows counting the request as pending
-   * until it has been read, which is relied on by tests.
-   */
-  @BaseAPI.countRequest
-  protected async requestJson(input: string, init: RequestInit = {}): Promise<any> {
-    return (await this.request(input, init)).json();
   }
 }
 

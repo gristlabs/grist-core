@@ -48,7 +48,12 @@ export interface InstallAPI {
    */
   checkUpdates(): Promise<LatestVersionAvailable>;
   getChecks(): Promise<{ probes: BootProbeInfo[] }>;
-  runCheck(id: string): Promise<BootProbeResult>;
+  /**
+   * Run a probe and return its result. Pass `{ background: true }` for prefetches
+   * the user isn't waiting on (the underlying request bypasses the pending-request
+   * counter so tests' `waitForServer` waits aren't held up).
+   */
+  runCheck(id: string, opts?: { background?: boolean }): Promise<BootProbeResult>;
   getPermissionsStatus(): Promise<PermissionsStatus>;
 }
 
@@ -76,8 +81,11 @@ export class InstallAPIImpl extends BaseAPI implements InstallAPI {
     return this.requestJson(`${this._url}/api/probes`, { method: "GET" });
   }
 
-  public runCheck(id: string): Promise<BootProbeResult> {
-    return this.requestJson(`${this._url}/api/probes/${id}`, { method: "GET" });
+  public runCheck(id: string, opts: { background?: boolean } = {}): Promise<BootProbeResult> {
+    const url = `${this._url}/api/probes/${id}`;
+    return opts.background
+      ? this.requestJsonUncounted(url, { method: "GET" })
+      : this.requestJson(url, { method: "GET" });
   }
 
   public async getPermissionsStatus(): Promise<PermissionsStatus> {
