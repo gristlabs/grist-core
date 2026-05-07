@@ -371,12 +371,11 @@ export class HostedStorageManager implements IDocStorageManager {
     if (!this._disableS3) {
       await this._ext.remove(docName);
       await this._extMeta.remove(docName);
+    } else {
+      // NOTE: closeDocument only removes the document from the filesystem when
+      // we use a S3 storage. So let's cleanup here when there is no such storage backend.
+      await this._removeFromFilesystem(docName);
     }
-    // NOTE: fse.remove succeeds also when the file does not exist.
-    await fse.remove(this.getPath(docName));
-    await fse.remove(this._getHashFile(this.getPath(docName), "doc"));
-    await fse.remove(this._getHashFile(this.getPath(docName), "meta"));
-    await fse.remove(this.getAssetPath(docName));
   }
 
   // We don't implement document renames.
@@ -475,7 +474,13 @@ export class HostedStorageManager implements IDocStorageManager {
       await this._localFiles.get(docName);
     }
     this._localFiles.delete(docName);
-    return this.flushDoc(docName);
+    await this.flushDoc(docName);
+
+    if (!this._disableS3) {
+      // Wipe the cache when using S3
+      this._log.info(docName, "Removing local copy of this doc");
+      await this._removeFromFilesystem(docName);
+    }
   }
 
   /**
@@ -659,7 +664,7 @@ export class HostedStorageManager implements IDocStorageManager {
           if (head && lastLocalVersionSeen !== head.snapshotId) {
             // Exists in S3, with a version not known to be latest seen
             // by this worker - so wipe local version and defer to S3.
-            await this._wipeCache(docName);
+            await this._removeFromFilesystem(docName);
           } else {
             // Go ahead and use local version.
             return true;
@@ -677,7 +682,7 @@ export class HostedStorageManager implements IDocStorageManager {
             // On the assumption that the local file is outdated, delete it.
             // TODO: may want to be more careful in case the local file has modifications that
             // simply never made it to S3 due to some kind of breakage.
-            await this._wipeCache(docName);
+            await this._removeFromFilesystem(docName);
           }
         }
       }
@@ -691,14 +696,20 @@ export class HostedStorageManager implements IDocStorageManager {
   /**
    * Remove local version of a document, and state related to it.
    */
-  private async _wipeCache(docName: string) {
+  private async _removeFromFilesystem(docName: string) {
     // NOTE: fse.remove succeeds also when the file does not exist.
     await fse.remove(this.getPath(docName));
     await fse.remove(this._getHashFile(this.getPath(docName), "doc"));
     await fse.remove(this._getHashFile(this.getPath(docName), "meta"));
-    await this._inventory.clear(docName);
+    await fse.remove(this.getAssetPath(docName));
+    if (this._inventory) {
+      await this._inventory.clear(docName);
+    }
     this._latestVersions.delete(docName);
     this._latestMetaVersions.delete(docName);
+    // NOTE: _localFiles is already handled by closeDocument, even when the S3 storage is not enabled
+    // Its value is computed again when reopening (if the file is already in the storage,
+    // the doc is marked as locally loaded)
   }
 
   /**
