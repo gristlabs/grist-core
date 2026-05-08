@@ -83,9 +83,9 @@ export class InstallAPIImpl extends BaseAPI implements InstallAPI {
 
   public runCheck(id: string, opts: { background?: boolean } = {}): Promise<BootProbeResult> {
     const url = `${this._url}/api/probes/${id}`;
-    return opts.background
-      ? this.requestJsonUncounted(url, { method: "GET" })
-      : this.requestJson(url, { method: "GET" });
+    return opts.background ?
+      this.requestJsonUncounted(url, { method: "GET" }) :
+      this.requestJson(url, { method: "GET" });
   }
 
   public async getPermissionsStatus(): Promise<PermissionsStatus> {
