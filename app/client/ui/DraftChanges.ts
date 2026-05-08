@@ -44,6 +44,19 @@ export interface ConfigSection {
   /** True when the section's changes require a server restart to take effect. */
   needsRestart: boolean;
   /**
+   * Describe the draft change(s) for display in the restart banner.
+   * Only consulted when `isDirty` is true (the manager filters first).
+   * Returning multiple entries lets a section surface several distinct
+   * pending sub-changes (e.g. a new admin email and a separate login
+   * rename) as separate bullets.
+   *
+   * A Computed (not a plain method) so the banner re-reads when a
+   * section's described value drifts while `isDirty` stays true --
+   * e.g. an auth section that's already dirty from a provider switch
+   * gains a queued admin-email change.
+   */
+  describeChange: Computed<DraftChangeDescription[]>;
+  /**
    * Persist the section's changes to the server and update its own view of
    * the server state so `isDirty` goes false. No-op if not dirty. On error,
    * throws without updating; `isDirty` stays true.
@@ -60,16 +73,6 @@ export interface ConfigSection {
    * should run.
    */
   afterApply?(): Promise<ApplyResult>;
-  /**
-   * Describe the draft change(s) for display in the restart banner.
-   * Returning multiple entries lets a section surface several distinct
-   * pending sub-changes (e.g. a new admin email and a separate login
-   * rename) as separate bullets. Only called when isDirty is true.
-   * Re-read whenever any section's `isDirty` fires -- sections whose
-   * described value can drift while `isDirty` stays true should toggle
-   * `isDirty` to trigger a refresh.
-   */
-  describeChange(): DraftChangeDescription[];
   /**
    * Optional. Discard whatever made this section dirty: clear local
    * drafts, and -- if the section reads server-side state that
@@ -97,7 +100,7 @@ export class DraftChangesManager extends Disposable {
   constructor() {
     super();
     this.changes = Computed.create(this, use =>
-      use(this._sections).filter(s => use(s.isDirty)).flatMap(s => s.describeChange()),
+      use(this._sections).filter(s => use(s.isDirty)).flatMap(s => use(s.describeChange)),
     );
     this.hasDraftChanges = Computed.create(this, use => use(this.changes).length > 0);
     this.needsRestart = Computed.create(this, use =>
@@ -145,7 +148,7 @@ export class DraftChangesManager extends Disposable {
       // user asked for, not whatever it looks like after the attempt.
       const dirty = this._sections.get().filter(s => s.isDirty.get());
       const labels = new Map(dirty.map((s) => {
-        const entries = s.describeChange();
+        const entries = s.describeChange.get();
         return [s, entries.map(e => e.label).join(", ")] as const;
       }));
 

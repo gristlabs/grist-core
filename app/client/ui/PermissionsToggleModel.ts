@@ -40,6 +40,8 @@ export class PermissionsToggleModel extends Disposable implements ConfigSection 
   /** True when any toggle has drifted from its server value. */
   public readonly isDirty: Computed<boolean>;
 
+  public readonly describeChange: Computed<DraftChangeDescription[]>;
+
   /** Which preset, if any, the current toggle state matches. Null if none. */
   public readonly presetDetector: Computed<PresetName | null>;
 
@@ -71,6 +73,15 @@ export class PermissionsToggleModel extends Disposable implements ConfigSection 
         if (this._isEnvLocked(status, key)) { return false; }
         return use(this.toggles[key]) !== use(this._serverValues[key]);
       });
+    });
+
+    this.describeChange = Computed.create(this, (use) => {
+      const status = use(this.status);
+      const changed = TOGGLE_DEFS
+        .filter(({ key }) => !status || !this._isEnvLocked(status, key))
+        .filter(({ key }) => use(this.toggles[key]) !== use(this._serverValues[key]))
+        .map(({ key, label }) => `${label()}: ${use(this.toggles[key]) ? t("on") : t("off")}`);
+      return [{ label: t("Permissions"), value: changed.join(", ") }];
     });
 
     this.presetDetector = Computed.create(this, (use) => {
@@ -129,14 +140,6 @@ export class PermissionsToggleModel extends Disposable implements ConfigSection 
     for (const { key } of TOGGLE_DEFS) {
       this._serverValues[key].set(this.toggles[key].get());
     }
-  }
-
-  public describeChange(): DraftChangeDescription[] {
-    const changed = TOGGLE_DEFS
-      .filter(({ key }) => !this.isEnvLocked(key))
-      .filter(({ key }) => this.toggles[key].get() !== this._serverValues[key].get())
-      .map(({ key, label }) => `${label()}: ${this.toggles[key].get() ? t("on") : t("off")}`);
-    return [{ label: t("Permissions"), value: changed.join(", ") }];
   }
 
   private async _load(): Promise<void> {

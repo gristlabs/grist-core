@@ -85,6 +85,14 @@ export class AuthenticationSection extends Disposable implements ConfigSection {
    */
   public isDirty: Computed<boolean>;
 
+  /**
+   * Per-section description shown in the restart banner. Reactive on
+   * `_displayProviders`, `_draftConfigs`, and `_prefsPendingChanges`, so
+   * a second sub-change while already-dirty (e.g. a queued admin email
+   * change after a provider switch) refreshes the displayed bullets.
+   */
+  public describeChange: Computed<DraftChangeDescription[]>;
+
   /** Auth changes always require a restart to take effect. */
   public readonly needsRestart = true;
 
@@ -177,6 +185,38 @@ export class AuthenticationSection extends Disposable implements ConfigSection {
       return hasDraftConfigs || hasDraftActive || hasPersistedRestartChange;
     });
 
+    this.describeChange = Computed.create(this, (use) => {
+      const entries: DraftChangeDescription[] = [];
+      const providers = use(this._displayProviders);
+      const willBeActive = providers.find(p => p.willBeActive);
+      const willBeDisabled = providers.find(p => p.willBeDisabled);
+      if (willBeActive) {
+        entries.push({ label: t("Authentication"), value: willBeActive.name });
+      } else if (willBeDisabled) {
+        entries.push({ label: t("Authentication"), value: t("disabled") });
+      } else if (use(this._draftConfigs).size > 0) {
+        entries.push({ label: t("Authentication"), value: t("configuration updated") });
+      }
+
+      const prefs = use(this._prefsPendingChanges);
+      if (prefs?.onRestartSetAdminEmail) {
+        entries.push({ label: t("New admin email"), value: prefs.onRestartSetAdminEmail });
+      }
+      if (prefs?.onRestartReplaceEmailWithAdmin) {
+        entries.push({
+          label: t("Reassign login to admin"),
+          value: prefs.onRestartReplaceEmailWithAdmin,
+        });
+      }
+
+      // describeChange is only consulted when isDirty is true; one of the
+      // above branches should have hit. Fall back rather than throw.
+      if (entries.length === 0) {
+        entries.push({ label: t("Authentication"), value: "" });
+      }
+      return entries;
+    });
+
     this._fetchProviders().catch(reportError);
     this._fetchPrefsPendingChanges().catch(reportError);
 
@@ -251,38 +291,6 @@ export class AuthenticationSection extends Disposable implements ConfigSection {
       if (this.isDisposed()) { return; }
       await this._fetchPrefsPendingChanges();
     }
-  }
-
-  public describeChange(): DraftChangeDescription[] {
-    const entries: DraftChangeDescription[] = [];
-    const providers = this._displayProviders.get();
-    const willBeActive = providers.find(p => p.willBeActive);
-    const willBeDisabled = providers.find(p => p.willBeDisabled);
-    if (willBeActive) {
-      entries.push({ label: t("Authentication"), value: willBeActive.name });
-    } else if (willBeDisabled) {
-      entries.push({ label: t("Authentication"), value: t("disabled") });
-    } else if (this._draftConfigs.get().size > 0) {
-      entries.push({ label: t("Authentication"), value: t("configuration updated") });
-    }
-
-    const prefs = this._prefsPendingChanges.get();
-    if (prefs?.onRestartSetAdminEmail) {
-      entries.push({ label: t("New admin email"), value: prefs.onRestartSetAdminEmail });
-    }
-    if (prefs?.onRestartReplaceEmailWithAdmin) {
-      entries.push({
-        label: t("Reassign login to admin"),
-        value: prefs.onRestartReplaceEmailWithAdmin,
-      });
-    }
-
-    // describeChange is only consulted when isDirty is true; one of the
-    // above branches should have hit. Fall back rather than throw.
-    if (entries.length === 0) {
-      entries.push({ label: t("Authentication"), value: "" });
-    }
-    return entries;
   }
 
   public buildDom() {

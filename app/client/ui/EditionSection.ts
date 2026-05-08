@@ -9,7 +9,7 @@ import {
   cssSectionContainer,
   cssSectionDescription,
 } from "app/client/ui/AdminPanelCss";
-import { ConfigSection } from "app/client/ui/DraftChanges";
+import { ConfigSection, DraftChangeDescription } from "app/client/ui/DraftChanges";
 import { cssValueLabel } from "app/client/ui/SettingsLayout";
 import { ToggleEnterpriseWidget } from "app/client/ui/ToggleEnterpriseWidget";
 import { primaryButton } from "app/client/ui2018/buttons";
@@ -57,6 +57,7 @@ export class EditionSection extends Disposable implements ConfigSection {
 
   public canProceed: Computed<boolean>;
   public isDirty: Computed<boolean>;
+  public describeChange: Computed<DraftChangeDescription[]>;
 
   public readonly fullGristAvailable: boolean;
   public readonly editionForced: boolean;
@@ -104,6 +105,10 @@ export class EditionSection extends Disposable implements ConfigSection {
       if (selected === null) { return false; }
       return selected !== use(this._serverEdition);
     });
+    this.describeChange = Computed.create(this, use => [{
+      label: t("Edition"),
+      value: use(this._selectedEdition) === "enterprise" ? t("Full Grist") : t("Community Edition"),
+    }]);
   }
 
   public buildStatusDisplay(): DomContents {
@@ -175,14 +180,6 @@ export class EditionSection extends Disposable implements ConfigSection {
     if (!selected) { return; }
     await this._configAPI.setValue({ edition: selected });
     this._serverEdition.set(selected);
-  }
-
-  public describeChange() {
-    const selected = this._selectedEdition.get();
-    return [{
-      label: t("Edition"),
-      value: selected === "enterprise" ? t("Full Grist") : t("Community Edition"),
-    }];
   }
 
   public async dismiss(): Promise<void> {

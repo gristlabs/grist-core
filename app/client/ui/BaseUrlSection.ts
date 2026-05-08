@@ -7,6 +7,7 @@ import {
   cssSectionContainer,
   cssSectionDescription,
 } from "app/client/ui/AdminPanelCss";
+import { DraftChangeDescription } from "app/client/ui/DraftChanges";
 import { cssValueLabel } from "app/client/ui/SettingsLayout";
 import { basicButton, primaryButton } from "app/client/ui2018/buttons";
 import { theme, vars } from "app/client/ui2018/cssVars";
@@ -37,6 +38,8 @@ export class BaseUrlSection extends Disposable {
 
   /** True when current state differs from what the server has. */
   public isDirty: Computed<boolean>;
+
+  public describeChange: Computed<DraftChangeDescription[]>;
 
   /** Base URL changes require a server restart to take effect safely. */
   public readonly needsRestart = true;
@@ -73,6 +76,11 @@ export class BaseUrlSection extends Disposable {
       if (current === use(this._serverUrl)) { return false; }
       return true;
     });
+    this.describeChange = Computed.create(this, use =>
+      use(this._urlSkipped) ?
+        [{ label: t("Base URL"), value: t("automatic") }] :
+        [{ label: t("Base URL"), value: use(this._editedUrl).trim() }],
+    );
 
     this._editedUrl.addListener((url) => {
       if (this._testResult.get() === "passed" && url.trim() !== this._testedUrlValue) {
@@ -91,13 +99,6 @@ export class BaseUrlSection extends Disposable {
     const url = skipped ? null : this._editedUrl.get().trim();
     await this._persist(url);
     this._serverUrl.set(skipped ? "" : url!);
-  }
-
-  public describeChange() {
-    if (this._urlSkipped.get()) {
-      return [{ label: t("Base URL"), value: t("automatic") }];
-    }
-    return [{ label: t("Base URL"), value: this._editedUrl.get().trim() }];
   }
 
   public async dismiss(): Promise<void> {
