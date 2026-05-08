@@ -3,14 +3,13 @@ import { getHomeUrl } from "app/client/models/AppModel";
 import { Notifier } from "app/client/models/NotifyModel";
 import { showEnterpriseToggle } from "app/client/ui/ActivationPage";
 import {
-  AdminPanelControls,
   buildConfirmedRow,
   cssHappyText,
   cssSectionButtonRow,
   cssSectionContainer,
   cssSectionDescription,
 } from "app/client/ui/AdminPanelCss";
-import { ConfigSection } from "app/client/ui/DraftChanges";
+import { ConfigSection, DraftChangeDescription } from "app/client/ui/DraftChanges";
 import { cssValueLabel } from "app/client/ui/SettingsLayout";
 import { ToggleEnterpriseWidget } from "app/client/ui/ToggleEnterpriseWidget";
 import { primaryButton } from "app/client/ui2018/buttons";
@@ -30,7 +29,8 @@ const testId = makeTestId("test-edition-");
 type Edition = "enterprise" | "core";
 
 interface EditionSectionOptions {
-  controls?: AdminPanelControls;
+  /** True when rendered in the admin panel; false / absent in the wizard. */
+  inAdminPanel?: boolean;
   notifier?: Notifier;
   /**
    * Optional overrides for state that's normally derived from globals
@@ -57,6 +57,7 @@ export class EditionSection extends Disposable implements ConfigSection {
 
   public canProceed: Computed<boolean>;
   public isDirty: Computed<boolean>;
+  public describeChange: Computed<DraftChangeDescription[]>;
 
   public readonly fullGristAvailable: boolean;
   public readonly editionForced: boolean;
@@ -65,7 +66,7 @@ export class EditionSection extends Disposable implements ConfigSection {
   private _selectedEdition = Observable.create<Edition | null>(this, null);
   private _serverEdition = Observable.create<Edition>(this, "core");
   // Pre-confirmed in admin-panel mode so the confirm/edit flow only runs in the wizard.
-  private _editionConfirmed = Observable.create<boolean>(this, !!this._options.controls);
+  private _editionConfirmed = Observable.create<boolean>(this, !!this._options.inAdminPanel);
 
   // Only created in admin-panel mode (requires a notifier).
   private _toggleEnterprise: ToggleEnterpriseWidget | null;
@@ -92,7 +93,7 @@ export class EditionSection extends Disposable implements ConfigSection {
     // the section isn't dirty before the user acts. In wizard mode, default to
     // Full Grist when available; the user can change it via the buttons.
     // Done here rather than in `_buildSelector` so a re-render can't reset it.
-    this._selectedEdition.set(this._options.controls ?
+    this._selectedEdition.set(this._options.inAdminPanel ?
       this._serverEdition.get() :
       this.fullGristAvailable ? "enterprise" : "core",
     );
@@ -104,6 +105,10 @@ export class EditionSection extends Disposable implements ConfigSection {
       if (selected === null) { return false; }
       return selected !== use(this._serverEdition);
     });
+    this.describeChange = Computed.create(this, use => [{
+      label: t("Edition"),
+      value: use(this._selectedEdition) === "enterprise" ? t("Full Grist") : t("Community Edition"),
+    }]);
   }
 
   public buildStatusDisplay(): DomContents {
@@ -177,12 +182,9 @@ export class EditionSection extends Disposable implements ConfigSection {
     this._serverEdition.set(selected);
   }
 
-  public describeChange() {
-    const selected = this._selectedEdition.get();
-    return {
-      label: t("Edition"),
-      value: selected === "enterprise" ? t("Full Grist") : t("Community Edition"),
-    };
+  public async dismiss(): Promise<void> {
+    if (!this.isDirty.get()) { return; }
+    this._selectedEdition.set(this._serverEdition.get());
   }
 
   /**

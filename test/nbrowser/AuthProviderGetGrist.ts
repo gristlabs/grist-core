@@ -1,4 +1,3 @@
-import { Activation } from "app/gen-server/entity/Activation";
 import { expandProviderList, itemValue, toggleItem } from "test/nbrowser/AdminPanelTools";
 import * as gu from "test/nbrowser/gristUtils";
 import { startMockOIDCIssuer } from "test/nbrowser/oidcMockServer";
@@ -19,6 +18,17 @@ describe("AuthProviderGetGrist", function() {
   let oldEnv: testUtils.EnvironmentSnapshot;
   let serving: Serving;
   const currentRequest = observable(null as express.Request | null);
+
+  // Build a valid base64 configuration key against the test's fake OIDC server.
+  function buildKey() {
+    return Buffer.from(JSON.stringify({
+      oidcClientId: "some-id",
+      oidcClientSecret: "some-secret",
+      oidcIssuer: serving.url + "?provider=getgrist.com",
+      oidcSkipEndSessionEndpoint: true,
+      owner: { name: "Chimpy", email: "chimpy@getgrist.com" },
+    })).toString("base64");
+  }
 
   before(async function() {
     oldEnv = new testUtils.EnvironmentSnapshot();
@@ -41,182 +51,154 @@ describe("AuthProviderGetGrist", function() {
     await serving?.shutdown();
   });
 
-  it("should show providers with Grist Login", async function() {
-    await server.simulateLogin("user1", process.env.GRIST_DEFAULT_EMAIL!, "docs");
-    await driver.get(`${server.getHost()}/admin`);
-    await gu.waitForAdminPanel();
-    await toggleItem("authentication");
-
-    await gu.waitToPass(async () => {
-      assert.equal(await itemValue("authentication"), "no authentication");
-    }, 500);
-
-    // We should see couple of providers, including "Sign in with Grist".
-    await driver.findWait(".test-admin-auth-provider-row", 2000); // wait for it to appear
-    const providerItems = await driver.findAll(".test-admin-auth-provider-row");
-    assert.isAtLeast(providerItems.length, 2); // We expect to see OIDC provider as well.
-
-    // First one should be "Sign in with Grist".
-    assert.match(await providerItems[0].getText(), /Sign in with getgrist/);
-  });
-
-  it("should allow configuring getgrist.com provider", async function() {
-    const configureButton = await providerRow().find(".test-admin-auth-configure-button");
-    await configureButton.click();
-
-    const textarea = await driver.findWait(".test-admin-auth-config-key-textarea", 2000);
-    const configureModalButton = await driver.find(".test-admin-auth-modal-configure");
-
-    // Button should be grayed out and disabled (should have 'disabled' attribute) when textarea is empty.
-    assert.isFalse(await configureModalButton.isEnabled());
-
-    // Click it while disabled.
-    await configureModalButton.click();
-    // Nothing should happen, modal should stay open.
-    await driver.sleep(100);
-    await gu.checkForErrors();
-
-    // Type some dummy invalid key.
-    await textarea.click();
-    await textarea.sendKeys("invalid-key");
-    await configureModalButton.click();
-    await assertError(/Error configuring provider with the provided key/);
-
-    await textarea.clear();
-    await textarea.sendKeys(Buffer.from(JSON.stringify({ random: "json" })).toString("base64"));
-    await configureModalButton.click();
-    await assertError(/Error configuring provider with the provided key/);
-
-    const validConfig = {
-      oidcClientId: "some-id",
-      oidcClientSecret: "some-secret",
-      oidcIssuer: serving.url + "?provider=getgrist.com",
-      oidcSkipEndSessionEndpoint: true,
-      owner: {
-        name: "Chimpy",
-        email: "chimpy@getgrist.com",
-      },
-    };
-    await textarea.clear();
-    await textarea.sendKeys(Buffer.from(JSON.stringify(validConfig)).toString("base64"));
-    await configureModalButton.click();
-    await gu.waitForServer();
-    await waitForModalToClose();
-
-    // We should see Active on restart badge. GetGrist.com was picked by order.
-    const providerBadges = await badges();
-    assert.includeMembers(providerBadges, ["ACTIVE ON RESTART"]);
-  });
-
-  it("should store config in database", async function() {
-    const db = await server.getDatabase();
-    const activation = await db.connection.manager.findOne(Activation, { where: {} });
-    assert.isDefined(activation);
-    const json = activation!.prefs!.envVars;
-    assert.isDefined(json);
-    assert.isDefined(json!.GRIST_GETGRISTCOM_SECRET);
-  });
-
-  it("should use fake getgristlogin service", async function() {
-    await server.restart();
-    await server.removeLogin();
-    await server.simulateLogin("user1", process.env.GRIST_DEFAULT_EMAIL!, "docs");
-    await driver.get(`${server.getHost()}/admin`);
-    await gu.waitForAdminPanel();
-    await toggleItem("authentication");
-    assert.equal(await itemValue("authentication"), "getgrist.com");
-
-    // Expand the provider list (collapsed when a real provider is active).
-    await expandProviderList();
-
-    // And check that we still see at least 2 providers, including getgrist.com and OIDC
-    const providerItems = await driver.findAll(".test-admin-auth-provider-row");
-    assert.isAtLeast(providerItems.length, 2);
-
-    // First one should be "Sign in with getgrist.com".
-    assert.match(await providerItems[0].getText(), /Sign in with getgrist/);
-
-    // Second one should be OIDC provider.
-    assert.match(await providerItems[1].getText(), /OIDC/);
-
-    // The getgrist.com provider should have Active badge
-    const getGristRow = providerItems[0];
-    const activeBadges = await getGristRow.findAll(".test-admin-auth-badge-active");
-    assert.lengthOf(activeBadges, 1);
-
-    // Second one should have no badges
-    const oidcRow = providerItems[1];
-    const oidcBadges = await oidcRow.findAll(".test-admin-auth-badge");
-    assert.lengthOf(oidcBadges, 0);
-  });
-
-  it("should deactivate getgrist.com and preserve config", async function() {
-    // The previous test left us on the admin panel with getgrist.com active.
-    // Click Deactivate on the hero card.
-    const deactivateButton = await driver.findWait(".test-admin-auth-hero-deactivate", 2000);
-    await deactivateButton.click();
-
-    // Confirm in the modal.
-    const confirmButton = await driver.findWait(".test-modal-confirm", 2000);
-    await confirmButton.click();
-    await gu.waitForServer();
-
-    // After deactivation, getgrist.com should show "Disabled on restart" badge.
-    await expandProviderList();
-    const getGristBadges = await badges();
-    assert.includeMembers(getGristBadges, ["DISABLED ON RESTART"]);
-
-    // The config should still be in the database (preserved, not deleted).
-    const db = await server.getDatabase();
-    const activation = await db.connection.manager.findOne(Activation, { where: {} });
-    assert.isDefined(activation!.prefs!.envVars!.GRIST_GETGRISTCOM_SECRET);
-
-    // After restart, should be back to no authentication.
-    await server.restart();
-    await server.simulateLogin("user1", process.env.GRIST_DEFAULT_EMAIL!, "docs");
-    await driver.get(`${server.getHost()}/admin`);
-    await gu.waitForAdminPanel();
-    await toggleItem("authentication");
-
-    await gu.waitToPass(async () => {
-      assert.equal(await itemValue("authentication"), "no authentication");
-    }, 500);
-
-    // Re-activate getgrist.com — it should still be configured (secret preserved).
-    await expandProviderList();
-    const setActiveButton = await providerRow().find(".test-admin-auth-set-active-button");
-    await setActiveButton.click();
-    const reactivateConfirm = await driver.findWait(".test-modal-confirm", 2000);
-    await reactivateConfirm.click();
-    await gu.waitForServer();
-
-    // Should now show "Active on restart".
-    const reactivatedBadges = await badges();
-    assert.includeMembers(reactivatedBadges, ["ACTIVE ON RESTART"]);
-
-    // Restart and verify it's active again.
-    await server.restart();
-    await server.removeLogin();
-    await server.simulateLogin("user1", process.env.GRIST_DEFAULT_EMAIL!, "docs");
-    await driver.get(`${server.getHost()}/admin`);
-    await gu.waitForAdminPanel();
-    await toggleItem("authentication");
-    assert.equal(await itemValue("authentication"), "getgrist.com");
-  });
-
-  it("should respect GRIST_GETGRISTCOM_SP_HOST env override", async function() {
-    process.env.GRIST_GETGRISTCOM_SP_HOST = "https://invalid-host.example.com";
-    await server.restart();
-    await server.removeLogin();
-    await driver.get(`${server.getHost()}`);
-    await gu.waitForDocMenuToLoad();
-    currentRequest.set(null);
-    const redirectUrl = new Defer<string>();
-    currentRequest.addListener((val) => {
-      redirectUrl.resolve(val?.query.redirect_uri as string);
+  // Exercise the configure modal and the section's draft display.
+  // Persistence and server behavior are covered by the seeded-env-var
+  // tests below.
+  describe("UI flow with no auth configured", function() {
+    before(async function() {
+      delete process.env.GRIST_GETGRISTCOM_SECRET;
+      delete process.env.GRIST_LOGIN_SYSTEM_TYPE;
+      await server.restart();
     });
-    await driver.findWait(".test-user-sign-in", 2000).click();
-    assert.equal(await redirectUrl, "https://invalid-host.example.com/oauth2/callback");
+
+    it("should show providers with Grist Login", async function() {
+      await server.simulateLogin("user1", process.env.GRIST_DEFAULT_EMAIL!, "docs");
+      await driver.get(`${server.getHost()}/admin`);
+      await gu.waitForAdminPanel();
+      await toggleItem("authentication");
+
+      await gu.waitToPass(async () => {
+        assert.equal(await itemValue("authentication"), "no authentication");
+      }, 500);
+
+      await driver.findWait(".test-admin-auth-provider-row", 2000);
+      const providerItems = await driver.findAll(".test-admin-auth-provider-row");
+      assert.isAtLeast(providerItems.length, 2);
+      assert.match(await providerItems[0].getText(), /Sign in with getgrist/);
+    });
+
+    it("should validate the key and stage the configuration as a draft", async function() {
+      const configureButton = await providerRow().find(".test-admin-auth-configure-button");
+      await configureButton.click();
+
+      const textarea = await driver.findWait(".test-admin-auth-config-key-textarea", 2000);
+      const configureModalButton = await driver.find(".test-admin-auth-modal-configure");
+
+      // Empty textarea -> Configure disabled.
+      assert.isFalse(await configureModalButton.isEnabled());
+      await configureModalButton.click();
+      await driver.sleep(100);
+      await gu.checkForErrors();
+
+      // Invalid base64.
+      await textarea.click();
+      await textarea.sendKeys("invalid-key");
+      await configureModalButton.click();
+      await assertError(/Error configuring provider with the provided key/);
+
+      // Valid base64 but missing required fields.
+      await textarea.clear();
+      await textarea.sendKeys(Buffer.from(JSON.stringify({ random: "json" })).toString("base64"));
+      await configureModalButton.click();
+      await assertError(/Error configuring provider with the provided key/);
+
+      // Valid key.
+      await textarea.clear();
+      await textarea.sendKeys(buildKey());
+      await configureModalButton.click();
+      await waitForModalToClose();
+
+      // The badge reflects the draft: getgrist.com will be active on apply
+      // (because nothing else was active and it's the first configured).
+      assert.includeMembers(await badges(), ["ACTIVE ON RESTART"]);
+    });
+
+    it("clears the staged draft when Dismiss changes is confirmed", async function() {
+      // Continues from the previous test, which staged a getgrist.com draft.
+      // Sanity-check it's still there.
+      assert.includeMembers(await badges(), ["ACTIVE ON RESTART"]);
+
+      const dismissButton = await driver.findWait(".test-admin-panel-dismiss-button", 2000);
+      // Banner uses a grid-template-rows animation; retry until the button
+      // is actually clickable (not still mid-reveal with zero height).
+      await gu.waitToPass(async () => { await dismissButton.click(); }, 2000);
+      const confirmButton = await driver.findWait(".test-modal-confirm", 2000);
+      await confirmButton.click();
+      await gu.waitForServer();
+
+      // Banner hides once nothing is dirty; the dismiss button is gated
+      // on hasDraftChanges and disappears with it.
+      await gu.waitToPass(async () => {
+        assert.isFalse(await driver.find(".test-admin-panel-dismiss-button").isPresent());
+      }, 2000);
+      assert.notInclude(await badges(), "ACTIVE ON RESTART");
+    });
+  });
+
+  // Server-side behavior tests seed the secret directly via env vars and
+  // restart, bypassing the UI configure modal. They verify how the server
+  // behaves when getgrist.com is the active auth provider, and how the
+  // section presents that state in the admin panel.
+  describe("when getgrist.com is configured via env vars", function() {
+    before(async function() {
+      process.env.GRIST_GETGRISTCOM_SECRET = buildKey();
+      // Don't pin GRIST_LOGIN_SYSTEM_TYPE -- coreLogins picks the first
+      // configured system, which is getgrist.com.
+      delete process.env.GRIST_LOGIN_SYSTEM_TYPE;
+      await server.restart();
+    });
+
+    after(async function() {
+      delete process.env.GRIST_GETGRISTCOM_SECRET;
+      delete process.env.GRIST_GETGRISTCOM_SP_HOST;
+    });
+
+    it("shows getgrist.com as the active provider", async function() {
+      await server.removeLogin();
+      await server.simulateLogin("user1", process.env.GRIST_DEFAULT_EMAIL!, "docs");
+      await driver.get(`${server.getHost()}/admin`);
+      await gu.waitForAdminPanel();
+      await toggleItem("authentication");
+      assert.equal(await itemValue("authentication"), "getgrist.com");
+
+      // Provider list collapses when a real provider is active; expand to inspect.
+      await expandProviderList();
+      const providerItems = await driver.findAll(".test-admin-auth-provider-row");
+      assert.isAtLeast(providerItems.length, 2);
+      assert.match(await providerItems[0].getText(), /Sign in with getgrist/);
+      assert.match(await providerItems[1].getText(), /OIDC/);
+
+      const activeBadges = await providerItems[0].findAll(".test-admin-auth-badge-active");
+      assert.lengthOf(activeBadges, 1);
+      assert.lengthOf(await providerItems[1].findAll(".test-admin-auth-badge"), 0);
+    });
+
+    it("shows DISABLED ON RESTART when the user clicks Deactivate", async function() {
+      // The previous test left us on the admin panel with getgrist.com active.
+      const deactivateButton = await driver.findWait(".test-admin-auth-hero-deactivate", 2000);
+      await deactivateButton.click();
+      const confirmButton = await driver.findWait(".test-modal-confirm", 2000);
+      await confirmButton.click();
+
+      await expandProviderList();
+      const getGristBadges = await badges();
+      assert.includeMembers(getGristBadges, ["DISABLED ON RESTART"]);
+    });
+
+    it("respects GRIST_GETGRISTCOM_SP_HOST when constructing the OAuth redirect", async function() {
+      process.env.GRIST_GETGRISTCOM_SP_HOST = "https://invalid-host.example.com";
+      await server.restart();
+      await server.removeLogin();
+      await driver.get(`${server.getHost()}`);
+      await gu.waitForDocMenuToLoad();
+      currentRequest.set(null);
+      const redirectUrl = new Defer<string>();
+      currentRequest.addListener((val) => {
+        redirectUrl.resolve(val?.query.redirect_uri as string);
+      });
+      await driver.findWait(".test-user-sign-in", 2000).click();
+      assert.equal(await redirectUrl, "https://invalid-host.example.com/oauth2/callback");
+    });
   });
 });
 

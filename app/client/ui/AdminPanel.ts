@@ -2,7 +2,6 @@ import { buildHomeBanners } from "app/client/components/Banners";
 import { makeT } from "app/client/lib/localization";
 import { markdown } from "app/client/lib/markdown";
 import { getTimeFromNow } from "app/client/lib/timeUtils";
-import { redirectToLogin } from "app/client/lib/urlUtils";
 import { AdminCheckRequest, AdminChecks, probeDetails, ProbeDetails } from "app/client/models/AdminChecks";
 import { AppModel, getHomeUrl, reportError } from "app/client/models/AppModel";
 import { AuditLogsModel, AuditLogsModelImpl } from "app/client/models/AuditLogsModel";
@@ -13,7 +12,6 @@ import { buildAdminAccessDeniedCard } from "app/client/ui/AdminAccessDeniedCard"
 import { buildAdminData } from "app/client/ui/AdminControls";
 import { buildAdminLeftPanel, getPageNames } from "app/client/ui/AdminLeftPanel";
 import {
-  AdminPanelControls,
   cssDangerText,
   cssErrorText,
   cssFlexSpace,
@@ -59,7 +57,7 @@ import { buildInstallationIdDisplay } from "app/client/ui/ToggleEnterpriseWidget
 import { createTopBarHome } from "app/client/ui/TopBar";
 import { createUserImage } from "app/client/ui/UserImage";
 import { fullBreadcrumbs } from "app/client/ui2018/breadcrumbs";
-import { basicButton, bigPrimaryButton } from "app/client/ui2018/buttons";
+import { basicButton, bigBasicButton, bigPrimaryButton } from "app/client/ui2018/buttons";
 import { testId, theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { cssLink, makeLinks } from "app/client/ui2018/links";
@@ -205,24 +203,16 @@ export class AdminPanel extends Disposable {
   }
 }
 
-class AdminInstallationPanel extends Disposable implements AdminPanelControls {
-  // Signal from legacy sections (e.g. AuthenticationSection) that their own
-  // state change now requires a restart. Draft-tracked sections contribute
-  // separately via `_drafts.needsRestart`; both are combined into
-  // `_showRestartBanner`.
-  public needsRestart = Observable.create(this, false);
-  // Set when a pending change will sign the admin out on apply. Read
-  // after restart to route through /login.
-  public needsLogin = Observable.create(this, false);
+class AdminInstallationPanel extends Disposable {
   // Sticky flag: true after the user has applied changes without a restart
   // in an environment that doesn't support auto-restart. Keeps the manual
   // restart reminder on screen until the user reloads the page. Cleared only
   // by a full page reload (see reloadSafe at the bottom of this file).
   private _awaitingManualRestart = Observable.create<boolean>(this, false);
   private _supportsRestart = !!getAdminConfig().runningUnderSupervisor;
-  private _baseUrlSection = BaseUrlSection.create(this, { controls: this });
+  private _baseUrlSection = BaseUrlSection.create(this, { inAdminPanel: true });
   private _editionSection = EditionSection.create(this, {
-    controls: this,
+    inAdminPanel: true,
     notifier: this._appModel.notifier,
   });
 
@@ -235,32 +225,50 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
   private readonly _configAPI: ConfigAPI = new ConfigAPI(getHomeUrl());
   private _authCheck: Observable<AdminCheckRequest | undefined>;
   private _loginProvider: Observable<string | undefined>;
+  // Created in the constructor body since it depends on `_loginProvider`,
+  // which is itself initialized after `_checks`. Undefined when there is
+  // no signed-in admin user -- the section reads the user's email at
+  // construction time and the "no valid user" admin path renders
+  // alternative content that doesn't need the section anyway.
+  private _authSection: AuthenticationSection | undefined;
 
-  // Banner visibility: shown when draft-tracked sections have pending
-  // changes, or a legacy section has flagged that a restart is required,
-  // or the user has applied changes without a restart and still owes us one.
+  // Banner visibility: shown when a tracked section has restart-required
+  // pending changes, or the user has applied changes without a restart and
+  // still owes us one. Non-restart drafts don't surface the banner.
   private _showRestartBanner = Computed.create(this, use =>
     use(this._drafts.needsRestart) ||
-    use(this.needsRestart) ||
     use(this._awaitingManualRestart),
   );
 
   constructor(private _appModel: AppModel, private _restartBanner: RestartBannerController) {
     super();
     this._checks = new AdminChecks(this, this._installAPI);
-    this._drafts.addSection(this._baseUrlSection);
-    this._drafts.addSection(this._editionSection);
-    this._drafts.addSection(this._permissionsModel);
-
-    // Mirror visibility into the shared controller so the left-panel entry
-    // appears/disappears with the banner.
-    this._restartBanner.isVisible.set(this._showRestartBanner.get());
-    this.autoDispose(this._showRestartBanner.addListener(v => this._restartBanner.isVisible.set(v)));
 
     this._authCheck = Computed.create(this, (use) => {
       return this._checks.requestCheckById(use, "authentication");
     });
     this._loginProvider = this._checks.buildLoginProviderObs(this);
+
+    if (this._appModel.currentValidUser) {
+      this._authSection = AuthenticationSection.create(this, {
+        appModel: this._appModel,
+        loginSystemId: this._loginProvider,
+        inAdminPanel: true,
+        installAPI: this._installAPI,
+      });
+    }
+
+    this._drafts.addSection(this._baseUrlSection);
+    this._drafts.addSection(this._editionSection);
+    this._drafts.addSection(this._permissionsModel);
+    if (this._authSection) {
+      this._drafts.addSection(this._authSection);
+    }
+
+    // Mirror visibility into the shared controller so the left-panel entry
+    // appears/disappears with the banner.
+    this._restartBanner.isVisible.set(this._showRestartBanner.get());
+    this.autoDispose(this._showRestartBanner.addListener(v => this._restartBanner.isVisible.set(v)));
   }
 
   public buildDom() {
@@ -303,28 +311,21 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
 
   private async _performRestart() {
     // When a section needs a restart, DraftChangesManager handles the
-    // apply+restart+wait cycle. Otherwise the banner was shown for another
-    // reason (e.g. a section saved inline) and we restart directly.
-    //
-    // Note: individual sections never call `configAPI.restartServer()` on
-    // their own. They only mark themselves `needsRestart` and route through
-    // here, so a single user click always produces exactly one restart even
-    // when several sections are dirty at once.
-    // Snapshot before applying: the restart clears it.
-    const willInvalidateSession = this.needsLogin.get();
-
+    // apply+restart+wait cycle. Otherwise the banner was shown because the
+    // user previously applied without restart and still owes us one, so we
+    // restart directly.
     if (this._drafts.needsRestart.get()) {
-      await this._drafts.applyAll();
+      const result = await this._drafts.applyAll();
+      // A section's afterApply may have already navigated us elsewhere
+      // (e.g. auth changes redirect through sign-in). Don't clobber that
+      // with a reload.
+      if (result?.redirected) { return; }
     } else {
       await this._configAPI.restartServer();
       if (!await this._configAPI.waitUntilReady()) {
         await reloadSafe();
         return;
       }
-    }
-    if (willInvalidateSession) {
-      redirectToLogin();
-      return;
     }
     await reloadSafe();
   }
@@ -337,6 +338,24 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
     } catch (err) {
       reportError(err as Error);
     }
+  }
+
+  private async _dismissChanges() {
+    if (!this._drafts.hasDraftChanges.get()) { return; }
+    confirmModal(
+      t("Dismiss pending changes?"),
+      t("Dismiss"),
+      async () => {
+        try {
+          await spinnerModal(t("Dismissing..."), this._drafts.dismissAll());
+        } catch (err) {
+          reportError(err as Error);
+        }
+      },
+      {
+        explanation: dom("p", t("Any pending changes will be cleared.")),
+      },
+    );
   }
 
   /**
@@ -410,11 +429,20 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
             ),
             dom.hide(this._supportsRestart),
           ),
-          bigPrimaryButton(
-            t("Restart Grist"),
-            dom.on("click", () => this.restartGrist()),
-            testId("admin-panel-restart-button"),
-            dom.show(this._supportsRestart),
+          cssRestartButtonRow(
+            bigPrimaryButton(
+              t("Restart Grist"),
+              dom.on("click", () => this.restartGrist()),
+              testId("admin-panel-restart-button"),
+              dom.show(this._supportsRestart),
+            ),
+            dom.maybe(this._drafts.hasDraftChanges, () =>
+              bigBasicButton(
+                t("Dismiss changes"),
+                dom.on("click", () => this._dismissChanges()),
+                testId("admin-panel-dismiss-button"),
+              ),
+            ),
           ),
         ),
       )),
@@ -674,11 +702,14 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
         const req = this._checks.requestCheckById(use, "service-status");
         const result = req ? use(req.result) : undefined;
 
-        if (result?.details?.inService) {
+        // Until the probe lands, show a neutral placeholder rather than the
+        // alarming default. Otherwise a real admin (and our tests) see
+        // "out of service" briefly on every page load.
+        if (!result) { return cssValueLabel(t("checking")); }
+        if (result.details?.inService) {
           return cssValueLabel(cssHappyText(t("in service")));
-        } else {
-          return cssValueLabel(cssDangerText(t("out of service")));
         }
+        return cssValueLabel(cssDangerText(t("out of service")));
       },
     );
   }
@@ -733,11 +764,11 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
         const req = this._checks.requestCheckById(use, "boot-key");
         const result = req ? use(req.result) : undefined;
 
-        if (result?.details?.disabled) {
+        if (!result) { return cssValueLabel(t("checking")); }
+        if (result.details?.disabled) {
           return cssValueLabel(cssHappyText(t("disabled")));
-        } else {
-          return cssValueLabel(cssDangerText(t("enabled")));
         }
+        return cssValueLabel(cssDangerText(t("enabled")));
       },
     );
   }
@@ -807,12 +838,7 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
   }
 
   private _buildAuthenticationPanelExtraContent() {
-    return dom.create(AuthenticationSection, {
-      appModel: this._appModel,
-      loginSystemId: this._loginProvider,
-      controls: this,
-      installAPI: this._installAPI,
-    });
+    return this._authSection?.buildDom();
   }
 
   private _buildSessionSecretDisplay() {
@@ -1151,7 +1177,7 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
   }
 
   private _buildBackupsSection() {
-    const backups = BackupsSection.create(this, { checks: this._checks, controls: this });
+    const backups = BackupsSection.create(this, { checks: this._checks, inAdminPanel: true });
     return SectionCard(t("Storage"), [
       SectionItem({
         id: "backups",
@@ -1297,6 +1323,13 @@ const cssDraftChangesList = styled("ul", `
 
 const cssDraftChangeLabel = styled("span", `
   font-weight: 600;
+`);
+
+const cssRestartButtonRow = styled("div", `
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
 `);
 
 const cssExpandedContent = styled("div", `
