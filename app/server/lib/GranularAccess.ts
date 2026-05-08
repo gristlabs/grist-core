@@ -912,8 +912,16 @@ export class GranularAccess implements GranularAccessForBundle {
     // Reject writes from prefork-as-owner sessions before the data engine is
     // touched. WS clients are normally caught earlier by Authorizer.assertAccess
     // downgrading owner→viewer in fork mode; this guard catches server-internal
-    // callers (e.g. the assistant) that bypass that path.
-    if (docSession.forkingAsOwner) { throw new Error("Should never modify a prefork"); }
+    // callers (e.g. the assistant) that bypass that path. The AUTH_NO_EDIT/fork
+    // shape is what makes Client.ts set `shouldFork: true` on the response so
+    // DocComm transparently fork-and-retries (matching normal user actions).
+    // Message text is preserved for the existing regression test.
+    if (docSession.forkingAsOwner) {
+      throw new ErrorWithCode("AUTH_NO_EDIT", "Should never modify a prefork", {
+        status: 403,
+        accessMode: "fork",
+      });
+    }
 
     // Checks are in no particular order.
     await this._checkSimpleDataActions(docSession, actions);
