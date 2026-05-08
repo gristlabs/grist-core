@@ -164,6 +164,11 @@ export class AuthenticationSection extends Disposable implements ConfigSection {
     return getgristLogin?.metadata?.owner ?? null;
   });
 
+  // Set by apply() to communicate to afterApply() whether the restart it just
+  // triggered will kill the operator's session, in which case afterApply
+  // redirects through sign-in.
+  private _willInvalidateSession = false;
+
   constructor(private _options: AuthenticationSectionOptions) {
     super();
 
@@ -237,13 +242,25 @@ export class AuthenticationSection extends Disposable implements ConfigSection {
    * routes the now-signed-out admin through sign-in.
    */
   public async apply(): Promise<void> {
-    for (const [providerKey, config] of this._draftConfigs.get()) {
+    // Decide once, up front, whether the upcoming restart will kill the
+    // operator's session: any provider draft sets `onRestartClearSessions`
+    // server-side (configureProvider / setActiveAuthProvider), and a queued
+    // admin-email change is staged with the same flag (see _setInstallAdmin).
+    const draftConfigs = this._draftConfigs.get();
+    const activeChoice = this._draftActiveProvider.get();
+    const prefs = this._prefsPendingChanges.get();
+    this._willInvalidateSession =
+      draftConfigs.size > 0 ||
+      activeChoice !== null ||
+      Boolean(prefs?.onRestartSetAdminEmail) ||
+      Boolean(prefs?.onRestartReplaceEmailWithAdmin);
+
+    for (const [providerKey, config] of draftConfigs) {
       await this._configAPI.configureProvider(providerKey, config);
       this._updateDraftConfigs(draft => draft.delete(providerKey));
       this._recentlyConfigured.add(providerKey);
     }
 
-    const activeChoice = this._draftActiveProvider.get();
     if (activeChoice !== null) {
       await this._configAPI.setActiveAuthProvider(activeChoice);
       this._draftActiveProvider.set(null);
@@ -258,13 +275,18 @@ export class AuthenticationSection extends Disposable implements ConfigSection {
   }
 
   /**
-   * Auth changes invalidate the admin's session, so once the manager has
-   * restarted we redirect through sign-in rather than trying to refetch
-   * (the API would 401 anyway). Returning `{ redirected: true }` tells the
-   * manager and its caller to skip any post-apply work.
+   * When the upcoming restart will invalidate the operator's session
+   * (provider config/switch, or a queued admin transfer), redirect
+   * through sign-in once the manager has restarted -- the API would 401
+   * anyway, and in the Quick Setup wizard the operator needs to come
+   * back as the new admin to reach the next step. Returning
+   * `{ redirected: true }` tells the manager and its caller to skip
+   * any post-apply work. When nothing session-clearing applied, we let
+   * the manager continue with its normal post-apply.
    */
   public async afterApply(): Promise<ApplyResult> {
     if (this.isDisposed()) { return; }
+    if (!this._willInvalidateSession) { return; }
     redirectToLogin();
     return { redirected: true };
   }
@@ -500,6 +522,7 @@ effect after you restart Grist."),
     saveModal((_ctl, owner) => {
       const changeAdminModal = ChangeAdminModal.create(owner, {
         currentUserEmail,
+        installAPI: this._installAPI,
         defaultEmail: this._getgristLoginOwner.get()?.email,
         onSave: async ({ email, replace }) => {
           await this._setInstallAdmin(email, replace);
@@ -518,9 +541,15 @@ effect after you restart Grist."),
 
   private async _setInstallAdmin(email: string, replace: boolean) {
     const onRestartReplaceEmailWithAdmin = replace ? this._currentUserEmail : undefined;
+    // The operator is handing off admin, so their current session needs
+    // to die at the upcoming restart. Otherwise they reload as a stripped
+    // -of-admin ghost (or, in the Quick Setup wizard, can't reach the
+    // next step at all). Mirrors what configureProvider /
+    // setActiveAuthProvider already do server-side.
     await this._installAPI.updateInstallPrefs({
       onRestartSetAdminEmail: email,
       onRestartReplaceEmailWithAdmin,
+      onRestartClearSessions: true,
     });
     if (this.isDisposed()) { return; }
 

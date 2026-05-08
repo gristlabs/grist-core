@@ -1045,6 +1045,10 @@ export interface GristLoadConfig {
   userPresenceMaxUsers?: number;
 
   warnBeforeSharingPublicly?: boolean;
+
+  // Whether the installation is "in service". Set to false on fresh installs guarded by the
+  // boot key, until an operator brings the server live.
+  inService?: boolean;
 }
 
 /**

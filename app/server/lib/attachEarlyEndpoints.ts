@@ -164,6 +164,19 @@ export function attachEarlyEndpoints(options: AttachOptions) {
     }),
   );
 
+  // Used by the "Change admin user" modal to flag the case where a Replace
+  // would later fail at restart because a user with the new admin email
+  // already exists (the rename can't satisfy the unique constraint on
+  // logins.email).
+  app.get(
+    "/api/install/users/exists",
+    expressWrap(async (req, res) => {
+      const email = stringParam(req.query.email, "email");
+      const user = await gristServer.getHomeDBManager().getExistingUserByLogin(email);
+      return sendOkReply(req, res, { exists: Boolean(user) });
+    }),
+  );
+
   app.patch(
     "/api/install/prefs",
     json({ limit: "1mb" }),
