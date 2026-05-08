@@ -1965,7 +1965,12 @@
         "moved to Edition": "moved to Edition",
         "Installation": "Installation",
         "Default permissions": "Default permissions",
-        "Who can create sites, log in, and use the playground": "Who can create sites, log in, and use the playground"
+        "Who can create sites, log in, and use the playground": "Who can create sites, log in, and use the playground",
+        "Any pending changes will be cleared.": "Any pending changes will be cleared.",
+        "Dismiss": "Dismiss",
+        "Dismiss changes": "Dismiss changes",
+        "Dismiss pending changes?": "Dismiss pending changes?",
+        "Dismissing...": "Dismissing..."
     },
     "Columns": {
         "Remove Column": "Remove Column"
@@ -2756,7 +2761,13 @@
         "Your server is using a boot key as a fallback login method. Configure one of the authentication methods below.": "Your server is using a boot key as a fallback login method. Configure one of the authentication methods below.",
         "Your server trusts authentication from a reverse proxy. Make sure only your proxy can reach the Grist backend.": "Your server trusts authentication from a reverse proxy. Make sure only your proxy can reach the Grist backend.",
         "Authentication": "Authentication",
-        "Choose how users sign in to Grist.": "Choose how users sign in to Grist."
+        "Choose how users sign in to Grist.": "Choose how users sign in to Grist.",
+        "New admin email": "New admin email",
+        "Reassign login to admin": "Reassign login to admin",
+        "The change will be saved when you apply pending changes, and will go into effect after you restart Grist.": "The change will be saved when you apply pending changes, and will go into effect after you restart Grist.",
+        "The change will be saved when you apply pending changes, and will take effect after you restart Grist.": "The change will be saved when you apply pending changes, and will take effect after you restart Grist.",
+        "configuration updated": "configuration updated",
+        "disabled": "disabled"
     },
     "DetailView": {
         "This row is unavailable or does not exist": "This row is unavailable or does not exist"
@@ -2775,7 +2786,8 @@
         "To set up {{provider}}, you need to register your Grist server on getgrist.com and paste the configuration key you receive below.": "To set up {{provider}}, you need to register your Grist server on getgrist.com and paste the configuration key you receive below.",
         "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.": "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.",
         "Managed authentication by Grist Labs.": "Managed authentication by Grist Labs.",
-        "Your server uses getgrist.com authentication. Users sign in with their getgrist.com account.": "Your server uses getgrist.com authentication. Users sign in with their getgrist.com account."
+        "Your server uses getgrist.com authentication. Users sign in with their getgrist.com account.": "Your server uses getgrist.com authentication. Users sign in with their getgrist.com account.",
+        "Error configuring provider with the provided key: {{reason}}": "Error configuring provider with the provided key: {{reason}}"
     },
     "AirtableImportUI": {
         "Back": "Back",
