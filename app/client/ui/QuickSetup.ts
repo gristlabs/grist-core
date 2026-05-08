@@ -7,6 +7,7 @@ import { buildAdminAccessDeniedCard } from "app/client/ui/AdminAccessDeniedCard"
 import { cssFadeUp, cssFadeUpGristLogo, cssFadeUpHeading, cssFadeUpSubHeading } from "app/client/ui/AdminPanelCss";
 import { AuthenticationSection } from "app/client/ui/AuthenticationSection";
 import { BackupsSection } from "app/client/ui/BackupsSection";
+import { peekSetupReturnFromGetGristCom, SetupReturnStep } from "app/client/ui/GetGristComProvider";
 import { PermissionsSetupSection } from "app/client/ui/PermissionsSetupSection";
 import { quickSetupContinueButton } from "app/client/ui/QuickSetupContinueButton";
 import { QuickSetupServerStep } from "app/client/ui/QuickSetupServerStep";
@@ -19,7 +20,10 @@ import { Disposable, dom, DomContents, makeTestId, observable, Observable, style
 const t = makeT("QuickSetup");
 const testId = makeTestId("test-quick-setup-");
 
+type StepId = SetupReturnStep | "server" | "sandbox" | "backups" | "apply";
+
 interface Step {
+  id: StepId;
   completed: Observable<boolean>;
   label: string;
   buildDom(): DomContents;
@@ -33,26 +37,31 @@ export class QuickSetup extends Disposable {
   private _checksLoaded = Observable.create<boolean>(this, false);
   private _steps: Step[] = [
     {
+      id: "server",
       label: t("Server"),
       completed: Observable.create(this, false),
       buildDom: () => this._buildServerStep(),
     },
     {
+      id: "sandbox",
       label: t("Sandboxing"),
       completed: observable(false),
       buildDom: () => this._buildSandboxStep(),
     },
     {
+      id: "auth",
       label: t("Authentication"),
       completed: observable(false),
       buildDom: () => this._buildAuthStep(),
     },
     {
+      id: "backups",
       label: t("Backups"),
       completed: observable(false),
       buildDom: () => this._buildBackupsStep(),
     },
     {
+      id: "apply",
       label: t("Apply & restart"),
       completed: observable(false),
       buildDom: () => this._buildApplyStep(),
@@ -61,6 +70,8 @@ export class QuickSetup extends Disposable {
 
   constructor(private _appModel: AppModel) {
     super();
+    const returnStep = peekSetupReturnFromGetGristCom();
+    if (returnStep) { this._jumpToStep(returnStep); }
   }
 
   public buildDom() {
@@ -93,6 +104,15 @@ export class QuickSetup extends Disposable {
         this._steps[i].buildDom(),
       )),
     );
+  }
+
+  private _jumpToStep(id: StepId) {
+    const target = this._steps.findIndex(s => s.id === id);
+    if (target < 0) { return; }
+    for (let i = 0; i < target; i++) {
+      this._steps[i].completed.set(true);
+    }
+    this._activeStep.set(target);
   }
 
   private _buildServerStep(): DomContents {

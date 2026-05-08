@@ -35,6 +35,7 @@ import { BootKeyStatus } from "app/client/ui/BootKeyStatus";
 import { InstallConfigsAPI } from "app/client/ui/ConfigsAPI";
 import { DraftChangesManager } from "app/client/ui/DraftChanges";
 import { EditionSection } from "app/client/ui/EditionSection";
+import { peekSetupReturnFromGetGristCom } from "app/client/ui/GetGristComProvider";
 import { pagePanels } from "app/client/ui/PagePanels";
 import {
   buildPermissionsCard,
@@ -135,6 +136,12 @@ export class AdminPanel extends Disposable {
   constructor(private _appModel: AppModel, private _appObj: App) {
     super();
     document.title = getAdminPanelName() + getPageTitleSuffix(getGristConfig());
+    // Full-page replace (not pushUrl) so /admin/setup loads with the
+    // wizard chrome instead of the admin panel's left sidebar.
+    if (this._page.get() === "admin" && peekSetupReturnFromGetGristCom()) {
+      window.location.replace(urlState().makeUrl({ adminPanel: "setup" }));
+      return;
+    }
   }
 
   public buildDom() {
