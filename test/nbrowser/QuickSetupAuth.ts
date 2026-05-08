@@ -31,11 +31,16 @@ async function isModalOpen(): Promise<boolean> {
 }
 
 async function openConfigureModal(): Promise<void> {
-  // Provider rows are only in the DOM when the list is expanded.
-  const header = await driver.findWait(".test-admin-auth-provider-list-header", 4000);
-  if (await header.getAttribute("aria-expanded") === "false") {
-    await header.click();
-  }
+  // Same race as the row click below -- AuthenticationSection's buildDom
+  // re-renders when async fetches land, so even the header's aria-expanded
+  // read can hit a stale element if the rebuild happens between findWait
+  // and getAttribute.
+  await gu.waitToPass(async () => {
+    const header = await driver.findWait(".test-admin-auth-provider-list-header", 4000);
+    if (await header.getAttribute("aria-expanded") === "false") {
+      await header.click();
+    }
+  }, 2000);
   // Retry the row lookup and click together: AuthenticationSection's
   // buildDom domComputes over async `_providers` and `_loginSystemId`,
   // so the row subtree can be replaced between the find and the click.
