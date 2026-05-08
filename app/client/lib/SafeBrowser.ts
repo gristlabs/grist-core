@@ -29,6 +29,7 @@
 
 import { ClientScope } from "app/client/components/ClientScope";
 import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
+import { withCustomCssVars } from "app/client/lib/customCssParser";
 import { Disposable } from "app/client/lib/dispose";
 import dom from "app/client/lib/dom";
 import * as Mousetrap from "app/client/lib/Mousetrap";
@@ -37,7 +38,7 @@ import { ActionRouter } from "app/common/ActionRouter";
 import { BaseComponent, BaseLogger, createRpcLogger, PluginInstance, warnIfNotReady } from "app/common/PluginInstance";
 import { tbind } from "app/common/tbind";
 import { convertThemeKeysToCssVars, Theme } from "app/common/ThemePrefs";
-import { getOriginUrl } from "app/common/urlUtils";
+import { getGristConfig, getOriginUrl } from "app/common/urlUtils";
 import { GristAPI, RPC_GRISTAPI_INTERFACE } from "app/plugin/GristAPI";
 import { RenderOptions, RenderTarget } from "app/plugin/RenderOptions";
 import { checkers } from "app/plugin/TypeCheckers";
@@ -329,7 +330,11 @@ class IframeProcess extends ViewProcess {
   }
 
   private async _sendTheme({ theme, fromReady = false}: { theme: Theme, fromReady?: boolean }) {
-    await this.rpc.postMessage({ theme: convertThemeKeysToCssVars(theme), fromReady });
+    let converted = convertThemeKeysToCssVars(theme);
+    if (getGristConfig().enableCustomCss) {
+      converted = withCustomCssVars(converted);
+    }
+    await this.rpc.postMessage({ theme: converted, fromReady });
   }
 }
 
