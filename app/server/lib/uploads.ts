@@ -11,7 +11,6 @@ import { downloadFromGDrive, isDriveUrl } from "app/server/lib/GoogleImport";
 import { GristServer, RequestWithGrist } from "app/server/lib/GristServer";
 import { guessExt } from "app/server/lib/guessExt";
 import log from "app/server/lib/log";
-import fetch from "node-fetch";
 import { fetchUntrustedWithAgent } from "app/server/lib/ProxyAgent";
 import { optStringParam } from "app/server/lib/requestUtils";
 import { isPathWithin } from "app/server/lib/serverUtils";
@@ -27,6 +26,7 @@ import { Application, Request, RequestHandler, Response } from "express";
 import * as fse from "fs-extra";
 import pick from "lodash/pick";
 import * as multiparty from "multiparty";
+import fetch from "node-fetch";
 import { Response as FetchResponse } from "node-fetch";
 import * as tmp from "tmp";
 

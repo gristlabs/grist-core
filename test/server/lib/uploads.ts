@@ -249,10 +249,10 @@ describe("uploads", function() {
         response = new Response(streamify("a, b\n0, 1\n"));
         url = "fake/trusted/url";
         response.headers.set("content-type", "text/csv; charset=utf-8");
-        
+
         // Call fetchURL with isTrusted: true
         const result = await fetchURL(url, null, { isTrusted: true });
-        
+
         // Verify fetchTrusted was called and fetch was not
         sinon.assert.calledOnce(fetchTrustedStub);
         sinon.assert.notCalled(Deps.fetch as any);
@@ -264,10 +264,10 @@ describe("uploads", function() {
         response = new Response(streamify("a, b\n0, 1\n"));
         url = "fake/untrusted/url";
         response.headers.set("content-type", "text/csv; charset=utf-8");
-        
+
         // Call fetchURL without isTrusted option
         const result = await fetchURL(url, null);
-        
+
         // Verify fetch was called and fetchTrusted was not
         sinon.assert.calledOnce(Deps.fetch as any);
         sinon.assert.notCalled(Deps.fetchTrusted as any);
