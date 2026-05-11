@@ -2456,7 +2456,7 @@ export class FlexServer implements GristServer {
         log.info("FlexServer shutdown assignment", assignment);
         try {
         // Start sending the doc to S3 if needed.
-          const flushOp = this._storageManager.closeDocument(assignment);
+          const flushOp = this._storageManager.closeDocument(assignment, { keepLocalCache: true });
 
           // Get access to the clients of this document.  This has the side
           // effect of waiting for the ActiveDoc to finish initialization.
@@ -2485,6 +2485,7 @@ export class FlexServer implements GristServer {
           // could reconnect to us.  The muted ActiveDoc will result
           // in them being dropped again.
           await workers.releaseAssignment(this.worker.id, assignment);
+          await this._storageManager.wipeCache(assignment);
         } catch (err) {
           log.info("problem dealing with assignment", assignment, err);
         }

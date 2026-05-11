@@ -251,7 +251,7 @@ export class HostedStorageManager implements IDocStorageManager {
   public async prepareLocalDoc(docName: string, srcDocName?: string): Promise<boolean> {
     // We could be reopening a document that is still closing down.
     // Wait for that to happen.  TODO: we could also try to interrupt the closing-down process.
-    await this.closeDocument(docName);
+    await this.closeDocument(docName, { keepLocalCache: true });
 
     if (this._prepareFiles.has(docName)) {
       throw new Error(`Tried to call prepareLocalDoc('${docName}') twice in parallel`);
@@ -367,15 +367,12 @@ export class HostedStorageManager implements IDocStorageManager {
     if (!deletePermanently) {
       throw new Error("HostedStorageManager only implements permanent deletion in deleteDoc");
     }
-    await this.closeDocument(docName);
+    await this.closeDocument(docName, { keepLocalCache: true });
     if (!this._disableS3) {
       await this._ext.remove(docName);
       await this._extMeta.remove(docName);
-    } else {
-      // NOTE: closeDocument only removes the document from the filesystem when
-      // we use a S3 storage. So let's cleanup here when there is no such storage backend.
-      await this._removeFromFilesystem(docName);
     }
+    await this._removeFromFilesystem(docName);
   }
 
   // We don't implement document renames.
@@ -469,17 +466,16 @@ export class HostedStorageManager implements IDocStorageManager {
   /**
    * Finalize any operations involving the named document.
    */
-  public async closeDocument(docName: string): Promise<void> {
+  public async closeDocument(docName: string, options: { keepLocalCache?: boolean } = {}): Promise<void> {
+    const { keepLocalCache } = options;
     if (this._localFiles.has(docName)) {
       await this._localFiles.get(docName);
     }
     this._localFiles.delete(docName);
     await this.flushDoc(docName);
 
-    if (!this._disableS3) {
-      // Wipe the cache when using S3
-      this._log.info(docName, "Removing local copy of this doc");
-      await this._removeFromFilesystem(docName);
+    if (!this._disableS3 && !keepLocalCache) {
+      await this.wipeCache(docName);
     }
   }
 
@@ -496,6 +492,18 @@ export class HostedStorageManager implements IDocStorageManager {
         await delay(1000);
       }
     }
+  }
+
+  /**
+   * Wipes cache when then using S3, does nothing otherwise.
+   */
+  public async wipeCache(docName: string): Promise<void> {
+    if (this._disableS3) {
+      return;
+    }
+
+    this._log.info(docName, "Removing local copy of this doc");
+    await this._removeFromFilesystem(docName);
   }
 
   /**
