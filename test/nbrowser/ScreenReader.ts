@@ -78,10 +78,20 @@ describe("ScreenReader", function() {
     await driver.sendKeys(Key.RIGHT);
     await gu.assertScreenReaderAnnouncement("link https://example.com");
 
+    // Markdown structure is announced when SR mode is on. Otherwise, markdown string is returned as is.
+    await gu.sendKeys(Key.chord(Key.SHIFT, Key.F4));
+    await gu.assertScreenReaderAnnouncement("Enabled screen reader improvements");
     await driver.sendKeys(Key.RIGHT);
     await gu.assertScreenReaderAnnouncement("heading my title");
     await gu.assertScreenReaderAnnouncement("my text");
     await gu.assertScreenReaderAnnouncement("list: my list item 1, my list item 2");
+    await gu.sendKeys(Key.chord(Key.SHIFT, Key.F4));
+    await gu.assertScreenReaderAnnouncement("Disabled screen reader improvements");
+    await driver.sendKeys(Key.RIGHT);
+    await driver.sendKeys(Key.LEFT);
+    await gu.assertScreenReaderAnnouncement("#### my title");
+    await gu.assertScreenReaderAnnouncement("my text");
+    await gu.assertScreenReaderAnnouncement("- my list item 1");
 
     await driver.sendKeys(Key.RIGHT);
     await gu.assertScreenReaderAnnouncement("3.1415926536");

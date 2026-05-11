@@ -2448,7 +2448,9 @@ export default class GridView extends BaseView {
         return t("row {{rowNum}} {{colName}} (new row)", { rowNum, colName });
       }
       const value = this.tableModel.tableData.getValue(rowId, field.displayColModel().colId());
-      const content = formatForScreenReader(field, value);
+      const content = formatForScreenReader(field, value, {
+        screenReaderMode: this.gristDoc.appModel.screenReaderMode.get(),
+      });
 
       return [content, t("row {{rowNum}} {{colName}}", { rowNum, colName })];
     }, "view-current-item");
