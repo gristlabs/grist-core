@@ -400,6 +400,9 @@ export class RegionFocusSwitcher extends Disposable {
   }
 
   private _toggleCreatorPanel() {
+    if (!getPanelElement("right")) {
+      return;
+    }
     const current = this._state.get().region;
     const gristDoc = this._getGristDoc();
     if (current?.type === "panel" && current.id === "right") {
