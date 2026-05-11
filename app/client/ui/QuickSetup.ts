@@ -136,6 +136,10 @@ export class QuickSetup extends Disposable {
 
   private _buildSandboxStep(): DomContents {
     return dom.create((owner) => {
+      // If the background prefetch hit the server mid-restart (after Apply
+      // on the Server step) it will have cached a fault. Drop it so the
+      // section's load runs fresh now that the server is back.
+      this._checks.discardIfFault(SANDBOX_PROBE_ID);
       const section = SandboxSetupSection.create(owner, this._checks);
       return dom("div",
         section.buildDom(),

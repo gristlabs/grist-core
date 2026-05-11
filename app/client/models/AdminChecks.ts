@@ -103,6 +103,19 @@ export class AdminChecks {
     this._requests.clear();
     await this.fetchAvailableChecks();
   }
+
+  /**
+   * Drop a cached probe result if it is in a fault state, so the next
+   * {@link requestCheck} re-runs it. Useful after a transient failure
+   * (e.g. a background prefetch that hit the server mid-restart).
+   */
+  public discardIfFault(id: BootProbeIds) {
+    const result = this._results.get(id);
+    if (result?.get().status !== "fault") { return; }
+    result.dispose();
+    this._results.delete(id);
+    this._requests.delete(id);
+  }
 }
 
 /**
