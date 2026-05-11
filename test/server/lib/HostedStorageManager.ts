@@ -1180,9 +1180,10 @@ describe("HostedStorageManager", function() {
 
       await testStore.run(async () => {
         await testStore.docManager.fetchDoc(docSession, docName);
+        assert.isTrue(await fse.pathExists(docPath), "the document cache should exist as long as it remains open");
       });
 
-      assert.isTrue(await fse.pathExists(docPath));
+      assert.isFalse(await fse.pathExists(docPath), "the document cache should be removed when closed");
     });
   });
 
