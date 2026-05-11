@@ -2953,7 +2953,9 @@
         "Set these environment variables and restart Grist to enable Azure storage:": "Set these environment variables and restart Grist to enable Azure storage:",
         "Set these environment variables and restart Grist to enable MinIO storage:": "Set these environment variables and restart Grist to enable MinIO storage:",
         "Set these environment variables and restart Grist to enable S3 storage:": "Set these environment variables and restart Grist to enable S3 storage:",
-        "Store document backups on an external service like S3 or Azure.           This protects against data loss if the server's disk fails.": "Store document backups on an external service like S3 or Azure.           This protects against data loss if the server's disk fails."
+        "Store document backups on an external service like S3 or Azure.           This protects against data loss if the server's disk fails.": "Store document backups on an external service like S3 or Azure.           This protects against data loss if the server's disk fails.",
+        "Local filesystem (test only)": "Local filesystem (test only)",
+        "Stores document snapshots on the local filesystem. For tests only, not production.": "Stores document snapshots on the local filesystem. For tests only, not production."
     },
     "PermissionsSetupSection": {
         "Allow anonymous access": "Allow anonymous access",
