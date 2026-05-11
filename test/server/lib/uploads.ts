@@ -253,9 +253,9 @@ describe("uploads", function() {
         // Call fetchURL with isTrusted: true
         const result = await fetchURL(url, null, { isTrusted: true });
         
-        // Verify fetchTrusted was called and fetchUntrusted was not
+        // Verify fetchTrusted was called and fetch was not
         sinon.assert.calledOnce(fetchTrustedStub);
-        sinon.assert.notCalled(Deps.fetchUntrusted as any);
+        sinon.assert.notCalled(Deps.fetch as any);
         assert.equal(result.files.length, 1);
       });
 
@@ -268,8 +268,8 @@ describe("uploads", function() {
         // Call fetchURL without isTrusted option
         const result = await fetchURL(url, null);
         
-        // Verify fetchUntrusted was called and fetchTrusted was not
-        sinon.assert.calledOnce(Deps.fetchUntrusted as any);
+        // Verify fetch was called and fetchTrusted was not
+        sinon.assert.calledOnce(Deps.fetch as any);
         sinon.assert.notCalled(Deps.fetchTrusted as any);
         assert.equal(result.files.length, 1);
       });

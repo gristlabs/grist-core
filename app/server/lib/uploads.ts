@@ -37,7 +37,7 @@ const INACTIVITY_CLEANUP_MS = 60 * 60 * 1000;     // an hour, very generously.
 
 // A hook for dependency injection.
 export const Deps = {
-  fetchUntrusted: fetchUntrustedWithAgent,
+  fetch: fetchUntrustedWithAgent,
   fetchTrusted: fetch,
   INACTIVITY_CLEANUP_MS,
 };
@@ -452,7 +452,7 @@ async function _fetchURL(url: string, accessId: string | null, options?: FetchUr
       response = await downloadFromGDrive(url, code);
       fileName = ""; // Read the file name from headers.
     } else {
-      const fetchFunc = options?.isTrusted ? Deps.fetchTrusted : Deps.fetchUntrusted;
+      const fetchFunc = options?.isTrusted ? Deps.fetchTrusted : Deps.fetch;
       response = await fetchFunc(url, {
         redirect: "follow",
         follow: 10,
