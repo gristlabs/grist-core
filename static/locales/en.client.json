@@ -1577,7 +1577,8 @@
     },
     "GridView": {
         "Click to insert": "Click to insert",
-        "row {{rowNum}} {{colName}}": "row {{rowNum}} {{colName}}"
+        "row {{rowNum}} {{colName}}": "row {{rowNum}} {{colName}}",
+        "row {{rowNum}} {{colName}} (new row)": "row {{rowNum}} {{colName}} (new row)"
     },
     "WelcomeSitePicker": {
         "Welcome back": "Welcome back",

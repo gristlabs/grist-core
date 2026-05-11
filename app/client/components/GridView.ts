@@ -2439,15 +2439,18 @@ export default class GridView extends BaseView {
       }
       const rowId = this.viewData.getRowId(position.rowIndex);
       const field = this.viewSection.viewFields().at(position.fieldIndex);
-      if (!field || rowId === "new") {
+      if (!field) {
         return [];
       }
-      const value = this.tableModel.tableData.getValue(rowId as number, field.displayColModel().colId());
+      const rowNum = position.rowIndex + 1;
+      const colName = field.label();
+      if (rowId === "new") {
+        return t("row {{rowNum}} {{colName}} (new row)", { rowNum, colName });
+      }
+      const value = this.tableModel.tableData.getValue(rowId, field.displayColModel().colId());
       const content = formatForScreenReader(field, value);
-      return [
-        content,
-        t("row {{rowNum}} {{colName}}", { rowNum: position.rowIndex + 1, colName: field.label() }),
-      ];
+
+      return [content, t("row {{rowNum}} {{colName}}", { rowNum, colName })];
     }, "view-current-item");
   }
 }
