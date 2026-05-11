@@ -57,8 +57,9 @@ class FocusLayerManager extends Disposable {
     super();
 
     const grabFocus = this.grabFocus.bind(this);
+    const grabFocusCb = () => grabFocus();
 
-    this.autoDispose(dom.onElem(window, "focus", () => grabFocus()));
+    this.autoDispose(dom.onElem(window, "focus", grabFocusCb));
     this.grabFocus();
 
     // The following block of code deals with what happens when the window is in the background.
@@ -69,9 +70,9 @@ class FocusLayerManager extends Disposable {
       const addRemove = onOff ? window.addEventListener : window.removeEventListener;
       // Note the third argument useCapture=true, which lets us notice these events before other
       // code that might call .stopPropagation on them.
-      addRemove.call(window, "click", () => grabFocus(), true);
-      addRemove.call(window, "mousedown", () => grabFocus(), true);
-      addRemove.call(window, "keydown", () => grabFocus(), true);
+      addRemove.call(window, "click", grabFocusCb, true);
+      addRemove.call(window, "mousedown", grabFocusCb, true);
+      addRemove.call(window, "keydown", grabFocusCb, true);
     }
     this.autoDispose(dom.onElem(window, "blur", setBackgroundCapture.bind(null, true)));
     this.autoDispose(dom.onElem(window, "focus", setBackgroundCapture.bind(null, false)));
