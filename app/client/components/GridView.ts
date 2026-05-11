@@ -247,7 +247,7 @@ export default class GridView extends BaseView {
         this.visibleRowIndex(cur.rowIndex);
 
         // Also announce the current cell content to screen readers.
-        this._announceCell(cur);
+        this.announceCurrentItem();
       }
     }));
     this.autoDispose(this.gristDoc.activeEditor.addListener((editor, prevEditor) => {
@@ -2429,24 +2429,26 @@ export default class GridView extends BaseView {
   }
 
   public announceCurrentItem() {
-    const position = this.currentPosition.get();
-    this._announceCell(position);
-  }
-
-  protected _announceCell(position: { rowIndex: number | null, fieldIndex: number }) {
-    if (position.rowIndex === null) {
-      return;
-    }
-    const rowId = this.viewData.getRowId(position.rowIndex);
-    const field = this.viewSection.viewFields().at(position.fieldIndex);
-    if (field && rowId !== "new") {
+    this.gristDoc.appModel.screenReaderAnnouncer.announce(() => {
+      if (this.isDisposed()) {
+        return [];
+      }
+      const position = this.currentPosition.get();
+      if (position.rowIndex === null) {
+        return [];
+      }
+      const rowId = this.viewData.getRowId(position.rowIndex);
+      const field = this.viewSection.viewFields().at(position.fieldIndex);
+      if (!field || rowId === "new") {
+        return [];
+      }
       const value = this.tableModel.tableData.getValue(rowId as number, field.displayColModel().colId());
       const content = formatForScreenReader(field, value);
-      this.gristDoc.appModel.screenReaderAnnouncer.announce([
+      return [
         content,
         t("row {{rowNum}} {{colName}}", { rowNum: position.rowIndex + 1, colName: field.label() }),
-      ], "view-current-item");
-    }
+      ];
+    }, "view-current-item");
   }
 }
 

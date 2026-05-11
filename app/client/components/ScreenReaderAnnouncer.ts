@@ -7,9 +7,11 @@ import debounce from "lodash/debounce";
 
 const t = makeT("ScreenReaderAnnouncer");
 
+export type Announcements = string | string[] | (() => string | string[]);
+
 export class ScreenReaderAnnouncer extends Disposable {
   private readonly _container: HTMLDivElement;
-  private _debouncedByKey: Record<string, ReturnType<typeof debounce<(announcements: string[]) => void>>> = {};
+  private _debouncedByKey: Record<string, ReturnType<typeof debounce<(announcements: Announcements) => void>>> = {};
   private _debouncedCleanup: ReturnType<typeof debounce<() => void>>;
 
   constructor() {
@@ -43,12 +45,18 @@ export class ScreenReaderAnnouncer extends Disposable {
    * If the thing you announce risks being announced multiple times in rapid succession for wrong reasons
    * (example: state moves quickly while the app loading until it's stable), you can pass a `key` to
    * prevent the intermediate announcements from being actually vocalized. Announcements are debounced per key.
+   *
+   * Pass a function to defer building the message until the debounced callback runs in case you want to announce
+   * things that may be "costly" to build.
    */
-  public announce(announcements: string | string[], key: string = "default") {
+  public announce(announcements: Announcements, key: string = "default") {
     if (!this._debouncedByKey[key]) {
-      this._debouncedByKey[key] = debounce((messages: string[]) => this._announce(messages), 350);
+      this._debouncedByKey[key] = debounce((announcements: Announcements) => {
+        const messages = typeof announcements === "function" ? announcements() : announcements;
+        this._announce(Array.isArray(messages) ? messages : [messages]);
+      }, 350);
     }
-    this._debouncedByKey[key](Array.isArray(announcements) ? announcements : [announcements]);
+    this._debouncedByKey[key](announcements);
   }
 
   public listenToNotifier(notifier: Notifier) {
