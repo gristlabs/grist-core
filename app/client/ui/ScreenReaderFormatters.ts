@@ -21,7 +21,18 @@ const t = makeT("ScreenReaderFormatters");
  * Note that this specifically returns a string as we can't rely on DOM element semantics when vocalizing content in
  * a aria-live region.
  */
-export function formatForScreenReader(field: ViewFieldRec, value: any): string {
+export function formatForScreenReader(
+  field: ViewFieldRec,
+  value: any,
+  options?: {
+    /**
+     * Depending on whether we are in screen reader mode or not, we format things differently.
+     * For example when enabled, we parse Markdown in order to vocalize the content structure,
+     * but don't do it when not enabled to prevent unnecessary costly work on every cursor move.
+     */
+    screenReaderMode?: boolean;
+  },
+): string {
   const formatter = field.formatter();
   const widget = formatter.widgetOpts.widget;
   switch (gristTypes.extractTypeFromColType(formatter.type)) {
@@ -34,7 +45,7 @@ export function formatForScreenReader(field: ViewFieldRec, value: any): string {
       if (widget === "HyperLink") {
         return formatHyperLink(value);
       }
-      if (widget === "Markdown") {
+      if (widget === "Markdown" && options?.screenReaderMode) {
         return formatMarkdown(value);
       }
       return formatter.formatAny(value);
