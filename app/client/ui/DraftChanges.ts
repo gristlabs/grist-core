@@ -23,6 +23,7 @@
  * is the server-side durable list of on-restart directives.
  */
 import { getHomeUrl } from "app/client/models/AppModel";
+import { ApplyResult } from "app/client/ui/QuickSetupContinueButton";
 import { ConfigAPI } from "app/common/ConfigAPI";
 
 import { Computed, Disposable, Observable } from "grainjs";
@@ -43,18 +44,45 @@ export interface ConfigSection {
   /** True when the section's changes require a server restart to take effect. */
   needsRestart: boolean;
   /**
+   * Describe the draft change(s) for display in the restart banner.
+   * Only consulted when `isDirty` is true (the manager filters first).
+   * Returning multiple entries lets a section surface several distinct
+   * pending sub-changes (e.g. a new admin email and a separate login
+   * rename) as separate bullets.
+   *
+   * A Computed (not a plain method) so the banner re-reads when a
+   * section's described value drifts while `isDirty` stays true --
+   * e.g. an auth section that's already dirty from a provider switch
+   * gains a queued admin-email change.
+   */
+  describeChange: Computed<DraftChangeDescription[]>;
+  /**
    * Persist the section's changes to the server and update its own view of
    * the server state so `isDirty` goes false. No-op if not dirty. On error,
    * throws without updating; `isDirty` stays true.
    */
   apply(): Promise<void>;
   /**
-   * Describe the draft change for display in the restart banner.
-   * Only called when isDirty is true. Re-read whenever any section's
-   * `isDirty` fires -- sections whose described value can drift while
-   * `isDirty` stays true should toggle `isDirty` to trigger a refresh.
+   * Optional post-restart hook. Called by the manager after `restartServer`
+   * and `waitUntilReady` complete -- a chance for sections whose persisted
+   * state only becomes visible to the API post-restart (e.g. auth, where
+   * `willBeActive` flips to `isActive`) to refetch and clear `isDirty`.
+   * Errors are logged but do not fail the apply. May return
+   * `{ redirected: true }` to tell the manager (and its caller) that a
+   * top-level navigation has been fired, so no further post-apply work
+   * should run.
    */
-  describeChange(): DraftChangeDescription;
+  afterApply?(): Promise<ApplyResult>;
+  /**
+   * Optional. Discard whatever made this section dirty: clear local
+   * drafts, and -- if the section reads server-side state that
+   * contributes to `isDirty` -- delete that state. Called by the
+   * manager's `dismissAll()` for the "Dismiss changes" path. Sections
+   * whose dirty state is purely session-local can omit this; the
+   * manager already filters to dirty sections, so an implementation
+   * can additionally choose to no-op when there's nothing to undo.
+   */
+  dismiss?(): Promise<void>;
 }
 
 export class DraftChangesManager extends Disposable {
@@ -72,7 +100,7 @@ export class DraftChangesManager extends Disposable {
   constructor() {
     super();
     this.changes = Computed.create(this, use =>
-      use(this._sections).filter(s => use(s.isDirty)).map(s => s.describeChange()),
+      use(this._sections).filter(s => use(s.isDirty)).flatMap(s => use(s.describeChange)),
     );
     this.hasDraftChanges = Computed.create(this, use => use(this.changes).length > 0);
     this.needsRestart = Computed.create(this, use =>
@@ -86,19 +114,32 @@ export class DraftChangesManager extends Disposable {
 
   public get isApplying() { return this._applying; }
 
-  public async applyAll(): Promise<void> {
-    await this._apply({ restart: true });
+  public async applyAll(): Promise<ApplyResult> {
+    return this._apply({ restart: true });
+  }
+
+  /**
+   * Discard all pending draft changes. Sections without a `dismiss` or
+   * not currently dirty are skipped; the first failure propagates and
+   * remaining sections stay dirty for a retry.
+   */
+  public async dismissAll(): Promise<void> {
+    for (const section of this._sections.get()) {
+      if (section.isDirty.get() && section.dismiss) {
+        await section.dismiss();
+      }
+    }
   }
 
   /**
    * Persist all draft changes without restarting. Use when the server
    * can't auto-restart (no supervisor); the user restarts manually.
    */
-  public async applyWithoutRestart(): Promise<void> {
-    await this._apply({ restart: false });
+  public async applyWithoutRestart(): Promise<ApplyResult> {
+    return this._apply({ restart: false });
   }
 
-  private async _apply({ restart }: { restart: boolean }): Promise<void> {
+  private async _apply({ restart }: { restart: boolean }): Promise<ApplyResult> {
     if (this._applying.get()) { return; }
     this._applying.set(true);
     try {
@@ -106,7 +147,10 @@ export class DraftChangesManager extends Disposable {
       // it applies, and we want the error message to name the change the
       // user asked for, not whatever it looks like after the attempt.
       const dirty = this._sections.get().filter(s => s.isDirty.get());
-      const labels = new Map(dirty.map(s => [s, s.describeChange().label]));
+      const labels = new Map(dirty.map((s) => {
+        const entries = s.describeChange.get();
+        return [s, entries.map(e => e.label).join(", ")] as const;
+      }));
 
       const failures: { label: string; error: Error }[] = [];
       for (const section of dirty) {
@@ -120,10 +164,21 @@ export class DraftChangesManager extends Disposable {
       // Only restart when every dirty section succeeded -- a half-applied
       // set would either strand changes behind another restart or look
       // complete when it wasn't.
+      let redirected = false;
       if (restart && failures.length === 0 && dirty.some(s => s.needsRestart)) {
         await this._configAPI.restartServer();
         if (!await this._configAPI.waitUntilReady()) {
           throw new Error("Timed out waiting for Grist server to restart");
+        }
+        for (const section of dirty) {
+          try {
+            const result = await section.afterApply?.();
+            if (result?.redirected) { redirected = true; }
+          } catch (err) {
+            // Best-effort: log and continue. The section may show stale
+            // state but won't block the rest of the apply from finishing.
+            console.warn("afterApply failed:", err);
+          }
         }
       }
 
@@ -131,6 +186,7 @@ export class DraftChangesManager extends Disposable {
         const parts = failures.map(f => `${f.label}: ${f.error.message || String(f.error)}`);
         throw new Error(`Could not apply: ${parts.join("; ")}`);
       }
+      if (redirected) { return { redirected: true }; }
     } finally {
       if (!this.isDisposed()) { this._applying.set(false); }
     }

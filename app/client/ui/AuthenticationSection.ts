@@ -1,17 +1,25 @@
 import { makeT } from "app/client/lib/localization";
 import { localStorageBoolObs } from "app/client/lib/localStorageObs";
 import { cssMarkdownSpan } from "app/client/lib/markdown";
+import { redirectToLogin } from "app/client/lib/urlUtils";
 import { AdminChecks } from "app/client/models/AdminChecks";
 import { AppModel, getHomeUrl, reportError } from "app/client/models/AppModel";
 import {
-  AdminPanelControls,
   cssIconWrapper,
   cssWell,
   cssWellContent,
   cssWellTitle,
 } from "app/client/ui/AdminPanelCss";
 import { ChangeAdminModal } from "app/client/ui/ChangeAdminModal";
-import { GetGristComProviderInfoModal, getGristComProviderMeta } from "app/client/ui/GetGristComProvider";
+import { ConfigSection, DraftChangeDescription } from "app/client/ui/DraftChanges";
+import {
+  armSetupReturnFromGetGristCom,
+  clearSetupReturnFromGetGristCom,
+  GetGristComProviderInfoModal,
+  getGristComProviderMeta,
+  peekSetupReturnFromGetGristCom,
+} from "app/client/ui/GetGristComProvider";
+import { ApplyResult } from "app/client/ui/QuickSetupContinueButton";
 import { quickSetupStepHeader } from "app/client/ui/QuickSetupStepHeader";
 import { cssCardSurface } from "app/client/ui/SettingsLayout";
 import { cssHeroCard } from "app/client/ui/SetupCard";
@@ -53,18 +61,16 @@ interface AuthenticationSectionOptions {
   appModel: AppModel;
   loginSystemId?: Observable<string | undefined>;
   /**
-   * Present when this section is rendered inside the admin panel. Absent in the
-   * setup wizard. The single signal for "am I in the admin panel?" -- also the
-   * channel through which the section reports needsRestart.
-   *
-   * When absent, the per-section restart warning is suppressed (the wizard
-   * handles continuation via its own Continue button).
+   * True when rendered inside the admin panel; false in the setup wizard.
+   * Controls admin-only affordances (the in-panel "Restart required"
+   * warning with Change-admin-user controls). Restart routing happens
+   * via the parent's DraftChangesManager regardless.
    */
-  controls?: AdminPanelControls;
+  inAdminPanel?: boolean;
   installAPI?: InstallAPI;
 }
 
-export class AuthenticationSection extends Disposable {
+export class AuthenticationSection extends Disposable implements ConfigSection {
   /**
    * True when authentication is in a state the user can proceed with:
    * a real provider is active, configured, or pending — or the user acknowledged no-auth.
@@ -79,17 +85,21 @@ export class AuthenticationSection extends Disposable {
    */
   public isDirty: Computed<boolean>;
 
-  /** True while {@link apply} is in flight. */
-  public isApplying = Observable.create<boolean>(this, false);
+  /**
+   * Per-section description shown in the restart banner. Reactive on
+   * `_displayProviders`, `_draftConfigs`, and `_prefsPendingChanges`, so
+   * a second sub-change while already-dirty (e.g. a queued admin email
+   * change after a provider switch) refreshes the displayed bullets.
+   */
+  public describeChange: Computed<DraftChangeDescription[]>;
+
+  /** Auth changes always require a restart to take effect. */
+  public readonly needsRestart = true;
 
   private _appModel = this._options.appModel;
   private _installAPI = this._options.installAPI ?? new InstallAPIImpl(getHomeUrl());
   /** True when embedded in the admin panel (vs. the setup wizard). */
-  private _inAdminPanel = Boolean(this._options.controls);
-  private _controls = this._options.controls ?? {
-    needsRestart: Observable.create(this, false),
-    restartGrist: async () => { await new ConfigAPI(getHomeUrl()).restartServer(); },
-  };
+  private _inAdminPanel = Boolean(this._options.inAdminPanel);
 
   private _loginSystemId = this._options.loginSystemId ?? this._makeLoginSystemId();
 
@@ -106,9 +116,48 @@ export class AuthenticationSection extends Disposable {
    */
   private _recentlyConfigured = new Set<string>();
 
-  private _hasActiveOnRestartProvider = Computed.create(this, this._providers, (_use, providers) => {
+  /**
+   * Per-provider configuration drafts (currently only the getgrist.com
+   * secret). The map's value is the body that will be PATCHed to
+   * `/api/config/auth-providers` on apply. Drafts disappear once apply
+   * has persisted them.
+   */
+  private _draftConfigs = Observable.create<Map<string, Record<string, string>>>(this, new Map());
+
+  /**
+   * Pending choice for the active authentication provider. `null` means
+   * the user has not chosen one in this session; otherwise it is a
+   * provider key (or `FALLBACK_PROVIDER_KEY` for "deactivate").
+   */
+  private _draftActiveProvider = Observable.create<string | null>(this, null);
+
+  /**
+   * Server providers merged with local drafts. Drafts win over server
+   * state, so the user sees their pending choices reflected in the
+   * hero card and the provider list before they apply.
+   */
+  private _displayProviders = Computed.create(
+    this, this._providers, this._draftConfigs, this._draftActiveProvider,
+    (_use, providers, draftConfigs, draftActive) => {
+      return providers.map(p => mergeProviderWithDrafts(p, draftConfigs, draftActive));
+    },
+  );
+
+  private _hasActiveOnRestartProvider = Computed.create(this, this._displayProviders, (_use, providers) => {
     return providers.some(p => p.willBeActive);
   });
+
+  // Server-side state that needs a restart to settle: a provider switch
+  // or a queued admin-email change. Distinct from `isDirty`, which also
+  // counts purely local drafts.
+  private _hasPersistedRestartChange = Computed.create(
+    this, this._hasActiveOnRestartProvider, this._prefsPendingChanges,
+    (_use, hasActive, prefs) => {
+      return hasActive ||
+        Boolean(prefs?.onRestartSetAdminEmail) ||
+        Boolean(prefs?.onRestartReplaceEmailWithAdmin);
+    },
+  );
 
   private _getgristLoginOwner = Computed.create(this, this._providers, (_use, providers) => {
     const getgristLogin = providers.find(p => p.key === GETGRIST_COM_PROVIDER_KEY);
@@ -121,44 +170,126 @@ export class AuthenticationSection extends Disposable {
     this.canProceed = Computed.create(this, (use) => {
       if (use(noAuthAcknowledged)) { return true; }
       if (use(this._hasActiveOnRestartProvider)) { return true; }
-      const providers = use(this._providers);
+      const providers = use(this._displayProviders);
       if (providers.some(p => (p.isActive || p.isConfigured) && isRealProvider(p.key))) { return true; }
       const loginSystemId = use(this._loginSystemId);
       return !!loginSystemId && isRealProvider(loginSystemId);
     });
 
+    // Evaluate every branch: short-circuit returns drop subscriptions to
+    // later deps, leaving `isDirty` stale once an early truthy branch flips.
     this.isDirty = Computed.create(this, (use) => {
-      if (use(this._hasActiveOnRestartProvider)) { return true; }
+      const hasDraftConfigs = use(this._draftConfigs).size > 0;
+      const hasDraftActive = use(this._draftActiveProvider) !== null;
+      const hasPersistedRestartChange = use(this._hasPersistedRestartChange);
+      return hasDraftConfigs || hasDraftActive || hasPersistedRestartChange;
+    });
+
+    this.describeChange = Computed.create(this, (use) => {
+      const entries: DraftChangeDescription[] = [];
+      const providers = use(this._displayProviders);
+      const willBeActive = providers.find(p => p.willBeActive);
+      const willBeDisabled = providers.find(p => p.willBeDisabled);
+      if (willBeActive) {
+        entries.push({ label: t("Authentication"), value: willBeActive.name });
+      } else if (willBeDisabled) {
+        entries.push({ label: t("Authentication"), value: t("disabled") });
+      } else if (use(this._draftConfigs).size > 0) {
+        entries.push({ label: t("Authentication"), value: t("configuration updated") });
+      }
+
       const prefs = use(this._prefsPendingChanges);
-      return Boolean(prefs?.onRestartSetAdminEmail || prefs?.onRestartReplaceEmailWithAdmin);
+      if (prefs?.onRestartSetAdminEmail) {
+        entries.push({ label: t("New admin email"), value: prefs.onRestartSetAdminEmail });
+      }
+      if (prefs?.onRestartReplaceEmailWithAdmin) {
+        entries.push({
+          label: t("Reassign login to admin"),
+          value: prefs.onRestartReplaceEmailWithAdmin,
+        });
+      }
+
+      // describeChange is only consulted when isDirty is true; one of the
+      // above branches should have hit. Fall back rather than throw.
+      if (entries.length === 0) {
+        entries.push({ label: t("Authentication"), value: "" });
+      }
+      return entries;
     });
 
     this._fetchProviders().catch(reportError);
     this._fetchPrefsPendingChanges().catch(reportError);
+
+    // Don't clear the breadcrumb here -- the AppModel re-initializes
+    // during boot and may dispose+re-mount this section, and we want
+    // the new mount to also reopen the modal.
+    if (!this._inAdminPanel && peekSetupReturnFromGetGristCom() === "auth") {
+      this._openGetGristComModal();
+    }
   }
 
   /**
-   * Apply pending auth changes by restarting the server and waiting until
-   * it's ready again. The relevant config writes have already happened
-   * inline (via the configuration modals); this is purely the restart so
-   * the new config takes effect. After restart, re-fetches providers and
-   * prefs so the section reflects the post-restart state.
-   *
-   * No-op when there are no pending changes. Throws on restart timeout.
+   * Persist drafts to the server. Configure calls go first because a
+   * provider must be configured server-side before it can be set active.
+   * Each draft is cleared once its API call succeeds, so a partial
+   * failure leaves the remaining drafts in place for a retry. The
+   * DraftChangesManager fires the restart afterwards; `afterApply` then
+   * routes the now-signed-out admin through sign-in.
    */
   public async apply(): Promise<void> {
+    for (const [providerKey, config] of this._draftConfigs.get()) {
+      await this._configAPI.configureProvider(providerKey, config);
+      this._updateDraftConfigs(draft => draft.delete(providerKey));
+      this._recentlyConfigured.add(providerKey);
+    }
+
+    const activeChoice = this._draftActiveProvider.get();
+    if (activeChoice !== null) {
+      await this._configAPI.setActiveAuthProvider(activeChoice);
+      this._draftActiveProvider.set(null);
+      this._recentlyConfigured.add(activeChoice);
+    }
+
+    // Refresh `_providers` here so `isDirty` survives a restart failure --
+    // `afterApply` only runs on success.
+    if (!this.isDisposed()) {
+      await this._fetchProviders();
+    }
+  }
+
+  /**
+   * Auth changes invalidate the admin's session, so once the manager has
+   * restarted we redirect through sign-in rather than trying to refetch
+   * (the API would 401 anyway). Returning `{ redirected: true }` tells the
+   * manager and its caller to skip any post-apply work.
+   */
+  public async afterApply(): Promise<ApplyResult> {
+    if (this.isDisposed()) { return; }
+    redirectToLogin();
+    return { redirected: true };
+  }
+
+  /**
+   * Drop every contribution this section makes to the draft list:
+   *   - clear local provider-config and active-provider drafts
+   *   - null both on-restart admin-email prefs server-side
+   * `willBeActive`/`willBeDisabled` rooted in env-var deltas aren't
+   * cleared here -- the user can reverse those via the per-provider
+   * controls in the section itself.
+   */
+  public async dismiss(): Promise<void> {
     if (!this.isDirty.get()) { return; }
-    if (this.isApplying.get()) { return; }
-    this.isApplying.set(true);
-    try {
-      await this._configAPI.restartServer();
-      if (!await this._configAPI.waitUntilReady()) {
-        throw new Error("Timed out waiting for Grist server to restart");
-      }
+    this._draftConfigs.set(new Map());
+    this._draftActiveProvider.set(null);
+    this._recentlyConfigured.clear();
+    const prefs = this._prefsPendingChanges.get();
+    if (prefs?.onRestartSetAdminEmail || prefs?.onRestartReplaceEmailWithAdmin) {
+      await this._installAPI.updateInstallPrefs({
+        onRestartSetAdminEmail: null,
+        onRestartReplaceEmailWithAdmin: null,
+      });
       if (this.isDisposed()) { return; }
-      await Promise.all([this._fetchProviders(), this._fetchPrefsPendingChanges()]);
-    } finally {
-      if (!this.isDisposed()) { this.isApplying.set(false); }
+      await this._fetchPrefsPendingChanges();
     }
   }
 
@@ -170,13 +301,20 @@ export class AuthenticationSection extends Disposable {
         description: t("Choose how users sign in to Grist."),
       }),
       dom.domComputed((use) => {
-        const providers = use(this._providers);
+        const providers = use(this._displayProviders);
         const loginSystemId = use(this._loginSystemId);
         return this._buildSection(providers, loginSystemId);
       }),
       this._inAdminPanel ?
-        dom.maybe(this._hasActiveOnRestartProvider, () => this._buildAuthenticationChangeWarning()) : null,
+        dom.maybe(this._hasPersistedRestartChange, () => this._buildAuthenticationChangeWarning()) : null,
     ];
+  }
+
+  /** Apply a mutation to the draft-configs map immutably. */
+  private _updateDraftConfigs(mutate: (draft: Map<string, Record<string, string>>) => void) {
+    const next = new Map(this._draftConfigs.get());
+    mutate(next);
+    this._draftConfigs.set(next);
   }
 
   private _makeLoginSystemId(): Observable<string | undefined> {
@@ -191,7 +329,6 @@ export class AuthenticationSection extends Disposable {
       return;
     }
     this._providers.set(providers);
-    this._checkIfRestartNeeded();
   }
 
   private async _fetchPrefsPendingChanges() {
@@ -274,15 +411,11 @@ authentication system.",
     );
   }
 
-  private async _setActiveProvider(provider: AuthProvider) {
+  private _setActiveProvider(provider: AuthProvider) {
     confirmModal(
       t("Set as active method?"),
       t("Confirm"),
-      async () => {
-        await this._configAPI.setActiveAuthProvider(provider.key);
-        this._recentlyConfigured.add(provider.key);
-        await this._fetchProviders();
-      },
+      async () => { this._draftActiveProvider.set(provider.key); },
       {
         explanation: dom("div",
           cssMarkdownSpan(
@@ -290,21 +423,45 @@ authentication system.",
               { name: provider.name }),
           ),
           dom("p",
-            t("The new method will go into effect after you restart Grist."),
+            t("The change will be saved when you apply pending changes, and will go into \
+effect after you restart Grist."),
           ),
         ),
       },
     );
   }
 
+  private _openGetGristComModal() {
+    const m = new GetGristComProviderInfoModal();
+    if (!this._inAdminPanel) {
+      armSetupReturnFromGetGristCom("auth");
+    }
+    const onUserClose = () => {
+      if (!this._inAdminPanel) { clearSetupReturnFromGetGristCom(); }
+    };
+    m.show({
+      onSubmit: (key: string) => {
+        this._updateDraftConfigs(draft =>
+          draft.set(GETGRIST_COM_PROVIDER_KEY, { GRIST_GETGRISTCOM_SECRET: key }));
+        // Mirror the server's "first configured provider wins" behavior:
+        // if nothing is currently active and the user has not chosen one
+        // yet in this session, treat the just-configured provider as the
+        // pending active. Saves the user an explicit "Set as active"
+        // click in the simple zero-config-to-getgrist.com path.
+        if (this._draftActiveProvider.get() === null && !this._providers.get().some(p => p.isActive)) {
+          this._draftActiveProvider.set(GETGRIST_COM_PROVIDER_KEY);
+        }
+        this._recentlyConfigured.add(GETGRIST_COM_PROVIDER_KEY);
+        onUserClose();
+      },
+      onCancel: onUserClose,
+    });
+    this.onDispose(() => m.isDisposed() ? void 0 : m.dispose());
+  }
+
   private _configureProvider(provider: AuthProvider) {
     if (provider.key === GETGRIST_COM_PROVIDER_KEY) {
-      const m = new GetGristComProviderInfoModal();
-      m.show(() => {
-        this._recentlyConfigured.add(provider.key);
-        this._fetchProviders().catch(reportError);
-      });
-      this.onDispose(() => m.isDisposed() ? void 0 : m.dispose());
+      this._openGetGristComModal();
     } else if (PROVIDER_META_BUILDERS[provider.key]) {
       const m = new InformationModal(provider);
       m.show();
@@ -316,11 +473,7 @@ authentication system.",
     confirmModal(
       t("Deactivate authentication?"),
       t("Deactivate"),
-      async () => {
-        await this._configAPI.setActiveAuthProvider(FALLBACK_PROVIDER_KEY);
-        this._recentlyConfigured.add(provider.key);
-        await this._fetchProviders();
-      },
+      async () => { this._draftActiveProvider.set(FALLBACK_PROVIDER_KEY); },
       {
         explanation: dom("div",
           cssMarkdownSpan(
@@ -330,7 +483,8 @@ authentication system.",
             t("Your configuration will be preserved. You can reactivate it later without reconfiguring."),
           ),
           dom("p",
-            t("The change will take effect after you restart Grist."),
+            t("The change will be saved when you apply pending changes, and will take \
+effect after you restart Grist."),
           ),
         ),
       },
@@ -346,7 +500,7 @@ authentication system.",
     saveModal((_ctl, owner) => {
       const changeAdminModal = ChangeAdminModal.create(owner, {
         currentUserEmail,
-        defaultEmail: this._getgristLoginOwner.get().email,
+        defaultEmail: this._getgristLoginOwner.get()?.email,
         onSave: async ({ email, replace }) => {
           await this._setInstallAdmin(email, replace);
         },
@@ -371,7 +525,6 @@ authentication system.",
     if (this.isDisposed()) { return; }
 
     await this._fetchPrefsPendingChanges();
-    this._checkIfRestartNeeded();
   };
 
   private async _revertSetInstallAdmin() {
@@ -383,22 +536,53 @@ authentication system.",
 
     await this._fetchPrefsPendingChanges();
   };
+}
 
-  private _checkIfRestartNeeded() {
-    if (!this._inAdminPanel) { return; }
+/**
+ * Merge a server-reported provider with any client-side drafts so the UI
+ * reflects the user's pending choices.
+ *
+ * - A draft secret marks the provider as configured and (if the server
+ *   has not pinned the active provider via env) able to be activated.
+ * - A draft active-provider choice flips `willBeActive` on the chosen
+ *   provider and `willBeDisabled` on the currently-active one. Choosing
+ *   the fallback (deactivate) just sets `willBeDisabled` on the
+ *   currently-active provider.
+ */
+function mergeProviderWithDrafts(
+  provider: AuthProvider,
+  draftConfigs: Map<string, Record<string, string>>,
+  draftActive: string | null,
+): AuthProvider {
+  const merged: AuthProvider = { ...provider };
 
-    const hasActiveOnRestartProvider = this._hasActiveOnRestartProvider.get();
-
-    const prefsPendingChanges = this._prefsPendingChanges.get();
-    const hasUnappliedRestartPrefs = Boolean(
-      prefsPendingChanges?.onRestartSetAdminEmail ||
-      prefsPendingChanges?.onRestartReplaceEmailWithAdmin,
-    );
-    const needsRestart = hasActiveOnRestartProvider || hasUnappliedRestartPrefs;
-    if (needsRestart) {
-      this._controls.needsRestart.set(true);
+  if (draftConfigs.has(provider.key)) {
+    merged.isConfigured = true;
+    merged.configError = undefined;
+    if (!provider.isSelectedByEnv) {
+      merged.canBeActivated = !provider.isActive;
     }
   }
+
+  if (draftActive !== null) {
+    const wasActive = !!provider.isActive;
+    // Mirror the server's `isActive = key === active && key === next` so
+    // the ACTIVE badge clears on the outgoing provider as soon as the
+    // user picks a new one.
+    merged.isActive = wasActive && provider.key === draftActive;
+    if (provider.key === draftActive) {
+      merged.willBeActive = !wasActive;
+      merged.willBeDisabled = false;
+      merged.canBeActivated = false;
+    } else {
+      merged.willBeActive = false;
+      if (wasActive) {
+        merged.willBeDisabled = true;
+        merged.canBeActivated = !provider.isSelectedByEnv;
+      }
+    }
+  }
+  return merged;
 }
 
 /**

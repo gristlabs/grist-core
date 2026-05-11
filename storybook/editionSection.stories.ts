@@ -1,8 +1,7 @@
 import { Notifier } from "app/client/models/NotifyModel";
-import { AdminPanelControls } from "app/client/ui/AdminPanelCss";
 import { EditionSection } from "app/client/ui/EditionSection";
 
-import { Disposable, DomContents, Observable, styled } from "grainjs";
+import { Disposable, DomContents, styled } from "grainjs";
 
 export default {
   title: "Admin panel/EditionSection",
@@ -12,13 +11,6 @@ export default {
 };
 
 // --- Helpers ----------------------------------------------------------------
-
-function createControls(owner: Disposable): AdminPanelControls {
-  return {
-    needsRestart: Observable.create(owner, false),
-    restartGrist: async () => { /* no-op in storybook */ },
-  };
-}
 
 // ToggleEnterpriseWidget reads `deploymentType` and `activation` straight
 // from window.gristConfig, so stories need to swap it to drive the widget
@@ -43,7 +35,7 @@ function adminStory({ deploymentType, overrides, build }: AdminStoryArgs) {
     render: (_args: any, { owner }: any) => {
       if (deploymentType) { withGristConfig(owner, { deploymentType }); }
       const section = EditionSection.create(owner, {
-        controls: createControls(owner),
+        inAdminPanel: true,
         notifier: Notifier.create(owner),
         overrides,
       });

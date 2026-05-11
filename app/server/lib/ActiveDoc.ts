@@ -138,6 +138,7 @@ import { createAttachmentsIndex, DocStorage, REMOVE_UNUSED_ATTACHMENTS_DELAY } f
 import { expandQuery, getFormulaErrorForExpandQuery } from "app/server/lib/ExpandedQuery";
 import { GranularAccess, GranularAccessForBundle } from "app/server/lib/GranularAccess";
 import { GristServer } from "app/server/lib/GristServer";
+import { getAnonPlaygroundEnabled } from "app/server/lib/gristSettings";
 import {
   AssistanceFormulaEvaluationResult,
   AssistanceSchemaPromptV1Context,
@@ -1842,6 +1843,9 @@ export class ActiveDoc extends EventEmitter {
   public async fork(docSession: OptDocSession): Promise<ForkResult> {
     const dbManager = this._getHomeDbManagerOrFail();
     const user = docSession.fullUser;
+    if (user?.anonymous && !getAnonPlaygroundEnabled()) {
+      throw new ApiError("Anonymous document creation is disabled", 401);
+    }
     // For now, fork only if user can read everything (or is owner).
     // TODO: allow forks with partial content.
     if (!user || !await this.canDownload(docSession)) {

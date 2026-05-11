@@ -5,7 +5,7 @@
 
 import { GristClientSocket } from "app/client/components/GristClientSocket";
 import { delay } from "app/common/delay";
-import { Deps, runRestartShell } from "app/server/lib/RestartShell";
+import { Deps, RestartShell, runRestartShell } from "app/server/lib/RestartShell";
 import { createInitialDb, removeConnection, setUpDB } from "test/gen-server/seed";
 import { configForUser } from "test/gen-server/testUtils";
 import * as testUtils from "test/server/testUtils";
@@ -85,6 +85,38 @@ describe("RestartShell", function() {
     const readyResp = await axios.get(`${serverUrl}/status?ready=1`);
     assert.equal(readyResp.status, 200);
     assert.include(readyResp.data, "alive");
+  });
+
+  it("should not report alive on /status during initial startup", async function() {
+    // Drive listen() and run() ourselves so we can poll /status in
+    // the gap between bind and first-child-ready. Slow the ready
+    // signal to widen the window.
+    await handle.shutdown();
+
+    process.env.GRIST_TEST_RESTART_SHELL_READY_DELAY = "1500";
+    const shell = new RestartShell({
+      publicPort: 0,
+      childEntryPoint: require.resolve("stubs/app/server/server"),
+    });
+    handle = shell;
+
+    await shell.listen();
+    const runPromise = shell.run();
+
+    try {
+      const url = `http://localhost:${shell.port}/status`;
+      let sawStarting = false;
+      const deadline = Date.now() + 5000;
+      while (Date.now() < deadline && !sawStarting) {
+        const r = await axios.get(url, { validateStatus: () => true });
+        assert.notEqual(r.status, 200, `/status returned 200 during initial startup: ${JSON.stringify(r.data)}`);
+        sawStarting = r.status === 503 && r.data?.error === "starting";
+        if (!sawStarting) { await delay(50); }
+      }
+      assert.isTrue(sawStarting, "/status should report 503 starting before first child is ready");
+    } finally {
+      await runPromise;
+    }
   });
 
   it("should reject and set exitCode when initial spawn fails", async function() {

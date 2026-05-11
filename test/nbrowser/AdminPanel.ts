@@ -1,6 +1,7 @@
 import { TelemetryLevel } from "app/common/Telemetry";
 import { currentVersion, isEnabled, toggleItem, withExpandedItem } from "test/nbrowser/AdminPanelTools";
 import * as gu from "test/nbrowser/gristUtils";
+import { useFastSandboxProbe } from "test/nbrowser/sandboxProbeFixture";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
 import { FakeUpdateServer, startFakeUpdateServer } from "test/server/customUtil";
 import * as testUtils from "test/server/testUtils";
@@ -23,6 +24,9 @@ describe("AdminPanel", function() {
     process.env.GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING = "true";
     // Set admin email, but make it non-canonical casing as an extra test.
     process.env.GRIST_DEFAULT_EMAIL = gu.session().email.toUpperCase();
+    // The real sandbox-providers probe takes ~5s on machines without runsc,
+    // and lands inside waitForServer's 5s budget after a page reload.
+    useFastSandboxProbe();
     fakeServer = await startFakeUpdateServer();
     process.env.GRIST_TEST_VERSION_CHECK_URL = `${fakeServer.url()}/version`;
     await server.restart(true);
@@ -59,7 +63,18 @@ describe("AdminPanel", function() {
     assert.equal(await driver.find(".test-usermenu-admin-panel").isDisplayed(), true);
     assert.match(await driver.find(".test-usermenu-admin-panel").getAttribute("href"), /\/admin$/);
     await driver.find(".test-usermenu-admin-panel").click();
-    assert.equal(await gu.waitForAdminPanel().isDisplayed(), true);
+    await gu.waitForAdminPanel();
+    assert.equal(await driver.find(".test-admin-panel").isDisplayed(), true);
+  });
+
+  it("opens the change-admin modal when no getgrist provider is configured", async function() {
+    session = await gu.session().personalSite.login();
+    await driver.get(`${server.getHost()}/admin`);
+    await gu.waitForAdminPanel();
+    await toggleItem("authentication");
+    await driver.findWait(".test-admin-auth-change-admin", 2000).click();
+    await driver.findWait(".test-modal-dialog", 2000);
+    await driver.sendKeys(Key.ESCAPE);
   });
 
   it("should include support-grist section", async function() {

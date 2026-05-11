@@ -1,6 +1,7 @@
 /**
  * Tests for document operations:
  * - POST /docs/{did}/force-reload
+ * - POST /docs/{did}/fork
  * - POST /docs/{did}/assign
  * - GET/POST /docs/{did}/replace
  * - GET /docs/{did}/snapshots
@@ -17,12 +18,13 @@
 
 import { ActionSummary } from "app/common/ActionSummary";
 import { DocState } from "app/common/DocState";
+import { isAffirmative } from "app/common/gutil";
 import { UserAPI, UserAPIImpl } from "app/common/UserAPI";
 import { configForUser } from "test/gen-server/testUtils";
 import { addAllScenarios, ORG_NAME, TestContext } from "test/server/lib/docapi/helpers";
 import * as testUtils from "test/server/testUtils";
 
-import axios from "axios";
+import axios, { AxiosRequestConfig } from "axios";
 import { assert } from "chai";
 import FormData from "form-data";
 import range from "lodash/range";
@@ -527,6 +529,41 @@ function addDocumentsTests(getCtx: () => TestContext) {
 
       resp = await axios.get(`${homeUrl}/dw/zing/api/docs/${docIds.Timesheets}/tables/Table1/data`, chimpy);
       assert.equal(resp.status, 404);
+    }
+  });
+
+  it("POST /docs/{did}/fork rejects when anonymous playground is disabled", async function() {
+    const { docs, nobody, chimpy, serverUrl, userApi } = getCtx();
+    const forkDocAs = (docId: string, user: AxiosRequestConfig) => axios.post(`${serverUrl}/api/docs/${docId}/fork`, null, user);
+    let docId: string | null = null;
+
+    try {
+      // Create a document and share it publicly
+      const ws1 = (await userApi.getOrgWorkspaces("current"))[0].id;
+      docId = await userApi.newDoc({ name: "some-doc" }, ws1);
+      await userApi.updateDocPermissions(docId, { users: { "anon@getgrist.com": "viewers" } });
+
+      // Try to fork the document as anonymous user when GRIST_ANON_PLAYGROUNT=false
+      await docs.testingHooks.addEnv({ GRIST_ANON_PLAYGROUND: "false" });
+      let resp = await forkDocAs(docId, nobody);
+      assert.equal(resp.status, 401);
+      assert.equal(resp.data.error, "Anonymous document creation is disabled");
+
+      // Still it should work as chimpy
+      resp = await forkDocAs(docId, chimpy);
+      assert.equal(resp.status, 200);
+      console.log(resp.data);
+
+      // Reset to the default environment and try again to fork, it should work
+      await docs.testingHooks.resetEnv();
+      resp = await forkDocAs(docId, nobody);
+      assert.equal(resp.status, 200);
+    } finally {
+      // Cleanup the trunk document (the endpoint also delete the forks)
+      if (!isAffirmative(process.env.NO_CLEANUP) && docId) {
+        await userApi.deleteDoc(docId);
+      }
+      await docs.testingHooks.resetEnv();
     }
   });
 }

@@ -1,10 +1,11 @@
 import { expandProviderList, itemValue, toggleItem } from "test/nbrowser/AdminPanelTools";
 import * as gu from "test/nbrowser/gristUtils";
+import { startMockOIDCIssuer } from "test/nbrowser/oidcMockServer";
+import { useFastSandboxProbe } from "test/nbrowser/sandboxProbeFixture";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
-import { serveSomething, Serving } from "test/server/customUtil";
+import { Serving } from "test/server/customUtil";
 import * as testUtils from "test/server/testUtils";
 
-import * as express from "express";
 import { assert, driver, WebElementPromise } from "mocha-webdriver";
 
 describe("AuthProvider", function() {
@@ -20,19 +21,10 @@ describe("AuthProvider", function() {
     oldEnv = new testUtils.EnvironmentSnapshot();
     process.env.GRIST_DEFAULT_EMAIL = user.email;
     process.env.GRIST_TEST_SERVER_DEPLOYMENT_TYPE = "core";
+    useFastSandboxProbe();
     await server.restart();
 
-    serving = await serveSomething((app) => {
-      app.use(express.json());
-      app.get("/.well-known/openid-configuration", (req, res) => {
-        res.json({
-          issuer: serving.url + "?provider=getgrist.com",
-        });
-      });
-      app.use((req) => {
-        assert.fail(`Unexpected request to test OIDC server: ${req.method} ${req.url}`);
-      });
-    });
+    serving = await startMockOIDCIssuer({ failUnexpectedRequests: true });
   });
 
   after(async function() {
