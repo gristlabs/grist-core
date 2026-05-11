@@ -1588,7 +1588,8 @@
     },
     "GridView": {
         "Click to insert": "Cliquer pour insérer",
-        "row {{rowNum}} {{colName}}": "ligne {{rowNum}} {{colName}}"
+        "row {{rowNum}} {{colName}}": "ligne {{rowNum}} {{colName}}",
+        "row {{rowNum}} {{colName}} (new row)": "ligne {{rowNum}} {{colName}} (nouvelle ligne)"
     },
     "SupportGristPage": {
         "GitHub": "GitHub",
