@@ -11,6 +11,7 @@ import { downloadFromGDrive, isDriveUrl } from "app/server/lib/GoogleImport";
 import { GristServer, RequestWithGrist } from "app/server/lib/GristServer";
 import { guessExt } from "app/server/lib/guessExt";
 import log from "app/server/lib/log";
+import fetch from "node-fetch";
 import { fetchUntrustedWithAgent } from "app/server/lib/ProxyAgent";
 import { optStringParam } from "app/server/lib/requestUtils";
 import { isPathWithin } from "app/server/lib/serverUtils";
@@ -35,7 +36,11 @@ import * as tmp from "tmp";
 const INACTIVITY_CLEANUP_MS = 60 * 60 * 1000;     // an hour, very generously.
 
 // A hook for dependency injection.
-export const Deps = { fetch: fetchUntrustedWithAgent, INACTIVITY_CLEANUP_MS };
+export const Deps = {
+  fetchUntrusted: fetchUntrustedWithAgent,
+  fetchTrusted: fetch,
+  INACTIVITY_CLEANUP_MS,
+};
 
 // An optional UploadResult, with parameters.
 export interface FormResult {
@@ -447,7 +452,8 @@ async function _fetchURL(url: string, accessId: string | null, options?: FetchUr
       response = await downloadFromGDrive(url, code);
       fileName = ""; // Read the file name from headers.
     } else {
-      response = await Deps.fetch(url, {
+      const fetchFunc = options?.isTrusted ? Deps.fetchTrusted : Deps.fetchUntrusted;
+      response = await fetchFunc(url, {
         redirect: "follow",
         follow: 10,
         headers,
@@ -513,7 +519,7 @@ export async function fetchDoc(
 
   // Download the document, in full or as a template.
   const url = new URL(`api/docs/${docId}/download?template=${Number(template)}`, apiBaseUrl);
-  return _fetchURL(url.href, accessId, { headers });
+  return _fetchURL(url.href, accessId, { headers, isTrusted: true });
 }
 
 // Re-issue failures as exceptions.
