@@ -15,6 +15,7 @@ export interface Form {
   formLayoutSpec: string;
   formTitle: string;
   formTableId: string;
+  forceAnonymous: boolean;
 }
 
 /**
@@ -130,12 +131,14 @@ type GetFormOptions = GetFormCommonOptions & FormTarget;
 interface CreateRecordCommonOptions {
   tableId: string;
   colValues: ColValues;
+  formVsId?: number;
 }
 
 type CreateRecordOptions = CreateRecordCommonOptions & FormTarget;
 
 interface CreateAttachmentCommonOptions {
   upload: File[];
+  formVsId?: number;
 }
 
 type CreateAttachmentOptions = CreateAttachmentCommonOptions & FormTarget;
@@ -193,6 +196,10 @@ export class FormAPIImpl extends BaseAPI implements FormAPI {
     const url = new URL(`${base}${path}`);
     if ("shareKey" in target) {
       url.searchParams.set("utm_source", "grist-forms");
+    }
+    if ("formVsId" in target && typeof target.formVsId === "number") {
+      // Link parameters are read server-side from *_ query keys.
+      url.searchParams.set("formVsId_", String(target.formVsId));
     }
     return url.href;
   }
