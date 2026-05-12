@@ -367,7 +367,7 @@ export class GranularAccess implements GranularAccessForBundle {
       const override = attrs.override || (attrs.override = await this._getViewAsUser(linkParameters));
       access = override.access;
       fullUser = override.user;
-    } else if (linkId) {
+    } else if (linkId && !process.env.GRIST_AUTHENTICATED_FORMS) {
       // Anonymize user info for form submissions.
       // Note: This is half-baked and doesn't account for other types of shares besides forms.
       fullUser = this._homeDbManager?.makeFullUser(this._homeDbManager.getAnonymousUser()) ?? null;
