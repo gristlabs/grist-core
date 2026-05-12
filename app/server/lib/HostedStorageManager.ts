@@ -474,7 +474,7 @@ export class HostedStorageManager implements IDocStorageManager {
     this._localFiles.delete(docName);
     await this.flushDoc(docName);
 
-    if (!this._disableS3 && !keepLocalCache) {
+    if (!keepLocalCache) {
       await this.wipeCache(docName);
     }
   }

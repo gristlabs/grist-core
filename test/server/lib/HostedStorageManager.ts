@@ -738,6 +738,7 @@ describe("HostedStorageManager", function() {
         const docPath = store.getDocPath(docId);
 
         await store.run(async () => {
+          await store.docManager.createNamedDoc(docSession, docId);
           const doc = await store.docManager.fetchDoc(docSession, docId);
           await doc.docStorage.exec("insert into Table1(id, A) values(1, 'magic word')");
           await store.waitForUpdates();
