@@ -1255,8 +1255,23 @@ export default class GridView extends BaseView {
    *        |0____|1____|..5|6__*_|         Returns 6
    *        |0____|1____|..5|6____| *       Returns 6
    **/
+  protected _isRTL() {
+    return Boolean(this.viewSection.optionsObj.prop("rtlDirection").peek());
+  }
+
   protected getMousePosCol(mouseX: number) {
     const scrollLeft = this.scrollLeft();
+    if (this._isRTL()) {
+      // In RTL, columns are laid out from right to left. The corner (row numbers) is on the right.
+      const headerOffset = this._cornerDom.getBoundingClientRect().left;
+      // gridX measures distance from the corner's left edge, increasing leftward (into the columns).
+      const gridX = headerOffset - mouseX;
+      const frozenWidth = this.frozenWidth.peek();
+      const frozenScroll = Math.min(this.frozenOffset.peek(), scrollLeft);
+      const inFrozen = this.numFrozen.peek() && gridX <= (frozenWidth - frozenScroll);
+      const scrollX = gridX + (inFrozen ? frozenScroll : scrollLeft);
+      return this.colRightOffsets.peek().getIndex(scrollX);
+    }
     // Offset to left edge of gridView viewports
     const headerOffset = this._cornerDom.getBoundingClientRect().right;
     // Convert mouse x to grid x (not including scroll yet).
@@ -1346,6 +1361,7 @@ export default class GridView extends BaseView {
     const vHorizontalGridlines = v.optionsObj.prop("horizontalGridlines");
     const vVerticalGridlines   = v.optionsObj.prop("verticalGridlines");
     const vZebraStripes        = v.optionsObj.prop("zebraStripes");
+    const vRtlDirection        = v.optionsObj.prop("rtlDirection");
 
     const renameCommands = {
       nextField: () => {
@@ -1365,6 +1381,8 @@ export default class GridView extends BaseView {
 
     return dom(
       "div.gridview_data_pane.flexvbox",
+      // RTL direction support for the grid
+      dom.attr("dir", use => use(vRtlDirection) ? "rtl" : "ltr"),
       // offset for frozen columns - how much move them to the left
       styleCustomVar("--frozen-offset", this.frozenOffset),
       // total width of frozen columns
@@ -1400,12 +1418,14 @@ export default class GridView extends BaseView {
       this.colLine = dom(
         "div.col_indicator_line",
         kd.show(() => this.cellSelector.isCurrentDragType(selector.COL)),
-        dom.style("left", this.cellSelector.col.linePos),
+        dom.style(vRtlDirection.peek() ? "right" : "left", this.cellSelector.col.linePos),
       ),
       this.colShadow = dom(
         "div.column_shadow",
         kd.show(() => this.cellSelector.isCurrentDragType(selector.COL)),
-        dom.style("left", use => (use(this.dragX) - this.colShadowAdjust) + "px"),
+        vRtlDirection.peek() ?
+          dom.style("right", use => (this.colShadowAdjust - use(this.dragX)) + "px") :
+          dom.style("left", use => (use(this.dragX) - this.colShadowAdjust) + "px"),
       ),
       this.rowLine = dom(
         "div.row_indicator_line",
@@ -1496,7 +1516,11 @@ export default class GridView extends BaseView {
                     },
                     dom.style("width", field.widthPx),
                     dom.style("borderRightWidth", v.borderWidthPx),
-                    viewCommon.makeResizable(field.width, { shouldSave: !this.isReadonly }),
+                    viewCommon.makeResizable(field.width, {
+                      shouldSave: !this.isReadonly,
+                      handles: vRtlDirection.peek() ? "w" : "e",
+                      isFlex: vRtlDirection.peek() ? true : undefined,
+                    }),
                     kd.toggleClass("selected", () => ko.unwrap(this.isColSelected.at(field._index()!)!)),
                     dom.on("contextmenu", (ev) => {
                     // This is a little hack to position the menu the same way as with a click
@@ -2003,10 +2027,13 @@ export default class GridView extends BaseView {
     const shadowWidth = this.colRightOffsets.peek().getCumulativeValueRange(colStart, colEnd + 1);
     const shadowLeft = (ROW_NUMBER_WIDTH + this.colRightOffsets.peek().getSumTo(colStart) - this.scrollLeft());
 
-    this.colLine.style.left = shadowLeft + "px";
-    this.colShadow.style.left = shadowLeft + "px";
+    const colProp = this._isRTL() ? "right" : "left";
+    this.colLine.style[colProp] = shadowLeft + "px";
+    this.colShadow.style[colProp] = shadowLeft + "px";
     this.colShadow.style.width = shadowWidth + "px";
-    this.colShadowAdjust = event.pageX - shadowLeft;
+    // In RTL, shadow uses CSS `right` and dragX decreases as user drags left (further into columns),
+    // so we store pageX + shadowLeft so that (adjust - dragX) gives the correct `right` value.
+    this.colShadowAdjust = this._isRTL() ? event.pageX + shadowLeft : event.pageX - shadowLeft;
     this.cellSelector.currentDragType(selector.COL);
     this.cellSelector.col.dropIndex(this.cellSelector.colLower());
   }

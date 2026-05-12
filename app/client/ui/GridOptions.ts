@@ -47,6 +47,14 @@ export class GridOptions extends Disposable {
           testId("zebra-stripe-button"),
         ),
 
+        cssRow(
+          labeledSquareCheckbox(
+            setNullableSaveValueFromKo(this, section.optionsObj.prop("rtlDirection")),
+            t("Right-to-left text"),
+          ),
+          testId("rtl-direction-button"),
+        ),
+
         testId("grid-options"),
       ]),
     );
@@ -60,6 +68,18 @@ function setSaveValueFromKo(owner: IDisposableOwner, obs: KoSaveableObservable<b
   const ret = Computed.create(null, use => use(obs) ?? false);
   ret.onWrite(async (val) => {
     await setSaveValue(obs, val);
+  });
+  return ret;
+}
+
+// Like setSaveValueFromKo, but stores true when checked and null (not false) when unchecked.
+// This allows distinguishing "no preference" (null) from an explicit false value.
+function setNullableSaveValueFromKo(
+  owner: IDisposableOwner, obs: KoSaveableObservable<boolean | null | undefined>,
+) {
+  const ret = Computed.create(null, use => Boolean(use(obs)));
+  ret.onWrite(async (val) => {
+    await setSaveValue(obs, val || null);
   });
   return ret;
 }
