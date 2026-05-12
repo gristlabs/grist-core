@@ -53,7 +53,23 @@
         "Resource missing in resource map: {{resourceKey}}": "资源地图：{{resourceKey}}中缺少资源",
         "Trying to add TableRules for existing table {{tableId}}": "尝试为现有表:{{tableId}}添加列表规则",
         "Use a simple attribute of user.LinkKey, e.g. user.LinkKey.something": "使用简单的用户属性,比如. user.LinkKey.等等",
-        "hidden": "隐藏"
+        "hidden": "隐藏",
+        "## Access Rules\n\nYou don't have permission to view or edit access rules for this document.": "## 访问规则\n\n你没有权限查看或编辑此文档的访问规则。",
+        "**Special rules** (expand each rule to customize who it applies to)": "**特殊规则**（将每个规则展开以自定义其适用对象）",
+        "After disabling Access Rules, Editors will be able to change the structure of the document and edit formulas. Editors and Viewers will be able to see all data in the document, as well as copy or download it.": "禁用访问规则后，编辑人员将能够更改文档结构并编辑公式。编辑人员和查看者将能够查看文档中的所有数据，以及复制或下载它。",
+        "After enabling Access Rules, Editors will no longer be able to change the structure of the\ndocument or edit formulas. Only Owners will be able to copy or download the document.\n\nThese settings can be changed under 'Special rules'.": "启用访问规则后，编辑将无法更改文档结构或编辑公式。\n只有所有者才能复制或下载文档。\n\n这些设置可以在“特殊规则”下更改。",
+        "Allow Editors to edit structure (e.g. modify and delete tables, columns, and layouts) and write formulas.  Important: if checked, Editors will be able to edit formulas, which can access all data, regardless of table and column access rules!": "允许编辑者编辑结构（例如修改和删除表格、列和布局）并编写公式。 重要提示：如果选中，编辑者将能够编辑公式，并且可以访问所有数据，无论表格和列的访问规则如何！",
+        "Allow everyone to view access rules.": "允许所有人查看访问规则。",
+        "Circumvent all read restrictions and allow everyone to copy the entire document, or view it in full in fiddle mode. Only use for for examples and templates, not for documents with sensitive data.": "绕过所有读取限制，允许所有人复制整个文档，或在fiddle模式下完整查看。仅用于示例和模板，不用于包含敏感数据的文档。",
+        "Continue": "继续",
+        "Disable Access Rules": "禁用访问规则",
+        "Disable and save": "禁用并保存",
+        "Enable Access Rules": "启用访问规则",
+        "Permission to access the document in full by all users": "所有用户均可访问完整文档",
+        "Permission to access the document in full by unrestricted users": "允许不受限制的用户访问完整文档",
+        "Restrict non-Owners from copying or downloading the full document. Note: this only affects users without read restrictions, since others will be restricted regardless of this setting.": "限制非所有者复制或下载完整文档。注意：这仅影响无读取限制的用户，因为其他人无论如何都会受到限制。",
+        "Special rules for templates": "模板的特殊规则",
+        "This options should be off if Editors' access is to be limited. ": "如果编辑器的访问权限要受限，这个选项应该关闭。 "
     },
     "AccountPage": {
         "API": "API",
@@ -71,7 +87,13 @@
         "Theme": "主题",
         "Two-factor authentication": "双因素身份验证",
         "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "双因素身份验证是您的Grist帐户的额外安全层，旨在确保您是唯一可以访问您的帐户的人，即使有人知道您的密码。",
-        "Language": "语言"
+        "Language": "语言",
+        "Basic info": "基本信息",
+        "Developer": "开发者",
+        "Home": "主页",
+        "Profile": "简介",
+        "Enterprise": "企业",
+        "OAuth apps": "OAuth应用程序"
     },
     "CodeEditorPanel": {
         "Access denied": "访问被拒绝",
@@ -260,7 +282,9 @@
         "Support Grist": "支持 Grist",
         "Upgrade Plan": "升级计划",
         "Sign up": "注册",
-        "Use This Template": "使用这个模板"
+        "Use This Template": "使用这个模板",
+        "Site settings": "站点设置",
+        "Account settings": "账户设置"
     },
     "ViewAsDropdown": {
         "View as": "查看为",
@@ -439,7 +463,8 @@
         "Tutorial": "教程",
         "Grist Resources": "Grist 资源",
         "Terms of service": "服务条款",
-        "context menu - {{- workspaceName }}": "上下文菜单{{- workspaceName }}"
+        "context menu - {{- workspaceName }}": "上下文菜单{{- workspaceName }}",
+        "Import from Airtable": "从 Airtable 导入"
     },
     "MakeCopyMenu": {
         "Cancel": "取消",
@@ -478,7 +503,8 @@
         "Format:": "格式：",
         "Learn more": "了解更多",
         "download attachments": "下载附件",
-        "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "附件为外部附件，不包含在本次下载中。如果将文档上传到单独的 Grist 安装目录，您还需要单独下载 {{downloadLink}} 文件。 "
+        "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "附件为外部附件，不包含在本次下载中。如果将文档上传到单独的 Grist 安装目录，您还需要单独下载 {{downloadLink}} 文件。 ",
+        "If you're planning to upload this document to a Grist installation, you will need the archive in the \".tar\" format to restore attachments. ": "如果你计划将此文档上传到 Grist 安装，你需要以 '.tar' 格式的存档来恢复附件。 "
     },
     "NotifyUI": {
         "Go to your free personal site": "转到您的免费个人网站",
@@ -1429,7 +1455,8 @@
         "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "您可以在单元格中添加评论，回复评论主题，并@-提及合作者。",
         "When checked, this field’s default value can be prefilled from the URL using query parameters.": "选中后，该字段的默认值可使用查询参数从 URL 中预填。",
         "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "利用建议功能，用户可以在不修改原始文档的情况下对个人副本进行修改，然后提交这些建议，由文档所有者在整合前进行审核。",
-        "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.": "这样，您就可以添加外部存储中缺少的附件，例如导入的文档中的附件。只能上传从 Grist 下载的 .tar 附件档案。"
+        "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.": "这样，您就可以添加外部存储中缺少的附件，例如导入的文档中的附件。只能上传从 Grist 下载的 .tar 附件档案。",
+        "Unpin to hide the button while keeping the filter.": "取消固定以隐藏按钮，同时保留筛选器。"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "描述",
