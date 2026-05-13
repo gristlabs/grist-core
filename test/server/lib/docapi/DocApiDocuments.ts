@@ -53,6 +53,14 @@ function addDocumentsTests(getCtx: () => TestContext) {
     const { serverUrl, docIds, chimpy, support, hasHomeApi } = getCtx();
     let resp = await axios.post(`${serverUrl}/api/docs/${docIds.Timesheets}/force-reload`, null, chimpy);
     assert.equal(resp.status, 200);
+
+    // Doc content must still be readable after the reload. This guards against
+    // closeDocument wrongly wiping the local cache when no external storage is
+    // configured (TestServer runs with GRIST_DISABLE_S3=true).
+    resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/records`, chimpy);
+    assert.equal(resp.status, 200);
+    assert.equal(resp.data.records[0]?.fields?.A, "hello");
+
     // Check that support cannot force a reload.
     resp = await axios.post(`${serverUrl}/api/docs/${docIds.Timesheets}/force-reload`, null, support);
     assert.equal(resp.status, 403);

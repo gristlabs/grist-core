@@ -203,7 +203,10 @@ const DEFAULT_LOCALE = process.env.GRIST_DEFAULT_LOCALE || "en-US";
 // Number of seconds an ActiveDoc is retained without any clients.
 // In dev environment, it is convenient to keep this low for quick tests.
 // In production, it is reasonable to stretch it out a bit.
-const ACTIVEDOC_TIMEOUT = (process.env.NODE_ENV === "production") ? 30 : 5;
+const ACTIVEDOC_TIMEOUT = appSettings.section("externalStorage").flag("activeDocTimeout").requireInt({
+  envVar: "GRIST_ACTIVEDOC_TIMEOUT_SECONDS",
+  defaultValue: process.env.NODE_ENV === "production" ? 5 * 60 : 5,
+});
 
 // We'll wait this long between re-measuring sandbox memory.
 const MEMORY_MEASUREMENT_THROTTLE_WAIT_MS = 60 * 1000;
@@ -2651,6 +2654,14 @@ export class ActiveDoc extends EventEmitter {
       } catch (err) {
         this._log.error(docSession, "failed to shutdown some resources", err);
       }
+
+      // Finally, let's release the assignment to the worker
+      // so there's a chance for another worker less loaded
+      // to be assigned this document next time.
+      await safeCallAndWait("releaseDocAssignment", () => {
+        return this._docManager.storageManager.releaseDocAssignment(this.docName);
+      });
+
       // No timeout on this callback: if it hangs, it will make the document unusable.
       await this._afterShutdownCallback?.();
     } finally {

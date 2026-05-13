@@ -14,7 +14,6 @@ import { DocSnapshotInventory, DocSnapshotPruner } from "app/server/lib/DocSnaps
 import { IDocWorkerMap } from "app/server/lib/DocWorkerMap";
 import {
   ChecksummedExternalStorage,
-  DELETED_TOKEN,
   ExternalStorage,
   ExternalStorageCreator, ExternalStorageSettings,
   Unchanged,
@@ -108,6 +107,9 @@ export class HostedStorageManager implements IDocStorageManager {
 
   // Ongoing and scheduled uploads for documents.
   private _uploads: KeyedOps;
+
+  // Ongoing doc removals (including grist doc, metadata, assets)
+  private _removals = new Map<string, Promise<void>>();
 
   // Set once the manager has been closed.
   private _closed: boolean = false;
@@ -249,9 +251,10 @@ export class HostedStorageManager implements IDocStorageManager {
    * The optional srcDocName parameter is set when preparing a fork.
    */
   public async prepareLocalDoc(docName: string, srcDocName?: string): Promise<boolean> {
+    await this._removals.get(docName);
     // We could be reopening a document that is still closing down.
     // Wait for that to happen.  TODO: we could also try to interrupt the closing-down process.
-    await this.closeDocument(docName);
+    await this.closeDocument(docName, { keepLocalCache: true });
 
     if (this._prepareFiles.has(docName)) {
       throw new Error(`Tried to call prepareLocalDoc('${docName}') twice in parallel`);
@@ -367,16 +370,13 @@ export class HostedStorageManager implements IDocStorageManager {
     if (!deletePermanently) {
       throw new Error("HostedStorageManager only implements permanent deletion in deleteDoc");
     }
-    await this.closeDocument(docName);
+    await this.closeDocument(docName, { keepLocalCache: true });
     if (!this._disableS3) {
       await this._ext.remove(docName);
       await this._extMeta.remove(docName);
     }
-    // NOTE: fse.remove succeeds also when the file does not exist.
-    await fse.remove(this.getPath(docName));
-    await fse.remove(this._getHashFile(this.getPath(docName), "doc"));
-    await fse.remove(this._getHashFile(this.getPath(docName), "meta"));
-    await fse.remove(this.getAssetPath(docName));
+    await this._removeFromFilesystem(docName);
+    await this.releaseDocAssignment(docName);
   }
 
   // We don't implement document renames.
@@ -470,12 +470,21 @@ export class HostedStorageManager implements IDocStorageManager {
   /**
    * Finalize any operations involving the named document.
    */
-  public async closeDocument(docName: string): Promise<void> {
+  public async closeDocument(docName: string, options: { keepLocalCache?: boolean } = {}): Promise<void> {
+    const { keepLocalCache } = options;
     if (this._localFiles.has(docName)) {
       await this._localFiles.get(docName);
     }
     this._localFiles.delete(docName);
-    return this.flushDoc(docName);
+    await this.flushDoc(docName);
+
+    if (!keepLocalCache) {
+      this.wipeCache(docName);
+    }
+  }
+
+  public async releaseDocAssignment(docName: string): Promise<void> {
+    return this._docWorkerMap.releaseAssignment(this._docWorkerId, docName);
   }
 
   /**
@@ -491,6 +500,20 @@ export class HostedStorageManager implements IDocStorageManager {
         await delay(1000);
       }
     }
+  }
+
+  /**
+   * Wipes cache when then using S3, does nothing otherwise.
+   */
+  public wipeCache(docName: string) {
+    if (this._disableS3) {
+      return;
+    }
+
+    this._log.info(docName, "Removing local copy of this doc");
+    this._removals.set(docName, this._removeFromFilesystem(docName).then(() => {
+      this._removals.delete(docName);
+    }));
   }
 
   /**
@@ -649,56 +672,40 @@ export class HostedStorageManager implements IDocStorageManager {
         return present;
       }
 
-      const existsLocally = await fse.pathExists(this.getPath(docName));
-      if (existsLocally) {
-        if (!docStatus.docMD5 || docStatus.docMD5 === DELETED_TOKEN || docStatus.docMD5 === "unknown") {
-          // New doc appears to already exist, but may not exist in S3.
-          // Let's check.
-          const head = await this._ext.head(docName);
-          const lastLocalVersionSeen = this._latestVersions.get(docName);
-          if (head && lastLocalVersionSeen !== head.snapshotId) {
-            // Exists in S3, with a version not known to be latest seen
-            // by this worker - so wipe local version and defer to S3.
-            await this._wipeCache(docName);
-          } else {
-            // Go ahead and use local version.
-            return true;
-          }
-        } else {
-          // Doc exists locally and in S3 (according to redis).
-          // Make sure the checksum matches.
-          const checksum = await this._getHash(await this._prepareBackup(docName));
-          if (checksum === docStatus.docMD5) {
-            // Fine, accept the doc as existing on our file system.
-            return true;
-          } else {
-            this._log.info(docName, "Local hash does not match redis: %s vs %s", checksum, docStatus.docMD5);
-            // The file that exists locally does not match S3.  But S3 is the canonical version.
-            // On the assumption that the local file is outdated, delete it.
-            // TODO: may want to be more careful in case the local file has modifications that
-            // simply never made it to S3 due to some kind of breakage.
-            await this._wipeCache(docName);
-          }
-        }
-      }
-      return this._fetchFromS3(docName, {
+      // The local cache is wiped when a document is closed, so S3 is the canonical
+      // source on open. Always defer to it rather than trying to validate a local
+      // copy (the previous checksum check required backing up the SQLite db, which
+      // is comparable in cost to just downloading from S3).
+      const fetched = await this._fetchFromS3(docName, {
         sourceDocId: srcDocName,
         trunkId: forkId ? trunkId : undefined, snapshotId, canCreateFork,
       });
+      if (fetched) { return true; }
+      // S3 doesn't have the doc. If a local copy exists (e.g. a worker crashed
+      // between creating the doc and the first upload), keep it.
+      return fse.pathExists(this.getPath(docName));
     });
   }
 
   /**
    * Remove local version of a document, and state related to it.
    */
-  private async _wipeCache(docName: string) {
+  private async _removeFromFilesystem(docName: string) {
     // NOTE: fse.remove succeeds also when the file does not exist.
+    //
+    // FIXME: Also unassign the document to the worker.
     await fse.remove(this.getPath(docName));
     await fse.remove(this._getHashFile(this.getPath(docName), "doc"));
     await fse.remove(this._getHashFile(this.getPath(docName), "meta"));
-    await this._inventory.clear(docName);
+    await fse.remove(this.getAssetPath(docName));
+    if (this._inventory) {
+      await this._inventory.clear(docName);
+    }
     this._latestVersions.delete(docName);
     this._latestMetaVersions.delete(docName);
+    // NOTE: _localFiles is already handled by closeDocument, even when the S3 storage is not enabled
+    // Its value is computed again when reopening (if the file is already in the storage,
+    // the doc is marked as locally loaded)
   }
 
   /**

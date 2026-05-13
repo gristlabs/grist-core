@@ -376,6 +376,10 @@ class TestStore {
     return false;
   }
 
+  public async waitForWipe(docId: string): Promise<void> {
+    return await this.storageManager["_removals"].get(docId);
+  }
+
   // Wipes the doc worker's local document store.
   public async removeAll(): Promise<void> {
     const fnames = await fse.readdir(this._localDirectory);
@@ -747,6 +751,56 @@ describe("HostedStorageManager", function() {
           assert.notEqual(checksum2, checksum3);
           await asyncClose;
         });
+      });
+
+      it("wipes the local cache after closing a document", async function() {
+        const docId = `wipe-cache-${uuidv4()}`;
+        await workers.assignDocWorker(docId);
+        const docPath = store.getDocPath(docId);
+
+        await store.run(async () => {
+          await store.docManager.createNamedDoc(docSession, docId);
+          const doc = await store.docManager.fetchDoc(docSession, docId);
+          await doc.docStorage.exec("insert into Table1(id, A) values(1, 'magic word')");
+          await store.waitForUpdates();
+
+          // Sanity check: local cache files exist while the doc is open.
+          assert.isTrue(await fse.pathExists(docPath));
+          assert.isTrue(await fse.pathExists(docPath + "-hash-doc"));
+
+          // Closing the doc should wipe the local cache when an external storage
+          // backend is configured.
+          await store.closeDoc(doc);
+
+          // Wait for the wipe of the doc
+          await store.waitForWipe(docId);
+
+          assert.isFalse(await fse.pathExists(docPath));
+          assert.isFalse(await fse.pathExists(docPath + "-hash-doc"));
+          assert.isFalse(await fse.pathExists(docPath + "-hash-meta"));
+
+          const reopenedDoc = await store.docManager.fetchDoc(docSession, docId);
+          const res = await reopenedDoc.docStorage.get("select A from Table1 where id=1");
+          assert.deepEqual(res, { A: "magic word" });
+        });
+      });
+
+      it("releases the worker assignment after closing a document", async function() {
+        const docId = `release-assignment-${uuidv4()}`;
+
+        await store.run(async () => {
+          await store.docManager.createNamedDoc(docSession, docId);
+          await store.docManager.fetchDoc(docSession, docId);
+
+          // Sanity check: the doc is assigned to our worker before close.
+          const assignmentBefore = await workers.getDocWorker(docId);
+          assert.equal(assignmentBefore?.docWorker.id, workerId);
+        });
+
+        // After close, the assignment should have been released so another
+        // (less loaded) worker can pick the doc up next time.
+        const assignmentAfter = await workers.getDocWorker(docId);
+        assert.equal(assignmentAfter, null);
       });
 
       // Viewing a document should not mark it as changed (unless a document-level migration
@@ -1169,9 +1223,11 @@ describe("HostedStorageManager", function() {
 
       await testStore.run(async () => {
         await testStore.docManager.fetchDoc(docSession, docName);
+        assert.isTrue(await fse.pathExists(docPath), "the document cache should exist as long as it remains open");
       });
+      await testStore.waitForWipe(docName);
 
-      assert.isTrue(await fse.pathExists(docPath));
+      assert.isFalse(await fse.pathExists(docPath), "the document cache should be removed when closed");
     });
   });
 

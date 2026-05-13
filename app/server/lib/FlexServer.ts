@@ -2416,8 +2416,9 @@ export class FlexServer implements GristServer {
       await Promise.all(assignments.map(async (assignment) => {
         log.info("FlexServer shutdown assignment", assignment);
         try {
-        // Start sending the doc to S3 if needed.
-          const flushOp = this._storageManager.closeDocument(assignment);
+          // Start sending the doc to S3 if needed.
+          // Don't wipe the cache to save IO operations before shuting down.
+          const flushOp = this._storageManager.closeDocument(assignment, { keepLocalCache: true });
 
           // Get access to the clients of this document.  This has the side
           // effect of waiting for the ActiveDoc to finish initialization.
