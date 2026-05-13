@@ -782,7 +782,10 @@
         "Group by": "Grouper par",
         "Add to page": "Ajouter à la Page",
         "New Table": "Nouvelle Table",
-        "SELECT BY": "SÉLECTIONNÉ PAR"
+        "SELECT BY": "SÉLECTIONNÉ PAR",
+        "{{table}} grouped by… (press to select fields)": "{{table}} groupé par… (appuyer pour choisir les champs)",
+        "Press Space to add fields": "Appuyer sur Espace pour ajouter des champs",
+        "Use up and down arrow keys to move through options. Press Enter and Esc to move between steps.": "Utilisez les flèches haut et bas pour naviguer dans les options. Appuyez sur Entrée et Échap pour naviguer entre les étapes."
     },
     "Pages": {
         "The following tables will no longer be visible_one": "La donnée source ne sera plus visible",
