@@ -247,7 +247,9 @@ export default class GridView extends BaseView {
         this.visibleRowIndex(cur.rowIndex);
 
         // Also announce the current cell content to screen readers.
-        this.announceCurrentItem();
+        if (this.viewSection.hasRegionFocus()) {
+          this.announceCurrentItem();
+        }
       }
     }));
     this.autoDispose(this.gristDoc.activeEditor.addListener((editor, prevEditor) => {
