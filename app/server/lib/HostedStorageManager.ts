@@ -14,7 +14,6 @@ import { DocSnapshotInventory, DocSnapshotPruner } from "app/server/lib/DocSnaps
 import { IDocWorkerMap } from "app/server/lib/DocWorkerMap";
 import {
   ChecksummedExternalStorage,
-  DELETED_TOKEN,
   ExternalStorage,
   ExternalStorageCreator, ExternalStorageSettings,
   Unchanged,
@@ -673,42 +672,18 @@ export class HostedStorageManager implements IDocStorageManager {
         return present;
       }
 
-      const existsLocally = await fse.pathExists(this.getPath(docName));
-      if (existsLocally) {
-        if (!docStatus.docMD5 || docStatus.docMD5 === DELETED_TOKEN || docStatus.docMD5 === "unknown") {
-          // New doc appears to already exist, but may not exist in S3.
-          // Let's check.
-          const head = await this._ext.head(docName);
-          const lastLocalVersionSeen = this._latestVersions.get(docName);
-          if (head && lastLocalVersionSeen !== head.snapshotId) {
-            // Exists in S3, with a version not known to be latest seen
-            // by this worker - so wipe local version and defer to S3.
-            await this._removeFromFilesystem(docName);
-          } else {
-            // Go ahead and use local version.
-            return true;
-          }
-        } else {
-          // Doc exists locally and in S3 (according to redis).
-          // Make sure the checksum matches.
-          const checksum = await this._getHash(await this._prepareBackup(docName));
-          if (checksum === docStatus.docMD5) {
-            // Fine, accept the doc as existing on our file system.
-            return true;
-          } else {
-            this._log.info(docName, "Local hash does not match redis: %s vs %s", checksum, docStatus.docMD5);
-            // The file that exists locally does not match S3.  But S3 is the canonical version.
-            // On the assumption that the local file is outdated, delete it.
-            // TODO: may want to be more careful in case the local file has modifications that
-            // simply never made it to S3 due to some kind of breakage.
-            await this._removeFromFilesystem(docName);
-          }
-        }
-      }
-      return this._fetchFromS3(docName, {
+      // The local cache is wiped when a document is closed, so S3 is the canonical
+      // source on open. Always defer to it rather than trying to validate a local
+      // copy (the previous checksum check required backing up the SQLite db, which
+      // is comparable in cost to just downloading from S3).
+      const fetched = await this._fetchFromS3(docName, {
         sourceDocId: srcDocName,
         trunkId: forkId ? trunkId : undefined, snapshotId, canCreateFork,
       });
+      if (fetched) { return true; }
+      // S3 doesn't have the doc. If a local copy exists (e.g. a worker crashed
+      // between creating the doc and the first upload), keep it.
+      return fse.pathExists(this.getPath(docName));
     });
   }
 
