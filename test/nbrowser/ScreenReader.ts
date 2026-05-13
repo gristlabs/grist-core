@@ -134,10 +134,8 @@ describe("ScreenReader", function() {
   it("announces next cell after editing a cell", async function() {
     // Enter the first cell floating editor (in the "Any" column)…
     await gu.sendKeys(Key.ENTER);
-    await driver.sleep(10);
     // … go out of it to focus back the grid…
     await gu.sendKeys(Key.ENTER);
-    await driver.sleep(10);
 
     // … Since we pressed Enter, we are now focused on the 2nd row, we should have announced it
     await gu.assertScreenReaderAnnouncement("row 2 Any");
@@ -160,20 +158,20 @@ describe("ScreenReader", function() {
 
     // Enter the first cell floating editor (in the "Any" column), then directly go out of it
     await gu.sendKeys(Key.ENTER);
-    await driver.sleep(10);
     await gu.sendKeys(Key.ENTER);
-    await driver.sleep(10);
 
     // With SR improvements enabled, we should be back on the row we just edited (the first one)
     await gu.assertScreenReaderAnnouncement("row 1 Any");
   });
 
   it("has cleaned up the announcements DOM on the fly", async function() {
-    await driver.sleep(2000);
     // After all this navigation, we announced a lot of things, but the announcer should not keep everything in the DOM.
     // This test is strongly tied to the implementation but we can't really test actual SRs behavior,
     // so we have to make assumptions.
-    assert.isBelow((await driver.findAll("#screen-reader-announcer > div")).length, 11);
+    await driver.wait(
+      async () => (await driver.findAll("#screen-reader-announcer > div")).length < 11,
+      2000,
+    );
   });
 
   afterEach(() => gu.checkForErrors());
