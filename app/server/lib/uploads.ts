@@ -26,6 +26,7 @@ import { Application, Request, RequestHandler, Response } from "express";
 import * as fse from "fs-extra";
 import pick from "lodash/pick";
 import * as multiparty from "multiparty";
+import fetch from "node-fetch";
 import { Response as FetchResponse } from "node-fetch";
 import * as tmp from "tmp";
 
@@ -35,7 +36,11 @@ import * as tmp from "tmp";
 const INACTIVITY_CLEANUP_MS = 60 * 60 * 1000;     // an hour, very generously.
 
 // A hook for dependency injection.
-export const Deps = { fetch: fetchUntrustedWithAgent, INACTIVITY_CLEANUP_MS };
+export const Deps = {
+  fetch: fetchUntrustedWithAgent,
+  fetchTrusted: fetch,
+  INACTIVITY_CLEANUP_MS,
+};
 
 // An optional UploadResult, with parameters.
 export interface FormResult {
@@ -447,7 +452,8 @@ async function _fetchURL(url: string, accessId: string | null, options?: FetchUr
       response = await downloadFromGDrive(url, code);
       fileName = ""; // Read the file name from headers.
     } else {
-      response = await Deps.fetch(url, {
+      const fetchFunc = options?.isTrusted ? Deps.fetchTrusted : Deps.fetch;
+      response = await fetchFunc(url, {
         redirect: "follow",
         follow: 10,
         headers,
@@ -513,7 +519,7 @@ export async function fetchDoc(
 
   // Download the document, in full or as a template.
   const url = new URL(`api/docs/${docId}/download?template=${Number(template)}`, apiBaseUrl);
-  return _fetchURL(url.href, accessId, { headers });
+  return _fetchURL(url.href, accessId, { headers, isTrusted: true });
 }
 
 // Re-issue failures as exceptions.
