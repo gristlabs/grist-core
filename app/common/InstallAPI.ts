@@ -50,6 +50,8 @@ export interface InstallAPI {
   getChecks(): Promise<{ probes: BootProbeInfo[] }>;
   runCheck(id: string): Promise<BootProbeResult>;
   getPermissionsStatus(): Promise<PermissionsStatus>;
+  /** True if a user with this login email exists in the home DB. */
+  userExists(email: string): Promise<boolean>;
 }
 
 export class InstallAPIImpl extends BaseAPI implements InstallAPI {
@@ -82,6 +84,13 @@ export class InstallAPIImpl extends BaseAPI implements InstallAPI {
 
   public async getPermissionsStatus(): Promise<PermissionsStatus> {
     return this.requestJson(`${this._url}/api/install/permissions`, { method: "GET" });
+  }
+
+  public async userExists(email: string): Promise<boolean> {
+    const url = new URL(`${this._url}/api/install/users/exists`);
+    url.searchParams.set("email", email);
+    const resp = await this.requestJson(url.href, { method: "GET" });
+    return Boolean((resp as { exists?: boolean }).exists);
   }
 
   private get _url(): string {

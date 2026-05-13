@@ -5,8 +5,6 @@ import {
   ConfigValue,
   ConfigValueCheckers,
 } from "app/common/Config";
-import { AdminPageConfig } from "app/common/gristUrls";
-import { isAffirmative } from "app/common/gutil";
 import { InstallPrefs } from "app/common/Install";
 import { PermissionsStatus, PrefSource } from "app/common/InstallAPI";
 import { getOrgKey } from "app/gen-server/ApiServer";
@@ -15,6 +13,7 @@ import {
   PreviousAndCurrent,
   QueryResult,
 } from "app/gen-server/lib/homedb/Interfaces";
+import { canRestart, makeAdminPageConfig } from "app/server/lib/adminPageConfig";
 import { appSettings } from "app/server/lib/AppSettings";
 import { RequestWithLogin } from "app/server/lib/Authorizer";
 import { BootProbes } from "app/server/lib/BootProbes";
@@ -47,11 +46,6 @@ import {
 import isEmpty from "lodash/isEmpty";
 import pick from "lodash/pick";
 
-function canRestart() {
-  return isAffirmative(process.env.GRIST_RUNNING_UNDER_SUPERVISOR) ||
-    isAffirmative(process.env.GRIST_UNDER_RESTART_SHELL);
-}
-
 export interface AttachOptions {
   app: Application;
   gristServer: GristServer;
@@ -82,14 +76,10 @@ export function attachEarlyEndpoints(options: AttachOptions) {
     "/admin/:subpath(*)?",
     userIdMiddleware,
     expressWrap(async (req, res) => {
-      const config: Partial<AdminPageConfig> = {
-        runningUnderSupervisor: canRestart(),
-        adminControls: gristServer.create.areAdminControlsAvailable(),
-      };
       return gristServer.sendAppPage(req, res, {
         path: "app.html",
         status: 200,
-        config,
+        config: makeAdminPageConfig(gristServer),
       });
     }),
   );
@@ -161,6 +151,19 @@ export function attachEarlyEndpoints(options: AttachOptions) {
         anonPlayground: { value: getAnonPlaygroundEnabled(), source: toPrefSource(getAnonPlaygroundEnabledSource()) },
       };
       return sendOkReply(null, res, status);
+    }),
+  );
+
+  // Used by the "Change admin user" modal to flag the case where a Replace
+  // would later fail at restart because a user with the new admin email
+  // already exists (the rename can't satisfy the unique constraint on
+  // logins.email).
+  app.get(
+    "/api/install/users/exists",
+    expressWrap(async (req, res) => {
+      const email = stringParam(req.query.email, "email");
+      const user = await gristServer.getHomeDBManager().getExistingUserByLogin(email);
+      return sendOkReply(req, res, { exists: Boolean(user) });
     }),
   );
 

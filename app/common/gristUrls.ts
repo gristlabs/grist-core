@@ -1048,7 +1048,7 @@ export interface GristLoadConfig {
 }
 
 /**
- * Settings sent with all Grist admin pages (/admin).
+ * Settings sent with admin-group Grist pages.
  */
 export interface AdminPageConfig extends GristLoadConfig {
   /** Whether there is a parent process that can restart Grist. */
@@ -1056,6 +1056,12 @@ export interface AdminPageConfig extends GristLoadConfig {
 
   /** Whether AdminControls are available and should be enabled in UI. */
   adminControls?: boolean;
+
+  /**
+   * Whether the installation is "in service". Set to false on fresh installs
+   * guarded by the boot key, until an operator brings the server live.
+   */
+  inService?: boolean;
 }
 
 export const Features = StringUnion(

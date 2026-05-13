@@ -3,6 +3,7 @@ import { cssInput } from "app/client/ui/cssInput";
 import { cssField, cssLabel } from "app/client/ui/MakeCopyMenu";
 import { cssRadioCheckboxOptions, radioCheckboxOption } from "app/client/ui2018/checkbox";
 import { isEmail } from "app/common/gutil";
+import { InstallAPI } from "app/common/InstallAPI";
 
 import { Computed, Disposable, dom, input, Observable } from "grainjs";
 
@@ -10,6 +11,7 @@ const t = makeT("ChangeAdminModal");
 
 export interface ChangeAdminModalOptions {
   currentUserEmail: string;
+  installAPI: InstallAPI;
   defaultEmail?: string;
   onSave: (fields: { email: string, replace: boolean }) => Promise<void>;
 }
@@ -26,8 +28,23 @@ export class ChangeAdminModal extends Disposable {
 
   public get saveDisabled() { return this._saveDisabled; }
 
+  /**
+   * Replace cannot succeed when an account already exists at the new admin
+   * email -- the rename would violate logins.email's uniqueness, and the
+   * resulting restart-time failure rolls back the whole change. Check up
+   * front and throw a useful error so saveModal keeps the modal open.
+   */
   public async save() {
-    await this._options.onSave({ email: this._email.get(), replace: this._replace.get() });
+    const email = this._email.get();
+    const replace = this._replace.get();
+    if (replace) {
+      const exists = await this._options.installAPI.userExists(email);
+      if (this.isDisposed()) { return; }
+      if (exists) {
+        throw new Error(t("An account with {{email}} already exists.", { email }));
+      }
+    }
+    await this._options.onSave({ email, replace });
   }
 
   public buildDom() {
