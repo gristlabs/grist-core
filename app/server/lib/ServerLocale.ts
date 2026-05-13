@@ -1,5 +1,4 @@
 import { localeCodes } from "app/common/LocaleCodes";
-import log from "app/server/lib/log";
 
 import { IncomingMessage } from "http";
 
@@ -8,12 +7,8 @@ import { parse as languageParser } from "accept-language-parser";
 const fallbackLocale = "en-US";
 
 export function getDefaultLocale() {
-  let locale = process.env.GRIST_DEFAULT_LOCALE;
-  if (locale && !localeCodes.includes(locale)) {
-    log.warn(`Invalid GRIST_DEFAULT_LOCALE, falling back to ${fallbackLocale}. Check app/common/LocaleCodes.ts for supported locales.`);
-    locale = fallbackLocale;
-  }
-  return locale ?? fallbackLocale;
+  const envLocale = process.env.GRIST_DEFAULT_LOCALE;
+  return envLocale && localeCodes.includes(envLocale) ? envLocale : fallbackLocale;
 }
 
 /**
