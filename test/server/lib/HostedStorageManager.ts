@@ -768,6 +768,24 @@ describe("HostedStorageManager", function() {
         });
       });
 
+      it("releases the worker assignment after closing a document", async function() {
+        const docId = `release-assignment-${uuidv4()}`;
+
+        await store.run(async () => {
+          await store.docManager.createNamedDoc(docSession, docId);
+          await store.docManager.fetchDoc(docSession, docId);
+
+          // Sanity check: the doc is assigned to our worker before close.
+          const assignmentBefore = await workers.getDocWorker(docId);
+          assert.equal(assignmentBefore?.docWorker.id, workerId);
+        });
+
+        // After close, the assignment should have been released so another
+        // (less loaded) worker can pick the doc up next time.
+        const assignmentAfter = await workers.getDocWorker(docId);
+        assert.equal(assignmentAfter, null);
+      });
+
       // Viewing a document should not mark it as changed (unless a document-level migration
       // needed to run).
       it("viewing a document does not generally change it", async function() {
