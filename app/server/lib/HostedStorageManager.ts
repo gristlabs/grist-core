@@ -109,6 +109,9 @@ export class HostedStorageManager implements IDocStorageManager {
   // Ongoing and scheduled uploads for documents.
   private _uploads: KeyedOps;
 
+  // Ongoing doc removals (including grist doc, metadata, assets)
+  private _removals = new Map<string, Promise<void>>();
+
   // Set once the manager has been closed.
   private _closed: boolean = false;
 
@@ -249,6 +252,7 @@ export class HostedStorageManager implements IDocStorageManager {
    * The optional srcDocName parameter is set when preparing a fork.
    */
   public async prepareLocalDoc(docName: string, srcDocName?: string): Promise<boolean> {
+    await this._removals.get(docName);
     // We could be reopening a document that is still closing down.
     // Wait for that to happen.  TODO: we could also try to interrupt the closing-down process.
     await this.closeDocument(docName, { keepLocalCache: true });
@@ -475,7 +479,7 @@ export class HostedStorageManager implements IDocStorageManager {
     await this.flushDoc(docName);
 
     if (!keepLocalCache) {
-      await this.wipeCache(docName);
+      this.wipeCache(docName);
     }
   }
 
@@ -497,13 +501,15 @@ export class HostedStorageManager implements IDocStorageManager {
   /**
    * Wipes cache when then using S3, does nothing otherwise.
    */
-  public async wipeCache(docName: string): Promise<void> {
+  public wipeCache(docName: string) {
     if (this._disableS3) {
       return;
     }
 
     this._log.info(docName, "Removing local copy of this doc");
-    await this._removeFromFilesystem(docName);
+    this._removals.set(docName, this._removeFromFilesystem(docName).then(() => {
+      this._removals.delete(docName);
+    }));
   }
 
   /**
