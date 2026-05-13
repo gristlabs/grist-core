@@ -97,7 +97,8 @@
         "Basic info": "Oinarrizko informazioa",
         "Developer": "Garatzailea",
         "Home": "Hasiera",
-        "Profile": "Profila"
+        "Profile": "Profila",
+        "OAuth apps": "OAuth aplikazioak"
     },
     "AccountWidget": {
         "Accounts": "Kontuak",
@@ -1915,7 +1916,9 @@
         "moved to Edition": "Edizioa atalera mugitu da",
         "Installation": "Instalazioa",
         "Base URL": "Zerbitzariaren URLa",
-        "The URL where users and integrations reach this Grist server": "Erabiltzaileek eta integrazioek Grist zerbitzaria atzitu dezaketen helbidea"
+        "The URL where users and integrations reach this Grist server": "Erabiltzaileek eta integrazioek Grist zerbitzaria atzitu dezaketen helbidea",
+        "Default permissions": "Defektuzko baimenak",
+        "Any pending changes will be cleared.": "Zain dauden aldaketak garbituko dira."
     },
     "Columns": {
         "Remove Column": "Kendu zutabea"
@@ -2328,7 +2331,8 @@
         "You are about to disable this experimental feature: {{experiment}}": "Ezaugarri esperimental hau ezgaitzear zaude: {{experiment}}",
         "You are about to enable this experimental feature: {{experiment}}": "Ezaugarri esperimental hau gaitzear zaude: {{experiment}}",
         "Visit this URL at any time to stop using this feature: {{url}}": "Bisitatu URL hau edozein unetan ezaugarri hau erabiltzeari uzteko: {{url}}",
-        "Notifications": "Jakinarazpenak"
+        "Notifications": "Jakinarazpenak",
+        "OAuth apps": "OAuth aplikazioak"
     },
     "duplicateWidget": {
         "Duplicate widget": "Bikoiztu widgeta",
@@ -2548,7 +2552,10 @@
         "The change will take effect after you restart Grist.": "Aldaketa Grist berrabiarazi ondoren egongo da indarrean.",
         "This login mechanism is deprecated.": "Saioa hasteko modu hau erabiltzeari utzi zaio.",
         "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect]({{url}}).": "**Grist Connect** konfiguratzeko, jarraitu [Grist Connect-entzako laguntza-artikuluko argibideak]({{url}}).",
-        "Your configuration will be preserved. You can reactivate it later without reconfiguring.": "Konfigurazioa gordeko da. Aurrerago aktibatu dezakezu berriro hasieratik konfiguratu gabe."
+        "Your configuration will be preserved. You can reactivate it later without reconfiguring.": "Konfigurazioa gordeko da. Aurrerago aktibatu dezakezu berriro hasieratik konfiguratu gabe.",
+        "Authentication": "Autentifikazioa",
+        "disabled": "desgaituta",
+        "configuration updated": "konfigurazioa eguneratu da"
     },
     "commandList": {
         "Copy anchor link": "Kopiatu esteka",
@@ -2948,7 +2955,8 @@
         "Users can create their own personal sites with documents. Turn off to restrict all documents to team sites managed by admins.": "Erabiltzaileek beren gune pertsonalak sor ditzakete dokumentuekin. Desaktibatu dokumentu guztiak administratzaileek kudeatutako talde-guneetara mugatzeko.",
         "Visitors who aren't signed in can create and edit documents in a temporary playground. Turn off to require sign-in before creating any documents.": "Saioa hasi gabeko bisitariek dokumentuak sor eta edita ditzakete aldi baterako esperimentaziorako jolastoki batean. Desaktibatu edozein dokumentu sortu ahal izateko saioa hastera behartzeko.",
         "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.": "Saioa hasi gabeko bisitariek publikoki partekatutako dokumentuak ikus ditzakete. Ezinbestekoa da estekak partekatzeko eta inprimakiak argitaratzeko.",
-        "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Zure konfigurazio-aldaketak aplikatu dira eta zerbitzaria berrabiarazi da. Grist zerbitzuan dago orain, eta erabiltzaileen eskura."
+        "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Zure konfigurazio-aldaketak aplikatu dira eta zerbitzaria berrabiarazi da. Grist zerbitzuan dago orain, eta erabiltzaileen eskura.",
+        "loading…": "kargatzen…"
     },
     "SandboxSection": {
         "Active": "Aktibo",
@@ -3024,7 +3032,8 @@
     "AccountLeftPanel": {
         "Account settings": "Kontuaren ezarpenak",
         "Developer": "Garatzailea",
-        "Profile": "Profila"
+        "Profile": "Profila",
+        "Authorized apps": "Baimendutako aplikazioak"
     },
     "SettingsLayout": {
         "Authentication": "Autentifikazioa",
@@ -3038,5 +3047,13 @@
         "Current authentication method": "Uneko autentifikazio modua",
         "Installation": "Instalazioa",
         "Security Settings": "Segurtasun-ezarpenak"
+    },
+    "QuickSetupContinueButton": {
+        "Continue": "Jarraitu"
+    },
+    "PermissionsToggleModel": {
+        "Permissions": "Baimenak",
+        "off": "itzalita",
+        "on": "aktibo"
     }
 }
