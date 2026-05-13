@@ -375,6 +375,10 @@ class TestStore {
     return false;
   }
 
+  public async waitForWipe(docId: string): Promise<void> {
+    return await this.storageManager["_removals"].get(docId);
+  }
+
   // Wipes the doc worker's local document store.
   public async removeAll(): Promise<void> {
     const fnames = await fse.readdir(this._localDirectory);
@@ -750,6 +754,9 @@ describe("HostedStorageManager", function() {
           // Closing the doc should wipe the local cache when an external storage
           // backend is configured.
           await store.closeDoc(doc);
+
+          // Wait for the wipe of the doc
+          await store.waitForWipe(docId);
 
           assert.isFalse(await fse.pathExists(docPath));
           assert.isFalse(await fse.pathExists(docPath + "-hash-doc"));
@@ -1183,6 +1190,7 @@ describe("HostedStorageManager", function() {
         await testStore.docManager.fetchDoc(docSession, docName);
         assert.isTrue(await fse.pathExists(docPath), "the document cache should exist as long as it remains open");
       });
+      await testStore.waitForWipe(docName);
 
       assert.isFalse(await fse.pathExists(docPath), "the document cache should be removed when closed");
     });
