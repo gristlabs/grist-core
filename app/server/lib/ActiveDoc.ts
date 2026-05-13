@@ -2654,6 +2654,14 @@ export class ActiveDoc extends EventEmitter {
       } catch (err) {
         this._log.error(docSession, "failed to shutdown some resources", err);
       }
+
+      // Finally, let's release the assignment to the worker
+      // so there's a chance for another worker less loaded
+      // to be assigned this document next time.
+      await safeCallAndWait("releaseDocAssignment", () => {
+        return this._docManager.storageManager.releaseDocAssignment(this.docName);
+      });
+
       // No timeout on this callback: if it hangs, it will make the document unusable.
       await this._afterShutdownCallback?.();
     } finally {
