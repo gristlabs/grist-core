@@ -172,13 +172,33 @@ describe("Authorizer", function() {
 
   // This checks we create an altSessionID for Anonymous users. Useful in particular to give them
   // rights through Access Rules.
-  it("does generate a session when calling the API as anonymous", async function() {
+  it("does generate a session when calling the API as anonymous when using XHR", async function() {
     const nbSessionsBefore = await countSessions(server);
     const resp = await axios.get(`${serverUrl}/api/orgs`, anon);
 
     const nbSessionsAfter = await countSessions(server);
     assert.equal(resp.status, 200);
     assert.equal(nbSessionsAfter, nbSessionsBefore + 1, "A new session should have been created during the API call");
+    assert.exists(resp.headers["set-cookie"], "a cookie should have been returned");
+    assert.include(resp.headers["set-cookie"]![0], "Expires=");
+    assert.isBelow(
+      new Date(resp.headers["set-cookie"]![0].match(/(?<=Expires=)[^;]*/)![0]).getTime(),
+      Date.now() + 5 * 60 * 1000,
+    );
+  });
+
+  it("does not generate a session when calling the API as anonymous when NOT using XHR", async function() {
+    const anonNoXhr = configForUser("Anonymous");
+    // Delete the X-Requested-With Header set to "XMLHttpRequest", so we simulate a call
+    // using tools like curl.
+    delete anonNoXhr.headers!["X-Requested-With"];
+
+    const nbSessionsBefore = await countSessions(server);
+    const resp = await axios.get(`${serverUrl}/api/orgs`, anonNoXhr);
+
+    const nbSessionsAfter = await countSessions(server);
+    assert.equal(resp.status, 200);
+    assert.equal(nbSessionsAfter, nbSessionsBefore, "No session should have been created during the API call");
   });
 
   it("websocket allows openDoc for viewer", async function() {

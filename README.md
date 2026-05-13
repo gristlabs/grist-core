@@ -453,6 +453,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_LOG_AS_JSON | When this variable is set to `true` or a truthy value, output log lines in JSON as opposed to a plain text format. |
 | GRIST_LOG_API_DETAILS | When this variable is set to `true` or a truthy value, log the API calls details. |
 | COOKIE_MAX_AGE | session cookie max age, defaults to 90 days; can be set to "none" to make it a session cookie |
+| COOKIE_MAX_AGE_ANONYMOUS | session cookie max age for anonymous sessions, defaults to 5 minutes; can be set to "none" to make it a session cookie |
 | HOME_PORT | port number to listen on for REST API server; if set to "share", add API endpoints to regular grist port. |
 | PORT | port number to listen on for Grist server |
 | REDIS_URL | optional redis server for browser sessions and db query caching |

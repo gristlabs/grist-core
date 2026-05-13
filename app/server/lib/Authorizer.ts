@@ -16,7 +16,7 @@ import {
 import { expressWrap } from "app/server/lib/expressWrap";
 import { RequestWithOrg } from "app/server/lib/extractOrg";
 import { GristServer } from "app/server/lib/GristServer";
-import { COOKIE_MAX_AGE,
+import { COOKIE_MAX_AGE, COOKIE_MAX_AGE_ANONYMOUS,
   cookieName as sessionCookieName, getAllowedOrgForSessionID, getCookieDomain } from "app/server/lib/gristSessions";
 import { getBootKey } from "app/server/lib/gristSettings";
 import log from "app/server/lib/log";
@@ -141,6 +141,8 @@ function setRequestUser(mreq: RequestWithLogin, dbManager: HomeDBAuth, user: Use
   mreq.userId = user.id;
   mreq.userIsAuthorized = (user.id !== dbManager.getAnonymousUserId());
 
+  expandUserSessionIfNewlyLoggedIn(mreq);
+
   const fullUser = dbManager.makeFullUser(user);
   // This is dumb, but historically, we used 'email' field inconsistently; in this Authorizer
   // flow, it was set to the normalized email, rather than the display email. The difference is
@@ -154,6 +156,19 @@ function setRequestUser(mreq: RequestWithLogin, dbManager: HomeDBAuth, user: Use
   mreq.fullUser = fullUser;
   if (!mreq.users) {
     mreq.users = [fullUser];
+  }
+}
+
+/**
+ * Expand the user session lifetime if they have just logged in, since anonymous sessions have a shorter lifetime.
+ * This makes the session reflect the value set in COOKIE_MAX_AGE.
+ */
+function expandUserSessionIfNewlyLoggedIn(mreq: RequestWithLogin) {
+  const { originalMaxAge, maxAge } = mreq.session.cookie;
+  if (mreq.userIsAuthorized && COOKIE_MAX_AGE !== null && originalMaxAge && originalMaxAge < COOKIE_MAX_AGE) {
+    mreq.session.cookie.originalMaxAge = COOKIE_MAX_AGE;
+    mreq.session.cookie.expires = new Date(Date.now() + COOKIE_MAX_AGE + maxAge - originalMaxAge);
+    forceSessionChange(mreq.session);
   }
 }
 
@@ -484,15 +499,22 @@ export async function addRequestUser(
     },
   });
 
-  // Initialize altSessionId from the session. The original code guarded this with
-  // `!authDone && !skipSession`, which excluded access-token and boot-key paths.
-  // We now use just `!skipSession`, which is slightly broader: access-token and
+  const session = mreq.session;
+
+  const isAnon = identity.user.id === dbManager.getAnonymousUserId();
+  const genShortLivingSessionID: boolean = isAnon && mreq.xhr;
+  if (!skipSession && genShortLivingSessionID) {
+    session.cookie ||= {};
+    session.cookie.maxAge = COOKIE_MAX_AGE_ANONYMOUS;
+  }
+
+  // Initialize altSessionId from the session.
+  // We just use `!skipSession`, which is slightly broader: access-token and
   // boot-key requests will also get an altSessionId. This is harmless because
   // access-token requests are GETs for attachments (no trigger formulas) and
   // boot-key requests are admin-only. The alternative — threading authDone through
   // the IdentityResult — would complicate the interface for no practical benefit.
-  if (!skipSession && !identity.hasApiKey) {
-    const session = mreq.session;
+  if (!skipSession && !identity.hasApiKey && (!isAnon || genShortLivingSessionID)) {
     if (session && !session.altSessionId) {
       generateAltSessionID(session);
     }
