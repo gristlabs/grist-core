@@ -377,6 +377,7 @@ export class HostedStorageManager implements IDocStorageManager {
       await this._extMeta.remove(docName);
     }
     await this._removeFromFilesystem(docName);
+    await this.releaseDocAssignment(docName);
   }
 
   // We don't implement document renames.
@@ -481,6 +482,10 @@ export class HostedStorageManager implements IDocStorageManager {
     if (!keepLocalCache) {
       this.wipeCache(docName);
     }
+  }
+
+  public async releaseDocAssignment(docName: string): Promise<void> {
+    return this._docWorkerMap.releaseAssignment(this._docWorkerId, docName);
   }
 
   /**
