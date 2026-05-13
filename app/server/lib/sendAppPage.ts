@@ -24,7 +24,6 @@ import { RequestWithOrg } from "app/server/lib/extractOrg";
 import { GristServer } from "app/server/lib/GristServer";
 import {
   getAnonPlaygroundEnabled, getCanAnyoneCreateOrgs,
-  getInService,
   getOnboardingTutorialDocId, getPersonalOrgsEnabled,
   getTemplateOrg,
   getUserPresenceMaxUsers,
@@ -145,7 +144,6 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     adminDefinedUrls: process.env.GRIST_CUSTOM_COMMON_URLS,
     userPresenceMaxUsers: getUserPresenceMaxUsers(),
     warnBeforeSharingPublicly: isAffirmative(process.env.GRIST_WARN_BEFORE_SHARING_PUBLICLY),
-    inService: getInService().value,
   };
   return {
     ...config,

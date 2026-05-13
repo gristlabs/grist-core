@@ -89,7 +89,7 @@ export class InstallAPIImpl extends BaseAPI implements InstallAPI {
   public async userExists(email: string): Promise<boolean> {
     const url = new URL(`${this._url}/api/install/users/exists`);
     url.searchParams.set("email", email);
-    const resp = await this.requestJson(url.toString(), { method: "GET" });
+    const resp = await this.requestJson(url.href, { method: "GET" });
     return Boolean((resp as { exists?: boolean }).exists);
   }
 

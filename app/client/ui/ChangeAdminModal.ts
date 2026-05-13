@@ -37,8 +37,12 @@ export class ChangeAdminModal extends Disposable {
   public async save() {
     const email = this._email.get();
     const replace = this._replace.get();
-    if (replace && await this._options.installAPI.userExists(email)) {
-      throw new Error(t("An account with {{email}} already exists.", { email }));
+    if (replace) {
+      const exists = await this._options.installAPI.userExists(email);
+      if (this.isDisposed()) { return; }
+      if (exists) {
+        throw new Error(t("An account with {{email}} already exists.", { email }));
+      }
     }
     await this._options.onSave({ email, replace });
   }
