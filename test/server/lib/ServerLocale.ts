@@ -37,7 +37,7 @@ describe("ServerLocale", function() {
       assert.equal(localeFromRequest(req("")), "es-ES");
       assert.equal(localeFromRequest(req("fr,es;q=0.5")), "es-ES");
       assert.equal(localeFromRequest(req("zz-ZZ,fr;q=0.7,es;q=0.5")), "es-ES");
-      process.env.GRIST_DEFAULT_LOCALE = undefined;
+      delete process.env.GRIST_DEFAULT_LOCALE;
     });
   });
 });
