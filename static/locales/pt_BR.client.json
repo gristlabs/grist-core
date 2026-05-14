@@ -2721,7 +2721,7 @@
         "Default": "Padrão",
         "End of": "Fim de",
         "Full name with year": "Nome completo com ano",
-        "Name only": "Somente o nome",
+        "Name only": "Somente nome",
         "Number only": "Somente número",
         "Quarter": "Trimestre",
         "Quick Picks": "Escolhas rápidas",
@@ -2947,7 +2947,7 @@
         "An account with {{email}} already exists.": "Uma conta com {{email}} já existe."
     },
     "NotifyModel": {
-        "Still working...": "Ainda funcionando..."
+        "Still working...": "Ainda trabalhando..."
     },
     "BootPage": {
         "Administrator email": "E-mail do administrador",
