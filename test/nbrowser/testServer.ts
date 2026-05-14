@@ -61,7 +61,7 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
    * Restart the server.  If reset is set, the database is cleared.  If reset is not set,
    * the database is preserved, and the temporary directory is unchanged.
    */
-  public async restart(reset: boolean = false, quiet = false) {
+  public async restart(reset: boolean = false, quiet = false, options?: { useCoreCmd?: boolean }) {
     if (this.isExternalServer()) { return; }
     if (this._starts > 0) {
       this.resume();
@@ -99,8 +99,11 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
     }
 
     const stubCmd = "_build/stubs/app/server/server";
-    const isCore = await fse.pathExists(stubCmd + ".js");
-    const cmd = isCore ? stubCmd : "_build/core/app/server/devServerMain";
+    const haveCoreCmd = await fse.pathExists(stubCmd + ".js");
+    const isCore = options?.useCoreCmd ?? haveCoreCmd;
+    const cmd = isCore ? (haveCoreCmd ? stubCmd : "_build/core/stubs/app/server/server") :
+      "_build/core/app/server/devServerMain";
+
     // If a proxy is set, use a single port - otherwise we'd need a lot of
     // proxies.
     const useSinglePort = this._proxyUrl !== null;

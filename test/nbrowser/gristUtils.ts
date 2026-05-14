@@ -3695,7 +3695,7 @@ namespace gristUtils {
   export function withEnvironmentSnapshot(vars: Record<string, any> = {}) {
     let oldEnv: testUtils.EnvironmentSnapshot | null = null;
     let needsRestoreRestart = false;
-    async function restartWithEnv(newVars: Record<string, any>) {
+    async function restartWithEnv(newVars: Record<string, any>, ...args: Parameters<typeof server.restart>) {
       for (const key of Object.keys(newVars)) {
         if (newVars[key] === undefined || newVars[key] === null) {
           delete process.env[key];
@@ -3704,7 +3704,7 @@ namespace gristUtils {
         }
       }
       needsRestoreRestart = true;
-      await server.restart();
+      await server.restart(...args);
     }
     before(async () => {
       oldEnv = new testUtils.EnvironmentSnapshot();
