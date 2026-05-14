@@ -8,6 +8,8 @@ describe("mouseDrag", () => {
   before(async function() {
     this.timeout(60000);      // Set a longer default timeout.
     await driver.get(`${server.getHost()}/mouseDrag`);
+    // driver.get() resolves on document load; the bundle paints .test-box after.
+    await driver.findWait(".test-box", 5000);
   });
 
   it("should trigger callbacks on mouse events", async function() {
