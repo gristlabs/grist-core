@@ -94,7 +94,14 @@
         "Theme": "Tema",
         "Two-factor authentication": "Autenticação de dois fatores",
         "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "A autenticação de dois fatores é uma camada extra de segurança para sua conta Grist projetada para garantir que você seja a única pessoa que pode acessar sua conta, mesmo que alguém saiba sua senha.",
-        "Language": "Idioma"
+        "Language": "Idioma",
+        "Basic info": "Informações básicas",
+        "Developer": "Desenvolvedor",
+        "Home": "Início",
+        "Profile": "Perfil",
+        "Enterprise": "Empresarial",
+        "OAuth apps": "Aplicativos OAuth",
+        "OAuth apps let you connect external integrations to this Grist server with more security and convenience than when using API keys.\n\nOAuth apps are available with the [full version of Grist]({{fullGrist}}).": "Os aplicativos OAuth permitem que você conecte integrações externas a este servidor Grist com mais segurança e conveniência do que ao usar chaves API.\n\nOs aplicativos OAuth estão disponíveis com a [versão completa de Grist]({{fullGrist}})."
     },
     "AccountWidget": {
         "Access Details": "Detalhes de Acesso",
@@ -113,7 +120,9 @@
         "Support Grist": "Suporte Grist",
         "Upgrade Plan": "Atualizar o Plano",
         "Sign up": "Cadastre-se",
-        "Use This Template": "Use este modelo"
+        "Use This Template": "Use este modelo",
+        "Site settings": "Configurações do site",
+        "Account settings": "Configurações de conta"
     },
     "ActionLog": {
         "Action Log failed to load": "Falha ao carregar o Log de Ações",
@@ -1200,7 +1209,10 @@
         "this document": "este documento",
         "your email": "seu e-mail",
         "You will no longer receive email notifications about {{suggestions}} in {{docName}} at {{email}}.": "Você não receberá mais notificações por e-mail sobre {{suggestions}} em {{docName}} em {{email}}.",
-        "suggestions": "sugestões"
+        "suggestions": "sugestões",
+        "You will no longer receive email notifications about {{automations}} in {{docName}} at {{email}}.": "Você não receberá mais notificações por e-mail sobre {{automations}} em {{docName}} em {{email}}.",
+        "You have been unsubscribed from automation notifications for {{docName}}. You can update your preferences anytime in the document settings.": "Você cancelou a assinatura das notificações de automação para {{docName}}. Você pode atualizar suas preferências a qualquer momento nas configurações do documento.",
+        "automations": "automações"
     },
     "menus": {
         "* Workspaces are available on team plans. ": "* As áreas de trabalho estão disponíveis nos planos de equipe. ",
@@ -1719,7 +1731,8 @@
         "Inherit access: ": "Acesso herdado: ",
         "Access overview": "Visão geral do acesso",
         "Share it publicly": "Compartilhe publicamente",
-        "Verify your sensitive data before sharing publicly": "Verifique seus dados confidenciais antes de compartilhá-los publicamente"
+        "Verify your sensitive data before sharing publicly": "Verifique seus dados confidenciais antes de compartilhá-los publicamente",
+        "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing.": "Seu {{resourceType}} estará acessível a qualquer pessoa com o link, seja ele compartilhado diretamente ou encontrado por meio de um mecanismo de busca. \n Certifique-se de que seu {{resourceType}} não contenha dados confidenciais antes de compartilhá-lo."
     },
     "SearchModel": {
         "Search all tables": "Procurar todas as tabelas",
@@ -1828,7 +1841,8 @@
         "Vertical": "Vertical",
         "Accept value from URL": "Aceitar valor da URL",
         "Hidden field": "Campo oculto",
-        "URL parameter:\n{{colId}}=VALUE": "Parâmetro da URL: \n{{colId}} =VALOR"
+        "URL parameter:\n{{colId}}=VALUE": "Parâmetro da URL: \n{{colId}} =VALOR",
+        "Options limit": "Limite de opções"
     },
     "CustomView": {
         "Some required columns aren't mapped": "Algumas colunas obrigatórias não estão mapeadas",
@@ -1974,7 +1988,42 @@
         "error in {{provider}}: {{verdict}}": "erro em {{provider}}: {{verdict}}",
         "Please restart Grist manually.": "Por favor, reinicie o Grist manualmente.",
         "Restart Grist to apply pending changes.": "Reinicie o Grist para aplicar as alterações pendentes.",
-        "Restart unavailable": "Reiniciar indisponível"
+        "Restart unavailable": "Reiniciar indisponível",
+        "Boot key": "Chave de inicialização",
+        "Fallback authentication method": "Método de autenticação alternativo",
+        "If you are the server operator, you can sign in using the boot key from your server logs.": "Se você for o operador do servidor, poderá fazer login usando a chave de inicialização dos registros do servidor.",
+        "Maintenance": "Manutenção",
+        "Service status": "Estado de serviço",
+        "Sign in with boot key": "Faça login com a chave de inicialização",
+        "Take Grist out of service for maintenance": "Retirar o Grist de serviço para manutenção",
+        "boot key": "chave de inicialização",
+        "disabled": "desativado",
+        "enabled": "habilitado",
+        "in service": "em serviço",
+        "out of service": "fora de serviço",
+        "Back up documents externally": "Fazer backup externo dos documentos",
+        "Backups": "Backups",
+        "Storage": "Armazenamento",
+        "Apply changes (manual restart required)": "Aplicar alterações (é necessário reiniciar manualmente)",
+        "Base URL": "URL de base",
+        "Changes have been saved. Restart Grist to apply them.": "As alterações foram salvas. Reinicie o Grist para aplicá-las.",
+        "Edition": "Edição",
+        "Its controls have moved to {{editionLink}} above.": "Seus controles foram movidos para {{editionLink}} acima.",
+        "Restart the Grist server": "Reinicie o servidor Grist",
+        "Saving...": "Salvar...",
+        "Server": "Servidor",
+        "Server → Edition": "Servidor → Edição",
+        "The URL where users and integrations reach this Grist server": "O URL em que os usuários e as integrações acessam esse servidor Grist",
+        "What used to be called \"Grist Enterprise\" is now called \"Full Grist\".": "O que antes era chamado de \"Grist Empresarial\" agora é chamado de \"Grist Completo\".",
+        "moved to Edition": "mudou para a Edição",
+        "Installation": "Instalação",
+        "Default permissions": "Permissões padrão",
+        "Who can create sites, log in, and use the playground": "Quem pode criar sites, fazer login e usar o playground",
+        "Any pending changes will be cleared.": "Quaisquer alterações pendentes serão eliminadas.",
+        "Dismiss": "Descartar",
+        "Dismiss changes": "Descartar alterações",
+        "Dismiss pending changes?": "Descartar alterações pendentes?",
+        "Dismissing...": "Descartando..."
     },
     "Field": {
         "No choices configured": "Nenhuma opção configurada",
@@ -2113,7 +2162,14 @@
         "Installation seats": "Assentos de instalação",
         "You are currently trialing Grist Enterprise.": "No momento, você está testando o Grist Enterprise.",
         "You do not have an active subscription.": "Você não tem uma assinatura ativa.",
-        "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.": "Seu período de avaliação expirou em **{{expireAt}}**. Para continuar usando o Grist Enterprise, você precisa\n[registrar-se no Grist Enterprise]({{signupLink}}) e colar sua chave de ativação abaixo."
+        "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.": "Seu período de avaliação expirou em **{{expireAt}}**. Para continuar usando o Grist Enterprise, você precisa\n[registrar-se no Grist Enterprise]({{signupLink}}) e colar sua chave de ativação abaixo.",
+        "An activation key is used to run Full Grist after a trial period\n        of 30 days has expired. Get an activation key by [signing up for Grist\n        Enterprise]({{signupLink}}). You do not need an activation key to run\n        Grist Community Edition.": "Uma chave de ativação é usada para executar o Full Grist após um período de avaliação\n        de 30 dias tenha expirado. Obtenha uma chave de ativação [inscrevendo-se no Grist\n        Enterprise]({{signupLink}}). Você não precisa de uma chave de ativação para executar o\n        Grist Community Edition.",
+        "An activation key is used to run Full Grist after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Community Edition.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Uma chave de ativação é usada para executar o Full Grist após um período de avaliação\nde 30 dias tenha expirado. Obtenha uma chave de ativação [entrando em contato conosco]({{contactLink}}) hoje mesmo. Você\nnão precisa de uma chave de ativação para executar o Grist Community Edition.\n\nSaiba mais em nossa [Central de Ajuda]({{helpCenter}}).",
+        "An active subscription is required to continue using Full Grist. You can\nyou activate your subscription by [signing up for Full Grist ]({{signupLink}}) and pasting your\nactivation key below.": "É necessário ter uma assinatura ativa para continuar usando o Full Grist. Você pode\nativar sua assinatura [inscrevendo-se no Full Grist ]({{signupLink}}) e colando sua\nchave de ativação abaixo.",
+        "Enable Full Grist": "Ativar o Grist completo",
+        "To continue using Full Grist, you need to\n                  [contact us]({{signupLink}}) to get your activation key.": "Para continuar usando o Full Grist, você precisa\n                  [entre em contato conosco]({{signupLink}}) para obter sua chave de ativação.",
+        "You are currently trialing Full Grist.": "No momento, você está testando o Full Grist.",
+        "Your trial period has expired on **{{expireAt}}**. To continue using Full Grist, you need to\n[sign up for Full Grist]({{signupLink}}) and paste your activation key below.": "Seu período de avaliação expirou em **{{expireAt}}**. Para continuar usando o Full Grist, você precisa\n[registrar-se no Full Grist]({{signupLink}}) e colar sua chave de ativação abaixo."
     },
     "ViewLayout": {
         "Delete": "Excluir",
@@ -2308,7 +2364,9 @@
         "Orgs": "Organizações",
         "Users": "Usuários",
         "Workspaces": "Áreas de Trabalho",
-        "Enterprise": "Empresarial"
+        "Enterprise": "Empresarial",
+        "Quick setup": "Configuração rápida",
+        "Apply changes": "Aplicar alterações"
     },
     "Assistant": {
         "AI Assistant is only available for logged in users.": "O Assistente de IA só está disponível para usuários conectados.",
@@ -2364,7 +2422,9 @@
         "You are about to enable this experimental feature: {{experiment}}": "Você está prestes a ativar este recurso experimental: {{experiment}}",
         "{{experiment}} disabled.": "{{experiment}} desativado.",
         "{{experiment}} enabled.": "{{experiment}} activado.",
-        "Notifications": "Notificações"
+        "Notifications": "Notificações",
+        "OAuth apps": "Aplicativos OAuth",
+        "Simulate deployment as core": "Simular a implantação como núcleo"
     },
     "NewRecordButton": {
         "New card": "Novo cartão",
@@ -2415,7 +2475,8 @@
         "This boot page should not be too easy to access. Either turn it off when configuration is ok (by unsetting GRIST_BOOT_KEY) or make GRIST_BOOT_KEY long and cryptographically secure.": "Essa página de inicialização não deve ser muito fácil de acessar. Desative-a quando a configuração estiver correta (desmarcando GRIST_BOOT_KEY) ou torne GRIST_BOOT_KEY longa e criptograficamente segura.",
         "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.": "As conexões Websocket precisam do HTTP 1.1 e da capacidade de passar alguns cabeçalhos extras para funcionar. Às vezes, um proxy reverso pode interferir nesses requisitos.",
         "It is good practice not to run Grist as the root user.": "É uma boa prática não executar o Grist como usuário root.",
-        "The main page of Grist should be available.": "A página principal do Grist deve estar disponível."
+        "The main page of Grist should be available.": "A página principal do Grist deve estar disponível.",
+        "APP_HOME_URL is the base URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "APP_HOME_URL é o URL de base em que os usuários e as integrações acessam esse servidor Grist. As chamadas de retorno de autenticação, os links de API e as notificações por e-mail dependem de que isso esteja correto."
     },
     "ChoiceListEntry": {
         "+{{count}} more_one": "+{{count}} mais",
@@ -2448,7 +2509,20 @@
     },
     "GetGristComProvider": {
         "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.": "Ao fazer login, os usuários serão redirecionados para a página de login do getgrist.com para entrar ou se cadastrar. Após a autenticação no getgrist.com, eles serão redirecionados de volta para o seu servidor Grist e farão login com a conta do usuário que utilizaram para autenticação.",
-        "Instructions": "Instruções"
+        "Instructions": "Instruções",
+        "**Sign in with getgrist.com** allows users on your Grist server to sign in using their account on getgrist.com, the cloud version of Grist managed by Grist Labs.": "**Sign in with getgrist.com** permite que os usuários do seu servidor Grist façam login usando a conta deles em getgrist.com, a versão em nuvem do Grist gerenciada pela Grist Labs.",
+        "Cancel": "Cancelar",
+        "Configure": "Configurar",
+        "Configure Sign in with getgrist.com": "Configurar o login com getgrist.com",
+        "Home URL is not set; cannot configure Sign in with getgrist.com": "O URL da página inicial não está definido; não é possível configurar Entrar com getgrist.com",
+        "Learn more about Sign in with getgrist.com": "Saiba mais sobre Entrar com getgrist.com",
+        "Paste configuration key here": "Cole a chave de configuração aqui",
+        "Register your Grist server": "Registre seu servidor Grist",
+        "Sign in with getgrist.com": "Faça login com getgrist.com",
+        "To set up {{provider}}, you need to register your Grist server on getgrist.com and paste the configuration key you receive below.": "Para configurar o {{provider}}, é necessário registrar o servidor Grist em getgrist.com e colar a chave de configuração recebida abaixo.",
+        "Managed authentication by Grist Labs.": "Autenticação gerenciada pelo Grist Labs.",
+        "Your server uses getgrist.com authentication. Users sign in with their getgrist.com account.": "Seu servidor usa a autenticação do getgrist.com. Os usuários fazem login com sua conta getgrist.com.",
+        "Error configuring provider with the provided key: {{reason}}": "Erro ao configurar o provedor com a chave fornecida: {{reason}}"
     },
     "OpenAccessibilityModal": {
         " or ": " ou ",
@@ -2464,7 +2538,17 @@
         "profile settings": "configurações de perfil",
         "{{shortcutsModal}} Show the complete list of keyboard shortcuts": "{{shortcutsModal}} Exibir a lista completa de atalhos de teclado",
         "\"Regions\" are what we call the different parts of the user interface:": "\"Regiões\" são como chamamos as diferentes partes da interface do usuário:",
-        "Keyboard navigation": "Navegação pelo teclado"
+        "Keyboard navigation": "Navegação pelo teclado",
+        "Finally, the right panel – or the creator panel – is only available through its own shortcut and is not included in the next and previous region cycle.": "Por fim, o painel direito - ou o painel do criador - só está disponível por meio de seu próprio atalho e não está incluído no ciclo da região seguinte e anterior.",
+        "On a document page, keyboard navigation is first locked on the current widget.": "Em uma página de documento, a navegação pelo teclado é primeiro bloqueada no widget atual.",
+        "On document pages, each [widget]({{supportPageUrl}}) is a region that can receive focus.": "Nas páginas dos documentos, cada [widget]({{supportPageUrl}}) é uma região que pode receber o foco.",
+        "On non-document pages, the main content area is a region.": "Em páginas que não sejam de documentos, a área de conteúdo principal é uma região.",
+        "The left panel, home of the main navigation.": "O painel esquerdo, que abriga a navegação principal.",
+        "The top panel, or the document header.": "O painel superior ou o cabeçalho do documento.",
+        "{{accessibilityModal}} Show the accessibility options (this modal)": "{{accessibilityModal}} Mostrar as opções de acessibilidade (este modal)",
+        "{{creatorPanelShortcut}} Focus to and from the creator panel": "{{creatorPanelShortcut}} Foco de e para o painel do criador",
+        "{{nextRegionShortcut}} Focus on the next region": "{{nextRegionShortcut}} Foco na próxima região",
+        "{{prevRegionShortcut}} Focus on the previous region": "{{prevRegionShortcut}} Foco na região anterior"
     },
     "ProposedChangesPage": {
         "Proposed changes": "Mudanças propostas",
@@ -2485,7 +2569,12 @@
         "This is a list of changes relative to the {{originalDocument}}.": "Esta é uma lista de alterações relativas ao {{originalDocument}}.",
         "Work on a copy": "Trabalhar em uma cópia",
         "Your suggestions": "Suas sugestões",
-        "original document": "documento original"
+        "original document": "documento original",
+        "The original document isn't asking for proposed changes.": "O documento original não está solicitando alterações propostas.",
+        "There are fresh changes that haven't been added to the suggestion yet.": "Há novas alterações que ainda não foram adicionadas à sugestão.",
+        "Update suggestion": "Sugestão de atualização",
+        "experiment": "experimento",
+        "Undo dismissal": "Desfazer demissão"
     },
     "commandList": {
         "Show accessibility options": "Mostrar opções de acessibilidade",
@@ -2500,7 +2589,106 @@
         "Hide the currently selected columns": "Ocultar as colunas atualmente selecionadas",
         "Redo last action": "Refazer a última ação",
         "Show hidden columns": "Mostrar colunas ocultas",
-        "Use the currently selected row as table headers": "Usar a linha atualmente selecionada como cabeçalho da tabela"
+        "Use the currently selected row as table headers": "Usar a linha atualmente selecionada como cabeçalho da tabela",
+        "Add a new viewsection to the currently active view": "Adicionar uma nova seção de visualização à visualização ativa no momento",
+        "Adds all elements above the cursor to the selected range": "Adiciona todos os elementos acima do cursor ao intervalo selecionado",
+        "Adds all elements below the cursor to the selected range": "Adiciona todos os elementos abaixo do cursor ao intervalo selecionado",
+        "Adds all elements to the left of the cursor to the selected range": "Adiciona todos os elementos à esquerda do cursor ao intervalo selecionado",
+        "Adds all elements to the right of the cursor to the selected range": "Adiciona todos os elementos à direita do cursor ao intervalo selecionado",
+        "Adds the currently selected column(ascending) to the current view's sort spec": "Adiciona a coluna atualmente selecionada (ascendente) à especificação de classificação da visualização atual",
+        "Adds the currently selected column(descending) to the current view's sort spec": "Adiciona a coluna selecionada atualmente (descendente) à especificação de classificação da visualização atual",
+        "Adds the element above the cursor to the selected range": "Adiciona o elemento acima do cursor ao intervalo selecionado",
+        "Adds the element below the cursor to the selected range": "Adiciona o elemento abaixo do cursor ao intervalo selecionado",
+        "Adds the element to the left of the cursor to the selected range": "Adiciona o elemento à esquerda do cursor ao intervalo selecionado",
+        "Adds the element to the right of the cursor to the selected range": "Adiciona o elemento à direita do cursor ao intervalo selecionado",
+        "Clear the selected columns": "Limpar as colunas selecionadas",
+        "Clears the current copy selection, if any": "Limpa a seleção de cópia atual, se houver",
+        "Clears the currently selected cells": "Limpa as células atualmente selecionadas",
+        "Clears the section links in the current view": "Limpa os links de seção na exibição atual",
+        "Clears the section links in the current viewsection": "Limpa os links de seção na seção de visualização atual",
+        "Collapse the currently active viewsection": "Colapsar a seção de visualização ativa no momento",
+        "Convert the selected columns from formula to data": "Converter as colunas selecionadas de fórmula para dados",
+        "Copy anchor link": "Copiar link de ancoragem",
+        "Creates form for active table": "Cria um formulário para a tabela ativa",
+        "Cut current selection to clipboard": "Cortar a seleção atual para a área de transferência",
+        "Delete collapsed viewsection": "Excluir seção de visualização recolhida",
+        "Delete the currently active viewsection": "Excluir a seção de visualização ativa no momento",
+        "Delete the currently selected columns": "Excluir as colunas selecionadas atualmente",
+        "Delete the currently selected record(s)": "Excluir o(s) registro(s) atualmente selecionado(s)",
+        "Detach active editor": "Desanexar o editor ativo",
+        "Discard changes to a cell value": "Descartar alterações em um valor de célula",
+        "Display shortcuts pane": "Exibir painel de atalhos",
+        "Duplicate the currently active viewsection": "Duplicar a seção de visualização ativa no momento",
+        "Duplicate the currently selected record(s)": "Duplicar o(s) registro(s) atualmente selecionado(s)",
+        "Edit label of the currently-selected field": "Editar o rótulo do campo atualmente selecionado",
+        "Edit record layout": "Editar layout de registro",
+        "Enter text into currently-selected cell and start editing": "Editar texto na célula atualmente selecionada e começar a editar",
+        "Enters section linking mode in the current view": "Entra no modo de vinculação de seção na visualização atual",
+        "Exits section linking mode in the current view": "Sai do modo de vinculação de seção na visualização atual",
+        "Expand collapsed viewsection": "Expandir a seção de visualização recolhida",
+        "Fills current selection with the contents of the top row in the selection": "Preenche a seleção atual com o conteúdo da linha superior da seleção",
+        "Find": "Localizar",
+        "Find next occurrence": "Localizar a próxima ocorrência",
+        "Find previous occurrence": "Localizar ocorrência anterior",
+        "Finish editing a cell and save without moving to next record": "Termine de editar uma célula e salve sem passar para o próximo registro",
+        "Finish editing a cell, saving the value": "Terminar de editar uma célula, salvando o valor",
+        "Focus next page panel or widget": "Foco no painel ou widget da próxima página",
+        "Focus previous page panel or widget": "Foco no painel ou widget da página anterior",
+        "Hide the currently selected fields": "Ocultar os campos atualmente selecionados",
+        "Insert a new column, after the currently selected one": "Inserir uma nova Coluna, após a selecionada atualmente",
+        "Insert a new column, before the currently selected one": "Inserir uma nova Coluna, antes da atualmente selecionada",
+        "Insert a new record, after the currently selected one in an unsorted table": "Inserir um novo registro, após o atualmente selecionado, em uma tabela não classificada",
+        "Insert a new record, before the currently selected one in an unsorted table": "Inserir um novo registro, antes do atualmente selecionado, em uma tabela não classificada",
+        "Insert new column in default location": "Insira nova coluna no local padrão",
+        "Maximize the active section": "Maximizar a seção ativa",
+        "Move down one page of records, or to next record in a card list": "Mover uma página de registros para baixo ou para o próximo registro em uma lista de cartões",
+        "Move down to the last record": "Mover para baixo até o último registro",
+        "Move downward five records": "Mover cinco registros para baixo",
+        "Move downward to next record or field": "Mover para baixo, para o próximo registro ou campo",
+        "Move left to the previous field": "Mover para a esquerda para o campo anterior",
+        "Move right to the next field": "Mover para a direita para o próximo campo",
+        "Move to the first field or the beginning of a row": "Ir para o primeiro campo ou para o início de uma linha",
+        "Move to the last field or the end of a row": "Ir para o último campo ou para o final de uma linha",
+        "Move to the next field, saving changes if editing a value": "Passe para o próximo campo, salvando as alterações se estiver editando um valor",
+        "Move to the previous field, saving changes if editing a value": "Ir para o campo anterior, salvando as alterações se estiver editando um valor",
+        "Move up one page of records, or to previous record in a card list": "Mover uma página de registros para cima ou para o registro anterior em uma lista de cartões",
+        "Move up to the first record": "Vá para o primeiro registro",
+        "Move upward five records": "Mover cinco registros para cima",
+        "Move upward to previous record or field": "Mover para cima, para o registro ou campo anterior",
+        "Moves the cursor to the correct location": "Move o cursor para o local correto",
+        "Open Custom widget configuration screen": "Abrir tela de configuração personalizada do widget",
+        "Open comment thread": "Abrir tópico de comentários",
+        "Open next page": "Abrir a próxima página",
+        "Open previous page": "Abrir página anterior",
+        "Opens document list": "Abre a lista de documentos",
+        "Paste clipboard contents at cursor": "Colar o conteúdo da área de transferência no cursor",
+        "Print currently selected page widget": "Imprimir widget da página selecionada no momento",
+        "Push an undo action": "Empurrar uma ação de desfazer",
+        "Rename the currently selected column": "Renomear a coluna selecionada atualmente",
+        "Reverts the sections links to the saved links the current view": "Reverte os links das seções para os links salvos na exibição atual",
+        "Saves the sections links in the current view": "Salva os links das seções na exibição atual",
+        "Selects all currently displayed cells": "Seleciona todas as células exibidas no momento",
+        "Shortcut to data selection tab": "Atalho para a guia de seleção de dados",
+        "Shortcut to focus view tab if creator panel is open": "Atalho para focalizar a guia de visualização se o painel do criador estiver aberto",
+        "Shortcut to open document tab": "Atalho para abrir a guia do documento",
+        "Shortcut to open field tab": "Atalho para abrir a guia de campo",
+        "Shortcut to open sort & filter menu": "Atalho para abrir o menu de classificação e filtro",
+        "Shortcut to open the left panel": "Atalho para abrir o painel esquerdo",
+        "Shortcut to open the right panel": "Atalho para abrir o painel direito",
+        "Shortcut to open view tab": "Atalho para abrir a guia de visualização",
+        "Shortcut to sort & filter tab": "Atalho para a guia Classificar e filtrar",
+        "Show raw data widget for table of currently selected page widget": "Mostrar widget de dados brutos para a tabela do widget da página atualmente selecionada",
+        "Show the record card widget of the selected record": "Mostrar o widget do cartão de registro do registro selecionado",
+        "Sort the view data by the currently selected field in ascending order": "Classificar os dados da visualização pelo campo atualmente selecionado em ordem crescente",
+        "Sort the view data by the currently selected field in descending order": "Classificar os dados da visualização pelo campo atualmente selecionado em ordem decrescente",
+        "Start editing the currently-selected cell": "Comece a editar a célula atualmente selecionada",
+        "Toggle creator panel keyboard focus": "Alternar o foco do teclado do painel do criador",
+        "Toggle the currently selected checkbox or switch cell": "Alternar a caixa de seleção ou célula de comutação atualmente selecionada",
+        "When in the search bar, close it and focus the current match": "Quando estiver na barra de pesquisa, feche-a e foque no item correspondente atual",
+        "When typed at the start of a cell, make this a formula column": "Quando digitado no início de uma célula, faça desta uma coluna de fórmula",
+        "showing a behavioral popup": "exibindo um pop-up comportamental",
+        "Filter this column by just this cell's value": "Filtrar essa Coluna apenas pelo valor dessa célula",
+        "Open the context menu": "Abra o menu de contexto"
     },
     "GridViewMenusDateHelpers": {
         "12-hour format": "Formato de 12 horas",
@@ -2525,7 +2713,25 @@
         "Week": "Semana",
         "Week of year": "Semana do ano",
         "Year": "Ano",
-        "Years until": "Anos até"
+        "Years until": "Anos até",
+        "AM": {
+            "PM": "AM/PM"
+        },
+        "Date helpers…": "Ajudantes de data…",
+        "Default": "Padrão",
+        "End of": "Fim de",
+        "Full name with year": "Nome completo com ano",
+        "Name only": "Somente o nome",
+        "Number only": "Somente número",
+        "Quarter": "Trimestre",
+        "Quick Picks": "Escolhas rápidas",
+        "Relative": "Relativo",
+        "Short with year": "Curto com ano",
+        "Sortable": "Classificável",
+        "Start of": "Início de",
+        "Time": "Tempo",
+        "Time bucket": "Balde de tempo",
+        "Years since": "Anos desde"
     },
     "AuthenticationSection": {
         "Close": "Fechar",
@@ -2534,7 +2740,114 @@
         "Confirm": "Confirmar",
         "Error": "Erro",
         "Error details": "Detalhes do erro",
-        "Instructions": "Instruções"
+        "Instructions": "Instruções",
+        "Active": "Ativo",
+        "Active method is controlled by an environment variable. Unset variable to change active method.": "O método ativo é controlado por uma variável de ambiente. Desajuste a variável para alterar o método ativo.",
+        "Active on restart": "Ativado no reinício",
+        "Are you sure you want to set **{{name}}** as the active authentication method?": "Tem certeza de que deseja definir **{{name}}** como o método de autenticação ativo?",
+        "Disabled on restart": "Desativado no reinício",
+        "No authentication method is active.": "Nenhum método de autenticação está ativo.",
+        "Set as active method": "Definir como método ativo",
+        "Set as active method?": "Definir como método ativo?",
+        "The new method will go into effect after you restart Grist.": "O novo método entrará em vigor depois que você reiniciar o Grist.",
+        "**Forwarded headers** allows your Grist server to trust authentication performed by an external proxy (e.g. Traefik ForwardAuth).": "**Os cabeçalhos encaminhados** permitem que o servidor Grist confie na autenticação realizada por um proxy externo (por exemplo, Traefik ForwardAuth).",
+        "**Grist Connect** is a login solution built and maintained by Grist Labs that integrates seamlessly with your Grist server.": "O **Grist Connect** é uma solução de login criada e mantida pela Grist Labs que se integra perfeitamente ao seu servidor Grist.",
+        "**OIDC** allows users on your Grist server to sign in using an external identity provider that supports the OpenID Connect standard.": "O **OIDC** permite que os usuários do seu servidor Grist façam login usando um provedor de identidade externo compatível com o padrão OpenID Connect.",
+        "**SAML** allows users on your Grist server to sign in using an external identity provider that supports the SAML 2.0 standard.": "O **SAML** permite que os usuários do seu servidor Grist façam login usando um provedor de identidade externo compatível com o padrão SAML 2.0.",
+        "Change admin user": "Alterar o usuário administrador",
+        "If Grist is accessible on your network, or is available to multiple people, configure one of the authentication methods below.": "Se o Grist estiver acessível em sua rede ou estiver disponível para várias pessoas, configure um dos métodos de autenticação abaixo.",
+        "No authentication: unrestricted sign-in as demo user": "Sem autenticação: login irrestrito como usuário de demonstração",
+        "Prepare changes": "Preparar mudanças",
+        "Restart required. Authentication change may affect your access": "É necessário reiniciar. A alteração da autenticação pode afetar seu acesso",
+        "Revert change of admin user": "Reverter a alteração do usuário administrador",
+        "See \"Restart Grist\" section on top of this page to restart.": "Consulte a seção \"Reiniciar o Grist\" na parte superior desta página para reiniciar.",
+        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "grist-connect": {
+                            ").": "Para configurar o **Grist Connect**, siga as instruções no [artigo de suporte do Grist para o Grist Connect] (https://support.getgrist.com/install/grist-connect/)."
+                        }
+                    }
+                }
+            }
+        },
+        "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "oidc).": "Para configurar o **OIDC**, siga as instruções em [o artigo de suporte do Grist para o OIDC] (https://support.getgrist.com/install/oidc)."
+                    }
+                }
+            }
+        },
+        "To set up **SAML**, follow the instructions in [the Grist support article for SAML](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "saml": {
+                            ").": "Para configurar o **SAML**, siga as instruções no [artigo de suporte do Grist para SAML] (https://support.getgrist.com/install/saml/)."
+                        }
+                    }
+                }
+            }
+        },
+        "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "forwarded-headers": {
+                            ").": "Para configurar **cabeçalhos encaminhados**, siga as instruções no [artigo de suporte do Grist sobre cabeçalhos encaminhados] (https://support.getgrist.com/install/forwarded-headers/)."
+                        }
+                    }
+                }
+            }
+        },
+        "When a user accesses Grist, the proxy handles authentication and forwards verified user information through HTTP headers. Grist uses these headers to identify the user.": "Quando um usuário acessa o Grist, o proxy lida com a autenticação e encaminha as informações verificadas do usuário por meio de cabeçalhos HTTP. O Grist usa esses cabeçalhos para identificar o usuário.",
+        "When signing in, users will be redirected to a Grist Connect login page where they can authenticate using various identity providers. After authentication, they'll be redirected back to your Grist server and signed in.": "Ao fazer login, os usuários serão redirecionados para uma página de login do Grist Connect, onde poderão se autenticar usando vários provedores de identidade. Após a autenticação, eles serão redirecionados de volta ao seu servidor Grist e farão login.",
+        "When signing in, users will be redirected to your chosen identity provider's login page to authenticate. After successful authentication, they'll be redirected back to your Grist server and signed in as the user verified by the provider.": "Ao fazer login, os usuários serão redirecionados para a página de login do provedor de identidade escolhido para autenticação. Após a autenticação bem-sucedida, eles serão redirecionados de volta ao servidor Grist e farão login como o usuário verificado pelo provedor.",
+        "You are signed in as {{email}}. After restart, the new administrative user will be {{newEmail}}.": "Você está conectado como {{email}}. Após a reinicialização, o novo usuário administrativo será {{newEmail}}.",
+        "You are signed in as {{email}}. You may lose access to this server if you cannot sign in as this user after switching the authentication system.": "Você está conectado como {{email}}. Você poderá perder o acesso a esse servidor se não conseguir fazer login como esse usuário depois de mudar o sistema de autenticação.",
+        "If Grist is accessible on your network, or is available to multiple people, configure one of the authentication methods below and remove your boot key from Security Settings → Boot key.": "Se o Grist estiver acessível em sua rede ou estiver disponível para várias pessoas, configure um dos métodos de autenticação abaixo e remova sua chave de inicialização em Security Settings → Boot key.",
+        "No authentication: using boot key as fallback method": "Sem autenticação: usando a chave de inicialização como método alternativo",
+        "Anyone who can reach this server can access all data without signing in. Configure one of the authentication methods below.": "Qualquer pessoa que possa acessar esse servidor pode acessar todos os dados sem fazer login. Configure um dos métodos de autenticação abaixo.",
+        "Are you sure you want to deactivate **{{name}}**?": "Tem certeza de que deseja desativar a **{{name}}**?",
+        "Authentication has been configured and will become active when Grist is restarted.": "A autenticação foi configurada e ficará ativa quando o Grist for reiniciado.",
+        "Authentication is misconfigured or unreachable. Users may not be able to sign in.": "A autenticação está mal configurada ou inacessível. Os usuários talvez não consigam fazer login.",
+        "Available methods": "Métodos disponíveis",
+        "Change installation admin": "Alterar o administrador da instalação",
+        "Deactivate": "Desativar",
+        "Deactivate authentication?": "Desativar a autenticação?",
+        "For enterprise identity providers (Okta, OneLogin, etc.).": "Para provedores de identidade corporativa (Okta, OneLogin, etc.).",
+        "For reverse proxy setups (Traefik, Authelia, etc.).": "Para configurações de proxy reverso (Traefik, Authelia, etc.).",
+        "I understand this server has no authentication": "Entendo que esse servidor não tem autenticação",
+        "Installation admin: ": "Administrador da instalação: ",
+        "Managed login solution by Grist Labs (deprecated).": "Solução de login gerenciado da Grist Labs (obsoleta).",
+        "No authentication": "Sem autenticação",
+        "No authentication: using boot key": "Sem autenticação: usando a chave de inicialização",
+        "Not recommended": "Não recomendado",
+        "Other authentication methods": "Outros métodos de autenticação",
+        "Reconfigure": "Reconfigurar",
+        "The change will take effect after you restart Grist.": "A alteração entrará em vigor depois que você reiniciar o Grist.",
+        "This login mechanism is deprecated.": "Esse mecanismo de login é obsoleto.",
+        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect]({{url}}).": "Para configurar o **Grist Connect**, siga as instruções no [artigo de suporte do Grist para o Grist Connect]({{url}}).",
+        "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC]({{url}}).": "Para configurar o **OIDC**, siga as instruções no [artigo de suporte do Grist para o OIDC]({{url}}).",
+        "To set up **SAML**, follow the instructions in [the Grist support article for SAML]({{url}}).": "Para configurar o **SAML**, siga as instruções no [artigo de suporte do Grist para SAML]({{url}}).",
+        "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers]({{url}}).": "Para configurar **cabeçalhos encaminhados**, siga as instruções no [artigo de suporte do Grist sobre cabeçalhos encaminhados]({{url}}).",
+        "Works with most identity providers (Google, Azure AD, Keycloak, etc.).": "Funciona com a maioria dos provedores de identidade (Google, Azure AD, Keycloak, etc.).",
+        "Your configuration will be preserved. You can reactivate it later without reconfiguring.": "Sua configuração será preservada. Você pode reativá-la mais tarde sem precisar reconfigurá-la.",
+        "Your server is configured to authenticate users via OpenID Connect. Users sign in through your identity provider.": "Seu servidor está configurado para autenticar usuários via OpenID Connect. Os usuários fazem login por meio do seu provedor de identidade.",
+        "Your server is configured to authenticate users via SAML 2.0. Users sign in through your enterprise identity provider.": "Seu servidor está configurado para autenticar usuários via SAML 2.0. Os usuários fazem login por meio do provedor de identidade da empresa.",
+        "Your server is using a boot key as a fallback login method. Configure one of the authentication methods below.": "Seu servidor está usando uma chave de inicialização como método de login alternativo. Configure um dos métodos de autenticação abaixo.",
+        "Your server trusts authentication from a reverse proxy. Make sure only your proxy can reach the Grist backend.": "Seu servidor confia na autenticação de um proxy reverso. Certifique-se de que somente o seu proxy possa acessar o backend do Grist.",
+        "Authentication": "Autenticação",
+        "Choose how users sign in to Grist.": "Escolha como os usuários se conectam ao Grist.",
+        "New admin email": "Novo e-mail de administrador",
+        "Reassign login to admin": "Reassignar login para admin",
+        "The change will be saved when you apply pending changes, and will go into effect after you restart Grist.": "A alteração será salva quando você aplicar as alterações pendentes e entrará em vigor depois que você reiniciar o Grist.",
+        "The change will be saved when you apply pending changes, and will take effect after you restart Grist.": "A alteração será salva quando você aplicar as alterações pendentes e entrará em vigor depois que você reiniciar o Grist.",
+        "configuration updated": "configuração atualizada",
+        "disabled": "desativado"
     },
     "DetailView": {
         "This row is unavailable or does not exist": "Esta linha não está disponível ou não existe"
@@ -2558,15 +2871,315 @@
         "loading your tables...": "carregando suas tabelas...",
         "or": "ou",
         "{{count}} warnings_one": "{{count}} avisos",
-        "{{count}} warnings_other": "{{count}} avisos"
+        "{{count}} warnings_other": "{{count}} avisos",
+        "Choose an Airtable base to import from": "Escolha uma base do Airtable para importar",
+        "Choose destination": "Escolha o destino",
+        "Connect": "Conectar",
+        "Connect with Airtable": "Conecte-se com a Airtable",
+        "Connect your Airtable account to access your bases.": "Conecte sua conta Airtable para acessar suas bases.",
+        "Connected via {{method}}": "Conectado via {{method}}",
+        "Destination": "Destino",
+        "Failed to fetch base schema": "Falha ao buscar o esquema de base",
+        "Failed to fetch bases": "Falha na busca de bases",
+        "Grist configuration required": "Configuração de Grist necessária",
+        "Import from {{baseName}} in progress. Do not navigate away from this page.": "Importação de {{baseName}} em andamento. Não navegue para fora desta página.",
+        "Make sure your token has the correct permissions.": "Certifique-se de que seu token tenha as permissões corretas.",
+        "No bases found": "Não foram encontradas bases",
+        "OAuth credentials not configured. Please set OAUTH2_AIRTABLE_CLIENT_ID and OAUTH2_AIRTABLE_CLIENT_SECRET, or use personal access token.": "Credenciais OAuth não configuradas. Defina OAUTH2_AIRTABLE_CLIENT_ID e OAUTH2_AIRTABLE_CLIENT_SECRET ou use um token de acesso pessoal.",
+        "Personal access token": "Token de acesso pessoal",
+        "Please enter a personal access token": "Digite um token de acesso pessoal",
+        "Select tables to import from {{baseName}}": "Selecione as tabelas a serem importadas {{baseName}}",
+        "Source tables": "Tabelas de origem",
+        "Use personal access token instead": "Em vez disso, use o token de acesso pessoal",
+        "[Generate a token]({{url}}) in your Airtable account with scopes that include at least **\\`schema.bases:read\\`** and **\\`data.records:read\\`**.\n\nYour token is never sent to Grist's servers, and is only used to make API calls to Airtable from your browser.": "[Gerar um token]({{url}}) em sua conta do Airtable com escopos que incluam pelo menos **\\`schema.bases:read\\`** e **\\`data.records:read\\`**.\n\nSeu token nunca é enviado para os servidores da Grist e é usado apenas para fazer chamadas de API para o Airtable a partir do seu navegador.",
+        "loading your bases...": "carregando suas bases...",
+        "The more convenient ‘Connect with Airtable’ option can be configured by the installation administrator. [Learn more.]({{url}})": "A opção mais conveniente, \"Connect with Airtable\", pode ser configurada pelo administrador da instalação. [Saiba mais]({{url}})",
+        "Use personal access token": "Usar token de acesso pessoal"
     },
     "AirtableImporter": {
-        "Creating a new Grist document...": "Criando um novo documento Grist..."
+        "Creating a new Grist document...": "Criando um novo documento Grist...",
+        "Preparing to import base from Airtable...": "Preparando-se para importar a base do Airtable...",
+        "Setting up tables...": "Montagem de tabelas..."
     },
     "startDocAirtableImport": {
         "Import from Airtable": "Importar de Airtable"
     },
     "startHomeAirtableImport": {
-        "Import from Airtable": "Importar de Airtable"
+        "Import from Airtable": "Importar de Airtable",
+        "The current workspace can't be imported to.": "O espaço de trabalho atual não pode ser importado."
+    },
+    "TriggersPageUpsell": {
+        "Upgrade": "Upgrade",
+        "Automate workflows from within Grist": "Automatize fluxos de trabalho a partir do Grist",
+        "Automations Screenshot": "Captura de tela de Automações",
+        "Learn more.": "Saiba mais.",
+        "Trigger automations based on data changes, and design actions such as custom email notifications and webhook integrations.": "Dispare automações com base em alterações de dados e projete ações como notificações de e-mail personalizadas e integrações de webhook.",
+        "Try for free": "Experimente gratuitamente",
+        "Try full Grist": "Experimente o Grist completo"
+    },
+    "AutomationsPageEntry": {
+        "Automations": "Automações",
+        "New": "Novo"
+    },
+    "BootKeyStatus": {
+        "Every new Grist installation includes a random boot key: a secret whose value is only obtainable by an installation operator.": "Toda nova instalação do Grist inclui uma chave de inicialização aleatória: um segredo cujo valor só pode ser obtido por um operador de instalação.",
+        "Make sure you have configured an authentication system that lets you sign in as an admin before removing the boot key.": "Certifique-se de ter configurado um sistema de autenticação que permita que você faça login como administrador antes de remover a chave de inicialização.",
+        "Remove boot key": "Remover a chave de inicialização",
+        "Remove boot key?": "Remover a chave de inicialização?",
+        "The boot key should only be used as a temporary means of authentication until a more secure and robust authentication method is configured via Security Settings → Authentication. We recommend removing the boot key once you've finished setting up Grist.": "A chave de inicialização deve ser usada apenas como um meio temporário de autenticação até que um método de autenticação mais seguro e robusto seja configurado em Configurações de Segurança → Autenticação. Recomendamos remover a chave de inicialização depois de concluir a configuração do Grist.",
+        "This setting is currently being managed by an environment variable (`GRIST_BOOT_KEY`).": "Essa configuração está sendo gerenciada atualmente por uma variável de ambiente (`GRIST_BOOT_KEY`).",
+        "Unset the environment variable to manage this setting via the Admin Panel.": "Desfaça a definição da variável de ambiente para gerenciar essa configuração por meio do Painel de Administração.",
+        "You will no longer be able to authenticate as the install admin on the `": {
+            "boot-key` page.": "Você não poderá mais se autenticar como administrador da instalação na página `/boot-key`."
+        }
+    },
+    "selectBy": {
+        "Select widget": "Selecionar Widget"
+    },
+    "CoreNewDocMethods": {
+        "Untitled document": "Documento sem título"
+    },
+    "ChangeAdminModal": {
+        "Enter new admin email": "Digite o novo e-mail do administrador",
+        "Make the new email the installation admin. Orgs, workspaces, and documents will remain owned by {{email}}. These changes will take effect after you restart this Grist server.": "Faça o novo e-mail o administrador da instalação. As organizações, os espaços de trabalho e os documentos continuarão pertencendo a {{email}}. Essas alterações entrarão em vigor depois que você reiniciar o servidor Grist.",
+        "New admin": "Novo administrador",
+        "Replace {{email}} with the new email throughout. The new email will become the installation admin, as well as the owner of all materials previously owned by you@example.com.": "Substitua o endereço {{email}} pelo novo e-mail. O novo e-mail se tornará o administrador da instalação, bem como o proprietário de todos os materiais anteriormente pertencentes a you@example.com.",
+        "An account with {{email}} already exists.": "Uma conta com {{email}} já existe."
+    },
+    "NotifyModel": {
+        "Still working...": "Ainda funcionando..."
+    },
+    "BootPage": {
+        "Administrator email": "E-mail do administrador",
+        "After restarting, Grist will be available without this sign-in step.": "Após a reinicialização, o Grist estará disponível sem essa etapa de login.",
+        "After restarting, return to this page and enter your chosen key.": "Após reiniciar, retorne a esta página e insira a chave escolhida.",
+        "Boot key": "Chave de inicialização",
+        "Can't find your boot key? You can {{setBootKeyButton}} or {{disableCheckButton}}.": "Não consegue encontrar sua chave de inicialização? Você pode acessar {{setBootKeyButton}} ou {{disableCheckButton}}.",
+        "Check key": "Chave de verificação",
+        "Checking key": "Verificando chave",
+        "Confirm or change the administrator email address.": "Confirmar ou alterar o endereço de e-mail do administrador.",
+        "Continue": "Continuar",
+        "Copied!": "Copiado!",
+        "Copy": "Copiar",
+        "Enter boot key": "Digite a chave de inicialização",
+        "For Docker, add \\`-e GRIST_BOOT_KEY={{bootKey}}\\` to your run command. For other setups, set it in your environment or configuration file.": "Para o Docker, adicione \\`-e GRIST_BOOT_KEY={{bootKey}}\\` ao seu comando de execução. Para outras configurações, defina-o em seu ambiente ou arquivo de configuração.",
+        "For Docker, add \\`-e GRIST_IN_SERVICE=true\\` to your run command. For other setups, set it in your environment or configuration file.": "Para o Docker, adicione \\`-e GRIST_IN_SERVICE=true\\` ao seu comando de execução. Para outras configurações, defina-o em seu ambiente ou arquivo de configuração.",
+        "Here's a random key you can use:": "Aqui está uma chave aleatória que você pode usar:",
+        "If you cannot access server logs or cannot find your boot key, you can set it yourself. Add the environment variable \\`GRIST_BOOT_KEY\\` with a secret value to your Grist configuration, then restart Grist.": "Se não conseguir acessar os logs do servidor ou não conseguir encontrar a chave de inicialização, você mesmo pode defini-la. Adicione a variável de ambiente \\`GRIST_BOOT_KEY\\` com um valor secreto à sua configuração do Grist e, em seguida, reinicie o Grist.",
+        "Look for this banner near the top of Grist's startup output — check your terminal, container logs, or hosting panel: {{exampleBootKeyBanner}}": "Procure esse banner próximo à parte superior da saída de inicialização do Grist - verifique o terminal, os registros do recipiente ou o painel de hospedagem: {{exampleBootKeyBanner}}",
+        "Paste boot key here": "Cole a chave de inicialização aqui",
+        "Set \\`GRIST_IN_SERVICE=true\\` in your Grist configuration, then restart. Grist will start without requiring a boot key.": "Defina \\`GRIST_IN_SERVICE=true\\` na configuração do Grist e, em seguida, reinicie. O Grist será iniciado sem exigir uma chave de inicialização.",
+        "Set your boot key": "Defina sua chave de inicialização",
+        "Skipping it is fine on a private, trusted network where only authorized people can connect.": "Não há problema em ignorá-lo em uma rede privada e confiável, onde somente pessoas autorizadas podem se conectar.",
+        "The boot key proves you have access to the server running Grist — it keeps out anyone who can reach this page but isn't the administrator.": "A chave de inicialização prova que você tem acesso ao servidor que executa o Grist - ela impede a entrada de qualquer pessoa que possa acessar esta página, mas que não seja o administrador.",
+        "This will be your admin account for managing Grist.": "Essa será sua conta de administrador para gerenciar o Grist.",
+        "Turn off this check": "Desativar essa verificação",
+        "Valid boot key": "Chave de inicialização válida",
+        "Verify that you have access to this server to continue.": "Verifique se você tem acesso a esse servidor para continuar.",
+        "Welcome to Grist": "Bem-vindo ao Grist",
+        "Why does this check exist?": "Por que essa verificação existe?",
+        "disable this check": "desativar essa verificação",
+        "set your own": "definir seu próprio"
+    },
+    "QuickSetup": {
+        "Apply & restart": "Aplicar e reiniciar",
+        "Authentication": "Autenticação",
+        "Backups": "Backups",
+        "Configure Grist for your environment.": "Configure o Grist para seu ambiente.",
+        "Quick setup": "Configuração rápida",
+        "Sandboxing": "Caixa de areia",
+        "Server": "Servidor",
+        "Continue": "Continuar"
+    },
+    "ServiceStatus": {
+        "Enter maintenance mode": "Entrar no modo de manutenção",
+        "Enter maintenance mode?": "Entrar no modo de manutenção?",
+        "Non-admin users will be blocked until service is restored.": "Os usuários não administradores serão bloqueados até que o serviço seja restaurado.",
+        "Non-admin users will no longer be blocked.": "Os usuários não administradores não serão mais bloqueados.",
+        "Restore service": "Restaurar o serviço",
+        "Restore service?": "Restaurar o serviço?",
+        "This setting is currently being managed by an environment variable (`GRIST_IN_SERVICE`).": "Essa configuração está sendo gerenciada atualmente por uma variável de ambiente (`GRIST_IN_SERVICE`).",
+        "Unset the environment variable to manage this setting via the Admin Panel.": "Desfaça a definição da variável de ambiente para gerenciar essa configuração por meio do Painel de Administração."
+    },
+    "TeamSettingsPage": {
+        "Domain is already taken.": "O domínio já está tomado.",
+        "Invalid domain.": "Domínio inválido."
+    },
+    "BackupsSection": {
+        "AWS S3 via native AWS SDK. Supports IAM roles and AWS-native auth.": "AWS S3 por meio do AWS SDK nativo. Oferece suporte a funções IAM e autenticação nativa do AWS.",
+        "AWS S3-compatible service via MinIO client library. Works with AWS S3, MinIO, and others.": "Serviço compatível com o AWS S3 por meio da biblioteca do cliente MinIO. Funciona com o AWS S3, MinIO e outros.",
+        "Active": "Ativo",
+        "Available in full edition": "Disponível na edição completa",
+        "Azure Blob Storage": "Armazenamento de Blob Azure",
+        "Backups": "Backups",
+        "Documents stored on local disk only.": "Documentos armazenados apenas no disco local.",
+        "Learn more.": "Saiba mais.",
+        "Loading backup providers...": "Carregando provedores de backup...",
+        "Microsoft Azure Blob Storage via native Azure SDK.": "Armazenamento de Blob do Microsoft Azure por meio do SDK nativo do Azure.",
+        "No external storage": "Sem armazenamento externo",
+        "Off": "Desligado",
+        "S3 (AWS client)": "S3 (cliente AWS)",
+        "S3 (MinIO client)": "S3 (cliente MinIO)",
+        "Set these environment variables and restart Grist to enable Azure storage:": "Defina essas variáveis de ambiente e reinicie o Grist para ativar o armazenamento do Azure:",
+        "Set these environment variables and restart Grist to enable MinIO storage:": "Defina essas variáveis de ambiente e reinicie o Grist para ativar o armazenamento MinIO:",
+        "Set these environment variables and restart Grist to enable S3 storage:": "Defina essas variáveis de ambiente e reinicie o Grist para ativar o armazenamento S3:",
+        "Store document backups on an external service like S3 or Azure.           This protects against data loss if the server's disk fails.": "Armazene backups de documentos em um serviço externo, como o S3 ou o Azure.           Isso protege contra a perda de dados se o disco do servidor falhar.",
+        "Local filesystem (test only)": "Sistema de arquivos local (somente teste)",
+        "Stores document snapshots on the local filesystem. For tests only, not production.": "Armazena instantâneos de documentos no sistema de arquivos local. Apenas para testes, não para produção."
+    },
+    "PermissionsSetupSection": {
+        "Allow anonymous access": "Permitir acesso anônimo",
+        "Allow anonymous playground": "Permitir playground anônimo",
+        "Allow anyone to create team sites": "Permitir que qualquer pessoa crie sites de equipe",
+        "Allow personal sites": "Permitir sites pessoais",
+        "Any logged-in user can create new team sites. Turn off to restrict team creation to admins only.": "Qualquer usuário conectado pode criar novos sites de equipe. Desative para restringir a criação de equipes apenas aos administradores.",
+        "Apply & Restart": "Aplicar e Reiniciar",
+        "Apply and Go Live!": "Aplicar e ir ao vivo!",
+        "Applying settings and restarting…": "Aplicando configurações e reiniciando…",
+        "Back to installation": "Voltar à instalação",
+        "Conflict": "Conflito",
+        "DEFAULT PERMISSIONS": "PERMISSÕES PADRÃO",
+        "Environment": "Ambiente",
+        "Grist is live!": "Grist está vivo!",
+        "Loading permissions…": "Carregando permissões…",
+        "Locked down": "Bloqueado",
+        "Open": "Abrir",
+        "Recommended": "Recomendado",
+        "Review these defaults before going live. You can change them later from the admin panel.": "Revise esses padrões antes de entrar no ar. Você pode alterá-los posteriormente no painel de administração.",
+        "Server did not restart in time. Please refresh the page.": "O servidor não foi reiniciado a tempo. Atualize a página.",
+        "Some settings are controlled by environment variables and cannot be changed here: {{vars}}. To modify them, update the corresponding variables in your server configuration and restart.": "Algumas configurações são controladas por variáveis de ambiente e não podem ser alteradas aqui: {{vars}}. Para modificá-las, atualize as variáveis correspondentes na configuração do servidor e reinicie.",
+        "The personal org is the only org available — personal sites must stay enabled or Grist will be non-functional.": "A organização pessoal é a única organização disponível - os sites pessoais devem permanecer ativados ou o Grist não funcionará.",
+        "Users can create their own personal sites with documents. Turn off to restrict all documents to team sites managed by admins.": "Os usuários podem criar seus próprios sites pessoais com documentos. Desative para restringir todos os documentos a sites de equipes gerenciados por administradores.",
+        "Visitors who aren't signed in can create and edit documents in a temporary playground. Turn off to require sign-in before creating any documents.": "Os visitantes que não estiverem conectados podem criar e editar documentos em um playground temporário. Desative a exigência de login antes de criar qualquer documento.",
+        "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.": "Os visitantes que não estão conectados podem visualizar documentos compartilhados publicamente. Isso é necessário para o compartilhamento de links e formulários publicados.",
+        "You have GRIST_SINGLE_ORG={{value}} set. With this, users only see one site — but personal sites and team creation still work behind the scenes. Worth locking down unless you have a specific reason to keep them.": "Você definiu GRIST_SINGLE_ORG={{value}}. Com isso, os usuários veem apenas um site, mas os sites pessoais e a criação de equipes ainda funcionam nos bastidores. Vale a pena bloquear, a menos que você tenha um motivo específico para mantê-los.",
+        "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Suas alterações de configuração foram aplicadas e o servidor foi reiniciado. O Grist agora está em serviço e disponível para os usuários.",
+        "Custom": "Personalizado",
+        "loading…": "carregando…"
+    },
+    "SandboxSection": {
+        "Active": "Ativo",
+        "Apply and Continue": "Aplicar e continuar",
+        "Applying...": "Aplicando...",
+        "Continue": "Continuar",
+        "Detecting sandbox options...": "Detectando opções de sandbox...",
+        "Error": "Erro",
+        "No Sandbox": "Sem caixa de areia",
+        "Not available": "Não disponível",
+        "Not recommended": "Não recomendado",
+        "Other options": "Outras opções",
+        "Ready": "Pronto",
+        "Recommended": "Recomendado",
+        "Sandboxing": "Caixa de areia",
+        "Skip and Continue": "Pular e continuar",
+        "Uses the built-in macOS sandbox. Good isolation for local use on a Mac.": "Usa a caixa de areia integrada do macOS. Bom isolamento para uso local em um Mac.",
+        "macOS Sandbox": "caixa de areia do macOS",
+        "Sandbox": "Caixa de areia"
+    },
+    "AdminPanelCss": {
+        "Confirmed": "Confirmado",
+        "For later": "Para mais tarde"
+    },
+    "BaseUrlSection": {
+        "Already set on this server.": "Já definido neste servidor.",
+        "Automatic": "Automático",
+        "Base URL": "URL base",
+        "Confirm URL": "Confirmar URL",
+        "Could not reach server": "Não foi possível acessar o servidor",
+        "Could not reach server at this URL. ": "Não foi possível acessar o servidor neste URL. ",
+        "Failed to save": "Falha ao Salvar",
+        "Grist is reachable": "O Grist está acessível",
+        "Leave automatic": "Deixar automático",
+        "Test URL": "URL de teste",
+        "Testing...": "Testando...",
+        "The URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "O URL em que os usuários e as integrações acessam esse servidor Grist. Os retornos de chamada de autenticação, os links de API e as notificações por e-mail dependem de que isso esteja correto.",
+        "This URL was auto-detected — confirm it is correct, then save.": "Este URL foi detectado automaticamente - confirme se está correto e salve.",
+        "URL is reachable": "URL é acessível",
+        "automatic": "automático",
+        "checking": "verificando",
+        "https:": {
+            "": {
+                "grist.example.com": "https://grist.exemplo.com"
+            }
+        },
+        "not set": "não definido",
+        "set": "definir"
+    },
+    "EditionSection": {
+        "Choose which edition of Grist to run on this server": "Escolha qual edição do Grist será executada neste servidor",
+        "Choose which edition of Grist to run on this server.": "Escolha qual edição do Grist será executada neste servidor.",
+        "Community Edition": "Edição da Comunidade",
+        "Confirm edition": "Confirmar edição",
+        "Edition": "Edição",
+        "Full Grist": "Grist completo",
+        "Full Grist is enabled via environment variable.": "O Full Grist é ativado por meio de uma variável de ambiente.",
+        "I understand I am running Grist Community Edition": "Entendo que estou executando o Grist Community Edition",
+        "Learn more.": "Saiba mais.",
+        "On": "Ligado",
+        "See how to enable it.": "Veja como ativá-lo.",
+        "The free and open-source heart of Grist, with everything you need to open and edit Grist documents, control access, create forms, connect to single sign-on (SSO) providers, and much more.": "O coração gratuito e de código aberto do Grist, com tudo o que você precisa para abrir e editar documentos do Grist, controlar o acesso, criar formulários, conectar-se a provedores de login único (SSO) e muito mais.",
+        "The full Grist experience, with all features enabled for improved security, governance, and collaboration.": "A experiência completa do Grist, com todos os recursos ativados para melhorar a segurança, a governança e a colaboração.",
+        "You have 30 days to enter an activation key. Free activation keys are available to individuals and small orgs with less than US $1 million in total annual funding. {{learnMoreLink}} For larger orgs, see {{pricingLink}}.": "Você tem 30 dias para inserir uma chave de ativação. As chaves de ativação gratuitas estão disponíveis para indivíduos e pequenas organizações com menos de US$ 1 milhão em financiamento anual total. {{learnMoreLink}} Para organizações maiores, consulte {{pricingLink}}.",
+        "Your installation does not bundle the Full Grist edition. Want Full Grist? {{enableLink}}": "Sua instalação não inclui a edição completa do Grist. Deseja o Grist completo? {{enableLink}}",
+        "community": "comunidade",
+        "full": "completo",
+        "pricing": "Tarifas"
+    },
+    "QuickSetupServerStep": {
+        "Apply and Continue": "Aplicar e continuar",
+        "Base URL": "URL de base",
+        "Confirm base URL and edition to continue": "Confirmar URL base e edição para continuar",
+        "Confirm base URL to continue": "Confirmar URL base para continuar",
+        "Confirm edition to continue": "Confirme a edição para continuar",
+        "Continue": "Continuar",
+        "Edition": "Edição",
+        "Server": "Servidor",
+        "Set your server's base URL and choose which edition of Grist to run.": "Defina o URL básico de seu servidor e escolha qual edição do Grist será executada."
+    },
+    "AccountLeftPanel": {
+        "Account settings": "Configurações de conta",
+        "Developer": "Desenvolvedor",
+        "Profile": "Perfil",
+        "Authorized apps": "Aplicativos autorizados"
+    },
+    "SettingsLayout": {
+        "Authentication": "Autenticação",
+        "Current authentication method": "Método de autenticação atual",
+        "Installation": "Instalação",
+        "Sandbox settings for data engine": "Configurações da caixa de areia para o motor de dados",
+        "Sandboxing": "Caixa de areia",
+        "Security Settings": "Configurações de segurança"
+    },
+    "SettingsLayout.d": {
+        "Authentication": "Autenticação",
+        "Current authentication method": "Método de autenticação atual",
+        "Installation": "Instalação",
+        "Sandbox settings for data engine": "Configurações da caixa de areia para o motor de dados",
+        "Sandboxing": "Caixa de areia",
+        "Security Settings": "Configurações de segurança"
+    },
+    "QuickSetupContinueButton": {
+        "Apply and Continue": "Aplicar e continuar",
+        "Applying...": "Aplicando...",
+        "Continue": "Continuar"
+    },
+    "AdminAccessDeniedCard": {
+        "Administrator Panel Unavailable": "Painel do administrador indisponível",
+        "If you are the server operator, you can sign in using the boot key from your server logs.": "Se você for o operador do servidor, poderá fazer login usando a chave de inicialização dos registros do servidor.",
+        "Sign in with boot key": "Faça login com a chave de inicialização",
+        "You do not have access to the administrator panel.\nPlease log in as an administrator.": "Você não tem acesso ao painel do administrador.\nFaça login como administrador."
+    },
+    "PermissionsToggleModel": {
+        "Allow anonymous access": "Permitir acesso anônimo",
+        "Allow anonymous playground": "Permitir playground anônimo",
+        "Allow anyone to create team sites": "Permitir que qualquer pessoa crie sites de equipe",
+        "Allow personal sites": "Permitir sites pessoais",
+        "Any logged-in user can create new team sites. Turn off to restrict team creation to admins only.": "Qualquer usuário conectado pode criar novos sites de equipe. Desative para restringir a criação de equipes apenas aos administradores.",
+        "Permissions": "Permissões",
+        "Users can create their own personal sites with documents. Turn off to restrict all documents to team sites managed by admins.": "Os usuários podem criar seus próprios sites pessoais com documentos. Desative para restringir todos os documentos a sites de equipes gerenciados por administradores.",
+        "Visitors who aren't signed in can create and edit documents in a temporary playground. Turn off to require sign-in before creating any documents.": "Os visitantes que não estiverem conectados podem criar e editar documentos em um playground temporário. Desative a exigência de login antes de criar qualquer documento.",
+        "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.": "Os visitantes que não estão conectados podem visualizar documentos compartilhados publicamente. Isso é necessário para o compartilhamento de links e formulários publicados.",
+        "off": "desligado",
+        "on": "ligado"
     }
 }
