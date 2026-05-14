@@ -69,7 +69,7 @@
         "Allow everyone to view access rules.": "Permitir que todos visualizem as regras de acesso.",
         "Circumvent all read restrictions and allow everyone to copy the entire document, or view it in full in fiddle mode. Only use for for examples and templates, not for documents with sensitive data.": "Contorne todas as restrições de leitura e permita que todos copiem o documento inteiro ou o visualizem na íntegra no modo de edição. Use apenas para exemplos e modelos, não para documentos com dados confidenciais.",
         "Continue": "Continuar",
-        "Disable Access Rules": "Regras de desativação de acesso",
+        "Disable Access Rules": "Desativar regras de acesso",
         "Disable and save": "Desativar e salvar",
         "Enable Access Rules": "Ativar regras de acesso",
         "Permission to access the document in full by all users": "Permissão para acesso integral ao documento por todos os usuários",
