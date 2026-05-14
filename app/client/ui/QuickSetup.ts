@@ -140,10 +140,22 @@ export class QuickSetup extends Disposable {
       // on the Server step) it will have cached a fault. Drop it so the
       // section's load runs fresh now that the server is back.
       this._checks.discardIfFault(SANDBOX_PROBE_ID);
-      const section = SandboxSetupSection.create(owner, this._checks);
+      const section = SandboxSetupSection.create(owner, { checks: this._checks });
+      // Per-step DraftChangesManager so Continue drives apply+restart like
+      // the other steps. In admin panel mode, the section registers with
+      // the panel-level manager instead.
+      const drafts = DraftChangesManager.create(owner);
+      drafts.addSection(section);
+      const step: QuickSetupSection = {
+        canProceed: section.canProceed,
+        isDirty: drafts.hasDraftChanges,
+        isApplying: drafts.isApplying,
+        apply: () => drafts.applyAll(),
+        customLabel: use => section.customLabel(use),
+      };
       return dom("div",
         section.buildDom(),
-        quickSetupContinueButton(section, () => this._advanceStep(), testId("sandbox-continue")),
+        quickSetupContinueButton(step, () => this._advanceStep(), testId("sandbox-continue")),
       );
     });
   }
