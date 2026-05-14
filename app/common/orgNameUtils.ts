@@ -14,7 +14,7 @@ const BLACKLISTED_SUBDOMAINS = new Set([
   // some in any case, but specified here also in case that minimum changes.
   "w", "ww", "wwww", "wwwww",
   "docs", "api", "static",
-  "ftp", "imap", "pop", "smtp", "mail", "git", "blog", "wiki", "support", "kb", "help",
+  "ftp", "imap", "pop", "smtp", "mail", "git", "blog", "wiki", "support", "kb", "help", "forum",
   "admin", "store", "dev", "beta",
   "community", "try", "wpx", "telemetry",
 
