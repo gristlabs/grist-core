@@ -1,11 +1,13 @@
 import { makeT } from "app/client/lib/localization";
+import { AdminChecks } from "app/client/models/AdminChecks";
 import { getHomeUrl } from "app/client/models/AppModel";
 import { ConfigSection, DraftChangesManager } from "app/client/ui/DraftChanges";
 import { quickSetupStepHeader } from "app/client/ui/QuickSetupStepHeader";
 import { BadgeConfig, buildCardList, buildHeroCard, buildItemCard } from "app/client/ui/SetupCard";
 import { theme, vars } from "app/client/ui2018/cssVars";
 import { loadingSpinner } from "app/client/ui2018/loaders";
-import { ConfigAPI } from "app/common/ConfigAPI";
+import { BootProbeIds } from "app/common/BootProbe";
+import { waitGrainObs } from "app/common/gutil";
 import { InstallAPIImpl } from "app/common/InstallAPI";
 import { SandboxInfo, SandboxingStatus } from "app/common/SandboxInfo";
 
@@ -14,29 +16,54 @@ import { Computed, Disposable, dom, DomContents, makeTestId, Observable, styled,
 const t = makeT("SandboxSection");
 const testId = makeTestId("test-sandbox-section-");
 
+export const SANDBOX_PROBE_ID: BootProbeIds = "sandbox-providers";
+
 /**
- * Base sandbox configuration section. Fetches available sandbox options,
- * shows them as cards, and lets the user pick one.
+ * Sandbox configuration section for QuickSetup. Fetches available sandbox
+ * options through the shared {@link AdminChecks} (so the probe result is
+ * memoized and can be pre-warmed by the wizard), shows them as cards, and
+ * lets the user pick one. Conforms to {@link QuickSetupSection} by
+ * delegating dirty/apply/restart through a {@link DraftChangesManager}
+ * with a single registered {@link ConfigSection} adapter for the sandbox
+ * flavor pref. This keeps the apply pipeline (persist + restart + wait,
+ * with shared failure handling) the same as the Server step.
  */
-abstract class SandboxSectionBase extends Disposable {
-  protected _configAPI = new ConfigAPI(getHomeUrl());
-  protected _installAPI = new InstallAPIImpl(getHomeUrl());
+export class SandboxSetupSection extends Disposable {
+  public readonly canProceed: Computed<boolean>;
+  public readonly isDirty: Computed<boolean>;
+  public readonly isApplying: Observable<boolean>;
+
+  private _installAPI = new InstallAPIImpl(getHomeUrl());
   // Data read from the server.
-  protected _model = Observable.create<SandboxingStatus | null>(this, null);
+  private _model = Observable.create<SandboxingStatus | null>(this, null);
   // If there was error loading or saving.
-  protected _error = Observable.create<string>(this, "");
+  private _error = Observable.create<string>(this, "");
   // Observable for user selection.
-  protected _selected = Observable.create<string | null>(this, null);
+  private _selected = Observable.create<string | null>(this, null);
 
   /** True when a different flavor is selected than what's currently active and not env-locked. */
-  protected readonly _needsRestart: Computed<boolean> =
+  private readonly _needsRestart: Computed<boolean> =
     Computed.create(this, this._model, this._selected, (_, model, selected) => {
       if (model?.flavorInEnv) { return false; }
       return !!selected && selected !== model?.current;
     });
 
-  constructor() {
+  private readonly _drafts = DraftChangesManager.create(this);
+  private readonly _draftSection: ConfigSection = {
+    isDirty: this._needsRestart,
+    needsRestart: true,
+    apply: () => this._save(),
+    describeChange: Computed.create(this, use =>
+      [{ label: t("Sandbox"), value: sandboxLabel(use(this._selected) ?? "") }],
+    ),
+  };
+
+  constructor(private _checks: AdminChecks) {
     super();
+    this._drafts.addSection(this._draftSection);
+    this.canProceed = Computed.create(this, this._selected, (_, s) => !!s);
+    this.isDirty = this._drafts.hasDraftChanges;
+    this.isApplying = this._drafts.isApplying;
     this._loadStatus().catch((e) => {
       if (this.isDisposed()) { return; }
       this._error.set(String(e));
@@ -49,19 +76,25 @@ abstract class SandboxSectionBase extends Disposable {
       dom.maybe(this._error, err => cssError(err)),
       dom.domComputed(this._model, (s) => {
         if (!s) { return cssLoading(loadingSpinner(), t("Detecting sandbox options...")); }
-        return dom("div",
-          this._buildContent(s),
-          this._buildFooter(),
-        );
+        return dom("div", this._buildContent(s));
       }),
     );
   }
 
-  protected _isLockedByEnv() {
+  public async apply(): Promise<void> {
+    await this._drafts.applyAll();
+  }
+
+  /** Returns "Skip and Continue" when env-locked; otherwise null to use shared defaults. */
+  public customLabel(use: UseCBOwner): string | null {
+    return use(this._model)?.flavorInEnv ? t("Skip and Continue") : null;
+  }
+
+  private _isLockedByEnv() {
     return !!this._model.get()?.flavorInEnv;
   }
 
-  protected async _save() {
+  private async _save() {
     const flavor = this._selected.get();
     const isSelectedByEnv = this._isLockedByEnv();
     if (flavor && !isSelectedByEnv) {
@@ -74,13 +107,18 @@ abstract class SandboxSectionBase extends Disposable {
     }
   }
 
-  protected _buildFooter(): DomContents {
-    return null;
+  private async _fetchSandboxingStatus(): Promise<SandboxingStatus> {
+    const probe = this._checks.probes.get().find(p => p.id === SANDBOX_PROBE_ID);
+    if (!probe) { throw new Error(`${SANDBOX_PROBE_ID} probe not available`); }
+    const req = this._checks.requestCheck(probe);
+    const result = await waitGrainObs(req.result, r => r.status !== "none");
+    if (result.status === "fault") { throw new Error(result.details?.error ?? "probe failed"); }
+    return result.details as SandboxingStatus;
   }
 
   private async _loadStatus() {
-    const result = await this._installAPI.runCheck("sandbox-providers");
-    const model = sortedByPreference(result.details as SandboxingStatus);
+    const status = await this._fetchSandboxingStatus();
+    const model = sortedByPreference(status);
     if (this.isDisposed()) { return; }
 
     this._model.set(model);
@@ -198,47 +236,6 @@ abstract class SandboxSectionBase extends Disposable {
         }) :
         null,
     );
-  }
-}
-
-/**
- * Sandbox section for QuickSetup. Conforms to {@link QuickSetupSection}
- * by delegating dirty/apply/restart through a {@link DraftChangesManager}
- * with a single registered {@link ConfigSection} adapter for the sandbox
- * flavor pref. This keeps the apply pipeline (persist + restart + wait,
- * with shared failure handling) the same as the Server step.
- */
-export class SandboxSetupSection extends SandboxSectionBase {
-  /** Always true once the model has loaded — there's always a default selection. */
-  public readonly canProceed: Computed<boolean> = Computed.create(this, this._selected, (_, s) => !!s);
-
-  public readonly isDirty: Computed<boolean>;
-  public readonly isApplying: Observable<boolean>;
-
-  private readonly _drafts = DraftChangesManager.create(this);
-  private readonly _draftSection: ConfigSection = {
-    isDirty: this._needsRestart,
-    needsRestart: true,
-    apply: () => this._save(),
-    describeChange: Computed.create(this, use =>
-      [{ label: t("Sandbox"), value: sandboxLabel(use(this._selected) ?? "") }],
-    ),
-  };
-
-  constructor() {
-    super();
-    this._drafts.addSection(this._draftSection);
-    this.isDirty = this._drafts.hasDraftChanges;
-    this.isApplying = this._drafts.isApplying;
-  }
-
-  public async apply(): Promise<void> {
-    await this._drafts.applyAll();
-  }
-
-  /** Returns "Skip and Continue" when env-locked; otherwise null to use shared defaults. */
-  public customLabel(use: UseCBOwner): string | null {
-    return use(this._model)?.flavorInEnv ? t("Skip and Continue") : null;
   }
 }
 
