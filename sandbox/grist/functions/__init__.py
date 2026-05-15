@@ -11,4 +11,3 @@ from .prevnext import *   # pylint: disable=import-error
 
 # Export all uppercase names, for use with `from functions import *`.
 __all__ = [k for k in dir() if not k.startswith('_') and k.isupper()]
-funcs = {k : globals()[k] for k in dir() if not k.startswith('_') and k.isupper()}

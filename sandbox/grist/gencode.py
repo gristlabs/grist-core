@@ -29,6 +29,7 @@ import table
 import textbuilder
 from usertypes import get_type_default
 import os
+import fnmatch, re
 log = logging.getLogger(__name__)
 
 indent_str = "  "
@@ -174,22 +175,10 @@ class GenCode:
 
     use_restricted_python = bool(os.environ.get("GRIST_RESTRICTED_USER", default=False))
 
-    userparts = ["import grist\n" +
+    fullparts = ["import grist\n" +
                  "from functions import *       # global uppercase functions\n" +
                  "import datetime, math, re     # modules commonly needed in formulas\n"]
-    if use_restricted_python:
-      fullparts = []
-      import grist, functions, datetime, math, re
-      autoImports = functions.funcs | dict(
-                    grist=grist,
-                    datetime=datetime,
-                    math=math,
-                    re=re,
-                  )
-      for k in autoImports.keys():
-        fullparts.append(f"{k} = _grist_autoimports['{k}']\n")
-    else:
-      fullparts = userparts[:]
+    userparts = fullparts[:]
 
     for table_info in sorted(schema.values(), key=lambda t: t.tableId):
       fullparts.append("\n\n")
@@ -208,7 +197,7 @@ class GenCode:
     self._full_builder = textbuilder.Combiner(fullparts)
     self._user_builder = textbuilder.Combiner(userparts)
     if use_restricted_python:
-      self._usercode = exec_module_text_restricted(self._full_builder.get_text(), autoImports)
+      self._usercode = exec_module_text_restricted(self._full_builder.get_text())
     else:
       self._usercode = exec_module_text(self._full_builder.get_text())
 
@@ -230,30 +219,62 @@ def _is_special_table(table_id):
 
 class NodeTransformer(RestrictingNodeTransformer):
   def __init__(self, *args):
-    self.ALLOWED_NAMES = [
+    ALLOWED_GLOB = [
       "_engine",
       "_Summary",
       "_summarySourceTable",
       "_find",
       "__name__",
-      "__dict__"
+      "__dict__",
+      "_default_*",
+      "_grist_*"
     ] + os.environ.get("GRIST_RESTRICTED_USER_ALLOWED_NAMES", default="").split(",")
+    self.ALLOWED_GLOB = [re.compile(fnmatch.translate(g)) for g in ALLOWED_GLOB]
+
+    ALLOWED_IMPORTS = [
+      "grist",
+      "re",
+      "datetime",
+      "math",
+      "functions.[*]"
+    ] + os.environ.get("GRIST_RESTRICTED_USER_ALLOWED_IMPORTS", default="").split(",")
+    self.ALLOWED_IMPORTS = [re.compile(fnmatch.translate(g)) for g in ALLOWED_IMPORTS]
     super().__init__(args)
 
   def check_name(self, node, name, allow_magic_methods=False):
     if name is None:
       return
-    if name.startswith('_grist') or name.startswith('_default'):
-      return
-    if name in self.ALLOWED_NAMES:
+    if any(r.match(name) != None for r in self.ALLOWED_GLOB):
       return
     return super().check_name(node, name, allow_magic_methods)
+
+  def visit_Import(self, node):
+    for name in node.names:
+      if not any(r.match(name.name) for r in self.ALLOWED_IMPORTS):
+        self.error(node, f'Import of "{name.name}" is not allowed.')
+      if name.asname:
+        self.check_name(node, name.asname)
+
+    return self.node_contents_visit(node)
+
+  def visit_ImportFrom(self, node):
+    if node.level != 0:
+      self.error(node, "Relative imports are not allowed.")
+
+    for name in node.names:
+      fname = node.module + '.' + name.name
+      if not any(r.match(fname) for r in self.ALLOWED_IMPORTS):
+        self.error(node, f'Import of "{fname}" is not allowed.')
+      if name.asname:
+        self.check_name(node, name.asname)
+
+    return self.node_contents_visit(node)
 
   def visit_Attribute(self, node):
     # We are forced to reimplement this function as its logic go further than accept or reject
     # even if we just need to accept more names
     from RestrictedPython.transformer import INSPECT_ATTRIBUTES, ast, copy_locations
-    if node.attr.startswith('_') and node.attr != '_' and not node.attr in self.ALLOWED_NAMES:
+    if node.attr.startswith('_') and node.attr != '_' and not any(r.match(node.attr) != None for r in self.ALLOWED_GLOB):
         self.error(
             node,
             '"{name}" is an invalid attribute name because it starts '
@@ -311,7 +332,6 @@ def exec_module_text_restricted(module_text):
   extra_env = dict(
     __builtins__ = safe_builtins | utility_builtins |
       dict(
-        _grist_autoimports=toImport,
         _getattr_=default_guarded_getattr,
         _getitem_=default_guarded_getitem,
         _getiter_=default_guarded_getiter,

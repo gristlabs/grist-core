@@ -1192,6 +1192,10 @@ export function getInsertedEnv(options: ISandboxOptions) {
     env.GRIST_RESTRICTED_USER_ALLOWED_NAMES = process.env.GRIST_RESTRICTED_USER_ALLOWED_NAMES;
   }
 
+  if (process.env.GRIST_RESTRICTED_USER_ALLOWED_IMPORTS){
+    env.GRIST_RESTRICTED_USER_ALLOWED_IMPORTS = process.env.GRIST_RESTRICTED_USER_ALLOWED_IMPORTS
+  }
+
   return env;
 }
 
