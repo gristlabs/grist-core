@@ -55,7 +55,7 @@ import { IPermissionInfo, MixedPermissionSetWithContext,
 import { TablePermissionSetWithContext } from "app/server/lib/PermissionInfo";
 import { integerParam } from "app/server/lib/requestUtils";
 import { getRelatedRows } from "app/server/lib/RowAccess";
-import { getDocSessionAccess, getDocSessionShare } from "app/server/lib/sessionUtils";
+import { getDocSessionAccess, getDocSessionDocAuth, getDocSessionShare } from "app/server/lib/sessionUtils";
 import { quoteIdent } from "app/server/lib/SQLiteDB";
 
 import cloneDeep from "lodash/cloneDeep";
@@ -372,7 +372,14 @@ export class GranularAccess implements GranularAccessForBundle {
       // Note: This is half-baked and doesn't account for other types of shares besides forms.
       fullUser = this._homeDbManager?.makeFullUser(this._homeDbManager.getAnonymousUser()) ?? null;
     } else {
-      fullUser = docSession.fullUser;
+      // If it's a request with an auth token, the access role will already reflect it, but
+      // respect also the user in the request.
+      const authTokenUser = getDocSessionDocAuth(docSession)?.authTokenUser;
+      if (authTokenUser && this._homeDbManager) {
+        fullUser = this._homeDbManager.makeFullUser(authTokenUser);
+      } else {
+        fullUser = docSession.fullUser;
+      }
     }
     const user = new User();
     user.Access = access;
