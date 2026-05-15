@@ -107,7 +107,7 @@ export function getFormOptionsLimit(options: FormFieldOptions): number {
 
 export interface FormAPI {
   getForm(options: GetFormOptions): Promise<Form>;
-  createRecord(options: CreateRecordOptions): Promise<void>;
+  createRecord(options: CreateRecordOptions): Promise<number>;
   createAttachments(options: CreateAttachmentOptions): Promise<number[]>;
 }
 
@@ -152,15 +152,16 @@ export class FormAPIImpl extends BaseAPI implements FormAPI {
     });
   }
 
-  public async createRecord(options: CreateRecordOptions): Promise<void> {
+  public async createRecord(options: CreateRecordOptions): Promise<number> {
     const { tableId, colValues } = options;
-    return this.requestJson(
+    const response = await this.requestJson(
       this._docOrShareUrl(`/tables/${tableId}/records`, options),
       {
         method: "POST",
         body: JSON.stringify({ records: [{ fields: colValues }] }),
       },
     );
+    return response?.records?.[0]?.id || 0;
   }
 
   public async createAttachments(options: CreateAttachmentOptions): Promise<number[]> {
