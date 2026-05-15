@@ -153,7 +153,7 @@ export class ApiServer {
     this._app.get("/api/orgs", expressWrap(async (req, res) => {
       const userId = getUserId(req);
       const domain = getOrgFromRequest(req);
-      const merged = Boolean(req.query.merged);
+      const merged = isParameterOn(req.query.merged);
       const query = merged ?
         await this._dbManager.getMergedOrgs(userId, userId, domain) :
         await this._dbManager.getOrgs(userId, domain);

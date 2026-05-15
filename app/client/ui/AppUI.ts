@@ -20,6 +20,7 @@ import { createDocMenu } from "app/client/ui/DocMenu";
 import { createForbiddenPage, createNotFoundPage, createOtherErrorPage } from "app/client/ui/errorPages";
 import { createHomeLeftPane } from "app/client/ui/HomeLeftPane";
 import { buildSnackbarDom } from "app/client/ui/NotifyUI";
+import { OAuthFlowUI } from "app/client/ui/OAuthFlow";
 import { OnboardingPage, shouldShowOnboardingPage } from "app/client/ui/OnboardingPage";
 import { pagePanels } from "app/client/ui/PagePanels";
 import { RightPanel } from "app/client/ui/RightPanel";
@@ -64,6 +65,10 @@ export function createAppUI(topAppModel: TopAppModel, appObj: App): IDisposable 
 }
 
 function createMainPage(appModel: AppModel, appObj: App) {
+  // The OAuth flow has its own page, in ext/, signalled via gristConfig.oauth.
+  if (getGristConfig().oauth) {
+    return OAuthFlowUI.buildOAuthFlow(appModel, appObj);
+  }
   if (!appModel.currentOrg && appModel.needsOrg.get()) {
     const err = appModel.orgError;
     if (err?.status === 404) {

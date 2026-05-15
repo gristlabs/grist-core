@@ -2,7 +2,7 @@ import { delay } from "app/common/delay";
 import * as gutil from "app/common/gutil";
 
 import { assert } from "chai";
-import { Observable } from "grainjs";
+import { Holder, Observable } from "grainjs";
 import * as ko from "knockout";
 import * as sinon from "sinon";
 
@@ -150,6 +150,41 @@ describe("gutil2", function() {
       assert.equal(gutil.isValidHex("#FF00"), false);
       assert.equal(gutil.isValidHex("FF00FF"), false);
       assert.equal(gutil.isValidHex("#FF00FG"), false);
+    });
+  });
+
+  describe("createObsFromPromise", function() {
+    it("should set the observable to the resolved value", async function() {
+      const holder = Holder.create<Observable<unknown>>(null);
+      const obs = gutil.createObsFromPromise(holder, Promise.resolve(17));
+      assert.strictEqual(obs.get(), undefined);
+      await delay(0);
+      assert.strictEqual(obs.get(), 17);
+      holder.dispose();
+    });
+
+    it("should set the observable to the Error on rejection", async function() {
+      const holder = Holder.create<Observable<unknown>>(null);
+      const err = new Error("boom");
+      const onError = sinon.spy();
+      const obs = gutil.createObsFromPromise<number>(holder, Promise.reject(err), onError);
+      await delay(0);
+      assert.strictEqual(obs.get(), err);
+      sinon.assert.calledOnceWithExactly(onError, err);
+      holder.dispose();
+    });
+
+    it("should skip both obs.set and onError after disposal", async function() {
+      const holder = Holder.create<Observable<unknown>>(null);
+      const onError = sinon.spy();
+      const obs = gutil.createObsFromPromise(holder, Promise.reject(new Error("late")), onError);
+      const obsListener = sinon.spy();
+      obs.addListener(obsListener);
+      // dispose is synchronous, so it runs before the rejection's microtask.
+      holder.dispose();
+      await delay(10);
+      sinon.assert.notCalled(obsListener);
+      sinon.assert.notCalled(onError);
     });
   });
 

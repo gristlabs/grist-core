@@ -1045,6 +1045,10 @@ export interface GristLoadConfig {
   userPresenceMaxUsers?: number;
 
   warnBeforeSharingPublicly?: boolean;
+
+  // Opaque payload for the OAuth flow, defined in ext/ in the full Grist build.
+  // Core uses only its presence to dispatch client-side rendering.
+  oauth?: unknown;
 }
 
 /**

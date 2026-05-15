@@ -819,17 +819,21 @@ export async function waitGrainObs<T>(observable: Observable<T>,
 }
 
 /**
- * Given a promise, returns an observable that starts out undefined and gets set to the resolved
- * value once the promise is fulfilled. On rejection, calls onError(err) callback without setting
- * the observable.
+ * Given a promise, returns an observable that starts out undefined, gets set to the resolved
+ * value once the promise is fulfilled, or to the Error if the promise is rejected. The optional
+ * onError callback runs after the rejection, for side-effects like a toast or logging.
  */
 export function createObsFromPromise<T>(
-  owner: IDisposableOwner, promise: Promise<T>, onError: (err: Error) => void,
-): Observable<T | undefined> {
-  const obs = Observable.create<T | undefined>(owner, undefined);
+  owner: IDisposableOwner, promise: Promise<T>, onError?: (err: Error) => void,
+): Observable<T | Error | undefined> {
+  const obs = Observable.create<T | Error | undefined>(owner, undefined);
   promise.then(
     (value) => { if (!obs.isDisposed()) { obs.set(value); } },
-    onError,
+    (err) => {
+      if (obs.isDisposed()) { return; }
+      if (!(err instanceof Error)) { err = new Error(String(err)); }
+      obs.set(err); onError?.(err);
+    },
   );
   return obs;
 }

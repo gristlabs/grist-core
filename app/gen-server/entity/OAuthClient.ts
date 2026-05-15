@@ -34,6 +34,9 @@ export class OAuthClient extends BaseEntity {
    * as is the case with json columns, and don't expect high write volumes that would make
    * jsonb's additional overhead a problem.
    *
+   * The type this stores is `AllClientMetdata` (from `oidc-provider` module); but it's not
+   * named here to avoid bringing in `oidc-provider` as a grist-core dependency.
+   *
    * Reference: https://github.com/panva/node-oidc-provider/blob/main/example/my_adapter.js#L93-L94.
    */
   @Column({ type: nativeValues.jsonbEntityType })
