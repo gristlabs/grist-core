@@ -1184,6 +1184,10 @@ export function getInsertedEnv(options: ISandboxOptions) {
     env.GRIST_FALSY_VALUES = process.env.GRIST_FALSY_VALUES;
   }
 
+  if (process.env.GRIST_RESTRICTED_USER){
+    env.GRIST_RESTRICTED_USER = process.env.GRIST_RESTRICTED_USER;
+  }
+
   return env;
 }
 

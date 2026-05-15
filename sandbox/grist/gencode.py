@@ -28,6 +28,7 @@ import summary
 import table
 import textbuilder
 from usertypes import get_type_default
+import os
 log = logging.getLogger(__name__)
 
 indent_str = "  "
@@ -171,10 +172,25 @@ class GenCode:
       if source_table_id:
         summary_tables.setdefault(source_table_id, []).append(table_info)
 
-    fullparts = []
+    use_restricted_python = bool(os.environ.get("GRIST_RESTRICTED_USER", default=False))
+
     userparts = ["import grist\n" +
                  "from functions import *       # global uppercase functions\n" +
                  "import datetime, math, re     # modules commonly needed in formulas\n"]
+    if use_restricted_python:
+      fullparts = []
+      import grist, functions, datetime, math, re
+      autoImports = functions.funcs | dict(
+                    grist=grist,
+                    datetime=datetime,
+                    math=math,
+                    re=re,
+                  )
+      for k in autoImports.keys():
+        fullparts.append(f"{k} = _grist_autoimports['{k}']\n")
+    else:
+      fullparts = userparts[:]
+
     for table_info in sorted(schema.values(), key=lambda t: t.tableId):
       fullparts.append("\n\n")
       fullparts.append(self._make_table_model(table_info, summary_tables.get(table_info.tableId)))
@@ -191,7 +207,10 @@ class GenCode:
     self._new_formula_cache = {}
     self._full_builder = textbuilder.Combiner(fullparts)
     self._user_builder = textbuilder.Combiner(userparts)
-    self._usercode = exec_module_text(self._full_builder.get_text())
+    if use_restricted_python:
+      self._usercode = exec_module_text_restricted(self._full_builder.get_text(), autoImports)
+    else:
+      self._usercode = exec_module_text(self._full_builder.get_text())
 
   def get_user_text(self):
     """Returns the text of the user-facing part of the generated code."""
@@ -217,7 +236,6 @@ ALLOWED_NAMES = [
   "__name__",
   "__dict__"
 ]
-ALLOWED_ATTRS = ALLOWED_NAMES
 class NodeTransformer(RestrictingNodeTransformer):
   def check_name(self, node, name, allow_magic_methods=False):
     if name is None:
@@ -227,9 +245,12 @@ class NodeTransformer(RestrictingNodeTransformer):
     if name in ALLOWED_NAMES:
       return
     return super().check_name(node, name, allow_magic_methods)
+
   def visit_Attribute(self, node):
+    # We are forced to reimplement this function as its logic go further than accept or reject
+    # even if we just need to accept more names
     from RestrictedPython.transformer import INSPECT_ATTRIBUTES, ast, copy_locations
-    if node.attr.startswith('_') and node.attr != '_' and not node.attr in ALLOWED_ATTRS:
+    if node.attr.startswith('_') and node.attr != '_' and not node.attr in ALLOWED_NAMES:
         self.error(
             node,
             '"{name}" is an invalid attribute name because it starts '
@@ -320,8 +341,6 @@ def exec_module_text_restricted(module_text):
   )
   for k,v in extra_env.items():
     mod.__dict__[k] = v
-  for k in toImport.keys():
-    module_text = f"{k} = _grist_autoimports['{k}']\n" + module_text
   codebuilder.save_to_linecache(module_text)
   code_obj = compile_restricted(module_text, codebuilder.code_filename, "exec", policy=NodeTransformer)
   # pylint: disable=exec-used
