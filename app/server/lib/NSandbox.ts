@@ -1184,6 +1184,18 @@ export function getInsertedEnv(options: ISandboxOptions) {
     env.GRIST_FALSY_VALUES = process.env.GRIST_FALSY_VALUES;
   }
 
+  if (process.env.GRIST_RESTRICTED_USER){
+    env.GRIST_RESTRICTED_USER = process.env.GRIST_RESTRICTED_USER;
+  }
+
+  if (process.env.GRIST_RESTRICTED_USER_ALLOWED_NAMES){
+    env.GRIST_RESTRICTED_USER_ALLOWED_NAMES = process.env.GRIST_RESTRICTED_USER_ALLOWED_NAMES;
+  }
+
+  if (process.env.GRIST_RESTRICTED_USER_ALLOWED_IMPORTS){
+    env.GRIST_RESTRICTED_USER_ALLOWED_IMPORTS = process.env.GRIST_RESTRICTED_USER_ALLOWED_IMPORTS
+  }
+
   return env;
 }
 
