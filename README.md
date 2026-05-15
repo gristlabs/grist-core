@@ -428,6 +428,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_SQLITE_MODE | if set to `wal`, use SQLite in [WAL mode](https://www.sqlite.org/wal.html), if set to `sync`, use SQLite with [SYNCHRONOUS=full](https://www.sqlite.org/pragma.html#pragma_synchronous)
 | GRIST_ANON_PLAYGROUND | When set to `false` deny anonymous users access to the home page (but documents can still be shared to anonymous users). Defaults to `true`, unless GRIST_ORG_CREATION_ANYONE is `false`. |
 | GRIST_FORCE_LOGIN | Setting it to `true` is similar to setting `GRIST_ANON_PLAYGROUND: false` but it blocks any anonymous access (thus any document shared publicly actually requires the users to be authenticated before consulting them) |
+| GRIST_AUTHENTICATED_FORMS | When set to `true`, form replies done from an authenticated device are attributed to that user, instead of being forcefully anonymized (default since 1.7.7). |
 | GRIST_PERSONAL_ORGS | When set to `false` prevent new personal orgs from being created when a user signs up. Defaults to `true`, unless GRIST_ORG_CREATION_ANYONE is `false`. |
 | GRIST_ORG_CREATION_ANYONE | When set to `false`, prevent new team orgs from being created by non-admin users. Sets default values of `GRIST_ANON_PLAYGROUND` and `GRIST_PERSONAL_ORGS` to `false`. Defaults to `true`. |
 | GRIST_SINGLE_ORG | set to an org "domain" to pin client to that org |
