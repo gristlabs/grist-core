@@ -13,6 +13,7 @@ import { getAppRoot, getAppRootFor, getUnpackedAppRoot } from "app/server/lib/pl
 import {
   DirectProcessControl,
   ISandboxControl,
+  KubeSandboxControl,
   NoProcessControl,
   ProcessInfo,
   SubprocessControl,
@@ -23,6 +24,7 @@ import * as shutdown from "app/server/lib/shutdown";
 
 import { ChildProcess, fork, spawn, SpawnOptionsWithoutStdio } from "child_process";
 import * as fs from "fs";
+import * as os from "os";
 import * as path from "path";
 import { Stream, Writable } from "stream";
 
@@ -524,6 +526,7 @@ const spawners = {
   unsandboxed,        // No sandboxing, straight to host python.
   // This offers no protection to the host.
   docker,             // Run sandboxes in distinct docker containers.
+  kube,               // Run sandboxes in distinct kubernetes pods.
   gvisor,             // Gvisor's runsc sandbox.
   macSandboxExec,     // Use "sandbox-exec" on Mac.
   pyodide,            // Run data engine using pyodide.
@@ -1055,6 +1058,69 @@ function docker(options: ISandboxOptions): SandboxProcess {
   ]);
   log.rawDebug("cannot do process control via docker yet", { ...options.logMeta });
   return { name: "docker", child, control: () => new NoProcessControl(child) };
+}
+
+/**
+ * Helper function to run python in a container with k8s. Each sandbox run in a
+ * distinct pod. GRIST_SANDBOX should be the name of an image where
+ * `python` can be run and all Grist dependencies are installed.  See
+ * `sandbox/docker` for more. Extra kubectl run arguments can be given through
+ * KUBE_EXTRA_ARGS. For run specific arguments, use KUBE_EXTRA_RUN_ARGS.
+ */
+function kube(options: ISandboxOptions): SandboxProcess {
+  const { command } = options;
+  if (options.minimalPipeMode === false) {
+    throw new Error("kubernetes only supports 3-pipe operation");
+  }
+  const paths = getAbsolutePaths(options);
+  const wrapperArgs = new FlagBag({ env: "--env", mount: "-m" });
+  wrapperArgs.push(...options.testSandboxArgs);
+  if (paths.importDir) {
+    throw new Error("kubernetes does not support importDir usage");
+  }
+  wrapperArgs.addAllEnv(getInsertedEnv(options));
+  wrapperArgs.addEnv("PYTHONPATH", "grist:thirdparty");
+
+  const commandParts = [
+    // DETERMINISTIC_MODE is already set by getInsertedEnv().  We also take
+    // responsibility here for running faketime around python.
+    ...(options.deterministicMode ? ["faketime", "-f", FAKETIME] : []),
+    "python",
+  ];
+
+  const pythonArgs = [
+    ...options.testPythonArgs,
+    ...(options.useGristEntrypoint !== false ? ["grist/main.py"] : []),
+  ];
+
+  const appendArgs = [
+    ...(options.comment ? [options.comment] : []),
+    ...(options.appendArgs ?? []),
+  ];
+
+  if (process.env.KUBE_EXTRA_RUN_ARGS) {
+    wrapperArgs.push(...process.env.KUBE_EXTRA_RUN_ARGS.split(" "));
+  }
+
+  let podname: string = os.hostname() + "-";
+  for (let i = 0; i < 8; i++) {
+    podname += "abcdefghijklmnopqrstuvwxyz".charAt(Math.floor(Math.random() * 26));
+  }
+  const kubectlPath = which.sync("kubectl");
+  const child = spawn(kubectlPath, [
+    ...(process.env.KUBE_EXTRA_ARGS ? process.env.KUBE_EXTRA_ARGS.split(" ") : []),
+    "run", "--rm", "--command=true", "--restart=Never",
+    "-i",
+    ...wrapperArgs.get(),
+    `--image=${command || "grist-docker-sandbox"}`,  // this is the docker image to use
+    podname,
+    "--",
+    ...commandParts,
+    ...pythonArgs,
+    ...appendArgs,
+  ]);
+  log.rawDebug("cannot do process control via kubernetes yet", { ...options.logMeta });
+  return { name: "kubernetes", child, control: () => new KubeSandboxControl(child, podname) };
 }
 
 /**
