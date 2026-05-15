@@ -56,6 +56,11 @@ COPY sandbox/requirements.txt /grist/sandbox/requirements.txt
 RUN \
   cd /grist/sandbox/pyodide && make setup
 
+# get kubectl
+RUN curl -LO "https://dl.k8s.io/release/v1.35.3/bin/linux/amd64/kubectl"
+RUN install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+RUN rm kubectl
+
 ################################################################################
 ## Python collection stage
 ################################################################################
@@ -122,6 +127,9 @@ RUN \
 
 # Copy runsc.
 COPY --from=sandbox /runsc /usr/bin/runsc
+
+# Copy kubectl
+COPY --from=builder /usr/local/bin/kubectl /usr/local/bin/kubectl
 
 # Add files needed for running server.
 COPY package.json /grist/package.json
