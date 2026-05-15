@@ -20,7 +20,6 @@ import TriggersTI from "app/common/Triggers-ti";
 import { ActiveDoc } from "app/server/lib/ActiveDoc";
 import { makeExceptionalDocSession } from "app/server/lib/DocSession";
 import log from "app/server/lib/log";
-import { matchesBaseDomain } from "app/server/lib/requestUtils";
 import { type ActionPayload, type ActionQueue } from "app/server/lib/WebhookQueue";
 
 import { promisifyAll } from "bluebird";
@@ -537,35 +536,7 @@ export class DocTriggers {
   }
 }
 
-export function isUrlAllowed(urlString: string) {
-  let url: URL;
-  try {
-    url = new URL(urlString);
-  } catch (e) {
-    return false;
-  }
-
-  // Support at most https and http.
-  if (url.protocol !== "https:" && url.protocol !== "http:") {
-    return false;
-  }
-
-  // Support a wildcard that allows all domains.
-  // Allow either https or http if it is set.
-  if (process.env.ALLOWED_WEBHOOK_DOMAINS === "*") {
-    return true;
-  }
-
-  // http (no s) is only allowed for localhost for testing.
-  // localhost still needs to be explicitly permitted, and it shouldn't be outside dev
-  if (url.protocol !== "https:" && url.hostname !== "localhost") {
-    return false;
-  }
-
-  return (process.env.ALLOWED_WEBHOOK_DOMAINS || "").split(",").some(domain =>
-    domain && matchesBaseDomain(url.host, domain),
-  );
-}
+export { isUrlAllowed } from "app/server/lib/outgoingRequests";
 
 /**
  * Builds the context object for evaluating trigger formulas.

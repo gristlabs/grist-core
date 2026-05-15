@@ -34,6 +34,7 @@ import { InstallConfigsAPI } from "app/client/ui/ConfigsAPI";
 import { DraftChangesManager } from "app/client/ui/DraftChanges";
 import { EditionSection } from "app/client/ui/EditionSection";
 import { peekSetupReturnFromGetGristCom } from "app/client/ui/GetGristComProvider";
+import { buildOutgoingRequestsPanel, buildOutgoingRequestsSummary } from "app/client/ui/OutgoingRequestsStatus";
 import { pagePanels } from "app/client/ui/PagePanels";
 import {
   buildPermissionsCard,
@@ -543,6 +544,13 @@ class AdminInstallationPanel extends Disposable {
           value: buildPermissionsStatusDisplay(this._permissionsModel),
           expandedContent: buildPermissionsCard(this._permissionsModel),
         }),
+        SectionItem({
+          id: "outgoing-requests",
+          name: t("Outgoing requests"),
+          description: t("How user actions can reach the outside world"),
+          value: this._buildOutgoingRequestsDisplay(),
+          expandedContent: this._buildOutgoingRequestsContent(),
+        }),
       ]),
       this._buildBackupsSection(),
       this._buildAuditLogsSection(),
@@ -862,6 +870,20 @@ GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not se
 in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.");
   }
 
+  private _buildOutgoingRequestsDisplay() {
+    return dom.domComputed((use) => {
+      const req = this._checks.requestCheckById(use, "outgoing-requests");
+      return buildOutgoingRequestsSummary(req ? use(req.result) : undefined);
+    });
+  }
+
+  private _buildOutgoingRequestsContent() {
+    return dom.domComputed((use) => {
+      const req = this._checks.requestCheckById(use, "outgoing-requests");
+      return buildOutgoingRequestsPanel(req ? use(req.result) : undefined);
+    });
+  }
+
   private _buildUpdates(owner: MultiHolder) {
     // We can be in those states:
     enum State {
@@ -1101,6 +1123,7 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
             "session-secret",
             "service-status",
             "backups",
+            "outgoing-requests",
           ].includes(probe.id);
           const show = isRedundant ? options.showRedundant : options.showNovel;
           if (!show) { return null; }
