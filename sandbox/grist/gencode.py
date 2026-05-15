@@ -228,21 +228,24 @@ class GenCode:
 def _is_special_table(table_id):
   return table_id.startswith("_grist_")
 
-ALLOWED_NAMES = [
-  "_engine",
-  "_Summary",
-  "_summarySourceTable",
-  "_find",
-  "__name__",
-  "__dict__"
-]
 class NodeTransformer(RestrictingNodeTransformer):
+  def __init__(self, *args):
+    self.ALLOWED_NAMES = [
+      "_engine",
+      "_Summary",
+      "_summarySourceTable",
+      "_find",
+      "__name__",
+      "__dict__"
+    ] + os.environ.get("GRIST_RESTRICTED_USER_ALLOWED_NAMES", default="").split(",")
+    super().__init__(args)
+
   def check_name(self, node, name, allow_magic_methods=False):
     if name is None:
       return
     if name.startswith('_grist') or name.startswith('_default'):
       return
-    if name in ALLOWED_NAMES:
+    if name in self.ALLOWED_NAMES:
       return
     return super().check_name(node, name, allow_magic_methods)
 
@@ -250,7 +253,7 @@ class NodeTransformer(RestrictingNodeTransformer):
     # We are forced to reimplement this function as its logic go further than accept or reject
     # even if we just need to accept more names
     from RestrictedPython.transformer import INSPECT_ATTRIBUTES, ast, copy_locations
-    if node.attr.startswith('_') and node.attr != '_' and not node.attr in ALLOWED_NAMES:
+    if node.attr.startswith('_') and node.attr != '_' and not node.attr in self.ALLOWED_NAMES:
         self.error(
             node,
             '"{name}" is an invalid attribute name because it starts '
