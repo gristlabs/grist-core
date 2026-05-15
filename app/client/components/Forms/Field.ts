@@ -3,10 +3,10 @@ import { buildEditor } from "app/client/components/Forms/Editor";
 import { FormView } from "app/client/components/Forms/FormView";
 import { BoxModel, ignoreClick } from "app/client/components/Forms/Model";
 import * as css from "app/client/components/Forms/styles";
-import { ReferenceUtils } from "app/client/lib/ReferenceUtils";
 import { stopEvent } from "app/client/lib/domUtils";
 import { makeT } from "app/client/lib/localization";
-import { DocModel, refRecord } from "app/client/models/DocModel";
+import { ReferenceUtils } from "app/client/lib/ReferenceUtils";
+import { DocModel, refRecord, type ViewFieldRec } from "app/client/models/DocModel";
 import TableModel from "app/client/models/TableModel";
 import {
   FormFieldOptions,
@@ -22,9 +22,10 @@ import { autoGrow } from "app/client/ui/forms";
 import { cssCheckboxSquare, cssLabel, squareCheckbox } from "app/client/ui2018/checkbox";
 import { cssRadioInput } from "app/client/ui2018/radio";
 import { toggleSwitch } from "app/client/ui2018/toggleSwitch";
-import { ChoiceItem, buildDropdownConditionFilter } from "app/client/widgets/ChoiceListEditor";
+import { buildDropdownConditionFilter, ChoiceItem } from "app/client/widgets/ChoiceListEditor";
 import { isBlankValue } from "app/common/gristTypes";
 import { Constructor, not } from "app/common/gutil";
+import { UIRowId } from "app/plugin/GristAPI";
 
 import {
   BindableValue,
@@ -45,9 +46,6 @@ import {
   UseCB,
 } from "grainjs";
 import * as ko from "knockout";
-
-import type { ViewFieldRec } from "app/client/models/DocModel";
-import { UIRowId } from "app/plugin/GristAPI";
 
 const testId = makeTestId("test-forms-");
 
