@@ -6,6 +6,7 @@ import * as childProcess from "child_process";
 import * as util from "util";
 
 import pidusage from "pidusage";
+import * as which from "which";
 
 const execFile = util.promisify(childProcess.execFile);
 
@@ -73,6 +74,33 @@ export class NoProcessControl implements ISandboxControl {
   }
 
   public async close() {
+  }
+
+  public prepareToClose() {
+  }
+
+  public async kill() {
+    this._process.kill("SIGKILL");
+  }
+
+  public async getUsage() {
+    return { memory: Infinity };
+  }
+}
+
+/**
+ * Dummy control interface that does no monitoring or throttling.
+ */
+export class KubeSandboxControl implements ISandboxControl {
+  constructor(private _process: childProcess.ChildProcess, private _podName: string) {
+  }
+
+  public async close() {
+    const kubectlPath = which.sync("kubectl");
+    childProcess.spawn(kubectlPath, [
+      ...(process.env.KUBE_EXTRA_ARGS ? process.env.KUBE_EXTRA_ARGS.split(" ") : []),
+      "delete", "pod", this._podName, "--now",
+    ]);
   }
 
   public prepareToClose() {

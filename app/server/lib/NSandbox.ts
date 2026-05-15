@@ -13,6 +13,7 @@ import { getAppRoot, getAppRootFor, getUnpackedAppRoot } from "app/server/lib/pl
 import {
   DirectProcessControl,
   ISandboxControl,
+  KubeSandboxControl,
   NoProcessControl,
   ProcessInfo,
   SubprocessControl,
@@ -1064,7 +1065,7 @@ function docker(options: ISandboxOptions): SandboxProcess {
  * distinct pod. GRIST_SANDBOX should be the name of an image where
  * `python` can be run and all Grist dependencies are installed.  See
  * `sandbox/docker` for more. Extra kubectl run arguments can be given through
- * KUBE_EXTRA_ARGS.
+ * KUBE_EXTRA_ARGS. For run specific arguments, use KUBE_EXTRA_RUN_ARGS.
  */
 function kube(options: ISandboxOptions): SandboxProcess {
   const { command } = options;
@@ -1097,8 +1098,8 @@ function kube(options: ISandboxOptions): SandboxProcess {
     ...(options.appendArgs ?? []),
   ];
 
-  if (process.env.KUBE_EXTRA_ARGS) {
-    wrapperArgs.push(...process.env.KUBE_EXTRA_ARGS.split(" "));
+  if (process.env.KUBE_EXTRA_RUN_ARGS) {
+    wrapperArgs.push(...process.env.KUBE_EXTRA_RUN_ARGS.split(" "));
   }
 
   let podname: string = os.hostname() + "-";
@@ -1107,6 +1108,7 @@ function kube(options: ISandboxOptions): SandboxProcess {
   }
   const kubectlPath = which.sync("kubectl");
   const child = spawn(kubectlPath, [
+    ...(process.env.KUBE_EXTRA_ARGS ? process.env.KUBE_EXTRA_ARGS.split(" ") : []),
     "run", "--rm", "--command=true", "--restart=Never",
     "-i",
     ...wrapperArgs.get(),
@@ -1118,7 +1120,7 @@ function kube(options: ISandboxOptions): SandboxProcess {
     ...appendArgs,
   ]);
   log.rawDebug("cannot do process control via kubernetes yet", { ...options.logMeta });
-  return { name: "kubernetes", child, control: () => new NoProcessControl(child) };
+  return { name: "kubernetes", child, control: () => new KubeSandboxControl(child, podname) };
 }
 
 /**
