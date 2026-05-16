@@ -2,7 +2,7 @@ import { buildHomeBanners } from "app/client/components/Banners";
 import { makeT } from "app/client/lib/localization";
 import { markdown } from "app/client/lib/markdown";
 import { getTimeFromNow } from "app/client/lib/timeUtils";
-import { AdminCheckRequest, AdminChecks, probeDetails, ProbeDetails } from "app/client/models/AdminChecks";
+import { AdminCheckRequest, AdminChecks, ProbeDetails } from "app/client/models/AdminChecks";
 import { AppModel, getHomeUrl, reportError } from "app/client/models/AppModel";
 import { AuditLogsModel, AuditLogsModelImpl } from "app/client/models/AuditLogsModel";
 import { urlState } from "app/client/models/gristUrlState";
@@ -41,6 +41,7 @@ import {
 } from "app/client/ui/PermissionsSetupSection";
 import { PermissionsToggleModel } from "app/client/ui/PermissionsToggleModel";
 import { QuickSetup } from "app/client/ui/QuickSetup";
+import { SandboxSetupSection } from "app/client/ui/SandboxSection";
 import { ServiceStatus } from "app/client/ui/ServiceStatus";
 import {
   cssPageTitle,
@@ -63,7 +64,7 @@ import { icon } from "app/client/ui2018/icons";
 import { cssLink, makeLinks } from "app/client/ui2018/links";
 import { confirmModal, spinnerModal } from "app/client/ui2018/modals";
 import { toggleSwitch } from "app/client/ui2018/toggleSwitch";
-import { BootProbeInfo, BootProbeResult, SandboxingBootProbeDetails } from "app/common/BootProbe";
+import { BootProbeInfo, BootProbeResult } from "app/common/BootProbe";
 import { ConfigAPI } from "app/common/ConfigAPI";
 import { delay } from "app/common/delay";
 import { AdminPanelPage, commonUrls, getPageTitleSuffix, LatestVersionAvailable } from "app/common/gristUrls";
@@ -231,6 +232,9 @@ class AdminInstallationPanel extends Disposable {
   // construction time and the "no valid user" admin path renders
   // alternative content that doesn't need the section anyway.
   private _authSection: AuthenticationSection | undefined;
+  // Created in the constructor body since it needs `_checks`. Heavy
+  // provider-enumeration probe is deferred until the row is expanded.
+  private _sandboxSection!: SandboxSetupSection;
 
   // Banner visibility: shown when a tracked section has restart-required
   // pending changes, or the user has applied changes without a restart and
@@ -258,9 +262,15 @@ class AdminInstallationPanel extends Disposable {
       });
     }
 
+    this._sandboxSection = SandboxSetupSection.create(this, {
+      checks: this._checks,
+      inAdminPanel: true,
+    });
+
     this._drafts.addSection(this._baseUrlSection);
     this._drafts.addSection(this._editionSection);
     this._drafts.addSection(this._permissionsModel);
+    this._drafts.addSection(this._sandboxSection);
     if (this._authSection) {
       this._drafts.addSection(this._authSection);
     }
@@ -519,8 +529,8 @@ class AdminInstallationPanel extends Disposable {
           id: "sandboxing",
           name: t("Sandboxing"),
           description: t("Sandbox settings for data engine"),
-          value: this._buildSandboxingDisplay(),
-          expandedContent: this._buildSandboxingNotice(),
+          value: this._sandboxSection.buildStatusDisplay(),
+          expandedContent: this._sandboxSection.buildDom(),
         }),
         SectionItem({
           id: "authentication",
@@ -637,43 +647,6 @@ class AdminInstallationPanel extends Disposable {
   private _buildInstallationIdRow() {
     const installationId = this._editionSection.getInstallationIdObservable();
     return installationId && dom("p", buildInstallationIdDisplay(installationId));
-  }
-
-  private _buildSandboxingDisplay() {
-    return dom.domComputed(
-      (use) => {
-        const req = this._checks.requestCheckById(use, "sandboxing");
-        const result = req ? use(req.result) : undefined;
-        const success = result?.status === "success";
-        const details = result?.details as SandboxingBootProbeDetails | undefined;
-        if (!details) {
-          // Sandbox details get filled out relatively slowly if
-          // this is first time on admin panel. So show "checking"
-          // if we don't have a reported status yet.
-          return cssValueLabel(result?.status ? t("unknown") : t("checking"));
-        }
-        const flavor = details.flavor;
-        const configured = details.configured;
-        return cssValueLabel(
-          configured ?
-            (success ? cssHappyText(t("OK") + `: ${flavor}`) :
-              cssErrorText(t("Error") + `: ${flavor}`)) :
-            cssErrorText(t("unconfigured")));
-      },
-    );
-  }
-
-  private _buildSandboxingNotice() {
-    return [
-      // Use AdminChecks text for sandboxing, in order not to
-      // duplicate.
-      probeDetails.sandboxing.info,
-      dom(
-        "div",
-        { style: "margin-top: 8px" },
-        cssLink({ href: commonUrls.helpSandboxing, target: "_blank" }, t("Learn more.")),
-      ),
-    ];
   }
 
   private _buildAdminUsersComputed(
