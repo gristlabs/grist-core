@@ -244,28 +244,13 @@ describe("uploads", function() {
         assert.deepEqual(pick(result3.files[0], ["origName", "ext"]), { origName: "file3.csv", ext: ".json" });
       });
 
-      it("should use fetchTrusted when isTrusted option is true", async function() {
-        const fetchTrustedStub = sandbox.stub(Deps, "fetchTrusted").callsFake(async () => response);
-        response = new Response(streamify("a, b\n0, 1\n"));
-        url = "fake/trusted/url";
-        response.headers.set("content-type", "text/csv; charset=utf-8");
-
-        // Call fetchURL with isTrusted: true
-        const result = await fetchURL(url, null, { isTrusted: true });
-
-        // Verify fetchTrusted was called and fetch was not
-        sinon.assert.calledOnce(fetchTrustedStub);
-        sinon.assert.notCalled(Deps.fetch as any);
-        assert.equal(result.files.length, 1);
-      });
-
-      it("should use fetch when isTrusted option is false or not set", async function() {
+      it("should use fetch by default for public fetchURL", async function() {
         sandbox.stub(Deps, "fetchTrusted").callsFake(async () => response);
         response = new Response(streamify("a, b\n0, 1\n"));
         url = "fake/untrusted/url";
         response.headers.set("content-type", "text/csv; charset=utf-8");
 
-        // Call fetchURL without isTrusted option
+        // Call fetchURL (uses Deps.fetch by default for untrusted requests)
         const result = await fetchURL(url, null);
 
         // Verify fetch was called and fetchTrusted was not

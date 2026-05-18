@@ -441,8 +441,15 @@ export async function fetchURL(url: string, accessId: string | null, options?: F
 /**
  * Register a new upload with resource fetched from a url, optionally including credentials in
  * request. Returns corresponding UploadInfo.
+ *
+ * @param isTrusted Internal parameter: only used by fetchDoc() for internal doc worker URLs.
  */
-async function _fetchURL(url: string, accessId: string | null, options?: FetchUrlOptions): Promise<UploadResult> {
+async function _fetchURL(
+  url: string,
+  accessId: string | null,
+  options?: FetchUrlOptions,
+  isTrusted?: boolean
+): Promise<UploadResult> {
   try {
     const code = options?.googleAuthorizationCode;
     let fileName = options?.fileName ?? "";
@@ -452,7 +459,7 @@ async function _fetchURL(url: string, accessId: string | null, options?: FetchUr
       response = await downloadFromGDrive(url, code);
       fileName = ""; // Read the file name from headers.
     } else {
-      const fetchFunc = options?.isTrusted ? Deps.fetchTrusted : Deps.fetch;
+      const fetchFunc = isTrusted ? Deps.fetchTrusted : Deps.fetch;
       response = await fetchFunc(url, {
         redirect: "follow",
         follow: 10,
@@ -519,7 +526,7 @@ export async function fetchDoc(
 
   // Download the document, in full or as a template.
   const url = new URL(`api/docs/${docId}/download?template=${Number(template)}`, apiBaseUrl);
-  return _fetchURL(url.href, accessId, { headers, isTrusted: true });
+  return _fetchURL(url.href, accessId, { headers }, /* isTrusted */ true);
 }
 
 // Re-issue failures as exceptions.
