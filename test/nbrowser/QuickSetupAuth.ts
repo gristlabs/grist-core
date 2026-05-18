@@ -242,6 +242,7 @@ describe("QuickSetupAuth", function() {
       oidc = await startMockOIDCIssuer({ authorize: true });
       // testServer.ts puts HOME_PORT in the child env only, so read the port off the server URL.
       const homePort = new URL(server.getHost()).port;
+      if (!homePort) { throw new Error(`No port in server URL: ${server.getHost()}`); }
       await restartWithEnv({
         // GRIST_RESTART_SHELL=true overrides the GRIST_TESTING_SOCKET gate in
         // shouldRunAsRestartShell so /api/admin/restart actually drives a

@@ -299,7 +299,7 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
 
   public async getTestingHooks() {
     // A RestartShell worker exit (/api/admin/restart) peer-closes our socket; reconnect to
-    // the same path -- the RestartShell parent rebinds it.
+    // the same path -- each respawned worker rebinds the socket file via GRIST_TESTING_SOCKET.
     if (this.testingHooks?.isClosed()) {
       this.testingHooks = await connectTestingHooks(this._testingSocketPath);
     }
