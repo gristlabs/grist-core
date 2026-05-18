@@ -162,6 +162,9 @@ describe("ScreenReader", function() {
 
     // With SR improvements enabled, we should be back on the row we just edited (the first one)
     await gu.assertScreenReaderAnnouncement("row 1 Any");
+
+    // Disable SR improvements
+    await gu.sendKeys(Key.chord(Key.SHIFT, Key.F4));
   });
 
   it("has cleaned up the announcements DOM on the fly", async function() {
