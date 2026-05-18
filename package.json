@@ -204,7 +204,7 @@
     "moment-timezone": "0.5.35",
     "morgan": "1.9.1",
     "mousetrap": "1.6.2",
-    "multiparty": "4.2.2",
+    "multiparty": "4.3.0",
     "node-abort-controller": "3.0.1",
     "node-fetch": "2.6.7",
     "openid-client": "5.6.1",
