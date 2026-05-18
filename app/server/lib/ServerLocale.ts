@@ -8,7 +8,7 @@ const fallbackLocale = "en-US";
 
 export function getDefaultLocale() {
   const envLocale = process.env.GRIST_DEFAULT_LOCALE;
-  return envLocale && localeCodes.includes(envLocale) ? envLocale : fallbackLocale;
+  return envLocale && localeCodes.has(envLocale) ? envLocale : fallbackLocale;
 }
 
 /**
@@ -17,6 +17,6 @@ export function getDefaultLocale() {
  */
 export function localeFromRequest(req: IncomingMessage, defaultLocale: string = getDefaultLocale()) {
   const languages = languageParser(req.headers["accept-language"]!);
-  const match = languages.find(l => l.code && l.region && localeCodes.includes(`${l.code}-${l.region}`));
+  const match = languages.find(l => l.code && l.region && localeCodes.has(`${l.code}-${l.region}`));
   return match ? `${match.code}-${match.region}` : defaultLocale;
 }
