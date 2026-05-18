@@ -448,7 +448,7 @@ async function _fetchURL(
   url: string,
   accessId: string | null,
   options?: FetchUrlOptions,
-  isTrusted?: boolean
+  isTrusted?: boolean,
 ): Promise<UploadResult> {
   try {
     const code = options?.googleAuthorizationCode;
