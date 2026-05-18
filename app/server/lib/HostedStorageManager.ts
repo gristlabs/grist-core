@@ -733,6 +733,13 @@ export class HostedStorageManager implements IDocStorageManager {
       if (!await this._ext.exists(options.trunkId)) { throw new ApiError("Cannot find original", 404); }
       sourceDocId = options.trunkId;
     }
+    // downloadTo renames a temp file into place with overwrite:false, so the
+    // destination must not exist. A stale local copy may still be around
+    // (test fixtures, a crashed worker that left a file behind, or another
+    // worker that owned the doc earlier); we're about to replace it with the
+    // canonical S3 copy anyway.
+    // NOTE: fse.remove succeeds also when the file does not exist.
+    await fse.remove(this.getPath(destId));
     await this._ext.downloadTo(sourceDocId, destId, this.getPath(destId), options.snapshotId);
     return true;
   }
