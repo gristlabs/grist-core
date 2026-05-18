@@ -310,6 +310,11 @@ export async function useLocalDoc(srcPath: string, storageManager: any, alias: s
     (name: string) => docUtils.createExclusive(storageManager.getPath(name)));
   await docUtils.copyFile(srcPath, storageManager.getPath(docName));
   await storageManager.markAsChanged(docName);
+  // Leave the doc in the same state as a freshly-closed one: pending uploads
+  // flushed and the local copy wiped on managers that treat external storage
+  // as canonical (HostedStorageManager when S3 is enabled). On filesystem-only
+  // managers, closeDocument is a no-op, so the local file remains as-is.
+  await storageManager.closeDocument(docName);
   return docName;
 }
 
