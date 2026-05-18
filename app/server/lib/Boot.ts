@@ -2,6 +2,7 @@ import { ApiError } from "app/common/ApiError";
 import { normalizeEmail } from "app/common/emails";
 import { isEmail } from "app/common/gutil";
 import { UserProfile } from "app/common/UserAPI";
+import { makeAdminPageConfig } from "app/server/lib/adminPageConfig";
 import { appSettings } from "app/server/lib/AppSettings";
 import { RequestWithLogin } from "app/server/lib/Authorizer";
 import { expressWrap, secureJsonErrorHandler } from "app/server/lib/expressWrap";
@@ -73,7 +74,7 @@ export class BootKeyLoginMiddleware implements GristLoginMiddleware {
       await this._server.sendAppPage(req, res, {
         path: "app.html",
         status: 200,
-        config: {},
+        config: makeAdminPageConfig(this._server),
       });
     }));
 

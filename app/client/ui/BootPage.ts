@@ -24,6 +24,7 @@ import { ApiError } from "app/common/ApiError";
 import { AdminPanelPage } from "app/common/gristUrls";
 import { isEmail } from "app/common/gutil";
 import { tokens } from "app/common/ThemePrefs";
+import { getAdminConfig } from "app/common/urlUtils";
 
 import { Computed, Disposable, dom, makeTestId, Observable, styled } from "grainjs";
 
@@ -225,7 +226,10 @@ check your terminal, container logs, or hosting panel: {{exampleBootKeyBanner}}`
             this._loginError.set(null);
 
             const nextParam = new URLSearchParams(window.location.search).get("next");
-            const next = AdminPanelPage.parse(nextParam) || "admin";
+            // Treat only an explicit `false` as out-of-service so a missing/cached config
+            // doesn't redirect admins to /admin/setup unexpectedly.
+            const fallback: AdminPanelPage = getAdminConfig().inService === false ? "setup" : "admin";
+            const next = AdminPanelPage.parse(nextParam) || fallback;
             window.location.assign(urlState().makeUrl({ adminPanel: next }));
           },
           onError: (e) => {

@@ -2624,10 +2624,10 @@ available-typed-arrays@^1.0.7:
   dependencies:
     possible-typed-array-names "^1.0.0"
 
-axios@1.15.0:
-  version "1.15.0"
-  resolved "https://registry.yarnpkg.com/axios/-/axios-1.15.0.tgz#0fcee91ef03d386514474904b27863b2c683bf4f"
-  integrity sha512-wWyJDlAatxk30ZJer+GeCWS209sA42X+N5jU2jy6oHTp7ufw8uzUTVFBX9+wTfAlhiJXGS0Bq7X6efruWjuK9Q==
+axios@1.15.2:
+  version "1.15.2"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-1.15.2.tgz#eb8fb6d30349abace6ade5b4cb4d9e8a0dc23e5b"
+  integrity sha512-wLrXxPtcrPTsNlJmKjkPnNPK2Ihe0hn0wGSaTEiHRPxwjvJwT3hKmXF4dpqxmPO9SoNb2FsYXj/xEo0gHN+D5A==
   dependencies:
     follow-redirects "^1.15.11"
     form-data "^4.0.5"
@@ -2678,9 +2678,9 @@ basic-auth@^2.0.1, basic-auth@~2.0.0:
     safe-buffer "5.1.2"
 
 basic-ftp@^5.0.2:
-  version "5.3.0"
-  resolved "https://registry.yarnpkg.com/basic-ftp/-/basic-ftp-5.3.0.tgz#88f057d1ba8442643c505c4c83bbaa4442b15cfd"
-  integrity sha512-5K9eNNn7ywHPsYnFwjKgYH8Hf8B5emh7JKcPaVjjrMJFQQwGpwowEnZNEtHs7DfR7hCZsmaK3VA4HUK0YarT+w==
+  version "5.3.1"
+  resolved "https://registry.yarnpkg.com/basic-ftp/-/basic-ftp-5.3.1.tgz#3148ee9af43c0522514a4f973fecb1d3cbb6d71e"
+  integrity sha512-bopVNp6ugyA150DDuZfPFdt1KZ5a94ZDiwX4hMgZDzF+GttD80lEy8kj98kbyhLXnPvhtIo93mdnLIjpCAeeOw==
 
 batch@0.6.1:
   version "0.6.1"
@@ -4988,9 +4988,9 @@ fast-safe-stringify@^2.0.7:
   integrity sha512-Utm6CdzT+6xsDk2m8S6uL8VHxNwI6Jub+e9NYTcAms28T84pTa25GJQV9j0CY0N1rM8hK4x6grpF2BQf+2qwVA==
 
 fast-uri@^3.0.1:
-  version "3.0.6"
-  resolved "https://registry.yarnpkg.com/fast-uri/-/fast-uri-3.0.6.tgz#88f130b77cfaea2378d56bf970dea21257a68748"
-  integrity sha512-Atfo14OibSv5wAp4VWNsFYE1AchQRTv9cBGWET4pZWHzYshFSS9NQI6I57rdKn9croWVMbYFbLhJ+yJvmZIIHw==
+  version "3.1.2"
+  resolved "https://registry.yarnpkg.com/fast-uri/-/fast-uri-3.1.2.tgz#8af3d4fc9d3e71b11572cc2673b514a7d1a8c8ec"
+  integrity sha512-rVjf7ArG3LTk+FS6Yw81V1DLuZl1bRbNrev6Tmd/9RaroeeRRJhAt7jg/6YFxbvAQXUCavSoZhPPj6oOx+5KjQ==
 
 fast-xml-parser@^4.4.1:
   version "4.5.6"

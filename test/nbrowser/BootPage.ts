@@ -1,6 +1,7 @@
 import { Activation } from "app/gen-server/entity/Activation";
 import { toggleItem } from "test/nbrowser/AdminPanelTools";
 import * as gu from "test/nbrowser/gristUtils";
+import { useFastSandboxProbe } from "test/nbrowser/sandboxProbeFixture";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
 import * as testUtils from "test/server/testUtils";
 
@@ -11,7 +12,15 @@ describe("BootPage", function() {
 
   setupTestSuite();
 
+  // Skip the slow gvisor probe; the admin panel hits it on every load.
+  // Snapshot/restore at the top level so the env var doesn't leak into
+  // subsequent nbrowser suites in the same worker process.
   let oldEnv: testUtils.EnvironmentSnapshot;
+  before(() => {
+    oldEnv = new testUtils.EnvironmentSnapshot();
+    useFastSandboxProbe();
+  });
+  after(() => oldEnv.restore());
 
   const waitForBootPage = () => driver.findWait(".test-boot-page-content", 2000);
 
@@ -25,6 +34,8 @@ describe("BootPage", function() {
   };
 
   describe("setup gate on new installation", function() {
+    let oldEnv: testUtils.EnvironmentSnapshot;
+
     before(async function() {
       oldEnv = new testUtils.EnvironmentSnapshot();
 
@@ -58,6 +69,8 @@ describe("BootPage", function() {
   });
 
   describe("setup gate on existing installation", function() {
+    let oldEnv: testUtils.EnvironmentSnapshot;
+
     before(async function() {
       oldEnv = new testUtils.EnvironmentSnapshot();
 
@@ -162,6 +175,7 @@ describe("BootPage", function() {
 
   describe("login without GRIST_BOOT_KEY set", function() {
     let bootKey = "";
+    let oldEnv: testUtils.EnvironmentSnapshot;
 
     before(async function() {
       await server.removeLogin();
@@ -212,7 +226,8 @@ describe("BootPage", function() {
       );
     });
 
-    it("redirects to /admin after submitting admin email", async function() {
+    it("redirects to /admin/setup after submitting admin email", async function() {
+      // Out of service => land in the setup wizard, not the installation page.
       assert.equal(
         await driver.find(".test-boot-page-email-input").getAttribute("value"),
         "",
@@ -221,6 +236,7 @@ describe("BootPage", function() {
       await driver.find(".test-boot-page-continue").click();
       await gu.waitForServer();
       await gu.waitForAdminPanel();
+      await driver.findWait(".test-quick-setup-server-continue", 2000);
       const { name, email } = await gu.getUser();
       assert.deepEqual({ name, email }, { name: "john", email: "john@example.com" });
     });
@@ -251,10 +267,15 @@ describe("BootPage", function() {
     });
 
     it("reports server is out of service in Admin Panel", async function() {
-      assert.equal(
-        await driver.find(".test-admin-panel-item-value-service-status").getText(),
-        "out of service",
-      );
+      // Confirm the previous test's post-login redirect landed in the setup
+      // wizard (out-of-service fallback), then jump to the installation page
+      // to inspect service status.
+      assert.match(await driver.getCurrentUrl(), /\/admin\/setup(\?|#|$)/);
+      await driver.findWait(".test-quick-setup-server-continue", 2000);
+
+      await driver.get(`${server.getHost()}/admin`);
+      await gu.waitForAdminPanel();
+      await driver.findContentWait(".test-admin-panel-item-value-service-status", "out of service", 2000);
       await toggleItem("service-status");
       assert.isFalse(await driver.find(".test-service-status-env-variable-notice").isPresent());
     });
@@ -344,6 +365,8 @@ describe("BootPage", function() {
   });
 
   describe("login with GRIST_BOOT_KEY set", function() {
+    let oldEnv: testUtils.EnvironmentSnapshot;
+
     before(async function() {
       await server.removeLogin();
 
@@ -422,6 +445,8 @@ describe("BootPage", function() {
   });
 
   describe("with GRIST_IN_SERVICE set to true", function() {
+    let oldEnv: testUtils.EnvironmentSnapshot;
+
     before(async function() {
       await server.removeLogin();
 
@@ -482,6 +507,8 @@ describe("BootPage", function() {
   });
 
   describe("with GRIST_IN_SERVICE set to false", function() {
+    let oldEnv: testUtils.EnvironmentSnapshot;
+
     before(async function() {
       await server.removeLogin();
 
