@@ -45,6 +45,7 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
   private _server: ChildProcess;
   private _exitPromise: Promise<number | string>;
   private _starts: number = 0;
+  private _testingSocketPath: string;
   private _dbManager?: HomeDBManager;
   private _driver?: WebDriver;
 
@@ -185,6 +186,7 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
     await this.waitServerReady(60000);
 
     // Prepare testingHooks for certain behind-the-scenes interactions with the server.
+    this._testingSocketPath = testingSocket;
     this.testingHooks = await connectTestingHooks(testingSocket);
     this.emit("start");
   }
@@ -296,6 +298,11 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
   }
 
   public async getTestingHooks() {
+    // A RestartShell worker exit (/api/admin/restart) peer-closes our socket; reconnect to
+    // the same path -- the RestartShell parent rebinds it.
+    if (this.testingHooks?.isClosed()) {
+      this.testingHooks = await connectTestingHooks(this._testingSocketPath);
+    }
     return this.testingHooks;
   }
 

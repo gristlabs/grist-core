@@ -100,7 +100,7 @@ describe("CustomWidgets", function() {
 
   // Switches widget manifest url
   async function useManifest(url: string) {
-    await server.testingHooks.setWidgetRepositoryUrl(url ? `${widgetServerUrl}${url}` : "");
+    await (await server.getTestingHooks()).setWidgetRepositoryUrl(url ? `${widgetServerUrl}${url}` : "");
   }
 
   async function reloadWidgets() {
@@ -169,7 +169,7 @@ describe("CustomWidgets", function() {
   });
 
   after(async function() {
-    await server.testingHooks.setWidgetRepositoryUrl("");
+    await (await server.getTestingHooks()).setWidgetRepositoryUrl("");
     oldEnv.restore();
     await server.restart();
   });
