@@ -198,7 +198,7 @@ describe("CustomWidgetsConfig", function() {
     });
     cleanup.addAfterAll(widgetServer.shutdown);
     widgetServerUrl = widgetServer.url;
-    await server.testingHooks.setWidgetRepositoryUrl(`${widgetServerUrl}${manifestEndpoint}`);
+    await (await server.getTestingHooks()).setWidgetRepositoryUrl(`${widgetServerUrl}${manifestEndpoint}`);
 
     mainSession = await gu.session().login();
     const doc = await mainSession.tempDoc(cleanup, "CustomWidget.grist");
@@ -209,7 +209,7 @@ describe("CustomWidgetsConfig", function() {
 
   after(async function() {
     if (gu.noCleanup) { return; }
-    await server.testingHooks.setWidgetRepositoryUrl("");
+    await (await server.getTestingHooks()).setWidgetRepositoryUrl("");
     oldEnv.restore();
     await server.restart();
   });
