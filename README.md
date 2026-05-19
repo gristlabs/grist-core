@@ -390,7 +390,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_DATA_DIR | Directory in which to store documents. Defaults to `docs/` relative to the Grist application directory. In Grist's default Docker image, its default value is /persist/docs so that it will be used as a mounted volume. |
 | GRIST_DEFAULT_EMAIL | if set, login as this user if no other credentials presented |
 | GRIST_DEFAULT_PRODUCT | if set, this controls enabled features and limits of new sites. See names of PRODUCTS in Product.ts. |
-| GRIST_DEFAULT_LOCALE | Locale to use as fallback when Grist cannot honour the browser locale. |
+| GRIST_DEFAULT_LOCALE | Locale to use as fallback when Grist cannot honour the browser locale. Defaults to `en-US`. Should match a locale code found in `app/common/LocaleCodes.ts`. |
 | GRIST_DOMAIN | in hosted Grist, Grist is served from subdomains of this domain.  Defaults to "getgrist.com". |
 | GRIST_EXPERIMENTAL_PLUGINS | enables experimental plugins |
 | GRIST_EXTERNAL_ATTACHMENTS_MODE | required to enable external storage for attachments. Set to "snapshots" to enable external storage. Default value is "none". Note that when enabled, a [snapshot storage has to be configured](https://support.getgrist.com/self-managed/#how-do-i-set-up-snapshots) as well. |
