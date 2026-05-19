@@ -30,16 +30,17 @@ class ContextMenuController extends Disposable implements IOpenController {
   ) {
     super();
 
-    setTimeout(() => this._updatePosition(), 0);
-
-    // Create content and add to the dom but keep hidden until menu gets positioned
     const menu = Menu.create(null, this, [contentFunc(this)], {
       menuCssClass: cssMenuElem.className + " grist-floating-menu",
       ...this._options.menuOptions,
     });
     const content = this._content = menu.content;
-    content.style.visibility = "hidden";
+
+    // Position synchronously: _updatePosition() triggers a DOM reflow with getBoundingClientRect()
+    // and sets position synchronously, before a paint. (Previously, code used visibility:hidden
+    // and positioned after setTimeout, which made it hard wait for the menu in tests.)
     document.body.appendChild(content);
+    this._updatePosition();
 
     // Prevents arrow to move the cursor while menu is open.
     dom.onKeyElem(content, "keydown", {
@@ -100,8 +101,6 @@ class ContextMenuController extends Disposable implements IOpenController {
       Math.max(ev.pageX - rect.width, 0)) + "px";
     // position menu below the cursor if it can fit, otherwise fit at the bottom of the screen
     content.style.bottom = Math.max(window.innerHeight - (ev.pageY + rect.height), 0) + "px";
-    // show content
-    content.style.visibility = "";
   }
 }
 
