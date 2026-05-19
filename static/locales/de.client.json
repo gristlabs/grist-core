@@ -1273,7 +1273,8 @@
         "Add another rule": "Eine weitere Regel hinzufügen",
         "Row style": "Zeilenstil",
         "IF...": "WENN...",
-        "Conditional Style": "Bedingter Stil"
+        "Conditional Style": "Bedingter Stil",
+        "Row Style": "Zeilenstil"
     },
     "CurrencyPicker": {
         "Invalid currency": "Ungültige Währung"
@@ -2140,7 +2141,7 @@
         "Move": "Verschieben",
         "Move {{name}} to workspace": "{{name}} in den Arbeitsbereich verschieben",
         "Name": "Name",
-        "No documents to show.": "Es sind keine Dokumente vorzulegen.",
+        "No documents to show.": "Es liegen keine Dokumente vor.",
         "Sort by name": "Nach Name sortieren",
         "Unpin": "Abheften",
         "Workspace": "Arbeitsbereich",
