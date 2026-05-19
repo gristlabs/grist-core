@@ -46,6 +46,7 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
   private _exitPromise: Promise<number | string>;
   private _starts: number = 0;
   private _testingSocketPath: string;
+  private _reconnectingHooks?: Promise<TestingHooksClient>;
   private _dbManager?: HomeDBManager;
   private _driver?: WebDriver;
 
@@ -300,8 +301,14 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
   public async getTestingHooks() {
     // A RestartShell worker exit (/api/admin/restart) peer-closes our socket; reconnect to
     // the same path -- each respawned worker rebinds the socket file via GRIST_TESTING_SOCKET.
-    if (this.testingHooks?.isClosed()) {
-      this.testingHooks = await connectTestingHooks(this._testingSocketPath);
+    // Cache the in-flight reconnect so concurrent callers share one socket.
+    if (this.testingHooks?.isClosed() && !this._reconnectingHooks) {
+      this._reconnectingHooks = connectTestingHooks(this._testingSocketPath)
+        .then(hooks => this.testingHooks = hooks)
+        .finally(() => { this._reconnectingHooks = undefined; });
+    }
+    if (this._reconnectingHooks) {
+      await this._reconnectingHooks;
     }
     return this.testingHooks;
   }
