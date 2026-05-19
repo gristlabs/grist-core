@@ -1593,7 +1593,7 @@ export class FlexServer implements GristServer {
     });
 
     this._attachmentStoreProvider = this._attachmentStoreProvider || new AttachmentStoreProvider(
-      await getConfiguredAttachmentStoreConfigs(),
+      await getConfiguredAttachmentStoreConfigs(this._disableExternalStorage),
       (await this.getActivations().current()).id,
     );
     this._docManager = this._docManager || new DocManager(this._storageManager,

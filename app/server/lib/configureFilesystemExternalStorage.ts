@@ -1,7 +1,16 @@
 import { appSettings } from "app/server/lib/AppSettings";
 import { ExternalStorageSettings, wrapWithKeyMappedStorage } from "app/server/lib/ExternalStorage";
 import { FilesystemExternalStorage } from "app/server/lib/FilesystemExternalStorage";
+import { ICreateStorageOptions } from "app/server/lib/ICreate";
 import log from "app/server/lib/log";
+
+export function getFilesystemStorageOption(): ICreateStorageOptions {
+  return {
+    name: "filesystem",
+    check: () => checkFilesystemExternalStorage() !== undefined,
+    create: configureFilesystemExternalStorage,
+  };
+}
 
 export function configureFilesystemExternalStorage(
   purpose: ExternalStorageSettings["purpose"], extraPrefix: string,

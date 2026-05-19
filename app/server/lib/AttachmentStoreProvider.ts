@@ -32,6 +32,8 @@ export interface IAttachmentStoreProvider {
   storeExists(id: AttachmentStoreId): boolean;
 
   listAllStoreIds(): AttachmentStoreId[];
+
+  listAllConfigs(): IAttachmentStoreConfig[];
 }
 
 // All the information needed to instantiate an instance of a particular store type
@@ -105,6 +107,10 @@ export class AttachmentStoreProvider implements IAttachmentStoreProvider {
   public listAllStoreIds(): string[] {
     return Array.from(this._storeDetailsById.keys());
   }
+
+  public listAllConfigs(): IAttachmentStoreConfig[] {
+    return Array.from(this._storeDetailsById.values());
+  }
 }
 
 async function isAttachmentStoreOptionAvailable(option: ICreateAttachmentStoreOptions) {
@@ -176,14 +182,19 @@ export class UnsupportedExternalAttachmentsMode extends Error {
   }
 }
 
-export async function getConfiguredAttachmentStoreConfigs(): Promise<IAttachmentStoreConfig[]> {
+// When `externalStorageDisabled` is true, the "snapshots" backend is treated as unavailable
+// without actually checking its availability. In particular that's how tests can avoid to use
+// external storage for attachments.
+export async function getConfiguredAttachmentStoreConfigs(
+  externalStorageDisabled: boolean = false,
+): Promise<IAttachmentStoreConfig[]> {
   if (GRIST_EXTERNAL_ATTACHMENTS_MODE === "snapshots") {
     const snapshotProvider = create.getAttachmentStoreOptions().snapshots;
     // This shouldn't happen - it could only happen if a version of Grist removes the snapshot provider from ICreate.
     if (snapshotProvider === undefined) {
       throw new UnsupportedExternalAttachmentsMode("snapshots");
     }
-    if (!(await isAttachmentStoreOptionAvailable(snapshotProvider))) {
+    if (externalStorageDisabled || !(await isAttachmentStoreOptionAvailable(snapshotProvider))) {
       log.warn("External attachment store 'snapshots' requested, but no snapshot storage is configured.");
       return [];
     }

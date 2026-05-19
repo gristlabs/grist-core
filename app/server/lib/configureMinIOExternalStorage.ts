@@ -1,6 +1,16 @@
 import { appSettings } from "app/server/lib/AppSettings";
 import { wrapWithKeyMappedStorage } from "app/server/lib/ExternalStorage";
+import { ICreateStorageOptions } from "app/server/lib/ICreate";
 import { MinIOExternalStorage } from "app/server/lib/MinIOExternalStorage";
+
+export function getMinIOStorageOption(): ICreateStorageOptions {
+  return {
+    name: "minio",
+    check: () => checkMinIOExternalStorage() !== undefined,
+    checkBackend: () => checkMinIOBucket(),
+    create: configureMinIOExternalStorage,
+  };
+}
 
 export function configureMinIOExternalStorage(purpose: "doc" | "meta" | "attachments", extraPrefix: string) {
   const options = checkMinIOExternalStorage();
