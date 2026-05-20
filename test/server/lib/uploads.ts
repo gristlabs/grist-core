@@ -245,8 +245,7 @@ describe("uploads", function() {
       });
 
       it("should use fetch by default for public fetchURL", async function() {
-        sandbox.stub(Deps, "fetchTrusted").callsFake(async () => response);
-        response = new Response(streamify("a, b\n0, 1\n"));
+        sandbox.stub(Deps, "fetchTrusted").rejects(new Error("should not be called"));
         url = "fake/untrusted/url";
         response.headers.set("content-type", "text/csv; charset=utf-8");
 
