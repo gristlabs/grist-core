@@ -9,8 +9,11 @@ describe("ScreenReader", function() {
   const cleanup = setupTestSuite();
 
   before(async function() {
-    const session = await gu.session().teamSite.login();
+    // We log as a specific user because we change his profile settings in the test and those changes might interfere
+    // with other tests running in parallel.
+    const session = await gu.session().personalSite.user("user2").login();
     await session.tempDoc(cleanup, "GridWithAllFields.grist");
+
     // Make sure the doc is loaded before continuing
     await driver.wait(async () => await gu.getActiveCell(), 5000);
   });
