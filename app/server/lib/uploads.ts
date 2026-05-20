@@ -526,6 +526,7 @@ export async function fetchDoc(
 
   // Download the document, in full or as a template.
   const url = new URL(`api/docs/${docId}/download?template=${Number(template)}`, apiBaseUrl);
+  // The doc worker URL is trusted and internal. Bypass GRIST_PROXY_FOR_UNTRUSTED_URLS to prevent connection failures.
   return _fetchURL(url.href, accessId, { headers }, /* isTrusted */ true);
 }
 
