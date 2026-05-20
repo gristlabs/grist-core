@@ -935,7 +935,7 @@ describe("HostedStorageManager", function() {
       });
 
       it("can access snapshots with old schema versions", async function() {
-        const snapshotId = `World~v=1`;
+        const snapshotId = `OldSchema~v=1`;
         await workers.assignDocWorker(snapshotId);
         await store.run(async () => {
           // Pretend we have a snapshot of World-v33.grist and fetch/load it.
