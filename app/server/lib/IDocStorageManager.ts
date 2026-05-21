@@ -24,7 +24,6 @@ export interface IDocStorageManager {
   showItemInFolder(docName: string): Promise<void>;
   closeStorage(): Promise<void>;
   closeDocument(docName: string, options?: { keepLocalCache?: boolean }): Promise<void>;
-  wipeCache(docName: string): void;
   releaseDocAssignment(docName: string): Promise<void>;
   // Mark document as needing a backup (due to edits, migrations, etc).
   // If reason is set to 'edit' the user-facing timestamp on the document should be updated.
@@ -65,7 +64,6 @@ export class TrivialDocStorageManager implements IDocStorageManager {
   public async showItemInFolder(): Promise<never> { throw new Error("no"); }
   public async closeStorage() {}
   public async closeDocument() {}
-  public async wipeCache() {}
   public async releaseDocAssignment() {}
   public markAsChanged() {}
   public scheduleUsageUpdate() {}
