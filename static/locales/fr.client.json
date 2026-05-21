@@ -98,7 +98,8 @@
         "Basic info": "Infos de base",
         "Developer": "Développeur",
         "Home": "Accueil",
-        "Profile": "Profil"
+        "Profile": "Profil",
+        "Accessibility": "Accessibilité"
     },
     "AccountWidget": {
         "Sign in": "Se connecter",
@@ -148,7 +149,9 @@
         "Description": "Description",
         "Key": "Clé",
         "Memory Error": "Erreur mémoire",
-        "Translators: please translate this only when your language is ready to be offered to users": "Traducteurs : merci de ne traduire ceci que lorsque votre langue sera prête à être proposée aux utilisateurs"
+        "Translators: please translate this only when your language is ready to be offered to users": "Traducteurs : merci de ne traduire ceci que lorsque votre langue sera prête à être proposée aux utilisateurs",
+        "Disabled screen reader improvements": "Désactivé : améliorations pour lecteurs d'écran",
+        "Enabled screen reader improvements": "Activé : améliorations pour lecteurs d'écran"
     },
     "AppHeader": {
         "Home page": "Page d’accueil",
@@ -635,7 +638,8 @@
         "Saved linked section {{title}} in view {{name}}": "Section liée {{title}} sauvegardée dans la page {{name}}",
         "go to webhook settings": "Aller aux paramétrages des points d’ancrage Web",
         "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "Les nouvelles modifications sont temporairement suspendues. La file d'attente des points d'ancrage est saturée. Veuillez vérifier les paramètres des points d'ancrage , supprimer les points d'ancrage non valides et nettoyer la file d'attente.",
-        "Import from Airtable": "Importer depuis Airtable"
+        "Import from Airtable": "Importer depuis Airtable",
+        "{{title}} widget": "vue {{title}}"
     },
     "HomeIntro": {
         "Sign up": "S'inscrire",
@@ -711,7 +715,9 @@
     },
     "LeftPanelCommon": {
         "Help Center": "Centre d'aide",
-        "Accessibility": "Accessibilité"
+        "Accessibility": "Accessibilité",
+        "(Screen reader improvements enabled)": "(Améliorations pour lecteurs d'écran activées)",
+        "Screen reader improvements enabled": "Améliorations pour lecteurs d'écran activées"
     },
     "MakeCopyMenu": {
         "Replacing the original requires editing rights on the original document.": "Le remplacement de l'original nécessite des droits d'édition sur le document d'origine.",
@@ -1581,7 +1587,9 @@
         "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Nous vous remercions ! Votre confiance et votre soutien sont très appréciés. Vous pouvez vous désinscrire à tout moment en cliquant sur le {{link}} dans le menu utilisateur."
     },
     "GridView": {
-        "Click to insert": "Cliquer pour insérer"
+        "Click to insert": "Cliquer pour insérer",
+        "row {{rowNum}} {{colName}}": "ligne {{rowNum}} {{colName}}",
+        "row {{rowNum}} {{colName}} (new row)": "ligne {{rowNum}} {{colName}} (nouvelle ligne)"
     },
     "SupportGristPage": {
         "GitHub": "GitHub",
@@ -2365,7 +2373,8 @@
         "Create new page": "Créer une nouvelle page"
     },
     "AttachmentsWidget": {
-        "Uploading, please wait…": "En cours de téléversement, merci de patienter…"
+        "Uploading, please wait…": "En cours de téléversement, merci de patienter…",
+        "Image": "Image"
     },
     "AttachmentsEditor": {
         "Add": "Ajouter",
@@ -2456,7 +2465,14 @@
         "{{creatorPanelShortcut}} Focus to and from the creator panel": "{{creatorPanelShortcut}} Basculer la focalisation clavier depuis et vers le panneau de création",
         "{{nextRegionShortcut}} Focus on the next region": "{{nextRegionShortcut}} Focaliser la région suivante",
         "{{prevRegionShortcut}} Focus on the previous region": "{{prevRegionShortcut}} Focaliser la région précédente",
-        "{{shortcutsModal}} Show the complete list of keyboard shortcuts": "{{shortcutsModal}} Afficher la liste complète des raccourcis claviers"
+        "{{shortcutsModal}} Show the complete list of keyboard shortcuts": "{{shortcutsModal}} Afficher la liste complète des raccourcis claviers",
+        "Enable screen reader improvements (keyboard shortcut: {{shortcut}})": "Activer les améliorations pour lecteurs d'écran (raccourci clavier : {{shortcut}})",
+        "Use your screen reader's focus mode, or disable Quick Nav if you use VoiceOver.": "Utilisez le mode focus de votre lecteur d'écran, ou désactivez la navigation rapide si vous utilisez VoiceOver.",
+        "Please first read the \"Keyboard navigation\" section above to understand how to navigate across the interface's regions: specific keyboard shortcuts need to be used.": "Lisez d'abord la section \"Navigation au clavier\" ci-dessus pour comprendre comment naviguer entre les régions de l'interface : des raccourcis clavier spécifiques doivent être utilisés.",
+        "Screen reader navigation": "Navigation avec lecteur d'écran",
+        "Warning: screen reader support is a work-in-progress in Grist and is improving over time. Feedback is greatly appreciated!": "Attention : le support des lecteurs d'écran est en cours de développement dans Grist et s'améliore régulièrement. N'hésitez pas à nous faire part de vos retours.",
+        "While not mandatory, you can enable screen reader improvements for a better navigation experience:": "Même si ce n'est pas obligatoire, vous pouvez activer les améliorations pour lecteurs d'écran pour une meilleure expérience de navigation :",
+        "We recommend using Firefox, Chrome or Edge in order to use Grist with a screen reader.": "Nous recommandons d'utiliser Firefox, Chrome ou Edge pour utiliser Grist avec un lecteur d'écran."
     },
     "ProposedChangesPage": {
         "Proposed changes": "Suggestions de modifications",
@@ -2597,7 +2613,8 @@
         "When typed at the start of a cell, make this a formula column": "Quand tapé au début d'une cellule, transformer celle-ci en colonne de formule",
         "showing a behavioral popup": "affichage d'une fenêtre contextuelle comportementale",
         "Filter this column by just this cell's value": "Filtrer cette colonne par la valeur de cette cellule uniquement",
-        "Open the context menu": "Ouvrir le menu contextuel"
+        "Open the context menu": "Ouvrir le menu contextuel",
+        "Toggle the screen reader improvements": "Activer ou désactiver les améliorations pour lecteurs d'écran"
     },
     "GridViewMenusDateHelpers": {
         "12-hour format": "format 12-heures",
@@ -3075,5 +3092,23 @@
         "Set these environment variables and restart Grist to enable MinIO storage:": "Définissez ces variables d'environnement et redémarrez Grist pour activer le stockage MinIO :",
         "Set these environment variables and restart Grist to enable S3 storage:": "Définissez ces variables d'environnement et redémarrez Grist pour activer le stockage S3 :",
         "Store document backups on an external service like S3 or Azure.           This protects against data loss if the server's disk fails.": "Conserver les sauvegardes des documents sur un service externe comme S3 ou Azure.           Cela vous protège contre la perte de données si le disque dur du serveur dysfonctionne."
+    },
+    "ScreenReaderAnnouncer": {
+        "Notification: {{notification}}": "Notification : {{notification}}"
+    },
+    "ScreenReaderConfig": {
+        "Enable screen reader improvements": "Activer les améliorations pour lecteurs d'écran",
+        "Press {{accessibilityModalShortcut}} for more information about screen reader navigation.": "Appuyez sur {{accessibilityModalShortcut}} pour plus d'informations à propos de la navigation avec lecteur d'écran."
+    },
+    "ScreenReaderFormatters": {
+        "Checked": "Coché",
+        "Image": "Image",
+        "Toggled off": "Désactivé",
+        "Toggled on": "Activé",
+        "Unchecked": "Non coché",
+        "heading {{- text}}": "titre {{- text}}",
+        "link {{- label}}": "lien {{- label}}",
+        "list: {{- items}}": "liste: {{- items}}",
+        "{{- text}} (link)": "{{- text}} (lien)"
     }
 }

@@ -23,6 +23,8 @@ export interface UserPrefs extends Prefs {
   recordSignUpEvent?: boolean;
   // Theme-related preferences.
   theme?: ThemePrefs;
+  // Whether screen reader mode is enabled.
+  screenReaderMode?: boolean;
   // List of deprecated warnings user have seen. Kept for historical reasons as some users have them in their prefs.
   seenDeprecatedWarnings?: DeprecationWarning[];
   // List of dismissedPopups user have seen.

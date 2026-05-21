@@ -56,6 +56,9 @@ describe("AccessibilityModal", function() {
     // is also visible in that case.
     await gu.openProfileSettingsPage();
     await assertShowsA11yShortcut();
+
+    // Go back to the homepage for next tests
+    await session.loadDocMenu("/");
   });
 
   it("should open the accessibility modal on click", async function() {
@@ -67,6 +70,7 @@ describe("AccessibilityModal", function() {
   it("should show the main sections in the modal", async function() {
     await driver.findContent(".test-modal-dialog", /High contrast theme/);
     await driver.findContent(".test-modal-dialog", /Keyboard navigation/);
+    await driver.findContent(".test-modal-dialog", /Screen reader navigation/);
   });
 
   it("should show a button to switch to high contrast theme", async function() {
@@ -83,6 +87,23 @@ describe("AccessibilityModal", function() {
     await gu.waitForServer();
     await driver.findContent(".test-modal-dialog", /You are currently using the high contrast theme/);
     assert.equal(await htmlEl.getAttribute("data-grist-theme"), "HighContrastLight");
+  });
+
+  it("should let users toggle screen reader improvements", async function() {
+    const screenReaderImprovementsCheckbox = await driver.find(".test-accessibility-modal-screen-reader-checkbox");
+    await screenReaderImprovementsCheckbox.click();
+
+    // We verify the SR improvements are enabled with the hidden text in the left panel a11y shortcut
+    await gu.waitToPass(async () =>
+      assert.isTrue(await driver.executeScript<string>(() => {
+        return (document.querySelector(".test-accessibility-shortcut")?.textContent || "")
+          .toLowerCase().includes("screen reader improvements enabled");
+      })), 500);
+    // We make sure the SR improvements info is also shown with an icon on the shortcut
+    assert.isTrue(await driver.find(".test-accessibility-shortcut-sr-icon").isDisplayed());
+
+    // Disable the SR improvements for next tests
+    await screenReaderImprovementsCheckbox.click();
   });
 
   it("should close the modal when clicking the close button", async function() {
