@@ -2433,7 +2433,7 @@ export class FlexServer implements GristServer {
         log.info("FlexServer shutdown assignment", assignment);
         try {
           // Start sending the doc to S3 if needed.
-          // Don't wipe the cache to save IO operations before shuting down.
+          // Skip the cache wipe to avoid IO churn during shutdown.
           const flushOp = this._storageManager.closeDocument(assignment, { keepLocalCache: true });
 
           // Get access to the clients of this document.  This has the side

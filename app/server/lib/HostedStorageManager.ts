@@ -478,8 +478,22 @@ export class HostedStorageManager implements IDocStorageManager {
     this._localFiles.delete(docName);
     await this.flushDoc(docName);
 
-    if (!keepLocalCache) {
-      this.wipeCache(docName);
+    // When using S3 and unless the caller asked to keep the local cache,
+    // remove the local copy to make the S3 version canonical.
+    // Also this allows us to later release the assignment to this doc worker
+    // to give the chance to a less-loaded worker to pick it.
+    if (!keepLocalCache && !this._disableS3) {
+      this._log.info(docName, "Removing local copy of this doc");
+
+      // .finally so a failed wipe still clears the map entry — otherwise
+      // prepareLocalDoc would await a rejected promise on the next open.
+      const pending = this._removeFromFilesystem(docName)
+        .catch(err => this._log.error(docName, "failed to wipe local copy: %s", err))
+        .finally(() => this._removals.delete(docName));
+
+      // Add the removal promise so it is tracked to avoid a race condition
+      // when the cache is being wiped while the document is reopened.
+      this._removals.set(docName, pending);
     }
   }
 
@@ -500,20 +514,6 @@ export class HostedStorageManager implements IDocStorageManager {
         await delay(1000);
       }
     }
-  }
-
-  /**
-   * Wipes cache when then using S3, does nothing otherwise.
-   */
-  public wipeCache(docName: string) {
-    if (this._disableS3) {
-      return;
-    }
-
-    this._log.info(docName, "Removing local copy of this doc");
-    this._removals.set(docName, this._removeFromFilesystem(docName).then(() => {
-      this._removals.delete(docName);
-    }));
   }
 
   /**
@@ -678,7 +678,9 @@ export class HostedStorageManager implements IDocStorageManager {
       // is comparable in cost to just downloading from S3).
       const fetched = await this._fetchFromS3(docName, {
         sourceDocId: srcDocName,
-        trunkId: forkId ? trunkId : undefined, snapshotId, canCreateFork,
+        trunkId: forkId ? trunkId : undefined,
+        snapshotId,
+        canCreateFork,
       });
       if (fetched) { return true; }
       // S3 doesn't have the doc. If a local copy exists (e.g. a worker crashed
@@ -692,18 +694,17 @@ export class HostedStorageManager implements IDocStorageManager {
    */
   private async _removeFromFilesystem(docName: string) {
     // NOTE: fse.remove succeeds also when the file does not exist.
-    await fse.remove(this.getPath(docName));
-    await fse.remove(this._getHashFile(this.getPath(docName), "doc"));
-    await fse.remove(this._getHashFile(this.getPath(docName), "meta"));
-    await fse.remove(this.getAssetPath(docName));
-    if (this._inventory) {
-      await this._inventory.clear(docName);
-    }
+    await Promise.all([
+      fse.remove(this.getPath(docName)),
+      fse.remove(this._getHashFile(this.getPath(docName), "doc")),
+      fse.remove(this._getHashFile(this.getPath(docName), "meta")),
+      fse.remove(this.getAssetPath(docName)),
+      this._inventory?.clear(docName),
+    ]);
     this._latestVersions.delete(docName);
     this._latestMetaVersions.delete(docName);
-    // NOTE: _localFiles is already handled by closeDocument, even when the S3 storage is not enabled
-    // Its value is computed again when reopening (if the file is already in the storage,
-    // the doc is marked as locally loaded)
+    // _localFiles is intentionally left alone: closeDocument clears it, and
+    // the next open repopulates it.
   }
 
   /**
@@ -734,11 +735,8 @@ export class HostedStorageManager implements IDocStorageManager {
       sourceDocId = options.trunkId;
     }
     // downloadTo renames a temp file into place with overwrite:false, so the
-    // destination must not exist. A stale local copy may still be around
-    // (test fixtures, a crashed worker that left a file behind, or another
-    // worker that owned the doc earlier); we're about to replace it with the
-    // canonical S3 copy anyway.
-    // NOTE: fse.remove succeeds also when the file does not exist.
+    // destination must not exist. So let's remove a possibly stale copy.
+    // NOTE: fse.remove is a no-op if the file is absent.
     await fse.remove(this.getPath(destId));
     await this._ext.downloadTo(sourceDocId, destId, this.getPath(destId), options.snapshotId);
     return true;
