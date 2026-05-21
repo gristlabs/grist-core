@@ -372,7 +372,9 @@ export class GranularAccess implements GranularAccessForBundle {
       // Note: This is half-baked and doesn't account for other types of shares besides forms.
       fullUser = this._homeDbManager?.makeFullUser(this._homeDbManager.getAnonymousUser()) ?? null;
     } else {
-      fullUser = docSession.fullUser;
+      // In case of restricted credentials (like AccessToken or oauth), the user may not be able
+      // to act fully as themselves, so fullUser is anonymous; what we want is identifiedUser.
+      fullUser = docSession.identifiedUser;
     }
     const user = new User();
     user.Access = access;
@@ -444,6 +446,7 @@ export class GranularAccess implements GranularAccessForBundle {
     return {
       user: await this.getUser(docSession),
       docId: this._docId,
+      mask: docSession.credential?.permissionMask(),
     };
   }
 
@@ -591,7 +594,7 @@ export class GranularAccess implements GranularAccessForBundle {
     if (!canEdit(await this.getNominalAccess(docSession))) {
       throw new ErrorWithCode("ACL_DENY", "Only owners or editors can modify documents");
     }
-    if (this._ruler.haveRules()) {
+    if (this._ruler.haveRules() || docSession.credential?.permissionMask()) {
       await Promise.all(
         docActions.map((action, actionIdx) => {
           if (isDirect[actionIdx]) {
@@ -3504,4 +3507,5 @@ export class PseudoDocSession extends OptDocSession {
   public get userId() { return this._userData.id; }
   public get userIsAuthorized() { return !this._userData.anonymous; }
   public get fullUser() { return this._userData; }
+  public get credential() { return undefined; }
 }

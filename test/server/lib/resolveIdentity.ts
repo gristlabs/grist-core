@@ -3,6 +3,7 @@ import { UserProfile } from "app/common/LoginSessionAPI";
 import { ServiceAccount } from "app/gen-server/entity/ServiceAccount";
 import { User } from "app/gen-server/entity/User";
 import { HomeDBAuth } from "app/gen-server/lib/homedb/Interfaces";
+import { AccessTokenCredential } from "app/server/lib/AccessTokenCredential";
 import { AccessTokenInfo, IAccessTokens } from "app/server/lib/AccessTokens";
 import { resolveIdentity } from "app/server/lib/Authorizer";
 import { createDummyGristServer, GristServer } from "app/server/lib/GristServer";
@@ -76,15 +77,16 @@ describe("resolveIdentity", function() {
     assert.equal(result.user.id, ANONYMOUS_ID);
     assert.isFalse(result.hasApiKey);
     assert.isFalse(result.explicitAuth);
-    assert.isUndefined(result.accessToken);
+    assert.isUndefined(result.credential);
     assert.isUndefined(result.specialPermit);
   });
 
   describe("access token", function() {
     it("resolves access token from ?auth query param", async function() {
       const tokenInfo: AccessTokenInfo = { userId: 10, docId: "doc1", readOnly: false };
+      const db = makeDbManager({ getUser: async () => chimpy });
       const result = await resolveIdentity(
-        makeRequest("/test?auth=tok"), makeDbManager(),
+        makeRequest("/test?auth=tok"), db,
         opts({
           gristServer: {
             ...createDummyGristServer(),
@@ -98,13 +100,16 @@ describe("resolveIdentity", function() {
         }),
       );
       assert.equal(result.user.id, ANONYMOUS_ID, "access token uses anonymous user");
-      assert.deepEqual(result.accessToken, tokenInfo);
+      assert.instanceOf(result.credential, AccessTokenCredential);
+      assert.equal(result.credential?.identifiedUser.id, tokenInfo.userId);
+      assert.equal(result.credential?.maxRoleFor({ kind: "doc", docId: "doc1", wsId: 0, orgId: 0 }), "owners");
+      assert.equal(result.credential?.maxRoleFor({ kind: "doc", docId: "doc2", wsId: 0, orgId: 0 }), null);
       assert.isFalse(result.explicitAuth, "access token keeps CSRF enforced");
     });
 
     it("access token takes priority over API key", async function() {
       const tokenInfo: AccessTokenInfo = { userId: 10, docId: "doc1", readOnly: false };
-      const db = makeDbManager({ getUserByKey: async () => chimpy });
+      const db = makeDbManager({ getUser: async () => chimpy });
       const result = await resolveIdentity(
         makeRequest("/test?auth=tok", { authorization: "Bearer good-key" }), db,
         opts({
@@ -116,7 +121,7 @@ describe("resolveIdentity", function() {
           },
         }),
       );
-      assert.isDefined(result.accessToken, "access token wins");
+      assert.instanceOf(result.credential, AccessTokenCredential, "access token wins");
       assert.isFalse(result.hasApiKey, "API key not used");
     });
   });

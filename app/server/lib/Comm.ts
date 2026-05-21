@@ -231,7 +231,7 @@ export class Comm extends EventEmitter {
       const org = (req as RequestWithOrg).org || "";
       const fullUser = dbManager.makeFullUser(identity.user);
       const altSessionId = scopedSession?.getAltSessionId();
-      authSession = AuthSession.fromUser(fullUser, org, altSessionId, identity.hasApiKey);
+      authSession = AuthSession.fromUser(fullUser, org, altSessionId, identity.credential, identity.hasApiKey);
     }
 
     client.setConnection({ websocket, req, counter, browserSettings, authSession });

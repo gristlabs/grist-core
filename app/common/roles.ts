@@ -85,6 +85,14 @@ export function getWeakestRole<T extends Role | null>(...args: T[]): T {
   return getFirstMatchingRole(roleOrder.slice().reverse(), args);
 }
 
+/**
+ * Returns true if `have` is at least as permissive as `needed`.
+ * Null for have never satisfies a non-null needed; null for needed is always satisfied.
+ */
+export function roleAtLeast(have: Role | null, needed: Role | null): boolean {
+  return getStrongestRole(have, needed) === have;
+}
+
 // Returns which of the `anyOf` args comes first in `array`. Helper for getStrongestRole
 // and getWeakestRole.
 function getFirstMatchingRole<T extends Role | null>(array: (Role | null)[], anyOf: T[]): T {

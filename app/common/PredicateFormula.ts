@@ -8,6 +8,7 @@
  * This module includes typings for the nodes, and the compilePredicateFormula() function that
  * turns such trees into actual predicate functions.
  */
+import { PermissionSet } from "app/common/ACLPermissions";
 import { CellValue, RowRecord } from "app/common/DocActions";
 import { ErrorWithCode } from "app/common/ErrorWithCode";
 import { InfoView } from "app/common/RecordView";
@@ -48,6 +49,7 @@ export interface PredicateFormulaInput {
   oldRec?: RowRecord | InfoView;
   docId?: string;
   choice?: string | RowRecord | InfoView;
+  mask?: PermissionSet;   // Maximum value for any permission.
 }
 
 /**

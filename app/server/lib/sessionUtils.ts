@@ -18,7 +18,7 @@ export function isRequest(
 
 export function getAuthSession(requestOrSession: RequestOrSession | null): AuthSession {
   if (!requestOrSession) { return AuthSession.unauthenticated(); }
-  if (isRequest(requestOrSession)) { return AuthSession.fromReq(requestOrSession); }
+  if (isRequest(requestOrSession)) { return requestOrSession.authSession || AuthSession.unauthenticated(); }
   return requestOrSession;
 }
 

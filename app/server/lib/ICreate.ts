@@ -20,6 +20,7 @@ import { IDocNotificationManager } from "app/server/lib/IDocNotificationManager"
 import { IDocStorageManager } from "app/server/lib/IDocStorageManager";
 import { INotifier } from "app/server/lib/INotifier";
 import { InstallAdmin, SimpleInstallAdmin } from "app/server/lib/InstallAdmin";
+import { IOAuthValidator } from "app/server/lib/IOAuthValidator";
 import { ISandbox, ISandboxCreationOptions } from "app/server/lib/ISandbox";
 import { createSandbox, SpawnFn } from "app/server/lib/NSandbox";
 import * as ProcessMonitor from "app/server/lib/ProcessMonitor";
@@ -102,6 +103,7 @@ export interface ICreate {
   areAdminControlsAvailable(): boolean;
   createDocNotificationManager(gristServer: GristServer): IDocNotificationManager | undefined;
   startProcessMonitor(telemetry: ITelemetry): StopCallback | undefined;
+  createOAuthValidator(gristServer: GristServer): IOAuthValidator | undefined;
 }
 
 type StopCallback = () => void;
@@ -263,5 +265,9 @@ export class BaseCreate implements ICreate {
 
   public startProcessMonitor(telemetry: ITelemetry) {
     return ProcessMonitor.start(telemetry);
+  }
+
+  public createOAuthValidator(gristServer: GristServer): IOAuthValidator | undefined {
+    return undefined;
   }
 }

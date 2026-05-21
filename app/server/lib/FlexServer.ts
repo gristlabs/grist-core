@@ -66,6 +66,7 @@ import { IDocNotificationManager } from "app/server/lib/IDocNotificationManager"
 import { IDocStorageManager } from "app/server/lib/IDocStorageManager";
 import { EmitNotifier, INotifier } from "app/server/lib/INotifier";
 import { InstallAdmin } from "app/server/lib/InstallAdmin";
+import { IOAuthValidator } from "app/server/lib/IOAuthValidator";
 import log, { logAsJson } from "app/server/lib/log";
 import { disableCache, noop } from "app/server/lib/middleware";
 import { testSandboxFlavor } from "app/server/lib/NSandbox";
@@ -186,6 +187,7 @@ export class FlexServer implements GristServer {
   private _docWorkerLoadTracker?: DocWorkerLoadTracker;
   private _widgetRepository: IWidgetRepository;
   private _docNotificationManager: IDocNotificationManager | undefined | false = false;
+  private _oauthValidator: IOAuthValidator | undefined | false = false;
   private _pubSubManager: IPubSubManager = createPubSubManager(process.env.REDIS_URL);
   private _assistant?: IAssistant;
   private _accessTokens: IAccessTokens;
@@ -493,6 +495,15 @@ export class FlexServer implements GristServer {
       this._docNotificationManager = this.create.createDocNotificationManager(this);
     }
     return this._docNotificationManager;
+  }
+
+  public getOAuthValidator(): IOAuthValidator | undefined {
+    if (this._oauthValidator === false) {
+      // The special value of 'false' is used to create only on first call. Afterwards,
+      // the value may be undefined, but no longer false.
+      this._oauthValidator = this.create.createOAuthValidator(this);
+    }
+    return this._oauthValidator;
   }
 
   public getPubSubManager(): IPubSubManager {

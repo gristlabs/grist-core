@@ -85,7 +85,7 @@ describe("DocApiForwarder", function() {
     }));
 
     // create and register forwarder
-    const docApiForwarder = new DocApiForwarder(docWorkerMapStub, dbManager, null as any);
+    const docApiForwarder = new DocApiForwarder(docWorkerMapStub, dbManager, { getOAuthValidator() {} } as any);
     app.use("/api", addRequestUser.bind(null, dbManager, getDocWorkerMap().getPermitStore("internal"),
       { gristServer: createDummyGristServer() } as any));
     docApiForwarder.addEndpoints(app);
