@@ -1,6 +1,13 @@
 import { BehavioralPromptsManager } from "app/client/components/BehavioralPromptsManager";
 import { GristDoc } from "app/client/components/GristDoc";
+import {
+  cssWhenKeyboardUser,
+  highlightKeyboardFocus,
+  isKeyboardUser,
+  kbFocusHighlighterClass,
+} from "app/client/components/KeyboardFocusHighlighter";
 import { FocusLayer } from "app/client/lib/FocusLayer";
+import { focusAdjacentFocusable, trapTabKey } from "app/client/lib/focusUtils";
 import { makeT } from "app/client/lib/localization";
 import { reportError } from "app/client/models/AppModel";
 import { ColumnRec, TableRec, ViewSectionRec } from "app/client/models/DocModel";
@@ -12,6 +19,7 @@ import { bigPrimaryButton } from "app/client/ui2018/buttons";
 import { theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { spinnerModal } from "app/client/ui2018/modals";
+import { unstyledButton } from "app/client/ui2018/unstyled";
 import { isLongerThan, nativeCompare } from "app/common/gutil";
 import { IAttachedCustomWidget, IWidgetType } from "app/common/widgetTypes";
 
@@ -20,6 +28,7 @@ import {
   Computed,
   Disposable,
   dom,
+  DomArg,
   domComputed,
   DomElementArg,
   fromKo,
@@ -37,6 +46,8 @@ import { IOpenController, popupOpen, setPopupToCreateDom } from "popweasel";
 const t = makeT("PageWidgetPicker");
 
 type TableRef = number | "New Table" | null;
+
+type KeyboardZone = "widgets" | "data" | "pivot" | "summarize" | "submit";
 
 // Describes a widget selection.
 export interface IPageWidget {
@@ -261,12 +272,38 @@ export function buildPageWidgetPicker(
     dom.create(PageWidgetSelect,
       value, tables, columns, onSaveCB, behavioralPromptsManager, options),
 
-    (elem) => { FocusLayer.create(ctl, { defaultFocusElem: elem, pauseMousetrap: true }); },
+    (elem) => {
+      FocusLayer.create(ctl, { defaultFocusElem: elem, pauseMousetrap: true });
+
+      // We have a rather specific keyboard handling in this whole popup.
+      // We give focus to the first item in the widgets list when the popup is opened.
+      // We do this in a setTimeout to avoid conflicts with the FocusLayer.
+      setTimeout(() => {
+        let button = elem.querySelector<HTMLElement>(
+          `[data-kb-zone="widgets"] .${cssEntry.className}-selected:not(:disabled)`,
+        );
+        if (!button) {
+          button = elem.querySelector<HTMLElement>(
+            `[data-kb-zone="widgets"] .${cssEntry.className}:not(:disabled)`,
+          );
+        }
+        button?.focus();
+      }, 0);
+    },
     onKeyDown({
       Escape: () => ctl.close(),
-      Enter: () => isValid() && onSaveCB(),
+      Enter$: (ev: KeyboardEvent) => {
+        if (!ev.ctrlKey && !ev.metaKey) {
+          return;
+        }
+        if (!isValid()) {
+          return;
+        }
+        ev.preventDefault();
+        ev.stopPropagation();
+        return onSaveCB();
+      },
     }),
-
   );
 }
 
@@ -327,6 +364,8 @@ export class PageWidgetSelect extends Disposable {
 
   private _isSummaryDisabled = Computed.create(this, this._value.type, (_use, type) => !isSummaryCompatible(type));
 
+  private _rootEl: HTMLElement | undefined;
+
   constructor(
     private _value: IWidgetValueObs,
     private _tables: Observable<TableRec[]>,
@@ -338,10 +377,68 @@ export class PageWidgetSelect extends Disposable {
 
   public buildDom() {
     return cssContainer(
+      dom.cls(kbFocusHighlighterClass),
+      (el) => {
+        this._rootEl = el as HTMLElement;
+      },
+      // Keyboard navigation is done through using Arrow keys to navigate in lists, Esc to go back, Enter to submit.
+      onKeyDown({
+        ArrowDown: (ev, root) => {
+          if (this._getFocusedZone() !== "submit") {
+            highlightKeyboardFocus();
+            focusAdjacentFocusable(root, 1);
+          }
+        },
+        ArrowUp: (ev, root) => {
+          if (this._getFocusedZone() !== "submit") {
+            highlightKeyboardFocus();
+            focusAdjacentFocusable(root, -1);
+          }
+        },
+        Enter$: (ev) => {
+          // If we pressed ctrl/command+Enter, we let the outer listener potential submit the choices.
+          if (ev.ctrlKey || ev.metaKey) {
+            ev.preventDefault();
+            return;
+          }
+          highlightKeyboardFocus();
+          // If we pressed Enter to navigate between sections inside the picker, dont let outer elements know about it.
+          if (this._keyboardGoNext()) {
+            ev.preventDefault();
+            ev.stopPropagation();
+          }
+        },
+        Escape$: (ev) => {
+          // If we pressed Esc to navigate between sections inside the picker, dont let outer elements know about it.
+          // If we didn't detect an actual keyboard usage with arrow keys/tab, we assume the user pressed Esc to close
+          // the picker directly.
+          if (isKeyboardUser() && this._keyboardGoBack()) {
+            ev.preventDefault();
+            ev.stopPropagation();
+          }
+        },
+        Tab$: (ev) => {
+          highlightKeyboardFocus();
+          // We allow tab navigation in the submit zone, where a select input might be rendered with the submit button.
+          if (this._getFocusedZone() === "submit") {
+            trapTabKey(this._rootEl!.querySelector<HTMLElement>('[data-kb-zone="submit"]')!, ev);
+            return;
+          }
+          // Otherwise, we disable the Tab key, user navigates with Arrows/Esc/Enter.
+          ev.preventDefault();
+          ev.stopPropagation();
+        },
+      }),
       testId("container"),
       cssBody(
         cssPanel(
-          header(t("Select widget")),
+          {
+            "data-kb-zone": "widgets",
+            "role": "group",
+            "aria-labelledby": "picker-widgets-header",
+            "aria-describedby": "picker-kb-help",
+          },
+          header(t("Select widget"), { id: "picker-widgets-header" }),
           sectionTypes.map((value) => {
             const widgetInfo = getWidgetTypes(value);
             const disabled = computed(this._value.table,
@@ -351,16 +448,31 @@ export class PageWidgetSelect extends Disposable {
               dom.autoDispose(disabled),
               cssTypeIcon(widgetInfo.icon),
               widgetInfo.getLabel(),
-              dom.on("click", () => !disabled.get() && this._selectType(value)),
+              dom.on("click", (event) => {
+                if (disabled.get()) {
+                  return;
+                }
+                event.preventDefault();
+                this._selectType(value);
+              }),
+              dom.data("widget-type", value),
               cssEntry.cls("-selected", use => use(this._value.type) === value),
+              dom.attr("aria-pressed", use => use(this._value.type) === value ? "true" : undefined),
               cssEntry.cls("-disabled", disabled),
+              dom.prop("disabled", disabled),
               testId("type"),
             );
           }),
         ),
         cssPanel(
           testId("data"),
-          header(t("Select data")),
+          {
+            "data-kb-zone": "data",
+            "role": "group",
+            "aria-labelledby": "picker-data-header",
+            "aria-describedby": "picker-kb-help",
+          },
+          header(t("Select data"), { id: "picker-data-header" }),
           cssEntry(
             cssIcon("TypeTable"), t("New Table"),
             // prevent the selection of 'New Table' if it is disabled
@@ -371,24 +483,40 @@ export class PageWidgetSelect extends Disposable {
                 placement: "right-start",
               },
             }),
+            dom.data("tid", "New Table"),
             cssEntry.cls("-selected", use => use(this._value.table) === "New Table"),
+            dom.attr("aria-pressed", use => use(this._value.table) === "New Table" ? "true" : undefined),
             cssEntry.cls("-disabled", this._isNewTableDisabled),
+            dom.prop("disabled", use => use(this._isNewTableDisabled)),
             testId("table"),
           ),
           dom.forEach(this._tables, table => dom("div",
             cssEntryWrapper(
-              cssEntry(cssIcon("TypeTable"),
+              cssEntry(
+                dom.data("tid", String(table.id())),
+                cssIcon("TypeTable"),
                 cssLabel(dom.text(table.tableNameDef), overflowTooltip()),
                 dom.on("click", () => this._selectTable(table.id())),
                 cssEntry.cls("-selected", use => use(this._value.table) === table.id()),
+                dom.attr("aria-pressed", use => use(this._value.table) === table.id() ? "true" : undefined),
                 testId("table-label"),
               ),
               cssPivot(
+                dom.attr("data-kb-zone", "pivot"),
+                dom.data("pivot-tid", String(table.id())),
+                dom.attr("aria-label", use =>
+                  t("{{table}} grouped by… (press to select fields)", {
+                    table: use(table.tableNameDef),
+                  }),
+                ),
                 cssBigIcon("Pivot"),
                 cssEntry.cls("-selected", use => use(this._value.summarize) &&
                   use(this._value.table) === table.id(),
                 ),
+                dom.attr("aria-pressed", use => use(this._value.summarize) &&
+                  use(this._value.table) === table.id() ? "true" : undefined),
                 cssEntry.cls("-disabled", this._isSummaryDisabled),
+                dom.prop("disabled", this._isSummaryDisabled),
                 dom.on("click", (_ev, el) =>
                   !this._isSummaryDisabled.get() && this._selectPivot(table.id(), el as HTMLElement)),
                 testId("pivot"),
@@ -398,16 +526,27 @@ export class PageWidgetSelect extends Disposable {
           )),
         ),
         cssPanel(
-          header(t("Group by")),
+          {
+            "data-kb-zone": "summarize",
+            "role": "group",
+            "aria-labelledby": "picker-summarize-header",
+            "aria-describedby": "picker-kb-help",
+          },
+          header(
+            [t("Group by"), cssHeaderKeyboardInstructions(t("Press Space to add fields"))],
+            { id: "picker-summarize-header" },
+          ),
           dom.hide(use => !use(this._value.summarize)),
           domComputed(
             use => use(this._columns)
               .filter(col => !col.isHiddenCol() && col.parentId() === use(this._value.table)),
             cols => cols ?
               dom.forEach(cols, col =>
-                cssEntry(cssIcon("FieldColumn"), cssFieldLabel(dom.text(col.label)),
+                cssEntry(
+                  cssIcon("FieldColumn"), cssFieldLabel(dom.text(col.label)),
                   dom.on("click", () => this._toggleColumnId(col.id())),
                   cssEntry.cls("-selected", use => use(this._value.columns).includes(col.id())),
+                  dom.attr("aria-pressed", use => use(this._value.columns).includes(col.id()) ? "true" : "false"),
                   testId("column"),
                 ),
               ) :
@@ -416,14 +555,22 @@ export class PageWidgetSelect extends Disposable {
         ),
       ),
       cssFooter(
+        dom.attr("data-kb-zone", "submit"),
+        cssKeyboardInstructions(
+          { id: "picker-kb-help" },
+          t("Use up and down arrow keys to move through options. Press Enter and Esc to move between steps."),
+          testId("kb-help"),
+        ),
         cssFooterContent(
           // If _selectByOptions exists and has more than then "NoLinkOption", show the selector.
           dom.maybe(use => this._selectByOptions && use(this._selectByOptions).length > 1, () =>
             withInfoTooltip(
               cssSelectBy(
-                cssSmallLabel(t("SELECT BY")),
+                cssSmallLabel(t("SELECT BY"), { id: "picker-selectby-label" }),
                 dom.update(cssSelect(this._value.link, this._selectByOptions!),
-                  testId("selectby")),
+                  testId("selectby"),
+                  { "aria-labelledby": "picker-selectby-label" },
+                ),
               ),
               "selectBy",
               { popupOptions: { attach: null }, domArgs: [
@@ -436,8 +583,7 @@ export class PageWidgetSelect extends Disposable {
               ] },
             ),
           ),
-          dom("div", { style: "flex-grow: 1" }),
-          bigPrimaryButton(
+          cssSubmitButton(
             // TODO: The button's label of the page widget picker should read 'Close' instead when
             // there are no changes.
             this._options.buttonLabel || t("Add to page"),
@@ -478,11 +624,11 @@ export class PageWidgetSelect extends Disposable {
     this._closeSummarizePanel();
   }
 
-  private _isSelected(el: HTMLElement) {
+  private _isSelected(el: Element) {
     return el.classList.contains(cssEntry.className + "-selected");
   }
 
-  private _selectPivot(tid: TableRef, pivotEl: HTMLElement) {
+  private _selectPivot(tid: TableRef, pivotEl: Element) {
     if (this._isSelected(pivotEl)) {
       this._closeSummarizePanel();
     } else {
@@ -507,9 +653,148 @@ export class PageWidgetSelect extends Disposable {
     }
     return !getCompatibleTypes(table, { isNewPage: this._options.isNewPage, summarize: isSummaryOn }).includes(type);
   }
+
+  private _getFocusedZone(): KeyboardZone | undefined {
+    return document.activeElement?.closest("[data-kb-zone]")?.getAttribute("data-kb-zone") as KeyboardZone | undefined;
+  }
+
+  /**
+   * Submit current step's selection and move keyboard focus to the next step.
+   *
+   * Returns false if we didn't do anything.
+   */
+  private _keyboardGoNext(): boolean {
+    switch (this._getFocusedZone()) {
+      case "widgets":
+        if (this._selectFocusedType()) {
+          this._focusZone("data");
+          return true;
+        }
+        return false;
+
+      case "data": {
+        if (this._selectFocusedTable()) {
+          this._focusSubmitButton();
+          return true;
+        }
+        return false;
+      }
+
+      case "pivot": {
+        this._selectFocusedPivot();
+        if (this._value.summarize.get()) {
+          this._focusZone("summarize");
+        }
+        return true;
+      }
+
+      case "summarize": {
+        // Just go to next step with Enter, user must use Space to toggle items
+        this._focusSubmitButton();
+        return true;
+      }
+
+      case "submit":
+      default:
+        return false;
+    }
+  }
+
+  /**
+   * Focus the previous panel.
+   *
+   * Returns false if we didn't do anything.
+   */
+  private _keyboardGoBack(): boolean {
+    switch (this._getFocusedZone()) {
+      case "widgets":
+      default:
+        return false;
+
+      case "data":
+      case "pivot":
+        this._value.link.set(NoLink);
+        this._value.table.set(null);
+        this._focusZone("widgets");
+        return true;
+
+      case "summarize":
+        this._focusPivot();
+        this._closeSummarizePanel();
+        return true;
+
+      case "submit":
+        if (this._value.summarize.get()) {
+          this._focusZone("summarize");
+        } else {
+          this._focusZone("data");
+        }
+        return true;
+    }
+  }
+
+  private _selectFocusedType(): boolean {
+    const activeEl = document.activeElement;
+    const type = activeEl && dom.getData(activeEl, "widget-type") as IWidgetType | undefined;
+    if (type && !this._isTypeDisabled(type, this._value.table.get(), this._value.summarize.get())) {
+      this._selectType(type);
+      return true;
+    }
+    return false;
+  }
+
+  private _selectFocusedTable(): boolean {
+    const activeEl = document.activeElement;
+    const table = activeEl && dom.getData(activeEl, "tid") as TableRef | undefined;
+    if (table === "New Table" && this._isNewTableDisabled.get()) {
+      return false;
+    }
+    if (table) {
+      this._selectTable(table === "New Table" ? "New Table" : Number(table));
+      return true;
+    }
+    return false;
+  }
+
+  private _selectFocusedPivot(): boolean {
+    const activeEl = document.activeElement;
+    const table = activeEl && dom.getData(activeEl, "pivot-tid") as TableRef | undefined;
+    if (table && !this._isSummaryDisabled.get()) {
+      this._selectPivot(Number(table), activeEl);
+      return true;
+    }
+    return false;
+  }
+
+  private _focusZone(zone: KeyboardZone): void {
+    let button = this._rootEl?.querySelector<HTMLElement>(
+      `[data-kb-zone="${zone}"] .${cssEntry.className}-selected:not(:disabled)`,
+    );
+    if (!button) {
+      button = this._rootEl?.querySelector<HTMLElement>(
+        `[data-kb-zone="${zone}"] .${cssEntry.className}:not(:disabled)`,
+      );
+    }
+    button?.focus();
+  }
+
+  private _focusPivot(): void {
+    let button = this._rootEl?.querySelector<HTMLElement>(
+      `.${cssPivot.className}.${cssEntry.className}-selected:not(:disabled)`,
+    );
+    if (!button) {
+      button = this._rootEl?.querySelector<HTMLElement>(`.${cssPivot.className}:not(:disabled)`);
+    }
+    button?.focus();
+  }
+
+  private _focusSubmitButton(): void {
+    const el = this._rootEl?.querySelector<HTMLButtonElement>('[data-kb-zone="submit"] button:not(:disabled)');
+    el?.focus();
+  }
 }
 
-function header(label: string, ...args: DomElementArg[]) {
+function header(label: DomArg, ...args: DomElementArg[]) {
   return cssHeader(dom("h4", label), ...args, testId("heading"));
 }
 
@@ -554,11 +839,12 @@ const cssHeader = styled("div", `
   font-size: ${vars.mediumFontSize};
 `);
 
-const cssEntry = styled("div", `
+const cssEntry = styled(unstyledButton, `
   color: ${theme.widgetPickerItemFg};
   padding: 0 0 0 24px;
   height: 32px;
   display: flex;
+  width: 100%;
   flex-direction: row;
   flex: 1 1 0px;
   align-items: center;
@@ -623,15 +909,17 @@ const cssBigIcon = styled(icon, `
 const cssFooter = styled("div", `
   display: flex;
   border-top: var(--outline);
+  flex-direction: column;
 `);
 
 const cssFooterContent = styled("div", `
   flex-grow: 1;
-  height: 65px;
+  min-height: 65px;
   display: flex;
   flex-direction: row;
   align-items: center;
   padding: 0 24px 0 24px;
+  gap: 8px;
 `);
 
 const cssSmallLabel = styled("span", `
@@ -650,6 +938,25 @@ const cssSelect = styled(select, `
 const cssSelectBy = styled("div", `
   display: flex;
   align-items: center;
+`);
+
+const cssSubmitButton = styled(bigPrimaryButton, `
+  margin-left: auto;
+`);
+
+const cssKeyboardInstructions = styled(cssWhenKeyboardUser, `
+  margin: 0;
+  padding: 12px 24px 0;
+  font-size: ${vars.smallFontSize};
+  color: ${theme.lightText};
+  max-width: 410px;
+`);
+
+const cssHeaderKeyboardInstructions = styled(cssWhenKeyboardUser, `
+  margin: 5px 10px 0 0;
+  font-size: ${vars.smallFontSize};
+  color: ${theme.lightText};
+  font-weight: normal;
 `);
 
 // Returns a copy of array with its items sorted in the same order as they appear in other.
