@@ -127,7 +127,7 @@ async function getWorkspaceId(api: UserAPI, name: string): Promise<number | unde
  * Global setup that runs once before any scenario.
  * Sets up the temp directory and seeded database.
  */
-async function globalSetup(testSuiteName: string) {
+async function globalSetup(testSuiteName: string, env: testUtils.EnvironmentSnapshot) {
   if (globalSetupDone.has(testSuiteName)) {
     return;
   }
@@ -138,7 +138,7 @@ async function globalSetup(testSuiteName: string) {
   await prepareFilesystemDirectoryForTests(tmpDir);
 
   // Create the seeded database
-  await prepareDatabase(tmpDir);
+  await prepareDatabase(tmpDir, env);
 }
 
 /**
@@ -307,7 +307,7 @@ export function addAllScenarios(
   // Global setup runs once before any scenario
   before(async function() {
     oldEnv = new testUtils.EnvironmentSnapshot();
-    await globalSetup(testSuiteName);
+    await globalSetup(testSuiteName, oldEnv);
   });
 
   after(async function() {

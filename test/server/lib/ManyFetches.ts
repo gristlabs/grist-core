@@ -40,7 +40,7 @@ describe("ManyFetches", function() {
     oldEnv = new EnvironmentSnapshot();   // Needed for prepareDatabase, which changes process.env
     log.info("Starting servers");
     const testDir = await createTestDir(`ManyFetches-${testCounter++}`);
-    await prepareDatabase(testDir);
+    await prepareDatabase(testDir, oldEnv);
     home = await TestServer.startServer("home", testDir, "home");
     docs = await TestServer.startServer("docs", testDir, "docs", {
       // The test verifies memory usage by checking heap sizes. The line below limits doc-worker

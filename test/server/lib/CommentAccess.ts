@@ -99,9 +99,12 @@ describe("CommentAccess", function() {
   });
 
   after(async function() {
-    const api = await home.createHomeApi("chimpy", "docs");
-    await api.deleteOrg("testy");
-    await home.stop();
+    const messages = await testUtils.captureLog("error", async () => {
+      const api = await home.createHomeApi("chimpy", "docs");
+      await api.deleteOrg("testy");
+      await home.stop();
+    });
+    assert.lengthOf(messages, 0);
   });
 
   async function freshDoc() {

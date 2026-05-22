@@ -49,7 +49,7 @@ describe("DocApiReverseProxy", function() {
   before(async function() {
     await prepareFilesystemDirectoryForTests(tmpDir);
     oldEnv = new testUtils.EnvironmentSnapshot();
-    await prepareDatabase(tmpDir);
+    await prepareDatabase(tmpDir, oldEnv);
     dataDir = path.join(tmpDir, "data");
   });
 

@@ -38,16 +38,6 @@ async function cleanRedisDatabase() {
   await cli.quitAsync();
 }
 
-function backupEnvironmentVariables() {
-  let oldEnv: testUtils.EnvironmentSnapshot;
-  before(() => {
-    oldEnv = new testUtils.EnvironmentSnapshot();
-  });
-  after(() => {
-    oldEnv.restore();
-  });
-}
-
 const webhooksTestPort = Number(process.env.WEBHOOK_TEST_PORT || 34365);
 const webhooksTestProxyPort = Number(process.env.WEBHOOK_TEST_PROXY_PORT || 22335);
 
@@ -62,7 +52,11 @@ describe("Webhooks-Proxy", function() {
   this.timeout(30000);
   testUtils.setTmpLogLevel("debug");
   // test might override environment values, therefore we need to backup current ones to restore them later
-  backupEnvironmentVariables();
+  const oldEnv = new testUtils.EnvironmentSnapshot();
+
+  after(function() {
+    oldEnv.restore();
+  });
 
   function setupMockServers(name: string, tmpDir: string, cb: () => Promise<void>) {
     let api: UserAPIImpl;
@@ -109,7 +103,7 @@ describe("Webhooks-Proxy", function() {
         await cleanRedisDatabase();
       }
       await prepareFilesystemDirectoryForTests(tmpDir);
-      await prepareDatabase(tmpDir);
+      await prepareDatabase(tmpDir, oldEnv);
     });
     /**
      * Doc api tests are run against three different setup:
