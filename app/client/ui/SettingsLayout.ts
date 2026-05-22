@@ -261,7 +261,7 @@ export const cssSection = styled(cssCardSurface, `
 /**
  * Bordered card used to wrap a sub-section of a QuickSetup step
  * (e.g. Base URL or Edition inside the Server step, the toggle list
- * inside the Apply & Restart step). Inherits the shared bordered look
+ * inside the Apply & restart step). Inherits the shared bordered look
  * from {@link cssCardSurface} so it tracks the admin panel's outer cards.
  */
 export const cssQuickSetupCard = styled(cssCardSurface, `

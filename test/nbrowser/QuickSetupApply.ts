@@ -231,7 +231,7 @@ describe("QuickSetupApply", function() {
     await gu.waitToPass(async () => {
       assert.include(
         await driver.find(".test-permissions-setup-section").getText(),
-        "Apply & Restart",
+        "Apply & restart",
       );
     }, 1000);
   }

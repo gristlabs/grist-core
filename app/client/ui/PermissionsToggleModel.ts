@@ -13,7 +13,7 @@ const t = makeT("PermissionsToggleModel");
  * Shared model for the four install-wide permission toggles
  * (team sites / personal sites / anon access / playground).
  *
- * Used by both QuickSetup's "Apply & Restart" card and the admin
+ * Used by both QuickSetup's "Apply & restart" card and the admin
  * panel's Security Settings rows. Owns loading from the server,
  * dirty tracking against server values, env-locked detection,
  * preset application, and the `apply()` that persists changes.
