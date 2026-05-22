@@ -25,7 +25,9 @@ describe("ViewContextMenu", function() {
 
   it("should not open a context menu twice when opening it with keyboard", async function() {
     await pressShiftF10();
-    assert.isTrue(await gu.findOpenMenu().isDisplayed());
+    // findOpenMenu throws if the menu doesn't appear; isDisplayed() would race the
+    // setTimeout(0) in contextMenu.ts that clears visibility:hidden after positioning.
+    await gu.findOpenMenu(1000);
     await pressShiftF10(true);
     await driver.sleep(100);
     const openedMenus = await driver.findAll(".grist-floating-menu");
@@ -46,7 +48,7 @@ describe("ViewContextMenu", function() {
 async function assertShiftF10Works() {
   await gu.waitAppFocus();
   await pressShiftF10();
-  assert.isTrue(await gu.findOpenMenu().isDisplayed());
+  await gu.findOpenMenu(1000);
   await gu.sendKeys(Key.ESCAPE);
   await gu.waitForMenuToClose();
 }

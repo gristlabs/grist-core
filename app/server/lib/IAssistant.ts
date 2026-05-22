@@ -219,6 +219,10 @@ export interface JSONSchema {
    */
   maximum?: number;
   /**
+   * Regular expression pattern that string properties must match.
+   */
+  pattern?: string;
+  /**
    * Allowed values (e.g. `["error", "warning"]`).
    */
   enum?: any[];
