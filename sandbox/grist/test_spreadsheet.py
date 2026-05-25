@@ -5,17 +5,22 @@ physical column, so formulas apply to exactly one cell.
 """
 import logging
 import time
+import unittest
 import test_engine
 from test_engine import Table, Column, View, Section, Field
+from useractions import UserActions
 
 log = logging.getLogger(__name__)
 
 
 def spreadsheet_col_letter(index):
-  """Convert a 0-based column index to a letter: 0->A, 1->B, ..., 25->Z."""
-  if index < 26:
-    return chr(ord('A') + index)
-  return 'A' + chr(ord('A') + index - 26)
+  """Convert a 0-based column index to a letter: 0->A, 25->Z, 26->AA, 52->BA, etc."""
+  result = ""
+  i = index
+  while i >= 0:
+    result = chr(ord('A') + i % 26) + result
+    i = i // 26 - 1
+  return result
 
 
 def spreadsheet_cell_col_id(col_index, row_index):
@@ -32,6 +37,36 @@ SPREADSHEET_CELL_IDS = [
   for r in range(SPREADSHEET_NUM_ROWS)
   for c in range(SPREADSHEET_NUM_COLS)
 ]
+
+
+class TestSpreadsheetColLetter(unittest.TestCase):
+  """Direct tests for the column letter conversion functions."""
+
+  def test_single_letter(self):
+    self.assertEqual(spreadsheet_col_letter(0), 'A')
+    self.assertEqual(spreadsheet_col_letter(1), 'B')
+    self.assertEqual(spreadsheet_col_letter(25), 'Z')
+
+  def test_two_letters(self):
+    self.assertEqual(spreadsheet_col_letter(26), 'AA')
+    self.assertEqual(spreadsheet_col_letter(27), 'AB')
+    self.assertEqual(spreadsheet_col_letter(51), 'AZ')
+    self.assertEqual(spreadsheet_col_letter(52), 'BA')
+    self.assertEqual(spreadsheet_col_letter(53), 'BB')
+    self.assertEqual(spreadsheet_col_letter(701), 'ZZ')
+
+  def test_three_letters(self):
+    self.assertEqual(spreadsheet_col_letter(702), 'AAA')
+    self.assertEqual(spreadsheet_col_letter(703), 'AAB')
+
+  def test_matches_useractions(self):
+    """The test helper and UserActions._spreadsheet_col_letter must agree."""
+    for i in range(800):
+      self.assertEqual(
+        spreadsheet_col_letter(i),
+        UserActions._spreadsheet_col_letter(i),
+        "Mismatch at index %d" % i,
+      )
 
 
 class TestSpreadsheet(test_engine.EngineTestCase):

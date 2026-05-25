@@ -126,13 +126,6 @@ export class SpreadsheetView extends BaseView {
     this.cursor.fieldIndex(fi);
   }
 
-  private _indexToLetter(index: number): string {
-    if (index < 26) {
-      return String.fromCharCode(65 + index);
-    }
-    return "A" + String.fromCharCode(65 + index - 26);
-  }
-
   private _cellColId(col: number, row: number): string {
     return this._colLetters[col] + (row + 1);
   }
