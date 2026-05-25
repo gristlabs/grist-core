@@ -217,6 +217,7 @@ export interface GristDoc extends DisposableWithEvents {
   getTableModel(tableId: string): DataTableModel;
   getTableModelMaybeWithDiff(tableId: string): DataTableModel;
   addEmptyTable(): Promise<void>;
+  addSpreadsheetTable(): Promise<void>;
   addWidgetToPage(widget: IPageWidget): Promise<void>;
   addNewPage(val: IPageWidget): Promise<void>;
   saveViewSection(section: ViewSectionRec, newVal: IPageWidget): Promise<ViewSectionRec>;
@@ -1003,6 +1004,18 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       return;
     }
     const tableInfo = await this.docData.sendAction(["AddEmptyTable", name || null]);
+    await this.openDocPage(this.docModel.tables.getRowModel(tableInfo.id).primaryViewId());
+  }
+
+  /**
+   * Sends an action to create a new spreadsheet table (50x50 grid) and switches to its view.
+   */
+  public async addSpreadsheetTable(): Promise<void> {
+    const name = await this._promptForName();
+    if (name === undefined) {
+      return;
+    }
+    const tableInfo = await this.docData.sendAction(["AddSpreadsheetTable", name || null]);
     await this.openDocPage(this.docModel.tables.getRowModel(tableInfo.id).primaryViewId());
   }
 

@@ -521,6 +521,10 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
     return Promise.resolve();
   }
 
+  public async addSpreadsheetTable(): Promise<void> {
+    return Promise.resolve();
+  }
+
   public async addWidgetToPage(widget: IPageWidget): Promise<void> {
     return Promise.resolve();
   }

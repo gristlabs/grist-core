@@ -92,15 +92,20 @@ def is_user_table(table_id):
   return not (is_hidden_table(table_id) or gencode._is_special_table(table_id))
 
 
+_action_defaults = {}
+
 def useraction(method):
   """
   Decorator for a method, which creates an action class with the same name and arguments.
   """
   code = method.__code__
   name = method.__name__
-  cls = namedtuple(name, code.co_varnames[1:code.co_argcount])
+  field_names = code.co_varnames[1:code.co_argcount]
+  cls = namedtuple(name, field_names)
   setattr(_current_module, name, cls)
   _action_types[name] = cls
+  if method.__defaults__:
+    _action_defaults[name] = method.__defaults__
   return method
 
 
@@ -118,14 +123,22 @@ def override_action(action_name, table_id):
 def from_repr(user_action):
   """
   Converts a UserAction array into an object such as UpdateRecord.
+  Fills in missing trailing arguments from defaults registered by @useraction.
   """
-  action_type = _action_types.get(user_action[0])
+  action_name = user_action[0]
+  action_type = _action_types.get(action_name)
   if not action_type:
-    raise ValueError('Unknown action %s' % user_action[0])
+    raise ValueError('Unknown action %s' % action_name)
+  args = user_action[1:]
+  n_fields = len(action_type._fields)
+  defaults = _action_defaults.get(action_name)
+  if defaults and len(args) < n_fields:
+    n_missing = n_fields - len(args)
+    args = list(args) + list(defaults[-n_missing:])
   try:
-    return action_type(*user_action[1:])
+    return action_type(*args)
   except TypeError as e:
-    raise TypeError("%s: %s" % (user_action[0], str(e)))
+    raise TypeError("%s: %s" % (action_name, str(e)))
 
 def _make_clean_col_info(col_info, col_id=None):
   """
@@ -2113,6 +2126,95 @@ class UserActions(object):
     """
     columns = [{'id': None, 'isFormula': True} for x in range(3)]
     return self.AddTable(table_id, columns)
+
+  @useraction
+  def AddSpreadsheetTable(self, table_id, num_cols=18, num_rows=30):
+    """
+    Adds a spreadsheet-style table backed by a single record.  Each visual cell is a separate
+    physical column named by cell address: A1, B1, ..., T1, A2, B2, ..., T20 (for 20x20).
+    The column ordering is row-major: all columns for row 1 first, then row 2, etc.
+    """
+    if num_cols * num_rows > 1990:
+      raise ValueError("Grid %dx%d (%d columns) exceeds SQLite limit of ~2000" %
+                        (num_cols, num_rows, num_cols * num_rows))
+
+    cell_col_ids = []
+    for r in range(num_rows):
+      for c in range(num_cols):
+        cell_col_ids.append(self._spreadsheet_col_letter(c) + str(r + 1))
+
+    columns = [{'id': cid, 'isFormula': False, 'type': 'Any'} for cid in cell_col_ids]
+
+    table_title = table_id
+    if not table_id:
+      table_id = 'Spreadsheet'
+    table_id = identifiers.pick_table_ident(table_id, avoid=self._engine.tables.keys())
+    if not table_title:
+      table_title = table_id
+
+    columns.insert(0, column.MANUAL_SORT_COL_INFO.copy())
+    all_col_ids = ['manualSort'] + cell_col_ids
+
+    clean_colinfo = [_make_clean_col_info(ci, cid) for (ci, cid) in zip(columns, all_col_ids)]
+
+    # SQLite limits params per INSERT to ~999, so batch AddColumn actions.
+    BATCH_SIZE = 500
+    first_batch = clean_colinfo[:BATCH_SIZE]
+    self._do_doc_action(actions.AddTable(table_id, first_batch))
+
+    for start in range(BATCH_SIZE, len(clean_colinfo), BATCH_SIZE):
+      batch = clean_colinfo[start:start + BATCH_SIZE]
+      for ci in batch:
+        self._do_doc_action(actions.AddColumn(table_id, ci['id'], ci))
+
+    table_rec = self._docmodel.add(self._docmodel.tables, tableId=table_id, primaryViewId=0)[0]
+    self._docmodel.insert(
+      table_rec.columns, None,
+      colId         = all_col_ids,
+      type          = [c['type'] for c in clean_colinfo],
+      isFormula     = [c['isFormula'] for c in clean_colinfo],
+      formula       = [c['formula'] for c in clean_colinfo],
+      label         = all_col_ids,
+      widgetOptions = ['' for _ in clean_colinfo])
+
+    result = {
+      "id": table_rec.id,
+      "table_id": table_id,
+      "columns": cell_col_ids,
+      "num_cols": num_cols,
+      "num_rows": num_rows,
+    }
+
+    primary_view = self.doAddView(result["table_id"], 'raw_data', table_title)
+    result["views"] = [primary_view]
+
+    raw_section = self.create_plain_view_section(
+      result["id"], table_id, self._docmodel.view_sections, "spreadsheet", table_title)
+
+    self._create_record_card_view_section(
+      result["id"], table_id, self._docmodel.view_sections)
+
+    self.UpdateRecord('_grist_Tables', result["id"], {
+      'primaryViewId': primary_view["id"],
+      'rawViewSectionRef': raw_section.id,
+    })
+
+    view_rec = self._docmodel.views.table.get_record(primary_view["id"])
+    for sec in view_rec.viewSections:
+      if sec.parentKey == 'record':
+        self._docmodel.update([sec], parentKey='spreadsheet')
+
+    # Single record holding all cell values
+    self.AddRecord(table_id, None, {})
+
+    return result
+
+  @staticmethod
+  def _spreadsheet_col_letter(index):
+    """Convert a 0-based index to a column letter: 0->A, 25->Z, 26->AA, etc."""
+    if index < 26:
+      return chr(ord('A') + index)
+    return 'A' + chr(ord('A') + index - 26)
 
 
   @useraction

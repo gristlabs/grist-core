@@ -430,23 +430,25 @@ export class FormulaEditor extends NewBaseEditor {
       return;
     }
 
+    const ref = "$" + colId;
+
     const aceObj = this._aceEditor.getEditor();
     if (!aceObj.selection.isEmpty()) {
       // If text selected, replace whole selection
-      aceObj.session.replace(aceObj.selection.getRange(), "$" + colId);
+      aceObj.session.replace(aceObj.selection.getRange(), ref);
     } else {
       // Not a selection, gotta figure out what to replace
       const pos = aceObj.getCursorPosition();
       const line = aceObj.session.getLine(pos.row);
       const result = _isInIdentifier(line, pos.column); // returns {start, end, id} | null
       if (!result) {
-        // Not touching an identifier, insert colId as normal
-        aceObj.insert("$" + colId);
+        // Not touching an identifier, insert ref as normal
+        aceObj.insert(ref);
         // We are touching an identifier
       } else if (result.ident.startsWith("$")) {
         // If ident is a colId, replace it
         const idRange = AceEditor.makeRange(pos.row, result.start, pos.row, result.end);
-        aceObj.session.replace(idRange, "$" + colId);
+        aceObj.session.replace(idRange, ref);
       }
       // Else touching a normal identifier, don't mangle it
     }
