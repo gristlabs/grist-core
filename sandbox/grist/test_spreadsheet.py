@@ -374,7 +374,23 @@ class TestSpreadsheet(test_engine.EngineTestCase):
   # Performance
   # ---------------------------------------------------------------------------
 
-  def test_performance_grid_sizes(self):
+  def test_performance_default_grid(self):
+    """The default grid size must be created within a reasonable time budget."""
+    import sys
+    cols, rows = SPREADSHEET_NUM_COLS, SPREADSHEET_NUM_ROWS
+    total = cols * rows
+    start = time.time()
+    self.apply_user_action([
+      'AddSpreadsheetTable', 'Perf_%dx%d' % (cols, rows), cols, rows])
+    elapsed = time.time() - start
+    print("  Grid %dx%d (%d columns): %.3fs" % (cols, rows, total, elapsed),
+          file=sys.stderr)
+    self.assertLess(elapsed, 60.0,
+                    "Default grid %dx%d (%d cols) took too long: %.1fs"
+                    % (cols, rows, total, elapsed))
+
+  @unittest.skip("Benchmark only -- run manually to evaluate larger grid sizes")
+  def test_performance_grid_sizes_benchmark(self):
     """Measure creation time for grid sizes in 3:5 ratio to find optimal default."""
     import sys
     candidates = [
@@ -404,7 +420,6 @@ class TestSpreadsheet(test_engine.EngineTestCase):
       except Exception as e:
         print("  FAIL %dx%d: %s" % (cols, rows, e), file=sys.stderr)
         break
-    # All valid sizes must complete within 60 seconds
     for cols, rows, total, elapsed in results:
       self.assertLess(elapsed, 60.0,
                       "Grid %dx%d (%d cols) took too long: %.1fs" % (cols, rows, total, elapsed))

@@ -2,7 +2,7 @@ import BaseView from "app/client/components/BaseView";
 import * as commands from "app/client/components/commands";
 import { GristDoc } from "app/client/components/GristDoc";
 import { viewCommands } from "app/client/components/RegionFocusSwitcher";
-import { formatRawCellValue } from "app/client/lib/cellUtils";
+import { formatRawCellValue, indexToLetter } from "app/client/lib/cellUtils";
 import { DataRowModel } from "app/client/models/DataRowModel";
 import { ViewSectionRec } from "app/client/models/entities/ViewSectionRec";
 import { reportError } from "app/client/models/errors";
@@ -42,7 +42,7 @@ export class SpreadsheetView extends BaseView {
 
     this._colLetters = [];
     for (let i = 0; i < this._numCols; i++) {
-      this._colLetters.push(this._indexToLetter(i));
+      this._colLetters.push(indexToLetter(i));
     }
 
     this._curCol = Observable.create(this, 0);

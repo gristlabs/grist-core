@@ -2212,9 +2212,12 @@ class UserActions(object):
   @staticmethod
   def _spreadsheet_col_letter(index):
     """Convert a 0-based index to a column letter: 0->A, 25->Z, 26->AA, etc."""
-    if index < 26:
-      return chr(ord('A') + index)
-    return 'A' + chr(ord('A') + index - 26)
+    result = ""
+    i = index
+    while i >= 0:
+      result = chr(ord('A') + i % 26) + result
+      i = i // 26 - 1
+    return result
 
 
   @useraction
