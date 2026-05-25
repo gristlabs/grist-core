@@ -1,4 +1,5 @@
-import { indexToLetter, formatRawCellValue } from "app/client/lib/cellUtils";
+import { formatRawCellValue, indexToLetter } from "app/client/lib/cellUtils";
+
 import { assert } from "chai";
 
 describe("cellUtils", function() {
