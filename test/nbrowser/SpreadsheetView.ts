@@ -5,14 +5,14 @@ import { setupTestSuite } from "test/nbrowser/testUtils";
 
 import { assert, driver, Key } from "mocha-webdriver";
 
-describe("SpreadsheetView", function () {
+describe("SpreadsheetView", function() {
   this.timeout("60s");
   const cleanup = setupTestSuite();
   let session: gu.Session;
   let doc: DocCreationInfo;
   let api: UserAPI;
 
-  before(async function () {
+  before(async function() {
     session = await gu.session().login();
     doc = await session.tempDoc(cleanup, "Hello.grist");
     api = session.createHomeApi();
@@ -35,8 +35,8 @@ describe("SpreadsheetView", function () {
   // Creating a spreadsheet widget
   // ---------------------------------------------------------------------------
 
-  describe("creation", function () {
-    it("should create a spreadsheet table via API action", async function () {
+  describe("creation", function() {
+    it("should create a spreadsheet table via API action", async function() {
       await api.applyUserActions(doc.id, [
         ["AddSpreadsheetTable", "TestSheet"],
       ]);
@@ -44,15 +44,15 @@ describe("SpreadsheetView", function () {
 
       await gu.openPage(/TestSheet/);
       const pageLabel = await driver.find(
-        ".test-treeview-itemHeader.selected .test-docpage-label"
+        ".test-treeview-itemHeader.selected .test-docpage-label",
       ).getText();
       assert.equal(pageLabel, "TestSheet");
     });
 
-    it("should appear in the page list after creation", async function () {
+    it("should appear in the page list after creation", async function() {
       const pages = await driver.findAll(
         ".test-treeview-itemHeader .test-docpage-label",
-        (el) => el.getText()
+        el => el.getText(),
       );
       assert.include(pages, "TestSheet");
     });
@@ -62,15 +62,15 @@ describe("SpreadsheetView", function () {
   // Grid display
   // ---------------------------------------------------------------------------
 
-  describe("grid display", function () {
-    before(async function () {
+  describe("grid display", function() {
+    before(async function() {
       await gu.openPage(/TestSheet/);
     });
 
-    it("should display column headers A through T", async function () {
+    it("should display column headers A through T", async function() {
       const headers = await driver.findAll(
         ".test-spreadsheet-view th",
-        (el) => el.getText()
+        el => el.getText(),
       );
       // First header is the corner (empty), then A, B, C, ...
       assert.include(headers, "A");
@@ -78,17 +78,17 @@ describe("SpreadsheetView", function () {
       assert.include(headers, "R");  // 18th column = R
     });
 
-    it("should display row numbers starting from 1", async function () {
+    it("should display row numbers starting from 1", async function() {
       const firstRow = await driver.find(".test-row-header-1").getText();
       assert.equal(firstRow, "1");
     });
 
-    it("should have 1 data record (single-record model)", async function () {
+    it("should have 1 data record (single-record model)", async function() {
       const tableData = await api.getDocAPI(doc.id).getRows("TestSheet");
       assert.equal(tableData.id.length, 1);
     });
 
-    it("should have cell columns (A1 through T20)", async function () {
+    it("should have cell columns (A1 through T20)", async function() {
       const tables = await api.getDocAPI(doc.id).getTables({ expand: ["column"] });
       const testSheetTable = tables.tables.find((t: any) => t.id === "TestSheet");
       assert.isDefined(testSheetTable, "TestSheet table should exist");
@@ -107,44 +107,44 @@ describe("SpreadsheetView", function () {
   // Keyboard navigation
   // ---------------------------------------------------------------------------
 
-  describe("keyboard navigation", function () {
-    before(async function () {
+  describe("keyboard navigation", function() {
+    before(async function() {
       await gu.openPage(/TestSheet/);
     });
 
-    it("should navigate right with arrow key", async function () {
+    it("should navigate right with arrow key", async function() {
       const cellA1 = await getSpreadsheetCell("A", 1);
       await cellA1.click();
       await driver.sendKeys(Key.ARROW_RIGHT);
       const cellB1 = await getSpreadsheetCell("B", 1);
       assert.isTrue(
         (await cellB1.getAttribute("class")).includes("selected_cursor"),
-        "B1 should be selected after pressing right arrow"
+        "B1 should be selected after pressing right arrow",
       );
     });
 
-    it("should navigate down with arrow key", async function () {
+    it("should navigate down with arrow key", async function() {
       const cellA1 = await getSpreadsheetCell("A", 1);
       await cellA1.click();
       await driver.sendKeys(Key.ARROW_DOWN);
       const cellA2 = await getSpreadsheetCell("A", 2);
       assert.isTrue(
         (await cellA2.getAttribute("class")).includes("selected_cursor"),
-        "A2 should be selected after pressing down arrow"
+        "A2 should be selected after pressing down arrow",
       );
     });
 
-    it("should not go past first column with left arrow", async function () {
+    it("should not go past first column with left arrow", async function() {
       const cellA1 = await getSpreadsheetCell("A", 1);
       await cellA1.click();
       await driver.sendKeys(Key.ARROW_LEFT);
       assert.isTrue(
         (await cellA1.getAttribute("class")).includes("selected_cursor"),
-        "A1 should remain selected"
+        "A1 should remain selected",
       );
     });
 
-    it("should not go past first row with up arrow", async function () {
+    it("should not go past first row with up arrow", async function() {
       // Use A2 first (which is safely below the sticky header), then navigate up twice
       const cellA2 = await getSpreadsheetCell("A", 2);
       await cellA2.click();
@@ -152,13 +152,13 @@ describe("SpreadsheetView", function () {
       const cellA1 = await getSpreadsheetCell("A", 1);
       assert.isTrue(
         (await cellA1.getAttribute("class")).includes("selected_cursor"),
-        "A1 should be selected after pressing up from A2"
+        "A1 should be selected after pressing up from A2",
       );
       // Now pressing up again should stay at A1
       await driver.sendKeys(Key.ARROW_UP);
       assert.isTrue(
         (await cellA1.getAttribute("class")).includes("selected_cursor"),
-        "A1 should remain selected after pressing up from A1"
+        "A1 should remain selected after pressing up from A1",
       );
     });
   });
@@ -167,12 +167,12 @@ describe("SpreadsheetView", function () {
   // Editing cells
   // ---------------------------------------------------------------------------
 
-  describe("editing cells", function () {
-    before(async function () {
+  describe("editing cells", function() {
+    before(async function() {
       await gu.openPage(/TestSheet/);
     });
 
-    it("should accept a typed value", async function () {
+    it("should accept a typed value", async function() {
       // Set value via API instead of UI editing (editing is tested via API actions)
       await api.applyUserActions(doc.id, [
         ["UpdateRecord", "TestSheet", 1, { A5: 42 }],
@@ -184,7 +184,7 @@ describe("SpreadsheetView", function () {
       assert.equal(text, "42");
     });
 
-    it("should accept a value via API", async function () {
+    it("should accept a value via API", async function() {
       await api.applyUserActions(doc.id, [
         ["UpdateRecord", "TestSheet", 1, { B1: 100 }],
       ]);
@@ -199,8 +199,8 @@ describe("SpreadsheetView", function () {
   // Per-cell formulas
   // ---------------------------------------------------------------------------
 
-  describe("per-cell formulas", function () {
-    before(async function () {
+  describe("per-cell formulas", function() {
+    before(async function() {
       await api.applyUserActions(doc.id, [
         ["AddSpreadsheetTable", "FormulaSheet"],
       ]);
@@ -208,7 +208,7 @@ describe("SpreadsheetView", function () {
       await gu.openPage(/FormulaSheet/);
     });
 
-    it("should evaluate a formula in a single cell", async function () {
+    it("should evaluate a formula in a single cell", async function() {
       await api.applyUserActions(doc.id, [
         ["UpdateRecord", "FormulaSheet", 1, { A1: 10, B1: 20 }],
         ["ModifyColumn", "FormulaSheet", "C1", {
@@ -229,7 +229,7 @@ describe("SpreadsheetView", function () {
       assert.equal(c2, "");
     });
 
-    it("should isolate formula to C3 only", async function () {
+    it("should isolate formula to C3 only", async function() {
       await api.applyUserActions(doc.id, [
         ["AddSpreadsheetTable", "IsoSheet"],
       ]);
@@ -265,7 +265,7 @@ describe("SpreadsheetView", function () {
       assert.equal(await getSpreadsheetCellText("E", 1), "");
     });
 
-    it("should update formula when dependency changes", async function () {
+    it("should update formula when dependency changes", async function() {
       await api.applyUserActions(doc.id, [
         ["UpdateRecord", "IsoSheet", 1, { A1: 100 }],
       ]);
@@ -283,8 +283,8 @@ describe("SpreadsheetView", function () {
   // Right panel syncs with selected cell
   // ---------------------------------------------------------------------------
 
-  describe("right panel column sync", function () {
-    before(async function () {
+  describe("right panel column sync", function() {
+    before(async function() {
       await api.applyUserActions(doc.id, [
         ["AddSpreadsheetTable", "PanelSheet"],
       ]);
@@ -293,7 +293,7 @@ describe("SpreadsheetView", function () {
       await driver.sleep(500);
     });
 
-    it("should update the Column tab label when clicking different cells", async function () {
+    it("should update the Column tab label when clicking different cells", async function() {
       // Open the right panel on the Column tab
       await gu.toggleSidePanel("right", "open");
       await driver.find(".test-right-tab-field").click();
@@ -323,7 +323,7 @@ describe("SpreadsheetView", function () {
       assert.equal(label, "R10");
     });
 
-    it("should update the Column tab label after arrow key navigation", async function () {
+    it("should update the Column tab label after arrow key navigation", async function() {
       // Use B5 to avoid sticky row header overlap with column A.
       // Dispatch mousedown directly (bypasses visual overlay from sticky headers).
       const cellB5 = await getSpreadsheetCell("B", 5);
@@ -353,8 +353,8 @@ describe("SpreadsheetView", function () {
   // Formula editor activation
   // ---------------------------------------------------------------------------
 
-  describe("formula editor", function () {
-    before(async function () {
+  describe("formula editor", function() {
+    before(async function() {
       await api.applyUserActions(doc.id, [
         ["AddSpreadsheetTable", "FormulaEdSheet"],
       ]);
@@ -363,7 +363,7 @@ describe("SpreadsheetView", function () {
       await driver.sleep(500);
     });
 
-    it("should open ace editor when typing '=' in a cell", async function () {
+    it("should open ace editor when typing '=' in a cell", async function() {
       // Select cell B5 by dispatching mousedown (reliable, avoids sticky header)
       const cellB5 = await getSpreadsheetCell("B", 5);
       await driver.executeScript(`
@@ -403,7 +403,7 @@ describe("SpreadsheetView", function () {
       await driver.sleep(200);
     });
 
-    it("should open ace editor when editing a formula column", async function () {
+    it("should open ace editor when editing a formula column", async function() {
       // Set up a formula column via API
       await api.applyUserActions(doc.id, [
         ["UpdateRecord", "FormulaEdSheet", 1, { A1: 10 }],
@@ -436,7 +436,7 @@ describe("SpreadsheetView", function () {
       await driver.sleep(200);
     });
 
-    it("should insert cell reference when clicking another cell during formula editing", async function () {
+    it("should insert cell reference when clicking another cell during formula editing", async function() {
       await gu.openPage(/FormulaEdSheet/);
       await driver.sleep(500);
 
@@ -494,7 +494,7 @@ describe("SpreadsheetView", function () {
       await driver.sleep(200);
     });
 
-    it("should build a complete formula by clicking cells", async function () {
+    it("should build a complete formula by clicking cells", async function() {
       await gu.openPage(/FormulaEdSheet/);
       await driver.sleep(500);
 
@@ -550,8 +550,8 @@ describe("SpreadsheetView", function () {
   // Cell sizing stability
   // ---------------------------------------------------------------------------
 
-  describe("cell sizing", function () {
-    before(async function () {
+  describe("cell sizing", function() {
+    before(async function() {
       await api.applyUserActions(doc.id, [
         ["AddSpreadsheetTable", "SizeSheet"],
       ]);
@@ -560,7 +560,7 @@ describe("SpreadsheetView", function () {
       await driver.sleep(500);
     });
 
-    it("cells should have a fixed width that does not change on click", async function () {
+    it("cells should have a fixed width that does not change on click", async function() {
       const cellB3 = await getSpreadsheetCell("B", 3);
       const sizeBefore = await cellB3.getRect();
 
@@ -575,7 +575,7 @@ describe("SpreadsheetView", function () {
         "Cell height should not change after clicking");
     });
 
-    it("all cells in a row should have the same height", async function () {
+    it("all cells in a row should have the same height", async function() {
       const cellA5 = await getSpreadsheetCell("A", 5);
       const cellD5 = await getSpreadsheetCell("D", 5);
       const cellR5 = await getSpreadsheetCell("R", 5);
@@ -590,7 +590,7 @@ describe("SpreadsheetView", function () {
       assert.equal(rectD.height, rectR.height);
     });
 
-    it("all cells in a column should have the same width", async function () {
+    it("all cells in a column should have the same width", async function() {
       const cellC1 = await getSpreadsheetCell("C", 1);
       const cellC5 = await getSpreadsheetCell("C", 5);
       const cellC10 = await getSpreadsheetCell("C", 10);
@@ -607,11 +607,11 @@ describe("SpreadsheetView", function () {
   // REST / Widget API compatibility
   // ---------------------------------------------------------------------------
 
-  describe("REST API compatibility", function () {
+  describe("REST API compatibility", function() {
     let docApi: DocAPI;
     const TABLE_ID = "ApiSheet";
 
-    before(async function () {
+    before(async function() {
       docApi = api.getDocAPI(doc.id);
       await api.applyUserActions(doc.id, [
         ["AddSpreadsheetTable", TABLE_ID],
@@ -619,18 +619,18 @@ describe("SpreadsheetView", function () {
       await gu.waitForServer();
     });
 
-    it("should expose the table via getTables", async function () {
+    it("should expose the table via getTables", async function() {
       const tables = await docApi.getTables();
       const tableIds = tables.tables.map((t: any) => t.id);
       assert.include(tableIds, TABLE_ID);
     });
 
-    it("should return a single row via getRows", async function () {
+    it("should return a single row via getRows", async function() {
       const data = await docApi.getRows(TABLE_ID);
       assert.deepEqual(data.id, [1], "Should have exactly one record with id=1");
     });
 
-    it("should return cell columns (A1, B2, ...) in getRows", async function () {
+    it("should return cell columns (A1, B2, ...) in getRows", async function() {
       const data = await docApi.getRows(TABLE_ID);
       const colNames = Object.keys(data);
       assert.include(colNames, "A1");
@@ -640,7 +640,7 @@ describe("SpreadsheetView", function () {
         "Should have cell-level columns (A1), not row-level (A)");
     });
 
-    it("should read/write individual cells via updateRows", async function () {
+    it("should read/write individual cells via updateRows", async function() {
       await docApi.updateRows(TABLE_ID, {
         id: [1],
         A1: [42],
@@ -654,7 +654,7 @@ describe("SpreadsheetView", function () {
       assert.equal(data.C3[0], 3.14);
     });
 
-    it("should return records via getRecords", async function () {
+    it("should return records via getRecords", async function() {
       const records = await docApi.getRecords(TABLE_ID);
       assert.lengthOf(records, 1, "Should have exactly one record");
       assert.equal(records[0].id, 1);
@@ -662,7 +662,7 @@ describe("SpreadsheetView", function () {
       assert.equal(records[0].fields.B2, "hello");
     });
 
-    it("should support bulk cell updates", async function () {
+    it("should support bulk cell updates", async function() {
       await api.applyUserActions(doc.id, [
         ["UpdateRecord", TABLE_ID, 1, {
           D1: 10, D2: 20, D3: 30, D4: 40, D5: 50,
@@ -676,7 +676,7 @@ describe("SpreadsheetView", function () {
       assert.equal(data.D5[0], 50);
     });
 
-    it("should reflect formula results in API data", async function () {
+    it("should reflect formula results in API data", async function() {
       await api.applyUserActions(doc.id, [
         ["UpdateRecord", TABLE_ID, 1, { E1: 100, E2: 200 }],
         ["ModifyColumn", TABLE_ID, "E3", {
@@ -688,7 +688,7 @@ describe("SpreadsheetView", function () {
       assert.equal(data.E3[0], 300, "Formula $E1 + $E2 should evaluate to 300");
     });
 
-    it("should update formula results when dependencies change via API", async function () {
+    it("should update formula results when dependencies change via API", async function() {
       await docApi.updateRows(TABLE_ID, {
         id: [1],
         E1: [500],
@@ -697,7 +697,7 @@ describe("SpreadsheetView", function () {
       assert.equal(data.E3[0], 700, "Formula should recalculate: 500 + 200 = 700");
     });
 
-    it("should clear cell values via API", async function () {
+    it("should clear cell values via API", async function() {
       await docApi.updateRows(TABLE_ID, {
         id: [1],
         A1: [null],
@@ -708,7 +708,7 @@ describe("SpreadsheetView", function () {
       assert.isNull(data.B2[0]);
     });
 
-    it("should support mixed data types across cells", async function () {
+    it("should support mixed data types across cells", async function() {
       await docApi.updateRows(TABLE_ID, {
         id: [1],
         F1: [42],
@@ -723,7 +723,7 @@ describe("SpreadsheetView", function () {
       assert.strictEqual(data.F4[0], 3.14);
     });
 
-    it("should not allow adding extra rows", async function () {
+    it("should not allow adding extra rows", async function() {
       const rowsBefore = await docApi.getRows(TABLE_ID);
       const countBefore = rowsBefore.id.length;
       try {
@@ -737,7 +737,7 @@ describe("SpreadsheetView", function () {
       assert.isAtLeast(rowsAfter.id.length, countBefore);
     });
 
-    it("should reflect API changes in the SpreadsheetView UI", async function () {
+    it("should reflect API changes in the SpreadsheetView UI", async function() {
       await docApi.updateRows(TABLE_ID, {
         id: [1],
         A1: [999],
@@ -751,7 +751,7 @@ describe("SpreadsheetView", function () {
       assert.equal(await getSpreadsheetCellText("B", 1), "api-test");
     });
 
-    it("should list columns with expand=column via getTables", async function () {
+    it("should list columns with expand=column via getTables", async function() {
       const tables = await docApi.getTables({ expand: ["column"] });
       const apiTable = tables.tables.find((t: any) => t.id === TABLE_ID);
       assert.isDefined(apiTable, "ApiSheet table should exist");

@@ -9,7 +9,7 @@
  */
 export function formatRawCellValue(val: any): string {
   if (val === null || val === undefined || val === "") { return ""; }
-  if (Array.isArray(val) && val[0] === 'E') {
+  if (Array.isArray(val) && val[0] === "E") {
     return "#ERROR";
   }
   return String(val);

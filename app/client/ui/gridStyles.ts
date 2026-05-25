@@ -3,12 +3,12 @@
  * These are plain CSS strings that can be interpolated into grainjs `styled()` calls.
  */
 
-import { theme } from "app/client/ui2018/cssVars";
 import {
   CELL_HEIGHT, CELL_PADDING, CELL_WIDTH, CURSOR_OUTLINE_WIDTH,
   HEADER_HEIGHT, ROW_HEADER_WIDTH,
   Z_COL_HEADER, Z_CORNER, Z_ROW_HEADER,
 } from "app/client/ui/gridConstants";
+import { theme } from "app/client/ui2018/cssVars";
 
 /** Base CSS for a data cell (td). */
 export const cellBaseCss = `

@@ -34,6 +34,7 @@ import { CellContextMenu, ICellContextMenu } from "app/client/ui/CellContextMenu
 import { IColumnFilterMenuOptions } from "app/client/ui/ColumnFilterMenu";
 import { buildRenameColumn, columnHeaderWithInfo } from "app/client/ui/ColumnTitle";
 import { contextMenu } from "app/client/ui/contextMenu";
+import { PLUS_COL_WIDTH, ROW_HEADER_WIDTH as ROW_NUMBER_WIDTH } from "app/client/ui/gridConstants";
 import {
   buildAddColumnMenu,
   buildColumnContextMenu,
@@ -48,7 +49,6 @@ import { IRowContextMenu, RowContextMenu } from "app/client/ui/RowContextMenu";
 import { applyRowHeightLimit } from "app/client/ui/RowHeightConfig";
 import { formatForScreenReader } from "app/client/ui/ScreenReaderFormatters";
 import { ITooltipControl, showTooltip } from "app/client/ui/tooltips";
-import { PLUS_COL_WIDTH, ROW_HEADER_WIDTH as ROW_NUMBER_WIDTH } from "app/client/ui/gridConstants";
 import { isNarrowScreen, testId } from "app/client/ui2018/cssVars";
 import { closeRegisteredMenu, menu } from "app/client/ui2018/menus";
 import BinaryIndexedTree from "app/common/BinaryIndexedTree";
@@ -90,7 +90,6 @@ export type RowIndexRenderer = (row: DataRowModel) => DomElementArg | null;
  * A function that renders the corner cell, can be overridden in GridViewOptions.
  */
 export type CornerRenderer = (el: Element) => DomElementArg | null;
-
 
 interface InsertColOptions {
   colInfo?: ColInfo;

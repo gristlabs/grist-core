@@ -2,9 +2,9 @@ import BaseView from "app/client/components/BaseView";
 import * as commands from "app/client/components/commands";
 import { GristDoc } from "app/client/components/GristDoc";
 import { viewCommands } from "app/client/components/RegionFocusSwitcher";
+import { formatRawCellValue } from "app/client/lib/cellUtils";
 import { DataRowModel } from "app/client/models/DataRowModel";
 import { ViewSectionRec } from "app/client/models/entities/ViewSectionRec";
-import { formatRawCellValue } from "app/client/lib/cellUtils";
 import { reportError } from "app/client/models/errors";
 import { CELL_PADDING } from "app/client/ui/gridConstants";
 import {
@@ -13,6 +13,7 @@ import {
 import { testId, theme } from "app/client/ui2018/cssVars";
 import { BuildEditorOptions } from "app/client/widgets/FieldBuilder";
 import { UIRowId } from "app/plugin/GristAPI";
+
 import { dom, Observable, styled } from "grainjs";
 
 /**
@@ -29,7 +30,7 @@ export class SpreadsheetView extends BaseView {
   private _curCol: Observable<number>;
   private _curRow: Observable<number>;
   private _isEditing: Observable<boolean>;
-  private _cellElements: Map<string, HTMLElement> = new Map();
+  private _cellElements = new Map<string, HTMLElement>();
   private _editInput: HTMLInputElement | null = null;
   private _lastMousedownTime: number = 0;
 
@@ -129,7 +130,7 @@ export class SpreadsheetView extends BaseView {
     if (index < 26) {
       return String.fromCharCode(65 + index);
     }
-    return 'A' + String.fromCharCode(65 + index - 26);
+    return "A" + String.fromCharCode(65 + index - 26);
   }
 
   private _cellColId(col: number, row: number): string {
@@ -141,7 +142,7 @@ export class SpreadsheetView extends BaseView {
     const colId = this._cellColId(col, row);
     const rowIds = tableData.getRowIds();
     if (rowIds.length === 0) { return null; }
-    return tableData.getValue(rowIds[0] as number, colId);
+    return tableData.getValue(rowIds[0], colId);
   }
 
   private _refreshAllCells() {
@@ -164,9 +165,9 @@ export class SpreadsheetView extends BaseView {
   }
 
   private _listenToData() {
-    this.listenTo(this.tableModel.tableData, 'rowChange', () => this._refreshAllCells());
-    this.listenTo(this.tableModel.tableData, 'rowNotify', () => this._refreshAllCells());
-    this.listenTo(this.tableModel, 'rowModelNotify', () => this._refreshAllCells());
+    this.listenTo(this.tableModel.tableData, "rowChange", () => this._refreshAllCells());
+    this.listenTo(this.tableModel.tableData, "rowNotify", () => this._refreshAllCells());
+    this.listenTo(this.tableModel, "rowModelNotify", () => this._refreshAllCells());
     const emitter = this.tableModel.tableData.tableActionEmitter;
     this.autoDispose(emitter.addListener(() => this._refreshAllCells()));
     const loadEmitter = this.tableModel.tableData.dataLoadedEmitter;
@@ -228,7 +229,7 @@ export class SpreadsheetView extends BaseView {
     if (this._isEditing.get()) { return; }
 
     // For formula editing (starts with "="), delegate to Grist's built-in editor system
-    if (init !== undefined && init.startsWith("=")) {
+    if (init?.startsWith("=")) {
       this.activateEditorAtCursor({ init });
       return;
     }
@@ -283,7 +284,7 @@ export class SpreadsheetView extends BaseView {
       }
     });
 
-    input.addEventListener("mousedown", (ev) => ev.stopPropagation());
+    input.addEventListener("mousedown", ev => ev.stopPropagation());
 
     cellEl.textContent = "";
     cellEl.appendChild(input);
@@ -310,11 +311,11 @@ export class SpreadsheetView extends BaseView {
     const tableData = this.tableModel.tableData;
     const rowIds = tableData.getRowIds();
     if (rowIds.length === 0) { return; }
-    const rowId = rowIds[0] as number;
+    const rowId = rowIds[0];
 
     if (value === "") {
       this.gristDoc.docData.sendAction(
-        ["UpdateRecord", tableData.tableId, rowId, { [colId]: null }]
+        ["UpdateRecord", tableData.tableId, rowId, { [colId]: null }],
       ).then(() => this._refreshCell(col, row)).catch(reportError);
     } else {
       let parsed: any = value;
@@ -323,7 +324,7 @@ export class SpreadsheetView extends BaseView {
         parsed = num;
       }
       this.gristDoc.docData.sendAction(
-        ["UpdateRecord", tableData.tableId, rowId, { [colId]: parsed }]
+        ["UpdateRecord", tableData.tableId, rowId, { [colId]: parsed }],
       ).then(() => this._refreshCell(col, row)).catch(reportError);
     }
 
@@ -348,8 +349,8 @@ export class SpreadsheetView extends BaseView {
           dom("thead",
             dom("tr",
               cssCornerCell(""),
-              ...this._colLetters.map((letter) =>
-                cssColHeader(letter, testId(`col-header-${letter}`))
+              ...this._colLetters.map(letter =>
+                cssColHeader(letter, testId(`col-header-${letter}`)),
               ),
             ),
           ),
@@ -373,8 +374,8 @@ export class SpreadsheetView extends BaseView {
                       const isAlreadySelected =
                         ci === this._curCol.get() && ri === this._curRow.get();
                       const now = Date.now();
-                      const isDblClick = isAlreadySelected
-                        && now - this._lastMousedownTime < 400;
+                      const isDblClick = isAlreadySelected &&
+                        now - this._lastMousedownTime < 400;
                       this._lastMousedownTime = now;
                       if (isDblClick) {
                         this._startEditing();

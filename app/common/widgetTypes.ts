@@ -8,8 +8,8 @@ export const AttachedCustomWidgets = StringUnion("custom.calendar");
 export type IAttachedCustomWidget = typeof AttachedCustomWidgets.type;
 
 // all widget types
-export type IWidgetType = "record" | "detail" | "single" | "chart" | "custom" | "form"
-  | "spreadsheet" | IAttachedCustomWidget;
+export type IWidgetType = "record" | "detail" | "single" | "chart" | "custom" | "form" |
+  "spreadsheet" | IAttachedCustomWidget;
 export enum WidgetType {
   Table = "record",
   Card = "single",

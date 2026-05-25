@@ -9,11 +9,11 @@ import { buildDuplicateWidgetModal } from "app/client/components/duplicateWidget
 import { FormView } from "app/client/components/Forms/FormView";
 import GridView from "app/client/components/GridView";
 import { GristDoc } from "app/client/components/GristDoc";
-import { SpreadsheetView } from "app/client/components/SpreadsheetView";
 import { Layout } from "app/client/components/Layout";
 import { LayoutEditor } from "app/client/components/LayoutEditor";
 import { LayoutTray } from "app/client/components/LayoutTray";
 import { printViewSection } from "app/client/components/Printing";
+import { SpreadsheetView } from "app/client/components/SpreadsheetView";
 import { BoxSpec, purgeBoxSpec } from "app/client/lib/BoxSpec";
 import { Delay } from "app/client/lib/Delay";
 import { createObsArray } from "app/client/lib/koArrayWrap";
