@@ -112,7 +112,6 @@ export interface GridViewOptions extends ViewOptions {
   isPreview?: boolean; // default false, used for imports previews.
   rowMenu?: boolean; // default true, controls if row context menu will be shown.
   colMenu?: boolean; // default true, controls if column context menu will be shown.
-  hideAddColumn?: boolean; // default false, hides the add-column "+" button.
   rowIndexRenderer?: RowIndexRenderer; // function to render the row index.
   cornerRenderer?: CornerRenderer; // function to render the corner cell.
   onCellDblClick?: (pos: CursorPos) => void; // function to call on cell double click, instead of default
@@ -1559,7 +1558,7 @@ export default class GridView extends BaseView {
                     this._buildInsertColumnMenu({ field }),
                   );
                 }),
-                (this.isPreview || this.gridOptions?.hideAddColumn) ? null : (this.isReadonly ? null : () => (
+                this.isPreview ? null : (this.isReadonly ? null : () => (
                   dom("div.column_name.mod-add-column.field",
                     "+",
                     dom.style("width", PLUS_WIDTH + "px"),

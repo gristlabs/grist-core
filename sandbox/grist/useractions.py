@@ -2131,7 +2131,7 @@ class UserActions(object):
   def AddSpreadsheetTable(self, table_id, num_cols=18, num_rows=30):
     """
     Adds a spreadsheet-style table backed by a single record.  Each visual cell is a separate
-    physical column named by cell address: A1, B1, ..., T1, A2, B2, ..., T20 (for 20x20).
+    physical column named by cell address (e.g. A1, B1, ..., R1, A2, ..., R30 for 18x30).
     The column ordering is row-major: all columns for row 1 first, then row 2, etc.
     """
     if num_cols * num_rows > 1990:

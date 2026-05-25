@@ -1008,7 +1008,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
   }
 
   /**
-   * Sends an action to create a new spreadsheet table (50x50 grid) and switches to its view.
+   * Sends an action to create a new spreadsheet table and switches to its view.
    */
   public async addSpreadsheetTable(): Promise<void> {
     const name = await this._promptForName();
