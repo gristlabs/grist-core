@@ -756,6 +756,14 @@ export class FieldBuilder extends Disposable {
     };
   }
 
+  /**
+   * Registers a DOM element as the cell for a given row model, allowing the editor
+   * to position itself. Used by views with custom rendering (e.g. SpreadsheetView).
+   */
+  public setCellElem(row: DataRowModel, elem: Element) {
+    this._rowMap.set(row, elem);
+  }
+
   public buildEditorDom(editRow: DataRowModel, mainRowModel: DataRowModel, options: BuildEditorOptions) {
     // If the user attempts to edit a value during transform, finalize (i.e. cancel or execute)
     // the transform.

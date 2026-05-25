@@ -599,6 +599,10 @@ function addMenu(importSources: ImportSource[], gristDoc: GristDoc, isReadonly: 
       menuIcon("TypeTable"), t("Add empty table"), testId("dp-empty-table"),
       dom.cls("disabled", isReadonly),
     ),
+    menuItem(() => gristDoc.addSpreadsheetTable().catch(reportError),
+      menuIcon("TypeTable"), t("Add spreadsheet"), testId("dp-spreadsheet-table"),
+      dom.cls("disabled", isReadonly),
+    ),
     menuDivider(),
     ...importSources.map((importSource, i) =>
       menuItem(importSource.action,
