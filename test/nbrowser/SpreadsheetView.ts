@@ -435,6 +435,115 @@ describe("SpreadsheetView", function () {
       await driver.sendKeys(Key.ESCAPE);
       await driver.sleep(200);
     });
+
+    it("should insert cell reference when clicking another cell during formula editing", async function () {
+      await gu.openPage(/FormulaEdSheet/);
+      await driver.sleep(500);
+
+      // Put some values in place via API
+      await api.applyUserActions(doc.id, [
+        ["UpdateRecord", "FormulaEdSheet", 1, { A1: 10, B1: 20 }],
+      ]);
+      await gu.waitForServer();
+      await driver.sleep(300);
+
+      // Select cell D1 and start a formula by typing "="
+      const cellD1 = await getSpreadsheetCell("D", 1);
+      await driver.executeScript(`
+        arguments[0].scrollIntoView({block: 'center', inline: 'center'});
+        arguments[0].dispatchEvent(new MouseEvent('mousedown', {bubbles: true}));
+      `, cellD1);
+      await driver.sleep(200);
+
+      // Type "=" to open the formula editor
+      await driver.sendKeys("=");
+      await driver.sleep(1000);
+
+      // Verify formula editor is open
+      const aceEditor = await driver.findWait(".test-formula-editor", 2000);
+      assert.isTrue(await aceEditor.isDisplayed(),
+        "Formula editor should be open after typing '='");
+
+      // Now click cell A1 — this should insert $A1 into the formula
+      const cellA1 = await getSpreadsheetCell("A", 1);
+      await driver.executeScript(`
+        arguments[0].scrollIntoView({block: 'center', inline: 'center'});
+        arguments[0].dispatchEvent(new MouseEvent('mousedown', {bubbles: true}));
+      `, cellA1);
+      await driver.sleep(500);
+
+      // The formula editor should still be open and contain "$A1"
+      const formulaText = await gu.getFormulaText();
+      assert.include(formulaText, "$A1",
+        "Clicking cell A1 during formula editing should insert $A1 reference");
+
+      // Now click cell B1 — this should append $B1
+      const cellB1 = await getSpreadsheetCell("B", 1);
+      await driver.executeScript(`
+        arguments[0].scrollIntoView({block: 'center', inline: 'center'});
+        arguments[0].dispatchEvent(new MouseEvent('mousedown', {bubbles: true}));
+      `, cellB1);
+      await driver.sleep(500);
+
+      const formulaText2 = await gu.getFormulaText();
+      assert.include(formulaText2, "$B1",
+        "Clicking cell B1 during formula editing should insert $B1 reference");
+
+      // Close editor without saving
+      await driver.sendKeys(Key.ESCAPE);
+      await driver.sleep(200);
+    });
+
+    it("should build a complete formula by clicking cells", async function () {
+      await gu.openPage(/FormulaEdSheet/);
+      await driver.sleep(500);
+
+      // Select cell E1 and start a formula
+      const cellE1 = await getSpreadsheetCell("E", 1);
+      await driver.executeScript(`
+        arguments[0].scrollIntoView({block: 'center', inline: 'center'});
+        arguments[0].dispatchEvent(new MouseEvent('mousedown', {bubbles: true}));
+      `, cellE1);
+      await driver.sleep(200);
+
+      // Type "=" to start formula
+      await driver.sendKeys("=");
+      await driver.sleep(1000);
+      await driver.findWait(".test-formula-editor", 2000);
+
+      // Click A1 to insert $A1
+      const cellA1 = await getSpreadsheetCell("A", 1);
+      await driver.executeScript(`
+        arguments[0].dispatchEvent(new MouseEvent('mousedown', {bubbles: true}));
+      `, cellA1);
+      await driver.sleep(300);
+
+      // Type " + " between references
+      await driver.sendKeys(" + ");
+      await driver.sleep(200);
+
+      // Click B1 to insert $B1
+      const cellB1 = await getSpreadsheetCell("B", 1);
+      await driver.executeScript(`
+        arguments[0].dispatchEvent(new MouseEvent('mousedown', {bubbles: true}));
+      `, cellB1);
+      await driver.sleep(300);
+
+      // Verify the formula is "$A1 + $B1"
+      const formulaText = await gu.getFormulaText();
+      assert.match(formulaText, /\$A1 \+ \$B1/,
+        "Formula should contain '$A1 + $B1' after clicking cells");
+
+      // Save the formula by pressing Enter
+      await driver.sendKeys(Key.ENTER);
+      await gu.waitForServer();
+      await driver.sleep(500);
+
+      // Verify the result: A1=10, B1=20, so E1 should be 30
+      const result = await getSpreadsheetCellText("E", 1);
+      assert.equal(result, "30",
+        "Formula $A1 + $B1 should evaluate to 30");
+    });
   });
 
   // ---------------------------------------------------------------------------

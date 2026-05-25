@@ -174,6 +174,17 @@ export class SpreadsheetView extends BaseView {
   }
 
   private _selectCell(col: number, row: number) {
+    // When a Grist formula editor is open, clicking a cell should insert a $colId
+    // reference into the formula (matching GridView behaviour) instead of navigating.
+    const activeEditor = this.gristDoc.activeEditor.get();
+    if (activeEditor) {
+      const fieldIndex = this._toFieldIndex(col, row);
+      const field = this.viewSection.viewFields().at(fieldIndex);
+      const rowModel = this.moveEditRowToCursor();
+      commands.allCommands.setCursor.run(rowModel, field);
+      return;
+    }
+
     if (this._isEditing.get()) {
       this._commitEdit();
     }
@@ -353,6 +364,12 @@ export class SpreadsheetView extends BaseView {
                     dom.on("mousedown", (ev) => {
                       ev.stopPropagation();
                       this.viewSection.hasFocus(true);
+                      // When a formula editor is active, every click should insert
+                      // a cell reference — never start editing or navigate away.
+                      if (this.gristDoc.activeEditor.get()) {
+                        this._selectCell(ci, ri);
+                        return;
+                      }
                       const isAlreadySelected =
                         ci === this._curCol.get() && ri === this._curRow.get();
                       const now = Date.now();
