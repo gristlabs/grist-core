@@ -24,8 +24,6 @@ in
 
     package = mkPackageOption pkgs "grist-core" { };
 
-    enableEnterprise = mkEnableOption "Grist enterprise code.";
-
     enableRedis = mkEnableOption "Grist redis data store.";
 
     user = mkOption {
@@ -164,7 +162,6 @@ in
     ];
 
     services.grist = {
-      package = lib.mkDefault (pkgs.grist-core.override { enterpriseEdition = cfg.enableEnterprise; });
       environment = {
         REDIS_URL = lib.mkIf cfg.enableRedis "redis://localhost:${builtins.toString config.services.redis.servers.grist.port}";
         NODE_PATH = "${cfg.package}/grist-core/_build:${cfg.package}/grist-core/_build/stubs:${cfg.package}/grist-core/_build/ext";
