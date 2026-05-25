@@ -511,3 +511,52 @@ export function getExtraAttachmentOptions(req: Request): {
   const maybeNew = gutil.isAffirmative(req.query.maybeNew);
   return { cell, maybeNew };
 }
+
+/**
+ * Returns true if `urlString` is allowed under `allowedDomains`.
+ *
+ * `allowedDomains` is a comma-separated list of domain entries
+ * (e.g. `"example.com,trusted.org"`). A single entry of `*` is a wildcard
+ * that allows any domain.
+ * Each entry is matched against the URL's host using base-domain matching
+ * (see {@link matchesBaseDomain}), so `example.com` also allows
+ * `sub.example.com`. Empty entries "example.com,,other.com" are ignored.
+ * `undefined` and `""` means an empty list, so no domains are allowed.
+ *
+ * Summary of logic, allowed when all of the those are true:
+ * - `urlString` is a valid URL
+ * - the URL's protocol is `https:`, OR it's `http:` with hostname `localhost`
+ *   (the http+localhost exception is for local dev/testing)
+ * - the URL's host matches one of the entries in `allowedDomains` (or
+ *   `allowedDomains === "*"`, which allows any host), if list is empty then it
+ *   is not allowed.
+ */
+export function isUrlAllowed(allowedDomains: string | undefined, urlString: string) {
+  let url: URL;
+  try {
+    url = new URL(urlString);
+  } catch (e) {
+    return false;
+  }
+
+  // Support at most https and http.
+  if (url.protocol !== "https:" && url.protocol !== "http:") {
+    return false;
+  }
+
+  // Support a wildcard that allows all domains.
+  // Allow either https or http if it is set.
+  if (allowedDomains === "*") {
+    return true;
+  }
+
+  // http (no s) is only allowed for localhost for testing.
+  // localhost still needs to be explicitly permitted, and it shouldn't be outside dev
+  if (url.protocol !== "https:" && url.hostname !== "localhost") {
+    return false;
+  }
+
+  return (allowedDomains || "").split(",").some(domain =>
+    domain && matchesBaseDomain(url.host, domain),
+  );
+}

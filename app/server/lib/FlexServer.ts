@@ -75,6 +75,7 @@ import { IPermitStore } from "app/server/lib/Permit";
 import { getAppPathTo, getAppRoot, getInstanceRoot, getUnpackedAppRoot } from "app/server/lib/places";
 import { addPluginEndpoints, limitToPlugins } from "app/server/lib/PluginEndpoint";
 import { PluginManager } from "app/server/lib/PluginManager";
+import { getProxyAgentConfiguration } from "app/server/lib/ProxyAgent";
 import { createPubSubManager, IPubSubManager } from "app/server/lib/PubSubManager";
 import { adaptServerUrl, getOrgUrl, getOriginUrl, getScope, integerParam, isParameterOn, optIntegerParam,
   optStringParam, RequestWithGristInfo, stringArrayParam, stringParam, TEST_HTTPS_OFFSET,
@@ -2003,14 +2004,13 @@ export class FlexServer implements GristServer {
     const allowedWebhookDomains = appSettings.section("integrations").flag("allowedWebhookDomains").readString({
       envVar: "ALLOWED_WEBHOOK_DOMAINS",
     });
-    const proxy = appSettings.section("integrations").flag("proxy").readString({
-      envVar: "GRIST_HTTPS_PROXY",
-    });
+    const { proxyForUntrustedRequestsUrl } = getProxyAgentConfiguration();
     // If all webhook targets are accepted, and no proxy is defined, issue
     // a warning. This warning can be removed by explicitly setting the proxy
     // to the empty string.
-    if (allowedWebhookDomains === "*" && proxy === undefined) {
-      log.warn("Setting an ALLOWED_WEBHOOK_DOMAINS wildcard without a GRIST_HTTPS_PROXY exposes your internal network");
+    if (allowedWebhookDomains === "*" && proxyForUntrustedRequestsUrl === undefined) {
+      log.warn("Setting an ALLOWED_WEBHOOK_DOMAINS wildcard without GRIST_PROXY_FOR_UNTRUSTED_URLS " +
+        "exposes your internal network");
     }
   }
 

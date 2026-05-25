@@ -16,6 +16,7 @@ const TEST_GRIST_HOST = "localtest.datagrist.com";
 export interface Serving {
   url: string;
   shutdown: () => Promise<void>;
+  server: http.Server;
 }
 
 // Adds static files from a directory.
@@ -68,7 +69,7 @@ export async function serveSomething(setup: (app: express.Express) => void, port
   app.set("port", port);
   setup(app);
   const url = `http://localhost:${port}`;
-  return { url, shutdown };
+  return { url, shutdown, server };
 }
 
 /**

@@ -24,7 +24,7 @@ import { RequestWithLogin } from "app/server/lib/Authorizer";
 import { getMetaTables, handleSandboxError, validate, WithDocHandler } from "app/server/lib/DocApiUtils";
 import { docSessionFromRequest } from "app/server/lib/DocSession";
 import log from "app/server/lib/log";
-import { isUrlAllowed } from "app/server/lib/Triggers";
+import { isWebhookUrlAllowed } from "app/server/lib/Triggers";
 
 import { Application, RequestHandler, Response } from "express";
 import * as _ from "lodash";
@@ -104,7 +104,7 @@ function extractSecrets(action: TriggerAction | ActionSecretData): {
 function validateActionUrl(action: TriggerAction & ActionSecretData): void {
   if (action.type !== "webhook") { return; }
   const url = "url" in action && action.url;
-  if (typeof url === "string" && !isUrlAllowed(url)) {
+  if (typeof url === "string" && !isWebhookUrlAllowed(url)) {
     throw new ApiError("Provided url is forbidden", 403);
   }
 }
@@ -258,7 +258,7 @@ export class DocApiTriggers {
       if (!fields.eventTypes?.length) {
         throw new ApiError(`eventTypes must be a non-empty array`, 400);
       }
-      if (!isUrlAllowed(url)) {
+      if (!isWebhookUrlAllowed(url)) {
         throw new ApiError("Provided url is forbidden", 403);
       }
       if (!fields.tableRef) {
@@ -338,7 +338,7 @@ export class DocApiTriggers {
 
       const fields: Partial<SchemaTypes["_grist_Triggers"]> = {};
 
-      if (url && !isUrlAllowed(url)) {
+      if (url && !isWebhookUrlAllowed(url)) {
         throw new ApiError("Provided url is forbidden", 403);
       }
 

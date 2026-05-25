@@ -107,8 +107,8 @@ describe("ProxyAgent", function() {
       const port = await getAvailablePort(22340);
       testProxyServer = await TestProxyServer.Prepare(port);
       serving = await serveSomething((app) => {
-        app.post("/200", (_, res) => { res.sendStatus(200); res.end(); });
-        app.post("/404", (_, res) => { res.sendStatus(404); res.end(); });
+        app.all("/200", (_, res) => { res.sendStatus(200); res.end(); });
+        app.all("/404", (_, res) => { res.sendStatus(404); res.end(); });
       });
       const proxyUrl = `http://localhost:${testProxyServer.portNumber}`;
       process.env.GRIST_PROXY_FOR_UNTRUSTED_URLS = proxyUrl;

@@ -11,7 +11,9 @@ export class TestProxyServer {
   }
 
   public get proxyCallCounter() { return this._proxyCallsCounter; }
+  public get connectCallCounter() { return this._connectCallsCounter; }
   private _proxyCallsCounter: number = 0;
+  private _connectCallsCounter: number = 0;
   private _proxyServing: Serving;
 
   private constructor(public readonly portNumber: number) {
@@ -32,7 +34,11 @@ export class TestProxyServer {
         this._proxyCallsCounter += 1;
         let responseCode;
         try {
-          const axiosResponse = await axios.post(req.url, req.body);
+          const axiosResponse = await axios.request({
+            method: req.method,
+            url: req.url,
+            data: req.body,
+          });
           responseCode = axiosResponse.status;
         } catch (error: any) {
           responseCode = error.response.status;
@@ -41,5 +47,13 @@ export class TestProxyServer {
         res.end();
       });
     }, this.portNumber);
+
+    // Count HTTPS CONNECT tunnels (Express doesn't see them) so tests can
+    // assert HTTPS went through the proxy.
+    this._proxyServing.server.on("connect", (_req, socket) => {
+      this._connectCallsCounter += 1;
+      socket.write("HTTP/1.1 502 Bad Gateway\r\n\r\n");
+      socket.end();
+    });
   }
 }

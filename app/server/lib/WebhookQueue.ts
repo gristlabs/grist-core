@@ -17,8 +17,8 @@ import { decodeObject } from "app/plugin/objtypes";
 import { ActiveDoc } from "app/server/lib/ActiveDoc";
 import log from "app/server/lib/log";
 import { fetchUntrustedWithAgent } from "app/server/lib/ProxyAgent";
-import { matchesBaseDomain } from "app/server/lib/requestUtils";
 import { delayAbort } from "app/server/lib/serverUtils";
+import { isWebhookUrlAllowed } from "app/server/lib/Triggers";
 import { LogSanitizer } from "app/server/utils/LogSanitizer";
 
 import { promisifyAll } from "bluebird";
@@ -408,7 +408,7 @@ export class WebhookQueue implements ActionQueue<WebhookActionPayload> {
 
   private async _getWebHookUrl(id: string): Promise<string | undefined> {
     const url = (await this._getWebHook(id))?.url ?? "";
-    if (!isUrlAllowed(url)) {
+    if (!isWebhookUrlAllowed(url)) {
       // TODO: this is not a good place for a validation.
       this._log(`Webhook not sent to forbidden URL`, { level: "warn", url });
       return;
@@ -637,36 +637,6 @@ export class WebhookQueue implements ActionQueue<WebhookActionPayload> {
     }
     return false;
   }
-}
-
-export function isUrlAllowed(urlString: string) {
-  let url: URL;
-  try {
-    url = new URL(urlString);
-  } catch (e) {
-    return false;
-  }
-
-  // Support at most https and http.
-  if (url.protocol !== "https:" && url.protocol !== "http:") {
-    return false;
-  }
-
-  // Support a wildcard that allows all domains.
-  // Allow either https or http if it is set.
-  if (process.env.ALLOWED_WEBHOOK_DOMAINS === "*") {
-    return true;
-  }
-
-  // http (no s) is only allowed for localhost for testing.
-  // localhost still needs to be explicitly permitted, and it shouldn't be outside dev
-  if (url.protocol !== "https:" && url.hostname !== "localhost") {
-    return false;
-  }
-
-  return (process.env.ALLOWED_WEBHOOK_DOMAINS || "").split(",").some(domain =>
-    domain && matchesBaseDomain(url.host, domain),
-  );
 }
 
 /**
