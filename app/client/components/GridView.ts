@@ -48,6 +48,7 @@ import { IRowContextMenu, RowContextMenu } from "app/client/ui/RowContextMenu";
 import { applyRowHeightLimit } from "app/client/ui/RowHeightConfig";
 import { formatForScreenReader } from "app/client/ui/ScreenReaderFormatters";
 import { ITooltipControl, showTooltip } from "app/client/ui/tooltips";
+import { PLUS_COL_WIDTH, ROW_HEADER_WIDTH as ROW_NUMBER_WIDTH } from "app/client/ui/gridConstants";
 import { isNarrowScreen, testId } from "app/client/ui2018/cssVars";
 import { closeRegisteredMenu, menu } from "app/client/ui2018/menus";
 import BinaryIndexedTree from "app/common/BinaryIndexedTree";
@@ -90,10 +91,6 @@ export type RowIndexRenderer = (row: DataRowModel) => DomElementArg | null;
  */
 export type CornerRenderer = (el: Element) => DomElementArg | null;
 
-// size of the plus width
-const PLUS_WIDTH = 40;
-// size of the row number field
-const ROW_NUMBER_WIDTH = 52;
 
 interface InsertColOptions {
   colInfo?: ColInfo;
@@ -297,7 +294,7 @@ export default class GridView extends BaseView {
       const revealWidth = lastField ? lastField.widthDef() : 0;
       // calculate the offset: start from zero, then move all left to hide frozen columns,
       // then to right to fill whole width, then to left to reveal last column and plus button
-      const initialOffset = -this.frozenWidth() - ROW_NUMBER_WIDTH + this.width() - revealWidth - PLUS_WIDTH;
+      const initialOffset = -this.frozenWidth() - ROW_NUMBER_WIDTH + this.width() - revealWidth - PLUS_COL_WIDTH;
       // Final check - we actually don't want to have
       // the split (between frozen and normal columns) be moved left too far,
       // it should stop at the middle of the available grid space (whole width - row number width).
@@ -1561,7 +1558,7 @@ export default class GridView extends BaseView {
                 this.isPreview ? null : (this.isReadonly ? null : () => (
                   dom("div.column_name.mod-add-column.field",
                     "+",
-                    dom.style("width", PLUS_WIDTH + "px"),
+                    dom.style("width", PLUS_COL_WIDTH + "px"),
                     this._buildInsertColumnMenu(),
                   )
                 )),

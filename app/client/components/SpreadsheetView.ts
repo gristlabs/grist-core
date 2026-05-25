@@ -4,7 +4,12 @@ import { GristDoc } from "app/client/components/GristDoc";
 import { viewCommands } from "app/client/components/RegionFocusSwitcher";
 import { DataRowModel } from "app/client/models/DataRowModel";
 import { ViewSectionRec } from "app/client/models/entities/ViewSectionRec";
+import { formatRawCellValue } from "app/client/lib/cellUtils";
 import { reportError } from "app/client/models/errors";
+import { CELL_PADDING } from "app/client/ui/gridConstants";
+import {
+  cellBaseCss, colHeaderCss, cornerCellCss, cursorHighlightCss, rowHeaderCss,
+} from "app/client/ui/gridStyles";
 import { testId, theme } from "app/client/ui2018/cssVars";
 import { BuildEditorOptions } from "app/client/widgets/FieldBuilder";
 import { UIRowId } from "app/plugin/GristAPI";
@@ -26,6 +31,7 @@ export class SpreadsheetView extends BaseView {
   private _isEditing: Observable<boolean>;
   private _cellElements: Map<string, HTMLElement> = new Map();
   private _editInput: HTMLInputElement | null = null;
+  private _lastMousedownTime: number = 0;
 
   constructor(gristDoc: GristDoc, viewSectionModel: ViewSectionRec) {
     super(gristDoc, viewSectionModel, { addNewRow: false });
@@ -138,14 +144,6 @@ export class SpreadsheetView extends BaseView {
     return tableData.getValue(rowIds[0] as number, colId);
   }
 
-  private _formatValue(val: any): string {
-    if (val === null || val === undefined || val === "") { return ""; }
-    if (Array.isArray(val) && val[0] === 'E') {
-      return "#ERROR";
-    }
-    return String(val);
-  }
-
   private _refreshAllCells() {
     for (let r = 0; r < this._numRows; r++) {
       for (let c = 0; c < this._numCols; c++) {
@@ -161,7 +159,7 @@ export class SpreadsheetView extends BaseView {
     const key = `${col},${row}`;
     const el = this._cellElements.get(key);
     if (el) {
-      el.textContent = this._formatValue(this._getCellValue(col, row));
+      el.textContent = formatRawCellValue(this._getCellValue(col, row));
     }
   }
 
@@ -242,7 +240,7 @@ export class SpreadsheetView extends BaseView {
     }
 
     const currentValue = this._getCellValue(col, row);
-    const startText = init !== undefined ? init : this._formatValue(currentValue);
+    const startText = init !== undefined ? init : formatRawCellValue(currentValue);
 
     this._isEditing.set(true);
 
@@ -355,10 +353,17 @@ export class SpreadsheetView extends BaseView {
                     dom.on("mousedown", (ev) => {
                       ev.stopPropagation();
                       this.viewSection.hasFocus(true);
-                      this._selectCell(ci, ri);
-                    }),
-                    dom.on("dblclick", () => {
-                      this._startEditing();
+                      const isAlreadySelected =
+                        ci === this._curCol.get() && ri === this._curRow.get();
+                      const now = Date.now();
+                      const isDblClick = isAlreadySelected
+                        && now - this._lastMousedownTime < 400;
+                      this._lastMousedownTime = now;
+                      if (isDblClick) {
+                        this._startEditing();
+                      } else {
+                        this._selectCell(ci, ri);
+                      }
                     }),
                     (el: HTMLElement) => {
                       this._cellElements.set(`${ci},${ri}`, el);
@@ -396,73 +401,23 @@ const cssSpreadsheetTable = styled("table", `
 `);
 
 const cssCornerCell = styled("th", `
-  position: sticky;
-  top: 0;
-  left: 0;
-  z-index: 3;
-  width: 52px;
-  min-width: 52px;
-  max-width: 52px;
-  height: 24px;
-  background: ${theme.tableHeaderBg};
-  border: 1px solid ${theme.tableBodyBorder};
+  ${cornerCellCss}
 `);
 
 const cssColHeader = styled("th", `
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  width: 80px;
-  min-width: 80px;
-  max-width: 80px;
-  height: 24px;
-  padding: 0 4px;
-  background: ${theme.tableHeaderBg};
-  border: 1px solid ${theme.tableBodyBorder};
-  color: ${theme.tableHeaderFg};
-  font-weight: 600;
-  text-align: center;
-  white-space: nowrap;
-  user-select: none;
+  ${colHeaderCss}
 `);
 
 const cssRowHeader = styled("td", `
-  position: sticky;
-  left: 0;
-  z-index: 1;
-  width: 52px;
-  min-width: 52px;
-  max-width: 52px;
-  height: 28px;
-  padding: 0 4px;
-  background: ${theme.tableHeaderBg};
-  border: 1px solid ${theme.tableBodyBorder};
-  color: ${theme.tableHeaderFg};
-  font-weight: 500;
-  text-align: center;
-  user-select: none;
+  ${rowHeaderCss}
 `);
 
 const cssCell = styled("td", `
-  width: 80px;
-  min-width: 80px;
-  max-width: 80px;
-  height: 28px;
-  padding: 0 4px;
-  border: 1px solid ${theme.tableBodyBorder};
-  color: ${theme.cellFg};
-  background: ${theme.cellBg};
+  ${cellBaseCss}
   cursor: cell;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  position: relative;
-  box-sizing: border-box;
 
   &.selected_cursor {
-    outline: 2px solid ${theme.cursor};
-    outline-offset: -2px;
-    z-index: 1;
+    ${cursorHighlightCss}
   }
 
   & .spreadsheet_edit_input {
@@ -473,10 +428,10 @@ const cssCell = styled("td", `
     height: 100%;
     border: none;
     outline: none;
-    padding: 0 4px;
+    padding: 0 ${CELL_PADDING}px;
     font: inherit;
     color: inherit;
-    background: white;
+    background: ${theme.cellBg};
     z-index: 2;
     box-sizing: border-box;
   }

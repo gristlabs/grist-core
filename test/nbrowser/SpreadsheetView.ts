@@ -372,9 +372,9 @@ describe("SpreadsheetView", function () {
       `, cellB5);
       await driver.sleep(200);
 
-      // Double-click to enter inline edit mode
+      // Second mousedown on the same cell triggers edit mode
       await driver.executeScript(`
-        arguments[0].dispatchEvent(new MouseEvent('dblclick', {bubbles: true}));
+        arguments[0].dispatchEvent(new MouseEvent('mousedown', {bubbles: true}));
       `, cellB5);
       await driver.sleep(300);
 
@@ -423,7 +423,7 @@ describe("SpreadsheetView", function () {
       `, cellC1);
       await driver.sleep(200);
       await driver.executeScript(`
-        arguments[0].dispatchEvent(new MouseEvent('dblclick', {bubbles: true}));
+        arguments[0].dispatchEvent(new MouseEvent('mousedown', {bubbles: true}));
       `, cellC1);
       await driver.sleep(1000);
 
