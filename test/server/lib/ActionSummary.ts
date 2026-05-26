@@ -682,10 +682,10 @@ describe("ActionSummary", function() {
       },
     };
     const merged = concatenateSummariesCleanly([summary1, summary2]);
-    assert.deepEqual(merged.tableDeltas.T!.columnDeltas.target[1], [["a"], ["b"]]);
+    assert.deepEqual(merged.tableDeltas.T.columnDeltas.target[1], [["a"], ["b"]]);
     // The composed summary inherits no `mayBeIncomplete` (neither input
     // had it).
-    assert.notProperty(merged.tableDeltas.T!, "mayBeIncomplete");
+    assert.notProperty(merged.tableDeltas.T, "mayBeIncomplete");
   });
 
   it("sets mayBeIncomplete on a bulk action that exceeds the inline-rows cap", async function() {
@@ -750,9 +750,9 @@ describe("ActionSummary", function() {
       },
     };
     const merged = concatenateSummariesCleanly([summary1, summary2]);
-    assert.deepEqual(merged.tableDeltas.T!.columnDeltas.target[1], ["?", ["b"]]);
+    assert.deepEqual(merged.tableDeltas.T.columnDeltas.target[1], ["?", ["b"]]);
     // mayBeIncomplete propagates through composition.
-    assert.equal(merged.tableDeltas.T!.mayBeIncomplete, true);
+    assert.equal(merged.tableDeltas.T.mayBeIncomplete, true);
   });
 
   it("recognizes bulk removal", async function() {
