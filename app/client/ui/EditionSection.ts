@@ -107,7 +107,7 @@ export class EditionSection extends Disposable implements ConfigSection {
     });
     this.describeChange = Computed.create(this, use => [{
       label: t("Edition"),
-      value: use(this._selectedEdition) === "enterprise" ? t("Full Grist") : t("Community Edition"),
+      value: use(this._selectedEdition) === "enterprise" ? t("Full Grist") : t("Community edition"),
     }]);
   }
 
@@ -218,7 +218,7 @@ export class EditionSection extends Disposable implements ConfigSection {
           testId("full-grist"),
         ),
         cssEditionButton(
-          t("Community Edition"),
+          t("Community edition"),
           cssEditionButton.cls("-selected", use => use(selectedEdition) === "core"),
           dom.on("click", () => { selectedEdition.set("core"); this._editionConfirmed.set(false); }),
           testId("community"),
@@ -281,7 +281,7 @@ providers, and much more."),
           testId("full-grist"),
         ),
         cssEditionButton(
-          t("Community Edition"),
+          t("Community edition"),
           cssEditionButton.cls("-selected", use => use(selectedTab) === "core"),
           dom.on("click", () => { selectedTab.set("core"); this._editionConfirmed.set(false); }),
           testId("community"),
@@ -305,7 +305,7 @@ Want Full Grist? {{enableLink}}", {
             ),
             dom.maybe(use => !use(this._editionConfirmed), () =>
               labeledSquareCheckbox(this._editionConfirmed,
-                t("I understand I am running Grist Community Edition"),
+                t("I understand I am running Grist Community edition"),
                 testId("acknowledge"),
               ),
             ),

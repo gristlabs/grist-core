@@ -211,7 +211,7 @@ describe("QuickSetupSandbox", function() {
     assert.isFalse(pyodide.disabled);
 
     const mac = await flavorAt(3);
-    assert.include(mac.header, "macOS Sandbox");
+    assert.include(mac.header, "macOS sandbox");
     assert.isTrue(mac.disabled);
 
     assert.include(await buttonText(), "Apply and Continue");
@@ -281,7 +281,7 @@ describe("QuickSetupSandbox", function() {
     await navigateToSandboxStep();
 
     const hero = await flavorAt(0);
-    assert.include(hero.header, "No Sandbox");
+    assert.include(hero.header, "No sandbox");
     assert.isTrue(hero.checked);
 
     assert.include(await buttonText(), "Continue");
