@@ -6,7 +6,9 @@ import { formatRawCellValue, indexToLetter } from "app/client/lib/cellUtils";
 import { DataRowModel } from "app/client/models/DataRowModel";
 import { ViewSectionRec } from "app/client/models/entities/ViewSectionRec";
 import { reportError } from "app/client/models/errors";
-import { CELL_PADDING } from "app/client/ui/gridConstants";
+import { columnResizeDrag } from "app/client/ui/ColumnResizer";
+import { CELL_PADDING, CELL_WIDTH, MIN_COL_WIDTH, ROW_HEADER_WIDTH } from "app/client/ui/gridConstants";
+import { moveInGrid } from "app/client/ui/GridNavigator";
 import {
   cellBaseCss, colHeaderCss, cornerCellCss, cursorHighlightCss, rowHeaderCss,
 } from "app/client/ui/gridStyles";
@@ -14,7 +16,7 @@ import { testId, theme } from "app/client/ui2018/cssVars";
 import { BuildEditorOptions } from "app/client/widgets/FieldBuilder";
 import { UIRowId } from "app/plugin/GristAPI";
 
-import { dom, Observable, styled } from "grainjs";
+import { dom, ObsArray, obsArray, Observable, styled } from "grainjs";
 
 /**
  * SpreadsheetView renders a fixed-size grid (e.g. 18x30) backed by a single Grist record
@@ -30,6 +32,9 @@ export class SpreadsheetView extends BaseView {
   private _curCol: Observable<number>;
   private _curRow: Observable<number>;
   private _isEditing: Observable<boolean>;
+  private _colWidths: ObsArray<number>;
+  private _colElements: HTMLElement[] = [];
+  private _tableElement: HTMLElement | null = null;
   private _cellElements = new Map<string, HTMLElement>();
   private _editInput: HTMLInputElement | null = null;
   private _lastMousedownTime: number = 0;
@@ -44,6 +49,10 @@ export class SpreadsheetView extends BaseView {
     for (let i = 0; i < this._numCols; i++) {
       this._colLetters.push(indexToLetter(i));
     }
+
+    this._colWidths = this.autoDispose(obsArray(
+      Array.from({ length: this._numCols }, () => CELL_WIDTH),
+    ));
 
     this._curCol = Observable.create(this, 0);
     this._curRow = Observable.create(this, 0);
@@ -192,13 +201,16 @@ export class SpreadsheetView extends BaseView {
     if (this._isEditing.get()) {
       this._commitEdit();
     }
-    const newCol = Math.max(0, Math.min(this._numCols - 1, this._curCol.get() + dc));
-    const newRow = Math.max(0, Math.min(this._numRows - 1, this._curRow.get() + dr));
-    this._curCol.set(newCol);
-    this._curRow.set(newRow);
+    const pos = moveInGrid(
+      { col: this._curCol.get(), row: this._curRow.get() },
+      dc, dr,
+      { numCols: this._numCols, numRows: this._numRows },
+    );
+    this._curCol.set(pos.col);
+    this._curRow.set(pos.row);
     this._syncCursorFieldIndex();
     this._updateCursorClass();
-    this._scrollIntoView(newCol, newRow);
+    this._scrollIntoView(pos.col, pos.row);
   }
 
   private _scrollIntoView(col: number, row: number) {
@@ -336,14 +348,38 @@ export class SpreadsheetView extends BaseView {
       testId("spreadsheet-view"),
       cssSpreadsheetScroll(
         cssSpreadsheetTable(
+          (el: HTMLElement) => {
+            this._tableElement = el;
+            this._updateTableWidth();
+          },
           dom.on("mousedown", () => {
             this.viewSection.hasFocus(true);
           }),
+          dom("colgroup",
+            dom("col", el => el.style.width = `${ROW_HEADER_WIDTH}px`),
+            ...this._colLetters.map((_letter, ci) =>
+              dom("col", (el: HTMLElement) => {
+                el.style.width = `${this._colWidths.get()[ci]}px`;
+                this._colElements.push(el);
+              }),
+            ),
+          ),
           dom("thead",
             dom("tr",
               cssCornerCell(""),
-              ...this._colLetters.map(letter =>
-                cssColHeader(letter, testId(`col-header-${letter}`)),
+              ...this._colLetters.map((letter, ci) =>
+                cssColHeader(
+                  dom("span", letter),
+                  cssResizeHandle(
+                    testId("col-resize-handle"),
+                    columnResizeDrag({
+                      getWidth: () => this._colWidths.get()[ci],
+                      setWidth: w => this._setColWidth(ci, w),
+                      minWidth: MIN_COL_WIDTH,
+                    }),
+                  ),
+                  testId(`col-header-${letter}`),
+                ),
               ),
             ),
           ),
@@ -358,8 +394,6 @@ export class SpreadsheetView extends BaseView {
                     dom.on("mousedown", (ev) => {
                       ev.stopPropagation();
                       this.viewSection.hasFocus(true);
-                      // When a formula editor is active, every click should insert
-                      // a cell reference — never start editing or navigate away.
                       if (this.gristDoc.activeEditor.get()) {
                         this._selectCell(ci, ri);
                         return;
@@ -387,6 +421,24 @@ export class SpreadsheetView extends BaseView {
         ),
       ),
     );
+  }
+
+  private _setColWidth(colIndex: number, width: number) {
+    const widths = this._colWidths.get();
+    widths[colIndex] = width;
+    this._colWidths.set(widths);
+    const colEl = this._colElements[colIndex];
+    if (colEl) {
+      colEl.style.width = `${width}px`;
+    }
+    this._updateTableWidth();
+  }
+
+  private _updateTableWidth() {
+    if (!this._tableElement) { return; }
+    const totalWidth = ROW_HEADER_WIDTH +
+      this._colWidths.get().reduce((sum, w) => sum + w, 0);
+    this._tableElement.style.width = `${totalWidth}px`;
   }
 }
 
@@ -417,6 +469,9 @@ const cssCornerCell = styled("th", `
 
 const cssColHeader = styled("th", `
   ${colHeaderCss}
+  width: auto;
+  min-width: 0;
+  max-width: none;
 `);
 
 const cssRowHeader = styled("td", `
@@ -425,6 +480,9 @@ const cssRowHeader = styled("td", `
 
 const cssCell = styled("td", `
   ${cellBaseCss}
+  width: auto;
+  min-width: 0;
+  max-width: none;
   cursor: cell;
 
   &.selected_cursor {
@@ -445,5 +503,20 @@ const cssCell = styled("td", `
     background: ${theme.cellBg};
     z-index: 2;
     box-sizing: border-box;
+  }
+`);
+
+const cssResizeHandle = styled("div", `
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 5px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 1;
+
+  &:hover {
+    background: ${theme.cursor};
+    opacity: 0.4;
   }
 `);

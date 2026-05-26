@@ -35,6 +35,7 @@ import { IColumnFilterMenuOptions } from "app/client/ui/ColumnFilterMenu";
 import { buildRenameColumn, columnHeaderWithInfo } from "app/client/ui/ColumnTitle";
 import { contextMenu } from "app/client/ui/contextMenu";
 import { PLUS_COL_WIDTH, ROW_HEADER_WIDTH as ROW_NUMBER_WIDTH } from "app/client/ui/gridConstants";
+import { isAtBoundary } from "app/client/ui/GridNavigator";
 import {
   buildAddColumnMenu,
   buildColumnContextMenu,
@@ -465,36 +466,36 @@ export default class GridView extends BaseView {
   // See BaseView.commonCommands and BaseView.commonFocusedCommands for more details.
   protected static gridFocusedCommands: { [key: string]: Function } & ThisType<GridView> = {
     cursorDown: function() {
-      if (this.cursor.rowIndex() === this.viewData.peekLength - 1) {
-        // When the cursor is in the bottom row, the view may not be scrolled all the way to
-        // the bottom (i.e. in the case of a tall row).
+      const pos = { col: this.cursor.fieldIndex(), row: this.cursor.rowIndex()! };
+      const bounds = { numCols: this.viewSection.viewFields().peekLength, numRows: this.viewData.peekLength };
+      if (isAtBoundary(pos, "down", bounds)) {
         this.scrollPaneBottom();
       }
-      this.cursor.rowIndex(this.cursor.rowIndex()! + 1);
+      this.cursor.rowIndex(pos.row + 1);
     },
     cursorUp: function() {
-      if (this.cursor.rowIndex() === 0) {
-        // When the cursor is in the top row, the view may not be scrolled all the way to
-        // the top (i.e. in the case of a tall row).
+      const pos = { col: this.cursor.fieldIndex(), row: this.cursor.rowIndex()! };
+      const bounds = { numCols: this.viewSection.viewFields().peekLength, numRows: this.viewData.peekLength };
+      if (isAtBoundary(pos, "up", bounds)) {
         this.scrollPaneTop();
       }
-      this.cursor.rowIndex(this.cursor.rowIndex()! - 1);
+      this.cursor.rowIndex(pos.row - 1);
     },
     cursorRight: function() {
-      if (this.cursor.fieldIndex() === this.viewSection.viewFields().peekLength - 1) {
-        // When the cursor is in the rightmost column, the view may not be scrolled all the way to
-        // the right (i.e. in the case of a wide column).
+      const pos = { col: this.cursor.fieldIndex(), row: this.cursor.rowIndex()! };
+      const bounds = { numCols: this.viewSection.viewFields().peekLength, numRows: this.viewData.peekLength };
+      if (isAtBoundary(pos, "right", bounds)) {
         this.scrollPaneRight();
       }
-      this.cursor.fieldIndex(this.cursor.fieldIndex() + 1);
+      this.cursor.fieldIndex(pos.col + 1);
     },
     cursorLeft: function() {
-      if (this.cursor.fieldIndex() === 0) {
-        // When the cursor is in the leftmost column, the view may not be scrolled all the way to
-        // the left (i.e. in the case of a wide column).
+      const pos = { col: this.cursor.fieldIndex(), row: this.cursor.rowIndex()! };
+      const bounds = { numCols: this.viewSection.viewFields().peekLength, numRows: this.viewData.peekLength };
+      if (isAtBoundary(pos, "left", bounds)) {
         this.scrollPaneLeft();
       }
-      this.cursor.fieldIndex(this.cursor.fieldIndex() - 1);
+      this.cursor.fieldIndex(pos.col - 1);
     },
     shiftDown: function() { this._shiftSelect({ step: 1, direction: "down" }); },
     shiftUp: function() { this._shiftSelect({ step: 1, direction: "up" }); },

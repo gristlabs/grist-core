@@ -604,6 +604,102 @@ describe("SpreadsheetView", function() {
   });
 
   // ---------------------------------------------------------------------------
+  // Column resizing
+  // ---------------------------------------------------------------------------
+
+  describe("column resizing", function() {
+    before(async function() {
+      await api.applyUserActions(doc.id, [
+        ["AddSpreadsheetTable", "ResizeSheet"],
+      ]);
+      await gu.waitForServer();
+      await gu.openPage(/ResizeSheet/);
+      await driver.sleep(500);
+    });
+
+    it("should display a resize handle on column headers", async function() {
+      const handle = await driver.find(".test-col-header-B .test-col-resize-handle");
+      assert.isTrue(await handle.isDisplayed(),
+        "Resize handle should be visible on column header B");
+    });
+
+    it("should resize a column when dragging the handle", async function() {
+      const cellB1 = await getSpreadsheetCell("B", 1);
+      const widthBefore = (await cellB1.getRect()).width;
+
+      const handle = await driver.find(".test-col-header-B .test-col-resize-handle");
+      await handle.mouseMove();
+      await driver.mouseDown();
+      await driver.mouseMoveBy({ x: 50 });
+      await driver.mouseUp();
+      await driver.sleep(200);
+
+      const widthAfter = (await cellB1.getRect()).width;
+      assert.approximately(widthAfter, widthBefore + 50, 5,
+        "Column B width should increase by ~50px after drag");
+    });
+
+    it("should update all cells in the resized column", async function() {
+      const cellB1 = await getSpreadsheetCell("B", 1);
+      const cellB5 = await getSpreadsheetCell("B", 5);
+      const cellB10 = await getSpreadsheetCell("B", 10);
+
+      const w1 = (await cellB1.getRect()).width;
+      const w5 = (await cellB5.getRect()).width;
+      const w10 = (await cellB10.getRect()).width;
+
+      assert.equal(w1, w5, "B1 and B5 should have the same width");
+      assert.equal(w5, w10, "B5 and B10 should have the same width");
+    });
+
+    it("should update the column header width to match", async function() {
+      const header = await driver.find(".test-col-header-B");
+      const cellB1 = await getSpreadsheetCell("B", 1);
+
+      const headerWidth = (await header.getRect()).width;
+      const cellWidth = (await cellB1.getRect()).width;
+
+      assert.approximately(headerWidth, cellWidth, 2,
+        "Column header width should match cell width");
+    });
+
+    it("should not allow resizing below a minimum width", async function() {
+      const handle = await driver.find(".test-col-header-C .test-col-resize-handle");
+      await handle.mouseMove();
+      await driver.mouseDown();
+      await driver.mouseMoveBy({ x: -200 });
+      await driver.mouseUp();
+      await driver.sleep(200);
+
+      const cellC1 = await getSpreadsheetCell("C", 1);
+      const width = (await cellC1.getRect()).width;
+      assert.isAtLeast(width, 30,
+        "Column should not be resized below minimum width");
+    });
+
+    it("should not affect adjacent columns when resizing", async function() {
+      const cellA1 = await getSpreadsheetCell("A", 1);
+      const cellD1 = await getSpreadsheetCell("D", 1);
+      const widthA = (await cellA1.getRect()).width;
+      const widthD = (await cellD1.getRect()).width;
+
+      const handle = await driver.find(".test-col-header-C .test-col-resize-handle");
+      await handle.mouseMove();
+      await driver.mouseDown();
+      await driver.mouseMoveBy({ x: 30 });
+      await driver.mouseUp();
+      await driver.sleep(200);
+
+      const widthAAfter = (await cellA1.getRect()).width;
+      const widthDAfter = (await cellD1.getRect()).width;
+      assert.equal(widthAAfter, widthA,
+        "Column A width should not change when resizing C");
+      assert.equal(widthDAfter, widthD,
+        "Column D width should not change when resizing C");
+    });
+  });
+
+  // ---------------------------------------------------------------------------
   // REST / Widget API compatibility
   // ---------------------------------------------------------------------------
 
