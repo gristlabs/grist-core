@@ -138,8 +138,23 @@ docker pull gristlabs/grist
 docker run -p 8484:8484 -it gristlabs/grist
 ```
 
-Then visit `http://localhost:8484` in your browser. You'll be able to create, edit, import,
-and export documents. To preserve your work across docker runs, share a directory as `/persist`:
+Then visit `http://localhost:8484` in your browser.
+
+On a brand new install you'll land on a **Quick setup** page that walks
+you through choosing an admin email, picking how people sign in, and
+setting who can use the site. To get past the first screen, look in the
+container's startup log for a line containing a generated boot key, and
+paste it in when prompted. Once you click **Apply and go live!** at the
+end of Quick setup, the site is open for business and you'll be able to
+create, edit, import, and export documents. There's a step-by-step
+walkthrough at
+[First-run setup](https://support.getgrist.com/install/first-run-setup/).
+
+If you'd rather skip Quick setup entirely and start with an open,
+single-user setup, set `GRIST_IN_SERVICE=true`. You can come back to
+the same settings later from the [Admin Panel](#the-admin-panel).
+
+To preserve your work across docker runs, share a directory as `/persist`:
 
 ```sh
 docker run -p 8484:8484 -v $PWD/persist:/persist -it gristlabs/grist
@@ -238,22 +253,29 @@ for this purpose. It is by default functionally equivalent to the
 
 ## The Admin Panel
 
-You can turn on a special admininistrator panel to inspect the status
-of your installation. Just visit `/admin` on your Grist server for
-instructions. Since it is useful for the admin panel to be
-available even when authentication isn't set up, you can give it a
-special access key by setting `GRIST_BOOT_KEY`.
+The Admin Panel is where you inspect and tweak your installation:
+check health probes, change a few settings, toggle features. Visit
+`/admin` on your Grist server to find it. If you're not yet signed in
+as the installation admin, the panel will prompt you to do a boot key
+login, and from there you can paste in the key.
+
+New installs generate a boot key automatically and print it to the
+container log on startup. Watch for a line like:
+
+```
+Boot key: <random-string>
+```
+
+If you'd rather pick your own boot key, set `GRIST_BOOT_KEY`:
 
 ```
 docker run -p 8484:8484 -e GRIST_BOOT_KEY=secret -it gristlabs/grist
 ```
 
-The boot page should then be available at
-`/admin?boot-key=<GRIST_BOOT_KEY>`. We are collecting probes for
-common problems there. If you hit a problem that isn't covered, it
-would be great if you could add a probe for it in
-[BootProbes](https://github.com/gristlabs/grist-core/blob/main/app/server/lib/BootProbes.ts).
-You may instead file an issue so someone else can add it.
+The panel collects probes for common problems. If you hit one that
+isn't covered, please add a probe in
+[BootProbes](https://github.com/gristlabs/grist-core/blob/main/app/server/lib/BootProbes.ts),
+or file an issue so someone else can.
 
 ## Building from source
 
@@ -264,6 +286,11 @@ To build Grist from source, follow these steps:
     yarn build
     yarn start
     # Grist will be available at http://localhost:8484/
+
+The first time you start Grist it'll show the Quick setup page, just
+like a fresh Docker install. Look at the terminal where you ran
+`yarn start` for the boot key. If you'd rather skip Quick setup while
+hacking, run with `GRIST_IN_SERVICE=true`.
 
 Grist formulas in documents will be run using Python executed directly on your
 machine. You can configure sandboxing using a `GRIST_SANDBOX_FLAVOR`
@@ -294,9 +321,18 @@ You may toggle between the full Grist and Community editions in the [Admin Panel
 
 Like git, Grist has features to track document revision history. So for full operation,
 Grist expects to know who the user modifying a document is. Until it does, it operates
-in a limited anonymous mode. To get you going, the docker image is configured so that
-when you click on the "sign in" button Grist will attribute your work to `you@example.com`.
-Change this by setting `GRIST_DEFAULT_EMAIL`:
+in a limited anonymous mode.
+
+The friendliest way to get sign-in set up is the Quick setup page that
+appears on a fresh install. It lets you pick an admin email and an
+authentication method (e.g. OIDC, SAML) from a short menu. See
+[First-run setup](https://support.getgrist.com/install/first-run-setup/)
+for the full walkthrough. You can revisit those same settings later
+from the [Admin Panel](#the-admin-panel).
+
+If you'd rather not configure sign-in at all, you can run with a single
+default identity. Set `GRIST_DEFAULT_EMAIL` and the "sign in" button
+will attribute your work to that address:
 
 ```
 docker run --env GRIST_DEFAULT_EMAIL=my@email -p 8484:8484 -v $PWD/persist:/persist -it gristlabs/grist
@@ -385,7 +421,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_APP_ROOT | directory containing Grist sandbox and assets (specifically the sandbox and static subdirectories). |
 | GRIST_ATTACHMENT_THRESHOLD_MB | attachment storage limit per document beyond which Grist will recommend external storage (if available). Defaults to 50MB. |
 | GRIST_BACKUP_DELAY_SECS | wait this long after a doc change before making a backup |
-| GRIST_BOOT_KEY | if set, enable signing in as the installation admin on /boot with this key |
+| GRIST_BOOT_KEY | if set, use this key to sign in as the installation admin at `/boot`. New installs auto-generate one and print it on startup; set this only if you want a key of your own choosing. |
 | GRIST_BROADCAST_TIMEOUT_MS | Set the maximum time a web client has to accept a broadcast message about a document before being disconnected (default: 1 minute). |
 | GRIST_DATA_DIR | Directory in which to store documents. Defaults to `docs/` relative to the Grist application directory. In Grist's default Docker image, its default value is /persist/docs so that it will be used as a mounted volume. |
 | GRIST_DEFAULT_EMAIL | if set, login as this user if no other credentials presented |
@@ -404,6 +440,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_ID_PREFIX | for subdomains of form o-*, expect or produce o-${GRIST_ID_PREFIX}*. |
 | GRIST_IGNORE_SESSION | if set, Grist will not use a session for authentication. |
 | GRIST_INCLUDE_CUSTOM_SCRIPT_URL | if set, will load the referenced URL in a `<script>` tag on all app pages. |
+| GRIST_IN_SERVICE | if "true", skip the first-run Quick setup gate and put the server straight into service. New installs default to "false" so the operator can finish Quick setup; existing installs default to "true". |
 | GRIST_INST_DIR | path to Grist instance configuration files, for Grist server. |
 | GRIST_KEEP_ALIVE_TIMEOUT_MS | if set, override nodes's server.keepAliveTimeout flag. |
 | GRIST_LIST_PUBLIC_SITES | if set to true, sites shared with the public will be listed for anonymous users. Defaults to false. |
