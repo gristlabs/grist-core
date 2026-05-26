@@ -958,7 +958,10 @@
     },
     "ThemeConfig": {
         "Appearance ": "Appearance ",
-        "Switch appearance automatically to match system": "Switch appearance automatically to match system"
+        "Switch appearance automatically to match system": "Switch appearance automatically to match system",
+        "Dark": "Dark",
+        "Light": "Light",
+        "Light (High Contrast)": "Light (High Contrast)"
     },
     "Tools": {
         "Access Rules": "Access Rules",
@@ -1079,21 +1082,6 @@
         "Hide {{label}} (batch mode)": "Hide {{label}} (batch mode)",
         "Show {{label}} (batch mode)": "Show {{label}} (batch mode)"
     },
-    "WelcomeQuestions": {
-        "Education": "Education",
-        "Finance & Accounting": "Finance and Accounting",
-        "HR & Management": "HR and Management",
-        "IT & Technology": "IT and Technology",
-        "Marketing": "Marketing",
-        "Media Production": "Media Production",
-        "Other": "Other",
-        "Product Development": "Product Development",
-        "Research": "Research",
-        "Sales": "Sales",
-        "Type here": "Type here",
-        "Welcome to Grist!": "Welcome to Grist!",
-        "What brings you to Grist? Please help us serve you better.": "What brings you to Grist? Please help us serve you better."
-    },
     "WidgetTitle": {
         "Cancel": "Cancel",
         "DATA TABLE NAME": "DATA TABLE NAME",
@@ -1167,26 +1155,7 @@
     "menus": {
         "* Workspaces are available on team plans. ": "* Workspaces are available on team plans. ",
         "Select fields": "Select fields",
-        "Upgrade now": "Upgrade now",
-        "Any": "Any",
-        "Numeric": "Numeric",
-        "Text": "Text",
-        "Integer": "Integer",
-        "Toggle": "Toggle",
-        "Date": "Date",
-        "DateTime": "DateTime",
-        "Choice": "Choice",
-        "Choice List": "Choice List",
-        "Reference": "Reference",
-        "Reference List": "Reference List",
-        "Attachment": "Attachment",
-        "Search columns": "Search columns",
-        "By Name": "By Name",
-        "By Date Modified": "By date Modified",
-        "Light": "Light",
-        "Custom": "Custom",
-        "Dark": "Dark",
-        "Light (High Contrast)": "Light (High Contrast)"
+        "Upgrade now": "Upgrade now"
     },
     "modals": {
         "Cancel": "Cancel",
@@ -2080,7 +2049,17 @@
         "What organization are you with?": "What organization are you with?",
         "Your organization": "Your organization",
         "Your role": "Your role",
-        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different."
+        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.",
+        "Education": "Education",
+        "Finance & Accounting": "Finance & Accounting",
+        "HR & Management": "HR & Management",
+        "IT & Technology": "IT & Technology",
+        "Marketing": "Marketing",
+        "Media Production": "Media Production",
+        "Other": "Other",
+        "Product Development": "Product Development",
+        "Research": "Research",
+        "Sales": "Sales"
     },
     "ToggleEnterpriseWidget": {
         "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).",

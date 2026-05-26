@@ -1075,21 +1075,6 @@
     "Hidden {{label}}": "Скрит {{label}}",
     "Show {{label}}": "Покажи {{label}}"
   },
-  "WelcomeQuestions": {
-    "Education": "Образование",
-    "Finance & Accounting": "Финанси и счетоводство",
-    "HR & Management": "ТРЗ и управление",
-    "IT & Technology": "ИТ и технологии",
-    "Marketing": "Маркетинг",
-    "Media Production": "Медийно производство",
-    "Other": "Други",
-    "Product Development": "Разработване на продукти",
-    "Research": "Изследвания",
-    "Sales": "Продажби",
-    "Type here": "Въведете тук",
-    "Welcome to Grist!": "Добре дошли в Grist!",
-    "What brings you to Grist? Please help us serve you better.": "Какво ви доведе в Grist? Моля, помогнете ни да ви обслужаваме по-добре."
-  },
   "WidgetTitle": {
     "Cancel": "Отказ",
     "Override widget title": "Замяна на заглавието на джаджа",
@@ -1582,5 +1567,18 @@
     "Form": "Формуляр",
     "Chart": "Графика",
     "Table": "Таблица"
+  },
+  "OnboardingPage": {
+    "Product Development": "Разработване на продукти",
+    "Finance & Accounting": "Финанси и счетоводство",
+    "Media Production": "Медийно производство",
+    "IT & Technology": "ИТ и технологии",
+    "Marketing": "Маркетинг",
+    "Research": "Изследвания",
+    "Sales": "Продажби",
+    "Education": "Образование",
+    "HR & Management": "ТРЗ и управление",
+    "Other": "Други",
+    "Type here": "Въведете тук"
   }
 }

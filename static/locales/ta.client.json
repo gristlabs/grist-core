@@ -803,9 +803,7 @@
         "Attachment": "இணைப்பு",
         "Search columns": "நெடுவரிசைகளைத் தேடுங்கள்",
         "By Name": "பெயரால்",
-        "By Date Modified": "தேதியில் மாற்றியமைக்கப்பட்டது",
-        "Light": "ஒளி",
-        "Custom": "தனிப்பயன்"
+        "By Date Modified": "தேதியில் மாற்றியமைக்கப்பட்டது"
     },
     "modals": {
         "Cancel": "ரத்துசெய்",
@@ -1381,7 +1379,17 @@
         "Your role": "உங்கள் பங்கு",
         "Back": "பின்",
         "Discover Grist in 3 minutes": "3 நிமிடங்களில் கிரிச்ட்டைக் கண்டறியவும்",
-        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "கிரிச்ட் ஒரு விரிதாள் போல தோன்றலாம், ஆனால் அது எப்போதும் ஒன்றைப் போல செயல்படாது. கிரிச்ட்டை வேறுபடுத்துவதைக் கண்டறியவும்."
+        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "கிரிச்ட் ஒரு விரிதாள் போல தோன்றலாம், ஆனால் அது எப்போதும் ஒன்றைப் போல செயல்படாது. கிரிச்ட்டை வேறுபடுத்துவதைக் கண்டறியவும்.",
+        "Product Development": "தயாரிப்பு மேம்பாடு",
+        "Finance & Accounting": "பொருள் மற்றும் கணக்கியல்",
+        "Media Production": "ஊடக தயாரிப்பு",
+        "IT & Technology": "செய்தி தொழில்நுட்பம் மற்றும் தொழில்நுட்பம்",
+        "Marketing": "சந்தைப்படுத்தல்",
+        "Research": "ஆராய்ச்சி",
+        "Sales": "விற்பனை",
+        "Education": "கல்வி",
+        "HR & Management": "மனிதவள மற்றும் மேலாண்மை",
+        "Other": "மற்றொன்று"
     },
     "ToggleEnterpriseWidget": {
         "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "சோதனைக் காலத்திற்குப் பிறகு கிரிச்ட் நிறுவனத்தை இயக்க ஒரு செயல்படுத்தும் விசை பயன்படுத்தப்படுகிறது\n 30 நாட்கள் காலாவதியானது. [கிரிச்டுக்கு பதிவுபெறுவதன் மூலம் செயல்படுத்தும் விசையைப் பெறுங்கள்\n நிறுவன] ({{signupLink}}). இயக்க உங்களுக்கு செயல்படுத்தும் விசை தேவையில்லை\n கிரிச்ட் கோர்.\n\n எங்கள் [உதவி மையத்தில்] மேலும் அறிக ({{helpCenter}}).",
@@ -1762,7 +1770,8 @@
     },
     "ThemeConfig": {
         "Appearance ": "தோற்றம் ",
-        "Switch appearance automatically to match system": "கணினியுடன் பொருந்தக்கூடிய வகையில் தானாகவே தோற்றத்தை மாற்றவும்"
+        "Switch appearance automatically to match system": "கணினியுடன் பொருந்தக்கூடிய வகையில் தானாகவே தோற்றத்தை மாற்றவும்",
+        "Light": "ஒளி"
     },
     "TopBar": {
         "Manage team": "அணியை நிர்வகிக்கவும்",
@@ -1829,21 +1838,6 @@
         "Show {{label}}": "{{label}} ஐக் காட்டு",
         "Hide {{label}} (batch mode)": "மறை {{label}} (தொகுப்பு முறை)",
         "Show {{label}} (batch mode)": "{{label}} (தொகுப்பு முறை)"
-    },
-    "WelcomeQuestions": {
-        "Education": "கல்வி",
-        "Finance & Accounting": "பொருள் மற்றும் கணக்கியல்",
-        "HR & Management": "மனிதவள மற்றும் மேலாண்மை",
-        "IT & Technology": "செய்தி தொழில்நுட்பம் மற்றும் தொழில்நுட்பம்",
-        "Marketing": "சந்தைப்படுத்தல்",
-        "Media Production": "ஊடக தயாரிப்பு",
-        "Other": "மற்றொன்று",
-        "Product Development": "தயாரிப்பு மேம்பாடு",
-        "Research": "ஆராய்ச்சி",
-        "Sales": "விற்பனை",
-        "Type here": "இங்கே தட்டச்சு செய்க",
-        "Welcome to Grist!": "கிரிச்டுக்கு வருக!",
-        "What brings you to Grist? Please help us serve you better.": "உங்களைத் தூண்டுவது எது? தயவுசெய்து உங்களுக்கு சிறப்பாக பணி செய்ய எங்களுக்கு உதவுங்கள்."
     },
     "breadcrumbs": {
         "You may make edits, but they will create a new copy and will\nnot affect the original document.": "நீங்கள் திருத்தங்களைச் செய்யலாம், ஆனால் அவை புதிய நகலை உருவாக்கும்\n அசல் ஆவணத்தை பாதிக்காது.",

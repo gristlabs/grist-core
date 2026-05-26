@@ -955,7 +955,10 @@
     },
     "ThemeConfig": {
         "Appearance ": "Apparence ",
-        "Switch appearance automatically to match system": "Adapter l'apparence au système"
+        "Switch appearance automatically to match system": "Adapter l'apparence au système",
+        "Light": "Clair",
+        "Dark": "Sombre",
+        "Light (High Contrast)": "Clair (contraste élevé)"
     },
     "Tools": {
         "TOOLS": "OUTILS",
@@ -1070,21 +1073,6 @@
         "Hide {{label}} (batch mode)": "Masquer {{label}} (mode groupé)",
         "Show {{label}} (batch mode)": "Montrer {{label}} (mode groupé)"
     },
-    "WelcomeQuestions": {
-        "Welcome to Grist!": "Bienvenue sur Grist !",
-        "Product Development": "Développement de produit",
-        "Finance & Accounting": "Finance et comptabilité",
-        "Media Production": "Production de média",
-        "IT & Technology": "Technologie informatique",
-        "Marketing": "Marketing",
-        "Research": "Recherche",
-        "Sales": "Ventes",
-        "Education": "Éducation",
-        "HR & Management": "RH et Gestion",
-        "Other": "Autres",
-        "What brings you to Grist? Please help us serve you better.": "Pourquoi utilisez-vous Grist ? Aidez-nous à l’améliorer.",
-        "Type here": "Écrire ici"
-    },
     "WidgetTitle": {
         "Override widget title": "Renommer la vue",
         "DATA TABLE NAME": "NOM DE LA TABLE",
@@ -1173,11 +1161,7 @@
         "Any": "Non défini",
         "Search columns": "Chercher des colonnes",
         "By Name": "Par Nom",
-        "By Date Modified": "Par Date de modification",
-        "Light": "Clair",
-        "Custom": "Personnalisé",
-        "Dark": "Sombre",
-        "Light (High Contrast)": "Clair (contraste élevé)"
+        "By Date Modified": "Par Date de modification"
     },
     "modals": {
         "Save": "Enregistrer",
@@ -2084,7 +2068,17 @@
         "Tell us who you are": "Dites-nous qui vous êtes",
         "What brings you to Grist (you can select multiple)?": "Qu'est-ce qui vous amène à Grist (vous pouvez en sélectionner plusieurs) ?",
         "What is your role?": "Quel est votre rôle ?",
-        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "Grist ressemble à un tableur, mais ne fonctionne pas toujours comme tel. Découvrez ce qui le rend unique."
+        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "Grist ressemble à un tableur, mais ne fonctionne pas toujours comme tel. Découvrez ce qui le rend unique.",
+        "Product Development": "Développement de produit",
+        "Finance & Accounting": "Finance et comptabilité",
+        "Media Production": "Production de média",
+        "IT & Technology": "Technologie informatique",
+        "Marketing": "Marketing",
+        "Research": "Recherche",
+        "Sales": "Ventes",
+        "Education": "Éducation",
+        "HR & Management": "RH et Gestion",
+        "Other": "Autres"
     },
     "ToggleEnterpriseWidget": {
         "Disable Grist Enterprise": "Désactiver Grist Entreprise",

@@ -997,7 +997,8 @@
     },
     "ThemeConfig": {
         "Appearance ": "Aussehen ",
-        "Switch appearance automatically to match system": "Schalten Sie das Aussehen automatisch auf das System"
+        "Switch appearance automatically to match system": "Schalten Sie das Aussehen automatisch auf das System",
+        "Light": "Hell"
     },
     "Tools": {
         "Access Rules": "Zugriffsregeln",
@@ -1114,21 +1115,6 @@
         "Show {{label}}": "{{label}} anzeigen",
         "Visible {{label}}": "Sichtbar {{label}}"
     },
-    "WelcomeQuestions": {
-        "Education": "Bildung",
-        "Finance & Accounting": "Finanzbuchhaltung",
-        "HR & Management": "Personal und Management",
-        "IT & Technology": "IT und Technologie",
-        "Marketing": "Vermarktung",
-        "Media Production": "Medienproduktion",
-        "Other": "Sonstiges",
-        "Product Development": "Produktentwicklung",
-        "Research": "Forschung",
-        "Sales": "Umsatz",
-        "Type here": "Hier tippen",
-        "Welcome to Grist!": "Willkommen bei Grist!",
-        "What brings you to Grist? Please help us serve you better.": "Was bringt Sie zu Grist? Bitte helfen Sie uns, Sie besser zu bedienen."
-    },
     "WidgetTitle": {
         "Cancel": "Abbrechen",
         "DATA TABLE NAME": "NAME DER DATENTABELLE",
@@ -1196,8 +1182,6 @@
         "Date": "Datum",
         "Search columns": "Spalten suchen",
         "By Name": "Nach Name",
-        "Custom": "Benutzerdefiniert",
-        "Light": "Hell",
         "By Date Modified": "Nach Änderungsdatum"
     },
     "modals": {
@@ -2013,7 +1997,17 @@
         "Your role": "Ihre Rolle",
         "Skip step": "Schritt überspringen",
         "Skip tutorial": "Tutorial überspringen",
-        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "Grist mag wie eine Tabellenkalkulation aussehen, aber es verhält sich nicht immer wie eine solche. Entdecken Sie, was Grist anders macht."
+        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "Grist mag wie eine Tabellenkalkulation aussehen, aber es verhält sich nicht immer wie eine solche. Entdecken Sie, was Grist anders macht.",
+        "Product Development": "Produktentwicklung",
+        "Finance & Accounting": "Finanzbuchhaltung",
+        "Media Production": "Medienproduktion",
+        "IT & Technology": "IT und Technologie",
+        "Marketing": "Vermarktung",
+        "Research": "Forschung",
+        "Sales": "Umsatz",
+        "Education": "Bildung",
+        "HR & Management": "Personal und Management",
+        "Other": "Sonstiges"
     },
     "OnboardingCards": {
         "Complete the tutorial": "Fertigen Sie das Tutorial",

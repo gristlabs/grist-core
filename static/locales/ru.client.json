@@ -973,7 +973,8 @@
     },
     "ThemeConfig": {
         "Appearance ": "Оформление ",
-        "Switch appearance automatically to match system": "Автоматическое переключение оформления в соответствии с системной настройкой"
+        "Switch appearance automatically to match system": "Автоматическое переключение оформления в соответствии с системной настройкой",
+        "Light": "Светлая"
     },
     "UserManagerModel": {
         "In full": "Полный",
@@ -1182,21 +1183,6 @@
         "Hide {{label}} (batch mode)": "Скрыть {{label}} (пакетный режим)",
         "Show {{label}} (batch mode)": "Показать {{label}} (пакетный режим)"
     },
-    "WelcomeQuestions": {
-        "Marketing": "Маркетинг",
-        "Research": "Исследование",
-        "Sales": "Продажи",
-        "Welcome to Grist!": "Добро пожаловать в Grist!",
-        "What brings you to Grist? Please help us serve you better.": "Как вы пришли к Grist? Пожалуйста, помогите сделать наш сервис лучше.",
-        "Education": "Образование",
-        "HR & Management": "Управление персоналом и Менеджмент",
-        "Finance & Accounting": "Финансы и Бухгалтерия",
-        "Media Production": "Медиапроизводство",
-        "Type here": "Введите здесь",
-        "Product Development": "Разработка продукта",
-        "Other": "Прочее",
-        "IT & Technology": "IT и Технология"
-    },
     "breadcrumbs": {
         "fiddle": "ветка",
         "override": "переопределение",
@@ -1226,9 +1212,7 @@
         "Reference": "Ссылка",
         "Search columns": "Поиск столбцов",
         "By Name": "По Имени",
-        "By Date Modified": "По дате Изменения",
-        "Light": "Светлая",
-        "Custom": "Своя"
+        "By Date Modified": "По дате Изменения"
     },
     "modals": {
         "Cancel": "Отмена",
@@ -1689,9 +1673,9 @@
     },
     "WelcomeCoachingCall": {
         "free coaching call": "бесплатный коуч-звонок",
-    "Maybe later": "Возможно позже",
+        "Maybe later": "Возможно позже",
         "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "Во время звонка мы уделяем время тому, чтобы понять ваши потребности и адаптировать звонок под ваши нужды. Мы можем показать вам основы Grist или сразу начать работать с вашими данными, чтобы создать нужные вам информационные панели.",
-    "Schedule call": "Запланировать звонок",
+        "Schedule call": "Запланировать звонок",
         "Schedule your {{freeCoachingCall}} with a member of our team.": "Запланируйте свой {{freeCoachingCall}} с членом нашей команды.",
         "You may also check out {{ourWeeklyWebinars}} to learn more about Grist.": "Вы также можете проверить {{ourWeeklyWebinars}} чтобы узнать больше о Grist.",
         "our weekly webinars": "наши еженедельные вебинары"
@@ -1954,7 +1938,17 @@
         "Next step": "Следующий шаг",
         "Skip step": "Пропустить шаг",
         "Skip tutorial": "Пропустить обучение",
-        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "Grist может выглядеть как электронная таблица, но это не всегда так. Узнайте, чем отличается Grist от других приложений."
+        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "Grist может выглядеть как электронная таблица, но это не всегда так. Узнайте, чем отличается Grist от других приложений.",
+        "Product Development": "Разработка продукта",
+        "Finance & Accounting": "Финансы и Бухгалтерия",
+        "Media Production": "Медиапроизводство",
+        "IT & Technology": "IT и Технология",
+        "Marketing": "Маркетинг",
+        "Research": "Исследование",
+        "Sales": "Продажи",
+        "Education": "Образование",
+        "HR & Management": "Управление персоналом и Менеджмент",
+        "Other": "Прочее"
     },
     "ToggleEnterpriseWidget": {
         "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Ключ активации используется для запуска Grist Enterprise после окончания\n30 дневного пробного периода. Получите ключ активации по [подписавшись на Grist\nEnterprise]({{signupLink}}). Для запуска Grist Core вам не нужен ключ активации.\n\nУзнайте больше в нашем [Центр помощи]({{helpCenter}}).",
