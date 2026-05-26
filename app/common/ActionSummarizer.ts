@@ -481,7 +481,7 @@ function bulkCellFor(rc: RowChange | undefined): CellDelta | undefined {
  * e2 may be modified, and will be copied if so.
  */
 function mergeColumn(present1: RowChanges, present2: RowChanges,
-  incomplete1: boolean | undefined, incomplete2: boolean | undefined,
+  incomplete1: true | undefined, incomplete2: true | undefined,
   e1: ColumnDelta, e2: CopyOnWrite<ColumnDelta>): ColumnDelta {
   for (const key of (Object.keys(present1) as unknown as number[])) {
     let v1 = e1[key];

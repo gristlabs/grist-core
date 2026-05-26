@@ -102,7 +102,7 @@ export interface TableDelta {
    * composition) should treat the cell as unknown rather than recover a
    * value from elsewhere.
    */
-  mayBeIncomplete?: boolean;
+  mayBeIncomplete?: true;
 }
 
 /**
