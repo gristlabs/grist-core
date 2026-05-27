@@ -257,6 +257,7 @@ export function modal(
         dom.on("click", ev => ev.stopPropagation()),
         noEscapeKey ? null : dom.onKeyDown({ Escape: close }),
         testId("modal-dialog"),
+        { "role": "dialog", "aria-modal": "true" },
       );
       FocusLayer.create(owner, {
         defaultFocusElem: dialogDom,
