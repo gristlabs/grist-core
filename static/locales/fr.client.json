@@ -2617,7 +2617,9 @@
         "showing a behavioral popup": "affichage d'une fenêtre contextuelle comportementale",
         "Filter this column by just this cell's value": "Filtrer cette colonne par la valeur de cette cellule uniquement",
         "Open the context menu": "Ouvrir le menu contextuel",
-        "Toggle the screen reader improvements": "Activer ou désactiver les améliorations pour lecteurs d'écran"
+        "Toggle the screen reader improvements": "Activer ou désactiver les améliorations pour lecteurs d'écran",
+        "Open the current column menu": "Ouvrir le menu de la colonne actuelle",
+        "Open the current row menu": "Ouvrir le menu de la ligne actuelle"
     },
     "GridViewMenusDateHelpers": {
         "12-hour format": "format 12-heures",
