@@ -392,6 +392,7 @@ function addDocumentsTests(getCtx: () => TestContext) {
             ),
           },
           columnRenames: [],
+          mayBeIncomplete: true,
         },
       },
     };
