@@ -13,9 +13,10 @@ import { cssMenuElem } from "app/client/ui2018/menus";
 import { waitGrainObs } from "app/common/gutil";
 import { MaybePromise } from "app/plugin/gutil";
 
-import { Computed, Disposable, dom, DomContents, DomElementArg, input, keyframes,
+import { Computed, Disposable, dom, DomContents, DomElementArg, IDomArgs, input, keyframes,
   MultiHolder, Observable, styled } from "grainjs";
 import { IOpenController, IPopupOptions, PopupControl, popupOpen } from "popweasel";
+import { uniqueId } from "underscore";
 
 const t = makeT("modals");
 
@@ -630,14 +631,26 @@ export const cssModalDialog = styled("div", `
   }
 `);
 
-export const cssModalTitle = styled("div", `
-  font-size: ${vars.xxxlargeFontSize};
-  font-weight: ${vars.headerControlTextWeight};
-  color: ${theme.text};
-  margin: 0 0 16px 0;
-  line-height: 32px;
-  overflow-wrap: break-word;
-`);
+export const cssModalTitle = styled(
+  (...args: IDomArgs<HTMLDivElement>) => dom(
+    "div",
+    { id: uniqueId("modal-title-") },
+    (el) => {
+      // waiting for potential domComputed to work
+      setTimeout(() => {
+        el.closest('[role="dialog"]')?.setAttribute("aria-labelledby", el.id);
+      }, 0);
+    },
+    ...args,
+  ), `
+    font-size: ${vars.xxxlargeFontSize};
+    font-weight: ${vars.headerControlTextWeight};
+    color: ${theme.text};
+    margin: 0 0 16px 0;
+    line-height: 32px;
+    overflow-wrap: break-word;
+  `,
+);
 
 export const cssModalSubheading = styled("div", `
   font-size: ${vars.xlargeFontSize};
