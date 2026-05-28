@@ -1312,7 +1312,7 @@ export class FlexServer implements GristServer {
             // We're logging in for the first time on the merged org; if the user has
             // access to other team sites, forward the user to a page that lists all
             // the teams they have access to.
-            const result = await this._dbManager.getMergedOrgs(user.id, user.id, domain);
+            const result = await this._dbManager.getMergedOrgs(getScope(mreq));
             const orgs = this._dbManager.unwrapQueryResult(result);
             if (orgs.length > 1 && mreq.path === "/") {
               // Only forward if the request is for the home page.
@@ -2499,7 +2499,7 @@ export class FlexServer implements GristServer {
     // We have a userId, but the request is for an unknown org. Redirect to an org that's
     // available to the user. This matters in dev, and in prod when visiting a generic URL, which
     // will here redirect to e.g. the user's personal org.
-    const result = await this._dbManager.getMergedOrgs(mreq.userId, mreq.userId, null);
+    const result = await this._dbManager.getMergedOrgs({ userId: mreq.userId });
     const orgs = (result.status === 200) ? result.data : null;
     const subdomain = orgs && orgs.length > 0 ? orgs[0].domain : null;
     const redirectUrl = subdomain && this._getOrgRedirectUrl(mreq, subdomain);
@@ -2679,12 +2679,8 @@ export class FlexServer implements GristServer {
     options: { redirectToMergedOrg?: boolean } = {},
   ) {
     const { redirectToMergedOrg } = options;
-    const userId = getUserId(mreq);
-    const domain = getOrgFromRequest(mreq);
     const orgs = this._dbManager.unwrapQueryResult(
-      await this._dbManager.getOrgs(userId, domain, {
-        ignoreEveryoneShares: true,
-      }),
+      await this._dbManager.getOrgs(getScope(mreq), { ignoreEveryoneShares: true }),
     );
     if (orgs.length > 1) {
       resp.redirect(getOrgUrl(mreq, "/welcome/teams"));

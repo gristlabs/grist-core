@@ -201,7 +201,10 @@ export function getScope(req: Request): Scope {
   const org = (req as RequestWithOrg).org;
   const includeSupport = isParameterOn(req.query.includeSupport);
   const showRemoved = isParameterOn(req.query.showRemoved);
-  return { urlId, userId, org, includeSupport, showRemoved, specialPermit };
+  return addCredentialScope(
+    { urlId, userId, org, includeSupport, showRemoved, specialPermit },
+    req,
+  );
 }
 
 /**
@@ -209,6 +212,30 @@ export function getScope(req: Request): Scope {
  */
 export function addPermit(scope: Scope, userId: number, specialPermit: Permit): Scope {
   return { ...scope, ...(scope.userId === userId ? { specialPermit } : {}) };
+}
+
+/**
+ * If the request carries an AuthCredential (e.g. an OAuth access token) that applies to the
+ * matched route, override the scope's userId with the credential's identified user and attach
+ * any resource filter it imposes. Otherwise return the scope unchanged.
+ *
+ * Credentialed requests are not expected to carry a non-anonymous userId; instead, they embed
+ * the userId of the user the credential is operating on behalf within the credential itself.
+ * (Example: The access token and OAuth branches in `resolveIdentity`, which both leave the
+ * user anonymous.)
+ *
+ * Note that such requests remain anonymous even if they could otherwise be identified using
+ * another authentication method (e.g. session cookies). This is done intentionally to avoid
+ * permitting access to resources that don't gate access with `getScope`, and otherwise aren't
+ * aware of credentials, which were introduced to Grist later than other authentication methods.
+ * If such requests were allowed to be non-anonymous, an endpoint that directly accesses
+ * `req.userId` could permit a credentialed request through, even if the credential alone
+ * would not permit access to the same endpoint.
+ */
+function addCredentialScope(scope: Scope, req: Request): Scope {
+  const contribution = (req as RequestWithLogin).authSession?.credential?.scope(req);
+  if (!contribution) { return scope; }
+  return { ...scope, userId: contribution.userId, filter: contribution.filter };
 }
 
 export interface SendReplyOptions {

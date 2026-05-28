@@ -34,11 +34,9 @@ export interface AttachOptions {
 
 export class DocWorker {
   private _comm: Comm;
-  private _gristServer: GristServer;
   private _tracker?: DocApiUsageTracker;
   constructor(private _dbManager: HomeDBManager, options: AttachOptions) {
     this._comm = options.comm;
-    this._gristServer = options.gristServer;
     this._tracker = options.tracker;
   }
 
@@ -196,7 +194,7 @@ export class DocWorker {
       }
       if (!urlId) { return res.status(403).send({ error: "missing document id" }); }
 
-      const docAuth = await getOrSetDocAuth(mreq, this._dbManager, this._gristServer, urlId);
+      const docAuth = await getOrSetDocAuth(mreq, this._dbManager, urlId);
       assertAccess("viewers", docAuth);
       next();
     } catch (err) {

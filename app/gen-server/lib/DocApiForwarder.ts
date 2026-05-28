@@ -40,7 +40,7 @@ export class DocApiForwarder {
       next();
     });
 
-    // Add middleware that permits OAuth tokens on some endpoints (this is a stub in grist-core).
+    // Add middleware that permits OAuth tokens on some endpoints (when OAuth support is present).
     // This is also added in `DocApi.addEndpoints` in `app/server/lib/DocApi`, but we also
     // add it here as a general pre-check, and so that the view access pre-check is done as
     // the OAuth user.
@@ -101,8 +101,7 @@ export class DocApiForwarder {
   ): Promise<void> {
     let docId: string | null = null;
     if (withDocId) {
-      const docAuth = await getOrSetDocAuth(req as RequestWithLogin, this._dbManager,
-        this._gristServer, req.params.docId);
+      const docAuth = await getOrSetDocAuth(req as RequestWithLogin, this._dbManager, req.params.docId);
       if (role) {
         assertAccess(role, docAuth, { allowRemoved: true, allowDisabled: true });
       }

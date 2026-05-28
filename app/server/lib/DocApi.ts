@@ -164,7 +164,7 @@ export class DocWorkerApi {
       next();
     });
 
-    // Add middleware that permits OAuth tokens on some endpoints (this is a stub in grist-core).
+    // Add middleware that permits OAuth tokens on some endpoints (when OAuth support is present).
     this._grist.getOAuthValidator()?.addDocApiMiddleware(this._app);
 
     // Some endpoints require the admin
@@ -893,9 +893,9 @@ export class DocWorkerApi {
       await this._toggleDisabledStatus(req, res, "disable");
     }));
 
-    // POST /api/docs/:did/enable
+    // POST /api/docs/:docId/enable
     // Enables the specified doc if it was previously disabled
-    this._app.post("/api/docs/:did/enable", requireInstallAdmin, expressWrap(async (req, res) => {
+    this._app.post("/api/docs/:docId/enable", requireInstallAdmin, expressWrap(async (req, res) => {
       await this._toggleDisabledStatus(req, res, "enable");
     }));
 
@@ -1799,7 +1799,7 @@ export class DocWorkerApi {
     req: Request, res: Response, next: NextFunction) {
     const scope = getDocScope(req);
     allowRemovedOrDisabled = scope.showAll || scope.showRemoved || allowRemovedOrDisabled;
-    const docAuth = await getOrSetDocAuth(req as RequestWithLogin, this._dbManager, this._grist, scope.urlId);
+    const docAuth = await getOrSetDocAuth(req as RequestWithLogin, this._dbManager, scope.urlId);
     if (role) {
       assertAccess(role, docAuth, {
         allowRemoved: allowRemovedOrDisabled,
@@ -1815,7 +1815,7 @@ export class DocWorkerApi {
    */
   private async _isOwner(req: Request, options?: { acceptTrunkForSnapshot?: boolean }) {
     const scope = getDocScope(req);
-    const docAuth = await getOrSetDocAuth(req as RequestWithLogin, this._dbManager, this._grist, scope.urlId);
+    const docAuth = await getOrSetDocAuth(req as RequestWithLogin, this._dbManager, scope.urlId);
     if (docAuth.access === "owners") {
       return true;
     }

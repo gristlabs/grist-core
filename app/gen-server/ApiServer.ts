@@ -146,17 +146,19 @@ export class ApiServer {
   }
 
   private _addEndpoints(): void {
+    // Add middleware that permits OAuth tokens on some endpoints (when OAuth support is present).
+    this._gristServer.getOAuthValidator()?.addHomeApiMiddleware(this._app);
+
     const requireInstallAdmin = this._gristServer.getInstallAdmin().getMiddlewareRequireAdmin();
 
     // GET /api/orgs
     // Get all organizations user may have some access to.
     this._app.get("/api/orgs", expressWrap(async (req, res) => {
-      const userId = getUserId(req);
-      const domain = getOrgFromRequest(req);
+      const scope = getScope(req);
       const merged = isParameterOn(req.query.merged);
       const query = merged ?
-        await this._dbManager.getMergedOrgs(userId, userId, domain) :
-        await this._dbManager.getOrgs(userId, domain);
+        await this._dbManager.getMergedOrgs(scope) :
+        await this._dbManager.getOrgs(scope);
       return sendReply(req, res, query);
     }));
 
@@ -458,7 +460,11 @@ export class ApiServer {
     // Get user's profile
     this._app.get("/api/profile/user", expressWrap(async (req, res) => {
       const fullUser = await this._getFullUser(req);
-      return sendOkReply(req, res, fullUser, { allowedFields: new Set(["allowGoogleLogin"]) });
+      // Limit credentials to mostly public info.
+      const result = (req as RequestWithLogin).authSession?.credential ?
+        pick(fullUser, "email", "name", "picture", "ref", "locale") :
+        fullUser;
+      return sendOkReply(req, res, result, { allowedFields: new Set(["allowGoogleLogin"]) });
     }));
 
     // POST /api/profile/user/name
@@ -627,13 +633,11 @@ export class ApiServer {
     // Returns all user profiles (with ids) and all orgs they can access.
     // Flattens personal orgs into a single org.
     this._app.get("/api/session/access/all", expressWrap(async (req, res) => {
-      const domain = getOrgFromRequest(req);
-      const users = getUserProfiles(req);
-      const userId = getUserId(req);
-      const orgs = await this._dbManager.getMergedOrgs(userId, users, domain);
+      const scope = { ...getScope(req), users: getUserProfiles(req) };
+      const orgs = await this._dbManager.getMergedOrgs(scope);
       if (orgs.errMessage) { throw new ApiError(orgs.errMessage, orgs.status); }
       return sendOkReply(req, res, {
-        users: await this._dbManager.completeProfiles(users),
+        users: await this._dbManager.completeProfiles(scope.users),
         orgs: orgs.data,
       });
     }));
@@ -842,13 +846,12 @@ export class ApiServer {
 
   private async _getFullUser(req: Request, options: { includePrefs?: boolean } = {}): Promise<FullUser> {
     const mreq = req as RequestWithLogin;
-    const userId = getUserId(mreq);
+    const { userId, org } = getScope(mreq);
     const user = await this._dbManager.getUser(userId, options);
     if (!user) { throw new ApiError("unable to find user", 400); }
 
     const fullUser = this._dbManager.makeFullUser(user);
-    const domain = getOrgFromRequest(mreq);
-    const sessionUser = getSessionUser(mreq.session, domain || "", fullUser.email);
+    const sessionUser = getSessionUser(mreq.session, org || "", fullUser.email);
     const loginMethod = sessionUser?.profile ? sessionUser.profile.loginMethod : undefined;
     const allowGoogleLogin = user.options?.allowGoogleLogin ?? true;
     return { ...fullUser, loginMethod, allowGoogleLogin };

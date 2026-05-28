@@ -9,7 +9,7 @@ import { User } from "app/gen-server/entity/User";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { DocAuthResult, HomeDBAuth } from "app/gen-server/lib/homedb/Interfaces";
 import { AccessTokenCredential } from "app/server/lib/AccessTokenCredential";
-import { AuthCredential, getCredentialedDocAuthCached } from "app/server/lib/AuthCredential";
+import { AuthCredential } from "app/server/lib/AuthCredential";
 import { AuthSession } from "app/server/lib/AuthSession";
 import {
   forceSessionChange, generateAltSessionID, getSessionProfiles,
@@ -573,13 +573,15 @@ export async function addRequestUser(
   }
 
   if (mreq.userId) {
-    if (mreq.user?.options?.locale) {
-      mreq.language = mreq.user.options.locale;
+    const locale = mreq.authSession?.identifiedUser?.locale || mreq.user?.options?.locale;
+    if (locale) {
+      mreq.language = locale;
       // This is a synchronous call (as it was configured with initImmediate: false).
       mreq.i18n.changeLanguage(mreq.language).catch(() => {});
     }
   }
 
+  const identifiedUserId = mreq.authSession?.identifiedUser?.id || mreq.userId;
   const meta = {
     customHostSession,
     method: mreq.method,
@@ -587,7 +589,7 @@ export async function addRequestUser(
     path: mreq.path,
     org: mreq.org,
     email: mreq.authSession?.identifiedUser?.email || mreq.user?.loginEmail,
-    userId: mreq.authSession?.identifiedUser?.id || mreq.userId,
+    userId: identifiedUserId,
     altSessionId: mreq.altSessionId,
   };
   log.rawDebug(`Auth[${meta.method}]: ${meta.host} ${meta.path}`, meta);
@@ -595,7 +597,7 @@ export async function addRequestUser(
     options.gristServer.getTelemetry().logEvent(mreq, "apiUsage", {
       full: {
         method: mreq.method,
-        userId: mreq.userId,
+        userId: identifiedUserId,
         userAgent: mreq.headers["user-agent"],
       },
     });
@@ -678,19 +680,13 @@ export function redirectToLogin(
  * Sets mreq.docAuth if not yet set, and returns it.
  */
 export async function getOrSetDocAuth(
-  mreq: RequestWithLogin, dbManager: HomeDBManager,
-  gristServer: GristServer,
+  mreq: RequestWithLogin,
+  dbManager: HomeDBManager,
   urlId: string,
 ): Promise<DocAuthResult> {
   if (!mreq.docAuth) {
     if (mreq.authSession?.credential) {
-      // A credential may or may not give us permission to access this doc with the requester's userId.
-      const docAuth = await getCredentialedDocAuthCached(mreq.authSession.credential, dbManager, urlId, mreq.org);
-      // Sanity check: did we get permissions and a valid document? If not, fail.
-      if (!docAuth?.docId) {
-        throw new ApiError("Document access denied", 403);
-      }
-      mreq.docAuth = docAuth;
+      mreq.docAuth = await mreq.authSession.credential.docAuth(mreq, dbManager, urlId);
     } else {
       // It's OK to check specialPermit only in the "else", because resolveIdentity only sets
       // specialPermit if no other credentials are in play.

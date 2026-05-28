@@ -77,6 +77,7 @@ import {
   PreviousAndCurrent,
   QueryResult,
   Resource,
+  ResourceFilter,
   RoleGroupDescriptor,
   ServiceAccountProperties,
   UserProfileChange,
@@ -232,6 +233,7 @@ export interface Scope {
   showRemoved?: boolean;         // When set, query is scoped to removed workspaces/docs.
   showAll?: boolean;             // When set, return both removed and regular resources.
   specialPermit?: Permit;        // When set, extra rights are granted on a specific resource.
+  filter?: ResourceFilter;       // When set, resources are filtered.
 }
 
 // Flag for whether we are listing resources or opening them.  This makes a difference
@@ -864,7 +866,7 @@ export class HomeDBManager implements HomeDBAuth {
       needRealOrg: true,
     });
     orgQuery = this._addFeatures(orgQuery);
-    const orgQueryResult = await verifyEntity(orgQuery);
+    const orgQueryResult = await verifyEntity(scope, orgQuery);
     const org: Organization = this.unwrapQueryResult(orgQueryResult);
     const productFeatures = org.billingAccount.getEffectiveFeatures();
 
@@ -942,10 +944,13 @@ export class HomeDBManager implements HomeDBAuth {
    * The anonymous user is treated specially, to avoid advertising organizations
    * with anonymous access.
    */
-  public async getOrgs(users: AvailableUsers, domain: string | null,
-    options?: { ignoreEveryoneShares?: boolean }): Promise<QueryResult<Organization[]>> {
+  public async getOrgs(
+    scope: Scope,
+    options?: { ignoreEveryoneShares?: boolean },
+  ): Promise<QueryResult<Organization[]>> {
     let queryBuilder = this._orgs()
       .leftJoinAndSelect("orgs.owner", "users", "orgs.owner_id = users.id");
+    const users: AvailableUsers = scope.users ?? scope.userId;
     if (UsersManager.isSingleUser(users)) {
       // When querying with a single user in mind, we keep our api promise
       // of returning their personal org first in the list.
@@ -958,6 +963,7 @@ export class HomeDBManager implements HomeDBAuth {
       .addOrderBy("orgs.name");
     queryBuilder = this._withAccess(queryBuilder, users, "orgs");
     // Add a direct, efficient filter to remove irrelevant personal orgs from consideration.
+    const domain = scope.org ?? null;
     queryBuilder = this._filterByOrgGroups(queryBuilder, users, domain, options);
     if (this._usersManager.isAnonymousUser(users) && !listPublicSites) {
       // The anonymous user is a special case.  It may have access to potentially
@@ -973,15 +979,14 @@ export class HomeDBManager implements HomeDBAuth {
         return { status: 200, data: [] };
       }
     }
-    return this._verifyAclPermissions(queryBuilder, { emptyAllowed: true });
+    return this._verifyAclPermissions(queryBuilder, { emptyAllowed: true, scope });
   }
 
   // As for getOrgs, but all personal orgs are merged into a single entry.
-  public async getMergedOrgs(userId: number, users: AvailableUsers,
-    domain: string | null): Promise<QueryResult<Organization[]>> {
-    const result = await this.getOrgs(users, domain);
+  public async getMergedOrgs(scope: Scope): Promise<QueryResult<Organization[]>> {
+    const result = await this.getOrgs(scope);
     if (result.status === 200) {
-      return { status: 200, data: this._mergePersonalOrgs(userId, result.data!) };
+      return { status: 200, data: this._mergePersonalOrgs(scope.userId, result.data!) };
     }
     return result;
   }
@@ -1442,7 +1447,7 @@ export class HomeDBManager implements HomeDBAuth {
         markPermissions,
         needRealOrg: true,
       });
-      const queryResult = await verifyEntity(orgQuery);
+      const queryResult = await verifyEntity(scope, orgQuery);
       if (queryResult.status !== 200) {
         // If the query for the org failed, return the failure result.
         return queryResult;
@@ -1519,7 +1524,7 @@ export class HomeDBManager implements HomeDBAuth {
         .leftJoinAndSelect("docs.aclRules", "doc_acl_rules")
         .leftJoinAndSelect("doc_acl_rules.group", "doc_group")
         .leftJoinAndSelect("orgs.billingAccount", "billing_accounts");
-      const queryResult = await verifyEntity(orgQuery);
+      const queryResult = await verifyEntity(scope, orgQuery);
       if (queryResult.status !== 200) {
         // If the query for the org failed, return the failure result.
         return queryResult;
@@ -1576,7 +1581,7 @@ export class HomeDBManager implements HomeDBAuth {
         .leftJoinAndSelect("acl_rules.group", "org_group")
         .leftJoinAndSelect("orgs.workspaces", "workspaces");  // we may want to count workspaces.
       orgQuery = this._addFeatures(orgQuery);  // add features to access optional workspace limit.
-      const queryResult = await verifyEntity(orgQuery);
+      const queryResult = await verifyEntity(scope, orgQuery);
       if (queryResult.status !== 200) {
         // If the query for the organization failed, return the failure result.
         return queryResult;
@@ -1622,7 +1627,7 @@ export class HomeDBManager implements HomeDBAuth {
         markPermissions: Permissions.SCHEMA_EDIT,
       })
         .leftJoinAndSelect("workspaces.org", "orgs");
-      const queryResult = await verifyEntity(wsQuery);
+      const queryResult = await verifyEntity(scope, wsQuery);
       if (queryResult.status !== 200) {
         // If the query for the workspace failed, return the failure result.
         return queryResult;
@@ -1657,7 +1662,7 @@ export class HomeDBManager implements HomeDBAuth {
         .leftJoinAndSelect("docs.aclRules", "doc_acl_rules")
         .leftJoinAndSelect("doc_acl_rules.group", "doc_groups")
         .leftJoinAndSelect("workspaces.org", "orgs");
-      const queryResult = await verifyEntity(wsQuery);
+      const queryResult = await verifyEntity(scope, wsQuery);
       if (queryResult.status !== 200) {
         // If the query for the workspace failed, return the failure result.
         return queryResult;
@@ -1715,7 +1720,7 @@ export class HomeDBManager implements HomeDBAuth {
         .leftJoinAndSelect("workspaces.aclRules", "acl_rules")
         .leftJoinAndSelect("acl_rules.group", "workspace_group");
       wsQuery = this._addFeatures(wsQuery);
-      const queryResult = await verifyEntity(wsQuery);
+      const queryResult = await verifyEntity(scope, wsQuery);
       if (queryResult.status !== 200) {
         // If the query for the organization failed, return the failure result.
         return queryResult;
@@ -1920,7 +1925,7 @@ export class HomeDBManager implements HomeDBAuth {
           allowSpecialPermit: options?.allowSpecialPermit,
         });
       }
-      const queryResult = await verifyEntity(query);
+      const queryResult = await verifyEntity(scope, query);
       if (queryResult.status !== 200) {
         // If the query for the doc or fork failed, return the failure result.
         return queryResult;
@@ -1984,7 +1989,7 @@ export class HomeDBManager implements HomeDBAuth {
           manager,
           allowSpecialPermit: true,
         });
-        const queryResult = await verifyEntity(forkQuery);
+        const queryResult = await verifyEntity(scope, forkQuery);
         if (queryResult.status !== 200) {
           // If the query for the fork failed, return the failure result.
           return queryResult;
@@ -2003,7 +2008,7 @@ export class HomeDBManager implements HomeDBAuth {
         // Join the workspace and org to get their ids.
           .leftJoinAndSelect("docs.aclRules", "acl_rules")
           .leftJoinAndSelect("acl_rules.group", "groups");
-        const queryResult = await verifyEntity(docQuery);
+        const queryResult = await verifyEntity(scope, docQuery);
         if (queryResult.status !== 200) {
           // If the query for the doc failed, return the failure result.
           return queryResult;
@@ -2154,7 +2159,7 @@ export class HomeDBManager implements HomeDBAuth {
         .leftJoinAndSelect("org_groups.memberUsers", "org_member_users");
       orgQuery = this._addFeatures(orgQuery);
       orgQuery = this._withAccess(orgQuery, userId, "orgs");
-      const queryResult = await verifyEntity(orgQuery);
+      const queryResult = await verifyEntity(scope, orgQuery);
       if (queryResult.status !== 200) {
         // If the query for the organization failed, return the failure result.
         return queryResult;
@@ -2228,7 +2233,7 @@ export class HomeDBManager implements HomeDBAuth {
       };
       let wsQuery = this._buildWorkspaceWithACLRules(scope, wsId, options);
       wsQuery = this._withAccess(wsQuery, userId, "workspaces");
-      const wsQueryResult = await verifyEntity(wsQuery);
+      const wsQueryResult = await verifyEntity(scope, wsQuery);
 
       if (wsQueryResult.status !== 200) {
         // If the query for the workspace failed, return the failure result.
@@ -2424,7 +2429,7 @@ export class HomeDBManager implements HomeDBAuth {
       }
 
       const orgQuery = this._buildOrgWithACLRulesQuery(scope, wsQueryResult.data.org.id, { manager });
-      const orgQueryResult = await verifyEntity(orgQuery, { skipPermissionCheck: true });
+      const orgQueryResult = await verifyEntity(scope, orgQuery, { skipPermissionCheck: true });
       if (orgQueryResult.status !== 200) {
         // If the query for the org failed, return the failure result.
         return { queryFailure: orgQueryResult };
@@ -2734,7 +2739,7 @@ export class HomeDBManager implements HomeDBAuth {
         manager,
       })
         .addSelect(this._markIsPermitted("orgs", scope.userId, "open", permissions), "is_permitted");
-      const docQueryResult = await verifyEntity(docQuery);
+      const docQueryResult = await verifyEntity(scope, docQuery);
       if (docQueryResult.status !== 200) {
         // If the query for the doc failed, return the failure result.
         return docQueryResult;
@@ -3140,7 +3145,8 @@ export class HomeDBManager implements HomeDBAuth {
       const query = this._installConfig(key, {
         manager,
       });
-      return verifyEntity(query, { skipPermissionCheck: true });
+      // Install-level config has no per-user/per-resource scope.
+      return verifyEntity(null, query, { skipPermissionCheck: true });
     });
   }
 
@@ -3236,7 +3242,7 @@ export class HomeDBManager implements HomeDBAuth {
       const query = this._orgConfig(scope, org, key, {
         manager,
       });
-      return verifyEntity(query);
+      return verifyEntity(scope, query);
     });
   }
 
@@ -3265,7 +3271,7 @@ export class HomeDBManager implements HomeDBAuth {
         needRealOrg: true,
         manager,
       });
-      const orgQueryResult = await verifyEntity(orgQuery);
+      const orgQueryResult = await verifyEntity(scope, orgQuery);
       const org: Organization = this.unwrapQueryResult(orgQueryResult);
       const configQueryResult = await this.getOrgConfig(scope, orgKey, key, {
         manager,
@@ -3317,7 +3323,7 @@ export class HomeDBManager implements HomeDBAuth {
       const query = this._orgConfig(scope, org, key, {
         manager,
       });
-      const queryResult = await verifyEntity(query);
+      const queryResult = await verifyEntity(scope, query);
       const config: Config = this.unwrapQueryResult(queryResult);
       const deletedConfig = structuredClone(config);
       await manager.remove(config);
@@ -4691,6 +4697,9 @@ export class HomeDBManager implements HomeDBAuth {
         };
       }
     }
+    if (options.scope?.filter) {
+      results.entities = options.scope.filter(results.entities);
+    }
     if (results.entities.length === 0 ||
       (results.entities.length === 1 && results.entities[0].filteredOut)) {
       if (options.emptyAllowed) { return { status: 200, data: [] }; }
@@ -5214,7 +5223,7 @@ export class HomeDBManager implements HomeDBAuth {
     transaction?: EntityManager): Promise<Document> {
     return await this.runInTransaction(transaction, async (manager) => {
       const docQuery = this._doc(scope, { manager, markPermissions });
-      const queryResult = await verifyEntity(docQuery);
+      const queryResult = await verifyEntity(scope, docQuery);
       this.checkQueryResult(queryResult);
       const doc = getDocResult(queryResult);
 
@@ -5253,7 +5262,7 @@ export class HomeDBManager implements HomeDBAuth {
       // SQL results are flattened, and multiplying the number of rows we have already
       // by the number of org users could get excessive.
         .leftJoinAndSelect("workspaces.org", "org");
-      const wsQueryResult = await verifyEntity(workspaceQuery, { skipPermissionCheck: !markPermissions });
+      const wsQueryResult = await verifyEntity(scope, workspaceQuery, { skipPermissionCheck: !markPermissions });
       if (wsQueryResult.status !== 200) {
         throw new ApiError(wsQueryResult.errMessage!, wsQueryResult.status);
       }
@@ -5326,7 +5335,7 @@ export class HomeDBManager implements HomeDBAuth {
         markPermissions: Permissions.REMOVE | Permissions.SCHEMA_EDIT,
       })
         .leftJoinAndSelect("workspaces.org", "orgs");
-      const workspace: Workspace = this.unwrapQueryResult(await verifyEntity(wsQuery));
+      const workspace: Workspace = this.unwrapQueryResult(await verifyEntity(scope, wsQuery));
       workspace.removedAt = removedAt;
       await manager.createQueryBuilder()
         .update(Workspace).set({ removedAt }).where({ id: workspace.id })
@@ -5358,7 +5367,7 @@ export class HomeDBManager implements HomeDBAuth {
       if (!value) {
         docQuery = this._addFeatures(docQuery);  // pull in billing information for doc count limits
       }
-      const doc: Document = this.unwrapQueryResult(await verifyEntity(docQuery));
+      const doc: Document = this.unwrapQueryResult(await verifyEntity(scope, docQuery));
       if (!value) {
         await this._checkRoomForAnotherDoc(doc.workspace, manager);
       }
@@ -5418,7 +5427,7 @@ export class HomeDBManager implements HomeDBAuth {
       markPermissions: Permissions.VIEW,
       ...options,
     });
-    return verifyEntity(query);
+    return verifyEntity(scope, query);
   }
 
   private _buildOrgWithACLRulesQuery(scope: Scope, org: number | string, opts: Partial<QueryOptions> = {}) {
@@ -5438,7 +5447,7 @@ export class HomeDBManager implements HomeDBAuth {
       markPermissions: Permissions.VIEW,
       allowSpecialPermit: true,
     });
-    return verifyEntity(orgQuery);
+    return verifyEntity(scope, orgQuery);
   }
 }
 
@@ -5455,6 +5464,7 @@ export class HomeDBManager implements HomeDBAuth {
 //
 // Returns the resource fetched by the queryBuilder.
 async function verifyEntity(
+  scope: Scope | null,
   queryBuilder: SelectQueryBuilder<any>,
   options: { skipPermissionCheck?: boolean } = {},
 ): Promise<QueryResult<any>> {
@@ -5470,7 +5480,14 @@ async function verifyEntity(
       status: 400,
       errMessage: `ambiguous ${getFrom(queryBuilder)} request`,
     };
-  } else if (!options.skipPermissionCheck && !results.raw[0].is_permitted) {
+  }
+  if (scope?.filter?.([results.entities[0]]).length === 0) {
+    return {
+      status: 404,
+      errMessage: `${getFrom(queryBuilder)} not found`,
+    };
+  }
+  if (!options.skipPermissionCheck && !results.raw[0].is_permitted) {
     return {
       status: 403,
       errMessage: "access denied",

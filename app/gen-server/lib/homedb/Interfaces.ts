@@ -45,6 +45,8 @@ export type NonGuestGroup = Group & { name: roles.NonGuestRole };
 
 export type Resource = Organization | Workspace | Document;
 
+export type ResourceFilter = <T extends Resource>(entities: T[]) => T[];
+
 export type RunInTransaction = <T>(
   transaction: EntityManager | undefined,
   op: ((manager: EntityManager) => Promise<T>),

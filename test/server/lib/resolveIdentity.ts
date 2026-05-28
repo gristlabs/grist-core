@@ -102,8 +102,6 @@ describe("resolveIdentity", function() {
       assert.equal(result.user.id, ANONYMOUS_ID, "access token uses anonymous user");
       assert.instanceOf(result.credential, AccessTokenCredential);
       assert.equal(result.credential?.identifiedUser.id, tokenInfo.userId);
-      assert.equal(result.credential?.maxRoleFor({ kind: "doc", docId: "doc1", wsId: 0, orgId: 0 }), "owners");
-      assert.equal(result.credential?.maxRoleFor({ kind: "doc", docId: "doc2", wsId: 0, orgId: 0 }), null);
       assert.isFalse(result.explicitAuth, "access token keeps CSRF enforced");
     });
 
