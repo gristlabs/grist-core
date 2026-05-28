@@ -100,7 +100,7 @@ export class KubeSandboxControl implements ISandboxControl {
     childProcess.spawn(kubectlPath, [
       ...(process.env.KUBE_EXTRA_ARGS ? process.env.KUBE_EXTRA_ARGS.split(" ") : []),
       "delete", "pod", this._podName, "--now",
-    ]);
+    ], { stdio: ["ignore", "inherit", "inherit"] });
   }
 
   public prepareToClose() {
