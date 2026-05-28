@@ -23,6 +23,7 @@ import * as sandboxUtil from "app/server/lib/sandboxUtil";
 import * as shutdown from "app/server/lib/shutdown";
 
 import { ChildProcess, fork, spawn, SpawnOptionsWithoutStdio } from "child_process";
+import { createHash, randomBytes } from "crypto";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
@@ -1102,10 +1103,12 @@ function kube(options: ISandboxOptions): SandboxProcess {
     wrapperArgs.push(...process.env.KUBE_EXTRA_RUN_ARGS.split(" "));
   }
 
-  let podname: string = os.hostname() + "-";
-  for (let i = 0; i < 8; i++) {
-    podname += "abcdefghijklmnopqrstuvwxyz".charAt(Math.floor(Math.random() * 26));
+  let podname: string = os.hostname().toLowerCase().replace(/[^0-9a-z-]/g, "-");
+  if (podname.length > 39) {
+    podname = podname.substring(0, 20) + createHash("sha256").update(podname).digest("hex").substring(0, 19);
   }
+  podname = "grist-engine-" + podname + "-" + randomBytes(5).toString("hex");
+
   const kubectlPath = which.sync("kubectl");
   const child = spawn(kubectlPath, [
     ...(process.env.KUBE_EXTRA_ARGS ? process.env.KUBE_EXTRA_ARGS.split(" ") : []),
