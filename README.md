@@ -263,7 +263,7 @@ New installs generate a boot key automatically and print it to the
 container log on startup. Watch for a line like:
 
 ```
-Boot key: <random-string>
+BOOT KEY: <random-string>
 ```
 
 If you'd rather pick your own boot key, set `GRIST_BOOT_KEY`:
