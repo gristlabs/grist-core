@@ -1,4 +1,3 @@
-import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
 import { makeT } from "app/client/lib/localization";
 import { urlState } from "app/client/models/gristUrlState";
 import { AppHeader } from "app/client/ui/AppHeader";
@@ -17,16 +16,11 @@ import type { IconName } from "app/client/ui2018/IconList";
 // eslint-disable-next-line local/makeT-filename
 const t = makeT("AccountPage");
 
-const G = getBrowserGlobals("window");
-
 // Whether OAuth Apps feature is available (EE/SaaS only, not core). Returns "hidden" to
 // hide its UI entirely, for editions where it's inapplicable or when explicitly turned off.
 export function areOAuthAppsAvailable(): boolean | "hidden" {
   const { deploymentType } = getGristConfig();
-  if ((deploymentType === "electron" || deploymentType === "static") ||
-    !G.window.gristExperiments?.isEnabled("oauthApps") ||
-    !isFeatureEnabled("oauthApps")
-  ) {
+  if ((deploymentType === "electron" || deploymentType === "static") || !isFeatureEnabled("oauthApps")) {
     return "hidden";
   }
   // Otherwise this is available in full Grist and shows a stub in core (or simulated core).
