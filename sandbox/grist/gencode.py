@@ -27,7 +27,7 @@ from column import is_visible_column
 import summary
 import table
 import textbuilder
-from usertypes import get_type_default
+from usertypes import _truthy_values, get_type_default
 import os
 import fnmatch, re
 log = logging.getLogger(__name__)
@@ -173,7 +173,7 @@ class GenCode:
       if source_table_id:
         summary_tables.setdefault(source_table_id, []).append(table_info)
 
-    use_restricted_python = bool(os.environ.get("GRIST_RESTRICTED_USER", default=False))
+    use_restricted_python = os.environ.get("GRIST_RESTRICTED_USER", default="False").lower() in _truthy_values
 
     fullparts = ["import grist\n" +
                  "from functions import *       # global uppercase functions\n" +
@@ -228,7 +228,10 @@ class NodeTransformer(RestrictingNodeTransformer):
       "__dict__",
       "_default_*",
       "_grist_*"
-    ] + os.environ.get("GRIST_RESTRICTED_USER_ALLOWED_NAMES", default="").split(",")
+    ]
+    additionnal_globs = os.environ.get("GRIST_RESTRICTED_USER_ALLOWED_NAMES", default="")
+    if additionnal_globs != "":
+      ALLOWED_GLOB += additionnal_globs.split(",")
     self.ALLOWED_GLOB = [re.compile(fnmatch.translate(g)) for g in ALLOWED_GLOB]
 
     ALLOWED_IMPORTS = [
@@ -237,9 +240,12 @@ class NodeTransformer(RestrictingNodeTransformer):
       "datetime",
       "math",
       "functions.[*]"
-    ] + os.environ.get("GRIST_RESTRICTED_USER_ALLOWED_IMPORTS", default="").split(",")
+    ]
+    additionnal_globs = os.environ.get("GRIST_RESTRICTED_USER_ALLOWED_IMPORTS", default="")
+    if additionnal_globs != "":
+      ALLOWED_IMPORTS += additionnal_globs.split(",")
     self.ALLOWED_IMPORTS = [re.compile(fnmatch.translate(g)) for g in ALLOWED_IMPORTS]
-    super().__init__(args)
+    super().__init__(*args)
 
   def check_name(self, node, name, allow_magic_methods=False):
     if name is None:
@@ -376,9 +382,9 @@ def exec_module_text_restricted(module_text):
 def _apply(f, *a, **kw):
     return f(*a, **kw)
 
-# Source - https://stackoverflow.com/a/79607366␍
-# Posted by Bill Rayner␍
-# Retrieved 2026-05-13, License - CC BY-SA 4.0␍
+# Source - https://stackoverflow.com/a/79607366
+# Posted by Bill Rayner
+# Retrieved 2026-05-13, License - CC BY-SA 4.0
 def _inplacevar_(op, var, expr):
     if op == "+=":
         return var + expr
@@ -405,6 +411,6 @@ def _inplacevar_(op, var, expr):
     elif op == "//=":
         return var // expr
     elif op == "@=":
-        return var // expr
+        return var @ expr
     else:
         raise NameError(op)
