@@ -189,7 +189,7 @@ export function attachAppEndpoint(options: AttachOptions): void {
       googleTagManager: "anon", config: {
         assignmentId: docId,
         getWorker: { [docId]: workerPublicUrl },
-        getDoc: { [docId]: pruneAPIResult(doc as unknown as APIDocument) },
+        getDoc: { [docId]: pruneAPIResult(doc as unknown as APIDocument)! },
         plugins,
       } });
   });

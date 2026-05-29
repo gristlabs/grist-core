@@ -40,7 +40,7 @@ const config: StorybookConfig = {
       loader: "esbuild-loader",
       options: {
         loader: "ts",
-        target: "es2017",
+        target: "es2020",
       },
       exclude: /node_modules/,
     });

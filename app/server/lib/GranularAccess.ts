@@ -2182,7 +2182,7 @@ export class GranularAccess implements GranularAccessForBundle {
     }
     const na = cloneDeep(a);
     const [, , oldIds, bulkColValues] = na;
-    const mask = oldIds.map((id, idx) => rowIds.has(id) ? idx : false).filter(v => v !== false) as number[];
+    const mask = oldIds.map((id, idx) => rowIds.has(id) ? idx : false).filter(v => v !== false);
     this._removeRowsAt(mask, oldIds, bulkColValues);
     if (oldIds.length === 0) { return null; }
     return na;
@@ -2755,7 +2755,7 @@ export class GranularAccess implements GranularAccessForBundle {
 
     // Now remove all action that modify cell metadata from after.
     // We will use the patch to reconstruct the cell metadata.
-    const result = after.filter(action => !isCellDataAction(action));
+    const result: DocAction[] = after.filter(action => !isCellDataAction(action));
 
     // Prepare checker, we need to use checker from the last step.
     const cursor = {

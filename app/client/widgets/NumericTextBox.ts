@@ -62,8 +62,9 @@ export class NumericTextBox extends NTextBox {
     const disabled = Computed.create(holder, use => use(this.field.config.options.disabled("currency")));
     const minDecimals = Computed.create(holder, options, (use, opts) => numberOrDefault(opts.decimals, ""));
     const maxDecimals = Computed.create(holder, options, (use, opts) => numberOrDefault(opts.maxDecimals, ""));
-    const defaultMin = Computed.create(holder, resolved, (use, res) => res.minimumFractionDigits);
-    const defaultMax = Computed.create(holder, resolved, (use, res) => res.maximumFractionDigits);
+    // resolvedOptions() always populates these for standard NumberFormat styles.
+    const defaultMin = Computed.create(holder, resolved, (use, res) => res.minimumFractionDigits!);
+    const defaultMax = Computed.create(holder, resolved, (use, res) => res.maximumFractionDigits!);
     const docCurrency = Computed.create(holder, docSettings, (use, settings) =>
       settings.currency ?? LocaleCurrency.getCurrency(settings.locale ?? "en-US"),
     );

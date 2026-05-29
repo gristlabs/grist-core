@@ -192,7 +192,7 @@ export class MockUserAPI implements UserAPI, DocWorkerAPI {
       access: this._docs[docId].access,
       isPinned: this._docs[docId].isPinned,
       options: this._docs[docId].options,
-      updatedAt: this._docs[docId].age && new Date(Date.now() - this._docs[docId].age! * 1000).toUTCString(),
+      updatedAt: this._docs[docId].age && new Date(Date.now() - this._docs[docId].age * 1000).toUTCString(),
     } as Partial<Document> as any));
     return workspace;
   }

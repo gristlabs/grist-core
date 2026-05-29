@@ -162,5 +162,5 @@ const cssTextBox = styled("input", `
   }
 `);
 
-const form = cssForm.bind(null, { tabIndex: "-1" });
-const textBox = cssTextBox.bind(null, { type: "text" });
+const form = cssForm.bind(null, { tabIndex: "-1" }) as typeof cssForm;
+const textBox = cssTextBox.bind(null, { type: "text" }) as typeof cssTextBox;

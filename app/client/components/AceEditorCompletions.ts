@@ -333,7 +333,7 @@ function maybeAceCompleterLinkClick(domEvent: Event) {
   if (tgt?.matches(".ace_grist_link")) {
     const dest = tgt.parentElement?.querySelector(".ace_grist_link_hidden");
     if (dest) {
-      window.open(dest.textContent!, "_blank");
+      window.open(dest.textContent, "_blank");
       return true;
     }
   }

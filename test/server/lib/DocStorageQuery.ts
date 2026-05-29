@@ -20,11 +20,11 @@ describe("DocStorageQuery", function() {
     await docStorage.createFile();
     const db = (docStorage as any)._getDB();
     sandbox.stub(db, "run").callsFake(
-      (sql: string, ...args: unknown[]) => { dbCalls.push(["run", sql, args]); });
+      (sql, ...args) => { dbCalls.push(["run", sql, args]); });
     sandbox.stub(db, "exec").callsFake(
-      (sql: string) => { dbCalls.push(["exec", sql]); });
+      (sql) => { dbCalls.push(["exec", sql]); });
     sandbox.stub(db, "allMarshal").callsFake(
-      (sql: string, ...params: unknown[]) => { dbCalls.push(["allMarshal", collapseWhitespace(sql), params]); });
+      (sql, ...params) => { dbCalls.push(["allMarshal", collapseWhitespace(sql as string), params]); });
     return docStorage;
   }
 

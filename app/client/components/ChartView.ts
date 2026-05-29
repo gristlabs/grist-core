@@ -1072,7 +1072,7 @@ function basicPlot(series: Series[], options: ChartOptions, dataOptions: Data): 
   // x-axis, and negative ones below, as for barmode=relative (which only applies to bar charts).
   function makeRelativeStackGroup(stackgroup: string | undefined, values: Datum[]) {
     if (!stackgroup) { return stackgroup; }
-    const firstNonZero = values.find(v => v && (v > 0 || v < 0));
+    const firstNonZero = values.find((v): v is number => typeof v === "number" && v !== 0);
     const isNegative = firstNonZero && firstNonZero < 0;
     return isNegative ? "-" + stackgroup : stackgroup;
   }
@@ -1101,7 +1101,7 @@ export const chartTypes: { [name: string]: ChartFunc } = {
     const useCategory = series[0]?.pureType && isCategoryType(series[0].pureType);
     const xaxisName = options.orientation === "h" ? "yaxis" : "xaxis";
     if (useCategory && data.layout?.[xaxisName]) {
-      const axisConfig = data.layout[xaxisName]!;
+      const axisConfig = data.layout[xaxisName];
       axisConfig.type = "category";
     }
     return data;

@@ -1386,7 +1386,8 @@ describe("ActiveDoc", async function() {
           (await getAttachmentTableData())[3].fileSize;
 
         const originalFileSizes = await getFileSizes();
-        assert(originalFileSizes.every(size => size && size > 0), "uploaded files should have non-zero sizes");
+        assert(originalFileSizes.every(size => typeof size === "number" && size > 0),
+          "uploaded files should have non-zero sizes");
 
         // Sets all file sizes in _grist_Attachments to zero.
         await activeDoc.applyUserActions(

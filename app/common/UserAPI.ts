@@ -1434,7 +1434,10 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
 
   public async uploadAttachment(value: string | Blob, filename?: string): Promise<number> {
     const formData = this.newFormData();
-    formData.append("upload", value, filename);
+    // FormData.append accepts a string OR Blob value at runtime, but only accepts the filename
+    // for Blob. The lib's overloads don't cover the union, so we cast through Blob to avoid
+    // duplicating this line.
+    formData.append("upload", value as Blob, filename);
     const response = await this.requestAxios(`${this._url}/attachments`, {
       method: "POST",
       data: formData,
@@ -1448,7 +1451,7 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
 
   public async uploadAttachmentArchive(archive: string | Blob, filename?: string): Promise<ArchiveUploadResult> {
     const formData = this.newFormData();
-    formData.append("upload", archive, filename);
+    formData.append("upload", archive as Blob, filename);
     const response = await this.requestAxios(`${this._url}/attachments/archive`, {
       method: "POST",
       data: formData,

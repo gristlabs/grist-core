@@ -93,7 +93,7 @@ describe("Webhooks-Proxy", function() {
   function runServerConfigurations(additionaEnvConfiguration: NodeJS.ProcessEnv, subTestCall: Function) {
     additionaEnvConfiguration = {
       ALLOWED_WEBHOOK_DOMAINS: `example.com,localhost:${webhooksTestPort}`,
-      GRIST_DATA_DIR: dataDir,
+      GRIST_DATA_DIR: dataDir!,
       ...additionaEnvConfiguration,
     };
 

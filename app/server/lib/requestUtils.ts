@@ -282,7 +282,7 @@ export async function sendOkReply<T>(
   return sendReply(req, res, { status: 200, data: result }, options);
 }
 
-export function pruneAPIResult<T>(data: T, allowedFields?: Set<string>): T {
+export function pruneAPIResult<T>(data: T, allowedFields?: Set<string>): T | undefined {
   // TODO: This can be optimized by pruning data recursively without serializing in between. But
   // it's fairly fast even with serializing (on the order of 15usec/kb).
   const output = JSON.stringify(data,

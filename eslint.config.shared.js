@@ -56,7 +56,7 @@ function makeConfig({ projectRoot, lintExt }) {
         },
 
         parser: babelParser,
-        ecmaVersion: 2018,
+        ecmaVersion: 2020,
 
         parserOptions: {
           requireConfigFile: false,
@@ -93,7 +93,7 @@ function makeConfig({ projectRoot, lintExt }) {
       languageOptions: {
         parser: tsParser,
         sourceType: "module",
-        ecmaVersion: 2018,
+        ecmaVersion: 2020,
 
         parserOptions: {
           tsconfigRootDir: projectRoot,

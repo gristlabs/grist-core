@@ -51,12 +51,6 @@ export function removeTrailingSlash(str: string): string {
   return result === null ? str : result;
 }
 
-// Expose <string>.padStart.  The version of node we use has it, but they typings
-// need the es2017 typescript target.  TODO: replace once typings in place.
-export function padStart(str: string, targetLength: number, padString: string) {
-  return (str as any).padStart(targetLength, padString);
-}
-
 // Capitalizes every word in a string.
 export function capitalize(str: string): string {
   return str.replace(/\b[a-z]/gi, c => c.toUpperCase());

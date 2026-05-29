@@ -320,7 +320,7 @@ export default class NumberParse {
 
     // We should only set maxDecimals if the default maxDecimals is too low.
     const tmpNF = buildNumberFormat(result, { locale: this.locale, currency: this.currency }).resolvedOptions();
-    if (maxDecimals > tmpNF.maximumFractionDigits) {
+    if (maxDecimals > (tmpNF.maximumFractionDigits ?? 0)) {
       result.maxDecimals = maxDecimals;
     }
 

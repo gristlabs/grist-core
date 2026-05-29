@@ -158,7 +158,7 @@ export class MinIOExternalStorage implements ExternalStorage {
   public async removeAllWithPrefix(prefix: string) {
     const objects = await this._listObjects(this.bucket, prefix, true, { IncludeVersion: true });
     const objectsToDelete = objects.filter(o => o.name !== undefined).map(o => ({
-      name: o.name!,
+      name: o.name,
       versionId: (o as any).versionId as (string | undefined),
     }));
     await this._deleteObjects(objectsToDelete);

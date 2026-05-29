@@ -26,8 +26,8 @@ export function makeFilterFunc(state: FilterState,
       return (val) => {
         if (typeof val !== "number") { return false; }
         return (
-          (max === undefined ? true : val <= max) &&
-          (min === undefined ? true : min <= val)
+          (typeof max !== "number" ? true : val <= max) &&
+          (typeof min !== "number" ? true : min <= val)
         );
       };
     } else {

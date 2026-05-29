@@ -276,7 +276,7 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
     if (this._singleWorkerMode) { docId = null; }
     if (docId === null) {
       if (this._connections.size > 0) {
-        return this._connections.values().next().value;
+        return this._connections.values().next().value!;
       }
       throw new Error("no connection available");
     }
