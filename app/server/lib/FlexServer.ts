@@ -1568,7 +1568,12 @@ export class FlexServer implements GristServer {
         this._disableExternalStorage = true;
         externalStorage.flag("active").set(false);
       }
-      await this.create.checkBackend?.();
+      // If external storage is disabled, it disables the backends for both
+      // HostedStorageManager and the "snapshots" attachment store, so a probe
+      // here could only cause a spurious startup failure.
+      if (!this._disableExternalStorage) {
+        await this.create.checkBackend?.();
+      }
       const workers = this._docWorkerMap;
       const docWorkerId = await this._addSelfAsWorker(workers);
 

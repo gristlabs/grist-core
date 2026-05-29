@@ -52,16 +52,22 @@ export class OAuthGrant extends BaseEntity {
 
   /**
    * The ID of the client associated with the grant.
+   *
+   * `null` for CIMD (Client ID Metadata Document) clients, which have no
+   * Grist-side record. Their identity is the URL of the metadata document
+   * itself, controlled by the client. Pre-registered clients always have a
+   * non-null id pointing at an `oauth_clients` row.
    */
-  @Column({ name: "oauth_client_id", type: String })
-  public clientId: string;
+  @Column({ name: "oauth_client_id", type: String, nullable: true })
+  public clientId: string | null;
 
   /**
-   * The client associated with the grant.
+   * The client associated with the grant. `null` for CIMD clients - see
+   * {@link clientId}.
    */
-  @ManyToOne(() => OAuthClient, { onDelete: "CASCADE" })
+  @ManyToOne(() => OAuthClient, { onDelete: "CASCADE", nullable: true })
   @JoinColumn({ name: "oauth_client_id" })
-  public client: OAuthClient;
+  public client: OAuthClient | null;
 
   /**
    * The ID of the user the grant was issued to.

@@ -110,7 +110,7 @@ describe("ProxyAgent", function() {
         app.all("/200", (_, res) => { res.sendStatus(200); res.end(); });
         app.all("/404", (_, res) => { res.sendStatus(404); res.end(); });
       });
-      const proxyUrl = `http://localhost:${testProxyServer.portNumber}`;
+      const proxyUrl = `http://localhost:${testProxyServer.port}`;
       process.env.GRIST_PROXY_FOR_UNTRUSTED_URLS = proxyUrl;
       sandbox.stub(agents, "untrusted").value(test_generateProxyAgents().untrusted);
     });

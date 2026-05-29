@@ -359,25 +359,32 @@ describe("ChartView1", function() {
   it("should support Y-axis options", async function() {
     const chartDom = await driver.find(".test-chart-container");
     await selectChartType("Bar chart");
-    checkAxisRange(await getChartData(chartDom), 0.5, 61.5, 0, 57);
+    await gu.waitToPass(async () => {
+      checkAxisRange(await getChartData(chartDom), 0.5, 61.5, 0, 57);
+    });
 
     await driver.findContent("label", /Invert Y-axis/).find("input").click();
     await gu.waitForServer();
-    checkAxisRange(await getChartData(chartDom), 0.5, 61.5, 57, 0);
+    await gu.waitToPass(async () => {
+      checkAxisRange(await getChartData(chartDom), 0.5, 61.5, 57, 0);
+    });
 
     await driver.findContent("label", /Invert Y-axis/).find("input").click();
+    await gu.waitForServer();
     await driver.findContent("label", /Log scale Y-axis/).find("input").click();
     await gu.waitForServer();
-    checkAxisRange(await getChartData(chartDom), 0.5, 61.5, 0.22, 1.82);
+    await gu.waitToPass(async () => {
+      checkAxisRange(await getChartData(chartDom), 0.5, 61.5, 0.22, 1.82);
+    });
 
     await gu.undo(4);
-    // check axis
-    await checkAxisConfig({
-      xaxis: "label",
-      yaxis: ["largeValue", "value"],
+    await gu.waitToPass(async () => {
+      await checkAxisConfig({
+        xaxis: "label",
+        yaxis: ["largeValue", "value"],
+      });
+      assert.equal(await driver.find(".test-chart-type").getText(), "Area chart");
     });
-    // check chart type
-    assert.equal(await driver.find(".test-chart-type").getText(), "Area chart");
   });
 
   it("should be able to render multiseries line charts", async function() {
@@ -430,13 +437,14 @@ describe("ChartView1", function() {
     assert.equal(getAxisTitle(layout.yaxis), undefined);
 
     await gu.undo(5);
-    await checkAxisConfig({
-      groupingByColumn: false,
-      xaxis: "label",
-      yaxis: ["largeValue", "value"],
+    await gu.waitToPass(async () => {
+      await checkAxisConfig({
+        groupingByColumn: false,
+        xaxis: "label",
+        yaxis: ["largeValue", "value"],
+      });
+      assert.equal(await driver.find(".test-chart-type").getText(), "Area chart");
     });
-    // check chart type
-    assert.equal(await driver.find(".test-chart-type").getText(), "Area chart");
   });
 
   it("should get options for SPLIT SERIES and X AXIS in sync when table changes", async function() {

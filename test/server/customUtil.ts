@@ -3,7 +3,9 @@ import { getAppRoot } from "app/server/lib/places";
 import { fromCallback, listenPromise } from "app/server/lib/serverUtils";
 import { fixturesRoot } from "test/server/testUtils";
 
+import * as fs from "fs";
 import * as http from "http";
+import * as https from "https";
 import { AddressInfo, Socket } from "net";
 import * as path from "path";
 
@@ -70,6 +72,25 @@ export async function serveSomething(setup: (app: express.Express) => void, port
   setup(app);
   const url = `http://localhost:${port}`;
   return { url, shutdown, server };
+}
+
+export async function serveSomethingSecure(setup: (app: express.Express) => void, port = 0): Promise<Serving> {
+  const app = express();
+  const server = https.createServer({
+    key: fs.readFileSync(path.resolve(fixturesRoot, "saml/saml.key")),
+    cert: fs.readFileSync(path.resolve(fixturesRoot, "saml/saml.crt")),
+  }, app);
+  await listenPromise(server.listen(port));
+
+  async function shutdown() {
+    await fromCallback(cb => server.close(cb));
+  }
+
+  port = (server.address() as AddressInfo).port;
+  app.set("port", port);
+  setup(app);
+  const url = `https://localhost:${port}`;
+  return { url, shutdown, server: server as any };
 }
 
 /**
