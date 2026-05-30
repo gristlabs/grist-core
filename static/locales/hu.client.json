@@ -93,7 +93,15 @@
         "Theme": "Téma",
         "Two-factor authentication": "Kétfaktoros bejelentkezés",
         "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "A kétfaktoros bejelentkezés egy plusz biztonsági réteg a Grist fiókodban, ami biztosítja, hogy valóban te legyél az egyetlen ember, aki hozzáfér a fiókodhoz, még abban az esetben is, ha valaki más megszerzi a jelszavadat.",
-        "Language": "Nyelv"
+        "Language": "Nyelv",
+        "Basic info": "Alapvető információk",
+        "Developer": "Fejlesztő",
+        "Home": "Kezdőlap",
+        "Profile": "Profil",
+        "Enterprise": "Vállalati",
+        "OAuth apps": "OAuth-alkalmazások",
+        "OAuth apps let you connect external integrations to this Grist server with more security and convenience than when using API keys.\n\nOAuth apps are available with the [full version of Grist]({{fullGrist}}).": "Az OAuth-alkalmazások lehetővé teszik, hogy külső rendszereket (integrációkat) csatlakoztasson ehhez a Grist-kiszolgálóhoz nagyobb biztonsággal és kényelemmel, mint API-kulcsok használata esetén.\n\nAz OAuth-alkalmazások a [Grist teljes verziójával] ( {{fullGrist}} ) érhetők el.",
+        "Accessibility": "Kisegítő lehetőségek"
     },
     "AccountWidget": {
         "Pricing": "Árak",
@@ -113,7 +121,8 @@
         "Billing account": "Számlázási fiók",
         "Support Grist": "A Grist támogatása",
         "Upgrade Plan": "Előfizetés",
-        "Site settings": "Oldal beállítások"
+        "Site settings": "Oldal beállítások",
+        "Account settings": "Fiókbeállítások"
     },
     "ViewAsDropdown": {
         "View as": "Megjelenítés mint",
@@ -146,7 +155,9 @@
     "App": {
         "Description": "Leírás",
         "Key": "Kulcs",
-        "Memory Error": "Memória hiba"
+        "Memory Error": "Memória hiba",
+        "Disabled screen reader improvements": "Letiltott képernyőolvasó fejlesztések",
+        "Enabled screen reader improvements": "Engedélyezett képernyőolvasó fejlesztések"
     },
     "AppHeader": {
         "Home page": "Kezdőlap",
@@ -632,7 +643,8 @@
         "Saved linked section {{title}} in view {{name}}": "{{title}} kapcsolt szakasz mentve {{name}} nézetben",
         "go to webhook settings": "menjünk a webhook beállításaihoz",
         "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "Az új változtatásokat átmenetileg felfüggesztettük. A webhook várakozási sora megtelt. Ellenőrizd a webhook beállításait, töröld a hibás webhook-okat, és tisztítsd a várakozási sort.",
-        "Import from Airtable": "Importálás Airtable-ből"
+        "Import from Airtable": "Importálás Airtable-ből",
+        "{{title}} widget": "{{title}} widget"
     },
     "HomeIntro": {
         "Help Center": "Súgóközpont",
@@ -708,7 +720,9 @@
     },
     "LeftPanelCommon": {
         "Help Center": "Súgóközpont",
-        "Accessibility": "Kisegítő lehetőségek"
+        "Accessibility": "Kisegítő lehetőségek",
+        "(Screen reader improvements enabled)": "(A képernyőolvasó fejlesztései engedélyezve)",
+        "Screen reader improvements enabled": "A képernyőolvasó fejlesztései engedélyezve"
     },
     "MakeCopyMenu": {
         "As template": "Sablonként",
@@ -779,7 +793,10 @@
         "Select data": "Adat kiválasztása",
         "Select widget": "Widget kiválasztása",
         "New Table": "Új tábla",
-        "SELECT BY": "KIVÁLASZTÁS"
+        "SELECT BY": "KIVÁLASZTÁS",
+        "{{table}} grouped by… (press to select fields)": "{{table}} csoportosítva… (mezők kiválasztásához nyomd meg a gombot)",
+        "Press Space to add fields": "Nyomja meg a Szóköz billentyűt a mezők hozzáadásához",
+        "Use up and down arrow keys to move through options. Press Enter and Esc to move between steps.": "A fel és le nyílbillentyűkkel lépkedhetsz a lehetőségek között. Használd az Enter és az Esc billentyűt a lépések közötti váltáshoz."
     },
     "Pages": {
         "Delete": "Törlés",
@@ -1160,7 +1177,7 @@
         "Choice": "Választás",
         "Choice List": "Választás lista",
         "Reference": "Hivatkozás",
-        "Reference List": "Hivatkozás lista",
+        "Reference List": "Hivatkozás-lista",
         "Attachment": "Csatolmány",
         "Search columns": "Oszlop keresése",
         "By Name": "Név szerint",
@@ -1409,6 +1426,299 @@
         "To configure your calendar, select columns for start": {
             "end dates and event titles. Note each column's type.": "A naptárad beállításához válassz oszlopokat a kezdő és végdátumhoz és az események címéhez. Figyeld meg az egyes oszlopok típusát."
         },
-        "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "Az UUID azonosító véletlenszerűen generált karaktersorozat, amely alkalmazható egyedi azonosítóként és hivatkozások kulcsaként."
+        "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "Az UUID azonosító véletlenszerűen generált karaktersorozat, amely alkalmazható egyedi azonosítóként és hivatkozások kulcsaként.",
+        "The Raw Data page lists all data tables in your document, including summary tables and tables not included in page layouts.": "A Nyers adatok oldal felsorolja a dokumentum összes adattábláját, beleértve az összefoglaló táblázatokat és az oldalelrendezésben nem szereplő táblázatokat is.",
+        "The total size of all data in this document, excluding attachments.": "A dokumentumban található összes adat teljes mérete, a mellékletek nélkül.",
+        "They allow for one record to point (or refer) to another.": "Lehetővé teszik, hogy az egyik rekord egy másikra mutasson (vagy hivatkozzon).",
+        "This is the secret to Grist's dynamic and productive layouts.": "Ez a Grist dinamikus és produktív elrendezésének titka.",
+        "Try out changes in a copy, then decide whether to replace the original with your edits.": "Próbáld ki a módosításokat egy másolaton, majd döntsd el, hogy lecseréled az eredetit a saját szerkesztéseiddel.",
+        "Unpin to hide the the button while keeping the filter.": "Oldd ki a rögzítést a gomb elrejtéséhez, a szűrő megtartásával.",
+        "Useful for storing the timestamp or author of a new record, data cleaning, and more.": "Hasznos új rekord időbélyegének vagy szerzőjének tárolására, adattisztításra és egyebekre.",
+        "You can filter by more than one column.": "Egynél több oszlop alapján is szűrhetsz.",
+        "entire": "az egész",
+        "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "A hozzáférési szabályok lehetővé teszik, hogy árnyalt szabályokat hozz létre annak meghatározására, hogy ki láthatja vagy szerkesztheti a dokumentum egyes részeit.",
+        "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "Használd a 𝚺 ikont összesítő (vagy pivot) táblázatok létrehozásához az összegekhez vagy részösszegekhez.",
+        "Anchor Links": "Horgony linkek",
+        "Custom Widgets": "Egyéni widgetek",
+        "To make an anchor link that takes the user to a specific cell, click on a row and press {{shortcut}}.": "A felhasználót egy adott cellához vezető horgonyhivatkozás létrehozásához kattints egy sorra, és nyomd meg a {{shortcut}} gombot.",
+        "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "Választhatsz egyet előre elkészített widgetjeink közül, vagy beágyazhatod a sajátodat a teljes URL megadásával.",
+        "Lookups return data from related tables.": "A keresések a kapcsolódó táblákból adnak vissza adatokat.",
+        "Use reference columns to relate data in different tables.": "Használj referenciaoszlopokat a különböző táblázatokban lévő adatok összekapcsolásához.",
+        "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "Választhatsz a legördülő menüben elérhető widgetek közül, vagy beágyazhatod sajátodat a teljes URL megadásával.",
+        "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "A képletek támogatnak számos Excel-függvényt, a teljes Python-szintaxist, és egy hasznos AI-asszisztens is tud segíteni.",
+        "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Készíts egyszerű űrlapokat közvetlenül a Gristben, és oszd meg őket egy kattintással az új widgetünk segítségével. {{learnMoreButton}}",
+        "Forms are here!": "Itt vannak az űrlapok!",
+        "Learn more": "További információk",
+        "These rules are applied after all column rules have been processed, if applicable.": "Ezeket a szabályokat a rendszer az összes oszlopszabály feldolgozása után alkalmazza, ha vannak ilyenek.",
+        "Example: {{example}}": "Példa: {{example}}",
+        "Filter displayed dropdown values with a condition.": "A megjelenített legördülő értékek szűrése feltétellel.",
+        "Community widgets are created and maintained by Grist community members.": "A közösségi widgeteket a Grist közösség tagjai hozták létre és tartják karban.",
+        "Creates a reverse column in target table that can be edited from either end.": "Fordított oszlopot hoz létre a céltáblázatban, amely mindkét végéről szerkeszthető.",
+        "This limitation occurs when one end of a two-way reference is configured as a single Reference.": "Ez a korlátozás akkor lép fel, ha a kétirányú referencia egyik vége egyirányú hivatkozásként van beállítva.",
+        "To allow multiple assignments, change the type of the Reference column to Reference List.": "Több hozzárendelés engedélyezéséhez módosítsd a Hivatkozás oszlop típusát Hivatkozáslista értékre.",
+        "This limitation occurs when one column in a two-way reference has the Reference type.": "Ez a korlátozás akkor lép fel, ha egy kétirányú hivatkozás egyik oszlopa Hivatkozás típusú.",
+        "To allow multiple assignments, change the referenced column's type to Reference List.": "Több hozzárendelés engedélyezéséhez módosítsa a hivatkozott oszlop típusát Hivatkozás-lista értékre.",
+        "Two-way references are not currently supported for Formula or Trigger Formula columns": "A kétirányú hivatkozások jelenleg nem támogatottak a Képlet vagy Indítóképlet oszlopokhoz",
+        "The preview below this header shows how the selected user will see this document": "A fejléc alatti előnézet megmutatja, hogy a kiválasztott felhasználó hogyan fogja látni ezt a dokumentumot",
+        "[Learn more.]({{link}})": "[További információk.]( {{link}} )",
+        "Summary tables can only contain formula columns.": "Az összefoglaló táblázatok csak képletoszlopokat tartalmazhatnak.",
+        "Manage users and resources in a Grist installation.": "Felhasználók és erőforrások kezelése a telepített Grist rednszerben.",
+        "The new Grist Assistant is here!": "Megérkezett az új Grist Segéd!",
+        "Formulas support many Excel functions and full Python syntax.": "A képletek támogatnak számos Excel-függvényt és a teljes Python-szintaxist.",
+        "Creates a new Reference List column in the target table, with both this and the target columns editable and synchronized.": "Létrehoz egy új Hivatkozás-lista oszlopot a céltáblázatban, amelyen ez és a céloszlopok is szerkeszthetők és szinkronizálhatók.",
+        "Internal storage means all attachments are stored in the document SQLite file, while external storage indicates all attachments are stored in the same external storage.": "A belső tárolás azt jelenti, hogy az összes mellékletet a dokumentum SQLite fájljában tároljuk, míg a külső tárolás esetén minden melléklet ugyanabban a külső tárolóban tárolódik.",
+        "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.": "Ez lehetővé teszi a külső tárhelyről hiányzó mellékletek hozzáadását, például egy importált dokumentum esetén. Ide csak a Gristről letöltött .tar formátumú csatolmány-archívumok tölthetők fel.",
+        "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!": "Értsd meg, módosítsd és dolgozz az adataiddal és képleteiddel a Grist új AI-segédje segítségével!",
+        "This form is created by a Grist user, and is not endorsed by Grist Labs, Inc. or any party providing this service. For your security, do not submit passwords through this form, and be careful when clicking embedded links. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "Ezt az űrlapot egy Grist felhasználó hozta létre, a Grist Labs, Inc. vagy a szolgáltatást nyújtó bármely fél nem támogatja. Biztonsága érdekében ne küldjön be jelszavakat ezen az űrlapon keresztül, és legyen óvatos, amikor a beágyazott hivatkozásokra kattint. A rosszindulatú űrlapok bejelentése a következő címen lehetséges: [ {{mail}} ](mailto: {{mail}} ).",
+        "Set the maximum number of lines for multi-line text.": "Állítsd be a többsoros szöveg maximális sorszámát.",
+        "Comments are here!": "Itt vannak a hozzászólások!",
+        "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "Megjegyzéseket fűzhetsz a cellákhoz, válaszolhatsz a megjegyzésszálakra, és @-említéssel együttműködőket is megemlíthetsz.",
+        "When checked, this field’s default value can be prefilled from the URL using query parameters.": "Ha be van jelölve, ennek a mezőnek az alapértelmezett értéke előre kitölthető az URL-ből lekérdezési paraméterek segítségével.",
+        "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "A javaslatok használatával a felhasználók az eredeti dokumentum módosítása nélkül módosítanak egy személyes másolatot, majd a javaslatokat beküldve a dokumentum tulajdonosa át tudja ezeket vizsgálni, és dönthet, hogy befogadja-e a javasolt változtatásokat az eredeti dokumentumba.",
+        "Unpin to hide the button while keeping the filter.": "Oldd ki a rögzítést a gomb elrejtéséhez a szűrő megtartásával."
+    },
+    "AdminAccessDeniedCard": {
+        "Administrator Panel Unavailable": "A rendszergazdai panel nem elérhető",
+        "If you are the server operator, you can sign in using the boot key from your server logs.": "Ha a szerver üzemeltetője vagy, bejelentkezhetsz a szervernaplók rendszerindító kulcsával.",
+        "Sign in with boot key": "Bejelentkezés a rendszerindító kulccsal",
+        "You do not have access to the administrator panel.\nPlease log in as an administrator.": "Nincs hozzáférésed a rendszergazdai panelhez.\nKérjük, jelentkezz be rendszergazdaként."
+    },
+    "PermissionsToggleModel": {
+        "Allow anonymous access": "Anonim hozzáférés engedélyezése",
+        "Allow anonymous playground": "Anonim játszótér engedélyezése",
+        "Allow anyone to create team sites": "Bárki létrehozhat csapatwebhelyeket",
+        "Allow personal sites": "Személyes webhelyek engedélyezése",
+        "Any logged-in user can create new team sites. Turn off to restrict team creation to admins only.": "Bármely bejelentkezett felhasználó létrehozhat új csapatoldalakat. Kapcsold ki, ha a csapat létrehozását csak a rendszergazdákra szeretnéd korlátozni.",
+        "Permissions": "Engedélyek",
+        "Users can create their own personal sites with documents. Turn off to restrict all documents to team sites managed by admins.": "A felhasználók saját személyes webhelyeket hozhatnak létre dokumentumokkal. Kapcsold ki, ha az összes dokumentumot a rendszergazdák által kezelt csoportwebhelyekre szeretnéd korlátozni.",
+        "Visitors who aren't signed in can create and edit documents in a temporary playground. Turn off to require sign-in before creating any documents.": "Azok a látogatók, akik nincsenek bejelentkezve, dokumentumokat hozhatnak létre és szerkeszthetnek egy ideiglenes játszótéren. Kapcsold ki a kötelező bejelentkezést a dokumentumok létrehozása előtt.",
+        "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.": "Azok a látogatók, akik nincsenek bejelentkezve, megtekinthetik a nyilvánosan megosztott dokumentumokat. Erre a linkmegosztáshoz és a közzétett űrlapokhoz van szükség.",
+        "off": "kikapcsolva",
+        "on": "bekapcsolva"
+    },
+    "ScreenReaderAnnouncer": {
+        "Notification: {{notification}}": "Értesítés: {{notification}}"
+    },
+    "ScreenReaderConfig": {
+        "Enable screen reader improvements": "Képernyőolvasó fejlesztéseinek engedélyezése",
+        "Press {{accessibilityModalShortcut}} for more information about screen reader navigation.": "Nyomd meg a {{accessibilityModalShortcut}} gombot a képernyőolvasó navigációjával kapcsolatos további információkért."
+    },
+    "ScreenReaderFormatters": {
+        "Checked": "Ellenőrizve",
+        "Image": "Kép",
+        "Toggled off": "Kikapcsolva",
+        "Toggled on": "Bekapcsolva",
+        "Unchecked": "Nincs bejelölve",
+        "heading {{- text}}": "címsor {{- text}}",
+        "link {{- label}}": "link {{- label}}",
+        "list: {{- items}}": "lista: {{- items}}",
+        "{{- text}} (link)": "{{- text}} (link)"
+    },
+    "DescriptionConfig": {
+        "DESCRIPTION": "LEÍRÁS",
+        "Set description": "Leírás beállítása"
+    },
+    "PagePanels": {
+        "Close Creator Panel": "Alkotói panel bezárása",
+        "Open creator panel": "Alkotói panel megnyitása",
+        "Creator panel (right panel)": "Alkotói panel (jobb oldali panel)",
+        "Document header": "Dokumentum fejléce",
+        "Main content": "Fő tartalom",
+        "Main navigation and document settings (left panel)": "Fő navigációs és dokumentum-beállítások (bal oldali panel)",
+        "Close navigation panel (left panel)": "Navigációs panel bezárása (bal oldali panel)",
+        "Open navigation panel (left panel)": "Navigációs panel megnyitása (bal oldali panel)"
+    },
+    "ColumnTitle": {
+        "Add description": "Leírás hozzáadása",
+        "COLUMN ID: ": "OSZLOP AZONOSÍTÓ: ",
+        "Cancel": "Mégse",
+        "Column ID copied to clipboard": "Az oszlopazonosító a vágólapra másolva",
+        "Column description": "Oszlop leírása",
+        "Column label": "Oszlopcímke",
+        "Provide a column label": "Adj meg egy oszlopcímkét",
+        "Save": "Mentés",
+        "Close": "Bezárás"
+    },
+    "Clipboard": {
+        "Got it": "Értem",
+        "Unavailable Command": "Nem elérhető parancs",
+        "The {{action}} menu command is not available in this browser. You can still {{action}} by using the keyboard shortcut {{shortcut}}.": "A(z) {{action}} menüparancs nem érhető el ebben a böngészőben. Továbbra is {{action}} a(z) {{shortcut}} billentyűparancs használatával."
+    },
+    "FieldContextMenu": {
+        "Clear field": "Mező kiürítése",
+        "Copy": "Másol",
+        "Copy anchor link": "Horgonylink másolása",
+        "Cut": "Kivág",
+        "Hide field": "Mező elrejtése",
+        "Paste": "Beilleszt",
+        "Comment": "Megjegyzés"
+    },
+    "WebhookPage": {
+        "Clear queue": "Műveleti sor törlése",
+        "Webhook settings": "Webhook beállításai",
+        "Cleared webhook queue.": "Webhook műveletsor törölve.",
+        "Columns to check when update (separated by ;)": "Frissítéskor ellenőrizendő oszlopok (pontosvesszővel elválasztva)",
+        "Enabled": "Engedélyezve",
+        "Event Types": "Eseménytípusok",
+        "Memo": "Feljegyzés",
+        "Name": "Név",
+        "Ready Column": "Kész oszlop",
+        "Removed webhook.": "Webhook eltávolítva.",
+        "Sorry, not all fields can be edited.": "Sajnos nem minden mező szerkeszthető.",
+        "Status": "Állapot",
+        "URL": "URL",
+        "Webhook Id": "Webhook Id",
+        "Table": "Táblázat",
+        "Filter for changes in these columns (semicolon-separated ids)": "Szűrés az oszlopok változásaihoz (pontosvesszővel elválasztott azonosítók)",
+        "Header Authorization": "Fejléc engedélyezése",
+        "Webhooks Unavailable In Unsaved Document Copies": "A Webhook-ok nem érhetők el a nem mentett dokumentummásolatokban"
+    },
+    "FormulaAssistant": {
+        "Ask the bot.": "Kérdezd meg a botot.",
+        "Capabilities": "Képességek",
+        "Community": "Közösség",
+        "Data": "Adat",
+        "Formula Cheat Sheet": "Képlet puska",
+        "Formula Help. ": "Képlet súgó. ",
+        "Function List": "Függvénylista",
+        "Grist's AI Assistance": "Grist AI-segédje",
+        "Grist's AI Formula Assistance. ": "Grist AI Képlet-segédje. ",
+        "Need help? Our AI assistant can help.": "Segítségre van szükséged? AI-segédünk segíthet.",
+        "New Chat": "Új csevegés",
+        "Preview": "Előnézet",
+        "Regenerate": "Újragenerálás",
+        "Save": "Ment",
+        "See our {{helpFunction}} and {{formulaCheat}}, or visit our {{community}} for more help.": "Nézd meg a(z) {{helpFunction}} és a(z) {{formulaCheat}}, vagy keresd fel {{community}} oldalunkat további segítségért.",
+        "Tips": "Tippek",
+        "AI Assistant": "AI-segéd",
+        "Apply": "Alkalmaz",
+        "Cancel": "Mégse",
+        "Clear conversation": "Beszélgetés törlése",
+        "Code view": "Kódnézet",
+        "Hi, I'm the Grist Formula AI Assistant.": "Szia, én vagyok a Grist AI képlet-segédje.",
+        "I can only help with formulas. I cannot build tables, columns, and views, or write access rules.": "Csak képletekben tudok segíteni. Nem tudok táblákat, oszlopokat és nézeteket készíteni, illetve hozzáférési szabályokat írni.",
+        "Learn more": "További információk",
+        "Press Enter to apply suggested formula.": "Nyomd meg az Enter billentyűt a javasolt képlet alkalmazásához.",
+        "Sign Up for Free": "Regisztrálj ingyen",
+        "Sign up for a free Grist account to start using the Formula AI Assistant.": "Regisztrálj egy ingyenes Grist-fiókot az AI képlet-segéd használatához.",
+        "There are some things you should know when working with me:": "Van néhány dolog, amit tudnod kell, amikor velem dolgozol:",
+        "What do you need help with?": "Miben van szükséged segítségre?",
+        "Formula AI Assistant is only available for logged in users.": "Az AI képlet-segédet csak bejelentkezett felhasználók használhatják.",
+        "For higher limits, contact the site owner.": "Magasabb limitekért fordulj a webhely tulajdonosához.",
+        "For higher limits, {{upgradeNudge}}.": "Magasabb határértékekért {{upgradeNudge}} .",
+        "You have used all available credits.": "Felhasználtad az összes kreditedet.",
+        "You have {{numCredits}} remaining credits.": "{{numCredits}} kredited van még.",
+        "upgrade to the Pro Team plan": "frissíts a Pro Team előfizetésre",
+        "upgrade your plan": "növeld meg az előfizetésedet",
+        "For more help with formulas, check out our {{functionList}} and {{formulaCheatSheet}}, or visit our {{community}} for more help.": "Ha további segítségre van szükséged a képletekkel kapcsolatban, tekintsd meg a(z) {{functionList}} és {{formulaCheatSheet}} oldalakat, vagy keresd fel a {{community}} oldalunkat.",
+        "When you talk to me, your questions and your document structure (visible in {{codeView}}) are sent to OpenAI. {{learnMore}}.": "Amikor beszélsz velem, kérdéseidet és a dokumentumszerkezetet (látható a {{codeView}}-ban) elküldjük az OpenAI-nak. {{learnMore}} .",
+        "Talk to me like a person. No need to specify tables and column names. For example, you can ask \"Please calculate the total invoice amount.\"": "Úgy beszélj velem, mint egy emberrel. Nincs szükség táblák és oszlopnevek megadására. Például megkérhetsz, hogy \"Számítsd ki a teljes számlaösszeget.\""
+    },
+    "GridView": {
+        "Click to insert": "Kattints a beszúráshoz",
+        "row {{rowNum}} {{colName}}": "{{rowNum}} {{colName}} sor",
+        "row {{rowNum}} {{colName}} (new row)": "{{rowNum}} {{colName}} sor (új sor)"
+    },
+    "WelcomeSitePicker": {
+        "Welcome back": "Üdvözlünk újra",
+        "You can always switch sites using the account menu.": "A fiókmenü segítségével bármikor webhelyet válthatsz.",
+        "You have access to the following Grist sites.": "A következő Grist webhelyekhez férhetsz hozzá."
+    },
+    "DescriptionTextArea": {
+        "DESCRIPTION": "LEÍRÁS"
+    },
+    "UserManager": {
+        "Add {{member}} to your team": "{{member}} hozzáadása a csapatodhoz",
+        "Allow anyone with the link to open.": "A link birtokában bárki megnyithatja.",
+        "Anyone with link ": "Bárki, akinek van linkje ",
+        "Cancel": "Mégse",
+        "Close": "Bezár",
+        "Collaborator": "Együttműködő",
+        "Confirm": "Megerősít",
+        "Copy link": "Link másolása",
+        "Create a team to share with more people": "Hozz létre egy csapatot, hogy több emberrel oszd meg",
+        "Grist support": "A Grist támogatása",
+        "Guest": "Vendég",
+        "Invite multiple": "Hívj meg többeket",
+        "Invite people to {{resourceType}}": "Hívj meg embereket a {{resourceType}}",
+        "Link copied to clipboard": "Link a vágólapra másolva",
+        "Manage members of team site": "A csapatoldal tagjainak kezelése",
+        "No default access allows access to be         granted to individual documents or workspaces, rather than the full team site.": "Az alapértelmezett hozzáférés nem teszi lehetővé az egyes dokumentumokhoz vagy munkaterületekhez való hozzáférést, csak a teljes csoport webhelyéhez.",
+        "Off": "Kikapcsolva",
+        "On": "Bekapcsolva",
+        "Once you have removed your own access,             you will not be able to get it back without assistance              from someone else with sufficient access to the {{name}}.": "Miután eltávolítottad a saját hozzáférésedet, nem fogod tudni visszaszerezni valaki más segítsége nélkül, aki megfelelő hozzáféréssel rendelkezik {{name}}-hoz.",
+        "Open Access Rules": "Hozzáférési szabályok megnyitása",
+        "Outside collaborator": "Külső munkatárs",
+        "Public access": "Nyilvános hozzáférés",
+        "Public access inherited from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "A nyilvános hozzáférést a {{parent}}-től örökölte. Az eltávolításhoz állítsd a „Hozzáférés öröklése” lehetőséget „Nincs” értékre.",
+        "Public access: ": "Nyilvános hozzáférés: ",
+        "Remove my access": "Távolítsd el az én hozzáférésemet",
+        "Save & ": "Mentés & ",
+        "Team member": "Csapattag",
+        "User inherits permissions from {{parent})}. To remove,           set 'Inherit access' option to 'None'.": "A felhasználó örökli az engedélyeket a következőtől: {{szülő})}. Az eltávolításhoz állítsd a „Hozzáférés öröklése” lehetőséget „Nincs” értékre.",
+        "User may not modify their own access.": "A felhasználó a saját hozzáférését nem módosíthatja.",
+        "Your role for this team site": "A te szereped ezen a csapatoldalon",
+        "Your role for this {{resourceType}}": "A te szereped ebben a {{resourceType}}",
+        "free collaborator": "ingyenes munkatárs",
+        "guest": "vendég",
+        "member": "tag",
+        "team site": "csapatoldal",
+        "{{collaborator}} limit exceeded": "{{collaborator}} korlát túllépve",
+        "{{limitAt}} of {{limitTop}} {{collaborator}}s": "{{limitAt}} / {{limitTop}} {{collaborator}}",
+        "No default access allows access to be granted to individual documents or workspaces, rather than the full team site.": "Az alapértelmezett hozzáférés nem teszi lehetővé az egyes dokumentumokhoz vagy munkaterületekhez való hozzáférést, csak a teljes csoportoldalhoz.",
+        "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.": "Miután eltávolítottad a saját hozzáférésedet, nem fogod tudni visszaszerezni, ha valaki mástól nem kérsz segítséget, aki megfelelő hozzáféréssel rendelkezik a {{resourceType}}-hoz.",
+        "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.": "A felhasználónak megtekintési hozzáférése van {{resource}}-hoz, ami a belső erőforrásokhoz való manuálisan beállított hozzáférés eredménye. Ha eltávolítod itt, a felhasználó elveszíti hozzáférését a benne lévő erőforrásokhoz.",
+        "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "A felhasználó a {{parent}} engedélyeit örökli. Az eltávolításhoz állítsd a „Hozzáférés öröklése” lehetőséget „Nincs” értékre.",
+        "You are about to remove your own access to this {{resourceType}}": "Arra készülsz, hogy megszüntesd saját hozzáférésedet ehhez a {{resourceType}}-hoz",
+        "Inherit access: ": "Hozzáférés öröklése: ",
+        "Access overview": "Hozzáférés áttekintése",
+        "Share it publicly": "Oszd meg nyilvánosan",
+        "Verify your sensitive data before sharing publicly": "A nyilvános megosztás előtt ellenőrizd bizalmas adataidat",
+        "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing.": "A {{resourceType}} a link birtokában bárki számára elérhető lesz, akár közvetlenül osztja meg, akár egy keresőmotoron keresztül találja meg.\nMegosztás előtt győződj meg arról, hogy a {{resourceType}} nem tartalmaz bizalmas adatokat."
+    },
+    "SearchModel": {
+        "Search all pages": "Keresés az összes oldalon",
+        "Search all tables": "Keresés az összes táblázatban"
+    },
+    "searchDropdown": {
+        "Search": "Keresés",
+        "Showing {{displayedCount}} of {{totalCount}} items. Search for more.": "{{totalCount}}/{{displayedCount}} elem megjelenítése. Továbbiak keresése."
+    },
+    "SupportGristNudge": {
+        "Close": "Bezár",
+        "Contribute": "Hozzájárul",
+        "Help Center": "Súgó központ",
+        "Opt in to Telemetry": "Iratkozz fel a telemetriára",
+        "Opted In": "Feliratkoztál",
+        "Support Grist": "Támogasd a Grist-et",
+        "Support Grist page": "Grist támogató oldal",
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Köszönjük! Nagyra értékeljük bizalmadat és támogatásodat! Bármikor leiratkozhatsz a felhasználói menü {{link}} pontjával.",
+        "Admin Panel": "Rendszergazda panel"
+    },
+    "SupportGristPage": {
+        "GitHub": "GitHub",
+        "GitHub Sponsors page": "GitHub támogatók oldal",
+        "Help Center": "Súgó központ",
+        "Home": "Kezdőlap",
+        "Manage Sponsorship": "Támogatás kezelése",
+        "Opt in to Telemetry": "Iratkozz fel a telemetriára",
+        "Opt out of Telemetry": "Leiratkozás a telemetriáról",
+        "Sponsor Grist Labs on GitHub": "A Grist Labs szponzorálása a GitHubon",
+        "Support Grist": "Támogasd a Grist-et",
+        "Telemetry": "Telemetria",
+        "This instance is opted in to telemetry. Only the site administrator has permission to change this.": "Ebben a példányban engedélyezve van a telemetria. Ennek megváltoztatására csak a webhely adminisztrátora jogosult.",
+        "This instance is opted out of telemetry. Only the site administrator has permission to change this.": "Ezen a példányon le van tiltva a telemetria. Ennek megváltoztatására csak a webhely adminisztrátora jogosult.",
+        "We only collect usage statistics, as detailed in our {{link}}, never document contents.": "Csak használati statisztikákat gyűjtünk, amint azt a {{link}} részletezi, Dokumentumok tartalmát soha nem tároljuk.",
+        "You can opt out of telemetry at any time from this page.": "Ezen az oldalon bármikor leiratkozhatsz a telemetriáról.",
+        "You have opted in to telemetry. Thank you!": "Feliratkoztál a telemetriára. Köszönjük!",
+        "You have opted out of telemetry.": "Leiratkoztál a telemetriáról.",
+        "Sponsor": "Támogató",
+        "Grist software is developed by Grist Labs, which offers free and paid hosted plans. We also make Grist code available under a standard free and open OSS license (Apache 2.0) on {{link}}.": "A Grist szoftvert a Grist Labs fejlesztette, amely ingyenes és fizetős hosztolt terveket kínál. A Grist kódot szabványos ingyenes és nyílt OSS-licenc (Apache 2.0) alatt is elérhetővé tesszük a {{link}} webhelyen.",
+        "Support Grist by opting in to telemetry, which helps us understand how the product is used, so that we can prioritize future improvements.": "Támogasd a Gristet azzal, hogy feliratkozol a telemetriára, ami segít megérteni, hogyan használják a terméket, hogy prioritást állíthassunk fel a jövőbeni fejlesztéseknél.",
+        "We are a small and determined team. Your support matters a lot to us. It also shows to others that there is a determined community behind this product.": "Kicsi és eltökélt csapat vagyunk, a támogatásod nagyon fontos számunkra! Ez másoknak is mutatja, hogy egy komoly közösség áll a termék mögött.",
+        "You can support Grist open-source development by sponsoring us on our {{link}}.": "Támogathatod a Grist nyílt forráskódú fejlesztését, ha szponzorálsz minket a {{link}} oldalunkon."
+    },
+    "buildViewSectionDom": {
+        "No data": "Nincs adat"
     }
 }
