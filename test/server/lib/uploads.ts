@@ -265,6 +265,7 @@ describe("uploads", function() {
         const sandbox = sinon.createSandbox();
         try {
           const response = new Response(streamify("doc content"));
+          response.headers.set("content-disposition", "attachment; filename=\"document.grist\"");
           sandbox.stub(Deps, "fetchInternal").resolves(response);
           sandbox.stub(Deps, "fetch").rejects(new Error("should not be called"));
 
