@@ -3897,8 +3897,12 @@ describe("GranularAccess", function() {
     const tokenResult = (await cliEditor.send("getAccessToken", 0, { readOnly: false })).data;
     const i7 = await postAttachment(editor, docId, tokenResult.token, "content7", "7.txt");
     await assert.isFulfilled(getAttachment(owner, docId, i7));
-    // New attachments are not accessible through the web API
-    // await assert.isFulfilled(getAttachment(editor, docId, i7));
+    // Without ?maybeNew=true, the web API has no way to prove access to a not-yet-
+    // referenced attachment, so editor is denied.
+    await assert.isRejected(getAttachment(editor, docId, i7));
+    // With ?maybeNew=true, the upload-tracking path lets the editor download the
+    // attachment they just uploaded via their access token.
+    await assert.isFulfilled(getAttachment(editor, docId, i7, { maybeNew: true }));
     await editor.getDocAPI(docId).updateRows("Data1", { id: [1], Texts: [[GristObjCode.List, i7]] });
     await assert.isFulfilled(getAttachment(editor, docId, i7));
 
@@ -4617,10 +4621,11 @@ async function assertDeniedFor(check: Promise<any>, memos: string[], test = /acc
 }
 
 // Read the content of an attachment, as text.
-async function getAttachment(api: UserAPI, docId: string, attId: number) {
+async function getAttachment(api: UserAPI, docId: string, attId: number, options?: { maybeNew?: boolean }) {
   const userApi = api as UserAPIImpl;
+  const query = options?.maybeNew ? "?maybeNew=true" : "";
   const result = await userApi.testRequest(
-    userApi.getBaseUrl() + `/api/docs/${docId}/attachments/${attId}/download`, {
+    userApi.getBaseUrl() + `/api/docs/${docId}/attachments/${attId}/download${query}`, {
       headers: userApi.defaultHeadersWithoutContentType(),
     },
   );
