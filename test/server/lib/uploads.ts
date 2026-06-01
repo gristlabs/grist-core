@@ -245,16 +245,16 @@ describe("uploads", function() {
       });
 
       it("should use fetch by default for public fetchURL", async function() {
-        sandbox.stub(Deps, "fetchTrusted").rejects(new Error("should not be called"));
+        sandbox.stub(Deps, "fetchInternal").rejects(new Error("should not be called"));
         url = "fake/untrusted/url";
         response.headers.set("content-type", "text/csv; charset=utf-8");
 
         // Call fetchURL (uses Deps.fetch by default for untrusted requests)
         const result = await fetchURL(url, null);
 
-        // Verify fetch was called and fetchTrusted was not
+        // Verify fetch was called and fetchInternal was not
         sinon.assert.calledOnce(Deps.fetch as any);
-        sinon.assert.notCalled(Deps.fetchTrusted as any);
+        sinon.assert.notCalled(Deps.fetchInternal as any);
         assert.equal(result.files.length, 1);
       });
     });
