@@ -1,4 +1,5 @@
-import { createTmpDir, Deps, fetchURL, moveUpload, UploadSet } from "app/server/lib/uploads";
+import * as DocWorkerUtils from "app/server/lib/DocWorkerUtils";
+import { createTmpDir, Deps, fetchDoc, fetchURL, moveUpload, UploadSet } from "app/server/lib/uploads";
 import { globalUploadSet } from "app/server/lib/uploads";
 import { createFile } from "test/server/docTools";
 import { setTmpLogLevel } from "test/server/testUtils";
@@ -256,6 +257,43 @@ describe("uploads", function() {
         sinon.assert.calledOnce(Deps.fetch as any);
         sinon.assert.notCalled(Deps.fetchInternal as any);
         assert.equal(result.files.length, 1);
+      });
+    });
+
+    describe("fetchDoc", async function() {
+      it("should use fetchInternal for doc worker URLs", async function() {
+        const sandbox = sinon.createSandbox();
+        try {
+          const response = new Response(streamify("doc content"));
+          sandbox.stub(Deps, "fetchInternal").resolves(response);
+          sandbox.stub(Deps, "fetch").rejects(new Error("should not be called"));
+
+          const server = {
+            getHomeDBManager: () => ({
+              getRawDocById: sandbox.stub().resolves({ id: "doc123" }),
+            }),
+            getTag: () => "tag1",
+          } as any;
+
+          const req = {
+            get: sandbox.stub().returns(undefined),
+            socket: { remoteAddress: "127.0.0.1" },
+          } as any;
+
+          sandbox.stub(DocWorkerUtils, "getDocWorkerInfoOrSelfPrefix").resolves({
+            docWorker: { id: "worker1", internalUrl: "http://internal:8000", publicUrl: "http://public:8000" },
+          });
+
+          await fetchDoc(server, {} as any, "url123", req, null, false);
+
+          sinon.assert.calledOnce(Deps.fetchInternal as any);
+          sinon.assert.notCalled(Deps.fetch as any);
+          const call = (Deps.fetchInternal as any).getCall(0);
+          assert.include(call.args[0], "api/docs/doc123/download");
+        } finally {
+          sandbox.restore();
+          await globalUploadSet.cleanupAll();
+        }
       });
     });
 
