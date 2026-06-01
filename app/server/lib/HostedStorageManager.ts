@@ -694,13 +694,17 @@ export class HostedStorageManager implements IDocStorageManager {
    */
   private async _removeFromFilesystem(docName: string) {
     // NOTE: fse.remove succeeds also when the file does not exist.
-    await Promise.all([
-      fse.remove(this.getPath(docName)),
-      fse.remove(this._getHashFile(this.getPath(docName), "doc")),
-      fse.remove(this._getHashFile(this.getPath(docName), "meta")),
-      fse.remove(this.getAssetPath(docName)),
-      this._inventory?.clear(docName),
-    ]);
+    await fse.remove(this.getPath(docName));
+    await fse.remove(this._getHashFile(this.getPath(docName), "doc"));
+    await fse.remove(this._getHashFile(this.getPath(docName), "meta"));
+
+    // Clear the inventory before the asset directory: it may recreate the directory
+    // using mkdirp via DocSnapshotInventory._getFilename.
+    // The asset-path removal below must happen after it to avoid leaving an empty directory behind.
+    await this._inventory?.clear(docName);
+
+    await fse.remove(this.getAssetPath(docName));
+
     this._latestVersions.delete(docName);
     this._latestMetaVersions.delete(docName);
     // _localFiles is intentionally left alone: closeDocument clears it, and
