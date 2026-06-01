@@ -1,6 +1,7 @@
 import { DocumentUsage } from "app/common/DocUsage";
 import { Role } from "app/common/roles";
 import { Document } from "app/gen-server/entity/Document";
+import { DocAuthResult } from "app/gen-server/lib/homedb/Interfaces";
 import { RequestWithLogin } from "app/server/lib/Authorizer";
 import { AuthSession } from "app/server/lib/AuthSession";
 import { OptDocSession } from "app/server/lib/DocSession";
@@ -90,7 +91,7 @@ export function getDocSessionAccess(docSession: OptDocSession): Role {
 }
 
 export function getDocSessionShare(docSession: OptDocSession): string | null {
-  return _getCachedDoc(docSession)?.linkId || null;
+  return getDocSessionDocAuth(docSession)?.cachedDoc?.linkId || null;
 }
 
 /**
@@ -99,17 +100,14 @@ export function getDocSessionShare(docSession: OptDocSession): string | null {
  * (although we do recheck access periodically).
  */
 export function getDocSessionUsage(docSession: OptDocSession): DocumentUsage | null {
-  return _getCachedDoc(docSession)?.usage || null;
+  return getDocSessionDocAuth(docSession)?.cachedDoc?.usage || null;
 }
 
-function _getCachedDoc(docSession: OptDocSession): Document | null {
+export function getDocSessionDocAuth(docSession: OptDocSession): DocAuthResult | null {
   if (docSession.authorizer) {
-    return docSession.authorizer.getCachedAuth().cachedDoc || null;
+    return docSession.authorizer.getCachedAuth() || null;
   }
-  if (docSession.req) {
-    return docSession.req.docAuth?.cachedDoc || null;
-  }
-  return null;
+  return docSession.req?.docAuth || null;
 }
 
 export function getDocSessionAccessOrNull(docSession: OptDocSession): Role | null {

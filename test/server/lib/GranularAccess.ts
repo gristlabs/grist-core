@@ -29,6 +29,7 @@ import { createDocTools } from "test/server/docTools";
 import { GristClient, openClient } from "test/server/gristClient";
 import * as testUtils from "test/server/testUtils";
 
+import axios from "axios";
 import { assert } from "chai";
 import { cloneDeep, isMatch, pick } from "lodash";
 import * as sinon from "sinon";
@@ -3890,6 +3891,21 @@ describe("GranularAccess", function() {
       { id: [1], MoreTexts: [[GristObjCode.List, i6]] },
     ), /403.*Cannot access attachment/);
 
+    const readTokenResult = (await cliEditor.send("getAccessToken", 0, { readOnly: true })).data;
+    await assert.isRejected(postAttachment(editor, docId, readTokenResult.token, "dataError", "error.txt"));
+
+    const tokenResult = (await cliEditor.send("getAccessToken", 0, { readOnly: false })).data;
+    const i7 = await postAttachment(editor, docId, tokenResult.token, "content7", "7.txt");
+    await assert.isFulfilled(getAttachment(owner, docId, i7));
+    // Without ?maybeNew=true, the web API has no way to prove access to a not-yet-
+    // referenced attachment, so editor is denied.
+    await assert.isRejected(getAttachment(editor, docId, i7));
+    // With ?maybeNew=true, the upload-tracking path lets the editor download the
+    // attachment they just uploaded via their access token.
+    await assert.isFulfilled(getAttachment(editor, docId, i7, { maybeNew: true }));
+    await editor.getDocAPI(docId).updateRows("Data1", { id: [1], Texts: [[GristObjCode.List, i7]] });
+    await assert.isFulfilled(getAttachment(editor, docId, i7));
+
     // Attachment check is not applied for undos of actions by the same user.
     const ownerProfile = await owner.getUserProfile();
     const editorProfile = await editor.getUserProfile();
@@ -4605,14 +4621,31 @@ async function assertDeniedFor(check: Promise<any>, memos: string[], test = /acc
 }
 
 // Read the content of an attachment, as text.
-async function getAttachment(api: UserAPI, docId: string, attId: number) {
+async function getAttachment(api: UserAPI, docId: string, attId: number, options?: { maybeNew?: boolean }) {
   const userApi = api as UserAPIImpl;
+  const query = options?.maybeNew ? "?maybeNew=true" : "";
   const result = await userApi.testRequest(
-    userApi.getBaseUrl() + `/api/docs/${docId}/attachments/${attId}/download`, {
+    userApi.getBaseUrl() + `/api/docs/${docId}/attachments/${attId}/download${query}`, {
       headers: userApi.defaultHeadersWithoutContentType(),
     },
   );
   return result.text();
+}
+
+// Upload an attachment.
+async function postAttachment(api: UserAPI, docId: string, token: string, content: string, filename: string) {
+  const formData = new FormData();
+  formData.append("upload", new Blob([content]), filename);
+  const url = api.getBaseUrl() + `/api/docs/${docId}/attachments?auth=${token}`;
+  const response = await axios.request({
+    url,
+    method: "POST",
+    data: formData,
+    headers: {
+      "X-Requested-With": "XMLHttpRequest",
+    },
+  });
+  return response.data[0];
 }
 
 async function assertFlux(check: Promise<any>) {
