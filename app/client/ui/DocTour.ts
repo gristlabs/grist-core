@@ -1,5 +1,6 @@
 import { DocComm } from "app/client/components/DocComm";
 import { makeT } from "app/client/lib/localization";
+import { sanitizeLinkUrl } from "app/client/lib/sanitizeUrl";
 import { sameDocumentUrlState } from "app/client/models/gristUrlState";
 import { cssButtons, cssLinkBtn, cssLinkIcon } from "app/client/ui/ExampleCard";
 import { IOnBoardingMsg, startOnBoarding } from "app/client/ui/OnBoardingPopups";
@@ -61,14 +62,10 @@ async function makeDocTour(docData: DocData, docComm: DocComm): Promise<IOnBoard
       placement = "auto";
     }
 
-    let validLinkUrl = true;
-    try {
-      new URL(linkUrl);
-    } catch {
-      validLinkUrl = false;
-    }
-
-    if (validLinkUrl && linkText) {
+    // Sanitize the link as an `a` href, rejecting active schemes such as `javascript:` that would
+    // otherwise execute when the tour link is clicked (XSS-62).
+    const safeLinkUrl = sanitizeLinkUrl(linkUrl);
+    if (safeLinkUrl && linkText) {
       body = dom(
         "div",
         dom("p", body),
@@ -76,7 +73,7 @@ async function makeDocTour(docData: DocData, docComm: DocComm): Promise<IOnBoard
           cssButtons(cssLinkBtn(
             IconList.includes(linkIcon) ? cssLinkIcon(linkIcon) : null,
             linkText,
-            { href: linkUrl, target: "_blank" },
+            { href: safeLinkUrl, target: "_blank" },
           )),
         ),
       );

@@ -252,4 +252,40 @@ describe("DocTour", function() {
     await driver.find(".test-tools-doctour").click();
     await checkDocTourPresent();
   });
+
+  it("should not render a link for an unsafe Link_URL", async () => {
+    // Build the GristDocTour table via the API rather than a binary fixture so the dangerous
+    // payloads are visible in the test source. Each row exercises a different Link_URL scheme.
+    const session = await gu.session().user("user1").personalSite.login();
+    const docId = await session.tempNewDoc(cleanup, "DocTourXSS", { load: false });
+    await session.createHomeApi().applyUserActions(docId, [
+      ["AddTable", "GristDocTour", [
+        { id: "Title" }, { id: "Body" }, { id: "Link_Text" }, { id: "Link_URL" },
+        { id: "Link_Icon" }, { id: "Location" }, { id: "Placement" },
+      ]],
+      ["BulkAddRecord", "GristDocTour", [null, null, null], {
+        Title: ["Safe link", "Javascript link", "Data link"],
+        Body: ["Safe body", "Javascript body", "Data body"],
+        Link_Text: ["Click safe", "Click js", "Click data"],
+        Link_URL: ["https://example.com/", "javascript:alert(1)", "data:text/html,<script>alert(1)</script>"],
+        Link_Icon: ["Page", "Page", "Page"],
+        Location: ["", "", ""],
+        Placement: ["auto", "auto", "auto"],
+        manualSort: [1, 2, 3],
+      }],
+    ]);
+
+    await session.loadDoc(`/doc/${docId}#repeat-doc-tour`);
+    await gu.waitForDocToLoad();
+
+    const docTour: { title: string, body: string }[] =
+      await driver.executeScript("return window._gristDocTour()");
+
+    assert.deepEqual(docTour.map(msg => msg.title), ["Safe link", "Javascript link", "Data link"]);
+    assert.include(docTour[0].body, '<a href="https://example.com/"');
+    assert.notInclude(docTour[1].body.toLowerCase(), "<a");   // No links at all.
+    assert.notInclude(docTour[2].body.toLowerCase(), "<a");
+    assert.equal(docTour[1].body, "Javascript body");         // We can even assert the exact text.
+    assert.equal(docTour[2].body, "Data body");
+  });
 });
