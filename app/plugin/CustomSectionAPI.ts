@@ -10,11 +10,11 @@ export interface ColumnToMap {
   /**
    * Title or short description of a column (used as a label in section mapping).
    */
-  title?: string|null,
+  title?: string | null,
   /**
    * Optional long description of a column (used as a help text in section mapping).
    */
-  description?: string|null,
+  description?: string | null,
   /**
    * Column types (as comma separated list), by default "Any", what means that any type is
    * allowed (unless strictType is true).
@@ -38,7 +38,7 @@ export interface ColumnToMap {
  * Tells Grist what columns a Custom Widget expects and allows users to map between existing column names
  * and those requested by the Custom Widget.
  */
-export type ColumnsToMap = (string|ColumnToMap)[];
+export type ColumnsToMap = (string | ColumnToMap)[];
 
 /**
  * Initial message sent by the CustomWidget with initial requirements.
@@ -66,20 +66,54 @@ export interface InteractionOptionsRequest {
 }
 
 /**
+ * Descriptive enum of how this section is linked to another section.
+ * See app/client/components/LinkingState.ts for classification logic.
+ */
+export type LinkType = "Filter:Summary-Group" |
+  "Filter:Col->Col" |
+  "Filter:Row->Col" |
+  "Summary" |
+  "Show-Referenced-Records" |
+  "Cursor:Same-Table" |
+  "Cursor:Reference" |
+  "Error:Invalid";
+
+/**
+ * Linking state of a custom widget's section, reported to the widget via InteractionOptions.
+ */
+export interface LinkingInfo {
+  /**
+   * If this section is a link target (driven by another section), the type of that link.
+   * Null if no incoming link.
+   */
+  asTarget: LinkType | null;
+  /**
+   * True if at least one other section uses this section as its link source.
+   */
+  asSource: boolean;
+}
+
+/**
  * Widget configuration set and approved by Grist, sent as part of ready message.
  */
-export interface InteractionOptions{
+export interface InteractionOptions {
   /**
    * Granted access level.
    */
   accessLevel: string,
+  /**
+   * Linking state of this section at the time of the message. May be absent on older
+   * Grist builds that do not support linking information; when present, fields inside
+   * describe whether this section is a link target and/or a link source.
+   */
+  linking?: LinkingInfo,
 }
 
 /**
  * Current columns mapping between viewFields in section and Custom widget.
  */
 export interface WidgetColumnMap {
-  [key: string]: string|string[]|null
+  [key: string]: string | string[] | null
 }
 
 /**
@@ -93,5 +127,5 @@ export interface CustomSectionAPI {
   /**
    * Returns current widget configuration (if requested through configuration method).
    */
-  mappings(): Promise<WidgetColumnMap|null>;
+  mappings(): Promise<WidgetColumnMap | null>;
 }

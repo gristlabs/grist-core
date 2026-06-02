@@ -1,13 +1,14 @@
-import { makeT } from 'app/client/lib/localization';
-import { bigBasicButton } from 'app/client/ui2018/buttons';
-import { testId, theme } from 'app/client/ui2018/cssVars';
-import { loadingSpinner } from 'app/client/ui2018/loaders';
-import { cssModalButtons, cssModalTitle, IModalControl, IModalOptions, modal } from 'app/client/ui2018/modals';
-import { PluginInstance } from 'app/common/PluginInstance';
-import { RenderTarget } from 'app/plugin/RenderOptions';
-import { Disposable, dom, DomContents, Observable, styled } from 'grainjs';
+import { makeT } from "app/client/lib/localization";
+import { bigBasicButton } from "app/client/ui2018/buttons";
+import { testId, theme } from "app/client/ui2018/cssVars";
+import { loadingSpinner } from "app/client/ui2018/loaders";
+import { cssModalButtons, cssModalTitle, IModalControl, IModalOptions, modal } from "app/client/ui2018/modals";
+import { PluginInstance } from "app/common/PluginInstance";
+import { RenderTarget } from "app/plugin/RenderOptions";
 
-const t = makeT('PluginScreen');
+import { Disposable, dom, DomContents, Observable, styled } from "grainjs";
+
+const t = makeT("PluginScreen");
 
 /**
  * Rendering options for the PluginScreen modal.
@@ -59,11 +60,11 @@ export class PluginScreen extends Disposable {
     this._fullbody.set(false);
     this.render([
       this._buildModalTitle(),
-      cssModalBody(t("Import failed: "), message, testId('importer-error')),
+      cssModalBody(t("Import failed: "), message, testId("importer-error")),
       cssModalButtons(
-        bigBasicButton('Close',
-          dom.on('click', () => this.close()),
-          testId('modal-cancel'))),
+        bigBasicButton("Close",
+          dom.on("click", () => this.close()),
+          testId("modal-cancel"))),
     ]);
   }
 
@@ -91,11 +92,11 @@ export class PluginScreen extends Disposable {
       });
 
       return [
-        cssModalOverrides.cls(''),
-        cssModalOverrides.cls('-fullscreen', this._fullscreen),
-        cssModalOverrides.cls('-fullbody', this._fullbody),
+        cssModalOverrides.cls(""),
+        cssModalOverrides.cls("-fullscreen", this._fullscreen),
+        cssModalOverrides.cls("-fullbody", this._fullbody),
         dom.domComputed(this._importerContent),
-        testId('importer-dialog'),
+        testId("importer-dialog"),
       ];
     }, {
       noClickAway: true,
@@ -109,8 +110,7 @@ export class PluginScreen extends Disposable {
   }
 }
 
-
-const cssModalOverrides = styled('div', `
+const cssModalOverrides = styled("div", `
   max-height: calc(100% - 32px);
   display: flex;
   flex-direction: column;
@@ -129,14 +129,14 @@ const cssModalOverrides = styled('div', `
   }
 `);
 
-const cssModalBody = styled('div', `
+const cssModalBody = styled("div", `
   padding: 16px 0;
   overflow-y: auto;
   max-width: 470px;
   white-space: pre-line;
 `);
 
-const cssModalHeader = styled('div', `
+const cssModalHeader = styled("div", `
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -146,7 +146,7 @@ const cssModalHeader = styled('div', `
   }
 `);
 
-const cssSpinner = styled('div', `
+const cssSpinner = styled("div", `
   display: flex;
   align-items: center;
   height: 80px;

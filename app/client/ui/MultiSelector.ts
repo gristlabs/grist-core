@@ -20,32 +20,32 @@
  * TODO: Optionally omit selected items from list
  */
 
-import { computed, MutableObsArray, ObsArray, observable, Observable } from 'grainjs';
-import { Disposable, dom, makeTestId, select, styled } from 'grainjs';
-import { button1 } from 'app/client/ui/buttons';
+import { button1 } from "app/client/ui/buttons";
+
+import { computed, MutableObsArray, ObsArray, observable, Observable } from "grainjs";
+import { Disposable, dom, makeTestId, select, styled } from "grainjs";
 
 export interface BaseItem {
   value: any;
   label: string;
 }
 
-const testId = makeTestId('test-ms-');
+const testId = makeTestId("test-ms-");
 
 export abstract class MultiItemSelector<Item extends BaseItem> extends Disposable {
-
   constructor(private _incItems: MutableObsArray<Item>, private _allItems: ObsArray<Item>,
-              private _options: {
-                addItemLabel: string,
-                addItemText: string
-              }) {
+    private _options: {
+      addItemLabel: string,
+      addItemText: string
+    }) {
     super();
   }
 
   public buildDom() {
     return cssMultiSelectorWrapper(
-      cssItemList(testId('list'),
+      cssItemList(testId("list"),
         dom.forEach(this._incItems, item => this.buildItemDom(item)),
-        this._buildAddItemDom(this._options.addItemLabel, this._options.addItemText)
+        this._buildAddItemDom(this._options.addItemLabel, this._options.addItemText),
       ),
     );
   }
@@ -79,9 +79,9 @@ export abstract class MultiItemSelector<Item extends BaseItem> extends Disposabl
   protected buildDragHandle(item: Item): Element { return new Element(); }
 
   protected buildSelectBox(selectedValue: string,
-                           selectCb: (newItem: Item) => void,
-                           selectOptions?: {}): Element {
-    const obs = computed(use => selectedValue).onWrite(async value => {
+    selectCb: (newItem: Item) => void,
+    selectOptions?: { defLabel?: string }): Element {
+    const obs = computed(use => selectedValue).onWrite(async (value) => {
       const newItem = this._findItemByValue(value);
       if (newItem) {
         selectCb(newItem);
@@ -91,7 +91,7 @@ export abstract class MultiItemSelector<Item extends BaseItem> extends Disposabl
     const result = select(
       obs,
       this._allItems,
-      selectOptions
+      selectOptions,
     );
     dom.autoDisposeElem(result, obs);
 
@@ -99,18 +99,18 @@ export abstract class MultiItemSelector<Item extends BaseItem> extends Disposabl
   }
 
   protected buildRemoveButton(removeCb: () => void): Element {
-    return cssItemRemove(testId('remove-btn'),
-      dom.on('click', removeCb),
-      '✖'
+    return cssItemRemove(testId("remove-btn"),
+      dom.on("click", removeCb),
+      "✖",
     );
   }
 
   // May be overridden for custom-looking items.
   protected buildItemDom(item: Item): Element {
-    return dom('li', testId('item'),
+    return dom("li", testId("item"),
       // this.buildDragHandle(item), TODO: once dragging is implemented
       this.buildSelectBox(item.value, async newItem => this.changeItem(item, newItem)),
-      this.buildRemoveButton(() => this.remove(item))
+      this.buildRemoveButton(() => this.remove(item)),
     );
   }
 
@@ -127,30 +127,30 @@ export abstract class MultiItemSelector<Item extends BaseItem> extends Disposabl
   // Builds the about-to-be-added item
   private _buildAddItemDom(defLabel: string, defText: string): Element {
     const addNewItem: Observable<boolean> = observable(false);
-    return dom('li', testId('add-item'),
-      dom.domComputed(addNewItem, isAdding => isAdding
-        ? dom.frag(
-          this.buildSelectBox('', async newItem => {
+    return dom("li", testId("add-item"),
+      dom.domComputed(addNewItem, isAdding => isAdding ?
+        dom.frag(
+          this.buildSelectBox("", async (newItem) => {
             await this.add(newItem);
             addNewItem.set(false);
           }, { defLabel }),
-          this.buildRemoveButton(() => addNewItem.set(false)))
-        : button1(defText, testId('add-btn'),
-          dom.on('click', () => addNewItem.set(true)))
-      )
+          this.buildRemoveButton(() => addNewItem.set(false))) :
+        button1(defText, testId("add-btn"),
+          dom.on("click", () => addNewItem.set(true))),
+      ),
     );
   }
 }
 
-const cssMultiSelectorWrapper = styled('div', `
+const cssMultiSelectorWrapper = styled("div", `
   border: 1px solid blue;
 `);
 
-const cssItemList = styled('ul', `
+const cssItemList = styled("ul", `
   list-style-type: none;
 `);
 
-const cssItemRemove = styled('span', `
+const cssItemRemove = styled("span", `
   padding: 0 .5rem;
   vertical-align: middle;
   cursor: pointer;

@@ -122,15 +122,21 @@ settings = {
     ]
   }
 }
+
+# Prevents fork bomb
+settings['process']['rlimits'] = [{
+  "type": "RLIMIT_NPROC",
+  "hard": int(os.environ.get('GVISOR_LIMIT_NPROC', '8')),
+  "soft": int(os.environ.get('GVISOR_LIMIT_NPROC', '8')),
+}]
+
 memory_limit = os.environ.get('GVISOR_LIMIT_MEMORY')
 if memory_limit:
-  settings['process']['rlimits'] = [
-    {
-      "type": "RLIMIT_AS",
-      "hard": int(memory_limit),
-      "soft": int(memory_limit)
-    }
-  ]
+  settings['process']['rlimits'].append({
+    "type": "RLIMIT_AS",
+    "hard": int(memory_limit),
+    "soft": int(memory_limit)
+  })
 
 # Helper for preparing a mount.
 def preserve(*locations, short_failure=False):
@@ -202,6 +208,9 @@ if args.mount:
 
 for directory in os.listdir('/'):
   directory_realpath = os.path.realpath("/" + directory)
+  # Skip non-directory entries (e.g. /swapfile) since tmpfs can only overlay directories.
+  if not os.path.isdir(directory_realpath):
+    continue
   if directory_realpath not in exceptions and directory_realpath not in preserved:
     tmpfs_mounts.append({
       # This places an empty directory at this destination.

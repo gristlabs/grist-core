@@ -1,8 +1,8 @@
-var assert = require('chai').assert;
-var rowuid = require('app/client/models/rowuid');
+var assert = require("chai").assert;
+var rowuid = require("app/client/models/rowuid");
 
-describe('rowuid', function() {
-  it('should combine and split tableRefs with rowId', function() {
+describe("rowuid", function() {
+  it("should combine and split tableRefs with rowId", function() {
     function verify(tableRef, rowId) {
       var u = rowuid.combine(tableRef, rowId);
       assert.equal(rowuid.tableRef(u), tableRef);

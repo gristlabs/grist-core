@@ -1,18 +1,19 @@
-import {UserAPI} from 'app/common/UserAPI';
-import {assert, driver, Key} from 'mocha-webdriver';
-import fetch from 'node-fetch';
-import * as gu from 'test/nbrowser/gristUtils';
-import {server} from 'test/nbrowser/testServer';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import { UserAPI } from "app/common/UserAPI";
 import {
-  enableExternalAttachmentsForTestSuite
-} from 'test/nbrowser/externalAttachmentsHelpers';
+  enableExternalAttachmentsForTestSuite,
+} from "test/nbrowser/externalAttachmentsHelpers";
+import * as gu from "test/nbrowser/gristUtils";
+import { server } from "test/nbrowser/testServer";
+import { setupTestSuite } from "test/nbrowser/testUtils";
 
-describe('DocUsageTracking', function() {
+import { assert, driver, Key } from "mocha-webdriver";
+import fetch from "node-fetch";
+
+describe("DocUsageTracking", function() {
   this.timeout(20000);
   const cleanup = setupTestSuite();
 
-  const ownerUser = 'user1';
+  const ownerUser = "user1";
   let api: UserAPI;
   let session: gu.Session;
 
@@ -25,33 +26,33 @@ describe('DocUsageTracking', function() {
     api = session.createHomeApi();
   }
 
-  before(async function () {
+  before(async function() {
     await makeSessionAndLogin();
   });
 
-  it('shows usage stats on the raw data page', async function() {
+  it("shows usage stats on the raw data page", async function() {
     await session.tempNewDoc(cleanup, "EmptyUsageDoc");
 
     // Check that the Usage section exists.
     await goToDocUsage();
-    assert.equal(await driver.find('.test-doc-usage-heading').getText(), 'Usage');
+    assert.equal(await driver.find(".test-doc-usage-heading").getText(), "Usage");
     await assertUsageMessage(null);
 
     // Check that usage is at 0.
-    await assertRowCount('0');
-    await assertDataSize('0.00');
-    await assertAttachmentsSize('0.00');
+    await assertRowCount("0");
+    await assertDataSize("0.00");
+    await assertAttachmentsSize("0.00");
 
     // Check that banners aren't shown on the raw data page.
     await gu.assertBannerText(null);
   });
 
-  function testAttachmentsUsage(getDocId: () => string, options: {external: boolean}) {
-    it('updates attachments size usage when uploading attachments', async function () {
+  function testAttachmentsUsage(getDocId: () => string, options: { external: boolean }) {
+    it("updates attachments size usage when uploading attachments", async function() {
       const docId = getDocId();
       // Add a new 'Attachments' column of type Attachment to Table1.
-      await gu.sendActions([['AddEmptyTable', "AttachmentsTable"]]);
-      await gu.getPageItem('AttachmentsTable').click();
+      await gu.sendActions([["AddEmptyTable", "AttachmentsTable"]]);
+      await gu.getPageItem("AttachmentsTable").click();
       await gu.addColumn("Attachments", "Attachment");
 
       // Focus out of the creator panel
@@ -60,62 +61,62 @@ describe('DocUsageTracking', function() {
       // Upload some files into the first row. (We're putting Grist docs in a Grist doc!)
       await driver.sendKeys(Key.ENTER);
       await gu.fileDialogUpload(
-        'docs/Covid-19.grist,docs/World-v0.grist,docs/World-v1.grist,docs/World-v3.grist,'
-        + 'docs/Landlord.grist,docs/ImportReferences.grist,docs/WorldUndo.grist,'
-        + 'docs/Ref-List-AC-Test.grist,docs/PasteParsing.grist',
-        () => driver.find('.test-pw-add').click()
+        "docs/Covid-19.grist,docs/World-v0.grist,docs/World-v1.grist,docs/World-v3.grist," +
+        "docs/Landlord.grist,docs/ImportReferences.grist,docs/WorldUndo.grist," +
+        "docs/Ref-List-AC-Test.grist,docs/PasteParsing.grist",
+        () => driver.find(".test-pw-add").click(),
       );
       // Check all 9 attachments have uploaded.
-      await driver.findContentWait('.test-pw-counter', /of 9/, 4000);
-      await driver.find('.test-modal-dialog .test-pw-close').click();
+      await driver.findContentWait(".test-pw-counter", /of 9/, 4000);
+      await driver.find(".test-modal-dialog .test-pw-close").click();
       await gu.waitForServer();
 
       // Navigate back to the raw data page, and check that attachments size updated.
       await goToDocUsage();
-      await assertDataSize('0.00');
-      await assertAttachmentsSize('0.01');
+      await assertDataSize("0.00");
+      await assertAttachmentsSize("0.01");
 
       // Check nudges appeared if not using external storage.
       if (!options.external) {
-        await driver.findWait('.test-top-panel', 100);
-        assert.equal(await driver.find('.test-external-attachment-banner-text').isDisplayed(), true);
-        assert.match(await driver.find('.test-doc-usage-message-text').getText(), /Set the document to use external/);
+        await driver.findWait(".test-top-panel", 100);
+        assert.equal(await driver.find(".test-external-attachment-banner-text").isDisplayed(), true);
+        assert.match(await driver.find(".test-doc-usage-message-text").getText(), /Set the document to use external/);
         // The link in the banner is implemented as a span.
-        await driver.find('.test-external-attachment-banner-text span').click();
+        await driver.find(".test-external-attachment-banner-text span").click();
         // Make sure preferredStorage is present now and get its classes.
-        const classes = await driver.findWait('#preferredStorage', 1000).getAttribute('class');
+        const classes = await driver.findWait("#preferredStorage", 1000).getAttribute("class");
         // Check that element has a -flash class, meaning it was highlighted.
-        assert.equal(classes.includes('-flash'), true);
+        assert.equal(classes.includes("-flash"), true);
         await driver.navigate().back();
       } else {
-        await driver.findWait('.test-top-panel', 100);
-        assert.equal(await driver.find('.test-external-attachment-banner-text').isPresent(), false);
-        assert.equal(await driver.find('.test-doc-usage-message-text').isPresent(), false);
+        await driver.findWait(".test-top-panel", 100);
+        assert.equal(await driver.find(".test-external-attachment-banner-text").isPresent(), false);
+        assert.equal(await driver.find(".test-doc-usage-message-text").isPresent(), false);
       }
 
       // Delete the 'Attachments' column; usage should not immediately update.
-      await api.applyUserActions(docId, [['RemoveColumn', 'AttachmentsTable', 'Attachments']]);
-      await assertDataSize('0.00');
-      await assertAttachmentsSize('0.01');
+      await api.applyUserActions(docId, [["RemoveColumn", "AttachmentsTable", "Attachments"]]);
+      await assertDataSize("0.00");
+      await assertAttachmentsSize("0.01");
 
       // Remove unused attachments via API and check that size automatically updates to 0.
       await removeUnusedAttachments(api, docId);
-      await assertDataSize('0.00');
-      await assertAttachmentsSize('0.00');
+      await assertDataSize("0.00");
+      await assertAttachmentsSize("0.00");
     });
   }
 
-  describe('attachment usage without external attachments', function() {
+  describe("attachment usage without external attachments", function() {
     let docId: string;
 
     before(async () => {
       docId = await session.tempNewDoc(cleanup, `AttachmentUsageTestDoc - internal`);
     });
 
-    testAttachmentsUsage(() => docId, {external: false});
+    testAttachmentsUsage(() => docId, { external: false });
   });
 
-  describe('attachment usage with external attachments', function() {
+  describe("attachment usage with external attachments", function() {
     let docId: string;
 
     before(async () => {
@@ -125,12 +126,12 @@ describe('DocUsageTracking', function() {
       assert.equal((await docApi.getAttachmentStore()).type, "external");
     });
 
-    testAttachmentsUsage(() => docId, {external: true});
+    testAttachmentsUsage(() => docId, { external: true });
   });
 });
 
 async function goToDocUsage() {
-  await driver.findWait('.test-tools-raw', 2000).click();
+  await driver.findWait(".test-tools-raw", 2000).click();
 
   // Check that the Usage section exists.
   await waitForDocUsage();
@@ -138,15 +139,15 @@ async function goToDocUsage() {
 
 async function assertUsageMessage(text: string | null) {
   if (text === null) {
-    assert.isFalse(await driver.find('.test-doc-usage-message').isPresent());
+    assert.isFalse(await driver.find(".test-doc-usage-message").isPresent());
   } else {
-    assert.equal(await driver.findWait('.test-doc-usage-message-text', 2000).getText(), text);
+    assert.equal(await driver.findWait(".test-doc-usage-message-text", 2000).getText(), text);
   }
 }
 
 async function assertRowCount(currentValue: string, maximumValue?: string) {
   await gu.waitToPass(async () => {
-    const rowUsage = await driver.find('.test-doc-usage-rows .test-doc-usage-value').getText();
+    const rowUsage = await driver.find(".test-doc-usage-rows .test-doc-usage-value").getText();
     const [, foundValue, foundMax] = rowUsage.match(/([0-9,]+) (?:of ([0-9,]+) )?rows/) || [];
     assert.equal(foundValue, currentValue);
     if (maximumValue) {
@@ -157,7 +158,7 @@ async function assertRowCount(currentValue: string, maximumValue?: string) {
 
 async function assertDataSize(currentValue: string, maximumValue?: string) {
   await gu.waitToPass(async () => {
-    const dataUsage = await driver.find('.test-doc-usage-data-size .test-doc-usage-value').getText();
+    const dataUsage = await driver.find(".test-doc-usage-data-size .test-doc-usage-value").getText();
     const [, foundValue, foundMax] = dataUsage.match(/([0-9,.]+) (?:of ([0-9,.]+) )?MB/) || [];
     assert.equal(foundValue, currentValue);
     if (maximumValue) {
@@ -168,7 +169,7 @@ async function assertDataSize(currentValue: string, maximumValue?: string) {
 
 async function assertAttachmentsSize(currentValue: string, maximumValue?: string) {
   await gu.waitToPass(async () => {
-    const attachmentUsage = await driver.find('.test-doc-usage-attachments-size .test-doc-usage-value').getText();
+    const attachmentUsage = await driver.find(".test-doc-usage-attachments-size .test-doc-usage-value").getText();
     const [, foundValue, foundMax] = attachmentUsage.match(/([0-9,.]+) (?:of ([0-9,.]+) )?GB/) || [];
     assert.equal(foundValue, currentValue);
     if (maximumValue) {
@@ -178,17 +179,17 @@ async function assertAttachmentsSize(currentValue: string, maximumValue?: string
 }
 
 async function waitForDocUsage() {
-  await driver.findWait('.test-doc-usage-container', 8000);
+  await driver.findWait(".test-doc-usage-container", 8000);
   await gu.waitToPass(async () => {
-    return assert.isFalse(await driver.find('.test-doc-usage-loading').isPresent());
+    return assert.isFalse(await driver.find(".test-doc-usage-loading").isPresent());
   });
 }
 
 async function removeUnusedAttachments(api: UserAPI, docId: string) {
-  const headers = {Authorization: `Bearer ${await api.fetchApiKey()}`};
-  const url = server.getUrl('docs', `/api/docs/${docId}`);
+  const headers = { Authorization: `Bearer ${await api.fetchApiKey()}` };
+  const url = server.getUrl("docs", `/api/docs/${docId}`);
   await fetch(url + "/attachments/removeUnused?verifyfiles=0&expiredonly=0", {
     headers,
-    method: "POST"
+    method: "POST",
   });
 }

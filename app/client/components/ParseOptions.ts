@@ -1,18 +1,18 @@
-import {makeT} from 'app/client/lib/localization';
-import {markdown} from 'app/client/lib/markdown';
-import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
-import {squareCheckbox} from 'app/client/ui2018/checkbox';
-import {testId, theme} from 'app/client/ui2018/cssVars';
-import {cssModalButtons} from 'app/client/ui2018/modals';
-import {ParseOptionSchema} from 'app/plugin/FileParserAPI';
+import { makeT } from "app/client/lib/localization";
+import { markdown } from "app/client/lib/markdown";
+import { bigBasicButton, bigPrimaryButton } from "app/client/ui2018/buttons";
+import { squareCheckbox } from "app/client/ui2018/checkbox";
+import { testId, theme } from "app/client/ui2018/cssVars";
+import { cssModalButtons } from "app/client/ui2018/modals";
+import { ParseOptionSchema } from "app/plugin/FileParserAPI";
 
-import {Computed, dom, DomContents, IDisposableOwner, input, Observable, styled} from 'grainjs';
-import fromPairs = require('lodash/fromPairs');
-import invert = require('lodash/invert');
+import { Computed, dom, DomContents, IDisposableOwner, input, Observable, styled } from "grainjs";
+import fromPairs from "lodash/fromPairs";
+import invert from "lodash/invert";
 
-export type ParseOptionValueType = boolean|string|number;
+export type ParseOptionValueType = boolean | string | number;
 
-const t = makeT('ParseOptions');
+const t = makeT("ParseOptions");
 
 export interface ParseOptionValues {
   [name: string]: ParseOptionValueType;
@@ -27,19 +27,19 @@ interface EscapeChars {
 }
 
 const escapeCharDict: EscapeChars = {
-  '\n': '\\n',
-  '\r': '\\r',
-  '\t': '\\t',
+  "\n": "\\n",
+  "\r": "\\r",
+  "\t": "\\t",
 };
 const invertedEscapeCharDict: EscapeChars = invert(escapeCharDict);
 
 // Helpers to escape and unescape certain non-printable characters that are useful in parsing
 // options, e.g. as separators.
 function escapeChars(value: string) {
-  return value.replace(/[\n\r\t]/g, (match) => escapeCharDict[match]);
+  return value.replace(/[\n\r\t]/g, match => escapeCharDict[match]);
 }
 function unescapeChars(value: string) {
-  return value.replace(/\\[nrt]/g, (match) => invertedEscapeCharDict[match]);
+  return value.replace(/\\[nrt]/g, match => invertedEscapeCharDict[match]);
 }
 
 /**
@@ -56,59 +56,59 @@ export function buildParseOptionsForm(
 ): DomContents {
   const items = schema.filter(item => item.visible);
   const optionsMap = new Map<string, Observable<ParseOptionValueType>>(
-    items.map((item) => [item.name, Observable.create(owner, values[item.name])]));
+    items.map(item => [item.name, Observable.create(owner, values[item.name])]));
 
   function collectParseOptions(): ParseOptionValues {
-    return fromPairs(items.map((item) => [item.name, optionsMap.get(item.name)!.get()]));
+    return fromPairs(items.map(item => [item.name, optionsMap.get(item.name)!.get()]));
   }
 
-  const labelsByName: {[key: string]: string} = {
-    lineterminator: t('Line terminator'),
-    include_col_names_as_headers: t('First row contains headers'),
-    delimiter: t('Field separator'),
-    skipinitialspace: t('Skip leading whitespace'),
-    quotechar: t('Quote character'),
-    doublequote: t('Quotes in fields are doubled'),
-    quoting: t('Convert quoted fields'),
-    escapechar: t('Escape character'),
-    start_with_row: t('Start with row'),
-    NUM_ROWS: t('Number of rows'),
-    encoding: t('Character encoding. See [the supported codecs]({{link}})', {link: 'https://tinyurl.com/py3codecs'})
+  const labelsByName: { [key: string]: string } = {
+    lineterminator: t("Line terminator"),
+    include_col_names_as_headers: t("First row contains headers"),
+    delimiter: t("Field separator"),
+    skipinitialspace: t("Skip leading whitespace"),
+    quotechar: t("Quote character"),
+    doublequote: t("Quotes in fields are doubled"),
+    quoting: t("Convert quoted fields"),
+    escapechar: t("Escape character"),
+    start_with_row: t("Start with row"),
+    NUM_ROWS: t("Number of rows"),
+    encoding: t("Character encoding. See [the supported codecs]({{link}})", { link: "https://tinyurl.com/py3codecs" }),
   };
 
   return [
     cssParseOptionForm(
-      items.map((item) => cssParseOption(
+      items.map(item => cssParseOption(
         cssParseOptionName(markdown(labelsByName[item.name])),
         optionToInput(owner, item.type, optionsMap.get(item.name)!),
-        testId('parseopts-opt'),
+        testId("parseopts-opt"),
       )),
     ),
     cssModalButtons(
-      dom.domComputed((use) => items.every((item) => use(optionsMap.get(item.name)!) === values[item.name]),
-        (unchanged) => (unchanged ?
-          bigBasicButton(t('Close'), dom.on('click', doCancel), testId('parseopts-back')) :
-          bigPrimaryButton(t('Update preview'), dom.on('click', () => doUpdate(collectParseOptions())),
-            testId('parseopts-update'))
-        )
-      )
+      dom.domComputed(use => items.every(item => use(optionsMap.get(item.name)!) === values[item.name]),
+        unchanged => (unchanged ?
+          bigBasicButton(t("Close"), dom.on("click", doCancel), testId("parseopts-back")) :
+          bigPrimaryButton(t("Update preview"), dom.on("click", () => doUpdate(collectParseOptions())),
+            testId("parseopts-update"))
+        ),
+      ),
     ),
   ];
 }
 
 function optionToInput(owner: IDisposableOwner, type: string, value: Observable<ParseOptionValueType>): HTMLElement {
   switch (type) {
-    case 'boolean': return squareCheckbox(value as Observable<boolean>);
+    case "boolean": return squareCheckbox(value as Observable<boolean>);
     default: {
-      const obs = Computed.create(owner, (use) => escapeChars(String(use(value) || "")))
-        .onWrite((val) => value.set(unescapeChars(val)));
-      return cssInputText(obs, {onInput: true},
-        dom.on('focus', (ev, elem) => elem.select()));
+      const obs = Computed.create(owner, use => escapeChars(String(use(value) || "")))
+        .onWrite(val => value.set(unescapeChars(val)));
+      return cssInputText(obs, { onInput: true },
+        dom.on("focus", (ev, elem) => elem.select()));
     }
   }
 }
 
-const cssParseOptionForm = styled('div', `
+const cssParseOptionForm = styled("div", `
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
@@ -116,13 +116,13 @@ const cssParseOptionForm = styled('div', `
   width: 400px;
   overflow-y: auto;
 `);
-const cssParseOption = styled('div', `
+const cssParseOption = styled("div", `
   flex: none;
   margin: 8px 0;
   width: calc(50% - 16px);
   font-weight: initial;   /* negate bootstrap */
 `);
-const cssParseOptionName = styled('div', `
+const cssParseOptionName = styled("div", `
   margin-bottom: 8px;
 `);
 const cssInputText = styled(input, `

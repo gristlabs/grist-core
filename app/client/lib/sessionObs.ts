@@ -2,9 +2,10 @@
  * createSessionObs() creates an observable tied to window.sessionStorage, i.e. preserved for the
  * lifetime of a browser tab for the current origin.
  */
-import {safeJsonParse} from 'app/common/gutil';
-import {IDisposableOwner, Observable} from 'grainjs';
-import {getSessionStorage} from 'app/client/lib/storage';
+import { getSessionStorage } from "app/client/lib/storage";
+import { safeJsonParse } from "app/common/gutil";
+
+import { IDisposableOwner, Observable } from "grainjs";
 
 export interface SessionObs<T> extends Observable<T> {
   pauseSaving(yesNo: boolean): void;
@@ -33,16 +34,16 @@ export interface SessionObs<T> extends Observable<T> {
  *
  */
 export function createSessionObs<T>(
-  owner: IDisposableOwner|null,
+  owner: IDisposableOwner | null,
   key: string,
   _default: T,
   isValid: (val: any) => val is T,
 ): SessionObs<T> {
-  function fromString(value: string|null): T {
+  function fromString(value: string | null): T {
     const parsed = value == null ? null : safeJsonParse(value, null);
     return isValid(parsed) ? parsed : _default;
   }
-  function toString(value: T): string|null {
+  function toString(value: T): string | null {
     return value === _default || !isValid(value) ? null : JSON.stringify(value);
   }
   let _pauseSaving = false;
@@ -57,10 +58,10 @@ export function createSessionObs<T>(
       storage.setItem(key, stored);
     }
   });
-  return Object.assign(obs, {pauseSaving(yesNo: boolean) { _pauseSaving = yesNo; }});
+  return Object.assign(obs, { pauseSaving(yesNo: boolean) { _pauseSaving = yesNo; } });
 }
 
 /** Helper functions to check simple types, useful for the `isValid` argument to createSessionObs. */
-export function isNumber(t: any): t is number { return typeof t === 'number'; }
-export function isBoolean(t: any): t is boolean { return typeof t === 'boolean'; }
-export function isString(t: any): t is string { return typeof t === 'string'; }
+export function isNumber(t: any): t is number { return typeof t === "number"; }
+export function isBoolean(t: any): t is boolean { return typeof t === "boolean"; }
+export function isString(t: any): t is string { return typeof t === "string"; }

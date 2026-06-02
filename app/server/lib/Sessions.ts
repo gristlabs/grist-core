@@ -1,10 +1,12 @@
-import {ScopedSession} from 'app/server/lib/BrowserSession';
-import {RequestWithOrg} from 'app/server/lib/extractOrg';
-import {cookieName, SessionStore} from 'app/server/lib/gristSessions';
-import * as cookie from 'cookie';
-import * as cookieParser from 'cookie-parser';
-import {Request} from 'express';
-import {IncomingMessage} from 'http';
+import { ScopedSession } from "app/server/lib/BrowserSession";
+import { RequestWithOrg } from "app/server/lib/extractOrg";
+import { cookieName, SessionStore } from "app/server/lib/gristSessions";
+
+import { IncomingMessage } from "http";
+
+import * as cookie from "cookie";
+import * as cookieParser from "cookie-parser";
+import { Request } from "express";
 
 /**
  *
@@ -39,16 +41,16 @@ export class Sessions {
     org?: string
   }): ScopedSession {
     const sid = options?.sessionId ?? this.getSessionIdFromRequest(req);
-    const org = options?.org ?? ('org' in req ? req.org : undefined);
+    const org = options?.org ?? ("org" in req ? req.org : undefined);
     if (!sid) { throw new Error("session not found"); }
-    return this.getOrCreateSession(sid, org, '');  // TODO: allow for tying to a preferred user.
+    return this.getOrCreateSession(sid, org, "");  // TODO: allow for tying to a preferred user.
   }
 
   /**
    * Get or create a session given the session id and organization name.
    */
-  public getOrCreateSession(sid: string, org: string|undefined, userSelector: string = ''): ScopedSession {
-    org = org || '';
+  public getOrCreateSession(sid: string, org: string | undefined, userSelector: string = ""): ScopedSession {
+    org = org || "";
     const key = this._getSessionOrgKey(sid, org, userSelector);
     if (!this._sessions.has(key)) {
       const scopedSession = new ScopedSession(sid, this._sessionStore, org, userSelector);
@@ -66,7 +68,7 @@ export class Sessions {
    */
   public clearCacheIfNeeded(options?: {
     email?: string,
-    org?: string|null,
+    org?: string | null,
     sessionID?: string,
   }) {
     if (!(process.env.GRIST_HOST || process.env.GRIST_HOSTED)) {
@@ -77,20 +79,29 @@ export class Sessions {
   /**
    * Returns the sessionId from the signed grist cookie.
    */
-  public getSessionIdFromCookie(gristCookie: string): string|false {
+  public getSessionIdFromCookie(gristCookie: string): string | false {
     return cookieParser.signedCookie(gristCookie, this._sessionSecret);
   }
 
   /**
    * Get the session id from the grist cookie.  Returns null if no cookie found.
    */
-  public getSessionIdFromRequest(req: Request|IncomingMessage): string|null {
+  public getSessionIdFromRequest(req: Request | IncomingMessage): string | null {
     if (req.headers.cookie) {
       const cookies = cookie.parse(req.headers.cookie);
       const sessionId = this.getSessionIdFromCookie(cookies[cookieName]);
       if (sessionId) { return sessionId; }
     }
     return (req as any).sessionID || null;  // sessionID set by express-session
+  }
+
+  /**
+   * Clear all sessions from the session store.
+   * This will remove all session data from Redis/SQLite and clear the in-memory cache.
+   */
+  public async clearAllSessions(): Promise<void> {
+    this._sessions.clear();
+    await this._sessionStore.clearAsync();
   }
 
   /**

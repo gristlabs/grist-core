@@ -1,16 +1,21 @@
-import { SandboxInfo } from 'app/common/SandboxInfo';
+import { StorageBackendName } from "app/common/ExternalStorage";
+import { SandboxInfo } from "app/common/SandboxInfo";
 
 export type BootProbeIds =
-    'admins' |
-    'boot-page' |
-    'health-check' |
-    'reachable' |
-    'host-header' |
-    'sandboxing' |
-    'system-user' |
-    'authentication' |
-    'websockets' |
-    'session-secret'
+  "admins" |
+  "boot-key" |
+  "health-check" |
+  "home-url" |
+  "reachable" |
+  "host-header" |
+  "sandboxing" |
+  "system-user" |
+  "authentication" |
+  "websockets" |
+  "session-secret" |
+  "service-status" |
+  "backups" |
+  "sandbox-providers"
 ;
 
 export interface BootProbeResult {
@@ -20,7 +25,7 @@ export interface BootProbeResult {
   // "none" means no fault detected (but that the test is not exhaustive
   // enough to claim "success").
   // "fault" is a bad error, "warning" a ... warning, "hmm" almost a debug message.
-  status: 'success' | 'fault' | 'warning' | 'hmm' | 'none';
+  status: "success" | "fault" | "warning" | "hmm" | "none";
   details?: Record<string, any>;
 }
 
@@ -30,3 +35,9 @@ export interface BootProbeInfo {
 }
 
 export type SandboxingBootProbeDetails = SandboxInfo;
+
+export interface BackupsBootProbeDetails {
+  active: boolean;
+  availableBackends: StorageBackendName[];
+  backend?: StorageBackendName;
+}

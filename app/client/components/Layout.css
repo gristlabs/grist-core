@@ -4,6 +4,10 @@
   height: 100%;
 }
 
+.diff .layout_root {
+  width: 100%;
+}
+
 .layout_root.layout_fill_window {
   position: absolute;
 }

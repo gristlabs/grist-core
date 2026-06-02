@@ -4,7 +4,7 @@
 root = true
 
 # Unix-style newlines with a newline ending every file
-[*.{ts,js}]
+[*.{ts,js,py}]
 end_of_line = lf
 insert_final_newline = true
 charset = utf-8

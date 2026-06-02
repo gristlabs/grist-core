@@ -1,9 +1,9 @@
 import { buildHomeBanners } from "app/client/components/Banners";
 import { makeT } from "app/client/lib/localization";
 import { AppModel, reportError } from "app/client/models/AppModel";
-import { App } from "app/client/ui/App";
-import { AuditLogsModel } from "app/client/models/AuditLogsModel";
+import { AuditLogsModel, AuditLogsModelImpl } from "app/client/models/AuditLogsModel";
 import { urlState } from "app/client/models/gristUrlState";
+import { App } from "app/client/ui/App";
 import { AppHeader } from "app/client/ui/AppHeader";
 import { AuditLogStreamingConfig } from "app/client/ui/AuditLogStreamingConfig";
 import { OrgConfigsAPI } from "app/client/ui/ConfigsAPI";
@@ -17,6 +17,7 @@ import { theme, vars } from "app/client/ui2018/cssVars";
 import { cssLink } from "app/client/ui2018/links";
 import { commonUrls, getPageTitleSuffix } from "app/common/gristUrls";
 import { getGristConfig } from "app/common/urlUtils";
+
 import {
   Computed,
   Disposable,
@@ -32,13 +33,14 @@ const t = makeT("AuditLogsPage");
 const testId = makeTestId("test-audit-logs-page-");
 
 export class AuditLogsPage extends Disposable {
-  private readonly _model = new AuditLogsModel({
+  private readonly _model: AuditLogsModel = new AuditLogsModelImpl({
     configsAPI: new OrgConfigsAPI(this._appModel.currentOrg!.id),
   });
+
   private readonly _currentPage = Computed.create(
     this,
     urlState().state,
-    (_use, s) => s.auditLogs
+    (_use, s) => s.auditLogs,
   );
 
   constructor(private _appModel: AppModel, private _appObj: App) {
@@ -58,7 +60,7 @@ export class AuditLogsPage extends Disposable {
     if (!this._appModel.isOwner()) {
       return createForbiddenPage(
         this._appModel,
-        t("Only site owners may access audit logs.")
+        t("Only site owners may access audit logs."),
       );
     }
 
@@ -84,9 +86,9 @@ export class AuditLogsPage extends Disposable {
         { style: "margin-left: 16px;" },
         cssLink(urlState().setLinkUrl({}), t("Home"), testId("home")),
         separator(" / "),
-        dom("span", t("Audit Logs"))
+        dom("span", t("Audit Logs")),
       ),
-      createTopBarHome(this._appModel)
+      createTopBarHome(this._appModel),
     );
   }
 
@@ -96,13 +98,13 @@ export class AuditLogsPage extends Disposable {
         cssPageTitle(
           t("Audit logs for {{siteName}}", {
             siteName: this._appModel.currentOrgName,
-          })
+          }),
         ),
         cssSection(
           cssSectionTitle(t("Log streaming")),
-          cssSectionBody(this._buildLogStreamingConfig())
-        )
-      )
+          cssSectionBody(this._buildLogStreamingConfig()),
+        ),
+      ),
     );
   }
 
@@ -116,9 +118,9 @@ enable Grist Enterprise. {{contactUsLink}} to learn more.",
         {
           contactUsLink: cssLink(
             { href: commonUrls.contact, target: "_blank" },
-            t("Contact us")
+            t("Contact us"),
           ),
-        }
+        },
       );
     } else if (
       deploymentType === "saas" &&
@@ -131,9 +133,9 @@ SIEM (security information and event management) system if you \
         {
           upgradePlanButton: textButton(
             dom.on("click", () => this._appModel.showUpgradeModal()),
-            t("upgrade your plan")
+            t("upgrade your plan"),
           ),
-        }
+        },
       );
     } else {
       this._model.fetchStreamingDestinations().catch(reportError);
@@ -151,7 +153,7 @@ SIEM (security information and event management) system if you \
             return (document.title = t("Audit Logs") + suffix);
           }
         }
-      })
+      }),
     );
   }
 }

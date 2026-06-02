@@ -1,7 +1,7 @@
 // This is from http://www.shortcutworld.com/shortcuts.php?l=en&p=win&application=Excel_2010
 exports.shortcuts = function() {
   return [{
-    group: 'Navigate inside worksheets',
+    group: "Navigate inside worksheets",
     shortcuts: [
       "Left,Up,Right,Down:  Move one cell up, down, left, or right in a worksheet.",
       "PageDown,PageUp:  Move one screen down / one screen up in a worksheet.",
@@ -21,7 +21,7 @@ exports.shortcuts = function() {
       "End:  Turn 'End' mode on. In End mode, press arrow keys to move to the next nonblank cell in the same column or row as the active cell. From here use arrow keys to move by blocks of data, home to move to last cell, or enter to move to the last cell to the right.",
     ]
   }, {
-    group: 'Select cells',
+    group: "Select cells",
     shortcuts: [
       "Shift+Space:  Select the entire row.",
       "Ctrl+Space:  Select the entire column.",
@@ -37,7 +37,7 @@ exports.shortcuts = function() {
       "Ctrl+Shift+End:  Extend the selection to the last used cell on the worksheet (lower-right corner).",
     ]
   }, {
-    group: 'Manage Active Selections',
+    group: "Manage Active Selections",
     shortcuts: [
       "F8:  Turn on extension of selection with arrow keys without having to keep pressing Shift.",
       "Shift+F8:  Add another (adjacent or non-adjacent) range of cells to the selection. Use arrow keys and Shift+arrow keys to add to selection.",
@@ -50,7 +50,7 @@ exports.shortcuts = function() {
       "Esc:  Cancel Selection.",
     ]
   }, {
-    group: 'Select inside cells',
+    group: "Select inside cells",
     shortcuts: [
       "Shift+Left,Shift+Right:  Select or unselect one character to the left / to the right.",
       "Ctrl+Shift+Left,Ctrl+Shift+Right:  Select or unselect one word to the left / to the right.",

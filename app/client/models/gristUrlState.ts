@@ -22,14 +22,15 @@
  *
  * Note that the form of URLs depends on the settings in window.gristConfig object.
  */
-import {unsavedChanges} from 'app/client/components/UnsavedChanges';
-import {hooks} from 'app/client/Hooks';
-import {UrlState} from 'app/client/lib/UrlState';
-import {decodeUrl, encodeUrl, getSlugIfNeeded, GristLoadConfig, IGristUrlState} from 'app/common/gristUrls';
-import {Document} from 'app/common/UserAPI';
-import isEmpty = require('lodash/isEmpty');
-import isEqual = require('lodash/isEqual');
-import {CellValue} from "app/plugin/GristData";
+import { unsavedChanges } from "app/client/components/UnsavedChanges";
+import { hooks } from "app/client/Hooks";
+import { UrlState } from "app/client/lib/UrlState";
+import { decodeUrl, encodeUrl, getSlugIfNeeded, GristLoadConfig, IGristUrlState } from "app/common/gristUrls";
+import { Document } from "app/common/UserAPI";
+import { CellValue } from "app/plugin/GristData";
+
+import isEmpty from "lodash/isEmpty";
+import isEqual from "lodash/isEqual";
 
 /**
  * Returns a singleton UrlState object, initializing it on first use.
@@ -37,7 +38,7 @@ import {CellValue} from "app/plugin/GristData";
 export function urlState(): UrlState<IGristUrlState> {
   return _urlState || (_urlState = new UrlState(window, new UrlStateImpl(window as any)));
 }
-let _urlState: UrlState<IGristUrlState>|undefined;
+let _urlState: UrlState<IGristUrlState> | undefined;
 
 /**
  * Returns url parameters appropriate for the specified document.
@@ -58,14 +59,14 @@ export function docUrl(doc: Document): IGristUrlState {
 export function getMainOrgUrl(): string { return urlState().makeUrl({}); }
 
 // When on a document URL, returns the URL with just the doc ID, omitting other bits (like page).
-export function getCurrentDocUrl(): string { return urlState().makeUrl({docPage: undefined}); }
+export function getCurrentDocUrl(): string { return urlState().makeUrl({ docPage: undefined }); }
 
 /**
  * Implements the interface expected by UrlState. It is only exported for the sake of tests; the
  * only public interface is the urlState() accessor.
  */
 export class UrlStateImpl {
-  constructor(private _window: {gristConfig?: Partial<GristLoadConfig>}) {}
+  constructor(private _window: { gristConfig?: Partial<GristLoadConfig> }) {}
 
   /**
    * The actual serialization of a url state into a URL. The URL has the form
@@ -110,13 +111,15 @@ export class UrlStateImpl {
       newState.billing ||
       newState.activation ||
       newState.auditLogs ||
+      newState.siteSettings ||
       newState.welcome ||
-      newState.adminPanel
-        ? prevState.org
-          ? { org: prevState.org }
-          : {}
-        : prevState;
-    return {...keepState, ...newState};
+      newState.adminPanel ||
+      newState.boot ?
+        prevState.org ?
+          { org: prevState.org } :
+          {} :
+        prevState;
+    return { ...keepState, ...newState };
   }
 
   /**
@@ -141,26 +144,32 @@ export class UrlStateImpl {
     const activationReload = Boolean(prevState.activation) !== Boolean(newState.activation);
     // Reload when moving to/from the audit logs page.
     const auditLogsReload = Boolean(prevState.auditLogs) !== Boolean(newState.auditLogs);
+    // Reload when moving to/from the site settings page.
+    const siteSettingsReload = Boolean(prevState.siteSettings) !== Boolean(newState.siteSettings);
     // Reload when moving to/from a welcome page.
     const welcomeReload = Boolean(prevState.welcome) !== Boolean(newState.welcome);
     // Reload when link keys change, which changes what the user can access
     const linkKeysReload = !isEqual(prevState.params?.linkParameters, newState.params?.linkParameters);
     // Always reload on login pages.
     const loginReload = prevState.login || newState.login;
-    // Reload when moving to/from the support Grist page.
+    // Reload when moving to/from the Admin Panel.
     const adminPanelReload = Boolean(prevState.adminPanel) !== Boolean(newState.adminPanel);
+    // Reload when moving to/from the boot page.
+    const bootReload = Boolean(prevState.boot) !== Boolean(newState.boot);
     return Boolean(
       orgReload ||
-        accountReload ||
-        billingReload ||
-        activationReload ||
-        auditLogsReload ||
-        gristConfig.errPage ||
-        docReload ||
-        welcomeReload ||
-        linkKeysReload ||
-        loginReload ||
-        adminPanelReload
+      accountReload ||
+      billingReload ||
+      activationReload ||
+      auditLogsReload ||
+      siteSettingsReload ||
+      gristConfig.errPage ||
+      docReload ||
+      welcomeReload ||
+      linkKeysReload ||
+      loginReload ||
+      adminPanelReload ||
+      bootReload,
     );
   }
 
@@ -180,16 +189,16 @@ export class UrlStateImpl {
  * if not, prepending `https://`.
  */
 export function constructUrl(value: CellValue): string {
-  if (typeof value !== 'string') {
-    return '';
+  if (typeof value !== "string") {
+    return "";
   }
-  const url = value.slice(value.lastIndexOf(' ') + 1);
+  const url = value.slice(value.lastIndexOf(" ") + 1);
   try {
     // Try to construct a valid URL
     return (new URL(url)).toString();
   } catch (e) {
     // Not a valid URL, so try to prefix it with https
-    return 'https://' + url;
+    return "https://" + url;
   }
 }
 

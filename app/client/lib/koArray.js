@@ -5,12 +5,12 @@
  */
 
 
-var ko = require('knockout');
-var Promise = require('bluebird');
-var dispose = require('./dispose');
-var gutil = require('app/common/gutil');
+var ko = require("knockout");
+var Promise = require("bluebird");
+var dispose = require("./dispose");
+var gutil = require("app/common/gutil");
 
-require('./koUtil');   // adds subscribeInit method to observables.
+require("./koUtil");   // adds subscribeInit method to observables.
 
 /**
  * Event indicating that a koArray has been modified. This reflects changes to which objects are
@@ -40,7 +40,7 @@ exports.default = koArray;
  * Checks if an object is an instance of koArray.
  */
 koArray.isKoArray = function(obj) {
-  return (obj && typeof obj.subscribe === 'function' && typeof obj.all === 'function');
+  return (obj && typeof obj.subscribe === "function" && typeof obj.all === "function");
 };
 exports.isKoArray = koArray.isKoArray;
 
@@ -115,7 +115,7 @@ function KoArray(initialValues) {
   this._syncSubscription = null;
   this._disposeElements = noop;
 
-  this.autoDispose(this._array.subscribe(this._emitPreparedEvent, this, 'spectate'));
+  this.autoDispose(this._array.subscribe(this._emitPreparedEvent, this, "spectate"));
 
   this.autoDisposeCallback(function() {
     this._disposeElements(this.peek());
@@ -162,7 +162,7 @@ KoArray.prototype.getObservable = function() {
  * The `peekLength` property evaluates to the length of the underlying array. Using it does NOT
  * create a dependency on the array. Use array.all().length to create a dependency.
  */
-Object.defineProperty(KoArray.prototype, 'peekLength', {
+Object.defineProperty(KoArray.prototype, "peekLength", {
   configurable: false,
   enumerable: false,
   get: function() { return this._array.peek().length; },
@@ -219,7 +219,7 @@ KoArray.prototype._emitPreparedEvent = function() {
   if (event) {
     event.array = this.peek();
     this._preparedSpliceEvent = null;
-    this._array.notifySubscribers(event, 'spliceChange');
+    this._array.notifySubscribers(event, "spliceChange");
   }
 };
 
@@ -292,7 +292,7 @@ KoArray.prototype.arraySplice = function(start, optDeleteCount, arrToInsert) {
 
   this._preChange();
   var ret = (optDeleteCount === void 0 ? array.splice(start) :
-             array.splice(start, optDeleteCount));
+    array.splice(start, optDeleteCount));
   gutil.arraySplice(array, startIndex, arrToInsert);
   this._prepareSpliceEvent(startIndex, arrToInsert.length, ret);
   this._postChange();
@@ -347,7 +347,7 @@ KoArray.prototype.syncMap = function(otherKoArray, optCallback, optCallbackTarge
       newValues.push(optCallback.call(optCallbackTarget, arr[i], i));
     }
     this.arraySplice(splice.start, splice.deleted.length, newValues);
-  }, this, 'spliceChange'));
+  }, this, "spliceChange"));
 };
 
 /**
@@ -374,7 +374,7 @@ KoArray.prototype.subscribeForEach = function(options) {
   var context = options.context;
   var onAdd = options.add || noop;
   var onRemove = options.remove || noop;
-  var shouldDelay = (typeof options.addDelay === 'number');
+  var shouldDelay = (typeof options.addDelay === "number");
 
   var subscription = this.subscribe(function(splice) {
     var i, arr = splice.array;
@@ -396,7 +396,7 @@ KoArray.prototype.subscribeForEach = function(options) {
       // closer to "nextTick", which is what we want here.
       Promise.resolve(null).then(callAdd);
     }
-  }, this, 'spliceChange');
+  }, this, "spliceChange");
 
   this.peek().forEach(function(item, i) {
     onAdd.call(context, item, i, this);
@@ -443,7 +443,7 @@ KoArray.prototype.makeLiveIndex = function(optInitialIndex) {
       // Adjust the index if it was inside the deleted region (and not replaced).
       index(this.clampIndex(splice.start + splice.added));
     }
-  }, this, 'spliceChange');
+  }, this, "spliceChange");
 
   // The returned value, which is a writable computable, constraining the value to the valid range
   // (or null if the range is empty).

@@ -2,9 +2,10 @@ import { find, fromTableData, TreeItemRecord, TreeNodeRecord } from "app/client/
 import { addTreeView } from "app/client/ui/TreeViewComponent";
 import { buildPageDom } from "app/client/ui2018/pages";
 import { nativeCompare } from "app/common/gutil";
-import { Computed, dom, makeTestId, observable, Observable } from 'grainjs';
 
-const testId = makeTestId('test-pages-');
+import { Computed, dom, makeTestId, observable, Observable } from "grainjs";
+
+const testId = makeTestId("test-pages-");
 
 interface TreeRecord {
   indentation: number;
@@ -15,7 +16,7 @@ interface TreeRecord {
 
 const sampleData = ["Interactions:0", "People:0", "User & Leads:1", "Overview:1", "Last:0"];
 let records = sampleData
-  .map((s) => s.split(':'))
+  .map(s => s.split(":"))
   .map((chunks, index) => ({
     id: index,
     indentation: Number(chunks[1]),
@@ -23,16 +24,16 @@ let records = sampleData
     pagePos: index,
   }));
 
-TreeNodeRecord.prototype.sendActions = async (actions: {update?: TreeRecord[]}) => {
-  if (actions.update && actions.update.length) {
-    const map = actions.update.reduce((acc, rec) => (acc[rec.id] = rec, acc), {} as {[id: number]: TreeRecord});
+TreeNodeRecord.prototype.sendActions = async (actions: { update?: TreeRecord[] }) => {
+  if (actions.update?.length) {
+    const map = actions.update.reduce((acc, rec) => (acc[rec.id] = rec, acc), {} as { [id: number]: TreeRecord });
     records = records.map(rec => map[rec.id] || rec).sort((a, b) => nativeCompare(a.pagePos, b.pagePos));
     updateModel();
   }
 };
 
 function buildModel() {
-  const table = {getRecords: () => records};
+  const table = { getRecords: () => records };
   return fromTableData(table as any, buildDom);
 }
 
@@ -57,13 +58,13 @@ export async function addNewPage() {
     id: records.length,
     name: observable(`New Page${records.length}`),
     indentation: 0,
-    pagePos: records[records.length - 1].pagePos + 1
+    pagePos: records[records.length - 1].pagePos + 1,
   });
   updateModel();
 }
 
 export function addPages(isOpen: Observable<boolean>) {
-  return addTreeView(pagesModel, {isOpen, selected});
+  return addTreeView(pagesModel, { isOpen, selected });
 }
 
 function buildDom(id: number) {
@@ -91,12 +92,12 @@ function buildDom(id: number) {
       isCollapsedByDefault,
       onCollapseByDefault,
       hasSubPages,
-      href: '#'
+      href: "#",
     },
     testId("page"),
-    dom.onMatch('.test-docpage-link', 'click', () => {
+    dom.onMatch(".test-docpage-link", "click", () => {
       const item = find(pagesModel.get(), (i: any) => i.record.id === id);
       selected.set(item || null);
-    })
+    }),
   );
 }

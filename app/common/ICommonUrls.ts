@@ -16,6 +16,7 @@ export interface ICommonUrls {
   helpUnderstandingReferenceColumns: string;
   helpTriggerFormulas: string;
   helpTryingOutChanges: string;
+  helpAutomations: string;
   helpWidgets: string;
   helpCustomWidgets: string;
   helpInstallAuditLogs: string;
@@ -33,7 +34,9 @@ export interface ICommonUrls {
   helpAdminControls: string;
   helpFiddleMode: string;
   helpFormUrlValues: string;
-
+  helpAirtableIntegration: string;
+  helpCloudStorage: string;
+  integrators: string;
   freeCoachingCall: string; // Link to the human help (example: email adress or meeting scheduling tool)
   contactSupport: string; // Link to contact support on error pages (example: email adress or online form).
   termsOfService: string | undefined; // Link to the terms of service (if set, adds a button to the bottom-left corner).
@@ -58,4 +61,8 @@ export interface ICommonUrls {
 
   versionCheck: string; // API to check the instance has the latest version and otherwise show a banner.
   attachmentStorage: string; // Support doc for attachment storage.
+
+  signInWithGristRegister: string; // Registration for Sign in with getgrist.com.
+  signInWithGristHelp: string; // Help for Sign in with getgrist.com.
+  signInWithGristDocs: string; // Setup docs for Sign in with getgrist.com.
 }

@@ -1,12 +1,13 @@
-import {StringUnion} from 'app/common/StringUnion';
-import {assert} from 'chai';
+import { StringUnion } from "app/common/StringUnion";
 
-describe('StringUnion', function() {
+import { assert } from "chai";
+
+describe("StringUnion", function() {
   // Create Dog type
   const Dog = StringUnion(
     "bulldog",
     "poodle",
-    "greyhound"
+    "greyhound",
   );
   type Dog = typeof Dog.type;
 
@@ -14,11 +15,11 @@ describe('StringUnion', function() {
   const Cat = StringUnion(
     "siamese",
     "sphynx",
-    "bengal"
+    "bengal",
   );
   type Cat = typeof Cat.type;
 
-  it('should provide check and guard functions', function() {
+  it("should provide check and guard functions", function() {
     let dog: Dog;
     let cat: Cat;
 

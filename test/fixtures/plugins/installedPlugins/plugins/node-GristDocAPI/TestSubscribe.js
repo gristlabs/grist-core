@@ -1,13 +1,13 @@
-const grist = require('grist-plugin-api');
+const grist = require("grist-plugin-api");
 
-const {foo} = grist.rpc.getStub('foo@grist');
-let tableId = 'Table1';
-const colId = 'A';
+const {foo} = grist.rpc.getStub("foo@grist");
+let tableId = "Table1";
+const colId = "A";
 let promise = Promise.resolve(true);
 
-grist.rpc.on('message', msg => {
+grist.rpc.on("message", msg => {
   if (msg.type === "docAction") {
-    if (msg.action[0] === 'RenameTable') {
+    if (msg.action[0] === "RenameTable") {
       tableId = msg.action[2];
     }
     promise = getColValues(colId).then(foo);

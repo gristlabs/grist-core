@@ -3,6 +3,7 @@ import { localeCompare } from "app/common/gutil";
 import { getTransitiveHeaders, getUserId } from "app/server/lib/Authorizer";
 import { GristServer } from "app/server/lib/GristServer";
 import { getScope } from "app/server/lib/requestUtils";
+
 import * as express from "express";
 
 /**
@@ -18,30 +19,30 @@ import * as express from "express";
 export async function createSavedDoc(
   server: GristServer,
   req: express.Request,
-  options: { srcDocId?: string } = {}
+  options: { srcDocId?: string } = {},
 ): Promise<string> {
   const { srcDocId } = options;
   const dbManager = server.getHomeDBManager();
   const userId = getUserId(req);
-  const doc = srcDocId
-    ? await dbManager.getDoc({ userId, urlId: srcDocId })
-    : undefined;
+  const doc = srcDocId ?
+    await dbManager.getDoc({ userId, urlId: srcDocId }) :
+    undefined;
   if (srcDocId && !doc) {
     throw new ApiError(`Doc ${srcDocId} not found`, 400);
   }
 
   const workspacesQueryResult = await dbManager.getOrgWorkspaces(
     getScope(req),
-    0
+    0,
   );
   const workspaces = dbManager.unwrapQueryResult(workspacesQueryResult);
   const userWorkspaces = workspaces
-    .filter((w) => !w.isSupportWorkspace && w.owner?.id === userId)
+    .filter(w => !w.isSupportWorkspace && w.owner?.id === userId)
     .sort((a, b) => localeCompare(a.name, b.name));
   if (userWorkspaces.length === 0) {
     throw new ApiError(
       `User ${userId} has no workspaces in their personal site`,
-      500
+      500,
     );
   }
 
@@ -64,7 +65,7 @@ export async function createSavedDoc(
     throw new ApiError(
       `Unable to create document in workspace ${workspace.name}`,
       response.status,
-      body
+      body,
     );
   }
 

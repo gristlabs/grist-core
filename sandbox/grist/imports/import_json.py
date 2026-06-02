@@ -109,7 +109,7 @@ DEFAULT_PARSE_OPTIONS = {
 
 def parse_file(file_source, parse_options):
   "Deserialize `file_source` into a python object and dumps it into jgrist form"
-  path = import_utils.get_path(file_source['path'])
+  path = import_utils.get_path(file_source)
   name, ext = os.path.splitext(file_source['origName'])
   if 'SCHEMA' not in parse_options:
     parse_options.update(DEFAULT_PARSE_OPTIONS)

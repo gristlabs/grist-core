@@ -15,11 +15,13 @@
  *     represent a particular document.
  */
 
-import {ApiError} from 'app/common/ApiError';
-import {FullUser} from 'app/common/LoginSessionAPI';
-import type {RequestWithLogin} from 'app/server/lib/Authorizer';
-import {ILogMeta} from 'app/server/lib/log';
-import moment from 'moment';
+import { ApiError } from "app/common/ApiError";
+import { FullUser } from "app/common/LoginSessionAPI";
+import { ILogMeta } from "app/server/lib/log";
+
+import moment from "moment";
+
+import type { RequestWithLogin } from "app/server/lib/Authorizer";
 
 export abstract class AuthSession {
   // Create AuthSession from request. (This is very cheap to create.)
@@ -27,27 +29,30 @@ export abstract class AuthSession {
     return new AuthSessionForReq(req);
   }
 
-  public static fromUser(fullUser: FullUser, org: string, altSessionId?: string): AuthSession {
-    return new AuthSessionForUser(fullUser, org, altSessionId);
+  public static fromUser(fullUser: FullUser, org: string, altSessionId?: string,
+    isApiKeyAuth: boolean = false): AuthSession {
+    return new AuthSessionForUser(fullUser, org, altSessionId, isApiKeyAuth);
   }
 
   public static unauthenticated(): AuthSession { return new UnauthenticatedAuthSession(); }
 
   public abstract org?: string;
-  public abstract altSessionId: string|null;
-  public abstract userId: number|null;
+  public abstract altSessionId: string | null;
+  public abstract userId: number | null;
   public abstract userIsAuthorized: boolean;
-  public abstract fullUser: FullUser|null;
+  public abstract fullUser: FullUser | null;
+  public abstract isApiKeyAuth: boolean;
 
-  public get normalizedEmail(): string|undefined { return this.fullUser?.loginEmail ?? this.fullUser?.email; }
-  public get displayEmail(): string|undefined { return this.fullUser?.email; }
-  public get userAgeInDays(): number|undefined { return this._userAge ?? (this._userAge = this._calcAgeInDays()); }
+  public get normalizedEmail(): string | undefined { return this.fullUser?.loginEmail ?? this.fullUser?.email; }
+  public get displayEmail(): string | undefined { return this.fullUser?.email; }
+  public get userAgeInDays(): number | undefined { return this._userAge ?? (this._userAge = this._calcAgeInDays()); }
 
   private _userAge?: number;
 
   public requiredUserId(): number {
     return this.userId || apiFail("user not known", 401);
   }
+
   public getLogMeta(): ILogMeta {
     // Setting each field conditionally here to omit keys with undefined/null values.
     const meta: ILogMeta = {};
@@ -68,15 +73,17 @@ export abstract class AuthSession {
 }
 
 class UnauthenticatedAuthSession extends AuthSession {
-  public get org() { return undefined; }
-  public get altSessionId() { return null; }
-  public get userId() { return null; }
-  public get userIsAuthorized() { return false; }
-  public get fullUser() { return null; }
+  public readonly org = undefined;
+  public readonly altSessionId = null;
+  public readonly userId = null;
+  public readonly userIsAuthorized = false;
+  public readonly fullUser = null;
+  public readonly isApiKeyAuth = false;
 }
 
 class AuthSessionForReq extends AuthSession {
   constructor(private _req: RequestWithLogin) { super(); }
+  public get isApiKeyAuth() { return this._req.isApiKeyAuth || false; }
   public get org() { return this._req.org; }
   public get altSessionId() { return this._req.altSessionId ?? null; }
   public get userId() { return this._req.userId ?? null; }
@@ -85,7 +92,13 @@ class AuthSessionForReq extends AuthSession {
 }
 
 class AuthSessionForUser extends AuthSession {
-  constructor(private _fullUser: FullUser, private _org: string, private _altSessionId?: string) { super(); }
+  public readonly isApiKeyAuth: boolean;
+  constructor(private _fullUser: FullUser, private _org: string,
+    private _altSessionId?: string, isApiKeyAuth: boolean = false) {
+    super();
+    this.isApiKeyAuth = isApiKeyAuth;
+  }
+
   public get org() { return this._org; }
   public get altSessionId() { return this._altSessionId ?? null; }
   public get userId() { return this._fullUser.id; }

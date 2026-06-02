@@ -1,4 +1,4 @@
-import { DocState } from 'app/common/DocState';
+import { DocState } from "app/common/DocState";
 
 /**
  *
@@ -15,7 +15,6 @@ import { DocState } from 'app/common/DocState';
  *
  */
 export class HashUtil {
-
   /**
    * To construct, provide a list of states, most recent first.
    */
@@ -27,18 +26,18 @@ export class HashUtil {
    */
   public hashToOffset(hash: string): number {
     const parts = hash.split(/([~^][0-9]*)/);
-    hash = parts.shift() || '';
-    let offset = hash === 'HEAD' ? 0 : this._state.findIndex(state => state.h === hash);
-    if (offset < 0) { throw new Error('Cannot read hash'); }
+    hash = parts.shift() || "";
+    let offset = hash === "HEAD" ? 0 : this._state.findIndex(state => state.h === hash);
+    if (offset < 0) { throw new Error("Cannot read hash"); }
     for (const part of parts) {
-      if (part === '^' || part === '^1') {
+      if (part === "^" || part === "^1") {
         offset++;
-      } else if (part.startsWith('~')) {
-        offset += parseInt(part.slice(1) || '1', 10);
-      } else if (part === '') {
+      } else if (part.startsWith("~")) {
+        offset += parseInt(part.slice(1) || "1", 10);
+      } else if (part === "") {
         // pass
       } else {
-        throw new Error('cannot parse hash');
+        throw new Error("cannot parse hash");
       }
     }
     return offset;

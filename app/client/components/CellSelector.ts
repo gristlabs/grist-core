@@ -1,19 +1,21 @@
-import ko from 'knockout';
-import type BaseView from 'app/client/components/BaseView';
-import type {DataRowModel} from 'app/client/models/DataRowModel';
-import {between} from 'app/common/gutil';
-import {Disposable} from 'grainjs';
+import { between } from "app/common/gutil";
 
-export const ROW = 'row';
-export const COL = 'col';
-export const CELL = 'cell';
-export const NONE = '';
+import { Disposable } from "grainjs";
+import ko from "knockout";
 
-export type ElemType = 'row' | 'col' | 'cell' | '';
+import type BaseView from "app/client/components/BaseView";
+import type { DataRowModel } from "app/client/models/DataRowModel";
+
+export const ROW = "row";
+export const COL = "col";
+export const CELL = "cell";
+export const NONE = "";
+
+export type ElemType = "row" | "col" | "cell" | "";
 
 interface GridView extends BaseView {
-  domToRowModel(elem: Element, elemType: ElemType): DataRowModel|undefined;
-  domToColModel(elem: Element, elemType: ElemType): DataRowModel|undefined;
+  domToRowModel(elem: Element, elemType: ElemType): DataRowModel | undefined;
+  domToColModel(elem: Element, elemType: ElemType): DataRowModel | undefined;
 }
 
 export class CellSelector extends Disposable {
@@ -23,15 +25,17 @@ export class CellSelector extends Disposable {
   public row = {
     start: ko.observable(0),
     end: ko.observable(0),
-    linePos: ko.observable('0px'),    // Used by GridView for dragging rows
+    linePos: ko.observable("0px"),    // Used by GridView for dragging rows
     dropIndex: ko.observable(-1),     // Used by GridView for dragging rows
   };
+
   public col =  {
     start: ko.observable(0),
     end: ko.observable(0),
-    linePos: ko.observable('0px'),    // Used by GridView for dragging columns
+    linePos: ko.observable("0px"),    // Used by GridView for dragging columns
     dropIndex: ko.observable(-1),     // Used by GridView for dragging columns
   };
+
   public currentSelectType = ko.observable<ElemType>(NONE);
   public currentDragType = ko.observable<ElemType>(NONE);
 
@@ -89,7 +93,7 @@ export class CellSelector extends Disposable {
       case CELL:
         return this.containsCell(row!._index()!, col!._index()!);
       default:
-        console.error('Given element is not a row, cell or column');
+        console.error("Given element is not a row, cell or column");
         return false;
     }
   }
@@ -155,7 +159,7 @@ export class CellSelector extends Disposable {
   }
 
   private _isCurrentType(currentType: ElemType, elemType: ElemType): boolean {
-    console.assert([ROW, COL, CELL, NONE].indexOf(elemType) !== -1);
+    console.assert([ROW, COL, CELL, NONE].includes(elemType));
     return currentType === elemType;
   }
 }

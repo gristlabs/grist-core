@@ -58,13 +58,13 @@ export class FileConfig<FileContents> {
    */
   public static create<CreateConfigFileContents>(
     configPath: string,
-    validator: FileContentsValidator<CreateConfigFileContents>
+    validator: FileContentsValidator<CreateConfigFileContents>,
   ): FileConfig<CreateConfigFileContents> {
     // Start with empty object, as it can be upgraded to a full config.
     let rawFileContents: any = {};
 
     if (Deps.pathExists(configPath)) {
-      rawFileContents = JSON.parse(Deps.readFile(configPath, 'utf8'));
+      rawFileContents = JSON.parse(Deps.readFile(configPath, "utf8"));
     }
 
     let fileContents = null;
@@ -108,13 +108,12 @@ export class FileConfig<FileContents> {
  * @param fileConfig - Config to load/save values to.
  */
 export function fileConfigAccessorFactory<FileContents>(
-  fileConfig?: FileConfig<FileContents>
-): <Key extends keyof FileContents>(key: Key) => ConfigAccessors<FileContents[Key]> | undefined
-{
-  if (!fileConfig) { return (key) => undefined; }
-  return (key) => ({
+  fileConfig?: FileConfig<FileContents>,
+): <Key extends keyof FileContents>(key: Key) => ConfigAccessors<FileContents[Key]> | undefined {
+  if (!fileConfig) { return key => undefined; }
+  return key => ({
     get: () => fileConfig.get(key),
-    set: (value) => fileConfig.set(key, value)
+    set: value => fileConfig.set(key, value),
   });
 }
 
@@ -128,16 +127,16 @@ export function createConfigValue<ValueType>(
   defaultValue: ValueType,
   persistence?: ConfigAccessors<ValueType> | ConfigAccessors<ValueType | undefined>,
 ): IWritableConfigValue<ValueType> {
-  let inMemoryValue = (persistence && persistence.get());
+  let inMemoryValue = (persistence?.get());
   return {
     get(): ValueType {
       return inMemoryValue ?? defaultValue;
     },
     async set(value: ValueType) {
-      if (persistence && persistence.set) {
+      if (persistence?.set) {
         await persistence.set(value);
       }
       inMemoryValue = value;
-    }
+    },
   };
 }

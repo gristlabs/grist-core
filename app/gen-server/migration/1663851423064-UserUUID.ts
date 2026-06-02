@@ -1,6 +1,7 @@
-import {makeId} from 'app/server/lib/idUtils';
-import {chunk} from 'lodash';
-import {MigrationInterface, QueryRunner, TableColumn} from "typeorm";
+import { makeId } from "app/server/lib/idUtils";
+
+import { chunk } from "lodash";
+import { MigrationInterface, QueryRunner, TableColumn } from "typeorm";
 
 export class UserUUID1663851423064 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<any> {
@@ -8,7 +9,7 @@ export class UserUUID1663851423064 implements MigrationInterface {
     // first need to put a value in it for all existing users.
     await queryRunner.addColumn("users", new TableColumn({
       name: "ref",
-      type: 'varchar',
+      type: "varchar",
       isNullable: true,
       isUnique: false,
     }));
@@ -23,7 +24,7 @@ export class UserUUID1663851423064 implements MigrationInterface {
 
     const userChunks = chunk(userList, 300);
     for (const users of userChunks) {
-      await queryRunner.connection.transaction(async manager => {
+      await queryRunner.connection.transaction(async (manager) => {
         const queries = users.map((user: any, _index: number, _array: any[]) => {
           return queryRunner.manager.update("users", user.id, user);
         });

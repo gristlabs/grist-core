@@ -1,13 +1,14 @@
-import { sanitizeLinkUrl } from 'app/client/lib/sanitizeUrl';
-import { DataRowModel } from 'app/client/models/DataRowModel';
-import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
-import { constructUrl } from 'app/client/models/gristUrlState';
-import { testId, theme } from 'app/client/ui2018/cssVars';
-import { cssIconSpanBackground, iconSpan } from 'app/client/ui2018/icons';
-import { cssHoverIn, gristLink } from 'app/client/ui2018/links';
-import { NTextBox } from 'app/client/widgets/NTextBox';
-import { CellValue } from 'app/common/DocActions';
-import { Computed, dom, styled } from 'grainjs';
+import { sanitizeLinkUrl } from "app/client/lib/sanitizeUrl";
+import { DataRowModel } from "app/client/models/DataRowModel";
+import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
+import { constructUrl } from "app/client/models/gristUrlState";
+import { testId, theme } from "app/client/ui2018/cssVars";
+import { cssIconSpanBackground, iconSpan } from "app/client/ui2018/icons";
+import { cssHoverIn, gristLink } from "app/client/ui2018/links";
+import { NTextBox } from "app/client/widgets/NTextBox";
+import { CellValue } from "app/common/DocActions";
+
+import { Computed, dom, styled } from "grainjs";
 
 /**
  * Creates a widget for displaying links.  Links can entered directly or following a title.
@@ -16,29 +17,29 @@ import { Computed, dom, styled } from 'grainjs';
  */
 export class HyperLinkTextBox extends NTextBox {
   constructor(field: ViewFieldRec) {
-    super(field, {defaultTextColor: theme.link.toString()});
+    super(field, { defaultTextColor: theme.link.toString() });
   }
 
   public buildDom(row: DataRowModel) {
     const value = row.cells[this.field.colId()];
     const url = Computed.create(
       null,
-      (use) => sanitizeLinkUrl(constructUrl(use(value))) ?? "about:blank"
+      use => sanitizeLinkUrl(constructUrl(use(value))) ?? "about:blank",
     );
     return cssFieldClip(
       dom.autoDispose(url),
-      dom.style('text-align', this.alignment),
-      dom.cls('text_wrapping', this.wrapping),
-      dom.maybe((use) => Boolean(use(value)), () =>
+      dom.style("text-align", this.alignment),
+      dom.cls("text_wrapping", this.wrapping),
+      dom.maybe(use => Boolean(use(value)), () =>
         gristLink(url,
           cssIconSpanBackground(
-            iconSpan("FieldLink", testId('tb-link-icon')),
+            iconSpan("FieldLink", testId("tb-link-icon")),
             dom.cls(cssHoverOnField.className),
           ),
-          testId('tb-link'),
+          testId("tb-link"),
         ),
       ),
-      dom.text((use) => _formatValue(use(value))),
+      dom.text(use => _formatValue(use(value))),
     );
   }
 }
@@ -47,12 +48,12 @@ export class HyperLinkTextBox extends NTextBox {
  * Formats value like `foo bar baz` by discarding `baz` and returning `foo bar`.
  */
 function _formatValue(value: CellValue): string {
-  if (typeof value !== 'string') { return ''; }
-  const index = value.lastIndexOf(' ');
+  if (typeof value !== "string") { return ""; }
+  const index = value.lastIndexOf(" ");
   return index >= 0 ? value.slice(0, index) : value;
 }
 
-const cssFieldClip = styled('div.field_clip', `
+const cssFieldClip = styled("div.field_clip", `
   color: var(--grist-actual-cell-color, ${theme.link});
 `);
 

@@ -2,20 +2,21 @@
  * Implements a widget showing 3-state boxes for permissions
  * (for Allow / Deny / Pass-Through).
  */
-import {colors, testId, theme} from 'app/client/ui2018/cssVars';
-import {cssIconButton, icon} from 'app/client/ui2018/icons';
-import {menu, menuIcon, menuItem} from 'app/client/ui2018/menus';
-import {PartialPermissionSet, PartialPermissionValue} from 'app/common/ACLPermissions';
-import {ALL_PERMISSION_PROPS, emptyPermissionSet, PermissionKey} from 'app/common/ACLPermissions';
-import {capitalize} from 'app/common/gutil';
-import {dom, DomElementArg, Observable, styled} from 'grainjs';
-import isEqual = require('lodash/isEqual');
-import {makeT} from 'app/client/lib/localization';
+import { makeT } from "app/client/lib/localization";
+import { colors, testId, theme } from "app/client/ui2018/cssVars";
+import { cssIconButton, icon } from "app/client/ui2018/icons";
+import { menu, menuIcon, menuItem } from "app/client/ui2018/menus";
+import { PartialPermissionSet, PartialPermissionValue } from "app/common/ACLPermissions";
+import { ALL_PERMISSION_PROPS, emptyPermissionSet, PermissionKey } from "app/common/ACLPermissions";
+import { capitalize } from "app/common/gutil";
+
+import { dom, DomElementArg, Observable, styled } from "grainjs";
+import isEqual from "lodash/isEqual";
 
 // Canonical order of permission bits when rendered in a permissionsWidget.
-const PERMISSION_BIT_ORDER = 'RUCDS';
+const PERMISSION_BIT_ORDER = "RUCDS";
 
-const t = makeT('PermissionsWidget');
+const t = makeT("PermissionsWidget");
 
 /**
  * Renders a box for each of availableBits, and a dropdown with a description and some shortcuts.
@@ -23,15 +24,15 @@ const t = makeT('PermissionsWidget');
 export function permissionsWidget(
   availableBits: PermissionKey[],
   pset: Observable<PartialPermissionSet>,
-  options: {disabled: boolean, sanityCheck?: (p: PartialPermissionSet) => void},
+  options: { disabled: boolean, sanityCheck?: (p: PartialPermissionSet) => void },
   ...args: DomElementArg[]
 ) {
   availableBits = sortBits(availableBits);
   // These are the permission sets available to set via the dropdown.
   const empty: PartialPermissionSet = emptyPermissionSet();
-  const allowAll: PartialPermissionSet = makePermissionSet(availableBits, () => 'allow');
-  const denyAll: PartialPermissionSet = makePermissionSet(availableBits, () => 'deny');
-  const readOnly: PartialPermissionSet = makePermissionSet(availableBits, (b) => b === 'read' ? 'allow' : 'deny');
+  const allowAll: PartialPermissionSet = makePermissionSet(availableBits, () => "allow");
+  const denyAll: PartialPermissionSet = makePermissionSet(availableBits, () => "deny");
+  const readOnly: PartialPermissionSet = makePermissionSet(availableBits, b => b === "read" ? "allow" : "deny");
   const setPermissions = (p: PartialPermissionSet) => {
     options.sanityCheck?.(p);
     pset.set(p);
@@ -41,57 +42,57 @@ export function permissionsWidget(
     dom.forEach(availableBits, (bit) => {
       return cssBit(
         bit.slice(0, 1).toUpperCase(),              // Show the first letter of the property (e.g. "R" for "read")
-        cssBit.cls((use) => '-' + use(pset)[bit]),  // -allow, -deny class suffixes.
-        dom.attr('title', (use) => capitalize(`${use(pset)[bit]} ${bit}`.trim())),    // Explanation on hover
-        dom.cls('disabled', options.disabled),
+        cssBit.cls(use => "-" + use(pset)[bit]),  // -allow, -deny class suffixes.
+        dom.attr("title", use => capitalize(`${use(pset)[bit]} ${bit}`.trim())),    // Explanation on hover
+        dom.cls("disabled", options.disabled),
         // Cycle the bit's value on click, unless disabled.
         (options.disabled ? null :
-          dom.on('click', () => setPermissions({...pset.get(), [bit]: next(pset.get()[bit])}))
-        )
+          dom.on("click", () => setPermissions({ ...pset.get(), [bit]: next(pset.get()[bit]) }))
+        ),
       );
     }),
-    cssIconButton(icon('Dropdown'), testId('permissions-dropdown'), menu(() => {
+    cssIconButton(icon("Dropdown"), testId("permissions-dropdown"), menu(() => {
       // Show a disabled "Custom" menu item if the permission set isn't a recognized one, for
       // information purposes.
       const isCustom = [allowAll, denyAll, readOnly, empty].every(ps => !isEqual(ps, pset.get()));
       return [
         (isCustom ?
-          cssMenuItem(() => null, dom.cls('disabled'), menuIcon('Tick'),
+          cssMenuItem(() => null, dom.cls("disabled"), menuIcon("Tick"),
             cssMenuItemContent(
-              'Custom',
-              cssMenuItemDetails(dom.text((use) => psetDescription(use(pset))))
+              "Custom",
+              cssMenuItemDetails(dom.text(use => psetDescription(use(pset)))),
             ),
           ) :
           null
         ),
         // If the set matches any recognized pattern, mark that item with a tick (checkmark).
         cssMenuItem(() => setPermissions(allowAll), tick(isEqual(pset.get(), allowAll)), t("Allow all"),
-          dom.cls('disabled', options.disabled)
+          dom.cls("disabled", options.disabled),
         ),
         cssMenuItem(() => setPermissions(denyAll), tick(isEqual(pset.get(), denyAll)), t("Deny all"),
-          dom.cls('disabled', options.disabled)
+          dom.cls("disabled", options.disabled),
         ),
         cssMenuItem(() => setPermissions(readOnly), tick(isEqual(pset.get(), readOnly)), t("Read only"),
-          dom.cls('disabled', options.disabled)
+          dom.cls("disabled", options.disabled),
         ),
         cssMenuItem(() => setPermissions(empty),
           // For the empty permission set, it seems clearer to describe it as "No Effect", but to
           // all it "Clear" when offering to the user as the action.
-          isEqual(pset.get(), empty) ? [tick(true), 'No Effect'] : [tick(false), 'Clear'],
-          dom.cls('disabled', options.disabled),
+          isEqual(pset.get(), empty) ? [tick(true), "No Effect"] : [tick(false), "Clear"],
+          dom.cls("disabled", options.disabled),
         ),
       ];
     })),
-    ...args
+    ...args,
   );
 }
 
 function next(pvalue: PartialPermissionValue): PartialPermissionValue {
   switch (pvalue) {
-    case 'allow': return '';
-    case 'deny': return 'allow';
+    case "allow": return "";
+    case "deny": return "allow";
   }
-  return 'deny';
+  return "deny";
 }
 
 // Helper to build up permission sets.
@@ -105,7 +106,7 @@ function makePermissionSet(bits: PermissionKey[], makeValue: (bit: PermissionKey
 
 // Helper for a tick (checkmark) icon, replacing it with an equivalent space when not shown.
 function tick(show: boolean) {
-  return show ? menuIcon('Tick') : cssMenuIconSpace();
+  return show ? menuIcon("Tick") : cssMenuIconSpace();
 }
 
 // Human-readable summary of the permission set. E.g. "Allow Read. Deny Update, Create.".
@@ -123,7 +124,7 @@ function psetDescription(permissionSet: PartialPermissionSet): string {
   const parts: string[] = [];
   if (allow.length) { parts.push(`Allow ${allow.join(", ")}.`); }
   if (deny.length) { parts.push(`Deny ${deny.join(", ")}.`); }
-  return parts.join(' ');
+  return parts.join(" ");
 }
 
 /**
@@ -140,12 +141,12 @@ function sortBits(bits: PermissionKey[]) {
   });
 }
 
-const cssPermissions = styled('div', `
+const cssPermissions = styled("div", `
   display: flex;
   gap: 4px;
 `);
 
-const cssBit = styled('div', `
+const cssBit = styled("div", `
   flex: none;
   height: 24px;
   width: 24px;
@@ -175,7 +176,7 @@ const cssBit = styled('div', `
   }
 `);
 
-const cssMenuIconSpace = styled('div', `
+const cssMenuIconSpace = styled("div", `
   width: 24px;
 `);
 
@@ -187,11 +188,11 @@ const cssMenuItem = styled(menuItem, `
   }
 `);
 
-const cssMenuItemContent = styled('div', `
+const cssMenuItemContent = styled("div", `
   display: flex;
   flex-direction: column;
 `);
 
-const cssMenuItemDetails = styled('div', `
+const cssMenuItemDetails = styled("div", `
   font-size: 12px;
 `);

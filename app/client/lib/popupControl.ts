@@ -14,20 +14,19 @@ import { domDispose } from "grainjs";
 import { IOpenController, IPopupDomCreator, IPopupOptions, PopupControl } from "popweasel";
 
 export function popupControl(reference: Element, domCreator: IPopupDomCreator, options: IPopupOptions): PopupControl {
-
   function openFunc(openCtl: IOpenController) {
     const content = domCreator(openCtl);
     function dispose() { domDispose(content); }
-    return {content, dispose};
+    return { content, dispose };
   }
 
   const ctl = PopupControl.create(null);
 
   ctl.attachElem(reference, openFunc, {
-    attach: 'body',
-    boundaries: 'viewport',
+    attach: "body",
+    boundaries: "viewport",
     ...options,
-    trigger: undefined
+    trigger: undefined,
   });
 
   return ctl;

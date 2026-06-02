@@ -1,23 +1,24 @@
-import {Role} from 'app/common/roles';
-import {getDocWorkerMap} from 'app/gen-server/lib/DocWorkerMap';
-import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {AttachmentStoreProvider, IAttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
-import {DummyAuthorizer} from 'app/server/lib/DocAuthorizer';
-import {create} from 'app/server/lib/create';
-import {DocManager} from 'app/server/lib/DocManager';
-import {makeExceptionalDocSession, makeOptDocSession, OptDocSession} from 'app/server/lib/DocSession';
-import {createDummyGristServer, GristServer} from 'app/server/lib/GristServer';
-import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
-import {getAppRoot} from 'app/server/lib/places';
-import {PluginManager} from 'app/server/lib/PluginManager';
-import {createTmpDir as createTmpUploadDir, FileUploadInfo, globalUploadSet} from 'app/server/lib/uploads';
-import * as testUtils from 'test/server/testUtils';
+import { Role } from "app/common/roles";
+import { getDocWorkerMap } from "app/gen-server/lib/DocWorkerMap";
+import { ActiveDoc } from "app/server/lib/ActiveDoc";
+import { AttachmentStoreProvider, IAttachmentStoreProvider } from "app/server/lib/AttachmentStoreProvider";
+import { create } from "app/server/lib/create";
+import { DummyAuthorizer } from "app/server/lib/DocAuthorizer";
+import { DocManager } from "app/server/lib/DocManager";
+import { makeExceptionalDocSession, makeOptDocSession, OptDocSession } from "app/server/lib/DocSession";
+import { createDummyGristServer, GristServer } from "app/server/lib/GristServer";
+import { IDocStorageManager } from "app/server/lib/IDocStorageManager";
+import { getAppRoot } from "app/server/lib/places";
+import { PluginManager } from "app/server/lib/PluginManager";
+import { createTmpDir as createTmpUploadDir, FileUploadInfo, globalUploadSet } from "app/server/lib/uploads";
+import * as testUtils from "test/server/testUtils";
 
-import {assert} from 'chai';
-import * as fse from 'fs-extra';
-import {tmpdir} from 'os';
-import * as path from 'path';
-import * as tmp from 'tmp-promise';
+import { tmpdir } from "os";
+import * as path from "path";
+
+import { assert } from "chai";
+import * as fse from "fs-extra";
+import * as tmp from "tmp-promise";
 
 tmp.setGracefulCleanup();
 
@@ -41,12 +42,12 @@ const noCleanup = Boolean(process.env.NO_CLEANUP);
  * @param persistAcrossCases Don't shut down created ActiveDocs between test cases.
  * @param useFixturePlugins Use the plugins in `test/fixtures/plugins`
  */
-export function createDocTools(options: {persistAcrossCases?: boolean,
-                                         useFixturePlugins?: boolean,
-                                         storageManager?: IDocStorageManager,
-                                         server?: () => GristServer,
-                                         createAttachmentStoreProvider?: () => Promise<IAttachmentStoreProvider>
-                                        } = {}) {
+export function createDocTools(options: { persistAcrossCases?: boolean,
+  useFixturePlugins?: boolean,
+  storageManager?: IDocStorageManager,
+  server?: () => GristServer,
+  createAttachmentStoreProvider?: () => Promise<IAttachmentStoreProvider>
+} = {}) {
   let tmpDir: string;
   let docManager: DocManager;
   let attachmentStoreProvider: IAttachmentStoreProvider;
@@ -54,17 +55,17 @@ export function createDocTools(options: {persistAcrossCases?: boolean,
   async function doBefore() {
     tmpDir = await createTmpDir();
     const pluginManager = options.useFixturePlugins ? await createFixturePluginManager() : undefined;
-    attachmentStoreProvider = options.createAttachmentStoreProvider
-      ? (await options.createAttachmentStoreProvider())
-      : new AttachmentStoreProvider([], "TEST_INSTALL");
+    attachmentStoreProvider = options.createAttachmentStoreProvider ?
+      (await options.createAttachmentStoreProvider()) :
+      new AttachmentStoreProvider([], "TEST_INSTALL");
 
-    docManager = await createDocManager({tmpDir, pluginManager, storageManager: options.storageManager,
-                                         server: options.server?.(), attachmentStoreProvider});
+    docManager = await createDocManager({ tmpDir, pluginManager, storageManager: options.storageManager,
+      server: options.server?.(), attachmentStoreProvider });
   }
 
   async function doAfter() {
     // Clean up at the end of the test suite (in addition to the optional per-test cleanup).
-    await testUtils.captureLog('info', () => docManager.shutdownAll());
+    await testUtils.captureLog("info", () => docManager.shutdownAll());
     assert.equal(docManager.numOpenDocs(), 0);
     await globalUploadSet.cleanupAll();
 
@@ -88,12 +89,12 @@ export function createDocTools(options: {persistAcrossCases?: boolean,
     });
   }
 
-  const systemSession = makeExceptionalDocSession('system');
+  const systemSession = makeExceptionalDocSession("system");
   return {
     /** create a fake session for use when applying user actions to a document */
-    createFakeSession(role: Role = 'editors'): OptDocSession {
+    createFakeSession(role: Role = "editors"): OptDocSession {
       const docSession = makeOptDocSession(null);
-      docSession.authorizer = new DummyAuthorizer(role, 'doc');
+      docSession.authorizer = new DummyAuthorizer(role, "doc");
       return docSession;
     },
 
@@ -144,19 +145,19 @@ export function createDocTools(options: {persistAcrossCases?: boolean,
  *    that loads built-in modules.
  */
 export async function createDocManager(
-    options: {tmpDir?: string, pluginManager?: PluginManager,
-              storageManager?: IDocStorageManager,
-              server?: GristServer,
-              attachmentStoreProvider?: IAttachmentStoreProvider,
-             } = {}): Promise<DocManager> {
+  options: { tmpDir?: string, pluginManager?: PluginManager,
+    storageManager?: IDocStorageManager,
+    server?: GristServer,
+    attachmentStoreProvider?: IAttachmentStoreProvider,
+  } = {}): Promise<DocManager> {
   // Set Grist home to a temporary directory, and wipe it out on exit.
   const tmpDir = options.tmpDir || await createTmpDir();
   const docStorageManager = options.storageManager || await create.createLocalDocStorageManager(tmpDir);
   const pluginManager = options.pluginManager || await getGlobalPluginManager();
   const attachmentStoreProvider = options.attachmentStoreProvider ?? new AttachmentStoreProvider([], "TEST_INSTALL");
   const store = getDocWorkerMap();
-  const internalPermitStore = store.getPermitStore('1');
-  const externalPermitStore = store.getPermitStore('2');
+  const internalPermitStore = store.getPermitStore("1");
+  const externalPermitStore = store.getPermitStore("2");
   return new DocManager(docStorageManager, pluginManager, null, attachmentStoreProvider, options.server || {
     ...createDummyGristServer(),
     getPermitStore() { return internalPermitStore; },
@@ -170,7 +171,7 @@ export async function createTmpDir(): Promise<string> {
   await fse.mkdirs(tmpRootDir);
   return (await tmp.dir({
     tmpdir: tmpRootDir,
-    prefix: 'grist_test_',
+    prefix: "grist_test_",
     unsafeCleanup: true,
     keep: noCleanup,
   })).path;
@@ -196,14 +197,13 @@ export async function createFile(dirPath: string, name: string): Promise<FileUpl
  * globalUploadSet, and returns its uploadId. The upload is registered with the given accessId
  * (userId), and the same id must be used to retrieve it.
  */
-export async function createUpload(fileNames: string[], accessId: string|null): Promise<number> {
-  const {tmpDir, cleanupCallback} = await createTmpUploadDir({});
-  const files = await Promise.all(fileNames.map((name) => createFile(tmpDir, name)));
+export async function createUpload(fileNames: string[], accessId: string | null): Promise<number> {
+  const { tmpDir, cleanupCallback } = await createTmpUploadDir({});
+  const files = await Promise.all(fileNames.map(name => createFile(tmpDir, name)));
   return globalUploadSet.registerUpload(files, tmpDir, cleanupCallback, accessId);
 }
 
-
-let _globalPluginManager: PluginManager|null = null;
+let _globalPluginManager: PluginManager | null = null;
 
 // Helper to create a singleton PluginManager. This includes loading built-in plugins. Since most
 // tests don't make any use of it, it's fine to reuse a single one. For tests that need a custom
@@ -218,10 +218,10 @@ export async function getGlobalPluginManager(): Promise<PluginManager> {
 }
 
 // Path to the folder where builtIn plugins leave in test/fixtures
-export const builtInFolder = path.join(testUtils.fixturesRoot, 'plugins/builtInPlugins');
+export const builtInFolder = path.join(testUtils.fixturesRoot, "plugins/builtInPlugins");
 
 // Path to the folder where installed plugins leave in test/fixtures
-export const installedFolder = path.join(testUtils.fixturesRoot, 'plugins/installedPlugins');
+export const installedFolder = path.join(testUtils.fixturesRoot, "plugins/installedPlugins");
 
 // Creates a plugin manager which loads the plugins in `test/fixtures/plugins`
 async function createFixturePluginManager() {

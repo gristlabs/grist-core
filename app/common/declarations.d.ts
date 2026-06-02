@@ -24,4 +24,4 @@ declare namespace Intl {
   }
 }
 
-declare module '@gristlabs/moment-guess/dist/bundle.js';
+declare module "@gristlabs/moment-guess/dist/bundle.js";

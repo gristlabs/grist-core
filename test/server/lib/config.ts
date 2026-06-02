@@ -1,6 +1,7 @@
-import { assert } from 'chai';
-import * as sinon from 'sinon';
 import { ConfigAccessors, createConfigValue, Deps, FileConfig } from "app/server/lib/config";
+
+import { assert } from "chai";
+import * as sinon from "sinon";
 
 interface TestFileContents {
   myNum?: number
@@ -14,12 +15,12 @@ const testFileContentsExample: TestFileContents = {
 
 const testFileContentsJSON = JSON.stringify(testFileContentsExample);
 
-describe('FileConfig', () => {
+describe("FileConfig", () => {
   const useFakeConfigFile = (contents: string) => {
     const fakeFile = { contents };
-    sinon.replace(Deps, 'pathExists', sinon.fake.resolves(true));
-    sinon.replace(Deps, 'readFile', sinon.fake((path, encoding: string) => fakeFile.contents) as any);
-    sinon.replace(Deps, 'writeFile', sinon.fake((path, newContents) => {
+    sinon.replace(Deps, "pathExists", sinon.fake.resolves(true));
+    sinon.replace(Deps, "readFile", sinon.fake((path, encoding: string) => fakeFile.contents) as any);
+    sinon.replace(Deps, "writeFile", sinon.fake((path, newContents) => {
       fakeFile.contents = newContents;
       return Promise.resolve();
     }));
@@ -31,13 +32,13 @@ describe('FileConfig', () => {
     sinon.restore();
   });
 
-  it('throws an error from create if the validator does not return a value', () => {
+  it("throws an error from create if the validator does not return a value", () => {
     useFakeConfigFile(testFileContentsJSON);
     const validator = () => null;
     assert.throws(() => FileConfig.create<TestFileContents>("anypath.json", validator));
   });
 
-  it('persists changes when values are assigned', async () => {
+  it("persists changes when values are assigned", async () => {
     const fakeFile = useFakeConfigFile(testFileContentsJSON);
     // Don't validate - this is guaranteed to be valid above.
     const validator = (input: any) => input as TestFileContents;
@@ -49,7 +50,7 @@ describe('FileConfig', () => {
   });
 
   // Avoid removing extra properties from the file, in case another edition of grist is doing something.
-  it('does not remove extra values from the file', async () => {
+  it("does not remove extra values from the file", async () => {
     const configWithExtraProperties = {
       ...testFileContentsExample,
       someProperty: "isPresent",
@@ -70,7 +71,7 @@ describe('FileConfig', () => {
   });
 });
 
-describe('createConfigValue', () => {
+describe("createConfigValue", () => {
   const makeInMemoryAccessors = <T>(initialValue: T): ConfigAccessors<T> => {
     let value: T = initialValue;
     return {
@@ -79,14 +80,14 @@ describe('createConfigValue', () => {
     };
   };
 
-  it('works without persistence', async () => {
+  it("works without persistence", async () => {
     const configValue = createConfigValue(1);
     assert.equal(configValue.get(), 1);
     await configValue.set(2);
     assert.equal(configValue.get(), 2);
   });
 
-  it('writes to persistence when saved', async () => {
+  it("writes to persistence when saved", async () => {
     const accessors = makeInMemoryAccessors(1);
     const configValue = createConfigValue(1, accessors);
     assert.equal(accessors.get(), 1);
@@ -94,7 +95,7 @@ describe('createConfigValue', () => {
     assert.equal(accessors.get(), 2);
   });
 
-  it('initialises with the persistent value if available', () => {
+  it("initialises with the persistent value if available", () => {
     const accessors = makeInMemoryAccessors(22);
     const configValue = createConfigValue(1, accessors);
     assert.equal(configValue.get(), 22);
@@ -104,4 +105,3 @@ describe('createConfigValue', () => {
     assert.equal(configValueWithDefault.get(), 333);
   });
 });
-

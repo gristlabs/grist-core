@@ -113,134 +113,9 @@ And start using your nodejs debugger client (like the Chrome Devtools). See http
 
 ## Coding Rules
 
-Most of the coding rules are already enforced by the Eslint tool. You can run it using the `yarn lint:ci` command 
-and you may `yarn lint:fix` to make eslint try to fix them for you.
-
-There are still few rules that are not yet configured in Eslint (we plan to add them):
-
-### Regarding the imports
-- The import should be gathered by these blocks following this order:
-  - The modules of the projects
-  - The contribs and the native libraries (ideally the later prefixed with `node:`);
-  - Separate the blocks with a new line
-```ts
-// ✅ Good
-import {
-  ExternalStorage,
-  joinKeySegments,
-} from 'app/server/lib/ExternalStorage';
-import {MemoryWritableStream} from 'app/server/utils/streams';
-
-import * as fse from 'fs-extra';
-import * as stream from 'node:stream';
-import * as path from 'path';
-
-// ❌ Bad
-import {
-  ExternalStorage,
-  joinKeySegments,
-} from 'app/server/lib/ExternalStorage';
-import * as path from 'path';
-import * as fse from 'fs-extra';
-import * as stream from 'node:stream';
-import {MemoryWritableStream} from 'app/server/utils/streams';
-
-```
-- Their paths should be absolute (ie. start with `app/`, `test/`, ... and not with `./`) and should not contain the extension:
-
-```ts
-// ✅ Good
-import {Sessions} from 'app/server/lib/Sessions';
-import {TcpForwarder} from 'test/server/tcpForwarder';
-import * as testUtils from 'test/server/testUtils';
-
-// ❌ Bad
-import {Sessions} from '../../app/server/lib/Sessions'
-import {TcpForwarder} from './tcpForwarder';
-import * as testUtils from 'test/server/testUtils.ts';
-```
-
-
-- They should be alphabetically sorted by the order of the import path within their blocks:
-```ts
-// ✅ Good
-
-import {
-  ExternalStorage,
-  joinKeySegments,
-} from 'app/server/lib/ExternalStorage';
-import {drainWhenSettled, MemoryWritableStream} from 'app/server/utils/streams';
-
-// ❌ Bad (`app/server/utils` comes after `apps/server/lib`)
-
-import {drainWhenSettled, MemoryWritableStream} from 'app/server/utils/streams';
-import {
-  ExternalStorage,
-  joinKeySegments,
-} from 'app/server/lib/ExternalStorage';
-```
-
-### Spacing
-
-```ts
-// ✅ Good :
-// - no space after the function name (`foo`)
-// - one space before the opening curly brace (`{`);
-// - no space before the colon (`:`)
-// - one space after the colon (`:`)
-// - one space around the equal (`=`) sign
-
-function foo(varName: Type) {
-  const myOtherVar = varName;
-}
-
-// ❌ Bad
-function foo (varName :Type){
-  const myOtherVar=varName;
-}
-```
-
-### Strings
-
-```ts
-import {makeT, t} from 'app/client/lib/localization';
-
-const t = makeT('MyModule');
-
-// ✅ Good :
-// - Following local rules: either choose simple quotes or double quotes
-// - use the `t()` function (client-side) or `req.t()` function (server-side) for the texts that will be displayed to the user and therefore needs localization
-// - pass arguments to the `t()` function, does not use concatenation for the localizers
-// - does not concatenate nor use the template strings for the `t()` function, but do as below
-// - consistency of the use of type of quotes locally (`"` or `'`) within a same function, except for concatenation where template strings are allowed
-
-function foo() {
-  const str1 = "foo";
-  const str2 = "bar";
-  const shortLocalizedStr = t("Lorem Ipsum");
-  const result = someFunction();
-  // Passing arguments
-  const localizedStrWithPlaceholder = t("Your response: {{result}}", {result});
-  // Because we use i18next-scanner to collect the translated strings, we have to
-  // use either simple or double quotes and end lines with backslashes (`\`) to insert a new line.
-  // Unfortunately this library does not support template strings nor concatenation.
-  // See: https://github.com/i18next/i18next-scanner/issues/35
-  const localizedStr = t("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. \
-Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. \
-Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi.");
-}
-
-// ❌ Bad
-function foo() {
-  const str1 = 'foo';
-  const str2 = "bar";
-  const localizedStrWithPlaceholder = t("Your response: " + someFunction());
-  // These concatenations will cause our tool to collect string miss this translation key.
-  const localizedStr = t("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. " +
-    "Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. " +
-    "Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi.");
-}
-```
+The coding rules are enforced by the Eslint tool. You can run it using the
+`yarn lint` command and you may run `yarn lint:fix` to make eslint try to
+fix them for you (most of them can be fixed this way).
 
 
 ## Run tests
@@ -289,17 +164,33 @@ Running in headless mode allows you to run the tests in background, without the 
 
 Running in normal mode helps you understand better what happens when writing or debugging tests.
 
+### Flakiness on CI
+
+When you discover flakiness on the CI, these options are offered to you (which are non-exclusive):
+
+1. Run tests 20 times and stop at the first error:
+```bash
+# Example below for nbrowser tests
+for i in {1..20}; do GREP_TESTS="^yourTestSuiteHere\b" yarn test:nbrowser:ci -- -- --bail || break; echo "✅ Step $i 🎉"; done
+```
+  - NB: You can also change the code to add a for-loop around a `describe()` section in tests, that's recommended for `projects` tests due to the build of the webpack assets
+2. Download the assets, check the snapshots when the errors occurred
+3. On Linux: Use [systemd-run](https://manpages.debian.org/trixie/systemd/systemd-run.1.en.html) on Linux to make nodejs and the browser run slower
+```bash
+# Example below for projects tests
+# You can adapt the value for --cpu-limit
+for i in {1..20}; do GREP_TESTS="^yourTestSuiteHere\b" systemd-run --scope -p CPUQuota=50% --user yarn run test:nbrowser:ci -- -- --bail || break; echo "✅ Step $i 🎉"; done
+```
+
 ### Browser version issues
 
 End-to-end tests are run in the GitHub CI with a specific _Chrome_ version that is known to run the tests smoothly.
 
-⚠️ A current issue is that tests don't run properly with _Chrome for Testing_ binaries, or with _Chrome_ starting with version 134.
-
 **If you don't have any tests randomly failing while running them locally: great! You can move on.**
 
-Otherwise, you should make sure that the local test suite uses _Chrome v132_ or _Chrome v133_, and not a _Chrome for Testing_ variant.
+Otherwise, you should make sure that the local test suite uses Chrome with the version expected by the CI (see `buildtools/install_chrome_for_tests.sh`).
 
-In order to do that, you can use an env var to let the script know about a specific chrome binary to use. For example, if your Chrome (v132 or 133) path is `/usr/bin/google-chrome`:
+In order to do that, you can use an env var to let the script know about a specific chrome binary to use. For example, if your Chrome path is `/usr/bin/google-chrome`:
 
 ```
 TEST_CHROME_BINARY_PATH="/usr/bin/google-chrome" yarn run test:nbrowser
@@ -307,9 +198,9 @@ TEST_CHROME_BINARY_PATH="/usr/bin/google-chrome" yarn run test:nbrowser
 
 #### Using an older Chrome version than the one you have already installed
 
-You might already have Chrome v134+ installed and feel stuck!
+You might already have a newer version of Chrome installed and feel stuck!
 
-One solution is to build yourself a docker container matching what the GitHub actions does. Meaning, with node, python etc, an integrated Chrome v133 binary, and run tests inside that container.
+One solution is to build yourself a docker container matching what the GitHub actions does. Meaning, with node, python etc, an integrated Chrome binary as expected by the CI, and run tests inside that container.
 
 Another solution on Linux, is to just install an old Chrome version on your system directly.
 
@@ -317,10 +208,10 @@ A simple trick is to install an old Chrome _Beta_ binary, in order to not mess w
 
 #### Debian-based distro
 
-You can do the same as the `buildtools/install_chrome_for_tests.sh` script, but target an old version of Chrome _Beta_ like this:
+You can do the same as the `buildtools/install_chrome_for_tests.sh` script, but target an old version of Chrome _Beta_ like this (be sure to have `CHROME_VERSION` set as an env variable):
 
 ```bash
-curl -sS -o /tmp/chrome.deb http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-beta/google-chrome-beta_133.0.6943.35-1_amd64.deb \
+curl -sS -o /tmp/chrome.deb https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb \
   && sudo apt-get install --allow-downgrades -y /tmp/chrome.deb \
   && rm /tmp/chrome.deb \
 ```
@@ -330,17 +221,19 @@ Open `google-chrome-beta` one time manually to confirm any first-loads modals th
 Then run tests with:
 
 ```
-SE_BROWSER_VERSION=133.0.6943.35 \
-SE_DRIVER_VERSION=133.0.6943.141 \
+SE_BROWSER_VERSION=... \
+SE_DRIVER_VERSION=... \
 TEST_CHROME_BINARY_PATH="/usr/bin/google-chrome-beta" \
 yarn run test:nbrowser
 ```
 
 #### Archlinux
 
-Download the google-chrome-beta aur tarball matching the needed version and manually install it:
+Download the google-chrome-beta AUR tarball matching the version you want, and manually install it.
 
-- download and extract [this aur tarball](https://aur.archlinux.org/cgit/aur.git/snapshot/aur-56ac6350a4f727c76f7e0c406233e7cad0a45b5f.tar.gz) (matching Chrome Beta [v133](https://aur.archlinux.org/cgit/aur.git/commit/PKGBUILD?h=google-chrome-beta&id=56ac6350a4f727c76f7e0c406233e7cad0a45b5f))
+- explore the [google-chrome-beta AUR package history](https://aur.archlinux.org/cgit/aur.git/log/PKGBUILD?h=google-chrome-beta)
+- click on the commit details of the version you are interested in. For example, [this is the latest commit for chrome beta v146](https://aur.archlinux.org/cgit/aur.git/commit/PKGBUILD?h=google-chrome-beta&id=1426cfb8dbd2bac4ed8dcef72856cc18a9654995)
+- download and extract the tarball tied to this commit, which is the "download" link on the commit details page. [Example file for v146](https://aur.archlinux.org/cgit/aur.git/snapshot/aur-1426cfb8dbd2bac4ed8dcef72856cc18a9654995.tar.gz).
 - `cd` in the extracted directory and `makepkg -si`.
 
 Open `google-chrome-beta` one time manually to confirm any first-loads modals that would prevent tests to run correctly.
@@ -348,8 +241,8 @@ Open `google-chrome-beta` one time manually to confirm any first-loads modals th
 Then run tests with:
 
 ```
-SE_BROWSER_VERSION=133.0.6943.35 \
-SE_DRIVER_VERSION=133.0.6943.141 \
+SE_BROWSER_VERSION=... \
+SE_DRIVER_VERSION=... \
 TEST_CHROME_BINARY_PATH="/usr/bin/google-chrome-beta" \
 yarn run test:nbrowser
 ```

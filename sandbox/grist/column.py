@@ -289,7 +289,7 @@ class DateColumn(NumericColumn):
   to midnight of specific UTC dates. Accessing them yields date objects.
   """
   def _make_rich_value(self, typed_value):
-    return typed_value and moment.ts_to_date(typed_value)
+    return moment.ts_to_date(typed_value) if isinstance(typed_value, float) else typed_value
 
   def sample_value(self):
     return _sample_date
@@ -304,7 +304,8 @@ class DateTimeColumn(NumericColumn):
     self._timezone = col_info.type_obj.timezone
 
   def _make_rich_value(self, typed_value):
-    return typed_value and moment.ts_to_dt(typed_value, self._timezone)
+    return (moment.ts_to_dt(typed_value, self._timezone)
+        if isinstance(typed_value, float) else typed_value)
 
   def sample_value(self):
     return _sample_datetime
@@ -649,8 +650,11 @@ class ReferenceListColumn(BaseReferenceColumn):
         result.append(lookup_value)
       val = result
 
-    if isinstance(val, int) and val:
-      val = [val]
+    if val:
+      if isinstance(val, int):
+        val = [val]
+      elif self._target_table and isinstance(val, self._target_table.Record):
+        val = [val.id]
 
     return super(ReferenceListColumn, self).convert(val)
 

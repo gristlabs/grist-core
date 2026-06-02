@@ -1,4 +1,4 @@
-import { Mutex, MutexInterface } from 'async-mutex';
+import { Mutex, MutexInterface } from "async-mutex";
 
 /**
  * A per-key mutex.  It has the same interface as Mutex, but with an extra key supplied.

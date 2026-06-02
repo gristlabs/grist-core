@@ -2,14 +2,15 @@
  * NewAbstractWidget is equivalent to AbstractWidget for outside code, but is in typescript, and
  * so is friendlier and clearer to derive TypeScript classes from.
  */
-import {DocComm} from 'app/client/components/DocComm';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {DocData} from 'app/client/models/DocData';
-import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
-import {SaveableObjObservable} from 'app/client/models/modelUtil';
-import {theme} from 'app/client/ui2018/cssVars';
-import {CellStyle} from 'app/client/widgets/CellStyle';
-import {BaseFormatter} from 'app/common/ValueFormatter';
+import { DocComm } from "app/client/components/DocComm";
+import { GristDoc } from "app/client/components/GristDoc";
+import { DocData } from "app/client/models/DocData";
+import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
+import { SaveableObjObservable } from "app/client/models/modelUtil";
+import { theme } from "app/client/ui2018/cssVars";
+import { CellStyle } from "app/client/widgets/CellStyle";
+import { BaseFormatter } from "app/common/ValueFormatter";
+
 import {
   Disposable,
   dom,
@@ -17,7 +18,7 @@ import {
   fromKo,
   IDisposableOwnerT,
   Observable,
-} from 'grainjs';
+} from "grainjs";
 
 export interface Options {
   /**
@@ -39,7 +40,7 @@ export abstract class NewAbstractWidget extends Disposable {
   // use the first signature, which is compatible with old-style constructors.
   public static create<T extends new (...args: any[]) => any>(field: ViewFieldRec): InstanceType<T>;
   public static create<T extends new (...args: any[]) => any>(
-    this: T, owner: IDisposableOwnerT<InstanceType<T>>|null, ...args: ConstructorParameters<T>): InstanceType<T>;
+    this: T, owner: IDisposableOwnerT<InstanceType<T>> | null, ...args: ConstructorParameters<T>): InstanceType<T>;
   public static create(...args: any[]) {
     return Disposable.create.call(this as any, null, ...args);
   }
@@ -48,8 +49,8 @@ export abstract class NewAbstractWidget extends Disposable {
   protected valueFormatter: Observable<BaseFormatter>;
   protected textColor: Observable<string>;
   protected fillColor: Observable<string>;
-  protected readonly defaultTextColor: string|undefined = this._opts.defaultTextColor
-    ?? theme.cellFg.toString();
+  protected readonly defaultTextColor: string | undefined = this._opts.defaultTextColor ??
+    theme.cellFg.toString();
 
   constructor(protected field: ViewFieldRec, private _opts: Options = {}) {
     super();

@@ -1,4 +1,4 @@
-import {OpenDocMode} from 'app/common/DocListAPI';
+import { OpenDocMode } from "app/common/DocListAPI";
 
 interface ErrorDetails {
   status?: number;
@@ -17,6 +17,7 @@ export class ErrorWithCode extends Error {
   constructor(public code: string, message: string, public details: ErrorDetails = {}) {
     super(message);
   }
+
   public get accessMode() { return this.details?.accessMode;  }
   public get status() { return this.details?.status;  }
 }

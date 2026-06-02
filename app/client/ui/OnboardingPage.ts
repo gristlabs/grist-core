@@ -1,20 +1,21 @@
-import {FocusLayer} from 'app/client/lib/FocusLayer';
-import {makeT} from 'app/client/lib/localization';
-import {AppModel} from 'app/client/models/AppModel';
-import {logError} from 'app/client/models/errors';
-import {getMainOrgUrl, urlState} from 'app/client/models/gristUrlState';
-import {getUserPrefObs} from 'app/client/models/UserPrefs';
-import {textInput} from 'app/client/ui/inputs';
-import {PlayerState, YouTubePlayer} from 'app/client/ui/YouTubePlayer';
-import {bigBasicButton, bigPrimaryButton, bigPrimaryButtonLink} from 'app/client/ui2018/buttons';
-import {colors, mediaMedium, mediaXSmall, theme} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {IconName} from 'app/client/ui2018/IconList';
-import {modal} from 'app/client/ui2018/modals';
-import {BaseAPI} from 'app/common/BaseAPI';
-import {commonUrls, getPageTitleSuffix} from 'app/common/gristUrls';
-import {UserPrefs} from 'app/common/Prefs';
-import {getGristConfig} from 'app/common/urlUtils';
+import { FocusLayer } from "app/client/lib/FocusLayer";
+import { makeT } from "app/client/lib/localization";
+import { AppModel } from "app/client/models/AppModel";
+import { logError } from "app/client/models/errors";
+import { getMainOrgUrl, urlState } from "app/client/models/gristUrlState";
+import { getUserPrefObs } from "app/client/models/UserPrefs";
+import { textInput } from "app/client/ui/inputs";
+import { PlayerState, YouTubePlayer } from "app/client/ui/YouTubePlayer";
+import { bigBasicButton, bigPrimaryButton, bigPrimaryButtonLink } from "app/client/ui2018/buttons";
+import { colors, mediaMedium, mediaXSmall, theme } from "app/client/ui2018/cssVars";
+import { IconName } from "app/client/ui2018/IconList";
+import { icon } from "app/client/ui2018/icons";
+import { modal } from "app/client/ui2018/modals";
+import { BaseAPI } from "app/common/BaseAPI";
+import { commonUrls, getPageTitleSuffix } from "app/common/gristUrls";
+import { UserPrefs } from "app/common/Prefs";
+import { getGristConfig } from "app/common/urlUtils";
+
 import {
   Computed,
   Disposable,
@@ -26,23 +27,23 @@ import {
   Observable,
   styled,
   subscribeElem,
-} from 'grainjs';
+} from "grainjs";
 
-const t = makeT('OnboardingPage');
+const t = makeT("OnboardingPage");
 
-const testId = makeTestId('test-onboarding-');
+const testId = makeTestId("test-onboarding-");
 
-const choices: Array<{icon: IconName, color: string, textKey: string}> = [
-  {icon: 'UseProduct', color: `${colors.lightGreen}`, textKey: 'Product Development' },
-  {icon: 'UseFinance', color: '#0075A2',              textKey: 'Finance & Accounting'},
-  {icon: 'UseMedia',   color: '#F7B32B',              textKey: 'Media Production'    },
-  {icon: 'UseMonitor', color: '#F2545B',              textKey: 'IT & Technology'     },
-  {icon: 'UseChart',   color: '#7141F9',              textKey: 'Marketing'           },
-  {icon: 'UseScience', color: '#231942',              textKey: 'Research'            },
-  {icon: 'UseSales',   color: '#885A5A',              textKey: 'Sales'               },
-  {icon: 'UseEducate', color: '#4A5899',              textKey: 'Education'           },
-  {icon: 'UseHr',      color: '#688047',              textKey: 'HR & Management'     },
-  {icon: 'UseOther',   color: '#929299',              textKey: 'Other'               },
+const choices: { icon: IconName, color: string, textKey: string }[] = [
+  { icon: "UseProduct", color: `${colors.lightGreen}`, textKey: "Product Development" },
+  { icon: "UseFinance", color: "#0075A2",              textKey: "Finance & Accounting" },
+  { icon: "UseMedia",   color: "#F7B32B",              textKey: "Media Production"    },
+  { icon: "UseMonitor", color: "#F2545B",              textKey: "IT & Technology"     },
+  { icon: "UseChart",   color: "#7141F9",              textKey: "Marketing"           },
+  { icon: "UseScience", color: "#231942",              textKey: "Research"            },
+  { icon: "UseSales",   color: "#885A5A",              textKey: "Sales"               },
+  { icon: "UseEducate", color: "#4A5899",              textKey: "Education"           },
+  { icon: "UseHr",      color: "#688047",              textKey: "HR & Management"     },
+  { icon: "UseOther",   color: "#929299",              textKey: "Other"               },
 ];
 
 export function shouldShowOnboardingPage(userPrefsObs: Observable<UserPrefs>): boolean {
@@ -60,7 +61,7 @@ interface Step {
 interface QuestionsState {
   organization: Observable<string>;
   role: Observable<string>;
-  useCases: Array<Observable<boolean>>;
+  useCases: Observable<boolean>[];
   useOther: Observable<string>;
 }
 
@@ -69,7 +70,7 @@ interface VideoState {
 }
 
 export class OnboardingPage extends Disposable {
-  private _steps: Array<Step>;
+  private _steps: Step[];
   private _stepIndex: Observable<number> = Observable.create(this, 0);
 
   constructor(private _appModel: AppModel) {
@@ -86,10 +87,10 @@ export class OnboardingPage extends Disposable {
     this._steps = [
       {
         state: {
-          organization: Observable.create(this, ''),
-          role: Observable.create(this, ''),
+          organization: Observable.create(this, ""),
+          role: Observable.create(this, ""),
           useCases: choices.map(() => Observable.create(this, false)),
-          useOther: Observable.create(this, ''),
+          useOther: Observable.create(this, ""),
         },
         buildDom() { return dom.create(buildQuestions, incrementStep, this.state as QuestionsState); },
         onNavigateAway() { saveQuestions(this.state as QuestionsState); },
@@ -107,7 +108,7 @@ export class OnboardingPage extends Disposable {
 
     document.title = `Welcome${getPageTitleSuffix(getGristConfig())}`;
 
-    getUserPrefObs(this._appModel.userPrefsObs, 'showNewUserQuestions').set(undefined);
+    getUserPrefObs(this._appModel.userPrefsObs, "showNewUserQuestions").set(undefined);
   }
 
   public buildDom() {
@@ -115,21 +116,21 @@ export class OnboardingPage extends Disposable {
       cssOnboardingPage(
         cssSidebar(
           cssSidebarContent(
-            cssSidebarHeading1(t('Welcome')),
-            cssSidebarHeading2(this._appModel.currentUser!.name + '!'),
-            testId('sidebar'),
+            cssSidebarHeading1(t("Welcome")),
+            cssSidebarHeading2(this._appModel.currentUser!.name + "!"),
+            testId("sidebar"),
           ),
           cssGetStarted(
-            cssGetStartedImg({src: 'img/get-started.png'}),
+            cssGetStartedImg({ src: "img/get-started.png" }),
           ),
         ),
         cssMainPanel(
           buildStepper(this._steps, this._stepIndex),
-          dom.domComputed(this._stepIndex, index => {
+          dom.domComputed(this._stepIndex, (index) => {
             return this._steps[index].buildDom();
           }),
         ),
-        testId('page'),
+        testId("page"),
       ),
     );
   }
@@ -140,19 +141,19 @@ function buildStepper(steps: Step[], stepIndex: Observable<number>) {
     steps.map((_, i) =>
       cssStep(
         cssStepCircle(
-          cssStepCircle.cls('-done', use => (i < use(stepIndex))),
-          dom.domComputed(use => i < use(stepIndex), (done) => done ? icon('Tick') : String(i + 1)),
-          cssStepCircle.cls('-current', use => (i === use(stepIndex))),
-          dom.on('click', () => { stepIndex.set(i); }),
-          testId(`step-${i + 1}`)
-        )
-      )
-    )
+          cssStepCircle.cls("-done", use => (i < use(stepIndex))),
+          dom.domComputed(use => i < use(stepIndex), done => done ? icon("Tick") : String(i + 1)),
+          cssStepCircle.cls("-current", use => (i === use(stepIndex))),
+          dom.on("click", () => { stepIndex.set(i); }),
+          testId(`step-${i + 1}`),
+        ),
+      ),
+    ),
   );
 }
 
 function saveQuestions(state: QuestionsState) {
-  const {organization, role, useCases, useOther} = state;
+  const { organization, role, useCases, useOther } = state;
   if (!organization.get() && !role.get() && !useCases.map(useCase => useCase.get()).includes(true)) {
     return;
   }
@@ -160,17 +161,17 @@ function saveQuestions(state: QuestionsState) {
   const org_name = organization.get();
   const org_role = role.get();
   const use_cases = choices.filter((c, i) => useCases[i].get()).map(c => c.textKey);
-  const use_other = use_cases.includes('Other') ? useOther.get() : '';
+  const use_other = use_cases.includes("Other") ? useOther.get() : "";
   const submitUrl = new URL(window.location.href);
-  submitUrl.pathname = '/welcome/info';
+  submitUrl.pathname = "/welcome/info";
   BaseAPI.request(submitUrl.href, {
-    method: 'POST',
-    body: JSON.stringify({org_name, org_role, use_cases, use_other})
-  }).catch((e) => logError(e));
+    method: "POST",
+    body: JSON.stringify({ org_name, org_role, use_cases, use_other }),
+  }).catch(e => logError(e));
 }
 
 function buildQuestions(owner: IDisposableOwner, incrementStep: IncrementStep, state: QuestionsState) {
-  const {organization, role, useCases, useOther} = state;
+  const { organization, role, useCases, useOther } = state;
   const isFilled = Computed.create(owner, (use) => {
     return Boolean(use(organization) || use(role) || useCases.map(useCase => use(useCase)).includes(true));
   });
@@ -178,19 +179,19 @@ function buildQuestions(owner: IDisposableOwner, incrementStep: IncrementStep, s
   return cssQuestions(
     cssHeading(t("Tell us who you are")),
     cssQuestion(
-      cssFieldHeading(t('What organization are you with?')),
+      cssFieldHeading(t("What organization are you with?")),
       cssInput(
         organization,
-        {type: 'text', placeholder: t('Your organization')},
-        testId('questions-organization'),
+        { type: "text", placeholder: t("Your organization") },
+        testId("questions-organization"),
       ),
     ),
     cssQuestion(
-      cssFieldHeading(t('What is your role?')),
+      cssFieldHeading(t("What is your role?")),
       cssInput(
         role,
-        {type: 'text', placeholder: t('Your role')},
-        testId('questions-role'),
+        { type: "text", placeholder: t("Your role") },
+        testId("questions-role"),
       ),
     ),
     cssQuestion(
@@ -198,51 +199,51 @@ function buildQuestions(owner: IDisposableOwner, incrementStep: IncrementStep, s
       cssUseCases(
         choices.map((item, i) => cssUseCase(
           cssUseCaseIcon(icon(item.icon)),
-          cssUseCase.cls('-selected', useCases[i]),
-          dom.on('click', () => useCases[i].set(!useCases[i].get())),
-          (item.icon !== 'UseOther' ?
+          cssUseCase.cls("-selected", useCases[i]),
+          dom.on("click", () => useCases[i].set(!useCases[i].get())),
+          (item.icon !== "UseOther" ?
             t(item.textKey) :
             [
               cssOtherLabel(t(item.textKey)),
-              cssOtherInput(useOther, {}, {type: 'text', placeholder: t("Type here")},
+              cssOtherInput(useOther, {}, { type: "text", placeholder: t("Type here") },
                 // The following subscribes to changes to selection observable, and focuses the input when
                 // this item is selected.
-                (elem) => subscribeElem(elem, useCases[i], val => val && setTimeout(() => elem.focus(), 0)),
+                elem => subscribeElem(elem, useCases[i], val => val && setTimeout(() => elem.focus(), 0)),
                 // It's annoying if clicking into the input toggles selection; better to turn that
                 // off (user can click icon to deselect).
-                dom.on('click', ev => ev.stopPropagation()),
+                dom.on("click", ev => ev.stopPropagation()),
                 // Similarly, ignore Enter/Escape in "Other" textbox, so that they don't submit/close the form.
                 dom.onKeyDown({
                   Enter: (ev, elem) => elem.blur(),
                   Escape: (ev, elem) => elem.blur(),
                 }),
-              )
+              ),
             ]
           ),
-          testId('questions-use-case'),
+          testId("questions-use-case"),
         )),
       ),
     ),
     cssContinue(
       bigPrimaryButton(
-        t('Next step'),
+        t("Next step"),
         dom.show(isFilled),
-        dom.on('click', () => incrementStep()),
-        testId('next-step'),
+        dom.on("click", () => incrementStep()),
+        testId("next-step"),
       ),
       bigBasicButton(
-        t('Skip step'),
+        t("Skip step"),
         dom.hide(isFilled),
-        dom.on('click', () => incrementStep()),
-        testId('skip-step'),
+        dom.on("click", () => incrementStep()),
+        testId("skip-step"),
       ),
     ),
-    testId('questions'),
+    testId("questions"),
   );
 }
 
 function buildVideo(_owner: IDisposableOwner, incrementStep: IncrementStep, state: VideoState) {
-  const {watched} = state;
+  const { watched } = state;
 
   function onPlay() {
     watched.set(true);
@@ -251,41 +252,41 @@ function buildVideo(_owner: IDisposableOwner, incrementStep: IncrementStep, stat
       const youtubePlayer = YouTubePlayer.create(modalOwner,
         commonUrls.onboardingTutorialVideoId,
         {
-          onPlayerReady: (player) => player.playVideo(),
-          onPlayerStateChange(_player, {data}) {
+          onPlayerReady: player => player.playVideo(),
+          onPlayerStateChange(_player, { data }) {
             if (data !== PlayerState.Ended) { return; }
 
             ctl.close();
           },
-          height: '100%',
-          width: '100%',
+          height: "100%",
+          width: "100%",
           origin: getMainOrgUrl(),
         },
-        cssYouTubePlayer.cls(''),
+        cssYouTubePlayer.cls(""),
       );
 
       return [
-        dom.on('click', () => ctl.close()),
-        elem => { FocusLayer.create(modalOwner, {defaultFocusElem: elem, pauseMousetrap: true}); },
+        dom.on("click", () => ctl.close()),
+        (elem) => { FocusLayer.create(modalOwner, { defaultFocusElem: elem, pauseMousetrap: true }); },
         dom.onKeyDown({
-          Escape: () => ctl.close(),
-          ' ': () => youtubePlayer.playPause(),
+          "Escape": () => ctl.close(),
+          " ": () => youtubePlayer.playPause(),
         }),
         cssModalHeader(
           cssModalCloseButton(
-            cssCloseIcon('CrossBig'),
+            cssCloseIcon("CrossBig"),
           ),
         ),
         cssModalBody(
           cssVideoPlayer(
-            dom.on('click', (ev) => ev.stopPropagation()),
+            dom.on("click", ev => ev.stopPropagation()),
             youtubePlayer.buildDom(),
-            testId('video-player'),
+            testId("video-player"),
           ),
           cssModalButtons(
             bigPrimaryButton(
-              t('Next step'),
-              dom.on('click', (ev) => {
+              t("Next step"),
+              dom.on("click", (ev) => {
                 ev.stopPropagation();
                 ctl.close();
                 incrementStep();
@@ -293,99 +294,99 @@ function buildVideo(_owner: IDisposableOwner, incrementStep: IncrementStep, stat
             ),
           ),
         ),
-        cssVideoPlayerModal.cls(''),
+        cssVideoPlayerModal.cls(""),
       ];
     });
   }
 
-  return dom('div',
-    cssHeading(t('Discover Grist in 3 minutes')),
+  return dom("div",
+    cssHeading(t("Discover Grist in 3 minutes")),
     cssScreenshot(
-      dom.on('click', onPlay),
-      dom('div',
-        cssScreenshotImg({src: 'img/youtube-screenshot.png'}),
+      dom.on("click", onPlay),
+      dom("div",
+        cssScreenshotImg({ src: "img/youtube-screenshot.png" }),
         cssActionOverlay(
           cssAction(
-            cssRoundButton(cssVideoPlayIcon('VideoPlay')),
+            cssRoundButton(cssVideoPlayIcon("VideoPlay")),
           ),
         ),
       ),
-      testId('video-thumbnail'),
+      testId("video-thumbnail"),
     ),
     cssContinue(
       cssBackButton(
-        t('Back'),
-        dom.on('click', () => incrementStep(-1)),
-        testId('back'),
+        t("Back"),
+        dom.on("click", () => incrementStep(-1)),
+        testId("back"),
       ),
       bigPrimaryButton(
-        t('Next step'),
+        t("Next step"),
         dom.show(watched),
-        dom.on('click', () => incrementStep()),
-        testId('next-step'),
+        dom.on("click", () => incrementStep()),
+        testId("next-step"),
       ),
       bigBasicButton(
-        t('Skip step'),
+        t("Skip step"),
         dom.hide(watched),
-        dom.on('click', () => incrementStep()),
-        testId('skip-step'),
+        dom.on("click", () => incrementStep()),
+        testId("skip-step"),
       ),
     ),
-    testId('video'),
+    testId("video"),
   );
 }
 
 function buildTutorial(_owner: IDisposableOwner, incrementStep: IncrementStep) {
-  const {templateOrg, onboardingTutorialDocId} = getGristConfig();
-  return dom('div',
+  const { templateOrg, onboardingTutorialDocId } = getGristConfig();
+  return dom("div",
     cssHeading(
-      t('Go hands-on with the Grist Basics tutorial'),
+      t("Go hands-on with the Grist Basics tutorial"),
       cssSubHeading(
         t("Grist may look like a spreadsheet, but it doesn't always \
-act like one. Discover what makes Grist different."
+act like one. Discover what makes Grist different.",
         ),
       ),
     ),
     cssTutorial(
       cssScreenshot(
-        dom.on('click', () => urlState().pushUrl({org: templateOrg!, doc: onboardingTutorialDocId})),
-        cssTutorialScreenshotImg({src: 'img/tutorial-screenshot.png'}),
+        dom.on("click", () => urlState().pushUrl({ org: templateOrg!, doc: onboardingTutorialDocId })),
+        cssTutorialScreenshotImg({ src: "img/tutorial-screenshot.png" }),
         cssTutorialOverlay(
           cssAction(
-            cssTutorialButton(t('Go to the tutorial!')),
+            cssTutorialButton(t("Go to the tutorial!")),
           ),
         ),
-        testId('tutorial-thumbnail'),
+        testId("tutorial-thumbnail"),
       ),
     ),
     cssContinue(
       cssBackButton(
-        t('Back'),
-        dom.on('click', () => incrementStep(-1)),
-        testId('back'),
+        t("Back"),
+        dom.on("click", () => incrementStep(-1)),
+        testId("back"),
       ),
       bigBasicButton(
-        t('Skip tutorial'),
-        dom.on('click', () => window.location.href = urlState().makeUrl(urlState().state.get())),
-        testId('skip-tutorial'),
+        t("Skip tutorial"),
+        dom.on("click", () => window.location.href = urlState().makeUrl(urlState().state.get())),
+        testId("skip-tutorial"),
       ),
     ),
-    testId('tutorial'),
+    testId("tutorial"),
   );
 }
 
-const cssPageContainer = styled('div', `
+const cssPageContainer = styled("div", `
   overflow: auto;
   height: 100%;
   background-color: ${theme.mainPanelBg};
 `);
 
-const cssOnboardingPage = styled('div', `
+const cssOnboardingPage = styled("div", `
   display: flex;
   min-height: 100%;
 `);
 
-const cssSidebar = styled('div', `
+const cssSidebar = styled("div", `
   width: 460px;
   background-color: ${colors.lightGreen};
   color: ${colors.light};
@@ -404,20 +405,20 @@ const cssSidebar = styled('div', `
   }
 `);
 
-const cssGetStarted = styled('div', `
+const cssGetStarted = styled("div", `
   width: 500px;
   height: 350px;
   margin: auto -77px 0 37px;
   overflow: hidden;
 `);
 
-const cssGetStartedImg = styled('img', `
+const cssGetStartedImg = styled("img", `
   display: block;
   width: 500px;
   height: auto;
 `);
 
-const cssSidebarContent = styled('div', `
+const cssSidebarContent = styled("div", `
   line-height: 32px;
   margin: 112px 16px 64px 16px;
   font-size: 24px;
@@ -425,17 +426,17 @@ const cssSidebarContent = styled('div', `
   font-weight: 500;
 `);
 
-const cssSidebarHeading1 = styled('div', `
+const cssSidebarHeading1 = styled("div", `
   font-size: 32px;
   text-align: center;
 `);
 
-const cssSidebarHeading2 = styled('div', `
+const cssSidebarHeading2 = styled("div", `
   font-size: 28px;
   text-align: center;
 `);
 
-const cssMainPanel = styled('div', `
+const cssMainPanel = styled("div", `
   margin: 56px auto;
   padding: 0px 96px;
   text-align: center;
@@ -447,7 +448,7 @@ const cssMainPanel = styled('div', `
   }
 `);
 
-const cssHeading = styled('div', `
+const cssHeading = styled("div", `
   color: ${theme.text};
   font-size: 24px;
   font-weight: 500;
@@ -460,7 +461,7 @@ const cssSubHeading = styled(cssHeading, `
   margin-top: 16px;
 `);
 
-const cssStep = styled('div', `
+const cssStep = styled("div", `
   display: flex;
   align-items: center;
   cursor: default;
@@ -473,7 +474,7 @@ const cssStep = styled('div', `
   }
 `);
 
-const cssStepCircle = styled('div', `
+const cssStepCircle = styled("div", `
   --icon-color: ${theme.controlPrimaryFg};
   --step-color: ${theme.controlPrimaryBg};
   display: inline-block;
@@ -499,37 +500,37 @@ const cssStepCircle = styled('div', `
   }
 `);
 
-const cssQuestions = styled('div', `
+const cssQuestions = styled("div", `
   max-width: 500px;
 `);
 
-const cssQuestion = styled('div', `
+const cssQuestion = styled("div", `
   margin: 16px 0 8px 0;
   text-align: left;
 `);
 
-const cssFieldHeading = styled('div', `
+const cssFieldHeading = styled("div", `
   color: ${theme.text};
   font-size: 13px;
   font-weight: 700;
   margin-bottom: 12px;
 `);
 
-const cssContinue = styled('div', `
+const cssContinue = styled("div", `
   display: flex;
   justify-content: center;
   margin-top: 40px;
   gap: 16px;
 `);
 
-const cssUseCases = styled('div', `
+const cssUseCases = styled("div", `
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   margin: -8px -4px;
 `);
 
-const cssUseCase = styled('div', `
+const cssUseCase = styled("div", `
   flex: 1 0 40%;
   min-width: 200px;
   margin: 8px 4px 0 4px;
@@ -557,12 +558,12 @@ const cssUseCase = styled('div', `
   }
 `);
 
-const cssUseCaseIcon = styled('div', `
+const cssUseCaseIcon = styled("div", `
   margin: 0 16px;
   --icon-color: ${theme.accentIcon};
 `);
 
-const cssOtherLabel = styled('div', `
+const cssOtherLabel = styled("div", `
   display: block;
 
   .${cssUseCase.className}-selected & {
@@ -590,12 +591,12 @@ const cssOtherInput = styled(input, `
   }
 `);
 
-const cssTutorial = styled('div', `
+const cssTutorial = styled("div", `
   display: flex;
   justify-content: center;
 `);
 
-const cssScreenshot = styled('div', `
+const cssScreenshot = styled("div", `
   max-width: 720px;
   display: flex;
   position: relative;
@@ -605,7 +606,7 @@ const cssScreenshot = styled('div', `
   cursor: pointer;
 `);
 
-const cssActionOverlay = styled('div', `
+const cssActionOverlay = styled("div", `
   position: absolute;
   z-index: 1;
   top: 0;
@@ -619,7 +620,7 @@ const cssTutorialOverlay = styled(cssActionOverlay, `
   background-color: transparent;
 `);
 
-const cssAction = styled('div', `
+const cssAction = styled("div", `
   display: flex;
   flex-direction: column;
   margin: auto;
@@ -640,17 +641,17 @@ const cssCloseIcon = styled(icon, `
   height: 22px;
 `);
 
-const cssYouTubePlayer = styled('iframe', `
+const cssYouTubePlayer = styled("iframe", `
   border-radius: 4px;
 `);
 
-const cssModalHeader = styled('div', `
+const cssModalHeader = styled("div", `
   display: flex;
   flex-shrink: 0;
   justify-content: flex-end;
 `);
 
-const cssModalBody = styled('div', `
+const cssModalBody = styled("div", `
   display: flex;
   flex-grow: 1;
   flex-direction: column;
@@ -662,13 +663,13 @@ const cssBackButton = styled(bigBasicButton, `
   border: none;
 `);
 
-const cssModalButtons = styled('div', `
+const cssModalButtons = styled("div", `
   display: flex;
   justify-content: center;
   margin-top: 24px;
 `);
 
-const cssVideoPlayer = styled('div', `
+const cssVideoPlayer = styled("div", `
   width: 100%;
   max-width: 1280px;
   height: 100%;
@@ -681,7 +682,7 @@ const cssVideoPlayer = styled('div', `
   }
 `);
 
-const cssVideoPlayerModal = styled('div', `
+const cssVideoPlayerModal = styled("div", `
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -691,7 +692,7 @@ const cssVideoPlayerModal = styled('div', `
   box-shadow: none;
 `);
 
-const cssModalCloseButton = styled('div', `
+const cssModalCloseButton = styled("div", `
   margin-bottom: 8px;
   padding: 4px;
   border-radius: 4px;
@@ -702,17 +703,17 @@ const cssModalCloseButton = styled('div', `
   }
 `);
 
-const cssScreenshotImg = styled('img', `
+const cssScreenshotImg = styled("img", `
   transform: scale(1.2);
   width: 100%;
 `);
 
-const cssTutorialScreenshotImg = styled('img', `
+const cssTutorialScreenshotImg = styled("img", `
   width: 100%;
   opacity: 0.4;
 `);
 
-const cssRoundButton = styled('div', `
+const cssRoundButton = styled("div", `
   width: 75px;
   height: 75px;
   flex-shrink: 0;
@@ -728,7 +729,7 @@ const cssRoundButton = styled('div', `
   }
 `);
 
-const cssStepper = styled('div', `
+const cssStepper = styled("div", `
   display: flex;
   justify-content: center;
   text-align: center;

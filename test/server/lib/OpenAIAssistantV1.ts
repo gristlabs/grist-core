@@ -1,21 +1,22 @@
-import {AssistanceState} from 'app/common/Assistance';
-import {ActiveDoc} from "app/server/lib/ActiveDoc";
-import {configureOpenAIAssistantV1} from 'app/server/lib/configureOpenAIAssistantV1';
-import {OptDocSession} from 'app/server/lib/DocSession';
-import {AssistantV1} from 'app/server/lib/IAssistant';
-import {DEPS, OpenAIAssistantV1} from 'app/server/lib/OpenAIAssistantV1';
-import { GristProxyAgent } from 'app/server/lib/ProxyAgent';
-import {assert} from 'chai';
-import {Response} from 'node-fetch';
-import * as sinon from 'sinon';
-import {createDocTools} from 'test/server/docTools';
-import {EnvironmentSnapshot} from 'test/server/testUtils';
+import { AssistanceState } from "app/common/Assistance";
+import { ActiveDoc } from "app/server/lib/ActiveDoc";
+import { configureOpenAIAssistantV1 } from "app/server/lib/configureOpenAIAssistantV1";
+import { OptDocSession } from "app/server/lib/DocSession";
+import { AssistantV1 } from "app/server/lib/IAssistant";
+import { DEPS, OpenAIAssistantV1 } from "app/server/lib/OpenAIAssistantV1";
+import { GristProxyAgent } from "app/server/lib/ProxyAgent";
+import { createDocTools } from "test/server/docTools";
+import { EnvironmentSnapshot } from "test/server/testUtils";
+
+import { assert } from "chai";
+import chai from "chai";
+import chaiAsPromised from "chai-as-promised";
+import { Response } from "node-fetch";
+import * as sinon from "sinon";
 
 // For some reason, assert.isRejected is not getting defined,
 // though test/chai-as-promised.js should be taking care of this.
 // So test/chai-as-promised.js is just repeated here.
-const chai = require('chai');
-const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
 
 /**
@@ -24,10 +25,10 @@ chai.use(chaiAsPromised);
  */
 const LONGER_CONTEXT_MODEL_FOR_TEST = "fake";
 
-describe('OpenAIAssistantV1', function () {
+describe("OpenAIAssistantV1", function() {
   this.timeout(10000);
 
-  const docTools = createDocTools({persistAcrossCases: true});
+  const docTools = createDocTools({ persistAcrossCases: true });
   const table1Id = "Table1";
   const table2Id = "Table2";
   let assistant: AssistantV1;
@@ -40,17 +41,17 @@ describe('OpenAIAssistantV1', function () {
     process.env.ASSISTANT_LONGER_CONTEXT_MODEL = LONGER_CONTEXT_MODEL_FOR_TEST;
     const openAIAssistant = configureOpenAIAssistantV1();
     if (!openAIAssistant) {
-      throw new Error('no assistant');
+      throw new Error("no assistant");
     }
     assistant = openAIAssistant;
     session = docTools.createFakeSession();
-    doc = await docTools.createDoc('test.grist');
+    doc = await docTools.createDoc("test.grist");
     await doc.applyUserActions(session, [
-      ["AddTable", table1Id, [{id: "A"}, {id: "B"}, {id: "C"}]],
-      ["AddTable", table2Id, [{id: "A"}, {id: "B"}, {id: "C"}]],
+      ["AddTable", table1Id, [{ id: "A" }, { id: "B" }, { id: "C" }]],
+      ["AddTable", table2Id, [{ id: "A" }, { id: "B" }, { id: "C" }]],
     ]);
   });
-  after(async function () {
+  after(async function() {
     oldEnv.restore();
   });
 
@@ -59,8 +60,8 @@ describe('OpenAIAssistantV1', function () {
 
   function checkGetAssistance(state?: AssistanceState) {
     return assistant.getAssistance(session, doc, {
-      conversationId: 'conversationId',
-      context: {tableId: table1Id, colId},
+      conversationId: "conversationId",
+      context: { tableId: table1Id, colId },
       state,
       text: userMessageContent,
     });
@@ -74,14 +75,14 @@ describe('OpenAIAssistantV1', function () {
       const body = fakeResponse();
       return new Response(
         JSON.stringify(body),
-        {status: body.status},
+        { status: body.status },
       );
     });
-    sinon.replace(DEPS, 'fetch', fakeFetch as any);
-    sinon.replace(DEPS, 'delayTime', 1);
+    sinon.replace(DEPS, "fetch", fakeFetch as any);
+    sinon.replace(DEPS, "delayTime", 1);
   });
 
-  afterEach(function () {
+  afterEach(function() {
     sinon.restore();
   });
 
@@ -92,17 +93,17 @@ describe('OpenAIAssistantV1', function () {
     );
   }
 
-  it('can suggest a formula', async function () {
-    const reply = "Here's a formula that adds columns A and B:\n\n"
-      + "```python\na = int(rec.A)\nb=int(rec.B)\n\nreturn str(a + b)\n```"
-      + "\n\nLet me know if there's anything else I can help with.";
-    const replyMessage = {"role": "assistant", "content": reply};
+  it("can suggest a formula", async function() {
+    const reply = "Here's a formula that adds columns A and B:\n\n" +
+      "```python\na = int(rec.A)\nb=int(rec.B)\n\nreturn str(a + b)\n```" +
+      "\n\nLet me know if there's anything else I can help with.";
+    const replyMessage = { role: "assistant", content: reply };
 
     fakeResponse = () => ({
-      "choices": [{
-        "index": 0,
-        "message": replyMessage,
-        "finish_reason": "stop"
+      choices: [{
+        index: 0,
+        message: replyMessage,
+        finish_reason: "stop",
       }],
       status: 200,
     });
@@ -110,98 +111,98 @@ describe('OpenAIAssistantV1', function () {
     checkModels([OpenAIAssistantV1.DEFAULT_MODEL]);
     const callInfo = fakeFetch.getCall(0);
     const [url, request] = callInfo.args;
-    assert.equal(url, 'https://api.openai.com/v1/chat/completions');
-    assert.equal(request.method, 'POST');
-    const {messages: requestMessages} = JSON.parse(request.body);
+    assert.equal(url, "https://api.openai.com/v1/chat/completions");
+    assert.equal(request.method, "POST");
+    const { messages: requestMessages } = JSON.parse(request.body);
     const systemMessageContent = requestMessages[0].content;
     assert.match(systemMessageContent, /def C\(rec: Table1\)/);
     assert.deepEqual(requestMessages, [
-        {
-          role: "system",
-          content: systemMessageContent,
-        },
-        {
-          role: "user",
-          content: userMessageContent,
-        }
-      ]
+      {
+        role: "system",
+        content: systemMessageContent,
+      },
+      {
+        role: "user",
+        content: userMessageContent,
+      },
+    ],
     );
     const suggestedFormula = "a = int($A)\nb=int($B)\n\nstr(a + b)";
-    const replyWithSuggestedFormula = "Here's a formula that adds columns A and B:\n\n"
-      + "```python\na = int($A)\nb=int($B)\n\nstr(a + b)\n```"
-      + "\n\nLet me know if there's anything else I can help with.";
+    const replyWithSuggestedFormula = "Here's a formula that adds columns A and B:\n\n" +
+      "```python\na = int($A)\nb=int($B)\n\nstr(a + b)\n```" +
+      "\n\nLet me know if there's anything else I can help with.";
     assert.deepEqual(result, {
-        suggestedActions: [
-          ["ModifyColumn", table1Id, colId, {formula: suggestedFormula}]
-        ],
-        suggestedFormula,
-        reply: replyWithSuggestedFormula,
-        state: {
-          messages: [...requestMessages, replyMessage]
-        }
-      }
+      suggestedActions: [
+        ["ModifyColumn", table1Id, colId, { formula: suggestedFormula }],
+      ],
+      suggestedFormula,
+      reply: replyWithSuggestedFormula,
+      state: {
+        messages: [...requestMessages, replyMessage],
+      },
+    },
     );
   });
 
-   it('does not use the trusted proxy when not configured', async function () {
-    const agentsFake = {trusted: undefined, untrusted: undefined};
-    sinon.replace(DEPS, 'agents', agentsFake);
+  it("does not use the trusted proxy when not configured", async function() {
+    const agentsFake = { trusted: undefined, untrusted: undefined };
+    sinon.replace(DEPS, "agents", agentsFake);
     await checkGetAssistance();
     checkModels([OpenAIAssistantV1.DEFAULT_MODEL]);
     const callInfo = fakeFetch.getCall(0);
     const [url, request] = callInfo.args;
-    assert.equal(url, 'https://api.openai.com/v1/chat/completions');
-    assert.equal(request.method, 'POST');
+    assert.equal(url, "https://api.openai.com/v1/chat/completions");
+    assert.equal(request.method, "POST");
     assert.isUndefined(request.agent);
   });
 
-  it('uses trusted proxy when configured', async function () {
-    const proxyURL = 'http://localhost-proxy:8080';
-    process.env.HTTPS_PROXY=proxyURL;
+  it("uses trusted proxy when configured", async function() {
+    const proxyURL = "http://localhost-proxy:8080";
+    process.env.HTTPS_PROXY = proxyURL;
     const trustedAgent = new GristProxyAgent(proxyURL);
-    const agentsFake = {trusted: trustedAgent, untrusted: undefined};
-    sinon.replace(DEPS, 'agents', agentsFake);
+    const agentsFake = { trusted: trustedAgent, untrusted: undefined };
+    sinon.replace(DEPS, "agents", agentsFake);
     await checkGetAssistance();
     checkModels([OpenAIAssistantV1.DEFAULT_MODEL]);
     const callInfo = fakeFetch.getCall(0);
     const [url, request] = callInfo.args;
-    assert.equal(url, 'https://api.openai.com/v1/chat/completions');
-    assert.equal(request.method, 'POST');
+    assert.equal(url, "https://api.openai.com/v1/chat/completions");
+    assert.equal(request.method, "POST");
     assert.deepEqual(request.agent, trustedAgent);
   });
 
-  it('does not suggest anything if formula is invalid', async function () {
+  it("does not suggest anything if formula is invalid", async function() {
     const reply = "This isn't valid Python code:\n```python\nclass = 'foo'\n```";
     const replyMessage = {
-      "role": "assistant",
-      "content": reply,
+      role: "assistant",
+      content: reply,
     };
 
     fakeResponse = () => ({
-      "choices": [{
-        "index": 0,
-        "message": replyMessage,
-        "finish_reason": "stop"
+      choices: [{
+        index: 0,
+        message: replyMessage,
+        finish_reason: "stop",
       }],
       status: 200,
     });
     const result = await checkGetAssistance();
     const callInfo = fakeFetch.getCall(0);
     const [, request] = callInfo.args;
-    const {messages: requestMessages} = JSON.parse(request.body);
+    const { messages: requestMessages } = JSON.parse(request.body);
     const suggestedFormula = undefined;
     assert.deepEqual(result, {
-        suggestedActions: [],
-        suggestedFormula,
-        reply,
-        state: {
-          messages: [...requestMessages, replyMessage],
-        },
-      }
+      suggestedActions: [],
+      suggestedFormula,
+      reply,
+      state: {
+        messages: [...requestMessages, replyMessage],
+      },
+    },
     );
   });
 
-  it('tries 3 times in case of network errors', async function () {
+  it("tries 3 times in case of network errors", async function() {
     fakeResponse = () => {
       throw new Error("Network error");
     };
@@ -214,8 +215,8 @@ describe('OpenAIAssistantV1', function () {
     assert.equal(fakeFetch.callCount, 3);
   });
 
-  it('tries 3 times in case of bad status code', async function () {
-    fakeResponse = () => ({status: 500});
+  it("tries 3 times in case of bad status code", async function() {
+    fakeResponse = () => ({ status: 500 });
     await assert.isRejected(
       checkGetAssistance(),
       "Sorry, the assistant is unavailable right now. " +
@@ -225,7 +226,7 @@ describe('OpenAIAssistantV1', function () {
     assert.equal(fakeFetch.callCount, 3);
   });
 
-  it('handles exceeded billing quota', async function () {
+  it("handles exceeded billing quota", async function() {
     fakeResponse = () => ({
       error: {
         code: "insufficient_quota",
@@ -240,7 +241,7 @@ describe('OpenAIAssistantV1', function () {
     assert.equal(fakeFetch.callCount, 1);
   });
 
-  it('switches to a longer model with no retries if the prompt is too long', async function () {
+  it("switches to a longer model with no retries if the prompt is too long", async function() {
     fakeResponse = () => ({
       error: {
         code: "context_length_exceeded",
@@ -249,7 +250,7 @@ describe('OpenAIAssistantV1', function () {
     });
     await assert.isRejected(
       checkGetAssistance(),
-      /You'll need to either shorten your message or delete some columns/
+      /You'll need to either shorten your message or delete some columns/,
     );
     checkModels([
       OpenAIAssistantV1.DEFAULT_MODEL,
@@ -258,7 +259,7 @@ describe('OpenAIAssistantV1', function () {
     ]);
   });
 
-  it('switches to a shorter prompt if the longer model exceeds its token limit', async function () {
+  it("switches to a shorter prompt if the longer model exceeds its token limit", async function() {
     fakeResponse = () => ({
       error: {
         code: "context_length_exceeded",
@@ -267,11 +268,11 @@ describe('OpenAIAssistantV1', function () {
     });
     await assert.isRejected(
       checkGetAssistance(),
-      /You'll need to either shorten your message or delete some columns/
+      /You'll need to either shorten your message or delete some columns/,
     );
     fakeFetch.getCalls().map((callInfo, i) => {
       const [, request] = callInfo.args;
-      const {messages} = JSON.parse(request.body);
+      const { messages } = JSON.parse(request.body);
       const systemMessageContent = messages[0].content;
       const shortCallIndex = 2;
       if (i === shortCallIndex) {
@@ -288,18 +289,18 @@ describe('OpenAIAssistantV1', function () {
     });
   });
 
-  it('switches to a longer model with no retries if the model runs out of tokens while responding', async function () {
+  it("switches to a longer model with no retries if the model runs out of tokens while responding", async function() {
     fakeResponse = () => ({
-      "choices": [{
-        "index": 0,
-        "message": {},
-        "finish_reason": "length"
+      choices: [{
+        index: 0,
+        message: {},
+        finish_reason: "length",
       }],
       status: 200,
     });
     await assert.isRejected(
       checkGetAssistance(),
-      /You'll need to either shorten your message or delete some columns/
+      /You'll need to either shorten your message or delete some columns/,
     );
     checkModels([
       OpenAIAssistantV1.DEFAULT_MODEL,
@@ -308,7 +309,7 @@ describe('OpenAIAssistantV1', function () {
     ]);
   });
 
-  it('suggests restarting conversation if the prompt is too long and there are past messages', async function () {
+  it("suggests restarting conversation if the prompt is too long and there are past messages", async function() {
     fakeResponse = () => ({
       error: {
         code: "context_length_exceeded",
@@ -318,12 +319,12 @@ describe('OpenAIAssistantV1', function () {
     await assert.isRejected(
       checkGetAssistance({
         messages: [
-          {role: "system", content: "Be good."},
-          {role: "user", content: "Hi."},
-          {role: "assistant", content: "Hi!"},
-        ]
+          { role: "system", content: "Be good." },
+          { role: "user", content: "Hi." },
+          { role: "assistant", content: "Hi!" },
+        ],
       }),
-      /You'll need to either shorten your message, restart the conversation, or delete some columns/
+      /You'll need to either shorten your message, restart the conversation, or delete some columns/,
     );
     checkModels([
       OpenAIAssistantV1.DEFAULT_MODEL,
@@ -332,7 +333,7 @@ describe('OpenAIAssistantV1', function () {
     ]);
   });
 
-  it('can switch to a longer model, retry, and succeed', async function () {
+  it("can switch to a longer model, retry, and succeed", async function() {
     fakeResponse = () => {
       if (fakeFetch.callCount === 1) {
         return {
@@ -347,10 +348,10 @@ describe('OpenAIAssistantV1', function () {
         };
       } else {
         return {
-          "choices": [{
-            "index": 0,
-            "message": {role: "assistant", content: "123"},
-            "finish_reason": "stop"
+          choices: [{
+            index: 0,
+            message: { role: "assistant", content: "123" },
+            finish_reason: "stop",
           }],
           status: 200,
         };
@@ -363,7 +364,7 @@ describe('OpenAIAssistantV1', function () {
       LONGER_CONTEXT_MODEL_FOR_TEST,
     ]);
     assert.deepEqual(result.suggestedActions, [
-      ["ModifyColumn", table1Id, colId, {formula: "123"}]
+      ["ModifyColumn", table1Id, colId, { formula: "123" }],
     ]);
   });
 });

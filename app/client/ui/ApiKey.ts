@@ -1,23 +1,24 @@
-import { makeT } from 'app/client/lib/localization';
-import { basicButton, textButton } from 'app/client/ui2018/buttons';
-import { theme, vars } from 'app/client/ui2018/cssVars';
-import { icon } from 'app/client/ui2018/icons';
-import { confirmModal } from 'app/client/ui2018/modals';
-import { Disposable, dom, IDomArgs, makeTestId, Observable, observable, styled } from 'grainjs';
+import { makeT } from "app/client/lib/localization";
+import { basicButton, textButton } from "app/client/ui2018/buttons";
+import { theme, vars } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { confirmModal } from "app/client/ui2018/modals";
 
-const t = makeT('ApiKey');
+import { Disposable, dom, IDomArgs, makeTestId, Observable, observable, styled } from "grainjs";
+
+const t = makeT("ApiKey");
 
 interface IWidgetOptions {
   apiKey: Observable<string>;
   onDelete: () => Promise<void>;
   onCreate: () => Promise<void>;
   anonymous?: boolean; // Configure appearance and available options for anonymous use.
-                       // When anonymous, no modifications are permitted to profile information.
-                       // TODO: add browser test for this option.
+  // When anonymous, no modifications are permitted to profile information.
+  // TODO: add browser test for this option.
   inputArgs?: IDomArgs<HTMLInputElement>;
 }
 
-const testId = makeTestId('test-apikey-');
+const testId = makeTestId("test-apikey-");
 
 /**
  * ApiKey component shows an api key with controls to change it. Expects `options.apiKey` the api
@@ -45,42 +46,42 @@ export class ApiKey extends Disposable {
   }
 
   public buildDom() {
-    return dom('div', testId('container'), dom.style('position', 'relative'),
-      dom.maybe(this._apiKey, (apiKey) => dom('div',
+    return dom("div", testId("container"), dom.style("position", "relative"),
+      dom.maybe(this._apiKey, apiKey => dom("div",
         cssRow(
           cssInput(
             {
               readonly: true,
               value: this._apiKey.get(),
             },
-            dom.attr('type', (use) => use(this._isHidden) ? 'password' : 'text'),
-            testId('key'),
-            {title: t("Click to show")},
-            dom.on('click', (_ev, el) => {
+            dom.attr("type", use => use(this._isHidden) ? "password" : "text"),
+            testId("key"),
+            { title: t("Click to show") },
+            dom.on("click", (_ev, el) => {
               this._isHidden.set(false);
               setTimeout(() => el.select(), 0);
             }),
-            dom.on('blur', (ev) => {
+            dom.on("blur", (ev) => {
               // Hide the key when it is no longer selected.
               if (ev.target !== document.activeElement) { this._isHidden.set(true); }
             }),
-            this._inputArgs
+            this._inputArgs,
           ),
           cssTextBtn(
-            textButton.cls('-hover-bg-padding-none'),
-            cssTextBtnIcon('Remove'), t("Remove"),
-            dom.on('click', () => this._showRemoveKeyModal()),
-            testId('delete'),
-            dom.boolAttr('disabled', (use) => use(this._loading) || this._anonymous)
+            textButton.cls("-hover-bg-padding-none"),
+            cssTextBtnIcon("Remove"), t("Remove"),
+            dom.on("click", () => this._showRemoveKeyModal()),
+            testId("delete"),
+            dom.boolAttr("disabled", use => use(this._loading) || this._anonymous),
           ),
         ),
-        description(this._getDescription(), testId('description')),
+        description(this._getDescription(), testId("description")),
       )),
-      dom.maybe((use) => !(use(this._apiKey) || this._anonymous), () => [
-        basicButton(t("Create"), dom.on('click', () => this._onCreate()), testId('create'),
-          dom.boolAttr('disabled', this._loading)),
+      dom.maybe(use => !(use(this._apiKey) || this._anonymous), () => [
+        basicButton(t("Create"), dom.on("click", () => this._onCreate()), testId("create"),
+          dom.boolAttr("disabled", this._loading)),
         description(t("By generating an API key, you will be able to \
-make API calls for your own account."), testId('description')),
+make API calls for your own account."), testId("description")),
       ]),
     );
   }
@@ -107,8 +108,8 @@ make API calls for your own account."), testId('description')),
   private _getDescription(): string {
     return t(
       !this._anonymous ?
-        'This API key can be used to access your account via the API. Don’t share your API key with anyone.' :
-        'This API key can be used to access this account anonymously via the API.'
+        "This API key can be used to access your account via the API. Don’t share your API key with anyone." :
+        "This API key can be used to access this account anonymously via the API.",
     );
   }
 
@@ -119,20 +120,20 @@ make API calls for your own account."), testId('description')),
       {
         explanation: t(
           "You're about to delete an API key. This will cause all future requests \
-using this API key to be rejected. Do you still want to delete?"
+using this API key to be rejected. Do you still want to delete?",
         ),
-      }
+      },
     );
   }
 }
 
-const description = styled('div', `
+const description = styled("div", `
   margin-top: 8px;
   color: ${theme.lightText};
   font-size: ${vars.mediumFontSize};
 `);
 
-const cssInput = styled('input', `
+const cssInput = styled("input", `
   background-color: transparent;
   color: ${theme.inputFg};
   border: 1px solid ${theme.inputBorder};
@@ -142,7 +143,7 @@ const cssInput = styled('input', `
   flex: 1 0 0;
 `);
 
-const cssRow = styled('div', `
+const cssRow = styled("div", `
   display: flex;
 `);
 

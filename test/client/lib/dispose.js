@@ -1,15 +1,15 @@
-var dispose = require('app/client/lib/dispose');
+var dispose = require("app/client/lib/dispose");
 
-var bluebird = require('bluebird');
-var {assert} = require('chai');
-var sinon = require('sinon');
+var bluebird = require("bluebird");
+var {assert} = require("chai");
+var sinon = require("sinon");
 
-var clientUtil = require('../clientUtil');
-var dom = require('app/client/lib/dom');
+var clientUtil = require("../clientUtil");
+var dom = require("app/client/lib/dom");
 
-require('chai').config.truncateThreshold = 10000;
+require("chai").config.truncateThreshold = 10000;
 
-describe('dispose', function() {
+describe("dispose", function() {
 
   clientUtil.setTmpMochaGlobals();
 
@@ -23,16 +23,16 @@ describe('dispose', function() {
 
       var bar = new Bar();
       var baz = new Bar();
-      var container1 = dom('div', dom('span'));
-      var container2 = dom('div', dom('span'));
+      var container1 = dom("div", dom("span"));
+      var container2 = dom("div", dom("span"));
       var cleanup = sinon.spy();
       var stopListening = sinon.spy();
 
       function Foo() {
         this.bar = this.autoDispose(bar);
-        this.baz = this.autoDisposeWith('destroy', baz);
-        this.child1 = this.autoDispose(container1.appendChild(dom('div')));
-        this.child2 = container2.appendChild(dom('div'));
+        this.baz = this.autoDisposeWith("destroy", baz);
+        this.child1 = this.autoDispose(container1.appendChild(dom("div")));
+        this.child2 = container2.appendChild(dom("div"));
         this.autoDisposeWith(dispose.emptyNode, container2);
         this.autoDisposeCallback(cleanup);
         this.stopListening = stopListening;
@@ -70,7 +70,7 @@ describe('dispose', function() {
       assert.equal(container2.children.length, 0);
     });
 
-    it('should call multiple registered autoDisposeCallbacks in reverse order', function() {
+    it("should call multiple registered autoDisposeCallbacks in reverse order", function() {
       let spy = sinon.spy();
 
       function Foo() {
@@ -103,7 +103,7 @@ describe('dispose', function() {
     // Capture console.error messages.
     const consoleErrors = [];
     const origConsoleError = console.error;
-    before(function() { console.error = (...args) => consoleErrors.push(args.map(x => ''+x)); });
+    before(function() { console.error = (...args) => consoleErrors.push(args.map(x => ""+x)); });
     after(function() { console.error = origConsoleError; });
 
     it("should dispose partially constructed objects", function() {
@@ -155,9 +155,9 @@ describe('dispose', function() {
 
       const name = consoleErrors[0][1];
       assert(name === Foo.name);
-      assert.deepEqual(consoleErrors[0], ['Error constructing %s:', name, 'Error: test-error1']);
-      assert.deepEqual(consoleErrors[1], ['Error constructing %s:', name, 'Error: test-error2']);
-      assert.deepEqual(consoleErrors[2], ['Error constructing %s:', name, 'Error: test-error3']);
+      assert.deepEqual(consoleErrors[0], ["Error constructing %s:", name, "Error: test-error1"]);
+      assert.deepEqual(consoleErrors[1], ["Error constructing %s:", name, "Error: test-error2"]);
+      assert.deepEqual(consoleErrors[2], ["Error constructing %s:", name, "Error: test-error3"]);
       assert.equal(consoleErrors.length, 3);
     });
 

@@ -1,13 +1,13 @@
-var assert = require('chai').assert;
-var sinon = require('sinon');
-var Promise = require('bluebird');
+var assert = require("chai").assert;
+var sinon = require("sinon");
+var Promise = require("bluebird");
 
-var {Delay} = require('app/client/lib/Delay');
-var clientUtil = require('../clientUtil');
+var {Delay} = require("app/client/lib/Delay");
+var clientUtil = require("../clientUtil");
 
 const DELAY_MS = 50;
 
-describe('Delay', function() {
+describe("Delay", function() {
 
   clientUtil.setTmpMochaGlobals();
 
@@ -28,17 +28,17 @@ describe('Delay', function() {
       assert(!delay.isPending());
       delay.schedule(DELAY_MS * 2, spy3);
     })
-    .delay(DELAY_MS).then(function() {
-      delay.schedule(DELAY_MS * 2, spy4, null, 1, 2);
-    })
-    .delay(DELAY_MS * 4).then(function() {
-      sinon.assert.notCalled(spy1);
-      sinon.assert.notCalled(spy2);
-      sinon.assert.notCalled(spy3);
-      sinon.assert.calledOnce(spy4);
-      sinon.assert.calledOn(spy4, null);
-      sinon.assert.calledWith(spy4, 1, 2);
-      assert(!delay.isPending());
-    });
+      .delay(DELAY_MS).then(function() {
+        delay.schedule(DELAY_MS * 2, spy4, null, 1, 2);
+      })
+      .delay(DELAY_MS * 4).then(function() {
+        sinon.assert.notCalled(spy1);
+        sinon.assert.notCalled(spy2);
+        sinon.assert.notCalled(spy3);
+        sinon.assert.calledOnce(spy4);
+        sinon.assert.calledOn(spy4, null);
+        sinon.assert.calledWith(spy4, 1, 2);
+        assert(!delay.isPending());
+      });
   });
 });

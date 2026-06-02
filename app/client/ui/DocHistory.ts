@@ -1,21 +1,22 @@
-import {makeT} from 'app/client/lib/localization';
-import {createSessionObs} from 'app/client/lib/sessionObs';
-import {getTimeFromNow} from 'app/client/lib/timeUtils';
-import {DocPageModel} from 'app/client/models/DocPageModel';
-import {reportError} from 'app/client/models/errors';
-import {urlState} from 'app/client/models/gristUrlState';
-import {buildConfigContainer} from 'app/client/ui/RightPanelUtils';
-import {buttonSelect} from 'app/client/ui2018/buttonSelect';
-import {testId, theme, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {menu, menuItemLink} from 'app/client/ui2018/menus';
-import {buildUrlId, parseUrlId} from 'app/common/gristUrls';
-import {StringUnion} from 'app/common/StringUnion';
-import {DocSnapshot} from 'app/common/UserAPI';
-import {Disposable, dom, IDomComponent, MultiHolder, Observable, styled} from 'grainjs';
-import moment from 'moment';
+import { makeT } from "app/client/lib/localization";
+import { createSessionObs } from "app/client/lib/sessionObs";
+import { getTimeFromNow } from "app/client/lib/timeUtils";
+import { DocPageModel } from "app/client/models/DocPageModel";
+import { reportError } from "app/client/models/errors";
+import { urlState } from "app/client/models/gristUrlState";
+import { buildConfigContainer } from "app/client/ui/RightPanelUtils";
+import { buttonSelect } from "app/client/ui2018/buttonSelect";
+import { testId, theme, vars } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { menu, menuItemLink } from "app/client/ui2018/menus";
+import { buildUrlId, parseUrlId } from "app/common/gristUrls";
+import { StringUnion } from "app/common/StringUnion";
+import { DocSnapshot } from "app/common/UserAPI";
 
-const t = makeT('DocHistory');
+import { Disposable, dom, IDomComponent, MultiHolder, Observable, styled } from "grainjs";
+import moment from "moment";
+
+const t = makeT("DocHistory");
 
 const DocHistorySubTab = StringUnion("activity", "snapshots");
 
@@ -28,19 +29,19 @@ export class DocHistory extends Disposable implements IDomComponent {
 
   public buildDom() {
     const tabs = [
-      {value: 'activity', label: t("Activity")},
-      {value: 'snapshots', label: t("Snapshots")},
+      { value: "activity", label: t("Activity") },
+      { value: "snapshots", label: t("Snapshots") },
     ];
     return [
       cssSubTabs(
-        buttonSelect(this._subTab, tabs, {}, testId('doc-history-tabs')),
+        buttonSelect(this._subTab, tabs, {}, testId("doc-history-tabs")),
       ),
-      dom.domComputed(this._subTab, (subTab) =>
+      dom.domComputed(this._subTab, subTab =>
         buildConfigContainer(
-          subTab === 'activity' ? this._actionLog.buildDom() :
-          subTab === 'snapshots' ? dom.create(this._buildSnapshots.bind(this)) :
-          null
-        )
+          subTab === "activity" ? this._actionLog.buildDom() :
+            subTab === "snapshots" ? dom.create(this._buildSnapshots.bind(this)) :
+              null,
+        ),
       ),
     ];
   }
@@ -52,7 +53,7 @@ export class DocHistory extends Disposable implements IDomComponent {
 
     // origUrlId is the snapshot-less URL, which we use to fetch snapshot history, and for
     // snapshot comparisons.
-    const origUrlId = buildUrlId({...doc.idParts, snapshotId: undefined});
+    const origUrlId = buildUrlId({ ...doc.idParts, snapshotId: undefined });
 
     // If comparing one snapshot to another, get the other ID, so that we can highlight it too.
     const compareUrlId = urlState().state.get().params?.compare;
@@ -61,9 +62,9 @@ export class DocHistory extends Disposable implements IDomComponent {
     // Helper to set a link to open a snapshot, optionally comparing it with a docId.
     // We include urlState().state to preserve the currently selected page.
     function setLink(snapshot: DocSnapshot, compareDocId?: string) {
-      return dom.attr('href', (use) => urlState().makeUrl({
+      return dom.attr("href", use => urlState().makeUrl({
         ...use(urlState().state), doc: snapshot.docId,
-        params: (compareDocId ? {compare: compareDocId} : {})
+        params: (compareDocId ? { compare: compareDocId } : {}),
       }));
     }
 
@@ -72,83 +73,83 @@ export class DocHistory extends Disposable implements IDomComponent {
     const userApi = this._docPageModel.appModel.api;
     const docApi = userApi.getDocAPI(origUrlId);
     docApi.getSnapshots().then(result =>
-      snapshots.isDisposed() || snapshots.set(result.snapshots)).catch(err => {
-        snapshotsDenied.set(true);
-        // "cannot confirm access" is what we expect if snapshots
-        // are denied because of access rules.
-        if (!String(err).match(/cannot confirm access/)) {
-          reportError(err);
-        }
-      });
+      snapshots.isDisposed() || snapshots.set(result.snapshots)).catch((err) => {
+      snapshotsDenied.set(true);
+      // "cannot confirm access" is what we expect if snapshots
+      // are denied because of access rules.
+      if (!String(err).match(/cannot confirm access/)) {
+        reportError(err);
+      }
+    });
     return dom(
-      'div',
-      {tabIndex: '-1'},  // Voodoo needed to allow copying text.
+      "div",
+      { tabIndex: "-1" },  // Voodoo needed to allow copying text.
       dom.maybe(snapshotsDenied, () => cssSnapshotDenied(
         dom(
-          'p',
+          "p",
           t("Snapshots are unavailable."),
         ),
         dom(
-          'p',
+          "p",
           t("Only owners have access to snapshots for documents with access rules."),
         ),
-        testId('doc-history-error'))),
+        testId("doc-history-error"))),
       // Note that most recent snapshots are first.
-      dom.domComputed(snapshots, (snapshotList) => snapshotList.map((snapshot, index) => {
+      dom.domComputed(snapshots, snapshotList => snapshotList.map((snapshot, index) => {
         const modified = moment(snapshot.lastModified);
         const prevSnapshot = snapshotList[index + 1] || null;
         return cssSnapshot(
           cssSnapshotTime(getTimeFromNow(snapshot.lastModified)),
           cssSnapshotCard(
-            cssSnapshotCard.cls('-current', Boolean(
+            cssSnapshotCard.cls("-current", Boolean(
               snapshot.snapshotId === doc.idParts.snapshotId ||
-              (compareSnapshotId && snapshot.snapshotId === compareSnapshotId)
+              (compareSnapshotId && snapshot.snapshotId === compareSnapshotId),
             )),
-            dom('div',
-              cssDatePart(modified.format('ddd ll')), ' ',
-              cssDatePart(modified.format('LT'))
+            dom("div",
+              cssDatePart(modified.format("ddd ll")), " ",
+              cssDatePart(modified.format("LT")),
             ),
-            cssMenuDots(icon('Dots'),
+            cssMenuDots(icon("Dots"),
               menu(() => [
-                  menuItemLink(setLink(snapshot), t("Open snapshot")),
-                  menuItemLink(setLink(snapshot, origUrlId), t("Compare to current")),
-                  prevSnapshot && menuItemLink(setLink(prevSnapshot, snapshot.docId), t("Compare to previous")),
-                ],
-                {placement: 'bottom-end', parentSelectorToMark: '.' + cssSnapshotCard.className}
+                menuItemLink(setLink(snapshot), t("Open snapshot")),
+                menuItemLink(setLink(snapshot, origUrlId), t("Compare to current")),
+                prevSnapshot && menuItemLink(setLink(prevSnapshot, snapshot.docId), t("Compare to previous")),
+              ],
+              { placement: "bottom-end", parentSelectorToMark: "." + cssSnapshotCard.className },
               ),
-              testId('doc-history-snapshot-menu'),
+              testId("doc-history-snapshot-menu"),
             ),
-            testId('doc-history-card'),
+            testId("doc-history-card"),
           ),
-          testId('doc-history-snapshot'),
+          testId("doc-history-snapshot"),
         );
       })),
     );
   }
 }
 
-const cssSubTabs = styled('div', `
+const cssSubTabs = styled("div", `
   padding: 16px;
   border-bottom: 1px solid ${theme.pagePanelsBorder};
 `);
 
-const cssSnapshot = styled('div', `
+const cssSnapshot = styled("div", `
   margin: 8px 16px;
 `);
 
-const cssSnapshotDenied = styled('div', `
+const cssSnapshotDenied = styled("div", `
   margin: 8px 16px;
   text-align: center;
   color: ${theme.text};
 `);
 
-const cssSnapshotTime = styled('div', `
+const cssSnapshotTime = styled("div", `
   text-align: right;
   color: ${theme.lightText};
   font-size: ${vars.smallFontSize};
 `);
 
-const cssSnapshotCard = styled('div', `
+const cssSnapshotCard = styled("div", `
   border: 1px solid ${theme.documentHistorySnapshotBorder};
   padding: 8px;
   color: ${theme.documentHistorySnapshotFg};
@@ -166,11 +167,11 @@ const cssSnapshotCard = styled('div', `
   }
 `);
 
-const cssDatePart = styled('span', `
+const cssDatePart = styled("span", `
   display: inline-block;
 `);
 
-const cssMenuDots = styled('div', `
+const cssMenuDots = styled("div", `
   flex: none;
   margin: 0 4px 0 auto;
   height: 24px;

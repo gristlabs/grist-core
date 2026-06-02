@@ -1,6 +1,7 @@
-import {testId, theme} from 'app/client/ui2018/cssVars';
-import {components} from 'app/common/ThemePrefs';
-import {dom, DomElementArg, Observable, styled} from 'grainjs';
+import { testId, theme } from "app/client/ui2018/cssVars";
+import { components } from "app/common/ThemePrefs";
+
+import { dom, DomElementArg, Observable, styled } from "grainjs";
 
 interface ToggleSwitchOptions {
   label?: string;
@@ -38,40 +39,40 @@ interface ToggleSwitchOptions {
  *                internally sets options.useHiddenInput to false.
  * @param options - see ToggleSwitchOptions
  */
-export function toggleSwitch(value?: Observable<boolean|null>, options: ToggleSwitchOptions = {}) {
-  const {label, useHiddenInput = true, args = [], inputArgs = [], labelArgs = []} = options;
+export function toggleSwitch(value?: Observable<boolean | null>, options: ToggleSwitchOptions = {}) {
+  const { label, useHiddenInput = true, args = [], inputArgs = [], labelArgs = [] } = options;
 
   const useInput = useHiddenInput && value;
   return cssToggleSwitch(
-    useInput
-      ? cssInput(
-        {type: 'checkbox'},
-        dom.prop('checked', value),
-        dom.prop('value', use => use(value) ? '1' : '0'),
-        dom.on('change', (_e, elem) => value.set(elem.checked)),
+    useInput ?
+      cssInput(
+        { type: "checkbox" },
+        dom.prop("checked", value),
+        dom.prop("value", use => use(value) ? "1" : "0"),
+        dom.on("change", (_e, elem) => value.set(elem.checked)),
         ...inputArgs,
-      )
-      : undefined,
+      ) :
+      undefined,
     value ? dom.cls(`${cssToggleSwitch.className}--checked`, use => !!use(value)) : undefined,
     cssSwitch(
-      cssSwitchSlider(testId('toggle-switch-slider')),
-      cssSwitchCircle(testId('toggle-switch-circle')),
+      cssSwitchSlider(testId("toggle-switch-slider")),
+      cssSwitchCircle(testId("toggle-switch-circle")),
     ),
     label ? cssLabel(label, ...labelArgs) : null,
     dom.cls(`${cssToggleSwitch.className}--transitions`, options.enableTransitions ?? true),
-    testId('toggle-switch'),
+    testId("toggle-switch"),
     ...args,
   );
 }
 
-const cssToggleSwitch = styled('label', `
+const cssToggleSwitch = styled("label", `
   position: relative;
   display: flex;
   width: fit-content;
   cursor: pointer;
 `);
 
-const cssInput = styled('input', `
+const cssInput = styled("input", `
   position: absolute;
   height: 1px;
   width: 1px;
@@ -89,7 +90,7 @@ const cssInput = styled('input', `
   }
 `);
 
-const cssSwitch = styled('div', `
+const cssSwitch = styled("div", `
   position: relative;
   width: 30px;
   height: 17px;
@@ -102,7 +103,7 @@ const cssSwitch = styled('div', `
   }
 `);
 
-const cssSwitchSlider = styled('div', `
+const cssSwitchSlider = styled("div", `
   position: absolute;
   cursor: pointer;
   top: 0;
@@ -140,7 +141,7 @@ const cssSwitchSlider = styled('div', `
   }
 `);
 
-const cssSwitchCircle = styled('div', `
+const cssSwitchCircle = styled("div", `
   position: absolute;
   z-index: 1;
   cursor: pointer;
@@ -180,7 +181,7 @@ const cssSwitchCircle = styled('div', `
   }
 `);
 
-const cssLabel = styled('span', `
+const cssLabel = styled("span", `
   color: ${theme.text};
   margin-left: 8px;
   font-size: 13px;

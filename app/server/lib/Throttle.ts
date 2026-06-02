@@ -18,30 +18,31 @@
  *
  */
 
-import {Interval} from 'app/common/Interval';
-import log from 'app/server/lib/log';
-import pidusage from 'pidusage';
+import { Interval } from "app/common/Interval";
+import log from "app/server/lib/log";
+
+import pidusage from "pidusage";
 
 /**
  * Parameters related to throttling.
  */
 export interface ThrottleTiming {
   dutyCyclePositiveMs: number;        // when throttling, how much uninterrupted time to give
-                                      // the process before pausing it.  The length of the
-                                      // non-positive cycle is chosen to achieve the desired
-                                      // cpu usage.
+  // the process before pausing it.  The length of the
+  // non-positive cycle is chosen to achieve the desired
+  // cpu usage.
   samplePeriodMs: number;             // how often to sample cpu usage and update throttling
   targetAveragingPeriodMs: number;    // (rough) time span to average cpu usage over.
   minimumAveragingPeriodMs: number;   // minimum time span before throttling is considered.
-                                      // No throttling will occur before a process has run
-                                      // for at least this length of time.
+  // No throttling will occur before a process has run
+  // for at least this length of time.
   minimumLogPeriodMs: number;         // minimum time between log messages about throttling.
   targetRate: number;                 // when throttling, aim for this fraction of cpu usage
-                                      // per unit time.
+  // per unit time.
   maxThrottle: number;                // maximum ratio of negative duty cycle phases to
-                                      // positive.
+  // positive.
   traceNudgeOffset: number;           // milliseconds to wait before sending a second signal
-                                      // to a traced process.
+  // to a traced process.
 }
 
 /**
@@ -74,6 +75,7 @@ interface MeterSample {
 export class Throttle {
   private _timing: ThrottleTiming =
     this._options.timing || defaultThrottleTiming;         // overall timing parameters
+
   private _dutyCycleTimeout: NodeJS.Timeout | undefined;   // driver for throttle duty cycle
   private _traceNudgeTimeout: NodeJS.Timeout | undefined;  // schedule a nudge to a traced process
   private _throttleFactor: number = 0;                     // relative length of paused phase
@@ -88,8 +90,8 @@ export class Throttle {
   // Interval for CPU measurements.
   private _meteringInterval: Interval = new Interval(
     () => this._update(),
-    {delayMs: this._timing.samplePeriodMs},
-    {onError: (e) => this._log(`Throttle error: ${e}`, this._options.logMeta)},
+    { delayMs: this._timing.samplePeriodMs },
+    { onError: e => this._log(`Throttle error: ${e}`, this._options.logMeta) },
   );
 
   /**
@@ -151,7 +153,7 @@ export class Throttle {
   /**
    * Read the last cpu usage sample made, for test purposes.
    */
-  public get testStats(): MeterSample|undefined {
+  public get testStats(): MeterSample | undefined {
     return this._sample;
   }
 
@@ -232,10 +234,10 @@ export class Throttle {
 
     if (!this._lastLogTime || now - this._lastLogTime > this._timing.minimumLogPeriodMs) {
       this._lastLogTime = now;
-      this._log('throttle', {...this._options.logMeta,
-                             throttle: Math.round(this._throttleFactor),
-                             throttledRate: Math.round(rate * 100),
-                             rate: Math.round(rateWithoutThrottling * 100)});
+      this._log("throttle", { ...this._options.logMeta,
+        throttle: Math.round(this._throttleFactor),
+        throttledRate: Math.round(rate * 100),
+        rate: Math.round(rateWithoutThrottling * 100) });
     }
   }
 
@@ -260,14 +262,14 @@ export class Throttle {
   private _letProcessRun(on: boolean) {
     this._active = on;
     try {
-      process.kill(this._options.pid, on ? 'SIGCONT' : 'SIGSTOP');
+      process.kill(this._options.pid, on ? "SIGCONT" : "SIGSTOP");
       const tracedPid = this._options.tracedPid;
       if (tracedPid && !on) {
-        process.kill(tracedPid, 'SIGSTOP');
+        process.kill(tracedPid, "SIGSTOP");
         if (this._timing.traceNudgeOffset > 0) {
           this._stopTraceNudge();
           this._traceNudgeTimeout = setTimeout(() => {
-            if (!this._active) { process.kill(tracedPid, 'SIGSTOP'); }
+            if (!this._active) { process.kill(tracedPid, "SIGSTOP"); }
           }, this._timing.traceNudgeOffset);
         }
       }

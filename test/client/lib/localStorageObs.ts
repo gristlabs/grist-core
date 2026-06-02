@@ -1,15 +1,16 @@
-import {localStorageBoolObs, localStorageObs} from 'app/client/lib/localStorageObs';
-import {assert} from 'chai';
-import {setTmpMochaGlobals} from 'test/client/clientUtil';
+import { localStorageBoolObs, localStorageObs } from "app/client/lib/localStorageObs";
+import { setTmpMochaGlobals } from "test/client/clientUtil";
 
-describe('localStorageObs', function() {
+import { assert } from "chai";
+
+describe("localStorageObs", function() {
   setTmpMochaGlobals();
 
-  before(() => typeof localStorage !== 'undefined' ? localStorage.clear() : null);
+  before(() => typeof localStorage !== "undefined" ? localStorage.clear() : null);
 
-  it('should persist localStorageObs values', async function() {
-    const foo = localStorageObs('localStorageObs-foo');
-    const bar = localStorageObs('localStorageObs-bar');
+  it("should persist localStorageObs values", async function() {
+    const foo = localStorageObs("localStorageObs-foo");
+    const bar = localStorageObs("localStorageObs-bar");
     assert.strictEqual(foo.get(), null);
     foo.set("123");
     bar.set("456");
@@ -18,8 +19,8 @@ describe('localStorageObs', function() {
 
     // We can't really reload the window the way that the browser harness for test/client tests
     // works, so just test in the same process with a new instance of these observables.
-    const foo2 = localStorageObs('localStorageObs-foo');
-    const bar2 = localStorageObs('localStorageObs-bar');
+    const foo2 = localStorageObs("localStorageObs-foo");
+    const bar2 = localStorageObs("localStorageObs-bar");
     assert.strictEqual(foo2.get(), "123");
     assert.strictEqual(bar2.get(), "456");
   });

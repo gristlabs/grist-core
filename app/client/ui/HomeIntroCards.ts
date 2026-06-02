@@ -1,29 +1,30 @@
-import {makeT} from 'app/client/lib/localization';
-import {urlState} from 'app/client/models/gristUrlState';
-import {HomeModel} from 'app/client/models/HomeModel';
-import {newDocMethods} from 'app/client/ui/NewDocMethods';
-import {openVideoTour} from 'app/client/ui/OpenVideoTour';
-import {basicButtonLink, bigPrimaryButton, primaryButtonLink} from 'app/client/ui2018/buttons';
-import {colors, theme, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {unstyledButton, unstyledH2} from 'app/client/ui2018/unstyled';
-import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
-import {getGristConfig} from 'app/common/urlUtils';
-import {Computed, dom, IDisposableOwner, makeTestId, styled, subscribeElem} from 'grainjs';
+import { makeT } from "app/client/lib/localization";
+import { urlState } from "app/client/models/gristUrlState";
+import { HomeModel } from "app/client/models/HomeModel";
+import { newDocMethods } from "app/client/ui/NewDocMethods";
+import { openVideoTour } from "app/client/ui/OpenVideoTour";
+import { basicButtonLink, bigPrimaryButton, primaryButtonLink } from "app/client/ui2018/buttons";
+import { colors, theme, vars } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { unstyledButton, unstyledH2 } from "app/client/ui2018/unstyled";
+import { commonUrls, isFeatureEnabled } from "app/common/gristUrls";
+import { getGristConfig } from "app/common/urlUtils";
+
+import { Computed, dom, IDisposableOwner, makeTestId, styled, subscribeElem } from "grainjs";
 
 interface BuildHomeIntroCardsOptions {
   homeModel: HomeModel;
 }
 
-const t = makeT('HomeIntroCards');
+const t = makeT("HomeIntroCards");
 
-const testId = makeTestId('test-intro-');
+const testId = makeTestId("test-intro-");
 
 export function buildHomeIntroCards(
   owner: IDisposableOwner,
-  {homeModel}: BuildHomeIntroCardsOptions
+  { homeModel }: BuildHomeIntroCardsOptions,
 ) {
-  const {onboardingTutorialDocId, templateOrg} = getGristConfig();
+  const { onboardingTutorialDocId, templateOrg } = getGristConfig();
 
   const percentComplete = Computed.create(owner, (use) => {
     if (!homeModel.app.currentValidUser) { return 0; }
@@ -41,86 +42,86 @@ export function buildHomeIntroCards(
       cssVideoTourThumbnail(
         cssVideoTourThumbnailSpacer(),
         videoPlayButtonElement = cssVideoTourPlayButton(
-          cssVideoTourPlayIcon('VideoPlay2'),
+          cssVideoTourPlayIcon("VideoPlay2"),
         ),
-        cssVideoTourThumbnailText(t('3 minute video tour')),
+        cssVideoTourThumbnailText(t("3 minute video tour")),
       ),
-      dom.on('click', () => openVideoTour(videoPlayButtonElement)),
-      testId('video-tour'),
+      dom.on("click", () => openVideoTour(videoPlayButtonElement)),
+      testId("video-tour"),
     ),
     cssTutorial(
-      dom.hide(() => !isFeatureEnabled('tutorials') || !templateOrg || !onboardingTutorialDocId),
-      cssTutorialHeader(t('Finish our basics tutorial')),
+      dom.hide(() => !isFeatureEnabled("tutorials") || !templateOrg || !onboardingTutorialDocId),
+      cssTutorialHeader(t("Finish our basics tutorial")),
       cssTutorialBody(
         cssTutorialProgress(
           cssTutorialProgressText(
             cssTutorialProgressPercentage(
-              dom.domComputed(percentComplete, (percent) => percent !== undefined ? `${percent}%` : null),
-              testId('tutorial-percent-complete'),
+              dom.domComputed(percentComplete, percent => percent !== undefined ? `${percent}%` : null),
+              testId("tutorial-percent-complete"),
             ),
           ),
           cssTutorialProgressBar(
-            (elem) => subscribeElem(elem, percentComplete, (val) => {
-              elem.style.setProperty('--percent-complete', String(val ?? 0));
-            })
+            elem => subscribeElem(elem, percentComplete, (val) => {
+              elem.style.setProperty("--percent-complete", String(val ?? 0));
+            }),
           ),
         ),
-        dom('div',
+        dom("div",
           primaryButtonLink(
-            t('Tutorial'),
-            urlState().setLinkUrl({org: templateOrg!, doc: onboardingTutorialDocId}),
+            t("Tutorial"),
+            urlState().setLinkUrl({ org: templateOrg!, doc: onboardingTutorialDocId }),
           ),
-        )
+        ),
       ),
-      testId('tutorial'),
+      testId("tutorial"),
     ),
     cssNewDocument(
-      cssNewDocumentHeader(t('Start a new document')),
+      cssNewDocumentHeader(t("Start a new document")),
       cssNewDocumentBody(
         cssNewDocumentButton(
-          cssNewDocumentButtonIcon('Page'),
-          t('Blank document'),
-          dom.on('click', () => newDocMethods.createDocAndOpen(homeModel)),
-          dom.boolAttr('disabled', use => !use(homeModel.newDocWorkspace)),
-          testId('create-doc'),
+          cssNewDocumentButtonIcon("Page"),
+          t("Blank document"),
+          dom.on("click", () => newDocMethods.createDocAndOpen(homeModel)),
+          dom.boolAttr("disabled", use => !use(homeModel.newDocWorkspace)),
+          testId("create-doc"),
         ),
         cssNewDocumentButton(
-          cssNewDocumentButtonIcon('Import'),
-          t('Import file'),
-          dom.on('click', () => newDocMethods.importDocAndOpen(homeModel)),
-          dom.boolAttr('disabled', use => !use(homeModel.newDocWorkspace)),
-          testId('import-doc'),
+          cssNewDocumentButtonIcon("Import"),
+          t("Import file"),
+          dom.on("click", () => newDocMethods.importDocAndOpen(homeModel)),
+          dom.boolAttr("disabled", use => !use(homeModel.newDocWorkspace)),
+          testId("import-doc"),
         ),
         cssNewDocumentButton(
           dom.show(isFeatureEnabled("templates") && Boolean(templateOrg)),
-          cssNewDocumentButtonIcon('FieldTable'),
-          t('Templates'),
-          urlState().setLinkUrl({homePage: 'templates'}),
-          testId('templates'),
+          cssNewDocumentButtonIcon("FieldTable"),
+          t("Templates"),
+          urlState().setLinkUrl({ homePage: "templates" }),
+          testId("templates"),
         ),
       ),
     ),
     cssWebinars(
-      dom.show(isFeatureEnabled('helpCenter')),
-      cssWebinarsImage({src: 'img/webinars.svg'}),
-      unstyledH2(t('Learn more')),
+      dom.show(isFeatureEnabled("helpCenter")),
+      cssWebinarsImage({ src: "img/webinars.svg" }),
+      unstyledH2(t("Learn more")),
       cssWebinarsButton(
-        t('Webinars'),
-        {href: commonUrls.webinars, target: '_blank'},
-        testId('webinars'),
-      )
-    ),
-    cssHelpCenter(
-      dom.show(isFeatureEnabled('helpCenter')),
-      cssHelpCenterImage({src: 'img/help-center.svg'}),
-      unstyledH2(t('Find solutions and explore more resources')),
-      cssHelpCenterButton(
-        t('Help center'),
-        {href: commonUrls.help, target: '_blank'},
-        testId('help-center'),
+        t("Webinars"),
+        { href: commonUrls.webinars, target: "_blank" },
+        testId("webinars"),
       ),
     ),
-    testId('cards'),
+    cssHelpCenter(
+      dom.show(isFeatureEnabled("helpCenter")),
+      cssHelpCenterImage({ src: "img/help-center.svg" }),
+      unstyledH2(t("Find solutions and explore more resources")),
+      cssHelpCenterButton(
+        t("Help center"),
+        { href: commonUrls.help, target: "_blank" },
+        testId("help-center"),
+      ),
+    ),
+    testId("cards"),
   ));
 }
 
@@ -131,7 +132,7 @@ const mediaLarge = `(max-width: ${1280 - 0.02}px)`;
 const mediaMedium = `(max-width: ${1048 - 0.02}px)`;
 const mediaSmall = `(max-width: ${828 - 0.02}px)`;
 
-const cssHomeIntroCards = styled('div', `
+const cssHomeIntroCards = styled("div", `
   display: grid;
   gap: 24px;
   margin-top: 4px;
@@ -178,7 +179,7 @@ const cssVideoTour = styled(unstyledButton, `
   }
 `);
 
-const cssVideoTourThumbnail = styled('div', `
+const cssVideoTourThumbnail = styled("div", `
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -192,9 +193,9 @@ const cssVideoTourThumbnail = styled('div', `
   height: 100%;
 `);
 
-const cssVideoTourThumbnailSpacer = styled('div', ``);
+const cssVideoTourThumbnailSpacer = styled("div", ``);
 
-const cssVideoTourPlayButton = styled('div', `
+const cssVideoTourPlayButton = styled("div", `
   display: flex;
   justify-content: center;
   align-items: center;
@@ -215,13 +216,13 @@ const cssVideoTourPlayIcon = styled(icon, `
   height: 24px;
 `);
 
-const cssVideoTourThumbnailText = styled('div', `
+const cssVideoTourThumbnailText = styled("div", `
   color: ${colors.light};
   font-weight: 700;
   text-align: center;
 `);
 
-const cssTutorial = styled('div', `
+const cssTutorial = styled("div", `
   grid-area: 1 / 2 / 2 / 3;
   position: relative;
   border-radius: 4px;
@@ -230,7 +231,7 @@ const cssTutorial = styled('div', `
   padding: 16px;
 `);
 
-const cssTutorialHeader = styled('div', `
+const cssTutorialHeader = styled("div", `
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -240,31 +241,31 @@ const cssTutorialHeader = styled('div', `
   margin-bottom: 8px;
 `);
 
-const cssTutorialBody = styled('div', `
+const cssTutorialBody = styled("div", `
   display: flex;
   flex-direction: column;
   gap: 16px;
 `);
 
-const cssTutorialProgress = styled('div', `
+const cssTutorialProgress = styled("div", `
   display
   flex: auto;
   min-width: 120px;
 `);
 
-const cssTutorialProgressText = styled('div', `
+const cssTutorialProgressText = styled("div", `
   display: flex;
   justify-content: space-between;
 `);
 
-const cssTutorialProgressPercentage = styled('div', `
+const cssTutorialProgressPercentage = styled("div", `
   font-size: 18px;
   font-style: normal;
   font-weight: 700;
   min-height: 21.5px;
 `);
 
-const cssTutorialProgressBar = styled('div', `
+const cssTutorialProgressBar = styled("div", `
   margin-top: 4px;
   height: 10px;
   border-radius: 8px;
@@ -281,7 +282,7 @@ const cssTutorialProgressBar = styled('div', `
   }
 `);
 
-const cssNewDocument = styled('div', `
+const cssNewDocument = styled("div", `
   grid-area: 2 / 1 / 3 / 3;
   grid-column: span 2;
   display: flex;
@@ -295,13 +296,13 @@ const cssNewDocument = styled('div', `
   min-height: 140px;
 `);
 
-const cssNewDocumentHeader = styled('h2', `
+const cssNewDocumentHeader = styled("h2", `
   margin: 0;
   font-weight: 500;
   font-size: ${vars.xxlargeFontSize};
 `);
 
-const cssNewDocumentBody = styled('div', `
+const cssNewDocumentBody = styled("div", `
   display: flex;
   gap: 16px;
   margin-top: 16px;
@@ -332,7 +333,7 @@ const cssNewDocumentButtonIcon = styled(icon, `
   }
 `);
 
-const cssSecondaryCard = styled('div', `
+const cssSecondaryCard = styled("div", `
   font-weight: 500;
   font-size: 14px;
   display: flex;
@@ -349,7 +350,7 @@ const cssSecondaryCard = styled('div', `
   min-height: 140px;
 `);
 
-const cssSecondaryCardImage = styled('img', `
+const cssSecondaryCardImage = styled("img", `
   display: block;
   height: auto;
 `);

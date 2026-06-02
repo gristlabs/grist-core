@@ -1724,9 +1724,9 @@
   "WelcomeCoachingCall": {
     "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "Během hovoru si uděláme čas na pochopení vašich potřeb a přizpůsobíme hovor vám. Můžeme vám ukázat základy Grist, nebo rovnou začít pracovat s vašimi daty a vytvořit potřebné dashboardy.",
     "free coaching call": "Bezplatná konzultace",
-    "Maybe Later": "Možná později",
+    "Maybe later": "Možná později",
     "Schedule your {{freeCoachingCall}} with a member of our team.": "Naplánujte si svou {{freeCoachingCall}} s členem našeho týmu.",
-    "Schedule Call": "Naplánovat hovor"
+    "Schedule call": "Naplánovat hovor"
   },
   "FormSuccessPage": {
     "Form Submitted": "Formulář odeslán",

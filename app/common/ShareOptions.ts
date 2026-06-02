@@ -18,5 +18,5 @@ export interface ShareOptions {
   // Can be set to 'viewers' to label the share as readonly.
   // Half-baked, just here to exercise an aspect of homedb
   // syncing.
-  access?: 'editors' | 'viewers';
+  access?: "editors" | "viewers";
 }

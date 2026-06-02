@@ -1,11 +1,12 @@
 import { GristDoc } from "app/client/components/GristDoc";
+import { normalizeText } from "app/client/lib/ACIndex";
 import { ColumnFilter } from "app/client/models/ColumnFilter";
 import { FilterInfo } from "app/client/models/entities/ViewSectionRec";
 import { CellValue } from "app/plugin/GristData";
-import { normalizeText } from "app/client/lib/ACIndex";
+
 import { Computed, Disposable, Observable } from "grainjs";
-import escapeRegExp = require("lodash/escapeRegExp");
-import isNull = require("lodash/isNull");
+import escapeRegExp from "lodash/escapeRegExp";
+import isNull from "lodash/isNull";
 
 const MAXIMUM_SHOWN_FILTER_ITEMS = 500;
 
@@ -22,14 +23,14 @@ export interface IFilterCount {
   displayValue: any;
 }
 
-type ICompare<T> = (a: T, b: T) => number
+type ICompare<T> = (a: T, b: T) => number;
 
-const localeCompare = new Intl.Collator('en-US', {numeric: true}).compare;
+const localeCompare = new Intl.Collator("en-US", { numeric: true }).compare;
 
 interface ColumnFilterMenuModelParams {
   columnFilter: ColumnFilter;
   filterInfo: FilterInfo;
-  valueCount: Array<[CellValue, IFilterCount]>;
+  valueCount: [CellValue, IFilterCount][];
   gristDoc: GristDoc;
   limitShow?: number;
 }
@@ -45,18 +46,18 @@ export class ColumnFilterMenuModel extends Disposable {
 
   public readonly limitShown = this._params.limitShow ?? MAXIMUM_SHOWN_FILTER_ITEMS;
 
-  public readonly searchValue = Observable.create(this, '');
+  public readonly searchValue = Observable.create(this, "");
 
   public readonly isSortedByCount = Observable.create(this, false);
 
   // computes a set of all keys that matches the search text.
   public readonly filterSet = Computed.create(this, this.searchValue, (_use, searchValue) => {
-    const searchRegex = new RegExp(escapeRegExp(normalizeText(searchValue)), 'i');
-    const showAllOptions = ['Bool', 'Choice', 'ChoiceList'].includes(this.columnFilter.columnType);
+    const searchRegex = new RegExp(escapeRegExp(normalizeText(searchValue)), "i");
+    const showAllOptions = ["Bool", "Choice", "ChoiceList"].includes(this.columnFilter.columnType);
     return new Set(
       this._params.valueCount
-        .filter(([_, {label, count}]) => (showAllOptions ? true : count) && searchRegex.test(normalizeText(label)))
-        .map(([key]) => key)
+        .filter(([_, { label, count }]) => (showAllOptions ? true : count) && searchRegex.test(normalizeText(label)))
+        .map(([key]) => key),
     );
   });
 
@@ -72,11 +73,11 @@ export class ColumnFilterMenuModel extends Disposable {
       // TODO: The comparator below is not comparing labels (strings) but actual values (like boolean or numbers),
       // as this is the value of the `displayValue` column (though it uses localeCompare for strings).
       // For anyone reading this here is the context https://phab.getgrist.com/D3441 (sorry for the private repo).
-      const displayValue = this.columnFilter.visibleColumnType === 'Text' ? 'label' : 'displayValue';
-      const prop: keyof IFilterCount = isSortedByCount ? 'count' : displayValue;
+      const displayValue = this.columnFilter.visibleColumnType === "Text" ? "label" : "displayValue";
+      const prop: keyof IFilterCount = isSortedByCount ? "count" : displayValue;
       let isShownFirst: (val: any) => boolean = isNull;
-      if (['Date', 'DateTime', 'Numeric', 'Int'].includes(this.columnFilter.visibleColumnType)) {
-        isShownFirst = (val) => isNull(val) || isNaN(val);
+      if (["Date", "DateTime", "Numeric", "Int"].includes(this.columnFilter.visibleColumnType)) {
+        isShownFirst = val => isNull(val) || isNaN(val);
       }
 
       const comparator: ICompare<any> = (a, b) => {
@@ -88,7 +89,7 @@ export class ColumnFilterMenuModel extends Disposable {
       return this._params.valueCount
         .filter(([key]) => filter.has(key))
         .sort((a, b) => comparator(a[1][prop], b[1][prop]));
-    }
+    },
   );
 
   // computes the array of all values that does NOT matches the search text

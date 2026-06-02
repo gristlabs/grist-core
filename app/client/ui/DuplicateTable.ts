@@ -1,18 +1,19 @@
-import {makeT} from 'app/client/lib/localization';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {cssInput} from 'app/client/ui/cssInput';
-import {cssField} from 'app/client/ui/MakeCopyMenu';
-import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
-import {colors} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {cssLink} from 'app/client/ui2018/links';
-import {saveModal} from 'app/client/ui2018/modals';
-import {commonUrls} from 'app/common/gristUrls';
-import {Computed, Disposable, dom, input, makeTestId, Observable, styled} from 'grainjs';
+import { GristDoc } from "app/client/components/GristDoc";
+import { makeT } from "app/client/lib/localization";
+import { cssInput } from "app/client/ui/cssInput";
+import { cssField } from "app/client/ui/MakeCopyMenu";
+import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
+import { colors } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { cssLink } from "app/client/ui2018/links";
+import { saveModal } from "app/client/ui2018/modals";
+import { commonUrls } from "app/common/gristUrls";
 
-const t = makeT('DuplicateTable');
+import { Computed, Disposable, dom, input, makeTestId, Observable, styled } from "grainjs";
 
-const testId = makeTestId('test-duplicate-table-');
+const t = makeT("DuplicateTable");
+
+const testId = makeTestId("test-duplicate-table-");
 
 /**
  * Response returned by a DuplicateTable user action.
@@ -36,25 +37,25 @@ export interface DuplicateTableOptions {
 export function duplicateTable(
   gristDoc: GristDoc,
   tableId: string,
-  {onSuccess}: DuplicateTableOptions = {}
+  { onSuccess }: DuplicateTableOptions = {},
 ) {
   saveModal((_ctl, owner) => {
     const duplicateTableModal = DuplicateTableModal.create(owner, gristDoc, tableId);
     return {
-      title: 'Duplicate Table',
+      title: "Duplicate Table",
       body: duplicateTableModal.buildDom(),
       saveFunc: async () =>  {
         const response = await duplicateTableModal.save();
         onSuccess?.(response);
       },
       saveDisabled: duplicateTableModal.saveDisabled,
-      width: 'normal',
+      width: "normal",
     };
   });
 }
 
 class DuplicateTableModal extends Disposable {
-  private _newTableName = Observable.create<string>(this, '');
+  private _newTableName = Observable.create<string>(this, "");
   private _includeData = Observable.create<boolean>(this, false);
   private _saveDisabled = Computed.create(this, this._newTableName, (_use, name) => !name.trim());
 
@@ -73,39 +74,39 @@ class DuplicateTableModal extends Disposable {
       cssField(
         input(
           this._newTableName,
-          {onInput: true},
-          {placeholder: t("Name for new table")},
+          { onInput: true },
+          { placeholder: t("Name for new table") },
           (elem) => { setTimeout(() => { elem.focus(); }, 20); },
-          dom.on('focus', (_ev, elem) => { elem.select(); }),
+          dom.on("focus", (_ev, elem) => { elem.select(); }),
           dom.cls(cssInput.className),
-          testId('name'),
+          testId("name"),
         ),
       ),
       cssWarning(
-        cssWarningIcon('Warning'),
-        dom('div', t("Instead of duplicating tables, it's usually better to segment data using linked views. {{link}}",
-          {link: cssLink({href: commonUrls.helpLinkingWidgets, target: '_blank'}, 'Read More.')}
+        cssWarningIcon("Warning"),
+        dom("div", t("Instead of duplicating tables, it's usually better to segment data using linked views. {{link}}",
+          { link: cssLink({ href: commonUrls.helpLinkingWidgets, target: "_blank" }, "Read More.") },
         )),
       ),
       cssField(
         cssCheckbox(
           this._includeData,
           t("Copy all data in addition to the table structure."),
-          testId('copy-all-data'),
+          testId("copy-all-data"),
         ),
       ),
       dom.maybe(this._includeData, () => cssWarning(
-        cssWarningIcon('Warning'),
-        dom('div', t("Only the document default access rules will apply to the copy.")),
-        testId('acl-warning'),
+        cssWarningIcon("Warning"),
+        dom("div", t("Only the document default access rules will apply to the copy.")),
+        testId("acl-warning"),
       )),
     ];
   }
 
   private _duplicateTable() {
-    const {docData} = this._gristDoc;
+    const { docData } = this._gristDoc;
     const [newTableName, includeData] = [this._newTableName.get(), this._includeData.get()];
-    return docData.sendAction(['DuplicateTable', this._tableId, newTableName, includeData]);
+    return docData.sendAction(["DuplicateTable", this._tableId, newTableName, includeData]);
   }
 }
 
@@ -113,7 +114,7 @@ const cssCheckbox = styled(labeledSquareCheckbox, `
   margin-top: 8px;
 `);
 
-const cssWarning = styled('div', `
+const cssWarning = styled("div", `
   display: flex;
   column-gap: 8px;
 `);

@@ -5,24 +5,27 @@ import {
   getEnvContent,
   LocalActionBundle,
   SandboxActionBundle,
-  UserActionBundle
-} from 'app/common/ActionBundle';
-import {ApplyUAExtendedOptions, ApplyUAResult} from 'app/common/ActiveDocAPI';
-import {DocAction, getNumRows, SYSTEM_ACTIONS, UserAction} from 'app/common/DocActions';
-import {GranularAccessForBundle} from 'app/server/lib/GranularAccess';
-import log from 'app/server/lib/log';
-import {LogMethods} from "app/server/lib/LogMethods";
-import {shortDesc} from 'app/server/lib/shortDesc';
-import assert from 'assert';
-import {Mutex} from 'async-mutex';
-import isEqual = require('lodash/isEqual');
-import {ActionHistory, asActionGroup, getActionUndoInfo} from 'app/server/lib/ActionHistory';
-import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {makeExceptionalDocSession, OptDocSession} from 'app/server/lib/DocSession';
-import {summarizeAction} from 'app/common/ActionSummarizer';
+  UserActionBundle,
+} from "app/common/ActionBundle";
+import { summarizeAction } from "app/common/ActionSummarizer";
+import { ApplyUAExtendedOptions, ApplyUAResult } from "app/common/ActiveDocAPI";
+import { DocAction, getNumRows, SYSTEM_ACTIONS, UserAction } from "app/common/DocActions";
+import { ActionHistory, asActionGroup, getActionUndoInfo } from "app/server/lib/ActionHistory";
+import { ActiveDoc } from "app/server/lib/ActiveDoc";
+import { makeExceptionalDocSession, OptDocSession } from "app/server/lib/DocSession";
+import { GranularAccessForBundle } from "app/server/lib/GranularAccess";
+import { insightLogEntry } from "app/server/lib/InsightLog";
+import log from "app/server/lib/log";
+import { LogMethods } from "app/server/lib/LogMethods";
+import { shortDesc } from "app/server/lib/shortDesc";
+
+import assert from "assert";
+
+import { Mutex } from "async-mutex";
+import isEqual from "lodash/isEqual";
 
 // Don't log details of action bundles in production.
-const LOG_ACTION_BUNDLE = (process.env.NODE_ENV !== 'production');
+const LOG_ACTION_BUNDLE = (process.env.NODE_ENV !== "production");
 
 interface ApplyResult {
   /**
@@ -42,14 +45,15 @@ interface ApplyResult {
 
 export class Sharing {
   private _userActionLock = new Mutex();
-  private _log = new LogMethods('Sharing ', (s: OptDocSession) => this._activeDoc.getLogMeta(s));
+  private _log = new LogMethods("Sharing ", (s: OptDocSession) => this._activeDoc.getLogMeta(s));
 
   constructor(private _activeDoc: ActiveDoc, private _actionHistory: ActionHistory, private _modificationLock: Mutex) {
     assert(_actionHistory.isInitialized());
   }
 
   /** Returns the instanceId if the doc is shared or null otherwise. */
-  public get instanceId(): string|null { return null; }
+  // eslint-disable-next-line @typescript-eslint/class-literal-property-style
+  public get instanceId(): string | null { return null; }
 
   /**
    * The only public interface. This may be called at any time, but the work happens for at most
@@ -67,15 +71,16 @@ export class Sharing {
   }
 
   private async _doApplyUserActions(info: ActionInfo, userActions: UserAction[],
-                                    docSession: OptDocSession,
-                                    options: ApplyUAExtendedOptions|null): Promise<ApplyUAResult> {
-    const client = docSession && docSession.client;
+    docSession: OptDocSession,
+    options: ApplyUAExtendedOptions | null): Promise<ApplyUAResult> {
+    const client = docSession?.client;
 
     if (docSession?.linkId) {
       info.linkId = docSession.linkId;
     }
 
-    const {result, failure} =
+    const insightLog = insightLogEntry();
+    const { result, failure } =
       await this._modificationLock.runExclusive(() => this._applyActionsToDataEngine(docSession, userActions, options));
 
     // ACL check failed, and we don't have anything to save. Just rethrow the error.
@@ -84,12 +89,12 @@ export class Sharing {
     }
 
     assert(result, "result should be defined if failure is not");
+
     const sandboxActionBundle = result.bundle;
     const accessControl = result.accessControl;
     const undo = getEnvContent(result.bundle.undo);
 
     try {
-
       const isSystemAction = (userActions.length === 1 && SYSTEM_ACTIONS.has(userActions[0][0] as string));
       // `internal` is true if users shouldn't be able to undo the actions. Applies to:
       // - Calculate/UpdateCurrentTime because it's not considered as performed by a particular client.
@@ -123,18 +128,15 @@ export class Sharing {
         parentActionHash: null,  // Gets set below by _actionHistory.recordNext...
       };
 
-      const altSessionId = client?.authSession.altSessionId;
       const logMeta = {
         actionNum,
         linkId: info.linkId,
         otherId: info.otherId,
         numDocActions: localActionBundle.stored.length,
         numRows: localActionBundle.stored.reduce((n, env) => n + getNumRows(env[1]), 0),
-        ...(sandboxActionBundle.numBytes ? {numBytes: sandboxActionBundle.numBytes} : {}),
-        author: info.user,
-        ...(altSessionId ? {session: altSessionId}: {}),
+        ...(sandboxActionBundle.numBytes ? { numBytes: sandboxActionBundle.numBytes } : {}),
       };
-      this._log.rawLog('debug', docSession, '_doApplyUserActions', logMeta);
+      insightLog?.addMeta(logMeta);
       if (LOG_ACTION_BUNDLE) {
         this._logActionBundle(`_doApplyUserActions`, localActionBundle);
       }
@@ -146,13 +148,14 @@ export class Sharing {
           actionNum: localActionBundle.actionNum,
           actionHash: localActionBundle.actionHash,
           retValues: [],
-          isModification: false
+          isModification: false,
         };
       }
 
       // Apply the action to the database, and record in the action log.
       if (!trivial) {
         await this._activeDoc.docStorage.execTransaction(async () => {
+          insightLog?.mark("docStorageTxn");
           await this._activeDoc.applyStoredActionsToDocStorage(getEnvContent(localActionBundle.stored));
 
           // Before sharing is enabled, actions are immediately marked as "shared" (as if accepted
@@ -161,18 +164,20 @@ export class Sharing {
           // be shared. Once sharing is enabled, we would share a snapshot at that time.
           await this._actionHistory.recordNextShared(localActionBundle);
 
-          if (client && client.clientId && !internal) {
+          if (client?.clientId && !internal) {
             this._actionHistory.setActionUndoInfo(
               localActionBundle.actionHash!,
               getActionUndoInfo(localActionBundle, client.clientId, sandboxActionBundle.retValues));
           }
         });
+        insightLog?.mark("docStorage");
       }
       await this._activeDoc.processActionBundle(localActionBundle);
+      insightLog?.mark("processBundle");
 
       // Don't trigger webhooks for single Calculate actions, this causes a deadlock on document load.
       // See gh issue #799
-      const isSingleCalculateAction = userActions.length === 1 && userActions[0][0] === 'Calculate';
+      const isSingleCalculateAction = userActions.length === 1 && userActions[0][0] === "Calculate";
       const actionSummary = !isSingleCalculateAction ?
         await this._activeDoc.handleTriggers(localActionBundle) :
         summarizeAction(localActionBundle);
@@ -182,10 +187,13 @@ export class Sharing {
       if (actionSummary.tableDeltas._grist_Shares) {
         // This is a little risky, since it entangles us with home db
         // availability. But we aren't doing a lot...?
-        await this._activeDoc.syncShares(makeExceptionalDocSession('system'));
+        await this._activeDoc.syncShares(makeExceptionalDocSession("system"));
+        insightLog?.mark("syncShares");
       }
 
+      insightLog?.addMeta({ docRowCount: sandboxActionBundle.rowCount.total });
       await this._activeDoc.updateRowCount(sandboxActionBundle.rowCount, docSession);
+      insightLog?.mark("updateRowCount");
 
       // Broadcast the action to connected browsers.
       const actionGroup = asActionGroup(this._actionHistory, localActionBundle, {
@@ -195,8 +203,11 @@ export class Sharing {
       });
       actionGroup.actionSummary = actionSummary;
       await accessControl.appliedBundle();
+      insightLog?.mark("accessRulesApplied");
       await accessControl.sendDocUpdateForBundle(actionGroup, this._activeDoc.getDocUsageSummary());
+      insightLog?.mark("sendDocUpdate");
       await this._activeDoc.notifySubscribers(docSession, accessControl);
+      insightLog?.mark("notifySubscribers");
       // If the action was rejected, throw an exception, by this point data-engine should be in
       // sync with the database, and everyone should have the same view of the document.
       if (failure) {
@@ -209,11 +220,12 @@ export class Sharing {
         actionNum: localActionBundle.actionNum,
         actionHash: localActionBundle.actionHash,
         retValues: sandboxActionBundle.retValues,
-        isModification: sandboxActionBundle.stored.length > 0
+        isModification: sandboxActionBundle.stored.length > 0,
       };
     } finally {
       // Make sure the bundle is marked as complete, even if some miscellaneous error occurred.
       await accessControl.finishedBundle();
+      insightLog?.mark("accessRulesFinish");
     }
   }
 
@@ -230,19 +242,23 @@ export class Sharing {
   private async _applyActionsToDataEngine(
     docSession: OptDocSession,
     userActions: UserAction[],
-    options: ApplyUAExtendedOptions|null): Promise<ApplyResult> {
+    options: ApplyUAExtendedOptions | null): Promise<ApplyResult> {
     const applyResult = await this._activeDoc.applyActionsToDataEngine(docSession, userActions);
+    const insightLog = insightLogEntry();
+    insightLog?.mark("dataEngine");
     let accessControl = this._startGranularAccessForBundle(docSession, applyResult, userActions, options);
     try {
       // TODO: see if any of the code paths that have no docSession are relevant outside
       // of tests.
       await accessControl.canApplyBundle();
-      return { result : {bundle: applyResult, accessControl}};
+      insightLog?.mark("accessRulesCheck");
+      return { result: { bundle: applyResult, accessControl } };
     } catch (applyExc) {
+      insightLog?.mark("dataEngineReverting");
       try {
         // We can't apply those actions, so we need to revert them.
         const undoResult = await this._activeDoc.applyActionsToDataEngine(docSession, [
-          ['ApplyUndoActions', getEnvContent(applyResult.undo)]
+          ["ApplyUndoActions", getEnvContent(applyResult.undo)],
         ]);
 
         // We managed to reject and undo actions in the data-engine. Now we need to calculate if we have any extra
@@ -274,8 +290,8 @@ export class Sharing {
         // Check if the extra bundle is allowed.
         await accessControl.canApplyBundle();
         // We are ok, we can store extra actions and report back the exception.
-        return {result: {bundle: extraBundle, accessControl}, failure: applyExc};
-      } catch(rollbackExc) {
+        return { result: { bundle: extraBundle, accessControl }, failure: applyExc };
+      } catch (rollbackExc) {
         this._log.error(docSession, "Failed to apply undo of rejected action", rollbackExc.message);
         await accessControl.finishedBundle();
         this._log.debug(docSession, "Sharing._applyActionsToDataEngine starting ActiveDoc.shutdown");
@@ -286,21 +302,21 @@ export class Sharing {
   }
 
   private _startGranularAccessForBundle(
-    docSession: OptDocSession|null,
+    docSession: OptDocSession | null,
     bundle: SandboxActionBundle,
     userActions: UserAction[],
-    options: ApplyUAExtendedOptions|null
+    options: ApplyUAExtendedOptions | null,
   ) {
     const undo = getEnvContent(bundle.undo);
     const docActions = getEnvContent(bundle.stored).concat(getEnvContent(bundle.calc));
     const isDirect = getEnvContent(bundle.direct);
     return this._activeDoc.getGranularAccessForBundle(
-      docSession || makeExceptionalDocSession('share'),
+      docSession || makeExceptionalDocSession("share"),
       docActions,
       undo,
       userActions,
       isDirect,
-      options
+      options,
     );
   }
 
@@ -310,7 +326,7 @@ export class Sharing {
    * @param undoSource Actions that were sent to perform the undo.
    * @returns A bundle with extra actions that were applied to the data engine or null if there are no extra actions.
    */
-  private _createExtraBundle(undoResult: SandboxActionBundle, undoSource: DocAction[]): SandboxActionBundle|null {
+  private _createExtraBundle(undoResult: SandboxActionBundle, undoSource: DocAction[]): SandboxActionBundle | null {
     // First check that what we sent is what we stored, since those are undo actions, they should be identical. We
     // need to reverse the order of undo actions (they are reversed in data-engine by ApplyUndoActions)
     const sent = undoSource.slice().reverse();
@@ -335,12 +351,12 @@ export class Sharing {
       calc: [], // Calc actions are also not used anymore.
       undo: [], // We won't allow to undo this one.
       retValues: undoResult.retValues.slice(undoSource.length),
-      rowCount: undoResult.rowCount
+      rowCount: undoResult.rowCount,
     };
   }
 }
 
-const allToken: string = '#ALL';
+const allToken: string = "#ALL";
 
 /**
  * Returns the index of the envelope containing the '#ALL' recipient, adding such an envelope to
@@ -349,6 +365,6 @@ const allToken: string = '#ALL';
 export function findOrAddAllEnvelope(envelopes: Envelope[]): number {
   const i = envelopes.findIndex(e => e.recipients.includes(allToken));
   if (i >= 0) { return i; }
-  envelopes.push({recipients: [allToken]});
+  envelopes.push({ recipients: [allToken] });
   return envelopes.length - 1;
 }

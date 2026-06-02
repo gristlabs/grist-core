@@ -37,10 +37,12 @@
   position: sticky;
   top: 0px;
   z-index: 20; /* z-index must be here, doesnt work on children*/
+  border-bottom: 1px solid var(--grist-theme-table-header-border, lightgray);
+  width: fit-content;
 }
 
 .gridview_data_header {
-  position:relative;
+  position: relative;
 }
 
 .gridview_corner_spacer { /* spacer in .gridview_data_header */
@@ -49,9 +51,8 @@
 }
 
 .field.column_name {
-  border-bottom: 1px solid var(--grist-theme-table-header-border, lightgray);
   line-height: var(--gridview-header-height);
-  height: calc(var(--gridview-header-height) + 1px); /* Also should match height for overlay elements */
+  height: var(--gridview-header-height); /* Also should match height for overlay elements */
 }
 
 /* also .field.column_name, style set in viewCommon */
@@ -102,7 +103,8 @@
    * do not want !important, as it interferes with row selection.
    */
   .gridview_data_row_num {
-    background-color: var(--grist-color-light-grey) !important;
+    color: var(--grist-theme-table-header-fg, unset) !important;
+    background-color: var(--grist-theme-table-header-bg, var(--grist-color-light-grey)) !important;
   }
   .gridview_header_backdrop_top {
     display: none;
@@ -156,9 +158,7 @@
 
 .gridview_data_corner_overlay {
   width: 52px;
-  height: calc(var(--gridview-header-height) + 1px); /* matches gridview_data_header height (+border) */
-  top: 1px; /* go under 1px border on scrollpane */
-  border-bottom: 1px solid var(--grist-theme-table-header-border, lightgray);
+  height: var(--gridview-header-height);
   z-index: 30;
   cursor: pointer;
 }
@@ -216,7 +216,7 @@
   left: 0;
   height: 0;
   width: 100%; /* needs to be wide enough to flow off the side*/
-  top: calc(var(--gridview-header-height) + 1px); /* matches gridview_data_header height (+border) */
+  top: var(--gridview-header-height); /* matches gridview_data_header height */
   box-shadow: 0 -6px 6px 6px var(--grist-theme-table-scroll-shadow, #444);
 
   /* should only show below it (10px should be enough) */
@@ -245,9 +245,7 @@
 
 .gridview_header_backdrop_top {
   width: 100%;
-  height: calc(var(--gridview-header-height) + 1px); /* matches gridview_data_header height (+border) */
-  top: 1px; /* go under 1px border on scrollpane */
-  border-bottom: 1px solid var(--grist-theme-table-header-border, lightgray);
+  height: var(--gridview-header-height);
   z-index: 10;
 }
 

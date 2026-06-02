@@ -3,9 +3,9 @@
  * See also EncActionBundle for how these are packaged for encryption.
  */
 
-import {ApplyUAOptions} from 'app/common/ActiveDocAPI';
-import {DocAction, UserAction} from 'app/common/DocActions';
-import {RowCounts} from 'app/common/DocUsage';
+import { ApplyUAOptions } from "app/common/ActiveDocAPI";
+import { DocAction, UserAction } from "app/common/DocActions";
+import { RowCounts } from "app/common/DocUsage";
 
 // Metadata about the action.
 export interface ActionInfo {
@@ -31,16 +31,16 @@ export type EnvContent<Content> = [number, Content];
 // ActionBundle is what gets encrypted/decrypted and then sent between hub and instance.
 export interface ActionBundle {
   actionNum: number;
-  actionHash: string|null;        // a checksum of bundle, (not including actionHash and other parts).
-  parentActionHash: string|null;  // a checksum of the parent action bundle, if there is one.
+  actionHash: string | null;        // a checksum of bundle, (not including actionHash and other parts).
+  parentActionHash: string | null;  // a checksum of the parent action bundle, if there is one.
   envelopes: Envelope[];
   info: EnvContent<ActionInfo>;           // Should be in the envelope addressed to all peers.
-  stored: Array<EnvContent<DocAction>>;
-  calc: Array<EnvContent<DocAction>>;
+  stored: EnvContent<DocAction>[];
+  calc: EnvContent<DocAction>[];
 }
 
-export function getEnvContent<Content>(items: Array<EnvContent<Content>>): Content[] {
-  return items.map((item) => item[1]);
+export function getEnvContent<Content>(items: EnvContent<Content>[]): Content[] {
+  return items.map(item => item[1]);
 }
 
 // ======================================================================
@@ -59,10 +59,10 @@ export interface UserActionBundle {
 // ActionBundle structure defined in sandbox/grist/action_obj.py.
 export interface SandboxActionBundle {
   envelopes: Envelope[];
-  stored: Array<EnvContent<DocAction>>;
-  direct: Array<EnvContent<boolean>>;
-  calc: Array<EnvContent<DocAction>>;
-  undo: Array<EnvContent<DocAction>>;   // Inverse actions for all 'stored' actions.
+  stored: EnvContent<DocAction>[];
+  direct: EnvContent<boolean>[];
+  calc: EnvContent<DocAction>[];
+  undo: EnvContent<DocAction>[];   // Inverse actions for all 'stored' actions.
   retValues: any[];                     // Contains retValue for each of userActions.
   rowCount: RowCounts;
   // Mapping of keys (hashes of request args) to all unique requests made in a round of calculation

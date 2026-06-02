@@ -264,15 +264,21 @@
   background-color: var(--grist-theme-left-panel-active-page-bg, var(--grist-color-dark-bg));
 }
 
-.link_selector_row > .record::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background-color: var(--grist-theme-selection, var(--grist-color-selection));
-  /* z-index should be higher than '.record .field.frozen' (10) to show for frozen columns,
-   * but lower than '.gridview_stick-top' (20) to stay under column headers. */
-  z-index: 15;
+@media not print {
+  .link_selector_row > .record::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-color: var(--grist-theme-selection, var(--grist-color-selection));
+    /* z-index should be higher than '.record .field.frozen' (10) to show for frozen columns,
+     * but lower than '.gridview_stick-top' (20) to stay under column headers. */
+    z-index: 15;
+  }
+}
+
+.highlight_match_row > .record {
+  background-color: var(--grist-theme-selection-opaque-bg, #e6f4ea);
 }
 
 .gridview_data_row_info.linked_dst::before {
@@ -313,6 +319,30 @@
   --grist-diff-color: black;
 }
 
+.diff-emphasize-local .diff-local,
+.diff-emphasize-local .diff-local-add {
+  background-color: #afffaf;
+  --grist-diff-background-color: #afffaf;
+}
+
+.diff-emphasize-local .diff-remote,
+.diff-emphasize-local .diff-remote-add {
+  background-color: #dfdfff;
+  --grist-diff-background-color: #dfdfff;
+}
+
+.diff-emphasize-local .diff-local-remove {
+  background-color: #ffdfdf;
+  --grist-diff-background-color: #ffdfdf;
+}
+
+.diff-emphasize-local .diff-parent,
+.diff-emphasize-local .diff-remote-remove {
+  background-color: #dfdfdf;
+  --grist-diff-background-color: #dfdfdf;
+}
+
 .diff-common {
-  color: #555;
+  color: var(--grist-theme-text);
+  --grist-diff-color: var(--grist-theme-text);
 }

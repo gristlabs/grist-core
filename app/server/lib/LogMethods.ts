@@ -1,4 +1,4 @@
-import log from 'app/server/lib/log';
+import log from "app/server/lib/log";
 
 export type ILogMeta = log.ILogMeta;
 
@@ -19,10 +19,10 @@ export class LogMethods<Info> {
     private _getMeta: (info: Info) => log.ILogMeta,
   ) {}
 
-  public debug(info: Info, msg: string, ...args: any[]) { this.log('debug', info, msg, ...args); }
-  public info(info: Info, msg: string, ...args: any[]) { this.log('info', info, msg, ...args); }
-  public warn(info: Info, msg: string, ...args: any[]) { this.log('warn', info, msg, ...args); }
-  public error(info: Info, msg: string, ...args: any[]) { this.log('error', info, msg, ...args); }
+  public debug(info: Info, msg: string, ...args: any[]) { this.log("debug", info, msg, ...args); }
+  public info(info: Info, msg: string, ...args: any[]) { this.log("info", info, msg, ...args); }
+  public warn(info: Info, msg: string, ...args: any[]) { this.log("warn", info, msg, ...args); }
+  public error(info: Info, msg: string, ...args: any[]) { this.log("error", info, msg, ...args); }
 
   public log(level: string, info: Info, msg: string, ...args: any[]): void {
     log.origLog(level, this._prefix + msg, ...args, this._getMeta(info));
@@ -31,6 +31,6 @@ export class LogMethods<Info> {
   // Log with the given level, and include the provided log metadata in addition to that produced
   // by _getMeta(info).
   public rawLog(level: string, info: Info, msg: string, meta: ILogMeta): void {
-    log.origLog(level, this._prefix + msg, {...this._getMeta(info), ...meta});
+    log.origLog(level, this._prefix + msg, { ...this._getMeta(info), ...meta });
   }
 }

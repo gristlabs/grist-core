@@ -67,17 +67,18 @@ const getKeysFromFile = (filePath, fileName) => {
 
 // It is highly desirable to retain existing order, to not generate
 // unnecessary merges/conflicts, so we do a specialized merge.
-function merge(target, scanned) {
+function merge(target, scanned, newKeys = []) {
   let merges = 0;
   for (const key of Object.keys(scanned)) {
     if (!(key in target)) {
       console.log("Merging key", {key});
+      newKeys.push(key);
       target[key] = scanned[key];
       merges++;
-    } else if (typeof target[key] === 'object') {
-      merges += merge(target[key], scanned[key]);
+    } else if (typeof target[key] === "object") {
+      merges += merge(target[key], scanned[key], newKeys);
     } else if (scanned[key] !== target[key]) {
-      if (!key.endsWith('_one')) {
+      if (!key.endsWith("_one")) {
         console.log("Value difference", {key, value: target[key]});
       }
     }
@@ -109,15 +110,16 @@ async function walkTranslation(dirs) {
   const originalKeys = _.cloneDeep(englishKeys);
   for await (const p of walk(dirs)) {
     const { name } = path.parse(p);
-    if (p.endsWith('.map')) { continue; }
+    if (p.endsWith(".map")) { continue; }
     getKeysFromFile(p, name);
   }
   const keys = parser.get({ sort: true });
   const foundKeys = _.cloneDeep(keys.en.translation);
-  const mergeCount = merge(englishKeys, sort(keys.en.translation));
+  const newKeys = [];
+  const mergeCount = merge(englishKeys, sort(keys.en.translation), newKeys);
   await fs.promises.writeFile(
     "static/locales/en.client.json",
-    JSON.stringify(englishKeys, null, 4) + '\n',  // match weblate's default
+    JSON.stringify(englishKeys, null, 4) + "\n",  // match weblate's default
     "utf-8"
   );
   // Now, print a report of unrecognized keys - candidates
@@ -125,6 +127,18 @@ async function walkTranslation(dirs) {
   const unknownCount = reportUnrecognizedKeys(originalKeys, foundKeys);
   console.log(`Found ${unknownCount} unknown key(s).`);
   console.log(`Make ${mergeCount} merge(s).`);
+  // Print a summary for use in PR descriptions.
+  if (newKeys.length > 0) {
+    console.log("TRANSLATION_SUMMARY_START");
+    console.log(`Added ${newKeys.length} new translation key(s):\n`);
+    for (const key of newKeys.slice(0, 20)) {
+      console.log(`- \`${key}\``);
+    }
+    if (newKeys.length > 20) {
+      console.log(`- ... and ${newKeys.length - 20} more`);
+    }
+    console.log("TRANSLATION_SUMMARY_END");
+  }
 }
 
 walkTranslation(["_build/app/client", ...process.argv.slice(2)]);

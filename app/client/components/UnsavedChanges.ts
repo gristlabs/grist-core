@@ -1,7 +1,7 @@
 /**
  * Module to help deal with unsaved changes when closing a page.
  */
-import {Disposable} from 'grainjs';
+import { Disposable } from "grainjs";
 
 /**
  * Create an UnsavedChanges object to indicate there are UnsavedChanges. Dispose it when this is
@@ -19,8 +19,9 @@ export class UnsavedChange extends Disposable {
     unsavedChanges.add(this);
     this.onDispose(() => unsavedChanges.delete(this));
   }
+
   public haveUnsavedChanges() { return !this._haveChanges || this._haveChanges(); }
-  public async save(): Promise<void> { return this._saveCB && this._saveCB(); }
+  public async save(): Promise<void> { return this._saveCB?.(); }
 }
 
 export class UnsavedChangeSet {
@@ -30,14 +31,14 @@ export class UnsavedChangeSet {
    * Check if there are any unsaved changes out there.
    */
   public haveUnsavedChanges(): boolean {
-    return Array.from(this._changes).some((c) => c.haveUnsavedChanges());
+    return Array.from(this._changes).some(c => c.haveUnsavedChanges());
   }
 
   /**
    * Save any unsaved changes out there.
    */
   public async saveChanges(): Promise<void> {
-    await Promise.all(Array.from(this._changes).map((c) => c.save()));
+    await Promise.all(Array.from(this._changes).map(c => c.save()));
   }
 
   public add(unsaved: UnsavedChange) { this._changes.add(unsaved); }

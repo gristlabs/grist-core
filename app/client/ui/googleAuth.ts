@@ -1,6 +1,7 @@
-import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
-import type {Disposable} from 'grainjs';
+import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
 import { GristLoadConfig } from "app/common/gristUrls";
+
+import type { Disposable } from "grainjs";
 
 /**
  * Functions to perform server side authentication with Google.
@@ -19,7 +20,7 @@ import { GristLoadConfig } from "app/common/gristUrls";
  *                            configured this way by an environmental variable.
  */
 
-const G = getBrowserGlobals('window');
+const G = getBrowserGlobals("window");
 
 export const ACCESS_DENIED = "access_denied";
 export const AUTH_INTERRUPTED = "auth_interrupted";
@@ -60,7 +61,7 @@ function getGoogleAuthCode(owner: Disposable, scope: string) {
   const authLink = getGoogleAuthEndpoint(scope);
   const authWindow = openPopup(authLink);
   return new Promise<string>((resolve, reject) => {
-    attachListener(owner, authWindow, async (event: MessageEvent|null) => {
+    attachListener(owner, authWindow, async (event: MessageEvent | null) => {
       // If the no message, or window was closed (user closed it intentionally).
       if (!event || authWindow.closed) {
         reject(new Error(AUTH_INTERRUPTED));
@@ -73,7 +74,7 @@ function getGoogleAuthCode(owner: Disposable, scope: string) {
         return;
       }
       // Check response from the popup
-      const response = (event.data || {}) as {code?: string, error?: string};
+      const response = (event.data || {}) as { code?: string, error?: string };
       // - when user declined, report back, caller should stop current flow,
       if (response.error === "access_denied") {
         reject(new Error(ACCESS_DENIED));
@@ -90,7 +91,7 @@ function getGoogleAuthCode(owner: Disposable, scope: string) {
 }
 
 // Helper function that attaches a handler to message event from a popup window.
-function attachListener(owner: Disposable, popup: Window, listener: (e: MessageEvent|null) => void) {
+function attachListener(owner: Disposable, popup: Window, listener: (e: MessageEvent | null) => void) {
   const wrapped = (e: MessageEvent) => {
     // Listen to events only from our window.
     if (e.source !== popup) { return; }
@@ -107,9 +108,9 @@ function attachListener(owner: Disposable, popup: Window, listener: (e: MessageE
     listener = () => {};
   });
   owner.onDispose(closeHandler);
-  G.window.addEventListener('message', wrapped);
+  G.window.addEventListener("message", wrapped);
   owner.onDispose(() => {
-    G.window.removeEventListener('message', wrapped);
+    G.window.removeEventListener("message", wrapped);
   });
 }
 
@@ -137,7 +138,7 @@ function openPopup(url: string): Window {
 
   // If window will be too large (for example on mobile) - open as a new tab
   if (screen.width <= width || screen.height <= height) {
-    windowFeatures = '';
+    windowFeatures = "";
   }
 
   const authWindow = G.window.open(url, "GoogleAuthPopup", windowFeatures);

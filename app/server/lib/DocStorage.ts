@@ -6,36 +6,37 @@
  * or "data set".
  */
 
+import { LocalActionBundle } from "app/common/ActionBundle";
+import { BulkColValues, DocAction, TableColValues, TableDataAction, toTableDataAction } from "app/common/DocActions";
+import * as gristTypes from "app/common/gristTypes";
+import { isList, isListType, isRefListType } from "app/common/gristTypes";
+import * as marshal from "app/common/marshal";
+import * as schema from "app/common/schema";
+import { SingleCell } from "app/common/TableData";
+import { GristObjCode } from "app/plugin/GristData";
+import { ActionHistoryImpl } from "app/server/lib/ActionHistoryImpl";
+import { appSettings } from "app/server/lib/AppSettings";
+import { combineExpr, ExpandedQuery } from "app/server/lib/ExpandedQuery";
+import { IDocStorageManager } from "app/server/lib/IDocStorageManager";
+import log from "app/server/lib/log";
+import { OnDemandStorage } from "app/server/lib/OnDemandActions";
+import { MinDBOptions } from "app/server/lib/SqliteCommon";
+import { ISQLiteDB, MigrationHooks, OpenMode, PreparedStatement, quoteIdent,
+  ResultRow, RunResult, SchemaInfo, SQLiteDB } from "app/server/lib/SQLiteDB";
 
-import {LocalActionBundle} from 'app/common/ActionBundle';
-import {BulkColValues, DocAction, TableColValues, TableDataAction, toTableDataAction} from 'app/common/DocActions';
-import * as gristTypes from 'app/common/gristTypes';
-import {isList, isListType, isRefListType} from 'app/common/gristTypes';
-import * as marshal from 'app/common/marshal';
-import * as schema from 'app/common/schema';
-import {SingleCell} from 'app/common/TableData';
-import {GristObjCode} from "app/plugin/GristData";
-import {appSettings} from 'app/server/lib/AppSettings';
-import {ActionHistoryImpl} from 'app/server/lib/ActionHistoryImpl';
-import {combineExpr, ExpandedQuery} from 'app/server/lib/ExpandedQuery';
-import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
-import log from 'app/server/lib/log';
-import assert from 'assert';
-import * as bluebird from 'bluebird';
-import * as _ from 'underscore';
-import * as util from 'util';
-import {v4 as uuidv4} from 'uuid';
-import {OnDemandStorage} from 'app/server/lib/OnDemandActions';
-import {ISQLiteDB, MigrationHooks, OpenMode, PreparedStatement, quoteIdent,
-        ResultRow, RunResult, SchemaInfo, SQLiteDB} from 'app/server/lib/SQLiteDB';
-import chunk = require('lodash/chunk');
-import cloneDeep = require('lodash/cloneDeep');
-import groupBy = require('lodash/groupBy');
-import { MinDBOptions } from 'app/server/lib/SqliteCommon';
+import assert from "assert";
+import * as util from "util";
+
+import * as bluebird from "bluebird";
+import chunk from "lodash/chunk";
+import cloneDeep from "lodash/cloneDeep";
+import groupBy from "lodash/groupBy";
+import * as _ from "underscore";
+import { v4 as uuidv4 } from "uuid";
 
 // Run with environment variable NODE_DEBUG=db (may include additional comma-separated sections)
 // for verbose logging.
-const debuglog = util.debuglog('db');
+const debuglog = util.debuglog("db");
 
 const maxSQLiteVariables = 500;     // Actually could be 999, so this is playing it safe.
 
@@ -49,21 +50,20 @@ const SHRINK_RATIO_FOR_PUSH = 0.1;
 export const ATTACHMENTS_EXPIRY_DAYS = 7;
 
 // Cleanup expired attachments every hour (also happens when shutting down).
-export const REMOVE_UNUSED_ATTACHMENTS_DELAY = {delayMs: 60 * 60 * 1000, varianceMs: 30 * 1000};
+export const REMOVE_UNUSED_ATTACHMENTS_DELAY = { delayMs: 60 * 60 * 1000, varianceMs: 30 * 1000 };
 
 /**
  * Check what way we want to access SQLite files.
  */
 export function getSqliteMode() {
-  return appSettings.section('features')
-    .section('sqlite').flag('mode').readString({
-      envVar: 'GRIST_SQLITE_MODE',
-      acceptedValues: ['wal', 'sync'],
-    }) as 'wal'|'sync'|undefined;
+  return appSettings.section("features")
+    .section("sqlite").flag("mode").readString({
+      envVar: "GRIST_SQLITE_MODE",
+      acceptedValues: ["wal", "sync"],
+    }) as "wal" | "sync" | undefined;
 }
 
 export class DocStorage implements ISQLiteDB, OnDemandStorage {
-
   // ======================================================================
   // Static fields
   // ======================================================================
@@ -120,9 +120,9 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
         name TEXT UNIQUE,             -- Branch name
         actionRef INTEGER             -- Latest action on branch
       )`);
-      for (const branchName of ['shared', 'local_sent', 'local_unsent']) {
+      for (const branchName of ["shared", "local_sent", "local_unsent"]) {
         await db.run("INSERT INTO _gristsys_ActionHistoryBranch(name) VALUES(?)",
-                     branchName);
+          branchName);
       }
       // This is a single row table (enforced by the CHECK on 'id'), containing non-shared info.
       // - ownerInstanceId is the id of the instance which owns this copy of the Grist doc.
@@ -157,31 +157,31 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
           log.debug(`${migrationLabel}: table ${tableId}`);
           // This returns rows with (at least) {name, type, dflt_value}.
           return db.all(`PRAGMA table_info(${quoteIdent(tableId)})`)
-            .then(infoRows => {
-              const colListSql = infoRows.map(info => quoteIdent(info.name)).join(', ');
-              const colSpecSql = infoRows.map(_sqlColSpec).join(', ');
+            .then((infoRows) => {
+              const colListSql = infoRows.map(info => quoteIdent(info.name)).join(", ");
+              const colSpecSql = infoRows.map(_sqlColSpec).join(", ");
               const tmpTableId = DocStorage._makeTmpTableId(tableId);
               debuglog(`${migrationLabel}: ${tableId} (${colSpecSql})`);
               return db.runEach(
                 `CREATE TABLE ${quoteIdent(tmpTableId)} (${colSpecSql})`,
                 `INSERT INTO ${quoteIdent(tmpTableId)} SELECT ${colListSql} FROM ${quoteIdent(tableId)}`,
                 `DROP TABLE ${quoteIdent(tableId)}`,
-                `ALTER TABLE ${quoteIdent(tmpTableId)} RENAME TO ${quoteIdent(tableId)}`
+                `ALTER TABLE ${quoteIdent(tmpTableId)} RENAME TO ${quoteIdent(tableId)}`,
               );
             });
         }
 
         function _sqlColSpec(info: ResultRow): string {
-          if (info.name === 'id') { return 'id INTEGER PRIMARY KEY'; }
+          if (info.name === "id") { return "id INTEGER PRIMARY KEY"; }
           // Fix the default for PositionNumber and ManualPos types, if set to a wrong old value.
-          const dfltValue = (info.type === 'REAL' && info.dflt_value === oldMaxPosDefault) ?
-            DocStorage._formattedDefault('PositionNumber') :
+          const dfltValue = (info.type === "REAL" && info.dflt_value === oldMaxPosDefault) ?
+            DocStorage._formattedDefault("PositionNumber") :
             // The string "undefined" is also an invalid default; fix that too.
-            (info.dflt_value === 'undefined' ? 'NULL' : info.dflt_value);
+            (info.dflt_value === "undefined" ? "NULL" : info.dflt_value);
 
           return DocStorage._sqlColSpecFromDBInfo(Object.assign({}, info, {
-            type: 'BLOB',
-            dflt_value: dfltValue
+            type: "BLOB",
+            dflt_value: dfltValue,
           }));
         }
 
@@ -196,7 +196,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
          )`);
         // Create _gristsys_Action.linkId column that wasn't always created in the past.
         try {
-          await db.exec('ALTER TABLE _gristsys_Action ADD COLUMN linkId INTEGER');
+          await db.exec("ALTER TABLE _gristsys_Action ADD COLUMN linkId INTEGER");
           log.debug("${migrationLabel}: Column linkId added to _gristsys_Action");
         } catch (err) {
           if (!(/duplicate/.test(err.message))) {
@@ -210,8 +210,8 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
           // Note that _gristsys_Action tables in the past used Grist actions to create appropriate
           // tables, so docs from that period would use BLOBs. For consistency, we upgrade those tables
           // too.
-          if (tblRow.name.startsWith('_grist_') || !tblRow.name.startsWith('_') ||
-              tblRow.name.startsWith('_gristsys_Action')) {
+          if (tblRow.name.startsWith("_grist_") || !tblRow.name.startsWith("_") ||
+            tblRow.name.startsWith("_gristsys_Action")) {
             await _upgradeTable(tblRow.name);
           }
         }
@@ -230,14 +230,14 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
           name TEXT UNIQUE,
           actionRef INTEGER
         )`);
-        for (const branchName of ['shared', 'local_sent', 'local_unsent']) {
+        for (const branchName of ["shared", "local_sent", "local_unsent"]) {
           await db.run("INSERT OR IGNORE INTO _gristsys_ActionHistoryBranch(name) VALUES(?)",
-                       branchName);
+            branchName);
         }
         // Migrate any ActionLog information as best we can
         const actions = await db.all("SELECT * FROM _gristsys_Action ORDER BY actionNum");
         const steps = groupBy(await db.all("SELECT * FROM _gristsys_Action_step ORDER BY id"),
-                              'parentId');
+          "parentId");
         await db.execTransaction(async () => {
           const history = new ActionHistoryImpl(db);
           await history.initialize();
@@ -256,8 +256,8 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
                   inst: "",
                   desc: action.desc,
                   otherId: action.otherId,
-                  linkId: action.linkId
-                }
+                  linkId: action.linkId,
+                },
               ],
               // Take what was logged as a UserAction and treat it as a DocAction.  Summarization
               // currently depends on stored+undo fields to understand what changed in an ActionBundle.
@@ -265,7 +265,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
               stored: [[0, JSON.parse(action.json) as DocAction]],
               calc: [],
               userActions: [JSON.parse(action.json)],
-              undo: step.map(row => JSON.parse(row.json))
+              undo: step.map(row => JSON.parse(row.json)),
             };
             await history.recordNextShared(crudeTranslation);
           }
@@ -299,10 +299,10 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
         // DEFAULT for their Grist type, due to bug T462.
         const migrationLabel = "DocStorage.docStorageSchema.migrations[v5->v6]";
 
-        const colRows: ResultRow[] = await db.all('SELECT t.tableId, c.colId, c.type ' +
-          'FROM _grist_Tables_column c JOIN _grist_Tables t ON c.parentId=t.id');
+        const colRows: ResultRow[] = await db.all("SELECT t.tableId, c.colId, c.type " +
+          "FROM _grist_Tables_column c JOIN _grist_Tables t ON c.parentId=t.id");
         const docSchema = new Map<string, string>();   // Maps tableId.colId to grist type.
-        for (const {tableId, colId, type} of colRows) {
+        for (const { tableId, colId, type } of colRows) {
           docSchema.set(`${tableId}.${colId}`, type);
         }
 
@@ -311,13 +311,13 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
           log.debug(`${migrationLabel}: table ${tableId}`);
           // This returns rows with (at least) {name, type, dflt_value}.
           const infoRows: ResultRow[] = await db.all(`PRAGMA table_info(${quoteIdent(tableId)})`);
-          const origColSpecSql = infoRows.map(_sqlColSpec).join(', ');
+          const origColSpecSql = infoRows.map(_sqlColSpec).join(", ");
 
           // Get the column SQL for what the columns should be, and the value SQL for how to
           // prepare the values to fill them in.
-          const fixes = infoRows.map((r) => _getInfoAndValuesSql(r, tableId));
-          const newColSpecSql = fixes.map(pair => pair[0]).map(_sqlColSpec).join(', ');
-          const valuesSql = fixes.map(pair => pair[1]).join(', ');
+          const fixes = infoRows.map(r => _getInfoAndValuesSql(r, tableId));
+          const newColSpecSql = fixes.map(pair => pair[0]).map(_sqlColSpec).join(", ");
+          const valuesSql = fixes.map(pair => pair[1]).join(", ");
 
           // Rebuild the table only if any column's SQL (e.g. DEFAULT values) have changed.
           if (newColSpecSql === origColSpecSql) {
@@ -329,7 +329,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
               `CREATE TABLE ${quoteIdent(tmpTableId)} (${newColSpecSql})`,
               `INSERT INTO ${quoteIdent(tmpTableId)} SELECT ${valuesSql} FROM ${quoteIdent(tableId)}`,
               `DROP TABLE ${quoteIdent(tableId)}`,
-              `ALTER TABLE ${quoteIdent(tmpTableId)} RENAME TO ${quoteIdent(tableId)}`
+              `ALTER TABLE ${quoteIdent(tmpTableId)} RENAME TO ${quoteIdent(tableId)}`,
             );
           }
         }
@@ -341,22 +341,22 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
           const gristType = docSchema.get(`${tableId}.${info.name}`);
           if (gristType) {
             const dflt = DocStorage._formattedDefault(gristType);
-            if (info.dflt_value === 'NULL' && dflt !== 'NULL') {
-              return [{...info, dflt_value: dflt}, `IFNULL(${qColId}, ${dflt}) as ${qColId}`];
+            if (info.dflt_value === "NULL" && dflt !== "NULL") {
+              return [{ ...info, dflt_value: dflt }, `IFNULL(${qColId}, ${dflt}) as ${qColId}`];
             }
           }
           return [info, qColId];
         }
 
         function _sqlColSpec(info: ResultRow): string {
-          if (info.name === 'id') { return 'id INTEGER PRIMARY KEY'; }
+          if (info.name === "id") { return "id INTEGER PRIMARY KEY"; }
           return DocStorage._sqlColSpecFromDBInfo(info);
         }
 
         // Go through all user tables and fix them.
         const tblRows = await db.all("SELECT name FROM sqlite_master WHERE type='table'");
         for (const tblRow of tblRows) {
-          if (!tblRow.name.startsWith('_')) {
+          if (!tblRow.name.startsWith("_")) {
             await _fixTable(tblRow.name);
           }
         }
@@ -367,11 +367,11 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
         // Here, we only create empty columns for each formula column in the document. We let
         // ActiveDoc, when it calculates formulas on open, detect that this migration just
         // happened, and save the calculated results.
-        const colRows: ResultRow[] = await db.all('SELECT t.tableId, c.colId, c.type ' +
-          'FROM _grist_Tables_column c JOIN _grist_Tables t ON c.parentId=t.id WHERE c.isFormula');
+        const colRows: ResultRow[] = await db.all("SELECT t.tableId, c.colId, c.type " +
+          "FROM _grist_Tables_column c JOIN _grist_Tables t ON c.parentId=t.id WHERE c.isFormula");
 
         // Go table by table.
-        const tableColRows = groupBy(colRows, 'tableId');
+        const tableColRows = groupBy(colRows, "tableId");
         for (const tableId of Object.keys(tableColRows)) {
           // There should be no columns conflicting with formula columns, but we check and skip
           // them if there are.
@@ -380,7 +380,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
           const newCols = tableColRows[tableId].filter(c => !presentCols.has(c.colId));
 
           // Create all new columns.
-          for (const {colId, type} of newCols) {
+          for (const { colId, type } of newCols) {
             await db.exec(`ALTER TABLE ${quoteIdent(tableId)} ` +
               `ADD COLUMN ${DocStorage._columnDefWithBlobs(colId, type)}`);
           }
@@ -388,7 +388,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
           // Fill them in with PENDING_VALUE. This way, on first load and Calculate, they would go
           // from "Loading..." to their proper value. After the migration, they should never have
           // PENDING_VALUE again.
-          const colListSql = newCols.map(c => `${quoteIdent(c.colId)}=?`).join(', ');
+          const colListSql = newCols.map(c => `${quoteIdent(c.colId)}=?`).join(", ");
           const types = newCols.map(c => c.type);
           const sqlParams = DocStorage._encodeColumnsToRows(types, newCols.map(c => [PENDING_VALUE]));
           await db.run(`UPDATE ${quoteIdent(tableId)} SET ${colListSql}`, ...sqlParams[0]);
@@ -413,7 +413,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
         // Default should be NULL.
         await db.exec(`ALTER TABLE _gristsys_Files ADD COLUMN storageId TEXT`);
       },
-    ]
+    ],
   };
 
   /**
@@ -422,7 +422,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * be used within main Grist application.
    */
   public static decodeRowValues(dbRow: ResultRow): any {
-    return _.mapObject(dbRow, val => DocStorage._decodeValue(val, 'Any', 'BLOB'));
+    return _.mapObject(dbRow, val => DocStorage._decodeValue(val, "Any", "BLOB"));
   }
 
   /**
@@ -437,14 +437,14 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * Shortcut to get the SQL default for the given Grist type.
    */
   private static _formattedDefault(colType: string): any {
-    return gristTypes.getDefaultForType(colType, {sqlFormatted: true});
+    return gristTypes.getDefaultForType(colType, { sqlFormatted: true });
   }
 
   /**
    * Join array of strings by prefixing each one with sep.
    */
   private static _prefixJoin(sep: string, array: string[]): string {
-    return array.length ? sep + array.join(sep) : '';
+    return array.length ? sep + array.join(sep) : "";
   }
 
   /**
@@ -454,7 +454,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * @returns {String}
    */
   private static _makeTmpTableId(tableId: string): string {
-    return '_tmp_' + tableId;
+    return "_tmp_" + tableId;
   }
 
   private static _sqlColSpecFromDBInfo(info: ResultRow): string {
@@ -466,7 +466,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * values as needed, according to an array of Grist type strings (must be parallel to columns).
    */
   private static _encodeColumnsToRows(types: string[], valueColumns: any[]): any[][] {
-    const marshaller = new marshal.Marshaller({version: 2});
+    const marshaller = new marshal.Marshaller({ version: 2 });
     const rows = _.unzip(valueColumns);
     for (const row of rows) {
       for (let i = 0; i < row.length; i++) {
@@ -485,20 +485,20 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * which such encoding/marshalling is not used, and e.g. binary data is stored to BLOBs directly.
    */
   private static _encodeValue(
-    marshaller: marshal.Marshaller, gristType: string, sqlType: string, val: any
-  ): Uint8Array|string|number|boolean|null {
+    marshaller: marshal.Marshaller, gristType: string, sqlType: string, val: any,
+  ): Uint8Array | string | number | boolean | null {
     const marshalled = () => {
       marshaller.marshal(val);
       return marshaller.dump();
     };
-    if (gristType == 'ChoiceList') {
+    if (gristType == "ChoiceList") {
       // See also app/plugin/objtype.ts for decodeObject(). Here we manually check and decode
       // the "List" object type.
-      if (isList(val) && val.every(tok => (typeof(tok) === 'string'))) {
+      if (isList(val) && val.every(tok => (typeof (tok) === "string"))) {
         return JSON.stringify(val.slice(1));
       }
     } else if (isRefListType(gristType)) {
-      if (isList(val) && val.slice(1).every((tok: any) => (typeof(tok) === 'number'))) {
+      if (isList(val) && val.slice(1).every((tok: any) => (typeof (tok) === "number"))) {
         return JSON.stringify(val.slice(1));
       }
     }
@@ -515,10 +515,10 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     // also even though it is not currently used.
     const affinity = this._getAffinity(sqlType);
     // For strings, numbers, and booleans, we have distinct strategies and problems.
-    switch (typeof(val)) {
-      case 'string':
+    switch (typeof (val)) {
+      case "string":
         // Strings are easy with TEXT and BLOB affinity, they can be stored verbatim.
-        if (affinity === 'TEXT' || affinity === 'BLOB') { return val; }
+        if (affinity === "TEXT" || affinity === "BLOB") { return val; }
         // With an INTEGER, NUMERIC, or REAL affinity, we need to be careful since
         // if the string looks like a number it will get cast.
         // See vdbe.c:applyNumericAffinity in SQLite source code for
@@ -533,19 +533,19 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
         // getting it wrong and letting a string through that gets unexpectedly
         // converted.  So marshall everything else.
         return marshalled();
-      case 'number':
+      case "number":
         // Marshal with TEXT affinity, and handle some other awkward cases.
-        if (affinity === 'TEXT' || Number.isNaN(val) || Object.is(val, -0.0) ||
-            (sqlType === 'BOOLEAN' && (val === 0 || val === 1))) {
+        if (affinity === "TEXT" || Number.isNaN(val) || Object.is(val, -0.0) ||
+          (sqlType === "BOOLEAN" && (val === 0 || val === 1))) {
           return marshalled();
         }
         // Otherwise, SQLite will handle numbers safely.
         return val;
-      case 'boolean':
+      case "boolean":
         // Booleans are only safe to store in columns of grist type Bool
         // (SQL type BOOLEAN), since they will be consistently unencoded as
         // booleans.
-        return (sqlType === 'BOOLEAN') ? val : marshalled();
+        return (sqlType === "BOOLEAN") ? val : marshalled();
     }
     return marshalled();
   }
@@ -559,7 +559,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     if (val instanceof Uint8Array || Buffer.isBuffer(val)) {
       val = marshal.loads(val);
     }
-    if (gristType === 'Bool') {
+    if (gristType === "Bool") {
       if (val === 0 || val === 1) {
         // Boolean values come in as 0/1. If the column is of type "Bool", interpret those as
         // true/false (note that the data engine does this too).
@@ -567,9 +567,9 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
       }
     }
     if (isListType(gristType)) {
-      if (typeof val === 'string' && val.startsWith('[')) {
+      if (typeof val === "string" && val.startsWith("[")) {
         try {
-          return ['L', ...JSON.parse(val)];
+          return ["L", ...JSON.parse(val)];
         } catch (e) {
           // Fall through without parsing
         }
@@ -600,41 +600,41 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * 'affinities', but they are helpful as comments.  Type names chosen from:
    *   https://www.sqlite.org/datatype3.html#affinity_name_examples
    */
-  private static _getSqlType(colType: string|null): string {
+  private static _getSqlType(colType: string | null): string {
     switch (colType) {
-      case 'Bool':
-        return 'BOOLEAN';
-      case 'Choice':
-      case 'Text':
-        return 'TEXT';
-      case 'ChoiceList':
-      case 'RefList':
-      case 'ReferenceList':
-      case 'Attachments':
-        return 'TEXT';      // To be encoded as a JSON array of strings.
-      case 'Date':
-        return 'DATE';
-      case 'DateTime':
-        return 'DATETIME';
-      case 'Int':
-      case 'Id':
-      case 'Ref':
-      case 'Reference':
-        return 'INTEGER';
-      case 'Numeric':
-      case 'ManualSortPos':
-      case 'PositionNumber':
-        return 'NUMERIC';
+      case "Bool":
+        return "BOOLEAN";
+      case "Choice":
+      case "Text":
+        return "TEXT";
+      case "ChoiceList":
+      case "RefList":
+      case "ReferenceList":
+      case "Attachments":
+        return "TEXT";      // To be encoded as a JSON array of strings.
+      case "Date":
+        return "DATE";
+      case "DateTime":
+        return "DATETIME";
+      case "Int":
+      case "Id":
+      case "Ref":
+      case "Reference":
+        return "INTEGER";
+      case "Numeric":
+      case "ManualSortPos":
+      case "PositionNumber":
+        return "NUMERIC";
     }
     if (colType) {
-      if (colType.startsWith('Ref:')) {
-        return 'INTEGER';
+      if (colType.startsWith("Ref:")) {
+        return "INTEGER";
       }
-      if (colType.startsWith('RefList:')) {
-        return 'TEXT';      // To be encoded as a JSON array of strings.
+      if (colType.startsWith("RefList:")) {
+        return "TEXT";      // To be encoded as a JSON array of strings.
       }
     }
-    return 'BLOB';
+    return "BLOB";
   }
 
   /**
@@ -643,19 +643,19 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * Result is one of NUMERIC, INTEGER, TEXT, or BLOB.
    * We don't use REAL, the only remaining affinity.
    */
-  private static _getAffinity(colType: string|null): string {
+  private static _getAffinity(colType: string | null): string {
     switch (colType) {
-      case 'TEXT':
-        return 'TEXT';
-      case 'INTEGER':
-        return 'INTEGER';
-      case 'BOOLEAN':
-      case 'DATE':
-      case 'DATETIME':
-      case 'NUMERIC':
-        return 'NUMERIC';
+      case "TEXT":
+        return "TEXT";
+      case "INTEGER":
+        return "INTEGER";
+      case "BOOLEAN":
+      case "DATE":
+      case "DATETIME":
+      case "NUMERIC":
+        return "NUMERIC";
     }
-    return 'BLOB';
+    return "BLOB";
   }
 
   // ======================================================================
@@ -663,13 +663,13 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
   // ======================================================================
 
   public docPath: string; // path to document file on disk
-  private _db: SQLiteDB|null|undefined; // database handle
+  private _db: SQLiteDB | null | undefined; // database handle
 
   // Maintains { tableId: { colId: gristType } } mapping for all tables, including grist metadata
   // tables (obtained from auto-generated schema.js).
-  private _docSchema: {[tableId: string]: {[colId: string]: string}};
+  private _docSchema: { [tableId: string]: { [colId: string]: string } };
 
-  private _cachedDataSize: number|null = null;
+  private _cachedDataSize: number | null = null;
 
   public constructor(public storageManager: IDocStorageManager, public docName: string) {
     this.docPath = this.storageManager.getPath(docName);
@@ -695,9 +695,9 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    */
   public createFile(options?: {
     useExisting?: boolean,  // If set, it is ok if an sqlite file already exists
-                            // where we would store the Grist document. Its content
-                            // will not be touched. Useful when "gristifying" an
-                            // existing SQLite DB.
+    // where we would store the Grist document. Its content
+    // will not be touched. Useful when "gristifying" an
+    // existing SQLite DB.
   }): Promise<void> {
     // It turns out to be important to return a bluebird promise, a lot of code outside
     // of DocStorage ultimately depends on this.
@@ -725,24 +725,24 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     // TODO: Switch setting to FULL, but don't wait for SQLite transactions to finish before
     // returning responses to the user. Instead send error messages on unexpected errors.
     const settings = [
-      'PRAGMA trusted_schema = OFF;',  // mitigation suggested by https://www.sqlite.org/security.html#untrusted_sqlite_database_files
+      "PRAGMA trusted_schema = OFF;",  // mitigation suggested by https://www.sqlite.org/security.html#untrusted_sqlite_database_files
     ];
     const sqliteMode = getSqliteMode();
     if (sqliteMode === undefined) {
       // Historically, Grist has used this setting.
-      settings.push('PRAGMA synchronous = OFF;');
-    } else if (sqliteMode === 'sync') {
+      settings.push("PRAGMA synchronous = OFF;");
+    } else if (sqliteMode === "sync") {
       // This is a safer, but potentially slower, setting for general use.
-      settings.push('PRAGMA synchronous = FULL;');
-    } else if (sqliteMode === 'wal') {
+      settings.push("PRAGMA synchronous = FULL;");
+    } else if (sqliteMode === "wal") {
       // This is a good modern setting for servers, but awkward
       // on a Desktop for users who interact with their documents
       // directly as files on the file system. With WAL, at any
       // time, changes may be stored in a companion file rather
       // than the .grist file.
-      settings.push('PRAGMA journal_mode = WAL;');
+      settings.push("PRAGMA journal_mode = WAL;");
     }
-    return this._getDB().exec(settings.join('\n'));
+    return this._getDB().exec(settings.join("\n"));
   }
 
   /**
@@ -750,25 +750,25 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * generated mapping in app/common/schema.js, to all tables, as `{tableId: {colId: gristType}}`.
    */
   public _updateMetadata(): Promise<void> {
-    return this.all('SELECT t.tableId, c.colId, c.type ' +
-                    'FROM _grist_Tables_column c JOIN _grist_Tables t ON c.parentId=t.id')
+    return this.all("SELECT t.tableId, c.colId, c.type " +
+      "FROM _grist_Tables_column c JOIN _grist_Tables t ON c.parentId=t.id")
       .then((rows: ResultRow[]) => {
-        const s: {[key: string]: any} = {};
-        for (const {tableId, colId, type} of rows) {
+        const s: { [key: string]: any } = {};
+        for (const { tableId, colId, type } of rows) {
           const table = s.hasOwnProperty(tableId) ? s[tableId] : (s[tableId] = {});
           table[colId] = type;
         }
         // Note that schema is what's imported from app/common/schema.js
         this._docSchema = Object.assign(s, schema.schema);
       })
-      .catch(err => {
+      .catch((err) => {
         // This replicates previous logic for _updateMetadata.
         // It matches errors from node-sqlite3 and better-sqlite3
-        if (err.message.startsWith('SQLITE_ERROR: no such table') ||
-          err.message.startsWith('no such table:')) {
+        if (err.message.startsWith("SQLITE_ERROR: no such table") ||
+          err.message.startsWith("no such table:")) {
           err.message = `NO_METADATA_ERROR: ${this.docName} has no metadata`;
           if (!err.cause) { err.cause = {}; }
-          err.cause.code = 'NO_METADATA_ERROR';
+          err.cause.code = "NO_METADATA_ERROR";
         }
         throw err;
       });
@@ -779,15 +779,14 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    */
   public async shutdown(): Promise<void> {
     if (!this._db) {
-      log.debug('DocStorage shutdown (trivial) success');
+      log.debug("DocStorage shutdown (trivial) success");
       return;
     }
     const db = this._getDB();
     this._db = null;
     await db.close();
-    log.debug('DocStorage shutdown success');
+    log.debug("DocStorage shutdown success");
   }
-
 
   /**
    * Attaches the file to the document.
@@ -849,7 +848,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    */
   public async getFileInfo(fileIdent: string): Promise<FileInfo | null> {
     const row = await this.get(`SELECT ident, storageId, data FROM _gristsys_Files WHERE ident=?`, fileIdent);
-    if(!row) {
+    if (!row) {
       return null;
     }
 
@@ -874,10 +873,10 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     }
 
     return {
-        ident: row.ident as string,
-        storageId: (row.storageId ?? null) as (string | null),
-        // Use a zero buffer for now if it doesn't exist. Should be refactored to allow null.
-        data: Buffer.alloc(0),
+      ident: row.ident as string,
+      storageId: (row.storageId ?? null) as (string | null),
+      // Use a zero buffer for now if it doesn't exist. Should be refactored to allow null.
+      data: Buffer.alloc(0),
     };
   }
 
@@ -896,7 +895,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * Fetches the given table from the database. See fetchQuery() for return value.
    */
   public fetchTable(tableId: string): Promise<Buffer> {
-    return this.fetchQuery({tableId, filters: {}});
+    return this.fetchQuery({ tableId, filters: {} });
   }
 
   /**
@@ -913,7 +912,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
   /**
    * Look up Grist type of column.
    */
-  public getColumnType(tableId: string, colId: string): string|undefined {
+  public getColumnType(tableId: string, colId: string): string | undefined {
     return this._docSchema[tableId]?.[colId];
   }
 
@@ -921,12 +920,12 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * Fetches all rows of the table with the given rowIds.
    */
   public async fetchActionData(tableId: string, rowIds: number[], colIds?: string[]): Promise<TableDataAction> {
-    const colSpec = colIds ? ['id', ...colIds].map((c) => quoteIdent(c)).join(', ') : '*';
-    let fullValues: TableColValues|undefined;
+    const colSpec = colIds ? ["id", ...colIds].map(c => quoteIdent(c)).join(", ") : "*";
+    let fullValues: TableColValues | undefined;
 
     // There is a limit to the number of arguments that may be passed in, so fetch data in chunks.
     for (const rowIdChunk of chunk(rowIds, maxSQLiteVariables)) {
-      const sqlArg = rowIdChunk.map(() => '?').join(',');
+      const sqlArg = rowIdChunk.map(() => "?").join(",");
       const marshalled: Buffer = await this._getDB().allMarshal(
         `SELECT ${colSpec} FROM ${quoteIdent(tableId)} WHERE id IN (${sqlArg})`, rowIdChunk);
 
@@ -939,7 +938,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
         }
       }
     }
-    return toTableDataAction(tableId, fullValues || {id: []});    // Return empty TableColValues if rowIds was empty.
+    return toTableDataAction(tableId, fullValues || { id: [] });    // Return empty TableColValues if rowIds was empty.
   }
 
   /**
@@ -966,7 +965,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     for (const colId of Object.keys(query.filters)) {
       const values = query.filters[colId];
       // If values is empty, "IN ()" works in SQLite (always false), but wouldn't work in Postgres.
-      whereParts.push(`${quoteIdent(query.tableId)}.${quoteIdent(colId)} IN (${values.map(() => '?').join(', ')})`);
+      whereParts.push(`${quoteIdent(query.tableId)}.${quoteIdent(colId)} IN (${values.map(() => "?").join(", ")})`);
       params.push(...values);
     }
     const sql = this._getSqlForQuery(query, whereParts);
@@ -1013,7 +1012,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     const columnValues: BulkColValues = marshal.loads(marshalledData);
     // Decode in-place to avoid unnecessary array creation.
     for (const col of Object.keys(columnValues)) {
-      const [tableId, colId] = col.split('.');
+      const [tableId, colId] = col.split(".");
       const type = this._getGristType(tableId, colId);
       const column = columnValues[col];
       for (let i = 0; i < column.length; i++) {
@@ -1030,7 +1029,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * @returns {Promise} - An empty promise, resolved if successfully committed to db.
    */
   public async applyStoredActions(docActions: DocAction[]): Promise<void> {
-    debuglog('DocStorage.applyStoredActions');
+    debuglog("DocStorage.applyStoredActions");
 
     docActions = this._compressStoredActions(docActions);
     for (const action of docActions) {
@@ -1067,7 +1066,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     } else {
       await f.apply(this, action.slice(1));
       const tableId = action[1]; // The first argument is always tableId;
-      if (DocStorage._isMetadataTable(tableId) && actionType !== 'AddTable') {
+      if (DocStorage._isMetadataTable(tableId) && actionType !== "AddTable") {
         // We only need to update the metadata for actions that change
         // the metadata. We don't update on AddTable actions
         // because the additional of a table gives no additional data
@@ -1087,14 +1086,14 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    */
   public _process_AddTable(tableId: string, columns: any[]): Promise<void> {
     const colSpecSql =
-      DocStorage._prefixJoin(', ',
-                             columns.map(c => DocStorage._columnDef(c.id, c.type)));
+      DocStorage._prefixJoin(", ",
+        columns.map(c => DocStorage._columnDef(c.id, c.type)));
 
     // Every table needs an "id" column, and it should be an "integer primary key" type so that it
     // serves as the alias for the SQLite built-in "rowid" column. See
     // https://www.sqlite.org/lang_createtable.html#rowid for details.
     const sql = `CREATE TABLE ${quoteIdent(tableId)} (id INTEGER PRIMARY KEY${colSpecSql})`;
-    log.debug('AddTable SQL : ' + sql);
+    log.debug("AddTable SQL : " + sql);
 
     return this.exec(sql);
   }
@@ -1137,7 +1136,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     const cols = Object.keys(columnValues);
     if (!rowIds.length || !cols.length) { return Promise.resolve(); }  // Nothing to do.
 
-    const colListSql = cols.map(c => quoteIdent(c) + '=?').join(', ');
+    const colListSql = cols.map(c => quoteIdent(c) + "=?").join(", ");
     const sql = `UPDATE ${quoteIdent(tableId)} SET ${colListSql} WHERE id=?`;
 
     const types = cols.map(c => this._getGristType(tableId, c));
@@ -1155,18 +1154,20 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * @param {Array[Object]} columnValues - Array of column info objects.
    * @returns {Promise} - Promise for SQL execution.
    */
-  public _process_BulkAddRecord(tableId: string, rowIds: number[], columnValues: {[key: string]: any}): Promise<void> {
+  public _process_BulkAddRecord(
+    tableId: string, rowIds: number[], columnValues: { [key: string]: any },
+  ): Promise<void> {
     if (rowIds.length === 0) { return Promise.resolve(); } // no rows means nothing to do
 
     const cols = Object.keys(columnValues);
-    const colListSql = cols.map(c => quoteIdent(c) + ', ').join('');
-    const placeholders = cols.map(c => '?, ').join('');
+    const colListSql = cols.map(c => quoteIdent(c) + ", ").join("");
+    const placeholders = cols.map(c => "?, ").join("");
     const sql = `INSERT INTO ${quoteIdent(tableId)} (${colListSql}id) VALUES (${placeholders}?)`;
 
     const types = cols.map(c => this._getGristType(tableId, c));
     const sqlParams =
       DocStorage._encodeColumnsToRows(types,
-                                      cols.map(c => columnValues[c]).concat([rowIds]));
+        cols.map(c => columnValues[c]).concat([rowIds]));
 
     debuglog("DocStorage._maybeBulkAddRecord SQL: %s (%s rows)", sql, sqlParams.length);
     return this._applyMaybeBulkUpdateOrAddSql(sql, sqlParams);
@@ -1184,7 +1185,6 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     debuglog("RemoveRecord SQL: " + sql, [rowId]);
     return this.run(sql, rowId);
   }
-
 
   /**
    * Internal helper to process ReplaceTableData action. It is identical to BulkAddRecord, but
@@ -1208,14 +1208,14 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     const chunkSize = 10;
     const preSql = "DELETE FROM " + quoteIdent(tableId) + " WHERE id IN (";
     const postSql = ")";
-    const q = _.constant('?');
-    const chunkParams = _.range(chunkSize).map(q).join(',');
+    const q = _.constant("?");
+    const chunkParams = _.range(chunkSize).map(q).join(",");
     const numChunks = Math.floor(rowIds.length / chunkSize);
     const numLeftovers = rowIds.length % chunkSize;
 
     if (numChunks > 0) {
       debuglog("DocStorage.BulkRemoveRecord: splitting " + rowIds.length +
-               " deletes into chunks of size " + chunkSize);
+        " deletes into chunks of size " + chunkSize);
       const stmt = await this.prepare(preSql + chunkParams + postSql);
       for (const index of _.range(0, numChunks * chunkSize, chunkSize)) {
         debuglog("DocStorage.BulkRemoveRecord: chunk delete " + index + "-" + (index + chunkSize - 1));
@@ -1226,9 +1226,9 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
 
     if (numLeftovers > 0) {
       debuglog("DocStorage.BulkRemoveRecord: leftover delete " + (numChunks * chunkSize) + "-" + (rowIds.length - 1));
-      const leftoverParams = _.range(numLeftovers).map(q).join(',');
+      const leftoverParams = _.range(numLeftovers).map(q).join(",");
       await this.run(preSql + leftoverParams + postSql,
-                     ...rowIds.slice(numChunks * chunkSize, rowIds.length));
+        ...rowIds.slice(numChunks * chunkSize, rowIds.length));
     }
   }
 
@@ -1254,8 +1254,8 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * @returns {Promise} - A promise for the SQL execution.
    */
   public async _process_RenameColumn(tableId: string, fromColId: string, toColId: string): Promise<void> {
-    if (fromColId === 'id' || fromColId === 'manualSort' || tableId.startsWith('_grist')) {
-      throw new Error('Cannot rename internal Grist column');
+    if (fromColId === "id" || fromColId === "manualSort" || tableId.startsWith("_grist")) {
+      throw new Error("Cannot rename internal Grist column");
     }
     await this.exec(
       `ALTER TABLE ${quoteIdent(tableId)} RENAME COLUMN ${quoteIdent(fromColId)} TO ${quoteIdent(toColId)}`);
@@ -1279,7 +1279,6 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     return this._alterColumn(tableId, colId, colId, colInfo.type);
   }
 
-
   /**
    * Internal helper to process RemoveColumn action.
    *
@@ -1299,23 +1298,22 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
 
     // This returns rows with (at least) {name, type, dflt_value}.
     return this.all(`PRAGMA table_info(${quote(tableId)})`)
-      .then(infoRows => {
-        const newInfoRows = infoRows.filter(row => (row.name !== colId && row.name !== 'id'));
+      .then((infoRows) => {
+        const newInfoRows = infoRows.filter(row => (row.name !== colId && row.name !== "id"));
         if (newInfoRows.length === infoRows.length) {
           // Column was not found. That's ok, and happens when deleting formula column.
           return;
         }
-        const colListSql = DocStorage._prefixJoin(', ', newInfoRows.map(info => quote(info.name)));
-        const colSpecSql = DocStorage._prefixJoin(', ', newInfoRows.map(DocStorage._sqlColSpecFromDBInfo));
+        const colListSql = DocStorage._prefixJoin(", ", newInfoRows.map(info => quote(info.name)));
+        const colSpecSql = DocStorage._prefixJoin(", ", newInfoRows.map(DocStorage._sqlColSpecFromDBInfo));
         return this._getDB().runEach(
           `CREATE TABLE ${quote(tmpTableId)} (id INTEGER PRIMARY KEY${colSpecSql})`,
           `INSERT INTO ${quote(tmpTableId)} SELECT id${colListSql} FROM ${quote(tableId)}`,
           `DROP TABLE ${quote(tableId)}`,
-          `ALTER TABLE ${quote(tmpTableId)} RENAME TO ${quote(tableId)}`
+          `ALTER TABLE ${quote(tmpTableId)} RENAME TO ${quote(tableId)}`,
         );
       });
   }
-
 
   /**
    * Internal helper to process RenameTable action.
@@ -1332,12 +1330,12 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     } else if (fromTableId.toLowerCase() === toTableId.toLowerCase()) {
       const tmpTableId = DocStorage._makeTmpTableId(fromTableId);
       sql.push("ALTER TABLE " + quoteIdent(fromTableId) +
-               " RENAME TO " + quoteIdent(tmpTableId));
+        " RENAME TO " + quoteIdent(tmpTableId));
       fromTableId = tmpTableId;
     }
 
     sql.push("ALTER TABLE " + quoteIdent(fromTableId) +
-             " RENAME TO "  + quoteIdent(toTableId));
+      " RENAME TO "  + quoteIdent(toTableId));
 
     log.debug("RenameTable SQL: " + sql);
     return bluebird.Promise.each(sql, (stmt: string) => this.exec(stmt));
@@ -1358,21 +1356,21 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
   }
 
   public renameDocTo(newName: string): Promise<void> {
-    log.debug('DocStorage.renameDocTo: %s -> %s', this.docName, newName);
+    log.debug("DocStorage.renameDocTo: %s -> %s", this.docName, newName);
     return this.shutdown()
       .then(() => this.storageManager.renameDoc(this.docName, newName))
-      .catch(err => {
+      .catch((err) => {
         log.error("DocStorage: renameDocTo %s -> %s failed: %s", this.docName, newName, err.message);
         return this.openFile()
           .then(function() {
             throw err;
           });
       })
-        .then(() => {
-          this.docName = newName;
-          this.docPath = this.storageManager.getPath(newName);
-          return this.openFile();
-        });
+      .then(() => {
+        this.docName = newName;
+        this.docPath = this.storageManager.getPath(newName);
+        return this.openFile();
+      });
   }
 
   /**
@@ -1437,7 +1435,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     }
 
     // `UNION ALL` instead of `UNION` because duplicate values are unlikely and deduplicating is not worth the cost
-    const allAttachmentsQuery = attachmentsQueries.join(' UNION ALL ');
+    const allAttachmentsQuery = attachmentsQueries.join(" UNION ALL ");
 
     const sql = `
       WITH all_attachment_ids(id) AS (
@@ -1456,12 +1454,12 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * something we could use an index for. Regular indexes in SQLite don't help.
    * FTS5 works, but is somewhat overkill.
    */
-  public async findAttachmentReferences(attId: number): Promise<Array<SingleCell>> {
+  public async findAttachmentReferences(attId: number): Promise<SingleCell[]> {
     const queries: string[] = [];
     // Switch quotes so to insert a table or column name as a string literal
     // rather than as an identifier.
     function asLiteral(name: string) {
-      return quoteIdent(name).replace(/"/g, '\'');
+      return quoteIdent(name).replace(/"/g, "'");
     }
     for (const [tableId, cols] of Object.entries(this._docSchema)) {
       for (const [colId, type] of Object.entries(cols)) {
@@ -1476,13 +1474,12 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
       }
     }
     try {
-      return (await this.all(queries.join(' UNION ALL '))) as any[];
-    }
-    catch (e) {
+      return (await this.all(queries.join(" UNION ALL "))) as any[];
+    } catch (e) {
       // We throw an informative error if we fail to process the attachment references, although this shouldn't happen
       // cf: https://github.com/gristlabs/grist-core/issues/1565
       const errorMessage = `findAttachmentReferences failed: unable to process attachment references` +
-      `for users with complicated access rules. Details: ${e.message}`;
+        `for users with complicated access rules. Details: ${e.message}`;
       log.error(errorMessage, e);
       throw new Error(errorMessage);
     }
@@ -1495,9 +1492,9 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    *                     ATTACHMENTS_EXPIRY_DAYS days ago.
    */
   public async getSoftDeletedAttachmentIds(expiredOnly: boolean): Promise<number[]> {
-    const condition = expiredOnly
-      ? `datetime(timeDeleted, 'unixepoch') < datetime('now', '-${ATTACHMENTS_EXPIRY_DAYS} days')`
-      : "timeDeleted IS NOT NULL";
+    const condition = expiredOnly ?
+      `datetime(timeDeleted, 'unixepoch') < datetime('now', '-${ATTACHMENTS_EXPIRY_DAYS} days')` :
+      "timeDeleted IS NOT NULL";
 
     const rows = await this.all(`
       SELECT id
@@ -1531,7 +1528,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     return this._getDB().interrupt();
   }
 
-  public getOptions(): MinDBOptions|undefined {
+  public getOptions(): MinDBOptions | undefined {
     return this._getDB().getOptions();
   }
 
@@ -1551,7 +1548,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     return this._getDB().prepare(sql);
   }
 
-  public get(sql: string, ...args: any[]): Promise<ResultRow|undefined> {
+  public get(sql: string, ...args: any[]): Promise<ResultRow | undefined> {
     return this._getDB().get(sql, ...args);
   }
 
@@ -1583,7 +1580,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     log.rawInfo("Start Vacuum of doc ", { docId: this.docName });
     await db.vacuum();
     const size = await this.storageManager.getFsFileSize(this.docName);
-    if (size <= initSize * (1 - SHRINK_RATIO_FOR_PUSH) ) {
+    if (size <= initSize * (1 - SHRINK_RATIO_FOR_PUSH)) {
       log.rawInfo("Mark doc as changed because vacuuming saved more space than the minimal ratio.", {
         docId: this.docName,
         minimalRatio: SHRINK_RATIO_FOR_PUSH,
@@ -1596,7 +1593,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
   }
 
   public async getPluginDataItem(pluginId: string, key: string): Promise<any> {
-    const row = await this.get('SELECT value from _gristsys_PluginData WHERE pluginId = ? and key = ?', pluginId, key);
+    const row = await this.get("SELECT value from _gristsys_PluginData WHERE pluginId = ? and key = ?", pluginId, key);
     if (row) {
       return row.value;
     }
@@ -1608,21 +1605,21 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
   }
 
   public async hasPluginDataItem(pluginId: string, key: string): Promise<any> {
-    const row = await this.get('SELECT value from _gristsys_PluginData WHERE pluginId=? and key=?', pluginId, key);
-    return typeof row !== 'undefined';
+    const row = await this.get("SELECT value from _gristsys_PluginData WHERE pluginId=? and key=?", pluginId, key);
+    return typeof row !== "undefined";
   }
 
   public async setPluginDataItem(pluginId: string, key: string, value: string): Promise<void> {
-    await this.run('INSERT OR REPLACE into _gristsys_PluginData (pluginId, key, value) values (?, ?, ?)',
+    await this.run("INSERT OR REPLACE into _gristsys_PluginData (pluginId, key, value) values (?, ?, ?)",
       pluginId, key, value);
   }
 
   public async removePluginDataItem(pluginId: string, key: string): Promise<void> {
-    await this.run('DELETE from _gristsys_PluginData where pluginId = ? and key = ?', pluginId, key);
+    await this.run("DELETE from _gristsys_PluginData where pluginId = ? and key = ?", pluginId, key);
   }
 
   public async clearPluginDataItem(pluginId: string): Promise<void> {
-    await this.run('DELETE from _gristsys_PluginData where pluginId = ?', pluginId);
+    await this.run("DELETE from _gristsys_PluginData where pluginId = ?", pluginId);
   }
 
   /**
@@ -1646,23 +1643,23 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     for (const index of desiredIndexes) {
       const idx = `${index.tableId}.${index.colId}`;
       if (!pre.has(idx)) {
-        const name = `auto_index_${uuidv4().replace(/-/g, '_')}`;
+        const name = `auto_index_${uuidv4().replace(/-/g, "_")}`;
         log.debug(`DocStorage.updateIndexes: doc ${this.docName} adding index ${name} for ` +
-                  `table ${index.tableId}, column ${index.colId}`);
+          `table ${index.tableId}, column ${index.colId}`);
         await this.exec(`CREATE INDEX ${name} ON ${quoteIdent(index.tableId)}(${quoteIdent(index.colId)})`);
         log.debug(`DocStorage.updateIndexes: doc ${this.docName} added index ${name} for ` +
-                  `table ${index.tableId}, column ${index.colId}`);
+          `table ${index.tableId}, column ${index.colId}`);
       }
       post.add(idx);
     }
     for (const index of indexes) {
       const idx = `${index.tableId}.${index.colId}`;
-      if (!post.has(idx) && index.indexId.startsWith('auto_index_')) {
+      if (!post.has(idx) && index.indexId.startsWith("auto_index_")) {
         log.debug(`DocStorage.updateIndexes: doc ${this.docName} dropping index ${index.indexId} for ` +
-                  `table ${index.tableId}, column ${index.colId}`);
+          `table ${index.tableId}, column ${index.colId}`);
         await this.exec(`DROP INDEX ${index.indexId}`);
         log.debug(`DocStorage.updateIndexes: doc ${this.docName} dropped index ${index.indexId} for ` +
-                  `table ${index.tableId}, column ${index.colId}`);
+          `table ${index.tableId}, column ${index.colId}`);
       }
     }
   }
@@ -1688,13 +1685,13 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
         name LIKE 'sqlite_%' OR
         name LIKE '_gristsys_%'
       );
-    `).catch(e => {
+    `).catch((e) => {
       if (String(e).match(/no such table: dbstat/)) {
         // We are using a version of SQLite that doesn't have
         // dbstat compiled in. But it would be sad to disable
         // Grist entirely just because we can't track byte-count.
         // So return NaN in this case.
-        return {totalSize: NaN};
+        return { totalSize: NaN };
       }
       throw e;
     });
@@ -1748,29 +1745,29 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * @return {Promise<string|null>} New table SQL, or null when nothing changed or colId is missing.
    */
   private async _rebuildTableSql(tableId: string, colId: string, newColId: string,
-                                 newColType: string|null = null): Promise<RebuildResult|null> {
+    newColType: string | null = null): Promise<RebuildResult | null> {
     // This returns rows with (at least) {name, type, dflt_value}.
-    assert(newColId, 'newColId required');
+    assert(newColId, "newColId required");
     let infoRows = await this.all(`PRAGMA table_info(${quoteIdent(tableId)})`);
 
     // Skip "id" column, and find the column we are modifying.
-    infoRows = infoRows.filter(row => (row.name !== 'id'));
+    infoRows = infoRows.filter(row => (row.name !== "id"));
     const colInfo = infoRows.find(info => (info.name === colId));
     if (!colInfo) {
       return null;      // Column not found.
     }
     const oldGristType = this._getGristType(tableId, colId);
-    const oldSqlType = colInfo.type || 'BLOB';
+    const oldSqlType = colInfo.type || "BLOB";
     const oldDefault = fixDefault(colInfo.dflt_value);
     const newSqlType = newColType ? DocStorage._getSqlType(newColType) : oldSqlType;
     const newDefault = fixDefault(newColType ? DocStorage._formattedDefault(newColType) : oldDefault);
-    const newInfo = {name: newColId, type: newSqlType, dflt_value: newDefault};
+    const newInfo = { name: newColId, type: newSqlType, dflt_value: newDefault };
     // Check if anything actually changed, and only rebuild the table then.
     if (Object.keys(newInfo).every(p => ((newInfo as any)[p] === colInfo[p]))) {
       return null;      // No changes.
     }
     Object.assign(colInfo, newInfo);
-    const colSpecSql = DocStorage._prefixJoin(', ', infoRows.map(DocStorage._sqlColSpecFromDBInfo));
+    const colSpecSql = DocStorage._prefixJoin(", ", infoRows.map(DocStorage._sqlColSpecFromDBInfo));
     return {
       sql: `CREATE TABLE ${quoteIdent(tableId)} (id INTEGER PRIMARY KEY${colSpecSql})`,
       oldGristType,
@@ -1791,7 +1788,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     // Procedure according to https://sqlite.org/lang_altertable.html: "appropriate for ... renaming
     // columns, or adding or removing or changing default values on a column."
     const row = await this.get("PRAGMA schema_version");
-    assert(row && row.schema_version, "Could not retrieve schema_version.");
+    assert(row?.schema_version, "Could not retrieve schema_version.");
     const newSchemaVersion = row.schema_version + 1;
     const tmpTableId = DocStorage._makeTmpTableId(tableId);
     await this._getDB().runEach(
@@ -1802,12 +1799,12 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
       // The following are not in the instructions, but are needed for SQLite to notice the
       // changes for subsequent queries.
       `ALTER TABLE ${quoteIdent(tableId)} RENAME TO ${quoteIdent(tmpTableId)}`,
-      `ALTER TABLE ${quoteIdent(tmpTableId)} RENAME TO ${quoteIdent(tableId)}`
+      `ALTER TABLE ${quoteIdent(tmpTableId)} RENAME TO ${quoteIdent(tableId)}`,
     );
   }
 
   private async _alterColumn(tableId: string, colId: string, newColId: string,
-                             newColType: string|null = null): Promise<void> {
+    newColType: string | null = null): Promise<void> {
     const result = await this._rebuildTableSql(tableId, colId, newColId, newColType);
     if (result) {
       const q = quoteIdent;
@@ -1827,9 +1824,9 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
       // native type.
       if (result.newGristType !== result.oldGristType || result.newSqlType !== result.oldSqlType) {
         const cells = await this.all(`SELECT id, ${q(colId)} as value FROM ${q(tableId)} ` +
-                                     `WHERE typeof(${q(colId)}) = 'blob'`);
-        const marshaller = new marshal.Marshaller({version: 2});
-        const sqlParams: Array<[any, number]> = [];
+          `WHERE typeof(${q(colId)}) = 'blob'`);
+        const marshaller = new marshal.Marshaller({ version: 2 });
+        const sqlParams: [any, number][] = [];
         for (const cell of cells) {
           const id: number = cell.id;
           const value: any = cell.value;
@@ -1846,7 +1843,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
   }
 
   private _getGristType(tableId: string, colId: string): string {
-    return (this._docSchema[tableId] && this._docSchema[tableId][colId]) || 'Any';
+    return (this._docSchema[tableId]?.[colId]) || "Any";
   }
 
   private _getDB(): SQLiteDB {
@@ -1866,12 +1863,12 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
   private async _getIndexes(): Promise<IndexInfo[]> {
     // Find all indexes on user tables.
     return await this.all("SELECT tbl_name as tableId, il.name as indexId, ii.name as colId " +
-                          "FROM sqlite_master AS m, " +
-                          "pragma_index_list(m.name) AS il, " +
-                          "pragma_index_info(il.name) AS ii " +
-                          "WHERE m.type='table' " +
-                          "AND tbl_name NOT LIKE '_grist%' " +
-                          "ORDER BY tableId, colId") as any;
+      "FROM sqlite_master AS m, " +
+      "pragma_index_list(m.name) AS il, " +
+      "pragma_index_info(il.name) AS ii " +
+      "WHERE m.type='table' " +
+      "AND tbl_name NOT LIKE '_grist%' " +
+      "ORDER BY tableId, colId") as any;
   }
 
   /**
@@ -1889,11 +1886,11 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
       const whereParts: string[] = [];
       for (const colId of Object.keys(query.filters)) {
         const values = query.filters[colId];
-        const tableName = `_grist_tmp_${tableNames.length}_${uuidv4().replace(/-/g, '_')}`;
+        const tableName = `_grist_tmp_${tableNames.length}_${uuidv4().replace(/-/g, "_")}`;
         await db.exec(`CREATE TEMPORARY TABLE ${tableName}(data)`);
         tableNames.push(tableName);
         for (const valuesChunk of chunk(values, maxSQLiteVariables)) {
-          const placeholders = valuesChunk.map(() => '(?)').join(',');
+          const placeholders = valuesChunk.map(() => "(?)").join(",");
           await db.run(`INSERT INTO ${tableName}(data) VALUES ${placeholders}`, valuesChunk);
         }
         whereParts.push(`${quoteIdent(query.tableId)}.${quoteIdent(colId)} IN (SELECT data FROM ${tableName})`);
@@ -1913,11 +1910,11 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * a set of WHERE terms that should be ANDed.
    */
   private _getSqlForQuery(query: ExpandedQuery, whereParts: string[]) {
-    const whereCondition = combineExpr('AND', [query.where?.clause, ...whereParts]);
-    const whereClause = whereCondition ? `WHERE ${whereCondition}` : '';
-    const limitClause = (typeof query.limit === 'number') ? `LIMIT ${query.limit}` : '';
-    const joinClauses = query.joins ? query.joins.join(' ') : '';
-    const selects = query.selects ? query.selects.join(', ') : '*';
+    const whereCondition = combineExpr("AND", [query.where?.clause, ...whereParts]);
+    const whereClause = whereCondition ? `WHERE ${whereCondition}` : "";
+    const limitClause = (typeof query.limit === "number") ? `LIMIT ${query.limit}` : "";
+    const joinClauses = query.joins ? query.joins.join(" ") : "";
+    const selects = query.selects ? query.selects.join(", ") : "*";
     const sql = `SELECT ${selects} FROM ${quoteIdent(query.tableId)} ` +
       `${joinClauses} ${whereClause} ${limitClause}`;
     return sql;
@@ -1931,10 +1928,10 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
   private _compressStoredActions(docActions: DocAction[]): DocAction[] {
     if (docActions.length > 1) {
       const first = docActions[0];
-      if (first[0] === 'AddRecord' &&
+      if (first[0] === "AddRecord" &&
         docActions.slice(1).every(
           // Check other actions are UpdateRecords for the same table and row.
-          a => a[0] === 'UpdateRecord' && a[1] === first[1] && a[2] === first[2]
+          a => a[0] === "UpdateRecord" && a[1] === first[1] && a[2] === first[2],
         )) {
         const merged = cloneDeep(first);
         for (const a2 of docActions.slice(1)) {
@@ -1948,10 +1945,10 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
 
   // If an action can have manualSort removed, go ahead and do it (after cloning),
   // otherwise return null.
-  private _considerWithoutManualSort(act: DocAction): DocAction|null {
-    if (act[0] === 'AddRecord' || act[0] === 'UpdateRecord' ||
-      act[0] === 'BulkAddRecord' || act[0] === 'BulkUpdateRecord' &&
-      'manualSort' in act[3]) {
+  private _considerWithoutManualSort(act: DocAction): DocAction | null {
+    if (act[0] === "AddRecord" || act[0] === "UpdateRecord" ||
+      act[0] === "BulkAddRecord" || act[0] === "BulkUpdateRecord" &&
+      "manualSort" in act[3]) {
       act = cloneDeep(act);
       delete act[3].manualSort;
       return act;
@@ -1967,8 +1964,8 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     // This means it's not safe to check then insert - we just have to try the insert and see if it
     // fails.
     try {
-      await db.run('INSERT INTO _gristsys_Files (ident) VALUES (?)', fileIdent);
-    } catch(err) {
+      await db.run("INSERT INTO _gristsys_Files (ident) VALUES (?)", fileIdent);
+    } catch (err) {
       // If UNIQUE constraint failed, this ident must already exist.
       if (/^(SQLITE_CONSTRAINT: )?UNIQUE constraint failed/.test(err.message)) {
         return false;
@@ -1980,9 +1977,9 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
   }
 
   private async _updateFileRecord(
-    db: SQLiteDB, fileIdent: string, fileData?: Buffer, storageId?: string
+    db: SQLiteDB, fileIdent: string, fileData?: Buffer, storageId?: string,
   ): Promise<void> {
-    await db.run('UPDATE _gristsys_Files SET data=?, storageId=? WHERE ident=?', fileData, storageId, fileIdent);
+    await db.run("UPDATE _gristsys_Files SET data=?, storageId=? WHERE ident=?", fileData, storageId, fileIdent);
   }
 }
 

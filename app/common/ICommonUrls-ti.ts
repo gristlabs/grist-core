@@ -19,6 +19,7 @@ export const ICommonUrls = t.iface([], {
   "helpUnderstandingReferenceColumns": "string",
   "helpTriggerFormulas": "string",
   "helpTryingOutChanges": "string",
+  "helpAutomations": "string",
   "helpWidgets": "string",
   "helpCustomWidgets": "string",
   "helpInstallAuditLogs": "string",
@@ -36,6 +37,9 @@ export const ICommonUrls = t.iface([], {
   "helpAdminControls": "string",
   "helpFiddleMode": "string",
   "helpFormUrlValues": "string",
+  "helpAirtableIntegration": "string",
+  "helpCloudStorage": "string",
+  "integrators": "string",
   "freeCoachingCall": "string",
   "contactSupport": "string",
   "termsOfService": t.union("string", "undefined"),
@@ -56,6 +60,9 @@ export const ICommonUrls = t.iface([], {
   "githubSponsorGristLabs": "string",
   "versionCheck": "string",
   "attachmentStorage": "string",
+  "signInWithGristRegister": "string",
+  "signInWithGristHelp": "string",
+  "signInWithGristDocs": "string",
 });
 
 const exportedTypeSuite: t.ITypeSuite = {

@@ -1,15 +1,16 @@
-import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
-import {setupLocale} from 'app/client/lib/localization';
-import {AppModel, TopAppModelImpl, TopAppModelOptions} from 'app/client/models/AppModel';
-import {reportError, setUpErrorHandling} from 'app/client/models/errors';
-import {buildSnackbarDom} from 'app/client/ui/NotifyUI';
-import {addViewportTag} from 'app/client/ui/viewport';
-import {attachCssRootVars} from 'app/client/ui2018/cssVars';
-import {attachTheme} from 'app/client/ui2018/theme';
-import {BaseAPI} from 'app/common/BaseAPI';
-import {dom, DomContents} from 'grainjs';
+import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
+import { setupLocale } from "app/client/lib/localization";
+import { AppModel, TopAppModelImpl, TopAppModelOptions } from "app/client/models/AppModel";
+import { reportError, setUpErrorHandling } from "app/client/models/errors";
+import { buildSnackbarDom } from "app/client/ui/NotifyUI";
+import { addViewportTag } from "app/client/ui/viewport";
+import { attachCssRootVars } from "app/client/ui2018/cssVars";
+import { attachTheme } from "app/client/ui2018/theme";
+import { BaseAPI } from "app/common/BaseAPI";
 
-const G = getBrowserGlobals('document', 'window');
+import { dom, DomContents } from "grainjs";
+
+const G = getBrowserGlobals("document", "window");
 
 /**
  * Sets up the application model, error handling, and global styles, and replaces
@@ -17,7 +18,7 @@ const G = getBrowserGlobals('document', 'window');
  */
 export function createAppPage(
   buildAppPage: (appModel: AppModel) => DomContents,
-  modelOptions: TopAppModelOptions = {}
+  modelOptions: TopAppModelOptions = {},
 ) {
   setUpErrorHandling();
 

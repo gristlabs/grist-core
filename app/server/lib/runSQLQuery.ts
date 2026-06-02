@@ -23,7 +23,7 @@ const MAX_CUSTOM_SQL_MSEC = appSettings
 export async function runSQLQuery(
   requestOrSession: NonNullable<RequestOrSession>,
   activeDoc: ActiveDoc,
-  options: Types.SqlPost
+  options: Types.SqlPost,
 ) {
   let docSession: OptDocSession;
   if (isRequest(requestOrSession)) {
@@ -52,8 +52,8 @@ export async function runSQLQuery(
     0,
     Math.min(
       MAX_CUSTOM_SQL_MSEC,
-      optIntegerParam(options.timeout, "timeout") || MAX_CUSTOM_SQL_MSEC
-    )
+      optIntegerParam(options.timeout, "timeout") || MAX_CUSTOM_SQL_MSEC,
+    ),
   );
   // Wrap in a select to commit to the SELECT branch of SQLite
   // grammar. Note ; isn't a problem.
@@ -85,7 +85,7 @@ export async function runSQLQuery(
   try {
     return await activeDoc.docStorage.all(
       wrappedStatement,
-      ...(options.args || [])
+      ...(options.args || []),
     );
   } finally {
     clearTimeout(interrupt);

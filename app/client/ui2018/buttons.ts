@@ -12,12 +12,13 @@
  * `primaryButton('Primary button', dom.prop('disabled', true))`
  */
 
-import { theme, vars } from 'app/client/ui2018/cssVars';
-import { tbind } from 'app/common/tbind';
-import { components, tokens } from 'app/common/ThemePrefs';
-import { BindableValue, dom, DomElementArg, styled } from 'grainjs';
+import { colors, theme, vars } from "app/client/ui2018/cssVars";
+import { tbind } from "app/common/tbind";
+import { components, tokens } from "app/common/ThemePrefs";
 
-export const cssButton = styled('button', `
+import { BindableValue, dom, DomElementArg, styled } from "grainjs";
+
+export const cssButton = styled("button", `
   /* Resets */
   position: relative;
   outline: none;
@@ -65,6 +66,14 @@ export const cssButton = styled('button', `
     background-color: ${theme.controlPrimaryHoverBg};
     border-color: ${theme.controlPrimaryHoverBg};
   }
+  &-danger, &-danger:hover {
+    color:        ${colors.error};
+    --icon-color: ${colors.error};
+    border-color: ${colors.error};
+  }
+  &-danger:hover {
+    filter: brightness(0.8);
+  }
   &:disabled {
     cursor: not-allowed;
     color:        ${theme.controlDisabledFg};
@@ -77,6 +86,7 @@ export const cssButton = styled('button', `
 interface IButtonProps {
   large?: BindableValue<boolean>;
   primary?: BindableValue<boolean>;
+  danger?: BindableValue<boolean>;
   link?: boolean;
 }
 
@@ -86,23 +96,26 @@ interface IButtonProps {
 export function button(props: IButtonProps, ...domArgs: DomElementArg[]) {
   const elem = props.link ? cssButtonLink(dom.cls(cssButton.className)) : cssButton();
   return dom.update(elem,
-    cssButton.cls('-large', props.large ?? false),
-    cssButton.cls('-primary', props.primary ?? false),
-    ...domArgs
+    cssButton.cls("-large", props.large ?? false),
+    cssButton.cls("-primary", props.primary ?? false),
+    cssButton.cls("-danger", props.danger ?? false),
+    ...domArgs,
   );
 }
 
 // Button-creating functions, each taking ...DomElementArg arguments.
 export const basicButton = tbind(button, null, {});
-export const bigBasicButton = tbind(button, null, {large: true});
-export const primaryButton = tbind(button, null, {primary: true});
-export const bigPrimaryButton = tbind(button, null, {large: true, primary: true});
+export const bigBasicButton = tbind(button, null, { large: true });
+export const primaryButton = tbind(button, null, { primary: true });
+export const bigPrimaryButton = tbind(button, null, { large: true, primary: true });
+export const dangerButton = tbind(button, null, { danger: true });
+export const bigDangerButton = tbind(button, null, { large: true, danger: true });
 
 // Functions that create button-like <a> links, each taking ...DomElementArg arguments.
-export const basicButtonLink = tbind(button, null, {link: true});
-export const bigBasicButtonLink = tbind(button, null, {link: true, large: true});
-export const primaryButtonLink = tbind(button, null, {link: true, primary: true});
-export const bigPrimaryButtonLink = tbind(button, null, {link: true, large: true, primary: true});
+export const basicButtonLink = tbind(button, null, { link: true });
+export const bigBasicButtonLink = tbind(button, null, { link: true, large: true });
+export const primaryButtonLink = tbind(button, null, { link: true, primary: true });
+export const bigPrimaryButtonLink = tbind(button, null, { link: true, large: true, primary: true });
 
 // Button that looks like a link (have no background and no border).
 // On text button hover, allow theme to show a background and/or border.
@@ -142,16 +155,20 @@ export const textButton = styled(cssButton, `
     border-color: transparent;
     background-color: transparent;
   }
+  &:focus-visible {
+    outline: 3px solid ${tokens.primary};
+    outline-offset: 2px;
+  }
 `);
 
-const cssButtonLink = styled('a', `
+const cssButtonLink = styled("a", `
   display: inline-block;
   &, &:hover, &:focus {
     text-decoration: none;
   }
 `);
 
-export const cssButtonGroup = styled('div', `
+export const cssButtonGroup = styled("div", `
   display: flex;
   flex-direction: row;
 

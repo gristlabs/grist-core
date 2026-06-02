@@ -28,7 +28,6 @@ export interface PublishedPlugin extends BarePlugin {
   version: string;
 }
 
-
 /**
  * BarePlugin defines the functionality of a plugin. It is the only part required for a plugin to
  * function, and is implemented by built-in plugins, published plugins, and private plugins (such

@@ -1,5 +1,5 @@
-const G = require('../lib/browserGlobals').get('document');
-const dom = require('../lib/dom');
+const G = require("../lib/browserGlobals").get("document");
+const dom = require("../lib/dom");
 
 /**
  * Note about testing
@@ -18,13 +18,13 @@ let _download = null;
  */
 function download(href) {
   if (!_download) {
-    _download = dom('a', {
-      style: 'position: absolute; top: 0; display: none',
-      download: ''
+    _download = dom("a", {
+      style: "position: absolute; top: 0; display: none",
+      download: ""
     });
     G.document.body.appendChild(_download);
   }
-  _download.setAttribute('href', href);
+  _download.setAttribute("href", href);
   _download.click();
 }
 

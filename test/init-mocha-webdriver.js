@@ -9,7 +9,7 @@
 // "expected [ Array(3) ] to deeply equal [ Array(3) ]".
 // Increase the threshold since the default (of 40 characters) is often too low.
 // You can override it using CHAI_TRUNCATE_THRESHOLD env var; 0 disables it.
-require('chai').config.truncateThreshold = process.env.CHAI_TRUNCATE_THRESHOLD ?
+require("chai").config.truncateThreshold = process.env.CHAI_TRUNCATE_THRESHOLD ?
   parseFloat(process.env.CHAI_TRUNCATE_THRESHOLD) : 4000;
 
 // Set an explicit window size (if not set by an external variable), to ensure that manully-run
@@ -49,8 +49,8 @@ if (process.env.MOCHA_WEBDRIVER_NO_CONTROL_BANNER === undefined) {
 // set an environment variable that will be available
 // in individual processes if --parallel is enabled.
 for (const arg of process.argv) {
-  if (arg.includes('/nbrowser/')) {
-    process.env.MOCHA_WEBDRIVER = '1';
+  if (arg.includes("/nbrowser/")) {
+    process.env.MOCHA_WEBDRIVER = "1";
   }
 }
 
@@ -60,6 +60,6 @@ for (const arg of process.argv) {
 // start and end of the worker process.
 if (process.env.MOCHA_WORKER_ID !== undefined &&
     process.env.MOCHA_WEBDRIVER !== undefined) {
-  const {getMochaHooks} = require('mocha-webdriver');
+  const {getMochaHooks} = require("mocha-webdriver");
   exports.mochaHooks = getMochaHooks();
 }

@@ -61,7 +61,7 @@ export function toExternalMetadata(metadata: ObjMetadata): ExternalMetadata {
  */
 export function toGristMetadata(metadata: ExternalMetadata): ObjMetadata {
   const result: ObjMetadata = {};
-  for (const key of ['t', 'tz', 'h', 'label'] as const) {
+  for (const key of ["t", "tz", "h", "label"] as const) {
     if (metadata[key]) { result[key] = metadata[key]; }
   }
   if (metadata.n) { result.n = parseInt(metadata.n, 10); }

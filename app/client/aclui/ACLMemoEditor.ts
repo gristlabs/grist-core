@@ -1,15 +1,16 @@
-import {theme} from 'app/client/ui2018/cssVars';
-import {dom, DomElementArg, Observable, styled} from 'grainjs';
+import { theme } from "app/client/ui2018/cssVars";
+
+import { dom, DomElementArg, Observable, styled } from "grainjs";
 
 export function aclMemoEditor(obs: Observable<string>, ...args: DomElementArg[]): HTMLInputElement {
   return cssMemoInput(
-    dom.prop('value', obs),
-    dom.on('input', (_e, elem) => obs.set(elem.value)),
+    dom.prop("value", obs),
+    dom.on("input", (_e, elem) => obs.set(elem.value)),
     ...args,
   );
 }
 
-const cssMemoInput = styled('input', `
+const cssMemoInput = styled("input", `
   width: 100%;
   min-height: 28px;
   padding: 4px 5px;

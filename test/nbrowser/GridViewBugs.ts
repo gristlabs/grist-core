@@ -1,40 +1,41 @@
-import {assert, driver} from 'mocha-webdriver';
-import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
-import {DocCreationInfo} from "app/common/DocListAPI";
-import {UserAPI} from 'app/common/UserAPI';
+import { DocCreationInfo } from "app/common/DocListAPI";
+import { UserAPI } from "app/common/UserAPI";
+import * as gu from "test/nbrowser/gristUtils";
+import { setupTestSuite } from "test/nbrowser/testUtils";
 
-describe('GridViewBugs', function() {
-  this.timeout('20s');
+import { assert, driver } from "mocha-webdriver";
+
+describe("GridViewBugs", function() {
+  this.timeout("20s");
   const cleanup = setupTestSuite();
   let session: gu.Session, doc: DocCreationInfo, api: UserAPI;
 
   before(async function() {
     session = await gu.session().login();
-    doc = await session.tempDoc(cleanup, 'Hello.grist');
+    doc = await session.tempDoc(cleanup, "Hello.grist");
     api = session.createHomeApi();
   });
 
-  it('should rename valid column when clicked away', async function() {
-    await gu.openColumnPanel('A');
+  it("should rename valid column when clicked away", async function() {
+    await gu.openColumnPanel("A");
 
     // Rename column A to Dummy
     await toggleDerived();
     await colId().click();
     await gu.clearInput();
-    await colId().sendKeys('$Dummy');
+    await colId().sendKeys("$Dummy");
 
     // Now click away, it used to rename the new column to Dummy
-    await gu.getCell('B', 1).click();
+    await gu.getCell("B", 1).click();
     await gu.waitForServer();
 
     // Now make sure that column A was renamed to $Dummy
-    await gu.getCell('A', 1).click();
-    assert.equal(await colId().value(), '$Dummy');
+    await gu.getCell("A", 1).click();
+    assert.equal(await colId().value(), "$Dummy");
 
     // And that column B is still named $B.
-    await gu.getCell('B', 1).click();
-    assert.equal(await colId().value(), '$B');
+    await gu.getCell("B", 1).click();
+    assert.equal(await colId().value(), "$B");
     await gu.undo();
 
     async function toggleDerived() {
@@ -43,42 +44,42 @@ describe('GridViewBugs', function() {
     }
 
     function colId() {
-      return driver.find('.test-field-col-id');
+      return driver.find(".test-field-col-id");
     }
   });
 
   // This test is for a bug where hiding multiple columns at once would cause an error in the menu.
   // Selection wasn't updated and the column index was out of bounds.
-  it('should hide multiple columns without an error', async function() {
-    await gu.selectColumnRange('A', 'B');
-    await gu.openColumnMenu('B', 'Hide 2 columns');
+  it("should hide multiple columns without an error", async function() {
+    await gu.selectColumnRange("A", "B");
+    await gu.openColumnMenu("B", "Hide 2 columns");
     await gu.waitForServer();
-    await gu.selectColumnRange('C', 'D');
-    await gu.openColumnMenu('D', 'Hide 2 columns');
+    await gu.selectColumnRange("C", "D");
+    await gu.openColumnMenu("D", "Hide 2 columns");
     await gu.waitForServer();
-    await gu.openColumnMenu('E');
+    await gu.openColumnMenu("E");
     await gu.checkForErrors();
   });
 
-  it('should show tables with no columns without errors', async function() {
+  it("should show tables with no columns without errors", async function() {
     // Create and open a new table with no columns
     await api.applyUserActions(doc.id, [
-      ['AddTable', 'Empty', []],
+      ["AddTable", "Empty", []],
     ]);
     await gu.getPageItem(/Empty/).click();
 
     // The only 'column' should be the button to add a column
-    const columnNames = await driver.findAll('.column_name', e => e.getText());
-    assert.deepEqual(columnNames, ['+']);
+    const columnNames = await driver.findAll(".column_name", e => e.getText());
+    assert.deepEqual(columnNames, ["+"]);
 
     // There should be no errors
-    assert.lengthOf(await driver.findAll('.test-notifier-toast-wrapper'), 0);
+    assert.lengthOf(await driver.findAll(".test-notifier-toast-wrapper"), 0);
   });
 
   // When a grid is scrolled, and then data is changed (due to click in a linked section), some
   // records are not rendered or the position of the scroll container is corrupted.
-  it('should render list with wrapped choices correctly', async function() {
-    await session.tempDoc(cleanup, 'Teams.grist');
+  it("should render list with wrapped choices correctly", async function() {
+    await session.tempDoc(cleanup, "Teams.grist");
     await gu.selectSectionByTitle("PROJECTS");
     await gu.getCell(0, 1).click();
     await gu.selectSectionByTitle("TODO");

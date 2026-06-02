@@ -1,10 +1,11 @@
-import {theme} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {clamp, numberOrDefault} from 'app/common/gutil';
-import {MaybePromise} from 'app/plugin/gutil';
-import {BindableValue, dom, DomElementArg, IDomArgs, makeTestId, Observable, styled} from 'grainjs';
+import { theme } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { clamp, numberOrDefault } from "app/common/gutil";
+import { MaybePromise } from "app/plugin/gutil";
 
-const testId = makeTestId('test-numeric-spinner-');
+import { BindableValue, dom, DomElementArg, IDomArgs, makeTestId, Observable, styled } from "grainjs";
+
+const testId = makeTestId("test-numeric-spinner-");
 
 export interface NumericSpinnerOptions {
   /** Defaults to `false`. */
@@ -22,7 +23,7 @@ export interface NumericSpinnerOptions {
 }
 
 export function numericSpinner(
-  value: Observable<number | ''>,
+  value: Observable<number | "">,
   options: NumericSpinnerOptions = {},
   ...args: DomElementArg[]
 ) {
@@ -40,7 +41,7 @@ export function numericSpinner(
   const getDefaultValue = () => {
     if (defaultValue === undefined) {
       return 0;
-    } else if (typeof defaultValue === 'number') {
+    } else if (typeof defaultValue === "number") {
       return defaultValue;
     } else {
       return defaultValue.get();
@@ -49,57 +50,57 @@ export function numericSpinner(
 
   let inputElement: HTMLInputElement;
 
-  const shiftValue = async (delta: 1 | -1, opts: {saveValue?: boolean} = {}) => {
-    const {saveValue} = opts;
+  const shiftValue = async (delta: 1 | -1, opts: { saveValue?: boolean } = {}) => {
+    const { saveValue } = opts;
     const currentValue = numberOrDefault(inputElement.value, getDefaultValue());
     const newValue = clamp(Math.floor(currentValue + delta), minValue, maxValue);
     if (setValueOnInput) { value.set(newValue); }
     if (saveValue) { await save?.(newValue); }
     return newValue;
   };
-  const incrementValue = (opts: {saveValue?: boolean} = {}) => shiftValue(1, opts);
-  const decrementValue = (opts: {saveValue?: boolean} = {}) => shiftValue(-1, opts);
+  const incrementValue = (opts: { saveValue?: boolean } = {}) => shiftValue(1, opts);
+  const decrementValue = (opts: { saveValue?: boolean } = {}) => shiftValue(-1, opts);
 
   return cssNumericSpinner(
-    disabled ? cssNumericSpinner.cls('-disabled', disabled) : null,
+    disabled ? cssNumericSpinner.cls("-disabled", disabled) : null,
     label ? cssNumLabel(label) : null,
     inputElement = cssNumInput(
-      {type: 'number'},
-      dom.prop('value', value),
-      defaultValue !== undefined ? dom.prop('placeholder', defaultValue) : null,
+      { type: "number" },
+      dom.prop("value", value),
+      defaultValue !== undefined ? dom.prop("placeholder", defaultValue) : null,
       dom.onKeyDown({
         ArrowUp: async (_ev, elem) => { elem.value = String(await incrementValue()); },
         ArrowDown: async (_ev, elem) => { elem.value = String(await decrementValue()); },
         Enter$: async (_ev, elem) => save && elem.blur(),
       }),
-      !setValueOnInput ? null : dom.on('input', (_ev, elem) => {
+      !setValueOnInput ? null : dom.on("input", (_ev, elem) => {
         value.set(Number.parseFloat(elem.value));
       }),
-      !save ? null : dom.on('blur', async () => {
+      !save ? null : dom.on("blur", async () => {
         let newValue = numberOrDefault(inputElement.value, undefined);
         if (newValue !== undefined) { newValue = clamp(newValue, minValue, maxValue); }
         await save(newValue);
       }),
-      dom.on('focus', (_ev, elem) => elem.select()),
+      dom.on("focus", (_ev, elem) => elem.select()),
       ...inputArgs,
     ),
     cssSpinner(
       cssSpinnerBtn(
-        cssSpinnerTop('DropdownUp'),
-        dom.on('click', async () => incrementValue({saveValue: true})),
-        testId('increment'),
+        cssSpinnerTop("DropdownUp"),
+        dom.on("click", async () => incrementValue({ saveValue: true })),
+        testId("increment"),
       ),
       cssSpinnerBtn(
-        cssSpinnerBottom('Dropdown'),
-        dom.on('click', async () => decrementValue({saveValue: true})),
-        testId('decrement'),
+        cssSpinnerBottom("Dropdown"),
+        dom.on("click", async () => decrementValue({ saveValue: true })),
+        testId("decrement"),
       ),
     ),
-    ...args
+    ...args,
   );
 }
 
-const cssNumericSpinner = styled('div', `
+const cssNumericSpinner = styled("div", `
   position: relative;
   flex: auto;
   font-weight: normal;
@@ -114,14 +115,14 @@ const cssNumericSpinner = styled('div', `
   }
 `);
 
-const cssNumLabel = styled('div', `
+const cssNumLabel = styled("div", `
   color: ${theme.lightText};
   flex-shrink: 0;
   padding-left: 8px;
   pointer-events: none;
 `);
 
-const cssNumInput = styled('input', `
+const cssNumInput = styled("input", `
   flex-grow: 1;
   padding: 4px 32px 4px 8px;
   width: 100%;
@@ -140,7 +141,7 @@ const cssNumInput = styled('input', `
   }
 `);
 
-const cssSpinner = styled('div', `
+const cssSpinner = styled("div", `
   position: absolute;
   right: 8px;
   width: 16px;
@@ -149,7 +150,7 @@ const cssSpinner = styled('div', `
   flex-direction: column;
 `);
 
-const cssSpinnerBtn = styled('div', `
+const cssSpinnerBtn = styled("div", `
   --icon-color: ${theme.controlSecondaryFg};
   flex: 1 1 0px;
   min-height: 0px;

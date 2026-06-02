@@ -24,7 +24,7 @@ export class StringUnionError extends TypeError {
  */
 export const StringUnion = <UnionType extends string>(...values: UnionType[]) => {
   Object.freeze(values);
-  const valueSet: Set<string> = new Set(values);
+  const valueSet = new Set<string>(values);
 
   const guard = (value: string): value is UnionType => {
     return valueSet.has(value);
@@ -33,7 +33,7 @@ export const StringUnion = <UnionType extends string>(...values: UnionType[]) =>
   const check = (value: string): UnionType => {
     if (!guard(value)) {
       const actual = JSON.stringify(value);
-      const expected = values.map(s => JSON.stringify(s)).join(' | ');
+      const expected = values.map(s => JSON.stringify(s)).join(" | ");
       throw new StringUnionError(`Value '${actual}' is not assignable to type '${expected}'.`, actual, values);
     }
     return value;
@@ -46,10 +46,10 @@ export const StringUnion = <UnionType extends string>(...values: UnionType[]) =>
   /**
    * StringUnion.parse(value) returns value when it's valid, and undefined otherwise.
    */
-  const parse = (value: string|null|undefined): UnionType|undefined => {
+  const parse = (value: string | null | undefined): UnionType | undefined => {
     return value != null && guard(value) ? value : undefined;
   };
 
   const unionNamespace = { guard, check, parse, values, checkAll };
-  return Object.freeze(unionNamespace as typeof unionNamespace & {type: UnionType});
+  return Object.freeze(unionNamespace as typeof unionNamespace & { type: UnionType });
 };

@@ -8,7 +8,7 @@
  * @see https://getbootstrap.com/docs/5.3/helpers/visually-hidden/
  * @see https://www.ffoodd.fr/masquage-accessible-de-pointe/index.html
  */
-import {styled} from "grainjs";
+import { styled } from "grainjs";
 
 const commonStyles = `
   border: 0 !important;
@@ -34,7 +34,7 @@ export const visuallyHiddenStyles = `
  *
  * You should use this with div, span, p, headings. Certainly not much else.
  */
-export const visuallyHidden = styled('div', `
+export const visuallyHidden = styled("div", `
   ${commonStyles}
 
   &:not(caption) {
@@ -45,7 +45,6 @@ export const visuallyHidden = styled('div', `
     overflow: hidden !important;
   }
 `);
-
 
 /**
  * Visually hides an element but show it when it gets keyboard focus.

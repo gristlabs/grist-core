@@ -13,7 +13,7 @@ from collections import OrderedDict, namedtuple
 
 import actions
 
-SCHEMA_VERSION = 44
+SCHEMA_VERSION = 46
 
 def make_column(col_id, col_type, formula='', isFormula=False):
   return {
@@ -266,6 +266,14 @@ def schema_create_actions():
       make_column("enabled", "Bool"),
       make_column("watchedColRefList", "RefList:_grist_Tables_column"),
       make_column("options", "Text"),
+      # Empty string or a JSON object with at least 2 fields:
+      # - 'text'   - simple expression entered by user (or built by UI)
+      # - 'parsed' - parsed representation of the expression (done by the engine when updated)
+      # - ....     - any other things we may need in the future (like data for UI builder)
+
+      # When adding or updating this column it can also be just a formula string, in that case
+      # engine will replace it with a full object (having both 'text' and 'parsed' fields).
+      make_column("condition", "Text"),
     ]),
 
     # All of the ACL rules.
@@ -359,6 +367,10 @@ def schema_create_actions():
       # JSON representation of the metadata.
       make_column("content",        "Text"),
       make_column("userRef",        "Text"),
+      # Comment-specific fields (moved from JSON content for better access control)
+      make_column("timeCreated",    "DateTime"),
+      make_column("timeUpdated",    "DateTime"),
+      make_column("resolved",       "Bool"),
     ]),
 
     actions.AddTable('_grist_Shares', [

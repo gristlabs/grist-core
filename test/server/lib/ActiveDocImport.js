@@ -1,23 +1,23 @@
-const assert            = require('chai').assert;
-const fs                = require('fs');
-const path              = require('path');
+const assert            = require("chai").assert;
+const fs                = require("fs");
+const path              = require("path");
 
-const {createDocTools} = require('test/server/docTools');
-const testUtils        = require('test/server/testUtils');
-const tmp              = require('tmp');
-const _                = require('lodash');
-const {DummyAuthorizer} = require('app/server/lib/DocAuthorizer');
-const {makeOptDocSession} = require('app/server/lib/DocSession');
-const {getFileUploadInfo, globalUploadSet, moveUpload} = require('app/server/lib/uploads');
+const {createDocTools} = require("test/server/docTools");
+const testUtils        = require("test/server/testUtils");
+const tmp              = require("tmp");
+const _                = require("lodash");
+const {DummyAuthorizer} = require("app/server/lib/DocAuthorizer");
+const {makeOptDocSession} = require("app/server/lib/DocSession");
+const {getFileUploadInfo, globalUploadSet, moveUpload} = require("app/server/lib/uploads");
 
 
 tmp.setGracefulCleanup();
 
-describe('ActiveDocImport', function() {
+describe("ActiveDocImport", function() {
   this.timeout(10000);
 
   // Turn off logging for this test, and restore afterwards.
-  testUtils.setTmpLogLevel('warn');
+  testUtils.setTmpLogLevel("warn");
 
   const docTools = createDocTools();
 
@@ -41,137 +41,137 @@ describe('ActiveDocImport', function() {
   const booleanData = path.resolve(testUtils.fixturesRoot, "uploads/BooleanData.xlsx");
   const dateTimeData = path.resolve(testUtils.fixturesRoot, "uploads/DateTimeData.xlsx");
 
-  const expectedCommaSeparatedData = [ 'TableData', 'GristHidden_import', [ 1, 2, 3 ], {
+  const expectedCommaSeparatedData = [ "TableData", "GristHidden_import", [ 1, 2, 3 ], {
     manualSort: [ 1, 2, 3 ],
-    lname: [ 'washington', 'adams', 'jefferson' ],
+    lname: [ "washington", "adams", "jefferson" ],
     start_year: [ 1789, 1797, 1801 ],
     end_year: [ 1797, 1801, 1809 ],
-    fname: [ 'george', 'john', 'thomas' ],
-    gristHelper_Import_fname: [ 'george', 'john', 'thomas' ],
-    gristHelper_Import_lname: [ 'washington', 'adams', 'jefferson' ],
+    fname: [ "george", "john", "thomas" ],
+    gristHelper_Import_fname: [ "george", "john", "thomas" ],
+    gristHelper_Import_lname: [ "washington", "adams", "jefferson" ],
     gristHelper_Import_start_year: [ 1789, 1797, 1801 ],
     gristHelper_Import_end_year: [ 1797, 1801, 1809 ]
   }];
 
-  const expectedNoHeadersData = [ 'TableData', 'GristHidden_import', [ 1, 2, 3 ], {
+  const expectedNoHeadersData = [ "TableData", "GristHidden_import", [ 1, 2, 3 ], {
     manualSort: [ 1, 2, 3 ],
-    A: [ 'milk', 'egg', 'butter' ],
+    A: [ "milk", "egg", "butter" ],
     B: [ 1, 2, 4 ],
-    C: [ 'sold', 'in stock', 'sold' ],
-    gristHelper_Import_A: [ 'milk', 'egg', 'butter' ],
+    C: [ "sold", "in stock", "sold" ],
+    gristHelper_Import_A: [ "milk", "egg", "butter" ],
     gristHelper_Import_B: [ 1, 2, 4 ],
-    gristHelper_Import_C: [ 'sold', 'in stock', 'sold' ]
+    gristHelper_Import_C: [ "sold", "in stock", "sold" ]
   }];
 
-  const expectedHeadersFromFirstRowData = [ 'TableData', 'GristHidden_import', [ 1, 2 ], {
+  const expectedHeadersFromFirstRowData = [ "TableData", "GristHidden_import", [ 1, 2 ], {
     manualSort: [ 1, 2 ],
-    milk: [ 'egg', 'butter' ],
+    milk: [ "egg", "butter" ],
     c1: [ 2, 4 ],
-    sold: [ 'in stock', 'sold' ],
-    gristHelper_Import_milk: [ 'egg', 'butter' ],
+    sold: [ "in stock", "sold" ],
+    gristHelper_Import_milk: [ "egg", "butter" ],
     gristHelper_Import_c1: [ 2, 4 ],
-    gristHelper_Import_sold: [ 'in stock', 'sold' ]
+    gristHelper_Import_sold: [ "in stock", "sold" ]
   }];
 
-  const expectedFinalCommaSeparatedData = [ 'TableData', 'FileUploadData', [ 1, 2, 3 ], {
+  const expectedFinalCommaSeparatedData = [ "TableData", "FileUploadData", [ 1, 2, 3 ], {
     manualSort: [ 1, 2, 3 ],
-    lname: [ 'washington', 'adams', 'jefferson' ],
+    lname: [ "washington", "adams", "jefferson" ],
     start_year: [ 1789, 1797, 1801 ],
     end_year: [ 1797, 1801, 1809 ],
-    fname: [ 'george', 'john', 'thomas' ]
+    fname: [ "george", "john", "thomas" ]
   }];
 
-  const expectedTransformedData = [ 'TableData', 'GristHidden_import', [ 1, 2, 3 ], {
+  const expectedTransformedData = [ "TableData", "GristHidden_import", [ 1, 2, 3 ], {
     manualSort: [ 1, 2, 3 ],
-    lname: [ 'washington', 'adams', 'jefferson' ],
+    lname: [ "washington", "adams", "jefferson" ],
     start_year: [ 1789, 1797, 1801 ],
     end_year: [ 1797, 1801, 1809 ],
-    fname: [ 'george', 'john', 'thomas' ],
-    gristHelper_Import_fname: [ 'George', 'John', 'Thomas' ],
-    gristHelper_Import_lname: [ 'Washington', 'Adams', 'Jefferson' ],
+    fname: [ "george", "john", "thomas" ],
+    gristHelper_Import_fname: [ "George", "John", "Thomas" ],
+    gristHelper_Import_lname: [ "Washington", "Adams", "Jefferson" ],
     gristHelper_Import_start_year: [ 1789, 1797, 1801 ],
     gristHelper_Import_end_year: [ 1797, 1801, 1809 ]
   }];
 
-  const expectedFinalTransformedData = [ 'TableData', 'FileUploadData', [ 1, 2, 3 ], {
+  const expectedFinalTransformedData = [ "TableData", "FileUploadData", [ 1, 2, 3 ], {
     manualSort: [ 1, 2, 3 ],
-    lname: [ 'Washington', 'Adams', 'Jefferson' ],
+    lname: [ "Washington", "Adams", "Jefferson" ],
     start_year: [ 1789, 1797, 1801 ],
     end_year: [ 1797, 1801, 1809 ],
-    fname: [ 'George', 'John', 'Thomas' ]
+    fname: [ "George", "John", "Thomas" ]
   }];
 
-  const expectedPipeSeparatedData = [ 'TableData', 'GristHidden_import', [ 1, 2, 3 ], {
+  const expectedPipeSeparatedData = [ "TableData", "GristHidden_import", [ 1, 2, 3 ], {
     manualSort: [ 1, 2, 3 ],
     fname_lname_start_year_end_year: [
-      'george,washington,1789,1797',
-      'john,adams,1797,1801',
-      'thomas,jefferson,1801,1809'
+      "george,washington,1789,1797",
+      "john,adams,1797,1801",
+      "thomas,jefferson,1801,1809"
     ],
     gristHelper_Import_fname_lname_start_year_end_year: [
-      'george,washington,1789,1797',
-      'john,adams,1797,1801',
-      'thomas,jefferson,1801,1809' ],
+      "george,washington,1789,1797",
+      "john,adams,1797,1801",
+      "thomas,jefferson,1801,1809" ],
   }];
 
-  const expectedCommaSeparatedNoHeadersData = [ 'TableData', 'GristHidden_import', [ 1, 2, 3, 4 ], {
+  const expectedCommaSeparatedNoHeadersData = [ "TableData", "GristHidden_import", [ 1, 2, 3, 4 ], {
     manualSort: [ 1, 2, 3, 4 ],
-    A: [ 'fname', 'george', 'john', 'thomas' ],
-    B: [ 'lname', 'washington', 'adams', 'jefferson' ],
-    C: [ 'start_year', '1789', '1797', '1801' ],
-    D: [ 'end_year', '1797', '1801', '1809' ],
-    gristHelper_Import_A: [ 'fname', 'george', 'john', 'thomas' ],
-    gristHelper_Import_B: [ 'lname', 'washington', 'adams', 'jefferson' ],
-    gristHelper_Import_C: [ 'start_year', '1789', '1797', '1801' ],
-    gristHelper_Import_D: [ 'end_year', '1797', '1801', '1809' ]
+    A: [ "fname", "george", "john", "thomas" ],
+    B: [ "lname", "washington", "adams", "jefferson" ],
+    C: [ "start_year", "1789", "1797", "1801" ],
+    D: [ "end_year", "1797", "1801", "1809" ],
+    gristHelper_Import_A: [ "fname", "george", "john", "thomas" ],
+    gristHelper_Import_B: [ "lname", "washington", "adams", "jefferson" ],
+    gristHelper_Import_C: [ "start_year", "1789", "1797", "1801" ],
+    gristHelper_Import_D: [ "end_year", "1797", "1801", "1809" ]
   }];
 
-  const expectedDestinationData = [ 'TableData', 'UploadedData1', [ 1, 2, 3 ], {
+  const expectedDestinationData = [ "TableData", "UploadedData1", [ 1, 2, 3 ], {
     manualSort: [ 1, 2, 3 ],
-    Name: [ 'Lily', 'Kathy', 'Karen' ],
-    Phone: [ 'Jones', 'Mills', 'Gold' ],
-    Title: [ 'director', 'student', 'professor' ]
+    Name: [ "Lily", "Kathy", "Karen" ],
+    Phone: [ "Jones", "Mills", "Gold" ],
+    Title: [ "director", "student", "professor" ]
   }];
 
-  const expectedFinalDestinationData = [ 'TableData', 'UploadedData1', [ 1, 2, 3, 4, 5, 6 ], {
+  const expectedFinalDestinationData = [ "TableData", "UploadedData1", [ 1, 2, 3, 4, 5, 6 ], {
     manualSort: [ 1, 2, 3, 4, 5, 6 ],
-    Name: [ 'Lily', 'Kathy', 'Karen', 'George', 'John', 'Thomas' ],
-    Phone: [ 'Jones', 'Mills', 'Gold', 'Washington', 'Adams', 'Jefferson' ],
-    Title: [ 'director', 'student', 'professor', '', '', '' ]
+    Name: [ "Lily", "Kathy", "Karen", "George", "John", "Thomas" ],
+    Phone: [ "Jones", "Mills", "Gold", "Washington", "Adams", "Jefferson" ],
+    Title: [ "director", "student", "professor", "", "", "" ]
   }];
 
-  const expectedDestinationData2 = [ 'TableData', 'UploadedData2', [ 1, 2, 3, 4, 5, 6 ], {
+  const expectedDestinationData2 = [ "TableData", "UploadedData2", [ 1, 2, 3, 4, 5, 6 ], {
     manualSort: [ 1, 2, 3, 4, 5, 6 ],
-    CourseId: [ 'BUS100', 'BUS102', 'BUS300', 'BUS301', 'BUS500', 'BUS540' ],
+    CourseId: [ "BUS100", "BUS102", "BUS300", "BUS301", "BUS500", "BUS540" ],
     CourseName: [
-      'Intro to Business', 'Business Law', 'Business Operations',
-      'History of Business', 'Ethics and Law', 'Capstone'
+      "Intro to Business", "Business Law", "Business Operations",
+      "History of Business", "Ethics and Law", "Capstone"
     ],
-    Instructor: [ '', 'Nathalie Patricia', 'Michael Rian', 'Mariyam Melania', 'Filip Andries', '' ],
+    Instructor: [ "", "Nathalie Patricia", "Michael Rian", "Mariyam Melania", "Filip Andries", "" ],
     StartDate: [ 1610496000, 1610496000, 1610582400, 1610582400, 1610496000, 1610496000 ],
     PassFail: [ false, false, false, false, false, true ]
   }];
 
-  const expectedFinalDestinationData2 = [ 'TableData', 'UploadedData2', [ 1, 2, 3, 4, 5, 6, 7, 8 ], {
+  const expectedFinalDestinationData2 = [ "TableData", "UploadedData2", [ 1, 2, 3, 4, 5, 6, 7, 8 ], {
     manualSort: [ 1, 2, 3, 4, 5, 6, 7, 8 ],
-    CourseId: [ 'BUS100', 'BUS102', 'BUS300', 'BUS301', 'BUS500', 'BUS540', 'BUS501', 'BUS539' ],
+    CourseId: [ "BUS100", "BUS102", "BUS300", "BUS301", "BUS500", "BUS540", "BUS501", "BUS539" ],
     CourseName: [
-      'Intro to Business', 'Business Law', 'Business Operations',
-      'History of Business', 'Ethics and Law', 'Capstone', 'Marketing', 'Independent Study'
+      "Intro to Business", "Business Law", "Business Operations",
+      "History of Business", "Ethics and Law", "Capstone", "Marketing", "Independent Study"
     ],
     Instructor: [
-      'Mariyam Melania', 'Nathalie Patricia', 'Michael Rian', 'Mariyam Melania',
-      'Filip Andries', '', 'Michael Rian', ''
+      "Mariyam Melania", "Nathalie Patricia", "Michael Rian", "Mariyam Melania",
+      "Filip Andries", "", "Michael Rian", ""
     ],
     StartDate: [ 1610496000, 1610496000, 1610582400, 1610582400, 1610496000, 1610496000, 1610496000, 1610496000 ],
     PassFail: [ false, false, false, false, false, false, false, true ]
   }];
 
   const expectedComparisonData = {
-    left: {n: 0, h: ''},
-    right: {n: 0, h: ''},
+    left: {n: 0, h: ""},
+    right: {n: 0, h: ""},
     parent: null,
-    summary: 'right',
+    summary: "right",
     details: {
       leftChanges: {
         tableRenames: [],
@@ -204,10 +204,10 @@ describe('ActiveDocImport', function() {
   };
 
   const expectedComparisonData2 = {
-    left: {n: 0, h: ''},
-    right: {n: 0, h: ''},
+    left: {n: 0, h: ""},
+    right: {n: 0, h: ""},
     parent: null,
-    summary: 'right',
+    summary: "right",
     details: {
       leftChanges: {
         tableRenames: [],
@@ -251,32 +251,32 @@ describe('ActiveDocImport', function() {
   };
 
   const fakeSession = makeOptDocSession(null);
-  fakeSession.authorizer = new DummyAuthorizer('editors', 'doc');
+  fakeSession.authorizer = new DummyAuthorizer("editors", "doc");
 
   function assertDocTables(activeDoc, expectedTableIds) {
-    return activeDoc.fetchTable(docSession, '_grist_Tables')
-    .then(result => result.tableData)
-    .then(tableData => assert.deepEqual(tableData[3].tableId, expectedTableIds));
+    return activeDoc.fetchTable(docSession, "_grist_Tables")
+      .then(result => result.tableData)
+      .then(tableData => assert.deepEqual(tableData[3].tableId, expectedTableIds));
   }
 
   function createDataSource(activeDoc, srcPath) {
     return getFileUploadInfo(srcPath)
-    .then(fileUploadInfo => {
-      const uploadId = globalUploadSet.registerUpload([fileUploadInfo], null, _.noop, null);
-      return {uploadId, transforms: []};
-    });
+      .then(fileUploadInfo => {
+        const uploadId = globalUploadSet.registerUpload([fileUploadInfo], null, _.noop, null);
+        return {uploadId, transforms: []};
+      });
   }
 
   it("should reimport files and remove all hidden tables if canceled or re imported", () => {
     let activeDoc;
     let dataSource;
-    return docTools.createDoc('dummy').then(adoc => { activeDoc = adoc; })
-    .then(() => createDataSource(activeDoc, csvPath))
-    .then(dataSrc => dataSource = dataSrc)
-    .then(() => activeDoc.importFiles(fakeSession, dataSource, {}, []))
+    return docTools.createDoc("dummy").then(adoc => { activeDoc = adoc; })
+      .then(() => createDataSource(activeDoc, csvPath))
+      .then(dataSrc => dataSource = dataSrc)
+      .then(() => activeDoc.importFiles(fakeSession, dataSource, {}, []))
 
     // ensure that imported table has special name
-    .then(tableInfo => assert.deepEqual(tableInfo.tables, [
+      .then(tableInfo => assert.deepEqual(tableInfo.tables, [
         {
           "uploadFileIndex": 0,
           "destTableId": null,
@@ -285,21 +285,21 @@ describe('ActiveDocImport', function() {
           "transformSectionRef": 4
         }
       ]
-    ))
+      ))
 
     // ensure that correct temporary hidden tables got created, and have correct data.
-    .then(() => assertDocTables(activeDoc, ['GristHidden_import']))
-    .then(() => activeDoc.fetchTable(docSession, 'GristHidden_import'))
-    .then(result => result.tableData)
-    .then(tableData => assert.deepEqual(tableData, expectedCommaSeparatedData))
+      .then(() => assertDocTables(activeDoc, ["GristHidden_import"]))
+      .then(() => activeDoc.fetchTable(docSession, "GristHidden_import"))
+      .then(result => result.tableData)
+      .then(tableData => assert.deepEqual(tableData, expectedCommaSeparatedData))
 
     // Re-import from the same source data.
-    .then(() => activeDoc.importFiles(fakeSession, dataSource, {"delimiter": "|"},
-                                      ['GristHidden_import']))
+      .then(() => activeDoc.importFiles(fakeSession, dataSource, {"delimiter": "|"},
+        ["GristHidden_import"]))
 
     // check that after reimport the new temporary table was created with the same name because
     // an old one was deleted
-    .then(tableInfo => assert.deepEqual(tableInfo.tables, [
+      .then(tableInfo => assert.deepEqual(tableInfo.tables, [
         {
           "uploadFileIndex": 0,
           "destTableId": null,
@@ -308,31 +308,31 @@ describe('ActiveDocImport', function() {
           "transformSectionRef": 4
         }
       ]
-    ))
+      ))
 
     // checking that reimported table contains correct data, now parsed differently.
-    .then(() => assertDocTables(activeDoc, ['GristHidden_import']))
-    .then(() => activeDoc.fetchTable(docSession, 'GristHidden_import'))
-    .then(result => result.tableData)
-    .then(tableData => assert.deepEqual(tableData, expectedPipeSeparatedData))
+      .then(() => assertDocTables(activeDoc, ["GristHidden_import"]))
+      .then(() => activeDoc.fetchTable(docSession, "GristHidden_import"))
+      .then(result => result.tableData)
+      .then(tableData => assert.deepEqual(tableData, expectedPipeSeparatedData))
 
     // Cancel import.
-    .then(() => activeDoc.cancelImportFiles(fakeSession, dataSource.uploadId, ["GristHidden_import"]))
+      .then(() => activeDoc.cancelImportFiles(fakeSession, dataSource.uploadId, ["GristHidden_import"]))
 
     // ensure that after canceling import temporary table was deleted
-    .then(() => assertDocTables(activeDoc, []));
+      .then(() => assertDocTables(activeDoc, []));
   });
 
   it("should finish import files and remove all hidden tables on 'Import File'", () => {
     let activeDoc;
     let dataSource;
-    return docTools.createDoc('temp').then(adoc => { activeDoc = adoc; })
-    .then(() => createDataSource(activeDoc, csvPath))
-    .then(dataSrc => dataSource = dataSrc)
-    .then(() => activeDoc.importFiles(fakeSession, dataSource, {}, []))
+    return docTools.createDoc("temp").then(adoc => { activeDoc = adoc; })
+      .then(() => createDataSource(activeDoc, csvPath))
+      .then(dataSrc => dataSource = dataSrc)
+      .then(() => activeDoc.importFiles(fakeSession, dataSource, {}, []))
 
     // ensure that imported table has special name, and exists with correct data.
-    .then(tableInfo => assert.deepEqual(tableInfo.tables, [
+      .then(tableInfo => assert.deepEqual(tableInfo.tables, [
         {
           "uploadFileIndex": 0,
           "destTableId": null,
@@ -341,16 +341,16 @@ describe('ActiveDocImport', function() {
           "transformSectionRef": 4
         }
       ]
-    ))
-    .then(() => assertDocTables(activeDoc, ['GristHidden_import']))
-    .then(() => activeDoc.fetchTable(docSession, 'GristHidden_import'))
-    .then(result => result.tableData)
-    .then(tableData => assert.deepEqual(tableData, expectedCommaSeparatedData))
+      ))
+      .then(() => assertDocTables(activeDoc, ["GristHidden_import"]))
+      .then(() => activeDoc.fetchTable(docSession, "GristHidden_import"))
+      .then(result => result.tableData)
+      .then(tableData => assert.deepEqual(tableData, expectedCommaSeparatedData))
 
     // Finish import
-    .then(() => activeDoc.finishImportFiles(fakeSession, dataSource, ['GristHidden_import'],
-                                            {"parseOptions": {"delimiter": ","}}))
-    .then(tableInfo => assert.deepEqual(tableInfo.tables, [
+      .then(() => activeDoc.finishImportFiles(fakeSession, dataSource, ["GristHidden_import"],
+        {"parseOptions": {"delimiter": ","}}))
+      .then(tableInfo => assert.deepEqual(tableInfo.tables, [
         {
           "uploadFileIndex": 0,
           "destTableId": null,
@@ -359,270 +359,270 @@ describe('ActiveDocImport', function() {
           "transformSectionRef": -1 //TODO: FINISH IMPORT DOESNT MAKE TRANSFORM SECTION!!! is this ok?
         }
       ]
-    ))
+      ))
     // ensure that after finishing import temporary table was replaced with a new regular table.
-    .then(() => assertDocTables(activeDoc, ['FileUploadData']))
-    .then(() => activeDoc.fetchTable(docSession, 'FileUploadData'))
-    .then(result => result.tableData)
-    .then(tableData => assert.deepEqual(tableData, expectedFinalCommaSeparatedData));
+      .then(() => assertDocTables(activeDoc, ["FileUploadData"]))
+      .then(() => activeDoc.fetchTable(docSession, "FileUploadData"))
+      .then(result => result.tableData)
+      .then(tableData => assert.deepEqual(tableData, expectedFinalCommaSeparatedData));
   });
 
   it("should apply transform rules and reimport files", function() {
     let activeDoc;
     let dataSourceTransformed;
-    return docTools.createDoc('temp(7)').then(adoc => { activeDoc = adoc; })
-    .then(() => createDataSource(activeDoc, csvPath))
-    .then(dataSrc => {
-      dataSourceTransformed = dataSrc;
-      dataSourceTransformed.transforms[0] = {'': {
-        destTableId: null,
-        destCols: [
-            {label: 'fname',      colId: null, type: 'Text', formula: '$fname.capitalize()'},
-            {label: 'lname',      colId: null, type: 'Text', formula: '$lname.capitalize()'},
-            {label: 'start_year', colId: null, type: 'Int', formula: '$start_year'},
-            {label: 'end_year',   colId: null, type: 'Int', formula: '$end_year'}],
-        sourceCols: ['fname', 'lname', 'start_year', 'end_year']
-      }};
-    })
+    return docTools.createDoc("temp(7)").then(adoc => { activeDoc = adoc; })
+      .then(() => createDataSource(activeDoc, csvPath))
+      .then(dataSrc => {
+        dataSourceTransformed = dataSrc;
+        dataSourceTransformed.transforms[0] = {"": {
+          destTableId: null,
+          destCols: [
+            {label: "fname",      colId: null, type: "Text", formula: "$fname.capitalize()"},
+            {label: "lname",      colId: null, type: "Text", formula: "$lname.capitalize()"},
+            {label: "start_year", colId: null, type: "Int", formula: "$start_year"},
+            {label: "end_year",   colId: null, type: "Int", formula: "$end_year"}],
+          sourceCols: ["fname", "lname", "start_year", "end_year"]
+        }};
+      })
     // Import using transform rules
-    .then(() => activeDoc.importFiles(fakeSession, dataSourceTransformed, {}, []))
+      .then(() => activeDoc.importFiles(fakeSession, dataSourceTransformed, {}, []))
     // Ensure that reimported table contains correct data and applied rules.
-    .then(() => assertDocTables(activeDoc, ['GristHidden_import']))
-    .then(() => activeDoc.fetchTable(docSession, 'GristHidden_import'))
-    .then(result => result.tableData)
+      .then(() => assertDocTables(activeDoc, ["GristHidden_import"]))
+      .then(() => activeDoc.fetchTable(docSession, "GristHidden_import"))
+      .then(result => result.tableData)
 
-    .then(tableData => assert.deepEqual(tableData, expectedTransformedData))
+      .then(tableData => assert.deepEqual(tableData, expectedTransformedData))
     // Re-import again using transform rules
-    .then(() => activeDoc.importFiles(fakeSession, dataSourceTransformed, {}, ['GristHidden_import']))
+      .then(() => activeDoc.importFiles(fakeSession, dataSourceTransformed, {}, ["GristHidden_import"]))
     // Ensure that reimported table contains correct data and applied rules.
-    .then(() => assertDocTables(activeDoc, ['GristHidden_import']))
-    .then(() => activeDoc.fetchTable(docSession, 'GristHidden_import'))
-    .then(result => result.tableData)
+      .then(() => assertDocTables(activeDoc, ["GristHidden_import"]))
+      .then(() => activeDoc.fetchTable(docSession, "GristHidden_import"))
+      .then(result => result.tableData)
 
-    .then(tableData => assert.deepEqual(tableData, expectedTransformedData))
+      .then(tableData => assert.deepEqual(tableData, expectedTransformedData))
 
     // Change delimiter which will change table schema and re-import
-    .then(() => activeDoc.importFiles(fakeSession, dataSourceTransformed, {delimiter: `|`}, ['GristHidden_import']))
-    .then(() => assertDocTables(activeDoc, ['GristHidden_import']))
-    .then(() => activeDoc.fetchTable(docSession, 'GristHidden_import'))
-    .then(result => result.tableData)
+      .then(() => activeDoc.importFiles(fakeSession, dataSourceTransformed, {delimiter: `|`}, ["GristHidden_import"]))
+      .then(() => assertDocTables(activeDoc, ["GristHidden_import"]))
+      .then(() => activeDoc.fetchTable(docSession, "GristHidden_import"))
+      .then(result => result.tableData)
     // Ensure that rules wasn't applied because schema was changed
     // (reimpored table has only one column, rules have information about three columns)
-    .then(tableData => assert.deepEqual(tableData, expectedPipeSeparatedData))
+      .then(tableData => assert.deepEqual(tableData, expectedPipeSeparatedData))
     // Cancel import.
-    .then(() => activeDoc.cancelImportFiles(
-      fakeSession, dataSourceTransformed.uploadId, ["GristHidden_import"])
-    );
+      .then(() => activeDoc.cancelImportFiles(
+        fakeSession, dataSourceTransformed.uploadId, ["GristHidden_import"])
+      );
   });
 
   it("should apply transform rules and finish import files into new table", function() {
     let activeDoc;
     let dataSource;
     let dataSourceTransformed;
-    return docTools.createDoc('temp(8)').then(adoc => { activeDoc = adoc; })
-    .then(() => createDataSource(activeDoc, csvPath))
-    .then(dataSrc => {
-      dataSource = dataSrc;
-      dataSourceTransformed = dataSrc;
-      dataSourceTransformed.transforms[0] = {'': {
-        destTableId: null,
-        destCols: [
-            {label: 'fname',      colId: null, type: 'Text', formula: '$fname.capitalize()'},
-            {label: 'lname',      colId: null, type: 'Text', formula: '$lname.capitalize()'},
-            {label: 'start_year', colId: null, type: 'Int', formula: '$start_year'},
-            {label: 'end_year',   colId: null, type: 'Int', formula: '$end_year'}],
-        sourceCols: ['fname', 'lname', 'start_year', 'end_year']
-      }};
-    })
-    .then(() => activeDoc.importFiles(fakeSession, dataSource, {}, []))
+    return docTools.createDoc("temp(8)").then(adoc => { activeDoc = adoc; })
+      .then(() => createDataSource(activeDoc, csvPath))
+      .then(dataSrc => {
+        dataSource = dataSrc;
+        dataSourceTransformed = dataSrc;
+        dataSourceTransformed.transforms[0] = {"": {
+          destTableId: null,
+          destCols: [
+            {label: "fname",      colId: null, type: "Text", formula: "$fname.capitalize()"},
+            {label: "lname",      colId: null, type: "Text", formula: "$lname.capitalize()"},
+            {label: "start_year", colId: null, type: "Int", formula: "$start_year"},
+            {label: "end_year",   colId: null, type: "Int", formula: "$end_year"}],
+          sourceCols: ["fname", "lname", "start_year", "end_year"]
+        }};
+      })
+      .then(() => activeDoc.importFiles(fakeSession, dataSource, {}, []))
     // Re-import using transform rules
-    .then(() => activeDoc.finishImportFiles(fakeSession, dataSourceTransformed, ['GristHidden_import'], ''))
+      .then(() => activeDoc.finishImportFiles(fakeSession, dataSourceTransformed, ["GristHidden_import"], ""))
     // checking that reimported table contains correct data, now applied rules.
-    .then(() => assertDocTables(activeDoc, ['FileUploadData']))
-    .then(() => activeDoc.fetchTable(docSession, 'FileUploadData'))
-    .then(result => result.tableData)
-    .then(tableData => assert.deepEqual(tableData, expectedFinalTransformedData));
+      .then(() => assertDocTables(activeDoc, ["FileUploadData"]))
+      .then(() => activeDoc.fetchTable(docSession, "FileUploadData"))
+      .then(result => result.tableData)
+      .then(tableData => assert.deepEqual(tableData, expectedFinalTransformedData));
   });
 
   it("should apply transform rules and finish import files into existing table", function() {
     let activeDoc;
     let dataSource;
     let dataSourceTransformed;
-    return docTools.createDoc('temp(9)').then(adoc => { activeDoc = adoc; })
+    return docTools.createDoc("temp(9)").then(adoc => { activeDoc = adoc; })
     // import destination table first
-    .then(() => createDataSource(activeDoc, csvPath1))
-    .then(ds => activeDoc.finishImportFiles(fakeSession, ds, [], {}))
-    .then(() => assertDocTables(activeDoc, ['UploadedData1']))
-    .then(() => activeDoc.fetchTable(docSession, 'UploadedData1'))
-    .then(result => result.tableData)
-    .then(tableData => assert.deepEqual(tableData, expectedDestinationData))
-    .then(() => createDataSource(activeDoc, csvPath))
-    .then(dataSrc => {
-      dataSource = dataSrc;
-      dataSourceTransformed = dataSrc;
-      dataSourceTransformed.transforms[0] = {'': {
-        destTableId: 'UploadedData1',
-        destCols: [{label: 'Name',  colId: 'gristHelper_Import_Name',  type: 'Text', formula: '$fname.capitalize()'},
-                   {label: 'Phone', colId: 'gristHelper_Import_Phone', type: 'Text', formula: '$lname.capitalize()'},
-                   {label: 'Title', colId: 'gristHelper_Import_Title', type: 'Text', formula: ''}],
-        sourceCols: ['fname', 'lname', 'start_year', 'end_year']
-      }};
-    })
-    .then(() => activeDoc.importFiles(fakeSession, dataSource, {}, []))
+      .then(() => createDataSource(activeDoc, csvPath1))
+      .then(ds => activeDoc.finishImportFiles(fakeSession, ds, [], {}))
+      .then(() => assertDocTables(activeDoc, ["UploadedData1"]))
+      .then(() => activeDoc.fetchTable(docSession, "UploadedData1"))
+      .then(result => result.tableData)
+      .then(tableData => assert.deepEqual(tableData, expectedDestinationData))
+      .then(() => createDataSource(activeDoc, csvPath))
+      .then(dataSrc => {
+        dataSource = dataSrc;
+        dataSourceTransformed = dataSrc;
+        dataSourceTransformed.transforms[0] = {"": {
+          destTableId: "UploadedData1",
+          destCols: [{label: "Name",  colId: "gristHelper_Import_Name",  type: "Text", formula: "$fname.capitalize()"},
+            {label: "Phone", colId: "gristHelper_Import_Phone", type: "Text", formula: "$lname.capitalize()"},
+            {label: "Title", colId: "gristHelper_Import_Title", type: "Text", formula: ""}],
+          sourceCols: ["fname", "lname", "start_year", "end_year"]
+        }};
+      })
+      .then(() => activeDoc.importFiles(fakeSession, dataSource, {}, []))
     // Re-import using transform rules
-    .then(() => activeDoc.finishImportFiles(fakeSession, dataSourceTransformed, ['GristHidden_import'], ''))
+      .then(() => activeDoc.finishImportFiles(fakeSession, dataSourceTransformed, ["GristHidden_import"], ""))
     // checking that updated table contains correct data, now with new data.
-    .then(() => assertDocTables(activeDoc, ['UploadedData1']))
-    .then(() => activeDoc.fetchTable(docSession, 'UploadedData1'))
-    .then(result => result.tableData)
-    .then(tableData => assert.deepEqual(tableData, expectedFinalDestinationData));
+      .then(() => assertDocTables(activeDoc, ["UploadedData1"]))
+      .then(() => activeDoc.fetchTable(docSession, "UploadedData1"))
+      .then(result => result.tableData)
+      .then(tableData => assert.deepEqual(tableData, expectedFinalDestinationData));
   });
 
   it("should apply merge options and update existing records in destination table", function() {
     let activeDoc;
     let dataSource;
     let dataSourceTransformed;
-    return docTools.createDoc('temp(10)').then(adoc => { activeDoc = adoc; })
+    return docTools.createDoc("temp(10)").then(adoc => { activeDoc = adoc; })
     // Import destination table first.
-    .then(() => createDataSource(activeDoc, csvPath2))
-    .then(ds => activeDoc.finishImportFiles(fakeSession, ds, [], {}))
-    .then(() => assertDocTables(activeDoc, ['UploadedData2']))
-    .then(() => activeDoc.fetchTable(docSession, 'UploadedData2'))
-    .then(result => result.tableData)
-    .then(tableData => assert.deepEqual(tableData, expectedDestinationData2))
-    .then(() => createDataSource(activeDoc, extendedCsvPath2))
-    .then(dataSrc => {
-      dataSource = dataSrc;
-      dataSourceTransformed = dataSrc;
-      dataSourceTransformed.transforms[0] = {'': {
-        destTableId: 'UploadedData2',
-        destCols: [{label: 'CourseId', colId: 'gristHelper_Import_CourseId',  type: 'Text', formula: '$CourseId'},
-                   {label: 'CourseName', colId: 'gristHelper_Import_CourseName', type: 'Text', formula: '$CourseName'},
-                   {label: 'Instructor', colId: 'gristHelper_Import_Instructor', type: 'Text', formula: '$Instructor'},
-                   {label: 'StartDate', colId: 'gristHelper_Import_StartDate', type: 'Date', formula: '$StartDate'},
-                   {label: 'PassFail', colId: 'gristHelper_Import_PassFail', type: 'Bool', formula: '$PassFail'}],
-        sourceCols: ['CourseId', 'CourseName', 'Instructor', 'StartDate', 'PassFail']
-      }};
-    })
-    .then(() => activeDoc.importFiles(fakeSession, dataSource, {}, []))
+      .then(() => createDataSource(activeDoc, csvPath2))
+      .then(ds => activeDoc.finishImportFiles(fakeSession, ds, [], {}))
+      .then(() => assertDocTables(activeDoc, ["UploadedData2"]))
+      .then(() => activeDoc.fetchTable(docSession, "UploadedData2"))
+      .then(result => result.tableData)
+      .then(tableData => assert.deepEqual(tableData, expectedDestinationData2))
+      .then(() => createDataSource(activeDoc, extendedCsvPath2))
+      .then(dataSrc => {
+        dataSource = dataSrc;
+        dataSourceTransformed = dataSrc;
+        dataSourceTransformed.transforms[0] = {"": {
+          destTableId: "UploadedData2",
+          destCols: [{label: "CourseId", colId: "gristHelper_Import_CourseId",  type: "Text", formula: "$CourseId"},
+            {label: "CourseName", colId: "gristHelper_Import_CourseName", type: "Text", formula: "$CourseName"},
+            {label: "Instructor", colId: "gristHelper_Import_Instructor", type: "Text", formula: "$Instructor"},
+            {label: "StartDate", colId: "gristHelper_Import_StartDate", type: "Date", formula: "$StartDate"},
+            {label: "PassFail", colId: "gristHelper_Import_PassFail", type: "Bool", formula: "$PassFail"}],
+          sourceCols: ["CourseId", "CourseName", "Instructor", "StartDate", "PassFail"]
+        }};
+      })
+      .then(() => activeDoc.importFiles(fakeSession, dataSource, {}, []))
     // Import from extended version of file, matching on CourseId.
-    .then(() => activeDoc.finishImportFiles(fakeSession, dataSourceTransformed, ['GristHidden_import'], {
-      mergeOptionMaps: [
-        {'': {mergeCols: ['gristHelper_Import_CourseId'], mergeStrategy: {type: 'replace-with-nonblank-source'}}}
-      ]
-    }))
+      .then(() => activeDoc.finishImportFiles(fakeSession, dataSourceTransformed, ["GristHidden_import"], {
+        mergeOptionMaps: [
+          {"": {mergeCols: ["gristHelper_Import_CourseId"], mergeStrategy: {type: "replace-with-nonblank-source"}}}
+        ]
+      }))
     // Check that records in UploadedData2 were updated correctly.
-    .then(() => assertDocTables(activeDoc, ['UploadedData2']))
-    .then(() => activeDoc.fetchTable(docSession, 'UploadedData2'))
-    .then(result => result.tableData)
-    .then(tableData => assert.deepEqual(tableData, expectedFinalDestinationData2));
+      .then(() => assertDocTables(activeDoc, ["UploadedData2"]))
+      .then(() => activeDoc.fetchTable(docSession, "UploadedData2"))
+      .then(result => result.tableData)
+      .then(tableData => assert.deepEqual(tableData, expectedFinalDestinationData2));
   });
 
   it("should include column names as headers and back using parse option (headers were guessed initially)", function() {
     let activeDoc;
     let dataSource;
-    return docTools.createDoc('dummy(10)')
-    .then(adoc => { activeDoc = adoc; })
-    .then(() => createDataSource(activeDoc, csvPath))
-    .then(dataSrc => dataSource = dataSrc)
+    return docTools.createDoc("dummy(10)")
+      .then(adoc => { activeDoc = adoc; })
+      .then(() => createDataSource(activeDoc, csvPath))
+      .then(dataSrc => dataSource = dataSrc)
     // default flow, ensure that headers were guessed and used
-    .then(() => activeDoc.importFiles(fakeSession, dataSource, {}, []))
-    .then(() => activeDoc.fetchTable(docSession, 'GristHidden_import'))
-    .then(result => result.tableData)
-    .then(tableData => assert.deepEqual(tableData, expectedCommaSeparatedData))
+      .then(() => activeDoc.importFiles(fakeSession, dataSource, {}, []))
+      .then(() => activeDoc.fetchTable(docSession, "GristHidden_import"))
+      .then(result => result.tableData)
+      .then(tableData => assert.deepEqual(tableData, expectedCommaSeparatedData))
     // ensure that after unchecking option 'include_col_names_as_headers' column names became part of the table data
-    .then(() => activeDoc.importFiles(fakeSession, dataSource, {"include_col_names_as_headers": false},
-                                      ['GristHidden_import']))
-    .then(() => activeDoc.fetchTable(docSession, 'GristHidden_import'))
-    .then(result => result.tableData)
-    .then(tableData => assert.deepEqual(tableData, expectedCommaSeparatedNoHeadersData))
+      .then(() => activeDoc.importFiles(fakeSession, dataSource, {"include_col_names_as_headers": false},
+        ["GristHidden_import"]))
+      .then(() => activeDoc.fetchTable(docSession, "GristHidden_import"))
+      .then(result => result.tableData)
+      .then(tableData => assert.deepEqual(tableData, expectedCommaSeparatedNoHeadersData))
     // ensure that after checking option 'include_col_names_as_headers' column names were used as headers again
-    .then(() => activeDoc.importFiles(fakeSession, dataSource, {"include_col_names_as_headers": true},
-                                      ['GristHidden_import']))
-    .then(tableInfo => assert.deepEqual(tableInfo.options.include_col_names_as_headers, true))
-    .then(() => activeDoc.fetchTable(docSession, 'GristHidden_import'))
-    .then(result => result.tableData)
-    .then(tableData => assert.deepEqual(tableData, expectedCommaSeparatedData));
+      .then(() => activeDoc.importFiles(fakeSession, dataSource, {"include_col_names_as_headers": true},
+        ["GristHidden_import"]))
+      .then(tableInfo => assert.deepEqual(tableInfo.options.include_col_names_as_headers, true))
+      .then(() => activeDoc.fetchTable(docSession, "GristHidden_import"))
+      .then(result => result.tableData)
+      .then(tableData => assert.deepEqual(tableData, expectedCommaSeparatedData));
   });
 
   it("should include column names as headers and back using parse option (headers weren't guessed initially)", function() {
     let activeDoc;
     let dataSource;
-    return docTools.createDoc('dummy(10)')
-    .then(adoc => { activeDoc = adoc; })
-    .then(() => createDataSource(activeDoc, csvPath3))
-    .then(dataSrc => dataSource = dataSrc)
+    return docTools.createDoc("dummy(10)")
+      .then(adoc => { activeDoc = adoc; })
+      .then(() => createDataSource(activeDoc, csvPath3))
+      .then(dataSrc => dataSource = dataSrc)
     // default flow, ensure that headers weren't guessed
-    .then(() => activeDoc.importFiles(fakeSession, dataSource, {}, []))
-    .then(tableInfo => assert.deepEqual(tableInfo.options.include_col_names_as_headers, false))
-    .then(() => activeDoc.fetchTable(docSession, 'GristHidden_import'))
-    .then(result => result.tableData)
-    .then(tableData => assert.deepEqual(tableData, expectedNoHeadersData))
+      .then(() => activeDoc.importFiles(fakeSession, dataSource, {}, []))
+      .then(tableInfo => assert.deepEqual(tableInfo.options.include_col_names_as_headers, false))
+      .then(() => activeDoc.fetchTable(docSession, "GristHidden_import"))
+      .then(result => result.tableData)
+      .then(tableData => assert.deepEqual(tableData, expectedNoHeadersData))
     // ensure that after checking option 'include_col_names_as_headers' column names were used as headers
-    .then(() => activeDoc.importFiles(fakeSession, dataSource, {"include_col_names_as_headers": true},
-                                      ['GristHidden_import']))
-    .then(tableInfo => assert.deepEqual(tableInfo.options.include_col_names_as_headers, true))
-    .then(() => activeDoc.fetchTable(docSession, 'GristHidden_import'))
-    .then(result => result.tableData)
-    .then(tableData => assert.deepEqual(tableData, expectedHeadersFromFirstRowData))
+      .then(() => activeDoc.importFiles(fakeSession, dataSource, {"include_col_names_as_headers": true},
+        ["GristHidden_import"]))
+      .then(tableInfo => assert.deepEqual(tableInfo.options.include_col_names_as_headers, true))
+      .then(() => activeDoc.fetchTable(docSession, "GristHidden_import"))
+      .then(result => result.tableData)
+      .then(tableData => assert.deepEqual(tableData, expectedHeadersFromFirstRowData))
     // ensure that after unchecking option 'include_col_names_as_headers' column names became part of the table data
-    .then(() => activeDoc.importFiles(fakeSession, dataSource, {"include_col_names_as_headers": false},
-                                      ['GristHidden_import']))
-    .then(tableInfo => assert.deepEqual(tableInfo.options.include_col_names_as_headers, false))
-    .then(() => activeDoc.fetchTable(docSession, 'GristHidden_import'))
-    .then(result => result.tableData)
-    .then(tableData => assert.deepEqual(tableData, expectedNoHeadersData));
+      .then(() => activeDoc.importFiles(fakeSession, dataSource, {"include_col_names_as_headers": false},
+        ["GristHidden_import"]))
+      .then(tableInfo => assert.deepEqual(tableInfo.options.include_col_names_as_headers, false))
+      .then(() => activeDoc.fetchTable(docSession, "GristHidden_import"))
+      .then(result => result.tableData)
+      .then(tableData => assert.deepEqual(tableData, expectedNoHeadersData));
   });
 
   // returns an object that map original table ids to fixed ids.
   function getFixedTableIdMap(tables) {
-    return _(tables).keyBy('origTableName').mapValues("hiddenTableId").value();
+    return _(tables).keyBy("origTableName").mapValues("hiddenTableId").value();
   }
 
   it("should fix references", function() {
     let activeDoc;
-    return docTools.createDoc('').then(adoc => {activeDoc = adoc;})
-    .then(() => createDataSource(activeDoc, jsonPathWithDirtyTableName))
-    .then(dataSource => activeDoc.finishImportFiles(fakeSession, dataSource, [], {}))
-    .then(result => {
-      const fixedTableId = getFixedTableIdMap(result.tables);
-      const tables = activeDoc.docData.getTables();
-      let table;
+    return docTools.createDoc("").then(adoc => {activeDoc = adoc;})
+      .then(() => createDataSource(activeDoc, jsonPathWithDirtyTableName))
+      .then(dataSource => activeDoc.finishImportFiles(fakeSession, dataSource, [], {}))
+      .then(result => {
+        const fixedTableId = getFixedTableIdMap(result.tables);
+        const tables = activeDoc.docData.getTables();
+        let table;
 
-      table = tables.get(fixedTableId.dirtyNames);
-      assert.equal(table.getColType("dirty_name_"), 'Ref:DirtyNames__dirty_name_');
+        table = tables.get(fixedTableId.dirtyNames);
+        assert.equal(table.getColType("dirty_name_"), "Ref:DirtyNames__dirty_name_");
 
-      table = tables.get(fixedTableId["dirtyNames_**dirty_name**"]);
-      assert.equal(table.getColType("a"), 'Ref:DirtyNames__dirty_name__a');
-    });
+        table = tables.get(fixedTableId["dirtyNames_**dirty_name**"]);
+        assert.equal(table.getColType("a"), "Ref:DirtyNames__dirty_name__a");
+      });
   });
 
   it("should fix references as well in hidden tables", function() {
     let activeDoc;
-    return docTools.createDoc('').then(adoc => {activeDoc = adoc;})
-    .then(() => createDataSource(activeDoc, jsonPathWithDirtyTableName))
-    .then(dataSource => activeDoc.importFiles(fakeSession, dataSource, {}, []))
-    .then(result => {
-      const fixedTableId = getFixedTableIdMap(result.tables);
-      const tables = activeDoc.docData.getTables();
-      let table;
+    return docTools.createDoc("").then(adoc => {activeDoc = adoc;})
+      .then(() => createDataSource(activeDoc, jsonPathWithDirtyTableName))
+      .then(dataSource => activeDoc.importFiles(fakeSession, dataSource, {}, []))
+      .then(result => {
+        const fixedTableId = getFixedTableIdMap(result.tables);
+        const tables = activeDoc.docData.getTables();
+        let table;
 
-      table = tables.get(fixedTableId.dirtyNames);
-      assert.equal(table.getColType("dirty_name_"), 'Ref:' + fixedTableId['dirtyNames_**dirty_name**']);
-      assert.equal(table.getColType("gristHelper_Import_dirty_name_"), 'Ref:' + fixedTableId['dirtyNames_**dirty_name**']);
+        table = tables.get(fixedTableId.dirtyNames);
+        assert.equal(table.getColType("dirty_name_"), "Ref:" + fixedTableId["dirtyNames_**dirty_name**"]);
+        assert.equal(table.getColType("gristHelper_Import_dirty_name_"), "Ref:" + fixedTableId["dirtyNames_**dirty_name**"]);
 
-      table = tables.get(fixedTableId["dirtyNames_**dirty_name**"]);
-      assert.equal(table.getColType("a"), 'Ref:' + fixedTableId['dirtyNames_**dirty_name**_a']);
-      assert.equal(table.getColType("gristHelper_Import_a"), 'Ref:' + fixedTableId['dirtyNames_**dirty_name**_a']);
-    });
+        table = tables.get(fixedTableId["dirtyNames_**dirty_name**"]);
+        assert.equal(table.getColType("a"), "Ref:" + fixedTableId["dirtyNames_**dirty_name**_a"]);
+        assert.equal(table.getColType("gristHelper_Import_a"), "Ref:" + fixedTableId["dirtyNames_**dirty_name**_a"]);
+      });
   });
 
 
   it("should allow empty data", function() {
     let activeDoc;
-    return docTools.createDoc('').then(adoc => {activeDoc = adoc;})
-    .then(() => createDataSource(activeDoc, emptyData))
-    .then(dataSource => assert.isFulfilled(activeDoc.importFiles(fakeSession, dataSource, {}, [])));
+    return docTools.createDoc("").then(adoc => {activeDoc = adoc;})
+      .then(() => createDataSource(activeDoc, emptyData))
+      .then(dataSource => assert.isFulfilled(activeDoc.importFiles(fakeSession, dataSource, {}, [])));
   });
 
   describe("parsing", function() {
@@ -630,19 +630,19 @@ describe('ActiveDocImport', function() {
     let activeDoc, tmpDir;
 
     before(function() {
-      return docTools.createDoc('temp-parsing').then(adoc => { activeDoc = adoc; })
-      .then(() => activeDoc.docPluginManager.tmpDir()).then(t => { tmpDir = t; });
+      return docTools.createDoc("temp-parsing").then(adoc => { activeDoc = adoc; })
+        .then(() => activeDoc.docPluginManager.tmpDir()).then(t => { tmpDir = t; });
     });
 
     // Returns absPath suitable for parsing (moved to the pluginManager's tmpDir.
     function parseFile(path, origName=null) {
       return createDataSource(activeDoc, path)
-      .then(dataSource => {
-        const upload = globalUploadSet.getUploadInfo(dataSource.uploadId, null);
-        return moveUpload(upload, tmpDir)
-        .then(() => upload.files[0]);
-      })
-      .then(file => activeDoc.docPluginManager.parseFile(file.absPath, origName || file.origName, {}));
+        .then(dataSource => {
+          const upload = globalUploadSet.getUploadInfo(dataSource.uploadId, null);
+          return moveUpload(upload, tmpDir)
+            .then(() => upload.files[0]);
+        })
+        .then(file => activeDoc.docPluginManager.parseFile(file.absPath, origName || file.origName, {}));
     }
 
     it("should parse csv imports", function() {
@@ -665,7 +665,7 @@ describe('ActiveDocImport', function() {
           assert.deepEqual(tables.map(t => t.table_name),
             ["Homicide counts and rates (2000", "Sheet1"]);
           assert.deepEqual(tables[0].column_metadata.map(c => c.id),
-            ['Region', 'Sub Region', 'Country/ Territory', 'Source', 'Indicator', "'00",
+            ["Region", "Sub Region", "Country/ Territory", "Source", "Indicator", "'00",
               "'01", "'02", "'03", "'04", "'05", "'06", "'07", "'08", "'09", "'10", "'11",
               "'12", "'13"]);
           assert.deepEqual(tables[1].column_metadata.map(c => c.id), ["Name", "Value"]);
@@ -695,7 +695,7 @@ describe('ActiveDocImport', function() {
         .then(result => {
           const tables = result.tables;
           assert.deepEqual(tables[0], {
-            table_name: 'simple_array',
+            table_name: "simple_array",
             column_metadata: [{id: "a", type: "Numeric"}, {id: "b", type: "Text"}],
             table_data: [[1, 4], ["baba", "abab"]]
           });
@@ -707,21 +707,21 @@ describe('ActiveDocImport', function() {
         .then(result => {
           const tables = result.tables;
           assert.deepEqual(tables.map(t => t.table_name).sort(), [
-            'my_spotify',
-            'my_spotify_albums',
-            'my_spotify_albums_artists',
-            'my_spotify_albums_artists_external_urls',
-            'my_spotify_albums_available_markets',
-            'my_spotify_albums_external_ids',
-            'my_spotify_albums_copyrights',
-            'my_spotify_albums_external_urls',
-            'my_spotify_albums_images',
-            'my_spotify_albums_tracks',
-            'my_spotify_albums_tracks_items',
-            'my_spotify_albums_tracks_items_artists', // todo: user should be able to merge this table into 'albums_artists'
-            'my_spotify_albums_tracks_items_artists_external_urls',
-            'my_spotify_albums_tracks_items_available_markets',
-            'my_spotify_albums_tracks_items_external_urls'].sort());
+            "my_spotify",
+            "my_spotify_albums",
+            "my_spotify_albums_artists",
+            "my_spotify_albums_artists_external_urls",
+            "my_spotify_albums_available_markets",
+            "my_spotify_albums_external_ids",
+            "my_spotify_albums_copyrights",
+            "my_spotify_albums_external_urls",
+            "my_spotify_albums_images",
+            "my_spotify_albums_tracks",
+            "my_spotify_albums_tracks_items",
+            "my_spotify_albums_tracks_items_artists", // todo: user should be able to merge this table into 'albums_artists'
+            "my_spotify_albums_tracks_items_artists_external_urls",
+            "my_spotify_albums_tracks_items_available_markets",
+            "my_spotify_albums_tracks_items_external_urls"].sort());
         });
     });
 
@@ -730,7 +730,7 @@ describe('ActiveDocImport', function() {
         const tables = result.tables;
         assert.deepEqual(tables.map(t => t.table_name), ["Book1"]);
         assert.deepEqual(tables[0].column_metadata.map(c => c.id),
-                         ['']);
+          [""]);
         assert.deepEqual(tables[0].table_data, [[5, 5, 1]]);
       });
     });
@@ -742,15 +742,15 @@ describe('ActiveDocImport', function() {
           assert.deepEqual(
             tables[0].column_metadata.map(c => c.id),
             [
-              'Բարեւ աշխարհ',
-              'Γειά σου Κόσμε',
-              '123 test',
-              'สวัสดีชาวโลก',
-              'こんにちは世界',
-              'नमस्ते दुनिया',
-              'გამარჯობა მსოფლიო',
-              '你好世界',
-              '% test',
+              "Բարեւ աշխարհ",
+              "Γειά σου Κόσμε",
+              "123 test",
+              "สวัสดีชาวโลก",
+              "こんにちは世界",
+              "नमस्ते दुनिया",
+              "გამარჯობა მსოფლიო",
+              "你好世界",
+              "% test",
             ]
           );
         });
@@ -762,15 +762,15 @@ describe('ActiveDocImport', function() {
           const tables = result.tables;
           assert.deepEqual(tables[0].column_metadata.map(c => c.id),
             [
-              '% test',
-              '你好世界',
-              'გამარჯობა მსოფლიო',
-              'नमस्ते दुनिया',
-              'Բարեւ աշխարհ',
-              'Γειά σου Κόσμε',
-              '123 test',
-              'สวัสดีชาวโลก',
-              'こんにちは世界',
+              "% test",
+              "你好世界",
+              "გამარჯობა მსოფლიო",
+              "नमस्ते दुनिया",
+              "Բարեւ աշխարհ",
+              "Γειά σου Κόσμε",
+              "123 test",
+              "สวัสดีชาวโลก",
+              "こんにちは世界",
             ]
           );
         });
@@ -782,26 +782,26 @@ describe('ActiveDocImport', function() {
     });
 
     it("should add document timezone to DateTime columns when importing xlsx files", async function() {
-      const activeDoc = await docTools.createDoc('temp(11)');
-      await activeDoc.applyUserActions(fakeSession, [['UpdateRecord', '_grist_DocInfo', 1, {
-        timezone: 'America/New_York',
+      const activeDoc = await docTools.createDoc("temp(11)");
+      await activeDoc.applyUserActions(fakeSession, [["UpdateRecord", "_grist_DocInfo", 1, {
+        timezone: "America/New_York",
       }]]);
       const dataSource = await createDataSource(activeDoc, dateTimeData);
       await activeDoc.importFiles(fakeSession, dataSource, {}, []);
       const metaTables = await activeDoc.fetchMetaTables(docSession);
-      const columns = metaTables['_grist_Tables_column'][3];
+      const columns = metaTables["_grist_Tables_column"][3];
       assert.deepEqual(columns.colId, [
-        'manualSort',
-        'A',
-        'gristHelper_Import_A',
+        "manualSort",
+        "A",
+        "gristHelper_Import_A",
       ]);
       assert.deepEqual(columns.type, [
-        'ManualSortPos',
-        'DateTime:America/New_York',
-        'DateTime:America/New_York',
+        "ManualSortPos",
+        "DateTime:America/New_York",
+        "DateTime:America/New_York",
       ]);
-      await activeDoc.finishImportFiles(fakeSession, dataSource, [], {})
-      const result = await activeDoc.fetchTable(docSession, 'Sheet1')
+      await activeDoc.finishImportFiles(fakeSession, dataSource, [], {});
+      const result = await activeDoc.fetchTable(docSession, "Sheet1");
       const tableData = result.tableData;
       assert.deepEqual(tableData[3], {
         A: [
@@ -820,36 +820,36 @@ describe('ActiveDocImport', function() {
       let transformRule;
       let dataSource;
       let dataSourceTransformed;
-      return docTools.createDoc('temp(12)').then(adoc => { activeDoc = adoc; })
+      return docTools.createDoc("temp(12)").then(adoc => { activeDoc = adoc; })
       // Import destination table first.
-      .then(() => createDataSource(activeDoc, csvPath2))
-      .then(ds => activeDoc.finishImportFiles(fakeSession, ds, [], {}))
-      .then(() => assertDocTables(activeDoc, ['UploadedData2']))
-      .then(() => activeDoc.fetchTable(docSession, 'UploadedData2'))
-      .then(result => result.tableData)
-      .then(tableData => assert.deepEqual(tableData, expectedDestinationData2))
-      .then(() => createDataSource(activeDoc, extendedCsvPath2))
-      .then(dataSrc => {
-        dataSource = dataSrc;
-        dataSourceTransformed = dataSrc;
-        transformRule = {
-          destTableId: 'UploadedData2',
-          destCols: [{label: 'CourseId', colId: 'gristHelper_Import_CourseId',  type: 'Text', formula: '$CourseId'},
-                     {label: 'CourseName', colId: 'gristHelper_Import_CourseName', type: 'Text', formula: '$CourseName'},
-                     {label: 'Instructor', colId: 'gristHelper_Import_Instructor', type: 'Text', formula: '$Instructor'},
-                     {label: 'StartDate', colId: 'gristHelper_Import_StartDate', type: 'Date', formula: '$StartDate'},
-                     {label: 'PassFail', colId: 'gristHelper_Import_PassFail', type: 'Bool', formula: '$PassFail'}],
-          sourceCols: ['CourseId', 'CourseName', 'Instructor', 'StartDate', 'PassFail']
-        };
-        dataSourceTransformed.transforms[0] = {'': transformRule};
-      })
-      .then(() => activeDoc.importFiles(fakeSession, dataSource, {}, []))
+        .then(() => createDataSource(activeDoc, csvPath2))
+        .then(ds => activeDoc.finishImportFiles(fakeSession, ds, [], {}))
+        .then(() => assertDocTables(activeDoc, ["UploadedData2"]))
+        .then(() => activeDoc.fetchTable(docSession, "UploadedData2"))
+        .then(result => result.tableData)
+        .then(tableData => assert.deepEqual(tableData, expectedDestinationData2))
+        .then(() => createDataSource(activeDoc, extendedCsvPath2))
+        .then(dataSrc => {
+          dataSource = dataSrc;
+          dataSourceTransformed = dataSrc;
+          transformRule = {
+            destTableId: "UploadedData2",
+            destCols: [{label: "CourseId", colId: "gristHelper_Import_CourseId",  type: "Text", formula: "$CourseId"},
+              {label: "CourseName", colId: "gristHelper_Import_CourseName", type: "Text", formula: "$CourseName"},
+              {label: "Instructor", colId: "gristHelper_Import_Instructor", type: "Text", formula: "$Instructor"},
+              {label: "StartDate", colId: "gristHelper_Import_StartDate", type: "Date", formula: "$StartDate"},
+              {label: "PassFail", colId: "gristHelper_Import_PassFail", type: "Bool", formula: "$PassFail"}],
+            sourceCols: ["CourseId", "CourseName", "Instructor", "StartDate", "PassFail"]
+          };
+          dataSourceTransformed.transforms[0] = {"": transformRule};
+        })
+        .then(() => activeDoc.importFiles(fakeSession, dataSource, {}, []))
       // Generate a diff of importing with merge column set to CourseId.
-      .then(() => activeDoc.generateImportDiff(fakeSession, 'GristHidden_import', transformRule, {
-        mergeCols: ['gristHelper_Import_CourseId'], mergeStrategy: {type: 'replace-with-nonblank-source'}
-      }))
+        .then(() => activeDoc.generateImportDiff(fakeSession, "GristHidden_import", transformRule, {
+          mergeCols: ["gristHelper_Import_CourseId"], mergeStrategy: {type: "replace-with-nonblank-source"}
+        }))
       // Check that the returned comparison data is correct.
-      .then(comparison => assert.deepEqual(comparison, expectedComparisonData));
+        .then(comparison => assert.deepEqual(comparison, expectedComparisonData));
     });
 
     it("should respect transform rule formulas when generating comparison data", function() {
@@ -857,36 +857,36 @@ describe('ActiveDocImport', function() {
       let transformRule;
       let dataSource;
       let dataSourceTransformed;
-      return docTools.createDoc('temp(13)').then(adoc => { activeDoc = adoc; })
+      return docTools.createDoc("temp(13)").then(adoc => { activeDoc = adoc; })
       // Import destination table first.
-      .then(() => createDataSource(activeDoc, csvPath2))
-      .then(ds => activeDoc.finishImportFiles(fakeSession, ds, [], {}))
-      .then(() => assertDocTables(activeDoc, ['UploadedData2']))
-      .then(() => activeDoc.fetchTable(docSession, 'UploadedData2'))
-      .then(result => result.tableData)
-      .then(tableData => assert.deepEqual(tableData, expectedDestinationData2))
-      .then(() => createDataSource(activeDoc, extendedCsvPath2))
-      .then(dataSrc => {
-        dataSource = dataSrc;
-        dataSourceTransformed = dataSrc;
-        transformRule = {
-          destTableId: 'UploadedData2',
-          destCols: [{label: 'CourseId', colId: 'gristHelper_Import_CourseId',  type: 'Text', formula: '$CourseId'},
-                     {label: 'CourseName', colId: 'gristHelper_Import_CourseName', type: 'Text', formula: '$CourseName.upper()'},
-                     {label: 'Instructor', colId: 'gristHelper_Import_Instructor', type: 'Text', formula: '$Instructor.lower()'},
-                     {label: 'StartDate', colId: 'gristHelper_Import_StartDate', type: 'Date', formula: '$StartDate'},
-                     {label: 'PassFail', colId: 'gristHelper_Import_PassFail', type: 'Bool', formula: '$PassFail'}],
-          sourceCols: ['CourseId', 'CourseName', 'Instructor', 'StartDate', 'PassFail']
-        };
-        dataSourceTransformed.transforms[0] = {'': transformRule};
-      })
-      .then(() => activeDoc.importFiles(fakeSession, dataSource, {}, []))
+        .then(() => createDataSource(activeDoc, csvPath2))
+        .then(ds => activeDoc.finishImportFiles(fakeSession, ds, [], {}))
+        .then(() => assertDocTables(activeDoc, ["UploadedData2"]))
+        .then(() => activeDoc.fetchTable(docSession, "UploadedData2"))
+        .then(result => result.tableData)
+        .then(tableData => assert.deepEqual(tableData, expectedDestinationData2))
+        .then(() => createDataSource(activeDoc, extendedCsvPath2))
+        .then(dataSrc => {
+          dataSource = dataSrc;
+          dataSourceTransformed = dataSrc;
+          transformRule = {
+            destTableId: "UploadedData2",
+            destCols: [{label: "CourseId", colId: "gristHelper_Import_CourseId",  type: "Text", formula: "$CourseId"},
+              {label: "CourseName", colId: "gristHelper_Import_CourseName", type: "Text", formula: "$CourseName.upper()"},
+              {label: "Instructor", colId: "gristHelper_Import_Instructor", type: "Text", formula: "$Instructor.lower()"},
+              {label: "StartDate", colId: "gristHelper_Import_StartDate", type: "Date", formula: "$StartDate"},
+              {label: "PassFail", colId: "gristHelper_Import_PassFail", type: "Bool", formula: "$PassFail"}],
+            sourceCols: ["CourseId", "CourseName", "Instructor", "StartDate", "PassFail"]
+          };
+          dataSourceTransformed.transforms[0] = {"": transformRule};
+        })
+        .then(() => activeDoc.importFiles(fakeSession, dataSource, {}, []))
       // Generate a diff of importing with merge column set to CourseId.
-      .then(() => activeDoc.generateImportDiff(fakeSession, 'GristHidden_import', transformRule, {
-        mergeCols: ['gristHelper_Import_CourseId'], mergeStrategy: {type: 'replace-with-nonblank-source'}
-      }))
+        .then(() => activeDoc.generateImportDiff(fakeSession, "GristHidden_import", transformRule, {
+          mergeCols: ["gristHelper_Import_CourseId"], mergeStrategy: {type: "replace-with-nonblank-source"}
+        }))
       // Check that the returned comparison data is correct.
-      .then(comparison => assert.deepEqual(comparison, expectedComparisonData2));
+        .then(comparison => assert.deepEqual(comparison, expectedComparisonData2));
     });
   });
 });

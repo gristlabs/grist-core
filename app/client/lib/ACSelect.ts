@@ -1,9 +1,10 @@
-import {ACIndex, ACItem, buildHighlightedDom} from 'app/client/lib/ACIndex';
-import {Autocomplete, IAutocompleteOptions} from 'app/client/lib/autocomplete';
-import {theme} from "app/client/ui2018/cssVars";
-import {icon} from "app/client/ui2018/icons";
-import {menuCssClass} from 'app/client/ui2018/menus';
-import {dom, DomElementArg, Holder, IDisposableOwner, Observable, styled} from 'grainjs';
+import { ACIndex, ACItem, buildHighlightedDom } from "app/client/lib/ACIndex";
+import { Autocomplete, IAutocompleteOptions } from "app/client/lib/autocomplete";
+import { theme } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { menuCssClass } from "app/client/ui2018/menus";
+
+import { dom, DomElementArg, Holder, IDisposableOwner, Observable, styled } from "grainjs";
 
 export interface ACSelectItem extends ACItem {
   value: string;
@@ -21,11 +22,11 @@ export function buildACSelect(
     disabled?: Observable<boolean>,
     acIndex: ACIndex<ACSelectItem>,
     valueObs: Observable<string>,
-    save: (value: string, item: ACSelectItem|undefined) => Promise<void>|void
+    save: (value: string, item: ACSelectItem | undefined) => Promise<void> | void
   },
   ...args: DomElementArg[]
 ) {
-  const {acIndex, valueObs, save} = options;
+  const { acIndex, valueObs, save } = options;
   const acHolder = Holder.create<Autocomplete<ACSelectItem>>(owner);
   let textInput: HTMLInputElement;
 
@@ -34,8 +35,19 @@ export function buildACSelect(
   const acClose = () => acHolder.clear();
   const finish = () => { acClose(); textInput.blur(); };
   const revert = () => { textInput.value = valueObs.get(); finish(); };
-  const commitOrRevert = async () => { (await commitIfValid()) || revert(); };
-  const openOrCommit = () => { isOpen() ? commitOrRevert().catch(() => {}) : acOpen(); };
+  const commitOrRevert = async () => {
+    const isValid = await commitIfValid();
+    if (!isValid) {
+      revert();
+    }
+  };
+  const openOrCommit = () => {
+    if (isOpen()) {
+      commitOrRevert().catch(() => {});
+    } else {
+      acOpen();
+    }
+  };
 
   const commitIfValid = async () => {
     const item = acHolder.get()?.getSelectedItem();
@@ -68,31 +80,31 @@ export function buildACSelect(
     search: async (term: string) => acIndex.search(term),
     renderItem: (item, highlightFunc) =>
       cssSelectItem(buildHighlightedDom(item.label, highlightFunc, cssMatchText)),
-    getItemText: (item) => item.value,
+    getItemText: item => item.value,
     onClick: commitIfValid,
   };
 
   return cssSelectBtn(
-    textInput = cssInput({type: 'text'},
-      dom.prop('value', valueObs),
-      dom.on('focus', (ev, elem) => elem.select()),
-      dom.on('blur', commitOrRevert),
-      dom.prop("disabled", (use) => options.disabled ? use(options.disabled) : false),
+    textInput = cssInput({ type: "text" },
+      dom.prop("value", valueObs),
+      dom.on("focus", (ev, elem) => elem.select()),
+      dom.on("blur", commitOrRevert),
+      dom.prop("disabled", use => options.disabled ? use(options.disabled) : false),
       dom.onKeyDown({
         Escape: revert,
         Enter: openOrCommit,
         ArrowDown: acOpen,
         Tab: commitIfValid,
       }),
-      dom.on('input', acOpen),
+      dom.on("input", acOpen),
     ),
-    dom.on('mousedown', onMouseDown),
-    cssIcon('Dropdown'),
-    ...args
+    dom.on("mousedown", onMouseDown),
+    cssIcon("Dropdown"),
+    ...args,
   );
 }
 
-const cssSelectBtn = styled('div', `
+const cssSelectBtn = styled("div", `
   position: relative;
   width: 100%;
   height: 30px;
@@ -100,7 +112,7 @@ const cssSelectBtn = styled('div', `
   --icon-color: ${theme.selectButtonFg};
 `);
 
-export const cssSelectItem = styled('li', `
+export const cssSelectItem = styled("li", `
   color: ${theme.menuItemFg};
   display: block;
   white-space: pre;
@@ -116,7 +128,7 @@ export const cssSelectItem = styled('li', `
   }
 `);
 
-const cssInput = styled('input', `
+const cssInput = styled("input", `
   color: ${theme.inputFg};
   background-color: ${theme.inputBg};
   appearance: none;
@@ -152,7 +164,7 @@ const cssIcon = styled(icon, `
   top: calc(50% - 8px);
 `);
 
-const cssMatchText = styled('span', `
+const cssMatchText = styled("span", `
   color: ${theme.autocompleteMatchText};
   .selected > & {
     color: ${theme.autocompleteSelectedMatchText};

@@ -1,22 +1,23 @@
-import {CellSelector, COL, ROW} from 'app/client/components/CellSelector';
-import {copyToClipboard} from 'app/client/lib/clipboardUtils';
-import {Delay} from "app/client/lib/Delay";
-import {KoArray} from 'app/client/lib/koArray';
-import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
-import {UserError} from 'app/client/models/errors';
-import {ALL, RowsChanged, SortedRowSet} from "app/client/models/rowset";
-import {showTransientTooltip} from 'app/client/ui/tooltips';
-import {isNarrowScreen, isNarrowScreenObs, theme, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {CellValue} from 'app/common/DocActions';
-import {isEmptyList, isListType, isRefListType} from "app/common/gristTypes";
-import {TableData} from "app/common/TableData";
-import {BaseFormatter} from 'app/common/ValueFormatter';
-import ko from 'knockout';
-import {Computed, Disposable, dom, makeTestId, Observable, styled, subscribe} from 'grainjs';
-import {makeT} from 'app/client/lib/localization';
+import { CellSelector, COL, ROW } from "app/client/components/CellSelector";
+import { copyToClipboard } from "app/client/lib/clipboardUtils";
+import { Delay } from "app/client/lib/Delay";
+import { KoArray } from "app/client/lib/koArray";
+import { makeT } from "app/client/lib/localization";
+import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
+import { UserError } from "app/client/models/errors";
+import { ALL, RowsChanged, SortedRowSet } from "app/client/models/rowset";
+import { showTransientTooltip } from "app/client/ui/tooltips";
+import { isNarrowScreen, isNarrowScreenObs, theme, vars } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { CellValue } from "app/common/DocActions";
+import { isEmptyList, isListType, isRefListType } from "app/common/gristTypes";
+import { TableData } from "app/common/TableData";
+import { BaseFormatter } from "app/common/ValueFormatter";
 
-const t = makeT('SelectionSummary');
+import { Computed, Disposable, dom, makeTestId, Observable, styled, subscribe } from "grainjs";
+import ko from "knockout";
+
+const t = makeT("SelectionSummary");
 
 /**
  * A beginning and end index for a range of columns or rows.
@@ -31,7 +32,7 @@ interface Range {
  */
 interface SummaryPart {
   /** Identifier for the summary part. */
-  id: 'sum' | 'count' | 'dimensions';
+  id: "sum" | "count" | "dimensions";
   /** Label that's shown to the left of `value`. */
   label: string;
   /** Value of the summary part. */
@@ -40,19 +41,19 @@ interface SummaryPart {
   clickToCopy?: boolean;
 }
 
-const testId = makeTestId('test-selection-summary-');
+const testId = makeTestId("test-selection-summary-");
 
 // We can handle a million cells in under 60ms on a good laptop. Much beyond that, and we'll break
 // selection with the bad performance. Instead, skip the counting and summing for too many cells.
 const MAX_CELLS_TO_SCAN = 1_000_000;
 
 export class SelectionSummary extends Disposable {
-  private _colTotalCount = Computed.create(this, (use) =>
+  private _colTotalCount = Computed.create(this, use =>
     use(use(this._viewFields).getObservable()).length);
 
   private _rowTotalCount = Computed.create(this, (use) => {
     const rowIds = use(this._sortedRows.getKoArray().getObservable());
-    const includesNewRow = (rowIds.length > 0 && rowIds[rowIds.length - 1] === 'new');
+    const includesNewRow = (rowIds.length > 0 && rowIds[rowIds.length - 1] === "new");
     return rowIds.length - (includesNewRow ? 1 : 0);
   });
 
@@ -62,7 +63,7 @@ export class SelectionSummary extends Disposable {
   private _rowRange = Computed.create<Range>(this, (use) => {
     const type = use(this._cellSelector.currentSelectType);
     if (type === COL) {
-      return {begin: 0, end: use(this._rowTotalCount)};
+      return { begin: 0, end: use(this._rowTotalCount) };
     } else {
       const start = use(this._cellSelector.row.start);
       const end = use(this._cellSelector.row.end);
@@ -76,7 +77,7 @@ export class SelectionSummary extends Disposable {
   private _colRange = Computed.create<Range>(this, (use) => {
     const type = use(this._cellSelector.currentSelectType);
     if (type === ROW) {
-      return {begin: 0, end: use(this._colTotalCount)};
+      return { begin: 0, end: use(this._colTotalCount) };
     } else {
       const start = use(this._cellSelector.col.start);
       const end = use(this._cellSelector.col.end);
@@ -98,10 +99,10 @@ export class SelectionSummary extends Disposable {
   ) {
     super();
 
-    this.autoDispose(this._sortedRows.getKoArray().subscribe(this._onSpliceChange, this, 'spliceChange'));
+    this.autoDispose(this._sortedRows.getKoArray().subscribe(this._onSpliceChange, this, "spliceChange"));
     const onRowNotify = this._onRowNotify.bind(this);
-    this._sortedRows.on('rowNotify', onRowNotify);
-    this.onDispose(() => this._sortedRows.off('rowNotify', onRowNotify));
+    this._sortedRows.on("rowNotify", onRowNotify);
+    this.onDispose(() => this._sortedRows.off("rowNotify", onRowNotify));
     this.autoDispose(subscribe(this._rowRange, this._colRange,
       () => this._scheduleRecalc()));
     this.autoDispose(isNarrowScreenObs().addListener((isNarrow) => {
@@ -113,19 +114,19 @@ export class SelectionSummary extends Disposable {
 
   public buildDom() {
     return cssSummary(
-      dom.forEach(this._summary, ({id, label, value, clickToCopy}) =>
+      dom.forEach(this._summary, ({ id, label, value, clickToCopy }) =>
         cssSummaryPart(
-          label ? dom('span', cssLabelText(label), cssCopyIcon('Copy')) : null,
+          label ? dom("span", cssLabelText(label), cssCopyIcon("Copy")) : null,
           value,
-          cssSummaryPart.cls('-copyable', Boolean(clickToCopy)),
-          (clickToCopy ? dom.on('click', (ev, elem) => doCopy(value, elem)) : null),
+          cssSummaryPart.cls("-copyable", Boolean(clickToCopy)),
+          (clickToCopy ? dom.on("click", (ev, elem) => doCopy(value, elem)) : null),
           testId(id),
-        )
+        ),
       ),
     );
   }
 
-  private _onSpliceChange(splice: {start: number}) {
+  private _onSpliceChange(splice: { start: number }) {
     const rowRange = this._rowRange.get();
     const rowCount = rowRange.end - rowRange.begin;
     if (rowCount === 1) { return; }
@@ -181,11 +182,11 @@ export class SelectionSummary extends Disposable {
         let countNumeric = 0;
         let countNonEmpty = 0;
         let sum = 0;
-        let sumFormatter: BaseFormatter|null = null;
+        let sumFormatter: BaseFormatter | null = null;
         const rowIndices: number[] = [];
         for (let r = rowRange.begin; r < rowRange.end; r++) {
           const rowId = rowArray[r];
-          if (rowId === undefined || rowId === 'new') {
+          if (rowId === undefined || rowId === "new") {
             // We can run into this whenever the selection gets out of sync due to external
             // changes, like another user removing some rows. For now, we'll skip rows that are
             // still selected and no longer exist, but the real TODO is to better update the
@@ -217,11 +218,11 @@ export class SelectionSummary extends Disposable {
           if (!values) {
             throw new UserError(`Invalid column ${this._tableData.tableId}.${displayColId}`);
           }
-          const isNumeric = ['Numeric', 'Int', 'Any'].includes(effectiveColType);
+          const isNumeric = ["Numeric", "Int", "Any"].includes(effectiveColType);
           const isEmpty: undefined | ((value: CellValue) => boolean) = (
-            colType.startsWith('Ref:') && !visibleColType ? value => (value === 0) :
-            isRefListType(colType) || isListType(effectiveColType) ? isEmptyList :
-            undefined
+            colType.startsWith("Ref:") && !visibleColType ? value => (value === 0) :
+              isRefListType(colType) || isListType(effectiveColType) ? isEmptyList :
+                undefined
           );
           // The loops below are optimized, minimizing the amount of work done per row. For
           // example, column values are retrieved in bulk above instead of once per row. In one
@@ -234,17 +235,17 @@ export class SelectionSummary extends Disposable {
             }
             for (const i of rowIndices) {
               const value = values[i];
-              if (typeof value === 'number') {
+              if (typeof value === "number") {
                 countNumeric++;
                 sum += value;
-              } else if (value !== null && value !== undefined && value !== '' && !isEmpty?.(value)) {
+              } else if (value !== null && value !== undefined && value !== "" && !isEmpty?.(value)) {
                 countNonEmpty++;
               }
             }
           } else {
             for (const i of rowIndices) {
               const value = values[i];
-              if (value !== null && value !== undefined && value !== '' && value !== false && !isEmpty?.(value)) {
+              if (value !== null && value !== undefined && value !== "" && value !== false && !isEmpty?.(value)) {
                 countNonEmpty++;
               }
             }
@@ -253,12 +254,12 @@ export class SelectionSummary extends Disposable {
 
         if (countNumeric > 0) {
           const sumValue = sumFormatter ? sumFormatter.formatAny(sum) : String(sum);
-          summary.push({id: 'sum', label: 'Sum ', value: sumValue, clickToCopy: true});
+          summary.push({ id: "sum", label: "Sum ", value: sumValue, clickToCopy: true });
         } else {
-          summary.push({id: 'count', label: 'Count ', value: String(countNonEmpty), clickToCopy: true});
+          summary.push({ id: "count", label: "Count ", value: String(countNonEmpty), clickToCopy: true });
         }
       }
-      summary.push({id: 'dimensions', label: '', value: `${rowCount}⨯${colCount}`});
+      summary.push({ id: "dimensions", label: "", value: `${rowCount}⨯${colCount}` });
     }
     this._summary.set(summary);
   }
@@ -266,10 +267,10 @@ export class SelectionSummary extends Disposable {
 
 async function doCopy(value: string, elem: Element) {
   await copyToClipboard(value);
-  showTransientTooltip(elem, t("Copied to clipboard"), {key: 'copy-selection-summary'});
+  showTransientTooltip(elem, t("Copied to clipboard"), { key: "copy-selection-summary" });
 }
 
-const cssSummary = styled('div', `
+const cssSummary = styled("div", `
   position: absolute;
   bottom: -18px;
   height: 18px;
@@ -290,7 +291,7 @@ const cssSummary = styled('div', `
 
 // Note: the use of an extra element for the background is to set its opacity, to make it a bit
 // lighter (or darker, in dark-mode) than actual mediumGrey, without defining a special color.
-const cssSummaryPart = styled('div', `
+const cssSummaryPart = styled("div", `
   padding: 0 8px;
   border-radius: 4px;
   border-top-left-radius: 0px;
@@ -320,7 +321,7 @@ const cssSummaryPart = styled('div', `
   }
 `);
 
-const cssLabelText = styled('span', `
+const cssLabelText = styled("span", `
   font-size: ${vars.xsmallFontSize};
   text-transform: uppercase;
   position: relative;

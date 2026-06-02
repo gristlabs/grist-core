@@ -8,6 +8,16 @@
         "og-title": "Grist, η εξέλιξη των υπολογιστικών φύλλων"
     },
     "access": {
-        "docNoAccess": "Δεν έχετε πρόσβαση σε αυτό το έγγραφο."
+        "docNoAccess": "Δεν έχετε πρόσβαση σε αυτό το έγγραφο.",
+        "docDisabled": "Αυτό το έγγραφο είναι απενεργοποιημένο."
+    },
+    "admin": {
+        "emptyOrg": "Δεν βρέθηκαν κάτοχοι στον οργανισμό διαχείρισης που ορίζεται από το `GRIST_INSTALL_ADMIN_ORG={{org}}`",
+        "orgUser": "Ο χρήστης είναι κάτοχος του οργανισμού διαχείρισης που ορίζεται από το `GRIST_INSTALL_ADMIN_ORG={{org}}`",
+        "noAdminEmail": "Λείπει ο λογαριασμός διαχειριστή επειδή δεν έχουν οριστεί τα `GRIST_ADMIN_EMAIL` και `GRIST_DEFAULT_EMAIL`",
+        "accountByEmail": "Λογαριασμός διαχειριστή που ορίζεται από το `GRIST_DEFAULT_EMAIL={{defaultEmail}}`"
+    },
+    "DocApi": {
+        "UntitledDocument": "Έγγραφο χωρίς τίτλο"
     }
 }

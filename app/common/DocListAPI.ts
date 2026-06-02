@@ -1,19 +1,19 @@
-import {MinimalActionGroup} from 'app/common/ActionGroup';
-import {TableDataAction} from 'app/common/DocActions';
-import {FilteredDocUsageSummary} from 'app/common/DocUsage';
-import {Role} from 'app/common/roles';
-import {StringUnion} from 'app/common/StringUnion';
-import {UserInfo} from 'app/common/User';
-import {FullUser} from 'app/common/UserAPI';
+import { MinimalActionGroup } from "app/common/ActionGroup";
+import { TableDataAction } from "app/common/DocActions";
+import { FilteredDocUsageSummary } from "app/common/DocUsage";
+import { Role } from "app/common/roles";
+import { StringUnion } from "app/common/StringUnion";
+import { UserInfo } from "app/common/User";
+import { FullUser } from "app/common/UserAPI";
 
 // Possible flavors of items in a list of documents.
-export type DocEntryTag = ''|'sample'|'invite'|'shared';
+export type DocEntryTag = "" | "sample" | "invite" | "shared";
 
 export const OpenDocMode = StringUnion(
-  'default',  // open doc with user's maximal access level
-  'view',     // open doc limited to view access (if user has at least that level of access)
-  'fork',     // as for 'view', but suggest a fork on any attempt to edit - the client will
-              // enable the editing UI experience and trigger a fork on any edit.
+  "default",  // open doc with user's maximal access level
+  "view",     // open doc limited to view access (if user has at least that level of access)
+  "fork",     // as for 'view', but suggest a fork on any attempt to edit - the client will
+  // enable the editing UI experience and trigger a fork on any edit.
 );
 export type OpenDocMode = typeof OpenDocMode.type;
 
@@ -73,7 +73,7 @@ export interface DocCreationInfo {
 export interface OpenLocalDocResult {
   docFD: number;
   clientId: string;  // the docFD is meaningful only in the context of this session
-  doc: {[tableId: string]: TableDataAction};
+  doc: { [tableId: string]: TableDataAction };
   log: MinimalActionGroup[];
   isTimingOn: boolean;
   user: UserInfo;
@@ -83,15 +83,15 @@ export interface OpenLocalDocResult {
 }
 
 export interface UserOverride {
-  user: FullUser|null;
-  access: Role|null;
+  user: FullUser | null;
+  access: Role | null;
 }
 
 export interface DocListAPI {
   /**
    * Returns a all known Grist documents and document invites to show in the doc list.
    */
-  getDocList(): Promise<{docs: DocEntry[], docInvites: DocEntry[]}>;
+  getDocList(): Promise<{ docs: DocEntry[], docInvites: DocEntry[] }>;
 
   /**
    * Creates a new document, fetches it, and adds a table to it. Returns its name.

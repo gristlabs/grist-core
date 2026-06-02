@@ -67,25 +67,27 @@
  * "migrations" array, and modifying create() to create correct new documents.
  */
 
-import {delay} from 'app/common/delay';
-import {ErrorWithCode} from 'app/common/ErrorWithCode';
-import {timeFormat} from 'app/common/timeFormat';
-import {create} from 'app/server/lib/create';
-import * as docUtils from 'app/server/lib/docUtils';
-import log from 'app/server/lib/log';
+import { delay } from "app/common/delay";
+import { ErrorWithCode } from "app/common/ErrorWithCode";
+import { timeFormat } from "app/common/timeFormat";
+import { create } from "app/server/lib/create";
+import * as docUtils from "app/server/lib/docUtils";
+import log from "app/server/lib/log";
 import {
   Backup, MinDB, MinDBOptions, MinRunResult, PreparedStatement, ResultRow,
-  SqliteVariant, Statement} from 'app/server/lib/SqliteCommon';
-import {NodeSqliteVariant} from 'app/server/lib/SqliteNode';
-import assert from 'assert';
-import * as fse from 'fs-extra';
-import fromPairs = require('lodash/fromPairs');
-import isEqual = require('lodash/isEqual');
-import noop = require('lodash/noop');
-import range = require('lodash/range');
-import {AsyncLocalStorage} from 'node:async_hooks';
+  SqliteVariant, Statement } from "app/server/lib/SqliteCommon";
+import { NodeSqliteVariant } from "app/server/lib/SqliteNode";
 
-export type {PreparedStatement, ResultRow, Statement};
+import assert from "assert";
+import { AsyncLocalStorage } from "node:async_hooks";
+
+import * as fse from "fs-extra";
+import fromPairs from "lodash/fromPairs";
+import isEqual from "lodash/isEqual";
+import noop from "lodash/noop";
+import range from "lodash/range";
+
+export type { PreparedStatement, ResultRow, Statement };
 export type RunResult = MinRunResult;
 
 // A little bit of async local storage, for nested transactions.
@@ -114,7 +116,7 @@ export interface SchemaInfo {
   // If you may open DBs created without versioning (e.g. predate use of this module), such DBs
   // will go through all migrations including the very first one. In this case, the first
   // migration's job is to bring any older DB to the same consistent state.
-  readonly migrations: ReadonlyArray<DBFunc>;
+  readonly migrations: readonly DBFunc[];
 }
 
 export type DBFunc = (db: SQLiteDB) => Promise<void>;
@@ -141,7 +143,7 @@ export interface MigrationHooks {
 export interface ISQLiteDB {
   exec(sql: string): Promise<void>;
   run(sql: string, ...params: any[]): Promise<RunResult>;
-  get(sql: string, ...params: any[]): Promise<ResultRow|undefined>;
+  get(sql: string, ...params: any[]): Promise<ResultRow | undefined>;
   all(sql: string, ...params: any[]): Promise<ResultRow[]>;
   prepare(sql: string, ...params: any[]): Promise<PreparedStatement>;
   execTransaction<T>(callback: () => Promise<T>): Promise<T>;
@@ -167,8 +169,8 @@ export class SQLiteDB implements ISQLiteDB {
    * We report the migration error, and expose it via .migrationError property.
    */
   public static async openDB(dbPath: string, schemaInfo: SchemaInfo,
-                             mode: OpenMode = OpenMode.OPEN_CREATE,
-                             hooks: MigrationHooks = {}): Promise<SQLiteDB> {
+    mode: OpenMode = OpenMode.OPEN_CREATE,
+    hooks: MigrationHooks = {}): Promise<SQLiteDB> {
     const db = await SQLiteDB.openDBRaw(dbPath, mode);
     const userVersion: number = await db.getMigrationVersion();
 
@@ -178,7 +180,7 @@ export class SQLiteDB implements ISQLiteDB {
       await db._initNewDB(schemaInfo);
     } else if (mode === OpenMode.CREATE_EXCL) {
       await db.close();
-      throw new ErrorWithCode('EEXISTS', `EEXISTS: Database already exists: ${dbPath}`);
+      throw new ErrorWithCode("EEXISTS", `EEXISTS: Database already exists: ${dbPath}`);
     } else {
       // Don't attempt migrations in OPEN_READONLY mode.
       if (mode === OpenMode.OPEN_READONLY) {
@@ -203,7 +205,7 @@ export class SQLiteDB implements ISQLiteDB {
    * any migrations.
    */
   public static async openDBRaw(dbPath: string,
-                                mode: OpenMode = OpenMode.OPEN_CREATE): Promise<SQLiteDB> {
+    mode: OpenMode = OpenMode.OPEN_CREATE): Promise<SQLiteDB> {
     const minDb: MinDB = await getVariant().opener(dbPath, mode);
     if (SQLiteDB._addOpens(dbPath, 1) > 1) {
       log.warn("SQLiteDB[%s] avoid opening same DB more than once", dbPath);
@@ -226,7 +228,7 @@ export class SQLiteDB implements ISQLiteDB {
   // It is a bad idea to open the same database file multiple times, because simultaneous use can
   // cause SQLITE_BUSY errors, and artificial delays (default of 1 sec) when there is contention.
   // We keep track of open DB paths, and warn if one is opened multiple times.
-  private static _openPaths: Map<string, number> = new Map();
+  private static _openPaths = new Map<string, number>();
 
   // Convert the "create" function from schemaInfo into a DBMetadata object that describes the
   // tables, columns, and types. This is used for checking if an open database matches the
@@ -236,7 +238,7 @@ export class SQLiteDB implements ISQLiteDB {
     // build. To build the metadata, we open an in-memory DB and apply "create" function to it.
     // Note that for tiny DBs it takes <10ms.
     if (!dbMetadataCache.has(schemaInfo.create)) {
-      const db = await SQLiteDB.openDB(':memory:', schemaInfo, OpenMode.CREATE_EXCL);
+      const db = await SQLiteDB.openDB(":memory:", schemaInfo, OpenMode.CREATE_EXCL);
       dbMetadataCache.set(schemaInfo.create, await db.collectMetadata());
       await db.close();
     }
@@ -255,15 +257,14 @@ export class SQLiteDB implements ISQLiteDB {
     return newCount;
   }
 
-
   private _prevTransaction: Promise<any> = Promise.resolve();
-  private _migrationBackupPath: string|null = null;
-  private _migrationError: Error|null = null;
+  private _migrationBackupPath: string | null = null;
+  private _migrationError: Error | null = null;
   private _needVacuum: boolean = false;
   private _closed: boolean = false;
-  private _paused: Promise<void>|undefined = undefined;
-  private _pauseResolve: (() => void)|undefined = undefined;
-  private _pauseReject: ((reason?: any) => void)|undefined = undefined;
+  private _paused: Promise<void> | undefined = undefined;
+  private _pauseResolve: (() => void) | undefined = undefined;
+  private _pauseReject: ((reason?: any) => void) | undefined = undefined;
 
   private constructor(protected _db: MinDB, private _dbPath: string) {
   }
@@ -274,12 +275,12 @@ export class SQLiteDB implements ISQLiteDB {
 
   public backup(filename: string): Backup {
     if (!this._db.backup) {
-      throw new Error('SQLite wrapper does not support backups');
+      throw new Error("SQLite wrapper does not support backups");
     }
     return this._db.backup(filename);
   }
 
-  public getOptions(): MinDBOptions|undefined {
+  public getOptions(): MinDBOptions | undefined {
     return this._db.getOptions?.();
   }
 
@@ -307,7 +308,7 @@ export class SQLiteDB implements ISQLiteDB {
     return this._db.prepare(sql);
   }
 
-  public get(sql: string, ...args: any[]): Promise<ResultRow|undefined> {
+  public get(sql: string, ...args: any[]): Promise<ResultRow | undefined> {
     return this._db.get(sql, ...args);
   }
 
@@ -315,7 +316,7 @@ export class SQLiteDB implements ISQLiteDB {
    * If a DB was migrated on open, this will be set to the path of the pre-migration backup copy.
    * If migration failed, open throws with unchanged DB and no backup file.
    */
-  public get migrationBackupPath(): string|null { return this._migrationBackupPath; }
+  public get migrationBackupPath(): string | null { return this._migrationBackupPath; }
 
   /**
    * If a needed migration failed, the DB will be opened anyway, with this property set to the
@@ -323,7 +324,7 @@ export class SQLiteDB implements ISQLiteDB {
    *    sdb = await SQLiteDB.openDB(...)
    *    if (sdb.migrationError) { throw sdb.migrationError; }
    */
-  public get migrationError(): Error|null { return this._migrationError; }
+  public get migrationError(): Error | null { return this._migrationError; }
 
   // The following methods mirror https://github.com/mapbox/node-sqlite3/wiki/API, but return
   // Promises. We use fromCallback() rather than use promisify, to get better type-checking.
@@ -359,7 +360,7 @@ export class SQLiteDB implements ISQLiteDB {
    * Run each of the statements in turn. Each statement is either a string, or an array of arguments
    * to db.run, e.g. [sqlString, [params...]].
    */
-  public async runEach(...statements: Array<string | [string, any[]]>): Promise<void> {
+  public async runEach(...statements: (string | [string, any[]])[]): Promise<void> {
     for (const stmt of statements) {
       try {
         if (Array.isArray(stmt)) {
@@ -378,7 +379,7 @@ export class SQLiteDB implements ISQLiteDB {
     const alreadyClosed = this._closed;
     this._closed = true;
     if (!alreadyClosed) {
-      this._pauseReject?.(new Error('SQLiteDB closing, writes should stop'));
+      this._pauseReject?.(new Error("SQLiteDB closing, writes should stop"));
       let tries: number = 0;
       // We might not be able to close immediately if a backup is in
       // progress. We will retry for about 10 seconds. Worst case is
@@ -451,9 +452,9 @@ export class SQLiteDB implements ISQLiteDB {
       // Then assign that promise to _prevTransaction and wait for it.
       return await (
         this._prevTransaction =
-            this._prevTransaction.catch(noop).then(
-              () => asyncLocalStorage.run(true, () => this._execTransactionImpl(callback))
-            )
+          this._prevTransaction.catch(noop).then(
+            () => asyncLocalStorage.run(true, () => this._execTransactionImpl(callback)),
+          )
       );
     } finally {
       if (this._needVacuum) {
@@ -468,7 +469,7 @@ export class SQLiteDB implements ISQLiteDB {
    */
   public async getMigrationVersion(): Promise<number> {
     const row = await this.get("PRAGMA user_version");
-    return (row && row.user_version) || 0;
+    return (row?.user_version) || 0;
   }
 
   /**
@@ -522,12 +523,12 @@ export class SQLiteDB implements ISQLiteDB {
       // of this callback, that should be the case.
       const value = await callback();
       await this.exec("COMMIT");
-        return value;
+      return value;
     } catch (err) {
       try {
         await this.exec("ROLLBACK");
       } catch (rollbackErr) {
-          log.error("SQLiteDB[%s]: Rollback failed: %s", this._dbPath, rollbackErr);
+        log.error("SQLiteDB[%s]: Rollback failed: %s", this._dbPath, rollbackErr);
       }
       throw err;    // Throw the original error from the transaction.
     }
@@ -552,9 +553,9 @@ export class SQLiteDB implements ISQLiteDB {
    * needed, returns null. If migration failed, leaves DB unchanged and throws Error.
    */
   private async _migrate(actualVer: number, schemaInfo: SchemaInfo,
-                         hooks: MigrationHooks): Promise<string|null> {
+    hooks: MigrationHooks): Promise<string | null> {
     const targetVer: number = schemaInfo.migrations.length;
-    let backupPath: string|null = null;
+    let backupPath: string | null = null;
     let success: boolean = false;
 
     if (actualVer > targetVer) {
@@ -620,7 +621,7 @@ export class SQLiteDB implements ISQLiteDB {
 // Every SchemaInfo.create function determines a DB structure. We can get it by initializing a
 // dummy DB, and we use it to do sanity checking, in particular after migrations. To avoid
 // creating dummy DBs multiple times, the result is cached, keyed by the "create" function itself.
-const dbMetadataCache: Map<DBFunc, DBMetadata> = new Map();
+const dbMetadataCache = new Map<DBFunc, DBMetadata>();
 export interface DBMetadata {
   [tableName: string]: {
     [colName: string]: string;      // Maps column name to SQLite type, e.g. "TEXT".
@@ -638,7 +639,7 @@ async function isGristEmpty(db: SQLiteDB): Promise<boolean> {
  */
 async function createBackupFile(filePath: string, versionNum: number): Promise<string> {
   const backupPath = await docUtils.createNumberedTemplate(
-   `${filePath}.${timeFormat('D', new Date())}.V${versionNum}{NUM}.bak`,
+    `${filePath}.${timeFormat("D", new Date())}.V${versionNum}{NUM}.bak`,
     docUtils.createExclusive);
   await docUtils.copyFile(filePath, backupPath);
   return backupPath;

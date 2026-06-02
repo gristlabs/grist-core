@@ -1,16 +1,17 @@
-import {getTimeFromNow} from 'app/client/lib/timeUtils';
-import {docUrl, urlState} from 'app/client/models/gristUrlState';
-import {HomeModel} from 'app/client/models/HomeModel';
-import {makeDocOptionsMenu} from 'app/client/ui/DocList';
-import {makeRemovedDocOptionsMenu} from 'app/client/ui/DocMenu';
-import {colors, theme, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {menu} from 'app/client/ui2018/menus';
-import * as roles from 'app/common/roles';
-import {Document, Workspace} from 'app/common/UserAPI';
-import {dom, makeTestId, Observable, styled} from 'grainjs';
+import { getTimeFromNow } from "app/client/lib/timeUtils";
+import { docUrl, urlState } from "app/client/models/gristUrlState";
+import { HomeModel } from "app/client/models/HomeModel";
+import { makeDocOptionsMenu } from "app/client/ui/DocList";
+import { makeRemovedDocOptionsMenu } from "app/client/ui/DocMenu";
+import { colors, theme, vars } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { menu } from "app/client/ui2018/menus";
+import * as roles from "app/common/roles";
+import { Document, Workspace } from "app/common/UserAPI";
 
-const testId = makeTestId('test-dm-');
+import { dom, makeTestId, Observable, styled } from "grainjs";
+
+const testId = makeTestId("test-dm-");
 
 /**
  * Builds a list of pinned documents, or nothing if there are no pinned docs.
@@ -21,7 +22,7 @@ const testId = makeTestId('test-dm-');
 export function createPinnedDocs(home: HomeModel, docs: Observable<Document[]>, isExample = false) {
   return pinnedDocList(
     dom.forEach(docs, doc => buildPinnedDoc(home, doc, doc.workspace, isExample)),
-    testId('pinned-doc-list'),
+    testId("pinned-doc-list"),
   );
 }
 
@@ -37,54 +38,54 @@ export function buildPinnedDoc(home: HomeModel, doc: Document, workspace: Worksp
     pinnedDoc(
       doc.removedAt ?
         null :
-        urlState().setLinkUrl({...docUrl(doc), ...(isExample ? {org: workspace.orgDomain} : {})}),
-      pinnedDoc.cls('-no-access', !roles.canView(doc.access)),
+        urlState().setLinkUrl({ ...docUrl(doc), ...(isExample ? { org: workspace.orgDomain } : {}) }),
+      pinnedDoc.cls("-no-access", !roles.canView(doc.access)),
       pinnedDocPreview(
         (doc.options?.icon ?
-          cssImage({src: doc.options.icon}) :
+          cssImage({ src: doc.options.icon }) :
           [docInitials(doc.name), pinnedDocThumbnail()]
         ),
-        (doc.public && !isExample ? cssPublicIcon('PublicFilled', testId('public')) : null),
-        pinnedDocPreview.cls('-with-icon', Boolean(doc.options?.icon)),
+        (doc.public && !isExample ? cssPublicIcon("PublicFilled", testId("public")) : null),
+        pinnedDocPreview.cls("-with-icon", Boolean(doc.options?.icon)),
       ),
       pinnedDocFooter(
         pinnedDocTitle(
           dom.text(doc.name),
-          testId('pinned-doc-name'),
+          testId("pinned-doc-name"),
           // Mostly for the sake of tests, allow .test-dm-pinned-doc-name to find documents in
           // either 'list' or 'icons' views.
-          testId('doc-name')
+          testId("doc-name"),
         ),
         doc.options?.description ?
-          cssPinnedDocDesc(doc.options.description, testId('pinned-doc-desc')) :
+          cssPinnedDocDesc(doc.options.description, testId("pinned-doc-desc")) :
           cssPinnedDocTimestamp(
             capitalizeFirst(getTimeFromNow(doc.removedAt || doc.updatedAt)),
-            testId('pinned-doc-desc')
-          )
-      )
+            testId("pinned-doc-desc"),
+          ),
+      ),
     ),
     isExample ? null : (doc.removedAt ?
       [
         // For deleted documents, attach the menu to the entire doc icon, and include the
         // "Dots" icon just to clarify that there are options.
         menu(() => makeRemovedDocOptionsMenu(home, doc, workspace),
-          {placement: 'right-start'}),
-        pinnedDocOptions(icon('Dots'), testId('pinned-doc-options')),
+          { placement: "right-start" }),
+        pinnedDocOptions(icon("Dots"), testId("pinned-doc-options")),
       ] :
-      pinnedDocOptions(icon('Dots'),
+      pinnedDocOptions(icon("Dots"),
         menu(() => makeDocOptionsMenu(home, doc),
-          {placement: 'bottom-start'}),
+          { placement: "bottom-start" }),
         // Clicks on the menu trigger shouldn't follow the link that it's contained in.
-        dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
-        testId('pinned-doc-options'),
+        dom.on("click", (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
+        testId("pinned-doc-options"),
       )
     ),
-    testId('pinned-doc')
+    testId("pinned-doc"),
   );
 }
 
 function docInitials(docTitle: string) {
-  return cssDocInitials(docTitle.slice(0, 2), testId('pinned-initials'));
+  return cssDocInitials(docTitle.slice(0, 2), testId("pinned-initials"));
 }
 
 // Capitalizes the first letter in the given string.
@@ -92,7 +93,7 @@ function capitalizeFirst(str: string): string {
   return str.replace(/^[a-z]/gi, c => c.toUpperCase());
 }
 
-const pinnedDocList = styled('div', `
+const pinnedDocList = styled("div", `
   display: flex;
   overflow-x: auto;
   overflow-y: hidden;
@@ -100,7 +101,7 @@ const pinnedDocList = styled('div', `
   margin: 0 0 28px 0;
 `);
 
-const pinnedDocWrapper = styled('div', `
+const pinnedDocWrapper = styled("div", `
   display: inline-block;
   flex: 0 0 auto;
   position: relative;
@@ -119,7 +120,7 @@ const pinnedDocWrapper = styled('div', `
   }
 `);
 
-const pinnedDoc = styled('a', `
+const pinnedDoc = styled("a", `
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -137,7 +138,7 @@ const pinnedDoc = styled('a', `
   }
 `);
 
-const pinnedDocPreview = styled('div', `
+const pinnedDocPreview = styled("div", `
   position: relative;
   flex: none;
   width: 100%;
@@ -159,7 +160,7 @@ const pinnedDocPreview = styled('div', `
   }
 `);
 
-const pinnedDocThumbnail = styled('div', `
+const pinnedDocThumbnail = styled("div", `
   position: absolute;
   right: 20px;
   bottom: 20px;
@@ -171,7 +172,7 @@ const pinnedDocThumbnail = styled('div', `
   background-position: center;
 `);
 
-const cssDocInitials = styled('div', `
+const cssDocInitials = styled("div", `
   position: absolute;
   left: 20px;
   bottom: 20px;
@@ -185,7 +186,7 @@ const cssDocInitials = styled('div', `
   text-align: center;
 `);
 
-const pinnedDocOptions = styled('div', `
+const pinnedDocOptions = styled("div", `
   position: absolute;
   top: 12px;
   right: 12px;
@@ -204,13 +205,13 @@ const pinnedDocOptions = styled('div', `
   }
 `);
 
-const pinnedDocFooter = styled('div', `
+const pinnedDocFooter = styled("div", `
   width: 100%;
   font-size: ${vars.mediumFontSize};
   background-color: ${theme.pinnedDocFooterBg};
 `);
 
-const pinnedDocTitle = styled('div', `
+const pinnedDocTitle = styled("div", `
   margin: 16px 16px 0px 16px;
   font-weight: bold;
   white-space: nowrap;
@@ -218,7 +219,7 @@ const pinnedDocTitle = styled('div', `
   text-overflow: ellipsis;
 `);
 
-const cssPinnedDocTimestamp = styled('div', `
+const cssPinnedDocTimestamp = styled("div", `
   margin: 8px 16px 16px 16px;
   color: ${theme.lightText};
 `);
@@ -236,7 +237,7 @@ const cssPinnedDocDesc = styled(cssPinnedDocTimestamp, `
   word-break: break-word;
 `);
 
-const cssImage = styled('img', `
+const cssImage = styled("img", `
   position: relative;
   background-color: ${colors.dark};
   height: 100%;

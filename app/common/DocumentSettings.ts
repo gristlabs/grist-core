@@ -1,5 +1,6 @@
-import {CheckerT, createCheckers} from 'ts-interface-checker';
-import DocumentSettingsTI from 'app/common/DocumentSettings-ti';
+import DocumentSettingsTI from "app/common/DocumentSettings-ti";
+
+import { CheckerT, createCheckers } from "ts-interface-checker";
 
 export interface DocumentSettings {
   locale: string;
@@ -13,13 +14,24 @@ export interface DocumentSettings {
   // the string "external", after thinking carefully about how downloads/uploads and transferring
   // files to other installations could work.
   attachmentStoreId?: string;
+  // action to treat as a starting point, e.g. when a fork or
+  // copy is made.
+  baseAction?: DocState;
 }
 
 /**
  * The back-end will for now support one engine,
  * a gvisor-backed python3.
  */
-export type EngineCode = 'python3';
+export type EngineCode = "python3";
+
+/**
+ * Information about a single document state.
+ */
+export interface DocState {
+  n: number;  // a sequential identifier
+  h: string;  // a hash identifier
+}
 
 const checkers = createCheckers(DocumentSettingsTI);
 export const DocumentSettingsChecker = checkers.DocumentSettings as CheckerT<DocumentSettings>;

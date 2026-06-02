@@ -1,7 +1,7 @@
-var dispose = require('../lib/dispose');
-const {theme} = require('app/client/ui2018/cssVars');
-const {CellStyle} = require('app/client/widgets/CellStyle');
-const {dom} = require('grainjs');
+var dispose = require("../lib/dispose");
+const {theme} = require("app/client/ui2018/cssVars");
+const {CellStyle} = require("app/client/widgets/CellStyle");
+const {dom} = require("grainjs");
 
 /**
  * AbstractWidget - The base of the inheritance tree for widgets.

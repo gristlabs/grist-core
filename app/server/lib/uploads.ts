@@ -1,31 +1,33 @@
-import {ApiError} from 'app/common/ApiError';
-import {InactivityTimer} from 'app/common/InactivityTimer';
-import {FetchUrlOptions, FileUploadResult, UPLOAD_URL_PATH, UploadResult} from 'app/common/uploads';
-import {getUrlFromPrefix} from 'app/common/UserAPI';
-import {getAuthorizedUserId, getTransitiveHeaders, getUserId, isSingleUserMode,
-        RequestWithLogin} from 'app/server/lib/Authorizer';
-import {expressWrap} from 'app/server/lib/expressWrap';
-import {downloadFromGDrive, isDriveUrl} from 'app/server/lib/GoogleImport';
-import {GristServer, RequestWithGrist} from 'app/server/lib/GristServer';
-import {guessExt} from 'app/server/lib/guessExt';
-import log from 'app/server/lib/log';
-import {fetchUntrustedWithAgent} from 'app/server/lib/ProxyAgent';
-import {optStringParam} from 'app/server/lib/requestUtils';
-import {isPathWithin} from 'app/server/lib/serverUtils';
-import * as shutdown from 'app/server/lib/shutdown';
-import {drainWhenSettled} from 'app/server/utils/streams';
-import {fromCallback} from 'bluebird';
-import * as contentDisposition from 'content-disposition';
-import {Application, Request, RequestHandler, Response} from 'express';
-import * as fse from 'fs-extra';
-import pick = require('lodash/pick');
-import * as multiparty from 'multiparty';
-import {Response as FetchResponse} from 'node-fetch';
-import stream from 'node:stream';
-import * as path from 'path';
-import * as tmp from 'tmp';
-import {IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
-import {getDocWorkerInfoOrSelfPrefix} from 'app/server/lib/DocWorkerUtils';
+import { ApiError } from "app/common/ApiError";
+import { InactivityTimer } from "app/common/InactivityTimer";
+import { FetchUrlOptions, FileUploadResult, UPLOAD_URL_PATH, UploadResult } from "app/common/uploads";
+import { getUrlFromPrefix } from "app/common/UserAPI";
+import { getAuthorizedUserId, getTransitiveHeaders, getUserId, isSingleUserMode,
+  RequestWithLogin } from "app/server/lib/Authorizer";
+import { IDocWorkerMap } from "app/server/lib/DocWorkerMap";
+import { getDocWorkerInfoOrSelfPrefix } from "app/server/lib/DocWorkerUtils";
+import { expressWrap } from "app/server/lib/expressWrap";
+import { downloadFromGDrive, isDriveUrl } from "app/server/lib/GoogleImport";
+import { GristServer, RequestWithGrist } from "app/server/lib/GristServer";
+import { guessExt } from "app/server/lib/guessExt";
+import log from "app/server/lib/log";
+import { fetchUntrustedWithAgent } from "app/server/lib/ProxyAgent";
+import { optStringParam } from "app/server/lib/requestUtils";
+import { isPathWithin } from "app/server/lib/serverUtils";
+import * as shutdown from "app/server/lib/shutdown";
+import { drainWhenSettled } from "app/server/utils/streams";
+
+import stream from "node:stream";
+import * as path from "path";
+
+import { fromCallback } from "bluebird";
+import * as contentDisposition from "content-disposition";
+import { Application, Request, RequestHandler, Response } from "express";
+import * as fse from "fs-extra";
+import pick from "lodash/pick";
+import * as multiparty from "multiparty";
+import { Response as FetchResponse } from "node-fetch";
+import * as tmp from "tmp";
 
 // After some time of inactivity, clean up the upload. We give an hour, which seems generous,
 // except that if one is toying with import options, and leaves the upload in an open browser idle
@@ -33,12 +35,12 @@ import {getDocWorkerInfoOrSelfPrefix} from 'app/server/lib/DocWorkerUtils';
 const INACTIVITY_CLEANUP_MS = 60 * 60 * 1000;     // an hour, very generously.
 
 // A hook for dependency injection.
-export const Deps = {fetch: fetchUntrustedWithAgent, INACTIVITY_CLEANUP_MS};
+export const Deps = { fetch: fetchUntrustedWithAgent, INACTIVITY_CLEANUP_MS };
 
 // An optional UploadResult, with parameters.
 export interface FormResult {
   upload?: UploadResult;
-  parameters?: {[key: string]: string};
+  parameters?: { [key: string]: string };
 }
 
 /**
@@ -50,10 +52,9 @@ export function addUploadRoute(
   docWorkerMap: IDocWorkerMap,
   ...handlers: RequestHandler[]
 ): void {
-
   // When doing a cross-origin post, the browser will check for access with options prior to posting.
   // We need to reassure it that the request will be accepted before it will go ahead and post.
-  expressApp.options([`/${UPLOAD_URL_PATH}`, '/copy'], ...handlers, async (req, res) => {
+  expressApp.options([`/${UPLOAD_URL_PATH}`, "/copy"], ...handlers, async (req, res) => {
     // Origin is checked by middleware - if we get this far, we are ok.
     res.status(200).send();
   });
@@ -71,26 +72,26 @@ export function addUploadRoute(
       }
       // Respond with a JSON error like jsonErrorHandler does for API calls,
       // to make it easier for the caller to parse it.
-      res.status(err.status || 500).json({error: err.message || 'internal error'});
+      res.status(err.status || 500).json({ error: err.message || "internal error" });
     }
   }));
 
   // Like upload, but copy data from a document already known to us.
   expressApp.post(`/copy`, ...handlers, expressWrap(async (req: Request, res: Response) => {
-    const docId = optStringParam(req.query.doc, 'doc');
-    const name = optStringParam(req.query.name, 'name');
-    if (!docId) { throw new Error('doc must be specified'); }
+    const docId = optStringParam(req.query.doc, "doc");
+    const name = optStringParam(req.query.name, "name");
+    if (!docId) { throw new Error("doc must be specified"); }
     const accessId = makeAccessId(req, getAuthorizedUserId(req));
     try {
       const uploadResult: UploadResult = await fetchDoc(server, docWorkerMap, docId, req, accessId,
-                                                        req.query.template === '1');
+        req.query.template === "1");
       if (name) {
         globalUploadSet.changeUploadName(uploadResult.uploadId, accessId, name);
       }
       res.status(200).send(JSON.stringify(uploadResult));
-    } catch(err) {
+    } catch (err) {
       if ((err as ApiError).status === 403) {
-        res.status(403).json({error:'Insufficient access to document to copy it entirely'});
+        res.status(403).json({ error: "Insufficient access to document to copy it entirely" });
         return;
       }
       throw err;
@@ -114,8 +115,8 @@ export async function getFileUploadInfo(filePath: string): Promise<FileUploadInf
  * Implementation of the express /upload route.
  */
 export async function handleUpload(req: Request, res: Response): Promise<UploadResult> {
-  const {upload} = await handleOptionalUpload(req, res);
-  if (!upload) { throw new ApiError('missing payload', 400); }
+  const { upload } = await handleOptionalUpload(req, res);
+  if (!upload) { throw new ApiError("missing payload", 400); }
   return upload;
 }
 
@@ -150,12 +151,12 @@ export async function parseMultipartFormRequest(
   const form = new multiparty.Form({ autoField: true });
   const partPromises: Promise<void>[] = [];
   // This only emits files, due to autoField being true
-  form.on('part', (part: any) => {
+  form.on("part", (part: any) => {
     // If the underlying stream breaks, we should unblock the caller.
-    part.on('error', (err: any) => rejectFinished(err));
+    part.on("error", (err: any) => rejectFinished(err));
 
     const filename = part.filename;
-    const contentType = part.headers['content-type'];
+    const contentType = part.headers["content-type"];
     const contentStream = part;
 
     if (!(contentStream instanceof stream.Readable)) {
@@ -168,19 +169,19 @@ export async function parseMultipartFormRequest(
     // in the `onFile` callback, drainWhenSettled guarantees that.
     partPromises.push(drainWhenSettled(part,
       onFile({
-        name: (typeof filename == 'string') ? filename : "",
-        contentType: (typeof contentType == 'string') ? contentType : "",
+        name: (typeof filename == "string") ? filename : "",
+        contentType: (typeof contentType == "string") ? contentType : "",
         stream: contentStream,
-      })
+      }),
     // No sensible way to handle errors from this promise - so do nothing here, and assume the callback
     // handles errors sensibly.
     ).catch(() => {}));
   });
-  form.on('field', onField);
-  form.on('error', function (err: any) {
+  form.on("field", onField);
+  form.on("error", function(err: any) {
     rejectFinished(err);
   });
-  form.on('close', function () {
+  form.on("close", function() {
     resolveFinished();
   });
   form.parse(req);
@@ -198,11 +199,11 @@ export async function parseMultipartFormRequest(
  * and any parameters.
  */
 export async function handleOptionalUpload(req: Request, res: Response): Promise<FormResult> {
-  const {tmpDir, cleanupCallback} = await createTmpDir({});
+  const { tmpDir, cleanupCallback } = await createTmpDir({});
   const mreq = req as RequestWithLogin;
   const meta = {
     org: mreq.org,
-    email: mreq.user && mreq.user.loginEmail,
+    email: mreq.user?.loginEmail,
     userId: mreq.userId,
     altSessionId: mreq.altSessionId,
   };
@@ -212,16 +213,16 @@ export async function handleOptionalUpload(req: Request, res: Response): Promise
   // Note that we don't limit upload sizes here, since this endpoint doesn't know what kind of
   // upload it is, and some uploads are unlimited (e.g. uploading .grist files). Limits are
   // checked in the client, and should be enforced on the server where an upload is processed.
-  const form = new multiparty.Form({uploadDir: tmpDir});
+  const form = new multiparty.Form({ uploadDir: tmpDir });
   const [formFields, formFiles] = await fromCallback((cb: any) => form.parse(req, cb),
-    {multiArgs: true});
+    { multiArgs: true });
 
   // 'upload' is the name of the form field containing file data.
-  let upload: UploadResult|undefined;
+  let upload: UploadResult | undefined;
   if (formFiles.upload) {
     const uploadedFiles: FileUploadInfo[] = [];
     for (const file of formFiles.upload) {
-      const mimeType = file.headers['content-type'];
+      const mimeType = file.headers["content-type"];
       log.rawDebug(`Received file ${file.originalFilename} (${file.size} bytes)`, meta);
       uploadedFiles.push({
         absPath: file.path,
@@ -232,15 +233,15 @@ export async function handleOptionalUpload(req: Request, res: Response): Promise
     }
     const accessId = makeAccessId(req, getUserId(req));
     const uploadId = globalUploadSet.registerUpload(uploadedFiles, tmpDir, cleanupCallback, accessId);
-    const files: FileUploadResult[] = uploadedFiles.map(f => pick(f, ['origName', 'size', 'ext']));
+    const files: FileUploadResult[] = uploadedFiles.map(f => pick(f, ["origName", "size", "ext"]));
     log.rawDebug(`Created uploadId ${uploadId} in tmp dir ${tmpDir}`, meta);
-    upload = {uploadId, files};
+    upload = { uploadId, files };
   }
-  const parameters: {[key: string]: string} = {};
+  const parameters: { [key: string]: string } = {};
   for (const key of Object.keys(formFields)) {
     parameters[key] = formFields[key][0];
   }
-  return {upload, parameters};
+  return { upload, parameters };
 }
 
 /**
@@ -262,28 +263,28 @@ export interface UploadInfo {
 
   files: FileUploadInfo[];      // List of all files included in the upload.
 
-  tmpDir: string|null;          // Temporary directory to remove, containing this upload.
-                                // If present, all files must be direct children of this directory.
+  tmpDir: string | null;          // Temporary directory to remove, containing this upload.
+  // If present, all files must be direct children of this directory.
 
   cleanupCallback: CleanupCB;   // Callback to clean up this upload, including removing tmpDir.
   cleanupTimer: InactivityTimer;
-  accessId: string|null;          // Optional identifier for access control purposes.
+  accessId: string | null;          // Optional identifier for access control purposes.
 }
 
-type CleanupCB = () => void|Promise<void>;
+type CleanupCB = () => void | Promise<void>;
 
 export class UploadSet {
-  private _uploads: Map<number, UploadInfo> = new Map();
+  private _uploads = new Map<number, UploadInfo>();
   private _nextId: number = 0;
 
   /**
    * Register a new upload.
    */
-  public registerUpload(files: FileUploadInfo[], tmpDir: string|null, cleanupCallback: CleanupCB,
-                        accessId: string|null): number {
+  public registerUpload(files: FileUploadInfo[], tmpDir: string | null, cleanupCallback: CleanupCB,
+    accessId: string | null): number {
     const uploadId = this._nextId++;
     const cleanupTimer = new InactivityTimer(() => this.cleanup(uploadId), Deps.INACTIVITY_CLEANUP_MS);
-    this._uploads.set(uploadId, {uploadId, files, tmpDir, cleanupCallback, cleanupTimer, accessId});
+    this._uploads.set(uploadId, { uploadId, files, tmpDir, cleanupCallback, cleanupTimer, accessId });
     cleanupTimer.ping();
     return uploadId;
   }
@@ -291,10 +292,10 @@ export class UploadSet {
   /**
    * Returns full info for the given uploadId, if authorized.
    */
-  public getUploadInfo(uploadId: number, accessId: string|null): UploadInfo {
+  public getUploadInfo(uploadId: number, accessId: string | null): UploadInfo {
     const info = this._getUploadInfoWithoutAuthorization(uploadId);
     if (info.accessId !== accessId) {
-      throw new ApiError('access denied', 403);
+      throw new ApiError("access denied", 403);
     }
     return info;
   }
@@ -333,7 +334,7 @@ export class UploadSet {
    * Changes the name of an uploaded file. It is an error to use if the upload set has more than one
    * file and it will throw.
    */
-  public changeUploadName(uploadId: number, accessId: string|null, name: string) {
+  public changeUploadName(uploadId: number, accessId: string | null, name: string) {
     const info = this.getUploadInfo(uploadId, accessId);
     if (info.files.length > 1) {
       throw new Error("UploadSet.changeUploadName cannot operate on multiple files");
@@ -375,13 +376,13 @@ export async function moveUpload(uploadInfo: UploadInfo, newDir: string): Promis
     return;
   }
   log.debug("UploadSet: moving uploadId %s to %s", uploadInfo.uploadId, newDir);
-  const {tmpDir, cleanupCallback} = await createTmpDir({dir: newDir});
+  const { tmpDir, cleanupCallback } = await createTmpDir({ dir: newDir });
   const move: boolean = Boolean(uploadInfo.tmpDir);
   const files: FileUploadInfo[] = [];
   for (const f of uploadInfo.files) {
     const absPath = path.join(tmpDir, path.basename(f.absPath));
     await (move ? fse.move(f.absPath, absPath) : fse.copy(f.absPath, absPath));
-    files.push({...f, absPath});
+    files.push({ ...f, absPath });
   }
   try {
     await uploadInfo.cleanupCallback();
@@ -389,9 +390,8 @@ export async function moveUpload(uploadInfo: UploadInfo, newDir: string): Promis
     // This is unexpected, but if the move succeeded, let's warn but not fail on cleanup error.
     log.warn(`Error cleaning upload ${uploadInfo.uploadId} after move: ${err}`);
   }
-  Object.assign(uploadInfo, {files, tmpDir, cleanupCallback});
+  Object.assign(uploadInfo, { files, tmpDir, cleanupCallback });
 }
-
 
 interface TmpDirResult {
   tmpDir: string;
@@ -403,10 +403,10 @@ interface TmpDirResult {
  * cleanup callback with an asynchronous version.
  */
 export async function createTmpDir(options: tmp.DirOptions): Promise<TmpDirResult> {
-  const fullOptions = {prefix: 'grist-upload-', unsafeCleanup: true, ...options};
+  const fullOptions = { prefix: "grist-upload-", unsafeCleanup: true, ...options };
 
   const [tmpDir, tmpCleanup]: [string, CleanupCB] = await fromCallback(
-    (cb: any) => tmp.dir(fullOptions, cb), {multiArgs: true});
+    (cb: any) => tmp.dir(fullOptions, cb), { multiArgs: true });
 
   // The `tmp` library sometimes forcibly resolves the path,
   // doing it here makes it predictable behaviour and resistant to library behaviour changes.
@@ -423,50 +423,50 @@ export async function createTmpDir(options: tmp.DirOptions): Promise<TmpDirResul
       // OK if it fails because the dir is already removed.
     }
   }
-  return {tmpDir: realTmpDir, cleanupCallback};
+  return { tmpDir: realTmpDir, cleanupCallback };
 }
 
 /**
  * Register a new upload with resource fetched from a public url. Returns corresponding UploadInfo.
  */
-export async function fetchURL(url: string, accessId: string|null, options?: FetchUrlOptions): Promise<UploadResult> {
-  return _fetchURL(url, accessId, { fileName: path.basename(url), ...options});
+export async function fetchURL(url: string, accessId: string | null, options?: FetchUrlOptions): Promise<UploadResult> {
+  return _fetchURL(url, accessId, { fileName: path.basename(url), ...options });
 }
 
 /**
  * Register a new upload with resource fetched from a url, optionally including credentials in
  * request. Returns corresponding UploadInfo.
  */
-async function _fetchURL(url: string, accessId: string|null, options?: FetchUrlOptions): Promise<UploadResult> {
+async function _fetchURL(url: string, accessId: string | null, options?: FetchUrlOptions): Promise<UploadResult> {
   try {
     const code = options?.googleAuthorizationCode;
-    let fileName = options?.fileName ?? '';
+    let fileName = options?.fileName ?? "";
     const headers = options?.headers;
     let response: FetchResponse;
     if (isDriveUrl(url)) {
       response = await downloadFromGDrive(url, code);
-      fileName = ''; // Read the file name from headers.
+      fileName = ""; // Read the file name from headers.
     } else {
       response = await Deps.fetch(url, {
-        redirect: 'follow',
+        redirect: "follow",
         follow: 10,
-        headers
+        headers,
       });
     }
     await _checkForError(response);
-    if (fileName === '') {
-      const disposition = response.headers.get('content-disposition') || '';
-      fileName = contentDisposition.parse(disposition).parameters.filename || 'document.grist';
+    if (fileName === "") {
+      const disposition = response.headers.get("content-disposition") || "";
+      fileName = contentDisposition.parse(disposition).parameters.filename || "document.grist";
     }
-    const mimeType = response.headers.get('content-type');
-    const {tmpDir, cleanupCallback} = await createTmpDir({});
+    const mimeType = response.headers.get("content-type");
+    const { tmpDir, cleanupCallback } = await createTmpDir({});
     // Any name will do for the single file in tmpDir, but note that fileName may not be valid.
-    const destPath = path.join(tmpDir, 'upload-content');
+    const destPath = path.join(tmpDir, "upload-content");
     await new Promise<void>((resolve, reject) => {
-      const dest = fse.createWriteStream(destPath, {autoClose: true});
-      response.body.on('error', reject);
-      dest.on('error', reject);
-      dest.on('finish', resolve);
+      const dest = fse.createWriteStream(destPath, { autoClose: true });
+      response.body.on("error", reject);
+      dest.on("error", reject);
+      dest.on("finish", resolve);
       response.body.pipe(dest);
     });
     const uploadedFile: FileUploadInfo = {
@@ -477,11 +477,11 @@ async function _fetchURL(url: string, accessId: string|null, options?: FetchUrlO
     };
     log.debug(`done fetching url: ${url} to ${destPath}`);
     const uploadId = globalUploadSet.registerUpload([uploadedFile], tmpDir, cleanupCallback, accessId);
-    return {uploadId, files: [pick(uploadedFile, ['origName', 'size', 'ext'])]};
-  } catch(err) {
+    return { uploadId, files: [pick(uploadedFile, ["origName", "size", "ext"])] };
+  } catch (err) {
     if (err?.code === "EPROTO" || // https vs http error
-        err?.code === "ECONNREFUSED" || // server does not listen
-        err?.code === "ENOTFOUND") { // could not resolve domain
+      err?.code === "ECONNREFUSED" || // server does not listen
+      err?.code === "ENOTFOUND") { // could not resolve domain
       throw new ApiError(`Can't connect to the server. The URL seems to be invalid. Error code ${err.code}`, 400);
     }
     throw err;
@@ -497,8 +497,8 @@ export async function fetchDoc(
   docWorkerMap: IDocWorkerMap,
   urlId: string,
   req: Request,
-  accessId: string|null,
-  template: boolean
+  accessId: string | null,
+  template: boolean,
 ): Promise<UploadResult> {
   // Prepare headers that preserve credentials of current user.
   const headers = getTransitiveHeaders(req, { includeOrigin: false });
@@ -509,11 +509,11 @@ export async function fetchDoc(
   // The backend needs to be well configured for this to work.
   const { selfPrefix, docWorker } = await getDocWorkerInfoOrSelfPrefix(docId, docWorkerMap, server.getTag());
   const docWorkerUrl = docWorker ? docWorker.internalUrl : getUrlFromPrefix(server.getHomeInternalUrl(), selfPrefix);
-  const apiBaseUrl = docWorkerUrl.replace(/\/*$/, '/');
+  const apiBaseUrl = docWorkerUrl.replace(/\/*$/, "/");
 
   // Download the document, in full or as a template.
   const url = new URL(`api/docs/${docId}/download?template=${Number(template)}`, apiBaseUrl);
-  return _fetchURL(url.href, accessId, {headers});
+  return _fetchURL(url.href, accessId, { headers });
 }
 
 // Re-issue failures as exceptions.
@@ -527,13 +527,13 @@ async function _checkForError(response: FetchResponse) {
       // Probably we hit some login page
       if (response.url.startsWith("https://accounts.google.com")) {
         throw new ApiError("Importing directly from a Google Drive URL is not supported yet. " +
-        'Use the "Import from Google Drive" menu option instead.', 403);
+          'Use the "Import from Google Drive" menu option instead.', 403);
       } else {
         throw new ApiError("Could not import the requested file, check if you have all required permissions.", 403);
       }
     }
     return;
-   }
+  }
   const body = await response.json().catch(() => ({}));
   if (response.status === 404) {
     throw new ApiError("File can't be found at the requested URL.", 404);
@@ -551,17 +551,17 @@ async function _checkForError(response: FetchResponse) {
  * Adding host information makes workers sharing a process more useful models of
  * full-blown isolated workers.
  */
-export function makeAccessId(worker: string|Request|GristServer, userId: number|null): string|null {
+export function makeAccessId(worker: string | Request | GristServer, userId: number | null): string | null {
   if (isSingleUserMode()) { return null; }
   if (userId === null) { return null; }
   let host: string;
-  if (typeof worker === 'string') {
+  if (typeof worker === "string") {
     host = worker;
-  } else if ('getHost' in worker) {
+  } else if ("getHost" in worker) {
     host = worker.getHost();
   } else {
     const gristServer = (worker as RequestWithGrist).gristServer;
-    if (!gristServer) { throw new Error('Problem accessing server with upload'); }
+    if (!gristServer) { throw new Error("Problem accessing server with upload"); }
     host = gristServer.getHost();
   }
   return `${userId}:${host}`;

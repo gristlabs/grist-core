@@ -1,5 +1,5 @@
-import * as UserType from 'app/client/widgets/UserType';
-import {ColumnToMap} from 'app/plugin/CustomSectionAPI';
+import * as UserType from "app/client/widgets/UserType";
+import { ColumnToMap } from "app/plugin/CustomSectionAPI";
 
 /**
  * Helper that wraps custom widget's column definition and expands all the defaults.
@@ -22,17 +22,17 @@ export class ColumnToMapImpl implements Required<ColumnToMap> {
   public typeDesc: string;
   // Allow multiple column assignment (like Series in Charts).
   public allowMultiple: boolean;
-  constructor(def: string|ColumnToMap) {
-    this.name = typeof def === 'string' ? def : def.name;
-    this.title = typeof def === 'string' ? def : (def.title ?? def.name);
-    this.description = typeof def === 'string' ? '' : (def.description ?? '');
-    this.optional = typeof def === 'string' ? false : (def.optional ?? false);
-    this.type = typeof def === 'string' ? 'Any' : (def.type ?? 'Any');
-    this.type = this.type.split(',').map(t => t.trim()).filter(Boolean).join(',');
-    this.typeDesc = this.type.split(',')
-      .map(t => String(UserType.typeDefs[t]?.label ?? "any").toLowerCase()).join(', ');
-    this.allowMultiple = typeof def === 'string' ? false : (def.allowMultiple ?? false);
-    this.strictType = typeof def === 'string' ? false : (def.strictType ?? false);
+  constructor(def: string | ColumnToMap) {
+    this.name = typeof def === "string" ? def : def.name;
+    this.title = typeof def === "string" ? def : (def.title ?? def.name);
+    this.description = typeof def === "string" ? "" : (def.description ?? "");
+    this.optional = typeof def === "string" ? false : (def.optional ?? false);
+    this.type = typeof def === "string" ? "Any" : (def.type ?? "Any");
+    this.type = this.type.split(",").map(t => t.trim()).filter(Boolean).join(",");
+    this.typeDesc = this.type.split(",")
+      .map(t => String(UserType.typeDefs[t]?.label ?? "any").toLowerCase()).join(", ");
+    this.allowMultiple = typeof def === "string" ? false : (def.allowMultiple ?? false);
+    this.strictType = typeof def === "string" ? false : (def.strictType ?? false);
   }
 
   /**
@@ -52,6 +52,6 @@ export class ColumnToMapImpl implements Required<ColumnToMap> {
    */
   public canByMapped(pureType: string) {
     const isAny = pureType === "Any" || this.type === "Any";
-    return this.type.split(',').includes(pureType) || (isAny && !this.strictType);
+    return this.type.split(",").includes(pureType) || (isAny && !this.strictType);
   }
 }

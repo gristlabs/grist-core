@@ -1,8 +1,7 @@
-import { RenderTarget } from 'app/plugin/RenderOptions';
+import { ImportSource } from "app/plugin/ImportSourceAPI";
+import { RenderTarget } from "app/plugin/RenderOptions";
 
-import { ImportSource } from 'app/plugin/ImportSourceAPI';
-
-export * from  'app/plugin/ImportSourceAPI';
+export * from  "app/plugin/ImportSourceAPI";
 
 /**
  * This internal interface is implemented by grist-plugin-api.ts to support
@@ -20,5 +19,5 @@ export interface InternalImportSourceAPI {
    * import panel. Or it can be ignored and use `'fullscreen'` in-place. It is used in
    * `grist.addImporter(...)` according to the value of the `mode` argument.
    */
-  getImportSource(inlineTarget: RenderTarget): Promise<ImportSource|undefined>;
+  getImportSource(inlineTarget: RenderTarget): Promise<ImportSource | undefined>;
 }

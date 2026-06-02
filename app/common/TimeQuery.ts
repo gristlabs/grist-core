@@ -1,10 +1,11 @@
-import {ActionSummary, ColumnDelta, createEmptyActionSummary, createEmptyTableDelta} from 'app/common/ActionSummary';
-import {CellDelta} from 'app/common/TabularDiff';
-import {concatenateSummaries} from 'app/common/ActionSummarizer';
-import keyBy = require('lodash/keyBy');
-import matches = require('lodash/matches');
-import sortBy = require('lodash/sortBy');
-import toPairs = require('lodash/toPairs');
+import { concatenateSummaries } from "app/common/ActionSummarizer";
+import { ActionSummary, ColumnDelta, createEmptyActionSummary, createEmptyTableDelta } from "app/common/ActionSummary";
+import { CellDelta } from "app/common/TabularDiff";
+
+import keyBy from "lodash/keyBy";
+import matches from "lodash/matches";
+import sortBy from "lodash/sortBy";
+import toPairs from "lodash/toPairs";
 
 /**
  * We can combine an ActionSummary with the current state of the database
@@ -73,12 +74,12 @@ export class TimeQuery {
   private _pastRows: ResultRow[];
 
   constructor(public tc: TimeCursor,
-              public tableId: string,
-              public colIds: string[] | '*',
-              public rowIds?: number[]) {
+    public tableId: string,
+    public colIds: string[] | "*",
+    public rowIds?: number[]) {
   }
 
-  public reset(tableId: string, colIds: string[] | '*', rowIds?: number[]) {
+  public reset(tableId: string, colIds: string[] | "*", rowIds?: number[]) {
     this.tableId = tableId;
     this.colIds = colIds;
     this.rowIds = rowIds;
@@ -95,7 +96,7 @@ export class TimeQuery {
     this._pastRows = [];
 
     const tableRenameDelta = this.tc.summary.tableRenames.find(
-      (delta) => delta[0] === this.tableId
+      delta => delta[0] === this.tableId,
     );
     const tableRenamed = tableRenameDelta ? tableRenameDelta[1] : this.tableId;
     // Table no longer exists.
@@ -104,20 +105,20 @@ export class TimeQuery {
     // Let's see everything the summary has accumulated about the table back then.
     const td = this.tc.summary.tableDeltas[tableRenamed] || createEmptyTableDelta();
 
-    const columnForwardRenames: Record<string, string|null> =
-        Object.fromEntries(td.columnRenames.filter(delta => delta[0]));
-    const columnBackwardRenames: Record<string, string|null> =
-        Object.fromEntries(td.columnRenames.map(([a, b]) => [b, a]).filter(delta => delta[0]));
+    const columnForwardRenames: Record<string, string | null> =
+      Object.fromEntries(td.columnRenames.filter(delta => delta[0]));
+    const columnBackwardRenames: Record<string, string | null> =
+      Object.fromEntries(td.columnRenames.map(([a, b]) => [b, a]).filter(delta => delta[0]));
 
-    const colIdsExpanded = this.colIds === '*' ?
-        (await this.tc.db.getColIds(tableRenamed)).map(colId => columnBackwardRenames[colId] ?? colId) :
-        this.colIds;
+    const colIdsExpanded = this.colIds === "*" ?
+      (await this.tc.db.getColIds(tableRenamed)).map(colId => columnBackwardRenames[colId] ?? colId) :
+      this.colIds;
 
     const colIdsRenamed =
-        colIdsExpanded.map(colId => columnForwardRenames[colId] ?? colId).filter(colId => colId);
+      colIdsExpanded.map(colId => columnForwardRenames[colId] ?? colId).filter(colId => colId);
     this._currentRows = await this.tc.db.fetch(
       tableRenamed,
-      ['id', ...colIdsRenamed],
+      ["id", ...colIdsRenamed],
       this.rowIds,
     );
 
@@ -125,10 +126,10 @@ export class TimeQuery {
     // with database.
     const summaryRows: ResultRows = {};
     for (const [colId, columns] of toPairs(td.columnDeltas)) {
-      for (const [rowId, cell] of toPairs(columns) as unknown as Array<[keyof ColumnDelta, CellDelta]>) {
+      for (const [rowId, cell] of toPairs(columns) as unknown as [keyof ColumnDelta, CellDelta][]) {
         if (!summaryRows[rowId]) { summaryRows[rowId] = {}; }
         const val = cell[0];
-        summaryRows[rowId][colId] = (val !== null && typeof val === 'object' ) ? val[0] : null;
+        summaryRows[rowId][colId] = (val !== null && typeof val === "object") ? val[0] : null;
       }
     }
 
@@ -142,16 +143,16 @@ export class TimeQuery {
     const additions = new Set(td.addRows);
     const pastRowIds =
       new Set([...this._currentRows.map(r => r.id as number).filter(r => !additions.has(r)),
-               ...td.removeRows]);
+        ...td.removeRows]);
 
     // Now prepare a row for every expected rowId, using current db data if available
     // and relevant, and overlaying past data when available.
     this._pastRows = new Array<ResultRow>();
     const colIdsOfInterest = new Set(colIdsExpanded);
     for (const id of Array.from(pastRowIds).sort()) {
-      const rowCurrent: ResultRow = rowsById[id] || {id};
+      const rowCurrent: ResultRow = rowsById[id] || { id };
       const row: ResultRow = {};
-      for (const colId of ['id', ...colIdsExpanded]) {
+      for (const colId of ["id", ...colIdsExpanded]) {
         const colIdRenamed = columnForwardRenames[colId] ?? colId;
         if (!colIdRenamed) { continue; }
         row[colId] = rowCurrent[colIdRenamed];
@@ -173,7 +174,7 @@ export class TimeQuery {
    * Do a query with a single result, specifying any desired filters.  Exception thrown
    * if there is no result.
    */
-  public one(args: {[name: string]: any}): ResultRow {
+  public one(args: { [name: string]: any }): ResultRow {
     const result = this._pastRows.find(matches(args));
     if (!result) {
       throw new Error(`could not find: ${JSON.stringify(args)} for ${this.tableId}`);
@@ -182,7 +183,7 @@ export class TimeQuery {
   }
 
   /** Get all results for a query. */
-  public all(args?: {[name: string]: any}): ResultRow[] {
+  public all(args?: { [name: string]: any }): ResultRow[] {
     if (!args) { return this._pastRows; }
     return this._pastRows.filter(matches(args));
   }
@@ -200,12 +201,12 @@ export class TimeLayout {
   public sections: TimeQuery;
 
   constructor(public tc: TimeCursor) {
-    this.tables = new TimeQuery(tc, '_grist_Tables', ['tableId', 'primaryViewId', 'rawViewSectionRef']);
-    this.fields = new TimeQuery(tc, '_grist_Views_section_field',
-                                ['parentId', 'parentPos', 'colRef']);
-    this.columns = new TimeQuery(tc, '_grist_Tables_column', ['parentId', 'colId']);
-    this.views = new TimeQuery(tc, '_grist_Views', ['id', 'name']);
-    this.sections = new TimeQuery(tc, '_grist_Views_section', ['id', 'title']);
+    this.tables = new TimeQuery(tc, "_grist_Tables", ["tableId", "primaryViewId", "rawViewSectionRef"]);
+    this.fields = new TimeQuery(tc, "_grist_Views_section_field",
+      ["parentId", "parentPos", "colRef"]);
+    this.columns = new TimeQuery(tc, "_grist_Tables_column", ["parentId", "colId"]);
+    this.views = new TimeQuery(tc, "_grist_Views", ["id", "name"]);
+    this.sections = new TimeQuery(tc, "_grist_Views_section", ["id", "title"]);
   }
 
   /** update from TimeCursor */
@@ -218,16 +219,16 @@ export class TimeLayout {
   }
 
   public getColumnOrder(tableId: string): string[] {
-    const primaryViewId = this.tables.one({tableId}).primaryViewId;
-    const preorder = this.fields.all({parentId: primaryViewId});
-    const precol = keyBy(this.columns.all(), 'id');
-    const ordered = sortBy(preorder, 'parentPos');
+    const primaryViewId = this.tables.one({ tableId }).primaryViewId;
+    const preorder = this.fields.all({ parentId: primaryViewId });
+    const precol = keyBy(this.columns.all(), "id");
+    const ordered = sortBy(preorder, "parentPos");
     const names = ordered.map(r => precol[r.colRef].colId);
     return names;
   }
 
   public getTableName(tableId: string): string {
-    const rawViewSectionRef = this.tables.one({tableId}).rawViewSectionRef;
-    return this.sections.one({id: rawViewSectionRef}).title;
+    const rawViewSectionRef = this.tables.one({ tableId }).rawViewSectionRef;
+    return this.sections.one({ id: rawViewSectionRef }).title;
   }
 }

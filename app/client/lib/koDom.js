@@ -16,11 +16,11 @@
 /**
  * Use the browser globals in a way that allows replacing them with mocks in tests.
  */
-var G = require('./browserGlobals').get('document', 'Node');
+var G = require("./browserGlobals").get("document", "Node");
 
-var ko = require('knockout');
-var dom = require('./dom');
-var koArray = require('./koArray');
+var ko = require("knockout");
+var dom = require("./dom");
+var koArray = require("./koArray");
 
 /**
  * Creates a binding between a DOM element and an observable value, making sure that
@@ -42,7 +42,7 @@ function setBinding(elem, valueOrFunc, updaterFunc) {
       subscription.dispose();
     });
     updaterFunc(elem, valueOrFunc.peek());
-  } else if (typeof valueOrFunc === 'function') {
+  } else if (typeof valueOrFunc === "function") {
     valueOrFunc = ko.computed(valueOrFunc);
     subscription = valueOrFunc.subscribe(function(v) { updaterFunc(elem, v); });
     ko.utils.domNodeDisposal.addDisposeCallback(elem, function() {
@@ -141,7 +141,7 @@ function boolAttr(attrName, valueOrFunc) {
     if (!value) {
       elem.removeAttribute(attrName);
     } else {
-      elem.setAttribute(attrName, '');
+      elem.setAttribute(attrName, "");
     }
   });
 }
@@ -158,7 +158,7 @@ function style(property, valueOrFunc) {
     // `style.setProperty` must be use to set custom property (ie: properties starting with '--').
     // However since it does not support camelCase property, we still need to use the other form
     // `elem.style[prop] = val;` for other properties.
-    if (property.startsWith('--')) {
+    if (property.startsWith("--")) {
       elem.style.setProperty(property, value);
     } else {
       elem.style[property] = value;
@@ -176,7 +176,7 @@ exports.style = style;
  */
 function show(boolValueOrFunc) {
   return makeBinding(boolValueOrFunc, function(elem, value) {
-    elem.style.display = value ? '' : 'none';
+    elem.style.display = value ? "" : "none";
   });
 }
 exports.show = show;
@@ -188,7 +188,7 @@ exports.show = show;
  */
 function hide(boolValueOrFunc) {
   return makeBinding(boolValueOrFunc, function(elem, value) {
-    elem.style.display = value ? 'none' : '';
+    elem.style.display = value ? "none" : "";
   });
 }
 exports.hide = hide;
@@ -240,9 +240,9 @@ exports.toggleClass = toggleClass;
 function toggleDisabled(boolValueOrFunc) {
   return makeBinding(boolValueOrFunc, function(elem, disabled) {
     if (disabled) {
-      elem.setAttribute('disabled', 'disabled');
+      elem.setAttribute("disabled", "disabled");
     } else {
-      elem.removeAttribute('disabled');
+      elem.removeAttribute("disabled");
     }
   });
 }
@@ -258,13 +258,13 @@ function cssClass(valueOrFunc) {
   var prevClass;
   return makeBinding(valueOrFunc, function(elem, value) {
     if (prevClass) {
-      for(const name of prevClass.split(' ')) {
+      for(const name of prevClass.split(" ")) {
         elem.classList.remove(name);
       }
     }
     prevClass = value;
     if (value) {
-      for (const name of value.split(' ')) {
+      for (const name of value.split(" ")) {
         elem.classList.add(name);
       }
     }
@@ -479,7 +479,7 @@ function foreach(data, itemCreateFunc) {
 
     var array = data;
     if (koArray.isKoArray(data)) {
-      var subscription = data.subscribe(spliceFunc, null, 'spliceChange');
+      var subscription = data.subscribe(spliceFunc, null, "spliceChange");
       ko.utils.domNodeDisposal.addDisposeCallback(elem, function() {
         subscription.dispose();
       });

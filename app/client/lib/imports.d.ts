@@ -1,16 +1,19 @@
-import * as ace from 'ace-builds';
-import * as GristDocModule from 'app/client/components/GristDoc';
-import * as ViewPane from 'app/client/components/ViewPane';
-import * as AccountPageModule from 'app/client/ui/AccountPage';
-import * as ActivationPageModule from 'app/client/ui/ActivationPage';
-import * as AdminPanelModule from 'app/client/ui/AdminPanel';
-import * as AuditLogsPageModule from 'app/client/ui/AuditLogsPage';
-import * as BillingPageModule from 'app/client/ui/BillingPage';
-import * as EmojiPickerModule from 'app/client/ui/EmojiPicker';
-import * as UserManagerModule from 'app/client/ui/UserManager';
-import * as searchModule from 'app/client/ui2018/search';
-import * as momentTimezone from 'moment-timezone';
-import * as plotly from 'plotly.js';
+import * as GristDocModule from "app/client/components/GristDoc";
+import * as ViewPane from "app/client/components/ViewPane";
+import * as AirtableImportUI from "app/client/lib/airtable/AirtableImportUI";
+import * as AccountPageModule from "app/client/ui/AccountPage";
+import * as ActivationPageModule from "app/client/ui/ActivationPage";
+import * as AdminPanelModule from "app/client/ui/AdminPanel";
+import * as AuditLogsPageModule from "app/client/ui/AuditLogsPage";
+import * as BillingPageModule from "app/client/ui/BillingPage";
+import * as BootPageModule from "app/client/ui/BootPage";
+import * as EmojiPickerModule from "app/client/ui/EmojiPicker";
+import * as UserManagerModule from "app/client/ui/UserManager";
+import * as searchModule from "app/client/ui2018/search";
+
+import * as ace from "ace-builds";
+import * as momentTimezone from "moment-timezone";
+import * as plotly from "plotly.js";
 
 export type Ace = typeof ace;
 export type MomentTimezone = typeof momentTimezone;
@@ -18,8 +21,10 @@ export type PlotlyType = typeof plotly;
 
 export function loadAccountPage(): Promise<typeof AccountPageModule>;
 export function loadActivationPage(): Promise<typeof ActivationPageModule>;
+export function loadAirtableImportUI(): Promise<typeof AirtableImportUI>;
 export function loadAuditLogsPage(): Promise<typeof AuditLogsPageModule>;
 export function loadBillingPage(): Promise<typeof BillingPageModule>;
+export function loadBootPage(): Promise<typeof BootPageModule>;
 export function loadAdminPanel(): Promise<typeof AdminPanelModule>;
 export function loadGristDoc(): Promise<typeof GristDocModule>;
 export function loadAce(): Promise<Ace>;

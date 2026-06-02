@@ -1,5 +1,6 @@
 import { safeJsonParse } from "app/common/gutil";
 import { getCookieDomain } from "app/server/lib/gristSessions";
+
 import * as cookie from "cookie";
 import * as express from "express";
 
@@ -12,7 +13,7 @@ const SIGNUP_STATE_COOKIE_NAME = "gr_signup_state";
 
 export function getAndClearSignupStateCookie(
   req: express.Request,
-  res: express.Response
+  res: express.Response,
 ): SignupState | undefined {
   const cookies = cookie.parse(req.headers.cookie ?? "");
   const signupState = cookies[SIGNUP_STATE_COOKIE_NAME];
@@ -28,12 +29,12 @@ export function getAndClearSignupStateCookie(
 export function setSignupStateCookie(
   req: express.Request,
   res: express.Response,
-  state: SignupState
+  state: SignupState,
 ) {
   res.cookie(
     SIGNUP_STATE_COOKIE_NAME,
     JSON.stringify(state),
-    getSignupStateCookieOptions(req)
+    getSignupStateCookieOptions(req),
   );
 }
 
@@ -42,7 +43,7 @@ function clearSignupStateCookie(req: express.Request, res: express.Response) {
 }
 
 function getSignupStateCookieOptions(
-  req: express.Request
+  req: express.Request,
 ): express.CookieOptions {
   return {
     maxAge: 1000 * 60 * 60,

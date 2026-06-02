@@ -1,6 +1,7 @@
-import {Ace, loadAce} from 'app/client/lib/imports';
-import {theme, vars} from 'app/client/ui2018/cssVars';
-import {gristThemeObs} from 'app/client/ui2018/theme';
+import { Ace, loadAce } from "app/client/lib/imports";
+import { theme, vars } from "app/client/ui2018/cssVars";
+import { gristThemeObs } from "app/client/ui2018/theme";
+
 import {
   BindableValue,
   Disposable,
@@ -8,7 +9,7 @@ import {
   Observable,
   styled,
   subscribeElem,
-} from 'grainjs';
+} from "grainjs";
 
 interface BuildCodeHighlighterOptions {
   maxLines?: number;
@@ -25,11 +26,11 @@ let _mode: any;
 async function fetchAceModules() {
   return {
     ace: _ace || (_ace = await loadAce()),
-    highlighter: _highlighter || (_highlighter = _ace.require('ace/ext/static_highlight')),
-    PythonMode: _PythonMode || (_PythonMode = _ace.require('ace/mode/python').Mode),
-    aceDom: _aceDom || (_aceDom = _ace.require('ace/lib/dom')),
-    chrome: _chrome || (_chrome = _ace.require('ace/theme/chrome')),
-    dracula: _dracula || (_dracula = _ace.require('ace/theme/dracula')),
+    highlighter: _highlighter || (_highlighter = _ace.require("ace/ext/static_highlight")),
+    PythonMode: _PythonMode || (_PythonMode = _ace.require("ace/mode/python").Mode),
+    aceDom: _aceDom || (_aceDom = _ace.require("ace/lib/dom")),
+    chrome: _chrome || (_chrome = _ace.require("ace/theme/chrome")),
+    dracula: _dracula || (_dracula = _ace.require("ace/theme/dracula")),
     mode: _mode || (_mode = new _PythonMode()),
   };
 }
@@ -43,8 +44,8 @@ async function fetchAceModules() {
  * blocks in a Markdown string.
  */
 export async function buildCodeHighlighter(options: BuildCodeHighlighterOptions = {}) {
-  const {maxLines} = options;
-  const {highlighter, aceDom, chrome, dracula, mode} = await fetchAceModules();
+  const { maxLines } = options;
+  const { highlighter, aceDom, chrome, dracula, mode } = await fetchAceModules();
 
   return (code: string) => {
     if (maxLines) {
@@ -56,13 +57,13 @@ export async function buildCodeHighlighter(options: BuildCodeHighlighterOptions 
       }
     }
 
-    let aceThemeName: 'chrome' | 'dracula';
+    let aceThemeName: "chrome" | "dracula";
     let aceTheme: any;
-    if (gristThemeObs().get().appearance === 'dark') {
-      aceThemeName = 'dracula';
+    if (gristThemeObs().get().appearance === "dark") {
+      aceThemeName = "dracula";
       aceTheme = dracula;
     } else {
-      aceThemeName = 'chrome';
+      aceThemeName = "chrome";
       aceTheme = chrome;
     }
 
@@ -70,7 +71,7 @@ export async function buildCodeHighlighter(options: BuildCodeHighlighterOptions 
     // as the CSS styles needed to apply the theme. The latter typically isn't included in
     // the document until an Ace editor is opened, so we explicitly import it here to avoid
     // leaving highlighted code blocks without a theme applied.
-    const {html, css} = highlighter.render(code, mode, aceTheme, 1, true);
+    const { html, css } = highlighter.render(code, mode, aceTheme, 1, true);
     aceDom.importCssString(css, `${aceThemeName}-highlighted-code`);
     return html;
   };
@@ -93,18 +94,18 @@ export function buildHighlightedCode(
   options: BuildHighlightedCodeOptions,
   ...args: DomElementArg[]
 ): HTMLElement {
-  const {placeholder, maxLines} = options;
-  const codeText = Observable.create(owner, '');
+  const { placeholder, maxLines } = options;
+  const codeText = Observable.create(owner, "");
   const codeTheme = Observable.create(owner, gristThemeObs().get());
 
   async function updateHighlightedCode(elem: HTMLElement) {
     let text = codeText.get();
     if (!text) {
-      elem.textContent = placeholder || '';
+      elem.textContent = placeholder || "";
       return;
     }
 
-    const {highlighter, aceDom, chrome, dracula, mode} = await fetchAceModules();
+    const { highlighter, aceDom, chrome, dracula, mode } = await fetchAceModules();
     if (owner.isDisposed()) { return; }
 
     if (maxLines) {
@@ -116,13 +117,13 @@ export function buildHighlightedCode(
       }
     }
 
-    let aceThemeName: 'chrome' | 'dracula';
+    let aceThemeName: "chrome" | "dracula";
     let aceTheme: any;
-    if (codeTheme.get().appearance === 'dark') {
-      aceThemeName = 'dracula';
+    if (codeTheme.get().appearance === "dark") {
+      aceThemeName = "dracula";
       aceTheme = dracula;
     } else {
-      aceThemeName = 'chrome';
+      aceThemeName = "chrome";
       aceTheme = chrome;
     }
 
@@ -130,7 +131,7 @@ export function buildHighlightedCode(
     // as the CSS styles needed to apply the theme. The latter typically isn't included in
     // the document until an Ace editor is opened, so we explicitly import it here to avoid
     // leaving highlighted code blocks without a theme applied.
-    const {html, css} = highlighter.render(text, mode, aceTheme, 1, true);
+    const { html, css } = highlighter.render(text, mode, aceTheme, 1, true);
     elem.innerHTML = html;
     aceDom.importCssString(css, `${aceThemeName}-highlighted-code`);
   }
@@ -139,7 +140,7 @@ export function buildHighlightedCode(
     elem => subscribeElem(elem, code, async (newCodeText) => {
       codeText.set(newCodeText);
       await updateHighlightedCode(elem);
-      }),
+    }),
     elem => subscribeElem(elem, gristThemeObs(), async (newCodeTheme) => {
       codeTheme.set(newCodeTheme);
       await updateHighlightedCode(elem);
@@ -149,7 +150,7 @@ export function buildHighlightedCode(
 }
 
 // Use a monospace font, a subset of what ACE editor seems to use.
-export const cssCodeBlock = styled('div', `
+export const cssCodeBlock = styled("div", `
   font-family: 'Monaco', 'Menlo', monospace;
   font-size: ${vars.smallFontSize};
   background-color: ${theme.highlightedCodeBlockBg};

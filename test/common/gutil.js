@@ -1,8 +1,8 @@
-var assert = require('chai').assert;
-var gutil = require('app/common/gutil');
-var _ = require('underscore');
+var assert = require("chai").assert;
+var gutil = require("app/common/gutil");
+var _ = require("underscore");
 
-describe('gutil', function() {
+describe("gutil", function() {
 
   describe("mapToObject", function() {
     it("should produce an object with all keys", function() {
@@ -29,26 +29,26 @@ describe('gutil', function() {
 
     it("should override values for duplicate keys", function() {
       assert.deepEqual(gutil.mapToObject(["foo", "bar", "foo"], function(val, i) { return i; }),
-                       { "foo": 2, "bar": 1 });
+        { "foo": 2, "bar": 1 });
     });
   });
 
-  describe('multiCompareFunc', function() {
+  describe("multiCompareFunc", function() {
     var firstName = {
-      0: 'John',
-      1: 'John',
-      2: 'John',
-      3: 'John',
-      4: 'Johnson',
-      5: 'Johnson',
+      0: "John",
+      1: "John",
+      2: "John",
+      3: "John",
+      4: "Johnson",
+      5: "Johnson",
     };
     var lastName = {
-      0: 'Smith',
-      1: 'Smith',
-      2: 'Smith',
-      3: 'Smithy',
-      4: 'Smithy',
-      5: 'Smith',
+      0: "Smith",
+      1: "Smith",
+      2: "Smith",
+      3: "Smithy",
+      4: "Smithy",
+      5: "Smith",
     };
     var age = {
       0: 20,
@@ -59,7 +59,7 @@ describe('gutil', function() {
       5: 50,
     };
 
-    it('should do single comparisons', function() {
+    it("should do single comparisons", function() {
       var sort1 = [_.propertyOf(firstName)];
       var compareA = gutil.multiCompareFunc(sort1, [gutil.nativeCompare], [1]);
       var compareD = gutil.multiCompareFunc(sort1, [gutil.nativeCompare], [-1]);
@@ -71,12 +71,12 @@ describe('gutil', function() {
       assert.isBelow(compareD(4, 0), 0);
     });
 
-    it('should do multiple comparisons', function() {
+    it("should do multiple comparisons", function() {
       var sort2 = [_.propertyOf(firstName), _.propertyOf(lastName)];
       var sort3 = [_.propertyOf(firstName), _.propertyOf(lastName), _.propertyOf(age)];
       var compare2 = gutil.multiCompareFunc(sort2, [gutil.nativeCompare, gutil.nativeCompare], [1, 1]);
       var compare3 = gutil.multiCompareFunc(sort3,
-                       [gutil.nativeCompare, gutil.nativeCompare, gutil.nativeCompare], [1, 1, -1]);
+        [gutil.nativeCompare, gutil.nativeCompare, gutil.nativeCompare], [1, 1, -1]);
 
       assert.equal(compare2(0, 1), 0); // John Smith, 20 = John Smith, 30
       assert.equal(compare2(1, 2), 0); // John Smith, 30 = John Smith, 21
@@ -147,9 +147,9 @@ describe('gutil', function() {
   describe("isSubset", function() {
     it("should determine the subset relationship for Sets", function() {
       let sEmpty = new Set(),
-          sFoo = new Set([1]),
-          sBar = new Set([2, 3]),
-          sBaz = new Set([1, 2, 3]);
+        sFoo = new Set([1]),
+        sBar = new Set([2, 3]),
+        sBaz = new Set([1, 2, 3]);
 
       assert.isTrue(gutil.isSubset(sEmpty, sFoo));
       assert.isFalse(gutil.isSubset(sFoo, sEmpty));
@@ -169,21 +169,21 @@ describe('gutil', function() {
     it("should grow the matrix to the desired size", function() {
       let matrix = [["a", 1], ["b", 2], ["c", 3]];
       assert.deepEqual(gutil.growMatrix(matrix, 4, 4),
-       [["a", 1, "a", 1],
-        ["b", 2, "b", 2],
-        ["c", 3, "c", 3],
-        ["a", 1, "a", 1]]);
+        [["a", 1, "a", 1],
+          ["b", 2, "b", 2],
+          ["c", 3, "c", 3],
+          ["a", 1, "a", 1]]);
       assert.deepEqual(gutil.growMatrix(matrix, 3, 4),
-       [["a", 1, "a", 1],
-        ["b", 2, "b", 2],
-        ["c", 3, "c", 3]]);
+        [["a", 1, "a", 1],
+          ["b", 2, "b", 2],
+          ["c", 3, "c", 3]]);
       assert.deepEqual(gutil.growMatrix(matrix, 6, 2),
-       [["a", 1],
-        ["b", 2],
-        ["c", 3],
-        ["a", 1],
-        ["b", 2],
-        ["c", 3]]);
+        [["a", 1],
+          ["b", 2],
+          ["c", 3],
+          ["a", 1],
+          ["b", 2],
+          ["c", 3]]);
     });
   });
 
@@ -197,35 +197,35 @@ describe('gutil', function() {
       gutil.sortedScan(a, b, (ai, bi) => { callArgs.push([ai, bi]); });
 
       assert.deepEqual(callArgs,
-       [[1, null], [2, 2], [null, 3], [4, 4],
-        [5, 5], [7, null], [8, null], [9, 9],
-        [10, null], [11, 11], [15, null], [17, null],
-        [null, 19]]);
+        [[1, null], [2, 2], [null, 3], [4, 4],
+          [5, 5], [7, null], [8, null], [9, 9],
+          [10, null], [11, 11], [15, null], [17, null],
+          [null, 19]]);
     });
 
     it("should callback on the correct items for object arrays", function() {
-      const a = [{ id: 1,  fruit: 'apple'     },
-                 { id: 2,  fruit: 'banana'    },
-                 { id: 4,  fruit: 'orange'    },
-                 { id: 5,  fruit: 'peach'     },
-                 { id: 6,  fruit: 'plum'      }];
-      const b = [{ id: 2,  fruit: 'apple'     },
-                 { id: 3,  fruit: 'avocado'   },
-                 { id: 4,  fruit: 'peach'     },
-                 { id: 6,  fruit: 'pear'      },
-                 { id: 9,  fruit: 'plum'      },
-                 { id: 10, fruit: 'raspberry' }];
+      const a = [{ id: 1,  fruit: "apple"     },
+        { id: 2,  fruit: "banana"    },
+        { id: 4,  fruit: "orange"    },
+        { id: 5,  fruit: "peach"     },
+        { id: 6,  fruit: "plum"      }];
+      const b = [{ id: 2,  fruit: "apple"     },
+        { id: 3,  fruit: "avocado"   },
+        { id: 4,  fruit: "peach"     },
+        { id: 6,  fruit: "pear"      },
+        { id: 9,  fruit: "plum"      },
+        { id: 10, fruit: "raspberry" }];
 
       // Run the scan function.
       let fruitArgs = [];
       gutil.sortedScan(a, b, (ai, bi) => {
-        fruitArgs.push([ai ? ai.fruit : '', bi ? bi.fruit : '']);
+        fruitArgs.push([ai ? ai.fruit : "", bi ? bi.fruit : ""]);
       }, item => item.id);
 
       assert.deepEqual(fruitArgs,
-       [['apple', ''], ['banana', 'apple'], ['', 'avocado'],
-        ['orange', 'peach'], ['peach', ''], ['plum', 'pear'],
-        ['', 'plum'], ['', 'raspberry']]);
+        [["apple", ""], ["banana", "apple"], ["", "avocado"],
+          ["orange", "peach"], ["peach", ""], ["plum", "pear"],
+          ["", "plum"], ["", "raspberry"]]);
 
       // Run the scan function again, using fruit as the key.
       let idArgs = [];
@@ -234,29 +234,29 @@ describe('gutil', function() {
       }, item => item.fruit);
 
       assert.deepEqual(idArgs,
-       [[1, 2], [0, 3], [2, 0], [4, 0],
-        [5, 4], [0, 6], [6, 9], [0, 10]]);
+        [[1, 2], [0, 3], [2, 0], [4, 0],
+          [5, 4], [0, 6], [6, 9], [0, 10]]);
     });
   });
 
   describe("isEmail", function() {
     it("should distinguish valid and invalid emails", function() {
       // Reference: https://blogs.msdn.microsoft.com/testing123/2009/02/06/email-address-test-cases/
-      assert.isTrue(gutil.isEmail('email@domain.com'));
-      assert.isTrue(gutil.isEmail('e-mail_123@domain.com'));
-      assert.isTrue(gutil.isEmail('email@subdomain.do-main.com'));
-      assert.isTrue(gutil.isEmail('firstname+lastname@domain.com'));
-      assert.isTrue(gutil.isEmail('email@domain.co.jp'));
-      assert.isTrue(gutil.isEmail('marie@isola.corsica'));
+      assert.isTrue(gutil.isEmail("email@domain.com"));
+      assert.isTrue(gutil.isEmail("e-mail_123@domain.com"));
+      assert.isTrue(gutil.isEmail("email@subdomain.do-main.com"));
+      assert.isTrue(gutil.isEmail("firstname+lastname@domain.com"));
+      assert.isTrue(gutil.isEmail("email@domain.co.jp"));
+      assert.isTrue(gutil.isEmail("marie@isola.corsica"));
 
-      assert.isFalse(gutil.isEmail('plainaddress'));
-      assert.isFalse(gutil.isEmail('@domain.com'));
-      assert.isFalse(gutil.isEmail('email@domain@domain.com'));
-      assert.isFalse(gutil.isEmail('.email@domain.com'));
-      assert.isFalse(gutil.isEmail('email.@domain.com'));
-      assert.isFalse(gutil.isEmail('email..email@domain.com'));
-      assert.isFalse(gutil.isEmail('あいうえお@domain.com'));
-      assert.isFalse(gutil.isEmail('email@domain'));
+      assert.isFalse(gutil.isEmail("plainaddress"));
+      assert.isFalse(gutil.isEmail("@domain.com"));
+      assert.isFalse(gutil.isEmail("email@domain@domain.com"));
+      assert.isFalse(gutil.isEmail(".email@domain.com"));
+      assert.isFalse(gutil.isEmail("email.@domain.com"));
+      assert.isFalse(gutil.isEmail("email..email@domain.com"));
+      assert.isFalse(gutil.isEmail("あいうえお@domain.com"));
+      assert.isFalse(gutil.isEmail("email@domain"));
     });
   });
 

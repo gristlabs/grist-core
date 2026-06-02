@@ -1,6 +1,6 @@
-const assert = require('chai').assert;
-const {shortDesc} = require('app/server/lib/shortDesc');
-const _ = require('underscore');
+const assert = require("chai").assert;
+const {shortDesc} = require("app/server/lib/shortDesc");
+const _ = require("underscore");
 
 describe("shortDesc", function() {
   it("should produce human-friendly output", function() {

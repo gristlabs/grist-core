@@ -58,7 +58,24 @@
         "Resource missing in resource map: {{resourceKey}}": "Resource missing in resource map: {{resourceKey}}",
         "Trying to add TableRules for existing table {{tableId}}": "Trying to add TableRules for existing table {{tableId}}",
         "Use a simple attribute of user.LinkKey, e.g. user.LinkKey.something": "Use a simple attribute of user.LinkKey, e.g. user.LinkKey.something",
-        "hidden": "hidden"
+        "hidden": "hidden",
+        "## Access Rules\n\nBasic access to this document is controlled using the 'Manage Users' option in the 'Share' menu, where you can assign collaborator roles such as Owner, Editor, or Viewer.\n\nFor more granular control, you can create Access Rules to limit who can view or edit specific\ntables, columns, or rows — useful for sensitive data or role-based permissions.\n[Learn more.]({{helpAccessRules}})": "## Access Rules\n\nBasic access to this document is controlled using the 'Manage Users' option in the 'Share' menu, where you can assign collaborator roles such as Owner, Editor, or Viewer.\n\nFor more granular control, you can create Access Rules to limit who can view or edit specific\ntables, columns, or rows — useful for sensitive data or role-based permissions.\n[Learn more.]({{helpAccessRules}})",
+        "## Access Rules\n\nYou don't have permission to view or edit access rules for this document.": "## Access Rules\n\nYou don't have permission to view or edit access rules for this document.",
+        "**Special rules** (expand each rule to customize who it applies to)": "**Special rules** (expand each rule to customize who it applies to)",
+        "After disabling Access Rules, Editors will be able to change the structure of the document and edit formulas. Editors and Viewers will be able to see all data in the document, as well as copy or download it.": "After disabling Access Rules, Editors will be able to change the structure of the document and edit formulas. Editors and Viewers will be able to see all data in the document, as well as copy or download it.",
+        "After enabling Access Rules, Editors will no longer be able to change the structure of the\ndocument or edit formulas. Only Owners will be able to copy or download the document.\n\nThese settings can be changed under 'Special rules'.": "After enabling Access Rules, Editors will no longer be able to change the structure of the\ndocument or edit formulas. Only Owners will be able to copy or download the document.\n\nThese settings can be changed under 'Special rules'.",
+        "Allow Editors to edit structure (e.g. modify and delete tables, columns, and layouts) and write formulas.  Important: if checked, Editors will be able to edit formulas, which can access all data, regardless of table and column access rules!": "Allow Editors to edit structure (e.g. modify and delete tables, columns, and layouts) and write formulas.  Important: if checked, Editors will be able to edit formulas, which can access all data, regardless of table and column access rules!",
+        "Allow everyone to view access rules.": "Allow everyone to view access rules.",
+        "Circumvent all read restrictions and allow everyone to copy the entire document, or view it in full in fiddle mode. Only use for for examples and templates, not for documents with sensitive data.": "Circumvent all read restrictions and allow everyone to copy the entire document, or view it in full in fiddle mode. Only use for for examples and templates, not for documents with sensitive data.",
+        "Continue": "Continue",
+        "Disable Access Rules": "Disable Access Rules",
+        "Disable and save": "Disable and save",
+        "Enable Access Rules": "Enable Access Rules",
+        "Permission to access the document in full by all users": "Permission to access the document in full by all users",
+        "Permission to access the document in full by unrestricted users": "Permission to access the document in full by unrestricted users",
+        "Restrict non-Owners from copying or downloading the full document. Note: this only affects users without read restrictions, since others will be restricted regardless of this setting.": "Restrict non-Owners from copying or downloading the full document. Note: this only affects users without read restrictions, since others will be restricted regardless of this setting.",
+        "Special rules for templates": "Special rules for templates",
+        "This options should be off if Editors' access is to be limited. ": "This options should be off if Editors' access is to be limited. "
     },
     "AccountPage": {
         "API": "API",
@@ -76,7 +93,15 @@
         "Theme": "Theme",
         "Two-factor authentication": "Two-factor authentication",
         "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.",
-        "Language": "Language"
+        "Language": "Language",
+        "Basic info": "Basic info",
+        "Developer": "Developer",
+        "Home": "Home",
+        "Profile": "Profile",
+        "Enterprise": "Enterprise",
+        "OAuth apps": "OAuth apps",
+        "OAuth apps let you connect external integrations to this Grist server with more security and convenience than when using API keys.\n\nOAuth apps are available with the [full version of Grist]({{fullGrist}}).": "OAuth apps let you connect external integrations to this Grist server with more security and convenience than when using API keys.\n\nOAuth apps are available with the [full version of Grist]({{fullGrist}}).",
+        "Accessibility": "Accessibility"
     },
     "AccountWidget": {
         "Access Details": "Access Details",
@@ -95,7 +120,9 @@
         "Support Grist": "Support Grist",
         "Upgrade Plan": "Upgrade Plan",
         "Sign up": "Sign up",
-        "Use This Template": "Use This Template"
+        "Use This Template": "Use This Template",
+        "Site settings": "Site settings",
+        "Account settings": "Account settings"
     },
     "ViewAsDropdown": {
         "View as": "View as",
@@ -109,7 +136,8 @@
         "This row was subsequently removed in action {{action.actionNum}}": "This row was subsequently removed in action {{action.actionNum}}",
         "All tables": "All tables",
         "Column {{colId}} was subsequently removed in action #{{actionNum}}": "Column {{colId}} was subsequently removed in action #{{actionNum}}",
-        "This row was subsequently removed in action {{actionNum}}": "This row was subsequently removed in action {{actionNum}}"
+        "This row was subsequently removed in action {{actionNum}}": "This row was subsequently removed in action {{actionNum}}",
+        "History blocked because of access rules.": "History blocked because of access rules."
     },
     "AddNewButton": {
         "Add new": "Add new"
@@ -128,7 +156,9 @@
         "Description": "Description",
         "Key": "Key",
         "Memory Error": "Memory Error",
-        "Translators: please translate this only when your language is ready to be offered to users": "Translators: please translate this only when your language is ready to be offered to users"
+        "Translators: please translate this only when your language is ready to be offered to users": "Translators: please translate this only when your language is ready to be offered to users",
+        "Disabled screen reader improvements": "Disabled screen reader improvements",
+        "Enabled screen reader improvements": "Enabled screen reader improvements"
     },
     "AppHeader": {
         "Home page": "Home page",
@@ -186,7 +216,7 @@
         "Log scale Y-axis": "Log scale Y-axis",
         "Hole size": "Hole size",
         "Show total": "Show total",
-        "Text Size": "Text Size",
+        "Text size": "Text size",
         "Connect gaps": "Connect gaps",
         "Show markers": "Show markers",
         "Stack series": "Stack series",
@@ -613,7 +643,9 @@
         "Import from file": "Import from file",
         "Saved linked section {{title}} in view {{name}}": "Saved linked section {{title}} in view {{name}}",
         "go to webhook settings": "go to webhook settings",
-        "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue."
+        "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.",
+        "Import from Airtable": "Import from Airtable",
+        "{{title}} widget": "{{title}} widget"
     },
     "HomeIntro": {
         "Any documents created in this site will appear here.": "Any documents created in this site will appear here.",
@@ -661,7 +693,8 @@
         "Tutorial": "Tutorial",
         "Terms of service": "Terms of service",
         "Grist Resources": "Grist Resources",
-        "context menu - {{- workspaceName }}": "context menu - {{- workspaceName }}"
+        "context menu - {{- workspaceName }}": "context menu - {{- workspaceName }}",
+        "Import from Airtable": "Import from Airtable"
     },
     "Importer": {
         "Merge rows that match these fields:": "Merge rows that match these fields:",
@@ -688,7 +721,9 @@
     },
     "LeftPanelCommon": {
         "Help Center": "Help Center",
-        "Accessibility": "Accessibility"
+        "Accessibility": "Accessibility",
+        "(Screen reader improvements enabled)": "(Screen reader improvements enabled)",
+        "Screen reader improvements enabled": "Screen reader improvements enabled"
     },
     "MakeCopyMenu": {
         "As template": "As template",
@@ -727,7 +762,8 @@
         "Format:": "Format:",
         "Learn more": "Learn more",
         "download attachments": "download attachments",
-        "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. "
+        "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ",
+        "If you're planning to upload this document to a Grist installation, you will need the archive in the \".tar\" format to restore attachments. ": "If you're planning to upload this document to a Grist installation, you will need the archive in the \".tar\" format to restore attachments. "
     },
     "NotifyUI": {
         "Ask for help": "Ask for help",
@@ -758,7 +794,10 @@
         "Select data": "Select data",
         "Select widget": "Select widget",
         "New Table": "New Table",
-        "SELECT BY": "SELECT BY"
+        "SELECT BY": "SELECT BY",
+        "{{table}} grouped by… (press to select fields)": "{{table}} grouped by… (press to select fields)",
+        "Press Space to add fields": "Press Space to add fields",
+        "Use up and down arrow keys to move through options. Press Enter and Esc to move between steps.": "Use up and down arrow keys to move through options. Press Enter and Esc to move between steps."
     },
     "Pages": {
         "Delete": "Delete",
@@ -889,7 +928,7 @@
         "Exporting is only available from document pages. Please select a document page and try again.": "Exporting is only available from document pages. Please select a document page and try again.",
         "Download attachments...": "Download attachments...",
         "Download document...": "Download document...",
-        "Suggest Changes": "Suggest Changes",
+        "Suggest changes": "Suggest changes",
         "current version": "current version",
         "original": "original"
     },
@@ -938,12 +977,14 @@
         "context menu - Access Rules": "context menu - Access Rules",
         "Delete document tour": "Delete document tour",
         "Preview the tutorial": "Preview the tutorial",
-        "Proposed Changes": "Proposed Changes",
-        "Suggest Changes": "Suggest Changes",
+        "Proposed changes": "Proposed changes",
+        "Suggest changes": "Suggest changes",
         "Suggestions": "Suggestions"
     },
     "TopBar": {
-        "Manage team": "Manage team"
+        "Manage team": "Manage team",
+        "Redo": "Redo",
+        "Undo": "Undo"
     },
     "TriggerFormulas": {
         "Any field": "Any field",
@@ -1116,7 +1157,12 @@
         "changes": "changes",
         "comments": "comments",
         "this document": "this document",
-        "your email": "your email"
+        "your email": "your email",
+        "You will no longer receive email notifications about {{suggestions}} in {{docName}} at {{email}}.": "You will no longer receive email notifications about {{suggestions}} in {{docName}} at {{email}}.",
+        "You will no longer receive email notifications about {{automations}} in {{docName}} at {{email}}.": "You will no longer receive email notifications about {{automations}} in {{docName}} at {{email}}.",
+        "You have been unsubscribed from automation notifications for {{docName}}. You can update your preferences anytime in the document settings.": "You have been unsubscribed from automation notifications for {{docName}}. You can update your preferences anytime in the document settings.",
+        "automations": "automations",
+        "suggestions": "suggestions"
     },
     "menus": {
         "* Workspaces are available on team plans. ": "* Workspaces are available on team plans. ",
@@ -1138,7 +1184,9 @@
         "By Name": "By Name",
         "By Date Modified": "By date Modified",
         "Light": "Light",
-        "Custom": "Custom"
+        "Custom": "Custom",
+        "Dark": "Dark",
+        "Light (High Contrast)": "Light (High Contrast)"
     },
     "modals": {
         "Cancel": "Cancel",
@@ -1186,7 +1234,8 @@
         "Field Format": "Field Format",
         "Lines": "Lines",
         "Multi line": "Multi line",
-        "Single line": "Single line"
+        "Single line": "Single line",
+        "Maximum characters": "Maximum characters"
     },
     "ACLUsers": {
         "Example Users": "Example Users",
@@ -1426,7 +1475,8 @@
         "Comments are here!": "Comments are here!",
         "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "You can add comments to cells, reply to comment threads, and @-mention collaborators.",
         "When checked, this field’s default value can be prefilled from the URL using query parameters.": "When checked, this field’s default value can be prefilled from the URL using query parameters.",
-        "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration."
+        "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.",
+        "Unpin to hide the button while keeping the filter.": "Unpin to hide the button while keeping the filter."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION",
@@ -1529,7 +1579,9 @@
         "Talk to me like a person. No need to specify tables and column names. For example, you can ask \"Please calculate the total invoice amount.\"": "Talk to me like a person. No need to specify tables and column names. For example, you can ask \"Please calculate the total invoice amount.\""
     },
     "GridView": {
-        "Click to insert": "Click to insert"
+        "Click to insert": "Click to insert",
+        "row {{rowNum}} {{colName}}": "row {{rowNum}} {{colName}}",
+        "row {{rowNum}} {{colName}} (new row)": "row {{rowNum}} {{colName}} (new row)"
     },
     "WelcomeSitePicker": {
         "Welcome back": "Welcome back",
@@ -1583,7 +1635,10 @@
         "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.",
         "You are about to remove your own access to this {{resourceType}}": "You are about to remove your own access to this {{resourceType}}",
         "Inherit access: ": "Inherit access: ",
-        "Access overview": "Access overview"
+        "Access overview": "Access overview",
+        "Share it publicly": "Share it publicly",
+        "Verify your sensitive data before sharing publicly": "Verify your sensitive data before sharing publicly",
+        "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing.": "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing."
     },
     "SearchModel": {
         "Search all pages": "Search all pages",
@@ -1652,12 +1707,16 @@
     },
     "WelcomeCoachingCall": {
         "free coaching call": "free coaching call",
-        "Maybe Later": "Maybe Later",
+        "Maybe later": "Maybe later",
         "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.",
-        "Schedule Call": "Schedule Call",
         "Schedule your {{freeCoachingCall}} with a member of our team.": "Schedule your {{freeCoachingCall}} with a member of our team.",
         "You may also check out {{ourWeeklyWebinars}} to learn more about Grist.": "You may also check out {{ourWeeklyWebinars}} to learn more about Grist.",
-        "our weekly webinars": "our weekly webinars"
+        "our weekly webinars": "our weekly webinars",
+        "Free coaching call": "Free coaching call",
+        "Grist 101": "Grist 101",
+        "Schedule call": "Schedule call",
+        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users                navigate the fundamentals of Grist.": "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users                navigate the fundamentals of Grist.",
+        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users navigate the fundamentals of Grist.": "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users navigate the fundamentals of Grist."
     },
     "FormView": {
         "Publish": "Publish",
@@ -1727,7 +1786,8 @@
         "Vertical": "Vertical",
         "Accept value from URL": "Accept value from URL",
         "Hidden field": "Hidden field",
-        "URL parameter:\n{{colId}}=VALUE": "URL parameter:\n{{colId}}=VALUE"
+        "URL parameter:\n{{colId}}=VALUE": "URL parameter:\n{{colId}}=VALUE",
+        "Options limit": "Options limit"
     },
     "CustomView": {
         "Some required columns aren't mapped": "Some required columns aren't mapped",
@@ -1873,7 +1933,55 @@
         "Administrative accounts": "Administrative accounts",
         "The users with administrative accounts": "The users with administrative accounts",
         "Version {{versionNumber}}": "Version {{versionNumber}}",
-        "no admin accounts": "no admin accounts"
+        "no admin accounts": "no admin accounts",
+        "Are you sure you want to restart Grist?": "Are you sure you want to restart Grist?",
+        "Grist is running in an environment that doesn't support restarting from the admin panel.": "Grist is running in an environment that doesn't support restarting from the admin panel.",
+        "Restart": "Restart",
+        "Restart Grist": "Restart Grist",
+        "Restart Grist to apply pending changes or resolve issues.": "Restart Grist to apply pending changes or resolve issues.",
+        "Restart Grist?": "Restart Grist?",
+        "Restarting Grist...": "Restarting Grist...",
+        "This will apply any pending changes and briefly interrupt access for all users.": "This will apply any pending changes and briefly interrupt access for all users.",
+        "You can still restart Grist manually.": "You can still restart Grist manually.",
+        "error in {{provider}}: {{verdict}}": "error in {{provider}}: {{verdict}}",
+        "Please restart Grist manually.": "Please restart Grist manually.",
+        "Restart Grist to apply pending changes.": "Restart Grist to apply pending changes.",
+        "Restart unavailable": "Restart unavailable",
+        "Boot key": "Boot key",
+        "Fallback authentication method": "Fallback authentication method",
+        "If you are the server operator, you can sign in using the boot key from your server logs.": "If you are the server operator, you can sign in using the boot key from your server logs.",
+        "Maintenance": "Maintenance",
+        "Service status": "Service status",
+        "Sign in with boot key": "Sign in with boot key",
+        "Take Grist out of service for maintenance": "Take Grist out of service for maintenance",
+        "boot key": "boot key",
+        "disabled": "disabled",
+        "enabled": "enabled",
+        "in service": "in service",
+        "out of service": "out of service",
+        "Back up documents externally": "Back up documents externally",
+        "Backups": "Backups",
+        "Storage": "Storage",
+        "Apply changes (manual restart required)": "Apply changes (manual restart required)",
+        "Base URL": "Base URL",
+        "Changes have been saved. Restart Grist to apply them.": "Changes have been saved. Restart Grist to apply them.",
+        "Edition": "Edition",
+        "Its controls have moved to {{editionLink}} above.": "Its controls have moved to {{editionLink}} above.",
+        "Restart the Grist server": "Restart the Grist server",
+        "Saving...": "Saving...",
+        "Server": "Server",
+        "Server → Edition": "Server → Edition",
+        "The URL where users and integrations reach this Grist server": "The URL where users and integrations reach this Grist server",
+        "What used to be called \"Grist Enterprise\" is now called \"Full Grist\".": "What used to be called \"Grist Enterprise\" is now called \"Full Grist\".",
+        "moved to Edition": "moved to Edition",
+        "Installation": "Installation",
+        "Default permissions": "Default permissions",
+        "Who can create sites, log in, and use the playground": "Who can create sites, log in, and use the playground",
+        "Any pending changes will be cleared.": "Any pending changes will be cleared.",
+        "Dismiss": "Dismiss",
+        "Dismiss changes": "Dismiss changes",
+        "Dismiss pending changes?": "Dismiss pending changes?",
+        "Dismissing...": "Dismissing..."
     },
     "Columns": {
         "Remove Column": "Remove Column"
@@ -1917,7 +2025,9 @@
         "Select...": "Select...",
         "Submit": "Submit",
         "Submitting…": "Submitting…",
-        "Clear selection for: {{-inputLabel}}": "Clear selection for: {{-inputLabel}}"
+        "Clear selection for: {{-inputLabel}}": "Clear selection for: {{-inputLabel}}",
+        "Options for {{-inputLabel}}": "Options for {{-inputLabel}}",
+        "Search options for {{-inputLabel}}": "Search options for {{-inputLabel}}"
     },
     "widgetTypesMap": {
         "Calendar": "Calendar",
@@ -1996,7 +2106,14 @@
         "Your activation key has expired due to exceeding limits.": "Your activation key has expired due to exceeding limits.",
         "Your instance will be in **read-only** mode in **{{days}}** day(s).": "Your instance will be in **read-only** mode in **{{days}}** day(s).",
         "Your subscription expired on {{date}}.": "Your subscription expired on {{date}}.",
-        "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.": "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below."
+        "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.": "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.",
+        "An activation key is used to run Full Grist after a trial period\n        of 30 days has expired. Get an activation key by [signing up for Grist\n        Enterprise]({{signupLink}}). You do not need an activation key to run\n        Grist Community Edition.": "An activation key is used to run Full Grist after a trial period\n        of 30 days has expired. Get an activation key by [signing up for Grist\n        Enterprise]({{signupLink}}). You do not need an activation key to run\n        Grist Community Edition.",
+        "An activation key is used to run Full Grist after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Community Edition.\n\nLearn more in our [Help Center]({{helpCenter}}).": "An activation key is used to run Full Grist after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Community Edition.\n\nLearn more in our [Help Center]({{helpCenter}}).",
+        "An active subscription is required to continue using Full Grist. You can\nyou activate your subscription by [signing up for Full Grist ]({{signupLink}}) and pasting your\nactivation key below.": "An active subscription is required to continue using Full Grist. You can\nyou activate your subscription by [signing up for Full Grist ]({{signupLink}}) and pasting your\nactivation key below.",
+        "Enable Full Grist": "Enable Full Grist",
+        "To continue using Full Grist, you need to\n                  [contact us]({{signupLink}}) to get your activation key.": "To continue using Full Grist, you need to\n                  [contact us]({{signupLink}}) to get your activation key.",
+        "You are currently trialing Full Grist.": "You are currently trialing Full Grist.",
+        "Your trial period has expired on **{{expireAt}}**. To continue using Full Grist, you need to\n[sign up for Full Grist]({{signupLink}}) and paste your activation key below.": "Your trial period has expired on **{{expireAt}}**. To continue using Full Grist, you need to\n[sign up for Full Grist]({{signupLink}}) and paste your activation key below."
     },
     "ViewLayout": {
         "Delete": "Delete",
@@ -2148,7 +2265,8 @@
         "Workspace": "Workspace",
         "context menu - {{- documentName }}": "context menu - {{- documentName }}",
         "Documents list": "Documents list",
-        "Download document...": "Download document..."
+        "Download document...": "Download document...",
+        "Deleted {{at}}": "Deleted {{at}}"
     },
     "RenameDocModal": {
         "Choose color": "Choose color",
@@ -2187,7 +2305,10 @@
         "Users": "Users",
         "Workspaces": "Workspaces",
         "Admin Controls": "Admin Controls",
-        "Settings": "Settings"
+        "Settings": "Settings",
+        "Enterprise": "Enterprise",
+        "Quick setup": "Quick setup",
+        "Apply changes": "Apply changes"
     },
     "Assistant": {
         "AI Assistant is only available for logged in users.": "AI Assistant is only available for logged in users.",
@@ -2242,7 +2363,10 @@
         "You are about to disable this experimental feature: {{experiment}}": "You are about to disable this experimental feature: {{experiment}}",
         "You are about to enable this experimental feature: {{experiment}}": "You are about to enable this experimental feature: {{experiment}}",
         "{{experiment}} disabled.": "{{experiment}} disabled.",
-        "{{experiment}} enabled.": "{{experiment}} enabled."
+        "{{experiment}} enabled.": "{{experiment}} enabled.",
+        "Notifications": "Notifications",
+        "OAuth apps": "OAuth apps",
+        "Simulate deployment as core": "Simulate deployment as core"
     },
     "NewRecordButton": {
         "New card": "New card",
@@ -2253,10 +2377,13 @@
     },
     "duplicateWidget": {
         "Duplicate widget": "Duplicate widget",
-        "Duplicate widgets": "Duplicate widgets"
+        "Duplicate widgets": "Duplicate widgets",
+        "Active": "Active",
+        "Create new page": "Create new page"
     },
     "AttachmentsWidget": {
-        "Uploading, please wait…": "Uploading, please wait…"
+        "Uploading, please wait…": "Uploading, please wait…",
+        "Image": "Image"
     },
     "AttachmentsEditor": {
         "Add": "Add",
@@ -2291,7 +2418,8 @@
         "This boot page should not be too easy to access. Either turn it off when configuration is ok (by unsetting GRIST_BOOT_KEY) or make GRIST_BOOT_KEY long and cryptographically secure.": "This boot page should not be too easy to access. Either turn it off when configuration is ok (by unsetting GRIST_BOOT_KEY) or make GRIST_BOOT_KEY long and cryptographically secure.",
         "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.": "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.",
         "It is good practice not to run Grist as the root user.": "It is good practice not to run Grist as the root user.",
-        "The main page of Grist should be available.": "The main page of Grist should be available."
+        "The main page of Grist should be available.": "The main page of Grist should be available.",
+        "APP_HOME_URL is the base URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "APP_HOME_URL is the base URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct."
     },
     "ChoiceListEntry": {
         "+{{count}} more_one": "+{{count}} more",
@@ -2346,10 +2474,17 @@
         "{{creatorPanelShortcut}} Focus to and from the creator panel": "{{creatorPanelShortcut}} Focus to and from the creator panel",
         "{{nextRegionShortcut}} Focus on the next region": "{{nextRegionShortcut}} Focus on the next region",
         "{{prevRegionShortcut}} Focus on the previous region": "{{prevRegionShortcut}} Focus on the previous region",
-        "{{shortcutsModal}} Show the complete list of keyboard shortcuts": "{{shortcutsModal}} Show the complete list of keyboard shortcuts"
+        "{{shortcutsModal}} Show the complete list of keyboard shortcuts": "{{shortcutsModal}} Show the complete list of keyboard shortcuts",
+        "Enable screen reader improvements (keyboard shortcut: {{shortcut}})": "Enable screen reader improvements (keyboard shortcut: {{shortcut}})",
+        "Use your screen reader's focus mode, or disable Quick Nav if you use VoiceOver.": "Use your screen reader's focus mode, or disable Quick Nav if you use VoiceOver.",
+        "Please first read the \"Keyboard navigation\" section above to understand how to navigate across the interface's regions: specific keyboard shortcuts need to be used.": "Please first read the \"Keyboard navigation\" section above to understand how to navigate across the interface's regions: specific keyboard shortcuts need to be used.",
+        "Screen reader navigation": "Screen reader navigation",
+        "Warning: screen reader support is a work-in-progress in Grist and is improving over time. Feedback is greatly appreciated!": "Warning: screen reader support is a work-in-progress in Grist and is improving over time. Feedback is greatly appreciated!",
+        "While not mandatory, you can enable screen reader improvements for a better navigation experience:": "While not mandatory, you can enable screen reader improvements for a better navigation experience:",
+        "We recommend using Firefox, Chrome or Edge in order to use Grist with a screen reader.": "We recommend using Firefox, Chrome or Edge in order to use Grist with a screen reader."
     },
     "ProposedChangesPage": {
-        "Proposed Changes": "Proposed Changes",
+        "Proposed changes": "Proposed changes",
         "Replace original": "Replace original",
         "This is a list of changes relative to the original document.": "This is a list of changes relative to the original document.",
         "Accept": "Accept",
@@ -2358,20 +2493,21 @@
         "Dismissed {{at}}.": "Dismissed {{at}}.",
         "Learn more": "Learn more",
         "No changes found to suggest. Please make some edits.": "No changes found to suggest. Please make some edits.",
-        "Retract Suggestion": "Retract Suggestion",
+        "Retract suggestion": "Retract suggestion",
         "Retracted {{at}}.": "Retracted {{at}}.",
-        "Suggest Change": "Suggest Change",
-        "Suggest Changes": "Suggest Changes",
+        "Suggest change": "Suggest change",
+        "Suggest changes": "Suggest changes",
         "Suggestion made {{at}}.": "Suggestion made {{at}}.",
         "Suggestions": "Suggestions",
         "The original document isn't asking for proposed changes.": "The original document isn't asking for proposed changes.",
         "There are fresh changes that haven't been added to the suggestion yet.": "There are fresh changes that haven't been added to the suggestion yet.",
         "This is a list of changes relative to the {{originalDocument}}.": "This is a list of changes relative to the {{originalDocument}}.",
-        "Update Suggestion": "Update Suggestion",
+        "Update suggestion": "Update suggestion",
         "Work on a copy": "Work on a copy",
         "Your suggestions": "Your suggestions",
         "experiment": "experiment",
-        "original document": "original document"
+        "original document": "original document",
+        "Undo dismissal": "Undo dismissal"
     },
     "commandList": {
         "Show accessibility options": "Show accessibility options",
@@ -2484,7 +2620,11 @@
         "When in the search bar, close it and focus the current match": "When in the search bar, close it and focus the current match",
         "When typed at the start of a cell, make this a formula column": "When typed at the start of a cell, make this a formula column",
         "showing a behavioral popup": "showing a behavioral popup",
-        "Filter this column by just this cell's value": "Filter this column by just this cell's value"
+        "Filter this column by just this cell's value": "Filter this column by just this cell's value",
+        "Open the context menu": "Open the context menu",
+        "Toggle the screen reader improvements": "Toggle the screen reader improvements",
+        "Open the current column menu": "Open the current column menu",
+        "Open the current row menu": "Open the current row menu"
     },
     "GridViewMenusDateHelpers": {
         "12-hour format": "12-hour format",
@@ -2534,5 +2674,483 @@
     },
     "CoreNewDocMethods": {
         "Untitled document": "Untitled document"
+    },
+    "AuthenticationSection": {
+        "Active": "Active",
+        "Active method is controlled by an environment variable. Unset variable to change active method.": "Active method is controlled by an environment variable. Unset variable to change active method.",
+        "Active on restart": "Active on restart",
+        "Are you sure you want to set **{{name}}** as the active authentication method?": "Are you sure you want to set **{{name}}** as the active authentication method?",
+        "Close": "Close",
+        "Configure": "Configure",
+        "Configured": "Configured",
+        "Confirm": "Confirm",
+        "Disabled on restart": "Disabled on restart",
+        "Error": "Error",
+        "Error details": "Error details",
+        "Instructions": "Instructions",
+        "No authentication method is active.": "No authentication method is active.",
+        "Set as active method": "Set as active method",
+        "Set as active method?": "Set as active method?",
+        "The new method will go into effect after you restart Grist.": "The new method will go into effect after you restart Grist.",
+        "**Forwarded headers** allows your Grist server to trust authentication performed by an external proxy (e.g. Traefik ForwardAuth).": "**Forwarded headers** allows your Grist server to trust authentication performed by an external proxy (e.g. Traefik ForwardAuth).",
+        "**Grist Connect** is a login solution built and maintained by Grist Labs that integrates seamlessly with your Grist server.": "**Grist Connect** is a login solution built and maintained by Grist Labs that integrates seamlessly with your Grist server.",
+        "**OIDC** allows users on your Grist server to sign in using an external identity provider that supports the OpenID Connect standard.": "**OIDC** allows users on your Grist server to sign in using an external identity provider that supports the OpenID Connect standard.",
+        "**SAML** allows users on your Grist server to sign in using an external identity provider that supports the SAML 2.0 standard.": "**SAML** allows users on your Grist server to sign in using an external identity provider that supports the SAML 2.0 standard.",
+        "Change admin user": "Change admin user",
+        "If Grist is accessible on your network, or is available to multiple people, configure one of the authentication methods below.": "If Grist is accessible on your network, or is available to multiple people, configure one of the authentication methods below.",
+        "No authentication: unrestricted sign-in as demo user": "No authentication: unrestricted sign-in as demo user",
+        "Prepare changes": "Prepare changes",
+        "Restart required. Authentication change may affect your access": "Restart required. Authentication change may affect your access",
+        "Revert change of admin user": "Revert change of admin user",
+        "See \"Restart Grist\" section on top of this page to restart.": "See \"Restart Grist\" section on top of this page to restart.",
+        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "grist-connect": {
+                            ").": "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect](https://support.getgrist.com/install/grist-connect/)."
+                        }
+                    }
+                }
+            }
+        },
+        "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "oidc).": "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC](https://support.getgrist.com/install/oidc)."
+                    }
+                }
+            }
+        },
+        "To set up **SAML**, follow the instructions in [the Grist support article for SAML](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "saml": {
+                            ").": "To set up **SAML**, follow the instructions in [the Grist support article for SAML](https://support.getgrist.com/install/saml/)."
+                        }
+                    }
+                }
+            }
+        },
+        "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "forwarded-headers": {
+                            ").": "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers](https://support.getgrist.com/install/forwarded-headers/)."
+                        }
+                    }
+                }
+            }
+        },
+        "When a user accesses Grist, the proxy handles authentication and forwards verified user information through HTTP headers. Grist uses these headers to identify the user.": "When a user accesses Grist, the proxy handles authentication and forwards verified user information through HTTP headers. Grist uses these headers to identify the user.",
+        "When signing in, users will be redirected to a Grist Connect login page where they can authenticate using various identity providers. After authentication, they'll be redirected back to your Grist server and signed in.": "When signing in, users will be redirected to a Grist Connect login page where they can authenticate using various identity providers. After authentication, they'll be redirected back to your Grist server and signed in.",
+        "When signing in, users will be redirected to your chosen identity provider's login page to authenticate. After successful authentication, they'll be redirected back to your Grist server and signed in as the user verified by the provider.": "When signing in, users will be redirected to your chosen identity provider's login page to authenticate. After successful authentication, they'll be redirected back to your Grist server and signed in as the user verified by the provider.",
+        "You are signed in as {{email}}. After restart, the new administrative user will be {{newEmail}}.": "You are signed in as {{email}}. After restart, the new administrative user will be {{newEmail}}.",
+        "You are signed in as {{email}}. You may lose access to this server if you cannot sign in as this user after switching the authentication system.": "You are signed in as {{email}}. You may lose access to this server if you cannot sign in as this user after switching the authentication system.",
+        "If Grist is accessible on your network, or is available to multiple people, configure one of the authentication methods below and remove your boot key from Security Settings → Boot key.": "If Grist is accessible on your network, or is available to multiple people, configure one of the authentication methods below and remove your boot key from Security Settings → Boot key.",
+        "No authentication: using boot key as fallback method": "No authentication: using boot key as fallback method",
+        "Anyone who can reach this server can access all data without signing in. Configure one of the authentication methods below.": "Anyone who can reach this server can access all data without signing in. Configure one of the authentication methods below.",
+        "Are you sure you want to deactivate **{{name}}**?": "Are you sure you want to deactivate **{{name}}**?",
+        "Authentication has been configured and will become active when Grist is restarted.": "Authentication has been configured and will become active when Grist is restarted.",
+        "Authentication is misconfigured or unreachable. Users may not be able to sign in.": "Authentication is misconfigured or unreachable. Users may not be able to sign in.",
+        "Available methods": "Available methods",
+        "Change installation admin": "Change installation admin",
+        "Deactivate": "Deactivate",
+        "Deactivate authentication?": "Deactivate authentication?",
+        "For enterprise identity providers (Okta, OneLogin, etc.).": "For enterprise identity providers (Okta, OneLogin, etc.).",
+        "For reverse proxy setups (Traefik, Authelia, etc.).": "For reverse proxy setups (Traefik, Authelia, etc.).",
+        "I understand this server has no authentication": "I understand this server has no authentication",
+        "Installation admin: ": "Installation admin: ",
+        "Managed login solution by Grist Labs (deprecated).": "Managed login solution by Grist Labs (deprecated).",
+        "No authentication": "No authentication",
+        "No authentication: using boot key": "No authentication: using boot key",
+        "Not recommended": "Not recommended",
+        "Other authentication methods": "Other authentication methods",
+        "Reconfigure": "Reconfigure",
+        "The change will take effect after you restart Grist.": "The change will take effect after you restart Grist.",
+        "This login mechanism is deprecated.": "This login mechanism is deprecated.",
+        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect]({{url}}).": "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect]({{url}}).",
+        "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC]({{url}}).": "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC]({{url}}).",
+        "To set up **SAML**, follow the instructions in [the Grist support article for SAML]({{url}}).": "To set up **SAML**, follow the instructions in [the Grist support article for SAML]({{url}}).",
+        "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers]({{url}}).": "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers]({{url}}).",
+        "Works with most identity providers (Google, Azure AD, Keycloak, etc.).": "Works with most identity providers (Google, Azure AD, Keycloak, etc.).",
+        "Your configuration will be preserved. You can reactivate it later without reconfiguring.": "Your configuration will be preserved. You can reactivate it later without reconfiguring.",
+        "Your server is configured to authenticate users via OpenID Connect. Users sign in through your identity provider.": "Your server is configured to authenticate users via OpenID Connect. Users sign in through your identity provider.",
+        "Your server is configured to authenticate users via SAML 2.0. Users sign in through your enterprise identity provider.": "Your server is configured to authenticate users via SAML 2.0. Users sign in through your enterprise identity provider.",
+        "Your server is using a boot key as a fallback login method. Configure one of the authentication methods below.": "Your server is using a boot key as a fallback login method. Configure one of the authentication methods below.",
+        "Your server trusts authentication from a reverse proxy. Make sure only your proxy can reach the Grist backend.": "Your server trusts authentication from a reverse proxy. Make sure only your proxy can reach the Grist backend.",
+        "Authentication": "Authentication",
+        "Choose how users sign in to Grist.": "Choose how users sign in to Grist.",
+        "New admin email": "New admin email",
+        "Reassign login to admin": "Reassign login to admin",
+        "The change will be saved when you apply pending changes, and will go into effect after you restart Grist.": "The change will be saved when you apply pending changes, and will go into effect after you restart Grist.",
+        "The change will be saved when you apply pending changes, and will take effect after you restart Grist.": "The change will be saved when you apply pending changes, and will take effect after you restart Grist.",
+        "configuration updated": "configuration updated",
+        "disabled": "disabled"
+    },
+    "DetailView": {
+        "This row is unavailable or does not exist": "This row is unavailable or does not exist"
+    },
+    "GetGristComProvider": {
+        "**Sign in with getgrist.com** allows users on your Grist server to sign in using their account on getgrist.com, the cloud version of Grist managed by Grist Labs.": "**Sign in with getgrist.com** allows users on your Grist server to sign in using their account on getgrist.com, the cloud version of Grist managed by Grist Labs.",
+        "Cancel": "Cancel",
+        "Configure": "Configure",
+        "Configure Sign in with getgrist.com": "Configure Sign in with getgrist.com",
+        "Home URL is not set; cannot configure Sign in with getgrist.com": "Home URL is not set; cannot configure Sign in with getgrist.com",
+        "Instructions": "Instructions",
+        "Learn more about Sign in with getgrist.com": "Learn more about Sign in with getgrist.com",
+        "Paste configuration key here": "Paste configuration key here",
+        "Register your Grist server": "Register your Grist server",
+        "Sign in with getgrist.com": "Sign in with getgrist.com",
+        "To set up {{provider}}, you need to register your Grist server on getgrist.com and paste the configuration key you receive below.": "To set up {{provider}}, you need to register your Grist server on getgrist.com and paste the configuration key you receive below.",
+        "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.": "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.",
+        "Managed authentication by Grist Labs.": "Managed authentication by Grist Labs.",
+        "Your server uses getgrist.com authentication. Users sign in with their getgrist.com account.": "Your server uses getgrist.com authentication. Users sign in with their getgrist.com account.",
+        "Error configuring provider with the provided key: {{reason}}": "Error configuring provider with the provided key: {{reason}}"
+    },
+    "AirtableImportUI": {
+        "Back": "Back",
+        "Cancel": "Cancel",
+        "Choose an Airtable base to import from": "Choose an Airtable base to import from",
+        "Choose destination": "Choose destination",
+        "Connect": "Connect",
+        "Connect with Airtable": "Connect with Airtable",
+        "Connect your Airtable account to access your bases.": "Connect your Airtable account to access your bases.",
+        "Connected via {{method}}": "Connected via {{method}}",
+        "Connecting...": "Connecting...",
+        "Continue": "Continue",
+        "Destination": "Destination",
+        "Disconnect": "Disconnect",
+        "Existing tables": "Existing tables",
+        "Failed to fetch base schema": "Failed to fetch base schema",
+        "Failed to fetch bases": "Failed to fetch bases",
+        "Grist configuration required": "Grist configuration required",
+        "Import from {{baseName}} in progress. Do not navigate away from this page.": "Import from {{baseName}} in progress. Do not navigate away from this page.",
+        "Import tables": "Import tables",
+        "Import {{count}} tables_one": "Import {{count}} tables",
+        "Import {{count}} tables_other": "Import {{count}} tables",
+        "Make sure your token has the correct permissions.": "Make sure your token has the correct permissions.",
+        "New table": "New table",
+        "New table: structure only": "New table: structure only",
+        "No bases found": "No bases found",
+        "OAuth": "OAuth",
+        "OAuth credentials not configured. Please set OAUTH2_AIRTABLE_CLIENT_ID and OAUTH2_AIRTABLE_CLIENT_SECRET, or use personal access token.": "OAuth credentials not configured. Please set OAUTH2_AIRTABLE_CLIENT_ID and OAUTH2_AIRTABLE_CLIENT_SECRET, or use personal access token.",
+        "Personal access token": "Personal access token",
+        "Please enter a personal access token": "Please enter a personal access token",
+        "Refresh": "Refresh",
+        "Select tables to import from {{baseName}}": "Select tables to import from {{baseName}}",
+        "Skip": "Skip",
+        "Source tables": "Source tables",
+        "Structure only": "Structure only",
+        "Use personal access token instead": "Use personal access token instead",
+        "[Generate a token]({{url}}) in your Airtable account with scopes that include at least **\\`schema.bases:read\\`** and **\\`data.records:read\\`**.\n\nYour token is never sent to Grist's servers, and is only used to make API calls to Airtable from your browser.": "[Generate a token]({{url}}) in your Airtable account with scopes that include at least **\\`schema.bases:read\\`** and **\\`data.records:read\\`**.\n\nYour token is never sent to Grist's servers, and is only used to make API calls to Airtable from your browser.",
+        "loading your bases...": "loading your bases...",
+        "loading your tables...": "loading your tables...",
+        "or": "or",
+        "{{count}} warnings_one": "{{count}} warnings",
+        "{{count}} warnings_other": "{{count}} warnings",
+        "The more convenient ‘Connect with Airtable’ option can be configured by the installation administrator. [Learn more.]({{url}})": "The more convenient ‘Connect with Airtable’ option can be configured by the installation administrator. [Learn more.]({{url}})",
+        "Use personal access token": "Use personal access token"
+    },
+    "AirtableImporter": {
+        "Creating a new Grist document...": "Creating a new Grist document...",
+        "Preparing to import base from Airtable...": "Preparing to import base from Airtable...",
+        "Setting up tables...": "Setting up tables..."
+    },
+    "ChangeAdminModal": {
+        "Enter new admin email": "Enter new admin email",
+        "Make the new email the installation admin. Orgs, workspaces, and documents will remain owned by {{email}}. These changes will take effect after you restart this Grist server.": "Make the new email the installation admin. Orgs, workspaces, and documents will remain owned by {{email}}. These changes will take effect after you restart this Grist server.",
+        "New admin": "New admin",
+        "Replace {{email}} with the new email throughout. The new email will become the installation admin, as well as the owner of all materials previously owned by you@example.com.": "Replace {{email}} with the new email throughout. The new email will become the installation admin, as well as the owner of all materials previously owned by you@example.com.",
+        "An account with {{email}} already exists.": "An account with {{email}} already exists."
+    },
+    "startDocAirtableImport": {
+        "Import from Airtable": "Import from Airtable"
+    },
+    "startHomeAirtableImport": {
+        "Import from Airtable": "Import from Airtable",
+        "The current workspace can't be imported to.": "The current workspace can't be imported to."
+    },
+    "NotifyModel": {
+        "Still working...": "Still working..."
+    },
+    "TriggersPageUpsell": {
+        "Upgrade": "Upgrade",
+        "Automate workflows from within Grist": "Automate workflows from within Grist",
+        "Automations Screenshot": "Automations Screenshot",
+        "Learn more.": "Learn more.",
+        "Trigger automations based on data changes, and design actions such as custom email notifications and webhook integrations.": "Trigger automations based on data changes, and design actions such as custom email notifications and webhook integrations.",
+        "Try for free": "Try for free",
+        "Try full Grist": "Try full Grist"
+    },
+    "AutomationsPageEntry": {
+        "Automations": "Automations",
+        "New": "New"
+    },
+    "BootKeyStatus": {
+        "Every new Grist installation includes a random boot key: a secret whose value is only obtainable by an installation operator.": "Every new Grist installation includes a random boot key: a secret whose value is only obtainable by an installation operator.",
+        "Make sure you have configured an authentication system that lets you sign in as an admin before removing the boot key.": "Make sure you have configured an authentication system that lets you sign in as an admin before removing the boot key.",
+        "Remove boot key": "Remove boot key",
+        "Remove boot key?": "Remove boot key?",
+        "The boot key should only be used as a temporary means of authentication until a more secure and robust authentication method is configured via Security Settings → Authentication. We recommend removing the boot key once you've finished setting up Grist.": "The boot key should only be used as a temporary means of authentication until a more secure and robust authentication method is configured via Security Settings → Authentication. We recommend removing the boot key once you've finished setting up Grist.",
+        "This setting is currently being managed by an environment variable (`GRIST_BOOT_KEY`).": "This setting is currently being managed by an environment variable (`GRIST_BOOT_KEY`).",
+        "Unset the environment variable to manage this setting via the Admin Panel.": "Unset the environment variable to manage this setting via the Admin Panel.",
+        "You will no longer be able to authenticate as the install admin on the `": {
+            "boot-key` page.": "You will no longer be able to authenticate as the install admin on the `/boot-key` page."
+        }
+    },
+    "BootPage": {
+        "Administrator email": "Administrator email",
+        "After restarting, Grist will be available without this sign-in step.": "After restarting, Grist will be available without this sign-in step.",
+        "After restarting, return to this page and enter your chosen key.": "After restarting, return to this page and enter your chosen key.",
+        "Boot key": "Boot key",
+        "Can't find your boot key? You can {{setBootKeyButton}} or {{disableCheckButton}}.": "Can't find your boot key? You can {{setBootKeyButton}} or {{disableCheckButton}}.",
+        "Check key": "Check key",
+        "Checking key": "Checking key",
+        "Confirm or change the administrator email address.": "Confirm or change the administrator email address.",
+        "Continue": "Continue",
+        "Copied!": "Copied!",
+        "Copy": "Copy",
+        "Enter boot key": "Enter boot key",
+        "For Docker, add \\`-e GRIST_BOOT_KEY={{bootKey}}\\` to your run command. For other setups, set it in your environment or configuration file.": "For Docker, add \\`-e GRIST_BOOT_KEY={{bootKey}}\\` to your run command. For other setups, set it in your environment or configuration file.",
+        "For Docker, add \\`-e GRIST_IN_SERVICE=true\\` to your run command. For other setups, set it in your environment or configuration file.": "For Docker, add \\`-e GRIST_IN_SERVICE=true\\` to your run command. For other setups, set it in your environment or configuration file.",
+        "Here's a random key you can use:": "Here's a random key you can use:",
+        "If you cannot access server logs or cannot find your boot key, you can set it yourself. Add the environment variable \\`GRIST_BOOT_KEY\\` with a secret value to your Grist configuration, then restart Grist.": "If you cannot access server logs or cannot find your boot key, you can set it yourself. Add the environment variable \\`GRIST_BOOT_KEY\\` with a secret value to your Grist configuration, then restart Grist.",
+        "Look for this banner near the top of Grist's startup output — check your terminal, container logs, or hosting panel: {{exampleBootKeyBanner}}": "Look for this banner near the top of Grist's startup output — check your terminal, container logs, or hosting panel: {{exampleBootKeyBanner}}",
+        "Paste boot key here": "Paste boot key here",
+        "Set \\`GRIST_IN_SERVICE=true\\` in your Grist configuration, then restart. Grist will start without requiring a boot key.": "Set \\`GRIST_IN_SERVICE=true\\` in your Grist configuration, then restart. Grist will start without requiring a boot key.",
+        "Set your boot key": "Set your boot key",
+        "Skipping it is fine on a private, trusted network where only authorized people can connect.": "Skipping it is fine on a private, trusted network where only authorized people can connect.",
+        "The boot key proves you have access to the server running Grist — it keeps out anyone who can reach this page but isn't the administrator.": "The boot key proves you have access to the server running Grist — it keeps out anyone who can reach this page but isn't the administrator.",
+        "This will be your admin account for managing Grist.": "This will be your admin account for managing Grist.",
+        "Turn off this check": "Turn off this check",
+        "Valid boot key": "Valid boot key",
+        "Verify that you have access to this server to continue.": "Verify that you have access to this server to continue.",
+        "Welcome to Grist": "Welcome to Grist",
+        "Why does this check exist?": "Why does this check exist?",
+        "disable this check": "disable this check",
+        "set your own": "set your own"
+    },
+    "QuickSetup": {
+        "Apply & restart": "Apply & restart",
+        "Authentication": "Authentication",
+        "Backups": "Backups",
+        "Configure Grist for your environment.": "Configure Grist for your environment.",
+        "Quick setup": "Quick setup",
+        "Sandboxing": "Sandboxing",
+        "Server": "Server",
+        "Continue": "Continue"
+    },
+    "ServiceStatus": {
+        "Enter maintenance mode": "Enter maintenance mode",
+        "Enter maintenance mode?": "Enter maintenance mode?",
+        "Non-admin users will be blocked until service is restored.": "Non-admin users will be blocked until service is restored.",
+        "Non-admin users will no longer be blocked.": "Non-admin users will no longer be blocked.",
+        "Restore service": "Restore service",
+        "Restore service?": "Restore service?",
+        "This setting is currently being managed by an environment variable (`GRIST_IN_SERVICE`).": "This setting is currently being managed by an environment variable (`GRIST_IN_SERVICE`).",
+        "Unset the environment variable to manage this setting via the Admin Panel.": "Unset the environment variable to manage this setting via the Admin Panel."
+    },
+    "TeamSettingsPage": {
+        "Domain is already taken.": "Domain is already taken.",
+        "Invalid domain.": "Invalid domain."
+    },
+    "BackupsSection": {
+        "AWS S3 via native AWS SDK. Supports IAM roles and AWS-native auth.": "AWS S3 via native AWS SDK. Supports IAM roles and AWS-native auth.",
+        "AWS S3-compatible service via MinIO client library. Works with AWS S3, MinIO, and others.": "AWS S3-compatible service via MinIO client library. Works with AWS S3, MinIO, and others.",
+        "Active": "Active",
+        "Available in full edition": "Available in full edition",
+        "Azure Blob Storage": "Azure Blob Storage",
+        "Backups": "Backups",
+        "Documents stored on local disk only.": "Documents stored on local disk only.",
+        "Learn more.": "Learn more.",
+        "Loading backup providers...": "Loading backup providers...",
+        "Microsoft Azure Blob Storage via native Azure SDK.": "Microsoft Azure Blob Storage via native Azure SDK.",
+        "No external storage": "No external storage",
+        "Off": "Off",
+        "S3 (AWS client)": "S3 (AWS client)",
+        "S3 (MinIO client)": "S3 (MinIO client)",
+        "Set these environment variables and restart Grist to enable Azure storage:": "Set these environment variables and restart Grist to enable Azure storage:",
+        "Set these environment variables and restart Grist to enable MinIO storage:": "Set these environment variables and restart Grist to enable MinIO storage:",
+        "Set these environment variables and restart Grist to enable S3 storage:": "Set these environment variables and restart Grist to enable S3 storage:",
+        "Store document backups on an external service like S3 or Azure.           This protects against data loss if the server's disk fails.": "Store document backups on an external service like S3 or Azure.           This protects against data loss if the server's disk fails.",
+        "Local filesystem (test only)": "Local filesystem (test only)",
+        "Stores document snapshots on the local filesystem. For tests only, not production.": "Stores document snapshots on the local filesystem. For tests only, not production."
+    },
+    "PermissionsSetupSection": {
+        "Allow anonymous access": "Allow anonymous access",
+        "Allow anonymous playground": "Allow anonymous playground",
+        "Allow anyone to create team sites": "Allow anyone to create team sites",
+        "Allow personal sites": "Allow personal sites",
+        "Any logged-in user can create new team sites. Turn off to restrict team creation to admins only.": "Any logged-in user can create new team sites. Turn off to restrict team creation to admins only.",
+        "Apply & restart": "Apply & restart",
+        "Apply and go live!": "Apply and go live!",
+        "Applying settings and restarting…": "Applying settings and restarting…",
+        "Back to installation": "Back to installation",
+        "Conflict": "Conflict",
+        "DEFAULT PERMISSIONS": "DEFAULT PERMISSIONS",
+        "Environment": "Environment",
+        "Grist is live!": "Grist is live!",
+        "Loading permissions…": "Loading permissions…",
+        "Locked down": "Locked down",
+        "Open": "Open",
+        "Recommended": "Recommended",
+        "Review these defaults before going live. You can change them later from the admin panel.": "Review these defaults before going live. You can change them later from the admin panel.",
+        "Server did not restart in time. Please refresh the page.": "Server did not restart in time. Please refresh the page.",
+        "Some settings are controlled by environment variables and cannot be changed here: {{vars}}. To modify them, update the corresponding variables in your server configuration and restart.": "Some settings are controlled by environment variables and cannot be changed here: {{vars}}. To modify them, update the corresponding variables in your server configuration and restart.",
+        "The personal org is the only org available — personal sites must stay enabled or Grist will be non-functional.": "The personal org is the only org available — personal sites must stay enabled or Grist will be non-functional.",
+        "Users can create their own personal sites with documents. Turn off to restrict all documents to team sites managed by admins.": "Users can create their own personal sites with documents. Turn off to restrict all documents to team sites managed by admins.",
+        "Visitors who aren't signed in can create and edit documents in a temporary playground. Turn off to require sign-in before creating any documents.": "Visitors who aren't signed in can create and edit documents in a temporary playground. Turn off to require sign-in before creating any documents.",
+        "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.": "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.",
+        "You have GRIST_SINGLE_ORG={{value}} set. With this, users only see one site — but personal sites and team creation still work behind the scenes. Worth locking down unless you have a specific reason to keep them.": "You have GRIST_SINGLE_ORG={{value}} set. With this, users only see one site — but personal sites and team creation still work behind the scenes. Worth locking down unless you have a specific reason to keep them.",
+        "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.",
+        "Custom": "Custom",
+        "loading…": "loading…"
+    },
+    "SandboxSection": {
+        "Active": "Active",
+        "Apply and Continue": "Apply and Continue",
+        "Applying...": "Applying...",
+        "Continue": "Continue",
+        "Detecting sandbox options...": "Detecting sandbox options...",
+        "Error": "Error",
+        "No sandbox": "No sandbox",
+        "Not available": "Not available",
+        "Not recommended": "Not recommended",
+        "Other options": "Other options",
+        "Ready": "Ready",
+        "Recommended": "Recommended",
+        "Sandboxing": "Sandboxing",
+        "Skip and Continue": "Skip and Continue",
+        "Uses the built-in macOS sandbox. Good isolation for local use on a Mac.": "Uses the built-in macOS sandbox. Good isolation for local use on a Mac.",
+        "macOS sandbox": "macOS sandbox",
+        "Sandbox": "Sandbox"
+    },
+    "AdminPanelCss": {
+        "Confirmed": "Confirmed",
+        "For later": "For later"
+    },
+    "BaseUrlSection": {
+        "Already set on this server.": "Already set on this server.",
+        "Automatic": "Automatic",
+        "Base URL": "Base URL",
+        "Confirm URL": "Confirm URL",
+        "Could not reach server": "Could not reach server",
+        "Could not reach server at this URL. ": "Could not reach server at this URL. ",
+        "Failed to save": "Failed to save",
+        "Grist is reachable": "Grist is reachable",
+        "Leave automatic": "Leave automatic",
+        "Test URL": "Test URL",
+        "Testing...": "Testing...",
+        "The URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "The URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.",
+        "This URL was auto-detected — confirm it is correct, then save.": "This URL was auto-detected — confirm it is correct, then save.",
+        "URL is reachable": "URL is reachable",
+        "automatic": "automatic",
+        "checking": "checking",
+        "https:": {
+            "": {
+                "grist.example.com": "https://grist.example.com"
+            }
+        },
+        "not set": "not set",
+        "set": "set"
+    },
+    "EditionSection": {
+        "Choose which edition of Grist to run on this server": "Choose which edition of Grist to run on this server",
+        "Choose which edition of Grist to run on this server.": "Choose which edition of Grist to run on this server.",
+        "Community edition": "Community edition",
+        "Confirm edition": "Confirm edition",
+        "Edition": "Edition",
+        "Full Grist": "Full Grist",
+        "Full Grist is enabled via environment variable.": "Full Grist is enabled via environment variable.",
+        "I understand I am running Grist Community edition": "I understand I am running Grist Community edition",
+        "Learn more.": "Learn more.",
+        "On": "On",
+        "See how to enable it.": "See how to enable it.",
+        "The free and open-source heart of Grist, with everything you need to open and edit Grist documents, control access, create forms, connect to single sign-on (SSO) providers, and much more.": "The free and open-source heart of Grist, with everything you need to open and edit Grist documents, control access, create forms, connect to single sign-on (SSO) providers, and much more.",
+        "The full Grist experience, with all features enabled for improved security, governance, and collaboration.": "The full Grist experience, with all features enabled for improved security, governance, and collaboration.",
+        "You have 30 days to enter an activation key. Free activation keys are available to individuals and small orgs with less than US $1 million in total annual funding. {{learnMoreLink}} For larger orgs, see {{pricingLink}}.": "You have 30 days to enter an activation key. Free activation keys are available to individuals and small orgs with less than US $1 million in total annual funding. {{learnMoreLink}} For larger orgs, see {{pricingLink}}.",
+        "Your installation does not bundle the Full Grist edition. Want Full Grist? {{enableLink}}": "Your installation does not bundle the Full Grist edition. Want Full Grist? {{enableLink}}",
+        "community": "community",
+        "full": "full",
+        "pricing": "pricing"
+    },
+    "QuickSetupServerStep": {
+        "Apply and Continue": "Apply and Continue",
+        "Base URL": "Base URL",
+        "Confirm base URL and edition to continue": "Confirm base URL and edition to continue",
+        "Confirm base URL to continue": "Confirm base URL to continue",
+        "Confirm edition to continue": "Confirm edition to continue",
+        "Continue": "Continue",
+        "Edition": "Edition",
+        "Server": "Server",
+        "Set your server's base URL and choose which edition of Grist to run.": "Set your server's base URL and choose which edition of Grist to run."
+    },
+    "AccountLeftPanel": {
+        "Account settings": "Account settings",
+        "Developer": "Developer",
+        "Profile": "Profile",
+        "Authorized apps": "Authorized apps"
+    },
+    "SettingsLayout": {
+        "Authentication": "Authentication",
+        "Current authentication method": "Current authentication method",
+        "Installation": "Installation",
+        "Sandbox settings for data engine": "Sandbox settings for data engine",
+        "Sandboxing": "Sandboxing",
+        "Security Settings": "Security Settings"
+    },
+    "SettingsLayout.d": {
+        "Authentication": "Authentication",
+        "Current authentication method": "Current authentication method",
+        "Installation": "Installation",
+        "Sandbox settings for data engine": "Sandbox settings for data engine",
+        "Sandboxing": "Sandboxing",
+        "Security Settings": "Security Settings"
+    },
+    "QuickSetupContinueButton": {
+        "Apply and Continue": "Apply and Continue",
+        "Applying...": "Applying...",
+        "Continue": "Continue"
+    },
+    "AdminAccessDeniedCard": {
+        "Administrator Panel Unavailable": "Administrator Panel Unavailable",
+        "If you are the server operator, you can sign in using the boot key from your server logs.": "If you are the server operator, you can sign in using the boot key from your server logs.",
+        "Sign in with boot key": "Sign in with boot key",
+        "You do not have access to the administrator panel.\nPlease log in as an administrator.": "You do not have access to the administrator panel.\nPlease log in as an administrator."
+    },
+    "PermissionsToggleModel": {
+        "Allow anonymous access": "Allow anonymous access",
+        "Allow anonymous playground": "Allow anonymous playground",
+        "Allow anyone to create team sites": "Allow anyone to create team sites",
+        "Allow personal sites": "Allow personal sites",
+        "Any logged-in user can create new team sites. Turn off to restrict team creation to admins only.": "Any logged-in user can create new team sites. Turn off to restrict team creation to admins only.",
+        "Permissions": "Permissions",
+        "Users can create their own personal sites with documents. Turn off to restrict all documents to team sites managed by admins.": "Users can create their own personal sites with documents. Turn off to restrict all documents to team sites managed by admins.",
+        "Visitors who aren't signed in can create and edit documents in a temporary playground. Turn off to require sign-in before creating any documents.": "Visitors who aren't signed in can create and edit documents in a temporary playground. Turn off to require sign-in before creating any documents.",
+        "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.": "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.",
+        "off": "off",
+        "on": "on"
+    },
+    "ScreenReaderAnnouncer": {
+        "Notification: {{notification}}": "Notification: {{notification}}"
+    },
+    "ScreenReaderConfig": {
+        "Enable screen reader improvements": "Enable screen reader improvements",
+        "Press {{accessibilityModalShortcut}} for more information about screen reader navigation.": "Press {{accessibilityModalShortcut}} for more information about screen reader navigation."
+    },
+    "ScreenReaderFormatters": {
+        "Checked": "Checked",
+        "Image": "Image",
+        "Toggled off": "Toggled off",
+        "Toggled on": "Toggled on",
+        "Unchecked": "Unchecked",
+        "heading {{- text}}": "heading {{- text}}",
+        "link {{- label}}": "link {{- label}}",
+        "list: {{- items}}": "list: {{- items}}",
+        "{{- text}} (link)": "{{- text}} (link)"
     }
 }

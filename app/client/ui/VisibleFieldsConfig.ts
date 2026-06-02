@@ -1,29 +1,30 @@
 import DetailView from "app/client/components/DetailView";
 import { GristDoc } from "app/client/components/GristDoc";
 import { KoArray, syncedKoArray } from "app/client/lib/koArray";
-import * as kf from 'app/client/lib/koForm';
-import { makeT } from 'app/client/lib/localization';
-import * as tableUtil from 'app/client/lib/tableUtil';
+import * as kf from "app/client/lib/koForm";
+import { makeT } from "app/client/lib/localization";
+import * as tableUtil from "app/client/lib/tableUtil";
 import { ColumnRec, ViewFieldRec, ViewSectionRec } from "app/client/models/DocModel";
-import { getFieldType } from 'app/client/ui/RightPanelUtils';
-import { IWidgetType } from "app/common/widgetTypes";
-import { unstyledButton } from "app/client/ui2018/unstyled";
-import { visuallyHiddenStyles } from "app/client/ui2018/visuallyHidden";
-import { basicButton, primaryButton, textButton } from 'app/client/ui2018/buttons';
+import { getFieldType } from "app/client/ui/RightPanelUtils";
+import { basicButton, primaryButton, textButton } from "app/client/ui2018/buttons";
 import * as checkbox from "app/client/ui2018/checkbox";
 import { theme, vars } from "app/client/ui2018/cssVars";
 import { cssDragger } from "app/client/ui2018/draggableList";
 import { icon } from "app/client/ui2018/icons";
-import * as gutil from 'app/common/gutil';
+import { unstyledButton } from "app/client/ui2018/unstyled";
+import { visuallyHiddenStyles } from "app/client/ui2018/visuallyHidden";
+import * as gutil from "app/common/gutil";
+import { IWidgetType } from "app/common/widgetTypes";
+
 import { Computed, Disposable, dom, IDomArgs, makeTestId, Observable, styled, subscribe } from "grainjs";
 import ko from "knockout";
-import difference = require("lodash/difference");
-import isEqual = require("lodash/isEqual");
+import difference from "lodash/difference";
+import isEqual from "lodash/isEqual";
 
-const testId = makeTestId('test-vfc-');
-const t = makeT('VisibleFieldsConfig');
+const testId = makeTestId("test-vfc-");
+const t = makeT("VisibleFieldsConfig");
 
-export type IField = ViewFieldRec|ColumnRec;
+export type IField = ViewFieldRec | ColumnRec;
 
 interface DraggableFieldsOption {
   // an object holding options for the draggable list, see koForm.js for more detail on the accepted
@@ -43,7 +44,7 @@ interface DraggableFieldsOption {
   freeze?: Observable<boolean>;
 
   // the itemCreateFunc callback passed to kf.draggableList for the visible fields.
-  itemCreateFunc(field: IField): Element|undefined;
+  itemCreateFunc(field: IField): Element | undefined;
 }
 
 /**
@@ -62,7 +63,6 @@ interface DraggableFieldsOption {
  * available options.
  */
 export class VisibleFieldsConfig extends Disposable {
-
   private _hiddenFields: KoArray<ColumnRec> = this.autoDispose(syncedKoArray(this._section.hiddenColumns));
 
   private _fieldLabel = Computed.create(this, (use) => {
@@ -84,7 +84,7 @@ export class VisibleFieldsConfig extends Disposable {
 
   private _disabled = this.autoDispose(ko.computed(() => {
     const view = this._section.viewInstance();
-    if (!view || !('recordLayout' in view)) {
+    if (!view || !("recordLayout" in view)) {
       return false;
     }
 
@@ -92,20 +92,20 @@ export class VisibleFieldsConfig extends Disposable {
   }));
 
   constructor(private _gristDoc: GristDoc,
-              private _section: ViewSectionRec) {
+    private _section: ViewSectionRec) {
     super();
 
     // Unselects visible fields that are hidden.
     this.autoDispose(this._section.viewFields.peek().subscribe((ev) => {
       unselectDeletedFields(this._visibleFieldsSelection, ev);
       this._showVisibleBatchButtons.set(Boolean(this._visibleFieldsSelection.size));
-    }, null, 'spliceChange'));
+    }, null, "spliceChange"));
 
     // Unselectes hidden fields that are shown.
     this.autoDispose(this._hiddenFields.subscribe((ev) => {
       unselectDeletedFields(this._hiddenFieldsSelection, ev);
       this._showHiddenBatchButtons.set(Boolean(this._hiddenFieldsSelection.size));
-    }, null, 'spliceChange'));
+    }, null, "spliceChange"));
   }
 
   /**
@@ -123,7 +123,7 @@ export class VisibleFieldsConfig extends Disposable {
       const newArray = new KoArray<ViewFieldRec>();
 
       function update() {
-        if (freeze && freeze.get()) { return; }
+        if (freeze?.get()) { return; }
         const newValues = allFields.peek()
           .filter((_v, i) => i + 1 > skipFirst.get())
           .filter(filterFunc)
@@ -149,7 +149,7 @@ export class VisibleFieldsConfig extends Disposable {
         remove: this.removeField.bind(this),
         receive: this.addField.bind(this),
         ...options.draggableOptions,
-      }
+      },
     );
   }
 
@@ -169,7 +169,6 @@ export class VisibleFieldsConfig extends Disposable {
       visibleFields: DraggableFieldsOption,
       hiddenFields: DraggableFieldsOption,
     }): [HTMLElement, HTMLElement] {
-
     const fieldsDraggable = this.buildVisibleFieldsConfigHelper(options.visibleFields);
     const hiddenFieldsDraggable = kf.draggableList(
       this._hiddenFields,
@@ -185,7 +184,7 @@ export class VisibleFieldsConfig extends Disposable {
         },
         removeButton: false,
         ...options.hiddenFields.draggableOptions,
-      }
+      },
     );
     kf.connectDraggableOneWay(hiddenFieldsDraggable, fieldsDraggable);
 
@@ -198,17 +197,16 @@ export class VisibleFieldsConfig extends Disposable {
   }
 
   public buildDom() {
-
     const [fieldsDraggable, hiddenFieldsDraggable] = this.buildSectionFieldsConfigHelper({
       visibleFields: {
-        itemCreateFunc: (field) => this._buildVisibleFieldItem(field as ViewFieldRec),
+        itemCreateFunc: field => this._buildVisibleFieldItem(field as ViewFieldRec),
         draggableOptions: {
           removeButton: false,
           drag_indicator: cssDragger,
-        }
+        },
       },
       hiddenFields: {
-        itemCreateFunc: (field) => this._buildHiddenFieldItem(field as ColumnRec),
+        itemCreateFunc: field => this._buildHiddenFieldItem(field as ColumnRec),
         draggableOptions: {
           removeButton: false,
           drag_indicator: cssDragger,
@@ -216,103 +214,103 @@ export class VisibleFieldsConfig extends Disposable {
       },
     });
     return [
-      dom('div', {role: 'group', 'aria-labelledby': 'visible-fields-label'},
+      dom("div", { "role": "group", "aria-labelledby": "visible-fields-label" },
         cssHeader(
           cssFieldListHeader(
-            dom.text((use) => t("Visible {{label}}", {label: use(this._fieldLabel)})),
-            {id: 'visible-fields-label'},
+            dom.text(use => t("Visible {{label}}", { label: use(this._fieldLabel) })),
+            { id: "visible-fields-label" },
           ),
           dom.maybe(
-            (use) => Boolean(use(use(this._section.viewFields).getObservable()).length),
+            use => Boolean(use(use(this._section.viewFields).getObservable()).length),
             () => (
               cssIconButton(
-                icon('Tick'),
+                icon("Tick"),
                 t("Select all"),
-                {"aria-describedby": 'visible-fields-label'},
-                dom.on('click', () => this._setVisibleCheckboxes(fieldsDraggable, true)),
-                dom.prop('disabled', this._disabled),
-                testId('visible-fields-select-all'),
+                { "aria-describedby": "visible-fields-label" },
+                dom.on("click", () => this._setVisibleCheckboxes(fieldsDraggable, true)),
+                dom.prop("disabled", this._disabled),
+                testId("visible-fields-select-all"),
               )
-            )
+            ),
           ),
         ),
         cssFieldsDraggable(
-          cssFieldsDraggable.cls('-disabled', this._disabled),
-          dom.update(fieldsDraggable, testId('visible-fields'))
+          cssFieldsDraggable.cls("-disabled", this._disabled),
+          dom.update(fieldsDraggable, testId("visible-fields")),
         ),
         dom.maybe(this._showVisibleBatchButtons, () =>
           cssRow(
             primaryButton(
-              dom.text((use) => t("Hide {{label}}", {label: use(this._fieldLabel)})),
-              dom.on('click', () => this._removeSelectedFields()),
-              testId('visible-hide')
+              dom.text(use => t("Hide {{label}}", { label: use(this._fieldLabel) })),
+              dom.on("click", () => this._removeSelectedFields()),
+              testId("visible-hide"),
             ),
             basicButton(
               t("Clear"),
-              dom.on('click', () => this._setVisibleCheckboxes(fieldsDraggable, false)),
-              testId('visible-clear')
+              dom.on("click", () => this._setVisibleCheckboxes(fieldsDraggable, false)),
+              testId("visible-clear"),
             ),
-            testId('visible-batch-buttons')
+            testId("visible-batch-buttons"),
           ),
         ),
       ),
-      dom('div', {role: 'group', 'aria-labelledby': 'hidden-fields-label'},
+      dom("div", { "role": "group", "aria-labelledby": "hidden-fields-label" },
         cssHeader(
           cssHeaderButton(
             icon(
-              'Dropdown',
-              dom.style('transform', (use) => use(this._collapseHiddenFields) ? 'rotate(-90deg)' : ''),
+              "Dropdown",
+              dom.style("transform", use => use(this._collapseHiddenFields) ? "rotate(-90deg)" : ""),
             ),
-            dom.boolAttr('disabled', this._disabled),
-            dom.on('click', () => this._collapseHiddenFields.set(!this._collapseHiddenFields.get())),
-            testId('collapse-hidden'),
+            dom.boolAttr("disabled", this._disabled),
+            dom.on("click", () => this._collapseHiddenFields.set(!this._collapseHiddenFields.get())),
+            testId("collapse-hidden"),
             // TODO: show `hidden column` only when some fields are hidden
-            cssFieldListHeader(dom.text((use) => t("Hidden {{label}}", {label: use(this._fieldLabel)}))),
+            cssFieldListHeader(dom.text(use => t("Hidden {{label}}", { label: use(this._fieldLabel) }))),
             {
-              id: 'hidden-fields-label',
-              "aria-controls": 'hidden-fields-list',
+              "id": "hidden-fields-label",
+              "aria-controls": "hidden-fields-list",
             },
-            dom.attr('aria-expanded', (use) => use(this._collapseHiddenFields) ? 'false' : 'true'),
+            dom.attr("aria-expanded", use => use(this._collapseHiddenFields) ? "false" : "true"),
           ),
           dom.maybe(
-            (use) => Boolean(use(this._hiddenFields.getObservable()).length && !use(this._collapseHiddenFields)),
+            use => Boolean(use(this._hiddenFields.getObservable()).length && !use(this._collapseHiddenFields)),
             () => (
               cssIconButton(
-                icon('Tick'),
+                icon("Tick"),
                 t("Select all"),
-                {"aria-describedby": 'hidden-fields-label'},
-                dom.on('click', () => this._setHiddenCheckboxes(hiddenFieldsDraggable, true)),
-                dom.prop('disabled', this._disabled),
-                testId('hidden-fields-select-all'),
+                { "aria-describedby": "hidden-fields-label" },
+                dom.on("click", () => this._setHiddenCheckboxes(hiddenFieldsDraggable, true)),
+                dom.prop("disabled", this._disabled),
+                testId("hidden-fields-select-all"),
               )
-            )
+            ),
           ),
         ),
         dom(
-          'div',
+          "div",
           dom.hide(this._collapseHiddenFields),
-          {id: 'hidden-fields-list'},
+          { id: "hidden-fields-list" },
           cssFieldsDraggable(
-            cssFieldsDraggable.cls('-disabled', this._disabled),
+            cssFieldsDraggable.cls("-disabled", this._disabled),
             dom.update(
               hiddenFieldsDraggable,
-              testId('hidden-fields'),
-            )
+              testId("hidden-fields"),
+            ),
           ),
           dom.maybe(this._showHiddenBatchButtons, () =>
             cssRow(
               primaryButton(
-                dom.text((use) => t("Show {{label}}", {label: use(this._fieldLabel)})),
-                dom.on('click', () => this._addSelectedFields()),
-                testId('hidden-show')
+                dom.text(use => t("Show {{label}}", { label: use(this._fieldLabel) })),
+                dom.on("click", () => this._addSelectedFields()),
+                testId("hidden-show"),
               ),
               basicButton(
                 t("Clear"),
-                dom.on('click', () => this._setHiddenCheckboxes(hiddenFieldsDraggable, false)),
-                testId('hidden-clear')
+                dom.on("click", () => this._setHiddenCheckboxes(hiddenFieldsDraggable, false)),
+                testId("hidden-clear"),
               ),
-              testId('hidden-batch-buttons')
-            )
+              testId("hidden-batch-buttons"),
+            ),
           ),
         ),
       ),
@@ -323,9 +321,9 @@ export class VisibleFieldsConfig extends Disposable {
     await this._section.removeField(field.getRowId());
   }
 
-  public async addField(column: IField, nextField: ViewFieldRec|null = null) {
+  public async addField(column: IField, nextField: ViewFieldRec | null = null) {
     const exists = this._section.viewFields.peek().peek()
-      .findIndex((f) => f.column.peek().getRowId() === column.id.peek());
+      .findIndex(f => f.column.peek().getRowId() === column.id.peek());
     if (exists !== -1) {
       return;
     }
@@ -335,13 +333,13 @@ export class VisibleFieldsConfig extends Disposable {
       colRef: column.id.peek(),
       parentPos,
     };
-    const action = ['AddRecord', null, colInfo];
+    const action = ["AddRecord", null, colInfo];
     await this._gristDoc.docModel.viewFields.sendTableAction(action);
   }
 
-  public changeFieldPosition(field: ViewFieldRec, nextField: ViewFieldRec|null) {
+  public changeFieldPosition(field: ViewFieldRec, nextField: ViewFieldRec | null) {
     const parentPos = getFieldNewPosition(this._section.viewFields.peek(), field, nextField);
-    const vsfAction = ['UpdateRecord', field.id.peek(), {parentPos} ];
+    const vsfAction = ["UpdateRecord", field.id.peek(), { parentPos }];
     return this._gristDoc.docModel.viewFields.sendTableAction(vsfAction);
   }
 
@@ -351,10 +349,9 @@ export class VisibleFieldsConfig extends Disposable {
       visibleFieldsDraggable,
       this._section.viewFields.peek().peek(),
       this._visibleFieldsSelection,
-      checked
+      checked,
     );
     this._showVisibleBatchButtons.set(checked);
-
   }
 
   // Set all checkboxes for the hidden fields.
@@ -363,7 +360,7 @@ export class VisibleFieldsConfig extends Disposable {
       hiddenFieldsDraggable,
       this._hiddenFields.peek(),
       this._hiddenFieldsSelection,
-      checked
+      checked,
     );
     this._showHiddenBatchButtons.set(checked);
   }
@@ -371,15 +368,14 @@ export class VisibleFieldsConfig extends Disposable {
   // A helper to set all checkboxes. Takes care of setting all checkboxes in the dom and updating
   // the selection.
   private _setCheckboxesHelper(draggable: Element, fields: IField[], selection: Set<number>,
-                               checked: boolean) {
-
-    findCheckboxes(draggable).forEach((el) => el.checked = checked);
+    checked: boolean) {
+    findCheckboxes(draggable).forEach(el => el.checked = checked);
 
     selection.clear();
 
     if (checked) {
       // add all ids to the selection
-      fields.forEach((field) => selection.add(field.id.peek()));
+      fields.forEach(field => selection.add(field.id.peek()));
     }
   }
 
@@ -388,24 +384,28 @@ export class VisibleFieldsConfig extends Disposable {
     const selection = this._hiddenFieldsSelection;
 
     return cssFieldEntry(
-      testId('hidden-field'),
+      testId("hidden-field"),
       cssFieldLabel(dom.text(column.label)),
       cssHideIconButton(
-        icon('EyeShow'),
-        dom.on('click', () => this.addField(column)),
-        testId('hide'),
-        dom.boolAttr('disabled', this._disabled),
-        dom.attr('aria-label', (use) => t("Show {{label}}", {label: use(column.label)}))
+        icon("EyeShow"),
+        dom.on("click", () => this.addField(column)),
+        testId("hide"),
+        dom.boolAttr("disabled", this._disabled),
+        dom.attr("aria-label", use => t("Show {{label}}", { label: use(column.label) })),
       ),
       buildCheckbox(
-        dom.prop('checked', selection.has(id)),
-        dom.boolAttr('disabled', this._disabled),
-        dom.attr('aria-label', (use) => t("Show {{label}} (batch mode)", {label: use(column.label)})),
-        dom.on('change', (ev, el) => {
-          el.checked ? selection.add(id) : selection.delete(id);
+        dom.prop("checked", selection.has(id)),
+        dom.boolAttr("disabled", this._disabled),
+        dom.attr("aria-label", use => t("Show {{label}} (batch mode)", { label: use(column.label) })),
+        dom.on("change", (ev, el) => {
+          if (el.checked) {
+            selection.add(id);
+          } else {
+            selection.delete(id);
+          }
           this._showHiddenBatchButtons.set(Boolean(selection.size));
-        })
-      )
+        }),
+      ),
     );
   }
 
@@ -414,30 +414,34 @@ export class VisibleFieldsConfig extends Disposable {
     const selection = this._visibleFieldsSelection;
 
     return cssFieldEntry(
-      testId('visible-field'),
+      testId("visible-field"),
       cssFieldLabel(dom.text(field.label)),
       cssHideIconButton(
-        icon('EyeHide'),
-        dom.on('click', () => this.removeField(field)),
-        testId('hide'),
-        dom.boolAttr('disabled', this._disabled),
-        dom.attr('aria-label', (use) => t("Hide {{label}}", {label: use(field.label)}))
+        icon("EyeHide"),
+        dom.on("click", () => this.removeField(field)),
+        testId("hide"),
+        dom.boolAttr("disabled", this._disabled),
+        dom.attr("aria-label", use => t("Hide {{label}}", { label: use(field.label) })),
       ),
       buildCheckbox(
-        dom.prop('checked', selection.has(id)),
-        dom.boolAttr('disabled', this._disabled),
-        dom.attr('aria-label', (use) => t("Hide {{label}} (batch mode)", {label: use(field.label)})),
-        dom.on('change', (ev, el) => {
-          el.checked ? selection.add(id) : selection.delete(id);
+        dom.prop("checked", selection.has(id)),
+        dom.boolAttr("disabled", this._disabled),
+        dom.attr("aria-label", use => t("Hide {{label}} (batch mode)", { label: use(field.label) })),
+        dom.on("change", (ev, el) => {
+          if (el.checked) {
+            selection.add(id);
+          } else {
+            selection.delete(id);
+          }
           this._showVisibleBatchButtons.set(Boolean(selection.size));
-        })
-      )
+        }),
+      ),
     );
   }
 
   private async _removeSelectedFields() {
     const toRemove = Array.from(this._visibleFieldsSelection).sort(gutil.nativeCompare);
-    const action = ['BulkRemoveRecord', toRemove];
+    const action = ["BulkRemoveRecord", toRemove];
     await this._gristDoc.docModel.viewFields.sendTableAction(action);
   }
 
@@ -448,19 +452,18 @@ export class VisibleFieldsConfig extends Disposable {
       parentId: gutil.arrayRepeat(toAdd.length, this._section.id.peek()),
       colRef: toAdd,
     };
-    const action = ['BulkAddRecord', rowIds, colInfo];
+    const action = ["BulkAddRecord", rowIds, colInfo];
     await this._gristDoc.docModel.viewFields.sendTableAction(action);
   }
-
 }
 
 function getFieldNewPosition(fields: KoArray<ViewFieldRec>, item: IField,
-                             nextField: ViewFieldRec|null): number|null {
+  nextField: ViewFieldRec | null): number | null {
   const index = getItemIndex(fields, nextField);
   return tableUtil.fieldInsertPositions(fields, index, 1)[0];
 }
 
-function getItemIndex(collection: KoArray<ViewFieldRec>, item: ViewFieldRec|null): number {
+function getItemIndex(collection: KoArray<ViewFieldRec>, item: ViewFieldRec | null): number {
   if (item !== null) {
     return collection.peek().indexOf(item);
   }
@@ -469,24 +472,24 @@ function getItemIndex(collection: KoArray<ViewFieldRec>, item: ViewFieldRec|null
 
 function buildCheckbox(...args: IDomArgs<HTMLInputElement>) {
   return checkbox.cssLabel(
-    {style: 'flex-shrink: 0;'},
+    { style: "flex-shrink: 0;" },
     checkbox.cssCheckboxSquare(
-      {type: 'checkbox'},
-      ...args
-    )
+      { type: "checkbox" },
+      ...args,
+    ),
   );
 }
 
 // helper to find checkboxes within a draggable list. This assumes that checkboxes are the only
 // <input> element in draggableElement.
 function findCheckboxes(draggableElement: Element): NodeListOf<HTMLInputElement> {
-  return draggableElement.querySelectorAll<HTMLInputElement>('input');
+  return draggableElement.querySelectorAll<HTMLInputElement>("input");
 }
 
 // Removes from selection the ids of the fields that appear as deleted in the splice event. Note
 // that it can happen that a field appears as deleted and yet belongs to the new array (as a result
 // of an `assign` call for instance). In which case the field is to be considered as not deleted.
-function unselectDeletedFields(selection: Set<number>, event: {deleted: IField[], array: IField[]}) {
+function unselectDeletedFields(selection: Set<number>, event: { deleted: IField[], array: IField[] }) {
   // go though the difference between deleted fields and the new array.
   const removed: IField[] = difference(event.deleted, event.array);
   for (const field of removed) {
@@ -494,7 +497,7 @@ function unselectDeletedFields(selection: Set<number>, event: {deleted: IField[]
   }
 }
 
-export const cssDragRow = styled('div', `
+export const cssDragRow = styled("div", `
   display: flex;
   align-items: center;
   margin: 0 16px 0px 0px;
@@ -505,7 +508,7 @@ export const cssDragRow = styled('div', `
   }
 `);
 
-export const cssFieldEntry = styled('div', `
+export const cssFieldEntry = styled("div", `
   display: flex;
   background-color: ${theme.hover};
   width: 100%;
@@ -533,21 +536,21 @@ const cssHideIconButton = styled(unstyledButton, `
   }
 `);
 
-export const cssFieldLabel = styled('span', `
+export const cssFieldLabel = styled("span", `
   color: ${theme.text};
   flex: 1 1 auto;
   text-overflow: ellipsis;
   overflow: hidden;
 `);
 
-const cssFieldListHeader = styled('span', `
+const cssFieldListHeader = styled("span", `
   color: ${theme.text};
   flex: 1 1 0px;
   font-size: ${vars.xsmallFontSize};
   text-transform: uppercase;
 `);
 
-const cssRow = styled('div', `
+const cssRow = styled("div", `
   display: flex;
   margin: 16px;
   gap: 8px;
@@ -566,7 +569,7 @@ const cssIconButton = styled(textButton, `
   };
 `);
 
-const cssFieldsDraggable = styled('div', `
+const cssFieldsDraggable = styled("div", `
   &-disabled {
     pointer-events: none;
     opacity: 0.5;

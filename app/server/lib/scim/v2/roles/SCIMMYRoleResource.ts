@@ -1,6 +1,6 @@
-import { SCIMMYRoleSchema } from 'app/server/lib/scim/v2/roles/SCIMMYRoleSchema';
+import { SCIMMYRoleSchema } from "app/server/lib/scim/v2/roles/SCIMMYRoleSchema";
 
-import SCIMMY from 'scimmy';
+import SCIMMY from "scimmy";
 
 /**
  * SCIMMY Role Resource. Heavily inspired by SCIMMY Group Resource.
@@ -8,8 +8,8 @@ import SCIMMY from 'scimmy';
  */
 export class SCIMMYRoleResource extends SCIMMY.Types.Resource<SCIMMYRoleSchema> {
   // NB: must be a getter, cannot override this property with readonly attribute
-  public static get endpoint() {
-    return '/Roles';
+  public static get endpoint() { // eslint-disable-line @typescript-eslint/class-literal-property-style
+    return "/Roles";
   }
 
   public static get schema() {
@@ -34,8 +34,8 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource<SCIMMYRoleSchema> 
 
   /** @implements {SCIMMY.Types.Resource.ingress<typeof SCIMMY.Resources.User, SCIMMY.Schemas.User>} */
   public static ingress(handler: SCIMMY.Types.Resource.IngressHandler<any, any>) {
-      this._ingress = handler;
-      return this;
+    this._ingress = handler;
+    return this;
   }
 
   /** @implements {SCIMMY.Types.Resource.egress<typeof SCIMMY.Resources.User, SCIMMY.Schemas.User>} */
@@ -93,27 +93,21 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource<SCIMMYRoleSchema> 
       if (!this.id && Array.isArray(target)) {
         return new SCIMMY.Messages.ListResponse(target
           .map(u => new SCIMMYRoleSchema(
-            u, "out", SCIMMYRoleResource.basepath(), this.attributes)
+            u, "out", SCIMMYRoleResource.basepath(), this.attributes),
           ), this.constraints);
-      }
-      // For specific resources, make sure egress returned an object
-      else if (target instanceof Object) {
+      } else if (target instanceof Object) { // For specific resources, make sure egress returned an object
         return new SCIMMYRoleSchema(target, "out", SCIMMYRoleResource.basepath(), this.attributes);
-      }
-      // Otherwise, egress has not been implemented correctly
-      else {
+      } else { // Otherwise, egress has not been implemented correctly
         throw new SCIMMY.Types.Error(
-          500, null!, `Unexpected ${target === undefined ? "empty" : "invalid"} value returned by egress handler`
+          500, null!, `Unexpected ${target === undefined ? "empty" : "invalid"} value returned by egress handler`,
         );
       }
     } catch (ex) {
       if (ex instanceof SCIMMY.Types.Error) {
         throw ex;
-      }
-      else if (ex instanceof TypeError) {
+      } else if (ex instanceof TypeError) {
         throw new SCIMMY.Types.Error(400, "invalidValue", ex.message);
-      }
-      else {
+      } else {
         throw new SCIMMY.Types.Error(404, null!, `Resource ${this.id} not found`);
       }
     }
@@ -131,13 +125,13 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource<SCIMMYRoleSchema> 
   public async write(instance: SCIMMYRoleSchema, ctx: any) {
     if (instance === undefined) {
       throw new SCIMMY.Types.Error(
-        400, "invalidSyntax", `Missing request body payload for ${this.id ? "PUT" : "POST"} operation`
+        400, "invalidSyntax", `Missing request body payload for ${this.id ? "PUT" : "POST"} operation`,
       );
     }
     if (Object(instance) !== instance || Array.isArray(instance)) {
       throw new SCIMMY.Types.Error(
         400, "invalidSyntax",
-        `Operation ${this.id ? "PUT" : "POST"} expected request body payload to be single complex value`
+        `Operation ${this.id ? "PUT" : "POST"} expected request body payload to be single complex value`,
       );
     }
 
@@ -147,21 +141,17 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource<SCIMMYRoleSchema> 
       // Make sure ingress returned an object
       if (target instanceof Object) {
         return new SCIMMYRoleSchema(target, "out", SCIMMYRoleResource.basepath(), this.attributes);
-      }
-        // Otherwise, ingress has not been implemented correctly
-      else {
+      } else { // Otherwise, ingress has not been implemented correctly
         throw new SCIMMY.Types.Error(500, null!,
-          `Unexpected ${target === undefined ? "empty" : "invalid"} value returned by ingress handler`
+          `Unexpected ${target === undefined ? "empty" : "invalid"} value returned by ingress handler`,
         );
       }
     } catch (ex) {
       if (ex instanceof SCIMMY.Types.Error) {
         throw ex;
-      }
-      else if (ex instanceof TypeError) {
+      } else if (ex instanceof TypeError) {
         throw new SCIMMY.Types.Error(400, "invalidValue", ex.message);
-      }
-      else {
+      } else {
         throw new SCIMMY.Types.Error(404, null!, `Resource ${this.id} not found`);
       }
     }
@@ -180,12 +170,12 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource<SCIMMYRoleSchema> 
     }
     if (Object(message) !== message || Array.isArray(message)) {
       throw new SCIMMY.Types.Error(
-        400, "invalidSyntax", "PatchOp request expected message body to be single complex value"
+        400, "invalidSyntax", "PatchOp request expected message body to be single complex value",
       );
     }
 
     return (await new SCIMMY.Messages.PatchOp(message)
-      .apply((await this.read(ctx)) as SCIMMYRoleSchema, async (instance) => await this.write(instance, ctx))
+      .apply((await this.read(ctx)) as SCIMMYRoleSchema, async instance => await this.write(instance, ctx))
       // NOTE: A bit odd, but the type suggest that we should have an instance of Schema,
       // but the upstream code suggests that it can be undefined
       .then(instance => !instance ? undefined :
@@ -201,7 +191,7 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource<SCIMMYRoleSchema> 
   public async dispose(ctx: any) {
     if (!this.id) {
       throw new SCIMMY.Types.Error(
-        404, null!, "DELETE operation must target a specific resource"
+        404, null!, "DELETE operation must target a specific resource",
       );
     }
     try {
@@ -209,11 +199,9 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource<SCIMMYRoleSchema> 
     } catch (ex) {
       if (ex instanceof SCIMMY.Types.Error) {
         throw ex;
-      }
-      else if (ex instanceof TypeError) {
+      } else if (ex instanceof TypeError) {
         throw new SCIMMY.Types.Error(500, null!, ex.message);
-      }
-      else {
+      } else {
         throw new SCIMMY.Types.Error(404, null!, `Resource ${this.id} not found`);
       }
     }

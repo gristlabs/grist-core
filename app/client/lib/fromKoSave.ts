@@ -2,9 +2,9 @@
  * Replicates some of grainjs's fromKo, except that the returned observables have a set() method
  * which calls koObs.saveOnly(val) rather than koObs(val).
  */
-import {IKnockoutObservable, KoWrapObs, Observable} from 'grainjs';
+import { IKnockoutObservable, KoWrapObs, Observable } from "grainjs";
 
-const wrappers: WeakMap<IKnockoutObservable<any>, Observable<any>> = new WeakMap();
+const wrappers = new WeakMap<IKnockoutObservable<any>, Observable<any>>();
 
 /**
  * Returns a Grain.js observable which mirrors a Knockout observable.
@@ -19,8 +19,8 @@ export function fromKoSave<T>(koObs: IKnockoutObservable<T>): Observable<T> {
 
 export class KoSaveWrapObs<T> extends KoWrapObs<T> {
   constructor(_koObs: IKnockoutObservable<T>) {
-    if (!('saveOnly' in _koObs)) {
-      throw new Error('fromKoSave needs a saveable observable');
+    if (!("saveOnly" in _koObs)) {
+      throw new Error("fromKoSave needs a saveable observable");
     }
     super(_koObs);
   }

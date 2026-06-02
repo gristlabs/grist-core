@@ -1,10 +1,11 @@
-import { delay } from 'app/common/delay';
-import log from 'app/server/lib/log';
-import { Throttle } from 'app/server/lib/Throttle';
+import { delay } from "app/common/delay";
+import log from "app/server/lib/log";
+import { Throttle } from "app/server/lib/Throttle";
 
-import * as childProcess from 'child_process';
-import pidusage from 'pidusage';
-import * as util from 'util';
+import * as childProcess from "child_process";
+import * as util from "util";
+
+import pidusage from "pidusage";
 
 const execFile = util.promisify(childProcess.execFile);
 
@@ -40,7 +41,7 @@ export class DirectProcessControl implements ISandboxControl {
     if (process.env.GRIST_THROTTLE_CPU) {
       this._throttle = new Throttle({
         pid: this._pid,
-        logMeta: {...logMeta, pid: _process.pid},
+        logMeta: { ...logMeta, pid: _process.pid },
       });
     }
   }
@@ -55,7 +56,7 @@ export class DirectProcessControl implements ISandboxControl {
   }
 
   public async kill() {
-    this._process.kill('SIGKILL');
+    this._process.kill("SIGKILL");
   }
 
   public async getUsage() {
@@ -78,7 +79,7 @@ export class NoProcessControl implements ISandboxControl {
   }
 
   public async kill() {
-    this._process.kill('SIGKILL');
+    this._process.kill("SIGKILL");
   }
 
   public async getUsage() {
@@ -106,7 +107,7 @@ export class NoProcessControl implements ISandboxControl {
  */
 export class SubprocessControl implements ISandboxControl {
   private _throttle?: Throttle;
-  private _monitoredProcess: Promise<ProcessInfo|null>;
+  private _monitoredProcess: Promise<ProcessInfo | null>;
   private _active: boolean;
   private _foundDocker: boolean = false;
 
@@ -121,7 +122,7 @@ export class SubprocessControl implements ISandboxControl {
     logMeta?: log.ILogMeta,
   }) {
     this._active = true;
-    this._monitoredProcess = this._scan().catch(e => {
+    this._monitoredProcess = this._scan().catch((e) => {
       log.rawDebug(`Subprocess control failure: ${e}`, this._options.logMeta || {});
       return null;
     });
@@ -140,15 +141,15 @@ export class SubprocessControl implements ISandboxControl {
 
   public async kill() {
     if (this._foundDocker) {
-      process.kill(this._options.pid, 'SIGKILL');
+      process.kill(this._options.pid, "SIGKILL");
       return;
     }
     for (const proc of await this._getAllProcesses()) {
       try {
-        process.kill(proc.pid, 'SIGKILL');
+        process.kill(proc.pid, "SIGKILL");
       } catch (e) {
         // Don't worry if process is already killed.
-        if (e.code !== 'ESRCH') { throw e; }
+        if (e.code !== "ESRCH") { throw e; }
       }
     }
   }
@@ -176,7 +177,7 @@ export class SubprocessControl implements ISandboxControl {
   private async _scan(): Promise<ProcessInfo> {
     while (this._active) {
       const processes = await this._getAllProcesses();
-      const unrecognizedProcess = undefined as ProcessInfo|undefined;
+      const unrecognizedProcess = undefined as ProcessInfo | undefined;
       const recognizedProcesses = {
         sandbox: unrecognizedProcess,
         memory: unrecognizedProcess,
@@ -184,13 +185,13 @@ export class SubprocessControl implements ISandboxControl {
         traced: unrecognizedProcess,
       };
       let missing = false;
-      for (const key of Object.keys(recognizedProcesses) as Array<keyof typeof recognizedProcesses>) {
+      for (const key of Object.keys(recognizedProcesses) as (keyof typeof recognizedProcesses)[]) {
         const recognizer = this._options.recognizers[key];
         if (!recognizer) { continue; }
         for (const proc of processes) {
-          if (proc.label.includes('docker')) {
+          if (proc.label.includes("docker")) {
             this._foundDocker = true;
-            throw new Error('docker barrier found');
+            throw new Error("docker barrier found");
           }
           if (recognizer(proc)) {
             recognizedProcesses[key] = proc;
@@ -205,7 +206,7 @@ export class SubprocessControl implements ISandboxControl {
       }
       await delay(1000);
     }
-    throw new Error('not found');
+    throw new Error("not found");
   }
 
   /**
@@ -213,18 +214,18 @@ export class SubprocessControl implements ISandboxControl {
    * throttling if needed.
    */
   private _configure(processes: { sandbox?: ProcessInfo, cpu?: ProcessInfo,
-                                  memory?: ProcessInfo, traced?: ProcessInfo }) {
+    memory?: ProcessInfo, traced?: ProcessInfo }) {
     if (!processes.sandbox) { return; }
     if (process.env.GRIST_THROTTLE_CPU) {
       this._throttle = new Throttle({
         pid: processes.sandbox.pid,
         readPid: processes.cpu?.pid,
         tracedPid: processes.traced?.pid,
-        logMeta: {...this._options.logMeta,
-                  pid: processes.sandbox.pid,
-                  otherPids: [processes.cpu?.pid,
-                              processes.memory?.pid,
-                              processes.traced?.pid]},
+        logMeta: { ...this._options.logMeta,
+          pid: processes.sandbox.pid,
+          otherPids: [processes.cpu?.pid,
+            processes.memory?.pid,
+            processes.traced?.pid] },
       });
     }
   }
@@ -233,7 +234,7 @@ export class SubprocessControl implements ISandboxControl {
    * Return the root process and all its (nested) children.
    */
   private _getAllProcesses(): Promise<ProcessInfo[]> {
-    const rootProcess = {pid: this._options.pid, label: 'root', parentLabel: ''};
+    const rootProcess = { pid: this._options.pid, label: "root", parentLabel: "" };
     return this._addChildren([rootProcess]);
   }
 
@@ -242,7 +243,7 @@ export class SubprocessControl implements ISandboxControl {
    * recursively.
    */
   private async _addChildren(processes: ProcessInfo[]): Promise<ProcessInfo[]> {
-    const nestedProcesses = await Promise.all(processes.map(async proc => {
+    const nestedProcesses = await Promise.all(processes.map(async (proc) => {
       const children = await this._getChildren(proc.pid, proc.label);
       return [proc, ...await this._addChildren(children)];
     }));
@@ -260,18 +261,18 @@ export class SubprocessControl implements ISandboxControl {
     // but process naming is slightly different. But this class is currently only useful
     // for gvisor's runsc, which runs on Linux only.
     const cmd =
-      execFile('pgrep', ['--list-full', '--parent', String(pid)])
-      .catch(() => execFile('pgrep', ['-l', '-P', String(pid)]))   // mac version of pgrep
-      .catch(() => ({ stdout: '' }));
+      execFile("pgrep", ["--list-full", "--parent", String(pid)])
+        .catch(() => execFile("pgrep", ["-l", "-P", String(pid)]))   // mac version of pgrep
+        .catch(() => ({ stdout: "" }));
     const result = (await cmd).stdout;
     const parts = result
-      .split('\n')
+      .split("\n")
       .map(line => line.trim())
-      .map(line => line.split(' ', 2))
-      .map(part => {
+      .map(line => line.split(" ", 2))
+      .map((part) => {
         return {
           pid: parseInt(part[0], 10) || 0,
-          label: part[1] || '',
+          label: part[1] || "",
           parentLabel,
         };
       });

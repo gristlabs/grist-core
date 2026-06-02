@@ -42,6 +42,12 @@ export const AddOrUpdateRecord = t.iface([], {
   })),
 });
 
+export const BulkAddOrUpdateRecordResult = t.iface([], {
+  "recordIds": t.array(t.array("number")),
+  "addRecordIds": t.array("number"),
+  "updateRecordIds": t.array(t.array("number")),
+});
+
 export const RecordsPatch = t.iface([], {
   "records": t.tuple("Record", t.rest(t.array("Record"))),
 });
@@ -52,6 +58,17 @@ export const RecordsPost = t.iface([], {
 
 export const RecordsPut = t.iface([], {
   "records": t.tuple("AddOrUpdateRecord", t.rest(t.array("AddOrUpdateRecord"))),
+});
+
+export const RecordsListPost = t.iface([], {
+  "filter": t.opt(t.iface([], {
+    [t.indexKey]: t.array("any"),
+  })),
+  "sort": t.opt(t.array("string")),
+  "limit": t.opt("number"),
+  "hidden": t.opt("boolean"),
+  "immediate": t.opt("boolean"),
+  "cellFormat": t.opt("CellFormatType"),
 });
 
 export const RecordId = t.name("number");
@@ -76,6 +93,30 @@ export const TablePost = t.iface(["ColumnsPost"], {
   "id": t.opt("string"),
 });
 
+export const ColumnMetadata = t.iface([], {
+  "id": "string",
+  "fields": t.iface([], {
+    "colRef": "number",
+    "label": "string",
+    "isFormula": "boolean",
+    "type": "string",
+    [t.indexKey]: "CellValue",
+  }),
+});
+
+export const TableMetadata = t.iface([], {
+  "id": "string",
+  "fields": t.iface([], {
+    "tableRef": "number",
+    [t.indexKey]: "CellValue",
+  }),
+  "columns": t.opt(t.array("ColumnMetadata")),
+});
+
+export const TablesGet = t.iface([], {
+  "tables": t.tuple("TableMetadata", t.rest(t.array("TableMetadata"))),
+});
+
 export const TablesPost = t.iface([], {
   "tables": t.tuple("TablePost", t.rest(t.array("TablePost"))),
 });
@@ -94,7 +135,7 @@ export const SetAttachmentStorePost = t.iface([], {
   "type": "AttachmentStore",
 });
 
-export const AttachmentStore = t.union(t.lit('internal'), t.lit('external'));
+export const AttachmentStore = t.union(t.lit("internal"), t.lit("external"));
 
 export const AttachmentStoreDesc = t.iface([], {
   "label": "string",
@@ -106,15 +147,20 @@ const exportedTypeSuite: t.ITypeSuite = {
   Record,
   RecordWithStringId,
   AddOrUpdateRecord,
+  BulkAddOrUpdateRecordResult,
   RecordsPatch,
   RecordsPost,
   RecordsPut,
+  RecordsListPost,
   RecordId,
   MinimalRecord,
   ColumnsPost,
   ColumnsPatch,
   ColumnsPut,
   TablePost,
+  ColumnMetadata,
+  TableMetadata,
+  TablesGet,
   TablesPost,
   TablesPatch,
   SqlPost,

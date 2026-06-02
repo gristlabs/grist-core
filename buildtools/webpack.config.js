@@ -1,30 +1,30 @@
-const fs = require('fs');
-const MomentLocalesPlugin = require('moment-locales-webpack-plugin');
-const { ProvidePlugin } = require('webpack');
-const path = require('path');
+const fs = require("fs");
+const MomentLocalesPlugin = require("moment-locales-webpack-plugin");
+const { ProvidePlugin } = require("webpack");
+const path = require("path");
 
 // Get path to top-level node_modules if in a yarn workspace.
 // Otherwise node_modules one level up won't get resolved.
 // This is used in Electron packaging.
-const base = path.dirname(path.dirname(require.resolve('grainjs/package.json')));
+const base = path.dirname(path.dirname(require.resolve("grainjs/package.json")));
 
-const extraModulePaths = (process.env.WEBPACK_EXTRA_MODULE_PATHS || '')
+const extraModulePaths = (process.env.WEBPACK_EXTRA_MODULE_PATHS || "")
   .split(path.delimiter).filter(Boolean);
 
 if (process.env.WEBPACK_EXTRA_MODULE_PATHS === undefined &&
-    fs.existsSync('ext')) {
-  console.warn('Including ../node_modules because ext is present');
+    fs.existsSync("ext")) {
+  console.warn("Including ../node_modules because ext is present");
   // When adding extensions to Grist, the node packages are
   // placed one directory up from the main repository. This
   // is annoying, but goes with the grain of how node looks
   // for node_modules directories. But webpack doesn't match
   // that, so add `../node_modules` if the `ext` exists and
   // the user isn't controlling module paths.
-  extraModulePaths.push(path.resolve('../node_modules'));
+  extraModulePaths.push(path.resolve("../node_modules"));
 }
 
 module.exports = {
-  target: 'web',
+  target: "web",
   entry: {
     main: "app/client/app",
     errorPages: "app/client/errorMain",
@@ -60,27 +60,27 @@ module.exports = {
   // typescript ("cheap-module-eval-source-map" is faster, but breakpoints are largely broken).
   devtool: "source-map",
   resolve: {
-    extensions: ['.ts', '.js'],
+    extensions: [".ts", ".js"],
     modules: [
-      path.resolve('.'),
-      path.resolve('./ext'),
-      path.resolve('./stubs'),
-      path.resolve('./node_modules'),
+      path.resolve("."),
+      path.resolve("./ext"),
+      path.resolve("./stubs"),
+      path.resolve("./node_modules"),
       base,
       ...extraModulePaths,
     ],
     fallback: {
-      'path': require.resolve("path-browserify"),
-      'process': require.resolve("process/browser"),
+      "path": require.resolve("path-browserify"),
+      "process": require.resolve("process/browser"),
     },
   },
   module: {
     rules: [
       {
         test: /\.(js|ts)?$/,
-        loader: 'esbuild-loader',
+        loader: "esbuild-loader",
         options: {
-          target: 'es2017',
+          target: "es2017",
           sourcemap: true,
         },
         exclude: /node_modules/
@@ -91,23 +91,23 @@ module.exports = {
       },
       {
         test: /\.css$/,
-        type: 'asset/resource'
+        type: "asset/resource"
       }
     ]
   },
   plugins: [
     // Some modules assume presence of Buffer and process.
     new ProvidePlugin({
-      process: 'process',
-      Buffer: ['buffer', 'Buffer']
+      process: "process",
+      Buffer: ["buffer", "Buffer"]
     }),
     // To strip all locales except “en”
     new MomentLocalesPlugin()
   ],
   externals: {
     // for test bundle: jsdom should not be touched within browser
-    jsdom: 'alert',
+    jsdom: "alert",
     // for test bundle: jquery will be available as jQuery
-    jquery: 'jQuery'
+    jquery: "jQuery"
   },
 };

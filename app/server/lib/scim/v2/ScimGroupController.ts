@@ -1,10 +1,10 @@
-import { Group } from 'app/gen-server/entity/Group';
-import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
-import { BaseController } from 'app/server/lib/scim/v2/BaseController';
-import { RequestContext } from 'app/server/lib/scim/v2/ScimTypes';
-import { toGroupDescriptor, toSCIMMYGroup } from 'app/server/lib/scim/v2/ScimUtils';
+import { Group } from "app/gen-server/entity/Group";
+import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
+import { BaseController } from "app/server/lib/scim/v2/BaseController";
+import { RequestContext } from "app/server/lib/scim/v2/ScimTypes";
+import { toGroupDescriptor, toSCIMMYGroup } from "app/server/lib/scim/v2/ScimUtils";
 
-import SCIMMY from 'scimmy';
+import SCIMMY from "scimmy";
 
 type GroupSchema = SCIMMY.Schemas.Group;
 type GroupResource = SCIMMY.Resources.Group;
@@ -12,10 +12,10 @@ type GroupResource = SCIMMY.Resources.Group;
 class ScimGroupController extends BaseController {
   public constructor(
     dbManager: HomeDBManager,
-    checkAccess: (context: RequestContext) => void
+    checkAccess: (context: RequestContext) => void,
   ) {
     super(dbManager, checkAccess);
-    this.invalidIdError = 'Invalid passed group ID';
+    this.invalidIdError = "Invalid passed group ID";
   }
 
   /**
@@ -55,7 +55,7 @@ class ScimGroupController extends BaseController {
    * @param data The data to create the group with
    * @param context The request context
    */
-  public async createGroup(data: GroupSchema, context: RequestContext): Promise<GroupSchema>{
+  public async createGroup(data: GroupSchema, context: RequestContext): Promise<GroupSchema> {
     return this.runAndHandleErrors(context, async () => {
       const groupDescriptor = toGroupDescriptor(data);
       const group = await this.dbManager.createGroup(groupDescriptor);
@@ -71,7 +71,7 @@ class ScimGroupController extends BaseController {
    * @param context The request context
    */
   public async overwriteGroup(
-    resource: GroupResource, data: GroupSchema, context: RequestContext
+    resource: GroupResource, data: GroupSchema, context: RequestContext,
   ): Promise<GroupSchema> {
     return this.runAndHandleErrors(context, async () => {
       const id = this.getIdFromResource(resource);
@@ -88,7 +88,7 @@ class ScimGroupController extends BaseController {
    * @param context The request context
    *
    */
-  public async deleteGroup(resource: GroupResource, context: RequestContext): Promise<void>{
+  public async deleteGroup(resource: GroupResource, context: RequestContext): Promise<void> {
     return this.runAndHandleErrors(context, async () => {
       const id = this.getIdFromResource(resource);
       await this.dbManager.deleteGroup(id, Group.TEAM_TYPE);
@@ -97,12 +97,12 @@ class ScimGroupController extends BaseController {
 }
 
 export function getScimGroupConfig(
-  dbManager: HomeDBManager, checkAccess: (context: RequestContext) => void
+  dbManager: HomeDBManager, checkAccess: (context: RequestContext) => void,
 ) {
   const controller = new ScimGroupController(dbManager, checkAccess);
 
   return {
-    egress: async (resource: GroupResource, context: RequestContext): Promise<GroupSchema|GroupSchema[]> => {
+    egress: async (resource: GroupResource, context: RequestContext): Promise<GroupSchema | GroupSchema[]> => {
       if (resource.id) {
         return await controller.getSingleGroup(resource, context);
       }
@@ -116,6 +116,6 @@ export function getScimGroupConfig(
     },
     degress: async (resource: GroupResource, context: RequestContext): Promise<void> => {
       return await controller.deleteGroup(resource, context);
-    }
+    },
   };
 }

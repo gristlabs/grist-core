@@ -1,52 +1,52 @@
-import { ClientScope } from 'app/client/components/ClientScope';
-import { Disposable } from 'app/client/lib/dispose';
-import { ClientProcess, SafeBrowser } from 'app/client/lib/SafeBrowser';
-import { LocalPlugin } from 'app/common/plugin';
-import { PluginInstance } from 'app/common/PluginInstance';
-import { GristAPI, RPC_GRISTAPI_INTERFACE } from 'app/plugin/GristAPI';
-import { Storage } from 'app/plugin/StorageAPI';
-import { checkers } from 'app/plugin/TypeCheckers';
-import { assert } from 'chai';
-import { Rpc } from 'grain-rpc';
-import { noop } from 'lodash';
-import { basename } from 'path';
-import * as sinon from 'sinon';
-import * as clientUtil from 'test/client/clientUtil';
+import { ClientScope } from "app/client/components/ClientScope";
+import { Disposable } from "app/client/lib/dispose";
+import { ClientProcess, SafeBrowser } from "app/client/lib/SafeBrowser";
+import { LocalPlugin } from "app/common/plugin";
+import { PluginInstance } from "app/common/PluginInstance";
+import { GristAPI, RPC_GRISTAPI_INTERFACE } from "app/plugin/GristAPI";
+import { Storage } from "app/plugin/StorageAPI";
+import { checkers } from "app/plugin/TypeCheckers";
+import * as clientUtil from "test/client/clientUtil";
+
+import { basename } from "path";
+import * as url from "url";
+
+import { assert } from "chai";
+import { Rpc } from "grain-rpc";
+import { noop } from "lodash";
+import * as sinon from "sinon";
 import * as tic from "ts-interface-checker";
 import { createCheckers } from "ts-interface-checker";
-import * as url from 'url';
 
 clientUtil.setTmpMochaGlobals();
 
-const LOG_RPC = false; // tslint:disable-line:prefer-const
-
+const LOG_RPC = false;
 // uncomment next line to turn on rpc logging
 // LOG_RPC = true;
 
-describe('SafeBrowser', function() {
-
+describe("SafeBrowser", function() {
   let clientScope: any;
   const sandbox = sinon.createSandbox();
-  let browserProcesses: Array<{path: string, proc: ClientProcess}> = [];
+  let browserProcesses: { path: string, proc: ClientProcess }[] = [];
 
   let disposeSpy: sinon.SinonSpy;
-  const cleanup: Array<() => void> = [];
+  const cleanup: (() => void)[] = [];
 
   beforeEach(function() {
     const callPluginFunction = sinon.stub();
     callPluginFunction
-      .withArgs('testing-plugin', 'unsafeNode', 'func1')
-      .callsFake( (...args) => 'From Russia ' + args[3][0] + "!");
+      .withArgs("testing-plugin", "unsafeNode", "func1")
+      .callsFake((...args) => "From Russia " + args[3][0] + "!");
     callPluginFunction
-       .withArgs('testing-plugin', 'unsafeNode', 'funkyName')
-       .throws();
+      .withArgs("testing-plugin", "unsafeNode", "funkyName")
+      .throws();
     clientScope = new ClientScope();
 
     browserProcesses = [];
-    sandbox.stub(SafeBrowser, 'createWorker').callsFake(createProcess);
-    sandbox.stub(SafeBrowser, 'createView').callsFake(createProcess as any);
-    sandbox.stub(PluginInstance.prototype, 'getRenderTarget').returns(noop);
-    disposeSpy = sandbox.spy(Disposable.prototype, 'dispose');
+    sandbox.stub(SafeBrowser, "createWorker").callsFake(createProcess);
+    sandbox.stub(SafeBrowser, "createView").callsFake(createProcess as any);
+    sandbox.stub(PluginInstance.prototype, "getRenderTarget").returns(noop);
+    disposeSpy = sandbox.spy(Disposable.prototype, "dispose");
   });
 
   afterEach(function() {
@@ -55,37 +55,37 @@ describe('SafeBrowser', function() {
     cleanup.splice(0);
   });
 
-  it('should support rpc', async function() {
-    const {safeBrowser, pluginRpc} = createSafeBrowser('test_rpc');
-    const foo = pluginRpc.getStub<Foo>('grist@test_rpc', FooDescription);
+  it("should support rpc", async function() {
+    const { safeBrowser, pluginRpc } = createSafeBrowser("test_rpc");
+    const foo = pluginRpc.getStub<Foo>("grist@test_rpc", FooDescription);
     await safeBrowser.activate();
-    assert.equal(await foo.foo('rpc test'), 'foo rpc test');
+    assert.equal(await foo.foo("rpc test"), "foo rpc test");
   });
 
   it("can stub view processes", async function() {
-    const {safeBrowser, pluginRpc} = createSafeBrowser('test_render');
-    const foo = pluginRpc.getStub<Foo>('grist@test_render_view', FooDescription);
+    const { safeBrowser, pluginRpc } = createSafeBrowser("test_render");
+    const foo = pluginRpc.getStub<Foo>("grist@test_render_view", FooDescription);
     await safeBrowser.activate();
-    assert.equal(await foo.foo('rpc test'), 'foo rpc test from test_render_view');
+    assert.equal(await foo.foo("rpc test"), "foo rpc test from test_render_view");
   });
 
-  it('can forward rpc to a view process', async function() {
-    const {safeBrowser, pluginRpc} = createSafeBrowser("test_forward");
-    const foo = pluginRpc.getStub<Foo>('grist@test_forward', FooDescription);
+  it("can forward rpc to a view process", async function() {
+    const { safeBrowser, pluginRpc } = createSafeBrowser("test_forward");
+    const foo = pluginRpc.getStub<Foo>("grist@test_forward", FooDescription);
     await safeBrowser.activate();
     assert.equal(await foo.foo("safeBrowser"), "foo safeBrowser from test_forward_view");
   });
 
-  it('should forward messages', async function() {
-    const {safeBrowser, pluginRpc} = createSafeBrowser("test_messages");
-    const foo = pluginRpc.getStub<Foo>('foo@test_messages', FooDescription);
+  it("should forward messages", async function() {
+    const { safeBrowser, pluginRpc } = createSafeBrowser("test_messages");
+    const foo = pluginRpc.getStub<Foo>("foo@test_messages", FooDescription);
     await safeBrowser.activate();
     assert.equal(await foo.foo("safeBrowser"), "from message view");
   });
 
-  it('should support disposing a rendered view', async function() {
-    const {safeBrowser, pluginRpc} = createSafeBrowser("test_dispose");
-    const foo = pluginRpc.getStub<Foo>('grist@test_dispose', FooDescription);
+  it("should support disposing a rendered view", async function() {
+    const { safeBrowser, pluginRpc } = createSafeBrowser("test_dispose");
+    const foo = pluginRpc.getStub<Foo>("grist@test_dispose", FooDescription);
     await safeBrowser.activate();
     await foo.foo("safeBrowser");
     assert.deepEqual(browserProcesses.map(p => p.path), ["test_dispose", "test_dispose_view1", "test_dispose_view2"]);
@@ -94,14 +94,14 @@ describe('SafeBrowser', function() {
     assert.equal(disposeSpy.calledOn(processByName("test_dispose_view2")!), false);
   });
 
-  it('should dispose each process on deactivation', async function() {
-    const {safeBrowser, pluginRpc} = createSafeBrowser("test_dispose");
-    const foo = pluginRpc.getStub<Foo>('grist@test_dispose', FooDescription);
+  it("should dispose each process on deactivation", async function() {
+    const { safeBrowser, pluginRpc } = createSafeBrowser("test_dispose");
+    const foo = pluginRpc.getStub<Foo>("grist@test_dispose", FooDescription);
     await safeBrowser.activate();
     await foo.foo("safeBrowser");
     await safeBrowser.deactivate();
     assert.deepEqual(browserProcesses.map(p => p.path), ["test_dispose", "test_dispose_view1", "test_dispose_view2"]);
-    for (const {proc} of browserProcesses) {
+    for (const { proc } of browserProcesses) {
       assert.equal(disposeSpy.calledOn(proc), true);
     }
   });
@@ -115,35 +115,35 @@ describe('SafeBrowser', function() {
   //   await assert.isRejected(foo.foo('funkyName'));
   // });
 
-  it('should allow access to client scope interfaces', async function() {
-    const {safeBrowser, pluginRpc} = createSafeBrowser("test_client_scope");
-    const foo = pluginRpc.getStub<Foo>('grist@test_client_scope', FooDescription);
+  it("should allow access to client scope interfaces", async function() {
+    const { safeBrowser, pluginRpc } = createSafeBrowser("test_client_scope");
+    const foo = pluginRpc.getStub<Foo>("grist@test_client_scope", FooDescription);
     await safeBrowser.activate();
-    assert.equal(await foo.foo('green'), '#0f0');
+    assert.equal(await foo.foo("green"), "#0f0");
   });
 
-  it('should allow access to client scope interfaces from view', async function() {
-    const {safeBrowser, pluginRpc} = createSafeBrowser("test_client_scope_from_view");
-    const foo = pluginRpc.getStub<Foo>('grist@test_client_scope_from_view', FooDescription);
+  it("should allow access to client scope interfaces from view", async function() {
+    const { safeBrowser, pluginRpc } = createSafeBrowser("test_client_scope_from_view");
+    const foo = pluginRpc.getStub<Foo>("grist@test_client_scope_from_view", FooDescription);
     await safeBrowser.activate();
-    assert.equal(await foo.foo('red'), 'red#f00');
+    assert.equal(await foo.foo("red"), "red#f00");
   });
 
-  it('should have type-safe access to client scope interfaces', async function() {
-    const {safeBrowser, pluginRpc} = createSafeBrowser("test_client_scope_typed");
-    const foo = pluginRpc.getStub<Foo>('grist@test_client_scope_typed', FooDescription);
+  it("should have type-safe access to client scope interfaces", async function() {
+    const { safeBrowser, pluginRpc } = createSafeBrowser("test_client_scope_typed");
+    const foo = pluginRpc.getStub<Foo>("grist@test_client_scope_typed", FooDescription);
     await safeBrowser.activate();
-    await assert.isRejected(foo.foo('test'), /is not a string/);
+    await assert.isRejected(foo.foo("test"), /is not a string/);
   });
 
-  it('should allow creating a view process from grist', async function() {
-    const {safeBrowser, pluginRpc} = createSafeBrowser("test_view_process");
+  it("should allow creating a view process from grist", async function() {
+    const { safeBrowser, pluginRpc } = createSafeBrowser("test_view_process");
     // let's call buildDom on test_rpc
     const proc = safeBrowser.createViewProcess("test_rpc");
 
     // rpc should work
-    const foo = pluginRpc.getStub<Foo>('grist@test_rpc', FooDescription);
-    assert.equal(await foo.foo('Santa'), 'foo Santa');
+    const foo = pluginRpc.getStub<Foo>("grist@test_rpc", FooDescription);
+    assert.equal(await foo.foo("Santa"), "foo Santa");
 
     // now let's dispose
     proc.dispose();
@@ -151,11 +151,11 @@ describe('SafeBrowser', function() {
 
   function createProcess(safeBrowser: SafeBrowser, _rpc: Rpc, src: string) {
     const path: string = basename(url.parse(src).pathname!);
-    const rpc = new Rpc({logger: LOG_RPC ? {
-        // let's prepend path to the console 'info' and 'warn' channels
-        info: console.info.bind(console, path),   // tslint:disable-line:no-console
-        warn: console.warn.bind(console, path),   // tslint:disable-line:no-console
-      } : {}, sendMessage: _rpc.receiveMessage.bind(_rpc)});
+    const rpc = new Rpc({ logger: LOG_RPC ? {
+      // let's prepend path to the console 'info' and 'warn' channels
+      info: console.info.bind(console, path),
+      warn: console.warn.bind(console, path),
+    } : {}, sendMessage: _rpc.receiveMessage.bind(_rpc) });
     _rpc.setSendMessage(msg => rpc.receiveMessage(msg));
     const api = rpc.getStub<GristAPI>(RPC_GRISTAPI_INTERFACE, checkers.GristAPI);
     function ready() {
@@ -164,35 +164,35 @@ describe('SafeBrowser', function() {
     }
     // Start up the mock process for the plugin.
     const proc = new ClientProcess(safeBrowser, _rpc);
-    PROCESSES[path]({rpc, api, ready });
-    browserProcesses.push({path, proc});
+    PROCESSES[path]({ rpc, api, ready });
+    browserProcesses.push({ path, proc });
     return proc;
   }
 
   // At the moment, only the .definition field matters for SafeBrowser.
   const localPlugin: LocalPlugin = {
     manifest: {
-      components: { safeBrowser: 'main' },
-      contributions: {}
+      components: { safeBrowser: "main" },
+      contributions: {},
     },
     id: "testing-plugin",
-    path: ""
+    path: "",
   };
-  function createSafeBrowser(mainPath: string): {safeBrowser: SafeBrowser, pluginRpc: Rpc} {
+  function createSafeBrowser(mainPath: string): { safeBrowser: SafeBrowser, pluginRpc: Rpc } {
     const pluginInstance = new PluginInstance(localPlugin, {});
     const safeBrowser = new SafeBrowser({
       pluginInstance,
       clientScope,
-      untrustedContentOrigin: '',
+      untrustedContentOrigin: "",
       mainPath,
       baseLogger: {},
     });
     cleanup.push(() => safeBrowser.deactivate());
     pluginInstance.rpc.registerForwarder(mainPath, safeBrowser);
-    return {safeBrowser, pluginRpc: pluginInstance.rpc};
+    return { safeBrowser, pluginRpc: pluginInstance.rpc };
   }
 
-  function processByName(name: string): ClientProcess|undefined {
+  function processByName(name: string): ClientProcess | undefined {
     const procInfo = browserProcesses.find(p => (p.path === name));
     return procInfo ? procInfo.proc : undefined;
   }
@@ -208,7 +208,7 @@ interface Foo {
 const FooDescription = createCheckers({
   Foo: tic.iface([], {
     foo: tic.func("string", tic.param("name", "string")),
-  })
+  }),
 }).Foo;
 
 interface TestProcesses {
@@ -224,7 +224,6 @@ interface GristModule {
   ready(): void;
 }
 
-
 /**
  * The safeBrowser's script needed for test.
  */
@@ -232,45 +231,45 @@ const PROCESSES: TestProcesses = {
   test_rpc: (grist: GristModule) => {
     class MyFoo {
       public async foo(name: string): Promise<string> {
-        return 'foo ' + name;
+        return "foo " + name;
       }
     }
-    grist.rpc.registerImpl<Foo>('grist', new MyFoo(), FooDescription);
+    grist.rpc.registerImpl<Foo>("grist", new MyFoo(), FooDescription);
     grist.ready();
   },
   async test_render(grist: GristModule) {
-    await grist.api.render('test_render_view', 'fullscreen');
+    await grist.api.render("test_render_view", "fullscreen");
     grist.ready();
   },
   test_render_view(grist: GristModule) {
-    grist.rpc.registerImpl<Foo>('grist', {
-      foo: (name: string) => `foo ${name} from test_render_view`
+    grist.rpc.registerImpl<Foo>("grist", {
+      foo: (name: string) => `foo ${name} from test_render_view`,
     });
     grist.ready();
   },
   async test_forward(grist: GristModule) {
-    grist.rpc.registerImpl<Foo>('grist', {
-      foo: (name: string) => viewFoo.foo(name)
+    grist.rpc.registerImpl<Foo>("grist", {
+      foo: (name: string) => viewFoo.foo(name),
     });
-    grist.api.render('test_forward_view', 'fullscreen'); // eslint-disable-line @typescript-eslint/no-floating-promises
-    const viewFoo = grist.rpc.getStub<Foo>('foo@test_forward_view', FooDescription);
+    grist.api.render("test_forward_view", "fullscreen"); // eslint-disable-line @typescript-eslint/no-floating-promises
+    const viewFoo = grist.rpc.getStub<Foo>("foo@test_forward_view", FooDescription);
     grist.ready();
   },
   test_forward_view: (grist: GristModule) => {
-    grist.rpc.registerImpl<Foo>('foo', {
-      foo: async (name) => `foo ${name} from test_forward_view`
+    grist.rpc.registerImpl<Foo>("foo", {
+      foo: async name => `foo ${name} from test_forward_view`,
     }, FooDescription);
     grist.ready();
   },
   test_messages: (grist: GristModule) => {
-    grist.rpc.registerImpl<Foo>('foo', {
+    grist.rpc.registerImpl<Foo>("foo", {
       foo(name): Promise<string> {
-        return new Promise<string>(resolve => {
-          grist.rpc.once('message', resolve);
+        return new Promise<string>((resolve) => {
+          grist.rpc.once("message", resolve);
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
-          grist.api.render('test_messages_view', 'fullscreen');
+          grist.api.render("test_messages_view", "fullscreen");
         });
-      }
+      },
     }, FooDescription);
     grist.ready();
   },
@@ -278,73 +277,73 @@ const PROCESSES: TestProcesses = {
     // test if works even if grist.ready() called after postmessage ?
     grist.ready();
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    grist.rpc.postMessageForward('test_messages', 'from message view');
+    grist.rpc.postMessageForward("test_messages", "from message view");
   },
   test_dispose: (grist: GristModule) => {
     class MyFoo {
       public async foo(name: string): Promise<string> {
-        const id = await grist.api.render('test_dispose_view1', 'fullscreen');
-        await grist.api.render('test_dispose_view2', 'fullscreen');
+        const id = await grist.api.render("test_dispose_view1", "fullscreen");
+        await grist.api.render("test_dispose_view2", "fullscreen");
         await grist.api.dispose(id);
         return "test";
       }
     }
-    grist.rpc.registerImpl<Foo>('grist', new MyFoo(), FooDescription);
+    grist.rpc.registerImpl<Foo>("grist", new MyFoo(), FooDescription);
     grist.ready();
   },
-  test_dispose_view1: (grist) => grist.ready(),
-  test_dispose_view2: (grist) => grist.ready(),
+  test_dispose_view1: grist => grist.ready(),
+  test_dispose_view2: grist => grist.ready(),
   test_client_scope: (grist: GristModule) => {
     class MyFoo {
       public async foo(name: string): Promise<string> {
-        const stub = grist.rpc.getStub<Storage>('storage');
+        const stub = grist.rpc.getStub<Storage>("storage");
         stub.setItem("red", "#f00");
         stub.setItem("green", "#0f0");
         stub.setItem("blue", "#00f");
         return stub.getItem(name);
       }
     }
-    grist.rpc.registerImpl<Foo>('grist', new MyFoo(), FooDescription);
+    grist.rpc.registerImpl<Foo>("grist", new MyFoo(), FooDescription);
     grist.ready();
   },
   test_client_scope_from_view: (grist: GristModule) => {
     // hit linting limit for number of classes in a single file :-)
     const myFoo = {
       foo(name: string): Promise<string> {
-        return new Promise<string> (resolve => {
+        return new Promise<string>((resolve) => {
           grist.rpc.once("message", (msg: any) => resolve(name + msg));
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
-          grist.api.render('view_client_scope', 'fullscreen');
+          grist.api.render("view_client_scope", "fullscreen");
         });
-      }
+      },
     };
-    grist.rpc.registerImpl<Foo>('grist', myFoo, FooDescription);
+    grist.rpc.registerImpl<Foo>("grist", myFoo, FooDescription);
     grist.ready();
   },
   test_client_scope_typed: (grist: GristModule) => {
     const myFoo = {
       foo(name: string): Promise<string> {
-        const stub = grist.rpc.getStub<any>('storage');
+        const stub = grist.rpc.getStub<any>("storage");
         return stub.setItem(1); // this should be an error
-      }
+      },
     };
-    grist.rpc.registerImpl<Foo>('grist', myFoo, FooDescription);
+    grist.rpc.registerImpl<Foo>("grist", myFoo, FooDescription);
     grist.ready();
   },
   view1: (grist: GristModule) => {
     const myFoo = {
       async foo(name: string): Promise<string> {
         return `foo ${name} from view1`;
-      }
+      },
     };
-    grist.rpc.registerImpl<Foo>('foo', myFoo, FooDescription);
+    grist.rpc.registerImpl<Foo>("foo", myFoo, FooDescription);
     grist.ready();
   },
   view2: (grist: GristModule) => {
     grist.ready();
   },
   view_client_scope: async (grist: GristModule) => {
-    const stub = grist.rpc.getStub<Storage>('storage');
+    const stub = grist.rpc.getStub<Storage>("storage");
     grist.ready();
     stub.setItem("red", "#f00");
     const result = await stub.getItem("red");

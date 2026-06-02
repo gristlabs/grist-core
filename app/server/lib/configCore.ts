@@ -1,11 +1,11 @@
+import { isAffirmative } from "app/common/gutil";
 import {
   createConfigValue,
   FileConfig,
   fileConfigAccessorFactory,
-  IWritableConfigValue
+  IWritableConfigValue,
 } from "app/server/lib/config";
-import {convertToCoreFileContents, IGristCoreConfigFileLatest} from "app/server/lib/configCoreFileFormats";
-import {isAffirmative} from 'app/common/gutil';
+import { convertToCoreFileContents, IGristCoreConfigFileLatest } from "app/server/lib/configCoreFileFormats";
 
 export type Edition = "core" | "enterprise";
 
@@ -26,7 +26,7 @@ export function loadGristCoreConfig(fileConfig?: FileConfig<IGristCoreConfigFile
   return {
     edition: createConfigValue<Edition>(
       isAffirmative(process.env.GRIST_FORCE_ENABLE_ENTERPRISE) ? "enterprise" : "core",
-      fileConfigValue("edition")
-    )
+      fileConfigValue("edition"),
+    ),
   };
 }

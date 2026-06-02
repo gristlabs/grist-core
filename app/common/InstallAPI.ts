@@ -1,32 +1,44 @@
-import {BaseAPI, IOptions} from 'app/common/BaseAPI';
-import {BootProbeInfo, BootProbeResult} from 'app/common/BootProbe';
-import {InstallPrefs} from 'app/common/Install';
-import {TelemetryLevel} from 'app/common/Telemetry';
-import {addCurrentOrgToPath} from 'app/common/urlUtils';
-import {LatestVersionAvailable} from 'app/common/gristUrls';
+import { BaseAPI, IOptions } from "app/common/BaseAPI";
+import { BootProbeInfo, BootProbeResult } from "app/common/BootProbe";
+import { LatestVersionAvailable } from "app/common/gristUrls";
+import { InstallPrefs, PendingChanges } from "app/common/Install";
+import { TelemetryLevel } from "app/common/Telemetry";
+import { addCurrentOrgToPath } from "app/common/urlUtils";
 
-export const installPropertyKeys = ['prefs'];
+export const installPropertyKeys = ["prefs"];
 
 export interface InstallProperties {
   prefs: InstallPrefs;
 }
 
-export interface InstallPrefsWithSources {
+export interface InstallPrefsWithSources extends PendingChanges {
   telemetry: {
     telemetryLevel: PrefWithSource<TelemetryLevel>;
   },
   checkForLatestVersion: boolean;
+  envVars?: Record<string, any>;
 }
 
-export type TelemetryPrefsWithSources = InstallPrefsWithSources['telemetry'];
+export type TelemetryPrefsWithSources = InstallPrefsWithSources["telemetry"];
 
 export interface PrefWithSource<T> {
   value: T;
   source: PrefSource;
 }
 
-export type PrefSource = 'environment-variable' | 'preferences';
+export type PrefSource = "environment-variable" | "preferences";
 
+export interface PermissionSetting {
+  value: boolean | undefined;
+  source: PrefSource | undefined;
+}
+
+export interface PermissionsStatus {
+  orgCreationAnyone: PermissionSetting;
+  personalOrgs: PermissionSetting;
+  forceLogin: PermissionSetting;
+  anonPlayground: PermissionSetting;
+}
 
 export interface InstallAPI {
   getInstallPrefs(): Promise<InstallPrefsWithSources>;
@@ -35,8 +47,16 @@ export interface InstallAPI {
    * Returns information about latest version of Grist
    */
   checkUpdates(): Promise<LatestVersionAvailable>;
-  getChecks(): Promise<{probes: BootProbeInfo[]}>;
-  runCheck(id: string): Promise<BootProbeResult>;
+  getChecks(): Promise<{ probes: BootProbeInfo[] }>;
+  /**
+   * Run a probe and return its result. Pass `{ background: true }` for prefetches
+   * the user isn't waiting on (the underlying request bypasses the pending-request
+   * counter so tests' `waitForServer` waits aren't held up).
+   */
+  runCheck(id: string, opts?: { background?: boolean }): Promise<BootProbeResult>;
+  getPermissionsStatus(): Promise<PermissionsStatus>;
+  /** True if a user with this login email exists in the home DB. */
+  userExists(email: string): Promise<boolean>;
 }
 
 export class InstallAPIImpl extends BaseAPI implements InstallAPI {
@@ -45,26 +65,40 @@ export class InstallAPIImpl extends BaseAPI implements InstallAPI {
   }
 
   public async getInstallPrefs(): Promise<InstallPrefsWithSources> {
-    return this.requestJson(`${this._url}/api/install/prefs`, {method: 'GET'});
+    return this.requestJson(`${this._url}/api/install/prefs`, { method: "GET" });
   }
 
   public async updateInstallPrefs(prefs: Partial<InstallPrefs>): Promise<void> {
     await this.request(`${this._url}/api/install/prefs`, {
-      method: 'PATCH',
-      body: JSON.stringify({...prefs}),
+      method: "PATCH",
+      body: JSON.stringify({ ...prefs }),
     });
   }
 
   public checkUpdates(): Promise<LatestVersionAvailable> {
-    return this.requestJson(`${this._url}/api/install/updates`, {method: 'GET'});
+    return this.requestJson(`${this._url}/api/install/updates`, { method: "GET" });
   }
 
-  public getChecks(): Promise<{probes: BootProbeInfo[]}> {
-    return this.requestJson(`${this._url}/api/probes`, {method: 'GET'});
+  public getChecks(): Promise<{ probes: BootProbeInfo[] }> {
+    return this.requestJson(`${this._url}/api/probes`, { method: "GET" });
   }
 
-  public runCheck(id: string): Promise<BootProbeResult> {
-    return this.requestJson(`${this._url}/api/probes/${id}`, {method: 'GET'});
+  public runCheck(id: string, opts: { background?: boolean } = {}): Promise<BootProbeResult> {
+    const url = `${this._url}/api/probes/${id}`;
+    return opts.background ?
+      this.requestJsonUncounted(url, { method: "GET" }) :
+      this.requestJson(url, { method: "GET" });
+  }
+
+  public async getPermissionsStatus(): Promise<PermissionsStatus> {
+    return this.requestJson(`${this._url}/api/install/permissions`, { method: "GET" });
+  }
+
+  public async userExists(email: string): Promise<boolean> {
+    const url = new URL(`${this._url}/api/install/users/exists`);
+    url.searchParams.set("email", email);
+    const resp = await this.requestJson(url.href, { method: "GET" });
+    return Boolean((resp as { exists?: boolean }).exists);
   }
 
   private get _url(): string {

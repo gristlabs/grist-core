@@ -1,5 +1,5 @@
-var assert = require('assert');
-var CircularArray = require('app/common/CircularArray');
+var assert = require("assert");
+var CircularArray = require("app/common/CircularArray");
 
 describe("CircularArray", function() {
   it("should lose old items", function() {

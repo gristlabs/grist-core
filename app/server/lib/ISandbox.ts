@@ -1,5 +1,5 @@
-import log from 'app/server/lib/log';
-import {ISandboxOptions} from 'app/server/lib/NSandbox';
+import log from "app/server/lib/log";
+import { ISandboxOptions } from "app/server/lib/NSandbox";
 
 /**
  * Starting to whittle down the options used when creating a sandbox, to leave more
@@ -17,18 +17,18 @@ export interface ISandboxCreationOptions {
   sandboxMount?: string; // if defined, make this path available read-only as "/sandbox"
   importMount?: string;  // if defined, make this path available read-only as "/importdir"
 
-  preferredPythonVersion?: '3';
+  preferredPythonVersion?: "3";
 
   sandboxOptions?: Partial<ISandboxOptions>;
 }
 
 export interface ISandbox {
-  shutdown(): Promise<unknown>;  // TODO: tighten up this type.
+  shutdown(): Promise<void>;
   pyCall(funcName: string, ...varArgs: unknown[]): Promise<any>;
   reportMemoryUsage(): Promise<number>;
   getFlavor(): string;
   isProcessDown(): boolean;
-  getLastResponseNumBytes?(): number|undefined;
+  getLastResponseNumBytes?(): number | undefined;
 }
 
 export interface ISandboxCreator {

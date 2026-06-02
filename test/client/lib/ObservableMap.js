@@ -1,11 +1,11 @@
-const assert = require('chai').assert;
-const ko     = require('knockout');
+const assert = require("chai").assert;
+const ko     = require("knockout");
 
-const clientUtil = require('../clientUtil');
+const clientUtil = require("../clientUtil");
 
-const ObservableMap = require('app/client/lib/ObservableMap');
+const ObservableMap = require("app/client/lib/ObservableMap");
 
-describe('ObservableMap', function () {
+describe("ObservableMap", function () {
   clientUtil.setTmpMochaGlobals();
 
   let factor, mapFunc, map, additive;
@@ -23,7 +23,7 @@ describe('ObservableMap', function () {
     map = ObservableMap.create(mapFunc);
   });
 
-  it('should keep track of items and update values on key updates', function () {
+  it("should keep track of items and update values on key updates", function () {
     obsKey1 = ko.observable(1);
     obsKey2 = ko.observable(2);
 
@@ -48,7 +48,7 @@ describe('ObservableMap', function () {
     assert.equal(obsValue2(), 4);
   });
 
-  it('should update all values if mapping function is updated', function () {
+  it("should update all values if mapping function is updated", function () {
     assert.equal(obsValue1(), 4);
     assert.equal(obsValue2(), 4);
 
@@ -64,7 +64,7 @@ describe('ObservableMap', function () {
     assert.equal(obsValue2(), 15);
   });
 
-  it('updateKeys should update values for that key, but not other values', function () {
+  it("updateKeys should update values for that key, but not other values", function () {
     additive = 7;
 
     map.updateKeys([4]);
@@ -73,7 +73,7 @@ describe('ObservableMap', function () {
     assert.equal(obsValue2(), 15);
   });
 
-  it('updateAll should update all values for all keys', function () {
+  it("updateAll should update all values for all keys", function () {
     additive = 8;
 
     map.updateAll();
@@ -82,7 +82,7 @@ describe('ObservableMap', function () {
     assert.equal(obsValue2(), 23);
   });
 
-  it('should remove items when they are disposed', function () {
+  it("should remove items when they are disposed", function () {
     let obsKey1 = ko.observable(6);
     let obsKey2 = ko.observable(6);
 
@@ -101,7 +101,7 @@ describe('ObservableMap', function () {
     assert.isUndefined(map.get(6));
   });
 
-  it('should unsubscribe from observables on disposal', function () {
+  it("should unsubscribe from observables on disposal", function () {
     assert.equal(obsValue1(), 20);
     assert.equal(obsValue2(), 23);
 

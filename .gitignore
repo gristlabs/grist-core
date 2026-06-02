@@ -58,6 +58,7 @@ build/Release
 
 # Dependency directories
 /node_modules/
+/sandbox/pyodide/**/node_modules/
 jspm_packages/
 /docs
 
@@ -101,3 +102,6 @@ xunit.xml
 /test/assistant/data/cache/
 /test/assistant/data/results/
 /test/assistant/data/templates/
+
+# Storybook
+/storybook-static/

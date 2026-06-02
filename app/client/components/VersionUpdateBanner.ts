@@ -1,12 +1,13 @@
-import {Banner, buildBannerMessage} from 'app/client/components/Banner';
-import {makeT} from 'app/client/lib/localization';
-import {localStorageJsonObs} from 'app/client/lib/localStorageObs';
-import {getGristConfig} from 'app/common/urlUtils';
-import {Disposable, dom, makeTestId, Observable} from 'grainjs';
-import {AppModel} from 'app/client/models/AppModel';
+import { Banner, buildBannerMessage } from "app/client/components/Banner";
+import { makeT } from "app/client/lib/localization";
+import { localStorageJsonObs } from "app/client/lib/localStorageObs";
+import { AppModel } from "app/client/models/AppModel";
+import { getGristConfig } from "app/common/urlUtils";
+
+import { Disposable, dom, makeTestId, Observable } from "grainjs";
 
 const t = makeT("VersionUpdateBanner");
-const testId = makeTestId('test-version-update-banner-');
+const testId = makeTestId("test-version-update-banner-");
 
 interface ShowVersionUpdateBannerPrefer {
   dismissed: boolean,
@@ -20,21 +21,21 @@ export class VersionUpdateBanner extends Disposable {
   constructor(private _appModel: AppModel) {
     super();
     const userId = this._appModel.currentUser?.id ?? 0;
-    const {latestVersionAvailable} = getGristConfig();
+    const { latestVersionAvailable } = getGristConfig();
 
     this._showVersionUpdateBannerPref = localStorageJsonObs(
       `u=${userId}:showVersionUpdateBanner`,
       {
         dismissed: false,
-        version: latestVersionAvailable?.version
-      }
+        version: latestVersionAvailable?.version,
+      },
     );
   }
 
   public buildDom() {
     return dom.maybe(this._appModel.isInstallAdmin(), () => {
-      return dom.domComputed(use => {
-        const {latestVersionAvailable} = getGristConfig();
+      return dom.domComputed((use) => {
+        const { latestVersionAvailable } = getGristConfig();
         if (!latestVersionAvailable?.isNewer) {
           return null;
         }
@@ -50,18 +51,18 @@ export class VersionUpdateBanner extends Disposable {
           return null;
         }
 
-        const versionParam = {version: latestVersionAvailable.version};
+        const versionParam = { version: latestVersionAvailable.version };
         const msg = latestVersionAvailable.isCritical ?
           t(
-`There is a critical Grist update available.
-Consider upgrading to version {{version}} as soon as possible.`, versionParam)
-          : t(
-`Your Grist version is outdated.
+            `There is a critical Grist update available.
+Consider upgrading to version {{version}} as soon as possible.`, versionParam) :
+          t(
+            `Your Grist version is outdated.
 Consider upgrading to version {{version}} as soon as possible.`, versionParam);
 
         return dom.create(Banner, {
-          content: buildBannerMessage(msg, testId('text')),
-          style: latestVersionAvailable.isCritical ? 'error' : 'warning',
+          content: buildBannerMessage(msg, testId("text")),
+          style: latestVersionAvailable.isCritical ? "error" : "warning",
           showCloseButton: true,
           onClose: () => this._showVersionUpdateBannerPref.set({
             dismissed: true,

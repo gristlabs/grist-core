@@ -1,12 +1,12 @@
-import {getBrowserGlobals} from 'app/client/lib/browserGlobals';
+import { getBrowserGlobals } from "app/client/lib/browserGlobals";
 
-const G = getBrowserGlobals('document', 'window');
+const G = getBrowserGlobals("document", "window");
 
 /**
  * Copy text or data to the clipboard.
  */
 export async function copyToClipboard(data: string | ClipboardItem) {
-  if (typeof data === 'string') {
+  if (typeof data === "string") {
     await copyTextToClipboard(data);
   } else {
     await copyDataToClipboard(data);
@@ -32,15 +32,15 @@ async function copyTextToClipboard(txt: string) {
   // the dom to be selected.  Implementation here based on:
   //   https://hackernoon.com/copying-text-to-clipboard-with-javascript-df4d4988697f
   // This fallback takes effect at least in headless tests, and in Safari.
-  const stash = G.document.createElement('textarea');
+  const stash = G.document.createElement("textarea");
   stash.value = txt;
-  stash.setAttribute('readonly', '');
-  stash.style.position = 'absolute';
-  stash.style.left = '-10000px';
+  stash.setAttribute("readonly", "");
+  stash.style.position = "absolute";
+  stash.style.left = "-10000px";
   G.document.body.appendChild(stash);
   const selection = G.document.getSelection()!.rangeCount > 0 && G.document.getSelection()!.getRangeAt(0);
   stash.select();
-  G.document.execCommand('copy');
+  G.document.execCommand("copy");
   G.document.body.removeChild(stash);
   if (selection) {
     G.document.getSelection()!.removeAllRanges();
@@ -53,7 +53,7 @@ async function copyTextToClipboard(txt: string) {
  */
 async function copyDataToClipboard(data: ClipboardItem) {
   if (!G.window.navigator?.clipboard?.write) {
-    throw new Error('navigator.clipboard.write is not supported on this browser');
+    throw new Error("navigator.clipboard.write is not supported on this browser");
   }
 
   await G.window.navigator.clipboard.write([data]);
@@ -64,7 +64,7 @@ async function copyDataToClipboard(data: ClipboardItem) {
  */
 export function readTextFromClipboard(): Promise<string> {
   if (!G.window.navigator?.clipboard?.readText) {
-    throw new Error('navigator.clipboard.readText is not supported on this browser');
+    throw new Error("navigator.clipboard.readText is not supported on this browser");
   }
 
   return G.window.navigator.clipboard.readText();
@@ -75,7 +75,7 @@ export function readTextFromClipboard(): Promise<string> {
  */
 export function readDataFromClipboard(): Promise<ClipboardItem[]> {
   if (!G.window.navigator?.clipboard?.read) {
-    throw new Error('navigator.clipboard.read is not supported on this browser');
+    throw new Error("navigator.clipboard.read is not supported on this browser");
   }
 
   return G.window.navigator.clipboard.read();

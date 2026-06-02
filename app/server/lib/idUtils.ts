@@ -1,8 +1,9 @@
-import {ForkResult} from 'app/common/ActiveDocAPI';
-import {buildUrlId, parseUrlId} from 'app/common/gristUrls';
-import {padStart} from 'app/common/gutil';
-import {IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
-import * as shortUUID from 'short-uuid';
+import { ForkResult } from "app/common/ActiveDocAPI";
+import { buildUrlId, parseUrlId } from "app/common/gristUrls";
+import { padStart } from "app/common/gutil";
+import { IDocWorkerMap } from "app/server/lib/DocWorkerMap";
+
+import * as shortUUID from "short-uuid";
 
 // make an id that is a standard UUID compressed into fewer characters.
 export function makeId(): string {
@@ -12,7 +13,7 @@ export function makeId(): string {
   // lack of confusability. The character encoding zero is '1'.  We pad the
   // result so that the length of the id remains consistent, since there is
   // routing that depends on the id length exceeding a minimum threshold.
-  return padStart(shortUUID.generate(), 22, '1');
+  return padStart(shortUUID.generate(), 22, "1");
 }
 
 /**
@@ -20,8 +21,8 @@ export function makeId(): string {
  * and the id of a reference document (the trunk).
  * If the userId is null, the user will be treated as the anonymous user.
  */
-export function makeForkIds(options: { userId: number|null, isAnonymous: boolean,
-                                       trunkDocId: string, trunkUrlId: string }): ForkResult {
+export function makeForkIds(options: { userId: number | null, isAnonymous: boolean,
+  trunkDocId: string, trunkUrlId: string }): ForkResult {
   const forkId = makeId();
   const forkUserId = options.isAnonymous ? undefined :
     (options.userId !== null ? options.userId : undefined);
@@ -31,8 +32,8 @@ export function makeForkIds(options: { userId: number|null, isAnonymous: boolean
   const urlId = parseUrlId(options.trunkUrlId).trunkId;
   return {
     forkId,
-    docId: buildUrlId({trunkId: docId, forkId, forkUserId}),
-    urlId: buildUrlId({trunkId: urlId, forkId, forkUserId}),
+    docId: buildUrlId({ trunkId: docId, forkId, forkUserId }),
+    urlId: buildUrlId({ trunkId: urlId, forkId, forkUserId }),
   };
 }
 

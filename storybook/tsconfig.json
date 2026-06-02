@@ -1,0 +1,10 @@
+{
+  "extends": "../buildtools/tsconfig-base.json",
+  "include": [
+    "*",
+    "**/*",
+  ],
+  "references": [
+    { "path": "../app" },
+  ]
+}

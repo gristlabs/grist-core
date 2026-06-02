@@ -1,14 +1,15 @@
 import { ALL_PERMISSION_PROPS, emptyPermissionSet,
-         makePartialPermissions, mergePartialPermissions, mergePermissions,
-         MixedPermissionSet, PartialPermissionSet, PermissionSet, TablePermissionSet,
-         toMixed } from 'app/common/ACLPermissions';
-import { ACLRuleCollection } from 'app/common/ACLRuleCollection';
-import { RuleSet } from 'app/common/GranularAccessClause';
-import { PredicateFormulaInput } from 'app/common/PredicateFormula';
-import { User } from 'app/common/User';
-import { getSetMapValue } from 'app/common/gutil';
-import log from 'app/server/lib/log';
-import { mapValues } from 'lodash';
+  makePartialPermissions, mergePartialPermissions, mergePermissions,
+  MixedPermissionSet, PartialPermissionSet, PermissionSet, TablePermissionSet,
+  toMixed } from "app/common/ACLPermissions";
+import { ACLRuleCollection } from "app/common/ACLRuleCollection";
+import { RuleSet } from "app/common/GranularAccessClause";
+import { getSetMapValue } from "app/common/gutil";
+import { PredicateFormulaInput } from "app/common/PredicateFormula";
+import { User } from "app/common/User";
+import log from "app/server/lib/log";
+
+import { mapValues } from "lodash";
 
 /**
  * A PermissionSet with context about how it was created.  Allows us to produce more
@@ -16,7 +17,7 @@ import { mapValues } from 'lodash';
  */
 export interface PermissionSetWithContextOf<T = PermissionSet> {
   perms: T;
-  ruleType: 'full'|'table'|'column'|'row';
+  ruleType: "full" | "table" | "column" | "row";
   getMemos: () => MemoSet;
 }
 
@@ -56,29 +57,40 @@ export function emptyMemoSet(): MemoSet {
  * Abstract base class for processing rules given a particular input.
  * Main use of this class will be to calculate permissions, but will also
  * be used to calculate metadata about permissions.
+ *
+ * Whichever aspect (e.g. permissions or memos) we are processing, this abstract class implements
+ * the rules of precedence: column rules are applied first, followed by table default rules, then
+ * doc default rules.
  */
 abstract class RuleInfo<MixedT extends TableT, TableT> {
-
   // Construct a RuleInfo for a particular input, which is a combination of user and
   // optionally a record.
   constructor(protected _acls: ACLRuleCollection, protected _input: PredicateFormulaInput) {}
 
+  // Merge the results for a particular column, falling back to table and doc defaults.
   public getColumnAspect(tableId: string, colId: string): MixedT {
-    const ruleSet: RuleSet|undefined = this._acls.getColumnRuleSet(tableId, colId);
+    const ruleSet: RuleSet | undefined = this._acls.getColumnRuleSet(tableId, colId);
     return ruleSet ? this._processColumnRule(ruleSet) : this._getTableDefaultAspect(tableId);
   }
 
+  // Merge the results for all columns of a table, falling back to table and doc defaults.
   public getTableAspect(tableId: string): TableT {
     const columnAccess = this._acls.getAllColumnRuleSets(tableId).map(rs => this._processColumnRule(rs));
     columnAccess.push(this._getTableDefaultAspect(tableId));
     return this._mergeTableAccess(columnAccess);
   }
 
+  // Merge the results from all rules in a doc: columns, tables, and falling back to doc defaults.
   public getFullAspect(): MixedT {
     const tableAccess = this._acls.getAllTableIds().map(tableId => this.getTableAspect(tableId));
     tableAccess.push(this._getDocDefaultAspect());
 
     return this._mergeFullAccess(tableAccess);
+  }
+
+  // Merge the results for a particular column RuleSet, falling back to table and doc defaults.
+  public getColumnRuleSetAspect(ruleSet: RuleSet): MixedT {
+    return this._processColumnRule(ruleSet);
   }
 
   public getUser(): User {
@@ -90,7 +102,7 @@ abstract class RuleInfo<MixedT extends TableT, TableT> {
   protected abstract _mergeFullAccess(access: TableT[]): MixedT;
 
   private _getTableDefaultAspect(tableId: string): MixedT {
-    const ruleSet: RuleSet|undefined = this._acls.getTableDefaultRuleSet(tableId);
+    const ruleSet: RuleSet | undefined = this._acls.getTableDefaultRuleSet(tableId);
     return ruleSet ? this._processRule(ruleSet, () => this._getDocDefaultAspect()) :
       this._getDocDefaultAspect();
   }
@@ -140,13 +152,13 @@ export class PermissionInfo extends RuleInfo<MixedPermissionSet, TablePermission
   // Get permissions for "tableId:colId", defaulting to "tableId:*" and "*:*" as needed.
   // If 'mixed' is returned, different rows may have different permissions. It should never return
   // 'mixed' if the input includes `rec`.
-   // Wrap permissions with information about how they were computed.  This allows
+  // Wrap permissions with information about how they were computed.  This allows
   // us to issue more informative error messages.
   public getColumnAccess(tableId: string, colId: string): MixedPermissionSetWithContext {
     return {
       perms: this.getColumnAspect(tableId, colId),
-      ruleType: 'column',
-      getMemos: () => new MemoInfo(this._acls, this._input).getColumnAspect(tableId, colId)
+      ruleType: "column",
+      getMemos: () => new MemoInfo(this._acls, this._input).getColumnAspect(tableId, colId),
     };
   }
 
@@ -157,8 +169,8 @@ export class PermissionInfo extends RuleInfo<MixedPermissionSet, TablePermission
   public getTableAccess(tableId: string): TablePermissionSetWithContext {
     return {
       perms: this.getTableAspect(tableId),
-      ruleType: this._input?.rec ? 'row' : 'table',
-      getMemos: () => new MemoInfo(this._acls, this._input).getTableAspect(tableId)
+      ruleType: this._input?.rec ? "row" : "table",
+      getMemos: () => new MemoInfo(this._acls, this._input).getTableAspect(tableId),
     };
   }
 
@@ -168,8 +180,8 @@ export class PermissionInfo extends RuleInfo<MixedPermissionSet, TablePermission
   public getFullAccess(): MixedPermissionSetWithContext {
     return {
       perms: this.getFullAspect(),
-      ruleType: 'full',
-      getMemos: () => new MemoInfo(this._acls, this._input).getFullAspect()
+      ruleType: "full",
+      getMemos: () => new MemoInfo(this._acls, this._input).getFullAspect(),
     };
   }
 
@@ -185,19 +197,19 @@ export class PermissionInfo extends RuleInfo<MixedPermissionSet, TablePermission
   }
 
   protected _mergeTableAccess(access: MixedPermissionSet[]): TablePermissionSet {
-    return mergePermissions(access, (bits) => (
-      bits.every(b => b === 'allow') ? 'allow' :
-      bits.every(b => b === 'deny') ? 'deny' :
-      bits.every(b => b === 'allow' || b === 'deny') ? 'mixedColumns' :
-        'mixed'
+    return mergePermissions(access, bits => (
+      bits.every(b => b === "allow") ? "allow" :
+        bits.every(b => b === "deny") ? "deny" :
+          bits.every(b => b === "allow" || b === "deny") ? "mixedColumns" :
+            "mixed"
     ));
   }
 
   protected _mergeFullAccess(access: TablePermissionSet[]): MixedPermissionSet {
-    return mergePermissions(access, (bits) => (
-      bits.every(b => b === 'allow') ? 'allow' :
-        bits.every(b => b === 'deny') ? 'deny' :
-        'mixed'
+    return mergePermissions(access, bits => (
+      bits.every(b => b === "allow") ? "allow" :
+        bits.every(b => b === "deny") ? "deny" :
+          "mixed"
     ));
   }
 }
@@ -215,7 +227,7 @@ function evaluateRule(ruleSet: RuleSet, input: PredicateFormulaInput): PartialPe
         pset = mergePartialPermissions(pset, rule.permissions);
       }
     } catch (e) {
-      if (e.code === 'NEED_ROW_DATA') {
+      if (e.code === "NEED_ROW_DATA") {
         pset = mergePartialPermissions(pset, makePartialPermissions(rule.permissions));
         if (rule.memo) {
           // Quick reminder:
@@ -249,15 +261,15 @@ function evaluateRule(ruleSet: RuleSet, input: PredicateFormulaInput): PartialPe
 
           // We'll replace only denySome in create/update/delete bits. read doesn't show memo and schemaEdit is not row
           // dependent.
-          const dataChangePerms: Array<keyof PermissionSet> = ['create', 'update', 'delete'];
+          const dataChangePerms: (keyof PermissionSet)[] = ["create", "update", "delete"];
           const changesData = (perm: string) => dataChangePerms.includes(perm as keyof PermissionSet);
-          pset = mapValues(pset, (val, perm) => val === 'denySome' && changesData(perm) ? "mixed" : val);
+          pset = mapValues(pset, (val, perm) => val === "denySome" && changesData(perm) ? "mixed" : val);
         }
       } else {
         // Unexpected error. Interpret rule pessimistically.
         // Anything it would explicitly allow, no longer allow through this rule.
         // Anything it would explicitly deny, go ahead and deny.
-        pset = mergePartialPermissions(pset, mapValues(rule.permissions, val => (val === 'allow' ? "" : val)));
+        pset = mergePartialPermissions(pset, mapValues(rule.permissions, val => (val === "allow" ? "" : val)));
         const prefixedTableName = input.docId ? `${input.docId}.${ruleSet.tableId}` : ruleSet.tableId;
         log.warn("ACLRule for %s (`%s`) failed: %s", prefixedTableName, rule.aclFormula, e.message);
       }
@@ -279,15 +291,15 @@ function extractMemos(ruleSet: RuleSet, input: PredicateFormulaInput): MemoSet {
         const p = rule.permissions[prop];
         const memos: string[] = pset[prop];
         if (rule.memo) {
-          if (passing && p === 'deny') {
+          if (passing && p === "deny") {
             memos.push(rule.memo);
-          } else if (!passing && p === 'allow') {
+          } else if (!passing && p === "allow") {
             memos.push(rule.memo);
           }
         }
       }
     } catch (e) {
-      if (e.code !== 'NEED_ROW_DATA') {
+      if (e.code !== "NEED_ROW_DATA") {
         // If a rule is failing unexpectedly, give some information via memos.
         // TODO: Could give a more structured result.
         for (const prop of ALL_PERMISSION_PROPS) {

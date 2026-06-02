@@ -1,3 +1,4 @@
+import { CellFormatType } from "app/plugin/GristAPI";
 import { CellValue } from "app/plugin/GristData";
 
 /**
@@ -8,7 +9,7 @@ export interface NewRecord {
    * Initial values of cells in record. Optional, if not set cells are left
    * blank.
    */
-  fields?: { [coldId: string]: CellValue };
+  fields?: { [colId: string]: CellValue };
 }
 
 export interface NewRecordWithStringId {
@@ -17,7 +18,7 @@ export interface NewRecordWithStringId {
    * Initial values of cells in record. Optional, if not set cells are left
    * blank.
    */
-  fields?: { [coldId: string]: CellValue };
+  fields?: { [colId: string]: CellValue };
 }
 
 /**
@@ -25,50 +26,79 @@ export interface NewRecordWithStringId {
  */
 export interface Record {
   id: number;
-  fields: { [coldId: string]: CellValue };
+  fields: { [colId: string]: CellValue };
 }
 
 export interface RecordWithStringId {
   id: string;  // tableId or colId
-  fields: { [coldId: string]: CellValue };
+  fields: { [colId: string]: CellValue };
 }
 
 /**
- * JSON schema for api /record endpoint. Used in PUT method for adding or updating records.
+ * JSON schema for api /record endpoint. Used with PUT method for adding or updating records.
  */
 export interface AddOrUpdateRecord {
   /**
    * The values we expect to have in particular columns, either by matching with
    * an existing record, or creating a new record.
    */
-  require: { [coldId: string]: CellValue } & { id?: number };
+  require: { [colId: string]: CellValue } & { id?: number };
 
   /**
    * The values we will place in particular columns, either overwriting values in
    * an existing record, or setting initial values in a new record.
    */
-  fields?: { [coldId: string]: CellValue };
+  fields?: { [colId: string]: CellValue };
 }
 
 /**
- * JSON schema for the body of api /record PATCH endpoint
+ * Results from the BulkAddOrUpdateRecord user action.
+ * Returned by PUT /record endpoint for adding or updating records.
+ */
+export interface BulkAddOrUpdateRecordResult {
+  // The IDs of records affected by each operation.
+  // Each entry corresponds to the operation at the same index in the request,
+  // and contains the IDs of all records that operation modified.
+  recordIds: number[][];
+  // Any created record IDs, in no defined order.
+  // An operation can create at most one record, so this array only contains numbers, not arrays.
+  addRecordIds: number[];
+  // Any updated records IDs, in no defined order.
+  // Each operation may have updated any number of records, so each member is an array of numbers.
+  updateRecordIds: number[][];
+}
+
+/**
+ * JSON schema for the body of api /records PATCH endpoint
  */
 export interface RecordsPatch {
   records: [Record, ...Record[]]; // at least one record is required
 }
 
 /**
- * JSON schema for the body of api /record POST endpoint
+ * JSON schema for the body of api /records POST endpoint
  */
 export interface RecordsPost {
   records: [NewRecord, ...NewRecord[]]; // at least one record is required
 }
 
 /**
- * JSON schema for the body of api /record PUT endpoint
+ * JSON schema for the body of api /records PUT endpoint
  */
 export interface RecordsPut {
   records: [AddOrUpdateRecord, ...AddOrUpdateRecord[]]; // at least one record is required
+}
+
+/**
+ * JSON schema for the body of api /records/list POST endpoint
+ */
+export interface RecordsListPost {
+  filter?: { [colId: string]: any[] };  // Column filters, mapping colId to array of allowed values.
+  sort?: string[];    // See QueryParameters in DocApiUtils.
+  limit?: number;     // Limit on number of rows to return.
+  hidden?: boolean;   // Include hidden columns (manualSort, gristHelper_*).
+  immediate?: boolean; // Skip waiting for document initialization.
+  cellFormat?: CellFormatType;
 }
 
 export type RecordId = number;
@@ -100,6 +130,30 @@ export interface TablePost extends ColumnsPost {
   id?: string;
 }
 
+export interface ColumnMetadata {
+  id: string;
+  fields: {
+    colRef: number;
+    label: string;
+    isFormula: boolean;
+    type: string;
+    [colId: string]: CellValue;
+  };
+}
+
+export interface TableMetadata {
+  id: string;
+  fields: {
+    tableRef: number;
+    [colId: string]: CellValue;
+  };
+  columns?: ColumnMetadata[];
+}
+
+export interface TablesGet {
+  tables: [TableMetadata, ...TableMetadata[]];
+}
+
 export interface TablesPost {
   tables: [TablePost, ...TablePost[]]; // at least one table is required
 }
@@ -114,19 +168,18 @@ export interface TablesPatch {
 export interface SqlPost {
   sql: string;
   args?: any[] | null; // (It would be nice to support named parameters, but
-                       // that feels tricky currently with node-sqlite3)
+  // that feels tricky currently with node-sqlite3)
   timeout?: number;    // In msecs. Can only be reduced from server default,
-                       // not increased. Note timeout of a query could affect
-                       // other queued queries on same document, because of
-                       // limitations of API node-sqlite3 exposes.
+  // not increased. Note timeout of a query could affect
+  // other queued queries on same document, because of
+  // limitations of API node-sqlite3 exposes.
 }
-
 
 export interface SetAttachmentStorePost {
   type: AttachmentStore
 }
 
-export type AttachmentStore = 'internal' | 'external';
+export type AttachmentStore = "internal" | "external";
 
 export interface AttachmentStoreDesc {
   label: string;

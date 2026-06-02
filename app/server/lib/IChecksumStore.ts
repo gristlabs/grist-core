@@ -4,5 +4,5 @@
  */
 export interface IChecksumStore {
   updateChecksum(family: string, key: string, checksum: string): Promise<void>;
-  getChecksum(family: string, key: string): Promise<string|null>;
+  getChecksum(family: string, key: string): Promise<string | null>;
 }

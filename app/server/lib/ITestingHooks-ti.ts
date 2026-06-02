@@ -20,7 +20,7 @@ export const ITestingHooks = t.iface([], {
   "commSetClientPersistence": t.func("number", t.param("ttlMs", "number")),
   "commSetClientJsonMemoryLimits": t.func("ClientJsonMemoryLimits", t.param("limits", "ClientJsonMemoryLimits")),
   "closeDocs": t.func("void"),
-  "setDocWorkerActivation": t.func("void", t.param("workerId", "string"), t.param("active", t.union(t.lit('active'), t.lit('inactive'), t.lit('crash')))),
+  "setDocWorkerActivation": t.func("void", t.param("workerId", "string"), t.param("active", t.union(t.lit("active"), t.lit("inactive"), t.lit("crash")))),
   "flushAuthorizerCache": t.func("void"),
   "flushDocs": t.func("void"),
   "getDocClientCounts": t.func(t.array(t.tuple("string", "number"))),
@@ -29,6 +29,10 @@ export const ITestingHooks = t.iface([], {
   "setWidgetRepositoryUrl": t.func("void", t.param("url", "string")),
   "getMemoryUsage": t.func("object"),
   "tickleUnhandledErrors": t.func("void", t.param("errType", "string")),
+  "addEnv": t.func("void", t.param("env", t.iface([], {
+    [t.indexKey]: "string",
+  }))),
+  "resetEnv": t.func("void"),
 });
 
 const exportedTypeSuite: t.ITypeSuite = {

@@ -1,21 +1,22 @@
-import {autoFocus} from 'app/client/lib/domUtils';
-import {makeT} from 'app/client/lib/localization';
-import {ValidationGroup, Validator} from 'app/client/lib/Validator';
-import {AppModel, getHomeUrl} from 'app/client/models/AppModel';
-import {reportError, UserError} from 'app/client/models/errors';
-import {urlState} from 'app/client/models/gristUrlState';
-import {bigBasicButton, bigPrimaryButton, bigPrimaryButtonLink} from 'app/client/ui2018/buttons';
-import {mediaSmall, theme, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {IModalControl, modal} from 'app/client/ui2018/modals';
-import {TEAM_PLAN} from 'app/common/Features';
-import {checkSubdomainValidity} from 'app/common/orgNameUtils';
-import {UserAPIImpl} from 'app/common/UserAPI';
-import {PlanSelection} from 'app/common/BillingAPI';
-import {Disposable, dom, DomContents, DomElementArg, input, makeTestId, Observable, styled} from 'grainjs';
+import { autoFocus } from "app/client/lib/domUtils";
+import { makeT } from "app/client/lib/localization";
+import { ValidationGroup, Validator } from "app/client/lib/Validator";
+import { AppModel, getHomeUrl } from "app/client/models/AppModel";
+import { reportError, UserError } from "app/client/models/errors";
+import { urlState } from "app/client/models/gristUrlState";
+import { bigBasicButton, bigPrimaryButton, bigPrimaryButtonLink } from "app/client/ui2018/buttons";
+import { mediaSmall, theme, vars } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { IModalControl, modal } from "app/client/ui2018/modals";
+import { PlanSelection } from "app/common/BillingAPI";
+import { TEAM_PLAN } from "app/common/Features";
+import { checkSubdomainValidity } from "app/common/orgNameUtils";
+import { UserAPIImpl } from "app/common/UserAPI";
 
-const t = makeT('CreateTeamModal');
-const testId = makeTestId('test-create-team-');
+import { Disposable, dom, DomContents, DomElementArg, input, makeTestId, Observable, styled } from "grainjs";
+
+const t = makeT("CreateTeamModal");
+const testId = makeTestId("test-create-team-");
 
 export async function buildNewSiteModal(context: Disposable, options: {
   appModel: AppModel,
@@ -32,9 +33,9 @@ export async function buildNewSiteModal(context: Disposable, options: {
 }
 
 class NewSiteModalContent extends Disposable {
-  private _page = Observable.create(this, 'createTeam');
-  private _team = Observable.create(this, '');
-  private _domain = Observable.create(this, '');
+  private _page = Observable.create(this, "createTeam");
+  private _team = Observable.create(this, "");
+  private _domain = Observable.create(this, "");
   private _ctrl: IModalControl;
 
   constructor(
@@ -48,16 +49,15 @@ class NewSiteModalContent extends Disposable {
     const team = this._team;
     const domain = this._domain;
     const ctrl = this._ctrl;
-    return dom.domComputed(this._page, pageValue => {
-
+    return dom.domComputed(this._page, (pageValue) => {
       switch (pageValue) {
-        case 'createTeam': return buildTeamPage({
+        case "createTeam": return buildTeamPage({
           team,
           domain,
           create: () => this._createTeam(),
-          ctrl
+          ctrl,
         });
-        case 'teamSuccess': return buildConfirm({domain: domain.get()});
+        case "teamSuccess": return buildConfirm({ domain: domain.get() });
       }
     });
   }
@@ -65,8 +65,8 @@ class NewSiteModalContent extends Disposable {
   private async _createTeam() {
     const api = new UserAPIImpl(getHomeUrl());
     try {
-      await api.newOrg({name: this._team.get(), domain: this._domain.get()});
-      this._page.set('teamSuccess');
+      await api.newOrg({ name: this._team.get(), domain: this._domain.get() });
+      this._page.set("teamSuccess");
       if (this._onCreate) {
         this._onCreate(TEAM_PLAN);
       }
@@ -79,7 +79,7 @@ class NewSiteModalContent extends Disposable {
 export function buildUpgradeModal(owner: Disposable, options: {
   appModel: AppModel,
   pickPlan?: PlanSelection,
-  reason?: 'upgrade' | 'renew',
+  reason?: "upgrade" | "renew",
 }): Promise<void> {
   throw new UserError(t(`Billing is not supported in grist-core`));
 }
@@ -99,12 +99,12 @@ export function buildConfirm({
 }) {
   return cssConfirmWrapper(
     cssSparks(),
-    hspace('1.5em'),
-    cssHeaderLine(t('Team site created'), testId("confirmation")),
-    hspace('2em'),
+    hspace("1.5em"),
+    cssHeaderLine(t("Team site created"), testId("confirmation")),
+    hspace("2em"),
     bigPrimaryButtonLink(
-      urlState().setLinkUrl({org: domain || undefined}), t('Go to your site'), testId("confirmation-link")
-    )
+      urlState().setLinkUrl({ org: domain || undefined }), t("Go to your site"), testId("confirmation-link"),
+    ),
   );
 }
 
@@ -112,7 +112,7 @@ function buildTeamPage({
   team,
   domain,
   create,
-  ctrl
+  ctrl,
 }: {
   team: Observable<string>;
   domain: Observable<string>;
@@ -141,44 +141,44 @@ function buildTeamPage({
     dom.autoDispose(disabled),
     cssHeaderLine(t("Work as a Team"), testId("creation-title")),
     cssSubHeaderLine(t("Choose a name and url for your team site")),
-    hspace('1.5em'),
+    hspace("1.5em"),
     cssColumns(
       cssSetup(
-        cssLabel(t('Team name')),
+        cssLabel(t("Team name")),
         cssRow(cssField(cssInput(
           team,
-          {onInput: true},
+          { onInput: true },
           autoFocus(),
           group.inputReset(),
           clickOnEnter,
-          testId('name')))),
+          testId("name")))),
         dom.create(Validator, group, t("Team name is required"), () => !!team.get()),
-        hspace('2em'),
-        cssLabel(t('Team url')),
+        hspace("2em"),
+        cssLabel(t("Team url")),
         cssRow(
-          {style: 'align-items: baseline'},
+          { style: "align-items: baseline" },
           cssField(
-            {style: 'flex: 0 1 0; min-width: auto; margin-right: 5px'},
+            { style: "flex: 0 1 0; min-width: auto; margin-right: 5px" },
             dom.text(`${window.location.origin}/o/`)),
           cssField(cssInput(
-            domain, {onInput: true}, clickOnEnter, group.inputReset(), testId('domain')
+            domain, { onInput: true }, clickOnEnter, group.inputReset(), testId("domain"),
           )),
         ),
         dom.create(Validator, group, t("Domain name is required"), () => !!domain.get()),
         dom.create(Validator, group, t("Domain name is invalid"), () => checkSubdomainValidity(domain.get())),
         cssButtonsRow(
           bigBasicButton(
-            t('Cancel'),
-            dom.on('click', () => ctrl.close()),
-            testId('cancel')),
+            t("Cancel"),
+            dom.on("click", () => ctrl.close()),
+            testId("cancel")),
           bigPrimaryButton(t("Create site"),
-            dom.on('click', click),
-            dom.prop('disabled', disabled),
-            testId('confirm')
+            dom.on("click", click),
+            dom.prop("disabled", disabled),
+            testId("confirm"),
           ),
-        )
-      )
-    )
+        ),
+      ),
+    ),
   );
 }
 
@@ -200,19 +200,19 @@ function showModal(
       ctrl.close();
     });
     return [
-      cssCreateTeamModal.cls(''),
-      cssCloseButton(testId("close-modal"), cssBigIcon('CrossBig'), dom.on('click', () => ctrl.close())),
-      content(modalScope, ctrl)
+      cssCreateTeamModal.cls(""),
+      cssCloseButton(testId("close-modal"), cssBigIcon("CrossBig"), dom.on("click", () => ctrl.close())),
+      content(modalScope, ctrl),
     ];
-  }, {backerDomArgs: args});
+  }, { backerDomArgs: args });
   return control;
 }
 
 function hspace(height: string) {
-  return dom('div', {style: `height: ${height}`});
+  return dom("div", { style: `height: ${height}` });
 }
 
-export const cssCreateTeamModal = styled('div', `
+export const cssCreateTeamModal = styled("div", `
   position: relative;
   @media ${mediaSmall} {
     & {
@@ -223,11 +223,11 @@ export const cssCreateTeamModal = styled('div', `
   }
 `);
 
-const cssConfirmWrapper = styled('div', `
+const cssConfirmWrapper = styled("div", `
   text-align: center;
 `);
 
-const cssSparks = styled('div', `
+const cssSparks = styled("div", `
   height: 48px;
   width: 48px;
   background-image: var(--icon-Sparks);
@@ -240,31 +240,31 @@ const cssSparks = styled('div', `
   }
 `);
 
-const cssColumns = styled('div', `
+const cssColumns = styled("div", `
   display: flex;
   gap: 60px;
   flex-wrap: wrap;
 `);
 
-const cssSetup = styled('div', `
+const cssSetup = styled("div", `
   display: flex;
   flex-direction: column;
   flex-grow: 1;
 `);
 
-const cssHeaderLine = styled('div', `
+const cssHeaderLine = styled("div", `
   text-align: center;
   font-size: 24px;
   font-weight: 600;
   margin-bottom: 16px;
 `);
 
-const cssSubHeaderLine = styled('div', `
+const cssSubHeaderLine = styled("div", `
   text-align: center;
   margin-bottom: 7px;
 `);
 
-const cssLabel = styled('label', `
+const cssLabel = styled("label", `
   font-weight: ${vars.headerControlTextWeight};
   font-size: ${vars.mediumFontSize};
   color: ${theme.text};
@@ -273,8 +273,7 @@ const cssLabel = styled('label', `
   margin-bottom: 0.3em;
 `);
 
-
-const cssWide = styled('div', `
+const cssWide = styled("div", `
   min-width: 760px;
   @media ${mediaSmall} {
     & {
@@ -283,19 +282,18 @@ const cssWide = styled('div', `
   }
 `);
 
-const cssRow = styled('div', `
+const cssRow = styled("div", `
   display: flex;
 `);
 
-const cssField = styled('div', `
+const cssField = styled("div", `
   display: block;
   flex: 1 1 0;
   margin: 4px 0;
   min-width: 120px;
 `);
 
-
-const cssButtonsRow = styled('div', `
+const cssButtonsRow = styled("div", `
   display: flex;
   justify-content: flex-end;
   margin-top: 20px;
@@ -309,7 +307,7 @@ const cssButtonsRow = styled('div', `
   }
 `);
 
-const cssCloseButton = styled('div', `
+const cssCloseButton = styled("div", `
   position: absolute;
   top: 8px;
   right: 8px;
@@ -327,7 +325,7 @@ const cssBigIcon = styled(icon, `
   padding: 12px;
 `);
 
-const cssModalIndex = styled('div', `
+const cssModalIndex = styled("div", `
   z-index: ${vars.pricingModalZIndex}
 `);
 

@@ -1,7 +1,7 @@
-import { SafeBrowser, ViewProcess } from 'app/client/lib/SafeBrowser';
-import { PluginInstance } from 'app/common/PluginInstance';
+import { SafeBrowser, ViewProcess } from "app/client/lib/SafeBrowser";
+import { PluginInstance } from "app/common/PluginInstance";
 
-export { ViewProcess } from 'app/client/lib/SafeBrowser';
+export { ViewProcess } from "app/client/lib/SafeBrowser";
 
 /**
  * A PluginCustomSection identifies one custom section in a plugin.
@@ -12,7 +12,6 @@ export interface PluginCustomSection {
 }
 
 export class CustomSectionElement {
-
   /**
    * Get the list of all available custom sections in all plugins' contributions.
    */
@@ -22,7 +21,7 @@ export class CustomSectionElement {
       const pluginId = plugin.definition.id;
       if (customSections) {
         // collect identifiers
-        const sectionIds = customSections.map(section => ({sectionId: section.name, pluginId}));
+        const sectionIds = customSections.map(section => ({ sectionId: section.name, pluginId }));
         // concat to the accumulator
         return acc.concat(sectionIds);
       }
@@ -34,7 +33,7 @@ export class CustomSectionElement {
    * Find a section matching sectionName in the plugin instances' constributions and returns
    * it. Returns `undefined` if not found.
    */
-  public static find(plugin: PluginInstance, sectionName: string): ViewProcess|undefined {
+  public static find(plugin: PluginInstance, sectionName: string): ViewProcess | undefined {
     const customSections = plugin.definition.manifest.contributions.customSections;
     if (customSections) {
       const section = customSections.find(({ name }) => name === sectionName);

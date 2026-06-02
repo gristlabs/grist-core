@@ -1,8 +1,9 @@
-import {isIOS} from 'app/client/lib/browserInfo';
-import {localStorageBoolObs} from 'app/client/lib/localStorageObs';
-import {dom} from 'grainjs';
+import { isIOS } from "app/client/lib/browserInfo";
+import { localStorageBoolObs } from "app/client/lib/localStorageObs";
 
-export const viewportEnabled = localStorageBoolObs('viewportEnabled', true);
+import { dom } from "grainjs";
+
+export const viewportEnabled = localStorageBoolObs("viewportEnabled", true);
 
 export function toggleViewport() {
   viewportEnabled.set(!viewportEnabled.get());
@@ -19,7 +20,7 @@ export function addViewportTag() {
       // it prevents the auto-zoom when an input is focused, but does not prevent manual
       // pinch-to-zoom. On Android, it's not needed, and would prevent manual zoom.
       const viewportContent = "width=device-width,initial-scale=1.0" + (isIOS() ? ",maximum-scale=1" : "");
-      return dom('meta', {name: "viewport", content: viewportContent});
-    })
+      return dom("meta", { name: "viewport", content: viewportContent });
+    }),
   );
 }

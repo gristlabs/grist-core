@@ -5,6 +5,7 @@ import itertools
 import logging
 import os
 from collections import defaultdict
+from pathlib import Path, PureWindowsPath, PurePosixPath
 
 log = logging.getLogger(__name__)
 
@@ -33,8 +34,19 @@ def empty(value):
 
 # Get path to an imported file.
 def get_path(file_source):
+  """Constructs the full path to an imported file, handling cross-platform path conventions."""
   importdir = os.environ.get('IMPORTDIR') or '/importdir'
-  return os.path.join(importdir, file_source)
+  file_source_path = file_source['path']
+  path_flavor = file_source.get('pathFlavor', 'posix')
+  
+  # Parse the incoming path using the appropriate pathlib class
+  if path_flavor == "windows":
+    incoming_path = PureWindowsPath(file_source_path)
+  else:
+    incoming_path = PurePosixPath(file_source_path)
+  
+  final_path = Path(importdir) / incoming_path
+  return str(final_path)
 
 def capitalize(word):
   """Capitalize the first character in the word (without lowercasing the rest)."""

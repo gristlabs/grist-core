@@ -1,10 +1,10 @@
 export interface Style {
-  textColor?: string|undefined; // this can be string, undefined or an absent key.
-  fillColor?: string|undefined;
-  fontBold?: boolean|undefined;
-  fontUnderline?: boolean|undefined;
-  fontItalic?: boolean|undefined;
-  fontStrikethrough?: boolean|undefined;
+  textColor?: string | undefined; // this can be string, undefined or an absent key.
+  fillColor?: string | undefined;
+  fontBold?: boolean | undefined;
+  fontUnderline?: boolean | undefined;
+  fontItalic?: boolean | undefined;
+  fontStrikethrough?: boolean | undefined;
 }
 
 export interface HeaderStyle {
@@ -23,7 +23,7 @@ export class CombinedStyle implements Style {
   public readonly fontUnderline?: boolean;
   public readonly fontItalic?: boolean;
   public readonly fontStrikethrough?: boolean;
-  constructor(rules: (Style|undefined|null)[], flags: any[]) {
+  constructor(rules: (Style | undefined | null)[], flags: any[]) {
     for (let i = 0; i < rules.length; i++) {
       if (flags[i]) {
         const textColor = rules[i]?.textColor;

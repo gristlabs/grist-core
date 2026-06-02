@@ -26,6 +26,7 @@ export const ParseOptionSchema = t.iface([], {
 
 export const FileSource = t.iface([], {
   "path": "string",
+  "pathFlavor": t.union(t.lit("windows"), t.lit("posix")),
   "origName": "string",
 });
 

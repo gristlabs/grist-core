@@ -1,7 +1,6 @@
-import {MigrationInterface, QueryRunner, Table} from "typeorm";
+import { MigrationInterface, QueryRunner, Table } from "typeorm";
 
 export class Secret1631286208009 implements MigrationInterface {
-
   public async up(queryRunner: QueryRunner): Promise<any> {
     await queryRunner.createTable(new Table({
       name: "secrets",
@@ -9,7 +8,7 @@ export class Secret1631286208009 implements MigrationInterface {
         {
           name: "id",
           type: "varchar",
-          isPrimary: true
+          isPrimary: true,
         },
         {
           name: "value",
@@ -18,21 +17,20 @@ export class Secret1631286208009 implements MigrationInterface {
         {
           name: "doc_id",
           type: "varchar",
-        }
+        },
       ],
       foreignKeys: [
         {
           columnNames: ["doc_id"],
           referencedColumnNames: ["id"],
           referencedTableName: "docs",
-          onDelete: 'CASCADE'  // delete secret if linked to doc that is deleted
-        }
-      ]
+          onDelete: "CASCADE",  // delete secret if linked to doc that is deleted
+        },
+      ],
     }));
   }
 
   public async down(queryRunner: QueryRunner): Promise<any> {
-    await queryRunner.dropTable('secrets');
+    await queryRunner.dropTable("secrets");
   }
-
 }

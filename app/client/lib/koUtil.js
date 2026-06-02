@@ -1,5 +1,5 @@
-var _ = require('underscore');
-var ko = require('knockout');
+var _ = require("underscore");
+var ko = require("knockout");
 
 /**
  * This is typed to declare that the observable/computed supports subscribable.fn methods
@@ -109,7 +109,7 @@ function setComputedErrorHandler(handlerFunc) {
 
   // Note that ko.pureComputed calls to ko.computed, so doesn't need its own override.
   ko.computed = function(funcOrOptions, funcTarget, options) {
-    if (typeof funcOrOptions === 'function') {
+    if (typeof funcOrOptions === "function") {
       funcOrOptions = _wrapComputedRead(funcOrOptions);
     } else {
       funcOrOptions.read = _wrapComputedRead(funcOrOptions.read);
@@ -127,14 +127,14 @@ exports.setComputedErrorHandler = setComputedErrorHandler;
  * observables, with optContext as the context.
  */
 function observableWithDefault(obs, defaultOrFunc, optContext) {
-  if (typeof defaultOrFunc !== 'function') {
+  if (typeof defaultOrFunc !== "function") {
     var def = defaultOrFunc;
     defaultOrFunc = function() { return def; };
   }
   return ko.pureComputed({
     read: function() {
       const value = obs();
-      if (typeof value === 'boolean') {
+      if (typeof value === "boolean") {
         return value;
       }
       return value || defaultOrFunc.call(this);

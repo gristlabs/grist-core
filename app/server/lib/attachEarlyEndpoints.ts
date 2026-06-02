@@ -5,17 +5,27 @@ import {
   ConfigValue,
   ConfigValueCheckers,
 } from "app/common/Config";
-import { InstallProperties } from "app/common/InstallAPI";
+import { InstallPrefs } from "app/common/Install";
+import { PermissionsStatus, PrefSource } from "app/common/InstallAPI";
 import { getOrgKey } from "app/gen-server/ApiServer";
 import { Config } from "app/gen-server/entity/Config";
 import {
   PreviousAndCurrent,
   QueryResult,
 } from "app/gen-server/lib/homedb/Interfaces";
+import { canRestart, makeAdminPageConfig } from "app/server/lib/adminPageConfig";
+import { appSettings } from "app/server/lib/AppSettings";
 import { RequestWithLogin } from "app/server/lib/Authorizer";
 import { BootProbes } from "app/server/lib/BootProbes";
 import { expressWrap } from "app/server/lib/expressWrap";
 import { GristServer } from "app/server/lib/GristServer";
+import {
+  getAnonPlaygroundEnabled, getAnonPlaygroundEnabledSource,
+  getCanAnyoneCreateOrgs, getCanAnyoneCreateOrgsSource,
+  getForceLogin, getForceLoginSource,
+  getPersonalOrgsEnabled, getPersonalOrgsEnabledSource,
+  invalidateReloadableSettings,
+} from "app/server/lib/gristSettings";
 import log from "app/server/lib/log";
 import {
   getScope,
@@ -23,8 +33,8 @@ import {
   sendReply,
   stringParam,
 } from "app/server/lib/requestUtils";
-import { getTelemetryPrefs } from "app/server/lib/Telemetry";
 import { updateGristServerLatestVersion } from "app/server/lib/updateChecker";
+
 import {
   Application,
   json,
@@ -33,6 +43,7 @@ import {
   RequestHandler,
   Response,
 } from "express";
+import isEmpty from "lodash/isEmpty";
 import pick from "lodash/pick";
 
 export interface AttachOptions {
@@ -68,9 +79,9 @@ export function attachEarlyEndpoints(options: AttachOptions) {
       return gristServer.sendAppPage(req, res, {
         path: "app.html",
         status: 200,
-        config: {adminControls: gristServer.create.areAdminControlsAvailable()},
+        config: makeAdminPageConfig(gristServer),
       });
-    })
+    }),
   );
 
   const requireInstallAdmin = gristServer
@@ -89,7 +100,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
     expressWrap(async (req, res) => {
       const mreq = req as RequestWithLogin;
       const meta = {
-        host: mreq.get('host'),
+        host: mreq.get("host"),
         path: mreq.path,
         email: mreq.user?.loginEmail,
       };
@@ -99,12 +110,12 @@ export function attachEarlyEndpoints(options: AttachOptions) {
         // Docker) tell the parent that we have a new environment so it
         // can restart us.
         log.rawDebug(`Restart[${mreq.method}] finishing:`, meta);
-        if (process.send && process.env.GRIST_RUNNING_UNDER_SUPERVISOR) {
-          log.rawDebug(`Restart[${mreq.method}] requesting supervisor to restart home server:`, meta);
+        if (process.send && canRestart()) {
+          log.rawDebug(`Restart[${mreq.method}] requesting restart:`, meta);
           process.send({ action: "restart" });
         }
       });
-      if (!process.env.GRIST_RUNNING_UNDER_SUPERVISOR) {
+      if (!canRestart()) {
         // On the topic of http response codes, thus spake MDN:
         // "409: This response is sent when a request conflicts with the current state of the server."
         return res.status(409).send({
@@ -115,44 +126,71 @@ export function attachEarlyEndpoints(options: AttachOptions) {
       // We're going down, so we're no longer ready to serve requests.
       gristServer.setReady(false);
       return res.status(200).send({ msg: "ok" });
-    })
+    }),
   );
 
   // Restrict this endpoint to install admins.
   app.get(
     "/api/install/prefs",
     expressWrap(async (_req, res) => {
-      const activation = await gristServer.getActivations().current();
-      const telemetryPrefs = await getTelemetryPrefs(
-          gristServer.getHomeDBManager(),
-          activation
-      );
-      return sendOkReply(null, res, {
-        telemetry: telemetryPrefs,
-        checkForLatestVersion: activation.prefs?.checkForLatestVersion ?? true,
-      });
-    })
+      const prefs = await gristServer.getActivations().getPrefsWithSources();
+      return sendOkReply(null, res, prefs);
+    }),
+  );
+
+  // Returns current default permission settings with their sources.
+  app.get(
+    "/api/install/permissions",
+    expressWrap(async (_req, res) => {
+      const toPrefSource = (s: "env" | "db" | undefined): PrefSource | undefined =>
+        s === "env" ? "environment-variable" : s === "db" ? "preferences" : undefined;
+      const status: PermissionsStatus = {
+        orgCreationAnyone: { value: getCanAnyoneCreateOrgs(), source: toPrefSource(getCanAnyoneCreateOrgsSource()) },
+        personalOrgs: { value: getPersonalOrgsEnabled(), source: toPrefSource(getPersonalOrgsEnabledSource()) },
+        forceLogin: { value: getForceLogin(), source: toPrefSource(getForceLoginSource()) },
+        anonPlayground: { value: getAnonPlaygroundEnabled(), source: toPrefSource(getAnonPlaygroundEnabledSource()) },
+      };
+      return sendOkReply(null, res, status);
+    }),
+  );
+
+  // Used by the "Change admin user" modal to flag the case where a Replace
+  // would later fail at restart because a user with the new admin email
+  // already exists (the rename can't satisfy the unique constraint on
+  // logins.email).
+  app.get(
+    "/api/install/users/exists",
+    expressWrap(async (req, res) => {
+      const email = stringParam(req.query.email, "email");
+      const user = await gristServer.getHomeDBManager().getExistingUserByLogin(email);
+      return sendOkReply(req, res, { exists: Boolean(user) });
+    }),
   );
 
   app.patch(
     "/api/install/prefs",
     json({ limit: "1mb" }),
     expressWrap(async (req, res) => {
-      const props = { prefs: req.body };
-      const activation = await gristServer.getActivations().current();
-      activation.checkProperties(props);
-      activation.updateFromProperties(props);
-      await activation.save();
+      const prefs = req.body;
+      await gristServer.getActivations().updatePrefs(prefs);
 
-      if ((props as Partial<InstallProperties>).prefs?.telemetry) {
+      const { telemetry, envVars } = prefs as InstallPrefs;
+
+      if (telemetry) {
         // Make sure the Telemetry singleton picks up the changes to telemetry preferences.
         // TODO: if there are multiple home server instances, notify them all of changes to
         // preferences (via Redis Pub/Sub).
         await gristServer.getTelemetry().fetchTelemetryPrefs();
       }
 
+      if (!isEmpty(envVars)) {
+        // TODO: Similar to above, we need to notify other servers of updates to env vars.
+        appSettings.setEnvVars((await gristServer.getActivations().current()).prefs?.envVars || {});
+        invalidateReloadableSettings(...Object.keys(envVars!));
+      }
+
       return res.status(200).send();
-    })
+    }),
   );
 
   // Retrieves the latest version of the client from Grist SAAS endpoint.
@@ -170,7 +208,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
           res.send(error.details);
         }
       }
-    })
+    }),
   );
 
   app.get(
@@ -183,7 +221,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
         .getInstallConfig(key);
       const result = pruneConfigAPIResult(configResult);
       return sendReply(req, res, result);
-    })
+    }),
   );
 
   app.put(
@@ -201,7 +239,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
       }
       const result = pruneConfigAPIResult(configResult);
       return sendReply(req, res, result);
-    })
+    }),
   );
 
   app.delete(
@@ -216,7 +254,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
         logDeleteConfigEvents(req, data);
       }
       return sendReply(req, res, result);
-    })
+    }),
   );
 
   app.get(
@@ -230,7 +268,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
         .getOrgConfig(getScope(req), org, key);
       const result = pruneConfigAPIResult(configResult);
       return sendReply(req, res, result);
-    })
+    }),
   );
 
   app.put(
@@ -249,7 +287,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
       }
       const result = pruneConfigAPIResult(configResult);
       return sendReply(req, res, result);
-    })
+    }),
   );
 
   app.delete(
@@ -265,12 +303,12 @@ export function attachEarlyEndpoints(options: AttachOptions) {
         logDeleteConfigEvents(req, data);
       }
       return sendReply(req, res, { status });
-    })
+    }),
   );
 
   function logCreateOrUpdateConfigEvents(
     req: Request,
-    config: Config | PreviousAndCurrent<Config>
+    config: Config | PreviousAndCurrent<Config>,
   ) {
     const mreq = req as RequestWithLogin;
     if ("previous" in config) {
@@ -278,25 +316,25 @@ export function attachEarlyEndpoints(options: AttachOptions) {
       gristServer.getAuditLogger().logEvent(mreq, {
         action: "config.update",
         context: {
-          site: current.org
-            ? pick(current.org, "id", "name", "domain")
-            : undefined,
+          site: current.org ?
+            pick(current.org, "id", "name", "domain") :
+            undefined,
         },
         details: {
           previous: {
             config: {
               ...pick(previous, "id", "key", "value"),
-              site: previous.org
-                ? pick(previous.org, "id", "name", "domain")
-                : undefined,
+              site: previous.org ?
+                pick(previous.org, "id", "name", "domain") :
+                undefined,
             },
           },
           current: {
             config: {
               ...pick(current, "id", "key", "value"),
-              site: current.org
-                ? pick(current.org, "id", "name", "domain")
-                : undefined,
+              site: current.org ?
+                pick(current.org, "id", "name", "domain") :
+                undefined,
             },
           },
         },
@@ -305,16 +343,16 @@ export function attachEarlyEndpoints(options: AttachOptions) {
       gristServer.getAuditLogger().logEvent(mreq, {
         action: "config.create",
         context: {
-          site: config.org
-            ? pick(config.org, "id", "name", "domain")
-            : undefined,
+          site: config.org ?
+            pick(config.org, "id", "name", "domain") :
+            undefined,
         },
         details: {
           config: {
             ...pick(config, "id", "key", "value"),
-            site: config.org
-              ? pick(config.org, "id", "name", "domain")
-              : undefined,
+            site: config.org ?
+              pick(config.org, "id", "name", "domain") :
+              undefined,
           },
         },
       });
@@ -330,9 +368,9 @@ export function attachEarlyEndpoints(options: AttachOptions) {
       details: {
         config: {
           ...pick(config, "id", "key", "value"),
-          site: config.org
-            ? pick(config.org, "id", "name", "domain")
-            : undefined,
+          site: config.org ?
+            pick(config.org, "id", "name", "domain") :
+            undefined,
         },
       },
     });
@@ -340,7 +378,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
 }
 
 function pruneConfigAPIResult(
-  result: QueryResult<Config | PreviousAndCurrent<Config>>
+  result: QueryResult<Config | PreviousAndCurrent<Config>>,
 ) {
   if (!result.data) {
     return result as unknown as QueryResult<undefined>;
@@ -351,9 +389,9 @@ function pruneConfigAPIResult(
     ...result,
     data: {
       ...pick(config, "id", "key", "value", "createdAt", "updatedAt"),
-      ...(config.org
-        ? { org: pick(config.org, "id", "name", "domain") }
-        : undefined),
+      ...(config.org ?
+        { org: pick(config.org, "id", "name", "domain") } :
+        undefined),
     },
   };
 }
@@ -384,8 +422,8 @@ function assertValidConfig(req: Request) {
   } catch (err) {
     log.warn(
       `Error during API call to ${req.path}: invalid config value (${String(
-        err
-      )})`
+        err,
+      )})`,
     );
     throw new ApiError("Invalid config value", 400, { userError: String(err) });
   }
@@ -397,8 +435,8 @@ function assertValidConfigKey(req: Request) {
   } catch (err) {
     log.warn(
       `Error during API call to ${req.path}: invalid config key (${String(
-        err
-      )})`
+        err,
+      )})`,
     );
     throw new ApiError("Invalid config key", 400, { userError: String(err) });
   }

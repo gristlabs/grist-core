@@ -5,14 +5,14 @@
  */
 
 // Use version of bowser with polyfill for old browsers.
-import * as bowser from 'bowser/bundled';
+import * as bowser from "bowser/bundled";
 
 // This code will run in the browser.
 const version = bowser.getParser(window.navigator.userAgent);
 (window as any)._parsedBrowserVersion = version;
 
 // Skip if user has already dismissed a warning from us.
-if (document && window && document.cookie.indexOf("gristbrowser=accept") === -1) {
+if (document && window && !document.cookie.includes("gristbrowser=accept")) {
   const isHappyBrowser = version.satisfies({
     desktop: {
       chrome: ">=72.0.3626",   // first 2019 version
@@ -29,10 +29,10 @@ if (document && window && document.cookie.indexOf("gristbrowser=accept") === -1)
       firefox: ">=108",     // end-of-2022 version, couldn't try an earlier one
     },
   });
-  const isMobile = version.isPlatform('mobile') || version.isPlatform('tablet');
+  const isMobile = version.isPlatform("mobile") || version.isPlatform("tablet");
   if (!isHappyBrowser) {
-    const problemElement = document.getElementById('browser-check-problem');
-    const dismissElement = document.getElementById('browser-check-problem-dismiss');
+    const problemElement = document.getElementById("browser-check-problem");
+    const dismissElement = document.getElementById("browser-check-problem-dismiss");
     if (problemElement && dismissElement) {
       // Prepare a button for dismissing the warning.
       dismissElement.onclick = function() {
@@ -45,20 +45,20 @@ if (document && window && document.cookie.indexOf("gristbrowser=accept") === -1)
         // people on mobile or old Safari may get prompted more often than we'd like. See
         // https://webkit.org/blog/10218/full-third-party-cookie-blocking-and-more/
 
-        if (document.location.href.indexOf(".getgrist.com") !== -1) {
+        if (document.location.href.includes(".getgrist.com")) {
           // on *.getgrist.com, set cookie domain to getgrist.com
           cookie += "; Domain=.getgrist.com";
         }
         document.cookie = cookie;
         // Hide the warning, showing the loaded page that it was obscuring.
-        problemElement.style.display = 'none';
+        problemElement.style.display = "none";
         return false;
       };
       // Show modal describing problem, and some possible solutions.
       if (isMobile) {
-        problemElement.className += ' browser-check-is-mobile';
+        problemElement.className += " browser-check-is-mobile";
       }
-      problemElement.style.display = 'block';
+      problemElement.style.display = "block";
     }
   }
 }

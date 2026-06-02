@@ -1,13 +1,15 @@
-import {ACLUsersPopup} from 'app/client/aclui/ACLUsers';
-import {GristDoc} from 'app/client/components/GristDoc';
-import {makeT} from 'app/client/lib/localization';
-import {urlState} from 'app/client/models/gristUrlState';
-import {getUserOrgPrefObs, markAsSeen} from 'app/client/models/UserPrefs';
-import {showExampleCard} from 'app/client/ui/ExampleCard';
-import {buildExamples} from 'app/client/ui/ExampleInfo';
+import { ACLUsersPopup } from "app/client/aclui/ACLUsers";
+import { GristDoc } from "app/client/components/GristDoc";
+import { makeT } from "app/client/lib/localization";
+import { urlState } from "app/client/models/gristUrlState";
+import { getUserOrgPrefObs, markAsSeen } from "app/client/models/UserPrefs";
+import { createAutomationsPageEntry } from "app/client/ui/AutomationsPageEntry";
+import { showExampleCard } from "app/client/ui/ExampleCard";
+import { buildExamples } from "app/client/ui/ExampleInfo";
 import {
   createAccessibilityTools,
   createHelpTools,
+  cssChangeDot,
   cssLinkText,
   cssMenuTrigger,
   cssPageButton,
@@ -21,21 +23,22 @@ import {
   cssSectionHeaderText,
   cssSpacer,
   cssSplitPageEntry,
-  cssTools
-} from 'app/client/ui/LeftPanelCommon';
-import {theme} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {confirmModal} from 'app/client/ui2018/modals';
-import {stretchedLink} from 'app/client/ui2018/stretchedLink';
-import {unstyledButton} from 'app/client/ui2018/unstyled';
-import {buildOpenAssistantButton} from 'app/client/widgets/AssistantPopup';
-import {isOwner} from 'app/common/roles';
-import {Computed, computed, Disposable, dom, makeTestId,
-        Observable, observable, styled} from 'grainjs';
-import noop from 'lodash/noop';
+  cssTools,
+} from "app/client/ui/LeftPanelCommon";
+import { theme } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { confirmModal } from "app/client/ui2018/modals";
+import { stretchedLink } from "app/client/ui2018/stretchedLink";
+import { unstyledButton } from "app/client/ui2018/unstyled";
+import { buildOpenAssistantButton } from "app/client/widgets/AssistantPopup";
+import { isOwner } from "app/common/roles";
 
-const testId = makeTestId('test-tools-');
-const t = makeT('Tools');
+import { Computed, computed, Disposable, dom, makeTestId,
+  Observable, observable, styled } from "grainjs";
+import noop from "lodash/noop";
+
+const testId = makeTestId("test-tools-");
+const t = makeT("Tools");
 
 export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Observable<boolean>): Element {
   const docPageModel = gristDoc.docPageModel;
@@ -43,7 +46,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
   const isOverridden = Boolean(docPageModel.userOverride.get());
   const canMakeProposal = Computed.create(owner, (use) => {
     return use(docPageModel.isFork) && !use(docPageModel.isBareFork) && !use(docPageModel.isPrefork) &&
-        !use(docPageModel.isSnapshot);
+      !use(docPageModel.isSnapshot);
   });
   // If we are on a fork, currentDoc options are actually for the trunk.
   const trunkAcceptsProposals = computed((use) => {
@@ -52,18 +55,18 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
   const canViewAccessRules = observable(false);
   function updateCanViewAccessRules() {
     canViewAccessRules.set((isDocOwner && !isOverridden) ||
-                           gristDoc.docModel.rules.getNumRows() > 0);
+      gristDoc.docModel.rules.getNumRows() > 0);
   }
   owner.autoDispose(gristDoc.docModel.rules.tableData.tableActionEmitter.addListener(updateCanViewAccessRules));
   updateCanViewAccessRules();
   return cssTools(
-    {'aria-labelledby': 'grist-tools-heading'},
-    cssTools.cls('-collapsed', (use) => !use(leftPanelOpen)),
-    cssSectionHeader(cssSectionHeaderText(t("TOOLS"), {id: 'grist-tools-heading'})),
-    buildOpenAssistantButton(gristDoc, testId('assistant')),
+    { "aria-labelledby": "grist-tools-heading" },
+    cssTools.cls("-collapsed", use => !use(leftPanelOpen)),
+    cssSectionHeader(cssSectionHeaderText(t("TOOLS"), { id: "grist-tools-heading" })),
+    buildOpenAssistantButton(gristDoc, testId("assistant")),
     cssPageEntry(
-      cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'acl'),
-      cssPageEntry.cls('-disabled', (use) => !use(canViewAccessRules)),
+      cssPageEntry.cls("-selected", use => use(gristDoc.activeViewId) === "acl"),
+      cssPageEntry.cls("-disabled", use => !use(canViewAccessRules)),
       dom.domComputedOwned(canViewAccessRules, (computedOwner, _canViewAccessRules) => {
         const aclUsers = ACLUsersPopup.create(computedOwner, docPageModel);
         if (_canViewAccessRules) {
@@ -74,89 +77,98 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
             .catch(noop);
         }
         return cssPageLinkContainer(
-          cssPageIcon('EyeShow'),
+          cssPageIcon("EyeShow"),
           stretchedLink(
             cssLinkText(t("Access Rules")),
-            _canViewAccessRules ? urlState().setLinkUrl({docPage: 'acl'}) : null,
+            _canViewAccessRules ? urlState().setLinkUrl({ docPage: "acl" }) : null,
           ),
           cssMenuTrigger(
-            icon('Dots'),
+            icon("Dots"),
             aclUsers.menu({
-              placement: 'bottom-start',
-              parentSelectorToMark: '.' + cssPageEntry.className
+              placement: "bottom-start",
+              parentSelectorToMark: "." + cssPageEntry.className,
             }),
-            {'aria-label': t("context menu - Access Rules")},
-            testId('access-rules-trigger'),
+            { "aria-label": t("context menu - Access Rules") },
+            testId("access-rules-trigger"),
             dom.show(use => use(aclUsers.isInitialized) && _canViewAccessRules),
           ),
         );
       }),
-      testId('access-rules'),
+      testId("access-rules"),
     ),
     cssPageEntry(
-      cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'data'),
+      cssPageEntry.cls("-selected", use => use(gristDoc.activeViewId) === "data"),
       cssPageLink(
-        cssPageIcon('Database'),
+        cssPageIcon("Database"),
         cssLinkText(t("Raw data")),
-        testId('raw'),
-        urlState().setLinkUrl({docPage: 'data'})
-      )
+        testId("raw"),
+        urlState().setLinkUrl({ docPage: "data" }),
+      ),
     ),
     cssPageEntry(
-      cssPageButton(cssPageIcon('Log'), cssLinkText(t("Document history")), testId('log'),
-        dom.on('click', () => gristDoc.showTool('docHistory')))
+      cssPageButton(cssPageIcon("Log"), cssLinkText(t("Document history")), testId("log"),
+        dom.on("click", () => gristDoc.showTool("docHistory"))),
     ),
     dom.maybe(
       trunkAcceptsProposals, () => {
-      return cssPageEntry(
-        cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'suggestions'),
-        cssPageLink(
-          cssPageIcon('MobileChat'),
-          dom.domComputed(canMakeProposal, (proposable) => {
-            return cssLinkText(proposable ? t("Suggest Changes") : t("Suggestions"));
-          }),
-          testId('proposals'),
-          urlState().setLinkUrl({docPage: 'suggestions'})
-        )
-      );
-    }),
+        return cssPageEntry(
+          cssPageEntry.cls("-selected", use => use(gristDoc.activeViewId) === "suggestions"),
+          cssPageLink(
+            cssPageIcon("MobileChat"),
+            cssLinkText(
+              dom.text(use => use(canMakeProposal) ? t("Suggest changes") : t("Suggestions")),
+              dom.maybe(
+                use => use(canMakeProposal) && Boolean(use(docPageModel.proposalNewChangesCount)),
+                () => cssChangeDot(testId("proposals-dot")),
+              ),
+            ),
+            dom.maybe(canMakeProposal, () => dom("input", { type: "hidden" },
+              dom.prop("value", use => String(use(docPageModel.proposalNewChangesCount) ?? 0)),
+              testId("proposals-count"),
+            )),
+            testId("proposals"),
+            urlState().setLinkUrl({ docPage: "suggestions" }),
+          ),
+        );
+      }),
     cssPageEntry(
-      cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'code'),
-      cssPageLink(cssPageIcon('Code'),
+      cssPageEntry.cls("-selected", use => use(gristDoc.activeViewId) === "code"),
+      cssPageLink(cssPageIcon("Code"),
         cssLinkText(t("Code view")),
-        urlState().setLinkUrl({docPage: 'code'})
+        urlState().setLinkUrl({ docPage: "code" }),
       ),
-      testId('code'),
+      testId("code"),
     ),
+    createAutomationsPageEntry(gristDoc, isDocOwner),
     cssPageEntry(
-      cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'settings'),
-      cssPageLink(cssPageIcon('Settings'),
+      cssPageEntry.cls("-selected", use => use(gristDoc.activeViewId) === "settings"),
+      cssPageLink(cssPageIcon("Settings"),
         cssLinkText(t("Settings")),
-        urlState().setLinkUrl({docPage: 'settings'})
+        urlState().setLinkUrl({ docPage: "settings" }),
       ),
-      testId('settings'),
+      testId("settings"),
     ),
     cssSpacer(),
     dom.maybe(docPageModel.currentDoc, (doc) => {
       const ex = buildExamples().find(e => e.urlId === doc.urlId);
-      if (!ex || !ex.tutorialUrl) { return null; }
+      if (!ex?.tutorialUrl) { return null; }
       return cssPageEntry(
         cssPageLinkContainer(
-          cssPageIcon('Page'),
-          dom('a',
+          cssPageIcon("Page"),
+          dom("a",
             cssLinkText(t("How-to Tutorial")),
-            testId('tutorial'),
-            {href: ex.tutorialUrl, target: '_blank'},
+            testId("tutorial"),
+            { href: ex.tutorialUrl, target: "_blank" },
           ),
           cssExampleCardOpener(
-            {'aria-label': t("Preview the tutorial")},
-            icon('TypeDetails'),
-            testId('welcome-opener'),
+            { "aria-label": t("Preview the tutorial") },
+            icon("TypeDetails"),
+            testId("welcome-opener"),
             automaticHelpTool(
-              (info) => showExampleCard(ex, info),
+              info => showExampleCard(ex, info),
               gristDoc,
               "seenExamples",
-              ex.id
+              ex.id,
             ),
           ),
         ),
@@ -166,25 +178,25 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
     dom.maybe(use => use(gristDoc.docModel.hasDocTour) && !use(gristDoc.docModel.isTutorial), () =>
       cssSplitPageEntry(
         cssPageEntryMain(
-          cssPageLink(cssPageIcon('Page'),
+          cssPageLink(cssPageIcon("Page"),
             cssLinkText(t("Tour of this Document")),
-            urlState().setLinkUrl({docTour: true}),
-            testId('doctour'),
+            urlState().setLinkUrl({ docTour: true }),
+            testId("doctour"),
           ),
         ),
         !isDocOwner ? null : cssPageEntrySmall(
-          cssPageButton(cssPageIcon('Remove'),
-            {'aria-label': t("Delete document tour")},
-            dom.on('click', () => confirmModal(t("Delete document tour?"), t("Delete"), () =>
-              gristDoc.docData.sendAction(['RemoveTable', 'GristDocTour']))
+          cssPageButton(cssPageIcon("Remove"),
+            { "aria-label": t("Delete document tour") },
+            dom.on("click", () => confirmModal(t("Delete document tour?"), t("Delete"), () =>
+              gristDoc.docData.sendAction(["RemoveTable", "GristDocTour"])),
             ),
-            testId('remove-doctour')
+            testId("remove-doctour"),
           ),
-        )
+        ),
       ),
     ),
     createHelpTools(docPageModel.appModel),
-    createAccessibilityTools(),
+    createAccessibilityTools(docPageModel.appModel),
   );
 }
 
@@ -204,8 +216,8 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
 function automaticHelpTool(
   showFunc: (info: AutomaticHelpToolInfo) => void,
   gristDoc: GristDoc,
-  prefKey: 'seenExamples' | 'seenDocTours',
-  itemId: number | string
+  prefKey: "seenExamples" | "seenDocTours",
+  itemId: number | string,
 ) {
   function show(elem: HTMLElement, reopen: boolean) {
     const prefObs: Observable<typeof itemId[] | undefined> = getUserOrgPrefObs(gristDoc.userOrgPrefs, prefKey);
@@ -216,18 +228,18 @@ function automaticHelpTool(
       return;
     }
 
-    showFunc({elem, reopen, markAsSeen: () => markAsSeen(prefObs, itemId)});
+    showFunc({ elem, reopen, markAsSeen: () => markAsSeen(prefObs, itemId) });
   }
 
   return [
-    dom.on('click', (ev, elem) => {
+    dom.on("click", (ev, elem) => {
       ev.preventDefault();
       show(elem as HTMLElement, true);
     }),
     (elem: HTMLElement) => {
       // Once the trigger element is attached to DOM, show the help
       setTimeout(() => show(elem, false), 0);
-    }
+    },
   ];
 }
 

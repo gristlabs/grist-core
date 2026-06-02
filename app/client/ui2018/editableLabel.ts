@@ -9,12 +9,13 @@
  *
  * TODO: Consider merging this into grainjs's input widget.
  */
-import { theme } from 'app/client/ui2018/cssVars';
-import { dom, DomArg, styled } from 'grainjs';
-import { Observable } from 'grainjs';
-import noop = require('lodash/noop');
+import { theme } from "app/client/ui2018/cssVars";
 
-const cssWrapper = styled('div', `
+import { dom, DomArg, styled } from "grainjs";
+import { Observable } from "grainjs";
+import noop from "lodash/noop";
+
+const cssWrapper = styled("div", `
   position: relative;
   display: inline-block;
 `);
@@ -42,7 +43,7 @@ export const cssLabelText = styled(rawTextInput, `
   color: inherit;
 `);
 
-export const cssTextInput = styled('input', `
+export const cssTextInput = styled("input", `
   outline: none;
   height: 28px;
   border: 1px solid ${theme.inputBorder};
@@ -50,7 +51,7 @@ export const cssTextInput = styled('input', `
   padding: 0 6px;
 `);
 
-const cssSizer = styled('div', `
+const cssSizer = styled("div", `
   visibility: hidden;
   overflow: visible;
   white-space: pre;
@@ -62,12 +63,12 @@ const cssSizer = styled('div', `
 
 enum Status { NORMAL, EDITING, SAVING }
 
-type SaveFunc = (value: string) => void|PromiseLike<void>;
+type SaveFunc = (value: string) => void | PromiseLike<void>;
 
 export interface EditableLabelOptions {
   save: SaveFunc;
-  args?: Array<DomArg<HTMLDivElement>>;
-  inputArgs?: Array<DomArg<HTMLInputElement>>;
+  args?: DomArg<HTMLDivElement>[];
+  inputArgs?: DomArg<HTMLInputElement>[];
 }
 
 /**
@@ -76,7 +77,7 @@ export interface EditableLabelOptions {
  * the save function, to reject a value simply throw an error, this will revert to the saved one .
  */
 export function editableLabel(label: Observable<string>, options: EditableLabelOptions) {
-  const {save, args, inputArgs} = options;
+  const { save, args, inputArgs } = options;
 
   let input: HTMLInputElement;
   let sizer: HTMLSpanElement;
@@ -88,7 +89,7 @@ export function editableLabel(label: Observable<string>, options: EditableLabelO
   return cssWrapper(
     sizer = cssSizer(label.get()),
     input = rawTextInput(label, save, updateSizer, dom.cls(cssLabelText.className),
-      dom.on('focus', () => input.select()),
+      dom.on("focus", () => input.select()),
       ...inputArgs ?? [],
     ),
     ...args ?? [],
@@ -101,7 +102,7 @@ export function editableLabel(label: Observable<string>, options: EditableLabelO
  * of focus. Escape cancels editing. Validation logic (if any) should happen in the save function,
  * to reject a value simply throw an error, this will revert to the the saved one.
  */
-export function textInput(label: Observable<string>, save: SaveFunc, ...args: Array<DomArg<HTMLInputElement>>) {
+export function textInput(label: Observable<string>, save: SaveFunc, ...args: DomArg<HTMLInputElement>[]) {
   return rawTextInput(label, save, noop, dom.cls(cssTextInput.className), ...args);
 }
 
@@ -109,7 +110,7 @@ export function textInput(label: Observable<string>, save: SaveFunc, ...args: Ar
  * A helper that implements all the saving logic for both editableLabel and textInput.
  */
 export function rawTextInput(value: Observable<string>, save: SaveFunc, onChange: () => void,
-                             ...args: Array<DomArg<HTMLInputElement>>) {
+  ...args: DomArg<HTMLInputElement>[]) {
   let status: Status = Status.NORMAL;
   let inputEl: HTMLInputElement;
 
@@ -141,18 +142,18 @@ export function rawTextInput(value: Observable<string>, save: SaveFunc, onChange
     }
   }
 
-  return inputEl = dom('input',
+  return inputEl = dom("input",
     dom.autoDispose(lis),
-    {type: 'text'},
-    dom.on('input', () => { status = Status.EDITING; onChange(); }),
-    dom.on('blur', saveEdit),
+    { type: "text" },
+    dom.on("input", () => { status = Status.EDITING; onChange(); }),
+    dom.on("blur", saveEdit),
     // we set the attribute to the initial value and keep it updated for the convenience of usage
     // with selenium webdriver
-    dom.attr('value', value),
+    dom.attr("value", value),
     dom.onKeyDown({
       Escape: revertToSaved,
       Enter: saveEdit,
     }),
-    ...args
+    ...args,
   );
 }

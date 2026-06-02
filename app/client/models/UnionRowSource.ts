@@ -1,5 +1,5 @@
-import {RowList, RowListener, RowSource} from 'app/client/models/rowset';
-import {UIRowId} from "app/plugin/GristAPI";
+import { RowList, RowListener, RowSource } from "app/client/models/rowset";
+import { UIRowId } from "app/plugin/GristAPI";
 
 export class UnionRowSource extends RowListener implements RowSource {
   protected _allRows = new Map<UIRowId, Set<RowSource>>();
@@ -31,7 +31,7 @@ export class UnionRowSource extends RowListener implements RowSource {
       sources.add(rowSource);
     }
     if (outputRows.length > 0) {
-      this.trigger('rowChange', 'add', outputRows);
+      this.trigger("rowChange", "add", outputRows);
     }
   }
 
@@ -49,11 +49,11 @@ export class UnionRowSource extends RowListener implements RowSource {
       }
     }
     if (outputRows.length > 0) {
-      this.trigger('rowChange', 'remove', outputRows);
+      this.trigger("rowChange", "remove", outputRows);
     }
   }
 
   public onUpdateRows(rows: RowList) {
-    this.trigger('rowChange', 'update', rows);
+    this.trigger("rowChange", "update", rows);
   }
 }

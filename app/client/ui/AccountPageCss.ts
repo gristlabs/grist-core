@@ -1,25 +1,26 @@
-import {theme, vars} from 'app/client/ui2018/cssVars';
-import {icon as gristIcon} from 'app/client/ui2018/icons';
-import {styled} from 'grainjs';
+import { theme, vars } from "app/client/ui2018/cssVars";
+import { icon as gristIcon } from "app/client/ui2018/icons";
 
-export const container = styled('div', `
+import { styled } from "grainjs";
+
+export const container = styled("div", `
   display: flex;
   justify-content: center;
   overflow: auto;
 `);
 
-export const accountPage = styled('div', `
+export const accountPage = styled("div", `
   max-width: 600px;
   margin-top: auto;
   margin-bottom: auto;
   padding: 16px;
 `);
 
-export const content = styled('div', `
+export const content = styled("div", `
   flex: 1 1 300px;
 `);
 
-export const textBtn = styled('button', `
+export const textBtn = styled("button", `
   font-size: ${vars.mediumFontSize};
   color: ${theme.controlFg};
   cursor: pointer;
@@ -44,12 +45,12 @@ export const icon = styled(gristIcon, `
   }
 `);
 
-export const description = styled('div', `
+export const description = styled("div", `
   color: ${theme.lightText};
   font-size: 13px;
 `);
 
-export const flexGrow = styled('div', `
+export const flexGrow = styled("div", `
   flex-grow: 1;
 `);
 
@@ -58,7 +59,7 @@ export const name = styled(flexGrow, `
   word-break: break-word;
 `);
 
-export const email = styled('div', `
+export const email = styled("div", `
   color: ${theme.text};
   word-break: break-word;
 `);
@@ -68,11 +69,11 @@ export const loginMethod = styled(flexGrow, `
   word-break: break-word;
 `);
 
-export const warning = styled('div', `
+export const warning = styled("div", `
   color: ${theme.errorText};
 `);
 
-export const header = styled('div', `
+export const header = styled("div", `
   height: 32px;
   line-height: 32px;
   margin: 28px 0 16px 0;
@@ -81,7 +82,7 @@ export const header = styled('div', `
   font-weight: ${vars.headerControlTextWeight};
 `);
 
-export const subHeader = styled('div', `
+export const subHeader = styled("div", `
   color: ${theme.text};
   padding: 8px 0;
   vertical-align: top;
@@ -94,7 +95,7 @@ export const inlineSubHeader = styled(subHeader, `
   min-width: 110px;
 `);
 
-export const dataRow = styled('div', `
+export const dataRow = styled("div", `
   margin: 8px 0px;
   display: flex;
   align-items: baseline;

@@ -1,14 +1,15 @@
-import {useBindable} from 'app/common/gutil';
-import {BindableValue, Computed, dom, EventCB, IDisposable, IDisposableOwner, Observable, UseCB} from 'grainjs';
+import { useBindable } from "app/common/gutil";
+
+import { BindableValue, Computed, dom, EventCB, IDisposable, IDisposableOwner, Observable, UseCB } from "grainjs";
 
 /**
  * Version of makeTestId that can be appended conditionally.
  */
 export function makeTestId(prefix: string) {
   return (id: BindableValue<string>, obs?: BindableValue<boolean>) => {
-    return dom.cls(use => {
+    return dom.cls((use) => {
       if (obs !== undefined && !useBindable(use, obs)) {
-        return '';
+        return "";
       }
       return `${useBindable(use, prefix)}${useBindable(use, id)}`;
     });
@@ -28,14 +29,14 @@ export function autoSelect() {
  */
 export const AsyncComputed = {
   create<T>(owner: IDisposableOwner, cb: (use: UseCB) => Promise<T>): AsyncComputed<T> {
-    const backend: Observable<T|undefined> = Observable.create(owner, undefined);
+    const backend: Observable<T | undefined> = Observable.create(owner, undefined);
     const dirty = Observable.create(owner, true);
     const computed: Computed<Promise<T>> = Computed.create(owner, cb as any);
     let ticket = 0;
     const listener = (prom: Promise<T>): void => {
       dirty.set(true);
       const myTicket = ++ticket;
-      prom.then(v => {
+      prom.then((v) => {
         if (ticket !== myTicket) { return; }
         if (backend.isDisposed()) { return; }
         dirty.set(false);
@@ -45,11 +46,11 @@ export const AsyncComputed = {
     owner?.autoDispose(computed.addListener(listener));
     listener(computed.get());
     return Object.assign(backend, {
-      dirty
+      dirty,
     });
-  }
+  },
 };
-export interface AsyncComputed<T> extends Observable<T|undefined> {
+export interface AsyncComputed<T> extends Observable<T | undefined> {
   /**
    * Whether computed wasn't updated yet.
    */
@@ -83,7 +84,7 @@ export function domOnCustom(name: string, handler: (args: any, event: Event, ele
 export function domDispatch(element: Element, name: string, args?: any) {
   element.dispatchEvent(new CustomEvent(name, {
     bubbles: true,
-    detail: args
+    detail: args,
   }));
 }
 
@@ -120,14 +121,14 @@ export function onClickOutsideElem(elem: Node, click: () => void) {
       click();
     }
   };
-  return dom.onElem(document, 'click', onClick, {useCapture: true});
+  return dom.onElem(document, "click", onClick, { useCapture: true });
 }
 
 /**
  * Helper function which returns the direct child of ancestor which is an ancestor of elem, or
  * null if elem is not a descendant of ancestor.
  */
-export function findAncestorChild(ancestor: Element, elem: Element|null): Element|null {
+export function findAncestorChild(ancestor: Element, elem: Element | null): Element | null {
   while (elem && elem.parentElement !== ancestor) {
     elem = elem.parentElement;
   }
@@ -141,17 +142,17 @@ export function findAncestorChild(ancestor: Element, elem: Element|null): Elemen
  * Returns an object with a reset() method, which restarts the wait for mousemove.
  */
 export function attachMouseOverOnMove<T extends EventTarget>(elem: T, callback: EventCB<MouseEvent, T>) {
-  let lis: IDisposable|undefined;
-  function setListener(eventType: 'mouseover'|'mousemove', cb: EventCB<MouseEvent, T>) {
+  let lis: IDisposable | undefined;
+  function setListener(eventType: "mouseover" | "mousemove", cb: EventCB<MouseEvent, T>) {
     if (lis) { lis.dispose(); }
     lis = dom.onElem(elem, eventType, cb);
   }
   function reset() {
-    setListener('mousemove', (ev, _elem) => {
-      setListener('mouseover', callback);
+    setListener("mousemove", (ev, _elem) => {
+      setListener("mouseover", callback);
       callback(ev, _elem);
     });
   }
   reset();
-  return {reset};
+  return { reset };
 }

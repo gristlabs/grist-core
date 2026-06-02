@@ -6,7 +6,7 @@ import * as t from "ts-interface-checker";
 
 export const SnapshotWindow = t.iface([], {
   "count": "number",
-  "unit": t.union(t.lit('days'), t.lit('month'), t.lit('year')),
+  "unit": t.union(t.lit("days"), t.lit("month"), t.lit("year")),
 });
 
 export const Product = t.iface([], {
@@ -37,6 +37,7 @@ export const Features = t.iface([], {
   "minimumUnits": t.opt("number"),
   "meteredSeats": t.opt("boolean"),
   "teamAuditLogs": t.opt("boolean"),
+  "automations": t.opt("boolean"),
   "maxNewUserInvitesPerOrg": t.opt("number"),
   "installationEnabled": t.opt("boolean"),
   "installationSeats": t.opt("number"),

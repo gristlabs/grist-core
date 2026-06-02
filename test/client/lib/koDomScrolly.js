@@ -1,15 +1,15 @@
-const {Scrolly} = require('app/client/lib/koDomScrolly');
-const clientUtil = require('../clientUtil');
-const G = require('app/client/lib/browserGlobals').get('window', '$');
-const sinon = require('sinon');
-const assert = require('assert');
+const {Scrolly} = require("app/client/lib/koDomScrolly");
+const clientUtil = require("../clientUtil");
+const G = require("app/client/lib/browserGlobals").get("window", "$");
+const sinon = require("sinon");
+const assert = require("assert");
 
 describe("koDomScrolly", function() {
 
   clientUtil.setTmpMochaGlobals();
 
   before(function(){
-    sinon.stub(Scrolly.prototype, 'scheduleUpdateSize');
+    sinon.stub(Scrolly.prototype, "scheduleUpdateSize");
   });
 
   beforeEach(function(){

@@ -1,7 +1,8 @@
-import {colors, theme, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {input, styled} from 'grainjs';
-import {cssMenuItem} from 'popweasel';
+import { colors, theme, vars } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+
+import { input, styled } from "grainjs";
+import { cssMenuItem } from "popweasel";
 
 // Styled elements used for rendering a user, e.g. in the UserManager, Billing, etc.
 // There is a general structure, but enough small variation that there is no helper at this point.
@@ -17,7 +18,7 @@ import {cssMenuItem} from 'popweasel';
 //     )
 //   )
 
-export const cssMemberListItem = styled('div', `
+export const cssMemberListItem = styled("div", `
   display: flex;
   width: 460px;
   min-height: 64px;
@@ -25,7 +26,7 @@ export const cssMemberListItem = styled('div', `
   padding: 12px 0;
 `);
 
-export const cssMemberImage = styled('div', `
+export const cssMemberImage = styled("div", `
   width: 40px;
   height: 40px;
   margin: 0 4px;
@@ -38,7 +39,7 @@ export const cssMemberImage = styled('div', `
   }
 `);
 
-export const cssMemberText = styled('div', `
+export const cssMemberText = styled("div", `
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -52,7 +53,7 @@ export const cssMemberText = styled('div', `
   }
 `);
 
-export const cssMemberPrimary = styled('span', `
+export const cssMemberPrimary = styled("span", `
   font-weight: bold;
   color: ${theme.text};
   padding: 2px 0;
@@ -62,7 +63,7 @@ export const cssMemberPrimary = styled('span', `
   }
 `);
 
-export const cssMemberSecondary = styled('span', `
+export const cssMemberSecondary = styled("span", `
   color: ${theme.lightText};
   /* the following just undo annoying bootstrap styles that apply to all labels */
   margin: 0px;
@@ -75,7 +76,7 @@ export const cssMemberSecondary = styled('span', `
   }
 `);
 
-export const cssMemberType = styled('span', `
+export const cssMemberType = styled("span", `
   color: ${theme.lightText};
   /* the following just undo annoying bootstrap styles that apply to all labels */
   margin: 0px;
@@ -88,7 +89,7 @@ export const cssMemberType = styled('span', `
   }
 `);
 
-export const cssMemberTypeProblem = styled('span', `
+export const cssMemberTypeProblem = styled("span", `
   color: ${theme.errorText};
   /* the following just undo annoying bootstrap styles that apply to all labels */
   margin: 0px;
@@ -101,7 +102,7 @@ export const cssMemberTypeProblem = styled('span', `
   }
 `);
 
-export const cssMemberBtn = styled('div', `
+export const cssMemberBtn = styled("div", `
   width: 16px;
   height: 16px;
   cursor: pointer;
@@ -117,7 +118,7 @@ export const cssRemoveIcon = styled(icon, `
   margin: 12px 0;
 `);
 
-export const cssEmailInputContainer = styled('div', `
+export const cssEmailInputContainer = styled("div", `
   position: relative;
   display: flex;
   height: 42px;

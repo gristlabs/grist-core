@@ -1,8 +1,9 @@
-import { assert } from 'chai';
 import { convertToCoreFileContents, IGristCoreConfigFileLatest } from "app/server/lib/configCoreFileFormats";
 
-describe('convertToCoreFileContents', () => {
-  it('fails with a malformed config', () => {
+import { assert } from "chai";
+
+describe("convertToCoreFileContents", () => {
+  it("fails with a malformed config", () => {
     const badConfig = {
       version: "This is a random version number that will never exist",
     };
@@ -11,12 +12,12 @@ describe('convertToCoreFileContents', () => {
   });
 
   // This is necessary to handle users who don't have a config file yet.
-  it('will upgrade an empty object to a valid config', () => {
+  it("will upgrade an empty object to a valid config", () => {
     const validConfig = convertToCoreFileContents({});
     assert.exists(validConfig?.version);
   });
 
-  it('will validate the latest config file format', () => {
+  it("will validate the latest config file format", () => {
     const validRawObject: IGristCoreConfigFileLatest = {
       version: "1",
       edition: "enterprise",

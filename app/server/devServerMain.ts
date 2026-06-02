@@ -18,14 +18,18 @@
  *
  */
 
-import {updateDb} from 'app/server/lib/dbUtils';
-import {FlexServer} from 'app/server/lib/FlexServer';
-import log from 'app/server/lib/log';
-import {MergedServer} from 'app/server/MergedServer';
-import {promisifyAll} from 'bluebird';
-import * as fse from 'fs-extra';
-import * as path from 'path';
-import {createClient, RedisClient} from 'redis';
+import { updateDb } from "app/server/lib/dbUtils";
+import { FlexServer } from "app/server/lib/FlexServer";
+import { getHomeUrl } from "app/server/lib/gristSettings";
+import { initializeAppSettings } from "app/server/lib/initializeAppSettings";
+import log from "app/server/lib/log";
+import { MergedServer } from "app/server/MergedServer";
+
+import * as path from "path";
+
+import { promisifyAll } from "bluebird";
+import * as fse from "fs-extra";
+import { createClient, RedisClient } from "redis";
 
 promisifyAll(RedisClient.prototype);
 
@@ -58,7 +62,8 @@ export async function main() {
   // For tests, it is useful to start with the database in a known state.
   // If TEST_CLEAN_DATABASE is set, we reset the database before starting.
   if (process.env.TEST_CLEAN_DATABASE) {
-    const {createInitialDb} = require('test/gen-server/seed');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { createInitialDb } = require("test/gen-server/seed");
     await createInitialDb();
     if (process.env.REDIS_URL) {
       await createClient(process.env.REDIS_URL).flushdbAsync();
@@ -67,34 +72,37 @@ export async function main() {
     await updateDb();
   }
 
+  await initializeAppSettings();
+
   // In V1, we no longer create a config.json file automatically if it is missing.
   // It is convenient to do that in the dev and test environment.
   const appRoot = path.dirname(path.dirname(__dirname));
   const instDir = process.env.GRIST_INST_DIR || appRoot;
   if (process.env.GRIST_INST_DIR) {
-    const fileName = path.join(instDir, 'config.json');
+    const fileName = path.join(instDir, "config.json");
     if (!(await fse.pathExists(fileName))) {
       const config = {
-        untrustedContentOrigin: 'notset',
+        untrustedContentOrigin: "notset",
       };
       await fse.writeFile(fileName, JSON.stringify(config, null, 2));
     }
   }
 
   if (!process.env.GOOGLE_CLIENT_ID) {
-    log.warn('GOOGLE_CLIENT_ID is not defined, Google Drive Plugin will not work.');
+    log.warn("GOOGLE_CLIENT_ID is not defined, Google Drive Plugin will not work.");
   }
 
   if (!process.env.GOOGLE_API_KEY) {
-    log.warn('GOOGLE_API_KEY is not defined, Url plugin will not be able to access public files.');
+    log.warn("GOOGLE_API_KEY is not defined, Url plugin will not be able to access public files.");
   }
 
   if (process.env.GRIST_SINGLE_PORT) {
     log.info("==========================================================================");
     log.info("== mergedServer");
     const port = getPort("HOME_PORT", 8080);
-    if (!process.env.APP_HOME_URL) {
+    if (!getHomeUrl() && process.env.APP_HOME_URL !== "") {
       process.env.APP_HOME_URL = `http://localhost:${port}`;
+      getHomeUrl.cache.clear();
     }
     const mergedServer = await MergedServer.create(port, ["home", "docs", "static"]);
     await mergedServer.run();
@@ -106,12 +114,14 @@ export async function main() {
   // now, but remain distinct in some test setups.
   const homeServerPort = getPort("HOME_PORT", 9000);
   const webServerPort = getPort("PORT", 8080);
-  if (!process.env.APP_HOME_URL) {
+  // An explicit empty string opts out of the auto-set below.
+  if (!getHomeUrl() && process.env.APP_HOME_URL !== "") {
     // All servers need to know a "main" URL for Grist.  This is generally
     // that of the web server.  In some test setups, the web server port is left
     // at 0 to be auto-allocated, but for those tests it suffices to use the home
     // server port.
     process.env.APP_HOME_URL = `http://localhost:${webServerPort || homeServerPort}`;
+    getHomeUrl.cache.clear();
   }
 
   // Bring up the static resource server
@@ -119,7 +129,7 @@ export async function main() {
   log.info("== staticServer");
   const staticPort = getPort("STATIC_PORT", 9001);
   process.env.APP_STATIC_URL = `http://localhost:${staticPort}`;
-  await MergedServer.create(staticPort, ["static"]).then((s) => s.run());
+  await MergedServer.create(staticPort, ["static"]).then(s => s.run());
 
   // Bring up a home server
   log.info("==========================================================================");
@@ -130,22 +140,22 @@ export async function main() {
   // If a distinct webServerPort is specified, we listen also on that port, though serving
   // exactly the same content.  This is handy for testing CORS issues.
   if (webServerPort !== 0 && webServerPort !== homeServerPort) {
-    await homeServer.flexServer.startCopy('webServer', webServerPort);
+    await homeServer.flexServer.startCopy("webServer", webServerPort);
   }
 
   // Bring up the docWorker(s)
   log.info("==========================================================================");
   log.info("== docWorker");
-  const ports = (process.env.DOC_PORT || '9002').split(',').map(port => parseInt(port, 10));
+  const ports = (process.env.DOC_PORT || "9002").split(",").map(port => parseInt(port, 10));
   if (process.env.DOC_WORKER_COUNT) {
     const n = parseInt(process.env.DOC_WORKER_COUNT, 10);
     while (ports.length < n) {
       ports.push(ports[ports.length - 1] + 1);
     }
   }
-  log.info(`== ports ${ports.join(',')}`);
+  log.info(`== ports ${ports.join(",")}`);
   if (ports.length > 1 && !process.env.REDIS_URL) {
-    throw new Error('Need REDIS_URL=redis://localhost or similar for multiple doc workers');
+    throw new Error("Need REDIS_URL=redis://localhost or similar for multiple doc workers");
   }
   const workers = new Array<FlexServer>();
   for (const port of ports) {
@@ -156,7 +166,6 @@ export async function main() {
 
   await homeServer.flexServer.addTestingHooks(workers);
 }
-
 
 if (require.main === module) {
   main().catch((e) => {

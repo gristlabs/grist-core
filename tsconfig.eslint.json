@@ -11,5 +11,7 @@
     "plugins/**/*.ts",
     "buildtools/**/*.js",
     "buildtools/**/*.ts",
+    ".storybook/**/*.ts",
+    "storybook/**/*.ts",
   ]
 }

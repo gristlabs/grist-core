@@ -11,41 +11,38 @@
  * timestamp. This optimizes the case of loading the page. On subsequent use, these calls will
  * translate to the usual api.getDoc(), api.getWorker() calls.
  */
-import {urlState} from 'app/client/models/gristUrlState';
-import {getWeakestRole} from 'app/common/roles';
-import {getGristConfig} from 'app/common/urlUtils';
-import {Document, UserAPI} from 'app/common/UserAPI';
-
-// tslint:disable:no-console
-
+import { urlState } from "app/client/models/gristUrlState";
+import { getWeakestRole } from "app/common/roles";
+import { getGristConfig } from "app/common/urlUtils";
+import { Document, UserAPI } from "app/common/UserAPI";
 
 const MaxGristConfigAgeMs = 5000;
 
 export async function getDoc(api: UserAPI, docId: string): Promise<Document> {
-  const value = findAndResetInGristConfig('getDoc', docId);
+  const value = findAndResetInGristConfig("getDoc", docId);
   const result = await (value || api.getDoc(docId));
   const mode = urlState().state.get().mode;
-  if (mode === 'view') {
+  if (mode === "view") {
     // This mode will be honored by the websocket; here we make sure the rest of the
     // client knows about it too.
-    result.access = getWeakestRole(result.access, 'viewers');
+    result.access = getWeakestRole(result.access, "viewers");
   }
   return result;
 }
 
 export async function getWorker(api: UserAPI, assignmentId: string): Promise<string> {
-  const value = findAndResetInGristConfig('getWorker', assignmentId);
+  const value = findAndResetInGristConfig("getWorker", assignmentId);
   return value || api.getWorker(assignmentId);
 }
 
 type CallType = "getDoc" | "getWorker";
 
-function findAndResetInGristConfig(method: "getDoc", id: string): Document|null;
-function findAndResetInGristConfig(method: "getWorker", id: string): string|null;
+function findAndResetInGristConfig(method: "getDoc", id: string): Document | null;
+function findAndResetInGristConfig(method: "getWorker", id: string): string | null;
 function findAndResetInGristConfig(method: CallType, id: string): any {
   const gristConfig = getGristConfig();
   const methodCache = gristConfig[method];
-  if (!methodCache || !methodCache[id]) {
+  if (!methodCache?.[id]) {
     console.log(`gristConfigCache ${method}[${id}]: not found`);
     return null;
   }

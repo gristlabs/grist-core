@@ -7,22 +7,22 @@
  *
  */
 
-import { create } from 'app/server/lib/create';
+import { create } from "app/server/lib/create";
 
 export async function main() {
   if (!process.env.GRIST_CHECKPOINT) {
-    throw new Error('GRIST_CHECKPOINT must be defined');
+    throw new Error("GRIST_CHECKPOINT must be defined");
   }
   if (!process.env.GRIST_CHECKPOINT_MAKE) {
-    throw new Error('GRIST_CHECKPOINT_MAKE must be defined');
+    throw new Error("GRIST_CHECKPOINT_MAKE must be defined");
   }
   create.NSandbox({
-    preferredPythonVersion: '3'
+    preferredPythonVersion: "3",
   });
 }
 
 if (require.main === module) {
-  main().catch(e => {
+  main().catch((e) => {
     console.error(e);
   });
 }

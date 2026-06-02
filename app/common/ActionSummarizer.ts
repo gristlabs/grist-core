@@ -1,16 +1,18 @@
-import {getEnvContent, LocalActionBundle} from 'app/common/ActionBundle';
-import {ActionSummary, ColumnDelta, createEmptyActionSummary,
-        createEmptyTableDelta, defunctTableName, LabelDelta, TableDelta} from 'app/common/ActionSummary';
-import {DocAction} from 'app/common/DocActions';
-import * as Action from 'app/common/DocActions';
-import {arrayExtend} from 'app/common/gutil';
-import {CellDelta} from 'app/common/TabularDiff';
-import clone = require('lodash/clone');
-import fromPairs = require('lodash/fromPairs');
-import keyBy = require('lodash/keyBy');
-import sortBy = require('lodash/sortBy');
-import toPairs = require('lodash/toPairs');
-import values = require('lodash/values');
+import { getEnvContent, LocalActionBundle } from "app/common/ActionBundle";
+import { ActionSummary, ColumnDelta, createEmptyActionSummary,
+  createEmptyTableDelta, defunctTableName, LabelDelta, TableDelta } from "app/common/ActionSummary";
+import { DocAction } from "app/common/DocActions";
+import * as Action from "app/common/DocActions";
+import { arrayExtend } from "app/common/gutil";
+import { TableData } from "app/common/TableData";
+import { CellDelta } from "app/common/TabularDiff";
+
+import clone from "lodash/clone";
+import fromPairs from "lodash/fromPairs";
+import keyBy from "lodash/keyBy";
+import sortBy from "lodash/sortBy";
+import toPairs from "lodash/toPairs";
+import values from "lodash/values";
 
 /**
  * The default maximum number of rows in a single bulk change that will be recorded
@@ -35,12 +37,18 @@ export interface ActionSummaryOptions {
   alwaysPreserveColIds?: string[];
 }
 
-class ActionSummarizer {
+export class ActionSummarizer {
   private readonly _maxRows = this._getMaxRows();
 
   constructor(private _options?: ActionSummaryOptions) {}
 
-  /** add information about an action based on the forward direction */
+  /**
+   * Add information about an action based on the forward direction.
+   * The `act` DocAction is examined for everything we can glean,
+   * updating the ActionSummary. On its own, this isn't enough for
+   * the summary to be complete, since we know neither the current
+   * state the action is working on, nor the undo action for `act`.
+   */
   public addForwardAction(summary: ActionSummary, act: DocAction) {
     const tableId = act[1];
     if (Action.isAddTable(act)) {
@@ -79,7 +87,12 @@ class ActionSummarizer {
     }
   }
 
-  /** add information about an action based on undo information */
+  /**
+   * Add information about an action to a summary based on
+   * undo information. `act` is assumed to be an undo action.
+   * So, for example, if it is an AddTable, the summary will
+   * contain a table deletion.
+   */
   public addReverseAction(summary: ActionSummary, act: DocAction) {
     const tableId = act[1];
     if (Action.isAddTable(act)) { // undoing, so this is a table removal
@@ -113,6 +126,61 @@ class ActionSummarizer {
     }
   }
 
+  /**
+   * Build a summary from a forward action plus the current table state (pre-action).
+   * This is an alternative to addForwardAction + addReverseAction, for when undo
+   * actions aren't available but the live table data is.
+   *
+   * addForwardAction() populates new values (CellDelta index 1). Removals need
+   * special handling since forward remove actions don't carry cell contents — we
+   * look those up from tableData. The final loop backfills old values (index 0) for
+   * updated/added rows from the current table state, which works because this is
+   * called before the action is applied.
+   */
+  public addAction(summary: ActionSummary, act: DocAction,
+    tableData: TableData) {
+    const tableId = act[1];
+    if (!summary.tableDeltas[tableId]) {
+      summary.tableDeltas[tableId] = createEmptyTableDelta();
+    }
+    this.addForwardAction(summary, act);
+    // removal of records doesn't register in forward action.
+    if (Action.isRemoveRecord(act)) {
+      const td = this._forTable(summary, tableId);
+      td.removeRows.push(act[2]);
+      const rec = tableData.getRecord(act[2]);
+      if (rec) {
+        this._addRow(td, act[2], rec, 0);
+      }
+    } else if (Action.isBulkRemoveRecord(act)) {
+      const td = this._forTable(summary, tableId);
+      arrayExtend(td.removeRows, act[2]);
+      for (const id of act[2]) {
+        const rec = tableData.getRecord(id);
+        if (rec) {
+          this._addRow(td, id, rec, 0);
+        }
+      }
+    }
+
+    // Backfill old values (CellDelta index 0) from the pre-action table state.
+    // For updates, this captures what the cell held before the edit. For adds,
+    // getRecord returns undefined (row doesn't exist yet), so the old value is
+    // correctly set to null (non-existent).
+    const tableDelta = summary.tableDeltas[tableId];
+    for (const r of new Set([...tableDelta.updateRows, ...tableDelta.addRows])) {
+      const row = tableData.getRecord(r);
+      for (const colId of Object.keys(tableDelta.columnDeltas)) {
+        if (!(r in tableDelta.columnDeltas[colId])) {
+          continue;
+        }
+        const cell = row?.[colId];
+        const nestedCell = cell === undefined ? null : [cell] as [any];
+        tableDelta.columnDeltas[colId][r][0] = nestedCell;
+      }
+    }
+  }
+
   /** helper function to access summary changes for a specific table by name */
   private _forTable(summary: ActionSummary, tableId: string): TableDelta {
     return summary.tableDeltas[tableId] || (summary.tableDeltas[tableId] = createEmptyTableDelta());
@@ -129,7 +197,7 @@ class ActionSummarizer {
    * Direction parameter is 0 if values are prior values of cells, 1 if values are new values.
    */
   private _addRow(td: TableDelta, rowId: number, colValues: Action.ColValues,
-                direction: 0|1) {
+    direction: 0 | 1) {
     for (const [colId, colChanges] of toPairs(colValues)) {
       const cell = this._forCell(td, rowId, colId);
       cell[direction] = [colChanges];
@@ -138,13 +206,14 @@ class ActionSummarizer {
 
   /** helper function to store detailed cell changes for a set of rows */
   private _addRows(tableId: string, td: TableDelta, rowIds: number[],
-                 colValues: Action.BulkColValues, direction: 0|1) {
+    colValues: Action.BulkColValues, direction: 0 | 1) {
     const limitRows: boolean = rowIds.length > this._maxRows && !tableId.startsWith("_grist_");
-    let selectedRows: Array<[number, number]> = [];
+    let selectedRows: [number, number][] = [];
     if (limitRows) {
       // if many rows, just take some from start and one from end as examples
       selectedRows = [...rowIds.slice(0, this._maxRows - 1).entries()];
       selectedRows.push([rowIds.length - 1, rowIds[rowIds.length - 1]]);
+      td.mayBeIncomplete = true;
     }
 
     const alwaysPreserveColIds = new Set(this._options?.alwaysPreserveColIds || []);
@@ -188,7 +257,7 @@ export function summarizeAction(body: LocalActionBundle, options?: ActionSummary
 }
 
 export function summarizeStoredAndUndo(stored: DocAction[], undo: DocAction[],
-                                       options?: ActionSummaryOptions): ActionSummary {
+  options?: ActionSummaryOptions): ActionSummary {
   const summarizer = new ActionSummarizer(options);
   const summary = createEmptyActionSummary();
   for (const act of stored) {
@@ -254,8 +323,8 @@ function planNameMerge(names1: LabelDelta[], names2: LabelDelta[]): NameMerge {
     rename2: new Map<string, string>(),
     merge: new Array<LabelDelta>(),
   };
-  const names1ByFinalName: {[name: string]: LabelDelta} = keyBy(names1, p => p[1]!);
-  const names2ByInitialName: {[name: string]: LabelDelta} = keyBy(names2, p => p[0]!);
+  const names1ByFinalName: { [name: string]: LabelDelta } = keyBy(names1, p => p[1]!);
+  const names2ByInitialName: { [name: string]: LabelDelta } = keyBy(names2, p => p[0]!);
   for (const [before1, after1] of names1) {
     if (!after1) {
       if (!before1) { throw new Error("invalid name change found"); }
@@ -317,8 +386,8 @@ function planNameMerge(names1: LabelDelta[], names2: LabelDelta[]): NameMerge {
  *
  * entries may be modified, and if so will be shallow-copied.
  */
-function renameAndDelete<T>(entries: CopyOnWrite<{[name: string]: T}>, dead: Set<string>,
-                            rename: Map<string, string>) {
+function renameAndDelete<T>(entries: CopyOnWrite<{ [name: string]: T }>, dead: Set<string>,
+  rename: Map<string, string>) {
   if (!(dead.size || rename.size)) {
     return;
   }
@@ -327,7 +396,7 @@ function renameAndDelete<T>(entries: CopyOnWrite<{[name: string]: T}>, dead: Set
   // Remove all entries marked as dead.
   for (const key of dead) { delete entriesCopy[key]; }
   // Move all entries that are going to be renamed out to a cache temporarily.
-  const cache: {[name: string]: any} = {};
+  const cache: { [name: string]: any } = {};
   for (const key of rename.keys()) {
     if (entriesCopy[key]) {
       cache[key] = entriesCopy[key];
@@ -352,9 +421,9 @@ function renameAndDelete<T>(entries: CopyOnWrite<{[name: string]: T}>, dead: Set
  * entries2 may be modified, and if so it will be copied.
  */
 function mergeNames<T>(names: NameMerge,
-                       entries1: {[name: string]: T},
-                       entries2: CopyOnWrite<{[name: string]: T}>,
-                       mergeEntry: (e1: T, e2: CopyOnWrite<T>) => T): {[name: string]: T} {
+  entries1: { [name: string]: T },
+  entries2: CopyOnWrite<{ [name: string]: T }>,
+  mergeEntry: (e1: T, e2: CopyOnWrite<T>) => T): { [name: string]: T } {
   const entries1Wrapper = copyOnWrite(entries1);
   // Update the keys of the entries1 and entries2 dictionaries to be consistent.
   renameAndDelete(entries1Wrapper, names.dead1, names.rename1);
@@ -388,17 +457,16 @@ export interface RowChanges {
   [rowId: number]: RowChange;
 }
 
-
 /**
  * This is used when we hit a cell that we know has changed but don't know its
  * value due to it being part of a bulk input.  This produces a cell that
  * represents the unknowns.
  */
-function bulkCellFor(rc: RowChange|undefined): CellDelta|undefined {
+function bulkCellFor(rc: RowChange | undefined): CellDelta | undefined {
   if (!rc) { return undefined; }
   const result: CellDelta = [null, null];
-  if (rc.removed || rc.updated) { result[0] = '?'; }
-  if (rc.added || rc.updated) { result[1] = '?'; }
+  if (rc.removed || rc.updated) { result[0] = "?"; }
+  if (rc.added || rc.updated) { result[1] = "?"; }
   return result;
 }
 
@@ -413,7 +481,8 @@ function bulkCellFor(rc: RowChange|undefined): CellDelta|undefined {
  * e2 may be modified, and will be copied if so.
  */
 function mergeColumn(present1: RowChanges, present2: RowChanges,
-                     e1: ColumnDelta, e2: CopyOnWrite<ColumnDelta>): ColumnDelta {
+  incomplete1: true | undefined, incomplete2: true | undefined,
+  e1: ColumnDelta, e2: CopyOnWrite<ColumnDelta>): ColumnDelta {
   for (const key of (Object.keys(present1) as unknown as number[])) {
     let v1 = e1[key];
     let v2 = e2.read()[key];
@@ -422,17 +491,39 @@ function mergeColumn(present1: RowChanges, present2: RowChanges,
       delete e2.write()[key];
       continue;
     }
+    // A row marked "updated" in a side whose cellDelta has no entry for
+    // this column can mean two things: the column was untouched (and we
+    // can recover the value from the other side) or the summarizer
+    // deliberately dropped the cell to stay under `maximumInlineRows` (so
+    // '?' is the accurate answer). If the source summary's
+    // mayBeIncomplete flag is unset, we know it's the first case and can
+    // recover. If it's set, we don't know which case it is, and have to
+    // err on the side of uncertainty.
+    const v1Untouched = v1 === undefined && !incomplete1;
+    const v2Untouched = v2 === undefined && !incomplete2;
     v1 = v1 || bulkCellFor(present1[key]);
     v2 = v2 || bulkCellFor(present2[key]);
     if (!v2)    { e2.write()[key] = e1[key]; continue; }
     if (!v1[1]) {
+      // Row was deleted in e1. If it was re-added in e2 (remove-then-add,
+      // e.g., row ID recycling), carry the old value from e1 forward so the
+      // deleted row's original values are preserved in the comparison.
+      // Only do this when the row was specifically removed (not just added
+      // without values for this column).
+      if (present1[key].removed && v2[1]) {
+        e2.write()[key] = [v1[0], v2[1]];
+      }
       continue;
-    }  // Deleted row.
-    e2.write()[key] = [v1[0], v2[1]];  // Change is from initial value in e1 to final value in e2.
+    }
+    // Default composition is [v1[0], v2[1]]. Recover from the other side
+    // when one side's synthesized '?' came from a complete summary that
+    // simply didn't touch this column at this row.
+    const pre = (v1Untouched && v1[0] === "?") ? v2[0] : v1[0];
+    const post = (v2Untouched && v2[1] === "?") ? v1[1] : v2[1];
+    e2.write()[key] = [pre, post];
   }
   return e2.read();
 }
-
 
 /** Put list of numbers in ascending order, with duplicates removed. */
 function uniqueAndSorted(lst: number[]) {
@@ -446,10 +537,10 @@ function getRowChanges(e: TableDelta): RowChanges {
   const added = new Set(e.addRows);
   const removed = new Set(e.removeRows);
   const updated = new Set(e.updateRows);
-  return fromPairs([...all].map(x => {
-    return [x, {added: added.has(x),
-                removed: removed.has(x),
-                updated: updated.has(x)}] as [number, RowChange];
+  return fromPairs([...all].map((x) => {
+    return [x, { added: added.has(x),
+      removed: removed.has(x),
+      updated: updated.has(x) }] as [number, RowChange];
   }));
 }
 
@@ -462,12 +553,15 @@ function getRowChanges(e: TableDelta): RowChanges {
  */
 function mergeTable(e1: TableDelta,  e2: CopyOnWrite<TableDelta>): TableDelta {
   // First, sort out any changes to names of columns.
-  const names = planNameMerge(e1.columnRenames, e2.read().columnRenames);
-  const columnDeltasCow = copyOnWrite(e2.read().columnDeltas);
+  const e2td = e2.read();
+  const names = planNameMerge(e1.columnRenames, e2td.columnRenames);
+  const columnDeltasCow = copyOnWrite(e2td.columnDeltas);
   mergeNames(names, e1.columnDeltas, columnDeltasCow,
-             mergeColumn.bind(null,
-                              getRowChanges(e1),
-                              getRowChanges(e2.read())));
+    mergeColumn.bind(null,
+      getRowChanges(e1),
+      getRowChanges(e2td),
+      e1.mayBeIncomplete,
+      e2td.mayBeIncomplete));
   if (columnDeltasCow.hasWrite()) {
     e2.write();
     e2.read().columnDeltas = columnDeltasCow.read();
@@ -481,7 +575,7 @@ function mergeTable(e1: TableDelta,  e2: CopyOnWrite<TableDelta>): TableDelta {
   const addRows = uniqueAndSorted([...e2.read().addRows, ...e1.addRows.filter(x => !removeRows2.has(x))]);
   const removeRows = uniqueAndSorted([...e2.read().removeRows.filter(x => !addRows1.has(x)), ...e1.removeRows]);
   const updateRows = uniqueAndSorted([...e1.updateRows.filter(x => !removeRows2.has(x)),
-                                      ...e2.read().updateRows.filter(x => !addRows1.has(x))]);
+    ...e2.read().updateRows.filter(x => !addRows1.has(x))]);
   // Remove all traces of transients (rows that were created and destroyed) from history.
   if (transients.length) {
     for (const [colId, columnDelta] of Object.entries(e2.read().columnDeltas)) {
@@ -501,6 +595,9 @@ function mergeTable(e1: TableDelta,  e2: CopyOnWrite<TableDelta>): TableDelta {
     removeRows,
     updateRows,
   });
+  if (e1.mayBeIncomplete || e2td.mayBeIncomplete) {
+    e2.write().mayBeIncomplete = true;
+  }
   return e2.read();
 }
 
@@ -510,7 +607,7 @@ export function concatenateSummaryPair(sum1: ActionSummary, sum2: ActionSummary)
   const rowChanges = mergeNames(names, sum1.tableDeltas, copyOnWrite(sum2.tableDeltas), mergeTable);
   const sum: ActionSummary = {
     tableRenames: names.merge,
-    tableDeltas: rowChanges
+    tableDeltas: rowChanges,
   };
   return sum;
 }
@@ -525,16 +622,16 @@ export function concatenateSummaries(sums: ActionSummary[]): ActionSummary {
   return result;
 }
 
-export function getRenames(ref: ActionSummary|TableDelta) {
-  if ('tableRenames' in ref) {
+export function getRenames(ref: ActionSummary | TableDelta) {
+  if ("tableRenames" in ref) {
     return ref.tableRenames;
   } else {
     return ref.columnRenames;
   }
 }
 
-export function getDeltas<T extends ActionSummary|TableDelta>(ref: T) {
-  if ('tableRenames' in ref) {
+export function getDeltas<T extends ActionSummary | TableDelta>(ref: T) {
+  if ("tableRenames" in ref) {
     return ref.tableDeltas;
   } else {
     return ref.columnDeltas;
@@ -544,10 +641,10 @@ export function getDeltas<T extends ActionSummary|TableDelta>(ref: T) {
 interface RebasePlan {
   dead: Set<string>;
   rename: Map<string, string>;
-  refBack: Map<string, string|null>;
-  targetBack: Map<string, string|null>;
-  targetForward: Map<string, string|null>;
-  refForward: Map<string|null, string|null>;
+  refBack: Map<string, string | null>;
+  targetBack: Map<string, string | null>;
+  targetForward: Map<string, string | null>;
+  refForward: Map<string | null, string | null>;
   updatedRenames: LabelDelta[];
 }
 
@@ -560,14 +657,14 @@ interface RebasePlan {
  * Return items to delete and rename, in the naming scheme of the
  * target.
  */
-function planRebase(ref: ActionSummary|TableDelta,
-                    target: ActionSummary|TableDelta): RebasePlan {
+function planRebase(ref: ActionSummary | TableDelta,
+  target: ActionSummary | TableDelta): RebasePlan {
   const dead = new Set<string>();
   const rename = new Map<string, string>();
-  const targetNames = new Map<string, string|null>();
-  const refBack = new Map<string, string|null>();
-  const targetBack = new Map<string, string|null>();
-  const refForward = new Map<string|null, string|null>();
+  const targetNames = new Map<string, string | null>();
+  const refBack = new Map<string, string | null>();
+  const targetBack = new Map<string, string | null>();
+  const refForward = new Map<string | null, string | null>();
   for (const [oldId, newId] of getRenames(target)) {
     if (oldId) {
       targetNames.set(oldId, newId);
@@ -648,7 +745,7 @@ function rebaseTable(ref: TableDelta, target: TableDelta) {
  * object if we find we need to edit it.
  */
 function copyOnWrite<T>(item: T): CopyOnWrite<T> {
-  let maybeCopiedItem: T|undefined;
+  let maybeCopiedItem: T | undefined;
   return {
     read() { return maybeCopiedItem || item; },
     write() {

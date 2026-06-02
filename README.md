@@ -2,16 +2,14 @@
 
 Grist is a modern relational spreadsheet. It combines the flexibility of a spreadsheet with the robustness of a database.
 
-* `grist-core` (this repo) has what you need to run a powerful server for hosting spreadsheets.
-
+* `grist-core` (this repo – also known as Grist Community edition) has what you need to run a powerful server for hosting spreadsheets.
 * [`grist-desktop`](https://github.com/gristlabs/grist-desktop) is a Linux/macOS/Windows desktop app for viewing and editing spreadsheets stored locally.
 * [`grist-static`](https://github.com/gristlabs/grist-static) is a fully in-browser build of Grist for displaying spreadsheets on a website without back-end support.
 
 Grist is developed by [Grist Labs](https://www.linkedin.com/company/grist-labs/), an NYC-based company 🇺🇸🗽. The French government 🇫🇷 organizations [ANCT Données et Territoires](https://donnees.incubateur.anct.gouv.fr/toolbox/grist) and [DINUM (Direction Interministérielle du Numérique)](https://www.numerique.gouv.fr/dinum/) have also made significant contributions to the codebase.
 
-The `grist-core`, `grist-desktop`, and `grist-static` repositories are all open source (Apache License, Version 2.0).
-Grist Labs offers free and paid hosted services at [getgrist.com](https://getgrist.com), sells an Enterprise product,
-and offers [cloud packaging](https://support.getgrist.com/install/grist-builder-edition/).
+The `grist-core`, `grist-desktop`, and `grist-static` repositories are all open-source (Apache License, Version 2.0). Grist Labs sells an edition of Grist with [additional features](#features-not-in-grist-core). Grist Labs also offers free and paid hosted services at [getgrist.com](https://getgrist.com),
+as well as [cloud packaging](https://support.getgrist.com/install/grist-builder-edition/).
 
 > Questions? Feedback? Want to share what you're building with Grist? Join our [official Discord server](https://discord.gg/MYKpYQ3fbP) or visit our [Community forum](https://community.getgrist.com/). 
 >
@@ -21,7 +19,7 @@ https://github.com/user-attachments/assets/fe152f60-3d15-4b11-8cb2-05731a90d273
 
 ## Features in `grist-core`
 
-To see exactly what is present in `grist-core`, you can run the [desktop app](https://github.com/gristlabs/grist-desktop), or use [`docker`](#using-grist). The absolute fastest way to try Grist out is to visit [docs.getgrist.com](https://docs.getgrist.com) and play with a spreadsheet there immediately – though if you do, please read the list of [extra extensions](#features-not-in-grist-core) that are not in `grist-core`.
+To see exactly what is present in `grist-core`, you can run the [desktop app](https://github.com/gristlabs/grist-desktop), or use [`docker`](#using-grist). The absolute fastest way to try Grist out is to visit [docs.getgrist.com](https://docs.getgrist.com) and play with a spreadsheet there immediately – though if you do, please read the list of [additional features](#features-not-in-grist-core) that are not in `grist-core`.
 
 However you try it, you'll quickly see that Grist is a hybrid database/spreadsheet, meaning that:
 
@@ -30,12 +28,13 @@ However you try it, you'll quickly see that Grist is a hybrid database/spreadshe
 
 This difference can confuse people coming directly from Excel or Google Sheets. Give it a chance! There's also a [Grist for Spreadsheet Users](https://www.getgrist.com/blog/grist-for-spreadsheet-users/) article to help get you oriented. If you're coming from Airtable, you'll find the model familiar (and there's also our [Grist vs Airtable](https://www.getgrist.com/blog/grist-v-airtable/) article for a direct comparison).
 
-Here are some specific feature highlights of Grist:
+Here are some specific feature highlights of Grist (🇫🇷 marks heavy French govt. contributions):
 
   * Python formulas.
     - Full [Python syntax is supported](https://support.getgrist.com/formulas/#python), including the standard library.
     - Many [Excel functions](https://support.getgrist.com/functions/) also available.
-    - An [AI Assistant](https://www.getgrist.com/ai-formula-assistant/) specifically tuned for formula generation (using OpenAI gpt-3.5-turbo or [Llama](https://ai.meta.com/llama/) via <a href="https://github.com/abetlen/llama-cpp-python">llama-cpp-python</a>).
+    - An [AI Formula Assistant](https://support.getgrist.com/ai-assistant-legacy/) specifically tuned for formula generation (works with OpenAI, [Llama](https://ai.meta.com/llama/), and many other models via [OpenRouter](https://openrouter.ai/) or any OpenAI-compatible endpoint).
+    - A [formula timer](https://support.getgrist.com/formula-timer/) for diagnosing slow formulas.
   * A portable, self-contained format.
     - Based on SQLite, the most widely deployed database engine.
     - Any tool that can read SQLite can read numeric and text data from a Grist file.
@@ -46,46 +45,64 @@ Here are some specific feature highlights of Grist:
   * Convenient editing and formatting features.
     - Choices and [choice lists](https://support.getgrist.com/col-types/#choice-list-columns), for adding colorful tags to records.
     - [References](https://support.getgrist.com/col-refs/#creating-a-new-reference-list-column) and reference lists, for cross-referencing records in other tables.
+    - [Two-way references](https://support.getgrist.com/col-refs/#two-way-references) that automatically synchronize between tables.
     - [Attachments](https://support.getgrist.com/col-types/#attachment-columns), to include media or document files in records.
     - Dates and times, toggles, and special numerics such as currency all have specialized editors and formatting options.
     - [Conditional Formatting](https://support.getgrist.com/conditional-formatting/), letting you control the style of cells with formulas to draw attention to important information.
+    - [Markdown formatting](https://support.getgrist.com/col-types/#markdown) in text cells.
   * Drag-and-drop dashboards.
     - [Charts](https://support.getgrist.com/widget-chart/), [card views](https://support.getgrist.com/widget-card/) and a [calendar widget](https://support.getgrist.com/widget-calendar/) for visualization.
     - [Summary tables](https://support.getgrist.com/summary-tables/) for summing and counting across groups.
     - [Widget linking](https://support.getgrist.com/linking-widgets/) streamlines filtering and editing data.
     Grist has a unique approach to visualization, where you can lay out and link distinct widgets to show together,
     without cramming mixed material into a table.
-    - [Filter bar](https://support.getgrist.com/search-sort-filter/#filter-buttons) for quick slicing and dicing.
+    - [Filter bar](https://support.getgrist.com/search-sort-filter/#pinning-filters) for quick slicing and dicing.
+    - Duplicate widgets to quickly build variations of a view.
+    - [Compare documents](https://support.getgrist.com/copying-docs/#trying-out-changes) to see what changed.
   * [Incremental imports](https://support.getgrist.com/imports/#updating-existing-records).
     - Import a CSV of the last three months activity from your bank...
     - ...and import new activity a month later without fuss or duplication.
   * [Native forms](https://support.getgrist.com/widget-form/). Create forms that feed directly into your spreadsheet without fuss.
+    - Supports file attachments, hidden fields, and pre-population via URL parameters.
   * Integrations.
-    - A [REST API](https://support.getgrist.com/api/), [Zapier actions/triggers](https://support.getgrist.com/integrators/#integrations-via-zapier), and support from similar [integrators](https://support.getgrist.com/integrators/).
-    - Import/export to Google drive, Excel format, CSV.
-    - Link data with [custom widgets](https://support.getgrist.com/widget-custom/#_top), hosted externally.
-    - Configurable outgoing webhooks.
+    - A [REST API](https://support.getgrist.com/api/) with an interactive [API console](https://docs.getgrist.com/apiconsole), [Zapier actions/triggers](https://zapier.com/apps/grist/integrations), and support from similar [integrators](https://support.getgrist.com/integrators/).
+    - Import/export to Google Drive, Excel format, CSV. [Import directly from Airtable.](https://support.getgrist.com/imports/#import-from-airtable)
+    - Link data with [custom widgets](https://support.getgrist.com/widget-custom/), hosted externally.
+    - Configurable outgoing [webhooks](https://support.getgrist.com/webhooks/), with support for authorization headers, column-specific triggers, and formula conditions.
+    - [Service accounts](https://support.getgrist.com/api/#tag/service-accounts) for fine-tuned API access (🇫🇷).
+    - [SCIM](https://support.getgrist.com/install/scim/) for standard user and group provisioning (🇫🇷).
   * [Many templates](https://templates.getgrist.com/) to get you started, from investment research to organizing treasure hunts.
   * Access control options.
     - (You'll need SSO logins set up to make use of these options; [`grist-omnibus`](https://github.com/gristlabs/grist-omnibus) has a prepackaged solution if configuring this feels daunting)
     - Share [individual documents](https://support.getgrist.com/sharing/), workspaces, or [team sites](https://support.getgrist.com/team-sharing/).
     - Control access to [individual rows, columns, and tables](https://support.getgrist.com/access-rules/).
     - Control access based on cell values and user attributes.
+    - [OIDC](https://support.getgrist.com/install/oidc/) (🇫🇷) and [SAML](https://support.getgrist.com/install/saml/) support for single sign-on.
+  * Collaboration.
+    - [Comments](https://support.getgrist.com/sharing/#comments) on cells, with threaded replies and @-mentions.
+    - See who else is viewing a document in real time.
+    - [Suggest changes](https://support.getgrist.com/sharing/#suggestions) for others to review and approve, inspired by source control workflows.
   * Self-maintainable.
     - Useful for intranet operation and specific compliance requirements.
+    - [Sign in with getgrist.com](https://support.getgrist.com/install/sign-in-with-grist/) for easy authentication without running your own auth server.
+    - Store [attachments externally](https://support.getgrist.com/document-settings/#external-attachments) in S3-compatible storage to keep `.grist` files small (🇫🇷).
+    - [HTTP long polling](https://support.getgrist.com/newsletters/2024-04/#networking-improvements) as an alternative to WebSockets for restrictive network environments (🇫🇷).
   * Sandboxing options for untrusted documents.
     - On Linux or with Docker, you can enable [gVisor](https://github.com/google/gvisor) sandboxing at the individual document level.
     - On macOS, you can use native sandboxing.
-    - On any OS, including Windows, you can use a wasm-based sandbox.
-  * Translated to many languages.
-  * `F1` key brings up some quick help. This used to go without saying, but in general Grist has good keyboard support.
+    - On any OS, including Windows, you can use a Wasm-based sandbox via [Deno](https://deno.com/) and [Pyodide](https://pyodide.org/).
+  * Translated to many languages (🇫🇷).
+  * A [high-contrast theme](https://support.getgrist.com/newsletters/2025-05/#high-contrast-theme) meeting WCAG level AA requirements (🇫🇷).
+  * `F1` key brings up some quick help. This used to go without saying, but in general Grist has good keyboard support (🇫🇷).
   * We post progress on [𝕏 or Twitter or whatever](https://twitter.com/getgrist) and publish [monthly newsletters](https://support.getgrist.com/newsletters/).
 
 If you are curious about where Grist is heading, see [our roadmap](https://github.com/gristlabs/grist-core/projects/1), drop a question in [our forum](https://community.getgrist.com), or browse [our extensive documentation](https://support.getgrist.com).
 
 ## Features not in `grist-core`
 
-If you evaluate Grist by using the hosted version at [getgrist.com](https://getgrist.com), be aware that it includes some extensions to Grist that aren't present in `grist-core`. To be sure you're seeing exactly what is present in `grist-core`, you can run the [desktop app](https://github.com/gristlabs/grist-desktop), or use [`docker`](#using-grist). Here is a list of features you may see in Grist Labs' hosting or Enterprise offerings that are not in `grist-core`, in chronological order of creation. If self-hosting, you can get access to a free trial of all of them using the Enterprise toggle on the [Admin Panel](https://support.getgrist.com/admin-panel/).
+If you evaluate Grist by using the hosted version at [getgrist.com](https://getgrist.com), be aware that it includes some features that aren't present in `grist-core`. To be sure you're seeing exactly what is present in `grist-core`, you can run the [desktop app](https://github.com/gristlabs/grist-desktop), or use [`docker`](#using-grist).
+
+Here is a list of features available in the full edition of Grist that are not in `grist-core`, in chronological order of creation. If self-hosting, you can get access to a free trial of all of them by selecting the full edition of Grist on the [Admin Panel](https://support.getgrist.com/admin-panel/). The full edition of Grist is free for individuals and small orgs with less than US $1 million in total annual funding. Learn more about that [here](https://www.getgrist.com/free-grist-activation-key-faq/).
 
   * [GristConnect](https://support.getgrist.com/install/grist-connect/) (2022)
     - Any site that has plugins for letting Discourse use its logins (such as WordPress) can also let Grist use its logins.
@@ -98,18 +115,18 @@ If you evaluate Grist by using the hosted version at [getgrist.com](https://getg
     - Enterprises may care about this.
   * [Advanced Admin Controls](https://support.getgrist.com/admin-controls/) (2025)
     - This is a special page for a Grist installation administrator to monitor and edit user access to resources.
-	- It uses a special set of administrative endpoints not present on `grist-core`.
-	- If you're going to be running a large Grist installation, with employees coming and going, you may care about this.
+    - It uses a special set of administrative endpoints not present on `grist-core`.
+    - If you're going to be running a large Grist installation, with employees coming and going, you may care about this.
   * [Grist Assistant](https://support.getgrist.com/assistant/#assistant) (2025)
-    - An AI Formula Assistant - limited to working with formulas - is present in `grist-core`, but the newer Assistant can help with a wider range of tasks like building tables and dashboards and modifying data.
+    - An AI Formula Assistant - limited to working with formulas - is present in `grist-core`, but the newer Assistant can help with a wider range of tasks like building tables and dashboards, styling and formatting, explaining access rules, and modifying data.
     - If you have many users who need help building documents or working with data, you may care about this one.
   * [Invite Notifications](https://support.getgrist.com/self-managed/#how-do-i-set-up-email-notifications) (2025)
     - When a user is added to a document, or a workspace, or a site, with email notifications they will get emailed a link to access the resource.
-	- This link isn't special, with `grist-core` you can just send a link yourself or a colleague.
-	- For a big Grist installation with users who aren't in close communication, emails might be nice? Hard to guess if you'll care about this one.
+    - This link isn't special, with `grist-core` you can just send a link yourself or a colleague.
+    - For a big Grist installation with users who aren't in close communication, emails might be nice? Hard to guess if you'll care about this one.
   * [Document Change and Comment Notifications](https://support.getgrist.com/document-settings/#notifications) (2025)
     - You can achieve change notifications in `grist-core` using webhooks, but it is less convenient.
-	- People have been asking for this one for years. If you need an excuse to get your boss to pay for Grist, this might finally be the one that works?
+    - People have been asking for this one for years. If you need an excuse to get your boss to pay for Grist, this might finally be the one that works?
 
 ## Using Grist
 
@@ -121,8 +138,23 @@ docker pull gristlabs/grist
 docker run -p 8484:8484 -it gristlabs/grist
 ```
 
-Then visit `http://localhost:8484` in your browser. You'll be able to create, edit, import,
-and export documents. To preserve your work across docker runs, share a directory as `/persist`:
+Then visit `http://localhost:8484` in your browser.
+
+On a brand new install you'll land on a **Quick setup** page that walks
+you through choosing an admin email, picking how people sign in, and
+setting who can use the site. To get past the first screen, look in the
+container's startup log for a line containing a generated boot key, and
+paste it in when prompted. Once you click **Apply and go live!** at the
+end of Quick setup, the site is open for business and you'll be able to
+create, edit, import, and export documents. There's a step-by-step
+walkthrough at
+[First-run setup](https://support.getgrist.com/install/first-run-setup/).
+
+If you'd rather skip Quick setup entirely and start with an open,
+single-user setup, set `GRIST_IN_SERVICE=true`. You can come back to
+the same settings later from the [Admin Panel](#the-admin-panel).
+
+To preserve your work across docker runs, share a directory as `/persist`:
 
 ```sh
 docker run -p 8484:8484 -v $PWD/persist:/persist -it gristlabs/grist
@@ -146,7 +178,7 @@ environments.
 
 You can find a lot more about configuring Grist, setting up authentication,
 and running it on a public server in our
-[Self-Managed Grist](https://support.getgrist.com/self-managed/) handbook.
+[Self-Managed Grist](https://support.getgrist.com/self-managed/) documentation.
 
 ## Using Grist with OpenRouter for Model Agnostic and Claude Support
 
@@ -208,37 +240,42 @@ Note: Make sure not to set the OPENAI_API_KEY variable when using OpenRouter, as
 ## Available Docker images
 
 The default Docker image is `gristlabs/grist`. This contains all of
-the standard Grist functionality, as well as extra source-available
-code for enterprise customers taken from the
-[grist-ee](https://github.com/gristlabs/grist-ee) repository. This
-extra code is not under a free or open source license. By default,
-however, the code from the `grist-ee` repository is completely inert
+the Grist Community edition features, as well as extra source-available
+code for the full edition of Grist. This
+extra code is not under a free or open-source license, though by default is completely inert
 and inactive. This code becomes active only when enabled from the
-administrator panel.
+Admin Panel.
 
 If you would rather use an image that contains exclusively free and
-open source code, the `gristlabs/grist-oss` Docker image is available
+open-source code, the `gristlabs/grist-oss` Docker image is available
 for this purpose. It is by default functionally equivalent to the
 `gristlabs/grist` image.
 
-## The administrator panel
+## The Admin Panel
 
-You can turn on a special admininistrator panel to inspect the status
-of your installation. Just visit `/admin` on your Grist server for
-instructions. Since it is useful for the admin panel to be
-available even when authentication isn't set up, you can give it a
-special access key by setting `GRIST_BOOT_KEY`.
+The Admin Panel is where you inspect and tweak your installation:
+check health probes, change a few settings, toggle features. Visit
+`/admin` on your Grist server to find it. If you're not yet signed in
+as the installation admin, the panel will prompt you to do a boot key
+login, and from there you can paste in the key.
+
+New installs generate a boot key automatically and print it to the
+container log on startup. Watch for a line like:
+
+```
+BOOT KEY: <random-string>
+```
+
+If you'd rather pick your own boot key, set `GRIST_BOOT_KEY`:
 
 ```
 docker run -p 8484:8484 -e GRIST_BOOT_KEY=secret -it gristlabs/grist
 ```
 
-The boot page should then be available at
-`/admin?boot-key=<GRIST_BOOT_KEY>`. We are collecting probes for
-common problems there. If you hit a problem that isn't covered, it
-would be great if you could add a probe for it in
-[BootProbes](https://github.com/gristlabs/grist-core/blob/main/app/server/lib/BootProbes.ts).
-You may instead file an issue so someone else can add it.
+The panel collects probes for common problems. If you hit one that
+isn't covered, please add a probe in
+[BootProbes](https://github.com/gristlabs/grist-core/blob/main/app/server/lib/BootProbes.ts),
+or file an issue so someone else can.
 
 ## Building from source
 
@@ -249,6 +286,11 @@ To build Grist from source, follow these steps:
     yarn build
     yarn start
     # Grist will be available at http://localhost:8484/
+
+The first time you start Grist it'll show the Quick setup page, just
+like a fresh Docker install. Look at the terminal where you ran
+`yarn start` for the boot key. If you'd rather skip Quick setup while
+hacking, run with `GRIST_IN_SERVICE=true`.
 
 Grist formulas in documents will be run using Python executed directly on your
 machine. You can configure sandboxing using a `GRIST_SANDBOX_FLAVOR`
@@ -264,11 +306,7 @@ These sandboxing methods have been written for our own use at Grist Labs and
 may need tweaking to work in your own environment - pull requests
 very welcome here!
 
-If you wish to include Grist Labs enterprise extensions in your build,
-the steps are as follows. Note that this will add non-OSS code to your
-build. It will also place a directory called `node_modules` one level
-up, at the same level as the Grist repo. If that is a problem for you,
-just move everything into a subdirectory first.
+If you wish to include full Grist extensions in your build, the steps are as follows. Note that this will add non-OSS code to your build. It will also place a directory called `node_modules` one level up, at the same level as the Grist repo. If that is a problem for you, just move everything into a subdirectory first.
 
     yarn install
     yarn install:ee
@@ -277,16 +315,24 @@ just move everything into a subdirectory first.
     yarn start
     # Grist will be available at http://localhost:8484/
 
-The enterprise code will by default not be used. You need to explicitly enable
-it in the [Admin Panel](https://support.getgrist.com/self-managed/#how-do-i-enable-grist-enterprise).
+You may toggle between the full Grist and Community editions in the [Admin Panel](https://support.getgrist.com/self-managed/#how-do-i-enable-the-full-edition-of-grist).
 
 ## Logins
 
 Like git, Grist has features to track document revision history. So for full operation,
 Grist expects to know who the user modifying a document is. Until it does, it operates
-in a limited anonymous mode. To get you going, the docker image is configured so that
-when you click on the "sign in" button Grist will attribute your work to `you@example.com`.
-Change this by setting `GRIST_DEFAULT_EMAIL`:
+in a limited anonymous mode.
+
+The friendliest way to get sign-in set up is the Quick setup page that
+appears on a fresh install. It lets you pick an admin email and an
+authentication method (e.g. OIDC, SAML) from a short menu. See
+[First-run setup](https://support.getgrist.com/install/first-run-setup/)
+for the full walkthrough. You can revisit those same settings later
+from the [Admin Panel](#the-admin-panel).
+
+If you'd rather not configure sign-in at all, you can run with a single
+default identity. Set `GRIST_DEFAULT_EMAIL` and the "sign in" button
+will attribute your work to that address:
 
 ```
 docker run --env GRIST_DEFAULT_EMAIL=my@email -p 8484:8484 -v $PWD/persist:/persist -it gristlabs/grist
@@ -313,7 +359,7 @@ did the hard work of making a good chunk of the application localizable. Merci b
 
 [![Translation detail](https://hosted.weblate.org/widgets/grist/-/multi-green.svg)](https://hosted.weblate.org/engage/grist/)
 
-## Why free and open source software
+## Why free and open-source software?
 
 This repository, `grist-core`, is maintained by Grist Labs. Our flagship product available at [getgrist.com](https://www.getgrist.com) is built from the code you see here, combined with business-specific software designed to scale to many users, handle billing, etc.
 
@@ -330,7 +376,7 @@ By opening its source code and offering an [OSI](https://opensource.org/)-approv
   an option. Vulnerabilities in the code can be found by others and reported before they cause
   damage.
 - **Independence.** Grist is available to you regardless of the fortunes of the Grist Labs business,
-  since it is open source and can be self-hosted. Using our hosted solution is convenient, but you
+  since it is open-source and can be self-hosted. Using our hosted solution is convenient, but you
   are not locked in.
 - **Price flexibility.** If you are low on funds but have time to invest, self-hosting is a great
   option to have. And DIY users may have the technical savvy and motivation to delve in and make improvements,
@@ -375,25 +421,26 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_APP_ROOT | directory containing Grist sandbox and assets (specifically the sandbox and static subdirectories). |
 | GRIST_ATTACHMENT_THRESHOLD_MB | attachment storage limit per document beyond which Grist will recommend external storage (if available). Defaults to 50MB. |
 | GRIST_BACKUP_DELAY_SECS | wait this long after a doc change before making a backup |
-| GRIST_BOOT_KEY | if set, offer diagnostics at /boot/GRIST_BOOT_KEY |
+| GRIST_BOOT_KEY | if set, use this key to sign in as the installation admin at `/boot`. New installs auto-generate one and print it on startup; set this only if you want a key of your own choosing. |
 | GRIST_BROADCAST_TIMEOUT_MS | Set the maximum time a web client has to accept a broadcast message about a document before being disconnected (default: 1 minute). |
 | GRIST_DATA_DIR | Directory in which to store documents. Defaults to `docs/` relative to the Grist application directory. In Grist's default Docker image, its default value is /persist/docs so that it will be used as a mounted volume. |
 | GRIST_DEFAULT_EMAIL | if set, login as this user if no other credentials presented |
 | GRIST_DEFAULT_PRODUCT | if set, this controls enabled features and limits of new sites. See names of PRODUCTS in Product.ts. |
-| GRIST_DEFAULT_LOCALE | Locale to use as fallback when Grist cannot honour the browser locale. |
+| GRIST_DEFAULT_LOCALE | Locale to use as fallback when Grist cannot honour the browser locale. Defaults to `en-US`. Should match a locale code found in `app/common/LocaleCodes.ts`. |
 | GRIST_DOMAIN | in hosted Grist, Grist is served from subdomains of this domain.  Defaults to "getgrist.com". |
 | GRIST_EXPERIMENTAL_PLUGINS | enables experimental plugins |
 | GRIST_EXTERNAL_ATTACHMENTS_MODE | required to enable external storage for attachments. Set to "snapshots" to enable external storage. Default value is "none". Note that when enabled, a [snapshot storage has to be configured](https://support.getgrist.com/self-managed/#how-do-i-set-up-snapshots) as well. |
 | GRIST_ENABLE_SERVICE_ACCOUNTS | enables the `service accounts` feature. This feature allows users to create special service accounts that they can manage and to whom they can grant restricted access to chosen resources. Useful as a way to get fine-grained api keys for use with third party automations. Unset by default |
 | GRIST_ENABLE_REQUEST_FUNCTION | enables the REQUEST function. This function performs HTTP requests in a similar way to `requests.request`. This function presents a significant security risk, since it can let users call internal endpoints when Grist is available publicly. This function can also cause performance issues. Unset by default. |
 | GRIST_HEADERS_TIMEOUT_MS | if set, override nodes's server.headersTimeout flag. |
-| GRIST_HIDE_UI_ELEMENTS | comma-separated list of UI features to disable. Allowed names of parts: `helpCenter`, `billing`, `templates`, `createSite`, `multiSite`, `multiAccounts`, `sendToDrive`, `tutorials`, `supportGrist`, `themes`. If a part also exists in GRIST_UI_FEATURES, it will still be disabled. |
+| GRIST_HIDE_UI_ELEMENTS | comma-separated list of UI features to disable. Allowed names of parts: `helpCenter`, `billing`, `templates`, `createSite`, `multiSite`, `multiAccounts`, `importFromAirtable`, `sendToDrive`, `tutorials`, `supportGrist`, `themes`, `automations`. If a part also exists in GRIST_UI_FEATURES, it will still be disabled. |
 | GRIST_HOST | hostname to use when listening on a port. |
 | GRIST_PROXY_FOR_UNTRUSTED_URLS | Full URL of proxy for delivering webhook payloads. Default value is `direct` for delivering payloads without proxying. |
 | HTTPS_PROXY or https_proxy | Full URL of reverse web proxy (corporate proxy) for fetching the custom widgets repository or the OIDC config from the issuer. |
 | GRIST_ID_PREFIX | for subdomains of form o-*, expect or produce o-${GRIST_ID_PREFIX}*. |
 | GRIST_IGNORE_SESSION | if set, Grist will not use a session for authentication. |
 | GRIST_INCLUDE_CUSTOM_SCRIPT_URL | if set, will load the referenced URL in a `<script>` tag on all app pages. |
+| GRIST_IN_SERVICE | if "true", skip the first-run Quick setup gate and put the server straight into service. New installs default to "false" so the operator can finish Quick setup; existing installs default to "true". |
 | GRIST_INST_DIR | path to Grist instance configuration files, for Grist server. |
 | GRIST_KEEP_ALIVE_TIMEOUT_MS | if set, override nodes's server.keepAliveTimeout flag. |
 | GRIST_LIST_PUBLIC_SITES | if set to true, sites shared with the public will be listed for anonymous users. Defaults to false. |
@@ -416,8 +463,10 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_SESSION_SECRET | a key used to encode sessions |
 | GRIST_SKIP_BUNDLED_WIDGETS | if set, Grist will ignore any bundled widgets included via NPM packages. |
 | GRIST_SQLITE_MODE | if set to `wal`, use SQLite in [WAL mode](https://www.sqlite.org/wal.html), if set to `sync`, use SQLite with [SYNCHRONOUS=full](https://www.sqlite.org/pragma.html#pragma_synchronous)
-| GRIST_ANON_PLAYGROUND | When set to `false` deny anonymous users access to the home page (but documents can still be shared to anonymous users). Defaults to `true`. |
+| GRIST_ANON_PLAYGROUND | When set to `false` deny anonymous users access to the home page (but documents can still be shared to anonymous users). Defaults to `true`, unless GRIST_ORG_CREATION_ANYONE is `false`. |
 | GRIST_FORCE_LOGIN | Setting it to `true` is similar to setting `GRIST_ANON_PLAYGROUND: false` but it blocks any anonymous access (thus any document shared publicly actually requires the users to be authenticated before consulting them) |
+| GRIST_PERSONAL_ORGS | When set to `false` prevent new personal orgs from being created when a user signs up. Defaults to `true`, unless GRIST_ORG_CREATION_ANYONE is `false`. |
+| GRIST_ORG_CREATION_ANYONE | When set to `false`, prevent new team orgs from being created by non-admin users. Sets default values of `GRIST_ANON_PLAYGROUND` and `GRIST_PERSONAL_ORGS` to `false`. Defaults to `true`. |
 | GRIST_SINGLE_ORG | set to an org "domain" to pin client to that org |
 | GRIST_TEMPLATE_ORG | set to an org "domain" to show public docs from that org |
 | GRIST_HELP_CENTER | set the help center link ref |
@@ -433,7 +482,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_THROTTLE_CPU | if set, CPU throttling is enabled |
 | GRIST_TRUST_PLUGINS | if set, plugins are expect to be served from the same host as the rest of the Grist app, rather than from a distinct host. Ordinarily, plugins are served from a distinct host so that the cookies used by the Grist app are not automatically available to them. Enable this only if you understand the security implications. |
 | GRIST_USER_ROOT | an extra path to look for plugins in - Grist will scan for plugins in `$GRIST_USER_ROOT/plugins`. |
-| GRIST_UI_FEATURES | comma-separated list of UI features to enable. Allowed names of parts: `helpCenter`, `billing`, `templates`, `createSite`, `multiSite`, `multiAccounts`, `sendToDrive`, `tutorials`, `supportGrist`, `themes`. If a part also exists in GRIST_HIDE_UI_ELEMENTS, it won't be enabled. |
+| GRIST_UI_FEATURES | comma-separated list of UI features to enable. Allowed names of parts: `helpCenter`, `billing`, `templates`, `createSite`, `multiSite`, `multiAccounts`, `importFromAirtable`, `sendToDrive`, `tutorials`, `supportGrist`, `themes`, `automations`. If a part also exists in GRIST_HIDE_UI_ELEMENTS, it won't be enabled. Note: `importFromAirtable` and `automations` are enabled by default even without being listed here; use GRIST_HIDE_UI_ELEMENTS to disable them. |
 | GRIST_UNTRUSTED_PORT | if set, plugins will be served from the given port. This is an alternative to setting APP_UNTRUSTED_URL. |
 | GRIST_WIDGET_LIST_URL | a url pointing to a widget manifest, by default https://github.com/gristlabs/grist-widget/releases/download/latest/manifest.json is used |
 | GRIST_LOG_HTTP | When set to `true`, log HTTP requests and responses information. Defaults to `false`. |
@@ -448,6 +497,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_SNAPSHOT_KEEP | optional. Number of recent snapshots to retain unconditionally for a document, regardless of when they were made |
 | GRIST_PROMCLIENT_PORT | optional. If set, serve the Prometheus metrics on the specified port number. ⚠️ Be sure to use a port which is not publicly exposed ⚠️. |
 | GRIST_ENABLE_SCIM | optional. If set, enable the [SCIM API Endpoint](https://support.getgrist.com/install/scim/) (experimental) |
+| GRIST_LOGIN_SYSTEM_TYPE | optional. If set, explicitly selects which login system to use. Valid values: `saml`, `oidc`, `forward-auth`, `minimal`. If not set, Grist will automatically detect and use the first configured login system. |
 | GRIST_OIDC_... | optional. Environment variables used to configure OpenID authentification. See [OpenID Connect](https://support.getgrist.com/install/oidc/) documentation for full related list of environment variables. |
 | GRIST_SAML_... | optional. Environment variables used to configure SAML authentification. See [SAML](https://support.getgrist.com/install/saml/) documentation for full related list of environment variables. |
 | GRIST_IDP_EXTRA_PROPS | optional. If set, defines which extra fields returned by your identity provider will be stored in the users table of the home database (in the `options.ssoExtraInfo` object). Usage: 'onekey,anotherkey'. |
@@ -470,10 +520,12 @@ It is also known to function against the chat completion endpoint provided by <a
 
 #### Sandbox related variables:
 
-Variable | Purpose
--------- | -------
-GRIST_SANDBOX_FLAVOR | can be gvisor, pynbox, unsandboxed, docker, or macSandboxExec. If set, forces Grist to use the specified kind of sandbox.
-GRIST_SANDBOX | a program or image name to run as the sandbox. See NSandbox.ts for nerdy details.
+Variable | Purpose | Sandbox |
+-------- | ------- | ------- |
+GRIST_SANDBOX_FLAVOR | can be gvisor, pynbox, unsandboxed, docker, or macSandboxExec. If set, forces Grist to use the specified kind of sandbox. | N/A |
+GRIST_SANDBOX | a program or image name to run as the sandbox. See NSandbox.ts for nerdy details. | N/A |
+GVISOR_LIMIT_NPROC | the number of extant processes the sandbox is allowed to spawn when running on Linux. Defaults to 8. | GVisor |
+GVISOR_LIMIT_MEMORY | the maximum size of the sandboxed process's virtual memory (in bytes). No limit by default. | GVisor |
 
 #### Forward authentication variables:
 
@@ -581,6 +633,7 @@ GRIST_DOCKER_GROUP | optional. When the container runs as the root user, this is
 Variable | Purpose
 -------- | -------
 GRIST_TESTING_SOCKET    | a socket used for out-of-channel communication during tests only.
+GRIST_TEST_FORCE_LIGHT_MODE | if set, Grist will use light mode even if system preference is dark. Some tests just assume light mode.
 GRIST_TEST_HTTPS_OFFSET | if set, adds https ports at the specified offset.  This is useful in testing.
 GRIST_TEST_SSL_CERT     | if set, contains filename of SSL certificate.
 GRIST_TEST_SSL_KEY      | if set, contains filename of SSL private key.

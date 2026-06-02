@@ -93,15 +93,60 @@ class TestRecordList(test_engine.EngineTestCase):
         formula="$Creatures.Class.Name")
     self.add_column('Class', 'Creatures2', type='Any', isFormula=True,
         formula="$Creatures.Class.Creatures")
+    self.add_column('Class', 'Creatures3', type='RefList:Creatures', isFormula=True,
+        formula="$Creatures.Class.Creatures")
+
+    # Test that it works for empty lookups too.
+    self.add_record('Class', Name="Dragons", Creatures=None)
 
     mammals = RecordSetStub("Creatures", [1, 3])
     reptiles = RecordSetStub("Creatures", [2, 4])
+    dragons = RecordSetStub("Creatures", [])
     self.assertTableData("Class", data=[
-      ["id", "Name",     "Creatures", "Names",                  "Creatures2"],
-      [1,    "Mammals",  [1, 3],      ["Mammals", "Mammals"],   [mammals, mammals]],
-      [2,    "Reptilia", [2, 4],      ["Reptilia", "Reptilia"], [reptiles, reptiles]],
+      ["id", "Name",     "Creatures", "Names",                  "Creatures2", "Creatures3"],
+      [1,    "Mammals",  [1, 3],      ["Mammals", "Mammals"],   mammals,      [1, 3]],
+      [2,    "Reptilia", [2, 4],      ["Reptilia", "Reptilia"], reptiles,     [2, 4]],
+      [3,    "Dragons",  None,        [],                       dragons,      []],
     ])
 
+  def test_lookup_attribute_chain(self):
+    self.load_sample(self.sample)
+    self.add_record('Class', Name="Dragons", Creatures=None)
+    self.add_column('Creatures', 'CName', isFormula=True, formula="$Class.Name")
+    self.add_column('Class', 'LookupAttrType', isFormula=True,
+        formula="type(Creatures.lookupRecords(CName=$Name).Class).__name__")
+    self.add_column('Class', 'Lookup', isFormula=True,
+        formula="Creatures.lookupRecords(CName=$Name).Class.Name")
+
+    self.assertTableData("Class", data=[
+      ["id", "Name",     "Creatures", "LookupAttrType", "Lookup"],
+      [1,    "Mammals",  [1, 3],      "RecordSet",      ["Mammals", "Mammals"]],
+      [2,    "Reptilia", [2, 4],      "RecordSet",      ["Reptilia", "Reptilia"]],
+      [3,    "Dragons",  None,        "RecordSet",      []],
+    ])
+
+  def test_reflist_attribute_chain(self):
+    self.load_sample(self.sample)
+    # Include an empty class
+    self.add_record('Class', Name="Dragons", Creatures=None)
+    self.add_column('Creatures', 'AllInClass', type='RefList:Creatures', isFormula=True,
+        formula="$Class.Creatures")
+    self.add_column('Class', 'ListOfRefLists', type='RefList:Creatures', isFormula=True,
+        formula="$Creatures.AllInClass")
+    self.add_column('Class', 'LRLAny', type='Any', isFormula=True,
+        formula="$Creatures.AllInClass")
+    self.add_column('Class', 'Chain', isFormula=True,
+        formula="$Creatures.AllInClass.Name")
+
+    mammals = RecordSetStub("Creatures", [1, 3])
+    reptiles = RecordSetStub("Creatures", [2, 4])
+    dragons = RecordSetStub("Creatures", [])
+    self.assertTableData("Class", data=[
+      ["id", "Name",     "Creatures", "ListOfRefLists", "LRLAny",   "Chain"],
+      [1,    "Mammals",  [1, 3],      [1, 3],           mammals,    ["Cat", "Dolphin"]],
+      [2,    "Reptilia", [2, 4],      [2, 4],           reptiles,   ["Chicken", "Turtle"]],
+      [3,    "Dragons",  None,        [],               dragons,    []],
+    ])
 
   def test_flattens_lookups_in_reflist(self):
     # Add table Users with column Name
@@ -156,8 +201,8 @@ class TestRecordList(test_engine.EngineTestCase):
     self.assertTableData("Users", cols="subset", data=[
       ["id", "Name", "Likes"],
       [Alice, "Alice", [Bob, Charlie, Alice]],
-      [Bob, "Bob", None],
-      [Charlie, "Charlie", None],
+      [Bob, "Bob", []],
+      [Charlie, "Charlie", []],
     ])
 
     # Now order it in descending order by Name.
@@ -170,8 +215,8 @@ class TestRecordList(test_engine.EngineTestCase):
     self.assertTableData("Users", cols="subset", data=[
       ["id", "Name", "Likes"],
       [Alice, "Alice", [Charlie, Bob, Alice]], # First likes from Post2, then from Post1
-      [Bob, "Bob", None],
-      [Charlie, "Charlie", None],
+      [Bob, "Bob", []],
+      [Charlie, "Charlie", []],
     ])
 
     # Now reorder the lookup by swapping the order of the posts.
@@ -181,8 +226,8 @@ class TestRecordList(test_engine.EngineTestCase):
     self.assertTableData("Users", cols="subset", data=[
       ["id", "Name", "Likes"],
       [Alice, "Alice", [Bob, Charlie, Alice]], # First likes from Post1, then from Post2
-      [Bob, "Bob", None],
-      [Charlie, "Charlie", None],
+      [Bob, "Bob", []],
+      [Charlie, "Charlie", []],
     ])
 
     # Now switch back to the original order by setting Post1 to Post3.
@@ -192,8 +237,8 @@ class TestRecordList(test_engine.EngineTestCase):
     self.assertTableData("Users", cols="subset", data=[
       ["id", "Name", "Likes"],
       [Alice, "Alice", [Charlie, Bob, Alice]], # First likes from Post2, then from Post3
-      [Bob, "Bob", None],
-      [Charlie, "Charlie", None],
+      [Bob, "Bob", []],
+      [Charlie, "Charlie", []],
     ])
 
     # Now modify the formula so that it contains other records, not Users.
@@ -204,12 +249,29 @@ class TestRecordList(test_engine.EngineTestCase):
 
     self.assertTableData("Users", cols="subset", data=[
       ["id", "Name", "Likes"],
-      [Alice, "Alice", "[Posts[RecordList([1, 2], group_by={'Owner': Users[1]}, sort_by=None)], " +
-                        "Posts[RecordList([1, 2], group_by={'Owner': Users[1]}, sort_by=None)]]"],
-      [Bob, "Bob", None],
-      [Charlie, "Charlie", None],
+      [Alice, "Alice", "Posts[[1, 2]]"],
+      [Bob, "Bob", "Posts[[]]"],
+      [Charlie, "Charlie", "Posts[[]]"],
     ])
 
+  def test_ref_to_reflist_conversion(self):
+    self.load_sample(self.sample)
+    # If a RefList column is set to a matching Ref value, it should get turned into a list.
+    self.add_column("Creatures", "ClassList1", type="RefList:Class",
+        isFormula=True, formula="$Class.id")
+    self.add_column("Creatures", "ClassList2", type="RefList:Class",
+        isFormula=True, formula="$Class")
+    # This one has the wrong RefList type, it shouldn't be auto-converted.
+    self.add_column("Creatures", "ClassList3", type="RefList:Creatures",
+        isFormula=True, formula="$Class")
+
+    self.assertTableData("Creatures", data=[
+      ["id","Name",    "Class", "ClassList1", "ClassList2", "ClassList3" ],
+      [1,   "Cat",     1,       [1],          [1],          "Class[1]"   ],
+      [2,   "Chicken", 2,       [2],          [2],          "Class[2]"   ],
+      [3,   "Dolphin", 1,       [1],          [1],          "Class[1]"   ],
+      [4,   "Turtle",  2,       [2],          [2],          "Class[2]"   ],
+    ])
 
 if __name__ == "__main__":
   unittest.main()

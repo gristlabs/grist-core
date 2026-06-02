@@ -1,12 +1,13 @@
-import {hoverTooltip} from 'app/client/ui/tooltips';
-import {colors, testId, theme, vars} from 'app/client/ui2018/cssVars';
-import {IconName} from 'app/client/ui2018/IconList';
-import {icon} from 'app/client/ui2018/icons';
-import {unstyledButton} from 'app/client/ui2018/unstyled';
-import {isColorDark} from 'app/common/gutil';
-import {components} from 'app/common/ThemePrefs';
-import {dom, DomElementArg, Observable, styled} from 'grainjs';
-import debounce = require('lodash/debounce');
+import { hoverTooltip } from "app/client/ui/tooltips";
+import { colors, testId, theme, vars } from "app/client/ui2018/cssVars";
+import { IconName } from "app/client/ui2018/IconList";
+import { icon } from "app/client/ui2018/icons";
+import { unstyledButton } from "app/client/ui2018/unstyled";
+import { isColorDark } from "app/common/gutil";
+import { components } from "app/common/ThemePrefs";
+
+import { dom, DomElementArg, Observable, styled } from "grainjs";
+import debounce from "lodash/debounce";
 
 export interface ISelectorOptionFull<T> {
   value: T;
@@ -45,7 +46,7 @@ export type ISelectorOption<T> = (T & string) | ISelectorOptionFull<T>;
  */
 export function buttonSelect<T>(
   obs: Observable<T>,
-  optionArray: Array<ISelectorOption<T>>,
+  optionArray: ISelectorOption<T>[],
   ...domArgs: DomElementArg[]
 ) {
   return makeButtonSelect(obs, optionArray, (val: T) => { obs.set(val); }, ...domArgs);
@@ -56,8 +57,8 @@ export function buttonSelect<T>(
  * Sets the observable `obs` to null when no items are selected.
  */
 export function buttonToggleSelect<T>(
-  obs: Observable<T|null>,
-  optionArray: Array<ISelectorOption<T>>,
+  obs: Observable<T | null>,
+  optionArray: ISelectorOption<T>[],
   ...domArgs: DomElementArg[]
 ) {
   const onClick = (val: T) => { obs.set(obs.get() === val ? null : val); };
@@ -68,19 +69,19 @@ export function buttonToggleSelect<T>(
  * Pre-made text alignment selector.
  */
 export function alignmentSelect(obs: Observable<string>, ...domArgs: DomElementArg[]) {
-  const alignments: Array<ISelectorOption<string>> = [
-    {value: 'left',   icon: 'LeftAlign'},
-    {value: 'center', icon: 'CenterAlign'},
-    {value: 'right',  icon: 'RightAlign'}
+  const alignments: ISelectorOption<string>[] = [
+    { value: "left",   icon: "LeftAlign" },
+    { value: "center", icon: "CenterAlign" },
+    { value: "right",  icon: "RightAlign" },
   ];
-  return buttonSelect(obs, alignments, {}, testId('alignment-select'), ...domArgs);
+  return buttonSelect(obs, alignments, {}, testId("alignment-select"), ...domArgs);
 }
 
 /**
  * Color selector button. Observable should contain a hex color value, e.g. #a4ba23.
  */
 export function colorSelect(value: Observable<string>, save: (val: string) => Promise<void>,
-                            ...domArgs: DomElementArg[]) {
+  ...domArgs: DomElementArg[]) {
   // On some machines (seen on chrome running on a Mac) the `change` event fires as many times as
   // the `input` event, hence the debounce. Also note that when user picks a first color and then a
   // second before closing the picker, it will create two user actions on Chrome, and only one in FF
@@ -94,21 +95,21 @@ export function colorSelect(value: Observable<string>, save: (val: string) => Pr
     // latest saved value we should rebind the <input .../> element each time the value is changed
     // by the server.
     cssColorPicker(
-      {type: 'color'},
-      dom.attr('value', (use) => use(value).slice(0, 7)),
-      dom.on('input', setValue),
-      dom.on('change', onSave)
+      { type: "color" },
+      dom.attr("value", use => use(value).slice(0, 7)),
+      dom.on("input", setValue),
+      dom.on("change", onSave),
     ),
-    dom.style('background-color', (use) => use(value) || '#000000'),
-    cssColorBtn.cls('-dark', (use) => isColorDark(use(value) || '#000000')),
-    cssColorIcon('Dots'),
-    ...domArgs
+    dom.style("background-color", use => use(value) || "#000000"),
+    cssColorBtn.cls("-dark", use => isColorDark(use(value) || "#000000")),
+    cssColorIcon("Dots"),
+    ...domArgs,
   );
 }
 
 export function makeButtonSelect<T>(
-  obs: Observable<T|null>,
-  optionArray: Array<ISelectorOption<T>>,
+  obs: Observable<T | null>,
+  optionArray: ISelectorOption<T>[],
   onClick: (value: T) => any,
   ...domArgs: DomElementArg[]
 ) {
@@ -120,15 +121,15 @@ export function makeButtonSelect<T>(
       const screenReaderLabel = !label && tooltip;
       return cssSelectorBtn(
         tooltip ? hoverTooltip(tooltip) : null,
-        screenReaderLabel ? {"aria-label": screenReaderLabel} : null,
-        cssSelectorBtn.cls('-selected', (use) => use(obs) === value),
-        dom.on('click', () => onClick(value)),
+        screenReaderLabel ? { "aria-label": screenReaderLabel } : null,
+        cssSelectorBtn.cls("-selected", use => use(obs) === value),
+        dom.on("click", () => onClick(value)),
         isFullOption(option) && option.icon ? icon(option.icon) : null,
         label ? cssSelectorLabel(label) : null,
-        testId('select-button')
+        testId("select-button"),
       );
     }),
-    ...domArgs
+    ...domArgs,
   );
 }
 
@@ -136,7 +137,7 @@ function isFullOption<T>(option: ISelectorOption<T>): option is ISelectorOptionF
   return typeof option !== "string";
 }
 
-function getOptionLabel<T>(option: ISelectorOption<T>): string|undefined {
+function getOptionLabel<T>(option: ISelectorOption<T>): string | undefined {
   return isFullOption(option) ? option.label : option;
 }
 
@@ -144,7 +145,7 @@ function getOptionValue<T>(option: ISelectorOption<T>): T {
   return isFullOption(option) ? option.value : option;
 }
 
-export const cssButtonSelect = styled('div', `
+export const cssButtonSelect = styled("div", `
   /* Resets */
   position: relative;
   outline: none;
@@ -239,12 +240,12 @@ const cssSelectorBtn = styled(unstyledButton, `
   }
 `);
 
-const cssSelectorLabel = styled('span', `
+const cssSelectorLabel = styled("span", `
   margin: 0 2px;
   vertical-align: middle;
 `);
 
-const cssColorBtn = styled('div', `
+const cssColorBtn = styled("div", `
   position: relative;
   display: flex;
   justify-content: center;
@@ -265,7 +266,7 @@ const cssColorBtn = styled('div', `
   }
 `);
 
-const cssColorPicker = styled('input', `
+const cssColorPicker = styled("input", `
   position: absolute;
   cursor: pointer;
   opacity: 0;

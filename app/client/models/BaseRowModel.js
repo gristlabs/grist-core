@@ -1,11 +1,11 @@
-var _ = require('underscore');
-var ko = require('knockout');
+var _ = require("underscore");
+var ko = require("knockout");
 
-var gutil = require('app/common/gutil');
+var gutil = require("app/common/gutil");
 
-var dispose = require('../lib/dispose');
+var dispose = require("../lib/dispose");
 
-var modelUtil = require('./modelUtil');
+var modelUtil = require("./modelUtil");
 
 
 /**

@@ -4,6 +4,7 @@ import re
 import json
 import logging
 import sys
+import time
 from contextlib import contextmanager
 
 import acl
@@ -12,6 +13,8 @@ import depend
 import gencode
 from dropdown_condition import parse_dropdown_conditions
 import dropdown_condition
+from trigger_expression import parse_conditions_in_triggers
+from trigger_expression import perform_trigger_condition_renames
 import actions
 import column
 import sort_specs
@@ -456,10 +459,51 @@ class UserActions(object):
 
     return filled_row_ids
 
+  @override_action('BulkAddRecord', '_grist_Triggers')
+  def _addTriggers(self, table_id, row_ids, col_values):
+    parse_conditions_in_triggers(col_values)
+    return self.doBulkAddOrReplace(table_id, row_ids, col_values)
+
   @override_action('BulkAddRecord', '_grist_ACLRules')
   def _addACLRules(self, table_id, row_ids, col_values):
     parse_acl_formulas(col_values)
     return self.doBulkAddOrReplace(table_id, row_ids, col_values)
+
+  @override_action('BulkAddRecord', '_grist_Cells')
+  def _addCells(self, table_id, row_ids, col_values):
+    self._restrict_cells_columns(col_values)
+
+    # Set timeCreated and timeUpdated automatically to current timestamp, this
+    # is a general practice for new records
+    current_time = int(time.time())
+    col_values['timeCreated'] = [current_time] * len(row_ids)
+    col_values['timeUpdated'] = [current_time] * len(row_ids)
+    # Set userRef automatically to current user
+    user_ref = self._engine._user.UserRef if self._engine._user else None
+    col_values['userRef'] = [user_ref] * len(row_ids)
+    return self.doBulkAddOrReplace(table_id, row_ids, col_values)
+
+  @override_action('BulkUpdateRecord', '_grist_Cells')
+  def _updateCells(self, table_id, row_ids, col_values):
+    self._restrict_cells_columns(col_values)
+
+    # Only set timeUpdated if the content field is being updated
+    # This tracks when the comment text was last modified, not
+    # status changes like resolve
+    if 'content' in col_values:
+      # Set timeUpdated automatically to current timestamp
+      current_time = time.time()
+      col_values['timeUpdated'] = [current_time] * len(row_ids)
+    return self.doBulkUpdateRecord(table_id, row_ids, col_values)
+
+  # Helper to prevent direct modification of protected fields in _grist_Cells table.
+  def _restrict_cells_columns(self, col_values):
+    # Prevent users from modifying cell columns that are protected
+    protected_fields = ['timeCreated', 'timeUpdated', 'userRef', 'cellId']
+    for field in protected_fields:
+      if field in col_values:
+        raise ValueError(f"Cannot modify {field} field directly")
+
 
   #----------------------------------------
   # UpdateRecords & co.
@@ -579,6 +623,11 @@ class UserActions(object):
 
     method = self._overrides.get(('BulkUpdateRecord', table_id), self.doBulkUpdateRecord)
     method(table_id, row_ids, columns)
+
+  @override_action('BulkUpdateRecord', '_grist_Triggers')
+  def _updateTriggerRecords(self, table_id, row_ids, col_values):
+    parse_conditions_in_triggers(col_values)
+    self.doBulkUpdateRecord(table_id, row_ids, col_values)
 
   @override_action('BulkUpdateRecord', '_grist_Validations')
   def _updateValidationRecords(self, table_id, row_ids, col_values):
@@ -793,6 +842,7 @@ class UserActions(object):
     if renames:
       acl.perform_acl_rule_renames(self, renames)
       dropdown_condition.perform_dropdown_condition_renames(self, renames)
+      perform_trigger_condition_renames(self, renames)
 
     for table_id in rebuild_summary_tables:
       table = self._engine.tables[table_id]
@@ -1059,8 +1109,15 @@ class UserActions(object):
     if not require and not allow_empty_require:
       raise ValueError("require is empty but allow_empty_require isn't set")
 
+    # Return value for the bulk add/update operation
+    result = {
+      'recordIds': [],
+      'addRecordIds': [],
+      'updateRecordIds': [],
+    }
+
     if not require and not col_values:
-      return  # nothing to do
+      return result
 
     lengths = {}
     lengths.update({'require ' + k:
@@ -1098,6 +1155,12 @@ class UserActions(object):
     update_record_ids = []
     update_record_values = {k: [] for k in col_keys - {'id'}}
 
+    # Need a placeholder array so the values can be set by index later.
+    result['recordIds'] = [[] for i in range(length)]
+    # Indexes in recordIds where new record ids will be inserted later,
+    # as we don't know them until the records are created.
+    new_record_indexes = []
+
     for i in range(length):
       current_require = {key: vals[i] for key, vals in decoded_require.items()}
       records = list(table.lookup_records(**current_require))
@@ -1107,6 +1170,7 @@ class UserActions(object):
         add_record_ids.append(values.pop("id", None))
         for key, value in values.items():
           add_record_values[key].append(value)
+        new_record_indexes.append(i)
 
       if records and update:
         if len(records) > 1:
@@ -1120,11 +1184,21 @@ class UserActions(object):
           for key, vals in col_values.items():
             update_record_values[key].append(vals[i])
 
+        matched_record_ids = [record.id for record in records]
+        result['recordIds'][i] = matched_record_ids
+        result['updateRecordIds'].append(matched_record_ids)
+
     if add_record_ids:
-      self.BulkAddRecord(table_id, add_record_ids, add_record_values)
+      new_record_ids = self.BulkAddRecord(table_id, add_record_ids, add_record_values)
+      # Fill in recordIds with the IDs of the new records
+      for i, new_record_index in enumerate(new_record_indexes):
+        result['recordIds'][new_record_index] = [new_record_ids[i]]
+        result['addRecordIds'].append(new_record_ids[i])
 
     if update_record_ids:
       self.BulkUpdateRecord(table_id, update_record_ids, update_record_values)
+
+    return result
 
   @useraction
   def AddOrUpdateRecord(self, table_id, require, col_values, options):
@@ -1136,9 +1210,36 @@ class UserActions(object):
 
     See `BulkAddOrUpdateRecord` for more details.
     """
+    if not require and not col_values:
+      return {
+        'recordIds': [],
+        'action': 'NONE',
+      }
+
     require = {k: [v] for k, v in require.items()}
     col_values = {k: [v] for k, v in col_values.items()}
-    self.BulkAddOrUpdateRecord(table_id, require, col_values, options)
+    result = self.BulkAddOrUpdateRecord(table_id, require, col_values, options)
+    # No result, or a failure to update (e.g. on_many is "none" and multiple rows are matched)
+    if len(result['recordIds']) == 0 or result['recordIds'] == [None]:
+      return {
+        'recordIds': [],
+        'action': 'NONE',
+      }
+
+    ids = result['recordIds'][0]
+
+    action = 'NONE'
+    # Only one change was requested, so only one of these arrays should have entries - it was either added or updated
+    if len(result['updateRecordIds']) > 0:
+      action = 'UPDATE'
+    elif len(result['addRecordIds']) > 0:
+      action = 'ADD'
+
+
+    return {
+      'recordIds': ids,
+      'action': action
+    }
 
   #----------------------------------------
   # RemoveRecords & co.

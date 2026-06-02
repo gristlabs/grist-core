@@ -31,6 +31,13 @@ jobs:
           - name: "grist"
             repo: "grist-ee"
     steps:
+      - name: Free some space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /usr/local/.ghcup
+          sudo rm -rf /usr/share/swift
+
       - name: Check out the repo
         uses: actions/checkout@v3
 

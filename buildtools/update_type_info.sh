@@ -4,9 +4,15 @@ set -e
 
 # updates any Foo*-ti.ts files $root that are older than Foo.ts
 
+force=false
+if [[ "$1" == "--force" ]]; then
+  force=true
+  shift
+fi
+
 root=$1
 if [[ -z "$root" ]]; then
-  echo "Usage: $0 app"
+  echo "Usage: $0 [--force] app"
   exit 1
 fi
 
@@ -15,11 +21,13 @@ for root in "$@"; do
     root=$(basename $ti -ti.ts)
     dir=$(dirname $ti)
     src="$dir/$root.ts"
+    # Check if source file exists
     if [ ! -e $src ]; then
       echo "Cannot find src $src for $ti, aborting"
       exit 1
     fi
-    if [ $src -nt $ti ]; then
+    # Check if source file is newer than the type info file or force flag is set
+    if [ "$force" = true ] || [ $src -nt $ti ]; then
       echo "Updating $ti from $src"
       node_modules/.bin/ts-interface-builder $src
     fi

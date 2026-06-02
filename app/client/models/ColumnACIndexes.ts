@@ -8,15 +8,15 @@
  *
  * It is currently used for auto-complete in the ReferenceEditor and ReferenceListEditor widgets.
  */
-import {ACIndex, ACIndexImpl, normalizeText} from 'app/client/lib/ACIndex';
-import {ColumnCache} from 'app/client/models/ColumnCache';
-import {UserError} from 'app/client/models/errors';
-import {TableData} from 'app/client/models/TableData';
-import {localeCompare, nativeCompare} from 'app/common/gutil';
-import {BaseFormatter} from 'app/common/ValueFormatter';
+import { ACIndex, ACIndexImpl, normalizeText } from "app/client/lib/ACIndex";
+import { ColumnCache } from "app/client/models/ColumnCache";
+import { UserError } from "app/client/models/errors";
+import { TableData } from "app/client/models/TableData";
+import { localeCompare, nativeCompare } from "app/common/gutil";
+import { BaseFormatter } from "app/common/ValueFormatter";
 
 export interface ICellItem {
-  rowId: number|'new';
+  rowId: number | "new";
   text: string;           // Formatted cell text.
   cleanText: string;      // Trimmed lowercase text for searching.
 }
@@ -38,7 +38,7 @@ export class ColumnACIndexes {
   public buildColACIndex(
     colId: string,
     formatter: BaseFormatter,
-    filter?: (item: ICellItem) => boolean
+    filter?: (item: ICellItem) => boolean,
   ): ACIndex<ICellItem> {
     const rowIds = this._tableData.getRowIds();
     const valColumn = this._tableData.getColValues(colId);
@@ -50,9 +50,9 @@ export class ColumnACIndexes {
         const rowId = rowIds[i];
         const text = formatter.formatAny(val);
         const cleanText = normalizeText(text);
-        return {rowId, text, cleanText};
+        return { rowId, text, cleanText };
       })
-      .filter((item) => filter?.(item) ?? true)
+      .filter(item => filter?.(item) ?? true)
       .sort(itemCompare);
     return new ACIndexImpl(items);
   }

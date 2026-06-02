@@ -8,6 +8,14 @@
         "emailNotVerifiedError": "Пожалуйста, подтвердите свой e-mail в службе идентификации и войдите в систему еще раз."
     },
     "access": {
-        "docNoAccess": "У вас нет доступа к этому документу."
+        "docNoAccess": "У вас нет доступа к этому документу.",
+        "docDisabled": "Этот документ отключен."
+    },
+    "admin": {
+        "emptyOrg": "В организации администратора, определенной `GRIST_INSTALL_ADMIN_ORG={{org}}` не найдены владельцы",
+        "accountByEmail": "Учётная запись администратора определяется `GRIST_DEFAULT_EMAIL={{defaultEmail}}`"
+    },
+    "DocApi": {
+        "UntitledDocument": "Безымянный документ"
     }
 }

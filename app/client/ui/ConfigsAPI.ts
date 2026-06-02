@@ -42,7 +42,7 @@ export class OrgConfigsAPI extends BaseAPI implements ConfigsAPI {
   constructor(
     private _org: number | string,
     private _homeUrl: string = getHomeUrl(),
-    options: IOptions = {}
+    options: IOptions = {},
   ) {
     super(options);
   }
@@ -52,7 +52,7 @@ export class OrgConfigsAPI extends BaseAPI implements ConfigsAPI {
       `${this._url}/api/orgs/${this._org}/configs/${key}`,
       {
         method: "GET",
-      }
+      },
     );
   }
 
@@ -62,7 +62,7 @@ export class OrgConfigsAPI extends BaseAPI implements ConfigsAPI {
       {
         method: "PUT",
         body: JSON.stringify(value),
-      }
+      },
     );
   }
 

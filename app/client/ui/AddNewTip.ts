@@ -1,4 +1,4 @@
-import {HomeModel} from 'app/client/models/HomeModel';
+import { HomeModel } from "app/client/models/HomeModel";
 
 export function attachAddNewTip(home: HomeModel): (el: Element) => void {
   return () => {
@@ -17,27 +17,27 @@ function shouldShowAddNewTip(home: HomeModel): boolean {
     // And the site isn't empty.
     !home.empty.get() &&
     // And home page cards aren't being shown.
-    !(home.currentPage.get() === 'all' && !home.onlyShowDocuments.get()) &&
+    !(home.currentPage.get() === "all" && !home.onlyShowDocuments.get()) &&
     // And the workspace loaded correctly.
     home.available.get() &&
     // And the current page isn't /p/trash; the Add New button is limited there.
-    home.currentPage.get() !== 'trash'
+    home.currentPage.get() !== "trash"
   );
 }
 
 function showAddNewTip(home: HomeModel): void {
-  const addNewButton = document.querySelector('.behavioral-prompt-add-new');
+  const addNewButton = document.querySelector(".behavioral-prompt-add-new");
   if (!addNewButton) {
-    console.warn('AddNewTip failed to find Add New button');
+    console.warn("AddNewTip failed to find Add New button");
     return;
   }
   if (!isVisible(addNewButton as HTMLElement)) {
     return;
   }
 
-  home.app.behavioralPromptsManager.showPopup(addNewButton, 'addNew', {
+  home.app.behavioralPromptsManager.showPopup(addNewButton, "addNew", {
     popupOptions: {
-      placement: 'right-start',
+      placement: "right-start",
     },
     onDispose: () => home.shouldShowAddNewTip.set(false),
   });

@@ -26,23 +26,24 @@
  * TODO: client-side should show "..." or "50000 more rows not shown" in that case.
  * TODO: Reference columns don't work properly because always use a displayCol which relies on formulas
  */
-import {ClientColumnGettersByColId} from 'app/client/models/ClientColumnGetters';
-import DataTableModel from 'app/client/models/DataTableModel';
-import {DocModel} from 'app/client/models/DocModel';
-import {BaseFilteredRowSource, RowList, RowSource} from 'app/client/models/rowset';
-import {TableData} from 'app/client/models/TableData';
-import {ActiveDocAPI, ClientQuery, QueryOperation} from 'app/common/ActiveDocAPI';
-import {TableDataAction} from 'app/common/DocActions';
-import {DocData} from 'app/common/DocData';
-import {nativeCompare} from 'app/common/gutil';
-import {IRefCountSub, RefCountMap} from 'app/common/RefCountMap';
-import {getLinkingFilterFunc, RowFilterFunc} from 'app/common/RowFilterFunc';
-import {TableData as BaseTableData} from 'app/common/TableData';
-import {tbind} from 'app/common/tbind';
-import {UIRowId} from 'app/plugin/GristAPI';
-import {Disposable, Holder, IDisposableOwnerT} from 'grainjs';
-import * as ko from 'knockout';
-import debounce = require('lodash/debounce');
+import { ClientColumnGettersByColId } from "app/client/models/ClientColumnGetters";
+import DataTableModel from "app/client/models/DataTableModel";
+import { DocModel } from "app/client/models/DocModel";
+import { BaseFilteredRowSource, RowList, RowSource } from "app/client/models/rowset";
+import { TableData } from "app/client/models/TableData";
+import { ActiveDocAPI, ClientQuery, QueryOperation } from "app/common/ActiveDocAPI";
+import { TableDataAction } from "app/common/DocActions";
+import { DocData } from "app/common/DocData";
+import { nativeCompare } from "app/common/gutil";
+import { IRefCountSub, RefCountMap } from "app/common/RefCountMap";
+import { getLinkingFilterFunc, RowFilterFunc } from "app/common/RowFilterFunc";
+import { TableData as BaseTableData } from "app/common/TableData";
+import { tbind } from "app/common/tbind";
+import { UIRowId } from "app/plugin/GristAPI";
+
+import { Disposable, Holder, IDisposableOwnerT } from "grainjs";
+import * as ko from "knockout";
+import debounce from "lodash/debounce";
 
 // Limit on the how many rows to request for OnDemand tables.
 const ON_DEMAND_ROW_LIMIT = 10000;
@@ -56,10 +57,10 @@ const MAX_SQL_PARAMS = 500;
  */
 export interface QueryRefs {
   tableRef: number;
-  filterTuples: Array<FilterTuple>;
+  filterTuples: FilterTuple[];
 }
 
-type ColRef = number | 'id';
+type ColRef = number | "id";
 type FilterTuple = [ColRef, QueryOperation, any[]];
 
 /**
@@ -109,7 +110,6 @@ export class QuerySetManager extends Disposable {
   public testSetGracePeriodMs(ms: number): number {
     return this._queryMap.testSetGracePeriodMs(ms);
   }
-
 }
 
 /**
@@ -159,10 +159,10 @@ export class DynamicQuerySet extends RowSource {
    * argument to cb() is true if any data was changed, and false if not. Note that for a series of
    * makeQuery() calls, cb() is always called at least once, and always asynchronously.
    */
-  public makeQuery(filters: {[colId: string]: any[]},
-                   operations: {[colId: string]: QueryOperation},
-                   cb: (err: Error|null, changed: boolean) => void): void {
-    const query: ClientQuery = {tableId: this._tableModel.tableData.tableId, filters, operations};
+  public makeQuery(filters: { [colId: string]: any[] },
+    operations: { [colId: string]: QueryOperation },
+    cb: (err: Error | null, changed: boolean) => void): void {
+    const query: ClientQuery = { tableId: this._tableModel.tableData.tableId, filters, operations };
     const newQuerySet = this._querySetManager.useQuerySet(this._holder, query);
     const ticket = this._getTicket();
 
@@ -173,23 +173,23 @@ export class DynamicQuerySet extends RowSource {
       if (!ticket.isValid()) { return; }
       this._updateQuerySetDebounced(newQuerySet, cb);
     })
-    .catch((err) => { cb(err, false); });
+      .catch((err) => { cb(err, false); });
   }
 
-  private _updateQuerySet(nextQuerySet: QuerySet, cb: (err: Error|null, changed: boolean) => void): void {
+  private _updateQuerySet(nextQuerySet: QuerySet, cb: (err: Error | null, changed: boolean) => void): void {
     try {
       if (nextQuerySet !== this._querySet) {
         const oldQuerySet = this._querySet;
         this._querySet = nextQuerySet;
 
         if (oldQuerySet) {
-          this.stopListening(oldQuerySet, 'rowChange');
-          this.stopListening(oldQuerySet, 'rowNotify');
-          this.trigger('rowChange', 'remove', oldQuerySet.getAllRows());
+          this.stopListening(oldQuerySet, "rowChange");
+          this.stopListening(oldQuerySet, "rowNotify");
+          this.trigger("rowChange", "remove", oldQuerySet.getAllRows());
         }
-        this.trigger('rowChange', 'add', this._querySet.getAllRows());
-        this.listenTo(this._querySet, 'rowNotify', tbind(this.trigger, this, 'rowNotify'));
-        this.listenTo(this._querySet, 'rowChange', tbind(this.trigger, this, 'rowChange'));
+        this.trigger("rowChange", "add", this._querySet.getAllRows());
+        this.listenTo(this._querySet, "rowNotify", tbind(this.trigger, this, "rowNotify"));
+        this.listenTo(this._querySet, "rowChange", tbind(this.trigger, this, "rowChange"));
       }
       cb(null, true);
     } catch (err) {
@@ -200,7 +200,7 @@ export class DynamicQuerySet extends RowSource {
   private _getTicket() {
     const myTicket = ++this._lastTicket;
     return {
-      isValid: () => this._lastTicket === myTicket
+      isValid: () => this._lastTicket === myTicket,
     };
   }
 }
@@ -257,7 +257,7 @@ export class QuerySet extends BaseFilteredRowSource {
     let fetchPromise: Promise<void>;
     if (tableModel.tableMetaRow.onDemand()) {
       const tableQS = tableModel.tableQuerySets;
-      fetchPromise = docComm.useQuerySet({limit: ON_DEMAND_ROW_LIMIT, ...query}).then((data) => {
+      fetchPromise = docComm.useQuerySet({ limit: ON_DEMAND_ROW_LIMIT, ...query }).then((data) => {
         // We assume that if we fetched the max number of rows, that there are likely more and the
         // result should be reported as truncated.
         // TODO: Better to fetch ON_DEMAND_ROW_LIMIT + 1 and omit one of them, so that isTruncated
@@ -269,7 +269,6 @@ export class QuerySet extends BaseFilteredRowSource {
 
         this.onDispose(() => {
           docComm.disposeQuerySet(data.querySubId).catch((err) => {
-            // tslint:disable-next-line:no-console
             console.log(`Promise rejected for disposeQuerySet: ${err.message}`);
           });
           tableQS.removeQuerySet(this);
@@ -290,7 +289,7 @@ export class QuerySet extends BaseFilteredRowSource {
  * Helper for use in a DataTableModel to maintain all QuerySets.
  */
 export class TableQuerySets {
-  private _querySets: Set<QuerySet> = new Set();
+  private _querySets = new Set<QuerySet>();
 
   constructor(private _tableData: TableData) {}
 
@@ -336,7 +335,7 @@ function convertQueryToRefs(docModel: DocModel, query: ClientQuery): QueryRefs {
     throw new Error(`Table ${query.tableId} not found`);
   }
 
-  const colRefsByColId: {[colId: string]: ColRef} = {id: 'id'};
+  const colRefsByColId: { [colId: string]: ColRef } = { id: "id" };
   for (const col of tableRec.columns.peek().peek()) {
     colRefsByColId[col.colId.peek()] = col.getRowId();
   }
@@ -350,7 +349,7 @@ function convertQueryToRefs(docModel: DocModel, query: ClientQuery): QueryRefs {
   // Keep filters sorted by colRef, for consistency.
   filterTuples.sort((a, b) =>
     nativeCompare(a[0], b[0]) || nativeCompare(a[1], b[1]));
-  return {tableRef: tableRec.getRowId(), filterTuples};
+  return { tableRef: tableRec.getRowId(), filterTuples };
 }
 
 /**
@@ -359,14 +358,14 @@ function convertQueryToRefs(docModel: DocModel, query: ClientQuery): QueryRefs {
  */
 function convertQueryFromRefs(docModel: DocModel, queryRefs: QueryRefs): ClientQuery {
   const tableRec = docModel.dataTablesByRef.get(queryRefs.tableRef)!.tableMetaRow;
-  const filters: {[colId: string]: any[]} = {};
-  const operations: {[colId: string]: QueryOperation} = {};
+  const filters: { [colId: string]: any[] } = {};
+  const operations: { [colId: string]: QueryOperation } = {};
   for (const [colRef, operation, values] of queryRefs.filterTuples) {
-    const colId = colRef === 'id' ? 'id' : docModel.columns.getRowModel(colRef).colId.peek();
+    const colId = colRef === "id" ? "id" : docModel.columns.getRowModel(colRef).colId.peek();
     filters[colId] = values;
     operations[colId] = operation;
   }
-  return {tableId: tableRec.tableId.peek(), filters, operations};
+  return { tableId: tableRec.tableId.peek(), filters, operations };
 }
 
 /**
@@ -383,7 +382,7 @@ function encodeQuery(queryRefs: QueryRefs): string {
 // Decode an encoded QueryRefs.
 function decodeQuery(queryKey: string): QueryRefs {
   const [tableRef, filterTuples] = JSON.parse(queryKey);
-  return {tableRef, filterTuples};
+  return { tableRef, filterTuples };
 }
 
 /**
@@ -392,7 +391,7 @@ function decodeQuery(queryKey: string): QueryRefs {
  */
 function makeQueryInvalidComputed(docModel: DocModel, queryRefs: QueryRefs): ko.Computed<boolean> {
   const tableFlag: ko.Observable<boolean> = docModel.tables.getRowModel(queryRefs.tableRef)._isDeleted;
-  const colFlags: Array<ko.Observable<boolean> | null> = queryRefs.filterTuples.map(
-    ([colRef, , ]) => colRef === 'id' ? null : docModel.columns.getRowModel(colRef)._isDeleted);
-  return ko.computed(() => Boolean(tableFlag() || colFlags.some((c) => c?.())));
+  const colFlags: (ko.Observable<boolean> | null)[] = queryRefs.filterTuples.map(
+    ([colRef, ,]) => colRef === "id" ? null : docModel.columns.getRowModel(colRef)._isDeleted);
+  return ko.computed(() => Boolean(tableFlag() || colFlags.some(c => c?.())));
 }

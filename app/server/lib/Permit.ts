@@ -28,7 +28,7 @@
 export interface Permit {
   docId?: string;       // A particular document.
   workspaceId?: number; // A particular workspace.
-  org?: string|number;  // A particular org.
+  org?: string | number;  // A particular org.
   otherDocId?: string;  // For operations involving two documents.
   sessionId?: string;   // A particular session.
   url?: string;         // A particular url.
@@ -43,7 +43,7 @@ export interface IPermitStore {
   setPermit(permit: Permit, ttlMs?: number): Promise<string>;
 
   // Get any permit associated with the given key, or null if none.
-  getPermit(permitKey: string): Promise<Permit|null>;
+  getPermit(permitKey: string): Promise<Permit | null>;
 
   // Remove any permit associated with the given key.
   removePermit(permitKey: string): Promise<void>;

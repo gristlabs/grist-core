@@ -38,6 +38,48 @@ declare module "app-module-path" {
 
 declare module "csv";
 
-declare module 'winston/lib/winston/common' {
+declare module "winston/lib/winston/common" {
   export function serialize(meta: any): string;
+}
+
+declare module "file-type" {
+  export * from "file-type/source/index";
+}
+
+/**
+ * Type definitions for Grist environment variables.
+ *
+ * This extends NodeJS.ProcessEnv to provide type safety and autocompletion
+ * for environment variables used throughout the Grist codebase.
+ */
+declare namespace NodeJS {
+  interface ProcessEnv {
+    // Database
+    TYPEORM_TYPE?: string;
+    TYPEORM_LOGGING?: "true" | "false";
+    TYPEORM_DATABASE?: string;
+    TYPEORM_HOST?: string;
+    TYPEORM_PORT?: string;
+    TYPEORM_USERNAME?: string;
+    TYPEORM_PASSWORD?: string;
+    TYPEORM_EXTRA?: string;
+    TYPEORM_EXTRA_DRAFT?: string;
+    REDIS_URL?: string;
+    TEST_REDIS_URL?: string;
+
+    // Notifications
+    GRIST_NOTIFIER?: "sendgrid" | "smtp" | "test";
+    SENDGRID_API_KEY?: string;
+    GRIST_NODEMAILER_SENDER?: string;
+    GRIST_NODEMAILER_CONFIG?: string;
+    GRIST_SMTP_TEMPLATES_DIR?: string;
+
+    // Testing and development
+    GRIST_TEST_SERVER_DEPLOYMENT_TYPE?: "core" | "enterprise" | "saas" | "static" | "electron";
+
+    // When set, run as a restart shell that holds the listening
+    // socket and spawns a child Grist server, enabling restart
+    // without dropping /status.
+    GRIST_RESTART_SHELL?: string;
+  }
 }

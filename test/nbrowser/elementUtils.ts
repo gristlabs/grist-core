@@ -1,5 +1,6 @@
-import { driver, WebElementPromise } from "mocha-webdriver";
 import * as gu from "test/nbrowser/gristUtils";
+
+import { driver, WebElementPromise } from "mocha-webdriver";
 
 export interface Button {
   click(): Promise<void>;
@@ -21,7 +22,7 @@ export const element = (testId: string) => ({
   },
   async present() {
     return await this.element().isPresent();
-  }
+  },
 });
 
 export const label = (testId: string) => ({
@@ -42,7 +43,6 @@ export const button = (testId: string): Button => ({
 export const option = (testId: string) => ({
   ...button(testId),
   async checked() {
-    return 'true' === await this.element().findClosest("label").find("input[type='checkbox']").getAttribute('checked');
-  }
+    return "true" === await this.element().findClosest("label").find("input[type='checkbox']").getAttribute("checked");
+  },
 });
-

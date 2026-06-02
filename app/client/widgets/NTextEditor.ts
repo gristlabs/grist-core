@@ -1,14 +1,15 @@
 /**
  * This is a copy of TextEditor.js, converted to typescript.
  */
-import {createGroup} from 'app/client/components/commands';
-import {testId} from 'app/client/ui2018/cssVars';
-import {createMobileButtons, getButtonMargins} from 'app/client/widgets/EditorButtons';
-import {EditorPlacement, ISize} from 'app/client/widgets/EditorPlacement';
-import {FieldOptions, NewBaseEditor} from 'app/client/widgets/NewBaseEditor';
-import {CellValue} from "app/common/DocActions";
-import {undef} from 'app/common/gutil';
-import {dom, Observable} from 'grainjs';
+import { createGroup } from "app/client/components/commands";
+import { testId } from "app/client/ui2018/cssVars";
+import { createMobileButtons, getButtonMargins } from "app/client/widgets/EditorButtons";
+import { EditorPlacement, ISize } from "app/client/widgets/EditorPlacement";
+import { FieldOptions, NewBaseEditor } from "app/client/widgets/NewBaseEditor";
+import { CellValue } from "app/common/DocActions";
+import { undef } from "app/common/gutil";
+
+import { dom, Observable } from "grainjs";
 
 export class NTextEditor extends NewBaseEditor {
   // Observable with current editor state (used by drafts or latest edit/position component)
@@ -29,35 +30,35 @@ export class NTextEditor extends NewBaseEditor {
     super(options);
 
     const initialValue: string = undef(
-        options.state as string | undefined,
-        options.editValue, String(options.cellValue ?? ""));
+      options.state as string | undefined,
+      options.editValue, String(options.cellValue ?? ""));
     this.editorState = Observable.create<string>(this, initialValue);
 
     this.commandGroup = this.autoDispose(createGroup(options.commands, this, true));
-    this._alignment = options.field.widgetOptionsJson.peek().alignment || 'left';
+    this._alignment = options.field.widgetOptionsJson.peek().alignment || "left";
     this._dom =
-    dom('div.default_editor',
+      dom("div.default_editor",
       // add readonly class
-      dom.cls("readonly_editor", options.readonly),
-      this.cellEditorDiv = dom('div.celleditor_cursor_editor',
-        testId('widget-text-editor'),
-        this._contentSizer = dom('div.celleditor_content_measure'),
-        this.textInput = dom('textarea',
-          dom.cls('celleditor_text_editor'),
-          dom.style('text-align', this._alignment),
-          dom.prop('value', initialValue),
-          dom.boolAttr('readonly', options.readonly),
-          this.commandGroup.attach(),
-          dom.on('input', () => this.onInput())
-        )
-      ),
-      createMobileButtons(options.commands),
-    );
+        dom.cls("readonly_editor", options.readonly),
+        this.cellEditorDiv = dom("div.celleditor_cursor_editor",
+          testId("widget-text-editor"),
+          this._contentSizer = dom("div.celleditor_content_measure"),
+          this.textInput = dom("textarea",
+            dom.cls("celleditor_text_editor"),
+            dom.style("text-align", this._alignment),
+            dom.prop("value", initialValue),
+            dom.boolAttr("readonly", options.readonly),
+            this.commandGroup.attach(),
+            dom.on("input", () => this.onInput()),
+          ),
+        ),
+        createMobileButtons(options.commands),
+      );
   }
 
   public attach(cellElem: Element): void {
     // Attach the editor dom to page DOM.
-    this._editorPlacement = EditorPlacement.create(this, this._dom, cellElem, {margins: getButtonMargins()});
+    this._editorPlacement = EditorPlacement.create(this, this._dom, cellElem, { margins: getButtonMargins() });
 
     // Reposition the editor if needed for external reasons (in practice, window resize).
     this.autoDispose(this._editorPlacement.onReposition.addListener(this.resizeInput, this));
@@ -92,8 +93,8 @@ export class NTextEditor extends NewBaseEditor {
     // Set the max width of the sizer to the max we could possibly grow to, so that it knows to wrap
     // once we reach it.
     const maxSize = this._editorPlacement.calcSizeWithPadding(this.textInput,
-      {width: Infinity, height: Infinity}, {calcOnly: true});
-    this._contentSizer.style.maxWidth = Math.ceil(maxSize.width) + 'px';
+      { width: Infinity, height: Infinity }, { calcOnly: true });
+    this._contentSizer.style.maxWidth = Math.ceil(maxSize.width) + "px";
   }
 
   public get contentSizer(): HTMLElement {
@@ -125,7 +126,7 @@ export class NTextEditor extends NewBaseEditor {
     const textInput = this.textInput;
     // \u200B is a zero-width space; it is used so the textbox will expand vertically
     // on newlines, but it does not add any width.
-    this._contentSizer.textContent = textInput.value + '\u200B';
+    this._contentSizer.textContent = textInput.value + "\u200B";
     const rect = this._contentSizer.getBoundingClientRect();
 
     // Allow for a bit of extra space after the cursor (only desirable when text is left-aligned).
@@ -135,15 +136,15 @@ export class NTextEditor extends NewBaseEditor {
     }
 
     const size = this._editorPlacement.calcSizeWithPadding(textInput, rect);
-    textInput.style.width = size.width + 'px';
-    textInput.style.height = size.height + 'px';
+    textInput.style.width = size.width + "px";
+    textInput.style.height = size.height + "px";
 
     // Scrollbars are first visible (as the content get larger), but resizing should hide them (if there is enough
     // space), but this doesn't work in Chrome on Windows or Ubuntu (but works on Mac). Here if scrollbars are visible,
     // but we got same enough spaces, we will force browser to check the available space once more time.
     if (enoughSpace(rect, size) && hasScroll(textInput)) {
       textInput.style.overflow = "hidden";
-      // eslint-disable-next-line no-unused-expressions
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions, no-unused-expressions
       textInput.clientHeight; // just access metrics is enough to repaint
       textInput.style.overflow = "auto";
     }

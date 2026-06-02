@@ -17,25 +17,25 @@ export type Formula = LiteralNumberFormula | ColumnFormula | ForeignColumnFormul
 
 // A simple copy of another column.  E.g. "$Person"
 export interface ColumnFormula {
-  kind: 'column';
+  kind: "column";
   colId: string;
 }
 
 // A copy of a column in another table (via a reference column).  E.g. "$Person.FirstName"
 export interface ForeignColumnFormula {
-  kind: 'foreignColumn';
+  kind: "foreignColumn";
   colId: string;
   refColId: string;
 }
 
 export interface LiteralNumberFormula {
-  kind: 'literalNumber';
+  kind: "literalNumber";
   value: number;
 }
 
 // A formula that couldn't be parsed.
 export interface FormulaError {
-  kind: 'error';
+  kind: "error";
   msg: string;
 }
 
@@ -50,23 +50,23 @@ export function parseFormula(txt: string): Formula {
   // Formula of form: $x.y
   let m = txt.match(/^\$([a-z]\w*)\.([a-z]\w*)$/i);
   if (m) {
-    return {kind: 'foreignColumn', refColId: m[1], colId: m[2]};
+    return { kind: "foreignColumn", refColId: m[1], colId: m[2] };
   }
 
   // Formula of form: $x
   m = txt.match(/^\$([a-z][a-z_0-9]*)$/i);
   if (m) {
-    return {kind: 'column', colId: m[1]};
+    return { kind: "column", colId: m[1] };
   }
 
   // Formula of form: NNN
   m = txt.match(/^[0-9]+$/);
   if (m) {
     const value = parseInt(txt, 10);
-    if (isNaN(value)) { return {kind: 'error', msg: 'Cannot parse integer'}; }
-    return {kind: 'literalNumber', value};
+    if (isNaN(value)) { return { kind: "error", msg: "Cannot parse integer" }; }
+    return { kind: "literalNumber", value };
   }
 
   // Everything else is an error.
-  return {kind: 'error', msg: 'Formula not supported'};
+  return { kind: "error", msg: "Formula not supported" };
 }

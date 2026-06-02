@@ -213,6 +213,7 @@ class DocModel(object):
     self.pages                   = self._prep_table("_grist_Pages")
     self.aclResources            = self._prep_table("_grist_ACLResources")
     self.aclRules                = self._prep_table("_grist_ACLRules")
+    self.triggers                = self._prep_table("_grist_Triggers")
     self.filters                 = self._prep_table("_grist_Filters")
     self.cells                   = self._prep_table("_grist_Cells")
 

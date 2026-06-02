@@ -1,12 +1,14 @@
-import {ApiError} from 'app/common/ApiError';
-import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {FilterColValues} from "app/common/ActiveDocAPI";
-import {DownloadOptions, ExportData, ExportHeader, exportSection, exportTable, Filter} from 'app/server/lib/Export';
-import log from 'app/server/lib/log';
-import contentDisposition from 'content-disposition';
-import {stringify} from 'csv';
-import * as express from 'express';
-import {promisify} from 'util';
+import { FilterColValues } from "app/common/ActiveDocAPI";
+import { ApiError } from "app/common/ApiError";
+import { ActiveDoc } from "app/server/lib/ActiveDoc";
+import { DownloadOptions, ExportData, ExportHeader, exportSection, exportTable, Filter } from "app/server/lib/Export";
+import log from "app/server/lib/log";
+
+import { promisify } from "util";
+
+import contentDisposition from "content-disposition";
+import { stringify } from "csv";
+import * as express from "express";
 
 const stringifyAsync = promisify(stringify);
 
@@ -14,7 +16,7 @@ export interface DownloadDsvOptions extends DownloadOptions {
   delimiter: Delimiter;
 }
 
-type Delimiter = ',' | '\t' | '💩';
+type Delimiter = "," | "\t" | "💩";
 
 /**
  * Converts `activeDoc` to delimiter-separated values (e.g. CSV) and sends
@@ -24,19 +26,25 @@ export async function downloadDSV(
   activeDoc: ActiveDoc,
   req: express.Request,
   res: express.Response,
-  options: DownloadDsvOptions
+  options: DownloadDsvOptions,
 ) {
-  const {filename, tableId, viewSectionId, filters, sortOrder, linkingFilter, delimiter, header} = options;
+  const { filename, tableId, viewSectionId, filters, sortOrder, linkingFilter, delimiter, header } = options;
   const extension = getDSVFileExtension(delimiter);
   log.info(`Generating ${extension} file...`);
-  const data = viewSectionId ?
-    await makeDSVFromViewSection({
+  let data;
+  if (viewSectionId) {
+    data = await makeDSVFromViewSection({
       activeDoc, viewSectionId, sortOrder: sortOrder || null, filters: filters || null,
-      linkingFilter: linkingFilter || null, header, delimiter, req
-    }) :
-    await makeDSVFromTable({activeDoc, tableId, header, delimiter, req});
-  res.set('Content-Type', getDSVMimeType(delimiter));
-  res.setHeader('Content-Disposition', contentDisposition(filename + extension));
+      linkingFilter: linkingFilter || null, header, delimiter, req,
+    });
+  } else {
+    if (!tableId) {
+      throw new ApiError("tableId parameter is required", 400);
+    }
+    data = await makeDSVFromTable({ activeDoc, tableId, header, delimiter, req });
+  }
+  res.set("Content-Type", getDSVMimeType(delimiter));
+  res.setHeader("Content-Disposition", contentDisposition(filename + extension));
   res.send(data);
 }
 
@@ -65,7 +73,7 @@ export async function makeDSVFromViewSection({
   linkingFilter = null,
   delimiter,
   header,
-  req
+  req,
 }: {
   activeDoc: ActiveDoc,
   viewSectionId: number,
@@ -76,7 +84,6 @@ export async function makeDSVFromViewSection({
   delimiter: Delimiter,
   req: express.Request
 }) {
-
   const data = await exportSection(activeDoc, viewSectionId, sortOrder, filters, linkingFilter, req);
   const file = convertToDsv(data, { header, delimiter });
   return file;
@@ -101,14 +108,13 @@ export async function makeDSVFromTable({ activeDoc, tableId, delimiter, header, 
   header?: ExportHeader,
   req: express.Request
 }) {
-
   if (!activeDoc.docData) {
-    throw new Error('No docData in active document');
+    throw new Error("No docData in active document");
   }
 
   // Look up the table to make a CSV from.
-  const tables = activeDoc.docData.getMetaTable('_grist_Tables');
-  const tableRef = tables.findRow('tableId', tableId);
+  const tables = activeDoc.docData.getMetaTable("_grist_Tables");
+  const tableRef = tables.findRow("tableId", tableId);
 
   if (tableRef === 0) {
     throw new ApiError(`Table ${tableId} not found.`, 404);
@@ -125,53 +131,53 @@ interface ConvertToDsvOptions {
 }
 
 function convertToDsv(data: ExportData, options: ConvertToDsvOptions) {
-  const {rowIds, access, columns: viewColumns} = data;
-  const {delimiter, header} = options;
+  const { rowIds, access, columns: viewColumns } = data;
+  const { delimiter, header } = options;
   // create formatters for columns
   const formatters = viewColumns.map(col => col.formatter);
   // Arrange the data into a row-indexed matrix, starting with column headers.
-  const colPropertyAsHeader = header ?? 'label';
+  const colPropertyAsHeader = header ?? "label";
   const csvMatrix = [viewColumns.map(col => col[colPropertyAsHeader])];
   // populate all the rows with values as strings
-  rowIds.forEach(row => {
+  rowIds.forEach((row) => {
     csvMatrix.push(access.map((getter, c) => formatters[c].formatAny(getter(row))));
   });
-  return stringifyAsync(csvMatrix, {delimiter});
+  return stringifyAsync(csvMatrix, { delimiter });
 }
 
-type DSVFileExtension = '.csv' | '.tsv' | '.dsv';
+type DSVFileExtension = ".csv" | ".tsv" | ".dsv";
 
 function getDSVFileExtension(delimiter: Delimiter): DSVFileExtension {
   switch (delimiter) {
-    case ',': {
-      return '.csv';
+    case ",": {
+      return ".csv";
     }
-    case '\t': {
-      return '.tsv';
+    case "\t": {
+      return ".tsv";
     }
-    case '💩': {
-      return '.dsv';
+    case "💩": {
+      return ".dsv";
     }
   }
 }
 
 type DSVMimeType =
-  | 'text/csv'
+  | "text/csv" |
   // Reference: https://www.iana.org/assignments/media-types/text/tab-separated-values
-  | 'text/tab-separated-values'
+  "text/tab-separated-values" |
   // Note: not a registered MIME type, hence the "x-" prefix.
-  | 'text/x-doo-separated-values';
+  "text/x-doo-separated-values";
 
 function getDSVMimeType(delimiter: Delimiter): DSVMimeType {
   switch (delimiter) {
-    case ',': {
-      return 'text/csv';
+    case ",": {
+      return "text/csv";
     }
-    case '\t': {
-      return 'text/tab-separated-values';
+    case "\t": {
+      return "text/tab-separated-values";
     }
-    case '💩': {
-      return 'text/x-doo-separated-values';
+    case "💩": {
+      return "text/x-doo-separated-values";
     }
   }
 }

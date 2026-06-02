@@ -1005,10 +1005,10 @@ class TestUserActions(test_engine.EngineTestCase):
     })
     self.load_sample(sample)
 
-    def check(require, values, options, stored):
+    def check(require, values, options, stored, retValue):
       self.assertPartialOutActions(
         self.apply_user_action(["AddOrUpdateRecord", "Table1", require, values, options]),
-        {"stored": stored},
+        {"stored": stored, "retValues": [retValue]},
       )
 
     # Exactly one match, so on_many=none has no effect
@@ -1017,6 +1017,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {"pet": "dog", "color": "red"},
       {"on_many": "none"},
       [["UpdateRecord", "Table1", 2, {"color": "red", "pet": "dog"}]],
+      {"recordIds": [2], "action": "UPDATE"},
     )
 
     # Look for a record with pet=dog and change it to pet=cat
@@ -1025,6 +1026,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {"pet": "cat"},
       {},
       [["UpdateRecord", "Table1", 2, {"pet": "cat"}]],
+      {"recordIds": [2], "action": "UPDATE"},
     )
 
     # Two records match first_name=John, by default we only update the first
@@ -1033,6 +1035,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {"color": "blue"},
       {},
       [["UpdateRecord", "Table1", 1, {"color": "blue"}]],
+      {"recordIds": [1], "action": "UPDATE"},
     )
 
     # Update all matching records
@@ -1043,6 +1046,7 @@ class TestUserActions(test_engine.EngineTestCase):
       [
         ["BulkUpdateRecord", "Table1", [1, 2], {"color": ["green", "green"]}],
       ],
+      {"recordIds": [1, 2], "action": "UPDATE"},
     )
 
     # Update all records with empty require and allow_empty_require
@@ -1053,6 +1057,7 @@ class TestUserActions(test_engine.EngineTestCase):
       [
         ["BulkUpdateRecord", "Table1", [1, 2], {"color": ["greener", "greener"]}],
       ],
+      {"recordIds": [1, 2], "action": "UPDATE"},
     )
 
     # Missing allow_empty_require
@@ -1062,6 +1067,7 @@ class TestUserActions(test_engine.EngineTestCase):
         {"color": "greenest"},
         {},
         [],
+        [],
       )
 
     # Don't update any records when there's several matches
@@ -1070,6 +1076,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {"color": "yellow"},
       {"on_many": "none"},
       [],
+      {"recordIds": [], "action": "NONE"},
     )
 
     # Invalid value of on_many
@@ -1079,6 +1086,7 @@ class TestUserActions(test_engine.EngineTestCase):
         {"color": "yellow"},
         {"on_many": "other"},
         [],
+        [],
       )
 
     # Since there's at least one matching record and update=False, do nothing
@@ -1087,6 +1095,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {"color": "yellow"},
       {"update": False},
       [],
+      {"recordIds": [], "action": "NONE"},
     )
 
     # Since there's no matching records and add=False, do nothing
@@ -1095,6 +1104,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {"first_name": "Jack", "color": "yellow"},
       {"add": False},
       [],
+      {"recordIds": [], "action": "NONE"},
     )
 
     # No matching record, make a new one.
@@ -1107,6 +1117,7 @@ class TestUserActions(test_engine.EngineTestCase):
         ["AddRecord", "Table1", 3,
         {"color": "yellow", "first_name": "Jack", "last_name": "Johnson"}]
       ],
+      {"recordIds": [3], "action": "ADD"},
     )
 
     # Specifying a row ID in `require` is allowed
@@ -1115,6 +1126,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {"pet": "fish"},
       {},
       [["AddRecord", "Table1", 100, {"first_name": "Bob", "pet": "fish"}]],
+      {"recordIds": [100], "action": "ADD"},
     )
 
     # Now the row already exists
@@ -1123,6 +1135,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {"pet": "fish"},
       {},
       [],
+      {"recordIds": [100], "action": "UPDATE"},
     )
 
     # Nothing matches this `require`, but the row ID already exists
@@ -1132,6 +1145,7 @@ class TestUserActions(test_engine.EngineTestCase):
         {"pet": "fish"},
         {},
         [],
+        [],
       )
 
     # Formula columns in `require` can't be used as values when creating records
@@ -1140,6 +1154,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {"first_name": "Alice"},
       {},
       [["AddRecord", "Table1", 101, {"first_name": "Alice"}]],
+      {"recordIds": [101], "action": "ADD"},
     )
 
     with self.assertRaises(ValueError):
@@ -1149,6 +1164,7 @@ class TestUserActions(test_engine.EngineTestCase):
         {"pet": "fish"},
         {},
         [],
+        [],
       )
 
     # Check that encoded objects are decoded correctly
@@ -1157,12 +1173,14 @@ class TestUserActions(test_engine.EngineTestCase):
       {},
       {},
       [["AddRecord", "Table1", 102, {"date": 950400}]],
+      {"recordIds": [102], "action": "ADD"},
     )
     check(
       {"date": ['d', 950400]},
       {"date": ['d', 1900800]},
       {},
       [["UpdateRecord", "Table1", 102, {"date": 1900800}]],
+      {"recordIds": [102], "action": "UPDATE"},
     )
 
     # Empty both does nothing
@@ -1171,6 +1189,7 @@ class TestUserActions(test_engine.EngineTestCase):
       {},
       {"allow_empty_require": True},
       [],
+      {"recordIds": [], "action": "NONE"},
     )
 
   def test_bulk_add_or_update(self):
@@ -1192,10 +1211,11 @@ class TestUserActions(test_engine.EngineTestCase):
     })
     self.load_sample(sample)
 
-    def check(require, values, options, stored):
+    def check(require, values, options, stored, retValues):
+      result = self.apply_user_action(["BulkAddOrUpdateRecord", "Table1", require, values, options])
       self.assertPartialOutActions(
-        self.apply_user_action(["BulkAddOrUpdateRecord", "Table1", require, values, options]),
-        {"stored": stored},
+        result,
+        {"stored": stored, "retValues": retValues},
       )
 
     check(
@@ -1230,6 +1250,42 @@ class TestUserActions(test_engine.EngineTestCase):
         }],
         ["BulkUpdateRecord", "Table1", [1, 2], {"color": ["red", "blue"]}],
       ],
+      [
+        {
+          "recordIds": [[1],[2],[3],[4]],
+          "addRecordIds": [3,4],
+          "updateRecordIds": [[1],[2]],
+        }
+      ]
+    )
+
+    # Check that unworkable values (additions with add: False, updates with update: False, and on_many: none)
+    # have the right result
+    check(
+      {
+        "first_name": [
+          "John",
+          "Frodo",
+          "Bob",
+        ],
+      },
+      {
+        "color": [
+          "red",
+          "silver",
+          "Johnson",
+        ],
+      },
+      { "on_many": "none", "add": False, "update": False },
+      [],
+      [
+        {
+          # No action (matched many), no action (no add), no action (no update),
+          "recordIds": [[],[],[]],
+          "addRecordIds": [],
+          "updateRecordIds": [],
+        }
+      ]
     )
 
     with self.assertRaises(ValueError) as cm:
@@ -1237,6 +1293,7 @@ class TestUserActions(test_engine.EngineTestCase):
         {"color": ["yellow"]},
         {"color": ["red", "blue", "green"]},
         {},
+        [],
         [],
       )
     self.assertEqual(
@@ -1259,6 +1316,7 @@ class TestUserActions(test_engine.EngineTestCase):
         {},
         {},
         [],
+        [],
       )
     self.assertEqual(
       str(cm.exception),
@@ -1280,6 +1338,7 @@ class TestUserActions(test_engine.EngineTestCase):
         },
         {},
         {},
+        [],
         [],
       )
     self.assertEqual(

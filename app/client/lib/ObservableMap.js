@@ -1,6 +1,6 @@
-var ko      = require('knockout');
+var ko      = require("knockout");
 
-var dispose = require('./dispose');
+var dispose = require("./dispose");
 
 /**
  * ObservableMap provides a structure to keep track of values that need to recalculate in

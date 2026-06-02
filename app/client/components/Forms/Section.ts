@@ -1,21 +1,22 @@
-import {allCommands} from 'app/client/components/commands';
-import {FormLayoutNode} from 'app/client/components/FormRenderer';
-import {buildEditor} from 'app/client/components/Forms/Editor';
-import {FieldModel} from 'app/client/components/Forms/Field';
-import {FormView} from 'app/client/components/Forms/FormView';
-import {buildMenu} from 'app/client/components/Forms/Menu';
-import {BoxModel, LayoutModel} from 'app/client/components/Forms/Model';
-import {Paragraph} from 'app/client/components/Forms/Paragraph';
-import * as style from 'app/client/components/Forms/styles';
-import {makeTestId} from 'app/client/lib/domUtils';
-import {makeT} from 'app/client/lib/localization';
-import * as menus from 'app/client/ui2018/menus';
-import {dom, styled} from 'grainjs';
-import {v4 as uuidv4} from 'uuid';
+import { allCommands } from "app/client/components/commands";
+import { FormLayoutNode } from "app/client/components/FormRenderer";
+import { buildEditor } from "app/client/components/Forms/Editor";
+import { FieldModel } from "app/client/components/Forms/Field";
+import { FormView } from "app/client/components/Forms/FormView";
+import { buildMenu } from "app/client/components/Forms/Menu";
+import { BoxModel, LayoutModel } from "app/client/components/Forms/Model";
+import { Paragraph } from "app/client/components/Forms/Paragraph";
+import * as style from "app/client/components/Forms/styles";
+import { makeTestId } from "app/client/lib/domUtils";
+import { makeT } from "app/client/lib/localization";
+import * as menus from "app/client/ui2018/menus";
 
-const t = makeT('Section');
+import { dom, styled } from "grainjs";
+import { v4 as uuidv4 } from "uuid";
 
-const testId = makeTestId('test-forms-');
+const t = makeT("Section");
+
+const testId = makeTestId("test-forms-");
 
 /**
  * Component that renders a section of the form.
@@ -30,44 +31,44 @@ export class SectionModel extends BoxModel {
     return buildEditor({
       box: this,
       // Custom drag element that is little bigger and at the top of the section.
-      drag: style.cssDragWrapper(style.cssDrag('DragDrop', style.cssDrag.cls('-top'))),
+      drag: style.cssDragWrapper(style.cssDrag("DragDrop", style.cssDrag.cls("-top"))),
       showRemoveButton: use => !use((this.root() as LayoutModel).disableDeleteSection),
       // Content is just a list of children.
       content: style.cssSection(
         // Wrap them in a div that mutes hover events.
         cssSectionItems(
-          testId('content'),
-          dom.forEach(children, (child) => child.render()),
+          testId("content"),
+          dom.forEach(children, child => child.render()),
         ),
         // Plus icon
         style.cssPlusButton(
-          testId('plus'),
+          testId("plus"),
           style.cssDrop(),
           style.cssCircle(
-            style.cssPlusIcon('Plus'),
+            style.cssPlusIcon("Plus"),
             buildMenu({
               box: this,
               customItems: [
                 menus.menuItem(
-                  () => allCommands.insertFieldBefore.run({structure: 'Section'}),
-                  menus.menuIcon('Section'),
-                  t('Insert section above'),
+                  () => allCommands.insertFieldBefore.run({ structure: "Section" }),
+                  menus.menuIcon("Section"),
+                  t("Insert section above"),
                 ),
                 menus.menuItem(
-                  () => allCommands.insertFieldAfter.run({structure: 'Section'}),
-                  menus.menuIcon('Section'),
-                  t('Insert section below'),
+                  () => allCommands.insertFieldAfter.run({ structure: "Section" }),
+                  menus.menuIcon("Section"),
+                  t("Insert section below"),
                 ),
               ],
-            })
+            }),
           ),
-        )
-      )},
+        ),
+      ) },
     );
   }
 
-  public override willAccept(): 'sibling' | 'child' | null {
-    return 'child';
+  public override willAccept(): "sibling" | "child" | null {
+    return "child";
   }
 
   /**
@@ -89,7 +90,7 @@ export class SectionModel extends BoxModel {
     // Depending of the type of dropped box we need to insert it in different places.
     // By default we insert it before this box.
     let place = this.placeBeforeMe();
-    if (dropped.type === 'Field') {
+    if (dropped.type === "Field") {
       // Fields are inserted after last child.
       place = this.placeAfterListChild();
     }
@@ -109,7 +110,7 @@ export class SectionModel extends BoxModel {
       }
 
       // Remove each child of this section from the layout.
-      this.children.get().forEach(child => { child.removeSelf(); });
+      this.children.get().forEach((child) => { child.removeSelf(); });
 
       // Remove this section from the layout.
       this.removeSelf();
@@ -124,14 +125,14 @@ export class SectionModel extends BoxModel {
 export function Section(...children: FormLayoutNode[]): FormLayoutNode {
   return {
     id: uuidv4(),
-    type: 'Section',
+    type: "Section",
     children: [
-      Paragraph(t('## **Header**')),
-      Paragraph(t('Description')),
+      Paragraph(t("## **Header**")),
+      Paragraph(t("Description")),
       ...children,
     ],
   };
 }
 
-const cssSectionItems = styled('div.hover_border', `
+const cssSectionItems = styled("div.hover_border", `
 `);

@@ -1,7 +1,8 @@
-import {tbind} from 'app/common/tbind';
-import {NextFunction, Request, RequestHandler, Response} from 'express';
+import { tbind } from "app/common/tbind";
 
-export type RequestWithTag = Request & {tag: string|null};
+import { NextFunction, Request, RequestHandler, Response } from "express";
+
+export type RequestWithTag = Request & { tag: string | null };
 
 /**
  *
@@ -9,7 +10,6 @@ export type RequestWithTag = Request & {tag: string|null};
  *
  */
 export class TagChecker {
-
   // Use app.use(tagChecker.inspectTag) to strip /v/TAG/ from urls (if it is present).
   // If the tag is present and matches what is expected, then `tag` is set on the request.
   // If the tag is present but does not match what is expected, a 400 response is returned.
@@ -37,8 +37,8 @@ export class TagChecker {
 
   // Removes tag from url if present.
   // Returns [remainder, tagInUrl, isMatch]
-  private _removeTag(url: string): [string, string|null, boolean] {
-    if (url.startsWith('/v/')) {
+  private _removeTag(url: string): [string, string | null, boolean] {
+    if (url.startsWith("/v/")) {
       const taggedUrl = url.match(/^\/v\/([a-zA-Z0-9.\-_]+)(\/.*)/);
       if (taggedUrl) {
         const tag = taggedUrl[1];
@@ -49,7 +49,7 @@ export class TagChecker {
         // Once the CDN is active, those asset requests won't reach the home
         // servers.  TODO: turn tag matching back on when tag mismatches
         // imply a bug.
-        return [taggedUrl[2], tag, true /* tag === this.tag */];
+        return [taggedUrl[2], tag, true];
       }
     }
     return [url, null, true];
@@ -58,9 +58,9 @@ export class TagChecker {
   private async _inspectTag(req: Request, resp: Response, next: NextFunction) {
     const [newUrl, urlTag, isOk] = this._removeTag(req.url);
     if (!isOk) {
-      return resp.status(400).send({error: "Tag mismatch",
-                                    expected: this.tag,
-                                    received: urlTag});
+      return resp.status(400).send({ error: "Tag mismatch",
+        expected: this.tag,
+        received: urlTag });
     }
     req.url = newUrl;
     (req as RequestWithTag).tag = urlTag;
@@ -69,6 +69,6 @@ export class TagChecker {
 
   private async _requireTag(req: Request, resp: Response, next: NextFunction) {
     if ((req as RequestWithTag).tag) { return next(); }
-    return next('route');
+    return next("route");
   }
 }

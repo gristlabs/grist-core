@@ -1,12 +1,12 @@
-import {ColInfoWithId} from 'app/common/DocActions';
-import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {AttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
-import {DocManager} from 'app/server/lib/DocManager';
-import {makeExceptionalDocSession, OptDocSession} from 'app/server/lib/DocSession';
-import {DocStorage} from 'app/server/lib/DocStorage';
-import {createDummyGristServer} from 'app/server/lib/GristServer';
-import {TrivialDocStorageManager} from 'app/server/lib/IDocStorageManager';
-import {DBMetadata, OpenMode, quoteIdent, SQLiteDB} from 'app/server/lib/SQLiteDB';
+import { ColInfoWithId } from "app/common/DocActions";
+import { ActiveDoc } from "app/server/lib/ActiveDoc";
+import { AttachmentStoreProvider } from "app/server/lib/AttachmentStoreProvider";
+import { DocManager } from "app/server/lib/DocManager";
+import { makeExceptionalDocSession, OptDocSession } from "app/server/lib/DocSession";
+import { DocStorage } from "app/server/lib/DocStorage";
+import { createDummyGristServer } from "app/server/lib/GristServer";
+import { TrivialDocStorageManager } from "app/server/lib/IDocStorageManager";
+import { DBMetadata, OpenMode, quoteIdent, SQLiteDB } from "app/server/lib/SQLiteDB";
 
 /**
  * A utility class for modifying a SQLite file to be viewed/edited with Grist.
@@ -38,7 +38,7 @@ export class Gristifier {
    * SQLite file as a Grist document, but in particular cases it can
    * work and be very useful.
    */
-  public async gristify(options: {addSort?: boolean}) {
+  public async gristify(options: { addSort?: boolean }) {
     // Remove any existing Grist material from the file.
     await this.degristify();
 
@@ -55,11 +55,11 @@ export class Gristifier {
     // tables.
     const docManager = new DocManager(
       new TrivialDocStorageManager(), null, null,
-      new AttachmentStoreProvider([], ""), createDummyGristServer()
+      new AttachmentStoreProvider([], ""), createDummyGristServer(),
     );
     const activeDoc = new ActiveDoc(docManager, this._filename);
-    const docSession = makeExceptionalDocSession('system');
-    await activeDoc.createEmptyDoc(docSession, {useExisting: true});
+    const docSession = makeExceptionalDocSession("system");
+    await activeDoc.createEmptyDoc(docSession, { useExisting: true });
     await activeDoc.waitForInitialization();
 
     // Now "create" user tables and columns with Grist. The creation
@@ -68,18 +68,18 @@ export class Gristifier {
     const outcomes: TableOutcome[] = [];
     for (const [tableId, table] of Object.entries(inventory)) {
       const columnDefs = this._collectColumnDefinitions(table);
-      if (!('id' in columnDefs)) {
+      if (!("id" in columnDefs)) {
         // Can't handle this table in Grist directly at the moment, but
         // we can do something via a view.
         await this._createView(docSession, activeDoc, tableId, Object.keys(table), columnDefs);
-        outcomes.push({tableId, viewed: true, reason: 'id complications'});
+        outcomes.push({ tableId, viewed: true, reason: "id complications" });
       } else {
         await this._registerTable(docSession, activeDoc, tableId, columnDefs);
         if (options.addSort) {
           await this._addManualSort(activeDoc, tableId);
-          outcomes.push({tableId, addManualSort: true});
+          outcomes.push({ tableId, addManualSort: true });
         } else {
-          outcomes.push({tableId});
+          outcomes.push({ tableId });
         }
       }
     }
@@ -99,7 +99,7 @@ export class Gristifier {
     const db = await SQLiteDB.openDBRaw(this._filename);
     const tables = await db.all(
       `SELECT name FROM sqlite_master WHERE type='table' ` +
-        `  AND name LIKE '_grist%'`
+      `  AND name LIKE '_grist%'`,
     );
     for (const table of tables) {
       console.log(`Removing ${table.name}`);
@@ -107,7 +107,7 @@ export class Gristifier {
     }
     const views = await db.all(
       `SELECT name FROM sqlite_master WHERE type='view' ` +
-        `  AND name LIKE 'GristView%'`
+      `  AND name LIKE 'GristView%'`,
     );
     for (const view of views) {
       console.log(`Removing ${view.name}`);
@@ -150,25 +150,25 @@ export class Gristifier {
   private _collectColumnDefinitions(table: DBMetadata[string]) {
     const defs: Record<string, ColInfoWithId> = {};
     for (const [colId, info] of Object.entries(table)) {
-      if (colId.startsWith('manualSort')) { continue; }
+      if (colId.startsWith("manualSort")) { continue; }
       const type = info.toLowerCase();
       const c: ColInfoWithId = {
         id: colId,
-        type: 'Any',
+        type: "Any",
         isFormula: false,
-        formula: '',
+        formula: "",
       };
       // see https://www.sqlite.org/datatype3.html#determination_of_column_affinity
-      if (type.includes('int')) {
-        c.type = 'Int';
+      if (type.includes("int")) {
+        c.type = "Int";
       }
-      if (colId === 'id') {
-        if (c.type !== 'Int') {
+      if (colId === "id") {
+        if (c.type !== "Int") {
           // Grist can only support integer id columns.
           // For now, just rename this column out of the way to id2, and use
           // a view to map SQLite's built-in ROWID to the id column.
           // TODO: could collide with a column called "id2".
-          c.id = 'id2';
+          c.id = "id2";
         }
       }
       defs[c.id] = c;
@@ -182,20 +182,20 @@ export class Gristifier {
    * but this is helpful for now.
    */
   private async _createView(docSession: OptDocSession, activeDoc: ActiveDoc, tableId: string,
-                            cols: string[], columnDefs: Record<string, ColInfoWithId>) {
+    cols: string[], columnDefs: Record<string, ColInfoWithId>) {
     const newName = `GristView_${tableId}`;
     function quote(name: string) {
-      return quoteIdent(name === 'id' ? 'id2' : name);
+      return quoteIdent(name === "id" ? "id2" : name);
     }
     function quoteForSelect(name: string) {
-      if (name === 'id') { return 'id as id2'; }
+      if (name === "id") { return "id as id2"; }
       return quoteIdent(name);
     }
 
     // View table tableId via a view GristView_tableId, with id and manualSort supplied
     // from ROWID. SQLite tables may not have a ROWID, but this is relatively rare.
     await activeDoc.docStorage.exec(`CREATE VIEW ${quoteIdent(newName)} AS SELECT ` +
-      ['ROWID AS id', 'ROWID AS manualSort', ...cols.map(quoteForSelect)].join(', ') +
+      ["ROWID AS id", "ROWID AS manualSort", ...cols.map(quoteForSelect)].join(", ") +
       ` FROM ${quoteIdent(tableId)}`);
 
     // Make an INSTEAD OF UPDATE trigger, so that if someone tries to update the view,
@@ -203,28 +203,28 @@ export class Gristifier {
     // The trigger is a little awkward to write since we need to compare OLD and NEW
     // to see what changed - updating unchanged material could needlessly run afoul of
     // constraints.
-    const updateTrigger = `CREATE TRIGGER ${quoteIdent('trigger_update_' + newName)} ` +
+    const updateTrigger = `CREATE TRIGGER ${quoteIdent("trigger_update_" + newName)} ` +
       `INSTEAD OF UPDATE ON ${quoteIdent(newName)} BEGIN ` +
       cols.map(col =>
         `UPDATE ${quoteIdent(tableId)} SET ` +
         `${quoteIdent(col)} = NEW.${quote(col)} ` +
         ` WHERE OLD.${quote(col)} <> NEW.${quote(col)} ` +
-        ` AND ${quoteIdent(tableId)}.ROWID = NEW.ROWID`
-              ).join('; ') +
+        ` AND ${quoteIdent(tableId)}.ROWID = NEW.ROWID`,
+      ).join("; ") +
       `; END`;
     await activeDoc.docStorage.exec(updateTrigger);
 
     // Make an INSTEAD OF INSERT trigger.
-    const insertTrigger = `create trigger ${quoteIdent('trigger_insert_' + newName)} ` +
+    const insertTrigger = `create trigger ${quoteIdent("trigger_insert_" + newName)} ` +
       `INSTEAD OF INSERT ON ${quoteIdent(newName)} BEGIN ` +
       `INSERT INTO ${quoteIdent(tableId)}` +
-      '(' + cols.map(quoteIdent).join(',') + ') VALUES(' +
-      cols.map(col => `NEW.${quote(col)}`).join(', ') +
+      "(" + cols.map(quoteIdent).join(",") + ") VALUES(" +
+      cols.map(col => `NEW.${quote(col)}`).join(", ") +
       `); END`;
     await activeDoc.docStorage.exec(insertTrigger);
 
     // Make an INSTEAD OF DELETE trigger.
-    const deleteTrigger = `create trigger ${quoteIdent('trigger_delete_' + newName)} ` +
+    const deleteTrigger = `create trigger ${quoteIdent("trigger_delete_" + newName)} ` +
       `INSTEAD OF DELETE ON ${quoteIdent(newName)} BEGIN ` +
       `DELETE FROM ${quoteIdent(tableId)} WHERE ${quoteIdent(tableId)}.ROWID = OLD.ROWID` +
       `; END`;
@@ -235,12 +235,12 @@ export class Gristifier {
     // Now, tweak the Grist metadata to make the table name the expected one
     // (the table id as far as Grist is concerned must remain that of the view)
     const id = result.retValues[0].id;
-    await activeDoc.docStorage.run('update _grist_Views_section set title = ? ' +
-      'where id in (select rawViewSectionRef from _grist_Tables where id = ?)',
-                                   [tableId, id]);
-    await activeDoc.docStorage.run('update _grist_Views set name = ? ' +
-      'where id in (select primaryViewId from _grist_Tables where id = ?)',
-                                   [tableId, id]);
+    await activeDoc.docStorage.run("update _grist_Views_section set title = ? " +
+      "where id in (select rawViewSectionRef from _grist_Tables where id = ?)",
+    [tableId, id]);
+    await activeDoc.docStorage.run("update _grist_Views set name = ? " +
+      "where id in (select primaryViewId from _grist_Tables where id = ?)",
+    [tableId, id]);
   }
 
   private async _getUserTables(): Promise<DBMetadata> {
@@ -266,11 +266,11 @@ export class Gristifier {
   }
 
   private async _registerTable(docSession: OptDocSession, activeDoc: ActiveDoc,
-                               tableId: string, args: Record<string, ColInfoWithId>) {
+    tableId: string, args: Record<string, ColInfoWithId>) {
     delete args.id;
     activeDoc.onlyAllowMetaDataActionsOnDb(true);
     const result = await activeDoc.applyUserActions(docSession, [
-      ['AddTable', tableId, Object.values(args)],
+      ["AddTable", tableId, Object.values(args)],
     ]);
     activeDoc.onlyAllowMetaDataActionsOnDb(false);
     return result;

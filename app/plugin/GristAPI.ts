@@ -35,7 +35,7 @@
  *
  */
 
-import {RenderOptions, RenderTarget} from 'app/plugin/RenderOptions';
+import { RenderOptions, RenderTarget } from "app/plugin/RenderOptions";
 
 // This is the row ID used in the client, but it's helpful to have available in some common code
 // as well, which is why it's declared here. Note that for data actions and stored data,
@@ -43,7 +43,7 @@ import {RenderOptions, RenderTarget} from 'app/plugin/RenderOptions';
 /**
  * Represents the id of a row in a table. The value of the `id` column. Might be a number or 'new' value for a new row.
  */
-export type UIRowId = number | 'new';
+export type UIRowId = number | "new";
 
 /**
  * Represents the position of an active cursor on a page.
@@ -74,7 +74,7 @@ export interface CursorPos {
 
 export type ComponentKind = "safeBrowser" | "safePython" | "unsafeNode";
 
-export const RPC_GRISTAPI_INTERFACE = '_grist_api';
+export const RPC_GRISTAPI_INTERFACE = "_grist_api";
 
 export interface GristAPI {
   /**
@@ -140,6 +140,20 @@ export interface GristDocAPI {
 }
 
 /**
+ * CellFormatType determines how each cell value is represented.
+ * - "normal" -- the usual encoding used in Grist, which depends on the column type (e.g. a Date
+ *   is secondsSinceEpoch, and a Ref is an integer (rowId).
+ * - "typed" -- represents each value in the same format as in the "normal" format for "Any"
+ *   columns, e.g. a Date is ["d", secondsSinceEpoch] and RefList is ["r", TableId, [rodIds, ...]].
+ *   Exceptions are also returned as ["E", TypeName...] values, even for /records endpoints.
+ *
+ * When omitted, REST API uses "normal" format, while Custom Widget API uses an in-between format
+ * for backward compatibility: it represents most values as "typed", but RefList and Attachments
+ * as "normal".
+ */
+export type CellFormatType = "normal" | "typed";
+
+/**
  * Options for functions which fetch data from the selected table or record:
  *
  * - {@link onRecords}
@@ -162,7 +176,7 @@ export interface FetchSelectedOptions {
    * - `rows`, the returned data will be an array of objects, one per row, with column names as keys.
    * - `columns`, the returned data will be an object with column names as keys, and arrays of values.
    */
-  format?: 'rows' | 'columns';
+  format?: "rows" | "columns";
 
   /**
    * - `shown` (default): return only columns that are explicitly shown
@@ -170,14 +184,20 @@ export interface FetchSelectedOptions {
    * - `normal`: return all 'normal' columns, regardless of whether the user has shown them.
    * - `all`: also return special invisible columns like `manualSort` and display helper columns.
    */
-  includeColumns?: 'shown' | 'normal' | 'all';
+  includeColumns?: "shown" | "normal" | "all";
 
   /**
-   *
    * - `true` (default): the returned data will show the contents of references, not their rowIds
    * - `false`: the returned data will only display rowIds for references
+   *
+   * Setting `cellFormat: "typed"` changes the default to false.
    */
   expandRefs?: boolean
+
+  /**
+   * How each cell's value is represented. See CellFormatType.
+   */
+  cellFormat?: CellFormatType;
 }
 
 /**
@@ -207,7 +227,7 @@ export interface GristView {
   /**
    * Set the list of selected rows to be used against any linked widget.
    */
-  setSelectedRows(rowIds: number[]|null): Promise<void>;
+  setSelectedRows(rowIds: number[] | null): Promise<void>;
 
   /**
    * Sets the cursor position to a specific row and field. `sectionId` is ignored. Used for widget linking.

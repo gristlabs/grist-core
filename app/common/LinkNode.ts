@@ -9,6 +9,7 @@
 
 import { getReferencedTableId } from "app/common/gristTypes";
 import * as gutil from "app/common/gutil";
+
 import pick from "lodash/pick";
 
 export interface LinkNodeSection {
@@ -82,7 +83,7 @@ export interface LinkNodeOperations {
 
 export function buildLinkNodes(
   sections: LinkNodeSection[],
-  operations: LinkNodeOperations
+  operations: LinkNodeOperations,
 ): LinkNode[] {
   const { getTableById, getSectionById } = operations;
   const nodes: LinkNode[] = [];
@@ -108,8 +109,8 @@ export function buildLinkNodes(
         const sourceTable = getTableById(linkedSection.parentId);
         isAncestorSameTableCursorLink.push(
           sourceColumn === 0 &&
-            targetColumn === 0 &&
-            !sourceTable.isSummaryTable
+          targetColumn === 0 &&
+          !sourceTable.isSummaryTable,
         );
       }
 
@@ -118,13 +119,13 @@ export function buildLinkNodes(
 
     const table = getTableById(section.tableRef);
     const { columns, isSummaryTable } = table;
-    const groupByCols = columns.filter((c) => c.summarySourceCol);
-    const groupByColIds = new Set(groupByCols.map((c) => c.summarySourceCol));
+    const groupByCols = columns.filter(c => c.summarySourceCol);
+    const groupByColIds = new Set(groupByCols.map(c => c.summarySourceCol));
     const mainNode: LinkNode = {
       tableId: table.tableId,
       isSummary: isSummaryTable,
       isAttachments:
-        isSummaryTable && groupByCols.some((col) => col.type === "Attachments"),
+        isSummaryTable && groupByCols.some(col => col.type === "Attachments"),
       groupbyColumns: isSummaryTable ? groupByColIds : undefined,
       widgetType: section.parentKey,
       ancestors,
@@ -140,7 +141,7 @@ export function buildLinkNodes(
           "linkSrcColRef",
           "linkTargetColRef",
           "allowSelectBy",
-          "selectedRowsActive"
+          "selectedRowsActive",
         ),
         tableRef: table.id,
         tableId: table.tableId,
@@ -154,7 +155,7 @@ export function buildLinkNodes(
 
 export function buildRefColLinkNodes(
   columns: LinkNodeColumn[],
-  parent: LinkNode
+  parent: LinkNode,
 ): LinkNode[] {
   const nodes: LinkNode[] = [];
   for (const column of columns) {
@@ -169,7 +170,7 @@ export function buildRefColLinkNodes(
           "colId",
           "label",
           "type",
-          "summarySourceCol"
+          "summarySourceCol",
         ),
         isAttachments: column.type == "Attachments",
       });
@@ -230,7 +231,7 @@ export function isValidLink(source: LinkNode, target: LinkNode) {
     return false;
   }
 
-  //cannot select from attachments, even though they're implemented as reflists
+  // cannot select from attachments, even though they're implemented as reflists
   if (source.isAttachments || target.isAttachments) {
     return false;
   }

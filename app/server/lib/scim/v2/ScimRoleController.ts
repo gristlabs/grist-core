@@ -1,20 +1,20 @@
-import { Group } from 'app/gen-server/entity/Group';
-import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
-import { BaseController } from 'app/server/lib/scim/v2/BaseController';
-import { SCIMMYRoleResource } from 'app/server/lib/scim/v2/roles/SCIMMYRoleResource';
-import { SCIMMYRoleSchema } from 'app/server/lib/scim/v2/roles/SCIMMYRoleSchema';
-import { RequestContext } from 'app/server/lib/scim/v2/ScimTypes';
-import { toRoleDescriptor, toSCIMMYRole } from 'app/server/lib/scim/v2/ScimUtils';
+import { Group } from "app/gen-server/entity/Group";
+import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
+import { BaseController } from "app/server/lib/scim/v2/BaseController";
+import { SCIMMYRoleResource } from "app/server/lib/scim/v2/roles/SCIMMYRoleResource";
+import { SCIMMYRoleSchema } from "app/server/lib/scim/v2/roles/SCIMMYRoleSchema";
+import { RequestContext } from "app/server/lib/scim/v2/ScimTypes";
+import { toRoleDescriptor, toSCIMMYRole } from "app/server/lib/scim/v2/ScimUtils";
 
-import SCIMMY from 'scimmy';
+import SCIMMY from "scimmy";
 
 class ScimRoleController extends BaseController {
   public constructor(
     dbManager: HomeDBManager,
-    checkAccess: (context: RequestContext) => void
+    checkAccess: (context: RequestContext) => void,
   ) {
     super(dbManager, checkAccess);
-    this.invalidIdError = 'Invalid passed role ID';
+    this.invalidIdError = "Invalid passed role ID";
   }
 
   /**
@@ -26,7 +26,7 @@ class ScimRoleController extends BaseController {
   public async getSingleRole(resource: SCIMMYRoleResource, context: RequestContext): Promise<SCIMMYRoleSchema> {
     return this.runAndHandleErrors(context, async () => {
       const id = this.getIdFromResource(resource);
-      const role = await this.dbManager.getGroupWithMembersById(id, {aclRule: true});
+      const role = await this.dbManager.getGroupWithMembersById(id, { aclRule: true });
       if (!role || role.type !== Group.ROLE_TYPE) {
         throw new SCIMMY.Types.Error(404, null!, `Role with ID ${id} not found`);
       }
@@ -42,7 +42,7 @@ class ScimRoleController extends BaseController {
    */
   public async getRoles(resource: SCIMMYRoleResource, context: RequestContext): Promise<SCIMMYRoleSchema[]> {
     return this.runAndHandleErrors(context, async () => {
-      const scimmyGroup = (await this.dbManager.getGroupsWithMembersByType(Group.ROLE_TYPE, {aclRule: true}))
+      const scimmyGroup = (await this.dbManager.getGroupsWithMembersByType(Group.ROLE_TYPE, { aclRule: true }))
         .map(role => toSCIMMYRole(role));
       return this.maybeApplyFilter(scimmyGroup, resource.filter);
     });
@@ -56,7 +56,7 @@ class ScimRoleController extends BaseController {
    * @param context The request context
    */
   public async overwriteRole(
-    resource: SCIMMYRoleResource, data: SCIMMYRoleSchema, context: RequestContext
+    resource: SCIMMYRoleResource, data: SCIMMYRoleSchema, context: RequestContext,
   ): Promise<SCIMMYRoleSchema> {
     return this.runAndHandleErrors(context, async () => {
       const id = this.getIdFromResource(resource);
@@ -68,7 +68,7 @@ class ScimRoleController extends BaseController {
 }
 
 export function getScimRoleConfig(
-  dbManager: HomeDBManager, checkAccess: (context: RequestContext) => void
+  dbManager: HomeDBManager, checkAccess: (context: RequestContext) => void,
 ) {
   const controller = new ScimRoleController(dbManager, checkAccess);
   return {
@@ -82,10 +82,10 @@ export function getScimRoleConfig(
       if (resource.id) {
         return await controller.overwriteRole(resource, data, context);
       }
-      throw new SCIMMY.Types.Error(501, null!, 'Cannot create Roles.');
+      throw new SCIMMY.Types.Error(501, null!, "Cannot create Roles.");
     },
     degress: async () => {
-      throw new SCIMMY.Types.Error(501, null!, 'Cannot delete roles');
-    }
+      throw new SCIMMY.Types.Error(501, null!, "Cannot delete roles");
+    },
   };
 }

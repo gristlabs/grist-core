@@ -48,6 +48,7 @@ docker run --name $DOCKER_CONTAINER --rm \
   --env GRIST_LOG_HTTP_BODY=${GRIST_LOG_HTTP_BODY:-false} \
   --env TEST_SUPPORT_API_KEY=api_key_for_support \
   --env GRIST_TEMPLATE_ORG=templates \
+  --env GRIST_IN_SERVICE=1 \
   ${TEST_DOCKER_OPTIONS:-} \
   ${TEST_IMAGE:-gristlabs/grist} &
 set +x
@@ -71,5 +72,6 @@ fi
 TEST_ADD_SAMPLES=1 TEST_ACCOUNT_PASSWORD=not-needed \
   HOME_URL=http://localhost:8585 \
   GRIST_TEST_LOGIN=1 \
+  GRIST_TEST_FORCE_LIGHT_MODE=1 \
   NODE_PATH=_build:_build/ext:_build/stubs \
   $MOCHA _build/test/deployment/*.js --slow 6000 -g "${GREP_TESTS:-}" "$@"

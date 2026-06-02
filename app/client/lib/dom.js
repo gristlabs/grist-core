@@ -13,12 +13,12 @@
 
 
 
-var ko = require('knockout');
+var ko = require("knockout");
 
 /**
  * Use the browser globals in a way that allows replacing them with mocks in tests.
  */
-var G = require('./browserGlobals').get('document', 'Node', '$', 'window');
+var G = require("./browserGlobals").get("document", "Node", "$", "window");
 
 /**
  * dom('tag#id.class1.class2' | Node, other args)
@@ -66,11 +66,11 @@ function createElemFromString(tagString, elemCreator) {
   // significantly more expensive.
   let tag, id, classes;
   let dotPos = tagString.indexOf(".");
-  let hashPos = tagString.indexOf('#');
+  let hashPos = tagString.indexOf("#");
   if (dotPos === -1) {
     dotPos = tagString.length;
   } else {
-    classes = tagString.substring(dotPos + 1).replace(/\./g, ' ');
+    classes = tagString.substring(dotPos + 1).replace(/\./g, " ");
   }
   if (hashPos === -1) {
     tag = tagString.substring(0, dotPos);
@@ -82,8 +82,8 @@ function createElemFromString(tagString, elemCreator) {
   }
 
   let elem = elemCreator(tag);
-  if (id)      { elem.setAttribute('id',    id); }
-  if (classes) { elem.setAttribute('class', classes); }
+  if (id)      { elem.setAttribute("id",    id); }
+  if (classes) { elem.setAttribute("class", classes); }
 
   return elem;
 }
@@ -93,7 +93,7 @@ function createDOMElement(tagName) {
 }
 
 function createSVGElement(tagName) {
-  return G.document.createElementNS('http://www.w3.org/2000/svg', tagName);
+  return G.document.createElementNS("http://www.w3.org/2000/svg", tagName);
 }
 
 // Append the rest of the arguments as children, flattening arrays
@@ -102,16 +102,16 @@ function handleChildren(elem, children, index) {
     var child = children[i];
     if (Array.isArray(child)) {
       child = handleChildren(elem, child, 0);
-    } else if (typeof child == 'function') {
+    } else if (typeof child == "function") {
       child = child(elem);
-      if (typeof child !== 'undefined') {
+      if (typeof child !== "undefined") {
         handleChildren(elem, [child], 0);
       }
     } else if (child === null || child === void 0) {
       // nothing
     } else if (child instanceof G.Node) {
       elem.appendChild(child);
-    } else if (typeof child === 'object') {
+    } else if (typeof child === "object") {
       for (var key in child) {
         elem.setAttribute(key, child[key]);
       }
@@ -208,14 +208,14 @@ dom.id = function(id) {
  * Hides the given element. Can be passed into dom(), e.g. dom('div', dom.hide, ...).
  */
 dom.hide = function(elem) {
-  elem.style.display = 'none';
+  elem.style.display = "none";
 };
 
 /**
  * Shows the given element, assuming that it's not hidden by a class.
  */
 dom.show = function(elem) {
-  elem.style.display = '';
+  elem.style.display = "";
 };
 
 /**
@@ -225,9 +225,9 @@ dom.show = function(elem) {
  */
 dom.toggle = function(elem, optYesNo) {
   if (optYesNo === undefined)
-    optYesNo = (elem.style.display === 'none');
-  elem.style.display = optYesNo ? '' : 'none';
-  return elem.style.display !== 'none';
+    optYesNo = (elem.style.display === "none");
+  elem.style.display = optYesNo ? "" : "none";
+  return elem.style.display !== "none";
 };
 
 
@@ -244,28 +244,28 @@ dom.dragOverClass = dom.inlinable(function(elem, className) {
   let counter = 0;
   let lastTarget = null;
 
-  dom.on(elem, 'dragenter', ev => {
-    if (Array.from(ev.originalEvent.dataTransfer.types).includes('text/html')) {
+  dom.on(elem, "dragenter", ev => {
+    if (Array.from(ev.originalEvent.dataTransfer.types).includes("text/html")) {
       // This would not be present when dragging in an actual file. We return undefined, to avoid
       // suppressing normal behavior (which is suppressed below when we return false).
       return;
     }
     if (ev.target !== lastTarget) {
       lastTarget = ev.target;
-      ev.originalEvent.dataTransfer.dropEffect = 'copy';
+      ev.originalEvent.dataTransfer.dropEffect = "copy";
       if (!counter) { elem.classList.add(className); }
       counter++;
     }
     return false;
   });
 
-  dom.on(elem, 'dragleave', () => {
+  dom.on(elem, "dragleave", () => {
     lastTarget = null;
     counter = Math.max(0, counter - 1);
     if (!counter) { elem.classList.remove(className); }
   });
 
-  dom.on(elem, 'drop', () => {
+  dom.on(elem, "drop", () => {
     lastTarget = null;
     counter = 0;
     elem.classList.remove(className);
@@ -314,7 +314,7 @@ dom.childIndex = function(node) {
 
 
 function makeFilterFunc(selectorOrFunc) {
-  if (typeof selectorOrFunc === 'string') {
+  if (typeof selectorOrFunc === "string") {
     return function(elem) { return elem.matches && elem.matches(selectorOrFunc); };
   }
   return selectorOrFunc;
@@ -447,7 +447,7 @@ dom.autoDispose = dom.inlinable(function(elem, disposableValue) {
  * @param {String} ident: Arbitrary string; convention is to name it as "ModuleName.nameInModule".
  */
 dom.testId = dom.inlinable(function(elem, ident) {
-  elem.setAttribute('data-test-id', ident);
+  elem.setAttribute("data-test-id", ident);
 });
 
 module.exports = dom;

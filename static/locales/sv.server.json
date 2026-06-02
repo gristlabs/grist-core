@@ -1,0 +1,23 @@
+{
+    "sendAppPage": {
+        "Loading...": "Laddar…",
+        "og-description": "Ett modernt öppen källkods kalkylblad som går bortom tabellen",
+        "og-title": "Grist, en evolution av kalkylark"
+    },
+    "oidc": {
+        "emailNotVerifiedError": "Var god och verifiera din e-post hos identitetstjänsten och logga in igen."
+    },
+    "access": {
+        "docDisabled": "Dokumentet är inaktiverat.",
+        "docNoAccess": "Du har inte behörighet att komma åt detta dokument."
+    },
+    "admin": {
+        "emptyOrg": "Inga ägare hittades i administratörsorgranisationen som styrs av `GRIST_INSTALL_ADMIN_ORG={{org}}`",
+        "orgUser": "Användaren är ägare till administratörsorgranisationen som styrs av `GRIST_INSTALL_ADMIN_ORG={{org}}`",
+        "noAdminEmail": "Administratörskonto saknas eftersom `GRIST_ADMIN_EMAIL` och `GRIST_DEFAULT_EMAIL` inte är satta",
+        "accountByEmail": "Administratörskontot styrs av `GRIST_DEFAULT_EMAIL={{defaultEmail}}`"
+    },
+    "DocApi": {
+        "UntitledDocument": "Namnlöst dokument"
+    }
+}

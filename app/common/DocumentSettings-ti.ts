@@ -9,12 +9,19 @@ export const DocumentSettings = t.iface([], {
   "currency": t.opt("string"),
   "engine": t.opt("EngineCode"),
   "attachmentStoreId": t.opt("string"),
+  "baseAction": t.opt("DocState"),
 });
 
-export const EngineCode = t.lit('python3');
+export const EngineCode = t.lit("python3");
+
+export const DocState = t.iface([], {
+  "n": "number",
+  "h": "string",
+});
 
 const exportedTypeSuite: t.ITypeSuite = {
   DocumentSettings,
   EngineCode,
+  DocState,
 };
 export default exportedTypeSuite;

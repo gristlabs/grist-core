@@ -1,4 +1,4 @@
-import * as ko from 'knockout';
+import * as ko from "knockout";
 
 declare class KoArray<T> {
   public static syncedKoArray(...args: any[]): any;
@@ -6,7 +6,7 @@ declare class KoArray<T> {
   public subscribe: ko.Observable["subscribe"];
 
   public dispose(): void;
-  public at(index: number): T|null;
+  public at(index: number): T | null;
   public all(): T[];
   public map<T2>(op: (x: T) => T2): KoArray<T2>;
   public peek(): T[];
@@ -21,8 +21,8 @@ declare class KoArray<T> {
     addDelay?: number;
   }): ko.Subscription;
 
-  public clampIndex(index: number): number|null;
-  public makeLiveIndex(index?: number): ko.Observable<number> & {setLive(live: boolean): void};
+  public clampIndex(index: number): number | null;
+  public makeLiveIndex(index?: number): ko.Observable<number> & { setLive(live: boolean): void };
   public setAutoDisposeValues(): this;
   public arraySplice(start: number, deleteCount: number, items: T[]): T[];
 }

@@ -14,6 +14,10 @@
  *
  * Note that the code is based on the example at https://github.com/Clever/saml2
  *
+ * To read more about Grist SAML flow and configuration through environmental variables, in a single server
+ * setup, please visit:
+ * https://support.getgrist.com/install/saml/
+ *
  * Expected environment variables:
  *    env GRIST_SAML_SP_HOST=https://<your-domain>
  *        Host at which our /saml/assert endpoint will live; identifies our application.
@@ -52,54 +56,153 @@
  *
  */
 
-import * as express from 'express';
-import * as fse from 'fs-extra';
-import * as saml2 from 'saml2-js';
+import { SAML_PROVIDER_KEY } from "app/common/loginProviders";
+import { AppSettings } from "app/server/lib/AppSettings";
+import { expressWrap } from "app/server/lib/expressWrap";
+import { GristLoginSystem, GristServer } from "app/server/lib/GristServer";
+import log from "app/server/lib/log";
+import { createLoginProviderFactory, NotConfiguredError } from "app/server/lib/loginSystemHelpers";
+import { Permit } from "app/server/lib/Permit";
+import { getOriginUrl } from "app/server/lib/requestUtils";
+import { fromCallback } from "app/server/lib/serverUtils";
+import { Sessions } from "app/server/lib/Sessions";
 
-import {expressWrap} from 'app/server/lib/expressWrap';
-import {GristLoginSystem, GristServer} from 'app/server/lib/GristServer';
-import log from 'app/server/lib/log';
-import {Permit} from 'app/server/lib/Permit';
-import {getOriginUrl} from 'app/server/lib/requestUtils';
-import {fromCallback} from 'app/server/lib/serverUtils';
-import {Sessions} from 'app/server/lib/Sessions';
+import * as express from "express";
+import * as fse from "fs-extra";
+import * as saml2 from "saml2-js";
 
-export class SamlConfig {
+/**
+ * Interface for SAML configuration.
+ */
+export interface SamlConfig {
+  /** Host at which our /saml/assert endpoint will live; identifies our application. */
+  readonly spHost: string;
+  /** The private key content, PEM format. */
+  readonly spKey: string;
+  /** The public key content, PEM format. */
+  readonly spCert: string;
+  /** Login url to redirect user to for log-in. */
+  readonly idpLogin: string;
+  /** Logout URL to redirect user to for log-out. */
+  readonly idpLogout: string;
+  /** If true, don't attempt "Single Logout" flow, but simply redirect to idpLogout after clearing session. */
+  readonly skipSlo: boolean;
+  /** List of certificate contents, PEM format. */
+  readonly idpCerts: string[];
+  /** If true, allow unencrypted assertions, relying on https for privacy. */
+  readonly allowUnencrypted: boolean;
+}
+
+/**
+ * Read SAML configuration from application settings.
+ * When reading from environment variables, the cert/key values are file paths,
+ * so we read the file contents here.
+ */
+export function readSamlConfigFromSettings(settings: AppSettings): SamlConfig {
+  const section = settings.section("login").section("system").section(SAML_PROVIDER_KEY);
+
+  let spHost = "";
+  try {
+    spHost = section.flag("spHost").requireString({
+      envVar: "GRIST_SAML_SP_HOST",
+    });
+  } catch (e) {
+    throw new NotConfiguredError((e as Error).message);
+  }
+
+  const spKeyPath = section.flag("spKey").requireString({
+    envVar: "GRIST_SAML_SP_KEY",
+  });
+
+  const spCertPath = section.flag("spCert").requireString({
+    envVar: "GRIST_SAML_SP_CERT",
+  });
+
+  const idpLogin = section.flag("idpLogin").requireString({
+    envVar: "GRIST_SAML_IDP_LOGIN",
+  });
+
+  const idpLogout = section.flag("idpLogout").requireString({
+    envVar: "GRIST_SAML_IDP_LOGOUT",
+  });
+
+  const skipSlo = section.flag("idpSkipSlo").readBool({
+    envVar: "GRIST_SAML_IDP_SKIP_SLO",
+    defaultValue: false,
+  })!;
+
+  const idpCertsPaths = section.flag("idpCerts").requireString({
+    envVar: "GRIST_SAML_IDP_CERTS",
+  }).split(",").map(p => p.trim());
+
+  const allowUnencrypted = section.flag("idpUnencrypted").readBool({
+    envVar: "GRIST_SAML_IDP_UNENCRYPTED",
+    defaultValue: false,
+  })!;
+
+  // Read the file contents from paths
+  const spKey = fse.readFileSync(spKeyPath, { encoding: "utf8" });
+  const spCert = fse.readFileSync(spCertPath, { encoding: "utf8" });
+  const idpCerts = idpCertsPaths.map((p: string) => fse.readFileSync(p, { encoding: "utf8" }));
+
+  return {
+    spHost,
+    spKey,
+    spCert,
+    idpLogin,
+    idpLogout,
+    skipSlo,
+    idpCerts,
+    allowUnencrypted,
+  };
+}
+
+export class SamlBuilder {
+  /**
+   * Handy alias to create a SamlBuilder instance and initialize it.
+   */
+  public static async build(
+    gristServer: GristServer,
+    config: SamlConfig,
+  ): Promise<SamlBuilder> {
+    const builder = new SamlBuilder(gristServer, config);
+    await builder.initSaml();
+    return builder;
+  }
+
   private _serviceProvider: saml2.ServiceProvider;
   private _identityProvider: saml2.IdentityProvider;
+  private _config: SamlConfig;
 
-  public constructor(private _gristServer: GristServer) {}
+  protected constructor(
+    private _gristServer: GristServer,
+    config: SamlConfig,
+  ) {
+    this._config = config;
+  }
 
-  // Read SAML certificate files and initialize the SAML state.
+  // Initialize the SAML state using the certificate contents from config.
   public async initSaml(): Promise<void> {
-    if (!process.env.GRIST_SAML_SP_HOST) { throw new Error("initSaml requires GRIST_SAML_SP_HOST to be set"); }
-    if (!process.env.GRIST_SAML_SP_KEY) { throw new Error("initSaml requires GRIST_SAML_SP_KEY to be set"); }
-    if (!process.env.GRIST_SAML_SP_CERT) { throw new Error("initSaml requires GRIST_SAML_SP_CERT to be set"); }
-    if (!process.env.GRIST_SAML_IDP_LOGIN) { throw new Error("initSaml requires GRIST_SAML_IDP_LOGIN to be set"); }
-    if (!process.env.GRIST_SAML_IDP_LOGOUT) { throw new Error("initSaml requires GRIST_SAML_IDP_LOGOUT to be set"); }
-    if (!process.env.GRIST_SAML_IDP_CERTS) { throw new Error("initSaml requires GRIST_SAML_IDP_CERTS to be set"); }
-
-    const spHost: string = process.env.GRIST_SAML_SP_HOST;
+    const spHost = this._config.spHost;
     const spOptions: saml2.ServiceProviderOptions = {
       entity_id: `${spHost}/saml/metadata.xml`,
-      private_key: await fse.readFile(process.env.GRIST_SAML_SP_KEY, {encoding: 'utf8'}),
-      certificate: await fse.readFile(process.env.GRIST_SAML_SP_CERT, {encoding: 'utf8'}),
+      private_key: this._config.spKey,
+      certificate: this._config.spCert,
       assert_endpoint: `${spHost}/saml/assert`,
       notbefore_skew: 5,      // allow 5 seconds of time skew
-      sign_get_request: true  // Auth0 requires this. If it is a problem for others, could make optional.
+      sign_get_request: true,  // Auth0 requires this. If it is a problem for others, could make optional.
     };
     this._serviceProvider = new saml2.ServiceProvider(spOptions);
 
-    const idpCerts = process.env.GRIST_SAML_IDP_CERTS.split(",");
     const idpOptions: saml2.IdentityProviderOptions = {
-      sso_login_url: process.env.GRIST_SAML_IDP_LOGIN,
-      sso_logout_url: process.env.GRIST_SAML_IDP_LOGOUT,
-      certificates: await Promise.all(idpCerts.map((p) => fse.readFile(p, {encoding: 'utf8'}))),
+      sso_login_url: this._config.idpLogin,
+      sso_logout_url: this._config.idpLogout,
+      certificates: this._config.idpCerts,
       // Encrypted assertions are recommended, but not necessary when over https.
-      allow_unencrypted_assertion: Boolean(process.env.GRIST_SAML_IDP_UNENCRYPTED),
+      allow_unencrypted_assertion: this._config.allowUnencrypted,
     };
     this._identityProvider = new saml2.IdentityProvider(idpOptions);
-    log.info(`SamlConfig set with host ${spHost}, IdP ${process.env.GRIST_SAML_IDP_LOGIN}`);
+    log.info(`SamlConfig set with host ${spHost}, IdP ${this._config.idpLogin}`);
   }
 
   // Return a login URL to which to redirect the user to log in. Once logged in, the user will be
@@ -108,19 +211,19 @@ export class SamlConfig {
     const sp = this._serviceProvider;
     const idp = this._identityProvider;
     const { permit: relay_state, samlNameId } = await this._prepareAppState(req, redirectUrl, {
-      action: 'login',
+      action: "login",
       waitMinutes: 20,
     });
     const force_authn = samlNameId === undefined;  // If logged out locally, ignore any
-                                                   // log in state retained by IdP.
-    return fromCallback((cb) => sp.create_login_request_url(idp, {relay_state, force_authn}, cb));
+    // log in state retained by IdP.
+    return fromCallback(cb => sp.create_login_request_url(idp, { relay_state, force_authn }, cb));
   }
 
   // Returns the URL to log the user out of SAML IdentityProvider.
   public async getLogoutRedirectUrl(req: express.Request, redirectUrl: URL): Promise<string> {
-    if (process.env.GRIST_SAML_IDP_SKIP_SLO) {
+    if (this._config.skipSlo) {
       // TODO: This does NOT eventually take us to redirectUrl.
-      return process.env.GRIST_SAML_IDP_LOGOUT!;
+      return this._config.idpLogout;
     }
 
     const sp = this._serviceProvider;
@@ -131,8 +234,8 @@ export class SamlConfig {
     // 2021: This doesn't fail with Auth0 (now owned by Okta), but also doesn't seem to do anything.
 
     const { permit: relay_state, samlNameId, samlSessionIndex } = await this._prepareAppState(req, redirectUrl, {
-      action: 'logout',
-      waitMinutes: 1
+      action: "logout",
+      waitMinutes: 1,
     });
 
     const options: saml2.CreateLogoutRequestUrlOptions = {
@@ -140,7 +243,7 @@ export class SamlConfig {
       session_index: samlSessionIndex,
       relay_state,
     };
-    return fromCallback<string>((cb) => sp.create_logout_request_url(idp, options, cb));
+    return fromCallback<string>(cb => sp.create_logout_request_url(idp, options, cb));
   }
 
   // Adds several /saml/* endpoints to the given express app, to support SAML logins.
@@ -150,7 +253,7 @@ export class SamlConfig {
 
     // A purely informational endpoint, which simply dumps the SAML metadata.
     app.get("/saml/metadata.xml", (req, res) => {
-      res.type('application/xml');
+      res.type("application/xml");
       res.send(sp.create_metadata());
     });
 
@@ -160,14 +263,14 @@ export class SamlConfig {
     }));
 
     // Assert endpoint for when the login completes as POST.
-    app.post("/saml/assert", express.urlencoded({extended: true}), expressWrap(async (req, res, next) => {
-      const {redirectUrl, sessionId, unsolicited, action} = await this._processInitialRequest(req);
+    app.post("/saml/assert", express.urlencoded({ extended: true }), expressWrap(async (req, res, next) => {
+      const { redirectUrl, sessionId, unsolicited, action } = await this._processInitialRequest(req);
       const samlResponse: saml2.SAMLAssertResponse = await fromCallback(
-        (cb) => sp.post_assert(idp, { request_body: req.body }, cb)
+        cb => sp.post_assert(idp, { request_body: req.body }, cb),
       );
-      if (action === 'login') {
+      if (action === "login") {
         const samlUser = samlResponse.user;
-        if (!samlUser || !samlUser.name_id) {
+        if (!samlUser?.name_id) {
           log.warn(`SamlConfig: bad SAML response: ${JSON.stringify(samlUser)}`);
           throw new Error("Invalid user info in SAML response");
         }
@@ -175,8 +278,8 @@ export class SamlConfig {
         // An example IdP response is at https://github.com/Clever/saml2#assert_response. Saml2-js
         // maps some standard attributes as user.given_name, user.surname, which we use if
         // available. Otherwise we use user.attributes which has the form {Name: [Value]}.
-        const fname = (samlUser as any).given_name || samlUser.attributes?.FirstName || '';
-        const lname = (samlUser as any).surname || samlUser.attributes?.LastName || '';
+        const fname = (samlUser as any).given_name || samlUser.attributes?.FirstName || "";
+        const lname = (samlUser as any).surname || samlUser.attributes?.LastName || "";
         const email = (samlUser as any).email || samlUser.name_id;
         const profile = {
           email,
@@ -185,11 +288,11 @@ export class SamlConfig {
 
         const samlSessionIndex = samlUser.session_index;
         const samlNameId = samlUser.name_id;
-        log.info(`SamlConfig: got SAML response${unsolicited ? ' (unsolicited)' : ''} for ` +
+        log.info(`SamlConfig: got SAML response${unsolicited ? " (unsolicited)" : ""} for ` +
           `${profile.email} (${profile.name}) redirecting to ${redirectUrl}`);
 
-        const scopedSession = sessions.getOrCreateSessionFromRequest(req, {sessionId});
-        await scopedSession.operateOnScopedSession(req, async (user) => Object.assign(user, {
+        const scopedSession = sessions.getOrCreateSessionFromRequest(req, { sessionId });
+        await scopedSession.operateOnScopedSession(req, async user => Object.assign(user, {
           profile,
           samlSessionIndex,
           samlNameId,
@@ -226,7 +329,6 @@ export class SamlConfig {
       };
     }
 
-
     await permitStore.removePermit(relayState);
     return {
       sessionId: state.sessionId,
@@ -250,13 +352,13 @@ export class SamlConfig {
    *
    */
   private async _prepareAppState(req: express.Request, redirectUrl: URL, options: {
-    action: 'login' | 'logout',   // We'll need to remember whether we are logging in or out.
+    action: "login" | "logout",   // We'll need to remember whether we are logging in or out.
     waitMinutes: number        // State may need to linger quite some time for login,
-                               // less so for logout.
+    // less so for logout.
   }) {
     const permitStore = this._gristServer.getExternalPermitStore();
     const sessionId = this._gristServer.getSessions().getSessionIdFromRequest(req);
-    if (!sessionId) { throw new Error('no session available'); }
+    if (!sessionId) { throw new Error("no session available"); }
     const state: Permit = {
       url: redirectUrl.href,
       sessionId,
@@ -286,25 +388,22 @@ function checkRedirectUrl(untrustedUrl: string, req: express.Request): URL {
 }
 
 /**
- * Return SAML login system if environment looks configured for it, else return undefined.
+ * Return SAML login system if enabled, or undefined otherwise.
  */
-export async function getSamlLoginSystem(): Promise<GristLoginSystem|undefined> {
-  if (!process.env.GRIST_SAML_SP_HOST) {
-    return undefined;
-  }
+async function getLoginSystem(settings: AppSettings): Promise<GristLoginSystem> {
+  const samlConfig = readSamlConfigFromSettings(settings);
   return {
     async getMiddleware(gristServer: GristServer) {
-      const samlConfig = new SamlConfig(gristServer);
-      await samlConfig.initSaml();
+      const config = await SamlBuilder.build(gristServer, samlConfig);
       return {
-        getLoginRedirectUrl: samlConfig.getLoginRedirectUrl.bind(samlConfig),
+        getLoginRedirectUrl: config.getLoginRedirectUrl.bind(config),
         // For saml, always use regular login page, users are enrolled externally.
         // TODO: is there a better link to give here?
-        getSignUpRedirectUrl: samlConfig.getLoginRedirectUrl.bind(samlConfig),
-        getLogoutRedirectUrl: samlConfig.getLogoutRedirectUrl.bind(samlConfig),
+        getSignUpRedirectUrl: config.getLoginRedirectUrl.bind(config),
+        getLogoutRedirectUrl: config.getLogoutRedirectUrl.bind(config),
         async addEndpoints(app: express.Express) {
-          samlConfig.addSamlEndpoints(app, gristServer.getSessions());
-          return 'saml';
+          config.addSamlEndpoints(app, gristServer.getSessions());
+          return SAML_PROVIDER_KEY;
         },
       };
     },
@@ -314,3 +413,8 @@ export async function getSamlLoginSystem(): Promise<GristLoginSystem|undefined> 
     },
   };
 }
+
+export const getSamlLoginSystem = createLoginProviderFactory(
+  SAML_PROVIDER_KEY,
+  getLoginSystem,
+);

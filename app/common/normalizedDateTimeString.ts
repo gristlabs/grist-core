@@ -1,4 +1,4 @@
-import moment from 'moment-timezone';
+import moment from "moment-timezone";
 
 /**
  * Output an ISO8601 format datetime string, with timezone.
@@ -17,7 +17,7 @@ export function normalizedDateTimeString(dateTime: any): string {
   if (dateTime instanceof Date) {
     return moment(dateTime).toISOString();
   }
-  if (typeof dateTime === 'string' || typeof dateTime === 'number') {
+  if (typeof dateTime === "string" || typeof dateTime === "number") {
     // When SQLite returns a string, it will be in UTC.
     // Need to make sure it actually have timezone info in it
     // (will not by default).

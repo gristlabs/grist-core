@@ -6,15 +6,15 @@
  * class should support freezing of row positions until the user chooses to re-sort. This is not
  * currently implemented.
  */
-import {ColumnGetter, ColumnGetters} from 'app/common/ColumnGetters';
-import {localeCompare, nativeCompare} from 'app/common/gutil';
-import {Sort} from 'app/common/SortSpec';
+import { ColumnGetter, ColumnGetters } from "app/common/ColumnGetters";
+import { localeCompare, nativeCompare } from "app/common/gutil";
+import { Sort } from "app/common/SortSpec";
 
 // Function that will amend column getter to return entry index instead
 // of entry value. Result will be a string padded with zeros, so the ordering
 // between types is preserved.
 export function choiceGetter(getter: ColumnGetter, choices: string[]): ColumnGetter {
-  return rowId => {
+  return (rowId) => {
     const value = getter(rowId);
     const index = choices.indexOf(value);
     return index >= 0 ? String(index).padStart(5, "0") : value;
@@ -27,9 +27,9 @@ type Comparator = (val1: any, val2: any) => number;
  * Natural comparator based on built in method.
  * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/localeCompare
  */
-const collator = new Intl.Collator(undefined, {numeric: true});
+const collator = new Intl.Collator(undefined, { numeric: true });
 export function naturalCompare(val1: any, val2: any) {
-  if (typeof val1 === 'string' && typeof val2 === 'string') {
+  if (typeof val1 === "string" && typeof val2 === "string") {
     return collator.compare(val1, val2);
   }
   return typedCompare(val1, val2);
@@ -39,8 +39,8 @@ export function naturalCompare(val1: any, val2: any) {
  * Empty comparator will treat empty values as last.
  */
 export const emptyCompare = (next: Comparator) => (val1: any, val2: any) => {
-  const isEmptyValue1 = !val1 && typeof val1 !== 'number';
-  const isEmptyValue2 = !val2 && typeof val2 !== 'number';
+  const isEmptyValue1 = !val1 && typeof val1 !== "number";
+  const isEmptyValue2 = !val2 && typeof val2 !== "number";
 
   // If both values are empty values, rely on next to compare.
   if (isEmptyValue1 && !isEmptyValue2) {
@@ -51,7 +51,6 @@ export const emptyCompare = (next: Comparator) => (val1: any, val2: any) => {
   }
   return next(val1, val2);
 };
-
 
 /**
  * Compare two cell values, paying attention to types and values. Note that native JS comparison
@@ -64,15 +63,13 @@ export const emptyCompare = (next: Comparator) => (val1: any, val2: any) => {
  */
 export function typedCompare(val1: any, val2: any): number {
   let result: number, type1: string, array1: boolean;
-  // tslint:disable-next-line:no-conditional-assignment
   if ((result = nativeCompare(type1 = typeof val1, typeof val2)) !== 0) {
     return result;
   }
   // We need to worry about Array comparisons because formulas returning Any may return null or
   // object values represented as arrays (e.g. ['D', ...] for dates). Comparing those without
   // distinguishing types would break the sort. Also, arrays need a special comparator.
-  if (type1 === 'object') {
-    // tslint:disable-next-line:no-conditional-assignment
+  if (type1 === "object") {
     if ((result = nativeCompare(array1 = val1 instanceof Array, val2 instanceof Array)) !== 0) {
       return result;
     }
@@ -80,7 +77,7 @@ export function typedCompare(val1: any, val2: any): number {
       return _arrayCompare(val1, val2);
     }
   }
-  if (type1 === 'string') {
+  if (type1 === "string") {
     return localeCompare(val1, val2);
   }
   return nativeCompare(val1, val2);
@@ -112,7 +109,7 @@ export class SortFunc {
 
   public updateSpec(sortSpec: Sort.SortSpec): void {
     // Prepare an array of column getters for each column in sortSpec.
-    this._colGetters = sortSpec.map(colSpec => {
+    this._colGetters = sortSpec.map((colSpec) => {
       return this._getters.getColGetter(colSpec);
     }).filter(getter => getter) as ColumnGetter[];
 
@@ -120,7 +117,7 @@ export class SortFunc {
     this._directions = sortSpec.map(colSpec => Sort.direction(colSpec));
 
     // Collect comparator functions
-    this._comparators = sortSpec.map(colSpec => {
+    this._comparators = sortSpec.map((colSpec) => {
       const details = Sort.specToDetails(colSpec);
       let comparator = typedCompare;
       if (details.naturalSort) {
@@ -165,8 +162,8 @@ export class SortFunc {
  * Example:
  * const sorted = rows.sort(orderBy(row => row.name));
  */
-export function orderBy<T>(keyFunc: (row: T) => any, options: {desc?: boolean} = {desc: false}) {
-  return function (a: T, b: T) {
+export function orderBy<T>(keyFunc: (row: T) => any, options: { desc?: boolean } = { desc: false }) {
+  return function(a: T, b: T) {
     const val1 = keyFunc(a);
     const val2 = keyFunc(b);
     return typedCompare(val1, val2) * (options.desc ? -1 : 1);

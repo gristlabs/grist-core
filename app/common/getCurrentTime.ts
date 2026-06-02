@@ -6,8 +6,8 @@ import moment from "moment-timezone";
  */
 export default function getCurrentTime(): moment.Moment {
   const getDefault = () => moment();
-  if (typeof window === 'undefined' || !window) { return getDefault(); }
+  if (typeof window === "undefined" || !window) { return getDefault(); }
   const searchParams = new URLSearchParams(window.location.search);
 
-  return searchParams.has('currentTime') ? moment(searchParams.get('currentTime') || undefined) : getDefault();
+  return searchParams.has("currentTime") ? moment(searchParams.get("currentTime") || undefined) : getDefault();
 }

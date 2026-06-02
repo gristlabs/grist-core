@@ -60,7 +60,7 @@ export const swatches = [
   "#FED6FB",
   "#FD79F4",
   "#E621D7",
-  "#760C6E"
+  "#760C6E",
 ];
 
 /**

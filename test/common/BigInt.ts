@@ -1,9 +1,10 @@
-import {BigInt} from 'app/common/BigInt';
-import {assert} from 'chai';
-import {times} from 'lodash';
+import { BigInt } from "app/common/BigInt";
 
-describe('BigInt', function() {
-  it('should represent and convert various numbers correctly', function() {
+import { assert } from "chai";
+import { times } from "lodash";
+
+describe("BigInt", function() {
+  it("should represent and convert various numbers correctly", function() {
     assert.strictEqual(new BigInt(16, [0xF, 0xA], +1).toString(16), "af");
     assert.strictEqual(new BigInt(16, [0xA, 0xF], -1).toString(16), "-fa");
     assert.strictEqual(new BigInt(16, [0xF, 0xF], +1).toString(10), "255");

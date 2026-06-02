@@ -18,7 +18,7 @@ export class BigInt {
   public copy() { return new BigInt(this._base, this._digits, this._sign); }
 
   /** Convert to Number if there is no loss of precision, or string (base 10) otherwise. */
-  public toNative(): number|string {
+  public toNative(): number | string {
     const num = this.toNumber();
     return Number.isSafeInteger(num) ? num : this.toString(10);
   }

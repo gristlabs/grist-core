@@ -23,7 +23,7 @@ function pad(num: number, len: number): string {
 }
 
 type FormatHelper = (out: string[], date: Date) => void;
-const timeFormatKeys: {[spec: string]: FormatHelper} = {
+const timeFormatKeys: { [spec: string]: FormatHelper } = {
   h: (out, date) => out.push(pad(date.getHours(), 2)),
   m: (out, date) => out.push(pad(date.getMinutes(), 2)),
   s: (out, date) => out.push(pad(date.getSeconds(), 2)),
@@ -31,10 +31,10 @@ const timeFormatKeys: {[spec: string]: FormatHelper} = {
   n: (out, date) => out.push(pad(date.getMonth() + 1, 2)),
   y: (out, date) => out.push("" + date.getFullYear()),
   M: (out, date) => out.push(pad(date.getMilliseconds(), 3)),
-  Y: (out, date) => timeFormatHelper(out, 'ynd', date),
-  D: (out, date) => timeFormatHelper(out, 'y-n-d', date),
-  T: (out, date) => timeFormatHelper(out, 'h:m:s', date),
-  A: (out, date) => timeFormatHelper(out, 'D T.M', date),
+  Y: (out, date) => timeFormatHelper(out, "ynd", date),
+  D: (out, date) => timeFormatHelper(out, "y-n-d", date),
+  T: (out, date) => timeFormatHelper(out, "h:m:s", date),
+  A: (out, date) => timeFormatHelper(out, "D T.M", date),
 };
 
 function timeFormatHelper(out: string[], format: string, date: Date) {

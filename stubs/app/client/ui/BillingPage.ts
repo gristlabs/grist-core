@@ -1,12 +1,8 @@
-import {AppModel} from 'app/client/models/AppModel';
-import {Disposable} from 'grainjs';
+import { AppModel } from "app/client/models/AppModel";
+import { TeamSettingsPage } from "app/client/ui/TeamSettingsPage";
 
-export class BillingPage extends Disposable {
-  constructor(_appModel: AppModel) {
-    super();
-  }
+import { dom } from "grainjs";
 
-  public buildDom() {
-    return null;
-  }
+export function buildMainBillingPage(appModel: AppModel) {
+  return dom.create(TeamSettingsPage, appModel);
 }

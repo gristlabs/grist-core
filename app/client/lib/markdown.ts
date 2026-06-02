@@ -1,7 +1,9 @@
-import { sanitizeHTML } from 'app/client/ui/sanitizeHTML';
-import { theme } from 'app/client/ui2018/cssVars';
-import { BindableValue, DomElementMethod, IDomArgs, styled, subscribeElem } from 'grainjs';
-import { marked } from 'marked';
+import { sanitizeHTMLIntoDOM } from "app/client/ui/sanitizeHTML";
+import { theme } from "app/client/ui2018/cssVars";
+import { tokens } from "app/common/ThemePrefs";
+
+import { BindableValue, dom, DomContents, IDomArgs, styled } from "grainjs";
+import { marked } from "marked";
 
 /**
  * Helper function for using Markdown in grainjs elements. It accepts
@@ -23,8 +25,8 @@ import { marked } from 'marked';
  *
  * Enable `inline` option to avoid wrapping results in `<p>` tags.
  */
-export function markdown(markdownObs: BindableValue<string>, options: {inline?: boolean} = {}): DomElementMethod {
-  return elem => subscribeElem(elem, markdownObs, value => setMarkdownValue(elem, value, options));
+export function markdown(markdownObs: BindableValue<string>, options: { inline?: boolean } = {}): DomContents {
+  return dom.domComputed(markdownObs, value => getMarkdownValue(value, options));
 }
 
 /**
@@ -38,7 +40,7 @@ export function cssMarkdownSpan(
 ): HTMLSpanElement {
   return cssMarkdownLine(markdown(markdownObs), ...args);
 }
-const cssMarkdownLine = styled('span', `
+const cssMarkdownLine = styled("span", `
   & p {
     margin: 0;
   }
@@ -52,17 +54,27 @@ const cssMarkdownLine = styled('span', `
     --icon-color: ${theme.linkHover};
     text-decoration: underline;
   }
+  & code {
+    background-color: ${tokens.bgTertiary};
+    border: 0;
+    border-radius: 6px;
+    color: ${tokens.body};
+    font-size: 85%;
+    margin: 0;
+    padding: .2em .4em;
+    word-break: break-all;
+  }
 `);
 
-export function inlineMarkdown(markdownObs: BindableValue<string>): DomElementMethod {
-  return markdown(markdownObs, {inline: true});
+export function inlineMarkdown(markdownObs: BindableValue<string>): DomContents {
+  return markdown(markdownObs, { inline: true });
 }
 
-function setMarkdownValue(elem: Element, markdownValue: string, options: {inline?: boolean} = {}): void {
-  const html = options.inline
-    ? marked.parseInline(markdownValue, {async: false})
-    : marked(markdownValue, {async: false});
-  elem.innerHTML = sanitizeHTML(html);
+function getMarkdownValue(markdownValue: string, options: { inline?: boolean } = {}): DomContents {
+  const html = options.inline ?
+    marked.parseInline(markdownValue, { async: false }) :
+    marked(markdownValue, { async: false });
+  return sanitizeHTMLIntoDOM(html);
 }
 
 /**
@@ -73,5 +85,5 @@ export function stripLinks(markdownText: string) {
   // though markdown will not render them as links. For example [link\n\nlink](https://example.com) will be
   // rendered as plain text.
   const regex = /\[(.*?)\]\(.*?\)/gs;
-  return markdownText.replace(regex, '$1');
+  return markdownText.replace(regex, "$1");
 }

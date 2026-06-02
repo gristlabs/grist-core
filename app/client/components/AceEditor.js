@@ -1,16 +1,16 @@
-var ace = require('ace-builds');
-var _ = require('underscore');
+var ace = require("ace-builds");
+var _ = require("underscore");
 // ace-builds also has a minified build (src-min-noconflict), but we don't
 // use it since webpack already handles minification.
-require('ace-builds/src-noconflict/mode-python');
-require('ace-builds/src-noconflict/theme-chrome');
-require('ace-builds/src-noconflict/theme-dracula');
-require('ace-builds/src-noconflict/ext-language_tools');
-var {setupAceEditorCompletions} = require('./AceEditorCompletions');
-var dom = require('../lib/dom');
-var dispose = require('../lib/dispose');
-var modelUtil = require('../models/modelUtil');
-var {gristThemeObs} = require('../ui2018/theme');
+require("ace-builds/src-noconflict/mode-python");
+require("ace-builds/src-noconflict/theme-chrome");
+require("ace-builds/src-noconflict/theme-dracula");
+require("ace-builds/src-noconflict/ext-language_tools");
+var {setupAceEditorCompletions} = require("./AceEditorCompletions");
+var dom = require("../lib/dom");
+var dispose = require("../lib/dispose");
+var modelUtil = require("../models/modelUtil");
+var {gristThemeObs} = require("../ui2018/theme");
 
 /**
  * A class to help set up the ace editor with standard formatting and convenience functions
@@ -45,8 +45,8 @@ dispose.makeDisposable(AceEditor);
 // Builds editor dom with additional setup possible in function `optSetupCallback`.
 // May be called multiple times by an instance of AceEditor.
 AceEditor.prototype.buildDom = function(optSetupCallback) {
-  this._fullDom = dom('div.code_editor_container',
-    this.editorDom = dom('div')
+  this._fullDom = dom("div.code_editor_container",
+    this.editorDom = dom("div")
   );
   this._setupCallback = optSetupCallback;
   this._setupTimer = setTimeout(() => this._setup(), 0);
@@ -125,7 +125,7 @@ AceEditor.prototype.attachCommandGroup = function(commandGroup) {
       bindKey: {
         win: key,
         mac: key,
-        sender: 'editor|cli'
+        sender: "editor|cli"
       },
       // AceEditor wants a command to return true if it got handled, whereas our command returns
       // true to avoid stopPropagation/preventDefault, i.e. if it hasn't been handled.
@@ -145,9 +145,9 @@ AceEditor.prototype.attachSaveCommand = function() {
     throw new Error("Cannot attach save command to editor with no bound observable");
   }
   this.editor.commands.addCommand({
-    name: 'saveFormula',
+    name: "saveFormula",
     bindKey: {
-      sender: 'editor|cli'
+      sender: "editor|cli"
     },
     // AceEditor wants a command to return true if it got handled
     exec: () => {
@@ -183,7 +183,7 @@ AceEditor.prototype.setFontSize = function(pxVal) {
 
 AceEditor.prototype._setup = function() {
   // Standard editor setup
-  this.editor = this.autoDisposeWith('destroy', ace.edit(this.editorDom));
+  this.editor = this.autoDisposeWith("destroy", ace.edit(this.editorDom));
   if (this._getSuggestions) {
     setupAceEditorCompletions(this.editor, {getSuggestions: this._getSuggestions});
   }
@@ -191,7 +191,7 @@ AceEditor.prototype._setup = function() {
     enableLiveAutocompletion: true,   // use autocompletion without needing special activation.
   });
   this.session = this.editor.getSession();
-  this.session.setMode('ace/mode/python');
+  this.session.setMode("ace/mode/python");
 
   this._setAceTheme(gristThemeObs().get());
   this.autoDispose(gristThemeObs().addListener((newTheme) => {
@@ -203,7 +203,7 @@ AceEditor.prototype._setup = function() {
   this.session.setTabSize(2);
   this.session.setUseWrapMode(true);
 
-  this.editor.on('change', this.onChange.bind(this));
+  this.editor.on("change", this.onChange.bind(this));
   this.editor.$blockScrolling = Infinity;
   this.editor.setFontSize(11);
   this.resize();
@@ -217,7 +217,7 @@ AceEditor.prototype._setup = function() {
     );
 
     if (this.saveValueOnBlurEvent) {
-      this.editor.on('blur', () => {
+      this.editor.on("blur", () => {
         this.writeObservable();
       });
     }
@@ -255,8 +255,8 @@ AceEditor.prototype.resize = function() {
   // scrollbars. To fix this issue we will make the container a little bit bigger.
   // This won't help for zooming (where the same problem occurs but in many more places), but will
   // help for Windows users who have different pixel ratio.
-  this.editorDom.style.width = size.width ? Math.ceil(size.width) + 'px' : 'auto';
-  this.editorDom.style.height = size.height ? Math.ceil(size.height) + 'px' : 'auto';
+  this.editorDom.style.width = size.width ? Math.ceil(size.width) + "px" : "auto";
+  this.editorDom.style.height = size.height ? Math.ceil(size.height) + "px" : "auto";
   this.editor.resize();
 };
 
@@ -270,13 +270,13 @@ AceEditor.prototype._getContentHeight = function() {
 
 AceEditor.prototype._setAceTheme = function(newTheme) {
   const {appearance} = newTheme;
-  const aceTheme = appearance === 'dark' ? 'dracula' : 'chrome';
+  const aceTheme = appearance === "dark" ? "dracula" : "chrome";
   this.editor.setTheme(`ace/theme/${aceTheme}`);
 };
 
 let _RangeConstructor = null; //singleton, load it lazily
 AceEditor.makeRange = function(a, b, c, d) {
-  _RangeConstructor = _RangeConstructor || ace.require('ace/range').Range;
+  _RangeConstructor = _RangeConstructor || ace.require("ace/range").Range;
   return new _RangeConstructor(a, b, c, d);
 };
 

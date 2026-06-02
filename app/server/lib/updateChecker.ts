@@ -1,10 +1,10 @@
-import {commonUrls, LatestVersionAvailable} from "app/common/gristUrls";
-import {isAffirmative} from "app/common/gutil";
-import {version as installedVersion} from "app/common/version";
-import {naturalCompare} from 'app/common/SortFunc';
-import {GristServer} from "app/server/lib/GristServer";
-import {ApiError} from "app/common/ApiError";
-import {LatestVersion} from "app/server/lib/UpdateManager";
+import { ApiError } from "app/common/ApiError";
+import { commonUrls, LatestVersionAvailable } from "app/common/gristUrls";
+import { isAffirmative } from "app/common/gutil";
+import { naturalCompare } from "app/common/SortFunc";
+import { version as installedVersion } from "app/common/version";
+import { GristServer } from "app/server/lib/GristServer";
+import { LatestVersion } from "app/server/lib/UpdateManager";
 
 export async function checkForUpdates(gristServer: GristServer): Promise<LatestVersion> {
   // Prepare data for the telemetry that endpoint might expect.
@@ -21,14 +21,14 @@ export async function checkForUpdates(gristServer: GristServer): Promise<LatestV
         deploymentType,
         currentVersion,
       }),
-    }
+    },
   );
 
   if (!response.ok) {
-    const errorData = response.headers.get("content-type")?.includes("application/json")
-      ? await response.json()
-      : await response.text();
-    throw new ApiError ('Version update checking failed', response.status, errorData);
+    const errorData = response.headers.get("content-type")?.includes("application/json") ?
+      await response.json() :
+      await response.text();
+    throw new ApiError("Version update checking failed", response.status, errorData);
   }
 
   return await response.json();
@@ -48,7 +48,7 @@ export async function updateGristServerLatestVersion(
   const envvarEnabled = isAffirmative(process.env.GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING);
   const doIt = (envvarEnabled && prefEnabled) || forceCheck;
   if (!doIt) {
-      return null;
+    return null;
   }
 
   const response = await checkForUpdates(gristServer);

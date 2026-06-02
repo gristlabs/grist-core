@@ -1,4 +1,4 @@
-import {ActionSummary} from 'app/common/ActionSummary';
+import { ActionSummary } from "app/common/ActionSummary";
 
 /**
  * This is the action representation the client works with, for the purposes of undos/redos.
@@ -10,7 +10,7 @@ export interface MinimalActionGroup {
   linkId: number;
   otherId: number;
   rowIdHint: number;      // If non-zero, this is a rowId that would be a good place to put
-                          // the cursor after an undo.
+  // the cursor after an undo.
   isUndo: boolean;        // True if the first user action is ApplyUndoActions.
 }
 

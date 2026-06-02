@@ -79,6 +79,7 @@
   display: block;
   outline: none;
   padding: 0px;
+  margin: 0px;
   border: none;
   resize: none;
   z-index: 10;
