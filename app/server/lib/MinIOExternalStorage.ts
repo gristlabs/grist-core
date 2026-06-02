@@ -7,7 +7,7 @@ import * as stream from "node:stream";
 
 import * as fse from "fs-extra";
 import * as minio from "minio";
-import { IamAwsProvider } from "minio/dist/main/IamAwsProvider.js";
+import { IamAwsProvider } from "minio";
 
 // The minio-js v8.0.0 typings are sometimes incorrect. Here are some workarounds.
 interface MinIOClient extends
@@ -65,7 +65,7 @@ export class MinIOExternalStorage implements ExternalStorage {
       region: string
     },
     private _batchSize?: number,
-    _s3?: MinIOClient
+    _s3?: MinIOClient,
   ) {
     if (options.useAwsCredentialChain) {
       options.credentialsProvider = new IamAwsProvider({});
