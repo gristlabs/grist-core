@@ -245,7 +245,8 @@
     "jquery": "3.5.0",
     "ts-interface-checker": "1.0.2",
     "@gristlabs/sqlite3": "5.1.4-grist.12",
-    "esbuild": "^0.25.0"
+    "esbuild": "^0.25.0",
+    "serialize-javascript": "^7.0.5"
   },
   "mocha": {
     "require": [
