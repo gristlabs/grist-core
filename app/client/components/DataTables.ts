@@ -192,28 +192,26 @@ export class DataTables extends Disposable {
       ),
       dom.maybe(use => use(table.summarySourceTable) === 0, () => [
         menuDivider(),
+        menuItem(
+          () => this._editRecordCard(table),
+          cssMenuItemIcon("TypeCard"),
+          t("Edit record card"),
+          dom.cls("disabled", use => use(isReadonly)),
+          testId("menu-edit-record-card"),
+        ),
         dom.domComputed(use => use(use(table.recordCardViewSection).disabled), (isDisabled) => {
-          return [
-            menuItem(
-              () => this._editRecordCard(table),
-              cssMenuItemIcon("TypeCard"),
-              t("Edit record card"),
-              dom.cls("disabled", use => use(isReadonly) || isDisabled),
-              testId("menu-edit-record-card"),
-            ),
-            menuItemAsync(
-              async () => {
-                if (isDisabled) {
-                  await this._enableRecordCard(table);
-                } else {
-                  await this._disableRecordCard(table);
-                }
-              },
-              t("{{action}} Record Card", { action: isDisabled ? "Enable" : "Disable" }),
-              dom.cls("disabled", use => use(isReadonly)),
-              testId(`menu-${isDisabled ? "enable" : "disable"}-record-card`),
-            ),
-          ];
+          return menuItemAsync(
+            async () => {
+              if (isDisabled) {
+                await this._enableRecordCard(table);
+              } else {
+                await this._disableRecordCard(table);
+              }
+            },
+            t("{{action}} Record Card", { action: isDisabled ? "Enable" : "Disable" }),
+            dom.cls("disabled", use => use(isReadonly)),
+            testId(`menu-${isDisabled ? "enable" : "disable"}-record-card`),
+          );
         }),
       ]),
       dom.maybe(isReadonly, () => menuText(t("You do not have edit access to this document"))),
