@@ -99,7 +99,10 @@
         "Developer": "Développeur",
         "Home": "Accueil",
         "Profile": "Profil",
-        "Accessibility": "Accessibilité"
+        "Accessibility": "Accessibilité",
+        "Enterprise": "Entreprise",
+        "OAuth apps": "Applications OAuth",
+        "OAuth apps let you connect external integrations to this Grist server with more security and convenience than when using API keys.\n\nOAuth apps are available with the [full version of Grist]({{fullGrist}}).": "Les applications OAuth vous permettent de connecter des intégrations externes à ce serveur Grist avec plus de sécurité et de praticité qu'avec une clé d'API.\n\nLes applications OAuth sont disponible avec la [version complète de Grist]({{fullGrist}})."
     },
     "AccountWidget": {
         "Sign in": "Se connecter",
@@ -1961,7 +1964,14 @@
         "The URL where users and integrations reach this Grist server": "L'URL à laquelle les utilisateurs et les intégrations peuvent joindre ce serveur Grist",
         "What used to be called \"Grist Enterprise\" is now called \"Full Grist\".": "Ce qui était auparavant appelé \"Grist Entreprise\" est désormais appelé \"Version complète de Grist\".",
         "moved to Edition": "basculé en Édition",
-        "Installation": "Installation"
+        "Installation": "Installation",
+        "Default permissions": "Permissions par défaut",
+        "Who can create sites, log in, and use the playground": "Qui peut créer des espaces, se connecter et utiliser le bac à sable",
+        "Any pending changes will be cleared.": "Les modifications en attentes seront effacées.",
+        "Dismiss": "Rejeter",
+        "Dismiss changes": "Rejeter les modifications",
+        "Dismiss pending changes?": "Rejeter les modifications en attente ?",
+        "Dismissing...": "Rejet en cours..."
     },
     "Field": {
         "No choices configured": "Aucun choix configuré",
@@ -2360,7 +2370,9 @@
         "You are about to enable this experimental feature: {{experiment}}": "Vous êtes sur le point d'activer cette fonctionnalité expérimentale : {{experiment}}",
         "{{experiment}} disabled.": "{{experiment}} désactivé.",
         "{{experiment}} enabled.": "{{experiment}} activé.",
-        "Notifications": "Notifications"
+        "Notifications": "Notifications",
+        "OAuth apps": "Application OAuth",
+        "Simulate deployment as core": "Simuler le déploiement comme noyau"
     },
     "NewRecordButton": {
         "New card": "Nouvelle fiche",
@@ -2684,7 +2696,8 @@
         "To set up {{provider}}, you need to register your Grist server on getgrist.com and paste the configuration key you receive below.": "Pour mettre en place {{provider}}, vous devez enregistrer votre instance Grist sur getgrist.com et coller la clé de configuration que vous avez reçue ci-dessous.",
         "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.": "Quand il se connecteront, les utilisateurs seront redirigés sur la page de connexion de getgrist.com pour se connecter ou se créer un compte. Après s'être authentifié sur getgrist.com, ils seront redirigés sur votre instance de Grist et connecté en tant que l'utilisateur qu'ils ont authentifié.",
         "Managed authentication by Grist Labs.": "Authentification gérée par Grist Labs.",
-        "Your server uses getgrist.com authentication. Users sign in with their getgrist.com account.": "Vous serveur utilise getgrist.com pour authentifier les utilisateurs. Les utilisateurs se connectent grâce à leur compte sur getgrist.com."
+        "Your server uses getgrist.com authentication. Users sign in with their getgrist.com account.": "Vous serveur utilise getgrist.com pour authentifier les utilisateurs. Les utilisateurs se connectent grâce à leur compte sur getgrist.com.",
+        "Error configuring provider with the provided key: {{reason}}": "Une erreur est survenue en configurant le fournisseur avec la clé fournisseur : {{reason}}"
     },
     "AuthenticationSection": {
         "Active": "Active",
@@ -2794,7 +2807,13 @@
         "Your server is using a boot key as a fallback login method. Configure one of the authentication methods below.": "Votre serveur utilise une clé d'amorçage comme méthode de connexion alternative. Configurez une des méthodes d'authentification ci-dessous.",
         "Your server trusts authentication from a reverse proxy. Make sure only your proxy can reach the Grist backend.": "Votre serveur fait confiance à une authentification provenant d'un proxy inversé. Assurez-vous que seul votre proxy puisse joindre le backend de Grist.",
         "Authentication": "Authentification",
-        "Choose how users sign in to Grist.": "Choisissez comment les utilisateurs se connectent à Grist."
+        "Choose how users sign in to Grist.": "Choisissez comment les utilisateurs se connectent à Grist.",
+        "New admin email": "Nouvel e-mail d'administration",
+        "Reassign login to admin": "Réaffecter les droits de connexion en droit d'administration",
+        "The change will be saved when you apply pending changes, and will go into effect after you restart Grist.": "La modification sera sauvegardée lorsque vous appliquerez les modifications en attente, puis prendra effet après le redémarrage de Grist.",
+        "The change will be saved when you apply pending changes, and will take effect after you restart Grist.": "La modification sera sauvegardée lorsque vous appliquerez les modifications en attente, puis prendra effet après le redémarrage de Grist.",
+        "configuration updated": "configuration mise à jour",
+        "disabled": "désactivé"
     },
     "DetailView": {
         "This row is unavailable or does not exist": "Cette ligne est indisponible ou n’existe pas"
@@ -2852,7 +2871,8 @@
         "Enter new admin email": "Entrez le nouvel e-mail d'administration",
         "Make the new email the installation admin. Orgs, workspaces, and documents will remain owned by {{email}}. These changes will take effect after you restart this Grist server.": "Faire du nouvel e-mail l'administrateur d'installation. Les Espaces d'équipes, Dossiers, et documents resteront la propriété de {{email}}. Ces changements seront effectifs après le redémarrage du serveur Grist.",
         "New admin": "Nouvel administrateur",
-        "Replace {{email}} with the new email throughout. The new email will become the installation admin, as well as the owner of all materials previously owned by you@example.com.": "Remplacer complètement {{email}} par le nouvel e-mail d'administration. Le nouvel e-mail deviendra l'administrateur d'installation, ainsi que le propriétaire de tout les éléments appartenant précédemment à vous@exemple.fr."
+        "Replace {{email}} with the new email throughout. The new email will become the installation admin, as well as the owner of all materials previously owned by you@example.com.": "Remplacer complètement {{email}} par le nouvel e-mail d'administration. Le nouvel e-mail deviendra l'administrateur d'installation, ainsi que le propriétaire de tout les éléments appartenant précédemment à vous@exemple.fr.",
+        "An account with {{email}} already exists.": "Un compte {{email}} existe déjà."
     },
     "startDocAirtableImport": {
         "Import from Airtable": "Importer depuis Airtable"
@@ -2915,7 +2935,11 @@
         "Review these defaults before going live. You can change them later from the admin panel.": "Vérifiez ces paramètres par défaut avant le lancement. Vous pouvez les modifier plus tard depuis le portail d'administration.",
         "Server did not restart in time. Please refresh the page.": "Le serveur n'a pas redémarré à temps. Merci d'actualiser la page.",
         "Some settings are controlled by environment variables and cannot be changed here: {{vars}}. To modify them, update the corresponding variables in your server configuration and restart.": "Quelques paramètres sont contrôlés par des variables d'environnement et ne peuvent pas être modifiés ici : {{vars}}. Pour les modifier, mettez à jour les variables correspondantes dans votre configuration de serveur puis redémarrez.",
-        "The personal org is the only org available — personal sites must stay enabled or Grist will be non-functional.": "L'organisation personnelle est la seule disponible — les espaces personnels doivent rester activés sous peine de dysfonctionnement de Grist."
+        "The personal org is the only org available — personal sites must stay enabled or Grist will be non-functional.": "L'organisation personnelle est la seule disponible — les espaces personnels doivent rester activés sous peine de dysfonctionnement de Grist.",
+        "Apply & restart": "Appliquer et redémarrer",
+        "Apply and go live!": "Appliquer et hop en prod !",
+        "Custom": "Personnalisé",
+        "loading…": "Chargement en cours…"
     },
     "SandboxSection": {
         "Active": "Actif",
@@ -2934,7 +2958,9 @@
         "Skip and Continue": "Ignorer et poursuivre",
         "Uses the built-in macOS sandbox. Good isolation for local use on a Mac.": "Utilise le bac à sable macOS préconfiguré. Permet une bonne isolation pour une utilisation locale sur un Mac.",
         "macOS Sandbox": "Bac à sable macOS",
-        "Sandbox": "Bac à sable"
+        "Sandbox": "Bac à sable",
+        "No sandbox": "Pas de sandbox",
+        "macOS sandbox": "Sandbox macOS"
     },
     "AdminPanelCss": {
         "Confirmed": "Confirmé",
@@ -2983,7 +3009,9 @@
         "Your installation does not bundle the Full Grist edition. Want Full Grist? {{enableLink}}": "Votre installation n'inclut pas la version complète de Grist. Vous souhaitez obtenir la version complète ? {{enableLink}}",
         "community": "communautaire",
         "full": "complète",
-        "pricing": "tarification"
+        "pricing": "tarification",
+        "Community edition": "Édition communautaire",
+        "I understand I am running Grist Community edition": "J'ai compris que je suis en train d'utiliser la version communautaire de Grist"
     },
     "QuickSetupServerStep": {
         "Apply and Continue": "Appliquer et poursuivre",
@@ -2999,7 +3027,8 @@
     "AccountLeftPanel": {
         "Account settings": "Paramètres du compte",
         "Developer": "Développeur",
-        "Profile": "Profil"
+        "Profile": "Profil",
+        "Authorized apps": "Applications autorisées"
     },
     "SettingsLayout": {
         "Authentication": "Authentification",
@@ -3096,7 +3125,9 @@
         "Set these environment variables and restart Grist to enable Azure storage:": "Définissez ces variables d'environnement et redémarrez Grist pour activer le stockage Azure :",
         "Set these environment variables and restart Grist to enable MinIO storage:": "Définissez ces variables d'environnement et redémarrez Grist pour activer le stockage MinIO :",
         "Set these environment variables and restart Grist to enable S3 storage:": "Définissez ces variables d'environnement et redémarrez Grist pour activer le stockage S3 :",
-        "Store document backups on an external service like S3 or Azure.           This protects against data loss if the server's disk fails.": "Conserver les sauvegardes des documents sur un service externe comme S3 ou Azure.           Cela vous protège contre la perte de données si le disque dur du serveur dysfonctionne."
+        "Store document backups on an external service like S3 or Azure.           This protects against data loss if the server's disk fails.": "Conserver les sauvegardes des documents sur un service externe comme S3 ou Azure.           Cela vous protège contre la perte de données si le disque dur du serveur dysfonctionne.",
+        "Local filesystem (test only)": "Système de fichier local (pour test uniquement)",
+        "Stores document snapshots on the local filesystem. For tests only, not production.": "Sauvegarde les instantanés des documents sur le système de fichier local. Uniquement pour les tests, ne pas mettre en production."
     },
     "ScreenReaderAnnouncer": {
         "Notification: {{notification}}": "Notification : {{notification}}"
@@ -3115,5 +3146,24 @@
         "link {{- label}}": "lien {{- label}}",
         "list: {{- items}}": "liste: {{- items}}",
         "{{- text}} (link)": "{{- text}} (lien)"
+    },
+    "AdminAccessDeniedCard": {
+        "Administrator Panel Unavailable": "Panneau d'administration indisponible",
+        "If you are the server operator, you can sign in using the boot key from your server logs.": "Si vous êtes l'administrateur du serveur, vous pouvez vous identifier en utilisant la boot key disponible dans les logs de votre serveur.",
+        "Sign in with boot key": "S'identifier avec la boot key",
+        "You do not have access to the administrator panel.\nPlease log in as an administrator.": "Vous n'avez pas accès au panneau d’administration.\nConnectez-vous en tant qu'administrateur."
+    },
+    "PermissionsToggleModel": {
+        "Allow anonymous access": "Autoriser les accès anonymes",
+        "Allow anonymous playground": "Autoriser le bac à sable anonyme",
+        "Allow anyone to create team sites": "Autoriser tout le monde à créer des espaces d'équipe",
+        "Allow personal sites": "Autoriser les espaces personnels",
+        "Any logged-in user can create new team sites. Turn off to restrict team creation to admins only.": "Tous les utilisateurs connectés peuvent créer de nouveaux espaces d'équipe. Désactiver pour restreindre la création d'espace d'équipe aux seuls administrateurs.",
+        "Permissions": "Permissions",
+        "Users can create their own personal sites with documents. Turn off to restrict all documents to team sites managed by admins.": "Les utilisateurs peuvent créer leur propres espaces personnels avec des documents. Désactiver pour n'autoriser la création de documents que dans des espaces d'équipes gérés par des administrateurs.",
+        "Visitors who aren't signed in can create and edit documents in a temporary playground. Turn off to require sign-in before creating any documents.": "Les visiteurs qui ne sont pas connectés peuvent créer et éditer des documents en mode bac à sable. Désactiver pour imposer la connexion avant de pouvoir créer un document.",
+        "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.": "Les visiteurs qui ne sont pas connectés peuvent voir les documents publiques. C'est nécessaire pour le partage de liens et les formulaires.",
+        "off": "désactivé",
+        "on": "activé"
     }
 }
