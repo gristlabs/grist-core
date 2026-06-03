@@ -5,9 +5,11 @@ import { cssRadioCheckboxOptions, radioCheckboxOption } from "app/client/ui2018/
 import { isEmail } from "app/common/gutil";
 import { InstallAPI } from "app/common/InstallAPI";
 
-import { Computed, Disposable, dom, input, Observable } from "grainjs";
+import { Computed, Disposable, dom, input, makeTestId, Observable } from "grainjs";
 
 const t = makeT("ChangeAdminModal");
+
+const testId = makeTestId("test-change-admin-");
 
 export interface ChangeAdminModalOptions {
   currentUserEmail: string;
@@ -56,23 +58,27 @@ export class ChangeAdminModal extends Disposable {
           { placeholder: t("Enter new admin email") },
           dom.cls(cssInput.className),
           (elem) => { setTimeout(() => { elem.focus(); }, 20); },
+          testId("email"),
         ),
       ),
       cssRadioCheckboxOptions(
-        radioCheckboxOption(this._replace, true,
+        radioCheckboxOption(this._replace, true, [
           t("Replace {{email}} with the new email throughout. \
 The new email will become the installation admin, as well as \
 the owner of all materials previously owned by you@example.com.",
           { email: dom("strong", this._currentUserEmail) },
           ),
-        ),
-        radioCheckboxOption(this._replace, false,
+          testId("option"),
+        ]),
+        radioCheckboxOption(this._replace, false, [
           t("Make the new email the installation admin. \
 Orgs, workspaces, and documents will remain owned by {{email}}. \
 These changes will take effect after you restart this Grist server.",
           { email: dom("strong", this._currentUserEmail) },
           ),
-        ),
+          testId("option"),
+        ]),
+        testId("options"),
       ),
     ];
   }

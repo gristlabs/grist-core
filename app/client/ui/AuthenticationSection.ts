@@ -15,6 +15,7 @@ import { ConfigSection, DraftChangeDescription } from "app/client/ui/DraftChange
 import {
   armSetupReturnFromGetGristCom,
   clearSetupReturnFromGetGristCom,
+  getGetGristComKeyOwner,
   GetGristComProviderInfoModal,
   getGristComProviderMeta,
   peekSetupReturnFromGetGristCom,
@@ -159,10 +160,17 @@ export class AuthenticationSection extends Disposable implements ConfigSection {
     },
   );
 
-  private _getgristLoginOwner = Computed.create(this, this._providers, (_use, providers) => {
-    const getgristLogin = providers.find(p => p.key === GETGRIST_COM_PROVIDER_KEY);
-    return getgristLogin?.metadata?.owner ?? null;
-  });
+  private _getgristLoginOwner = Computed.create(
+    this, this._providers, this._draftConfigs,
+    (_use, providers, draftConfigs) => {
+      const draftSecret = draftConfigs.get(GETGRIST_COM_PROVIDER_KEY)?.GRIST_GETGRISTCOM_SECRET;
+      const draftOwner = draftSecret ? getGetGristComKeyOwner(draftSecret) : null;
+      if (draftOwner) { return draftOwner; }
+
+      const getgristLogin = providers.find(p => p.key === GETGRIST_COM_PROVIDER_KEY);
+      return getgristLogin?.metadata?.owner ?? null;
+    },
+  );
 
   // Set by apply() to communicate to afterApply() whether the restart it just
   // triggered will kill the operator's session, in which case afterApply
@@ -412,6 +420,7 @@ authentication system.",
             }
           }),
           dom("p", t('See "Restart Grist" section on top of this page to restart.')),
+          testId("change-warning-content"),
         ),
         dom.domComputed((use) => {
           const prefs = use(this._prefsPendingChanges);
@@ -420,12 +429,14 @@ authentication system.",
               t("Revert change of admin user"),
               dom.style("margin-top", "16px"),
               dom.on("click", () => this._revertSetInstallAdmin()),
+              testId("revert-change-admin"),
             );
           } else {
             return bigPrimaryButton(
               t("Change admin user"),
               dom.style("margin-top", "16px"),
               dom.on("click", () => this._showChangeAdminModal()),
+              testId("change-admin"),
             );
           }
         }),
