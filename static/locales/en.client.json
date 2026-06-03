@@ -100,7 +100,8 @@
         "Profile": "Profile",
         "Enterprise": "Enterprise",
         "OAuth apps": "OAuth apps",
-        "OAuth apps let you connect external integrations to this Grist server with more security and convenience than when using API keys.\n\nOAuth apps are available with the [full version of Grist]({{fullGrist}}).": "OAuth apps let you connect external integrations to this Grist server with more security and convenience than when using API keys.\n\nOAuth apps are available with the [full version of Grist]({{fullGrist}})."
+        "OAuth apps let you connect external integrations to this Grist server with more security and convenience than when using API keys.\n\nOAuth apps are available with the [full version of Grist]({{fullGrist}}).": "OAuth apps let you connect external integrations to this Grist server with more security and convenience than when using API keys.\n\nOAuth apps are available with the [full version of Grist]({{fullGrist}}).",
+        "Accessibility": "Accessibility"
     },
     "AccountWidget": {
         "Access Details": "Access Details",
@@ -155,7 +156,9 @@
         "Description": "Description",
         "Key": "Key",
         "Memory Error": "Memory Error",
-        "Translators: please translate this only when your language is ready to be offered to users": "Translators: please translate this only when your language is ready to be offered to users"
+        "Translators: please translate this only when your language is ready to be offered to users": "Translators: please translate this only when your language is ready to be offered to users",
+        "Disabled screen reader improvements": "Disabled screen reader improvements",
+        "Enabled screen reader improvements": "Enabled screen reader improvements"
     },
     "AppHeader": {
         "Home page": "Home page",
@@ -641,7 +644,8 @@
         "Saved linked section {{title}} in view {{name}}": "Saved linked section {{title}} in view {{name}}",
         "go to webhook settings": "go to webhook settings",
         "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.",
-        "Import from Airtable": "Import from Airtable"
+        "Import from Airtable": "Import from Airtable",
+        "{{title}} widget": "{{title}} widget"
     },
     "HomeIntro": {
         "Any documents created in this site will appear here.": "Any documents created in this site will appear here.",
@@ -717,7 +721,9 @@
     },
     "LeftPanelCommon": {
         "Help Center": "Help Center",
-        "Accessibility": "Accessibility"
+        "Accessibility": "Accessibility",
+        "(Screen reader improvements enabled)": "(Screen reader improvements enabled)",
+        "Screen reader improvements enabled": "Screen reader improvements enabled"
     },
     "MakeCopyMenu": {
         "As template": "As template",
@@ -788,7 +794,10 @@
         "Select data": "Select data",
         "Select widget": "Select widget",
         "New Table": "New Table",
-        "SELECT BY": "SELECT BY"
+        "SELECT BY": "SELECT BY",
+        "{{table}} grouped by… (press to select fields)": "{{table}} grouped by… (press to select fields)",
+        "Press Space to add fields": "Press Space to add fields",
+        "Use up and down arrow keys to move through options. Press Enter and Esc to move between steps.": "Use up and down arrow keys to move through options. Press Enter and Esc to move between steps."
     },
     "Pages": {
         "Delete": "Delete",
@@ -1570,7 +1579,9 @@
         "Talk to me like a person. No need to specify tables and column names. For example, you can ask \"Please calculate the total invoice amount.\"": "Talk to me like a person. No need to specify tables and column names. For example, you can ask \"Please calculate the total invoice amount.\""
     },
     "GridView": {
-        "Click to insert": "Click to insert"
+        "Click to insert": "Click to insert",
+        "row {{rowNum}} {{colName}}": "row {{rowNum}} {{colName}}",
+        "row {{rowNum}} {{colName}} (new row)": "row {{rowNum}} {{colName}} (new row)"
     },
     "WelcomeSitePicker": {
         "Welcome back": "Welcome back",
@@ -2371,7 +2382,8 @@
         "Create new page": "Create new page"
     },
     "AttachmentsWidget": {
-        "Uploading, please wait…": "Uploading, please wait…"
+        "Uploading, please wait…": "Uploading, please wait…",
+        "Image": "Image"
     },
     "AttachmentsEditor": {
         "Add": "Add",
@@ -2462,7 +2474,14 @@
         "{{creatorPanelShortcut}} Focus to and from the creator panel": "{{creatorPanelShortcut}} Focus to and from the creator panel",
         "{{nextRegionShortcut}} Focus on the next region": "{{nextRegionShortcut}} Focus on the next region",
         "{{prevRegionShortcut}} Focus on the previous region": "{{prevRegionShortcut}} Focus on the previous region",
-        "{{shortcutsModal}} Show the complete list of keyboard shortcuts": "{{shortcutsModal}} Show the complete list of keyboard shortcuts"
+        "{{shortcutsModal}} Show the complete list of keyboard shortcuts": "{{shortcutsModal}} Show the complete list of keyboard shortcuts",
+        "Enable screen reader improvements (keyboard shortcut: {{shortcut}})": "Enable screen reader improvements (keyboard shortcut: {{shortcut}})",
+        "Use your screen reader's focus mode, or disable Quick Nav if you use VoiceOver.": "Use your screen reader's focus mode, or disable Quick Nav if you use VoiceOver.",
+        "Please first read the \"Keyboard navigation\" section above to understand how to navigate across the interface's regions: specific keyboard shortcuts need to be used.": "Please first read the \"Keyboard navigation\" section above to understand how to navigate across the interface's regions: specific keyboard shortcuts need to be used.",
+        "Screen reader navigation": "Screen reader navigation",
+        "Warning: screen reader support is a work-in-progress in Grist and is improving over time. Feedback is greatly appreciated!": "Warning: screen reader support is a work-in-progress in Grist and is improving over time. Feedback is greatly appreciated!",
+        "While not mandatory, you can enable screen reader improvements for a better navigation experience:": "While not mandatory, you can enable screen reader improvements for a better navigation experience:",
+        "We recommend using Firefox, Chrome or Edge in order to use Grist with a screen reader.": "We recommend using Firefox, Chrome or Edge in order to use Grist with a screen reader."
     },
     "ProposedChangesPage": {
         "Proposed changes": "Proposed changes",
@@ -2602,7 +2621,10 @@
         "When typed at the start of a cell, make this a formula column": "When typed at the start of a cell, make this a formula column",
         "showing a behavioral popup": "showing a behavioral popup",
         "Filter this column by just this cell's value": "Filter this column by just this cell's value",
-        "Open the context menu": "Open the context menu"
+        "Open the context menu": "Open the context menu",
+        "Toggle the screen reader improvements": "Toggle the screen reader improvements",
+        "Open the current column menu": "Open the current column menu",
+        "Open the current row menu": "Open the current row menu"
     },
     "GridViewMenusDateHelpers": {
         "12-hour format": "12-hour format",
@@ -2964,8 +2986,8 @@
         "Allow anyone to create team sites": "Allow anyone to create team sites",
         "Allow personal sites": "Allow personal sites",
         "Any logged-in user can create new team sites. Turn off to restrict team creation to admins only.": "Any logged-in user can create new team sites. Turn off to restrict team creation to admins only.",
-        "Apply & Restart": "Apply & Restart",
-        "Apply and Go Live!": "Apply and Go Live!",
+        "Apply & restart": "Apply & restart",
+        "Apply and go live!": "Apply and go live!",
         "Applying settings and restarting…": "Applying settings and restarting…",
         "Back to installation": "Back to installation",
         "Conflict": "Conflict",
@@ -2995,7 +3017,7 @@
         "Continue": "Continue",
         "Detecting sandbox options...": "Detecting sandbox options...",
         "Error": "Error",
-        "No Sandbox": "No Sandbox",
+        "No sandbox": "No sandbox",
         "Not available": "Not available",
         "Not recommended": "Not recommended",
         "Other options": "Other options",
@@ -3004,7 +3026,7 @@
         "Sandboxing": "Sandboxing",
         "Skip and Continue": "Skip and Continue",
         "Uses the built-in macOS sandbox. Good isolation for local use on a Mac.": "Uses the built-in macOS sandbox. Good isolation for local use on a Mac.",
-        "macOS Sandbox": "macOS Sandbox",
+        "macOS sandbox": "macOS sandbox",
         "Sandbox": "Sandbox"
     },
     "AdminPanelCss": {
@@ -3039,12 +3061,12 @@
     "EditionSection": {
         "Choose which edition of Grist to run on this server": "Choose which edition of Grist to run on this server",
         "Choose which edition of Grist to run on this server.": "Choose which edition of Grist to run on this server.",
-        "Community Edition": "Community Edition",
+        "Community edition": "Community edition",
         "Confirm edition": "Confirm edition",
         "Edition": "Edition",
         "Full Grist": "Full Grist",
         "Full Grist is enabled via environment variable.": "Full Grist is enabled via environment variable.",
-        "I understand I am running Grist Community Edition": "I understand I am running Grist Community Edition",
+        "I understand I am running Grist Community edition": "I understand I am running Grist Community edition",
         "Learn more.": "Learn more.",
         "On": "On",
         "See how to enable it.": "See how to enable it.",
@@ -3112,5 +3134,23 @@
         "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.": "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.",
         "off": "off",
         "on": "on"
+    },
+    "ScreenReaderAnnouncer": {
+        "Notification: {{notification}}": "Notification: {{notification}}"
+    },
+    "ScreenReaderConfig": {
+        "Enable screen reader improvements": "Enable screen reader improvements",
+        "Press {{accessibilityModalShortcut}} for more information about screen reader navigation.": "Press {{accessibilityModalShortcut}} for more information about screen reader navigation."
+    },
+    "ScreenReaderFormatters": {
+        "Checked": "Checked",
+        "Image": "Image",
+        "Toggled off": "Toggled off",
+        "Toggled on": "Toggled on",
+        "Unchecked": "Unchecked",
+        "heading {{- text}}": "heading {{- text}}",
+        "link {{- label}}": "link {{- label}}",
+        "list: {{- items}}": "list: {{- items}}",
+        "{{- text}} (link)": "{{- text}} (link)"
     }
 }

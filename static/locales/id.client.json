@@ -222,7 +222,14 @@
         "Theme": "Tema",
         "Two-factor authentication": "Otentikasi dua-faktor",
         "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "Autentikasi dua faktor adalah lapisan keamanan ekstra untuk akun Grist Anda yang dirancang untuk memastikan bahwa Anda adalah satu-satunya orang yang dapat mengakses akun Anda, bahkan jika seseorang mengetahui kata sandi Anda.",
-        "Language": "Bahasa"
+        "Language": "Bahasa",
+        "Basic info": "Info dasar",
+        "Developer": "Pengembang",
+        "Home": "Beranda",
+        "Profile": "Profil",
+        "Enterprise": "Enterprise",
+        "OAuth apps": "Aplikasi OAuth",
+        "OAuth apps let you connect external integrations to this Grist server with more security and convenience than when using API keys.\n\nOAuth apps are available with the [full version of Grist]({{fullGrist}}).": "Aplikasi OAuth memungkinkan Anda menghubungkan integrasi eksternal ke server Grist ini dengan keamanan dan kemudahan yang lebih baik dibandingkan saat menggunakan kunci API.\n\nAplikasi OAuth tersedia dengan [versi penuh Grist]({{fullGrist}})."
     },
     "AccountWidget": {
         "Access Details": "Detail Akses",
@@ -241,7 +248,9 @@
         "Support Grist": "Dukung Grist",
         "Upgrade Plan": "Rencana Peningkatan",
         "Sign up": "Mendaftar",
-        "Use This Template": "Gunakan Templat Ini"
+        "Use This Template": "Gunakan Templat Ini",
+        "Site settings": "Pengaturan situs",
+        "Account settings": "Pengaturan akun"
     },
     "ViewAsDropdown": {
         "View as": "Lihat sebagai",
@@ -1141,7 +1150,10 @@
         "this document": "dokumen ini",
         "your email": "email Anda",
         "You will no longer receive email notifications about {{suggestions}} in {{docName}} at {{email}}.": "Anda tidak akan lagi menerima pemberitahuan email tentang {{suggestions}} di {{docName}} di {{email}}.",
-        "suggestions": "saran"
+        "suggestions": "saran",
+        "You will no longer receive email notifications about {{automations}} in {{docName}} at {{email}}.": "Anda tidak akan lagi menerima notifikasi email tentang {{automations}} di {{docName}} pada {{email}}.",
+        "You have been unsubscribed from automation notifications for {{docName}}. You can update your preferences anytime in the document settings.": "Anda telah berhenti berlangganan notifikasi otomasi untuk {{docName}}. Anda dapat memperbarui preferensi kapan saja di pengaturan dokumen.",
+        "automations": "otomasi"
     },
     "menus": {
         "* Workspaces are available on team plans. ": "* Ruang kerja tersedia pada paket tim. ",
@@ -1163,7 +1175,9 @@
         "By Name": "Berdasarkan Nama",
         "By Date Modified": "Berdasar tanggal Modifikasi",
         "Light": "Terang",
-        "Custom": "Kustom"
+        "Custom": "Kustom",
+        "Dark": "Gelap",
+        "Light (High Contrast)": "Terang (Kontras Tinggi)"
     },
     "modals": {
         "Cancel": "Batal",
@@ -1891,7 +1905,42 @@
         "error in {{provider}}: {{verdict}}": "kesalahan di {{provider}}: {{verdict}}",
         "Please restart Grist manually.": "Silakan mulai ulang Grist secara manual.",
         "Restart Grist to apply pending changes.": "Restart Grist untuk menerapkan perubahan yang tertunda.",
-        "Restart unavailable": "Restart tidak tersedia"
+        "Restart unavailable": "Restart tidak tersedia",
+        "Boot key": "Kunci boot",
+        "Fallback authentication method": "Metode autentikasi cadangan",
+        "If you are the server operator, you can sign in using the boot key from your server logs.": "Jika Anda adalah operator server, Anda dapat masuk menggunakan kunci boot dari log server Anda.",
+        "Maintenance": "Pemeliharaan",
+        "Service status": "Status layanan",
+        "Sign in with boot key": "Masuk dengan kunci boot",
+        "Take Grist out of service for maintenance": "Keluarkan Grist dari layanan untuk pemeliharaan",
+        "boot key": "kunci boot",
+        "disabled": "dinonaktifkan",
+        "enabled": "diaktifkan",
+        "in service": "dalam layanan",
+        "out of service": "di luar layanan",
+        "Back up documents externally": "Cadangkan dokumen secara eksternal",
+        "Backups": "Cadangan",
+        "Storage": "Penyimpanan",
+        "Apply changes (manual restart required)": "Terapkan perubahan (perlu mulai ulang manual)",
+        "Base URL": "URL dasar",
+        "Changes have been saved. Restart Grist to apply them.": "Perubahan telah disimpan. Mulai ulang Grist untuk menerapkannya.",
+        "Edition": "Edisi",
+        "Its controls have moved to {{editionLink}} above.": "Kontrolnya telah dipindahkan ke {{editionLink}} di atas.",
+        "Restart the Grist server": "Mulai ulang server Grist",
+        "Saving...": "Menyimpan...",
+        "Server": "Server",
+        "Server → Edition": "Server → Edisi",
+        "The URL where users and integrations reach this Grist server": "URL tempat pengguna dan integrasi mengakses server Grist ini",
+        "What used to be called \"Grist Enterprise\" is now called \"Full Grist\".": "Yang sebelumnya disebut \"Grist Enterprise\" sekarang disebut \"Full Grist\".",
+        "moved to Edition": "dipindahkan ke Edisi",
+        "Installation": "Instalasi",
+        "Default permissions": "Izin default",
+        "Who can create sites, log in, and use the playground": "Siapa yang dapat membuat situs, masuk, dan menggunakan playground",
+        "Any pending changes will be cleared.": "Semua perubahan yang tertunda akan dihapus.",
+        "Dismiss": "Tutup",
+        "Dismiss changes": "Batalkan perubahan",
+        "Dismiss pending changes?": "Batalkan perubahan yang tertunda?",
+        "Dismissing...": "Membatalkan..."
     },
     "GridViewMenusDateHelpers": {
         "Day of week": "Hari dalam sepekan",
@@ -2085,7 +2134,8 @@
         "Use the currently selected row as table headers": "Gunakan baris yang dipilih saat ini sebagai header tabel",
         "When typed at the start of a cell, make this a formula column": "Saat diketik di awal sel, jadikan ini kolom rumus",
         "showing a behavioral popup": "menampilkan popup perilaku",
-        "Filter this column by just this cell's value": "Filter kolom ini hanya berdasarkan nilai sel ini"
+        "Filter this column by just this cell's value": "Filter kolom ini hanya berdasarkan nilai sel ini",
+        "Open the context menu": "Buka menu konteks"
     },
     "Columns": {
         "Remove Column": "Hapus Kolom"
@@ -2129,7 +2179,9 @@
         "Select...": "Pilih...",
         "Submit": "Ajukan",
         "Submitting…": "Mengajukan…",
-        "Clear selection for: {{-inputLabel}}": "Bersihkan pilihan untuk: {{-inputLabel}}"
+        "Clear selection for: {{-inputLabel}}": "Bersihkan pilihan untuk: {{-inputLabel}}",
+        "Options for {{-inputLabel}}": "Opsi untuk {{-inputLabel}}",
+        "Search options for {{-inputLabel}}": "Cari opsi untuk {{-inputLabel}}"
     },
     "RenameDocModal": {
         "Reset icon": "Atur ulang ikon",
@@ -2244,7 +2296,14 @@
         "Your activation key has expired due to exceeding limits.": "Kunci aktivasi Anda telah kedaluwarsa karena melampaui batas.",
         "Your instance will be in **read-only** mode in **{{days}}** day(s).": "Instansi Anda akan berada dalam mode **baca-saja** dalam **{{days}}** hari.",
         "Your subscription expired on {{date}}.": "Langganan Anda berakhir pada {{date}}.",
-        "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.": "Masa uji coba Anda telah berakhir pada **{{expireAt}}**. Untuk terus menggunakan Grist Enterprise, Anda perlu\n[mendaftar ke Grist Enterprise]({{signupLink}}) dan menempelkan kunci aktivasi Anda di bawah ini."
+        "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.": "Masa uji coba Anda telah berakhir pada **{{expireAt}}**. Untuk terus menggunakan Grist Enterprise, Anda perlu\n[mendaftar ke Grist Enterprise]({{signupLink}}) dan menempelkan kunci aktivasi Anda di bawah ini.",
+        "An activation key is used to run Full Grist after a trial period\n        of 30 days has expired. Get an activation key by [signing up for Grist\n        Enterprise]({{signupLink}}). You do not need an activation key to run\n        Grist Community Edition.": "Kunci aktivasi digunakan untuk menjalankan Full Grist setelah masa uji coba\n        selama 30 hari berakhir. Dapatkan kunci aktivasi dengan [mendaftar ke Grist\n        Enterprise]({{signupLink}}). Anda tidak memerlukan kunci aktivasi untuk menjalankan\n        Grist Community Edition.",
+        "An activation key is used to run Full Grist after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Community Edition.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Kunci aktivasi digunakan untuk menjalankan Full Grist setelah masa uji coba\nselama 30 hari berakhir. Dapatkan kunci aktivasi dengan [menghubungi kami]({{contactLink}}) hari ini. Anda tidak\nmemerlukan kunci aktivasi untuk menjalankan Grist Community Edition.\n\nPelajari lebih lanjut di [Pusat Bantuan]({{helpCenter}}).",
+        "An active subscription is required to continue using Full Grist. You can\nyou activate your subscription by [signing up for Full Grist ]({{signupLink}}) and pasting your\nactivation key below.": "Langganan aktif diperlukan untuk terus menggunakan Full Grist. Anda dapat\nmengaktifkan langganan Anda dengan [mendaftar ke Full Grist]({{signupLink}}) dan menempelkan kunci\naktivasi Anda di bawah ini.",
+        "Enable Full Grist": "Aktifkan Full Grist",
+        "To continue using Full Grist, you need to\n                  [contact us]({{signupLink}}) to get your activation key.": "Untuk terus menggunakan Full Grist, Anda perlu\n                  [menghubungi kami]({{signupLink}}) untuk mendapatkan kunci aktivasi Anda.",
+        "You are currently trialing Full Grist.": "Anda saat ini sedang menggunakan masa uji coba Full Grist.",
+        "Your trial period has expired on **{{expireAt}}**. To continue using Full Grist, you need to\n[sign up for Full Grist]({{signupLink}}) and paste your activation key below.": "Masa uji coba Anda telah berakhir pada **{{expireAt}}**. Untuk terus menggunakan Full Grist, Anda perlu\n[mendaftar ke Full Grist]({{signupLink}}) dan menempelkan kunci aktivasi Anda di bawah ini."
     },
     "ViewLayout": {
         "Delete": "Hapus",
@@ -2409,7 +2468,10 @@
         "Users": "Pengguna",
         "Workspaces": "Ruang kerja",
         "Admin Controls": "Kontrol Admin",
-        "Settings": "Pengaturan"
+        "Settings": "Pengaturan",
+        "Enterprise": "Enterprise",
+        "Quick setup": "Penyiapan cepat",
+        "Apply changes": "Terapkan perubahan"
     },
     "Assistant": {
         "AI Assistant is only available for logged in users.": "Asisten AI hanya tersedia untuk pengguna yang masuk.",
@@ -2464,7 +2526,10 @@
         "You are about to disable this experimental feature: {{experiment}}": "Anda akan menonaktifkan fitur eksperimental ini: {{experiment}}",
         "You are about to enable this experimental feature: {{experiment}}": "Anda akan mengaktifkan fitur eksperimental ini: {{experiment}}",
         "{{experiment}} disabled.": "{{experiment}} dinonaktifkan.",
-        "{{experiment}} enabled.": "{{experiment}} diaktifkan."
+        "{{experiment}} enabled.": "{{experiment}} diaktifkan.",
+        "Notifications": "Notifikasi",
+        "OAuth apps": "Aplikasi OAuth",
+        "Simulate deployment as core": "Simulasikan deployment sebagai inti"
     },
     "NewRecordButton": {
         "New card": "Kartu baru",
@@ -2509,7 +2574,8 @@
         "This boot page should not be too easy to access. Either turn it off when configuration is ok (by unsetting GRIST_BOOT_KEY) or make GRIST_BOOT_KEY long and cryptographically secure.": "Halaman boot ini seharusnya tidak terlalu mudah diakses. Matikan halaman ini saat konfigurasi sudah benar (dengan menghapus GRIST_BOOT_KEY) atau buat GRIST_BOOT_KEY panjang dan aman secara kriptografi.",
         "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.": "Koneksi Websocket memerlukan HTTP 1.1 dan kemampuan untuk mengirimkan beberapa header tambahan agar dapat berfungsi. Terkadang, proxy terbalik dapat mengganggu persyaratan ini.",
         "It is good practice not to run Grist as the root user.": "Merupakan praktik yang baik untuk tidak menjalankan Grist sebagai pengguna root.",
-        "The main page of Grist should be available.": "Halaman utama Grist seharusnya tersedia."
+        "The main page of Grist should be available.": "Halaman utama Grist seharusnya tersedia.",
+        "APP_HOME_URL is the base URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "APP_HOME_URL adalah URL dasar tempat pengguna dan integrasi mengakses server Grist ini. Callback autentikasi, tautan API, dan notifikasi email semuanya bergantung pada ketepatan nilai ini."
     },
     "FormulaTransform": {
         "Apply": "Terapkan",
@@ -2663,7 +2729,47 @@
         "When signing in, users will be redirected to a Grist Connect login page where they can authenticate using various identity providers. After authentication, they'll be redirected back to your Grist server and signed in.": "Saat masuk, pengguna akan dialihkan ke halaman login Grist Connect tempat mereka dapat melakukan autentikasi menggunakan berbagai penyedia identitas. Setelah autentikasi, mereka akan dialihkan kembali ke server Grist Anda dan masuk.",
         "When signing in, users will be redirected to your chosen identity provider's login page to authenticate. After successful authentication, they'll be redirected back to your Grist server and signed in as the user verified by the provider.": "Saat masuk, pengguna akan dialihkan ke halaman masuk penyedia identitas pilihan Anda untuk melakukan autentikasi. Setelah autentikasi berhasil, mereka akan dialihkan kembali ke server Grist Anda dan masuk sebagai pengguna yang telah diverifikasi oleh penyedia tersebut.",
         "You are signed in as {{email}}. After restart, the new administrative user will be {{newEmail}}.": "Anda masuk sebagai {{email}}. Setelah restart, pengguna administratif yang baru adalah {{newEmail}}.",
-        "You are signed in as {{email}}. You may lose access to this server if you cannot sign in as this user after switching the authentication system.": "Anda masuk sebagai {{email}}. Anda mungkin kehilangan akses ke server ini jika Anda tidak dapat masuk sebagai pengguna ini setelah mengganti sistem otentikasi."
+        "You are signed in as {{email}}. You may lose access to this server if you cannot sign in as this user after switching the authentication system.": "Anda masuk sebagai {{email}}. Anda mungkin kehilangan akses ke server ini jika Anda tidak dapat masuk sebagai pengguna ini setelah mengganti sistem otentikasi.",
+        "If Grist is accessible on your network, or is available to multiple people, configure one of the authentication methods below and remove your boot key from Security Settings → Boot key.": "Jika Grist dapat diakses di jaringan Anda, atau tersedia bagi banyak orang, konfigurasikan salah satu metode autentikasi di bawah ini dan hapus kunci boot Anda dari Pengaturan Keamanan → Kunci boot.",
+        "No authentication: using boot key as fallback method": "Tanpa autentikasi: menggunakan kunci boot sebagai metode cadangan",
+        "Anyone who can reach this server can access all data without signing in. Configure one of the authentication methods below.": "Siapa pun yang dapat menjangkau server ini dapat mengakses semua data tanpa masuk. Konfigurasikan salah satu metode autentikasi di bawah ini.",
+        "Are you sure you want to deactivate **{{name}}**?": "Apakah Anda yakin ingin menonaktifkan **{{name}}**?",
+        "Authentication has been configured and will become active when Grist is restarted.": "Autentikasi telah dikonfigurasi dan akan menjadi aktif saat Grist dimulai ulang.",
+        "Authentication is misconfigured or unreachable. Users may not be able to sign in.": "Autentikasi salah konfigurasi atau tidak dapat dijangkau. Pengguna mungkin tidak dapat masuk.",
+        "Available methods": "Metode yang tersedia",
+        "Change installation admin": "Ubah admin instalasi",
+        "Deactivate": "Nonaktifkan",
+        "Deactivate authentication?": "Nonaktifkan autentikasi?",
+        "For enterprise identity providers (Okta, OneLogin, etc.).": "Untuk penyedia identitas enterprise (Okta, OneLogin, dan sebagainya).",
+        "For reverse proxy setups (Traefik, Authelia, etc.).": "Untuk pengaturan reverse proxy (Traefik, Authelia, dan sebagainya).",
+        "I understand this server has no authentication": "Saya memahami bahwa server ini tidak memiliki autentikasi",
+        "Installation admin: ": "Admin instalasi: ",
+        "Managed login solution by Grist Labs (deprecated).": "Solusi login terkelola oleh Grist Labs (sudah usang).",
+        "No authentication": "Tanpa autentikasi",
+        "No authentication: using boot key": "Tanpa autentikasi: menggunakan kunci boot",
+        "Not recommended": "Tidak direkomendasikan",
+        "Other authentication methods": "Metode autentikasi lainnya",
+        "Reconfigure": "Konfigurasi ulang",
+        "The change will take effect after you restart Grist.": "Perubahan akan berlaku setelah Anda memulai ulang Grist.",
+        "This login mechanism is deprecated.": "Mekanisme login ini sudah usang.",
+        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect]({{url}}).": "Untuk menyiapkan **Grist Connect**, ikuti petunjuk dalam [artikel dukungan Grist untuk Grist Connect]({{url}}).",
+        "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC]({{url}}).": "Untuk menyiapkan **OIDC**, ikuti petunjuk dalam [artikel dukungan Grist untuk OIDC]({{url}}).",
+        "To set up **SAML**, follow the instructions in [the Grist support article for SAML]({{url}}).": "Untuk menyiapkan **SAML**, ikuti petunjuk dalam [artikel dukungan Grist untuk SAML]({{url}}).",
+        "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers]({{url}}).": "Untuk menyiapkan **header yang diteruskan**, ikuti petunjuk dalam [artikel dukungan Grist untuk header yang diteruskan]({{url}}).",
+        "Works with most identity providers (Google, Azure AD, Keycloak, etc.).": "Berfungsi dengan sebagian besar penyedia identitas (Google, Azure AD, Keycloak, dan sebagainya).",
+        "Your configuration will be preserved. You can reactivate it later without reconfiguring.": "Konfigurasi Anda akan dipertahankan. Anda dapat mengaktifkannya kembali nanti tanpa mengonfigurasi ulang.",
+        "Your server is configured to authenticate users via OpenID Connect. Users sign in through your identity provider.": "Server Anda dikonfigurasi untuk mengautentikasi pengguna melalui OpenID Connect. Pengguna masuk melalui penyedia identitas Anda.",
+        "Your server is configured to authenticate users via SAML 2.0. Users sign in through your enterprise identity provider.": "Server Anda dikonfigurasi untuk mengautentikasi pengguna melalui SAML 2.0. Pengguna masuk melalui penyedia identitas enterprise Anda.",
+        "Your server is using a boot key as a fallback login method. Configure one of the authentication methods below.": "Server Anda menggunakan kunci boot sebagai metode login cadangan. Konfigurasikan salah satu metode autentikasi di bawah ini.",
+        "Your server trusts authentication from a reverse proxy. Make sure only your proxy can reach the Grist backend.": "Server Anda mempercayai autentikasi dari reverse proxy. Pastikan hanya proxy Anda yang dapat menjangkau backend Grist.",
+        "Authentication": "Autentikasi",
+        "Choose how users sign in to Grist.": "Pilih bagaimana pengguna masuk ke Grist.",
+        "New admin email": "Email admin baru",
+        "Reassign login to admin": "Alihkan login ke admin",
+        "The change will be saved when you apply pending changes, and will go into effect after you restart Grist.": "Perubahan akan disimpan saat Anda menerapkan perubahan yang tertunda, dan akan berlaku setelah Anda memulai ulang Grist.",
+        "The change will be saved when you apply pending changes, and will take effect after you restart Grist.": "Perubahan akan disimpan saat Anda menerapkan perubahan yang tertunda, dan akan berlaku setelah Anda memulai ulang Grist.",
+        "configuration updated": "konfigurasi diperbarui",
+        "disabled": "dinonaktifkan"
     },
     "DetailView": {
         "This row is unavailable or does not exist": "Baris ini tidak tersedia atau tidak ada"
@@ -2680,7 +2786,10 @@
         "Register your Grist server": "Daftarkan server Grist Anda",
         "Sign in with getgrist.com": "Masuk dengan getgrist.com",
         "To set up {{provider}}, you need to register your Grist server on getgrist.com and paste the configuration key you receive below.": "Untuk mengatur {{provider}}, Anda perlu mendaftarkan server Grist Anda di getgrist.com dan menempelkan kunci konfigurasi yang Anda terima di bawah ini.",
-        "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.": "Saat masuk, pengguna akan dialihkan ke halaman login getgrist.com untuk masuk atau mendaftar. Setelah melakukan autentikasi di getgrist.com, mereka akan dialihkan kembali ke server Grist Anda dan masuk sebagai pengguna yang telah mereka gunakan untuk autentikasi."
+        "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.": "Saat masuk, pengguna akan dialihkan ke halaman login getgrist.com untuk masuk atau mendaftar. Setelah melakukan autentikasi di getgrist.com, mereka akan dialihkan kembali ke server Grist Anda dan masuk sebagai pengguna yang telah mereka gunakan untuk autentikasi.",
+        "Managed authentication by Grist Labs.": "Autentikasi terkelola oleh Grist Labs.",
+        "Your server uses getgrist.com authentication. Users sign in with their getgrist.com account.": "Server Anda menggunakan autentikasi getgrist.com. Pengguna masuk dengan akun getgrist.com mereka.",
+        "Error configuring provider with the provided key: {{reason}}": "Kesalahan saat mengonfigurasi penyedia dengan kunci yang diberikan: {{reason}}"
     },
     "AirtableImportUI": {
         "Back": "Kembali",
@@ -2735,7 +2844,8 @@
         "Enter new admin email": "Masukkan email admin baru",
         "Make the new email the installation admin. Orgs, workspaces, and documents will remain owned by {{email}}. These changes will take effect after you restart this Grist server.": "Jadikan email baru ini sebagai admin instalasi. Organisasi, ruang kerja, dan dokumen akan tetap dimiliki oleh {{email}}. Perubahan ini akan berlaku setelah Anda memulai ulang server Grist ini.",
         "New admin": "Admin baru",
-        "Replace {{email}} with the new email throughout. The new email will become the installation admin, as well as the owner of all materials previously owned by you@example.com.": "Ganti {{email}} dengan email baru di seluruh teks. Email baru ini akan menjadi admin instalasi, serta pemilik semua materi yang sebelumnya dimiliki oleh you@example.com."
+        "Replace {{email}} with the new email throughout. The new email will become the installation admin, as well as the owner of all materials previously owned by you@example.com.": "Ganti {{email}} dengan email baru di seluruh teks. Email baru ini akan menjadi admin instalasi, serta pemilik semua materi yang sebelumnya dimiliki oleh you@example.com.",
+        "An account with {{email}} already exists.": "Akun dengan {{email}} sudah ada."
     },
     "startDocAirtableImport": {
         "Import from Airtable": "Impor dari Airtable"
@@ -2743,5 +2853,266 @@
     "startHomeAirtableImport": {
         "Import from Airtable": "Impor dari Airtable",
         "The current workspace can't be imported to.": "Ruang kerja saat ini tidak dapat diimpor."
+    },
+    "NotifyModel": {
+        "Still working...": "Masih memproses..."
+    },
+    "TriggersPageUpsell": {
+        "Upgrade": "Tingkatkan",
+        "Automate workflows from within Grist": "Otomatiskan alur kerja dari dalam Grist",
+        "Automations Screenshot": "Tangkapan layar Otomasi",
+        "Learn more.": "Pelajari lebih lanjut.",
+        "Trigger automations based on data changes, and design actions such as custom email notifications and webhook integrations.": "Picu otomasi berdasarkan perubahan data, dan rancang tindakan seperti notifikasi email khusus dan integrasi webhook.",
+        "Try for free": "Coba gratis",
+        "Try full Grist": "Coba Full Grist"
+    },
+    "AutomationsPageEntry": {
+        "Automations": "Otomasi",
+        "New": "Baru"
+    },
+    "BootKeyStatus": {
+        "Every new Grist installation includes a random boot key: a secret whose value is only obtainable by an installation operator.": "Setiap instalasi Grist baru menyertakan kunci boot acak: sebuah rahasia yang nilainya hanya dapat diperoleh oleh operator instalasi.",
+        "Make sure you have configured an authentication system that lets you sign in as an admin before removing the boot key.": "Pastikan Anda telah mengonfigurasi sistem autentikasi yang memungkinkan Anda masuk sebagai admin sebelum menghapus kunci boot.",
+        "Remove boot key": "Hapus kunci boot",
+        "Remove boot key?": "Hapus kunci boot?",
+        "The boot key should only be used as a temporary means of authentication until a more secure and robust authentication method is configured via Security Settings → Authentication. We recommend removing the boot key once you've finished setting up Grist.": "Kunci boot sebaiknya hanya digunakan sebagai sarana autentikasi sementara sampai metode autentikasi yang lebih aman dan andal dikonfigurasi melalui Pengaturan Keamanan → Autentikasi. Kami menyarankan untuk menghapus kunci boot setelah Anda selesai menyiapkan Grist.",
+        "This setting is currently being managed by an environment variable (`GRIST_BOOT_KEY`).": "Pengaturan ini saat ini dikelola oleh variabel lingkungan (`GRIST_BOOT_KEY`).",
+        "Unset the environment variable to manage this setting via the Admin Panel.": "Hapus setelan variabel lingkungan untuk mengelola pengaturan ini melalui Panel Admin.",
+        "You will no longer be able to authenticate as the install admin on the `": {
+            "boot-key` page.": "Anda tidak akan lagi dapat mengautentikasi sebagai admin instalasi pada halaman `/boot-key`."
+        }
+    },
+    "BootPage": {
+        "Administrator email": "Email administrator",
+        "After restarting, Grist will be available without this sign-in step.": "Setelah dimulai ulang, Grist akan tersedia tanpa langkah masuk ini.",
+        "After restarting, return to this page and enter your chosen key.": "Setelah dimulai ulang, kembali ke halaman ini dan masukkan kunci pilihan Anda.",
+        "Boot key": "Kunci boot",
+        "Can't find your boot key? You can {{setBootKeyButton}} or {{disableCheckButton}}.": "Tidak dapat menemukan kunci boot Anda? Anda dapat {{setBootKeyButton}} atau {{disableCheckButton}}.",
+        "Check key": "Periksa kunci",
+        "Checking key": "Memeriksa kunci",
+        "Confirm or change the administrator email address.": "Konfirmasikan atau ubah alamat email administrator.",
+        "Continue": "Lanjutkan",
+        "Copied!": "Disalin!",
+        "Copy": "Salin",
+        "Enter boot key": "Masukkan kunci boot",
+        "For Docker, add \\`-e GRIST_BOOT_KEY={{bootKey}}\\` to your run command. For other setups, set it in your environment or configuration file.": "Untuk Docker, tambahkan \\`-e GRIST_BOOT_KEY={{bootKey}}\\` ke perintah run Anda. Untuk pengaturan lain, atur di lingkungan atau file konfigurasi Anda.",
+        "For Docker, add \\`-e GRIST_IN_SERVICE=true\\` to your run command. For other setups, set it in your environment or configuration file.": "Untuk Docker, tambahkan \\`-e GRIST_IN_SERVICE=true\\` ke perintah run Anda. Untuk pengaturan lain, atur di lingkungan atau file konfigurasi Anda.",
+        "Here's a random key you can use:": "Berikut adalah kunci acak yang dapat Anda gunakan:",
+        "If you cannot access server logs or cannot find your boot key, you can set it yourself. Add the environment variable \\`GRIST_BOOT_KEY\\` with a secret value to your Grist configuration, then restart Grist.": "Jika Anda tidak dapat mengakses log server atau tidak dapat menemukan kunci boot Anda, Anda dapat mengaturnya sendiri. Tambahkan variabel lingkungan \\`GRIST_BOOT_KEY\\` dengan nilai rahasia ke konfigurasi Grist Anda, lalu mulai ulang Grist.",
+        "Look for this banner near the top of Grist's startup output — check your terminal, container logs, or hosting panel: {{exampleBootKeyBanner}}": "Cari banner ini di dekat bagian atas output startup Grist — periksa terminal, log container, atau panel hosting Anda: {{exampleBootKeyBanner}}",
+        "Paste boot key here": "Tempelkan kunci boot di sini",
+        "Set \\`GRIST_IN_SERVICE=true\\` in your Grist configuration, then restart. Grist will start without requiring a boot key.": "Setel \\`GRIST_IN_SERVICE=true\\` dalam konfigurasi Grist Anda, lalu mulai ulang. Grist akan mulai tanpa memerlukan kunci boot.",
+        "Set your boot key": "Setel kunci boot Anda",
+        "Skipping it is fine on a private, trusted network where only authorized people can connect.": "Melewatkannya tidak masalah pada jaringan pribadi tepercaya tempat hanya orang yang berwenang yang dapat terhubung.",
+        "The boot key proves you have access to the server running Grist — it keeps out anyone who can reach this page but isn't the administrator.": "Kunci boot membuktikan bahwa Anda memiliki akses ke server yang menjalankan Grist — ini mencegah siapa pun yang dapat menjangkau halaman ini tetapi bukan administrator.",
+        "This will be your admin account for managing Grist.": "Ini akan menjadi akun admin Anda untuk mengelola Grist.",
+        "Turn off this check": "Matikan pemeriksaan ini",
+        "Valid boot key": "Kunci boot valid",
+        "Verify that you have access to this server to continue.": "Verifikasi bahwa Anda memiliki akses ke server ini untuk melanjutkan.",
+        "Welcome to Grist": "Selamat datang di Grist",
+        "Why does this check exist?": "Mengapa pemeriksaan ini ada?",
+        "disable this check": "nonaktifkan pemeriksaan ini",
+        "set your own": "atur sendiri"
+    },
+    "QuickSetup": {
+        "Apply & restart": "Terapkan & mulai ulang",
+        "Authentication": "Autentikasi",
+        "Backups": "Cadangan",
+        "Configure Grist for your environment.": "Konfigurasikan Grist untuk lingkungan Anda.",
+        "Quick setup": "Penyiapan cepat",
+        "Sandboxing": "Sandboxing",
+        "Server": "Server",
+        "Continue": "Lanjutkan"
+    },
+    "ServiceStatus": {
+        "Enter maintenance mode": "Masuk ke mode pemeliharaan",
+        "Enter maintenance mode?": "Masuk ke mode pemeliharaan?",
+        "Non-admin users will be blocked until service is restored.": "Pengguna non-admin akan diblokir sampai layanan dipulihkan.",
+        "Non-admin users will no longer be blocked.": "Pengguna non-admin tidak akan lagi diblokir.",
+        "Restore service": "Pulihkan layanan",
+        "Restore service?": "Pulihkan layanan?",
+        "This setting is currently being managed by an environment variable (`GRIST_IN_SERVICE`).": "Pengaturan ini saat ini dikelola oleh variabel lingkungan (`GRIST_IN_SERVICE`).",
+        "Unset the environment variable to manage this setting via the Admin Panel.": "Hapus setelan variabel lingkungan untuk mengelola pengaturan ini melalui Panel Admin."
+    },
+    "TeamSettingsPage": {
+        "Domain is already taken.": "Domain sudah digunakan.",
+        "Invalid domain.": "Domain tidak valid."
+    },
+    "BackupsSection": {
+        "AWS S3 via native AWS SDK. Supports IAM roles and AWS-native auth.": "AWS S3 melalui AWS SDK native. Mendukung peran IAM dan autentikasi native AWS.",
+        "AWS S3-compatible service via MinIO client library. Works with AWS S3, MinIO, and others.": "Layanan yang kompatibel dengan AWS S3 melalui pustaka klien MinIO. Berfungsi dengan AWS S3, MinIO, dan lainnya.",
+        "Active": "Aktif",
+        "Available in full edition": "Tersedia di edisi penuh",
+        "Azure Blob Storage": "Azure Blob Storage",
+        "Backups": "Cadangan",
+        "Documents stored on local disk only.": "Dokumen hanya disimpan di disk lokal.",
+        "Learn more.": "Pelajari lebih lanjut.",
+        "Loading backup providers...": "Memuat penyedia cadangan...",
+        "Microsoft Azure Blob Storage via native Azure SDK.": "Microsoft Azure Blob Storage melalui Azure SDK native.",
+        "No external storage": "Tanpa penyimpanan eksternal",
+        "Off": "Mati",
+        "S3 (AWS client)": "S3 (klien AWS)",
+        "S3 (MinIO client)": "S3 (klien MinIO)",
+        "Set these environment variables and restart Grist to enable Azure storage:": "Tetapkan variabel lingkungan ini dan mulai ulang Grist untuk mengaktifkan penyimpanan Azure:",
+        "Set these environment variables and restart Grist to enable MinIO storage:": "Tetapkan variabel lingkungan ini dan mulai ulang Grist untuk mengaktifkan penyimpanan MinIO:",
+        "Set these environment variables and restart Grist to enable S3 storage:": "Tetapkan variabel lingkungan ini dan mulai ulang Grist untuk mengaktifkan penyimpanan S3:",
+        "Store document backups on an external service like S3 or Azure.           This protects against data loss if the server's disk fails.": "Simpan cadangan dokumen pada layanan eksternal seperti S3 atau Azure. Ini melindungi dari kehilangan data jika disk server gagal.",
+        "Local filesystem (test only)": "Sistem file lokal (khusus pengujian)",
+        "Stores document snapshots on the local filesystem. For tests only, not production.": "Menyimpan snapshot dokumen pada sistem file lokal. Hanya untuk pengujian, bukan produksi."
+    },
+    "PermissionsSetupSection": {
+        "Allow anonymous access": "Izinkan akses anonim",
+        "Allow anonymous playground": "Izinkan playground anonim",
+        "Allow anyone to create team sites": "Izinkan siapa saja membuat situs tim",
+        "Allow personal sites": "Izinkan situs pribadi",
+        "Any logged-in user can create new team sites. Turn off to restrict team creation to admins only.": "Setiap pengguna yang sudah masuk dapat membuat situs tim baru. Nonaktifkan untuk membatasi pembuatan tim hanya kepada admin.",
+        "Apply & Restart": "Terapkan & Mulai Ulang",
+        "Apply and Go Live!": "Terapkan dan Tayangkan!",
+        "Applying settings and restarting…": "Menerapkan pengaturan dan memulai ulang…",
+        "Back to installation": "Kembali ke instalasi",
+        "Conflict": "Konflik",
+        "DEFAULT PERMISSIONS": "IZIN DEFAULT",
+        "Environment": "Lingkungan",
+        "Grist is live!": "Grist sudah aktif!",
+        "Loading permissions…": "Memuat izin…",
+        "Locked down": "Dikunci ketat",
+        "Open": "Terbuka",
+        "Recommended": "Direkomendasikan",
+        "Review these defaults before going live. You can change them later from the admin panel.": "Tinjau pengaturan default ini sebelum ditayangkan. Anda dapat mengubahnya nanti dari panel admin.",
+        "Server did not restart in time. Please refresh the page.": "Server tidak dimulai ulang tepat waktu. Silakan segarkan halaman.",
+        "Some settings are controlled by environment variables and cannot be changed here: {{vars}}. To modify them, update the corresponding variables in your server configuration and restart.": "Beberapa pengaturan dikendalikan oleh variabel lingkungan dan tidak dapat diubah di sini: {{vars}}. Untuk mengubahnya, perbarui variabel yang соответствing dalam konfigurasi server Anda dan mulai ulang.",
+        "The personal org is the only org available — personal sites must stay enabled or Grist will be non-functional.": "Organisasi pribadi adalah satu-satunya organisasi yang tersedia — situs pribadi harus tetap diaktifkan atau Grist tidak akan berfungsi.",
+        "Users can create their own personal sites with documents. Turn off to restrict all documents to team sites managed by admins.": "Pengguna dapat membuat situs pribadi mereka sendiri dengan dokumen. Nonaktifkan untuk membatasi semua dokumen ke situs tim yang dikelola admin.",
+        "Visitors who aren't signed in can create and edit documents in a temporary playground. Turn off to require sign-in before creating any documents.": "Pengunjung yang belum masuk dapat membuat dan mengedit dokumen dalam playground sementara. Nonaktifkan untuk mewajibkan masuk sebelum membuat dokumen apa pun.",
+        "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.": "Pengunjung yang belum masuk dapat melihat dokumen yang dibagikan secara publik. Ini diperlukan untuk berbagi tautan dan formulir yang dipublikasikan.",
+        "You have GRIST_SINGLE_ORG={{value}} set. With this, users only see one site — but personal sites and team creation still work behind the scenes. Worth locking down unless you have a specific reason to keep them.": "Anda telah menetapkan GRIST_SINGLE_ORG={{value}}. Dengan ini, pengguna hanya melihat satu situs — tetapi situs pribadi dan pembuatan tim tetap berjalan di balik layar. Sebaiknya dikunci kecuali Anda punya alasan khusus untuk tetap membiarkannya.",
+        "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Perubahan konfigurasi Anda telah diterapkan dan server telah dimulai ulang. Grist sekarang aktif dan tersedia bagi pengguna.",
+        "Custom": "Khusus",
+        "loading…": "memuat…"
+    },
+    "SandboxSection": {
+        "Active": "Aktif",
+        "Apply and Continue": "Terapkan dan Lanjutkan",
+        "Applying...": "Menerapkan...",
+        "Continue": "Lanjutkan",
+        "Detecting sandbox options...": "Mendeteksi opsi sandbox...",
+        "Error": "Kesalahan",
+        "No Sandbox": "Tanpa Sandbox",
+        "Not available": "Tidak tersedia",
+        "Not recommended": "Tidak direkomendasikan",
+        "Other options": "Opsi lain",
+        "Ready": "Siap",
+        "Recommended": "Direkomendasikan",
+        "Sandboxing": "Sandboxing",
+        "Skip and Continue": "Lewati dan Lanjutkan",
+        "Uses the built-in macOS sandbox. Good isolation for local use on a Mac.": "Menggunakan sandbox bawaan macOS. Isolasi yang baik untuk penggunaan lokal di Mac.",
+        "macOS Sandbox": "Sandbox macOS",
+        "Sandbox": "Sandbox"
+    },
+    "AdminPanelCss": {
+        "Confirmed": "Dikonfirmasi",
+        "For later": "Untuk nanti"
+    },
+    "BaseUrlSection": {
+        "Already set on this server.": "Sudah ditetapkan pada server ini.",
+        "Automatic": "Otomatis",
+        "Base URL": "URL dasar",
+        "Confirm URL": "Konfirmasi URL",
+        "Could not reach server": "Tidak dapat menjangkau server",
+        "Could not reach server at this URL. ": "Tidak dapat menjangkau server di URL ini. ",
+        "Failed to save": "Gagal menyimpan",
+        "Grist is reachable": "Grist dapat dijangkau",
+        "Leave automatic": "Biarkan otomatis",
+        "Test URL": "Uji URL",
+        "Testing...": "Menguji...",
+        "The URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "URL tempat pengguna dan integrasi mengakses server Grist ini. Callback autentikasi, tautan API, dan notifikasi email semuanya bergantung pada ketepatan nilai ini.",
+        "This URL was auto-detected — confirm it is correct, then save.": "URL ini terdeteksi secara otomatis — konfirmasikan bahwa ini benar, lalu simpan.",
+        "URL is reachable": "URL dapat dijangkau",
+        "automatic": "otomatis",
+        "checking": "memeriksa",
+        "https:": {
+            "": {
+                "grist.example.com": "https://grist.example.com"
+            }
+        },
+        "not set": "belum ditetapkan",
+        "set": "setel"
+    },
+    "EditionSection": {
+        "Choose which edition of Grist to run on this server": "Pilih edisi Grist yang akan dijalankan di server ini",
+        "Choose which edition of Grist to run on this server.": "Pilih edisi Grist yang akan dijalankan di server ini.",
+        "Community Edition": "Edisi Komunitas",
+        "Confirm edition": "Konfirmasi edisi",
+        "Edition": "Edisi",
+        "Full Grist": "Full Grist",
+        "Full Grist is enabled via environment variable.": "Full Grist diaktifkan melalui variabel lingkungan.",
+        "I understand I am running Grist Community Edition": "Saya memahami bahwa saya menjalankan Grist Edisi Komunitas",
+        "Learn more.": "Pelajari lebih lanjut.",
+        "On": "Aktif",
+        "See how to enable it.": "Lihat cara mengaktifkannya.",
+        "The free and open-source heart of Grist, with everything you need to open and edit Grist documents, control access, create forms, connect to single sign-on (SSO) providers, and much more.": "Inti Grist yang gratis dan bersumber terbuka, dengan semua yang Anda perlukan untuk membuka dan mengedit dokumen Grist, mengontrol akses, membuat formulir, terhubung ke penyedia single sign-on (SSO), dan banyak lagi.",
+        "The full Grist experience, with all features enabled for improved security, governance, and collaboration.": "Pengalaman Grist penuh, dengan semua fitur diaktifkan untuk meningkatkan keamanan, tata kelola, dan kolaborasi.",
+        "You have 30 days to enter an activation key. Free activation keys are available to individuals and small orgs with less than US $1 million in total annual funding. {{learnMoreLink}} For larger orgs, see {{pricingLink}}.": "Anda memiliki waktu 30 hari untuk memasukkan kunci aktivasi. Kunci aktivasi gratis tersedia bagi individu dan organisasi kecil dengan pendanaan tahunan total kurang dari US $1 juta. {{learnMoreLink}} Untuk organisasi yang lebih besar, lihat {{pricingLink}}.",
+        "Your installation does not bundle the Full Grist edition. Want Full Grist? {{enableLink}}": "Instalasi Anda tidak menyertakan edisi Full Grist. Ingin Full Grist? {{enableLink}}",
+        "community": "komunitas",
+        "full": "penuh",
+        "pricing": "harga"
+    },
+    "QuickSetupServerStep": {
+        "Apply and Continue": "Terapkan dan Lanjutkan",
+        "Base URL": "URL dasar",
+        "Confirm base URL and edition to continue": "Konfirmasikan URL dasar dan edisi untuk melanjutkan",
+        "Confirm base URL to continue": "Konfirmasikan URL dasar untuk melanjutkan",
+        "Confirm edition to continue": "Konfirmasikan edisi untuk melanjutkan",
+        "Continue": "Lanjutkan",
+        "Edition": "Edisi",
+        "Server": "Server",
+        "Set your server's base URL and choose which edition of Grist to run.": "Atur URL dasar server Anda dan pilih edisi Grist yang akan dijalankan."
+    },
+    "AccountLeftPanel": {
+        "Account settings": "Pengaturan akun",
+        "Developer": "Pengembang",
+        "Profile": "Profil",
+        "Authorized apps": "Aplikasi yang diizinkan"
+    },
+    "SettingsLayout": {
+        "Authentication": "Autentikasi",
+        "Current authentication method": "Metode autentikasi saat ini",
+        "Installation": "Instalasi",
+        "Sandbox settings for data engine": "Pengaturan sandbox untuk mesin data",
+        "Sandboxing": "Sandboxing",
+        "Security Settings": "Pengaturan Keamanan"
+    },
+    "SettingsLayout.d": {
+        "Authentication": "Autentikasi",
+        "Current authentication method": "Metode autentikasi saat ini",
+        "Installation": "Instalasi",
+        "Sandbox settings for data engine": "Pengaturan sandbox untuk mesin data",
+        "Sandboxing": "Sandboxing",
+        "Security Settings": "Pengaturan Keamanan"
+    },
+    "QuickSetupContinueButton": {
+        "Apply and Continue": "Terapkan dan Lanjutkan",
+        "Applying...": "Menerapkan...",
+        "Continue": "Lanjutkan"
+    },
+    "AdminAccessDeniedCard": {
+        "Administrator Panel Unavailable": "Panel Administrator Tidak Tersedia",
+        "If you are the server operator, you can sign in using the boot key from your server logs.": "Jika Anda adalah operator server, Anda dapat masuk menggunakan kunci boot dari log server Anda.",
+        "Sign in with boot key": "Masuk dengan kunci boot",
+        "You do not have access to the administrator panel.\nPlease log in as an administrator.": "Anda tidak memiliki akses ke panel administrator.\nSilakan masuk sebagai administrator."
+    },
+    "PermissionsToggleModel": {
+        "Allow anonymous access": "Izinkan akses anonim",
+        "Allow anonymous playground": "Izinkan playground anonim",
+        "Allow anyone to create team sites": "Izinkan siapa saja membuat situs tim",
+        "Allow personal sites": "Izinkan situs pribadi",
+        "Any logged-in user can create new team sites. Turn off to restrict team creation to admins only.": "Setiap pengguna yang sudah masuk dapat membuat situs tim baru. Nonaktifkan untuk membatasi pembuatan tim hanya kepada admin.",
+        "Permissions": "Izin",
+        "Users can create their own personal sites with documents. Turn off to restrict all documents to team sites managed by admins.": "Pengguna dapat membuat situs pribadi mereka sendiri dengan dokumen. Nonaktifkan untuk membatasi semua dokumen ke situs tim yang dikelola admin.",
+        "Visitors who aren't signed in can create and edit documents in a temporary playground. Turn off to require sign-in before creating any documents.": "Pengunjung yang belum masuk dapat membuat dan mengedit dokumen dalam playground sementara. Nonaktifkan untuk mewajibkan masuk sebelum membuat dokumen apa pun.",
+        "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.": "Pengunjung yang belum masuk dapat melihat dokumen yang dibagikan secara publik. Ini diperlukan untuk berbagi tautan dan formulir yang dipublikasikan.",
+        "off": "mati",
+        "on": "hidup"
     }
 }

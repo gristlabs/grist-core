@@ -46,6 +46,7 @@ import { menuToggle } from "app/client/ui/MenuToggle";
 import { mouseDragMatchElem } from "app/client/ui/mouseDrag";
 import { IRowContextMenu, RowContextMenu } from "app/client/ui/RowContextMenu";
 import { applyRowHeightLimit } from "app/client/ui/RowHeightConfig";
+import { formatForScreenReader } from "app/client/ui/ScreenReaderFormatters";
 import { ITooltipControl, showTooltip } from "app/client/ui/tooltips";
 import { isNarrowScreen, testId } from "app/client/ui2018/cssVars";
 import { closeRegisteredMenu, menu } from "app/client/ui2018/menus";
@@ -239,11 +240,22 @@ export default class GridView extends BaseView {
       rowIndex: use(this.cursor.rowIndex),
       fieldIndex: use(this.cursor.fieldIndex),
     }));
-    // Add listener, and check if the cursor is indeed changed, if so, update the row
-    // and scroll it into view (using kd.scrollChildIntoView in buildDom function).
+    // Add listener, and check if the cursor is indeed changed…
     this.autoDispose(this.currentPosition.addListener((cur, prev) => {
       if (cur.rowIndex !== prev.rowIndex || cur.fieldIndex !== prev.fieldIndex) {
+        // …if so, update the row and scroll it into view (using kd.scrollChildIntoView in buildDom function).
         this.visibleRowIndex(cur.rowIndex);
+
+        // Also announce the current cell content to screen readers.
+        if (this.viewSection.hasRegionFocus()) {
+          this.announceCurrentItem();
+        }
+      }
+    }));
+    this.autoDispose(this.gristDoc.activeEditor.addListener((editor, prevEditor) => {
+      // Editor just closed — announce current cell for screen readers.
+      if (editor === null && prevEditor !== null && this.viewSection.hasRegionFocus()) {
+        this.announceCurrentItem();
       }
     }));
 
@@ -509,6 +521,21 @@ export default class GridView extends BaseView {
       if (selectedRows.length !== 1) { return; }
 
       this.viewSelectedRecordAsCard();
+    },
+    openColumnMenu: function() {
+      const fieldIndex = this.cursor.fieldIndex();
+      this._scrollColumnIntoView(fieldIndex);
+      this.viewPane.querySelector<HTMLElement>(
+        `.column_name.field[data-col-index="${fieldIndex}"] .g-column-menu-btn`,
+      )?.click();
+    },
+    openRowMenu: function() {
+      const rowIndex = this.cursor.rowIndex();
+      if (rowIndex == null) {
+        return;
+      }
+      this.scrolly.scrollRowIntoView(rowIndex);
+      this.viewPane.querySelector<HTMLElement>(`.gridview_row[data-row-index="${rowIndex}"] .menu_toggle`)?.click();
     },
   };
 
@@ -1476,6 +1503,7 @@ export default class GridView extends BaseView {
                     dom.cls("font-italic", use => use(field.headerFontItalic) || false),
                     dom.cls("font-underline", use => use(field.headerFontUnderline) || false),
                     dom.cls("font-strikethrough", use => use(field.headerFontStrikethrough) || false),
+                    dom.attr("data-col-index", String(field._index())),
                     kd.style("--frozen-position", () => ko.unwrap(this.frozenPositions.at(field._index()!)!)),
                     kd.toggleClass("frozen", () => ko.unwrap(this.frozenMap.at(field._index()!)!)),
                     dom.autoDispose(isEditingLabel),
@@ -1627,6 +1655,7 @@ export default class GridView extends BaseView {
         dom.autoDispose(fontItalic),
         dom.autoDispose(fontUnderline),
         dom.autoDispose(fontStrikethrough),
+        dom.attr("data-row-index", String(row._index())),
 
         dom.cls("link_selector_row", use => use(this.isLinkSource) && use(isRowActive)),
         dom.cls("highlight_match_row", (use) => {
@@ -2416,6 +2445,34 @@ export default class GridView extends BaseView {
         field.width(maxWidth + 20);
       });
     });
+  }
+
+  public announceCurrentItem() {
+    this.gristDoc.appModel.screenReaderAnnouncer.announce(() => {
+      if (this.isDisposed()) {
+        return [];
+      }
+      const position = this.currentPosition.get();
+      if (position.rowIndex === null) {
+        return [];
+      }
+      const rowId = this.viewData.getRowId(position.rowIndex);
+      const field = this.viewSection.viewFields().at(position.fieldIndex);
+      if (!field) {
+        return [];
+      }
+      const rowNum = position.rowIndex + 1;
+      const colName = field.label();
+      if (rowId === "new") {
+        return t("row {{rowNum}} {{colName}} (new row)", { rowNum, colName });
+      }
+      const value = this.tableModel.tableData.getValue(rowId, field.displayColModel().colId());
+      const content = formatForScreenReader(field, value, {
+        screenReaderMode: this.gristDoc.appModel.screenReaderMode.get(),
+      });
+
+      return [content, t("row {{rowNum}} {{colName}}", { rowNum, colName })];
+    }, "view-current-item");
   }
 }
 

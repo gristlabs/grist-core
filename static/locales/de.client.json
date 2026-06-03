@@ -35,15 +35,41 @@
         "Saved": "Gespeichert",
         "Special rules": "Besondere Regeln",
         "Type message to display when this rule blocks an action…": "Geben Sie eine Nachricht ein…",
-        "User Attributes": "Benutzer-Attribute",
+        "User Attributes": "Benutzerattribute",
         "Users": "Benutzer",
         "View as": "Anzeigen als",
-        "Seed rules": "Saatgut-Regeln",
+        "Seed rules": "Initiale Regeln",
         "When adding table rules, automatically add a rule to grant OWNER full access.": "Beim Hinzufügen von Tabellenregeln wird automatisch eine Regel hinzugefügt, um BESITZER vollen Zugriff zu gewähren.",
         "Permission to edit document structure": "Berechtigung zur Bearbeitung der Dokumentenstruktur",
         "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "Erlauben Sie Editoren, Struktur zu bearbeiten (z.B. Tabellen, Spalten, Layouts zu ändern und zu löschen) und Formeln zu schreiben, die unabhängig von Leseeinschränkungen Zugriff auf alle Daten geben.",
         "This default should be changed if editors' access is to be limited. ": "Diese Standardeinstellung sollte geändert werden, wenn der Zugriff von Editoren eingeschränkt werden soll. ",
-        "Add table-wide rule": "Tabellenweite Regel hinzufügen"
+        "Add table-wide rule": "Tabellenweite Regel hinzufügen",
+        "Access rules have changed. Click Reset to revert your changes and refresh the rules.": "Zugriffsregeln wurden geändert. Klicken Sie auf Zurücksetzen um Ihre Änderungen zurück zu setzen und die Regeln neu zu laden.",
+        "All": "Alle",
+        "Column {{colId}} appears in multiple rules for table {{tableId}} that might be order-dependent. Try splitting rules up differently?": "Die Spalte {{colId}} wird in mehreren Regeln für die Tabelle {{tableId}} erwähnt, welche eventuell von ihrer Reihenfolge abhängen. Gegebenenfalls Regeln anders aufteilen?",
+        "Columns": "Spalten",
+        "Condition cannot be blank": "Bedingung kann nicht leer sein",
+        "Default resource missing in resource map": "Standard-Ressource fehlt in der Ressourcenzuordnung",
+        "Invalid columns in table {{tableId}}: {{invalidColIds}}": "Ungültige Spalten in Tabelle {{tableId}}: {{invalidColIds}}",
+        "Invalid table: {{tableId}}": "Ungültige Tabelle: {{tableId}}",
+        "Invalid user attribute rule: {{prop}} must be set": "Ungültige Benutzerattribut-Regel: {{prop}} muss gesetzt sein",
+        "Invalid user attribute to look up": "Nicht nachschlagbares Benutzerattribut",
+        "No columns listed in a column rule for table {{tableId}}": "Keine Spalten für Tabelle {{tableId}} in einer Spaltenregel erwähnt",
+        "Not a valid user attribute": "Kein gültiges Benutzerattribut",
+        "Resource missing in resource map: {{resourceKey}}": "Ressource fehlt in Ressourcenzuordnung: {{resourceKey}}",
+        "Trying to add TableRules for existing table {{tableId}}": "Versuche TableRules zu der existierenden Tabelle {{tableId}} hinzuzufügen",
+        "Use a simple attribute of user.LinkKey, e.g. user.LinkKey.something": "Verwenden Sie ein simples Attribut von user.LinkKey, z.B. user.LinkKey.irgendetwas",
+        "hidden": "versteckt",
+        "**Special rules** (expand each rule to customize who it applies to)": "**Besondere Regeln** (klappen Sie die Regeln aus, um anzupassen auf wen sie angewandt werden)",
+        "Allow everyone to view access rules.": "Jeder Person erlauben Zugriffsregeln zu sehen.",
+        "Continue": "Fortfahren",
+        "Disable Access Rules": "Zugriffsregeln deaktivieren",
+        "Disable and save": "Deaktivieren und speichern",
+        "Enable Access Rules": "Zugriffsregeln aktivieren",
+        "Permission to access the document in full by all users": "Berechtigung für alle Benutzer auf das komplette Dokument zuzugreifen",
+        "Permission to access the document in full by unrestricted users": "Berechtigung für uneingeschränkte Benutzer auf das komplette Dokument zuzugreifen",
+        "Special rules for templates": "Besondere Regeln für Vorlagen",
+        "This options should be off if Editors' access is to be limited. ": "Diese Option sollte deaktiviert sein, wenn der Zugriff von Bearbeitern eingeschränkt werden soll. "
     },
     "AccountPage": {
         "API": "API",
@@ -61,7 +87,14 @@
         "Theme": "Thema",
         "Two-factor authentication": "Zwei-Faktor-Authentifizierung",
         "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "Die Zwei-Faktor-Authentifizierung ist eine zusätzliche Sicherheitsebene für Ihr Grist-Konto, die sicherstellt, dass Sie die einzige Person sind, die auf Ihr Konto zugreifen kann, selbst wenn jemand Ihr Passwort kennt.",
-        "Language": "Sprache"
+        "Language": "Sprache",
+        "Basic info": "Grundlegende Informationen",
+        "Developer": "Entwickler",
+        "Home": "Startseite",
+        "Profile": "Profil",
+        "Enterprise": "Enterprise",
+        "OAuth apps": "OAuth Anwendungen",
+        "Accessibility": "Barrierefreiheit"
     },
     "AccountWidget": {
         "Access Details": "Zugangsdetails",
@@ -80,7 +113,9 @@
         "Support Grist": "Grist Support",
         "Upgrade Plan": "Upgrade-Plan",
         "Sign up": "Registrieren Sie sich",
-        "Use This Template": "Diese Vorlage verwenden"
+        "Use This Template": "Diese Vorlage verwenden",
+        "Site settings": "Seiteneinstellungen",
+        "Account settings": "Kontoeinstellungen"
     },
     "ActionLog": {
         "Action Log failed to load": "Aktionsprotokoll konnte nicht geladen werden",
@@ -89,7 +124,8 @@
         "This row was subsequently removed in action {{action.actionNum}}": "Diese Zeile wurde anschließend in Aktion entfernt {{action.actionNum}}",
         "All tables": "Alle Tabellen",
         "Column {{colId}} was subsequently removed in action #{{actionNum}}": "Spalte {{colId}} wurde nachträglich in Aktion {{actionNum}} entfernt",
-        "This row was subsequently removed in action {{actionNum}}": "Diese Zeile wurde nachträglich in Aktion {{actionNum}} entfernt"
+        "This row was subsequently removed in action {{actionNum}}": "Diese Zeile wurde nachträglich in Aktion {{actionNum}} entfernt",
+        "History blocked because of access rules.": "Historie wegen Zugriffsregeln verborgen."
     },
     "AddNewButton": {
         "Add new": "Neu hinzufügen"
@@ -108,7 +144,9 @@
         "Description": "Beschreibung",
         "Key": "Schlüssel",
         "Memory Error": "Speicherfehler",
-        "Translators: please translate this only when your language is ready to be offered to users": "Übersetzer: Bitte übersetzen Sie dies erst, wenn Ihre Sprache bereit ist, Benutzern angeboten zu werden"
+        "Translators: please translate this only when your language is ready to be offered to users": "Übersetzer: Bitte übersetzen Sie dies erst, wenn Ihre Sprache bereit ist, Benutzern angeboten zu werden",
+        "Disabled screen reader improvements": "Bildschrimleser-Verbesserungen deaktiviert",
+        "Enabled screen reader improvements": "Bildschrimleser-Verbesserungen aktiviert"
     },
     "AppHeader": {
         "Home page": "Startseite",
@@ -446,7 +484,8 @@
         "Document type": "Art des Dokuments",
         "Enable suggestions": "Vorschläge aktivieren",
         "Suggestions": "Vorschläge",
-        "experiment": "Experiment"
+        "experiment": "Experiment",
+        "Allow others to suggest changes": "Anderen erlauben Änderungen vorzuschlagen"
     },
     "DocumentUsage": {
         "Size of attachments": "Größe der Anhänge",
@@ -627,7 +666,9 @@
         "Import from file": "Aus Datei importieren",
         "Saved linked section {{title}} in view {{name}}": "Gespeicherter verlinkter Abschnitt {{title}} in Ansicht {{name}}",
         "go to webhook settings": "gehen sie zu webhook Einstellungen",
-        "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "Neue Änderungen werden vorübergehend ausgesetzt. Die Webhooks-Warteschlange ist übergelaufen. Bitte überprüfen Sie die Webhook-Einstellungen, entfernen Sie ungültige Webhooks und bereinigen Sie die Warteschlange."
+        "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "Neue Änderungen werden vorübergehend ausgesetzt. Die Webhooks-Warteschlange ist übergelaufen. Bitte überprüfen Sie die Webhook-Einstellungen, entfernen Sie ungültige Webhooks und bereinigen Sie die Warteschlange.",
+        "Import from Airtable": "Aus Airtable importieren",
+        "{{title}} widget": "{{title}} Widget"
     },
     "HomeIntro": {
         ", or find an expert via our ": ", oder finden Sie einen Experten über unseren",
@@ -676,7 +717,8 @@
         "Tutorial": "Tutorial",
         "Terms of service": "Nutzungsbedingungen",
         "Grist Resources": "Grist Ressourcen",
-        "context menu - {{- workspaceName }}": "Kontextmenü - {{- workspaceName }}"
+        "context menu - {{- workspaceName }}": "Kontextmenü - {{- workspaceName }}",
+        "Import from Airtable": "Aus Airtable importieren"
     },
     "Importer": {
         "Merge rows that match these fields:": "Zeilen zusammenführen, die mit diesen Feldern übereinstimmen:",
@@ -703,7 +745,9 @@
     },
     "LeftPanelCommon": {
         "Help Center": "Hilfe-Center",
-        "Accessibility": "Barrierefreiheit"
+        "Accessibility": "Barrierefreiheit",
+        "(Screen reader improvements enabled)": "(Bildschrimleser-Verbesserungen aktiviert)",
+        "Screen reader improvements enabled": "Bildschrimleser-Verbesserungen aktiviert"
     },
     "MakeCopyMenu": {
         "As template": "Als Vorlage",
@@ -742,7 +786,8 @@
         "download attachments": "Anhänge herunterladen",
         ".zip": ".zip",
         "Download full document and history": "Vollständiges Dokument und Geschichte herunterladen",
-        "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "Anhänge sind extern und nicht in diesem Download enthalten. Wenn Sie das Dokument auf eine separate Grist-Installation hochladen, müssen Sie auch {{downloadLink}} separat aufrufen. "
+        "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "Anhänge sind extern und nicht in diesem Download enthalten. Wenn Sie das Dokument auf eine separate Grist-Installation hochladen, müssen Sie auch {{downloadLink}} separat aufrufen. ",
+        "If you're planning to upload this document to a Grist installation, you will need the archive in the \".tar\" format to restore attachments. ": "Wenn Sie planen dieses Dokument zu einer anderen Grist-Installation hochzuladen, benötigen Sie das Archiv im \".tar\"-Format um die Anhänge wiederherzustellen. "
     },
     "NTextBox": {
         "false": "falsch",
@@ -779,7 +824,11 @@
         "Building {{- label}} widget": "{{- label}}-Widget erstellen",
         "Group by": "Gruppieren nach",
         "Select data": "Daten auswählen",
-        "Select widget": "Widget auswählen"
+        "Select widget": "Widget auswählen",
+        "New Table": "Neue Tabelle",
+        "SELECT BY": "SELECT BY",
+        "{{table}} grouped by… (press to select fields)": "{{table}} gruppiert nach... (anklicken um Felder auszuwählen)",
+        "Press Space to add fields": "Leertaste drücken um Felder hinzuzufügen"
     },
     "Pages": {
         "Delete": "Löschen",
@@ -1273,7 +1322,8 @@
         "Add another rule": "Eine weitere Regel hinzufügen",
         "Row style": "Zeilenstil",
         "IF...": "WENN...",
-        "Conditional Style": "Bedingter Stil"
+        "Conditional Style": "Bedingter Stil",
+        "Row Style": "Zeilenstil"
     },
     "CurrencyPicker": {
         "Invalid currency": "Ungültige Währung"
@@ -2140,7 +2190,7 @@
         "Move": "Verschieben",
         "Move {{name}} to workspace": "{{name}} in den Arbeitsbereich verschieben",
         "Name": "Name",
-        "No documents to show.": "Es sind keine Dokumente vorzulegen.",
+        "No documents to show.": "Es liegen keine Dokumente vor.",
         "Sort by name": "Nach Name sortieren",
         "Unpin": "Abheften",
         "Workspace": "Arbeitsbereich",

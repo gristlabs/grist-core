@@ -1,6 +1,6 @@
 {
   "name": "grist-core",
-  "version": "1.7.13",
+  "version": "1.7.14",
   "license": "Apache-2.0",
   "description": "Grist is the evolution of spreadsheets",
   "homepage": "https://github.com/gristlabs/grist-core",
@@ -131,7 +131,7 @@
     "typescript": "5.9.3",
     "webpack": "5.104.1",
     "webpack-cli": "6.0.1",
-    "webpack-dev-server": "5.2.2",
+    "webpack-dev-server": "5.2.4",
     "why-is-node-running": "2.2.2"
   },
   "dependencies": {
@@ -204,7 +204,7 @@
     "moment-timezone": "0.5.35",
     "morgan": "1.9.1",
     "mousetrap": "1.6.2",
-    "multiparty": "4.2.2",
+    "multiparty": "4.3.0",
     "node-abort-controller": "3.0.1",
     "node-fetch": "2.6.7",
     "openid-client": "5.6.1",
@@ -245,7 +245,8 @@
     "jquery": "3.5.0",
     "ts-interface-checker": "1.0.2",
     "@gristlabs/sqlite3": "5.1.4-grist.12",
-    "esbuild": "^0.25.0"
+    "esbuild": "^0.25.0",
+    "serialize-javascript": "^7.0.5"
   },
   "mocha": {
     "require": [

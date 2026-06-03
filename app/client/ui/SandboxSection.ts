@@ -243,8 +243,8 @@ function sandboxLabel(flavor: string): string {
   switch (flavor) {
     case "gvisor": return "gVisor";
     case "pyodide": return "Pyodide";
-    case "macSandboxExec": return t("macOS Sandbox");
-    case "unsandboxed": return t("No Sandbox");
+    case "macSandboxExec": return t("macOS sandbox");
+    case "unsandboxed": return t("No sandbox");
     default: return flavor;
   }
 }

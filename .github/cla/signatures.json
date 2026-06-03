@@ -327,6 +327,14 @@
       "created_at": "2026-05-15T18:03:20Z",
       "repoId": 266033395,
       "pullRequestNo": 2354
+    },
+    {
+      "name": "JakubSerafin",
+      "id": 2961294,
+      "comment_id": 4534609431,
+      "created_at": "2026-05-25T13:23:40Z",
+      "repoId": 266033395,
+      "pullRequestNo": 2363
     }
   ]
 }

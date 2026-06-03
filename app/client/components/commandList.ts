@@ -4,6 +4,7 @@ const t = makeT("commandList");
 
 export type CommandName =
   | "accessibility" |
+  "toggleScreenReaderMode" |
   "shortcuts" |
   "help" |
   "undo" |
@@ -126,6 +127,8 @@ export type CommandName =
   "activateAssistant" |
   "viewAsCard" |
   "openContextMenu" |
+  "openColumnMenu" |
+  "openRowMenu" |
   "showColumns" |
   "createForm" |
   "insertField" |
@@ -163,13 +166,22 @@ export interface CommendGroupDef {
 
 // The top-level groups, and the ordering within them are for user-facing documentation.
 export const groups: CommendGroupDef[] = [{
-  group: "General",
+  group: "Accessibility",
   commands: [
     {
       name: "accessibility",
       keys: ["F4"],
       desc: () => t("Show accessibility options"),
     },
+    {
+      name: "toggleScreenReaderMode",
+      keys: ["Shift+F4"],
+      desc: () => t("Toggle the screen reader improvements"),
+    },
+  ],
+}, {
+  group: "General",
+  commands: [
     {
       name: "shortcuts",
       keys: ["F1", "Mod+/"],
@@ -401,17 +413,17 @@ export const groups: CommendGroupDef[] = [{
       desc: () => t("Open previous page"),
     }, {
       name: "nextRegion",
-      keys: ["Mod+o"],
+      keys: ["Ctrl+o"],
       desc: () => t("Focus next page panel or widget"),
       alwaysOn: true,
     }, {
       name: "prevRegion",
-      keys: ["Mod+Shift+O"],
+      keys: ["Ctrl+Shift+O"],
       desc: () => t("Focus previous page panel or widget"),
       alwaysOn: true,
     }, {
       name: "creatorPanel",
-      keys: ["Mod+Alt+o"],
+      keys: ["Ctrl+Alt+o"],
       desc: () => t("Toggle creator panel keyboard focus"),
       alwaysOn: true,
     }, {
@@ -424,6 +436,14 @@ export const groups: CommendGroupDef[] = [{
       name: "openContextMenu",
       keys: [{ default: "Menu", mac: "Ctrl+Enter" }, "Shift+F10"],
       desc: () => t("Open the context menu"),
+    }, {
+      name: "openColumnMenu",
+      keys: [{ default: "Ctrl+Menu", mac: "Ctrl+Shift+Enter" }, "Ctrl+Shift+F10"],
+      desc: () => t("Open the current column menu"),
+    }, {
+      name: "openRowMenu",
+      keys: [{ default: "Alt+Menu", mac: "Ctrl+Alt+Enter" }, "Alt+Shift+F10"],
+      desc: () => t("Open the current row menu"),
     },
   ],
 }, {

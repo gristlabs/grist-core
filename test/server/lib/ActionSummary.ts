@@ -555,6 +555,12 @@ describe("ActionSummary", function() {
   });
 
   it("summarizes partially uncached changes consistently", async function() {
+    // The summaries here simulate a summarizer that dropped some cell
+    // values to stay under the inline-rows limit: rows 12-14 / 15-16 are
+    // in updateRows but their cellDelta entries were not recorded.
+    // mayBeIncomplete = true marks that state, so composition keeps the
+    // '?' wildcard rather than recovering an intermediate value from the
+    // other summary (which wouldn't be the bundle-overall pre / post).
     const summary1: ActionSummary = {
       tableRenames: [["Fish", "Sharks"]],
       tableDeltas: {
@@ -562,6 +568,7 @@ describe("ActionSummary", function() {
           updateRows: [1, 13, 14, 15, 16],
           removeRows: [10],
           addRows: [11, 12],
+          mayBeIncomplete: true,
           columnDeltas: {
             "years": {
               1: [["11"], ["111"]],
@@ -591,6 +598,7 @@ describe("ActionSummary", function() {
           updateRows: [2, 11, 12, 14, 15],
           removeRows: [9, 16],
           addRows: [],
+          mayBeIncomplete: true,
           columnDeltas: {
             minutes: {
               2: [["22"], ["222"]],
@@ -613,6 +621,7 @@ describe("ActionSummary", function() {
           updateRows: [1, 2, 13, 14, 15],
           removeRows: [9, 10, 16],
           addRows: [11, 12],
+          mayBeIncomplete: true,
           columnDeltas: {
             "minutes": {
               1: [["11"], ["111"]],
@@ -639,6 +648,111 @@ describe("ActionSummary", function() {
     };
     const result = concatenateSummariesCleanly([summary1, summary2]);
     assert.deepEqual(result, summary3);
+  });
+
+  it("composes a row touched in one summary with a value carried only by the other", async function() {
+    // Focused regression test for `mergeColumn` precision: row 1 is marked
+    // "updated" in summary1 because summary1 changed its `other` column,
+    // but summary1 doesn't carry an entry for the `target` column. summary2
+    // carries the real pre/post for `target` on row 1. The composed result
+    // should report `target[1]` at its real values, not synthesize a `'?'`
+    // wildcard for the side summary1 didn't carry.
+    const summary1: ActionSummary = {
+      tableRenames: [],
+      tableDeltas: {
+        T: {
+          updateRows: [1],
+          removeRows: [],
+          addRows: [],
+          columnDeltas: { other: { 1: [["x"], ["y"]] } },
+          columnRenames: [],
+        },
+      },
+    };
+    const summary2: ActionSummary = {
+      tableRenames: [],
+      tableDeltas: {
+        T: {
+          updateRows: [1],
+          removeRows: [],
+          addRows: [],
+          columnDeltas: { target: { 1: [["a"], ["b"]] } },
+          columnRenames: [],
+        },
+      },
+    };
+    const merged = concatenateSummariesCleanly([summary1, summary2]);
+    assert.deepEqual(merged.tableDeltas.T.columnDeltas.target[1], [["a"], ["b"]]);
+    // The composed summary inherits no `mayBeIncomplete` (neither input
+    // had it).
+    assert.notProperty(merged.tableDeltas.T, "mayBeIncomplete");
+  });
+
+  it("sets mayBeIncomplete on a bulk action that exceeds the inline-rows cap", async function() {
+    const session = docTools.createFakeSession();
+    const doc: ActiveDoc = await docTools.createDoc("incomplete-cap.grist");
+    await doc.applyUserActions(session, [
+      ["AddTable", "Frogs", [{ id: "species" }]],
+    ]);
+    // Add many rows in one bulk action - well over the default 10-row cap.
+    const ids = Array.from({ length: 30 }, (_, i) => i + 1);
+    await doc.applyUserActions(session, [
+      ["BulkAddRecord", "Frogs", ids, { species: ids.map(x => "frog " + x) }],
+    ]);
+    const sum = await summarizeLastAction(doc);
+    assert.equal(sum.tableDeltas.Frogs.mayBeIncomplete, true);
+  });
+
+  it("does not set mayBeIncomplete on a small update", async function() {
+    const session = docTools.createFakeSession();
+    const doc: ActiveDoc = await docTools.createDoc("incomplete-small.grist");
+    await doc.applyUserActions(session, [
+      ["AddTable", "Frogs", [{ id: "species" }]],
+      ["AddRecord", "Frogs", null, { species: "frog 1" }],
+    ]);
+    await doc.applyUserActions(session, [
+      ["UpdateRecord", "Frogs", 1, { species: "renamed" }],
+    ]);
+    const sum = await summarizeLastAction(doc);
+    assert.notProperty(sum.tableDeltas.Frogs, "mayBeIncomplete");
+  });
+
+  it("keeps the '?' wildcard when composing summaries flagged as mayBeIncomplete", async function() {
+    // Same shape as the test above, but summary1 declares itself
+    // `mayBeIncomplete: true` (some cells were dropped to stay under the
+    // inline-rows limit). The composition should respect that and keep
+    // the '?' wildcard on the pre side rather than recovering from
+    // summary2's pre, because for a dropped cell summary2's pre is an
+    // intermediate value, not the bundle-overall pre.
+    const summary1: ActionSummary = {
+      tableRenames: [],
+      tableDeltas: {
+        T: {
+          updateRows: [1],
+          removeRows: [],
+          addRows: [],
+          mayBeIncomplete: true,
+          columnDeltas: { target: { 2: [["a2"], ["b2"]] } },
+          columnRenames: [],
+        },
+      },
+    };
+    const summary2: ActionSummary = {
+      tableRenames: [],
+      tableDeltas: {
+        T: {
+          updateRows: [1],
+          removeRows: [],
+          addRows: [],
+          columnDeltas: { target: { 1: [["a"], ["b"]] } },
+          columnRenames: [],
+        },
+      },
+    };
+    const merged = concatenateSummariesCleanly([summary1, summary2]);
+    assert.deepEqual(merged.tableDeltas.T.columnDeltas.target[1], ["?", ["b"]]);
+    // mayBeIncomplete propagates through composition.
+    assert.equal(merged.tableDeltas.T.mayBeIncomplete, true);
   });
 
   it("recognizes bulk removal", async function() {
@@ -746,6 +860,9 @@ describe("ActionSummary", function() {
       5: [null, ["place 5"]],
       8: [null, ["place 8"]],
     };
+    // Truncation drove `mayBeIncomplete` on; the no-limit summary above
+    // didn't have it. Mark the expected to match.
+    sum.tableDeltas.Frogs.mayBeIncomplete = true;
     assert.deepEqual(sum2, sum);
   });
 

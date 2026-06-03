@@ -213,6 +213,7 @@ export class ActionSummarizer {
       // if many rows, just take some from start and one from end as examples
       selectedRows = [...rowIds.slice(0, this._maxRows - 1).entries()];
       selectedRows.push([rowIds.length - 1, rowIds[rowIds.length - 1]]);
+      td.mayBeIncomplete = true;
     }
 
     const alwaysPreserveColIds = new Set(this._options?.alwaysPreserveColIds || []);
@@ -480,6 +481,7 @@ function bulkCellFor(rc: RowChange | undefined): CellDelta | undefined {
  * e2 may be modified, and will be copied if so.
  */
 function mergeColumn(present1: RowChanges, present2: RowChanges,
+  incomplete1: true | undefined, incomplete2: true | undefined,
   e1: ColumnDelta, e2: CopyOnWrite<ColumnDelta>): ColumnDelta {
   for (const key of (Object.keys(present1) as unknown as number[])) {
     let v1 = e1[key];
@@ -489,6 +491,16 @@ function mergeColumn(present1: RowChanges, present2: RowChanges,
       delete e2.write()[key];
       continue;
     }
+    // A row marked "updated" in a side whose cellDelta has no entry for
+    // this column can mean two things: the column was untouched (and we
+    // can recover the value from the other side) or the summarizer
+    // deliberately dropped the cell to stay under `maximumInlineRows` (so
+    // '?' is the accurate answer). If the source summary's
+    // mayBeIncomplete flag is unset, we know it's the first case and can
+    // recover. If it's set, we don't know which case it is, and have to
+    // err on the side of uncertainty.
+    const v1Untouched = v1 === undefined && !incomplete1;
+    const v2Untouched = v2 === undefined && !incomplete2;
     v1 = v1 || bulkCellFor(present1[key]);
     v2 = v2 || bulkCellFor(present2[key]);
     if (!v2)    { e2.write()[key] = e1[key]; continue; }
@@ -503,7 +515,12 @@ function mergeColumn(present1: RowChanges, present2: RowChanges,
       }
       continue;
     }
-    e2.write()[key] = [v1[0], v2[1]];  // Change is from initial value in e1 to final value in e2.
+    // Default composition is [v1[0], v2[1]]. Recover from the other side
+    // when one side's synthesized '?' came from a complete summary that
+    // simply didn't touch this column at this row.
+    const pre = (v1Untouched && v1[0] === "?") ? v2[0] : v1[0];
+    const post = (v2Untouched && v2[1] === "?") ? v1[1] : v2[1];
+    e2.write()[key] = [pre, post];
   }
   return e2.read();
 }
@@ -536,12 +553,15 @@ function getRowChanges(e: TableDelta): RowChanges {
  */
 function mergeTable(e1: TableDelta,  e2: CopyOnWrite<TableDelta>): TableDelta {
   // First, sort out any changes to names of columns.
-  const names = planNameMerge(e1.columnRenames, e2.read().columnRenames);
-  const columnDeltasCow = copyOnWrite(e2.read().columnDeltas);
+  const e2td = e2.read();
+  const names = planNameMerge(e1.columnRenames, e2td.columnRenames);
+  const columnDeltasCow = copyOnWrite(e2td.columnDeltas);
   mergeNames(names, e1.columnDeltas, columnDeltasCow,
     mergeColumn.bind(null,
       getRowChanges(e1),
-      getRowChanges(e2.read())));
+      getRowChanges(e2td),
+      e1.mayBeIncomplete,
+      e2td.mayBeIncomplete));
   if (columnDeltasCow.hasWrite()) {
     e2.write();
     e2.read().columnDeltas = columnDeltasCow.read();
@@ -575,6 +595,9 @@ function mergeTable(e1: TableDelta,  e2: CopyOnWrite<TableDelta>): TableDelta {
     removeRows,
     updateRows,
   });
+  if (e1.mayBeIncomplete || e2td.mayBeIncomplete) {
+    e2.write().mayBeIncomplete = true;
+  }
   return e2.read();
 }
 

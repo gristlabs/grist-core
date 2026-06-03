@@ -26,7 +26,7 @@ const t = makeT("PermissionsSetupSection");
 const testId = makeTestId("test-permissions-setup-");
 
 /**
- * Renders the "Apply & Restart" step of the setup wizard.
+ * Renders the "Apply & restart" step of the setup wizard.
  *
  * Shows default permission toggles with preset modes (Locked down / Recommended / Open),
  * a "Go Live" button that saves settings and restarts the server, and a success state
@@ -114,7 +114,7 @@ export class PermissionsSetupSection extends Disposable {
     return dom("div",
       quickSetupStepHeader({
         icon: "Settings",
-        title: t("Apply & Restart"),
+        title: t("Apply & restart"),
         description: t("Review these defaults before going live. " +
           "You can change them later from the admin panel."),
       }),
@@ -128,7 +128,7 @@ export class PermissionsSetupSection extends Disposable {
       ),
       dom.maybe(not(this._saving), () =>
         cssBottomRow(
-          cssGoLiveButton(t("Apply and Go Live!"),
+          cssGoLiveButton(t("Apply and go live!"),
             dom.on("click", () => this._handleGoLive()),
             testId("go-live"),
           ),
@@ -160,7 +160,7 @@ const PRESET_LABELS: Record<PresetName, () => string> = {
 /**
  * Renders the shared "Default Permissions" card: preset bar, the four
  * permission toggle rows, and warning wells for env-locked toggles and
- * GRIST_SINGLE_ORG. Used by both the QuickSetup wizard's "Apply & Restart"
+ * GRIST_SINGLE_ORG. Used by both the QuickSetup wizard's "Apply & restart"
  * step and the admin panel's grouped permissions item so the two surfaces
  * stay visually identical. Shows a spinner until the model's status loads.
  *
