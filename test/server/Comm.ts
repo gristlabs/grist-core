@@ -7,6 +7,7 @@ import { delay } from "app/common/delay";
 import { isLongerThan } from "app/common/gutil";
 import { User } from "app/gen-server/entity/User";
 import { HomeDBAuth } from "app/gen-server/lib/homedb/Interfaces";
+import { AccessTokenInfo, IAccessTokens } from "app/server/lib/AccessTokens";
 import { Client, ClientMethod } from "app/server/lib/Client";
 import { Comm } from "app/server/lib/Comm";
 import { Hosts, RequestOrgInfo } from "app/server/lib/extractOrg";
@@ -676,6 +677,130 @@ describe("Comm", function() {
       assert.equal(msgs[0].type, "clientConnect");
       const client = comm!.getClient(msgs[0].clientId);
       assert.equal(client.authSession.userId, ANONYMOUS_ID);
+    });
+
+    // Connect with explicit query params (e.g. clientId/newClient) to exercise reconnects, and
+    // return the socket together with the server's first message. The message handler is attached
+    // synchronously, before the socket opens: a needReload reconnect gets a single clientConnect
+    // followed immediately by a close, so a handler attached afterwards (as connect()+getMessages()
+    // does) would miss it.
+    async function connectWithParams(query: Record<string, string>, options?: GristClientSocketOptions) {
+      const port = (server.address() as AddressInfo).port;
+      const qs = new URLSearchParams(query).toString();
+      const ws = new GristClientSocket(`ws://localhost:${port}/?${qs}`, options);
+      const msg = await new Promise<CommClientConnect>((resolve, reject) => {
+        ws.onmessage = (data: string) => resolve(JSON.parse(data));
+        ws.onerror = (err: Error) => reject(err);
+      });
+      return { ws, msg };
+    }
+
+    // Wait until the server has released clientId's websocket, so it is eligible for reconnect.
+    async function waitForSocketRelease(clientId: string) {
+      const client = comm!.getClient(clientId);
+      for (let i = 0; i < 200 && client.isConnected(); i++) {
+        await delay(10);
+      }
+    }
+
+    it("should not let a different identity reuse a clientId on reconnect", async function() {
+      const db = makeDbManager({
+        getUserByKey: async key => key === "api_key_for_chimpy" ? chimpy : undefined,
+      });
+      await startAuthComm(db);
+
+      // Chimpy connects and is assigned a clientId.
+      const ws1 = await connect({ headers: { authorization: "Bearer api_key_for_chimpy" } });
+      const [msg1] = await getMessages(ws1, 1) as CommClientConnect[];
+      const clientId = msg1.clientId;
+      assert.equal(comm!.getClient(clientId).authSession.userId, chimpy.id);
+
+      // Chimpy's socket drops, but the Client lingers and becomes available for reconnect.
+      ws1.close();
+      await waitForSocketRelease(clientId);
+
+      // An anonymous reconnect guessing the clientId must NOT reuse Chimpy's Client: it gets a fresh
+      // anonymous Client (new clientId) and is told to reload, and Chimpy's Client is left intact.
+      const { ws: wsAnon, msg: anonMsg } = await connectWithParams({ clientId, newClient: "0", counter: "c1" });
+      assert.notEqual(anonMsg.clientId, clientId);
+      assert.isTrue(anonMsg.needReload);
+      assert.equal(comm!.getClient(anonMsg.clientId).authSession.userId, ANONYMOUS_ID);
+      assert.equal(comm!.getClient(clientId).authSession.userId, chimpy.id);
+      wsAnon.close();
+    });
+
+    it("should let the same identity reuse a clientId on reconnect", async function() {
+      const db = makeDbManager({
+        getUserByKey: async key => key === "api_key_for_chimpy" ? chimpy : undefined,
+      });
+      await startAuthComm(db);
+
+      const ws1 = await connect({ headers: { authorization: "Bearer api_key_for_chimpy" } });
+      const [msg1] = await getMessages(ws1, 1) as CommClientConnect[];
+      const clientId = msg1.clientId;
+
+      ws1.close();
+      await waitForSocketRelease(clientId);
+
+      // The same user reconnecting with the clientId reuses the Client seamlessly (no reload).
+      const { ws: ws2, msg: msg2 } = await connectWithParams({ clientId, newClient: "0", counter: "c1" },
+        { headers: { authorization: "Bearer api_key_for_chimpy" } },
+      );
+      assert.equal(msg2.clientId, clientId);
+      assert.isFalse(msg2.needReload);
+      ws2.close();
+    });
+
+    it("should not let a credentialed session reuse a clientId", async function() {
+      // Access tokens (?auth=) and OAuth tokens authenticate as the anonymous user, carrying the
+      // real identity in a credential. Check that those don't allow unwanted clientId reuse.
+      const db = makeDbManager({
+        getUser: async (id: number) => (id === chimpy.id ? chimpy : undefined),
+      });
+      const accessTokens: IAccessTokens = {
+        verify: async (token: string): Promise<AccessTokenInfo> =>
+          ({ userId: token === "token_chimpy" ? chimpy.id : ANONYMOUS_ID, docId: "doc1" }),
+        sign: async () => "",
+        getNominalTTLInMsec: () => 0,
+        close: async () => {},
+      };
+      await startAuthComm(db, {
+        gristServer: { ...createDummyGristServer(), getAccessTokens: () => accessTokens },
+      });
+
+      // Chimpy connects with an access token and is assigned a clientId: anonymous at the session
+      // level, but Chimpy via the credential's identifiedUser.
+      const { ws: ws1, msg: msg1 } = await connectWithParams({ auth: "token_chimpy" });
+      const clientId = msg1.clientId;
+      assert.equal(comm!.getClient(clientId).authSession.userId, ANONYMOUS_ID);
+      assert.equal(comm!.getClient(clientId).authSession.identifiedUser!.id, chimpy.id);
+
+      // Chimpy's socket drops, but the Client lingers and becomes available for reconnect.
+      ws1.close();
+      await waitForSocketRelease(clientId);
+
+      // An anonymous reconnect guessing the clientId must NOT reuse Chimpy's Client, even though
+      // Chimpy's session also uses the anonymous userId. The presence of the credential should
+      // force a fresh Client + reload.
+      const { ws: wsAnon, msg: anonMsg } = await connectWithParams({ clientId, newClient: "0", counter: "c1" });
+      assert.notEqual(anonMsg.clientId, clientId);
+      assert.isTrue(anonMsg.needReload);
+      assert.equal(comm!.getClient(anonMsg.clientId).authSession.userId, ANONYMOUS_ID);
+      assert.equal(comm!.getClient(clientId).authSession.userId, ANONYMOUS_ID);
+      assert.equal(comm!.getClient(clientId).authSession.identifiedUser!.id, chimpy.id);
+      wsAnon.close();
+
+      // An Access-token request, even for Chimpy also must not reuse Chimpy's client (because
+      // that's safer: to allow reuse, we'd need to respect AuthCredential-specific restrictions).
+      const { ws: ws2, msg: msg2 } = await connectWithParams(
+        { clientId, newClient: "0", counter: "c1", auth: "token_chimpy" });
+      assert.notEqual(msg2.clientId, clientId);
+      assert.isTrue(msg2.needReload);
+      assert.equal(comm!.getClient(msg2.clientId).authSession.userId, ANONYMOUS_ID);
+      assert.equal(comm!.getClient(msg2.clientId).authSession.identifiedUser!.id, chimpy.id);
+      assert.equal(comm!.getClient(clientId).authSession.userId, ANONYMOUS_ID);
+      assert.equal(comm!.getClient(clientId).authSession.identifiedUser!.id, chimpy.id);
+      ws2.close();
     });
   });
 

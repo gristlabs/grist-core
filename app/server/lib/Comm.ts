@@ -191,17 +191,6 @@ export class Comm extends EventEmitter {
     const counter = params.get("counter");
     const userSelector = params.get("user") || "";
 
-    // Associate an ID with each websocket, reusing the supplied one if it's valid.
-    let client: Client | undefined = this._clients.get(existingClientId!);
-    let reuseClient = true;
-    if (!client?.canAcceptConnection()) {
-      reuseClient = false;
-      client = new Client(this, this._methods, localeFromRequest(req), this._options.i18Instance);
-      this._clients.set(client.clientId, client);
-    }
-
-    log.rawInfo("Comm: Got Websocket connection", { ...client.getLogMeta(), urlPath: req.url, reuseClient });
-
     const dbManager = this._options.dbManager;
     let authSession: AuthSession;
     if (!dbManager || !this._options.gristServer || !this._options.permitStore) {
@@ -233,6 +222,17 @@ export class Comm extends EventEmitter {
       const altSessionId = scopedSession?.getAltSessionId();
       authSession = AuthSession.fromUser(fullUser, org, altSessionId, identity.credential, identity.hasApiKey);
     }
+
+    // Associate an ID with each websocket, reusing the supplied one if it's valid and for the same user.
+    let client: Client | undefined = this._clients.get(existingClientId!);
+    let reuseClient = true;
+    if (!client?.canAcceptConnection(authSession)) {
+      reuseClient = false;
+      client = new Client(this, this._methods, localeFromRequest(req), this._options.i18Instance);
+      this._clients.set(client.clientId, client);
+    }
+
+    log.rawInfo("Comm: Got Websocket connection", { ...client.getLogMeta(), urlPath: req.url, reuseClient });
 
     client.setConnection({ websocket, req, counter, browserSettings, authSession });
 
