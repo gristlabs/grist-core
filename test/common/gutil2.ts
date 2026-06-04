@@ -207,4 +207,28 @@ describe("gutil2", function() {
       check(["a"], [0], []);
     });
   });
+
+  describe("replaceLiteral", function() {
+    it("should not interpret replacement patterns", function() {
+      assert.equal(gutil.replaceLiteral("foo {{marker}} bar", "{{marker}}", "$' $$ $<x> $` $&"),
+        "foo $' $$ $<x> $` $& bar");
+    });
+  });
+
+  describe("replaceLiterals", function() {
+    it("should replace all parts without interpreting replacement patterns", function() {
+      assert.equal(gutil.replaceLiterals("1. foo 2. bar 3. baz", {
+        foo: "!!$'!!",
+        baz: "??$`??",
+        bar: "$<x>",
+      }), "1. !!$'!! 2. $<x> 3. ??$`??");
+    });
+
+    it("should not find markers in the results of other replacements", function() {
+      assert.equal(gutil.replaceLiterals("FOO or BAR", {
+        FOO: "I've turned into BAR",
+        BAR: "I've turned into FOO",
+      }), "I've turned into BAR or I've turned into FOO");
+    });
+  });
 });

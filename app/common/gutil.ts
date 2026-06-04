@@ -14,6 +14,7 @@ import {
   UseCBOwner,
 } from "grainjs";
 import { Observable as KoObservable } from "knockout";
+import escapeRegExp from "lodash/escapeRegExp";
 import identity from "lodash/identity";
 
 // Some definitions have moved to be used by plugin API.
@@ -59,6 +60,24 @@ export function capitalize(str: string): string {
 // Capitalizes the first word in a string.
 export function capitalizeFirstWord(str: string): string {
   return str.replace(/\b[a-z]/i, c => c.toUpperCase());
+}
+
+// Replace the `marker` substring of `str` with `value`, *without* interpreting any special
+// replacement patterns (like `$'`). Only the first occurrence is replaced.
+export function replaceLiteral(str: string, marker: string, value: string): string {
+  return str.replace(marker, () => value);
+}
+
+// Given an object of replacements like {"foo": value1, "bar": value2}, replace markers "foo" and
+// "bar" in `template` with corresponding values, *without* interpreting any special
+// string-replacement patterns (like `$'`). All occurrences of all markers are replaced.
+export function replaceLiterals(template: string, replacements: Record<string, string>): string {
+  const markers = Object.keys(replacements);
+  if (!markers.length) { return template; }
+  // Use a single regexp over all replacement keys, as opposed to a sequential loop, so that
+  // results of previous replacements don't themselves become subject to replacement.
+  const re = new RegExp(markers.map(escapeRegExp).join("|"), "g");
+  return template.replace(re, m => replacements[m]);
 }
 
 // Returns whether the string n represents a valid number.

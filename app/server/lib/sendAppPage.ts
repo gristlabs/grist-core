@@ -13,7 +13,7 @@ import {
   GristLoadConfig,
   IFeature, ImplicitlyEnabledFeatures,
 } from "app/common/gristUrls";
-import { isAffirmative } from "app/common/gutil";
+import { isAffirmative, replaceLiteral, replaceLiterals } from "app/common/gutil";
 import { getTagManagerSnippet } from "app/common/tagManager";
 import { Document } from "app/common/UserAPI";
 import { AttachedCustomWidgets, IAttachedCustomWidget } from "app/common/widgetTypes";
@@ -159,7 +159,7 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
 export function makeMessagePage(staticDir: string) {
   return async (req: express.Request, resp: express.Response, message: any) => {
     const fileContent = await fse.readFile(path.join(staticDir, "message.html"), "utf8");
-    const content = fileContent.replace(
+    const content = replaceLiteral(fileContent,
       "<!-- INSERT MESSAGE -->",
       `<script>window.message = ${jsesc(message, { isScriptContext: true, json: true })};</script>`,
     );
@@ -214,19 +214,18 @@ export function makeSendAppPage({ server, staticDir, tag, testLogin, baseDomain 
           `<link rel="preload" href="locales/${lng}.${ns}.json" as="fetch" type="application/json" crossorigin>`,
         ).join("\n"),
       ).join("\n");
-    const content = fileContent
-      .replace("<!-- INSERT WARNING -->", warning)
-      .replace("<!-- INSERT TITLE -->", getDocName(config) ?? escapeExpression(translate(req, "Loading...")))
-      .replace("<!-- INSERT META -->", getPageMetadataHtmlSnippet(req, config))
-      .replace("<!-- INSERT TITLE SUFFIX -->", getPageTitleSuffix(server.getGristConfig()))
-      .replace("<!-- INSERT BASE -->", `<base href="${staticBaseUrl}">` + tagManagerSnippet)
-      .replace("<!-- INSERT LOCALE -->", preloads)
-      .replace("<!-- INSERT CUSTOM -->", customHeadHtmlSnippet)
-      .replace("<!-- INSERT CUSTOM SCRIPT -->", insertCustomScript)
-      .replace(
-        "<!-- INSERT CONFIG -->",
+    const content = replaceLiterals(fileContent, {
+      "<!-- INSERT WARNING -->": warning,
+      "<!-- INSERT TITLE -->": getDocName(config) ?? escapeExpression(translate(req, "Loading...")),
+      "<!-- INSERT META -->": getPageMetadataHtmlSnippet(req, config),
+      "<!-- INSERT TITLE SUFFIX -->": getPageTitleSuffix(server.getGristConfig()),
+      "<!-- INSERT BASE -->": `<base href="${staticBaseUrl}">` + tagManagerSnippet,
+      "<!-- INSERT LOCALE -->": preloads,
+      "<!-- INSERT CUSTOM -->": customHeadHtmlSnippet,
+      "<!-- INSERT CUSTOM SCRIPT -->": insertCustomScript,
+      "<!-- INSERT CONFIG -->":
         `<script>window.gristConfig = ${jsesc(config, { isScriptContext: true, json: true })};</script>`,
-      );
+    });
     logVisitedPageTelemetryEvent(req as RequestWithLogin, {
       server,
       pagePath: options.path,
