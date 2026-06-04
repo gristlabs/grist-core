@@ -284,7 +284,9 @@
         "Description": "Keterangan",
         "Key": "Kunci",
         "Memory Error": "Kesalahan Memori",
-        "Translators: please translate this only when your language is ready to be offered to users": "Penerjemah: mohon terjemahkan ini hanya ketika bahasa Anda siap ditawarkan kepada pengguna"
+        "Translators: please translate this only when your language is ready to be offered to users": "Penerjemah: mohon terjemahkan ini hanya ketika bahasa Anda siap ditawarkan kepada pengguna",
+        "Disabled screen reader improvements": "Peningkatan pembaca layar dinonaktifkan",
+        "Enabled screen reader improvements": "Peningkatan pembaca layar diaktifkan"
     },
     "AppHeader": {
         "Home page": "Halaman beranda",
@@ -641,7 +643,8 @@
         "Saved linked section {{title}} in view {{name}}": "Bagian tertaut yang disimpan {{title}} dalam tampilan {{name}}",
         "go to webhook settings": "buka pengaturan webhook",
         "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "Perubahan baru ditangguhkan sementara. Antrean webhook meluap. Harap periksa pengaturan webhook, hapus webhook yang tidak valid, dan bersihkan antrean.",
-        "Import from Airtable": "Impor dari Airtable"
+        "Import from Airtable": "Impor dari Airtable",
+        "{{title}} widget": "Widget {{title}}"
     },
     "HomeIntro": {
         "Any documents created in this site will appear here.": "Dokumen apa pun yang dibuat di situs ini akan muncul di sini.",
@@ -717,7 +720,9 @@
     },
     "LeftPanelCommon": {
         "Help Center": "Pusat Bantuan",
-        "Accessibility": "Aksesibilitas"
+        "Accessibility": "Aksesibilitas",
+        "(Screen reader improvements enabled)": "(Peningkatan pembaca layar diaktifkan)",
+        "Screen reader improvements enabled": "Peningkatan pembaca layar diaktifkan"
     },
     "MakeCopyMenu": {
         "As template": "Sebagai templat",
@@ -788,7 +793,10 @@
         "Select data": "Pilih data",
         "Select widget": "Pilih widget",
         "New Table": "Tabel Baru",
-        "SELECT BY": "PILIH BERDASARKAN"
+        "SELECT BY": "PILIH BERDASARKAN",
+        "{{table}} grouped by… (press to select fields)": "{{table}} dikelompokkan berdasarkan… (tekan untuk memilih bidang)",
+        "Press Space to add fields": "Tekan Spasi untuk menambahkan bidang",
+        "Use up and down arrow keys to move through options. Press Enter and Esc to move between steps.": "Gunakan tombol panah atas dan bawah untuk berpindah di antara opsi. Tekan Enter dan Esc untuk berpindah antar langkah."
     },
     "Pages": {
         "Delete": "Hapus",
@@ -1570,7 +1578,9 @@
         "Talk to me like a person. No need to specify tables and column names. For example, you can ask \"Please calculate the total invoice amount.\"": "Bicaralah kepada saya seperti manusia. Tidak perlu menyebutkan nama tabel dan kolom. Misalnya, Anda bisa bertanya \"Tolong hitung total tagihannya.\""
     },
     "GridView": {
-        "Click to insert": "Klik untuk menyisipkan"
+        "Click to insert": "Klik untuk menyisipkan",
+        "row {{rowNum}} {{colName}}": "baris {{rowNum}} {{colName}}",
+        "row {{rowNum}} {{colName}} (new row)": "baris {{rowNum}} {{colName}} (baris baru)"
     },
     "WelcomeSitePicker": {
         "Welcome back": "Selamat Datang kembali",
@@ -2135,7 +2145,10 @@
         "When typed at the start of a cell, make this a formula column": "Saat diketik di awal sel, jadikan ini kolom rumus",
         "showing a behavioral popup": "menampilkan popup perilaku",
         "Filter this column by just this cell's value": "Filter kolom ini hanya berdasarkan nilai sel ini",
-        "Open the context menu": "Buka menu konteks"
+        "Open the context menu": "Buka menu konteks",
+        "Toggle the screen reader improvements": "Alihkan peningkatan pembaca layar",
+        "Open the current column menu": "Buka menu kolom saat ini",
+        "Open the current row menu": "Buka menu baris saat ini"
     },
     "Columns": {
         "Remove Column": "Hapus Kolom"
@@ -2539,7 +2552,8 @@
         "Trying to access the creator panel? Use {{key}}.": "Ingin mengakses panel kreator? Gunakan {{key}}."
     },
     "AttachmentsWidget": {
-        "Uploading, please wait…": "Sedang mengunggah, harap tunggu…"
+        "Uploading, please wait…": "Sedang mengunggah, harap tunggu…",
+        "Image": "Gambar"
     },
     "AttachmentsEditor": {
         "Add": "Tambah",
@@ -2621,7 +2635,14 @@
         "{{creatorPanelShortcut}} Focus to and from the creator panel": "{{creatorPanelShortcut}} Fokus ke dan dari panel kreator",
         "{{nextRegionShortcut}} Focus on the next region": "{{nextRegionShortcut}} Fokus pada wilayah berikutnya",
         "{{prevRegionShortcut}} Focus on the previous region": "{{prevRegionShortcut}} Fokus pada wilayah sebelumnya",
-        "{{shortcutsModal}} Show the complete list of keyboard shortcuts": "{{shortcutsModal}} Menampilkan daftar lengkap pintasan keyboard"
+        "{{shortcutsModal}} Show the complete list of keyboard shortcuts": "{{shortcutsModal}} Menampilkan daftar lengkap pintasan keyboard",
+        "Enable screen reader improvements (keyboard shortcut: {{shortcut}})": "Aktifkan peningkatan pembaca layar (pintasan keyboard: {{shortcut}})",
+        "Use your screen reader's focus mode, or disable Quick Nav if you use VoiceOver.": "Gunakan mode fokus pada pembaca layar Anda, atau nonaktifkan Quick Nav jika Anda menggunakan VoiceOver.",
+        "Please first read the \"Keyboard navigation\" section above to understand how to navigate across the interface's regions: specific keyboard shortcuts need to be used.": "Silakan baca terlebih dahulu bagian \"Navigasi keyboard\" di atas untuk memahami cara bernavigasi di berbagai area antarmuka: pintasan keyboard tertentu perlu digunakan.",
+        "Screen reader navigation": "Navigasi pembaca layar",
+        "Warning: screen reader support is a work-in-progress in Grist and is improving over time. Feedback is greatly appreciated!": "Peringatan: dukungan pembaca layar di Grist masih dalam tahap pengembangan dan terus ditingkatkan seiring waktu. Masukan sangat kami hargai!",
+        "While not mandatory, you can enable screen reader improvements for a better navigation experience:": "Meskipun tidak wajib, Anda dapat mengaktifkan peningkatan pembaca layar untuk pengalaman navigasi yang lebih baik:",
+        "We recommend using Firefox, Chrome or Edge in order to use Grist with a screen reader.": "Kami merekomendasikan penggunaan Firefox, Chrome, atau Edge untuk menggunakan Grist dengan pembaca layar."
     },
     "ProposedChangesPage": {
         "Proposed changes": "Perubahan yang diusulkan",
@@ -2988,7 +3009,9 @@
         "You have GRIST_SINGLE_ORG={{value}} set. With this, users only see one site — but personal sites and team creation still work behind the scenes. Worth locking down unless you have a specific reason to keep them.": "Anda telah menetapkan GRIST_SINGLE_ORG={{value}}. Dengan ini, pengguna hanya melihat satu situs — tetapi situs pribadi dan pembuatan tim tetap berjalan di balik layar. Sebaiknya dikunci kecuali Anda punya alasan khusus untuk tetap membiarkannya.",
         "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Perubahan konfigurasi Anda telah diterapkan dan server telah dimulai ulang. Grist sekarang aktif dan tersedia bagi pengguna.",
         "Custom": "Khusus",
-        "loading…": "memuat…"
+        "loading…": "memuat…",
+        "Apply & restart": "Terapkan & mulai ulang",
+        "Apply and go live!": "Terapkan dan tayangkan!"
     },
     "SandboxSection": {
         "Active": "Aktif",
@@ -3007,7 +3030,9 @@
         "Skip and Continue": "Lewati dan Lanjutkan",
         "Uses the built-in macOS sandbox. Good isolation for local use on a Mac.": "Menggunakan sandbox bawaan macOS. Isolasi yang baik untuk penggunaan lokal di Mac.",
         "macOS Sandbox": "Sandbox macOS",
-        "Sandbox": "Sandbox"
+        "Sandbox": "Sandbox",
+        "No sandbox": "Tanpa sandbox",
+        "macOS sandbox": "Sandbox macOS"
     },
     "AdminPanelCss": {
         "Confirmed": "Dikonfirmasi",
@@ -3056,7 +3081,9 @@
         "Your installation does not bundle the Full Grist edition. Want Full Grist? {{enableLink}}": "Instalasi Anda tidak menyertakan edisi Full Grist. Ingin Full Grist? {{enableLink}}",
         "community": "komunitas",
         "full": "penuh",
-        "pricing": "harga"
+        "pricing": "harga",
+        "Community edition": "Edisi komunitas",
+        "I understand I am running Grist Community edition": "Saya memahami bahwa saya menjalankan Grist Edisi Komunitas"
     },
     "QuickSetupServerStep": {
         "Apply and Continue": "Terapkan dan Lanjutkan",
@@ -3114,5 +3141,23 @@
         "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.": "Pengunjung yang belum masuk dapat melihat dokumen yang dibagikan secara publik. Ini diperlukan untuk berbagi tautan dan formulir yang dipublikasikan.",
         "off": "mati",
         "on": "hidup"
+    },
+    "ScreenReaderAnnouncer": {
+        "Notification: {{notification}}": "Notifikasi: {{notification}}"
+    },
+    "ScreenReaderConfig": {
+        "Enable screen reader improvements": "Aktifkan peningkatan pembaca layar",
+        "Press {{accessibilityModalShortcut}} for more information about screen reader navigation.": "Tekan {{accessibilityModalShortcut}} untuk informasi lebih lanjut tentang navigasi pembaca layar."
+    },
+    "ScreenReaderFormatters": {
+        "Checked": "Dicentang",
+        "Image": "Gambar",
+        "Toggled off": "Dinonaktifkan",
+        "Toggled on": "Diaktifkan",
+        "Unchecked": "Tidak dicentang",
+        "heading {{- text}}": "judul {{- text}}",
+        "link {{- label}}": "tautan {{- label}}",
+        "list: {{- items}}": "daftar: {{- items}}",
+        "{{- text}} (link)": "{{- text}} (tautan)"
     }
 }
