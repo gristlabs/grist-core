@@ -70,6 +70,11 @@ export interface ICreate {
     ...args: ConstructorParameters<typeof HostedStorageManager>
   ): Promise<IDocStorageManager>;
 
+  // Creates the billing component. The base implementation serves core pages such
+  // as the team site-settings page; editions that override this to add their own
+  // billing/activation logic should compose with the base (e.g. via ComposedBilling
+  // and `super.Billing(...)`) rather than replacing it, so those core pages remain
+  // available.
   Billing(dbManager: HomeDBManager, gristConfig: GristServer): IBilling;
   Notifier(dbManager: HomeDBManager, gristConfig: GristServer): INotifier | undefined;
   AuditLogger(dbManager: HomeDBManager, gristConfig: GristServer): IAuditLogger;
@@ -138,6 +143,8 @@ export class BaseCreate implements ICreate {
 
   public deploymentType(): GristDeploymentType { return this._deploymentType; }
   public Billing(dbManager: HomeDBManager, gristConfig: GristServer): IBilling {
+    // Serves core pages such as the team site-settings page. Editions overriding
+    // this should compose with `super.Billing(...)` so these pages aren't dropped.
     return new TeamSettings(gristConfig);
   }
 
