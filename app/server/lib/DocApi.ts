@@ -22,7 +22,8 @@ import {
 } from "app/common/gristTypes";
 import { buildUrlId, parseUrlId, SHARE_KEY_PREFIX } from "app/common/gristUrls";
 import { isAffirmative, safeJsonParse } from "app/common/gutil";
-import { MetaRowRecord } from "app/common/TableData";
+import { schema, SchemaTypes } from "app/common/schema";
+import { MetaRowRecord, MetaTableData } from "app/common/TableData";
 import {
   ArchiveUploadResult,
   CreatableArchiveFormats,
@@ -30,6 +31,7 @@ import {
   ExpandTableOption,
   NEW_DOCUMENT_CODE,
 } from "app/common/UserAPI";
+import { WidgetType } from "app/common/widgetTypes";
 import { Document } from "app/gen-server/entity/Document";
 import { Workspace } from "app/gen-server/entity/Workspace";
 import { HomeDBManager, makeDocAuthResult } from "app/gen-server/lib/homedb/HomeDBManager";
@@ -1397,14 +1399,18 @@ export class DocWorkerApi {
           });
         }
 
-        const Views_section = activeDoc.docData.getMetaTable("_grist_Views_section");
+        const metaTables = await activeDoc.fetchMetaTables(docSession);
+        const metaTable = <TableId extends keyof SchemaTypes>(tableId: TableId) =>
+          new MetaTableData(tableId, metaTables[tableId] ?? null, schema[tableId]);
+
+        const Views_section = metaTable("_grist_Views_section");
         const section = Views_section.getRecord(sectionId);
-        if (!section) {
+        if (!section || !section.tableRef || section.parentKey !== WidgetType.Form) {
           throw new ApiError("Form not found", 404, { code: "FormNotFound" });
         }
 
-        const Views_section_field = activeDoc.docData.getMetaTable("_grist_Views_section_field");
-        const Tables_column = activeDoc.docData.getMetaTable("_grist_Tables_column");
+        const Views_section_field = metaTable("_grist_Views_section_field");
+        const Tables_column = metaTable("_grist_Tables_column");
         const fields = Views_section_field
           .filterRecords({ parentId: sectionId })
           .filter((f) => {
@@ -1444,7 +1450,7 @@ export class DocWorkerApi {
           return records.map(r => [r.id as number, r.fields[colId]] as const);
         };
 
-        const Tables = activeDoc.docData.getMetaTable("_grist_Tables");
+        const Tables = metaTable("_grist_Tables");
 
         const getRefTableValues = async (col: MetaRowRecord<"_grist_Tables_column">) => {
           const refTableId = getReferencedTableId(col.type);
@@ -1488,9 +1494,7 @@ export class DocWorkerApi {
           const rawSectionRef = Tables.getRecord(section.tableRef)?.rawViewSectionRef;
           if (!rawSectionRef) { return null; }
 
-          const rawSection = activeDoc.docData!
-            .getMetaTable("_grist_Views_section")
-            .getRecord(rawSectionRef);
+          const rawSection = Views_section.getRecord(rawSectionRef);
           return rawSection?.title ?? null;
         };
 
