@@ -1719,6 +1719,732 @@
         "You can support Grist open-source development by sponsoring us on our {{link}}.": "Támogathatod a Grist nyílt forráskódú fejlesztését, ha szponzorálsz minket a {{link}} oldalunkon."
     },
     "buildViewSectionDom": {
-        "No data": "Nincs adat"
+        "No data": "Nincs adat",
+        "No row selected in {{title}}": "Nincs sor kiválasztva itt: {{title}}",
+        "Not all data is shown": "Nem minden adat jelenik meg"
+    },
+    "FloatingEditor": {
+        "Collapse Editor": "Szerkesztő összecsukása"
+    },
+    "FloatingPopup": {
+        "Maximize": "Maximalizálás",
+        "Minimize": "Minimalizálás"
+    },
+    "CardContextMenu": {
+        "Copy anchor link": "Horgonylink másolása",
+        "Delete card": "Kártya törlése",
+        "Duplicate card": "Kártya duplikálása",
+        "Insert card": "Helyezd el a kártyát",
+        "Insert card above": "Helyezd el a kártyát fölül",
+        "Insert card below": "Helyezd el a kártyát alul"
+    },
+    "HiddenQuestionConfig": {
+        "Hidden fields": "Rejtett mezők"
+    },
+    "WelcomeCoachingCall": {
+        "free coaching call": "ingyenes tanácsadó-hívás",
+        "Maybe later": "Talán később",
+        "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "A hívás során időt szánunk arra, hogy megértsük az igényeidet, és személyre szabjuk a hívást. Megmutathatjuk a Grist alapjait, vagy azonnal elkezdhetünk dolgozni az adataiddal a szükséges irányítópultok elkészítéséhez.",
+        "Schedule your {{freeCoachingCall}} with a member of our team.": "Egyeztess {{freeCoachingCall}}t csapatunk egyik tagjával.",
+        "You may also check out {{ourWeeklyWebinars}} to learn more about Grist.": "A Gristről a {{ourWeeklyWebinars}} oldalon is tájékozódhatsz.",
+        "our weekly webinars": "heti webináriumaink",
+        "Free coaching call": "Ingyenes tanácsadó-hívás",
+        "Grist 101": "Grist alapok",
+        "Schedule call": "Hívás ütemezése",
+        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users                navigate the fundamentals of Grist.": "Megtekintheted bevezető webináriumunkat is, {{ourWeeklyWebinars}} , amelynek célja, hogy segítsen az új felhasználóknak eligazodni a Grist alapjaiban.",
+        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users navigate the fundamentals of Grist.": "Megtekintheted bevezető webináriumunkat is, {{ourWeeklyWebinars}} , amelynek célja, hogy segítsen az új felhasználóknak eligazodni a Grist alapjaiban."
+    },
+    "FormView": {
+        "Publish": "Közzététel",
+        "Publish your form?": "Közzéteszed az űrlapot?",
+        "Unpublish": "Közzététel visszavonása",
+        "Unpublish your form?": "Visszavonod az űrlap közzétételét?",
+        "Anyone with the link below can see the empty form and submit a response.": "Az alábbi link birtokában bárki láthatja az üres űrlapot, és elküldheti a választ.",
+        "Are you sure you want to reset your form?": "Biztosan visszaállítod az űrlapot?",
+        "Code copied to clipboard": "A kód a vágólapra másolva",
+        "Copy code": "Kód másolása",
+        "Copy link": "Link másolása",
+        "Embed this form": "Az űrlap beágyazása",
+        "Link copied to clipboard": "Link a vágólapra másolva",
+        "Preview": "Előnézet",
+        "Reset": "Visszaállítás",
+        "Reset form": "Űrlap visszaállítása",
+        "Save your document to publish this form.": "Mentsd el dokumentumodat az űrlap közzétételéhez.",
+        "Share": "Megosztás",
+        "Share this form": "Oszd meg ezt az űrlapot",
+        "View": "Nézet",
+        "# **Form Title**": "# **Űrlap címe**",
+        "Your form description goes here.": "Az űrlap leírása itt található.",
+        "Publishing your form will generate a share link. Anyone with the link can see the empty form and submit a response.": "Az űrlap közzététele megosztási linket készít. A link birtokában bárki láthatja az üres űrlapot, és elküldheti a választ.",
+        "Unpublishing the form will disable the share link so that users accessing your form via that link will see an error.": "Az űrlap közzétételének visszavonása letiltja a megosztási linket, így a linken keresztül az űrlapot elérő felhasználók hibaüzenetet fognak látni.",
+        "Users are limited to submitting entries (records in your table) and reading pre-set values in designated fields, such as reference and choice columns.": "A felhasználók csak bejegyzéseket küldhetnek be (rekordokat a táblázatban), és előre beállított értékeket láthatnak a kijelölt mezőkben, például a hivatkozási és választási oszlopokban.",
+        "Your form is published. Every change is live and visible to users with access to the form. If you want to make changes in draft, unpublish the form.": "Az űrlapot közzétettük. Minden változás éles és látható az űrlaphoz hozzáféréssel rendelkező felhasználók számára. Ha módosítani szeretnél a piszkozaton, vond vissza az űrlap közzétételét."
+    },
+    "Editor": {
+        "Delete": "Törlés"
+    },
+    "Menu": {
+        "Building blocks": "Építőelemek",
+        "Columns": "Oszlopok",
+        "Copy": "Másol",
+        "Cut": "Kivág",
+        "Insert question above": "Írd be a kérdést fentebb",
+        "Insert question below": "Írd be a kérdést alább",
+        "Paragraph": "Bekezdés",
+        "Paste": "Beilleszt",
+        "Separator": "Elválasztó",
+        "Unmapped fields": "Megfeleltetés nélküli mezők",
+        "Header": "Fejléc",
+        "New question": "Új kérdés",
+        "More": "Több"
+    },
+    "UnmappedFieldsConfig": {
+        "Clear": "Töröl",
+        "Map fields": "Mezők összerendelése",
+        "Mapped": "Összerendelve",
+        "Select all": "Összes kiválasztása",
+        "Unmap fields": "Mezők összerendelésének megszüntetése",
+        "Unmapped": "Összerendelés nélkül"
+    },
+    "FormConfig": {
+        "Field rules": "Mezőszabályok",
+        "Required field": "Kötelező mező",
+        "Ascending": "Emelkedő",
+        "Default": "Alapértelmezett",
+        "Descending": "Csökkenő",
+        "Field Format": "Mezőformátum",
+        "Field Rules": "Mezőszabályok",
+        "Horizontal": "Vízszintes",
+        "Options Alignment": "Opciók igazítása",
+        "Options Sort Order": "Opciók Rendezési sorrend",
+        "Radio": "Választógomb",
+        "Select": "Választás",
+        "Vertical": "Függőleges",
+        "Accept value from URL": "Érték elfogadása URL-ből",
+        "Hidden field": "Rejtett mező",
+        "URL parameter:\n{{colId}}=VALUE": "URL paraméter:\n{{colId}} = ÉRTÉK",
+        "Options limit": "Opciók korlátja"
+    },
+    "CustomView": {
+        "Some required columns aren't mapped": "Néhány kötelező oszlop nincs összerendelve",
+        "To use this widget, please map all non-optional columns from the creator panel on the right.": "A widget használatához rendelje össze az összes kötelező oszlopot a jobb oldali alkotói panelen.",
+        "Some required columns are hidden by access rules": "Néhány kötelező oszlop el van rejtve a hozzáférési szabályok miatt",
+        "To use this widget, all mapped columns must be visible. Please contact document owner or modify access rules.": "A widget használatához az összes összerendelt oszlopnak láthatónak kell lennie. Kérjük, lépj kapcsolatba a dokumentum tulajdonosával, vagy módosítsd a hozzáférési szabályokat."
+    },
+    "FormContainer": {
+        "Build your own form": "Készítsd el saját űrlapodat",
+        "Powered by": "Működteti",
+        "Powered by Grist": "A Grist működteti"
+    },
+    "FormErrorPage": {
+        "Error": "Hiba"
+    },
+    "FormModel": {
+        "Oops! The form you're looking for doesn't exist.": "Hoppá! A keresett űrlap nem létezik.",
+        "Oops! This form is no longer published.": "Hoppá! Ezt az űrlapot már nem teszik közzé.",
+        "There was a problem loading the form.": "Hiba történt az űrlap betöltésekor.",
+        "You don't have access to this form.": "Nincs hozzáférésed ehhez az űrlaphoz."
+    },
+    "FormPage": {
+        "There was an error submitting your form. Please try again.": "Hiba történt az űrlap elküldésekor. Kérjük, próbáld újra."
+    },
+    "FormSuccessPage": {
+        "Form Submitted": "Űrlap elküldve",
+        "Thank you! Your response has been recorded.": "Köszönjük! Válaszát rögzítettük.",
+        "Submit new response": "Új válasz beküldése"
+    },
+    "DateRangeOptions": {
+        "Last 30 days": "Az elmúlt 30 nap",
+        "Last 7 days": "Az elmúlt 7 nap",
+        "Last week": "Múlt hét",
+        "Next 7 days": "Következő 7 nap",
+        "This month": "Ebben a hónapban",
+        "This week": "Ezen a héten",
+        "This year": "Idén",
+        "Today": "Ma"
+    },
+    "MappedFieldsConfig": {
+        "Clear": "Törlés",
+        "Map fields": "Mezők összerendelése",
+        "Mapped": "Összerendelve",
+        "Select all": "Összes kiválasztása",
+        "Unmap fields": "Mezők összerendelésének megszüntetése",
+        "Unmapped": "Összerendelés nélkül",
+        "Hide {{label}}": "{{label}} elrejtése",
+        "Hide {{label}} (batch mode)": "{{label}} elrejtése (kötegelt mód)",
+        "Unmap {{label}}": "{{label}} összerendelésének megszüntetése",
+        "Unmap {{label}} (batch mode)": "{{label}} összerendelésének megszüntetése (kötegelt mód)"
+    },
+    "Section": {
+        "Insert section above": "Szakasz beszúrása fölé",
+        "Insert section below": "Szakasz beszúrása alá",
+        "## **Header**": "## **Fejléc**",
+        "Description": "Leírás"
+    },
+    "CreateTeamModal": {
+        "Cancel": "Mégse",
+        "Choose a name and url for your team site": "Válassz nevet és URL-t a csapat webhelyéhez",
+        "Create site": "Webhely létrehozása",
+        "Domain name is invalid": "Érvénytelen domain név",
+        "Domain name is required": "A domain név megadása kötelező",
+        "Go to your site": "Irány a webhely",
+        "Team name": "Csapat neve",
+        "Team name is required": "A csapat neve kötelező",
+        "Team site created": "Csapatoldal létrehozva",
+        "Team url": "Csapat url",
+        "Work as a Team": "Dolgozz csapatként",
+        "Billing is not supported in grist-core": "A Grist-core nem támogatja a számlázást"
+    },
+    "AdminPanel": {
+        "Admin Panel": "Rendszergazdai panel",
+        "Current": "Jelenlegi",
+        "Current version of Grist": "A Grist jelenlegi verziója",
+        "Help us make Grist better": "Segíts nekünk Grist-et jobbá tenni",
+        "Home": "Kezdőlap",
+        "Sponsor": "Szponzor",
+        "Support Grist": "Támogasd a Grist-et",
+        "Support Grist Labs on GitHub": "Támogasd a Grist Labs-et a GitHubon",
+        "Telemetry": "Telemetria",
+        "Version": "Verzió",
+        "Auto-check when this page loads": "Automatikus ellenőrzés a jelen oldal betöltésekor",
+        "Check now": "Ellenőrzés most",
+        "Checking for updates...": "Frissítések keresése...",
+        "Error": "Hiba",
+        "Error checking for updates": "Hiba a frissítések keresésekor",
+        "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future since session IDs have been updated to be inherently cryptographically secure.": "A Grist titkos kulccsal írja alá a felhasználói munkamenet cookie-kat. Állítsd be ezt a kulcsot a GRIST_SESSION_SECRET környezeti változón keresztül. A Grist visszaáll a programba kódolt alapértelmezett kulcsra, ha ez nincs beállítva. Ezt az értesítést a jövőben eltávolíthatjuk, mivel a v1.1.16 óta generált munkamenet-azonosítók eleve titkosítási szempontból biztonságosak.",
+        "Grist is up to date": "A Grist naprakész",
+        "Grist releases are at ": "Grist kiadások itt vannak ",
+        "Last checked {{time}}": "Utolsó ellenőrzés: {{time}}",
+        "Learn more.": "További információ.",
+        "Newer version available": "Elérhető újabb verzió",
+        "No information available": "Nincs információ",
+        "OK": "RENDBEN",
+        "Sandbox settings for data engine": "Sandbox beállítások az adatmotorhoz",
+        "Sandboxing": "Sandboxozás",
+        "Security Settings": "Biztonsági beállítások",
+        "Updates": "Frissítések",
+        "unconfigured": "nincs beállítva",
+        "unknown": "ismeretlen",
+        "Administrator Panel Unavailable": "A rendszergazdai panel nem elérhető",
+        "Authentication": "Hitelesítés",
+        "Check failed.": "Az ellenőrzés nem sikerült.",
+        "Check succeeded.": "Az ellenőrzés sikerült.",
+        "Current authentication method": "Jelenlegi hitelesítési módszer",
+        "Details": "Részletek",
+        "Grist allows different types of authentication to be configured, including SAML and OIDC.     We recommend enabling one of these if Grist is accessible over the network or being made available     to multiple people.": "A Grist különböző típusú hitelesítések beállítását teszi lehetővé, beleértve az SAML-t és az OIDC-t. Javasoljuk, hogy engedélyezd ezek egyikét, ha a Grist elérhető a hálózaton keresztül, vagy több személy számára is hozzáférhető.",
+        "No fault detected.": "Nem észlelt hibát.",
+        "Notes": "Megjegyzések",
+        "Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}": "Vagy tartalékként beállíthatod: {{bootKey}} a környezetben, és látogasd meg: {{url}}",
+        "Results": "Eredmények",
+        "Self Checks": "Önellenőrzések",
+        "You do not have access to the administrator panel.\nPlease log in as an administrator.": "Nincs hozzáférésed a rendszergazdai panelhez.\nKérjük, jelentkezz be rendszergazdaként.",
+        "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.": "A Grist különböző típusú hitelesítések beállítását teszi lehetővé, beleértve az SAML-t és az OIDC-t. Javasoljuk, hogy engedélyezd ezek egyikét, ha a Grist elérhető a hálózaton keresztül, vagy több személy számára hozzáférhető.",
+        "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.": "A Grist titkos kulccsal írja alá a felhasználói munkamenet cookie-kat. Állítsd be ezt a kulcsot a GRIST_SESSION_SECRET környezeti változón keresztül. A Grist visszaáll a programba kódolt alapértelmezett kulcsra, ha ez nincs beállítva. Ezt az értesítést a jövőben eltávolíthatjuk, mivel a v1.1.16 óta generált munkamenet-azonosítók eleve titkosítási szempontból biztonságosak.",
+        "Key to sign sessions with": "Kulcs a munkamenetek aláírásához",
+        "Session Secret": "Munkamenet kulcs",
+        "Enable Grist Enterprise": "Grist Enterprise engedélyezése",
+        "Enterprise": "Enterprise",
+        "checking": "ellenőrzés",
+        "Audit Logs": "Audit naplók",
+        "Contact us": "Vedd fel velünk a kapcsolatot",
+        "Log Streaming": "Napló adatfolyam",
+        "New, Enterprise": "Új, Enterprise",
+        "Off": "Kikapcsolva",
+        "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}} további",
+        "{{count}} admin accounts_one": "{{count}} rendszergazdai fiók",
+        "{{count}} admin accounts_other": "{{count}} rendszergazdai fiók",
+        "On": "Bekapcsolva",
+        "Grist Instance": "Grist példány",
+        "Auto-check weekly": "Automatikus ellenőrzés hetente",
+        "No record of last version check": "Nincs feljegyzés a legutóbbi verzióellenőrzésről",
+        "You can set up streaming of audit events from Grist to an external security information and event management (SIEM) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.": "Ha engedélyezed a Grist Enterprise-t, beállíthatod az audit események streamelését a Gristről egy külső biztonsági információ- és eseménykezelő (SIEM) rendszerre. {{contactUsLink}} további információért.",
+        "Automatic checks are disabled. Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to \"true\" to enable them.": "Az automatikus ellenőrzések le vannak tiltva. Az engedélyezéséhez állítsd a GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING környezeti változót \"true\" értékre.",
+        "auth error": "hitelesítési hiba",
+        "configured": "beállítva",
+        "default": "alapértelmezett",
+        "more...": "több...",
+        "no authentication": "nincs hitelesítés",
+        "unavailable": "nem elérhető",
+        "Admin account not found": "A rendszergazdai fiók nem található",
+        "Administrative accounts": "Adminisztratív fiókok",
+        "The users with administrative accounts": "Rendszergazdai fiókkal rendelkező felhasználók",
+        "Version {{versionNumber}}": "{{versionNumber}} verzió",
+        "no admin accounts": "nincs rendszergazdai fiók",
+        "Are you sure you want to restart Grist?": "Biztosan újra akarod indítani a Gristet?",
+        "Grist is running in an environment that doesn't support restarting from the admin panel.": "A Grist olyan környezetben fut, amely nem támogatja az rendszergazdai panelről történő újraindítást.",
+        "Restart": "Újraindítás",
+        "Restart Grist": "A Grist újraindítása",
+        "Restart Grist to apply pending changes or resolve issues.": "A Grist újraindítása a függőben lévő módosítások alkalmazásához vagy a problémák megoldásához.",
+        "Restart Grist?": "Újraindítod a Gristet?",
+        "Restarting Grist...": "Grist újraindítása...",
+        "This will apply any pending changes and briefly interrupt access for all users.": "Ez alkalmazza a függőben lévő módosításokat, és rövid időre megszakítja az összes felhasználó hozzáférését.",
+        "You can still restart Grist manually.": "A Grist-et továbbra is újraindíthatod manuálisan.",
+        "error in {{provider}}: {{verdict}}": "hiba itt: {{provider}}: {{verdict}}",
+        "Please restart Grist manually.": "Kérjük, indítsd újra a Gristet manuálisan.",
+        "Restart Grist to apply pending changes.": "Indítsd újra a Grist-et a függőben lévő módosítások alkalmazásához.",
+        "Restart unavailable": "Az újraindítás nem elérhető",
+        "Boot key": "Indítókulcs",
+        "Fallback authentication method": "Tartalék hitelesítési módszer",
+        "If you are the server operator, you can sign in using the boot key from your server logs.": "Ha Te vagy a szerver üzemeltetője, bejelentkezhetsz a szervernaplókban található rendszerindító kulccsal.",
+        "Maintenance": "Karbantartás",
+        "Service status": "Szolgáltatás állapota",
+        "Sign in with boot key": "Jelentkezz be a rendszerindító kulccsal",
+        "Take Grist out of service for maintenance": "Karbantartás miatt állítsd le a Grist működését",
+        "boot key": "indítókulcs",
+        "disabled": "letiltva",
+        "enabled": "engedélyezve",
+        "in service": "működik",
+        "out of service": "nem működik",
+        "Back up documents externally": "Készíts külső biztonsági másolatot a dokumentumokról",
+        "Backups": "Biztonsági mentések",
+        "Storage": "Tárolás",
+        "Apply changes (manual restart required)": "Módosítások alkalmazása (kézi újraindítás szükséges)",
+        "Base URL": "Alap URL",
+        "Changes have been saved. Restart Grist to apply them.": "A változtatásokat elmentettük. Indítsd újra a Grist-et az alkalmazásukhoz.",
+        "Edition": "Kiadás",
+        "Its controls have moved to {{editionLink}} above.": "Vezérlői a fenti {{editionLink}} címre kerültek.",
+        "Restart the Grist server": "Indítsd újra a Grist szervert",
+        "Saving...": "Mentés...",
+        "Server": "Szerver",
+        "Server → Edition": "Szerver → Kiadás",
+        "The URL where users and integrations reach this Grist server": "Az az URL, ahol a felhasználók és az integrációk elérik ezt a Grist-kiszolgálót",
+        "What used to be called \"Grist Enterprise\" is now called \"Full Grist\".": "Amit korábban \"Grist Enterprise\"-nak hívtak, ma már \"Full Grist\"-nek hívják.",
+        "moved to Edition": "kiadásba került",
+        "Installation": "Telepítés",
+        "Default permissions": "Alapértelmezett engedélyek",
+        "Who can create sites, log in, and use the playground": "Ki hozhat létre webhelyeket, jelentkezhet be és használhatja a játszóteret",
+        "Any pending changes will be cleared.": "A függőben lévő módosítások törlődnek.",
+        "Dismiss": "Elvetés",
+        "Dismiss changes": "Módosítások elvetése",
+        "Dismiss pending changes?": "Elveted a függőben lévő változtatásokat?",
+        "Dismissing...": "Elvetés..."
+    },
+    "Columns": {
+        "Remove Column": "Oszlop eltávolítása"
+    },
+    "Field": {
+        "No choices configured": "Nincsenek beállítva lehetőségek",
+        "No values in show column of referenced table": "Nincsenek értékek a hivatkozott táblázat megjelenítendő oszlopában",
+        "Hide": "Elrejt"
+    },
+    "Toggle": {
+        "Checkbox": "Jelölőnégyzet",
+        "Field Format": "Mezőformátum",
+        "Switch": "Kapcsoló"
+    },
+    "ChoiceEditor": {
+        "Error in dropdown condition": "Hiba a legördülő menü feltételében",
+        "No choices matching condition": "Nincs a feltételnek megfelelő választási lehetőség",
+        "No choices to select": "Nincs választási lehetőség"
+    },
+    "ChoiceListEditor": {
+        "Error in dropdown condition": "Hiba a legördülő menü feltételében",
+        "No choices matching condition": "Nincs a feltételnek megfelelő választási lehetőség",
+        "No choices to select": "Nincs választási lehetőség"
+    },
+    "DropdownConditionConfig": {
+        "Dropdown Condition": "Legördülő menü feltétele",
+        "Invalid columns: {{colIds}}": "Érvénytelen oszlopok: {{colIds}}",
+        "Set dropdown condition": "Legördülő menü feltételének beállítása"
+    },
+    "DropdownConditionEditor": {
+        "Enter condition.": "Add meg a feltételt."
+    },
+    "ReferenceUtils": {
+        "Error in dropdown condition": "Hiba a legördülő menü feltételében",
+        "No choices matching condition": "Nincs a feltételnek megfelelő választási lehetőség",
+        "No choices to select": "Nincs választási lehetőség"
+    },
+    "FormRenderer": {
+        "Reset": "Visszaállít",
+        "Search": "Keresés",
+        "Select...": "Válassz...",
+        "Submit": "Beküld",
+        "Submitting…": "Beküldés…",
+        "Clear selection for: {{-inputLabel}}": "Kijelölés törlése a következőhöz: {{-inputLabel}}",
+        "Options for {{-inputLabel}}": "{{-inputLabel}} beállításai",
+        "Search options for {{-inputLabel}}": "Keresési lehetőségek a következőhöz: {{-inputLabel}}"
+    },
+    "widgetTypesMap": {
+        "Calendar": "Naptár",
+        "Card": "Kártya",
+        "Card List": "Kártya lista",
+        "Chart": "Diagram",
+        "Custom": "Egyéni",
+        "Form": "Űrlap",
+        "Table": "Táblázat"
+    },
+    "TimingPage": {
+        "Average Time (s)": "Átlagos idő (mp)",
+        "Column ID": "Oszlopazonosító",
+        "Formula timer": "Képlet időzítő",
+        "Loading timing data. Don't close this tab.": "Időzítési adatok betöltése. Ne zárd be ezt a lapot.",
+        "Max Time (s)": "Max idő (mp)",
+        "Number of Calls": "Hívások száma",
+        "Table ID": "Táblázatazonosító",
+        "Total Time (s)": "Teljes idő (mp)"
+    },
+    "DocTutorial": {
+        "Click to expand": "Kattints a kibontáshoz",
+        "Do you want to restart the tutorial? All progress will be lost.": "Szeretnéd újraindítani az oktatóanyagot? Ezzel minden előrehaladásod elveszik.",
+        "End tutorial": "Vége az oktatóanyagnak",
+        "Finish": "Befejezés",
+        "Next": "Következő",
+        "Previous": "Előző",
+        "Restart": "Újraindít"
+    },
+    "OnboardingCards": {
+        "3 minute video tour": "3 perces videós túra",
+        "Complete our basics tutorial": "Csináld meg az alapismeretekről szóló oktatóanyagot",
+        "Complete the tutorial": "Csináld meg az oktatóanyagot",
+        "Learn the basic of reference columns, linked widgets, column types, & cards.": "Tanuld meg a hivatkozás-oszlopok, kapcsolat widget-ek, oszloptípusok és kártyák alapjait.",
+        "Learn the basics of reference columns, linked widgets, column types, & cards.": "Tanuld meg a hivatkozás-oszlopok, kapcsolat widget-ek, oszloptípusok és kártyák alapjait."
+    },
+    "OnboardingPage": {
+        "Back": "Vissza",
+        "Discover Grist in 3 minutes": "Fedezd fel a Grist-et 3 perc alatt",
+        "Go hands-on with the Grist Basics tutorial": "Gyakorlati oktatás a Grist alapokról",
+        "Go to the tutorial!": "Irány az oktatóanyag!",
+        "Next step": "Következő lépés",
+        "Skip step": "Lépés kihagyása",
+        "Skip tutorial": "Az oktatóanyag kihagyása",
+        "Tell us who you are": "Mondd el, ki vagy",
+        "Type here": "Írd be ide",
+        "Welcome": "Üdvözlünk",
+        "What brings you to Grist (you can select multiple)?": "Hogy találtál a Grist-re (többet is kiválaszthatsz)?",
+        "What is your role?": "Mi a szereped?",
+        "What organization are you with?": "Milyen szervezethez tartozol?",
+        "Your organization": "A szervezeted",
+        "Your role": "A te szereped",
+        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "A Grist úgy néz ki, mint egy táblázat, de nem mindig úgy működik. Fedezd fel, mitől más a Grist."
+    },
+    "ToggleEnterpriseWidget": {
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "A Grist Enterprise futtatásához aktiválókulcs szükséges a 30 napos próbaidőszak\nlejárata után. Szerezz aktiválási kulcsot [a Grist Enterprise szolgáltatásra regisztrációval]( {{signupLink}} ).\nA Grist Core futtatásához nincs szükség aktiváló kulcsra\n\n\nTovábbi információ a [Súgóban]( {{helpCenter}} ).",
+        "Disable Grist Enterprise": "Grist Enterprise letiltása",
+        "Enable Grist Enterprise": "Grist Enterprise engedélyezése",
+        "Grist Enterprise is **enabled**.": "A Grist Enterprise **engedélyezett**.",
+        "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "A Grist Enterprise futtatásához aktiválókulcs szükséges a 30 napos próbaidőszak\nlejárata után. Szerezz aktiválási kulcsot, [vedd fel velünk a kapcsolatot]( {{contactLink}} ).\nA Grist Core futtatásához nincs szükség aktiváló kulcsra\n\nTovábbi információ a [Súgóban]( {{helpCenter}} ).",
+        "Activate": "Aktiválás",
+        "Activation key": "Aktiválókulcs",
+        "An activation key is used to run Grist Enterprise after a trial period\n        of 30 days has expired. Get an activation key by [signing up for Grist\n        Enterprise]({{signupLink}}). You do not need an activation key to run\n        Grist Core.": "A Grist Enterprise futtatásához aktiválókulcs szükséges a 30 napos próbaidőszak\nlejárata után. Szerezz aktiválási kulcsot [a Grist Enterprise szolgáltatásra regisztrációval]( {{signupLink}} ).\nA Grist Core futtatásához nincs szükség aktiváló kulcsra.",
+        "An active subscription is required to continue using Grist Enterprise. You can\nyou activate your subscription by [signing up for Grist Enterprise ]({{signupLink}}) and pasting your\nactivation key below.": "A Grist Enterprise használatának folytatásához aktív előfizetés szükséges.\nAktiváld előfizetésedet [a Grist Enterprise regisztrációval]( {{signupLink}} ) és .\naz aktiválókulcs alább történő beillesztésével.",
+        "Copy to clipboard": "Másolás a vágólapra",
+        "Expiration date": "Lejárati idő",
+        "Installation ID copied to clipboard": "A telepítési azonosító a vágólapra másolva",
+        "Installation ID:": "Telepítési azonosító:",
+        "Installation seats": "Telepítési ülések",
+        "Learn more in our [Help Center]({{helpCenter}}).": "További információ a [Súgóban]( {{helpCenter}} ).",
+        "Paste your activation key": "Illeszd be az aktiváló kulcsot",
+        "Plan name": "Előfizetés neve",
+        "To continue using Grist Enterprise, you need to\n                  [contact us]({{signupLink}}) to get your activation key.": "A Grist Enterprise használatának folytatásához \n[vedd fel velünk a kapcsolatot]( {{signupLink}} ) az aktiváló kulcs beszerzéséhez.",
+        "You are currently trialing Grist Enterprise.": "Jelenleg a Grist Enterprise-t próbálja ki.",
+        "You do not have an active subscription.": "Nincs aktív előfizetése.",
+        "Your activation key has expired due to exceeding limits.": "Aktiváló kulcsa a korlátok túllépése miatt lejárt.",
+        "Your instance will be in **read-only** mode in **{{days}}** day(s).": "Példánya **csak olvasható** módban lesz ** {{days}} ** napon belül.",
+        "Your subscription expired on {{date}}.": "Előfizetése {{date}} dátummal lejárt.",
+        "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.": "A próbaidőszak ** {{expireAt}} ** napon lejárt. A Grist Enterprise használatának folytatásához\n[regisztrálj a Grist Enterprise szolgáltatásra]( {{signupLink}} ), és illeszd be az aktiváló kulcsot alább.",
+        "An activation key is used to run Full Grist after a trial period\n        of 30 days has expired. Get an activation key by [signing up for Grist\n        Enterprise]({{signupLink}}). You do not need an activation key to run\n        Grist Community Edition.": "A Full Grist futtatásához aktiválókulcs szükséges a 30 napos próbaidőszak\nlejárata után. Szerezz be aktiválási kulcsot [Grist Enterprise regisztrációval]({{signupLink}}).\nA Grist Közösségi Kiadás futtatáshoz nincs szükség aktiváló kulcsra.",
+        "An activation key is used to run Full Grist after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Community Edition.\n\nLearn more in our [Help Center]({{helpCenter}}).": "A Full Grist futtatásához aktiválókulcs szükséges a 30 napos próbaidőszak\nlejárata után. Szerezz be aktiváló kulcsot, [vedd fel velünk a kapcsolatot]({{contactLink}}) még ma.\nA Grist Közösségi Kiadás futtatásához nincs szükség aktiváló kulcsra.\n\nTovábbi információ a [Súgóban]( {{helpCenter}} ).",
+        "An active subscription is required to continue using Full Grist. You can\nyou activate your subscription by [signing up for Full Grist ]({{signupLink}}) and pasting your\nactivation key below.": "A Full Grist használatához aktív előfizetés szükséges. Aktiválhatod az\nelőfizetésedet, ha [regisztrálsz a Full Grist szolgáltatásra ]({{signupLink}}), és beilleszted\naz aktiválókulcsodat alább.",
+        "Enable Full Grist": "Full Grist engedélyezése",
+        "To continue using Full Grist, you need to\n                  [contact us]({{signupLink}}) to get your activation key.": "A Full Grist használatának folytatásához\n                  [vedd fel velünk a kapcsolatot]({{signupLink}}) az aktiváló kulcs beszerzéséhez.",
+        "You are currently trialing Full Grist.": "Jelenleg a Full Grist-et próbálja ki.",
+        "Your trial period has expired on **{{expireAt}}**. To continue using Full Grist, you need to\n[sign up for Full Grist]({{signupLink}}) and paste your activation key below.": "A próbaidőszak ** {{expireAt}} ** napon lejárt. A Full Grist használatának folytatásához\n[regisztrálj a Full Grist szolgáltatásra]({{signupLink}}), és illeszd be az aktiválókulcsot alább."
+    },
+    "ViewLayout": {
+        "Delete": "Törlés",
+        "Delete data and this widget.": "Az adatokat és ennek a widgetnek a törlése.",
+        "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "Adatok megőrzése és a widget törlése. A táblázat elérhető marad itt: {{rawDataLink}}",
+        "Table {{tableName}} will no longer be visible": "A {{tableName}} táblázat többé nem lesz látható",
+        "Raw Data page": "Nyersadat oldal"
+    },
+    "AdminPanelName": {
+        "Admin Panel": "Rendszergazdai panel"
+    },
+    "CustomWidgetGallery": {
+        "(Missing info)": "(Hiányzó információ)",
+        "Add widget": "Widget hozzáadása",
+        "Add Your Own Widget": "Adj hozzá saját widgetet",
+        "Add a widget from outside this gallery.": "Adj hozzá egy modult a galérián kívülről.",
+        "Cancel": "Mégse",
+        "Change widget": "Widget módosítása",
+        "Choose custom widget": "Válassz egyéni widgetet",
+        "Community Widget": "Közösségi widget",
+        "Custom URL": "Egyéni URL",
+        "Developer:": "Fejlesztő:",
+        "Grist Widget": "Grist Widget",
+        "Last updated:": "Utolsó frissítés:",
+        "Learn more about custom widgets": "További információk az egyéni widgetekről",
+        "No matching widgets": "Nincsenek megfelelő widgetek",
+        "Search": "Keresés",
+        "Widget URL": "Widget URL"
+    },
+    "markdown": {
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
+            "": {
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Új Markdown funkció\n *\n *      Már _írhatsz_ [a szokásos Markdown jelöléssel](https://markdownguide.org)\n *      Grainjs elemen *belül* is."
+            }
+        },
+        "The toggle is **off**": "A kapcsoló **kikapcsolva**",
+        "The toggle is **on**": "A kapcsoló **bekapcsolva**"
+    },
+    "markdown.d": {
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
+            "": {
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Új Markdown funkció\n *\n *      Már _írhatsz_ [a szokásos Markdown jelöléssel](https://markdownguide.org)\n *      Grainjs elemen *belül* is."
+            }
+        },
+        "The toggle is **off**": "A kapcsoló **kikapcsolva**",
+        "The toggle is **on**": "A kapcsoló **bekapcsolva**"
+    },
+    "HomeIntroCards": {
+        "3 minute video tour": "3 perces videós túra",
+        "Blank document": "Üres dokumentum",
+        "Find solutions and explore more resources": "Keress megoldásokat, és fedezz fel további forrásokat",
+        "Finish our basics tutorial": "Végezd el az alapismeretek oktatóanyagát",
+        "Help center": "Súgó",
+        "Import file": "Fájl importálása",
+        "Learn more": "További információ",
+        "Start a new document": "Kezdj egy új dokumentumot",
+        "Templates": "Sablonok",
+        "Tutorial": "Oktatóanyag",
+        "Webinars": "Webináriumok"
+    },
+    "ReverseReferenceConfig": {
+        "Add two-way reference": "Adj hozzá kétirányú hivatkozást",
+        "Column": "Oszlop",
+        "Delete": "Töröl",
+        "Delete column {{column}} in table {{table}}?": "Törlöd a {{column}} oszlopot a {{table}} táblázatban?",
+        "It is the reverse of the reference column {{column}} in table {{table}}.": "Ez a fordítottja a {{table}} táblázat {{column}} hivatkozási oszlopának.",
+        "Table": "Táblázat",
+        "Two-way Reference": "Kétirányú hivatkozás",
+        "Delete two-way reference?": "Törlöd a kétirányú hivatkozást?",
+        "Target table": "Cél-táblázat",
+        "This will delete the reference column {{refCol}} in table {{refTable}}. The reference column {{myName}} will remain in the current table {{myTable}}.": "Ezzel törlöd a {{refCol}} hivatkozási oszlopot a {{refTable}} táblázatban. A {{myName}} hivatkozási oszlop az aktuális {{myTable}} táblában marad."
+    },
+    "SupportGristButton": {
+        "Admin Panel": "Rendszergazda panel",
+        "Close": "Bezár",
+        "Help Center": "Súgó",
+        "Opt in to Telemetry": "Iratkozz fel a telemetriára",
+        "Opted In": "Feliratkoztál",
+        "Support Grist": "Támogasd a Grist-et",
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Köszönjük! Nagyra értékeljük bizalmadat és támogatásodat! Bármikor leiratkozhatsz a felhasználói menü {{link}} pontjában.",
+        "Opt in to telemetry to help us understand how the product is used, so that we can prioritize future improvements.": "Iratkozz fel a telemetriára, hogy ezzel segíts nekünk megérteni, hogyan használják a terméket, így prioritást állíthatunk fel a jövőbeni fejlesztéseknél.",
+        "We only collect usage statistics, as detailed in our {{helpCenterLink}}, never document contents. Opt out any time from the {{supportGristLink}} in the user menu.": "Csak használati statisztikákat gyűjtünk, amint azt a {{helpCenterLink}} részletezi, a dokumentumok tartalmát soha. Bármikor leiratkozhatsz a felhasználói menü {{supportGristLink}} elemével."
+    },
+    "buildReassignModal": {
+        "Cancel": "Mégse",
+        "Each {{targetTable}} record may only be assigned to a single {{sourceTable}} record.": "Minden {{targetTable}} rekord csak egyetlen {{sourceTable}} rekordhoz rendelhető.",
+        "Reassign": "Újra hozzárendelés",
+        "Reassign to new {{sourceTable}} records.": "Újra hozzárendelés új {{sourceTable}} rekordokhoz.",
+        "Reassign to {{sourceTable}} record {{sourceName}}.": "Újra hozzárendelés a {{sourceTable}} {{sourceName}} rekordjához.",
+        "Record already assigned_one": "A rekord már hozzá van rendelve",
+        "Record already assigned_other": "A rekordok már hozzá vannak rendelve",
+        "{{targetTable}} record {{targetName}} is already assigned to {{sourceTable}} record          {{oldSourceName}}.": "A {{targetTable}} {{targetName}} rekord már hozzá van rendelve a {{sourceTable}} {{oldSourceName}} rekordhoz."
+    },
+    "AuditLogStreamingConfig": {
+        "Add destination": "Add meg a célt",
+        "Add streaming destination": "Add meg a streamelési célt",
+        "Are you sure you want to delete this streaming destination? This action cannot be undone.": "Biztosan törlöd ezt a streamelési célt? Ez a művelet nem vonható vissza.",
+        "Cancel": "Mégse",
+        "Delete": "Töröl",
+        "Delete streaming destination?": "Törlöd a streamelési célt?",
+        "Destination": "Cél",
+        "Destinations": "Célok",
+        "Edit": "Szerkesztés",
+        "Edit streaming destination": "A streaming céljának módosítása",
+        "Enter URL": "Írd be az URL-t",
+        "Enter token": "Írd be a tokent",
+        "Learn more": "További információ",
+        "Other": "Más",
+        "Save": "Mentés",
+        "Splunk": "Splunk",
+        "Start streaming": "Streamelés indítása",
+        "Token": "Token",
+        "URL": "URL",
+        "Set up streaming of audit events from Grist to an external security information and event management (SIEM) system like Splunk. {{learnMoreLink}}.": "Állítsd be az audit események streamelését a Gristről egy külső biztonsági információ- és eseménykezelő (SIEM) rendszerre, mint például a Splunk. {{learnMoreLink}} ."
+    },
+    "AuditLogsPage": {
+        "Audit Logs": "Audit naplók",
+        "Audit logs for {{siteName}}": "Audit naplók a következőhöz: {{siteName}}",
+        "Contact us": "Vedd fel velünk a kapcsolatot",
+        "Home": "Kezdőlap",
+        "Log streaming": "Napló streamelés",
+        "Only site owners may access audit logs.": "Csak a webhelytulajdonosok férhetnek hozzá az audit naplókhoz.",
+        "upgrade your plan": "frissítsd az előfizetésedet",
+        "You can set up streaming of audit events from Grist to an external SIEM (security information and event management) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.": "A Grist Enterprise engedélyezésével, beállíthatod az audit események streamelését a Gristről egy külső SIEM (biztonsági információs és eseménykezelési) rendszerre. {{contactUsLink}} további információért.",
+        "You can set up streaming of audit events from Grist to an external SIEM (security information and event management) system if you {{upgradePlanButton}}.": "Ha {{upgradePlanButton}} , akkor beállíthatod az audit események streamelését a Gristről egy külső SIEM (biztonsági információs és eseménykezelési) rendszerre."
+    },
+    "DocList": {
+        "Access details": "Hozzáférés részletei",
+        "All": "Mind",
+        "Current workspace": "Jelenlegi munkaterület",
+        "Delete": "Töröl",
+        "Delete {{name}}": "{{name}} törlése",
+        "Document will be moved to Trash.": "A dokumentum a kukába kerül.",
+        "Edited {{at}}": "Szerkesztve: {{at}}",
+        "Last edited": "Utoljára szerkesztve",
+        "Manage users": "Felhasználók kezelése",
+        "Move": "Áthelyez",
+        "Move {{name}} to workspace": "{{name}} áthelyezése a munkaterületre",
+        "Name": "Név",
+        "No documents to show.": "Nincsenek megtekinthető dokumentumok.",
+        "Pin": "Rögzít",
+        "Pinned": "Rögzítve",
+        "Recent": "Legutóbbi",
+        "Rename and set icon": "Átnevezés és ikon beállítása",
+        "Requires edit permissions": "Szerkesztési jogosultság szükséges",
+        "Sort by date": "Rendezés dátum szerint",
+        "Sort by name": "Rendezés név szerint",
+        "Unpin": "Rögzítés feloldása",
+        "Workspace": "Munkaterület",
+        "context menu - {{- documentName }}": "helyi menü - {{- documentName }}",
+        "Documents list": "Dokumentumok listája",
+        "Download document...": "Dokumentum letöltése...",
+        "Deleted {{at}}": "Törölve {{at}}-kor"
+    },
+    "RenameDocModal": {
+        "Choose color": "Válassz színt",
+        "Choose icon": "Válassz ikont",
+        "Enter document name": "Írd be a dokumentum nevét",
+        "Icon": "Ikon",
+        "Name": "Név",
+        "Rename and set icon": "Átnevezés és ikon beállítása",
+        "Reset icon": "Ikon visszaállítása"
+    },
+    "RightPanelUtils": {
+        "columns_one": "oszlop",
+        "columns_other": "oszlopok",
+        "fields_one": "mező",
+        "fields_other": "mezők",
+        "series_one": "adatsor",
+        "series_other": "adatsor"
+    },
+    "userTrustsCustomWidget": {
+        "Be careful with unknown custom widgets": "Legyél óvatos az ismeretlen egyéni widgetekkel",
+        "Please review the following before adding a new custom widget.": "Kérjük, nézd át a következőket, mielőtt új egyéni widgetet adnál hozzá.",
+        "Custom widgets are **powerful**! They may be able to read and write your document data, and send it elsewhere.": "Az egyéni widgetek **nagy felhatalmazás kapnak**! Olvashatják és írhatják a dokumentumod adatait, és elküldhetik máshová.",
+        "Are you sure you **trust the resource** at this URL?": "Biztos vagy benne, hogy **megbízol az ezen az URL-címen található forrásban**?",
+        "Do you **trust the person** who shared this link?": "**Megbízol abban a személyben**, aki megosztotta ezt a linket?",
+        "Have you **reviewed the code** at this URL?": "**Átnézted, ellenőrizted a programkódot** ezen az URL-en?",
+        "If in doubt, do not install this widget, or ask an administrator of your organization to review it for safety.": "Ha kétségeid vannak, ne telepítsd ezt a modult, vagy kérd meg szervezeted rendszergazdáját, hogy ellenőrizze a biztonság érdekében.",
+        "I confirm that I understand these warnings and accept the risks": "Megerősítem, hogy megértettem ezeket a figyelmeztetéseket, és elfogadom a kockázatokat"
+    },
+    "AdminLeftPanel": {
+        "Admin area": "Rendszergazdai terület",
+        "Admin controls": "Rendszergazdai vezérlők",
+        "Docs": "Dokumentumok",
+        "Installation": "Telepítés",
+        "Learn more": "További információ",
+        "Orgs": "Szervezetek",
+        "Users": "Felhasználók",
+        "Workspaces": "Munkaterületek",
+        "Admin Controls": "Rendszergazdai vezérlők",
+        "Settings": "Beállítások",
+        "Enterprise": "Enterprise",
+        "Quick setup": "Gyors beállítás",
+        "Apply changes": "Módosítások alkalmazása"
+    },
+    "Assistant": {
+        "AI Assistant is only available for logged in users.": "Az AI Segéd csak bejelentkezett felhasználók számára használható.",
+        "Apply": "Alkalmaz",
+        "For higher limits, contact the site owner.": "Magasabb limitekért fordulj a webhely tulajdonosához.",
+        "For higher limits, {{upgradeNudge}}.": "Magasabb határértékekért {{upgradeNudge}} .",
+        "Learn more.": "További információ.",
+        "Press Enter to apply suggested formula.": "Nyomd meg az Enter billentyűt a javasolt képlet alkalmazásához.",
+        "Sign Up for Free": "Regisztrálj ingyen",
+        "Sign up for a free Grist account to start using the AI Assistant.": "Regisztrálj egy ingyenes Grist-fiókot az AI Segéd használatához.",
+        "Upgrade to Grist Enterprise to try the new Grist Assistant. {{learnMoreLink}}": "Frissíts Grist Enterprise-ra az új Grist Segéd kipróbálásához. {{learnMoreLink}}",
+        "What do you need help with?": "Milyen segítségre van szükséged?",
+        "You have used all available credits.": "Felhasználtad az összes elérhető kreditet.",
+        "You have {{numCredits}} remaining credits.": "{{numCredits}} kredited van még.",
+        "start a new chat": "indíts új csevegést",
+        "upgrade to the Pro Team plan": "frissíts a Pro Team előfizetésre",
+        "upgrade your plan": "frissítsd az előfizetésedet",
+        "The conversation has become too long and I can no longer respond effectively. Please {{startANewChatButton}} to continue receiving assistance.": "A beszélgetés túl hosszú lett, és már nem tudok hatékonyan válaszolni. Kérjük, {{startANewChatButton}}, hogy továbbra is segítséget kaphass."
+    },
+    "apiconsole": {
+        "Are you sure you want to delete the following?": "Biztosan törlöd a következőket?",
+        "Confirm Deletion": "Erősítsd meg a törlést",
+        "Delete": "Töröl",
+        "Deletion was not confirmed, skipping.": "A törlést nem erősítetted meg, kihagyva.",
+        "Type DELETE here if you wish to proceed.": "Ha folytatni kívánod, írd be ide a DELETE parancsot.",
+        "Type DELETE if you are sure you do indeed wish to do this deletion.\nIf you are not sure, or do not understand what this operation will do,\nit would be wise to cancel it.": "Írd be a DELETE parancsot, ha biztos vagy abban, hogy valóban meg törölni akarod.\nHa nem vagy biztos benne, vagy nem érted, mit fog tenni ez a művelet,\nbölcs döntés lenne leállítani!"
+    },
+    "MentionTextBox": {
+        "no access": "nincs hozzáférés",
+        "...loading": "...betöltés"
+    },
+    "VersionUpdateBanner": {
+        "There is a critical Grist update available.\nConsider upgrading to version {{version}} as soon as possible.": "Elérhető egy kritikus Grist frissítés.\nJavasoljuk a mielőbbi frissítést {{version}} verzióra.",
+        "Your Grist version is outdated.\nConsider upgrading to version {{version}} as soon as possible.": "A Grist verziód elavult.\nJavasoljuk a mielőbbi frissítést {{version}} verzióra."
+    },
+    "ExternalAttachmentBanner": {
+        "Recommendation: {{storageRecommendation}}\nWhen storing large attachments, or many of them, we recommend\nkeeping them in external storage. This document is currently\nusing internal storage for attachments, which keeps it\nself-contained but may limit performance.": "Ajánlásunk: {{storageRecommendation}}\nHa nagyméretű vagy sok csatolmányt tárolsz, javasoljuk,\nhogy külső tárolóban tartsd őket. Ez a dokumentum jelenleg\nbelső tárhelyet használ a mellékletek tárolására, ami a dokumentummal egy\negységben tárolja azokat, de korlátozhatja a teljesítményt.",
+        "Set the document to use external storage.": "Állítsd be a dokumentumot külső tárhely használatára."
+    },
+    "ToggleEnterpriseModel": {
+        "Please wait for the previous operation to complete.": "Kérjük, várd meg, amíg az előző művelet befejeződik.",
+        "Timed out on waiting for the Grist backend to restart": "Időtúllépés a Grist háttérrendszer újraindulására várva"
+    },
+    "Experiments": {
+        "Disable feature": "Funkció letiltása",
+        "Don't worry, you can disable it later if needed.": "Ne aggódj, szükség esetén később letilthatod.",
+        "Enable feature": "Funkció engedélyezése",
+        "Experimental feature": "Kísérleti funkció",
+        "New record button": "Új rekord gomb",
+        "Reload the page": "Oldal újratöltése",
+        "Visit this URL at any time to stop using this feature: {{url}}": "A funkció használatának abbahagyásához látogasd meg ezt az URL-t: {{url}}",
+        "You are about to disable this experimental feature: {{experiment}}": "A következő kísérleti funkció letiltására készülsz: {{experiment}}",
+        "You are about to enable this experimental feature: {{experiment}}": "A következő kísérleti funkció engedélyezésére készülsz: {{experiment}}",
+        "{{experiment}} disabled.": "{{experiment}} letiltva.",
+        "{{experiment}} enabled.": "{{experiment}} engedélyezve.",
+        "Notifications": "Értesítések",
+        "OAuth apps": "OAuth-alkalmazások",
+        "Simulate deployment as core": "Core-telepítés szimulálása"
+    },
+    "NewRecordButton": {
+        "New card": "Új kártya",
+        "New record": "Új rekord"
+    },
+    "RegionFocusSwitcher": {
+        "Trying to access the creator panel? Use {{key}}.": "Megpróbálod elérni az alkotói panelt? Használd a {{key}} billentyűt."
+    },
+    "duplicateWidget": {
+        "Duplicate widget": "Widget duplikálása",
+        "Duplicate widgets": "Widgetek duplikálása",
+        "Active": "Aktív",
+        "Create new page": "Új oldal létrehozása"
+    },
+    "AttachmentsWidget": {
+        "Uploading, please wait…": "Feltöltés folyamatban, kérjük, várj…",
+        "Image": "Kép"
+    },
+    "AttachmentsEditor": {
+        "Add": "Hozzáad",
+        "Delete": "Töröl",
+        "Download": "Letöltés",
+        "Drop files here to attach": "Húzd ide a csatolandó fájlokat",
+        "Drop files here to attach.": "Húzd ide a csatolandó fájlokat.",
+        "No attachments": "Nincsenek csatolmányok",
+        "Preview not available.": "Az előnézet nem elérhető.",
+        "{{index}} of {{total}}": "{{index}} / {{total}}",
+        "Uploading…": "Feltöltés…"
+    },
+    "RowHeightConfig": {
+        "Expand all rows to this height": "Állítsa az összes sort erre a magasságra",
+        "Max height": "Max magasság",
+        "Max row height": "Max sormagasság",
+        "Change": "Módosítás"
+    },
+    "TreeViewComponent": {
+        "Collapse": "Összezár",
+        "Expand": "Kibont"
+    },
+    "ActiveUserList": {
+        "active user": "aktív felhasználó",
+        "active user list": "aktív felhasználók listája",
+        "open full active user list": "nyisd meg az aktív felhasználók listáját"
     }
 }
