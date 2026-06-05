@@ -7,7 +7,7 @@ import { urlState } from "app/client/models/gristUrlState";
 import { bigBasicButton, bigPrimaryButton, bigPrimaryButtonLink } from "app/client/ui2018/buttons";
 import { mediaSmall, theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
-import { IModalControl, modal } from "app/client/ui2018/modals";
+import { cssModalTitle, IModalControl, modal } from "app/client/ui2018/modals";
 import { PlanSelection } from "app/common/BillingAPI";
 import { TEAM_PLAN } from "app/common/Features";
 import { checkSubdomainValidity } from "app/common/orgNameUtils";
@@ -100,7 +100,7 @@ export function buildConfirm({
   return cssConfirmWrapper(
     cssSparks(),
     hspace("1.5em"),
-    cssHeaderLine(t("Team site created"), testId("confirmation")),
+    cssModalTitle(t("Team site created"), testId("confirmation"), cssCenteredModalTitle.cls("")),
     hspace("2em"),
     bigPrimaryButtonLink(
       urlState().setLinkUrl({ org: domain || undefined }), t("Go to your site"), testId("confirmation-link"),
@@ -139,7 +139,7 @@ function buildTeamPage({
   });
   return cssWide(
     dom.autoDispose(disabled),
-    cssHeaderLine(t("Work as a Team"), testId("creation-title")),
+    cssModalTitle(t("Work as a Team"), testId("creation-title"), cssCenteredModalTitle.cls("")),
     cssSubHeaderLine(t("Choose a name and url for your team site")),
     hspace("1.5em"),
     cssColumns(
@@ -252,11 +252,8 @@ const cssSetup = styled("div", `
   flex-grow: 1;
 `);
 
-const cssHeaderLine = styled("div", `
+const cssCenteredModalTitle = styled("div", `
   text-align: center;
-  font-size: 24px;
-  font-weight: 600;
-  margin-bottom: 16px;
 `);
 
 const cssSubHeaderLine = styled("div", `
