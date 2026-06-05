@@ -23,7 +23,10 @@
  * IN THE SOFTWARE.
  */
 
-import { dom, Holder } from "grainjs";
+import { kbFocusHighlighterClass } from "app/client/components/KeyboardFocusHighlighter";
+import { FocusLayer } from "app/client/lib/FocusLayer";
+
+import { Disposable, dom, DomMethod, Holder } from "grainjs";
 
 const _focusLockHolder = Holder.create(null);
 
@@ -44,6 +47,34 @@ export const enableFocusLock = (element: HTMLElement) => {
 export const clearCurrentFocusLock = () => {
   _focusLockHolder.clear();
 };
+
+/**
+ * Lock keyboard focus inside a given element until it is removed from the DOM.
+ *
+ * This is a useful default to use for popups, modal tooltips and things like that.
+ */
+export function lockFocusUntilRemoved(
+  owner: Disposable,
+  options: {
+    pauseMousetrap?: boolean;
+  } = {},
+): DomMethod<HTMLElement> {
+  const { pauseMousetrap = true } = options;
+
+  return (elem: HTMLElement) => {
+    elem.classList.add(kbFocusHighlighterClass);
+    if (!elem.hasAttribute("tabindex")) {
+      elem.setAttribute("tabindex", "-1");
+    }
+    enableFocusLock(elem);
+    owner.onDispose(() => clearCurrentFocusLock());
+    FocusLayer.create(owner, {
+      defaultFocusElem: elem,
+      pauseMousetrap,
+      allowFocus: target => elem.contains(target),
+    });
+  };
+}
 
 /**
  * Trap the tab key within the given element.

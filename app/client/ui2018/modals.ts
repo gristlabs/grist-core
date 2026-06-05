@@ -1,6 +1,6 @@
 import { kbFocusHighlighterClass } from "app/client/components/KeyboardFocusHighlighter";
 import { FocusLayer } from "app/client/lib/FocusLayer";
-import { clearCurrentFocusLock, enableFocusLock } from "app/client/lib/focusUtils";
+import { clearCurrentFocusLock, enableFocusLock, lockFocusUntilRemoved } from "app/client/lib/focusUtils";
 import { makeT } from "app/client/lib/localization";
 import { reportError } from "app/client/models/errors";
 import { cssInput } from "app/client/ui/cssInput";
@@ -558,7 +558,9 @@ export function modalTooltip(
 ): PopupControl {
   return popupOpen(reference, (ctl: IOpenController) => {
     const element = cssModalTooltip(
+      lockFocusUntilRemoved(ctl),
       domCreator(ctl),
+      { "role": "dialog", "aria-modal": "true" },
     );
     return element;
   }, options);
