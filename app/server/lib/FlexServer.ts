@@ -1384,6 +1384,15 @@ export class FlexServer implements GristServer {
       const loginSystem = await this.resolveLoginSystem();
       this._loginMiddleware = await loginSystem.getMiddleware(this);
     } catch (err) {
+      // If Grist is in service, let's not fall back to the boot key login middleware.
+      // github.com/gristlabs/grist-core/issues/2373
+      // Let's make the server unhealthy, so it can be restarted and try to join the IdP again.
+      // The one downside is that admin page is unusable for diagnosing the problem.
+      // It can be removed once this issue is addressed: https://github.com/gristlabs/grist-core/issues/2373
+      if (getInService().value) {
+        throw err;
+      }
+
       // We need to start even if login middleware fails to initialize, and report it so that admins
       // can fix the problem using the admin UI.
       log.error("Error initializing login middleware:", err);
