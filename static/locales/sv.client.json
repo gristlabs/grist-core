@@ -100,7 +100,8 @@
         "Basic info": "Grundläggande information",
         "Enterprise": "Företagsversion",
         "OAuth apps": "OAuth appar",
-        "Accessibility": "Tillgänglighet"
+        "Accessibility": "Tillgänglighet",
+        "OAuth apps let you connect external integrations to this Grist server with more security and convenience than when using API keys.\n\nOAuth apps are available with the [full version of Grist]({{fullGrist}}).": "OAuth appar låter dig ansluta externa integrationer till denna Gristserver på ett säkrare och bekvämare sätt än att använda API-nycklar.\n\nOAuth appar är tillgängliga i [fullversionen av Grist]({{fullGrist}})."
     },
     "AccountWidget": {
         "Access Details": "Tillgångsdetaljer",
@@ -2373,7 +2374,8 @@
         "{{experiment}} disabled.": "{{experiment}} avstängd.",
         "{{experiment}} enabled.": "{{experiment}} påslagen.",
         "Notifications": "Notiser",
-        "OAuth apps": "OAuth appar"
+        "OAuth apps": "OAuth appar",
+        "Simulate deployment as core": "Simulera drift som grundversion"
     },
     "NewRecordButton": {
         "New card": "Nytt kort",
@@ -2478,7 +2480,8 @@
         "Screen reader navigation": "Skärmläsarnavigation",
         "Warning: screen reader support is a work-in-progress in Grist and is improving over time. Feedback is greatly appreciated!": "Varning: stödet för skärmläsare är ett pågående arbete i Grist och förbättras över tid. Återkoppling mottages tacksamt!",
         "While not mandatory, you can enable screen reader improvements for a better navigation experience:": "Det är inte obligatoriskt men du kan aktivera förbättringar för skärmläsare för att få en bättre navigations upplevelse:",
-        "We recommend using Firefox, Chrome or Edge in order to use Grist with a screen reader.": "Vi rekommenderar Firefox, Chrome eller Edge vid användning av Grist med skärmläsare."
+        "We recommend using Firefox, Chrome or Edge in order to use Grist with a screen reader.": "Vi rekommenderar Firefox, Chrome eller Edge vid användning av Grist med skärmläsare.",
+        "Please first read the \"Keyboard navigation\" section above to understand how to navigate across the interface's regions: specific keyboard shortcuts need to be used.": "Läs först \"Tangentbordsnavigering\" ovan för att förstå hur navigering mellan olika regioner i gränssnittet fungerar: specifika tangentbordsgenvägar behöver användas."
     },
     "ProposedChangesPage": {
         "Proposed changes": "Föreslagna ändringar",
@@ -2770,7 +2773,23 @@
         "Reconfigure": "Ställ in igen",
         "The change will take effect after you restart Grist.": "Ändringen kommer att bli aktiv efter att du startat om Grist.",
         "This login mechanism is deprecated.": "Detta inloggningssätt är under utfasning.",
-        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect]({{url}}).": "För att ställa in **Grist Connect**, följ instruktionerna i [artikeln från Grist support för Grist Connect]({{url}})."
+        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect]({{url}}).": "För att ställa in **Grist Connect**, följ instruktionerna i [artikeln från Grist support för Grist Connect]({{url}}).",
+        "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC]({{url}}).": "För att ställa in **OIDC**, följ instrukturerna i [Grist support artikeln för OIDC]({{url}}).",
+        "To set up **SAML**, follow the instructions in [the Grist support article for SAML]({{url}}).": "För att ställa in **SAML**, följ instrukturerna i [Grist support artikeln för SAML]({{url}}).",
+        "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers]({{url}}).": "För att ställa **forwarded headers**, följ instrukturerna i [Grist support artikeln för **forwarded headers** ]({{url}}).",
+        "Works with most identity providers (Google, Azure AD, Keycloak, etc.).": "Fungerar med de flesta identitetsleverantörerna (Google, Azure AD, Keycloak, etc.).",
+        "Your configuration will be preserved. You can reactivate it later without reconfiguring.": "Dina inställningar sparas. Du kan återaktivera den senare utan att ställa in den igen.",
+        "New admin email": "Ny administratörsepost",
+        "Reassign login to admin": "Ställ om administratörsinloggning",
+        "The change will be saved when you apply pending changes, and will go into effect after you restart Grist.": "Ändringarna sparas när du applicerar väntande ändringar, de kommer att få effekt efter att du startar om Grist.",
+        "The change will be saved when you apply pending changes, and will take effect after you restart Grist.": "Ändringarna kommer sparas när du applicerar väntande ändringar, de kommer att få effekt efter att du startar om Grist.",
+        "configuration updated": "Inställningarna uppdaterade",
+        "disabled": "avstängd",
+        "Your server is configured to authenticate users via OpenID Connect. Users sign in through your identity provider.": "Din server är inställd för autentisering av användare genom OpenID Connect. Användarna",
+        "Your server is configured to authenticate users via SAML 2.0. Users sign in through your enterprise identity provider.": "Din server är inställd för autentisering av användare genom SAML 2.0. Användare loggar in genom din identitetsleverantör.",
+        "Your server is using a boot key as a fallback login method. Configure one of the authentication methods below.": "Din server använder uppstartsnyckel som reservmetod för inloggning. Ställ in en av autentiseringsmetoderna nedan.",
+        "Your server trusts authentication from a reverse proxy. Make sure only your proxy can reach the Grist backend.": "Din server litar på autentisering från en omvänd proxy. Säkerställ att enbart proxyn kan nå Grist servern.",
+        "Choose how users sign in to Grist.": "Välj hur användare loggar in till Grist."
     },
     "DetailView": {
         "This row is unavailable or does not exist": "Denna rad är inte tillgänglig eller finns inte"
@@ -2787,7 +2806,10 @@
         "Home URL is not set; cannot configure Sign in with getgrist.com": "Hem URL är inte inställd; kan inte ställa in inloggning med getgrist.com",
         "**Sign in with getgrist.com** allows users on your Grist server to sign in using their account on getgrist.com, the cloud version of Grist managed by Grist Labs.": "**Logga in med getgrist.com** gör att användare på din Gristserver kan logga in med sitt konto på getgrist.com, molnversionen av Grist som drivs av Grist Labs.",
         "To set up {{provider}}, you need to register your Grist server on getgrist.com and paste the configuration key you receive below.": "För att ställa in {{provider}} behöver du registrera din Gristserver på getgrist.com och klistra ininställningsnyckeln du får nedan.",
-        "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.": "Vid inloggning kommer användarna att skickas vidare till inloggningssidan på getgrist.com för att logga in eller registrera sig. Efter autentisering på getgrist.com skickas användaren tillbaka till din Gristserver inloggad som användaren som de autentiserdes som."
+        "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.": "Vid inloggning kommer användarna att skickas vidare till inloggningssidan på getgrist.com för att logga in eller registrera sig. Efter autentisering på getgrist.com skickas användaren tillbaka till din Gristserver inloggad som användaren som de autentiserdes som.",
+        "Managed authentication by Grist Labs.": "Centraliserad autentisering av Grist Labs.",
+        "Your server uses getgrist.com authentication. Users sign in with their getgrist.com account.": "Din server använder getgrist.com autentisering. Användare loggar in med sitt getgrist.com konto.",
+        "Error configuring provider with the provided key: {{reason}}": "Fel inställning av leverantör med den valda nyckeln: {{reason}}"
     },
     "AirtableImportUI": {
         "Back": "Tillbaka",
@@ -2837,7 +2859,8 @@
         "New admin": "Ny administratör",
         "Enter new admin email": "Fyll i ny administratörs se-post",
         "Make the new email the installation admin. Orgs, workspaces, and documents will remain owned by {{email}}. These changes will take effect after you restart this Grist server.": "Gör den nya e-postadressen till installationens administratör. Organisationer, arbetsytor och dokument kommer fortsatt att vara ägda av {{email}}. Dessa ändringar kommer att få effekt först efter omstart av denna Gristserver.",
-        "Replace {{email}} with the new email throughout. The new email will become the installation admin, as well as the owner of all materials previously owned by you@example.com.": "Ersätt {{email}} med den nya e-postadressen för allt. Den nya e-postadressen blir installationens administratör och ägare av allt material som tidigare ägdes av you@example.com."
+        "Replace {{email}} with the new email throughout. The new email will become the installation admin, as well as the owner of all materials previously owned by you@example.com.": "Ersätt {{email}} med den nya e-postadressen för allt. Den nya e-postadressen blir installationens administratör och ägare av allt material som tidigare ägdes av you@example.com.",
+        "An account with {{email}} already exists.": "Ett konto med {{email}} finns redan."
     },
     "startDocAirtableImport": {
         "Import from Airtable": "Importera från Airtable"
@@ -2869,7 +2892,14 @@
     },
     "BootKeyStatus": {
         "Remove boot key": "Ta bort uppstartsnyckeln",
-        "Remove boot key?": "Ta bort uppstartsnyckeln?"
+        "Remove boot key?": "Ta bort uppstartsnyckeln?",
+        "Every new Grist installation includes a random boot key: a secret whose value is only obtainable by an installation operator.": "Varje ny Grist installation inkluderar en slumpmässig uppstartsnyckel: en hemlighet som bara serveradministratören kan komma åt.",
+        "Make sure you have configured an authentication system that lets you sign in as an admin before removing the boot key.": "Säkerställ att du har ställt in ett autentiserings system som låter dig logga in som administratör före du tar bort uppstartsnyckeln.",
+        "This setting is currently being managed by an environment variable (`GRIST_BOOT_KEY`).": "Denna inställning styrs just nu av en miljövariabel (`GRIST_BOOT_KEY`).",
+        "Unset the environment variable to manage this setting via the Admin Panel.": "Ta bort miljövariabelen för att hantera denna inställning via Administrationspanelen.",
+        "You will no longer be able to authenticate as the install admin on the `": {
+            "boot-key` page.": "Du kommer inte längre kunna autentisera dig som installationsadministratör på `/boot-key` sidan."
+        }
     },
     "BootPage": {
         "Boot key": "Uppstartsnyckel",
@@ -2887,7 +2917,8 @@
         "Welcome to Grist": "Välkommen till Grist",
         "Why does this check exist?": "Varför finns denna kontroll?",
         "disable this check": "stäng av denna kontroll",
-        "set your own": "ställ in din egen"
+        "set your own": "ställ in din egen",
+        "After restarting, Grist will be available without this sign-in step.": "Efter omstart kommer Grist att vara tillgänglig utan detta inloggningssteg."
     },
     "QuickSetup": {
         "Backups": "Säkerhetskopior",
