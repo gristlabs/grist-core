@@ -97,7 +97,10 @@
         "Developer": "Utvecklare",
         "Home": "Hem",
         "Profile": "Profil",
-        "Basic info": "Grundläggande information"
+        "Basic info": "Grundläggande information",
+        "Enterprise": "Företagsversion",
+        "OAuth apps": "OAuth appar",
+        "Accessibility": "Tillgänglighet"
     },
     "AccountWidget": {
         "Access Details": "Tillgångsdetaljer",
@@ -152,7 +155,9 @@
         "Description": "Beskrivning",
         "Key": "Nyckel",
         "Memory Error": "Minnesfel",
-        "Translators: please translate this only when your language is ready to be offered to users": "Översättare: var god översätt denna enbart när ditt språk är redo att erbjudas till användare"
+        "Translators: please translate this only when your language is ready to be offered to users": "Översättare: var god översätt denna enbart när ditt språk är redo att erbjudas till användare",
+        "Disabled screen reader improvements": "Stängde av förbättringar för skärmläsare",
+        "Enabled screen reader improvements": "Aktiverade förbättringar för skärmläsare"
     },
     "AppHeader": {
         "Home page": "Hemsida",
@@ -884,7 +889,8 @@
         "Saved linked section {{title}} in view {{name}}": "Sparade länkad sektio {{title}} i vyn {{name}}",
         "go to webhook settings": "gå till webhookinställningar",
         "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "Nya ändringar är tillfälligt pausade. Wehbooks kön är överfull. Kontrollera webhooksinställningar, ta bort felaktiga webhooks och rensa kön.",
-        "Import from Airtable": "Importera från Airtable"
+        "Import from Airtable": "Importera från Airtable",
+        "{{title}} widget": "{{title}} widget"
     },
     "HomeIntro": {
         "Any documents created in this site will appear here.": "Alla dokument som skapas på denna sajt kommer synas här.",
@@ -960,7 +966,9 @@
     },
     "LeftPanelCommon": {
         "Help Center": "Hjälpcenter",
-        "Accessibility": "Tillgänglighet"
+        "Accessibility": "Tillgänglighet",
+        "(Screen reader improvements enabled)": "(Förbättringar för skärmläsare aktiverade)",
+        "Screen reader improvements enabled": "Förbättringar för skärmläsare aktiverade"
     },
     "MakeCopyMenu": {
         "As template": "Som mall",
@@ -1031,7 +1039,10 @@
         "Select data": "Välj data",
         "Select widget": "Välj widget",
         "New Table": "Ny tabell",
-        "SELECT BY": "VAL AV"
+        "SELECT BY": "VAL AV",
+        "{{table}} grouped by… (press to select fields)": "{{table}} grupperad på...(tryck för att välja fällt)",
+        "Press Space to add fields": "Tryck på mellanslag för att lägga till fällt",
+        "Use up and down arrow keys to move through options. Press Enter and Esc to move between steps.": "Använd upp- och nerpils knapparna för att bläddra igenom alternativen. Tryck Enter och Esc för att växla mellan olika steg."
     },
     "Pages": {
         "Delete": "Radera",
@@ -1278,7 +1289,9 @@
         "your email": "din e-post",
         "You will no longer receive email notifications about {{suggestions}} in {{docName}} at {{email}}.": "Du kommer inte längre få e-postnotiser om {{suggestions}} i {{docName}} till {{email}}.",
         "suggestions": "ändringsförslag",
-        "automations": "automatiserade flöden"
+        "automations": "automatiserade flöden",
+        "You will no longer receive email notifications about {{automations}} in {{docName}} at {{email}}.": "Du kommer inte fortsätta få epostnotifieringar om {{automations}} i {{docName}} till {{email}}.",
+        "You have been unsubscribed from automation notifications for {{docName}}. You can update your preferences anytime in the document settings.": "Din prenumeration på automatiserings notifieringar för {{docName}} är avslutad. Du kan uppdatera dina inställningar när som helst under dokumentinställningar."
     },
     "menus": {
         "* Workspaces are available on team plans. ": "* Arbetsytor är tillgängliga i arbetslagsprenumerationer. ",
@@ -1596,7 +1609,9 @@
         "Webhooks Unavailable In Unsaved Document Copies": "Webhooks är inte tillgängliga i dokument kopior som ej är sparade"
     },
     "GridView": {
-        "Click to insert": "Klicka för att infoga"
+        "Click to insert": "Klicka för att infoga",
+        "row {{rowNum}} {{colName}}": "rad {{rowNum}} {{colName}}",
+        "row {{rowNum}} {{colName}} (new row)": "rad {{rowNum}} {{colName}} (ny rad)"
     },
     "WelcomeSitePicker": {
         "Welcome back": "Välkommen tillbaka",
@@ -1936,7 +1951,7 @@
         "Grist Instance": "Grist-instans",
         "Auto-check weekly": "Kontrollerar automatiskt veckovis",
         "No record of last version check": "Det finns ingen information om senaste versionskontroll",
-        "You can set up streaming of audit events from Grist to an external security information and event management (SIEM) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.": "Du kan konfigurera strömning av loggar från Grist till ett externt SIEM-system (säkerhetsinformation och händelsehantering) om du aktiverar Grist för företag. {{contactUsLink}} för att läsa mer.",
+        "You can set up streaming of audit events from Grist to an external security information and event management (SIEM) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.": "Du kan konfigurera strömning av loggar från Grist till ett externt SIEM-system (säkerhetsinformation och händelsehantering) om du aktiverar Grist för företag. {{contactUsLink}} för mer information.",
         "Automatic checks are disabled. Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to \"true\" to enable them.": "Automatiska kontrollera avaktiverade. Ställ in miljövariabeln GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING till \"true\" för att aktivera dom.",
         "auth error": "autentiseringsfel",
         "configured": "inställd",
@@ -1984,7 +1999,19 @@
         "The URL where users and integrations reach this Grist server": "Den URL där användare och integrationer når denna Gristserver",
         "What used to be called \"Grist Enterprise\" is now called \"Full Grist\".": "Det som tidigare hette \"Grist företagsversion\" heter nu \"Komplett Grist\".",
         "Take Grist out of service for maintenance": "Ta Grist ur drift för underhåll",
-        "Fallback authentication method": "Reservmetod för autentisering"
+        "Fallback authentication method": "Reservmetod för autentisering",
+        "If you are the server operator, you can sign in using the boot key from your server logs.": "Im du är administratör server så kan du logga in genom att använda uppstartsnyckeln från serverloggarna.",
+        "Edition": "Variant",
+        "Its controls have moved to {{editionLink}} above.": "Dessa inställningar har flyttat till {{editionLink}} ovan.",
+        "Server → Edition": "Server → Variant",
+        "moved to Edition": "flyttad till Variant",
+        "Default permissions": "Standardbehörigheter",
+        "Who can create sites, log in, and use the playground": "Vem kan skapa sajter, logga in och använda testmiljön",
+        "Any pending changes will be cleared.": "Alla väntande ändringar kommer att försvinna.",
+        "Dismiss": "Avfärda",
+        "Dismiss changes": "Avfärda ändringar",
+        "Dismiss pending changes?": "Avfärda väntande ändringar?",
+        "Dismissing...": "Avfärdar..."
     },
     "Columns": {
         "Remove Column": "Ta bort kolumn"
@@ -2111,7 +2138,12 @@
         "Your subscription expired on {{date}}.": "Ditt abonnemang tog slut {{date}}.",
         "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.": "Din provperiod tog slut **{{expireAt}}**. För att fortsätta använda Grist företagsversion, du behöver\n[Registrera dig för Grist företagsversion]({{signupLink}}) och klistra in aktiveringsnyckeln nedan.",
         "Enable Full Grist": "Aktivera fullständig Grist",
-        "You are currently trialing Full Grist.": "Du testar för närvarande fullständig Grist."
+        "You are currently trialing Full Grist.": "Du testar för närvarande fullständig Grist.",
+        "An activation key is used to run Full Grist after a trial period\n        of 30 days has expired. Get an activation key by [signing up for Grist\n        Enterprise]({{signupLink}}). You do not need an activation key to run\n        Grist Community Edition.": "En aktiveringsnyckel behövs för att köra Komplett version av Grist efter att provperioden på \n        30 dagar är slut. Skaffa en aktiveringsnyckel genom att [registrera dig för Grist \n        Företagsversion]({{signupLink}}). Du behöver ingen aktiveringsnyckel för att köra \n        Grist öppen version.",
+        "An activation key is used to run Full Grist after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Community Edition.\n\nLearn more in our [Help Center]({{helpCenter}}).": "En aktiveringsnyckel behövs för att köra Komplett version av Grist efter att provperioden på \n30 dagar är slut. Skaffa en aktiveringsnyckel genom att [kontakta oss]({{contactLink}}) idag. \nDu behöver ingen aktiveringsnyckel för att köra Grist öppen version. \n\nLär dig mer i vårt [Hjälpcenter]({{helpCenter}}).",
+        "To continue using Full Grist, you need to\n                  [contact us]({{signupLink}}) to get your activation key.": "För att fortsätta att använda Fullständig version av Grist, behöver du \n                 [kontakta oss]({{signupLink}}) för att få din aktiveringsnyckel.",
+        "Your trial period has expired on **{{expireAt}}**. To continue using Full Grist, you need to\n[sign up for Full Grist]({{signupLink}}) and paste your activation key below.": "Din provperiod har gått ut den **{{expireAt}}**. För att fortsätta att använda Fullständig version av Grist, behöver du \n[registrerad dig för Fullständig version av Grist]({{signupLink}}) och klistra in din aktiveringsnyckel nedan.",
+        "An active subscription is required to continue using Full Grist. You can\nyou activate your subscription by [signing up for Full Grist ]({{signupLink}}) and pasting your\nactivation key below.": "Ett aktivt abonnemang krävs för att fortsätta använda Fullversion av Grist. Du kan \naktivera ditt abonnemang genom att [registrerad dig för Fillversionen av Grist]({{signupLink}}) och klistra in din \naktiveringsnyckel nedan."
     },
     "ViewLayout": {
         "Delete": "Radera",
@@ -2283,7 +2315,8 @@
         "Admin Controls": "Administrationsintällningar",
         "Settings": "Inställningar",
         "Enterprise": "Företagsversion",
-        "Apply changes": "Applicera ändringar"
+        "Apply changes": "Applicera ändringar",
+        "Quick setup": "Snabb installation"
     },
     "Assistant": {
         "AI Assistant is only available for logged in users.": "AIassistenten är bara tillgänglig för inloggade användare.",
@@ -2339,7 +2372,8 @@
         "You are about to enable this experimental feature: {{experiment}}": "Du håller på att slå på denna experimentella funktion: {{experiment}}",
         "{{experiment}} disabled.": "{{experiment}} avstängd.",
         "{{experiment}} enabled.": "{{experiment}} påslagen.",
-        "Notifications": "Notiser"
+        "Notifications": "Notiser",
+        "OAuth apps": "OAuth appar"
     },
     "NewRecordButton": {
         "New card": "Nytt kort",
@@ -2355,7 +2389,8 @@
         "Create new page": "Skapa ny sida"
     },
     "AttachmentsWidget": {
-        "Uploading, please wait…": "Ladda upp, var god vänta…"
+        "Uploading, please wait…": "Ladda upp, var god vänta…",
+        "Image": "Bild"
     },
     "AttachmentsEditor": {
         "Add": "Lägg till",
@@ -2390,7 +2425,8 @@
         "This boot page should not be too easy to access. Either turn it off when configuration is ok (by unsetting GRIST_BOOT_KEY) or make GRIST_BOOT_KEY long and cryptographically secure.": "Denna start sida ska inte vara för lätt att komma åt. Stäng av den när inställningarna är klara (genom att ta bort GRIST_BOOT_KEY) eller gör GRIST_BOOT_KEY lång och kryprografiskt säker.",
         "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.": "Websocketanslutningar behöver HTTP1.1 and möjligheten att lägga till några extra headers för att fungera. Ibland kan en revrese proxy hinda det.",
         "It is good practice not to run Grist as the root user.": "Det är en bra grundregel att inte köra Grist som root-användare.",
-        "The main page of Grist should be available.": "Grists huvudsida borde vara tillgänglig."
+        "The main page of Grist should be available.": "Grists huvudsida borde vara tillgänglig.",
+        "APP_HOME_URL is the base URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "APP_HOME_URL är den basURL som användare och integrationer når Gristserverna på. Autentiserings svar, API länkar och epostnotifieringar är beroende av att den stämmer."
     },
     "FormulaTransform": {
         "Apply": "Applicera",
@@ -2436,7 +2472,13 @@
         "{{creatorPanelShortcut}} Focus to and from the creator panel": "{{creatorPanelShortcut}} Fokusera till och från designpanelen",
         "{{nextRegionShortcut}} Focus on the next region": "{{nextRegionShortcut}} Fokusera på nästa region",
         "{{prevRegionShortcut}} Focus on the previous region": "{{prevRegionShortcut}} Fokusra på den föregående regionen",
-        "{{shortcutsModal}} Show the complete list of keyboard shortcuts": "{{shortcutsModal}} Visa hela listan av tangentbordsgenvägar"
+        "{{shortcutsModal}} Show the complete list of keyboard shortcuts": "{{shortcutsModal}} Visa hela listan av tangentbordsgenvägar",
+        "Enable screen reader improvements (keyboard shortcut: {{shortcut}})": "Aktivera förbättringar för skärmläsare (tangentbordsgenväg: {{shortcut}})",
+        "Use your screen reader's focus mode, or disable Quick Nav if you use VoiceOver.": "Använd din skärmläsares fokus läge, eller stäng av Snabbnavigering om du använder VoiceOver.",
+        "Screen reader navigation": "Skärmläsarnavigation",
+        "Warning: screen reader support is a work-in-progress in Grist and is improving over time. Feedback is greatly appreciated!": "Varning: stödet för skärmläsare är ett pågående arbete i Grist och förbättras över tid. Återkoppling mottages tacksamt!",
+        "While not mandatory, you can enable screen reader improvements for a better navigation experience:": "Det är inte obligatoriskt men du kan aktivera förbättringar för skärmläsare för att få en bättre navigations upplevelse:",
+        "We recommend using Firefox, Chrome or Edge in order to use Grist with a screen reader.": "Vi rekommenderar Firefox, Chrome eller Edge vid användning av Grist med skärmläsare."
     },
     "ProposedChangesPage": {
         "Proposed changes": "Föreslagna ändringar",
@@ -2576,7 +2618,10 @@
         "When typed at the start of a cell, make this a formula column": "När det skrivs i början av en cell blir det en formelkolumn",
         "showing a behavioral popup": "visar en beteendepopup",
         "Filter this column by just this cell's value": "Filtrera denna kolumn bara efter cellernas värde",
-        "Open the context menu": "Öppna snabbmenyn"
+        "Open the context menu": "Öppna snabbmenyn",
+        "Toggle the screen reader improvements": "Slå av/på förbättringar för skärmläsare",
+        "Open the current column menu": "Öppna nuvarande kolumnmenyn",
+        "Open the current row menu": "Öppna nuvarande radmenyn"
     },
     "GridViewMenusDateHelpers": {
         "12-hour format": "12-timmarsformat",
@@ -2711,7 +2756,21 @@
         "No authentication: using boot key": "Ingen autentisering: använder uppstartsnyckel",
         "Not recommended": "Rekommenderas inte",
         "Other authentication methods": "Andra autentiseringsmetoder",
-        "Authentication": "Autentisering"
+        "Authentication": "Autentisering",
+        "If Grist is accessible on your network, or is available to multiple people, configure one of the authentication methods below and remove your boot key from Security Settings → Boot key.": "Om Grist är tillgängligt på ditt nätverk, eller åtkomligt för flera personer, ställ in en av autentiseringsmetoderna nedan och ta bort din uppstartsnyckel under Inställningar → Uppstartsnyckel.",
+        "No authentication: using boot key as fallback method": "Ingen autentisering: använder uppstartsnyckel som reservmetod",
+        "Anyone who can reach this server can access all data without signing in. Configure one of the authentication methods below.": "Vem som helst kan komma åt denna server och läsa alla data utan att logga in. Ställ in en av autentiseringmetoderna nedan.",
+        "Are you sure you want to deactivate **{{name}}**?": "Är du säker på att du vill stänga av **{{name}}**?",
+        "Authentication has been configured and will become active when Grist is restarted.": "Autentisering är inställd och kommer att blir aktiv när Grist startas om.",
+        "Authentication is misconfigured or unreachable. Users may not be able to sign in.": "Autentisering är felinställd eller inte nåbar. Användare kan hindras från att logga in.",
+        "For enterprise identity providers (Okta, OneLogin, etc.).": "För identitets leverantörer (Okta, OneLogin, m.fl.).",
+        "For reverse proxy setups (Traefik, Authelia, etc.).": "För installation med omvänd proxy (Traefik, Authelia, etc.).",
+        "I understand this server has no authentication": "Jag förstår att denna server inte har någon autentisering",
+        "Managed login solution by Grist Labs (deprecated).": "Centraliserad inloggningslösning från Grist Labs (under utfasning).",
+        "Reconfigure": "Ställ in igen",
+        "The change will take effect after you restart Grist.": "Ändringen kommer att bli aktiv efter att du startat om Grist.",
+        "This login mechanism is deprecated.": "Detta inloggningssätt är under utfasning.",
+        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect]({{url}}).": "För att ställa in **Grist Connect**, följ instruktionerna i [artikeln från Grist support för Grist Connect]({{url}})."
     },
     "DetailView": {
         "This row is unavailable or does not exist": "Denna rad är inte tillgänglig eller finns inte"
@@ -2874,10 +2933,17 @@
         "Apply and Continue": "Applicera och fortsätt"
     },
     "EditionSection": {
-        "community": "användargrupp",
+        "community": "öppen version",
         "On": "På",
         "Learn more.": "Lär dig mer.",
-        "Full Grist": "Fullständig Grist"
+        "Full Grist": "Fullständig Grist",
+        "Choose which edition of Grist to run on this server": "Välj vilken variant av Grist som ska köras på denna server",
+        "Choose which edition of Grist to run on this server.": "Välj vilken variant av Grist som ska köras på denna server.",
+        "Community edition": "Öppen version",
+        "Confirm edition": "Bekräfta variant",
+        "Edition": "Variant",
+        "Full Grist is enabled via environment variable.": "Fullständig Grist är aktiverad via miljövariabel.",
+        "I understand I am running Grist Community edition": "Jag förstår att jag kör Grist Öppen version"
     },
     "BaseUrlSection": {
         "set": "ställ in",
