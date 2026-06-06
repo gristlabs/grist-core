@@ -5,6 +5,7 @@
  * the moment, importing can be done from this js file.
  *
  */
+/* global document */
 
 exports.loadAccountPage = () => import("app/client/ui/AccountPage" /* webpackChunkName: "AccountPage" */);
 exports.loadActivationPage = () => import("app/client/ui/ActivationPage" /* webpackChunkName: "ActivationPage" */);
@@ -30,6 +31,33 @@ exports.loadAce = () => import("ace-builds")
 exports.loadEmojiPicker = () => import("app/client/ui/EmojiPicker" /* webpackChunkName: "emojipicker" */);
 exports.loadMomentTimezone = () => import("moment-timezone").then(m => m.default);
 exports.loadPlotly = () => import("plotly.js-basic-dist" /* webpackChunkName: "plotly" */);
+// Toast UI Calendar, used by the native CalendarView. The .css import resolves (via webpack's
+// asset/resource) to a URL; we inject it once as a <link> here so views don't have to deal with
+// dedup / FOUC. The whole loader is memoized so concurrent mounts share the same in-flight
+// promise (no double <link>, no race).
+let _toastUICalendarPromise = null;
+exports.loadToastUICalendar = () => {
+  if (!_toastUICalendarPromise) {
+    _toastUICalendarPromise = Promise.all([
+      import("@toast-ui/calendar" /* webpackChunkName: "toastui-calendar" */),
+      import("@toast-ui/calendar/dist/toastui-calendar.min.css" /* webpackChunkName: "toastui-calendar" */)
+        .then((css) => new Promise((resolve, reject) => {
+          const href = css.default;
+          if (document.querySelector(`link[href="${href}"]`)) { return resolve(); }
+          const link = document.createElement("link");
+          link.rel = "stylesheet";
+          link.href = href;
+          link.onload = () => resolve();
+          link.onerror = reject;
+          document.head.appendChild(link);
+        })),
+    ]).then(([mod]) => ({Calendar: mod.default, TZDate: mod.TZDate}));
+    // If loading fails (offline, chunk error), drop the memo so a later mount can retry instead of
+    // being stuck with the rejected promise forever.
+    _toastUICalendarPromise.catch(() => { _toastUICalendarPromise = null; });
+  }
+  return _toastUICalendarPromise;
+};
 exports.loadSearch = () => import("app/client/ui2018/search" /* webpackChunkName: "search" */);
 exports.loadUserManager = () => import("app/client/ui/UserManager" /* webpackChunkName: "usermanager" */);
 exports.loadViewPane = () => import("app/client/components/ViewPane" /* webpackChunkName: "viewpane" */);

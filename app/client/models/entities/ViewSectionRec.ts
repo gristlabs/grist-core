@@ -91,6 +91,11 @@ export interface ViewSectionOptions extends ChartOptions {
   rowHeight?: number;           // Optional limit on height of rows, in lines.
   rowHeightUniform?: boolean;   // Whether rowHeight should make rows uniform height, by expanding shorter rows.
 
+  // Options for the native CalendarView.
+  calendarViewPerspective?: "day" | "week" | "month";   // Last-used calendar view.
+  calendarTimeFormat?: "12h" | "24h";                   // Hour labels; unset falls back to locale.
+  calendarWeekStart?: "sun" | "mon";                    // Grid start day; unset falls back to locale.
+
   // Other options.
   customView?: string;    // Configuration for custom widgets in JSON format.
   disabled?: boolean;     // Applies to the "default record card".

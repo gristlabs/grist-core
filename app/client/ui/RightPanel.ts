@@ -83,6 +83,18 @@ const ELEMENTOF = "\u2208"; // 220A for small elementof
 
 const t = makeT("RightPanel");
 
+// Widget types whose creator panel shows the column-mapping config: custom widgets (including
+// bundled "custom.*" ones) and the native calendar.
+function usesColumnMapping(widgetType: IWidgetType | null | undefined): boolean {
+  return widgetType === "custom" || usesPredefinedMapping(widgetType);
+}
+
+// Widget types configured through the predefined column-mapping panel (no widget selector): the
+// native calendar and bundled "custom.*" widgets, but not the generic "custom" URL widget.
+function usesPredefinedMapping(widgetType: IWidgetType | null | undefined): boolean {
+  return widgetType === "calendar" || Boolean(widgetType?.startsWith("custom."));
+}
+
 // Represents a top tab of the right side-pane.
 const TopTab = StringUnion("pageWidget", "field");
 
@@ -483,8 +495,7 @@ export class RightPanel extends Disposable {
       // point to this being sometimes possible.
       if (activeSection.isDisposed()) { return false; }
       const widgetType = use(this._pageWidgetType);
-      const isCustom = widgetType === "custom" || widgetType?.startsWith("custom.");
-      return Boolean(isCustom && use(activeSection.columnsToMap));
+      return Boolean(usesColumnMapping(widgetType) && use(activeSection.columnsToMap));
     });
 
     // build cursor position observable
@@ -572,7 +583,10 @@ export class RightPanel extends Disposable {
             () => dom.create(CustomSectionConfig, activeSection, this._gristDoc)),
         ];
       }),
-      dom.maybe(use =>  use(this._pageWidgetType)?.startsWith("custom."), () => {
+      // The native calendar and bundled custom widgets configure themselves through the predefined
+      // column-mapping panel (no widget selector). The calendar's own options (time format, week
+      // start) live in its toolbar, not here.
+      dom.maybe(use => usesPredefinedMapping(use(this._pageWidgetType)), () => {
         return [
           dom.create(PredefinedCustomSectionConfig, activeSection, this._gristDoc),
         ];
