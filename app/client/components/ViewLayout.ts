@@ -1,8 +1,8 @@
 import BaseView from "app/client/components/BaseView";
 import { buildViewSectionDom } from "app/client/components/buildViewSectionDom";
+import { CalendarView } from "app/client/components/CalendarView";
 import { ChartView } from "app/client/components/ChartView";
 import * as commands from "app/client/components/commands";
-import { CustomCalendarView } from "app/client/components/CustomCalendarView";
 import { CustomView } from "app/client/components/CustomView";
 import DetailView from "app/client/components/DetailView";
 import { buildDuplicateWidgetModal } from "app/client/components/duplicateWidget";
@@ -52,9 +52,13 @@ const viewSectionTypes: { [key: string]: any } = {
   "detail": DetailView,
   "chart": ChartView,
   "single": DetailView,
+  "calendar": CalendarView,
+  // Back-compat: docs saved by the old bundled calendar widget stored the section as
+  // "custom.calendar". Map that key to the native view so those docs keep opening as a calendar
+  // (their saved start/end/title mapping lives under the same customDef.columnsMapping keys).
+  "custom.calendar": CalendarView,
   "custom": CustomView,
   "form": FormView,
-  "custom.calendar": CustomCalendarView,
 };
 
 function getInstanceConstructor(parentKey: string) {
