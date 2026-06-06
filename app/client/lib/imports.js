@@ -30,6 +30,13 @@ exports.loadAce = () => import("ace-builds")
 exports.loadEmojiPicker = () => import("app/client/ui/EmojiPicker" /* webpackChunkName: "emojipicker" */);
 exports.loadMomentTimezone = () => import("moment-timezone").then(m => m.default);
 exports.loadPlotly = () => import("plotly.js-basic-dist" /* webpackChunkName: "plotly" */);
+// Toast UI Calendar, used by the native CalendarView. We load the library and its stylesheet
+// together. The .css import resolves (via webpack's asset/resource) to a URL, which CalendarView
+// injects as a <link> tag.
+exports.loadToastUICalendar = () => Promise.all([
+  import("@toast-ui/calendar" /* webpackChunkName: "toastui-calendar" */),
+  import("@toast-ui/calendar/dist/toastui-calendar.min.css" /* webpackChunkName: "toastui-calendar" */),
+]).then(([mod, css]) => ({Calendar: mod.default, TZDate: mod.TZDate, cssUrl: css.default}));
 exports.loadSearch = () => import("app/client/ui2018/search" /* webpackChunkName: "search" */);
 exports.loadUserManager = () => import("app/client/ui/UserManager" /* webpackChunkName: "usermanager" */);
 exports.loadViewPane = () => import("app/client/components/ViewPane" /* webpackChunkName: "viewpane" */);

@@ -14,10 +14,18 @@ import * as searchModule from "app/client/ui2018/search";
 import * as ace from "ace-builds";
 import * as momentTimezone from "moment-timezone";
 import * as plotly from "plotly.js";
+import Calendar, { TZDate } from "@toast-ui/calendar";
 
 export type Ace = typeof ace;
 export type MomentTimezone = typeof momentTimezone;
 export type PlotlyType = typeof plotly;
+
+export interface ToastUICalendarModule {
+  Calendar: typeof Calendar;
+  TZDate: typeof TZDate;
+  // URL of the bundled stylesheet (webpack asset/resource), to inject as a <link>.
+  cssUrl: string;
+}
 
 export function loadAccountPage(): Promise<typeof AccountPageModule>;
 export function loadActivationPage(): Promise<typeof ActivationPageModule>;
@@ -31,6 +39,7 @@ export function loadAce(): Promise<Ace>;
 export function loadEmojiPicker(): Promise<typeof EmojiPickerModule>;
 export function loadMomentTimezone(): Promise<MomentTimezone>;
 export function loadPlotly(): Promise<PlotlyType>;
+export function loadToastUICalendar(): Promise<ToastUICalendarModule>;
 export function loadSearch(): Promise<typeof searchModule>;
 export function loadUserManager(): Promise<typeof UserManagerModule>;
 export function loadViewPane(): Promise<typeof ViewPane>;
