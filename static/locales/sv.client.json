@@ -2899,7 +2899,8 @@
         "Unset the environment variable to manage this setting via the Admin Panel.": "Ta bort miljövariabelen för att hantera denna inställning via Administrationspanelen.",
         "You will no longer be able to authenticate as the install admin on the `": {
             "boot-key` page.": "Du kommer inte längre kunna autentisera dig som installationsadministratör på `/boot-key` sidan."
-        }
+        },
+        "The boot key should only be used as a temporary means of authentication until a more secure and robust authentication method is configured via Security Settings → Authentication. We recommend removing the boot key once you've finished setting up Grist.": "Uppstartsnyckeln ska vara användas som en tillfällig lösning för autentisering tills en säkrare och robustare autentiseringsmetod är instaälld via Säkerhetsinställningar → Autentisering. Vi rekommenderar att uppstartsnyckeln tas bort när du satt upp Grist."
     },
     "BootPage": {
         "Boot key": "Uppstartsnyckel",
@@ -2918,7 +2919,20 @@
         "Why does this check exist?": "Varför finns denna kontroll?",
         "disable this check": "stäng av denna kontroll",
         "set your own": "ställ in din egen",
-        "After restarting, Grist will be available without this sign-in step.": "Efter omstart kommer Grist att vara tillgänglig utan detta inloggningssteg."
+        "After restarting, Grist will be available without this sign-in step.": "Efter omstart kommer Grist att vara tillgänglig utan detta inloggningssteg.",
+        "After restarting, return to this page and enter your chosen key.": "Efter omstart gå tillbaka till denna sida och fyll i din valda nyckel.",
+        "Can't find your boot key? You can {{setBootKeyButton}} or {{disableCheckButton}}.": "Can du inte hitta din uppstartsnyckel? Du kan {{setBootKeyButton}} eller {{disableCheckButton}}.",
+        "Confirm or change the administrator email address.": "Bekräfta eller byt administratörsepostadressen.",
+        "For Docker, add \\`-e GRIST_BOOT_KEY={{bootKey}}\\` to your run command. For other setups, set it in your environment or configuration file.": "Med Docker, lägg till \\`-e GRIST_BOOT_KEY={{bootKey}}\\` i start kommandot. För andra installationer, ställ in det som miljövariabel eller i inställningsfil.",
+        "For Docker, add \\`-e GRIST_IN_SERVICE=true\\` to your run command. For other setups, set it in your environment or configuration file.": "Med Docker, lägg till \\`-e GRIST_IN_SERVICE=true\\` i start kommandot. För andra installationer, ställ in det som miljövariabel eller i inställningsfil.",
+        "Here's a random key you can use:": "Här är en slumpad nyckel du kan använda:",
+        "If you cannot access server logs or cannot find your boot key, you can set it yourself. Add the environment variable \\`GRIST_BOOT_KEY\\` with a secret value to your Grist configuration, then restart Grist.": "Om du inte kan komma åt serverloggarna eller inte kan hitta din uppstartsnyckel så kan du ställa in den själv. Lägg till miljövariabeln \\`GRIST_BOOT_KEY\\` med ett hemligt värde i dina Grist inställningar, starta sedan om Grist.",
+        "Set \\`GRIST_IN_SERVICE=true\\` in your Grist configuration, then restart. Grist will start without requiring a boot key.": "Ställ in \\`GRIST_IN_SERVICE=true\\` i dina Grist inställningar, starta sedan om. Grist kommer att starta utan att kräva uppstartsnyckel.",
+        "Skipping it is fine on a private, trusted network where only authorized people can connect.": "Att hoppa över det går bra på ett privat, betrott nätverk där bara behöriga personer kan ansluta.",
+        "This will be your admin account for managing Grist.": "Detta kommer vara ditt administratörskonto för att hantera Grist.",
+        "Verify that you have access to this server to continue.": "Säkerställ att du har tillgång till denna server för att fortsätta.",
+        "Look for this banner near the top of Grist's startup output — check your terminal, container logs, or hosting panel: {{exampleBootKeyBanner}}": "Sök efter dessa rader nära början av terminalutskriften vid Grists uppstart — kolla i din terminsl, kontainer loggar eller panel för drift: {{exampleBootKeyBanner}}",
+        "The boot key proves you have access to the server running Grist — it keeps out anyone who can reach this page but isn't the administrator.": "Uppstartsnyckeln säkerställer att du har tillgång till servern som kör Grist — den hindrar alla som kommer åt webbsidan men som inte är administör från att nå denna sida."
     },
     "QuickSetup": {
         "Backups": "Säkerhetskopior",
@@ -2926,7 +2940,9 @@
         "Server": "Server",
         "Continue": "Fortsätt",
         "Apply & restart": "Applicera & starta om",
-        "Authentication": "Autentisering"
+        "Authentication": "Autentisering",
+        "Configure Grist for your environment.": "Ställ in Grist för din miljö.",
+        "Quick setup": "Snabb installation"
     },
     "BackupsSection": {
         "Active": "Aktiv",
@@ -2935,7 +2951,19 @@
         "Off": "Av",
         "S3 (MinIO client)": "S3 (MinIO klient)",
         "S3 (AWS client)": "S3 (AWS klient)",
-        "No external storage": "Ingen extern lagring"
+        "No external storage": "Ingen extern lagring",
+        "AWS S3-compatible service via MinIO client library. Works with AWS S3, MinIO, and others.": "AWS S3-kompatibel tjänst via klientbiblioteket MinIO. Fungerar med AWS S3, MinIO m.fl.",
+        "Available in full edition": "Tillgänglig i komplett version",
+        "Azure Blob Storage": "Azure Blob lagring",
+        "Documents stored on local disk only.": "Dokument sparas enbart på lokal hårddisk.",
+        "Loading backup providers...": "Hämtar leverantörer för säkerhetskopiering...",
+        "Microsoft Azure Blob Storage via native Azure SDK.": "Microsoft Azure Blob lagring via Azure SDK.",
+        "Set these environment variables and restart Grist to enable Azure storage:": "Ställ in dessa miljövariabler och starta om Grist för att aktivera Azure lagring:",
+        "Set these environment variables and restart Grist to enable MinIO storage:": "Ställ in dessa miljövariabler och starta om Grist för att aktivera MinIO lagring:",
+        "Set these environment variables and restart Grist to enable S3 storage:": "Ställ in dessa miljövariabler och starta om Grist för att aktivera S3 lagring:",
+        "Store document backups on an external service like S3 or Azure.           This protects against data loss if the server's disk fails.": "Lagra säkerhetdkopior av document på en extern lagringstjänst så som S3 eller Azure.           Detta skyddar mot dataförlust om serverns hårddisk havererar.",
+        "Local filesystem (test only)": "Lokalt filsystem (enbart test)",
+        "Stores document snapshots on the local filesystem. For tests only, not production.": "Lagrar ögonblicksbilder av dokument på det lokala filsystemet. Enbart för test, inte produktion."
     },
     "QuickSetupContinueButton": {
         "Continue": "Fortsätt",
@@ -3001,5 +3029,25 @@
         "Continue": "Fortsätt",
         "Applying...": "Applicerar...",
         "Apply and Continue": "Applicera och fortsätt"
+    },
+    "ServiceStatus": {
+        "Enter maintenance mode": "Starta underhållsläge",
+        "Enter maintenance mode?": "Starta underhållsläge?",
+        "Non-admin users will be blocked until service is restored.": "Alla användare som inte är administratörer kommer att blockeras tills tjänsten är återställd.",
+        "Non-admin users will no longer be blocked.": "Alla användare som inte är administratörer kommer inte längre att blockeras.",
+        "Restore service": "Återställ tjänsten",
+        "Restore service?": "Återställ tjänsten?",
+        "This setting is currently being managed by an environment variable (`GRIST_IN_SERVICE`).": "Denna inställning hanteras just ni av miljövariabelen (`GRIST_IN_SERVICE`).",
+        "Unset the environment variable to manage this setting via the Admin Panel.": "Ta bort miljövariabelen för att hantera denna inställning via administrationspanelen."
+    },
+    "TeamSettingsPage": {
+        "Domain is already taken.": "Domänen används redan.",
+        "Invalid domain.": "Felaktig domän."
+    },
+    "PermissionsSetupSection": {
+        "Allow anonymous access": "Tillåt anonym åtkomst",
+        "Allow anonymous playground": "Tillåt annonym åtkomst till testmiljön",
+        "Allow anyone to create team sites": "Tillåt alla att skapa arbetslagssajter",
+        "Allow personal sites": "Tillåt personliga sajter"
     }
 }
