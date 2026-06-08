@@ -2963,7 +2963,8 @@
         "Set these environment variables and restart Grist to enable S3 storage:": "Ställ in dessa miljövariabler och starta om Grist för att aktivera S3 lagring:",
         "Store document backups on an external service like S3 or Azure.           This protects against data loss if the server's disk fails.": "Lagra säkerhetdkopior av document på en extern lagringstjänst så som S3 eller Azure.           Detta skyddar mot dataförlust om serverns hårddisk havererar.",
         "Local filesystem (test only)": "Lokalt filsystem (enbart test)",
-        "Stores document snapshots on the local filesystem. For tests only, not production.": "Lagrar ögonblicksbilder av dokument på det lokala filsystemet. Enbart för test, inte produktion."
+        "Stores document snapshots on the local filesystem. For tests only, not production.": "Lagrar ögonblicksbilder av dokument på det lokala filsystemet. Enbart för test, inte produktion.",
+        "AWS S3 via native AWS SDK. Supports IAM roles and AWS-native auth.": "AWS S3 via AWS SDK. Stödjer IAM roller och AWS autentisering."
     },
     "QuickSetupContinueButton": {
         "Continue": "Fortsätt",
@@ -2973,23 +2974,35 @@
     "SettingsLayout.d": {
         "Security Settings": "Säkerhetsinställningar",
         "Installation": "Installation",
-        "Authentication": "Autentisering"
+        "Authentication": "Autentisering",
+        "Current authentication method": "Nuvarande autentiseringsmetod",
+        "Sandbox settings for data engine": "Sandbox inställningar för databasmotor",
+        "Sandboxing": "Snadboxing"
     },
     "SettingsLayout": {
         "Security Settings": "Såkerhetsinställningar",
         "Installation": "Installation",
-        "Authentication": "Autentisering"
+        "Authentication": "Autentisering",
+        "Current authentication method": "Nuvarande autentiseringsmetod",
+        "Sandbox settings for data engine": "Sandbox inställningar för databasmotor",
+        "Sandboxing": "Sandboxing"
     },
     "AccountLeftPanel": {
         "Profile": "Profil",
         "Developer": "Utvecklare",
-        "Account settings": "Kontoinställningar"
+        "Account settings": "Kontoinställningar",
+        "Authorized apps": "Autentiserade appar"
     },
     "QuickSetupServerStep": {
         "Server": "Server",
         "Continue": "Fortsätt",
         "Base URL": "BasURL",
-        "Apply and Continue": "Applicera och fortsätt"
+        "Apply and Continue": "Applicera och fortsätt",
+        "Confirm base URL and edition to continue": "Bekräfta basURL och variant för att fortsätta",
+        "Confirm base URL to continue": "Bekräfta basURL för att fortsätta",
+        "Confirm edition to continue": "Bekräfta variant för att fortsätta",
+        "Edition": "Variant",
+        "Set your server's base URL and choose which edition of Grist to run.": "Ställ in din servers basURL och välj vilken variant av Grist som ska köras."
     },
     "EditionSection": {
         "community": "öppen version",
@@ -3002,7 +3015,11 @@
         "Confirm edition": "Bekräfta variant",
         "Edition": "Variant",
         "Full Grist is enabled via environment variable.": "Fullständig Grist är aktiverad via miljövariabel.",
-        "I understand I am running Grist Community edition": "Jag förstår att jag kör Grist Öppen version"
+        "I understand I am running Grist Community edition": "Jag förstår att jag kör Grist Öppen version",
+        "See how to enable it.": "Se hur den aktiveras.",
+        "The free and open-source heart of Grist, with everything you need to open and edit Grist documents, control access, create forms, connect to single sign-on (SSO) providers, and much more.": "Den fria och öppna källkoden som är hjärtat i Grist, med allt du behöver för att redigera Gristdokument, hantera rättigheter, skapa formulär, ansluta till identitetsleverantörer och mycket mer.",
+        "full": "komplett",
+        "pricing": "priser"
     },
     "BaseUrlSection": {
         "set": "ställ in",
@@ -3016,10 +3033,22 @@
         "Testing...": "Testar...",
         "Test URL": "Test-URL",
         "Failed to save": "Kunde inte spara",
-        "Base URL": "Bas-URL"
+        "Base URL": "Bas-URL",
+        "Already set on this server.": "Redan inställt på denna server.",
+        "Automatic": "Automatisk",
+        "Confirm URL": "Bekräfta URL",
+        "Could not reach server": "Kunde inte nå server",
+        "Could not reach server at this URL. ": "Kunder inte nå server på URL. ",
+        "Grist is reachable": "Grist är nåbar",
+        "Leave automatic": "Lämna automatiskt",
+        "The URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "Den URL som användare och integrationer når denna Grist server på. Autetiseringssvar, API länkar och epostnotifieringar beror alla på att denna är korrekt.",
+        "This URL was auto-detected — confirm it is correct, then save.": "Denna URL hittades automatsikt — kontrollera att den är rätt och spara.",
+        "URL is reachable": "URL är nåbar",
+        "automatic": "automatisk"
     },
     "AdminPanelCss": {
-        "Confirmed": "Bekräftaf"
+        "Confirmed": "Bekräftaf",
+        "For later": "Välj senare"
     },
     "SandboxSection": {
         "Skip and Continue": "Hoppa över och fortsätt",
@@ -3028,7 +3057,17 @@
         "Error": "Fel",
         "Continue": "Fortsätt",
         "Applying...": "Applicerar...",
-        "Apply and Continue": "Applicera och fortsätt"
+        "Apply and Continue": "Applicera och fortsätt",
+        "Active": "Aktiv",
+        "Detecting sandbox options...": "Undersöker sandbox alternativ...",
+        "No sandbox": "Ingen sandbox",
+        "Not recommended": "Inte rekommenderat",
+        "Ready": "Klar",
+        "Recommended": "Rekommenderad",
+        "Sandboxing": "Sandboxing",
+        "Uses the built-in macOS sandbox. Good isolation for local use on a Mac.": "Använder macOS inbyggda sandbox. God isolation för lokalt användande på Mac.",
+        "macOS sandbox": "maxOS snadbox",
+        "Sandbox": "Sandbox"
     },
     "ServiceStatus": {
         "Enter maintenance mode": "Starta underhållsläge",
@@ -3048,6 +3087,48 @@
         "Allow anonymous access": "Tillåt anonym åtkomst",
         "Allow anonymous playground": "Tillåt annonym åtkomst till testmiljön",
         "Allow anyone to create team sites": "Tillåt alla att skapa arbetslagssajter",
-        "Allow personal sites": "Tillåt personliga sajter"
+        "Allow personal sites": "Tillåt personliga sajter",
+        "Any logged-in user can create new team sites. Turn off to restrict team creation to admins only.": "Alla inloggade användare kan skapa nya arbetslagssajter. Stäng av för att begränsa så att bara administratörer kan skap arbetslagssajter.",
+        "Apply & restart": "Applicera & starta om",
+        "Apply and go live!": "Applicera och gå live!",
+        "Applying settings and restarting…": "Applicerar inställningar och startar om…",
+        "Back to installation": "Tillbaka till installation",
+        "Conflict": "Konflikt",
+        "DEFAULT PERMISSIONS": "STANDARD BEHÖRIGHETER",
+        "Environment": "Driftmiljö",
+        "Grist is live!": "Grist är live!",
+        "Loading permissions…": "Laddar behörigheter…",
+        "Locked down": "Låst",
+        "Open": "Öppna",
+        "Recommended": "Rekommenderad",
+        "Review these defaults before going live. You can change them later from the admin panel.": "Kontrollera dessa standardvärden innan du går live. Du kan ändra dom senare från administrationspanelen.",
+        "Server did not restart in time. Please refresh the page.": "Servern startade inte om i tid. Ladda om sidan.",
+        "Some settings are controlled by environment variables and cannot be changed here: {{vars}}. To modify them, update the corresponding variables in your server configuration and restart.": "Vissa inställningar hanteras av miljövariabler och kan inte ändras hår: {{vars}}. För att ändra dom, uppdatera relevanta variabler i dina serverinställningar och starta om.",
+        "The personal org is the only org available — personal sites must stay enabled or Grist will be non-functional.": "Personlig organisation är den enda tillgängliga — personliga sajter måste vara aktiverad annars kommer inte Grist att fungera.",
+        "Users can create their own personal sites with documents. Turn off to restrict all documents to team sites managed by admins.": "Användare kan skapa sina egna personliga sajter med document. Stäng av för att begränsa så att alla dokument finns på arbetslags sajter som hanteras av administratörer.",
+        "Visitors who aren't signed in can create and edit documents in a temporary playground. Turn off to require sign-in before creating any documents.": "Besökare som inte är inloggade kan skapa och redigera dokument i en tillfällig testmiljö. Stäng av för att kräva inloggning innan dokument kan skapas.",
+        "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.": "Besökare som inte är inloggade kan läsa publikt delade dokument. Detta behövs för att dela länkar och publicerade formulär.",
+        "You have GRIST_SINGLE_ORG={{value}} set. With this, users only see one site — but personal sites and team creation still work behind the scenes. Worth locking down unless you have a specific reason to keep them.": "Du har GRIST_SINGLE_ORG={{value}} inställd. Det gör att användare bara ser en sajt — men personliga sajter och skapande av arbetslag fungerar fortfarande i bakgrunden. Det är klokt att låsa dom om du inte har en specifik anledning till att behålla dom.",
+        "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Dina inställnings ändringar har blivit applicerade och servern har startats om. Grist är nu i drift och tillgänglig för användare.",
+        "Custom": "Anpassad",
+        "loading…": "laddar…"
+    },
+    "AdminAccessDeniedCard": {
+        "Administrator Panel Unavailable": "Administratörspanel är inte tillgänglig",
+        "If you are the server operator, you can sign in using the boot key from your server logs.": "Om du är severadministratören så kan du logga in genom att använda uppstartsnyckeln från server loggen.",
+        "Sign in with boot key": "Logga in med uppstartsnyckel",
+        "You do not have access to the administrator panel.\nPlease log in as an administrator.": "Du har inte tillgång till administratörspanelen. \nLogga in som administratör."
+    },
+    "PermissionsToggleModel": {
+        "Allow anonymous access": "Tillåt anonym åtkomst",
+        "Allow anonymous playground": "Tillåt anonym testmiljö",
+        "Allow anyone to create team sites": "Tillåt alla att skapa arbetslagssajter",
+        "Allow personal sites": "Tillåt personliga sajter",
+        "Permissions": "Behörighetee",
+        "off": "av",
+        "on": "på"
+    },
+    "ScreenReaderAnnouncer": {
+        "Notification: {{notification}}": "Notifiering: {{notification}}"
     }
 }
