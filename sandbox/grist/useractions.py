@@ -253,9 +253,18 @@ class UserActions(object):
       # Convert bulk actions to single actions if possible, or None if it affects no rows.
       action = action.simplify()
     if action:
-      self._engine.out_actions.stored.append(action)
-      self._engine.out_actions.direct.append(self._indirection_level == DIRECT_ACTION)
+      out = self._engine.out_actions
+      out.stored.append(action)
+      out.direct.append(self._indirection_level == DIRECT_ACTION)
+      stored_index = len(out.stored) - 1
+      undo_start = len(out.undo)
       self._engine.apply_doc_action(action)
+      # Every undo action appended while applying this stored action is its inverse. Record the
+      # correspondence so the server need not re-infer it (see ActionGroup.undo_owner). Applying
+      # one doc action only ever appends to the undo list (the reorderings happen later, during
+      # calc flush), so the new tail is exactly this action's undos.
+      for undo_action in out.undo[undo_start:]:
+        out.undo_owner[id(undo_action)] = stored_index
 
   def _do_extra_doc_action(self, action):
     # It this is Update, Add (or Bulks), run thouse actions through ensure_column_accepts_data

@@ -1,4 +1,4 @@
-import { concatenateSummaries } from "app/common/ActionSummarizer";
+import { concatenateSummaryPair } from "app/common/ActionSummarizer";
 import { ActionSummary, ColumnDelta, createEmptyActionSummary, createEmptyTableDelta } from "app/common/ActionSummary";
 import { CellDelta } from "app/common/TabularDiff";
 
@@ -40,7 +40,12 @@ export class TimeCursor {
    * the TimeCursor, so we stretch further back in time.
    */
   public prepend(prevSummary: ActionSummary) {
-    this.summary = concatenateSummaries([prevSummary, this.summary]);
+    // Fold with the raw (value-preserving) pair algebra, never the canonicalizing
+    // concatenateSummaries: this is an incremental fold, and canonicalizing each
+    // step would strip an insignificant [[v],[v]] cell whose value a later step's
+    // existence boundary still needs. TimeQuery reads pre-values straight from the
+    // retained cells, so the raw form is exactly what it wants.
+    this.summary = concatenateSummaryPair(prevSummary, this.summary);
   }
 
   /**
@@ -54,7 +59,8 @@ export class TimeCursor {
     // need to clone to avoid propagating that. Look to see if
     // a safe version of concatenation could be written to save
     // cloning.
-    this.summary = concatenateSummaries([this.summary, nextSummary]);
+    // Raw pair algebra, not concatenateSummaries -- see prepend().
+    this.summary = concatenateSummaryPair(this.summary, nextSummary);
   }
 }
 

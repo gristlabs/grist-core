@@ -405,6 +405,33 @@ for (const version of versions) {
   });
 }
 
+describe("computeActionHash with undo ownership", function() {
+  // The engine's per-undo ownership is folded into the action hash when present, so it is covered
+  // by the checksum -- but only when present, so actions recorded before ownership existed keep
+  // the hash they always had.
+  it("does not change the hash when ownership is absent, null, or undefined", function() {
+    const base = makeBundle(1, "one");
+    const baseline = computeActionHash(base);
+    assert.equal(computeActionHash({ ...base, undoOwner: undefined }), baseline,
+      "an explicit undefined must hash like an absent field");
+    // A history round-trip turns an absent owner list into null; that must hash like absent too,
+    // or re-verifying a pre-ownership action read back from storage would fail.
+    assert.equal(computeActionHash({ ...base, undoOwner: null } as any), baseline,
+      "a round-tripped null must hash like an absent field");
+  });
+
+  it("folds ownership into the hash when present, and is tamper-evident", function() {
+    const base = makeBundle(1, "one");
+    const withOwners = computeActionHash({ ...base, undoOwner: [0, null, 1] });
+    assert.notEqual(withOwners, computeActionHash(base),
+      "present ownership must affect the hash");
+    assert.notEqual(withOwners, computeActionHash({ ...base, undoOwner: [0, null, 2] }),
+      "altering an owner must change the hash");
+    assert.notEqual(withOwners, computeActionHash({ ...base, undoOwner: [0, 1] }),
+      "dropping an owner must change the hash");
+  });
+});
+
 describe("ActionHistoryImpl only", function() {
   // No sandboxing for quick tests.
   testUtils.withoutSandboxing();

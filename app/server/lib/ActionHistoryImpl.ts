@@ -85,6 +85,14 @@ export function computeActionHash(action: LocalActionBundle): string {
   encoder.marshal(action.parentActionHash);
   encoder.marshal(action.info);
   encoder.marshal(action.stored);
+  // Fold in the engine's per-undo ownership when the bundle carries it, so it is covered by the
+  // checksum too. Only when present (an array): a bundle recorded before ownership existed, or one
+  // assembled without the data engine, has none and must hash exactly as it always did. At record
+  // time the value is the in-memory array or undefined -- never the null a history round-trip would
+  // produce -- so `Array.isArray` is the right gate. Adding a field needs no migration; see _addAction.
+  if (Array.isArray(action.undoOwner)) {
+    encoder.marshal(action.undoOwner);
+  }
   const buf = encoder.dumpAsBuffer();
   shaSum.update(buf);
   return shaSum.digest("hex");
@@ -504,6 +512,9 @@ export class ActionHistoryImpl implements ActionHistory {
   private async _addAction(action: LocalActionBundle,
     branch: ActionIdentifiers): Promise<number> {
     action.parentActionHash = branch.actionHash;
+    // The hash is write-once: computed here at the origin (when unset), stored verbatim, never
+    // recomputed and compared. So computeActionHash can fold in new fields (e.g. undoOwner) without
+    // a migration -- old hashes stand, new actions just get new ones.
     if (!action.actionHash) {
       action.actionHash = computeActionHash(action);
     }

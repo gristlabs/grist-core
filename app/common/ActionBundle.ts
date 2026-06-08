@@ -63,6 +63,12 @@ export interface SandboxActionBundle {
   direct: EnvContent<boolean>[];
   calc: EnvContent<DocAction>[];
   undo: EnvContent<DocAction>[];   // Inverse actions for all 'stored' actions.
+  // Parallel to 'undo': the index into 'stored' of the action that produced each undo action, as
+  // the engine knows it directly, or null for a front calc-flush restore that the summarizer
+  // attributes for itself. Lets the summarizer chunk a bundle without re-inferring the grouping
+  // (see app/common/ActionLayout.ts chunkByOwners). Enveloped like the other parallel arrays,
+  // though the index is global to the bundle; flattened into LocalActionBundle alongside 'undo'.
+  undoOwner?: EnvContent<number | null>[];
   retValues: any[];                     // Contains retValue for each of userActions.
   rowCount: RowCounts;
   // Mapping of keys (hashes of request args) to all unique requests made in a round of calculation
@@ -91,4 +97,11 @@ export interface LocalActionBundle extends ActionBundle {
   // Applying 'undo' is governed by EDIT rather than READ permissions, so we always apply all undo
   // actions. (It is the result of applying 'undo' that may be addressed to different recipients).
   undo: DocAction[];
+
+  // Parallel to 'undo': the stored-action index each undo corresponds to (or null), as reported
+  // by the engine. Absent on bundles produced before this was recorded, and on bundles assembled
+  // without the data engine; the summarizer then falls back to inferring the grouping. Persisted
+  // with the bundle in the action history, and folded into the action hash when present (see
+  // computeActionHash) so it is covered by the checksum.
+  undoOwner?: (number | null)[];
 }
