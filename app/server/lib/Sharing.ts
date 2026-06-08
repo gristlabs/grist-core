@@ -93,6 +93,7 @@ export class Sharing {
     const sandboxActionBundle = result.bundle;
     const accessControl = result.accessControl;
     const undo = getEnvContent(result.bundle.undo);
+    const undoOwner = sandboxActionBundle.undoOwner && getEnvContent(sandboxActionBundle.undoOwner);
 
     try {
       const isSystemAction = (userActions.length === 1 && SYSTEM_ACTIONS.has(userActions[0][0] as string));
@@ -123,6 +124,7 @@ export class Sharing {
         stored: sandboxActionBundle.stored,
         calc: sandboxActionBundle.calc,
         undo,
+        undoOwner,
         userActions,
         actionHash: null,        // Gets set below by _actionHistory.recordNext...
         parentActionHash: null,  // Gets set below by _actionHistory.recordNext...
