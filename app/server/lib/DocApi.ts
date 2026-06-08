@@ -1,5 +1,4 @@
 import { concatenateSummaries, summarizeAction } from "app/common/ActionSummarizer";
-import { createEmptyActionSummary } from "app/common/ActionSummary";
 import { QueryFilters } from "app/common/ActiveDocAPI";
 import { ApiError } from "app/common/ApiError";
 import { BrowserSettings } from "app/common/BrowserSettings";
@@ -21,7 +20,7 @@ import {
   isRaisedException,
 } from "app/common/gristTypes";
 import { buildUrlId, parseUrlId, SHARE_KEY_PREFIX } from "app/common/gristUrls";
-import { isAffirmative, safeJsonParse } from "app/common/gutil";
+import { isAffirmative, isNonNullish, safeJsonParse } from "app/common/gutil";
 import { schema, SchemaTypes } from "app/common/schema";
 import { MetaRowRecord, MetaTableData } from "app/common/TableData";
 import {
@@ -2392,14 +2391,10 @@ export async function getChanges(
   }
   const actionNums: number[] = states.slice(rightOffset, leftOffset).map(state => state.n);
   const actions = (await activeDoc.getActions(actionNums)).reverse();
-  let totalAction = createEmptyActionSummary();
-  for (const action of actions) {
-    if (!action) { continue; }
-    const summary = summarizeAction(action, {
-      maximumInlineRows: maxRows,
-    });
-    totalAction = concatenateSummaries([totalAction, summary]);
-  }
+  // Combine the per-action summaries into one net diff for the range.
+  // concatenateSummaries drops the changes that cancel out along the way.
+  const totalAction = concatenateSummaries(
+    actions.filter(isNonNullish).map(action => summarizeAction(action, { maximumInlineRows: maxRows })));
   const result: DocStateComparison = {
     left: states[leftOffset],
     right: states[rightOffset],

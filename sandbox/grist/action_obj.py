@@ -29,12 +29,21 @@ class ActionGroup(object):
     self.summary = ActionSummary()
     self.requests = {}
 
+    # Maps id(undo_action) to the index in self.stored of the doc action whose application
+    # produced that undo action. This is the correspondence the engine knows directly, used on
+    # the server to chunk a bundle without re-inferring it (see app/common/ActionLayout.ts
+    # chunkByOwners). Keyed by object identity so it survives undo entries being reordered (the
+    # ModifyColumn pop/re-append) or front-inserted. An undo action absent from this map (notably
+    # the front calc-flush restores of a removed column/table/row) has no single owning stored
+    # action; the server attributes those to their removal just as the lattice chunker does.
+    self.undo_owner = {}
+
   def flush_calc_changes(self):
     """
     Merge the changes from self.summary into self.stored and self.undo, and clear the summary.
     """
     length_before = len(self.stored)
-    self.summary.convert_deltas_to_actions(self.stored, self.undo)
+    self.summary.convert_deltas_to_actions(self.stored, self.undo, self.undo_owner)
     count = len(self.stored) - length_before
     self.direct += [False] * count
     self.summary = ActionSummary()
@@ -45,7 +54,8 @@ class ActionGroup(object):
     remove that column from the summary.
     """
     length_before = len(self.stored)
-    self.summary.pop_column_delta_as_actions(table_id, col_id, self.stored, self.undo)
+    self.summary.pop_column_delta_as_actions(table_id, col_id, self.stored, self.undo,
+                                             self.undo_owner)
     count = len(self.stored) - length_before
     self.direct += [False] * count
 
@@ -93,6 +103,9 @@ class ActionBundle(object):
     self.direct = []          # Pairs of (envIndex, boolean)
     self.calc = []            # Pairs of (envIndex, docAction)
     self.undo = []            # Pairs of (envIndex, docAction)
+    self.undo_owner = []      # Pairs of (envIndex, owner), parallel to self.undo: the stored-action
+                              # index that produced each undo action, or None for a front
+                              # calc-flush restore (see ActionGroup.undo_owner).
     self.retValues = []
     self.rules = set()        # RowIds of ACLRule records used to construct this ActionBundle.
 
@@ -103,6 +116,7 @@ class ActionBundle(object):
       "direct":    self.direct,
       "calc":      [(env, actions.get_action_repr(a)) for (env, a) in self.calc],
       "undo":      [(env, actions.get_action_repr(a)) for (env, a) in self.undo],
+      "undoOwner": self.undo_owner,
       "retValues": self.retValues,
       "rules":     sorted(self.rules)
     }
