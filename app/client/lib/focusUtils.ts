@@ -428,3 +428,10 @@ export function focusFallbackOnDispose() {
       ?.focus({ preventScroll: true });
   });
 }
+
+export const isMousetrapIgnoredElement = (el: EventTarget | null): boolean => {
+  if (!(el instanceof HTMLElement) || el.classList.contains("mousetrap")) {
+    return false;
+  }
+  return ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName) || el.isContentEditable;
+};
