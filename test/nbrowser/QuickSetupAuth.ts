@@ -71,6 +71,7 @@ describe("QuickSetupAuth", function() {
     GRIST_DEFAULT_EMAIL: user.email,
     GRIST_TEST_SERVER_DEPLOYMENT_TYPE: "core",
     GRIST_LOG_HTTP: "1",
+    GRIST_IN_SERVICE: "false",
   }));
 
   async function navigateToAuthStep() {
@@ -188,6 +189,7 @@ describe("QuickSetupAuth", function() {
       GRIST_OIDC_IDP_CLIENT_SECRET: "test-secret",
       GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT: "true",
       GRIST_OIDC_SP_HOST: "localhost",
+      GRIST_IN_SERVICE: "false",
     }));
 
     it("should enable Continue button when auth is configured but erroring", async function() {
@@ -248,6 +250,8 @@ describe("QuickSetupAuth", function() {
         // shouldRunAsRestartShell so /api/admin/restart actually drives a
         // worker restart in nbrowser (default would 409).
         GRIST_RESTART_SHELL: "true",
+
+        GRIST_IN_SERVICE: "true",
 
         // Use a single-port setup, including for PORT, which is used for the RestartShell.
         HOME_PORT: homePort,
