@@ -3,14 +3,22 @@
 # This checks out the ext/ directory from the extra repo (e.g.
 # grist-ee or grist-desktop) depending on the supplied repo name.
 #
-# For grist-ee, there is some special behavior. If the git clone
-# fails, we now check for a pre-built ext/ tarball from
-# https://grist-static.com/ext/. In future, this will become the
-# default.
+# For grist-ee, there is some special behavior. By default we use a
+# pre-built ext/ tarball from https://grist-static.com/ext/ and do not
+# attempt a git clone at all. Pass --ignore-tarball to skip the tarball
+# and use git clone instead.
 
 set -e
 
-repo=$1
+repo=""
+ignore_tarball=""
+for arg in "$@"; do
+  case "$arg" in
+    --ignore-tarball) ignore_tarball=1 ;;
+    *) repo="$arg" ;;
+  esac
+done
+
 dir=$(dirname $0)
 
 if [[ "$repo" = "" ]]; then
@@ -20,8 +28,24 @@ fi
 
 ref=$(cat $dir/.$repo-version)
 
+# Fetch a pre-built tarball.
+fetch_tarball() {
+  TARBALL="ext-built-${ref}.tar.gz"
+  URL="https://grist-static.com/ext/$TARBALL"
+
+  echo "+ Fetching $URL"
+  curl -fsSL "$URL" -o "$TARBALL"
+  rm -rf ./ext
+  tar xzf "$TARBALL"
+  rm -f "$TARBALL"
+  echo "+ Installed pre-built ext ($ref)"
+}
+
+if [[ "$repo" = "grist-ee" && -z "$ignore_tarball" ]]; then
+  # For grist-ee, always use the tarball (and only the tarball).
+  fetch_tarball
 # Try git clone first.
-if git -c advice.detachedHead=false clone --quiet --branch $ref \
+elif git -c advice.detachedHead=false clone --quiet --branch $ref \
     --depth 1 --filter=tree:0 "https://github.com/gristlabs/$repo" 2>/dev/null; then
   echo "+ Fetched $repo via git"
   pushd $repo > /dev/null
@@ -33,17 +57,6 @@ if git -c advice.detachedHead=false clone --quiet --branch $ref \
   rm -rf ./ext
   mv $repo/ext .
   rm -rf $repo
-elif [[ "$repo" = "grist-ee" ]]; then
-  # Check for a pre-built tarball.
-  TARBALL="ext-built-${ref}.tar.gz"
-  URL="https://grist-static.com/ext/$TARBALL"
-
-  echo "+ git clone failed, trying $URL"
-  curl -fsSL "$URL" -o "$TARBALL"
-  rm -rf ./ext
-  tar xzf "$TARBALL"
-  rm -f "$TARBALL"
-  echo "+ Installed pre-built ext ($ref)"
 else
   echo "+ Failed to fetch $repo"
   exit 1
