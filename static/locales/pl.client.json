@@ -1023,21 +1023,6 @@
         "Hide {{label}} (batch mode)": "Ukryj {{label}} (tryb seryjny)",
         "Show {{label}} (batch mode)": "Pokaż {{label}} (tryb seryjny)"
     },
-    "WelcomeQuestions": {
-        "Education": "Edukacja",
-        "Research": "Badania",
-        "Type here": "Wpisz tutaj",
-        "Welcome to Grist!": "Witamy w Grist!",
-        "What brings you to Grist? Please help us serve you better.": "Co sprowadza cię do Grist? Pomóż nam lepiej Ci służyć.",
-        "Product Development": "Rozwój produktu",
-        "IT & Technology": "IT i technologia",
-        "Marketing": "Marketing",
-        "Media Production": "Produkcja medialna",
-        "Other": "Inne",
-        "Sales": "Sprzedaż",
-        "Finance & Accounting": "Finanse i Księgowość",
-        "HR & Management": "HR i zarządzanie"
-    },
     "WidgetTitle": {
         "DATA TABLE NAME": "NAZWA TABELI DANYCH",
         "Override widget title": "Zastąp tytuł widżetu",
@@ -1121,9 +1106,7 @@
         "Attachment": "Załącznik",
         "Search columns": "Wyszukaj kolumny",
         "By Name": "Według nazwy",
-        "By Date Modified": "Według daty modyfikacji",
-        "Light": "Jasny",
-        "Custom": "Niestandardowy"
+        "By Date Modified": "Według daty modyfikacji"
     },
     "modals": {
         "Cancel": "Anuluj",
@@ -1234,7 +1217,8 @@
     },
     "ThemeConfig": {
         "Appearance ": "Wygląd ",
-        "Switch appearance automatically to match system": "Automatyczne przełączanie wyglądu w celu dopasowania do systemu"
+        "Switch appearance automatically to match system": "Automatyczne przełączanie wyglądu w celu dopasowania do systemu",
+        "Light": "Jasny"
     },
     "TopBar": {
         "Manage team": "Zarządzaj zespołem"
@@ -2005,7 +1989,17 @@
         "What organization are you with?": "Z jaką organizacją jesteś związany?",
         "Your organization": "Twoja organizacja",
         "Your role": "Twoja rola",
-        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "Grist może wyglądać jak arkusz kalkulacyjny, ale nie zawsze tak działa. Odkryj, co wyróżnia Grista."
+        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "Grist może wyglądać jak arkusz kalkulacyjny, ale nie zawsze tak działa. Odkryj, co wyróżnia Grista.",
+        "Product Development": "Rozwój produktu",
+        "Finance & Accounting": "Finanse i Księgowość",
+        "Media Production": "Produkcja medialna",
+        "IT & Technology": "IT i technologia",
+        "Marketing": "Marketing",
+        "Research": "Badania",
+        "Sales": "Sprzedaż",
+        "Education": "Edukacja",
+        "HR & Management": "HR i zarządzanie",
+        "Other": "Inne"
     },
     "ToggleEnterpriseWidget": {
         "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Klucz aktywacyjny służy do uruchomienia Grist Enterprise po wygaśnięciu 30-dniowego okresu próbnego. Uzyskaj klucz aktywacyjny, [rejestrując się w Grist Enterprise]({{signupLink}}). Do uruchomienia Grist Core nie potrzebujesz klucza aktywacyjnego.\n\nDowiedz się więcej w naszym [Centrum pomocy]({{helpCenter}}).",

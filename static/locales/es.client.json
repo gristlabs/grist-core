@@ -767,7 +767,8 @@
     },
     "ThemeConfig": {
         "Appearance ": "Apariencia ",
-        "Switch appearance automatically to match system": "Cambiar la apariencia automáticamente para que coincida con el sistema"
+        "Switch appearance automatically to match system": "Cambiar la apariencia automáticamente para que coincida con el sistema",
+        "Light": "Claro"
     },
     "Tools": {
         "Access Rules": "Reglas de acceso",
@@ -845,21 +846,6 @@
         "Hidden {{label}}": "{{label}} oculta",
         "Show {{label}}": "Mostrar {{label}}",
         "Visible {{label}}": "{{label}} visible"
-    },
-    "WelcomeQuestions": {
-        "Education": "Educación",
-        "Finance & Accounting": "Finanzas y Contabilidad",
-        "HR & Management": "RRHH y Gestión",
-        "IT & Technology": "TI y Tecnología",
-        "Marketing": "Publicidad",
-        "Media Production": "Producción audiovisual",
-        "Other": "Otros",
-        "Product Development": "Desarrollo de productos",
-        "Research": "Investigación",
-        "Sales": "Ventas",
-        "Type here": "Escriba aquí",
-        "Welcome to Grist!": "¡Bienvenido a Grist!",
-        "What brings you to Grist? Please help us serve you better.": "¿Qué te trae a Grist? Por favor, ayúdenos a servirle mejor."
     },
     "WidgetTitle": {
         "Cancel": "Cancelar",
@@ -1142,9 +1128,7 @@
         "Toggle": "Alternar",
         "Search columns": "Búsqueda por columnas",
         "By Date Modified": "Por fecha de modificación",
-        "By Name": "Por nombre",
-        "Light": "Claro",
-        "Custom": "Personalizado"
+        "By Name": "Por nombre"
     },
     "modals": {
         "Cancel": "Cancelar",
@@ -1947,7 +1931,17 @@
         "Go hands-on with the Grist Basics tutorial": "Práctica con el tutorial básico de Grist",
         "Go to the tutorial!": "¡Ve al tutorial!",
         "What organization are you with?": "¿A qué organización perteneces?",
-        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "Grist puede parecer una hoja de cálculo, pero no siempre actúa como tal. Descubre por qué Grist es diferente."
+        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "Grist puede parecer una hoja de cálculo, pero no siempre actúa como tal. Descubre por qué Grist es diferente.",
+        "Product Development": "Desarrollo de productos",
+        "Finance & Accounting": "Finanzas y Contabilidad",
+        "Media Production": "Producción audiovisual",
+        "IT & Technology": "TI y Tecnología",
+        "Marketing": "Publicidad",
+        "Research": "Investigación",
+        "Sales": "Ventas",
+        "Education": "Educación",
+        "HR & Management": "RRHH y Gestión",
+        "Other": "Otros"
     },
     "ViewLayout": {
         "Delete": "Borrar",

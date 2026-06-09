@@ -957,7 +957,10 @@
     },
     "ThemeConfig": {
         "Appearance ": "Tampilan ",
-        "Switch appearance automatically to match system": "Ganti tampilan secara otomatis agar sesuai dengan sistem"
+        "Switch appearance automatically to match system": "Ganti tampilan secara otomatis agar sesuai dengan sistem",
+        "Light": "Terang",
+        "Dark": "Gelap",
+        "Light (High Contrast)": "Terang (Kontras Tinggi)"
     },
     "Tools": {
         "Access Rules": "Aturan Akses",
@@ -1078,21 +1081,6 @@
         "Hide {{label}} (batch mode)": "Sembunyikan {{label}} (mode batch)",
         "Show {{label}} (batch mode)": "Tampilkan {{label}} (mode batch)"
     },
-    "WelcomeQuestions": {
-        "Education": "Pendidikan",
-        "Finance & Accounting": "Keuangan dan Akuntansi",
-        "HR & Management": "SDM dan Manajemen",
-        "IT & Technology": "TI dan Teknologi",
-        "Marketing": "Pemasaran",
-        "Media Production": "Produksi Media",
-        "Other": "Lainnya",
-        "Product Development": "Pengembangan Produk",
-        "Research": "Riset",
-        "Sales": "Penjualan",
-        "Type here": "Ketik di sini",
-        "Welcome to Grist!": "Selamat datang di Grist!",
-        "What brings you to Grist? Please help us serve you better.": "Apa yang membawa Anda ke Grist? Mohon bantu kami melayani Anda dengan lebih baik."
-    },
     "WidgetTitle": {
         "Cancel": "Batal",
         "DATA TABLE NAME": "NAMA TABEL DATA",
@@ -1181,11 +1169,7 @@
         "Attachment": "Lampiran",
         "Search columns": "Kolom pencarian",
         "By Name": "Berdasarkan Nama",
-        "By Date Modified": "Berdasar tanggal Modifikasi",
-        "Light": "Terang",
-        "Custom": "Kustom",
-        "Dark": "Gelap",
-        "Light (High Contrast)": "Terang (Kontras Tinggi)"
+        "By Date Modified": "Berdasar tanggal Modifikasi"
     },
     "modals": {
         "Cancel": "Batal",
@@ -2283,7 +2267,17 @@
         "What organization are you with?": "Anda tergabung dalam organisasi apa?",
         "Your organization": "Organisasi Anda",
         "Your role": "Peran Anda",
-        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "Grist mungkin terlihat seperti spreadsheet, tetapi fungsinya tidak selalu seperti itu. Temukan apa yang membedakan Grist."
+        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "Grist mungkin terlihat seperti spreadsheet, tetapi fungsinya tidak selalu seperti itu. Temukan apa yang membedakan Grist.",
+        "Product Development": "Pengembangan Produk",
+        "Finance & Accounting": "Keuangan dan Akuntansi",
+        "Media Production": "Produksi Media",
+        "IT & Technology": "TI dan Teknologi",
+        "Marketing": "Pemasaran",
+        "Research": "Riset",
+        "Sales": "Penjualan",
+        "Education": "Pendidikan",
+        "HR & Management": "SDM dan Manajemen",
+        "Other": "Lainnya"
     },
     "ToggleEnterpriseWidget": {
         "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Kunci aktivasi digunakan untuk menjalankan Grist Enterprise setelah masa uji coba\n30 hari berakhir. Dapatkan kunci aktivasi dengan [mendaftar di Grist\nEnterprise]({{signupLink}}). Anda tidak memerlukan kunci aktivasi untuk menjalankan\nGrist Core.\n\nPelajari lebih lanjut di [Pusat Bantuan]({{helpCenter}}) kami.",

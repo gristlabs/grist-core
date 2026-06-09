@@ -730,21 +730,6 @@
     "Update Sort&Filter settings": "Päivitä järjestys- & suodatusasetukset",
     "FILTER": "SUODATA"
   },
-  "WelcomeQuestions": {
-    "What brings you to Grist? Please help us serve you better.": "Mikä tuo sinut Gristin pariin? Auta meitä palvelemaan sinua entistä paremmin.",
-    "Education": "Koulutus",
-    "Finance & Accounting": "Talous ja kirjanpito",
-    "HR & Management": "Henkilöstöhallinto",
-    "IT & Technology": "IT ja teknologia",
-    "Marketing": "Markkinointi",
-    "Media Production": "Mediatuotanto",
-    "Other": "Muu",
-    "Product Development": "Tuotekehitys",
-    "Research": "Tutkimus",
-    "Sales": "Myynti",
-    "Type here": "Kirjoita tähän",
-    "Welcome to Grist!": "Tervetuloa Gristiin!"
-  },
   "VisibleFieldsConfig": {
     "Clear": "Tyhjennä",
     "Show {{label}}": "Näytä {{label}}",
@@ -992,5 +977,18 @@
   "ColumnEditor": {
     "COLUMN DESCRIPTION": "SARAKKEEN KUVAUS",
     "COLUMN LABEL": "SARAKKEEN NIMIKE"
+  },
+  "OnboardingPage": {
+    "Product Development": "Tuotekehitys",
+    "Finance & Accounting": "Talous ja kirjanpito",
+    "Media Production": "Mediatuotanto",
+    "IT & Technology": "IT ja teknologia",
+    "Marketing": "Markkinointi",
+    "Research": "Tutkimus",
+    "Sales": "Myynti",
+    "Education": "Koulutus",
+    "HR & Management": "Henkilöstöhallinto",
+    "Other": "Muu",
+    "Type here": "Kirjoita tähän"
   }
 }

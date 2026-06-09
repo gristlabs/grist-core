@@ -237,21 +237,6 @@
         "Section: ": "Sezione: ",
         "Unmark On-Demand": "Non rendere on-demand"
     },
-    "WelcomeQuestions": {
-        "What brings you to Grist? Please help us serve you better.": "Che cosa ti ha portato a Grist? Aiutaci a servirti meglio.",
-        "Sales": "Vendite",
-        "Product Development": "Sviluppo di prodotti",
-        "Education": "Istruzione",
-        "Finance & Accounting": "Finanza e contabilità",
-        "HR & Management": "Risorse umane e amministrazione",
-        "IT & Technology": "IT e tecnologia",
-        "Marketing": "Marketing",
-        "Media Production": "Produzione nei media",
-        "Other": "Altro",
-        "Research": "Ricerca",
-        "Type here": "Scrivi qui",
-        "Welcome to Grist!": "Benvenuto in Grist!"
-    },
     "errorPages": {
         "Something went wrong": "Qualcosa non ha funzionato",
         "The requested page could not be found.{{separator}}Please check the URL and try again.": "Impossibile trovare la pagina richiesta.{{separator}}Controllare la URL e provare ancora.",
@@ -1018,7 +1003,8 @@
     },
     "ThemeConfig": {
         "Appearance ": "Aspetto ",
-        "Switch appearance automatically to match system": "Cambia aspetto automaticamente con il sistema"
+        "Switch appearance automatically to match system": "Cambia aspetto automaticamente con il sistema",
+        "Light": "Chiaro"
     },
     "TopBar": {
         "Manage team": "Gestisci il team"
@@ -1122,9 +1108,7 @@
         "Choice": "Scelta",
         "Search columns": "Cerca colonne",
         "By Name": "Per nome",
-        "Light": "Chiaro",
-        "By Date Modified": "Per data di modifica",
-        "Custom": "Personalizzato"
+        "By Date Modified": "Per data di modifica"
     },
     "modals": {
         "Cancel": "Annulla",
@@ -1765,7 +1749,17 @@
         "Skip tutorial": "Salta il tutorial",
         "What is your role?": "Qual è il tuo ruolo?",
         "Your organization": "La tua organizzazione",
-        "Your role": "Il tuo ruolo"
+        "Your role": "Il tuo ruolo",
+        "Product Development": "Sviluppo di prodotti",
+        "Finance & Accounting": "Finanza e contabilità",
+        "Media Production": "Produzione nei media",
+        "IT & Technology": "IT e tecnologia",
+        "Marketing": "Marketing",
+        "Research": "Ricerca",
+        "Sales": "Vendite",
+        "Education": "Istruzione",
+        "HR & Management": "Risorse umane e amministrazione",
+        "Other": "Altro"
     },
     "ViewLayout": {
         "Delete": "Cancella",

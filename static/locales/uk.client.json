@@ -226,7 +226,8 @@
     },
     "ThemeConfig": {
         "Switch appearance automatically to match system": "Автоматично змінювати оформлення відповідно до системи",
-        "Appearance ": "Оформлення "
+        "Appearance ": "Оформлення ",
+        "Light": "Світло"
     },
     "HomeIntro": {
         "Create empty document": "Створити пустий документ",
@@ -1058,21 +1059,6 @@
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "Цей сайт команди обмежений. Документи можна читати, але редагування не доступне."
     },
-    "WelcomeQuestions": {
-        "Education": "Освіта",
-        "Finance & Accounting": "Фінанси та облік",
-        "Marketing": "Маркетинг",
-        "Media Production": "Медіавиробництво",
-        "Other": "Інше",
-        "Product Development": "Розробка продукту",
-        "Research": "Дослідження",
-        "Sales": "Продажі",
-        "Type here": "Введіть тут",
-        "What brings you to Grist? Please help us serve you better.": "Що привело вас до Grist? Будь ласка, допоможіть зробити наш сервіс кращим.",
-        "HR & Management": "Управління персоналом та Менеджмент",
-        "IT & Technology": "IT та Технології",
-        "Welcome to Grist!": "Ласкаво просимо до Grist!"
-    },
     "WidgetTitle": {
         "Cancel": "Відмінити",
         "DATA TABLE NAME": "ІМ'Я ТАБЛИЦІ ДАНИХ",
@@ -1156,9 +1142,7 @@
         "Attachment": "Вкладення",
         "Search columns": "Шукати стовпці",
         "By Name": "За іменем",
-        "By Date Modified": "За датою змін",
-        "Light": "Світло",
-        "Custom": "Користувацька"
+        "By Date Modified": "За датою змін"
     },
     "modals": {
         "Cancel": "Відмінити",
@@ -2006,7 +1990,17 @@
         "What organization are you with?": "З якою організацією ви працюєте?",
         "Your organization": "Ваша організація",
         "Your role": "Ваша роль",
-        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "Grist може виглядати як електронна таблиця, але він не завжди так поводиться. Дізнайтеся, що відрізняє Grist від інших."
+        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "Grist може виглядати як електронна таблиця, але він не завжди так поводиться. Дізнайтеся, що відрізняє Grist від інших.",
+        "Product Development": "Розробка продукту",
+        "Finance & Accounting": "Фінанси та облік",
+        "Media Production": "Медіавиробництво",
+        "IT & Technology": "IT та Технології",
+        "Marketing": "Маркетинг",
+        "Research": "Дослідження",
+        "Sales": "Продажі",
+        "Education": "Освіта",
+        "HR & Management": "Управління персоналом та Менеджмент",
+        "Other": "Інше"
     },
     "ToggleEnterpriseWidget": {
         "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Ключ активації використовується для запуску Grist Enterprise після закінчення 30-денного пробного періоду.\nОтримайте ключ активації, [зареєструвавшись у Grist\nEnterprise]({{signupLink}}). Вам не потрібен ключ активації для запуску\nGrist Core.\n\nДізнайтеся більше в нашому [Центрі довідки]({{helpCenter}}).",

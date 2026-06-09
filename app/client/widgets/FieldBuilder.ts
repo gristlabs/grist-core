@@ -18,6 +18,7 @@ import { ColumnRec, DocModel, ViewFieldRec } from "app/client/models/DocModel";
 import { SaveableObjObservable, setSaveValue } from "app/client/models/modelUtil";
 import { CombinedStyle, Style } from "app/client/models/Styles";
 import { FieldSettingsMenu } from "app/client/ui/FieldMenus";
+import { translateColumnTypeLabel } from "app/client/ui/GridViewMenus";
 import { cssBlockedCursor, cssLabel, cssRow } from "app/client/ui/RightPanelStyles";
 import { textButton } from "app/client/ui2018/buttons";
 import { buttonSelect, cssButtonSelect } from "app/client/ui2018/buttonSelect";
@@ -151,7 +152,7 @@ export class FieldBuilder extends Disposable {
       _.each(UserType.typeDefs, (def: any, key: string | number) => {
         const o: IOptionFull<string> = {
           value: key as string,
-          label: def.label,
+          label: translateColumnTypeLabel(def.label),
           icon: def.icon,
         };
         if (key === "Any") {
@@ -274,7 +275,6 @@ export class FieldBuilder extends Disposable {
               {
                 disabled,
                 defaultLabel: t("Mixed format"),
-                translateOptionLabels: true,
               },
             ),
           testId("widget-select"),
@@ -319,14 +319,13 @@ export class FieldBuilder extends Disposable {
             use(this.isCallPending),
           menuCssClass: cssTypeSelectMenu.className,
           defaultLabel: t("Mixed types"),
-          translateOptionLabels: true,
           renderOptionArgs: (op) => {
             if (["Ref", "RefList"].includes(selectType.get())) {
               // Don't show tip if a reference column type is already selected.
               return;
             }
 
-            if (op.label === "Reference") {
+            if (op.value === "Ref") {
               return this.gristDoc.behavioralPromptsManager.attachPopup("referenceColumns", {
                 popupOptions: {
                   attach: `.${cssTypeSelectMenu.className}`,

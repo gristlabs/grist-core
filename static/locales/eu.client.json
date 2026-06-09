@@ -843,7 +843,10 @@
     },
     "ThemeConfig": {
         "Appearance ": "Itxura ",
-        "Switch appearance automatically to match system": "Aldatu itxura automatikoki sistemarekin bat egiteko"
+        "Switch appearance automatically to match system": "Aldatu itxura automatikoki sistemarekin bat egiteko",
+        "Light": "Argia",
+        "Dark": "Iluna",
+        "Light (High Contrast)": "Argia (kontraste handia)"
     },
     "Tools": {
         "Access Rules": "Sarbide-arauak",
@@ -949,21 +952,6 @@
         "Hide {{label}} (batch mode)": "Ezkutatu {{label}} (batch modua)",
         "Show {{label}} (batch mode)": "Erakutsi {{label}} (batch modua)"
     },
-    "WelcomeQuestions": {
-        "Education": "Hezkuntza",
-        "Other": "Besteak",
-        "Product Development": "Produktuen garapena",
-        "Research": "Ikerketa",
-        "Sales": "Salmenta",
-        "Type here": "Idatzi hemen",
-        "Welcome to Grist!": "Ongi etorri Grist-era!",
-        "What brings you to Grist? Please help us serve you better.": "Zerk zakartza Grist-era? Lagun gaitzazu zu hobeto zerbitzatzen.",
-        "Finance & Accounting": "Finantzak eta Kontabilitatea",
-        "HR & Management": "Giza Baliabideak eta Kudeaketa",
-        "IT & Technology": "Informatika eta Teknologia",
-        "Marketing": "Marketina",
-        "Media Production": "Produkzio mediatikoa"
-    },
     "WidgetTitle": {
         "Cancel": "Utzi",
         "Save": "Gorde",
@@ -1040,12 +1028,8 @@
         "Reference": "Erreferentzia",
         "Reference List": "Erreferentzia-zerrenda",
         "Search columns": "Bilaketa-zutabeak",
-        "Custom": "Norberak ezarritakoa",
         "By Name": "Izenaren arabera",
-        "By Date Modified": "Moldatutako dataren arabera",
-        "Light": "Argia",
-        "Dark": "Iluna",
-        "Light (High Contrast)": "Argia (kontraste handia)"
+        "By Date Modified": "Moldatutako dataren arabera"
     },
     "modals": {
         "Cancel": "Utzi",
@@ -2066,7 +2050,17 @@
         "What organization are you with?": "Zein erakunderekin jarduten duzu?",
         "Your role": "Zure rola",
         "Your organization": "Zure erakundea",
-        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "Gristek kalkulu-orri baten itxura izan dezake, baina ez du beti halako batek bezala jokatzen. Ikusi zerk bereizten duen Grist."
+        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "Gristek kalkulu-orri baten itxura izan dezake, baina ez du beti halako batek bezala jokatzen. Ikusi zerk bereizten duen Grist.",
+        "Product Development": "Produktuen garapena",
+        "Finance & Accounting": "Finantzak eta Kontabilitatea",
+        "Media Production": "Produkzio mediatikoa",
+        "IT & Technology": "Informatika eta Teknologia",
+        "Marketing": "Marketina",
+        "Research": "Ikerketa",
+        "Sales": "Salmenta",
+        "Education": "Hezkuntza",
+        "HR & Management": "Giza Baliabideak eta Kudeaketa",
+        "Other": "Besteak"
     },
     "ToggleEnterpriseWidget": {
         "Grist Enterprise is **enabled**.": "Grist Enterprise **gaituta** dago.",

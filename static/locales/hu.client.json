@@ -957,7 +957,10 @@
     },
     "ThemeConfig": {
         "Appearance ": "Megjelenés ",
-        "Switch appearance automatically to match system": "A megjelenés a rendszerbeállításokhoz igazodjon"
+        "Switch appearance automatically to match system": "A megjelenés a rendszerbeállításokhoz igazodjon",
+        "Light": "Világos",
+        "Dark": "Sötét",
+        "Light (High Contrast)": "Világos (nagy kontrasztú)"
     },
     "Tools": {
         "Access Rules": "Hozzáférési szabályok",
@@ -1078,21 +1081,6 @@
         "Hide {{label}} (batch mode)": "{{label}} elrejtése (kötegelt mód)",
         "Show {{label}} (batch mode)": "{{label}} mutatása (kötegelt mód)"
     },
-    "WelcomeQuestions": {
-        "Education": "Végzettség",
-        "Finance & Accounting": "Pénzügy és számvitel",
-        "HR & Management": "HR és menedzsment",
-        "IT & Technology": "IT és technológia",
-        "Marketing": "Marketing",
-        "Media Production": "Médiatartalom-gyártás",
-        "Other": "Egyéb",
-        "Product Development": "Termékfejlesztés",
-        "Research": "Kutatás",
-        "Sales": "Értékesítés",
-        "Type here": "Írd ide",
-        "Welcome to Grist!": "Üdvözöl a Grist!",
-        "What brings you to Grist? Please help us serve you better.": "Mi miatt kötöttél ki a Grist-nél? A segítségedet kérjük, hogy jobban ki tudjunk szolgálni."
-    },
     "WidgetTitle": {
         "Cancel": "Mégse",
         "DATA TABLE NAME": "ADATTÁBLA NEVE",
@@ -1181,11 +1169,7 @@
         "Attachment": "Csatolmány",
         "Search columns": "Oszlop keresése",
         "By Name": "Név szerint",
-        "By Date Modified": "Módosítás dátuma szerint",
-        "Light": "Világos",
-        "Custom": "Egyéni",
-        "Dark": "Sötét",
-        "Light (High Contrast)": "Világos (nagy kontrasztú)"
+        "By Date Modified": "Módosítás dátuma szerint"
     },
     "modals": {
         "Cancel": "Mégse",
@@ -2116,7 +2100,17 @@
         "What organization are you with?": "Milyen szervezethez tartozol?",
         "Your organization": "A szervezeted",
         "Your role": "A te szereped",
-        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "A Grist úgy néz ki, mint egy táblázat, de nem mindig úgy működik. Fedezd fel, mitől más a Grist."
+        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "A Grist úgy néz ki, mint egy táblázat, de nem mindig úgy működik. Fedezd fel, mitől más a Grist.",
+        "Product Development": "Termékfejlesztés",
+        "Finance & Accounting": "Pénzügy és számvitel",
+        "Media Production": "Médiatartalom-gyártás",
+        "IT & Technology": "IT és technológia",
+        "Marketing": "Marketing",
+        "Research": "Kutatás",
+        "Sales": "Értékesítés",
+        "Education": "Végzettség",
+        "HR & Management": "HR és menedzsment",
+        "Other": "Egyéb"
     },
     "ToggleEnterpriseWidget": {
         "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "A Grist Enterprise futtatásához aktiválókulcs szükséges a 30 napos próbaidőszak\nlejárata után. Szerezz aktiválási kulcsot [a Grist Enterprise szolgáltatásra regisztrációval]( {{signupLink}} ).\nA Grist Core futtatásához nincs szükség aktiváló kulcsra\n\n\nTovábbi információ a [Súgóban]( {{helpCenter}} ).",

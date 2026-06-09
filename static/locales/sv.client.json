@@ -1109,7 +1109,10 @@
     },
     "ThemeConfig": {
         "Appearance ": "Utseende ",
-        "Switch appearance automatically to match system": "Växla utseende automatiskt för att matcha systemet"
+        "Switch appearance automatically to match system": "Växla utseende automatiskt för att matcha systemet",
+        "Light": "Ljust",
+        "Dark": "Mörkt",
+        "Light (High Contrast)": "Ljust (Hög kontrast)"
     },
     "Tools": {
         "Access Rules": "Behörighetsregler",
@@ -1218,21 +1221,6 @@
         "Hide {{label}} (batch mode)": "Dölj {{label}} (gruppvis)",
         "Show {{label}} (batch mode)": "Visa {{label}} (gruppvis)"
     },
-    "WelcomeQuestions": {
-        "Education": "Utbildning",
-        "Finance & Accounting": "Finans och redovisning",
-        "HR & Management": "HR och ledning",
-        "IT & Technology": "IT och teknologi",
-        "Marketing": "Marknadsföring",
-        "Media Production": "Medieproduktion",
-        "Other": "Annat",
-        "Product Development": "Produkt-utveckling",
-        "Research": "Forskning",
-        "Sales": "Försäljning",
-        "Type here": "Skriv här",
-        "Welcome to Grist!": "Välkommen till Grist!",
-        "What brings you to Grist? Please help us serve you better.": "Hur kom du in på Grist? Hjälp oss att stötta dig på bästa sätt."
-    },
     "breadcrumbs": {
         "You may make edits, but they will create a new copy and will\nnot affect the original document.": "Du kan redigera, men det kommer att skapa en ny kopia och\nkommer inte påverka originaldokumentet.",
         "fiddle": "experimentera",
@@ -1312,11 +1300,7 @@
         "Attachment": "Bilaga",
         "Search columns": "Sök kolumner",
         "By Name": "Efter namn",
-        "By Date Modified": "Efter ändringsdatum",
-        "Light": "Ljust",
-        "Custom": "Anpassad",
-        "Dark": "Mörkt",
-        "Light (High Contrast)": "Ljust (Hög kontrast)"
+        "By Date Modified": "Efter ändringsdatum"
     },
     "pages": {
         "Duplicate page": "Duplicera sida",
@@ -2111,7 +2095,17 @@
         "What organization are you with?": "Vilken organisation är du från?",
         "Your organization": "Din organisation",
         "Your role": "Din roll",
-        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "Grist kan se ut som ett kalkylblad, men det fungerar inte alltid som ett. Upptäck vad som gör Grist annorlunda."
+        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "Grist kan se ut som ett kalkylblad, men det fungerar inte alltid som ett. Upptäck vad som gör Grist annorlunda.",
+        "Product Development": "Produkt-utveckling",
+        "Finance & Accounting": "Finans och redovisning",
+        "Media Production": "Medieproduktion",
+        "IT & Technology": "IT och teknologi",
+        "Marketing": "Marknadsföring",
+        "Research": "Forskning",
+        "Sales": "Försäljning",
+        "Education": "Utbildning",
+        "HR & Management": "HR och ledning",
+        "Other": "Annat"
     },
     "ToggleEnterpriseWidget": {
         "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "En aktiveringsnyckel används för att köra Grist Företagsversion efter att försöksperioden\npå 30 dagar är slut. Skaffa en aktiveringsnyckel genom att [registrera för Grist\nFöretagsversion]({{signupLink}}). Du behöver ingen aktiveringsnyckel för att köra \nGrist Core.\n\nLär dig mer i vårt [Hjälpcenter]({{helpCenter}}).",

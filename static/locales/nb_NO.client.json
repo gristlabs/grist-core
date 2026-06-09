@@ -840,21 +840,6 @@
     "Double-click or hit {{enter}} on a cell to edit it. ": "Dobbeltklikk eller trykk {{enter}} på en celle for å redigere den. ",
     "Browse our {{templateLibrary}} to discover what's possible and get inspired.": "Utforsk vårt {{templateLibrary}} for å oppdage hva som er mulig og for å få inspirasjon."
   },
-  "WelcomeQuestions": {
-    "Finance & Accounting": "Finans og bokføring",
-    "What brings you to Grist? Please help us serve you better.": "Hva bringer deg til Grist? Hjelp oss å tjene dine behov.",
-    "Other": "Annet",
-    "Type here": "Skriv her",
-    "IT & Technology": "IT og teknologi",
-    "HR & Management": "Stabsforvaltning og håndtering",
-    "Product Development": "Produktutvikling",
-    "Research": "Forskning",
-    "Sales": "Salg",
-    "Education": "Utdanning",
-    "Media Production": "Mediaproduksjon",
-    "Marketing": "Markedsføring",
-    "Welcome to Grist!": "Velkommen til Grist."
-  },
   "WidgetTitle": {
     "Cancel": "Avbryt",
     "DATA TABLE NAME": "Datatabellnavn",
@@ -1212,5 +1197,18 @@
   "SearchModel": {
     "Search all tables": "Søk i alle tabeller",
     "Search all pages": "Søk på alle sider"
+  },
+  "OnboardingPage": {
+    "Product Development": "Produktutvikling",
+    "Finance & Accounting": "Finans og bokføring",
+    "Media Production": "Mediaproduksjon",
+    "IT & Technology": "IT og teknologi",
+    "Marketing": "Markedsføring",
+    "Research": "Forskning",
+    "Sales": "Salg",
+    "Education": "Utdanning",
+    "HR & Management": "Stabsforvaltning og håndtering",
+    "Other": "Annet",
+    "Type here": "Skriv her"
   }
 }

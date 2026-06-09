@@ -1004,7 +1004,10 @@
     },
     "ThemeConfig": {
         "Appearance ": "Aparência ",
-        "Switch appearance automatically to match system": "Alternar a aparência automaticamente para corresponder ao sistema"
+        "Switch appearance automatically to match system": "Alternar a aparência automaticamente para corresponder ao sistema",
+        "Light": "Claro",
+        "Dark": "Escuro",
+        "Light (High Contrast)": "Claro (Alto Contraste)"
     },
     "Tools": {
         "Access Rules": "Regras de Acesso",
@@ -1129,21 +1132,6 @@
         "Hide {{label}} (batch mode)": "Ocultar {{label}} (modo em lote)",
         "Show {{label}} (batch mode)": "Mostrar {{label}} (modo em lote)"
     },
-    "WelcomeQuestions": {
-        "Education": "Educação",
-        "Finance & Accounting": "Finanças e Contabilidade",
-        "HR & Management": "RH e Gestão",
-        "IT & Technology": "TI e Tecnologia",
-        "Marketing": "Publicidade",
-        "Media Production": "Produção de Mídia",
-        "Other": "Outros",
-        "Product Development": "Desenvolvimento de Produto",
-        "Research": "Investigação",
-        "Sales": "Vendas",
-        "Type here": "Digite aqui",
-        "Welcome to Grist!": "Bem-vindo ao Grist!",
-        "What brings you to Grist? Please help us serve you better.": "O que te traz ao Grist? Por favor, ajude-nos a atendê-lo melhor."
-    },
     "WidgetTitle": {
         "Cancel": "Cancelar",
         "DATA TABLE NAME": "NOME DA TABELA DE DADOS",
@@ -1231,12 +1219,8 @@
         "Choice": "Opção",
         "Reference": "Referência",
         "Search columns": "Procurar colunas",
-        "Light": "Claro",
-        "Custom": "Personalizado",
         "By Name": "Por Nome",
-        "By Date Modified": "Por Data de Modificação",
-        "Dark": "Escuro",
-        "Light (High Contrast)": "Claro (Alto Contraste)"
+        "By Date Modified": "Por Data de Modificação"
     },
     "modals": {
         "Cancel": "Cancelar",
@@ -2136,7 +2120,17 @@
         "Skip step": "Pular passo",
         "Back": "Voltar",
         "Welcome": "Bem-vindo",
-        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "O Grist pode parecer uma planilha, mas nem sempre age como uma. Descubra o que torna o Grist diferente."
+        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "O Grist pode parecer uma planilha, mas nem sempre age como uma. Descubra o que torna o Grist diferente.",
+        "Product Development": "Desenvolvimento de Produto",
+        "Finance & Accounting": "Finanças e Contabilidade",
+        "Media Production": "Produção de Mídia",
+        "IT & Technology": "TI e Tecnologia",
+        "Marketing": "Publicidade",
+        "Research": "Investigação",
+        "Sales": "Vendas",
+        "Education": "Educação",
+        "HR & Management": "RH e Gestão",
+        "Other": "Outros"
     },
     "ToggleEnterpriseWidget": {
         "Disable Grist Enterprise": "Desativar o Grist Empresarial",

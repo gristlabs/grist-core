@@ -661,21 +661,6 @@
         "Hide {{label}} (batch mode)": "隐藏 {{label}}（批量模式）",
         "Show {{label}} (batch mode)": "显示 {{label}}（批量模式）"
     },
-    "WelcomeQuestions": {
-        "IT & Technology": "IT和技术",
-        "Sales": "销售量",
-        "What brings you to Grist? Please help us serve you better.": "是什么让你来到格里斯特？ 请帮助我们更好地为您服务。",
-        "Education": "教育",
-        "Finance & Accounting": "财务与会计",
-        "HR & Management": "人力资源和管理",
-        "Marketing": "营销",
-        "Media Production": "媒体制作",
-        "Other": "其他",
-        "Product Development": "产品开发",
-        "Research": "研究",
-        "Type here": "在此输入",
-        "Welcome to Grist!": "欢迎来到Grist！"
-    },
     "breadcrumbs": {
         "recovery mode": "恢复模式",
         "snapshot": "快照",
@@ -1134,7 +1119,8 @@
     },
     "ThemeConfig": {
         "Appearance ": "外观 ",
-        "Switch appearance automatically to match system": "自动切换外观以匹配系统"
+        "Switch appearance automatically to match system": "自动切换外观以匹配系统",
+        "Light": "浅色"
     },
     "Tools": {
         "Access Rules": "访问规则",
@@ -1214,9 +1200,7 @@
         "Integer": "整数",
         "Search columns": "搜索列",
         "By Name": "按名称",
-        "By Date Modified": "按修改日期",
-        "Custom": "自定义",
-        "Light": "浅色"
+        "By Date Modified": "按修改日期"
     },
     "errorPages": {
         "Add account": "新增帐户",
@@ -2027,7 +2011,17 @@
         "What organization are you with?": "您所在的组织是？",
         "What brings you to Grist (you can select multiple)?": "是什么吸引您使用Grist（您可以多选）？",
         "Your organization": "您的组织",
-        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "Grist 看起来像电子表格，但并不完全像电子表格。了解 Grist 的与众不同之处。"
+        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "Grist 看起来像电子表格，但并不完全像电子表格。了解 Grist 的与众不同之处。",
+        "Product Development": "产品开发",
+        "Finance & Accounting": "财务与会计",
+        "Media Production": "媒体制作",
+        "IT & Technology": "IT和技术",
+        "Marketing": "营销",
+        "Research": "研究",
+        "Sales": "销售量",
+        "Education": "教育",
+        "HR & Management": "人力资源和管理",
+        "Other": "其他"
     },
     "ToggleEnterpriseWidget": {
         "Grist Enterprise is **enabled**.": "Grist 企业版**已启用**。",
