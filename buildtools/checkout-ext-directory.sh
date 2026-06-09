@@ -44,7 +44,6 @@ fetch_tarball() {
 if [[ "$repo" = "grist-ee" && -z "$ignore_tarball" ]]; then
   # For grist-ee, always use the tarball (and only the tarball).
   fetch_tarball
-# Try git clone first.
 elif git -c advice.detachedHead=false clone --quiet --branch $ref \
     --depth 1 --filter=tree:0 "https://github.com/gristlabs/$repo" 2>/dev/null; then
   echo "+ Fetched $repo via git"
