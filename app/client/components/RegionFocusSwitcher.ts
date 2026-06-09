@@ -7,7 +7,7 @@ import {
   kbFocusHighlighterClass,
 } from "app/client/components/KeyboardFocusHighlighter";
 import { FocusLayer } from "app/client/lib/FocusLayer";
-import { isFocusable, trapTabKey } from "app/client/lib/focusUtils";
+import { isFocusable, isMousetrapIgnoredElement, trapTabKey } from "app/client/lib/focusUtils";
 import { makeT } from "app/client/lib/localization";
 import { App } from "app/client/ui/App";
 import { SpecialDocPage } from "app/common/gristUrls";
@@ -145,6 +145,26 @@ export class RegionFocusSwitcher extends Disposable {
         }
         return false;
       }),
+      dom.on("focusin", () => {
+        if (isKeyboardUser()) {
+          this._savePrevElementState(this._state.get().region);
+        }
+      }),
+      // When pressing Escape inside inputs, we "reset" the focused element state early to prevent
+      // a loop between the focusin listener above, and the _onClipboardFocus code. The loop would
+      // cause pressing Escape resulting in removing focus, then instantly re-focusing the input.
+      dom.on("keydown", (event) => {
+        if (
+          event.key === "Escape" &&
+          !event.ctrlKey && !event.shiftKey && !event.altKey && !event.metaKey &&
+          isMousetrapIgnoredElement(event.target)
+        ) {
+          const current = this._state.get().region;
+          if (current?.type === "panel") {
+            this._prevFocusedElements[current.id] = null;
+          }
+        }
+      }, { useCapture: true }),
     ];
   }
 

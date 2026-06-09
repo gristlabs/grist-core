@@ -267,3 +267,10 @@ const focusableSelectors = [
 ];
 
 export const focusableSelectorsString = focusableSelectors.join(",");
+
+export const isMousetrapIgnoredElement = (el: EventTarget | null): boolean => {
+  if (!(el instanceof HTMLElement) || el.classList.contains("mousetrap")) {
+    return false;
+  }
+  return ["input", "textarea", "select"].includes(el.tagName.toLowerCase()) || el.isContentEditable;
+};
