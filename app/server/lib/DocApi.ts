@@ -183,9 +183,7 @@ export class DocWorkerApi {
     // converts google code to access token and adds it to request object
     const decodeGoogleToken = expressWrap(googleAuthTokenMiddleware.bind(null));
 
-    // Middleware to limit number of outstanding requests per document.  Will also
-    // handle errors like expressWrap would.
-    const throttled = this._apiThrottle.bind(this);
+    const throttled = this._tracker.throttle.bind(this._tracker);
 
     const withDoc = (callback: WithDocHandler) => throttled(this._requireActiveDoc(callback));
     // Apply user actions to a document.
@@ -1762,32 +1760,6 @@ export class DocWorkerApi {
 
   private _getActiveDocIfAvailable(req: RequestWithLogin): Promise<ActiveDoc> | undefined {
     return this._docManager.getActiveDoc(getDocId(req));
-  }
-
-  /**
-   * Middleware to track the number of requests outstanding on each document, and to
-   * throw an exception when the maximum number of requests are already outstanding.
-   * Also throws an exception if too many requests (based on the user's product plan)
-   * have been made today for this document.
-   * Access to a document must already have been authorized.
-   */
-  private _apiThrottle(callback: (req: RequestWithLogin,
-    resp: Response,
-    next: NextFunction) => void | Promise<void>): RequestHandler {
-    return async (req, res, next) => {
-      const docId = getDocId(req);
-      try {
-        const doc = (req as RequestWithLogin).docAuth!.cachedDoc!;
-        const dailyMax = doc.workspace.org.billingAccount
-          ?.getEffectiveFeatures().baseMaxApiUnitsPerDocumentPerDay;
-        this._tracker.acquire(docId, dailyMax);
-        await callback(req as RequestWithLogin, res, next);
-      } catch (err) {
-        next(err);
-      } finally {
-        this._tracker.release(docId);
-      }
-    };
   }
 
   /**

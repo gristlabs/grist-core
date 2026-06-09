@@ -186,6 +186,7 @@ export class FlexServer implements GristServer {
   private _processMonitorStop?: () => void;    // Callback to stop the ProcessMonitor
   private _docWorkerMap: IDocWorkerMap;
   private _docWorkerLoadTracker?: DocWorkerLoadTracker;
+  private _docApiUsageTracker?: DocApiUsageTracker;
   private _widgetRepository: IWidgetRepository;
   private _docNotificationManager: IDocNotificationManager | undefined | false = false;
   private _oauthValidator: IOAuthValidator | undefined | false = false;
@@ -1636,6 +1637,7 @@ export class FlexServer implements GristServer {
     const tracker = new DocApiUsageTracker({
       getRedisClient: () => this._docWorkerMap.getRedisClient(),
     });
+    this._docApiUsageTracker = tracker;
 
     // Attach docWorker endpoints and Comm methods.
     const docWorker = new DocWorker(this._dbManager, { comm: this._comm, gristServer: this, tracker });
@@ -2060,7 +2062,7 @@ export class FlexServer implements GristServer {
 
   public addMcp() {
     if (this._check("mcp")) { return; }
-    this.create.addMcpEndpoints(this, this.app);
+    this.create.addMcpEndpoints(this, this.app, this._docApiUsageTracker);
   }
 
   public getGristConfig(): GristLoadConfig {

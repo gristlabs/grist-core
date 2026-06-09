@@ -9,6 +9,7 @@ import {
 } from "app/server/lib/AttachmentStore";
 import { IAttachmentStore } from "app/server/lib/AttachmentStore";
 import { getCoreLoginSystem } from "app/server/lib/coreLogins";
+import { DocApiUsageTracker } from "app/server/lib/DocApiUsageTracker";
 import { DocStorageManager } from "app/server/lib/DocStorageManager";
 import { ExternalStorage, ExternalStorageCreator, UnsupportedPurposeError } from "app/server/lib/ExternalStorage";
 import { createDummyTelemetry, GristLoginSystem, GristServer } from "app/server/lib/GristServer";
@@ -104,7 +105,7 @@ export interface ICreate {
   getLoginSystem(): Promise<GristLoginSystem>;
 
   addExtraHomeEndpoints(gristServer: GristServer, app: Express): void;
-  addMcpEndpoints(gristServer: GristServer, app: Express): void;
+  addMcpEndpoints(gristServer: GristServer, app: Express, tracker?: DocApiUsageTracker): void;
   areAdminControlsAvailable(): boolean;
   createDocNotificationManager(gristServer: GristServer): IDocNotificationManager | undefined;
   startProcessMonitor(telemetry: ITelemetry): StopCallback | undefined;
@@ -264,7 +265,7 @@ export class BaseCreate implements ICreate {
   }
 
   public addExtraHomeEndpoints(gristServer: GristServer, app: Express) {}
-  public addMcpEndpoints(gristServer: GristServer, app: Express) {}
+  public addMcpEndpoints(gristServer: GristServer, app: Express, tracker?: DocApiUsageTracker) {}
   public areAdminControlsAvailable(): boolean { return false; }
   public createDocNotificationManager(gristServer: GristServer): IDocNotificationManager | undefined {
     return undefined;

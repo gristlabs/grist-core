@@ -1,8 +1,11 @@
 import { ApiError } from "app/common/ApiError";
 import { appSettings } from "app/server/lib/AppSettings";
+import { RequestWithLogin } from "app/server/lib/Authorizer";
 import { docApiUsagePeriods, getDocApiUsageKeysToIncr } from "app/server/lib/DocApi";
 import log from "app/server/lib/log";
+import { getDocId } from "app/server/lib/requestUtils";
 
+import { NextFunction, RequestHandler, Response } from "express";
 import LRUCache from "lru-cache";
 import * as moment from "moment";
 import { RedisClient } from "redis";
@@ -14,6 +17,8 @@ const MAX_ACTIVE_DOCS_USAGE_CACHE = 1000;
 export interface DocApiUsageTrackerOptions {
   getRedisClient?: () => RedisClient | null;
 }
+
+type Handler = (req: RequestWithLogin, res: Response, next: NextFunction) => void | Promise<void>;
 
 /**
  * Tracks per-document API usage: parallel request limits and daily usage limits.
@@ -80,6 +85,28 @@ export class DocApiUsageTracker {
         this._currentUsage.set(docId, count - 1);
       }
     }
+  }
+
+  /**
+   * Express middleware that enforces parallel and daily usage limits for a document.
+   * Returns an Express RequestHandler so it can be passed directly to app.get/app.post;
+   * the `Handler` type uses RequestWithLogin and is too narrow for Express's overloads.
+   */
+  public throttle(callback: Handler): RequestHandler {
+    return async (req, res, next) => {
+      const docId = getDocId(req);
+      try {
+        const doc = (req as RequestWithLogin).docAuth!.cachedDoc!;
+        const dailyMax = doc.workspace.org.billingAccount
+          ?.getEffectiveFeatures().baseMaxApiUnitsPerDocumentPerDay;
+        this.acquire(docId, dailyMax);
+        await callback(req as RequestWithLogin, res, next);
+      } catch (err) {
+        next(err);
+      } finally {
+        this.release(docId);
+      }
+    };
   }
 
   /**
