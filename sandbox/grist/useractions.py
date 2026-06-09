@@ -2583,6 +2583,7 @@ class UserActions(object):
     try:
       record_card_disabled = json.loads(record_card_section.options or '{}').get('disabled', False)
     except ValueError:
+      # Normally unreachable, but exercise caution when calling json.loads.
       record_card_disabled = False
     if is_card and not is_record_card and not record_card_disabled:
       # Copy settings from the table's record card section to the new section.
