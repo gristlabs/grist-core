@@ -156,8 +156,8 @@
         "Description": "Leírás",
         "Key": "Kulcs",
         "Memory Error": "Memória hiba",
-        "Disabled screen reader improvements": "Letiltott képernyőolvasó fejlesztések",
-        "Enabled screen reader improvements": "Engedélyezett képernyőolvasó fejlesztések"
+        "Disabled screen reader improvements": "Letiltott képernyőolvasó-kiegészítések",
+        "Enabled screen reader improvements": "Engedélyezett képernyőolvasó-kiegészítések"
     },
     "AppHeader": {
         "Home page": "Kezdőlap",
@@ -721,8 +721,8 @@
     "LeftPanelCommon": {
         "Help Center": "Súgóközpont",
         "Accessibility": "Kisegítő lehetőségek",
-        "(Screen reader improvements enabled)": "(A képernyőolvasó fejlesztései engedélyezve)",
-        "Screen reader improvements enabled": "A képernyőolvasó fejlesztései engedélyezve"
+        "(Screen reader improvements enabled)": "(Képernyőolvasó-kiegészítések engedélyezve)",
+        "Screen reader improvements enabled": "Képernyőolvasó-kiegészítések engedélyezve"
     },
     "MakeCopyMenu": {
         "As template": "Sablonként",
@@ -1484,7 +1484,7 @@
         "Notification: {{notification}}": "Értesítés: {{notification}}"
     },
     "ScreenReaderConfig": {
-        "Enable screen reader improvements": "Képernyőolvasó fejlesztéseinek engedélyezése",
+        "Enable screen reader improvements": "Képernyőolvasó-kiegészítések engedélyezése",
         "Press {{accessibilityModalShortcut}} for more information about screen reader navigation.": "Nyomd meg a {{accessibilityModalShortcut}} gombot a képernyőolvasó navigációjával kapcsolatos további információkért."
     },
     "ScreenReaderFormatters": {
@@ -2440,5 +2440,109 @@
         "active user": "aktív felhasználó",
         "active user list": "aktív felhasználók listája",
         "open full active user list": "nyisd meg az aktív felhasználók listáját"
+    },
+    "AdminChecks": {
+        "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "A Grist képletei nagyon erőteljes és sokoldalú műveleteket tesznek lehetővé a Python használatával. Javasoljuk, hogy a GRIST_SANDBOX_FLAVOR környezeti változót állítsd gvisor értékre, ha a hardver támogatja (a legtöbb esetben így van), hogy a képleteket minden egyes dokumentumban egy más dokumentumoktól és a hálózattól is elkülönített sandboxban (külön műveleti területen) futtasson.",
+        "Grist has a small built-in health check often used when running it as a container.": "A Gristnek van egy beépített állapotellenőrzése, amelyet gyakran használnak, amikor konténerként futtatják.",
+        "Requests arriving to Grist should have an accurate Host header. This is essential when GRIST_SERVE_SAME_ORIGIN is set.": "A Gristhez érkező kéréseknek pontos Host fejléccel kell rendelkezniük. Ez kiemelten fontos, ha a GRIST_SERVE_SAME_ORIGIN be van állítva.",
+        "This boot page should not be too easy to access. Either turn it off when configuration is ok (by unsetting GRIST_BOOT_KEY) or make GRIST_BOOT_KEY long and cryptographically secure.": "Ez a rendszerindító oldal nem lehet túl könnyen elérhető. Vagy kapcsold ki, ha a konfiguráció rendben van (a GRIST_BOOT_KEY kikapcsolásával), vagy tedd a GRIST_BOOT_KEY kulcsot biztonságossá megfelelő hosszúság és kriptográfiai biztonsági megoldás használatával.",
+        "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.": "A websocket kapcsolatok működéséhez HTTP 1.1-re és néhány extra fejléc átadására van szükség. Néha egy reverse proxy zavarhatja ezeket a követelményeket.",
+        "It is good practice not to run Grist as the root user.": "Jó gyakorlat, ha nem root felhasználóként futtatod a Gristet.",
+        "The main page of Grist should be available.": "A Grist főoldalának elérhetőnek kell lennie.",
+        "APP_HOME_URL is the base URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "Az APP_HOME_URL az alap URL, ahol a felhasználók és az integrációk elérik ezt a Grist-kiszolgálót. A hitelesítési callback-ek (visszahívások), az API-hivatkozások és az e-mailes értesítések mind attól függnek, hogy ez helyes-e."
+    },
+    "ChoiceListEntry": {
+        "+{{count}} more_one": "+ {{count}} további",
+        "+{{count}} more_other": "+ {{count}} további",
+        "Edit": "Szerkesztés",
+        "No choices configured": "Nincsenek beállítva választási lehetőségek",
+        "Reset": "Visszaállítás",
+        "Cancel": "Mégse",
+        "Save": "Ment"
+    },
+    "FormulaTransform": {
+        "Apply": "Alkalmaz",
+        "Cancel": "Mégse",
+        "Preview": "Előnézet"
+    },
+    "ParseOptions": {
+        "Close": "Bezár",
+        "Update preview": "Előnézet frissítése",
+        "Convert quoted fields": "Idézett mezők konvertálása",
+        "Escape character": "Escape (speciális jelző) karakter",
+        "Field separator": "Mezőelválasztó",
+        "First row contains headers": "Az első sor fejléceket tartalmaz",
+        "Line terminator": "Sorvég-jelző",
+        "Number of rows": "Sorok száma",
+        "Quote character": "Idézőjel karakter",
+        "Quotes in fields are doubled": "A mezőkben szereplő idézőjelek duplázódnak",
+        "Skip leading whitespace": "A kezdő szóközök kihagyása",
+        "Start with row": "Ezzel a sorral kezdje",
+        "Character encoding. See [the supported codecs]({{link}})": "Karakter kódolás. Lásd [a támogatott kódlapokat]( {{link}} )"
+    },
+    "OpenAccessibilityModal": {
+        " or ": " vagy ",
+        "\"Regions\" are what we call the different parts of the user interface:": "A felhasználói felület különböző részeit \"régiók\"-nak nevezzük:",
+        "Accessibility": "Kisegítő lehetőségek",
+        "Close": "Bezár",
+        "Finally, the right panel – or the creator panel – is only available through its own shortcut and is not included in the next and previous region cycle.": "Végül a jobb oldali – vagy más néven alkotói – panel csak a saját parancsikonján keresztül érhető el, és nem szerepel a következő és az előző régióciklusban.",
+        "Focus on other parts of the user interface using the following shortcuts:": "Állítsa a fókuszt a felhasználói felület más részeire a következő parancsikonokkal:",
+        "High contrast theme": "Nagy kontrasztú téma",
+        "Keyboard navigation": "Billentyűzetes navigáció",
+        "On a document page, keyboard navigation is first locked on the current widget.": "A dokumentumoldalon a billentyűzetes navigáció először az aktuális widgeten érvényesül.",
+        "On document pages, each [widget]({{supportPageUrl}}) is a region that can receive focus.": "A dokumentumoldalakon minden [widget]( {{supportPageUrl}} ) egy olyan régió, amelyre fókusz állítható.",
+        "On non-document pages, the main content area is a region.": "A nem dokumentum oldalakon a fő tartalomterület egy régió.",
+        "Other important keyboard shortcuts": "Egyéb fontos billentyűparancsok",
+        "The left panel, home of the main navigation.": "A bal oldali panel a fő navigáció helye.",
+        "The top panel, or the document header.": "Felső panel vagy dokumentumfejléc.",
+        "To see other available themes, go to your {{profileSettingsLink}}.": "További elérhető témák megtekintéséhez lépj a {{profileSettingsLink}} oldalra.",
+        "Use the high contrast theme (light appearance)": "Használd a nagy kontrasztú témát (világos megjelenés)",
+        "You are currently **not using** the high contrast theme.": "Jelenleg **nem használod** a nagy kontrasztú témát.",
+        "You are currently using the high contrast theme.": "Jelenleg a nagy kontrasztú témát használod.",
+        "profile settings": "profilbeállítások",
+        "{{accessibilityModal}} Show the accessibility options (this modal)": "{{accessibilityModal}} A kisegítő lehetőségek megjelenítése (ebben a modális ablakban)",
+        "{{creatorPanelShortcut}} Focus to and from the creator panel": "{{creatorPanelShortcut}} Állítsd rá a fókuszt az alkotói panelről vagy vedd le arról",
+        "{{nextRegionShortcut}} Focus on the next region": "{{nextRegionShortcut}} Állítsd a fókuszt a következő régióra",
+        "{{prevRegionShortcut}} Focus on the previous region": "{{prevRegionShortcut}} Állítsd a fókuszt az előző régióra",
+        "{{shortcutsModal}} Show the complete list of keyboard shortcuts": "{{shortcutsModal}} A billentyűparancsok teljes listájának megjelenítése",
+        "Enable screen reader improvements (keyboard shortcut: {{shortcut}})": "Képernyőolvasó-kiegészítések engedélyezése (billentyűkód: {{shortcut}} )",
+        "While not mandatory, you can enable screen reader improvements for a better navigation experience:": "Bár nem kötelező, engedélyezheted a képernyőolvasó-kiegészítéseket a jobb navigációs élmény érdekében:",
+        "Use your screen reader's focus mode, or disable Quick Nav if you use VoiceOver.": "Használd a képernyőolvasó fókusz-módját, vagy tiltsd le a Quick Nav funkciót, ha VoiceOvert használsz.",
+        "Please first read the \"Keyboard navigation\" section above to understand how to navigate across the interface's regions: specific keyboard shortcuts need to be used.": "Kérjük, először olvasd el a fenti „Billentyűzet navigáció” részt, hogy megértsd, hogyan navigálhatsz a kezelőfelület régiói között: meghatározott billentyűparancsokat kell használni.",
+        "Screen reader navigation": "Képernyőolvasó navigáció",
+        "Warning: screen reader support is a work-in-progress in Grist and is improving over time. Feedback is greatly appreciated!": "Figyelem: a képernyőolvasó támogatása a Gristben folyamatban lévő feladat, idővel javulni fog. A visszajelzéseket nagyra értékeljük!",
+        "We recommend using Firefox, Chrome or Edge in order to use Grist with a screen reader.": "Javasoljuk a Firefox, a Chrome vagy az Edge böngészőt a Grist képernyőolvasóval való használatához."
+    },
+    "commandList": {
+        "Toggle the screen reader improvements": "Képernyőolvasó-kiegészítések kapcsolása",
+        "Show accessibility options": "Kisegítő lehetőségek megjelenítése",
+        "Activate assistant": "Segéd indítása",
+        "Add a new viewsection to the currently active view": "Új nézetrész hozzáadása az aktív nézethez"
+    },
+    "ProposedChangesPage": {
+        "Proposed changes": "Javasolt változtatások",
+        "Replace original": "Cseréld ki az eredetit",
+        "This is a list of changes relative to the original document.": "Változtatások listája az eredeti dokumentumhoz képest.",
+        "Accept": "Elfogad",
+        "Accepted {{at}}.": "Elfogadva {{at}}.",
+        "Dismiss": "Elvet",
+        "Dismissed {{at}}.": "Elvetve {{at}}.",
+        "Learn more": "További információ",
+        "No changes found to suggest. Please make some edits.": "Nem található javasolt változtatás. Módosíts néhány dolgot!",
+        "Retract suggestion": "Javaslat visszavonása",
+        "Retracted {{at}}.": "Visszavonva {{at}}.",
+        "Suggest change": "Javasolj változtatást",
+        "Suggest changes": "Javasolj változtatásokat",
+        "Suggestion made {{at}}.": "Javaslat rögzítve {{at}}.",
+        "Suggestions": "Javaslatok",
+        "The original document isn't asking for proposed changes.": "Az eredeti dokumentum nem kér változtatási javaslatokat.",
+        "There are fresh changes that haven't been added to the suggestion yet.": "Vannak olyan új módosítások, amelyeket még nem adtak hozzá a javaslathoz.",
+        "This is a list of changes relative to the {{originalDocument}}.": "Változtatások listája a {{originalDocument}} dokumentumban.",
+        "Update suggestion": "Frissítsd a javaslatot",
+        "Work on a copy": "Dolgozz egy másolaton",
+        "Your suggestions": "A te javaslataid",
+        "experiment": "kísérlet",
+        "original document": "eredeti dokumentum",
+        "Undo dismissal": "Elvetés visszavonása"
     }
 }
