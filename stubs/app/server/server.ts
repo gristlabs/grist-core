@@ -267,5 +267,6 @@ export async function main() {
 if (require.main === module) {
   main().catch((err) => {
     log.error(err);
+    process.exit(1);
   });
 }
