@@ -63,11 +63,11 @@ function pickInt(rng: Rng, lo: number, hi: number): number { return lo + Math.fl
 // type coercion.
 function randomValue(rng: Rng, tag: string): any {
   const r = rng();
+  if (r < 0.08) { return ""; }                  // empty string (Text default)
   if (r < 0.16) {                                // encoded list (ChoiceList-style)
-    return r < 0.08 ? ["L"] :                       // empty list (the list default)
+    return r < 0.12 ? ["L"] :                       // empty list (the list default)
       ["L", String(pickInt(rng, 1, 9)), pickInt(rng, 1, 9)];
   }
-  if (r < 0.14) { return ""; }                  // empty string (Text default)
   if (r < 0.22) { return null; }                // SQL NULL (a value, not absence)
   if (r < 0.30) { return 0; }                   // numeric default
   if (r < 0.38) { return pickInt(rng, 1, 9); }  // small number
@@ -438,10 +438,14 @@ function softenSummary(sum: ActionSummary, other: ActionSummary): ActionSummary 
 }
 
 // A canonical snapshot of every user table's data (rows, columns, computed
-// values). Used to enforce the oracle's same-final-state precondition:
-// per-action and combined modes must reach the SAME final document state, or
-// comparing their summaries is meaningless. Type changes especially can
-// in principle make the two modes diverge; such scenarios are skipped.
+// values) plus each column's type/isFormula. Used to enforce the oracle's
+// same-final-state precondition: per-action and combined modes must reach the
+// SAME final document state, or comparing their summaries is meaningless. Type
+// changes especially can in principle make the two modes diverge; such
+// scenarios are skipped. The engine's formula->data type guess is batch-
+// sensitive, and that divergence is invisible in row data when the table ends
+// with no surviving rows -- so we fold column type/isFormula into the snapshot,
+// keyed by table+colId, to let the precondition skip those scenarios too.
 async function docSnapshot(doc: ActiveDoc, session: any): Promise<string> {
   const tables = (await doc.fetchTable(session, "_grist_Tables", true)).tableData as any;
   const tableIds: string[] = (tables[3].tableId || []).filter((t: any) => typeof t === "string");
@@ -449,6 +453,20 @@ async function docSnapshot(doc: ActiveDoc, session: any): Promise<string> {
   for (const t of [...tableIds].sort()) {
     out[t] = canon((await doc.fetchTable(session, t, true)).tableData);
   }
+  // Column type/isFormula, keyed by table+colId, so a metadata-only divergence
+  // (no surviving rows to expose it) still trips the same-final-state gate.
+  const refToTableId: { [ref: number]: string } = {};
+  tables[2].forEach((ref: number, i: number) => { refToTableId[ref] = tables[3].tableId[i]; });
+  const colData = (await doc.fetchTable(session, "_grist_Tables_column", true)).tableData as any;
+  const cols = colData[3];
+  const colMeta: { [key: string]: any } = {};
+  colData[2].forEach((_ref: number, i: number) => {
+    const tbl = refToTableId[cols.parentId[i]];
+    if (tbl && tableIds.includes(tbl)) {
+      colMeta[`${tbl}.${cols.colId[i]}`] = [cols.type[i], cols.isFormula[i]];
+    }
+  });
+  out.__colMeta__ = canon(colMeta);
   return JSON.stringify(out);
 }
 
