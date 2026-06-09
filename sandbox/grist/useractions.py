@@ -2579,9 +2579,14 @@ class UserActions(object):
     section_type = section_rec.parentKey
     is_card = section_type in ('single', 'detail')
     is_record_card = section_rec == table_rec.recordCardViewSectionRef
-    if is_card and not is_record_card:
+    record_card_section = table_rec.recordCardViewSectionRef
+    try:
+      record_card_disabled = json.loads(record_card_section.options or '{}').get('disabled', False)
+    except ValueError:
+      # Normally unreachable, but exercise caution when calling json.loads.
+      record_card_disabled = False
+    if is_card and not is_record_card and not record_card_disabled:
       # Copy settings from the table's record card section to the new section.
-      record_card_section = table_rec.recordCardViewSectionRef
       self._docmodel.add(section_rec.fields, colRef=[f.colRef for f in record_card_section.fields])
       self._copy_record_card_settings(record_card_section, section_rec)
     else :
