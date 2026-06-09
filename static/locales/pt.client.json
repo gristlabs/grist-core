@@ -581,7 +581,10 @@
     },
     "ThemeConfig": {
         "Appearance ": "Aparência ",
-        "Switch appearance automatically to match system": "Alternar a aparência automaticamente para corresponder ao sistema"
+        "Switch appearance automatically to match system": "Alternar a aparência automaticamente para corresponder ao sistema",
+        "Light": "Claro",
+        "Dark": "Escuro",
+        "Light (High Contrast)": "Claro (Alto Contraste)"
     },
     "Tools": {
         "Access Rules": "Regras de Acesso",
@@ -884,21 +887,6 @@
         "When checked, this field’s default value can be prefilled from the URL using query parameters.": "Quando selecionado, o valor padrão deste campo pode ser preenchido previamente a partir da URL usando parâmetros de consulta.",
         "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "Com a função de sugestões, os utilizadores fazem alterações numa cópia pessoal sem modificar o documento original e, em seguida, enviam estas sugestões para serem revisadas pelo proprietário do documento antes da integração.",
         "Unpin to hide the button while keeping the filter.": "Desafixar para ocultar o botão, a manter o filtro."
-    },
-    "WelcomeQuestions": {
-        "IT & Technology": "TI e Tecnologia",
-        "Marketing": "Publicidade",
-        "Media Production": "Produção de Mídia",
-        "Other": "Outros",
-        "Product Development": "Desenvolvimento de Produto",
-        "Research": "Investigação",
-        "Sales": "Vendas",
-        "Type here": "Digite aqui",
-        "Welcome to Grist!": "Bem-vindo ao Grist!",
-        "What brings you to Grist? Please help us serve you better.": "O que te traz ao Grist? Por favor, ajude-nos a atendê-lo melhor.",
-        "Education": "Educação",
-        "Finance & Accounting": "Finanças e Contabilidade",
-        "HR & Management": "RH e Gestão"
     },
     "WidgetTitle": {
         "Cancel": "Cancelar",
@@ -1426,12 +1414,8 @@
         "Reference List": "Lista de Referências",
         "Attachment": "Anexo",
         "Search columns": "Procurar colunas",
-        "Custom": "Personalizado",
         "By Date Modified": "Por Data de Modificação",
-        "By Name": "Por Nome",
-        "Light": "Claro",
-        "Dark": "Escuro",
-        "Light (High Contrast)": "Claro (Alto Contraste)"
+        "By Name": "Por Nome"
     },
     "modals": {
         "Cancel": "Cancelar",
@@ -2028,7 +2012,17 @@
         "Discover Grist in 3 minutes": "Descubra Grist em 3 minutos",
         "Go hands-on with the Grist Basics tutorial": "Pratique com o tutorial Conceitos Básicos do Grist",
         "Go to the tutorial!": "Vá para o tutorial!",
-        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "O Grist pode parecer uma planilha, mas nem sempre age como uma. Descubra o que torna o Grist diferente."
+        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "O Grist pode parecer uma planilha, mas nem sempre age como uma. Descubra o que torna o Grist diferente.",
+        "Product Development": "Desenvolvimento de Produto",
+        "Finance & Accounting": "Finanças e Contabilidade",
+        "Media Production": "Produção de Mídia",
+        "IT & Technology": "TI e Tecnologia",
+        "Marketing": "Publicidade",
+        "Research": "Investigação",
+        "Sales": "Vendas",
+        "Education": "Educação",
+        "HR & Management": "RH e Gestão",
+        "Other": "Outros"
     },
     "ToggleEnterpriseWidget": {
         "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Uma chave de ativação é usada para executar o Grist Enterprise após um período de avaliação\nde 30 dias tenha expirado. Obtenha uma chave de ativação [inscrevendo-se no Grist\nEmpresarial]({{signupLink}}). Não precisa de uma chave de ativação para executar o\nGrist Core.\n\nSaiba mais na nossa [Central de Ajuda]({{helpCenter}}).",

@@ -1213,21 +1213,6 @@
     "You may make edits, but they will create a new copy and will\nnot affect the original document.": "Lahko jih uredite, vendar bodo ustvarili novo kopijo in ne bodo\nvplivali na izvirni dokument.",
     "fiddle": "poskus"
   },
-  "WelcomeQuestions": {
-    "Welcome to Grist!": "Dobrodošli v Gristu!",
-    "HR & Management": "HR in management",
-    "Sales": "Prodaja",
-    "Marketing": "Prodaja",
-    "Type here": "Piši tukaj",
-    "Other": "Ostalo",
-    "Product Development": "Razvoj izdelkov",
-    "Media Production": "Medijska produkcija",
-    "What brings you to Grist? Please help us serve you better.": "Kaj te je pripeljalo v Grist? Prosimo, pomagajte nam, da vam bolje služimo.",
-    "Education": "izobraževanje",
-    "IT & Technology": "IT in tehnologija",
-    "Finance & Accounting": "Finance in računovodstvo",
-    "Research": "Raziskovanje"
-  },
   "PagePanels": {
     "Open creator panel": "Odprite panel za ustvarjalce",
     "Close Creator Panel": "Zaprite panel za ustvarjalce"
@@ -1687,7 +1672,17 @@
     "Your role": "Tvoja vloga",
     "Go hands-on with the Grist Basics tutorial": "Preizkusi vadnico Osnove Grista",
     "Discover Grist in 3 minutes": "Odkrij Grist v 3 minutah",
-    "Go to the tutorial!": "Pojdi na vadnico!"
+    "Go to the tutorial!": "Pojdi na vadnico!",
+    "Product Development": "Razvoj izdelkov",
+    "Finance & Accounting": "Finance in računovodstvo",
+    "Media Production": "Medijska produkcija",
+    "IT & Technology": "IT in tehnologija",
+    "Marketing": "Prodaja",
+    "Research": "Raziskovanje",
+    "Sales": "Prodaja",
+    "Education": "izobraževanje",
+    "HR & Management": "HR in management",
+    "Other": "Ostalo"
   },
   "ToggleEnterpriseWidget": {
     "Disable Grist Enterprise": "Onemogoči Grist Enterprise",

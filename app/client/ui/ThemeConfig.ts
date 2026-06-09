@@ -11,6 +11,17 @@ import { Computed, Disposable, dom, makeTestId, styled } from "grainjs";
 const testId = makeTestId("test-theme-config-");
 const t = makeT("ThemeConfig");
 
+// Translate a theme-picker option label. Explicit switch so i18next-scanner sees
+// every key as a literal `t(...)` call.
+function translateThemeLabel(label: string): string {
+  switch (label) {
+    case "Light": return t("Light");
+    case "Dark": return t("Dark");
+    case "Light (High Contrast)": return t("Light (High Contrast)");
+    default: return label;
+  }
+}
+
 export class ThemeConfig extends Disposable {
   private _themePrefs = this._appModel.themePrefs;
 
@@ -47,13 +58,12 @@ export class ThemeConfig extends Disposable {
           select(
             this._themeName,
             [
-              { value: "GristLight", label: "Light" },
-              { value: "GristDark", label: "Dark" },
-              { value: "HighContrastLight", label: "Light (High Contrast)" },
+              { value: "GristLight", label: translateThemeLabel("Light") },
+              { value: "GristDark", label: translateThemeLabel("Dark") },
+              { value: "HighContrastLight", label: translateThemeLabel("Light (High Contrast)") },
             ],
             {
               disabled: this._syncWithOS,
-              translateOptionLabels: true,
             },
           ),
           testId("appearance"),

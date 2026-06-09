@@ -341,21 +341,6 @@
     "Open Access Rules": "アクセスルールを開く",
     "No default access allows access to be granted to individual documents or workspaces, rather than the full team site.": "デフォルトのアクセスでは、チーム サイト全体ではなく、個々のドキュメントまたはワークスペースにアクセスを許可することはできません。"
   },
-  "WelcomeQuestions": {
-    "Welcome to Grist!": "Gristへようこそ！",
-    "HR & Management": "人事労務管理",
-    "Sales": "営業",
-    "Marketing": "マーケティング",
-    "Type here": "ここに入力",
-    "Other": "その他",
-    "Product Development": "製品開発",
-    "Media Production": "メディア制作",
-    "What brings you to Grist? Please help us serve you better.": "グリストをご利用になる理由は何ですか？より良いサービスを提供するためにご協力ください。",
-    "Education": "教育",
-    "IT & Technology": "ITとテクノロジー",
-    "Finance & Accounting": "財務・会計",
-    "Research": "研究"
-  },
   "PagePanels": {
     "Open creator panel": "クリエイターパネルを開く",
     "Close Creator Panel": "クリエイターパネルを閉じる"
@@ -1129,5 +1114,18 @@
   },
   "Menu": {
     "Paragraph": "段落"
+  },
+  "OnboardingPage": {
+    "Product Development": "製品開発",
+    "Finance & Accounting": "財務・会計",
+    "Media Production": "メディア制作",
+    "IT & Technology": "ITとテクノロジー",
+    "Marketing": "マーケティング",
+    "Research": "研究",
+    "Sales": "営業",
+    "Education": "教育",
+    "HR & Management": "人事労務管理",
+    "Other": "その他",
+    "Type here": "ここに入力"
   }
 }

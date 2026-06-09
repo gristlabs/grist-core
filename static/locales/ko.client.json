@@ -373,21 +373,6 @@
         "Hidden {{label}}": "{{label}} 숨겨짐",
         "Show {{label}}": "{{label}} 표시"
     },
-    "WelcomeQuestions": {
-        "Welcome to Grist!": "Grist에 오신 것을 환영합니다!",
-        "What brings you to Grist? Please help us serve you better.": "Grist를 사용하게 된 계기는 무엇인가요? 더 나은 서비스를 제공할 수 있도록 도와주세요.",
-        "Other": "기타",
-        "Product Development": "제품 개발",
-        "Education": "교육",
-        "Finance & Accounting": "재무 및 회계",
-        "HR & Management": "인사 및 관리",
-        "IT & Technology": "IT 및 기술",
-        "Marketing": "마케팅",
-        "Media Production": "미디어 제작",
-        "Research": "연구",
-        "Sales": "영업",
-        "Type here": "여기에 입력하세요"
-    },
     "WidgetTitle": {
         "Cancel": "취소",
         "DATA TABLE NAME": "데이터 표 이름",
@@ -430,8 +415,6 @@
         "Search columns": "열 검색",
         "By Name": "이름순",
         "By Date Modified": "수정 날짜순",
-        "Light": "라이트",
-        "Custom": "사용자 정의",
         "* Workspaces are available on team plans. ": "* 워크스페이스는 팀 요금제에서 사용할 수 있습니다. ",
         "Select fields": "필드 선택",
         "Upgrade now": "지금 업그레이드",
@@ -821,7 +804,17 @@
         "What brings you to Grist (you can select multiple)?": "Grist를 사용하게 된 계기는 무엇인가요 (여러 개 선택 가능)?",
         "What is your role?": "당신의 역할은 무엇인가요?",
         "What organization are you with?": "어떤 조직에 속해 있나요?",
-        "Your role": "역할"
+        "Your role": "역할",
+        "Product Development": "제품 개발",
+        "Finance & Accounting": "재무 및 회계",
+        "Media Production": "미디어 제작",
+        "IT & Technology": "IT 및 기술",
+        "Marketing": "마케팅",
+        "Research": "연구",
+        "Sales": "영업",
+        "Education": "교육",
+        "HR & Management": "인사 및 관리",
+        "Other": "기타"
     },
     "ViewLayout": {
         "Delete": "삭제",
@@ -1539,7 +1532,8 @@
     },
     "ThemeConfig": {
         "Appearance ": "모양 ",
-        "Switch appearance automatically to match system": "시스템 설정에 맞춰 자동으로 모양 전환"
+        "Switch appearance automatically to match system": "시스템 설정에 맞춰 자동으로 모양 전환",
+        "Light": "라이트"
     },
     "Tools": {
         "Access Rules": "접근 규칙",
