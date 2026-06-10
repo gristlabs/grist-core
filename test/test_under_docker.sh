@@ -57,7 +57,10 @@ DOCKER_PID="$!"
 
 echo "[waiting for server]"
 while true; do
-  curl -s http://localhost:$PORT/status && break
+  # Wait for a healthy response specifically. RestartShell opens the port
+  # before the server is ready, answering /status with a 503 "starting"
+  # error until then, so insist on a 200 response that says "alive".
+  if curl -fs http://localhost:$PORT/status | grep -q alive; then break; fi
   sleep 1
 done
 echo ""

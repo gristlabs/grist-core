@@ -25,7 +25,7 @@ function setupTest(owner: IDisposableOwner) {
     // Show the form contents.
     forms.checkboxItem([{ disabled: true }, dom.prop("checked", isFilled)], "Is Form Filled?"),
     dom("textarea", { rows: "8", cols: "80" }, dom.prop("value", formValue)),
-    dom.on("change", (e, form) => {
+    dom.on("change", (e, form: HTMLFormElement) => {
       isFilled.set(forms.isFormFilled(form, ["sky-*", "meaning"]));
       formValue.set(JSON.stringify(formDataToObj(form), null, 2));
     }),

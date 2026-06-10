@@ -2779,7 +2779,7 @@
         "The change will be saved when you apply pending changes, and will take effect after you restart Grist.": "Ändringarna kommer sparas när du applicerar väntande ändringar, de kommer att få effekt efter att du startar om Grist.",
         "configuration updated": "Inställningarna uppdaterade",
         "disabled": "avstängd",
-        "Your server is configured to authenticate users via OpenID Connect. Users sign in through your identity provider.": "Din server är inställd för autentisering av användare genom OpenID Connect. Användarna",
+        "Your server is configured to authenticate users via OpenID Connect. Users sign in through your identity provider.": "Din server är inställd för autentisering av användare genom OpenID Connect. Användarna.",
         "Your server is configured to authenticate users via SAML 2.0. Users sign in through your enterprise identity provider.": "Din server är inställd för autentisering av användare genom SAML 2.0. Användare loggar in genom din identitetsleverantör.",
         "Your server is using a boot key as a fallback login method. Configure one of the authentication methods below.": "Din server använder uppstartsnyckel som reservmetod för inloggning. Ställ in en av autentiseringsmetoderna nedan.",
         "Your server trusts authentication from a reverse proxy. Make sure only your proxy can reach the Grist backend.": "Din server litar på autentisering från en omvänd proxy. Säkerställ att enbart proxyn kan nå Grist servern.",
@@ -3013,7 +3013,10 @@
         "See how to enable it.": "Se hur den aktiveras.",
         "The free and open-source heart of Grist, with everything you need to open and edit Grist documents, control access, create forms, connect to single sign-on (SSO) providers, and much more.": "Den fria och öppna källkoden som är hjärtat i Grist, med allt du behöver för att redigera Gristdokument, hantera rättigheter, skapa formulär, ansluta till identitetsleverantörer och mycket mer.",
         "full": "komplett",
-        "pricing": "priser"
+        "pricing": "priser",
+        "The full Grist experience, with all features enabled for improved security, governance, and collaboration.": "Den kompletta Grsit upplevelsen, med alla funktioner aktiverade för förbättrad säkerhet, kontroll och samarbete.",
+        "You have 30 days to enter an activation key. Free activation keys are available to individuals and small orgs with less than US $1 million in total annual funding. {{learnMoreLink}} For larger orgs, see {{pricingLink}}.": "Du har 30 dagar på dig att fylla i en aktiveringsnyckel. Gratis aktiveringsnycklar finns tillgängliga för små organisationer med mindre än en miljon USD i total årlig omsättning. {{learnMoreLink}} För större organisationer se {{pricingLink}}.",
+        "Your installation does not bundle the Full Grist edition. Want Full Grist? {{enableLink}}": "Din installation inkluderar inte den kompletta varianten av Grist. Vill du använda komplett Grist? {{enableLink}}"
     },
     "BaseUrlSection": {
         "set": "ställ in",
@@ -3079,7 +3082,7 @@
     },
     "PermissionsSetupSection": {
         "Allow anonymous access": "Tillåt anonym åtkomst",
-        "Allow anonymous playground": "Tillåt annonym åtkomst till testmiljön",
+        "Allow anonymous playground": "Tillåt anonym åtkomst till testmiljön",
         "Allow anyone to create team sites": "Tillåt alla att skapa arbetslagssajter",
         "Allow personal sites": "Tillåt personliga sajter",
         "Any logged-in user can create new team sites. Turn off to restrict team creation to admins only.": "Alla inloggade användare kan skapa nya arbetslagssajter. Stäng av för att begränsa så att bara administratörer kan skap arbetslagssajter.",
@@ -3120,9 +3123,28 @@
         "Allow personal sites": "Tillåt personliga sajter",
         "Permissions": "Behörighetee",
         "off": "av",
-        "on": "på"
+        "on": "på",
+        "Any logged-in user can create new team sites. Turn off to restrict team creation to admins only.": "Alla inloggade användare kan skapa nya arbetslagssajter. Stäng av för att begränsa skapandet av nya arbetslag till enbart administratörer.",
+        "Users can create their own personal sites with documents. Turn off to restrict all documents to team sites managed by admins.": "Användare kan skapa sina egen personliga sajter med dokument. Stäng av för att begränsa så att alla dokument till arbetslagssajter som hanteras av administratörer.",
+        "Visitors who aren't signed in can create and edit documents in a temporary playground. Turn off to require sign-in before creating any documents.": "Besökare som inte är inloggade kan skapa och redigera dokument i en temporär testmiljö. Stäng av för att kräva inloggning för att kunna skapa dokument.",
+        "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.": "Besökare som inte är inloggade kan se publikt delade dokument. Detta behövs för att länkdelning och publicering av formulär."
     },
     "ScreenReaderAnnouncer": {
         "Notification: {{notification}}": "Notifiering: {{notification}}"
+    },
+    "ScreenReaderConfig": {
+        "Enable screen reader improvements": "Aktivera förbättringar för skärmläsare",
+        "Press {{accessibilityModalShortcut}} for more information about screen reader navigation.": "Tryck {{accessibilityModalShortcut}} för mer information om skärmläsarnavigation."
+    },
+    "ScreenReaderFormatters": {
+        "Image": "Bild",
+        "heading {{- text}}": "rubrik {{- text}}",
+        "link {{- label}}": "länk {{- label}}",
+        "list: {{- items}}": "lista: {{- items}}",
+        "{{- text}} (link)": "{{- text}} (länk)",
+        "Toggled off": "Avstängd",
+        "Toggled on": "Påslagen",
+        "Checked": "Ibockad",
+        "Unchecked": "Obockad"
     }
 }
