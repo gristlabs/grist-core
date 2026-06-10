@@ -105,7 +105,12 @@ export function aclFormulaEditor(options: ACLFormulaOptions) {
   // browser zoom; see #2082). Watch for the element getting laid out and heal it then.
   let healTimer: ReturnType<typeof setTimeout> | undefined;
   const heal = () => {
-    healTimer = undefined;
+    // Cancel any pending retry, so that concurrent ResizeObserver and timer invocations
+    // collapse into a single retry chain (a no-op when called from the timer itself).
+    if (healTimer !== undefined) {
+      clearTimeout(healTimer);
+      healTimer = undefined;
+    }
     if (editorElem.clientWidth === 0 || editorElem.clientHeight > 0) {
       return;
     }
