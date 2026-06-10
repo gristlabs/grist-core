@@ -630,11 +630,13 @@ describe("AirtableImport", function() {
     it("should hide 'Connect with Airtable' button", async function() {
       await openAirtableDocImporter("home");
       assert.isFalse(await driver.find(".test-import-airtable-connect").isPresent());
-      assert.equal(
-        await driver.find(".test-import-airtable-connect-hint").getText(),
-        "The more convenient ‘Connect with Airtable’ option can be configured by the installation " +
-        "administrator. Learn more.",
-      );
+      await gu.waitToPass(async () => {
+        assert.equal(
+          await driver.find(".test-import-airtable-connect-hint").getText(),
+          "The more convenient ‘Connect with Airtable’ option can be configured by the installation " +
+          "administrator. Learn more.",
+        );
+      });
     });
   });
 });
