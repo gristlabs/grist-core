@@ -20,6 +20,7 @@ describe("UndoJumps.ntest", function() {
     let cell = gu.getCell(pos);
     await cell.click();
     assert.equal(await cell.text(), text);
+    await gu.waitAppFocus();
   }
 
   async function getSectionAndCursor() {

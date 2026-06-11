@@ -2101,7 +2101,7 @@ namespace gristUtils {
       await orgInput.sendKeys(e, Key.ENTER);
       if (role && role !== "Viewer") {
         await driver.findContentWait(".test-um-member", e, 1000).find(".test-um-member-role").click();
-        await driver.findContent(".test-um-role-option", role ?? "Viewer").click();
+        await driver.findContentWait(".test-um-role-option", role ?? "Viewer", 200).click();
       }
     }
     await driver.find(".test-um-confirm").click();
