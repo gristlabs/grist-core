@@ -1,2 +1,4 @@
 # Runtime artifacts fetched by `make setup` (python.wasm, stdlib, wasmtime).
 _build/
+# Compiled embedding host (built by `make host`).
+host/target/

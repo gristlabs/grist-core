@@ -1,0 +1,22 @@
+[package]
+name = "grist-wasi-host"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+# Minimal wasmtime embedding host for the "wasi" sandbox flavor. Unlike the
+# wasmtime CLI (whose --dir grants read-write access), this opens the engine and
+# dependency directories read-only, so sandboxed formula code cannot modify the
+# engine source on the host. See ../README.md and app/server/lib/SandboxWasi.ts.
+
+[[bin]]
+name = "grist-wasi-host"
+path = "src/main.rs"
+
+[dependencies]
+wasmtime = "45"
+wasmtime-wasi = "45"
+anyhow = "1"
+
+[profile.release]
+opt-level = 2

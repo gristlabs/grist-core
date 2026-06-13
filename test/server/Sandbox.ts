@@ -211,9 +211,9 @@ describe("Sandbox", function() {
       const hostDirs = getSubDirs(`${testUtils.appRoot}/sandbox/grist`, sandboxRoot);
       assert.deepEqual(sandboxDirs.sort(), hostDirs.sort());
 
-      if (sandbox.getFlavor() === "macSandboxExec") {
-        // Mac sandbox doesn't allow this kind of tmpfs overlay. End
-        // this test early.
+      if (["macSandboxExec", "wasi"].includes(sandbox.getFlavor())) {
+        // Mac sandbox doesn't allow this kind of tmpfs overlay, and wasi has no
+        // /tmp at all (only the directories we explicitly preopen). End early.
         return;
       }
       const emptyTmp = await sandbox.pyCall("test_list_files", "/tmp", true);
@@ -221,8 +221,9 @@ describe("Sandbox", function() {
     });
 
     it("should have write access to some directories", async function() {
-      if (sandbox.getFlavor() === "macSandboxExec") {
-        // Mac sandbox doesn't allow this kind of tmpfs overlay.
+      if (["macSandboxExec", "wasi"].includes(sandbox.getFlavor())) {
+        // Mac sandbox doesn't allow this kind of tmpfs overlay; wasi has no
+        // writable scratch directory (no /tmp preopened).
         this.skip();
       }
       // gvisor mounts /tmp as a tmpfs, so it can be written to but is
@@ -345,10 +346,13 @@ libc.emscripten_run_script_string.restype = c_char_p
 libc.emscripten_run_script_string(b"require('fs').writeFileSync('${testFile}', 'hello')")
 return 'done'
 `);
-        if (!result.match("done") &&
-          !result.match(/undefined symbol: emscripten_run_script_string/) &&
-          !result.match(/symbol not found/)) {
-          throw new Error("unexpected result " + String(result));
+        const out = String(result);
+        if (!out.match("done") &&
+          !out.match(/undefined symbol: emscripten_run_script_string/) &&
+          !out.match(/symbol not found/) &&
+          // wasi has no ctypes (no _ctypes module), so the attack can't even load.
+          !out.match(/No module named/)) {
+          throw new Error("unexpected result " + out);
         }
       } catch (e) {
         if (
@@ -392,14 +396,14 @@ return 'done'
     });
 
     // Note: this test may modify the sandboxed main.py in place
-    it("gvisor and macSandboxExec should have no write access to sandbox files", async function() {
-      if (!["gvisor", "macSandboxExec"].includes(sandbox.getFlavor())) {
+    it("gvisor, macSandboxExec and wasi should have no write access to sandbox files", async function() {
+      if (!["gvisor", "macSandboxExec", "wasi"].includes(sandbox.getFlavor())) {
         this.skip();
       }
       const sandboxRoot = await sandbox.pyCall("test_get_sandbox_root");
       const mainFile = path.join(sandboxRoot, "main.py");
 
-      // gvisor mounts the sandbox files as read-only
+      // gvisor and wasi mount the sandbox files as read-only.
       await assert.isRejected(
         sandbox.pyCall("test_write_file", mainFile, "# A rambunctious little edit"),
       );
@@ -408,11 +412,18 @@ return 'done'
       assert.notMatch(fileContents, /rambunctious/);
     });
 
-    it("gvisor and pyodide should fail after unreasonable number of calls to os.fork()", async function() {
+    it("should fail after unreasonable number of calls to os.fork()", async function() {
+      if (sandbox.getFlavor() === "wasi") {
+        // WASI has no process model at all: os.fork does not exist.
+        await assert.isRejected(
+          sandbox.pyCall("test_fork", 64),
+          /AttributeError|OSError/,
+        );
+        return;
+      }
       if (!["gvisor", "pyodide"].includes(sandbox.getFlavor())) {
         this.skip();
       }
-
       await assert.isRejected(
         sandbox.pyCall("test_fork", 64),
         /BlockingIOError|OSError/,

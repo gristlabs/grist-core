@@ -11,8 +11,13 @@
 # app/server/lib/SandboxWasi.ts for how the sandbox is launched.
 
 # Pinned versions. Bump together and re-run `make setup`.
-CPYTHON_WASI_VERSION = 3.14.6
-WASI_SDK_VERSION = 24
+#
+# CPython is pinned to 3.11 deliberately: the data engine and its astroid
+# dependency target 3.9-3.11, and the engine still uses a few AST node names
+# (e.g. ast.Str in formula_prompt.py) that were removed in 3.12+. Moving to a
+# newer interpreter would need those call sites updated first.
+CPYTHON_WASI_VERSION = 3.11.13
+WASI_SDK_VERSION = 16
 WASMTIME_VERSION = 45.0.1
 
 # Host platform detection for the wasmtime download (the python.wasm is portable).
@@ -39,12 +44,13 @@ BUILD = _build
 
 default:
 	@echo "Welcome to the wasi sandbox"
-	@echo "make setup     # fetch python.wasm and wasmtime into _build/"
+	@echo "make setup     # fetch runtime + build the read-only host"
 	@echo "make runtime   # fetch CPython wasm only"
-	@echo "make wasmtime  # fetch wasmtime only"
-	@echo "make clean     # remove _build/"
+	@echo "make wasmtime  # fetch wasmtime CLI only"
+	@echo "make host      # build the read-only embedding host (needs cargo)"
+	@echo "make clean     # remove _build/ and host build artifacts"
 
-setup: runtime wasmtime
+setup: runtime host
 
 runtime: $(BUILD)/python.wasm
 
@@ -66,7 +72,14 @@ $(BUILD)/wasmtime:
 	rm -rf $(BUILD)/wasmtime.tar.xz $(BUILD)/wasmtime-v$(WASMTIME_VERSION)-$(WASMTIME_PLATFORM)
 	@echo "Fetched wasmtime $(WASMTIME_VERSION) for $(WASMTIME_PLATFORM)."
 
+host: host/target/release/grist-wasi-host
+
+host/target/release/grist-wasi-host:
+	cd host && cargo build --release
+	@echo "Built read-only embedding host."
+
 clean:
 	rm -rf $(BUILD)
+	cd host && cargo clean 2>/dev/null || true
 
-.PHONY: default setup runtime wasmtime clean
+.PHONY: default setup runtime wasmtime host clean

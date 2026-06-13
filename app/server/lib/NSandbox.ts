@@ -912,11 +912,12 @@ function pyodide(options: ISandboxOptions): SandboxProcess {
 }
 
 /**
- * Run the data engine on a CPython interpreter compiled to wasm32-wasi,
- * executed by wasmtime. Data flows over stdin/stdout (PIPE_MODE=wasi); the
- * guest sees only the directories we preopen with --dir and has no network.
- * See app/server/lib/SandboxWasi.ts for how the command line is built, and
- * `make -C sandbox/wasi setup` for fetching the runtime.
+ * Run the data engine on a CPython interpreter compiled to wasm32-wasi. Data
+ * flows over stdin/stdout (PIPE_MODE=wasi); the guest sees only the directories
+ * we preopen and has no network. When the embedding host (sandbox/wasi/host) is
+ * available the engine and dependencies are mounted read-only; otherwise we
+ * fall back to the wasmtime CLI, which can only mount read-write (less secure).
+ * See app/server/lib/SandboxWasi.ts for details and `make -C sandbox/wasi setup`.
  */
 function wasi(options: ISandboxOptions): SandboxProcess {
   if (options.minimalPipeMode === false) {
@@ -924,7 +925,12 @@ function wasi(options: ISandboxOptions): SandboxProcess {
   }
   options.minimalPipeMode = true;
 
-  const { command, args, cwd } = getWasiSettings(options);
+  const { command, args, cwd, readOnly } = getWasiSettings(options);
+  if (!readOnly) {
+    log.rawWarn("wasi sandbox running via wasmtime CLI: engine files are writable from " +
+      "inside the sandbox; build the read-only host with `make -C sandbox/wasi host`",
+    options.logMeta || {});
+  }
   const child = adjustedSpawn(command, args, {
     cwd,
     // Data on stdin/stdout, logs on stderr. WASI inherits these by default.
