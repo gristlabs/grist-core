@@ -100,6 +100,26 @@ class Sandbox(object):
     sys.stdout = sys.stderr
     return cls(external_input, None, external_output_method)
 
+  @classmethod
+  def use_wasi(cls):
+    """
+    Send data via stdin/stdout, for use when running under WASI (e.g. CPython
+    compiled to wasm32-wasi and executed by wasmtime). WASI preview1 has no
+    os.dup2, so we can't move the data channel onto side file descriptors the
+    way use_common_pipes() does. Instead read marshalled data straight from
+    stdin and write it to stdout, and redirect sys.stdout to stderr so that
+    stray prints and log output can't corrupt the data channel.
+
+    Note we read from the raw stdin buffer directly rather than wrapping it in
+    CarefulReader (as use_pyodide does): under wasmtime marshal.load reads
+    cleanly from the real stdin file object, whereas the CarefulReader wrapper,
+    which lacks a usable fileno for marshal's fast path, causes reads to block.
+    """
+    external_input = sys.stdin.buffer
+    external_output = sys.stdout.buffer
+    sys.stdout = sys.stderr
+    return cls(external_input, external_output)
+
   def _send_to_js(self, msgCode, msgBody):
     # (Note that marshal version 2 is the default; we specify it explicitly for clarity. The
     # difference with version 0 is that version 2 uses a faster binary format for floats.)
@@ -161,6 +181,8 @@ def get_default_sandbox():
       default_sandbox = Sandbox.use_common_pipes()
     elif os.environ.get('PIPE_MODE') == 'pyodide':
       default_sandbox = Sandbox.use_pyodide()
+    elif os.environ.get('PIPE_MODE') == 'wasi':
+      default_sandbox = Sandbox.use_wasi()
     else:
       default_sandbox = Sandbox.connected_to_js_pipes()
   return default_sandbox

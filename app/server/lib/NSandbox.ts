@@ -19,6 +19,7 @@ import {
 } from "app/server/lib/SandboxControl";
 import { checkPyodideDeno, getPyodideSettings } from "app/server/lib/SandboxPyodide";
 import * as sandboxUtil from "app/server/lib/sandboxUtil";
+import { checkWasiAvailable, getWasiSettings } from "app/server/lib/SandboxWasi";
 import * as shutdown from "app/server/lib/shutdown";
 
 import { ChildProcess, fork, spawn, SpawnOptionsWithoutStdio } from "child_process";
@@ -527,6 +528,7 @@ const spawners = {
   gvisor,             // Gvisor's runsc sandbox.
   macSandboxExec,     // Use "sandbox-exec" on Mac.
   pyodide,            // Run data engine using pyodide.
+  wasi,               // Run data engine using CPython-WASI under wasmtime.
   skip: unsandboxed,  // Same as unsandboxed. Used to mean that the
   // user deliberately doesn't want sandboxing.
   // The "unsandboxed" setting is ambiguous in this
@@ -634,6 +636,7 @@ const hasSandboxExec = checkCommandExists("sandbox-exec");
  */
 export function getAvailableSandboxes(): SandboxInfo[] {
   const pyodideCheck = _checkPyodideAvailable();
+  const wasiCheck = checkWasiAvailable();
   return [
     {
       flavor: "gvisor",
@@ -657,6 +660,15 @@ export function getAvailableSandboxes(): SandboxInfo[] {
       flavor: "macSandboxExec",
       available: hasSandboxExec,
       unavailableReason: hasSandboxExec ? undefined : "sandbox-exec not found (macOS only)",
+      effective: true,
+      functional: false,
+      configured: true,
+      lastSuccessfulStep: "none",
+    },
+    {
+      flavor: "wasi",
+      available: wasiCheck.available,
+      unavailableReason: wasiCheck.reason,
       effective: true,
       functional: false,
       configured: true,
@@ -896,6 +908,32 @@ function pyodide(options: ISandboxOptions): SandboxProcess {
     control: () => new DirectProcessControl(child, options.logMeta),
     dataToSandboxDescriptor,
     dataFromSandboxDescriptor,
+  };
+}
+
+/**
+ * Run the data engine on a CPython interpreter compiled to wasm32-wasi,
+ * executed by wasmtime. Data flows over stdin/stdout (PIPE_MODE=wasi); the
+ * guest sees only the directories we preopen with --dir and has no network.
+ * See app/server/lib/SandboxWasi.ts for how the command line is built, and
+ * `make -C sandbox/wasi setup` for fetching the runtime.
+ */
+function wasi(options: ISandboxOptions): SandboxProcess {
+  if (options.minimalPipeMode === false) {
+    throw new Error("wasi flavor only supports 3-pipe (stdin/stdout) operation");
+  }
+  options.minimalPipeMode = true;
+
+  const { command, args, cwd } = getWasiSettings(options);
+  const child = adjustedSpawn(command, args, {
+    cwd,
+    // Data on stdin/stdout, logs on stderr. WASI inherits these by default.
+    stdio: ["pipe", "pipe", "pipe"] as "pipe"[],
+  });
+  return {
+    name: "wasi",
+    child,
+    control: () => new DirectProcessControl(child, options.logMeta),
   };
 }
 
