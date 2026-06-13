@@ -279,7 +279,7 @@
         "Enter Custom URL": "Egyedi URL megadása",
         "Full document access": "Teljes dokumentum-hozzáférés",
         "Learn more about custom widgets": "További tudnivalók az egyedi widget-ekről",
-        "No document access": "Nincs hozzáférésed a dokumentumhoz",
+        "No document access": "Nincs hozzáférés a dokumentumhoz",
         "Open configuration": "Beállítások megnyitása",
         "Pick a column": "Válassz oszlopot",
         "Pick a {{columnType}} column": "Válassz egy {{columnType}} oszlopot",
@@ -1075,9 +1075,9 @@
         "Clear": "Kijelölések törlése",
         "Hidden Fields cannot be reordered": "A rejtett mezőket nem lehet átrendezni",
         "Select all": "Mindent kijelöl",
-        "Visible {{label}}": "{{label}} látható",
+        "Visible {{label}}": "Látható {{label}}",
         "Hide {{label}}": "{{label}} elrejtése",
-        "Hidden {{label}}": "{{label}} rejtett",
+        "Hidden {{label}}": "Rejtett {{label}}",
         "Show {{label}}": "{{label}} mutatása",
         "Hide {{label}} (batch mode)": "{{label}} elrejtése (kötegelt mód)",
         "Show {{label}} (batch mode)": "{{label}} mutatása (kötegelt mód)"
@@ -2428,7 +2428,7 @@
         "Uploading…": "Feltöltés…"
     },
     "RowHeightConfig": {
-        "Expand all rows to this height": "Állítsa az összes sort erre a magasságra",
+        "Expand all rows to this height": "Legyen az összes sor ilyen magas",
         "Max height": "Max magasság",
         "Max row height": "Max sormagasság",
         "Change": "Módosítás"
