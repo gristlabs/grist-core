@@ -40,7 +40,7 @@ const DBLCLICK_MS = 300;
 
 // Columns the calendar needs the user to map. Mirrors the mapping offered by the
 // (now superseded) custom calendar widget, so existing configurations keep working.
-export function getCalendarColumns(): ColumnsToMap {
+function getCalendarColumns(): ColumnsToMap {
   return [
     {
       name: "startDate",
