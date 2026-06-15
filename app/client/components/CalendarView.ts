@@ -247,7 +247,7 @@ export class CalendarView extends BaseView {
       gridSelection: { enableDblClick: true, enableClick: false },
       calendars: [{
         id: CALENDAR_NAME,
-        name: "Personal",
+        name: t("Personal"),
         backgroundColor: theme.inputReadonlyBorder.toString(),
         borderColor: theme.inputReadonlyBorder.toString(),
       }],
