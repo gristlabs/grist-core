@@ -201,8 +201,18 @@ export class CalendarView extends BaseView {
     });
 
     this._wireCalendarEvents();
+    // disableEditing is a ko.computed that depends on linking state (BaseView.ts), so it can flip
+    // after init when the section becomes a link target. Mirror its current value onto TUI so the
+    // form popup and drag-to-edit follow the read-only flag.
+    this.autoDispose(this.disableEditing.subscribe(() => this._applyReadOnly()));
     this._changeView(this._perspective.get());
     this._updateView();
+  }
+
+  private _applyReadOnly() {
+    if (!this._calendar) { return; }
+    const isReadOnly = this._isReadOnly();
+    this._calendar.setOptions({ isReadOnly, useFormPopup: !isReadOnly });
   }
 
   // TUI theme, expressed in terms of Grist theme CSS variables so it follows light/dark mode.
