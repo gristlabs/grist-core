@@ -246,6 +246,7 @@ describe("uploads", function() {
       });
 
       it("should use fetch by default for public fetchURL", async function() {
+        const response = new Response(streamify("a, b\n0, 1\n"));
         sandbox.stub(Deps, "fetchInternal").rejects(new Error("should not be called"));
         url = "fake/untrusted/url";
         response.headers.set("content-type", "text/csv; charset=utf-8");
@@ -260,7 +261,7 @@ describe("uploads", function() {
       });
     });
 
-    describe("fetchDoc", async function() {
+    describe("fetchDoc", function() {
       it("should use fetchInternal for doc worker URLs", async function() {
         const sandbox = sinon.createSandbox();
         try {
