@@ -348,7 +348,12 @@ export class CalendarView extends BaseView {
     this._calendarDom.addEventListener("mousedown", () => cal.clearGridSelections());
 
     // Enter confirms the event-edit form popup (TUI doesn't submit it on Enter by itself).
-    // Escape closes it without saving.
+    // Escape closes it without saving. Both reach into TUI's internal DOM via private class
+    // names: `toastui-calendar-popup-confirm` and `toastui-calendar-popup-close`. There is no
+    // public API exposing these buttons, and the popup is rendered into TUI's own container, so
+    // there's no first-class way to wire keyboard handlers. If a TUI upgrade renames these
+    // classes, the popup will silently stop responding to Enter/Escape; we'd find that via the
+    // nbrowser tests, but worth being aware of when bumping the dependency.
     this._calendarDom.addEventListener("keydown", (ev) => {
       if (ev.key === "Enter") {
         const confirm = this._calendarDom.querySelector("button.toastui-calendar-popup-confirm");
