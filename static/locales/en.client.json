@@ -485,7 +485,8 @@
         "Allow others to suggest changes": "Allow others to suggest changes",
         "Enable suggestions": "Enable suggestions",
         "Suggestions": "Suggestions",
-        "experiment": "experiment"
+        "experiment": "experiment",
+        "For number formats": "For number formats"
     },
     "DocumentUsage": {
         "Size of attachments": "Size of attachments",
