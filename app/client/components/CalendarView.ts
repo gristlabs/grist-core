@@ -493,11 +493,17 @@ export class CalendarView extends BaseView {
   // Selection / cursor linking
 
   private _selectRecord(rowId: UIRowId | null) {
-    if (typeof rowId !== "number" || rowId === this._selectedRecordId || !this._calendar) { return; }
-    if (this._selectedRecordId) { this._setHighlight(this._selectedRecordId, false); }
+    if (!this._calendar) { return; }
+    const next = typeof rowId === "number" ? rowId : null;
+    if (next === this._selectedRecordId) { return; }
 
-    const event = this._allEvents.get(rowId);
-    this._selectedRecordId = rowId;
+    // Always clear the previous highlight, even when there's no incoming event to highlight
+    // (e.g. cursor moved off any mapped row, or to a row whose date columns are blank).
+    if (this._selectedRecordId) { this._setHighlight(this._selectedRecordId, false); }
+    this._selectedRecordId = next;
+    if (next === null) { return; }
+
+    const event = this._allEvents.get(next);
     if (!event) { return; }
 
     this._calendar.setDate(event.start as any);
