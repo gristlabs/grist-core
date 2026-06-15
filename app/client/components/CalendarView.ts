@@ -182,6 +182,35 @@ export class CalendarView extends BaseView {
     this.autoDispose(this.cursor.rowId.subscribe(rowId => this._selectRecord(rowId)));
 
     this._init().catch(reportError);
+
+    // Stable handle for nbrowser tests, so they don't have to walk into private fields. Updated
+    // to point at the most-recently-created live view, cleared on dispose. Production never
+    // reads it; tests do via window.gristCalendarView (see test/nbrowser/CalendarView.ts).
+    (window as any).gristCalendarView = this._testHook();
+    this.onDispose(() => {
+      if ((window as any).gristCalendarView?._view === this) {
+        delete (window as any).gristCalendarView;
+      }
+    });
+  }
+
+  private _testHook() {
+    return {
+      _view: this,
+      getEventByRowId: (rowId: number) => this._serializeEvent(this._allEvents.get(rowId)),
+      getEventByTitle: (title: string) => this._serializeEvent(
+        [...this._allEvents.values()].find(e => e.title === title)),
+      getSelectedRecordId: () => this._selectedRecordId,
+      getViewName: () => this._calendar?.getViewName(),
+      getCalendarDate: () => this._calendar?.getDate().toDate().toDateString(),
+    };
+  }
+
+  private _serializeEvent(ev: EventObject | undefined) {
+    if (!ev) { return null; }
+    // TZDate carries a timezone tag; .local() recovers the original instant before .toDate().
+    const ms = (x: any) => !x ? null : (x.toDate ? x.local().toDate().getTime() : new Date(x).getTime());
+    return { title: ev.title, startMs: ms(ev.start), endMs: ms(ev.end), isAllDay: Boolean(ev.isAllday) };
   }
 
   public onResize() {

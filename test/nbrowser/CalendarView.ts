@@ -210,33 +210,23 @@ describe("CalendarView", function() {
     await gu.waitForServer();
   }
 
-  // Reaches the live CalendarView instance via the existing window.gristDocPageModel handle, by
-  // finding the calendar section in the active view. Tests read its (private) fields below.
-  const VIEW = `window.gristDocPageModel.gristDoc.get().viewModel.viewSections().all()
-      .find(s => s.parentKey.peek() === 'custom.calendar').viewInstance.peek()`;
-
-  // Reads the TUI event picked by `lookup` (a JS expression with access to the resolved view `v`
-  // and executeScript `arguments`), mapped to a serializable shape, or null if there's no match.
+  // Live CalendarView exposes a narrow window.gristCalendarView test hook (see
+  // app/client/components/CalendarView.ts._testHook). We go through it rather than walking into
+  // private fields, so renames inside the view don't ripple into the test.
   interface CalEvent { title: string; startMs: number | null; endMs: number | null; isAllDay: boolean; }
-  function readEvent(lookup: string, ...args: any[]): Promise<CalEvent | null> {
-    return driver.executeScript(`
-      const v = (${VIEW});
-      const ev = ${lookup};
-      if (!ev) { return null; }
-      // TUI TZDates carry a timezone tag; .local() recovers the original instant before .toDate().
-      const ms = x => !x ? null : (x.toDate ? x.local().toDate().getTime() : new Date(x).getTime());
-      return {title: ev.title, startMs: ms(ev.start), endMs: ms(ev.end), isAllDay: Boolean(ev.isAllday)};
-    `, ...args);
-  }
-
-  // An event from the calendar's full set (independent of the visible range), by rowId or title.
-  const getCalendarEvent = (rowId: number) => readEvent("v._allEvents.get(arguments[0])", rowId);
+  const getCalendarEvent = (rowId: number) =>
+    driver.executeScript<CalEvent | null>(
+      "return window.gristCalendarView.getEventByRowId(arguments[0])", rowId);
   const getEventByTitle = (title: string) =>
-    readEvent("[...v._allEvents.values()].find(e => e.title === arguments[0])", title);
+    driver.executeScript<CalEvent | null>(
+      "return window.gristCalendarView.getEventByTitle(arguments[0])", title);
 
   // Title of the currently-selected event (the row the calendar is tracking), or null.
   async function getSelectedEventTitle(): Promise<string | null> {
-    const ev = await readEvent("v._selectedRecordId != null ? v._allEvents.get(v._selectedRecordId) : null");
+    const rowId = await driver.executeScript<number | null>(
+      "return window.gristCalendarView.getSelectedRecordId()");
+    if (rowId == null) { return null; }
+    const ev = await getCalendarEvent(rowId);
     return ev?.title ?? null;
   }
 
@@ -253,11 +243,11 @@ describe("CalendarView", function() {
   const dayAt = (day: Date, hour: number) => Math.floor((day.getTime() + hour * 3600_000) / 1000);
 
   async function getViewName(): Promise<string> {
-    return driver.executeScript(`return (${VIEW})._calendar.getViewName()`);
+    return driver.executeScript("return window.gristCalendarView.getViewName()");
   }
 
   async function getCalendarDate(): Promise<string> {
-    return driver.executeScript(`return (${VIEW})._calendar.getDate().toDate().toDateString()`);
+    return driver.executeScript("return window.gristCalendarView.getCalendarDate()");
   }
 
   async function getCalendarTitle(): Promise<string> {
