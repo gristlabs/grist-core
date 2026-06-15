@@ -721,10 +721,10 @@ export class CalendarView extends BaseView {
       testId("container"),
       cssToolbar(
         cssNavGroup(
-          cssNavButton(icon("Dropdown"), dom.style("transform", "rotate(90deg)"),
+          cssNavButton(icon("ArrowLeft"),
             dom.on("click", () => this._go("prev")), testId("prev")),
           cssNavButton(t("Today"), dom.on("click", () => this._go("today")), testId("today")),
-          cssNavButton(icon("Dropdown"), dom.style("transform", "rotate(-90deg)"),
+          cssNavButton(icon("ArrowRight"),
             dom.on("click", () => this._go("next")), testId("next")),
         ),
         this._titleDom = cssCalendarTitle(testId("title")),
