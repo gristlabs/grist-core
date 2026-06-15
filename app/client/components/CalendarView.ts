@@ -541,7 +541,11 @@ export class CalendarView extends BaseView {
     const cal = this._calendar;
     if (!cal) { return; }
     const rangeStart = cal.getDateRangeStart().getTime();
-    const rangeEnd = (cal.getDateRangeEnd() as any).setHours(23, 59, 59, 999);
+    // Copy before calling setHours, which mutates in place. TUI may hand back a reference to its
+    // internal range-end, so shifting it would creep the visible window forward each render.
+    const rangeEndDate = (cal.getDateRangeEnd() as TZDate).toDate();
+    rangeEndDate.setHours(23, 59, 59, 999);
+    const rangeEnd = rangeEndDate.getTime();
 
     const nowVisible = new Set<number>();
     for (const [rowId, event] of this._allEvents) {
