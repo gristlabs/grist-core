@@ -346,6 +346,10 @@ export class CalendarView extends BaseView {
 
     // Clear leftover grid selections, mirroring the upstream workaround for nhn/tui.calendar#1300.
     this._calendarDom.addEventListener("mousedown", () => cal.clearGridSelections());
+    // TODO(O4): the original custom widget worked around a TUI bug where a too-fast mouseup left
+    // a stale drag (it called the v1-only `cancelDrag()`). TUI v2 doesn't expose an equivalent
+    // public API; leaving as a known gap rather than risking a wrong fix. Resurrect via a
+    // private-API call (and a comment) if QA hits the bug on touch devices.
 
     // Enter confirms the event-edit form popup (TUI doesn't submit it on Enter by itself).
     // Escape closes it without saving. Both reach into TUI's internal DOM via private class
