@@ -705,8 +705,37 @@ export class CalendarView extends BaseView {
 
   private _updateTitle() {
     if (!this._calendar || !this._titleDom) { return; }
-    this._titleDom.textContent = this._calendar.getDate().toDate()
-      .toLocaleString(undefined, { month: "long", year: "numeric" });
+    this._titleDom.textContent = this._formatTitle();
+  }
+
+  // Title shown in the toolbar above the calendar grid.
+  // - day view: a full date (e.g. "Wed, 9 Aug 2023").
+  // - week view: the visible date range (e.g. "6 - 12 Aug 2023", or "30 Jul - 5 Aug 2023" when
+  //   the week straddles a month boundary).
+  // - month view: month + year.
+  // TUI doesn't expose its own header text, but it does expose getDate / getDateRange* which give
+  // us enough to derive these formats consistently.
+  private _formatTitle(): string {
+    const cal = this._calendar!;
+    const view = cal.getViewName();
+    const current = cal.getDate().toDate();
+    if (view === "day") {
+      return current.toLocaleDateString(undefined, {
+        weekday: "short", day: "numeric", month: "short", year: "numeric",
+      });
+    }
+    if (view === "week") {
+      const start = cal.getDateRangeStart().toDate();
+      const end = cal.getDateRangeEnd().toDate();
+      const sameYear = start.getFullYear() === end.getFullYear();
+      const sameMonth = sameYear && start.getMonth() === end.getMonth();
+      const startFmt: Intl.DateTimeFormatOptions = sameMonth
+        ? { day: "numeric" }
+        : (sameYear ? { day: "numeric", month: "short" } : { day: "numeric", month: "short", year: "numeric" });
+      const endFmt: Intl.DateTimeFormatOptions = { day: "numeric", month: "short", year: "numeric" };
+      return `${start.toLocaleDateString(undefined, startFmt)} – ${end.toLocaleDateString(undefined, endFmt)}`;
+    }
+    return current.toLocaleDateString(undefined, { month: "long", year: "numeric" });
   }
 
   // ---------------------------------------------------------------------------

@@ -108,7 +108,7 @@ describe("CalendarView", function() {
     await validateDate(7);
   });
 
-  it("shows the correct month name when navigating months", async function() {
+  it("shows the right title for each view (month / week / day)", async function() {
     const monthName = (d: Date) => d.toLocaleString(undefined, { month: "long", year: "numeric" });
     const shiftMonth = (d: Date, months: number) => {
       const out = new Date(d);
@@ -118,6 +118,7 @@ describe("CalendarView", function() {
     };
     const now = new Date();
 
+    // Month view: month + year.
     await driver.find(".test-calendar-perspective-month").click();
     await driver.find(".test-calendar-today").click();
     assert.equal(await getCalendarTitle(), monthName(now));
@@ -129,7 +130,18 @@ describe("CalendarView", function() {
     await driver.find(".test-calendar-next").click();
     assert.equal(await getCalendarTitle(), monthName(shiftMonth(now, 1)));
 
+    // Day view: a full date including weekday + day + month + year.
+    await driver.find(".test-calendar-perspective-day").click();
+    await driver.find(".test-calendar-today").click();
+    const dayTitle = await getCalendarTitle();
+    const today = new Date();
+    assert.include(dayTitle, String(today.getDate()));
+    assert.include(dayTitle, String(today.getFullYear()));
+
+    // Week view: a date range with an en-dash.
     await driver.find(".test-calendar-perspective-week").click();
+    await driver.find(".test-calendar-today").click();
+    assert.match(await getCalendarTitle(), /–/);
   });
 
   it("selects the calendar event for the linked grid row", async function() {
