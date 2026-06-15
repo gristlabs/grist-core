@@ -15,7 +15,7 @@ import { ColumnsToMap, WidgetColumnMap } from "app/plugin/CustomSectionAPI";
 import { UIRowId } from "app/plugin/GristAPI";
 import { decodeObject } from "app/plugin/objtypes";
 
-import { Computed, dom, fromKo, makeTestId, styled } from "grainjs";
+import { Computed, dom, fromKo, IDisposable, makeTestId, styled } from "grainjs";
 import debounce from "lodash/debounce";
 
 import type Calendar from "@toast-ui/calendar";
@@ -149,7 +149,20 @@ export class CalendarView extends BaseView {
     // Re-render events when data, mapping, perspective or theme change.
     this.listenTo(this.sortedRows, "rowNotify", this._update);
     this.autoDispose(this.sortedRows.getKoArray().subscribe(this._update));
-    this.autoDispose(this.viewSection.mappedColumns.subscribe(this._update));
+
+    // Re-render when the mapping changes _or_ when one of the mapped columns' types changes
+    // (Text -> Numeric, Date <-> DateTime, etc.). Mirrors ChartView's per-field type listener.
+    let typeSubs: IDisposable[] = [];
+    this.autoDispose(this.viewSection.mappedColumns.subscribe(() => {
+      this._update();
+      typeSubs.forEach(s => s.dispose());
+      typeSubs = this._mappedColumnList().flatMap(col => [
+        col.type.subscribe(this._update),
+        col.displayColModel.peek().type.subscribe(this._update),
+      ]);
+    }));
+    this.onDispose(() => typeSubs.forEach(s => s.dispose()));
+
     this.autoDispose(this._perspective.addListener(view => this._changeView(view)));
     // Event colors are set to CSS-variable strings, so they re-resolve on theme change with no
     // data rebuild; we only need to re-apply the calendar chrome theme.
@@ -304,6 +317,16 @@ export class CalendarView extends BaseView {
   // Mirrors ChartView's use of `displayColModel` (see ChartView.ts) so we behave consistently.
   private _displayCol(col: ColumnRec | null): ColumnRec | null {
     return col ? col.displayColModel.peek() : null;
+  }
+
+  // All ColumnRecs currently referenced by the calendar's mapping (deduplicated). Used to wire
+  // type-change subscriptions, since the calendar's rendering depends on each column's pureType.
+  private _mappedColumnList(): ColumnRec[] {
+    const mapping = this._mapping();
+    const cols = ["startDate", "endDate", "isAllDay", "title", "type"]
+      .map(key => this._col(mapping[key]))
+      .filter((c): c is ColumnRec => c !== null);
+    return Array.from(new Set(cols));
   }
 
   // ---------------------------------------------------------------------------
