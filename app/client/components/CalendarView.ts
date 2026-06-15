@@ -809,6 +809,9 @@ function asChoice(value: CellValue | undefined): string {
 }
 
 // TUI: 0=Sun..6=Sat; Intl: 1=Mon..7=Sun.
+// Note: the original custom calendar widget honored a `?culture=<locale>` URL parameter as a
+// locale override; the native view only reads navigator.language. If an admin deployment ever
+// relied on `?culture=` to influence week start, that path no longer works here.
 function getFirstDayOfWeek(): number {
   try {
     const locale = new Intl.Locale(navigator.language || "en");
