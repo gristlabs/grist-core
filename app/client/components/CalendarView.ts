@@ -768,29 +768,31 @@ export class CalendarView extends BaseView {
   }
 
   private _buildDom() {
-    return cssCalendarView(
-      testId("container"),
-      cssToolbar(
-        cssNavGroup(
-          cssNavButton(icon("ArrowLeft"),
-            dom.on("click", () => this._go("prev")), testId("prev")),
-          cssNavButton(t("Today"), dom.on("click", () => this._go("today")), testId("today")),
-          cssNavButton(icon("ArrowRight"),
-            dom.on("click", () => this._go("next")), testId("next")),
-        ),
-        this._titleDom = cssCalendarTitle(testId("title")),
-        cssPerspectiveGroup(
-          ...PERSPECTIVES.map(view =>
-            cssNavButton(
-              t(capitalize(view)),
-              cssNavButton.cls("-active", use => use(this._perspective) === view),
-              dom.on("click", () => this._setPerspective(view)),
-              testId(`perspective-${view}`),
-            ),
-          ),
+    // Build all field-bound nodes into locals first, then compose — easier to grep for the
+    // _titleDom / _calendarDom assignments than spotting them inline in a tree literal.
+    this._titleDom = cssCalendarTitle(testId("title"));
+    this._calendarDom = cssCalendarContainer(testId("widget"));
+    const navGroup = cssNavGroup(
+      cssNavButton(icon("ArrowLeft"),
+        dom.on("click", () => this._go("prev")), testId("prev")),
+      cssNavButton(t("Today"), dom.on("click", () => this._go("today")), testId("today")),
+      cssNavButton(icon("ArrowRight"),
+        dom.on("click", () => this._go("next")), testId("next")),
+    );
+    const perspectiveGroup = cssPerspectiveGroup(
+      ...PERSPECTIVES.map(view =>
+        cssNavButton(
+          t(capitalize(view)),
+          cssNavButton.cls("-active", use => use(this._perspective) === view),
+          dom.on("click", () => this._setPerspective(view)),
+          testId(`perspective-${view}`),
         ),
       ),
-      this._calendarDom = cssCalendarContainer(testId("widget")),
+    );
+    return cssCalendarView(
+      testId("container"),
+      cssToolbar(navGroup, this._titleDom, perspectiveGroup),
+      this._calendarDom,
     );
   }
 }
