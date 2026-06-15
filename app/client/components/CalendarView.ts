@@ -341,11 +341,30 @@ export class CalendarView extends BaseView {
     this._calendarDom.addEventListener("mousedown", () => cal.clearGridSelections());
 
     // Enter confirms the event-edit form popup (TUI doesn't submit it on Enter by itself).
+    // Escape closes it without saving.
     this._calendarDom.addEventListener("keydown", (ev) => {
-      if (ev.key !== "Enter") { return; }
-      const confirm = this._calendarDom.querySelector("button.toastui-calendar-popup-confirm");
-      if (confirm) { ev.preventDefault(); (confirm as HTMLElement).click(); }
+      if (ev.key === "Enter") {
+        const confirm = this._calendarDom.querySelector("button.toastui-calendar-popup-confirm");
+        if (confirm) { ev.preventDefault(); (confirm as HTMLElement).click(); }
+      } else if (ev.key === "Escape") {
+        const close = this._calendarDom.querySelector("button.toastui-calendar-popup-close");
+        if (close) { ev.preventDefault(); (close as HTMLElement).click(); }
+      }
     });
+
+    // When the form popup opens, autofocus the title input so users can type immediately.
+    // TUI doesn't expose a "popup opened" event, so we observe DOM mutations on the calendar
+    // container and react when the popup container appears.
+    const observer = new MutationObserver(() => {
+      const titleInput = this._calendarDom.querySelector(
+        "input.toastui-calendar-popup-section-item-title, input[class*='popup-section-item-title']"
+      ) as HTMLInputElement | null;
+      if (titleInput && document.activeElement !== titleInput) {
+        titleInput.focus();
+      }
+    });
+    observer.observe(this._calendarDom, { childList: true, subtree: true });
+    this.onDispose(() => observer.disconnect());
   }
 
   // ---------------------------------------------------------------------------
@@ -800,16 +819,24 @@ const cssCalendarTitle = styled("div", `
   text-align: center;
 `);
 
-const cssNavButton = styled("div", `
+const cssNavButton = styled("button", `
   display: flex;
   align-items: center;
   cursor: pointer;
   padding: 4px 10px;
   border-radius: 3px;
   user-select: none;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
   --icon-color: ${theme.controlSecondaryFg};
   &:hover {
     background-color: ${theme.hover};
+  }
+  &:focus-visible {
+    outline: 2px solid ${theme.controlPrimaryBg};
+    outline-offset: 1px;
   }
   &-active {
     background-color: ${theme.controlPrimaryBg};
