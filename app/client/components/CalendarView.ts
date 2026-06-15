@@ -2,7 +2,6 @@ import BaseView from "app/client/components/BaseView";
 import { GristDoc } from "app/client/components/GristDoc";
 import { Delay } from "app/client/lib/Delay";
 import { loadToastUICalendar, ToastUICalendarModule } from "app/client/lib/imports";
-import { loadCssFile } from "app/client/lib/loadScript";
 import { makeT } from "app/client/lib/localization";
 import { ColumnRec, ViewSectionRec } from "app/client/models/DocModel";
 import { reportError } from "app/client/models/errors";
@@ -195,10 +194,9 @@ export class CalendarView extends BaseView {
   // Setup
 
   private async _init() {
-    const { Calendar: CalendarCtor, TZDate, cssUrl } = await loadToastUICalendar();
+    const { Calendar: CalendarCtor, TZDate } = await loadToastUICalendar();
     if (this.isDisposed()) { return; }
     this._tzDate = TZDate;
-    ensureStylesheet(cssUrl);
 
     const isReadOnly = this._isReadOnly();
     this._calendar = new CalendarCtor(this._calendarDom, {
@@ -708,13 +706,6 @@ function getFirstDayOfWeek(): number {
     // Intl.Locale week info not supported by this browser.
   }
   return 0;
-}
-
-// Inject the Toast UI stylesheet once (webpack emits it as a separate asset). The href is
-// content-hashed and stable, so we dedupe by it across calendar sections.
-function ensureStylesheet(href: string) {
-  if (document.querySelector(`link[href="${href}"]`)) { return; }
-  loadCssFile(href).catch(reportError);
 }
 
 // ---------------------------------------------------------------------------

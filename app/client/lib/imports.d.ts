@@ -23,8 +23,6 @@ export type PlotlyType = typeof plotly;
 export interface ToastUICalendarModule {
   Calendar: typeof Calendar;
   TZDate: typeof TZDate;
-  // URL of the bundled stylesheet (webpack asset/resource), to inject as a <link>.
-  cssUrl: string;
 }
 
 export function loadAccountPage(): Promise<typeof AccountPageModule>;
