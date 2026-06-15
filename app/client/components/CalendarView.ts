@@ -289,6 +289,13 @@ export class CalendarView extends BaseView {
     return this.viewSection.columns.peek().find(c => c.colId.peek() === colId) || null;
   }
 
+  // The column whose value should be read for display. For a Reference column this resolves to
+  // the visible column on the referenced table; for plain columns it returns the column itself.
+  // Mirrors ChartView's use of `displayColModel` (see ChartView.ts) so we behave consistently.
+  private _displayCol(col: ColumnRec | null): ColumnRec | null {
+    return col ? col.displayColModel.peek() : null;
+  }
+
   // ---------------------------------------------------------------------------
   // Reading data
 
@@ -309,19 +316,27 @@ export class CalendarView extends BaseView {
     const allDayCol = this._col(mapping.isAllDay);
     const typeCol = this._col(mapping.type);
 
+    // Read values via the display column so that Reference columns surface their visible value
+    // (e.g. an event title) instead of the foreign row id. For non-Ref columns this is a no-op.
+    const startDisplay = this._displayCol(startCol)!;
+    const endDisplay = this._displayCol(endCol);
+    const titleDisplay = this._displayCol(titleCol)!;
+    const allDayDisplay = this._displayCol(allDayCol);
+    const typeDisplay = this._displayCol(typeCol);
+
     // Resolve column types and choice styling once, not per row.
-    const startType = startCol.pureType.peek();
-    const endType = endCol?.pureType.peek() || startType;
-    const choiceOptions = typeCol?.widgetOptionsJson.peek()?.choiceOptions || {};
+    const startType = startDisplay.pureType.peek();
+    const endType = endDisplay?.pureType.peek() || startType;
+    const choiceOptions = typeDisplay?.widgetOptionsJson.peek()?.choiceOptions || {};
 
     // Build one getter per mapped column; per-row access is then a plain array read
     // rather than a getValue() map lookup (same approach as ChartView).
     const data = this.tableModel.tableData;
-    const getStart = data.getRowPropFunc(startCol.colId.peek());
-    const getTitle = data.getRowPropFunc(titleCol.colId.peek());
-    const getEnd = endCol && data.getRowPropFunc(endCol.colId.peek());
-    const getAllDay = allDayCol && data.getRowPropFunc(allDayCol.colId.peek());
-    const getType = typeCol && data.getRowPropFunc(typeCol.colId.peek());
+    const getStart = data.getRowPropFunc(startDisplay.colId.peek());
+    const getTitle = data.getRowPropFunc(titleDisplay.colId.peek());
+    const getEnd = endDisplay && data.getRowPropFunc(endDisplay.colId.peek());
+    const getAllDay = allDayDisplay && data.getRowPropFunc(allDayDisplay.colId.peek());
+    const getType = typeDisplay && data.getRowPropFunc(typeDisplay.colId.peek());
 
     const rowIds = this.sortedRows.getKoArray().peek() as number[];
     const events: [number, EventObject][] = [];
