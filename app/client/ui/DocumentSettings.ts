@@ -93,7 +93,7 @@ export class DocSettingsPage extends Disposable {
         SectionItem({
           id: "locale",
           name: t("Locale"),
-          description: t("For number and date formats"),
+          description: t("For number formats"),
           value: dom.create(cssLocalePicker, this._locale),
         }),
         SectionItem({
