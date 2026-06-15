@@ -277,6 +277,7 @@ class NodeTransformer(RestrictingNodeTransformer):
   def visit_Attribute(self, node):
     # We are forced to reimplement this function as its logic go further than accept or reject
     # even if we just need to accept more names
+    # Original function : https://github.com/zopefoundation/RestrictedPython/blob/a2891c0d11af329c23fd5f173b32025453b962ff/src/RestrictedPython/transformer.py#L798-L850
     from RestrictedPython.transformer import ast, copy_locations
     if node.attr.startswith('_') and node.attr != '_' and not any(r.match(node.attr) != None for r in ALLOWED_GLOB):
         self.error(
