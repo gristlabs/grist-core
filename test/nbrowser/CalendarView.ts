@@ -13,8 +13,15 @@ describe("CalendarView", function() {
   this.timeout(30000);
   const cleanup = setupTestSuite();
 
-  // Seconds-since-epoch for a date string, as Grist stores Date/DateTime values.
-  const sec = (s: string) => Math.floor(new Date(s).getTime() / 1000);
+  // Seconds-since-epoch for a date, as Grist stores Date/DateTime values.
+  const sec = (d: Date) => Math.floor(d.getTime() / 1000);
+
+  // Anchor every fixture event off "today" so events stay in the visible week regardless of when
+  // the test runs (rather than the previous mix of 2023-anchored events and "today"-relative
+  // navigation, which made it easy for a future change to break depending on the date).
+  const baseDay = new Date();
+  baseDay.setHours(0, 0, 0, 0);
+  const atHour = (h: number) => { const d = new Date(baseDay); d.setHours(h, 0, 0, 0); return d; };
 
   before(async function() {
     const session = await gu.session().login();
@@ -39,7 +46,7 @@ describe("CalendarView", function() {
   it("creates an event when a row is added", async function() {
     await gu.sendActions([
       ["AddRecord", "Table1", -1, {
-        From: sec("2023-08-03 13:00"), To: sec("2023-08-03 14:00"),
+        From: sec(atHour(13)), To: sec(atHour(14)),
         Label: "New Event", IsFullDay: false,
       }],
     ]);
@@ -47,8 +54,8 @@ describe("CalendarView", function() {
     await driver.wait(async () => Boolean(await getCalendarEvent(1)), 2000);
     assert.deepEqual(await getCalendarEvent(1), {
       title: "New Event",
-      startMs: new Date("2023-08-03 13:00").getTime(),
-      endMs: new Date("2023-08-03 14:00").getTime(),
+      startMs: atHour(13).getTime(),
+      endMs: atHour(14).getTime(),
       isAllDay: false,
     });
   });
@@ -56,7 +63,7 @@ describe("CalendarView", function() {
   it("creates an all-day event when a row is added", async function() {
     await gu.sendActions([
       ["AddRecord", "Table1", -1, {
-        From: sec("2023-08-04 13:00"), To: sec("2023-08-04 14:00"),
+        From: sec(atHour(13)), To: sec(atHour(14)),
         Label: "All Day Event", IsFullDay: true,
       }],
     ]);
@@ -67,12 +74,12 @@ describe("CalendarView", function() {
   });
 
   it("updates an event when the row changes", async function() {
-    const expectedEnd = new Date("2023-08-03 15:00").getTime();
-    await gu.sendActions([["UpdateRecord", "Table1", 1, { To: sec("2023-08-03 15:00") }]]);
+    const expectedEnd = atHour(15).getTime();
+    await gu.sendActions([["UpdateRecord", "Table1", 1, { To: sec(atHour(15)) }]]);
     await driver.wait(async () => (await getCalendarEvent(1))?.endMs === expectedEnd, 2000);
     assert.deepEqual(await getCalendarEvent(1), {
       title: "New Event",
-      startMs: new Date("2023-08-03 13:00").getTime(),
+      startMs: atHour(13).getTime(),
       endMs: expectedEnd,
       isAllDay: false,
     });
@@ -146,11 +153,11 @@ describe("CalendarView", function() {
 
   it("selects the calendar event for the linked grid row", async function() {
     // Create two events today (visible in the default week view).
-    const today = new Date(); today.setHours(10, 0, 0, 0);
-    const at = (h: number) => Math.floor(new Date(today).setHours(h) / 1000);
     await gu.sendActions([
-      ["AddRecord", "Table1", -1, { From: at(10), To: at(11), Label: "Linked A", IsFullDay: false }],
-      ["AddRecord", "Table1", -1, { From: at(13), To: at(14), Label: "Linked B", IsFullDay: false }],
+      ["AddRecord", "Table1", -1, { From: sec(atHour(10)), To: sec(atHour(11)),
+        Label: "Linked A", IsFullDay: false }],
+      ["AddRecord", "Table1", -1, { From: sec(atHour(13)), To: sec(atHour(14)),
+        Label: "Linked B", IsFullDay: false }],
     ]);
 
     // Clicking a grid cell moves the grid cursor; the linked calendar should select the match.
@@ -252,7 +259,8 @@ describe("CalendarView", function() {
     return day;
   }
 
-  const dayAt = (day: Date, hour: number) => Math.floor((day.getTime() + hour * 3600_000) / 1000);
+  const dayAt = (day: Date, hour: number) =>
+    sec(new Date(day.getTime() + hour * 3600_000));
 
   async function getViewName(): Promise<string> {
     return driver.executeScript("return window.gristCalendarView.getViewName()");
