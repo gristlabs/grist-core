@@ -308,9 +308,11 @@ export class CalendarView extends BaseView {
     // two clickEvent fires on the same rowId within DBLCLICK_MS open the Record Card. The first
     // click already moves the cursor (and selects the row), so the second click sees the cursor
     // already on it and goes straight to viewSelectedRecordAsCard.
+    // The handler parameter types are inferred via TUI's ExternalEventTypes (see eventBus.d.ts),
+    // so we get EventObject/UpdatedEventInfo/etc. for free with no explicit annotations.
     let lastClickId: number | null = null;
     let lastClickAt = 0;
-    cal.on("clickEvent", ({ event }: any) => {
+    cal.on("clickEvent", ({ event }) => {
       const rowId = Number(event.id);
       if (!rowId || Number.isNaN(rowId)) { return; }
       this.gristDoc.viewModel.activeSectionId(this.viewSection.getRowId());
@@ -326,10 +328,10 @@ export class CalendarView extends BaseView {
     });
 
     // Creation, drag/resize and form edits.
-    cal.on("beforeCreateEvent", (eventData: any) => this._upsertFromToast(null, eventData));
-    cal.on("beforeUpdateEvent", ({ event, changes }: any) =>
+    cal.on("beforeCreateEvent", (eventData) => this._upsertFromToast(null, eventData));
+    cal.on("beforeUpdateEvent", ({ event, changes }) =>
       this._upsertFromToast(Number(event.id), changes));
-    cal.on("beforeDeleteEvent", ({ id }: any) => this._deleteEvent(Number(id)));
+    cal.on("beforeDeleteEvent", (event) => this._deleteEvent(Number(event.id)));
 
     // Clear leftover grid selections, mirroring the upstream workaround for nhn/tui.calendar#1300.
     this._calendarDom.addEventListener("mousedown", () => cal.clearGridSelections());
@@ -494,8 +496,11 @@ export class CalendarView extends BaseView {
   /** Shifts a UTC-based JS Date so it displays correctly for the given column type. */
   private _getAdjustedDate(date: Date, colType: string): Date {
     const docTz = this._docTimeZone();
-    if (docTz && docTz !== (date as any).timezone && colType.startsWith("DateTime")) {
-      return new this._tzDate!(date).tz(docTz as any) as unknown as Date;
+    // The `timezone` property exists on TZDate (TUI's wrapper) but not on plain Date — we still
+    // call this with both, so probe the field rather than narrowing the parameter type.
+    const dateTz = (date as Date & { timezone?: string }).timezone;
+    if (docTz && docTz !== dateTz && colType.startsWith("DateTime")) {
+      return new this._tzDate!(date).tz(docTz) as unknown as Date;
     }
     if (colType !== "Date") { return date; }
     // Like date.tz('UTC'), but accounts for DST differences.
@@ -508,7 +513,7 @@ export class CalendarView extends BaseView {
     let unixTime = Math.floor(tzDate.valueOf() / 1000);
     const localOffsetMin = -tzDate.getTimezoneOffset();
     const docTz = this._docTimeZone();
-    const docOffsetMin = !docTz ? localOffsetMin : tzDate.tz(docTz as any).getTimezoneOffset();
+    const docOffsetMin = !docTz ? localOffsetMin : tzDate.tz(docTz).getTimezoneOffset();
     if (colType === "Date") {
       const secondsSinceEpoch = unixTime + localOffsetMin * 60;
       return Math.floor(secondsSinceEpoch / SECONDS_PER_DAY) * SECONDS_PER_DAY;
@@ -585,7 +590,7 @@ export class CalendarView extends BaseView {
     const event = this._allEvents.get(next);
     if (!event) { return; }
 
-    this._calendar.setDate(event.start as any);
+    this._calendar.setDate(event.start as TZDate);
     this._updateUIAfterNavigation();
   }
 
@@ -599,7 +604,7 @@ export class CalendarView extends BaseView {
     const cal = this._calendar;
     const event = cal?.getEvent(String(rowId), CALENDAR_NAME);
     if (!cal || !event) { return; }
-    const base = (event.raw as any)?.backgroundColor ?? theme.inputReadonlyBorder.toString();
+    const base = event.raw?.backgroundColor ?? theme.inputReadonlyBorder.toString();
     const part = this._isBarInMonthView(event) ? "backgroundColor" : "borderColor";
     cal.updateEvent(String(rowId), CALENDAR_NAME, {
       borderColor: base,
