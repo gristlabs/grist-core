@@ -498,7 +498,10 @@ export class CalendarView extends BaseView {
       end,
       isAllday,
       category: isAllday ? "allday" : "time",
-      state: "Free",
+      // TUI's EventState is "Busy" | "Free"; we treat all Grist rows as Free since we don't
+      // track availability semantics. Typed via EventObject["state"] rather than a bare literal
+      // so a TUI rename surfaces at compile time.
+      state: "Free" satisfies NonNullable<EventObject["state"]>,
       backgroundColor,
       color,
       borderColor: backgroundColor,
