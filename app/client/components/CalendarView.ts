@@ -631,7 +631,9 @@ export class CalendarView extends BaseView {
 // Helpers
 
 function numToDate(value: CellValue | undefined): Date | null {
-  return (typeof value === "number" && isFinite(value)) ? new Date(value * 1000) : null;
+  // 0 is how Grist stores a blank Date/DateTime; treat it as missing rather than 1970-01-01.
+  // Matches ChartView's dateGetter, which excludes zero for the same reason.
+  return (typeof value === "number" && value && isFinite(value)) ? new Date(value * 1000) : null;
 }
 
 function asText(value: CellValue | undefined): string | null {
