@@ -15,7 +15,8 @@ export type BootProbeIds =
   "session-secret" |
   "service-status" |
   "backups" |
-  "sandbox-providers"
+  "sandbox-providers" |
+  "persist-data"
 ;
 
 export interface BootProbeResult {

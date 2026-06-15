@@ -3,7 +3,8 @@ import { AdminChecks } from "app/client/models/AdminChecks";
 import { cssDangerText, cssHappyText } from "app/client/ui/AdminPanelCss";
 import { quickSetupStepHeader } from "app/client/ui/QuickSetupStepHeader";
 import { cssCardSurface, cssValueLabel } from "app/client/ui/SettingsLayout";
-import { colors } from "app/client/ui2018/cssVars";
+import { buildHeroCard } from "app/client/ui/SetupCard";
+import { colors, testId } from "app/client/ui2018/cssVars";
 import { cssLink } from "app/client/ui2018/links";
 import { loadingSpinner } from "app/client/ui2018/loaders";
 import { BackupsBootProbeDetails } from "app/common/BootProbe";
@@ -86,6 +87,10 @@ export class BackupsSection extends Disposable {
   private readonly _activeBackend = Computed.create(this, use => use(this._backupsProbeDetails)?.backend);
   private readonly _availableBackends = Computed.create(this, use => use(this._backupsProbeDetails)?.availableBackends);
   private readonly _selectedBackend = Observable.create<BackendName | undefined>(this, undefined);
+  private readonly _persistResult = Computed.create(this, (use) => {
+    const req = this._props.checks.requestCheckById(use, "persist-data");
+    return req ? use(req.result) : undefined;
+  });
 
   constructor(private _props: BackupsSectionProps) {
     super();
@@ -97,6 +102,7 @@ export class BackupsSection extends Disposable {
 
   public buildDom() {
     return cssSection(
+      this._buildPersistWarning(),
       this._props.inAdminPanel ? cssDescription(
         t("Store document backups on an external service like S3 or Azure. \
           This protects against data loss if the server's disk fails."),
@@ -119,6 +125,21 @@ export class BackupsSection extends Disposable {
         return cssValueLabel(cssDangerText(t("Off")));
       }
     });
+  }
+
+  private _buildPersistWarning() {
+    return dom.maybe(this._persistResult, result =>
+      // Require a verdict — a failed check request faults without one, which isn't data loss.
+      result?.status === "fault" && result.verdict ?
+        buildHeroCard({
+          indicator: "warning",
+          header: t("Your data may not survive a container restart."),
+          text: t("To preserve it, mount a volume at /persist."),
+          badges: [{ label: t("Action needed"), variant: "warning" }],
+          args: [dom.attr("title", result.verdict), testId("backups-persist-warning")],
+        }) :
+        null,
+    );
   }
 
   private _buildBackendCards() {

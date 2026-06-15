@@ -209,6 +209,12 @@ all depend on this being correct."),
 extra headers in order to work. Sometimes a reverse proxy can \
 interfere with these requirements."),
   },
+
+  "persist-data": {
+    info: t("If running in a container without external storage or with default database, \
+/persist should be a mounted volume. Otherwise Grist documents and metadata will be lost \
+when the container stops."),
+  },
 };
 
 /**

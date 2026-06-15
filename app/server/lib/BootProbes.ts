@@ -7,6 +7,7 @@ import { GristServer } from "app/server/lib/GristServer";
 import { getBootKey, getInService, getSandboxFlavor, getSandboxFlavorSource } from "app/server/lib/gristSettings";
 import { DEFAULT_SESSION_SECRET } from "app/server/lib/ICreate";
 import { getAvailableSandboxes, testSandboxFlavor } from "app/server/lib/NSandbox";
+import { classifyStorage } from "app/server/lib/storageDurability";
 
 import * as express from "express";
 import fetch from "node-fetch";
@@ -74,6 +75,7 @@ export class BootProbes {
     this._probes.push(_serviceStatusProbe);
     this._probes.push(_backupsProbe);
     this._probes.push(_sandboxProvidersProbe);
+    this._probes.push(_dataPersistsProbe);
     this._probeById = new Map(this._probes.map(p => [p.id, p]));
   }
 }
@@ -437,5 +439,44 @@ const _sandboxProvidersProbe: Probe = {
         flavorInDB,
       },
     };
+  },
+};
+
+// Heuristic: the official Docker image sets GRIST_DATA_DIR to this and expects a
+// volume at /persist. We use it to guess we're in that image, where `/` is a
+// throwaway layer — the filesystem alone can't tell us that.
+const IMAGE_DATA_DIR = "/persist/docs";
+
+/**
+ * Warns when Grist's data would be lost on restart — i.e. it sits on the
+ * container's own filesystem rather than a mounted volume or external storage.
+ */
+const _dataPersistsProbe: Probe = {
+  id: "persist-data",
+  name: "Does data persist across restarts",
+  apply: async () => {
+    const dataDir = process.env.GRIST_DATA_DIR;
+    const homeDb = process.env.TYPEORM_DATABASE;
+    // We can't truly detect ephemeral storage, so treat the official image's DATA_DIR as the signal.
+    const rootMayBeEphemeral = (dataDir === IMAGE_DATA_DIR);
+
+    const isExternalStorageActive = appSettings.section("externalStorage").flag("active").getAsBool();
+    const usesPostgres = (process.env.TYPEORM_TYPE === "postgres");
+
+    const docs = isExternalStorageActive ? "durable" : await classifyStorage(dataDir, rootMayBeEphemeral);
+    const home = usesPostgres ? "durable" : await classifyStorage(homeDb, rootMayBeEphemeral);
+
+    const details = { dataDir, homeDb, docs, home };
+    if (docs === "ephemeral" || home === "ephemeral") {
+      return {
+        status: "fault",
+        verdict: "Your data will be lost when Grist restarts. To keep it, mount a volume at /persist.",
+        details,
+      };
+    }
+    // Claim success only when both stores are positively durable; otherwise we
+    // couldn't fully verify and stay neutral.
+    const verified = docs === "durable" && home === "durable";
+    return { status: verified ? "success" : "none", details };
   },
 };
