@@ -31,6 +31,9 @@ const PERSPECTIVES: Perspective[] = ["day", "week", "month"];
 
 const SECONDS_PER_DAY = 24 * 60 * 60;
 
+// Max gap (ms) between two clickEvent fires on the same rowId that we treat as a double-click.
+const DBLCLICK_MS = 300;
+
 // Columns the calendar needs the user to map. Mirrors the mapping offered by the
 // (now superseded) custom calendar widget, so existing configurations keep working.
 export function getCalendarColumns(): ColumnsToMap {
@@ -272,9 +275,25 @@ export class CalendarView extends BaseView {
   private _wireCalendarEvents() {
     const cal = this._calendar!;
 
+    // TUI doesn't emit a dedicated double-click event for an event item, so we synthesize one:
+    // two clickEvent fires on the same rowId within DBLCLICK_MS open the Record Card. The first
+    // click already moves the cursor (and selects the row), so the second click sees the cursor
+    // already on it and goes straight to viewSelectedRecordAsCard.
+    let lastClickId: number | null = null;
+    let lastClickAt = 0;
     cal.on("clickEvent", ({ event }: any) => {
+      const rowId = Number(event.id);
+      if (!rowId || Number.isNaN(rowId)) { return; }
       this.gristDoc.viewModel.activeSectionId(this.viewSection.getRowId());
-      this.setCursorPos({ rowId: Number(event.id) });
+      this.setCursorPos({ rowId });
+      const now = Date.now();
+      if (lastClickId === rowId && (now - lastClickAt) < DBLCLICK_MS) {
+        this.viewSelectedRecordAsCard();
+        lastClickId = null;
+      } else {
+        lastClickId = rowId;
+        lastClickAt = now;
+      }
     });
 
     // Creation, drag/resize and form edits.
@@ -291,15 +310,6 @@ export class CalendarView extends BaseView {
       if (ev.key !== "Enter") { return; }
       const confirm = this._calendarDom.querySelector("button.toastui-calendar-popup-confirm");
       if (confirm) { ev.preventDefault(); (confirm as HTMLElement).click(); }
-    });
-
-    // Open Grist's Record Card on double-click of an event.
-    this._calendarDom.addEventListener("dblclick", (ev) => {
-      const target = (ev.target as HTMLElement)?.closest?.("[data-event-id]");
-      const rowId = target ? Number(target.getAttribute("data-event-id")) : NaN;
-      if (!rowId || Number.isNaN(rowId)) { return; }
-      this.setCursorPos({ rowId });
-      this.viewSelectedRecordAsCard();
     });
   }
 
