@@ -144,8 +144,8 @@ function _requestFunctionCheck(input: OutgoingRequestsInput): OutgoingRequestsFe
 }
 
 function _webhooksCheck(input: OutgoingRequestsInput): OutgoingRequestsFeatureCheck {
-  const enabled = input.allowedWebhookDomains.length > 0;
   const wildcard = input.webhookWildcard;
+  const enabled = wildcard || input.allowedWebhookDomains.length > 0;
   const status: BootProbeStatus =
     !enabled ? "success" :
       (wildcard && !input.proxyConfigured) ? "fault" :

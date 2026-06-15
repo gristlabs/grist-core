@@ -369,7 +369,7 @@ const _homeUrlProbe: Probe = {
 /**
  * Reports on whether user-triggerable outgoing-request vectors (webhooks,
  * the REQUEST() formula function, and Import-from-URL) are gated by a
- * proxy. See plans/OUTGOING_REQUESTS_PROBE.md for the rationale.
+ * proxy.
  *
  * Pure env inspection; no network calls. The roll-up itself lives in
  * summarizeOutgoingRequests() (app/common/BootProbe.ts) so the admin panel

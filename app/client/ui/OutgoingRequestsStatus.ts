@@ -186,8 +186,9 @@ function _buildFeatureRow(check: OutgoingRequestsFeatureCheck): DomContents {
         dom("span", _faultConcern(check)),
       ) : null,
       copy.envVars && copy.envVars.length > 0 ? cssOutReqEnv(
-        cssOutReqEnvLabel(t("Search docs for:")),
-        copy.envVars.map(name => cssOutReqEnvName(name)),
+        cssOutReqEnvLabel(t("Search docs for: {{envVar}}", {
+          envVar: copy.envVars.map(name => cssOutReqEnvName(name)),
+        })),
       ) : null,
     ),
     cssOutReqPill(cssOutReqPill.cls(pill.cls), t(pill.label)),
@@ -216,8 +217,9 @@ function _buildProxyBox(proxy: OutgoingRequestsProbeDetails["proxy"] | undefined
         cssOutReqProxyHeadline(t("When your users reach out…")),
         cssOutReqProxyDetail(untrustedDetail),
         cssOutReqEnv(
-          cssOutReqEnvLabel(t("Search docs for:")),
-          cssOutReqEnvName("GRIST_PROXY_FOR_UNTRUSTED_URLS"),
+          cssOutReqEnvLabel(t("Search docs for: {{envVar}}", {
+            envVar: cssOutReqEnvName("GRIST_PROXY_FOR_UNTRUSTED_URLS"),
+          })),
         ),
       ),
     ),
@@ -237,8 +239,9 @@ function _buildProxyBox(proxy: OutgoingRequestsProbeDetails["proxy"] | undefined
             t("Grist connects directly. No HTTPS proxy is in place."),
         ),
         cssOutReqEnv(
-          cssOutReqEnvLabel(t("Search docs for:")),
-          cssOutReqEnvName("HTTPS_PROXY"),
+          cssOutReqEnvLabel(t("Search docs for: {{envVar}}", {
+            envVar: cssOutReqEnvName("HTTPS_PROXY"),
+          })),
         ),
       ),
     ),
@@ -377,6 +380,7 @@ const cssOutReqEnvLabel = styled("span", `
 
 const cssOutReqEnvName = styled("code", `
   font-family: monospace;
+  font-style: normal;
   padding: 1px 6px;
   border-radius: 4px;
   border: 1px solid ${theme.widgetBorder};

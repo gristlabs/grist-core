@@ -27,11 +27,17 @@ export function isRequestFunctionEnabled(): boolean {
   return isAffirmative(process.env.GRIST_ENABLE_REQUEST_FUNCTION);
 }
 
-export function getAllowedWebhookDomains(): string[] {
-  return (process.env.ALLOWED_WEBHOOK_DOMAINS || "")
-    .split(",").map(s => s.trim()).filter(Boolean);
-}
-
 export function isAllowedWebhookWildcard(): boolean {
   return process.env.ALLOWED_WEBHOOK_DOMAINS === "*";
+}
+
+/**
+ * The explicitly-listed webhook domains. The "*" wildcard is reported
+ * separately by isAllowedWebhookWildcard(), so this returns [] for it
+ * rather than treating "*" as a literal domain.
+ */
+export function getAllowedWebhookDomains(): string[] {
+  if (isAllowedWebhookWildcard()) { return []; }
+  return (process.env.ALLOWED_WEBHOOK_DOMAINS || "")
+    .split(",").map(s => s.trim()).filter(Boolean);
 }
