@@ -40,6 +40,9 @@ const DBLCLICK_MS = 300;
 
 // Columns the calendar needs the user to map. Mirrors the mapping offered by the
 // (now superseded) custom calendar widget, so existing configurations keep working.
+// TODO(O6): the description strings here ("starting point of event", "is event all day long",
+// "event category and style") read awkwardly; polish for a future i18n pass — e.g. "Start of the
+// event", "Whether the event lasts all day", "Event category for color/style".
 function getCalendarColumns(): ColumnsToMap {
   return [
     {
