@@ -137,10 +137,16 @@ export class CalendarView extends BaseView {
     // path used by custom widgets). Clear on dispose so switching widget type doesn't leave a
     // stale mapping request behind.
     this.viewSection.columnsToMap(getCalendarColumns());
+    // The calendar still lives under the `custom.*` parentKey for back-compat with saved configs,
+    // so LinkNode.ts treats this section like a custom widget and refuses to use it as a link
+    // source unless allowSelectBy is true (see app/common/LinkNode.ts). Native views (Grid, Chart,
+    // Detail) skip this check entirely, but we have to opt in here. Reset on dispose so a later
+    // switch to a different widget type doesn't carry the flag over.
     this.viewSection.allowSelectBy(true);
     this.onDispose(() => {
       if (this.viewSection.isDisposed()) { return; }
       this.viewSection.columnsToMap(null);
+      this.viewSection.allowSelectBy(false);
     });
 
     this._update = debounce(() => this._updateView(), 0);
