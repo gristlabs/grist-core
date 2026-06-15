@@ -18,7 +18,11 @@ import { Computed, dom, fromKo, IDisposable, makeTestId, styled } from "grainjs"
 import debounce from "lodash/debounce";
 
 import type Calendar from "@toast-ui/calendar";
-import type { EventObject, TZDate } from "@toast-ui/calendar";
+import type { EventObject, Options, TZDate } from "@toast-ui/calendar";
+
+// TUI's theme types live behind a non-exported DeepPartial<ThemeState>; pull them off Options so
+// _calendarTheme is type-checked structurally (typos in deeply-nested keys become compile errors).
+type CalendarThemeOption = NonNullable<Options["theme"]>;
 
 const t = makeT("CalendarView");
 const testId = makeTestId("test-calendar-");
@@ -175,7 +179,7 @@ export class CalendarView extends BaseView {
     // Event colors are set to CSS-variable strings, so they re-resolve on theme change with no
     // data rebuild; we only need to re-apply the calendar chrome theme.
     this.autoDispose(gristThemeObs().addListener(() => {
-      this._calendar?.setTheme(this._calendarTheme() as any);
+      this._calendar?.setTheme(this._calendarTheme());
     }));
 
     // Reflect the table cursor onto the calendar (selection + navigation).
@@ -237,7 +241,7 @@ export class CalendarView extends BaseView {
       usageStatistics: false,   // never phone home to Google Analytics
       defaultView: this._perspective.get(),
       isReadOnly,
-      theme: this._calendarTheme() as any,
+      theme: this._calendarTheme(),
       useFormPopup: !isReadOnly,
       useDetailPopup: false,    // we open Grist's Record Card on double-click instead
       gridSelection: { enableDblClick: true, enableClick: false },
@@ -265,7 +269,7 @@ export class CalendarView extends BaseView {
   }
 
   // TUI theme, expressed in terms of Grist theme CSS variables so it follows light/dark mode.
-  private _calendarTheme() {
+  private _calendarTheme(): CalendarThemeOption {
     const border = `1px solid ${theme.tableBodyBorder}`;
     const textColor = theme.text.toString();
     return {
