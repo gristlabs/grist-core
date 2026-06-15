@@ -224,7 +224,6 @@ ALLOWED_GLOB = [
   "_summarySourceTable",
   "_find",
   "__name__",
-  "__dict__",
   "_default_*",
   "_grist_*"
 ]
@@ -381,14 +380,14 @@ def exec_module_text_restricted(module_text):
 def _apply(f, *a, **kw):
     return f(*a, **kw)
 
-def _getattr(object, name):
+def _getattr(object, name, *a):
   if name.startswith('_') and name != '_' and not any(r.match(name) != None for r in ALLOWED_GLOB):
     raise AttributeError(f'"{name}" is a restricted attribute name.')
   if name.endswith('__roles__'):
     raise AttributeError(f'"{name}" is a restricted attribute name.')
   if name in INSPECT_ATTRIBUTES:
     raise AttributeError(f'"{name}" is a restricted attribute name.')
-  return getattr(object, name)
+  return getattr(object, name, *a)
 
 # Source - https://stackoverflow.com/a/79607366
 # Posted by Bill Rayner
