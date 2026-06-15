@@ -520,6 +520,9 @@ export class CalendarView extends BaseView {
         await this.sendTableAction(["UpdateRecord", rowId, fields] as UserAction);
       } else {
         const newRowId = await this.sendTableAction(["AddRecord", null, fields] as UserAction);
+        // setCursorPos triggers _selectRecord on a rowId whose event isn't in _allEvents yet
+        // (rowNotify fires asynchronously). _selectedRecordId acts as a pending pointer; the next
+        // _updateView (via rowNotify) reconciles the highlight through _refreshSelectedRecord.
         if (newRowId && !this.isDisposed()) { this.setCursorPos({ rowId: newRowId }); }
       }
     } catch (err) {
