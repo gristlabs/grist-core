@@ -52,9 +52,9 @@ const viewSectionTypes: { [key: string]: any } = {
   "detail": DetailView,
   "chart": ChartView,
   "single": DetailView,
+  "calendar": CalendarView,
   "custom": CustomView,
   "form": FormView,
-  "custom.calendar": CalendarView,
 };
 
 function getInstanceConstructor(parentKey: string) {

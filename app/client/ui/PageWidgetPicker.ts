@@ -124,7 +124,7 @@ function getCompatibleTypes(tableId: TableRef,
   { isNewPage, summarize }: ICompatibleTypes): IWidgetType[] {
   let compatibleTypes: IWidgetType[] = [];
   if (tableId !== "New Table") {
-    compatibleTypes = ["record", "single", "detail", "chart", "custom", "custom.calendar", "form"];
+    compatibleTypes = ["record", "single", "detail", "chart", "calendar", "custom", "form"];
   } else if (isNewPage) {
     // New view + new table means we'll be switching to the primary view.
     compatibleTypes = ["record", "form"];
@@ -138,6 +138,7 @@ function getCompatibleTypes(tableId: TableRef,
 // The Picker disables some choices that do not make much sense.
 // This function return a boolean telling if summary can be used with this type.
 function isSummaryCompatible(widgetType: IWidgetType): boolean {
+  // TODO - Maybe this needs a calendar widget type adding.
   const incompatibleTypes: IWidgetType[] = ["form"];
   return !incompatibleTypes.includes(widgetType);
 }
@@ -325,15 +326,14 @@ export interface ISelectOptions {
   selectBy?: (val: IPageWidget) => IOption<string>[];
 }
 
-const registeredCustomWidgets: IAttachedCustomWidget[] =  ["custom.calendar"];
-
+const registeredCustomWidgets: IAttachedCustomWidget[] =  [];
 const permittedCustomWidgets: IAttachedCustomWidget[] = PERMITTED_CUSTOM_WIDGETS().get().map(widget =>
   widget as IAttachedCustomWidget) ?? [];
 // the list of widget types in the order they should be listed by the widget.
 const finalListOfCustomWidgetToShow =  permittedCustomWidgets.filter(a =>
   registeredCustomWidgets.includes(a));
 const sectionTypes: IWidgetType[] = [
-  "record", "single", "detail", "form", "chart", ...finalListOfCustomWidgetToShow, "custom",
+  "record", "single", "detail", "form", "chart", "calendar", ...finalListOfCustomWidgetToShow, "custom",
 ];
 
 // Returns dom that let a user select a page widget. User can select a widget type (id: 'grid',
@@ -444,6 +444,9 @@ export class PageWidgetSelect extends Disposable {
             const disabled = computed(this._value.table,
               (use, tid) => this._isTypeDisabled(value, tid, use(this._value.summarize)),
             );
+            console.log("DUCKS DUCKS DUCKS");
+            console.log("disabled", disabled.get());
+            console.log("widgetInfo", widgetInfo);
             return cssEntry(
               dom.autoDispose(disabled),
               cssTypeIcon(widgetInfo.icon),
