@@ -91,6 +91,13 @@ function isZeroTime(date: Date): boolean {
   return date.getHours() === 0 && date.getMinutes() === 0 && date.getSeconds() === 0;
 }
 
+// Date and DateTime are the only column types the calendar uses for start/end. We routinely need
+// to discriminate between them (timezone handling, all-day inference); centralize that here so
+// the checks read by intent. isDateLikeType in app/common/gristTypes is the "either of those"
+// gate; these local helpers are the per-flavor specializations.
+function isDateOnly(colType: string): boolean { return colType === "Date"; }
+function isDateTime(colType: string): boolean { return colType.startsWith("DateTime"); }
+
 // A flat record built from the mapped columns of a single row.
 interface CalendarRecord {
   id: number;
@@ -473,7 +480,7 @@ export class CalendarView extends BaseView {
     if (end < start) { end = start; }
 
     let isAllday = record.isAllDay;
-    if (startType === "Date" && endType === "Date") { isAllday = true; }
+    if (isDateOnly(startType) && isDateOnly(endType)) { isAllday = true; }
     // Workaround for midnight zero-length events not showing up.
     if (!isAllday && end.valueOf() === start.valueOf() && isZeroTime(end) && isZeroTime(start)) {
       end = new this._tzDate!(end).addHours(1) as unknown as Date;
@@ -525,10 +532,10 @@ export class CalendarView extends BaseView {
     // The `timezone` property exists on TZDate (TUI's wrapper) but not on plain Date — we still
     // call this with both, so probe the field rather than narrowing the parameter type.
     const dateTz = (date as Date & { timezone?: string }).timezone;
-    if (docTz && docTz !== dateTz && colType.startsWith("DateTime")) {
+    if (docTz && docTz !== dateTz && isDateTime(colType)) {
       return new this._tzDate!(date).tz(docTz) as unknown as Date;
     }
-    if (colType !== "Date") { return date; }
+    if (!isDateOnly(colType)) { return date; }
     // Like date.tz('UTC'), but accounts for DST differences.
     const ms = date.valueOf() + (date.getTimezoneOffset() * 60000);
     return new Date(ms);
@@ -540,7 +547,7 @@ export class CalendarView extends BaseView {
     const localOffsetMin = -tzDate.getTimezoneOffset();
     const docTz = this._docTimeZone();
     const docOffsetMin = !docTz ? localOffsetMin : tzDate.tz(docTz).getTimezoneOffset();
-    if (colType === "Date") {
+    if (isDateOnly(colType)) {
       const secondsSinceEpoch = unixTime + localOffsetMin * 60;
       return Math.floor(secondsSinceEpoch / SECONDS_PER_DAY) * SECONDS_PER_DAY;
     } else {
