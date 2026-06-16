@@ -1,5 +1,9 @@
 import { ApiError } from "app/common/ApiError";
-import { BootProbeIds, BootProbeResult } from "app/common/BootProbe";
+import {
+  BootProbeIds,
+  BootProbeResult,
+  summarizeOutgoingRequests,
+} from "app/common/BootProbe";
 import { removeTrailingSlash } from "app/common/gutil";
 import { appSettings } from "app/server/lib/AppSettings";
 import { expressWrap, jsonErrorHandler } from "app/server/lib/expressWrap";
@@ -7,6 +11,12 @@ import { GristServer } from "app/server/lib/GristServer";
 import { getBootKey, getInService, getSandboxFlavor, getSandboxFlavorSource } from "app/server/lib/gristSettings";
 import { DEFAULT_SESSION_SECRET } from "app/server/lib/ICreate";
 import { getAvailableSandboxes, testSandboxFlavor } from "app/server/lib/NSandbox";
+import {
+  getAllowedWebhookDomains,
+  isAllowedWebhookWildcard,
+  isRequestFunctionEnabled,
+} from "app/server/lib/outgoingRequests";
+import { getProxyAgentConfiguration, isUntrustedRequestBehaviorSet } from "app/server/lib/ProxyAgent";
 
 import * as express from "express";
 import fetch from "node-fetch";
@@ -74,6 +84,7 @@ export class BootProbes {
     this._probes.push(_serviceStatusProbe);
     this._probes.push(_backupsProbe);
     this._probes.push(_sandboxProvidersProbe);
+    this._probes.push(_outgoingRequestsProbe);
     this._probeById = new Map(this._probes.map(p => [p.id, p]));
   }
 }
@@ -352,6 +363,31 @@ const _homeUrlProbe: Probe = {
         source: setting.describe().source ?? null,
       },
     };
+  },
+};
+
+/**
+ * Reports on whether user-triggerable outgoing-request vectors (webhooks,
+ * the REQUEST() formula function, and Import-from-URL) are gated by a
+ * proxy.
+ *
+ * Pure env inspection; no network calls. The roll-up itself lives in
+ * summarizeOutgoingRequests() (app/common/BootProbe.ts) so the admin panel
+ * and Storybook share it.
+ */
+export const _outgoingRequestsProbe: Probe = {
+  id: "outgoing-requests",
+  name: "Are outgoing-request vectors protected",
+  apply: async () => {
+    const { proxyForTrustedRequestsUrl, proxyForUntrustedRequestsUrl } = getProxyAgentConfiguration();
+    return summarizeOutgoingRequests({
+      proxyConfigured: isUntrustedRequestBehaviorSet(),
+      untrustedDirect: proxyForUntrustedRequestsUrl === "direct",
+      trustedConfigured: proxyForTrustedRequestsUrl !== undefined,
+      requestFunctionEnabled: isRequestFunctionEnabled(),
+      allowedWebhookDomains: getAllowedWebhookDomains(),
+      webhookWildcard: isAllowedWebhookWildcard(),
+    });
   },
 };
 
