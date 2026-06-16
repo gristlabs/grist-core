@@ -4,11 +4,36 @@ import {
   ColumnImportSchema, DocSchemaImportTool,
   ImportSchema,
   transformImportSchema,
+  USER_ACTION_BATCH_SIZE,
   validateImportSchema,
 } from "app/common/DocSchemaImport";
 
 import { assert } from "chai";
+import { takeWhile } from "lodash";
 import sinon from "sinon";
+
+function parseUserActions(applyUserActions: sinon.SinonSpy) {
+  const calls = applyUserActions.getCalls();
+  const userActions: UserAction[] = calls.map(c => c.args[0]).flat();
+  const addTableActions =
+    takeWhile(userActions, a => a[0] === "AddTable");
+  const modifyColumnActions =
+    takeWhile(userActions.slice(addTableActions.length), a => a[0] === "ModifyColumn");
+  const remainingActions: UserAction[] =
+    userActions.slice(addTableActions.length + modifyColumnActions.length);
+  return {
+    addTableActions,
+    modifyColumnActions,
+    remainingActions,
+  };
+}
+
+// AddTable is sent as a single call, followed by one or more ModifyColumn batches.
+// Aggregate the ModifyColumn batches so tests don't need to know how the actions were split.
+function collectModifyColumnActions(applyUserActions: sinon.SinonSpy): UserAction[] {
+  const actions = parseUserActions(applyUserActions);
+  return [...actions.modifyColumnActions];
+}
 
 function createTestSchema(): ImportSchema {
   return {
@@ -334,7 +359,7 @@ describe("DocSchemaImport", function() {
 
       assert.deepEqual(userActionsSent, expectedAddTableActions);
 
-      const modifyColumnActions = (applyUserActions as sinon.SinonSpy).secondCall.args[0];
+      const modifyColumnActions = collectModifyColumnActions(applyUserActions as sinon.SinonSpy);
       const expectedModifyColumnActions = [
         [
           "ModifyColumn",
@@ -450,7 +475,7 @@ describe("DocSchemaImport", function() {
       await importTool.createTablesFromSchema(schema);
 
       // Check all ModifyColumn table and column ids are mapped.
-      const modifyColumnActions: any[] = (applyUserActions as sinon.SinonSpy).secondCall.args[0];
+      const modifyColumnActions: any[] = collectModifyColumnActions(applyUserActions as sinon.SinonSpy);
       const tableIds = modifyColumnActions.map((action: UserAction) => action[1] as string);
       assert.isTrue(tableIds.every((id: string) => id.startsWith("ArbitraryTableId_")), "Table id not mapped");
       const columnIds = modifyColumnActions.map((action: UserAction) => action[2] as string);
@@ -510,7 +535,7 @@ describe("DocSchemaImport", function() {
       const importTool = new DocSchemaImportTool(applyUserActions);
       await importTool.createTablesFromSchema(schema);
 
-      const modifyColumnActions: any[] = (applyUserActions as sinon.SinonSpy).secondCall.args[0];
+      const modifyColumnActions: any[] = collectModifyColumnActions(applyUserActions as sinon.SinonSpy);
       const [, , , colInfo] = modifyColumnActions.find(action => action[2] === "MyCol_Test1-2");
 
       assert.equal(
@@ -557,13 +582,66 @@ describe("DocSchemaImport", function() {
       const importTool = new DocSchemaImportTool(applyUserActions);
       await importTool.createTablesFromSchema(schema);
 
-      const modifyColumnActions: any[] = (applyUserActions as sinon.SinonSpy).secondCall.args[0];
+      const modifyColumnActions: any[] = collectModifyColumnActions(applyUserActions as sinon.SinonSpy);
       const [, , , colInfo] = modifyColumnActions.find(action => action[2] === "MyCol_Test1-2");
 
       assert.equal(
         colInfo.formula,
         "print('unknown_column_BadCol') # unknown_column_BadCol, unknown_table_OtherTable, no [R2]",
       );
+    });
+
+    it("splits ModifyColumn user actions into batches", async () => {
+      // Use enough columns to require multiple batches, plus a remainder so the last batch is partial.
+      const columnCount = USER_ACTION_BATCH_SIZE * 2 + 5;
+      const schema: ImportSchema = {
+        tables: [{
+          originalId: "T1",
+          desiredGristId: "Table 1",
+          columns: Array.from({ length: columnCount }, (_, i) => ({
+            originalId: `${i}`,
+            desiredGristId: `Col_${i}`,
+            type: "Text",
+          })),
+        }],
+      };
+
+      const retValues = [{
+        id: 0,
+        table_id: "ArbitraryTableId_0",
+        columns: schema.tables[0].columns.map(c => `ArbitraryColumnId_${c.desiredGristId}`),
+      }];
+      // Only stub the first call because it's the AddTable action.
+      const applyUserActions: ApplyUserActionsFunc = sinon.stub().onFirstCall().returns(Promise.resolve({
+        actionNum: 0,
+        actionHash: null,
+        retValues,
+        isModification: false,
+      }));
+      const importTool = new DocSchemaImportTool(applyUserActions);
+
+      await importTool.createTablesFromSchema(schema);
+
+      const spy = applyUserActions as sinon.SinonSpy;
+      const modifyColumnBatches =
+        takeWhile(spy.getCalls().slice(1), c => c.args[0][0]?.[0] === "ModifyColumn")
+          .map(c => c.args[0] as UserAction[]);
+      const expectedBatchCount = Math.ceil(columnCount / USER_ACTION_BATCH_SIZE);
+      assert.equal(modifyColumnBatches.length, expectedBatchCount);
+
+      // No batch should exceed USER_ACTION_BATCH_SIZE.
+      for (const batch of modifyColumnBatches) {
+        assert.isAtMost(batch.length, USER_ACTION_BATCH_SIZE);
+      }
+
+      // The aggregate of all batches should equal the total number of ModifyColumn actions.
+      const actions = parseUserActions(spy);
+      assert.equal(actions.modifyColumnActions.length, columnCount);
+      // Sanity check: each action should be a ModifyColumn targeting one of the created columns, in order.
+      actions.modifyColumnActions.forEach((action, i) => {
+        assert.equal(action[0], "ModifyColumn");
+        assert.equal(action[2], `ArbitraryColumnId_Col_${i}`);
+      });
     });
   });
 });
