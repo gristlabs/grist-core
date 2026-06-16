@@ -1197,7 +1197,7 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
       case "enterprise":
       case "saas": {
         return SectionCard(
-          [t("Audit Logs"), cssSectionTag(t("New, Enterprise"))],
+          [t("Audit Logs"), cssSectionTag(t("full Edition"))],
           [this._buildLogStreamingSection(deploymentType)],
         );
       }
