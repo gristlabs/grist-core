@@ -1017,7 +1017,7 @@ export class RightPanel extends Disposable {
         dom.show(redirection),
       ),
       cssHintRow(
-        t("You may use {{ID}} placeholder for the ID of the added record."),
+        t("You may use {{placeholder}} placeholder for the ID of the added record.", { placeholder: "{{ID}}" }),
         dom.show(redirection),
       ),
     ];
