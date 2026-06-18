@@ -731,7 +731,8 @@
         "Enable suggestions": "Aktivera ändringsförslag",
         "Suggestions": "Ändringsförslag",
         "experiment": "experiment",
-        "Once you start timing, Grist will measure the time it takes to evaluate each formula. This allows diagnosing which formulas are responsible for slow performance when a document is first opened, or when a document responds to changes.": "När tidmätningen startar, kommer Grist att mäta tiden det tar att köra varje formel. Detta kan användas för att tar rada på vilka formler som orsakar att dokumentet tar lång tid att öppna eller reagera på ändringar."
+        "Once you start timing, Grist will measure the time it takes to evaluate each formula. This allows diagnosing which formulas are responsible for slow performance when a document is first opened, or when a document responds to changes.": "När tidmätningen startar, kommer Grist att mäta tiden det tar att köra varje formel. Detta kan användas för att tar rada på vilka formler som orsakar att dokumentet tar lång tid att öppna eller reagera på ändringar.",
+        "For number formats": "För nummer format"
     },
     "DocumentUsage": {
         "Size of attachments": "Storlek på bifogade filer",
@@ -1996,7 +1997,9 @@
         "Dismiss": "Avfärda",
         "Dismiss changes": "Avfärda ändringar",
         "Dismiss pending changes?": "Avfärda väntande ändringar?",
-        "Dismissing...": "Avfärdar..."
+        "Dismissing...": "Avfärdar...",
+        "How user actions can reach the outside world": "Hur användares handlingar kan nå världen utanför",
+        "Outgoing requests": "Utgående förfrågningar"
     },
     "Columns": {
         "Remove Column": "Ta bort kolumn"
@@ -3146,5 +3149,19 @@
         "Toggled on": "Påslagen",
         "Checked": "Ibockad",
         "Unchecked": "Obockad"
+    },
+    "OutgoingRequestsStatus": {
+        "Allowed: any host (*)": "Tillåtna: alla värdar (*)",
+        "Allowed: {{list}}": "Tillåtna: {{list}}",
+        "Any editor could trigger a request to an internal URL.": "Alla redigerare kan trigga en förfrågan till en intern URL.",
+        "Any host is allowed and no URL filter is in place.": "Alla värdar är tillåtna och inget URLfilter finns.",
+        "Checking…": "Kontrollerar…",
+        "checking": "kontrollerar",
+        "filtered": "filtrerad",
+        "not configured": "Inte inställd",
+        "review": "granska",
+        "unfiltered": "ofiltrerad",
+        "For example, checking for updates or talking to your single sign-on provider.": "Till exempel, söka efter uppdateringar eller kommunicera med din identitetsleverantör.",
+        "Grist connects directly. No HTTPS proxy is in place.": "Grist ansluter direkt. Ingen HTTPS proxy används."
     }
 }
