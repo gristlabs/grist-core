@@ -3,16 +3,17 @@ import { copyToClipboard } from "app/client/lib/clipboardUtils";
 import { makeTestId } from "app/client/lib/domUtils";
 import { dateFmtFull } from "app/client/lib/formatUtils";
 import { makeT } from "app/client/lib/localization";
-import { markdown } from "app/client/lib/markdown";
+import { inlineMarkdown, markdown } from "app/client/lib/markdown";
 import { Notifier } from "app/client/models/NotifyModel";
 import { ToggleEnterpriseModel } from "app/client/models/ToggleEnterpriseModel";
 import { cssOptInButton, cssParagraph, cssSection } from "app/client/ui/AdminTogglesCss";
 import { hoverTooltip, showTransientTooltip } from "app/client/ui/tooltips";
 import { bigPrimaryButton } from "app/client/ui2018/buttons";
-import { colors, theme, vars } from "app/client/ui2018/cssVars";
-import { icon } from "app/client/ui2018/icons";
+import { theme, vars } from "app/client/ui2018/cssVars";
+import { colorIcon, icon } from "app/client/ui2018/icons";
 import { ActivationState, commonUrls } from "app/common/gristUrls";
 import { not } from "app/common/gutil";
+import { tokens } from "app/common/ThemePrefs";
 import { getGristConfig } from "app/common/urlUtils";
 
 import { BindableValue, Computed, Disposable, dom, input, MultiHolder, Observable, styled } from "grainjs";
@@ -68,15 +69,6 @@ export class ToggleEnterpriseWidget extends Disposable {
     return this._isEnterpriseEdition;
   }
 
-  /**
-   * Observable for the install's installation ID. Populated by the existing
-   * enterprise activation-status fetch; null on community builds (where the
-   * `/api/activation/status` endpoint isn't mounted).
-   */
-  public getInstallationIdObservable() {
-    return this._model.installationId;
-  }
-
   public buildEnterpriseSection() {
     return cssSection(
       testId("enterprise-content", this._isEnterpriseEdition),
@@ -96,10 +88,9 @@ export class ToggleEnterpriseWidget extends Disposable {
 
   private _buildPasteYourKey(show: BindableValue<boolean> = Observable.create(this, true)) {
     return cssParagraph(
-      cssTextLine(
-        dom("b", t(`Activation key`)),
-        buildInstallationIdDisplay(this._model.installationId),
-      ),
+      // Lives with the key input so the ID shows exactly when the input does (e.g. only after "Update").
+      this._buildInstallationIdBlock(),
+      cssIdLabel(t(`Activation key`), dom.style("margin-bottom", "8px")),
       cssInput(
         this._activationKey, { onInput: true }, { placeholder: t("Paste your activation key") },
         dom.onKeyPress({ Enter: this._activateButtonClicked.bind(this) }),
@@ -124,21 +115,45 @@ export class ToggleEnterpriseWidget extends Disposable {
 
   private _trialCopy() {
     return [
-      cssParagraph(
-        dom("b", t("You are currently trialing Full Grist.")),
-      ),
-      cssParagraph(
-        markdown(t(`An activation key is used to run Full Grist after a trial period
-of 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do
-not need an activation key to run Grist Community Edition.
-
-Learn more in our [Help Center]({{helpCenter}}).`, {
-          contactLink: commonUrls.contact,
-          helpCenter: commonUrls.helpEnterpriseOptIn,
-        })),
-      ),
+      this._buildGoodNewsWell(),
       this._buildPasteYourKey(),
     ];
+  }
+
+  private _buildGoodNewsWell() {
+    return cssCelebrate(
+      cssCelebrateIcon(colorIcon("Sparks")),
+      dom("div",
+        cssCelebrateLead(t("Good news: it can stay free.")),
+        cssCelebrateBody(
+          // Inline so the copy lives directly in the div; plain markdown() would wrap it in a <p>.
+          inlineMarkdown(t(`[Free activation keys]({{learnMoreLink}}) are available to individuals and small \
+orgs under US $1 million total annual funding. For larger orgs, see [pricing]({{pricingLink}}).`, {
+            learnMoreLink: commonUrls.helpEnterpriseOptIn,
+            pricingLink: commonUrls.plans,
+          })),
+        ),
+      ),
+      testId("good-news"),
+    );
+  }
+
+  private _buildInstallationIdBlock() {
+    return cssIdBlock(
+      dom.show(use => Boolean(use(this._model.installationId))),
+      cssIdLabel(t("Installation ID")),
+      cssIdValueRow(
+        cssIdValue(dom.text(use => redactInstallationId(use(this._model.installationId) ?? ""))),
+        cssIdCopyButton(
+          icon("Copy"),
+          dom("span", t("Copy")),
+          copyInstallationId(() => this._model.installationId.get() ?? ""),
+          testId("installation-id-copy"),
+        ),
+      ),
+      cssIdHelp(t("Provide this when requesting an activation key. Keys are tied to your installation ID.")),
+      testId("installation-id-block"),
+    );
   }
 
   private _activatedCopy() {
@@ -368,23 +383,12 @@ function copyHandler(value: () => string, confirmation: string) {
   });
 }
 
-/**
- * Standard "Installation ID: <id> [copy]" row, shared by any admin-panel
- * surface that shows the installation ID. The displayed ID is redacted
- * (first 6 characters, rest replaced with `*`) so it's safe to include
- * in screenshots and screen shares; the full ID is still copied to the
- * clipboard when the row is clicked. Rendered only once the ID has
- * loaded; null renders nothing.
- */
-export function buildInstallationIdDisplay(installationId: Observable<string | null>) {
-  return dom.maybe(installationId, id => cssInstallationId(
-    dom("span", t("Installation ID:")),
-    dom("span", redactInstallationId(id)),
-    copyHandler(() => id, t("Installation ID copied to clipboard")),
-    testId("installation-id"),
-    cssCopyButton(icon("Copy")),
+// Shared so the inline row and the prominent block can't drift on the copy/tooltip strings.
+function copyInstallationId(getId: () => string) {
+  return [
+    copyHandler(getId, t("Installation ID copied to clipboard")),
     hoverTooltip(t("Copy to clipboard"), { key: TOOLTIP_KEY }),
-  ));
+  ];
 }
 
 function redactInstallationId(id: string): string {
@@ -445,27 +449,6 @@ const cssRowWithEdit = styled("div", `
   justify-content: space-between;
 `);
 
-const cssTextLine = styled("div", `
-  display: flex;
-  align-items: baseline;
-  margin-bottom: 8px;
-`);
-
-const cssInstallationId = styled("div", `
-  margin-left: 16px;
-  color: ${theme.inputDisabledFg};
-  cursor: pointer;
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
-  font-size: ${vars.smallFontSize};
-  --icon-color: ${theme.lightText};
-  &:hover {
-    --icon-color: ${colors.lightGreen};
-    background-color: ${theme.lightHover};
-  }
-`);
-
 const cssSpacer = styled("div", `
   height: 12px;
 `);
@@ -499,6 +482,97 @@ const cssErrorText = styled("div", `
   color: ${theme.errorText};
 `);
 
-const cssCopyButton = styled("div", `
-  width: 24px;
+const cssCelebrate = styled("div", `
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 16px 0;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: ${tokens.selectionOpaque};
+  border: 1px solid ${tokens.primary};
+  & a {
+    color: ${tokens.primary};
+    font-weight: 600;
+    text-decoration: none;
+  }
+  & a:hover {
+    color: ${tokens.primaryMuted};
+    text-decoration: underline;
+  }
+`);
+
+const cssCelebrateIcon = styled("div", `
+  flex: none;
+  & > div {
+    width: 38px;
+    height: 38px;
+  }
+`);
+
+const cssCelebrateLead = styled("div", `
+  font-weight: 700;
+  color: ${theme.text};
+  margin-bottom: 2px;
+`);
+
+const cssCelebrateBody = styled("div", `
+  font-size: ${vars.mediumFontSize};
+  line-height: 1.5;
+  color: ${theme.text};
+`);
+
+const cssIdBlock = styled("div", `
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 16px 0;
+`);
+
+const cssIdLabel = styled("div", `
+  font-weight: 600;
+`);
+
+const cssIdValueRow = styled("div", `
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+`);
+
+const cssIdValue = styled("div", `
+  flex: 1;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: 8px 12px;
+  font-family: ${tokens.fontFamilyMono};
+  color: ${theme.inputFg};
+  background-color: ${theme.inputDisabledBg};
+  border: 1px solid ${theme.inputBorder};
+  border-radius: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`);
+
+const cssIdCopyButton = styled("div", `
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  color: ${theme.controlFg};
+  --icon-color: ${theme.controlFg};
+  border: 1px solid ${theme.inputBorder};
+  border-radius: 4px;
+  white-space: nowrap;
+  &:hover {
+    background-color: ${theme.lightHover};
+  }
+`);
+
+const cssIdHelp = styled("div", `
+  color: ${theme.lightText};
+  font-size: ${vars.smallFontSize};
+  line-height: 1.5;
 `);

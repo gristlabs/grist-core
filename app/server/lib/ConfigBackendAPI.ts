@@ -112,6 +112,9 @@ export class ConfigBackendAPI {
 
       // Only one key is valid for now
       if (config.edition !== undefined) {
+        if (config.edition !== getGlobalConfig().edition.get()) {
+          await this._activations.setKey(null);
+        }
         await getGlobalConfig().edition.set(config.edition);
 
         resp.send({ msg: "ok" });

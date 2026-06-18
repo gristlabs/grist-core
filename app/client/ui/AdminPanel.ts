@@ -54,7 +54,6 @@ import {
   SectionItem,
 } from "app/client/ui/SettingsLayout";
 import { SupportGristPage } from "app/client/ui/SupportGristPage";
-import { buildInstallationIdDisplay } from "app/client/ui/ToggleEnterpriseWidget";
 import { createTopBarHome } from "app/client/ui/TopBar";
 import { createUserImage } from "app/client/ui/UserImage";
 import { fullBreadcrumbs } from "app/client/ui2018/breadcrumbs";
@@ -67,7 +66,8 @@ import { toggleSwitch } from "app/client/ui2018/toggleSwitch";
 import { BootProbeInfo, BootProbeResult, SandboxingBootProbeDetails } from "app/common/BootProbe";
 import { ConfigAPI } from "app/common/ConfigAPI";
 import { delay } from "app/common/delay";
-import { AdminPanelPage, commonUrls, getPageTitleSuffix, LatestVersionAvailable } from "app/common/gristUrls";
+import { ADMIN_PANEL_EDITION_ANCHOR, AdminPanelPage, commonUrls, getPageTitleSuffix,
+  LatestVersionAvailable } from "app/common/gristUrls";
 import { useBindable } from "app/common/gutil";
 import { InstallAPI, InstallAPIImpl } from "app/common/InstallAPI";
 import { BOOT_KEY_PROVIDER_KEY, MINIMAL_PROVIDER_KEY } from "app/common/loginProviders";
@@ -447,6 +447,7 @@ class AdminInstallationPanel extends Disposable {
           ),
         ),
       )),
+      this._buildEditionCard(),
       SectionCard(t("Support Grist"), [
         SectionItem({
           id: "telemetry",
@@ -476,12 +477,12 @@ class AdminInstallationPanel extends Disposable {
           expandedContent: this._baseUrlSection.buildDom(),
         }),
         SectionItem({
-          id: "edition",
-          name: t("Edition"),
-          description: EditionSection.description(),
-          value: this._editionSection.buildStatusDisplay(),
-          expandedContent: this._editionSection.buildDom(),
+          id: "version",
+          name: t("Version"),
+          description: t("Current version of Grist"),
+          value: cssValueLabel(t("Version {{versionNumber}}", { versionNumber: version.version })),
         }),
+        dom.create(this._buildUpdates.bind(this)),
         SectionItem({
           id: "service-status",
           name: t("Service status"),
@@ -554,16 +555,6 @@ class AdminInstallationPanel extends Disposable {
       ]),
       this._buildBackupsSection(),
       this._buildAuditLogsSection(),
-      SectionCard(t("Version"), [
-        SectionItem({
-          id: "version",
-          name: t("Current"),
-          description: t("Current version of Grist"),
-          value: cssValueLabel(t("Version {{versionNumber}}", { versionNumber: version.version })),
-        }),
-        this._maybeAddEnterpriseToggle(),
-        dom.create(this._buildUpdates.bind(this)),
-      ]),
       SectionCard(t("Self Checks"), [
         this._buildProbeItems({
           showRedundant: false,
@@ -583,68 +574,19 @@ class AdminInstallationPanel extends Disposable {
     ];
   }
 
-  // Stub for users following older documentation that still refers to an
-  // "Enterprise" item in this section. The real controls live in the new
-  // "Server → Edition" item above. The toggle mirrors the real edition
-  // state but intercepts clicks and bounces the user to Edition instead.
-  private _maybeAddEnterpriseToggle() {
-    const enterpriseObs = this._editionSection.getEnterpriseToggleObservable();
-
-    const interceptClick = (ev: Event) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-      focusAdminItem("edition");
-    };
-
-    const makeToggle = () => {
-      if (getGristConfig().forceEnableEnterprise) {
-        return cssValueLabel(cssHappyText(t("On")));
-      }
-      if (!enterpriseObs) {
-        return cssValueLabel(t("moved to Edition"));
-      }
-      // Wrap the toggle in a container that intercepts clicks at the
-      // capture phase so the underlying observable never changes; the
-      // user is redirected to the real Edition item instead.
-      return dom("span",
-        dom.on("click", interceptClick, { useCapture: true }),
-        dom.create(HidableToggle, enterpriseObs, {
-          labelId: "admin-panel-item-description-enterprise",
-        }),
-      );
-    };
-
-    return SectionItem({
-      id: "enterprise",
-      name: t("Enterprise"),
-      description: EditionSection.description(),
-      value: makeToggle(),
-      expandedContent: dom("div",
-        // Installation ID is only surfaced when the enterprise activation-
-        // status endpoint is available (i.e. Full Grist). On community
-        // builds the observable is null and we hide the row entirely.
-        this._buildInstallationIdRow(),
-        dom("p", t(
-          "What used to be called \"Grist Enterprise\" is now called \"Full Grist\".",
-        )),
-        dom("p",
-          t("Its controls have moved to {{editionLink}} above.", {
-            editionLink: cssLink(t("Server → Edition"),
-              dom.on("click", (ev) => { ev.preventDefault(); focusAdminItem("edition"); }),
-              { href: "#edition" },
-            ),
-          }),
-        ),
-        testId("admin-panel-enterprise-stub"),
+  private _buildEditionCard() {
+    return SectionCard(
+      dom("span", t("Edition"),
+        // SectionItem owns the per-item hash-scroll; this card isn't one, so re-run it for #edition.
+        dom.attr("id", ADMIN_PANEL_EDITION_ANCHOR),
+        () => {
+          if (window.location.hash === "#" + ADMIN_PANEL_EDITION_ANCHOR) {
+            setTimeout(() => focusAdminItem(ADMIN_PANEL_EDITION_ANCHOR), 0);
+          }
+        },
       ),
-    });
-  }
-
-  // Shown only on builds that mount `/api/activation/status` (Full Grist);
-  // buildInstallationIdDisplay no-ops until the ID has loaded.
-  private _buildInstallationIdRow() {
-    const installationId = this._editionSection.getInstallationIdObservable();
-    return installationId && dom("p", buildInstallationIdDisplay(installationId));
+      [this._editionSection.buildDom()],
+    );
   }
 
   private _buildSandboxingDisplay() {
@@ -1422,11 +1364,20 @@ async function reloadSafe() {
   await delay(2000); // Allow UI to update before doing the work
   let counter = 10;
   while (counter-- > 0) {
-    const res = await fetch(window.location.href, { credentials: "include" });
-    if (res.status === 200) {
-      break;
+    try {
+      const res = await fetch(window.location.href, { credentials: "include" });
+      if (res.status === 200) {
+        break;
+      }
+    } catch {
+      // Server is mid-restart; keep polling.
     }
     await delay(1000);
   }
-  window.location.href = currentUrl.href;
+
+  if (currentUrl.href === window.location.href) {
+    window.location.reload();
+  } else {
+    window.location.href = currentUrl.href;
+  }
 }

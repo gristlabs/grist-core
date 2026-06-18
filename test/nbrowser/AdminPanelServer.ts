@@ -43,10 +43,9 @@ describe("AdminPanelServer", function() {
       assert.match(await item.getText(), /Base URL/);
     });
 
-    it("should show Edition item in the Server section", async function() {
-      const item = await driver.findWait(".test-admin-panel-item-edition", 3000);
-      assert.equal(await item.isDisplayed(), true);
-      assert.match(await item.getText(), /Edition/);
+    it("should show the Edition card", async function() {
+      assert.equal(await driver.findWait(".test-edition-section", 3000).isDisplayed(), true);
+      assert.match(await driver.find("#edition").getText(), /Edition/);
     });
 
     it("should not flag Base URL as dirty until Test + Confirm", async function() {

@@ -12,8 +12,10 @@ import {
 import { ConfigSection, DraftChangeDescription } from "app/client/ui/DraftChanges";
 import { cssValueLabel } from "app/client/ui/SettingsLayout";
 import { ToggleEnterpriseWidget } from "app/client/ui/ToggleEnterpriseWidget";
-import { primaryButton } from "app/client/ui2018/buttons";
+import { basicButton, primaryButton } from "app/client/ui2018/buttons";
 import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
+import { theme } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
 import { cssLink } from "app/client/ui2018/links";
 import { unstyledButton } from "app/client/ui2018/unstyled";
 import { ConfigAPI } from "app/common/ConfigAPI";
@@ -46,15 +48,6 @@ interface EditionSectionOptions {
 }
 
 export class EditionSection extends Disposable implements ConfigSection {
-  /**
-   * Short description shown next to the item name in the admin panel
-   * collapsed row. Exposed so stubs (e.g. the legacy "Enterprise" item)
-   * can use the same wording without duplication.
-   */
-  public static description(): string {
-    return t("Choose which edition of Grist to run on this server");
-  }
-
   public canProceed: Computed<boolean>;
   public isDirty: Computed<boolean>;
   public describeChange: Computed<DraftChangeDescription[]>;
@@ -67,6 +60,7 @@ export class EditionSection extends Disposable implements ConfigSection {
   private _serverEdition = Observable.create<Edition>(this, "core");
   // Pre-confirmed in admin-panel mode so the confirm/edit flow only runs in the wizard.
   private _editionConfirmed = Observable.create<boolean>(this, !!this._options.inAdminPanel);
+  private _downgradeConfirming = Observable.create<boolean>(this, false);
 
   // Only created in admin-panel mode (requires a notifier).
   private _toggleEnterprise: ToggleEnterpriseWidget | null;
@@ -130,23 +124,34 @@ export class EditionSection extends Disposable implements ConfigSection {
     });
   }
 
+  // Admin panel dom (but the first part is shared with the wizard).
   public buildDom(): DomContents {
     const toggle = this._toggleEnterprise;
+    if (this.editionForced || !this.fullGristAvailable) {
+      return cssSectionContainer(this._buildCore(), testId("section"));
+    }
     return cssSectionContainer(
-      this._buildCore(),
-      // Only show ToggleEnterpriseWidget when the server is actually running
-      // Full Grist -- that's where its activation-key / trial / license UI
-      // does useful work. In "core" mode its "Enable Full Grist" button
-      // duplicates the selector above.
-      this.fullGristAvailable && !this.editionForced && toggle ?
-        dom.maybe(use => use(this._serverEdition) === "enterprise", () =>
-          toggle.buildEnterpriseSection(),
-        ) :
-        null,
+      dom.domComputed(this._serverEdition, (edition) => {
+        if (edition === "enterprise" && toggle) {
+          return [
+            this._buildFullGristHeader(),
+            toggle.buildEnterpriseSection(),
+            cssDivider(),
+            this._buildDowngrade(),
+          ];
+        }
+        return this._buildCommunityView();
+      }),
+      dom.maybe(this.isDirty, () => cssPendingRestart(
+        icon("Warning"),
+        t("Restart Grist to apply this change."),
+        testId("pending"),
+      )),
       testId("section"),
     );
   }
 
+  // Wizard dom
   public buildWizardDom(): DomContents {
     return cssSectionContainer(
       this._buildCore(),
@@ -164,16 +169,6 @@ export class EditionSection extends Disposable implements ConfigSection {
     return this._selectedEdition.get();
   }
 
-  /** Undefined in wizard mode (no ToggleEnterpriseWidget). */
-  public getEnterpriseToggleObservable() {
-    return this._toggleEnterprise?.getEnterpriseToggleObservable();
-  }
-
-  /** Null on community builds (no `/api/activation/status` endpoint). */
-  public getInstallationIdObservable() {
-    return this._toggleEnterprise?.getInstallationIdObservable() ?? null;
-  }
-
   public async apply() {
     if (!this.isDirty.get()) { return; }
     const selected = this._selectedEdition.get();
@@ -185,6 +180,75 @@ export class EditionSection extends Disposable implements ConfigSection {
   public async dismiss(): Promise<void> {
     if (!this.isDirty.get()) { return; }
     this._selectedEdition.set(this._serverEdition.get());
+  }
+
+  private _buildFullGristHeader(): DomContents {
+    return [
+      cssEditionName(t("Full Grist")),
+      cssSectionDescription(t(`This server runs the full edition of Grist, with advanced security, \
+governance, MCP server, automations, email notifications, and collaboration features.`)),
+    ];
+  }
+
+  // Staging "core" flips the section dirty; the draft bar handles restart, dismiss() reverts it.
+  private _buildDowngrade(): DomContents {
+    return dom.domComputed(this._downgradeConfirming, (confirming) => {
+      if (!confirming) {
+        return cssDowngradeLink(
+          t("Downgrade to Community Edition"),
+          dom.on("click", () => this._downgradeConfirming.set(true)),
+          testId("downgrade"),
+        );
+      }
+      return [
+        cssDowngradePrompt(
+          t("Downgrade to Community edition? Full Grist features are disabled after restart. \
+This is reversible."),
+          testId("downgrade-prompt"),
+        ),
+        cssDowngradeButtons(
+          primaryButton(
+            t("Downgrade"),
+            dom.on("click", () => {
+              this._selectedEdition.set("core");
+              this._downgradeConfirming.set(false);
+            }),
+            testId("downgrade-confirm"),
+          ),
+          basicButton(
+            t("Cancel"),
+            dom.on("click", () => this._downgradeConfirming.set(false)),
+            testId("downgrade-cancel"),
+          ),
+        ),
+      ];
+    });
+  }
+
+  private _buildCommunityView(): DomContents {
+    return [
+      cssEditionName(t("Community")),
+      cssSectionDescription(t("You are running the Grist Community edition.")),
+      cssSectionDescription(t("For automations, MCP server, AI assistant, OIDC/SAML support, email \
+notifications, admin controls, audit logging and more, switch to the full Grist edition.")),
+      cssSectionDescription(
+        t("{{freeKeysLink}} are available to individuals and small orgs under US $1 million total annual \
+funding. For larger orgs, see {{pricingLink}}.", {
+          freeKeysLink: cssLink(
+            { href: commonUrls.helpEnterpriseOptIn, target: "_blank" },
+            t("Free activation keys"),
+          ),
+          pricingLink: cssLink({ href: commonUrls.plans, target: "_blank" }, t("pricing")),
+        }),
+      ),
+      cssSwitchRow(
+        primaryButton(
+          t("Switch to Full Grist"),
+          dom.on("click", () => this._selectedEdition.set("enterprise")),
+          testId("switch-to-full"),
+        ),
+      ),
+    ];
   }
 
   /**
@@ -331,6 +395,49 @@ providers, and much more."),
     ];
   }
 }
+
+const cssEditionName = styled("div", `
+  font-weight: 700;
+  font-size: 18px;
+  margin-bottom: 4px;
+`);
+
+const cssDowngradeLink = styled("div", `
+  color: ${tokens.secondary};
+  cursor: pointer;
+  font-size: ${tokens.smallFontSize};
+  width: fit-content;
+  &:hover {
+    color: ${tokens.body};
+  }
+`);
+
+const cssDivider = styled("div", `
+  border-top: 1px solid ${theme.widgetBorder};
+`);
+
+const cssDowngradePrompt = styled("div", `
+  color: ${tokens.secondary};
+  margin-top: 8px;
+`);
+
+const cssDowngradeButtons = styled(cssSectionButtonRow, `
+  margin-top: 8px;
+`);
+
+const cssSwitchRow = styled("div", `
+  margin-top: 8px;
+`);
+
+const cssPendingRestart = styled("div", `
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  color: ${theme.dangerText};
+  --icon-color: ${theme.dangerText};
+  font-size: ${tokens.smallFontSize};
+`);
 
 const cssEditionButtons = styled("div", `
   background: ${tokens.bgTertiary};

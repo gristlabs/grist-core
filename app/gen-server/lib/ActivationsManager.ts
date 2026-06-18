@@ -46,7 +46,7 @@ export class ActivationsManager {
     });
   }
 
-  public async setKey(key: string, transaction?: EntityManager): Promise<void> {
+  public async setKey(key: string | null, transaction?: EntityManager): Promise<void> {
     await this._updateActivation((activation) => {
       activation.key = key;
     }, transaction);

@@ -66,6 +66,9 @@ export type LoginPage = typeof LoginPage.type;
 export const AdminPanelPage = StringUnion("admin", "setup", "docs", "users", "workspaces", "orgs");
 export type AdminPanelPage = typeof AdminPanelPage.type;
 
+// Shared by the Edition card's DOM id (core) and the trial banner's hash anchor (ext).
+export const ADMIN_PANEL_EDITION_ANCHOR = "edition";
+
 export const AdminPanelTab = StringUnion("users", "workspaces", "docs", "orgs", "details");
 export type AdminPanelTab = typeof AdminPanelTab.type;
 
