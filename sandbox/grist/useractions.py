@@ -1711,7 +1711,11 @@ class UserActions(object):
         self._docmodel.update([field_rec], displayCol=display_col_ref)
 
     if col_ref:
-      col_rec = self._docmodel.columns.table.get_record(col_ref)
+      # Accept either a numeric rowId or a string colId.
+      if isinstance(col_ref, str):
+        col_rec = self._docmodel.get_column_rec(table_id, col_ref)
+      else:
+        col_rec = self._docmodel.columns.table.get_record(col_ref)
       old_display_col_rec = col_rec.displayCol
       display_col_ref = self._add_or_update_helper_col(table_rec, old_display_col_rec, formula)
       if display_col_ref is not None:
@@ -2010,7 +2014,7 @@ class UserActions(object):
     """
     Adds an empty conditional style rule to a field, column, or raw view section.
     """
-    self.doAddRule(table_id, field_ref, col_ref)
+    return self.doAddRule(table_id, field_ref, col_ref)
 
 
   def doAddRule(self, table_id, field_ref, col_ref, formula=''):
@@ -2038,6 +2042,7 @@ class UserActions(object):
     existing_rules = rule_owner.rules._get_encodable_row_ids() if rule_owner.rules else []
     updated_rules = existing_rules + [new_rule]
     self._docmodel.update([rule_owner], rules=[encode_object(updated_rules)])
+    return col_info
 
   @useraction
   def AddReverseColumn(self, table_id, col_id):

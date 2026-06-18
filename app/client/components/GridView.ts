@@ -29,7 +29,6 @@ import { isSyntheticRowId } from "app/client/models/DataTableModelWithDiff";
 import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
 import { ColInfo, NewColInfo, ViewSectionRec } from "app/client/models/entities/ViewSectionRec";
 import { reportWarning } from "app/client/models/errors";
-import { CombinedStyle } from "app/client/models/Styles";
 import { CellContextMenu, ICellContextMenu } from "app/client/ui/CellContextMenu";
 import { IColumnFilterMenuOptions } from "app/client/ui/ColumnFilterMenu";
 import { buildRenameColumn, columnHeaderWithInfo } from "app/client/ui/ColumnTitle";
@@ -55,6 +54,7 @@ import { BulkColValues, CellValue, UserAction } from "app/common/DocActions";
 import { isList } from "app/common/gristTypes";
 import * as gutil from "app/common/gutil";
 import { Sort } from "app/common/SortSpec";
+import { CombinedStyle } from "app/common/Styles";
 import { CursorPos, UIRowId } from "app/plugin/GristAPI";
 
 import convert from "color-convert";

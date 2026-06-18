@@ -16,7 +16,6 @@ import { reportError } from "app/client/models/AppModel";
 import { DataRowModel } from "app/client/models/DataRowModel";
 import { ColumnRec, DocModel, ViewFieldRec } from "app/client/models/DocModel";
 import { SaveableObjObservable, setSaveValue } from "app/client/models/modelUtil";
-import { CombinedStyle, Style } from "app/client/models/Styles";
 import { FieldSettingsMenu } from "app/client/ui/FieldMenus";
 import { translateColumnTypeLabel } from "app/client/ui/GridViewMenus";
 import { cssBlockedCursor, cssLabel, cssRow } from "app/client/ui/RightPanelStyles";
@@ -36,6 +35,7 @@ import * as UserType from "app/client/widgets/UserType";
 import * as UserTypeImpl from "app/client/widgets/UserTypeImpl";
 import { getReferencedTableId, isFullReferencingType } from "app/common/gristTypes";
 import * as gristTypes from "app/common/gristTypes";
+import { CombinedStyle, Style } from "app/common/Styles";
 import { WidgetType } from "app/common/widgetTypes";
 import { CellValue } from "app/plugin/GristData";
 

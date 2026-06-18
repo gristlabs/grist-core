@@ -4,7 +4,6 @@ import { makeT } from "app/client/lib/localization";
 import { ColumnRec } from "app/client/models/DocModel";
 import { KoSaveableObservable } from "app/client/models/modelUtil";
 import { RuleOwner } from "app/client/models/RuleOwner";
-import { Style } from "app/client/models/Styles";
 import { buildHighlightedCode } from "app/client/ui/CodeHighlight";
 import { cssFieldFormula } from "app/client/ui/RightPanelStyles";
 import { withInfoTooltip } from "app/client/ui/tooltips";
@@ -16,6 +15,7 @@ import { icon } from "app/client/ui2018/icons";
 import { setupEditorCleanup } from "app/client/widgets/FieldEditor";
 import { cssError, openFormulaEditor } from "app/client/widgets/FormulaEditor";
 import { isRaisedException, isValidRuleValue } from "app/common/gristTypes";
+import { Style } from "app/common/Styles";
 import { GristObjCode, RowRecord } from "app/plugin/GristData";
 import { decodeObject } from "app/plugin/objtypes";
 

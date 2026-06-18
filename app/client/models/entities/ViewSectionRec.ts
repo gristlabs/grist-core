@@ -36,7 +36,7 @@ import { Computed, Holder, Observable, subscribe } from "grainjs";
 import * as ko from "knockout";
 import defaults from "lodash/defaults";
 
-import type { Style } from "app/client/models/Styles";
+import type { Style } from "app/common/Styles";
 
 export interface InsertColOptions {
   colInfo?: ColInfo;
