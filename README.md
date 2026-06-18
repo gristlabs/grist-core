@@ -287,6 +287,21 @@ To build Grist from source, follow these steps:
     yarn start
     # Grist will be available at http://localhost:8484/
 
+By default, the build is the **full** edition: `yarn install` downloads optional
+extensions (into an `ext` directory) that are only enabled when switching to the full
+edition of Grist from the [Admin Panel](https://support.getgrist.com/self-managed/#how-do-i-enable-the-full-edition-of-grist).
+Note that this will add non-OSS code to your build.
+
+If you wish to skip including extensions in your build, the steps are as follows:
+
+    yarn run set-community-edition
+    yarn install:python
+    yarn build
+    yarn start
+    # Grist will be available at http://localhost:8484/
+
+You may toggle between the full Grist and Community editions in the Admin Panel.
+
 The first time you start Grist it'll show the Quick setup page, just
 like a fresh Docker install. Look at the terminal where you ran
 `yarn start` for the boot key. If you'd rather skip Quick setup while
@@ -305,17 +320,6 @@ environment variable.
 These sandboxing methods have been written for our own use at Grist Labs and
 may need tweaking to work in your own environment - pull requests
 very welcome here!
-
-If you wish to include full Grist extensions in your build, the steps are as follows. Note that this will add non-OSS code to your build. It will also place a directory called `node_modules` one level up, at the same level as the Grist repo. If that is a problem for you, just move everything into a subdirectory first.
-
-    yarn install
-    yarn install:ee
-    yarn install:python
-    yarn build
-    yarn start
-    # Grist will be available at http://localhost:8484/
-
-You may toggle between the full Grist and Community editions in the [Admin Panel](https://support.getgrist.com/self-managed/#how-do-i-enable-the-full-edition-of-grist).
 
 ## Logins
 

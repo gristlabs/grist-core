@@ -27,6 +27,13 @@ if [[ "$repo" = "" ]]; then
 fi
 
 ref=$(cat $dir/.$repo-version)
+want="$repo $ref"
+
+# Skip the fetch if ext/ is already present with the requested version.
+if [[ -e ext/app && "$(cat ext/.version 2>/dev/null)" == "$want" ]]; then
+  echo "+ ext already at $repo ($ref); using cached copy"
+  exit 0
+fi
 
 # Fetch a pre-built tarball.
 fetch_tarball() {
@@ -60,3 +67,6 @@ else
   echo "+ Failed to fetch $repo"
   exit 1
 fi
+
+# Record the fetched version in ext/ so subsequent runs avoid re-fetching.
+echo "$want" > ext/.version

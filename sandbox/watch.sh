@@ -34,6 +34,6 @@ webpack --config $WEBPACK_CONFIG --mode development --watch &
 # nothing during dev. Set DEBUG explicitly to keep the old spew.
 : "${DEBUG:=1}"
 export DEBUG
-! $NO_NODEMON && NODE_PATH=_build:_build/ext:_build/stubs nodemon ${NODE_INSPECT} --delay 1 -w _build/app/server -w _build/app/common _build/stubs/app/server/server.js &
+! $NO_NODEMON && NODE_PATH=_build:_build/ext:_build/stubs:ext/node_modules nodemon ${NODE_INSPECT} --delay 1 -w _build/app/server -w _build/app/common _build/stubs/app/server/server.js &
 
 wait

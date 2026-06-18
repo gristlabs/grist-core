@@ -133,7 +133,7 @@ jobs:
 
       - name: Install Node.js packages
         if: ${{ !inputs.disable_tests }}
-        run: yarn install
+        run: yarn install:docker
 
       - name: Disable the ext/ directory
         if: ${{ !inputs.disable_tests }}
