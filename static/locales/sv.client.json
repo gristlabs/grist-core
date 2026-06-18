@@ -3162,6 +3162,17 @@
         "review": "granska",
         "unfiltered": "ofiltrerad",
         "For example, checking for updates or talking to your single sign-on provider.": "Till exempel, söka efter uppdateringar eller kommunicera med din identitetsleverantör.",
-        "Grist connects directly. No HTTPS proxy is in place.": "Grist ansluter direkt. Ingen HTTPS proxy används."
+        "Grist connects directly. No HTTPS proxy is in place.": "Grist ansluter direkt. Ingen HTTPS proxy används.",
+        "Grist routes those requests through the URL filter you've set up.": "Grist skickar dessa förfrågningar till URLfiltret du ställt in.",
+        "Grist sends them straight out. You've opted out of URL filtering.": "Grist skickar dom direkt. Du har valt bort URLfiltrering.",
+        "No URL filter is set up. Features that need one stay switched off.": "Inget URLfilter är inställt. Funktioner som behöver det är därför avstängda.",
+        "Not filtered.": "Inte filtrerade.",
+        "Search docs for: {{envVar}}": "Sök efter dokument för: {{envVar}}",
+        "These requests go through your HTTPS proxy.": "Dessa förfrågningar går genom din HTTPS proxy.",
+        "Three features can make Grist send HTTP requests on behalf of your users. Here's how each one is set up right now.": "Denna funktion möjliggör att Grist kan skicka HTTP förfrågningar åt dina användare. Såhär är de inställda nu.",
+        "When Grist itself reaches out…": "När Grist själv skickar förfrågningar…",
+        "When your users reach out…": "När dina användare skickar förfrågningar…",
+        "bypassed": "förbikopplad",
+        "Open to any host. The URL proxy is what keeps this safe.": "Tillgänglig för alla. URLproxyn är det som ser till att detta är säkert."
     }
 }
