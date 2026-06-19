@@ -40,6 +40,8 @@ import { IncomingMessage } from "http";
 
 import * as express from "express";
 
+import type { SiteMetricsSource } from "app/gen-server/lib/Housekeeper";
+
 /**
  *
  * Coordinate storage for documents across file systems,
@@ -89,6 +91,7 @@ export interface GristServer extends StorageCoordinator {
   hasNotifier(): boolean;
   getNotifier(): INotifier;
   getDocNotificationManager(): IDocNotificationManager | undefined;
+  getSiteMetricsSource(): SiteMetricsSource | undefined;
   getOAuthValidator(): IOAuthValidator | undefined;
   getPubSubManager(): IPubSubManager;
   getAssistant(): IAssistant | undefined;
@@ -206,6 +209,7 @@ export function createDummyGristServer(): GristServer {
     getWidgetRepository() { throw new Error("no widget repository"); },
     getNotifier() { throw new Error("no notifier"); },
     getDocNotificationManager(): IDocNotificationManager | undefined { return undefined; },
+    getSiteMetricsSource(): SiteMetricsSource | undefined { return undefined; },
     getOAuthValidator(): IOAuthValidator | undefined { return undefined; },
     getPubSubManager(): IPubSubManager { throw new Error("no PubSubManager"); },
     hasNotifier() { return false; },

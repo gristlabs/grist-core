@@ -257,6 +257,9 @@ interface UpdateUsageOptions {
   broadcastUsageToClients?: boolean;
 }
 
+// Why the doc metrics are being read. The source uses this to decide what to report per trigger.
+export type DocMetricsTrigger = "docOpen" | "interval" | "docClose";
+
 /**
  * Represents an active document with the given name. The document isn't actually open until
  * either .loadDoc() or .createEmptyDoc() is called.
@@ -327,6 +330,8 @@ export class ActiveDoc extends EventEmitter {
   private _memoryUsedMB: number = 0;
   private _fetchCache = new MapWithTTL<string, Promise<TableDataAction>>(DEFAULT_CACHE_TTL);
   private _docUsage: DocumentUsage | null = null;
+  private _mcpToolCalls = 0;
+  private _mcpUsers = new Set<number>();
   private _product?: Product;
   private _features?: Features;
   private _gracePeriodStart: Date | null = null;
@@ -408,7 +413,7 @@ export class ActiveDoc extends EventEmitter {
         ),
         // Log document metrics every hour.
         new Interval(
-          async () => { this._logDocMetrics(makeExceptionalDocSession("system"), "interval"); },
+          async () => { await this._logDocMetrics(makeExceptionalDocSession("system"), "interval"); },
           LOG_DOCUMENT_METRICS_DELAY,
           { onError: e => this._log.error(null, "failed to log document metrics", e) },
         ),
@@ -852,6 +857,7 @@ export class ActiveDoc extends EventEmitter {
       this._initializationPromise = insightLogWrap(
         "ActiveDoc finishInitialization",
         () => this._finishInitialization(docSession, docData, startTime).catch(async (err) => {
+          this._log.error(docSession, "ActiveDoc background initialization failed", err);
           await this.docClients.broadcastDocMessage(null, "docError", {
             when: "initialization",
             message: String(err),
@@ -2437,6 +2443,11 @@ export class ActiveDoc extends EventEmitter {
     return this._server.getDocNotificationManager()?.notifySubscribers(docSession, this._docName, accessControl);
   }
 
+  public recordMcpToolCall(userId?: number) {
+    this._mcpToolCalls++;
+    if (userId !== undefined) { this._mcpUsers.add(userId); }
+  }
+
   /**
    * Loads an open document from DocStorage. Applies migrations if needed, and starts loading
    * metadata.
@@ -2625,7 +2636,7 @@ export class ActiveDoc extends EventEmitter {
       }
 
       this._syncDocUsageToDatabase(true);
-      this._logDocMetrics(docSession, "docClose");
+      await this._logDocMetrics(docSession, "docClose");
 
       await safeCallAndWait("storageManager.closeDocument",
         () => this._docManager.storageManager.closeDocument(this.docName));
@@ -3074,7 +3085,7 @@ export class ActiveDoc extends EventEmitter {
         // TODO: could offer a UI to control whether shares are activated.
         await this.syncShares(docSession, { skipIfNoShares: true });
       }
-      void this._initializeDocUsage(docSession);
+      await this._initializeDocUsage(docSession);
 
       // Start the periodic work, unless this doc has already started shutting down.
       if (!this.muted) {
@@ -3109,7 +3120,8 @@ export class ActiveDoc extends EventEmitter {
     });
   }
 
-  private _logDocMetrics(docSession: OptDocSession, triggeredBy: "docOpen" | "interval" | "docClose") {
+  private async _logDocMetrics(docSession: OptDocSession, triggeredBy: DocMetricsTrigger) {
+    const extraMetrics = this._drainMcpMetrics(triggeredBy);
     this.logTelemetryEvent(docSession, "documentUsage", {
       limited: {
         triggeredBy,
@@ -3124,11 +3136,22 @@ export class ActiveDoc extends EventEmitter {
         ...this._getColumnMetrics(),
         ...this._getTableMetrics(),
         ...this._getCustomWidgetMetrics(),
+        ...extraMetrics,
       },
     });
     // Log progress on making snapshots periodically, to catch anything
     // excessively slow.
     this._logSnapshotProgress(docSession);
+  }
+
+  private _drainMcpMetrics(triggeredBy: DocMetricsTrigger): Record<string, number> {
+    if (triggeredBy === "docOpen") { return {}; }
+    const metrics: Record<string, number> = {};
+    if (this._mcpToolCalls > 0) { metrics.mcpToolCallsDelta = this._mcpToolCalls; }
+    if (this._mcpUsers.size > 0) { metrics.mcpUsersDelta = this._mcpUsers.size; }
+    this._mcpToolCalls = 0;
+    this._mcpUsers.clear();
+    return metrics;
   }
 
   private _getAccessRuleMetrics() {
@@ -3296,20 +3319,16 @@ export class ActiveDoc extends EventEmitter {
     if (this._docUsage?.attachmentsSizeBytes === undefined) {
       promises.push(this._updateAttachmentsSize(options));
     }
-    if (promises.length === 0) {
-      this._logDocMetrics(docSession, "docOpen");
-      return;
+    if (promises.length) {
+      try {
+        await Promise.all(promises);
+        this._syncDocUsageToDatabase();
+        await this._broadcastDocUsageToClients();
+      } catch (e) {
+        this._log.warn(docSession, "failed to initialize doc usage", e);
+      }
     }
-
-    try {
-      await Promise.all(promises);
-      this._syncDocUsageToDatabase();
-      await this._broadcastDocUsageToClients();
-    } catch (e) {
-      this._log.warn(docSession, "failed to initialize doc usage", e);
-    }
-
-    this._logDocMetrics(docSession, "docOpen");
+    await this._logDocMetrics(docSession, "docOpen");
   }
 
   private _getAuditEventProperties<Action extends AuditEventAction>(): Partial<AuditEventProperties<Action>> {
