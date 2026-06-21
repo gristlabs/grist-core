@@ -31,7 +31,7 @@ export class ReferenceList extends Reference {
       dom.cls("field_clip"),
       cssChoiceList.cls("-wrap", this.wrapping),
       dom.style("justify-content", use => use(this.alignment) === "right" ? "flex-end" : use(this.alignment)),
-      dom.domComputed((use) => {
+      dom.maybe((use) => {
         if (use(row._isAddRow) || this.isDisposed() || use(this.field.displayColModel).isDisposed()) {
           // Work around JS errors during certain changes (noticed when visibleCol field gets removed
           // for a column using per-field settings).
@@ -59,19 +59,18 @@ export class ReferenceList extends Reference {
         // Use field.visibleColFormatter instead of field.formatter
         // because we're formatting each list element to render tokens, not the whole list.
         const formatter = use(this.field.visibleColFormatter);
-        return values.map((referenceId, i) => {
+        const renderValues = values.map((referenceId, i) => {
           return {
             referenceId,
             formattedValue: formatter.formatAny(displayValues[i]),
           };
         });
+        return { values: renderValues, choiceRenderer: use(this._choiceRenderer) };
       },
-      (values) => {
-        if (!values) {
-          return null;
-        }
+      ({ values, choiceRenderer }) => {
         return values.map(({ referenceId, formattedValue }) => {
           const isBlankReference = formattedValue.trim() === "";
+          const token = isBlankReference ? "[Blank]" : formattedValue;
           return choiceToken(
             [
               cssRefIcon("FieldReference",
@@ -95,14 +94,13 @@ export class ReferenceList extends Reference {
                 }),
                 testId("ref-list-link-icon"),
               ),
-              cssLabel(isBlankReference ? "[Blank]" : formattedValue,
+              cssLabel(token,
                 testId("ref-list-cell-token-label"),
               ),
               dom.cls(cssRefIconAndLabel.className),
+              cssRefIconAndLabel.cls("-choice", Boolean(choiceRenderer)),
             ],
-            {
-              blank: isBlankReference,
-            },
+            choiceRenderer?.getChoiceTokenOptions(token, isBlankReference) ?? { blank: isBlankReference },
             dom.cls(cssToken.className),
             testId("ref-list-cell-token"),
           );
@@ -139,6 +137,14 @@ const cssRefIcon = styled(icon, `
 const cssRefIconAndLabel = styled("div", `
   position: relative;
   padding-left: 20px;
+  &-choice {
+    padding-left: 4px;
+    margin-left: 20px;
+    overflow: visible;
+  }
+  &-choice > .${cssRefIcon.className} {
+    left: -16px;
+  }
 `);
 
 const cssLabel = styled("div", `
