@@ -2,6 +2,7 @@ import { makeT } from "app/client/lib/localization";
 import { reportError } from "app/client/models/AppModel";
 import { getHomeUrl } from "app/client/models/homeUrl";
 import { ConfigSection, DraftChangeDescription } from "app/client/ui/DraftChanges";
+import { InstallPrefs } from "app/common/Install";
 import { InstallAPI, InstallAPIImpl, PermissionsStatus } from "app/common/InstallAPI";
 import { getGristConfig } from "app/common/urlUtils";
 
@@ -10,13 +11,16 @@ import { Computed, Disposable, Observable } from "grainjs";
 const t = makeT("PermissionsToggleModel");
 
 /**
- * Shared model for the four install-wide permission toggles
- * (team sites / personal sites / anon access / playground).
+ * Shared model for the install-wide permission toggles
+ * (team sites / personal sites / anon access / playground)
+ * plus the telemetry opt-in toggle.
  *
  * Used by both QuickSetup's "Apply & restart" card and the admin
  * panel's Security Settings rows. Owns loading from the server,
  * dirty tracking against server values, env-locked detection,
  * preset application, and the `apply()` that persists changes.
+ *
+ * Consumers can hide individual toggles via `opts.excludeToggles`.
  *
  * Implements ConfigSection so it can be registered with the admin
  * panel's DraftChangesManager and participate in the unified
@@ -49,6 +53,10 @@ export class PermissionsToggleModel extends Disposable implements ConfigSection 
   /** Resolves after the initial server fetch lands in `status`. */
   public readonly loaded: Promise<void>;
 
+  // Toggle definitions available / in use on this model instance.
+  // Omits any toggles that are excluded by `excludeToggles`
+  public readonly toggleDefs: ToggleDef[];
+
   // Last known server value for each toggle. Used for dirty tracking and
   // for `describeChange()` so the banner shows the new value, not the old.
   private _serverValues: Record<ToggleKey, Observable<boolean>> = {
@@ -59,11 +67,16 @@ export class PermissionsToggleModel extends Disposable implements ConfigSection 
     telemetry: Observable.create<boolean>(this, false),
   };
 
+  private _toggleKeys: Set<ToggleKey>;
   private _installAPI: InstallAPI;
 
-  constructor(opts: { installAPI?: InstallAPI } = {}) {
+  constructor(opts: { installAPI?: InstallAPI; excludeToggles?: ToggleKey[] } = {}) {
     super();
     this._installAPI = opts.installAPI ?? new InstallAPIImpl(getHomeUrl());
+
+    const excluded = new Set(opts.excludeToggles ?? []);
+    this.toggleDefs = TOGGLE_DEFS.filter(d => !excluded.has(d.key));
+    this._toggleKeys = new Set(this.toggleDefs.map(d => d.key));
 
     this.loaded = this._load();
     this.loaded.catch(reportError);
@@ -71,7 +84,7 @@ export class PermissionsToggleModel extends Disposable implements ConfigSection 
     this.isDirty = Computed.create(this, (use) => {
       const status = use(this.status);
       if (!status) { return false; }
-      return TOGGLE_DEFS.some(({ key }) => {
+      return this.toggleDefs.some(({ key }) => {
         if (this._isEnvLocked(status, key)) { return false; }
         return use(this.toggles[key]) !== use(this._serverValues[key]);
       });
@@ -79,7 +92,7 @@ export class PermissionsToggleModel extends Disposable implements ConfigSection 
 
     this.describeChange = Computed.create(this, (use) => {
       const status = use(this.status);
-      const changed = TOGGLE_DEFS
+      const changed = this.toggleDefs
         .filter(({ key }) => !status || !this._isEnvLocked(status, key))
         .filter(({ key }) => use(this.toggles[key]) !== use(this._serverValues[key]))
         .map(({ key, label }) => `${label()}: ${use(this.toggles[key]) ? t("on") : t("off")}`);
@@ -90,6 +103,7 @@ export class PermissionsToggleModel extends Disposable implements ConfigSection 
       const status = use(this.status);
       for (const [name, values] of PRESET_ENTRIES) {
         if (values.every(([k, v]) => {
+          if (!this._toggleKeys.has(k)) { return true; }
           if (status && this._isEnvLocked(status, k)) { return true; }
           return use(this.toggles[k]) === v;
         })) {
@@ -105,9 +119,24 @@ export class PermissionsToggleModel extends Disposable implements ConfigSection 
     const status = this.status.get();
     for (const [toggleName, toggleValue] of Object.entries(PRESETS[preset])) {
       const key = toggleName as ToggleKey;
+      if (!this._toggleKeys.has(key)) { continue; }
       if (status && this._isEnvLocked(status, key)) { continue; }
       this.toggles[key].set(toggleValue);
     }
+  }
+
+  public hasEnvLocked(): boolean {
+    const status = this.status.get();
+    if (!status) { return false; }
+    return this.toggleDefs.some(({ permKey }) => status[permKey].source === "environment-variable");
+  }
+
+  public getEnvLockedVars(): string[] {
+    const status = this.status.get();
+    if (!status) { return []; }
+    return this.toggleDefs
+      .filter(({ permKey }) => status[permKey].source === "environment-variable")
+      .map(({ envVar }) => envVar);
   }
 
   public isEnvLocked(key: ToggleKey): boolean {
@@ -130,19 +159,25 @@ export class PermissionsToggleModel extends Disposable implements ConfigSection 
   // panel routes through DraftChangesManager, which only calls apply()
   // on dirty sections, so the unconditional write is harmless there.
   public async apply(): Promise<void> {
-    await this._installAPI.updateInstallPrefs({
+    const update: Partial<InstallPrefs> = {
       envVars: {
         GRIST_ORG_CREATION_ANYONE: String(this.toggles.teamSites.get()),
         GRIST_PERSONAL_ORGS: String(this.toggles.personalSites.get()),
         GRIST_FORCE_LOGIN: String(!this.toggles.anonAccess.get()),
         GRIST_ANON_PLAYGROUND: String(this.toggles.playground.get()),
       },
-      telemetry: {
+    };
+    if (this._toggleKeys.has("telemetry")) {
+      // Guarded so a consumer that excludes telemetry (e.g. the admin panel,
+      // which routes telemetry through SupportGristPage) doesn't clobber the
+      // user's existing telemetry choice with this model's hidden default.
+      update.telemetry = {
         telemetryLevel: this.toggles.telemetry.get() ? "limited" : "off",
-      },
-    });
+      };
+    }
+    await this._installAPI.updateInstallPrefs(update);
     if (this.isDisposed()) { return; }
-    for (const { key } of TOGGLE_DEFS) {
+    for (const { key } of this.toggleDefs) {
       this._serverValues[key].set(this.toggles[key].get());
     }
   }
@@ -238,13 +273,3 @@ No document contents are collected. Configurable anytime from the admin panel.")
 ];
 
 const TOGGLE_DEF_BY_KEY = new Map<ToggleKey, ToggleDef>(TOGGLE_DEFS.map(d => [d.key, d]));
-
-export function hasEnvLocked(status: PermissionsStatus): boolean {
-  return TOGGLE_DEFS.some(({ permKey }) => status[permKey].source === "environment-variable");
-}
-
-export function getEnvLockedVars(status: PermissionsStatus): string[] {
-  return TOGGLE_DEFS
-    .filter(({ permKey }) => status[permKey].source === "environment-variable")
-    .map(({ envVar }) => envVar);
-}
