@@ -35,6 +35,7 @@ export class PermissionsToggleModel extends Disposable implements ConfigSection 
     personalSites: Observable.create<boolean>(this, false),
     anonAccess: Observable.create<boolean>(this, false),
     playground: Observable.create<boolean>(this, false),
+    telemetry: Observable.create<boolean>(this, false),
   };
 
   /** True when any toggle has drifted from its server value. */
@@ -55,6 +56,7 @@ export class PermissionsToggleModel extends Disposable implements ConfigSection 
     personalSites: Observable.create<boolean>(this, false),
     anonAccess: Observable.create<boolean>(this, false),
     playground: Observable.create<boolean>(this, false),
+    telemetry: Observable.create<boolean>(this, false),
   };
 
   private _installAPI: InstallAPI;
@@ -135,6 +137,9 @@ export class PermissionsToggleModel extends Disposable implements ConfigSection 
         GRIST_FORCE_LOGIN: String(!this.toggles.anonAccess.get()),
         GRIST_ANON_PLAYGROUND: String(this.toggles.playground.get()),
       },
+      telemetry: {
+        telemetryLevel: this.toggles.telemetry.get() ? "limited" : "off",
+      },
     });
     if (this.isDisposed()) { return; }
     for (const { key } of TOGGLE_DEFS) {
@@ -149,6 +154,7 @@ export class PermissionsToggleModel extends Disposable implements ConfigSection 
     this._setBoth("personalSites", s.personalOrgs.value ?? true);
     this._setBoth("anonAccess", !(s.forceLogin.value ?? false));
     this._setBoth("playground", s.anonPlayground.value ?? true);
+    this._setBoth("telemetry", s.telemetry.value ?? true);
     this.status.set(s);
   }
 
@@ -163,7 +169,7 @@ export class PermissionsToggleModel extends Disposable implements ConfigSection 
   }
 }
 
-export type ToggleKey = "teamSites" | "personalSites" | "anonAccess" | "playground";
+export type ToggleKey = "teamSites" | "personalSites" | "anonAccess" | "playground" | "telemetry";
 export type PresetName = "locked" | "recommended" | "open";
 export type PermissionKey = keyof Omit<PermissionsStatus, "singleOrg">;
 
@@ -176,9 +182,9 @@ export interface ToggleDef {
 }
 
 export const PRESETS: Record<PresetName, Record<ToggleKey, boolean>> = {
-  locked: { teamSites: false, personalSites: false, anonAccess: false, playground: false },
-  recommended: { teamSites: false, personalSites: true, anonAccess: true, playground: false },
-  open: { teamSites: true, personalSites: true, anonAccess: true, playground: true },
+  locked: { teamSites: false, personalSites: false, anonAccess: false, playground: false, telemetry: false },
+  recommended: { teamSites: false, personalSites: true, anonAccess: true, playground: false, telemetry: true },
+  open: { teamSites: true, personalSites: true, anonAccess: true, playground: true, telemetry: true },
 };
 
 // Pre-typed entries so the presetDetector Computed doesn't widen back to
@@ -220,6 +226,14 @@ This is needed for link sharing and published forms."),
     label: () => t("Allow anonymous playground"),
     description: () => t("Visitors who aren't signed in can create and edit documents \
 in a temporary playground. Turn off to require sign-in before creating any documents."),
+  },
+  {
+    key: "telemetry",
+    permKey: "telemetry",
+    envVar: "GRIST_TELEMETRY_LEVEL",
+    label: () => t("Share product telemetry"),
+    description: () => t("Sends anonymous usage metrics to Grist Labs. \
+No document contents are collected. Configurable anytime from the admin panel."),
   },
 ];
 
