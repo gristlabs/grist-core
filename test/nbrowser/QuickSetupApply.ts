@@ -39,6 +39,7 @@ describe("QuickSetupApply", function() {
     assert.isTrue(await isToggleChecked("personalOrgs"));
     assert.isTrue(await isToggleChecked("forceLogin"));
     assert.isFalse(await isToggleChecked("anonPlayground"));
+    assert.isTrue(await isToggleChecked("telemetry"));
 
     // No env badges, env warning, or single-org warning should be visible.
     assert.isFalse(await driver.find(".test-permissions-setup-env-warning").isPresent());
@@ -51,6 +52,7 @@ describe("QuickSetupApply", function() {
     assert.isTrue(await isToggleChecked("personalOrgs"));
     assert.isTrue(await isToggleChecked("forceLogin"));
     assert.isTrue(await isToggleChecked("anonPlayground"));
+    assert.isTrue(await isToggleChecked("telemetry"));
 
     // Click "Locked down" preset — all toggles should be off.
     await driver.find(".test-permissions-setup-preset-locked").click();
@@ -58,6 +60,7 @@ describe("QuickSetupApply", function() {
     assert.isFalse(await isToggleChecked("personalOrgs"));
     assert.isFalse(await isToggleChecked("forceLogin"));
     assert.isFalse(await isToggleChecked("anonPlayground"));
+    assert.isFalse(await isToggleChecked("telemetry"));
   });
 
   it("should return defaults before any permissions are saved", async function() {
@@ -70,12 +73,18 @@ describe("QuickSetupApply", function() {
     assert.equal(status.forceLogin.source, undefined);
     assert.equal(status.anonPlayground.value, true);
     assert.equal(status.anonPlayground.source, undefined);
+    // Telemetry defaults to "off". getTelemetryPrefs reports source = "preferences"
+    // even when no value is persisted (no equivalent of the appSettings tri-state
+    // used by the other toggles).
+    assert.equal(status.telemetry.value, false);
+    assert.equal(status.telemetry.source, "preferences");
   });
 
   it("should report env-locked toggles via API and disable them in UI", async function() {
     // Set some vars via real environment and restart.
     process.env.GRIST_FORCE_LOGIN = "true";
     process.env.GRIST_ANON_PLAYGROUND = "false";
+    process.env.GRIST_TELEMETRY_LEVEL = "limited";
     await server.restart();
     session = await gu.session().personalSite.login();
 
@@ -85,6 +94,8 @@ describe("QuickSetupApply", function() {
     assert.equal(status.forceLogin.source, "environment-variable");
     assert.equal(status.anonPlayground.value, false);
     assert.equal(status.anonPlayground.source, "environment-variable");
+    assert.equal(status.telemetry.value, true);
+    assert.equal(status.telemetry.source, "environment-variable");
     // The others should still be defaults (no source).
     assert.equal(status.orgCreationAnyone.source, undefined);
     assert.equal(status.personalOrgs.source, undefined);
@@ -93,22 +104,30 @@ describe("QuickSetupApply", function() {
     await navigateToStep();
     assert.isTrue(await isToggleDisabled("forceLogin"));
     assert.isTrue(await isToggleDisabled("anonPlayground"));
+    assert.isTrue(await isToggleDisabled("telemetry"));
     assert.isFalse(await isToggleDisabled("orgCreationAnyone"));
     assert.isFalse(await isToggleDisabled("personalOrgs"));
 
     // Should show "Environment" badges on locked toggles only.
-    assert.lengthOf(await driver.findAll(".test-permissions-setup-env-badge"), 2);
+    assert.lengthOf(await driver.findAll(".test-permissions-setup-env-badge"), 3);
     assert.isTrue(await hasBadge("forceLogin"));
     assert.isTrue(await hasBadge("anonPlayground"));
+    assert.isTrue(await hasBadge("telemetry"));
     assert.isFalse(await hasBadge("orgCreationAnyone"));
     assert.isFalse(await hasBadge("personalOrgs"));
 
-    // Should show the env warning well.
-    assert.isTrue(await driver.find(".test-permissions-setup-env-warning").isPresent());
+    // Should show the env warning well naming each locked var.
+    const warning = await driver.find(".test-permissions-setup-env-warning");
+    assert.isTrue(await warning.isPresent());
+    const warningText = await warning.getText();
+    assert.include(warningText, "GRIST_FORCE_LOGIN");
+    assert.include(warningText, "GRIST_ANON_PLAYGROUND");
+    assert.include(warningText, "GRIST_TELEMETRY_LEVEL");
 
     // Restore env and restart for subsequent tests.
     delete process.env.GRIST_FORCE_LOGIN;
     delete process.env.GRIST_ANON_PLAYGROUND;
+    delete process.env.GRIST_TELEMETRY_LEVEL;
     await server.restart();
   });
 
@@ -128,11 +147,13 @@ describe("QuickSetupApply", function() {
     assert.isFalse(await hasConflictBadge("orgCreationAnyone"));
     assert.isFalse(await hasConflictBadge("forceLogin"));
     assert.isFalse(await hasConflictBadge("anonPlayground"));
+    assert.isFalse(await hasConflictBadge("telemetry"));
 
     // Other toggles should remain normal (not disabled, no badges).
     assert.isFalse(await isToggleDisabled("orgCreationAnyone"));
     assert.isFalse(await isToggleDisabled("forceLogin"));
     assert.isFalse(await isToggleDisabled("anonPlayground"));
+    assert.isFalse(await isToggleDisabled("telemetry"));
     assert.lengthOf(await driver.findAll(".test-permissions-setup-env-badge"), 0);
 
     // Single-org warning should explain the conflict.
@@ -165,6 +186,7 @@ describe("QuickSetupApply", function() {
     assert.isFalse(await hasConflictBadge("orgCreationAnyone"));
     assert.isFalse(await hasConflictBadge("forceLogin"));
     assert.isFalse(await hasConflictBadge("anonPlayground"));
+    assert.isFalse(await hasConflictBadge("telemetry"));
 
     // No env badges.
     assert.lengthOf(await driver.findAll(".test-permissions-setup-env-badge"), 0);
@@ -175,6 +197,7 @@ describe("QuickSetupApply", function() {
     assert.isFalse(await isToggleDisabled("personalOrgs"));
     assert.isFalse(await isToggleDisabled("forceLogin"));
     assert.isFalse(await isToggleDisabled("anonPlayground"));
+    assert.isFalse(await isToggleDisabled("telemetry"));
 
     // Recommended preset should still be active.
     assert.isTrue(await isPresetActive("recommended"));
@@ -192,6 +215,9 @@ describe("QuickSetupApply", function() {
     assert.isUndefined(before.personalOrgs.source);
     assert.isUndefined(before.forceLogin.source);
     assert.isUndefined(before.anonPlayground.source);
+    // Telemetry source is always "preferences" before env override (see test 2).
+    assert.equal(before.telemetry.value, false);
+    assert.equal(before.telemetry.source, "preferences");
 
     await navigateToStep();
 
@@ -222,6 +248,9 @@ describe("QuickSetupApply", function() {
     assert.equal(status.forceLogin.source, "preferences");
     assert.equal(status.anonPlayground.value, true);
     assert.equal(status.anonPlayground.source, "preferences");
+    // Open preset enabled telemetry → level "limited" persisted.
+    assert.equal(status.telemetry.value, true);
+    assert.equal(status.telemetry.source, "preferences");
   });
 
   async function navigateToStep() {

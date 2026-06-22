@@ -45,15 +45,16 @@ describe("AdminPanelPermissions", function() {
     );
   }
 
-  it("groups the four toggles under one Default-permissions row", async function() {
+  it("groups the toggles under one Default-permissions row", async function() {
     await driver.get(`${server.getHost()}/admin`);
     await gu.waitForAdminPanel();
     const item = await driver.findWait(".test-admin-panel-item-default-permissions", 3000);
     assert.equal(await item.isDisplayed(), true);
     // Status display should name a preset once loaded. With a clean DB
-    // and no env overrides, all four defaults are on → preset = Open.
-    // (The wizard applies "Recommended" on load; the admin panel shows
-    // the actual server state.)
+    // and no env overrides, the four permission defaults are on but
+    // telemetry defaults to off — so no preset matches exactly and the
+    // status reads "Custom". (The wizard applies "Recommended" on load;
+    // the admin panel shows the actual server state.)
     await gu.waitToPass(async () => {
       assert.match(await item.getText(), /\b(Open|Recommended|Locked down|Custom)\b/);
     }, 3000);
@@ -134,6 +135,44 @@ describe("AdminPanelPermissions", function() {
 
     delete process.env.GRIST_FORCE_LOGIN;
     await server.restart();
+  });
+
+  it("persists telemetry preference and reflects it without a restart", async function() {
+    session = await gu.session().personalSite.login();
+    installApi = session.createApi(InstallAPIImpl);
+
+    await driver.get(`${server.getHost()}/admin`);
+    await gu.waitForAdminPanel();
+    await expandPermissionsItem();
+
+    // Telemetry defaults to off; flip it on.
+    assert.isFalse(await isToggleChecked("telemetry"));
+    await driver.find(".test-permissions-setup-perm-telemetry label").click();
+    assert.isTrue(await isToggleChecked("telemetry"));
+
+    // Restart banner should show the telemetry change with its label.
+    const banner = await driver.findWait(".test-admin-panel-draft-changes", 2000);
+    await gu.waitToPass(async () => {
+      const text = await banner.getText();
+      assert.match(text, /Permissions/);
+      assert.match(text, /Share product telemetry/);
+    }, 3000);
+
+    // Apply via no-restart button — same DraftChangesManager path used above.
+    await driver.findWait(".test-admin-panel-apply-no-restart", 3000);
+    await gu.waitToPass(async () => {
+      await driver.find(".test-admin-panel-apply-no-restart").click();
+    }, 3000);
+    await gu.waitToPass(async () => {
+      assert.isFalse(await driver.find(".test-admin-panel-draft-changes").isPresent());
+    }, 5000);
+
+    // Telemetry reads through getTelemetryPrefs which queries the DB on
+    // every request, so the new value is reflected immediately — no
+    // server restart needed (unlike the env-var-backed toggles above).
+    const status = await installApi.getPermissionsStatus();
+    assert.equal(status.telemetry.value, true);
+    assert.equal(status.telemetry.source, "preferences");
   });
 
   async function isToggleChecked(permKey: string): Promise<boolean> {
