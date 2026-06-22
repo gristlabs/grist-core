@@ -485,7 +485,8 @@
         "Allow others to suggest changes": "Allow others to suggest changes",
         "Enable suggestions": "Enable suggestions",
         "Suggestions": "Suggestions",
-        "experiment": "experiment"
+        "experiment": "experiment",
+        "For number formats": "For number formats"
     },
     "DocumentUsage": {
         "Size of attachments": "Size of attachments",
@@ -1950,7 +1951,9 @@
         "Dismiss": "Dismiss",
         "Dismiss changes": "Dismiss changes",
         "Dismiss pending changes?": "Dismiss pending changes?",
-        "Dismissing...": "Dismissing..."
+        "Dismissing...": "Dismissing...",
+        "How user actions can reach the outside world": "How user actions can reach the outside world",
+        "Outgoing requests": "Outgoing requests"
     },
     "Columns": {
         "Remove Column": "Remove Column"
@@ -3131,5 +3134,30 @@
         "link {{- label}}": "link {{- label}}",
         "list: {{- items}}": "list: {{- items}}",
         "{{- text}} (link)": "{{- text}} (link)"
+    },
+    "OutgoingRequestsStatus": {
+        "Allowed: any host (*)": "Allowed: any host (*)",
+        "Allowed: {{list}}": "Allowed: {{list}}",
+        "Any editor could trigger a request to an internal URL.": "Any editor could trigger a request to an internal URL.",
+        "Any host is allowed and no URL filter is in place.": "Any host is allowed and no URL filter is in place.",
+        "Checking…": "Checking…",
+        "For example, checking for updates or talking to your single sign-on provider.": "For example, checking for updates or talking to your single sign-on provider.",
+        "Grist connects directly. No HTTPS proxy is in place.": "Grist connects directly. No HTTPS proxy is in place.",
+        "Grist routes those requests through the URL filter you've set up.": "Grist routes those requests through the URL filter you've set up.",
+        "Grist sends them straight out. You've opted out of URL filtering.": "Grist sends them straight out. You've opted out of URL filtering.",
+        "No URL filter is set up. Features that need one stay switched off.": "No URL filter is set up. Features that need one stay switched off.",
+        "Not filtered.": "Not filtered.",
+        "Open to any host. The URL proxy is what keeps this safe.": "Open to any host. The URL proxy is what keeps this safe.",
+        "Search docs for: {{envVar}}": "Search docs for: {{envVar}}",
+        "These requests go through your HTTPS proxy.": "These requests go through your HTTPS proxy.",
+        "Three features can make Grist send HTTP requests on behalf of your users. Here's how each one is set up right now.": "Three features can make Grist send HTTP requests on behalf of your users. Here's how each one is set up right now.",
+        "When Grist itself reaches out…": "When Grist itself reaches out…",
+        "When your users reach out…": "When your users reach out…",
+        "bypassed": "bypassed",
+        "checking": "checking",
+        "filtered": "filtered",
+        "not configured": "not configured",
+        "review": "review",
+        "unfiltered": "unfiltered"
     }
 }
