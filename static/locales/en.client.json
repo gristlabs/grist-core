@@ -1953,7 +1953,8 @@
         "Dismiss pending changes?": "Dismiss pending changes?",
         "Dismissing...": "Dismissing...",
         "How user actions can reach the outside world": "How user actions can reach the outside world",
-        "Outgoing requests": "Outgoing requests"
+        "Outgoing requests": "Outgoing requests",
+        "full Edition": "full Edition"
     },
     "Columns": {
         "Remove Column": "Remove Column"
