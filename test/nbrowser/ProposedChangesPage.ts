@@ -4,7 +4,7 @@ import { GristObjCode } from "app/plugin/GristData";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
 
-import { assert, driver, Key } from "mocha-webdriver";
+import { assert, driver, Key, WebElement } from "mocha-webdriver";
 
 describe("ProposedChangesPage", function() {
   this.timeout(60000);
@@ -1903,40 +1903,47 @@ async function assertProposalsCount(expected: number | "...") {
   assert.equal(await hasChangesDot(), expected !== 0);
 }
 
+async function withSectionContent<T>(
+  section: string, cb: (parent: WebElement) => Promise<T>,
+): Promise<T> {
+  let result: T;
+  await gu.waitToPass(async () => {
+    const parent = await driver.findContentWait(".test-viewsection-title", section, 2000)
+      .findClosest(".viewsection_content");
+    result = await cb(parent);
+  });
+  return result!;
+}
+
 async function getColumns(section: string): Promise<string[]> {
-  const title = await driver.findContentWait(".test-viewsection-title", section, 2000);
-  const parent = await title.findClosest(".viewsection_content");
-  return await parent.findAll(".test-column-title-text", e => e.getText());
+  return withSectionContent(section, parent =>
+    parent.findAll(".test-column-title-text", e => e.getText()));
 }
 
 async function getRowValues(section: string, rowIndex: number): Promise<string[]> {
-  const title = await driver.findContentWait(".test-viewsection-title", section, 2000);
-  const parent = await title.findClosest(".viewsection_content");
-  await parent.findWait(".record", 2000);
-  const row = (await parent.findAll(".gridview_row .record"))[rowIndex];
-  return await row.findAll(".field_clip", e => e.getText());
+  return withSectionContent(section, async (parent) => {
+    await parent.findWait(".record", 2000);
+    const row = (await parent.findAll(".gridview_row .record"))[rowIndex];
+    return row.findAll(".field_clip", e => e.getText());
+  });
 }
 
 async function getChangeType(section: string, rowIndex: number): Promise<string> {
-  const title = await driver.findContentWait(".test-viewsection-title", section, 2000);
-  const parent = await title.findClosest(".viewsection_content");
-  await parent.findWait(".gridview_data_row_num", 2000);
-  const row = (await parent.findAll(".gridview_data_row_num"))[rowIndex];
-  return await row.getText();
+  return withSectionContent(section, async (parent) => {
+    await parent.findWait(".gridview_data_row_num", 2000);
+    const row = (await parent.findAll(".gridview_data_row_num"))[rowIndex];
+    return row.getText();
+  });
 }
 
 async function expand(section: string) {
-  const title = await driver.findContentWait(".test-viewsection-title", section, 2000);
-  const parent = await title.findClosest(".viewsection_content");
-  const button = await parent.find(".test-proposals-expand");
-  await button.click();
+  await withSectionContent(section, parent =>
+    parent.find(".test-proposals-expand").click());
 }
 
 async function collapse(section: string) {
-  const title = await driver.findContentWait(".test-viewsection-title", section, 2000);
-  const parent = await title.findClosest(".viewsection_content");
-  const button = await parent.find(".test-proposals-collapse");
-  await button.click();
+  await withSectionContent(section, parent =>
+    parent.find(".test-proposals-collapse").click());
 }
 
 /**
