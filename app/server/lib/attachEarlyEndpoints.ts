@@ -27,13 +27,13 @@ import {
   invalidateReloadableSettings,
 } from "app/server/lib/gristSettings";
 import log from "app/server/lib/log";
-import { getTelemetryPrefs } from "app/server/lib/Telemetry";
 import {
   getScope,
   sendOkReply,
   sendReply,
   stringParam,
 } from "app/server/lib/requestUtils";
+import { getTelemetryPrefs } from "app/server/lib/Telemetry";
 import { updateGristServerLatestVersion } from "app/server/lib/updateChecker";
 
 import {
