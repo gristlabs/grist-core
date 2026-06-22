@@ -57,6 +57,40 @@ const noAuthAcknowledged = localStorageBoolObs(
   installationId ? `noAuthAcknowledged:${installationId}` : "noAuthAcknowledged",
 );
 
+/**
+ * Prompt the admin to acknowledge that the server has no authentication
+ * before continuing past the Quick Setup auth step without configuring a
+ * provider.
+ */
+export function confirmNoAuthAcknowledgement(onConfirm: () => void): void {
+  saveModal((_ctl, owner) => {
+    const ack = Observable.create(owner, false);
+    const saveDisabled = Computed.create(owner, use => !use(ack));
+    return {
+      title: t("Skip authentication setup?"),
+      body: dom("div",
+        dom("p",
+          t("Anyone who can reach this server can access all data without signing in. \
+You can configure authentication later from the admin panel."),
+        ),
+        cssNoAuthCheckbox(
+          labeledSquareCheckbox(ack,
+            t("I understand this server has no authentication"),
+            testId("no-auth-acknowledge"),
+          ),
+        ),
+      ),
+      saveLabel: t("Continue without authentication"),
+      saveDisabled,
+      saveFunc: async () => {
+        noAuthAcknowledged.set(true);
+        onConfirm();
+      },
+      width: "normal" as const,
+    };
+  });
+}
+
 interface AuthenticationSectionOptions {
   appModel: AppModel;
   loginSystemId?: Observable<string | undefined>;

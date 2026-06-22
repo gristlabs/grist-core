@@ -5,7 +5,7 @@ import { reportError } from "app/client/models/errors";
 import { getHomeUrl } from "app/client/models/homeUrl";
 import { buildAdminAccessDeniedCard } from "app/client/ui/AdminAccessDeniedCard";
 import { cssFadeUp, cssFadeUpGristLogo, cssFadeUpHeading, cssFadeUpSubHeading } from "app/client/ui/AdminPanelCss";
-import { AuthenticationSection } from "app/client/ui/AuthenticationSection";
+import { AuthenticationSection, confirmNoAuthAcknowledgement } from "app/client/ui/AuthenticationSection";
 import { BackupsSection } from "app/client/ui/BackupsSection";
 import { DraftChangesManager } from "app/client/ui/DraftChanges";
 import { peekSetupReturnFromGetGristCom, SetupReturnStep } from "app/client/ui/GetGristComProvider";
@@ -174,7 +174,7 @@ export class QuickSetup extends Disposable {
           () => cssAuthSkipRow(
             textButton(
               t("Set up later"),
-              dom.on("click", () => this._advanceStep()),
+              dom.on("click", () => confirmNoAuthAcknowledgement(() => this._advanceStep())),
               testId("auth-skip"),
             ),
           ),

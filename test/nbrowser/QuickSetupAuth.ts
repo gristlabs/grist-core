@@ -156,9 +156,22 @@ describe("QuickSetupAuth", function() {
       assert.lengthOf(await driver.findAll(".test-quick-setup-auth-continue"), 0);
     });
 
-    it("should advance to the Backups step when 'Set up later' is clicked", async function() {
+    it("should show a no auth confirmation modal when 'Set up later' is clicked", async function() {
       await navigateToAuthStep();
       await driver.findWait(".test-quick-setup-auth-skip", 2000).click();
+
+      // Modal opens with Save disabled until the acknowledgement is ticked.
+      const confirm = await driver.findWait(".test-modal-confirm", 2000);
+      assert.equal(await confirm.getAttribute("disabled"), "true");
+      await driver.find(".test-admin-auth-no-auth-acknowledge").click();
+      await gu.waitToPass(async () => {
+        assert.notEqual(await confirm.getAttribute("disabled"), "true");
+      }, 2000);
+    });
+
+    it("should advance to the 'Backups' step when 'Continue' is clicked in the no auth modal", async function() {
+      const confirm = await driver.findWait(".test-modal-confirm", 2000);
+      await confirm.click();
       await driver.findWait(".test-quick-setup-backups-continue", 2000);
     });
 
