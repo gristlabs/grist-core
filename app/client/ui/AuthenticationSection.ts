@@ -69,9 +69,15 @@ export function confirmNoAuthAcknowledgement(onConfirm: () => void): void {
     return {
       title: t("Skip authentication setup?"),
       body: dom("div",
-        dom("p",
-          t("Anyone who can reach this server can access all data without signing in. \
+        cssWell(
+          cssWell.cls("-warning"),
+          cssIconWrapper(icon("Warning")),
+          cssWellContent(
+            dom("p",
+              t("Anyone who can reach this server can access all data without signing in. \
 You can configure authentication later from the admin panel."),
+            ),
+          ),
         ),
         cssNoAuthCheckbox(
           labeledSquareCheckbox(ack,
