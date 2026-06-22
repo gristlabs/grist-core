@@ -21,7 +21,6 @@ import {
   peekSetupReturnFromGetGristCom,
 } from "app/client/ui/GetGristComProvider";
 import { ApplyResult } from "app/client/ui/QuickSetupContinueButton";
-import { quickSetupStepHeader } from "app/client/ui/QuickSetupStepHeader";
 import { cssCardSurface } from "app/client/ui/SettingsLayout";
 import { cssHeroCard } from "app/client/ui/SetupCard";
 import { basicButton, bigBasicButton, bigPrimaryButton, textButton } from "app/client/ui2018/buttons";
@@ -73,8 +72,13 @@ interface AuthenticationSectionOptions {
 
 export class AuthenticationSection extends Disposable implements ConfigSection {
   /**
+   * True when a real auth provider is active or pending (will be active after restart).
+   */
+  public hasConfiguredAuth: Computed<boolean>;
+
+  /**
    * True when authentication is in a state the user can proceed with:
-   * a real provider is active, configured, or pending — or the user acknowledged no-auth.
+   * a real provider is active or pending, or the user acknowledged no-auth.
    */
   public canProceed: Computed<boolean>;
 
@@ -180,14 +184,16 @@ export class AuthenticationSection extends Disposable implements ConfigSection {
   constructor(private _options: AuthenticationSectionOptions) {
     super();
 
-    this.canProceed = Computed.create(this, (use) => {
-      if (use(noAuthAcknowledged)) { return true; }
+    this.hasConfiguredAuth = Computed.create(this, (use) => {
       if (use(this._hasActiveOnRestartProvider)) { return true; }
       const providers = use(this._displayProviders);
-      if (providers.some(p => (p.isActive || p.isConfigured) && isRealProvider(p.key))) { return true; }
+      if (providers.some(p => p.isActive && isRealProvider(p.key))) { return true; }
       const loginSystemId = use(this._loginSystemId);
       return !!loginSystemId && isRealProvider(loginSystemId);
     });
+
+    this.canProceed = Computed.create(this, use =>
+      use(noAuthAcknowledged) || use(this.hasConfiguredAuth));
 
     // Evaluate every branch: short-circuit returns drop subscriptions to
     // later deps, leaving `isDirty` stale once an early truthy branch flips.
@@ -325,11 +331,9 @@ export class AuthenticationSection extends Disposable implements ConfigSection {
 
   public buildDom() {
     return [
-      this._inAdminPanel ? null : quickSetupStepHeader({
-        icon: "AddUser",
-        title: t("Authentication"),
-        description: t("Choose how users sign in to Grist."),
-      }),
+      this._inAdminPanel ? null : cssAuthIntro(
+        t("Choose how people sign in. You can change this anytime after setup."),
+      ),
       dom.domComputed((use) => {
         const providers = use(this._displayProviders);
         const loginSystemId = use(this._loginSystemId);
@@ -388,6 +392,7 @@ export class AuthenticationSection extends Disposable implements ConfigSection {
       },
       recentlyConfigured: this._recentlyConfigured,
       loginSystemId,
+      inAdminPanel: this._inAdminPanel,
     });
   }
 
@@ -807,6 +812,8 @@ export interface ProviderListContext {
   collapsible?: boolean;
   /** When true, collapse the list when the no-auth checkbox is acknowledged. */
   collapseOnNoAuth?: boolean;
+  /** Defaults to "Available methods"/"Other authentication methods". */
+  title?: string;
 }
 
 export interface AuthSectionContext {
@@ -816,6 +823,8 @@ export interface AuthSectionContext {
   /** The login system ID from the boot probe (e.g. "minimal", "boot-key").
    *  When set to a non-real provider key, shows the no-auth hero. */
   loginSystemId?: string;
+  /** Defaults to true. */
+  inAdminPanel?: boolean;
 }
 
 /**
@@ -832,6 +841,21 @@ export function buildAuthSection(
     providers.find(p => p.isActive && isRealProvider(p.key)) ??
     providers.find(p => p.willBeActive && isRealProvider(p.key)) ??
     null;
+
+  const getgrist = providers.find(p => p.key === GETGRIST_COM_PROVIDER_KEY);
+  if (!ctx.inAdminPanel && !hero && getgrist) {
+    const heroEl = buildRecommendedCard(getgrist, ctx.heroCtx, ctx.listCtx);
+    const otherProviders = providers.filter(p => p.key !== GETGRIST_COM_PROVIDER_KEY);
+    const listEl = buildProviderList(otherProviders, recentlyConfigured, {
+      ...ctx.listCtx,
+      collapsible: true,
+      title: t("Or connect your own identity provider"),
+    });
+    return dom("div",
+      heroEl,
+      cssOtherMethods(listEl),
+    );
+  }
 
   // Show the no-auth hero when no real provider is active or pending. This covers:
   // - Boot probe reports a non-real provider (minimal, boot-key)
@@ -894,6 +918,36 @@ function buildHeroAdminRow(ctx: HeroCardContext) {
       ctx.onChangeAdmin ? dom.on("click", ctx.onChangeAdmin) : null,
       testId("change-admin"),
     ),
+  );
+}
+
+function buildRecommendedCard(
+  provider: AuthProvider,
+  heroCtx: HeroCardContext,
+  listCtx: ProviderListContext,
+): HTMLElement {
+  const meta = getGristComProviderMeta();
+  return cssRecommendedCard(
+    testId("hero-card"),
+    testId("hero-nudge"),
+    cssRecommendedHeader(
+      cssGMark("G"),
+      badge(meta.recommendedBadge, "-primary", "badge-recommended"),
+    ),
+    cssHeroProviderName(provider.name, dom.style("margin-bottom", "12px")),
+    cssHeroHighlight(
+      cssHeroHighlightCheck(icon("Tick")),
+      cssHeroHighlightBody(meta.recommendedHighlight),
+    ),
+    cssHeroDescription(meta.recommendedDesc),
+    cssHeroActions(
+      bigPrimaryButton(
+        meta.recommendedConfigure,
+        dom.on("click", () => listCtx.onConfigure?.(provider)),
+        testId("getgrist-cta"),
+      ),
+    ),
+    buildHeroAdminRow(heroCtx),
   );
 }
 
@@ -1045,7 +1099,7 @@ function buildProviderList(
 
   if (!ctx.collapsible && !ctx.collapseOnNoAuth) {
     return dom("div",
-      cssProviderListHeader(t("Available methods"), testId("provider-list-header")),
+      cssProviderListHeader(ctx.title ?? t("Available methods"), testId("provider-list-header")),
       buildCards(),
     );
   }
@@ -1059,7 +1113,7 @@ function buildProviderList(
     noAuthListener ? dom.autoDispose(noAuthListener) : null,
     cssProviderListHeaderClickable(
       dom.domComputed(collapsed, c => cssCollapseIcon(c ? "Expand" : "Collapse")),
-      t("Other authentication methods"),
+      ctx.title ?? t("Other authentication methods"),
       dom.on("click", toggle),
       dom.on("keydown", (ev: KeyboardEvent) => {
         if (ev.key === "Enter" || ev.key === " ") {
@@ -1117,6 +1171,72 @@ const cssHeroActions = styled("div", `
   display: flex;
   gap: 8px;
   margin-top: 12px;
+`);
+
+const cssAuthIntro = styled("div", `
+  font-size: ${vars.mediumFontSize};
+  color: ${theme.lightText};
+  line-height: 1.5;
+  margin-bottom: 20px;
+`);
+
+const cssRecommendedCard = styled(cssHeroCard, `
+  border: 2px solid ${theme.controlPrimaryBg};
+  margin-bottom: 24px;
+`);
+
+const cssRecommendedHeader = styled("div", `
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+`);
+
+const cssGMark = styled("div", `
+  width: 24px;
+  height: 24px;
+  flex: none;
+  border-radius: 6px;
+  background-color: ${theme.controlPrimaryBg};
+  color: ${theme.controlPrimaryFg};
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 15px;
+`);
+
+const cssHeroHighlight = styled("div", `
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 0 12px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid ${theme.controlPrimaryBg};
+  background-color: ${theme.selectionOpaqueBg};
+`);
+
+const cssOtherMethods = styled("div", `
+  margin-top: 8px;
+`);
+
+const cssHeroHighlightCheck = styled("div", `
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 50%;
+  background-color: ${theme.controlPrimaryBg};
+  --icon-color: ${theme.controlPrimaryFg};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`);
+
+const cssHeroHighlightBody = styled("div", `
+  font-size: ${vars.mediumFontSize};
+  line-height: 1.5;
+  color: ${theme.text};
 `);
 
 const cssNoAuthCheckbox = styled("div", `
