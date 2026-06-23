@@ -4,7 +4,7 @@ import { delay } from "app/common/delay";
 import { encodeUrl, getSlugIfNeeded, GristDeploymentType, GristDeploymentTypes,
   GristLoadConfig, IGristUrlState, isOrgInPathOnly, LatestVersionAvailable, parseSubdomain,
   sanitizePathTail } from "app/common/gristUrls";
-import { extractOrgParts, getOrgUrlInfo } from "app/common/gristUrls";
+import { extractOrgParts, getOrgUrlInfo, getSingleOrg } from "app/common/gristUrls";
 import { isAffirmative } from "app/common/gutil";
 import { UserProfile } from "app/common/LoginSessionAPI";
 import { SandboxInfo } from "app/common/SandboxInfo";
@@ -58,7 +58,8 @@ import { createGristJobs, GristJobs } from "app/server/lib/GristJobs";
 import { DocTemplate, GristLoginMiddleware, GristLoginSystem, GristServer, RequestWithGrist,
   ResourceUrlOptions } from "app/server/lib/GristServer";
 import { initGristSessions, SessionStore } from "app/server/lib/gristSessions";
-import { getBootKey, getForceLogin, getHomeUrl, getInService } from "app/server/lib/gristSettings";
+import { getBootKey, getForceLogin, getHomeUrl, getInService,
+  getPersonalOrgsEnabled } from "app/server/lib/gristSettings";
 import { IAssistant } from "app/server/lib/IAssistant";
 import { IAuditLogger } from "app/server/lib/IAuditLogger";
 import { IBilling } from "app/server/lib/IBilling";
@@ -2516,6 +2517,13 @@ export class FlexServer implements GristServer {
     const mreq = req as RequestWithLogin;
     if (mreq.org || !mreq.userId) { return next(); }
 
+    // When personal orgs are disabled, the personal/merged org is unreachable. Redirect to
+    // /welcome/start instead, which forces login when unauthenticated and sends signed-in
+    // users to a team site or /welcome/teams.
+    if (!getPersonalOrgsEnabled()) {
+      return resp.redirect(getOrgUrl(mreq, "/welcome/start"));
+    }
+
     // Redirect anonymous users to the merged org.
     if (!mreq.userIsAuthorized) {
       const redirectUrl = this.getMergedOrgUrl(mreq);
@@ -2709,7 +2717,7 @@ export class FlexServer implements GristServer {
     const orgs = this._dbManager.unwrapQueryResult(
       await this._dbManager.getOrgs(getScope(mreq), { ignoreEveryoneShares: true }),
     );
-    if (orgs.length > 1) {
+    if (orgs.length > 1 || (!getPersonalOrgsEnabled() && !getSingleOrg())) {
       resp.redirect(getOrgUrl(mreq, "/welcome/teams"));
     } else {
       resp.redirect(redirectToMergedOrg ? this.getMergedOrgUrl(mreq) : getOrgUrl(mreq));

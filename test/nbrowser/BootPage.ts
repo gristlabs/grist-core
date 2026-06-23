@@ -296,7 +296,7 @@ describe("BootPage", function() {
     it("allows access to /admin with boot-key param", async function() {
       await driver.get(`${server.getHost()}/admin?boot-key=${bootKey}`);
       await gu.waitForAdminPanel();
-      await driver.findContentWait("div", /Is home page available/, 2000);
+      await driver.findContentWait("div", /Is an internal health check passing/, 2000);
     });
 
     it("can restore service via Admin Panel", async function() {
