@@ -481,7 +481,8 @@
         "Allow others to suggest changes": "Permettez aux autres de suggérer des changements",
         "Enable suggestions": "Activer les suggestions",
         "Suggestions": "Suggestions",
-        "experiment": "expérimentation"
+        "experiment": "expérimentation",
+        "For number formats": "Pour les formats de nombre"
     },
     "DocumentUsage": {
         "Usage statistics are only available to users with full access to the document data.": "Les statistiques d'utilisation ne sont accessibles qu'aux utilisateurs ayant un accès complet aux données du document.",
@@ -1955,7 +1956,9 @@
         "Dismiss": "Rejeter",
         "Dismiss changes": "Rejeter les modifications",
         "Dismiss pending changes?": "Rejeter les modifications en attente ?",
-        "Dismissing...": "Rejet en cours..."
+        "Dismissing...": "Rejet en cours...",
+        "How user actions can reach the outside world": "Comment les actions utilisateurs peuvent joindre le monde extérieur",
+        "Outgoing requests": "Requêtes sortantes"
     },
     "Field": {
         "No choices configured": "Aucun choix configuré",
@@ -3159,5 +3162,30 @@
         "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.": "Les visiteurs qui ne sont pas connectés peuvent voir les documents publiques. C'est nécessaire pour le partage de liens et les formulaires.",
         "off": "désactivé",
         "on": "activé"
+    },
+    "OutgoingRequestsStatus": {
+        "Allowed: any host (*)": "Autorisé : tous les hôtes (*)",
+        "Allowed: {{list}}": "Autorisé : {{list}}",
+        "Any editor could trigger a request to an internal URL.": "Tous les éditeurs pourraient déclencher une requête à une URL interne.",
+        "Any host is allowed and no URL filter is in place.": "Tous les éditeurs sont autorisés et aucun filtre d'URL n'est en place.",
+        "Checking…": "Vérification…",
+        "For example, checking for updates or talking to your single sign-on provider.": "Par exemple, vérifier les mises à jour ou communiquer avec votre fournisseur de service d'authentification unifié.",
+        "Grist connects directly. No HTTPS proxy is in place.": "Grist se connecte directement. Aucun proxy HTTPS n'est en place.",
+        "Grist routes those requests through the URL filter you've set up.": "Grist redirige ces requêtes à travers le filtre d'URL que vous avez configuré.",
+        "Grist sends them straight out. You've opted out of URL filtering.": "Grist les envoie directement. Vous avez désactivé le filtrage d'URL.",
+        "No URL filter is set up. Features that need one stay switched off.": "Aucun filtre d'URL n'est configuré. Les fonctions qui en nécessitent un sont désactivées.",
+        "Not filtered.": "Non filtré.",
+        "Open to any host. The URL proxy is what keeps this safe.": "Ouvert à n'importe quel hôte. Un proxy d'URL permet d'assurer la sécurité de ce système.",
+        "Search docs for: {{envVar}}": "Rechercher les documents pour : {{envVar}}",
+        "These requests go through your HTTPS proxy.": "Ces requêtes passent à travers votre proxy HTTPS.",
+        "Three features can make Grist send HTTP requests on behalf of your users. Here's how each one is set up right now.": "Trois fonctionnalités peuvent permettre à Grist d'envoyer des requêtes HTTP au nom de vos utilisateurs. Voici comment chacune d'entre elles est actuellement configurée.",
+        "When Grist itself reaches out…": "Quand Grist lui-même se connecte…",
+        "When your users reach out…": "Quand vos utilisateurs se connectent…",
+        "bypassed": "contourné",
+        "checking": "vérification",
+        "filtered": "filtré",
+        "not configured": "non configuré",
+        "review": "revue",
+        "unfiltered": "non filtré"
     }
 }

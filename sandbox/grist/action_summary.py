@@ -80,12 +80,20 @@ class ActionSummary(object):
                           if not equal_encoding(before, after))
 
     defunct = is_defunct(table_id) or is_defunct(col_id)
+    # The front restore (defunct branch below) is inserted at the front of the undo list, which
+    # undo replays in reverse -- so it runs last, after any RenameTable/RenameColumn has been
+    # rolled back. It must use the pre-rename names, or it targets a name that no longer exists
+    # and undo fails. Resolve them now, before root_name() rewrites table_id/col_id below.
+    table_delta = self._tables[table_id]
+    orig_table_id = self._table_renames.original_name(table_id)
+    orig_col_id = table_delta.column_renames.original_name(col_id)
     table_id = root_name(table_id)
     col_id = root_name(col_id)
 
-    def update_action(filtered_row_ids, delta_index):
+    def update_action(filtered_row_ids, delta_index, tid=None, cid=None):
       values = [column_delta[r][delta_index] for r in filtered_row_ids]
-      return actions.BulkUpdateRecord(table_id, filtered_row_ids, {col_id: values}).simplify()
+      return actions.BulkUpdateRecord(tid if tid is not None else table_id, filtered_row_ids,
+                                      {cid if cid is not None else col_id: values}).simplify()
 
     if not defunct:
       row_ids_after = self.filter_out_gone_rows(table_id, full_row_ids)
@@ -111,9 +119,9 @@ class ActionSummary(object):
       out_undo.append(update_action(preserved_row_ids, 0))
 
     if defunct_row_ids:
-      # Updates for deleted rows/columns/tables should come after they're re-added.
-      # So we need to insert the undos *before*.
-      out_undo.insert(0, update_action(defunct_row_ids, 0))
+      # Insert at the front so the restore lands after the rows/columns/tables are re-added on
+      # undo. It runs last, so it uses the pre-rename names (see note above).
+      out_undo.insert(0, update_action(defunct_row_ids, 0, orig_table_id, orig_col_id))
 
   def _forTable(self, table_id):
     return self._tables.get(table_id) or self._tables.setdefault(table_id, TableDelta())
@@ -201,6 +209,14 @@ class LabelRenames(object):
 
   def is_created(self, latest_name):
     return self._new_to_old.get(latest_name, latest_name) is None
+
+  def original_name(self, latest_name):
+    """
+    The name this entity had before any renames recorded here, or the current name (defunct
+    marker stripped) if it was never renamed or was created within this set.
+    """
+    original = self._new_to_old.get(latest_name, latest_name)
+    return root_name(latest_name) if original is None else original
 
 
 def defunct_name(name):

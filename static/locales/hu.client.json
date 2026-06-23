@@ -485,7 +485,8 @@
         "Allow others to suggest changes": "Engedélyezzük másoknak, hogy változtatásokat javasoljanak",
         "Enable suggestions": "Javaslatok engedélyezése",
         "Suggestions": "Javaslatok",
-        "experiment": "kísérleti"
+        "experiment": "kísérleti",
+        "For number formats": "Számformátumokhoz"
     },
     "DocumentUsage": {
         "Size of attachments": "Csatolmányok mérete",
@@ -2002,7 +2003,9 @@
         "Dismiss": "Elvetés",
         "Dismiss changes": "Módosítások elvetése",
         "Dismiss pending changes?": "Elveted a függőben lévő változtatásokat?",
-        "Dismissing...": "Elvetés..."
+        "Dismissing...": "Elvetés...",
+        "How user actions can reach the outside world": "A felhasználói tevékenységek hogyan érik el a külső világot",
+        "Outgoing requests": "Kimenő kérések"
     },
     "Columns": {
         "Remove Column": "Oszlop eltávolítása"
@@ -3146,5 +3149,30 @@
         "Apply and Continue": "Alkalmazás és folytatás",
         "Applying...": "Alkalmazás...",
         "Continue": "Folytatás"
+    },
+    "OutgoingRequestsStatus": {
+        "Allowed: any host (*)": "Engedélyezve: bármely szerver (*)",
+        "Allowed: {{list}}": "Engedélyezve: {{list}}",
+        "Any editor could trigger a request to an internal URL.": "Bármely szerkesztő indíhat kérést belső URL-re.",
+        "Any host is allowed and no URL filter is in place.": "Minden szerver engedélyezve, és nincs URL-szűrő sem.",
+        "Checking…": "Ellenőrzés…",
+        "For example, checking for updates or talking to your single sign-on provider.": "Például frissítések ellenőrzése vagy az SSO-szerverrel történő kommunikáció.",
+        "Grist connects directly. No HTTPS proxy is in place.": "A Grist közvetlenül csatlakozik. HTTPS proxy nincs használatban.",
+        "Grist routes those requests through the URL filter you've set up.": "Ezeket a kéréseket a Grist az általad megadott URL-szűrőn keresztül indítja.",
+        "Grist sends them straight out. You've opted out of URL filtering.": "A Grist közvetlenül kiküldi a kéréseket, nem használsz URL-szűrőt.",
+        "No URL filter is set up. Features that need one stay switched off.": "URL-szűrő nincs beállítva. A szűrőt igénylő funkciók kikapcsolva maradnak.",
+        "Not filtered.": "Nincs szűrés.",
+        "Open to any host. The URL proxy is what keeps this safe.": "Minden szerver felé nyitott. Az URL proxy őrzi a biztonságot.",
+        "Search docs for: {{envVar}}": "Dokumentumok keresése: {{envVar}}",
+        "These requests go through your HTTPS proxy.": "Ezek a kérések a HTTPS proxydon keresztül mennek.",
+        "Three features can make Grist send HTTP requests on behalf of your users. Here's how each one is set up right now.": "Három funkció teszi lehetővé, hogy a Grist HTTP-kéréseket küldjön a felhasználóid nevében. Ez most így vannak beállítva.",
+        "When Grist itself reaches out…": "Ha maga a Grist indít kérést…",
+        "When your users reach out…": "Ha a felhasználói indítanak kérést…",
+        "bypassed": "megkerülve",
+        "checking": "ellenőrzés",
+        "filtered": "szűrve",
+        "not configured": "nincs beállítva",
+        "review": "felülvizsgál",
+        "unfiltered": "nincs szűrve"
     }
 }
