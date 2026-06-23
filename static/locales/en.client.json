@@ -2402,7 +2402,10 @@
         "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.": "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.",
         "It is good practice not to run Grist as the root user.": "It is good practice not to run Grist as the root user.",
         "The main page of Grist should be available.": "The main page of Grist should be available.",
-        "APP_HOME_URL is the base URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "APP_HOME_URL is the base URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct."
+        "APP_HOME_URL is the base URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "APP_HOME_URL is the base URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.",
+        "If running in a container without external storage or with default database, ": {
+            "persist should be a mounted volume. Otherwise Grist documents and metadata will be lost when the container stops.": "If running in a container without external storage or with default database, /persist should be a mounted volume. Otherwise Grist documents and metadata will be lost when the container stops."
+        }
     },
     "ChoiceListEntry": {
         "+{{count}} more_one": "+{{count}} more",
@@ -2971,7 +2974,12 @@
         "Set these environment variables and restart Grist to enable S3 storage:": "Set these environment variables and restart Grist to enable S3 storage:",
         "Store document backups on an external service like S3 or Azure.           This protects against data loss if the server's disk fails.": "Store document backups on an external service like S3 or Azure.           This protects against data loss if the server's disk fails.",
         "Local filesystem (test only)": "Local filesystem (test only)",
-        "Stores document snapshots on the local filesystem. For tests only, not production.": "Stores document snapshots on the local filesystem. For tests only, not production."
+        "Stores document snapshots on the local filesystem. For tests only, not production.": "Stores document snapshots on the local filesystem. For tests only, not production.",
+        "Action needed": "Action needed",
+        "To preserve it, mount a volume at ": {
+            "persist.": "To preserve it, mount a volume at /persist."
+        },
+        "Your data may not survive a container restart.": "Your data may not survive a container restart."
     },
     "PermissionsSetupSection": {
         "Allow anonymous access": "Allow anonymous access",
