@@ -1999,7 +1999,8 @@
         "Dismiss pending changes?": "Avfärda väntande ändringar?",
         "Dismissing...": "Avfärdar...",
         "How user actions can reach the outside world": "Hur användares handlingar kan nå världen utanför",
-        "Outgoing requests": "Utgående förfrågningar"
+        "Outgoing requests": "Utgående förfrågningar",
+        "full Edition": "komplett version"
     },
     "Columns": {
         "Remove Column": "Ta bort kolumn"
