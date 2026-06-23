@@ -51,6 +51,25 @@ export function getConnectionName() {
 }
 
 /**
+ * Create and initialize a connection for the given settings, setting the sqlite
+ * busy timeout we rely on when several connections share a database file.
+ */
+export async function createConnection(settings: DataSourceOptions): Promise<DataSource> {
+  const dataSource = new DataSource(settings);
+  await dataSource.initialize();
+  if (settings.type === "sqlite") {
+    // When using Sqlite, set a busy timeout of 3s to tolerate a little
+    // interference from connections made by tests. Logging doesn't show
+    // any particularly slow queries, but bad luck is possible.
+    // This doesn't affect when Postgres is in use. It also doesn't have
+    // any impact when there is a single connection to the db, as is the
+    // case when Grist is run as a single process.
+    await dataSource.query("PRAGMA busy_timeout = 3000");
+  }
+  return dataSource;
+}
+
+/**
  * Get a connection to db if one exists, or create one. Serialized to
  * avoid duplication.
  */
@@ -86,17 +105,7 @@ export async function getOrCreateConnection(): Promise<DataSource> {
         settings = getTypeORMSettings({ extra: { options: "-c jit=off" } });
       }
 
-      gristDataSource = new DataSource(settings);
-      await gristDataSource.initialize();
-      if (settings.type === "sqlite") {
-        // When using Sqlite, set a busy timeout of 3s to tolerate a little
-        // interference from connections made by tests. Logging doesn't show
-        // any particularly slow queries, but bad luck is possible.
-        // This doesn't affect when Postgres is in use. It also doesn't have
-        // any impact when there is a single connection to the db, as is the
-        // case when Grist is run as a single process.
-        await gristDataSource.query("PRAGMA busy_timeout = 3000");
-      }
+      gristDataSource = await createConnection(settings);
     }
     return gristDataSource;
   });

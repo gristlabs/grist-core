@@ -51,6 +51,29 @@ async function openConfigureModal(): Promise<void> {
   await driver.findWait(".test-admin-auth-modal-header", 2000);
 }
 
+async function openWizardGetGristModal(): Promise<void> {
+  // In the wizard, getgrist.com is presented as the recommended hero card
+  // (with a CTA) when no real provider is active; otherwise -- e.g. when an
+  // earlier suite left a real provider active -- it appears as a regular
+  // provider row with a Configure button. Handle both so the helper is robust
+  // to suite ordering. The section re-renders when async fetches land, so
+  // retry the lookup and click together.
+  await gu.waitToPass(async () => {
+    const ctas = await driver.findAll(".test-admin-auth-getgrist-cta");
+    if (ctas.length > 0) {
+      await ctas[0].click();
+      return;
+    }
+    const header = await driver.find(".test-admin-auth-provider-list-header");
+    if (await header.getAttribute("aria-expanded") === "false") {
+      await header.click();
+    }
+    const row = await driver.findContent(".test-admin-auth-provider-row", /getgrist/i);
+    await row.find(".test-admin-auth-configure-button").click();
+  }, 4000);
+  await driver.findWait(".test-admin-auth-modal-header", 2000);
+}
+
 async function cancelConfigureModal(): Promise<void> {
   await driver.find(".test-admin-auth-modal-cancel").click();
   await driver.wait(async () => !(await isModalOpen()), 2000);
@@ -82,68 +105,81 @@ describe("QuickSetupAuth", function() {
   }
 
   describe("default-email-set", function() {
-    it("should show auth section on the Authentication step", async function() {
+    it("should show the getgrist.com recommended card on the Authentication step", async function() {
       await navigateToAuthStep();
 
-      // Should show the hero card with the no-auth warning.
+      // The wizard promotes getgrist.com as the recommended option when
+      // nothing real is configured (instead of the admin panel's no-auth
+      // warning).
       await gu.waitToPass(async () => {
-        const heroText = await driver.findWait(".test-admin-auth-hero-card", 2000).getText();
-        assert.match(heroText, /No authentication/);
+        const nudge = await driver.findWait(".test-admin-auth-hero-nudge", 2000);
+        assert.match(await nudge.getText(), /Ideal for testing/);
       }, 2000);
+      assert.isTrue(await driver.find(".test-admin-auth-badge-recommended").isDisplayed());
+      assert.isTrue(await driver.find(".test-admin-auth-getgrist-cta").isDisplayed());
 
-      // Should show provider rows.
-      const rows = await driver.findAll(".test-admin-auth-provider-row");
-      assert.isAtLeast(rows.length, 2);
+      // The one-line intro replaces the old step header.
+      assert.match(await driver.find("body").getText(), /Choose how people sign in/);
     });
 
-    it("should disable Continue button when no auth is configured", async function() {
+    it("should exclude getgrist.com from the 'connect your own' list", async function() {
       await navigateToAuthStep();
+      await driver.findWait(".test-admin-auth-hero-nudge", 2000);
 
-      await gu.waitToPass(async () => {
-        const heroText = await driver.findWait(".test-admin-auth-hero-card", 2000).getText();
-        assert.match(heroText, /No authentication/);
-      }, 2000);
-
-      // Continue button should be present but disabled.
-      const continueBtn = await driver.findWait(".test-quick-setup-auth-continue", 2000);
-      assert.equal(await continueBtn.getAttribute("disabled"), "true");
-    });
-
-    it("should enable Continue and collapse providers after acknowledging no-auth", async function() {
-      // Check the "I understand" checkbox.
-      await driver.findWait(".test-admin-auth-no-auth-acknowledge", 2000).click();
-
-      // Continue button should now be enabled.
-      const continueBtn = await driver.find(".test-quick-setup-auth-continue");
-      await gu.waitToPass(async () => {
-        assert.equal(await continueBtn.getAttribute("disabled"), null);
-      }, 1000);
-
-      // Provider list should be collapsed.
-      const header = await driver.find(".test-admin-auth-provider-list-header");
-      assert.equal(await header.getAttribute("aria-expanded"), "false");
-
-      // Provider rows should not be visible.
-      assert.lengthOf(await driver.findAll(".test-admin-auth-provider-row"), 0);
-    });
-
-    it("should keep providers collapsed after page reload when no-auth is acknowledged", async function() {
-      // Reload the page — noAuthAcknowledged is persisted in localStorage.
-      await navigateToAuthStep();
-
-      await gu.waitToPass(async () => {
-        await driver.findWait(".test-admin-auth-hero-card", 2000);
-      }, 2000);
-
-      // Provider list should still be collapsed from the previous acknowledgment.
+      // Expand the collapsible "Or connect your own identity provider" list.
+      // Wrap the text read in waitToPass: the step content fades in (opacity
+      // animates from 0), and Selenium's getText returns "" until it settles.
       const header = await driver.findWait(".test-admin-auth-provider-list-header", 2000);
-      assert.equal(await header.getAttribute("aria-expanded"), "false");
-      assert.lengthOf(await driver.findAll(".test-admin-auth-provider-row"), 0);
+      await gu.waitToPass(async () => {
+        assert.match(await header.getText(), /connect your own identity provider/i);
+      }, 2000);
+      if (await header.getAttribute("aria-expanded") === "false") {
+        await header.click();
+      }
 
-      // Uncheck to clean up for later tests.
+      await gu.waitToPass(async () => {
+        const rowText = (await Promise.all(
+          (await driver.findAll(".test-admin-auth-provider-row")).map(r => r.getText()),
+        )).join("\n");
+        assert.match(rowText, /OIDC/);
+        assert.match(rowText, /SAML/);
+        // getgrist.com is the hero card here, never a row in this list.
+        assert.notMatch(rowText, /getgrist/i);
+      }, 2000);
+    });
+
+    it("should show 'Set up later' (not Continue) when no auth is configured", async function() {
+      await navigateToAuthStep();
+      await driver.findWait(".test-admin-auth-hero-nudge", 2000);
+
+      await driver.findWait(".test-quick-setup-auth-skip", 2000);
+      assert.lengthOf(await driver.findAll(".test-quick-setup-auth-continue"), 0);
+    });
+
+    it("should show a no auth confirmation modal when 'Set up later' is clicked", async function() {
+      await navigateToAuthStep();
+      await driver.findWait(".test-quick-setup-auth-skip", 2000).click();
+
+      // Modal opens with Save disabled until the acknowledgement is ticked.
+      const confirm = await driver.findWait(".test-modal-confirm", 2000);
+      assert.equal(await confirm.getAttribute("disabled"), "true");
       await driver.find(".test-admin-auth-no-auth-acknowledge").click();
-      // Clear localStorage so it doesn't affect other test suites.
-      await driver.executeScript("window.localStorage.removeItem('noAuthAcknowledged');");
+      await gu.waitToPass(async () => {
+        assert.notEqual(await confirm.getAttribute("disabled"), "true");
+      }, 2000);
+    });
+
+    it("should advance to the 'Backups' step when 'Continue' is clicked in the no auth modal", async function() {
+      const confirm = await driver.findWait(".test-modal-confirm", 2000);
+      await confirm.click();
+      await driver.findWait(".test-quick-setup-backups-continue", 2000);
+    });
+
+    it("should open the getgrist.com configure modal from the CTA", async function() {
+      await navigateToAuthStep();
+      await openWizardGetGristModal();
+      assert.isTrue(await isModalOpen());
+      await cancelConfigureModal();
     });
 
     it("should show access denied card to a non-admin visitor", async function() {
@@ -349,7 +385,9 @@ describe("QuickSetupAuth", function() {
       await clearBreadcrumb();
       assert.isNull(await readBreadcrumb(), "should start unarmed");
 
-      await openConfigureModal();
+      // In the wizard, getgrist.com is the recommended hero card, so its
+      // modal is opened via the CTA rather than a provider row.
+      await openWizardGetGristModal();
       assert.equal(await readBreadcrumb(), "auth",
         "opening from the wizard should arm the breadcrumb");
 

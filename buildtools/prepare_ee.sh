@@ -1,21 +1,23 @@
 #!/usr/bin/env bash
 
-# This checks out the Grist Labs extensions (grist-ee) into
-# the ext directory, and installs any extra node packages
-# they need in ../node_modules. If this directory doesn't
-# exist, the user is given a chance to abort (add -y to
-# force the action).
+# Sets up the full edition of Grist: checks out the Grist Labs extensions
+# (grist-ee) into the ext directory, and installs the extra node packages they
+# need into ext/node_modules (inside the checkout).
 
 set -e
 
-if [[ "$1" != "-y" && ! -e "../node_modules" ]]; then
-  echo "+ This will place material in ../node_modules"
-  echo "+ Hit ^C to abort, or Enter to continue"
-  read
+if ! ./buildtools/checkout-ext-directory.sh grist-ee; then
+  echo "ERROR: Could not download Grist extensions for the full edition." >&2
+  echo "Check your network or run 'yarn run set-community-edition' to install the community edition." >&2
+  exit 1
 fi
 
-set -x  # Show commands
-./buildtools/checkout-ext-directory.sh grist-ee
-yarn install --cwd ext --modules-folder ../../node_modules/
-{ set +x; } 2>/dev/null  # Hide commands again
-echo "+ Updated ext and ../node_modules"
+# Ext's dependencies go to ext/node_modules, resolved after the main
+# node_modules (see webpack.config.js); duplicate @types must be removed
+# (see dedupe-ext-types.sh).
+if [[ -e ext/package.json ]]; then
+  yarn install --cwd ext --frozen-lockfile
+  ./buildtools/dedupe-ext-types.sh
+fi
+
+echo "+ Full edition ready (ext/ and ext/node_modules)."

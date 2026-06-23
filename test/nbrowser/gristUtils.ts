@@ -1230,10 +1230,12 @@ namespace gristUtils {
     if (text === null) {
       assert.isFalse(await driver.find(".test-banner-element").isPresent());
     } else {
-      assert.match(
-        await driver.findWait(".test-doc-usage-banner-text", 2000).getText(),
-        typeof text === "string" ? exactMatch(text) : text,
-      );
+      await waitToPass(async () => {
+        assert.match(
+          await driver.findWait(".test-doc-usage-banner-text", 2000).getText(),
+          typeof text === "string" ? exactMatch(text) : text,
+        );
+      });
     }
   }
 

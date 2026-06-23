@@ -154,6 +154,9 @@ type ResolvedRef<T> =
 
 export type ApplyUserActionsFunc = (userActions: UserAction[]) => Promise<ApplyUAResult>;
 
+// Exported for testing purposes.
+export const USER_ACTION_BATCH_SIZE = 25;
+
 /**
  * Imports an ImportSchema, adding tables / columns to a document until it matches the schema's
  * contents.
@@ -262,7 +265,11 @@ export class DocSchemaImportTool {
       }
     }
 
-    await this._applyUserActions(modifyColumnActions);
+    // Split user action application into batches
+    for (let i = 0; i < modifyColumnActions.length; i += USER_ACTION_BATCH_SIZE) {
+      const actions = modifyColumnActions.slice(i, i + USER_ACTION_BATCH_SIZE);
+      await this._applyUserActions(actions);
+    }
 
     return {
       tableIdsMap,

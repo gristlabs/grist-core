@@ -7,7 +7,8 @@ const nodePath = (process.env.NODE_PATH || "").split(path.delimiter);
 const paths = [path.join(root, "_build"),
   path.join(root, "_build/core"),
   path.join(root, "_build/ext"),
-  path.join(root, "_build/stubs")];
+  path.join(root, "_build/stubs"),
+  path.join(root, "ext/node_modules")];
 for (const p of paths) {
   appModulePath.addPath(p);
 }

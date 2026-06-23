@@ -13,13 +13,10 @@ const extraModulePaths = (process.env.WEBPACK_EXTRA_MODULE_PATHS || "")
 
 if (process.env.WEBPACK_EXTRA_MODULE_PATHS === undefined &&
     fs.existsSync("ext")) {
-  console.warn("Including ../node_modules because ext is present");
-  // When adding extensions to Grist, the node packages are
-  // placed one directory up from the main repository. This
-  // is annoying, but goes with the grain of how node looks
-  // for node_modules directories. But webpack doesn't match
-  // that, so add `../node_modules` if the `ext` exists and
-  // the user isn't controlling module paths.
+  // Extension dependencies live in ext/node_modules for full edition builds,
+  // and hoisted one level up for non-core builds (e.g. grist-desktop, grist-static).
+  console.warn("Including ./ext/node_modules and ../node_modules because ext is present");
+  extraModulePaths.push(path.resolve("./ext/node_modules"));
   extraModulePaths.push(path.resolve("../node_modules"));
 }
 

@@ -7,12 +7,10 @@ import {
   cssPageEntry,
   cssPageIcon,
   cssPageLink,
-  cssTools,
 } from "app/client/ui/LeftPanelCommon";
-import { theme, vars } from "app/client/ui2018/cssVars";
 import { isFeatureEnabled } from "app/common/gristUrls";
 
-import { DomContents, makeTestId, styled } from "grainjs";
+import { DomContents, makeTestId } from "grainjs";
 
 const testId = makeTestId("test-tools-");
 const t = makeT("AutomationsPageEntry");
@@ -29,23 +27,8 @@ export function createAutomationsPageEntry(gristDoc: GristDoc, isDocOwner: boole
     cssPageEntry.cls("-disabled", !isDocOwner),
     cssPageLink(cssPageIcon("Repl"),
       cssLinkText(t("Automations")),
-      cssBetaTag(t("New")),
       isDocOwner ? urlState().setLinkUrl({ docPage: "automations" }) : null,
     ),
     testId("automations"),
   );
 }
-
-const cssBetaTag = styled("span", `
-  text-transform: uppercase;
-  vertical-align: super;
-  font-size: ${vars.xsmallFontSize};
-  font-weight: 600;
-  line-height: 1;
-  color: ${theme.accentText};
-  margin-left: 4px;
-  margin-top: -4px;
-  .${cssTools.className}-collapsed & {
-    display: none;
-  }
-`);

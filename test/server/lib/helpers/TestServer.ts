@@ -54,6 +54,7 @@ export class TestServer {
   private _server: ChildProcess;
   private _exitPromise: Promise<number | string>;
   private _proxiedServer: boolean = false;
+  private _lastReadyError?: unknown;   // most recent failed readiness check, for the timeout error
 
   private readonly _defaultEnv;
 
@@ -136,22 +137,16 @@ export class TestServer {
   }
 
   public async isServerReady(): Promise<boolean> {
-    // Let's wait for the testingSocket to be created, then get the port the server is listening on,
-    // and then do an api check. This approach allow us to start server with GRIST_PORT set to '0',
-    // which will listen on first available port, removing the need to hard code a port number.
+    // Returns false rather than throwing until ready, so callers can poll. The testing socket
+    // exists only after startup finishes, so it gates the (idempotent) hook connect.
     try {
-      // wait for testing socket
-      while (!(await fse.pathExists(this.testingSocket))) {
-        await delay(200);
+      if (!(await fse.pathExists(this.testingSocket))) { return false; }
+      if (!this.testingHooks) {
+        this.testingHooks = await connectTestingHooks(this.testingSocket);
       }
-
-      // create testing hooks and get own port
-      this.testingHooks = await connectTestingHooks(this.testingSocket);
-
-      // wait for check
       return (await fetch(`${this.serverUrl}/status/hooks`, { timeout: 1000 })).ok;
     } catch (err) {
-      log.warn("Failed to initialize server", err);
+      this._lastReadyError = err;
       return false;
     }
   }
@@ -179,22 +174,17 @@ export class TestServer {
   }
 
   private async _waitServerReady() {
-    // It's important to clear the timeout, because it can prevent node from exiting otherwise,
-    // which is annoying when running only this test for debugging.
-    let timeout: any;
-    const maxDelay = new Promise((resolve) => {
-      timeout = setTimeout(resolve, 30000);
-    });
-    try {
-      await Promise.race([
-        this.isServerReady(),
-        this._exitPromise.then(() => {
-          throw new Error("Server exited while waiting for it");
-        }),
-        maxDelay,
-      ]);
-    } finally {
-      clearTimeout(timeout);
+    // Poll until ready, failing fast if the server exits.
+    const deadline = Date.now() + 30000;
+    while (!(await this.isServerReady())) {
+      if (this._server.exitCode !== null || this._server.signalCode !== null) {
+        throw new Error("Server exited while waiting for it");
+      }
+      if (Date.now() > deadline) {
+        throw new Error(`Server ${this._serverTypes} did not become ready in time` +
+          (this._lastReadyError ? `: ${this._lastReadyError}` : ""));
+      }
+      await delay(200);
     }
   }
 }

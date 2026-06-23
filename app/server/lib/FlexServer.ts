@@ -499,6 +499,10 @@ export class FlexServer implements GristServer {
     return this._docNotificationManager;
   }
 
+  public getSiteMetricsSource() {
+    return this.create.getSiteMetricsSource();
+  }
+
   public getOAuthValidator(): IOAuthValidator | undefined {
     if (this._oauthValidator === false) {
       // The special value of 'false' is used to create only on first call. Afterwards,
@@ -2069,9 +2073,9 @@ export class FlexServer implements GristServer {
     }
   }
 
-  public addMcp() {
-    if (this._check("mcp")) { return; }
-    this.create.addMcpEndpoints(this, this.app, this._docApiUsageTracker);
+  public addExtraDocEndpoints() {
+    if (this._check("extraDoc")) { return; }
+    this.create.addExtraDocEndpoints(this, this.app, this._docApiUsageTracker);
   }
 
   public getGristConfig(): GristLoadConfig {
@@ -2187,9 +2191,16 @@ export class FlexServer implements GristServer {
 
     const configBackendAPI = new ConfigBackendAPI(this.getActivations());
     configBackendAPI.addEndpoints(this.app, requireInstallAdmin);
+  }
 
-    // Some configurations may add extra endpoints. This seems a fine time to add them.
+  public addExtraHomeEndpoints() {
+    if (this._check("extraHome")) { return; }
     this.create.addExtraHomeEndpoints(this, this.app);
+  }
+
+  public addExtraDocForwarder() {
+    if (this._check("extraDocForwarder")) { return; }
+    this.create.addExtraDocForwarder(this, this.app);
   }
 
   public getLatestVersionAvailable() {
@@ -2967,7 +2978,9 @@ type Part =
   "login" |
   "loginMiddleware" |
   "map" |
-  "mcp" |
+  "extraDoc" |
+  "extraDocForwarder" |
+  "extraHome" |
   "middleware" |
   "notifier" |
   "org" |

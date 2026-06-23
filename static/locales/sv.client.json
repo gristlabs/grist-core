@@ -204,7 +204,7 @@
         "Configuration": "Konfiguration",
         "Default field value": "Standardvärde för fällt",
         "Display button": "Visa knapp",
-        "Enter text": "Full i text",
+        "Enter text": "Fyll i text",
         "Field rules": "Fälltregler",
         "Field title": "Fällttitel",
         "Hidden field": "Dolt fällt",
@@ -217,7 +217,7 @@
         "Submit button label": "Skicka knappens text",
         "Success text": "Text när det fungerar",
         "Table column name": "Tabelens kolumnnamn",
-        "Enter redirect URL": "Full i omdirigerings URL",
+        "Enter redirect URL": "Fyll i omdirigerings URL",
         "No field selected": "Inget fällt valt",
         "Select a field in the form widget to configure.": "Välj ett fällt i formulärwidget för att ställa in.",
         "Submit": "Skicka in",
@@ -731,7 +731,8 @@
         "Enable suggestions": "Aktivera ändringsförslag",
         "Suggestions": "Ändringsförslag",
         "experiment": "experiment",
-        "Once you start timing, Grist will measure the time it takes to evaluate each formula. This allows diagnosing which formulas are responsible for slow performance when a document is first opened, or when a document responds to changes.": "När tidmätningen startar, kommer Grist att mäta tiden det tar att köra varje formel. Detta kan användas för att tar rada på vilka formler som orsakar att dokumentet tar lång tid att öppna eller reagera på ändringar."
+        "Once you start timing, Grist will measure the time it takes to evaluate each formula. This allows diagnosing which formulas are responsible for slow performance when a document is first opened, or when a document responds to changes.": "När tidmätningen startar, kommer Grist att mäta tiden det tar att köra varje formel. Detta kan användas för att tar rada på vilka formler som orsakar att dokumentet tar lång tid att öppna eller reagera på ändringar.",
+        "For number formats": "För nummer format"
     },
     "DocumentUsage": {
         "Size of attachments": "Storlek på bifogade filer",
@@ -1439,7 +1440,7 @@
         "Customizing columns": "Anpassa kolumner",
         "Double-click or hit {{enter}} on a cell to edit it. ": "Dubbelklicka eller tryck {{enter}} på en cell för att redigera den. ",
         "Editing Data": "Redigera data",
-        "Enter": "Full i",
+        "Enter": "Enter",
         "Flying higher": "Flyger högre",
         "Help Center": "Hjälpcenter",
         "Make it relational! Use the {{ref}} type to link tables. ": "Gör den relationell! Använd {{ref}} typen för att länka tabeller. ",
@@ -1996,7 +1997,9 @@
         "Dismiss": "Avfärda",
         "Dismiss changes": "Avfärda ändringar",
         "Dismiss pending changes?": "Avfärda väntande ändringar?",
-        "Dismissing...": "Avfärdar..."
+        "Dismissing...": "Avfärdar...",
+        "How user actions can reach the outside world": "Hur användares handlingar kan nå världen utanför",
+        "Outgoing requests": "Utgående förfrågningar"
     },
     "Columns": {
         "Remove Column": "Ta bort kolumn"
@@ -3146,5 +3149,30 @@
         "Toggled on": "Påslagen",
         "Checked": "Ibockad",
         "Unchecked": "Obockad"
+    },
+    "OutgoingRequestsStatus": {
+        "Allowed: any host (*)": "Tillåtna: alla värdar (*)",
+        "Allowed: {{list}}": "Tillåtna: {{list}}",
+        "Any editor could trigger a request to an internal URL.": "Alla redigerare kan trigga en förfrågan till en intern URL.",
+        "Any host is allowed and no URL filter is in place.": "Alla värdar är tillåtna och inget URLfilter finns.",
+        "Checking…": "Kontrollerar…",
+        "checking": "kontrollerar",
+        "filtered": "filtrerad",
+        "not configured": "Inte inställd",
+        "review": "granska",
+        "unfiltered": "ofiltrerad",
+        "For example, checking for updates or talking to your single sign-on provider.": "Till exempel, söka efter uppdateringar eller kommunicera med din identitetsleverantör.",
+        "Grist connects directly. No HTTPS proxy is in place.": "Grist ansluter direkt. Ingen HTTPS proxy används.",
+        "Grist routes those requests through the URL filter you've set up.": "Grist skickar dessa förfrågningar till URLfiltret du ställt in.",
+        "Grist sends them straight out. You've opted out of URL filtering.": "Grist skickar dom direkt. Du har valt bort URLfiltrering.",
+        "No URL filter is set up. Features that need one stay switched off.": "Inget URLfilter är inställt. Funktioner som behöver det är därför avstängda.",
+        "Not filtered.": "Inte filtrerade.",
+        "Search docs for: {{envVar}}": "Sök efter dokument för: {{envVar}}",
+        "These requests go through your HTTPS proxy.": "Dessa förfrågningar går genom din HTTPS proxy.",
+        "Three features can make Grist send HTTP requests on behalf of your users. Here's how each one is set up right now.": "Denna funktion möjliggör att Grist kan skicka HTTP förfrågningar åt dina användare. Såhär är de inställda nu.",
+        "When Grist itself reaches out…": "När Grist själv skickar förfrågningar…",
+        "When your users reach out…": "När dina användare skickar förfrågningar…",
+        "bypassed": "förbikopplad",
+        "Open to any host. The URL proxy is what keeps this safe.": "Tillgänglig för alla. URLproxyn är det som ser till att detta är säkert."
     }
 }

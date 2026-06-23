@@ -14,7 +14,13 @@ FROM node:22-trixie AS prod-builder
 
 # Install all node dependencies.
 WORKDIR /grist
+
+# Extensions are supplied via the `ext` build-context (and installed explicitly
+# below), so skip the `postinstall` hook.
+ENV GRIST_SKIP_EXT_AUTOSETUP=1
+
 COPY package.json yarn.lock /grist/
+COPY buildtools/install_edition.sh /grist/buildtools/install_edition.sh
 RUN \
   yarn install --prod --frozen-lockfile --verbose --network-timeout 600000
 

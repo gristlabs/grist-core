@@ -5,7 +5,7 @@ import { reportError } from "app/client/models/errors";
 import { getHomeUrl } from "app/client/models/homeUrl";
 import { buildAdminAccessDeniedCard } from "app/client/ui/AdminAccessDeniedCard";
 import { cssFadeUp, cssFadeUpGristLogo, cssFadeUpHeading, cssFadeUpSubHeading } from "app/client/ui/AdminPanelCss";
-import { AuthenticationSection } from "app/client/ui/AuthenticationSection";
+import { AuthenticationSection, confirmNoAuthAcknowledgement } from "app/client/ui/AuthenticationSection";
 import { BackupsSection } from "app/client/ui/BackupsSection";
 import { DraftChangesManager } from "app/client/ui/DraftChanges";
 import { peekSetupReturnFromGetGristCom, SetupReturnStep } from "app/client/ui/GetGristComProvider";
@@ -13,6 +13,7 @@ import { PermissionsSetupSection } from "app/client/ui/PermissionsSetupSection";
 import { quickSetupContinueButton, QuickSetupSection } from "app/client/ui/QuickSetupContinueButton";
 import { QuickSetupServerStep } from "app/client/ui/QuickSetupServerStep";
 import { SANDBOX_PROBE_ID, SandboxSetupSection } from "app/client/ui/SandboxSection";
+import { textButton } from "app/client/ui2018/buttons";
 import { Stepper } from "app/client/ui2018/Stepper";
 import { InstallAPIImpl } from "app/common/InstallAPI";
 
@@ -164,7 +165,20 @@ export class QuickSetup extends Disposable {
       };
       return dom("div",
         section.buildDom(),
-        quickSetupContinueButton(step, () => this._advanceStep(), testId("auth-continue")),
+        dom.maybe(
+          section.hasConfiguredAuth,
+          () => quickSetupContinueButton(step, () => this._advanceStep(), testId("auth-continue")),
+        ),
+        dom.maybe(
+          use => !use(section.hasConfiguredAuth),
+          () => cssAuthSkipRow(
+            textButton(
+              t("Set up later"),
+              dom.on("click", () => confirmNoAuthAcknowledgement(() => this._advanceStep())),
+              testId("auth-skip"),
+            ),
+          ),
+        ),
       );
     });
   }
@@ -202,4 +216,9 @@ const cssStepContent = styled("div", `
   animation: ${cssFadeUp} 0.5s ease 0.24s both;
   margin: 24px auto;
   max-width: 520px;
+`);
+
+const cssAuthSkipRow = styled("div", `
+  text-align: center;
+  margin-top: 20px;
 `);

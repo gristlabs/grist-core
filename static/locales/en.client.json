@@ -485,7 +485,8 @@
         "Allow others to suggest changes": "Allow others to suggest changes",
         "Enable suggestions": "Enable suggestions",
         "Suggestions": "Suggestions",
-        "experiment": "experiment"
+        "experiment": "experiment",
+        "For number formats": "For number formats"
     },
     "DocumentUsage": {
         "Size of attachments": "Size of attachments",
@@ -1950,7 +1951,10 @@
         "Dismiss": "Dismiss",
         "Dismiss changes": "Dismiss changes",
         "Dismiss pending changes?": "Dismiss pending changes?",
-        "Dismissing...": "Dismissing..."
+        "Dismissing...": "Dismissing...",
+        "How user actions can reach the outside world": "How user actions can reach the outside world",
+        "Outgoing requests": "Outgoing requests",
+        "full Edition": "full Edition"
     },
     "Columns": {
         "Remove Column": "Remove Column"
@@ -2768,7 +2772,12 @@
         "The change will be saved when you apply pending changes, and will go into effect after you restart Grist.": "The change will be saved when you apply pending changes, and will go into effect after you restart Grist.",
         "The change will be saved when you apply pending changes, and will take effect after you restart Grist.": "The change will be saved when you apply pending changes, and will take effect after you restart Grist.",
         "configuration updated": "configuration updated",
-        "disabled": "disabled"
+        "disabled": "disabled",
+        "Anyone who can reach this server can access all data without signing in. You can configure authentication later from the admin panel.": "Anyone who can reach this server can access all data without signing in. You can configure authentication later from the admin panel.",
+        "Choose how people sign in. You can change this anytime after setup.": "Choose how people sign in. You can change this anytime after setup.",
+        "Continue without authentication": "Continue without authentication",
+        "Or connect your own identity provider": "Or connect your own identity provider",
+        "Skip authentication setup?": "Skip authentication setup?"
     },
     "DetailView": {
         "This row is unavailable or does not exist": "This row is unavailable or does not exist"
@@ -2788,7 +2797,11 @@
         "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.": "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.",
         "Managed authentication by Grist Labs.": "Managed authentication by Grist Labs.",
         "Your server uses getgrist.com authentication. Users sign in with their getgrist.com account.": "Your server uses getgrist.com authentication. Users sign in with their getgrist.com account.",
-        "Error configuring provider with the provided key: {{reason}}": "Error configuring provider with the provided key: {{reason}}"
+        "Error configuring provider with the provided key: {{reason}}": "Error configuring provider with the provided key: {{reason}}",
+        "Ideal for testing and prototyping. Sign in with a getgrist.com account, with no identity provider to configure.": "Ideal for testing and prototyping. Sign in with a getgrist.com account, with no identity provider to configure.",
+        "Recommended": "Recommended",
+        "Use getgrist.com sign-in": "Use getgrist.com sign-in",
+        "You can switch to OIDC, SAML, or another method at any time.": "You can switch to OIDC, SAML, or another method at any time."
     },
     "AirtableImportUI": {
         "Back": "Back",
@@ -2921,7 +2934,8 @@
         "Quick setup": "Quick setup",
         "Sandboxing": "Sandboxing",
         "Server": "Server",
-        "Continue": "Continue"
+        "Continue": "Continue",
+        "Set up later": "Set up later"
     },
     "ServiceStatus": {
         "Enter maintenance mode": "Enter maintenance mode",
@@ -3131,5 +3145,30 @@
         "link {{- label}}": "link {{- label}}",
         "list: {{- items}}": "list: {{- items}}",
         "{{- text}} (link)": "{{- text}} (link)"
+    },
+    "OutgoingRequestsStatus": {
+        "Allowed: any host (*)": "Allowed: any host (*)",
+        "Allowed: {{list}}": "Allowed: {{list}}",
+        "Any editor could trigger a request to an internal URL.": "Any editor could trigger a request to an internal URL.",
+        "Any host is allowed and no URL filter is in place.": "Any host is allowed and no URL filter is in place.",
+        "Checking…": "Checking…",
+        "For example, checking for updates or talking to your single sign-on provider.": "For example, checking for updates or talking to your single sign-on provider.",
+        "Grist connects directly. No HTTPS proxy is in place.": "Grist connects directly. No HTTPS proxy is in place.",
+        "Grist routes those requests through the URL filter you've set up.": "Grist routes those requests through the URL filter you've set up.",
+        "Grist sends them straight out. You've opted out of URL filtering.": "Grist sends them straight out. You've opted out of URL filtering.",
+        "No URL filter is set up. Features that need one stay switched off.": "No URL filter is set up. Features that need one stay switched off.",
+        "Not filtered.": "Not filtered.",
+        "Open to any host. The URL proxy is what keeps this safe.": "Open to any host. The URL proxy is what keeps this safe.",
+        "Search docs for: {{envVar}}": "Search docs for: {{envVar}}",
+        "These requests go through your HTTPS proxy.": "These requests go through your HTTPS proxy.",
+        "Three features can make Grist send HTTP requests on behalf of your users. Here's how each one is set up right now.": "Three features can make Grist send HTTP requests on behalf of your users. Here's how each one is set up right now.",
+        "When Grist itself reaches out…": "When Grist itself reaches out…",
+        "When your users reach out…": "When your users reach out…",
+        "bypassed": "bypassed",
+        "checking": "checking",
+        "filtered": "filtered",
+        "not configured": "not configured",
+        "review": "review",
+        "unfiltered": "unfiltered"
     }
 }

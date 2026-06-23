@@ -105,3 +105,6 @@ xunit.xml
 
 # Storybook
 /storybook-static/
+
+# Installed edition written by the post-install hook (install_edition.sh).
+/grist-edition

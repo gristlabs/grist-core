@@ -484,7 +484,8 @@
         "Allow others to suggest changes": "Izinkan orang lain menyarankan perubahan",
         "Enable suggestions": "Aktifkan saran",
         "Suggestions": "Saran",
-        "experiment": "percobaan"
+        "experiment": "percobaan",
+        "For number formats": "Untuk format angka"
     },
     "DocumentUsage": {
         "Size of attachments": "Ukuran lampiran",
@@ -1934,7 +1935,9 @@
         "Dismiss": "Tutup",
         "Dismiss changes": "Batalkan perubahan",
         "Dismiss pending changes?": "Batalkan perubahan yang tertunda?",
-        "Dismissing...": "Membatalkan..."
+        "Dismissing...": "Membatalkan...",
+        "How user actions can reach the outside world": "Cara tindakan pengguna dapat menjangkau dunia luar",
+        "Outgoing requests": "Permintaan keluar"
     },
     "GridViewMenusDateHelpers": {
         "Day of week": "Hari dalam sepekan",
@@ -3153,5 +3156,30 @@
         "link {{- label}}": "tautan {{- label}}",
         "list: {{- items}}": "daftar: {{- items}}",
         "{{- text}} (link)": "{{- text}} (tautan)"
+    },
+    "OutgoingRequestsStatus": {
+        "Allowed: any host (*)": "Diizinkan: host apa pun (*)",
+        "Allowed: {{list}}": "Diizinkan: {{list}}",
+        "Any editor could trigger a request to an internal URL.": "Editor mana pun dapat memicu permintaan ke URL internal.",
+        "Any host is allowed and no URL filter is in place.": "Host apa pun diizinkan dan tidak ada filter URL yang diterapkan.",
+        "Checking…": "Sedang memeriksa…",
+        "For example, checking for updates or talking to your single sign-on provider.": "Misalnya, memeriksa pembaruan atau berkomunikasi dengan penyedia single sign-on Anda.",
+        "Grist connects directly. No HTTPS proxy is in place.": "Grist terhubung langsung. Tidak ada proxy HTTPS yang diterapkan.",
+        "Grist routes those requests through the URL filter you've set up.": "Grist merutekan permintaan tersebut melalui filter URL yang telah Anda atur.",
+        "Grist sends them straight out. You've opted out of URL filtering.": "Grist mengirimkannya langsung. Anda telah memilih untuk tidak menggunakan pemfilteran URL.",
+        "No URL filter is set up. Features that need one stay switched off.": "Tidak ada filter URL yang disiapkan. Fitur yang membutuhkannya tetap nonaktif.",
+        "Not filtered.": "Tidak difilter.",
+        "Open to any host. The URL proxy is what keeps this safe.": "Terbuka untuk host mana pun. Proxy URL adalah yang menjaga hal ini tetap aman.",
+        "Search docs for: {{envVar}}": "Cari dokumentasi untuk: {{envVar}}",
+        "These requests go through your HTTPS proxy.": "Permintaan ini melalui proxy HTTPS Anda.",
+        "Three features can make Grist send HTTP requests on behalf of your users. Here's how each one is set up right now.": "Tiga fitur dapat membuat Grist mengirim permintaan HTTP atas nama pengguna Anda. Berikut cara setiap fitur dikonfigurasi saat ini.",
+        "When Grist itself reaches out…": "Saat Grist sendiri menghubungi…",
+        "When your users reach out…": "Saat pengguna Anda menghubungi…",
+        "bypassed": "dilewati",
+        "checking": "sedang memeriksa",
+        "filtered": "difilter",
+        "not configured": "belum dikonfigurasi",
+        "review": "periksa",
+        "unfiltered": "tidak difilter"
     }
 }

@@ -191,6 +191,10 @@ export class MergedServer {
         this.flexServer.addLogEndpoint();
         this.flexServer.addGoogleAuthEndpoint();
         this.flexServer.addConfigEndpoints();
+        this.flexServer.addExtraHomeEndpoints();
+        if (!this.hasComponent("docs")) {
+          this.flexServer.addExtraDocForwarder();
+        }
       }
 
       if (this.hasComponent("docs")) {
@@ -200,14 +204,11 @@ export class MergedServer {
         await this.flexServer.addTelemetry();
         this.flexServer.addAssistant();
         await this.flexServer.addDoc();
+        this.flexServer.addExtraDocEndpoints();
       }
 
       if (this.hasComponent("home")) {
         this.flexServer.addClientSecrets();
-      }
-
-      if (this.hasComponent("home") || this.hasComponent("docs")) {
-        this.flexServer.addMcp();
       }
 
       this.flexServer.finalizeEndpoints();

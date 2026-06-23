@@ -30,6 +30,8 @@ import { ITelemetry } from "app/server/lib/Telemetry";
 
 import { Express } from "express";
 
+import type { SiteMetricsSource } from "app/gen-server/lib/Housekeeper";
+
 // In the past, the session secret was used as an additional
 // protection passed on to expressjs-session for security when
 // generating session IDs, in order to make them less guessable.
@@ -105,7 +107,9 @@ export interface ICreate {
   getLoginSystem(): Promise<GristLoginSystem>;
 
   addExtraHomeEndpoints(gristServer: GristServer, app: Express): void;
-  addMcpEndpoints(gristServer: GristServer, app: Express, tracker?: DocApiUsageTracker): void;
+  addExtraDocEndpoints(gristServer: GristServer, app: Express, tracker?: DocApiUsageTracker): void;
+  addExtraDocForwarder(gristServer: GristServer, app: Express): void;
+  getSiteMetricsSource(): SiteMetricsSource | undefined;
   areAdminControlsAvailable(): boolean;
   createDocNotificationManager(gristServer: GristServer): IDocNotificationManager | undefined;
   startProcessMonitor(telemetry: ITelemetry): StopCallback | undefined;
@@ -265,7 +269,9 @@ export class BaseCreate implements ICreate {
   }
 
   public addExtraHomeEndpoints(gristServer: GristServer, app: Express) {}
-  public addMcpEndpoints(gristServer: GristServer, app: Express, tracker?: DocApiUsageTracker) {}
+  public addExtraDocEndpoints(gristServer: GristServer, app: Express, tracker?: DocApiUsageTracker) {}
+  public addExtraDocForwarder(gristServer: GristServer, app: Express) {}
+  public getSiteMetricsSource(): SiteMetricsSource | undefined { return undefined; }
   public areAdminControlsAvailable(): boolean { return false; }
   public createDocNotificationManager(gristServer: GristServer): IDocNotificationManager | undefined {
     return undefined;
