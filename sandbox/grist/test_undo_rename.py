@@ -36,7 +36,7 @@ class TestUndoRename(test_engine.EngineTestCase):
     self.apply_user_action(["AddRecord", "T1", 2, {"c1": "world"}])
 
   def test_convert_remove_column_then_rename_table(self):
-    # The exact reproduction from plans/ENGINE_BUG.md: turn a column into a formula (its stored
+    # Turn a column into a formula (its stored
     # values are set aside), remove it, and rename its table -- all in one bundle. Before the fix,
     # undo failed with KeyError 'T2'.
     self.make_one_column_table()
