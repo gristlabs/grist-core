@@ -32,25 +32,27 @@ class ActionSummary(object):
       previous = col_deltas.get(row_id)
       col_deltas[row_id] = (previous[0] if previous else before, after)
 
-  def convert_deltas_to_actions(self, out_stored, out_undo):
+  def convert_deltas_to_actions(self, out_stored, out_undo, undo_owner=None):
     """
     Go through all prepared deltas, construct DocActions for them, and add them to out_stored
-    and out_undo lists.
+    and out_undo lists. If `undo_owner` is given, record into it (keyed by id(undo_action)) the
+    stored-action index each generated undo corresponds to (see ActionGroup.undo_owner).
     """
     for table_id in sorted(self._tables):
       table_delta = self._tables[table_id]
       for col_id in sorted(table_delta.column_deltas):
         column_delta = table_delta.column_deltas[col_id]
-        self._changes_to_actions(table_id, col_id, column_delta, out_stored, out_undo)
+        self._changes_to_actions(table_id, col_id, column_delta, out_stored, out_undo, undo_owner)
 
-  def pop_column_delta_as_actions(self, table_id, col_id, out_stored, out_undo):
+  def pop_column_delta_as_actions(self, table_id, col_id, out_stored, out_undo, undo_owner=None):
     """
     Remove deltas for a particular column, and convert the removed deltas to DocActions. Add
     those to out_stored and out_undo lists.
     """
     table_delta = self._tables.get(table_id)
     col_delta = table_delta and table_delta.column_deltas.pop(col_id, None)
-    return self._changes_to_actions(table_id, col_id, col_delta or {}, out_stored, out_undo)
+    return self._changes_to_actions(table_id, col_id, col_delta or {}, out_stored, out_undo,
+                                    undo_owner)
 
   def update_new_rows_map(self, table_id, temp_row_ids, final_row_ids):
     """
@@ -69,10 +71,13 @@ class ActionSummary(object):
     t = self._forTable(table_id)
     return [t.temp_row_ids.get(r, r) for r in row_ids]
 
-  def _changes_to_actions(self, table_id, col_id, column_delta, out_stored, out_undo):
+  def _changes_to_actions(self, table_id, col_id, column_delta, out_stored, out_undo,
+                          undo_owner=None):
     """
     Given a column and a dict of column_deltas for it, of the form {row_id: (before_value,
-    after_value)}, creates DocActions and adds them to out_stored and out_undo lists.
+    after_value)}, creates DocActions and adds them to out_stored and out_undo lists. If
+    `undo_owner` is given, record into it the stored-action index each generated undo corresponds
+    to (see ActionGroup.undo_owner).
     """
     if not column_delta:
       return
@@ -87,10 +92,15 @@ class ActionSummary(object):
       values = [column_delta[r][delta_index] for r in filtered_row_ids]
       return actions.BulkUpdateRecord(table_id, filtered_row_ids, {col_id: values}).simplify()
 
+    # The stored update that records this column's recomputed (after) values, if any. A preserved
+    # row's undo restores the (before) values of that same stored update, so the two form one
+    # reversible step and share an owner.
+    stored_update_index = None
     if not defunct:
       row_ids_after = self.filter_out_gone_rows(table_id, full_row_ids)
       if row_ids_after:
         out_stored.append(update_action(row_ids_after, 1))
+        stored_update_index = len(out_stored) - 1
 
     if self.is_created(table_id, col_id) and not defunct:
       # A newly-created column, and not replacing a defunct one. Don't generate undo actions.
@@ -108,11 +118,15 @@ class ActionSummary(object):
     defunct_row_ids = [r for r in row_ids_before if r not in preserved_row_ids_set]
 
     if preserved_row_ids:
-      out_undo.append(update_action(preserved_row_ids, 0))
+      preserved_undo = update_action(preserved_row_ids, 0)
+      out_undo.append(preserved_undo)
+      if undo_owner is not None and stored_update_index is not None:
+        undo_owner[id(preserved_undo)] = stored_update_index
 
     if defunct_row_ids:
       # Updates for deleted rows/columns/tables should come after they're re-added.
-      # So we need to insert the undos *before*.
+      # So we need to insert the undos *before*. We leave such a front restore unowned: it belongs
+      # to whatever removed the rows/column/table, which the server attributes for itself.
       out_undo.insert(0, update_action(defunct_row_ids, 0))
 
   def _forTable(self, table_id):
