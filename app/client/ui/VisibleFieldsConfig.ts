@@ -1,5 +1,6 @@
 import DetailView from "app/client/components/DetailView";
 import { GristDoc } from "app/client/components/GristDoc";
+import { focusFallbackOnDispose, kbFallbackGroup } from "app/client/lib/focusUtils";
 import { KoArray, syncedKoArray } from "app/client/lib/koArray";
 import * as kf from "app/client/lib/koForm";
 import { makeT } from "app/client/lib/localization";
@@ -214,7 +215,8 @@ export class VisibleFieldsConfig extends Disposable {
       },
     });
     return [
-      dom("div", { "role": "group", "aria-labelledby": "visible-fields-label" },
+      dom("div", { "role": "group", "aria-labelledby": "visible-fields-label", "tabindex": "-1" },
+        kbFallbackGroup(true),
         cssHeader(
           cssFieldListHeader(
             dom.text(use => t("Visible {{label}}", { label: use(this._fieldLabel) })),
@@ -242,11 +244,13 @@ export class VisibleFieldsConfig extends Disposable {
           cssRow(
             primaryButton(
               dom.text(use => t("Hide {{label}}", { label: use(this._fieldLabel) })),
+              focusFallbackOnDispose(),
               dom.on("click", () => this._removeSelectedFields()),
               testId("visible-hide"),
             ),
             basicButton(
               t("Clear"),
+              focusFallbackOnDispose(),
               dom.on("click", () => this._setVisibleCheckboxes(fieldsDraggable, false)),
               testId("visible-clear"),
             ),
@@ -254,7 +258,8 @@ export class VisibleFieldsConfig extends Disposable {
           ),
         ),
       ),
-      dom("div", { "role": "group", "aria-labelledby": "hidden-fields-label" },
+      dom("div", { "role": "group", "aria-labelledby": "hidden-fields-label", "tabindex": "-1" },
+        kbFallbackGroup(true),
         cssHeader(
           cssHeaderButton(
             icon(
@@ -301,11 +306,13 @@ export class VisibleFieldsConfig extends Disposable {
             cssRow(
               primaryButton(
                 dom.text(use => t("Show {{label}}", { label: use(this._fieldLabel) })),
+                focusFallbackOnDispose(),
                 dom.on("click", () => this._addSelectedFields()),
                 testId("hidden-show"),
               ),
               basicButton(
                 t("Clear"),
+                focusFallbackOnDispose(),
                 dom.on("click", () => this._setHiddenCheckboxes(hiddenFieldsDraggable, false)),
                 testId("hidden-clear"),
               ),
@@ -389,6 +396,7 @@ export class VisibleFieldsConfig extends Disposable {
       cssHideIconButton(
         icon("EyeShow"),
         dom.on("click", () => this.addField(column)),
+        focusFallbackOnDispose(),
         testId("hide"),
         dom.boolAttr("disabled", this._disabled),
         dom.attr("aria-label", use => t("Show {{label}}", { label: use(column.label) })),
@@ -419,6 +427,7 @@ export class VisibleFieldsConfig extends Disposable {
       cssHideIconButton(
         icon("EyeHide"),
         dom.on("click", () => this.removeField(field)),
+        focusFallbackOnDispose(),
         testId("hide"),
         dom.boolAttr("disabled", this._disabled),
         dom.attr("aria-label", use => t("Hide {{label}}", { label: use(field.label) })),
