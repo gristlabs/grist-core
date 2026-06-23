@@ -27,8 +27,8 @@ describe("RedirectToOrg", function() {
   }
 
   // Establish a logged-in session for the given user, and return its Cookie header.
-  async function cookieFor(server: TestServer, email: string, name: string) {
-    const login = await server.getCookieLogin("docs", { email, name });
+  async function cookieFor(server: TestServer, email: string, name: string, org: string = "docs") {
+    const login = await server.getCookieLogin(org, { email, name });
     return login.headers.Cookie;
   }
 
@@ -102,12 +102,11 @@ describe("RedirectToOrg", function() {
   });
 
   describe("single-org mode with personal orgs disabled", function() {
-    const ctx = setupTestServer({ GRIST_SINGLE_ORG: "docs", GRIST_PERSONAL_ORGS: "false" });
+    const ctx = setupTestServer({ GRIST_SINGLE_ORG: "nasa", GRIST_PERSONAL_ORGS: "false" });
 
     it("does not reroute / to /welcome/start (single org is pinned)", async function() {
-      // In single-org mode the org is always set, so _redirectToOrg returns early and the app
-      // page renders normally rather than rerouting to the welcome flow.
-      const { status, location } = await getRedirect(`${ctx.url()}/`);
+      const cookie = await cookieFor(ctx.server(), "chimpy@getgrist.com", "Chimpy", "nasa");
+      const { status, location } = await getRedirect(`${ctx.url()}/`, cookie);
       assert.equal(status, 200);
       assert.notInclude(location, "/welcome/start");
     });
