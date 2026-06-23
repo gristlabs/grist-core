@@ -1,6 +1,7 @@
 import { makeT } from "app/client/lib/localization";
 import { getHomeUrl } from "app/client/models/homeUrl";
 import { cssWell, cssWellContent } from "app/client/ui/AdminPanelCss";
+import { HelpUsImproveSection } from "app/client/ui/HelpUsImproveSection";
 import {
   getEnvLockedVars,
   hasEnvLocked,
@@ -34,6 +35,7 @@ const testId = makeTestId("test-permissions-setup-");
  */
 export class PermissionsSetupSection extends Disposable {
   private _model = PermissionsToggleModel.create(this);
+  private _improveForm = HelpUsImproveSection.create(this);
   private _configAPI = new ConfigAPI(getHomeUrl());
   private _installAPI = new InstallAPIImpl(getHomeUrl());
   private _error = Observable.create<string>(this, "");
@@ -81,6 +83,15 @@ export class PermissionsSetupSection extends Disposable {
     if (this._saving.get()) { return; }
     this._saving.set(true);
     this._error.set("");
+    // Fire-and-forget: the survey post must never block or fail Go Live.
+    const submission = this._improveForm.getSubmissionData();
+    if (submission) {
+      fetch("https://example.com", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(submission),
+      }).catch(e => console.warn("Help-us-improve form submission failed", e));
+    }
     try {
       await this._model.apply();
       // The wizard's Go Live step is what clears the post-setup gate;
@@ -119,6 +130,8 @@ export class PermissionsSetupSection extends Disposable {
           "You can change them later from the admin panel."),
       }),
       buildPermissionsCard(this._model, { disabled: this._saving }),
+
+      this._improveForm.buildDom(),
 
       dom.maybe(this._saving, () =>
         cssRestartingRow(
