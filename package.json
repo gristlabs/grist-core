@@ -241,7 +241,7 @@
     "underscore": "1.13.8",
     "uuid": "14.0.0",
     "winston": "2.4.5",
-    "ws": "8.20.1",
+    "ws": "8.21.0",
     "zip-stream": "~6"
   },
   "resolutions": {
