@@ -148,10 +148,10 @@ export class WidgetFrame extends DisposableWithEvents {
     const maybeUrl = Computed.create(this, use => use(this._widget)?.url || this._options.url);
 
     // Url to widget or empty page with access level and preferences.
-    this._url = Computed.create(this, this._widget, maybeUrl, (use, widget, url) => {
-      const fromPlugin = Boolean(widget?.url && widget.source?.pluginId);
-      return this._urlWithAccess(url, fromPlugin) || this._getEmptyWidgetPage();
-    });
+    this._url = Computed.create(
+      this,
+      use => this._urlWithAccess(use(maybeUrl)) || this._getEmptyWidgetPage(),
+    );
 
     // Iframe is empty when url is not set.
     this._isEmpty = Computed.create(this, use => !use(maybeUrl));
@@ -233,7 +233,7 @@ export class WidgetFrame extends DisposableWithEvents {
   }
 
   // Appends access level to query string.
-  private _urlWithAccess(url: string | null, fromPlugin: boolean): string | null {
+  private _urlWithAccess(url: string | null): string | null {
     if (!url) {
       return url;
     }
@@ -243,12 +243,6 @@ export class WidgetFrame extends DisposableWithEvents {
       urlObj = new URL(url);
     } catch (e) {
       console.error(e);
-      return null;
-    }
-    // Untrusted (non-plugin/bundled) widget URLs must not point into Grist's own site, so that a
-    // page XSS can't be weaponized and shared via a widget URL (see disallowCustomWidgetUrl).
-    if (!fromPlugin && disallowCustomWidgetUrl(urlObj)) {
-      console.warn(`WidgetFrame: refusing custom widget URL within Grist's own site: ${url}`);
       return null;
     }
     urlObj.searchParams.append("access", this._options.access);
@@ -891,33 +885,4 @@ function reencodeAsAny(value: CellValue, typeInfo: GristTypeInfo): CellValue {
     }
   }
   return value;
-}
-
-/**
- * Custom widgets are intended to be served cross-origin; return true if this URL is not, i.e. it
- * points back into Grist's own site.
- *
- * It's safer to disallow such widgets so that custom widget URLs don't become a vector to exploit
- * XSS. In other words, if there is an XSS vulnerability where a Grist page can be tricked to run
- * untrusted JS, we don't want to make such an attack sharable via a custom widget URL, where it
- * could affect all collaborators.
- *
- * "Grist's own site" is the page's own origin, plus, when orgs are subdomains, any host under
- * gristConfig.baseDomain (sibling subdomains, which can share Grist's session). baseDomain is
- * dotted (".example.com") in that case, and a bare host or empty otherwise.
- */
-export function disallowCustomWidgetUrl(widgetUrl: URL): boolean {
-  // This check could be bypassed by a trailing period (e.g. "example.com." vs "example.com"), but
-  // that's not actually considered same-origin, so should not be exploitable.
-  if (widgetUrl.origin === location.origin) {
-    return true;
-  }
-  const { baseDomain } = getGristConfig();
-  if (!baseDomain) {
-    return false;
-  } else if (baseDomain.startsWith(".")) {
-    return widgetUrl.hostname.endsWith(baseDomain);
-  } else {
-    return widgetUrl.hostname === baseDomain;
-  }
 }

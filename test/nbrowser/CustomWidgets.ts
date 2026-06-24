@@ -312,23 +312,6 @@ describe("CustomWidgets", function() {
       await gu.undo(6);
     });
 
-    it("should refuse a custom widget URL on Grist's own origin", async () => {
-      // A cross-origin URL loads normally.
-      await gu.setCustomWidgetUrl(`${widgetServerUrl}/200`);
-      assert.equal(await content(), "OK");
-
-      // A URL on Grist's own origin is refused (the XSS guard), so the empty widget page
-      // is shown instead of the URL we set.
-      const pageOrigin = new URL(await driver.getCurrentUrl()).origin;
-      await gu.setCustomWidgetUrl(`${pageOrigin}/200`);
-      assert.match(await getCustomWidgetFrame().getAttribute("src"), /\/custom-widget\.html/);
-      assert.isTrue((await content()).startsWith("Custom widget"));
-
-      // Restore the empty Custom URL state for the following tests.
-      await gu.setCustomWidgetUrl("");
-      assert.isTrue((await content()).startsWith("Custom widget"));
-    });
-
     it("should support theme variables", async () => {
       widgets = [widgetWithTheme];
       await reloadWidgets();
