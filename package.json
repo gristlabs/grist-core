@@ -135,7 +135,7 @@
     "typescript": "5.9.3",
     "webpack": "5.104.1",
     "webpack-cli": "6.0.1",
-    "webpack-dev-server": "5.2.4",
+    "webpack-dev-server": "5.2.5",
     "why-is-node-running": "2.2.2"
   },
   "dependencies": {
