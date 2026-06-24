@@ -55,7 +55,7 @@
   },
   "private": false,
   "devDependencies": {
-    "@babel/core": "7.28.5",
+    "@babel/core": "7.29.6",
     "@babel/eslint-parser": "7.28.5",
     "@storybook/addon-essentials": "8.6.18",
     "@storybook/html-webpack5": "8.6.18",
