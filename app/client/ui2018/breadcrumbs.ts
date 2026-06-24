@@ -1,3 +1,4 @@
+import { kbJumperAnchor } from "app/client/components/RegionFocusSwitcher";
 import { makeT } from "app/client/lib/localization";
 import { urlState } from "app/client/models/gristUrlState";
 import { cssHideForNarrowScreen, mediaNotSmall, testId, theme } from "app/client/ui2018/cssVars";
@@ -183,6 +184,7 @@ export function docBreadcrumbs(
       save: options.docNameSave,
       inputArgs: [
         testId("bc-doc"),
+        kbJumperAnchor,
         cssEditableName.cls(""),
         dom.boolAttr("disabled", options.isDocNameReadOnly || false),
       ],
