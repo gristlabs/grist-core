@@ -1,5 +1,7 @@
 import DetailView from "app/client/components/DetailView";
 import { GristDoc } from "app/client/components/GristDoc";
+import { fixOutlineOverflow } from "app/client/components/KeyboardFocusHighlighter";
+import { kbJumperAnchor } from "app/client/components/RegionFocusSwitcher";
 import { focusFallbackOnDispose, kbFallbackGroup } from "app/client/lib/focusUtils";
 import { KoArray, syncedKoArray } from "app/client/lib/koArray";
 import * as kf from "app/client/lib/koForm";
@@ -215,9 +217,10 @@ export class VisibleFieldsConfig extends Disposable {
       },
     });
     return [
-      dom("div", { "role": "group", "aria-labelledby": "visible-fields-label", "tabindex": "-1" },
-        dom.cls("ignore_tabindex"),
+      dom("div", { "role": "group", "aria-labelledby": "visible-fields-label" },
+        kbJumperAnchor,
         kbFallbackGroup(true),
+        fixOutlineOverflow,
         cssHeader(
           cssFieldListHeader(
             dom.text(use => t("Visible {{label}}", { label: use(this._fieldLabel) })),
@@ -259,9 +262,10 @@ export class VisibleFieldsConfig extends Disposable {
           ),
         ),
       ),
-      dom("div", { "role": "group", "aria-labelledby": "hidden-fields-label", "tabindex": "-1" },
-        dom.cls("ignore_tabindex"),
+      dom("div", { "role": "group", "aria-labelledby": "hidden-fields-label" },
+        kbJumperAnchor,
         kbFallbackGroup(true),
+        fixOutlineOverflow,
         cssHeader(
           cssHeaderButton(
             icon(

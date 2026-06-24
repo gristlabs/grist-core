@@ -32,7 +32,7 @@ export class KeyboardFocusHighlighter extends Disposable {
 }
 
 const cssKeyboardUser = styled("div", `
-  & .${kbFocusHighlighterClass} :is(a, input, textarea, select, button, [tabindex="0"], .${kbFallbackClass}):focus-visible {
+  & .${kbFocusHighlighterClass} :is(a, input, textarea, select, button, [tabindex="0"], .kb_jumper_anchor, .${kbFallbackClass}):focus-visible {
     outline: 3px solid ${components.kbFocusHighlight} !important;
   }
 `);
@@ -55,3 +55,13 @@ export const cssWhenKeyboardUser = styled("div", `
     display: none;
   }
 `);
+
+const cssOutlineInside = styled("div", `
+  outline-offset: -3px !important;
+`);
+
+/**
+ * We often hide overflows in Grist and that makes our outlines hard to see.
+ * This helper allows to easily make the focus ring visible in those cases.
+ * */
+export const fixOutlineOverflow = () => dom.cls(cssOutlineInside.className);
