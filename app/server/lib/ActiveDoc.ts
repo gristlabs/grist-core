@@ -1627,6 +1627,24 @@ export class ActiveDoc extends EventEmitter {
   }
 
   /**
+   * Apply webhook-management actions (writes to _grist_Triggers). The `webhook` option waives the
+   * schema-edit check for these writes (see GranularAccess), so webhooks can be managed with the
+   * doc:webhooks scope rather than doc.schema:write.
+   *
+   * This does not authorize the request; the caller must do that at the route: owner access, or a
+   * valid unsubscribe key on the deprecated unsubscribe route. OAuth callers also need the
+   * doc:webhooks scope.
+   */
+  public async applyWebhookActions(docSession: OptDocSession, actions: UserAction[]): Promise<ApplyUAResult> {
+    // The `webhook` option only relaxes access for _grist_Triggers, so refuse anything else here
+    // rather than trusting callers to pass only trigger actions.
+    if (!actions.every(action => action[1] === "_grist_Triggers")) {
+      throw new Error("applyWebhookActions only accepts actions on _grist_Triggers");
+    }
+    return this._applyUserActionsWithExtendedOptions(docSession, actions, { webhook: true });
+  }
+
+  /**
    * A variant of applyUserActions where actions are passed in by ids (actionNum, actionHash)
    * rather than by value.
    *

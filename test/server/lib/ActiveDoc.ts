@@ -1,7 +1,9 @@
 import { getEnvContent } from "app/common/ActionBundle";
 import { ServerQuery } from "app/common/ActiveDocAPI";
 import { delay } from "app/common/delay";
-import { BulkColValues, CellValue, fromTableDataAction } from "app/common/DocActions";
+import { PermissionSet } from "app/common/ACLPermissions";
+import { BulkColValues, CellValue, fromTableDataAction, UserAction } from "app/common/DocActions";
+import { FullUser } from "app/common/LoginSessionAPI";
 import * as gristTypes from "app/common/gristTypes";
 import { TableData } from "app/common/TableData";
 import { CreatableArchiveFormats } from "app/common/UserAPI";
@@ -12,6 +14,7 @@ import {
   AttachmentStoreProvider,
   IAttachmentStoreProvider,
 } from "app/server/lib/AttachmentStoreProvider";
+import { AuthCredential } from "app/server/lib/AuthCredential";
 import { AuthSession } from "app/server/lib/AuthSession";
 import { Client } from "app/server/lib/Client";
 import { DummyAuthorizer } from "app/server/lib/DocAuthorizer";
@@ -60,6 +63,20 @@ describe("ActiveDoc", async function() {
   const docTools = createDocTools({ createAttachmentStoreProvider });
 
   const fakeSession = makeExceptionalDocSession("system");
+
+  // A connected Client for the given user.
+  function makeClient(authSession: AuthSession): Client {
+    const client = new Client(null as any, null as any, null!);
+    client.setConnection({ websocket: {} as any, req: null as any, counter: null, browserSettings: {}, authSession });
+    return client;
+  }
+
+  // A doc session for the given user with owner-level authorization.
+  function makeOwnerSession(authSession: AuthSession, docName: string): OptDocSession {
+    const session = makeOptDocSession(makeClient(authSession));
+    session.authorizer = new DummyAuthorizer("owners", docName);
+    return session;
+  }
 
   const sandbox = sinon.createSandbox();
 
@@ -834,10 +851,7 @@ describe("ActiveDoc", async function() {
 
     // Make a fake client with a particular fake user.
     const authSession = AuthSession.fromUser({ id: 17, name: "Test McTester", email: "test@test" }, "docs");
-    const client = new Client(null as any, null as any, null!);
-    client.setConnection({ websocket: {} as any, req: null as any, counter: null, browserSettings: {}, authSession });
-    const userSession = makeOptDocSession(client);
-    userSession.authorizer = new DummyAuthorizer("owners", docName);
+    const userSession = makeOwnerSession(authSession, docName);
 
     // Make a document with a cell that is set to "=NOW()"
     const activeDoc1 = await docTools.createDoc(docName);
@@ -880,9 +894,7 @@ describe("ActiveDoc", async function() {
         "",
         "u567",
       );
-      const client = new Client(null as any, null as any, null!);
-      client.setConnection({ websocket: {} as any, req: null as any, counter: null, browserSettings: {}, authSession });
-      const userSession = makeExceptionalDocSession("system", { client });
+      const userSession = makeExceptionalDocSession("system", { client: makeClient(authSession) });
 
       // Spy on calls to the sandbox.
       const rawPyCall = sandbox.spy(ActiveDoc.prototype, "_rawPyCall" as any);
@@ -1449,6 +1461,64 @@ describe("ActiveDoc", async function() {
       assert(finalAttachmentsLocation, "INTERNAL");
     });
     */
+  });
+
+  describe("applyWebhookActions", function() {
+    // A _grist_Triggers write normally needs schema access, which a doc:webhooks (not
+    // doc.schema:write) OAuth token lacks. applyWebhookActions waives that. These tests pin it:
+    // the same write is denied via the ordinary path but allowed via applyWebhookActions.
+
+    // An OAuth token with doc:webhooks but NOT doc.schema:write: its mask denies schemaEdit.
+    const webhookScopedCredential: AuthCredential = {
+      identifiedUser: { id: 42, name: "Hook User", email: "hook@test" } as FullUser,
+      scope: () => undefined,
+      docAuth: async () => { throw new Error("docAuth not used in this test"); },
+      permissionMask: (): PermissionSet => ({
+        read: "allow", create: "allow", update: "allow", delete: "allow", schemaEdit: "deny",
+      }),
+    };
+
+    async function setup(docName: string) {
+      const activeDoc = await docTools.createDoc(docName);
+      // A user table for the trigger to watch.
+      await activeDoc.applyUserActions(fakeSession, [
+        ["AddTable", "People", [{ id: "Name", type: "Text" }]],
+      ]);
+      const tables = activeDoc.docData!.getTable("_grist_Tables")!;
+      const tableRef = tables.getRowIds().find((id) => tables.getValue(id, "tableId") === "People")!;
+
+      // A real (non-system) owner session, so the mask's schemaEdit:deny applies.
+      const authSession = AuthSession.fromUser(
+        webhookScopedCredential.identifiedUser, "docs", "hook-session", webhookScopedCredential);
+      const session = makeOwnerSession(authSession, docName);
+
+      const addTrigger: UserAction = ["AddRecord", "_grist_Triggers", null, {
+        tableRef, eventTypes: ["add"], enabled: true,
+        actions: JSON.stringify([{ type: "webhook", id: "test-webhook" }]),
+      }];
+      const triggers = () => activeDoc.docData!.getTable("_grist_Triggers")!.getRowIds().length;
+      return { activeDoc, session, addTrigger, triggers };
+    }
+
+    it("denies a _grist_Triggers write through the ordinary action path without schema access",
+      async function() {
+        const { activeDoc, session, addTrigger, triggers } = await setup("webhook-denied");
+        await assert.isRejected(activeDoc.applyUserActions(session, [addTrigger]), /structure/);
+        assert.equal(triggers(), 0);
+      });
+
+    it("allows the same write via applyWebhookActions (doc:webhooks scope is sufficient)",
+      async function() {
+        const { activeDoc, session, addTrigger, triggers } = await setup("webhook-allowed");
+        await activeDoc.applyWebhookActions(session, [addTrigger]);
+        assert.equal(triggers(), 1);
+      });
+
+    it("refuses actions on tables other than _grist_Triggers", async function() {
+      const { activeDoc, session } = await setup("webhook-wrong-table");
+      const addPerson: UserAction = ["AddRecord", "People", null, { Name: "x" }];
+      await assert.isRejected(activeDoc.applyWebhookActions(session, [addPerson]), /_grist_Triggers/);
+    });
   });
 });
 

@@ -2730,6 +2730,13 @@ export class GranularAccess implements GranularAccessForBundle {
       if (isAclTable(tableId) && await this.isOwner(docSession)) {
         return dummyAccessCheck;
       }
+      // Webhook management writes _grist_Triggers. The `webhook` option waives the schema-edit
+      // check for these writes, so they can be made with the doc:webhooks scope instead of the
+      // broad doc.schema:write. The webhook API routes authorize the caller first (owner access,
+      // or a valid unsubscribe key on the deprecated unsubscribe route).
+      if (tableId === "_grist_Triggers" && this._activeBundle?.options?.webhook) {
+        return dummyAccessCheck;
+      }
       return accessChecks[severity].schemaEdit;
     } else if (a[0] === "UpdateRecord" || a[0] === "BulkUpdateRecord") {
       return accessChecks[severity].update;

@@ -276,7 +276,7 @@ export class DocApiTriggers {
 
       try {
         const webhookAction: WebhookAction = { type: "webhook", id: webhookId };
-        const sandboxRes = await handleSandboxError("_grist_Triggers", [], activeDoc.applyUserActions(
+        const sandboxRes = await handleSandboxError("_grist_Triggers", [], activeDoc.applyWebhookActions(
           docSessionFromRequest(req),
           [["AddRecord", "_grist_Triggers", null, {
             enabled: true,
@@ -322,7 +322,7 @@ export class DocApiTriggers {
       activeDoc.webhookQueue.clearWebhookCache(webhookId);
       activeDoc.triggers.clearCache();
 
-      await handleSandboxError("_grist_Triggers", [], activeDoc.applyUserActions(
+      await handleSandboxError("_grist_Triggers", [], activeDoc.applyWebhookActions(
         docSessionFromRequest(req),
         [["RemoveRecord", "_grist_Triggers", triggerRowId]]));
 
@@ -419,6 +419,9 @@ export class DocApiTriggers {
 
     /**
      * @deprecated Use POST /webhooks instead. Kept for backward compatibility.
+     *
+     * This and the /triggers routes are intentionally absent from OAuthValidator's allowlist, so
+     * OAuth reaches them only as default-deny.
      */
     this._app.post("/api/docs/:docId/tables/:tableId/_subscribe", isOwner, validate(WebhookSubscribeChecker),
       withDocTriggersLock(async (activeDoc, req, res) => {
@@ -471,7 +474,7 @@ export class DocApiTriggers {
         // then update document
         if (Object.keys(fields).length) {
           activeDoc.triggers.clearCache();
-          await handleSandboxError("_grist_Triggers", [], activeDoc.applyUserActions(
+          await handleSandboxError("_grist_Triggers", [], activeDoc.applyWebhookActions(
             docSessionFromRequest(req),
             [["UpdateRecord", "_grist_Triggers", triggerRowId, fields]]));
         }
@@ -560,7 +563,7 @@ export class DocApiTriggers {
           }
 
           const sandboxRes = await handleSandboxError("_grist_Triggers", [],
-            activeDoc.applyUserActions(
+            activeDoc.applyWebhookActions(
               docSessionFromRequest(req),
               [["AddRecord", "_grist_Triggers", null, {
                 enabled: true,
@@ -635,7 +638,7 @@ export class DocApiTriggers {
 
           activeDoc.triggers.clearCache();
           await handleSandboxError("_grist_Triggers", [],
-            activeDoc.applyUserActions(
+            activeDoc.applyWebhookActions(
               docSessionFromRequest(req),
               [["UpdateRecord", "_grist_Triggers", triggerRowId, fields]],
             ),
@@ -674,7 +677,7 @@ export class DocApiTriggers {
 
           activeDoc.triggers.clearCache();
           await handleSandboxError("_grist_Triggers", [],
-            activeDoc.applyUserActions(
+            activeDoc.applyWebhookActions(
               docSessionFromRequest(req),
               [["RemoveRecord", "_grist_Triggers", triggerRowId]],
             ),
