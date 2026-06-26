@@ -217,7 +217,8 @@ class AdminInstallationPanel extends Disposable {
     notifier: this._appModel.notifier,
   });
 
-  private _permissionsModel = PermissionsToggleModel.create(this);
+  // Hide telemetry toggle, as the admin panel exposes it through SupportGristPage
+  private _permissionsModel = PermissionsToggleModel.create(this, { excludeToggles: ["telemetry"] });
 
   private _drafts = DraftChangesManager.create(this);
 

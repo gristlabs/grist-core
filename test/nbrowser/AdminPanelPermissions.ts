@@ -45,18 +45,29 @@ describe("AdminPanelPermissions", function() {
     );
   }
 
-  it("groups the four toggles under one Default-permissions row", async function() {
+  it("groups the toggles under one Default-permissions row, omitting telemetry", async function() {
     await driver.get(`${server.getHost()}/admin`);
     await gu.waitForAdminPanel();
     const item = await driver.findWait(".test-admin-panel-item-default-permissions", 3000);
     assert.equal(await item.isDisplayed(), true);
     // Status display should name a preset once loaded. With a clean DB
-    // and no env overrides, all four defaults are on → preset = Open.
-    // (The wizard applies "Recommended" on load; the admin panel shows
-    // the actual server state.)
+    // and no env overrides, the four permission defaults are on → preset
+    // = "Open". Telemetry is excluded from this card (it lives in the
+    // SupportGristPage instead) so its off-by-default state doesn't
+    // disqualify the Open match. (The wizard applies "Recommended" on
+    // load; the admin panel shows the actual server state.)
     await gu.waitToPass(async () => {
       assert.match(await item.getText(), /\b(Open|Recommended|Locked down|Custom)\b/);
     }, 3000);
+
+    // The telemetry toggle is excluded from the admin panel's card.
+    await expandPermissionsItem();
+    assert.isFalse(await driver.find(".test-permissions-setup-perm-telemetry").isPresent());
+    // The four permission toggles are still rendered.
+    assert.isTrue(await driver.find(".test-permissions-setup-perm-orgCreationAnyone").isPresent());
+    assert.isTrue(await driver.find(".test-permissions-setup-perm-personalOrgs").isPresent());
+    assert.isTrue(await driver.find(".test-permissions-setup-perm-forceLogin").isPresent());
+    assert.isTrue(await driver.find(".test-permissions-setup-perm-anonPlayground").isPresent());
   });
 
   it("flags a draft change and persists via apply-without-restart", async function() {

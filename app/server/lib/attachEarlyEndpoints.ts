@@ -33,6 +33,7 @@ import {
   sendReply,
   stringParam,
 } from "app/server/lib/requestUtils";
+import { getTelemetryPrefs } from "app/server/lib/Telemetry";
 import { updateGristServerLatestVersion } from "app/server/lib/updateChecker";
 
 import {
@@ -144,11 +145,16 @@ export function attachEarlyEndpoints(options: AttachOptions) {
     expressWrap(async (_req, res) => {
       const toPrefSource = (s: "env" | "db" | undefined): PrefSource | undefined =>
         s === "env" ? "environment-variable" : s === "db" ? "preferences" : undefined;
+      const telemetryPrefs = await getTelemetryPrefs(gristServer.getHomeDBManager());
       const status: PermissionsStatus = {
         orgCreationAnyone: { value: getCanAnyoneCreateOrgs(), source: toPrefSource(getCanAnyoneCreateOrgsSource()) },
         personalOrgs: { value: getPersonalOrgsEnabled(), source: toPrefSource(getPersonalOrgsEnabledSource()) },
         forceLogin: { value: getForceLogin(), source: toPrefSource(getForceLoginSource()) },
         anonPlayground: { value: getAnonPlaygroundEnabled(), source: toPrefSource(getAnonPlaygroundEnabledSource()) },
+        telemetry: {
+          value: telemetryPrefs.telemetryLevel.value !== "off",
+          source: telemetryPrefs.telemetryLevel.source,
+        },
       };
       return sendOkReply(null, res, status);
     }),
