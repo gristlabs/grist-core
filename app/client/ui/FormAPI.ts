@@ -161,7 +161,7 @@ export class FormAPIImpl extends BaseAPI implements FormAPI {
         body: JSON.stringify({ records: [{ fields: colValues }] }),
       },
     );
-    // If we don't retrieve the record ID, we can reasonnably assume the creation has failed
+    // If we don't retrieve the record ID, we can reasonably assume the creation has failed
     // and throw an error.
     if (!(response?.records?.[0]?.id)) {
       throw new Error("Record creation failed");
