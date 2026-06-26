@@ -14,6 +14,13 @@ import {
 } from "typeorm";
 
 /**
+ * Lifetime of an OAuth refresh token, in seconds. Single source of truth: the OIDC server issues
+ * refresh tokens with this TTL, and the Housekeeper stale-client sweep uses it as the safety window
+ * — a dynamic client is never deleted while its refresh tokens could still be live.
+ */
+export const OAUTH_REFRESH_TOKEN_TTL_SECONDS = 60 * 24 * 60 * 60;  // 60 days
+
+/**
  * An OAuth grant, which records a user's consent for which scopes/claims we can send to a particular
  * {@link OAuthClient}.
  *

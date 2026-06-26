@@ -4,6 +4,7 @@ import { buildUrlId } from "app/common/gristUrls";
 import { isAffirmative } from "app/common/gutil";
 import { normalizedDateTimeString } from "app/common/normalizedDateTimeString";
 import { Document } from "app/gen-server/entity/Document";
+import { OAUTH_REFRESH_TOKEN_TTL_SECONDS } from "app/gen-server/entity/OAuthGrant";
 import { Organization } from "app/gen-server/entity/Organization";
 import { Workspace } from "app/gen-server/entity/Workspace";
 import { HomeDBManager, Scope } from "app/gen-server/lib/homedb/HomeDBManager";
@@ -37,6 +38,8 @@ export const Timings = {
   VERSION_CHECK_OFFSET_MS: 20 * 1000, // wait 20 seconds before running the first check
   TEST_PROXY_URL_PERIOD_MS: 5 * 60 * 1000,     // every five minutes
   AGE_THRESHOLD_OFFSET: "-30 days",            // should be an interval known by postgres + sqlite
+  STALE_OAUTH_CLIENT_PERIOD_MS: 24 * 60 * 60 * 1000,  // sweep daily
+  STALE_OAUTH_CLIENT_ABANDONED_OFFSET: "-1 day",  // grace before GCing a registration that never authorized
 
   // Don't keep doing synchronous work longer than this.
   SYNC_WORK_LIMIT_MS: appSettings.section("telemetry").section("syncWork").flag("limitMs").requireInt({
@@ -73,6 +76,7 @@ export class Housekeeper {
   private _checkVersionUpdatesTimeout?: NodeJS.Timeout;
   private _checkVersionUpdatesInterval?: NodeJS.Timeout;
   private _testProxyUrlInterval?: NodeJS.Timeout;
+  private _staleOAuthClientsInterval?: NodeJS.Timeout;
 
   private _electionKey?: string;
   private _telemetry = this._server.getTelemetry();
@@ -103,6 +107,9 @@ export class Housekeeper {
         this.testProxyUrlExclusively().catch(log.warn.bind(log));
       }, Timings.TEST_PROXY_URL_PERIOD_MS);
     }
+    this._staleOAuthClientsInterval = setInterval(() => {
+      this.deleteStaleOAuthClientsExclusively().catch(log.warn.bind(log));
+    }, Timings.STALE_OAUTH_CLIENT_PERIOD_MS);
   }
 
   /**
@@ -113,7 +120,8 @@ export class Housekeeper {
       "_deleteTrashinterval",
       "_logMetricsInterval",
       "_checkVersionUpdatesInterval",
-      "_testProxyUrlInterval"] as const) {
+      "_testProxyUrlInterval",
+      "_staleOAuthClientsInterval"] as const) {
       clearInterval(this[interval]);
       this[interval] = undefined;
     }
@@ -200,6 +208,35 @@ export class Housekeeper {
         await this._permitStore.removePermit(permitKey);
       }
     }
+  }
+
+  /**
+   * Deletes stale dynamic (null-owner) OAuth clients if elected to do so.
+   */
+  public async deleteStaleOAuthClientsExclusively(): Promise<boolean> {
+    const electionKey = await this._electionStore.getElection(
+      "stale-oauth-clients", Timings.STALE_OAUTH_CLIENT_PERIOD_MS / 2.0);
+    if (!electionKey) { return false; }
+    await this.deleteStaleOAuthClients();
+    return true;
+  }
+
+  /**
+   * Deletes stale dynamic (null-owner) OAuth clients. The activity window is the refresh-token TTL,
+   * so a client is only removed once its refresh tokens are already dead.
+   */
+  public async deleteStaleOAuthClients(): Promise<void> {
+    const dbType = this._dbManager.connection.driver.options.type;
+    const abandonedThreshold = fromNow(dbType, Timings.STALE_OAUTH_CLIENT_ABANDONED_OFFSET);
+    const deadThreshold = fromNow(dbType, `-${OAUTH_REFRESH_TOKEN_TTL_SECONDS} seconds`);
+    await this._dbManager.connection.manager.query(`
+      DELETE FROM oauth_clients
+      WHERE org_id IS NULL
+        AND created_at < ${abandonedThreshold}
+        AND NOT EXISTS (SELECT 1 FROM oauth_grants g
+                        WHERE g.oauth_client_id = oauth_clients.id
+                          AND COALESCE(g.last_used_at, g.created_at) >= ${deadThreshold})
+    `);
   }
 
   public async testProxyUrlExclusively(): Promise<boolean> {
