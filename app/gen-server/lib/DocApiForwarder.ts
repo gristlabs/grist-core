@@ -6,7 +6,6 @@ import { assertAccess, getOrSetDocAuth, getTransitiveHeaders, RequestWithLogin }
 import { IDocWorkerMap } from "app/server/lib/DocWorkerMap";
 import { expressWrap } from "app/server/lib/expressWrap";
 import { GristServer } from "app/server/lib/GristServer";
-import { getAssignmentId } from "app/server/lib/idUtils";
 import { addAbortHandler } from "app/server/lib/requestUtils";
 
 import * as express from "express";
@@ -66,6 +65,7 @@ export class DocApiForwarder {
     app.use("/api/docs/:docId/create-fork", withDoc);
     app.use("/api/docs/:docId/apply", withDoc);
     app.use("/api/docs/:docId/attachments", withDoc);
+    app.use("/api/docs/:docId/uploads", withDoc);
     app.use("/api/docs/:docId/attachments/archive", withDoc);
     app.use("/api/docs/:docId/attachments/download", withDoc);
     app.use("/api/docs/:docId/attachments/transferStatus", withDoc);
@@ -107,13 +107,15 @@ export class DocApiForwarder {
       }
       docId = docAuth.docId;
     }
-    // Use the docId for worker assignment, rather than req.params.docId, which could be a urlId.
-    const assignmentId = getAssignmentId(this._docWorkerMap, docId === null ? "import" : docId);
+
+    // Convert docId "null" to "import" special id, for legacy compatibility.
+    docId = docId === null ? "import" : docId;
 
     if (!this._docWorkerMap) {
       throw new ApiError("no worker map", 404);
     }
-    const docStatus = await this._docWorkerMap.assignDocWorker(assignmentId);
+
+    const docStatus = await this._docWorkerMap.assignDocWorker(docId);
 
     // Construct new url by keeping only origin and path prefixes of `docWorker.internalUrl`,
     // and otherwise reflecting fully the original url (remaining path, and query params).

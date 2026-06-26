@@ -222,7 +222,7 @@ export interface GristDoc extends DisposableWithEvents {
   saveViewSection(section: ViewSectionRec, newVal: IPageWidget): Promise<ViewSectionRec>;
   saveLink(linkId: string, sectionId?: number): Promise<any>;
   selectBy(widget: IPageWidget): any[];
-  forkIfNeeded(): Promise<void>;
+  forkIfNeeded(): Promise<string | null>;
 
   getCsvLink(): string;
   getTsvLink(): string;
@@ -1137,10 +1137,11 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
   }
 
   // Fork the document if it is in prefork mode.
-  public async forkIfNeeded() {
+  public async forkIfNeeded(): Promise<string | null> {
     if (this.docPageModel.isPrefork.get()) {
-      await this.docComm.forkAndUpdateUrl();
+      return await this.docComm.forkAndUpdateUrl();
     }
+    return null;
   }
 
   public getCsvLink() {

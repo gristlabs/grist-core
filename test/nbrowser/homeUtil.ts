@@ -6,14 +6,13 @@ import { BaseAPI, IOptions } from "app/common/BaseAPI";
 import { normalizeEmail } from "app/common/emails";
 import { UserProfile } from "app/common/LoginSessionAPI";
 import { BehavioralPrompt, UserPrefs, WelcomePopup } from "app/common/Prefs";
-import { DocWorkerAPI, UserAPI, UserAPIImpl } from "app/common/UserAPI";
+import { UserAPI, UserAPIImpl } from "app/common/UserAPI";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { TestingHooksClient } from "app/server/lib/TestingHooks";
 
 import EventEmitter from "events";
 import * as path from "path";
 
-import FormData from "form-data";
 import * as fse from "fs-extra";
 import defaults from "lodash/defaults";
 import { Key, WebDriver, WebElement } from "mocha-webdriver";
@@ -288,10 +287,14 @@ export class HomeUtil {
   public async importFixturesDoc(username: string, org: string, workspace: string,
     filename: string, options: { newName?: string, email?: string } = {}) {
     const homeApi = this.createHomeApi(username, org, options.email);
+    const docPath = await this.getFixtureDocPath(filename, options.newName);
     const docWorker = await homeApi.getWorkerAPI("import");
     const workspaceId = await this.getWorkspaceId(homeApi, workspace);
-    const uploadId = await this.uploadFixtureDoc(docWorker, filename, options.newName);
-    return docWorker.importDocToWorkspace(uploadId, workspaceId);
+    // Semi-streams the file. openAsBlob is streaming from disk, but axios buffers in memory anyway.
+    return docWorker.importDocToWorkspace(
+      [{ contents: await fse.openAsBlob(docPath), name: options.newName ?? path.basename(docPath) }],
+      workspaceId,
+    );
   }
 
   /**
@@ -300,21 +303,16 @@ export class HomeUtil {
   public async copyDoc(username: string, org: string, workspace: string,
     docId: string, options: { newName?: string } = {}) {
     const homeApi = this.createHomeApi(username, org);
-    const docWorker = await homeApi.getWorkerAPI("import");
     const workspaceId = await this.getWorkspaceId(homeApi, workspace);
-    const uploadId = await docWorker.copyDoc(docId);
-    return docWorker.importDocToWorkspace(uploadId, workspaceId);
+    return homeApi.getDocAPI(docId).copyDoc(workspaceId, { documentName: options.newName });
   }
 
-  // upload fixture document to the doc worker at url.
-  public async uploadFixtureDoc(docWorker: DocWorkerAPI, filename: string, newName: string = filename) {
+  public async getFixtureDocPath(filename: string, newName: string = filename) {
     const filepath = path.resolve(this.fixturesRoot, "docs", filename);
     if (!await fse.pathExists(filepath)) {
       throw new Error(`Can't find file: ${filepath}`);
     }
-    const fileStream = fse.createReadStream(filepath);
-    // node-fetch can upload streams, although browser fetch can't
-    return docWorker.upload(fileStream as any, newName);
+    return filepath;
   }
 
   // A helper that find a workspace id by name for a given username and org.
@@ -469,7 +467,6 @@ export class HomeUtil {
     return new creator(org ? this.server.getUrl(org, "") : this.server.getHost(), {
       headers,
       fetch: fetch as any,
-      newFormData: () => new FormData() as any,  // form-data isn't quite type compatible
     });
   }
 

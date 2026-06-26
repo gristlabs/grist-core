@@ -12,7 +12,6 @@ import * as path from "path";
 import axios from "axios";
 import { delay } from "bluebird";
 import { assert } from "chai";
-import FormData from "form-data";
 import * as fse from "fs-extra";
 import fetch from "node-fetch";
 
@@ -121,7 +120,6 @@ describe("ActionHistoryMemory", function() {
     const api = new UserAPIImpl(`${serverUrl}/o/docs`, {
       headers: { Authorization: "Bearer api_key_for_chimpy" },
       fetch: fetch as any,
-      newFormData: () => new FormData() as any,
     });
 
     // Createa a doc.

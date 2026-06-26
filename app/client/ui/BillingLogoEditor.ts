@@ -126,7 +126,6 @@ export class BillingLogoEditor extends Disposable {
   private async _select(): Promise<void> {
     const uploadResult = await selectPicker({
       multiple: false,
-      sizeLimit: "attachment",
       extensions: [".svg", ".png", ".ico", ".jpg", ".jpeg"],
     });
     return this._add(uploadResult);

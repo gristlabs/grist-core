@@ -322,7 +322,7 @@ function addDownloadsTests(getCtx: () => TestContext) {
     const worker = await userApi.getWorkerAPI("import");
     const wid = (await userApi.getOrgWorkspaces("current")).find(w => w.name === "Private")!.id;
     const fakeData1 = await testUtils.readFixtureDoc("Hello.grist");
-    const uploadId1 = await worker.upload(fakeData1, ".grist");
+    const uploadId1 = await worker.upload(new Blob([new Uint8Array(fakeData1)]), ".grist");
     const resp = await axios.post(`${worker.url}/api/workspaces/${wid}/import`, { uploadId: uploadId1 }, chimpy);
     assert.equal(resp.status, 200);
     assert.equal(resp.data.title, "Untitled upload");

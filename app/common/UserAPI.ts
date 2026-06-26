@@ -1,9 +1,8 @@
 import { ApplyUAResult, ForkResult, FormulaTimingInfo,
   PermissionDataWithExtraUsers, QueryFilters, TimingStatus } from "app/common/ActiveDocAPI";
 import { AssistanceRequest, AssistanceResponse } from "app/common/Assistance";
-import { BaseAPI, IOptions } from "app/common/BaseAPI";
+import { BaseAPI, IOptions, UploadProgressCallbacks } from "app/common/BaseAPI";
 import { BillingAPI, BillingAPIImpl } from "app/common/BillingAPI";
-import { BrowserSettings } from "app/common/BrowserSettings";
 import { ICustomWidget } from "app/common/CustomWidget";
 import { BulkColValues, TableColValues, TableRecordValue, TableRecordValues,
   TableRecordValuesWithoutIds, UserAction } from "app/common/DocActions";
@@ -17,6 +16,7 @@ import { FullUser, UserProfile } from "app/common/LoginSessionAPI";
 import { OrgPrefs, UserOrgPrefs, UserPrefs } from "app/common/Prefs";
 import * as roles from "app/common/roles";
 import { StringUnion } from "app/common/StringUnion";
+import { TestState } from "app/common/TestState";
 import {
   TriggerAddRequest,
   TriggerAddResponse,
@@ -28,6 +28,7 @@ import {
   WebhookSummaryCollection,
   WebhookUpdate,
 } from "app/common/Triggers";
+import { UploadResult } from "app/common/uploads";
 import { addCurrentOrgToPath, getGristConfig } from "app/common/urlUtils";
 import {
   AddOrUpdateRecord,
@@ -37,7 +38,6 @@ import {
   TablesGet,
 } from "app/plugin/DocApiTypes";
 
-import { AxiosProgressEvent } from "axios";
 import omitBy from "lodash/omitBy";
 
 export type { FullUser, UserProfile };
@@ -113,9 +113,10 @@ export interface BillingAccount {
   };
 }
 
-// The upload types vary based on which fetch implementation is in use.  This is
-// an incomplete list.  For example, node streaming types are supported by node-fetch.
-export type UploadType = string | Blob | Buffer;
+export type UploadType = File | Blob;
+export type FormFile =
+  File & { contents?: never } |
+  { contents: File | Blob, name?: string };
 
 /**
  * Returns a user-friendly org name, which is either org.name, or "@User Name" for personal orgs.
@@ -408,7 +409,7 @@ export interface DocSnapshots {
 }
 
 export interface CopyDocOptions {
-  documentName: string;
+  documentName?: string;
   asTemplate?: boolean;
 }
 
@@ -474,11 +475,7 @@ export interface UserAPI {
   deleteApiKey(): Promise<void>;
   getTable(docId: string, tableName: string): Promise<TableColValues>;
   applyUserActions(docId: string, actions: UserAction[]): Promise<ApplyUAResult>;
-  importUnsavedDoc(material: UploadType, options?: {
-    filename?: string,
-    timezone?: string,
-    onUploadProgress?: (ev: AxiosProgressEvent) => void,
-  }): Promise<string>;
+  importUnsavedDoc(file: FormFile, options?: { timezone?: string } & UploadProgressCallbacks): Promise<string>;
   deleteUser(userId: number, name: string): Promise<void>;
   getBaseUrl(): string;  // Get the prefix for all the endpoints this object wraps.
   forRemoved(): UserAPI; // Get a version of the API that works on removed resources.
@@ -613,6 +610,7 @@ export interface DocAPI {
   getStates(): Promise<DocStates>;
   forceReload(): Promise<void>;
   recover(recoveryMode: boolean): Promise<void>;
+  copyDoc(workspaceId: number, options: CopyDocOptions): Promise<string>;
   // Compare two documents, optionally including details of the changes.
   compareDoc(
     remoteDocId: string,
@@ -642,6 +640,12 @@ export interface DocAPI {
   // The arguments are passed to FormData.append.
   uploadAttachment(value: string | Blob, filename?: string): Promise<number>;
   uploadAttachmentArchive(archive: string | Blob, filename?: string): Promise<ArchiveUploadResult>;
+  // Register an upload on the doc-owning worker and return its uploadId.
+  // uploadId can only be used for API requests to the same worker (i.e. for as long as that worker owns that doc).
+  upload(
+    files: FormFile | FormFile[],
+    options?: UploadProgressCallbacks,
+  ): Promise<UploadResult>;
 
   // Get users that are worth proposing to "View As" for access control purposes.
   getUsersForViewAs(): Promise<PermissionDataWithExtraUsers>;
@@ -717,7 +721,9 @@ export interface DocAPI {
 // Operations that are supported by a doc worker.
 export interface DocWorkerAPI {
   readonly url: string;
-  importDocToWorkspace(uploadId: number, workspaceId: number, settings?: BrowserSettings): Promise<DocCreationInfo>;
+  importDocToWorkspace(
+    files: FormFile[], workspaceId: number, options?: { timezone?: string } & UploadProgressCallbacks
+  ): Promise<DocCreationInfo>;
   upload(material: UploadType, filename?: string): Promise<number>;
   downloadDoc(docId: string, template?: boolean): Promise<Response>;
   copyDoc(docId: string, template?: boolean, name?: string): Promise<number>;
@@ -1060,24 +1066,14 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
     });
   }
 
-  public async importUnsavedDoc(material: UploadType, options?: {
-    filename?: string,
-    timezone?: string,
-    onUploadProgress?: (ev: AxiosProgressEvent) => void,
-  }): Promise<string> {
+  public async importUnsavedDoc(
+    file: FormFile, options?: { timezone?: string } & UploadProgressCallbacks,
+  ): Promise<string> {
     options = options || {};
-    const formData = this.newFormData();
-    formData.append("upload", material as any, options.filename);
+    const formData = new FormData();
+    formData.append("upload", file.contents ?? file, file.name);
     if (options.timezone) { formData.append("timezone", options.timezone); }
-    const resp = await this.requestAxios(`${this._url}/api/docs`, {
-      method: "POST",
-      data: formData,
-      onUploadProgress: options.onUploadProgress,
-      // On browser, it is important not to set Content-Type so that the browser takes care
-      // of setting HTTP headers appropriately.  Outside browser, requestAxios has logic
-      // for setting the HTTP headers.
-      headers: { ...this.defaultHeadersWithoutContentType() },
-    });
+    const resp = await this.requestWithFormData(`${this._url}/api/docs`, formData, options);
     return resp.data;
   }
 
@@ -1113,26 +1109,28 @@ export class DocWorkerAPIImpl extends BaseAPI implements DocWorkerAPI {
     super(_options);
   }
 
-  public async importDocToWorkspace(uploadId: number, workspaceId: number, browserSettings?: BrowserSettings):
-  Promise<DocCreationInfo> {
-    return this.requestJson(`${this.url}/api/workspaces/${workspaceId}/import`, {
-      method: "POST",
-      body: JSON.stringify({ uploadId, browserSettings }),
-    });
+  public async importDocToWorkspace(
+    files: FormFile[],
+    workspaceId: number,
+    options?: { timezone?: string } & UploadProgressCallbacks,
+  ): Promise<DocCreationInfo> {
+    const formData = new FormData();
+    for (const file of files) {
+      formData.append("upload", file.contents ?? file, file.name);
+    }
+    if (options?.timezone) {
+      formData.append("timezone", options.timezone);
+    }
+    const response =
+      await this.requestWithFormData(`${this.url}/api/workspaces/${workspaceId}/import`, formData, options);
+    return response.data;
   }
 
   public async upload(material: UploadType, filename?: string): Promise<number> {
-    const formData = this.newFormData();
-    formData.append("upload", material as any, filename);
-    const json = await this.requestJson(`${this.url}/uploads`, {
-      // On browser, it is important not to set Content-Type so that the browser takes care
-      // of setting HTTP headers appropriately.  Outside of browser, node-fetch also appears
-      // to take care of this - https://github.github.io/fetch/#request-body
-      headers: { ...this.defaultHeadersWithoutContentType() },
-      method: "POST",
-      body: formData,
-    });
-    return json.uploadId;
+    const formData = new FormData();
+    formData.append("upload", material, filename);
+    const resp = await this.requestWithFormData(`${this.url}/uploads`, formData);
+    return resp.data.uploadId;
   }
 
   public async downloadDoc(docId: string, template: boolean = false): Promise<Response> {
@@ -1157,6 +1155,17 @@ export class DocWorkerAPIImpl extends BaseAPI implements DocWorkerAPI {
     });
     return json.uploadId;
   }
+}
+
+// Browser test hook: when window.testGrist.fakeSlowUploads is set, stall briefly so tests
+// can observe in-flight UI state (progress spinners, upload indicators).
+function maybeFakeSlowUploadsForTests(): Promise<void> {
+  if (typeof window === "undefined") { return Promise.resolve(); }
+  const testState: TestState | undefined = (window as any).testGrist;
+  if (testState?.fakeSlowUploads) {
+    return new Promise(resolve => setTimeout(resolve, 1200));
+  }
+  return Promise.resolve();
 }
 
 export class DocAPIImpl extends BaseAPI implements DocAPI {
@@ -1433,11 +1442,9 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
   }
 
   public async uploadAttachment(value: string | Blob, filename?: string): Promise<number> {
-    const formData = this.newFormData();
-    // FormData.append accepts a string OR Blob value at runtime, but only accepts the filename
-    // for Blob. The lib's overloads don't cover the union, so we cast through Blob to avoid
-    // duplicating this line.
-    formData.append("upload", value as Blob, filename);
+    const formData = new FormData();
+    const blob = typeof value === "string" ? new Blob([value]) : value;
+    formData.append("upload", blob, filename);
     const response = await this.requestAxios(`${this._url}/attachments`, {
       method: "POST",
       data: formData,
@@ -1450,8 +1457,9 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
   }
 
   public async uploadAttachmentArchive(archive: string | Blob, filename?: string): Promise<ArchiveUploadResult> {
-    const formData = this.newFormData();
-    formData.append("upload", archive as Blob, filename);
+    const formData = new FormData();
+    const blob = typeof archive === "string" ? new Blob([archive]) : archive;
+    formData.append("upload", blob, filename);
     const response = await this.requestAxios(`${this._url}/attachments/archive`, {
       method: "POST",
       data: formData,
@@ -1463,6 +1471,22 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
       headers: { ...this.defaultHeadersWithoutContentType() },
     });
     return response.data;
+  }
+
+  public async upload(
+    files: FormFile | FormFile[],
+    options?: UploadProgressCallbacks,
+  ): Promise<UploadResult> {
+    const fileList = Array.isArray(files) ? files : [files];
+    // Ensures any progress bars / spinners / etc are shown before the upload delay in tests.
+    options?.onProgress?.(0);
+    await maybeFakeSlowUploadsForTests();
+    const formData = new FormData();
+    for (const file of fileList) {
+      formData.append("upload", file.contents ?? file, file.name);
+    }
+    const resp = await this.requestWithFormData(`${this._url}/uploads`, formData, options);
+    return resp.data;
   }
 
   public async getAssistance(

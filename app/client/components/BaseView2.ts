@@ -4,7 +4,7 @@
 
 import { GristDoc } from "app/client/components/GristDoc";
 import { getDocIdHash, PasteData } from "app/client/lib/tableUtil";
-import { uploadFiles } from "app/client/lib/uploads";
+import { checkBrowserUploadSizeLimit } from "app/client/lib/uploads";
 import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
 import { ViewSectionRec } from "app/client/models/entities/ViewSectionRec";
 import { UserAction } from "app/common/DocActions";
@@ -110,8 +110,8 @@ export async function parsePasteForView(
   const uploads = new Map<File[], Promise<CellValue>>();
   for (const { colId, valueIndex, fileList } of uploadTasks) {
     const value = await getSetMapValue(uploads, fileList, async (): Promise<CellValue> => {
-      const uploadResult = await uploadFiles(fileList,
-        { docWorkerUrl: gristDoc.docComm.docWorkerUrl, sizeLimit: "attachment" });
+      checkBrowserUploadSizeLimit(fileList, "attachment");
+      const uploadResult = await gristDoc.docApi.upload(fileList);
 
       if (!uploadResult) { return null; }
 

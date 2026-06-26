@@ -177,9 +177,9 @@ const gu = {
   },
 
   async copyDoc(docId, flag) {
-    const result = await guBase.copyDoc(session.name, "docs", "Home", docId);
-    await session.loadDoc(`/doc/${result.id}`);
-    return result;
+    const newDocId = await guBase.copyDoc(session.name, "docs", "Home", docId);
+    await session.loadDoc(`/doc/${newDocId}`);
+    return newDocId;
   },
 
   async clickCell(rowIndexOrPosOrCell, colIndex) {

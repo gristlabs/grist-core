@@ -1504,13 +1504,6 @@
     "@types/qs" "*"
     "@types/serve-static" "^1"
 
-"@types/form-data@2.2.1":
-  version "2.2.1"
-  resolved "https://registry.npmjs.org/@types/form-data/-/form-data-2.2.1.tgz"
-  integrity sha512-JAMFhOaHIciYVh8fb5/83nmuO/AHwmto+Hq7a9y8FzLDcC1KCU344XDOMEmahnrTFlHjgh4L0WJFczNIX2GxnQ==
-  dependencies:
-    "@types/node" "*"
-
 "@types/fs-extra@5.0.4":
   version "5.0.4"
   resolved "https://registry.npmjs.org/@types/fs-extra/-/fs-extra-5.0.4.tgz"

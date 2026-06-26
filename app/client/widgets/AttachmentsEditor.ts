@@ -3,7 +3,7 @@
 // Grist client libs
 import { DocComm } from "app/client/components/DocComm";
 import { makeT } from "app/client/lib/localization";
-import { selectFiles, uploadFiles } from "app/client/lib/uploads";
+import { checkBrowserUploadSizeLimit, selectPicker } from "app/client/lib/uploads";
 import { DocData } from "app/client/models/DocData";
 import { MetaTableData } from "app/client/models/TableData";
 import { basicButton, basicButtonLink, cssButtonGroup } from "app/client/ui2018/buttons";
@@ -18,6 +18,7 @@ import { CellValue } from "app/common/DocActions";
 import { clamp, encodeQueryParams } from "app/common/gutil";
 import { SingleCell } from "app/common/TableData";
 import { UploadResult } from "app/common/uploads";
+import { DocAPI } from "app/common/UserAPI";
 
 import { dom, LiveIndex, makeLiveIndex, styled } from "grainjs";
 import { MutableObsArray, obsArray, ObsArray, observable, Observable } from "grainjs";
@@ -54,6 +55,7 @@ interface Attachment {
  */
 export class AttachmentsEditor extends NewBaseEditor {
   private _attachmentsTable: MetaTableData<"_grist_Attachments">;
+  private _docApi: DocAPI;
   private _docComm: DocComm;
 
   private _rowIds: MutableObsArray<number>;
@@ -77,6 +79,7 @@ export class AttachmentsEditor extends NewBaseEditor {
     const initRowIndex: number | undefined = (options.editValue && parseInt(options.editValue, 0) - 1) || 0;
 
     this._attachmentsTable = docData.getMetaTable("_grist_Attachments");
+    this._docApi = options.gristDoc.docApi;
     this._docComm = docData.docComm;
 
     this._rowIds = obsArray(Array.isArray(cellValue) ? cellValue.slice(1) as number[] : []);
@@ -241,16 +244,16 @@ export class AttachmentsEditor extends NewBaseEditor {
 
   private async _select(): Promise<void> {
     try {
-      const uploadResult = await selectFiles({
-        docWorkerUrl: this._docComm.docWorkerUrl,
-        multiple: true,
-        sizeLimit: "attachment",
-      }, (progress) => {
-        if (progress === 0) {
-          this._isUploading.set(true);
-        }
-      },
-      );
+      const files = await selectPicker({ multiple: true });
+      if (!files.length) { return; }
+      checkBrowserUploadSizeLimit(files, "attachment");
+      const uploadResult = await this._docApi.upload(files, {
+        onProgress: (progress) => {
+          if (progress === 0) {
+            this._isUploading.set(true);
+          }
+        },
+      });
       this._isUploading.set(false);
       return this._add(uploadResult);
     } catch (error) {
@@ -261,15 +264,15 @@ export class AttachmentsEditor extends NewBaseEditor {
 
   private async _upload(files: FileList): Promise<void> {
     try {
-      const uploadResult = await uploadFiles(
-        Array.from(files),
-        { docWorkerUrl: this._docComm.docWorkerUrl, sizeLimit: "attachment" },
-        (progress) => {
+      const fileArray = Array.from(files);
+      checkBrowserUploadSizeLimit(fileArray, "attachment");
+      const uploadResult = await this._docApi.upload(fileArray, {
+        onProgress: (progress) => {
           if (progress === 0) {
             this._isUploading.set(true);
           }
         },
-      );
+      });
       this._isUploading.set(false);
       return this._add(uploadResult);
     } catch (error) {

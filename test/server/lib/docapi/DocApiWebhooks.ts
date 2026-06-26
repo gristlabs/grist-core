@@ -38,7 +38,6 @@ import { Agent } from "http";
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import { assert } from "chai";
 import * as express from "express";
-import FormData from "form-data";
 import * as _ from "lodash";
 import pick from "lodash/pick";
 import LRUCache from "lru-cache";
@@ -89,7 +88,6 @@ function addWebhooksTests(getCtx: () => TestContext) {
     return new UserAPIImpl(`${homeUrl}/o/${org}`, {
       headers: config.headers as Record<string, string>,
       fetch: fetch as unknown as typeof globalThis.fetch,
-      newFormData: () => new FormData() as any,
     });
   }
 

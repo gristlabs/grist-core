@@ -19,9 +19,7 @@ import * as path from "path";
 
 import axios, { AxiosRequestConfig } from "axios";
 import { assert } from "chai";
-import FormData from "form-data";
 import * as fse from "fs-extra";
-import defaultsDeep from "lodash/defaultsDeep";
 import fetch from "node-fetch";
 import { createClient } from "redis";
 
@@ -99,7 +97,6 @@ export function makeUserApi(homeUrl: string, org: string, config: AxiosRequestCo
   return new UserAPIImpl(`${homeUrl}/o/${org}`, {
     headers: config.headers as Record<string, string>,
     fetch: fetch as unknown as typeof globalThis.fetch,
-    newFormData: () => new FormData() as any,
   });
 }
 
@@ -331,10 +328,9 @@ export async function addAttachmentsToDoc(
 ) {
   const formData = new FormData();
   for (const attachment of attachments) {
-    formData.append("upload", attachment.contents, attachment.name);
+    formData.append("upload", new File([attachment.contents], attachment.name));
   }
-  const resp = await axios.post(`${serverUrl}/api/docs/${docId}/attachments`, formData,
-    defaultsDeep({ headers: formData.getHeaders() }, config));
+  const resp = await axios.post(`${serverUrl}/api/docs/${docId}/attachments`, formData, config);
   assert.equal(resp.status, 200);
   return resp;
 }

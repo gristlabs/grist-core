@@ -3,7 +3,7 @@ import { FormFieldRulesConfig } from "app/client/components/Forms/FormConfig";
 import { dragOverClass } from "app/client/lib/dom";
 import { stopEvent } from "app/client/lib/domUtils";
 import { makeT } from "app/client/lib/localization";
-import { selectFiles, uploadFiles } from "app/client/lib/uploads";
+import { checkBrowserUploadSizeLimit, selectPicker } from "app/client/lib/uploads";
 import { DataRowModel } from "app/client/models/DataRowModel";
 import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
 import { KoSaveableObservable } from "app/client/models/modelUtil";
@@ -16,6 +16,8 @@ import { CellValue } from "app/common/DocActions";
 import { encodeQueryParams } from "app/common/gutil";
 import { SingleCell } from "app/common/TableData";
 import { UploadResult } from "app/common/uploads";
+import { docUrl } from "app/common/urlUtils";
+import { DocAPIImpl } from "app/common/UserAPI";
 import { UIRowId } from "app/plugin/GristAPI";
 import { GristObjCode } from "app/plugin/GristData";
 
@@ -199,14 +201,15 @@ export class AttachmentsWidget extends NewAbstractWidget {
     // (example: user starts uploading in card 2/10, then switches to card 3/10, the upload must save to card 2/10)
     const rowId = row.getRowId();
     try {
-      const uploadResult = await selectFiles({
-        docWorkerUrl: this._getDocComm().docWorkerUrl,
-        multiple: true,
-        sizeLimit: "attachment",
-      }, (progress) => {
-        if (progress === 0) {
-          this._setUploadingState(rowId, true);
-        }
+      const files = await selectPicker({ multiple: true });
+      if (!files.length) { return; }
+      checkBrowserUploadSizeLimit(files, "attachment");
+      const uploadResult = await this._docApi.upload(files, {
+        onProgress: (progress) => {
+          if (progress === 0) {
+            this._setUploadingState(rowId, true);
+          }
+        },
       });
       this._setUploadingState(rowId, false);
       return this._save(rowId, value, uploadResult);
@@ -225,15 +228,15 @@ export class AttachmentsWidget extends NewAbstractWidget {
     // into a cell of an inactive section).
     commands.allCommands.setCursor.run(row, this.field);
     try {
-      const uploadResult = await uploadFiles(
-        Array.from(files),
-        { docWorkerUrl: this._getDocComm().docWorkerUrl, sizeLimit: "attachment" },
-        (progress) => {
+      const fileArray = Array.from(files);
+      checkBrowserUploadSizeLimit(fileArray, "attachment");
+      const uploadResult = await this._docApi.upload(fileArray, {
+        onProgress: (progress) => {
           if (progress === 0) {
             this._setUploadingState(rowId, true);
           }
         },
-      );
+      });
       this._setUploadingState(rowId, false);
       return this._save(rowId, value, uploadResult);
     } catch (error) {
@@ -274,6 +277,13 @@ export class AttachmentsWidget extends NewAbstractWidget {
     await tableData.sendTableAction(["UpdateRecord", rowId, {
       [this.field.colId()]: newValue,
     }]);
+  }
+
+  // TODO - This is a very clumsy way of accessing this API, as it doesn't respect any custom options set.
+  //        Widgets should be able to access a GristDoc for DocComm and DocApi access, but that needs its own refactor.
+  private get _docApi() {
+    const docComm = this._getDocComm();
+    return new DocAPIImpl(docUrl(docComm.docWorkerUrl), docComm.docId);
   }
 }
 

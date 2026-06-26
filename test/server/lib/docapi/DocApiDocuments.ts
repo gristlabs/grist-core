@@ -26,7 +26,6 @@ import * as testUtils from "test/server/testUtils";
 
 import axios, { AxiosRequestConfig } from "axios";
 import { assert } from "chai";
-import FormData from "form-data";
 import range from "lodash/range";
 import fetch from "node-fetch";
 
@@ -45,7 +44,6 @@ function addDocumentsTests(getCtx: () => TestContext) {
     return new UserAPIImpl(`${baseUrl}/o/${org}`, {
       headers: config.headers as Record<string, string>,
       fetch: fetch as unknown as typeof globalThis.fetch,
-      newFormData: () => new FormData() as any,
     });
   }
 

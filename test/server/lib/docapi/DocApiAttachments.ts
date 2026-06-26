@@ -25,9 +25,7 @@ import { readFixtureDoc } from "test/server/testUtils";
 import axios, { AxiosResponse } from "axios";
 import { assert } from "chai";
 import decompress from "decompress";
-import FormData from "form-data";
 import * as _ from "lodash";
-import defaultsDeep from "lodash/defaultsDeep";
 
 describe("DocApiAttachments", function() {
   this.timeout(30000);
@@ -202,8 +200,7 @@ function addAttachmentsTests(getCtx: () => TestContext) {
 
       // Check for an error if there is no data included.
       const formData = new FormData();
-      resp = await axios.post(`${homeUrl}/api/docs/${testDoc}/attachments`, formData,
-        defaultsDeep({ headers: formData.getHeaders() }, chimpy));
+      resp = await axios.post(`${homeUrl}/api/docs/${testDoc}/attachments`, formData, chimpy);
       assert.equal(resp.status, 400);
       // TODO The error here is "stream ended unexpectedly", which isn't really reasonable.
     });
@@ -212,9 +209,8 @@ function addAttachmentsTests(getCtx: () => TestContext) {
       const { homeUrl, kiwi, getOrCreateTestDoc } = getCtx();
       const testDoc = await getOrCreateTestDoc();
       const formData = new FormData();
-      formData.append("upload", "xyzzz", "wrong.png");
-      let resp = await axios.post(`${homeUrl}/api/docs/${testDoc}/attachments`, formData,
-        defaultsDeep({ headers: formData.getHeaders() }, kiwi));
+      formData.append("upload", new File(["xyzzz"], "wrong.png"));
+      let resp = await axios.post(`${homeUrl}/api/docs/${testDoc}/attachments`, formData, kiwi);
       checkError(403, /No view access/, resp);
 
       resp = await axios.get(`${homeUrl}/api/docs/${testDoc}/attachments/3`, kiwi);
@@ -224,15 +220,55 @@ function addAttachmentsTests(getCtx: () => TestContext) {
       checkError(403, /No view access/, resp);
     });
 
+    it("POST /docs/{did}/uploads returns an uploadId scoped to the doc-owning worker", async function() {
+      const { homeUrl, chimpy, kiwi, getOrCreateTestDoc } = getCtx();
+      const testDoc = await getOrCreateTestDoc();
+
+      // Happy path: registers the upload and returns the uploadId + file metadata. Runs across
+      // merged / separated / direct-to-docworker scenarios (via addAllScenarios), so this also
+      // covers the "request lands on a non-owning worker and DocApiProxy re-routes" case.
+      const formData = new FormData();
+      formData.append("upload", new File(["foobar"], "hello.csv"));
+      formData.append("upload", new File(["baz"], "world.csv"));
+      let resp = await axios.post(`${homeUrl}/api/docs/${testDoc}/uploads`, formData, chimpy);
+      assert.equal(resp.status, 200);
+      assert.isNumber(resp.data.uploadId);
+      assert.lengthOf(resp.data.files, 2);
+      assert.deepEqual(resp.data.files.map((f: any) => f.origName), ["hello.csv", "world.csv"]);
+      assert.deepEqual(resp.data.files.map((f: any) => f.size), [6, 3]);
+
+      // 403 on a doc the user can't view.
+      const denyForm = new FormData();
+      denyForm.append("upload", new File(["xyzzz"], "wrong.png"));
+      resp = await axios.post(`${homeUrl}/api/docs/${testDoc}/uploads`, denyForm, kiwi);
+      checkError(403, /No view access/, resp);
+
+      // 400 on missing upload field.
+      const emptyForm = new FormData();
+      resp = await axios.post(`${homeUrl}/api/docs/${testDoc}/uploads`, emptyForm, chimpy);
+      assert.equal(resp.status, 400);
+    });
+
     it("POST /docs/{did}/attachments respects untrusted content-type only if valid", async function() {
       const { homeUrl, chimpy, getOrCreateTestDoc } = getCtx();
       const testDoc = await getOrCreateTestDoc();
-      const formData = new FormData();
-      formData.append("upload", "xyz", { filename: "foo", contentType: "application/pdf" });
-      formData.append("upload", "abc", { filename: "hello.png", contentType: "invalid/content-type" });
-      formData.append("upload", "def", { filename: "world.doc", contentType: "text/plain\nbad-header: 1\n\nEvil" });
-      let resp = await axios.post(`${homeUrl}/api/docs/${testDoc}/attachments`, formData,
-        defaultsDeep({ headers: formData.getHeaders() }, chimpy));
+      // Hand-rolled multipart body: native FormData/File strips bytes outside 0x20-0x7E
+      // from the Content-Type, so we'd never exercise the server-side header-injection guard
+      // (which is what the third part with the embedded newlines is testing).
+      const boundary = "----GristTest" + Math.random().toString(16).slice(2);
+      const part = (filename: string, ctype: string, body: string) =>
+        `--${boundary}\r\nContent-Disposition: form-data; name="upload"; filename="${filename}"\r\n` +
+        `Content-Type: ${ctype}\r\n\r\n${body}\r\n`;
+      const body = Buffer.from(
+        part("foo", "application/pdf", "xyz") +
+        part("hello.png", "invalid/content-type", "abc") +
+        part("world.doc", "text/plain\nbad-header: 1\n\nEvil", "def") +
+        `--${boundary}--\r\n`,
+      );
+      let resp = await axios.post(`${homeUrl}/api/docs/${testDoc}/attachments`, body, {
+        ...chimpy,
+        headers: { ...chimpy.headers, "Content-Type": `multipart/form-data; boundary=${boundary}` },
+      });
       assert.equal(resp.status, 200);
       assert.deepEqual(resp.data, [4, 5, 6]);
 
@@ -386,11 +422,10 @@ function addAttachmentsTests(getCtx: () => TestContext) {
       const docUrl = `${homeUrl}/api/docs/${docId}`;
 
       const formData = new FormData();
-      formData.append("upload", "foobar", "hello.doc");
-      formData.append("upload", "123456", "world.jpg");
-      formData.append("upload", "foobar", "hello2.doc");
-      let resp = await axios.post(`${docUrl}/attachments`, formData,
-        defaultsDeep({ headers: formData.getHeaders() }, chimpy));
+      formData.append("upload", new File(["foobar"], "hello.doc"));
+      formData.append("upload", new File(["123456"], "world.jpg"));
+      formData.append("upload", new File(["foobar"], "hello2.doc"));
+      let resp = await axios.post(`${docUrl}/attachments`, formData, chimpy);
       assert.equal(resp.status, 200);
       assert.deepEqual(resp.data, [1, 2, 3]);
 
@@ -530,22 +565,20 @@ function addAttachmentsTests(getCtx: () => TestContext) {
         const docWorkspaceId = (await axios.get(docUrl, chimpy)).data.workspace.id;
 
         const docUploadForm = new FormData();
-        docUploadForm.append("upload", docResp.data, "ExternalAttachmentsMissing.grist");
+        docUploadForm.append("upload", new File([docResp.data], "ExternalAttachmentsMissing.grist"));
         docUploadForm.append("workspaceId", docWorkspaceId);
-        const docUploadResp = await axios.post(`${homeUrl}/api/docs`, docUploadForm,
-          defaultsDeep({ headers: docUploadForm.getHeaders() }, chimpy));
+        const docUploadResp = await axios.post(`${homeUrl}/api/docs`, docUploadForm, chimpy);
         assert.equal(docUploadResp.status, 200, "can upload the doc");
 
         const newDocId = docUploadResp.data;
 
         const tarUploadForm = new FormData();
-        tarUploadForm.append("upload", archiveResp.data, {
-          filename: "AttachmentsAreHere.tar",
-          contentType: "application/x-tar",
-        });
+        tarUploadForm.append("upload", new File([archiveResp.data], "AttachmentsAreHere.tar", {
+          type: "application/x-tar",
+        }));
 
         const tarUploadResp = await axios.post(`${homeUrl}/api/docs/${newDocId}/attachments/archive`, tarUploadForm,
-          defaultsDeep({ headers: tarUploadForm.getHeaders() }, chimpy));
+          chimpy);
         assert.equal(tarUploadResp.status, 200, "can upload the attachment archive");
 
         assert.deepEqual(tarUploadResp.data, {
@@ -559,26 +592,22 @@ function addAttachmentsTests(getCtx: () => TestContext) {
       it("POST /docs/{did}/attachments/archive errors if no .tar file is found", async function() {
         const { chimpy } = getCtx();
         const badUploadForm = new FormData();
-        badUploadForm.append("upload", "Random content", {
-          filename: "AttachmentsAreHere.zip",
-          contentType: "application/zip",
-        });
+        badUploadForm.append("upload", new File(["Random content"], "AttachmentsAreHere.zip", {
+          type: "application/zip",
+        }));
 
-        const tarUploadResp = await axios.post(`${docUrl}/attachments/archive`, badUploadForm,
-          defaultsDeep({ headers: badUploadForm.getHeaders() }, chimpy));
+        const tarUploadResp = await axios.post(`${docUrl}/attachments/archive`, badUploadForm, chimpy);
         assert.equal(tarUploadResp.status, 400, "should be a bad request");
       });
 
       it("POST /docs/{did}/attachments/archive has a useful error if a bad file is used", async function() {
         const { chimpy } = getCtx();
         const badUploadForm = new FormData();
-        badUploadForm.append("upload", "Random content", {
-          filename: "AttachmentsAreHere.tar",
-          contentType: "application/x-tar",
-        });
+        badUploadForm.append("upload", new File(["Random content"], "AttachmentsAreHere.tar", {
+          type: "application/x-tar",
+        }));
 
-        const tarUploadResp = await axios.post(`${docUrl}/attachments/archive`, badUploadForm,
-          defaultsDeep({ headers: badUploadForm.getHeaders() }, chimpy));
+        const tarUploadResp = await axios.post(`${docUrl}/attachments/archive`, badUploadForm, chimpy);
         assert.equal(tarUploadResp.status, 500, "should be a bad request");
         assert.deepEqual(tarUploadResp.data, { error: "File is not a valid .tar" });
       });
@@ -609,15 +638,14 @@ function addAttachmentsTests(getCtx: () => TestContext) {
           const { homeUrl, userApi, chimpy } = getCtx();
           const wid = await getWorkspaceId("Private");
           const formData = new FormData();
+          // This doc has a store id that won't exist on the server.
+          // This should be updated to a valid one by the server on import.
+          const fixture = await readFixtureDoc("ExternalAttachmentsInvalidStoreId.grist");
           formData.append(
             "upload",
-            // This doc has a store id that won't exist on the server.
-            // This should be updated to a valid one by the server on import.
-            await readFixtureDoc("ExternalAttachmentsInvalidStoreId.grist"),
-            "ExternalAttachmentsInvalidStoreId.grist",
+            new File([new Uint8Array(fixture)], "ExternalAttachmentsInvalidStoreId.grist"),
           );
-          const config = defaultsDeep({ headers: formData.getHeaders() }, chimpy);
-          const importResp = await axios.post(`${homeUrl}/api/workspaces/${wid}/import`, formData, config);
+          const importResp = await axios.post(`${homeUrl}/api/workspaces/${wid}/import`, formData, chimpy);
           assert.equal(importResp.status, 200);
           const importedDocId = importResp.data.id;
           const docApi = userApi.getDocAPI(importedDocId);

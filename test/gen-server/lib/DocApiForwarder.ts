@@ -17,8 +17,6 @@ import axios, { AxiosResponse } from "axios";
 import { fromCallback } from "bluebird";
 import { assert } from "chai";
 import express from "express";
-import FormData from "form-data";
-import defaultsDeep from "lodash/defaultsDeep";
 import morganLogger from "morgan";
 import sinon from "sinon";
 
@@ -166,9 +164,8 @@ describe("DocApiForwarder", function() {
 
   it("should forward POST /api/docs/:did/attachments", async function() {
     const formData = new FormData();
-    formData.append("upload", "abcdef", "hello.png");
-    resp = await axios.post(`${homeUrl}/api/docs/sampledocid_16/attachments`, formData,
-      defaultsDeep({ headers: formData.getHeaders() }, chimpy));
+    formData.append("upload", new File(["abcdef"], "hello.png"));
+    resp = await axios.post(`${homeUrl}/api/docs/sampledocid_16/attachments`, formData, chimpy);
     assert.equal(resp.status, 200);
     assert.deepEqual(resp.headers["content-type"], "application/json; charset=utf-8");
     assert.deepEqual(resp.data, "mango tree");
@@ -240,5 +237,17 @@ describe("DocApiForwarder", function() {
     await promiseForRequestDone;
     sinon.assert.calledOnce(checkIsClosed);
     assert.deepEqual(checkIsClosed.args, [[true]]);
+  });
+
+  it("should forward POST /api/docs/:did/uploads", async function() {
+    const formData = new FormData();
+    formData.append("upload", new File(["foobar"], "hello.csv"));
+    resp = await axios.post(`${homeUrl}/api/docs/sampledocid_16/uploads`, formData, chimpy);
+    assert.equal(resp.status, 200);
+    assert(docWorkerStub.calledOnce);
+    const req = docWorkerStub.getCall(0).args[0];
+    assert.match(req.get("Content-Type"), /^multipart\/form-data; boundary=/);
+    assert.equal(req.originalUrl, "/dw/foo/api/docs/sampledocid_16/uploads");
+    assert.equal(req.method, "POST");
   });
 });

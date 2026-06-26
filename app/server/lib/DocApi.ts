@@ -327,6 +327,13 @@ export class DocWorkerApi {
       res.json(await activeDoc.addAttachments(docSessionFromRequest(req), uploadResult.uploadId));
     }));
 
+    // Doc-scoped upload: registers an upload in globalUploadSet on the doc-owning worker.
+    // The resulting uploadId is then consumable on this same worker.
+    // DocApiProxy ensures requests land on the right worker, even when a load balancer sends it to a different node.
+    this._app.post("/api/docs/:docId/uploads", canView, withDoc(async (activeDoc, req, res) => {
+      res.json(await handleUpload(req, res));
+    }));
+
     // Select the fields from an attachment record that we want to return to the user,
     // and convert the timeUploaded from a number to an ISO string.
     function cleanAttachmentRecord(record: MetaRowRecord<"_grist_Attachments">) {
@@ -1329,7 +1336,7 @@ export class DocWorkerApi {
           userId,
           sourceDocumentId,
           workspaceId: integerParam(parameters.workspaceId, "workspaceId"),
-          documentName: stringParam(parameters.documentName, "documentName"),
+          documentName: optStringParam(parameters.documentName, "documentName"),
           asTemplate: optBooleanParam(parameters.asTemplate, "asTemplate"),
         });
       } else if (uploadId !== undefined) {
@@ -1366,7 +1373,7 @@ export class DocWorkerApi {
         userId,
         sourceDocumentId: stringParam(req.params.docId, "docId"),
         workspaceId: integerParam(parameters.workspaceId, "workspaceId"),
-        documentName: stringParam(parameters.documentName, "documentName"),
+        documentName: optStringParam(parameters.documentName, "documentName"),
         asTemplate: optBooleanParam(parameters.asTemplate, "asTemplate"),
       });
 
@@ -1607,7 +1614,7 @@ export class DocWorkerApi {
     userId: number,
     sourceDocumentId: string,
     workspaceId: number,
-    documentName: string,
+    documentName?: string,
     asTemplate?: boolean,
   }): Promise<string> {
     const mreq = req as RequestWithLogin;
@@ -1618,7 +1625,7 @@ export class DocWorkerApi {
     try {
       const accessId = makeAccessId(req, getAuthorizedUserId(req));
       uploadResult = await fetchDoc(this._grist, this._docWorkerMap, sourceDocumentId, req, accessId, asTemplate);
-      globalUploadSet.changeUploadName(uploadResult.uploadId, accessId, `${documentName}.grist`);
+      globalUploadSet.changeUploadName(uploadResult.uploadId, accessId, `${documentName ?? sourceDocumentId}.grist`);
     } catch (err) {
       if ((err as ApiError).status === 403) {
         throw new ApiError("Insufficient access to document to copy it entirely", 403);

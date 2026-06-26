@@ -101,8 +101,10 @@ describe("Fork", function() {
             const anonApi = personal.anon.createHomeApi();
             const activeApi = (mode === "anonymous") ? anonApi : api;
             const id = await (content === "empty" ? activeApi.newUnsavedDoc() :
-              activeApi.importUnsavedDoc(Buffer.from("A,B\n999,2\n"),
-                { filename: "foo.csv" }));
+              activeApi.importUnsavedDoc({
+                contents: new Blob([Buffer.from("A,B\n999,2\n")]),
+                name: "foo.csv",
+              }));
             await personal.loadDoc(`/doc/${id}`);
             await gu.dismissWelcomeTourIfNeeded();
             await gu.toggleSidePanel("left", "open");

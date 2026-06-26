@@ -12,7 +12,6 @@ import { Writable } from "stream";
 
 import { delay } from "bluebird";
 import express from "express";
-import FormData from "form-data";
 import * as fse from "fs-extra";
 import httpProxy from "http-proxy";
 import fetch from "node-fetch";
@@ -161,7 +160,6 @@ export class TestServer {
     return new UserAPIImpl(`${this.serverUrl}/o/${org}`, {
       headers: { Authorization: `Bearer api_key_for_${user}` },
       fetch: fetch as unknown as typeof globalThis.fetch,
-      newFormData: () => new FormData() as any,
     });
   }
 

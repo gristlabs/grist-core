@@ -15,7 +15,6 @@ import { configForUser, createUser } from "test/gen-server/testUtils";
 import * as testUtils from "test/server/testUtils";
 
 import { assert } from "chai";
-import FormData from "form-data";
 import fetch from "node-fetch";
 
 describe("limits", function() {
@@ -59,7 +58,6 @@ describe("limits", function() {
     // Set up an api object tied to the user's personal org
     api = new UserAPIImpl(`${homeUrl}/o/docs`, {
       fetch: fetch as any,
-      newFormData: () => new FormData() as any,
       ...configForUser("sam") as IOptions,
     });
     // Give chimpy access to this org

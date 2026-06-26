@@ -22,7 +22,6 @@ import * as path from "path";
 
 import { AxiosRequestConfig } from "axios";
 import { assert } from "chai";
-import FormData from "form-data";
 import fetch from "node-fetch";
 import { createClient } from "redis";
 
@@ -80,7 +79,6 @@ describe("DocApiReverseProxy", function() {
     return new UserAPIImpl(`${homeUrl}/o/${org}`, {
       headers: makeConfig(user).headers as Record<string, string>,
       fetch: fetch as unknown as typeof globalThis.fetch,
-      newFormData: () => new FormData() as any,
     });
   }
 

@@ -1876,9 +1876,12 @@ describe("GranularAccess", function() {
     // Download should work, and have FullCopies rules/resources removed.
     const download = await (await editor.getWorkerAPI(docId)).downloadDoc(docId);
     const worker = await editor.getWorkerAPI("import");
-    const uploadId = await worker.upload(await (download as any).buffer(), "upload.grist");
+    const buffer = await (download as any).buffer();
     const workspaceId = (await editor.getOrgWorkspaces("current"))[0].id;
-    const copyDocId = (await worker.importDocToWorkspace(uploadId, workspaceId)).id;
+    const copyDocId = (await worker.importDocToWorkspace(
+      [{ contents: new Blob([buffer]), name: "upload.grist" }],
+      workspaceId,
+    )).id;
     assert.deepEqual(await editor.getDocAPI(copyDocId).getRows("_grist_ACLResources"),
       { id: [1, 2, 3, 4],
         colIds: ["", "*", "*", "AccessRules"],

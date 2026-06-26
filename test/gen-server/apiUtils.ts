@@ -22,7 +22,6 @@ import { fixturesRoot } from "test/server/testUtils";
 import * as path from "path";
 
 import axios from "axios";
-import FormData from "form-data";
 import fetch from "node-fetch";
 
 export class TestServer {
@@ -293,7 +292,6 @@ export class TestSession {
     const api = new UserAPIImpl(`${this.home.getOwnUrl()}/o/${orgDomain}`, {
       fetch: fetch as any,
       headers,
-      newFormData: () => new FormData() as any,
     });
     // Make sure api is functioning, and create user if this is their first time to hit API.
     if (checkAccess) { await api.getOrg("current"); }

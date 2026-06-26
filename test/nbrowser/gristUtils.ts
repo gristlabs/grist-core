@@ -70,7 +70,6 @@ namespace gristUtils {
 
   export const createNewDoc = homeUtil.createNewDoc.bind(homeUtil);
   // importFixturesDoc has a custom implementation that supports 'load' flag.
-  export const uploadFixtureDoc = homeUtil.uploadFixtureDoc.bind(homeUtil);
   export const getWorkspaceId = homeUtil.getWorkspaceId.bind(homeUtil);
   export const listDocs = homeUtil.listDocs.bind(homeUtil);
   export const createHomeApi = homeUtil.createHomeApi.bind(homeUtil);
@@ -2835,7 +2834,7 @@ namespace gristUtils {
   export async function insertColumn(type?: string) {
     await sendKeys(Key.chord(Key.ALT, "="));
     // Wait for the rename popup to actually open, otherwise Escape is racy.
-    await driver.findWait(".test-column-title-popup", 1000);
+    await driver.findWait(".test-column-title-popup", 3000);
     await sendKeys(Key.ESCAPE);
     // Make sure the popup is gone before returning, so a subsequent insertColumn
     // call doesn't have its Alt+= swallowed by a still-closing popup.

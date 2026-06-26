@@ -6,8 +6,13 @@ import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 export interface IOptions {
   headers?: Record<string, string>;
   fetch?: typeof fetch;
-  newFormData?: () => FormData;  // constructor for FormData depends on platform.
   extraParameters?: Map<string, string>;  // if set, add query parameters to requests.
+}
+
+export interface UploadProgressCallbacks {
+  // Called whenever a progress event is emitted during the upload.
+  // Percent is a number between 0 and 100, or undefined if progress is not available / incalculable.
+  onProgress?: (percent?: number) => void;
 }
 
 /**
@@ -50,13 +55,11 @@ export class BaseAPI {
   private static _numPendingRequests: number = 0;
 
   protected fetch: typeof fetch;
-  protected newFormData: () => FormData;
   private _headers: Record<string, string>;
   private _extraParameters?: Map<string, string>;
 
   constructor(public readonly options: IOptions = {}) {
     this.fetch = options.fetch || tbind(window.fetch, window);
-    this.newFormData = options.newFormData || (() => new FormData());
     this._headers = {
       "Content-Type": "application/json",
       "X-Requested-With": "XMLHttpRequest",
@@ -95,21 +98,31 @@ export class BaseAPI {
   // Similar to request, but uses the axios library, and supports progress indicator.
   @BaseAPI.countRequest
   protected async requestAxios(url: string, config: AxiosRequestConfig): Promise<AxiosResponse> {
-    // If using with FormData in node, axios needs the headers prepared by FormData.
-    let headers = config.headers;
-    if (config.data && typeof config.data.getHeaders === "function") {
-      headers = { ...config.data.getHeaders(), ...headers };
-    }
     const resp = await axios.request({
       url,
       withCredentials: true,
       validateStatus: status => true,     // This is more like fetch
       ...config,
-      headers,
     });
     if (resp.status !== 200) {
       throwApiError(url, resp, resp.data);
     }
+    return resp;
+  }
+
+  protected async requestWithFormData(url: string, formData: FormData, options: UploadProgressCallbacks = {}) {
+    const { onProgress } = options;
+    onProgress?.(0);
+    const resp = await this.requestAxios(url, {
+      method: "POST",
+      data: formData,
+      onUploadProgress: ev => onProgress?.(ev.progress === undefined ? undefined : ev.progress * 100),
+      // On browser, it is important not to set Content-Type so that the browser takes care
+      // of setting HTTP headers appropriately.  Outside browser, requestAxios has logic
+      // for setting the HTTP headers.
+      headers: { ...this.defaultHeadersWithoutContentType() },
+    });
+    onProgress?.(100);
     return resp;
   }
 

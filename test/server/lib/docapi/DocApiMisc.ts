@@ -18,8 +18,6 @@ import { getDatabase } from "test/testUtils";
 
 import axios, { AxiosResponse } from "axios";
 import { assert } from "chai";
-import FormData from "form-data";
-import defaultsDeep from "lodash/defaultsDeep";
 
 describe("DocApiMisc", function() {
   this.timeout(30000);
@@ -166,9 +164,8 @@ function addMiscTests(getCtx: () => TestContext) {
     const { homeUrl, userApi, chimpy } = getCtx();
     const wid = (await userApi.getOrgWorkspaces("current")).find(w => w.name === "Private")!.id;
     const formData = new FormData();
-    formData.append("upload", "A,B\n1,2\n3,4\n", "table1.csv");
-    const config = defaultsDeep({ headers: formData.getHeaders() }, chimpy);
-    const importResp = await axios.post(`${homeUrl}/api/workspaces/${wid}/import`, formData, config);
+    formData.append("upload", new File(["A,B\n1,2\n3,4\n"], "table1.csv"));
+    const importResp = await axios.post(`${homeUrl}/api/workspaces/${wid}/import`, formData, chimpy);
     assert.equal(importResp.status, 200);
     const urlId = importResp.data.id;
 
@@ -287,6 +284,8 @@ function addMiscTests(getCtx: () => TestContext) {
       "Link should not contain a share key prefix after share-first open");
   });
 
+  // Note: This has largely been replaced by passing the file directly to "import".
+  // However, as long as this flow is still valid (direct doc-worker upload), this test needs to be kept.
   it("document is protected during upload-and-import sequence", async function() {
     const { userApi, chimpy, kiwi, home } = getCtx();
     if (!process.env.TEST_REDIS_URL) {
@@ -297,10 +296,10 @@ function addMiscTests(getCtx: () => TestContext) {
     // upload something for Chimpy and something else for Kiwi.
     const worker1 = await userApi.getWorkerAPI("import");
     const fakeData1 = await testUtils.readFixtureDoc("Hello.grist");
-    const uploadId1 = await worker1.upload(fakeData1, "upload.grist");
+    const uploadId1 = await worker1.upload(new Blob([new Uint8Array(fakeData1)]), "upload.grist");
     const worker2 = await kiwiApi.getWorkerAPI("import");
     const fakeData2 = await testUtils.readFixtureDoc("Favorite_Films.grist");
-    const uploadId2 = await worker2.upload(fakeData2, "upload2.grist");
+    const uploadId2 = await worker2.upload(new Blob([new Uint8Array(fakeData2)]), "upload2.grist");
 
     // Check that kiwi only has access to their own upload.
     let wid = (await kiwiApi.getOrgWorkspaces("current")).find(w => w.name === "Big")!.id;
