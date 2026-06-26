@@ -11,4 +11,3 @@ phonenumberslite
 python-dateutil
 sortedcontainers
 unittest-xml-reporting
-typing-extensions  # used by astroid before Python 3.11
