@@ -883,7 +883,8 @@
         "Select a field in the form widget to configure.": "Select a field in the form widget to configure.",
         "Submit": "Submit",
         "Thank you! Your response has been recorded.": "Thank you! Your response has been recorded.",
-        "Chart options": "Chart options"
+        "Chart options": "Chart options",
+        "You may use {{placeholder}} placeholder for the ID of the added record.": "You may use {{placeholder}} placeholder for the ID of the added record."
     },
     "RowContextMenu": {
         "Copy anchor link": "Copy anchor link",
