@@ -3134,7 +3134,9 @@
         "Visitors who aren't signed in can create and edit documents in a temporary playground. Turn off to require sign-in before creating any documents.": "Visitors who aren't signed in can create and edit documents in a temporary playground. Turn off to require sign-in before creating any documents.",
         "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.": "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.",
         "off": "off",
-        "on": "on"
+        "on": "on",
+        "Sends anonymous usage metrics to Grist Labs. No document contents are collected. Configurable anytime from the admin panel.": "Sends anonymous usage metrics to Grist Labs. No document contents are collected. Configurable anytime from the admin panel.",
+        "Share product telemetry": "Share product telemetry"
     },
     "ScreenReaderAnnouncer": {
         "Notification: {{notification}}": "Notification: {{notification}}"
