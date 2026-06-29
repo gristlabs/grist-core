@@ -3,14 +3,14 @@ import * as commands from "app/client/components/commands";
 import { GristDoc } from "app/client/components/GristDoc";
 import { kbFocusHighlighterClass } from "app/client/components/KeyboardFocusHighlighter";
 import { FocusLayer } from "app/client/lib/FocusLayer";
-import { isFocusable, trapTabKey } from "app/client/lib/focusUtils";
+import { clearCurrentFocusLock, enableFocusLock, isFocusable } from "app/client/lib/focusUtils";
 import { makeT } from "app/client/lib/localization";
 import { App } from "app/client/ui/App";
 import { SpecialDocPage } from "app/common/gristUrls";
 import { mod } from "app/common/gutil";
 import { components } from "app/common/ThemePrefs";
 
-import { Disposable, dom, Holder, Observable, styled, UseCBOwner } from "grainjs";
+import { Disposable, dom, Observable, styled, UseCBOwner } from "grainjs";
 import isEqual from "lodash/isEqual";
 
 const t = makeT("RegionFocusSwitcher");
@@ -660,24 +660,6 @@ const blurPanelChild = (panel: PanelRegion) => {
   if (containsActiveElement(panelElement)) {
     (document.activeElement as HTMLElement).blur();
   }
-};
-
-const _focusLockHolder = Holder.create(null);
-
-const clearCurrentFocusLock = () => _focusLockHolder.clear();
-
-/**
- * Trap the tab key inside the given panel element.
- *
- * That makes pressing tab and shift+tab loop exclusively through focusable elements that are *in* the panel.
- */
-const enableFocusLock = (panelElement: HTMLElement) => {
-  clearCurrentFocusLock();
-  _focusLockHolder.autoDispose(dom.onElem(panelElement, "keydown", (event, elem) => {
-    if (event.key === "Tab") {
-      trapTabKey(elem, event);
-    }
-  }));
 };
 
 const getPanelElement = (id: Panel): HTMLElement | null => {

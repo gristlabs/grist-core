@@ -23,6 +23,28 @@
  * IN THE SOFTWARE.
  */
 
+import { dom, Holder } from "grainjs";
+
+const _focusLockHolder = Holder.create(null);
+
+/**
+ * Trap the tab key inside the given element.
+ *
+ * That makes pressing tab and shift+tab loop exclusively through focusable elements that are *in* the element.
+ */
+export const enableFocusLock = (element: HTMLElement) => {
+  clearCurrentFocusLock();
+  _focusLockHolder.autoDispose(dom.onElem(element, "keydown", (event, elem) => {
+    if (event.key === "Tab") {
+      trapTabKey(elem, event);
+    }
+  }));
+};
+
+export const clearCurrentFocusLock = () => {
+  _focusLockHolder.clear();
+};
+
 /**
  * Trap the tab key within the given element.
  *
