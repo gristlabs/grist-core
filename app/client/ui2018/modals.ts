@@ -1,5 +1,6 @@
 import { kbFocusHighlighterClass } from "app/client/components/KeyboardFocusHighlighter";
 import { FocusLayer } from "app/client/lib/FocusLayer";
+import { clearCurrentFocusLock, enableFocusLock } from "app/client/lib/focusUtils";
 import { makeT } from "app/client/lib/localization";
 import { reportError } from "app/client/models/errors";
 import { cssInput } from "app/client/ui/cssInput";
@@ -203,6 +204,7 @@ export function modal(
   }
 
   function closeModal() {
+    clearCurrentFocusLock();
     document.body.removeChild(modalDom);
     // Ensure we run the disposers for the DOM contained in the modal.
     dom.domDispose(modalDom);
@@ -270,6 +272,7 @@ export function modal(
   );
 
   document.body.appendChild(modalDom);
+  enableFocusLock(modalDom);
   if (variant === "collapsing") { expandModal(); }
 }
 
