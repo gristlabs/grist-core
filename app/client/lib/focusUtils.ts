@@ -89,26 +89,66 @@ function getFocusableEdges(el: HTMLElement) {
 /**
  * Move focus to the next/previous focusable in `container` (same ordering as Tab / Shift+Tab).
  */
-export function focusAdjacentFocusable(container: HTMLElement, delta: 1 | -1): boolean {
+export function focusAdjacentFocusable(container: HTMLElement, delta: 1 | -1, options: {
+  /** Additional CSS selector string to restrict the list of focusable elements we should try to focus */
+  matching?: string;
+  /** Set to false to include [tabindex="-1"] elements */
+  onlyUserFocusable?: boolean,
+  /** Set to true to try to focus the first element of the container when the last element is reached and vice-versa */
+  loop?: boolean,
+} = {}): boolean {
+  const { matching, onlyUserFocusable = true, loop = false } = options;
+
   const active = getActiveEl();
   if (!(active instanceof HTMLElement) || !container.contains(active)) {
     return false;
   }
-  const ordered = getFocusables(container);
-  const i = ordered.indexOf(active);
+
+  const focusables = onlyUserFocusable ? getUserFocusables(container) : getAllFocusables(container);
+
+  let targets: (HTMLElement | null)[] = focusables;
+  let fallbackTargetIndex = -1;
+  if (matching) {
+    targets = focusables.map((el, index) => {
+      if (!el.matches(matching)) {
+        return null;
+      }
+      if (
+        (delta === 1 && fallbackTargetIndex === -1) || (loop && delta === -1)
+      ) {
+        fallbackTargetIndex = index;
+      }
+      return el;
+    });
+  }
+
+  let i = focusables.indexOf(active);
   if (i < 0) {
-    return false;
+    targets[fallbackTargetIndex]?.focus();
+    return true;
   }
-  const j = i + delta;
-  if (j < 0 || j >= ordered.length) {
-    return false;
+  for (let j = 0; j < targets.length - 1; j++) {
+    i = loop ?
+      (i + delta + targets.length) % targets.length :
+      i + delta;
+    if (i < 0 || i >= targets.length) {
+      break;
+    }
+    if (targets[i]) {
+      targets[i]?.focus();
+      return true;
+    }
   }
-  ordered[j].focus();
-  return true;
+  return false;
 }
 
-function getFocusables(container: HTMLElement): HTMLElement[] {
-  return Array.from(container.querySelectorAll<HTMLElement>(focusableSelectorsString)).filter(isFocusable);
+export function getUserFocusables(container: HTMLElement): HTMLElement[] {
+  return Array.from(container.querySelectorAll<HTMLElement>(userFocusableSelectorsString)).filter(isUserFocusable);
+}
+
+export function getAllFocusables(container: HTMLElement): HTMLElement[] {
+  return Array.from(container.querySelectorAll<HTMLElement>(allFocusableSelectorsString))
+    .filter(el => isProgrammaticallyFocusable(el, true));
 }
 
 function findFocusableEl(
@@ -117,7 +157,7 @@ function findFocusableEl(
 ): HTMLElement | null {
   // If we’re walking forward, check if this element is focusable, and return it
   // immediately if it is.
-  if (forward && isFocusable(el)) { return el; }
+  if (forward && isUserFocusable(el)) { return el; }
 
   // We should only search the subtree of this element if it can have focusable
   // children.
@@ -168,7 +208,7 @@ function findFocusableEl(
   // If we’re walking backward, we want to check the element’s entire subtree
   // before checking the element itself. If this element is focusable, return
   // it.
-  if (!forward && isFocusable(el)) { return el; }
+  if (!forward && isUserFocusable(el)) { return el; }
 
   return null;
 }
@@ -231,7 +271,7 @@ function getNextSiblingEl(el: HTMLElement, forward: boolean) {
 /**
  * Determine if an element is focusable and has user-visible painted dimensions.
  */
-export const isFocusable = (el: HTMLElement) => {
+export const isUserFocusable = (el: HTMLElement) => {
   // A shadow host that delegates focus will never directly receive focus,
   // even with `tabindex=0`. Consider our <fancy-button> custom element, which
   // delegates focus to its shadow button:
@@ -245,7 +285,15 @@ export const isFocusable = (el: HTMLElement) => {
   // button. Our library should behave the same way.
   if (el.shadowRoot?.delegatesFocus) { return false; }
 
-  return el.matches(focusableSelectorsString) && !isHidden(el);
+  return el.matches(userFocusableSelectorsString) && !isHidden(el);
+};
+
+/**
+ * Determine if an element is programmatically focusable, without checking if it is actually visible.
+ */
+export const isProgrammaticallyFocusable = (el: HTMLElement, includeHidden = false) => {
+  if (el.shadowRoot?.delegatesFocus) { return false; }
+  return el.matches(allFocusableSelectorsString) && (includeHidden || !isHidden(el));
 };
 
 /**
@@ -269,23 +317,27 @@ const notInert = ":not([inert]):not([inert] *)";
 const notNegTabIndex = ':not([tabindex^="-"])';
 const notDisabled = ":not(:disabled)";
 
-const focusableSelectors = [
-  `a[href]${notInert}${notNegTabIndex}`,
-  `area[href]${notInert}${notNegTabIndex}`,
-  `input:not([type="hidden"]):not([type="radio"])${notInert}${notNegTabIndex}${notDisabled}`,
-  `input[type="radio"]${notInert}${notNegTabIndex}${notDisabled}`,
-  `select${notInert}${notNegTabIndex}${notDisabled}`,
-  `textarea${notInert}${notNegTabIndex}${notDisabled}`,
-  `button${notInert}${notNegTabIndex}${notDisabled}`,
-  `details${notInert} > summary:first-of-type${notNegTabIndex}`,
-  // Discard until Firefox supports `:has()`
-  // See: https://github.com/KittyGiraudel/focusable-selectors/issues/12
-  // `details:not(:has(> summary))${notInert}${notNegTabIndex}`,
-  `iframe${notInert}${notNegTabIndex}`,
-  `audio[controls]${notInert}${notNegTabIndex}`,
-  `video[controls]${notInert}${notNegTabIndex}`,
-  `[contenteditable]${notInert}${notNegTabIndex}`,
-  `[tabindex]${notInert}${notNegTabIndex}`,
-];
+const focusableSelectors = (includeNegativeTabIndexes: boolean) => {
+  const tabIndexPart = includeNegativeTabIndexes ? "" : notNegTabIndex;
+  return [
+    `a[href]${notInert}${tabIndexPart}`,
+    `area[href]${notInert}${tabIndexPart}`,
+    `input:not([type="hidden"]):not([type="radio"])${notInert}${tabIndexPart}${notDisabled}`,
+    `input[type="radio"]${notInert}${tabIndexPart}${notDisabled}`,
+    `select${notInert}${tabIndexPart}${notDisabled}`,
+    `textarea${notInert}${tabIndexPart}${notDisabled}`,
+    `button${notInert}${tabIndexPart}${notDisabled}`,
+    `details${notInert} > summary:first-of-type${tabIndexPart}`,
+    // Discard until Firefox supports `:has()`
+    // See: https://github.com/KittyGiraudel/focusable-selectors/issues/12
+    // `details:not(:has(> summary))${notInert}${tabIndexPart}`,
+    `iframe${notInert}${tabIndexPart}`,
+    `audio[controls]${notInert}${tabIndexPart}`,
+    `video[controls]${notInert}${tabIndexPart}`,
+    `[contenteditable]${notInert}${tabIndexPart}`,
+    `[tabindex]${notInert}${tabIndexPart}`,
+  ];
+};
 
-export const focusableSelectorsString = focusableSelectors.join(",");
+export const userFocusableSelectorsString = focusableSelectors(false).join(",");
+export const allFocusableSelectorsString = focusableSelectors(true).join(",");
