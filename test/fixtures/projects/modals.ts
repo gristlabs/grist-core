@@ -1,3 +1,4 @@
+import { kbFocusHighlighterClass, KeyboardFocusHighlighter } from "app/client/components/KeyboardFocusHighlighter";
 import { basicButton } from "app/client/ui2018/buttons";
 import { primaryButton } from "app/client/ui2018/buttons";
 import { confirmModal, modal, saveModal, spinnerModal } from "app/client/ui2018/modals";
@@ -8,12 +9,14 @@ import { dom, input, makeTestId, styled } from "grainjs";
 import { Computed, Observable, observable } from "grainjs";
 
 function setupTest() {
+  KeyboardFocusHighlighter.create(null);
   const confirmed = observable(false);
   const isOpen = observable(false);
   const isSaveModalOpen = observable(false);
   const testId = makeTestId("testui-");
   const asyncTask = observable<{ resolve: () => void } | null>(null);
   return cssTestBox(
+    dom.cls(kbFocusHighlighterClass),
     dom("h1", "Modals"),
     dom("div",
       primaryButton("Confirmation modal",

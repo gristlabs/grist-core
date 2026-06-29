@@ -87,6 +87,49 @@ describe("modals", function() {
     assert.match(await driver.find(".testui-custom-modal-text").getText(), /Closed/);
   });
 
+  it("should use ARIA attributes", async function() {
+    await driver.find(".testui-confirm-modal-opener").click();
+    await checkOpen();
+
+    const modalContainer = await driver.find(".test-modal-dialog");
+    assert.equal(await modalContainer.getAttribute("role"), "dialog");
+    assert.equal(await modalContainer.getAttribute("tabindex"), "-1");
+    assert.equal(await modalContainer.getAttribute("aria-modal"), "true");
+    const modalTitle = await driver.find(".test-modal-title");
+    assert.equal(await modalContainer.getAttribute("aria-labelledby"), await modalTitle.getAttribute("id"));
+    assert.equal(await modalContainer.getAttribute("aria-hidden"), null);
+
+    await driver.sendKeys(Key.ESCAPE);
+    await checkClosed();
+  });
+
+  it("should lock keyboard focus inside the modal", async function() {
+    await driver.find(".testui-confirm-modal-opener").click();
+    await checkOpen();
+
+    // Focus is set on the modal itself on open
+    assert.equal(await driver.switchTo().activeElement().getId(), await driver.find(".test-modal-dialog").getId());
+
+    // pressing Tab loops through the focusable elements inside the modal
+    await driver.sendKeys(Key.TAB);
+    assert.equal(await driver.switchTo().activeElement().getId(), await driver.find(".test-modal-confirm").getId());
+    await driver.sendKeys(Key.TAB);
+    assert.equal(await driver.switchTo().activeElement().getId(), await driver.find(".test-modal-cancel").getId());
+    await driver.sendKeys(Key.TAB);
+    assert.equal(await driver.switchTo().activeElement().getId(), await driver.find(".test-modal-confirm").getId());
+
+    // pressing Shift+Tab loops through the focusable elements inside the modal
+    await driver.sendKeys(Key.chord(Key.SHIFT, Key.TAB));
+    assert.equal(await driver.switchTo().activeElement().getId(), await driver.find(".test-modal-cancel").getId());
+    await driver.sendKeys(Key.chord(Key.SHIFT, Key.TAB));
+    assert.equal(await driver.switchTo().activeElement().getId(), await driver.find(".test-modal-confirm").getId());
+    await driver.sendKeys(Key.chord(Key.SHIFT, Key.TAB));
+    assert.equal(await driver.switchTo().activeElement().getId(), await driver.find(".test-modal-cancel").getId());
+
+    await driver.sendKeys(Key.ESCAPE);
+    await checkClosed();
+  });
+
   describe("saveModal", function() {
     it("should support arbitrary dom arguments", async () => {
       // Title and saveLabel both include dynamic DOM; check that it works.
