@@ -142,7 +142,13 @@ type CreateAttachmentOptions = CreateAttachmentCommonOptions & FormTarget;
 
 export class FormAPIImpl extends BaseAPI implements FormAPI {
   constructor(private _homeUrl: string, options: IOptions = {}) {
-    super(options);
+    // Use "same-origin" credentials so that forms work when embedded as a same-origin custom
+    // widget: such widgets are sandboxed into an opaque origin (see WidgetFrame), which makes the
+    // form's API requests cross-origin. A credentialed cross-origin request would be blocked by
+    // CORS, and isn't needed - public form submission is authorized by the share key, not the
+    // user's session. When the form is loaded normally (its own page on Grist's origin), the
+    // requests are same-origin and cookies are still sent.
+    super({ credentials: "same-origin", ...options });
   }
 
   public async getForm(options: GetFormOptions): Promise<Form> {

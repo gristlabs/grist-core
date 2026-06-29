@@ -312,21 +312,26 @@ describe("CustomWidgets", function() {
       await gu.undo(6);
     });
 
-    it("should refuse a custom widget URL on Grist's own origin", async () => {
-      // A cross-origin URL loads normally.
+    it("should sandbox a custom widget URL on Grist's own origin", async () => {
+      // A cross-origin URL loads normally and is not sandboxed (it's already origin-isolated).
       await gu.setCustomWidgetUrl(`${widgetServerUrl}/200`);
       assert.equal(await content(), "OK");
+      assert.isNull(await getCustomWidgetFrame().getAttribute("sandbox"));
 
-      // A URL on Grist's own origin is refused (the XSS guard), so the empty widget page
-      // is shown instead of the URL we set.
+      // A URL on Grist's own origin is allowed (so use cases like public forms keep working), but
+      // is loaded in a sandbox WITHOUT allow-same-origin. This gives it an opaque origin, so it
+      // can't share Grist's session even though the URL is on Grist's site.
       const pageOrigin = new URL(await driver.getCurrentUrl()).origin;
       await gu.setCustomWidgetUrl(`${pageOrigin}/200`);
-      assert.match(await getCustomWidgetFrame().getAttribute("src"), /\/custom-widget\.html/);
-      assert.isTrue((await content()).startsWith("Custom widget"));
+      assert.match(await getCustomWidgetFrame().getAttribute("src"), new RegExp(`^${pageOrigin}/200`));
+      const sandbox = await getCustomWidgetFrame().getAttribute("sandbox");
+      assert.include(sandbox, "allow-scripts");
+      assert.notInclude(sandbox, "allow-same-origin");
 
       // Restore the empty Custom URL state for the following tests.
       await gu.setCustomWidgetUrl("");
       assert.isTrue((await content()).startsWith("Custom widget"));
+      assert.isNull(await getCustomWidgetFrame().getAttribute("sandbox"));
     });
 
     it("should support theme variables", async () => {

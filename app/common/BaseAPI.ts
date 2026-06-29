@@ -8,6 +8,11 @@ export interface IOptions {
   fetch?: typeof fetch;
   newFormData?: () => FormData;  // constructor for FormData depends on platform.
   extraParameters?: Map<string, string>;  // if set, add query parameters to requests.
+  // Credentials mode for requests. Defaults to "include" (send cookies even cross-origin). Use
+  // "same-origin" for APIs that may be called from a sandboxed/opaque origin (e.g. public forms
+  // embedded as same-origin widgets), where a credentialed cross-origin request would be blocked
+  // by CORS and isn't needed anyway.
+  credentials?: RequestCredentials;
 }
 
 /**
@@ -53,10 +58,12 @@ export class BaseAPI {
   protected newFormData: () => FormData;
   private _headers: Record<string, string>;
   private _extraParameters?: Map<string, string>;
+  private _credentials: RequestCredentials;
 
   constructor(public readonly options: IOptions = {}) {
     this.fetch = options.fetch || tbind(window.fetch, window);
     this.newFormData = options.newFormData || (() => new FormData());
+    this._credentials = options.credentials || "include";
     this._headers = {
       "Content-Type": "application/json",
       "X-Requested-With": "XMLHttpRequest",
@@ -141,7 +148,7 @@ export class BaseAPI {
   }
 
   private async _doRequest(input: string, init: RequestInit): Promise<Response> {
-    init = Object.assign({ headers: this._headers, credentials: "include" }, init);
+    init = Object.assign({ headers: this._headers, credentials: this._credentials }, init);
     if (this._extraParameters) {
       const url = new URL(input);
       for (const [key, val] of this._extraParameters.entries()) {

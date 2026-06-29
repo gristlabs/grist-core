@@ -112,6 +112,11 @@ export class WidgetFrame extends DisposableWithEvents {
 
   private _url: Observable<string>;
   /**
+   * Value for the iframe "sandbox" attribute, or null when the iframe should not be sandboxed.
+   * Used to isolate same-origin widgets from Grist's session (see _sandboxAttrFor).
+   */
+  private _sandbox: Observable<string | null>;
+  /**
    * If the widget URL is empty, it also means that we are showing the empty page.
    */
   private _isEmpty: Observable<boolean>;
@@ -148,9 +153,17 @@ export class WidgetFrame extends DisposableWithEvents {
     const maybeUrl = Computed.create(this, use => use(this._widget)?.url || this._options.url);
 
     // Url to widget or empty page with access level and preferences.
-    this._url = Computed.create(this, this._widget, maybeUrl, (use, widget, url) => {
+    this._url = Computed.create(
+      this,
+      use => this._urlWithAccess(use(maybeUrl)) || this._getEmptyWidgetPage(),
+    );
+
+    // Decide whether the iframe needs to be sandboxed. Untrusted (non-plugin/bundled) widgets
+    // whose URL is within Grist's own site get an opaque origin so they can't share Grist's
+    // session (see _sandboxAttrFor and widgetUrlSharesGristSession).
+    this._sandbox = Computed.create(this, this._widget, maybeUrl, (use, widget, url) => {
       const fromPlugin = Boolean(widget?.url && widget.source?.pluginId);
-      return this._urlWithAccess(url, fromPlugin) || this._getEmptyWidgetPage();
+      return this._sandboxAttrFor(url, fromPlugin);
     });
 
     // Iframe is empty when url is not set.
@@ -222,6 +235,9 @@ export class WidgetFrame extends DisposableWithEvents {
       dom.style("visibility", use => use(this._visible) ? "visible" : "hidden"),
       dom.cls("clipboard_allow_focus"),
       dom.cls("custom_view"),
+      // Sandbox same-origin widgets so they get an opaque origin and can't share Grist's session.
+      // This is bound before "src" so the attribute is in place before the iframe navigates.
+      dom.attr("sandbox", this._sandbox),
       dom.attr("src", this._url),
       // Allow widgets to write to the clipboard via the Clipboard API.
       { allow: "clipboard-write" },
@@ -233,7 +249,7 @@ export class WidgetFrame extends DisposableWithEvents {
   }
 
   // Appends access level to query string.
-  private _urlWithAccess(url: string | null, fromPlugin: boolean): string | null {
+  private _urlWithAccess(url: string | null): string | null {
     if (!url) {
       return url;
     }
@@ -245,18 +261,40 @@ export class WidgetFrame extends DisposableWithEvents {
       console.error(e);
       return null;
     }
-    // Untrusted (non-plugin/bundled) widget URLs must not point into Grist's own site, so that a
-    // page XSS can't be weaponized and shared via a widget URL (see disallowCustomWidgetUrl).
-    if (!fromPlugin && disallowCustomWidgetUrl(urlObj)) {
-      console.warn(`WidgetFrame: refusing custom widget URL within Grist's own site: ${url}`);
-      return null;
-    }
     urlObj.searchParams.append("access", this._options.access);
     urlObj.searchParams.append("readonly", String(this._options.readonly));
     // Append user and document preferences to query string.
     const settingsParams = new URLSearchParams(this._options.preferences);
     settingsParams.forEach((value, key) => urlObj.searchParams.append(key, value));
     return sanitizeHttpUrl(urlObj.href);
+  }
+
+  /**
+   * Returns the value for the iframe "sandbox" attribute, or null if the iframe should not be
+   * sandboxed.
+   *
+   * Untrusted (non-plugin/bundled) widgets whose URL points into Grist's own site are loaded in a
+   * sandbox WITHOUT "allow-same-origin". This gives them an opaque origin, so even though the URL
+   * is on Grist's site, the widget cannot read Grist's cookies, localStorage, or make credentialed
+   * same-origin requests - i.e. it does not share the user's session. This lets such widgets (e.g.
+   * public forms) be embedded while neutralizing the risk that a page XSS gets weaponized and
+   * shared via a widget URL (the original motivation of commit f579977c8).
+   *
+   * Cross-origin widgets are already isolated by the browser's same-origin policy, and trusted
+   * plugin/bundled widgets are exempt, so neither is sandboxed (which avoids breaking widgets that
+   * rely on their own origin's storage).
+   */
+  private _sandboxAttrFor(url: string | null, fromPlugin: boolean): string | null {
+    if (!url || fromPlugin) {
+      return null;
+    }
+    let urlObj: URL;
+    try {
+      urlObj = new URL(url);
+    } catch (e) {
+      return null;
+    }
+    return widgetUrlSharesGristSession(urlObj) ? WIDGET_SANDBOX_ISOLATED : null;
   }
 
   private _getEmptyWidgetPage(): string {
@@ -894,19 +932,30 @@ function reencodeAsAny(value: CellValue, typeInfo: GristTypeInfo): CellValue {
 }
 
 /**
+ * Sandbox flags for same-origin widgets. Notably this does NOT include "allow-same-origin", which
+ * is what forces an opaque origin and isolates the widget from Grist's session. "allow-scripts"
+ * is safe to grant without "allow-same-origin": the combination of the two would let a same-origin
+ * frame remove its own sandbox attribute and escape, but on its own it cannot.
+ */
+const WIDGET_SANDBOX_ISOLATED =
+  "allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-modals";
+
+/**
  * Custom widgets are intended to be served cross-origin; return true if this URL is not, i.e. it
- * points back into Grist's own site.
+ * points back into Grist's own site and would therefore share Grist's session (cookies, storage,
+ * credentialed same-origin requests) if loaded without isolation.
  *
- * It's safer to disallow such widgets so that custom widget URLs don't become a vector to exploit
- * XSS. In other words, if there is an XSS vulnerability where a Grist page can be tricked to run
- * untrusted JS, we don't want to make such an attack sharable via a custom widget URL, where it
- * could affect all collaborators.
+ * Such widgets are not refused (that would break legitimate use cases like embedding public forms),
+ * but are loaded in a sandboxed iframe with an opaque origin (see _sandboxAttrFor). This keeps
+ * custom widget URLs from becoming a vector to exploit XSS: if there is an XSS vulnerability where
+ * a Grist page can be tricked to run untrusted JS, we don't want such an attack to gain access to
+ * the viewer's session just by being shared via a custom widget URL.
  *
  * "Grist's own site" is the page's own origin, plus, when orgs are subdomains, any host under
  * gristConfig.baseDomain (sibling subdomains, which can share Grist's session). baseDomain is
  * dotted (".example.com") in that case, and a bare host or empty otherwise.
  */
-export function disallowCustomWidgetUrl(widgetUrl: URL): boolean {
+export function widgetUrlSharesGristSession(widgetUrl: URL): boolean {
   // This check could be bypassed by a trailing period (e.g. "example.com." vs "example.com"), but
   // that's not actually considered same-origin, so should not be exploitable.
   if (widgetUrl.origin === location.origin) {
