@@ -484,7 +484,6 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_OPEN_GRAPH_PREVIEW_IMAGE | the URL of the preview image when sharing the link on websites like social medias or chat applications. |
 | GRIST_TELEMETRY_LEVEL | the telemetry level. Can be set to: `off` (default), `limited`, or `full`. |
 | GRIST_THROTTLE_CPU | if set, CPU throttling is enabled |
-| GRIST_TRUST_PLUGINS | if set, plugins are expect to be served from the same host as the rest of the Grist app, rather than from a distinct host. Ordinarily, plugins are served from a distinct host so that the cookies used by the Grist app are not automatically available to them. Enable this only if you understand the security implications. |
 | GRIST_USER_ROOT | an extra path to look for plugins in - Grist will scan for plugins in `$GRIST_USER_ROOT/plugins`. |
 | GRIST_UI_FEATURES | comma-separated list of UI features to enable. Allowed names of parts: `helpCenter`, `billing`, `templates`, `createSite`, `multiSite`, `multiAccounts`, `importFromAirtable`, `sendToDrive`, `tutorials`, `supportGrist`, `themes`, `automations`. If a part also exists in GRIST_HIDE_UI_ELEMENTS, it won't be enabled. Note: `importFromAirtable` and `automations` are enabled by default even without being listed here; use GRIST_HIDE_UI_ELEMENTS to disable them. |
 | GRIST_UNTRUSTED_PORT | if set, plugins will be served from the given port. This is an alternative to setting APP_UNTRUSTED_URL. |

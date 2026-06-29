@@ -1,10 +1,8 @@
 import { ApiError } from "app/common/ApiError";
 import { mapGetOrSet, MapWithTTL } from "app/common/AsyncCreate";
 import { extractOrgParts, getHostType, getSingleOrg } from "app/common/gristUrls";
-import { isAffirmative } from "app/common/gutil";
 import { Organization } from "app/gen-server/entity/Organization";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
-import { GristServer } from "app/server/lib/GristServer";
 import { getOriginUrl } from "app/server/lib/requestUtils";
 
 import { IncomingMessage } from "http";
@@ -43,8 +41,7 @@ export class Hosts {
   private _org2host = new MapWithTTL<string, Promise<string | undefined>>(ORG_HOST_CACHE_TTL);
 
   // baseDomain should start with ".". It may be undefined for localhost or single-org mode.
-  constructor(private _baseDomain: string | undefined, private _dbManager: HomeDBManager,
-    private _gristServer: GristServer | undefined) {
+  constructor(private _baseDomain: string | undefined, private _dbManager: HomeDBManager) {
   }
 
   /**
@@ -99,8 +96,6 @@ export class Hosts {
           `'${parts.orgFromPath}' does not match '${parts.orgFromHost}'`, 400);
       }
       return { org: parts.subdomain || "", url: parts.pathRemainder, isCustomHost: false };
-    } else if (hostType === "plugin") {
-      return { org: "", url: parts.pathRemainder, isCustomHost: false };
     } else {
       // Otherwise check for a custom host.
       const org = await mapGetOrSet(this._host2org, hostname, async () => {
@@ -168,8 +163,6 @@ export class Hosts {
   }
 
   private _getHostType(host: string) {
-    const pluginUrl = isAffirmative(process.env.GRIST_TRUST_PLUGINS) ?
-      undefined : this._gristServer?.getPluginUrl();
-    return getHostType(host, { baseDomain: this._baseDomain, pluginUrl });
+    return getHostType(host, { baseDomain: this._baseDomain });
   }
 }

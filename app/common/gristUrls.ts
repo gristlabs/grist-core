@@ -297,15 +297,8 @@ function isOwnInternalUrlHost(host?: string) {
  * as a custom domain, a native domain, or a plugin domain.
  */
 export function getHostType(host: string, options: {
-  baseDomain?: string, pluginUrl?: string
-}): "native" | "custom" | "plugin" {
-  if (options.pluginUrl) {
-    const url = new URL(options.pluginUrl);
-    if (url.host.toLowerCase() === host.toLowerCase()) {
-      return "plugin";
-    }
-  }
-
+  baseDomain?: string
+}): "native" | "custom" {
   const hostname = host.split(":")[0];
   if (!options.baseDomain) { return "native"; }
   if (
@@ -326,11 +319,9 @@ export function getOrgUrlInfo(newOrg: string, currentHost: string, options: OrgU
     return { orgInPath: newOrg };
   }
   const hostType = getHostType(currentHost, options);
-  if (hostType !== "plugin") {
-    const hostname = currentHost.split(":")[0];
-    if (!options.baseDomain || hostname === "localhost") {
-      return { orgInPath: newOrg };
-    }
+  const hostname = currentHost.split(":")[0];
+  if (!options.baseDomain || hostname === "localhost") {
+    return { orgInPath: newOrg };
   }
   if (newOrg === options.org && hostType !== "native") {
     return {};

@@ -926,7 +926,7 @@ export class FlexServer implements GristServer {
   // Prepare cache for managing org-to-host relationship.
   public addHosts() {
     if (this._check("hosts", "homedb")) { return; }
-    this._hosts = new Hosts(this._defaultBaseDomain, this._dbManager, this);
+    this._hosts = new Hosts(this._defaultBaseDomain, this._dbManager);
   }
 
   /**
@@ -1966,22 +1966,7 @@ export class FlexServer implements GristServer {
   }
 
   public async finalizePlugins(userPort: number | null) {
-    if (isAffirmative(process.env.GRIST_TRUST_PLUGINS)) {
-      this._pluginUrl = this.getDefaultHomeUrl();
-    } else if (userPort !== null) {
-      // If plugin content is served from same host but on different port,
-      // run webserver on that port
-      const ports = await this.startCopy("pluginServer", userPort);
-      // If Grist is running on a desktop, directly on the host, it
-      // can be convenient to leave the user port free for the OS to
-      // allocate by using GRIST_UNTRUSTED_PORT=0. But we do need to
-      // remember how to contact it.
-      if (process.env.APP_UNTRUSTED_URL === undefined) {
-        const url = new URL(this.getOwnUrl());
-        url.port = String(userPort || ports.serverPort);
-        this._pluginUrl = url.href;
-      }
-    }
+    this._pluginUrl = this.getDefaultHomeUrl();
     this.info.push(["pluginUrl", this._pluginUrl]);
     this.info.push(["willServePlugins", this._servesPlugins]);
     this._pluginUrlReady = true;

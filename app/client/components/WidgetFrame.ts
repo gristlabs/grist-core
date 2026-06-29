@@ -162,8 +162,7 @@ export class WidgetFrame extends DisposableWithEvents {
     // whose URL is within Grist's own site get an opaque origin so they can't share Grist's
     // session (see _sandboxAttrFor and widgetUrlSharesGristSession).
     this._sandbox = Computed.create(this, this._widget, maybeUrl, (use, widget, url) => {
-      const fromPlugin = Boolean(widget?.url && widget.source?.pluginId);
-      return this._sandboxAttrFor(url, fromPlugin);
+      return this._sandboxAttrFor(url);
     });
 
     // Iframe is empty when url is not set.
@@ -284,8 +283,8 @@ export class WidgetFrame extends DisposableWithEvents {
    * plugin/bundled widgets are exempt, so neither is sandboxed (which avoids breaking widgets that
    * rely on their own origin's storage).
    */
-  private _sandboxAttrFor(url: string | null, fromPlugin: boolean): string | null {
-    if (!url || fromPlugin) {
+  private _sandboxAttrFor(url: string | null): string | null {
+    if (!url) {
       return null;
     }
     let urlObj: URL;

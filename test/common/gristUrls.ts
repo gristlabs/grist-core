@@ -120,11 +120,6 @@ describe("gristUrls", function() {
       assert.equal(getHostType("foo.getgrist.com:8080", defaultOptions), "native");
     });
 
-    it('should interpret plugin domain as "plugin"', function() {
-      assert.equal(getHostType("plugin.getgrist.com", defaultOptions), "plugin");
-      assert.equal(getHostType("PLUGIN.getgrist.com", { pluginUrl: "https://pLuGin.getgrist.com" }), "plugin");
-    });
-
     it('should interpret other domains as "custom"', function() {
       assert.equal(getHostType("foo.com", defaultOptions), "custom");
       assert.equal(getHostType("foo.bar.com", defaultOptions), "custom");

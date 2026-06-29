@@ -29,8 +29,6 @@ describe("extractOrg", function() {
         },
       },
     },
-  } as any, {
-    getPluginUrl() { return "https://prod.grist-usercontent.com"; },
   } as any);
 
   before(async () => {
