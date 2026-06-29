@@ -64,10 +64,20 @@ export async function setupLocale() {
   }
 }
 
+function extractLangFromCookie() {
+  try {
+    return document.cookie.match(/grist_user_locale=([^;]+)/)?.[1];
+  } catch (e) {
+    // If an exception occurred, that's because the cookie access is denied, and most probably
+    // because we are in a sandbox'ed iframe.
+    return undefined;
+  }
+}
+
 export function detectCurrentLang() {
   const { userLocale, supportedLngs } = getGristConfig();
   const detected = userLocale ||
-    document.cookie.match(/grist_user_locale=([^;]+)/)?.[1] ||
+    extractLangFromCookie() ||
     window.navigator.language ||
     "en";
   const supportedList = supportedLngs ?? ["en"];
