@@ -38,6 +38,7 @@ export interface PermissionsStatus {
   personalOrgs: PermissionSetting;
   forceLogin: PermissionSetting;
   anonPlayground: PermissionSetting;
+  telemetry: PermissionSetting;
 }
 
 export interface InstallAPI {

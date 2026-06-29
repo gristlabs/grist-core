@@ -217,7 +217,8 @@ class AdminInstallationPanel extends Disposable {
     notifier: this._appModel.notifier,
   });
 
-  private _permissionsModel = PermissionsToggleModel.create(this);
+  // Hide telemetry toggle, as the admin panel exposes it through SupportGristPage
+  private _permissionsModel = PermissionsToggleModel.create(this, { excludeToggles: ["telemetry"] });
 
   private _drafts = DraftChangesManager.create(this);
 
@@ -1065,6 +1066,7 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
             "session-secret",
             "service-status",
             "backups",
+            "persist-data",
             "outgoing-requests",
           ].includes(probe.id);
           const show = isRedundant ? options.showRedundant : options.showNovel;
@@ -1093,7 +1095,7 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
           t("Results"),
           { style: "margin-top: 0px; padding-top: 0px;" },
         ),
-        result.verdict ? dom("pre", result.verdict) : null,
+        result.verdict ? cssVerdict(result.verdict) : null,
         (result.status === "none") ? null :
           dom("p",
             (result.status === "success") ? t("Check succeeded.") : t("Check failed.")),
@@ -1354,6 +1356,10 @@ const cssAdminAccountItemPart = styled("span", `
   &>:not(div) {
     padding: 12px 24px 12px 16px;
   }
+`);
+
+const cssVerdict = styled("pre", `
+  white-space: normal;
 `);
 
 async function reloadSafe() {

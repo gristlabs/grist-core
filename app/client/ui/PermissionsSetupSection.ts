@@ -2,11 +2,8 @@ import { makeT } from "app/client/lib/localization";
 import { getHomeUrl } from "app/client/models/homeUrl";
 import { cssWell, cssWellContent } from "app/client/ui/AdminPanelCss";
 import {
-  getEnvLockedVars,
-  hasEnvLocked,
   PermissionsToggleModel,
   PresetName,
-  TOGGLE_DEFS,
 } from "app/client/ui/PermissionsToggleModel";
 import { quickSetupStepHeader } from "app/client/ui/QuickSetupStepHeader";
 import { cssQuickSetupCard, cssShadowedPrimaryButton, cssValueLabel } from "app/client/ui/SettingsLayout";
@@ -187,7 +184,7 @@ export function buildPermissionsCard(
         ),
       ),
 
-      ...TOGGLE_DEFS.map(({ key, permKey, label, description }) => {
+      ...model.toggleDefs.map(({ key, permKey, label, description }) => {
         const locked = status[permKey].source === "environment-variable";
         const conflict = model.hasConflict(key);
         return cssPermissionRow(
@@ -209,12 +206,12 @@ export function buildPermissionsCard(
         );
       }),
 
-      hasEnvLocked(status) ? cssWell(cssWell.cls("-warning"),
+      model.hasEnvLocked() ? cssWell(cssWell.cls("-warning"),
         cssWellContent(
           t("Some settings are controlled by environment variables and cannot be \
 changed here: {{vars}}. To modify them, update the corresponding variables \
 in your server configuration and restart.",
-          { vars: getEnvLockedVars(status).join(", ") }),
+          { vars: model.getEnvLockedVars().join(", ") }),
         ),
         testId("env-warning"),
       ) : null,

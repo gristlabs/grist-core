@@ -1958,7 +1958,8 @@
         "Dismiss pending changes?": "Rejeter les modifications en attente ?",
         "Dismissing...": "Rejet en cours...",
         "How user actions can reach the outside world": "Comment les actions utilisateurs peuvent joindre le monde extérieur",
-        "Outgoing requests": "Requêtes sortantes"
+        "Outgoing requests": "Requêtes sortantes",
+        "full Edition": "Édition complète"
     },
     "Field": {
         "No choices configured": "Aucun choix configuré",
@@ -2422,7 +2423,10 @@
         "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.": "Les connexions websocket nécessitent HTTP 1.1 et le droit de passer quelques entêtes supplémentaires pour pouvoir fonctionner. Parfois un proxy inverse peut interférer avec ces exigences.",
         "It is good practice not to run Grist as the root user.": "C'est une bonne pratique de ne pas faire tourner Grist en tant qu'utilisateur root.",
         "The main page of Grist should be available.": "La page principale de Grist devrait être disponible.",
-        "APP_HOME_URL is the base URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "APP_HOME_URL est l'URL de base à laquelle les utilisateurs et les intégrations peuvent joindre votre serveur Grist. Les requêtes d'authentification, les liens d'API et les notifications par courriel dépendent toutes de ce paramètre pour fonctionner correctement."
+        "APP_HOME_URL is the base URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "APP_HOME_URL est l'URL de base à laquelle les utilisateurs et les intégrations peuvent joindre votre serveur Grist. Les requêtes d'authentification, les liens d'API et les notifications par courriel dépendent toutes de ce paramètre pour fonctionner correctement.",
+        "If running in a container without external storage or with default database, ": {
+            "persist should be a mounted volume. Otherwise Grist documents and metadata will be lost when the container stops.": "Si vous faites tourner un conteneur sans stockage externe ou avec la base de donnée par défaut, /persit devrait être monté comme volume. Dans le cas contraire les documents Grist et les métadonnées seront perdues à l'arrêt du conteneur."
+        }
     },
     "ChoiceListEntry": {
         "Edit": "Modifier",
@@ -2694,7 +2698,11 @@
         "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.": "Quand il se connecteront, les utilisateurs seront redirigés sur la page de connexion de getgrist.com pour se connecter ou se créer un compte. Après s'être authentifié sur getgrist.com, ils seront redirigés sur votre instance de Grist et connecté en tant que l'utilisateur qu'ils ont authentifié.",
         "Managed authentication by Grist Labs.": "Authentification gérée par Grist Labs.",
         "Your server uses getgrist.com authentication. Users sign in with their getgrist.com account.": "Vous serveur utilise getgrist.com pour authentifier les utilisateurs. Les utilisateurs se connectent grâce à leur compte sur getgrist.com.",
-        "Error configuring provider with the provided key: {{reason}}": "Une erreur est survenue en configurant le fournisseur avec la clé fournisseur : {{reason}}"
+        "Error configuring provider with the provided key: {{reason}}": "Une erreur est survenue en configurant le fournisseur avec la clé fournisseur : {{reason}}",
+        "Ideal for testing and prototyping. Sign in with a getgrist.com account, with no identity provider to configure.": "Idéal pour tester et prototyper. Connectez-vous avec un compte getgrist.com, sans fournisseur d'identité à configurer.",
+        "Recommended": "Recommandé",
+        "Use getgrist.com sign-in": "Utilisez la connexion getgrist.com",
+        "You can switch to OIDC, SAML, or another method at any time.": "Vous pouvez changer pour l'OIDC, le SAML ou n'importe quelle méthode à tout moment."
     },
     "AuthenticationSection": {
         "Active": "Active",
@@ -2810,7 +2818,12 @@
         "The change will be saved when you apply pending changes, and will go into effect after you restart Grist.": "La modification sera sauvegardée lorsque vous appliquerez les modifications en attente, puis prendra effet après le redémarrage de Grist.",
         "The change will be saved when you apply pending changes, and will take effect after you restart Grist.": "La modification sera sauvegardée lorsque vous appliquerez les modifications en attente, puis prendra effet après le redémarrage de Grist.",
         "configuration updated": "configuration mise à jour",
-        "disabled": "désactivé"
+        "disabled": "désactivé",
+        "Anyone who can reach this server can access all data without signing in. You can configure authentication later from the admin panel.": "Toute personne pouvant accéder à ce serveur peut accéder à la totalité de ces données sans se connecter. Vous pouvez configurer authentification plus tard depuis le panneau d'administration.",
+        "Choose how people sign in. You can change this anytime after setup.": "Choisir comment les personnes se connectent. Vous pouvez changer cela n'importe quand après l'installation.",
+        "Continue without authentication": "Continuez sans authentification",
+        "Or connect your own identity provider": "Ou connectez votre propre fournisseur d'identité",
+        "Skip authentication setup?": "Sauter l’installation de l'authentification ?"
     },
     "DetailView": {
         "This row is unavailable or does not exist": "Cette ligne est indisponible ou n’existe pas"
@@ -3088,7 +3101,8 @@
         "Quick setup": "Paramétrage rapide",
         "Sandboxing": "Mise en bac à sable",
         "Server": "Serveur",
-        "Continue": "Continuer"
+        "Continue": "Continuer",
+        "Set up later": "Installer plus tard"
     },
     "ServiceStatus": {
         "Enter maintenance mode": "Entrer en mode maintenance",
@@ -3124,7 +3138,12 @@
         "Set these environment variables and restart Grist to enable S3 storage:": "Définissez ces variables d'environnement et redémarrez Grist pour activer le stockage S3 :",
         "Store document backups on an external service like S3 or Azure.           This protects against data loss if the server's disk fails.": "Conserver les sauvegardes des documents sur un service externe comme S3 ou Azure.           Cela vous protège contre la perte de données si le disque dur du serveur dysfonctionne.",
         "Local filesystem (test only)": "Système de fichier local (pour test uniquement)",
-        "Stores document snapshots on the local filesystem. For tests only, not production.": "Sauvegarde les instantanés des documents sur le système de fichier local. Uniquement pour les tests, ne pas mettre en production."
+        "Stores document snapshots on the local filesystem. For tests only, not production.": "Sauvegarde les instantanés des documents sur le système de fichier local. Uniquement pour les tests, ne pas mettre en production.",
+        "Action needed": "Action nécéssaire",
+        "To preserve it, mount a volume at ": {
+            "persist.": "Pour le préserver, montez un volume sur /persist."
+        },
+        "Your data may not survive a container restart.": "Vos données ne survivrons pas au redémarrage du conteneur."
     },
     "ScreenReaderAnnouncer": {
         "Notification: {{notification}}": "Notification : {{notification}}"
