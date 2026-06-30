@@ -33,6 +33,8 @@ import { CellContextMenu, ICellContextMenu } from "app/client/ui/CellContextMenu
 import { IColumnFilterMenuOptions } from "app/client/ui/ColumnFilterMenu";
 import { buildRenameColumn, columnHeaderWithInfo } from "app/client/ui/ColumnTitle";
 import { contextMenu } from "app/client/ui/contextMenu";
+import { PLUS_COL_WIDTH, ROW_HEADER_WIDTH as ROW_NUMBER_WIDTH } from "app/client/ui/gridConstants";
+import { isAtBoundary } from "app/client/ui/GridNavigator";
 import {
   buildAddColumnMenu,
   buildColumnContextMenu,
@@ -89,11 +91,6 @@ export type RowIndexRenderer = (row: DataRowModel) => DomElementArg | null;
  * A function that renders the corner cell, can be overridden in GridViewOptions.
  */
 export type CornerRenderer = (el: Element) => DomElementArg | null;
-
-// size of the plus width
-const PLUS_WIDTH = 40;
-// size of the row number field
-const ROW_NUMBER_WIDTH = 52;
 
 interface InsertColOptions {
   colInfo?: ColInfo;
@@ -297,7 +294,7 @@ export default class GridView extends BaseView {
       const revealWidth = lastField ? lastField.widthDef() : 0;
       // calculate the offset: start from zero, then move all left to hide frozen columns,
       // then to right to fill whole width, then to left to reveal last column and plus button
-      const initialOffset = -this.frozenWidth() - ROW_NUMBER_WIDTH + this.width() - revealWidth - PLUS_WIDTH;
+      const initialOffset = -this.frozenWidth() - ROW_NUMBER_WIDTH + this.width() - revealWidth - PLUS_COL_WIDTH;
       // Final check - we actually don't want to have
       // the split (between frozen and normal columns) be moved left too far,
       // it should stop at the middle of the available grid space (whole width - row number width).
@@ -469,36 +466,36 @@ export default class GridView extends BaseView {
   // See BaseView.commonCommands and BaseView.commonFocusedCommands for more details.
   protected static gridFocusedCommands: { [key: string]: Function } & ThisType<GridView> = {
     cursorDown: function() {
-      if (this.cursor.rowIndex() === this.viewData.peekLength - 1) {
-        // When the cursor is in the bottom row, the view may not be scrolled all the way to
-        // the bottom (i.e. in the case of a tall row).
+      const pos = { col: this.cursor.fieldIndex(), row: this.cursor.rowIndex()! };
+      const bounds = { numCols: this.viewSection.viewFields().peekLength, numRows: this.viewData.peekLength };
+      if (isAtBoundary(pos, "down", bounds)) {
         this.scrollPaneBottom();
       }
-      this.cursor.rowIndex(this.cursor.rowIndex()! + 1);
+      this.cursor.rowIndex(pos.row + 1);
     },
     cursorUp: function() {
-      if (this.cursor.rowIndex() === 0) {
-        // When the cursor is in the top row, the view may not be scrolled all the way to
-        // the top (i.e. in the case of a tall row).
+      const pos = { col: this.cursor.fieldIndex(), row: this.cursor.rowIndex()! };
+      const bounds = { numCols: this.viewSection.viewFields().peekLength, numRows: this.viewData.peekLength };
+      if (isAtBoundary(pos, "up", bounds)) {
         this.scrollPaneTop();
       }
-      this.cursor.rowIndex(this.cursor.rowIndex()! - 1);
+      this.cursor.rowIndex(pos.row - 1);
     },
     cursorRight: function() {
-      if (this.cursor.fieldIndex() === this.viewSection.viewFields().peekLength - 1) {
-        // When the cursor is in the rightmost column, the view may not be scrolled all the way to
-        // the right (i.e. in the case of a wide column).
+      const pos = { col: this.cursor.fieldIndex(), row: this.cursor.rowIndex()! };
+      const bounds = { numCols: this.viewSection.viewFields().peekLength, numRows: this.viewData.peekLength };
+      if (isAtBoundary(pos, "right", bounds)) {
         this.scrollPaneRight();
       }
-      this.cursor.fieldIndex(this.cursor.fieldIndex() + 1);
+      this.cursor.fieldIndex(pos.col + 1);
     },
     cursorLeft: function() {
-      if (this.cursor.fieldIndex() === 0) {
-        // When the cursor is in the leftmost column, the view may not be scrolled all the way to
-        // the left (i.e. in the case of a wide column).
+      const pos = { col: this.cursor.fieldIndex(), row: this.cursor.rowIndex()! };
+      const bounds = { numCols: this.viewSection.viewFields().peekLength, numRows: this.viewData.peekLength };
+      if (isAtBoundary(pos, "left", bounds)) {
         this.scrollPaneLeft();
       }
-      this.cursor.fieldIndex(this.cursor.fieldIndex() - 1);
+      this.cursor.fieldIndex(pos.col - 1);
     },
     shiftDown: function() { this._shiftSelect({ step: 1, direction: "down" }); },
     shiftUp: function() { this._shiftSelect({ step: 1, direction: "up" }); },
@@ -1577,7 +1574,7 @@ export default class GridView extends BaseView {
                 this.isPreview ? null : (this.isReadonly ? null : () => (
                   dom("div.column_name.mod-add-column.field",
                     "+",
-                    dom.style("width", PLUS_WIDTH + "px"),
+                    dom.style("width", PLUS_COL_WIDTH + "px"),
                     this._buildInsertColumnMenu(),
                   )
                 )),
