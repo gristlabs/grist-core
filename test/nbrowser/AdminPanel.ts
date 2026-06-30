@@ -244,13 +244,6 @@ describe("AdminPanel", function() {
   it("should show various self checks", async function() {
     await driver.get(`${server.getHost()}/admin`);
     await gu.waitForAdminPanel();
-    await gu.waitToPass(
-      async () => {
-        assert.equal(await driver.find(".test-admin-panel-item-name-probe-reachable").isDisplayed(), true);
-        assert.match(await driver.find(".test-admin-panel-item-value-probe-reachable").getText(), /✅/);
-      },
-      3000,
-    );
     assert.equal(await driver.find(".test-admin-panel-item-name-probe-system-user").isDisplayed(), true);
     await gu.waitToPass(
       async () => assert.match(await driver.find(".test-admin-panel-item-value-probe-system-user").getText(), /✅/),
@@ -491,7 +484,7 @@ describe("AdminPanel", function() {
 
     it("should show admin page when boot key is valid", async function() {
       await driver.get(`${server.getHost()}/admin?boot-key=lala`);
-      await driver.findContentWait("div", /Is home page available/, 2000);
+      await driver.findContentWait("div", /Is an internal health check passing/, 2000);
     });
   });
 });

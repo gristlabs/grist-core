@@ -4,7 +4,7 @@ import { delay } from "app/common/delay";
 import { encodeUrl, getSlugIfNeeded, GristDeploymentType, GristDeploymentTypes,
   GristLoadConfig, IGristUrlState, isOrgInPathOnly, LatestVersionAvailable, parseSubdomain,
   sanitizePathTail } from "app/common/gristUrls";
-import { extractOrgParts, getOrgUrlInfo } from "app/common/gristUrls";
+import { extractOrgParts, getOrgUrlInfo, getSingleOrg } from "app/common/gristUrls";
 import { isAffirmative } from "app/common/gutil";
 import { UserProfile } from "app/common/LoginSessionAPI";
 import { SandboxInfo } from "app/common/SandboxInfo";
@@ -58,7 +58,8 @@ import { createGristJobs, GristJobs } from "app/server/lib/GristJobs";
 import { DocTemplate, GristLoginMiddleware, GristLoginSystem, GristServer, RequestWithGrist,
   ResourceUrlOptions } from "app/server/lib/GristServer";
 import { initGristSessions, SessionStore } from "app/server/lib/gristSessions";
-import { getBootKey, getForceLogin, getHomeUrl, getInService } from "app/server/lib/gristSettings";
+import { getBootKey, getForceLogin, getHomeUrl, getInService,
+  getPersonalOrgsEnabled } from "app/server/lib/gristSettings";
 import { IAssistant } from "app/server/lib/IAssistant";
 import { IAuditLogger } from "app/server/lib/IAuditLogger";
 import { IBilling } from "app/server/lib/IBilling";
@@ -2509,12 +2510,22 @@ export class FlexServer implements GristServer {
   }
 
   /**
-   * Middleware that redirects a request with a userId but without an org to an org-specific URL,
-   * after looking up the first org for this userId in DB.
+   * Middleware for org-less requests with a userId. Redirects to an org-specific URL so the rest
+   * of the app has an org to work with.
+   *
+   * When personal orgs are disabled, redirects to /welcome/start. Otherwise, redirects to the
+   * personal org.
    */
   private async _redirectToOrg(req: express.Request, resp: express.Response, next: express.NextFunction) {
     const mreq = req as RequestWithLogin;
     if (mreq.org || !mreq.userId) { return next(); }
+
+    // When personal orgs are disabled, the personal/merged org is unreachable. Redirect to
+    // /welcome/start instead, which forces login when unauthenticated and sends signed-in
+    // users to a team site or /welcome/teams.
+    if (!getPersonalOrgsEnabled()) {
+      return resp.redirect(getOrgUrl(mreq, "/welcome/start"));
+    }
 
     // Redirect anonymous users to the merged org.
     if (!mreq.userIsAuthorized) {
@@ -2526,6 +2537,10 @@ export class FlexServer implements GristServer {
     // We have a userId, but the request is for an unknown org. Redirect to an org that's
     // available to the user. This matters in dev, and in prod when visiting a generic URL, which
     // will here redirect to e.g. the user's personal org.
+    //
+    // TODO: This appears to always redirect to the personal org (getMergedOrgs always adds the
+    // merged org to the front of the returned orgs). Check if it's safe to replace this with the
+    // branch above.
     const result = await this._dbManager.getMergedOrgs({ userId: mreq.userId });
     const orgs = (result.status === 200) ? result.data : null;
     const subdomain = orgs && orgs.length > 0 ? orgs[0].domain : null;
@@ -2709,7 +2724,7 @@ export class FlexServer implements GristServer {
     const orgs = this._dbManager.unwrapQueryResult(
       await this._dbManager.getOrgs(getScope(mreq), { ignoreEveryoneShares: true }),
     );
-    if (orgs.length > 1) {
+    if (orgs.length > 1 || (!getPersonalOrgsEnabled() && !getSingleOrg())) {
       resp.redirect(getOrgUrl(mreq, "/welcome/teams"));
     } else {
       resp.redirect(redirectToMergedOrg ? this.getMergedOrgUrl(mreq) : getOrgUrl(mreq));

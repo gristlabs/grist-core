@@ -24,7 +24,6 @@ export type BootProbeIds =
   "boot-key" |
   "health-check" |
   "home-url" |
-  "reachable" |
   "host-header" |
   "sandboxing" |
   "system-user" |
