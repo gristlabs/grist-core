@@ -233,7 +233,7 @@ export class Assistant extends Disposable {
           background: "linear-gradient(to right, #29A3A3, #16A772)",
           showCloseButton: true,
           onClose: () => {
-            this._appModel.dismissPopup("upgradeNewAssistant", true);
+            this._appModel.dismissPopup("upgradeNewAssistant");
           },
           bannerCssClass: cssBanner.className,
         });

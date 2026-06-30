@@ -160,6 +160,7 @@ export const getCommonUrls = () => withAdminDefinedUrls({
   helpAirtableIntegration: "https://support.getgrist.com/install/integrations/airtable",
   helpCloudStorage: "https://support.getgrist.com/install/cloud-storage",
   integrators: "https://support.getgrist.com/integrators/",
+  mcp: "https://support.getgrist.com/mcp/",
   freeCoachingCall: getFreeCoachingCallUrl(),
   contactSupport: getContactSupportUrl(),
   termsOfService: getTermsOfServiceUrl(),

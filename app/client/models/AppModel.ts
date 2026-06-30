@@ -149,7 +149,7 @@ export interface AppModel {
   isOwner(): boolean;                   // If user is an owner of this org
   isOwnerOrEditor(): boolean;           // If user is an owner or editor of this org
   isInstallAdmin(): boolean;            // Is user an admin of this installation
-  dismissPopup(name: DismissedPopup, isSeen: boolean): void;  // Mark popup as dismissed or not.
+  dismissPopup(name: DismissedPopup): void;  // Mark popup as dismissed.
   switchUser(user: FullUser, org?: string): Promise<void>;
   isFreePlan(): boolean;
 }
@@ -495,8 +495,8 @@ export class AppModelImpl extends Disposable implements AppModel {
     }
   }
 
-  public dismissPopup(name: DismissedPopup, isSeen: boolean): void {
-    markAsSeen(this.dismissedPopups, name, isSeen);
+  public dismissPopup(name: DismissedPopup): void {
+    markAsSeen(this.dismissedPopups, name);
   }
 
   public async switchUser(user: FullUser, org?: string) {

@@ -176,6 +176,16 @@ export function getPersonalOrgsEnabledSource(): AppSettingSource | undefined {
 }
 
 /**
+ * Returns the value of `GRIST_MCP_ENABLED` from {@link appSettings}.
+ */
+export function isMcpEnabled(): boolean {
+  return appSettings.section("mcp").flag("enabled").requireBool({
+    envVar: "GRIST_MCP_ENABLED",
+    defaultValue: false,
+  });
+}
+
+/**
  * Returns the value of `GRIST_SANDBOX_FLAVOR` from {@link appSettings}.
  *
  * NOTE: This value is memoized for the life of the server process; changes to the DB

@@ -38,7 +38,7 @@ describe("FormsUrlValues", function() {
   ]);
 
   it("setup", async function() {
-    const session = await gu.session().login();
+    const session = await gu.session().login({ showTips: true });
 
     // Create a document with a table that has most types of fields.
     docId = await session.tempNewDoc(cleanup, "FormsUrlValues", { load: false });

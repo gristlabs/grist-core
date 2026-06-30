@@ -141,7 +141,7 @@ describe("FormView2", function() {
 
   describe("duplicating forms", function() {
     before(async function() {
-      session = await gu.session().teamSite.login();
+      session = await gu.session().teamSite.login({ showTips: true });
       api = session.createHomeApi();
     });
 
@@ -303,7 +303,7 @@ describe("FormView2", function() {
 
   describe("form deletion", function() {
     before(async function() {
-      session = await gu.session().teamSite.login();
+      session = await gu.session().teamSite.login({ showTips: true });
       api = session.createHomeApi();
     });
 

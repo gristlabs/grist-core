@@ -1832,7 +1832,7 @@ namespace gristUtils {
   export async function openSectionMenu(which: "sortAndFilter" | "viewLayout", section?: string | WebElement) {
     const sectionElem = section ? await getSection(section) : await driver.findWait(".active_section", 4000);
     await sectionElem.find(`.test-section-menu-${which}`).click();
-    return await findOpenMenu(100);
+    return await findOpenMenu();
   }
 
   /**
@@ -1860,7 +1860,7 @@ namespace gristUtils {
 
   async function openColumnMenuHelper(col: IColHeader | string, option?: string): Promise<WebElement> {
     await getColumnHeader(typeof col === "string" ? { col } : col).mouseMove().find(".g-column-main-menu").click();
-    const menu = await findOpenMenu(100);
+    const menu = await findOpenMenu();
     if (option) {
       await menu.findContent("li", option).click();
       const waitForElem = ColumnMenuOption[option];
@@ -3068,7 +3068,7 @@ namespace gristUtils {
  */
   export async function setRefShowColumn(col: string) {
     await driver.find(".test-fbuilder-ref-col-select").click();
-    await findOpenMenuItem(".test-select-row", col, 100).click();
+    await findOpenMenuItem(".test-select-row", col).click();
     await waitForServer();
   }
 
@@ -4300,11 +4300,12 @@ namespace gristUtils {
     };
   }
 
-  export function findOpenMenu(timeoutMsec = 100) {
+  // Default 1000ms: menus render after setTimeout(0), the 100ms wait raced it on CI.
+  export function findOpenMenu(timeoutMsec = 1000) {
     return driver.findWait(".grist-floating-menu", timeoutMsec);
   }
 
-  export function findOpenMenuItem(itemSelector: string, itemContentMatcher?: string | RegExp, timeoutMsec = 100) {
+  export function findOpenMenuItem(itemSelector: string, itemContentMatcher?: string | RegExp, timeoutMsec = 1000) {
     return itemContentMatcher ?
       driver.findContentWait(`.grist-floating-menu ${itemSelector}`, itemContentMatcher, timeoutMsec) :
       driver.findWait(`.grist-floating-menu ${itemSelector}`, timeoutMsec);
@@ -4313,7 +4314,7 @@ namespace gristUtils {
   export async function findOpenMenuAllItems<T>(
     itemSelector: string,
     mapper: (e: WebElement) => Promise<T>,
-    timeoutMsec = 100,
+    timeoutMsec = 1000,
   ): Promise<T[]>   {
     try {
       // Find at least one item to ensure the menu is open.

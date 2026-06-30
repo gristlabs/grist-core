@@ -5,7 +5,7 @@
 import { BaseAPI, IOptions } from "app/common/BaseAPI";
 import { normalizeEmail } from "app/common/emails";
 import { UserProfile } from "app/common/LoginSessionAPI";
-import { BehavioralPrompt, UserPrefs, WelcomePopup } from "app/common/Prefs";
+import { BehavioralPrompt, DismissedPopup, UserPrefs, WelcomePopup } from "app/common/Prefs";
 import { UserAPI, UserAPIImpl } from "app/common/UserAPI";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { TestingHooksClient } from "app/server/lib/TestingHooks";
@@ -34,6 +34,7 @@ const ALL_TIPS_ENABLED = {
     dismissedTips: [],
   },
   dismissedWelcomePopups: [],
+  dismissedPopups: [],
 };
 
 const ALL_TIPS_DISABLED = {
@@ -49,6 +50,7 @@ const ALL_TIPS_DISABLED = {
       timesDismissed: 1,
     };
   }),
+  dismissedPopups: DismissedPopup.values,
 };
 
 export class HomeUtil {

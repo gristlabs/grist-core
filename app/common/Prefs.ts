@@ -138,6 +138,8 @@ export const DismissedPopup = StringUnion(
   "publishForm",          // confirmation for publishing a form
   "unpublishForm",        // confirmation for unpublishing a form
   "upgradeNewAssistant",  // nudge to upgrade to enterprise shown in the formula assistant
+  "mcpConnectBanner",     // nudge to connect an AI assistant via the MCP server (home page banner)
+  "mcpConnectCard",       // collapsed state of the MCP connect card on the OAuth apps page
 
   /* Deprecated */
   "onboardingCards",      // onboarding cards shown on the doc menu
