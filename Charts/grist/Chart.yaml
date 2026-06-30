@@ -1,0 +1,31 @@
+apiVersion: v2
+name: grist
+description: A Helm chart for Grist document management system
+type: application
+version: "0.1.0"
+appVersion: "1.3.3"
+kubeVersion: ">=1.19.0"
+home: https://www.getgrist.com/
+icon: https://raw.githubusercontent.com/gristlabs/grist-core/983e27b67530145a174854c08284386ab271e535/static/icons/grist.svg
+sources:
+  - https://github.com/gristlabs/grist-core
+maintainers:
+  - name: Don Kendall
+    email: kendall@donkendall.com
+keywords:
+  - grist
+  - spreadsheet
+  - database
+dependencies:
+  - condition: postgresql.enabled
+    name: postgresql
+    version: 12.12.10
+    repository: "https://charts.bitnami.com/bitnami"
+  - condition: redis.enabled
+    name: redis
+    version: 17.3.14
+    repository: "https://charts.bitnami.com/bitnami"
+  - condition: minio.enabled
+    name: minio
+    version: 15.0.0
+    repository: "https://charts.bitnami.com/bitnami"
