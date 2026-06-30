@@ -336,6 +336,8 @@ export const GristDark: ThemeTokens = {
 
     /* Toggle Checkboxes */
     toggleCheckboxFg: tokens.secondary,
+    toggleCheckboxBg: tokens.bgSecondary,
+    toggleCheckboxBorder: tokens.decoration,
 
     /* Numeric Spinners */
     numericSpinnerFg: tokens.secondary,
