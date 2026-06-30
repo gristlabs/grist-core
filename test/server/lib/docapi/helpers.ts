@@ -10,11 +10,9 @@
 import { UserAPI, UserAPIImpl } from "app/common/UserAPI";
 import { configForUser } from "test/gen-server/testUtils";
 import { prepareDatabase } from "test/server/lib/helpers/PrepareDatabase";
-import { prepareFilesystemDirectoryForTests } from "test/server/lib/helpers/PrepareFilesystemDirectoryForTests";
 import { TestServer } from "test/server/lib/helpers/TestServer";
 import * as testUtils from "test/server/testUtils";
 
-import { tmpdir } from "os";
 import * as path from "path";
 
 import axios, { AxiosRequestConfig } from "axios";
@@ -63,7 +61,6 @@ export interface TestContext {
 export type ServerMode = "merged" | "separated" | "direct";
 
 // Module-level state for each test run
-const username = process.env.USER || "nobody";
 let tmpDir: string;
 let dataDir: string;
 // Track which test suites have been set up (keyed by testSuiteName)
@@ -131,8 +128,7 @@ async function globalSetup(testSuiteName: string, env: testUtils.EnvironmentSnap
   globalSetupDone.add(testSuiteName);
 
   // Create a stable temp directory (like DocApi.ts)
-  tmpDir = path.join(tmpdir(), `grist_test_${username}_${testSuiteName}`);
-  await prepareFilesystemDirectoryForTests(tmpDir);
+  tmpDir = await testUtils.createTestDir(testSuiteName);
 
   // Create the seeded database
   await prepareDatabase(tmpDir, env);
