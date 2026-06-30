@@ -41,10 +41,13 @@ const focusableSelector =
   `:focus-visible:not(.${kbFocusHighlighterIgnoreClass})`;
 
 const cssKeyboardUser = styled("div", `
-  & .${kbFocusHighlighterClass} ${focusableSelector} {
+  & .${kbFocusHighlighterClass} ${focusableSelector},
+  & .${kbFocusHighlighterClass}:focus-visible {
     outline: 3px solid ${components.kbFocusHighlight} !important;
   }
 `);
+
+export const whenKeyboardUserBodyCls = cssKeyboardUser.className;
 
 export const isKeyboardUser = () => {
   return document.documentElement.classList.contains(cssKeyboardUser.className);
