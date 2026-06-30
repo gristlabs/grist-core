@@ -167,6 +167,17 @@ class Engine(object):
     # Contains Edges (node1, node2, relation) already seen during formula accesses.
     self._recompute_edge_set = set()
 
+    # Tables the cell currently being evaluated has read and added to, keyed by (node, row_id), to
+    # detect a cell that both reads and adds the same table (see note_table_read). Each cell's entry
+    # is cleared when it finishes evaluating, so this only holds cells on the evaluation stack.
+    self._cell_reads = {}
+    self._cell_adds = {}
+
+    # Set by UserTable.lookupRecords/lookupOne while a user-level lookup runs, so the resulting
+    # _LookupRelation is marked user-level. Only user readers get un-done when rows are added to the
+    # looked-up table mid-calculation (see _LookupRelation.invalidate_affected_keys).
+    self._lookup_is_user_level = False
+
     # Sanity-check counter to check if we are making progress.
     self._recompute_done_counter = 0
 
@@ -550,6 +561,10 @@ class Engine(object):
     self._is_node_exception_reported = set()
     self._recompute_edge_set = set()
     self._cell_required_error = None
+    # Note: _cell_reads/_cell_adds are deliberately NOT reset here. They are cleared per-cell in
+    # _recompute_one_cell's finally, so they hold only cells on the evaluation stack. Resetting them
+    # per-pass would wipe an in-progress cell's record when a side effect (lookupOrAddDerived)
+    # triggers a nested pass -- e.g. during get_formula_value, which evaluates outside the loop.
 
   def _post_update(self):
     """
@@ -693,6 +708,26 @@ class Engine(object):
     a = self._triggering_doc_action
     return a and getattr(a, 'table_id', None) == table_id
 
+  def note_table_read(self, table_id):
+    # A cell may not both read and add to the same table in one evaluation: there is no consistent
+    # order for the two, so we report a circular reference. Coarse by design: we don't check whether
+    # the add actually depends on the read.
+    cell = (self._current_node, self._current_row_id)
+    if table_id in self._cell_adds.get(cell, ()):
+      raise depend.CircularRefError(
+        "Circular reference: a formula cannot read %s and add rows to it in the same formula"
+        % table_id)
+    self._cell_reads.setdefault(cell, set()).add(table_id)
+
+  def note_table_add(self, table_id):
+    # Mirror of note_table_read for the lookupOrAddDerived side.
+    cell = (self._current_node, self._current_row_id)
+    if table_id in self._cell_reads.get(cell, ()):
+      raise depend.CircularRefError(
+        "Circular reference: a formula cannot read %s and add rows to it in the same formula"
+        % table_id)
+    self._cell_adds.setdefault(cell, set()).add(table_id)
+
   def bring_col_up_to_date(self, col_obj):
     """
     Public interface to recompute a column if it is dirty. It also generates a calc or stored
@@ -749,13 +784,26 @@ class Engine(object):
       # This is a nested evaluation.  If there are in fact any cells to evaluate,
       # this must result in an OrderError.  We let engine._recompute_step
       # take care of figuring this out.
+      if (node.col_id.startswith('#lookup#')
+          and node.table_id in self._cell_adds.get(
+            (self._current_node, self._current_row_id), ())):
+        # A lookup index dirtied by a row this cell just added (via lookupOrAddDerived) is brought
+        # up to date now rather than deferred, which would undo the add and never converge. Scoped
+        # to that table so ordinary nested lookups still defer via OrderError, as we do below.
+        saved_row_id = self._current_row_id
+        try:
+          self._recompute_step(node, allow_evaluation=True, require_rows=row_ids)
+          return
+        except OrderError:
+          pass
+        finally:
+          self._current_row_id = saved_row_id
       self._recompute_step(node, allow_evaluation=False, require_rows=row_ids)
     else:
       # Sometimes _use_node is called from outside _update_loop.  In this case,
       # we start an _update_loop to compute whatever is required.  Otherwise
       # nested dependencies would not get computed.
       self._update_loop([WorkItem(node, row_ids, [])], ignore_other_changes=True)
-
 
   def _recompute_step(self, node, allow_evaluation=True, require_rows=None): # pylint: disable=too-many-statements
     """
@@ -953,6 +1001,11 @@ class Engine(object):
     """
     self._current_row_id = row_id
 
+    # Clear this cell's read/add record so a re-evaluation isn't seen as a false circular ref.
+    cell = (self._current_node, row_id)
+    self._cell_reads.pop(cell, None)
+    self._cell_adds.pop(cell, None)
+
     # Baffling, but keeping a reference to current generated "usercode" module protects against a
     # seeming garbage-collection bug: if during formula evaluation the module gets regenerated
     # (e.g. a side-effect causes a formula column to change to non-formula), the stale-module
@@ -1015,6 +1068,11 @@ class Engine(object):
           return objtypes.RaisedException(regular_error, include_details, user_input=value)
         else:
           return objtypes.RaisedException(regular_error, include_details)
+      finally:
+        # This cell is done evaluating; drop its read/add record so it doesn't accumulate (only
+        # cells currently on the evaluation stack need theirs, for the note_table_read check).
+        self._cell_reads.pop(cell, None)
+        self._cell_adds.pop(cell, None)
 
   def convert_action_values(self, action):
     """
@@ -1116,6 +1174,14 @@ class Engine(object):
     include_self = col_obj.is_formula() or (col_obj.has_formula() and recompute_data_col)
     self.dep_graph.invalidate_deps(col_obj.node, row_ids, self.recompute_map,
                                    include_self=include_self)
+
+  def undo_done_rows(self, node, rows):
+    # A user-level lookup of a table that just gained rows: referring cells that already finished
+    # this pass read the stale result, so un-mark them as done to force recomputation against the
+    # new rows (see _LookupRelation.invalidate_affected_keys).
+    done = self._recompute_done_map.get(node)
+    if done:
+      done.difference_update(rows)
 
   def prevent_recalc(self, node, row_ids, should_prevent):
     prevented = self._prevent_recompute_map.setdefault(node, set())
