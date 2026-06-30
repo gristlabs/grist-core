@@ -36,6 +36,7 @@ export class NTextEditor extends NewBaseEditor {
 
     this.commandGroup = this.autoDispose(createGroup(options.commands, this, true));
     this._alignment = options.field.widgetOptionsJson.peek().alignment || "left";
+    const isRTL = options.field.viewSection.peek().optionsObj.prop("rtlDirection").peek();
     this._dom =
       dom("div.default_editor",
       // add readonly class
@@ -46,6 +47,7 @@ export class NTextEditor extends NewBaseEditor {
           this.textInput = dom("textarea",
             dom.cls("celleditor_text_editor"),
             dom.style("text-align", this._alignment),
+            dom.attr("dir", isRTL ? "rtl" : "ltr"),
             dom.prop("value", initialValue),
             dom.boolAttr("readonly", options.readonly),
             this.commandGroup.attach(),
