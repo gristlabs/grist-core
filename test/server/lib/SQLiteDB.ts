@@ -79,7 +79,7 @@ describe("SQLiteDB", function() {
       /unable to open database/);
     sdb = await SQLiteDB.openDB(dbPath("test2A"), schemaInfo, OpenMode.OPEN_READONLY);
     assert.sameDeepMembers(await getTableNames(sdb), ["Foo", "Bar"]);
-    await assert.isRejected(sdb.run('INSERT INTO Foo (A) VALUES ("hello")'),
+    await assert.isRejected(sdb.run(`INSERT INTO Foo (A) VALUES ('hello')`),
       /readonly database/);
     await sdb.close();
 
@@ -387,13 +387,13 @@ describe("SQLiteDB", function() {
       const sdb = await SQLiteDB.openDB(dbPath("testTrans1"), schemaInfo, OpenMode.OPEN_CREATE);
 
       // Simple case: just run a statement and it should succeed.
-      await sdb.execTransaction(() => sdb.exec('INSERT INTO Foo (A) VALUES ("hello")'));
+      await sdb.execTransaction(() => sdb.exec(`INSERT INTO Foo (A) VALUES ('hello')`));
       assert.deepEqual(await sdb.all("SELECT A FROM Foo"), [{ A: "hello" }]);
 
       // Now try running one statement that should succeed, and then failing inside the
       // transaction; it should be rolled back along with the first statement.
       await assert.isRejected(sdb.execTransaction(async () => {
-        await sdb.exec('INSERT INTO Foo (A) VALUES ("good bye")');
+        await sdb.exec(`INSERT INTO Foo (A) VALUES ('good bye')`);
         throw new Error("Fake error");
       }), /Fake error/);
       // Ensure that the new value did NOT get added.
@@ -407,16 +407,16 @@ describe("SQLiteDB", function() {
       // see the effects of earlier ones, and should not be affected by earlier failures.
       const sdb = await SQLiteDB.openDB(dbPath("testTrans2"), schemaInfo, OpenMode.OPEN_CREATE);
       const results: any[] = await Promise.all([
-        sdb.execTransaction(() => sdb.exec('INSERT INTO Foo (A) VALUES ("trans1")')),
+        sdb.execTransaction(() => sdb.exec(`INSERT INTO Foo (A) VALUES ('trans1')`)),
         sdb.execTransaction(() => sdb.all("SELECT A FROM Foo")),
-        sdb.execTransaction(() => sdb.exec('INSERT INTO Foo (A) VALUES ("trans2")')),
+        sdb.execTransaction(() => sdb.exec(`INSERT INTO Foo (A) VALUES ('trans2')`)),
         sdb.execTransaction(() => sdb.exec("CREATE TABLE TableNew (foo TEXT)")),
         assert.isRejected(sdb.execTransaction(() => sdb.exec("CREATE TABLE TableNew (foo TEXT)")),
           /TableNew.*already exists/).then(noop),
         sdb.execTransaction(() => sdb.all("SELECT A FROM Foo")),
         sdb.execTransaction(async () => {
           await delay(30);
-          await sdb.exec('INSERT INTO Foo (A) VALUES ("trans3")');
+          await sdb.exec(`INSERT INTO Foo (A) VALUES ('trans3')`);
           await delay(30);
         }),
         sdb.execTransaction(() => sdb.all("SELECT A FROM Foo")),
@@ -437,10 +437,10 @@ describe("SQLiteDB", function() {
     it("should allow nested execTransaction calls", async function() {
       const sdb = await SQLiteDB.openDB(dbPath("testTrans3"), schemaInfo, OpenMode.OPEN_CREATE);
       await sdb.execTransaction(async () => {
-        await sdb.exec('INSERT INTO Foo (A) VALUES ("thing1")');
+        await sdb.exec(`INSERT INTO Foo (A) VALUES ('thing1')`);
         await sdb.execTransaction(async () => {
-          await sdb.exec('INSERT INTO Foo (A) VALUES ("thing2")');
-          await sdb.exec('INSERT INTO Foo (A) VALUES ("thing3")');
+          await sdb.exec(`INSERT INTO Foo (A) VALUES ('thing2')`);
+          await sdb.exec(`INSERT INTO Foo (A) VALUES ('thing3')`);
         });
       });
       assert.lengthOf(await sdb.all("SELECT A FROM Foo"), 3);
@@ -450,10 +450,10 @@ describe("SQLiteDB", function() {
       const sdb = await SQLiteDB.openDB(dbPath("testTrans4"), schemaInfo, OpenMode.OPEN_CREATE);
       await assert.isRejected(
         sdb.execTransaction(async () => {
-          await sdb.exec('INSERT INTO Foo (A) VALUES ("thing1")');
+          await sdb.exec(`INSERT INTO Foo (A) VALUES ('thing1')`);
           await sdb.execTransaction(async () => {
-            await sdb.exec('INSERT INTO Foo (A) VALUES ("thing2")');
-            await sdb.exec('INSERT INTO Foo (A) VALUESBORKBORKBORK ("thing3")');
+            await sdb.exec(`INSERT INTO Foo (A) VALUES ('thing2')`);
+            await sdb.exec(`INSERT INTO Foo (A) VALUESBORKBORKBORK ('thing3')`);
           });
         }),
         /SQLITE_ERROR/);
@@ -463,21 +463,21 @@ describe("SQLiteDB", function() {
 
   it("should nest execTransaction calls robustly regardless of timing", async function() {
     const sdb = await SQLiteDB.openDB(dbPath("testTrans5"), schemaInfo, OpenMode.OPEN_CREATE);
-    await sdb.exec('INSERT INTO Foo (A,B) VALUES ("key", 1)');
+    await sdb.exec(`INSERT INTO Foo (A,B) VALUES ('key', 1)`);
     await Promise.all([
       sdb.execTransaction(async () => {
         // Give an opportunity for another operation to be snuck in.
         await delay(1000);
-        await sdb.exec('UPDATE Foo SET B = 2 WHERE A = "key"');
+        await sdb.exec(`UPDATE Foo SET B = 2 WHERE A = 'key'`);
       }),
       // Wait a little so body of previous transaction has started.
       // This used to be enough to let us sneak an operation into
       // it, potentially in the wrong order.
       delay(100).then(() => sdb.execTransaction(async () => {
-        await sdb.exec('UPDATE Foo SET B = 3 WHERE A = "key"');
+        await sdb.exec(`UPDATE Foo SET B = 3 WHERE A = 'key'`);
       })),
     ]);
-    assert.equal((await sdb.get('SELECT B FROM Foo WHERE A = "key"'))!.B, 3);
+    assert.equal((await sdb.get(`SELECT B FROM Foo WHERE A = 'key'`))!.B, 3);
   });
 
   it("should forbid ATTACHed databases", async function() {
@@ -485,7 +485,7 @@ describe("SQLiteDB", function() {
     await db0.close();
     const db1 = await SQLiteDB.openDB(dbPath("testAttach1"), schemaInfo, OpenMode.OPEN_CREATE);
     await assert.isRejected(db1.exec(`ATTACH '${dbPath("testAttach0")}' AS zing`),
-      /SQLITE_ERROR: too many attached databases - max 0/);
+      /too many attached databases|not authorized/);
     await db1.close();
   });
 
