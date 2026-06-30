@@ -2474,7 +2474,9 @@
         "Screen reader navigation": "Screen reader navigation",
         "Warning: screen reader support is a work-in-progress in Grist and is improving over time. Feedback is greatly appreciated!": "Warning: screen reader support is a work-in-progress in Grist and is improving over time. Feedback is greatly appreciated!",
         "While not mandatory, you can enable screen reader improvements for a better navigation experience:": "While not mandatory, you can enable screen reader improvements for a better navigation experience:",
-        "We recommend using Firefox, Chrome or Edge in order to use Grist with a screen reader.": "We recommend using Firefox, Chrome or Edge in order to use Grist with a screen reader."
+        "We recommend using Firefox, Chrome or Edge in order to use Grist with a screen reader.": "We recommend using Firefox, Chrome or Edge in order to use Grist with a screen reader.",
+        "When focus is on a panel, the same shortcut lets you jump between predefined landmarks, making it easier to quickly navigate inside that panel.": "When focus is on a panel, the same shortcut lets you jump between predefined landmarks, making it easier to quickly navigate inside that panel.",
+        "When focus is on a widget, {{focusSectionHeaderShortcut}} toggles focus between the widget and its header.": "When focus is on a widget, {{focusSectionHeaderShortcut}} toggles focus between the widget and its header."
     },
     "ProposedChangesPage": {
         "Proposed changes": "Proposed changes",
