@@ -1978,8 +1978,17 @@ export class FlexServer implements GristServer {
       // allocate by using GRIST_UNTRUSTED_PORT=0. But we do need to
       // remember how to contact it.
       if (process.env.APP_UNTRUSTED_URL === undefined) {
-        const url = new URL(this.getOwnUrl());
+        // Base the plugin URL on the public home URL when available, so the
+        // protocol and hostname match what the browser uses to reach Grist,
+        // and only swap in the untrusted port. Falling back to getOwnUrl()
+        // uses the server's bind address (e.g. 0.0.0.0) and always http,
+        // which breaks behind https (mixed content) or a 0.0.0.0 bind. See
+        // https://github.com/gristlabs/grist-core/issues/2376.
+        const url = new URL(getHomeUrl() || this.getOwnUrl());
         url.port = String(userPort || ports.serverPort);
+        url.pathname = "/";
+        url.search = "";
+        url.hash = "";
         this._pluginUrl = url.href;
       }
     }
