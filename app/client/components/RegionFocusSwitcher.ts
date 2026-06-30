@@ -1,14 +1,16 @@
 import BaseView from "app/client/components/BaseView";
 import * as commands from "app/client/components/commands";
 import { GristDoc } from "app/client/components/GristDoc";
-import { kbFocusHighlighterClass } from "app/client/components/KeyboardFocusHighlighter";
+import {
+  highlightKeyboardFocus,
+  kbFocusHighlighterClass,
+} from "app/client/components/KeyboardFocusHighlighter";
 import { FocusLayer } from "app/client/lib/FocusLayer";
 import { isFocusable, trapTabKey } from "app/client/lib/focusUtils";
 import { makeT } from "app/client/lib/localization";
 import { App } from "app/client/ui/App";
 import { SpecialDocPage } from "app/common/gristUrls";
 import { mod } from "app/common/gutil";
-import { components } from "app/common/ThemePrefs";
 
 import { Disposable, dom, Holder, Observable, styled, UseCBOwner } from "grainjs";
 import isEqual from "lodash/isEqual";
@@ -66,15 +68,18 @@ export class RegionFocusSwitcher extends Disposable {
       nextRegion: () => {
         this._logCommand("nextRegion");
         this._maybeNotifyAboutCreatorPanel();
+        highlightKeyboardFocus();
         return this._cycle("next");
       },
       prevRegion: () => {
         this._logCommand("prevRegion");
         this._maybeNotifyAboutCreatorPanel();
+        highlightKeyboardFocus();
         return this._cycle("prev");
       },
       creatorPanel: () => {
         this._logCommand("creatorPanel");
+        highlightKeyboardFocus();
         return this._toggleCreatorPanel();
       },
       cancel: this._onEscapeKeypress.bind(this),
@@ -113,6 +118,7 @@ export class RegionFocusSwitcher extends Disposable {
           "region"),
       dom.attr("aria-label", ariaLabel),
       dom.attr(ATTRS.regionId, id),
+      dom.cls(cssPanel.className),
       dom.cls(kbFocusHighlighterClass, (use) => {
         // highlight focused elements everywhere except in the grist doc views
         return id !== "main" ?
@@ -135,10 +141,6 @@ export class RegionFocusSwitcher extends Disposable {
           return this._canTabThroughMainRegion(use);
         }
         return false;
-      }),
-      cssFocusedPanel.cls("-focused", (use) => {
-        const current = use(this._state);
-        return current.initiator?.type === "cycle" && current.region?.type === "panel" && current.region.id === id;
       }),
     ];
   }
@@ -350,7 +352,6 @@ export class RegionFocusSwitcher extends Disposable {
       undefined;
 
     clearCurrentFocusLock();
-    removeFocusRings();
     removeTabIndexes();
     if (!mouseEvent) {
       this._savePrevElementState(prev.region);
@@ -510,7 +511,6 @@ export const viewCommands = (commandsObject: Record<string, Function>, context: 
 
 const ATTRS = {
   regionId: "data-grist-region-id",
-  focusedElement: "data-grist-region-focused-el",
 };
 
 /**
@@ -527,12 +527,6 @@ const focusPanel = (panel: PanelRegion, child: HTMLElement | null, gristDoc: Gri
 
   // Child element found: focus it if we actually can
   if (child && child !== panelElement && child.isConnected && isFocusable(child)) {
-    // Visually highlight the element with similar styles than panel focus,
-    // only for this time. This is here just to help the user better see the visual change when he switches panels.
-    child.setAttribute(ATTRS.focusedElement, "true");
-    child.addEventListener("blur", () => {
-      child.removeAttribute(ATTRS.focusedElement);
-    }, { once: true });
     child.focus?.();
   } else {
     // No child to focus found: just focus the panel
@@ -710,15 +704,6 @@ const containsActiveElement = (el: HTMLElement | null): boolean => {
   return el?.contains(document.activeElement) && document.activeElement !== el || false;
 };
 
-/**
- * Remove the visual highlight on elements that are styled as focused elements of panels.
- */
-const removeFocusRings = () => {
-  document.querySelectorAll(`[${ATTRS.focusedElement}]`).forEach((el) => {
-    el.removeAttribute(ATTRS.focusedElement);
-  });
-};
-
 const removeTabIndexes = () => {
   document.querySelectorAll(`[${ATTRS.regionId}]`).forEach((el) => {
     el.removeAttribute("tabindex");
@@ -743,13 +728,6 @@ const isSpecialPage = (doc: GristDoc | null) => {
   return false;
 };
 
-export const cssFocusedPanel = styled("div", `
-  &-focused:focus {
-    outline: 3px solid ${components.kbFocusHighlight} !important;
-    outline-offset: -3px !important;
-  }
-
-  &-focused [${ATTRS.focusedElement}]:focus {
-    outline: 3px solid ${components.kbFocusHighlight} !important;
-  }
+export const cssPanel = styled("div", `
+  outline-offset: -3px !important;
 `);
