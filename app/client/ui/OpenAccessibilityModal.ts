@@ -113,13 +113,14 @@ const keyboardSection = () => {
   const nextRegionShortcut = dom("span", getCssKeys(allCommands.nextRegion.humanKeys));
   const prevRegionShortcut = dom("span", getCssKeys(allCommands.prevRegion.humanKeys));
   const creatorPanelShortcut = dom("span", getCssKeys(allCommands.creatorPanel.humanKeys));
+  const focusSectionHeaderShortcut = dom("span", getCssKeys(allCommands.focusSectionHeader.humanKeys));
   const shortcutsModal = dom("span", getCssKeys(allCommands.shortcuts.humanKeys));
   const accessibilityModal = dom("span", getCssKeys(allCommands.accessibility.humanKeys));
   return cssSection(
     cssModalSubheading(t("Keyboard navigation"), { "role": "heading", "aria-level": 2 }),
     dom("p", t("On a document page, keyboard navigation is first locked on the current widget.")),
     dom("p", t("Focus on other parts of the user interface using the following shortcuts:")),
-    dom("ul",
+    cssShortcutList(
       cssShortcutRow(t("{{nextRegionShortcut}} Focus on the next region", { nextRegionShortcut })),
       cssShortcutRow(t("{{prevRegionShortcut}} Focus on the previous region", { prevRegionShortcut })),
       cssShortcutRow(t("{{creatorPanelShortcut}} Focus to and from the creator panel", { creatorPanelShortcut })),
@@ -136,8 +137,12 @@ const keyboardSection = () => {
       dom("li", t("Finally, the right panel – or the creator panel – is only available \
 through its own shortcut and is not included in the next and previous region cycle.")),
     ),
+    dom("p", t("When focus is on a widget, {{focusSectionHeaderShortcut}} toggles focus between the widget and its \
+header.", { focusSectionHeaderShortcut })),
+    dom("p", t("When focus is on a panel, the same shortcut lets you jump between predefined landmarks, making \
+it easier to quickly navigate inside that panel.")),
     cssModalSubheading(t("Other important keyboard shortcuts"), { "role": "heading", "aria-level": 3 }),
-    dom("ul",
+    cssShortcutList(
       cssShortcutRow(t("{{shortcutsModal}} Show the complete list of keyboard shortcuts", { shortcutsModal })),
       cssShortcutRow(t("{{accessibilityModal}} Show the accessibility options (this modal)", { accessibilityModal })),
     ),
@@ -196,6 +201,10 @@ const cssKey = styled("span", `
   padding: 0.2em 0.4em;
   border-radius: 0.2em;
   line-height: 1.3;
+`);
+
+const cssShortcutList = styled("ul", `
+  padding-left: 0;
 `);
 
 const cssShortcutRow = styled("li", `
