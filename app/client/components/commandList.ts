@@ -432,7 +432,7 @@ export const groups: CommendGroupDef[] = [{
     }, {
       name: "focusSectionHeader",
       keys: ["Ctrl+i"],
-      desc: () => t("When focused on a widget, toggle current widget header keyboard focus"),
+      desc: () => t("When focused on a widget, move focus between widget and widget header"),
       alwaysOn: true,
     }, {
       name: "nextJumpTarget",

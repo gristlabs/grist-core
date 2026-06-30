@@ -1608,7 +1608,8 @@
     "buildViewSectionDom": {
         "No data": "Aucune donnée",
         "No row selected in {{title}}": "Aucune ligne sélectionnée dans {{title}}",
-        "Not all data is shown": "Toute la donnée n'est pas visible"
+        "Not all data is shown": "Toute la donnée n'est pas visible",
+        "{{title}} widget header": "En-tête de la vue {{title}}"
     },
     "UserManager": {
         "Allow anyone with the link to open.": "Permettre à toute personne possédant le lien de l'ouvrir.",
@@ -2632,7 +2633,10 @@
         "Open the context menu": "Ouvrir le menu contextuel",
         "Toggle the screen reader improvements": "Activer ou désactiver les améliorations pour lecteurs d'écran",
         "Open the current column menu": "Ouvrir le menu de la colonne actuelle",
-        "Open the current row menu": "Ouvrir le menu de la ligne actuelle"
+        "Open the current row menu": "Ouvrir le menu de la ligne actuelle",
+        "When focused on a page panel, focus next landmark": "Quand le focus est dans un panneau, placer le focus sur le prochain repère",
+        "When focused on a page panel, focus previous landmark": "Quand le focus est dans un panneau, placer le focus sur le repère précédent",
+        "When focused on a widget, move focus between widget and widget header": "Quand le focus est dans une vue, basculer le focus entre la vue et l'en-tête de la vue"
     },
     "GridViewMenusDateHelpers": {
         "12-hour format": "format 12-heures",

@@ -1656,7 +1656,8 @@
     "buildViewSectionDom": {
         "No data": "No data",
         "No row selected in {{title}}": "No row selected in {{title}}",
-        "Not all data is shown": "Not all data is shown"
+        "Not all data is shown": "Not all data is shown",
+        "{{title}} widget header": "{{title}} widget header"
     },
     "FloatingEditor": {
         "Collapse Editor": "Collapse Editor"
@@ -2616,7 +2617,10 @@
         "Open the context menu": "Open the context menu",
         "Toggle the screen reader improvements": "Toggle the screen reader improvements",
         "Open the current column menu": "Open the current column menu",
-        "Open the current row menu": "Open the current row menu"
+        "Open the current row menu": "Open the current row menu",
+        "When focused on a page panel, focus next landmark": "When focused on a page panel, focus next landmark",
+        "When focused on a page panel, focus previous landmark": "When focused on a page panel, focus previous landmark",
+        "When focused on a widget, move focus between widget and widget header": "When focused on a widget, move focus between widget and widget header"
     },
     "GridViewMenusDateHelpers": {
         "12-hour format": "12-hour format",
