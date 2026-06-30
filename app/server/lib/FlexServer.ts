@@ -2510,8 +2510,11 @@ export class FlexServer implements GristServer {
   }
 
   /**
-   * Middleware that redirects a request with a userId but without an org to an org-specific URL,
-   * after looking up the first org for this userId in DB.
+   * Middleware for org-less requests with a userId. Redirects to an org-specific URL so the rest
+   * of the app has an org to work with.
+   *
+   * When personal orgs are disabled, redirects to /welcome/start. Otherwise, redirects to the
+   * personal org.
    */
   private async _redirectToOrg(req: express.Request, resp: express.Response, next: express.NextFunction) {
     const mreq = req as RequestWithLogin;
@@ -2534,6 +2537,10 @@ export class FlexServer implements GristServer {
     // We have a userId, but the request is for an unknown org. Redirect to an org that's
     // available to the user. This matters in dev, and in prod when visiting a generic URL, which
     // will here redirect to e.g. the user's personal org.
+    //
+    // TODO: This appears to always redirect to the personal org (getMergedOrgs always adds the
+    // merged org to the front of the returned orgs). Check if it's safe to replace this with the
+    // branch above.
     const result = await this._dbManager.getMergedOrgs({ userId: mreq.userId });
     const orgs = (result.status === 200) ? result.data : null;
     const subdomain = orgs && orgs.length > 0 ? orgs[0].domain : null;
