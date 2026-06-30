@@ -3,6 +3,7 @@ import * as commands from "app/client/components/commands";
 import { GristDoc } from "app/client/components/GristDoc";
 import {
   highlightKeyboardFocus,
+  isKeyboardUser,
   kbFocusHighlighterClass,
 } from "app/client/components/KeyboardFocusHighlighter";
 import { FocusLayer } from "app/client/lib/FocusLayer";
@@ -68,6 +69,8 @@ export class RegionFocusSwitcher extends Disposable {
       nextRegion: () => {
         this._logCommand("nextRegion");
         this._maybeNotifyAboutCreatorPanel();
+        // "Highlighting" keyboard focus sets the `isKeyboardUser` flag that is later used to decide where to move focus
+        // between panels and the active section, when pressing the Escape key or when the clipboard regains focus.
         highlightKeyboardFocus();
         return this._cycle("next");
       },
@@ -87,10 +90,10 @@ export class RegionFocusSwitcher extends Disposable {
 
     this.autoDispose(this._state.addListener(this._onStateChange.bind(this)));
 
-    const focusActiveSection = () => this.focusActiveSection();
-    this._app?.on("clipboard_focus", focusActiveSection);
+    const onClipboardFocus = this._onClipboardFocus.bind(this);
+    this._app?.on("clipboard_focus", onClipboardFocus);
     this.onDispose(() => {
-      this._app?.off("clipboard_focus", focusActiveSection);
+      this._app?.off("clipboard_focus", onClipboardFocus);
       this.reset();
     });
   }
@@ -203,6 +206,19 @@ export class RegionFocusSwitcher extends Disposable {
     this._focusRegion(undefined);
   }
 
+  /**
+   * Called when the clipboard regains focus, for example after a dropdown menu or modal closes.
+   *
+   * If the user was in a panel before the overlay opened, re-focus that panel instead of the active section.
+   */
+  private _onClipboardFocus() {
+    const current = this._state.get().region;
+    if (current?.type === "panel" && isKeyboardUser()) {
+      return focusPanel(current, this._prevFocusedElements[current.id] as HTMLElement | null, this._getGristDoc());
+    }
+    return this.focusActiveSection();
+  }
+
   private _focusRegion(
     region: Region | undefined,
     options: { initiator?: StateUpdateInitiator } = {},
@@ -279,19 +295,22 @@ export class RegionFocusSwitcher extends Disposable {
   }
 
   /**
-   * This is registered as a `cancel` command when the RegionFocusSwitcher is created.
+   * This is registered as a `cancel` command when the RegionFocusSwitcher is created,
+   * and also called when pressing Escape on an input element when inside a panel.
    *
-   * That means this is called when pressing Escape in no particular setting.
+   * On escape keypress, we either focus back the panel itself,
+   * or reset the focus to the active section if already focused on the panel.
+   *
    * Any `cancel` command registered by other code after loading the page will take precedence over this one.
    * So, this doesn't get called when in a modal, a popup menu, etc., as those have their own cancel callback.
    */
   private _onEscapeKeypress() {
-    const { region: current, initiator } = this._state.get();
+    const { region: current } = this._state.get();
     // Do nothing if we are not focused on a panel
     if (current?.type !== "panel") {
       return;
     }
-    const comesFromKeyboard = initiator?.type === "cycle";
+
     const panelElement = getPanelElement(current.id);
     if (!panelElement) {
       return;
@@ -313,7 +332,7 @@ export class RegionFocusSwitcher extends Disposable {
       // If user presses escape again, we also want to focus the panel.
       (activeElement === document.body)
     ) {
-      if (comesFromKeyboard) {
+      if (isKeyboardUser()) {
         focusPanelElement(panelElement);
         if (activeElementIsInPanel) {
           this._prevFocusedElements[current.id] = null;
