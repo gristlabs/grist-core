@@ -1,3 +1,4 @@
+import { kbJumperAnchor } from "app/client/components/RegionFocusSwitcher";
 import { makeT } from "app/client/lib/localization";
 import { getLoginOrSignupUrl, getLoginUrl, getLogoutUrl, getSignupUrl } from "app/client/lib/urlUtils";
 import { AppModel } from "app/client/models/AppModel";
@@ -61,6 +62,7 @@ export class AccountWidget extends Disposable {
 
   private _buildAccountMenuButton(user: FullUser | null) {
     return cssUserIcon(
+      kbJumperAnchor,
       createUserImage(user, "medium", testId("user-icon")),
       menu(() => this._makeAccountMenu(user), { placement: "bottom-end" }),
     );
@@ -69,6 +71,7 @@ export class AccountWidget extends Disposable {
   private _buildSignInAndSignUpButtons() {
     return [
       cssSigninButton(t("Sign in"),
+        kbJumperAnchor,
         cssSigninButton.cls("-secondary"),
         dom.on("click", () => { this._docPageModel?.clearUnsavedChanges(); }),
         dom.attr("href", (use) => {
@@ -92,6 +95,7 @@ export class AccountWidget extends Disposable {
 
   private _buildUseThisTemplateButton() {
     return cssUseThisTemplateButton(t("Use This Template"),
+      kbJumperAnchor,
       dom.attr("href", (use) => {
         const { doc: srcDocId } = use(urlState().state);
         return getLoginOrSignupUrl({ srcDocId });

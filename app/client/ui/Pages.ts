@@ -1,6 +1,8 @@
 import { createGroup } from "app/client/components/commands";
 import { buildDuplicatePageDialog } from "app/client/components/duplicatePage";
 import { GristDoc } from "app/client/components/GristDoc";
+import { fixOutlineOverflow } from "app/client/components/KeyboardFocusHighlighter";
+import { kbJumperAnchor } from "app/client/components/RegionFocusSwitcher";
 import { makeT } from "app/client/lib/localization";
 import { logTelemetryEvent } from "app/client/lib/telemetry";
 import { PageRec } from "app/client/models/DocModel";
@@ -59,6 +61,8 @@ export function buildPagesDom(owner: Disposable, activeDoc: GristDoc, isOpen: Ob
   // dom
   return dom("nav",
     { "aria-label": t("Document pages") },
+    kbJumperAnchor,
+    fixOutlineOverflow,
     dom.create(TreeViewComponent, model, { isOpen, selected, isReadonly: activeDoc.isReadonly }),
   );
 }
