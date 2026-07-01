@@ -11,3 +11,4 @@ phonenumberslite
 python-dateutil
 sortedcontainers
 unittest-xml-reporting
+typing-extensions

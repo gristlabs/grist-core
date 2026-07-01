@@ -44,5 +44,7 @@ sortedcontainers==2.4.0
     # via -r sandbox/requirements.in
 stack-data==0.6.3
     # via friendly-traceback
+typing-extensions==4.15.0
+    # via -r sandbox/requirements.in
 unittest-xml-reporting==4.0.0
     # via -r sandbox/requirements.in
