@@ -1,4 +1,5 @@
 import { theme, vars } from "app/client/ui2018/cssVars";
+import { unstyledButton } from "app/client/ui2018/unstyled";
 
 import { styled } from "grainjs";
 
@@ -12,7 +13,7 @@ import "popweasel";
  * This incorporates styling from popweasel's select, so that it can be used to style buttons that
  * don't use it.
  */
-export const cssSelectBtn = styled("div", `
+export const cssSelectBtn = styled(unstyledButton, `
   position: relative;
   display: flex;
   justify-content: space-between;

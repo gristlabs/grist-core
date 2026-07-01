@@ -535,7 +535,7 @@ export function autocomplete(
 export function selectMenu(
   label: DomElementArg,
   items: () => DomElementArg[],
-  ...args: IDomArgs<HTMLDivElement>
+  ...args: IDomArgs<HTMLButtonElement>
 ) {
   return cssSelectBtn(
     label,
