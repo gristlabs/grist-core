@@ -31,7 +31,7 @@ import { normalizeEmail } from "app/common/emails";
 import { ErrorWithCode } from "app/common/ErrorWithCode";
 import { InfoEditor, RuleSet } from "app/common/GranularAccessClause";
 import * as gristTypes from "app/common/gristTypes";
-import { getSetMapValue, isNonNullish, pruneArray } from "app/common/gutil";
+import { getSetMapValue, isNonNullish, pruneArray, safeJsonParse } from "app/common/gutil";
 import { isMetadataTable } from "app/common/isHiddenTable";
 import { compilePredicateFormula, PredicateFormulaInput } from "app/common/PredicateFormula";
 import { EmptyRecordView, InfoView, RecordView } from "app/common/RecordView";
@@ -367,9 +367,9 @@ export class GranularAccess implements GranularAccessForBundle {
       const override = attrs.override || (attrs.override = await this._getViewAsUser(linkParameters));
       access = override.access;
       fullUser = override.user;
-    } else if (linkId) {
-      // Anonymize user info for form submissions.
-      // Note: This is half-baked and doesn't account for other types of shares besides forms.
+    } else if (shareRef && this._shouldAnonymizeShareUser(shareRef, linkParameters)) {
+      // Anonymize user info for form submissions when the targeted published form
+      // has `forceAnonymous` enabled.
       fullUser = this._homeDbManager?.makeFullUser(this._homeDbManager.getAnonymousUser()) ?? null;
     } else {
       // In case of restricted credentials (like AccessToken or oauth), the user may not be able
@@ -1410,6 +1410,29 @@ export class GranularAccess implements GranularAccessForBundle {
   // Return true if attachment info must be sent on a need-to-know basis.
   public async needAttachmentControl(docSession: OptDocSession) {
     return !await this.canScanData(docSession);
+  }
+
+  private _shouldAnonymizeShareUser(shareRef: number, linkParameters: Record<string, string>): boolean {
+    const formVsId = Number(linkParameters.formVsId);
+    if (!Number.isInteger(formVsId) || formVsId <= 0) {
+      return false;
+    }
+
+    const section = this._docData.getMetaTable("_grist_Views_section").getRecord(formVsId);
+    if (!section) {
+      return false;
+    }
+
+    const pages = this._docData.getMetaTable("_grist_Pages");
+    const belongsToShare = pages.filterRecords({ shareRef, viewRef: section.parentId }).length > 0;
+    if (!belongsToShare) {
+      return false;
+    }
+
+    const sectionShareOptions = safeJsonParse(section.shareOptions, {});
+
+    return Boolean(sectionShareOptions.form) &&
+      Boolean(sectionShareOptions.forceAnonymous);
   }
 
   /**
