@@ -93,6 +93,7 @@ Here are some specific feature highlights of Grist (🇫🇷 marks heavy French 
     - On any OS, including Windows, you can use a Wasm-based sandbox via [Deno](https://deno.com/) and [Pyodide](https://pyodide.org/).
   * Translated to many languages (🇫🇷).
   * A [high-contrast theme](https://support.getgrist.com/newsletters/2025-05/#high-contrast-theme) meeting WCAG level AA requirements (🇫🇷).
+  * [Accessibility](https://support.getgrist.com/accessibility/) support, including screen readers and keyboard navigation across grid views, menus, and the page widget picker (🇫🇷).
   * `F1` key brings up some quick help. This used to go without saying, but in general Grist has good keyboard support (🇫🇷).
   * We post progress on [𝕏 or Twitter or whatever](https://twitter.com/getgrist) and publish [monthly newsletters](https://support.getgrist.com/newsletters/).
 
@@ -127,6 +128,15 @@ Here is a list of features available in the full edition of Grist that are not i
   * [Document Change and Comment Notifications](https://support.getgrist.com/document-settings/#notifications) (2025)
     - You can achieve change notifications in `grist-core` using webhooks, but it is less convenient.
     - People have been asking for this one for years. If you need an excuse to get your boss to pay for Grist, this might finally be the one that works?
+  * [Automations](https://support.getgrist.com/automations/) (2026)
+    - A tool for document owners to build trigger-driven workflows: set conditions on any table, then send emails (with dynamic recipients and Markdown) or fire webhooks when rows match, and watch the results in a delivery log.
+    - You can build similar flows in `grist-core` with webhooks, but you'd be wiring up the email side and the monitoring yourself.
+  * [OAuth apps](https://support.getgrist.com/oauth-apps/) (2026)
+    - Register and authorize OAuth applications, scope them to specific orgs, workspaces, or documents, and review or revoke that access later.
+    - A way to give external tools connection to Grist with scoped, revocable access instead of handing over a full API key. If you're connecting Grist to other software, you may care about this, as an alternative to API keys.
+  * [MCP server](https://support.getgrist.com/mcp/) (2026)
+    - A built-in [Model Context Protocol](https://modelcontextprotocol.io/) endpoint that lets AI clients such as Claude or ChatGPT read and edit Grist documents over JSON-RPC. Enabled with `GRIST_MCP_ENABLED` (see [environment variables](#environment-variables)).
+    - With `grist-core` you can still use one of the many community MCP servers that talks to Grist through its [REST API](https://support.getgrist.com/api/). The built-in server saves you that work.
 
 ## Using Grist
 
@@ -432,6 +442,8 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_DEFAULT_PRODUCT | if set, this controls enabled features and limits of new sites. See names of PRODUCTS in Product.ts. |
 | GRIST_DEFAULT_LOCALE | Locale to use as fallback when Grist cannot honour the browser locale. Defaults to `en-US`. Should match a locale code found in `app/common/LocaleCodes.ts`. |
 | GRIST_DOMAIN | in hosted Grist, Grist is served from subdomains of this domain.  Defaults to "getgrist.com". |
+| GRIST_EDITION | selects which edition the `yarn install` hook sets up, `full` or `community`. Takes precedence over the `grist-edition` file written by `yarn run set-full-edition` / `yarn run set-community-edition`. Defaults to `full`. See [Building from source](#building-from-source). |
+| GRIST_SKIP_EXT_AUTOSETUP | set to `1` to skip the `yarn install` hook that downloads the full-edition `ext` material. Useful where extensions are installed by other means (Docker builds, grist-desktop, grist-static). See [Building from source](#building-from-source). |
 | GRIST_EXPERIMENTAL_PLUGINS | enables experimental plugins |
 | GRIST_EXTERNAL_ATTACHMENTS_MODE | required to enable external storage for attachments. Set to "snapshots" to enable external storage. Default value is "none". Note that when enabled, a [snapshot storage has to be configured](https://support.getgrist.com/self-managed/#how-do-i-set-up-snapshots) as well. |
 | GRIST_ENABLE_SERVICE_ACCOUNTS | enables the `service accounts` feature. This feature allows users to create special service accounts that they can manage and to whom they can grant restricted access to chosen resources. Useful as a way to get fine-grained api keys for use with third party automations. Unset by default |
@@ -459,6 +471,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_PAGE_TITLE_SUFFIX | a string to append to the end of the `<title>` in HTML documents. Defaults to `" - Grist"`. Set to `_blank` for no suffix at all. |
 | ~GRIST_PROXY_AUTH_HEADER~ | Deprecated, and interpreted as a synonym for GRIST_FORWARD_AUTH_HEADER. |
 | GRIST_REQUEST_TIMEOUT_MS | if set, override nodes's server.requestTimeout flag. |
+| GRIST_RESTART_SHELL | set to "true"/"false" to enable/disable restarting in place to apply config changes without dropping the listening socket. On by default for Linux under Node, off for Windows and Electron. |
 | GRIST_ROUTER_URL | optional url for an api that allows servers to be (un)registered with a load balancer |
 | GRIST_SERVE_SAME_ORIGIN | set to "true" to access home server and doc workers on the same protocol-host-port as the top-level page, same as for custom domains (careful, host header should be trustworthy) |
 | GRIST_SERVERS | the types of server to setup. Comma separated values which may contain "home", "docs", static" and/or "app". Defaults to "home,docs,static". |
@@ -509,6 +522,24 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_TRUTHY_VALUES | optional. Comma-separated list of extra words that should be considered as truthy by the data engine beyond english defaults. Ex: "oui,ja,si" |
 | GRIST_FALSY_VALUES | optional. Comma-separated list of extra words that should be considered as falsy by the data engine beyond english defaults. Ex: "non,nein,no" |
 | GRIST_ENABLE_USER_PRESENCE | optional, enabled by default. If set to 'false', disables all user presence features. |
+
+#### Full edition feature flags:
+
+Some features live in the [full edition](#features-not-in-grist-core) of Grist
+rather than `grist-core`. Their feature toggles are listed here for reference;
+they have an effect only when the full edition is built and enabled (see
+[Building from source](#building-from-source)).
+
+Variable | Purpose
+-------- | -------
+GRIST_ACTIVATION | an activation key for the full edition, supplied directly instead of through the Admin Panel. Useful for scripted or headless deploys. Takes precedence over `GRIST_ACTIVATION_FILE`.
+GRIST_ACTIVATION_FILE | path to a file containing the activation key, read when `GRIST_ACTIVATION` is not set.
+GRIST_MCP_ENABLED | if set to "true", enable the [MCP server](https://support.getgrist.com/mcp/), so external clients such as Claude can talk to Grist over JSON-RPC. Defaults to "false".
+GRIST_ENABLE_OIDC_SERVER | if set to "true", enable Grist's OAuth / OIDC server, which issues the tokens that [OAuth apps](https://support.getgrist.com/oauth-apps/) and MCP clients authenticate with. Defaults to "false".
+GRIST_ENABLE_OIDC_DCR | if set to "true", enable OAuth Dynamic Client Registration ([RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591)): serve `POST /oidc/reg` and advertise it in the discovery document, so OAuth and MCP clients can register without being pre-provisioned. Defaults to "false".
+GRIST_OIDC_DCR_RATE_LIMIT | requests per minute allowed on the unauthenticated `POST /oidc/reg` endpoint. Defaults to 60.
+GRIST_OIDC_CIMD_ALLOWED_HOSTS | comma-separated allowlist of hosts whose Client ID Metadata Document (CIMD) may be fetched, letting a client identify itself by an HTTPS metadata URL instead of pre-registering. Empty (the default) disables CIMD. `*` allows any host and should only be used together with `GRIST_PROXY_FOR_UNTRUSTED_URLS`.
+
 #### AI Formula Assistant related variables (all optional):
 
 Variable | Purpose
