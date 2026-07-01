@@ -1,6 +1,5 @@
 import * as commands from "app/client/components/commands";
 import { GristDoc } from "app/client/components/GristDoc";
-import { FocusLayer } from "app/client/lib/FocusLayer";
 import { makeT } from "app/client/lib/localization";
 import { reportSuccess } from "app/client/models/errors";
 import { basicButton, bigPrimaryButton, primaryButton } from "app/client/ui2018/buttons";
@@ -34,7 +33,6 @@ export function buildConfirmDelete(
       dom.autoDispose(remember),
       testId("confirm-deleteRows"),
       testId("confirm-popup"),
-      (elem) => { FocusLayer.create(ctl, { defaultFocusElem: elem, pauseMousetrap: true }); },
       dom.onKeyDown({
         Escape: () => ctl.close(),
         Enter: () => { onSave(remember.get()); ctl.close(); },
@@ -76,7 +74,6 @@ export function showDeprecatedWarning(
   const tooltip = modalTooltip(refElement, ctl =>
     cssWideContainer(
       testId("popup-warning-deprecated"),
-      (elem) => { FocusLayer.create(ctl, { defaultFocusElem: elem, pauseMousetrap: true }); },
       dom.onKeyDown({
         Escape: () => { ctl.close(); onClose(remember.get()); },
         Enter: () => { ctl.close(); onClose(remember.get()); },
@@ -165,7 +162,6 @@ export function showTipPopup(
       cssBehavioralPromptContainer(
         dom.autoDispose(dontShowTips),
         testId("behavioral-prompt"),
-        (elem) => { FocusLayer.create(ctl, { defaultFocusElem: elem, pauseMousetrap: true }); },
         dom.onKeyDown({
           Escape: () => ctl.close(),
           Enter: () => { onClose(dontShowTips.get()); ctl.close(); },
@@ -223,7 +219,6 @@ export function showNewsPopup(
       cssNewsPopupModal.cls(""),
       cssNewsPopupContainer(
         testId("behavioral-prompt"),
-        (elem) => { FocusLayer.create(ctl, { defaultFocusElem: elem, pauseMousetrap: true }); },
         dom.onKeyDown({
           Escape: () => { ctl.close(); },
           Enter: () => { ctl.close(); },

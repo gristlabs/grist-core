@@ -1,5 +1,6 @@
 import { kbFocusHighlighterClass } from "app/client/components/KeyboardFocusHighlighter";
 import { FocusLayer } from "app/client/lib/FocusLayer";
+import { clearCurrentFocusLock, enableFocusLock, lockFocusUntilRemoved } from "app/client/lib/focusUtils";
 import { makeT } from "app/client/lib/localization";
 import { reportError } from "app/client/models/errors";
 import { cssInput } from "app/client/ui/cssInput";
@@ -12,9 +13,10 @@ import { cssMenuElem } from "app/client/ui2018/menus";
 import { waitGrainObs } from "app/common/gutil";
 import { MaybePromise } from "app/plugin/gutil";
 
-import { Computed, Disposable, dom, DomContents, DomElementArg, input, keyframes,
+import { Computed, Disposable, dom, DomContents, DomElementArg, IDomArgs, input, keyframes,
   MultiHolder, Observable, styled } from "grainjs";
 import { IOpenController, IPopupOptions, PopupControl, popupOpen } from "popweasel";
+import { uniqueId } from "underscore";
 
 const t = makeT("modals");
 
@@ -203,6 +205,7 @@ export function modal(
   }
 
   function closeModal() {
+    clearCurrentFocusLock();
     document.body.removeChild(modalDom);
     // Ensure we run the disposers for the DOM contained in the modal.
     dom.domDispose(modalDom);
@@ -255,6 +258,7 @@ export function modal(
         dom.on("click", ev => ev.stopPropagation()),
         noEscapeKey ? null : dom.onKeyDown({ Escape: close }),
         testId("modal-dialog"),
+        { "role": "dialog", "aria-modal": "true" },
       );
       FocusLayer.create(owner, {
         defaultFocusElem: dialogDom,
@@ -270,6 +274,7 @@ export function modal(
   );
 
   document.body.appendChild(modalDom);
+  enableFocusLock(modalDom);
   if (variant === "collapsing") { expandModal(); }
 }
 
@@ -553,7 +558,9 @@ export function modalTooltip(
 ): PopupControl {
   return popupOpen(reference, (ctl: IOpenController) => {
     const element = cssModalTooltip(
+      lockFocusUntilRemoved(ctl),
       domCreator(ctl),
+      { "role": "dialog", "aria-modal": "true" },
     );
     return element;
   }, options);
@@ -626,14 +633,26 @@ export const cssModalDialog = styled("div", `
   }
 `);
 
-export const cssModalTitle = styled("div", `
-  font-size: ${vars.xxxlargeFontSize};
-  font-weight: ${vars.headerControlTextWeight};
-  color: ${theme.text};
-  margin: 0 0 16px 0;
-  line-height: 32px;
-  overflow-wrap: break-word;
-`);
+export const cssModalTitle = styled(
+  (...args: IDomArgs<HTMLDivElement>) => dom(
+    "div",
+    { id: uniqueId("modal-title-") },
+    (el) => {
+      // waiting for potential domComputed to work
+      setTimeout(() => {
+        el.closest('[role="dialog"]')?.setAttribute("aria-labelledby", el.id);
+      }, 0);
+    },
+    ...args,
+  ), `
+    font-size: ${vars.xxxlargeFontSize};
+    font-weight: ${vars.headerControlTextWeight};
+    color: ${theme.text};
+    margin: 0 0 16px 0;
+    line-height: 32px;
+    overflow-wrap: break-word;
+  `,
+);
 
 export const cssModalSubheading = styled("div", `
   font-size: ${vars.xlargeFontSize};

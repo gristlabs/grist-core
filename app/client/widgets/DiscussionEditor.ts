@@ -2,6 +2,7 @@ import { allCommands } from "app/client/components/commands";
 import { showUndoDiscardNotification } from "app/client/components/Drafts";
 import { GristDoc } from "app/client/components/GristDoc";
 import { domDispatch, domOnCustom, makeTestId } from "app/client/lib/domUtils";
+import { lockFocusUntilRemoved } from "app/client/lib/focusUtils";
 import { createObsArray } from "app/client/lib/koArrayWrap";
 import { makeT } from "app/client/lib/localization";
 import { localStorageBoolObs } from "app/client/lib/localStorageObs";
@@ -240,6 +241,7 @@ export class CommentPopup extends Disposable {
         }
       });
       return cssCommentPopup(
+        lockFocusUntilRemoved(ctl),
         testId("popup"),
         dom.domComputed(this._props.cell.isEmpty, (empty) => {
           if (!empty) {
@@ -923,6 +925,7 @@ class CommentEntry extends Disposable {
       this._editableDiv = buildMentionTextBox(
         this.props.text,
         this.props.access,
+        { tabindex: "0" },
         cssCommentEntryText.cls(""),
         cssContentEditable.cls(`-${this.props.mode}`),
         dom.onKeyDown({

@@ -23,6 +23,59 @@
  * IN THE SOFTWARE.
  */
 
+import { kbFocusHighlighterClass } from "app/client/components/KeyboardFocusHighlighter";
+import { FocusLayer } from "app/client/lib/FocusLayer";
+
+import { Disposable, dom, DomMethod, Holder } from "grainjs";
+
+const _focusLockHolder = Holder.create(null);
+
+/**
+ * Trap the tab key inside the given element.
+ *
+ * That makes pressing tab and shift+tab loop exclusively through focusable elements that are *in* the element.
+ */
+export const enableFocusLock = (element: HTMLElement) => {
+  clearCurrentFocusLock();
+  _focusLockHolder.autoDispose(dom.onElem(element, "keydown", (event, elem) => {
+    if (event.key === "Tab") {
+      trapTabKey(elem, event);
+    }
+  }));
+};
+
+export const clearCurrentFocusLock = () => {
+  _focusLockHolder.clear();
+};
+
+/**
+ * Lock keyboard focus inside a given element until it is removed from the DOM.
+ *
+ * This is a useful default to use for popups, modal tooltips and things like that.
+ */
+export function lockFocusUntilRemoved(
+  owner: Disposable,
+  options: {
+    pauseMousetrap?: boolean;
+  } = {},
+): DomMethod<HTMLElement> {
+  const { pauseMousetrap = true } = options;
+
+  return (elem: HTMLElement) => {
+    elem.classList.add(kbFocusHighlighterClass);
+    if (!elem.hasAttribute("tabindex")) {
+      elem.setAttribute("tabindex", "-1");
+    }
+    enableFocusLock(elem);
+    owner.onDispose(() => clearCurrentFocusLock());
+    FocusLayer.create(owner, {
+      defaultFocusElem: elem,
+      pauseMousetrap,
+      allowFocus: target => elem.contains(target),
+    });
+  };
+}
+
 /**
  * Trap the tab key within the given element.
  *
