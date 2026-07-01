@@ -107,8 +107,11 @@ describe("modals", function() {
     await driver.find(".testui-confirm-modal-opener").click();
     await checkOpen();
 
-    // Focus is set on the modal itself on open
-    assert.equal(await driver.switchTo().activeElement().getId(), await driver.find(".test-modal-dialog").getId());
+    assert.equal(
+      await driver.switchTo().activeElement().getId(),
+      await driver.find(".test-modal-dialog").getId(),
+      "focus should be on the modal container after opening the modal",
+    );
 
     // pressing Tab loops through the focusable elements inside the modal
     await driver.sendKeys(Key.TAB);
