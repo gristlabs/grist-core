@@ -18,7 +18,7 @@ jobs:
       fail-fast: false
       matrix:
         os: ['ubuntu-24.04']
-        python-version: [3.11]
+        python-version: [3.14]
         node-version: [22.x]
         tests:
           - ':lint:python:client:common:smoke:stubs:pyodide:eslint-unit:'
