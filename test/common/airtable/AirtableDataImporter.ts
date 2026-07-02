@@ -24,55 +24,55 @@ describe("AirtableDataImporter", function() {
   const basicCrosswalkFields = [
     {
       airtableField: { id: "fld0", name: "Name", type: "singleLineText" as const, options: {} },
-      gristColumn: { id: "Name", ref: 100, label: "Name", isFormula: false },
+      gristColumn: { id: "Name", ref: 100, label: "Name", type: "Text", isFormula: false },
     },
     {
       airtableField: { id: "fld1", name: "Count", type: "number" as const, options: {} },
-      gristColumn: { id: "Count", ref: 101, label: "Count", isFormula: true },
+      gristColumn: { id: "Count", ref: 101, label: "Count", type: "Numeric", isFormula: true },
     },
     {
       airtableField: { id: "fld2", name: "Formula", type: "formula" as const, options: {} },
-      gristColumn: { id: "Formula", ref: 102, label: "Formula", isFormula: true },
+      gristColumn: { id: "Formula", ref: 102, label: "Formula", type: "Any", isFormula: true },
     },
     {
       airtableField: { id: "fld3", name: "Links", type: "multipleRecordLinks" as const, options: {} },
-      gristColumn: { id: "Links", ref: 103, label: "Links", isFormula: false },
+      gristColumn: { id: "Links", ref: 103, label: "Links", type: "RefList:Main", isFormula: false },
     },
     {
       airtableField: { id: "fld4", name: "AiField", type: "aiText" as const, options: {} },
-      gristColumn: { id: "AiField", ref: 104, label: "AiField", isFormula: false },
+      gristColumn: { id: "AiField", ref: 104, label: "AiField", type: "Text", isFormula: false },
     },
     {
       airtableField: { id: "fld5", name: "CreatedBy", type: "createdBy" as const, options: {} },
-      gristColumn: { id: "CreatedBy", ref: 105, label: "CreatedBy", isFormula: false },
+      gristColumn: { id: "CreatedBy", ref: 105, label: "CreatedBy", type: "Text", isFormula: false },
     },
     {
       airtableField: { id: "fld6", name: "ModifiedBy", type: "lastModifiedBy" as const, options: {} },
-      gristColumn: { id: "ModifiedBy", ref: 106, label: "ModifiedBy", isFormula: false },
+      gristColumn: { id: "ModifiedBy", ref: 106, label: "ModifiedBy", type: "Text", isFormula: false },
     },
     {
       airtableField: { id: "fld7", name: "Collaborators", type: "multipleCollaborators" as const, options: {} },
-      gristColumn: { id: "Collaborators", ref: 107, label: "Collaborators", isFormula: false },
+      gristColumn: { id: "Collaborators", ref: 107, label: "Collaborators", type: "Text", isFormula: false },
     },
     {
       airtableField: { id: "fld8", name: "SingleCollaborator", type: "singleCollaborator" as const, options: {} },
-      gristColumn: { id: "SingleCollaborator", ref: 108, label: "SingleCollaborator", isFormula: false },
+      gristColumn: { id: "SingleCollaborator", ref: 108, label: "SingleCollaborator", type: "Text", isFormula: false },
     },
     {
       airtableField: { id: "fld9", name: "MultipleSelects", type: "multipleSelects" as const, options: {} },
-      gristColumn: { id: "MultipleSelects", ref: 109, label: "MultipleSelects", isFormula: false },
+      gristColumn: { id: "MultipleSelects", ref: 109, label: "MultipleSelects", type: "ChoiceList", isFormula: false },
     },
     {
       airtableField: { id: "fld10", name: "Rollup", type: "rollup" as const, options: {} },
-      gristColumn: { id: "Rollup", ref: 110, label: "Rollup", isFormula: true },
+      gristColumn: { id: "Rollup", ref: 110, label: "Rollup", type: "Any", isFormula: true },
     },
     {
       airtableField: { id: "fld11", name: "Lookup", type: "lookup" as const, options: {} },
-      gristColumn: { id: "Lookup", ref: 111, label: "Lookup", isFormula: true },
+      gristColumn: { id: "Lookup", ref: 111, label: "Lookup", type: "Any", isFormula: true },
     },
     {
       airtableField: { id: "fld12", name: "Attachments", type: "multipleAttachments" as const, options: {} },
-      gristColumn: { id: "Attachments", ref: 112, label: "Attachments", isFormula: false },
+      gristColumn: { id: "Attachments", ref: 112, label: "Attachments", type: "Attachments", isFormula: false },
     },
   ];
 
@@ -87,7 +87,9 @@ describe("AirtableDataImporter", function() {
       fields.set(fieldPair.airtableField.name, fieldPair);
     }
 
-    const airtableIdColumn = { id: AirtableIdColumnId, ref: 111, label: AirtableIdColumnLabel, isFormula: false };
+    const airtableIdColumn = {
+      id: AirtableIdColumnId, ref: 111, label: AirtableIdColumnLabel, type: "Text", isFormula: false,
+    };
     gristColumns.push(airtableIdColumn);
 
     return {
@@ -215,8 +217,8 @@ describe("AirtableDataImporter", function() {
       tracker.addTable("foods", [], { airtableIdColumnId: undefined });
 
       const tableTracker = tracker.addTable("country", [
-        { id: "cities", tableId: "cities" },
-        { id: "local_foods", tableId: "foods" },
+        { id: "cities", tableId: "cities", isList: true },
+        { id: "local_foods", tableId: "foods", isList: true },
       ]);
 
       tableTracker.addUnresolvedRecord({
@@ -254,14 +256,63 @@ describe("AirtableDataImporter", function() {
       });
     });
 
+    it("resolves references via sandbox lookup if an Airtable id column exists", async () => {
+      const tracker = new ReferenceTracker();
+
+      // The target table has an Airtable Id column, so resolution is delegated to the sandbox
+      // via GristObjCode.LookUp regardless of whether the row ids are known locally.
+      tracker.addTable("people", [], { airtableIdColumnId: "Airtable_Id" });
+
+      const tableTracker = tracker.addTable("employees", [
+        // Ref column: single reference, `isList: false`.
+        { id: "manager", tableId: "people", isList: false },
+        // RefList column: multiple references, `isList: true`.
+        { id: "reports", tableId: "people", isList: true },
+      ]);
+
+      tableTracker.addUnresolvedRecord({
+        gristRecordId: 1,
+        refsByColumnId: {
+          manager: ["airtable-manager"],
+          reports: ["airtable-report-1", "airtable-report-2"],
+        },
+      });
+
+      // No manager, no reports - covers the "undefined refs" branch for each isList value.
+      tableTracker.addUnresolvedRecord({
+        gristRecordId: 2,
+        refsByColumnId: {},
+      });
+
+      await tableTracker.bulkUpdateRowsWithUnresolvedReferences(updateRowsMock);
+
+      const call = updateRowsMock.getCall(0);
+      const updates = call.args[1];
+      assert.deepEqual(updates, {
+        id: [1, 2],
+        manager: [
+          // Ref columns result in a single record id sent to the sandbox, not a list.
+          [GristObjCode.LookUp, "airtable-manager", { column: "Airtable_Id" }],
+          // No references to resolve results in null.
+          null,
+        ],
+        reports: [
+          // RefList columns result in a list of record ids sent to the sandbox.
+          [GristObjCode.LookUp, ["airtable-report-1", "airtable-report-2"], { column: "Airtable_Id" }],
+          // No references to resolve results in an empty list.
+          [GristObjCode.List],
+        ],
+      });
+    });
+
     it("skips unresolvable references without error", async () => {
       const tracker = new ReferenceTracker();
 
       tracker.addRecordIdMapping("airtable-rec-1", 10);
 
       const tableTracker = tracker.addTable("users", [
-        { id: "friends", tableId: "people" },
-        { id: "email", tableId: "emails" },
+        { id: "friends", tableId: "people", isList: true },
+        { id: "email", tableId: "emails", isList: true },
       ]);
 
       // Reference to an unmapped record
@@ -287,7 +338,7 @@ describe("AirtableDataImporter", function() {
 
       tracker.addRecordIdMapping("airtable-rec-1", 10);
       const tableTracker = tracker.addTable("users", [{
-        id: "col1", tableId: "users",
+        id: "col1", tableId: "users", isList: true,
       }]);
 
       // Add more than default batch size (100) records
@@ -316,7 +367,7 @@ describe("AirtableDataImporter", function() {
       const tracker = new ReferenceTracker();
 
       tracker.addRecordIdMapping("airtable-rec-1", 10);
-      const tableTracker = tracker.addTable("users", [{ id: "col1", tableId: "users" }]);
+      const tableTracker = tracker.addTable("users", [{ id: "col1", tableId: "users", isList: true }]);
 
       // Add 25 records
       for (let i = 0; i < 25; i++) {
@@ -337,7 +388,7 @@ describe("AirtableDataImporter", function() {
 
     it("does not update if there are no unresolved records", async () => {
       const tracker = new ReferenceTracker();
-      const tableTracker = tracker.addTable("users", [{ id: "friends", tableId: "users" }]);
+      const tableTracker = tracker.addTable("users", [{ id: "friends", tableId: "users", isList: true }]);
 
       const updateRowsMock = sinon.stub().resolves([]);
 

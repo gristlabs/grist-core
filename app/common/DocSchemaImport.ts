@@ -289,8 +289,8 @@ export function tablesToSchema(tables: TableMetadata[]): ExistingDocSchema {
   const tableSchemas: ExistingTableSchema[] = [];
   for (const { id: tableId, fields: { tableRef }, columns = [] } of tables) {
     const tableSchema: ExistingTableSchema = { id: tableId, ref: tableRef, columns: [] };
-    for (const { id: colId, fields: { colRef, label, isFormula } } of columns) {
-      tableSchema.columns.push({ id: colId, ref: colRef, label, isFormula });
+    for (const { id: colId, fields: { colRef, label, isFormula, type } } of columns) {
+      tableSchema.columns.push({ id: colId, ref: colRef, label, isFormula, type });
     }
     tableSchemas.push(tableSchema);
   }
