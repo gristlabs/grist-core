@@ -142,7 +142,13 @@ class TestRequestFunction(test_engine.EngineTestCase):
 
     formula = """
 r = REQUEST('my_url', headers={'foo': 'bar'}, params={'b': 1, 'a': 2})
-r.__dict__
+dict(
+    content = r.content,
+    headers = r.headers,
+    encoding = r.encoding,
+    status_code = r.status_code,
+    reason = r.reason,
+)
 """
     out_actions = self.modify_column("Table1", "Request", formula=formula)
     key = 'd7f8cedf177ab538bf7dadf66e77a525486a29a41ce4520b2c89a33e39095fed'
