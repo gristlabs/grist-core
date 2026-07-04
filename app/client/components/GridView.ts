@@ -40,6 +40,7 @@ import {
   calcFieldsCondition,
   freezeAction,
   IMultiColumnContextMenu,
+  rowNumbersMenu,
 } from "app/client/ui/GridViewMenus";
 import { menuToggle } from "app/client/ui/MenuToggle";
 import { mouseDragMatchElem } from "app/client/ui/mouseDrag";
@@ -169,6 +170,7 @@ export default class GridView extends BaseView {
   private _inline: boolean;
   private _rowIndexRenderer: RowIndexRenderer;
   private _cornerRenderer: CornerRenderer;
+  private _rowNumWidth: ko.Computed<number>;
   private _autoWidthHolder: Holder<Disposable>;
 
   constructor(gristDoc: GristDoc, viewSectionModel: ViewSectionRec, protected gridOptions?: GridViewOptions) {
@@ -178,8 +180,16 @@ export default class GridView extends BaseView {
     this._inline = gridOptions?.inline ?? false;
     this._autoWidthHolder = this.autoDispose(new Holder());
 
+    const rowNumbers = viewSectionModel.optionsObj.prop("rowNumbers");
     this._rowIndexRenderer = gridOptions?.rowIndexRenderer ??
-      (row => dom.text(use => String(use(row._index)! + 1)));
+      (row => dom.text((use) => {
+        if (use(rowNumbers) === "rowId") {
+          const rowId = use(row.id);
+          // The add-row's id observable is left blank (it has no rowId yet); show nothing for it.
+          return typeof rowId === "number" ? `[${rowId}]` : "";
+        }
+        return String(use(row._index)! + 1);
+      }));
     this._cornerRenderer = gridOptions?.cornerRenderer ??
       (() => dom.on("click", () => this.selectAll()));
     this.viewSection = viewSectionModel;
@@ -280,6 +290,9 @@ export default class GridView extends BaseView {
     this.width = ko.observable(0);
     // helper for clarity
     this.numFrozen = this.viewSection.numFrozen;
+    // Width of the row-number gutter; collapses to zero when row numbers are hidden.
+    this._rowNumWidth = this.autoDispose(ko.pureComputed<number>(() =>
+      rowNumbers() === "hidden" ? 0 : ROW_NUMBER_WIDTH));
     // calculate total width of all frozen columns
     this.frozenWidth = this.autoDispose(ko.pureComputed(() => this.colRightOffsets().getSumTo(this.numFrozen())));
     // show frozenLine when have some frozen columns and not scrolled left
@@ -297,14 +310,14 @@ export default class GridView extends BaseView {
       const revealWidth = lastField ? lastField.widthDef() : 0;
       // calculate the offset: start from zero, then move all left to hide frozen columns,
       // then to right to fill whole width, then to left to reveal last column and plus button
-      const initialOffset = -this.frozenWidth() - ROW_NUMBER_WIDTH + this.width() - revealWidth - PLUS_WIDTH;
+      const initialOffset = -this.frozenWidth() - this._rowNumWidth() + this.width() - revealWidth - PLUS_WIDTH;
       // Final check - we actually don't want to have
       // the split (between frozen and normal columns) be moved left too far,
       // it should stop at the middle of the available grid space (whole width - row number width).
       // This can happen when last column is too wide, and we are not able to show it in a full width.
       // To calculate the middle point: hide all frozen columns (by moving them maximum to the left)
       // and then move them to right by half width of the section.
-      const middleOffset = -this.frozenWidth() - ROW_NUMBER_WIDTH + this.width() / 2;
+      const middleOffset = -this.frozenWidth() - this._rowNumWidth() + this.width() / 2;
       // final offset is the bigger number of those two (offsets are negative - so take
       // the number that is closer to 0)
       const offset = Math.floor(Math.max(initialOffset, middleOffset));
@@ -579,7 +592,7 @@ export default class GridView extends BaseView {
           const fields = this.viewSection.viewFields().all();
           const fieldsWidthSum = fields.reduce((sum, field) => sum + field.widthDef.peek(), 0);
 
-          const targetWidth =  Math.min(fieldsWidthSum + ROW_NUMBER_WIDTH + scrollSize.width, maxWidth);
+          const targetWidth =  Math.min(fieldsWidthSum + this._rowNumWidth.peek() + scrollSize.width, maxWidth);
           widthObs.set(targetWidth);
         };
         updateWidth();
@@ -1373,6 +1386,7 @@ export default class GridView extends BaseView {
     const vHorizontalGridlines = v.optionsObj.prop("horizontalGridlines");
     const vVerticalGridlines   = v.optionsObj.prop("verticalGridlines");
     const vZebraStripes        = v.optionsObj.prop("zebraStripes");
+    const vRowNumbers          = v.optionsObj.prop("rowNumbers");
 
     const renameCommands = {
       nextField: () => {
@@ -1396,11 +1410,20 @@ export default class GridView extends BaseView {
       styleCustomVar("--frozen-offset", this.frozenOffset),
       // total width of frozen columns
       styleCustomVar("--frozen-width", this.frozenWidth),
+      // width of the row-number gutter (zero when hidden)
+      styleCustomVar("--row-num-width", use => `${use(this._rowNumWidth)}px`),
+      // the record's left border, delineating it from the gutter (none when the gutter is
+      // hidden, which would otherwise double up with the widget frame's border)
+      styleCustomVar("--row-num-border", use => use(this._rowNumWidth) === 0 ? "0px" : use(v.borderWidthPx)),
       // Corner, bars and shadows
       // Corner and shadows (so it's fixed to the grid viewport)
       this._cornerDom = dom(
         "div.gridview_data_corner_overlay",
         this._cornerRenderer,
+        // In Row IDs mode, label the gutter, header-style, to name what the bracketed values are.
+        dom.maybe(use => use(vRowNumbers) === "rowId", () =>
+          dom("div.gridview_corner_label", t("ID"), testId("corner-label"))),
+        this._buildCornerMenu(),
       ),
       dom("div.scroll_shadow_top", dom.show(this.scrollShadow.top)),
       dom("div.scroll_shadow_left",
@@ -1414,9 +1437,7 @@ export default class GridView extends BaseView {
       // it comes from the first cell in the grid) making a gap between row-number and actual column. So when we scroll
       // the content of the scrolled columns will be visible to the user (as there is blank space there).
       // This line fills the gap. NOTE that we are using number here instead of a boolean.
-      dom("div.gridview_left_border", dom.show(use => Boolean(use(this.numFrozen))),
-        dom.style("left", ROW_NUMBER_WIDTH + "px"),
-      ),
+      dom("div.gridview_left_border", dom.show(use => Boolean(use(this.numFrozen)))),
       // left shadow that will be visible on top of frozen columns
       dom("div.scroll_shadow_frozen", dom.show(this.frozenShadow)),
       // When cursor leaves the GridView, remove hover immediately (without debounce).
@@ -1465,7 +1486,6 @@ export default class GridView extends BaseView {
 
               dom("div.column_names.record",
                 dom.style("minWidth", "100%"),
-                dom.style("borderLeftWidth", v.borderWidthPx),
                 kd.foreach(v.viewFields(), (field: ViewFieldRec) => {
                   const canRename = ko.pureComputed(() => !field.column().disableEditData());
                   const isEditingLabel = koUtil.withKoUtils(ko.pureComputed({
@@ -1667,7 +1687,6 @@ export default class GridView extends BaseView {
 
         // rowid dom
         dom("div.gridview_data_row_num",
-          dom.style("width", ROW_NUMBER_WIDTH + "px"),
           dom("div.gridview_data_row_info",
             dom.cls("linked_dst", (use) => {
               const myRowId = use(row.id);
@@ -1709,7 +1728,6 @@ export default class GridView extends BaseView {
         ),
         dom("div.record",
           dom.cls("record-add", row._isAddRow),
-          dom.style("borderLeftWidth", v.borderWidthPx),
           dom.style("borderBottomWidth", v.borderWidthPx),
           dom.cls("font-bold", fontBold),
           dom.cls("font-underline", fontUnderline),
@@ -2030,7 +2048,7 @@ export default class GridView extends BaseView {
     const colStart = this.cellSelector.colLower();
     const colEnd = this.cellSelector.colUpper();
     const shadowWidth = this.colRightOffsets.peek().getCumulativeValueRange(colStart, colEnd + 1);
-    const shadowLeft = (ROW_NUMBER_WIDTH + this.colRightOffsets.peek().getSumTo(colStart) - this.scrollLeft());
+    const shadowLeft = (this._rowNumWidth.peek() + this.colRightOffsets.peek().getSumTo(colStart) - this.scrollLeft());
 
     this.colLine.style.left = shadowLeft + "px";
     this.colShadow.style.left = shadowLeft + "px";
@@ -2081,7 +2099,7 @@ export default class GridView extends BaseView {
       dropIndex = Math.min(dropIndex, this.cellSelector.colLower());
     }
 
-    let linePos = ROW_NUMBER_WIDTH + this.colRightOffsets.peek().getSumTo(dropIndex);
+    let linePos = this._rowNumWidth.peek() + this.colRightOffsets.peek().getSumTo(dropIndex);
     // If there are frozen columns and dropIndex (column index) is inside the frozen set.
     const frozenCount = this.numFrozen();
     const inFrozen = frozenCount > 0 && dropIndex < frozenCount;
@@ -2192,6 +2210,21 @@ export default class GridView extends BaseView {
   protected rowContextMenu() {
     const options = this._getRowContextMenuOptions();
     return this.customRowMenu(RowContextMenu(options), options);
+  }
+
+  /**
+   * Menu toggle in the top-left corner of the grid, for choosing what the row-number gutter
+   * shows. When the gutter is hidden it sits over the left edge of the first column header
+   * (see its positioning in GridView.css); it is revealed on hover.
+   */
+  private _buildCornerMenu() {
+    if (this.isReadonly || this.gridOptions?.rowMenu === false) { return null; }
+    return menuToggle(null,
+      // Don't let the click through to the corner's select-all handler.
+      dom.on("click", ev => ev.stopPropagation()),
+      menu(() => rowNumbersMenu(this.viewSection), { trigger: ["click"] }),
+      testId("corner-menu-trigger"),
+    );
   }
 
   protected _getRowContextMenuOptions(): IRowContextMenu {

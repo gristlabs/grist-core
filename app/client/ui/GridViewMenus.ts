@@ -5,12 +5,15 @@ import { GristDoc } from "app/client/components/GristDoc";
 import { makeT } from "app/client/lib/localization";
 import { ColumnRec } from "app/client/models/entities/ColumnRec";
 import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
+import { RowNumbersMode, ViewSectionRec } from "app/client/models/entities/ViewSectionRec";
+import { setSaveValue } from "app/client/models/modelUtil";
 import { buildDateHelpersMenuItems } from "app/client/ui/GridViewMenusDateHelpers";
 import { withInfoTooltip } from "app/client/ui/tooltips";
 import { isNarrowScreen, testId, theme, vars } from "app/client/ui2018/cssVars";
 import { IconName } from "app/client/ui2018/IconList";
 import { icon } from "app/client/ui2018/icons";
 import {
+  IOptionFull,
   menuCssClass,
   menuDivider,
   menuIcon,
@@ -1045,5 +1048,44 @@ const cssListFun = styled("div", `
   text-align: center;
   .${weasel.cssMenuItem.className}-sel & {
     color: ${theme.choiceTokenFg};
+  }
+`);
+
+/**
+ * The choices of what the row-number gutter shows, shared by the widget-panel select and the
+ * grid's corner menu.
+ */
+export function rowNumbersModeOptions(): IOptionFull<RowNumbersMode>[] {
+  return [
+    { value: "number", label: t("Numbers") },
+    { value: "rowId", label: t("Row IDs") },
+    { value: "hidden", label: t("Hidden") },
+  ];
+}
+
+/**
+ * Menu to choose what the row-number gutter shows, opened from the grid's top-left corner.
+ * The active mode is marked with a green tick.
+ */
+export function rowNumbersMenu(viewSection: ViewSectionRec): DomElementArg[] {
+  const prop = viewSection.optionsObj.prop("rowNumbers");
+  return [
+    menuSubHeader(t("Row numbers")),
+    ...rowNumbersModeOptions().map(({ value, label }) => menuItem(() => setSaveValue(prop, value),
+      cssTickSlot(prop.peek() === value ? icon("Tick", testId("row-numbers-selected")) : null),
+      label,
+    )),
+  ];
+}
+
+// A menuIcon-sized slot for the tick marking the active mode, rendered (empty) on every item so
+// that the labels align. The tick turns white while its item is selected, to stay visible.
+const cssTickSlot = styled("div", `
+  flex: none;
+  width: 16px;
+  margin-right: 8px;
+  --icon-color: ${theme.controlFg};
+  .${weasel.cssMenuItem.className}-sel & {
+    --icon-color: ${theme.menuItemSelectedFg};
   }
 `);

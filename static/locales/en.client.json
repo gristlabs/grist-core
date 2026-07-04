@@ -565,6 +565,7 @@
     "GridOptions": {
         "Grid Options": "Grid Options",
         "Horizontal gridlines": "Horizontal gridlines",
+        "Row numbers": "Row numbers",
         "Vertical gridlines": "Vertical gridlines",
         "Zebra stripes": "Zebra stripes"
     },
@@ -637,7 +638,11 @@
         "Choice List": "Choice List",
         "Reference": "Reference",
         "Reference List": "Reference List",
-        "Attachment": "Attachment"
+        "Attachment": "Attachment",
+        "Row numbers": "Row numbers",
+        "Numbers": "Numbers",
+        "Row IDs": "Row IDs",
+        "Hidden": "Hidden"
     },
     "GristDoc": {
         "Added new linked section to view {{viewName}}": "Added new linked section to view {{viewName}}",
@@ -1551,6 +1556,7 @@
     },
     "GridView": {
         "Click to insert": "Click to insert",
+        "ID": "ID",
         "row {{rowNum}} {{colName}}": "row {{rowNum}} {{colName}}",
         "row {{rowNum}} {{colName}} (new row)": "row {{rowNum}} {{colName}} (new row)"
     },
