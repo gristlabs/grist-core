@@ -6,7 +6,7 @@ import { makeT } from "app/client/lib/localization";
 import { ColumnRec } from "app/client/models/entities/ColumnRec";
 import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
 import { RowNumbersMode, ViewSectionRec } from "app/client/models/entities/ViewSectionRec";
-import { setSaveValue } from "app/client/models/modelUtil";
+import { reportError } from "app/client/models/errors";
 import { buildDateHelpersMenuItems } from "app/client/ui/GridViewMenusDateHelpers";
 import { withInfoTooltip } from "app/client/ui/tooltips";
 import { isNarrowScreen, testId, theme, vars } from "app/client/ui2018/cssVars";
@@ -1068,11 +1068,16 @@ export function rowNumbersModeOptions(): IOptionFull<RowNumbersMode>[] {
  * The active mode is marked with a green tick.
  */
 export function rowNumbersMenu(viewSection: ViewSectionRec): DomElementArg[] {
-  const prop = viewSection.optionsObj.prop("rowNumbers");
+  const options = viewSection.optionsObj;
+  const setMode = (rowNumbers: RowNumbersMode) => {
+    if (options.peek().rowNumbers !== rowNumbers) {
+      options.setAndSaveOrRevert({ ...options.peek(), rowNumbers }).catch(reportError);
+    }
+  };
   return [
     menuSubHeader(t("Row numbers")),
-    ...rowNumbersModeOptions().map(({ value, label }) => menuItem(() => setSaveValue(prop, value),
-      cssTickSlot(prop.peek() === value ? icon("Tick", testId("row-numbers-selected")) : null),
+    ...rowNumbersModeOptions().map(({ value, label }) => menuItem(() => setMode(value),
+      cssTickSlot(options.peek().rowNumbers === value ? icon("Tick", testId("row-numbers-selected")) : null),
       label,
     )),
   ];

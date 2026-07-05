@@ -180,10 +180,10 @@ export default class GridView extends BaseView {
     this._inline = gridOptions?.inline ?? false;
     this._autoWidthHolder = this.autoDispose(new Holder());
 
-    const rowNumbers = viewSectionModel.optionsObj.prop("rowNumbers");
+    const sectionOptions = viewSectionModel.optionsObj;
     this._rowIndexRenderer = gridOptions?.rowIndexRenderer ??
       (row => dom.text((use) => {
-        if (use(rowNumbers) === "rowId") {
+        if (use(sectionOptions).rowNumbers === "rowId") {
           const rowId = use(row.id);
           // The add-row's id observable is left blank (it has no rowId yet); show nothing for it.
           return typeof rowId === "number" ? `[${rowId}]` : "";
@@ -292,7 +292,7 @@ export default class GridView extends BaseView {
     this.numFrozen = this.viewSection.numFrozen;
     // Width of the row-number gutter; collapses to zero when row numbers are hidden.
     this._rowNumWidth = this.autoDispose(ko.pureComputed<number>(() =>
-      rowNumbers() === "hidden" ? 0 : ROW_NUMBER_WIDTH));
+      sectionOptions().rowNumbers === "hidden" ? 0 : ROW_NUMBER_WIDTH));
     // calculate total width of all frozen columns
     this.frozenWidth = this.autoDispose(ko.pureComputed(() => this.colRightOffsets().getSumTo(this.numFrozen())));
     // show frozenLine when have some frozen columns and not scrolled left
@@ -1386,7 +1386,6 @@ export default class GridView extends BaseView {
     const vHorizontalGridlines = v.optionsObj.prop("horizontalGridlines");
     const vVerticalGridlines   = v.optionsObj.prop("verticalGridlines");
     const vZebraStripes        = v.optionsObj.prop("zebraStripes");
-    const vRowNumbers          = v.optionsObj.prop("rowNumbers");
 
     const renameCommands = {
       nextField: () => {
@@ -1421,7 +1420,7 @@ export default class GridView extends BaseView {
         "div.gridview_data_corner_overlay",
         this._cornerRenderer,
         // In Row IDs mode, label the gutter, header-style, to name what the bracketed values are.
-        dom.maybe(use => use(vRowNumbers) === "rowId", () =>
+        dom.maybe(use => use(v.optionsObj).rowNumbers === "rowId", () =>
           dom("div.gridview_corner_label", t("ID"), testId("corner-label"))),
         this._buildCornerMenu(),
       ),
