@@ -1,4 +1,3 @@
-import * as DocWorkerUtils from "app/server/lib/DocWorkerUtils";
 import { createTmpDir, Deps, fetchDoc, fetchURL, moveUpload, UploadSet } from "app/server/lib/uploads";
 import { globalUploadSet } from "app/server/lib/uploads";
 import { createFile } from "test/server/docTools";
@@ -282,7 +281,7 @@ describe("uploads", function() {
             socket: { remoteAddress: "127.0.0.1" },
           } as any;
 
-          sandbox.stub(DocWorkerUtils, "getDocWorkerInfoOrSelfPrefix").resolves({
+          sandbox.stub(Deps, "getDocWorkerInfoOrSelfPrefix").resolves({
             docWorker: { id: "worker1", internalUrl: "http://internal:8000", publicUrl: "http://public:8000" },
           });
 
