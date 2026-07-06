@@ -94,6 +94,8 @@ FROM docker.io/gristlabs/gvisor-unprivileged:buster AS sandbox
 FROM node:22-trixie-slim
 
 ARG GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING=false
+ARG GRIST_EXT_FULL_EDITION_URL=
+ARG GRIST_EXT_FULL_EDITION_SHA256=
 
 # Install curl for docker healthchecks, libexpat1 and libsqlite3-0 for python3
 # library binary dependencies, and procps for managing gvisor processes.
@@ -180,6 +182,8 @@ ENV \
   GRIST_INST_DIR=/persist \
   GRIST_SESSION_COOKIE=grist_core \
   GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING=${GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING} \
+  GRIST_EXT_FULL_EDITION_URL=${GRIST_EXT_FULL_EDITION_URL} \
+  GRIST_EXT_FULL_EDITION_SHA256=${GRIST_EXT_FULL_EDITION_SHA256} \
   GVISOR_FLAGS="-unprivileged -ignore-cgroups" \
   NODE_OPTIONS="--no-deprecation" \
   NODE_ENV=production \

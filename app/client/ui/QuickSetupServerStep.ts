@@ -1,8 +1,8 @@
 import { makeT } from "app/client/lib/localization";
 import { BaseUrlSection } from "app/client/ui/BaseUrlSection";
 import { DraftChangesManager } from "app/client/ui/DraftChanges";
-import { EditionSection } from "app/client/ui/EditionSection";
-import { quickSetupContinueButton, QuickSetupSection } from "app/client/ui/QuickSetupContinueButton";
+import { EditionSection, extFullEditionSwitchModal } from "app/client/ui/EditionSection";
+import { ApplyResult, quickSetupContinueButton, QuickSetupSection } from "app/client/ui/QuickSetupContinueButton";
 import { quickSetupStepHeader } from "app/client/ui/QuickSetupStepHeader";
 import { cssQuickSetupCard } from "app/client/ui/SettingsLayout";
 
@@ -50,8 +50,12 @@ export class QuickSetupServerStep extends Disposable implements QuickSetupSectio
     return null;
   }
 
-  public async apply(): Promise<void> {
-    await this._drafts.applyAll();
+  public async apply(): Promise<ApplyResult> {
+    const editionSwitch = this._edition.pendingEditionSwitch();
+    const applying = this._drafts.applyAll();
+    return editionSwitch ?
+      extFullEditionSwitchModal(applying) :
+      applying;
   }
 
   public buildDom(): DomContents {

@@ -9,7 +9,9 @@ import { commonUrls } from "app/common/gristUrls";
 import { isAffirmative } from "app/common/gutil";
 import { ActivationsManager } from "app/gen-server/lib/ActivationsManager";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
+import { canRestart } from "app/server/lib/adminPageConfig";
 import { appSettings } from "app/server/lib/AppSettings";
+import { maybeManageFullEdition, resolveFullEditionWorker } from "app/server/lib/bootstrapFullEdition";
 import { updateDb } from "app/server/lib/dbUtils";
 import { getAdminEmail, invalidateReloadableSettings } from "app/server/lib/gristSettings";
 import { initializeAppSettings } from "app/server/lib/initializeAppSettings";
@@ -53,7 +55,7 @@ setDefaultEnv("GRIST_WIDGET_LIST_URL", commonUrls.gristLabsWidgetRepository);
 import { MergedServer, parseServerTypes } from "app/server/MergedServer";
 import { runRestartShell, shouldRunAsRestartShell } from "app/server/lib/RestartShell";
 import {
-  createRestartShellWorkerServer, isUnderRestartShell, signalRestartShellReady,
+  createRestartShellWorkerServer, isUnderRestartShell, signalRestartShellBusy, signalRestartShellReady,
 } from "app/server/lib/RestartShellWorker";
 /* eslint-enable @import-x/order */
 
@@ -202,7 +204,7 @@ export async function main() {
     // RestartShell handle instead of a FlexServer.
     return runRestartShell({
       publicPort: G.port,
-      childEntryPoint: __filename,
+      childEntryPoint: () => resolveFullEditionWorker() ?? { entryPoint: __filename },
     });
   }
 
@@ -235,6 +237,16 @@ export async function main() {
   // to keep track of.
   await initializeAppSettings();
 
+  let fullEditionRestartRequested = false;
+  if (serverTypes.includes("home") && isUnderRestartShell()) {
+    const busyHeartbeat = setInterval(signalRestartShellBusy, 5000);
+    try {
+      ({ restartRequested: fullEditionRestartRequested } = await maybeManageFullEdition());
+    } finally {
+      clearInterval(busyHeartbeat);
+    }
+  }
+
   if (serverTypes.includes("home")) {
     const db = new HomeDBManager();
     await db.connect();
@@ -259,6 +271,17 @@ export async function main() {
   }
   if (isUnderRestartShell()) {
     await signalRestartShellReady();
+  }
+
+  if (fullEditionRestartRequested) {
+    if (process.send && canRestart()) {
+      log.info("bootstrapFullEdition: requesting restart to apply full edition change");
+      mergedServer.flexServer.setReady(false);
+      process.send({ action: "restart" });
+    } else {
+      log.warn("bootstrapFullEdition: full edition change staged but cannot self-restart; " +
+        "please restart the server manually to apply");
+    }
   }
 
   return mergedServer.flexServer;

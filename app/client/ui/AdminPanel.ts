@@ -32,7 +32,7 @@ import { BaseUrlSection } from "app/client/ui/BaseUrlSection";
 import { BootKeyStatus } from "app/client/ui/BootKeyStatus";
 import { InstallConfigsAPI } from "app/client/ui/ConfigsAPI";
 import { DraftChangesManager } from "app/client/ui/DraftChanges";
-import { EditionSection } from "app/client/ui/EditionSection";
+import { EditionSection, extFullEditionSwitchModal, extFullEditionSwitchWarning } from "app/client/ui/EditionSection";
 import { peekSetupReturnFromGetGristCom } from "app/client/ui/GetGristComProvider";
 import { buildOutgoingRequestsPanel, buildOutgoingRequestsSummary } from "app/client/ui/OutgoingRequestsStatus";
 import { pagePanels } from "app/client/ui/PagePanels";
@@ -293,19 +293,26 @@ class AdminInstallationPanel extends Disposable {
   }
 
   public async restartGrist(): Promise<void> {
+    const editionSwitch = this._editionSection.pendingEditionSwitch();
+
     confirmModal(
       t("Restart Grist?"),
       t("Restart"),
       () => {
         // Fire-and-forget so confirmModal closes immediately; otherwise it
         // hangs on top of the spinner for the whole restart duration.
-        spinnerModal(t("Restarting Grist..."), this._performRestart())
-          .catch(err => reportError(err as Error));
+        const restarting = this._performRestart();
+        (editionSwitch ?
+          extFullEditionSwitchModal(restarting) :
+          spinnerModal(t("Restarting Grist..."), restarting)
+        ).catch(err => reportError(err as Error));
       },
       {
         explanation: dom("div",
           dom("p", t("Are you sure you want to restart Grist?")),
-          dom("p", t("This will apply any pending changes and briefly interrupt access for all users.")),
+          dom("p", editionSwitch ?
+            extFullEditionSwitchWarning(editionSwitch) :
+            t("This will apply any pending changes and briefly interrupt access for all users.")),
         ),
       },
     );

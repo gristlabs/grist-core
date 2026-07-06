@@ -22,9 +22,24 @@ import * as childProcess from "child_process";
 import * as http from "http";
 import * as net from "net";
 
+/**
+ * Describes a worker to fork: which module to run, and optionally the working
+ * directory and extra environment for it. `onSpawnFailure` is called if the
+ * worker exits before signalling ready; if re-resolving the spec afterwards
+ * yields a different entry point, the shell retries with it.
+ *
+ * Used to run a relocated copy of Grist. (See app/server/lib/bootstrapFullEdition.ts.)
+ */
+export interface ForkSpec {
+  entryPoint: string;
+  cwd?: string;
+  env?: NodeJS.ProcessEnv;
+  onSpawnFailure?: () => void;
+}
+
 export interface RestartShellOptions {
   publicPort: number;
-  childEntryPoint: string;
+  childEntryPoint: string | (() => ForkSpec);
 }
 
 // Tunables exposed for tests.
@@ -268,16 +283,21 @@ export class RestartShell {
    * signal and its eventual exit. `ready` rejects if the child exits
    * before signalling ready.
    */
-  private _forkWorker(): { child: childProcess.ChildProcess; ready: Promise<void>; exited: Promise<ExitInfo> } {
+  private _forkWorker(
+    spec: ForkSpec,
+    onBusy: () => void,
+  ): { child: childProcess.ChildProcess; ready: Promise<void>; exited: Promise<ExitInfo> } {
     const env: NodeJS.ProcessEnv = {
       ...process.env,
+      ...spec.env,
       GRIST_UNDER_RESTART_SHELL: "1",
       PORT: String(this._actualPort),
     };
     // Clear GRIST_RESTART_SHELL so the child can't re-detect shell mode.
     delete env.GRIST_RESTART_SHELL;
 
-    const c = childProcess.fork(this._options.childEntryPoint, [], {
+    const c = childProcess.fork(spec.entryPoint, [], {
+      cwd: spec.cwd,
       env,
       stdio: ["inherit", "inherit", "inherit", "ipc"],
     });
@@ -295,6 +315,7 @@ export class RestartShell {
         switch (msg?.action) {
           case "ready": resolve(); break;
           case "restart": void this.restart(); break;
+          case "busy": onBusy(); break;
         }
       });
       void exited.then(({ code, signal }) =>
@@ -340,27 +361,56 @@ export class RestartShell {
    * Fork a worker, wait for ready, and arm the "unexpected exit ⇒
    * shell exits" policy. A watchdog flips `_healthy` to false if the
    * spawn stalls, so /status can report unhealthy to orchestration.
+   * If a spawn fails and re-resolving the spec (after its
+   * `onSpawnFailure` hook runs) yields a different entry point,
+   * retries with the new spec.
    */
   private async _spawnOrFail(): Promise<SpawnResult> {
     log.info("RestartShell: spawning child");
-    const watchdog = setTimeout(() => {
+    const markUnhealthy = () => {
       log.error(`RestartShell: spawn still running after ${Deps.unhealthyTimeoutMs}ms, marking unhealthy`);
       this._healthy = false;
-    }, Deps.unhealthyTimeoutMs);
-    const { child, ready, exited } = this._forkWorker();
-    try {
-      await ready;
-      log.info("RestartShell: child ready");
+    };
+    let watchdog = setTimeout(markUnhealthy, Deps.unhealthyTimeoutMs);
+    let settled = false;
+    const onBusy = () => {
+      if (settled) { return; }
+      clearTimeout(watchdog);
       this._healthy = true;
-      // Pre-ready exits reject `ready`; this only fires for post-ready.
-      void exited.then(({ code, signal }) => this._onChildExitAfterReady(code, signal));
-      return { ok: true, child, exited };
-    } catch (err) {
-      log.error("RestartShell: child failed to start:", err);
-      return { ok: false, err };
+      watchdog = setTimeout(markUnhealthy, Deps.unhealthyTimeoutMs);
+    };
+    try {
+      let spec = this._resolveForkSpec();
+      for (;;) {
+        try {
+          const { child, ready, exited } = this._forkWorker(spec, onBusy);
+          await ready;
+          log.info("RestartShell: child ready");
+          this._healthy = true;
+          // Pre-ready exits reject `ready`; this only fires for post-ready.
+          void exited.then(({ code, signal }) => this._onChildExitAfterReady(code, signal));
+          return { ok: true, child, exited };
+        } catch (err) {
+          log.error("RestartShell: child failed to start:", err);
+          spec.onSpawnFailure?.();
+          const next = this._resolveForkSpec();
+          if (next.entryPoint === spec.entryPoint) {
+            return { ok: false, err };
+          }
+          log.warn(`RestartShell: retrying spawn with ${next.entryPoint}`);
+          spec = next;
+        }
+      }
     } finally {
+      settled = true;
       clearTimeout(watchdog);
     }
+  }
+
+  private _resolveForkSpec(): ForkSpec {
+    return typeof this._options.childEntryPoint === "function" ?
+      this._options.childEntryPoint() :
+      { entryPoint: this._options.childEntryPoint };
   }
 }
 

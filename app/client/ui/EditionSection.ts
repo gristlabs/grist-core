@@ -1,6 +1,7 @@
 import { makeT } from "app/client/lib/localization";
 import { getHomeUrl } from "app/client/models/AppModel";
 import { Notifier } from "app/client/models/NotifyModel";
+import { retryOnNetworkError } from "app/client/models/ToggleEnterpriseModel";
 import { showEnterpriseToggle } from "app/client/ui/ActivationPage";
 import {
   buildConfirmedRow,
@@ -17,9 +18,11 @@ import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
 import { theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { cssLink } from "app/client/ui2018/links";
+import { confirmModal, spinnerModal } from "app/client/ui2018/modals";
 import { unstyledButton } from "app/client/ui2018/unstyled";
 import { ConfigAPI } from "app/common/ConfigAPI";
-import { commonUrls } from "app/common/gristUrls";
+import { AdminPageConfig, commonUrls } from "app/common/gristUrls";
+import { InstallAPIImpl } from "app/common/InstallAPI";
 import { tokens } from "app/common/ThemePrefs";
 import { getGristConfig } from "app/common/urlUtils";
 
@@ -56,6 +59,9 @@ export class EditionSection extends Disposable implements ConfigSection {
   public readonly editionForced: boolean;
   public readonly needsRestart = true;
 
+  private readonly _supportsExtFullEdition: boolean;
+  private readonly _installAPI = new InstallAPIImpl(getHomeUrl());
+
   private _selectedEdition = Observable.create<Edition | null>(this, null);
   private _serverEdition = Observable.create<Edition>(this, "core");
   // Pre-confirmed in admin-panel mode so the confirm/edit flow only runs in the wizard.
@@ -70,8 +76,10 @@ export class EditionSection extends Disposable implements ConfigSection {
     super();
 
     const overrides = _options.overrides ?? {};
+    const adminConfig = getGristConfig() as Partial<AdminPageConfig>;
     this.fullGristAvailable = overrides.fullGristAvailable ?? showEnterpriseToggle();
     this.editionForced = overrides.editionForced ?? !!getGristConfig().forceEnableEnterprise;
+    this._supportsExtFullEdition = !!adminConfig.supportsExtFullEdition;
 
     const notifier = this._options.notifier;
     this._toggleEnterprise = notifier ?
@@ -80,14 +88,16 @@ export class EditionSection extends Disposable implements ConfigSection {
 
     this._serverEdition.set(
       overrides.initialServerEdition ??
-      (this._toggleEnterprise?.getEnterpriseToggleObservable().get() ? "enterprise" : "core"),
+      (this._supportsExtFullEdition ?
+        (getGristConfig().deploymentType === "enterprise" ? "enterprise" : "core") :
+        (this._toggleEnterprise?.getEnterpriseToggleObservable().get() ? "enterprise" : "core")),
     );
 
     // In admin-panel mode, start selection at the server's current edition so
     // the section isn't dirty before the user acts. In wizard mode, default to
     // Full Grist when available; the user can change it via the buttons.
     // Done here rather than in `_buildSelector` so a re-render can't reset it.
-    this._selectedEdition.set(this._options.inAdminPanel ?
+    this._selectedEdition.set(this._options.inAdminPanel || this._supportsExtFullEdition ?
       this._serverEdition.get() :
       this.fullGristAvailable ? "enterprise" : "core",
     );
@@ -173,8 +183,27 @@ export class EditionSection extends Disposable implements ConfigSection {
     if (!this.isDirty.get()) { return; }
     const selected = this._selectedEdition.get();
     if (!selected) { return; }
-    await this._configAPI.setValue({ edition: selected });
+    if (this._supportsExtFullEdition) {
+      await retryOnNetworkError(() =>
+        this._installAPI.updateInstallPrefs({ useExtFullEdition: selected === "enterprise" }));
+    } else {
+      await this._configAPI.setValue({ edition: selected });
+    }
     this._serverEdition.set(selected);
+  }
+
+  public get restartWaitAttempts(): number | undefined {
+    if (!this._supportsExtFullEdition) { return undefined; }
+
+    // Switching to full edition requires a 100 MB+ download that the server may
+    // retry a few times, so wait longer.
+    return this._selectedEdition.get() === "enterprise" ? 3600 : 120;
+  }
+
+  public pendingEditionSwitch(): "enable" | "disable" | null {
+    if (!this._supportsExtFullEdition || !this.isDirty.get()) { return null; }
+
+    return this._selectedEdition.get() === "enterprise" ? "enable" : "disable";
   }
 
   public async dismiss(): Promise<void> {
@@ -261,7 +290,7 @@ funding. For larger orgs, see {{pricingLink}}.", {
       return cssSectionDescription(t("Full Grist is enabled via environment variable."));
     }
 
-    if (!this.fullGristAvailable) {
+    if (!this.fullGristAvailable && !this._supportsExtFullEdition) {
       return this._buildUnavailableCore();
     }
 
@@ -307,28 +336,59 @@ to individuals and small orgs with less than US $1 million in total annual fundi
                 pricingLink: cssLink({ href: commonUrls.plans, target: "_blank" }, t("pricing")),
               }),
             ) : null,
+            this._supportsExtFullEdition && use(this._serverEdition) === "core" ?
+              cssSectionDescription(
+                t("Switching downloads the full edition and restarts the server."),
+              ) : null,
           ];
         }
-        return cssSectionDescription(
-          t("The free and open-source heart of Grist, with everything you need to open and edit \
+        return [
+          cssSectionDescription(
+            t("The free and open-source heart of Grist, with everything you need to open and edit \
 Grist documents, control access, create forms, connect to single sign-on (SSO) \
 providers, and much more."),
-        );
+          ),
+          this._supportsExtFullEdition && use(this._serverEdition) === "enterprise" ?
+            cssSectionDescription(
+              t("Switching to the community edition restarts the server."),
+            ) : null,
+        ];
       }),
       dom.domComputed((use) => {
-        const confirmed = use(this._editionConfirmed);
-        if (confirmed) { return null; }
+        if (use(this._editionConfirmed)) { return null; }
+
+        const selected = use(selectedEdition);
+        if (selected === null) { return null; }
+
+        if (this._supportsExtFullEdition && selected !== use(this._serverEdition)) {
+          const enabling = selected === "enterprise";
+          return cssSectionButtonRow(
+            primaryButton(
+              enabling ? t("Switch to full edition") : t("Switch to community edition"),
+              dom.on("click", () => this._confirmExtFullEditionSwitch(enabling)),
+            ),
+          );
+        }
         return cssSectionButtonRow(
           primaryButton(
             t("Confirm edition"),
-            dom.on("click", () => {
-              this._editionConfirmed.set(true);
-            }),
+            dom.on("click", () => { this._editionConfirmed.set(true); }),
             testId("confirm"),
           ),
         );
       }),
     ];
+  }
+
+  private _confirmExtFullEditionSwitch(enabling: boolean): void {
+    const title = enabling ? t("Switch to full edition") : t("Switch to community edition");
+    const description = extFullEditionSwitchWarning(enabling ? "enable" : "disable");
+    confirmModal(
+      title,
+      [t("Switch"), testId("confirm-switch")],
+      () => { this._editionConfirmed.set(true); },
+      { explanation: cssSectionDescription(description) },
+    );
   }
 
   private _buildUnavailableCore(): DomContents {
@@ -394,6 +454,24 @@ providers, and much more."),
       }),
     ];
   }
+}
+
+export function extFullEditionSwitchWarning(kind: "enable" | "disable"): string {
+  return kind === "enable" ?
+    t("Switching downloads a complete copy of the full edition and restarts the server. The \
+server will be unavailable until the download completes, which can take a while.") :
+    t("Switching restarts the server, which may be briefly unavailable.");
+}
+
+export function extFullEditionSwitchModal<T>(promise: Promise<T>): Promise<T> {
+  return spinnerModal(
+    t("Switching edition..."),
+    promise,
+    { body: [
+      t("Your server will restart automatically. This can take a while."),
+      testId("switching"),
+    ] },
+  );
 }
 
 const cssEditionName = styled("div", `

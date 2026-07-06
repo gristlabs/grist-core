@@ -1069,6 +1069,9 @@ export interface AdminPageConfig extends GristLoadConfig {
    * guarded by the boot key, until an operator brings the server live.
    */
   inService?: boolean;
+
+  /** Whether the admin can download and switch to the full edition at runtime. */
+  supportsExtFullEdition?: boolean;
 }
 
 export const Features = StringUnion(

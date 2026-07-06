@@ -110,6 +110,10 @@ export class Activation extends BaseEntity {
         }
       }
 
+      if (props.prefs.useExtFullEdition !== undefined) {
+        this.prefs.useExtFullEdition = props.prefs.useExtFullEdition;
+      }
+
       for (const key of Object.keys(this.prefs) as (keyof InstallPrefs)[]) {
         if (this.prefs[key] === null) {
           delete this.prefs[key];
