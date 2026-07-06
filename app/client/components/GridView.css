@@ -96,6 +96,7 @@
 /* Row IDs mode: monospace IDs in grey brackets */
 .gridview_row_id {
   font-family: var(--grist-theme-font-family-mono, monospace);
+  font-size: 0.9em;
 }
 .gridview_row_id_bracket {
   color: var(--grist-theme-text-light, #929299);
