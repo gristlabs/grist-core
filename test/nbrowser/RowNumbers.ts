@@ -45,22 +45,24 @@ describe("RowNumbers", function() {
     assert.isFalse(await driver.find(".active_section .test-corner-label").isPresent());
   });
 
-  it("shows bracketed row IDs in Row IDs mode, blank for the add-row", async function() {
+  it("shows row IDs in Row IDs mode, blank for the add-row", async function() {
     await setRowNumbers("Row IDs");
-    assert.deepEqual(await gutterTexts(), ["[1]", "[2]", "[3]", ""]);
+    // The brackets around the ID are decorative (CSS ::before/::after), invisible to getText().
+    assert.deepEqual(await gutterTexts(), ["1", "2", "3", ""]);
+    assert.isTrue(await driver.find(".active_section .gridview_data_row_num .gridview_row_id").isPresent());
     // The corner labels the gutter in this mode.
     assert.equal(await driver.find(".active_section .test-corner-label").getText(), "ID");
   });
 
   it("keeps row IDs attached to their rows", async function() {
     await gu.sendActions([["RemoveRecord", "Table1", 2]]);
-    assert.deepEqual(await gutterTexts(), ["[1]", "[3]", ""]);
+    assert.deepEqual(await gutterTexts(), ["1", "3", ""]);
     await gu.sendActions([["AddRecord", "Table1", null, { A: "dates" }]]);
-    assert.deepEqual(await gutterTexts(), ["[1]", "[3]", "[4]", ""]);
+    assert.deepEqual(await gutterTexts(), ["1", "3", "4", ""]);
 
     // Sort descending: numbers would renumber, but row IDs travel with their rows.
     await gu.openColumnMenu("A", "sort-dsc");
-    assert.deepEqual(await gutterTexts(), ["[4]", "[3]", "[1]", ""]);
+    assert.deepEqual(await gutterTexts(), ["4", "3", "1", ""]);
   });
 
   it("keeps row selection and row menu working in Row IDs mode", async function() {
@@ -168,6 +170,6 @@ describe("RowNumbers", function() {
 
     await driver.find(".test-row-numbers-show").click();
     await gu.waitForServer();
-    assert.deepEqual(await gutterTexts(), ["[1]", "[3]", "[4]", ""]);
+    assert.deepEqual(await gutterTexts(), ["1", "3", "4", ""]);
   });
 });

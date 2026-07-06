@@ -187,11 +187,7 @@ export default class GridView extends BaseView {
           const rowId = use(row.id);
           // The add-row's id observable is left blank (it has no rowId yet); show nothing for it.
           if (typeof rowId !== "number") { return null; }
-          return dom("span.gridview_row_id",
-            dom("span.gridview_row_id_bracket", "["),
-            String(rowId),
-            dom("span.gridview_row_id_bracket", "]"),
-          );
+          return dom("span.gridview_row_id", String(rowId));
         }
         return String(use(row._index)! + 1);
       }));

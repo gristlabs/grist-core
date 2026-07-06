@@ -93,13 +93,20 @@
   cursor: pointer;
 }
 
-/* Row IDs mode: monospace IDs in grey brackets */
+/* Row IDs mode: monospace IDs in grey decorative brackets */
 .gridview_row_id {
   font-family: var(--grist-theme-font-family-mono, monospace);
   font-size: 0.9em;
 }
-.gridview_row_id_bracket {
+.gridview_row_id::before,
+.gridview_row_id::after {
   color: var(--grist-theme-text-light, #929299);
+}
+.gridview_row_id::before {
+  content: "[";
+}
+.gridview_row_id::after {
+  content: "]";
 }
 
 /* Menu toggle on a row */
