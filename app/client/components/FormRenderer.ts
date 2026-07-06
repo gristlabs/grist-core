@@ -196,8 +196,8 @@ class SubmitRenderer extends FormRenderer {
               return event.preventDefault();
             }
             return confirmModal(
-              "Are you sure you want to reset your form?",
-              "Reset",
+              t("Are you sure you want to reset your form?"),
+              t("Reset"),
               () => this.parent?.reset(),
             );
           }),
