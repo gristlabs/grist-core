@@ -9,7 +9,6 @@ import { commonUrls } from "app/common/gristUrls";
 import { isAffirmative } from "app/common/gutil";
 import { ActivationsManager } from "app/gen-server/lib/ActivationsManager";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
-import { canRestart } from "app/server/lib/adminPageConfig";
 import { appSettings } from "app/server/lib/AppSettings";
 import { maybeManageFullEdition, resolveFullEditionWorker } from "app/server/lib/bootstrapFullEdition";
 import { updateDb } from "app/server/lib/dbUtils";
@@ -53,6 +52,7 @@ setDefaultEnv("GRIST_WIDGET_LIST_URL", commonUrls.gristLabsWidgetRepository);
 // TODO: Fix this reliance on side effects during import.
 /* eslint-disable @import-x/order */
 import { MergedServer, parseServerTypes } from "app/server/MergedServer";
+import { canRestart } from "app/server/lib/adminPageConfig";
 import { runRestartShell, shouldRunAsRestartShell } from "app/server/lib/RestartShell";
 import {
   createRestartShellWorkerServer, isUnderRestartShell, signalRestartShellBusy, signalRestartShellReady,
