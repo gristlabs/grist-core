@@ -15,9 +15,19 @@ describe("RowNumbers", function() {
     return (await driver.find(".active_section .gridview_data_row_num").getRect()).width;
   }
 
-  async function setRowNumbers(label: string) {
+  // The panel control is a "Show" checkbox plus a link naming the shown mode ("row numbers" or
+  // "row IDs") that opens a menu to switch.
+  async function setRowNumbers(label: "Numbers" | "Row IDs" | "Hidden") {
     await gu.openWidgetPanel();
-    await gu.setSelectValue(".test-row-numbers", label);
+    if (label === "Hidden") {
+      if (await driver.find(".test-row-numbers-show").matches(":checked")) {
+        await driver.find(".test-row-numbers-show").click();
+      }
+    } else {
+      await driver.find(".test-row-numbers-mode").click();
+      await (await gu.findOpenMenu(1000)).findContent("li", label).click();
+    }
+    await gu.waitForServer();
   }
 
   before(async function() {
@@ -143,8 +153,21 @@ describe("RowNumbers", function() {
     // The "Row IDs" item explains itself with an info tooltip.
     await menu.findContent("li", "Row IDs").find(".test-info-tooltip").mouseMove();
     const popup = await driver.findWait(".test-info-tooltip-popup", 1000);
-    assert.match(await popup.getText(), /Row IDs are stable numeric identifiers/);
+    assert.match(await popup.getText(), /Row IDs are stable and unique numeric identifiers/);
     assert.match(await popup.find("a").getAttribute("href"), /col-refs\/#understanding-reference-columns/);
     await driver.sendKeys(Key.ESCAPE);
+  });
+
+  it("restores the last shown mode when re-checking Show", async function() {
+    await setRowNumbers("Row IDs");
+    await driver.find(".test-row-numbers-show").click();
+    await gu.waitForServer();
+    assert.equal(await gutterWidth(), 0);
+    // The mode link still names the remembered mode while hidden.
+    assert.equal(await driver.find(".test-row-numbers-mode").getText(), "row IDs");
+
+    await driver.find(".test-row-numbers-show").click();
+    await gu.waitForServer();
+    assert.deepEqual(await gutterTexts(), ["[1]", "[3]", "[4]", ""]);
   });
 });

@@ -93,6 +93,14 @@
   cursor: pointer;
 }
 
+/* Row IDs mode: monospace IDs in grey brackets */
+.gridview_row_id {
+  font-family: var(--grist-theme-font-family-mono, monospace);
+}
+.gridview_row_id_bracket {
+  color: var(--grist-theme-text-light, #929299);
+}
+
 /* Menu toggle on a row */
 .gridview_data_row_num .menu_toggle {
   visibility: hidden;

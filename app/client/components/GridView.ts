@@ -182,11 +182,16 @@ export default class GridView extends BaseView {
 
     const sectionOptions = viewSectionModel.optionsObj;
     this._rowIndexRenderer = gridOptions?.rowIndexRenderer ??
-      (row => dom.text((use) => {
+      (row => dom.domComputed((use) => {
         if (use(sectionOptions).rowNumbers === "rowId") {
           const rowId = use(row.id);
           // The add-row's id observable is left blank (it has no rowId yet); show nothing for it.
-          return typeof rowId === "number" ? `[${rowId}]` : "";
+          if (typeof rowId !== "number") { return null; }
+          return dom("span.gridview_row_id",
+            dom("span.gridview_row_id_bracket", "["),
+            String(rowId),
+            dom("span.gridview_row_id_bracket", "]"),
+          );
         }
         return String(use(row._index)! + 1);
       }));

@@ -1,13 +1,15 @@
 import { makeT } from "app/client/lib/localization";
 import { obsPropWithSaveOnWrite } from "app/client/lib/obsPropWithSaveOnWrite";
 import { ViewSectionRec } from "app/client/models/DocModel";
-import { rowNumbersModeOptions } from "app/client/ui/GridViewMenus";
+import { RowNumbersMode } from "app/client/models/entities/ViewSectionRec";
+import { rowNumbersMenu } from "app/client/ui/GridViewMenus";
 import { cssGroupLabel, cssRow } from "app/client/ui/RightPanelStyles";
 import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
-import { testId } from "app/client/ui2018/cssVars";
-import { select } from "app/client/ui2018/menus";
+import { testId, theme } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { menu } from "app/client/ui2018/menus";
 
-import { Disposable, dom, styled } from "grainjs";
+import { Computed, Disposable, dom, Observable, styled } from "grainjs";
 
 const t = makeT("GridOptions");
 
@@ -21,6 +23,19 @@ export class GridOptions extends Disposable {
 
   public buildDom() {
     const options = this._section.optionsObj;
+    const rowNumbers = obsPropWithSaveOnWrite(this, options, "rowNumbers", "number" as RowNumbersMode);
+
+    // What the gutter shows when visible. Remembered while hidden, so that re-checking "Show"
+    // restores the last mode rather than always resetting to numbers.
+    const shownMode = Observable.create<RowNumbersMode>(this,
+      rowNumbers.get() === "hidden" ? "number" : rowNumbers.get());
+    this.autoDispose(rowNumbers.addListener((mode) => {
+      if (mode !== "hidden") { shownMode.set(mode); }
+    }));
+
+    const showRowNumbers = Computed.create(this, use => use(rowNumbers) !== "hidden")
+      .onWrite(show => rowNumbers.set(show ? shownMode.get() : "hidden"));
+
     return dom("div",
       { "role": "group", "aria-labelledby": "grid-options-label" },
       cssGroupLabel(t("Grid Options"), { id: "grid-options-label" }),
@@ -50,10 +65,12 @@ export class GridOptions extends Disposable {
         ),
 
         cssRow(
-          cssSelectLabel(t("Row numbers"), { id: "row-numbers-label" }),
-          dom.update(
-            select(obsPropWithSaveOnWrite(this, options, "rowNumbers", "number"), rowNumbersModeOptions()),
-            { "aria-labelledby": "row-numbers-label" },
+          labeledSquareCheckbox(showRowNumbers, t("Show"), testId("row-numbers-show")),
+          cssModeLink(
+            dom.text(use => use(shownMode) === "rowId" ? t("row IDs") : t("row numbers")),
+            icon("Dropdown"),
+            menu(() => rowNumbersMenu(this._section, { includeHidden: false })),
+            testId("row-numbers-mode"),
           ),
           testId("row-numbers"),
         ),
@@ -64,7 +81,12 @@ export class GridOptions extends Disposable {
   }
 }
 
-const cssSelectLabel = styled("span", `
-  flex: 1 0 auto;
-  margin-right: 16px;
+// Link-like trigger for the row-numbers mode menu, continuing the checkbox's label.
+const cssModeLink = styled("div", `
+  display: flex;
+  align-items: center;
+  margin-left: 4px;
+  color: ${theme.controlFg};
+  --icon-color: ${theme.controlFg};
+  cursor: pointer;
 `);

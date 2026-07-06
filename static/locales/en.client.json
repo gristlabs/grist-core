@@ -565,9 +565,11 @@
     "GridOptions": {
         "Grid Options": "Grid Options",
         "Horizontal gridlines": "Horizontal gridlines",
-        "Row numbers": "Row numbers",
+        "Show": "Show",
         "Vertical gridlines": "Vertical gridlines",
-        "Zebra stripes": "Zebra stripes"
+        "Zebra stripes": "Zebra stripes",
+        "row IDs": "row IDs",
+        "row numbers": "row numbers"
     },
     "GridViewMenus": {
         "Add column": "Add column",
@@ -1453,7 +1455,7 @@
         "When checked, this field’s default value can be prefilled from the URL using query parameters.": "When checked, this field’s default value can be prefilled from the URL using query parameters.",
         "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.",
         "Unpin to hide the button while keeping the filter.": "Unpin to hide the button while keeping the filter.",
-        "Row IDs are stable numeric identifiers, used by reference columns to identify records.": "Row IDs are stable numeric identifiers, used by reference columns to identify records."
+        "Row IDs are stable and unique numeric identifiers, used by reference columns to identify records.": "Row IDs are stable and unique numeric identifiers, used by reference columns to identify records."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION",

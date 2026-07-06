@@ -1052,22 +1052,16 @@ const cssListFun = styled("div", `
 `);
 
 /**
- * The choices of what the row-number gutter shows, shared by the widget-panel select and the
- * grid's corner menu.
+ * Menu to choose what the row-number gutter shows, opened from the grid's top-left corner and
+ * from the widget panel's "Show [row numbers]" link (which omits the Hidden mode — the panel's
+ * checkbox covers hiding). The active mode is marked with a green tick.
  */
-export function rowNumbersModeOptions(): IOptionFull<RowNumbersMode>[] {
-  return [
+export function rowNumbersMenu(viewSection: ViewSectionRec, { includeHidden = true } = {}): DomElementArg[] {
+  const modes: IOptionFull<RowNumbersMode>[] = [
     { value: "number", label: t("Numbers") },
     { value: "rowId", label: t("Row IDs") },
-    { value: "hidden", label: t("Hidden") },
+    ...(includeHidden ? [{ value: "hidden" as const, label: t("Hidden") }] : []),
   ];
-}
-
-/**
- * Menu to choose what the row-number gutter shows, opened from the grid's top-left corner.
- * The active mode is marked with a green tick.
- */
-export function rowNumbersMenu(viewSection: ViewSectionRec): DomElementArg[] {
   const options = viewSection.optionsObj;
   const setMode = (rowNumbers: RowNumbersMode) => {
     if (options.peek().rowNumbers !== rowNumbers) {
@@ -1076,7 +1070,7 @@ export function rowNumbersMenu(viewSection: ViewSectionRec): DomElementArg[] {
   };
   return [
     menuSubHeader(t("Row numbers")),
-    ...rowNumbersModeOptions().map(({ value, label }) => menuItem(() => setMode(value),
+    ...modes.map(({ value, label }) => menuItem(() => setMode(value),
       cssTickSlot(options.peek().rowNumbers === value ? icon("Tick", testId("row-numbers-selected")) : null),
       value === "rowId" ? withInfoTooltip(label, "rowIds", { variant: "hover" }) : label,
     )),

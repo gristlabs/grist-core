@@ -253,7 +253,7 @@ and be careful when clicking embedded links. Report malicious forms to [{{mail}}
     ...args,
   ),
   rowIds: (...args: DomElementArg[]) => cssTooltipContent(
-    dom("div", t("Row IDs are stable numeric identifiers, used by reference columns to identify records.")),
+    dom("div", t("Row IDs are stable and unique numeric identifiers, used by reference columns to identify records.")),
     dom("div",
       cssLink({ href: commonUrls.helpUnderstandingReferenceColumns, target: "_blank" }, t("Learn more.")),
     ),
