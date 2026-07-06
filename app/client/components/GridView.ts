@@ -2218,12 +2218,19 @@ export default class GridView extends BaseView {
    */
   private _buildCornerMenu() {
     if (this.isReadonly || this.gridOptions?.rowMenu === false) { return null; }
-    return menuToggle(null,
-      // Don't let the click through to the corner's select-all handler.
-      dom.on("click", ev => ev.stopPropagation()),
-      menu(() => rowNumbersMenu(this.viewSection), { trigger: ["click"] }),
-      testId("corner-menu-trigger"),
-    );
+    return [
+      // Open the menu on right-click anywhere in the corner, the same way as row headers do.
+      dom.on("contextmenu", (ev) => {
+        ev.preventDefault();
+        ((ev.currentTarget as HTMLElement).querySelector<HTMLElement>(".menu_toggle"))?.click();
+      }),
+      menuToggle(null,
+        // Don't let the click through to the corner's select-all handler.
+        dom.on("click", ev => ev.stopPropagation()),
+        menu(() => rowNumbersMenu(this.viewSection), { trigger: ["click"] }),
+        testId("corner-menu-trigger"),
+      ),
+    ];
   }
 
   protected _getRowContextMenuOptions(): IRowContextMenu {

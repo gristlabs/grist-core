@@ -57,6 +57,7 @@ export type Tooltip =
   "formFraming" |
   "formUrlValues" |
   "rowHeight" |
+  "rowIds" |
   "suggestions"
   ;
 
@@ -249,6 +250,13 @@ and be careful when clicking embedded links. Report malicious forms to [{{mail}}
   ),
   rowHeight: (...args: DomElementArg[]) => cssTooltipContent(
     t("Set the maximum number of lines for multi-line text."),
+    ...args,
+  ),
+  rowIds: (...args: DomElementArg[]) => cssTooltipContent(
+    dom("div", t("Row IDs are stable numeric identifiers, used by reference columns to identify records.")),
+    dom("div",
+      cssLink({ href: commonUrls.helpUnderstandingReferenceColumns, target: "_blank" }, t("Learn more.")),
+    ),
     ...args,
   ),
   suggestions: () => cssTooltipContent(

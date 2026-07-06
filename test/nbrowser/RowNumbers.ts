@@ -134,4 +134,17 @@ describe("RowNumbers", function() {
     assert.equal(await menu.find(".test-row-numbers-selected").findClosest("li").getText(), "Numbers");
     await driver.sendKeys(Key.ESCAPE);
   });
+
+  it("opens the corner menu on right-click", async function() {
+    await gu.rightClick(driver.find(".active_section .gridview_data_corner_overlay"));
+    const menu = await gu.findOpenMenu(1000);
+    assert.equal(await menu.find(".test-row-numbers-selected").findClosest("li").getText(), "Numbers");
+
+    // The "Row IDs" item explains itself with an info tooltip.
+    await menu.findContent("li", "Row IDs").find(".test-info-tooltip").mouseMove();
+    const popup = await driver.findWait(".test-info-tooltip-popup", 1000);
+    assert.match(await popup.getText(), /Row IDs are stable numeric identifiers/);
+    assert.match(await popup.find("a").getAttribute("href"), /col-refs\/#understanding-reference-columns/);
+    await driver.sendKeys(Key.ESCAPE);
+  });
 });

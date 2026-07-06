@@ -1452,7 +1452,8 @@
         "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "You can add comments to cells, reply to comment threads, and @-mention collaborators.",
         "When checked, this field’s default value can be prefilled from the URL using query parameters.": "When checked, this field’s default value can be prefilled from the URL using query parameters.",
         "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.",
-        "Unpin to hide the button while keeping the filter.": "Unpin to hide the button while keeping the filter."
+        "Unpin to hide the button while keeping the filter.": "Unpin to hide the button while keeping the filter.",
+        "Row IDs are stable numeric identifiers, used by reference columns to identify records.": "Row IDs are stable numeric identifiers, used by reference columns to identify records."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION",

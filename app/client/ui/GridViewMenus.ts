@@ -1078,7 +1078,7 @@ export function rowNumbersMenu(viewSection: ViewSectionRec): DomElementArg[] {
     menuSubHeader(t("Row numbers")),
     ...rowNumbersModeOptions().map(({ value, label }) => menuItem(() => setMode(value),
       cssTickSlot(options.peek().rowNumbers === value ? icon("Tick", testId("row-numbers-selected")) : null),
-      label,
+      value === "rowId" ? withInfoTooltip(label, "rowIds", { variant: "hover" }) : label,
     )),
   ];
 }
