@@ -128,6 +128,36 @@ function setupTest() {
         ),
       )),
     ),
+
+    dom("div",
+      basicButton(
+        "Nested modals",
+        testId("nested-modals-opener"),
+        dom.on("click", () =>
+          modal(ctl =>
+            dom("div",
+              dom("p", "This is the first modal"),
+              primaryButton(
+                "Open nested modal",
+                testId("nested-modals-open-submodal"),
+                dom.on("click", () => modal(nestedCtrl =>
+                  dom("div",
+                    testId("nested-modals-submodal"),
+                    dom("p", "This is a second modal, appearing on top of the first one"),
+                    primaryButton(
+                      "Close nested modal",
+                      testId("nested-modals-close-submodal"),
+                      dom.on("click", () => nestedCtrl.close()),
+                    ),
+                  ),
+                )),
+              ),
+              basicButton("Close modal", testId("nested-modals-close"), dom.on("click", () => ctl.close())),
+            ),
+          ),
+        ),
+      ),
+    ),
   );
 }
 

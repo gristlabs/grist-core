@@ -133,6 +133,34 @@ describe("modals", function() {
     await checkClosed();
   });
 
+  it("should handle focus lock with nested modals", async function() {
+    await driver.find(".testui-nested-modals-opener").click();
+    await checkOpen();
+
+    await driver.find(".testui-nested-modals-open-submodal").click();
+    assert.equal(await driver.findWait(".testui-nested-modals-submodal", 100).isPresent(), true);
+    await driver.sendKeys(Key.TAB);
+    await driver.sendKeys(Key.TAB);
+    assert.equal(
+      await driver.switchTo().activeElement().getId(),
+      await driver.find(".testui-nested-modals-close-submodal").getId(),
+      "Tab key should be trapped inside the nested modal",
+    );
+
+    await driver.find(".testui-nested-modals-close-submodal").click();
+    assert.equal(await driver.find(".testui-nested-modals-submodal").isPresent(), false);
+    await driver.sendKeys(Key.TAB);
+    await driver.sendKeys(Key.chord(Key.SHIFT, Key.TAB));
+    assert.equal(
+      await driver.switchTo().activeElement().getId(),
+      await driver.find(".testui-nested-modals-close").getId(),
+      "Tab key should be trapped inside the first modal after closing the nested modal",
+    );
+
+    await driver.sendKeys(Key.ESCAPE);
+    await checkClosed();
+  });
+
   describe("saveModal", function() {
     it("should support arbitrary dom arguments", async () => {
       // Title and saveLabel both include dynamic DOM; check that it works.
