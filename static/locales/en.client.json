@@ -2097,7 +2097,12 @@
         "Enable Full Grist": "Enable Full Grist",
         "To continue using Full Grist, you need to\n                  [contact us]({{signupLink}}) to get your activation key.": "To continue using Full Grist, you need to\n                  [contact us]({{signupLink}}) to get your activation key.",
         "You are currently trialing Full Grist.": "You are currently trialing Full Grist.",
-        "Your trial period has expired on **{{expireAt}}**. To continue using Full Grist, you need to\n[sign up for Full Grist]({{signupLink}}) and paste your activation key below.": "Your trial period has expired on **{{expireAt}}**. To continue using Full Grist, you need to\n[sign up for Full Grist]({{signupLink}}) and paste your activation key below."
+        "Your trial period has expired on **{{expireAt}}**. To continue using Full Grist, you need to\n[sign up for Full Grist]({{signupLink}}) and paste your activation key below.": "Your trial period has expired on **{{expireAt}}**. To continue using Full Grist, you need to\n[sign up for Full Grist]({{signupLink}}) and paste your activation key below.",
+        "Copy": "Copy",
+        "Good news: it can stay free.": "Good news: it can stay free.",
+        "Installation ID": "Installation ID",
+        "Provide this when requesting an activation key. Keys are tied to your installation ID.": "Provide this when requesting an activation key. Keys are tied to your installation ID.",
+        "[Free activation keys]({{learnMoreLink}}) are available to individuals and small orgs under US $1 million total annual funding. For larger orgs, see [pricing]({{pricingLink}}).": "[Free activation keys]({{learnMoreLink}}) are available to individuals and small orgs under US $1 million total annual funding. For larger orgs, see [pricing]({{pricingLink}})."
     },
     "ViewLayout": {
         "Delete": "Delete",
@@ -3078,7 +3083,21 @@
         "Your installation does not bundle the Full Grist edition. Want Full Grist? {{enableLink}}": "Your installation does not bundle the Full Grist edition. Want Full Grist? {{enableLink}}",
         "community": "community",
         "full": "full",
-        "pricing": "pricing"
+        "pricing": "pricing",
+        "Cancel": "Cancel",
+        "Community": "Community",
+        "Downgrade": "Downgrade",
+        "Downgrade to Community Edition": "Downgrade to Community Edition",
+        "Downgrade to Community edition? Full Grist features are disabled after restart. This is reversible.": "Downgrade to Community edition? Full Grist features are disabled after restart. This is reversible.",
+        "For automations, MCP server, AI assistant, OIDC": {
+            "SAML support, email notifications, admin controls, audit logging and more, switch to the full Grist edition.": "For automations, MCP server, AI assistant, OIDC/SAML support, email notifications, admin controls, audit logging and more, switch to the full Grist edition."
+        },
+        "Free activation keys": "Free activation keys",
+        "Restart Grist to apply this change.": "Restart Grist to apply this change.",
+        "Switch to Full Grist": "Switch to Full Grist",
+        "This server runs the full edition of Grist, with advanced security, governance, MCP server, automations, email notifications, and collaboration features.": "This server runs the full edition of Grist, with advanced security, governance, MCP server, automations, email notifications, and collaboration features.",
+        "You are running the Grist Community edition.": "You are running the Grist Community edition.",
+        "{{freeKeysLink}} are available to individuals and small orgs under US $1 million total annual funding. For larger orgs, see {{pricingLink}}.": "{{freeKeysLink}} are available to individuals and small orgs under US $1 million total annual funding. For larger orgs, see {{pricingLink}}."
     },
     "QuickSetupServerStep": {
         "Apply and Continue": "Apply and Continue",

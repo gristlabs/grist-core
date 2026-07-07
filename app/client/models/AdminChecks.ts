@@ -193,10 +193,6 @@ from the network."),
     info: t("It is good practice not to run Grist as the root user."),
   },
 
-  "reachable": {
-    info: t("The main page of Grist should be available."),
-  },
-
   "home-url": {
     info: t("APP_HOME_URL is the base URL where users and integrations reach \
 this Grist server. Auth callbacks, API links, and email notifications \

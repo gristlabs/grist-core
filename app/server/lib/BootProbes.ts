@@ -71,7 +71,6 @@ export class BootProbes {
   }
 
   private _addProbes() {
-    this._probes.push(_homeUrlReachableProbe);
     this._probes.push(_homeUrlProbe);
     this._probes.push(_statusCheckProbe);
     this._probes.push(_userProbe);
@@ -116,36 +115,6 @@ const _admins: Probe = {
       return {
         status: "fault",
         details: { error: String(e) },
-      };
-    }
-  },
-};
-
-const _homeUrlReachableProbe: Probe = {
-  id: "reachable",
-  name: "Is home page available at expected URL",
-  apply: async (server, req) => {
-    const url = server.getHomeInternalUrl();
-    const details: Record<string, any> = {
-      url,
-    };
-    try {
-      const resp = await fetch(url);
-      details.status = resp.status;
-      if (resp.status !== 200) {
-        throw new ApiError(await resp.text(), resp.status);
-      }
-      return {
-        status: "success",
-        details,
-      };
-    } catch (e) {
-      return {
-        details: {
-          ...details,
-          error: String(e),
-        },
-        status: "fault",
       };
     }
   },

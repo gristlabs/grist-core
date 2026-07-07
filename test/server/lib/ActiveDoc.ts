@@ -1,10 +1,10 @@
+import { PermissionSet } from "app/common/ACLPermissions";
 import { getEnvContent } from "app/common/ActionBundle";
 import { ServerQuery } from "app/common/ActiveDocAPI";
 import { delay } from "app/common/delay";
-import { PermissionSet } from "app/common/ACLPermissions";
 import { BulkColValues, CellValue, fromTableDataAction, UserAction } from "app/common/DocActions";
-import { FullUser } from "app/common/LoginSessionAPI";
 import * as gristTypes from "app/common/gristTypes";
+import { FullUser } from "app/common/LoginSessionAPI";
 import { TableData } from "app/common/TableData";
 import { CreatableArchiveFormats } from "app/common/UserAPI";
 import { GristObjCode } from "app/plugin/GristData";
@@ -1485,7 +1485,7 @@ describe("ActiveDoc", async function() {
         ["AddTable", "People", [{ id: "Name", type: "Text" }]],
       ]);
       const tables = activeDoc.docData!.getTable("_grist_Tables")!;
-      const tableRef = tables.getRowIds().find((id) => tables.getValue(id, "tableId") === "People")!;
+      const tableRef = tables.getRowIds().find(id => tables.getValue(id, "tableId") === "People")!;
 
       // A real (non-system) owner session, so the mask's schemaEdit:deny applies.
       const authSession = AuthSession.fromUser(
