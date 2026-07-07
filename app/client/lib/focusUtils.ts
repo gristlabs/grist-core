@@ -28,7 +28,7 @@ import { FocusLayer } from "app/client/lib/FocusLayer";
 
 import { Disposable, dom, DomMethod, IDisposable } from "grainjs";
 
-const _focusLocks = new Map<string, IDisposable>();
+const _tabTraps = new Map<string, IDisposable>();
 
 /**
  * Trap the tab key inside the given element.
@@ -42,9 +42,9 @@ const _focusLocks = new Map<string, IDisposable>();
  * This means you don't need to think about locks that could collapse between different containers, like two modals
  * on top of each other.
  *
- * You can optionally pass an id in order to be able to remove the lock later with `clearFocusLock`.
+ * You can optionally pass an id in order to be able to remove the lock later with `clearTabTrap`.
  */
-export const enableFocusLock = (element: HTMLElement, id?: string) => {
+export const enableTabTrap = (element: HTMLElement, id?: string) => {
   const listener = dom.onElem(element, "keydown", (event, elem) => {
     if (event.key === "Tab") {
       trapTabKey(elem, event);
@@ -53,13 +53,13 @@ export const enableFocusLock = (element: HTMLElement, id?: string) => {
   if (!id) {
     return;
   }
-  _focusLocks.get(id)?.dispose();
-  _focusLocks.set(id, listener);
+  _tabTraps.get(id)?.dispose();
+  _tabTraps.set(id, listener);
 };
 
-export const clearFocusLock = (id: string) => {
-  _focusLocks.get(id)?.dispose();
-  _focusLocks.delete(id);
+export const clearTabTrap = (id: string) => {
+  _tabTraps.get(id)?.dispose();
+  _tabTraps.delete(id);
 };
 
 /**
@@ -80,7 +80,7 @@ export function lockFocusUntilRemoved(
     if (!elem.hasAttribute("tabindex")) {
       elem.setAttribute("tabindex", "-1");
     }
-    enableFocusLock(elem);
+    enableTabTrap(elem);
     FocusLayer.create(owner, {
       defaultFocusElem: elem,
       pauseMousetrap,

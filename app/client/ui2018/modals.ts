@@ -1,6 +1,6 @@
 import { kbFocusHighlighterClass } from "app/client/components/KeyboardFocusHighlighter";
 import { FocusLayer } from "app/client/lib/FocusLayer";
-import { enableFocusLock, lockFocusUntilRemoved } from "app/client/lib/focusUtils";
+import { enableTabTrap, lockFocusUntilRemoved } from "app/client/lib/focusUtils";
 import { makeT } from "app/client/lib/localization";
 import { reportError } from "app/client/models/errors";
 import { cssInput } from "app/client/ui/cssInput";
@@ -273,7 +273,7 @@ export function modal(
   );
 
   document.body.appendChild(modalDom);
-  enableFocusLock(modalDom);
+  enableTabTrap(modalDom);
   if (variant === "collapsing") { expandModal(); }
 }
 

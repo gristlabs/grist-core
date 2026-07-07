@@ -3,7 +3,7 @@ import * as commands from "app/client/components/commands";
 import { GristDoc } from "app/client/components/GristDoc";
 import { kbFocusHighlighterClass } from "app/client/components/KeyboardFocusHighlighter";
 import { FocusLayer } from "app/client/lib/FocusLayer";
-import { clearFocusLock, enableFocusLock, isFocusable } from "app/client/lib/focusUtils";
+import { clearTabTrap, enableTabTrap, isFocusable } from "app/client/lib/focusUtils";
 import { makeT } from "app/client/lib/localization";
 import { App } from "app/client/ui/App";
 import { SpecialDocPage } from "app/common/gristUrls";
@@ -349,7 +349,7 @@ export class RegionFocusSwitcher extends Disposable {
       current.initiator.event :
       undefined;
 
-    clearFocusLock("regionFocusSwitcher");
+    clearTabTrap("regionFocusSwitcher");
     removeFocusRings();
     removeTabIndexes();
     if (!mouseEvent) {
@@ -364,7 +364,7 @@ export class RegionFocusSwitcher extends Disposable {
 
     // If kb-focusing a panel:
     //   - actually focus the panel dom element, or its previously focused child,
-    //   - trap the Tab key inside it (see `enableFocusLock`).
+    //   - trap the Tab key inside it (see `enableTabTrap`).
     //   - make the Tab key available for normal browser navigation in the panel (see `escapeViewLayout`)
     if (!mouseEvent && isPanel && panelElement && current.region) {
       focusPanel(
@@ -516,14 +516,14 @@ const ATTRS = {
 /**
  * Focus the given panel dom element (or the given element inside it, if any), and let the grist doc view know about it.
  *
- * When focusing a panel, the tab key is trapped inside it (see `enableFocusLock`).
+ * When focusing a panel, the tab key is trapped inside it (see `enableTabTrap`).
  */
 const focusPanel = (panel: PanelRegion, child: HTMLElement | null, gristDoc: GristDoc | null) => {
   const panelElement = getPanelElement(panel.id);
   if (!panelElement) {
     return;
   }
-  enableFocusLock(panelElement, "regionFocusSwitcher");
+  enableTabTrap(panelElement, "regionFocusSwitcher");
 
   // Child element found: focus it if we actually can
   if (child && child !== panelElement && child.isConnected && isFocusable(child)) {
