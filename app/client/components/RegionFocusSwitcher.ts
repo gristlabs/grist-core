@@ -3,7 +3,7 @@ import * as commands from "app/client/components/commands";
 import { GristDoc } from "app/client/components/GristDoc";
 import { kbFocusHighlighterClass } from "app/client/components/KeyboardFocusHighlighter";
 import { FocusLayer } from "app/client/lib/FocusLayer";
-import { clearCurrentFocusLock, enableFocusLock, isFocusable } from "app/client/lib/focusUtils";
+import { clearFocusLock, enableFocusLock, isFocusable } from "app/client/lib/focusUtils";
 import { makeT } from "app/client/lib/localization";
 import { App } from "app/client/ui/App";
 import { SpecialDocPage } from "app/common/gristUrls";
@@ -349,7 +349,7 @@ export class RegionFocusSwitcher extends Disposable {
       current.initiator.event :
       undefined;
 
-    clearCurrentFocusLock();
+    clearFocusLock("regionFocusSwitcher");
     removeFocusRings();
     removeTabIndexes();
     if (!mouseEvent) {
@@ -523,7 +523,7 @@ const focusPanel = (panel: PanelRegion, child: HTMLElement | null, gristDoc: Gri
   if (!panelElement) {
     return;
   }
-  enableFocusLock(panelElement);
+  enableFocusLock(panelElement, "regionFocusSwitcher");
 
   // Child element found: focus it if we actually can
   if (child && child !== panelElement && child.isConnected && isFocusable(child)) {

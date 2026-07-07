@@ -26,26 +26,40 @@
 import { kbFocusHighlighterClass } from "app/client/components/KeyboardFocusHighlighter";
 import { FocusLayer } from "app/client/lib/FocusLayer";
 
-import { Disposable, dom, DomMethod, Holder } from "grainjs";
+import { Disposable, dom, DomMethod, IDisposable } from "grainjs";
 
-const _focusLockHolder = Holder.create(null);
+const _focusLocks = new Map<string, IDisposable>();
 
 /**
  * Trap the tab key inside the given element.
  *
  * That makes pressing tab and shift+tab loop exclusively through focusable elements that are *in* the element.
+ *
+ * The lock is pretty permissive, only acting when using the Tab key inside the element.
+ * If focus is moved outside the element (e.g. programmatically, or by clicking outside of it), the lock doesn't do
+ * anything until focus is moved back inside the element.
+ *
+ * This means you don't need to think about locks that could collapse between different containers, like two modals
+ * on top of each other.
+ *
+ * You can optionally pass an id in order to be able to remove the lock later with `clearFocusLock`.
  */
-export const enableFocusLock = (element: HTMLElement) => {
-  clearCurrentFocusLock();
-  _focusLockHolder.autoDispose(dom.onElem(element, "keydown", (event, elem) => {
+export const enableFocusLock = (element: HTMLElement, id?: string) => {
+  const listener = dom.onElem(element, "keydown", (event, elem) => {
     if (event.key === "Tab") {
       trapTabKey(elem, event);
     }
-  }));
+  });
+  if (!id) {
+    return;
+  }
+  _focusLocks.get(id)?.dispose();
+  _focusLocks.set(id, listener);
 };
 
-export const clearCurrentFocusLock = () => {
-  _focusLockHolder.clear();
+export const clearFocusLock = (id: string) => {
+  _focusLocks.get(id)?.dispose();
+  _focusLocks.delete(id);
 };
 
 /**
@@ -67,7 +81,6 @@ export function lockFocusUntilRemoved(
       elem.setAttribute("tabindex", "-1");
     }
     enableFocusLock(elem);
-    owner.onDispose(() => clearCurrentFocusLock());
     FocusLayer.create(owner, {
       defaultFocusElem: elem,
       pauseMousetrap,
