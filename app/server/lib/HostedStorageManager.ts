@@ -14,6 +14,7 @@ import { DocSnapshotInventory, DocSnapshotPruner } from "app/server/lib/DocSnaps
 import { IDocWorkerMap } from "app/server/lib/DocWorkerMap";
 import {
   ChecksummedExternalStorage,
+  DELETED_TOKEN,
   ExternalStorage,
   ExternalStorageCreator, ExternalStorageSettings,
   Unchanged,
@@ -484,11 +485,11 @@ export class HostedStorageManager implements IDocStorageManager {
     this._localFiles.delete(docName);
     await this.flushDoc(docName);
 
-    // When using S3 and unless the caller asked to keep the local cache,
+    // When using S3 without cache and unless the caller asked to keep the local cache,
     // remove the local copy to make the S3 version canonical.
     // Also this allows us to later release the assignment to this doc worker
     // to give the chance to a less-loaded worker to pick it.
-    if (!keepLocalCache && this._isRemoteStorage()) {
+    if (!keepLocalCache && this._mode === StorageMode.S3_WITHOUT_CACHE) {
       this._log.info(docName, "Removing local copy of this doc");
 
       // .finally so a failed wipe still clears the map entry — otherwise
@@ -504,8 +505,10 @@ export class HostedStorageManager implements IDocStorageManager {
   }
 
   public async cleanupAfterClose(docName: string): Promise<void> {
-    // After closing the document, release the assignment if the option "GRIST_WIPE_DOC_CACHE_AFTER_CLOSE" is set
-    await this._docWorkerMap.releaseAssignment(this._docWorkerId, docName);
+    if (this._mode === StorageMode.S3_WITHOUT_CACHE) {
+      // After closing the document, release the assignment if the option "GRIST_WIPE_DOC_CACHE_AFTER_CLOSE" is set
+      await this._docWorkerMap.releaseAssignment(this._docWorkerId, docName);
+    }
   }
 
   /**
@@ -687,6 +690,42 @@ export class HostedStorageManager implements IDocStorageManager {
         return present;
       }
 
+      const existsLocally = () => fse.pathExists(this.getPath(docName));
+
+      // If the instance is configured to continue storing the closed documents in the FS cache,
+      // and if the file exists locally, reuse it.
+      if (this._mode === StorageMode.S3_WITH_CACHE && await existsLocally()) {
+        if (!docStatus.docMD5 || docStatus.docMD5 === DELETED_TOKEN || docStatus.docMD5 === "unknown") {
+          // New doc appears to already exist, but may not exist in S3.
+          // Let's check.
+          const head = await this._ext.head(docName);
+          const lastLocalVersionSeen = this._latestVersions.get(docName);
+          if (head && lastLocalVersionSeen !== head.snapshotId) {
+            // Exists in S3, with a version not known to be latest seen
+            // by this worker - so wipe local version and defer to S3.
+            await this._removeFromFilesystem(docName);
+          } else {
+            // Go ahead and use local version.
+            return true;
+          }
+        } else {
+          // Doc exists locally and in S3 (according to redis).
+          // Make sure the checksum matches.
+          const checksum = await this._getHash(await this._prepareBackup(docName));
+          if (checksum === docStatus.docMD5) {
+            // Fine, accept the doc as existing on our file system.
+            return true;
+          } else {
+            this._log.info(docName, "Local hash does not match redis: %s vs %s", checksum, docStatus.docMD5);
+            // The file that exists locally does not match S3.  But S3 is the canonical version.
+            // On the assumption that the local file is outdated, delete it.
+            // TODO: may want to be more careful in case the local file has modifications that
+            // simply never made it to S3 due to some kind of breakage.
+            await this._removeFromFilesystem(docName);
+          }
+        }
+      }
+
       // The local cache is wiped when a document is closed, so S3 is the canonical
       // source on open. Always defer to it rather than trying to validate a local
       // copy (the previous checksum check required backing up the SQLite db, which
@@ -696,6 +735,7 @@ export class HostedStorageManager implements IDocStorageManager {
         trunkId: forkId ? trunkId : undefined,
         snapshotId,
         canCreateFork,
+        overwriteLocalDest: (this._mode === StorageMode.S3_WITHOUT_CACHE),
       });
       if (fetched) { return true; }
       // S3 doesn't have the doc. If a local copy exists (e.g. a worker crashed
@@ -738,10 +778,13 @@ export class HostedStorageManager implements IDocStorageManager {
    * Forks of fork will not spark joy at this time.  An attempt to
    * fork a fork will result in a new fork of the original trunk.
    */
-  private async _fetchFromS3(destId: string, options: { sourceDocId?: string,
+  private async _fetchFromS3(destId: string, options: {
+    sourceDocId?: string,
     trunkId?: string,
     snapshotId?: string,
-    canCreateFork?: boolean }): Promise<boolean> {
+    canCreateFork?: boolean,
+    overwriteLocalDest?: boolean,
+  }): Promise<boolean> {
     const destIdWithoutSnapshot = buildUrlId({ ...parseUrlId(destId), snapshotId: undefined });
     let sourceDocId = options.sourceDocId || destIdWithoutSnapshot;
     if (!await this._ext.exists(destIdWithoutSnapshot)) {
@@ -753,10 +796,14 @@ export class HostedStorageManager implements IDocStorageManager {
       if (!await this._ext.exists(options.trunkId)) { throw new ApiError("Cannot find original", 404); }
       sourceDocId = options.trunkId;
     }
-    // downloadTo renames a temp file into place with overwrite:false, so the
-    // destination must not exist. So let's remove a possibly stale copy.
-    // NOTE: fse.remove is a no-op if the file is absent.
-    await fse.remove(this.getPath(destId));
+
+    if (options.overwriteLocalDest) {
+      // downloadTo renames a temp file into place with overwrite:false, so the
+      // destination must not exist. So let's remove a possibly stale copy.
+      // NOTE: fse.remove is a no-op if the file is absent.
+      await fse.remove(this.getPath(destId));
+    }
+
     await this._ext.downloadTo(sourceDocId, destId, this.getPath(destId), options.snapshotId);
     return true;
   }
