@@ -633,26 +633,26 @@ export const cssModalDialog = styled("div", `
   }
 `);
 
-export const cssModalTitle = styled(
-  (...args: IDomArgs<HTMLDivElement>) => dom(
-    "div",
-    { id: uniqueId("modal-title-") },
-    (el) => {
-      // waiting for potential domComputed to work
-      setTimeout(() => {
-        el.closest('[role="dialog"]')?.setAttribute("aria-labelledby", el.id);
-      }, 0);
-    },
-    ...args,
-  ), `
-    font-size: ${vars.xxxlargeFontSize};
-    font-weight: ${vars.headerControlTextWeight};
-    color: ${theme.text};
-    margin: 0 0 16px 0;
-    line-height: 32px;
-    overflow-wrap: break-word;
-  `,
+const autoLabelledModalTitle = (...args: IDomArgs<HTMLDivElement>) => dom(
+  "div",
+  { id: uniqueId("modal-title-") },
+  (el) => {
+    // waiting for potential domComputed to work
+    setTimeout(() => {
+      el.closest('[role="dialog"]')?.setAttribute("aria-labelledby", el.id);
+    }, 0);
+  },
+  ...args,
 );
+
+export const cssModalTitle = styled(autoLabelledModalTitle, `
+  font-size: ${vars.xxxlargeFontSize};
+  font-weight: ${vars.headerControlTextWeight};
+  color: ${theme.text};
+  margin: 0 0 16px 0;
+  line-height: 32px;
+  overflow-wrap: break-word;
+`);
 
 export const cssModalSubheading = styled("div", `
   font-size: ${vars.xlargeFontSize};
