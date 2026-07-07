@@ -208,7 +208,7 @@ export class DocStorageManager implements IDocStorageManager {
     // nothing to do
   }
 
-  public async releaseDocAssignment(docName: string) {
+  public async cleanupAfterClose(docName: string) {
     // nothing to do
   }
 

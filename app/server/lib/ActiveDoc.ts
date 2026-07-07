@@ -2686,8 +2686,8 @@ export class ActiveDoc extends EventEmitter {
       }
 
       // Release after shutdown so a less-loaded worker can pick this doc up next time.
-      await safeCallAndWait("releaseDocAssignment", () => {
-        return this._docManager.storageManager.releaseDocAssignment(this.docName);
+      await safeCallAndWait("cleanupAfterClose", () => {
+        return this._docManager.storageManager.cleanupAfterClose(this.docName);
       });
 
       // No timeout on this callback: if it hangs, it will make the document unusable.
