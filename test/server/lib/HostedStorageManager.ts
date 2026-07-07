@@ -29,6 +29,7 @@ import { createDummyGristServer, GristServer } from "app/server/lib/GristServer"
 import {
   HostedStorageManager,
   HostedStorageOptions,
+  StorageMode,
 } from "app/server/lib/HostedStorageManager";
 import log from "app/server/lib/log";
 import { SQLiteDB } from "app/server/lib/SQLiteDB";
@@ -47,6 +48,7 @@ import * as minio from "minio";
 import { createClient, RedisClient } from "redis";
 import * as sinon from "sinon";
 import { v4 as uuidv4 } from "uuid";
+import { isAffirmative } from "app/common/gutil";
 
 bluebird.promisifyAll(RedisClient.prototype);
 
@@ -334,10 +336,14 @@ class TestStore {
       },
     };
 
+    const storageMode = isAffirmative(process.env.GRIST_WIPE_DOC_CACHE_AFTER_CLOSE) ?
+      StorageMode.S3_WITHOUT_CACHE :
+      StorageMode.S3_WITH_CACHE;
+
     const storageManager = new HostedStorageManager(gristServer,
       this._localDirectory,
       this._workerId,
-      false,
+      storageMode,
       this._workers,
       dbManager,
       externalStorageCreator,
@@ -408,7 +414,7 @@ describe("HostedStorageManager", function() {
     await removeConnection();
   });
 
-  for (const storage of ["azure", "s3", "minio", "filesystem", "cached"] as const) {
+  for (const storage of ["azure", "s3", "minio", "minio-cache-wiped", "filesystem", "cached"] as const) {
     describe(storage, function() {
       const sandbox = sinon.createSandbox();
       let oldEnv: EnvironmentSnapshot;
@@ -470,6 +476,13 @@ describe("HostedStorageManager", function() {
             if (!process.env.GRIST_DOCS_MINIO_ACCESS_KEY) {
               this.skip();
             }
+            externalStorageCreate = requireStorage(create.getStorageOptions?.("minio")?.create);
+            break;
+          case "minio-cache-wiped":
+            if (!process.env.GRIST_DOCS_MINIO_ACCESS_KEY) {
+              this.skip();
+            }
+            process.env.GRIST_WIPE_DOC_CACHE_AFTER_CLOSE = "true";
             externalStorageCreate = requireStorage(create.getStorageOptions?.("minio")?.create);
             break;
           case "s3":
@@ -1104,7 +1117,7 @@ describe("HostedStorageManager", function() {
         gristServer,
         tmpDir,
         workerId,
-        false,
+        StorageMode.S3_WITH_CACHE,
         docWorkerMap,
         {
           setDocsMetadata: async (metadata) => {},
@@ -1118,7 +1131,7 @@ describe("HostedStorageManager", function() {
       sandbox.restore();
     });
 
-    it("doesn't wipe local docs when they exist on disk but not remote storage", async function() {
+    it("doesn't wipe local docs being open when they exist on disk but not remote storage", async function() {
       const storageManager = new HostedStorageManager(...defaultParams);
 
       const docId = "NewDoc";
