@@ -109,7 +109,8 @@ export class CalendarView extends BaseView {
     return cssCalendarView(
       testId("container"),
       cssWeekdayHeader(
-        ...weekdayLabels().map(label => cssWeekdayName(label)),
+        testId("weekdays"),
+        ...weekdayLabels().map(label => cssWeekdayName(label, testId("weekday"))),
       ),
       cssMonthGrid(
         testId("month"),
@@ -209,13 +210,18 @@ const cssCalendarView = styled("div", `
   flex-direction: column;
   height: 100%;
   width: 100%;
+  overflow: hidden;
   background-color: ${theme.mainPanelBg};
   color: ${theme.text};
 `);
 
+// Note: columns use minmax(0, 1fr), not 1fr. A plain 1fr means minmax(auto, 1fr), and its "auto"
+// minimum keeps a column from shrinking below its content width. With nowrap event chips inside,
+// that pushes the 7-column grid wider than the section and clips the last day (Sunday) off-screen.
+// minmax(0, 1fr) lets every column shrink evenly so all 7 always fit.
 const cssWeekdayHeader = styled("div", `
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   flex: none;
   border-bottom: 1px solid ${theme.tableBodyBorder};
 `);
@@ -230,7 +236,7 @@ const cssWeekdayName = styled("div", `
 
 const cssMonthGrid = styled("div", `
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   grid-auto-rows: 1fr;
   flex: 1 1 0;
   min-height: 0;

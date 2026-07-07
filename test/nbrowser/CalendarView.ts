@@ -33,6 +33,18 @@ describe("CalendarView", function() {
     await driver.findWait(".test-calendar-month", 2000);
     await driver.wait(async () => (await driver.findAll(".test-calendar-day")).length === 42, 2000);
 
+    // All 7 weekday labels render, and none is clipped outside the section: the last one (rightmost
+    // column) must stay within the header's right edge. This guards the minmax(0, 1fr) grid fix,
+    // where a plain 1fr let the columns overflow and pushed the last day off-screen.
+    const weekdays = await driver.findAll(".test-calendar-weekday");
+    assert.lengthOf(weekdays, 7);
+    const header = await driver.find(".test-calendar-weekdays");
+    const headerRight = (await header.rect()).x + (await header.rect()).width;
+    const lastCol = weekdays[6];
+    const lastRect = await lastCol.rect();
+    assert.isAbove(lastRect.width, 0, "last weekday column has width");
+    assert.isAtMost(lastRect.x + lastRect.width, headerRight + 1, "last weekday fits inside the header");
+
     // Both events show up, and each sits in the cell for its own day.
     await driver.wait(async () => (await eventTexts()).length === 2, 2000);
     assert.deepEqual(await cellEventsForDay(d1.dom), ["Alpha"]);
