@@ -3,12 +3,13 @@
  */
 
 // all widget types
-export type IWidgetType = "record" | "detail" | "single" | "chart" | "custom" | "form";
+export type IWidgetType = "record" | "detail" | "single" | "chart" | "calendar" | "custom" | "form";
 export enum WidgetType {
   Table = "record",
   Card = "single",
   CardList = "detail",
   Chart = "chart",
+  Calendar = "calendar",
   Custom = "custom",
   Form = "form",
 }

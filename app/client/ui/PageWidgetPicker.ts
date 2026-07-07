@@ -123,7 +123,7 @@ function getCompatibleTypes(tableId: TableRef,
   { isNewPage, summarize }: ICompatibleTypes): IWidgetType[] {
   let compatibleTypes: IWidgetType[] = [];
   if (tableId !== "New Table") {
-    compatibleTypes = ["record", "single", "detail", "chart", "custom", "form"];
+    compatibleTypes = ["record", "single", "detail", "chart", "calendar", "custom", "form"];
   } else if (isNewPage) {
     // New view + new table means we'll be switching to the primary view.
     compatibleTypes = ["record", "form"];
@@ -325,7 +325,7 @@ export interface ISelectOptions {
 }
 
 const sectionTypes: IWidgetType[] = [
-  "record", "single", "detail", "form", "chart", "custom",
+  "record", "single", "detail", "form", "chart", "calendar", "custom",
 ];
 
 // Returns dom that let a user select a page widget. User can select a widget type (id: 'grid',

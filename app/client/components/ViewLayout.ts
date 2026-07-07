@@ -1,5 +1,6 @@
 import BaseView from "app/client/components/BaseView";
 import { buildViewSectionDom } from "app/client/components/buildViewSectionDom";
+import { CalendarView } from "app/client/components/CalendarView";
 import { ChartView } from "app/client/components/ChartView";
 import * as commands from "app/client/components/commands";
 import { CustomView } from "app/client/components/CustomView";
@@ -51,6 +52,7 @@ const viewSectionTypes: { [key: string]: any } = {
   "detail": DetailView,
   "chart": ChartView,
   "single": DetailView,
+  "calendar": CalendarView,
   "custom": CustomView,
   "form": FormView,
 };
