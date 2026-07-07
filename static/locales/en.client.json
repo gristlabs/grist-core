@@ -3200,5 +3200,8 @@
         "not configured": "not configured",
         "review": "review",
         "unfiltered": "unfiltered"
+    },
+    "McpConnectBanner": {
+        "**New!** Connect Grist to Claude and ChatGPT. [Try it now]({{mcp}})": "**New!** Connect Grist to Claude and ChatGPT. [Try it now]({{mcp}})"
     }
 }
