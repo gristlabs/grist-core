@@ -236,14 +236,8 @@ class CachedWidgetRepository extends WidgetRepositoryImpl {
 /**
  * Returns widget repository implementation.
  */
-export function buildWidgetRepository(gristServer?: GristServer,
-  options?: {
-    localOnly: boolean
-  }) {
-  return new CachedWidgetRepository({
-    gristServer,
-    ...(options?.localOnly ? { staticUrl: "" } : undefined),
-  });
+export function buildWidgetRepository(gristServer?: GristServer) {
+  return new CachedWidgetRepository({ gristServer });
 }
 
 function fixUrls(widgets: ICustomWidget[], baseUrl: string) {

@@ -11,7 +11,6 @@ import { focusAdjacentFocusable, trapTabKey } from "app/client/lib/focusUtils";
 import { makeT } from "app/client/lib/localization";
 import { reportError } from "app/client/models/AppModel";
 import { ColumnRec, TableRec, ViewSectionRec } from "app/client/models/DocModel";
-import { PERMITTED_CUSTOM_WIDGETS } from "app/client/models/features";
 import { linkId, NoLink } from "app/client/ui/selectBy";
 import { overflowTooltip, withInfoTooltip } from "app/client/ui/tooltips";
 import { getWidgetTypes } from "app/client/ui/widgetTypesMap";
@@ -21,7 +20,7 @@ import { icon } from "app/client/ui2018/icons";
 import { spinnerModal } from "app/client/ui2018/modals";
 import { unstyledButton } from "app/client/ui2018/unstyled";
 import { isLongerThan, nativeCompare } from "app/common/gutil";
-import { IAttachedCustomWidget, IWidgetType } from "app/common/widgetTypes";
+import { IWidgetType } from "app/common/widgetTypes";
 
 import {
   computed,
@@ -124,7 +123,7 @@ function getCompatibleTypes(tableId: TableRef,
   { isNewPage, summarize }: ICompatibleTypes): IWidgetType[] {
   let compatibleTypes: IWidgetType[] = [];
   if (tableId !== "New Table") {
-    compatibleTypes = ["record", "single", "detail", "chart", "custom", "custom.calendar", "form"];
+    compatibleTypes = ["record", "single", "detail", "chart", "custom", "form"];
   } else if (isNewPage) {
     // New view + new table means we'll be switching to the primary view.
     compatibleTypes = ["record", "form"];
@@ -325,15 +324,8 @@ export interface ISelectOptions {
   selectBy?: (val: IPageWidget) => IOption<string>[];
 }
 
-const registeredCustomWidgets: IAttachedCustomWidget[] =  ["custom.calendar"];
-
-const permittedCustomWidgets: IAttachedCustomWidget[] = PERMITTED_CUSTOM_WIDGETS().get().map(widget =>
-  widget as IAttachedCustomWidget) ?? [];
-// the list of widget types in the order they should be listed by the widget.
-const finalListOfCustomWidgetToShow =  permittedCustomWidgets.filter(a =>
-  registeredCustomWidgets.includes(a));
 const sectionTypes: IWidgetType[] = [
-  "record", "single", "detail", "form", "chart", ...finalListOfCustomWidgetToShow, "custom",
+  "record", "single", "detail", "form", "chart", "custom",
 ];
 
 // Returns dom that let a user select a page widget. User can select a widget type (id: 'grid',

@@ -14,7 +14,6 @@ export const widgetTypesMap = new Map<IWidgetType, IWidgetTypeInfo>([
   ["chart", { name: "Chart", icon: "TypeChart", getLabel: () => t("Chart") }],
   ["form", { name: "Form", icon: "Board", getLabel: () => t("Form") }],
   ["custom", { name: "Custom", icon: "TypeCustom", getLabel: () => t("Custom") }],
-  ["custom.calendar", { name: "Calendar", icon: "TypeCalendar", getLabel: () => t("Calendar") }],
 ]);
 
 // Widget type info.

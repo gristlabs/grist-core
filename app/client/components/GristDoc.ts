@@ -91,7 +91,7 @@ import { StringUnion } from "app/common/StringUnion";
 import { TableData } from "app/common/TableData";
 import { getGristConfig } from "app/common/urlUtils";
 import { AttachmentTransferStatus, DocAPI, ExtendedUser } from "app/common/UserAPI";
-import { AttachedCustomWidgets, IAttachedCustomWidget, IWidgetType, WidgetType } from "app/common/widgetTypes";
+import { IWidgetType, WidgetType } from "app/common/widgetTypes";
 import { CursorPos } from "app/plugin/GristAPI";
 
 import {
@@ -1614,10 +1614,6 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue."))
 
   private _showNewWidgetPopups(type: IWidgetType) {
     this._maybeShowEditCardLayoutTip(type).catch(reportError);
-
-    if (AttachedCustomWidgets.guard(type)) {
-      this._handleNewAttachedCustomWidget(type).catch(reportError);
-    }
   }
 
   /**
@@ -1834,21 +1830,6 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue."))
         placement: "left-start",
       },
     });
-  }
-
-  private async _handleNewAttachedCustomWidget(widget: IAttachedCustomWidget) {
-    switch (widget) {
-      case "custom.calendar": {
-        if (this.behavioralPromptsManager.shouldShowPopup("calendarConfig")) {
-          // Open the right panel to the calendar subtab.
-          commands.allCommands.viewTabOpen.run();
-
-          // Wait for the right panel to finish animation if it was collapsed before.
-          await commands.allCommands.rightPanelOpen.run();
-        }
-        break;
-      }
-    }
   }
 
   private async _promptForName() {

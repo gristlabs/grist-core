@@ -12,7 +12,6 @@ import { TelemetryLevel } from "app/common/Telemetry";
 import { ThemeAppearance, themeAppearances, ThemeName, themeNames } from "app/common/ThemePrefs";
 import { getGristConfig } from "app/common/urlUtils";
 import { Document } from "app/common/UserAPI";
-import { IAttachedCustomWidget } from "app/common/widgetTypes";
 import { UIRowId } from "app/plugin/GristAPI";
 
 import clone from "lodash/clone";
@@ -1005,8 +1004,6 @@ export interface GristLoadConfig {
   namespaces?: readonly string[];
 
   assistant?: AssistantConfig;
-
-  permittedCustomWidgets?: IAttachedCustomWidget[];
 
   // Email address of the support user.
   supportEmail?: string;

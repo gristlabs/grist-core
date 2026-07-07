@@ -1,5 +1,4 @@
 import { ApiError } from "app/common/ApiError";
-import { ICustomWidget } from "app/common/CustomWidget";
 import { delay } from "app/common/delay";
 import { encodeUrl, getSlugIfNeeded, GristDeploymentType, GristDeploymentTypes,
   GristLoadConfig, IGristUrlState, isOrgInPathOnly, LatestVersionAvailable, parseSubdomain,
@@ -170,7 +169,6 @@ export class FlexServer implements GristServer {
   private _pluginUrl: string | undefined;
   private _pluginUrlReady: boolean = false;
   private _servesPlugins?: boolean;
-  private _bundledWidgets?: ICustomWidget[];
   private _billing: IBilling;
   private _installAdmin: InstallAdmin;
   private _instanceRoot: string;
@@ -1986,15 +1984,6 @@ export class FlexServer implements GristServer {
     this.info.push(["pluginUrl", this._pluginUrl]);
     this.info.push(["willServePlugins", this._servesPlugins]);
     this._pluginUrlReady = true;
-    const repo = buildWidgetRepository(this, { localOnly: true });
-    this._bundledWidgets = await repo.getWidgets();
-  }
-
-  public getBundledWidgets(): ICustomWidget[] {
-    if (!this._bundledWidgets) {
-      throw new Error("bundled widgets accessed too early");
-    }
-    return this._bundledWidgets;
   }
 
   public summary() {

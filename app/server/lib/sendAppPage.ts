@@ -16,7 +16,6 @@ import {
 import { isAffirmative, replaceLiteral, replaceLiterals } from "app/common/gutil";
 import { getTagManagerSnippet } from "app/common/tagManager";
 import { Document } from "app/common/UserAPI";
-import { AttachedCustomWidgets, IAttachedCustomWidget } from "app/common/widgetTypes";
 import { SUPPORT_EMAIL } from "app/gen-server/lib/homedb/HomeDBManager";
 import { appSettings } from "app/server/lib/AppSettings";
 import { isAnonymousUser, isSingleUserMode, RequestWithLogin } from "app/server/lib/Authorizer";
@@ -118,8 +117,7 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     maxUploadSizeImport: (Number(process.env.GRIST_MAX_UPLOAD_IMPORT_MB) * 1024 * 1024) || undefined,
     maxUploadSizeAttachment: (Number(process.env.GRIST_MAX_UPLOAD_ATTACHMENT_MB) * 1024 * 1024) || undefined,
     timestampMs: Date.now(),
-    enableWidgetRepository: Boolean(process.env.GRIST_WIDGET_LIST_URL) ||
-      ((server?.getBundledWidgets().length || 0) > 0),
+    enableWidgetRepository: Boolean(process.env.GRIST_WIDGET_LIST_URL),
     survey: Boolean(process.env.DOC_ID_NEW_USER_INFO),
     tagManagerId: process.env.GOOGLE_TAG_MANAGER_ID,
     activation: (req as RequestWithLogin | undefined)?.activation,
@@ -129,7 +127,6 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     supportedLngs: readLoadedLngs(req?.i18n),
     namespaces: readLoadedNamespaces(req?.i18n),
     assistant: getAssistantConfig(server),
-    permittedCustomWidgets: getPermittedCustomWidgets(server),
     supportEmail: SUPPORT_EMAIL,
     userLocale: (req as RequestWithLogin | undefined)?.user?.options?.locale,
     telemetry: server?.getTelemetry().getTelemetryConfig(req as RequestWithLogin | undefined),
@@ -286,28 +283,6 @@ function getAssistantConfig(gristServer?: GristServer | null): AssistantConfig |
 
   const { provider, version } = assistant;
   return { provider, version };
-}
-
-function getPermittedCustomWidgets(gristServer?: GristServer | null): IAttachedCustomWidget[] {
-  if (!process.env.PERMITTED_CUSTOM_WIDGETS && gristServer) {
-    // The PERMITTED_CUSTOM_WIDGETS environment variable is a bit of
-    // a drag. If there are bundled widgets that overlap with widgets
-    // described in the codebase, let's just assume they are permitted.
-    const widgets = gristServer.getBundledWidgets();
-    const names = new Set(AttachedCustomWidgets.values as string[]);
-    const namesFound: IAttachedCustomWidget[] = [];
-    for (const widget of widgets) {
-      // Permitted custom widgets are identified so many ways across the
-      // code! Why? TODO: cut down on identifiers.
-      const name = widget.widgetId.replace("@gristlabs/widget-", "custom.");
-      if (names.has(name)) {
-        namesFound.push(name as IAttachedCustomWidget);
-      }
-    }
-    return AttachedCustomWidgets.checkAll(namesFound);
-  }
-  const widgetsList = process.env.PERMITTED_CUSTOM_WIDGETS?.split(",").map(widgetName => `custom.${widgetName}`) ?? [];
-  return AttachedCustomWidgets.checkAll(widgetsList);
 }
 
 function configuredPageTitleSuffix() {

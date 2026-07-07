@@ -1,4 +1,3 @@
-import { ICustomWidget } from "app/common/CustomWidget";
 import { GristDeploymentType, GristLoadConfig, LatestVersionAvailable } from "app/common/gristUrls";
 import { LocalPlugin } from "app/common/plugin";
 import { SandboxInfo } from "app/common/SandboxInfo";
@@ -103,7 +102,6 @@ export interface GristServer extends StorageCoordinator {
   getPluginUrl(): string | undefined;
   getPlugins(): LocalPlugin[];
   servesPlugins(): boolean;
-  getBundledWidgets(): ICustomWidget[];
   getSandboxInfo(): Promise<SandboxInfo>;
   getInfo(key: string): any;
   getJobs(): GristJobs;
@@ -222,7 +220,6 @@ export function createDummyGristServer(): GristServer {
     getPluginUrl() { return undefined; },
     servesPlugins() { return false; },
     getPlugins() { return []; },
-    getBundledWidgets() { return []; },
     getSandboxInfo() { throw new Error("no sandbox"); },
     getInfo(key: string) { return undefined; },
     getJobs(): GristJobs { throw new Error("no job system"); },
