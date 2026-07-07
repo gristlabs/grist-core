@@ -376,7 +376,7 @@ export class HostedStorageManager implements IDocStorageManager {
       await this._extMeta.remove(docName);
     }
     await this._removeFromFilesystem(docName);
-    await this.releaseDocAssignment(docName);
+    await this.cleanupAfterClose(docName);
   }
 
   // We don't implement document renames.
@@ -497,8 +497,9 @@ export class HostedStorageManager implements IDocStorageManager {
     }
   }
 
-  public async releaseDocAssignment(docName: string): Promise<void> {
-    return this._docWorkerMap.releaseAssignment(this._docWorkerId, docName);
+  public async cleanupAfterClose(docName: string): Promise<void> {
+    // After closing the document, release the assignment if the option "GRIST_WIPE_DOC_CACHE_AFTER_CLOSE" is set
+    await this._docWorkerMap.releaseAssignment(this._docWorkerId, docName);
   }
 
   /**
