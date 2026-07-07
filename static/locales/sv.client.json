@@ -222,7 +222,8 @@
         "Select a field in the form widget to configure.": "Välj ett fällt i formulärwidget för att ställa in.",
         "Submit": "Skicka in",
         "Thank you! Your response has been recorded.": "Tack! Ditt svar har sparats.",
-        "Chart options": "Diagraminställningar"
+        "Chart options": "Diagraminställningar",
+        "You may use {{placeholder}} placeholder for the ID of the added record.": "Du kan använda {{placeholder}} platshållare för IDt för den skapade raden."
     },
     "ShareMenu": {
         "Save copy": "Spara kopia",
@@ -2142,7 +2143,11 @@
         "An activation key is used to run Full Grist after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Community Edition.\n\nLearn more in our [Help Center]({{helpCenter}}).": "En aktiveringsnyckel behövs för att köra Komplett version av Grist efter att provperioden på \n30 dagar är slut. Skaffa en aktiveringsnyckel genom att [kontakta oss]({{contactLink}}) idag. \nDu behöver ingen aktiveringsnyckel för att köra Grist öppen version. \n\nLär dig mer i vårt [Hjälpcenter]({{helpCenter}}).",
         "To continue using Full Grist, you need to\n                  [contact us]({{signupLink}}) to get your activation key.": "För att fortsätta att använda Fullständig version av Grist, behöver du \n                 [kontakta oss]({{signupLink}}) för att få din aktiveringsnyckel.",
         "Your trial period has expired on **{{expireAt}}**. To continue using Full Grist, you need to\n[sign up for Full Grist]({{signupLink}}) and paste your activation key below.": "Din provperiod har gått ut den **{{expireAt}}**. För att fortsätta att använda Fullständig version av Grist, behöver du \n[registrerad dig för Fullständig version av Grist]({{signupLink}}) och klistra in din aktiveringsnyckel nedan.",
-        "An active subscription is required to continue using Full Grist. You can\nyou activate your subscription by [signing up for Full Grist ]({{signupLink}}) and pasting your\nactivation key below.": "Ett aktivt abonnemang krävs för att fortsätta använda Fullversion av Grist. Du kan \naktivera ditt abonnemang genom att [registrerad dig för Fillversionen av Grist]({{signupLink}}) och klistra in din \naktiveringsnyckel nedan."
+        "An active subscription is required to continue using Full Grist. You can\nyou activate your subscription by [signing up for Full Grist ]({{signupLink}}) and pasting your\nactivation key below.": "Ett aktivt abonnemang krävs för att fortsätta använda Fullversion av Grist. Du kan \naktivera ditt abonnemang genom att [registrerad dig för Fillversionen av Grist]({{signupLink}}) och klistra in din \naktiveringsnyckel nedan.",
+        "Copy": "Kopiera",
+        "Good news: it can stay free.": "Goda nyheter: det kan fortsätta vara gratis.",
+        "Installation ID": "Installations ID",
+        "Provide this when requesting an activation key. Keys are tied to your installation ID.": "Ange detta när du ansöker om en aktiveringsnyckel. Nyckeln är låst till ditt installations ID."
     },
     "ViewLayout": {
         "Delete": "Radera",
@@ -2787,7 +2792,11 @@
         "Your server is configured to authenticate users via SAML 2.0. Users sign in through your enterprise identity provider.": "Din server är inställd för autentisering av användare genom SAML 2.0. Användare loggar in genom din identitetsleverantör.",
         "Your server is using a boot key as a fallback login method. Configure one of the authentication methods below.": "Din server använder uppstartsnyckel som reservmetod för inloggning. Ställ in en av autentiseringsmetoderna nedan.",
         "Your server trusts authentication from a reverse proxy. Make sure only your proxy can reach the Grist backend.": "Din server litar på autentisering från en omvänd proxy. Säkerställ att enbart proxyn kan nå Grist servern.",
-        "Choose how users sign in to Grist.": "Välj hur användare loggar in till Grist."
+        "Choose how users sign in to Grist.": "Välj hur användare loggar in till Grist.",
+        "Continue without authentication": "Fortsätt utan autentisering",
+        "Or connect your own identity provider": "Eller anslut din egen identitetsleverantör",
+        "Skip authentication setup?": "Hoppa över inställning av autentisering?",
+        "Choose how people sign in. You can change this anytime after setup.": "Välj hur användare loggar in. Du kan ändra detta när som helst efter uppstart."
     },
     "DetailView": {
         "This row is unavailable or does not exist": "Denna rad är inte tillgänglig eller finns inte"
@@ -2807,7 +2816,11 @@
         "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.": "Vid inloggning kommer användarna att skickas vidare till inloggningssidan på getgrist.com för att logga in eller registrera sig. Efter autentisering på getgrist.com skickas användaren tillbaka till din Gristserver inloggad som användaren som de autentiserdes som.",
         "Managed authentication by Grist Labs.": "Centraliserad autentisering av Grist Labs.",
         "Your server uses getgrist.com authentication. Users sign in with their getgrist.com account.": "Din server använder getgrist.com autentisering. Användare loggar in med sitt getgrist.com konto.",
-        "Error configuring provider with the provided key: {{reason}}": "Fel inställning av leverantör med den valda nyckeln: {{reason}}"
+        "Error configuring provider with the provided key: {{reason}}": "Fel inställning av leverantör med den valda nyckeln: {{reason}}",
+        "Recommended": "Rekommenderad",
+        "Use getgrist.com sign-in": "Använd inloggning via getgrist.com",
+        "You can switch to OIDC, SAML, or another method at any time.": "Du kan byta till OIDC, SAML, eller annan metod när som helst.",
+        "Ideal for testing and prototyping. Sign in with a getgrist.com account, with no identity provider to configure.": "Perfekt för test och prototypbygge. Logga in med konto på getgrist.com, utan att ställa in en identitetsleverantör."
     },
     "AirtableImportUI": {
         "Back": "Tillbaka",
@@ -2940,7 +2953,8 @@
         "Apply & restart": "Applicera & starta om",
         "Authentication": "Autentisering",
         "Configure Grist for your environment.": "Ställ in Grist för din miljö.",
-        "Quick setup": "Snabb installation"
+        "Quick setup": "Snabb installation",
+        "Set up later": "Ställ in senare"
     },
     "BackupsSection": {
         "Active": "Aktiv",
@@ -2962,7 +2976,12 @@
         "Store document backups on an external service like S3 or Azure.           This protects against data loss if the server's disk fails.": "Lagra säkerhetdkopior av document på en extern lagringstjänst så som S3 eller Azure.           Detta skyddar mot dataförlust om serverns hårddisk havererar.",
         "Local filesystem (test only)": "Lokalt filsystem (enbart test)",
         "Stores document snapshots on the local filesystem. For tests only, not production.": "Lagrar ögonblicksbilder av dokument på det lokala filsystemet. Enbart för test, inte produktion.",
-        "AWS S3 via native AWS SDK. Supports IAM roles and AWS-native auth.": "AWS S3 via AWS SDK. Stödjer IAM roller och AWS autentisering."
+        "AWS S3 via native AWS SDK. Supports IAM roles and AWS-native auth.": "AWS S3 via AWS SDK. Stödjer IAM roller och AWS autentisering.",
+        "Action needed": "Åtgärd krävs",
+        "To preserve it, mount a volume at ": {
+            "persist.": "För att spara det, montera en lagringsvolym på /persist."
+        },
+        "Your data may not survive a container restart.": "Din data kan försvinna vid kontaineromstart."
     },
     "QuickSetupContinueButton": {
         "Continue": "Fortsätt",
@@ -3020,7 +3039,15 @@
         "pricing": "priser",
         "The full Grist experience, with all features enabled for improved security, governance, and collaboration.": "Den kompletta Grsit upplevelsen, med alla funktioner aktiverade för förbättrad säkerhet, kontroll och samarbete.",
         "You have 30 days to enter an activation key. Free activation keys are available to individuals and small orgs with less than US $1 million in total annual funding. {{learnMoreLink}} For larger orgs, see {{pricingLink}}.": "Du har 30 dagar på dig att fylla i en aktiveringsnyckel. Gratis aktiveringsnycklar finns tillgängliga för små organisationer med mindre än en miljon USD i total årlig omsättning. {{learnMoreLink}} För större organisationer se {{pricingLink}}.",
-        "Your installation does not bundle the Full Grist edition. Want Full Grist? {{enableLink}}": "Din installation inkluderar inte den kompletta varianten av Grist. Vill du använda komplett Grist? {{enableLink}}"
+        "Your installation does not bundle the Full Grist edition. Want Full Grist? {{enableLink}}": "Din installation inkluderar inte den kompletta varianten av Grist. Vill du använda komplett Grist? {{enableLink}}",
+        "Cancel": "Avbryt",
+        "Community": "Öppen version",
+        "Downgrade": "Nedgradera",
+        "Downgrade to Community Edition": "Nedgradera till öppen version",
+        "Free activation keys": "Grattis aktiveringsnycklar",
+        "Restart Grist to apply this change.": "Starta om Grist för att applicera denna ändring.",
+        "Switch to Full Grist": "Växla till komplett Grist",
+        "You are running the Grist Community edition.": "Du kör den öppna versionen av Grist."
     },
     "BaseUrlSection": {
         "set": "ställ in",
@@ -3131,7 +3158,8 @@
         "Any logged-in user can create new team sites. Turn off to restrict team creation to admins only.": "Alla inloggade användare kan skapa nya arbetslagssajter. Stäng av för att begränsa skapandet av nya arbetslag till enbart administratörer.",
         "Users can create their own personal sites with documents. Turn off to restrict all documents to team sites managed by admins.": "Användare kan skapa sina egen personliga sajter med dokument. Stäng av för att begränsa så att alla dokument till arbetslagssajter som hanteras av administratörer.",
         "Visitors who aren't signed in can create and edit documents in a temporary playground. Turn off to require sign-in before creating any documents.": "Besökare som inte är inloggade kan skapa och redigera dokument i en temporär testmiljö. Stäng av för att kräva inloggning för att kunna skapa dokument.",
-        "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.": "Besökare som inte är inloggade kan se publikt delade dokument. Detta behövs för att länkdelning och publicering av formulär."
+        "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.": "Besökare som inte är inloggade kan se publikt delade dokument. Detta behövs för att länkdelning och publicering av formulär.",
+        "Share product telemetry": "Dela produkttelemetri"
     },
     "ScreenReaderAnnouncer": {
         "Notification: {{notification}}": "Notifiering: {{notification}}"
@@ -3175,5 +3203,8 @@
         "When your users reach out…": "När dina användare skickar förfrågningar…",
         "bypassed": "förbikopplad",
         "Open to any host. The URL proxy is what keeps this safe.": "Tillgänglig för alla. URLproxyn är det som ser till att detta är säkert."
+    },
+    "McpConnectBanner": {
+        "**New!** Connect Grist to Claude and ChatGPT. [Try it now]({{mcp}})": "**Nytt!** Anslut Grist till Claude och ChatGPT. [Testa nu]({{mcp}})"
     }
 }
