@@ -1,6 +1,7 @@
 import { ErrorOrValue, freezeError, mapGetOrSet, MapWithTTL } from "app/common/AsyncCreate";
 import { delay } from "app/common/delay";
 import { ObjMetadata, ObjSnapshot, ObjSnapshotWithMetadata } from "app/common/DocSnapshot";
+import { isAffirmative } from "app/common/gutil";
 import { SCHEMA_VERSION } from "app/common/schema";
 import { DocWorkerMap, getDocWorkerMap } from "app/gen-server/lib/DocWorkerMap";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
@@ -48,7 +49,6 @@ import * as minio from "minio";
 import { createClient, RedisClient } from "redis";
 import * as sinon from "sinon";
 import { v4 as uuidv4 } from "uuid";
-import { isAffirmative } from "app/common/gutil";
 
 bluebird.promisifyAll(RedisClient.prototype);
 
