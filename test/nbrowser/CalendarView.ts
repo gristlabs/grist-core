@@ -14,40 +14,63 @@ describe("CalendarView", function() {
 
   afterEach(() => gu.checkForErrors());
 
-  it("lists rows with a date and title as events", async function() {
-    // A table with a date column (auto-mapped as start) and a text column (auto-mapped as title).
+  it("shows events in the right month-grid cell", async function() {
+    // Anchor events to the current month so they land in the visible grid (the view shows the month
+    // containing today). Use a text column (title) and a date column (start), which are auto-mapped.
+    const d1 = onDay(10), d2 = onDay(12);
     await gu.sendActions([
       ["AddTable", "Events", [
         { id: "When", type: "Date" },
         { id: "Name", type: "Text" },
       ]],
-      ["AddRecord", "Events", null, { When: dateSec("2023-08-09"), Name: "Alpha" }],
-      ["AddRecord", "Events", null, { When: dateSec("2023-08-10"), Name: "Beta" }],
+      ["AddRecord", "Events", null, { When: d1.sec, Name: "Alpha" }],
+      ["AddRecord", "Events", null, { When: d2.sec, Name: "Beta" }],
     ]);
     await gu.openPage("Events");
     await gu.addNewSection(/Calendar/, "Events");
 
-    // Both rows show up in the calendar's event list, most-recently-added order aside.
-    await driver.findWait(".test-calendar-event-list", 2000);
-    await driver.wait(async () => (await eventTexts()).length === 2, 2000);
-    const texts = await eventTexts();
-    assert.isTrue(texts.some(x => /Alpha/.test(x)), `expected an Alpha event, got: ${texts.join(" | ")}`);
-    assert.isTrue(texts.some(x => /Beta/.test(x)), `expected a Beta event, got: ${texts.join(" | ")}`);
+    // A 6x7 month grid is rendered.
+    await driver.findWait(".test-calendar-month", 2000);
+    await driver.wait(async () => (await driver.findAll(".test-calendar-day")).length === 42, 2000);
 
-    // Adding a row adds an event.
+    // Both events show up, and each sits in the cell for its own day.
+    await driver.wait(async () => (await eventTexts()).length === 2, 2000);
+    assert.deepEqual(await cellEventsForDay(d1.dom), ["Alpha"]);
+    assert.deepEqual(await cellEventsForDay(d2.dom), ["Beta"]);
+
+    // Adding a row adds an event to its day's cell.
+    const d3 = onDay(15);
     await gu.sendActions([
-      ["AddRecord", "Events", null, { When: dateSec("2023-08-11"), Name: "Gamma" }],
+      ["AddRecord", "Events", null, { When: d3.sec, Name: "Gamma" }],
     ]);
-    await driver.wait(async () => (await eventTexts()).some(x => /Gamma/.test(x)), 2000);
+    await driver.wait(async () => (await cellEventsForDay(d3.dom)).includes("Gamma"), 2000);
   });
 });
 
-// Seconds-since-epoch (UTC midnight) for a YYYY-MM-DD, as Grist stores Date values.
-function dateSec(yyyymmdd: string): number {
-  return Date.parse(yyyymmdd + "T00:00:00Z") / 1000;
+// A day in the current month: its Grist Date value (UTC-midnight seconds) and the day-of-month that
+// the grid cell shows (the cell's date number is read in the browser's local time).
+function onDay(dayOfMonth: number): { sec: number, dom: number } {
+  const now = new Date();
+  const utc = Date.UTC(now.getFullYear(), now.getMonth(), dayOfMonth);
+  return { sec: utc / 1000, dom: dayOfMonth };
 }
 
 async function eventTexts(): Promise<string[]> {
   const els = await driver.findAll(".test-calendar-event");
   return Promise.all(els.map(el => el.getText()));
+}
+
+// Event titles inside the current-month cell whose day-number matches `dayOfMonth`.
+async function cellEventsForDay(dayOfMonth: number): Promise<string[]> {
+  const cells = await driver.findAll(".test-calendar-day");
+  for (const cell of cells) {
+    // Skip other-month cells (they can repeat the same day number).
+    if ((await cell.getAttribute("class")).includes("-other-month")) { continue; }
+    const num = (await cell.find(".test-calendar-day > div").getText()).trim();
+    if (num === String(dayOfMonth)) {
+      const evs = await cell.findAll(".test-calendar-event");
+      return Promise.all(evs.map(e => e.getText()));
+    }
+  }
+  return [];
 }

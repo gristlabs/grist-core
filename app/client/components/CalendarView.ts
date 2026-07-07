@@ -11,20 +11,35 @@ import { dom, IDisposable, makeTestId, Observable, styled } from "grainjs";
 const t = makeT("CalendarView");
 const testId = makeTestId("test-calendar-");
 
-// A row reduced to what this early calendar iteration shows: a start date and a title.
+// TODO(iter4+): the first day of the week is hardcoded to Monday for now; it will come from the
+// user's locale in a later iteration.
+const FIRST_DAY_OF_WEEK = 1; // 0 = Sunday, 1 = Monday.
+const DAYS_PER_WEEK = 7;
+const WEEKS_IN_GRID = 6;
+
+// A row reduced to what this iteration shows: a start date and a title.
 interface CalendarRow {
   id: number;
   date: Date;
   title: string;
 }
 
+// One cell of the month grid.
+interface MonthCell {
+  date: Date;          // this cell's day, at local midnight
+  isOtherMonth: boolean;
+  isToday: boolean;
+}
+
 /**
- * Native calendar view. This iteration reads the section's rows and renders them as a plain text
- * list (one line per row), mapping the FIRST Date/DateTime column as the start and the FIRST Text
- * column as the title. No config, grid or toolbar yet — those come in later iterations.
+ * Native calendar view. This iteration renders a month grid (6x7) and places each row as an event
+ * bar in the cell matching its start date. Only single-day placement, no timezones, no config,
+ * no toolbar yet — those come in later iterations. The visible month is the one containing today.
  */
 export class CalendarView extends BaseView {
   private _rows = Observable.create<CalendarRow[]>(this, []);
+  // The month currently shown, anchored to its first day. Fixed to "today" until nav lands (iter 4).
+  private _anchor = Observable.create<Date>(this, firstOfMonth(today()));
   private _update: () => void;
 
   constructor(gristDoc: GristDoc, viewSectionModel: ViewSectionRec) {
@@ -38,7 +53,6 @@ export class CalendarView extends BaseView {
 
     this._update = () => this._updateRows();
 
-    // Rebuild when data or the column set changes.
     this.listenTo(this.sortedRows, "rowNotify", this._update);
     this.autoDispose(this.sortedRows.getKoArray().subscribe(this._update));
     let typeSubs: IDisposable[] = [];
@@ -49,7 +63,6 @@ export class CalendarView extends BaseView {
     }));
     this.onDispose(() => typeSubs.forEach(s => s.dispose()));
 
-    // Stable handle for nbrowser tests, cleared on dispose.
     (window as any).gristCalendarView = { _view: this, getRows: () => this._rows.get() };
     this.onDispose(() => {
       if ((window as any).gristCalendarView?._view === this) {
@@ -63,7 +76,6 @@ export class CalendarView extends BaseView {
     this._update();
   }
 
-  // Picks the first date-like column for the start, and the first Text column for the title.
   private _autoColumns(): { startCol: ColumnRec | null, titleCol: ColumnRec | null } {
     const cols = this.viewSection.columns.peek().filter(c => !c.isHiddenCol.peek());
     const startCol = cols.find(c => isDateLikeType(c.pureType.peek())) || null;
@@ -96,26 +108,91 @@ export class CalendarView extends BaseView {
   private _buildDom() {
     return cssCalendarView(
       testId("container"),
-      dom.domComputed(this._rows, (rows) => {
-        if (rows.length === 0) {
-          return cssPlaceholder(t("Calendar view - work in progress"), testId("placeholder"));
-        }
-        return cssEventList(
-          testId("event-list"),
-          dom.forEach(rows as any, (row: CalendarRow) =>
-            cssEventItem(
-              `${formatDate(row.date)} - ${row.title || t("New Event")}`,
-              testId("event"),
-            ),
-          ),
-        );
-      }),
+      cssWeekdayHeader(
+        ...weekdayLabels().map(label => cssWeekdayName(label)),
+      ),
+      cssMonthGrid(
+        testId("month"),
+        dom.domComputed((use) => monthCells(use(this._anchor)), (cells) =>
+          cells.map(cell => this._buildCell(cell)),
+        ),
+      ),
+    );
+  }
+
+  private _buildCell(cell: MonthCell) {
+    return cssDayCell(
+      cssDayCell.cls("-other-month", cell.isOtherMonth),
+      cssDayCell.cls("-today", cell.isToday),
+      testId("day"),
+      cssDayNumber(String(cell.date.getDate())),
+      dom.domComputed((use) => use(this._rows).filter(r => sameDay(r.date, cell.date)), (events) =>
+        events.map(ev =>
+          cssEvent(ev.title || t("New Event"), testId("event"), dom.data("rowId", ev.id)),
+        ),
+      ),
     );
   }
 }
 
+// ---------------------------------------------------------------------------
+// Month layout (local time)
+
+// The 42 cells (6 weeks) of the month containing `anchor`, starting on FIRST_DAY_OF_WEEK.
+function monthCells(anchor: Date): MonthCell[] {
+  const first = firstOfMonth(anchor);
+  // Days to step back so the grid starts on FIRST_DAY_OF_WEEK.
+  const lead = (first.getDay() - FIRST_DAY_OF_WEEK + DAYS_PER_WEEK) % DAYS_PER_WEEK;
+  const start = addDays(first, -lead);
+  const now = today();
+  const cells: MonthCell[] = [];
+  for (let i = 0; i < WEEKS_IN_GRID * DAYS_PER_WEEK; i++) {
+    const date = addDays(start, i);
+    cells.push({
+      date,
+      isOtherMonth: date.getMonth() !== first.getMonth(),
+      isToday: sameDay(date, now),
+    });
+  }
+  return cells;
+}
+
+function today(): Date {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function firstOfMonth(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
+function addDays(date: Date, days: number): Date {
+  const out = new Date(date);
+  out.setDate(out.getDate() + days);
+  out.setHours(0, 0, 0, 0);
+  return out;
+}
+
+function sameDay(a: Date, b: Date): boolean {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+
+// Localized weekday short names, ordered from FIRST_DAY_OF_WEEK.
+function weekdayLabels(): string[] {
+  const labels: string[] = [];
+  // 2023-01-01 was a Sunday; offset to reach FIRST_DAY_OF_WEEK, then walk 7 days.
+  for (let i = 0; i < DAYS_PER_WEEK; i++) {
+    const d = new Date(2023, 0, 1 + FIRST_DAY_OF_WEEK + i);
+    labels.push(d.toLocaleDateString(undefined, { weekday: "short" }));
+  }
+  return labels;
+}
+
+// ---------------------------------------------------------------------------
+// Cell value helpers
+
 function numToDate(value: CellValue | undefined): Date | null {
-  // 0 is how Grist stores a blank Date/DateTime; treat it as missing.
   return (typeof value === "number" && value && isFinite(value)) ? new Date(value * 1000) : null;
 }
 
@@ -124,36 +201,80 @@ function asText(value: CellValue | undefined): string {
   return typeof value === "string" ? value : String(value);
 }
 
-function formatDate(date: Date): string {
-  return date.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
-}
+// ---------------------------------------------------------------------------
+// Styles
 
 const cssCalendarView = styled("div", `
+  display: flex;
+  flex-direction: column;
   height: 100%;
   width: 100%;
-  overflow: auto;
   background-color: ${theme.mainPanelBg};
   color: ${theme.text};
 `);
 
-const cssPlaceholder = styled("div", `
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: ${theme.lightText};
-  font-size: 15px;
+const cssWeekdayHeader = styled("div", `
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  flex: none;
+  border-bottom: 1px solid ${theme.tableBodyBorder};
 `);
 
-const cssEventList = styled("div", `
+const cssWeekdayName = styled("div", `
+  padding: 6px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: ${theme.lightText};
+  text-align: left;
+`);
+
+const cssMonthGrid = styled("div", `
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-auto-rows: 1fr;
+  flex: 1 1 0;
+  min-height: 0;
+`);
+
+const cssDayCell = styled("div", `
+  border-right: 1px solid ${theme.tableBodyBorder};
+  border-bottom: 1px solid ${theme.tableBodyBorder};
+  padding: 2px 4px;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  padding: 12px 16px;
-  gap: 4px;
+  gap: 2px;
+  min-height: 0;
+  &-other-month {
+    background-color: ${theme.pageBg};
+    color: ${theme.lightText};
+  }
 `);
 
-const cssEventItem = styled("div", `
-  padding: 4px 8px;
+const cssDayNumber = styled("div", `
+  font-size: 12px;
+  text-align: right;
+  padding: 0 2px;
+  .${cssDayCell.className}-today & {
+    color: ${theme.controlPrimaryFg};
+    background-color: ${theme.controlPrimaryBg};
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    text-align: center;
+    align-self: flex-end;
+  }
+`);
+
+const cssEvent = styled("div", `
+  font-size: 11px;
+  padding: 1px 4px;
   border-radius: 3px;
   background-color: ${theme.inputReadonlyBorder};
+  color: ${theme.text};
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: default;
 `);
