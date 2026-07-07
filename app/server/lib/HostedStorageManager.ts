@@ -54,6 +54,12 @@ export interface HostedStorageOptions {
   pushDocUpdateTimes: boolean;
 }
 
+export enum StorageMode {
+  LOCAL_ONLY,
+  S3_WITH_CACHE,
+  S3_WITHOUT_CACHE,
+};
+
 const defaultOptions: HostedStorageOptions = {
   secondsBeforePush: GRIST_BACKUP_DELAY_SECS,
   secondsBeforeFirstRetry: 3.0,
@@ -130,7 +136,7 @@ export class HostedStorageManager implements IDocStorageManager {
     private _gristServer: GristServer,
     private _docsRoot: string,
     private _docWorkerId: string,
-    private _disableS3: boolean,
+    private _mode: StorageMode,
     private _docWorkerMap: IDocWorkerMap,
     callbacks: HostedStorageCallbacks,
     createExternalStorage: ExternalStorageCreator,
@@ -139,8 +145,8 @@ export class HostedStorageManager implements IDocStorageManager {
     const creator = (purpose: ExternalStorageSettings["purpose"]) => createExternalStorage(purpose, "");
     // We store documents either in a test store, or in an s3 store
     // at s3://<s3Bucket>/<s3Prefix><docId>.grist
-    const externalStoreDoc = this._disableS3 ? undefined : creator("doc");
-    if (!externalStoreDoc) { this._disableS3 = true; }
+    const externalStoreDoc = this._mode === StorageMode.LOCAL_ONLY ? undefined : creator("doc");
+    if (!externalStoreDoc) { this._mode = StorageMode.LOCAL_ONLY; }
     const secondsBeforePush = options.secondsBeforePush;
     if (options.pushDocUpdateTimes) {
       this._metadataManager = new HostedMetadataManager(callbacks.setDocsMetadata.bind(callbacks));
@@ -154,7 +160,7 @@ export class HostedStorageManager implements IDocStorageManager {
       scheduleFromFirstAdd: true,
     });
 
-    if (!this._disableS3) {
+    if (this._isRemoteStorage()) {
       this._baseStore = externalStoreDoc!;
       // Whichever store we have, we use checksums to deal with
       // eventual consistency.
@@ -198,7 +204,7 @@ export class HostedStorageManager implements IDocStorageManager {
    * the object is written in S3 - so no need to worry about consistency.
    */
   public async addToStorage(docId: string) {
-    if (this._disableS3) { return; }
+    if (this._isLocalStorageOnly()) { return; }
     this._uploads.addOperation(docId);
     await this._uploads.expediteOperationAndWait(docId);
   }
@@ -315,7 +321,7 @@ export class HostedStorageManager implements IDocStorageManager {
     if (sourceDocId === docId && !snapshotId) { return; }
 
     // Basic implementation for when S3 is not available.
-    if (this._disableS3) {
+    if (this._isLocalStorageOnly()) {
       if (snapshotId) {
         throw new Error("snapshots not supported without S3");
       }
@@ -371,7 +377,7 @@ export class HostedStorageManager implements IDocStorageManager {
       throw new Error("HostedStorageManager only implements permanent deletion in deleteDoc");
     }
     await this.closeDocument(docName, { keepLocalCache: true });
-    if (!this._disableS3) {
+    if (this._isRemoteStorage()) {
       await this._ext.remove(docName);
       await this._extMeta.remove(docName);
     }
@@ -482,7 +488,7 @@ export class HostedStorageManager implements IDocStorageManager {
     // remove the local copy to make the S3 version canonical.
     // Also this allows us to later release the assignment to this doc worker
     // to give the chance to a less-loaded worker to pick it.
-    if (!keepLocalCache && !this._disableS3) {
+    if (!keepLocalCache && this._isRemoteStorage()) {
       this._log.info(docName, "Removing local copy of this doc");
 
       // .finally so a failed wipe still clears the map entry — otherwise
@@ -533,7 +539,7 @@ export class HostedStorageManager implements IDocStorageManager {
         // Make sure the file is marked as locally present (it may be newly created).
         this._localFiles.set(docName, Promise.resolve(true));
       }
-      if (this._disableS3) { return; }
+      if (this._isLocalStorageOnly()) { return; }
       if (this._closed) { throw new Error("HostedStorageManager.markAsChanged called after closing"); }
       if (!this._uploads.hasPendingOperation(docName)) {
         snapshotProgress.lastWindowStartedAt = now.getTime();
@@ -576,12 +582,12 @@ export class HostedStorageManager implements IDocStorageManager {
   }
 
   public async removeSnapshots(docName: string, snapshotIds: string[]): Promise<void> {
-    if (this._disableS3) { return; }
+    if (this._isLocalStorageOnly()) { return; }
     await this._pruner.prune(docName, snapshotIds);
   }
 
   public async getSnapshots(docName: string, skipMetadataCache?: boolean): Promise<DocSnapshots> {
-    if (this._disableS3) {
+    if (this._isLocalStorageOnly()) {
       return {
         snapshots: [{
           snapshotId: "current",
@@ -607,6 +613,14 @@ export class HostedStorageManager implements IDocStorageManager {
 
   public async getFsFileSize(docName: string): Promise<number> {
     return (await fse.stat(this.getPath(docName))).size;
+  }
+
+  private _isLocalStorageOnly() {
+    return this._mode === StorageMode.LOCAL_ONLY;
+  }
+
+  private _isRemoteStorage() {
+    return this._mode !== StorageMode.LOCAL_ONLY;
   }
 
   /**
@@ -655,7 +669,7 @@ export class HostedStorageManager implements IDocStorageManager {
 
       if (srcDocName === "new") { return false; }
 
-      if (this._disableS3) {
+      if (this._isLocalStorageOnly()) {
         // skip S3, just use file system
         let present: boolean = await fse.pathExists(this.getPath(docName));
         if ((forkId || snapshotId) && !present) {
