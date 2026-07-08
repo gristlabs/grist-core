@@ -466,7 +466,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_MAX_PARALLEL_REQUESTS_PER_DOC| max number of concurrent API requests allowed per document (default is 10, set to 0 for unlimited) |
 | GRIST_MAX_UPLOAD_ATTACHMENT_MB | max allowed size for attachments (0 or empty for unlimited). |
 | GRIST_MAX_UPLOAD_IMPORT_MB | max allowed size for imports (except .grist files) (0 or empty for unlimited). |
-| GRIST_ACTIVEDOC_TIMEOUT_SECONDS | Number of seconds before a document is closed. Defaults to 5 minutes (300s) when NODE_ENV=production is set, otherwise to 5s. |
+| GRIST_ACTIVEDOC_TIMEOUT_SECONDS | Number of seconds a document is kept open without any clients before it is closed. Defaults to 30s when NODE_ENV=production is set, otherwise to 5s. |
 | GRIST_OFFER_ALL_LANGUAGES | if set, all translated langauages are offered to the user (by default, only languages with a special 'good enough' key set are offered to user). |
 | GRIST_ORG_IN_PATH | if true, encode org in path rather than domain |
 | GRIST_PAGE_TITLE_SUFFIX | a string to append to the end of the `<title>` in HTML documents. Defaults to `" - Grist"`. Set to `_blank` for no suffix at all. |
@@ -503,6 +503,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_UI_FEATURES | comma-separated list of UI features to enable. Allowed names of parts: `helpCenter`, `billing`, `templates`, `createSite`, `multiSite`, `multiAccounts`, `importFromAirtable`, `sendToDrive`, `tutorials`, `supportGrist`, `themes`, `automations`. If a part also exists in GRIST_HIDE_UI_ELEMENTS, it won't be enabled. Note: `importFromAirtable` and `automations` are enabled by default even without being listed here; use GRIST_HIDE_UI_ELEMENTS to disable them. |
 | GRIST_UNTRUSTED_PORT | if set, plugins will be served from the given port. This is an alternative to setting APP_UNTRUSTED_URL. |
 | GRIST_WIDGET_LIST_URL | a url pointing to a widget manifest, by default https://github.com/gristlabs/grist-widget/releases/download/latest/manifest.json is used |
+| GRIST_WIPE_DOC_CACHE_AFTER_CLOSE | if set and an external (S3-compatible) storage backend is configured, a doc worker deletes its local cache of a document after the document is closed, and releases the worker assignment. This makes external storage the canonical source on the next open (useful for recovering from a corrupted local copy or surfacing a broken storage backend early), at the cost of an external storage download on reopen. Has no effect without an external storage backend. |
 | GRIST_LOG_HTTP | When set to `true`, log HTTP requests and responses information. Defaults to `false`. |
 | GRIST_LOG_HTTP_BODY | When this variable and `GRIST_LOG_HTTP` are set to `true` , log the body along with the HTTP requests. :warning: Be aware it may leak confidential information in the logs.:warning: Defaults to `false`. |
 | GRIST_LOG_AS_JSON | When this variable is set to `true` or a truthy value, output log lines in JSON as opposed to a plain text format. |
