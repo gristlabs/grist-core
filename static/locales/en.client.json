@@ -247,7 +247,11 @@
     "ColorSelect": {
         "Apply": "Apply",
         "Cancel": "Cancel",
-        "Default cell style": "Default cell style"
+        "Default cell style": "Default cell style",
+        "default": "default",
+        "fill": "fill",
+        "none": "none",
+        "text": "text"
     },
     "ColumnFilterMenu": {
         "All": "All",
@@ -2001,7 +2005,8 @@
         "Submitting…": "Submitting…",
         "Clear selection for: {{-inputLabel}}": "Clear selection for: {{-inputLabel}}",
         "Options for {{-inputLabel}}": "Options for {{-inputLabel}}",
-        "Search options for {{-inputLabel}}": "Search options for {{-inputLabel}}"
+        "Search options for {{-inputLabel}}": "Search options for {{-inputLabel}}",
+        "Are you sure you want to reset your form?": "Are you sure you want to reset your form?"
     },
     "widgetTypesMap": {
         "Calendar": "Calendar",
