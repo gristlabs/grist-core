@@ -24,7 +24,6 @@ export const cssPageContainer = styled(cssSettingsPage, `
   &-admin-pages {
     padding: 12px;
     font-size: ${vars.mediumFontSize};
-    font-weight: ${vars.headerControlTextWeight};
   }
 `);
 
