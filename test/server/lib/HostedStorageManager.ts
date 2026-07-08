@@ -796,9 +796,22 @@ describe("HostedStorageManager", function() {
             await fse.pathExists(docPath + "-hash-meta"), cacheRemainsAfterClosing, message("hash meta data"),
           );
 
+          // Spy on S3 fetches so we can tell a genuine cache reuse apart from a
+          // silent re-download. When the local cache is kept and its content is
+          // unchanged, reopening must NOT hit external storage; when the cache was
+          // wiped, reopening must download the doc back from S3.
+          const fetchFromS3Spy = sandbox.spy(store.storageManager as any, "_fetchFromS3");
+
           const reopenedDoc = await store.docManager.fetchDoc(docSession, docId);
           const res = await reopenedDoc.docStorage.get("select A from Table1 where id=1");
           assert.deepEqual(res, { A: "magic word" });
+
+          assert.equal(
+            fetchFromS3Spy.called, !cacheRemainsAfterClosing,
+            cacheRemainsAfterClosing ?
+              "reopening should reuse the local cache without downloading from S3" :
+              "reopening should download from S3 since the local cache was wiped",
+          );
         });
       });
 
