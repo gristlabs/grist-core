@@ -206,7 +206,7 @@ const DEFAULT_LOCALE = getDefaultLocale();
 // In production, it is reasonable to stretch it out a bit.
 const ACTIVEDOC_TIMEOUT = appSettings.section("externalStorage").flag("activeDocTimeout").requireInt({
   envVar: "GRIST_ACTIVEDOC_TIMEOUT_SECONDS",
-  defaultValue: process.env.NODE_ENV === "production" ? 5 * 60 : 5,
+  defaultValue: process.env.NODE_ENV === "production" ? 30 : 5,
 });
 
 // We'll wait this long between re-measuring sandbox memory.
