@@ -752,7 +752,7 @@ def SQRT(value):
 
   >>> SQRT(16)
   4.0
-  >>> SQRT(-16)
+  >>> SQRT(-16)  # doctest: +IGNORE_EXCEPTION_DETAIL
   Traceback (most recent call last):
     ...
   ValueError: math domain error

@@ -1,4 +1,5 @@
 import ast
+import collections
 import contextlib
 import itertools
 import logging
@@ -43,6 +44,22 @@ def _count_leading_spaces(text):
   return len(text) - len(text.lstrip(' '))
 
 
+def _walk_skip_fstring_children(top):
+  """
+  Like ast.walk, but does not descend into the children of an f-string (JoinedStr) node. Since
+  Python 3.12 (PEP 701), the Constant nodes inside an f-string carry their own source positions,
+  so a plain ast.walk would yield both the JoinedStr and its inner Constants. When reverting the
+  indentation of multi-line strings, patching both produces overlapping (and thus garbled) patches;
+  patching the enclosing JoinedStr alone already covers its inner constants.
+  """
+  todo = collections.deque([top])
+  while todo:
+    node = todo.popleft()
+    yield node
+    if not isinstance(node, ast.JoinedStr):
+      todo.extend(ast.iter_child_nodes(node))
+
+
 def make_formula_body(formula, default_value, assoc_value=None, indent=''):
   """
   Given a formula, returns a textbuilder.Builder object suitable to be the body of a function,
@@ -70,7 +87,7 @@ def make_formula_body(formula, default_value, assoc_value=None, indent=''):
     unindent_patches.append(textbuilder.Patch(0, len(dummy_def), dummy_def, ''))
 
     atok = asttokens.ASTText(builder.get_text())
-    for node in ast.walk(atok.tree):
+    for node in _walk_skip_fstring_children(atok.tree):
       if isinstance(node, (ast.Constant, ast.JoinedStr)) and "\n" in atok.get_text(node):
         # We have a constant or f-string that spans multiple lines. If so, revert its indentation.
         start, end = atok.get_text_range(node)
