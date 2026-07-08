@@ -694,11 +694,11 @@ export class HostedStorageManager implements IDocStorageManager {
         return present;
       }
 
-      const existsLocally = () => fse.pathExists(this.getPath(docName));
+      const cacheExistsLocally = () => fse.pathExists(this.getPath(docName));
 
       // If the instance is configured to continue storing the closed documents in the FS cache,
       // and if the file exists locally, reuse it.
-      if (this._mode === StorageMode.S3_WITH_CACHE && await existsLocally()) {
+      if (this._mode === StorageMode.S3_WITH_CACHE && await cacheExistsLocally()) {
         if (!docStatus.docMD5 || docStatus.docMD5 === DELETED_TOKEN || docStatus.docMD5 === "unknown") {
           // New doc appears to already exist, but may not exist in S3.
           // Let's check.
@@ -730,10 +730,6 @@ export class HostedStorageManager implements IDocStorageManager {
         }
       }
 
-      // The local cache is wiped when a document is closed, so S3 is the canonical
-      // source on open. Always defer to it rather than trying to validate a local
-      // copy (the previous checksum check required backing up the SQLite db, which
-      // is comparable in cost to just downloading from S3).
       const fetched = await this._fetchFromS3(docName, {
         sourceDocId: srcDocName,
         trunkId: forkId ? trunkId : undefined,
@@ -744,7 +740,7 @@ export class HostedStorageManager implements IDocStorageManager {
       if (fetched) { return true; }
       // S3 doesn't have the doc. If a local copy exists (e.g. a worker crashed
       // between creating the doc and the first upload), keep it.
-      return fse.pathExists(this.getPath(docName));
+      return cacheExistsLocally();
     });
   }
 
