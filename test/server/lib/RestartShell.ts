@@ -239,19 +239,32 @@ describe("RestartShell", function() {
   it("should fall back to a re-resolved spec when a spawn fails before ready", async function() {
     await handle.shutdown();
     const entryPoint = require.resolve("stubs/app/server/server");
-    let broken = true;
-    let failures = 0;
+    const badEntryPoint = path.join(tmpDir, "no-such-entry-point.js");
     handle = await runRestartShell({
       publicPort: 0,
-      childEntryPoint: () => broken ?
-        {
-          entryPoint: path.join(tmpDir, "no-such-entry-point.js"),
-          onSpawnFailure: () => { failures++; broken = false; },
-        } :
-        { entryPoint },
+      childEntryPoint: ctx => ctx.hasSpawnFailed(badEntryPoint) ?
+        { entryPoint } :
+        { entryPoint: badEntryPoint },
     });
     serverUrl = `http://localhost:${handle.port}`;
-    assert.equal(failures, 1, "onSpawnFailure should run for the failed spawn");
+    assert.equal((await axios.get(`${serverUrl}/status`)).status, 200);
+  });
+
+  it("falls back when a spec sharing the entry point but with a distinct key fails", async function() {
+    await handle.shutdown();
+    const entryPoint = require.resolve("stubs/app/server/server");
+    handle = await runRestartShell({
+      publicPort: 0,
+      childEntryPoint: ctx => ctx.hasSpawnFailed("full:broken") ?
+        { entryPoint } :
+        {
+          entryPoint,
+          key: "full:broken",
+          // A NODE_PATH that can't resolve the entry point's imports makes the fork fail.
+          env: { NODE_PATH: path.join(tmpDir, "no-such-modules") },
+        },
+    });
+    serverUrl = `http://localhost:${handle.port}`;
     assert.equal((await axios.get(`${serverUrl}/status`)).status, 200);
   });
 

@@ -24,22 +24,40 @@ import * as net from "net";
 
 /**
  * Describes a worker to fork: which module to run, and optionally the working
- * directory and extra environment for it. `onSpawnFailure` is called if the
- * worker exits before signalling ready; if re-resolving the spec afterwards
- * yields a different entry point, the shell retries with it.
+ * directory and extra environment for it. When a worker exits before signalling
+ * ready, the shell records its `key` and re-resolves the spec; the resolver can
+ * then fall back to a different worker (see `ForkContext`).
  *
- * Used to run a relocated copy of Grist. (See app/server/lib/bootstrapFullEdition.ts.)
+ * Used to run the full edition of Grist with extensions downloaded from S3.
+ * (See app/server/lib/bootstrapFullEdition.ts.)
  */
 export interface ForkSpec {
   entryPoint: string;
   cwd?: string;
   env?: NodeJS.ProcessEnv;
-  onSpawnFailure?: () => void;
+  /**
+   * Optional identifier for `entryPoint` to distinguish specs with the same entry point, but
+   * different environments and other parameters.
+   *
+   * Defaults to `entryPoint` when unset.
+   */
+  key?: string;
+}
+
+/** Identity used to tell whether re-resolving the fork spec yielded a different worker. */
+function forkSpecKey(spec: ForkSpec): string {
+  return spec.key ?? spec.entryPoint;
+}
+
+/** Passed to the fork-spec resolver so it can avoid a worker that already failed to start. */
+export interface ForkContext {
+  /** True if a spec with this key already failed to spawn during this shell's lifetime. */
+  hasSpawnFailed(key?: string): boolean;
 }
 
 export interface RestartShellOptions {
   publicPort: number;
-  childEntryPoint: string | (() => ForkSpec);
+  childEntryPoint: string | ((ctx: ForkContext) => ForkSpec);
 }
 
 // Tunables exposed for tests.
@@ -101,6 +119,10 @@ export class RestartShell {
   private readonly _server: net.Server;
   private readonly _fallbackServer: http.Server;
   private _actualPort = 0;
+
+  // Keys of specs that failed to spawn this lifetime, so the resolver can fall back
+  // (e.g. full edition extensions that crash on boot -> run the built-in build).
+  private readonly _failedSpawnKeys = new Set<string>();
 
   constructor(private readonly _options: RestartShellOptions) {
     this._fallbackServer = this._createFallbackServer();
@@ -361,9 +383,8 @@ export class RestartShell {
    * Fork a worker, wait for ready, and arm the "unexpected exit ⇒
    * shell exits" policy. A watchdog flips `_healthy` to false if the
    * spawn stalls, so /status can report unhealthy to orchestration.
-   * If a spawn fails and re-resolving the spec (after its
-   * `onSpawnFailure` hook runs) yields a different entry point,
-   * retries with the new spec.
+   * If a spawn fails, records the spec's key and re-resolves; if that
+   * yields a different worker (see `ForkContext`), retries with it.
    */
   private async _spawnOrFail(): Promise<SpawnResult> {
     log.info("RestartShell: spawning child");
@@ -392,9 +413,9 @@ export class RestartShell {
           return { ok: true, child, exited };
         } catch (err) {
           log.error("RestartShell: child failed to start:", err);
-          spec.onSpawnFailure?.();
+          this._failedSpawnKeys.add(forkSpecKey(spec));
           const next = this._resolveForkSpec();
-          if (next.entryPoint === spec.entryPoint) {
+          if (forkSpecKey(next) === forkSpecKey(spec)) {
             return { ok: false, err };
           }
           log.warn(`RestartShell: retrying spawn with ${next.entryPoint}`);
@@ -408,9 +429,12 @@ export class RestartShell {
   }
 
   private _resolveForkSpec(): ForkSpec {
-    return typeof this._options.childEntryPoint === "function" ?
-      this._options.childEntryPoint() :
-      { entryPoint: this._options.childEntryPoint };
+    if (typeof this._options.childEntryPoint === "string") {
+      return { entryPoint: this._options.childEntryPoint };
+    }
+    return this._options.childEntryPoint({
+      hasSpawnFailed: key => key !== undefined && this._failedSpawnKeys.has(key),
+    });
   }
 }
 

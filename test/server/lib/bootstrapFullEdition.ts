@@ -1,11 +1,12 @@
 import { ActivationsManager } from "app/gen-server/lib/ActivationsManager";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import {
-  Deps, maybeManageFullEdition, resolveFullEditionWorker,
+  Deps, isExtFullEditionSupported, maybeManageFullEdition, resolveFullEditionWorker,
 } from "app/server/lib/bootstrapFullEdition";
 import { checksumFile } from "app/server/lib/checksumFile";
 import { Edition } from "app/server/lib/configCore";
 import * as globalConfig from "app/server/lib/globalConfig";
+import { codeRoot, getAppRoot } from "app/server/lib/places";
 import { createInitialDb, removeConnection, setUpDB } from "test/gen-server/seed";
 import * as testUtils from "test/server/testUtils";
 import { EnvironmentSnapshot } from "test/server/testUtils";
@@ -22,7 +23,7 @@ import * as tar from "tar";
 
 const STAMP_FILE = ".grist-full-edition-stamp";
 
-const FULL_URL = "https://example.test/grist-full-edition-amd64.tar.gz";
+const FULL_URL = "https://example.test/grist-full-edition.tar.gz";
 
 function fullEditionDir(instRoot: string): string {
   return path.join(instRoot, "ext", "grist-full-edition");
@@ -51,6 +52,9 @@ describe("bootstrapFullEdition", function() {
       instRoot = await fse.mkdtemp(path.join(os.tmpdir(), "grist-fe-inst-"));
       process.env.GRIST_INST_DIR = instRoot;
       process.env.GRIST_EXT_FULL_EDITION_URL = FULL_URL;
+      delete process.env.NODE_PATH;
+      delete process.env.GRIST_EXT_FULL_EDITION_ACTIVE;
+      sandbox.stub(Deps, "hasBuiltInExt").returns(false);
       dir = fullEditionDir(instRoot);
       await fse.mkdirp(dir);
     });
@@ -60,19 +64,26 @@ describe("bootstrapFullEdition", function() {
       sandbox.restore();
     });
 
-    it("returns the relocated fork spec when a current copy is on disk", async function() {
+    it("returns a fork spec layering the extensions onto the local build", async function() {
       await fse.writeFile(path.join(dir, STAMP_FILE), `${FULL_URL}\n`);
 
       const spec = resolveFullEditionWorker();
       assert.isNotNull(spec);
-      const root = path.join(dir, "grist");
-      assert.equal(spec!.entryPoint, path.join(root, "_build", "stubs", "app", "server", "server.js"));
-      assert.equal(spec!.cwd, root);
+      const extDir = path.join(dir, "ext");
+      const staticDir = path.join(dir, "static");
+      assert.equal(spec!.entryPoint, path.join(codeRoot, "stubs", "app", "server", "server.js"));
+      assert.equal(spec!.key, `full:${FULL_URL}`);
       assert.equal(spec!.env!.NODE_PATH, [
-        path.join(root, "_build"),
-        path.join(root, "_build", "ext"),
-        path.join(root, "_build", "stubs"),
+        codeRoot,
+        dir,
+        extDir,
+        path.join(codeRoot, "stubs"),
+        path.join(extDir, "node_modules"),
+        path.join(getAppRoot(), "node_modules"),
       ].join(path.delimiter));
+      assert.equal(spec!.env!.GRIST_EXT_DIR, extDir);
+      assert.equal(spec!.env!.GRIST_STATIC_EXT_DIR, staticDir);
+      assert.equal(spec!.env!.GRIST_EXT_FULL_EDITION_ACTIVE, "1");
     });
 
     it("returns null when there is no stamp", function() {
@@ -89,18 +100,63 @@ describe("bootstrapFullEdition", function() {
       assert.isNull(resolveFullEditionWorker());
     });
 
+    it("returns null when the build already bundles extensions", async function() {
+      (Deps.hasBuiltInExt as sinon.SinonStub).returns(true);
+      await fse.writeFile(path.join(dir, STAMP_FILE), FULL_URL);
+      assert.isNull(resolveFullEditionWorker());
+    });
+
     it("returns null and never throws on an unreadable stamp", async function() {
       await fse.mkdirp(path.join(dir, STAMP_FILE));
       assert.isNull(resolveFullEditionWorker());
     });
+  });
 
-    it("drops the stamp when the relocated worker fails to spawn", async function() {
-      await fse.writeFile(path.join(dir, STAMP_FILE), FULL_URL);
-      const spec = resolveFullEditionWorker();
-      assert.isNotNull(spec);
-      spec!.onSpawnFailure!();
-      assert.isFalse(await fse.pathExists(path.join(dir, STAMP_FILE)));
-      assert.isNull(resolveFullEditionWorker());
+  describe("isExtFullEditionSupported", function() {
+    beforeEach(function() {
+      delete process.env.GRIST_EXT_FULL_EDITION_URL;
+      delete process.env.GRIST_EXT_FULL_EDITION_SHA256;
+      delete process.env.GRIST_EXT_FULL_EDITION_ACTIVE;
+      sandbox.stub(Deps, "hasBuiltInExt").returns(false);
+    });
+
+    afterEach(function() {
+      sandbox.restore();
+    });
+
+    it("is supported when a URL and checksum are baked in", function() {
+      process.env.GRIST_EXT_FULL_EDITION_URL = FULL_URL;
+      process.env.GRIST_EXT_FULL_EDITION_SHA256 = "abc123";
+      assert.isTrue(isExtFullEditionSupported());
+    });
+
+    it("is unsupported without a download URL", function() {
+      process.env.GRIST_EXT_FULL_EDITION_SHA256 = "abc123";
+      assert.isFalse(isExtFullEditionSupported());
+    });
+
+    it("is unsupported without a checksum", function() {
+      process.env.GRIST_EXT_FULL_EDITION_URL = FULL_URL;
+      assert.isFalse(isExtFullEditionSupported());
+    });
+
+    it("is unsupported when the URL is explicitly empty (opt-out)", function() {
+      process.env.GRIST_EXT_FULL_EDITION_URL = "";
+      process.env.GRIST_EXT_FULL_EDITION_SHA256 = "abc123";
+      assert.isFalse(isExtFullEditionSupported());
+    });
+
+    it("is unsupported when the build already bundles extensions", function() {
+      process.env.GRIST_EXT_FULL_EDITION_URL = FULL_URL;
+      process.env.GRIST_EXT_FULL_EDITION_SHA256 = "abc123";
+      (Deps.hasBuiltInExt as sinon.SinonStub).returns(true);
+      assert.isFalse(isExtFullEditionSupported());
+    });
+
+    it("is supported for an extensions worker even with built-in extensions", function() {
+      (Deps.hasBuiltInExt as sinon.SinonStub).returns(true);
+      process.env.GRIST_EXT_FULL_EDITION_ACTIVE = "1";
+      assert.isTrue(isExtFullEditionSupported());
     });
   });
 
@@ -125,6 +181,9 @@ describe("bootstrapFullEdition", function() {
       instRoot = await fse.mkdtemp(path.join(os.tmpdir(), "grist-fe-inst-"));
       process.env.GRIST_INST_DIR = instRoot;
       process.env.GRIST_EXT_FULL_EDITION_URL = FULL_URL;
+      delete process.env.GRIST_EXT_FULL_EDITION_SHA256;
+      delete process.env.GRIST_EXT_FULL_EDITION_ACTIVE;
+      sandbox.stub(Deps, "hasBuiltInExt").returns(false);
       dir = fullEditionDir(instRoot);
       await fse.mkdirp(dir);
       editionValue = "core";
@@ -157,8 +216,8 @@ describe("bootstrapFullEdition", function() {
     }
 
     async function makePayloadDirs(): Promise<void> {
-      await fse.mkdirp(path.join(dir, "grist"));
-      await fse.mkdirp(path.join(dir, "node_modules"));
+      await fse.mkdirp(path.join(dir, "ext"));
+      await fse.mkdirp(path.join(dir, "static"));
     }
 
     it("is a no-op when the feature is not configured", async function() {
@@ -170,7 +229,19 @@ describe("bootstrapFullEdition", function() {
       const { restartRequested } = await maybeManageFullEdition();
       assert.isFalse(restartRequested);
       assert.isTrue(await fse.pathExists(path.join(dir, STAMP_FILE)));
-      assert.isTrue(await fse.pathExists(path.join(dir, "grist")));
+      assert.isTrue(await fse.pathExists(path.join(dir, "ext")));
+    });
+
+    it("is a no-op when the build already bundles extensions", async function() {
+      (Deps.hasBuiltInExt as sinon.SinonStub).returns(true);
+      await setUseExtFullEdition(true);
+      await makePayloadDirs();
+      await writeStamp("stale");
+
+      const { restartRequested } = await maybeManageFullEdition();
+      assert.isFalse(restartRequested);
+      assert.isTrue(await fse.pathExists(path.join(dir, "ext")));
+      assert.equal(edition(), "core", "global config must not be touched by an ext build");
     });
 
     it("reverts: drops the stamp and requests restart without deleting the payload", async function() {
@@ -183,8 +254,8 @@ describe("bootstrapFullEdition", function() {
       assert.isTrue(restartRequested);
       assert.equal(edition(), "core");
       assert.isFalse(await fse.pathExists(path.join(dir, STAMP_FILE)), "stamp should be dropped");
-      assert.isTrue(await fse.pathExists(path.join(dir, "grist")));
-      assert.isTrue(await fse.pathExists(path.join(dir, "node_modules")));
+      assert.isTrue(await fse.pathExists(path.join(dir, "ext")));
+      assert.isTrue(await fse.pathExists(path.join(dir, "static")));
     });
 
     it("already current: keeps edition in sync and requests no restart", async function() {
@@ -196,7 +267,7 @@ describe("bootstrapFullEdition", function() {
       assert.isFalse(restartRequested);
       assert.equal(edition(), "enterprise");
       assert.isTrue(await fse.pathExists(path.join(dir, STAMP_FILE)));
-      assert.isTrue(await fse.pathExists(path.join(dir, "grist")));
+      assert.isTrue(await fse.pathExists(path.join(dir, "ext")));
     });
 
     it("disabled cleanup: reclaims a leftover payload", async function() {
@@ -206,8 +277,27 @@ describe("bootstrapFullEdition", function() {
       const { restartRequested } = await maybeManageFullEdition();
       assert.isFalse(restartRequested);
       assert.equal(edition(), "core");
-      assert.isFalse(await fse.pathExists(path.join(dir, "grist")), "payload should be reclaimed");
-      assert.isFalse(await fse.pathExists(path.join(dir, "node_modules")));
+      assert.isFalse(await fse.pathExists(path.join(dir, "ext")), "payload should be reclaimed");
+      assert.isFalse(await fse.pathExists(path.join(dir, "static")));
+    });
+
+    it("does not download when the storage directory is not writable", async function() {
+      // Root ignores directory permissions, so this check can't be exercised as root.
+      if (process.getuid?.() === 0) { this.skip(); }
+
+      sandbox.stub(Deps, "installAttempts").value(1);
+      sandbox.stub(Deps, "installRetryDelayMs").value(0);
+      process.env.GRIST_EXT_FULL_EDITION_SHA256 = "deadbeef";
+      await fse.chmod(dir, 0o500);
+      await setUseExtFullEdition(true);
+
+      try {
+        const { restartRequested } = await maybeManageFullEdition();
+        assert.isFalse(restartRequested);
+        assert.equal(edition(), "core");
+      } finally {
+        await fse.chmod(dir, 0o700).catch(() => undefined);
+      }
     });
 
     describe("install + checksum", function() {
@@ -218,12 +308,12 @@ describe("bootstrapFullEdition", function() {
 
       beforeEach(async function() {
         src = await fse.mkdtemp(path.join(os.tmpdir(), "grist-fe-fixture-"));
-        await fse.mkdirp(path.join(src, "grist"));
-        await fse.mkdirp(path.join(src, "node_modules"));
-        await fse.writeFile(path.join(src, "grist", "marker"), "x");
-        await fse.writeFile(path.join(src, "node_modules", "marker"), "x");
+        await fse.mkdirp(path.join(src, "ext"));
+        await fse.mkdirp(path.join(src, "static"));
+        await fse.writeFile(path.join(src, "ext", "marker"), "x");
+        await fse.writeFile(path.join(src, "static", "marker"), "x");
         tarball = path.join(src, "payload.tar.gz");
-        await tar.c({ file: tarball, cwd: src, gzip: true }, ["grist", "node_modules"]);
+        await tar.c({ file: tarball, cwd: src, gzip: true }, ["ext", "static"]);
         tarballSha = await checksumFile(tarball, "sha256");
 
         fileServer = http.createServer((_req, res) => {
@@ -240,15 +330,15 @@ describe("bootstrapFullEdition", function() {
         await fse.remove(src).catch(() => undefined);
       });
 
-      it("installs a verified copy, then sets edition and requests restart", async function() {
+      it("installs verified extensions, then sets edition and requests restart", async function() {
         process.env.GRIST_EXT_FULL_EDITION_SHA256 = tarballSha;
 
         const { restartRequested } = await maybeManageFullEdition();
         assert.isTrue(restartRequested);
         assert.equal(edition(), "enterprise");
         assert.equal((await fse.readFile(path.join(dir, STAMP_FILE), "utf8")).trim(), url);
-        assert.isTrue(await fse.pathExists(path.join(dir, "grist", "marker")));
-        assert.isTrue(await fse.pathExists(path.join(dir, "node_modules", "marker")));
+        assert.isTrue(await fse.pathExists(path.join(dir, "ext", "marker")));
+        assert.isTrue(await fse.pathExists(path.join(dir, "static", "marker")));
       });
 
       it("upgrades over an existing copy, replacing its payload and stamp", async function() {
@@ -256,7 +346,7 @@ describe("bootstrapFullEdition", function() {
         // A stale copy is already installed: a different stamp and old payload content that
         // the upgrade must replace (exercising the move-old-out-of-the-way swap).
         await makePayloadDirs();
-        await fse.writeFile(path.join(dir, "grist", "old-marker"), "old");
+        await fse.writeFile(path.join(dir, "ext", "old-marker"), "old");
         await writeStamp("https://example.test/old-build.tar.gz");
 
         const { restartRequested } = await maybeManageFullEdition();
@@ -264,10 +354,10 @@ describe("bootstrapFullEdition", function() {
         assert.equal(edition(), "enterprise");
         // Stamp advanced to the new URL, and the new payload replaced the old one.
         assert.equal((await fse.readFile(path.join(dir, STAMP_FILE), "utf8")).trim(), url);
-        assert.isTrue(await fse.pathExists(path.join(dir, "grist", "marker")));
-        assert.isFalse(await fse.pathExists(path.join(dir, "grist", "old-marker")),
+        assert.isTrue(await fse.pathExists(path.join(dir, "ext", "marker")));
+        assert.isFalse(await fse.pathExists(path.join(dir, "ext", "old-marker")),
           "stale payload should be gone");
-        assert.isTrue(await fse.pathExists(path.join(dir, "node_modules", "marker")));
+        assert.isTrue(await fse.pathExists(path.join(dir, "static", "marker")));
       });
 
       it("rejects a checksum mismatch: no install, stays on built-in edition", async function() {

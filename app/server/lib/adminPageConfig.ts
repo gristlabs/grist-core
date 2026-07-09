@@ -1,6 +1,6 @@
 import { AdminPageConfig } from "app/common/gristUrls";
 import { isAffirmative } from "app/common/gutil";
-import { isExtFullEditionConfigured } from "app/server/lib/bootstrapFullEdition";
+import { isExtFullEditionSupported } from "app/server/lib/bootstrapFullEdition";
 import { GristServer } from "app/server/lib/GristServer";
 import { getInService } from "app/server/lib/gristSettings";
 import { isUnderRestartShell } from "app/server/lib/RestartShellWorker";
@@ -20,6 +20,6 @@ export function makeAdminPageConfig(gristServer: GristServer): Partial<AdminPage
     runningUnderSupervisor: canRestart(),
     adminControls: gristServer.create.areAdminControlsAvailable(),
     inService: getInService().value,
-    supportsExtFullEdition: isExtFullEditionConfigured() && isUnderRestartShell(),
+    supportsExtFullEdition: isExtFullEditionSupported() && isUnderRestartShell(),
   };
 }

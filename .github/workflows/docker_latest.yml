@@ -244,15 +244,13 @@ jobs:
           if-no-files-found: error
 
   publish_grist:
-    name: Publish grist/grist-ee manifests and full edition package
+    name: Publish grist/grist-ee manifests and full edition extensions
     runs-on: ubuntu-22.04
     needs: [setup, build_and_push_grist]
     if: ${{ vars.RUN_DAILY_BUILD }}
     outputs:
-      full_url_amd64: ${{ steps.pkg.outputs.full_url_amd64 }}
-      full_url_arm64: ${{ steps.pkg.outputs.full_url_arm64 }}
-      full_sha256_amd64: ${{ steps.pkg.outputs.full_sha256_amd64 }}
-      full_sha256_arm64: ${{ steps.pkg.outputs.full_sha256_arm64 }}
+      full_url: ${{ steps.pkg.outputs.full_url }}
+      full_sha256: ${{ steps.pkg.outputs.full_sha256 }}
     steps:
       - name: Free disk space
         run: |
@@ -323,13 +321,12 @@ jobs:
             $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$METADATA_JSON") \
             $(printf '${{ env.DOCKER_HUB_OWNER }}/grist-ee@sha256:%s ' *)
 
-      - name: Build and publish full edition package
+      - name: Build and publish full edition extensions
         id: pkg
         env:
           IMAGE: ${{ env.DOCKER_HUB_OWNER }}/grist:${{ env.TAG }}
           CHANNEL: latest
           LABEL: ${{ env.TAG }}-${{ steps.ext_meta.outputs.ref }}
-          ARCHES: ${{ needs.setup.outputs.arches }}
           GRIST_STATIC_HOST: ${{ vars.GRIST_STATIC_HOST || 'https://grist-static.com' }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -387,8 +384,8 @@ jobs:
           load: true
           build-args: |
             GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING=false
-            GRIST_EXT_FULL_EDITION_URL=${{ matrix.arch == 'amd64' && needs.publish_grist.outputs.full_url_amd64 || needs.publish_grist.outputs.full_url_arm64 }}
-            GRIST_EXT_FULL_EDITION_SHA256=${{ matrix.arch == 'amd64' && needs.publish_grist.outputs.full_sha256_amd64 || needs.publish_grist.outputs.full_sha256_arm64 }}
+            GRIST_EXT_FULL_EDITION_URL=${{ needs.publish_grist.outputs.full_url }}
+            GRIST_EXT_FULL_EDITION_SHA256=${{ needs.publish_grist.outputs.full_sha256 }}
           platforms: ${{ matrix.platform }}
           tags: ${{ env.DOCKER_HUB_OWNER }}/grist-oss:${{ env.TAG }}
           cache-from: type=gha,scope=grist-oss-${{ matrix.arch }}
@@ -466,8 +463,8 @@ jobs:
           context: .
           build-args: |
             GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING=false
-            GRIST_EXT_FULL_EDITION_URL=${{ matrix.arch == 'amd64' && needs.publish_grist.outputs.full_url_amd64 || needs.publish_grist.outputs.full_url_arm64 }}
-            GRIST_EXT_FULL_EDITION_SHA256=${{ matrix.arch == 'amd64' && needs.publish_grist.outputs.full_sha256_amd64 || needs.publish_grist.outputs.full_sha256_arm64 }}
+            GRIST_EXT_FULL_EDITION_URL=${{ needs.publish_grist.outputs.full_url }}
+            GRIST_EXT_FULL_EDITION_SHA256=${{ needs.publish_grist.outputs.full_sha256 }}
           platforms: ${{ matrix.platform }}
           outputs: type=image,name=${{ env.DOCKER_HUB_OWNER }}/grist-oss,push-by-digest=true,name-canonical=true,push=true
           cache-from: type=gha,scope=grist-oss-${{ matrix.arch }}

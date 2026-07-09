@@ -858,10 +858,10 @@ export class FlexServer implements GristServer {
     this.app.use(/^\/help\//, expressWrap(async (req, res) => {
       res.redirect("https://support.getgrist.com");
     }));
-    // If there is a directory called "static_ext", serve material from there
-    // as well. This isn't used in grist-core but is handy for extensions such
-    // as an Electron app.
-    const staticExtDir = getAppPathTo(this.appRoot, "static") + "_ext";
+    // If there is a static ext directory, serve material from there as well.
+    // This is used to run Grist with full edition extensions downloaded at
+    // runtime, and is also handy for extensions such as an Electron app.
+    const staticExtDir = process.env.GRIST_STATIC_EXT_DIR || getAppPathTo(this.appRoot, "static") + "_ext";
     const staticExtApp = fse.existsSync(staticExtDir) ?
       express.static(staticExtDir, serveAnyOrigin) : null;
     const staticApp = express.static(getAppPathTo(this.appRoot, "static"), serveAnyOrigin);

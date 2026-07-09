@@ -1,22 +1,27 @@
 /**
- * Lets a grist-oss installation convert itself into the full edition at runtime,
- * instead of requiring a manual switch to the `grist` or `grist-ee` image.
+ * Lets an installation without built-in extensions (e.g. the `grist-oss` image) convert
+ * itself into the full edition at runtime, instead of requiring a manual download and
+ * recompilation with extensions, or switch to the `grist` or `grist-ee` image.
  *
- * We download a complete, self-contained build of the full edition (the exact `grist`
- * image app payload) into a writable directory (e.g. `/persist/ext/grist-full-edition`)
- * and run that instead of the built-in OSS build:
+ * We download the full edition's extensions -- the compiled extension code (`ext/`, including
+ * its `node_modules` and `assets`) and the full edition static assets (`static/`, the webpack
+ * bundles that include extension client code) -- into a writable directory (e.g.
+ * `/persist/ext/grist-full-edition`). We then re-run the local build with the extensions
+ * layered on via environment variables (`NODE_PATH`, `GRIST_EXT_DIR`, and `GRIST_STATIC_EXT_DIR`).
  *
- *   - `resolveFullEditionWorker()` is called by the RestartShell on every fork. If a
- *     valid, current copy is on disk it returns the fork spec for the relocated worker;
- *     otherwise the built-in OSS build runs.
+ *   - `resolveFullEditionWorker()` is called by the RestartShell on every fork. If a valid,
+ *     current extension bundle is on disk, it returns the fork spec that layers it onto the
+ *     local build (via `NODE_PATH`, `GRIST_EXT_DIR`, and `GRIST_STATIC_EXT_DIR`); otherwise
+ *     the built-in build runs.
  *
- *   - `maybeManageFullEdition()` runs on startup and makes the on-disk copy match the
- *     `useExtFullEdition` home-DB flag -- downloading it when enabled, removing it
- *     when disabled -- then requests a restart so `resolveFullEditionWorker()` returns
- *     the right worker.
+ *   - `maybeManageFullEdition()` runs on startup and makes the on-disk extensions match the
+ *     `useExtFullEdition` home-DB flag -- downloading them when enabled, removing them when
+ *     disabled -- then requests a restart so `resolveFullEditionWorker()` returns the right
+ *     worker.
  */
 
 import { delay } from "app/common/delay";
+import { isAffirmative } from "app/common/gutil";
 import { ActivationsManager } from "app/gen-server/lib/ActivationsManager";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { appSettings } from "app/server/lib/AppSettings";
@@ -24,7 +29,7 @@ import { HashPassthroughStream } from "app/server/lib/checksumFile";
 import { Edition } from "app/server/lib/configCore";
 import { getGlobalConfig } from "app/server/lib/globalConfig";
 import log from "app/server/lib/log";
-import { getInstanceRoot } from "app/server/lib/places";
+import { codeRoot, getAppRoot, getInstanceRoot } from "app/server/lib/places";
 import { agents } from "app/server/lib/ProxyAgent";
 import { ForkSpec } from "app/server/lib/RestartShell";
 
@@ -42,9 +47,41 @@ const pipeline = promisify(stream.pipeline);
 
 const fullEditionSettings = appSettings.section("fullEdition");
 
+export const Deps = {
+  downloadTimeoutMs: 3 * 60 * 1000,
+  installAttempts: 3,
+  installRetryDelayMs: 10 * 1000,
+  hasBuiltInExt: defaultHasBuiltInExt,
+};
+
+/** Marker file written to {@link getFullEditionDir} holding the last-installed download URL. */
+const STAMP_FILE = ".grist-full-edition-stamp";
+
+/** Sub-directories of {@link getFullEditionDir} that hold the downloaded extensions. */
+const PAYLOAD_SUBDIRS = ["ext", "static"];
+
 /**
- * URL of the full edition package to download. When set, exposes an option in the UI to
- * switch to the full edition of Grist.
+ * True if the running build already bundles extensions (the `grist`/`grist-ee` images or a
+ * full edition build from source). Such builds run their own extensions and must never download
+ * or manage a set at runtime -- the runtime download is only for extension-free builds.
+ */
+function defaultHasBuiltInExt(): boolean {
+  return fse.existsSync(path.join(codeRoot, "ext", "app"));
+}
+
+/**
+ * True when the current process is a worker forked with the full edition extensions layered on
+ * (see {@link resolveFullEditionWorker}). Such a worker runs the extension-free local build plus
+ * the downloaded extensions, so it should still manage them (e.g. to switch back).
+ */
+export function isRunningExtFullEdition(): boolean {
+  return isAffirmative(process.env.GRIST_EXT_FULL_EDITION_ACTIVE);
+}
+
+/**
+ * URL of the full edition extensions to download, or undefined when no URL is set, in which case
+ * the switch is simply not offered. Read from `GRIST_EXT_FULL_EDITION_URL` (baked into the
+ * image at build time).
  */
 function getFullEditionUrl(): string | undefined {
   return fullEditionSettings.flag("url").readString({
@@ -52,49 +89,46 @@ function getFullEditionUrl(): string | undefined {
   });
 }
 
-/**
- * Whether a full edition download URL is set. When set, exposes an option in the UI to switch
- * to the full edition of Grist.
- */
-export function isExtFullEditionConfigured(): boolean {
-  return Boolean(getFullEditionUrl());
-}
-
-/** Expected SHA-256 checksum of the full edition package, verified after download. */
+/** Expected SHA-256 checksum of the full edition extensions, verified after download. */
 function getFullEditionSha256(): string | undefined {
   return fullEditionSettings.flag("sha256").readString({
     envVar: "GRIST_EXT_FULL_EDITION_SHA256",
   });
 }
 
-export const Deps = {
-  /** Use a generous download timeout; full edition tarball is 100+ MBs. */
-  downloadTimeoutMs: 15 * 60 * 1000,
-  installAttempts: 3,
-  installRetryDelayMs: 10 * 1000,
-};
+/**
+ * Whether switching to a downloaded full edition should be offered.
+ *
+ * Returns true if already running a download-based full edition, or both a
+ * download URL and its checksum are present in the running process.
+ */
+export function isExtFullEditionSupported(): boolean {
+  if (isRunningExtFullEdition()) { return true; }
+  if (Deps.hasBuiltInExt()) { return false; }
 
-/** Marker file written to {@link getFullEditionDir} holding the last-installed download URL. */
-const STAMP_FILE = ".grist-full-edition-stamp";
-
-/** Sub-directories of {@link getFullEditionDir} that hold the downloaded payload. */
-const PAYLOAD_SUBDIRS = ["grist", "node_modules"];
+  return Boolean(getFullEditionUrl() && getFullEditionSha256());
+}
 
 /**
- * Location of the downloaded full edition package.
+ * Location of the downloaded full edition extensions, a subdirectory of the instance root.
  */
 function getFullEditionDir(): string {
   return path.join(getInstanceRoot(), "ext", "grist-full-edition");
 }
 
 /**
- * If a valid, current full edition package is present in {@link getFullEditionDir}, returns
- * the {@link ForkSpec} to run it.
+ * If a valid, current full edition extension bundle is present in {@link getFullEditionDir},
+ * returns the {@link ForkSpec} that layers it onto the local build.
  *
- * Used by the RestartShell to fork the full edition build instead of the built-in OSS build.
+ * Used by the RestartShell to run the local build with extensions instead of the plain
+ * built-in build.
  */
 export function resolveFullEditionWorker(): ForkSpec | null {
   try {
+    // A build that already bundles extensions runs its own; never layer downloaded extensions
+    // (which could be a stale copy left in the instance dir from a previous build or image).
+    if (Deps.hasBuiltInExt()) { return null; }
+
     const url = getFullEditionUrl();
     if (!url) { return null; }
 
@@ -104,24 +138,38 @@ export function resolveFullEditionWorker(): ForkSpec | null {
       stamp = fse.readFileSync(path.join(dir, STAMP_FILE), "utf8").trim();
     } catch (e) {
       if ((e as NodeJS.ErrnoException).code !== "ENOENT") {
-        log.warn("bootstrapFullEdition: cannot read full-edition stamp, using built-in grist: %s", e);
+        log.warn("bootstrapFullEdition: cannot read full edition stamp, using built-in grist: %s", e);
       }
       return null;
     }
     if (stamp !== url) { return null; }
 
-    const root = path.join(dir, "grist");
+    const extDir = path.join(dir, "ext");
+    const staticDir = path.join(dir, "static");
+    // `dir` resolves "ext/app/..." specifiers; `extDir` resolves the "app/..."
+    // ones used between extension modules (mirroring _build and _build/ext).
+    const nodePath = [
+      codeRoot,
+      dir,
+      extDir,
+      path.join(codeRoot, "stubs"),
+      path.join(extDir, "node_modules"),
+      path.join(getAppRoot(), "node_modules"),
+      process.env.NODE_PATH,
+    ].filter(Boolean).join(path.delimiter);
+
     return {
-      entryPoint: path.join(root, "_build", "stubs", "app", "server", "server.js"),
-      cwd: root,
+      // The extensions run the same local entry point as the built-in build; distinguish them
+      // by key so the RestartShell can tell "extensions failed - fall back to built-in" apart
+      // from "built-in failed - give up".
+      key: `full:${url}`,
+      entryPoint: path.join(codeRoot, "stubs", "app", "server", "server.js"),
       env: {
-        NODE_PATH: [
-          path.join(root, "_build"),
-          path.join(root, "_build", "ext"),
-          path.join(root, "_build", "stubs"),
-        ].join(path.delimiter),
+        NODE_PATH: nodePath,
+        GRIST_EXT_DIR: extDir,
+        GRIST_STATIC_EXT_DIR: staticDir,
+        GRIST_EXT_FULL_EDITION_ACTIVE: "1",
       },
-      onSpawnFailure: () => invalidateFullEditionWorker(dir),
     };
   } catch (e) {
     log.warn("bootstrapFullEdition: resolveFullEditionWorker failed, using built-in grist: %s", e);
@@ -130,43 +178,32 @@ export function resolveFullEditionWorker(): ForkSpec | null {
 }
 
 /**
- * Drops the stamp so {@link resolveFullEditionWorker} stops returning a copy whose worker
- * failed to start, letting the RestartShell fall back to the built-in build. A later boot
- * with `useExtFullEdition` still enabled will re-download and try again.
- */
-function invalidateFullEditionWorker(dir: string): void {
-  log.warn("bootstrapFullEdition: full edition worker failed to start; reverting to built-in grist");
-  try {
-    fse.removeSync(path.join(dir, STAMP_FILE));
-  } catch (e) {
-    if ((e as NodeJS.ErrnoException).code !== "ENOENT") {
-      log.warn("bootstrapFullEdition: cannot remove full-edition stamp: %s", e);
-    }
-  }
-}
-
-/**
- * Installs, upgrades, or removes the full edition of Grist based on the current state of
- * the install and the value of `useExtFullEdition` in the home DB:
+ * Installs, upgrades, or removes the full edition extensions based on the current state of the
+ * install and the value of `useExtFullEdition` in the home DB:
  *
- *   - Install: When `useExtFullEdition` is true and no downloaded copy of full Grist exists,
- *     downloads and installs it, and then requests a restart.
- *   - Upgrade: When `useExtFullEdition` is true and the downloaded copy of full Grist doesn't
- *     match `GRIST_EXT_FULL_EDITION_URL`, downloads and replaces it, and then requests a
- *     restart.
- *   - Remove: When `useExtFullEdition` is false, reverts to the built-in edition -- dropping
- *     the stamp and requesting a restart if currently running full Grist, and reclaiming the
- *     downloaded copy from disk on a later boot.
+ *   - Install: When `useExtFullEdition` is true and no current extensions exist, downloads and
+ *     installs them, and then requests a restart.
+ *   - Upgrade: When `useExtFullEdition` is true and the downloaded extensions don't match the
+ *     current URL, downloads and replaces them, and then requests a restart.
+ *   - Remove: When `useExtFullEdition` is false, reverts to the built-in build -- dropping
+ *     the stamp and requesting a restart if currently running the extensions, and reclaiming
+ *     the downloaded extensions from disk on a later boot.
  *
  * Returns whether a restart was requested, in which case the caller should ask the
  * RestartShell to refork, so that the correct build of Grist may run.
  *
- * If `GRIST_EXT_FULL_EDITION_URL` isn't set, calling this function is a no-op. Never
- * throws; on failure, logs and leaves the current edition running.
+ * If no download URL is set, calling this function is a no-op. Never throws; on failure, logs
+ * and leaves the current edition running.
  *
  * TODO: Surface errors in the Admin Panel.
  */
 export async function maybeManageFullEdition(): Promise<{ restartRequested: boolean }> {
+  // A build that already bundles extensions manages its own edition; do not touch the downloaded
+  // extensions (which may be a stale copy left in the instance dir).
+  if (Deps.hasBuiltInExt() && !isRunningExtFullEdition()) {
+    return { restartRequested: false };
+  }
+
   const url = getFullEditionUrl();
   if (!url) {
     return { restartRequested: false };
@@ -192,6 +229,13 @@ async function manageFullEdition(url: string): Promise<{ restartRequested: boole
         "remaining on built-in edition", url);
       return { restartRequested: false };
     }
+
+    if (!(await ensureWritable(dir))) {
+      log.error("bootstrapFullEdition: full edition storage directory is not writable (%s); " +
+        "remaining on built-in edition. Make sure the instance directory is writable.", dir);
+      return { restartRequested: false };
+    }
+
     for (let attempt = 1; attempt <= Deps.installAttempts; attempt++) {
       try {
         await downloadAndInstall(dir, url, sha256);
@@ -222,13 +266,31 @@ async function manageFullEdition(url: string): Promise<{ restartRequested: boole
 }
 
 /**
- * Removes the downloaded full edition copy in `dir` (if present) to reclaim disk space.
+ * Returns whether `dir` is writable by trying to write a (temporary) file to it.
+ *
+ * This is more robust than using `fs.access()`, which is prone to false positives.
+ */
+async function ensureWritable(dir: string): Promise<boolean> {
+  const probe = path.join(dir, ".grist-write-probe");
+  try {
+    await fse.mkdirp(dir);
+    await fse.writeFile(probe, "");
+    return true;
+  } catch {
+    return false;
+  } finally {
+    await fse.remove(probe).catch(() => undefined);
+  }
+}
+
+/**
+ * Removes the downloaded full edition extensions in `dir` (if present) to reclaim disk space.
  */
 async function reclaimFullEditionDir(dir: string): Promise<void> {
   const remnants = [STAMP_FILE, ...PAYLOAD_SUBDIRS].map(name => path.join(dir, name));
   if (!(await anyPathExists(remnants))) { return; }
 
-  log.info("bootstrapFullEdition: removing unused full edition copy to reclaim disk space");
+  log.info("bootstrapFullEdition: removing unused full edition extensions to reclaim disk space");
   for (const p of remnants) {
     await fse.remove(p).catch(() => undefined);
   }
@@ -280,7 +342,7 @@ async function anyPathExists(paths: string[]): Promise<boolean> {
 }
 
 /**
- * Downloads the full edition package from `url` and installs it into `dir`.
+ * Downloads the full edition extensions from `url` and installs them into `dir`.
  */
 async function downloadAndInstall(dir: string, url: string, sha256: string): Promise<void> {
   await fse.mkdirp(dir);
@@ -289,8 +351,8 @@ async function downloadAndInstall(dir: string, url: string, sha256: string): Pro
   const oldDir = `${dir}.old`;
   const tmpDir = await fse.mkdtemp(path.join(os.tmpdir(), "grist-full-edition-dl-"));
   try {
-    log.info("bootstrapFullEdition: downloading full edition from %s", url);
-    const tarball = path.join(tmpDir, "grist-full-edition.tar.gz");
+    log.info("bootstrapFullEdition: downloading full edition extensions from %s", url);
+    const tarball = path.join(tmpDir, "ext.tar.gz");
     await download(url, tarball, sha256);
 
     // Extract into a staging dir first...
@@ -299,13 +361,13 @@ async function downloadAndInstall(dir: string, url: string, sha256: string): Pro
     await tar.x({ file: tarball, cwd: stagingDir });
     await fse.writeFile(path.join(stagingDir, STAMP_FILE), url);
 
-    // Then swap into place.
+    // Then swap into place, discarding any previous extensions.
     await fse.remove(oldDir);
     await fse.move(dir, oldDir, { overwrite: true });
     await fse.move(stagingDir, dir, { overwrite: true });
     await fse.remove(oldDir).catch(() => undefined);
 
-    log.info("bootstrapFullEdition: installed full edition into %s", dir);
+    log.info("bootstrapFullEdition: installed full edition extensions into %s", dir);
   } finally {
     await fse.remove(tmpDir).catch(() => undefined);
     await fse.remove(stagingDir).catch(() => undefined);

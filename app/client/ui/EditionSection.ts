@@ -195,9 +195,9 @@ export class EditionSection extends Disposable implements ConfigSection {
   public get restartWaitAttempts(): number | undefined {
     if (!this._supportsExtFullEdition) { return undefined; }
 
-    // Switching to full edition requires a 100 MB+ download that the server may
+    // Switching to full edition requires a ~10 MB download that the server may
     // retry a few times, so wait longer.
-    return this._selectedEdition.get() === "enterprise" ? 3600 : 120;
+    return this._selectedEdition.get() === "enterprise" ? 600 : 120;
   }
 
   public pendingEditionSwitch(): "enable" | "disable" | null {
@@ -336,10 +336,6 @@ to individuals and small orgs with less than US $1 million in total annual fundi
                 pricingLink: cssLink({ href: commonUrls.plans, target: "_blank" }, t("pricing")),
               }),
             ) : null,
-            this._supportsExtFullEdition && use(this._serverEdition) === "core" ?
-              cssSectionDescription(
-                t("Switching downloads the full edition and restarts the server."),
-              ) : null,
           ];
         }
         return [
@@ -385,7 +381,7 @@ providers, and much more."),
     const description = extFullEditionSwitchWarning(enabling ? "enable" : "disable");
     confirmModal(
       title,
-      [t("Switch"), testId("confirm-switch")],
+      t("Confirm"),
       () => { this._editionConfirmed.set(true); },
       { explanation: cssSectionDescription(description) },
     );
@@ -458,18 +454,17 @@ providers, and much more."),
 
 export function extFullEditionSwitchWarning(kind: "enable" | "disable"): string {
   return kind === "enable" ?
-    t("Switching downloads a complete copy of the full edition and restarts the server. The \
-server will be unavailable until the download completes, which can take a while.") :
-    t("Switching restarts the server, which may be briefly unavailable.");
+    t("Switching to the full edition downloads required extensions and restarts the server. \
+This may take a few minutes, during which the server will be unavailable.") :
+    t("Switching to the community edition restarts the server, which may be briefly unavailable.");
 }
 
 export function extFullEditionSwitchModal<T>(promise: Promise<T>): Promise<T> {
   return spinnerModal(
-    t("Switching edition..."),
+    t("Switching Grist edition..."),
     promise,
     { body: [
-      t("Your server will restart automatically. This can take a while."),
-      testId("switching"),
+      t("Your server will restart automatically once finished."),
     ] },
   );
 }

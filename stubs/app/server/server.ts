@@ -204,7 +204,10 @@ export async function main() {
     // RestartShell handle instead of a FlexServer.
     return runRestartShell({
       publicPort: G.port,
-      childEntryPoint: () => resolveFullEditionWorker() ?? { entryPoint: __filename },
+      childEntryPoint: (ctx) => {
+        const ext = resolveFullEditionWorker();
+        return ext && !ctx.hasSpawnFailed(ext.key) ? ext : { entryPoint: __filename };
+      },
     });
   }
 
