@@ -494,7 +494,11 @@
     "ColorSelect": {
         "Apply": "Applicera",
         "Cancel": "Avbryt",
-        "Default cell style": "Standardstil för celler"
+        "Default cell style": "Standardstil för celler",
+        "default": "standard",
+        "fill": "fyll i",
+        "none": "ingen",
+        "text": "text"
     },
     "ColumnFilterMenu": {
         "All": "Alla",
@@ -2047,7 +2051,8 @@
         "Submitting…": "Skickar in…",
         "Clear selection for: {{-inputLabel}}": "Rensa val för: {{-inputLabel}}",
         "Options for {{-inputLabel}}": "Inställningar för {{-inputLabel}}",
-        "Search options for {{-inputLabel}}": "Sökinställningar för {{-inputLabel}}"
+        "Search options for {{-inputLabel}}": "Sökinställningar för {{-inputLabel}}",
+        "Are you sure you want to reset your form?": "Är du säker på att du vill rensa ditt formulär?"
     },
     "widgetTypesMap": {
         "Calendar": "Kalender",
@@ -3047,7 +3052,9 @@
         "Free activation keys": "Grattis aktiveringsnycklar",
         "Restart Grist to apply this change.": "Starta om Grist för att applicera denna ändring.",
         "Switch to Full Grist": "Växla till komplett Grist",
-        "You are running the Grist Community edition.": "Du kör den öppna versionen av Grist."
+        "You are running the Grist Community edition.": "Du kör den öppna versionen av Grist.",
+        "Downgrade to Community edition? Full Grist features are disabled after restart. This is reversible.": "Nedgradera till öppen version? Funktioner som är en del av komplett variant av Grist kommer stängas av efter omstart.",
+        "{{freeKeysLink}} are available to individuals and small orgs under US $1 million total annual funding. For larger orgs, see {{pricingLink}}.": "{{freeKeysLink}} finns tillgänglig för individer och små organisationer med årlig omsättning på under 1 miljon US Dollar. För stora organisationer se {{pricingLink}}."
     },
     "BaseUrlSection": {
         "set": "ställ in",
@@ -3159,7 +3166,8 @@
         "Users can create their own personal sites with documents. Turn off to restrict all documents to team sites managed by admins.": "Användare kan skapa sina egen personliga sajter med dokument. Stäng av för att begränsa så att alla dokument till arbetslagssajter som hanteras av administratörer.",
         "Visitors who aren't signed in can create and edit documents in a temporary playground. Turn off to require sign-in before creating any documents.": "Besökare som inte är inloggade kan skapa och redigera dokument i en temporär testmiljö. Stäng av för att kräva inloggning för att kunna skapa dokument.",
         "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.": "Besökare som inte är inloggade kan se publikt delade dokument. Detta behövs för att länkdelning och publicering av formulär.",
-        "Share product telemetry": "Dela produkttelemetri"
+        "Share product telemetry": "Dela produkttelemetri",
+        "Sends anonymous usage metrics to Grist Labs. No document contents are collected. Configurable anytime from the admin panel.": "Skickar anonym användningsdata till Grist Labs. Inget dokumentinnehåll samlas in. Kan ställas in när som helst från administrationspanelen."
     },
     "ScreenReaderAnnouncer": {
         "Notification: {{notification}}": "Notifiering: {{notification}}"
