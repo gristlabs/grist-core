@@ -214,6 +214,15 @@ jobs:
           cache-to: type=gha,scope=grist-${{ matrix.arch }},mode=max
           build-contexts: ext=ext
 
+      # ext/Dockerfile builds its base as `${BASE_IMAGE}:${BASE_VERSION}`, but grist was pushed
+      # by digest (no tag exists yet). Read the digest so we can reference grist from ext/Dockerfile
+      # in the next step as grist@sha256:DIGEST.
+      - name: Read grist digest
+        id: read_grist_digest
+        env:
+          DIGEST: ${{ steps.build_grist.outputs.digest }}
+        run: echo "hex=${DIGEST#sha256:}" >> "$GITHUB_OUTPUT"
+
       - name: Build and push grist-ee by digest
         id: build_grist_ee
         uses: docker/build-push-action@v6
@@ -221,7 +230,8 @@ jobs:
           context: .
           file: ext/Dockerfile
           build-args: |
-            BASE_REF=${{ env.DOCKER_HUB_OWNER }}/grist@${{ steps.build_grist.outputs.digest }}
+            BASE_IMAGE=${{ env.DOCKER_HUB_OWNER }}/grist@sha256
+            BASE_VERSION=${{ steps.read_grist_digest.outputs.hex }}
           platforms: ${{ matrix.platform }}
           outputs: type=image,name=${{ env.DOCKER_HUB_OWNER }}/grist-ee,push-by-digest=true,name-canonical=true,push=true
           cache-from: type=gha,scope=grist-ee-${{ matrix.arch }}
