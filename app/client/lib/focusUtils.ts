@@ -84,7 +84,6 @@ export function lockFocusUntilRemoved(
     FocusLayer.create(owner, {
       defaultFocusElem: elem,
       pauseMousetrap,
-      allowFocus: target => elem.contains(target),
     });
   };
 }
