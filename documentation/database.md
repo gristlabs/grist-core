@@ -96,7 +96,7 @@ Stores organisations (also called "Team sites") information.
 | id | The primary key |
 | name | The name as displayed in the UI |
 | domain | The part that should be added in the URL |
-| owner_id | The id of the user who owns the org |
+| owner_id | If set, this is a personal org belonging to the referenced user |
 | host | ??? |
 
 ### `workspaces` table
@@ -284,6 +284,7 @@ Stores `users` information.
 | api_key | If generated, the [HTTP API Key](https://support.getgrist.com/rest-api/) used to authenticate the user |
 | picture | The URL to the user's picture (must be provided by the SSO Identity Provider) |
 | first_login_at | The date of the first login |
+| last_connection_at | The date of the last time the user has signed in to Grist |
 | disabled_at | If not null, the date at which the user was disabled |
 | is_first_time_user | Whether the user discovers Grist (used to trigger the Welcome Tour) |
 | options | Serialized options as described in [UserOptions](https://github.com/gristlabs/grist-core/blob/513e13e6ab57c918c0e396b1d56686e45644ee1a/app/common/UserAPI.ts#L169-L179) interface |
