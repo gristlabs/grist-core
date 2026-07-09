@@ -83,12 +83,26 @@ The database schema is the following:
 
 If you want to generate the above schema by yourself, you may run the following command using [SchemaCrawler](https://www.schemacrawler.com/) ([a docker image is available for a quick run](https://www.schemacrawler.com/docker-image.html)):
 ````bash
+# Suggested properties to improve a bit the rendering
+$ cat <<EOF >/tmp/schemacrawler.config.properties
+# Mirrors the image's built-in graph styling…
+schemacrawler.graph.graphviz.graph.rankdir=RL
+schemacrawler.graph.graphviz.graph.labeljust=r
+schemacrawler.graph.graphviz.graph.fontname=Helvetica
+schemacrawler.graph.graphviz.node.fontname=Helvetica
+schemacrawler.graph.graphviz.node.shape=none
+schemacrawler.graph.graphviz.edge.fontname=Helvetica
+# …plus the looser spacing that de-condenses the diagram:
+schemacrawler.graph.graphviz.graph.ranksep=1.4
+schemacrawler.graph.graphviz.graph.nodesep=0.55
+schemacrawler.graph.graphviz.graph.pad=0.4
+EOF
 # You may adapt the --database argument to fit with the actual file name
 # You may also remove the `--grep-tables` option and all that follows to get the full schema.
 # database path needs to be absolute in some schemacrawler implementations
 $ schemacrawler --server=sqlite --database=$(pwd)/landing.db --info-level=standard \
   --portable=names --command=schema --output-format=svg \
-  --output-file=/tmp/graph.svg \
+  --config-file=/tmp/schemacrawler.config.properties --output-file=/tmp/graph.svg \
   --grep-tables="products|billing_accounts|limits|billing_account_managers|activations|migrations" \
   --invert-match
 ````
