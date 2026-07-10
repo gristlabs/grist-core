@@ -17,6 +17,7 @@ export const ExistingTableSchema = t.iface([], {
 
 export const ExistingColumnSchema = t.iface([], {
   "id": "string",
+  "type": "string",
   "ref": "number",
   "label": t.opt("string"),
   "isFormula": "boolean",
