@@ -35,8 +35,8 @@ export class ReferenceTracker {
 
   public resolveCellValue(column: RefColumn, originalRecordIds: string[] | undefined): CellValue {
     const { isList } = column;
-    if (!originalRecordIds) {
-      return isList ? [GristObjCode.List] : null;
+    if (!originalRecordIds || originalRecordIds.length === 0) {
+      return null;
     }
 
     // If there's an Airtable ID column, the sandbox can perform the lookup for us.
@@ -53,6 +53,10 @@ export class ReferenceTracker {
 
     const internallyKnownRowIds =
       originalRecordIds.map(originalRecordId => this.lookupRowIdForRecord(originalRecordId)).filter(isNonNullish);
+
+    if (internallyKnownRowIds.length === 0) {
+      return null;
+    }
 
     return isList ? [GristObjCode.List, ...internallyKnownRowIds] : internallyKnownRowIds[0];
   }
