@@ -16,7 +16,7 @@ import { RowRecord } from "app/plugin/GristData";
 import { decodeObject } from "app/plugin/objtypes";
 import { ActiveDoc } from "app/server/lib/ActiveDoc";
 import log from "app/server/lib/log";
-import { fetchUntrustedWithAgent } from "app/server/lib/ProxyAgent";
+import { fetchUntrustedWithAgent, UntrustedUrlBlockedError } from "app/server/lib/ProxyAgent";
 import { delayAbort } from "app/server/lib/serverUtils";
 import { isWebhookUrlAllowed } from "app/server/lib/Triggers";
 import { LogSanitizer } from "app/server/utils/LogSanitizer";
@@ -452,6 +452,10 @@ export class WebhookQueue implements ActionQueue<WebhookActionPayload> {
       }
       let meta: { webhookId: string; host: string, quantity: number } | undefined;
       let success: boolean;
+      // Set if the target was permanently blocked (bad URL or a redirect to a
+      // disallowed / internal-network address). Such a batch is dropped, not
+      // retried.
+      let blocked: UntrustedUrlBlockedError | undefined;
       if (!url) {
         success = true;
       } else {
@@ -461,8 +465,16 @@ export class WebhookQueue implements ActionQueue<WebhookActionPayload> {
         this._activeDoc.logTelemetryEvent(null, "sendingWebhooks", {
           limited: { numEvents: meta.quantity },
         });
-        success = await this._sendWebhookWithRetries(
-          id, url, authorization, body, batch.length, this._loopAbort.signal);
+        try {
+          success = await this._sendWebhookWithRetries(
+            id, url, authorization, body, batch.length, this._loopAbort.signal);
+        } catch (e) {
+          if (!(e instanceof UntrustedUrlBlockedError)) {
+            throw e;
+          }
+          blocked = e;
+          success = false;
+        }
         if (this._loopAbort.signal.aborted) {
           continue;
         }
@@ -482,7 +494,12 @@ export class WebhookQueue implements ActionQueue<WebhookActionPayload> {
 
       if (!success) {
         this._log("Failed to send batch of webhook events", { ...meta, level: "warn" });
-        if (!this._drainingQueue) {
+        if (blocked) {
+          // Target is permanently blocked: drop this batch (already spliced off
+          // the queue above) and mark the webhook invalid without re-queuing,
+          // mirroring how a URL failing isWebhookUrlAllowed is dropped.
+          await this._stats.logInvalid(id, blocked.message);
+        } else if (!this._drainingQueue) {
           // Put the failed events at the end of the queue to try again later
           // while giving other URLs a chance to receive events.
           this._webHookEventQueue.push(...batch);
@@ -587,7 +604,7 @@ export class WebhookQueue implements ActionQueue<WebhookActionPayload> {
             ...(authorization ? { Authorization: authorization } : {}),
           },
           signal,
-        });
+        }, isWebhookUrlAllowed);
         if (response.ok) {
           await this._stats.logBatch(id, "success", {
             size, httpStatus: response.status, error: null, attempts: attempt + 1,
@@ -609,6 +626,14 @@ export class WebhookQueue implements ActionQueue<WebhookActionPayload> {
           size,
         });
         this._log(`Webhook sending error: ${e}`, { level: "warn", attempt });
+        if (e instanceof UntrustedUrlBlockedError) {
+          // Permanently blocked target (bad URL, or a redirect to a disallowed
+          // or internal-network address). Propagate so _sendLoop drops the
+          // batch without retrying, instead of re-queuing it as a transient
+          // failure. Returning false here would cause _sendLoop to postpone and
+          // retry forever.
+          throw e;
+        }
       }
 
       if (signal.aborted) {

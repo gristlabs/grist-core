@@ -76,7 +76,7 @@ import { IPermitStore } from "app/server/lib/Permit";
 import { getAppPathTo, getAppRoot, getInstanceRoot, getUnpackedAppRoot } from "app/server/lib/places";
 import { addPluginEndpoints, limitToPlugins } from "app/server/lib/PluginEndpoint";
 import { PluginManager } from "app/server/lib/PluginManager";
-import { getProxyAgentConfiguration } from "app/server/lib/ProxyAgent";
+import { getProxyAgentConfiguration, isPrivateNetworkTargetAllowed } from "app/server/lib/ProxyAgent";
 import { createPubSubManager, IPubSubManager } from "app/server/lib/PubSubManager";
 import { adaptServerUrl, getOrgUrl, getOriginUrl, getScope, integerParam, isParameterOn, optIntegerParam,
   optStringParam, RequestWithGristInfo, stringArrayParam, stringParam, TEST_HTTPS_OFFSET,
@@ -2026,12 +2026,16 @@ export class FlexServer implements GristServer {
       envVar: "ALLOWED_WEBHOOK_DOMAINS",
     });
     const { proxyForUntrustedRequestsUrl } = getProxyAgentConfiguration();
-    // If all webhook targets are accepted, and no proxy is defined, issue
-    // a warning. This warning can be removed by explicitly setting the proxy
-    // to the empty string.
-    if (allowedWebhookDomains === "*" && proxyForUntrustedRequestsUrl === undefined) {
-      log.warn("Setting an ALLOWED_WEBHOOK_DOMAINS wildcard without GRIST_PROXY_FOR_UNTRUSTED_URLS " +
-        "exposes your internal network");
+    // With a wildcard ALLOWED_WEBHOOK_DOMAINS, internal-network targets are
+    // still blocked by default at the socket level (see fetchUntrustedWithAgent).
+    // The internal network is only exposed if that block has been explicitly
+    // disabled and no proxy is defined to own egress policy.
+    if (allowedWebhookDomains === "*" &&
+      proxyForUntrustedRequestsUrl === undefined &&
+      isPrivateNetworkTargetAllowed()) {
+      log.warn("Setting an ALLOWED_WEBHOOK_DOMAINS wildcard with " +
+        "GRIST_ALLOW_WEBHOOK_PRIVATE_NETWORK_TARGETS enabled and without " +
+        "GRIST_PROXY_FOR_UNTRUSTED_URLS exposes your internal network");
     }
   }
 

@@ -21,6 +21,9 @@ describe("WebhookPage", function() {
     oldEnv = new EnvironmentSnapshot();
     host = new URL(server.getHost()).host;
     process.env.ALLOWED_WEBHOOK_DOMAINS = "*";
+    // Webhooks here target the local server (loopback); opt out of the default
+    // internal-network block so delivery works (see ProxyAgent.ts).
+    process.env.GRIST_ALLOW_WEBHOOK_PRIVATE_NETWORK_TARGETS = "true";
     await server.restart();
     session = await gu.session().teamSite.login();
     const api = session.createHomeApi();

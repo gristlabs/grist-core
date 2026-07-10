@@ -94,6 +94,11 @@ describe("Webhooks-Proxy", function() {
     additionaEnvConfiguration = {
       ALLOWED_WEBHOOK_DOMAINS: `example.com,localhost:${webhooksTestPort}`,
       GRIST_DATA_DIR: dataDir!,
+      // The "Proxy not configured" scenario delivers directly to a loopback
+      // test server; opt out of the default internal-network block so those
+      // deliveries are exercised (see ProxyAgent.ts). The proxy scenario is
+      // unaffected (a configured proxy already bypasses the block).
+      GRIST_ALLOW_WEBHOOK_PRIVATE_NETWORK_TARGETS: "true",
       ...additionaEnvConfiguration,
     };
 

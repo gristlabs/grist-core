@@ -77,6 +77,9 @@ describe("DocApiWebhooks", function() {
   addAllScenarios(addWebhooksTests, "docapi-webhooks", {
     extraEnv: {
       ALLOWED_WEBHOOK_DOMAINS: `example.com,localhost:${webhooksTestPort}`,
+      // These tests deliver to a loopback test server; opt out of the default
+      // internal-network block so delivery is exercised (see ProxyAgent.ts).
+      GRIST_ALLOW_WEBHOOK_PRIVATE_NETWORK_TARGETS: "true",
     },
   });
 });

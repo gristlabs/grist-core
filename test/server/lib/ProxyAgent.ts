@@ -1,6 +1,8 @@
+import { appSettings } from "app/server/lib/AppSettings";
 import log from "app/server/lib/log";
 import {
-  agents, fetchUntrustedWithAgent, GristProxyAgent, test_generateProxyAgents,
+  agents, fetchUntrustedWithAgent, GristProxyAgent, isPrivateNetworkTargetAllowed,
+  test_generateProxyAgents, UntrustedUrlBlockedError,
 } from "app/server/lib/ProxyAgent";
 import { getAvailablePort } from "app/server/lib/serverUtils";
 import { serveSomething, Serving } from "test/server/customUtil";
@@ -145,6 +147,107 @@ describe("ProxyAgent", function() {
         /warn: ProxyAgent error.*((request.*failed)|(ECONNREFUSED)|(AggregateError))/,
         /warn: ProxyAgent error.*((request.*failed)|(ECONNREFUSED)|(AggregateError))/,
       ]);
+    });
+  });
+
+  describe("isPrivateNetworkTargetAllowed", function() {
+    afterEach(function() {
+      // Reset any DB-source settings we may have set (not covered by oldEnv).
+      appSettings.setEnvVars({});
+    });
+
+    it("is false when the env var is unset", function() {
+      delete process.env.GRIST_ALLOW_WEBHOOK_PRIVATE_NETWORK_TARGETS;
+      assert.isFalse(isPrivateNetworkTargetAllowed());
+    });
+
+    it("is true when the env var is affirmative", function() {
+      process.env.GRIST_ALLOW_WEBHOOK_PRIVATE_NETWORK_TARGETS = "true";
+      assert.isTrue(isPrivateNetworkTargetAllowed());
+    });
+
+    it("is false when the env var is not affirmative", function() {
+      process.env.GRIST_ALLOW_WEBHOOK_PRIVATE_NETWORK_TARGETS = "false";
+      assert.isFalse(isPrivateNetworkTargetAllowed());
+    });
+
+    it("reads the flag from the DB settings source", function() {
+      delete process.env.GRIST_ALLOW_WEBHOOK_PRIVATE_NETWORK_TARGETS;
+      appSettings.setEnvVars({ GRIST_ALLOW_WEBHOOK_PRIVATE_NETWORK_TARGETS: "true" });
+      assert.isTrue(isPrivateNetworkTargetAllowed());
+    });
+  });
+
+  describe("fetchUntrustedWithAgent guards", function() {
+    let serving: Serving;
+    let requestPaths: string[];
+
+    beforeEach(async function() {
+      // Ensure the default (filtering) posture: no proxy, no opt-out.
+      delete process.env.GRIST_PROXY_FOR_UNTRUSTED_URLS;
+      delete process.env.GRIST_HTTPS_PROXY;
+      delete process.env.GRIST_ALLOW_WEBHOOK_PRIVATE_NETWORK_TARGETS;
+      requestPaths = [];
+      serving = await serveSomething((app) => {
+        app.get("/ok", (req, res) => { requestPaths.push(req.path); res.sendStatus(200); res.end(); });
+        app.get("/redirect-external", (req, res) => {
+          requestPaths.push(req.path);
+          res.redirect(302, "https://denied.example.com/blocked");
+        });
+      });
+    });
+
+    afterEach(async function() {
+      await serving.shutdown();
+    });
+
+    // The test server listens on loopback, which request-filtering-agent blocks
+    // by default. Opt in so we can exercise transport-level behaviour.
+    function allowPrivateTargets() {
+      process.env.GRIST_ALLOW_WEBHOOK_PRIVATE_NETWORK_TARGETS = "true";
+    }
+
+    async function expectBlocked(promise: Promise<unknown>, messageRe: RegExp) {
+      const err = await promise.then(() => undefined, e => e);
+      assert.instanceOf(err, UntrustedUrlBlockedError);
+      assert.match((err as Error).message, messageRe);
+    }
+
+    it("rejects when the validator returns false, without contacting the server", async function() {
+      allowPrivateTargets();  // isolate the validator from the internal-network block
+      await expectBlocked(
+        fetchUntrustedWithAgent(serving.url + "/ok", {}, () => false),
+        /rejected by validator/,
+      );
+      assert.deepEqual(requestPaths, [], "the server should never be contacted");
+    });
+
+    it("performs the request when no validator is provided (private targets allowed)", async function() {
+      allowPrivateTargets();
+      const response = await fetchUntrustedWithAgent(serving.url + "/ok");
+      assert.equal(response.status, 200);
+      assert.deepEqual(requestPaths, ["/ok"]);
+    });
+
+    it("blocks internal-network targets by default and re-wraps the error", async function() {
+      // Default posture (no proxy, no opt-out): loopback is blocked at connect.
+      await expectBlocked(
+        fetchUntrustedWithAgent(serving.url + "/ok"),
+        /internal network target/,
+      );
+      assert.deepEqual(requestPaths, [], "the connection should be blocked before the server is reached");
+    });
+
+    it("re-validates redirect targets and blocks a disallowed redirect", async function() {
+      allowPrivateTargets();  // let the initial loopback hop through
+      const validate = (url: string) => !url.includes("denied.example.com");
+      await expectBlocked(
+        fetchUntrustedWithAgent(serving.url + "/redirect-external", {}, validate),
+        /denied\.example\.com/,
+      );
+      // Only the initial hop is contacted; the redirect target is rejected by
+      // the agent factory before any connection is attempted.
+      assert.deepEqual(requestPaths, ["/redirect-external"]);
     });
   });
 });

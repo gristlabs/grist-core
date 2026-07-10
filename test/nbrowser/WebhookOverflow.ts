@@ -20,6 +20,11 @@ describe("WebhookOverflow", function() {
     oldEnv = new EnvironmentSnapshot();
     process.env.ALLOWED_WEBHOOK_DOMAINS = "*";
     process.env.GRIST_MAX_QUEUE_SIZE = "4";
+    // The webhook target is a loopback URL that intentionally fails; opt out of
+    // the default internal-network block so the failure is a connection error
+    // (retried, piling up the queue) rather than a terminal "invalid" drop,
+    // which is what this overflow test relies on (see ProxyAgent.ts).
+    process.env.GRIST_ALLOW_WEBHOOK_PRIVATE_NETWORK_TARGETS = "true";
     await server.restart();
     session = await gu.session().teamSite.login();
     const api = session.createHomeApi();

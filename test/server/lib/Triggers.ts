@@ -53,6 +53,9 @@ describe("Triggers", function() {
     process.env.GRIST_DATA_DIR = await createTmpDir();
     // Allow any webhook domain
     process.env.ALLOWED_WEBHOOK_DOMAINS = "*";
+    // Webhooks are delivered to a loopback test server; opt out of the default
+    // internal-network block so delivery works (see ProxyAgent.ts).
+    process.env.GRIST_ALLOW_WEBHOOK_PRIVATE_NETWORK_TARGETS = "true";
     // Use the TEST_REDIS_URL as the global redis url, if supplied.
     if (process.env.TEST_REDIS_URL && !process.env.REDIS_URL) {
       process.env.REDIS_URL = process.env.TEST_REDIS_URL;
