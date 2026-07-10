@@ -35,7 +35,7 @@ export class ReferenceTracker {
 
   public resolveCellValue(column: RefColumn, originalRecordIds: string[] | undefined): CellValue {
     const { isList } = column;
-    if (!originalRecordIds || originalRecordIds.length === 0) {
+    if (!originalRecordIds?.length) {
       return null;
     }
 
