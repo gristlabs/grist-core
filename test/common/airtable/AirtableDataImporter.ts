@@ -251,7 +251,7 @@ describe("AirtableDataImporter", function() {
         ],
         local_foods: [
           [GristObjCode.List, 101, 102],
-          [GristObjCode.List],
+          null,
         ],
       });
     });
@@ -299,8 +299,8 @@ describe("AirtableDataImporter", function() {
         reports: [
           // RefList columns result in a list of record ids sent to the sandbox.
           [GristObjCode.LookUp, ["airtable-report-1", "airtable-report-2"], { column: "Airtable_Id" }],
-          // No references to resolve results in an empty list.
-          [GristObjCode.List],
+          // No references to resolve results in null.
+          null,
         ],
       });
     });
@@ -585,7 +585,7 @@ describe("AirtableDataImporter", function() {
       const updateCall = updateRowsMock.getCall(0);
       const updates = updateCall.args[1];
       // Row IDs are created incrementally starting at 1 - so the two referenced rows have 2 and 3.
-      assert.deepEqual(updates.Links, [[GristObjCode.List, 3, 2], [GristObjCode.List], [GristObjCode.List]]);
+      assert.deepEqual(updates.Links, [[GristObjCode.List, 3, 2], null, null]);
     });
 
     it("handles multiple pages of records", async () => {
