@@ -160,7 +160,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
     const fieldOptions = field.options;
     if (fieldOptions?.isValid && fieldOptions.recordLinkFieldId) {
       formula = {
-        formula: "len($[R0])",
+        formula: "len($[R0]) if isinstance($[R0], list) else int(bool($[R0]))",
         replacements: [{ originalTableId: table.id, originalColId: fieldOptions.recordLinkFieldId }],
       };
     }
