@@ -15,6 +15,7 @@ interface UnresolvedRefsForRecord {
 interface RefColumn {
   tableId?: string;
   id: string;
+  isList: boolean;
 }
 
 export class ReferenceTracker {
@@ -33,8 +34,9 @@ export class ReferenceTracker {
   }
 
   public resolveCellValue(column: RefColumn, originalRecordIds: string[] | undefined): CellValue {
-    if (!originalRecordIds) {
-      return [GristObjCode.List];
+    const { isList } = column;
+    if (!originalRecordIds?.length) {
+      return null;
     }
 
     // If there's an Airtable ID column, the sandbox can perform the lookup for us.
@@ -42,13 +44,21 @@ export class ReferenceTracker {
       column.tableId && this.getTable(column.tableId)?.airtableIdColumnId;
 
     if (otherTableAirtableIdColumnId) {
-      return [GristObjCode.LookUp, originalRecordIds, { column: otherTableAirtableIdColumnId }];
+      return [
+        GristObjCode.LookUp,
+        isList ? originalRecordIds : originalRecordIds[0],
+        { column: otherTableAirtableIdColumnId },
+      ];
     }
 
     const internallyKnownRowIds =
       originalRecordIds.map(originalRecordId => this.lookupRowIdForRecord(originalRecordId)).filter(isNonNullish);
 
-    return [GristObjCode.List, ...internallyKnownRowIds];
+    if (internallyKnownRowIds.length === 0) {
+      return null;
+    }
+
+    return isList ? [GristObjCode.List, ...internallyKnownRowIds] : internallyKnownRowIds[0];
   }
 
   public addTable(gristTableId: string, columnIdsToUpdate: RefColumn[], options: { airtableIdColumnId?: string } = {}) {
