@@ -141,15 +141,19 @@ export interface GristDocAPI {
 
 /**
  * CellFormatType determines how each cell value is represented.
- * - "normal" -- the usual encoding used in Grist, which depends on the column type (e.g. a Date
- *   is secondsSinceEpoch, and a Ref is an integer (rowId).
- * - "typed" -- represents each value in the same format as in the "normal" format for "Any"
- *   columns, e.g. a Date is ["d", secondsSinceEpoch] and RefList is ["r", TableId, [rodIds, ...]].
- *   Exceptions are also returned as ["E", TypeName...] values, even for /records endpoints.
  *
- * When omitted, REST API uses "normal" format, while Custom Widget API uses an in-between format
- * for backward compatibility: it represents most values as "typed", but RefList and Attachments
- * as "normal".
+ * - `"normal"` -- the compact format usual for Grist, whose interpretation depends on the column
+ *   type, e.g. a Date is a number (seconds since epoch), and a Ref is a number (rowId).
+ * - `"typed"` -- a self-describing typed form, the same as the "normal" format for `Any` columns,
+ *   e.g. a Date is `["d", secondsSinceEpoch]` and a RefList is `["r", tableId, [rowIds, ...]]`.
+ *   Formula errors are also returned inline, as `["E", ...]` values.
+ *
+ * When omitted, the REST API uses the "normal" format, while the Custom Widget API uses an
+ * in-between format for backward compatibility: it represents most values as "typed", but
+ * RefList and Attachments as "normal".
+ *
+ * See [Grist data format](https://github.com/gristlabs/grist-core/blob/main/documentation/grist-data-format.md)
+ * for details.
  */
 export type CellFormatType = "normal" | "typed";
 
