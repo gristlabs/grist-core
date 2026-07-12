@@ -2152,7 +2152,8 @@
         "Copy": "Kopiera",
         "Good news: it can stay free.": "Goda nyheter: det kan fortsätta vara gratis.",
         "Installation ID": "Installations ID",
-        "Provide this when requesting an activation key. Keys are tied to your installation ID.": "Ange detta när du ansöker om en aktiveringsnyckel. Nyckeln är låst till ditt installations ID."
+        "Provide this when requesting an activation key. Keys are tied to your installation ID.": "Ange detta när du ansöker om en aktiveringsnyckel. Nyckeln är låst till ditt installations ID.",
+        "[Free activation keys]({{learnMoreLink}}) are available to individuals and small orgs under US $1 million total annual funding. For larger orgs, see [pricing]({{pricingLink}}).": "[Gratis aktiveringsnycklar]({{learnMoreLink}}) finns för individer och organisationer med årlig omsättning på under 1 miljon USD. För större organisationer se [priser]({{pricingLink}})."
     },
     "ViewLayout": {
         "Delete": "Radera",
