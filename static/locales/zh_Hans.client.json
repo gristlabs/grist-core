@@ -93,7 +93,8 @@
         "Home": "主页",
         "Profile": "简介",
         "Enterprise": "企业",
-        "OAuth apps": "OAuth应用程序"
+        "OAuth apps": "OAuth应用程序",
+        "Accessibility": "无障碍设置"
     },
     "CodeEditorPanel": {
         "Access denied": "访问被拒绝",
@@ -298,7 +299,9 @@
         "Description": "描述",
         "Key": "关键",
         "Memory Error": "内存错误",
-        "Translators: please translate this only when your language is ready to be offered to users": "[TRANSLATED]"
+        "Translators: please translate this only when your language is ready to be offered to users": "[TRANSLATED]",
+        "Disabled screen reader improvements": "针对已禁用屏幕阅读器的改进",
+        "Enabled screen reader improvements": "已开启屏幕阅读器功能的优化"
     },
     "AppHeader": {
         "Home page": "主页",
@@ -834,7 +837,8 @@
         "Allow others to suggest changes": "允许他人提出修改建议",
         "Enable suggestions": "启用建议",
         "Suggestions": "建议",
-        "experiment": "试验"
+        "experiment": "试验",
+        "For number formats": "数字格式设置"
     },
     "DocumentUsage": {
         "Size of attachments": "附件大小",
@@ -992,7 +996,9 @@
         "Import from file": "从文件导入",
         "Saved linked section {{title}} in view {{name}}": "已将链接部分 {{title}} 保存在视图 {{name}} 中",
         "go to webhook settings": "去设置 webhook",
-        "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "新更改暂时中止。Webhooks队列溢出。请检查Webhooks设置，删除无效Webhooks，并清理队列。"
+        "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "新更改暂时中止。Webhooks队列溢出。请检查Webhooks设置，删除无效Webhooks，并清理队列。",
+        "Import from Airtable": "从 Airtable 导入",
+        "{{title}} widget": "{{title}} 小部件"
     },
     "Importer": {
         "Merge rows that match these fields:": "合并与这些字段匹配的行：",
@@ -1019,7 +1025,9 @@
     },
     "LeftPanelCommon": {
         "Help Center": "帮助中心",
-        "Accessibility": "无障碍"
+        "Accessibility": "无障碍",
+        "(Screen reader improvements enabled)": "屏幕阅读器改进已启用",
+        "Screen reader improvements enabled": "屏幕阅读器改进已启用"
     },
     "OnBoardingPopups": {
         "Finish": "结束",
@@ -1033,7 +1041,10 @@
         "Select data": "选择数据",
         "Select widget": "选择小部件",
         "New Table": "新表",
-        "SELECT BY": "选择依据"
+        "SELECT BY": "选择依据",
+        "{{table}} grouped by… (press to select fields)": "{{table}} 按…分组（点击选择字段）",
+        "Press Space to add fields": "按空格键添加字段",
+        "Use up and down arrow keys to move through options. Press Enter and Esc to move between steps.": "使用上下方向键浏览选项。按 Enter 键和 Esc 键在不同步骤间切换。"
     },
     "Pages": {
         "Delete": "删除",
@@ -1120,7 +1131,9 @@
     "ThemeConfig": {
         "Appearance ": "外观 ",
         "Switch appearance automatically to match system": "自动切换外观以匹配系统",
-        "Light": "浅色"
+        "Light": "浅色",
+        "Dark": "暗色系",
+        "Light (High Contrast)": "亮色系(高对比)"
     },
     "Tools": {
         "Access Rules": "访问规则",
@@ -1144,7 +1157,9 @@
         "Suggestions": "建议"
     },
     "TopBar": {
-        "Manage team": "管理团队"
+        "Manage team": "管理团队",
+        "Redo": "重做",
+        "Undo": "撤销"
     },
     "TriggerFormulas": {
         "Any field": "任何字段",
@@ -1241,7 +1256,12 @@
         "comments": "评论",
         "this document": "本文档",
         "your email": "您的电子邮件",
-        "Unsubscribed{{suffix}}": "未订阅{{suffix}}"
+        "Unsubscribed{{suffix}}": "未订阅{{suffix}}",
+        "You will no longer receive email notifications about {{suggestions}} in {{docName}} at {{email}}.": "您将不再收到关于 {{docName}} 中 {{suggestions}} 发送至 {{email}} 的电子邮件通知。",
+        "You will no longer receive email notifications about {{automations}} in {{docName}} at {{email}}.": "您将不再收到关于 {{docName}} 中 {{automations}} 发送至 {{email}} 的电子邮件通知。",
+        "You have been unsubscribed from automation notifications for {{docName}}. You can update your preferences anytime in the document settings.": "您已退订 {{docName}} 的自动化通知。您可以随时在文档设置中更新您的偏好设置。",
+        "automations": "自动化任务",
+        "suggestions": "建议"
     },
     "modals": {
         "Cancel": "取消",
@@ -1289,7 +1309,8 @@
         "Field Format": "字段格式",
         "Multi line": "多行",
         "Single line": "单行",
-        "Lines": "行"
+        "Lines": "行",
+        "Maximum characters": "最大字符数"
     },
     "ACLUsers": {
         "Example Users": "示例用户",
@@ -1586,7 +1607,10 @@
         "{{collaborator}} limit exceeded": "已超出{{collaborator}}限制",
         "{{limitAt}} of {{limitTop}} {{collaborator}}s": "{{limitAt}} of {{limitTop}} {{collaborator}}s",
         "Inherit access: ": "继承访问权限： ",
-        "Access overview": "访问概览"
+        "Access overview": "访问概览",
+        "Share it publicly": "公开分享",
+        "Verify your sensitive data before sharing publicly": "公开分享前，请核实您的敏感数据",
+        "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing.": "任何拥有链接的人都可以访问您的 {{resourceType}}，无论是直接分享还是通过搜索引擎找到。\n分享前，请确保您的 {{resourceType}} 不包含敏感数据。"
     },
     "SupportGristPage": {
         "This instance is opted out of telemetry. Only the site administrator has permission to change this.": "该实例被选择退出遥测。只有网站管理员有权更改此设置。",
@@ -1636,7 +1660,9 @@
         "The {{action}} menu command is not available in this browser. You can still {{action}} by using the keyboard shortcut {{shortcut}}.": "{{action}} 菜单命令在此浏览器中不可用。您仍然可以使用键盘快捷键{{shortcut}} 来执行{{action}} 。"
     },
     "GridView": {
-        "Click to insert": "点击插入"
+        "Click to insert": "点击插入",
+        "row {{rowNum}} {{colName}}": "第 {{rowNum}} 行，{{colName}} 列",
+        "row {{rowNum}} {{colName}} (new row)": "第 {{rowNum}} 行，{{colName}} 列（新行）"
     },
     "SearchModel": {
         "Search all pages": "搜索所有页面",
@@ -1703,7 +1729,8 @@
         "Radio": "单选",
         "Accept value from URL": "接受来自 URL 的值",
         "Hidden field": "隐藏的字段",
-        "URL parameter:\n{{colId}}=VALUE": "URL 参数：\n{{colId}}=VALUE"
+        "URL parameter:\n{{colId}}=VALUE": "URL 参数：\n{{colId}}=VALUE",
+        "Options limit": "选项数量限制"
     },
     "DateRangeOptions": {
         "Last 30 days": "最近 30 天",
@@ -1790,7 +1817,58 @@
         "Administrative accounts": "管理员账户",
         "The users with administrative accounts": "拥有管理员权限的用户",
         "Version {{versionNumber}}": "版本{{versionNumber}}",
-        "no admin accounts": "无管理员账户"
+        "no admin accounts": "无管理员账户",
+        "Are you sure you want to restart Grist?": "您确定要重启 Grist 吗？",
+        "Grist is running in an environment that doesn't support restarting from the admin panel.": "Grist 当前运行的环境不支持从管理面板进行重启。",
+        "Restart": "重启",
+        "Restart Grist": "重启 Grist",
+        "Restart Grist to apply pending changes or resolve issues.": "请重启 Grist 以应用待处理的更改或解决问题。",
+        "Restart Grist?": "重启 Grist?",
+        "Restarting Grist...": "Grist 重启中...",
+        "This will apply any pending changes and briefly interrupt access for all users.": "此操作将应用所有待处理的更改，并会短暂中断所有用户的访问。",
+        "You can still restart Grist manually.": "您仍然可以手动重启 Grist。",
+        "error in {{provider}}: {{verdict}}": "{{provider}} 出错：{{verdict}}",
+        "Please restart Grist manually.": "请手动重启 Grist。",
+        "Restart Grist to apply pending changes.": "请重启 Grist 以应用待处理的更改。",
+        "Restart unavailable": "无法重启",
+        "Boot key": "启动密钥",
+        "Fallback authentication method": "备用身份验证方式",
+        "If you are the server operator, you can sign in using the boot key from your server logs.": "如果您是服务器管理员，可以使用服务器日志中的启动密钥进行登录。",
+        "Maintenance": "系统维护",
+        "Service status": "服务状态",
+        "Sign in with boot key": "使用启动密钥登录",
+        "Take Grist out of service for maintenance": "将 Grist 下线以进行维护",
+        "boot key": "启动密钥",
+        "disabled": "已禁用",
+        "enabled": "已启用",
+        "in service": "运行中",
+        "out of service": "已下线",
+        "Back up documents externally": "将文档备份至外部",
+        "Backups": "备份",
+        "Storage": "存储",
+        "Apply changes (manual restart required)": "应用更改（需要手动重启）",
+        "Base URL": "基础网址",
+        "Changes have been saved. Restart Grist to apply them.": "更改已保存。请重启 Grist 以使更改生效。",
+        "Edition": "版本",
+        "Its controls have moved to {{editionLink}} above.": "其控制项已移至上方的 {{editionLink}}。",
+        "Restart the Grist server": "重启 Grist 服务器",
+        "Saving...": "保存中...",
+        "Server": "服务器",
+        "Server → Edition": "服务器->版本",
+        "The URL where users and integrations reach this Grist server": "用户和集成应用访问此 Grist 服务器的网址",
+        "What used to be called \"Grist Enterprise\" is now called \"Full Grist\".": "原‘Grist Enterprise’现已更名为‘Full Grist’。",
+        "moved to Edition": "已移至版本",
+        "Installation": "安装",
+        "Default permissions": "默认权限",
+        "Who can create sites, log in, and use the playground": "谁可以创建站点、登录和使用试验场",
+        "Any pending changes will be cleared.": "所有未生效的更改将被清除。",
+        "Dismiss": "关闭",
+        "Dismiss changes": "放弃更改",
+        "Dismiss pending changes?": "放弃未生效的更改？",
+        "Dismissing...": "正在放弃更改...",
+        "How user actions can reach the outside world": "用户操作如何触达外部世界",
+        "Outgoing requests": "出站请求",
+        "full Edition": "完整版"
     },
     "Menu": {
         "Copy": "拷贝",
@@ -1884,7 +1962,11 @@
         "Maybe later": "或许稍后",
         "free coaching call": "免费辅助热线",
         "You may also check out {{ourWeeklyWebinars}} to learn more about Grist.": "您还可以查看{{ourWeeklyWebinars}} ，了解有关 Grist 的更多信息。",
-        "our weekly webinars": "我们的每周网络研讨会"
+        "our weekly webinars": "我们的每周网络研讨会",
+        "Free coaching call": "免费指导通话",
+        "Grist 101": "Grist 101",
+        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users                navigate the fundamentals of Grist.": "您也可以观看我们的入门网络研讨会 {{ourWeeklyWebinars}}，它专为帮助新用户掌握 Grist 的基础知识而设计。",
+        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users navigate the fundamentals of Grist.": "您也可以观看我们的入门网络研讨会 {{ourWeeklyWebinars}}，它专为帮助新用户快速掌握 Grist 基础知识而设计。"
     },
     "AuditLogStreamingConfig": {
         "Enter token": "输入令牌",
@@ -1905,7 +1987,8 @@
         "Destinations": "目标",
         "Edit": "编辑",
         "Splunk": "Splunk",
-        "Edit streaming destination": "编辑流式传输目标"
+        "Edit streaming destination": "编辑流式传输目标",
+        "Set up streaming of audit events from Grist to an external security information and event management (SIEM) system like Splunk. {{learnMoreLink}}.": "设置将 Grist 的审计事件流式传输至外部安全信息和事件管理 (SIEM) 系统（如 Splunk）{{learnMoreLink}}。"
     },
     "AuditLogsPage": {
         "Contact us": "联系我们",
@@ -1914,7 +1997,9 @@
         "Audit Logs": "审计日志",
         "Audit logs for {{siteName}}": "{{siteName}}的审计日志",
         "Log streaming": "日志流",
-        "upgrade your plan": "升级您的计划"
+        "upgrade your plan": "升级您的计划",
+        "You can set up streaming of audit events from Grist to an external SIEM (security information and event management) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.": "启用 Grist 企业版后，即可设置将审计事件从 Grist 流式传输至外部 SIEM（安全信息和事件管理）系统。{{contactUsLink}}了解更多。",
+        "You can set up streaming of audit events from Grist to an external SIEM (security information and event management) system if you {{upgradePlanButton}}.": "{{upgradePlanButton}}后，即可设置将审计事件从 Grist 流式传输至外部 SIEM（安全信息和事件管理）系统。"
     },
     "CustomView": {
         "Some required columns aren't mapped": "部分必要的列尚未映射",
@@ -1950,7 +2035,9 @@
         "Submit": "提交",
         "Search": "搜索",
         "Submitting…": "提交中…",
-        "Clear selection for: {{-inputLabel}}": "清除选择：{{-inputLabel}}"
+        "Clear selection for: {{-inputLabel}}": "清除选择：{{-inputLabel}}",
+        "Options for {{-inputLabel}}": "{{-inputLabel}} 的选项",
+        "Search options for {{-inputLabel}}": "搜索 {{-inputLabel}} 的选项"
     },
     "TimingPage": {
         "Column ID": "列 ID",
@@ -2046,7 +2133,15 @@
         "Your activation key has expired due to exceeding limits.": "由于超出限制，您的激活密钥已过期。",
         "Your instance will be in **read-only** mode in **{{days}}** day(s).": "您的实例将在 **{{days}}** 天内处于**只读**模式。",
         "Your subscription expired on {{date}}.": "您的订阅已于{{date}} 到期。",
-        "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.": "您的试用期已于 **{{expireAt}}** 到期。要继续使用 Grist Enterprise，您需要\n[注册 Grist Enterprise]({{signupLink}}) 并在下面粘贴您的激活密钥。"
+        "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.": "您的试用期已于 **{{expireAt}}** 到期。要继续使用 Grist Enterprise，您需要\n[注册 Grist Enterprise]({{signupLink}}) 并在下面粘贴您的激活密钥。",
+        "Installation seats": "安装席位",
+        "An activation key is used to run Full Grist after a trial period\n        of 30 days has expired. Get an activation key by [signing up for Grist\n        Enterprise]({{signupLink}}). You do not need an activation key to run\n        Grist Community Edition.": "30 天试用期结束后，需使用激活密钥才能运行 Grist 完整版。\n请注册 [Grist 企业版]({{signupLink}})以获取激活密钥。\n运行 Grist 社区版无需激活密钥。",
+        "An activation key is used to run Full Grist after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Community Edition.\n\nLearn more in our [Help Center]({{helpCenter}}).": "30 天试用期结束后，需使用激活密钥才能运行 Grist 完整版。\n请今天就[联系我们]({{contactLink}})以获取激活密钥。\n运行 Grist 社区版无需激活密钥。\n\n更多详情请访问我们的[帮助中心]({{helpCenter}})。",
+        "An active subscription is required to continue using Full Grist. You can\nyou activate your subscription by [signing up for Full Grist ]({{signupLink}}) and pasting your\nactivation key below.": "需保持有效订阅才能继续使用 Grist 完整版。\n\n您可以注册 [Grist 完整版]({{signupLink}})并在下方粘贴激活密钥，以激活您的订阅。",
+        "Enable Full Grist": "启用 Grist 完整版",
+        "To continue using Full Grist, you need to\n                  [contact us]({{signupLink}}) to get your activation key.": "如需继续使用 Grist 完整版，\n请[联系我们]({{signupLink}})获取激活密钥。",
+        "You are currently trialing Full Grist.": "您当前正在试用 Grist 完整版。",
+        "Your trial period has expired on **{{expireAt}}**. To continue using Full Grist, you need to\n[sign up for Full Grist]({{signupLink}}) and paste your activation key below.": "您的试用期已于 {{expireAt}} 结束。\n如需继续使用 Grist 完整版，请注册 [Grist 完整版]({{signupLink}})并在下方粘贴您的激活密钥。"
     },
     "CustomWidgetGallery": {
         "Custom URL": "自定义 URL",
@@ -2120,11 +2215,21 @@
     },
     "markdown": {
         "The toggle is **on**": "此开关已**打开**",
-        "The toggle is **off**": "此开关已**关闭**"
+        "The toggle is **off**": "此开关已**关闭**",
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
+            "": {
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# 新的 Markdown 功能\n*\n* 我们可以*在* Grainjs 元素内部_书写_ [常规的 Markdown 样式](https://markdownguide.org)\n* 文本。"
+            }
+        }
     },
     "markdown.d": {
         "The toggle is **off**": "此开关已**关闭**",
-        "The toggle is **on**": "此开关已**打开**"
+        "The toggle is **on**": "此开关已**打开**",
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
+            "": {
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# 新的 Markdown 功能\n*\n* 我们现在可以*在* Grainjs 元素内部_书写_ [常规的 Markdown](https://markdownguide.org)  样式文本。"
+            }
+        }
     },
     "buildReassignModal": {
         "Cancel": "取消",
@@ -2182,6 +2287,128 @@
         "On a document page, keyboard navigation is first locked on the current widget.": "在文档页面中，键盘导航首先锁定在当前小部件上。"
     },
     "DocList": {
-        "Last edited": "最后编辑"
+        "Last edited": "最后编辑",
+        "Access details": "访问详情",
+        "All": "所有",
+        "Current workspace": "当前工作区",
+        "Delete": "删除",
+        "Delete {{name}}": "删除 {{name}}",
+        "Document will be moved to Trash.": "文档将被移至回收站。",
+        "Edited {{at}}": "编辑于 {{at}}",
+        "Manage users": "用户管理",
+        "Move": "移动",
+        "Move {{name}} to workspace": "将 {{name}} 移至工作区",
+        "Name": "名称",
+        "No documents to show.": "没有可显示的文档。",
+        "Pin": "置顶",
+        "Pinned": "已置顶",
+        "Recent": "最近",
+        "Rename and set icon": "重命名并设置图标",
+        "Requires edit permissions": "需要编辑权限",
+        "Sort by date": "按日期排序",
+        "Sort by name": "按名称排序",
+        "Unpin": "取消置顶",
+        "Workspace": "工作区",
+        "context menu - {{- documentName }}": "上下文菜单 - {{- documentName }}",
+        "Documents list": "文档列表",
+        "Download document...": "下载文档...",
+        "Deleted {{at}}": "删除于 {{at}}"
+    },
+    "RenameDocModal": {
+        "Choose color": "选择颜色",
+        "Choose icon": "选择图标",
+        "Enter document name": "请输入文档名称",
+        "Icon": "图标",
+        "Name": "名称",
+        "Rename and set icon": "重命名并设置图标",
+        "Reset icon": "重置图标"
+    },
+    "RightPanelUtils": {
+        "columns_one": "列",
+        "columns_other": "列",
+        "fields_one": "字段",
+        "fields_other": "字段",
+        "series_one": "系列",
+        "series_other": "系列"
+    },
+    "userTrustsCustomWidget": {
+        "Be careful with unknown custom widgets": "请谨慎使用未知的自定义组件",
+        "Please review the following before adding a new custom widget.": "添加新的自定义组件前，请先查看以下信息。",
+        "Custom widgets are **powerful**! They may be able to read and write your document data, and send it elsewhere.": "自定义组件功能**十分强大**！它们可能会读取和写入您的文档数据，并将其发送到其他地方。",
+        "Are you sure you **trust the resource** at this URL?": "您确定**信任**此 URL 对应的资源吗？",
+        "Do you **trust the person** who shared this link?": "您信任分享此链接的**人**吗？",
+        "Have you **reviewed the code** at this URL?": "您是否已查看此 URL 中的代码？",
+        "If in doubt, do not install this widget, or ask an administrator of your organization to review it for safety.": "如果您存在疑虑，请勿安装此组件，或者请贵组织的管理员为您审查其安全性。",
+        "I confirm that I understand these warnings and accept the risks": "我确认已了解上述警告，并愿意承担相关风险"
+    },
+    "AdminLeftPanel": {
+        "Admin area": "管理区",
+        "Admin controls": "管理员设置",
+        "Docs": "文档",
+        "Installation": "安装",
+        "Learn more": "了解更多",
+        "Orgs": "组织",
+        "Users": "用户",
+        "Workspaces": "工作区",
+        "Admin Controls": "管理员设置",
+        "Settings": "设置",
+        "Enterprise": "企业",
+        "Quick setup": "快速设置",
+        "Apply changes": "应用修改"
+    },
+    "Assistant": {
+        "AI Assistant is only available for logged in users.": "AI 助手仅对已登录用户开放。",
+        "Apply": "应用",
+        "For higher limits, contact the site owner.": "如需提高限制，请联系站点所有者。",
+        "For higher limits, {{upgradeNudge}}.": "如需提高限制，请{{upgradeNudge}}。",
+        "Learn more.": "了解更多。",
+        "Press Enter to apply suggested formula.": "按回车键应用建议的公式。",
+        "Sign Up for Free": "免费注册",
+        "Sign up for a free Grist account to start using the AI Assistant.": "注册免费的 Grist 账号，即可开始使用 AI 助手。",
+        "Upgrade to Grist Enterprise to try the new Grist Assistant. {{learnMoreLink}}": "升级至 Grist 企业版，即可体验全新的 Grist 助手。{{learnMoreLink}}",
+        "What do you need help with?": "有什么我可以帮您的？",
+        "You have used all available credits.": "您已用完所有可用额度。",
+        "You have {{numCredits}} remaining credits.": "您还剩余 {{numCredits}} 个可用额度。",
+        "start a new chat": "新建对话",
+        "upgrade to the Pro Team plan": "升级至专业团队版套餐",
+        "upgrade your plan": "升级套餐",
+        "The conversation has become too long and I can no longer respond effectively. Please {{startANewChatButton}} to continue receiving assistance.": "当前对话过长，我已无法有效回复。请 {{startANewChatButton}} 以继续获取帮助。"
+    },
+    "apiconsole": {
+        "Are you sure you want to delete the following?": "确定要删除以下内容吗？",
+        "Confirm Deletion": "确认删除",
+        "Delete": "删除",
+        "Deletion was not confirmed, skipping.": "未确认删除，正在跳过。",
+        "Type DELETE here if you wish to proceed.": "如确认继续，请在此处输入 DELETE。",
+        "Type DELETE if you are sure you do indeed wish to do this deletion.\nIf you are not sure, or do not understand what this operation will do,\nit would be wise to cancel it.": "如果您确信确实要执行此删除操作，请在此处输入 DELETE。\n如果您不确定，或不了解此操作将产生什么后果，\n建议您取消该操作。"
+    },
+    "MentionTextBox": {
+        "no access": "无访问权限",
+        "...loading": "...加载中"
+    },
+    "VersionUpdateBanner": {
+        "There is a critical Grist update available.\nConsider upgrading to version {{version}} as soon as possible.": "Grist 有重要更新可用。\n请尽快升级至 {{version}} 版本。",
+        "Your Grist version is outdated.\nConsider upgrading to version {{version}} as soon as possible.": "您的 Grist 版本已过时。\n请尽快升级至 {{version}} 版本。"
+    },
+    "ExternalAttachmentBanner": {
+        "Recommendation: {{storageRecommendation}}\nWhen storing large attachments, or many of them, we recommend\nkeeping them in external storage. This document is currently\nusing internal storage for attachments, which keeps it\nself-contained but may limit performance.": "建议：{{storageRecommendation}}\n当存储大型附件或附件数量较多时，\n我们建议将其保存在外部存储中。\n当前文档的附件使用的是内部存储，\n这虽然能保持文档的完整性，但可能会限制系统性能。",
+        "Set the document to use external storage.": "将文档设置为使用外部存储。"
+    },
+    "ToggleEnterpriseModel": {
+        "Please wait for the previous operation to complete.": "请等待上一个操作完成。",
+        "Timed out on waiting for the Grist backend to restart": "等待 Grist 后端重启超时"
+    },
+    "Experiments": {
+        "Disable feature": "禁用此功能",
+        "Don't worry, you can disable it later if needed.": "别担心，如果需要的话，您稍后可以随时禁用它。",
+        "Enable feature": "启用此功能",
+        "Experimental feature": "实验性功能",
+        "New record button": "新建记录按钮",
+        "Reload the page": "重新加载页面",
+        "Visit this URL at any time to stop using this feature: {{url}}": "随时访问此链接以停止使用该功能：{{url}}",
+        "You are about to disable this experimental feature: {{experiment}}": "您即将禁用此实验性功能：{{experiment}}",
+        "You are about to enable this experimental feature: {{experiment}}": "您即将启用此实验性功能：{{experiment}}",
+        "{{experiment}} disabled.": "{{experiment}} 已禁用。",
+        "{{experiment}} enabled.": "{{experiment}} 已启用。"
     }
 }
