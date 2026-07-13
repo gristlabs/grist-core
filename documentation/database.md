@@ -75,12 +75,6 @@ The database schema is the following:
 > [!NOTE]
 > For simplicity's sake, the diagram omits the tables related to billing and to the migrations. They are documented separately in the [Billing and enterprise tables](#billing-and-enterprise-tables) section below. Recently added tables may also be missing from the diagram; when in doubt, the entity definitions in [`app/gen-server/entity/`](/app/gen-server/entity/) are the source of truth.
 
-> [!NOTE]
-> The `orgs`, `workspaces` and `docs` tables all extend the [`Resource`](/app/gen-server/entity/Resource.ts) base class, so in addition to the columns listed below they each also have:
-> - `name`: The name as displayed in the UI;
-> - `created_at`: When the resource was created;
-> - `updated_at`: When the resource was last updated.
-
 If you want to generate the above schema by yourself, you may run the following command using [SchemaCrawler](https://www.schemacrawler.com/) ([a docker image is available for a quick run](https://www.schemacrawler.com/docker-image.html)):
 ````bash
 # Suggested properties to improve a bit the rendering
@@ -119,6 +113,8 @@ Stores organisations (also called "Team sites") information.
 | owner_id | If set, this is a personal org belonging to the referenced user |
 | host | For custom domains, the preferred host associated with this org/team (e.g. `grist.example.com`). Null when the org is served from the default Grist host. |
 | billing_account_id | The [billing account](#billing_accounts-table) this org is attached to. Every org has exactly one billing account. |
+| created_at | When the org was created. |
+| updated_at | When the org was updated. |
 
 ### `workspaces` table
 
@@ -130,6 +126,8 @@ Stores workspaces information.
 | name | The name as displayed in the UI |
 | org_id | The organisation to which the workspace belongs |
 | removed_at | If not null, stores the date when the workspace has been placed in the trash (it will be hard deleted after 30 days) |
+| created_at | When the workspace was created. |
+| updated_at | When the workspace was updated. |
 
 ### `docs` table
 
@@ -150,6 +148,8 @@ Stores document information that is not portable, which means that it does not s
 | usage | stats about the document (see [DocumentUsage](https://github.com/gristlabs/grist-core/blob/4567fad94787c20f65db68e744c47d5f44b932e4/app/common/DocUsage.ts)) |
 | trunk_id | If set, the current document is a fork, and this column references the original ("trunk") document |
 | type | If set, the current document is a special one (as specified in [DocumentType](https://github.com/gristlabs/grist-core/blob/4567fad94787c20f65db68e744c47d5f44b932e4/app/common/UserAPI.ts#L123)) |
+| created_at | When the document was created. |
+| updated_at | When the document was updated. |
 
 ### `aliases` table
 
@@ -346,7 +346,7 @@ Stores `users` information.
 | is_first_time_user | Whether the user discovers Grist (used to trigger the Welcome Tour) |
 | options | Serialized options as described in [UserOptions](https://github.com/gristlabs/grist-core/blob/513e13e6ab57c918c0e396b1d56686e45644ee1a/app/common/UserAPI.ts#L169-L179) interface |
 | connect_id | Used by [GristConnect](https://support.getgrist.com/install/grist-connect/) in the full edition of Grist to identify user in external provider |
-| ref | A unique reference for the user, generated at insert time. Primarily used as an ownership key in cell metadata (comments); also handy to identify a user in the automated tests. |
+| ref | A unique reference for the user (short UUID format), generated at insert time. Also unique accross Grist instances, so it can be used in documents. It’s primarily used as an ownership key in cell metadata (comments); also handy to identify a user in the automated tests. |
 | created_at | When the user record was created |
 | unsubscribe_key | A random public key that lets the user manage document notification preferences without authenticating (e.g. from an "unsubscribe" link in an email) |
 | type | The kind of user: `login` for a regular human user, or `service` for a [service account](#service_accounts-table) |
