@@ -40,7 +40,9 @@ describe("VersionUpdateBanner", function() {
   after(async function() {
     await fakeServer.close();
     oldEnv.restore();
-    await server.restart();
+    // Reset the database too: the freshAccount logins above recreate the default user, which
+    // strips its seeded org memberships and would break later suites in the same run.
+    await server.restart(true);
   });
 
   it("should not be shown to non-managers", async () => {

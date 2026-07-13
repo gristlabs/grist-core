@@ -140,6 +140,8 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     canCloseAccount: isAffirmative(process.env.GRIST_ACCOUNT_CLOSE),
     experimentalPlugins: isAffirmative(process.env.GRIST_EXPERIMENTAL_PLUGINS),
     notifierEnabled: server?.hasNotifier(),
+    // Match GristJobs: a test Redis counts as a working queue backend.
+    redisAvailable: Boolean(process.env.REDIS_URL || process.env.TEST_REDIS_URL),
     formFraming: GRIST_FEATURE_FORM_FRAMING as FormFraming,
     adminDefinedUrls: process.env.GRIST_CUSTOM_COMMON_URLS,
     userPresenceMaxUsers: getUserPresenceMaxUsers(),

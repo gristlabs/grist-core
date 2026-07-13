@@ -136,6 +136,26 @@ export function datetime(dbType: DatabaseType) {
 }
 
 /**
+ * Apply a pessimistic write-lock ("SELECT ... FOR UPDATE") where the backend has row locks.
+ * On sqlite there are none, but all transactions are globally serialized (see TypeORMPatches),
+ * so the lock is neither available nor needed. Postgres and sqlite are the only supported
+ * backends; any other throws rather than silently writing without a lock.
+ */
+export function lockForUpdate<T extends ObjectLiteral>(
+  dbType: DatabaseType,
+  query: SelectQueryBuilder<T>,
+): SelectQueryBuilder<T> {
+  switch (dbType) {
+    case "postgres":
+      return query.setLock("pessimistic_write");
+    case "sqlite":
+      return query;
+    default:
+      throw new Error(`lockForUpdate not implemented for ${dbType}`);
+  }
+}
+
+/**
  *
  * Generate SQL code from one QueryBuilder, get the "raw" results, and then decode
  * them as entities using a different QueryBuilder.

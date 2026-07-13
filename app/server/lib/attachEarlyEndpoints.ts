@@ -33,6 +33,7 @@ import {
   sendReply,
   stringParam,
 } from "app/server/lib/requestUtils";
+import { attachSetupRequestsEndpoints } from "app/server/lib/SetupRequestsEndpoints";
 import { getTelemetryPrefs } from "app/server/lib/Telemetry";
 import { updateGristServerLatestVersion } from "app/server/lib/updateChecker";
 
@@ -95,6 +96,9 @@ export function attachEarlyEndpoints(options: AttachOptions) {
 
   const probes = new BootProbes(app, gristServer, "/api", adminMiddleware);
   probes.addEndpoints();
+
+  // Setup requests rely on the /api/admin gate just registered for their admin half.
+  attachSetupRequestsEndpoints(app, gristServer);
 
   app.post(
     "/api/admin/restart",

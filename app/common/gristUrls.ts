@@ -1041,6 +1041,9 @@ export interface GristLoadConfig {
   // If backend has an email service for sending notifications.
   notifierEnabled?: boolean;
 
+  // If a Redis connection is configured (REDIS_URL set). Reports configuration, not reachability.
+  redisAvailable?: boolean;
+
   formFraming?: FormFraming;
 
   adminDefinedUrls?: string;
@@ -1107,6 +1110,12 @@ export interface TelemetryConfig {
 
 export const GristDeploymentTypes = StringUnion("saas", "core", "enterprise", "electron", "static");
 export type GristDeploymentType = typeof GristDeploymentTypes.type;
+
+// Deployment types that are the full Grist edition rather than the free core edition.
+export const fullEditionDeploymentTypes: GristDeploymentType[] = ["saas", "enterprise"];
+export function isFullEditionDeployment(deploymentType?: GristDeploymentType): boolean {
+  return fullEditionDeploymentTypes.includes(deploymentType ?? "core");
+}
 
 // Acceptable org subdomains are alphanumeric (hyphen also allowed) and of
 // non-zero length.

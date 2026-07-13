@@ -39,6 +39,9 @@ function setupTest() {
   const gristDoc: any = {
     docInfo,
     docPageModel,
+    // Minimal stub: with no signed-in user the Notifications/Automations nudge no-ops,
+    // keeping this fixture focused on the settings rows it actually exercises.
+    appModel: { currentValidUser: null },
     isTimingOn: observable(false),
     attachmentTransfer: observable(null),
     docApi: {

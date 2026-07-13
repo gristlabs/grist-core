@@ -2,11 +2,6 @@ import path from "path";
 
 import type { StorybookConfig } from "@storybook/html-webpack5";
 
-// Root of grist-core (whether standalone or as core/ inside grist-saas).
-// `yarn run storybook` sets cwd to the package root. Using process.cwd()
-// instead of __dirname so this works under Node 23+'s ESM loader too.
-const coreRoot = process.cwd();
-
 const config: StorybookConfig = {
   stories: [
     "../storybook/**/*.stories.ts",
@@ -19,11 +14,12 @@ const config: StorybookConfig = {
     "@storybook/addon-essentials",
   ],
 
-  webpackFinal: async (config) => {
-    // Reuse Grist's module resolution: allows imports like 'app/client/...'
-    // In grist-core standalone, coreRoot is the repo root.
-    // In grist-saas, coreRoot is the core/ subdirectory.
+  webpackFinal: async (config, { configDir }) => {
+    // Reuse Grist's module resolution: allows imports like 'app/client/...'.
+    // grist-core's root is the parent of this .storybook dir; deriving it from configDir
+    // (not cwd) keeps it correct wherever the command is run from.
     // 'node_modules' (unresolved) lets webpack walk up to find the right one.
+    const coreRoot = path.resolve(configDir, "..");
     config.resolve = config.resolve || {};
     config.resolve.extensions = [".ts", ".js", ...(config.resolve.extensions || [])];
     config.resolve.modules = [
