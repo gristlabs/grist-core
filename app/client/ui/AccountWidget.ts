@@ -140,9 +140,12 @@ export class AccountWidget extends Disposable {
     const users = this._appModel.topAppModel.users;
     const isExternal = user?.loginMethod === "External";
     return [
+      { "aria-labelledby": "usermenu-name" },
       cssUserInfo(
         createUserImage(user, "large"),
-        cssUserName(dom("span", user.name, testId("usermenu-name")),
+        cssUserName(
+          { id: "usermenu-name" },
+          dom("span", user.name, testId("usermenu-name")),
           cssEmail(user.email, testId("usermenu-email")),
         ),
       ),
@@ -179,7 +182,10 @@ export class AccountWidget extends Disposable {
       // org-listing UI below.
       this._appModel.topAppModel.isSingleOrg || !isFeatureEnabled("multiAccounts") ? [] : [
         menuDivider(),
-        menuSubHeader(dom.text(use => use(users).length > 1 ? t("Switch Accounts") : t("Accounts"))),
+        menuSubHeader(
+          dom.text(use => use(users).length > 1 ?
+            t("Switch Accounts") : t("Accounts")),
+          { role: "presentation" }),
         dom.forEach(users, (_user) => {
           if (_user.id === user.id) { return null; }
           return menuItem(() => this._switchAccount(_user),

@@ -11,7 +11,7 @@ import { maybeAddSiteSwitcherSection } from "app/client/ui/SiteSwitcher";
 import { createUserImage, cssUserImage } from "app/client/ui/UserImage";
 import { colors, theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
-import { menu, menuItem, menuItemLink, menuSubHeader } from "app/client/ui2018/menus";
+import { menu, menuGroup, menuItem, menuItemLink } from "app/client/ui2018/menus";
 import { unstyledButton } from "app/client/ui2018/unstyled";
 import { commonUrls } from "app/common/gristUrls";
 import * as roles from "app/common/roles";
@@ -145,24 +145,26 @@ export class AppHeader extends Disposable {
           cssDropdownIcon("Dropdown"),
         ]),
         menu(() => [
-          menuSubHeader(
-            this._appModel.isPersonal ?
-              t("Personal Site") + (this._appModel.isLegacySite ? ` (${t("Legacy")})` : "") :
-              t("Team Site"),
-            testId("orgmenu-title"),
+          menuGroup(
+            [
+              this._appModel.isPersonal ?
+                t("Personal Site") + (this._appModel.isLegacySite ? ` (${t("Legacy")})` : "") :
+                t("Team Site"),
+              testId("orgmenu-title"),
+            ],
+            menuItemLink(urlState().setLinkUrl({}), t("Home page"), testId("orgmenu-home-page")),
+
+            // Show 'Organization Settings' when on a home page of a valid org.
+            (!this._docPageModel && this._currentOrg && !this._currentOrg.owner ?
+              menuItem(() => manageTeamUsersApp({ app: this._appModel }),
+                t("Manage team"), testId("orgmenu-manage-team"),
+                dom.cls("disabled", !roles.canEditAccess(this._currentOrg.access))) :
+              // Don't show on doc pages, or for personal orgs.
+              null),
+
+            this._maybeBuildBillingPageMenuItem(),
+            this._maybeBuildActivationPageMenuItem(),
           ),
-          menuItemLink(urlState().setLinkUrl({}), t("Home page"), testId("orgmenu-home-page")),
-
-          // Show 'Organization Settings' when on a home page of a valid org.
-          (!this._docPageModel && this._currentOrg && !this._currentOrg.owner ?
-            menuItem(() => manageTeamUsersApp({ app: this._appModel }),
-              t("Manage team"), testId("orgmenu-manage-team"),
-              dom.cls("disabled", !roles.canEditAccess(this._currentOrg.access))) :
-            // Don't show on doc pages, or for personal orgs.
-            null),
-
-          this._maybeBuildBillingPageMenuItem(),
-          this._maybeBuildActivationPageMenuItem(),
 
           maybeAddSiteSwitcherSection(this._appModel),
         ], { placement: "bottom-start" }),
