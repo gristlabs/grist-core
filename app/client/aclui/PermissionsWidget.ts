@@ -106,7 +106,7 @@ function makePermissionSet(bits: PermissionKey[], makeValue: (bit: PermissionKey
 
 // Helper for a tick (checkmark) icon, replacing it with an equivalent space when not shown.
 function tick(show: boolean) {
-  return show ? menuIcon("Tick") : cssMenuIconSpace();
+  return show ? menuIcon("Tick", { "aria-label": t("Checked") }) : cssMenuIconSpace();
 }
 
 // Human-readable summary of the permission set. E.g. "Allow Read. Deny Update, Create.".
