@@ -2,6 +2,7 @@ import { allCommands } from "app/client/components/commands";
 import { showUndoDiscardNotification } from "app/client/components/Drafts";
 import { GristDoc } from "app/client/components/GristDoc";
 import { domDispatch, domOnCustom, makeTestId } from "app/client/lib/domUtils";
+import { FocusLayer } from "app/client/lib/FocusLayer";
 import { lockFocusUntilRemoved } from "app/client/lib/focusUtils";
 import { createObsArray } from "app/client/lib/koArrayWrap";
 import { makeT } from "app/client/lib/localization";
@@ -17,7 +18,7 @@ import { basicButton, primaryButton, textButton } from "app/client/ui2018/button
 import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
 import { theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
-import { menu, menuItem } from "app/client/ui2018/menus";
+import { menu, menuItem, menuItemCheckbox } from "app/client/ui2018/menus";
 import { cssMarkdown } from "app/client/widgets/MarkdownTextBox";
 import { buildMentionTextBox, CommentWithMentions } from "app/client/widgets/MentionTextBox";
 import { CommentContent } from "app/common/DocComments";
@@ -1118,12 +1119,23 @@ export class DiscussionPanel extends Disposable implements IDomComponent {
       cssIconButtonMenu(
         icon("Dots"),
         testId("panel-menu"),
-        menu(() => {
-          return [cssDropdownMenu(
-            labeledSquareCheckbox(this._onlyMine, t("Only my threads"), testId("my-threads")),
-            labeledSquareCheckbox(this._currentPage, t("Only current page"), testId("only-page")),
-            labeledSquareCheckbox(this._resolved, t("Show resolved comments"), testId("show-resolved")),
-          )];
+        menu((ctl) => {
+          return [
+            // Create a FocusLayer to prevent grist-specific shortcuts to interfere (like pressing Space)
+            (elem) => { FocusLayer.create(ctl, { defaultFocusElem: elem, pauseMousetrap: true }); },
+            menuItemCheckbox(
+              this._onlyMine,
+              labeledSquareCheckbox(this._onlyMine, t("Only my threads"), testId("my-threads")),
+            ),
+            menuItemCheckbox(
+              this._currentPage,
+              labeledSquareCheckbox(this._currentPage, t("Only current page"), testId("only-page")),
+            ),
+            menuItemCheckbox(
+              this._resolved,
+              labeledSquareCheckbox(this._resolved, t("Show resolved comments"), testId("show-resolved")),
+            ),
+          ];
         }, { placement: "bottom-start" }),
         dom.on("click", stopPropagation),
       ),
@@ -1297,15 +1309,6 @@ const cssPanelHeader = styled("div", `
   flex: 1;
   align-items: center;
   justify-content: space-between;
-`);
-
-const cssDropdownMenu = styled("div", `
-  display: flex;
-  padding: 12px;
-  padding-left: 16px;
-  padding-right: 16px;
-  gap: 10px;
-  flex-direction: column;
 `);
 
 const cssReplyBox = styled(cssCommonPadding, `
