@@ -1,3 +1,4 @@
+import { FocusLayer } from "app/client/lib/FocusLayer";
 import { makeT } from "app/client/lib/localization";
 import { DocPageModel } from "app/client/models/DocPageModel";
 import { urlState } from "app/client/models/gristUrlState";
@@ -77,20 +78,31 @@ export class ACLUsersPopup extends Disposable {
       const buildExampleUserRow =
         (user: UserAccessData) => this._buildUserRow(user, { isExampleUser: true, ...options });
       return cssMenuWrap(cssMenu(
+        (elem) => { FocusLayer.create(ctl, { defaultFocusElem: elem, pauseMousetrap: true }); },
+        // We use the popweasel "menu" <ul> through cssMenu(), but we only use it for styling purposes.
+        // "generic" role removes the list semantics
+        { role: "generic" },
         dom.cls(menuCssClass),
         dom.cls(gristFloatingMenuClass),
         cssUsers.cls(""),
-        cssHeader(t("Shared users"), dom.show(this._shareUsers.length > 0)),
-        dom.forEach(this._shareUsers, buildRow),
-        (this._attributeTableUsers.length > 0) ? cssHeader(t("Other users from table")) : null,
-        dom.forEach(this._attributeTableUsers, buildExampleUserRow),
+        this._shareUsers.length > 0 ? dom("div",
+          { "role": "group", "aria-labelledby": "shared-users-header" },
+          cssHeader(t("Shared users"), { id: "shared-users-header" }),
+          dom.forEach(this._shareUsers, buildRow),
+        ) : null,
+        (this._attributeTableUsers.length > 0) ? dom("div",
+          { "role": "group", "aria-labelledby": "other-users-table-header" },
+          cssHeader(t("Other users from table"), { id: "other-users-table-header" }),
+          dom.forEach(this._attributeTableUsers, buildExampleUserRow),
+        ) : null,
         // Include example users only if there are not many "real" users.
         // It might be better to have an expandable section with these users, collapsed
         // by default, but that's beyond my UI ken.
-        this._showExampleUsers() ? [
-          (this._exampleUsers.length > 0) ? cssHeader(t("Example Users")) : null,
+        this._showExampleUsers() && this._exampleUsers.length > 0 ? dom("div",
+          { "role": "group", "aria-labelledby": "example-users-header" },
+          cssHeader(t("Example Users"), { id: "example-users-header" }),
           dom.forEach(this._exampleUsers, buildExampleUserRow),
-        ] : null,
+        ) : null,
         (el) => { setTimeout(() => el.focus(), 0); },
         dom.onKeyDown({ Escape: () => ctl.close() }),
       ));
