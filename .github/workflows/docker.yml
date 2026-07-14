@@ -134,9 +134,6 @@ jobs:
     name: Publish grist/grist-ee manifests and full edition extensions
     runs-on: ubuntu-22.04
     needs: [setup, build_and_push_grist]
-    outputs:
-      full_url: ${{ steps.pkg.outputs.full_url }}
-      full_sha256: ${{ steps.pkg.outputs.full_sha256 }}
     steps:
       - name: Free some space
         run: |
@@ -267,8 +264,7 @@ jobs:
           context: .
           build-args: |
             GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING=false
-            GRIST_EXT_FULL_EDITION_URL=${{ needs.publish_grist.outputs.full_url }}
-            GRIST_EXT_FULL_EDITION_SHA256=${{ needs.publish_grist.outputs.full_sha256 }}
+            GRIST_BUILD_CHANNEL=release
           platforms: ${{ matrix.platform }}
           outputs: type=image,name=${{ env.DOCKER_HUB_OWNER }}/grist-oss,push-by-digest=true,name-canonical=true,push=true
           cache-from: type=gha,scope=grist-oss-${{ matrix.arch }}

@@ -9,6 +9,11 @@
  * `/persist/ext/grist-full-edition`). We then re-run the local build with the extensions
  * layered on via environment variables (`NODE_PATH`, `GRIST_EXT_DIR`, and `GRIST_STATIC_EXT_DIR`).
  *
+ * The download is derived from the version of Grist: an unmodified release build (or official
+ * release image; see `channel` in `version.ts`) fetches its extensions from a per-version
+ * manifest at `<baseUrl>/by-version/<version>.json`. The switch is offered only on release
+ * builds.
+ *
  *   - `resolveFullEditionWorker()` is called by the RestartShell on every fork. If a valid,
  *     current extension bundle is on disk, it returns the fork spec that layers it onto the
  *     local build (via `NODE_PATH`, `GRIST_EXT_DIR`, and `GRIST_STATIC_EXT_DIR`); otherwise
@@ -22,6 +27,7 @@
 
 import { delay } from "app/common/delay";
 import { isAffirmative } from "app/common/gutil";
+import { channel, version } from "app/common/version";
 import { ActivationsManager } from "app/gen-server/lib/ActivationsManager";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { appSettings } from "app/server/lib/AppSettings";
@@ -52,7 +58,11 @@ export const Deps = {
   installAttempts: 3,
   installRetryDelayMs: 10 * 1000,
   hasBuiltInExt: defaultHasBuiltInExt,
+  isReleaseBuild: defaultIsReleaseBuild,
 };
+
+/** Default base URL to download extensions from. */
+const DEFAULT_BASE_URL = "https://grist-static.com/grist-full-edition";
 
 /** Marker file written to {@link getFullEditionDir} holding the last-installed download URL. */
 const STAMP_FILE = ".grist-full-edition-stamp";
@@ -79,34 +89,49 @@ export function isRunningExtFullEdition(): boolean {
 }
 
 /**
- * URL of the full edition extensions to download, or undefined when no URL is set, in which case
- * the switch is simply not offered. Read from `GRIST_EXT_FULL_EDITION_URL` (baked into the
- * image at build time).
+ * True on an unmodified build of a tagged Grist release (or an official release image), the only
+ * builds offered the full edition switch. Set from the build-time `channel` in `version.ts`; see
+ * `build_version_file` in `buildtools/build.sh`.
  */
-function getFullEditionUrl(): string | undefined {
-  return fullEditionSettings.flag("url").readString({
-    envVar: "GRIST_EXT_FULL_EDITION_URL",
-  });
+function defaultIsReleaseBuild(): boolean {
+  return (channel as string) === "release";
 }
 
-/** Expected SHA-256 checksum of the full edition extensions, verified after download. */
-function getFullEditionSha256(): string | undefined {
-  return fullEditionSettings.flag("sha256").readString({
-    envVar: "GRIST_EXT_FULL_EDITION_SHA256",
+/**
+ * Base URL for the per-version manifests from which the download is derived. Read from
+ * `GRIST_EXT_FULL_EDITION_BASE_URL`: unset falls back to {@link DEFAULT_BASE_URL} (point it at a
+ * self-hosted mirror serving the same layout); an explicitly empty value disables the switch (an
+ * air-gapped opt-out). Returns undefined when disabled.
+ */
+function getBaseUrl(): string | undefined {
+  const base = fullEditionSettings.flag("baseUrl").readString({
+    envVar: "GRIST_EXT_FULL_EDITION_BASE_URL",
   });
+  if (base === undefined) { return DEFAULT_BASE_URL; }
+  return base || undefined;
+}
+
+/**
+ * Stable identity of the desired full edition extensions for this build, or undefined when the
+ * switch isn't offered (i.e. not a release build with derivation enabled). Recorded in the stamp
+ * and compared (without any network access) to decide whether the on-disk extensions are current.
+ */
+function getFullEditionIdentity(): string | undefined {
+  if (!Deps.isReleaseBuild() || !getBaseUrl() || !version) { return undefined; }
+  return `version:${version}`;
 }
 
 /**
  * Whether switching to a downloaded full edition should be offered.
  *
- * Returns true if already running a download-based full edition, or both a
- * download URL and its checksum are present in the running process.
+ * Returns true if already running a download-based full edition, or the download can be derived for
+ * this build (a release build with derivation enabled).
  */
 export function isExtFullEditionSupported(): boolean {
   if (isRunningExtFullEdition()) { return true; }
   if (Deps.hasBuiltInExt()) { return false; }
 
-  return Boolean(getFullEditionUrl() && getFullEditionSha256());
+  return getFullEditionIdentity() !== undefined;
 }
 
 /**
@@ -129,8 +154,8 @@ export function resolveFullEditionWorker(): ForkSpec | null {
     // (which could be a stale copy left in the instance dir from a previous build or image).
     if (Deps.hasBuiltInExt()) { return null; }
 
-    const url = getFullEditionUrl();
-    if (!url) { return null; }
+    const identity = getFullEditionIdentity();
+    if (!identity) { return null; }
 
     const dir = getFullEditionDir();
     let stamp: string;
@@ -142,7 +167,7 @@ export function resolveFullEditionWorker(): ForkSpec | null {
       }
       return null;
     }
-    if (stamp !== url) { return null; }
+    if (stamp !== identity) { return null; }
 
     const extDir = path.join(dir, "ext");
     const staticDir = path.join(dir, "static");
@@ -162,7 +187,7 @@ export function resolveFullEditionWorker(): ForkSpec | null {
       // The extensions run the same local entry point as the built-in build; distinguish them
       // by key so the RestartShell can tell "extensions failed - fall back to built-in" apart
       // from "built-in failed - give up".
-      key: `full:${url}`,
+      key: `full:${identity}`,
       entryPoint: path.join(codeRoot, "stubs", "app", "server", "server.js"),
       env: {
         NODE_PATH: nodePath,
@@ -184,7 +209,7 @@ export function resolveFullEditionWorker(): ForkSpec | null {
  *   - Install: When `useExtFullEdition` is true and no current extensions exist, downloads and
  *     installs them, and then requests a restart.
  *   - Upgrade: When `useExtFullEdition` is true and the downloaded extensions don't match the
- *     current URL, downloads and replaces them, and then requests a restart.
+ *     current version, downloads and replaces them, and then requests a restart.
  *   - Remove: When `useExtFullEdition` is false, reverts to the built-in build -- dropping
  *     the stamp and requesting a restart if currently running the extensions, and reclaiming
  *     the downloaded extensions from disk on a later boot.
@@ -192,8 +217,8 @@ export function resolveFullEditionWorker(): ForkSpec | null {
  * Returns whether a restart was requested, in which case the caller should ask the
  * RestartShell to refork, so that the correct build of Grist may run.
  *
- * If no download URL is set, calling this function is a no-op. Never throws; on failure, logs
- * and leaves the current edition running.
+ * If the switch isn't offered for this build, calling this function is a no-op. Never throws; on
+ * failure, logs and leaves the current edition running.
  *
  * TODO: Surface errors in the Admin Panel.
  */
@@ -204,32 +229,25 @@ export async function maybeManageFullEdition(): Promise<{ restartRequested: bool
     return { restartRequested: false };
   }
 
-  const url = getFullEditionUrl();
-  if (!url) {
+  const identity = getFullEditionIdentity();
+  if (!identity) {
     return { restartRequested: false };
   }
 
   try {
-    return await manageFullEdition(url);
+    return await manageFullEdition(identity);
   } catch (e) {
     log.error("bootstrapFullEdition: failed, remaining on current edition: %s", e);
     return { restartRequested: false };
   }
 }
 
-async function manageFullEdition(url: string): Promise<{ restartRequested: boolean }> {
+async function manageFullEdition(identity: string): Promise<{ restartRequested: boolean }> {
   const dir = getFullEditionDir();
   const enabled = await isFullEditionEnabled();
-  const current = await isStampCurrent(dir, url);
+  const current = await isStampCurrent(dir, identity);
 
   if (enabled && !current) {
-    const sha256 = getFullEditionSha256();
-    if (!sha256) {
-      log.error("bootstrapFullEdition: GRIST_EXT_FULL_EDITION_SHA256 not set for %s; " +
-        "remaining on built-in edition", url);
-      return { restartRequested: false };
-    }
-
     if (!(await ensureWritable(dir))) {
       log.error("bootstrapFullEdition: full edition storage directory is not writable (%s); " +
         "remaining on built-in edition. Make sure the instance directory is writable.", dir);
@@ -238,7 +256,8 @@ async function manageFullEdition(url: string): Promise<{ restartRequested: boole
 
     for (let attempt = 1; attempt <= Deps.installAttempts; attempt++) {
       try {
-        await downloadAndInstall(dir, url, sha256);
+        const { url, sha256 } = await resolveOverlay();
+        await downloadAndInstall(dir, identity, url, sha256);
         await updateGlobalConfigEdition(true);
         return { restartRequested: true };
       } catch (e) {
@@ -320,14 +339,49 @@ async function isFullEditionEnabled(): Promise<boolean> {
 }
 
 /**
- * Returns whether `dir` contains a stamp file matching the specified `url`.
+ * Returns whether `dir` contains a stamp file matching the specified `identity`.
  */
-async function isStampCurrent(dir: string, url: string): Promise<boolean> {
+async function isStampCurrent(dir: string, identity: string): Promise<boolean> {
   try {
     const stamp = await fse.readFile(path.join(dir, STAMP_FILE), "utf8");
-    return stamp.trim() === url;
+    return stamp.trim() === identity;
   } catch {
     return false;
+  }
+}
+
+/**
+ * Resolves the concrete download URL and expected checksum of the full edition extensions by
+ * fetching the per-version manifest at `<baseUrl>/by-version/<version>.json` over TLS. Throws if
+ * the source can't be resolved.
+ */
+async function resolveOverlay(): Promise<{ url: string; sha256: string }> {
+  const base = getBaseUrl();
+  if (!base) { throw new Error("full edition downloads are disabled"); }
+  if (!version) { throw new Error("cannot resolve full edition: unknown version"); }
+  return await fetchManifest(`${base}/by-version/${version}.json`);
+}
+
+/**
+ * Fetches and validates the per-version manifest at `url`, returning the download URL and its
+ * expected checksum. Throws on a failed request or a malformed manifest.
+ */
+async function fetchManifest(url: string): Promise<{ url: string; sha256: string }> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), Deps.downloadTimeoutMs);
+  try {
+    const res = await fetch(url, { signal: controller.signal, agent: agents.trusted });
+    if (!res.ok) {
+      throw new Error(`full edition manifest request failed (${res.status}) for ${url}`);
+    }
+    const body = await res.json() as { url?: unknown; sha256?: unknown };
+    if (typeof body.url !== "string" || !body.url ||
+      typeof body.sha256 !== "string" || !body.sha256) {
+      throw new Error(`full edition manifest is malformed: ${url}`);
+    }
+    return { url: body.url, sha256: body.sha256 };
+  } finally {
+    clearTimeout(timer);
   }
 }
 
@@ -342,9 +396,11 @@ async function anyPathExists(paths: string[]): Promise<boolean> {
 }
 
 /**
- * Downloads the full edition extensions from `url` and installs them into `dir`.
+ * Downloads the full edition extensions from `url` and installs them into `dir`, stamping them with
+ * `identity`.
  */
-async function downloadAndInstall(dir: string, url: string, sha256: string): Promise<void> {
+async function downloadAndInstall(dir: string, identity: string, url: string, sha256: string):
+Promise<void> {
   await fse.mkdirp(dir);
 
   const stagingDir = `${dir}.staging`;
@@ -359,7 +415,7 @@ async function downloadAndInstall(dir: string, url: string, sha256: string): Pro
     await fse.remove(stagingDir);
     await fse.mkdirp(stagingDir);
     await tar.x({ file: tarball, cwd: stagingDir });
-    await fse.writeFile(path.join(stagingDir, STAMP_FILE), url);
+    await fse.writeFile(path.join(stagingDir, STAMP_FILE), identity);
 
     // Then swap into place, discarding any previous extensions.
     await fse.remove(oldDir);

@@ -1,3 +1,4 @@
+import { version } from "app/common/version";
 import { ActivationsManager } from "app/gen-server/lib/ActivationsManager";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import {
@@ -23,7 +24,7 @@ import * as tar from "tar";
 
 const STAMP_FILE = ".grist-full-edition-stamp";
 
-const FULL_URL = "https://example.test/grist-full-edition.tar.gz";
+const IDENTITY = `version:${version}`;
 
 function fullEditionDir(instRoot: string): string {
   return path.join(instRoot, "ext", "grist-full-edition");
@@ -51,10 +52,11 @@ describe("bootstrapFullEdition", function() {
     beforeEach(async function() {
       instRoot = await fse.mkdtemp(path.join(os.tmpdir(), "grist-fe-inst-"));
       process.env.GRIST_INST_DIR = instRoot;
-      process.env.GRIST_EXT_FULL_EDITION_URL = FULL_URL;
+      delete process.env.GRIST_EXT_FULL_EDITION_BASE_URL;
       delete process.env.NODE_PATH;
       delete process.env.GRIST_EXT_FULL_EDITION_ACTIVE;
       sandbox.stub(Deps, "hasBuiltInExt").returns(false);
+      sandbox.stub(Deps, "isReleaseBuild").returns(true);
       dir = fullEditionDir(instRoot);
       await fse.mkdirp(dir);
     });
@@ -65,14 +67,14 @@ describe("bootstrapFullEdition", function() {
     });
 
     it("returns a fork spec layering the extensions onto the local build", async function() {
-      await fse.writeFile(path.join(dir, STAMP_FILE), `${FULL_URL}\n`);
+      await fse.writeFile(path.join(dir, STAMP_FILE), `${IDENTITY}\n`);
 
       const spec = resolveFullEditionWorker();
       assert.isNotNull(spec);
       const extDir = path.join(dir, "ext");
       const staticDir = path.join(dir, "static");
       assert.equal(spec!.entryPoint, path.join(codeRoot, "stubs", "app", "server", "server.js"));
-      assert.equal(spec!.key, `full:${FULL_URL}`);
+      assert.equal(spec!.key, `full:${IDENTITY}`);
       assert.equal(spec!.env!.NODE_PATH, [
         codeRoot,
         dir,
@@ -90,19 +92,26 @@ describe("bootstrapFullEdition", function() {
       assert.isNull(resolveFullEditionWorker());
     });
 
-    it("returns null when the stamp is stale", async function() {
-      await fse.writeFile(path.join(dir, STAMP_FILE), "https://example.test/some-other-build.tar.gz");
+    it("returns null when the stamp is for a different version", async function() {
+      await fse.writeFile(path.join(dir, STAMP_FILE), "version:9.9.9");
       assert.isNull(resolveFullEditionWorker());
     });
 
-    it("returns null when the url is unset", function() {
-      delete process.env.GRIST_EXT_FULL_EDITION_URL;
+    it("returns null on a non-release build", async function() {
+      (Deps.isReleaseBuild as sinon.SinonStub).returns(false);
+      await fse.writeFile(path.join(dir, STAMP_FILE), IDENTITY);
+      assert.isNull(resolveFullEditionWorker());
+    });
+
+    it("returns null when derivation is disabled", async function() {
+      process.env.GRIST_EXT_FULL_EDITION_BASE_URL = "";
+      await fse.writeFile(path.join(dir, STAMP_FILE), IDENTITY);
       assert.isNull(resolveFullEditionWorker());
     });
 
     it("returns null when the build already bundles extensions", async function() {
       (Deps.hasBuiltInExt as sinon.SinonStub).returns(true);
-      await fse.writeFile(path.join(dir, STAMP_FILE), FULL_URL);
+      await fse.writeFile(path.join(dir, STAMP_FILE), IDENTITY);
       assert.isNull(resolveFullEditionWorker());
     });
 
@@ -114,47 +123,38 @@ describe("bootstrapFullEdition", function() {
 
   describe("isExtFullEditionSupported", function() {
     beforeEach(function() {
-      delete process.env.GRIST_EXT_FULL_EDITION_URL;
-      delete process.env.GRIST_EXT_FULL_EDITION_SHA256;
+      delete process.env.GRIST_EXT_FULL_EDITION_BASE_URL;
       delete process.env.GRIST_EXT_FULL_EDITION_ACTIVE;
       sandbox.stub(Deps, "hasBuiltInExt").returns(false);
+      sandbox.stub(Deps, "isReleaseBuild").returns(true);
     });
 
     afterEach(function() {
       sandbox.restore();
     });
 
-    it("is supported when a URL and checksum are baked in", function() {
-      process.env.GRIST_EXT_FULL_EDITION_URL = FULL_URL;
-      process.env.GRIST_EXT_FULL_EDITION_SHA256 = "abc123";
+    it("is supported on a release build via version derivation", function() {
       assert.isTrue(isExtFullEditionSupported());
     });
 
-    it("is unsupported without a download URL", function() {
-      process.env.GRIST_EXT_FULL_EDITION_SHA256 = "abc123";
+    it("is unsupported on a non-release build (main/nightly)", function() {
+      (Deps.isReleaseBuild as sinon.SinonStub).returns(false);
       assert.isFalse(isExtFullEditionSupported());
     });
 
-    it("is unsupported without a checksum", function() {
-      process.env.GRIST_EXT_FULL_EDITION_URL = FULL_URL;
-      assert.isFalse(isExtFullEditionSupported());
-    });
-
-    it("is unsupported when the URL is explicitly empty (opt-out)", function() {
-      process.env.GRIST_EXT_FULL_EDITION_URL = "";
-      process.env.GRIST_EXT_FULL_EDITION_SHA256 = "abc123";
+    it("is unsupported when derivation is disabled", function() {
+      process.env.GRIST_EXT_FULL_EDITION_BASE_URL = "";
       assert.isFalse(isExtFullEditionSupported());
     });
 
     it("is unsupported when the build already bundles extensions", function() {
-      process.env.GRIST_EXT_FULL_EDITION_URL = FULL_URL;
-      process.env.GRIST_EXT_FULL_EDITION_SHA256 = "abc123";
       (Deps.hasBuiltInExt as sinon.SinonStub).returns(true);
       assert.isFalse(isExtFullEditionSupported());
     });
 
     it("is supported for an extensions worker even with built-in extensions", function() {
       (Deps.hasBuiltInExt as sinon.SinonStub).returns(true);
+      (Deps.isReleaseBuild as sinon.SinonStub).returns(false);
       process.env.GRIST_EXT_FULL_EDITION_ACTIVE = "1";
       assert.isTrue(isExtFullEditionSupported());
     });
@@ -180,10 +180,10 @@ describe("bootstrapFullEdition", function() {
     beforeEach(async function() {
       instRoot = await fse.mkdtemp(path.join(os.tmpdir(), "grist-fe-inst-"));
       process.env.GRIST_INST_DIR = instRoot;
-      process.env.GRIST_EXT_FULL_EDITION_URL = FULL_URL;
-      delete process.env.GRIST_EXT_FULL_EDITION_SHA256;
+      delete process.env.GRIST_EXT_FULL_EDITION_BASE_URL;
       delete process.env.GRIST_EXT_FULL_EDITION_ACTIVE;
       sandbox.stub(Deps, "hasBuiltInExt").returns(false);
+      sandbox.stub(Deps, "isReleaseBuild").returns(true);
       dir = fullEditionDir(instRoot);
       await fse.mkdirp(dir);
       editionValue = "core";
@@ -211,8 +211,8 @@ describe("bootstrapFullEdition", function() {
       return editionValue;
     }
 
-    async function writeStamp(url: string): Promise<void> {
-      await fse.writeFile(path.join(dir, STAMP_FILE), url);
+    async function writeStamp(identity: string): Promise<void> {
+      await fse.writeFile(path.join(dir, STAMP_FILE), identity);
     }
 
     async function makePayloadDirs(): Promise<void> {
@@ -220,8 +220,8 @@ describe("bootstrapFullEdition", function() {
       await fse.mkdirp(path.join(dir, "static"));
     }
 
-    it("is a no-op when the feature is not configured", async function() {
-      delete process.env.GRIST_EXT_FULL_EDITION_URL;
+    it("is a no-op on a non-release build", async function() {
+      (Deps.isReleaseBuild as sinon.SinonStub).returns(false);
       await setUseExtFullEdition(true);
       await makePayloadDirs();
       await writeStamp("stale");
@@ -248,7 +248,7 @@ describe("bootstrapFullEdition", function() {
       editionValue = "enterprise";
       await setUseExtFullEdition(false);
       await makePayloadDirs();
-      await writeStamp(FULL_URL);
+      await writeStamp(IDENTITY);
 
       const { restartRequested } = await maybeManageFullEdition();
       assert.isTrue(restartRequested);
@@ -261,7 +261,7 @@ describe("bootstrapFullEdition", function() {
     it("already current: keeps edition in sync and requests no restart", async function() {
       await setUseExtFullEdition(true);
       await makePayloadDirs();
-      await writeStamp(FULL_URL);
+      await writeStamp(IDENTITY);
 
       const { restartRequested } = await maybeManageFullEdition();
       assert.isFalse(restartRequested);
@@ -287,7 +287,6 @@ describe("bootstrapFullEdition", function() {
 
       sandbox.stub(Deps, "installAttempts").value(1);
       sandbox.stub(Deps, "installRetryDelayMs").value(0);
-      process.env.GRIST_EXT_FULL_EDITION_SHA256 = "deadbeef";
       await fse.chmod(dir, 0o500);
       await setUseExtFullEdition(true);
 
@@ -300,11 +299,13 @@ describe("bootstrapFullEdition", function() {
       }
     });
 
-    describe("install + checksum", function() {
+    describe("download + install", function() {
       let src: string;
       let tarball: string;
       let tarballSha: string;
-      let url: string;
+      let base: string;
+      // The manifest body served for this test; null serves a 404.
+      let manifestBody: string | null;
 
       beforeEach(async function() {
         src = await fse.mkdtemp(path.join(os.tmpdir(), "grist-fe-fixture-"));
@@ -316,13 +317,23 @@ describe("bootstrapFullEdition", function() {
         await tar.c({ file: tarball, cwd: src, gzip: true }, ["ext", "static"]);
         tarballSha = await checksumFile(tarball, "sha256");
 
-        fileServer = http.createServer((_req, res) => {
-          res.writeHead(200);
-          fse.createReadStream(tarball).pipe(res);
+        fileServer = http.createServer((req, res) => {
+          if (req.url === `/by-version/${version}.json`) {
+            if (manifestBody === null) { res.writeHead(404); res.end(); return; }
+            res.writeHead(200, { "content-type": "application/json" });
+            res.end(manifestBody);
+          } else if (req.url === "/payload.tar.gz") {
+            res.writeHead(200);
+            fse.createReadStream(tarball).pipe(res);
+          } else {
+            res.writeHead(404);
+            res.end();
+          }
         });
         await new Promise<void>(resolve => fileServer!.listen(0, resolve));
-        url = `http://localhost:${(fileServer.address() as AddressInfo).port}/payload.tar.gz`;
-        process.env.GRIST_EXT_FULL_EDITION_URL = url;
+        base = `http://localhost:${(fileServer.address() as AddressInfo).port}`;
+        process.env.GRIST_EXT_FULL_EDITION_BASE_URL = base;
+        manifestBody = JSON.stringify({ url: `${base}/payload.tar.gz`, sha256: tarballSha });
         await setUseExtFullEdition(true);
       });
 
@@ -330,30 +341,26 @@ describe("bootstrapFullEdition", function() {
         await fse.remove(src).catch(() => undefined);
       });
 
-      it("installs verified extensions, then sets edition and requests restart", async function() {
-        process.env.GRIST_EXT_FULL_EDITION_SHA256 = tarballSha;
-
+      it("derives, installs verified extensions, sets edition and requests restart", async function() {
         const { restartRequested } = await maybeManageFullEdition();
         assert.isTrue(restartRequested);
         assert.equal(edition(), "enterprise");
-        assert.equal((await fse.readFile(path.join(dir, STAMP_FILE), "utf8")).trim(), url);
+        assert.equal((await fse.readFile(path.join(dir, STAMP_FILE), "utf8")).trim(), IDENTITY);
         assert.isTrue(await fse.pathExists(path.join(dir, "ext", "marker")));
         assert.isTrue(await fse.pathExists(path.join(dir, "static", "marker")));
       });
 
       it("upgrades over an existing copy, replacing its payload and stamp", async function() {
-        process.env.GRIST_EXT_FULL_EDITION_SHA256 = tarballSha;
         // A stale copy is already installed: a different stamp and old payload content that
         // the upgrade must replace (exercising the move-old-out-of-the-way swap).
         await makePayloadDirs();
         await fse.writeFile(path.join(dir, "ext", "old-marker"), "old");
-        await writeStamp("https://example.test/old-build.tar.gz");
+        await writeStamp("version:9.9.9");
 
         const { restartRequested } = await maybeManageFullEdition();
         assert.isTrue(restartRequested);
         assert.equal(edition(), "enterprise");
-        // Stamp advanced to the new URL, and the new payload replaced the old one.
-        assert.equal((await fse.readFile(path.join(dir, STAMP_FILE), "utf8")).trim(), url);
+        assert.equal((await fse.readFile(path.join(dir, STAMP_FILE), "utf8")).trim(), IDENTITY);
         assert.isTrue(await fse.pathExists(path.join(dir, "ext", "marker")));
         assert.isFalse(await fse.pathExists(path.join(dir, "ext", "old-marker")),
           "stale payload should be gone");
@@ -363,7 +370,7 @@ describe("bootstrapFullEdition", function() {
       it("rejects a checksum mismatch: no install, stays on built-in edition", async function() {
         sandbox.stub(Deps, "installAttempts").value(1);
         sandbox.stub(Deps, "installRetryDelayMs").value(0);
-        process.env.GRIST_EXT_FULL_EDITION_SHA256 = "deadbeef";
+        manifestBody = JSON.stringify({ url: `${base}/payload.tar.gz`, sha256: "deadbeef" });
 
         const { restartRequested } = await maybeManageFullEdition();
         assert.isFalse(restartRequested);
@@ -371,10 +378,21 @@ describe("bootstrapFullEdition", function() {
         assert.isFalse(await fse.pathExists(path.join(dir, STAMP_FILE)));
       });
 
-      it("refuses to install without a built-in checksum", async function() {
+      it("stays on core when the manifest is missing", async function() {
         sandbox.stub(Deps, "installAttempts").value(1);
         sandbox.stub(Deps, "installRetryDelayMs").value(0);
-        delete process.env.GRIST_EXT_FULL_EDITION_SHA256;
+        manifestBody = null;
+
+        const { restartRequested } = await maybeManageFullEdition();
+        assert.isFalse(restartRequested);
+        assert.equal(edition(), "core");
+        assert.isFalse(await fse.pathExists(path.join(dir, STAMP_FILE)));
+      });
+
+      it("stays on core when the manifest is malformed", async function() {
+        sandbox.stub(Deps, "installAttempts").value(1);
+        sandbox.stub(Deps, "installRetryDelayMs").value(0);
+        manifestBody = "{ not json";
 
         const { restartRequested } = await maybeManageFullEdition();
         assert.isFalse(restartRequested);

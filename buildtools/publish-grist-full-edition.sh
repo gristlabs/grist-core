@@ -20,6 +20,10 @@
 #   NNNN     - Zero-padded per-day sequence (highest in S3 + 1, per channel + date).
 #   LABEL    - Human-friendly label (e.g. v1.7.8, latest-<commit>). See LABEL below.
 #
+# On the release channel it also publishes a per-version manifest that points at the tarball,
+# which is how the running grist-oss finds this download:
+#   ${PREFIX}/by-version/${VERSION}.json  ->  {"url": <tarball URL>, "sha256": <tarball sha256>}
+#
 # Arguments:
 #   --dry-run - skip the S3 upload (same as DRY_RUN=1)
 #
@@ -92,6 +96,10 @@ docker cp "$container:/grist/static" "$stage/static"
 docker cp "$container:/grist/ext/assets" "$stage/ext/assets" 2>/dev/null \
   || echo "+ note: no /grist/ext/assets in image; skipping"
 
+# The running grist-oss container derives the manifest URL from its own version.
+docker cp "$container:/grist/package.json" "$work/package.json"
+VERSION="$(node -p "require('$work/package.json').version")"
+
 buildtools/prune-runtime-modules.sh "$stage/ext/node_modules"
 
 # Source maps are dev-only.
@@ -108,6 +116,9 @@ if [[ "$DRY_RUN" == 1 ]]; then
   echo "+ Dry run; skipping S3 upload. Built extensions:"
   ls -l "$tarball"
   echo "+ sha256=${SHA}"
+  if [[ "$CHANNEL" == "release" ]]; then
+    echo "+ Would publish manifest by-version/${VERSION}.json"
+  fi
   exit 0
 fi
 
@@ -119,9 +130,12 @@ aws s3 cp "$tarball" "s3://$BUCKET/$PREFIX/$DIR/$tarball"
 URL="${HOST}/${PREFIX}/${DIR}/${tarball}"
 echo "+ Published ${URL}"
 
-if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
-  {
-    echo "full_url=${URL}"
-    echo "full_sha256=${SHA}"
-  } >> "$GITHUB_OUTPUT"
+# On a release, publish a per-version manifest from which the running grist-oss resolves this
+# download (see fetchManifest in app/server/lib/bootstrapFullEdition.ts). Nightly builds skip it:
+# their version matches the last release and must not clobber that release's manifest.
+if [[ "$CHANNEL" == "release" ]]; then
+  manifest="$work/${VERSION}.json"
+  printf '{"url":"%s","sha256":"%s"}\n' "$URL" "$SHA" > "$manifest"
+  aws s3 cp "$manifest" "s3://$BUCKET/$PREFIX/by-version/${VERSION}.json"
+  echo "+ Published ${HOST}/${PREFIX}/by-version/${VERSION}.json"
 fi
