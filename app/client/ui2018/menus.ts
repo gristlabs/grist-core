@@ -214,6 +214,12 @@ export const menuItemStyle = `
   }
 `;
 
+const menuGroupStyle = `
+  .${weasel.cssMenuGroup.className} [role="presentation"] {
+    padding: 0;
+  }
+`;
+
 export const menuItemStatic = styled("div", menuItemStyle);
 
 export const menuCssClass = cssMenuElem.className;
@@ -605,6 +611,12 @@ export const menuText = styled("div", `
 `);
 
 export const menuItem = styled(weasel.menuItem, menuItemStyle);
+
+const styledMenuGroup = styled(weasel.menuGroup, menuGroupStyle);
+
+export const menuGroup = (heading: DomElementArg, ...args: DomElementArg[]) => {
+  return styledMenuGroup(menuSubHeader(heading), ...args);
+};
 
 export const menuItemLink = styled(weasel.menuItemLink, menuItemStyle);
 
