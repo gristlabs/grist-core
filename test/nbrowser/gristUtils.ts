@@ -3688,10 +3688,13 @@ namespace gristUtils {
  * Useful for local testing of features that depend on environment variables, as it avoids the need
  * to restart the server when those variables are already set.
  *
- * Returns a `restartWithEnv(moreVars)` helper that applies additional env vars and restarts the
- * server. Useful when several sibling describes each need the server in a different state: pass
- * no vars to the outer call (just to own the snapshot) and call the returned helper in each
- * inner `before`. The outer `after` restores the original env and restarts once at the end.
+ * Returns a `restartWithEnv(moreVars)` helper for testing several server variants within one
+ * enclosing describe: pass no vars to the outer call (it then only takes the snapshot and
+ * restores it at the end), and call the helper in each inner describe's `before`. Nesting
+ * withEnvironmentSnapshot in each inner describe instead would cost two restarts per block
+ * (apply + restore); the helper costs one per block, plus a single restoring restart at the
+ * end. NOTE: vars applied by the helper accumulate across calls, so each block should set
+ * every variable it depends on (use null to unset).
  */
   export function withEnvironmentSnapshot(vars: Record<string, any> = {}) {
     let oldEnv: testUtils.EnvironmentSnapshot | null = null;

@@ -111,6 +111,7 @@ export interface ICreate {
   addExtraDocForwarder(gristServer: GristServer, app: Express): void;
   getSiteMetricsSource(): SiteMetricsSource | undefined;
   areAdminControlsAvailable(): boolean;
+  areOAuthAppsEnabled(): boolean;
   createDocNotificationManager(gristServer: GristServer): IDocNotificationManager | undefined;
   startProcessMonitor(telemetry: ITelemetry): StopCallback | undefined;
   createOAuthValidator(gristServer: GristServer): IOAuthValidator | undefined;
@@ -273,6 +274,7 @@ export class BaseCreate implements ICreate {
   public addExtraDocForwarder(gristServer: GristServer, app: Express) {}
   public getSiteMetricsSource(): SiteMetricsSource | undefined { return undefined; }
   public areAdminControlsAvailable(): boolean { return false; }
+  public areOAuthAppsEnabled(): boolean { return false; }
   public createDocNotificationManager(gristServer: GristServer): IDocNotificationManager | undefined {
     return undefined;
   }

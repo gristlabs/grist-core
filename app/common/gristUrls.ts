@@ -1024,6 +1024,10 @@ export interface GristLoadConfig {
   // Force enterprise deployment? For backwards compatibility with grist-ee Docker image
   forceEnableEnterprise?: boolean;
 
+  // Whether the server has OAuth apps enabled (GRIST_ENABLE_OIDC_SERVER). Always false in core,
+  // which doesn't include the feature.
+  oauthAppsEnabled?: boolean;
+
   // The org containing public templates and tutorials.
   templateOrg?: string | null;
 
