@@ -799,9 +799,8 @@ export class HostedStorageManager implements IDocStorageManager {
 
     if (options.overwriteLocalDest) {
       // downloadTo renames a temp file into place with overwrite:false, so the
-      // destination must not exist. So let's remove a possibly stale copy.
-      // NOTE: fse.remove is a no-op if the file is absent.
-      await fse.remove(this.getPath(destId));
+      // destination must not exist. Remove any possibly stale local state.
+      await this._removeFromFilesystem(destId);
     }
 
     await this._ext.downloadTo(sourceDocId, destId, this.getPath(destId), options.snapshotId);
