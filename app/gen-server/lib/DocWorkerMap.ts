@@ -354,10 +354,28 @@ export class DocWorkerMap implements IDocWorkerMap {
   }
 
   public async releaseAssignment(workerId: string, docId: string): Promise<void> {
-    const op = this._client.multi();
-    op.del(`doc-${docId}`);
-    op.srem(`worker-${workerId}-docs`, docId);
-    await op.execAsync();
+    // Only release if the doc is still assigned to this worker. Otherwise we could clobber
+    // a fresh assignment made in the meantime (e.g. the doc was reassigned to another worker
+    // during a force-reload or shutdown), leaving `doc-${docId}` deleted and causing requests
+    // to bounce/reassign. Take the same lock as assignDocWorker so the ownership check and the
+    // delete are atomic with respect to (re)assignment.
+    const lock = await this._redlock.lock(`workers-lock`, LOCK_TIMEOUT);
+    try {
+      const docStatus = await this.getDocWorker(docId);
+      if (docStatus && docStatus.docWorker.id !== workerId) {
+        log.info(`DocWorkerMap.releaseAssignment ${docId} now assigned to ${docStatus.docWorker.id}, ` +
+          `not releasing on behalf of ${workerId}`);
+        // Still make sure this worker's doc set doesn't keep a stale entry.
+        await this._client.sremAsync(`worker-${workerId}-docs`, docId);
+        return;
+      }
+      const op = this._client.multi();
+      op.del(`doc-${docId}`);
+      op.srem(`worker-${workerId}-docs`, docId);
+      await op.execAsync();
+    } finally {
+      await lock.unlock();
+    }
   }
 
   public async getAssignments(workerId: string): Promise<string[]> {
