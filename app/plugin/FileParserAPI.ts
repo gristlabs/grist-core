@@ -41,7 +41,7 @@ export interface FileSource {
   path: string;
 
   /**
-   * The platform-specific flavor of the path stored in the {path} property.
+   * The platform-specific flavor of the path stored in the {@link path} property.
    * Certain sandboxed environments may have a different path convention to the local OS.
    * E.g. Pyodide (WASM Python in Node/Deno) uses POSIX paths, even on a Windows host OS.
    * This enables the path above to be interpreted correctly / converted.
