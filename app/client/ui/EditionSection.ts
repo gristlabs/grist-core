@@ -252,7 +252,7 @@ export class EditionSection extends Disposable implements ConfigSection {
 governance, MCP server, automations, email notifications, and collaboration features.`)),
       this._toggleEnterprise ? [this._toggleEnterprise.buildEnterpriseSection(), cssDivider()] : null,
       cssDowngradeButton(
-        t("Downgrade to Community Edition"),
+        t("Downgrade to Community edition"),
         dom.on("click", () => this._chooseEdition("core")),
         testId("downgrade"),
       ),
@@ -298,7 +298,7 @@ to individuals and small orgs with less than US $1 million in total annual fundi
         testId("confirm-full"),
       ),
       basicButton(
-        t("Switch to community edition"),
+        t("Switch to Community edition"),
         dom.on("click", () => this._chooseEdition("core")),
         testId("switch-to-community"),
       ),

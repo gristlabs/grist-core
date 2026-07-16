@@ -62,7 +62,10 @@ export const Deps = {
 /** Default base URL to download extensions from. */
 const DEFAULT_BASE_URL = "https://grist-static.com/grist-full-edition";
 
-/** Marker file written to {@link getFullEditionDir} holding the last-installed download URL. */
+/**
+ * Marker file written to {@link getFullEditionDir} holding the identity (see
+ * {@link getFullEditionIdentity}) of the extensions installed there.
+ */
 const STAMP_FILE = ".grist-full-edition-stamp";
 
 /** Sub-directories of {@link getFullEditionDir} that hold the downloaded extensions. */
@@ -243,7 +246,7 @@ async function manageFullEdition(identity: string): Promise<{ restartRequested: 
 
     for (let attempt = 1; attempt <= Deps.installAttempts; attempt++) {
       try {
-        const { url, sha256 } = await resolveOverlay();
+        const { url, sha256 } = await resolveExtensionsDownload();
         await downloadAndInstall(dir, identity, url, sha256);
         await updateGlobalConfigEdition(true);
         return { restartRequested: true };
@@ -339,7 +342,7 @@ async function isStampCurrent(dir: string, identity: string): Promise<boolean> {
  * fetching the per-version manifest at `<baseUrl>/by-version/<version>.json` over TLS. Throws if
  * the source can't be resolved.
  */
-async function resolveOverlay(): Promise<{ url: string; sha256: string }> {
+async function resolveExtensionsDownload(): Promise<{ url: string; sha256: string }> {
   const base = getBaseUrl();
   if (!base) { throw new Error("full edition downloads are disabled"); }
   if (!version) { throw new Error("cannot resolve full edition: unknown version"); }

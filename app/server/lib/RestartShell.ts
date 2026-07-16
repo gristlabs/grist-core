@@ -33,7 +33,6 @@ import * as net from "net";
  */
 export interface ForkSpec {
   entryPoint: string;
-  cwd?: string;
   env?: NodeJS.ProcessEnv;
   /**
    * Optional identifier for `entryPoint` to distinguish specs with the same entry point, but
@@ -319,7 +318,6 @@ export class RestartShell {
     delete env.GRIST_RESTART_SHELL;
 
     const c = childProcess.fork(spec.entryPoint, [], {
-      cwd: spec.cwd,
       env,
       stdio: ["inherit", "inherit", "inherit", "ipc"],
     });
