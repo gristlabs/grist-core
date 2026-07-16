@@ -53,7 +53,6 @@ describe("bootstrapFullEdition", function() {
       process.env.GRIST_INST_DIR = instRoot;
       delete process.env.GRIST_EXT_FULL_EDITION_BASE_URL;
       delete process.env.NODE_PATH;
-      delete process.env.GRIST_EXT_FULL_EDITION_ACTIVE;
       sandbox.stub(Deps, "hasBuiltInExt").returns(false);
       sandbox.stub(Deps, "isReleaseBuild").returns(true);
       dir = fullEditionDir(instRoot);
@@ -84,7 +83,6 @@ describe("bootstrapFullEdition", function() {
       ].join(path.delimiter));
       assert.equal(spec!.env!.GRIST_EXT_DIR, extDir);
       assert.equal(spec!.env!.GRIST_STATIC_EXT_DIR, staticDir);
-      assert.equal(spec!.env!.GRIST_EXT_FULL_EDITION_ACTIVE, "1");
     });
 
     it("returns null when there is no stamp", function() {
@@ -123,7 +121,6 @@ describe("bootstrapFullEdition", function() {
   describe("isExtFullEditionSupported", function() {
     beforeEach(function() {
       delete process.env.GRIST_EXT_FULL_EDITION_BASE_URL;
-      delete process.env.GRIST_EXT_FULL_EDITION_ACTIVE;
       sandbox.stub(Deps, "hasBuiltInExt").returns(false);
       sandbox.stub(Deps, "isReleaseBuild").returns(true);
     });
@@ -150,13 +147,6 @@ describe("bootstrapFullEdition", function() {
       (Deps.hasBuiltInExt as sinon.SinonStub).returns(true);
       assert.isFalse(isExtFullEditionSupported());
     });
-
-    it("is supported for an extensions worker even with built-in extensions", function() {
-      (Deps.hasBuiltInExt as sinon.SinonStub).returns(true);
-      (Deps.isReleaseBuild as sinon.SinonStub).returns(false);
-      process.env.GRIST_EXT_FULL_EDITION_ACTIVE = "1";
-      assert.isTrue(isExtFullEditionSupported());
-    });
   });
 
   describe("maybeManageFullEdition", function() {
@@ -169,7 +159,6 @@ describe("bootstrapFullEdition", function() {
       instRoot = await fse.mkdtemp(path.join(os.tmpdir(), "grist-fe-inst-"));
       process.env.GRIST_INST_DIR = instRoot;
       delete process.env.GRIST_EXT_FULL_EDITION_BASE_URL;
-      delete process.env.GRIST_EXT_FULL_EDITION_ACTIVE;
       delete process.env.GRIST_EDITION;
       setEdition(undefined);
       sandbox.stub(Deps, "hasBuiltInExt").returns(false);

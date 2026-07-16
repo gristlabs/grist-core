@@ -27,26 +27,27 @@ jobs:
     runs-on: ubuntu-22.04
     outputs:
       matrix: ${{ steps.set_matrix.outputs.matrix }}
-      arches: ${{ steps.set_matrix.outputs.arches }}
     steps:
       - name: Compute matrix from selected platforms
         id: set_matrix
         run: |
-          include='[]'
-          arches=()
+          arches='[]'
           if [[ "$PLATFORMS" == *"linux/amd64"* ]]; then
-            include=$(jq -c '. + [{"arch":"amd64","platform":"linux/amd64","runner":"ubuntu-22.04"}]' <<< "$include")
-            arches+=(amd64)
+            arches=$(jq -c '. + [{"arch":"amd64","platform":"linux/amd64","runner":"ubuntu-22.04"}]' <<< "$arches")
           fi
           if [[ "$PLATFORMS" == *"linux/arm64"* ]]; then
-            include=$(jq -c '. + [{"arch":"arm64","platform":"linux/arm64/v8","runner":"ubuntu-22.04-arm"}]' <<< "$include")
-            arches+=(arm64)
+            arches=$(jq -c '. + [{"arch":"arm64","platform":"linux/arm64/v8","runner":"ubuntu-22.04-arm"}]' <<< "$arches")
           fi
+          images='[
+            {"image":"grist",     "ee":true,  "version_checking":"true",  "channel":""},
+            {"image":"grist-oss", "ee":false, "version_checking":"false", "channel":"release"}
+          ]'
+          include=$(jq -c --argjson imgs "$images" \
+            '[.[] as $a | $imgs[] as $i | $a + $i]' <<< "$arches")
           echo "matrix={\"include\":$include}" >> "$GITHUB_OUTPUT"
-          echo "arches=${arches[*]}" >> "$GITHUB_OUTPUT"
 
-  build_and_push_grist:
-    name: Build and push ${{ matrix.arch }} grist and grist-ee
+  build_and_push:
+    name: Build and push ${{ matrix.arch }} ${{ matrix.image }}
     runs-on: ${{ matrix.runner }}
     needs: setup
     strategy:
@@ -63,11 +64,14 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v4
 
+      # grist-oss does not bundle ext/ but the `ext=ext` build-context requires it.
       - name: Add a dummy ext/ directory
+        if: ${{ !matrix.ee }}
         run:
           mkdir ext && touch ext/dummy
 
       - name: Check out the ext/ directory
+        if: ${{ matrix.ee }}
         run: buildtools/checkout-ext-directory.sh grist-ee
 
       - name: Set up Docker Buildx
@@ -79,29 +83,33 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push grist by digest
-        id: build_grist
+      - name: Build and push ${{ matrix.image }} by digest
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: .
-          build-args: GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING=true
+          build-args: |
+            GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING=${{ matrix.version_checking }}
+            GRIST_BUILD_CHANNEL=${{ matrix.channel }}
           platforms: ${{ matrix.platform }}
-          outputs: type=image,name=${{ env.DOCKER_HUB_OWNER }}/grist,push-by-digest=true,name-canonical=true,push=true
-          cache-from: type=gha,scope=grist-${{ matrix.arch }}
-          cache-to: type=gha,scope=grist-${{ matrix.arch }},mode=max
+          outputs: type=image,name=${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image }},push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=gha,scope=${{ matrix.image }}-${{ matrix.arch }}
+          cache-to: type=gha,scope=${{ matrix.image }}-${{ matrix.arch }},mode=max
           build-contexts: ext=ext
 
       # ext/Dockerfile builds its base as `${BASE_IMAGE}:${BASE_VERSION}`, but grist was pushed
       # by digest (no tag exists yet). Read the digest so we can reference grist from ext/Dockerfile
       # in the next step as grist@sha256:DIGEST.
       - name: Read grist digest
+        if: ${{ matrix.ee }}
         id: read_grist_digest
         env:
-          DIGEST: ${{ steps.build_grist.outputs.digest }}
+          DIGEST: ${{ steps.build.outputs.digest }}
         run: echo "hex=${DIGEST#sha256:}" >> "$GITHUB_OUTPUT"
 
       - name: Build and push grist-ee by digest
-        id: build_grist_ee
+        if: ${{ matrix.ee }}
+        id: build_ee
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -115,25 +123,30 @@ jobs:
           cache-to: type=gha,scope=grist-ee-${{ matrix.arch }},mode=max
 
       - name: Export digests
+        env:
+          IMAGE: ${{ matrix.image }}
+          DIGEST: ${{ steps.build.outputs.digest }}
+          EE_DIGEST: ${{ steps.build_ee.outputs.digest }}
         run: |
-          mkdir -p /tmp/digests/grist /tmp/digests/grist-ee
-          grist_digest="${{ steps.build_grist.outputs.digest }}"
-          grist_ee_digest="${{ steps.build_grist_ee.outputs.digest }}"
-          touch "/tmp/digests/grist/${grist_digest#sha256:}"
-          touch "/tmp/digests/grist-ee/${grist_ee_digest#sha256:}"
+          mkdir -p "/tmp/digests/$IMAGE"
+          touch "/tmp/digests/$IMAGE/${DIGEST#sha256:}"
+          if [[ -n "$EE_DIGEST" ]]; then
+            mkdir -p /tmp/digests/grist-ee
+            touch "/tmp/digests/grist-ee/${EE_DIGEST#sha256:}"
+          fi
 
       - name: Upload digests
         uses: actions/upload-artifact@v4
         with:
-          name: digests-${{ matrix.arch }}
+          name: digests-${{ matrix.image }}-${{ matrix.arch }}
           path: /tmp/digests/*
           retention-days: 1
           if-no-files-found: error
 
-  publish_grist:
-    name: Publish grist/grist-ee manifests and full edition extensions
+  publish:
+    name: Publish manifests and full edition extensions
     runs-on: ubuntu-22.04
-    needs: [setup, build_and_push_grist]
+    needs: build_and_push
     steps:
       - name: Free some space
         run: |
@@ -193,6 +206,15 @@ jobs:
           tags: |
             ${{ steps.meta_input.outputs.tags }}
 
+      - name: Docker meta (OSS)
+        id: meta_oss
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.DOCKER_HUB_OWNER }}/grist-oss
+          tags: |
+            ${{ steps.meta_input.outputs.tags }}
+
       - name: Create grist manifest list and push
         working-directory: /tmp/digests/grist
         env:
@@ -225,105 +247,10 @@ jobs:
           GRIST_STATIC_S3_PREFIX: ${{ vars.GRIST_STATIC_S3_PREFIX || 'grist-full-edition' }}
         run: buildtools/publish-grist-full-edition.sh
 
-  build_and_push_grist_oss:
-    name: Build and push ${{ matrix.arch }} grist-oss
-    runs-on: ${{ matrix.runner }}
-    needs: [setup, publish_grist]
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJSON(needs.setup.outputs.matrix) }}
-    steps:
-      - name: Free some space
-        run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /usr/local/lib/android
-          sudo rm -rf /usr/local/.ghcup
-          sudo rm -rf /usr/share/swift
-
-      - name: Check out the repo
-        uses: actions/checkout@v4
-
-      # grist-oss does not bundle ext/ but the `ext=ext` build-context requires it.
-      - name: Add a dummy ext/ directory
-        run:
-          mkdir ext && touch ext/dummy
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Build and push grist-oss by digest
-        id: build_grist_oss
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          build-args: |
-            GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING=false
-            GRIST_BUILD_CHANNEL=release
-          platforms: ${{ matrix.platform }}
-          outputs: type=image,name=${{ env.DOCKER_HUB_OWNER }}/grist-oss,push-by-digest=true,name-canonical=true,push=true
-          cache-from: type=gha,scope=grist-oss-${{ matrix.arch }}
-          cache-to: type=gha,scope=grist-oss-${{ matrix.arch }},mode=max
-          build-contexts: ext=ext
-
-      - name: Export digest
-        run: |
-          mkdir -p /tmp/digests/grist-oss
-          digest="${{ steps.build_grist_oss.outputs.digest }}"
-          touch "/tmp/digests/grist-oss/${digest#sha256:}"
-
-      - name: Upload digest
-        uses: actions/upload-artifact@v4
-        with:
-          name: digests-oss-${{ matrix.arch }}
-          path: /tmp/digests/*
-          retention-days: 1
-          if-no-files-found: error
-
-  publish_grist_oss:
-    name: Publish grist-oss manifest
-    runs-on: ubuntu-22.04
-    needs: build_and_push_grist_oss
-    steps:
-      - name: Download digests
-        uses: actions/download-artifact@v4
-        with:
-          path: /tmp/digests
-          pattern: digests-oss-*
-          merge-multiple: true
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: |
-            ${{ env.DOCKER_HUB_OWNER }}/grist-oss
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-            ${{ env.TAG }}
-
       - name: Create grist-oss manifest list and push
         working-directory: /tmp/digests/grist-oss
         env:
-          METADATA_JSON: ${{ steps.meta.outputs.json }}
+          METADATA_JSON: ${{ steps.meta_oss.outputs.json }}
         run: |
           docker buildx imagetools create \
             $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$METADATA_JSON") \

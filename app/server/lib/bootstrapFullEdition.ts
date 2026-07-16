@@ -26,7 +26,6 @@
  */
 
 import { delay } from "app/common/delay";
-import { isAffirmative } from "app/common/gutil";
 import { channel, version } from "app/common/version";
 import { appSettings } from "app/server/lib/AppSettings";
 import { HashPassthroughStream } from "app/server/lib/checksumFile";
@@ -79,15 +78,6 @@ function defaultHasBuiltInExt(): boolean {
 }
 
 /**
- * True when the current process is a worker forked with the full edition extensions layered on
- * (see {@link resolveFullEditionWorker}). Such a worker runs the extension-free local build plus
- * the downloaded extensions, so it should still manage them (e.g. to switch back).
- */
-export function isRunningExtFullEdition(): boolean {
-  return isAffirmative(process.env.GRIST_EXT_FULL_EDITION_ACTIVE);
-}
-
-/**
  * True on an unmodified build of a tagged Grist release (or an official release image), the only
  * builds offered the full edition switch. Set from the build-time `channel` in `version.ts`; see
  * `build_version_file` in `buildtools/build.sh`.
@@ -123,11 +113,10 @@ function getFullEditionIdentity(): string | undefined {
 /**
  * Whether switching to a downloaded full edition should be offered.
  *
- * Returns true if already running a download-based full edition, or the download can be derived for
- * this build (a release build with derivation enabled).
+ * Returns true if the download can be derived for this build (a release build without built-in
+ * extensions, with derivation enabled).
  */
 export function isExtFullEditionSupported(): boolean {
-  if (isRunningExtFullEdition()) { return true; }
   if (Deps.hasBuiltInExt()) { return false; }
 
   return getFullEditionIdentity() !== undefined;
@@ -192,7 +181,6 @@ export function resolveFullEditionWorker(): ForkSpec | null {
         NODE_PATH: nodePath,
         GRIST_EXT_DIR: extDir,
         GRIST_STATIC_EXT_DIR: staticDir,
-        GRIST_EXT_FULL_EDITION_ACTIVE: "1",
       },
     };
   } catch (e) {
@@ -224,7 +212,7 @@ export function resolveFullEditionWorker(): ForkSpec | null {
 export async function maybeManageFullEdition(): Promise<{ restartRequested: boolean }> {
   // A build that already bundles extensions manages its own edition; do not touch the downloaded
   // extensions (which may be a stale copy left in the instance dir).
-  if (Deps.hasBuiltInExt() && !isRunningExtFullEdition()) {
+  if (Deps.hasBuiltInExt()) {
     return { restartRequested: false };
   }
 
