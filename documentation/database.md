@@ -73,7 +73,7 @@ The database schema is the following:
 ![Schema of the home database](./images/homedb-schema.svg)
 
 > [!NOTE]
-> For simplicity's sake, the diagram omits the tables related to billing and to the migrations. They are documented separately in the [Billing and enterprise tables](#billing-and-enterprise-tables) section below. Recently added tables may also be missing from the diagram; when in doubt, the entity definitions in [`app/gen-server/entity/`](/app/gen-server/entity/) are the source of truth.
+> For simplicity's sake, the diagram omits the tables related to billing and to the migrations. They are documented separately in the [Billing and enterprise tables](#billing-and-enterprise-tables) section below. Recently added tables may also be missing from the diagram; when in doubt, the entity definitions in [`app/gen-server/entity/`](https://github.com/gristlabs/grist-core/tree/main/app/gen-server/entity/) are the source of truth.
 
 If you want to generate the above schema by yourself, you may run the following command using [SchemaCrawler](https://www.schemacrawler.com/) ([a docker image is available for a quick run](https://www.schemacrawler.com/docker-image.html)):
 ````bash
@@ -285,7 +285,7 @@ For role groups, only 5 names exist, which correspond to Roles (for the permissi
 `viewers`, `members` and `guests` all have the same effective rights (viewer-level), the only difference between them is their purpose:
  - `viewers` are explicitly allowed to view the resource and its descendants;
  - `members` are specific to organisations and are meant to allow access to be granted to individual documents or workspaces, rather than the full team site;
- - `guests` is an automatically-managed group: when a user is granted access to a child resource (e.g. a single document) but not to its parent (the workspace or org), Grist adds them to the parent's `guests` group so they retain just enough (view) access to navigate down to the resource they can actually use. Guests are never assigned directly; Grist repairs this group whenever access on a child resource changes.
+ - `guests` is an automatically-managed group: when a user is granted access to a child resource (e.g. a single document), Grist adds them to the `guests` group of its parent (the workspace or org) so they retain just enough (view) access to navigate down to the resource they can actually use. Guests are never assigned directly; Grist repairs this group whenever access on a child resource changes.
 
 Each time a resource is created, the role groups above are created (except `members`, which is specific to organisations).
 
@@ -346,7 +346,7 @@ Stores `users` information.
 | is_first_time_user | Whether the user discovers Grist (used to trigger the Welcome Tour) |
 | options | Serialized options as described in [UserOptions](https://github.com/gristlabs/grist-core/blob/3ff629082974bb49c4aaafa0a59b87a071a9eeeb/app/common/UserAPI.ts#L258-L271) interface |
 | connect_id | Used by [GristConnect](https://support.getgrist.com/install/grist-connect/) in the full edition of Grist to identify user in external provider |
-| ref | A unique reference for the user (short UUID format), generated at insert time. Also unique accross Grist instances, so it can be used in documents. It’s primarily used as an ownership key in cell metadata (comments); also handy to identify a user in the automated tests. |
+| ref | A unique reference for the user (short UUID format), generated at insert time. Also unique across Grist instances, so it can be used in documents. It's primarily used as an ownership key in cell metadata (comments); also handy to identify a user in the automated tests. |
 | created_at | When the user record was created |
 | unsubscribe_key | A random public key that lets the user manage document notification preferences without authenticating (e.g. from an "unsubscribe" link in an email) |
 | type | The kind of user: `login` for a regular human user, or `service` for a [service account](#service_accounts-table) |
@@ -431,6 +431,7 @@ A product is a named bundle of enabled features (row limits, attachment quotas, 
 | ------------- | -------------- |
 | id | The primary key |
 | name | The product name, e.g. `Free`, `teamFree`, `team`, `suspended`, `stub` |
+| stripe_product_id | The Stripe product id, if any |
 | features | The serialized JSON set of enabled features (see [Features](https://github.com/gristlabs/grist-core/blob/main/app/common/Features.ts)) |
 
 ### `billing_accounts` table
