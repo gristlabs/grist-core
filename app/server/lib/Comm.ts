@@ -54,7 +54,7 @@ import { Sessions } from "app/server/lib/Sessions";
 
 import { EventEmitter } from "events";
 import * as http from "http";
-import * as https from "https";
+import net from "net";
 
 import { i18n } from "i18next";
 
@@ -64,7 +64,6 @@ export interface CommOptions {
   settings?: { [key: string]: unknown };  // The config object containing instance settings including features.
   hosts?: Hosts;  // If set, we use hosts.getOrgInfo(req) to extract an organization from a (possibly versioned) url.
   loginMiddleware?: GristLoginMiddleware; // If set, use custom getProfile method if available
-  httpsServer?: https.Server;   // An optional HTTPS server to listen on too.
   i18Instance?: i18n;           // The i18next instance to use for translations.
   gristServer?: GristServer;            // The GristServer instance, needed for resolveIdentity.
   permitStore?: IPermitStore;            // Permit store, needed for resolveIdentity.
@@ -84,7 +83,7 @@ export interface CommOptions {
 export class Comm extends EventEmitter {
   // Collection of all sessions; maps sessionIds to ScopedSession objects.
   public readonly sessions: Sessions = this._options.sessions;
-  private _wss: GristSocketServer[] | null = null;
+  private _socketServer: GristSocketServer;
 
   private _clients = new Map<string, Client>();   // Maps clientIds to Client objects.
 
@@ -96,9 +95,9 @@ export class Comm extends EventEmitter {
   // for a valid server.
   private _serverVersion: string | null = null;
 
-  constructor(private _server: http.Server, private _options: CommOptions) {
+  constructor(private _options: CommOptions) {
     super();
-    this._wss = this._startServer();
+    this._socketServer = this._createSocketServer();
   }
 
   /**
@@ -135,20 +134,6 @@ export class Comm extends EventEmitter {
     this._clients.delete(client.clientId);
   }
 
-  public async testServerShutdown() {
-    if (this._wss) {
-      for (const wssi of this._wss) {
-        await fromCallback(cb => wssi.close(cb));
-      }
-      this._wss = null;
-    }
-  }
-
-  public async testServerRestart() {
-    await this.testServerShutdown();
-    this._wss = this._startServer();
-  }
-
   /**
    * Destroy all clients, forcing reconnections.
    */
@@ -176,6 +161,37 @@ export class Comm extends EventEmitter {
    */
   public setServerActivation(active: boolean) {
     this._serverVersion = active ? null : "dead";
+  }
+
+  public async close(): Promise<void> {
+    await fromCallback(cb => this._socketServer.close(cb));
+  }
+
+  public listen() {
+    this._socketServer.listen();
+  }
+
+  public async restart(): Promise<void> {
+    await this.close();
+    this.listen();
+  }
+
+  /**
+   * Handles an incoming HTTP request from an http.Server or https.Server.
+   * Must be connected for this to function correctly.
+   * @returns {Promise<boolean>} - true if the request was handled, false otherwise
+   */
+  public async handleHTTPRequest(req: http.IncomingMessage, res: http.ServerResponse): Promise<boolean> {
+    return this._socketServer.handleHTTPRequest(req, res);
+  }
+
+  /**
+   * Handles an incoming HTTP Upgrade request from an http.Server or https.Server.
+   * Must be connected for this to function correctly.
+   * @returns {Promise<boolean>} - true if the request was handled, false otherwise
+   */
+  public async handleHTTPUpgrade(req: http.IncomingMessage, socket: net.Socket, head: Buffer): Promise<boolean> {
+    return this._socketServer.handleHTTPUpgrade(req, socket, head);
   }
 
   /**
@@ -242,42 +258,50 @@ export class Comm extends EventEmitter {
     });
   }
 
-  private _startServer() {
-    const servers = [this._server];
-    if (this._options.httpsServer) { servers.push(this._options.httpsServer); }
-    const wss = [];
-    for (const server of servers) {
-      const wssi = new GristSocketServer(server, {
-        verifyClient: async (req: http.IncomingMessage) => {
-          try {
-            if (this._options.hosts) {
-              // DocWorker ID (/dw/) and version tag (/v/) may be present in this request but are not
-              // needed. addOrgInfo assumes req.url starts with /o/ if present.
-              req.url = parseFirstUrlPart("dw", req.url!).path;
-              req.url = parseFirstUrlPart("v", req.url).path;
-              await this._options.hosts.addOrgInfo(req);
-            }
+  private _createSocketServer() {
+    const socketServer = new GristSocketServer({
+      verifyClient: req => verifyCommHttpRequest(req, this._options.hosts, { preserveOriginalUrl: false }),
+    });
 
-            return trustOrigin(req);
-          } catch (err) {
-            // Consider exceptions (e.g. in parsing unexpected hostname) as failures to verify.
-            // In practice, we only see this happening for spammy/illegitimate traffic; there is
-            // no particular reason to log these.
-            return false;
-          }
-        },
-      });
+    socketServer.onconnection = async (websocket: GristServerSocket, req) => {
+      try {
+        await this._onWebSocketConnection(websocket, req);
+      } catch (e) {
+        log.error("Comm connection for %s threw exception: %s", req.url, e.message);
+        websocket.terminate();  // close() is inadequate when ws routed via loadbalancer
+      }
+    };
 
-      wssi.onconnection = async (websocket: GristServerSocket, req) => {
-        try {
-          await this._onWebSocketConnection(websocket, req);
-        } catch (e) {
-          log.error("Comm connection for %s threw exception: %s", req.url, e.message);
-          websocket.terminate();  // close() is inadequate when ws routed via loadbalancer
-        }
-      };
-      wss.push(wssi);
+    return socketServer;
+  }
+}
+
+export async function verifyCommHttpRequest(
+  req: http.IncomingMessage, hosts?: Hosts, { preserveOriginalUrl = false } = {},
+): Promise<boolean> {
+  const originalUrl = req.url;
+  try {
+    // Req should be the raw request from the HTTP Server (no express or middleware applied)
+    // DocWorker ID (/dw/) and version tag (/v/) may be present, as well as organization (/o/)
+    if (hosts) {
+      // Strip DocWorker ID and version tags so `addOrgInfo` can fetch the org it needs.
+      req.url = parseFirstUrlPart("dw", req.url || "").path;
+      req.url = parseFirstUrlPart("v", req.url).path;
+      // This will strip `/o/ORG` from the URL, but organization *must* be forwarded.
+      await hosts.addOrgInfo(req);
     }
-    return wss;
+
+    // This would be cleaner with a function that verifies the org / origin without altering the original request.
+    return trustOrigin(req);
+  } catch (err) {
+    // Consider exceptions (e.g. in parsing unexpected hostname) as failures to verify.
+    // In practice, we only see this happening for spammy/illegitimate traffic; there is
+    // no particular reason to log these.
+    return false;
+  } finally {
+    if (preserveOriginalUrl) {
+      // Restore the original URL - needed for transparent proxying use cases that require DW ID / tag / organization
+      req.url = originalUrl;
+    }
   }
 }

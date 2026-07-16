@@ -57,7 +57,7 @@ export async function streamXLSX(activeDoc: ActiveDoc, req: express.Request,
     rpc.on("message", (chunk) => { outputStream.write(chunk); });
     port1.on("message", m => rpc.receiveMessage(m));
 
-    // For request cancelling to work, remember that such requests are forwarded via DocApiForwarder.
+    // For request canceling to work, remember that such requests are forwarded via DocApiProxy.
     const abortController = new AbortController();
     const cancelWorker = () => abortController.abort();
 

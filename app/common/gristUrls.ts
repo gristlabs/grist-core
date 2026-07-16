@@ -11,7 +11,7 @@ import { StringUnion } from "app/common/StringUnion";
 import { TelemetryLevel } from "app/common/Telemetry";
 import { ThemeAppearance, themeAppearances, ThemeName, themeNames } from "app/common/ThemePrefs";
 import { getGristConfig } from "app/common/urlUtils";
-import { Document } from "app/common/UserAPI";
+import { Document, PublicDocWorkerUrlInfo } from "app/common/UserAPI";
 import { IAttachedCustomWidget } from "app/common/widgetTypes";
 import { UIRowId } from "app/plugin/GristAPI";
 
@@ -954,8 +954,8 @@ export interface GristLoadConfig {
   // Pre-fetched call to getDoc for the doc being loaded.
   getDoc?: { [id: string]: Document };
 
-  // Pre-fetched call to getWorker for the doc being loaded.
-  getWorker?: { [id: string]: string | null };
+  // Pre-fetched call to getWorkerFull for the doc being loaded.
+  getWorkerFull?: { [id: string]: PublicDocWorkerUrlInfo | undefined };
 
   // The timestamp when this gristConfig was generated.
   timestampMs: number;

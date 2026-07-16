@@ -277,7 +277,7 @@ describe("uploads", function() {
           } as any;
 
           const req = {
-            get: sandbox.stub().returns(undefined),
+            headers: {},
             socket: { remoteAddress: "127.0.0.1" },
           } as any;
 

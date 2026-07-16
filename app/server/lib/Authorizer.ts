@@ -23,7 +23,13 @@ import { COOKIE_MAX_AGE,
 import { getBootKey } from "app/server/lib/gristSettings";
 import log from "app/server/lib/log";
 import { IPermitStore, Permit } from "app/server/lib/Permit";
-import { allowHost, buildXForwardedForHeader, getOriginUrl, optStringParam } from "app/server/lib/requestUtils";
+import {
+  allowHost,
+  buildXForwardedForHeader,
+  getOriginUrl,
+  optStringParam,
+  toCommaSeparatedString,
+} from "app/server/lib/requestUtils";
 
 import { IncomingMessage } from "http";
 
@@ -765,32 +771,34 @@ export function assertAccess(
  * authentication.
  */
 export function getTransitiveHeaders(
-  req: Request,
+  // Express Request subclasses http.IncomingMessage, so this allows for Node HTTP requests + Express requests
+  req: IncomingMessage,
   { includeOrigin }: { includeOrigin: boolean },
 ): { [key: string]: string } {
-  const Authorization = req.get("Authorization");
-  const Cookie = req.get("Cookie");
-  const PermitHeader = req.get("Permit");
+  const Authorization = req.headers.authorization;
+  const Cookie = req.headers.cookie;
+  const PermitHeader = req.headers.permit;
   const Organization = (req as RequestWithOrg).org;
-  const XRequestedWith = req.get("X-Requested-With");
-  const UserAgent = req.get("User-Agent");
-  const Origin = req.get("Origin");  // Pass along the original Origin since it may
-  // play a role in granular access control.
+  const XRequestedWith = req.headers["x-requested-with"];
+  const UserAgent = req.headers["user-agent"];
+  // Pass along the original Origin since it may play a role in granular access control.
+  const Origin = req.headers.origin;
 
   const result: Record<string, string> = {
     ...(Authorization ? { Authorization } : undefined),
     ...(Cookie ? { Cookie } : undefined),
     ...(Organization ? { Organization } : undefined),
-    ...(PermitHeader ? { Permit: PermitHeader } : undefined),
-    ...(XRequestedWith ? { "X-Requested-With": XRequestedWith } : undefined),
+    ...(PermitHeader ? { Permit: toCommaSeparatedString(PermitHeader) } : undefined),
+    ...(XRequestedWith ? { "X-Requested-With": toCommaSeparatedString(XRequestedWith) } : undefined),
     ...(UserAgent ? { "User-Agent": UserAgent } : undefined),
     ...buildXForwardedForHeader(req),
     ...((includeOrigin && Origin) ? { Origin } : undefined),
   };
+
   const extraHeader = process.env.GRIST_FORWARD_AUTH_HEADER;
-  const extraHeaderValue = extraHeader && req.get(extraHeader);
+  const extraHeaderValue = extraHeader && req.headers[extraHeader.toLowerCase()];
   if (extraHeader && extraHeaderValue) {
-    result[extraHeader] = extraHeaderValue;
+    result[extraHeader] = toCommaSeparatedString(extraHeaderValue);
   }
   return result;
 }

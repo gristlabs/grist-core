@@ -2,12 +2,12 @@ import { GristClientSocket } from "app/client/components/GristClientSocket";
 import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
 import { guessTimezone } from "app/client/lib/guessTimezone";
 import { getSessionStorage } from "app/client/lib/storage";
-import { newUserAPIImpl } from "app/client/models/AppModel";
-import { getWorker } from "app/client/models/gristConfigCache";
+import { getHomeUrl, newUserAPIImpl } from "app/client/models/AppModel";
+import { getWorkerFull } from "app/client/models/gristConfigCache";
 import { CommResponseBase } from "app/common/CommTypes";
 import * as gutil from "app/common/gutil";
 import { addOrgToPath, docUrl, getGristConfig } from "app/common/urlUtils";
-import { UserAPI } from "app/common/UserAPI";
+import { getPublicDocWorkerUrl, UserAPI } from "app/common/UserAPI";
 
 import { Events as BackboneEvents } from "backbone";
 import { Disposable } from "grainjs";
@@ -29,7 +29,8 @@ async function getDocWorkerUrl(assignmentId: string | null): Promise<string | nu
   if (assignmentId === null) { return docUrl(null); }
 
   const api: UserAPI = newUserAPIImpl();
-  return getWorker(api, assignmentId);
+  const workerUrlInfo = await getWorkerFull(api, assignmentId);
+  return getPublicDocWorkerUrl(getHomeUrl(), workerUrlInfo);
 }
 
 /**
@@ -151,14 +152,14 @@ export class GristWSConnection extends Disposable {
     // clientId is associated with a session. We try to persist it within a tab across navigation
     // and reloads, but the server may reset it if it doesn't recognize it.
     this._clientId = this._settings.getClientId(assignmentId);
-    // For the DocMenu, identified as a page served with a homeUrl but no getWorker cache, we will
+    // For the DocMenu, identified as a page served with a homeUrl but no getWorkerFull cache, we will
     // simply not hook up the websocket.  The client is not ready to use it, and the server is not
     // ready to serve it.  And the errors in the logs of both are distracting.  However, it
     // doesn't really make sense to rip out the websocket code entirely, since the plan is
     // to eventually bring it back for smoother serving.  Hence this compromise of simply
     // not trying to make the connection.
     // TODO: serve and use websockets for the DocMenu.
-    if (getGristConfig().getWorker) {
+    if (getGristConfig().getWorkerFull) {
       this.trigger("connectState", false);
       this._initialConnection = this.connect();
     } else {
@@ -408,6 +409,9 @@ export class GristWSConnection extends Disposable {
     }
     url.searchParams.append("browserSettings", JSON.stringify({ timezone }));
     url.searchParams.append("user", this._settings.getUserSelector());
+    if (this._assignmentId) {
+      url.searchParams.append("doc", this._assignmentId);
+    }
     return url.href;
   }
 

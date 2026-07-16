@@ -15,7 +15,7 @@ import { IModalControl, modal } from "app/client/ui2018/modals";
 import { renderFileType } from "app/client/widgets/AttachmentsWidget";
 import { FieldOptions, NewBaseEditor } from "app/client/widgets/NewBaseEditor";
 import { CellValue } from "app/common/DocActions";
-import { clamp, encodeQueryParams } from "app/common/gutil";
+import { clamp } from "app/common/gutil";
 import { SingleCell } from "app/common/TableData";
 import { UploadResult } from "app/common/uploads";
 import { DocAPI } from "app/common/UserAPI";
@@ -222,13 +222,11 @@ export class AttachmentsEditor extends NewBaseEditor {
     filename: string,
     inline?: boolean,
   ): string {
-    return this._docComm.docUrl("attachment") + "?" + encodeQueryParams({
-      ...this._docComm.getUrlParams(),
+    return this._docApi.getAttachmentDownloadUrl(attId, {
       name: filename,
-      ...cell,
-      maybeNew: 1,  // The attachment may be uploaded by the user but not stored in the cell yet.
-      attId,
-      ...(inline ? { inline: 1 } : {}),
+      cell: cell ?? undefined,
+      maybeNew: true,
+      inline,
     });
   }
 

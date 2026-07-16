@@ -28,6 +28,7 @@ import { IDocStorageManager } from "app/server/lib/IDocStorageManager";
 import { INotifier } from "app/server/lib/INotifier";
 import { InstallAdmin } from "app/server/lib/InstallAdmin";
 import { IOAuthValidator } from "app/server/lib/IOAuthValidator";
+import { IWebSocketProxy } from "app/server/lib/IWebSocketProxy";
 import { IPermitStore } from "app/server/lib/Permit";
 import { IPubSubManager } from "app/server/lib/PubSubManager";
 import { ISendAppPageOptions } from "app/server/lib/sendAppPage";
@@ -79,6 +80,7 @@ export interface GristServer extends StorageCoordinator {
   getExternalPermitStore(): IPermitStore;
   getSessions(): Sessions;
   getComm(): Comm;
+  getSocketProxy(): IWebSocketProxy | undefined;
   getDeploymentType(): GristDeploymentType;
   getHosts(): Hosts;
   getActivations(): ActivationsManager;
@@ -198,6 +200,7 @@ export function createDummyGristServer(): GristServer {
     getResourceUrl() { return Promise.resolve(""); },
     getSessions() { throw new Error("no sessions"); },
     getComm() { throw new Error("no comms"); },
+    getSocketProxy() { throw new Error("no proxy"); },
     getDeploymentType() { return "core"; },
     getHosts() { throw new Error("no hosts"); },
     getActivations() { throw new Error("no activations"); },

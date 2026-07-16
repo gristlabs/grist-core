@@ -96,6 +96,10 @@ export interface Features {
   installationEnabled?: boolean; // Allows self hosted Grist plan. Grist will generate an activation
   // key for the installation, which will unblock enterprise features.
 
+  installationFleet?: boolean;  // Allows multi-server operation (Grist Fleet). All home / doc servers will
+  // transparently proxy requests and socket connections to the correct host. Enables simple deployment and auto scaling
+  // behind a load balancer.
+
   // The following features are used for self managed Grist instance (called installation).
 
   installationSeats?: number;           // Number of seats bought (should be filled in by Stripe). Grist won't allow

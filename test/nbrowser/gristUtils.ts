@@ -2594,8 +2594,7 @@ namespace gristUtils {
       urlId = urlId || await getCurrentUrlId();
       const api = this.createHomeApi();
       const doc = await api.getDoc(urlId!);
-      const workerApi = await api.getWorkerAPI(doc.id);
-      const response = await workerApi.downloadDoc(doc.id);
+      const response = await api.getDocAPI(doc.id).download();
       await fse.writeFile(fname, Buffer.from(await response.arrayBuffer()));
     }
   }

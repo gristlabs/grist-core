@@ -93,12 +93,11 @@ export class MergedServer {
     await ms.flexServer.initHomeDBManager();
     await ms.flexServer.addLoginMiddleware();
 
-    if (ms.hasComponent("docs")) {
-      // It is important that /dw and /v prefixes are accepted (if present) by health check
-      // in ms case, since they are included in the url registered for the doc worker.
-      ms.flexServer.stripDocWorkerIdPathPrefixIfPresent();
-      ms.flexServer.addTagChecker();
-    }
+    // It is important that /dw and /v prefixes are accepted (if present) by health check
+    // in ms case, since they are included in the url registered for the doc worker.
+    // Home servers need to strip these so requests can be proxied correctly, otherwise the routes won't match.
+    ms.flexServer.stripDocWorkerIdPathPrefixIfPresent();
+    ms.flexServer.addTagChecker();
 
     ms.flexServer.addHealthCheck();
     ms.flexServer.denyRequestsIfNotReady();
@@ -162,12 +161,11 @@ export class MergedServer {
     try {
       await this.flexServer.start();
 
+      this.flexServer.addProxy();
+
       if (this.hasComponent("home")) {
         await this._maybeClearSessions();
         this.flexServer.addUsage();
-        if (!this.hasComponent("docs")) {
-          this.flexServer.addDocApiForwarder();
-        }
         await this.flexServer.addLandingPages();
         // Early endpoints use their own json handlers, so they come before
         // `addJsonSupport`.

@@ -23,6 +23,7 @@ import { INotifier } from "app/server/lib/INotifier";
 import { InstallAdmin, SimpleInstallAdmin } from "app/server/lib/InstallAdmin";
 import { IOAuthValidator } from "app/server/lib/IOAuthValidator";
 import { ISandbox, ISandboxCreationOptions } from "app/server/lib/ISandbox";
+import { IWebSocketProxy, IWebSocketProxyOptions } from "app/server/lib/IWebSocketProxy";
 import { createSandbox, SpawnFn } from "app/server/lib/NSandbox";
 import * as ProcessMonitor from "app/server/lib/ProcessMonitor";
 import { SqliteVariant } from "app/server/lib/SqliteCommon";
@@ -115,6 +116,7 @@ export interface ICreate {
   createDocNotificationManager(gristServer: GristServer): IDocNotificationManager | undefined;
   startProcessMonitor(telemetry: ITelemetry): StopCallback | undefined;
   createOAuthValidator(gristServer: GristServer): IOAuthValidator | undefined;
+  getWebSocketProxy?(gristServer: GristServer, options: IWebSocketProxyOptions): IWebSocketProxy | undefined;
 }
 
 type StopCallback = () => void;

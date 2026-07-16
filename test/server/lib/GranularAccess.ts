@@ -831,12 +831,12 @@ describe("GranularAccess", function() {
     assert.deepEqual(tables.tableId, ["Table1", "", "PartialPrivate", "Public"]);
 
     // Owner can download, editor can not.
-    await assert.isFulfilled((await owner.getWorkerAPI(docId)).downloadDoc(docId));
-    await assert.isRejected((await editor.getWorkerAPI(docId)).downloadDoc(docId));
+    await assert.isFulfilled(owner.getDocAPI(docId).download());
+    await assert.isRejected(editor.getDocAPI(docId).download());
 
     // Owner can copy, editor can not.
-    await assert.isFulfilled((await owner.getWorkerAPI(docId)).copyDoc(docId));
-    await assert.isRejected((await editor.getWorkerAPI(docId)).copyDoc(docId));
+    await assert.isFulfilled(owner.getDocAPI(docId).copyDoc(undefined));
+    await assert.isRejected(editor.getDocAPI(docId).copyDoc(undefined));
 
     // Owner can use AddColumn, editor can not (even for public table).
     await assert.isFulfilled(owner.applyUserActions(docId, [
@@ -1056,14 +1056,14 @@ describe("GranularAccess", function() {
     await assert.isFulfilled(editor.getDocAPI(docId).getRows("Public2"));
 
     // Owner can download and copy.
-    await assert.isFulfilled((await owner.getWorkerAPI(docId)).downloadDoc(docId));
-    await assert.isFulfilled((await owner.getWorkerAPI(docId)).copyDoc(docId));
+    await assert.isFulfilled(owner.getDocAPI(docId).download());
+    await assert.isFulfilled(owner.getDocAPI(docId).copyDoc(undefined));
 
     // Editor cannot download or copy. This used to be allowed, but since these operations reveal
     // access rules, they are no longer allowed to non-owners by default.
-    await assert.isRejected((await editor.getWorkerAPI(docId)).downloadDoc(docId),
+    await assert.isRejected(editor.getDocAPI(docId).download(),
       /not authorized to download/);
-    await assert.isRejected((await editor.getWorkerAPI(docId)).copyDoc(docId),
+    await assert.isRejected(editor.getDocAPI(docId).copyDoc(undefined),
       /insufficient access to document to copy it entirely/i);
 
     // Owner can use AddColumn, editor can not.
@@ -1135,10 +1135,10 @@ describe("GranularAccess", function() {
     await freshDoc();
 
     // With no rules, both Owner and Editor may download and copy
-    await assert.isFulfilled((await owner.getWorkerAPI(docId)).downloadDoc(docId));
-    await assert.isFulfilled((await owner.getWorkerAPI(docId)).copyDoc(docId));
-    await assert.isFulfilled((await editor.getWorkerAPI(docId)).downloadDoc(docId));
-    await assert.isFulfilled((await editor.getWorkerAPI(docId)).copyDoc(docId));
+    await assert.isFulfilled(owner.getDocAPI(docId).download());
+    await assert.isFulfilled(owner.getDocAPI(docId).copyDoc(undefined));
+    await assert.isFulfilled(editor.getDocAPI(docId).download());
+    await assert.isFulfilled(editor.getDocAPI(docId).copyDoc(undefined));
 
     // Make some tables, and lock structure.
     await owner.applyUserActions(docId, [
@@ -1151,10 +1151,10 @@ describe("GranularAccess", function() {
     ]);
 
     // Now only Owner may download and copy.
-    await assert.isFulfilled((await owner.getWorkerAPI(docId)).downloadDoc(docId));
-    await assert.isFulfilled((await owner.getWorkerAPI(docId)).copyDoc(docId));
-    await assert.isRejected((await editor.getWorkerAPI(docId)).downloadDoc(docId), /Forbidden/);
-    await assert.isRejected((await editor.getWorkerAPI(docId)).copyDoc(docId), /Forbidden/);
+    await assert.isFulfilled(owner.getDocAPI(docId).download());
+    await assert.isFulfilled(owner.getDocAPI(docId).copyDoc(undefined));
+    await assert.isRejected(editor.getDocAPI(docId).download(), /Forbidden/);
+    await assert.isRejected(editor.getDocAPI(docId).copyDoc(undefined), /Forbidden/);
 
     // Give "Access Rules" permission.
     await owner.applyUserActions(docId, [
@@ -1165,10 +1165,10 @@ describe("GranularAccess", function() {
     ]);
 
     // Now again, both Owner and Editor may download and copy.
-    await assert.isFulfilled((await owner.getWorkerAPI(docId)).downloadDoc(docId));
-    await assert.isFulfilled((await owner.getWorkerAPI(docId)).copyDoc(docId));
-    await assert.isFulfilled((await editor.getWorkerAPI(docId)).downloadDoc(docId));
-    await assert.isFulfilled((await editor.getWorkerAPI(docId)).copyDoc(docId));
+    await assert.isFulfilled(owner.getDocAPI(docId).download());
+    await assert.isFulfilled(owner.getDocAPI(docId).copyDoc(undefined));
+    await assert.isFulfilled(editor.getDocAPI(docId).download());
+    await assert.isFulfilled(editor.getDocAPI(docId).copyDoc(undefined));
 
     // Add the "DocCopies" restriction.
     const results = await owner.applyUserActions(docId, [
@@ -1180,10 +1180,10 @@ describe("GranularAccess", function() {
     const restrictionRuleId = results.retValues[1];
 
     // Editor can no longer download or copy.
-    await assert.isFulfilled((await owner.getWorkerAPI(docId)).downloadDoc(docId));
-    await assert.isFulfilled((await owner.getWorkerAPI(docId)).copyDoc(docId));
-    await assert.isRejected((await editor.getWorkerAPI(docId)).downloadDoc(docId), /Forbidden/);
-    await assert.isRejected((await editor.getWorkerAPI(docId)).copyDoc(docId), /Forbidden/);
+    await assert.isFulfilled(owner.getDocAPI(docId).download());
+    await assert.isFulfilled(owner.getDocAPI(docId).copyDoc(undefined));
+    await assert.isRejected(editor.getDocAPI(docId).download(), /Forbidden/);
+    await assert.isRejected(editor.getDocAPI(docId).copyDoc(undefined), /Forbidden/);
 
     // Remove the restriction.
     await owner.applyUserActions(docId, [
@@ -1200,20 +1200,20 @@ describe("GranularAccess", function() {
     ]);
     const dataRuleId = result2.retValues[1];
 
-    await assert.isFulfilled((await owner.getWorkerAPI(docId)).downloadDoc(docId));
-    await assert.isFulfilled((await owner.getWorkerAPI(docId)).copyDoc(docId));
-    await assert.isRejected((await editor.getWorkerAPI(docId)).downloadDoc(docId), /Forbidden/);
-    await assert.isRejected((await editor.getWorkerAPI(docId)).copyDoc(docId), /Forbidden/);
+    await assert.isFulfilled(owner.getDocAPI(docId).download());
+    await assert.isFulfilled(owner.getDocAPI(docId).copyDoc(undefined));
+    await assert.isRejected(editor.getDocAPI(docId).download(), /Forbidden/);
+    await assert.isRejected(editor.getDocAPI(docId).copyDoc(undefined), /Forbidden/);
 
     // If we update data so that it's all visible to the editor, then yes, with "DocCopies" and
     // "AccessRules", they can now download. Test it by changing the rule from -R to +R-CUD.
     await owner.applyUserActions(docId, [
       ["UpdateRecord", "_grist_ACLRules", dataRuleId, { permissionsText: "+R-CUD" }],
     ]);
-    await assert.isFulfilled((await owner.getWorkerAPI(docId)).downloadDoc(docId));
-    await assert.isFulfilled((await owner.getWorkerAPI(docId)).copyDoc(docId));
-    await assert.isFulfilled((await editor.getWorkerAPI(docId)).downloadDoc(docId));
-    await assert.isFulfilled((await editor.getWorkerAPI(docId)).copyDoc(docId));
+    await assert.isFulfilled(owner.getDocAPI(docId).download());
+    await assert.isFulfilled(owner.getDocAPI(docId).copyDoc(undefined));
+    await assert.isFulfilled(editor.getDocAPI(docId).download());
+    await assert.isFulfilled(editor.getDocAPI(docId).copyDoc(undefined));
   });
 
   it("owner can edit rules without structure permission", async function() {
@@ -1841,7 +1841,7 @@ describe("GranularAccess", function() {
     ]);
 
     // Editor cannot download doc with some private info.
-    await assert.isRejected((await editor.getWorkerAPI(docId)).downloadDoc(docId));
+    await assert.isRejected(editor.getDocAPI(docId).download());
 
     // Grant editor special access to access rules.
     await owner.applyUserActions(docId, [
@@ -1863,7 +1863,7 @@ describe("GranularAccess", function() {
       ]);
     }
     // Editor still cannot download doc.
-    await assert.isRejected((await editor.getWorkerAPI(docId)).downloadDoc(docId));
+    await assert.isRejected(editor.getDocAPI(docId).download());
 
     // Grant editor special access to download document.
     await owner.applyUserActions(docId, [
@@ -1874,7 +1874,7 @@ describe("GranularAccess", function() {
     ]);
 
     // Download should work, and have FullCopies rules/resources removed.
-    const download = await (await editor.getWorkerAPI(docId)).downloadDoc(docId);
+    const download = await editor.getDocAPI(docId).download();
     const worker = await editor.getWorkerAPI("import");
     const buffer = await (download as any).buffer();
     const workspaceId = (await editor.getOrgWorkspaces("current"))[0].id;

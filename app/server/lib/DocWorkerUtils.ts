@@ -153,12 +153,17 @@ export type DocWorkerInfoOrSelfPrefix = {
   selfPrefix: string
 };
 
+export function getSelfPrefix(tag?: string): string {
+  return "/dw/self/v/" + tag;
+}
+
 export async function getDocWorkerInfoOrSelfPrefix(
   docId: string,
   docWorkerMap?: IDocWorkerMap | null,
   tag?: string,
+  options?: { useSelfPrefix?: boolean },
 ): Promise<DocWorkerInfoOrSelfPrefix> {
-  if (!useWorkerPool()) {
+  if (!useWorkerPool() || options?.useSelfPrefix) {
     // Let the client know there is not a separate pool of workers,
     // so they should continue to use the same base URL for accessing
     // documents. For consistency, return a prefix to add into that
@@ -167,8 +172,7 @@ export async function getDocWorkerInfoOrSelfPrefix(
     // more assumptions about how Grist is configured.
     // Alternatives could be: have the client to send their base URL
     // in the request; or use headers commonly added by reverse proxies.
-    const selfPrefix = "/dw/self/v/" + tag;
-    return { selfPrefix };
+    return { selfPrefix: getSelfPrefix(tag) };
   }
 
   if (!docWorkerMap) {
