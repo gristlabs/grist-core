@@ -526,7 +526,7 @@ export class HostedStorageManager implements IDocStorageManager {
     });
     this._closing.set(docName, closed);
 
-    // Just return the flused promise. At this moment, the possible wipe of the cache is
+    // Just return the flushed promise. At this moment, the possible wipe of the cache is
     // assumed to run in the background with no interference with the other following steps.
     return flushed;
   }
