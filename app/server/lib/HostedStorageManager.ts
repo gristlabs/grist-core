@@ -115,8 +115,10 @@ export class HostedStorageManager implements IDocStorageManager {
   // Ongoing and scheduled uploads for documents.
   private _uploads: KeyedOps;
 
-  // Ongoing doc removals (including grist doc, metadata, assets)
-  private _removals = new Map<string, Promise<void>>();
+  // In-flight document closes (flush to S3 + any local cache wipe), keyed by docName. A reopen
+  // (prepareLocalDoc) awaits the entry to avoid racing a close that is still tearing down the
+  // local copy. Registered at the very start of closeDocument so there is no observable gap.
+  private _closing = new Map<string, Promise<void>>();
 
   // Set once the manager has been closed.
   private _closed: boolean = false;
@@ -258,9 +260,13 @@ export class HostedStorageManager implements IDocStorageManager {
    * The optional srcDocName parameter is set when preparing a fork.
    */
   public async prepareLocalDoc(docName: string, srcDocName?: string): Promise<boolean> {
-    await this._removals.get(docName);
-    // We could be reopening a document that is still closing down.
-    // Wait for that to happen.  TODO: we could also try to interrupt the closing-down process.
+    // We could be reopening a document that is still closing down (flushing to S3 and/or wiping
+    // its local copy). Wait for any in-flight close to finish before we sync files down, so we
+    // don't race the teardown.  TODO: we could also try to interrupt the closing-down process.
+    await this._closing.get(docName);
+    // Awaiting `_closing` above only waits out a close already in flight; it flushes nothing on its
+    // own. This actively flushes the doc and clears its local-file bookkeeping so no pending upload
+    // races the sync below — keeping the local cache since we may reuse it.
     await this.closeDocument(docName, { keepLocalCache: true });
 
     if (this._prepareFiles.has(docName)) {
@@ -475,33 +481,54 @@ export class HostedStorageManager implements IDocStorageManager {
   }
 
   /**
-   * Finalize any operations involving the named document.
+   * Finalize any operations involving the named document:
+   * - flush the document to S3
+   * - if the instance is configured to wipe cache after closing a document,
+   *   remove the document and all the files associated.
    */
-  public async closeDocument(docName: string, options: { keepLocalCache?: boolean } = {}): Promise<void> {
+  public closeDocument(docName: string, options: { keepLocalCache?: boolean } = {}): Promise<void> {
     const { keepLocalCache } = options;
-    if (this._localFiles.has(docName)) {
-      await this._localFiles.get(docName);
-    }
-    this._localFiles.delete(docName);
-    await this.flushDoc(docName);
+    // When the instance is configured to wipe cache after closing a document
+    // and unless the caller asked to keep the local cache, we remove
+    // the local copy after flushing, to make the S3 version canonical. This also lets us later
+    // release the assignment so a less-loaded worker can pick the doc up.
+    const wipeAfterFlush = !keepLocalCache && this._mode === StorageMode.S3_WITHOUT_CACHE;
 
-    // When using S3 without cache and unless the caller asked to keep the local cache,
-    // remove the local copy to make the S3 version canonical.
-    // Also this allows us to later release the assignment to this doc worker
-    // to give the chance to a less-loaded worker to pick it.
-    if (!keepLocalCache && this._mode === StorageMode.S3_WITHOUT_CACHE) {
-      this._log.info(docName, "Removing local copy of this doc");
+    // Flush the doc to S3 (and clear local-file bookkeeping). The promise returned to callers
+    // resolves once this is done: they wait for the flush, but not for the local wipe below.
+    // Keeping the wipe off the returned promise matters for shutdown, where the assignment must
+    // still be released even if a purely-local wipe fails (S3 is already canonical).
+    const flushed = this._flushDocForClose(docName);
 
-      // .finally so a failed wipe still clears the map entry — otherwise
-      // prepareLocalDoc would await a rejected promise on the next open.
-      const pending = this._removeFromFilesystem(docName)
-        .catch(err => this._log.error(docName, "failed to wipe local copy: %s", err))
-        .finally(() => this._removals.delete(docName));
+    // Track the *whole* teardown (flush + optional wipe) in `_closing`, registered here
+    // synchronously — before any of the awaits inside `_flushDocForClose` can complete — so a
+    // concurrent reopen (prepareLocalDoc) can wait for it with no gap, even if this close is
+    // later abandoned mid-flight (e.g. by a shutdown timeout). Registering at the *end* of the
+    // close, or tracking only the wipe, would leave a window where a reopen sees nothing pending
+    // and races the file deletion.
+    const closed = flushed.then(
+      () => {
+        if (!wipeAfterFlush) { return; }
+        this._log.info(docName, "Removing local copy of this doc");
+        // Swallow wipe errors: after a successful flush S3 is canonical, so a failed local
+        // delete must not make a waiting reopen throw.
+        return this._removeFromFilesystem(docName)
+          .catch(err => this._log.error(docName, "failed to wipe local copy: %s", err));
+      },
+      () => {
+        // Flush failed: do NOT wipe (S3 may be stale and wiping could lose data). The caller
+        // learns of the failure via the returned `flushed` promise; here we only settle
+        // `_closing` so a waiting reopen can proceed.
+      },
+    ).finally(() => {
+      // Only clear our own entry: a newer close may have replaced it in the meantime.
+      if (this._closing.get(docName) === closed) { this._closing.delete(docName); }
+    });
+    this._closing.set(docName, closed);
 
-      // Add the removal promise so it is tracked to avoid a race condition
-      // when the cache is being wiped while the document is reopened.
-      this._removals.set(docName, pending);
-    }
+    // Just return the flused promise. At this moment, the possible wipe of the cache is
+    // assumed to run in the background with no interference with the other following steps.
+    return flushed;
   }
 
   public async cleanupAfterClose(docName: string): Promise<void> {
@@ -620,6 +647,18 @@ export class HostedStorageManager implements IDocStorageManager {
 
   public getMode() {
     return this._mode;
+  }
+
+  /**
+   * Flushes the document to external storage and clears local-file bookkeeping, as part of
+   * closing it.
+   */
+  private async _flushDocForClose(docName: string): Promise<void> {
+    if (this._localFiles.has(docName)) {
+      await this._localFiles.get(docName);
+    }
+    this._localFiles.delete(docName);
+    await this.flushDoc(docName);
   }
 
   private _isLocalStorageOnly() {
