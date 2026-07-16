@@ -55,8 +55,8 @@ EOF
   if cmp --silent "$tmp" "$out" 2>/dev/null; then rm "$tmp"; else mv "$tmp" "$out"; fi
 }
 
-set -x
 build_version_file
+set -x
 node buildtools/sanitize_translations.js
 tsc --build $PROJECT
 buildtools/update_type_info.sh app
