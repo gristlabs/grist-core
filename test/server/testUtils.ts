@@ -315,7 +315,7 @@ export async function useLocalDoc(srcPath: string, storageManager: any, alias: s
   // wait for it here (when available) so callers don't race the teardown.
   await storageManager.closeDocument(docName);
   await storageManager.cleanupAfterClose?.(docName);
-  await storageManager["_closing"]?.get(docName);
+  await storageManager._closing?.get(docName);
   return docName;
 }
 
