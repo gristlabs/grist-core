@@ -380,7 +380,9 @@ class TestStore {
   }
 
   public async waitForWipe(docId: string): Promise<void> {
-    return await this.storageManager["_removals"].get(docId);
+    // `_closing` tracks the whole close (flush + any local cache wipe), so awaiting it waits
+    // for the wipe to complete.
+    return await this.storageManager["_closing"].get(docId);
   }
 
   // Wipes the doc worker's local document store.
