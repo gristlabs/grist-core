@@ -6,6 +6,12 @@ import { makeT } from "app/client/lib/localization";
 import { inlineMarkdown, markdown } from "app/client/lib/markdown";
 import { Notifier } from "app/client/models/NotifyModel";
 import { ToggleEnterpriseModel } from "app/client/models/ToggleEnterpriseModel";
+import {
+  cssCelebrate,
+  cssCelebrateBody,
+  cssCelebrateIcon,
+  cssCelebrateLead,
+} from "app/client/ui/AdminPanelCss";
 import { cssOptInButton, cssParagraph, cssSection } from "app/client/ui/AdminTogglesCss";
 import { hoverTooltip, showTransientTooltip } from "app/client/ui/tooltips";
 import { bigPrimaryButton } from "app/client/ui2018/buttons";
@@ -121,7 +127,7 @@ export class ToggleEnterpriseWidget extends Disposable {
   }
 
   private _buildGoodNewsWell() {
-    return cssCelebrate(
+    return cssGoodNewsWell(
       cssCelebrateIcon(colorIcon("Sparks")),
       dom("div",
         cssCelebrateLead(t("Good news: it can stay free.")),
@@ -482,44 +488,8 @@ const cssErrorText = styled("div", `
   color: ${theme.errorText};
 `);
 
-const cssCelebrate = styled("div", `
-  display: flex;
-  align-items: center;
-  gap: 14px;
+const cssGoodNewsWell = styled(cssCelebrate, `
   margin: 16px 0;
-  padding: 14px 16px;
-  border-radius: 10px;
-  background: ${tokens.selectionOpaque};
-  border: 1px solid ${tokens.primary};
-  & a {
-    color: ${tokens.primary};
-    font-weight: 600;
-    text-decoration: none;
-  }
-  & a:hover {
-    color: ${tokens.primaryMuted};
-    text-decoration: underline;
-  }
-`);
-
-const cssCelebrateIcon = styled("div", `
-  flex: none;
-  & > div {
-    width: 38px;
-    height: 38px;
-  }
-`);
-
-const cssCelebrateLead = styled("div", `
-  font-weight: 700;
-  color: ${theme.text};
-  margin-bottom: 2px;
-`);
-
-const cssCelebrateBody = styled("div", `
-  font-size: ${vars.mediumFontSize};
-  line-height: 1.5;
-  color: ${theme.text};
 `);
 
 const cssIdBlock = styled("div", `

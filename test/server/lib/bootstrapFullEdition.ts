@@ -1,14 +1,13 @@
 import { version } from "app/common/version";
-import { ActivationsManager } from "app/gen-server/lib/ActivationsManager";
-import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
+import { appSettings } from "app/server/lib/AppSettings";
 import {
   Deps, isExtFullEditionSupported, maybeManageFullEdition, resolveFullEditionWorker,
 } from "app/server/lib/bootstrapFullEdition";
 import { checksumFile } from "app/server/lib/checksumFile";
 import { Edition } from "app/server/lib/configCore";
 import * as globalConfig from "app/server/lib/globalConfig";
+import { getEdition } from "app/server/lib/gristSettings";
 import { codeRoot, getAppRoot } from "app/server/lib/places";
-import { createInitialDb, removeConnection, setUpDB } from "test/gen-server/seed";
 import * as testUtils from "test/server/testUtils";
 import { EnvironmentSnapshot } from "test/server/testUtils";
 
@@ -166,22 +165,13 @@ describe("bootstrapFullEdition", function() {
     let fileServer: http.Server | undefined;
     let editionValue: Edition;
 
-    before(async function() {
-      await removeConnection();
-      process.env.TYPEORM_DATABASE = ":memory:";
-      setUpDB(this);
-      await createInitialDb();
-    });
-
-    after(async function() {
-      await removeConnection();
-    });
-
     beforeEach(async function() {
       instRoot = await fse.mkdtemp(path.join(os.tmpdir(), "grist-fe-inst-"));
       process.env.GRIST_INST_DIR = instRoot;
       delete process.env.GRIST_EXT_FULL_EDITION_BASE_URL;
       delete process.env.GRIST_EXT_FULL_EDITION_ACTIVE;
+      delete process.env.GRIST_EDITION;
+      setEdition(undefined);
       sandbox.stub(Deps, "hasBuiltInExt").returns(false);
       sandbox.stub(Deps, "isReleaseBuild").returns(true);
       dir = fullEditionDir(instRoot);
@@ -198,13 +188,13 @@ describe("bootstrapFullEdition", function() {
     afterEach(async function() {
       sandbox.restore();
       if (fileServer) { fileServer.close(); fileServer = undefined; }
+      setEdition(undefined);
       await fse.remove(instRoot).catch(() => undefined);
     });
 
-    async function setUseExtFullEdition(value: boolean): Promise<void> {
-      const db = new HomeDBManager();
-      await db.connect();
-      await new ActivationsManager(db).updatePrefs({ useExtFullEdition: value });
+    function setEdition(value: string | undefined): void {
+      appSettings.setEnvVars(value === undefined ? {} : { GRIST_EDITION: value });
+      getEdition.cache.clear();
     }
 
     function edition(): Edition {
@@ -222,7 +212,7 @@ describe("bootstrapFullEdition", function() {
 
     it("is a no-op on a non-release build", async function() {
       (Deps.isReleaseBuild as sinon.SinonStub).returns(false);
-      await setUseExtFullEdition(true);
+      setEdition("full");
       await makePayloadDirs();
       await writeStamp("stale");
 
@@ -234,7 +224,7 @@ describe("bootstrapFullEdition", function() {
 
     it("is a no-op when the build already bundles extensions", async function() {
       (Deps.hasBuiltInExt as sinon.SinonStub).returns(true);
-      await setUseExtFullEdition(true);
+      setEdition("full");
       await makePayloadDirs();
       await writeStamp("stale");
 
@@ -246,7 +236,7 @@ describe("bootstrapFullEdition", function() {
 
     it("reverts: drops the stamp and requests restart without deleting the payload", async function() {
       editionValue = "enterprise";
-      await setUseExtFullEdition(false);
+      setEdition("community");
       await makePayloadDirs();
       await writeStamp(IDENTITY);
 
@@ -259,7 +249,7 @@ describe("bootstrapFullEdition", function() {
     });
 
     it("already current: keeps edition in sync and requests no restart", async function() {
-      await setUseExtFullEdition(true);
+      setEdition("full");
       await makePayloadDirs();
       await writeStamp(IDENTITY);
 
@@ -271,7 +261,7 @@ describe("bootstrapFullEdition", function() {
     });
 
     it("disabled cleanup: reclaims a leftover payload", async function() {
-      await setUseExtFullEdition(false);
+      setEdition("community");
       await makePayloadDirs();
 
       const { restartRequested } = await maybeManageFullEdition();
@@ -288,7 +278,7 @@ describe("bootstrapFullEdition", function() {
       sandbox.stub(Deps, "installAttempts").value(1);
       sandbox.stub(Deps, "installRetryDelayMs").value(0);
       await fse.chmod(dir, 0o500);
-      await setUseExtFullEdition(true);
+      setEdition("full");
 
       try {
         const { restartRequested } = await maybeManageFullEdition();
@@ -334,7 +324,7 @@ describe("bootstrapFullEdition", function() {
         base = `http://localhost:${(fileServer.address() as AddressInfo).port}`;
         process.env.GRIST_EXT_FULL_EDITION_BASE_URL = base;
         manifestBody = JSON.stringify({ url: `${base}/payload.tar.gz`, sha256: tarballSha });
-        await setUseExtFullEdition(true);
+        setEdition("full");
       });
 
       afterEach(async function() {

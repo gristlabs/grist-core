@@ -4,7 +4,6 @@ export interface InstallPrefs extends PendingChanges {
   telemetry?: TelemetryPrefs;
   envVars?: Record<string, any>;
   checkForLatestVersion?: boolean;
-  useExtFullEdition?: boolean;
 }
 
 export interface PendingChanges {

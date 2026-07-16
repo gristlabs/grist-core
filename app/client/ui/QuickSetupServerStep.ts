@@ -1,7 +1,7 @@
 import { makeT } from "app/client/lib/localization";
 import { BaseUrlSection } from "app/client/ui/BaseUrlSection";
 import { DraftChangesManager } from "app/client/ui/DraftChanges";
-import { EditionSection, extFullEditionSwitchModal } from "app/client/ui/EditionSection";
+import { EditionSection, editionSwitchModal } from "app/client/ui/EditionSection";
 import { ApplyResult, quickSetupContinueButton, QuickSetupSection } from "app/client/ui/QuickSetupContinueButton";
 import { quickSetupStepHeader } from "app/client/ui/QuickSetupStepHeader";
 import { cssQuickSetupCard } from "app/client/ui/SettingsLayout";
@@ -54,7 +54,7 @@ export class QuickSetupServerStep extends Disposable implements QuickSetupSectio
     const editionSwitch = this._edition.pendingEditionSwitch();
     const applying = this._drafts.applyAll();
     return editionSwitch ?
-      extFullEditionSwitchModal(applying) :
+      editionSwitchModal(applying) :
       applying;
   }
 

@@ -20,20 +20,19 @@
  *     the built-in build runs.
  *
  *   - `maybeManageFullEdition()` runs on startup and makes the on-disk extensions match the
- *     `useExtFullEdition` home-DB flag -- downloading them when enabled, removing them when
- *     disabled -- then requests a restart so `resolveFullEditionWorker()` returns the right
+ *     `GRIST_EDITION` setting -- downloading them when it is "full", removing them when it is
+ *     "community" -- then requests a restart so `resolveFullEditionWorker()` returns the right
  *     worker.
  */
 
 import { delay } from "app/common/delay";
 import { isAffirmative } from "app/common/gutil";
 import { channel, version } from "app/common/version";
-import { ActivationsManager } from "app/gen-server/lib/ActivationsManager";
-import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { appSettings } from "app/server/lib/AppSettings";
 import { HashPassthroughStream } from "app/server/lib/checksumFile";
 import { Edition } from "app/server/lib/configCore";
 import { getGlobalConfig } from "app/server/lib/globalConfig";
+import { getEdition } from "app/server/lib/gristSettings";
 import log from "app/server/lib/log";
 import { codeRoot, getAppRoot, getInstanceRoot } from "app/server/lib/places";
 import { agents } from "app/server/lib/ProxyAgent";
@@ -204,15 +203,15 @@ export function resolveFullEditionWorker(): ForkSpec | null {
 
 /**
  * Installs, upgrades, or removes the full edition extensions based on the current state of the
- * install and the value of `useExtFullEdition` in the home DB:
+ * install and the value of the `GRIST_EDITION` setting:
  *
- *   - Install: When `useExtFullEdition` is true and no current extensions exist, downloads and
+ *   - Install: When `GRIST_EDITION` is "full" and no current extensions exist, downloads and
  *     installs them, and then requests a restart.
- *   - Upgrade: When `useExtFullEdition` is true and the downloaded extensions don't match the
+ *   - Upgrade: When `GRIST_EDITION` is "full" and the downloaded extensions don't match the
  *     current version, downloads and replaces them, and then requests a restart.
- *   - Remove: When `useExtFullEdition` is false, reverts to the built-in build -- dropping
- *     the stamp and requesting a restart if currently running the extensions, and reclaiming
- *     the downloaded extensions from disk on a later boot.
+ *   - Remove: When `GRIST_EDITION` is "community" (or unset), reverts to the built-in build --
+ *     dropping the stamp and requesting a restart if currently running the extensions, and
+ *     reclaiming the downloaded extensions from disk on a later boot.
  *
  * Returns whether a restart was requested, in which case the caller should ask the
  * RestartShell to refork, so that the correct build of Grist may run.
@@ -244,7 +243,7 @@ export async function maybeManageFullEdition(): Promise<{ restartRequested: bool
 
 async function manageFullEdition(identity: string): Promise<{ restartRequested: boolean }> {
   const dir = getFullEditionDir();
-  const enabled = await isFullEditionEnabled();
+  const enabled = isFullEditionEnabled();
   const current = await isStampCurrent(dir, identity);
 
   if (enabled && !current) {
@@ -331,11 +330,8 @@ async function updateGlobalConfigEdition(fullEditionEnabled: boolean): Promise<v
 /**
  * Returns whether the install has enabled the full edition of Grist.
  */
-async function isFullEditionEnabled(): Promise<boolean> {
-  const db = new HomeDBManager();
-  await db.connect();
-  const activation = await new ActivationsManager(db).current();
-  return Boolean(activation.prefs?.useExtFullEdition);
+function isFullEditionEnabled(): boolean {
+  return getEdition() === "full";
 }
 
 /**

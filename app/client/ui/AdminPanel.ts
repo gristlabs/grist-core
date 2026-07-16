@@ -32,7 +32,7 @@ import { BaseUrlSection } from "app/client/ui/BaseUrlSection";
 import { BootKeyStatus } from "app/client/ui/BootKeyStatus";
 import { InstallConfigsAPI } from "app/client/ui/ConfigsAPI";
 import { DraftChangesManager } from "app/client/ui/DraftChanges";
-import { EditionSection, extFullEditionSwitchModal, extFullEditionSwitchWarning } from "app/client/ui/EditionSection";
+import { Edition, EditionSection, editionSwitchModal, editionSwitchWarning } from "app/client/ui/EditionSection";
 import { peekSetupReturnFromGetGristCom } from "app/client/ui/GetGristComProvider";
 import { buildOutgoingRequestsPanel, buildOutgoingRequestsSummary } from "app/client/ui/OutgoingRequestsStatus";
 import { pagePanels } from "app/client/ui/PagePanels";
@@ -215,6 +215,7 @@ class AdminInstallationPanel extends Disposable {
   private _editionSection = EditionSection.create(this, {
     inAdminPanel: true,
     notifier: this._appModel.notifier,
+    onEditionSwitch: edition => this._confirmEditionSwitch(edition),
   });
 
   // Hide telemetry toggle, as the admin panel exposes it through SupportGristPage
@@ -299,20 +300,58 @@ class AdminInstallationPanel extends Disposable {
       t("Restart Grist?"),
       t("Restart"),
       () => {
-        // Fire-and-forget so confirmModal closes immediately; otherwise it
+        // Fire-and-forget so modal closes immediately; otherwise it
         // hangs on top of the spinner for the whole restart duration.
         const restarting = this._performRestart();
         (editionSwitch ?
-          extFullEditionSwitchModal(restarting) :
+          editionSwitchModal(restarting) :
           spinnerModal(t("Restarting Grist..."), restarting)
         ).catch(err => reportError(err as Error));
       },
       {
         explanation: dom("div",
           dom("p", t("Are you sure you want to restart Grist?")),
-          dom("p", editionSwitch ?
-            extFullEditionSwitchWarning(editionSwitch) :
-            t("This will apply any pending changes and briefly interrupt access for all users.")),
+          editionSwitch ?
+            editionSwitchWarning(editionSwitch) :
+            dom("p", t("This will apply any pending changes and briefly interrupt access for all users.")),
+        ),
+      },
+    );
+  }
+
+  private _confirmEditionSwitch(edition: Edition) {
+    const otherChanges = this._drafts.changes.get();
+    const canRestart = this._supportsRestart;
+
+    confirmModal(
+      edition === "enterprise" ? t("Switch to full Grist?") : t("Switch to Community edition?"),
+      canRestart ? t("Restart") : t("Apply changes"),
+      () => {
+        this._editionSection.selectEdition(edition);
+        if (canRestart) {
+          // Fire-and-forget so modal closes immediately; otherwise it
+          // hangs on top of the spinner for the whole restart duration.
+          editionSwitchModal(this._performRestart()).catch(err => reportError(err as Error));
+        } else {
+          // Fire-and-forget so _applyWithoutRestart opens its own spinner and
+          // reports its own errors.
+          void this._applyWithoutRestart();
+        }
+      },
+      {
+        explanation: dom("div",
+          canRestart ? editionSwitchWarning(edition) : dom("p", t("Grist is running in an \
+environment that doesn't support restarting from the admin panel. Your change will be saved \
+now, and takes effect the next time you restart Grist manually.")),
+          otherChanges.length === 0 ? null : [
+            dom("p", t("This will also apply your other pending changes:")),
+            cssDraftChangesList(otherChanges.map(c => dom("li",
+              cssDraftChangeLabel(c.label + ":"),
+              " ",
+              dom("span", c.value),
+            ))),
+          ],
+          testId("admin-panel-edition-switch-modal"),
         ),
       },
     );

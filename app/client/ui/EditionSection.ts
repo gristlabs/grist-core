@@ -5,6 +5,10 @@ import { retryOnNetworkError } from "app/client/models/ToggleEnterpriseModel";
 import { showEnterpriseToggle } from "app/client/ui/ActivationPage";
 import {
   buildConfirmedRow,
+  cssCelebrate,
+  cssCelebrateBody,
+  cssCelebrateIcon,
+  cssCelebrateLead,
   cssHappyText,
   cssSectionButtonRow,
   cssSectionContainer,
@@ -13,25 +17,31 @@ import {
 import { ConfigSection, DraftChangeDescription } from "app/client/ui/DraftChanges";
 import { cssValueLabel } from "app/client/ui/SettingsLayout";
 import { ToggleEnterpriseWidget } from "app/client/ui/ToggleEnterpriseWidget";
-import { basicButton, primaryButton } from "app/client/ui2018/buttons";
-import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
+import { basicButton, primaryButton, textButton } from "app/client/ui2018/buttons";
 import { theme } from "app/client/ui2018/cssVars";
-import { icon } from "app/client/ui2018/icons";
+import { colorIcon } from "app/client/ui2018/icons";
 import { cssLink } from "app/client/ui2018/links";
-import { confirmModal, spinnerModal } from "app/client/ui2018/modals";
-import { unstyledButton } from "app/client/ui2018/unstyled";
+import { spinnerModal } from "app/client/ui2018/modals";
 import { ConfigAPI } from "app/common/ConfigAPI";
 import { AdminPageConfig, commonUrls } from "app/common/gristUrls";
 import { InstallAPIImpl } from "app/common/InstallAPI";
 import { tokens } from "app/common/ThemePrefs";
 import { getGristConfig } from "app/common/urlUtils";
 
-import { Computed, Disposable, dom, DomContents, makeTestId, Observable, styled } from "grainjs";
+import { Computed, Disposable, dom, DomContents, DomElementArg, makeTestId, Observable, styled } from "grainjs";
 
 const t = makeT("EditionSection");
 const testId = makeTestId("test-edition-");
 
-type Edition = "enterprise" | "core";
+export type Edition = "enterprise" | "core";
+
+type Surface = "admin" | "wizard";
+
+type ViewMode =
+  "full-running" |
+  "full-selected" |
+  "community-running" |
+  "community-selected";
 
 interface EditionSectionOptions {
   /** True when rendered in the admin panel; false / absent in the wizard. */
@@ -48,6 +58,7 @@ interface EditionSectionOptions {
     editionForced?: boolean;
     initialServerEdition?: Edition;
   };
+  onEditionSwitch?: (edition: Edition) => void;
 }
 
 export class EditionSection extends Disposable implements ConfigSection {
@@ -57,6 +68,7 @@ export class EditionSection extends Disposable implements ConfigSection {
 
   public readonly fullGristAvailable: boolean;
   public readonly editionForced: boolean;
+  public readonly canSwitchToFull: boolean;
   public readonly needsRestart = true;
 
   private readonly _supportsExtFullEdition: boolean;
@@ -66,7 +78,14 @@ export class EditionSection extends Disposable implements ConfigSection {
   private _serverEdition = Observable.create<Edition>(this, "core");
   // Pre-confirmed in admin-panel mode so the confirm/edit flow only runs in the wizard.
   private _editionConfirmed = Observable.create<boolean>(this, !!this._options.inAdminPanel);
-  private _downgradeConfirming = Observable.create<boolean>(this, false);
+
+  private _viewMode = Computed.create<ViewMode>(this, (use) => {
+    const running = use(this._serverEdition) === "enterprise";
+    if (use(this._selectedEdition) === "enterprise") {
+      return running ? "full-running" : "full-selected";
+    }
+    return running ? "community-selected" : "community-running";
+  });
 
   // Only created in admin-panel mode (requires a notifier).
   private _toggleEnterprise: ToggleEnterpriseWidget | null;
@@ -80,6 +99,7 @@ export class EditionSection extends Disposable implements ConfigSection {
     this.fullGristAvailable = overrides.fullGristAvailable ?? showEnterpriseToggle();
     this.editionForced = overrides.editionForced ?? !!getGristConfig().forceEnableEnterprise;
     this._supportsExtFullEdition = !!adminConfig.supportsExtFullEdition;
+    this.canSwitchToFull = this.fullGristAvailable || this._supportsExtFullEdition;
 
     const notifier = this._options.notifier;
     this._toggleEnterprise = notifier ?
@@ -88,19 +108,13 @@ export class EditionSection extends Disposable implements ConfigSection {
 
     this._serverEdition.set(
       overrides.initialServerEdition ??
-      (this._supportsExtFullEdition ?
-        (getGristConfig().deploymentType === "enterprise" ? "enterprise" : "core") :
-        (this._toggleEnterprise?.getEnterpriseToggleObservable().get() ? "enterprise" : "core")),
+      (getGristConfig().deploymentType === "enterprise" ? "enterprise" : "core"),
     );
 
-    // In admin-panel mode, start selection at the server's current edition so
-    // the section isn't dirty before the user acts. In wizard mode, default to
-    // Full Grist when available; the user can change it via the buttons.
-    // Done here rather than in `_buildSelector` so a re-render can't reset it.
-    this._selectedEdition.set(this._options.inAdminPanel || this._supportsExtFullEdition ?
-      this._serverEdition.get() :
-      this.fullGristAvailable ? "enterprise" : "core",
-    );
+    // Start at the server's edition, so the section isn't dirty before the user acts.
+    this._selectedEdition.set(this._serverEdition.get());
+
+    if (this.editionForced) { this._editionConfirmed.set(true); }
 
     this.canProceed = Computed.create(this, use => use(this._editionConfirmed));
     this.isDirty = Computed.create(this, (use) => {
@@ -117,7 +131,7 @@ export class EditionSection extends Disposable implements ConfigSection {
 
   public buildStatusDisplay(): DomContents {
     if (this.editionForced) {
-      return cssValueLabel(cssHappyText(t("On")));
+      return cssValueLabel(cssHappyText(t("full")));
     }
     if (!this.fullGristAvailable) {
       return cssValueLabel(t("community"));
@@ -134,41 +148,31 @@ export class EditionSection extends Disposable implements ConfigSection {
     });
   }
 
-  // Admin panel dom (but the first part is shared with the wizard).
+  // Admin panel dom
   public buildDom(): DomContents {
-    const toggle = this._toggleEnterprise;
-    if (this.editionForced || !this.fullGristAvailable) {
-      return cssSectionContainer(this._buildCore(), testId("section"));
+    if (this.editionForced) {
+      return cssSectionContainer(this._buildForcedNote(), testId("section"));
     }
     return cssSectionContainer(
-      dom.domComputed(this._serverEdition, (edition) => {
-        if (edition === "enterprise" && toggle) {
-          return [
-            this._buildFullGristHeader(),
-            toggle.buildEnterpriseSection(),
-            cssDivider(),
-            this._buildDowngrade(),
-          ];
-        }
-        return this._buildCommunityView();
-      }),
-      dom.maybe(this.isDirty, () => cssPendingRestart(
-        icon("Warning"),
-        t("Restart Grist to apply this change."),
-        testId("pending"),
-      )),
+      dom.domComputed(this._viewMode, mode => this._buildView(mode, "admin")),
       testId("section"),
     );
   }
 
   // Wizard dom
   public buildWizardDom(): DomContents {
-    return cssSectionContainer(
-      this._buildCore(),
+    if (this.editionForced) {
       // No confirmed row when edition is forced by env -- nothing to edit.
-      this.editionForced ? null : buildConfirmedRow(
+      return cssSectionContainer(this._buildForcedNote(), testId("wizard"));
+    }
+    return cssSectionContainer(
+      dom.domComputed(this._viewMode, mode => this._buildView(mode, "wizard")),
+      buildConfirmedRow(
         this._editionConfirmed,
-        () => { this._editionConfirmed.set(false); },
+        () => {
+          this._editionConfirmed.set(false);
+          this._selectedEdition.set(this._serverEdition.get());
+        },
         { testPrefix: "edition" },
       ),
       testId("wizard"),
@@ -184,8 +188,9 @@ export class EditionSection extends Disposable implements ConfigSection {
     const selected = this._selectedEdition.get();
     if (!selected) { return; }
     if (this._supportsExtFullEdition) {
-      await retryOnNetworkError(() =>
-        this._installAPI.updateInstallPrefs({ useExtFullEdition: selected === "enterprise" }));
+      await retryOnNetworkError(() => this._installAPI.updateInstallPrefs({
+        envVars: { GRIST_EDITION: selected === "enterprise" ? "full" : "community" },
+      }));
     } else {
       await this._configAPI.setValue({ edition: selected });
     }
@@ -200,10 +205,14 @@ export class EditionSection extends Disposable implements ConfigSection {
     return this._selectedEdition.get() === "enterprise" ? 600 : 120;
   }
 
-  public pendingEditionSwitch(): "enable" | "disable" | null {
-    if (!this._supportsExtFullEdition || !this.isDirty.get()) { return null; }
+  public selectEdition(edition: Edition): void {
+    this._selectedEdition.set(edition);
+  }
 
-    return this._selectedEdition.get() === "enterprise" ? "enable" : "disable";
+  public pendingEditionSwitch(): Edition | null {
+    if (!this.isDirty.get()) { return null; }
+
+    return this._selectedEdition.get();
   }
 
   public async dismiss(): Promise<void> {
@@ -211,255 +220,198 @@ export class EditionSection extends Disposable implements ConfigSection {
     this._selectedEdition.set(this._serverEdition.get());
   }
 
-  private _buildFullGristHeader(): DomContents {
+  private _chooseEdition(edition: Edition) {
+    const onEditionSwitch = this._options.onEditionSwitch;
+    if (onEditionSwitch) {
+      onEditionSwitch(edition);
+      return;
+    }
+    this._editionConfirmed.set(true);
+    this._selectedEdition.set(edition);
+  }
+
+  private _buildView(mode: ViewMode, surface: Surface): DomContents {
+    switch (mode) {
+      case "full-running": return surface === "admin" ?
+        this._buildFullGristRunningView() :
+        this._buildFullGristView(mode, surface);
+      case "full-selected": return this._buildFullGristView(mode, surface);
+      case "community-running": return this._buildCommunityView(surface);
+      case "community-selected": return this._buildCommunitySelectedView();
+    }
+  }
+
+  private _buildForcedNote(): DomContents {
+    return cssSectionDescription(t("Full Grist is enabled via environment variable."));
+  }
+
+  private _buildFullGristRunningView(): DomContents {
     return [
       cssEditionName(t("Full Grist")),
       cssSectionDescription(t(`This server runs the full edition of Grist, with advanced security, \
 governance, MCP server, automations, email notifications, and collaboration features.`)),
+      this._toggleEnterprise ? [this._toggleEnterprise.buildEnterpriseSection(), cssDivider()] : null,
+      cssDowngradeButton(
+        t("Downgrade to Community Edition"),
+        dom.on("click", () => this._chooseEdition("core")),
+        testId("downgrade"),
+      ),
     ];
   }
 
-  // Staging "core" flips the section dirty; the draft bar handles restart, dismiss() reverts it.
-  private _buildDowngrade(): DomContents {
-    return dom.domComputed(this._downgradeConfirming, (confirming) => {
-      if (!confirming) {
-        return cssDowngradeLink(
-          t("Downgrade to Community Edition"),
-          dom.on("click", () => this._downgradeConfirming.set(true)),
-          testId("downgrade"),
-        );
-      }
-      return [
-        cssDowngradePrompt(
-          t("Downgrade to Community edition? Full Grist features are disabled after restart. \
-This is reversible."),
-          testId("downgrade-prompt"),
-        ),
-        cssDowngradeButtons(
-          primaryButton(
-            t("Downgrade"),
-            dom.on("click", () => {
-              this._selectedEdition.set("core");
-              this._downgradeConfirming.set(false);
-            }),
-            testId("downgrade-confirm"),
-          ),
-          basicButton(
-            t("Cancel"),
-            dom.on("click", () => this._downgradeConfirming.set(false)),
-            testId("downgrade-cancel"),
-          ),
-        ),
-      ];
-    });
-  }
-
-  private _buildCommunityView(): DomContents {
+  private _buildFullGristView(mode: ViewMode, surface: Surface): DomContents {
     return [
-      cssEditionName(t("Community")),
-      cssSectionDescription(t("You are running the Grist Community edition.")),
-      cssSectionDescription(t("For automations, MCP server, AI assistant, OIDC/SAML support, email \
-notifications, admin controls, audit logging and more, switch to the full Grist edition.")),
+      cssEditionName(t("Full Grist"), testId("full-selected")),
       cssSectionDescription(
-        t("{{freeKeysLink}} are available to individuals and small orgs under US $1 million total annual \
-funding. For larger orgs, see {{pricingLink}}.", {
-          freeKeysLink: cssLink(
+        t("The full Grist experience, with all features enabled for improved security, \
+governance, and collaboration."),
+      ),
+      this._showTrialNote(mode) ? cssSectionDescription(
+        t("You have 30 days to enter an activation key. Free activation keys are available \
+to individuals and small orgs with less than US $1 million in total annual funding. \
+{{learnMoreLink}} For larger orgs, see {{pricingLink}}.", {
+          learnMoreLink: cssLink(
             { href: commonUrls.helpEnterpriseOptIn, target: "_blank" },
-            t("Free activation keys"),
+            t("Learn more."),
           ),
           pricingLink: cssLink({ href: commonUrls.plans, target: "_blank" }, t("pricing")),
         }),
-      ),
-      cssSwitchRow(
-        primaryButton(
-          t("Switch to Full Grist"),
-          dom.on("click", () => this._selectedEdition.set("enterprise")),
-          testId("switch-to-full"),
-        ),
-      ),
+        testId("trial-note"),
+      ) : null,
+      mode === "full-selected" ? this._buildExtDownloadNote() : null,
+      surface === "wizard" ? this._buildFullGristButtons() : null,
     ];
   }
 
-  /**
-   * Shared core: description, edition selector tabs, per-selection text.
-   * Used by both admin panel and wizard.
-   */
-  private _buildCore(): DomContents {
-    if (this.editionForced) {
-      this._editionConfirmed.set(true);
-      return cssSectionDescription(t("Full Grist is enabled via environment variable."));
-    }
+  private _showTrialNote(mode: ViewMode): boolean {
+    if (mode !== "full-running") { return true; }
 
-    if (!this.fullGristAvailable && !this._supportsExtFullEdition) {
-      return this._buildUnavailableCore();
-    }
-
-    return this._buildSelector();
+    const { trial } = getGristConfig().activation ?? {};
+    return Boolean(trial && trial.daysLeft > 0);
   }
 
-  private _buildSelector(): DomContents {
-    const selectedEdition = this._selectedEdition;
+  private _buildFullGristButtons(): DomContents {
+    return dom.maybe(use => !use(this._editionConfirmed), () => cssEditionButtonRow(
+      primaryButton(
+        t("Continue with full edition"),
+        dom.on("click", () => this._chooseEdition("enterprise")),
+        testId("confirm-full"),
+      ),
+      basicButton(
+        t("Switch to community edition"),
+        dom.on("click", () => this._chooseEdition("core")),
+        testId("switch-to-community"),
+      ),
+    ));
+  }
+
+  private _buildCommunityView(surface: Surface): DomContents {
     return [
-      cssSectionDescription(
-        t("Choose which edition of Grist to run on this server."),
-      ),
-      cssEditionButtons(
-        cssEditionButton(
-          t("Full Grist"),
-          cssEditionButton.cls("-selected", use => use(selectedEdition) === "enterprise"),
-          dom.on("click", () => { selectedEdition.set("enterprise"); this._editionConfirmed.set(false); }),
-          testId("full-grist"),
-        ),
-        cssEditionButton(
-          t("Community edition"),
-          cssEditionButton.cls("-selected", use => use(selectedEdition) === "core"),
-          dom.on("click", () => { selectedEdition.set("core"); this._editionConfirmed.set(false); }),
-          testId("community"),
-        ),
-      ),
-      dom.domComputed((use) => {
-        const ed = use(selectedEdition);
-        if (ed === "enterprise") {
-          return [
-            cssSectionDescription(
-              t("The full Grist experience, with all features enabled for improved security, \
-governance, and collaboration."),
-            ),
-            !this.editionForced && use(this._serverEdition) !== "enterprise" ? cssSectionDescription(
-              t("You have 30 days to enter an activation key. Free activation keys are available \
-to individuals and small orgs with less than US $1 million in total annual funding. \
-{{learnMoreLink}} For larger orgs, see {{pricingLink}}.", {
-                learnMoreLink: cssLink(
-                  { href: commonUrls.helpEnterpriseOptIn, target: "_blank" },
-                  t("Learn more."),
-                ),
-                pricingLink: cssLink({ href: commonUrls.plans, target: "_blank" }, t("pricing")),
-              }),
-            ) : null,
-          ];
-        }
-        return [
-          cssSectionDescription(
-            t("The free and open-source heart of Grist, with everything you need to open and edit \
-Grist documents, control access, create forms, connect to single sign-on (SSO) \
-providers, and much more."),
-          ),
-          this._supportsExtFullEdition && use(this._serverEdition) === "enterprise" ?
-            cssSectionDescription(
-              t("Switching to the community edition restarts the server."),
-            ) : null,
-        ];
-      }),
-      dom.domComputed((use) => {
-        if (use(this._editionConfirmed)) { return null; }
-
-        const selected = use(selectedEdition);
-        if (selected === null) { return null; }
-
-        if (this._supportsExtFullEdition && selected !== use(this._serverEdition)) {
-          const enabling = selected === "enterprise";
-          return cssSectionButtonRow(
-            primaryButton(
-              enabling ? t("Switch to full edition") : t("Switch to community edition"),
-              dom.on("click", () => this._confirmExtFullEditionSwitch(enabling)),
-            ),
-          );
-        }
-        return cssSectionButtonRow(
-          primaryButton(
-            t("Confirm edition"),
-            dom.on("click", () => { this._editionConfirmed.set(true); }),
-            testId("confirm"),
-          ),
-        );
-      }),
+      cssEditionName(t("Community Grist"), testId("community-view")),
+      cssSectionDescription(t("You are running the Grist Community edition.")),
+      this.canSwitchToFull ? this._buildUpgradeWell() : this._buildManualSwitchNote(),
+      this._buildExtDownloadNote(),
+      this._buildCommunityButtons(surface),
     ];
   }
 
-  private _confirmExtFullEditionSwitch(enabling: boolean): void {
-    const title = enabling ? t("Switch to full edition") : t("Switch to community edition");
-    const description = extFullEditionSwitchWarning(enabling ? "enable" : "disable");
-    confirmModal(
-      title,
-      t("Confirm"),
-      () => { this._editionConfirmed.set(true); },
-      { explanation: cssSectionDescription(description) },
+  private _buildCommunitySelectedView(): DomContents {
+    return [
+      cssEditionName(t("Community Grist"), testId("community-selected")),
+      cssSectionDescription(t("Grist will switch to the Community edition after restarting, \
+disabling full Grist features. You will not lose your data or need to reinstall Grist.")),
+    ];
+  }
+
+  private _buildUpgradeWell(): DomContents {
+    return cssCelebrate(
+      cssCelebrateIcon(colorIcon("Sparks")),
+      dom("div",
+        cssCelebrateLead(t("Upgrade to full Grist")),
+        cssCelebrateBody(
+          dom("p", t("For automations, MCP server, AI assistant, OIDC support, email \
+notifications, admin controls, audit logging and more, switch to the full Grist edition.")),
+          dom("p", t("{{freeKeysLink}} are available to individuals and orgs under US $1M total \
+annual funding. For larger orgs see {{pricingLink}}. Start your 30-day free trial today.", {
+            freeKeysLink: cssLink(
+              { href: commonUrls.helpEnterpriseOptIn, target: "_blank" },
+              t("Free activation keys"),
+            ),
+            pricingLink: cssLink({ href: commonUrls.plans, target: "_blank" }, t("pricing")),
+          })),
+          dom("p", t("You may downgrade at any time to the Community edition. You will not lose your \
+data or need to reinstall Grist.")),
+        ),
+      ),
+      testId("upgrade-well"),
     );
   }
 
-  private _buildUnavailableCore(): DomContents {
-    const selectedTab = Observable.create(this, "core");
-    return [
-      cssSectionDescription(
-        t("Choose which edition of Grist to run on this server."),
-      ),
-      cssEditionButtons(
-        cssEditionButton(
-          t("Full Grist"),
-          cssEditionButton.cls("-selected", use => use(selectedTab) === "enterprise"),
-          dom.on("click", () => { selectedTab.set("enterprise"); this._editionConfirmed.set(false); }),
-          testId("full-grist"),
-        ),
-        cssEditionButton(
-          t("Community edition"),
-          cssEditionButton.cls("-selected", use => use(selectedTab) === "core"),
-          dom.on("click", () => { selectedTab.set("core"); this._editionConfirmed.set(false); }),
-          testId("community"),
-        ),
-      ),
-      dom.domComputed(selectedTab, (tab) => {
-        if (tab === "enterprise") {
-          return [
-            cssSectionDescription(
-              t("The full Grist experience, with all features enabled for improved security, \
-governance, and collaboration."),
-            ),
-            cssSectionDescription(
-              t("Your installation does not bundle the Full Grist edition. \
+  private _buildExtDownloadNote(): DomContents {
+    if (!this._supportsExtFullEdition) { return null; }
+
+    return cssSectionDescription(
+      t("Switching to full Grist downloads the required extensions. This may take a few \
+minutes, during which the server will be unavailable."),
+      testId("ext-download-note"),
+    );
+  }
+
+  private _buildManualSwitchNote(): DomContents {
+    return cssSectionDescription(
+      t("Your installation does not bundle the Full Grist edition. \
 Want Full Grist? {{enableLink}}", {
-                enableLink: cssLink(
-                  { href: commonUrls.helpEnterpriseOptIn, target: "_blank" },
-                  t("See how to enable it."),
-                ),
-              }),
-            ),
-            dom.maybe(use => !use(this._editionConfirmed), () =>
-              labeledSquareCheckbox(this._editionConfirmed,
-                t("I understand I am running Grist Community edition"),
-                testId("acknowledge"),
-              ),
-            ),
-          ];
-        }
-        return [
-          cssSectionDescription(
-            t("The free and open-source heart of Grist, with everything you need to open and edit \
-Grist documents, control access, create forms, connect to single sign-on (SSO) \
-providers, and much more."),
-          ),
-          dom.maybe(use => !use(this._editionConfirmed), () => cssSectionButtonRow(
-            primaryButton(
-              t("Confirm edition"),
-              dom.on("click", () => {
-                this._editionConfirmed.set(true);
-              }),
-              testId("confirm"),
-            ),
-          )),
-        ];
+        enableLink: cssLink(
+          { href: commonUrls.helpEnterpriseOptIn, target: "_blank" },
+          t("See how to enable it."),
+        ),
       }),
+      testId("manual-switch-note"),
+    );
+  }
+
+  private _buildCommunityButtons(surface: Surface): DomContents {
+    if (surface === "admin") {
+      if (!this.canSwitchToFull) { return null; }
+
+      return cssEditionButtonRow(
+        primaryButton(
+          t("Switch to full Grist"),
+          dom.on("click", () => this._chooseEdition("enterprise")),
+          testId("switch-to-full"),
+        ),
+      );
+    }
+
+    return dom.maybe(use => !use(this._editionConfirmed), () => cssEditionButtonRow(
+      this.canSwitchToFull ? primaryButton(
+        t("Switch to full Grist"),
+        dom.on("click", () => this._chooseEdition("enterprise")),
+        testId("switch-to-full"),
+      ) : null,
+      (this.canSwitchToFull ? basicButton : primaryButton)(
+        t("Continue with Community edition"),
+        dom.on("click", () => this._chooseEdition("core")),
+        testId("confirm"),
+      ),
+    ));
+  }
+}
+
+export function editionSwitchWarning(edition: Edition): DomElementArg[] {
+  if (edition === "enterprise") {
+    return [dom("p", t("Switching to full Grist restarts the server, which may be briefly unavailable."))];
+  } else {
+    return [
+      dom("p", t("Downgrading to the Community edition restarts the server, which may be briefly \
+unavailable.")),
+      dom("p", t("Full Grist features such as email notifications, automations, MCP server, and OIDC and \
+SAML support will be disabled after restart. You may always upgrade to full Grist again.")),
     ];
   }
 }
 
-export function extFullEditionSwitchWarning(kind: "enable" | "disable"): string {
-  return kind === "enable" ?
-    t("Switching to the full edition downloads required extensions and restarts the server. \
-This may take a few minutes, during which the server will be unavailable.") :
-    t("Switching to the community edition restarts the server, which may be briefly unavailable.");
-}
-
-export function extFullEditionSwitchModal<T>(promise: Promise<T>): Promise<T> {
+export function editionSwitchModal<T>(promise: Promise<T>): Promise<T> {
   return spinnerModal(
     t("Switching Grist edition..."),
     promise,
@@ -475,81 +427,14 @@ const cssEditionName = styled("div", `
   margin-bottom: 4px;
 `);
 
-const cssDowngradeLink = styled("div", `
-  color: ${tokens.secondary};
-  cursor: pointer;
+const cssEditionButtonRow = styled(cssSectionButtonRow, `
+  margin-top: 8px;
+`);
+
+const cssDowngradeButton = styled(textButton, `
   font-size: ${tokens.smallFontSize};
-  width: fit-content;
-  &:hover {
-    color: ${tokens.body};
-  }
 `);
 
 const cssDivider = styled("div", `
   border-top: 1px solid ${theme.widgetBorder};
-`);
-
-const cssDowngradePrompt = styled("div", `
-  color: ${tokens.secondary};
-  margin-top: 8px;
-`);
-
-const cssDowngradeButtons = styled(cssSectionButtonRow, `
-  margin-top: 8px;
-`);
-
-const cssSwitchRow = styled("div", `
-  margin-top: 8px;
-`);
-
-const cssPendingRestart = styled("div", `
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 12px;
-  color: ${theme.dangerText};
-  --icon-color: ${theme.dangerText};
-  font-size: ${tokens.smallFontSize};
-`);
-
-const cssEditionButtons = styled("div", `
-  background: ${tokens.bgTertiary};
-  border-radius: 10px;
-  display: flex;
-  column-gap: 3px;
-  margin-bottom: 16px;
-  padding: 3px;
-`);
-
-const cssEditionButton = styled(unstyledButton, `
-  border-radius: 7px;
-  color: ${tokens.secondary};
-  cursor: pointer;
-  flex: 1;
-  font-weight: 500;
-  padding: 8px 6px;
-  text-align: center;
-  transition: color 0.2s, background 0.2s, box-shadow 0.2s;
-
-  &:hover, &-selected {
-    color: ${tokens.body};
-  }
-
-  &:focus-visible {
-    outline: 3px solid ${tokens.primary};
-    outline-offset: 2px;
-  }
-
-  &-selected {
-    background: ${tokens.bg};
-    box-shadow:
-      0 1px 3px rgba(0, 0, 0, 0.15),
-      0 1px 2px rgba(0, 0, 0, 0.1);
-    font-weight: 600;
-  }
-
-  &-disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
 `);

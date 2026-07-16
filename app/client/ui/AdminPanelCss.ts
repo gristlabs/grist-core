@@ -149,7 +149,7 @@ export const cssFadeUpHeading = styled("div", `
 
 export const cssFadeUpSubHeading = styled("div", `
   animation: ${cssFadeUp} 0.5s ease 0.16s both;
-  color: ${tokens.secondary};
+  color: ${tokens.body};
   font-size: 15px;
   line-height: 1.5;
   margin-bottom: 24px;
@@ -165,12 +165,56 @@ export const cssSectionContainer = styled("div", `
   gap: 8px;
 `);
 
-/** Subdued description text within a section. */
+/** Description text within a section. */
 export const cssSectionDescription = styled("div", `
-  color: ${theme.lightText};
   font-size: ${vars.mediumFontSize};
   line-height: 1.5;
   margin-bottom: 4px;
+`);
+
+export const cssCelebrate = styled("div", `
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: ${tokens.selectionOpaque};
+  border: 1px solid ${tokens.primary};
+  & a {
+    color: ${tokens.primary};
+    font-weight: 600;
+    text-decoration: none;
+  }
+  & a:hover {
+    color: ${tokens.primaryMuted};
+    text-decoration: underline;
+  }
+`);
+
+export const cssCelebrateIcon = styled("div", `
+  flex: none;
+  & > div {
+    width: 38px;
+    height: 38px;
+  }
+`);
+
+export const cssCelebrateLead = styled("div", `
+  font-weight: 700;
+  color: ${tokens.body};
+  margin-bottom: 2px;
+`);
+
+export const cssCelebrateBody = styled("div", `
+  font-size: ${vars.mediumFontSize};
+  line-height: 1.5;
+  color: ${tokens.body};
+  & > p {
+    margin: 0px;
+  }
+  & > p + p {
+    margin-top: 8px;
+  }
 `);
 
 /** Inline status text for collapsed section display. */
