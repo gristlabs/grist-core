@@ -141,13 +141,13 @@ Stores document information that is not portable, which means that it does not s
 | is_pinned | Whether the document has been pinned or not |
 | url_id | Short version of the `id`, as currently displayed in the URL (see the [`aliases` table](#aliases-table) for previously used values) |
 | removed_at | If not null, stores the date when the document has been placed in the trash (it will be hard deleted after 30 days) |
-| options | Serialized options as described in the [DocumentOptions](https://github.com/gristlabs/grist-core/blob/4567fad94787c20f65db68e744c47d5f44b932e4/app/common/UserAPI.ts#L125-L135) interface |
+| options | Serialized options as described in the [DocumentOptions](https://github.com/gristlabs/grist-core/blob/3ff629082974bb49c4aaafa0a59b87a071a9eeeb/app/common/UserAPI.ts#L164-L178) interface |
 | created_by | The id of the [user](#users-table) who created the document (null for documents created before this column existed) |
 | grace_period_start | Specific to getgrist.com. When the document first exceeds its plan's usage limits, this records the date; after the grace period elapses the document may become read-only. Null while the document is within limits. |
 | disabled_at | If not null, the date at which the document was disabled (soft-disabled by an administrator, distinct from being moved to the trash) |
-| usage | stats about the document (see [DocumentUsage](https://github.com/gristlabs/grist-core/blob/4567fad94787c20f65db68e744c47d5f44b932e4/app/common/DocUsage.ts)) |
+| usage | stats about the document (see [DocumentUsage](https://github.com/gristlabs/grist-core/blob/main/app/common/DocUsage.ts)) |
 | trunk_id | If set, the current document is a fork, and this column references the original ("trunk") document |
-| type | If set, the current document is a special one (as specified in [DocumentType](https://github.com/gristlabs/grist-core/blob/4567fad94787c20f65db68e744c47d5f44b932e4/app/common/UserAPI.ts#L123)) |
+| type | If set, the current document is a special one (as specified in [DocumentType](https://github.com/gristlabs/grist-core/blob/3ff629082974bb49c4aaafa0a59b87a071a9eeeb/app/common/UserAPI.ts#L157-L162)) |
 | created_at | When the document was created. |
 | updated_at | When the document was updated. |
 
@@ -197,7 +197,7 @@ You notice that the permissions can be then composed:
  - ADMIN permissions = `EDITOR | SCHEMA_EDIT` = `0b00001111+0b00010000` = `0b00011111` = `31`
  - OWNER permissions = `ADMIN | ACL_EDIT` = `0b00011111+0b00100000` = `0b00111111` = `63`
 
-For more details about that part, please refer [to the code](https://github.com/gristlabs/grist-core/blob/192e2f36ba77ec67069c58035d35205978b9215e/app/gen-server/lib/Permissions.ts).
+For more details about that part, please refer [to the code](https://github.com/gristlabs/grist-core/blob/main/app/gen-server/lib/Permissions.ts).
 
 ### `secrets` table
 
@@ -217,7 +217,7 @@ Stores the user's preferences. It can either be scoped globally or to an organiz
 | ------------- | -------------- |
 | org_id | If set, the preferences are specific to the referenced organization. Otherwise, the user's preferences are global. |
 | user_id | the user for whom preferences applies. |
-| prefs | The serialized JSON of the preferences. If specific to an organization, it's [an UserOrgPrefs object](https://github.com/gristlabs/grist-core/blob/f53e2e3d6085443e173dda913fe995361d42b0f8/app/common/Prefs.ts#L41) or otherwise [an UserPrefs object](https://github.com/gristlabs/grist-core/blob/f53e2e3d6085443e173dda913fe995361d42b0f8/app/common/Prefs.ts#L17). |
+| prefs | The serialized JSON of the preferences. If specific to an organization, it's [an UserOrgPrefs object](https://github.com/gristlabs/grist-core/blob/3ff629082974bb49c4aaafa0a59b87a071a9eeeb/app/common/Prefs.ts#L43) or otherwise [an UserPrefs object](https://github.com/gristlabs/grist-core/blob/3ff629082974bb49c4aaafa0a59b87a071a9eeeb/app/common/Prefs.ts#L17). |
 
 ### `doc_prefs` table
 
@@ -241,7 +241,7 @@ Stores special grants for documents for anyone having the key.
 | doc_id | The document to which the share belongs |
 | options | Any overall qualifiers on the share |
 
-For more information, please refer [to the comments in the code](https://github.com/gristlabs/grist-core/blob/f53e2e3d6085443e173dda913fe995361d42b0f8/app/gen-server/entity/Share.ts).
+For more information, please refer [to the comments in the code](https://github.com/gristlabs/grist-core/blob/main/app/gen-server/entity/Share.ts).
 
 ### `proposals` table
 
@@ -344,7 +344,7 @@ Stores `users` information.
 | last_connection_at | The date of the last time the user has signed in to Grist |
 | disabled_at | If not null, the date at which the user was disabled |
 | is_first_time_user | Whether the user discovers Grist (used to trigger the Welcome Tour) |
-| options | Serialized options as described in [UserOptions](https://github.com/gristlabs/grist-core/blob/513e13e6ab57c918c0e396b1d56686e45644ee1a/app/common/UserAPI.ts#L169-L179) interface |
+| options | Serialized options as described in [UserOptions](https://github.com/gristlabs/grist-core/blob/3ff629082974bb49c4aaafa0a59b87a071a9eeeb/app/common/UserAPI.ts#L258-L271) interface |
 | connect_id | Used by [GristConnect](https://support.getgrist.com/install/grist-connect/) in the full edition of Grist to identify user in external provider |
 | ref | A unique reference for the user (short UUID format), generated at insert time. Also unique accross Grist instances, so it can be used in documents. It’s primarily used as an ownership key in cell metadata (comments); also handy to identify a user in the automated tests. |
 | created_at | When the user record was created |
