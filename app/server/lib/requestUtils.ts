@@ -827,22 +827,27 @@ export function proxyHttpRequest(
       }
 
       if (err) {
-        // Close the response connection nicely with a helpful HTTP status, if possible.
-        if (!clientRes.headersSent && clientRes.writable) {
-          const statusCode = 502;
-          const statusMessage = http.STATUS_CODES[statusCode];
-          clientRes
-            .writeHead(
+        // Best-effort tidy close with a helpful status. Runs from disconnect/error handlers, so it
+        // must never throw: a dropped client must not become a process-killing uncaughtException.
+        try {
+          if (!clientRes.headersSent && clientRes.writable) {
+            const statusCode = 502;
+            const statusMessage = http.STATUS_CODES[statusCode];
+            // Two statements, not a chain: morgan's on-headers wrapper returns undefined from writeHead.
+            clientRes.writeHead(
               statusCode,
               statusMessage,
               insertProxiedToTestHeader({ "content-type": "text/plain; charset=utf-8" }, target.href),
-            )
-            .end(statusMessage);
-        } else {
-          clientRes.destroy();
+            );
+            clientRes.end(statusMessage);
+          } else {
+            clientRes.destroy();
+          }
+          clientReq.destroy(err);
+          backendReq.destroy(err);
+        } catch (cleanupErr) {
+          _httpProxyLog.warn(finalInfo, "cleanup after error failed: %s", String(cleanupErr));
         }
-        clientReq.destroy(err);
-        backendReq.destroy(err);
         reject(err);
       } else {
         resolve();

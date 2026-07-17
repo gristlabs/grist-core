@@ -79,6 +79,9 @@ describe("DocApiProxy", function() {
     homeServer = await createServer(app, "home");
     homeUrl = getUrl(homeServer);
 
+    // Production has morgan here; its writeHead wrapper returns undefined, which the abort test needs.
+    app.use(morganLogger("tiny", { stream: { write: () => true } }));
+
     // stubs doc worker map
     const docWorkerMapStub = sinon.createStubInstance(DocWorkerMap);
     docWorkerMapStub.assignDocWorker.returns(Promise.resolve({
@@ -284,6 +287,24 @@ describe("DocApiProxy", function() {
     await promiseForRequestDone;
     sinon.assert.calledOnce(checkIsClosed);
     assert.deepEqual(checkIsClosed.args, [[true]]);
+  });
+
+  it("survives a client aborting before the doc worker responds", async function() {
+    // Regression for a crash-loop: aborting before the worker responded made proxyHttpRequest's
+    // teardown do writeHead(...).end(...) on a morgan-wrapped response whose writeHead returns
+    // undefined -> TypeError in a 'close' handler -> uncaughtException killed the home process.
+    let forwarded = () => {};
+    const promiseForwarded = new Promise<void>((r) => { forwarded = r; });
+    docWorkerStub.callsFake(() => forwarded());   // hold the request open
+
+    const source = axios.CancelToken.source();
+    const aborted = axios.get(`${homeUrl}/api/docs/sampledocid_16/tables/table1/data`,
+      { ...chimpy, cancelToken: source.token });
+    await promiseForwarded;
+    source.cancel("canceled for testing");
+    await assert.isRejected(aborted, /canceled for testing/);
+    // If settle() crashes on the 'close' event, the uncaughtException fails this test.
+    await delay(50);
   });
 
   it("should forward POST /api/docs/:did/uploads", async function() {
