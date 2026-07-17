@@ -19,7 +19,7 @@ export class MarkdownTextBox extends NTextBox {
     const valueObs = row.cells[this.field.colId()];
 
     return dom(
-      "div.field_clip",
+      "div.field_clip.markdown",
       cssMarkdown(
         cssMarkdown.cls("-text-wrap", this.wrapping),
         dom.style("text-align", this.alignment),
