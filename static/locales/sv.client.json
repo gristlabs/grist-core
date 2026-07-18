@@ -2437,7 +2437,10 @@
         "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.": "Websocketanslutningar behöver HTTP1.1 and möjligheten att lägga till några extra headers för att fungera. Ibland kan en revrese proxy hinda det.",
         "It is good practice not to run Grist as the root user.": "Det är en bra grundregel att inte köra Grist som root-användare.",
         "The main page of Grist should be available.": "Grists huvudsida borde vara tillgänglig.",
-        "APP_HOME_URL is the base URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "APP_HOME_URL är den basURL som användare och integrationer når Gristserverna på. Autentiserings svar, API länkar och epostnotifieringar är beroende av att den stämmer."
+        "APP_HOME_URL is the base URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "APP_HOME_URL är den basURL som användare och integrationer når Gristserverna på. Autentiserings svar, API länkar och epostnotifieringar är beroende av att den stämmer.",
+        "If running in a container without external storage or with default database, ": {
+            "persist should be a mounted volume. Otherwise Grist documents and metadata will be lost when the container stops.": "Om servern körs i en kontainer utan extern lagring eller med en standard databas, ska /persist monteras som en enhetsvolym. Annars kommer Gristdokument och metadata förloras när kontainern stoppas."
+        }
     },
     "FormulaTransform": {
         "Apply": "Applicera",
@@ -2802,7 +2805,8 @@
         "Continue without authentication": "Fortsätt utan autentisering",
         "Or connect your own identity provider": "Eller anslut din egen identitetsleverantör",
         "Skip authentication setup?": "Hoppa över inställning av autentisering?",
-        "Choose how people sign in. You can change this anytime after setup.": "Välj hur användare loggar in. Du kan ändra detta när som helst efter uppstart."
+        "Choose how people sign in. You can change this anytime after setup.": "Välj hur användare loggar in. Du kan ändra detta när som helst efter uppstart.",
+        "Anyone who can reach this server can access all data without signing in. You can configure authentication later from the admin panel.": "Vem som helst som kan nå denna server kan komma åt alla data utan att logga in. Du kan ställa in autentisering senare från administrationspanelen."
     },
     "DetailView": {
         "This row is unavailable or does not exist": "Denna rad är inte tillgänglig eller finns inte"
@@ -3055,7 +3059,11 @@
         "Switch to Full Grist": "Växla till komplett Grist",
         "You are running the Grist Community edition.": "Du kör den öppna versionen av Grist.",
         "Downgrade to Community edition? Full Grist features are disabled after restart. This is reversible.": "Nedgradera till öppen version? Funktioner som är en del av komplett variant av Grist kommer stängas av efter omstart.",
-        "{{freeKeysLink}} are available to individuals and small orgs under US $1 million total annual funding. For larger orgs, see {{pricingLink}}.": "{{freeKeysLink}} finns tillgänglig för individer och små organisationer med årlig omsättning på under 1 miljon US Dollar. För stora organisationer se {{pricingLink}}."
+        "{{freeKeysLink}} are available to individuals and small orgs under US $1 million total annual funding. For larger orgs, see {{pricingLink}}.": "{{freeKeysLink}} finns tillgänglig för individer och små organisationer med årlig omsättning på under 1 miljon US Dollar. För stora organisationer se {{pricingLink}}.",
+        "For automations, MCP server, AI assistant, OIDC": {
+            "SAML support, email notifications, admin controls, audit logging and more, switch to the full Grist edition.": "För automatiserade flöden, MCPserver, AI assistent, OIDC/SAML support, e-postnotiser, administrations sida, revisions loggning med mera byt till komplett version av Grist."
+        },
+        "This server runs the full edition of Grist, with advanced security, governance, MCP server, automations, email notifications, and collaboration features.": "Denna server kör full version av Grist med, funktioner aktiverade för förbättrad säkerhet, kontroll, MCP server, automatiserade flöden, e-post notiser och funktioner för samarbete."
     },
     "BaseUrlSection": {
         "set": "ställ in",
