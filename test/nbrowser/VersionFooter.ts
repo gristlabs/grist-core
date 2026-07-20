@@ -51,7 +51,7 @@ describe("VersionFooter", function() {
       const popup = await driver.findWait(".test-version-footer-popup", 2000);
       assert.equal(await popup.find(".test-version-footer-popup-title").getText(), "Grist Community edition");
       assert.match(await popup.find(".test-version-footer-popup-version").getText(), /^Version \d+\./);
-      const links = await popup.findAll(".test-version-footer-popup-link", (l) => l.getAttribute("href"));
+      const links = await popup.findAll(".test-version-footer-popup-link", l => l.getAttribute("href"));
       assert.lengthOf(links, 2);
       assert.match(links[0], /grist-core\/releases\/tag/);
       assert.match(links[1], /grist-edition-comparison/);
@@ -92,7 +92,7 @@ describe("VersionFooter", function() {
       await driver.find(".test-version-footer").mouseMove();
       const popup = await driver.findWait(".test-version-footer-popup", 2000);
       assert.equal(await popup.find(".test-version-footer-popup-title").getText(), "Grist");
-      const links = await popup.findAll(".test-version-footer-popup-link", (l) => l.getAttribute("href"));
+      const links = await popup.findAll(".test-version-footer-popup-link", l => l.getAttribute("href"));
       assert.lengthOf(links, 1);
       assert.match(links[0], /grist-core\/releases\/tag/);
     });
