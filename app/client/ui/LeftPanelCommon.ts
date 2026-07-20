@@ -18,6 +18,7 @@ import { beaconOpenMessage } from "app/client/lib/helpScout";
 import { makeT } from "app/client/lib/localization";
 import { AppModel } from "app/client/models/AppModel";
 import { hoverTooltip } from "app/client/ui/tooltips";
+import { createVersionFooter } from "app/client/ui/VersionFooter";
 import { colors, testId, theme, vars } from "app/client/ui2018/cssVars";
 import { colorIcon, icon } from "app/client/ui2018/icons";
 import { unstyledButton } from "app/client/ui2018/unstyled";
@@ -107,6 +108,7 @@ export function leftPanelBasic(appModel: AppModel, panelOpen: Observable<boolean
         createAccessibilityTools(appModel),
       ),
     ),
+    createVersionFooter(panelOpen),
   );
 }
 

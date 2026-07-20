@@ -14,7 +14,6 @@ import {
   cssLeftPanel,
   cssLinkText,
   cssMenuTrigger,
-  cssPageColorIcon,
   cssPageEntry,
   cssPageIcon,
   cssPageLink,
@@ -26,6 +25,7 @@ import {
 import { newDocMethods } from "app/client/ui/NewDocMethods";
 import { createVideoTourToolsButton } from "app/client/ui/OpenVideoTour";
 import { transientInput } from "app/client/ui/transientInput";
+import { createVersionFooter } from "app/client/ui/VersionFooter";
 import { testId, theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { menu, menuIcon, menuItem, upgradableMenuItem, upgradeText } from "app/client/ui2018/menus";
@@ -35,7 +35,6 @@ import { commonUrls, isFeatureEnabled } from "app/common/gristUrls";
 import * as roles from "app/common/roles";
 import { getGristConfig } from "app/common/urlUtils";
 import { Workspace } from "app/common/UserAPI";
-import * as version from "app/common/version";
 
 import { computed, dom, domComputed, DomElementArg, observable, Observable, styled } from "grainjs";
 
@@ -47,13 +46,6 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
   const isAnonymous = !home.app.currentValidUser;
   const { enableAnonPlayground, templateOrg, onboardingTutorialDocId, deploymentType } = getGristConfig();
   const canCreate = !isAnonymous || enableAnonPlayground;
-
-  // Show version when hovering over the application icon.
-  // Include gitcommit when known. Cast version.gitcommit since, depending
-  // on how Grist is compiled, tsc may believe it to be a constant and
-  // believe that testing it is unnecessary.
-  const appVersion = `Version ${version.version}` +
-    ((version.gitcommit as string) !== "unknown" ? ` (${version.gitcommit})` : "");
 
   return cssContent(
     dom.autoDispose(creating),
@@ -145,7 +137,6 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
       cssHomeTools(
         { "aria-labelledby": "grist-resources-heading" },
         cssSectionHeader(
-          cssPageColorIcon("GristLogo", { title: appVersion, id: "grist-resources-logo" }),
           cssSectionHeaderText(t("Grist Resources"), { id: "grist-resources-heading" }),
         ),
         cssPageEntry(
@@ -191,6 +182,7 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
         ),
       ),
     ),
+    createVersionFooter(leftPanelOpen),
   );
 }
 

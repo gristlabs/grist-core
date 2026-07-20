@@ -15,6 +15,9 @@ export const GristDark: ThemeTokens = {
   bgSecondary: "#262633",
   bgTertiary: "rgba(111,111,125,0.6)",
   bgEmphasis: "#646473",
+  bgWarningSubtle: "#3d3836",
+
+  borderWarningSubtle: "#7d652a",
 
   decoration: "#70707d",
   decorationSecondary: "#60606d",

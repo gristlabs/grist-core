@@ -15,6 +15,9 @@ export const GristLight: ThemeTokens = {
   bgSecondary: "#f7f7f7",
   bgTertiary: "rgba(217,217,217,0.6)",
   bgEmphasis: "#262633",
+  bgWarningSubtle: "#fff6e6",
+
+  borderWarningSubtle: "#e9e2a8",
 
   decoration: "#d9d9d9",
   decorationSecondary: "#e8e8e8",
