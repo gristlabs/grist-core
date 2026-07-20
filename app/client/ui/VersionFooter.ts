@@ -61,11 +61,6 @@ function buildVersionPopup(): DomContents {
   const { deploymentType } = getGristConfig();
   const isCommunity = isCommunityEdition();
 
-  const links = [
-    isCommunity ? buildEditionComparisonLink() : null,
-    isCommunity || deploymentType === "enterprise" ? buildReleaseNotesLink() : null,
-  ].filter(Boolean);
-
   // Cast version.gitcommit since, depending on how Grist is compiled, tsc may believe it to be
   // a constant and believe that testing it is unnecessary.
   const fullVersion = version.version +
@@ -80,6 +75,8 @@ function buildVersionPopup(): DomContents {
       t("Version {{- version}}", { version: fullVersion }),
       testId("version-footer-popup-version"),
     ),
+    isCommunity || deploymentType === "enterprise" ?
+      cssPopupLinks(buildReleaseNotesLink()) : null,
     isCommunity ?
       [
         cssPopupDivider(),
@@ -87,11 +84,7 @@ function buildVersionPopup(): DomContents {
           dom("div", t("Not the full edition")),
           dom("div", t("Only community support")),
         ),
-      ] : null,
-    links.length > 0 ?
-      [
-        cssPopupDivider(),
-        cssPopupLinks(...links),
+        cssPopupLinks(buildEditionComparisonLink()),
       ] : null,
     testId("version-footer-popup"),
   );
@@ -213,6 +206,7 @@ const cssPopupLinks = styled("div", `
   flex-direction: column;
   gap: 8px;
   align-items: flex-start;
+  margin-top: 8px;
 `);
 
 const cssPopupLink = styled(cssLink, `
