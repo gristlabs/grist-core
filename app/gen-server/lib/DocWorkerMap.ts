@@ -357,24 +357,42 @@ export class DocWorkerMap implements IDocWorkerMap {
     // Only release if the doc is still assigned to this worker. Otherwise we could clobber
     // a fresh assignment made in the meantime (e.g. the doc was reassigned to another worker
     // during a force-reload or shutdown), leaving `doc-${docId}` deleted and causing requests
-    // to bounce/reassign. Take the same lock as assignDocWorker so the ownership check and the
-    // delete are atomic with respect to (re)assignment.
-    const lock = await this._redlock.lock(`workers-lock`, LOCK_TIMEOUT);
-    try {
-      const docStatus = await this.getDocWorker(docId);
-      if (docStatus && docStatus.docWorker.id !== workerId) {
-        log.info(`DocWorkerMap.releaseAssignment ${docId} now assigned to ${docStatus.docWorker.id}, ` +
-          `not releasing on behalf of ${workerId}`);
-        // Still make sure this worker's doc set doesn't keep a stale entry.
-        await this._client.sremAsync(`worker-${workerId}-docs`, docId);
-        return;
-      }
-      const op = this._client.multi();
-      op.del(`doc-${docId}`);
-      op.srem(`worker-${workerId}-docs`, docId);
-      await op.execAsync();
-    } finally {
-      await lock.unlock();
+    // to bounce/reassign.
+    //
+    // The ownership check and the delete happen in a Lua script so they are atomic, rather than
+    // under the global `workers-lock`: releaseAssignment is called once per doc when an instance
+    // shuts down, and taking a cluster-wide lock for each would serialize the whole shutdown.
+    //
+    // Note the `pcall` around cjson.decode is deliberate: a corrupt or legacy value in that field
+    // should degrade to the old unconditional release rather than wedging the doc forever. The
+    // redis calls themselves stay unguarded, since a failure there is not something we can
+    // sensibly recover from here and should surface to the caller.
+    const script = `
+      local assigned = redis.call("HGET", KEYS[1], "docWorker")
+      if assigned then
+        local ok, docWorker = pcall(cjson.decode, assigned)
+        if ok and docWorker.id ~= ARGV[1] then
+          -- Doc is now assigned elsewhere. Leave the assignment alone, but still drop our own
+          -- stale entry.
+          redis.call("SREM", KEYS[2], ARGV[2])
+          return docWorker.id
+        end
+      end
+      redis.call("DEL", KEYS[1])
+      redis.call("SREM", KEYS[2], ARGV[2])
+      return false
+    `;
+    // Note we leave `doc-${docId}-checksum` alone: it intentionally outlives the assignment, so
+    // that the next download can detect an inconsistent read from external storage, and so that
+    // a returning worker can tell whether its cached copy is still current.
+    const otherWorkerId = await this._client.evalAsync(
+      script,
+      2, `doc-${docId}`, `worker-${workerId}-docs`,
+      workerId, docId,
+    );
+    if (otherWorkerId) {
+      log.info(`DocWorkerMap.releaseAssignment ${docId} now assigned to ${otherWorkerId}, ` +
+        `not releasing on behalf of ${workerId}`);
     }
   }
 
