@@ -159,7 +159,7 @@ describe("bootstrapFullEdition", function() {
       instRoot = await fse.mkdtemp(path.join(os.tmpdir(), "grist-fe-inst-"));
       process.env.GRIST_INST_DIR = instRoot;
       delete process.env.GRIST_EXT_FULL_EDITION_BASE_URL;
-      delete process.env.GRIST_EDITION;
+      delete process.env.GRIST_SERVER_EDITION;
       setEdition(undefined);
       sandbox.stub(Deps, "hasBuiltInExt").returns(false);
       sandbox.stub(Deps, "isReleaseBuild").returns(true);
@@ -182,7 +182,7 @@ describe("bootstrapFullEdition", function() {
     });
 
     function setEdition(value: string | undefined): void {
-      appSettings.setEnvVars(value === undefined ? {} : { GRIST_EDITION: value });
+      appSettings.setEnvVars(value === undefined ? {} : { GRIST_SERVER_EDITION: value });
       getEdition.cache.clear();
     }
 

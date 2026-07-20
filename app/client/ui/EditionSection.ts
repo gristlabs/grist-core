@@ -189,7 +189,7 @@ export class EditionSection extends Disposable implements ConfigSection {
     if (!selected) { return; }
     if (this._supportsExtFullEdition) {
       await retryOnNetworkError(() => this._installAPI.updateInstallPrefs({
-        envVars: { GRIST_EDITION: selected === "enterprise" ? "full" : "community" },
+        envVars: { GRIST_SERVER_EDITION: selected === "enterprise" ? "full" : "community" },
       }));
     } else {
       await this._configAPI.setValue({ edition: selected });

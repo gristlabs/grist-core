@@ -20,8 +20,8 @@
  *     the built-in build runs.
  *
  *   - `maybeManageFullEdition()` runs on startup and makes the on-disk extensions match the
- *     `GRIST_EDITION` setting -- downloading them when it is "full", removing them when it is
- *     "community" -- then requests a restart so `resolveFullEditionWorker()` returns the right
+ *     `GRIST_SERVER_EDITION` setting -- downloading them when it is "full", removing them when it
+ *     is "community" -- then requests a restart so `resolveFullEditionWorker()` returns the right
  *     worker.
  */
 
@@ -194,13 +194,13 @@ export function resolveFullEditionWorker(): ForkSpec | null {
 
 /**
  * Installs, upgrades, or removes the full edition extensions based on the current state of the
- * install and the value of the `GRIST_EDITION` setting:
+ * install and the value of the `GRIST_SERVER_EDITION` setting:
  *
- *   - Install: When `GRIST_EDITION` is "full" and no current extensions exist, downloads and
- *     installs them, and then requests a restart.
- *   - Upgrade: When `GRIST_EDITION` is "full" and the downloaded extensions don't match the
+ *   - Install: When `GRIST_SERVER_EDITION` is "full" and no current extensions exist, downloads
+ *     and installs them, and then requests a restart.
+ *   - Upgrade: When `GRIST_SERVER_EDITION` is "full" and the downloaded extensions don't match the
  *     current version, downloads and replaces them, and then requests a restart.
- *   - Remove: When `GRIST_EDITION` is "community" (or unset), reverts to the built-in build --
+ *   - Remove: When `GRIST_SERVER_EDITION` is "community" (or unset), reverts to the built-in build --
  *     dropping the stamp and requesting a restart if currently running the extensions, and
  *     reclaiming the downloaded extensions from disk on a later boot.
  *

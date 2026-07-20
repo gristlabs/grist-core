@@ -51,7 +51,7 @@ export const RestartRequiredSettingEnvVar = StringUnion(
   "GRIST_ORG_CREATION_ANYONE",
   "GRIST_PERSONAL_ORGS",
   "GRIST_SANDBOX_FLAVOR",
-  "GRIST_EDITION",
+  "GRIST_SERVER_EDITION",
 );
 export type RestartRequiredSettingEnvVar = typeof RestartRequiredSettingEnvVar.values;
 
@@ -249,14 +249,14 @@ const GristEdition = StringUnion("community", "full");
 type GristEdition = typeof GristEdition.type;
 
 /**
- * Returns the value of `GRIST_EDITION` from {@link appSettings} with its source.
+ * Returns the value of `GRIST_SERVER_EDITION` from {@link appSettings} with its source.
  *
  * NOTE: This value is memoized for the life of the server process; changes to the DB
  * are not reflected until server restart.
  */
 export const getEdition = memoize(() =>
   appSettings.flag("edition").readString({
-    envVar: "GRIST_EDITION",
+    envVar: "GRIST_SERVER_EDITION",
     acceptedValues: GristEdition.values,
   }) as GristEdition | undefined,
 );
@@ -337,7 +337,7 @@ const settingsByEnvVar: Record<SettingKey, MemoizedFunction> = {
   GRIST_ADMIN_EMAIL: getAdminEmail,
   GRIST_BOOT_KEY: getBootKey,
   GRIST_IN_SERVICE: getInService,
-  GRIST_EDITION: getEdition,
+  GRIST_SERVER_EDITION: getEdition,
 };
 
 /**
