@@ -1183,6 +1183,20 @@ namespace gristUtils {
     await driver.wait(async () => (await hasFocus(selector) === yesNo), waitMs);
   }
 
+  /**
+   * Wait until an element matching `selector` exists and holds focus. The positive counterpart to
+   * waitAppFocus(false), which only confirms focus left the app, not that it reached the editor
+   * about to be typed into. Tolerates the element not existing yet (async-mounting editors).
+   */
+  export async function waitForEditorFocus(selector: string, waitMs: number = 2000): Promise<void> {
+    await driver.wait(async () => {
+      for (const el of await driver.findAll(selector)) {
+        if (await el.hasFocus()) { return true; }
+      }
+      return false;
+    }, waitMs);
+  }
+
   export async function waitForLabelInput(): Promise<void> {
     await driver.wait(async () => (await driver.findWait(".test-column-title-label", 100).hasFocus()), 300);
   }
