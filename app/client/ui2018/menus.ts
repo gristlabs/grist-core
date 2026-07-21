@@ -630,6 +630,8 @@ export const menuText = styled(menuTextAutoDescription, `
 
 export const menuItem = styled(weasel.menuItem, menuItemStyle);
 
+export const menuItemCheckbox = styled(weasel.menuItemCheckbox, menuItemStyle);
+
 const styledMenuGroup = styled(weasel.menuGroup, menuGroupStyle);
 
 export const menuGroup = (heading: DomElementArg, ...args: DomElementArg[]) => {

@@ -8,8 +8,9 @@ import { buildNewDocumentBlock, cssNewDocBlock } from "app/client/ui/HomeNewDocB
 import { buildSectionHead, cssSectionBody, reveal, revealed } from "app/client/ui/HomeSection";
 import { isNarrowScreenObs, testId, theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
-import { menu, menuCssClass } from "app/client/ui2018/menus";
+import { menu, menuItemCheckbox } from "app/client/ui2018/menus";
 import { toggleSwitch } from "app/client/ui2018/toggleSwitch";
+import { unstyledButton } from "app/client/ui2018/unstyled";
 import { FullUser } from "app/common/LoginSessionAPI";
 
 import { dom, DomContents, DomElementArg, styled } from "grainjs";
@@ -130,16 +131,18 @@ function buildPreferencesMenu(homeModel: HomeModel) {
     cssDots(icon("Dots")),
     menu(
       () => [
-        toggleSwitch(onlyShowDocuments, {
-          label: t("Only show documents"),
-          args: [
-            testId("welcome-menu-only-show-documents"),
-          ],
-        }),
+        menuItemCheckbox(
+          onlyShowDocuments,
+          toggleSwitch(onlyShowDocuments, {
+            label: t("Only show documents"),
+            args: [
+              testId("welcome-menu-only-show-documents"),
+            ],
+          }),
+        ),
       ],
       {
         ...defaultMenuOptions,
-        menuCssClass: `${menuCssClass} ${cssPreferencesMenu.className}`,
         placement: "bottom-end",
       },
     ),
@@ -221,11 +224,7 @@ const cssPill = styled("div", `
   flex-shrink: 0;
 `);
 
-const cssPreferencesMenu = styled("div", `
-  padding: 10px 16px;
-`);
-
-const cssDotsMenu = styled("div", `
+const cssDotsMenu = styled(unstyledButton, `
   display: flex;
   cursor: pointer;
   border-radius: ${vars.controlBorderRadius};
