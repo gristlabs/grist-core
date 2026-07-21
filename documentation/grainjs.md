@@ -8,6 +8,10 @@ Over time, we used the lessons we learned to make a new library implementing the
 
 GrainJS documentation is available at https://github.com/gristlabs/grainjs#documentation. It’s the best place to start, since most Grist code is now based on GrainJS, and new code should be written using it too.
 
+## UI Theming
+
+If you are working on styled components or theme-aware UI, see [UI Theming Guide](ui-theming.md) for the current token-based theming system and the deprecated compatibility layer.
+
 ## Older Grist Code
 
 Before GrainJS, Grist code was based on a combination of Knockout and custom dom-building building functions.
