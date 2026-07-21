@@ -281,6 +281,8 @@ export const GristLight: ThemeTokens = {
 
     /* Toggle Checkboxes */
     toggleCheckboxFg: "#606060",
+    toggleCheckboxBg: tokens.bgSecondary,
+    toggleCheckboxBorder: tokens.decoration,
 
     /* Numeric Spinners */
     numericSpinnerFg: "#606060",

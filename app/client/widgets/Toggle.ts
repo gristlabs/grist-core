@@ -106,7 +106,9 @@ export class ToggleSwitch extends ToggleBase {
 }
 
 function buildCheckbox(value: KoSaveableObservable<boolean>, ...args: DomElementArg[]) {
+  const grainValue = fromKo(value);
   return dom("div.widget_checkbox",
+    dom.cls("widget_checkbox-unchecked", use => !use(grainValue)),
     dom("div.widget_checkmark",
       dom.show(value),
       dom("div.checkmark_kick"),
