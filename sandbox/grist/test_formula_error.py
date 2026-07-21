@@ -6,6 +6,7 @@ import depend
 import test_engine
 import testutil
 import objtypes
+from schema import RecalcWhen
 
 
 class TestErrorMessage(test_engine.EngineTestCase):
@@ -277,8 +278,26 @@ return 0
     ])
 
   def test_undo_side_effects(self):
-    # Ensures that side-effects (i.e. generated doc actions) produced while evaluating
-    # get_formula_errors() get reverted.
+    # Side-effects produced while probing a cell's value get reverted. (We call get_formula_value
+    # directly; get_formula_error, which delegates to it, refuses to probe a non-error trigger cell.)
+    # A NEVER-recalc formula doesn't run during calculation, so its row isn't pre-created: probing
+    # creates it, and the probe must undo that.
+    self.apply_user_action(['AddTable', 'Address', [{'id': 'city', 'type': 'Text'}]])
+    self.apply_user_action(['AddTable', 'Foo', []])
+    self.apply_user_action(['AddColumn', 'Foo', 'B', {
+      'type': 'Any', 'isFormula': False,
+      'formula': "Address.lookupOrAddDerived(city='x')", 'recalcWhen': RecalcWhen.NEVER}])
+    self.add_record('Foo')
+
+    # NEVER means B did not run, so no Address row exists yet.
+    self.assertTableData('Address', cols="subset", data=[['id', 'city']])
+    # Probing the cell runs B, which creates Address[1]; get_formula_value then reverts the add.
+    self.assertEqual(str(self.engine.get_formula_value('Foo', 'B', 1)), "Address[1]")
+    self.assertTableData('Address', cols="subset", data=[['id', 'city']])
+
+  def test_self_referential_lookup_or_add(self):
+    # A key computed from the table's own contents (str(len(Address.all))) reads the table this
+    # formula adds to: a circular reference. It errors and adds no rows.
     sample = testutil.parse_test_sample({
       "SCHEMA": [
         [1, "Address", [
@@ -286,8 +305,6 @@ return 0
           [12, "state",       "Text",       False, "", "", ""],
         ]],
         [2, "Foo", [
-          # Note: the formula below is a terrible example of a formula, which intentionally
-          # creates a new record every time it evaluates.
           [21, "B",           "Any",        True,
             "Address.lookupOrAddDerived(city=str(len(Address.all)))", "", ""],
         ]]
@@ -298,17 +315,38 @@ return 0
     })
 
     self.load_sample(sample)
-    self.assertTableData('Address', data=[
-      ['id',  'city', 'state'],
-      [1,     '0',      ''],
-    ])
-    # Note that evaluating the formula again would add a new record (Address[2]), but when done as
-    # part of get_formula_error(), that action gets undone.
-    self.assertEqual(str(self.engine.get_formula_error('Foo', 'B', 1)), "Address[2]")
-    self.assertTableData('Address', data=[
-      ['id',  'city', 'state'],
-      [1,     '0',      ''],
-    ])
+    # The cell errors with a circular reference, and reading the table to compute a key for it
+    # leaves it empty (no rows added).
+    cell = objtypes.decode_object(self.engine.fetch_table('Foo').columns['B'][0])
+    self.assertIsInstance(cell, objtypes.RaisedException)
+    self.assertIsInstance(cell.error, depend.CircularRefError)
+    self.assertTableData('Address', cols="all", data=[['id', 'city', 'state']])
+    self.assertEqual(objtypes.decode_object(self.engine.fetch_table('Foo').columns['B'][0]).__class__,
+                     objtypes.RaisedException(Exception()).__class__)
+
+  def test_get_formula_value_matches_stored_for_read_and_add(self):
+    # get_formula_value must report the same thing as the cell's real (stored) value. A formula that
+    # both reads a table and adds to it is a circular reference; probing the cell must report that,
+    # not a phantom success value. (The probe runs outside the update loop, where a side effect used
+    # to trigger a pass that reset the read/add tracking and hid the cycle.)
+    sample = testutil.parse_test_sample({
+      "SCHEMA": [
+        [1, "Child", [[11, "Name", "Text", False, "", "", ""]]],
+        [2, "Foo", [
+          [21, "B", "Any", True, "Child.lookupOrAddDerived(Name='x')\nreturn len(Child.all)", "", ""],
+        ]],
+      ],
+      "DATA": {"Foo": [["id"], [1]]},
+    })
+    self.load_sample(sample)
+    stored = objtypes.decode_object(self.engine.fetch_table('Foo').columns['B'][0])
+    self.assertIsInstance(stored, objtypes.RaisedException)
+    self.assertIsInstance(stored.error, depend.CircularRefError)
+    # The probe agrees: same circular-reference error, and it leaves no phantom row behind.
+    probe = self.engine.get_formula_value('Foo', 'B', 1)
+    self.assertIsInstance(probe, objtypes.RaisedException)
+    self.assertIsInstance(probe.error, depend.CircularRefError)
+    self.assertTableData('Child', cols="all", data=[['id', 'Name']])
 
   def test_formula_reading_from_an_errored_formula(self):
     # There was a bug whereby if one formula (call it D) referred to
@@ -386,37 +424,6 @@ return 0
       [ 1,   1., errVal, errVal],
       [ 2,   2., errVal, errVal],
       [ 3,   3., errVal, errVal],
-    ])
-
-  def test_undo_side_effects_with_reordering(self):
-    # As for test_undo_side_effects, but now after creating a row in a
-    # formula we try to access a cell that hasn't been recomputed yet.
-    # That will result in the formula evalution being abandoned, the
-    # desired cell being calculated, then the formula being retried.
-    # All going well, we should end up with one row, not two.
-    sample = testutil.parse_test_sample({
-      "SCHEMA": [
-        [1, "Address", [
-          [11, "city",        "Text",       False, "", "", ""],
-          [12, "state",       "Text",       False, "", "", ""],
-        ]],
-        [2, "Foo", [
-          # Note: the formula below is a terrible example of a formula, which intentionally
-          # creates a new record every time it evaluates.
-          [21, "B",           "Any",        True,
-            "Address.lookupOrAddDerived(city=str(len(Address.all)))\nreturn $C", "", ""],
-          [22, "C",           "Numeric",    True, "42", "", ""],
-        ]]
-      ],
-      "DATA": {
-        "Foo": [["id"], [1]]
-      }
-    })
-
-    self.load_sample(sample)
-    self.assertTableData('Address', data=[
-      ['id',  'city', 'state'],
-      [1,     '0',      ''],
     ])
 
   def test_attribute_error(self):

@@ -100,7 +100,14 @@ class UserTable(object):
 
     Learn more about [lookupRecords](references-lookups.md#lookuprecords).
     """
-    return self.table.lookup_records(**field_value_pairs)
+    engine = self.table._engine
+    engine.note_table_read(self.table.table_id)
+    prev = engine._lookup_is_user_level
+    engine._lookup_is_user_level = True
+    try:
+      return self.table.lookup_records(**field_value_pairs)
+    finally:
+      engine._lookup_is_user_level = prev
 
   def lookupOne(self, **field_value_pairs):
     # pylint: disable=line-too-long
@@ -133,7 +140,14 @@ class UserTable(object):
     Rates.lookupOne(Person=$id, order_by="-Date")      # Rate with the latest Date.
     ```
     """
-    return self.table.lookup_one_record(**field_value_pairs)
+    engine = self.table._engine
+    engine.note_table_read(self.table.table_id)
+    prev = engine._lookup_is_user_level
+    engine._lookup_is_user_level = True
+    try:
+      return self.table.lookup_one_record(**field_value_pairs)
+    finally:
+      engine._lookup_is_user_level = prev
 
   def lookupOrAddDerived(self, **kwargs):
     return self.table.lookupOrAddDerived(**kwargs)
@@ -601,6 +615,8 @@ class Table(object):
   def lookupOrAddDerived(self, **kwargs):
     record = self.lookup_one_record(**kwargs)
     if not record._row_id and not self._engine.is_triggered_by_table_action(self.table_id):
+      # note_table_add reports a circular reference if this cell has already read the table.
+      self._engine.note_table_add(self.table_id)
       record._row_id = self._engine.user_actions.AddRecord(self.table_id, None, kwargs)
     return record
 
