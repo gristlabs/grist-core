@@ -125,6 +125,7 @@
 
 .error_details {
   background-color: #F8EAD5;  /* 20% of color-warning-bg */
+  color: black;
   font-family: 'Monaco', 'Menlo', monospace;
   font-size: 12px;
   white-space: pre-wrap;
