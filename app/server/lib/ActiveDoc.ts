@@ -204,7 +204,10 @@ const DEFAULT_LOCALE = getDefaultLocale();
 // Number of seconds an ActiveDoc is retained without any clients.
 // In dev environment, it is convenient to keep this low for quick tests.
 // In production, it is reasonable to stretch it out a bit.
-const ACTIVEDOC_TIMEOUT = (process.env.NODE_ENV === "production") ? 30 : 5;
+const ACTIVEDOC_TIMEOUT = appSettings.section("externalStorage").flag("activeDocTimeout").requireInt({
+  envVar: "GRIST_ACTIVEDOC_TIMEOUT_SECONDS",
+  defaultValue: process.env.NODE_ENV === "production" ? 30 : 5,
+});
 
 // We'll wait this long between re-measuring sandbox memory.
 const MEMORY_MEASUREMENT_THROTTLE_WAIT_MS = 60 * 1000;
@@ -2588,13 +2591,17 @@ export class ActiveDoc extends EventEmitter {
     const docSession = makeExceptionalDocSession("system");
     this._log.debug(docSession, "shutdown starting");
 
-    const safeCallAndWait = async (funcDesc: string, func: () => Promise<unknown>) => {
+    // Returns true if `func` completed successfully, false if it timed out or threw.
+    const safeCallAndWait = async (funcDesc: string, func: () => Promise<unknown>): Promise<boolean> => {
       try {
-        if (await timeoutReached(Deps.SHUTDOWN_ITEM_TIMEOUT_MS, func())) {
+        if (await timeoutReached(Deps.SHUTDOWN_ITEM_TIMEOUT_MS, func(), { rethrow: true })) {
           this._log.error(docSession, `${funcDesc} timed out`);
+          return false;
         }
+        return true;
       } catch (err) {
         this._log.error(docSession, `${funcDesc} failed`, err);
+        return false;
       }
     };
 
@@ -2656,8 +2663,19 @@ export class ActiveDoc extends EventEmitter {
       this._syncDocUsageToDatabase(true);
       await this._logDocMetrics(docSession, "docClose");
 
-      await safeCallAndWait("storageManager.closeDocument",
+      const closeSucceeded = await safeCallAndWait("storageManager.closeDocument",
         () => this._docManager.storageManager.closeDocument(this.docName));
+
+      // Only release if closeDocument completed: releasing while the flush is still in flight
+      // (timed out) or failed would let another worker reopen a stale/incomplete copy.
+      if (closeSucceeded) {
+        await safeCallAndWait("cleanupAfterClose", () => {
+          return this._docManager.storageManager.cleanupAfterClose(this.docName);
+        });
+      } else {
+        this._log.warn(docSession,
+          "skipping cleanupAfterClose because storageManager.closeDocument did not complete");
+      }
 
       try {
         const dataEngine = this._dataEngine ? await this._getEngine() : null;
@@ -2681,6 +2699,7 @@ export class ActiveDoc extends EventEmitter {
       } catch (err) {
         this._log.error(docSession, "failed to shutdown some resources", err);
       }
+
       // No timeout on this callback: if it hangs, it will make the document unusable.
       await this._afterShutdownCallback?.();
     } finally {

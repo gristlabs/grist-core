@@ -61,6 +61,7 @@ import { DocTemplate, GristLoginMiddleware, GristLoginSystem, GristServer, Reque
 import { initGristSessions, SessionStore } from "app/server/lib/gristSessions";
 import { getBootKey, getForceLogin, getHomeUrl, getInService,
   getPersonalOrgsEnabled } from "app/server/lib/gristSettings";
+import { StorageMode } from "app/server/lib/HostedStorageManager";
 import { IAssistant } from "app/server/lib/IAssistant";
 import { IAuditLogger } from "app/server/lib/IAuditLogger";
 import { IBilling } from "app/server/lib/IBilling";
@@ -1624,6 +1625,8 @@ export class FlexServer implements GristServer {
         this._disableExternalStorage = true;
         externalStorage.flag("active").set(false);
       }
+      const wipeS3CacheEnabled = externalStorage.flag("wipeCacheAfterClose")
+        .read({ envVar: "GRIST_WIPE_DOC_CACHE_AFTER_CLOSE" }).getAsBool();
       // If external storage is disabled, it disables the backends for both
       // HostedStorageManager and the "snapshots" attachment store, so a probe
       // here could only cause a spurious startup failure.
@@ -1633,8 +1636,10 @@ export class FlexServer implements GristServer {
       const workers = this._docWorkerMap;
       const docWorkerId = await this._addSelfAsWorker(workers);
 
+      const storageMode = this._disableExternalStorage ? StorageMode.LOCAL_ONLY :
+        (wipeS3CacheEnabled ? StorageMode.S3_WITHOUT_CACHE : StorageMode.S3_WITH_CACHE);
       const storageManager = await this.create.createHostedDocStorageManager(
-        this, this.docsRoot, docWorkerId, this._disableExternalStorage, workers, this._dbManager,
+        this, this.docsRoot, docWorkerId, storageMode, workers, this._dbManager,
         this.create.ExternalStorage.bind(this.create),
       );
       this._storageManager = storageManager;
@@ -2499,7 +2504,7 @@ export class FlexServer implements GristServer {
       await Promise.all(assignments.map(async (assignment) => {
         log.info("FlexServer shutdown assignment", assignment);
         try {
-        // Start sending the doc to S3 if needed.
+          // Start sending the doc to S3 if needed.
           const flushOp = this._storageManager.closeDocument(assignment);
 
           // Get access to the clients of this document.  This has the side
