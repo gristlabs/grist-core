@@ -34,6 +34,14 @@ export const cssLabel = styled("label", `
   &:hover {
     --color: ${theme.checkboxBorderHover};
   }
+
+  .${cssMenuItem.className} & {
+    flex: 1;
+  }
+
+  .${cssMenuItem.className}.disabled & {
+    cursor: not-allowed;
+  }
 `);
 
 // TODO: the !important markings are to trump bootstrap, and should be removed when it's gone.
@@ -123,6 +131,10 @@ export const cssLabelText = styled("span", `
 
   .${cssMenuItem.className}-sel & {
     color: ${theme.menuItemSelectedFg};
+  }
+
+  .${cssMenuItem.className}.disabled & {
+    color: ${theme.menuItemDisabledFg};
   }
 `);
 
