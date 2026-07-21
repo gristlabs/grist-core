@@ -12,6 +12,17 @@ import test_engine
 
 log = logging.getLogger(__name__)
 
+def _int_zero_division_error():
+  # Python 3.14 unified the ZeroDivisionError messages to "division by zero" (previously it was
+  # "integer division or modulo by zero" for floor division). Compute it at runtime so tests pass
+  # on any Python version. The failing formula uses integer floor division (`$id//($id%2)`).
+  try:
+    1 // 0
+  except ZeroDivisionError as e:
+    return "ZeroDivisionError: " + str(e)
+
+INT_ZERO_DIVISION_ERROR = _int_zero_division_error()
+
 def _bulk_update(table_name, col_names, row_data):
   return actions.BulkUpdateRecord(
     *testutil.table_data_from_rows(table_name, col_names, row_data))
@@ -187,8 +198,8 @@ class TestRecordFunc(test_engine.EngineTestCase):
     self.assertPartialData("Schools", ["id", "Foo"], [
       [1,     {'city': 'New York', 'Bar': 11, 'id': 11}],
       [2,     {'city': 'Colombia', 'Bar': None, 'id': 12,
-              '_error_': {'Bar': 'ZeroDivisionError: integer division or modulo by zero'}}],
+              '_error_': {'Bar': INT_ZERO_DIVISION_ERROR}}],
       [3,     {'city': 'New Haven', 'Bar': 13, 'id': 13}],
       [4,     {'city': 'West Haven', 'Bar': None, 'id': 14,
-              '_error_': {'Bar': 'ZeroDivisionError: integer division or modulo by zero'}}],
+              '_error_': {'Bar': INT_ZERO_DIVISION_ERROR}}],
     ])

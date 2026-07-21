@@ -16,7 +16,18 @@ def column_error(table, column, user_input):
     AttributeError("Table '%s' has no column '%s'" % (table, column)),
     user_input=user_input
   )
-div_error = lambda value: objtypes.RaisedException(ZeroDivisionError("float division by zero"), user_input=value)
+def _zero_division_message():
+  # Python 3.14 unified the ZeroDivisionError messages to "division by zero" (previously it was
+  # "float division by zero" for true division). Compute it at runtime so tests pass on any
+  # Python version. The engine's failing formula is `1/$A` with $A a Numeric (float) 0.
+  try:
+    1 / 0.0
+  except ZeroDivisionError as e:
+    return str(e)
+
+ZERO_DIVISION_MESSAGE = _zero_division_message()
+
+div_error = lambda value: objtypes.RaisedException(ZeroDivisionError(ZERO_DIVISION_MESSAGE), user_input=value)
 
 class TestTriggerFormulas(test_engine.EngineTestCase):
   col = testutil.col_schema_row
@@ -674,7 +685,7 @@ class TestTriggerFormulas(test_engine.EngineTestCase):
       ["id",  "A",  "B",  "C"],
       [1,     0,    0,    div_error(0)],
     ])
-    message = 'float division by zero'
+    message = ZERO_DIVISION_MESSAGE
     message += """
 
 A `ZeroDivisionError` occurs when you are attempting to divide a value
@@ -697,7 +708,7 @@ which is equal to zero."""
       [1,     1,    1,    div_error(0)],
     ])
     error = self.engine.get_formula_error('Math', 'C', 1)
-    self.assertFormulaError(error, ZeroDivisionError, 'float division by zero')
+    self.assertFormulaError(error, ZeroDivisionError, ZERO_DIVISION_MESSAGE)
     self.assertEqual(error.details, objtypes.RaisedException(ZeroDivisionError()).no_traceback().details)
 
 

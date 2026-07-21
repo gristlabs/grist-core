@@ -1301,7 +1301,7 @@ function findPython(command: string | undefined): string {
     }
   }
   // Fall back on system python.
-  const systemPrefs = ["3.11", "3.10", "3.9", "3", ""];
+  const systemPrefs = ["3.14", "3.13", "3.12", "3.11", "3", ""];
   for (const version of systemPrefs) {
     const pythonPath = which.sync(`python${version}`, { nothrow: true });
     if (pythonPath) {

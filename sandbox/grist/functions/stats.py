@@ -44,7 +44,7 @@ def AVERAGE(value, *more_values):
   4.0
   >>> AVERAGE([2, -1, "Hello", DATE(2015,1,1)], True, [False, "123", "", 11])
   4.0
-  >>> AVERAGE(False, True)
+  >>> AVERAGE(False, True)  # doctest: +IGNORE_EXCEPTION_DETAIL
   Traceback (most recent call last):
     ...
   ZeroDivisionError: float division by zero
@@ -567,7 +567,7 @@ def STDEV(value, *more_values):
   4.810702354423639
   >>> STDEV([2, 5, 8, 13, 10], [3, 12, 15])
   4.810702354423639
-  >>> STDEV([5])
+  >>> STDEV([5])  # doctest: +IGNORE_EXCEPTION_DETAIL
   Traceback (most recent call last):
     ...
   ZeroDivisionError: float division by zero
@@ -586,7 +586,7 @@ def STDEVA(value, *more_values):
   4.969550137731641
   >>> STDEVA([2, 5, 8, 13, 10], [1, 0, 0])
   4.969550137731641
-  >>> STDEVA([5])
+  >>> STDEVA([5])  # doctest: +IGNORE_EXCEPTION_DETAIL
   Traceback (most recent call last):
     ...
   ZeroDivisionError: float division by zero

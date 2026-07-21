@@ -83,7 +83,8 @@ return 0
                               r"""
                                 File "usercode", line \d+, in built_in_formula
                                   return max\(5\)
-                              TypeError: 'int' object is not iterable
+                              ( *[~^]+
+                              )?TypeError: 'int' object is not iterable
                               """
                             ))
 
@@ -103,7 +104,7 @@ return 0
                               r"""
                                 File "usercode", line 5
                                   return: 0
-                                        \^
+                                        \^+
                               SyntaxError: invalid syntax
                               """
                             ))
@@ -134,7 +135,8 @@ return 0
                               r"""
                                 File "usercode", line \d+, in other_err
                                   if sum\(3, 5\) > 6:
-                              TypeError: 'int' object is not iterable
+                              ( *[~^]+
+                              )?TypeError: 'int' object is not iterable
                               """
                             ))
 
