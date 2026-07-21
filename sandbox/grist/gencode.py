@@ -18,13 +18,19 @@ The schema for grist data is:
 import logging
 import types
 from collections import OrderedDict
+from RestrictedPython import compile_restricted, safe_builtins, utility_builtins, limited_builtins, RestrictingNodeTransformer
+from RestrictedPython.Eval import default_guarded_getitem, default_guarded_getiter
+from RestrictedPython.Guards import guarded_iter_unpack_sequence, full_write_guard, guarded_unpack_sequence
+from RestrictedPython.transformer import INSPECT_ATTRIBUTES
 
 import codebuilder
 from column import is_visible_column
 import summary
 import table
 import textbuilder
-from usertypes import get_type_default
+from usertypes import _truthy_values, get_type_default
+import os
+import fnmatch, re
 log = logging.getLogger(__name__)
 
 indent_str = "  "
@@ -168,10 +174,13 @@ class GenCode:
       if source_table_id:
         summary_tables.setdefault(source_table_id, []).append(table_info)
 
+    use_restricted_python = os.environ.get("GRIST_RESTRICTED_USER", default="False").lower() in _truthy_values
+
     fullparts = ["import grist\n" +
                  "from functions import *       # global uppercase functions\n" +
                  "import datetime, math, re     # modules commonly needed in formulas\n"]
     userparts = fullparts[:]
+
     for table_info in sorted(schema.values(), key=lambda t: t.tableId):
       fullparts.append("\n\n")
       fullparts.append(self._make_table_model(table_info, summary_tables.get(table_info.tableId)))
@@ -188,7 +197,10 @@ class GenCode:
     self._new_formula_cache = {}
     self._full_builder = textbuilder.Combiner(fullparts)
     self._user_builder = textbuilder.Combiner(userparts)
-    self._usercode = exec_module_text(self._full_builder.get_text())
+    if use_restricted_python:
+      self._usercode = exec_module_text_restricted(self._full_builder.get_text())
+    else:
+      self._usercode = exec_module_text(self._full_builder.get_text())
 
   def get_user_text(self):
     """Returns the text of the user-facing part of the generated code."""
@@ -206,6 +218,111 @@ class GenCode:
 def _is_special_table(table_id):
   return table_id.startswith("_grist_")
 
+ALLOWED_GLOB = [
+  "_engine",
+  "_Summary",
+  "_summarySourceTable",
+  "_find",
+  "__name__",
+  "_default_*",
+  "_grist_*"
+]
+additionnal_globs = os.environ.get("GRIST_RESTRICTED_USER_ALLOWED_NAMES", default="")
+if additionnal_globs != "":
+  ALLOWED_GLOB += additionnal_globs.split(",")
+ALLOWED_GLOB = [re.compile(fnmatch.translate(g)) for g in ALLOWED_GLOB]
+
+ALLOWED_IMPORTS = [
+  "grist",
+  "re",
+  "datetime",
+  "math",
+  "functions.[*]"
+]
+additionnal_globs = os.environ.get("GRIST_RESTRICTED_USER_ALLOWED_IMPORTS", default="")
+if additionnal_globs != "":
+  ALLOWED_IMPORTS += additionnal_globs.split(",")
+ALLOWED_IMPORTS = [re.compile(fnmatch.translate(g)) for g in ALLOWED_IMPORTS]
+
+class NodeTransformer(RestrictingNodeTransformer):
+  def check_name(self, node, name, allow_magic_methods=False):
+    if name is None:
+      return
+    if any(r.match(name) != None for r in ALLOWED_GLOB):
+      return
+    return super().check_name(node, name, allow_magic_methods)
+
+  def visit_Import(self, node):
+    for name in node.names:
+      if not any(r.match(name.name) for r in ALLOWED_IMPORTS):
+        self.error(node, f'Import of "{name.name}" is not allowed.')
+      if name.asname:
+        self.check_name(node, name.asname)
+
+    return self.node_contents_visit(node)
+
+  def visit_ImportFrom(self, node):
+    if node.level != 0:
+      self.error(node, "Relative imports are not allowed.")
+
+    for name in node.names:
+      fname = node.module + '.' + name.name
+      if not any(r.match(fname) for r in ALLOWED_IMPORTS):
+        self.error(node, f'Import of "{fname}" is not allowed.')
+      if name.asname:
+        self.check_name(node, name.asname)
+
+    return self.node_contents_visit(node)
+
+  def visit_Attribute(self, node):
+    # We are forced to reimplement this function as its logic go further than accept or reject
+    # even if we just need to accept more names
+    # Original function : https://github.com/zopefoundation/RestrictedPython/blob/a2891c0d11af329c23fd5f173b32025453b962ff/src/RestrictedPython/transformer.py#L798-L850
+    from RestrictedPython.transformer import ast, copy_locations
+    if node.attr.startswith('_') and node.attr != '_' and not any(r.match(node.attr) != None for r in ALLOWED_GLOB):
+        self.error(
+            node,
+            '"{name}" is an invalid attribute name because it starts '
+            'with "_".'.format(name=node.attr))
+
+    if node.attr.endswith('__roles__'):
+        self.error(
+            node,
+            '"{name}" is an invalid attribute name because it ends '
+            'with "__roles__".'.format(name=node.attr))
+
+    if node.attr in INSPECT_ATTRIBUTES:
+        self.error(
+            node,
+            f'"{node.attr}" is a restricted name,'
+            ' that is forbidden to access in RestrictedPython.',
+        )
+
+    if isinstance(node.ctx, ast.Load):
+        node = self.node_contents_visit(node)
+        new_node = ast.Call(
+            func=ast.Name('_getattr_', ast.Load()),
+            args=[node.value, ast.Constant(node.attr)],
+            keywords=[])
+
+        copy_locations(new_node, node)
+        return new_node
+
+    elif isinstance(node.ctx, (ast.Store, ast.Del)):
+        node = self.node_contents_visit(node)
+        new_value = ast.Call(
+            func=ast.Name('_write_', ast.Load()),
+            args=[node.value],
+            keywords=[])
+
+        copy_locations(new_value, node.value)
+        node.value = new_value
+        return node
+
+    else:  # pragma: no cover
+        # Impossible Case only ctx Load, Store and Del are defined in ast.
+        raise NotImplementedError(
+            f"Unknown ctx type: {type(node.ctx)}")
 
 def exec_module_text(module_text):
   mod = types.ModuleType(codebuilder.code_filename)
@@ -214,3 +331,94 @@ def exec_module_text(module_text):
   # pylint: disable=exec-used
   exec(code_obj, mod.__dict__)
   return mod
+
+def exec_module_text_restricted(module_text):
+  mod = types.ModuleType(codebuilder.code_filename)
+  extra_env = dict(
+    __builtins__ = safe_builtins | utility_builtins |
+      dict(
+        _getattr_=_getattr,
+        getattr=_getattr,
+        _getitem_=default_guarded_getitem,
+        _getiter_=default_guarded_getiter,
+        _iter_unpack_sequence_=guarded_iter_unpack_sequence,
+        _unpack_sequence_=guarded_unpack_sequence,
+        _write_=lambda x: x,
+        __import__=__import__,
+        _apply_=_apply,
+        _inplacevar_=_inplacevar_,
+      ) | {k: globals()["__builtins__"][k] for k in [
+        "dict",
+        "enumerate",
+        "filter",
+        "hasattr",
+        "iter",
+        "list",
+        "map",
+        "max",
+        "min",
+        "sum",
+        "all",
+        "any",
+
+        "type",
+        "next",
+      ]},
+    __metaclass__=type,
+    __name__ = codebuilder.code_filename,
+  )
+  for k,v in extra_env.items():
+    mod.__dict__[k] = v
+  codebuilder.save_to_linecache(module_text)
+  code_obj = compile_restricted(module_text, codebuilder.code_filename, "exec", policy=NodeTransformer)
+  # pylint: disable=exec-used
+  exec(code_obj, mod.__dict__)
+  for k in extra_env.keys():
+    mod.__dict__.pop(k)
+  return mod
+
+# Builtins for restricted environment
+def _apply(f, *a, **kw):
+    return f(*a, **kw)
+
+def _getattr(object, name, *a):
+  if name.startswith('_') and name != '_' and not any(r.match(name) != None for r in ALLOWED_GLOB):
+    raise AttributeError(f'"{name}" is a restricted attribute name.')
+  if name.endswith('__roles__'):
+    raise AttributeError(f'"{name}" is a restricted attribute name.')
+  if name in INSPECT_ATTRIBUTES:
+    raise AttributeError(f'"{name}" is a restricted attribute name.')
+  return getattr(object, name, *a)
+
+# Source - https://stackoverflow.com/a/79607366
+# Posted by Bill Rayner
+# Retrieved 2026-05-13, License - CC BY-SA 4.0
+def _inplacevar_(op, var, expr):
+    if op == "+=":
+        return var + expr
+    elif op == "-=":
+        return var - expr
+    elif op == "*=":
+        return var * expr
+    elif op == "/=":
+        return var / expr
+    elif op == "%=":
+        return var % expr
+    elif op == "**=":
+        return var ** expr
+    elif op == "<<=":
+        return var << expr
+    elif op == ">>=":
+        return var >> expr
+    elif op == "|=":
+        return var | expr
+    elif op == "^=":
+        return var ^ expr
+    elif op == "&=":
+        return var & expr
+    elif op == "//=":
+        return var // expr
+    elif op == "@=":
+        return var @ expr
+    else:
+        raise NameError(op)
