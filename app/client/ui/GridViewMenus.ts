@@ -13,12 +13,12 @@ import { icon } from "app/client/ui2018/icons";
 import {
   menuCssClass,
   menuDivider,
+  menuGroup,
   menuIcon,
   menuItem,
   menuItemCmd,
   menuItemSubmenu,
   menuItemTrimmed,
-  menuSubHeader,
   menuSubHeaderMenu,
   menuText,
   searchableMenu,
@@ -180,14 +180,16 @@ function buildHiddenColumnsMenuItems(gridView: GridView, index?: number) {
   if (hiddenColumns.length <= 5) {
     return [
       menuDivider(),
-      menuSubHeader(t("Hidden Columns"), testId("new-columns-menu-hidden-columns-header")),
-      hiddenColumns.map((col: ColumnRec) =>
-        menuItem(
-          async () => {
-            await gridView.showColumn(col.id(), index);
-          },
-          col.label(),
-          testId("new-columns-menu-hidden-column-inlined"),
+      menuGroup(
+        [t("Hidden Columns"), testId("new-columns-menu-hidden-columns-header")],
+        hiddenColumns.map((col: ColumnRec) =>
+          menuItem(
+            async () => {
+              await gridView.showColumn(col.id(), index);
+            },
+            col.label(),
+            testId("new-columns-menu-hidden-column-inlined"),
+          ),
         ),
       ),
     ];
@@ -219,12 +221,14 @@ function buildHiddenColumnsMenuItems(gridView: GridView, index?: number) {
 function buildShortcutsMenuItems(gridView: GridView, index?: number) {
   return [
     menuDivider(),
-    menuSubHeader(t("Shortcuts"), testId("new-columns-menu-shortcuts")),
-    buildTimestampMenuItems(gridView, index),
-    buildAuthorshipMenuItems(gridView, index),
-    buildDetectDuplicatesMenuItems(gridView, index),
-    buildDateHelpersMenuItems(gridView, index),
-    buildUUIDMenuItem(gridView, index),
+    menuGroup(
+      [t("Shortcuts"), testId("new-columns-menu-shortcuts")],
+      buildTimestampMenuItems(gridView, index),
+      buildAuthorshipMenuItems(gridView, index),
+      buildDetectDuplicatesMenuItems(gridView, index),
+      buildDateHelpersMenuItems(gridView, index),
+      buildUUIDMenuItem(gridView, index),
+    ),
   ];
 }
 
@@ -702,15 +706,10 @@ function buildLookupSection(gridView: GridView, index?: number) {
 
   return [
     menuDivider(),
-    menuSubHeader(
-      withInfoTooltip(
-        t("Lookups"),
-        "lookups",
-        { variant: "hover" },
-      ),
-      testId("new-columns-menu-lookups"),
+    menuGroup(
+      [withInfoTooltip(t("Lookups"), "lookups", { variant: "hover" }), testId("new-columns-menu-lookups")],
+      ...menuContent,
     ),
-    ...menuContent,
   ];
 }
 
