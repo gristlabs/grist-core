@@ -726,9 +726,15 @@ export async function testSandboxFlavor(flavor?: string): Promise<SandboxInfo> {
     info.lastSuccessfulStep = "create";
 
     // Step 2: Run a simple Python call to check if the sandbox can execute code.
-    // Give up after 5 seconds if it takes too long.
+    // The result is cached for the life of the server process, so the timeout
+    // just needs to be long enough to outlast the slowest legitimate cold start
+    // (pyodide loading wasm, gvisor first-runsc-invocation, etc.) -- a tight
+    // budget here produces false negatives that mislead admins into thinking
+    // their working sandbox is broken.
+    const TIMEOUT_MS = 10_000;
     const timeoutProm = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error("Sandbox test timed out after 5s")), 5000).unref(),
+      setTimeout(() => reject(new Error(`Sandbox test timed out after ${TIMEOUT_MS / 1000}s`)),
+        TIMEOUT_MS).unref(),
     );
     const result = await Promise.race([sandbox.pyCall("get_version"), timeoutProm]);
     if (typeof result !== "number") {
