@@ -266,6 +266,10 @@ export class ChartView extends BaseView {
     const options: ChartOptions = this._options.peek() || {};
     let plotData: PlotData = { data: [] };
 
+    // groupSeries() below caps how many group values we plot (see MAX_SERIES_IN_CHART). When it
+    // drops some, record the counts so we can tell the user the chart is incomplete.
+    let seriesTruncation: {shown: number; total: number} | undefined;
+
     if (isPieLike(this._chartType.peek())) {
       // Plotly's pie charts have a sort option that is enabled by default. Let's turn it off.
       dataOptions.sort = false;
@@ -286,6 +290,17 @@ export class ChartView extends BaseView {
       // Sort series alphabetically only if user has not defined a sort on this chart.
       const shouldSort = !series[0].isInSortSpec;
       const nseries = groupSeries(series[0].values, series.slice(1), shouldSort);
+
+      // groupSeries() may cap the number of group values it returns. If it did, remember by how
+      // much so we can add an indicator to the chart below.
+      const totalGroups = new Set(series[0].values).size;
+      if (nseries.size < totalGroups) {
+        const seriesPerGroup = series.length - 1;
+        seriesTruncation = {
+          shown: nseries.size * seriesPerGroup,
+          total: totalGroups * seriesPerGroup,
+        };
+      }
 
       // This will be in the order in which nseries Map was created; concat() flattens the arrays.
       const xvalues = Array.from(new Set(series[1].values));
@@ -312,6 +327,26 @@ export class ChartView extends BaseView {
     if (this.isDisposed()) { return; }
 
     const layout: Partial<Layout> = defaultsDeep(plotData.layout, this._getPlotlyLayout(options));
+    if (seriesTruncation) {
+      // Not all series fit within MAX_SERIES_IN_CHART, so tell the user the chart is partial
+      // instead of silently dropping data (the cap happens in groupSeries()). Grist charts don't
+      // set a Plotly title, so the top-left of the paper is free for this note; we reserve a little
+      // top margin so it can't clip on chart types with a tight top margin.
+      const truncationNote: Partial<Annotations> = {
+        text: `Showing ${seriesTruncation.shown} of ${seriesTruncation.total} series` +
+          ` — reduce the grouping to see all data`,
+        xref: "paper",
+        yref: "paper",
+        x: 0,
+        y: 1,
+        xanchor: "left",
+        yanchor: "bottom",
+        showarrow: false,
+        font: {size: 11},
+      };
+      layout.annotations = [...(layout.annotations || []), truncationNote];
+      layout.margin = {...layout.margin, t: Math.max(layout.margin?.t ?? 0, 40)};
+    }
     const config: Partial<Config> = { ...plotData.config, displayModeBar: false };
     // react() can be used in place of newPlot(), and is faster when updating an existing plot.
     await Plotly.react(this._chartDom, plotData.data, layout, config);
@@ -402,8 +437,8 @@ function groupSeries<T extends Datum>(groupColumn: T[], valueSeries: Series[], s
 
   // Limit the number if group values so as to limit the total number of series we pass into
   // Plotly. Too many series are impossible to make sense of anyway, and can hang the browser.
-  // TODO: When not all data is shown, we should probably show some indicator, similar to when
-  // OnDemand data is truncated.
+  // When this cap drops some group values, the caller compares the returned size against the
+  // total to show a "Showing N of M series" indicator on the chart.
   const maxGroups = Math.floor(MAX_SERIES_IN_CHART / valueSeries.length);
   let groupValues: T[] = [...new Set(groupColumn)];
   if (sort) {
