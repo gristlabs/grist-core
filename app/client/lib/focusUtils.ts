@@ -22,6 +22,7 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
+import { dom, DomElementArg } from "grainjs";
 
 /**
  * Trap the tab key within the given element.
@@ -267,3 +268,60 @@ const focusableSelectors = [
 ];
 
 export const focusableSelectorsString = focusableSelectors.join(",");
+
+export const kbFallbackClass = "kb_fallback_element";
+
+const kbFallbackGroupClass = "kb_fallback_group";
+
+/**
+ * @see kbFallback
+ */
+export const kbFallbackGroup = (alsoUseAsTarget = false): DomElementArg => ([
+  dom.cls(kbFallbackGroupClass),
+  alsoUseAsTarget ? kbFallback() : null,
+]);
+
+/**
+ * Attach a "keyboard fallback" class to an element so that it gets kb focus when another element
+ * in the same container is removed from the dom.
+ *
+ * This is used in combination with kbFallbackGroup and focusFallbackOnDispose when dealing with
+ * focused elements that disappear when triggered.
+ * Without this, clicking an element that disappears on action makes focus jump back to the current panel itself,
+ * or to the body element, making keyboard nav pretty cumbersome in those cases.
+ *
+ * Note: this should not be used to handle "save" or "cancel" or similar buttons in popups and modals where this
+ * "disappearing" case is already handled. This is meant to be used for specific cases, like the "Hide"/"Clear" buttons
+ * in the VisibleFieldsConfig.
+ *
+ * Usage:
+ *   - Use the `kbFallbackGroup` dom arg on a container.
+ *   - Use the `kbFallback` dom arg on an element that should be used as a "keyboard fallback target" in this container.
+ *     As an alternative, the fallback group can be used as the target by passing `true` as its first argument.
+ *   - On a child element of the `kbFallbackGroup`, call `focusFallbackOnDispose()` as a dom argument on elements that
+ *     disappear when triggered.
+ *   - voilà!
+ */
+export const kbFallback = () => dom.cls(kbFallbackClass);
+
+/**
+ * Focus the first `kbFallback()` element found within the closest `kbFallbackGroup` ancestor,
+ * when the element is disposed.
+ *
+ * Focus doesn't move if the disposed element is not the active element.
+ *
+ * @see kbFallback
+ */
+export function focusFallbackOnDispose() {
+  return (el: HTMLElement) => dom.onDisposeElem(el, () => {
+    if (document.activeElement !== el) {
+      return;
+    }
+    const group = el.closest(`.${kbFallbackGroupClass}`);
+    if (group?.classList.contains(kbFallbackClass)) {
+      return (group as HTMLElement).focus({ preventScroll: true });
+    }
+    group?.querySelector<HTMLElement>(`.${kbFallbackClass}`)
+      ?.focus({ preventScroll: true });
+  });
+}
