@@ -17,6 +17,7 @@ import {
 } from "grainjs";
 import debounce from "lodash/debounce";
 import * as weasel from "popweasel";
+import { uniqueId } from "underscore";
 
 const t = makeT("menus");
 
@@ -600,7 +601,24 @@ export const cssPointer = styled("div", `
   cursor: pointer;
 `);
 
-export const menuText = styled("div", `
+/**
+ * This automatically adds the menu text as the parent menu's aria-describedby,
+ * so that the help text gets vocalized by screen readers when opening the menu.
+ */
+const menuTextAutoDescription = (...args: IDomArgs<HTMLDivElement>) => dom(
+  "div",
+  { id: uniqueId("menu-text-"), role: "presentation" },
+  (el) => {
+    setTimeout(() => {
+      const menu = el.closest('[role="menu"], [role="listbox"]');
+      const existingDesc = menu?.getAttribute("aria-describedby") || "";
+      menu?.setAttribute("aria-describedby", existingDesc ? `${existingDesc} ${el.id}` : el.id);
+    }, 0);
+  },
+  ...args,
+);
+
+export const menuText = styled(menuTextAutoDescription, `
   display: flex;
   align-items: center;
   font-size: ${vars.smallFontSize};
