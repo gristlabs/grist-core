@@ -118,6 +118,7 @@ describe("DocSchemaImport", function() {
             {
               id: "A-1",
               ref: 1,
+              type: "Text",
               isFormula: false,
             },
           ],
@@ -207,6 +208,7 @@ describe("DocSchemaImport", function() {
           columns: [{
             id: "ExistingCol1",
             ref: 1,
+            type: "Text",
             // Needs to match the label on the source column for matching to work.
             label: "Col Alpha",
             isFormula: false,
@@ -279,6 +281,7 @@ describe("DocSchemaImport", function() {
           columns: [{
             id: "ExistingCol1",
             ref: 1,
+            type: "Text",
             // Label doesn't match the column schema's label - column shouldn't match.
             label: "",
             isFormula: false,

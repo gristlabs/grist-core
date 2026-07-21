@@ -22,6 +22,7 @@ import { isAffirmative } from "app/common/gutil";
 import { UserAPI, UserAPIImpl } from "app/common/UserAPI";
 import { configForUser } from "test/gen-server/testUtils";
 import { addAllScenarios, ORG_NAME, TestContext } from "test/server/lib/docapi/helpers";
+import { TestServer } from "test/server/lib/helpers/TestServer";
 import * as testUtils from "test/server/testUtils";
 
 import axios, { AxiosRequestConfig } from "axios";
@@ -527,12 +528,21 @@ function addDocumentsTests(getCtx: () => TestContext) {
       assert.containsAllKeys(resp.data, ["A", "B", "C"]);
 
       resp = await axios.get(`${homeUrl}/dw/zing/api/docs/${docIds.Timesheets}/tables/Table1/data`, chimpy);
-      assert.equal(resp.status, 404);
+      // Request should be proxied to the right doc worker - home server doesn't care about prefixes.
+      assert.equal(resp.status, 200);
     }
   });
 
   it("POST /docs/{did}/fork rejects when anonymous playground is disabled", async function() {
-    const { docs, nobody, chimpy, serverUrl, userApi } = getCtx();
+    const { home, docs, nobody, chimpy, serverUrl, userApi } = getCtx();
+
+    // Need to apply env var changes on both home server and doc server,
+    // for any scenarios (e.g. fleet) where both are docworkers.
+    // Deduplicate servers first - rapid invocations of testing hooks on the same server can cause test crashes.
+    // (See TestingHooks data handle for more info)
+    const servers = [...new Set([home, docs])];
+    const applyToServers = (func: (server: TestServer) => Promise<any>) => Promise.all(servers.map(func));
+
     const forkDocAs = (docId: string, user: AxiosRequestConfig) => axios.post(`${serverUrl}/api/docs/${docId}/fork`, null, user);
     let docId: string | null = null;
 
@@ -542,8 +552,8 @@ function addDocumentsTests(getCtx: () => TestContext) {
       docId = await userApi.newDoc({ name: "some-doc" }, ws1);
       await userApi.updateDocPermissions(docId, { users: { "anon@getgrist.com": "viewers" } });
 
-      // Try to fork the document as anonymous user when GRIST_ANON_PLAYGROUNT=false
-      await docs.testingHooks.addEnv({ GRIST_ANON_PLAYGROUND: "false" });
+      // Try to fork the document as anonymous user when GRIST_ANON_PLAYGROUND=false
+      await applyToServers(server => server.testingHooks.addEnv({ GRIST_ANON_PLAYGROUND: "false" }));
       let resp = await forkDocAs(docId, nobody);
       assert.equal(resp.status, 401);
       assert.equal(resp.data.error, "Anonymous document creation is disabled");
@@ -551,10 +561,9 @@ function addDocumentsTests(getCtx: () => TestContext) {
       // Still it should work as chimpy
       resp = await forkDocAs(docId, chimpy);
       assert.equal(resp.status, 200);
-      console.log(resp.data);
 
       // Reset to the default environment and try again to fork, it should work
-      await docs.testingHooks.resetEnv();
+      await applyToServers(server => server.testingHooks.resetEnv());
       resp = await forkDocAs(docId, nobody);
       assert.equal(resp.status, 200);
     } finally {
@@ -562,7 +571,7 @@ function addDocumentsTests(getCtx: () => TestContext) {
       if (!isAffirmative(process.env.NO_CLEANUP) && docId) {
         await userApi.deleteDoc(docId);
       }
-      await docs.testingHooks.resetEnv();
+      await applyToServers(server => server.testingHooks.resetEnv());
     }
   });
 }

@@ -247,7 +247,11 @@
     "ColorSelect": {
         "Apply": "Apply",
         "Cancel": "Cancel",
-        "Default cell style": "Default cell style"
+        "Default cell style": "Default cell style",
+        "default": "default",
+        "fill": "fill",
+        "none": "none",
+        "text": "text"
     },
     "ColumnFilterMenu": {
         "All": "All",
@@ -565,8 +569,11 @@
     "GridOptions": {
         "Grid Options": "Grid Options",
         "Horizontal gridlines": "Horizontal gridlines",
+        "Show": "Show",
         "Vertical gridlines": "Vertical gridlines",
-        "Zebra stripes": "Zebra stripes"
+        "Zebra stripes": "Zebra stripes",
+        "row IDs": "row IDs",
+        "row numbers": "row numbers"
     },
     "GridViewMenus": {
         "Add column": "Add column",
@@ -637,7 +644,11 @@
         "Choice List": "Choice List",
         "Reference": "Reference",
         "Reference List": "Reference List",
-        "Attachment": "Attachment"
+        "Attachment": "Attachment",
+        "Row numbers": "Row numbers",
+        "Numbers": "Numbers",
+        "Row IDs": "Row IDs",
+        "Hidden": "Hidden"
     },
     "GristDoc": {
         "Added new linked section to view {{viewName}}": "Added new linked section to view {{viewName}}",
@@ -1447,7 +1458,8 @@
         "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "You can add comments to cells, reply to comment threads, and @-mention collaborators.",
         "When checked, this field’s default value can be prefilled from the URL using query parameters.": "When checked, this field’s default value can be prefilled from the URL using query parameters.",
         "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.",
-        "Unpin to hide the button while keeping the filter.": "Unpin to hide the button while keeping the filter."
+        "Unpin to hide the button while keeping the filter.": "Unpin to hide the button while keeping the filter.",
+        "Row IDs are stable and unique numeric identifiers, used by reference columns to identify records.": "Row IDs are stable and unique numeric identifiers, used by reference columns to identify records."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION",
@@ -1551,6 +1563,7 @@
     },
     "GridView": {
         "Click to insert": "Click to insert",
+        "ID": "ID",
         "row {{rowNum}} {{colName}}": "row {{rowNum}} {{colName}}",
         "row {{rowNum}} {{colName}} (new row)": "row {{rowNum}} {{colName}} (new row)"
     },
@@ -2001,7 +2014,8 @@
         "Submitting…": "Submitting…",
         "Clear selection for: {{-inputLabel}}": "Clear selection for: {{-inputLabel}}",
         "Options for {{-inputLabel}}": "Options for {{-inputLabel}}",
-        "Search options for {{-inputLabel}}": "Search options for {{-inputLabel}}"
+        "Search options for {{-inputLabel}}": "Search options for {{-inputLabel}}",
+        "Are you sure you want to reset your form?": "Are you sure you want to reset your form?"
     },
     "widgetTypesMap": {
         "Calendar": "Calendar",
@@ -3200,5 +3214,56 @@
         "not configured": "not configured",
         "review": "review",
         "unfiltered": "unfiltered"
+    },
+    "McpConnectBanner": {
+        "**New!** Connect Grist to Claude and ChatGPT. [Try it now]({{mcp}})": "**New!** Connect Grist to Claude and ChatGPT. [Try it now]({{mcp}})"
+    },
+    "AdminSetupRequests": {
+        "1 request": "1 request",
+        "Clear": "Clear",
+        "For": "For",
+        "Setup requests": "Setup requests",
+        "Setup steps users have asked for": "Setup steps users have asked for",
+        "already done": "already done",
+        "{{count}} requests_one": "{{count}} requests",
+        "{{count}} requests_other": "{{count}} requests"
+    },
+    "NotificationsAndAutomationsNudge": {
+        "1 person has asked for this.": "1 person has asked for this.",
+        "Add a note": "Add a note",
+        "Ask questions and build formulas in plain language.": "Ask questions and build formulas in plain language.",
+        "Ask the admin for this": "Ask the admin for this",
+        "Everything below is waiting on": "Everything below is waiting on",
+        "Get emailed when data changes, or when someone comments or mentions you.": "Get emailed when data changes, or when someone comments or mentions you.",
+        "Next step": "Next step",
+        "Next step for everything below": "Next step for everything below",
+        "Note sent.": "Note sent.",
+        "Notifications and Automations": "Notifications and Automations",
+        "React to changes in your data automatically with custom emails, webhook calls, and more.": "React to changes in your data automatically with custom emails, webhook calls, and more.",
+        "Setting these up is done by whoever manages this Grist installation.": "Setting these up is done by whoever manages this Grist installation.",
+        "Some of these features are ready; others need more setup on this install.": "Some of these features are ready; others need more setup on this install.",
+        "These features need additional setup on this install.": "These features need additional setup on this install.",
+        "This document can run automations, send notifications, and use an AI assistant.": "This document can run automations, send notifications, and use an AI assistant.",
+        "Waiting on": "Waiting on",
+        "When you share a document, new members get an email invite.": "When you share a document, new members get an email invite.",
+        "Why do you want this? Press Enter to send.": "Why do you want this? Press Enter to send.",
+        "You and 1 other have asked for this.": "You and 1 other have asked for this.",
+        "You and {{count}} others have asked for this._one": "You and {{count}} others have asked for this.",
+        "You and {{count}} others have asked for this._other": "You and {{count}} others have asked for this.",
+        "You've asked for this.": "You've asked for this.",
+        "{{count}} people have asked for this._one": "{{count}} people have asked for this.",
+        "{{count}} people have asked for this._other": "{{count}} people have asked for this.",
+        "{{done}} of {{total}} steps": "{{done}} of {{total}} steps"
+    },
+    "SetupSteps": {
+        "AI Assistant": "AI Assistant",
+        "Automations": "Automations",
+        "Change & comment notifications": "Change & comment notifications",
+        "Choose full Grist edition": "Choose full Grist edition",
+        "Connect a task queue (Redis)": "Connect a task queue (Redis)",
+        "Connect an AI provider": "Connect an AI provider",
+        "Connect email delivery": "Connect email delivery",
+        "Invite emails": "Invite emails",
+        "Use a plan with automations": "Use a plan with automations"
     }
 }

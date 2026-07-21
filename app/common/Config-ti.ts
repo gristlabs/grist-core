@@ -19,9 +19,14 @@ export const ConfigOrg = t.iface([], {
   "domain": t.union("string", "null"),
 });
 
-export const ConfigKey = t.lit("audit_log_streaming_destinations");
+export const ConfigKey = t.union(t.lit("audit_log_streaming_destinations"), t.lit("setup_requests"));
 
-export const ConfigValue = t.name("AuditLogStreamingDestinations");
+export const ConfigValue = t.union("AuditLogStreamingDestinations", "SetupRequests");
+
+export const ConfigValueByKey = t.iface([], {
+  "audit_log_streaming_destinations": "AuditLogStreamingDestinations",
+  "setup_requests": "SetupRequests",
+});
 
 export const AuditLogStreamingDestinations = t.array("AuditLogStreamingDestination");
 
@@ -34,13 +39,43 @@ export const AuditLogStreamingDestination = t.iface([], {
 
 export const AuditLogStreamingDestinationName = t.union(t.lit("splunk"), t.lit("other"));
 
+export const SetupRequests = t.iface([], {
+  "steps": t.iface([], {
+    [t.indexKey]: t.union("SetupStepRequests", "undefined"),
+  }),
+});
+
+export const SetupStepRequests = t.iface([], {
+  "requesters": t.iface([], {
+    [t.indexKey]: t.union("SetupRequester", "undefined"),
+  }),
+});
+
+export const SetupRequester = t.iface([], {
+  "email": "string",
+  "name": t.opt("string"),
+  "at": "string",
+  "features": t.array("SetupFeatureId"),
+  "reason": t.opt("string"),
+});
+
+export const SetupStepId = t.union(t.lit("full-grist"), t.lit("automations-plan"), t.lit("email"), t.lit("redis"), t.lit("ai"));
+
+export const SetupFeatureId = t.union(t.lit("automations"), t.lit("invites"), t.lit("notifications"), t.lit("assistant"));
+
 const exportedTypeSuite: t.ITypeSuite = {
   Config,
   ConfigOrg,
   ConfigKey,
   ConfigValue,
+  ConfigValueByKey,
   AuditLogStreamingDestinations,
   AuditLogStreamingDestination,
   AuditLogStreamingDestinationName,
+  SetupRequests,
+  SetupStepRequests,
+  SetupRequester,
+  SetupStepId,
+  SetupFeatureId,
 };
 export default exportedTypeSuite;

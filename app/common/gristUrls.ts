@@ -11,7 +11,7 @@ import { StringUnion } from "app/common/StringUnion";
 import { TelemetryLevel } from "app/common/Telemetry";
 import { ThemeAppearance, themeAppearances, ThemeName, themeNames } from "app/common/ThemePrefs";
 import { getGristConfig } from "app/common/urlUtils";
-import { Document } from "app/common/UserAPI";
+import { Document, PublicDocWorkerUrlInfo } from "app/common/UserAPI";
 import { IAttachedCustomWidget } from "app/common/widgetTypes";
 import { UIRowId } from "app/plugin/GristAPI";
 
@@ -160,6 +160,7 @@ export const getCommonUrls = () => withAdminDefinedUrls({
   helpAirtableIntegration: "https://support.getgrist.com/install/integrations/airtable",
   helpCloudStorage: "https://support.getgrist.com/install/cloud-storage",
   integrators: "https://support.getgrist.com/integrators/",
+  mcp: "https://support.getgrist.com/mcp/",
   freeCoachingCall: getFreeCoachingCallUrl(),
   contactSupport: getContactSupportUrl(),
   termsOfService: getTermsOfServiceUrl(),
@@ -953,8 +954,8 @@ export interface GristLoadConfig {
   // Pre-fetched call to getDoc for the doc being loaded.
   getDoc?: { [id: string]: Document };
 
-  // Pre-fetched call to getWorker for the doc being loaded.
-  getWorker?: { [id: string]: string | null };
+  // Pre-fetched call to getWorkerFull for the doc being loaded.
+  getWorkerFull?: { [id: string]: PublicDocWorkerUrlInfo | undefined };
 
   // The timestamp when this gristConfig was generated.
   timestampMs: number;
@@ -1023,6 +1024,10 @@ export interface GristLoadConfig {
   // Force enterprise deployment? For backwards compatibility with grist-ee Docker image
   forceEnableEnterprise?: boolean;
 
+  // Whether the server has OAuth apps enabled (GRIST_ENABLE_OIDC_SERVER). Always false in core,
+  // which doesn't include the feature.
+  oauthAppsEnabled?: boolean;
+
   // The org containing public templates and tutorials.
   templateOrg?: string | null;
 
@@ -1039,6 +1044,9 @@ export interface GristLoadConfig {
 
   // If backend has an email service for sending notifications.
   notifierEnabled?: boolean;
+
+  // If a Redis connection is configured (REDIS_URL set). Reports configuration, not reachability.
+  redisAvailable?: boolean;
 
   formFraming?: FormFraming;
 
@@ -1109,6 +1117,12 @@ export interface TelemetryConfig {
 
 export const GristDeploymentTypes = StringUnion("saas", "core", "enterprise", "electron", "static");
 export type GristDeploymentType = typeof GristDeploymentTypes.type;
+
+// Deployment types that are the full Grist edition rather than the free core edition.
+export const fullEditionDeploymentTypes: GristDeploymentType[] = ["saas", "enterprise"];
+export function isFullEditionDeployment(deploymentType?: GristDeploymentType): boolean {
+  return fullEditionDeploymentTypes.includes(deploymentType ?? "core");
+}
 
 // Acceptable org subdomains are alphanumeric (hyphen also allowed) and of
 // non-zero length.

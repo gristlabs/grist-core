@@ -270,7 +270,11 @@ export async function main() {
     await mergedServer.flexServer.addTestingHooks();
   }
   if (process.env.GRIST_SERVE_PLUGINS_PORT) {
-    await mergedServer.flexServer.startCopy("pluginServer", parseInt(process.env.GRIST_SERVE_PLUGINS_PORT, 10));
+    await mergedServer.flexServer.startCopy(
+      "pluginServer",
+      parseInt(process.env.GRIST_SERVE_PLUGINS_PORT, 10),
+      { disableProxy: true, disableComm: true },
+    );
   }
   if (isUnderRestartShell()) {
     await signalRestartShellReady();

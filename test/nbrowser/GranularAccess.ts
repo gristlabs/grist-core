@@ -1705,19 +1705,23 @@ describe("GranularAccess", function() {
     await gu.getCell("Pics", 2).click();
     const attachments = await readAttachments();
     const url = attachments[0].src!;
-    const extras = "rowId=3&colId=Pics&tableId=Data1&attId=4&";
-    assert.include(url, extras);
+    assertAttachmentUrl(url, /\/attachments\/4\/download$/, {
+      rowId: "3", colId: "Pics", tableId: "Data1", name: "gplaypattern.png",
+    });
     assert.include(attachments[0].title, "gplaypattern.png");
 
     // check denial for perturbations
-    await checkAttachment(url.replace("tableId=Data1", "tableId=Table1"), 404);
-    await checkAttachment(url.replace("colId=Pics", "colId=A"), 404);
-    await checkAttachment(url.replace("attId=4", "attId=1"), 404);
-    await checkAttachment(url.replace("rowId=3", "rowId=2"), 404);
+    await checkAttachment(mutateAttachmentUrl(url, { set: { tableId: "Table1" } }), 404);
+    await checkAttachment(mutateAttachmentUrl(url, { set: { colId: "A" } }), 404);
+    await checkAttachment(mutateAttachmentUrl(url, { attId: 1 }), 404);
+    await checkAttachment(mutateAttachmentUrl(url, { set: { rowId: "2" } }), 404);
 
     // check success for real deal
     await checkAttachment(url, "uploads/gplaypattern.png");
-    await checkAttachment(url.replace(extras, "attId=4&"), "uploads/gplaypattern.png");
+    await checkAttachment(
+      mutateAttachmentUrl(url, { remove: ["rowId", "colId", "tableId"] }),
+      "uploads/gplaypattern.png",
+    );
 
     // check editor url looks sane too
     await driver.sendKeys(Key.ENTER);
@@ -1792,6 +1796,35 @@ async function addRecord(col: string): Promise<number> {
   await gu.waitForServer();
   await gu.getCell({ col, rowNum: newRowNum }).click();
   return newRowNum;
+}
+
+function assertAttachmentUrl(
+  url: string,
+  pathPattern: RegExp,
+  expectedQuery: Record<string, string>,
+) {
+  // Placeholder base lets us parse relative URLs; absolute URLs ignore it.
+  const parsed = new URL(url, "http://placeholder");
+  assert.match(parsed.pathname, pathPattern);
+  const actual: Record<string, string> = {};
+  parsed.searchParams.forEach((v, k) => { actual[k] = v; });
+  assert.deepEqual(actual, expectedQuery);
+}
+
+function mutateAttachmentUrl(
+  url: string,
+  changes: { attId?: number; set?: Record<string, string>; remove?: string[] },
+): string {
+  const parsed = new URL(url);
+  if (changes.attId !== undefined) {
+    parsed.pathname = parsed.pathname.replace(
+      /\/attachments\/\d+\/download/,
+      `/attachments/${changes.attId}/download`,
+    );
+  }
+  for (const [k, v] of Object.entries(changes.set ?? {})) { parsed.searchParams.set(k, v); }
+  for (const k of changes.remove ?? []) { parsed.searchParams.delete(k); }
+  return parsed.toString();
 }
 
 // Check that an attachment url loads as expected, or gives expected error.

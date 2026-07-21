@@ -29,7 +29,7 @@ describe("DocApiOrgLimitFlags", function() {
   testUtils.setTmpLogLevel("error");
 
   describe("Personal orgs", function() {
-    addAllScenarios(addPersonalOrgLimitTests, "docapi-personal orgs disabled", {
+    addAllScenarios(addPersonalOrgLimitTests, "DocApiOrgLimitFlags1", {
       extraEnv: {
         GRIST_TEST_LOGIN: "1",
         GRIST_PERSONAL_ORGS: "false",
@@ -38,7 +38,7 @@ describe("DocApiOrgLimitFlags", function() {
   });
 
   describe("Team orgs", function() {
-    addAllScenarios(addTeamOrgLimitTests, "docapi-team org creation disabled", {
+    addAllScenarios(addTeamOrgLimitTests, "DocApiOrgLimitFlags2", {
       extraEnv: {
         GRIST_ORG_CREATION_ANYONE: "false",
       },

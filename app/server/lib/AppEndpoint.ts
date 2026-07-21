@@ -15,7 +15,7 @@ import { assertAccess, getTransitiveHeaders, getUserId, isAnonymousUser,
   RequestWithLogin } from "app/server/lib/Authorizer";
 import { DocStatus, IDocWorkerMap } from "app/server/lib/DocWorkerMap";
 import {
-  customizeDocWorkerUrl, getDocWorkerInfoOrSelfPrefix, getWorker, useWorkerPool,
+  customizeDocWorkerUrl, getDocWorkerInfoOrSelfPrefix, getSelfPrefix, getWorker, useWorkerPool,
 } from "app/server/lib/DocWorkerUtils";
 import { expressWrap } from "app/server/lib/expressWrap";
 import { DocTemplate, GristServer } from "app/server/lib/GristServer";
@@ -43,6 +43,7 @@ export interface AttachOptions {
 export function attachAppEndpoint(options: AttachOptions): void {
   const { app, middleware, docMiddleware, formMiddleware, docWorkerMap,
     forceLogin, sendAppPage, dbManager, plugins, gristServer } = options;
+  const isSocketProxyActive = () => gristServer.getSocketProxy()?.isActive();
   // Per-workspace URLs open the same old Home page, and it's up to the client to notice and
   // render the right workspace.
   app.get(["/", "/ws/:wsId", "/p/:page"], ...middleware, expressWrap(async (req, res) =>
@@ -55,8 +56,17 @@ export function attachAppEndpoint(options: AttachOptions): void {
     if (!trustOrigin(req, res)) { throw new Error("Unrecognized origin"); }
     res.header("Access-Control-Allow-Credentials", "true");
 
+    // The "/uploads" endpoint requires a real doc worker URL, as it deposits a file on the server.
+    // A proxied "/uploads" request followed by another request may resolve to two different servers.
+    // In every practical use case, a better alternative to using "/uploads" already exists or should be created.
+    // However - as long as it exists in the codebase, it needs to be tested (e.g. for security).
+    // Therefore allow the "uploads" special docId to bypass proxying and resolve to a real worker URL.
+    // This should be removed when the /uploads endpoint is, and ideally should never be used outside tests.
+    const useSelfPrefix = isSocketProxyActive() && req.params.docId !== "uploads";
+    const docId = req.params.docId === "uploads" ? "import" : req.params.docId;
+
     const { selfPrefix, docWorker } = await getDocWorkerInfoOrSelfPrefix(
-      req.params.docId, docWorkerMap, gristServer.getTag(),
+      docId, docWorkerMap, gristServer.getTag(), { useSelfPrefix },
     );
     const info: PublicDocWorkerUrlInfo = selfPrefix ?
       { docWorkerUrl: null, docWorkerId: null, selfPrefix } :
@@ -179,16 +189,22 @@ export function attachAppEndpoint(options: AttachOptions): void {
       });
     }
 
-    // Without a public URL, we're in single server mode.
-    // Use a null workerPublicURL, to signify that the URL prefix serving the
-    // current endpoint is the only one available.
-    const publicUrl = docStatus?.docWorker?.publicUrl;
-    const workerPublicUrl = publicUrl !== undefined ? customizeDocWorkerUrl(publicUrl, req) : null;
+    // If there's no doc status, we're in single server mode.
+    // Return a selfprefix result to tell the client that it can route directly to this server.
+    // If this is left undefined, the client just fetches the doc worker info from the /doc/worker endpoint instead.
+    // If the socket proxy is active, this server should be used as a relay/proxy.
+    const publicUrlInfo: PublicDocWorkerUrlInfo = isSocketProxyActive() || !docStatus ?
+      { selfPrefix: getSelfPrefix(gristServer.getTag()), docWorkerUrl: null, docWorkerId: null } :
+      {
+        selfPrefix: null,
+        docWorkerUrl: customizeDocWorkerUrl(docStatus.docWorker.publicUrl, req),
+        docWorkerId: docStatus.docWorker.id,
+      };
 
     await sendAppPage(req, res, { path: "", content: body.page, tag: body.tag, status: 200,
       googleTagManager: "anon", config: {
         assignmentId: docId,
-        getWorker: { [docId]: workerPublicUrl },
+        getWorkerFull: { [docId]: publicUrlInfo },
         getDoc: { [docId]: pruneAPIResult(doc as unknown as APIDocument)! },
         plugins,
       } });

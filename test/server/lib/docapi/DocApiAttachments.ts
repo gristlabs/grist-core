@@ -100,6 +100,9 @@ function addAttachmentsTests(getCtx: () => TestContext) {
       assert.deepEqual(resp.headers["content-type"], "image/jpeg");
       assert.deepEqual(resp.headers["content-disposition"], 'attachment; filename="world.jpg"');
       assert.deepEqual(resp.headers["cache-control"], "private, max-age=3600");
+      // Exact-match: browsers silently ignore malformed CSP directives, so only a byte-for-byte
+      // assertion catches regressions like `default-src: 'none'` (colon = unrecognized directive).
+      assert.equal(resp.headers["content-security-policy"], "sandbox; default-src 'none'");
       assert.deepEqual(resp.data, Buffer.from("123456"));
     });
 
@@ -614,8 +617,8 @@ function addAttachmentsTests(getCtx: () => TestContext) {
 
       it("POST /docs/{did}/copy doesn't throw when the document has external attachments", async function() {
         const { userApi } = getCtx();
-        const worker1 = await userApi.getWorkerAPI(docId);
-        await worker1.copyDoc(docId, undefined, "copy");
+        const docApi = userApi.getDocAPI(docId);
+        await docApi.copyDoc(undefined, {});
       });
 
       it("POST /docs/{did} with sourceDocId can copy a document with external attachments", async function() {

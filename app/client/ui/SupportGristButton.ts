@@ -141,7 +141,7 @@ document contents. Opt out any time from the {{supportGristLink}} in the user me
   }
 
   private _markDismissed() {
-    this._appModel.dismissPopup("supportGrist", true);
+    this._appModel.dismissPopup("supportGrist");
   }
 
   private async _optInToTelemetry() {

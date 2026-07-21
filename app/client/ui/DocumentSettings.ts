@@ -156,7 +156,8 @@ export class DocSettingsPage extends Disposable {
         }) : null,
       ]),
 
-      dom.create(buildNotificationsConfig, this._gristDoc.docApi, docPageModel.currentDoc.get()),
+      dom.create(buildNotificationsConfig, this._gristDoc.appModel, this._gristDoc.docApi,
+        docPageModel.currentDoc.get()),
 
       SectionCard(t("Data engine"), [
         SectionItem({

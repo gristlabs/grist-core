@@ -39,6 +39,7 @@ const INACTIVITY_CLEANUP_MS = 60 * 60 * 1000;     // an hour, very generously.
 export const Deps = {
   fetch: fetchUntrustedWithAgent,
   fetchInternal: fetch,
+  getDocWorkerInfoOrSelfPrefix,
   INACTIVITY_CLEANUP_MS,
 };
 
@@ -520,7 +521,7 @@ export async function fetchDoc(
   const docId = (await server.getHomeDBManager().getRawDocById(urlId)).id;
   // Find the doc worker responsible for the document we wish to copy.
   // The backend needs to be well configured for this to work.
-  const { selfPrefix, docWorker } = await getDocWorkerInfoOrSelfPrefix(docId, docWorkerMap, server.getTag());
+  const { selfPrefix, docWorker } = await Deps.getDocWorkerInfoOrSelfPrefix(docId, docWorkerMap, server.getTag());
   const docWorkerUrl = docWorker ? docWorker.internalUrl : getUrlFromPrefix(server.getHomeInternalUrl(), selfPrefix);
   const apiBaseUrl = docWorkerUrl.replace(/\/*$/, "/");
 

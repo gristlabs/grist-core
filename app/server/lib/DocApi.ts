@@ -12,6 +12,7 @@ import {
 } from "app/common/DocActions";
 import { DocData } from "app/common/DocData";
 import { DocState, DocStateComparison, DocStates } from "app/common/DocState";
+import { ErrorWithCode } from "app/common/ErrorWithCode";
 import { INITIAL_FIELDS_COUNT } from "app/common/Forms";
 import {
   extractTypeFromColType,
@@ -121,6 +122,7 @@ import contentDisposition from "content-disposition";
 import { Application, NextFunction, Request, RequestHandler, Response } from "express";
 import * as _ from "lodash";
 import LRUCache from "lru-cache";
+import * as mimeTypes from "mime-types";
 import * as moment from "moment";
 import fetch from "node-fetch";
 import * as t from "ts-interface-checker";
@@ -490,15 +492,35 @@ export class DocWorkerApi {
       const attRecord = activeDoc.getAttachmentMetadataWithoutAccessControl(attId);
       const fileIdent = attRecord.fileIdent as string;
       const ext = path.extname(fileIdent);
+
+      // Only text/html is forced to download, kept as a blocklist for backward compatibility.
+      // Other types can also run script when navigated to directly (e.g. SVG, XHTML); the CSP
+      // sandbox header below is the real mitigation. This should eventually flip to an allowlist
+      // of known-inert types (images, PDF, plain text).
+      let inline = isAffirmative(req.query.inline);
+      if (mimeTypes.lookup(ext) === "text/html") { inline = false; }
+
+      const nameOverride = optStringParam(req.query.name, "name");
       const origName = attRecord.fileName as string;
-      const fileName = ext ? path.basename(origName, path.extname(origName)) + ext : origName;
-      const fileData = await activeDoc.getAttachmentData(docSessionFromRequest(req), attRecord, options);
-      res.status(200)
-        .type(ext)
-        // Construct a content-disposition header of the form 'attachment; filename="NAME"'
-        .set("Content-Disposition", contentDisposition(fileName, { type: "attachment" }))
-        .set("Cache-Control", "private, max-age=3600")
-        .send(fileData);
+      const derivedName = ext ? path.basename(origName, path.extname(origName)) + ext : origName;
+      const fileName = nameOverride ?? derivedName;
+
+      try {
+        const fileData = await activeDoc.getAttachmentData(docSessionFromRequest(req), attRecord, options);
+        res.status(200)
+          .type(ext)
+          .set("Content-Disposition", contentDisposition(fileName, { type: inline ? "inline" : "attachment" }))
+          .set("Cache-Control", "private, max-age=3600")
+          .set("Content-Security-Policy", "sandbox; default-src 'none'")
+          .send(fileData);
+      } catch (e) {
+        // Avoid ACL denials becoming 500 internal server errors.
+        if (e instanceof ErrorWithCode && e.code === "ACL_DENY") {
+          res.status(404).send(e.message);
+          return;
+        }
+        throw e;
+      }
     }));
 
     // Mostly for testing
@@ -1372,7 +1394,7 @@ export class DocWorkerApi {
       const docId = await this._copyDocToWorkspace(req, {
         userId,
         sourceDocumentId: stringParam(req.params.docId, "docId"),
-        workspaceId: integerParam(parameters.workspaceId, "workspaceId"),
+        workspaceId: optIntegerParam(parameters.workspaceId, "workspaceId"),
         documentName: optStringParam(parameters.documentName, "documentName"),
         asTemplate: optBooleanParam(parameters.asTemplate, "asTemplate"),
       });
@@ -1613,7 +1635,7 @@ export class DocWorkerApi {
   private async _copyDocToWorkspace(req: Request, options: {
     userId: number,
     sourceDocumentId: string,
-    workspaceId: number,
+    workspaceId?: number,
     documentName?: string,
     asTemplate?: boolean,
   }): Promise<string> {
@@ -1653,7 +1675,11 @@ export class DocWorkerApi {
     });
     this._logDuplicateDocumentEvents(mreq, {
       original: { id: sourceDocumentId },
-      duplicate: { id, name, workspace: { id: workspaceId } },
+      duplicate: {
+        id,
+        name,
+        workspace: workspaceId !== undefined ? { id: workspaceId } : undefined,
+      },
       asTemplate,
     })
       .catch(e => log.error("DocApi failed to log duplicate document events", e));
@@ -2073,7 +2099,7 @@ export class DocWorkerApi {
 
   private async _logDuplicateDocumentEvents(req: RequestWithLogin, options: {
     original: { id: string },
-    duplicate: { id: string; name: string; workspace: { id: number } },
+    duplicate: { id: string; name: string; workspace?: { id: number } },
     asTemplate: boolean;
   }) {
     const original = await this._dbManager.getRawDocById(options.original.id);
@@ -2088,10 +2114,7 @@ export class DocWorkerApi {
           document: _.pick(original, "id", "name"),
         },
         duplicate: {
-          document: {
-            ..._.pick(duplicate, "id", "name"),
-            workspace: _.pick(duplicate.workspace, "id"),
-          },
+          document: _.pick(duplicate, "id", "name", "workspace"),
         },
         options: {
           as_template: asTemplate,

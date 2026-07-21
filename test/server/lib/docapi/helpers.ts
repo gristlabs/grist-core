@@ -7,14 +7,18 @@
  * - Direct to docworker: requests sent directly to doc worker (requires Redis)
  */
 
+import { StringUnion } from "app/common/StringUnion";
 import { UserAPI, UserAPIImpl } from "app/common/UserAPI";
 import { configForUser } from "test/gen-server/testUtils";
+import { getExtraScenarios } from "test/server/lib/docapi/extraScenarios";
+import {
+  ExtraServerModes,
+  getExtraServerModeInitializer,
+} from "test/server/lib/docapi/extraServerModes";
 import { prepareDatabase } from "test/server/lib/helpers/PrepareDatabase";
-import { prepareFilesystemDirectoryForTests } from "test/server/lib/helpers/PrepareFilesystemDirectoryForTests";
 import { TestServer } from "test/server/lib/helpers/TestServer";
 import * as testUtils from "test/server/testUtils";
 
-import { tmpdir } from "os";
 import * as path from "path";
 
 import axios, { AxiosRequestConfig } from "axios";
@@ -53,6 +57,9 @@ export interface TestContext {
   home: TestServer;
   /** Docs server instance (same as home for merged) */
   docs: TestServer;
+  /** The scenario the harness selected for this context. Lets tests skip when
+   * they only make sense under a specific topology (e.g. the fleet canary). */
+  mode: ServerMode;
   /** Flush auth cache after permission changes */
   flushAuth: () => Promise<void>;
   /** Cleanup function - call in after() */
@@ -60,10 +67,13 @@ export interface TestContext {
 }
 
 /** Server configuration mode */
-export type ServerMode = "merged" | "separated" | "direct";
+export const CoreServerMode = StringUnion("merged", "separated", "direct");
+export type CoreServerMode = typeof CoreServerMode.type;
+// ExtraServerModes is `never` in core; other editions widen it.
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+export type ServerMode = CoreServerMode | ExtraServerModes;
 
 // Module-level state for each test run
-const username = process.env.USER || "nobody";
 let tmpDir: string;
 let dataDir: string;
 // Track which test suites have been set up (keyed by testSuiteName)
@@ -131,8 +141,7 @@ async function globalSetup(testSuiteName: string, env: testUtils.EnvironmentSnap
   globalSetupDone.add(testSuiteName);
 
   // Create a stable temp directory (like DocApi.ts)
-  tmpDir = path.join(tmpdir(), `grist_test_${username}_${testSuiteName}`);
-  await prepareFilesystemDirectoryForTests(tmpDir);
+  tmpDir = await testUtils.createTestDir(testSuiteName);
 
   // Create the seeded database
   await prepareDatabase(tmpDir, env);
@@ -162,6 +171,7 @@ function createContext(
   homeUrl: string,
   scenarioDocIds: { [name: string]: string },
   hasHomeApi: boolean,
+  mode: ServerMode,
 ): TestContext {
   const userApi = makeUserApi(homeUrl, ORG_NAME, configForUser("chimpy"));
 
@@ -208,10 +218,53 @@ function createContext(
     hasHomeApi,
     home,
     docs,
+    mode,
     flushAuth,
     cleanup,
   };
 }
+
+export interface ITestServerModeOptions {
+  tmpDir: string;
+  env: Record<string, string>;
+}
+
+export interface ITestServerSetupResult {
+  home: TestServer;
+  docs: TestServer;
+  serverUrl: string;
+}
+
+export type TestServerInitializer = (options: ITestServerModeOptions) => Promise<ITestServerSetupResult>;
+
+const serverModeInitializers: Record<CoreServerMode, TestServerInitializer> = {
+  merged: async ({ tmpDir, env }) => {
+    const mergedServer = await TestServer.startServer("home,docs", tmpDir, "merged", env);
+    return {
+      home: mergedServer,
+      docs: mergedServer,
+      serverUrl: mergedServer.serverUrl,
+    };
+  },
+  separated: async ({ tmpDir, env }) => {
+    const home = await TestServer.startServer("home", tmpDir, "separated", env);
+    const docs = await TestServer.startServer("docs", tmpDir, "separated", env, home.serverUrl);
+    return {
+      home,
+      docs,
+      serverUrl: home.serverUrl,
+    };
+  },
+  direct: async ({ tmpDir, env }) => {
+    const home = await TestServer.startServer("home", tmpDir, "direct", env);
+    const docs = await TestServer.startServer("docs", tmpDir, "direct", env, home.serverUrl);
+    return {
+      home,
+      docs,
+      serverUrl: docs.serverUrl,
+    };
+  },
+};
 
 /**
  * Set up servers for a given mode.
@@ -234,20 +287,20 @@ export async function setupServers(
     ...extraEnv,
   };
 
-  let home: TestServer;
-  let docs: TestServer;
-  let serverUrl: string;
+  let serverModeInitializer = getExtraServerModeInitializer(mode);
 
-  if (mode === "merged") {
-    home = docs = await TestServer.startServer("home,docs", tmpDir, mode, env);
-    serverUrl = home.serverUrl;
-  } else {
-    home = await TestServer.startServer("home", tmpDir, mode, env);
-    docs = await TestServer.startServer("docs", tmpDir, mode, env, home.serverUrl);
-    serverUrl = mode === "direct" ? docs.serverUrl : home.serverUrl;
+  if (!serverModeInitializer && CoreServerMode.guard(mode)) {
+    serverModeInitializer = serverModeInitializers[mode];
   }
 
-  return createContext(home, docs, serverUrl, home.serverUrl, scenarioDocIds, mode !== "direct");
+  // Shouldn't ever happen, but theoretically possible, so ensure this case is covered.
+  if (!serverModeInitializer) {
+    throw new Error(`Invalid server mode '${mode}'`);
+  }
+
+  const { home, docs, serverUrl } = await serverModeInitializer({ tmpDir, env });
+
+  return createContext(home, docs, serverUrl, home.serverUrl, scenarioDocIds, mode !== "direct", mode);
 }
 
 /**
@@ -280,6 +333,12 @@ function addScenario(
 
     addTests(() => ctx);
   });
+}
+
+export interface ScenarioDefinition {
+  name: string;
+  mode: ServerMode;
+  options?: ScenarioOptions
 }
 
 /**
@@ -317,6 +376,11 @@ export function addAllScenarios(
   if (process.env.TEST_REDIS_URL) {
     addScenario("home + docworker", "separated", addTests, options);
     addScenario("direct to docworker", "direct", addTests, options);
+  }
+
+  // Add any scenarios specific to other Grist versions.
+  for (const scenario of getExtraScenarios(options)) {
+    addScenario(scenario.name, scenario.mode, addTests, scenario.options);
   }
 }
 

@@ -185,8 +185,7 @@ designed to ensure that you're the only person who can access your account, even
   private _buildDeveloperContent() {
     return SettingsPage(t("Developer"), [
       SectionCard(t("API Key"), [
-        css.header(t("API")),
-        css.dataRow(css.inlineSubHeader(t("API Key")), css.content(
+        css.dataRow(css.content(
           dom.create(ApiKey, {
             apiKey: this._apiKey,
             onCreate: () => this._createApiKey(),

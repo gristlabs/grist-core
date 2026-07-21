@@ -191,7 +191,7 @@ describe("FormView1", function() {
     before(async function() {
       const adminSession = await gu.session().user("support").login();
       adminApi = adminSession.createHomeApi();
-      const session = await gu.session().login();
+      const session = await gu.session().login({ showTips: true });
       docId = await session.tempNewDoc(cleanup);
       api = session.createHomeApi();
     });

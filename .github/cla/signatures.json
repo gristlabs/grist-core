@@ -359,6 +359,14 @@
       "created_at": "2026-07-01T13:43:37Z",
       "repoId": 266033395,
       "pullRequestNo": 2444
+    },
+    {
+      "name": "kobihikri",
+      "id": 4434689,
+      "comment_id": 4966104250,
+      "created_at": "2026-07-14T06:36:11Z",
+      "repoId": 266033395,
+      "pullRequestNo": 2464
     }
   ]
 }

@@ -686,7 +686,7 @@ tables, columns, or rows — useful for sensitive data or role-based permissions
       { helpAccessRules: commonUrls.helpAccessRules }),
       ),
       cssIntroButton(
-        bigPrimaryButton("Enable Access Rules",
+        bigPrimaryButton(t("Enable Access Rules"),
           dom.on("click", () => this._confirmEnableAccessRules()),
           testId("enable-access-rules"),
         ),

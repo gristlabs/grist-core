@@ -1,5 +1,7 @@
 import { TelemetryLevel } from "app/common/Telemetry";
-import { currentVersion, isEnabled, toggleItem, withExpandedItem } from "test/nbrowser/AdminPanelTools";
+import {
+  currentVersion, isEnabled, itemValue, toggleItem, withExpandedItem,
+} from "test/nbrowser/AdminPanelTools";
 import * as gu from "test/nbrowser/gristUtils";
 import { useFastSandboxProbe } from "test/nbrowser/sandboxProbeFixture";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
@@ -65,6 +67,48 @@ describe("AdminPanel", function() {
     await driver.find(".test-usermenu-admin-panel").click();
     await gu.waitForAdminPanel();
     assert.equal(await driver.find(".test-admin-panel").isDisplayed(), true);
+  });
+
+  it("shows and clears setup requests from users", async function() {
+    session = await gu.session().personalSite.login();
+    await driver.get(`${server.getHost()}/admin`);
+    await gu.waitForAdminPanel();
+    // No requests yet, so the item is absent entirely.
+    assert.isFalse(await driver.find(".test-admin-panel-item-setup-requests").isPresent());
+
+    // A signed-in user asks for a setup step. This is the same POST the "Ask the admin"
+    // button in the Document Settings nudge makes.
+    const status = await driver.executeAsyncScript(
+      "const done = arguments[arguments.length - 1];" +
+      // Target the home URL, not the page origin: in a multi-server topology the admin page and
+      // the API can live on different servers (this is the base the real button uses too).
+      "const base = (window.gristConfig && window.gristConfig.homeUrl || '').replace(/\\/$/, '');" +
+      "fetch(base + '/api/setup-requests', {" +
+      "  method: 'POST', headers: {'Content-Type': 'application/json'}," +
+      "  body: JSON.stringify({step: 'email', features: ['notifications'], reason: 'please'})," +
+      "}).then(r => done(r.status), e => done(String(e)));");
+    assert.equal(status, 200);
+
+    await driver.navigate().refresh();
+    await gu.waitForAdminPanel();
+    await driver.findWait(".test-admin-panel-item-setup-requests", 2000);
+    assert.equal(await itemValue("setup-requests"), "1 request");
+    await toggleItem("setup-requests");
+    const block = await driver.find(".test-admin-setup-requests-step-email");
+    const blockText = await block.getAttribute("textContent");
+    assert.match(blockText, /Connect email delivery/);
+    assert.match(blockText, /1 request/);
+    assert.match(blockText, /For Change & comment notifications \(1\)/);
+    // (The requester's name is "You" here, an artifact of the test server's minimal
+    // login system; the email is the meaningful part.)
+    assert.match(blockText, /<gristoid\+chimpy@gmail\.com>/);
+    assert.match(blockText, /“please”/);
+
+    // Clear the step; the item disappears (and stays gone for later tests).
+    await block.find(".test-admin-setup-requests-clear").click();
+    await gu.waitToPass(async () => {
+      assert.isFalse(await driver.find(".test-admin-panel-item-setup-requests").isPresent());
+    });
   });
 
   it("opens the change-admin modal when no getgrist provider is configured", async function() {

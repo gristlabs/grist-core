@@ -2,7 +2,7 @@ import { GristClientSocket } from "app/client/components/GristClientSocket";
 import { GristWSConnection } from "app/client/components/GristWSConnection";
 import { TableFetchResult } from "app/common/ActiveDocAPI";
 import { delay } from "app/common/delay";
-import { UserAPIImpl } from "app/common/UserAPI";
+import { getPublicDocWorkerUrl, UserAPIImpl } from "app/common/UserAPI";
 import { cookieName } from "app/server/lib/gristSessions";
 import log from "app/server/lib/log";
 import { getGristConfig } from "test/gen-server/testUtils";
@@ -235,11 +235,12 @@ describe("ManyFetches", function() {
 
     // Pull out the configuration object embedded in the html.
     const gristConfig = getGristConfig(pageBody);
-    const { assignmentId, getWorker, homeUrl } = gristConfig;
+    const { assignmentId, getWorkerFull, homeUrl } = gristConfig;
     if (!homeUrl) { throw new Error("no homeUrl"); }
     if (!assignmentId) { throw new Error("no assignmentId"); }
-    const docWorkerUrl = getWorker?.[assignmentId];
-    if (!docWorkerUrl) { throw new Error("no docWorkerUrl"); }
+    const docWorkerUrlInfo = getWorkerFull?.[assignmentId];
+    if (!docWorkerUrlInfo) { throw new Error("no docWorkerUrl"); }
+    const docWorkerUrl = getPublicDocWorkerUrl(homeUrl, docWorkerUrlInfo);
 
     // Place the config object in window.gristConfig as if we were a
     // real browser client.  GristWSConnection expects to find it there.

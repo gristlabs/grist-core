@@ -2,7 +2,7 @@ import { makeT } from "app/client/lib/localization";
 import { IToken, TokenField } from "app/client/lib/TokenField";
 import { cssBlockedCursor } from "app/client/ui/RightPanelStyles";
 import { basicButton, primaryButton } from "app/client/ui2018/buttons";
-import { colorButton, ColorOption } from "app/client/ui2018/ColorSelect";
+import { COLOR_OPTION_NONE_TEXTS, colorButton, ColorOption } from "app/client/ui2018/ColorSelect";
 import { testId, theme } from "app/client/ui2018/cssVars";
 import { editableLabel } from "app/client/ui2018/editableLabel";
 import { icon } from "app/client/ui2018/icons";
@@ -357,8 +357,12 @@ export class ChoiceListEntry extends Disposable {
         {
           styleOptions: {
             textColor: new ColorOption({ color: textColorObs, defaultColor: "#000000" }),
-            fillColor: new ColorOption(
-              { color: fillColorObs, allowsNone: true, noneText: "none", defaultColor: "#FFFFFF" }),
+            fillColor: new ColorOption({
+              color: fillColorObs,
+              allowsNone: true,
+              noneText: COLOR_OPTION_NONE_TEXTS.none(),
+              defaultColor: "#FFFFFF",
+            }),
             fontBold: fontBoldObs,
             fontItalic: fontItalicObs,
             fontUnderline: fontUnderlineObs,

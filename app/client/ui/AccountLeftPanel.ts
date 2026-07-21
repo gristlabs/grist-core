@@ -18,13 +18,15 @@ const t = makeT("AccountPage");
 
 // Whether OAuth Apps feature is available (EE/SaaS only, not core). Returns "hidden" to
 // hide its UI entirely, for editions where it's inapplicable or when explicitly turned off.
-export function areOAuthAppsAvailable(): boolean | "hidden" {
-  const { deploymentType } = getGristConfig();
+// Returns "disabled" when the edition supports OAuth apps but the server has them turned off.
+export function areOAuthAppsAvailable(): boolean | "hidden" | "disabled" {
+  const { deploymentType, oauthAppsEnabled } = getGristConfig();
   if ((deploymentType === "electron" || deploymentType === "static") || !isFeatureEnabled("oauthApps")) {
     return "hidden";
   }
-  // Otherwise this is available in full Grist and shows a stub in core (or simulated core).
-  return deploymentType !== "core";
+  // In core (or simulated core), show a stub suggesting full Grist.
+  if (deploymentType === "core") { return false; }
+  return oauthAppsEnabled ? true : "disabled";
 }
 
 // Collects and exposes translations, used for sidebar and breadcrumbs.

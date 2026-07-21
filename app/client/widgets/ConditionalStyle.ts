@@ -8,7 +8,7 @@ import { buildHighlightedCode } from "app/client/ui/CodeHighlight";
 import { cssFieldFormula } from "app/client/ui/RightPanelStyles";
 import { withInfoTooltip } from "app/client/ui/tooltips";
 import { textButton } from "app/client/ui2018/buttons";
-import { ColorOption, colorSelect } from "app/client/ui2018/ColorSelect";
+import { COLOR_OPTION_NONE_TEXTS, ColorOption, colorSelect } from "app/client/ui2018/ColorSelect";
 import { theme, vars } from "app/client/ui2018/cssVars";
 import { cssDragger } from "app/client/ui2018/draggableList";
 import { icon } from "app/client/ui2018/icons";
@@ -161,8 +161,16 @@ export class ConditionalStyle extends Disposable {
           ),
           colorSelect(
             {
-              textColor: new ColorOption({ color: textColor, allowsNone: true, noneText: "default" }),
-              fillColor: new ColorOption({ color: fillColor, allowsNone: true, noneText: "none" }),
+              textColor: new ColorOption({
+                color: textColor,
+                allowsNone: true,
+                noneText: COLOR_OPTION_NONE_TEXTS.default(),
+              }),
+              fillColor: new ColorOption({
+                color: fillColor,
+                allowsNone: true,
+                noneText: COLOR_OPTION_NONE_TEXTS.none(),
+              }),
               fontBold,
               fontItalic,
               fontUnderline,

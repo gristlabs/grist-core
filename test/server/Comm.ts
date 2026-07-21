@@ -4,6 +4,7 @@ import { GristWSConnection, GristWSSettings } from "app/client/components/GristW
 import * as log from "app/client/lib/log";
 import { CommClientConnect } from "app/common/CommTypes";
 import { delay } from "app/common/delay";
+import { GristLoadConfig } from "app/common/gristUrls";
 import { isLongerThan } from "app/common/gutil";
 import { User } from "app/gen-server/entity/User";
 import { HomeDBAuth } from "app/gen-server/lib/homedb/Interfaces";
@@ -15,13 +16,14 @@ import { createDummyGristServer, GristServer } from "app/server/lib/GristServer"
 import { getBootKey } from "app/server/lib/gristSettings";
 import { InstallAdmin } from "app/server/lib/InstallAdmin";
 import { IPermitStore, Permit } from "app/server/lib/Permit";
+import { terminateSocketWithHttpResponse } from "app/server/lib/requestUtils";
 import { fromCallback, listenPromise } from "app/server/lib/serverUtils";
 import { Sessions } from "app/server/lib/Sessions";
 import { TcpForwarder } from "test/server/tcpForwarder";
 import * as testUtils from "test/server/testUtils";
 
 import * as http from "http";
-import { AddressInfo } from "net";
+import net, { AddressInfo } from "net";
 import * as path from "path";
 
 import * as session from "@gristlabs/express-session";
@@ -77,14 +79,19 @@ describe("Comm", function() {
   function startComm(methods: { [name: string]: ClientMethod }) {
     server = http.createServer();
     fakeHosts = new FakeHosts();
-    comm = new Comm(server, { sessions, hosts: fakeHosts.asHosts });
+    comm = new Comm({ sessions, hosts: fakeHosts.asHosts });
+    server.on("request", (...args) => comm?.handleHTTPRequest(...args));
+    server.on("upgrade",
+      (req: http.IncomingMessage, socket: net.Socket, head: Buffer) => comm?.handleHTTPUpgrade(req, socket, head),
+    );
+    server.on("close", () => comm?.close());
     comm.registerMethods(methods);
     return listenPromise(server.listen(0, "localhost"));
   }
 
   async function stopComm() {
     comm?.destroyAllClients();
-    await comm?.testServerShutdown();
+    await comm?.close();
     await fromCallback((cb) => {
       server.close(cb);
       server.closeAllConnections();
@@ -281,7 +288,11 @@ describe("Comm", function() {
       // To create a client-side Comm object, we need to trick GristWSConnection's check for
       // whether there is a worker to connect to.
       (global as any).window = undefined;
-      sandbox.stub(global as any, "window").value({ gristConfig: { getWorker: "STUB", assignmentId: docId } });
+      const partialConfig: Pick<GristLoadConfig, "getWorkerFull" | "assignmentId"> = {
+        getWorkerFull: { [docId]: { selfPrefix: "STUB", docWorkerUrl: null, docWorkerId: null } },
+        assignmentId: docId,
+      };
+      sandbox.stub(global as any, "window").value({ gristConfig: partialConfig });
 
       // We also need to get GristWSConnection to use a custom GristWSSettings object, and to
       // connect to the forwarder's port.
@@ -570,13 +581,17 @@ describe("Comm", function() {
     }) {
       server = http.createServer();
       fakeHosts = new FakeHosts();
-      comm = new Comm(server, {
+      comm = new Comm({
         sessions,
         hosts: fakeHosts.asHosts,
         dbManager: db,
         gristServer: options?.gristServer ?? createDummyGristServer(),
         permitStore: options?.permitStore ?? makePermitStore(),
       });
+      server.on("request", (...args) => comm?.handleHTTPRequest(...args));
+      server.on("upgrade",
+        (req: http.IncomingMessage, socket: net.Socket, head: Buffer) => comm?.handleHTTPUpgrade(req, socket, head),
+      );
       comm.registerMethods(assortedMethods);
       return listenPromise(server.listen(0, "localhost"));
     }
@@ -838,6 +853,69 @@ describe("Comm", function() {
       await checkOrigin({ origin: "https://front.example.com", host: "worker.example.com" }, false);
       await checkOrigin({ origin: "https://front.example.com", host: "front.example.com" }, true);
       await checkOrigin({ origin: "https://front.example.com:3000", host: "front.example.com" }, true);
+    });
+  });
+
+  describe("upgrade fallthrough on servers without Comm", function() {
+    // Ensures incoming upgrade requests that aren't handled by socket proxy or Comm (e.g. on a static-only server)
+    // are explicitly terminated, to avoid sockets sitting half-open.
+
+    let fallthroughServer: http.Server;
+    let fallthroughPort: number;
+
+    beforeEach(async function() {
+      fallthroughServer = http.createServer((_req, res) => { res.writeHead(404).end(); });
+      fallthroughServer.on("upgrade", (_req, socket: net.Socket) => {
+        terminateSocketWithHttpResponse(socket, 404);
+      });
+      await listenPromise(fallthroughServer.listen(0, "127.0.0.1"));
+      fallthroughPort = (fallthroughServer.address() as AddressInfo).port;
+    });
+
+    afterEach(async function() {
+      await fromCallback((cb) => {
+        fallthroughServer.close(cb);
+        fallthroughServer.closeAllConnections();
+      });
+    });
+
+    it("responds 404 and closes the socket instead of leaving it hanging", async function() {
+      // Short overall timeout — a regression here would hang the socket until the OS gives up,
+      // so we want the test to fail fast rather than the whole suite stall.
+      this.timeout(2000);
+
+      const client = net.createConnection(fallthroughPort, "127.0.0.1");
+      try {
+        await new Promise<void>((resolve, reject) => {
+          client.once("connect", resolve);
+          client.once("error", reject);
+        });
+
+        client.write(
+          "GET / HTTP/1.1\r\n" +
+          `Host: 127.0.0.1:${fallthroughPort}\r\n` +
+          "Upgrade: websocket\r\n" +
+          "Connection: Upgrade\r\n" +
+          "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n" +
+          "Sec-WebSocket-Version: 13\r\n" +
+          "\r\n",
+        );
+
+        // Collect the full response, then wait for close. If the server ever regresses to
+        // leaving the socket half-open, the "close" event never fires and the test's 2s
+        // timeout kicks in.
+        const chunks: Buffer[] = [];
+        client.on("data", chunk => chunks.push(chunk));
+        await new Promise<void>((resolve, reject) => {
+          client.once("close", resolve);
+          client.once("error", reject);
+        });
+
+        const response = Buffer.concat(chunks).toString("utf8");
+        assert.match(response, /^HTTP\/1\.1 404\b/, `expected 404, got: ${response.split("\r\n")[0]}`);
+      } finally {
+        client.destroy();
+      }
     });
   });
 });

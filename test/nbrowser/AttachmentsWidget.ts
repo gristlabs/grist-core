@@ -214,7 +214,7 @@ describe("AttachmentsWidget", function() {
     );
     assert.equal(
       respDownload.headers.get("Content-Security-Policy"),
-      "sandbox; default-src: 'none'",
+      "sandbox; default-src 'none'",
     );
 
     const hrefInline = await driver
@@ -274,8 +274,9 @@ describe("AttachmentsWidget", function() {
 
     // Assert that the attachment has the correct download link.
     const href = await driver.find(".test-pw-download").getAttribute("href");
-    assert.include(href, "attId=1");
-    assert.include(href, "name=renamed.pdf");
+    assertAttachmentUrl(href, /\/attachments\/1\/download$/, {
+      rowId: "2", colId: "A", tableId: "Table1", name: "renamed.pdf", maybeNew: "1",
+    });
 
     // Assert that other previews can be viewed without closing the modal.
     await driver.find(".test-pw-right").click();
@@ -429,9 +430,10 @@ describe("AttachmentsWidget", function() {
       await driver.find(".test-pw-attachment-content").getTagName(),
       "object",
     );
-    assert.match(
+    assertAttachmentUrl(
       await driver.find(".test-pw-attachment-content").getAttribute("data"),
-      /name=renamed.pdf&rowId=2&colId=A&tableId=Table1&maybeNew=1&attId=1&inline=1/,
+      /\/attachments\/1\/download$/,
+      { rowId: "2", colId: "A", tableId: "Table1", name: "renamed.pdf", inline: "1", maybeNew: "1" },
     );
     assert.equal(
       await driver.find(".test-pw-attachment-content").getAttribute("type"),
@@ -444,9 +446,10 @@ describe("AttachmentsWidget", function() {
       await driver.find(".test-pw-attachment-content").getTagName(),
       "img",
     );
-    assert.match(
+    assertAttachmentUrl(
       await driver.find(".test-pw-attachment-content").getAttribute("src"),
-      /name=grist.png&rowId=2&colId=A&tableId=Table1&maybeNew=1&attId=2/,
+      /\/attachments\/2\/download$/,
+      { rowId: "2", colId: "A", tableId: "Table1", name: "grist.png", maybeNew: "1" },
     );
 
     await driver.sendKeys(Key.RIGHT);
@@ -455,9 +458,10 @@ describe("AttachmentsWidget", function() {
       await driver.find(".test-pw-attachment-content").getTagName(),
       "video",
     );
-    assert.match(
+    assertAttachmentUrl(
       await driver.find(".test-pw-attachment-content").getAttribute("src"),
-      /name=file1.mov&rowId=2&colId=A&tableId=Table1&maybeNew=1&attId=6&inline=1/,
+      /\/attachments\/6\/download$/,
+      { rowId: "2", colId: "A", tableId: "Table1", name: "file1.mov", inline: "1", maybeNew: "1" },
     );
 
     await driver.sendKeys(Key.RIGHT);
@@ -466,9 +470,10 @@ describe("AttachmentsWidget", function() {
       await driver.find(".test-pw-attachment-content").getTagName(),
       "audio",
     );
-    assert.match(
+    assertAttachmentUrl(
       await driver.find(".test-pw-attachment-content").getAttribute("src"),
-      /name=file2.mp3&rowId=2&colId=A&tableId=Table1&maybeNew=1&attId=7&inline=1/,
+      /\/attachments\/7\/download$/,
+      { rowId: "2", colId: "A", tableId: "Table1", name: "file2.mp3", inline: "1", maybeNew: "1" },
     );
 
     // Test that for an unsupported file, the extension is shown along with a message.
@@ -478,9 +483,10 @@ describe("AttachmentsWidget", function() {
       await driver.find(".test-pw-attachment-content").getTagName(),
       "object",
     );
-    assert.match(
+    assertAttachmentUrl(
       await driver.find(".test-pw-attachment-content").getAttribute("data"),
-      /name=file3.zip&rowId=2&colId=A&tableId=Table1&maybeNew=1&attId=8&inline=1/,
+      /\/attachments\/8\/download$/,
+      { rowId: "2", colId: "A", tableId: "Table1", name: "file3.zip", inline: "1", maybeNew: "1" },
     );
     assert.equal(
       await driver.find(".test-pw-attachment-content").getText(),
@@ -728,6 +734,19 @@ describe("AttachmentsWidget", function() {
     await revert();
   });
 });
+
+function assertAttachmentUrl(
+  url: string,
+  pathPattern: RegExp,
+  expectedQuery: Record<string, string>,
+) {
+  // Placeholder base lets us parse relative URLs; absolute URLs ignore it.
+  const parsed = new URL(url, "http://placeholder");
+  assert.match(parsed.pathname, pathPattern);
+  const actual: Record<string, string> = {};
+  parsed.searchParams.forEach((v, k) => { actual[k] = v; });
+  assert.deepEqual(actual, expectedQuery);
+}
 
 async function ensureDialogIsClosed() {
   await gu.waitToPass(async () => {

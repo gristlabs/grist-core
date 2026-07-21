@@ -1351,7 +1351,7 @@
     },
     "WelcomeTour": {
         "Add new": "Új hozzáadása",
-        "Browse our {{templateLibrary}} to discover what's possible and get inspired.": "Fedezd fel a(z) {{templateLibrary}}, hogy inspirálódj és meglásd, mennyi minden lehetséges!",
+        "Browse our {{templateLibrary}} to discover what's possible and get inspired.": "Fedezd fel a {{templateLibrary}}, hogy inspirálódj és meglásd, mennyi minden lehetséges!",
         "Building up": "Összeállítás",
         "Configuring your document": "A dokumentumod beállítása",
         "Customizing columns": "Oszlopok testreszabása",
@@ -1367,13 +1367,13 @@
         "Sharing": "Megosztás",
         "Start with {{equal}} to enter a formula.": "Kezdd {{equal}} jellel a képlet beírását.",
         "Toggle the {{creatorPanel}} to format columns, ": "Kapcsold ki-be a {{creatorPanel}}-t az oszlopok formázásához, ",
-        "Use the Share button ({{share}}) to share the document or export data.": "Használt a Megosztás gombot ({{share}}) a dokumentumok megosztásához vagy az adatok exportálásához.",
-        "Use {{addNew}} to add widgets, pages, or import more data. ": "Használd az {{addNew}}-t widgetek vagy oldalak hozzáadásához, vagy további adatok importálásához. ",
+        "Use the Share button ({{share}}) to share the document or export data.": "Használd a Megosztás gombot ({{share}}) a dokumentumok megosztásához vagy az adatok exportálásához.",
+        "Use {{addNew}} to add widgets, pages, or import more data. ": "Használd az {{addNew}} gombot widgetek vagy oldalak hozzáadásához, vagy további adatok importálásához. ",
         "Use {{helpCenter}} for documentation or questions.": "A {{helpCenter}}ban találod a dokumentációt és kérdéseket.",
         "Welcome to Grist!": "Üdvözöl a Grist!",
-        "convert to card view, select data, and more.": "átalakítás kártya nézetre, adatok kiválasztása és egyebek.",
+        "convert to card view, select data, and more.": "kártya nézetre alakításhoz, adatok kiválasztásához és hasonlókhoz.",
         "creator panel": "alkotó panel",
-        "template library": "sablonkönyvtár",
+        "template library": "sablonkönyvtárt",
         "AI Assistant": "MI-segéd"
     },
     "LanguageMenu": {

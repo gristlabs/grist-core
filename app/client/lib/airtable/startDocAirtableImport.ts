@@ -22,6 +22,7 @@ export async function startDocAirtableImport(gristDoc: GristDoc) {
             id: use(c.colId),
             ref: use(c.id),
             label: use(c.label),
+            type: use(c.type),
             isFormula: use(c.isFormula),
           })),
         })),

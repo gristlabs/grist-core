@@ -35,7 +35,7 @@ describe("SupportGrist", function() {
 
     describe("when user is not a manager", function() {
       before(async function() {
-        session = await gu.session().user("user2").personalSite.login();
+        session = await gu.session().user("user2").personalSite.login({ showTips: true });
         await session.loadDocMenu("/");
       });
 
@@ -52,7 +52,7 @@ describe("SupportGrist", function() {
 
     describe("when user is a manager", function() {
       before(async function() {
-        session = await gu.session().personalSite.login();
+        session = await gu.session().personalSite.login({ showTips: true });
         await session.loadDocMenu("/");
       });
 

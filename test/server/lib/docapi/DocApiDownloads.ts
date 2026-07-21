@@ -74,14 +74,6 @@ function addDownloadsTests(getCtx: () => TestContext) {
     assert.notMatch(resp.data, /grist_Tables_column/);
   });
 
-  // A tiny test that /copy doesn't throw.
-  it("POST /copy succeeds on a doc worker", async function() {
-    const { userApi, docIds } = getCtx();
-    const docId = docIds.TestDoc;
-    const worker1 = await userApi.getWorkerAPI(docId);
-    await worker1.copyDoc(docId, undefined, "copy");
-  });
-
   it("POST /docs/{did} with sourceDocId copies a document", async function() {
     const { serverUrl, userApi, docIds, chimpy } = getCtx();
     const chimpyWs = await userApi.newWorkspace({ name: "Chimpy's Workspace" }, ORG_NAME);
@@ -315,19 +307,17 @@ function addDownloadsTests(getCtx: () => TestContext) {
   });
 
   it("POST /workspaces/{wid}/import handles empty filenames", async function() {
-    const { userApi, chimpy } = getCtx();
+    const { userApi } = getCtx();
     if (!process.env.TEST_REDIS_URL) {
       this.skip();
     }
     const worker = await userApi.getWorkerAPI("import");
     const wid = (await userApi.getOrgWorkspaces("current")).find(w => w.name === "Private")!.id;
     const fakeData1 = await testUtils.readFixtureDoc("Hello.grist");
-    const uploadId1 = await worker.upload(new Blob([new Uint8Array(fakeData1)]), ".grist");
-    const resp = await axios.post(`${worker.url}/api/workspaces/${wid}/import`, { uploadId: uploadId1 }, chimpy);
-    assert.equal(resp.status, 200);
-    assert.equal(resp.data.title, "Untitled upload");
-    assert.equal(typeof resp.data.id, "string");
-    assert.notEqual(resp.data.id, "");
+    const docInfo = await worker.importDocToWorkspace([new File([new Uint8Array(fakeData1)], ".grist")], wid);
+    assert.equal(docInfo.title, "Untitled upload");
+    assert.equal(typeof docInfo.id, "string");
+    assert.notEqual(docInfo.id, "");
   });
 
   it("GET /docs/{did}/download disables triggers in the downloaded copy", async function() {

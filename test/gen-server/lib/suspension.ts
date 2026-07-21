@@ -50,7 +50,6 @@ describe("suspension", function() {
     await assert.isFulfilled(docApi.getRows("Table1"));
     await assert.isRejected(docApi.updateRows("Table1", { id: [1], A: ["v1"] }), /No write access/);
     await assert.isRejected(docApi.addRows("Table1", { A: ["v1"] }), /No write access/);
-    const worker = await nasaApi.getWorkerAPI(docId);
-    assert(await worker.downloadDoc(docId));  // download still works
+    assert(await docApi.download());  // download still works
   });
 });

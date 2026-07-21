@@ -345,6 +345,7 @@ describe("AirtableImport", function() {
         assert.deepEqual(await driver.findAll(".test-import-airtable-table-name", el => el.getText()), [
           "Products",
           "Suppliers",
+          "Brand",
           "Orders",
         ]);
       });
@@ -355,8 +356,9 @@ describe("AirtableImport", function() {
           "New table",
           "New table",
           "New table",
+          "New table",
         ]);
-        assert.equal(await driver.find(".test-import-airtable-import").getText(), "Import 3 tables");
+        assert.equal(await driver.find(".test-import-airtable-import").getText(), "Import 4 tables");
 
         // Import Products (tbl79ux7qppckp8hr) as a new table.
         await driver.find(".test-import-airtable-table-tbl79ux7qppckp8hr-destination").click();
@@ -370,8 +372,9 @@ describe("AirtableImport", function() {
           "New table",
           "New table",
           "New table",
+          "New table",
         ]);
-        assert.equal(await driver.find(".test-import-airtable-import").getText(), "Import 3 tables");
+        assert.equal(await driver.find(".test-import-airtable-import").getText(), "Import 4 tables");
 
         // Import Suppliers (tblbyte2tg72cbhhf) as a new table without data.
         await driver.find(".test-import-airtable-table-tblbyte2tg72cbhhf-destination").click();
@@ -385,8 +388,9 @@ describe("AirtableImport", function() {
           "New table",
           "Structure only",
           "New table",
+          "New table",
         ]);
-        assert.equal(await driver.find(".test-import-airtable-import").getText(), "Import 3 tables");
+        assert.equal(await driver.find(".test-import-airtable-import").getText(), "Import 4 tables");
 
         // Skip importing Orders (tblfyhS37Hst5Hvsf).
         await driver.find(".test-import-airtable-table-tblfyhS37Hst5Hvsf-destination").click();
@@ -399,9 +403,10 @@ describe("AirtableImport", function() {
         assert.deepEqual(await driver.findAll(".test-import-airtable-destination-label", el => el.getText()), [
           "New table",
           "Structure only",
+          "New table",
           "Skip",
         ]);
-        assert.equal(await driver.find(".test-import-airtable-import").getText(), "Import 2 tables");
+        assert.equal(await driver.find(".test-import-airtable-import").getText(), "Import 3 tables");
       });
 
       it("should import Airtable base to a new Grist document", async function() {
@@ -410,18 +415,19 @@ describe("AirtableImport", function() {
         await gu.waitForDocToLoad();
 
         assert.equal(await driver.find(".test-bc-doc").value(), "Product planning");
-        assert.deepEqual(await gu.getPageNames(), ["Products", "Suppliers"]);
+        assert.deepEqual(await gu.getPageNames(), ["Products", "Suppliers", "Brand"]);
         assert.deepEqual(await gu.getColumnNames(), [
           "Airtable Id",
           "Name",
           "Price",
           "Category",
           "Suppliers",
+          "Brand",
         ]);
-        assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: [0, 1, 2, 3, 4] }), [
-          "reccaegwskzka7wi1", "Widget X", "99.99", "Electronics", "",
-          "recigwb4bc7vq2fhd", "Gadget Y", "149.99", "Electronics", "",
-          "", "", "", "", "",
+        assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: [0, 1, 2, 3, 4, 5] }), [
+          "reccaegwskzka7wi1", "Widget X", "99.99", "Electronics", "", "Brand[1]",
+          "recigwb4bc7vq2fhd", "Gadget Y", "149.99", "Electronics", "", "Brand[2]",
+          "", "", "", "", "", "",
         ]);
 
         await gu.getPageItem("Suppliers").click();
@@ -463,6 +469,7 @@ describe("AirtableImport", function() {
           "New table",
           "New table: structure only",
           "Skip",
+          "Brand",
           "Products",
           "Suppliers",
         ]);
@@ -471,8 +478,9 @@ describe("AirtableImport", function() {
           "Products",
           "New table",
           "New table",
+          "New table",
         ]);
-        assert.equal(await driver.find(".test-import-airtable-import").getText(), "Import 3 tables");
+        assert.equal(await driver.find(".test-import-airtable-import").getText(), "Import 4 tables");
 
         // Import Suppliers (tblbyte2tg72cbhhf) as a new table without data.
         await driver.find(".test-import-airtable-table-tblbyte2tg72cbhhf-destination").click();
@@ -480,6 +488,7 @@ describe("AirtableImport", function() {
           "New table",
           "New table: structure only",
           "Skip",
+          "Brand",
           "Products",
           "Suppliers",
         ]);
@@ -488,24 +497,45 @@ describe("AirtableImport", function() {
           "Products",
           "Suppliers",
           "New table",
+          "New table",
         ]);
-        assert.equal(await driver.find(".test-import-airtable-import").getText(), "Import 3 tables");
+        assert.equal(await driver.find(".test-import-airtable-import").getText(), "Import 4 tables");
+
+        // Import Brand (tblbra7dxq31mnstp) to the existing Brand table.
+        await driver.find(".test-import-airtable-table-tblbra7dxq31mnstp-destination").click();
+        assert.deepEqual(await gu.findOpenMenuAllItems("li", el => el.getText()), [
+          "New table",
+          "New table: structure only",
+          "Skip",
+          "Brand",
+          "Products",
+          "Suppliers",
+        ]);
+        await gu.findOpenMenuItem("li", "Brand").click();
+        assert.deepEqual(await driver.findAll(".test-import-airtable-destination-label", el => el.getText()), [
+          "Products",
+          "Suppliers",
+          "Brand",
+          "New table",
+        ]);
+        assert.equal(await driver.find(".test-import-airtable-import").getText(), "Import 4 tables");
 
         await driver.find(".test-import-airtable-import").click();
         await waitForModalToClose();
 
-        assert.deepEqual(await gu.getPageNames(), ["Products", "Suppliers", "Orders"]);
+        assert.deepEqual(await gu.getPageNames(), ["Products", "Suppliers", "Brand", "Orders"]);
         assert.deepEqual(await gu.getColumnNames(), [
           "Airtable Id",
           "Name",
           "Price",
           "Category",
           "Suppliers",
+          "Brand",
         ]);
-        assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: [0, 1, 2, 3, 4] }), [
-          "reccaegwskzka7wi1", "Widget X", "99.99", "Electronics", "Suppliers[1]",
-          "recigwb4bc7vq2fhd", "Gadget Y", "149.99", "Electronics", "Suppliers[2]",
-          "", "", "", "", "",
+        assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: [0, 1, 2, 3, 4, 5] }), [
+          "reccaegwskzka7wi1", "Widget X", "99.99", "Electronics", "Suppliers[1]", "Brand[1]",
+          "recigwb4bc7vq2fhd", "Gadget Y", "149.99", "Electronics", "Suppliers[2]", "Brand[2]",
+          "", "", "", "", "", "",
         ]);
 
         await gu.getPageItem("Suppliers").click();
@@ -575,7 +605,7 @@ describe("AirtableImport", function() {
         await driver.findWait(".test-import-airtable-import", 2000).click();
         await waitForModalToClose();
 
-        assert.deepEqual(await gu.getPageNames(), ["Table1", "Products", "Suppliers", "Orders"]);
+        assert.deepEqual(await gu.getPageNames(), ["Table1", "Products", "Suppliers", "Brand", "Orders"]);
 
         await gu.getPageItem("Products").click();
         assert.deepEqual(await gu.getColumnNames(), [
@@ -584,11 +614,12 @@ describe("AirtableImport", function() {
           "Price",
           "Category",
           "Suppliers",
+          "Brand",
         ]);
-        assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: [0, 1, 2, 3, 4] }), [
-          "reccaegwskzka7wi1", "Widget X", "99.99", "Electronics", "Suppliers[1]",
-          "recigwb4bc7vq2fhd", "Gadget Y", "149.99", "Electronics", "Suppliers[2]",
-          "", "", "", "", "",
+        assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: [0, 1, 2, 3, 4, 5] }), [
+          "reccaegwskzka7wi1", "Widget X", "99.99", "Electronics", "Suppliers[1]", "Brand[1]",
+          "recigwb4bc7vq2fhd", "Gadget Y", "149.99", "Electronics", "Suppliers[2]", "Brand[2]",
+          "", "", "", "", "", "",
         ]);
 
         await gu.getPageItem("Suppliers").click();
@@ -685,6 +716,15 @@ const airtableBaseSchemaFixture = {
             linkedTableId: "tblbyte2tg72cbhhf",
           },
         },
+        {
+          id: "fldpb9mpc01qrstuv",
+          name: "Brand",
+          type: "multipleRecordLinks",
+          options: {
+            linkedTableId: "tblbra7dxq31mnstp",
+            prefersSingleRecordLink: true,
+          },
+        },
       ],
     }, {
       id: "tblbyte2tg72cbhhf",
@@ -705,6 +745,17 @@ const airtableBaseSchemaFixture = {
           id: "fldo0m0ozf0k5aatm",
           name: "Phone",
           type: "phoneNumber",
+        },
+      ],
+    }, {
+      id: "tblbra7dxq31mnstp",
+      name: "Brand",
+      primaryFieldId: "fldbn8zk4l2qwrxyc",
+      fields: [
+        {
+          id: "fldbn8zk4l2qwrxyc",
+          name: "Name",
+          type: "singleLineText",
         },
       ],
     }, {
@@ -750,6 +801,7 @@ const airtableListRecordsFixture = {
         Price: 99.99,
         Category: "Electronics",
         Suppliers: ["recoa4mwyeytxu3fb"],
+        Brand: ["recb1uvwxyz012345"],
       },
       createdTime: "2023-01-01T00:00:00.000Z",
     }, {
@@ -759,6 +811,7 @@ const airtableListRecordsFixture = {
         Price: 149.99,
         Category: "Electronics",
         Suppliers: ["recw7cwwskv1q5jck"],
+        Brand: ["recb2fghijkl67890"],
       },
       createdTime: "2023-01-02T00:00:00.000Z",
     }],
@@ -783,7 +836,21 @@ const airtableListRecordsFixture = {
       createdTime: "2023-01-02T00:00:00.000Z",
     }],
   },
-
+  tblbra7dxq31mnstp: {
+    records: [{
+      id: "recb1uvwxyz012345",
+      fields: {
+        Name: "Acme Corp",
+      },
+      createdTime: "2023-01-01T00:00:00.000Z",
+    }, {
+      id: "recb2fghijkl67890",
+      fields: {
+        Name: "Globex",
+      },
+      createdTime: "2023-01-02T00:00:00.000Z",
+    }],
+  },
   tblfyhS37Hst5Hvsf: {
     records: [{
       id: "recjngmiw6qy39v53",
