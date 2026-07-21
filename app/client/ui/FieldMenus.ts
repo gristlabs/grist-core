@@ -14,7 +14,11 @@ const t = makeT("FieldMenus");
 export function FieldSettingsMenu(useColOptions: boolean, disableSeparate: boolean, actions: IFieldOptions) {
   useColOptions = useColOptions || disableSeparate;
   return [
-    menuSubHeader(useColOptions ? t("Using common settings") : t("Using separate settings")),
+    menuSubHeader(
+      useColOptions ? t("Using common settings") : t("Using separate settings"),
+      { id: "field-settings-menu-header", role: "presentation" },
+    ),
+    { "aria-describedby": "field-settings-menu-header" },
     useColOptions ? menuItem(actions.useSeparate, t("Use separate settings"), dom.cls("disabled", disableSeparate)) : [
       menuItem(actions.saveAsCommon, t("Save as common settings")),
       menuItem(actions.revertToCommon, t("Revert to common settings")),
