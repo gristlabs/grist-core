@@ -20,7 +20,7 @@ import { AppModel } from "app/client/models/AppModel";
 import { hoverTooltip } from "app/client/ui/tooltips";
 import { createVersionFooter } from "app/client/ui/VersionFooter";
 import { colors, testId, theme, vars } from "app/client/ui2018/cssVars";
-import { colorIcon, icon } from "app/client/ui2018/icons";
+import { icon } from "app/client/ui2018/icons";
 import { unstyledButton } from "app/client/ui2018/unstyled";
 import { visuallyHidden } from "app/client/ui2018/visuallyHidden";
 import { commonUrls, isFeatureEnabled } from "app/common/gristUrls";
@@ -265,14 +265,6 @@ export const cssKeyboardShortcut = styled("span", `
     right: 3px;
     margin: 0;
     font-size: 0.8em;
-  }
-`);
-
-export const cssPageColorIcon = styled(colorIcon, `
-  flex: none;
-  margin-right: var(--page-icon-margin, 8px);
-  .${cssTools.className}-collapsed & {
-    margin-right: 0;
   }
 `);
 

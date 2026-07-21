@@ -3,7 +3,7 @@ import { hoverTooltip } from "app/client/ui/tooltips";
 import { testId, vars } from "app/client/ui2018/cssVars";
 import { colorIcon } from "app/client/ui2018/icons";
 import { cssLink } from "app/client/ui2018/links";
-import { commonUrls } from "app/common/gristUrls";
+import { commonUrls, isFullEditionDeployment } from "app/common/gristUrls";
 import { components, tokens } from "app/common/ThemePrefs";
 import { getGristConfig } from "app/common/urlUtils";
 import * as version from "app/common/version";
@@ -23,7 +23,8 @@ const t = makeT("VersionFooter");
  * version number (e.g. v1.7.8).
  */
 export function createVersionFooter(panelOpen: Observable<boolean>): DomContents {
-  const isCommunity = isCommunityEdition();
+  const { deploymentType } = getGristConfig();
+  const isCommunity = !isFullEditionDeployment(deploymentType);
 
   // Show the version without any build suffix. (The hover popup shows the full version.)
   const shortVersion = version.version.split("-")[0];
@@ -52,14 +53,9 @@ export function createVersionFooter(panelOpen: Observable<boolean>): DomContents
   );
 }
 
-function isCommunityEdition(): boolean {
-  const { deploymentType } = getGristConfig();
-  return deploymentType !== "enterprise" && deploymentType !== "saas";
-}
-
 function buildVersionPopup(): DomContents {
   const { deploymentType } = getGristConfig();
-  const isCommunity = isCommunityEdition();
+  const isCommunity = !isFullEditionDeployment(deploymentType);
 
   // Cast version.gitcommit since, depending on how Grist is compiled, tsc may believe it to be
   // a constant and believe that testing it is unnecessary.
@@ -93,7 +89,11 @@ function buildVersionPopup(): DomContents {
 function buildReleaseNotesLink(): DomContents {
   return cssPopupLink(
     t("Release notes") + " →",
-    { href: `${commonUrls.githubGristCore}/releases/tag/v${version.version}`, target: "_blank" },
+    {
+      href: `${commonUrls.githubGristCore}/releases/tag/v${version.version}`,
+      target: "_blank",
+      rel: "noopener noreferrer",
+    },
     testId("version-footer-popup-link"),
   );
 }
@@ -101,7 +101,11 @@ function buildReleaseNotesLink(): DomContents {
 function buildEditionComparisonLink(): DomContents {
   return cssPopupLink(
     t("Compare editions") + " →",
-    { href: commonUrls.editionComparison, target: "_blank" },
+    {
+      href: commonUrls.editionComparison,
+      target: "_blank",
+      rel: "noopener noreferrer",
+    },
     testId("version-footer-popup-link"),
   );
 }
