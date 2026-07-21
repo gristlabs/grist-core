@@ -267,3 +267,26 @@ if rec.A:
 
 return rec.B
 """)
+
+  def test_cell_ref_syntax(self):
+    # In the 1-record model, $A1 is just a column named "A1" -- compiles to rec.A1
+    self.assertEqual(make_body("$H21"), "return rec.H21")
+    self.assertEqual(make_body("$A1"), "return rec.A1")
+    self.assertEqual(make_body("$AA5"), "return rec.AA5")
+    self.assertEqual(make_body("$AX50"), "return rec.AX50")
+
+    # Mixed: cell column + regular column
+    self.assertEqual(make_body("$A1 + $B"), "return rec.A1 + rec.B")
+
+    # Arithmetic with two cell refs
+    self.assertEqual(make_body("$A1 + $B2"), "return rec.A1 + rec.B2")
+
+    # Lowercase is NOT a cell ref (existing behavior)
+    self.assertEqual(make_body("$foo123"), "return rec.foo123")
+    self.assertEqual(make_body("$f1"), "return rec.f1")
+
+    # Cell ref in string should not be transformed
+    self.assertEqual(make_body("'$A1'"), "return '$A1'")
+
+    # Cell ref in comment should not be transformed
+    self.assertEqual(make_body("$B + 1 # $A1"), "return rec.B + 1 # $A1")

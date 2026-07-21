@@ -379,6 +379,7 @@
     },
     "DocPageModel": {
         "Add empty table": "Add empty table",
+        "Add spreadsheet": "Add spreadsheet",
         "Add page": "Add page",
         "Add widget to page": "Add widget to page",
         "Document owners can attempt to recover the document. [{{error}}]": "Document owners can attempt to recover the document. [{{error}}]",
@@ -2015,6 +2016,7 @@
         "Chart": "Chart",
         "Custom": "Custom",
         "Form": "Form",
+        "Spreadsheet": "Spreadsheet",
         "Table": "Table"
     },
     "TimingPage": {

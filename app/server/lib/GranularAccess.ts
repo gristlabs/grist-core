@@ -155,6 +155,7 @@ const OTHER_RECOGNIZED_ACTIONS = new Set([
 
   // Table-level schema changes.
   "AddEmptyTable",
+  "AddSpreadsheetTable",
   "AddTable",
   "AddRawTable",
   "RemoveTable",
