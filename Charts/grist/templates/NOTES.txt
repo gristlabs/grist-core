@@ -1,0 +1,120 @@
+Thank you for installing {{ .Chart.Name }} version {{ .Chart.Version }}.
+
+Your release is named {{ .Release.Name }} in namespace {{ .Release.Namespace }}.
+
+======================================================================================
+DEPLOYMENT STATUS
+======================================================================================
+
+{{- if .Values.ingress.enabled }}
+You can access your Grist instance using:
+{{- range $host := .Values.ingress.hosts }}
+  {{- range .paths }}
+  {{- if $.Values.ingress.tls }}
+    https://{{ $host.host }}{{ .path }}
+  {{- else }}
+    http://{{ $host.host }}{{ .path }}
+  {{- end }}
+  {{- end }}
+{{- end }}
+{{- else }}
+To access your Grist instance locally, run:
+
+    export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "grist.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+    kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8484:{{ .Values.config.PORT }}
+
+Then visit: http://localhost:8484
+{{- end }}
+
+======================================================================================
+DEPENDENCIES STATUS
+======================================================================================
+
+1. Database (PostgreSQL):
+{{- if .Values.postgresql.enabled }}
+   - Using internal PostgreSQL
+   - Host: {{ .Release.Name }}-postgresql
+   - Database: {{ .Values.postgresql.auth.database }}
+   - User: {{ .Values.postgresql.auth.username }}
+{{- else }}
+   - Using external PostgreSQL
+   - Host: {{ .Values.config.database.host }}
+   - Database: {{ .Values.config.database.name }}
+   - User: {{ .Values.config.database.user }}
+{{- end }}
+
+2. Cache (Redis):
+{{- if .Values.redis.enabled }}
+   - Using internal Redis
+   - Host: {{ .Release.Name }}-redis-master
+{{- else }}
+   - Using external Redis
+   - URL: {{ .Values.config.redis.url }}
+{{- end }}
+
+3. Storage (MinIO):
+{{- if .Values.minio.enabled }}
+   - Using internal MinIO
+   - Host: {{ .Release.Name }}-minio
+   - Bucket: {{ .Values.minio.defaultBuckets }}
+{{- else }}
+   - Using external MinIO
+   - Endpoint: {{ .Values.config.minio.endpoint }}
+   - Bucket: {{ .Values.config.minio.bucket }}
+{{- end }}
+
+======================================================================================
+USEFUL COMMANDS
+======================================================================================
+
+Get application logs:
+    kubectl logs -f deployment/{{ include "grist.fullname" . }} -n {{ .Release.Namespace }}
+
+Get deployment status:
+    kubectl get deployment {{ include "grist.fullname" . }} -n {{ .Release.Namespace }}
+
+Get service details:
+    kubectl get svc {{ include "grist.fullname" . }} -n {{ .Release.Namespace }}
+
+{{- if .Values.ingress.enabled }}
+Get ingress details:
+    kubectl get ingress {{ include "grist.fullname" . }} -n {{ .Release.Namespace }}
+{{- end }}
+
+======================================================================================
+SECURITY NOTES
+======================================================================================
+
+Allowed Hosts: {{ include "grist.allowedHosts" . }}
+
+{{- if .Values.ingress.tls }}
+TLS is enabled
+{{- else }}
+Warning: TLS is not enabled. We recommend enabling TLS for production deployments.
+{{- end }}
+
+======================================================================================
+RESOURCES
+======================================================================================
+
+Documentation: https://support.getgrist.com/self-managed/
+Issues: https://github.com/gristlabs/grist-core/issues
+
+{{- if .Release.IsInstall }}
+
+======================================================================================
+NEXT STEPS
+======================================================================================
+
+1. Verify the deployment is ready:
+   kubectl get pods -l "app.kubernetes.io/name={{ include "grist.name" . }}" -n {{ .Release.Namespace }}
+
+2. Ensure all dependencies are running:
+   kubectl get pods -n {{ .Release.Namespace }}
+
+3. Access the application using the URL provided above
+
+4. Create your first user account and start using Grist!
+{{- end }}
+
+======================================================================================

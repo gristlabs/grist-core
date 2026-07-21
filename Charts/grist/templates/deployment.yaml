@@ -1,0 +1,142 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "grist.fullname" . }}
+  labels:
+    {{- include "grist.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "grist.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "grist.selectorLabels" . | nindent 8 }}
+    spec:
+      enableServiceLinks: false
+      initContainers:
+        - name: wait-for-db
+          image: "postgres:15-alpine"
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - |
+              until pg_isready -h {{ include "grist.postgresql.host" . }} \
+                  -p {{ if .Values.postgresql.enabled }}"5432"{{ else }}{{ .Values.config.database.port | quote }}{{ end }} \
+                  -U {{ if .Values.postgresql.enabled }}{{ .Values.postgresql.auth.username }}{{ else }}{{ .Values.config.database.user }}{{ end }}
+              do
+                echo "Waiting for database to be ready..."
+                sleep 2
+              done
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "grist.fullname" . }}-secrets
+                  key: TYPEORM_PASSWORD
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          {{- if .Values.probes.liveness.enabled }}
+          livenessProbe:
+            httpGet:
+              path: /status?db=1 #&redis=1
+              port: http
+            initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.liveness.failureThreshold }}
+            successThreshold: {{ .Values.probes.liveness.successThreshold }}
+          {{- end }}
+          {{- if .Values.probes.readiness.enabled }}
+          readinessProbe:
+            httpGet:
+              path: /status?db=1 #&redis=1
+              port: http
+            initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.readiness.failureThreshold }}
+            successThreshold: {{ .Values.probes.readiness.successThreshold }}
+          {{- end }}
+          {{- if .Values.probes.startup.enabled }}
+          startupProbe:
+            httpGet:
+              path: /status?db=1 # &redis=1
+              port: http
+            initialDelaySeconds: {{ .Values.probes.startup.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.startup.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.startup.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.startup.failureThreshold }}
+            successThreshold: {{ .Values.probes.startup.successThreshold }}
+          {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "grist.fullname" . }}-env
+          env:
+            - name: TYPEORM_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "grist.fullname" . }}-secrets
+                  key: TYPEORM_PASSWORD
+             {{- if or .Values.minio.enabled .Values.config.minio.enabled }}
+            - name: GRIST_DOCS_MINIO_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "grist.fullname" . }}-secrets
+                  key: GRIST_DOCS_MINIO_ACCESS_KEY
+            - name: GRIST_DOCS_MINIO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "grist.fullname" . }}-secrets
+                  key: GRIST_DOCS_MINIO_SECRET_KEY
+            {{- end }}
+            - name: GRIST_SESSION_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "grist.fullname" . }}-secrets
+                  key: GRIST_SESSION_SECRET
+            - name: ALLOWED_HOSTS
+              value: {{ include "grist.allowedHosts" . | quote }}
+            # SMTP password (if configured)
+            {{- if .Values.config.extraEnv.GRIST_SMTP_PASSWORD }}
+            - name: GRIST_SMTP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "grist.fullname" . }}-secrets
+                  key: GRIST_SMTP_PASSWORD
+            {{- end }}
+            # Extra environment variables
+            {{- range $key, $value := .Values.config.extraEnv }}
+            {{- if and $value (ne $key "GRIST_SMTP_PASSWORD") }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- end }}
+          volumeMounts:
+            - name: data
+              mountPath: /persist
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: data
+          {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "grist.fullname" . }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
