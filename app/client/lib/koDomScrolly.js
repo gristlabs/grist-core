@@ -45,7 +45,7 @@ function ScrollyPane(scrolly, paneIndex, container, options, itemCreateFunc) {
         kd.style("position", "absolute"),
         kd.style("top", this.scrolly.blockTopPx),
         kd.style("width", options.fitToWidth ? "100%" : ""),
-        kd.style("padding-right", options.paddingRight + "px")
+        kd.style("padding-inline-end", options.paddingRight + "px")
       )
     )
   );
