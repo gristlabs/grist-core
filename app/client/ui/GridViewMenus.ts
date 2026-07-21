@@ -28,7 +28,7 @@ import * as UserType from "app/client/widgets/UserType";
 import { isFullReferencingType, isListType, RecalcWhen } from "app/common/gristTypes";
 import { Sort } from "app/common/SortSpec";
 
-import { dom, DomElementArg, styled } from "grainjs";
+import { dom, DomElementArg, onKeyDown, styled } from "grainjs";
 import isEqual from "lodash/isEqual";
 import * as weasel from "popweasel";
 
@@ -1007,7 +1007,9 @@ const cssCustomMenuItem = styled("div", `
     padding-left: 24px;
     flex: 1 0 auto;
   }
-  &-selected, &-selected:not(:hover) {
+  &-selected, &-selected:not(:hover),
+  &.${weasel.cssMenuItem.className}-sel {
+    outline: none;
     background-color: ${theme.menuItemSelectedBg};
     color: ${theme.menuItemSelectedFg};
     --icon-color: ${theme.menuItemSelectedFg};
@@ -1017,7 +1019,11 @@ const cssCustomMenuItem = styled("div", `
 function customMenuItem(action: () => void, ...args: DomElementArg[]) {
   const element: HTMLElement = cssCustomMenuItem(
     ...args,
+    { tabindex: "-1", role: "menuitem" },
     dom.on("click", () => action()),
+    onKeyDown({
+      Enter$: () => action(),
+    }),
   );
   return element;
 }
