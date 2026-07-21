@@ -1536,6 +1536,11 @@ class Engine(object):
       undo_actions = self.out_actions.undo[len_undo:]
       log.info("Reverting %d doc actions", len(undo_actions))
       self.user_actions.ApplyUndoActions([actions.get_action_repr(a) for a in undo_actions])
+      # The trimmed undo actions (including any the revert itself just appended) must also
+      # leave undo_owner, which is keyed by id(): a freed action's id can be reused by a
+      # later undo action, which would then inherit a stale owner.
+      for a in self.out_actions.undo[len_undo:]:
+        self.out_actions.undo_owner.pop(id(a), None)
       del self.out_actions.calc[len_calc:]
       del self.out_actions.stored[len_stored:]
       del self.out_actions.direct[len_stored:]

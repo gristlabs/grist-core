@@ -250,6 +250,9 @@ export class TableDataWithDiff {
   private _leftRemovals: Set<number>;
   private _rightRemovals: Set<number>;
   private _updates: Set<number>;
+  // Rows added locally: real positive ids in the core table, kept in the "changed rows only"
+  // view alongside updates and removals. (Remote adds use synthetic negative ids; see rowId < 0.)
+  private _localAdds: Set<number>;
   // Stores pre-deletion column values for each removed row, keyed by rowId.
   // Used to distinguish undo (values match) from ID recycling (values differ).
   private _removedRowValues = new Map<number, Record<string, CellDelta[0]>>();
@@ -268,6 +271,7 @@ export class TableDataWithDiff {
       ...leftTableDelta.updateRows.filter(r => !this._rightRemovals.has(r)),
       ...rightTableDelta.updateRows.filter(r => !this._leftRemovals.has(r)),
     ]);
+    this._localAdds = new Set(leftTableDelta.addRows);
   }
 
   public getColIds(): string[] {
@@ -309,6 +313,7 @@ export class TableDataWithDiff {
     if (this._options?.showAllRows) { return undefined; }
     return (rowId: number | "new") => {
       return rowId === "new" || this._updates.has(rowId) || rowId < 0 ||
+        this._localAdds.has(rowId) ||
         this._leftRemovals.has(rowId) || this._rightRemovals.has(rowId);
     };
   }
