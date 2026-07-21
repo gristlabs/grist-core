@@ -1,35 +1,41 @@
 import { ApiError } from "app/common/ApiError";
 import { SHARE_KEY_PREFIX } from "app/common/gristUrls";
-import { removeTrailingSlash } from "app/common/gutil";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
-import { assertAccess, getOrSetDocAuth, getTransitiveHeaders, RequestWithLogin } from "app/server/lib/Authorizer";
+import { assertAccess, getOrSetDocAuth, RequestWithLogin } from "app/server/lib/Authorizer";
 import { IDocWorkerMap } from "app/server/lib/DocWorkerMap";
 import { expressWrap } from "app/server/lib/expressWrap";
 import { GristServer } from "app/server/lib/GristServer";
-import { addAbortHandler } from "app/server/lib/requestUtils";
+import { buildProxyRequestUrl, hasAlreadyProxiedHeader, proxyHttpRequest } from "app/server/lib/requestUtils";
 
 import * as express from "express";
-import { AbortController } from "node-abort-controller";
-import fetch, { RequestInit } from "node-fetch";
+
+export interface DocApiProxyOptions {
+  // Only forward incoming API requests if this returns true.
+  shouldForward?: () => boolean;
+}
 
 /**
  * Forwards all /api/docs/:docId/tables requests to the doc worker handling the :docId document. Makes
  * sure the user has at least view access to the document otherwise rejects the request. For
  * performance reason we stream the body directly from the request, which requires that no-one reads
- * the req before, in particular you should register DocApiForwarder before bodyParser.
+ * the req before, in particular you should register DocApiProxy before bodyParser.
  *
  * Use:
  *   const home = new ApiServer(false);
- *   const docApiForwarder = new DocApiForwarder(getDocWorkerMap(), home);
- *   app.use(docApiForwarder.getMiddleware());
+ *   const docApiProxy = new DocApiProxy(getDocWorkerMap(), home, server, () => server.worker.id);
+ *   app.use(docApiProxy.getMiddleware());
  *
  * Note that it expects userId, and jsonErrorHandler middleware to be set up outside
  * to apply to these routes.
  */
-export class DocApiForwarder {
-  constructor(private _docWorkerMap: IDocWorkerMap, private _dbManager: HomeDBManager,
-    private _gristServer: GristServer) {
-  }
+export class DocApiProxy {
+  constructor(
+    private _docWorkerMap: IDocWorkerMap,
+    private _dbManager: HomeDBManager,
+    private _gristServer: GristServer,
+    private _getOwnWorkerId: () => string | null,
+    private _options: DocApiProxyOptions = {},
+  ) {}
 
   public addEndpoints(app: express.Application) {
     app.use((req, res, next) => {
@@ -98,7 +104,12 @@ export class DocApiForwarder {
 
   private async _forwardToDocWorker(
     withDocId: boolean, role: "viewers" | null, req: express.Request, res: express.Response,
+    next: express.NextFunction,
   ): Promise<void> {
+    if (this._options.shouldForward && !this._options.shouldForward()) {
+      return next();
+    }
+
     let docId: string | null = null;
     if (withDocId) {
       const docAuth = await getOrSetDocAuth(req as RequestWithLogin, this._dbManager, req.params.docId);
@@ -108,6 +119,14 @@ export class DocApiForwarder {
       docId = docAuth.docId;
     }
 
+    // Refuse to re-forward an already forwarded request.
+    // Helps with cases such as "import", where a request may be proxied without a doc worker being assigned,
+    // resulting in endless proxying.
+    if (hasAlreadyProxiedHeader(req)) {
+      return next();
+    }
+
+    // Use the docId for worker assignment, rather than req.params.docId, which could be a urlId.
     // Convert docId "null" to "import" special id, for legacy compatibility.
     docId = docId === null ? "import" : docId;
 
@@ -115,54 +134,36 @@ export class DocApiForwarder {
       throw new ApiError("no worker map", 404);
     }
 
+    const forwardingTarget = await this._getForwardingTarget(docId);
+
+    // If there's no sensible forwarding target (e.g. document is local), let the remaining handlers run.
+    if (!forwardingTarget) {
+      return next();
+    }
+
+    const docWorkerUrl = new URL(forwardingTarget);
+    // buildProxyRequestUrl guards against malicious req.originalUrl affecting routing.
+    const url = buildProxyRequestUrl(docWorkerUrl, req.originalUrl);
+
+    // At this point, we have already checked and trusted the origin of the request (see FlexServer#addApiMiddleware()).
+    // However, the proxyHttpRequest helper responds with *all* headers from the target doc worker, overwriting
+    // any that middleware have already set.
+    // Origin and Host need to be included (and are by default) to get the correct headers for the given client.
+    return proxyHttpRequest(req, res, url, {
+      defaultHeaders: { "content-type": "application/json" },
+      proxyExtraHeaders: ["host", "x-sort", "x-limit"],
+    }).catch(
+      // proxyHttpRequest handles errors, closing the connection and logging internally.
+      // Avoid triggering express error handlers by suppressing the error.
+      () => undefined,
+    );
+  }
+
+  private async _getForwardingTarget(docId: string): Promise<string | null> {
     const docStatus = await this._docWorkerMap.assignDocWorker(docId);
+    // If the document is ours, don't forward the req - allow this server to handle it later.
+    if (docStatus.docWorker.id === this._getOwnWorkerId()) { return null; }
 
-    // Construct new url by keeping only origin and path prefixes of `docWorker.internalUrl`,
-    // and otherwise reflecting fully the original url (remaining path, and query params).
-    const docWorkerUrl = new URL(docStatus.docWorker.internalUrl);
-    const url = new URL(req.originalUrl, docWorkerUrl.origin);
-    url.pathname = removeTrailingSlash(docWorkerUrl.pathname) + url.pathname;
-
-    const headers: { [key: string]: string } = {
-      // At this point, we have already checked and trusted the origin of the request.
-      // See FlexServer#addApiMiddleware(). So don't include the "Origin" header.
-      // Including this header also would break features like form submissions,
-      // as the "Host" header is not retrieved when calling getTransitiveHeaders().
-      ...getTransitiveHeaders(req, { includeOrigin: false }),
-      "Content-Type": req.get("Content-Type") || "application/json",
-    };
-    for (const key of ["X-Sort", "X-Limit"]) {
-      const hdr = req.get(key);
-      if (hdr) { headers[key] = hdr; }
-    }
-
-    const controller = new AbortController();
-
-    // If the original request is aborted, abort the forwarded request too. (Currently this only
-    // affects some export/download requests which can abort long-running work.)
-    addAbortHandler(req, res, () => controller.abort());
-
-    const options: RequestInit = {
-      method: req.method,
-      headers,
-      signal: controller.signal,
-    };
-    if (["POST", "PATCH", "PUT"].includes(req.method)) {
-      // uses `req` as a stream
-      options.body = req;
-    }
-
-    const docWorkerRes = await fetch(url.href, options);
-    res.status(docWorkerRes.status);
-    for (const key of ["content-type", "content-disposition", "cache-control"]) {
-      const value = docWorkerRes.headers.get(key);
-      if (value) { res.set(key, value); }
-    }
-    return new Promise<void>((resolve, reject) => {
-      docWorkerRes.body.on("error", reject);
-      res.on("error", reject);
-      res.on("finish", resolve);
-      docWorkerRes.body.pipe(res);
-    });
+    return docStatus.docWorker.internalUrl;
   }
 }

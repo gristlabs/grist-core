@@ -13,7 +13,6 @@ import { colors, testId, theme, vars } from "app/client/ui2018/cssVars";
 import { loadingSpinner } from "app/client/ui2018/loaders";
 import { NewAbstractWidget } from "app/client/widgets/NewAbstractWidget";
 import { CellValue } from "app/common/DocActions";
-import { encodeQueryParams } from "app/common/gutil";
 import { SingleCell } from "app/common/TableData";
 import { UploadResult } from "app/common/uploads";
 import { docUrl } from "app/common/urlUtils";
@@ -161,11 +160,8 @@ export class AttachmentsWidget extends NewAbstractWidget {
 
   // Returns the attachment download url.
   private _getUrl(attId: number, cell: SingleCell): string {
-    const docComm = this._getDocComm();
-    return docComm.docUrl("attachment") + "?" + encodeQueryParams({
-      ...docComm.getUrlParams(),
-      ...cell,
-      attId,
+    return this._docApi.getAttachmentDownloadUrl(attId, {
+      cell,
       name: this._attachmentsTable.getValue(attId, "fileName"),
     });
   }

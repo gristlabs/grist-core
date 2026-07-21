@@ -68,6 +68,16 @@ function getEditModeChoiceLabels() {
   return driver.findAll(".test-right-panel .test-tokenfield-token input", el => el.value());
 }
 
+// Wait until the config editor's input holds focus, so keystrokes aren't dropped after opening it.
+async function waitForChoiceListEditFocus() {
+  await gu.waitForEditorFocus(".test-choice-list-entry .test-tokenfield .test-tokenfield-input");
+}
+
+async function enterChoiceListEditMode() {
+  await driver.find(".test-choice-list-entry").click();
+  await waitForChoiceListEditFocus();
+}
+
 function getEditModeFillColors() {
   return driver.findAll(
     ".test-right-panel .test-tokenfield-token .test-color-button",
@@ -624,8 +634,7 @@ describe("ChoiceList", function() {
 
   it("should allow setting choice style", async function() {
     // Open the choice editor.
-    await driver.find(".test-choice-list-entry").click();
-    await gu.waitAppFocus(false);
+    await enterChoiceListEditMode();
 
     // Change 'Apricot' to a light shade of orange with purple text.
     const [greenColorBtn, , , apricotColorBtn] = await driver
@@ -684,8 +693,7 @@ describe("ChoiceList", function() {
   it("should discard changes on cancel", async function() {
     for (const method of ["button", "shortcut"]) {
       // Open the editor.
-      await driver.find(".test-choice-list-entry").click();
-      await gu.waitAppFocus(false);
+      await enterChoiceListEditMode();
 
       // Delete 'Apricot', then cancel the change.
       await gu.sendKeys(Key.BACK_SPACE);
@@ -703,8 +711,7 @@ describe("ChoiceList", function() {
 
   it("should support undo/redo shortcuts in the choice config editor", async function() {
     // Open the choice editor.
-    await driver.find(".test-choice-list-entry").click();
-    await gu.waitAppFocus(false);
+    await enterChoiceListEditMode();
 
     // Add a few choices.
     await driver.sendKeys("Foo", Key.ENTER, "Bar", Key.ENTER, "Baz", Key.ENTER);
@@ -746,6 +753,7 @@ describe("ChoiceList", function() {
 
     // Undo, then re-do, verifying after each invocation
     await driver.find(".test-choice-list-entry .test-tokenfield .test-tokenfield-input").click();
+    await waitForChoiceListEditFocus();
     await gu.sendKeys(Key.chord(modKey, "z"));
     assert.deepEqual(await getEditModeFillColors(), [DARK_GREEN_FILL, BLUE_FILL, BLACK_FILL, APRICOT_FILL]);
     assert.deepEqual(await getEditModeTextColors(), [WHITE_TEXT, BLACK_TEXT, WHITE_TEXT, APRICOT_TEXT]);
@@ -757,6 +765,10 @@ describe("ChoiceList", function() {
   });
 
   it("should support rich copy/paste in the choice config editor", async function() {
+    // This test keeps editing the config editor the previous test left open;
+    // make sure its input holds focus before typing into it.
+    await waitForChoiceListEditFocus();
+
     // Remove all choices
     const modKey = await gu.modKey();
     await gu.sendKeys(Key.chord(modKey, "a"), Key.BACK_SPACE);

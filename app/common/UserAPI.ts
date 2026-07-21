@@ -16,6 +16,7 @@ import { FullUser, UserProfile } from "app/common/LoginSessionAPI";
 import { OrgPrefs, UserOrgPrefs, UserPrefs } from "app/common/Prefs";
 import * as roles from "app/common/roles";
 import { StringUnion } from "app/common/StringUnion";
+import { SingleCell } from "app/common/TableData";
 import { TestState } from "app/common/TestState";
 import {
   TriggerAddRequest,
@@ -513,6 +514,17 @@ export interface AttachmentsArchiveParams {
   format?: CreatableArchiveFormats,
 }
 
+export interface AttachmentDownloadParams {
+  // If truthy, sends Content-Disposition: inline (HTML is still forced to attachment server-side).
+  inline?: boolean;
+  // Overrides the download filename. If omitted, server derives it from the attachment record.
+  name?: string;
+  // Cell-scoped access check; all three fields required together.
+  cell?: SingleCell;
+  // True if the attId may refer to a recent pre-save upload not yet stored in the doc.
+  maybeNew?: boolean;
+}
+
 export interface ArchiveUploadResult {
   added: number;
   errored: number;
@@ -610,7 +622,7 @@ export interface DocAPI {
   getStates(): Promise<DocStates>;
   forceReload(): Promise<void>;
   recover(recoveryMode: boolean): Promise<void>;
-  copyDoc(workspaceId: number, options: CopyDocOptions): Promise<string>;
+  copyDoc(workspaceId: number | undefined, options?: CopyDocOptions): Promise<string>;
   // Compare two documents, optionally including details of the changes.
   compareDoc(
     remoteDocId: string,
@@ -628,6 +640,8 @@ export interface DocAPI {
   getDownloadDsvUrl(params: DownloadDocParams): string;
   getDownloadTableSchemaUrl(params: DownloadDocParams): string;
   getDownloadAttachmentsArchiveUrl(params: AttachmentsArchiveParams): string;
+  getAttachmentDownloadUrl(attId: number, params?: AttachmentDownloadParams): string;
+  download(params?: DownloadDocParams, format?: "" | "xlsx" | "csv" | "tsv" | "dsv"): Promise<Response>;
 
   /**
    * Exports current document to the Google Drive as a spreadsheet file. To invoke this method, first
@@ -725,8 +739,6 @@ export interface DocWorkerAPI {
     files: FormFile[], workspaceId: number, options?: { timezone?: string } & UploadProgressCallbacks
   ): Promise<DocCreationInfo>;
   upload(material: UploadType, filename?: string): Promise<number>;
-  downloadDoc(docId: string, template?: boolean): Promise<Response>;
-  copyDoc(docId: string, template?: boolean, name?: string): Promise<number>;
 }
 
 export class UserAPIImpl extends BaseAPI implements UserAPI {
@@ -1132,29 +1144,6 @@ export class DocWorkerAPIImpl extends BaseAPI implements DocWorkerAPI {
     const resp = await this.requestWithFormData(`${this.url}/uploads`, formData);
     return resp.data.uploadId;
   }
-
-  public async downloadDoc(docId: string, template: boolean = false): Promise<Response> {
-    const extra = template ? "?template=1" : "";
-    const result = await this.request(`${this.url}/api/docs/${docId}/download${extra}`, {
-      method: "GET",
-    });
-    if (!result.ok) { throw new Error(await result.text()); }
-    return result;
-  }
-
-  public async copyDoc(docId: string, template: boolean = false, name?: string): Promise<number> {
-    const url = new URL(`${this.url}/copy?doc=${docId}`);
-    if (template) {
-      url.searchParams.append("template", "1");
-    }
-    if (name) {
-      url.searchParams.append("name", name);
-    }
-    const json = await this.requestJson(url.href, {
-      method: "POST",
-    });
-    return json.uploadId;
-  }
 }
 
 // Browser test hook: when window.testGrist.fakeSlowUploads is set, stall briefly so tests
@@ -1389,7 +1378,7 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     return this.requestJson(url.href);
   }
 
-  public async copyDoc(workspaceId: number, options: CopyDocOptions): Promise<string> {
+  public async copyDoc(workspaceId: number | undefined, options: CopyDocOptions = {}): Promise<string> {
     const { documentName, asTemplate } = options;
     return this.requestJson(`${this._url}/copy`, {
       body: JSON.stringify({ workspaceId, documentName, asTemplate }),
@@ -1430,8 +1419,29 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     return this._url + "/download/table-schema?" + encodeQueryParams({ ...params });
   }
 
+  public async download(
+    params?: DownloadDocParams,
+    format: "" | "xlsx" | "csv" | "tsv" | "dsv" = "",
+  ): Promise<Response> {
+    const formatUrl = format ? `/${format}` : "";
+    return this.request(`${this._url}/download${formatUrl}?${encodeQueryParams({ ...params })}`);
+  }
+
   public getDownloadAttachmentsArchiveUrl(params: AttachmentsArchiveParams): string {
     return this._url + "/attachments/archive?" + encodeQueryParams({ ...params });
+  }
+
+  public getAttachmentDownloadUrl(attId: number, params: AttachmentDownloadParams = {}): string {
+    // encodeQueryParams stringifies `undefined` as the literal "null" — strip unset keys first,
+    // otherwise `?inline=null` would be truthy on the server and force inline mode unintentionally.
+    const query = omitBy({
+      ...params.cell,
+      name: params.name,
+      inline: params.inline ? 1 : undefined,
+      maybeNew: params.maybeNew ? 1 : undefined,
+    }, v => v === undefined);
+    const suffix = Object.keys(query).length ? "?" + encodeQueryParams(query) : "";
+    return `${this._url}/attachments/${attId}/download${suffix}`;
   }
 
   public async sendToDrive(code: string, title: string): Promise<{ url: string }> {

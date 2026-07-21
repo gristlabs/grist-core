@@ -93,6 +93,7 @@ import {
   getRawAndEntities,
   hasAtLeastOneOfTheseIds,
   hasOnlyTheseIdsOrNull,
+  lockForUpdate,
   makeJsonArray,
   now,
   readJson,
@@ -3151,49 +3152,57 @@ export class HomeDBManager implements HomeDBAuth {
   }
 
   /**
-   * Updates the value of the config with the specified `key`.
-   *
-   * If a config with the specified `key` does not exist, returns a query
-   * result with status 201 and a new config on success.
-   *
-   * Otherwise, returns a query result with status 200 and the previous and
-   * current versions of the config on success.
+   * Whole-value replace behind the install-config REST endpoint. Returns 201 + the new config if
+   * the key didn't exist, else 200 + previous and current. Wraps `transformInstallConfig` (so the
+   * write is locked) and signals streaming-destination listeners (e.g. the audit log).
    */
   public async updateInstallConfig(
     key: ConfigKey,
     value: ConfigValue,
   ): Promise<QueryResult<Config | PreviousAndCurrent<Config>>> {
-    const events: (() => Promise<void>)[] = [];
-    const result = await this._connection.transaction(async (manager) => {
-      const queryResult = await this.getInstallConfig(key, {
-        transaction: manager,
-      });
-      if (queryResult.status === 404) {
-        const config: Config = new Config();
-        config.key = key;
-        config.value = value;
-        await manager.save(config);
-        events.push(this._streamingDestinationsChange());
-        return {
-          status: 201,
-          data: config,
-        };
-      } else {
-        const config: Config = this.unwrapQueryResult(queryResult);
-        const previous = structuredClone(config);
-        config.value = value;
-        await manager.save(config);
-        events.push(this._streamingDestinationsChange());
-        return {
-          status: 200,
-          data: { previous, current: config },
-        };
+    const { created, previous, current } =
+      await this.transformInstallConfig(key, value, () => value);
+    // Signal listeners (e.g. audit-log streaming destinations) that this key may have changed.
+    await this._streamingDestinationsChange()();
+    return created ?
+      { status: 201, data: current } :
+      { status: 200, data: { previous: previous!, current } };
+  }
+
+  /**
+   * Atomically read-modify-write the install config for `key`: ensure a row exists (seeded with
+   * `seed`), then under a lock read, `transform`, and save. Returns whether the row was created,
+   * the current config, and `previous` (the pre-transform clone, null when the row was created).
+   *
+   * Concurrency-safe — a config holds one whole JSON value, so a plain read-modify-write could
+   * drop a concurrent writer's change. An existing row is taken under `lockForUpdate`; the first
+   * writer (no row to lock) seeds one with `orIgnore()` and re-reads under the lock.
+   */
+  public async transformInstallConfig(
+    key: ConfigKey,
+    seed: ConfigValue,
+    transform: (value: ConfigValue) => ConfigValue,
+  ): Promise<{ created: boolean; previous: Config | null; current: Config }> {
+    return this._connection.transaction(async (manager) => {
+      const lock = () => lockForUpdate(this._dbType, this._installConfig(key, { manager })).getOne();
+      let current = await lock();
+      const created = !current;
+      const previous = current ? structuredClone(current) : null;
+      if (!current) {
+        // No row to lock yet: seed one. orIgnore() turns a concurrent creator's race into a
+        // no-op; re-reading under the lock yields the winning row.
+        await manager.createQueryBuilder()
+          .insert()
+          .into(Config)
+          .values({ key, value: seed })
+          .orIgnore()
+          .execute();
+        current = (await lock())!;
       }
+      current.value = transform(current.value);
+      await manager.save(current);
+      return { created, previous, current };
     });
-    for (const event of events) {
-      await event();
-    }
-    return result;
   }
 
   /**

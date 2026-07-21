@@ -1,9 +1,18 @@
 import { Socket as EIOSocket } from "engine.io-client";
 import WS from "ws";
 
+export type Transport = "websocket" | "polling";
+
 export interface GristClientSocketOptions {
   headers?: Record<string, string>;
+  // Which transports to attempt, in order. Default ["websocket", "polling"] — try a real WS
+  // upgrade, fall back to Engine.IO long-polling on error. Pass ["polling"] to skip WS entirely
+  // (e.g. on networks that block upgrades, or to test the polling code path) or ["websocket"]
+  // to disable the polling downgrade.
+  transports?: Transport[];
 }
+
+const DEFAULT_TRANSPORTS: Transport[] = ["websocket", "polling"];
 
 export class GristClientSocket {
   // Exactly one of _wsSocket and _eioSocket will be set at any one time.
@@ -21,7 +30,15 @@ export class GristClientSocket {
   private _closeHandler: null | (() => void);
 
   constructor(private _url: string, private _options?: GristClientSocketOptions) {
-    this._createWSSocket();
+    const transports = this._options?.transports ?? DEFAULT_TRANSPORTS;
+    if (transports.length === 0) {
+      throw new Error("GristClientSocket requires at least one transport");
+    }
+    if (transports.includes("websocket")) {
+      this._createWSSocket();
+    } else {
+      this._createEIOSocket();
+    }
   }
 
   public set onmessage(cb: null | ((data: string) => void)) {
@@ -112,16 +129,19 @@ export class GristClientSocket {
   }
 
   private _onWSError(ev: Event) {
-    if (!this._wsConnected) {
-      // The WebSocket connection attempt failed. Switch to Engine.IO.
-      this._destroyWSSocket();
-      this._createEIOSocket();
-      return;
-    }
-
     // WebSocket error events are deliberately void of information,
     // see https://websockets.spec.whatwg.org/#eventdef-websocket-error,
     // so we ignore the incoming event.
+    if (!this._wsConnected) {
+      const transports = this._options?.transports ?? DEFAULT_TRANSPORTS;
+      if (transports.includes("polling")) {
+        // The WebSocket connection attempt failed. Switch to Engine.IO.
+        this._destroyWSSocket();
+        this._createEIOSocket();
+        return;
+      }
+    }
+
     this._errorHandler?.(new Error("WebSocket error"));
   }
 

@@ -1,9 +1,10 @@
 import { ApiError } from "app/common/ApiError";
 import { ICustomWidget } from "app/common/CustomWidget";
 import { delay } from "app/common/delay";
-import { encodeUrl, getSlugIfNeeded, GristDeploymentType, GristDeploymentTypes,
-  GristLoadConfig, IGristUrlState, isOrgInPathOnly, LatestVersionAvailable, parseSubdomain,
-  sanitizePathTail } from "app/common/gristUrls";
+import {
+  encodeUrl, getSlugIfNeeded, GristDeploymentType, GristDeploymentTypes,
+  GristLoadConfig, IGristUrlState, isOrgInPathOnly, LatestVersionAvailable, parseFirstUrlPart, parseSubdomain,
+} from "app/common/gristUrls";
 import { extractOrgParts, getOrgUrlInfo, getSingleOrg } from "app/common/gristUrls";
 import { isAffirmative } from "app/common/gutil";
 import { UserProfile } from "app/common/LoginSessionAPI";
@@ -16,7 +17,7 @@ import { Organization } from "app/gen-server/entity/Organization";
 import { User } from "app/gen-server/entity/User";
 import { Workspace } from "app/gen-server/entity/Workspace";
 import { ActivationsManager } from "app/gen-server/lib/ActivationsManager";
-import { DocApiForwarder } from "app/gen-server/lib/DocApiForwarder";
+import { DocApiProxy } from "app/gen-server/lib/DocApiProxy";
 import { getDocWorkerMap } from "app/gen-server/lib/DocWorkerMap";
 import { Doom } from "app/gen-server/lib/Doom";
 import { HomeDBManager, UserChange } from "app/gen-server/lib/homedb/HomeDBManager";
@@ -37,7 +38,7 @@ import { addRequestUser, getUser, getUserId, isAnonymousUser,
 import { redirectToLogin, RequestWithLogin, signInStatusMiddleware } from "app/server/lib/Authorizer";
 import { BootKeyLoginMiddleware } from "app/server/lib/Boot";
 import { forceSessionChange } from "app/server/lib/BrowserSession";
-import { Comm } from "app/server/lib/Comm";
+import { Comm, verifyCommHttpRequest } from "app/server/lib/Comm";
 import { ConfigBackendAPI } from "app/server/lib/ConfigBackendAPI";
 import { IGristCoreConfig } from "app/server/lib/configCore";
 import { getAndClearSignupStateCookie } from "app/server/lib/cookieUtils";
@@ -68,6 +69,7 @@ import { IDocStorageManager } from "app/server/lib/IDocStorageManager";
 import { EmitNotifier, INotifier } from "app/server/lib/INotifier";
 import { InstallAdmin } from "app/server/lib/InstallAdmin";
 import { IOAuthValidator } from "app/server/lib/IOAuthValidator";
+import { IWebSocketProxy } from "app/server/lib/IWebSocketProxy";
 import log, { logAsJson } from "app/server/lib/log";
 import { disableCache, noop } from "app/server/lib/middleware";
 import { testSandboxFlavor } from "app/server/lib/NSandbox";
@@ -79,8 +81,8 @@ import { PluginManager } from "app/server/lib/PluginManager";
 import { getProxyAgentConfiguration } from "app/server/lib/ProxyAgent";
 import { createPubSubManager, IPubSubManager } from "app/server/lib/PubSubManager";
 import { adaptServerUrl, getOrgUrl, getOriginUrl, getScope, integerParam, isParameterOn, optIntegerParam,
-  optStringParam, RequestWithGristInfo, stringArrayParam, stringParam, TEST_HTTPS_OFFSET,
-  trustOrigin } from "app/server/lib/requestUtils";
+  optStringParam, RequestWithGristInfo, stringArrayParam, stringParam,
+  terminateSocketWithHttpResponse, TEST_HTTPS_OFFSET, trustOrigin } from "app/server/lib/requestUtils";
 import { buildScimRouter } from "app/server/lib/scim";
 import { ISendAppPageOptions, makeGristConfig, makeMessagePage, makeSendAppPage } from "app/server/lib/sendAppPage";
 import { getDatabaseUrl, listenPromise, timeoutReached } from "app/server/lib/serverUtils";
@@ -97,7 +99,7 @@ import { setupLocale } from "app/server/localization";
 
 import * as http from "http";
 import * as https from "https";
-import { AddressInfo } from "net";
+import net, { AddressInfo } from "net";
 import * as path from "path";
 
 import axios from "axios";
@@ -164,6 +166,8 @@ export class FlexServer implements GristServer {
   public readonly i18Instance: i18n;
   private _activations: ActivationsManager;
   private _comm: Comm;
+  private _apiProxy?: DocApiProxy;
+  private _socketProxy?: IWebSocketProxy;
   private _deploymentType: GristDeploymentType;
   private _dbManager: HomeDBManager;
   private _defaultBaseDomain: string | undefined;
@@ -425,6 +429,10 @@ export class FlexServer implements GristServer {
   public getComm(): Comm {
     if (!this._comm) { throw new Error("no Comm available"); }
     return this._comm;
+  }
+
+  public getSocketProxy(): IWebSocketProxy | undefined {
+    return this._socketProxy;
   }
 
   public getDeploymentType(): GristDeploymentType {
@@ -824,8 +832,7 @@ export class FlexServer implements GristServer {
   public stripDocWorkerIdPathPrefixIfPresent() {
     if (this._check("strip_dw", "!tag", "!org")) { return; }
     this.app.use((req, resp, next) => {
-      const match = req.url.match(/^\/dw\/([-a-zA-Z0-9]+)([/?].*)?$/);
-      if (match) { req.url = sanitizePathTail(match[2]); }
+      req.url = parseFirstUrlPart("dw", req.url).path;
       next();
     });
   }
@@ -1141,6 +1148,8 @@ export class FlexServer implements GristServer {
     this._emitNotifier.removeAllListeners();
     this._dbManager?.clearCaches();
     this._installAdmin?.clearCaches();
+    // Terminate any remaining socket clients, as http.Server won't close them during .close().
+    await this._comm?.close();
     if (this.server)      { this.server.close(); }
     if (this.httpsServer) { this.httpsServer.close(); }
     if (this.housekeeper) { await this.housekeeper.stop(); }
@@ -1156,12 +1165,6 @@ export class FlexServer implements GristServer {
     if (this._auditLogger) { await this._auditLogger.close(); }
     if (this._billing) { await this._billing.close?.(); }
     await this._pubSubManager.close();
-  }
-
-  public addDocApiForwarder() {
-    if (this._check("doc_api_forwarder", "!json", "homedb", "api-mw", "map")) { return; }
-    const docApiForwarder = new DocApiForwarder(this._docWorkerMap, this._dbManager, this);
-    docApiForwarder.addEndpoints(this.app);
   }
 
   public addJsonSupport() {
@@ -1245,6 +1248,7 @@ export class FlexServer implements GristServer {
         this._storageManager.testReopenStorage();
       }
       this._comm.setServerActivation(true);
+      this._comm.listen();
       if (this.worker) {
         await this._startServers(this.server, this.httpsServer, this.name, this.port, false);
         await this._addSelfAsWorker(this._docWorkerMap);
@@ -1419,17 +1423,54 @@ export class FlexServer implements GristServer {
 
   public addComm() {
     if (this._check("comm", "start", "homedb", "loginMiddleware")) { return; }
-    this._comm = new Comm(this.server, {
+    this._comm = new Comm({
       settings: {},
       sessions: this._sessions,
       hosts: this._hosts,
       loginMiddleware: this._loginMiddleware,
-      httpsServer: this.httpsServer,
       i18Instance: this.i18Instance,
       dbManager: this.getHomeDBManager(),
       gristServer: this,
       permitStore: this._internalPermitStore,
     });
+  }
+
+  public addProxy() {
+    if (this._check("proxy", "!json", "homedb", "api-mw", "map")) { return; }
+
+    const getOwnWorkerId = () => this.worker?.id ?? null;
+
+    this._socketProxy = this.create.getWebSocketProxy?.(
+      this,
+      {
+        docWorkerMap: this._docWorkerMap,
+        getOwnWorkerId,
+        // Preserve original URL so the proxy gets the full path with DW ID / tag / organization.
+        // NOTE: polling requests that fall through to local Comm run verifyCommHttpRequest twice
+        // (once here, once inside GristSocketServer). Accepted cost: one host-map lookup per
+        // polling request, and polling is only the fallback transport.
+        verifyClient: req => verifyCommHttpRequest(req, this._hosts, { preserveOriginalUrl: true }),
+      },
+    );
+
+    const hasHomeApi = () => this.deps.has("api");
+    const hasDocApi = () => this.deps.has("docs");
+
+    // Preserves pre-fleet forwarding behavior. Only home servers that aren't doc workers forward to other servers.
+    // However, if this server is able to forward websocket connections, it should be able to forward other requests.
+    const shouldForward = () =>
+      this._socketProxy?.isActive() ? true : hasHomeApi() && !hasDocApi();
+
+    this._apiProxy = new DocApiProxy(
+      this._docWorkerMap, this._dbManager, this, getOwnWorkerId, { shouldForward },
+    );
+
+    this._apiProxy.addEndpoints(this.app);
+
+    const socketStatus = this._socketProxy ?
+      `with sockets (${this._socketProxy.isActive() ? "active" : "inactive"})` :
+      "";
+    this.info.push(["proxy", `enabled ${socketStatus}`]);
   }
 
   /**
@@ -1972,7 +2013,9 @@ export class FlexServer implements GristServer {
     } else if (userPort !== null) {
       // If plugin content is served from same host but on different port,
       // run webserver on that port
-      const ports = await this.startCopy("pluginServer", userPort);
+      const ports = await this.startCopy(
+        "pluginServer", userPort, { disableProxy: true, disableComm: true },
+      );
       // If Grist is running on a desktop, directly on the host, it
       // can be convenient to leave the user port free for the OS to
       // allocate by using GRIST_UNTRUSTED_PORT=0. But we do need to
@@ -2040,7 +2083,8 @@ export class FlexServer implements GristServer {
 
     if (this.options.server) {
       this.server = this.options.server;
-      this.server.on("request", this.app);
+      // Ensure pre-supplied server can handle incoming requests.
+      this._addWebserverHandlers([this.server]);
     } else {
       const servers = this._createServers();
       this.server = servers.server;
@@ -2142,11 +2186,11 @@ export class FlexServer implements GristServer {
     await this.housekeeper.start();
   }
 
-  public async startCopy(name2: string, port2: number): Promise<{
+  public async startCopy(name2: string, port2: number, handlerOptions?: WebserverHandlerOptions): Promise<{
     serverPort: number,
     httpsServerPort?: number,
   }> {
-    const servers = this._createServers();
+    const servers = this._createServers(handlerOptions);
     return this._startServers(servers.server, servers.httpsServer, name2, port2, true);
   }
 
@@ -2619,9 +2663,9 @@ export class FlexServer implements GristServer {
     return false;
   }
 
-  private _createServers() {
+  private _createServers(handlerOptions?: WebserverHandlerOptions) {
     // Start the app.
-    const server = logServer(http.createServer(getServerFlags(), this.app));
+    const server = logServer(http.createServer(getServerFlags()));
     let httpsServer;
     if (TEST_HTTPS_OFFSET) {
       const certFile = process.env.GRIST_TEST_SSL_CERT;
@@ -2634,8 +2678,14 @@ export class FlexServer implements GristServer {
         ...getServerFlags(),
         key: fse.readFileSync(privateKeyFile, "utf8"),
         cert: fse.readFileSync(certFile, "utf8"),
-      }, this.app));
+      }));
     }
+    // Attach top-level handlers at server-creation time. Handlers should resolve getSocketProxy() and
+    // this._comm lazily per-request, so it's safe to register before addComm/addProxy
+    this._addWebserverHandlers(
+      [server, ...(httpsServer ? [httpsServer] : [])],
+      handlerOptions,
+    );
     return { server, httpsServer };
   }
 
@@ -2655,6 +2705,60 @@ export class FlexServer implements GristServer {
       serverPort,
       httpsServerPort,
     };
+  }
+
+  private _addWebserverHandlers(
+    servers: http.Server[],
+    { disableProxy = false, disableComm = false }: WebserverHandlerOptions = {},
+  ) {
+    // Manually wiring this isn't ideal. It's prone to surprise errors if new handlers are needed.
+    // Consider adding a setupWebserverHandlers function that accepts
+    // an array of objects implementing a handlers interface.
+    for (const server of servers) {
+      server.on("request", async (req, res) => {
+        try {
+          if (!disableProxy && await this.getSocketProxy()?.handleHTTPRequest(req, res)) {
+            return;
+          }
+          // Comm can be undefined on servers that don't have the "home" or "docs" components, e.g. "static" only.
+          if (!disableComm && this._comm) {
+            if (await this._comm.handleHTTPRequest(req, res)) {
+              return;
+            }
+          }
+          this.app(req, res);
+        } catch (e) {
+          // Emergency handler to prevent a process crash from an uncaught exception. Ideally errors are caught earlier.
+          log.error(`Error handling HTTP request`, { error: e });
+          if (!res.headersSent && res.writable) {
+            res.writeHead(500, http.STATUS_CODES[500]).end();
+          } else {
+            res.destroy();
+          }
+        }
+      });
+
+      server.on("upgrade", async (req, socket: net.Socket, head) => {
+        try {
+          if (!disableProxy && await this.getSocketProxy()?.handleHTTPUpgrade(req, socket, head)) {
+            return;
+          }
+          // Comm can be undefined on servers that don't have the "home" or "docs" components, e.g. "static" only.
+          if (!disableComm && this._comm && await this._comm.handleHTTPUpgrade(req, socket, head)) {
+            return;
+          }
+          // Refuse the request if the server can't / won't handle it, so the socket isn't left open.
+          // 404 not found - because the server's requesting a connection to a particular doc,
+          // and this server doesn't know anything about that.
+          terminateSocketWithHttpResponse(socket, 404);
+        } catch (e) {
+          // Emergency handler to prevent a process crash from an uncaught exception. Ideally errors are caught earlier.
+          log.error(`Error handling HTTP Upgrade: ${e.message}`);
+          // No way to know what was sent on the socket, all we can do is clean it up.
+          socket.destroy();
+        }
+      });
+    }
   }
 
   private async _recordNewUserInfo(row: object) {
@@ -2950,6 +3054,11 @@ function trustOriginHandler(req: express.Request, res: express.Response, next: e
   }
 }
 
+interface WebserverHandlerOptions {
+  disableProxy?: boolean;
+  disableComm?: boolean;
+}
+
 // Methods that Electron app relies on.
 export interface ElectronServerMethods {
   onDocOpen(cb: (filePath: string) => void): void;
@@ -3000,6 +3109,7 @@ type Part =
   "notifier" |
   "org" |
   "pluginUntaggedAssets" |
+  "proxy" |
   "router" |
   "scim" |
   "sessions" |

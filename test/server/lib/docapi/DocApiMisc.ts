@@ -12,11 +12,14 @@
  */
 
 import { SHARE_KEY_PREFIX } from "app/common/gristUrls";
-import { addAllScenarios, TestContext } from "test/server/lib/docapi/helpers";
+import { removeTrailingSlash } from "app/common/gutil";
+import { DocWorkerAPIImpl } from "app/common/UserAPI";
+import { GRIST_PROXIED_HEADER } from "app/server/lib/requestUtils";
+import { addAllScenarios, ORG_NAME, TestContext } from "test/server/lib/docapi/helpers";
 import * as testUtils from "test/server/testUtils";
 import { getDatabase } from "test/testUtils";
 
-import axios, { AxiosResponse } from "axios";
+import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import { assert } from "chai";
 
 describe("DocApiMisc", function() {
@@ -287,35 +290,61 @@ function addMiscTests(getCtx: () => TestContext) {
   // Note: This has largely been replaced by passing the file directly to "import".
   // However, as long as this flow is still valid (direct doc-worker upload), this test needs to be kept.
   it("document is protected during upload-and-import sequence", async function() {
-    const { userApi, chimpy, kiwi, home } = getCtx();
+    const { chimpy, kiwi, home } = getCtx();
     if (!process.env.TEST_REDIS_URL) {
       this.skip();
     }
-    // Prepare an API for a different user.
+    // Prepare APIs for a different users.
+    const chimpyApi = home.makeUserApi(ORG_NAME, "chimpy");
     const kiwiApi = home.makeUserApi("Fish", "kiwi");
+
+    // "uploads" special key behaves the same as "import", but bypasses proxying and resolves to the actual worker URL.
+    const rawWorkerUrl = (await kiwiApi.getWorkerFull("uploads")).docWorkerUrl;
+    if (rawWorkerUrl === null) { throw new Error("No worker URL found"); }
+    const workerUrl = removeTrailingSlash(rawWorkerUrl);
+    // Manually create the API instances, so we can ensure they hit the same doc worker.
+    const chimpyWorkerApi = new DocWorkerAPIImpl(workerUrl, chimpyApi.options);
+    const kiwiWorkerApi = new DocWorkerAPIImpl(workerUrl, kiwiApi.options);
+
     // upload something for Chimpy and something else for Kiwi.
-    const worker1 = await userApi.getWorkerAPI("import");
     const fakeData1 = await testUtils.readFixtureDoc("Hello.grist");
-    const uploadId1 = await worker1.upload(new Blob([new Uint8Array(fakeData1)]), "upload.grist");
-    const worker2 = await kiwiApi.getWorkerAPI("import");
+    const uploadId1 = await chimpyWorkerApi.upload(new Blob([new Uint8Array(fakeData1)]), "upload.grist");
     const fakeData2 = await testUtils.readFixtureDoc("Favorite_Films.grist");
-    const uploadId2 = await worker2.upload(new Blob([new Uint8Array(fakeData2)]), "upload2.grist");
+    const uploadId2 = await kiwiWorkerApi.upload(new Blob([new Uint8Array(fakeData2)]), "upload2.grist");
+
+    // This is a small hack to make this test work under Grist fleet / multi-worker setups.
+    // /api/workspaces/${wid}/import is generally proxied to a worker - but the server decides which worker.
+    // This makes it difficult to upload ahead of time to the right server (ideally files should be in the req body).
+    // Here, we misuse the x-grist-proxied header to prevent forwarding, meaning we can import on the right server.
+    // The best solution is to remove the upload endpoint. But as long as it exists - this is a security-critical test.
+    const kiwiConfig = addGristProxiedHeader(kiwi);
+    const chimpyConfig = addGristProxiedHeader(chimpy);
 
     // Check that kiwi only has access to their own upload.
     let wid = (await kiwiApi.getOrgWorkspaces("current")).find(w => w.name === "Big")!.id;
-    let resp = await axios.post(`${worker2.url}/api/workspaces/${wid}/import`, { uploadId: uploadId1 },
-      kiwi);
+    let resp = await axios.post(`${kiwiWorkerApi.url}/api/workspaces/${wid}/import`, { uploadId: uploadId1 },
+      kiwiConfig);
     assert.equal(resp.status, 403);
     assert.deepEqual(resp.data, { error: "access denied" });
 
-    resp = await axios.post(`${worker2.url}/api/workspaces/${wid}/import`, { uploadId: uploadId2 },
-      kiwi);
+    resp = await axios.post(`${kiwiWorkerApi.url}/api/workspaces/${wid}/import`, { uploadId: uploadId2 },
+      kiwiConfig);
     assert.equal(resp.status, 200);
 
     // Check that chimpy has access to their own upload.
-    wid = (await userApi.getOrgWorkspaces("current")).find(w => w.name === "Private")!.id;
-    resp = await axios.post(`${worker1.url}/api/workspaces/${wid}/import`, { uploadId: uploadId1 },
-      chimpy);
+    wid = (await chimpyApi.getOrgWorkspaces("current")).find(w => w.name === "Private")!.id;
+    resp = await axios.post(`${chimpyWorkerApi.url}/api/workspaces/${wid}/import`, { uploadId: uploadId1 },
+      chimpyConfig);
     assert.equal(resp.status, 200);
   });
+}
+
+function addGristProxiedHeader(config: AxiosRequestConfig<any>): AxiosRequestConfig<any> {
+  return {
+    ...config,
+    headers: {
+      ...config.headers,
+      [GRIST_PROXIED_HEADER]: "true",
+    },
+  };
 }

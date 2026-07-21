@@ -64,7 +64,7 @@ describe("disabledAt", function() {
     await assert403(ownerApi.moveDoc(docId, wsId));
     await assert403(ownerApi.renameDoc(docId, "A rose by any other name"));
     await assert403(ownerApi.getDocAPI(docId).getRecords("Table1"));
-    await assert403((await ownerApi.getWorkerAPI(docId)).downloadDoc(docId));
+    await assert403(ownerApi.getDocAPI(docId).download());
   });
 
   it("should remove some UI on disabled doc in DocList UI for owner", async function() {
@@ -121,7 +121,7 @@ describe("disabledAt", function() {
     const docApi = ownerApi.getDocAPI(docId);
     await assert.isFulfilled(docApi.getRecords("Table1"));
     await assert.isFulfilled(ownerApi.renameDoc(docId, "A rose by any other name"));
-    await assert.isFulfilled((await ownerApi.getWorkerAPI(docId)).downloadDoc(docId));
+    await assert.isFulfilled(ownerApi.getDocAPI(docId).download());
 
     await ownerSession.loadDocMenu("/");
     const reEnabledDoc = await driver.find(".test-dm-doc");

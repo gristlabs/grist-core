@@ -24,6 +24,7 @@ import {
   HidableToggle,
 } from "app/client/ui/AdminPanelCss";
 import { getAdminPanelName } from "app/client/ui/AdminPanelName";
+import { buildSetupRequestsItem } from "app/client/ui/AdminSetupRequests";
 import { App } from "app/client/ui/App";
 import { AuditLogStreamingConfig, getDestinationDisplayName } from "app/client/ui/AuditLogStreamingConfig";
 import { AuthenticationSection } from "app/client/ui/AuthenticationSection";
@@ -484,6 +485,9 @@ class AdminInstallationPanel extends Disposable {
           value: cssValueLabel(t("Version {{versionNumber}}", { versionNumber: version.version })),
         }),
         dom.create(this._buildUpdates.bind(this)),
+        // Setup steps users have asked for (via the nudge in Document Settings).
+        // Renders nothing when there are no requests.
+        dom.create(buildSetupRequestsItem, this._appModel),
         SectionItem({
           id: "service-status",
           name: t("Service status"),

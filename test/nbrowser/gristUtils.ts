@@ -1183,6 +1183,20 @@ namespace gristUtils {
     await driver.wait(async () => (await hasFocus(selector) === yesNo), waitMs);
   }
 
+  /**
+   * Wait until an element matching `selector` exists and holds focus. The positive counterpart to
+   * waitAppFocus(false), which only confirms focus left the app, not that it reached the editor
+   * about to be typed into. Tolerates the element not existing yet (async-mounting editors).
+   */
+  export async function waitForEditorFocus(selector: string, waitMs: number = 2000): Promise<void> {
+    await driver.wait(async () => {
+      for (const el of await driver.findAll(selector)) {
+        if (await el.hasFocus()) { return true; }
+      }
+      return false;
+    }, waitMs);
+  }
+
   export async function waitForLabelInput(): Promise<void> {
     await driver.wait(async () => (await driver.findWait(".test-column-title-label", 100).hasFocus()), 300);
   }
@@ -2594,8 +2608,7 @@ namespace gristUtils {
       urlId = urlId || await getCurrentUrlId();
       const api = this.createHomeApi();
       const doc = await api.getDoc(urlId!);
-      const workerApi = await api.getWorkerAPI(doc.id);
-      const response = await workerApi.downloadDoc(doc.id);
+      const response = await api.getDocAPI(doc.id).download();
       await fse.writeFile(fname, Buffer.from(await response.arrayBuffer()));
     }
   }
@@ -3688,10 +3701,13 @@ namespace gristUtils {
  * Useful for local testing of features that depend on environment variables, as it avoids the need
  * to restart the server when those variables are already set.
  *
- * Returns a `restartWithEnv(moreVars)` helper that applies additional env vars and restarts the
- * server. Useful when several sibling describes each need the server in a different state: pass
- * no vars to the outer call (just to own the snapshot) and call the returned helper in each
- * inner `before`. The outer `after` restores the original env and restarts once at the end.
+ * Returns a `restartWithEnv(moreVars)` helper for testing several server variants within one
+ * enclosing describe: pass no vars to the outer call (it then only takes the snapshot and
+ * restores it at the end), and call the helper in each inner describe's `before`. Nesting
+ * withEnvironmentSnapshot in each inner describe instead would cost two restarts per block
+ * (apply + restore); the helper costs one per block, plus a single restoring restart at the
+ * end. NOTE: vars applied by the helper accumulate across calls, so each block should set
+ * every variable it depends on (use null to unset).
  */
   export function withEnvironmentSnapshot(vars: Record<string, any> = {}) {
     let oldEnv: testUtils.EnvironmentSnapshot | null = null;

@@ -1,11 +1,15 @@
 import { makeT } from "app/client/lib/localization";
+import { obsPropWithSaveOnWrite } from "app/client/lib/obsPropWithSaveOnWrite";
 import { ViewSectionRec } from "app/client/models/DocModel";
-import { KoSaveableObservable, setSaveValue } from "app/client/models/modelUtil";
+import { RowNumbersMode } from "app/client/models/entities/ViewSectionRec";
+import { rowNumbersMenu } from "app/client/ui/GridViewMenus";
 import { cssGroupLabel, cssRow } from "app/client/ui/RightPanelStyles";
 import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
-import { testId } from "app/client/ui2018/cssVars";
+import { testId, theme } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
+import { menu } from "app/client/ui2018/menus";
 
-import { Computed, Disposable, dom, IDisposableOwner } from "grainjs";
+import { Computed, Disposable, dom, Observable, styled } from "grainjs";
 
 const t = makeT("GridOptions");
 
@@ -18,14 +22,27 @@ export class GridOptions extends Disposable {
   }
 
   public buildDom() {
-    const section = this._section;
+    const options = this._section.optionsObj;
+    const rowNumbers = obsPropWithSaveOnWrite(this, options, "rowNumbers", "number" as RowNumbersMode);
+
+    // What the gutter shows when visible. Remembered while hidden, so that re-checking "Show"
+    // restores the last mode rather than always resetting to numbers.
+    const shownMode = Observable.create<RowNumbersMode>(this,
+      rowNumbers.get() === "hidden" ? "number" : rowNumbers.get());
+    this.autoDispose(rowNumbers.addListener((mode) => {
+      if (mode !== "hidden") { shownMode.set(mode); }
+    }));
+
+    const showRowNumbers = Computed.create(this, use => use(rowNumbers) !== "hidden")
+      .onWrite(show => rowNumbers.set(show ? shownMode.get() : "hidden"));
+
     return dom("div",
       { "role": "group", "aria-labelledby": "grid-options-label" },
       cssGroupLabel(t("Grid Options"), { id: "grid-options-label" }),
       dom("div", [
         cssRow(
           labeledSquareCheckbox(
-            setSaveValueFromKo(this, section.optionsObj.prop("verticalGridlines")),
+            obsPropWithSaveOnWrite(this, options, "verticalGridlines", true),
             t("Vertical gridlines"),
           ),
           testId("v-grid-button"),
@@ -33,7 +50,7 @@ export class GridOptions extends Disposable {
 
         cssRow(
           labeledSquareCheckbox(
-            setSaveValueFromKo(this, section.optionsObj.prop("horizontalGridlines")),
+            obsPropWithSaveOnWrite(this, options, "horizontalGridlines", true),
             t("Horizontal gridlines"),
           ),
           testId("h-grid-button"),
@@ -41,10 +58,21 @@ export class GridOptions extends Disposable {
 
         cssRow(
           labeledSquareCheckbox(
-            setSaveValueFromKo(this, section.optionsObj.prop("zebraStripes")),
+            obsPropWithSaveOnWrite(this, options, "zebraStripes", false),
             t("Zebra stripes"),
           ),
           testId("zebra-stripe-button"),
+        ),
+
+        cssRow(
+          labeledSquareCheckbox(showRowNumbers, t("Show"), testId("row-numbers-show")),
+          cssModeLink(
+            dom.text(use => use(shownMode) === "rowId" ? t("row IDs") : t("row numbers")),
+            icon("Dropdown"),
+            menu(() => rowNumbersMenu(this._section, { includeHidden: false })),
+            testId("row-numbers-mode"),
+          ),
+          testId("row-numbers"),
         ),
 
         testId("grid-options"),
@@ -53,13 +81,12 @@ export class GridOptions extends Disposable {
   }
 }
 
-// Returns a grainjs observable that reflects the value of obs a knockout saveable observable. The
-// returned observable will set and save obs to the given value when written. If the obs.save() call
-// fails, then it gets reset to its previous value.
-function setSaveValueFromKo(owner: IDisposableOwner, obs: KoSaveableObservable<boolean | undefined>) {
-  const ret = Computed.create(null, use => use(obs) ?? false);
-  ret.onWrite(async (val) => {
-    await setSaveValue(obs, val);
-  });
-  return ret;
-}
+// Link-like trigger for the row-numbers mode menu, continuing the checkbox's label.
+const cssModeLink = styled("div", `
+  display: flex;
+  align-items: center;
+  margin-left: 4px;
+  color: ${theme.controlFg};
+  --icon-color: ${theme.controlFg};
+  cursor: pointer;
+`);

@@ -225,6 +225,16 @@ describe("ApiServer", function() {
     assert.equal(resp.data[1].owner, null);
   });
 
+  it("GET /dw/<worker>/v/<tag>/api/orgs strips prefixes and matches plain /api/orgs", async function() {
+    // Home servers intentionally accept /dw/<worker>/v/<tag>/-prefixed URLs, because a Fleet
+    // load balancer may send any URL shape to any server. Pins the strip behavior.
+    const tag = server.server.tag;
+    const plain = await axios.get(`${homeUrl}/api/orgs`, chimpy);
+    const prefixed = await axios.get(`${homeUrl}/dw/w1/v/${tag}/api/orgs`, chimpy);
+    assert.equal(prefixed.status, plain.status);
+    assert.deepEqual(prefixed.data, plain.data);
+  });
+
   it("GET /api/orgs respects permissions", async function() {
     const resp = await axios.get(`${homeUrl}/api/orgs`, kiwi);
     assert.equal(resp.status, 200);
