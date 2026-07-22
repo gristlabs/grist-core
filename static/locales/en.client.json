@@ -1968,7 +1968,12 @@
         "Dismissing...": "Dismissing...",
         "How user actions can reach the outside world": "How user actions can reach the outside world",
         "Outgoing requests": "Outgoing requests",
-        "full Edition": "full Edition"
+        "full Edition": "full Edition",
+        "Apply changes": "Apply changes",
+        "Grist is running in an environment that doesn't support restarting from the admin panel. Your change will be saved now, and takes effect the next time you restart Grist manually.": "Grist is running in an environment that doesn't support restarting from the admin panel. Your change will be saved now, and takes effect the next time you restart Grist manually.",
+        "Switch to Community edition?": "Switch to Community edition?",
+        "Switch to full Grist?": "Switch to full Grist?",
+        "This will also apply your other pending changes:": "This will also apply your other pending changes:"
     },
     "Columns": {
         "Remove Column": "Remove Column"
@@ -3111,7 +3116,24 @@
         "Switch to Full Grist": "Switch to Full Grist",
         "This server runs the full edition of Grist, with advanced security, governance, MCP server, automations, email notifications, and collaboration features.": "This server runs the full edition of Grist, with advanced security, governance, MCP server, automations, email notifications, and collaboration features.",
         "You are running the Grist Community edition.": "You are running the Grist Community edition.",
-        "{{freeKeysLink}} are available to individuals and small orgs under US $1 million total annual funding. For larger orgs, see {{pricingLink}}.": "{{freeKeysLink}} are available to individuals and small orgs under US $1 million total annual funding. For larger orgs, see {{pricingLink}}."
+        "{{freeKeysLink}} are available to individuals and small orgs under US $1 million total annual funding. For larger orgs, see {{pricingLink}}.": "{{freeKeysLink}} are available to individuals and small orgs under US $1 million total annual funding. For larger orgs, see {{pricingLink}}.",
+        "Community Grist": "Community Grist",
+        "Continue with Community edition": "Continue with Community edition",
+        "Continue with full edition": "Continue with full edition",
+        "Downgrade to Community edition": "Downgrade to Community edition",
+        "Downgrading to the Community edition restarts the server, which may be briefly unavailable.": "Downgrading to the Community edition restarts the server, which may be briefly unavailable.",
+        "For automations, MCP server, AI assistant, OIDC support, email notifications, admin controls, audit logging and more, switch to the full Grist edition.": "For automations, MCP server, AI assistant, OIDC support, email notifications, admin controls, audit logging and more, switch to the full Grist edition.",
+        "Full Grist features such as email notifications, automations, MCP server, and OIDC and SAML support will be disabled after restart. You may always upgrade to full Grist again.": "Full Grist features such as email notifications, automations, MCP server, and OIDC and SAML support will be disabled after restart. You may always upgrade to full Grist again.",
+        "Grist will switch to the Community edition after restarting, disabling full Grist features. You will not lose your data or need to reinstall Grist.": "Grist will switch to the Community edition after restarting, disabling full Grist features. You will not lose your data or need to reinstall Grist.",
+        "Switch to Community edition": "Switch to Community edition",
+        "Switch to full Grist": "Switch to full Grist",
+        "Switching Grist edition...": "Switching Grist edition...",
+        "Switching to full Grist downloads the required extensions. This may take a few minutes, during which the server will be unavailable.": "Switching to full Grist downloads the required extensions. This may take a few minutes, during which the server will be unavailable.",
+        "Switching to full Grist restarts the server, which may be briefly unavailable.": "Switching to full Grist restarts the server, which may be briefly unavailable.",
+        "Upgrade to full Grist": "Upgrade to full Grist",
+        "You may downgrade at any time to the Community edition. You will not lose your data or need to reinstall Grist.": "You may downgrade at any time to the Community edition. You will not lose your data or need to reinstall Grist.",
+        "Your server will restart automatically once finished.": "Your server will restart automatically once finished.",
+        "{{freeKeysLink}} are available to individuals and orgs under US $1M total annual funding. For larger orgs see {{pricingLink}}. Start your 30-day free trial today.": "{{freeKeysLink}} are available to individuals and orgs under US $1M total annual funding. For larger orgs see {{pricingLink}}. Start your 30-day free trial today."
     },
     "QuickSetupServerStep": {
         "Apply and Continue": "Apply and Continue",
