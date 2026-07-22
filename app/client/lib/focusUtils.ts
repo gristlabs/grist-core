@@ -51,10 +51,11 @@ export const enableTabTrap = (element: HTMLElement, id?: string) => {
     }
   });
   if (!id) {
-    return;
+    return listener;
   }
   _tabTraps.get(id)?.dispose();
   _tabTraps.set(id, listener);
+  return listener;
 };
 
 export const clearTabTrap = (id: string) => {
