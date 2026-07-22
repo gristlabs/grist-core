@@ -1728,6 +1728,50 @@ describe("GranularAccess", function() {
     const editorUrl = await driver.findWait(".test-pw-download", 5000).getAttribute("href");
     await checkAttachment(editorUrl, "uploads/gplaypattern.png");
     await driver.sendKeys(Key.ESCAPE);
+
+    // View as a restricted user: previews must carry aclAsUser_ and resolve with that user's access.
+    await mainSession.login();
+    await mainSession.loadDoc(`/doc/${doc.id}?aclAsUser_=${encodeURIComponent(otherSession.email)}`);
+    await gu.getPageItem(/Data1/).click();
+    await gu.waitForServer();
+
+    // Row 2 (B="notclear") is hidden from non-owners, so only rows 1 and 3 are visible.
+    assert.deepEqual(await gu.getVisibleGridCells("A", [1, 2, 3]),
+      ["near", "in a motor car", ""]);
+
+    // The preview <img> for a visible attachment includes the aclAsUser_ param.
+    await gu.getCell("Pics", 2).click();
+    const viewAsUrl = (await readAttachments())[0].src!;
+    assert.equal(new URL(viewAsUrl).searchParams.get("aclAsUser_"), otherSession.email);
+
+    // The attachment editor's download link is View-as-aware too (built via a separate DocAPI).
+    await gu.waitAppFocus();
+    await driver.sendKeys(Key.ENTER);
+    const editorViewAsUrl = await driver.findWait(".test-pw-download", 5000).getAttribute("href");
+    assert.equal(new URL(editorViewAsUrl).searchParams.get("aclAsUser_"), otherSession.email);
+    await driver.sendKeys(Key.ESCAPE);
+
+    // The hidden row's attachment (grist.png, attId 3) is readable by the owner, but denied once
+    // viewing as the restricted user.
+    const ownerHeaders = { Authorization: `Bearer ${mainSession.getApiKey()}` };
+    const hiddenAttUrl = mutateAttachmentUrl(viewAsUrl, {
+      attId: 3,
+      remove: ["rowId", "colId", "tableId", "name", "aclAsUser_"],
+    });
+    assert.equal(
+      (await axios.get(hiddenAttUrl, { headers: ownerHeaders, validateStatus: () => true })).status,
+      200,
+    );
+    const hiddenAttUrlAsUser = mutateAttachmentUrl(hiddenAttUrl, {
+      set: { aclAsUser_: otherSession.email },
+    });
+    const deniedStatus = (await axios.get(hiddenAttUrlAsUser,
+      { headers: ownerHeaders, validateStatus: () => true })).status;
+    assert.isAtLeast(deniedStatus, 400);
+    assert.notEqual(deniedStatus, 200);
+
+    await driver.find(".test-view-as-banner .test-revert").click();
+    await gu.waitForDocToLoad();
   });
 
   describe("shares", function() {

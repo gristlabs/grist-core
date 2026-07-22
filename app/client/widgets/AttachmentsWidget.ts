@@ -158,7 +158,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
     );
   }
 
-  // Returns the attachment download url.
+  // Returns the attachment download url, View-as-aware so previews respect ACLs.
   private _getUrl(attId: number, cell: SingleCell): string {
     return this._docApi.getAttachmentDownloadUrl(attId, {
       cell,
@@ -277,9 +277,12 @@ export class AttachmentsWidget extends NewAbstractWidget {
 
   // TODO - This is a very clumsy way of accessing this API, as it doesn't respect any custom options set.
   //        Widgets should be able to access a GristDoc for DocComm and DocApi access, but that needs its own refactor.
+  // View-as-aware so preview URLs respect ACLs. Harmless on the upload path: /uploads is
+  // access-agnostic, and the real gating is on the WebSocket calls that follow.
   private get _docApi() {
     const docComm = this._getDocComm();
-    return new DocAPIImpl(docUrl(docComm.docWorkerUrl), docComm.docId);
+    return new DocAPIImpl(docUrl(docComm.docWorkerUrl), docComm.docId,
+      { propagateViewAs: true });
   }
 }
 

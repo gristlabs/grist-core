@@ -470,7 +470,7 @@ export interface UserAPI {
   getWorkerFull(key: string): Promise<PublicDocWorkerUrlInfo>;
   getWorkerAPI(key: string): Promise<DocWorkerAPI>;
   getBillingAPI(): BillingAPI;
-  getDocAPI(docId: string): DocAPI;
+  getDocAPI(docId: string, options?: IOptions): DocAPI;
   fetchApiKey(): Promise<string>;
   createApiKey(): Promise<string>;
   deleteApiKey(): Promise<void>;
@@ -1043,8 +1043,8 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
     return new BillingAPIImpl(this._homeUrl, this._options);
   }
 
-  public getDocAPI(docId: string): DocAPI {
-    return new DocAPIImpl(this._url, docId, this._options);
+  public getDocAPI(docId: string, options: IOptions = {}): DocAPI {
+    return new DocAPIImpl(this._url, docId, { ...this._options, ...options });
   }
 
   public async fetchApiKey(): Promise<string> {
@@ -1394,29 +1394,33 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
   }
 
   public getDownloadUrl({ template, removeHistory}: { template: boolean, removeHistory: boolean }): string {
-    return this._url + `/download?template=${template}&nohistory=${removeHistory}`;
+    return this._url + "/download?" + encodeQueryParams({
+      ...this.extraParameters,
+      template: String(template),
+      nohistory: String(removeHistory),
+    });
   }
 
-  public getDownloadXlsxUrl(params: DownloadDocParams) {
-    return this._url + "/download/xlsx?" + encodeQueryParams({ ...params });
+  public getDownloadXlsxUrl(params?: DownloadDocParams) {
+    return this._url + "/download/xlsx?" + encodeQueryParams({ ...this.extraParameters, ...params });
   }
 
   public getDownloadCsvUrl(params: DownloadDocParams) {
     // We spread `params` to work around TypeScript being overly cautious.
-    return this._url + "/download/csv?" + encodeQueryParams({ ...params });
+    return this._url + "/download/csv?" + encodeQueryParams({ ...this.extraParameters, ...params });
   }
 
   public getDownloadTsvUrl(params: DownloadDocParams) {
-    return this._url + "/download/tsv?" + encodeQueryParams({ ...params });
+    return this._url + "/download/tsv?" + encodeQueryParams({ ...this.extraParameters, ...params });
   }
 
   public getDownloadDsvUrl(params: DownloadDocParams) {
-    return this._url + "/download/dsv?" + encodeQueryParams({ ...params });
+    return this._url + "/download/dsv?" + encodeQueryParams({ ...this.extraParameters, ...params });
   }
 
   public getDownloadTableSchemaUrl(params: DownloadDocParams) {
     // We spread `params` to work around TypeScript being overly cautious.
-    return this._url + "/download/table-schema?" + encodeQueryParams({ ...params });
+    return this._url + "/download/table-schema?" + encodeQueryParams({ ...this.extraParameters, ...params });
   }
 
   public async download(
@@ -1428,13 +1432,15 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
   }
 
   public getDownloadAttachmentsArchiveUrl(params: AttachmentsArchiveParams): string {
-    return this._url + "/attachments/archive?" + encodeQueryParams({ ...params });
+    return this._url + "/attachments/archive?" + encodeQueryParams({ ...this.extraParameters, ...params });
   }
 
   public getAttachmentDownloadUrl(attId: number, params: AttachmentDownloadParams = {}): string {
-    // encodeQueryParams stringifies `undefined` as the literal "null" — strip unset keys first,
-    // otherwise `?inline=null` would be truthy on the server and force inline mode unintentionally.
+    // encodeQueryParams stringifies `undefined` as the literal "null", so strip unset keys first;
+    // otherwise `?inline=null` reads as truthy on the server and forces inline mode.
+    // extraParameters (e.g. "View as") come first so previews respect ACLs, not just the owner.
     const query = omitBy({
+      ...this.extraParameters,
       ...params.cell,
       name: params.name,
       inline: params.inline ? 1 : undefined,

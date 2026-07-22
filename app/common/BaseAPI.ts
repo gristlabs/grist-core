@@ -7,6 +7,10 @@ export interface IOptions {
   headers?: Record<string, string>;
   fetch?: typeof fetch;
   extraParameters?: Map<string, string>;  // if set, add query parameters to requests.
+  // If set, add the page's "View as" (aclAsUser) params to requests, so URLs this API builds
+  // resolve as the impersonated user, not the owner. Browser-only, and only needed for URLs the
+  // browser fetches directly (downloads, <img> src).
+  propagateViewAs?: boolean;
 }
 
 export interface UploadProgressCallbacks {
@@ -78,6 +82,16 @@ export class BaseAPI {
       }
     }
     this._extraParameters = options.extraParameters;
+    // Like the boot-key fallback above, read "View as" params straight off the page URL.
+    if (options.propagateViewAs && typeof window !== "undefined") {
+      const sp = new URLSearchParams(window.location?.search);
+      // Prefer the id form, as "View as" links do.
+      const key = sp.has("aclAsUserId_") ? "aclAsUserId_" : sp.has("aclAsUser_") ? "aclAsUser_" : undefined;
+      if (key) {
+        this._extraParameters = new Map(this._extraParameters);
+        this._extraParameters.set(key, sp.get(key)!);
+      }
+    }
   }
 
   // Make a modified request, exposed for test convenience.
@@ -151,6 +165,12 @@ export class BaseAPI {
   /** Like `requestJson`, but bypasses the pending-request counter. See `requestUncounted`. */
   protected async requestJsonUncounted(input: string, init: RequestInit = {}): Promise<any> {
     return (await this._doRequest(input, init)).json();
+  }
+
+  // The extra query params (e.g. "View as" aclAsUser_) also sent with every request, exposed so
+  // URL builders for browser-fetched resources (downloads, <img> src) can include them too.
+  protected get extraParameters(): Record<string, string> {
+    return this._extraParameters ? Object.fromEntries(this._extraParameters) : {};
   }
 
   private async _doRequest(input: string, init: RequestInit): Promise<Response> {
