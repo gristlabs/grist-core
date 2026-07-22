@@ -12,9 +12,13 @@ export const widgetTypesMap = new Map<IWidgetType, IWidgetTypeInfo>([
   ["single", { name: "Card", icon: "TypeCard", getLabel: () => t("Card") }],
   ["detail", { name: "Card List", icon: "TypeCardList", getLabel: () => t("Card List") }],
   ["chart", { name: "Chart", icon: "TypeChart", getLabel: () => t("Chart") }],
+  ["calendar", { name: "Calendar", icon: "TypeCalendar", getLabel: () => t("Calendar") }],
+  // Legacy alias: docs saved by the old bundled calendar widget still have sections with
+  // parentKey "custom.calendar" (rendered as the native calendar via ViewLayout.ts). Without
+  // this entry they'd fall back to the "record" info and be labeled "Table".
+  ["custom.calendar", { name: "Calendar", icon: "TypeCalendar", getLabel: () => t("Calendar") }],
   ["form", { name: "Form", icon: "Board", getLabel: () => t("Form") }],
   ["custom", { name: "Custom", icon: "TypeCustom", getLabel: () => t("Custom") }],
-  ["custom.calendar", { name: "Calendar", icon: "TypeCalendar", getLabel: () => t("Calendar") }],
 ]);
 
 // Widget type info.

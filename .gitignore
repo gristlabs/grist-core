@@ -6,6 +6,7 @@
 /static/bundle.css
 /static/browser-check.js
 /static/*.bundle.js.*.txt
+/static/assets/
 /grist-sessions.db
 /landing.db
 /docs/
