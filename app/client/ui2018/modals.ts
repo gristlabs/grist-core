@@ -636,7 +636,8 @@ const autoLabelledModalTitle = (...args: IDomArgs<HTMLDivElement>) => dom(
   "div",
   { id: uniqueId("modal-title-") },
   (el) => {
-    // waiting for potential domComputed to work
+    // Elements are build bottom-up, so our ancestors (incl. the role=dialog container) aren't attached yet at
+    // construction time. Wait for the next tick when the parent should exist.
     setTimeout(() => {
       el.closest('[role="dialog"]')?.setAttribute("aria-labelledby", el.id);
     }, 0);

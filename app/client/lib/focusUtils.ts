@@ -61,6 +61,9 @@ export const clearTabTrap = (id: string) => {
 /**
  * Lock keyboard focus inside a given element until it is removed from the DOM.
  *
+ * The lock is done through trapping Tab key (see `enableTabTrap`), and pausing Mousetrap
+ * (so that the commands bound on Tab are not triggered when tabbing inside the element).
+ *
  * This is a useful default to use for popups, modal tooltips and things like that.
  */
 export function lockFocusUntilRemoved(
