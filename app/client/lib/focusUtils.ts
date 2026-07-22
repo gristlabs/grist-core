@@ -21,9 +21,7 @@
 import { kbFocusHighlighterClass } from "app/client/components/KeyboardFocusHighlighter";
 import { FocusLayer } from "app/client/lib/FocusLayer";
 
-import { Disposable, dom, DomMethod, IDisposable } from "grainjs";
-
-const _tabTraps = new Map<string, IDisposable>();
+import { Disposable, dom, DomMethod } from "grainjs";
 
 /**
  * Trap the tab key inside the given element.
@@ -36,26 +34,13 @@ const _tabTraps = new Map<string, IDisposable>();
  *
  * This means you don't need to think about locks that could collapse between different containers, like two modals
  * on top of each other.
- *
- * You can optionally pass an id in order to be able to remove the lock later with `clearTabTrap`.
  */
-export const enableTabTrap = (element: HTMLElement, id?: string) => {
-  const listener = dom.onElem(element, "keydown", (event, elem) => {
+export const enableTabTrap = (element: HTMLElement) => {
+  return dom.onElem(element, "keydown", (event, elem) => {
     if (event.key === "Tab") {
       trapTabKey(elem, event);
     }
   });
-  if (!id) {
-    return listener;
-  }
-  _tabTraps.get(id)?.dispose();
-  _tabTraps.set(id, listener);
-  return listener;
-};
-
-export const clearTabTrap = (id: string) => {
-  _tabTraps.get(id)?.dispose();
-  _tabTraps.delete(id);
 };
 
 /**
