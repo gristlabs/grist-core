@@ -2,7 +2,6 @@ import { Banner } from "app/client/components/Banner";
 import { makeT } from "app/client/lib/localization";
 import { inlineMarkdown } from "app/client/lib/markdown";
 import { AppModel } from "app/client/models/AppModel";
-import { theme } from "app/client/ui2018/cssVars";
 import { colorIcon } from "app/client/ui2018/icons";
 import { commonUrls } from "app/common/gristUrls";
 
@@ -35,23 +34,14 @@ export class McpConnectBanner extends Disposable {
           ))),
           testId("text"),
         ),
-        style: "info",
+        style: "custom",
+        background: "linear-gradient(to right, #29A3A3, #16A772)",
         showCloseButton: true,
-        bannerCssClass: cssBanner.className,
         onClose: () => this._app.dismissPopup("mcpConnectBanner"),
       });
     });
   }
 }
-
-const cssBanner = styled("div", `
-  & a {
-    color: ${theme.controlFg};
-  }
-  & .test-banner-close {
-    background-color: ${theme.text};
-  }
-`);
 
 const cssMessage = styled("div", `
   display: flex;
