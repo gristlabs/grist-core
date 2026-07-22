@@ -10,7 +10,7 @@ import { SpecialDocPage } from "app/common/gristUrls";
 import { mod } from "app/common/gutil";
 import { components } from "app/common/ThemePrefs";
 
-import { Disposable, dom, IDisposable, Observable, styled, UseCBOwner } from "grainjs";
+import { Disposable, dom, Holder, Observable, styled, UseCBOwner } from "grainjs";
 import isEqual from "lodash/isEqual";
 
 const t = makeT("RegionFocusSwitcher");
@@ -43,7 +43,7 @@ export class RegionFocusSwitcher extends Disposable {
     initiator: undefined,
   });
 
-  private _tabTrap?: IDisposable;
+  private _tabTrap = Holder.create(this);
 
   private get _gristDocObs() { return this._app?.pageModel?.gristDoc; }
   // Previously focused elements for each panel (not used for view section ids)
@@ -351,8 +351,7 @@ export class RegionFocusSwitcher extends Disposable {
       current.initiator.event :
       undefined;
 
-    this._tabTrap?.dispose();
-    this._tabTrap = undefined;
+    this._tabTrap.clear();
     removeFocusRings();
     removeTabIndexes();
     if (!mouseEvent) {
@@ -370,7 +369,7 @@ export class RegionFocusSwitcher extends Disposable {
     //   - actually focus the panel dom element, or its previously focused child,
     //   - make the Tab key available for normal browser navigation in the panel (see `escapeViewLayout`)
     if (!mouseEvent && isPanel && panelElement && current.region) {
-      this._tabTrap = enableTabTrap(panelElement);
+      this._tabTrap.autoDispose(enableTabTrap(panelElement));
       focusPanel(
         current.region as PanelRegion,
         this._prevFocusedElements[current.region.id as Panel] as HTMLElement | null,
