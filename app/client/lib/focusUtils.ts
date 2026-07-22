@@ -1,10 +1,5 @@
 /**
- * Most of the code is authored by Kitty Giraudel for a11y-dialog https://github.com/KittyGiraudel/a11y-dialog, thanks to her!
- *
- * As keyboard-handling is very specific in Grist, we'd rather copy/paste some base code that can be easily modified,
- * rather than relying on a library.
- *
- * The MIT License (MIT)
+ * This file started as a copy of code authored by Kitty Giraudel for a11y-dialog https://github.com/KittyGiraudel/a11y-dialog, thanks to her!
  *
  * Copyright (c) 2025 Kitty Giraudel
  *
