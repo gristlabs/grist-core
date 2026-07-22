@@ -1,21 +1,27 @@
 import BaseView from "app/client/components/BaseView";
 import * as commands from "app/client/components/commands";
 import { GristDoc } from "app/client/components/GristDoc";
-import { kbFocusHighlighterClass } from "app/client/components/KeyboardFocusHighlighter";
+import { highlightKeyboardFocus, kbFocusHighlighterClass } from "app/client/components/KeyboardFocusHighlighter";
 import { FocusLayer } from "app/client/lib/FocusLayer";
-import { isFocusable, trapTabKey } from "app/client/lib/focusUtils";
+import {
+  clearCurrentFocusLock,
+  enableFocusLock,
+  focusAdjacentFocusable,
+  isProgrammaticallyFocusable,
+  isUserFocusable,
+} from "app/client/lib/focusUtils";
 import { makeT } from "app/client/lib/localization";
 import { App } from "app/client/ui/App";
 import { SpecialDocPage } from "app/common/gristUrls";
 import { mod } from "app/common/gutil";
 import { components } from "app/common/ThemePrefs";
 
-import { Disposable, dom, Holder, Observable, styled, UseCBOwner } from "grainjs";
+import { Disposable, dom, DomElementArg, Observable, styled, UseCBOwner } from "grainjs";
 import isEqual from "lodash/isEqual";
 
 const t = makeT("RegionFocusSwitcher");
 
-export type Panel = "left" | "top" | "right" | "main";
+export type Panel = "left" | "top" | "right" | "main" | `section-header-${string}`;
 interface PanelRegion {
   type: "panel",
   id: Panel // this matches a dom element id
@@ -25,7 +31,7 @@ interface SectionRegion {
   id?: number // this matches a grist document view section id. If none is provided, it means "view layout" is focused.
 }
 type Region = PanelRegion | SectionRegion;
-type StateUpdateInitiator = { type: "cycle" } | { type: "mouse", event?: MouseEvent };
+type StateUpdateInitiator = { type: "cycle" } | { type: "jump" } | { type: "mouse", event?: MouseEvent };
 interface State {
   region?: Region;
   initiator?: StateUpdateInitiator;
@@ -44,7 +50,7 @@ export class RegionFocusSwitcher extends Disposable {
   });
 
   private get _gristDocObs() { return this._app?.pageModel?.gristDoc; }
-  // Previously focused elements for each panel (not used for view section ids)
+  // Previously focused elements for each panel or section header (not used for view section ids)
   private _prevFocusedElements: Record<Panel, Element | null> = {
     left: null,
     top: null,
@@ -77,6 +83,9 @@ export class RegionFocusSwitcher extends Disposable {
         this._logCommand("creatorPanel");
         return this._toggleCreatorPanel();
       },
+      nextJumpTarget: () => this._jump("next"),
+      prevJumpTarget: () => this._jump("prev"),
+      focusSectionHeader: () => this._jump("next"),
       cancel: this._onEscapeKeypress.bind(this),
     }, this, true));
 
@@ -138,7 +147,8 @@ export class RegionFocusSwitcher extends Disposable {
       }),
       cssFocusedPanel.cls("-focused", (use) => {
         const current = use(this._state);
-        return current.initiator?.type === "cycle" && current.region?.type === "panel" && current.region.id === id;
+        return (current.initiator?.type === "cycle" || current.initiator?.type === "jump") &&
+          current.region?.type === "panel" && current.region.id === id;
       }),
     ];
   }
@@ -289,7 +299,7 @@ export class RegionFocusSwitcher extends Disposable {
     if (current?.type !== "panel") {
       return;
     }
-    const comesFromKeyboard = initiator?.type === "cycle";
+    const comesFromKeyboard = initiator?.type === "cycle" || initiator?.type === "jump";
     const panelElement = getPanelElement(current.id);
     if (!panelElement) {
       return;
@@ -414,6 +424,40 @@ export class RegionFocusSwitcher extends Disposable {
     return this._focusRegion({ type: "panel", id: "right" }, { initiator: { type: "cycle" } });
   }
 
+  private _jump(direction: "next" | "prev") {
+    const current = this._state.get().region;
+    if (isPagePanel(current?.id)) {
+      const panelElement = getPanelElement(current.id);
+      if (!panelElement) {
+        return;
+      }
+      highlightKeyboardFocus();
+      focusAdjacentFocusable(panelElement, direction === "next" ? 1 : -1, {
+        matching: `.${kbJumperClass}`,
+        onlyUserFocusable: false,
+        loop: true,
+      });
+      return;
+    }
+    const gristDoc = this._getGristDoc();
+    if (!gristDoc) {
+      return;
+    }
+    highlightKeyboardFocus();
+    if (isSectionHeaderPanel(current?.id)) {
+      this._focusRegion(
+        { type: "section", id: gristDoc.viewModel.activeSectionId() },
+        { initiator: { type: "jump" } },
+      );
+    }
+    if (current?.type === "section" || current === undefined) {
+      this._focusRegion(
+        { type: "panel", id: `section-header-${gristDoc.viewModel.activeSectionId()}` },
+        { initiator: { type: "jump" } },
+      );
+    }
+  }
+
   private _canTabThroughMainRegion(use: UseCBOwner) {
     const gristDoc = this._gristDocObs ? use(this._gristDocObs) : null;
     if (!gristDoc) {
@@ -526,7 +570,7 @@ const focusPanel = (panel: PanelRegion, child: HTMLElement | null, gristDoc: Gri
   enableFocusLock(panelElement);
 
   // Child element found: focus it if we actually can
-  if (child && child !== panelElement && child.isConnected && isFocusable(child)) {
+  if (child && child !== panelElement && child.isConnected && isUserFocusable(child)) {
     // Visually highlight the element with similar styles than panel focus,
     // only for this time. This is here just to help the user better see the visual change when he switches panels.
     child.setAttribute(ATTRS.focusedElement, "true");
@@ -662,24 +706,6 @@ const blurPanelChild = (panel: PanelRegion) => {
   }
 };
 
-const _focusLockHolder = Holder.create(null);
-
-const clearCurrentFocusLock = () => _focusLockHolder.clear();
-
-/**
- * Trap the tab key inside the given panel element.
- *
- * That makes pressing tab and shift+tab loop exclusively through focusable elements that are *in* the panel.
- */
-const enableFocusLock = (panelElement: HTMLElement) => {
-  clearCurrentFocusLock();
-  _focusLockHolder.autoDispose(dom.onElem(panelElement, "keydown", (event, elem) => {
-    if (event.key === "Tab") {
-      trapTabKey(elem, event);
-    }
-  }));
-};
-
 const getPanelElement = (id: Panel): HTMLElement | null => {
   return document.querySelector(getPanelElementId(id));
 };
@@ -742,6 +768,35 @@ const isSpecialPage = (doc: GristDoc | null) => {
   }
   return false;
 };
+
+const isPagePanel = (id: Region["id"]) => {
+  return id === "left" || id === "top" || id === "main" || id === "right";
+};
+
+const isSectionHeaderPanel = (id: Region["id"]) => {
+  return typeof id === "string" && id.startsWith("section-header-");
+};
+
+/**
+ * Add this class to elements you want to be able to jump to/from with the nextJumpTarget and prevJumpTarget commands
+ *
+ * Note that using @see kbJumperAnchor is preferred over this as it also makes sure the element is focusable,
+ * but this can be handy for specific use cases where kbJumperAnchor doesn't fit.
+ */
+export const kbJumperClass = "kb_jumper_anchor";
+
+/**
+ * Add this dom element arg to an element you want to be able to jump to/from with the nextJumpTarget and
+ * prevJumpTarget commands.
+ */
+export const kbJumperAnchor = (el: HTMLElement): DomElementArg => ([
+  dom.cls(kbJumperClass),
+  (el) => {
+    if (!isProgrammaticallyFocusable(el, true) && el.getAttribute("tabindex") === null) {
+      el.setAttribute("tabindex", "-1");
+    }
+  },
+]);
 
 export const cssFocusedPanel = styled("div", `
   &-focused:focus {

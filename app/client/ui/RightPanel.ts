@@ -20,6 +20,7 @@ import { MappedFieldsConfig } from "app/client/components/Forms/MappedFieldsConf
 import { GristDoc, IExtraTool, TabContent } from "app/client/components/GristDoc";
 import { EmptyFilterState } from "app/client/components/LinkingState";
 import { RefSelect } from "app/client/components/RefSelect";
+import { kbJumperAnchor } from "app/client/components/RegionFocusSwitcher";
 import ViewConfigTab from "app/client/components/ViewConfigTab";
 import { domAsync } from "app/client/lib/domAsync";
 import * as imports from "app/client/lib/imports";
@@ -508,6 +509,7 @@ export class RightPanel extends Disposable {
             return isRawTable && isSummaryTable;
           }),
           { id: "right-widget-title-input" },
+          kbJumperAnchor,
           testId("right-widget-title"),
         )),
 

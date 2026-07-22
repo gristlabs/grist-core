@@ -1608,7 +1608,8 @@
     "buildViewSectionDom": {
         "No data": "Aucune donnée",
         "No row selected in {{title}}": "Aucune ligne sélectionnée dans {{title}}",
-        "Not all data is shown": "Toute la donnée n'est pas visible"
+        "Not all data is shown": "Toute la donnée n'est pas visible",
+        "{{title}} widget header": "En-tête de la vue {{title}}"
     },
     "UserManager": {
         "Allow anyone with the link to open.": "Permettre à toute personne possédant le lien de l'ouvrir.",
@@ -2488,7 +2489,9 @@
         "Screen reader navigation": "Navigation avec lecteur d'écran",
         "Warning: screen reader support is a work-in-progress in Grist and is improving over time. Feedback is greatly appreciated!": "Attention : le support des lecteurs d'écran est en cours de développement dans Grist et s'améliore régulièrement. N'hésitez pas à nous faire part de vos retours.",
         "While not mandatory, you can enable screen reader improvements for a better navigation experience:": "Même si ce n'est pas obligatoire, vous pouvez activer les améliorations pour lecteurs d'écran pour une meilleure expérience de navigation :",
-        "We recommend using Firefox, Chrome or Edge in order to use Grist with a screen reader.": "Nous recommandons d'utiliser Firefox, Chrome ou Edge pour utiliser Grist avec un lecteur d'écran."
+        "We recommend using Firefox, Chrome or Edge in order to use Grist with a screen reader.": "Nous recommandons d'utiliser Firefox, Chrome ou Edge pour utiliser Grist avec un lecteur d'écran.",
+        "When focus is on a panel, the same shortcut lets you jump between predefined landmarks, making it easier to quickly navigate inside that panel.": "Quand le focus est dans un panneau, le même raccourci vous permet de sauter rapidement entre des repères prédéfinis, rendant la navigation dans le panneau plus facile.",
+        "When focus is on a widget, {{focusSectionHeaderShortcut}} toggles focus between the widget and its header.": "Quand le focus est dans une vue, {{focusSectionHeaderShortcut}} bascule le focus entre la vue et l'en-tête de la vue."
     },
     "ProposedChangesPage": {
         "Proposed changes": "Suggestions de modifications",
@@ -2563,8 +2566,8 @@
         "Find previous occurrence": "Rechercher l’occurrence précédente",
         "Finish editing a cell and save without moving to next record": "Terminer de modifier une cellule et sauvegarder sans se déplacer sur l'enregistrement suivant",
         "Finish editing a cell, saving the value": "Terminer de modifier une cellule, et sauvegarder la valeur",
-        "Focus next page panel or widget": "Placer le focus sur la prochaine page, panneau ou widget",
-        "Focus previous page panel or widget": "Placer le focus sur la page, panneau ou widget précédente",
+        "Focus next page panel or widget": "Placer le focus sur le prochain panneau ou la prochaine vue",
+        "Focus previous page panel or widget": "Placer le focus sur la page précédente ou la vue précédente",
         "Freeze or unfreeze selected columns": "Figer ou défiger les colonnes sélectionnées",
         "Hide the currently selected columns": "Masquer les colonnes sélectionnées",
         "Hide the currently selected fields": "Masquer les champs sélectionnés",
@@ -2621,7 +2624,7 @@
         "Sort the view data by the currently selected field in ascending order": "Trier les données de la vue par le champ sélectionné dans l'ordre croissant",
         "Sort the view data by the currently selected field in descending order": "Trier les données de la vue par le champ sélectionné dans l'ordre décroissant",
         "Start editing the currently-selected cell": "Commencer à modifier la cellule sélectionnée",
-        "Toggle creator panel keyboard focus": "Alterner le focus du panneau de création",
+        "Toggle creator panel keyboard focus": "Basculer le focus entre le panneau de création et la vue courante",
         "Toggle the currently selected checkbox or switch cell": "Basculer les valeurs de la case à coché ou de l'interrupteur sélectionné",
         "Undo last action": "Annuler la dernière action",
         "Use the currently selected row as table headers": "Utiliser la ligne sélectionnée comme entêtes de table",
@@ -2632,7 +2635,10 @@
         "Open the context menu": "Ouvrir le menu contextuel",
         "Toggle the screen reader improvements": "Activer ou désactiver les améliorations pour lecteurs d'écran",
         "Open the current column menu": "Ouvrir le menu de la colonne actuelle",
-        "Open the current row menu": "Ouvrir le menu de la ligne actuelle"
+        "Open the current row menu": "Ouvrir le menu de la ligne actuelle",
+        "When focused on a page panel, focus next landmark": "Quand le focus est dans un panneau, placer le focus sur le prochain repère",
+        "When focused on a page panel, focus previous landmark": "Quand le focus est dans un panneau, placer le focus sur le repère précédent",
+        "When focused on a widget, move focus between widget and widget header": "Quand le focus est dans une vue, basculer le focus entre la vue et l'en-tête de la vue"
     },
     "GridViewMenusDateHelpers": {
         "12-hour format": "format 12-heures",
