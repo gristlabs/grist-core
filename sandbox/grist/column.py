@@ -586,6 +586,20 @@ class ReferenceListColumn(BaseReferenceColumn):
   ReferenceListColumn maintains for each row a list of references (row IDs) into another table.
   Accessing them yields RecordSets.
   """
+  def prepare_new_values(self, row_ids, values, ignore_data=False, action_summary=None):
+    # Translate temporary negative row ids to their final ids, as ReferenceColumn does.
+    # Values have been through convert(), so lists here hold only ints; other shapes pass
+    # through.
+    if action_summary:
+      values = [
+        action_summary.translate_new_row_ids(self._target_table.table_id, v)
+        if isinstance(v, list) and any(r < 0 for r in v)
+        else v
+        for v in values
+      ]
+    return super(ReferenceListColumn, self).prepare_new_values(
+        row_ids, values, ignore_data=ignore_data, action_summary=action_summary)
+
   def _clean_up_value(self, value):
     if isinstance(value, str):
       # This is second part of a "hack" we have to do when we rename tables. During
