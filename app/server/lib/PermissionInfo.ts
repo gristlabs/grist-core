@@ -1,7 +1,7 @@
-import { ALL_PERMISSION_PROPS, emptyPermissionSet,
-  makePartialPermissions, mergePartialPermissions, mergePermissions,
-  MixedPermissionSet, PartialPermissionSet, PermissionSet, TablePermissionSet,
-  toMixed } from "app/common/ACLPermissions";
+import { ALL_PERMISSION_PROPS, combinePartialPermission, emptyPermissionSet,
+  makePartialPermissions, Memo, mergePartialPermissions, mergePermissions,
+  MixedPermissionSet, PartialPermissionSet, PartialPermissionValue,
+  PermissionSet, TablePermissionSet, toMixed } from "app/common/ACLPermissions";
 import { ACLRuleCollection } from "app/common/ACLRuleCollection";
 import { RuleSet } from "app/common/GranularAccessClause";
 import { getSetMapValue } from "app/common/gutil";
@@ -26,19 +26,24 @@ export type TablePermissionSetWithContext = PermissionSetWithContextOf<TablePerm
 export type PermissionSetWithContext = PermissionSetWithContextOf<PermissionSet<string>>;
 
 // Accumulator for memos of relevant rules.
-export type MemoSet = PermissionSet<string[]>;
+export type MemoSet = PermissionSet<Memo[]>;
 
-// Merge MemoSets by collecting all memos with de-duplication.
+// Merge MemoSets by collecting all memos, de-duplicating on kind and text.
 export function mergeMemoSets(psets: MemoSet[]): MemoSet {
   const result: Partial<MemoSet> = {};
   for (const prop of ALL_PERMISSION_PROPS) {
-    const merged = new Set<string>();
+    const seen = new Set<string>();
+    const merged: Memo[] = [];
     for (const p of psets) {
       for (const memo of p[prop]) {
-        merged.add(memo);
+        const key = `${memo.kind} ${memo.text}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          merged.push(memo);
+        }
       }
     }
-    result[prop] = [...merged];
+    result[prop] = merged;
   }
   return result as MemoSet;
 }
@@ -123,7 +128,19 @@ abstract class RuleInfo<MixedT extends TableT, TableT> {
 export class MemoInfo extends RuleInfo<MemoSet, MemoSet> {
   protected _processRule(ruleSet: RuleSet, defaultAccess?: () => MemoSet): MemoSet {
     const pset = extractMemos(ruleSet, this._input);
-    return defaultAccess ? mergeMemoSets([pset, defaultAccess()]) : pset;
+    if (!defaultAccess) { return pset; }
+    // Once this rule set settles a bit (see combinePartialPermission), a lower-precedence default no
+    // longer affects the outcome. Its "remedy" is then shadowed and misleading, so drop it. But its
+    // "reason" still names a rule that also blocks you, so keep it; a bit can have several barriers.
+    const perms = evaluateRule(ruleSet, this._input);
+    const defaultMemos = defaultAccess();
+    const relevantDefaults = emptyMemoSet();
+    for (const prop of ALL_PERMISSION_PROPS) {
+      relevantDefaults[prop] = isCertainPermission(perms[prop]) ?
+        defaultMemos[prop].filter(memo => memo.kind === "reason") :
+        defaultMemos[prop];
+    }
+    return mergeMemoSets([pset, relevantDefaults]);
   }
 
   protected _mergeTableAccess(access: MemoSet[]): MemoSet {
@@ -218,6 +235,11 @@ export class PermissionInfo extends RuleInfo<MixedPermissionSet, TablePermission
   }
 }
 
+// A partial permission is "certain" when merging in a lower-precedence value can't change it.
+function isCertainPermission(perm: PartialPermissionValue): boolean {
+  return perm === "allow" || perm === "deny" || perm === "mixed";
+}
+
 /**
  * Evaluate a RuleSet on a given input (user and optionally record). If a record is needed but not
  * included, the result may include permission values like 'allowSome', 'denySome', or 'mixed' (for
@@ -283,31 +305,39 @@ function evaluateRule(ruleSet: RuleSet, input: PredicateFormulaInput): PartialPe
 }
 
 /**
- * If a rule has a memo, and passes, add that memo for all permissions it denies.
- * If a rule has a memo, and fails, add that memo for all permissions it allows.
+ * Collect the memos relevant to a denial, tagged by kind:
+ * - "reason": a rule that passes and denies. All are kept (co-equal denies each block independently).
+ * - "remedy": a rule that fails but would allow. Dropped once an earlier rule in body/precedence
+ *   order certainly denies the bit, since satisfying a shadowed rule wouldn't change the outcome.
  */
 function extractMemos(ruleSet: RuleSet, input: PredicateFormulaInput): MemoSet {
   const pset = emptyMemoSet();
+  const acc: PartialPermissionSet = emptyPermissionSet();
   for (const rule of ruleSet.body) {
     try {
       const passing = rule.matchFunc!(input);
       for (const prop of ALL_PERMISSION_PROPS) {
         const p = rule.permissions[prop];
-        const memos: string[] = pset[prop];
         if (rule.memo) {
           if (passing && p === "deny") {
-            memos.push(rule.memo);
-          } else if (!passing && p === "allow") {
-            memos.push(rule.memo);
+            pset[prop].push({ kind: "reason", text: rule.memo });
+          } else if (!passing && p === "allow" && !isCertainPermission(acc[prop])) {
+            pset[prop].push({ kind: "remedy", text: rule.memo });
           }
         }
+        // Only a matched rule contributes to the resolved permission for this bit.
+        if (passing) { acc[prop] = combinePartialPermission(acc[prop], p); }
       }
     } catch (e) {
+      // Match unknown (rec absent), so leave `acc` unadvanced -- keep later remedies rather than
+      // suppress on a shadow we can't confirm. On the row path (where memos show) rec is present.
       if (e.code !== "NEED_ROW_DATA") {
         // If a rule is failing unexpectedly, give some information via memos.
-        // TODO: Could give a more structured result.
         for (const prop of ALL_PERMISSION_PROPS) {
-          pset[prop].push(`Rule [${rule.aclFormula}] for ${ruleSet.tableId} has an error: ${e.message}`);
+          pset[prop].push({
+            kind: "reason",
+            text: `Rule [${rule.aclFormula}] for ${ruleSet.tableId} has an error: ${e.message}`,
+          });
         }
       }
     }

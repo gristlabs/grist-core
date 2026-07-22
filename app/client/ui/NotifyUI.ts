@@ -10,6 +10,7 @@ import { isNarrowScreenObs, theme, vars } from "app/client/ui2018/cssVars";
 import { IconName } from "app/client/ui2018/IconList";
 import { icon } from "app/client/ui2018/icons";
 import { menuCssClass } from "app/client/ui2018/menus";
+import { Memo, MemoKind } from "app/common/ACLPermissions";
 import { commonUrls, isFeatureEnabled } from "app/common/gristUrls";
 
 import { dom, makeTestId, styled } from "grainjs";
@@ -85,6 +86,34 @@ function notificationIcon(item: Notification) {
   return iconName ? icon(iconName, dom.cls(cssToastIcon.className)) : null;
 }
 
+// Render denial memos. The kind is carried by the icon (a lock for what blocks you, a lightbulb for
+// how you could gain access) rather than a heading, so the distinction survives without on-screen
+// prose; the icon's title is the accessible fallback. Reasons are shown before remedies.
+const memoKindIcon: Record<MemoKind, IconName> = { reason: "Lock", remedy: "Idea" };
+const memoKindTitle: Record<MemoKind, () => string> = {
+  reason: () => t("What's blocking you"),
+  remedy: () => t("How you could gain access"),
+};
+function buildMemos(memos: Memo[]) {
+  const kinds: MemoKind[] = ["reason", "remedy"];
+  return cssToastMemos(
+    kinds.map((kind) => {
+      const items = memos.filter(m => m.kind === kind);
+      if (!items.length) { return null; }
+      // The icon carries the kind visually; give it a label and role so screen readers announce it.
+      const label = memoKindTitle[kind]();
+      return cssToastMemoGroup(
+        testId(`toast-memo-group-${kind}`),
+        items.map(memo => cssToastMemo(
+          cssToastMemoIcon(memoKindIcon[kind],
+            dom.attr("role", "img"), dom.attr("aria-label", label), dom.attr("title", label)),
+          dom("div", memo.text, testId("toast-memo")),
+        )),
+      );
+    }),
+  );
+}
+
 function buildNotificationDom(item: Notification, options: IBeaconOpenOptions) {
   const iconElement = notificationIcon(item);
   const hasLeftIcon = Boolean(!item.options.title && iconElement);
@@ -102,12 +131,7 @@ function buildNotificationDom(item: Notification, options: IBeaconOpenOptions) {
       item.options.actions.length ? cssToastActions(
         item.options.actions.map(action => buildAction(action, item, options)),
       ) : null,
-      item.options.memos.length ? cssToastMemos(
-        item.options.memos.map(memo => cssToastMemo(
-          cssToastMemoIcon("Memo"),
-          dom("div", memo, testId("toast-memo")),
-        )),
-      ) : null,
+      item.options.memos.length ? buildMemos(item.options.memos) : null,
     ),
     dom.maybe(item.options.canUserClose, () =>
       cssToastClose(testId("toast-close"),
@@ -409,6 +433,13 @@ const cssToastMemos = styled("div", `
   margin-top: 8px;
   display: flex;
   flex-direction: column;
+  row-gap: 8px;
+`);
+
+const cssToastMemoGroup = styled("div", `
+  display: flex;
+  flex-direction: column;
+  row-gap: 8px;
 `);
 
 const cssToastMemo = styled("div", `
