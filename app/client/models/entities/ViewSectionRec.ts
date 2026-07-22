@@ -82,11 +82,16 @@ export interface ChartOptions {
   aggregate?: boolean;
 }
 
+// What the row-number gutter of a grid shows: position numbers (default), bracketed row IDs,
+// or nothing (gutter collapsed).
+export type RowNumbersMode = "number" | "rowId" | "hidden";
+
 export interface ViewSectionOptions extends ChartOptions {
   // Options for GridView.
   verticalGridlines?: boolean;
   horizontalGridlines?: boolean;
   zebraStripes?: boolean;
+  rowNumbers?: RowNumbersMode;
   numFrozen?: number;
   rowHeight?: number;           // Optional limit on height of rows, in lines.
   rowHeightUniform?: boolean;   // Whether rowHeight should make rows uniform height, by expanding shorter rows.
@@ -472,6 +477,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     verticalGridlines: true,
     horizontalGridlines: true,
     zebraStripes: false,
+    rowNumbers: "number",
     customView: "",
     numFrozen: 0,
   };

@@ -12,7 +12,7 @@ import * as http from "http";
 
 // IPC messages exchanged between shell and worker.
 export interface ShellToWorker { action: "connection"; }
-export interface WorkerToShell { action: "ready" | "restart"; }
+export interface WorkerToShell { action: "ready" | "restart" | "busy"; }
 
 export function isUnderRestartShell(): boolean {
   return isAffirmative(process.env.GRIST_UNDER_RESTART_SHELL);
@@ -46,8 +46,21 @@ export function createRestartShellWorkerServer(): http.Server {
  */
 export async function signalRestartShellReady(): Promise<void> {
   if (process.env.GRIST_TEST_RESTART_SHELL_READY_DELAY) {
+    const busyInterval = Number(process.env.GRIST_TEST_RESTART_SHELL_BUSY_INTERVAL) || 0;
+    const busyTimeout = busyInterval ? setInterval(signalRestartShellBusy, busyInterval) : undefined;
     await delay(Number(process.env.GRIST_TEST_RESTART_SHELL_READY_DELAY));
+    if (busyTimeout) { clearInterval(busyTimeout); }
   }
   const ready: WorkerToShell = { action: "ready" };
   process.send?.(ready);
+}
+
+/**
+ * Tell the parent RestartShell to reset the unhealthy timeout. Caller must
+ * invoke this function continuously while the server is busy doing asynchronous
+ * work during startup (e.g. downloading the full edition of Grist).
+ */
+export function signalRestartShellBusy(): void {
+  const busy: WorkerToShell = { action: "busy" };
+  process.send?.(busy);
 }

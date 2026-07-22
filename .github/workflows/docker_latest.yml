@@ -42,22 +42,17 @@ env:
   TAG: ${{ inputs.tag || 'latest' }}
   DOCKER_HUB_OWNER: ${{ vars.DOCKER_HUB_OWNER || github.repository_owner }}
 
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
 jobs:
-  push_to_registry:
-    name: Push latest Docker image to Docker Hub
+  setup:
+    name: Compute build matrix
     runs-on: ubuntu-22.04
     if: ${{ vars.RUN_DAILY_BUILD }}
-    strategy:
-      matrix:
-        python-version: [3.11]
-        node-version: [22.x]
-        image:
-          # We build two images, `grist-oss` and `grist`.
-          # See https://github.com/gristlabs/grist-core?tab=readme-ov-file#available-docker-images
-          - name: "grist-oss"
-            repo: "grist-core"
-          - name: "grist"
-            repo: "grist-ee"
+    outputs:
+      matrix: ${{ steps.set_matrix.outputs.matrix }}
     steps:
       - name: Build settings
         run: |
@@ -66,6 +61,38 @@ jobs:
           echo "Docker Hub Owner: $DOCKER_HUB_OWNER"
           echo "Tag: $TAG"
 
+      - name: Compute matrix from selected platforms
+        id: set_matrix
+        env:
+          DISABLE_TESTS: ${{ inputs.disable_tests }}
+        run: |
+          amd64_tests=true
+          if [[ "$DISABLE_TESTS" == "true" ]]; then amd64_tests=false; fi
+          arches='[]'
+          if [[ "$PLATFORMS" == *"linux/amd64"* ]]; then
+            arches=$(jq -c --argjson run_tests "$amd64_tests" \
+              '. + [{"arch":"amd64","platform":"linux/amd64","runner":"ubuntu-22.04","run_tests":$run_tests}]' <<< "$arches")
+          fi
+          if [[ "$PLATFORMS" == *"linux/arm64"* ]]; then
+            arches=$(jq -c '. + [{"arch":"arm64","platform":"linux/arm64/v8","runner":"ubuntu-22.04-arm","run_tests":false}]' <<< "$arches")
+          fi
+          images='[
+            {"image":"grist",     "ee":true,  "version_checking":"true"},
+            {"image":"grist-oss", "ee":false, "version_checking":"false"}
+          ]'
+          include=$(jq -c --argjson imgs "$images" \
+            '[.[] as $a | $imgs[] as $i | $a + $i]' <<< "$arches")
+          echo "matrix={\"include\":$include}" >> "$GITHUB_OUTPUT"
+
+  build_and_push:
+    name: Build and push ${{ matrix.arch }} ${{ matrix.image }}
+    runs-on: ${{ matrix.runner }}
+    needs: setup
+    if: ${{ vars.RUN_DAILY_BUILD }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.setup.outputs.matrix) }}
+    steps:
       - name: Free disk space
         run: |
           echo "Disk space before cleanup:"
@@ -90,75 +117,80 @@ jobs:
         with:
           ref: ${{ env.BRANCH }}
 
+      # grist-oss does not bundle ext/ but the `ext=ext` build-context requires it.
       - name: Add a dummy ext/ directory
+        if: ${{ !matrix.ee }}
         run:
           mkdir ext && touch ext/dummy
 
       - name: Check out the ext/ directory
-        if: matrix.image.name != 'grist-oss'
-        run: buildtools/checkout-ext-directory.sh ${{ matrix.image.repo }}
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        if: ${{ matrix.ee }}
+        run: buildtools/checkout-ext-directory.sh grist-ee
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v3
 
       - name: Prepare image but do not push it yet
-        uses: docker/build-push-action@v2
+        if: ${{ matrix.run_tests }}
+        uses: docker/build-push-action@v6
         with:
           context: .
           load: true
-          tags: ${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image.name }}:${{ env.TAG }}
-          cache-from: type=gha
+          build-args: |
+            GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING=${{ matrix.version_checking }}
+          platforms: ${{ matrix.platform }}
+          tags: ${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image }}:${{ env.TAG }}
+          cache-from: type=gha,scope=${{ matrix.image }}-${{ matrix.arch }}
+          cache-to: type=gha,scope=${{ matrix.image }}-${{ matrix.arch }},mode=max
           build-contexts: ext=ext
 
-      - name: Use Node.js ${{ matrix.node-version }} for testing
-        if: ${{ !inputs.disable_tests }}
-        uses: actions/setup-node@v1
+      - name: Use Node.js 22.x for testing
+        if: ${{ matrix.run_tests }}
+        uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 22.x
 
-      - name: Set up Python ${{ matrix.python-version }} for testing - maybe not needed
-        if: ${{ !inputs.disable_tests }}
-        uses: actions/setup-python@v2
+      - name: Set up Python 3.11 for testing - maybe not needed
+        if: ${{ matrix.run_tests }}
+        uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: 3.11
 
       - name: Install Python packages
-        if: ${{ !inputs.disable_tests }}
+        if: ${{ matrix.run_tests }}
         run: |
           pip install virtualenv
           yarn run install:python
 
       - name: Install Node.js packages
-        if: ${{ !inputs.disable_tests }}
+        if: ${{ matrix.run_tests }}
         run: yarn install:docker
 
       - name: Disable the ext/ directory
-        if: ${{ !inputs.disable_tests }}
+        if: ${{ matrix.run_tests }}
         run: mv ext/ ext-disabled/
 
       - name: Build Node.js code
-        if: ${{ !inputs.disable_tests }}
+        if: ${{ matrix.run_tests }}
         run: yarn run build
 
       - name: Install Google Chrome and chromedriver
+        if: ${{ matrix.run_tests }}
         run: buildtools/install_chrome_for_tests.sh -y
 
       - name: Run tests with default settings
-        if: ${{ !inputs.disable_tests }}
+        if: ${{ matrix.run_tests }}
         run: |
-          export TEST_IMAGE=${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image.name }}:${{ env.TAG }}
+          export TEST_IMAGE=${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image }}:${{ env.TAG }}
           export VERBOSE=1
           export DEBUG=1
           export MOCHA_WEBDRIVER_HEADLESS=1
           yarn run test:docker
 
       - name: Run some tests with gvisor and python
-        if: ${{ !inputs.disable_tests }}
+        if: ${{ matrix.run_tests }}
         run: |
-          export TEST_IMAGE=${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image.name }}:${{ env.TAG }}
+          export TEST_IMAGE=${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image }}:${{ env.TAG }}
           export VERBOSE=1
           export DEBUG=1
           export MOCHA_WEBDRIVER_HEADLESS=1
@@ -167,50 +199,157 @@ jobs:
           yarn run test:docker
 
       - name: Re-enable the ext/ directory
-        if: ${{ !inputs.disable_tests }}
+        if: ${{ matrix.run_tests }}
         run: mv ext-disabled/ ext/
 
       - name: Log in to Docker Hub
-        uses: docker/login-action@v1 
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Push to Docker Hub
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          build-args: GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING=${{ matrix.image.name == 'grist-oss' && 'false' || 'true' }}
-          platforms: ${{ env.PLATFORMS }}
-          push: true
-          tags: ${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image.name }}:${{ env.TAG }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          build-contexts: ext=ext
-
-      - name: Push Enterprise to Docker Hub
-        if: ${{ matrix.image.name == 'grist' }}
-        uses: docker/build-push-action@v2
+      - name: Build and push ${{ matrix.image }} by digest
+        id: build
+        uses: docker/build-push-action@v6
         with:
           context: .
           build-args: |
-            BASE_IMAGE=${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image.name}}
-            BASE_VERSION=${{ env.TAG }}
-            GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING=true
+            GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING=${{ matrix.version_checking }}
+          platforms: ${{ matrix.platform }}
+          outputs: type=image,name=${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image }},push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=gha,scope=${{ matrix.image }}-${{ matrix.arch }}
+          cache-to: type=gha,scope=${{ matrix.image }}-${{ matrix.arch }},mode=max
+          build-contexts: ext=ext
+
+      # ext/Dockerfile builds its base as `${BASE_IMAGE}:${BASE_VERSION}`, but grist was pushed
+      # by digest (no tag exists yet). Read the digest so we can reference grist from ext/Dockerfile
+      # in the next step as grist@sha256:DIGEST.
+      - name: Read grist digest
+        if: ${{ matrix.ee }}
+        id: read_grist_digest
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: echo "hex=${DIGEST#sha256:}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push grist-ee by digest
+        if: ${{ matrix.ee }}
+        id: build_ee
+        uses: docker/build-push-action@v6
+        with:
+          context: .
           file: ext/Dockerfile
-          platforms: ${{ env.PLATFORMS }}
-          push: true
-          tags: ${{ env.DOCKER_HUB_OWNER }}/grist-ee:${{ env.TAG }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          build-args: |
+            BASE_IMAGE=${{ env.DOCKER_HUB_OWNER }}/grist@sha256
+            BASE_VERSION=${{ steps.read_grist_digest.outputs.hex }}
+          platforms: ${{ matrix.platform }}
+          outputs: type=image,name=${{ env.DOCKER_HUB_OWNER }}/grist-ee,push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=gha,scope=grist-ee-${{ matrix.arch }}
+          cache-to: type=gha,scope=grist-ee-${{ matrix.arch }},mode=max
+
+      - name: Export digests
+        env:
+          IMAGE: ${{ matrix.image }}
+          DIGEST: ${{ steps.build.outputs.digest }}
+          EE_DIGEST: ${{ steps.build_ee.outputs.digest }}
+        run: |
+          mkdir -p "/tmp/digests/$IMAGE"
+          touch "/tmp/digests/$IMAGE/${DIGEST#sha256:}"
+          if [[ -n "$EE_DIGEST" ]]; then
+            mkdir -p /tmp/digests/grist-ee
+            touch "/tmp/digests/grist-ee/${EE_DIGEST#sha256:}"
+          fi
+
+      - name: Upload digests
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ matrix.image }}-${{ matrix.arch }}
+          path: /tmp/digests/*
+          retention-days: 1
+          if-no-files-found: error
+
+  publish:
+    name: Publish manifests
+    runs-on: ubuntu-22.04
+    needs: build_and_push
+    if: ${{ vars.RUN_DAILY_BUILD }}
+    steps:
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/digests
+          pattern: digests-*
+          merge-multiple: true
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.DOCKER_HUB_OWNER }}/grist
+          tags: |
+            ${{ env.TAG }}
+
+      - name: Docker meta (EE)
+        id: meta_ee
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.DOCKER_HUB_OWNER }}/grist-ee
+          tags: |
+            ${{ env.TAG }}
+
+      - name: Docker meta (OSS)
+        id: meta_oss
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.DOCKER_HUB_OWNER }}/grist-oss
+          tags: |
+            ${{ env.TAG }}
+
+      - name: Create grist manifest list and push
+        working-directory: /tmp/digests/grist
+        env:
+          METADATA_JSON: ${{ steps.meta.outputs.json }}
+        run: |
+          docker buildx imagetools create \
+            $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$METADATA_JSON") \
+            $(printf '${{ env.DOCKER_HUB_OWNER }}/grist@sha256:%s ' *)
+
+      - name: Create grist-ee manifest list and push
+        working-directory: /tmp/digests/grist-ee
+        env:
+          METADATA_JSON: ${{ steps.meta_ee.outputs.json }}
+        run: |
+          docker buildx imagetools create \
+            $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$METADATA_JSON") \
+            $(printf '${{ env.DOCKER_HUB_OWNER }}/grist-ee@sha256:%s ' *)
+
+      - name: Create grist-oss manifest list and push
+        working-directory: /tmp/digests/grist-oss
+        env:
+          METADATA_JSON: ${{ steps.meta_oss.outputs.json }}
+        run: |
+          docker buildx imagetools create \
+            $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$METADATA_JSON") \
+            $(printf '${{ env.DOCKER_HUB_OWNER }}/grist-oss@sha256:%s ' *)
 
   update_latest_branch:
     name: Update latest branch
     runs-on: ubuntu-22.04
-    needs: push_to_registry
+    needs: publish
     steps:
       - name: Check out the repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           ref: ${{ inputs.latest_branch }}
 

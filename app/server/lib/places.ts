@@ -61,6 +61,10 @@ export function getAppRootFor(appRoot: string, subdirectory: string): string {
  * Return the path to a given subdirectory, from the correct appRoot.
  */
 export function getAppPathTo(appRoot: string, subdirectory: string): string {
+  if (subdirectory === "ext" && process.env.GRIST_EXT_DIR) {
+    return path.resolve(process.env.GRIST_EXT_DIR);
+  }
+
   return path.resolve(getAppRootFor(appRoot, subdirectory), subdirectory);
 }
 

@@ -66,6 +66,7 @@ describe("RestartShell", function() {
   afterEach(async function() {
     sandbox.restore();
     delete process.env.GRIST_TEST_RESTART_SHELL_READY_DELAY;
+    delete process.env.GRIST_TEST_RESTART_SHELL_BUSY_INTERVAL;
     if (handle) {
       await handle.shutdown();
     }
@@ -190,6 +191,81 @@ describe("RestartShell", function() {
     // returns the real Grist response -- just check the status code.
     const recovered = await axios.get(`${serverUrl}/status`);
     assert.equal(recovered.status, 200);
+  });
+
+  it("should stay healthy through a slow spawn that sends busy heartbeats", async function() {
+    // Watchdog fires at 30ms (before the worker can boot), so /status flips to unhealthy.
+    // Once the worker reaches its 2000ms ready stall and starts heartbeating, each busy
+    // resets the watchdog, so /status recovers to 200 while the restart is still in flight.
+    sandbox.stub(Deps, "unhealthyTimeoutMs").value(30);
+    process.env.GRIST_TEST_RESTART_SHELL_READY_DELAY = "2000";
+    process.env.GRIST_TEST_RESTART_SHELL_BUSY_INTERVAL = "20";
+    const restartPromise = handle.restart();
+    let restartDone = false;
+    void restartPromise.then(() => { restartDone = true; });
+
+    // Both the unhealthy flip and the heartbeat recovery must happen before completion.
+    let sawUnhealthy = false;
+    let recoveredMidRestart = false;
+    const deadline = Date.now() + 30000;
+    while (Date.now() < deadline && !restartDone && !recoveredMidRestart) {
+      const status = (await axios.get(`${serverUrl}/status`, { validateStatus: () => true })).status;
+      if (status === 500) { sawUnhealthy = true; }
+      if (sawUnhealthy && status === 200) { recoveredMidRestart = true; }
+      await delay(20);
+    }
+    assert.isTrue(sawUnhealthy, "watchdog should flip /status to unhealthy before heartbeats start");
+    assert.isTrue(recoveredMidRestart,
+      "busy heartbeats should recover /status to healthy before the restart completes");
+
+    await restartPromise;
+    assert.equal((await axios.get(`${serverUrl}/status`)).status, 200);
+  });
+
+  it("should re-evaluate a function childEntryPoint on every fork", async function() {
+    await handle.shutdown();
+    let forks = 0;
+    const entryPoint = require.resolve("stubs/app/server/server");
+    handle = await runRestartShell({
+      publicPort: 0,
+      childEntryPoint: () => { forks++; return { entryPoint }; },
+    });
+    serverUrl = `http://localhost:${handle.port}`;
+    assert.equal(forks, 1, "spec should be resolved for the initial spawn");
+    await handle.restart();
+    assert.equal(forks, 2, "spec should be re-resolved on each refork");
+  });
+
+  it("should fall back to a re-resolved spec when a spawn fails before ready", async function() {
+    await handle.shutdown();
+    const entryPoint = require.resolve("stubs/app/server/server");
+    const badEntryPoint = path.join(tmpDir, "no-such-entry-point.js");
+    handle = await runRestartShell({
+      publicPort: 0,
+      childEntryPoint: ctx => ctx.hasSpawnFailed(badEntryPoint) ?
+        { entryPoint } :
+        { entryPoint: badEntryPoint },
+    });
+    serverUrl = `http://localhost:${handle.port}`;
+    assert.equal((await axios.get(`${serverUrl}/status`)).status, 200);
+  });
+
+  it("falls back when a spec sharing the entry point but with a distinct key fails", async function() {
+    await handle.shutdown();
+    const entryPoint = require.resolve("stubs/app/server/server");
+    handle = await runRestartShell({
+      publicPort: 0,
+      childEntryPoint: ctx => ctx.hasSpawnFailed("full:broken") ?
+        { entryPoint } :
+        {
+          entryPoint,
+          key: "full:broken",
+          // A NODE_PATH that can't resolve the entry point's imports makes the fork fail.
+          env: { NODE_PATH: path.join(tmpDir, "no-such-modules") },
+        },
+    });
+    serverUrl = `http://localhost:${handle.port}`;
+    assert.equal((await axios.get(`${serverUrl}/status`)).status, 200);
   });
 
   it("should route keep-alive connections to new child after restart", async function() {

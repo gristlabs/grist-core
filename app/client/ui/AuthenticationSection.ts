@@ -1117,7 +1117,7 @@ function buildProviderCard(
         cssMethodError(error, testId("error-message")),
       ) : null,
     provider.isSelectedByEnv ?
-      cssMethodInfo(
+      dom("div",
         t("Active method is controlled by an environment variable. Unset variable to change active method."),
       ) : null,
   );
@@ -1184,7 +1184,6 @@ const cssHeroProviderName = styled("div", `
 `);
 
 const cssHeroDescription = styled("div", `
-  color: ${theme.lightText};
   font-size: ${vars.mediumFontSize};
   line-height: 1.4;
   margin-bottom: 8px;
@@ -1204,7 +1203,6 @@ const cssHeroAdminRow = styled("div", `
   padding-top: 12px;
   border-top: 1px solid ${theme.menuBorder};
   font-size: ${vars.mediumFontSize};
-  color: ${theme.lightText};
 `);
 
 const cssHeroActions = styled("div", `
@@ -1215,7 +1213,6 @@ const cssHeroActions = styled("div", `
 
 const cssAuthIntro = styled("div", `
   font-size: ${vars.mediumFontSize};
-  color: ${theme.lightText};
   line-height: 1.5;
   margin-bottom: 20px;
 `);
@@ -1354,12 +1351,7 @@ const cssMethodContent = styled("div", `
   gap: 12px;
 `);
 
-const cssMethodInfo = styled("div", `
-  color: ${theme.lightText};
-`);
-
 const cssMethodHint = styled("div", `
-  color: ${theme.lightText};
   font-size: ${vars.smallFontSize};
   & a {
     color: ${theme.controlFg};

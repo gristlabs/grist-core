@@ -69,6 +69,8 @@ export interface TestContext {
 /** Server configuration mode */
 export const CoreServerMode = StringUnion("merged", "separated", "direct");
 export type CoreServerMode = typeof CoreServerMode.type;
+// ExtraServerModes is `never` in core; other editions widen it.
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 export type ServerMode = CoreServerMode | ExtraServerModes;
 
 // Module-level state for each test run

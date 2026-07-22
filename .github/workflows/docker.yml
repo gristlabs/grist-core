@@ -17,19 +17,42 @@ env:
   DOCKER_HUB_OWNER: ${{ vars.DOCKER_HUB_OWNER || github.repository_owner }}
   PLATFORMS: ${{ vars.PLATFORMS || 'linux/amd64,linux/arm64/v8' }}
 
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
 jobs:
-  push_to_registry:
-    name: Push Docker images to Docker Hub
+  setup:
+    name: Compute build matrix
     runs-on: ubuntu-22.04
+    outputs:
+      matrix: ${{ steps.set_matrix.outputs.matrix }}
+    steps:
+      - name: Compute matrix from selected platforms
+        id: set_matrix
+        run: |
+          arches='[]'
+          if [[ "$PLATFORMS" == *"linux/amd64"* ]]; then
+            arches=$(jq -c '. + [{"arch":"amd64","platform":"linux/amd64","runner":"ubuntu-22.04"}]' <<< "$arches")
+          fi
+          if [[ "$PLATFORMS" == *"linux/arm64"* ]]; then
+            arches=$(jq -c '. + [{"arch":"arm64","platform":"linux/arm64/v8","runner":"ubuntu-22.04-arm"}]' <<< "$arches")
+          fi
+          images='[
+            {"image":"grist",     "ee":true,  "version_checking":"true",  "channel":""},
+            {"image":"grist-oss", "ee":false, "version_checking":"false", "channel":"release"}
+          ]'
+          include=$(jq -c --argjson imgs "$images" \
+            '[.[] as $a | $imgs[] as $i | $a + $i]' <<< "$arches")
+          echo "matrix={\"include\":$include}" >> "$GITHUB_OUTPUT"
+
+  build_and_push:
+    name: Build and push ${{ matrix.arch }} ${{ matrix.image }}
+    runs-on: ${{ matrix.runner }}
+    needs: setup
     strategy:
-      matrix:
-        image:
-          # We build two images, `grist-oss` and `grist`.
-          # See https://github.com/gristlabs/grist-core?tab=readme-ov-file#available-docker-images
-          - name: "grist-oss"
-            repo: "grist-core"
-          - name: "grist"
-            repo: "grist-ee"
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.setup.outputs.matrix) }}
     steps:
       - name: Free some space
         run: |
@@ -39,15 +62,117 @@ jobs:
           sudo rm -rf /usr/share/swift
 
       - name: Check out the repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
+      # grist-oss does not bundle ext/ but the `ext=ext` build-context requires it.
       - name: Add a dummy ext/ directory
+        if: ${{ !matrix.ee }}
         run:
           mkdir ext && touch ext/dummy
 
       - name: Check out the ext/ directory
-        if: matrix.image.name != 'grist-oss'
-        run: buildtools/checkout-ext-directory.sh ${{ matrix.image.repo }}
+        if: ${{ matrix.ee }}
+        run: buildtools/checkout-ext-directory.sh grist-ee
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push ${{ matrix.image }} by digest
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          build-args: |
+            GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING=${{ matrix.version_checking }}
+            GRIST_BUILD_CHANNEL=${{ matrix.channel }}
+          platforms: ${{ matrix.platform }}
+          outputs: type=image,name=${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image }},push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=gha,scope=${{ matrix.image }}-${{ matrix.arch }}
+          cache-to: type=gha,scope=${{ matrix.image }}-${{ matrix.arch }},mode=max
+          build-contexts: ext=ext
+
+      # ext/Dockerfile builds its base as `${BASE_IMAGE}:${BASE_VERSION}`, but grist was pushed
+      # by digest (no tag exists yet). Read the digest so we can reference grist from ext/Dockerfile
+      # in the next step as grist@sha256:DIGEST.
+      - name: Read grist digest
+        if: ${{ matrix.ee }}
+        id: read_grist_digest
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: echo "hex=${DIGEST#sha256:}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push grist-ee by digest
+        if: ${{ matrix.ee }}
+        id: build_ee
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ext/Dockerfile
+          build-args: |
+            BASE_IMAGE=${{ env.DOCKER_HUB_OWNER }}/grist@sha256
+            BASE_VERSION=${{ steps.read_grist_digest.outputs.hex }}
+          platforms: ${{ matrix.platform }}
+          outputs: type=image,name=${{ env.DOCKER_HUB_OWNER }}/grist-ee,push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=gha,scope=grist-ee-${{ matrix.arch }}
+          cache-to: type=gha,scope=grist-ee-${{ matrix.arch }},mode=max
+
+      - name: Export digests
+        env:
+          IMAGE: ${{ matrix.image }}
+          DIGEST: ${{ steps.build.outputs.digest }}
+          EE_DIGEST: ${{ steps.build_ee.outputs.digest }}
+        run: |
+          mkdir -p "/tmp/digests/$IMAGE"
+          touch "/tmp/digests/$IMAGE/${DIGEST#sha256:}"
+          if [[ -n "$EE_DIGEST" ]]; then
+            mkdir -p /tmp/digests/grist-ee
+            touch "/tmp/digests/grist-ee/${EE_DIGEST#sha256:}"
+          fi
+
+      - name: Upload digests
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ matrix.image }}-${{ matrix.arch }}
+          path: /tmp/digests/*
+          retention-days: 1
+          if-no-files-found: error
+
+  publish:
+    name: Publish manifests and full edition extensions
+    runs-on: ubuntu-22.04
+    needs: build_and_push
+    steps:
+      - name: Free some space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /usr/local/.ghcup
+          sudo rm -rf /usr/share/swift
+
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/digests
+          pattern: digests-*
+          merge-multiple: true
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Generate metadata tag input
         id: meta_input
@@ -65,59 +190,68 @@ jobs:
 
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: |
-            ${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image.name }}
+            ${{ env.DOCKER_HUB_OWNER }}/grist
           tags: |
             ${{ steps.meta_input.outputs.tags }}
 
       - name: Docker meta (EE)
-        if: ${{ matrix.image.name == 'grist' }}
         id: meta_ee
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: |
             ${{ env.DOCKER_HUB_OWNER }}/grist-ee
           tags: |
             ${{ steps.meta_input.outputs.tags }}
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
+      - name: Docker meta (OSS)
+        id: meta_oss
+        uses: docker/metadata-action@v5
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          images: |
+            ${{ env.DOCKER_HUB_OWNER }}/grist-oss
+          tags: |
+            ${{ steps.meta_input.outputs.tags }}
 
-      - name: Push to Docker Hub
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          build-args: GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING=${{ matrix.image.name == 'grist-oss' && 'false' || 'true' }}
-          push: true
-          platforms: ${{ env.PLATFORMS }}
-          tags: ${{ steps.meta.outputs.tags }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          build-contexts: ext=ext
+      - name: Create grist manifest list and push
+        working-directory: /tmp/digests/grist
+        env:
+          METADATA_JSON: ${{ steps.meta.outputs.json }}
+        run: |
+          docker buildx imagetools create \
+            $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$METADATA_JSON") \
+            $(printf '${{ env.DOCKER_HUB_OWNER }}/grist@sha256:%s ' *)
 
-      - name: Push Enterprise to Docker Hub
-        if: ${{ matrix.image.name == 'grist' }}
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          build-args: |
-            BASE_IMAGE=${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image.name}}
-            BASE_VERSION=${{ env.TAG }}
-            GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING=true
-          file: ext/Dockerfile
-          platforms: ${{ env.PLATFORMS }}
-          push: true
-          tags: ${{ steps.meta_ee.outputs.tags }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+      - name: Create grist-ee manifest list and push
+        working-directory: /tmp/digests/grist-ee
+        env:
+          METADATA_JSON: ${{ steps.meta_ee.outputs.json }}
+        run: |
+          docker buildx imagetools create \
+            $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$METADATA_JSON") \
+            $(printf '${{ env.DOCKER_HUB_OWNER }}/grist-ee@sha256:%s ' *)
+
+      - name: Build and publish full edition extensions
+        id: pkg
+        env:
+          IMAGE: ${{ env.DOCKER_HUB_OWNER }}/grist:${{ env.TAG }}
+          CHANNEL: release
+          LABEL: ${{ env.TAG }}
+          GRIST_STATIC_HOST: ${{ vars.GRIST_STATIC_HOST || 'https://grist-static.com' }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ vars.GRIST_STATIC_AWS_REGION || 'us-east-1' }}
+          GRIST_STATIC_S3_BUCKET: ${{ vars.GRIST_STATIC_S3_BUCKET || 'grist-static' }}
+          GRIST_STATIC_S3_PREFIX: ${{ vars.GRIST_STATIC_S3_PREFIX || 'grist-full-edition' }}
+        run: buildtools/publish-grist-full-edition.sh
+
+      - name: Create grist-oss manifest list and push
+        working-directory: /tmp/digests/grist-oss
+        env:
+          METADATA_JSON: ${{ steps.meta_oss.outputs.json }}
+        run: |
+          docker buildx imagetools create \
+            $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$METADATA_JSON") \
+            $(printf '${{ env.DOCKER_HUB_OWNER }}/grist-oss@sha256:%s ' *)
