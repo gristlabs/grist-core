@@ -51,7 +51,11 @@ COPY stubs /grist/stubs
 COPY buildtools /grist/buildtools
 # Copy locales files early. During build process they are validated.
 COPY static/locales /grist/static/locales
-RUN WEBPACK_EXTRA_MODULE_PATHS=/node_modules yarn run build:prod
+# Channel/commit are only set on tagged releases.
+ARG GRIST_BUILD_CHANNEL=
+ARG GRIST_BUILD_COMMIT=
+RUN GRIST_BUILD_CHANNEL=${GRIST_BUILD_CHANNEL} GRIST_BUILD_COMMIT=${GRIST_BUILD_COMMIT} \
+ WEBPACK_EXTRA_MODULE_PATHS=/node_modules yarn run build:prod
 # We don't need them anymore, they will by copied to the final image.
 RUN rm -rf /grist/static/locales
 
@@ -94,6 +98,7 @@ FROM docker.io/gristlabs/gvisor-unprivileged:buster AS sandbox
 FROM node:22-trixie-slim
 
 ARG GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING=false
+ARG GRIST_EXT_FULL_EDITION_BASE_URL=https://grist-static.com/grist-full-edition
 
 # Install curl for docker healthchecks, libexpat1 and libsqlite3-0 for python3
 # library binary dependencies, and procps for managing gvisor processes.
@@ -180,6 +185,7 @@ ENV \
   GRIST_INST_DIR=/persist \
   GRIST_SESSION_COOKIE=grist_core \
   GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING=${GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING} \
+  GRIST_EXT_FULL_EDITION_BASE_URL=${GRIST_EXT_FULL_EDITION_BASE_URL} \
   GVISOR_FLAGS="-unprivileged -ignore-cgroups" \
   NODE_OPTIONS="--no-deprecation" \
   NODE_ENV=production \

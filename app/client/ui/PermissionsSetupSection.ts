@@ -297,13 +297,11 @@ const cssPresetButton = styled("div", `
   border-radius: 8px;
   font-size: 12.5px;
   font-weight: 500;
-  color: ${theme.lightText};
   cursor: pointer;
   user-select: none;
   transition: all 0.15s ease;
 
   &.active {
-    color: ${theme.text};
     font-weight: 600;
     background: ${theme.mainPanelBg};
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.1);
@@ -365,7 +363,6 @@ const cssBadge = styled("span", `
 
 const cssPermissionDescription = styled("div", `
   font-size: 13px;
-  color: ${theme.lightText};
   line-height: 1.4;
 `);
 
@@ -386,7 +383,6 @@ const cssRestartingRow = styled("div", `
   padding: 14px 16px;
   border: 1px solid ${theme.pagePanelsBorder};
   border-radius: 8px;
-  color: ${theme.lightText};
   font-size: 14px;
 `);
 
@@ -425,6 +421,5 @@ const cssSuccessTitle = styled("div", `
 
 const cssSuccessSubtitle = styled("div", `
   font-size: 14px;
-  color: ${theme.lightText};
   margin-bottom: 16px;
 `);

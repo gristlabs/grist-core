@@ -44,7 +44,6 @@ const cssQuickSetupStepIcon = styled("div", `
 
 const cssQuickSetupStepDescription = styled("div", `
   font-size: ${vars.mediumFontSize};
-  color: ${theme.lightText};
   line-height: 1.5;
   margin-bottom: 20px;
 `);

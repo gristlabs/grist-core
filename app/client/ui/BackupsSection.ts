@@ -265,7 +265,6 @@ const cssSection = styled("div", `
 `);
 
 const cssDescription = styled("div", `
-  color: ${tokens.secondary};
   line-height: 1.55;
   margin-bottom: 16px;
 `);
@@ -361,7 +360,6 @@ const cssBackendTag = styled("span", `
 `);
 
 const cssBackendDescription = styled("div", `
-  color: ${tokens.secondary};
   font-size: ${tokens.smallFontSize};
 `);
 
