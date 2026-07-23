@@ -87,6 +87,137 @@ class TestTempRowIds(test_engine.EngineTestCase):
       ]
     })
 
+  def test_reflist_temp_ids(self):
+    self.load_sample(testsamples.sample_students)
+
+    self.engine.apply_user_actions([useractions.from_repr(
+      ['AddColumn', 'Schools', 'addresses', {'type': 'RefList:Address', 'isFormula': False}])])
+
+    out_actions = self.engine.apply_user_actions([useractions.from_repr(ua) for ua in (
+      ['BulkAddRecord', 'Address', [-1, -2], {'city': ['A', 'B']}],
+
+      # A RefList mixing temp ids and an existing id, and one left unset.
+      ['AddRecord', 'Schools', None, {'name': 'S1', 'addresses': ['L', -1, 11, -2]}],
+      ['AddRecord', 'Schools', None, {'name': 'S2'}],
+
+      # An update whose row id and RefList value both use temp ids.
+      ['AddRecord', 'Schools', -5, {'name': 'S3'}],
+      ['UpdateRecord', 'Schools', -5, {'addresses': ['L', -2]}],
+    )])
+
+    self.assertTableData('Schools', cols="subset", data=[
+      ["id",  "name",       "addresses"],
+      [1,     "Columbia",   None],
+      [2,     "Columbia",   None],
+      [3,     "Yale",       None],
+      [4,     "Yale",       None],
+      [5,     "S1",         [15, 11, 16]],
+      [6,     "S2",         None],
+      [7,     "S3",         [16]],
+    ])
+
+    # The actions above, with rowIds and RefList values translated.
+    self.assertPartialOutActions(out_actions, {
+      "stored": [
+        ['BulkAddRecord', 'Address', [15, 16], {'city': ['A', 'B']}],
+        ['AddRecord', 'Schools', 5, {'addresses': ['L', 15, 11, 16], 'name': 'S1'}],
+        ['AddRecord', 'Schools', 6, {'name': 'S2'}],
+        ['AddRecord', 'Schools', 7, {'name': 'S3'}],
+        ['UpdateRecord', 'Schools', 7, {'addresses': ['L', 16]}],
+      ]
+    })
+
+  def test_reflist_same_action_temp_ids(self):
+    self.load_sample(testsamples.sample_students)
+
+    self.engine.apply_user_actions([useractions.from_repr(
+      ['AddColumn', 'Schools', 'partners', {'type': 'RefList:Schools', 'isFormula': False}])])
+
+    # Mutual references within a single bulk add: no processing order could
+    # satisfy this cycle without temp ids.
+    out_actions = self.engine.apply_user_actions([useractions.from_repr(
+      ['BulkAddRecord', 'Schools', [-1, -2], {
+        'name': ['P1', 'P2'],
+        'partners': [['L', -2], ['L', -1, -2]],
+      }])])
+
+    self.assertTableData('Schools', cols="subset", data=[
+      ["id",  "name",       "partners"],
+      [1,     "Columbia",   None],
+      [2,     "Columbia",   None],
+      [3,     "Yale",       None],
+      [4,     "Yale",       None],
+      [5,     "P1",         [6]],
+      [6,     "P2",         [5, 6]],
+    ])
+
+    self.assertPartialOutActions(out_actions, {
+      "stored": [
+        ['BulkAddRecord', 'Schools', [5, 6], {
+          'name': ['P1', 'P2'],
+          'partners': [['L', 6], ['L', 5, 6]],
+        }],
+      ]
+    })
+
+  def test_reflist_unusual_values(self):
+    self.load_sample(testsamples.sample_students)
+
+    # Conversion turns any list holding a non-int into alttext before translation runs, so
+    # garbage lands as garbage without disturbing valid temp ids in the same bundle. (Unresolved
+    # negatives are the exception -- rejected; see tests below.)
+    self.engine.apply_user_actions([useractions.from_repr(ua) for ua in (
+      ['AddColumn', 'Schools', 'addresses', {'type': 'RefList:Address', 'isFormula': False}],
+      ['AddRecord', 'Address', -1, {'city': 'A'}],   # temp id -1 maps to Address 15
+      ['BulkAddRecord', 'Schools', [None] * 8, {
+        'name': ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8'],
+        'addresses': [
+          'hello',                  # alttext, not a list
+          None,
+          0,
+          ['L'],                    # empty list
+          ['L', 11],                # existing ids only
+          ['L', -1],                # valid temp id
+          ['L', 11, -1],            # existing id mixed with a valid temp id
+          ['L', -1.5],              # non-int element -> alttext, so not rejected
+        ],
+      }],
+      ['AddRecord', 'Schools', None, {'name': 'S9', 'addresses': ['L', -1, 'x']}],
+      ['AddRecord', 'Schools', None, {'name': 'S10', 'addresses': ['L', -1, ['L', 11]]}],
+    )])
+
+    self.assertTableData('Schools', cols="subset", rows=lambda r: r.id > 4, data=[
+      ["id",  "name",   "addresses"],
+      [5,     "S1",     "hello"],
+      [6,     "S2",     None],
+      [7,     "S3",     None],
+      [8,     "S4",     None],
+      [9,     "S5",     [11]],
+      [10,    "S6",     [15]],          # temp id translated despite garbage in sibling rows
+      [11,    "S7",     [11, 15]],
+      [12,    "S8",     "[-1.5]"],
+      [13,    "S9",     "[-1, 'x']"],
+      [14,    "S10",    "[-1, [11]]"],
+    ])
+
+  def test_reflist_rejects_unresolved_temp_id(self):
+    self.load_sample(testsamples.sample_students)
+    self.engine.apply_user_actions([useractions.from_repr(
+      ['AddColumn', 'Schools', 'addresses', {'type': 'RefList:Address', 'isFormula': False}])])
+
+    # An unresolved negative id rejects the whole bundle rather than storing an unusable ref.
+    with self.assertRaisesRegex(ValueError, r"unknown temporary row id -99 in column Schools\.addresses"):
+      self.engine.apply_user_actions([useractions.from_repr(
+        ['AddRecord', 'Schools', None, {'name': 'S1', 'addresses': ['L', -99]}])])
+
+  def test_ref_rejects_unresolved_temp_id(self):
+    self.load_sample(testsamples.sample_students)
+
+    # Same rejection for a single Ref, not just RefList.
+    with self.assertRaisesRegex(ValueError, r"unknown temporary row id -99 in column Schools\.address"):
+      self.engine.apply_user_actions([useractions.from_repr(
+        ['AddRecord', 'Schools', None, {'name': 'S1', 'address': -99}])])
+
   def test_update_remove(self):
     self.load_sample(testsamples.sample_students)
 

@@ -449,6 +449,16 @@ class BaseReferenceColumn(BaseColumn):
     for r in self._value_iterable(new_value):
       self._relation.add_reference(row_id, r)
 
+  def _reject_unresolved_temp_ids(self, values):
+    # A negative id surviving translation is a temp id the bundle never created, and can never
+    # resolve. (A positive missing id is a supported dangling ref, so we leave those alone.)
+    for value in values:
+      for r in (value if isinstance(value, list) else (value,)):
+        if isinstance(r, int) and r < 0:
+          raise ValueError(
+            "Reference to unknown temporary row id %s in column %s.%s" % (
+              r, self.table_id, self.col_id))
+
   def _clean_up_value(self, value):
     raise NotImplementedError()
 
@@ -570,6 +580,7 @@ class ReferenceColumn(BaseReferenceColumn):
   def prepare_new_values(self, row_ids, values, ignore_data=False, action_summary=None):
     if action_summary and values:
       values = action_summary.translate_new_row_ids(self._target_table.table_id, values)
+      self._reject_unresolved_temp_ids(values)
     return super(ReferenceColumn, self).prepare_new_values(row_ids, values,
         ignore_data=ignore_data, action_summary=action_summary)
 
@@ -586,6 +597,21 @@ class ReferenceListColumn(BaseReferenceColumn):
   ReferenceListColumn maintains for each row a list of references (row IDs) into another table.
   Accessing them yields RecordSets.
   """
+  def prepare_new_values(self, row_ids, values, ignore_data=False, action_summary=None):
+    # Translate temporary negative row ids to their final ids, as ReferenceColumn does.
+    # Values have been through convert(), so lists here hold only ints; other shapes pass
+    # through.
+    if action_summary:
+      values = [
+        action_summary.translate_new_row_ids(self._target_table.table_id, v)
+        if isinstance(v, list) and any(r < 0 for r in v)
+        else v
+        for v in values
+      ]
+      self._reject_unresolved_temp_ids(values)
+    return super(ReferenceListColumn, self).prepare_new_values(
+        row_ids, values, ignore_data=ignore_data, action_summary=action_summary)
+
   def _clean_up_value(self, value):
     if isinstance(value, str):
       # This is second part of a "hack" we have to do when we rename tables. During
