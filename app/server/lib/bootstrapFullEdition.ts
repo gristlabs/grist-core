@@ -57,6 +57,7 @@ export const Deps = {
   installRetryDelayMs: 10 * 1000,
   hasBuiltInExt: defaultHasBuiltInExt,
   isReleaseBuild: defaultIsReleaseBuild,
+  getGlobalConfig,
 };
 
 /** Default base URL to download extensions from. */
@@ -311,7 +312,7 @@ async function reclaimFullEditionDir(dir: string): Promise<void> {
  */
 async function updateGlobalConfigEdition(fullEditionEnabled: boolean): Promise<void> {
   const desired: Edition = fullEditionEnabled ? "enterprise" : "core";
-  const edition = getGlobalConfig().edition;
+  const edition = Deps.getGlobalConfig().edition;
   if (edition.get() === desired) { return; }
 
   log.info("bootstrapFullEdition: setting edition in global config to %s", desired);

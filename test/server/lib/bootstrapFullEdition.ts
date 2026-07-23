@@ -5,7 +5,6 @@ import {
 } from "app/server/lib/bootstrapFullEdition";
 import { checksumFile } from "app/server/lib/checksumFile";
 import { Edition } from "app/server/lib/configCore";
-import * as globalConfig from "app/server/lib/globalConfig";
 import { getEdition } from "app/server/lib/gristSettings";
 import { codeRoot, getAppRoot } from "app/server/lib/places";
 import * as testUtils from "test/server/testUtils";
@@ -166,7 +165,7 @@ describe("bootstrapFullEdition", function() {
       dir = fullEditionDir(instRoot);
       await fse.mkdirp(dir);
       editionValue = "core";
-      sandbox.stub(globalConfig, "getGlobalConfig").returns({
+      sandbox.stub(Deps, "getGlobalConfig").returns({
         edition: {
           get: () => editionValue,
           set: async (value: Edition) => { editionValue = value; },
