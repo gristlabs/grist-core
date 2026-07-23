@@ -64,13 +64,26 @@ if (typeof window === "undefined") {
 
 
   var mousetrapBindingsPaused = false;
+  var mousetrapPausesCount = 0;
 
   /**
    * Globally pause or unpause mousetrap bindings. This is useful e.g. while a context menu is being
    * shown, which has its own keyboard handling.
+   *
+   * Note that you are not guaranteed that Mousetrap.setPause(false) actually reactivates the keybindings:
+   * we internally count the number of Mousetrap.setPause(true) calls, and only release the pause when every matching
+   * Mousetrap.setPause(false) call has been made.
+   *
+   * This is to handle the places where we pause/unpause multiple times in a row because we first open a menu (one pause),
+   * then a modal (one pause, but also one release because the menu closes).
    */
   Mousetrap.setPaused = function(yesNo) {
-    mousetrapBindingsPaused = yesNo;
+    if (yesNo) {
+      mousetrapPausesCount++;
+    } else if (mousetrapPausesCount > 0) {
+      mousetrapPausesCount--;
+    }
+    mousetrapBindingsPaused = mousetrapPausesCount > 0;
   };
 
   /**

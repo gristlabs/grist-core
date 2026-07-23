@@ -3,7 +3,7 @@ import * as commands from "app/client/components/commands";
 import { GristDoc } from "app/client/components/GristDoc";
 import { kbFocusHighlighterClass } from "app/client/components/KeyboardFocusHighlighter";
 import { FocusLayer } from "app/client/lib/FocusLayer";
-import { isFocusable, trapTabKey } from "app/client/lib/focusUtils";
+import { enableTabTrap, isFocusable } from "app/client/lib/focusUtils";
 import { makeT } from "app/client/lib/localization";
 import { App } from "app/client/ui/App";
 import { SpecialDocPage } from "app/common/gristUrls";
@@ -42,6 +42,8 @@ export class RegionFocusSwitcher extends Disposable {
     region: undefined,
     initiator: undefined,
   });
+
+  private _tabTrap = Holder.create(this);
 
   private get _gristDocObs() { return this._app?.pageModel?.gristDoc; }
   // Previously focused elements for each panel (not used for view section ids)
@@ -349,7 +351,7 @@ export class RegionFocusSwitcher extends Disposable {
       current.initiator.event :
       undefined;
 
-    clearCurrentFocusLock();
+    this._tabTrap.clear();
     removeFocusRings();
     removeTabIndexes();
     if (!mouseEvent) {
@@ -363,10 +365,11 @@ export class RegionFocusSwitcher extends Disposable {
     const panelElement = isPanel && current.region?.id && getPanelElement((current.region as PanelRegion).id);
 
     // If kb-focusing a panel:
+    //   - trap the Tab key inside it (see `enableTabTrap`).
     //   - actually focus the panel dom element, or its previously focused child,
-    //   - trap the Tab key inside it (see `enableFocusLock`).
     //   - make the Tab key available for normal browser navigation in the panel (see `escapeViewLayout`)
     if (!mouseEvent && isPanel && panelElement && current.region) {
+      this._tabTrap.autoDispose(enableTabTrap(panelElement));
       focusPanel(
         current.region as PanelRegion,
         this._prevFocusedElements[current.region.id as Panel] as HTMLElement | null,
@@ -515,15 +518,12 @@ const ATTRS = {
 
 /**
  * Focus the given panel dom element (or the given element inside it, if any), and let the grist doc view know about it.
- *
- * When focusing a panel, the tab key is trapped inside it (see `enableFocusLock`).
  */
 const focusPanel = (panel: PanelRegion, child: HTMLElement | null, gristDoc: GristDoc | null) => {
   const panelElement = getPanelElement(panel.id);
   if (!panelElement) {
     return;
   }
-  enableFocusLock(panelElement);
 
   // Child element found: focus it if we actually can
   if (child && child !== panelElement && child.isConnected && isFocusable(child)) {
@@ -660,24 +660,6 @@ const blurPanelChild = (panel: PanelRegion) => {
   if (containsActiveElement(panelElement)) {
     (document.activeElement as HTMLElement).blur();
   }
-};
-
-const _focusLockHolder = Holder.create(null);
-
-const clearCurrentFocusLock = () => _focusLockHolder.clear();
-
-/**
- * Trap the tab key inside the given panel element.
- *
- * That makes pressing tab and shift+tab loop exclusively through focusable elements that are *in* the panel.
- */
-const enableFocusLock = (panelElement: HTMLElement) => {
-  clearCurrentFocusLock();
-  _focusLockHolder.autoDispose(dom.onElem(panelElement, "keydown", (event, elem) => {
-    if (event.key === "Tab") {
-      trapTabKey(elem, event);
-    }
-  }));
 };
 
 const getPanelElement = (id: Panel): HTMLElement | null => {
