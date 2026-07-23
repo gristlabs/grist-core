@@ -817,7 +817,8 @@
         "Grid Options": "Rutnätsinställningar",
         "Horizontal gridlines": "Horisontella rutnätslinjer",
         "Vertical gridlines": "Vertikala rutnätslinjer",
-        "Zebra stripes": "Zebralinjer"
+        "Zebra stripes": "Zebralinjer",
+        "Show": "Visa"
     },
     "GridViewMenus": {
         "Add column": "Lägg till kolumn",
