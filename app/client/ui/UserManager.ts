@@ -10,7 +10,7 @@ import { ACIndexImpl, normalizeText } from "app/client/lib/ACIndex";
 import { ACUserItem, buildACMemberEmail } from "app/client/lib/ACUserManager";
 import { copyToClipboard } from "app/client/lib/clipboardUtils";
 import { makeT } from "app/client/lib/localization";
-import { markdown } from "app/client/lib/markdown";
+import { cssMarkdownSpan, markdown } from "app/client/lib/markdown";
 import { buildMultiUserManagerModal } from "app/client/lib/MultiUserManager";
 import { setTestState } from "app/client/lib/testState";
 import { AppModel } from "app/client/models/AppModel";
@@ -36,7 +36,7 @@ import { menu, menuItem, menuText } from "app/client/ui2018/menus";
 import { confirmModal, cssAnimatedModal, cssModalBody, cssModalButtons, cssModalTitle,
   IModalControl, modal } from "app/client/ui2018/modals";
 import { normalizeEmail } from "app/common/emails";
-import { commonUrls, isOrgInPathOnly } from "app/common/gristUrls";
+import { commonUrls, isFullEditionDeployment, isOrgInPathOnly } from "app/common/gristUrls";
 import { capitalizeFirstWord, isAffirmative, isLongerThan } from "app/common/gutil";
 import { FullUser } from "app/common/LoginSessionAPI";
 import * as roles from "app/common/roles";
@@ -271,6 +271,7 @@ export class UserManager extends Disposable {
     return [
       ...(this._options.isReadonly ? [cssOptionRow()] : [
         acMemberEmail.buildDom(),
+        buildNoInviteEmailNudge(),
         this._buildOptionsDom(),
       ]),
       this._dom = shadowScroll(
@@ -778,10 +779,17 @@ const cssOptionRow = styled("div", `
   margin: 0 63px 23px 63px;
 `);
 
+const cssNoInviteEmailNudge = styled("div", `
+  margin: 0 63px 16px 63px;
+  color: ${theme.lightText};
+  font-size: ${vars.smallFontSize};
+`);
+
 const cssOptionRowMultiple = styled("div", `
   margin: 0 63px 12px 63px;
   font-size: ${vars.mediumFontSize};
   display: flex;
+  width: fit-content;
   cursor: pointer;
   color: ${theme.controlFg};
   --icon-color: ${theme.controlFg};
@@ -921,4 +929,22 @@ function renderTitle(resourceType: ResourceType, resource?: Resource, personal?:
 // Rename organization to team site.
 function resourceName(resourceType: ResourceType): string {
   return resourceType === "organization" ? t("team site") : resourceType;
+}
+
+// Build a nudge to set up email notifications, if available and not configured.
+function buildNoInviteEmailNudge() {
+  const { deploymentType, notifierEnabled } = getGristConfig();
+  if (deploymentType === "electron" || deploymentType === "static") { return null; }
+
+  let message: string | undefined;
+  if (!isFullEditionDeployment(deploymentType)) {
+    message = t("Invitation emails are not sent on Grist Community edition. \
+Ask your admin about [upgrading to the full edition of Grist]({{link}}).",
+    { link: commonUrls.helpEnterpriseOptIn });
+  } else if (!notifierEnabled) {
+    message = t("Invitation emails are not enabled on this installation. \
+Ask your admin to [set up email notifications]({{link}}).",
+    { link: commonUrls.helpEmailNotifications });
+  }
+  return message ? cssNoInviteEmailNudge(cssMarkdownSpan(message)) : null;
 }

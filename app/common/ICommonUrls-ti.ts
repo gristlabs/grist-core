@@ -26,6 +26,7 @@ export const ICommonUrls = t.iface([], {
   "helpTeamAuditLogs": "string",
   "helpTelemetryLimited": "string",
   "helpEnterpriseOptIn": "string",
+  "helpEmailNotifications": "string",
   "helpCalendarWidget": "string",
   "helpLinkKeys": "string",
   "helpFilteringReferenceChoices": "string",
