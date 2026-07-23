@@ -146,6 +146,7 @@ export const getCommonUrls = () => withAdminDefinedUrls({
   helpTeamAuditLogs: "https://support.getgrist.com/install/audit-log-overview/",
   helpTelemetryLimited: "https://support.getgrist.com/telemetry-limited",
   helpEnterpriseOptIn: "https://support.getgrist.com/self-managed/#how-do-i-enable-the-full-edition-of-grist",
+  helpEmailNotifications: "https://support.getgrist.com/self-managed/#how-do-i-set-up-email-notifications",
   helpCalendarWidget: "https://support.getgrist.com/widget-calendar",
   helpLinkKeys: "https://support.getgrist.com/examples/2021-04-link-keys",
   helpFilteringReferenceChoices: "https://support.getgrist.com/col-refs/#filtering-reference-choices-in-dropdown-lists",
