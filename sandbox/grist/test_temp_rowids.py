@@ -163,26 +163,27 @@ class TestTempRowIds(test_engine.EngineTestCase):
   def test_reflist_unusual_values(self):
     self.load_sample(testsamples.sample_students)
 
-    # Unusual values should not break translation. Conversion runs first and turns any list
-    # holding a non-int into alttext, so garbage lands as it would without temp ids.
+    # Conversion turns any list holding a non-int into alttext before translation runs, so
+    # garbage lands as garbage without disturbing valid temp ids in the same bundle. (Unresolved
+    # negatives are the exception -- rejected; see tests below.)
     self.engine.apply_user_actions([useractions.from_repr(ua) for ua in (
       ['AddColumn', 'Schools', 'addresses', {'type': 'RefList:Address', 'isFormula': False}],
-      ['AddRecord', 'Address', -1, {'city': 'A'}],
-      ['BulkAddRecord', 'Schools', [None] * 7, {
-        'name': ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7'],
+      ['AddRecord', 'Address', -1, {'city': 'A'}],   # temp id -1 maps to Address 15
+      ['BulkAddRecord', 'Schools', [None] * 8, {
+        'name': ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8'],
         'addresses': [
           'hello',                  # alttext, not a list
           None,
           0,
           ['L'],                    # empty list
           ['L', 11],                # existing ids only
-          ['L', -99],               # temp id with no mapping
-          ['L', -1.5],              # negative float, not an int
+          ['L', -1],                # valid temp id
+          ['L', 11, -1],            # existing id mixed with a valid temp id
+          ['L', -1.5],              # non-int element -> alttext, so not rejected
         ],
       }],
-      # Odd elements mixed in with a real temp id.
-      ['AddRecord', 'Schools', None, {'name': 'S8', 'addresses': ['L', -1, 'x']}],
-      ['AddRecord', 'Schools', None, {'name': 'S9', 'addresses': ['L', -1, ['L', 11]]}],
+      ['AddRecord', 'Schools', None, {'name': 'S9', 'addresses': ['L', -1, 'x']}],
+      ['AddRecord', 'Schools', None, {'name': 'S10', 'addresses': ['L', -1, ['L', 11]]}],
     )])
 
     self.assertTableData('Schools', cols="subset", rows=lambda r: r.id > 4, data=[
@@ -192,11 +193,30 @@ class TestTempRowIds(test_engine.EngineTestCase):
       [7,     "S3",     None],
       [8,     "S4",     None],
       [9,     "S5",     [11]],
-      [10,    "S6",     [-99]],
-      [11,    "S7",     "[-1.5]"],
-      [12,    "S8",     "[-1, 'x']"],
-      [13,    "S9",     "[-1, [11]]"],
+      [10,    "S6",     [15]],          # temp id translated despite garbage in sibling rows
+      [11,    "S7",     [11, 15]],
+      [12,    "S8",     "[-1.5]"],
+      [13,    "S9",     "[-1, 'x']"],
+      [14,    "S10",    "[-1, [11]]"],
     ])
+
+  def test_reflist_rejects_unresolved_temp_id(self):
+    self.load_sample(testsamples.sample_students)
+    self.engine.apply_user_actions([useractions.from_repr(
+      ['AddColumn', 'Schools', 'addresses', {'type': 'RefList:Address', 'isFormula': False}])])
+
+    # An unresolved negative id rejects the whole bundle rather than storing an unusable ref.
+    with self.assertRaisesRegex(ValueError, r"unknown temporary row id -99 in column Schools\.addresses"):
+      self.engine.apply_user_actions([useractions.from_repr(
+        ['AddRecord', 'Schools', None, {'name': 'S1', 'addresses': ['L', -99]}])])
+
+  def test_ref_rejects_unresolved_temp_id(self):
+    self.load_sample(testsamples.sample_students)
+
+    # Same rejection for a single Ref, not just RefList.
+    with self.assertRaisesRegex(ValueError, r"unknown temporary row id -99 in column Schools\.address"):
+      self.engine.apply_user_actions([useractions.from_repr(
+        ['AddRecord', 'Schools', None, {'name': 'S1', 'address': -99}])])
 
   def test_update_remove(self):
     self.load_sample(testsamples.sample_students)
