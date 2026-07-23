@@ -1770,8 +1770,12 @@ describe("GranularAccess", function() {
     assert.isAtLeast(deniedStatus, 400);
     assert.notEqual(deniedStatus, 200);
 
+    // Leaving "View as" reloads the page, so nothing keeps building URLs for the user we were
+    // pretending to be.
     await driver.find(".test-view-as-banner .test-revert").click();
     await gu.waitForDocToLoad();
+    await gu.getCell("Pics", 2).click();
+    assert.isNull(new URL((await readAttachments())[0].src!).searchParams.get("aclAsUser_"));
   });
 
   describe("shares", function() {
