@@ -1,6 +1,6 @@
 import { HistWindow, UrlState } from "app/client/lib/UrlState";
 import { UrlStateImpl } from "app/client/models/gristUrlState";
-import { IGristUrlState } from "app/common/gristUrls";
+import { IGristUrlState, userOverrideParams } from "app/common/gristUrls";
 
 import { assert } from "chai";
 import { dom } from "grainjs";
@@ -373,5 +373,17 @@ describe("gristUrlState", function() {
     "https://bar.example.com/doc/DOC/p/44?foo_=X&bar_=B");
     await state.pushUrl(prevState => omit(prevState, "params"));
     assert.equal(mockWindow.location.href, "https://bar.example.com/doc/DOC/p/5");
+  });
+
+  it("should need a page load when entering or leaving View as", function() {
+    // Code that reads the "View as" parameters off the page URL once (e.g. BaseAPI's
+    // propagateViewAs option) relies on this: there is no way to change who we are viewing as
+    // without discarding all client state.
+    const plain: IGristUrlState = { doc: "DOC", docPage: 5 };
+    const viewingAs = userOverrideParams("someone@example.com")(plain);
+    assert.isTrue(prod.needPageLoad(plain, viewingAs));
+    assert.isTrue(prod.needPageLoad(viewingAs, userOverrideParams(null)(viewingAs)));
+    // Moving around the document while viewing as someone is just a page switch, though.
+    assert.isFalse(prod.needPageLoad(viewingAs, { ...viewingAs, docPage: 6 }));
   });
 });
