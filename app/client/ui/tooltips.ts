@@ -37,6 +37,9 @@ export interface ITipOptions {
    * See https://popper.js.org/docs/v1/#modifiers.
    */
   modifiers?: Popper.Modifiers;
+
+  /** Optional CSS class to add to the tooltip element, to override its default appearance. */
+  cssClass?: string;
 }
 
 export interface ITransientTipOptions extends ITipOptions {
@@ -147,7 +150,10 @@ export function showTooltip(
   const ctl: ITooltipControl = { close, getDom: () => content };
 
   // Add the content element.
-  const content = cssTooltip({ role: "tooltip" }, tipContent(ctl), testId(`tooltip`));
+  const content = cssTooltip({ role: "tooltip" },
+    options.cssClass ? dom.cls(options.cssClass) : null,
+    tipContent(ctl),
+    testId(`tooltip`));
   // Prepending instead of appending allows better text selection, as this element is on top.
   document.body.prepend(content);
 
