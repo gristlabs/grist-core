@@ -42,6 +42,14 @@ export type TablePermissionSet = PermissionSet<TablePermissionValue>;
 // One of the strings 'read', 'update', etc.
 export type PermissionKey = keyof PermissionSet;
 
+// A memo attached to a denial. A "reason" explains what is blocking you; a "remedy" points at a
+// rule that could have granted access (but didn't apply). See extractMemos in PermissionInfo.
+export type MemoKind = "reason" | "remedy";
+export interface Memo {
+  kind: MemoKind;
+  text: string;
+}
+
 const PERMISSION_BITS: { [letter: string]: PermissionKey } = {
   R: "read",
   C: "create",
@@ -127,7 +135,7 @@ export function makePartialPermissions(pset: PartialPermissionSet): PartialPermi
  *
  * Note that this logic satisfies associative property: (a + b) + c == a + (b + c).
  */
-function combinePartialPermission(a: PartialPermissionValue, b: PartialPermissionValue): PartialPermissionValue {
+export function combinePartialPermission(a: PartialPermissionValue, b: PartialPermissionValue): PartialPermissionValue {
   if (!a) { return b; }
   if (!b) { return a; }
   // If the first is uncertain, the second may keep it unchanged, or make certain, or finalize as mixed.

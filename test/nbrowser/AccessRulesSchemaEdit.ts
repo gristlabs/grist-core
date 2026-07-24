@@ -181,7 +181,7 @@ describe("AccessRulesSchemaEdit", function() {
     let error = await editorApi.applyUserActions(docId, [["RenameTable", "Table1", "Renamed3"]])
       .then(() => null).catch(err => err);
     assert.match(error?.message, /Blocked by table structure access rules/);
-    assert.deepInclude(error?.details, { memos: ["Memo MIXED"] });
+    assert.deepInclude(error?.details, { memos: [{ kind: "reason", text: "Memo MIXED" }] });
 
     // Change the memos on both copies of the rule.
     await enterRulePart(findDefaultRuleSet("*"), 1, null, {}, "Memo DDD");
@@ -200,7 +200,7 @@ describe("AccessRulesSchemaEdit", function() {
     error = await editorApi.applyUserActions(docId, [["RenameTable", "Table1", "Renamed3"]])
       .then(() => null).catch(err => err);
     assert.match(error?.message, /Blocked by table structure access rules/);
-    assert.deepInclude(error?.details, { memos: ["Memo SSS"] });
+    assert.deepInclude(error?.details, { memos: [{ kind: "reason", text: "Memo SSS" }] });
 
     // Check what the rules are on the default resource.
     const mainDocApi = api.getDocAPI(docId);
