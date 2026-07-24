@@ -109,6 +109,7 @@ export class DestinationAllowlist {
   public readonly domains: readonly string[];
   public readonly rangesWithPrefixLength: readonly [ipAddr.IPv4 | ipAddr.IPv6, number][];
   public readonly ipsAndRanges: readonly string[];
+  public readonly allowsAccessToSpecialIps: boolean;
 
   constructor(options: { allowedIps: string[], allowedCIDRRanges: string[], allowedDomains: string[] }) {
     this.ips = options.allowedIps;
@@ -116,10 +117,13 @@ export class DestinationAllowlist {
     this.domains = options.allowedDomains;
     this.rangesWithPrefixLength = this.rangesInCIDRFormat.map(ipAddr.parseCIDR);
     this.ipsAndRanges = this.ips.concat(this.rangesInCIDRFormat);
+
+    this.allowsAccessToSpecialIps =
+      this.ips.some(ip => isIpInSpecialRange(ip)) || this.rangesInCIDRFormat.some(range => isIpInSpecialRange(range));
   }
 }
 
-const getEgressDestinationAllowlist = memoize(() => {
+export const getEgressDestinationAllowlist = memoize(() => {
   const rawAllowlist = appSettings.section("proxy").flag("egressDestinationAllowlist").requireString({
     envVar: "GRIST_EGRESS_ALLOW",
     defaultValue: "",
@@ -127,6 +131,21 @@ const getEgressDestinationAllowlist = memoize(() => {
 
   return DestinationAllowlist.fromRaw(rawAllowlist);
 });
+
+// Returns true if the IP is in a special range, false if it isn't or isn't a valid IP.
+export function isIpInSpecialRange(ip: string) {
+  try {
+    if (ipAddr.isValid(ip)) {
+      return ipAddr.parse(ip).range() !== "unicast";
+    }
+    if (ipAddr.isValidCIDR(ip)) {
+      return ipAddr.parseCIDR(ip)[0].range() !== "unicast";
+    }
+    return false;
+  } catch (e) {
+    return false;
+  }
+}
 
 /**
  * Check if an untrusted egress URL can be accessed.

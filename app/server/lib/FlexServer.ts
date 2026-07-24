@@ -76,7 +76,10 @@ import { IPermitStore } from "app/server/lib/Permit";
 import { getAppPathTo, getAppRoot, getInstanceRoot, getUnpackedAppRoot } from "app/server/lib/places";
 import { addPluginEndpoints, limitToPlugins } from "app/server/lib/PluginEndpoint";
 import { PluginManager } from "app/server/lib/PluginManager";
-import { getProxyAgentConfiguration, isPrivateNetworkTargetAllowed } from "app/server/lib/ProxyAgent";
+import {
+  getEgressDestinationAllowlist,
+  getProxyAgentConfiguration,
+} from "app/server/lib/ProxyAgent";
 import { createPubSubManager, IPubSubManager } from "app/server/lib/PubSubManager";
 import { adaptServerUrl, getOrgUrl, getOriginUrl, getScope, integerParam, isParameterOn, optIntegerParam,
   optStringParam, RequestWithGristInfo, stringArrayParam, stringParam, TEST_HTTPS_OFFSET,
@@ -90,6 +93,7 @@ import { TagChecker } from "app/server/lib/TagChecker";
 import { ITelemetry } from "app/server/lib/Telemetry";
 import { startTestingHooks } from "app/server/lib/TestingHooks";
 import { getTestLoginSystem } from "app/server/lib/TestLogin";
+import { getWebhookDestinationAllowlist } from "app/server/lib/Triggers";
 import { UpdateManager } from "app/server/lib/UpdateManager";
 import { addUploadRoute } from "app/server/lib/uploads";
 import { buildWidgetRepository, getWidgetsInPlugins, IWidgetRepository } from "app/server/lib/WidgetRepository";
@@ -2020,22 +2024,23 @@ export class FlexServer implements GristServer {
     this._isReady = value;
   }
 
+  // Check for some bad combinations we should warn about.
   public checkOptionCombinations() {
-    // Check for some bad combinations we should warn about.
-    const allowedWebhookDomains = appSettings.section("integrations").flag("allowedWebhookDomains").readString({
-      envVar: "ALLOWED_WEBHOOK_DOMAINS",
-    });
+    const webhookAllowlist = getWebhookDestinationAllowlist();
+    const egressAllowlist = getEgressDestinationAllowlist();
     const { proxyForUntrustedRequestsUrl } = getProxyAgentConfiguration();
-    // With a wildcard ALLOWED_WEBHOOK_DOMAINS, internal-network targets are
-    // still blocked by default at the socket level (see fetchUntrustedWithAgent).
-    // The internal network is only exposed if that block has been explicitly
-    // disabled and no proxy is defined to own egress policy.
-    if (allowedWebhookDomains === "*" &&
-      proxyForUntrustedRequestsUrl === undefined &&
-      isPrivateNetworkTargetAllowed()) {
-      log.warn("Setting an ALLOWED_WEBHOOK_DOMAINS wildcard with " +
-        "GRIST_ALLOW_WEBHOOK_PRIVATE_NETWORK_TARGETS enabled and without " +
-        "GRIST_PROXY_FOR_UNTRUSTED_URLS exposes your internal network");
+    const specialRangeVars = [];
+    if (webhookAllowlist.allowsAccessToSpecialIps) { specialRangeVars.push("ALLOWED_WEBHOOK_DOMAINS"); }
+    if (egressAllowlist.allowsAccessToSpecialIps) { specialRangeVars.push("GRIST_EGRESS_ALLOW"); }
+    // Warn the user if they're potentially leaking access to internal network addresses
+    // that shouldn't be accessed by untrusted users.
+    if (
+      specialRangeVars.length > 0 &&
+      proxyForUntrustedRequestsUrl === undefined
+    ) {
+      const varText = specialRangeVars.join(" and ");
+      log.warn(`The current settings of ${varText} allow access to non-public or reserved network addresses.` +
+        "Without GRIST_PROXY_FOR_UNTRUSTED_URLS set to a secure egress proxy, your internal network may be exposed.");
     }
   }
 
