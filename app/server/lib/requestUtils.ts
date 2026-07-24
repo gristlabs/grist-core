@@ -542,7 +542,7 @@ export function getExtraAttachmentOptions(req: Request): {
 /**
  * Returns true if `urlString` is allowed under `allowedDomains`.
  *
- * `allowedDomains` is a comma-separated list of domain entries
+ * `allowedDomains` is an array or comma-separated list of domain entries
  * (e.g. `"example.com,trusted.org"`). A single entry of `*` is a wildcard
  * that allows any domain.
  * Each entry is matched against the URL's host using base-domain matching
@@ -558,7 +558,7 @@ export function getExtraAttachmentOptions(req: Request): {
  *   `allowedDomains === "*"`, which allows any host), if list is empty then it
  *   is not allowed.
  */
-export function isUrlAllowed(allowedDomains: string | undefined, urlString: string) {
+export function isUrlAllowed(allowedDomains: string | string[] | undefined, urlString: string) {
   let url: URL;
   try {
     url = new URL(urlString);
@@ -571,19 +571,26 @@ export function isUrlAllowed(allowedDomains: string | undefined, urlString: stri
     return false;
   }
 
-  // Support a wildcard that allows all domains.
-  // Allow either https or http if it is set.
-  if (allowedDomains === "*") {
-    return true;
-  }
-
   // http (no s) is only allowed for localhost for testing.
   // localhost still needs to be explicitly permitted, and it shouldn't be outside dev
   if (url.protocol !== "https:" && url.hostname !== "localhost") {
     return false;
   }
 
-  return (allowedDomains || "").split(",").some(domain =>
+  const allowedDomainsList =
+    allowedDomains === undefined ?
+      [] :
+      Array.isArray(allowedDomains) ?
+        allowedDomains :
+        allowedDomains.split(",").filter(Boolean).map(domain => domain.trim());
+
+  // Support a wildcard that allows all domains.
+  // Allow either https or http if it is set.
+  if (allowedDomainsList.includes("*")) {
+    return true;
+  }
+
+  return allowedDomainsList.some(domain =>
     domain && matchesBaseDomain(url.host, domain),
   );
 }

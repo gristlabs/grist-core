@@ -1,12 +1,11 @@
 import { appSettings } from "app/server/lib/AppSettings";
 import log from "app/server/lib/log";
+import { isUrlAllowed } from "app/server/lib/requestUtils";
 
-import { Agent as HttpAgent } from "http";
-import { Agent as HttpsAgent } from "https";
-
+import ipAddr from "ipaddr.js";
 import fetch, { RequestInit } from "node-fetch";
 import { ProxyAgent, ProxyAgentOptions } from "proxy-agent";
-import { useAgent } from "request-filtering-agent";
+import requestFilteringAgent from "request-filtering-agent";
 
 /**
  * GristProxyAgent derives from ProxyAgent which is a class that is responsible for proxying the request using either
@@ -89,42 +88,29 @@ export class UntrustedUrlBlockedError extends Error {
   }
 }
 
-/**
- * Whether requests to internal-network targets (loopback, link-local,
- * private, CGNAT, reserved addresses) are permitted. Off by default; an
- * operator opts in explicitly. Evaluated per call so a DB-backed setting
- * update is respected without a restart.
- */
-export function isPrivateNetworkTargetAllowed(): boolean {
-  return Boolean(appSettings.section("proxy").flag("allowPrivateNetworkTargets").readBool({
-    envVar: "GRIST_ALLOW_WEBHOOK_PRIVATE_NETWORK_TARGETS",
-    defaultValue: false,
-  }));
+export function isIpAddrOrRange(destination: string): boolean {
+  return ipAddr.isValid(destination) || ipAddr.isValidCIDR(destination);
 }
 
-// Shared plain agents for the opt-out ("allow private targets") path, where we
-// want ordinary transport with no connection filtering.
-const httpPassthrough = new HttpAgent();
-const httpsPassthrough = new HttpsAgent();
+export interface DestinationAllowlist {
+  allowedIps: string[];
+  allowedIpCIDRRanges: string[];
+  allowedDomains: string[];
+}
 
-/**
- * Choose the transport agent for a single request hop.
- * - With a configured proxy, the proxy owns egress policy, so we route
- *   through it and apply no internal-network block of our own.
- * - When internal-network targets are explicitly allowed, use a plain agent.
- * - Otherwise, wrap the connection in request-filtering-agent, whose
- *   socket-level DNS check blocks internal targets (and catches DNS-rebinding
- *   that a URL-string check can't see).
- */
-function pickTransportAgent(url: URL) {
-  const proxyAgent = agents.untrusted;
-  if (proxyAgent) {
-    return proxyAgent;
-  }
-  if (isPrivateNetworkTargetAllowed()) {
-    return url.protocol === "https:" ? httpsPassthrough : httpPassthrough;
-  }
-  return useAgent(url.href);
+export function getEgressDestinationAllowlist(): DestinationAllowlist {
+  const rawAllowlist = appSettings.section("proxy").flag("egressDestinationAllowlist").requireString({
+    envVar: "GRIST_EGRESS_ALLOW",
+    defaultValue: "",
+  });
+
+  const entries = rawAllowlist.split(",").map(entry => entry.trim());
+
+  return {
+    allowedIps: entries.filter(ipAddr.isValid),
+    allowedIpCIDRRanges: entries.filter(ipAddr.isValidCIDR),
+    allowedDomains: entries.filter(entry => !isIpAddrOrRange(entry)),
+  };
 }
 
 // request-filtering-agent signals a blocked target by throwing an Error whose
@@ -140,12 +126,16 @@ function isRequestFilteringBlockError(e: unknown): e is Error {
  * Fetch a user-supplied ("untrusted") URL with our egress safeguards applied.
  *
  * node-fetch v2 accepts `agent` as a function and calls it for the initial
- * request AND for every redirect target it follows. We use that to enforce,
- * per hop:
- *  1. the optional caller-supplied `validate(url)` policy, and
- *  2. the transport choice from pickTransportAgent (proxy / passthrough /
- *     internal-network filter).
- * There is therefore no redirect that can bypass either check.
+ * request AND for every redirect target it follows.
+ * This enforces the destination follows these egress destination rules:
+ *   1. Domains must be in the allowlist or be a subdomain of a domain in the allowlist.
+ *     - The wildcard (*) permits all domains, but not all IPs.
+ *   2. IPs must be in the allowlist or be contained in one of the allowed CIDR ranges
+ *   3. The destination's IP must not be a meta/internal IP, unless an untrusted proxy is in use or in the allowlist.
+ *     - An explicit IP or range in the allowlist bypasses this check, to allow access to private hosts.
+ *     - IPs aren't filtered in the proxy case as:
+ *       - Domains may resolve differently on the proxy,
+ *       - Allowlisting private IPs would require compatible config in two places (proxy, Grist)
  *
  * Throws {@link UntrustedUrlBlockedError} when a hop is rejected by the
  * validator or blocked as an internal-network target.
@@ -158,16 +148,26 @@ function isRequestFilteringBlockError(e: unknown): e is Error {
 export async function fetchUntrustedWithAgent(
   requestUrl: URL | string,
   options?: Omit<RequestInit, "agent">,
-  validate?: (url: string) => boolean,
+  allowlistOverride?: DestinationAllowlist,
 ) {
+  const allowlist = allowlistOverride ?? getEgressDestinationAllowlist();
+  const allowIPAddressList = allowlist.allowedIps.concat(allowlist.allowedIpCIDRRanges);
   const agentFactory = (parsedUrl: URL) => {
     // node-fetch v2 hands the factory a legacy url.parse() object (which has
     // `href` but no `origin`), so normalize to a WHATWG URL for reliable access.
     const url = new URL(parsedUrl.href);
-    if (validate && !validate(url.href)) {
+    // Filter domains here - request-filtering-agent is responsible for IPs, as it handles DNS lookups
+    if (!ipAddr.isValid(url.hostname) && !isUrlAllowed(allowlist.allowedDomains, url.href)) {
       throw new UntrustedUrlBlockedError(`URL rejected by validator: ${url.origin}`);
     }
-    return pickTransportAgent(url);
+
+    // No IP filtering if proxy agent is in use - proxy is responsible
+    const proxyAgent = agents.untrusted;
+    if (proxyAgent) {
+      return proxyAgent;
+    }
+
+    return requestFilteringAgent.useAgent(url.href, { allowIPAddressList });
   };
 
   try {

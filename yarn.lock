@@ -6321,6 +6321,11 @@ ipaddr.js@^2.0.1, ipaddr.js@^2.1.0:
   resolved "https://registry.yarnpkg.com/ipaddr.js/-/ipaddr.js-2.2.0.tgz#d33fa7bac284f4de7af949638c9d68157c6b92e8"
   integrity sha512-Ag3wB2o37wslZS19hZqorUnrnzSkpOVy+IiiDEiTqNubEYpYuHWIf6K4psgN2ZWKExS4xhVCrRVfb/wfW8fWJA==
 
+ipaddr.js@^2.4.0:
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/ipaddr.js/-/ipaddr.js-2.4.0.tgz#038e9ceaf8219efc5bb76347b7eb787875d5095b"
+  integrity sha512-9VGk3HGanVE6JoZXHiCpnGy5X0jYDnN4EA4lntFPj+1vIWlFhIylq2CrrCOJH9EAhc5CYhq18F2Av2tgoAPsYQ==
+
 is-arguments@^1.0.4:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/is-arguments/-/is-arguments-1.1.1.tgz#15b3f88fda01f2a97fec84ca761a560f123efa9b"
