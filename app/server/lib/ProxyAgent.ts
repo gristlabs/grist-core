@@ -92,10 +92,30 @@ export function isIpAddrOrRange(destination: string): boolean {
   return ipAddr.isValid(destination) || ipAddr.isValidCIDR(destination);
 }
 
-export interface DestinationAllowlist {
-  allowedIps: string[];
-  allowedIpCIDRRanges: string[];
-  allowedDomains: string[];
+export class DestinationAllowlist {
+  public static fromRaw(rawAllowlist: string): DestinationAllowlist {
+    const entries = rawAllowlist.split(",").map(entry => entry.trim());
+
+    return new DestinationAllowlist({
+      allowedIps: entries.filter(ipAddr.isValid),
+      allowedCIDRRanges: entries.filter(ipAddr.isValidCIDR),
+      allowedDomains: entries.filter(entry => !isIpAddrOrRange(entry)),
+    });
+  }
+
+  public readonly ips: readonly string[];
+  public readonly rangesInCIDRFormat: readonly string[];
+  public readonly domains: readonly string[];
+  public readonly rangesWithPrefixLength: readonly [ipAddr.IPv4 | ipAddr.IPv6, number][];
+  public readonly ipsAndRanges: readonly string[];
+
+  constructor(options: { allowedIps: string[], allowedCIDRRanges: string[], allowedDomains: string[] }) {
+    this.ips = options.allowedIps;
+    this.rangesInCIDRFormat = options.allowedCIDRRanges;
+    this.domains = options.allowedDomains;
+    this.rangesWithPrefixLength = this.rangesInCIDRFormat.map(ipAddr.parseCIDR);
+    this.ipsAndRanges = this.ips.concat(this.rangesInCIDRFormat);
+  }
 }
 
 export function getEgressDestinationAllowlist(): DestinationAllowlist {
@@ -104,13 +124,41 @@ export function getEgressDestinationAllowlist(): DestinationAllowlist {
     defaultValue: "",
   });
 
-  const entries = rawAllowlist.split(",").map(entry => entry.trim());
+  return DestinationAllowlist.fromRaw(rawAllowlist);
+}
 
-  return {
-    allowedIps: entries.filter(ipAddr.isValid),
-    allowedIpCIDRRanges: entries.filter(ipAddr.isValidCIDR),
-    allowedDomains: entries.filter(entry => !isIpAddrOrRange(entry)),
-  };
+/**
+ * Check if an untrusted egress URL can be accessed.
+ * This check passing doesn't guarantee the URL won't be blocked.
+ * It doesn't resolve domains or check redirects, so doesn't have all the checks the agent does.
+ * However, it's a reasonable first pass for early user feedback.
+ *
+ * See { @link fetchUntrustedWithAgent } comment for the exact rules.
+ */
+export function isEgressUrlAllowed(url: string | URL, allowlistOverride?: DestinationAllowlist) {
+  const parsedUrl = typeof url === "string" ? new URL(url) : url;
+
+  // Don't allow non-HTTP requests to be attempted
+  if (parsedUrl.protocol !== "https:" && parsedUrl.protocol !== "http:") {
+    return false;
+  }
+
+  const allowlist = allowlistOverride ?? getEgressDestinationAllowlist();
+
+  if (ipAddr.isValid(parsedUrl.hostname)) {
+    // Untrusted proxy in use - no IP filtering to be applied.
+    if (agents.untrusted) { return true; }
+    const destIp = ipAddr.parse(parsedUrl.hostname);
+    const isAllowlisted =
+      allowlist.ips.some(allowedIp => allowedIp === parsedUrl.hostname) ||
+      allowlist.rangesWithPrefixLength.some(range => destIp.match(range));
+    // All non-special ranges show as "unicast". Private, link local, meta, reserved all have their own names.
+    const isSpecialRange = destIp.range() !== "unicast";
+    return isAllowlisted || !isSpecialRange;
+  }
+
+  // Not an IP - must be a domain
+  return isUrlAllowed(allowlist.domains, parsedUrl.href);
 }
 
 // request-filtering-agent signals a blocked target by throwing an Error whose
@@ -151,14 +199,12 @@ export async function fetchUntrustedWithAgent(
   allowlistOverride?: DestinationAllowlist,
 ) {
   const allowlist = allowlistOverride ?? getEgressDestinationAllowlist();
-  const allowIPAddressList = allowlist.allowedIps.concat(allowlist.allowedIpCIDRRanges);
   const agentFactory = (parsedUrl: URL) => {
     // node-fetch v2 hands the factory a legacy url.parse() object (which has
     // `href` but no `origin`), so normalize to a WHATWG URL for reliable access.
     const url = new URL(parsedUrl.href);
-    // Filter domains here - request-filtering-agent is responsible for IPs, as it handles DNS lookups
-    if (!ipAddr.isValid(url.hostname) && !isUrlAllowed(allowlist.allowedDomains, url.href)) {
-      throw new UntrustedUrlBlockedError(`URL rejected by validator: ${url.origin}`);
+    if (!isEgressUrlAllowed(url, allowlist)) {
+      throw new UntrustedUrlBlockedError(`URL rejected by allowlist: ${url.origin}`);
     }
 
     // No IP filtering if proxy agent is in use - proxy is responsible
@@ -167,7 +213,12 @@ export async function fetchUntrustedWithAgent(
       return proxyAgent;
     }
 
-    return requestFilteringAgent.useAgent(url.href, { allowIPAddressList });
+    // request-filtering-agent is more thorough than isEgressUrlAllowed, resolving
+    // DNS entries to ensure they aren't hitting a protected IP.
+    return requestFilteringAgent.useAgent(url.href, {
+      // Needs string cast to remove readonly - library doesn't mutate, just doesn't support readonly.
+      allowIPAddressList: allowlist.ipsAndRanges as string[]
+    });
   };
 
   try {

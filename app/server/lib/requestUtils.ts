@@ -558,7 +558,7 @@ export function getExtraAttachmentOptions(req: Request): {
  *   `allowedDomains === "*"`, which allows any host), if list is empty then it
  *   is not allowed.
  */
-export function isUrlAllowed(allowedDomains: string | string[] | undefined, urlString: string) {
+export function isUrlAllowed(allowedDomains: string | readonly string[] | undefined, urlString: string) {
   let url: URL;
   try {
     url = new URL(urlString);
@@ -580,9 +580,9 @@ export function isUrlAllowed(allowedDomains: string | string[] | undefined, urlS
   const allowedDomainsList =
     allowedDomains === undefined ?
       [] :
-      Array.isArray(allowedDomains) ?
-        allowedDomains :
-        allowedDomains.split(",").filter(Boolean).map(domain => domain.trim());
+      typeof allowedDomains === "string" ?
+        allowedDomains.split(",").filter(Boolean).map(domain => domain.trim()) :
+        allowedDomains;
 
   // Support a wildcard that allows all domains.
   // Allow either https or http if it is set.
