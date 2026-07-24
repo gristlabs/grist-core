@@ -3,6 +3,7 @@ import log from "app/server/lib/log";
 import { isUrlAllowed } from "app/server/lib/requestUtils";
 
 import ipAddr from "ipaddr.js";
+import memoize from "lodash/memoize";
 import fetch, { RequestInit } from "node-fetch";
 import { ProxyAgent, ProxyAgentOptions } from "proxy-agent";
 import requestFilteringAgent from "request-filtering-agent";
@@ -118,14 +119,14 @@ export class DestinationAllowlist {
   }
 }
 
-export function getEgressDestinationAllowlist(): DestinationAllowlist {
+const getEgressDestinationAllowlist = memoize(() => {
   const rawAllowlist = appSettings.section("proxy").flag("egressDestinationAllowlist").requireString({
     envVar: "GRIST_EGRESS_ALLOW",
     defaultValue: "",
   });
 
   return DestinationAllowlist.fromRaw(rawAllowlist);
-}
+});
 
 /**
  * Check if an untrusted egress URL can be accessed.

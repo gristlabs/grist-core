@@ -18,9 +18,10 @@ import { CompiledTriggerConfig, compileTriggerConfig } from "app/common/TriggerC
 import { ConditionType, TriggerAction } from "app/common/Triggers";
 import TriggersTI from "app/common/Triggers-ti";
 import { ActiveDoc } from "app/server/lib/ActiveDoc";
+import { appSettings } from "app/server/lib/AppSettings";
 import { makeExceptionalDocSession } from "app/server/lib/DocSession";
 import log from "app/server/lib/log";
-import { isUrlAllowed } from "app/server/lib/requestUtils";
+import { DestinationAllowlist, isEgressUrlAllowed } from "app/server/lib/ProxyAgent";
 import { type ActionPayload, type ActionQueue } from "app/server/lib/WebhookQueue";
 
 import { promisifyAll } from "bluebird";
@@ -537,8 +538,17 @@ export class DocTriggers {
   }
 }
 
+export const getWebhookDestinationAllowlist = _.memoize(() => {
+  const rawAllowlist = appSettings.section("webhooks").flag("").requireString({
+    envVar: "ALLOWED_WEBHOOK_DOMAINS",
+    defaultValue: "",
+  });
+
+  return DestinationAllowlist.fromRaw(rawAllowlist);
+});
+
 export function isWebhookUrlAllowed(url: string) {
-  return isUrlAllowed(process.env.ALLOWED_WEBHOOK_DOMAINS, url);
+  return isEgressUrlAllowed(url, getWebhookDestinationAllowlist());
 }
 
 /**

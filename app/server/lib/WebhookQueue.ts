@@ -18,7 +18,7 @@ import { ActiveDoc } from "app/server/lib/ActiveDoc";
 import log from "app/server/lib/log";
 import { fetchUntrustedWithAgent, UntrustedUrlBlockedError } from "app/server/lib/ProxyAgent";
 import { delayAbort } from "app/server/lib/serverUtils";
-import { isWebhookUrlAllowed } from "app/server/lib/Triggers";
+import { getWebhookDestinationAllowlist } from "app/server/lib/Triggers";
 import { LogSanitizer } from "app/server/utils/LogSanitizer";
 
 import { promisifyAll } from "bluebird";
@@ -408,13 +408,7 @@ export class WebhookQueue implements ActionQueue<WebhookActionPayload> {
   }
 
   private async _getWebHookUrl(id: string): Promise<string | undefined> {
-    const url = (await this._getWebHook(id))?.url ?? "";
-    if (!isWebhookUrlAllowed(url)) {
-      // TODO: this is not a good place for a validation.
-      this._log(`Webhook not sent to forbidden URL`, { level: "warn", url });
-      return;
-    }
-    return url;
+    return (await this._getWebHook(id))?.url ?? "";
   }
 
   private _startSendLoop() {
@@ -452,10 +446,9 @@ export class WebhookQueue implements ActionQueue<WebhookActionPayload> {
       }
       let meta: { webhookId: string; host: string, quantity: number } | undefined;
       let success: boolean;
-      // Set if the target was permanently blocked (bad URL or a redirect to a
-      // disallowed / internal-network address). Such a batch is dropped, not
-      // retried.
-      let blocked: UntrustedUrlBlockedError | undefined;
+      // Set if the destination of the webhook is invalid (e.g. blocked by egress rules).
+      // Allows the batch to be dropped without retrying endlessly.
+      let isDestinationInvalid: boolean | undefined;
       if (!url) {
         success = true;
       } else {
@@ -465,16 +458,9 @@ export class WebhookQueue implements ActionQueue<WebhookActionPayload> {
         this._activeDoc.logTelemetryEvent(null, "sendingWebhooks", {
           limited: { numEvents: meta.quantity },
         });
-        try {
-          success = await this._sendWebhookWithRetries(
-            id, url, authorization, body, batch.length, this._loopAbort.signal);
-        } catch (e) {
-          if (!(e instanceof UntrustedUrlBlockedError)) {
-            throw e;
-          }
-          blocked = e;
-          success = false;
-        }
+        ({ success, isDestinationInvalid } = await this._sendWebhookWithRetries(
+          id, url, authorization, body, batch.length, this._loopAbort.signal,
+        ));
         if (this._loopAbort.signal.aborted) {
           continue;
         }
@@ -494,11 +480,9 @@ export class WebhookQueue implements ActionQueue<WebhookActionPayload> {
 
       if (!success) {
         this._log("Failed to send batch of webhook events", { ...meta, level: "warn" });
-        if (blocked) {
-          // Target is permanently blocked: drop this batch (already spliced off
-          // the queue above) and mark the webhook invalid without re-queuing,
-          // mirroring how a URL failing isWebhookUrlAllowed is dropped.
-          await this._stats.logInvalid(id, blocked.message);
+        if (isDestinationInvalid) {
+          // Target is blocked or otherwise permanently unreachable - avoid re-queuing.
+          await this._stats.logInvalid(id, "destination is invalid / blocked by rules");
         } else if (!this._drainingQueue) {
           // Put the failed events at the end of the queue to try again later
           // while giving other URLs a chance to receive events.
@@ -585,12 +569,13 @@ export class WebhookQueue implements ActionQueue<WebhookActionPayload> {
   }
 
   private async _sendWebhookWithRetries(
-    id: string, url: string, authorization: string, body: string, size: number, signal: AbortSignal) {
+    id: string, url: string, authorization: string, body: string, size: number, signal: AbortSignal,
+  ): Promise<{ success: boolean, isDestinationInvalid?: boolean }> {
     const maxWait = 64;
     let wait = 1;
     for (let attempt = 0; attempt < this._maxWebhookAttempts; attempt++) {
       if (this._shuttingDown) {
-        return false;
+        return { success: false };
       }
       try {
         if (attempt > 0) {
@@ -604,12 +589,12 @@ export class WebhookQueue implements ActionQueue<WebhookActionPayload> {
             ...(authorization ? { Authorization: authorization } : {}),
           },
           signal,
-        }, isWebhookUrlAllowed);
+        }, getWebhookDestinationAllowlist());
         if (response.ok) {
           await this._stats.logBatch(id, "success", {
             size, httpStatus: response.status, error: null, attempts: attempt + 1,
           });
-          return true;
+          return { success: true };
         }
         await this._stats.logBatch(id, "failure", {
           httpStatus: response.status,
@@ -627,41 +612,38 @@ export class WebhookQueue implements ActionQueue<WebhookActionPayload> {
         });
         this._log(`Webhook sending error: ${e}`, { level: "warn", attempt });
         if (e instanceof UntrustedUrlBlockedError) {
-          // Permanently blocked target (bad URL, or a redirect to a disallowed
-          // or internal-network address). Propagate so _sendLoop drops the
-          // batch without retrying, instead of re-queuing it as a transient
-          // failure. Returning false here would cause _sendLoop to postpone and
-          // retry forever.
-          throw e;
+          // Target was blocked by egress rules (not in the allowlist, reserved IP, etc.).
+          // Set isDestinationInvalid so the caller can choose to not re-queue this.
+          return { success: false, isDestinationInvalid: true };
         }
       }
 
       if (signal.aborted) {
-        return false;
+        return { success: false };
       }
 
       // Don't wait any more if this is the last attempt.
       if (attempt >= this._maxWebhookAttempts - 1) {
-        return false;
+        return { success: false };
       }
 
       // Wait `wait` seconds, checking this._shuttingDown every second.
       for (let waitIndex = 0; waitIndex < wait; waitIndex++) {
         if (this._shuttingDown) {
-          return false;
+          return { success: false };
         }
         try {
           await delayAbort(TRIGGER_WAIT_DELAY, signal);
         } catch (e) {
           // If signal was aborted, don't log anything as we probably was cleared.
-          return false;
+          return { success: false };
         }
       }
       if (wait < maxWait) {
         wait *= 2;
       }
     }
-    return false;
+    return { success: false };
   }
 }
 
