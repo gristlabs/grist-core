@@ -3287,5 +3287,14 @@
         "Connect email delivery": "Connect email delivery",
         "Invite emails": "Invite emails",
         "Use a plan with automations": "Use a plan with automations"
+    },
+    "VersionFooter": {
+        "Compare editions": "Compare editions",
+        "Grist Community edition": "Grist Community edition",
+        "No official support": "No official support",
+        "Not the full edition": "Not the full edition",
+        "Only community support": "Only community support",
+        "Release notes": "Release notes",
+        "Version {{- version}}": "Version {{- version}}"
     }
 }
