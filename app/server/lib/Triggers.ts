@@ -539,8 +539,8 @@ export class DocTriggers {
 }
 
 export const getWebhookDestinationAllowlist = _.memoize(() => {
-  const rawAllowlist = appSettings.section("webhooks").flag("").requireString({
-    envVar: "ALLOWED_WEBHOOK_DOMAINS",
+  const rawAllowlist = appSettings.section("integrations").flag("allowedWebhookDomains").requireString({
+    envVar: "",
     defaultValue: "",
   });
 
