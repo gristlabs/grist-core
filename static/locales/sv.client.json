@@ -818,7 +818,9 @@
         "Horizontal gridlines": "Horisontella rutnätslinjer",
         "Vertical gridlines": "Vertikala rutnätslinjer",
         "Zebra stripes": "Zebralinjer",
-        "Show": "Visa"
+        "Show": "Visa",
+        "row IDs": "rad IDn",
+        "row numbers": "radnummer"
     },
     "GridViewMenus": {
         "Add column": "Lägg till kolumn",
@@ -889,7 +891,11 @@
         "Choice List": "Flervalsalternativ",
         "Reference": "Referens",
         "Reference List": "Referenslista",
-        "Attachment": "Filbilaga"
+        "Attachment": "Filbilaga",
+        "Row numbers": "Radnummer",
+        "Numbers": "Nummer",
+        "Row IDs": "Rad IDn",
+        "Hidden": "Dold"
     },
     "GristDoc": {
         "Added new linked section to view {{viewName}}": "Lade till ny länkad sektion till vyn {{viewName}}",
@@ -1550,7 +1556,8 @@
         "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "Du kan Lägg till kommentarer i celler, svara på en kommentarstråd och @-omnämna deltagare.",
         "When checked, this field’s default value can be prefilled from the URL using query parameters.": "När vald, kommer detta fällts standardvärde att vara förifyllt från URLen genom dess frågeparametrar.",
         "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "Med ändringsförslag kan användare göra ändringar i en egen kopia utan att ändra orginaldokumenet, sedan kan de skicka in dessa ändringsförslag för att bli granskade av dokumentägaren innan de accepteras.",
-        "Unpin to hide the button while keeping the filter.": "Lossa för att dölja knappen och samtidigt behålla filtret."
+        "Unpin to hide the button while keeping the filter.": "Lossa för att dölja knappen och samtidigt behålla filtret.",
+        "Row IDs are stable and unique numeric identifiers, used by reference columns to identify records.": "Rad IDn är fasta och unika numeriska identifierare, som används av referenskolumner för att identifiera rader."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "BESKRIVNING",
@@ -1603,7 +1610,8 @@
     "GridView": {
         "Click to insert": "Klicka för att infoga",
         "row {{rowNum}} {{colName}}": "rad {{rowNum}} {{colName}}",
-        "row {{rowNum}} {{colName}} (new row)": "rad {{rowNum}} {{colName}} (ny rad)"
+        "row {{rowNum}} {{colName}} (new row)": "rad {{rowNum}} {{colName}} (ny rad)",
+        "ID": "ID"
     },
     "WelcomeSitePicker": {
         "Welcome back": "Välkommen tillbaka",
@@ -2006,7 +2014,11 @@
         "Dismissing...": "Avfärdar...",
         "How user actions can reach the outside world": "Hur användares handlingar kan nå världen utanför",
         "Outgoing requests": "Utgående förfrågningar",
-        "full Edition": "komplett version"
+        "full Edition": "komplett version",
+        "Apply changes": "Applicera ändringar",
+        "Switch to Community edition?": "Växla till Öppen version?",
+        "Switch to full Grist?": "Växla till komplett Grist?",
+        "This will also apply your other pending changes:": "Detta kommer också att applicera andra väntande ändringar du gjort:"
     },
     "Columns": {
         "Remove Column": "Ta bort kolumn"
@@ -3064,7 +3076,17 @@
         "For automations, MCP server, AI assistant, OIDC": {
             "SAML support, email notifications, admin controls, audit logging and more, switch to the full Grist edition.": "För automatiserade flöden, MCPserver, AI assistent, OIDC/SAML support, e-postnotiser, administrations sida, revisions loggning med mera byt till komplett version av Grist."
         },
-        "This server runs the full edition of Grist, with advanced security, governance, MCP server, automations, email notifications, and collaboration features.": "Denna server kör full version av Grist med, funktioner aktiverade för förbättrad säkerhet, kontroll, MCP server, automatiserade flöden, e-post notiser och funktioner för samarbete."
+        "This server runs the full edition of Grist, with advanced security, governance, MCP server, automations, email notifications, and collaboration features.": "Denna server kör full version av Grist med, funktioner aktiverade för förbättrad säkerhet, kontroll, MCP server, automatiserade flöden, e-post notiser och funktioner för samarbete.",
+        "Community Grist": "Öppen version av Grist",
+        "Continue with Community edition": "Fortsätt med Öppen version",
+        "Continue with full edition": "Fortsätt med komplett version",
+        "Downgrade to Community edition": "Nedgradera till Öppen version",
+        "Downgrading to the Community edition restarts the server, which may be briefly unavailable.": "Add nedgradera till Öppen version startar om servern, som då tillfälligt kan bli otillgänglig.",
+        "Switch to Community edition": "Växla till Öppen version",
+        "Switch to full Grist": "Växla till komplett Grist",
+        "Switching Grist edition...": "Växlar Grist variant...",
+        "Switching to full Grist restarts the server, which may be briefly unavailable.": "Add växla till komplett Grist startar om servern, som då tillfälligt kan bli otillgänglig.",
+        "Upgrade to full Grist": "Uppgradera till komplett Grist"
     },
     "BaseUrlSection": {
         "set": "ställ in",
@@ -3226,6 +3248,19 @@
         "**New!** Connect Grist to Claude and ChatGPT. [Try it now]({{mcp}})": "**Nytt!** Anslut Grist till Claude och ChatGPT. [Testa nu]({{mcp}})"
     },
     "AdminSetupRequests": {
-        "Clear": "Rensa"
+        "Clear": "Rensa",
+        "1 request": "1 anrop",
+        "For": "För",
+        "Setup requests": "Ställ in förfrågningar",
+        "already done": "redan klart",
+        "{{count}} requests_one": "{{count}} anrop",
+        "{{count}} requests_other": "{{count}} anrop"
+    },
+    "NotificationsAndAutomationsNudge": {
+        "Add a note": "Lägg till en notering",
+        "Next step": "Nästa steg",
+        "Note sent.": "Notering skickad.",
+        "Notifications and Automations": "Notiser och automatiserade flöden",
+        "Waiting on": "Väntar på"
     }
 }
