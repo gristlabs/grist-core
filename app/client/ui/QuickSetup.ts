@@ -9,7 +9,7 @@ import { AuthenticationSection, confirmNoAuthAcknowledgement } from "app/client/
 import { BackupsSection } from "app/client/ui/BackupsSection";
 import { DraftChangesManager } from "app/client/ui/DraftChanges";
 import { peekSetupReturnFromGetGristCom, SetupReturnStep } from "app/client/ui/GetGristComProvider";
-import { PermissionsSetupSection } from "app/client/ui/PermissionsSetupSection";
+import { QuickSetupApplyStep } from "app/client/ui/QuickSetupApplyStep";
 import { quickSetupContinueButton, QuickSetupSection } from "app/client/ui/QuickSetupContinueButton";
 import { QuickSetupServerStep } from "app/client/ui/QuickSetupServerStep";
 import { SANDBOX_PROBE_ID, SandboxSetupSection } from "app/client/ui/SandboxSection";
@@ -195,8 +195,8 @@ export class QuickSetup extends Disposable {
 
   private _buildApplyStep(): DomContents {
     return dom.create((owner) => {
-      const section = PermissionsSetupSection.create(owner);
-      return section.buildDom();
+      const step = QuickSetupApplyStep.create(owner, this._appModel);
+      return step.buildDom();
     });
   }
 }

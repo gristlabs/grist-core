@@ -188,6 +188,8 @@ export const getCommonUrls = () => withAdminDefinedUrls({
   signInWithGristRegister: "https://login.getgrist.com/oauth/register",
   signInWithGristHelp: "https://support.getgrist.com/install/sign-in-with-grist",
   signInWithGristDocs: "https://support.getgrist.com/install/getgrist-com/",
+
+  helpUsImproveSurvey: getHelpUsImproveSurveyUrl(),
 });
 
 export const commonUrls = getCommonUrls();
@@ -1061,6 +1063,9 @@ export interface GristLoadConfig {
   // Opaque payload for the OAuth flow, defined in ext/ in the full Grist build.
   // Core uses only its presence to dispatch client-side rendering.
   oauth?: unknown;
+
+  // URL the quick-setup "Help us improve" survey POSTs to. Absent/empty = survey hidden.
+  helpUsImproveSurveyUrl?: string;
 }
 
 /**
@@ -1186,6 +1191,17 @@ export function getContactSupportUrl(): string {
 export function getWebinarsUrl(): string {
   const defaultUrl = "https://www.getgrist.com/webinars/grist-101-new-users-guide";
   return getCustomizableValue("webinarsUrl", "GRIST_WEBINARS_URL") || defaultUrl;
+}
+
+export function getHelpUsImproveSurveyUrl(): string {
+  // Grist Labs' default ingest for the quick-setup "Help us improve" survey.
+  // Overridable via GRIST_HELP_US_IMPROVE_SURVEY_URL
+  const defaultUrl = "https://docs.getgrist.com/api/help-us-improve";
+
+  const value = getCustomizableValue("helpUsImproveSurveyUrl", "GRIST_HELP_US_IMPROVE_SURVEY_URL");
+  // Explicit undefined check (not `||`) so an empty string is preserved as "disabled"
+  // rather than collapsing to the default URL.
+  return value === undefined ? defaultUrl : String(value);
 }
 
 export function getMaxUploadSizeAttachmentMB(): number {

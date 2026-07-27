@@ -112,6 +112,7 @@ export interface SendGridConfig {
     singleUserOnboarding?: string;
     appSumoSignUps?: string;
     trial?: string;
+    selfHosted?: string;
   },
   unsubscribeGroup: {
     invites?: number;

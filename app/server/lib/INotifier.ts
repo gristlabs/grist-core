@@ -56,6 +56,7 @@ interface INotifierMethods {
   trialPeriodEndingSoon(account: BillingAccount, subscription: { trial_end: number | null }): Promise<void>;
   trialingSubscription(account: BillingAccount): Promise<void>;
   scheduledCall(userRef: string): Promise<void>;
+  selfHostedUpdatesRequested(email: string): Promise<void>;
   twoFactorStatusChanged(event: TwoFactorEvent, userId: number, method?: "TOTP" | "SMS"): Promise<void>;
 
   /**
@@ -113,6 +114,7 @@ export class EmitNotifier extends EventEmitter implements INotifier {
   public trialPeriodEndingSoon = this._wrapEvent("trialPeriodEndingSoon");
   public trialingSubscription = this._wrapEvent("trialingSubscription");
   public scheduledCall = this._wrapEvent("scheduledCall");
+  public selfHostedUpdatesRequested = this._wrapEvent("selfHostedUpdatesRequested");
   public streamingDestinationsChange = this._wrapEvent("streamingDestinationsChange");
   public twoFactorStatusChanged = this._wrapEvent("twoFactorStatusChanged");
   public docNotification = this._wrapEvent("docNotification");

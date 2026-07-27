@@ -6,6 +6,7 @@ import {
   getContactSupportUrl,
   getFreeCoachingCallUrl,
   getHelpCenterUrl,
+  getHelpUsImproveSurveyUrl,
   getOnboardingVideoId,
   getPageTitleSuffix,
   getTermsOfServiceUrl,
@@ -147,6 +148,7 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     adminDefinedUrls: process.env.GRIST_CUSTOM_COMMON_URLS,
     userPresenceMaxUsers: getUserPresenceMaxUsers(),
     warnBeforeSharingPublicly: isAffirmative(process.env.GRIST_WARN_BEFORE_SHARING_PUBLICLY),
+    helpUsImproveSurveyUrl: getHelpUsImproveSurveyUrl(),
   };
   return {
     ...config,

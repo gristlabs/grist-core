@@ -13,6 +13,7 @@ import {
   NotConfiguredError,
 } from "app/server/lib/loginSystemHelpers";
 import { LOGIN_SYSTEMS } from "app/server/lib/loginSystems";
+import { OIDCConfig } from "app/server/lib/OIDCConfig";
 import { sendOkReply, stringParam } from "app/server/lib/requestUtils";
 
 import * as express from "express";
@@ -90,8 +91,18 @@ export class ConfigBackendAPI {
     // GET /api/config/auth-providers/config?provider=getgrist.com
     app.get("/api/config/auth-providers/config", requireInstallAdmin, expressWrap(async (req, resp) => {
       stringParam(req.query.provider, "provider", { allowed: [GETGRIST_COM_PROVIDER_KEY] });
+      let config: OIDCConfig | undefined;
+      try {
+        config = readGetGristComConfigFromSettings(appSettings);
+      } catch (e) {
+        // Don't throw if provider not configured - just omit extra config info
+        if (!(e instanceof NotConfiguredError)) {
+          throw e;
+        }
+      }
       return sendOkReply(req, resp, {
         GRIST_GETGRISTCOM_SP_HOST: getGetGristComHost(appSettings),
+        ...(config ? { oidcClientId: config.clientId } : {}),
       });
     }));
 
