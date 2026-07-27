@@ -237,6 +237,13 @@ export class CalendarView extends BaseView {
     this._update();
   }
 
+  // The currently-selected event's row, so BaseView's deleteRecords command (bound to the Delete
+  // key while the section has focus) removes it. BaseView.selectedRows() returns [] by default,
+  // which is why Delete does nothing on a calendar until we point it at the selected event.
+  protected selectedRows(): number[] {
+    return this._selectedRecordId ? [this._selectedRecordId] : [];
+  }
+
   private _testHook() {
     return {
       _view: this,
@@ -767,13 +774,6 @@ export class CalendarView extends BaseView {
     }
   }
 
-  // The currently-selected event's row, so BaseView's deleteRecords command (bound to the Delete
-  // key while the section has focus) removes it. BaseView.selectedRows() returns [] by default,
-  // which is why Delete does nothing on a calendar until we point it at the selected event.
-  protected selectedRows(): number[] {
-    return this._selectedRecordId ? [this._selectedRecordId] : [];
-  }
-
   // Move the grid cursor (and active section) to a row, so clicking an event lights up its row.
   private _selectRow(rowId: number) {
     this.gristDoc.viewModel.activeSectionId(this.viewSection.getRowId());
@@ -995,7 +995,6 @@ export class CalendarView extends BaseView {
       ),
     );
   }
-
 }
 
 // Helpers
@@ -1188,7 +1187,7 @@ const cssCalendarTitle = styled("div", `
   font-weight: 600;
   font-size: 15px;
   flex: 1 1 auto;
-  min-width: 0;
+  min-width: 40px;
   text-align: center;
   white-space: nowrap;
   overflow: hidden;

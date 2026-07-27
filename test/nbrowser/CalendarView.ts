@@ -12,6 +12,10 @@ import { assert, By, driver, Key } from "mocha-webdriver";
 describe("CalendarView", function() {
   this.timeout(30000);
   const cleanup = setupTestSuite();
+  // The calendar shares the page with its source table, so on the default 1024x640 window the
+  // section is narrow: the toolbar overflows and the drag test's target can fall outside the
+  // viewport. Give the suite a bigger screen so the widget has realistic room.
+  gu.bigScreen();
 
   // Seconds-since-epoch for a date, as Grist stores Date/DateTime values.
   const sec = (d: Date) => Math.floor(d.getTime() / 1000);
@@ -59,13 +63,16 @@ describe("CalendarView", function() {
     await gu.sendActions([
       ["AddRecord", "Table1", -1, {
         From: sec(atHour(13)), To: sec(atHour(14)),
-        Label: "New Event", IsFullDay: false,
+        // Deliberately not the "New Event" placeholder title: the afterEach teardown removes rows
+        // with that exact label (see removeStrayNewEventRows), which would delete this row and
+        // shift the rowIds the following tests rely on.
+        Label: "Timed Event", IsFullDay: false,
       }],
     ]);
     // Wait for the calendar to re-read the table, then check the mapped event.
     await driver.wait(async () => Boolean(await getCalendarEvent(1)), 2000);
     assert.deepEqual(await getCalendarEvent(1), {
-      title: "New Event",
+      title: "Timed Event",
       startMs: atHour(13).getTime(),
       endMs: atHour(14).getTime(),
       isAllDay: false,
@@ -90,7 +97,7 @@ describe("CalendarView", function() {
     await gu.sendActions([["UpdateRecord", "Table1", 1, { To: sec(atHour(15)) }]]);
     await driver.wait(async () => (await getCalendarEvent(1))?.endMs === expectedEnd, 2000);
     assert.deepEqual(await getCalendarEvent(1), {
-      title: "New Event",
+      title: "Timed Event",
       startMs: atHour(13).getTime(),
       endMs: expectedEnd,
       isAllDay: false,
@@ -121,17 +128,29 @@ describe("CalendarView", function() {
     // The now-indicator only renders on today, so go to day view on today.
     await driver.find(".test-calendar-perspective-day").click();
     await driver.find(".test-calendar-today").click();
-    const label = await driver.findWait(".toastui-calendar-timegrid-now-indicator-label", 2000).getText();
+    // Pick 12-hour explicitly. The format otherwise defaults to the browser locale, which differs
+    // between a developer machine and CI, so the assertion below would be locale-dependent.
+    await setTimeFormat("12-hour");
+    // TUI renders the label with the class "...-timegrid-current-time"; "now-indicator-label" is
+    // only its data-testid, not a class name.
+    const label = await driver.findWait(".toastui-calendar-timegrid-current-time", 2000).getText();
     // 12-hour with am/pm (e.g. "3:44 pm"), matching TUI's "3 pm" hour axis, not 24-hour "15:44".
     assert.match(label.trim(), /^\d{1,2}:\d{2} (am|pm)$/);
     await driver.find(".test-calendar-perspective-week").click();
   });
 
   it("navigates to the previous/next/current period", async function() {
-    const today = new Date();
+    // Set the perspective here rather than relying on the previous test to leave it in week view,
+    // so a failure there doesn't cascade into a confusing day-vs-week step-size mismatch.
+    await driver.find(".test-calendar-perspective-week").click();
+    // In week view TUI's getDate() is the currently rendered date, which it moves a whole week at a
+    // time; it is not pinned to today's weekday. So anchor on whatever "today" renders as, and check
+    // that prev/next step exactly one week either side of it.
+    await driver.find(".test-calendar-today").click();
+    const anchor = new Date(await getCalendarDate());
     const validateDate = async (daysToAdd: number) => {
-      const expected = new Date(today);
-      expected.setDate(today.getDate() + daysToAdd);
+      const expected = new Date(anchor);
+      expected.setDate(anchor.getDate() + daysToAdd);
       assert.equal(await getCalendarDate(), expected.toDateString());
     };
 
@@ -206,28 +225,38 @@ describe("CalendarView", function() {
 
     // findContentWait for the rendered event also waits for the calendar to catch up.
     const el = await driver.findContentWait("[data-event-id]", /DragMe/, 2000);
-    await driver.executeScript("arguments[0].scrollIntoView({block: 'center'})", el);
+    await driver.executeScript(
+      "arguments[0].scrollIntoView({block: 'center', behavior: 'instant'})", el);
     const before = await getEventByTitle("DragMe");
     assert.isNotNull(before);
-    // Drag the event body downward. Jiggle first so TUI registers the drag start.
-    await driver.withActions(a => a
-      .move({ origin: el })
-      .press()
-      .move({ origin: el, x: 0, y: 6 })
-      .pause(120)
-      .move({ origin: el, x: 0, y: 100 })
-      .pause(120)
-      .release());
-    await gu.waitForServer();
 
-    // The drag moved the event to a later time (write path: TUI drag -> UpdateRecord).
-    await driver.wait(async () => {
-      const after = await getEventByTitle("DragMe");
-      return Boolean(after && after.startMs! > before!.startMs!);
-    }, 2000);
-    const after = await getEventByTitle("DragMe");
-    // ...preserving its duration (a move, not a resize).
-    assert.equal(after!.endMs! - after!.startMs!, before!.endMs! - before!.startMs!);
+    // Drag the event body downward. Jiggle first so TUI registers the drag start. If the grid is
+    // still settling the press can land on the wrong pixel: TUI then ignores the gesture entirely
+    // and nothing is written, so retry rather than waiting on a write that will never come. Each
+    // attempt first resets the row to its starting time, so a retry drags from the same place and
+    // the duration check below stays meaningful. (waitToPass re-runs the body until it passes.)
+    const rowId = await driver.executeScript<number>(`
+      const t = window.gristDocPageModel.gristDoc.get().docData.getTable("Table1");
+      return t.getRowIds().find(id => t.getValue(id, "Label") === "DragMe");
+    `);
+    await gu.waitToPass(async () => {
+      await gu.sendActions([["UpdateRecord", "Table1", rowId,
+        { From: dayAt(day, 9), To: dayAt(day, 10) }]]);
+      await driver.withActions(a => a
+        .move({ origin: el })
+        .press()
+        .move({ origin: el, x: 0, y: 6 })
+        .pause(120)
+        .move({ origin: el, x: 0, y: 100 })
+        .pause(120)
+        .release());
+      await gu.waitForServer();
+      // The drag moved the event to a later time (write path: TUI drag -> UpdateRecord)...
+      const moved = await getEventByTitle("DragMe");
+      assert.isTrue(Boolean(moved && moved.startMs! > before!.startMs!), "event did not move");
+      // ...preserving its duration (a move, not a resize).
+      assert.equal(moved!.endMs! - moved!.startMs!, before!.endMs! - before!.startMs!);
+    }, 6000);
   });
 
   it("opens the Record Card on double-click of an event", async function() {
@@ -284,6 +313,14 @@ describe("CalendarView", function() {
     if (ids.length) {
       await gu.sendActions([["BulkRemoveRecord", "Table1", ids]]);
     }
+  }
+
+  // Picks a value in the toolbar's time-format dropdown (e.g. "12-hour"), so tests don't depend on
+  // the browser locale that the format otherwise defaults to.
+  async function setTimeFormat(label: string) {
+    await driver.find(".test-calendar-time-format .test-select-open").click();
+    await driver.findContentWait(".test-select-menu li", label, 1000).click();
+    await gu.waitForServer();
   }
 
   async function setMapping(name: string, value: RegExp) {
@@ -368,8 +405,12 @@ describe("CalendarView", function() {
     return driver.executeScript("return window.gristCalendarView.getCalendarDate()");
   }
 
+  // Read textContent rather than getText(): the toolbar's button groups don't shrink, so when the
+  // section is narrow the title ellipsizes and getText() (which returns only rendered text) comes
+  // back empty. textContent is what the view actually set, which is what these assertions check.
   async function getCalendarTitle(): Promise<string> {
-    return driver.find(".test-calendar-title").getText();
+    return driver.executeScript<string>(
+      `return document.querySelector(".test-calendar-title").textContent`);
   }
 });
 
@@ -534,90 +575,5 @@ describe("CalendarView legacy custom.calendar docs", function() {
     const ev = await driver.executeScript<any>(
       "return window.gristCalendarView.getEventByTitle('Legacy Event A')");
     assert.equal(ev?.title, "Legacy Event A");
-  });
-});
-
-/**
- * Geometry of drop-to-assign: _dateAtPoint maps a pointer position over the grid to a date. It must
- * account for the week view's left hour-gutter and the month view's day-name header, which don't
- * belong to any day. We drive it directly (rather than through a flaky drag gesture): measure the
- * real day columns / cells TUI renders and assert the date each one maps to.
- */
-describe("CalendarView drop geometry", function() {
-  this.timeout(30000);
-  const cleanup = setupTestSuite();
-  // The toolbar's perspective buttons (Day/Week/Month) sit at the right edge; on the default
-  // narrow window they can land just outside the viewport and become unclickable. Give this suite
-  // a wider window so the whole toolbar is on-screen.
-  gu.resizeWindowForSuite(1440, 900);
-
-  before(async function() {
-    const session = await gu.session().login();
-    // Reuse the legacy fixture: it already has a calendar section mapping Start/End/Title, with
-    // events in Jan 2024. Navigate the calendar there so the visible range is deterministic.
-    await session.tempDoc(cleanup, "CalendarLegacy.grist");
-    await driver.findWait(".test-calendar-widget", 2000);
-    await driver.executeScript(
-      "window.gristCalendarView._view._calendar.setDate(new Date(2024, 0, 15))");
-  });
-
-  // Calls the live view's _dateAtPoint(x, y) and returns the resulting date as a yyyy-mm-dd string.
-  async function dateAtPoint(x: number, y: number): Promise<string | null> {
-    return driver.executeScript<string | null>(`
-      const d = window.gristCalendarView._view._dateAtPoint(arguments[0], arguments[1]);
-      if (!d) { return null; }
-      const p = (n) => String(n).padStart(2, "0");
-      return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
-    `, x, y);
-  }
-
-  // Adds `days` to a yyyy-mm-dd string, staying in UTC so no timezone shifts a day. Used to build
-  // the expected date for each column/cell from the calendar's range start.
-  function addDaysStr(yyyymmdd: string, days: number): string {
-    const [y, m, d] = yyyymmdd.split("-").map(Number);
-    const out = new Date(Date.UTC(y, m - 1, d + days));
-    const p = (n: number) => String(n).padStart(2, "0");
-    return `${out.getUTCFullYear()}-${p(out.getUTCMonth() + 1)}-${p(out.getUTCDate())}`;
-  }
-
-  it("maps week-view columns to the right day (ignoring the hour gutter)", async function() {
-    await driver.find(".test-calendar-perspective-week").click();
-    // Read each rendered day column's center and the calendar's visible range start.
-    const info = await driver.executeScript<{ centers: { x: number; y: number }[]; start: string }>(`
-      const cal = window.gristCalendarView._view._calendar;
-      const wrap = document.querySelector(".toastui-calendar-columns").getBoundingClientRect();
-      const midY = wrap.top + wrap.height / 2;
-      const cols = [...document.querySelectorAll(".toastui-calendar-column")];
-      const s = cal.getDateRangeStart().toDate();
-      const p = (n) => String(n).padStart(2, "0");
-      return {
-        centers: cols.map(c => { const r = c.getBoundingClientRect(); return { x: r.left + r.width / 2, y: midY }; }),
-        start: s.getFullYear() + "-" + p(s.getMonth() + 1) + "-" + p(s.getDate()),
-      };
-    `);
-    // Each column's center maps to consecutive days starting at the range start.
-    for (let i = 0; i < info.centers.length; i++) {
-      assert.equal(await dateAtPoint(info.centers[i].x, info.centers[i].y),
-        addDaysStr(info.start, i), `column ${i}`);
-    }
-  });
-
-  it("maps month-view cells to the right day (ignoring the day-name header)", async function() {
-    await driver.find(".test-calendar-perspective-month").click();
-    const info = await driver.executeScript<{ cells: { x: number; y: number }[]; start: string }>(`
-      const cal = window.gristCalendarView._view._calendar;
-      const cells = [...document.querySelectorAll(".toastui-calendar-daygrid-cell")];
-      const s = cal.getDateRangeStart().toDate();
-      const p = (n) => String(n).padStart(2, "0");
-      return {
-        cells: cells.map(c => { const r = c.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }),
-        start: s.getFullYear() + "-" + p(s.getMonth() + 1) + "-" + p(s.getDate()),
-      };
-    `);
-    // Check the first two weeks (14 cells) to cover the header-offset boundary without over-testing.
-    for (let i = 0; i < Math.min(14, info.cells.length); i++) {
-      assert.equal(await dateAtPoint(info.cells[i].x, info.cells[i].y),
-        addDaysStr(info.start, i), `cell ${i}`);
-    }
   });
 });

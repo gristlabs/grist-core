@@ -170,7 +170,6 @@ export function buildCalendarSetupModal(section: ViewSectionRec, gristDoc: Grist
   }, { noClickAway: true });
 }
 
-
 // Date-only events are all-day, so day/week views are meaningless; default to month. Timed
 // events default to week.
 function perspectiveFor(mode: DateMode): "month" | "week" {
