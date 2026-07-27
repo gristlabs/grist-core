@@ -51,6 +51,18 @@ import toPairs from "lodash/toPairs";
  *   - columnDeltas: a dictionary of changes within a column.
  *   - updateRows, removeRows, addRows: lists of affected rows.
  *
+ * A rowId is a slot, not a row: the engine may free one and later reuse it for an
+ * unrelated row.  The lists a rowId appears in say what occupied that slot before the
+ * period and what occupies it after:
+ *   - addRows only: empty before, a new row after.
+ *   - removeRows only: a row before, empty after.
+ *   - both: one row before, a different row after.  The first was removed and its
+ *     freed rowId reused for the second.  Two distinct rows share the slot; this is
+ *     not one row that was added and then removed again.
+ *   - updateRows only: the same row before and after, with changed contents.
+ *   - no list: the summary says nothing here.  Either the same row sat there
+ *     untouched, or the slot was empty at both ends.  Neither is a net change.
+ *
  * The columnRenames/columnDeltas pair work just like tableRenames/tableDeltas, just
  * on the scope of columns within a table rather than tables within a document.
  *
@@ -86,6 +98,10 @@ export interface ActionSummary {
  * A collection of changes related to rows and columns of a single table.
  */
 export interface TableDelta {
+  /**
+   * Read these three lists together, not separately.  A rowId in both `removeRows`
+   * and `addRows` is recycled: two different rows sharing one slot.
+   */
   updateRows: number[];  /** rowIds of rows that exist before+after and were changed during */
   removeRows: number[];  /** rowIds of rows that existed before but were removed during */
   addRows: number[];     /** rowIds of rows that were added during, and exist after */
