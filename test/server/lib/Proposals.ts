@@ -797,13 +797,15 @@ describe("Proposals", function() {
       ]);
     });
 
-    // Skipped until #2385 lands. The spec composes an add-then-remove to no
-    // entry; the summarizer instead lists the row in both addRows and
-    // removeRows, which means recycled, and Patch applies the recycle.
-    // Passes with #2385 merged in (checked 2026-07-26).
-    it.skip("does not delete the wrong trunk row on an add-then-remove transient", async function() {
-      // Carol takes fork row id 4, which on the trunk is Frank, so the
-      // recycle deletes Frank and restores the Carol the fork deleted.
+    // The fork's add-then-remove nets to nothing, but summary concatenation
+    // reports the rowId in both addRows and removeRows, which is how a
+    // recycled id is reported too. Patch cannot tell the two apart, and
+    // guesses wrong at the cost of a trunk row, so it refuses both until
+    // https://github.com/gristlabs/grist-core/pull/2385 makes the summary
+    // sound. Then this becomes a genuine recycle to support.
+    it("does not delete the wrong trunk row on an add-then-remove transient", async function() {
+      // Carol takes fork row id 4, which on the trunk is Frank. Applying
+      // the reported recycle would delete Frank and restore Carol.
       const { trunk, fork } = await setupForkWithAdvance({
         trunkSeed: [
           ["AddTable", "Customers", [
@@ -824,7 +826,15 @@ describe("Proposals", function() {
         ["RemoveRecord", "Customers", 4],
       ]);
       const proposal = await fork.makeProposal();
-      await trunk.applyProposal(proposal.shortId);
+      const result = await trunk.applyProposal(proposal.shortId);
+      // Refused, and visibly so: the proposal stays open rather than
+      // reporting success over a document it quietly damaged.
+      assert.isFalse(result.changes.log.applied);
+      assert.lengthOf(result.changes.log.changes, 1);
+      const [item] = result.changes.log.changes;
+      assert.equal(item.kind, "error");
+      assert.match(item.kind === "error" ? item.msg : "", /reuses row ids/);
+      assert.isUndefined(result.changes.proposal.status.status);
       const rows = await trunk.sql(
         "select name from Customers order by id",
       );
