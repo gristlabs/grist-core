@@ -8,7 +8,7 @@ import { LatestVersion } from "app/server/lib/UpdateManager";
 
 export async function checkForUpdates(gristServer: GristServer): Promise<LatestVersion> {
   // Prepare data for the telemetry that endpoint might expect.
-  const installationId = (await gristServer.getActivations().current()).id;
+  const installationId = gristServer.getInstallationId();
   const deploymentType = gristServer.getDeploymentType();
   const currentVersion = installedVersion;
   const response = await fetch(

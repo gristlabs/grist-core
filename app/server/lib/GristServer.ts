@@ -84,6 +84,7 @@ export interface GristServer extends StorageCoordinator {
   getDeploymentType(): GristDeploymentType;
   getHosts(): Hosts;
   getActivations(): ActivationsManager;
+  getInstallationId(): string;
   getInstallAdmin(): InstallAdmin;
   getHomeDBManager(): HomeDBManager;
   getStorageManager(): IDocStorageManager;
@@ -204,6 +205,7 @@ export function createDummyGristServer(): GristServer {
     getDeploymentType() { return "core"; },
     getHosts() { throw new Error("no hosts"); },
     getActivations() { throw new Error("no activations"); },
+    getInstallationId() { throw new Error("no installation id"); },
     getInstallAdmin() { throw new Error("no install admin"); },
     getHomeDBManager() { throw new Error("no db"); },
     getStorageManager() { throw new Error("no storage manager"); },

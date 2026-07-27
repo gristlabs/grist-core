@@ -21,5 +21,6 @@ export function makeAdminPageConfig(gristServer: GristServer): Partial<AdminPage
     adminControls: gristServer.create.areAdminControlsAvailable(),
     inService: getInService().value,
     supportsExtFullEdition: isExtFullEditionSupported() && isUnderRestartShell(),
+    installationId: gristServer.getInstallationId(),
   };
 }

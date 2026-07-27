@@ -42,7 +42,7 @@ import {
   OIDC_PROVIDER_KEY,
   SAML_PROVIDER_KEY,
 } from "app/common/loginProviders";
-import { getGristConfig } from "app/common/urlUtils";
+import { getAdminConfig } from "app/common/urlUtils";
 
 import { Computed, Disposable, dom, makeTestId, Observable, styled } from "grainjs";
 
@@ -50,19 +50,15 @@ const t = makeT("AuthenticationSection");
 
 const testId = makeTestId("test-admin-auth-");
 
-// Scope the acknowledgement to this installation, so the same browser used
-// to administer multiple Grist installations doesn't carry the dismissal across.
-const installationId = getGristConfig().activation?.installationId;
-const noAuthAcknowledged = localStorageBoolObs(
-  installationId ? `noAuthAcknowledged:${installationId}` : "noAuthAcknowledged",
-);
-
 /**
  * Prompt the admin to acknowledge that the server has no authentication
  * before continuing past the Quick Setup auth step without configuring a
  * provider.
  */
-export function confirmNoAuthAcknowledgement(onConfirm: () => void): void {
+function confirmNoAuthAcknowledgement(
+  noAuthAcknowledged: Observable<boolean>,
+  onConfirm: () => void,
+): void {
   saveModal((_ctl, owner) => {
     const ack = Observable.create(owner, false);
     const saveDisabled = Computed.create(owner, use => !use(ack));
@@ -140,6 +136,13 @@ export class AuthenticationSection extends Disposable implements ConfigSection {
 
   /** Auth changes always require a restart to take effect. */
   public readonly needsRestart = true;
+
+  /**
+   * Scope the acknowledgement to this installation, so the same browser used
+   * to administer multiple Grist installations doesn't carry the dismissal across.
+   */
+  public readonly noAuthAcknowledged = this.autoDispose(
+    localStorageBoolObs(`noAuthAcknowledged:${getAdminConfig().installationId}`));
 
   private _appModel = this._options.appModel;
   private _installAPI = this._options.installAPI ?? new InstallAPIImpl(getHomeUrl());
@@ -233,7 +236,7 @@ export class AuthenticationSection extends Disposable implements ConfigSection {
     });
 
     this.canProceed = Computed.create(this, use =>
-      use(noAuthAcknowledged) || use(this.hasConfiguredAuth));
+      use(this.noAuthAcknowledged) || use(this.hasConfiguredAuth));
 
     // Evaluate every branch: short-circuit returns drop subscriptions to
     // later deps, leaving `isDirty` stale once an early truthy branch flips.
@@ -369,6 +372,13 @@ export class AuthenticationSection extends Disposable implements ConfigSection {
     }
   }
 
+  /**
+   * Prompt for the no-auth acknowledgement, then run `onConfirm` if given.
+   */
+  public confirmNoAuth(onConfirm: () => void): void {
+    confirmNoAuthAcknowledgement(this.noAuthAcknowledged, onConfirm);
+  }
+
   public buildDom() {
     return [
       this._inAdminPanel ? null : cssAuthIntro(
@@ -433,6 +443,7 @@ export class AuthenticationSection extends Disposable implements ConfigSection {
       recentlyConfigured: this._recentlyConfigured,
       loginSystemId,
       inAdminPanel: this._inAdminPanel,
+      noAuthAcknowledged: this.noAuthAcknowledged,
     });
   }
 
@@ -865,6 +876,8 @@ export interface AuthSectionContext {
   loginSystemId?: string;
   /** Defaults to true. */
   inAdminPanel?: boolean;
+  /** Whether the admin has ticked the no-auth acknowledgement checkbox. */
+  noAuthAcknowledged: Observable<boolean>;
 }
 
 /**
@@ -886,7 +899,7 @@ export function buildAuthSection(
   if (!ctx.inAdminPanel && !hero && getgrist) {
     const heroEl = buildRecommendedCard(getgrist, ctx.heroCtx, ctx.listCtx);
     const otherProviders = providers.filter(p => p.key !== GETGRIST_COM_PROVIDER_KEY);
-    const listEl = buildProviderList(otherProviders, recentlyConfigured, {
+    const listEl = buildProviderList(otherProviders, recentlyConfigured, ctx.noAuthAcknowledged, {
       ...ctx.listCtx,
       collapsible: true,
       title: t("Or connect your own identity provider"),
@@ -908,11 +921,12 @@ export function buildAuthSection(
   // fallback key so the hero shows the right language for what comes after restart.
   const effectiveLoginSystem = noRealPending ? FALLBACK_PROVIDER_KEY : ctx.loginSystemId;
   const heroEl = (hero || showNoAuth) ?
-    buildHeroCard(hero, recentlyConfigured, ctx.heroCtx, effectiveLoginSystem) :
+    buildHeroCard(hero, recentlyConfigured, ctx.heroCtx, ctx.noAuthAcknowledged, effectiveLoginSystem) :
     dom("div");
 
   const listEl = buildProviderList(
-    providers, recentlyConfigured, { ...ctx.listCtx, collapsible: !!hero, collapseOnNoAuth: showNoAuth },
+    providers, recentlyConfigured, ctx.noAuthAcknowledged,
+    { ...ctx.listCtx, collapsible: !!hero, collapseOnNoAuth: showNoAuth },
   );
 
   return dom("div", heroEl, listEl);
@@ -995,6 +1009,7 @@ function buildHeroCard(
   hero: AuthProvider | null,
   recentlyConfigured: ReadonlySet<string>,
   ctx: HeroCardContext,
+  noAuthAcknowledged: Observable<boolean>,
   loginSystemId?: string,
 ): HTMLElement {
   if (!hero) {
@@ -1126,6 +1141,7 @@ function buildProviderCard(
 function buildProviderList(
   providers: AuthProvider[],
   recentlyConfigured: ReadonlySet<string>,
+  noAuthAcknowledged: Observable<boolean>,
   ctx: ProviderListContext = {},
 ): HTMLElement {
   const visible = providers.filter(p =>

@@ -165,6 +165,7 @@ export class FlexServer implements GristServer {
   public readonly docsRoot: string;
   public readonly i18Instance: i18n;
   private _activations: ActivationsManager;
+  private _installationId: string;
   private _comm: Comm;
   private _apiProxy?: DocApiProxy;
   private _socketProxy?: IWebSocketProxy;
@@ -447,6 +448,11 @@ export class FlexServer implements GristServer {
   public getActivations(): ActivationsManager {
     if (!this._activations) { throw new Error("no activations available"); }
     return this._activations;
+  }
+
+  public getInstallationId(): string {
+    if (!this._installationId) { throw new Error("no installation id available"); }
+    return this._installationId;
   }
 
   public getHomeDBManager(): HomeDBManager {
@@ -973,6 +979,7 @@ export class FlexServer implements GristServer {
     // Report which database we are using, without sensitive credentials.
     this.info.push(["database", getDatabaseUrl(this._dbManager.connection.options, false)]);
     this._activations = new ActivationsManager(this._dbManager);
+    this._installationId = (await this._activations.current()).id;
     this._installAdmin = await this.create.createInstallAdmin(this._dbManager);
   }
 
@@ -1656,7 +1663,7 @@ export class FlexServer implements GristServer {
 
     this._attachmentStoreProvider = this._attachmentStoreProvider || new AttachmentStoreProvider(
       await getConfiguredAttachmentStoreConfigs(this._disableExternalStorage),
-      (await this.getActivations().current()).id,
+      this.getInstallationId(),
     );
     this._docManager = this._docManager || new DocManager(this._storageManager,
       pluginManager,

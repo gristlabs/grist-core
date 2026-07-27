@@ -1075,6 +1075,9 @@ export interface AdminPageConfig extends GristLoadConfig {
   /** Whether there is a parent process that can restart Grist. */
   runningUnderSupervisor: boolean;
 
+  /** The unique installation ID. */
+  installationId: string;
+
   /** Whether AdminControls are available and should be enabled in UI. */
   adminControls?: boolean;
 
@@ -1196,7 +1199,7 @@ export function getWebinarsUrl(): string {
 export function getHelpUsImproveSurveyUrl(): string {
   // Grist Labs' default ingest for the quick-setup "Help us improve" survey.
   // Overridable via GRIST_HELP_US_IMPROVE_SURVEY_URL
-  const defaultUrl = "https://docs.getgrist.com/api/help-us-improve";
+  const defaultUrl = "https://gristlabs.getgrist.com/api/help-us-improve";
 
   const value = getCustomizableValue("helpUsImproveSurveyUrl", "GRIST_HELP_US_IMPROVE_SURVEY_URL");
   // Explicit undefined check (not `||`) so an empty string is preserved as "disabled"

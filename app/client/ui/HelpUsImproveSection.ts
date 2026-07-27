@@ -11,7 +11,7 @@ import { isEmail } from "app/common/gutil";
 import { HelpUsImproveSubmission } from "app/common/HelpUsImproveAPI";
 import { GETGRIST_COM_PROVIDER_KEY } from "app/common/loginProviders";
 import { tokens } from "app/common/ThemePrefs";
-import { getGristConfig } from "app/common/urlUtils";
+import { getAdminConfig } from "app/common/urlUtils";
 
 import { Computed, Disposable, dom, DomContents, makeTestId, Observable, styled } from "grainjs";
 
@@ -145,14 +145,15 @@ export class HelpUsImproveSection extends Disposable {
       return null;
     }
 
+    const { installationId, deploymentType } = getAdminConfig();
     return {
-      installationId: getGristConfig().activation?.installationId ?? "",
+      installationId,
       loginWithGristClientId: await this._fetchLoginWithGristClientId(),
       referralSource: hearAbout,
       role: userType,
       subscribeToUpdates: subscribe,
       email: subscribe ? email : "",
-      deploymentType: getGristConfig().deploymentType,
+      deploymentType,
       build: showEnterpriseToggle() ? "full" : "community",
     };
   }
