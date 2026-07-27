@@ -3296,5 +3296,11 @@
         "Only community support": "Only community support",
         "Release notes": "Release notes",
         "Version {{- version}}": "Version {{- version}}"
+    },
+    "RowNumbersMenu": {
+        "Hidden": "Hidden",
+        "Numbers": "Numbers",
+        "Row IDs": "Row IDs",
+        "Row numbers": "Row numbers"
     }
 }
