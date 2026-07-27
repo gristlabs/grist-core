@@ -13,6 +13,7 @@ import { cssLeftPanel, cssScrollPane } from "app/client/ui/LeftPanelCommon";
 import { buildPagesDom } from "app/client/ui/Pages";
 import { openPageWidgetPicker } from "app/client/ui/PageWidgetPicker";
 import { tools } from "app/client/ui/Tools";
+import { createVersionFooter } from "app/client/ui/VersionFooter";
 import { bigBasicButton } from "app/client/ui2018/buttons";
 import { testId } from "app/client/ui2018/cssVars";
 import { menu, menuDivider, menuIcon, menuItem, menuText } from "app/client/ui2018/menus";
@@ -324,6 +325,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
           dom.create(tools, activeDoc, leftPanelOpen),
         ),
       ]),
+      createVersionFooter(leftPanelOpen),
     );
   }
 
