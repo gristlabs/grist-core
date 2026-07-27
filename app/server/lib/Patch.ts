@@ -82,6 +82,14 @@ export class Patch {
         if (delta.mayBeIncomplete) {
           throw new Error(`summary for table ${tableId} may be incomplete; refusing to apply`);
         }
+        // A rowId in both lists means recycled, but until summary
+        // concatenation is sound (grist-core#2385) it can also mean a row
+        // added and removed again. The two need opposite treatment, and
+        // guessing wrong deletes a trunk row, so refuse both.
+        const removed = new Set(delta.removeRows);
+        if (delta.addRows.some(rowId => removed.has(rowId))) {
+          throw new Error(`summary for table ${tableId} reuses row ids; refusing to apply`);
+        }
       }
 
       const actions = this._buildActions(userTables);
