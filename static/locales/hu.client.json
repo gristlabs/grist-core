@@ -247,7 +247,11 @@
     "ColorSelect": {
         "Apply": "Alkalmaz",
         "Cancel": "Mégse",
-        "Default cell style": "Alapértelmezett cellastílus"
+        "Default cell style": "Alapértelmezett cellastílus",
+        "default": "alapértelmezett",
+        "fill": "kitöltés",
+        "none": "nincs",
+        "text": "szöveg"
     },
     "ColumnFilterMenu": {
         "All": "Mind",
@@ -566,7 +570,10 @@
         "Grid Options": "Rács beállítások",
         "Horizontal gridlines": "Vízszintes rácsvonalak",
         "Vertical gridlines": "Függőleges rácsvonalak",
-        "Zebra stripes": "Zebracsíkok"
+        "Zebra stripes": "Zebracsíkok",
+        "Show": "Mutat",
+        "row IDs": "sor ID-k",
+        "row numbers": "sor számok"
     },
     "GridViewMenus": {
         "Add column": "Oszlop hozzáadása",
@@ -637,7 +644,11 @@
         "Choice List": "Többszörös választás",
         "Reference": "Hivatkozás",
         "Reference List": "Hivatkozás-lista",
-        "Attachment": "Csatolmány"
+        "Attachment": "Csatolmány",
+        "Row numbers": "Sor számok",
+        "Numbers": "Számok",
+        "Row IDs": "Sor ID-k",
+        "Hidden": "Rejtett"
     },
     "GristDoc": {
         "Import from file": "Importálás fájlból",
@@ -883,7 +894,8 @@
         "Select a field in the form widget to configure.": "Válassz egy mezőt az űrlapon a beállításhoz.",
         "Submit": "Beküld",
         "Thank you! Your response has been recorded.": "Köszönjük! A válaszát mentettük.",
-        "Chart options": "Diagram beállítások"
+        "Chart options": "Diagram beállítások",
+        "You may use {{placeholder}} placeholder for the ID of the added record.": "A hozzáadott rekord azonosítójának helyére {{placeholder}} helyőrzőt használhat."
     },
     "RowContextMenu": {
         "Copy anchor link": "Horgony link másolása",
@@ -1461,7 +1473,8 @@
         "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "Megjegyzéseket fűzhetsz a cellákhoz, válaszolhatsz a megjegyzésszálakra, és @-említéssel együttműködőket is megemlíthetsz.",
         "When checked, this field’s default value can be prefilled from the URL using query parameters.": "Ha be van jelölve, ennek a mezőnek az alapértelmezett értéke előre kitölthető az URL-ből lekérdezési paraméterek segítségével.",
         "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "A javaslatok használatával a felhasználók az eredeti dokumentum módosítása nélkül módosítanak egy személyes másolatot, majd a javaslatokat beküldve a dokumentum tulajdonosa át tudja ezeket vizsgálni, és dönthet, hogy befogadja-e a javasolt változtatásokat az eredeti dokumentumba.",
-        "Unpin to hide the button while keeping the filter.": "Oldd ki a rögzítést a gomb elrejtéséhez a szűrő megtartásával."
+        "Unpin to hide the button while keeping the filter.": "Oldd ki a rögzítést a gomb elrejtéséhez a szűrő megtartásával.",
+        "Row IDs are stable and unique numeric identifiers, used by reference columns to identify records.": "A sorazonosítók stabil és egyedi numerikus azonosítók, amelyeket a hivatkozási oszlopok használnak a rekordok azonosítására."
     },
     "AdminAccessDeniedCard": {
         "Administrator Panel Unavailable": "A rendszergazdai panel nem elérhető",
@@ -1480,7 +1493,9 @@
         "Visitors who aren't signed in can create and edit documents in a temporary playground. Turn off to require sign-in before creating any documents.": "Azok a látogatók, akik nincsenek bejelentkezve, dokumentumokat hozhatnak létre és szerkeszthetnek egy ideiglenes játszótéren. Kapcsold ki a kötelező bejelentkezést a dokumentumok létrehozása előtt.",
         "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.": "Azok a látogatók, akik nincsenek bejelentkezve, megtekinthetik a nyilvánosan megosztott dokumentumokat. Erre a linkmegosztáshoz és a közzétett űrlapokhoz van szükség.",
         "off": "kikapcsolva",
-        "on": "bekapcsolva"
+        "on": "bekapcsolva",
+        "Sends anonymous usage metrics to Grist Labs. No document contents are collected. Configurable anytime from the admin panel.": "Anonim statisztikai adatokat küld a Grist Labs számára. Semmilyen dokumentum-tartalmat nem gyűjtünk! Bármikor beállítható az admin panelról.",
+        "Share product telemetry": "Termék telemetria megosztása"
     },
     "ScreenReaderAnnouncer": {
         "Notification: {{notification}}": "Értesítés: {{notification}}"
@@ -1603,7 +1618,8 @@
     "GridView": {
         "Click to insert": "Kattints a beszúráshoz",
         "row {{rowNum}} {{colName}}": "{{rowNum}} {{colName}} sor",
-        "row {{rowNum}} {{colName}} (new row)": "{{rowNum}} {{colName}} sor (új sor)"
+        "row {{rowNum}} {{colName}} (new row)": "{{rowNum}} {{colName}} sor (új sor)",
+        "ID": "ID"
     },
     "WelcomeSitePicker": {
         "Welcome back": "Üdvözlünk újra",
@@ -2005,7 +2021,13 @@
         "Dismiss pending changes?": "Elveted a függőben lévő változtatásokat?",
         "Dismissing...": "Elvetés...",
         "How user actions can reach the outside world": "A felhasználói tevékenységek hogyan érik el a külső világot",
-        "Outgoing requests": "Kimenő kérések"
+        "Outgoing requests": "Kimenő kérések",
+        "full Edition": "teljes kiadás",
+        "Apply changes": "Módosítások alkalmazása",
+        "Grist is running in an environment that doesn't support restarting from the admin panel. Your change will be saved now, and takes effect the next time you restart Grist manually.": "A Grist olyan környezetben fut, amely nem támogatja az adminisztrációs panelen keresztüli újraindítást. A módosításodat most mentjük, és akkor lép hatályba, amikor kézzel újraindítod a Grist-et.",
+        "Switch to Community edition?": "Átváltsunk közösségi kiadásra?",
+        "Switch to full Grist?": "Átváltsunk a teljes Grist-re?",
+        "This will also apply your other pending changes:": "Ez a többi, függőben lévő változtatásodra is érvényes lesz:"
     },
     "Columns": {
         "Remove Column": "Oszlop eltávolítása"
@@ -2051,7 +2073,8 @@
         "Submitting…": "Beküldés…",
         "Clear selection for: {{-inputLabel}}": "Kijelölés törlése a következőhöz: {{-inputLabel}}",
         "Options for {{-inputLabel}}": "{{-inputLabel}} beállításai",
-        "Search options for {{-inputLabel}}": "Keresési lehetőségek a következőhöz: {{-inputLabel}}"
+        "Search options for {{-inputLabel}}": "Keresési lehetőségek a következőhöz: {{-inputLabel}}",
+        "Are you sure you want to reset your form?": "Biztosan visszaállítod az űrlapot?"
     },
     "widgetTypesMap": {
         "Calendar": "Naptár",
@@ -2147,7 +2170,12 @@
         "Enable Full Grist": "Full Grist engedélyezése",
         "To continue using Full Grist, you need to\n                  [contact us]({{signupLink}}) to get your activation key.": "A Full Grist használatának folytatásához\n                  [vedd fel velünk a kapcsolatot]({{signupLink}}) az aktiváló kulcs beszerzéséhez.",
         "You are currently trialing Full Grist.": "Jelenleg a Full Grist-et próbálja ki.",
-        "Your trial period has expired on **{{expireAt}}**. To continue using Full Grist, you need to\n[sign up for Full Grist]({{signupLink}}) and paste your activation key below.": "A próbaidőszak ** {{expireAt}} ** napon lejárt. A Full Grist használatának folytatásához\n[regisztrálj a Full Grist szolgáltatásra]({{signupLink}}), és illeszd be az aktiválókulcsot alább."
+        "Your trial period has expired on **{{expireAt}}**. To continue using Full Grist, you need to\n[sign up for Full Grist]({{signupLink}}) and paste your activation key below.": "A próbaidőszak ** {{expireAt}} ** napon lejárt. A Full Grist használatának folytatásához\n[regisztrálj a Full Grist szolgáltatásra]({{signupLink}}), és illeszd be az aktiválókulcsot alább.",
+        "Copy": "Másol",
+        "Good news: it can stay free.": "Jó hír: ingyenes maradhat.",
+        "Installation ID": "Telepítés azonosító",
+        "Provide this when requesting an activation key. Keys are tied to your installation ID.": "Add meg ezt, amikor aktiválókulcsot kérsz. A kulcsok a telepítési azonosítódhoz vannak kötve.",
+        "[Free activation keys]({{learnMoreLink}}) are available to individuals and small orgs under US $1 million total annual funding. For larger orgs, see [pricing]({{pricingLink}}).": "[Ingyenes aktiváló kulcsok]({{learnMoreLink}}) elérhetőek magánszemélyek és 1 millió USA dollár alatti éves összes bevétellel rendelkező kis szervezeteknek. Nagyobb szervezetek számára lásd [az árainkat]({{pricingLink}})."
     },
     "ViewLayout": {
         "Delete": "Törlés",
@@ -2453,7 +2481,10 @@
         "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.": "A websocket kapcsolatok működéséhez HTTP 1.1-re és néhány extra fejléc átadására van szükség. Néha egy reverse proxy zavarhatja ezeket a követelményeket.",
         "It is good practice not to run Grist as the root user.": "Jó gyakorlat, ha nem root felhasználóként futtatod a Gristet.",
         "The main page of Grist should be available.": "A Grist főoldalának elérhetőnek kell lennie.",
-        "APP_HOME_URL is the base URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "Az APP_HOME_URL az alap URL, ahol a felhasználók és az integrációk elérik ezt a Grist-kiszolgálót. A hitelesítési callback-ek (visszahívások), az API-hivatkozások és az e-mailes értesítések mind attól függnek, hogy ez helyes-e."
+        "APP_HOME_URL is the base URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "Az APP_HOME_URL az alap URL, ahol a felhasználók és az integrációk elérik ezt a Grist-kiszolgálót. A hitelesítési callback-ek (visszahívások), az API-hivatkozások és az e-mailes értesítések mind attól függnek, hogy ez helyes-e.",
+        "If running in a container without external storage or with default database, ": {
+            "persist should be a mounted volume. Otherwise Grist documents and metadata will be lost when the container stops.": "Ha egy külső tároló nélküli konténerben vagy az alapértelmezett adatbázissal fut, a /persist kötetnek felcsatolt kötetnek kell lennie, különben a Grist dokumentumok és metaadatok elvesznek, amikor a konténer leáll."
+        }
     },
     "ChoiceListEntry": {
         "+{{count}} more_one": "+ {{count}} további",
@@ -2823,7 +2854,12 @@
         "The change will be saved when you apply pending changes, and will go into effect after you restart Grist.": "A változtatás a függőben lévő módosítások alkalmazásakor mentésre kerül, és a Grist újraindítása után lép életbe.",
         "The change will be saved when you apply pending changes, and will take effect after you restart Grist.": "A változtatás a függőben lévő módosítások alkalmazásakor mentésre kerül, és a Grist újraindítása után lép életbe.",
         "configuration updated": "beállítások frissítve",
-        "disabled": "letiltva"
+        "disabled": "letiltva",
+        "Anyone who can reach this server can access all data without signing in. You can configure authentication later from the admin panel.": "Bárki, aki hozzáfér a szerverhez, bejelentkezés nélkül elérhet minden adatot. Később az admin panelen beállíthatod az azonosítás módját.",
+        "Choose how people sign in. You can change this anytime after setup.": "Válaszd ki, hogyan jelentkezzenek be az emberek. A beállítási folyamat után is bármikor megváltoztathatod.",
+        "Continue without authentication": "Folytatás azonosítás nélkül",
+        "Or connect your own identity provider": "Vagy csatlakoztasd a saját azonosítási szolgáltatódat",
+        "Skip authentication setup?": "Kihagyjuk az azonosítás beállítását?"
     },
     "DetailView": {
         "This row is unavailable or does not exist": "Ez a sor nem elérhető vagy nem létezik"
@@ -2843,7 +2879,11 @@
         "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.": "Bejelentkezéskor a felhasználók a getgrist.com bejelentkezési oldalára kerülnek, ahol bejelentkezhetnek vagy regisztrálhatnak. A getgrist.com webhelyen történő hitelesítés után a rendszer visszairányítja őket a Grist-kiszolgálóra, ahol már hitelesített felhasználóként jelentkeznek be.",
         "Managed authentication by Grist Labs.": "A Grist Labs által kezelt hitelesítés.",
         "Your server uses getgrist.com authentication. Users sign in with their getgrist.com account.": "A szerver a getgrist.com hitelesítését használja. A felhasználók a getgrist.com fiókjukkal jelentkeznek be.",
-        "Error configuring provider with the provided key: {{reason}}": "Hiba történt a szolgáltató megadott kulccsal történő beállításakor: {{reason}}"
+        "Error configuring provider with the provided key: {{reason}}": "Hiba történt a szolgáltató megadott kulccsal történő beállításakor: {{reason}}",
+        "Ideal for testing and prototyping. Sign in with a getgrist.com account, with no identity provider to configure.": "Ideális tesztelésre és protípus-építésre. Jelentkezz be a getgrist.com fiókoddal, így nem kell azonosítási szolgáltatót beállítanod.",
+        "Recommended": "Javasolt",
+        "Use getgrist.com sign-in": "Használd a getgrist.com bejelentkezését",
+        "You can switch to OIDC, SAML, or another method at any time.": "Bármikor átválthatsz OIDC, SAML, vagy más módszerre."
     },
     "AirtableImportUI": {
         "Back": "Vissza",
@@ -2976,7 +3016,8 @@
         "Quick setup": "Gyors beállítás",
         "Sandboxing": "Sandboxozás",
         "Server": "Szerver",
-        "Continue": "Folytatás"
+        "Continue": "Folytatás",
+        "Set up later": "Később állítom be"
     },
     "ServiceStatus": {
         "Enter maintenance mode": "Belépés karbantaráts módba",
@@ -3012,7 +3053,12 @@
         "Set these environment variables and restart Grist to enable S3 storage:": "Állítsd be ezeket a környezeti változókat, és indítsd újra a Gristet az S3 tárolás engedélyezéséhez:",
         "Store document backups on an external service like S3 or Azure.           This protects against data loss if the server's disk fails.": "Tároljuk a dokumentumok biztonsági másolatait egy külső szolgáltatásban, például az S3-ban vagy az Azure-ban. Ez véd az adatvesztés ellen, ha a kiszolgáló lemeze meghibásodik.",
         "Local filesystem (test only)": "Helyi fájlrendszer (csak teszt)",
-        "Stores document snapshots on the local filesystem. For tests only, not production.": "A dokumentum pillanatképeit a helyi fájlrendszeren tárolja. Csak tesztelésre való, éles rendszerben ne használd!"
+        "Stores document snapshots on the local filesystem. For tests only, not production.": "A dokumentum pillanatképeit a helyi fájlrendszeren tárolja. Csak tesztelésre való, éles rendszerben ne használd!",
+        "Action needed": "Tennivaló",
+        "To preserve it, mount a volume at ": {
+            "persist.": "A megőrzéshez csatolj fel egy kötetet a /persist helyre."
+        },
+        "Your data may not survive a container restart.": "Lehet, hogy az adataid nem élik túl a konténer újraindítását."
     },
     "PermissionsSetupSection": {
         "Allow anonymous access": "Anonim hozzáférés engedélyezése",
@@ -3110,7 +3156,38 @@
         "Your installation does not bundle the Full Grist edition. Want Full Grist? {{enableLink}}": "A telepítésed nem tartalmazza a Full Grist kiadást. Full Gristre vágysz? {{enableLink}}",
         "community": "közösségi",
         "full": "teljes",
-        "pricing": "árak"
+        "pricing": "árak",
+        "Cancel": "Mégse",
+        "Community": "Közösségi",
+        "Downgrade": "Visszalépés",
+        "Downgrade to Community Edition": "Visszalépés közösségi kiadásra",
+        "Downgrade to Community edition? Full Grist features are disabled after restart. This is reversible.": "Visszalépsz közösségi kiadásra? A teljes Grist extra funkciói nem lesznek már elérhetők újraindítás után, de ez visszavonható.",
+        "For automations, MCP server, AI assistant, OIDC": {
+            "SAML support, email notifications, admin controls, audit logging and more, switch to the full Grist edition.": "Ha automatizálást, MCP-kiszolgálót, MI-asszisztenst, OIDC/SAML-támogatást, e-mailes értesítéseket, rendszergazdai beállításokat, auditnaplózást és egyéb szolgáltatásokat szeretnél használni, válts a Grist teljes verziójára."
+        },
+        "Free activation keys": "Ingyenes aktiváló kulcsok",
+        "Restart Grist to apply this change.": "A Grist újraindítása ennek a változtatásnak a hatályba lépéséhez.",
+        "Switch to Full Grist": "Váltás a teljes Grist-re",
+        "This server runs the full edition of Grist, with advanced security, governance, MCP server, automations, email notifications, and collaboration features.": "Ezen a szerveren a Grist teljes kiadása fut, fejlett biztonsági és irányítási funkciókkal, MCP-kiszolgálóval, automatizálással, emailes értesítésekkel és együttműködési lehetőségekkel.",
+        "You are running the Grist Community edition.": "A Grist közösségi kiadása fut.",
+        "{{freeKeysLink}} are available to individuals and small orgs under US $1 million total annual funding. For larger orgs, see {{pricingLink}}.": "{{freeKeysLink}} elérhető magánszemélyeknek és 1 millió USA dollát alatti éves finanszírozás alatti kis szervezeteknek. Nagyobb szervezetek számára lásd a {{pricingLink}}.",
+        "Community Grist": "Közösségi Grist",
+        "Continue with Community edition": "Folytatás a közösségi kiadással",
+        "Continue with full edition": "Folytatás a teljes kiadással",
+        "Downgrade to Community edition": "Visszalépés a közösségi kiadásra",
+        "Downgrading to the Community edition restarts the server, which may be briefly unavailable.": "A közösségi kiadásra történő visszalépés újraindítja a szervert, ami így kis időre nem lesz elérhető.",
+        "For automations, MCP server, AI assistant, OIDC support, email notifications, admin controls, audit logging and more, switch to the full Grist edition.": "Automatizáláshoz, MCP-kiszolgálóhoz, MI-asszisztenshez, OIDC-támgoatáshoz, email értesítésekhez, rendszergazdai beállításokhoz, auditnaplóhoz és hasonló fejlett szolgáltatásokhoz válts a Grist teljes kiadására!",
+        "Full Grist features such as email notifications, automations, MCP server, and OIDC and SAML support will be disabled after restart. You may always upgrade to full Grist again.": "A teljes Grist funkciói, mint az email értesítések, automatizálás, MCP-kiszolgáló, valamint az OIDC és SAML támogatás újraindítás után nem lesznek elérhetők, de bármikor újra előfizethetsz a teljes Grist-re.",
+        "Grist will switch to the Community edition after restarting, disabling full Grist features. You will not lose your data or need to reinstall Grist.": "A Grist újraindítás után átvált a közösségi kiadásra, letiltva ezzel a teljes Grist funkcióit. Nem veszítesz adatokat, és nem kell újratelepítened a Grist-et.",
+        "Switch to Community edition": "Váltás közösségi kiadásra",
+        "Switch to full Grist": "Váltás a teljes Grist-re",
+        "Switching Grist edition...": "Grist kiadás váltása...",
+        "Switching to full Grist downloads the required extensions. This may take a few minutes, during which the server will be unavailable.": "A teljes Grist-re váltáshoz szükséges kiegészítéseket le kell tölteni. Ez néhány percet vesz igénybe, ami alatt a szerver nem lesz elérhető.",
+        "Switching to full Grist restarts the server, which may be briefly unavailable.": "A teljes Grist-re váltás újraindítja a szervert, ami így rövid időre nem lesz elérhető.",
+        "Upgrade to full Grist": "Előfizetés teljes Grist-re",
+        "You may downgrade at any time to the Community edition. You will not lose your data or need to reinstall Grist.": "Bármikor visszaléphetsz a közösségi kiadásra. Nem veszítesz adatokat, és nem kell újratelepítened a Grist-et.",
+        "Your server will restart automatically once finished.": "A szerver automatikusan újraindul, amint befejeződött.",
+        "{{freeKeysLink}} are available to individuals and orgs under US $1M total annual funding. For larger orgs see {{pricingLink}}. Start your 30-day free trial today.": "{{freeKeysLink}} elérhetőek magánszemélyek és 1m USD éves finanszírozás alatti szervezetk számára. Nagyobb szervezetek esetén lásd {{pricingLink}}. Kezdd el a 30 napos próbaidőszakot ma!"
     },
     "QuickSetupServerStep": {
         "Apply and Continue": "Alkalmazás és folytatás",
@@ -3174,5 +3251,12 @@
         "not configured": "nincs beállítva",
         "review": "felülvizsgál",
         "unfiltered": "nincs szűrve"
+    },
+    "McpConnectBanner": {
+        "**New!** Connect Grist to Claude and ChatGPT. [Try it now]({{mcp}})": "**Újdonság!** Kösd össze a Grist-et a Claude-dal vagy a ChatGPT-vel. [Próbáld ki most!]({{mcp}})"
+    },
+    "AdminSetupRequests": {
+        "1 request": "1 kérés",
+        "Clear": "Töröl"
     }
 }
