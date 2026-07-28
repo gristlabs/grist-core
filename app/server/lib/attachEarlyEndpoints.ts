@@ -1,4 +1,4 @@
-import { ApiError } from "app/common/ApiError";
+import { ApiError, ApiErrorDetails } from "app/common/ApiError";
 import {
   ConfigKey,
   ConfigKeyChecker,
@@ -126,6 +126,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
         return res.status(409).send({
           error:
             "Cannot automatically restart the Grist server to enact changes. Please restart server manually.",
+          details: { code: "RestartUnavailable" } satisfies ApiErrorDetails,
         });
       }
       // We're going down, so we're no longer ready to serve requests.

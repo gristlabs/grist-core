@@ -1,4 +1,5 @@
 import { makeT } from "app/client/lib/localization";
+import { sessionStorageObs } from "app/client/lib/localStorageObs";
 import { getHomeUrl } from "app/client/models/AppModel";
 import { Notifier } from "app/client/models/NotifyModel";
 import { retryOnNetworkError } from "app/client/models/ToggleEnterpriseModel";
@@ -34,6 +35,19 @@ const t = makeT("EditionSection");
 const testId = makeTestId("test-edition-");
 
 export type Edition = "enterprise" | "core";
+
+/**
+ * Session storage key holding the {@link Edition} last applied in this session.
+ *
+ * The page's `gristConfig` (including `deploymentType`) is static after the page is
+ * served, so any switch applied by the wizard -- which restarts the server but does not
+ * reload the page -- leaves it stale for the rest of the flow.
+ *
+ * This is a workaround for preserving the selected edition for the help us improve
+ * survey. TODO: Remove this and replace it with something better
+ * (e.g. a page reload upon server restart due to an edition change).
+ */
+export const APPLIED_EDITION_KEY = "grist:setupAppliedEdition";
 
 type Surface = "admin" | "wizard";
 
@@ -76,6 +90,7 @@ export class EditionSection extends Disposable implements ConfigSection {
 
   private _selectedEdition = Observable.create<Edition | null>(this, null);
   private _serverEdition = Observable.create<Edition>(this, "core");
+  private _appliedEdition = this.autoDispose(sessionStorageObs(APPLIED_EDITION_KEY));
   // Pre-confirmed in admin-panel mode so the confirm/edit flow only runs in the wizard.
   private _editionConfirmed = Observable.create<boolean>(this, !!this._options.inAdminPanel);
 
@@ -195,6 +210,7 @@ export class EditionSection extends Disposable implements ConfigSection {
       await this._configAPI.setValue({ edition: selected });
     }
     this._serverEdition.set(selected);
+    this._appliedEdition.set(selected);
   }
 
   public get restartWaitAttempts(): number | undefined {
