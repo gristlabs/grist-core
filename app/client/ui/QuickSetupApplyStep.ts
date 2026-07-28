@@ -8,6 +8,7 @@ import { cssShadowedPrimaryButton } from "app/client/ui/SettingsLayout";
 import { bigBasicButton } from "app/client/ui2018/buttons";
 import { theme } from "app/client/ui2018/cssVars";
 import { loadingSpinner } from "app/client/ui2018/loaders";
+import { ApiError } from "app/common/ApiError";
 import { commonUrls } from "app/common/gristUrls";
 import { not } from "app/common/gutil";
 import { HelpUsImproveResponse, HelpUsImproveSubmission } from "app/common/HelpUsImproveAPI";
@@ -56,6 +57,8 @@ export class QuickSetupApplyStep extends Disposable {
   private _lastResponse = Observable.create<HelpUsImproveResponse | null>(this, null);
   // Cached survey contents to avoid re-fetching any data (e.g. oidc client id)
   private _surveyPayload: HelpUsImproveSubmission | null = null;
+  // Guards against resubmitting when the user retries a Go Live that can't restart.
+  private _surveySent = false;
   private _surveyMessage = Computed.create(this, (use) => {
     const resp = use(this._lastResponse);
     // No structured response (network / unknown error): both parts retry.
@@ -142,18 +145,30 @@ export class QuickSetupApplyStep extends Disposable {
     } catch (e) {
       if (this.isDisposed()) { return; }
       this._error.set(String(e));
-      // Don't submit survey if we failed to restart
+      // Sections are applied before the restart is attempted, so a server that can't
+      // restart itself has still saved everything else. Send the survey anyway, since
+      // the user won't reach the success page that normally sends it.
+      if (e instanceof ApiError && e.details?.code === "RestartUnavailable" && !this._surveySent) {
+        this._surveySent = true;
+        await this._captureSurveyPayload();
+        if (this.isDisposed()) { return; }
+        void this._submitSurvey();
+      }
       return;
     }
     if (this.isDisposed()) { return; }
     // Cache the survey payload while the form is still mounted, then switch
     // to the success page. Retry re-uses this cached payload.
-    if (commonUrls.helpUsImproveSurvey) {
-      this._surveyPayload = await this._improveForm.getSubmissionData();
-    }
+    await this._captureSurveyPayload();
     if (this.isDisposed()) { return; }
+    this._surveySent = true;
     this._restarted.set(true);
     void this._submitSurvey();
+  }
+
+  private async _captureSurveyPayload() {
+    if (!commonUrls.helpUsImproveSurvey) { return; }
+    this._surveyPayload = await this._improveForm.getSubmissionData();
   }
 
   private async _submitSurvey() {
