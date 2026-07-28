@@ -10,10 +10,10 @@ import { ACIndexImpl, normalizeText } from "app/client/lib/ACIndex";
 import { ACUserItem, buildACMemberEmail } from "app/client/lib/ACUserManager";
 import { copyToClipboard } from "app/client/lib/clipboardUtils";
 import { makeT } from "app/client/lib/localization";
-import { cssMarkdownSpan, markdown } from "app/client/lib/markdown";
+import { markdown } from "app/client/lib/markdown";
 import { buildMultiUserManagerModal } from "app/client/lib/MultiUserManager";
 import { setTestState } from "app/client/lib/testState";
-import { AppModel } from "app/client/models/AppModel";
+import { AppModel, getHomeUrl } from "app/client/models/AppModel";
 import { DocPageModel } from "app/client/models/DocPageModel";
 import { reportError } from "app/client/models/errors";
 import { urlState } from "app/client/models/gristUrlState";
@@ -21,6 +21,9 @@ import { IEditableMember, IMemberSelectOption, IOrgMemberSelectOption,
   Resource } from "app/client/models/UserManagerModel";
 import { UserManagerModel, UserManagerModelImpl } from "app/client/models/UserManagerModel";
 import { getResourceParent, ResourceType } from "app/client/models/UserManagerModel";
+import { buildAskTheAdmin } from "app/client/ui/AskTheAdmin";
+import { getAutomationsStatus } from "app/client/ui/AutomationStatus";
+import { computeSetupSteps, setupFeatureNeeds, SetupStep } from "app/client/ui/SetupSteps";
 import { shadowScroll } from "app/client/ui/shadowScroll";
 import { hoverTooltip, ITooltipControl, showTransientTooltip, withInfoTooltip } from "app/client/ui/tooltips";
 import { createUserImage } from "app/client/ui/UserImage";
@@ -36,14 +39,17 @@ import { menu, menuItem, menuText } from "app/client/ui2018/menus";
 import { confirmModal, cssAnimatedModal, cssModalBody, cssModalButtons, cssModalTitle,
   IModalControl, modal } from "app/client/ui2018/modals";
 import { normalizeEmail } from "app/common/emails";
-import { commonUrls, isFullEditionDeployment, isOrgInPathOnly } from "app/common/gristUrls";
+import { commonUrls, isOrgInPathOnly } from "app/common/gristUrls";
 import { capitalizeFirstWord, isAffirmative, isLongerThan } from "app/common/gutil";
 import { FullUser } from "app/common/LoginSessionAPI";
 import * as roles from "app/common/roles";
+import { SetupRequestsSummary } from "app/common/SetupRequests";
+import { SetupRequestsAPIImpl } from "app/common/SetupRequestsAPI";
 import { getGristConfig } from "app/common/urlUtils";
 import { Organization, PermissionData, UserAPI } from "app/common/UserAPI";
 
-import { Computed, Disposable, dom, DomElementArg, IDomArgs, Observable, observable, styled } from "grainjs";
+import { Computed, Disposable, dom, DomElementArg, IDisposableOwner, IDomArgs,
+  Observable, observable, styled } from "grainjs";
 import pick from "lodash/pick";
 
 const t = makeT("UserManager");
@@ -187,6 +193,7 @@ function buildUserManagerModal(
             ).buildDom(),
           ),
         ),
+        buildNoInviteEmailNudge(model, options),
         cssModalButtons(
           { style: "margin: 32px 64px; display: flex;" },
           (model.isPublicMember || options.isReadonly ? null :
@@ -271,7 +278,6 @@ export class UserManager extends Disposable {
     return [
       ...(this._options.isReadonly ? [cssOptionRow()] : [
         acMemberEmail.buildDom(),
-        buildNoInviteEmailNudge(),
         this._buildOptionsDom(),
       ]),
       this._dom = shadowScroll(
@@ -780,9 +786,15 @@ const cssOptionRow = styled("div", `
 `);
 
 const cssNoInviteEmailNudge = styled("div", `
-  margin: 0 63px 16px 63px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  box-sizing: border-box;
+  max-width: 600px;
+  padding: 0 64px;
+  margin: 24px 0 -16px 0;
   color: ${theme.lightText};
-  font-size: ${vars.smallFontSize};
 `);
 
 const cssOptionRowMultiple = styled("div", `
@@ -932,19 +944,44 @@ function resourceName(resourceType: ResourceType): string {
 }
 
 // Build a nudge to set up email notifications, if available and not configured.
-function buildNoInviteEmailNudge() {
-  const { deploymentType, notifierEnabled } = getGristConfig();
-  if (deploymentType === "electron" || deploymentType === "static") { return null; }
+function buildNoInviteEmailNudge(model: UserManagerModel, options: IUserManagerOptions) {
+  const { appModel } = options;
+  if (!appModel || model.isPersonal || model.isPublicMember || options.isReadonly) { return null; }
+  if (getAutomationsStatus(appModel) === "hidden") { return null; }
 
-  let message: string | undefined;
-  if (!isFullEditionDeployment(deploymentType)) {
-    message = t("Invitation emails are not sent on Grist Community edition. \
-Ask your admin about [upgrading to the full edition of Grist]({{link}}).",
-    { link: commonUrls.helpEnterpriseOptIn });
-  } else if (!notifierEnabled) {
-    message = t("Invitation emails are not enabled on this installation. \
-Ask your admin to [set up email notifications]({{link}}).",
-    { link: commonUrls.helpEmailNotifications });
-  }
-  return message ? cssNoInviteEmailNudge(cssMarkdownSpan(message)) : null;
+  const steps = computeSetupSteps(appModel);
+  const missing = setupFeatureNeeds.invites
+    .map(id => steps.find(step => step.id === id)!)
+    .find(step => !step.done);
+  if (!missing) { return null; }
+
+  return cssNoInviteEmailNudge(
+    dom("span", missing.id === "full-grist" ?
+      t("Invitation emails are not sent on Grist Community edition.") :
+      t("Invitation emails are not enabled on this installation.")),
+    appModel.isInstallAdmin() ?
+      buildInviteSetupLink(missing) :
+      dom.create(buildAskTheAdminForInvites, missing),
+    testId("um-no-invite-email"),
+  );
+}
+
+// Build an ask the admin widget for setting up email notifications.
+function buildAskTheAdminForInvites(owner: IDisposableOwner, step: SetupStep) {
+  const summary = Observable.create<SetupRequestsSummary | null>(owner, null);
+  const requestsApi = new SetupRequestsAPIImpl(getHomeUrl());
+  requestsApi.getSummary()
+    .then(s => summary.isDisposed() || summary.set(s))
+    .catch(() => {});
+  return buildAskTheAdmin(owner, step, ["invites"], summary, requestsApi);
+}
+
+// Build where an install admin goes to take `step`. Switching to the full edition
+// links to the edition section in the admin panel. Setting up email delivery links
+// to the Help Center.
+function buildInviteSetupLink(step: SetupStep) {
+  const [label, href] = step.id === "full-grist" ?
+    [step.label, urlState().makeUrl({ adminPanel: "admin" }) + "#" + step.adminItem] :
+    [t("Configure notifications"), commonUrls.helpEmailNotifications];
+  return cssLink(label, { href, target: "_blank" }, testId("um-no-invite-email-action"));
 }
