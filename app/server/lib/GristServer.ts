@@ -15,6 +15,7 @@ import { RequestWithLogin } from "app/server/lib/Authorizer";
 import { Comm } from "app/server/lib/Comm";
 import { IGristCoreConfig, loadGristCoreConfig } from "app/server/lib/configCore";
 import { create } from "app/server/lib/create";
+import { DocApiUsageTracker } from "app/server/lib/DocApiUsageTracker";
 import { DocManager } from "app/server/lib/DocManager";
 import { IDocWorkerMap } from "app/server/lib/DocWorkerMap";
 import { Hosts } from "app/server/lib/extractOrg";
@@ -119,6 +120,12 @@ export interface GristServer extends StorageCoordinator {
   getDocManager(): DocManager;
   hasDocManager(): boolean;
   getDocWorkerMap(): IDocWorkerMap | null;
+  // This server's doc-worker id, or null if it isn't a doc worker. Lets callers
+  // tell whether a given doc is hosted here (vs. needing to be forwarded).
+  getWorkerId(): string | null;
+  // Shared per-doc API usage tracker, present on servers that host docs. Used to
+  // charge in-process doc work (e.g. a local MCP tool call) against API limits.
+  getDocApiUsageTracker?(): DocApiUsageTracker | undefined;
   isRestrictedMode(): boolean;
   onUserChange(callback: (change: UserChange) => Promise<void>): void;
   onStreamingDestinationsChange(callback: (orgId?: number) => Promise<void>): void;
@@ -240,6 +247,7 @@ export function createDummyGristServer(): GristServer {
     getDocManager() { throw new Error("no DocManager"); },
     hasDocManager() { return false; },
     getDocWorkerMap() { return null; },
+    getWorkerId() { return null; },
     isRestrictedMode() { return false; },
     onUserChange() { /* do nothing */ },
     onStreamingDestinationsChange() { /* do nothing */ },

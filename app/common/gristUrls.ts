@@ -93,6 +93,9 @@ export type CompareEmphasis = typeof CompareEmphasis.type;
 // Default subdomain for home api service if not otherwise specified.
 export const DEFAULT_HOME_SUBDOMAIN = "api";
 
+// Length of a generated docId (makeId pads to this); routing relies on it.
+export const DOC_ID_LENGTH = 22;
+
 // This is the minimum length a urlId may have if it is chosen
 // as a prefix of the docId.
 export const MIN_URLID_PREFIX_LENGTH = 12;

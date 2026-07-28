@@ -190,9 +190,6 @@ export class MergedServer {
         this.flexServer.addGoogleAuthEndpoint();
         this.flexServer.addConfigEndpoints();
         this.flexServer.addExtraHomeEndpoints();
-        if (!this.hasComponent("docs")) {
-          this.flexServer.addExtraDocForwarder();
-        }
       }
 
       if (this.hasComponent("docs")) {

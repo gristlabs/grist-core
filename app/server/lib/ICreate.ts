@@ -109,7 +109,6 @@ export interface ICreate {
 
   addExtraHomeEndpoints(gristServer: GristServer, app: Express): void;
   addExtraDocEndpoints(gristServer: GristServer, app: Express, tracker?: DocApiUsageTracker): void;
-  addExtraDocForwarder(gristServer: GristServer, app: Express): void;
   getSiteMetricsSource(): SiteMetricsSource | undefined;
   areAdminControlsAvailable(): boolean;
   areOAuthAppsEnabled(): boolean;
@@ -273,7 +272,6 @@ export class BaseCreate implements ICreate {
 
   public addExtraHomeEndpoints(gristServer: GristServer, app: Express) {}
   public addExtraDocEndpoints(gristServer: GristServer, app: Express, tracker?: DocApiUsageTracker) {}
-  public addExtraDocForwarder(gristServer: GristServer, app: Express) {}
   public getSiteMetricsSource(): SiteMetricsSource | undefined { return undefined; }
   public areAdminControlsAvailable(): boolean { return false; }
   public areOAuthAppsEnabled(): boolean { return false; }

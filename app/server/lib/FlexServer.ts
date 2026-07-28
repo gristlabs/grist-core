@@ -483,6 +483,14 @@ export class FlexServer implements GristServer {
     return this._docWorkerMap ?? null;
   }
 
+  public getWorkerId(): string | null {
+    return this.worker?.id ?? null;
+  }
+
+  public getDocApiUsageTracker(): DocApiUsageTracker | undefined {
+    return this._docApiUsageTracker;
+  }
+
   public getTelemetry(): ITelemetry {
     if (!this._telemetry) { throw new Error("no telemetry available"); }
     return this._telemetry;
@@ -1445,7 +1453,9 @@ export class FlexServer implements GristServer {
   public addProxy() {
     if (this._check("proxy", "!json", "homedb", "api-mw", "map")) { return; }
 
-    const getOwnWorkerId = () => this.worker?.id ?? null;
+    // WebSocketProxy has no gristServer handle, so it takes this closure; DocApiProxy
+    // asks gristServer.getWorkerId() directly.
+    const getOwnWorkerId = () => this.getWorkerId();
 
     this._socketProxy = this.create.getWebSocketProxy?.(
       this,
@@ -1469,7 +1479,7 @@ export class FlexServer implements GristServer {
       this._socketProxy?.isActive() ? true : hasHomeApi() && !hasDocApi();
 
     this._apiProxy = new DocApiProxy(
-      this._docWorkerMap, this._dbManager, this, getOwnWorkerId, { shouldForward },
+      this._docWorkerMap, this._dbManager, this, { shouldForward },
     );
 
     this._apiProxy.addEndpoints(this.app);
@@ -2248,11 +2258,6 @@ export class FlexServer implements GristServer {
   public addExtraHomeEndpoints() {
     if (this._check("extraHome")) { return; }
     this.create.addExtraHomeEndpoints(this, this.app);
-  }
-
-  public addExtraDocForwarder() {
-    if (this._check("extraDocForwarder")) { return; }
-    this.create.addExtraDocForwarder(this, this.app);
   }
 
   public getLatestVersionAvailable() {
@@ -3110,7 +3115,6 @@ type Part =
   "loginMiddleware" |
   "map" |
   "extraDoc" |
-  "extraDocForwarder" |
   "extraHome" |
   "middleware" |
   "notifier" |

@@ -35,6 +35,7 @@ import {
 import { WidgetType } from "app/common/widgetTypes";
 import { Document } from "app/gen-server/entity/Document";
 import { Workspace } from "app/gen-server/entity/Workspace";
+import { forwardDocApiRequest, getDocWorkerInternalUrl } from "app/gen-server/lib/DocApiProxy";
 import { HomeDBManager, makeDocAuthResult } from "app/gen-server/lib/homedb/HomeDBManager";
 import { QueryResult } from "app/gen-server/lib/homedb/Interfaces";
 import * as Types from "app/plugin/DocApiTypes";
@@ -54,7 +55,6 @@ import {
   assertAccess,
   getAuthorizedUserId,
   getOrSetDocAuth,
-  getTransitiveHeaders,
   getUserId,
   isAnonymousUser,
   RequestWithLogin,
@@ -124,7 +124,6 @@ import * as _ from "lodash";
 import LRUCache from "lru-cache";
 import * as mimeTypes from "mime-types";
 import * as moment from "moment";
-import fetch from "node-fetch";
 import * as t from "ts-interface-checker";
 
 // Schema validators for api endpoints that creates or updates records.
@@ -1026,27 +1025,18 @@ export class DocWorkerApi {
       if (req.body.sourceDocId) {
         options.sourceDocId = await this._confirmDocIdForRead(req, String(req.body.sourceDocId));
         // Make sure that if we wanted to download the full source, we would be allowed.
-        const homeUrl = this._grist.getHomeInternalUrl(`/api/docs/${options.sourceDocId}/download?dryrun=1`);
-        const result = await fetch(homeUrl, {
-          method: "GET",
-          headers: {
-            ...getTransitiveHeaders(req, { includeOrigin: false }),
-            "Content-Type": "application/json",
-          },
-        });
+        const result = await forwardDocApiRequest(
+          await getDocWorkerInternalUrl(this._docWorkerMap, options.sourceDocId), req,
+          { method: "GET", subpath: `/api/docs/${options.sourceDocId}/download?dryrun=1` });
         if (result.status !== 200) {
-          const jsonResult = await result.json();
+          const jsonResult = JSON.parse(result.text);
           throw new ApiError(jsonResult.error, result.status);
         }
         // We should make sure the source document has flushed recently.
         // It may not be served by the same worker, so work through the api.
-        await fetch(this._grist.getHomeInternalUrl(`/api/docs/${options.sourceDocId}/flush`), {
-          method: "POST",
-          headers: {
-            ...getTransitiveHeaders(req, { includeOrigin: false }),
-            "Content-Type": "application/json",
-          },
-        });
+        await forwardDocApiRequest(
+          await getDocWorkerInternalUrl(this._docWorkerMap, options.sourceDocId), req,
+          { method: "POST", subpath: `/api/docs/${options.sourceDocId}/flush` });
         if (req.body.resetTutorialMetadata) {
           const scope = getDocScope(req);
           const tutorialTrunkId = options.sourceDocId;
@@ -2205,19 +2195,18 @@ export class DocWorkerApi {
       docId2: string,
       maxRows: number | null | undefined,
     }) {
-    const { showDetails, docId2, maxRows } = options;
+    const { showDetails, maxRows } = options;
     const docSession = docSessionFromRequest(req);
+    // May be a urlId, which would get its own worker assignment.
+    const docId2 = await this._confirmDocIdForRead(req, options.docId2);
     const { states } = await this._getStates(docSession, activeDoc);
-    const ref = await fetch(this._grist.getHomeInternalUrl(`/api/docs/${docId2}/states`), {
-      headers: {
-        ...getTransitiveHeaders(req, { includeOrigin: false }),
-        "Content-Type": "application/json",
-      },
-    });
-    if (!ref.ok) {
-      throw new ApiError(await ref.text(), ref.status);
+    const ref = await forwardDocApiRequest(
+      await getDocWorkerInternalUrl(this._docWorkerMap, docId2), req,
+      { method: "GET", subpath: `/api/docs/${docId2}/states` });
+    if (ref.status !== 200) {
+      throw new ApiError(ref.text, ref.status);
     }
-    const states2: DocState[] = (await ref.json()).states;
+    const states2: DocState[] = JSON.parse(ref.text).states;
     const left = states[0];
     const right = states2[0];
     if (!left || !right) {
@@ -2245,17 +2234,17 @@ export class DocWorkerApi {
       ).details!.rightChanges;
 
       // Calculate changes from the (common) parent to the current version of the other document.
-      let url = `/api/docs/${docId2}/compare?left=${parent.h}`;
+      let subpath = `/api/docs/${docId2}/compare?left=${parent.h}`;
       if (maxRows !== undefined) {
-        url += `&maxRows=${maxRows}`;
+        subpath += `&maxRows=${maxRows}`;
       }
-      const rightChangesReq = await fetch(this._grist.getHomeInternalUrl(url), {
-        headers: {
-          ...getTransitiveHeaders(req, { includeOrigin: false }),
-          "Content-Type": "application/json",
-        },
-      });
-      const rightChanges = (await rightChangesReq.json()).details!.rightChanges;
+      const rightChangesReq = await forwardDocApiRequest(
+        await getDocWorkerInternalUrl(this._docWorkerMap, docId2), req,
+        { method: "GET", subpath });
+      if (rightChangesReq.status !== 200) {
+        throw new ApiError(rightChangesReq.text, rightChangesReq.status);
+      }
+      const rightChanges = JSON.parse(rightChangesReq.text).details!.rightChanges;
 
       // Add the left and right changes as details to the result.
       comparison.details = { leftChanges, rightChanges };
