@@ -163,9 +163,7 @@ export class HelpUsImproveSection extends Disposable {
       subscribeToUpdates: subscribe,
       email: subscribe ? email : "",
       deploymentType: appliedEdition ?? deploymentType,
-      build: appliedEdition ?
-        (appliedEdition === "enterprise" ? "full" : "community") :
-        (showEnterpriseToggle() ? "full" : "community"),
+      build: (appliedEdition === "enterprise" || showEnterpriseToggle()) ? "full" : "community",
     };
   }
 
