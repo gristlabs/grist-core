@@ -236,7 +236,7 @@ export class RegionFocusSwitcher extends Disposable {
   private _onClipboardFocus() {
     const current = this._state.get().region;
     if (current?.type === "panel" && isKeyboardUser()) {
-      return focusPanel(current, this._prevFocusedElements[current.id] as HTMLElement | null, this._getGristDoc());
+      return this._focusPanel(current);
     }
     return this.focusActiveSection();
   }
@@ -260,6 +260,38 @@ export class RegionFocusSwitcher extends Disposable {
     }
 
     this._state.set({ region, initiator: options.initiator });
+  }
+
+  /**
+   * Keyboard-focus the given panel itself or the previously focused child element inside it.
+   *
+   * Works in 3 steps:
+   *   - trap the Tab key inside the panel to prevent focusing back the view layout by mistake
+   *   - focus the panel or the previous child
+   *   - make the Tab key available for normal browser navigation, instead of being captured by widget commands
+   */
+  private _focusPanel(panel: PanelRegion) {
+    const panelElement = getPanelElement(panel.id);
+    if (!panelElement) {
+      return;
+    }
+
+    this._tabTrap.autoDispose(enableTabTrap(panelElement));
+
+    const child = this._prevFocusedElements[panel.id] as HTMLElement | null;
+    // Child element found: focus it if we actually can
+    if (child && child !== panelElement && child.isConnected && isFocusable(child)) {
+      child.focus?.();
+    } else {
+      // No child to focus found: just focus the panel
+      focusPanelElement(panelElement);
+    }
+
+    const gristDoc = this._getGristDoc();
+    if (gristDoc) {
+      // Creator panel is a special case "related to the view"
+      escapeViewLayout(gristDoc, panel.id === "right");
+    }
   }
 
   private _cycle(direction: "next" | "prev") {
@@ -408,12 +440,7 @@ export class RegionFocusSwitcher extends Disposable {
     //   - actually focus the panel dom element, or its previously focused child,
     //   - make the Tab key available for normal browser navigation in the panel (see `escapeViewLayout`)
     if (!mouseEvent && isPanel && panelElement && current.region) {
-      this._tabTrap.autoDispose(enableTabTrap(panelElement));
-      focusPanel(
-        current.region as PanelRegion,
-        this._prevFocusedElements[current.region.id as Panel] as HTMLElement | null,
-        gristDoc,
-      );
+      this._focusPanel(current.region as PanelRegion);
 
     // If clicking on a panel: only make sure view layout commands are disabled,
     // making the Tab key available for normal browser navigation (see `escapeViewLayout`)
@@ -552,29 +579,6 @@ export const viewCommands = (commandsObject: Record<string, Function>, context: 
 
 const ATTRS = {
   regionId: "data-grist-region-id",
-};
-
-/**
- * Focus the given panel dom element (or the given element inside it, if any), and let the grist doc view know about it.
- */
-const focusPanel = (panel: PanelRegion, child: HTMLElement | null, gristDoc: GristDoc | null) => {
-  const panelElement = getPanelElement(panel.id);
-  if (!panelElement) {
-    return;
-  }
-
-  // Child element found: focus it if we actually can
-  if (child && child !== panelElement && child.isConnected && isFocusable(child)) {
-    child.focus?.();
-  } else {
-    // No child to focus found: just focus the panel
-    focusPanelElement(panelElement);
-  }
-
-  if (gristDoc) {
-    // Creator panel is a special case "related to the view"
-    escapeViewLayout(gristDoc, panel.id === "right");
-  }
 };
 
 const focusPanelElement = (panelElement: HTMLElement) => {
