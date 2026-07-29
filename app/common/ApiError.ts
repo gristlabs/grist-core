@@ -40,7 +40,8 @@ export type ApiErrorCode =
   | "UserNotConfirmed" |
   "FormNotFound" |
   "FormNotPublished" |
-  "ContextLimitExceeded";
+  "ContextLimitExceeded" |
+  "RestartUnavailable";
 
 /**
  * An error with an http status code.

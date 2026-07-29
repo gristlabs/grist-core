@@ -3302,5 +3302,55 @@
         "Numbers": "Numbers",
         "Row IDs": "Row IDs",
         "Row numbers": "Row numbers"
+    },
+    "HelpUsImproveSection": {
+        "A business or organization": "A business or organization",
+        "A couple of quick questions — optional, and only our team sees this.": "A couple of quick questions — optional, and only our team sees this.",
+        "AI response": "AI response",
+        "Conference": {
+            "event": "Conference/event"
+        },
+        "Developer": {
+            "IT": "Developer/IT"
+        },
+        "Education": {
+            "Research Institute": "Education/Research Institute"
+        },
+        "Email is required when subscribing to updates.": "Email is required when subscribing to updates.",
+        "Email:": "Email:",
+        "Friend": {
+            "colleague": "Friend/colleague"
+        },
+        "GitHub": "GitHub",
+        "Help us improve Grist": "Help us improve Grist",
+        "How did you hear about Grist?": "How did you hear about Grist?",
+        "Individual or hobbyist": "Individual or hobbyist",
+        "Nonprofit": "Nonprofit",
+        "Occasional email about new releases and important security notices.": "Occasional email about new releases and important security notices.",
+        "Other": "Other",
+        "Please enter a valid email address.": "Please enter a valid email address.",
+        "Reddit": {
+            "forum": "Reddit/forum"
+        },
+        "Search engine": "Search engine",
+        "Select…": "Select…",
+        "Send me product and security updates": "Send me product and security updates",
+        "Social media": "Social media",
+        "What best describes you?": "What best describes you?"
+    },
+    "QuickSetupApplyStep": {
+        "Apply and go live!": "Apply and go live!",
+        "Applying settings and restarting…": "Applying settings and restarting…",
+        "Back to installation": "Back to installation",
+        "Grist is live!": "Grist is live!",
+        "Our servers may be experiencing issues. Please try again later.": "Our servers may be experiencing issues. Please try again later.",
+        "Please try again.": "Please try again.",
+        "Retry submission": "Retry submission",
+        "Setup completion": "Setup completion",
+        "We couldn't save your details or subscribe you to updates.": "We couldn't save your details or subscribe you to updates.",
+        "We couldn't submit your details or your request to be kept up to date. Please try again.": "We couldn't submit your details or your request to be kept up to date. Please try again.",
+        "We saved your details, but couldn't subscribe you to updates.": "We saved your details, but couldn't subscribe you to updates.",
+        "We subscribed you for product updates, but couldn't save your other details.": "We subscribed you for product updates, but couldn't save your other details.",
+        "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users."
     }
 }

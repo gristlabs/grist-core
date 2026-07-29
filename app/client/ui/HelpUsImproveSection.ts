@@ -1,6 +1,8 @@
 import { makeT } from "app/client/lib/localization";
+import { sessionStorageObs } from "app/client/lib/localStorageObs";
 import { getHomeUrl } from "app/client/models/homeUrl";
 import { showEnterpriseToggle } from "app/client/ui/ActivationPage";
+import { APPLIED_EDITION_KEY, Edition } from "app/client/ui/EditionSection";
 import { textInput } from "app/client/ui/inputs";
 import { cssQuickSetupCard } from "app/client/ui/SettingsLayout";
 import { theme } from "app/client/ui2018/cssVars";
@@ -56,6 +58,7 @@ export class HelpUsImproveSection extends Disposable {
   private _hearAbout = Observable.create<string>(this, "");
   private _userType = Observable.create<string>(this, "");
   private _subscribeEnabled = Observable.create<boolean>(this, false);
+  private _appliedEdition = this.autoDispose(sessionStorageObs(APPLIED_EDITION_KEY));
   // Seeded from initialEmail in the constructor.
   private _email = Observable.create<string>(this, "");
 
@@ -146,6 +149,12 @@ export class HelpUsImproveSection extends Disposable {
     }
 
     const { installationId, deploymentType } = getAdminConfig();
+
+    // An edition switch applied earlier in the wizard restarts the server without
+    // reloading the page, leaving deploymentType in window.gristConfig stale.
+    // TODO: Trigger a page reload upon server restart after an edition change.
+    const appliedEdition = this._appliedEdition.get() as Edition | null;
+
     return {
       installationId,
       loginWithGristClientId: await this._fetchLoginWithGristClientId(),
@@ -153,8 +162,8 @@ export class HelpUsImproveSection extends Disposable {
       role: userType,
       subscribeToUpdates: subscribe,
       email: subscribe ? email : "",
-      deploymentType,
-      build: showEnterpriseToggle() ? "full" : "community",
+      deploymentType: appliedEdition ?? deploymentType,
+      build: (appliedEdition === "enterprise" || showEnterpriseToggle()) ? "full" : "community",
     };
   }
 

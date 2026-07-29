@@ -2018,7 +2018,8 @@
         "Apply changes": "Applicera ändringar",
         "Switch to Community edition?": "Växla till Öppen version?",
         "Switch to full Grist?": "Växla till komplett Grist?",
-        "This will also apply your other pending changes:": "Detta kommer också att applicera andra väntande ändringar du gjort:"
+        "This will also apply your other pending changes:": "Detta kommer också att applicera andra väntande ändringar du gjort:",
+        "Grist is running in an environment that doesn't support restarting from the admin panel. Your change will be saved now, and takes effect the next time you restart Grist manually.": "Grist kör i en miljö som inte stöder omstart från administrationspanelen. Din ändring kommer att sparas nu och blir aktiverad nästa gång du startar om Grist mauellt."
     },
     "Columns": {
         "Remove Column": "Ta bort kolumn"
@@ -3086,7 +3087,10 @@
         "Switch to full Grist": "Växla till komplett Grist",
         "Switching Grist edition...": "Växlar Grist variant...",
         "Switching to full Grist restarts the server, which may be briefly unavailable.": "Add växla till komplett Grist startar om servern, som då tillfälligt kan bli otillgänglig.",
-        "Upgrade to full Grist": "Uppgradera till komplett Grist"
+        "Upgrade to full Grist": "Uppgradera till komplett Grist",
+        "For automations, MCP server, AI assistant, OIDC support, email notifications, admin controls, audit logging and more, switch to the full Grist edition.": "För automatiserade flöden, MCPserver, AI assistent, OIDC support, e-postnotiser, administrations sida, revisions loggning med mera byt till komplett version av Grist.",
+        "Full Grist features such as email notifications, automations, MCP server, and OIDC and SAML support will be disabled after restart. You may always upgrade to full Grist again.": "Funktioner som är den fel av komplett version av grist så som e-postnotiser, automatiserade flöden, MCPserver, AI assistent, OIDC och SAML stöd kommer att stängas av efter omstart. Du kan alltid uppgradera till komplett Grist igen.",
+        "Your server will restart automatically once finished.": "Din server kommer att starta om automatiskt när det är klart."
     },
     "BaseUrlSection": {
         "set": "ställ in",
@@ -3251,7 +3255,7 @@
         "Clear": "Rensa",
         "1 request": "1 anrop",
         "For": "För",
-        "Setup requests": "Ställ in förfrågningar",
+        "Setup requests": "Ställ in anrop",
         "already done": "redan klart",
         "{{count}} requests_one": "{{count}} anrop",
         "{{count}} requests_other": "{{count}} anrop"
