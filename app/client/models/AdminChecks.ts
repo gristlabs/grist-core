@@ -1,4 +1,5 @@
 import { makeT } from "app/client/lib/localization";
+import { testPendingChecks } from "app/client/lib/testPendingOps";
 import { reportError } from "app/client/models/errors";
 import { BootProbeIds, BootProbeInfo, BootProbeResult } from "app/common/BootProbe";
 import { InstallAPI } from "app/common/InstallAPI";
@@ -136,6 +137,7 @@ export class AdminCheckRunner {
     public results: Map<string, Observable<BootProbeResult>>,
     public parent: Disposable,
     background: boolean = false) {
+    testPendingChecks.start();
     this._installAPI.runCheck(id, { background }).then((result) => {
       if (parent.isDisposed()) { return; }
       const ob = results.get(id);
@@ -145,6 +147,9 @@ export class AdminCheckRunner {
     }).catch((e) => {
       if (parent.isDisposed()) { return; }
       results.get(id)?.set({ status: "fault", details: { error: String(e) } });
+    }).finally(() => {
+      // After the observable is set, so a count of zero means values are already written.
+      testPendingChecks.end();
     });
   }
 
