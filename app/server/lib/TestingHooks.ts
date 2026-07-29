@@ -4,6 +4,7 @@ import { Deps as CommClientDeps } from "app/server/lib/Client";
 import * as Client from "app/server/lib/Client";
 import { Comm } from "app/server/lib/Comm";
 import { Deps as DiscourseConnectDeps } from "app/server/lib/DiscourseConnect";
+import { Deps as DocManagerDeps } from "app/server/lib/DocManager";
 import { FlexServer } from "app/server/lib/FlexServer";
 import { invalidateAllReloadableSettings, invalidateReloadableSettings } from "app/server/lib/gristSettings";
 import { ClientJsonMemoryLimits, ITestingHooks } from "app/server/lib/ITestingHooks";
@@ -75,6 +76,20 @@ export async function connectTestingHooks(socketPath: string): Promise<TestingHo
     isClosed: () => closed,
   });
 }
+
+// Set while setDocOpenPaused() is holding document opens up. Kept outside the TestingHooks
+// instance, which is created afresh for each connection to the testing socket.
+let docOpenGate: { held: Promise<void>, release: () => void } | null = null;
+
+// Document opens seen since the last setDocOpenPaused(true). Counting continues after unpausing,
+// so a test can let the document finish opening and then ask how many opens it took. Were the
+// count to stop at the moment of unpausing, "no second open arrived" would be a race rather than
+// a fact.
+let docOpensSeen = 0;
+
+// Longest that document opens will be held before the gate lets go by itself, so that a test
+// dying before it unpauses cannot wedge every later document open on this server.
+const maxDocOpenPauseMs = 60000;
 
 export class TestingHooks implements ITestingHooks {
   private _oldEnv: NodeJS.ProcessEnv | null = null;
@@ -190,6 +205,37 @@ export class TestingHooks implements ITestingHooks {
     for (const server of this._workerServers) {
       await server.testCloseDocs();
     }
+  }
+
+  // Hold up any document a client asks to open, until unpaused. Lets a test keep a document open
+  // outstanding while it interferes with the connection, as happens for real on a shaky network.
+  public async setDocOpenPaused(paused: boolean): Promise<void> {
+    log.info("TestingHooks.setDocOpenPaused called with", paused);
+    if (paused) {
+      if (docOpenGate) { return; }
+      let letGo!: () => void;
+      const held = new Promise<void>((resolve) => { letGo = resolve; });
+      const timer = setTimeout(() => {
+        log.warn(`TestingHooks.setDocOpenPaused: releasing after ${maxDocOpenPauseMs}ms; ` +
+          "was a test left paused?");
+        void this.setDocOpenPaused(false);
+      }, maxDocOpenPauseMs);
+      timer.unref();   // Don't keep the server alive just to hold this gate.
+      docOpensSeen = 0;
+      docOpenGate = { held, release: () => { clearTimeout(timer); letGo(); } };
+      DocManagerDeps.testBeforeOpenDoc = async () => {
+        docOpensSeen += 1;
+        await docOpenGate?.held;   // Counts but no longer waits once released.
+      };
+    } else {
+      docOpenGate?.release();
+      docOpenGate = null;
+    }
+  }
+
+  // How many document opens have arrived since setDocOpenPaused(true) was called.
+  public async getDocOpenCount(): Promise<number> {
+    return docOpensSeen;
   }
 
   public async setDocWorkerActivation(workerId: string, active: "active" | "inactive" | "crash"):

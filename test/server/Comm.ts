@@ -157,6 +157,32 @@ describe("Comm", function() {
     });
   }
 
+  // Connect with explicit query params (e.g. clientId/newClient) to exercise reconnects, and
+  // return the socket together with the server's first message. The message handler is attached
+  // synchronously, before the socket opens: a needReload reconnect gets a single clientConnect
+  // followed immediately by a close, so a handler attached afterwards (as connect()+getMessages()
+  // does) would miss it.
+  async function connectWithParams(query: Record<string, string>, options?: GristClientSocketOptions) {
+    const port = (server.address() as AddressInfo).port;
+    const qs = new URLSearchParams(query).toString();
+    const ws = new GristClientSocket(`ws://localhost:${port}/?${qs}`, options);
+    const msg = await new Promise<CommClientConnect>((resolve, reject) => {
+      ws.onmessage = (data: string) => resolve(JSON.parse(data));
+      ws.onerror = (err: Error) => reject(err);
+    });
+    return { ws, msg };
+  }
+
+  // Wait until the server has released clientId's websocket, so it is eligible for reconnect.
+  async function waitForSocketRelease(clientId: string) {
+    const client = comm!.getClient(clientId);
+    for (let i = 0; i < 200 && client.isConnected(); i++) {
+      await delay(10);
+    }
+    // Say so here rather than letting the reconnect that follows fail for reasons of its own.
+    assert.isFalse(client.isConnected(), `Client ${clientId} still held a websocket after 2s`);
+  }
+
   describe("server methods", function() {
     let ws: GristClientSocket;
     beforeEach(async function() {
@@ -271,6 +297,16 @@ describe("Comm", function() {
     const docId = "docId_abc";
     this.timeout(10000);
 
+    // GristWSConnection declines to connect unless the page config names a worker for the doc.
+    function stubWorkerConfig() {
+      (global as any).window = undefined;
+      const partialConfig: Pick<GristLoadConfig, "getWorkerFull" | "assignmentId"> = {
+        getWorkerFull: { [docId]: { selfPrefix: "STUB", docWorkerUrl: null, docWorkerId: null } },
+        assignmentId: docId,
+      };
+      sandbox.stub(global as any, "window").value({ gristConfig: partialConfig });
+    }
+
     // Helper to set up a Comm server, a Comm client, and a forwarder between them that allows
     // simulating disconnects.
     async function startManagedConnection(methods: { [name: string]: ClientMethod }) {
@@ -285,14 +321,7 @@ describe("Comm", function() {
       await forwarder.connect();
       cleanup.push(() => forwarder.disconnect());
 
-      // To create a client-side Comm object, we need to trick GristWSConnection's check for
-      // whether there is a worker to connect to.
-      (global as any).window = undefined;
-      const partialConfig: Pick<GristLoadConfig, "getWorkerFull" | "assignmentId"> = {
-        getWorkerFull: { [docId]: { selfPrefix: "STUB", docWorkerUrl: null, docWorkerId: null } },
-        assignmentId: docId,
-      };
-      sandbox.stub(global as any, "window").value({ gristConfig: partialConfig });
+      stubWorkerConfig();
 
       // We also need to get GristWSConnection to use a custom GristWSSettings object, and to
       // connect to the forwarder's port.
@@ -380,6 +409,117 @@ describe("Comm", function() {
       // Check that we saw the situation we were hoping to test.
       assert.equal(failedSendCount, sendShouldFail ? 1 : 0, "Expected to see a failed send");
     }
+
+    // A server method that takes its time, along with a promise that resolves once the server has
+    // started running it.
+    function makeSlowMethod(delayMs: number) {
+      let notifyStarted!: () => void;
+      const started = new Promise<void>((resolve) => { notifyStarted = resolve; });
+      const methods = {
+        methodSlow: async function(client: Client, x: any) {
+          notifyStarted();
+          await delay(delayMs);
+          return { x, name: "methodSlow" };
+        },
+      };
+      return { methods, started };
+    }
+
+    it("should deliver the response to a request that outlives a reconnect", async function() {
+      // Take longer over the request than the client takes to reconnect (about a second), so that
+      // the server is still working on it when the client comes back.
+      const { methods, started } = makeSlowMethod(3000);
+      const { cliComm, forwarder } = await startManagedConnection({ ...assortedMethods, ...methods });
+
+      // Start a slow request, and wait until the server has actually begun processing it.
+      const respPromise = cliComm._makeRequest(null, null, "methodSlow", "foo");
+      await started;
+
+      // The connection drops and comes back while the server is still working. The server still
+      // has our Client object, so it can tell us on reconnect that our request is in hand. There
+      // is nothing to do but wait for the answer.
+      await forwarder.disconnectServerSide();
+      await forwarder.connect();
+
+      assert.deepEqual(await respPromise, { x: "foo", name: "methodSlow" });
+    });
+
+    it("should deliver a response prepared while the connection was down", async function() {
+      const { methods, started } = makeSlowMethod(500);
+      const { cliComm, forwarder } = await startManagedConnection({ ...assortedMethods, ...methods });
+
+      // This is the client's first request, so it has not yet received anything numbered from the
+      // server, and has no place in the message stream to reconnect from.
+      const respPromise = cliComm._makeRequest(null, null, "methodSlow", "foo");
+      await started;
+
+      // Stay away long enough for the server to finish the request and queue up its answer, with
+      // no socket to send it on.
+      await forwarder.disconnectServerSide();
+      await delay(1500);
+      await forwarder.connect();
+
+      assert.deepEqual(await respPromise, { x: "foo", name: "methodSlow" });
+    });
+
+    it("should not report request ids from before a browser tab started over", async function() {
+      await startComm(assortedMethods);
+      cleanup.push(() => stopComm());
+
+      // A tab connects and gets a fair way through its requests.
+      const ws1 = await connect();
+      const [msg1] = await getMessages(ws1, 1) as CommClientConnect[];
+      const clientId = msg1.clientId;
+      ws1.send(JSON.stringify({ reqId: 42, method: "methodSync", args: ["foo", 1] }));
+      await getMessages(ws1, 1);
+      ws1.close();
+      await waitForSocketRelease(clientId);
+
+      // The tab is reloaded. It takes its clientId along, since that lives in sessionStorage, but
+      // it is a fresh page numbering its requests from zero again.
+      const { ws: ws2, msg: msg2 } = await connectWithParams({ clientId, newClient: "1", counter: "c2" });
+      assert.equal(msg2.clientId, clientId, "expected the Client to be reused");
+      ws2.close();
+      await waitForSocketRelease(clientId);
+
+      // The connection blips and the reloaded tab reconnects. The server must not claim to have
+      // received request #42 of a page that has not got past #0, or the tab would sit waiting for
+      // answers to requests that never reached anyone.
+      const { ws: ws3, msg: msg3 } = await connectWithParams({ clientId, newClient: "0", counter: "c2" });
+      assert.isFalse(msg3.needReload);
+      assert.isNull(msg3.lastReceivedReqId);
+      ws3.close();
+    });
+
+    it("should back off when the server accepts a connection and then drops it", async function() {
+      this.timeout(20000);
+      await startComm(assortedMethods);
+      cleanup.push(() => stopComm());
+
+      // Accept the websocket and then immediately drop it, as the server does when something goes
+      // wrong while setting the connection up, such as a failure to look the user up.
+      sandbox.stub(Comm.prototype as any, "_onWebSocketConnection")
+        .callsFake(async (websocket: any) => { websocket.terminate(); });
+
+      // Count how often the client tries.
+      let attempts = 0;
+      const port = (server.address() as AddressInfo).port;
+      const settings = getWSSettings(`http://localhost:${port}`);
+      const counted: GristWSSettings = {
+        ...settings,
+        makeWebSocket(url: string) { attempts++; return settings.makeWebSocket(url); },
+      };
+
+      stubWorkerConfig();
+      const connection = GristWSConnection.create(null, counted);
+      cleanup.push(async () => connection.dispose());
+      connection.initialize(docId);
+
+      // Left to retry at the shortest interval, the client would get through about one attempt a
+      // second. Backing off, it should manage only a handful in this time.
+      await delay(8000);
+      assert.isAtMost(attempts, 6, `Expected the client to back off, but it tried ${attempts} times`);
+    });
 
     it("should receive all server messages (small) in order when send doesn't fail", async function() {
       await testSendOrdering({ noFailedSend: true, useSmallMsgs: true });
@@ -693,30 +833,6 @@ describe("Comm", function() {
       const client = comm!.getClient(msgs[0].clientId);
       assert.equal(client.authSession.userId, ANONYMOUS_ID);
     });
-
-    // Connect with explicit query params (e.g. clientId/newClient) to exercise reconnects, and
-    // return the socket together with the server's first message. The message handler is attached
-    // synchronously, before the socket opens: a needReload reconnect gets a single clientConnect
-    // followed immediately by a close, so a handler attached afterwards (as connect()+getMessages()
-    // does) would miss it.
-    async function connectWithParams(query: Record<string, string>, options?: GristClientSocketOptions) {
-      const port = (server.address() as AddressInfo).port;
-      const qs = new URLSearchParams(query).toString();
-      const ws = new GristClientSocket(`ws://localhost:${port}/?${qs}`, options);
-      const msg = await new Promise<CommClientConnect>((resolve, reject) => {
-        ws.onmessage = (data: string) => resolve(JSON.parse(data));
-        ws.onerror = (err: Error) => reject(err);
-      });
-      return { ws, msg };
-    }
-
-    // Wait until the server has released clientId's websocket, so it is eligible for reconnect.
-    async function waitForSocketRelease(clientId: string) {
-      const client = comm!.getClient(clientId);
-      for (let i = 0; i < 200 && client.isConnected(); i++) {
-        await delay(10);
-      }
-    }
 
     it("should not let a different identity reuse a clientId on reconnect", async function() {
       const db = makeDbManager({

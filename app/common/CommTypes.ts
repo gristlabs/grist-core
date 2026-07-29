@@ -179,6 +179,15 @@ export interface CommClientConnect extends CommMessageBase {
   // Array of serialized messages missed from the server while disconnected.
   missedMessages?: string[];
 
+  // The last reqId the server read from this client, or null if it read none. Set only when the
+  // server is resuming the session: it says which outstanding requests will still be answered,
+  // and which never arrived and so may be sent again.
+  //
+  // Absent and null mean different things, and the client acts on both: absent is "the server did
+  // not say", so a sent request is rejected, while null is "the server read nothing", so it is
+  // safe to send again. Defaulting one to the other would silently turn rejects into re-sends.
+  lastReceivedReqId?: number | null;
+
   // Which version the server reports for itself.
   serverVersion?: string;
 
