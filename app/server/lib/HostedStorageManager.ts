@@ -754,7 +754,8 @@ export class HostedStorageManager implements IDocStorageManager {
         } else {
           // Doc exists locally and in S3 (according to redis).
           // Make sure the checksum matches.
-          const checksum = await this._getHash(this.getPath(docName));
+          const backup = await this._prepareBackup(docName);
+          const checksum = await this._getHash(backup);
           if (checksum === docStatus.docMD5) {
             // Fine, accept the doc as existing on our file system.
             return true;
@@ -766,6 +767,7 @@ export class HostedStorageManager implements IDocStorageManager {
             // simply never made it to S3 due to some kind of breakage.
             await this._removeFromFilesystem(docName);
           }
+          await fse.remove(backup);
         }
       }
 
