@@ -20,6 +20,7 @@ export async function filterDocumentInPlace(docSession: OptDocSession, filename:
   removeHistory: boolean,
   removeFullCopiesSpecialRight: boolean,
   markAction: boolean,
+  disableTriggers: boolean,
 }) {
   // We ignore docSession for now, since no changes are user-dependent yet.
   if (options.markAction) {
@@ -33,6 +34,9 @@ export async function filterDocumentInPlace(docSession: OptDocSession, filename:
   }
   if (options.removeFullCopiesSpecialRight) {
     await removeFullCopiesSpecialRight(filename);
+  }
+  if (options.disableTriggers) {
+    await disableTriggers(filename);
   }
 }
 
@@ -91,6 +95,21 @@ async function markAction(filename: string) {
     documentSettingsObj.baseAction = states[0];
     await db.run("UPDATE _grist_DocInfo SET documentSettings = ?",
       JSON.stringify(documentSettingsObj));
+  }
+  await db.close();
+}
+
+/**
+ * Disable all triggers, so that they won't run when the document is downloaded and then opened.
+ */
+async function disableTriggers(filename: string) {
+  const db = await SQLiteDB.openDBRaw(filename, OpenMode.OPEN_EXISTING);
+  // Pre-migration docs may not have the table.
+  const exists = (await db.all(
+    "SELECT name FROM sqlite_master WHERE type='table' AND name='_grist_Triggers'",
+  )).length > 0;
+  if (exists) {
+    await db.run("UPDATE _grist_Triggers SET enabled = 0");
   }
   await db.close();
 }

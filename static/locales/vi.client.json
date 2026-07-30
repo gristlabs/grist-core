@@ -819,21 +819,6 @@
     "Hidden Fields cannot be reordered": "Các trường ẩn không thể được sắp xếp lại",
     "Select all": "Chọn tất cả"
   },
-  "WelcomeQuestions": {
-    "Education": "Giáo dục",
-    "Finance & Accounting": "Tài chính và kế toán",
-    "HR & Management": "Quản lý nhân sự",
-    "IT & Technology": "Công nghệ thông tin",
-    "Marketing": "Tiếp thị",
-    "Media Production": "Sản xuất phương tiện truyền thông",
-    "Other": "Khác",
-    "Product Development": "Phát triển sản phẩm",
-    "Research": "Nghiên cứu",
-    "Sales": "Kinh doanh",
-    "Type here": "Nhập vào đây",
-    "Welcome to Grist!": "Chào mừng bạn đến với Grist!",
-    "What brings you to Grist? Please help us serve you better.": "Điều gì đưa bạn đến Grist? Hãy giúp chúng tôi phục vụ bạn tốt hơn."
-  },
   "WidgetTitle": {
     "Cancel": "Hủy",
     "DATA TABLE NAME": "TÊN CỦA BẢNG DỮ LIỆU",
@@ -1416,5 +1401,18 @@
   "Section": {
     "Insert section above": "Chèn phần ở phía trên",
     "Insert section below": "Chèn phần ở bên dưới"
+  },
+  "OnboardingPage": {
+    "Product Development": "Phát triển sản phẩm",
+    "Finance & Accounting": "Tài chính và kế toán",
+    "Media Production": "Sản xuất phương tiện truyền thông",
+    "IT & Technology": "Công nghệ thông tin",
+    "Marketing": "Tiếp thị",
+    "Research": "Nghiên cứu",
+    "Sales": "Kinh doanh",
+    "Education": "Giáo dục",
+    "HR & Management": "Quản lý nhân sự",
+    "Other": "Khác",
+    "Type here": "Nhập vào đây"
   }
 }

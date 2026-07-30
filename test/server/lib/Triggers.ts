@@ -89,7 +89,11 @@ describe("Triggers", function() {
   });
 
   after(async function() {
-    await server.stop();
+    const messages = await testUtils.captureLog("error", async () => {
+      await server.stop();
+    });
+    assert.lengthOf(messages, 0);
+
     oldEnv.restore();
     await serving.shutdown();
     sandbox.restore();

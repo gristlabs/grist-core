@@ -399,6 +399,7 @@ export class UsersManager {
       return [];
     }
     return await this._buildExistingUsersByLoginRequest(emails, manager)
+      .orderBy("user.id", "ASC")
       .getMany();
   }
 

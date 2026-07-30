@@ -34,11 +34,9 @@ export interface AttachOptions {
 
 export class DocWorker {
   private _comm: Comm;
-  private _gristServer: GristServer;
   private _tracker?: DocApiUsageTracker;
   constructor(private _dbManager: HomeDBManager, options: AttachOptions) {
     this._comm = options.comm;
-    this._gristServer = options.gristServer;
     this._tracker = options.tracker;
   }
 
@@ -71,7 +69,7 @@ export class DocWorker {
         .type(ext)
         .set("Content-Disposition", contentDispHeader)
         .set("Cache-Control", "private, max-age=3600")
-        .set("Content-Security-Policy", "sandbox; default-src: 'none'")
+        .set("Content-Security-Policy", "sandbox; default-src 'none'")
         .send(data);
     } catch (err) {
       res.status(404).send({ error: err.toString() });
@@ -98,6 +96,7 @@ export class DocWorker {
       removeHistory,
       removeFullCopiesSpecialRight: true,
       markAction: true,
+      disableTriggers: true,
     });
     // NOTE: We may want to reconsider the mimeType used for Grist files.
     return res.type("application/x-sqlite3")
@@ -196,7 +195,7 @@ export class DocWorker {
       }
       if (!urlId) { return res.status(403).send({ error: "missing document id" }); }
 
-      const docAuth = await getOrSetDocAuth(mreq, this._dbManager, this._gristServer, urlId);
+      const docAuth = await getOrSetDocAuth(mreq, this._dbManager, urlId);
       assertAccess("viewers", docAuth);
       next();
     } catch (err) {

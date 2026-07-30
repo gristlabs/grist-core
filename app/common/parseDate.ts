@@ -399,9 +399,11 @@ export const dateFormatOptions = [
   "MM/DD/YYYY",
   "MM-DD-YY",
   "MM/DD/YY",
-  "DD MMM YYYY",
   "MMMM Do, YYYY",
+  "DD MMM YYYY",
   "DD-MM-YYYY",
+  "DD.MM.YYYY",
+  "DD/MM/YYYY",
 ];
 
 export const timeFormatOptions = [

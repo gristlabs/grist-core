@@ -80,7 +80,7 @@ export class ToggleEnterpriseModel extends Disposable {
 
 // Copied from DocPageModel.ts
 const reconnectIntervals = [1000, 1000, 2000, 5000, 10000];
-async function retryOnNetworkError<R>(func: () => Promise<R>): Promise<R> {
+export async function retryOnNetworkError<R>(func: () => Promise<R>): Promise<R> {
   for (let attempt = 0; ; attempt++) {
     try {
       return await func();

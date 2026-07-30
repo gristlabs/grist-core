@@ -33,7 +33,8 @@ export function aclFormulaEditor(options: ACLFormulaOptions) {
   const themeListener = gristThemeObs().addListener((newTheme) => {
     setAceTheme(newTheme);
   });
-  // ACE editor resizes automatically when maxLines is set.
+  // With maxLines set, the ACE editor normally resizes automatically, but see the heal()
+  // logic below for a case where it gets stuck.
   editor.setOptions({ enableLiveAutocompletion: true, maxLines: 10 });
   editor.renderer.setShowGutter(false);       // Default line numbers to hidden
   editor.renderer.setPadding(5);
@@ -97,8 +98,43 @@ export function aclFormulaEditor(options: ACLFormulaOptions) {
     options.customiseEditor(editor);
   }
 
+  // The editor is created while editorElem is detached, so ACE's initial render bails out and
+  // parks its pending changes with nothing left scheduled to flush them. With maxLines set, ACE
+  // controls the element's height itself, so the editor can get stuck at zero height with its
+  // content invisible and effectively uneditable (in Firefox this happens reliably at <100%
+  // browser zoom; see #2082). Watch for the element getting laid out and heal it then.
+  let healTimer: ReturnType<typeof setTimeout> | undefined;
+  const heal = () => {
+    // Cancel any pending retry, so that concurrent ResizeObserver and timer invocations
+    // collapse into a single retry chain (a no-op when called from the timer itself).
+    if (healTimer !== undefined) {
+      clearTimeout(healTimer);
+      healTimer = undefined;
+    }
+    if (editorElem.clientWidth === 0 || editorElem.clientHeight > 0) {
+      return;
+    }
+    const renderer = editor.renderer as any;
+    if (renderer.lineHeight > 1) {
+      // Escape ACE's zero-height trap: with a zero cached height, $renderChanges detours to
+      // onResize(), which ignores a zero measured height and bails out before rendering, so no
+      // number of resize()/updateFull() calls can recover. $autosize() sets the container
+      // height directly and refreshes the cached size; the forced updateFull() then repaints
+      // the text layers.
+      renderer.$autosize();
+      renderer.updateFull(true);
+    }
+    if (editorElem.clientHeight === 0) {
+      // ACE's font metrics may not be measured yet (lineHeight <= 1); try again shortly.
+      healTimer = setTimeout(heal, 50);
+    }
+  };
+  const resizeObserver = new ResizeObserver(heal);
+  resizeObserver.observe(editorElem);
+
   return cssConditionInputAce(
     dom.autoDispose(themeListener ?? null),
+    dom.onDispose(() => { resizeObserver.disconnect(); if (healTimer) { clearTimeout(healTimer); } }),
     cssConditionInputAce.cls("-disabled", options.readOnly),
     // ACE editor calls preventDefault on clicks into the scrollbar area, which prevents focus
     // being set when the click happens to be into there. To ensure we can focus on such clicks

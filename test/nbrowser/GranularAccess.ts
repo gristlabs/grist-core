@@ -1705,25 +1705,77 @@ describe("GranularAccess", function() {
     await gu.getCell("Pics", 2).click();
     const attachments = await readAttachments();
     const url = attachments[0].src!;
-    const extras = "rowId=3&colId=Pics&tableId=Data1&attId=4&";
-    assert.include(url, extras);
+    assertAttachmentUrl(url, /\/attachments\/4\/download$/, {
+      rowId: "3", colId: "Pics", tableId: "Data1", name: "gplaypattern.png",
+    });
     assert.include(attachments[0].title, "gplaypattern.png");
 
     // check denial for perturbations
-    await checkAttachment(url.replace("tableId=Data1", "tableId=Table1"), 404);
-    await checkAttachment(url.replace("colId=Pics", "colId=A"), 404);
-    await checkAttachment(url.replace("attId=4", "attId=1"), 404);
-    await checkAttachment(url.replace("rowId=3", "rowId=2"), 404);
+    await checkAttachment(mutateAttachmentUrl(url, { set: { tableId: "Table1" } }), 404);
+    await checkAttachment(mutateAttachmentUrl(url, { set: { colId: "A" } }), 404);
+    await checkAttachment(mutateAttachmentUrl(url, { attId: 1 }), 404);
+    await checkAttachment(mutateAttachmentUrl(url, { set: { rowId: "2" } }), 404);
 
     // check success for real deal
     await checkAttachment(url, "uploads/gplaypattern.png");
-    await checkAttachment(url.replace(extras, "attId=4&"), "uploads/gplaypattern.png");
+    await checkAttachment(
+      mutateAttachmentUrl(url, { remove: ["rowId", "colId", "tableId"] }),
+      "uploads/gplaypattern.png",
+    );
 
     // check editor url looks sane too
     await driver.sendKeys(Key.ENTER);
     const editorUrl = await driver.findWait(".test-pw-download", 5000).getAttribute("href");
     await checkAttachment(editorUrl, "uploads/gplaypattern.png");
     await driver.sendKeys(Key.ESCAPE);
+
+    // View as a restricted user: previews must carry aclAsUser_ and resolve with that user's access.
+    await mainSession.login();
+    await mainSession.loadDoc(`/doc/${doc.id}?aclAsUser_=${encodeURIComponent(otherSession.email)}`);
+    await gu.getPageItem(/Data1/).click();
+    await gu.waitForServer();
+
+    // Row 2 (B="notclear") is hidden from non-owners, so only rows 1 and 3 are visible.
+    assert.deepEqual(await gu.getVisibleGridCells("A", [1, 2, 3]),
+      ["near", "in a motor car", ""]);
+
+    // The preview <img> for a visible attachment includes the aclAsUser_ param.
+    await gu.getCell("Pics", 2).click();
+    const viewAsUrl = (await readAttachments())[0].src!;
+    assert.equal(new URL(viewAsUrl).searchParams.get("aclAsUser_"), otherSession.email);
+
+    // The attachment editor's download link is View-as-aware too (built via a separate DocAPI).
+    await gu.waitAppFocus();
+    await driver.sendKeys(Key.ENTER);
+    const editorViewAsUrl = await driver.findWait(".test-pw-download", 5000).getAttribute("href");
+    assert.equal(new URL(editorViewAsUrl).searchParams.get("aclAsUser_"), otherSession.email);
+    await driver.sendKeys(Key.ESCAPE);
+
+    // The hidden row's attachment (grist.png, attId 3) is readable by the owner, but denied once
+    // viewing as the restricted user.
+    const ownerHeaders = { Authorization: `Bearer ${mainSession.getApiKey()}` };
+    const hiddenAttUrl = mutateAttachmentUrl(viewAsUrl, {
+      attId: 3,
+      remove: ["rowId", "colId", "tableId", "name", "aclAsUser_"],
+    });
+    assert.equal(
+      (await axios.get(hiddenAttUrl, { headers: ownerHeaders, validateStatus: () => true })).status,
+      200,
+    );
+    const hiddenAttUrlAsUser = mutateAttachmentUrl(hiddenAttUrl, {
+      set: { aclAsUser_: otherSession.email },
+    });
+    const deniedStatus = (await axios.get(hiddenAttUrlAsUser,
+      { headers: ownerHeaders, validateStatus: () => true })).status;
+    assert.isAtLeast(deniedStatus, 400);
+    assert.notEqual(deniedStatus, 200);
+
+    // Leaving "View as" reloads the page, so nothing keeps building URLs for the user we were
+    // pretending to be.
+    await driver.find(".test-view-as-banner .test-revert").click();
+    await gu.waitForDocToLoad();
+    await gu.getCell("Pics", 2).click();
+    assert.isNull(new URL((await readAttachments())[0].src!).searchParams.get("aclAsUser_"));
   });
 
   describe("shares", function() {
@@ -1792,6 +1844,35 @@ async function addRecord(col: string): Promise<number> {
   await gu.waitForServer();
   await gu.getCell({ col, rowNum: newRowNum }).click();
   return newRowNum;
+}
+
+function assertAttachmentUrl(
+  url: string,
+  pathPattern: RegExp,
+  expectedQuery: Record<string, string>,
+) {
+  // Placeholder base lets us parse relative URLs; absolute URLs ignore it.
+  const parsed = new URL(url, "http://placeholder");
+  assert.match(parsed.pathname, pathPattern);
+  const actual: Record<string, string> = {};
+  parsed.searchParams.forEach((v, k) => { actual[k] = v; });
+  assert.deepEqual(actual, expectedQuery);
+}
+
+function mutateAttachmentUrl(
+  url: string,
+  changes: { attId?: number; set?: Record<string, string>; remove?: string[] },
+): string {
+  const parsed = new URL(url);
+  if (changes.attId !== undefined) {
+    parsed.pathname = parsed.pathname.replace(
+      /\/attachments\/\d+\/download/,
+      `/attachments/${changes.attId}/download`,
+    );
+  }
+  for (const [k, v] of Object.entries(changes.set ?? {})) { parsed.searchParams.set(k, v); }
+  for (const k of changes.remove ?? []) { parsed.searchParams.delete(k); }
+  return parsed.toString();
 }
 
 // Check that an attachment url loads as expected, or gives expected error.

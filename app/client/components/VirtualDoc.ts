@@ -541,8 +541,8 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
     return [];
   }
 
-  public async forkIfNeeded(): Promise<void> {
-    return Promise.resolve();
+  public async forkIfNeeded() {
+    return Promise.resolve(null);
   }
 
   public async recursiveMoveToCursorPos(

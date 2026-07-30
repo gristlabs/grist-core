@@ -15,8 +15,6 @@ import * as testUtils from "test/server/testUtils";
 
 import axios from "axios";
 import { assert } from "chai";
-import FormData from "form-data";
-import defaultsDeep from "lodash/defaultsDeep";
 
 describe("DocApiCreation", function() {
   this.timeout(30000);
@@ -85,10 +83,9 @@ function addCreationTests(getCtx: () => TestContext) {
         const { serverUrl, homeUrl, chimpy, charon, nobody } = getCtx();
         const user = (mode === "logged in") ? chimpy : nobody;
         const formData = new FormData();
-        formData.append("upload", "A,B\n1,2\n3,4\n", "table1.csv");
-        const config = defaultsDeep({ headers: formData.getHeaders() }, user);
+        formData.append("upload", new File(["A,B\n1,2\n3,4\n"], "table1.csv"));
         let resp = await axios.post(`${serverUrl}/api/docs`,
-          ...(content === "with content" ? [formData, config] : [null, user]));
+          ...(content === "with content" ? [formData, user] : [null, user]));
         assert.equal(resp.status, 200);
         const urlId = resp.data;
         if (mode === "logged in") {
@@ -135,13 +132,12 @@ function addCreationTests(getCtx: () => TestContext) {
         workspaceId: chimpyWs,
       };
       const formData = new FormData();
-      formData.append("upload", "A,B\n1,2\n3,4\n", "table1.csv");
+      formData.append("upload", new File(["A,B\n1,2\n3,4\n"], "table1.csv"));
       formData.append("documentName", body.documentName);
-      formData.append("workspaceId", body.workspaceId);
-      const config = defaultsDeep({ headers: formData.getHeaders() }, user);
+      formData.append("workspaceId", String(body.workspaceId));
       let resp = await axios.post(`${serverUrl}/api/docs`,
         ...(content === "with content" ?
-          [formData, config] :
+          [formData, user] :
           [body, user]),
       );
       assert.equal(resp.status, 200);
@@ -184,13 +180,12 @@ function addCreationTests(getCtx: () => TestContext) {
           workspaceId: chimpyWs,
         };
         const formData = new FormData();
-        formData.append("upload", "A,B\n1,2\n3,4\n", "table1.csv");
+        formData.append("upload", new File(["A,B\n1,2\n3,4\n"], "table1.csv"));
         formData.append("documentName", body.documentName);
-        formData.append("workspaceId", body.workspaceId);
-        const config = defaultsDeep({ headers: formData.getHeaders() }, user);
+        formData.append("workspaceId", String(body.workspaceId));
         const resp = await axios.post(`${serverUrl}/api/docs`,
           ...(content === "with content" ?
-            [formData, config] :
+            [formData, user] :
             [body, user]),
         );
         assert.equal(resp.status, 403);
@@ -204,13 +199,12 @@ function addCreationTests(getCtx: () => TestContext) {
         workspaceId: chimpyWs,
       };
       const formData = new FormData();
-      formData.append("upload", "A,B\n1,2\n3,4\n", "table1.csv");
+      formData.append("upload", new File(["A,B\n1,2\n3,4\n"], "table1.csv"));
       formData.append("documentName", body.documentName);
-      formData.append("workspaceId", body.workspaceId);
-      const config = defaultsDeep({ headers: formData.getHeaders() }, user);
+      formData.append("workspaceId", String(body.workspaceId));
       let resp = await axios.post(`${serverUrl}/api/docs`,
         ...(content === "with content" ?
-          [formData, config] :
+          [formData, user] :
           [body, user]),
       );
       assert.equal(resp.status, 200);
@@ -240,13 +234,12 @@ function addCreationTests(getCtx: () => TestContext) {
         workspaceId: chimpyWs,
       };
       const formData = new FormData();
-      formData.append("upload", "A,B\n1,2\n3,4\n", "table1.csv");
+      formData.append("upload", new File(["A,B\n1,2\n3,4\n"], "table1.csv"));
       formData.append("documentName", body.documentName);
-      formData.append("workspaceId", body.workspaceId);
-      const config = defaultsDeep({ headers: formData.getHeaders() }, user);
+      formData.append("workspaceId", String(body.workspaceId));
       const resp = await axios.post(`${serverUrl}/api/docs`,
         ...(content === "with content" ?
-          [formData, config] :
+          [formData, user] :
           [body, user]),
       );
       assert.equal(resp.status, 400);
@@ -265,13 +258,12 @@ function addCreationTests(getCtx: () => TestContext) {
         workspaceId: 123456789,
       };
       const formData = new FormData();
-      formData.append("upload", "A,B\n1,2\n3,4\n", "table1.csv");
+      formData.append("upload", new File(["A,B\n1,2\n3,4\n"], "table1.csv"));
       formData.append("documentName", body.documentName);
-      formData.append("workspaceId", body.workspaceId);
-      const config = defaultsDeep({ headers: formData.getHeaders() }, user);
+      formData.append("workspaceId", String(body.workspaceId));
       const resp = await axios.post(`${serverUrl}/api/docs`,
         ...(content === "with content" ?
-          [formData, config] :
+          [formData, user] :
           [body, user]),
       );
       assert.equal(resp.status, 404);

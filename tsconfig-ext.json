@@ -3,6 +3,7 @@
   "files": [],
   "include": [],
   "references": [
-    { "path": "./ext/app" }
+    { "path": "./ext/app" },
+    { "path": "./test" }
   ],
 }

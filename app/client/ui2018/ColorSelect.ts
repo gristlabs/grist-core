@@ -41,6 +41,15 @@ export class ColorOption {
   }
 }
 
+export const COLOR_OPTION_NONE_TEXTS = {
+  none() {
+    return t("none");
+  },
+  default() {
+    return t("default");
+  },
+};
+
 /**
  * colorSelect allows to select color for both fill and text cell color. It allows for fast
  * selection thanks to two color palette, `lighter` and `darker`, and also to pick custom color with
@@ -220,11 +229,11 @@ export function buildColorPicker(
         fontStrikethroughModel,
       }),
       dom.create(PickerComponent, textColorModel, {
-        title: "text",
+        title: t("text"),
         ...textColor,
       }),
       dom.create(PickerComponent, fillColorModel, {
-        title: "fill",
+        title: t("fill"),
         ...fillColor,
       }),
     ),

@@ -256,7 +256,7 @@ function showDestinationForm(options: DestinationFormOptions) {
             testId("streaming-destination-form-cancel"),
           ),
           bigPrimaryButton(
-            t(submitButtonLabel),
+            submitButtonLabel,
             { type: "submit" },
             dom.boolAttr("disabled", use => use(pending) || use(disabled)),
             testId("streaming-destination-form-apply"),

@@ -2,7 +2,7 @@ import { delay } from "app/common/delay";
 import * as gutil from "app/common/gutil";
 
 import { assert } from "chai";
-import { Observable } from "grainjs";
+import { Holder, Observable } from "grainjs";
 import * as ko from "knockout";
 import * as sinon from "sinon";
 
@@ -153,6 +153,41 @@ describe("gutil2", function() {
     });
   });
 
+  describe("createObsFromPromise", function() {
+    it("should set the observable to the resolved value", async function() {
+      const holder = Holder.create<Observable<unknown>>(null);
+      const obs = gutil.createObsFromPromise(holder, Promise.resolve(17));
+      assert.strictEqual(obs.get(), undefined);
+      await delay(0);
+      assert.strictEqual(obs.get(), 17);
+      holder.dispose();
+    });
+
+    it("should set the observable to the Error on rejection", async function() {
+      const holder = Holder.create<Observable<unknown>>(null);
+      const err = new Error("boom");
+      const onError = sinon.spy();
+      const obs = gutil.createObsFromPromise<number>(holder, Promise.reject(err), onError);
+      await delay(0);
+      assert.strictEqual(obs.get(), err);
+      sinon.assert.calledOnceWithExactly(onError, err);
+      holder.dispose();
+    });
+
+    it("should skip both obs.set and onError after disposal", async function() {
+      const holder = Holder.create<Observable<unknown>>(null);
+      const onError = sinon.spy();
+      const obs = gutil.createObsFromPromise(holder, Promise.reject(new Error("late")), onError);
+      const obsListener = sinon.spy();
+      obs.addListener(obsListener);
+      // dispose is synchronous, so it runs before the rejection's microtask.
+      holder.dispose();
+      await delay(10);
+      sinon.assert.notCalled(obsListener);
+      sinon.assert.notCalled(onError);
+    });
+  });
+
   describe("pruneArray", function() {
     function check<T>(arr: T[], indexes: number[], expect: T[]) {
       gutil.pruneArray(arr, indexes);
@@ -170,6 +205,30 @@ describe("gutil2", function() {
       check([], [], []);
       check(["a"], [], ["a"]);
       check(["a"], [0], []);
+    });
+  });
+
+  describe("replaceLiteral", function() {
+    it("should not interpret replacement patterns", function() {
+      assert.equal(gutil.replaceLiteral("foo {{marker}} bar", "{{marker}}", "$' $$ $<x> $` $&"),
+        "foo $' $$ $<x> $` $& bar");
+    });
+  });
+
+  describe("replaceLiterals", function() {
+    it("should replace all parts without interpreting replacement patterns", function() {
+      assert.equal(gutil.replaceLiterals("1. foo 2. bar 3. baz", {
+        foo: "!!$'!!",
+        baz: "??$`??",
+        bar: "$<x>",
+      }), "1. !!$'!! 2. $<x> 3. ??$`??");
+    });
+
+    it("should not find markers in the results of other replacements", function() {
+      assert.equal(gutil.replaceLiterals("FOO or BAR", {
+        FOO: "I've turned into BAR",
+        BAR: "I've turned into FOO",
+      }), "I've turned into BAR or I've turned into FOO");
     });
   });
 });

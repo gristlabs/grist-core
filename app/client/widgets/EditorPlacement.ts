@@ -68,7 +68,7 @@ export class EditorPlacement extends Disposable {
       this.onReposition.emit();
     }));
 
-    const editorRoot = this._editorRoot = dom("div.cell_editor", editorDom);
+    const editorRoot = this._editorRoot = dom("div.cell_editor", { id: "floating-editor" }, editorDom);
     // To hide from the user the incorrectly-sized element, we set visibility to hidden, and
     // reset it in _calcEditorSize() as soon as we have the sizes.
     editorRoot.style.visibility = "hidden";

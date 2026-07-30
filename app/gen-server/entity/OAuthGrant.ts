@@ -14,6 +14,13 @@ import {
 } from "typeorm";
 
 /**
+ * Lifetime of an OAuth refresh token, in seconds. Single source of truth: the OIDC server issues
+ * refresh tokens with this TTL, and the Housekeeper stale-client sweep uses it as the safety window
+ * — a dynamic client is never deleted while its refresh tokens could still be live.
+ */
+export const OAUTH_REFRESH_TOKEN_TTL_SECONDS = 60 * 24 * 60 * 60;  // 60 days
+
+/**
  * An OAuth grant, which records a user's consent for which scopes/claims we can send to a particular
  * {@link OAuthClient}.
  *
@@ -33,23 +40,41 @@ export class OAuthGrant extends BaseEntity {
    *
    * Note: See {@link OAuthClient.payload} for explanation of why jsonb is used instead of json.
    *
+   * The type this stores is Grant (from `oidc-provider` module); but it's not
+   * named here to avoid bringing in `oidc-provider` as a grist-core dependency.
+   *
    * Reference: https://github.com/panva/node-oidc-provider/blob/main/example/my_adapter.js#L96-L116.
    */
   @Column({ type: nativeValues.jsonbEntityType })
   public payload: Record<string, unknown>;
 
   /**
-   * The ID of the client associated with the grant.
+   * Grist-owned per-grant configuration. Type is `OAuthGrantSettings` from ext/app/common, but
+   * not named here to avoid the need to bring it into grist-core just for this.
+   *
+   * Separate from payload, because oidc-provider restricts its payload to only recognized fields.
    */
-  @Column({ name: "oauth_client_id", type: String })
-  public clientId: string;
+  @Column({ type: nativeValues.jsonbEntityType, nullable: true })
+  public settings: Record<string, unknown> | null;
 
   /**
-   * The client associated with the grant.
+   * The ID of the client associated with the grant.
+   *
+   * `null` for CIMD (Client ID Metadata Document) clients, which have no
+   * Grist-side record. Their identity is the URL of the metadata document
+   * itself, controlled by the client. Pre-registered clients always have a
+   * non-null id pointing at an `oauth_clients` row.
    */
-  @ManyToOne(() => OAuthClient, { onDelete: "CASCADE" })
+  @Column({ name: "oauth_client_id", type: String, nullable: true })
+  public clientId: string | null;
+
+  /**
+   * The client associated with the grant. `null` for CIMD clients - see
+   * {@link clientId}.
+   */
+  @ManyToOne(() => OAuthClient, { onDelete: "CASCADE", nullable: true })
   @JoinColumn({ name: "oauth_client_id" })
-  public client: OAuthClient;
+  public client: OAuthClient | null;
 
   /**
    * The ID of the user the grant was issued to.
@@ -75,4 +100,11 @@ export class OAuthGrant extends BaseEntity {
    */
   @UpdateDateColumn({ name: "updated_at" })
   public updatedAt: Date;
+
+  /**
+   * Timestamp at which an access token was last issued for this grant, or `null` if none has been
+   * issued. A proxy for "app is active", since access tokens have a relatively short lifetime.
+   */
+  @Column({ name: "last_used_at", type: nativeValues.dateTimeType, nullable: true })
+  public lastUsedAt: Date | null;
 }

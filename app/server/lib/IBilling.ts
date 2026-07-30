@@ -18,7 +18,7 @@ export interface ActivationStatus {
 export class ComposedBilling implements IBilling {
   private _billings: IBilling[];
   constructor(billings: (IBilling | null)[] = []) {
-    this._billings = billings.filter(b => !!b) as IBilling[];
+    this._billings = billings.filter(b => !!b);
   }
 
   public async close(): Promise<void> {

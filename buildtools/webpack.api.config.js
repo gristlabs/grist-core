@@ -39,7 +39,7 @@ module.exports = {
         test: /\.(js|ts)?$/,
         loader: "esbuild-loader",
         options: {
-          target: "es2017",
+          target: "es2020",
           sourcemap: true,
         },
         exclude: /node_modules/

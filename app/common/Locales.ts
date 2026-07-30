@@ -30,12 +30,12 @@ try {
   // Leave only those that are supported by current system (can be translated to human readable form).
   // Though, this file is in common, it is safe to filter by current system
   // as the list should be already filtered by codes that are supported by the backend.
-  locales = Intl.DisplayNames.supportedLocalesOf(localeCodes).map((code) => {
+  locales = Intl.DisplayNames.supportedLocalesOf([...localeCodes]).map((code) => {
     return { name: display(code), code };
   });
 } catch {
   // Fall back to using the locale code as the display name.
-  locales = localeCodes.map(code => ({ name: code, code }));
+  locales = [...localeCodes].map(code => ({ name: code, code }));
 }
 
 export interface Currency {
@@ -82,8 +82,10 @@ export function getCountryCode(locale: string) {
   }[locale] ?? locale.toUpperCase();
 
   // Test if we can use language as a country code.
-  if (localeCodes.map(code => code.split(/[-_]/)[1]).includes(countryCode)) {
-    return countryCode;
+  for (const code of localeCodes) {
+    if (code.split(/[-_]/)[1] === countryCode) {
+      return countryCode;
+    }
   }
   return null;
 }

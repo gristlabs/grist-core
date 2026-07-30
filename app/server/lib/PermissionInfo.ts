@@ -191,8 +191,12 @@ export class PermissionInfo extends RuleInfo<MixedPermissionSet, TablePermission
 
   protected _processRule(ruleSet: RuleSet, defaultAccess?: () => MixedPermissionSet): MixedPermissionSet {
     return getSetMapValue(this._ruleResults, ruleSet, () => {
-      const pset = evaluateRule(ruleSet, this._input);
-      return toMixed(defaultAccess ? mergePartialPermissions(pset, defaultAccess()) : pset);
+      let pset = evaluateRule(ruleSet, this._input);
+      pset = defaultAccess ? mergePartialPermissions(pset, defaultAccess()) : pset;
+      if (this._input.mask) {
+        pset = mergePermissions([pset, this._input.mask], ([val, mask]) => mask === "allow" ? val : "deny");
+      }
+      return toMixed(pset);
     });
   }
 

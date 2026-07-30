@@ -1043,7 +1043,7 @@ describe("HostedStorageManager", function() {
 
       const gristServer: GristServer = {
         ...createDummyGristServer(),
-        getDocManager() { return docManager; },
+        getDocManager() { return docManager!; },
       };
 
       defaultParams = [

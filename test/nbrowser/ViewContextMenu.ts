@@ -15,17 +15,19 @@ describe("ViewContextMenu", function() {
   afterEach(() => gu.checkForErrors());
 
   it("should support opening a GridView cell context menu with keyboard", async function() {
-    await assertShiftF10Works();
+    await assertShortcutWorks(Key.chord(Key.SHIFT, Key.F10), "Clear cell");
   });
 
   it("should support opening a RecordView context menu with keyboard", async function() {
     await gu.addNewSection("Card", "Table1");
-    await assertShiftF10Works();
+    await assertShortcutWorks(Key.chord(Key.SHIFT, Key.F10), "Clear field");
   });
 
   it("should not open a context menu twice when opening it with keyboard", async function() {
     await pressShiftF10();
-    assert.isTrue(await gu.findOpenMenu().isDisplayed());
+    // findOpenMenu throws if the menu doesn't appear; isDisplayed() would race the
+    // setTimeout(0) in contextMenu.ts that clears visibility:hidden after positioning.
+    await gu.findOpenMenu(1000);
     await pressShiftF10(true);
     await driver.sleep(100);
     const openedMenus = await driver.findAll(".grist-floating-menu");
@@ -37,21 +39,35 @@ describe("ViewContextMenu", function() {
 
   it("should hide the context menu when clicking outside of it after opening it with keyboard", async function() {
     await pressShiftF10();
-    assert.isTrue(await gu.findOpenMenu(200).isDisplayed());
+    assert.isTrue(await gu.findOpenMenu().isDisplayed());
     await gu.selectSectionByTitle("Table1");
     await gu.waitForMenuToClose();
   });
+
+  it("should support opening a GridView column context menu with keyboard", async function() {
+    await assertShortcutWorks(Key.chord(Key.CONTROL, Key.SHIFT, Key.F10), "Column Options");
+  });
+
+  it("should support opening a GridView row context menu with keyboard", async function() {
+    await assertShortcutWorks(Key.chord(Key.ALT, Key.SHIFT, Key.F10), "Duplicate row");
+  });
 });
 
-async function assertShiftF10Works() {
+// Make sure a given keyboard shortcut opens a menu containing a given item.
+async function assertShortcutWorks(shortcut: string, menuItemToTest: string) {
   await gu.waitAppFocus();
-  await pressShiftF10();
+  await pressShortcut(shortcut);
   assert.isTrue(await gu.findOpenMenu().isDisplayed());
+  await gu.findOpenMenuItem("li", menuItemToTest);
   await gu.sendKeys(Key.ESCAPE);
   await gu.waitForMenuToClose();
 }
 
-// Using gu.sendKeys doesn't work with Shift+F10 so we have to deal with the testing environment limitations.
+// Using gu.sendKeys doesn't work with Shift+F10 and similar shortcuts,
+// so we have to deal with the testing environment limitations.
+async function pressShortcut(shortcut: string, inMenu: boolean = false) {
+  await driver.find(inMenu ? ".grist-floating-menu" : ".copypaste").sendKeys(shortcut);
+}
 async function pressShiftF10(inMenu: boolean = false) {
-  return driver.find(inMenu ? ".grist-floating-menu" : ".copypaste").sendKeys(Key.chord(Key.SHIFT, Key.F10));
+  return pressShortcut(Key.chord(Key.SHIFT, Key.F10), inMenu);
 }

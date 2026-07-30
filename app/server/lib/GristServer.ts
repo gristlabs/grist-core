@@ -15,6 +15,7 @@ import { RequestWithLogin } from "app/server/lib/Authorizer";
 import { Comm } from "app/server/lib/Comm";
 import { IGristCoreConfig, loadGristCoreConfig } from "app/server/lib/configCore";
 import { create } from "app/server/lib/create";
+import { DocApiUsageTracker } from "app/server/lib/DocApiUsageTracker";
 import { DocManager } from "app/server/lib/DocManager";
 import { IDocWorkerMap } from "app/server/lib/DocWorkerMap";
 import { Hosts } from "app/server/lib/extractOrg";
@@ -27,6 +28,8 @@ import { IDocNotificationManager } from "app/server/lib/IDocNotificationManager"
 import { IDocStorageManager } from "app/server/lib/IDocStorageManager";
 import { INotifier } from "app/server/lib/INotifier";
 import { InstallAdmin } from "app/server/lib/InstallAdmin";
+import { IOAuthValidator } from "app/server/lib/IOAuthValidator";
+import { IWebSocketProxy } from "app/server/lib/IWebSocketProxy";
 import { IPermitStore } from "app/server/lib/Permit";
 import { IPubSubManager } from "app/server/lib/PubSubManager";
 import { ISendAppPageOptions } from "app/server/lib/sendAppPage";
@@ -38,6 +41,8 @@ import { IWidgetRepository } from "app/server/lib/WidgetRepository";
 import { IncomingMessage } from "http";
 
 import * as express from "express";
+
+import type { SiteMetricsSource } from "app/gen-server/lib/Housekeeper";
 
 /**
  *
@@ -76,9 +81,11 @@ export interface GristServer extends StorageCoordinator {
   getExternalPermitStore(): IPermitStore;
   getSessions(): Sessions;
   getComm(): Comm;
+  getSocketProxy(): IWebSocketProxy | undefined;
   getDeploymentType(): GristDeploymentType;
   getHosts(): Hosts;
   getActivations(): ActivationsManager;
+  getInstallationId(): string;
   getInstallAdmin(): InstallAdmin;
   getHomeDBManager(): HomeDBManager;
   getStorageManager(): IDocStorageManager;
@@ -88,6 +95,8 @@ export interface GristServer extends StorageCoordinator {
   hasNotifier(): boolean;
   getNotifier(): INotifier;
   getDocNotificationManager(): IDocNotificationManager | undefined;
+  getSiteMetricsSource(): SiteMetricsSource | undefined;
+  getOAuthValidator(): IOAuthValidator | undefined;
   getPubSubManager(): IPubSubManager;
   getAssistant(): IAssistant | undefined;
   getDocTemplate(): Promise<DocTemplate>;
@@ -111,6 +120,12 @@ export interface GristServer extends StorageCoordinator {
   getDocManager(): DocManager;
   hasDocManager(): boolean;
   getDocWorkerMap(): IDocWorkerMap | null;
+  // This server's doc-worker id, or null if it isn't a doc worker. Lets callers
+  // tell whether a given doc is hosted here (vs. needing to be forwarded).
+  getWorkerId(): string | null;
+  // Shared per-doc API usage tracker, present on servers that host docs. Used to
+  // charge in-process doc work (e.g. a local MCP tool call) against API limits.
+  getDocApiUsageTracker?(): DocApiUsageTracker | undefined;
   isRestrictedMode(): boolean;
   onUserChange(callback: (change: UserChange) => Promise<void>): void;
   onStreamingDestinationsChange(callback: (orgId?: number) => Promise<void>): void;
@@ -193,9 +208,11 @@ export function createDummyGristServer(): GristServer {
     getResourceUrl() { return Promise.resolve(""); },
     getSessions() { throw new Error("no sessions"); },
     getComm() { throw new Error("no comms"); },
+    getSocketProxy() { throw new Error("no proxy"); },
     getDeploymentType() { return "core"; },
     getHosts() { throw new Error("no hosts"); },
     getActivations() { throw new Error("no activations"); },
+    getInstallationId() { throw new Error("no installation id"); },
     getInstallAdmin() { throw new Error("no install admin"); },
     getHomeDBManager() { throw new Error("no db"); },
     getStorageManager() { throw new Error("no storage manager"); },
@@ -204,6 +221,8 @@ export function createDummyGristServer(): GristServer {
     getWidgetRepository() { throw new Error("no widget repository"); },
     getNotifier() { throw new Error("no notifier"); },
     getDocNotificationManager(): IDocNotificationManager | undefined { return undefined; },
+    getSiteMetricsSource(): SiteMetricsSource | undefined { return undefined; },
+    getOAuthValidator(): IOAuthValidator | undefined { return undefined; },
     getPubSubManager(): IPubSubManager { throw new Error("no PubSubManager"); },
     hasNotifier() { return false; },
     getAssistant() { return undefined; },
@@ -228,6 +247,7 @@ export function createDummyGristServer(): GristServer {
     getDocManager() { throw new Error("no DocManager"); },
     hasDocManager() { return false; },
     getDocWorkerMap() { return null; },
+    getWorkerId() { return null; },
     isRestrictedMode() { return false; },
     onUserChange() { /* do nothing */ },
     onStreamingDestinationsChange() { /* do nothing */ },

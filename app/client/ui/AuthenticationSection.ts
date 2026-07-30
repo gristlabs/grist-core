@@ -15,12 +15,12 @@ import { ConfigSection, DraftChangeDescription } from "app/client/ui/DraftChange
 import {
   armSetupReturnFromGetGristCom,
   clearSetupReturnFromGetGristCom,
+  getGetGristComKeyOwner,
   GetGristComProviderInfoModal,
   getGristComProviderMeta,
   peekSetupReturnFromGetGristCom,
 } from "app/client/ui/GetGristComProvider";
 import { ApplyResult } from "app/client/ui/QuickSetupContinueButton";
-import { quickSetupStepHeader } from "app/client/ui/QuickSetupStepHeader";
 import { cssCardSurface } from "app/client/ui/SettingsLayout";
 import { cssHeroCard } from "app/client/ui/SetupCard";
 import { basicButton, bigBasicButton, bigPrimaryButton, textButton } from "app/client/ui2018/buttons";
@@ -42,7 +42,7 @@ import {
   OIDC_PROVIDER_KEY,
   SAML_PROVIDER_KEY,
 } from "app/common/loginProviders";
-import { getGristConfig } from "app/common/urlUtils";
+import { getAdminConfig } from "app/common/urlUtils";
 
 import { Computed, Disposable, dom, makeTestId, Observable, styled } from "grainjs";
 
@@ -50,12 +50,48 @@ const t = makeT("AuthenticationSection");
 
 const testId = makeTestId("test-admin-auth-");
 
-// Scope the acknowledgement to this installation, so the same browser used
-// to administer multiple Grist installations doesn't carry the dismissal across.
-const installationId = getGristConfig().activation?.installationId;
-const noAuthAcknowledged = localStorageBoolObs(
-  installationId ? `noAuthAcknowledged:${installationId}` : "noAuthAcknowledged",
-);
+/**
+ * Prompt the admin to acknowledge that the server has no authentication
+ * before continuing past the Quick Setup auth step without configuring a
+ * provider.
+ */
+function confirmNoAuthAcknowledgement(
+  noAuthAcknowledged: Observable<boolean>,
+  onConfirm: () => void,
+): void {
+  saveModal((_ctl, owner) => {
+    const ack = Observable.create(owner, false);
+    const saveDisabled = Computed.create(owner, use => !use(ack));
+    return {
+      title: t("Skip authentication setup?"),
+      body: dom("div",
+        cssWell(
+          cssWell.cls("-warning"),
+          cssIconWrapper(icon("Warning")),
+          cssWellContent(
+            dom("p",
+              t("Anyone who can reach this server can access all data without signing in. \
+You can configure authentication later from the admin panel."),
+            ),
+          ),
+        ),
+        cssNoAuthCheckbox(
+          labeledSquareCheckbox(ack,
+            t("I understand this server has no authentication"),
+            testId("no-auth-acknowledge"),
+          ),
+        ),
+      ),
+      saveLabel: t("Continue without authentication"),
+      saveDisabled,
+      saveFunc: async () => {
+        noAuthAcknowledged.set(true);
+        onConfirm();
+      },
+      width: "normal" as const,
+    };
+  });
+}
 
 interface AuthenticationSectionOptions {
   appModel: AppModel;
@@ -72,8 +108,13 @@ interface AuthenticationSectionOptions {
 
 export class AuthenticationSection extends Disposable implements ConfigSection {
   /**
+   * True when a real auth provider is active or pending (will be active after restart).
+   */
+  public hasConfiguredAuth: Computed<boolean>;
+
+  /**
    * True when authentication is in a state the user can proceed with:
-   * a real provider is active, configured, or pending — or the user acknowledged no-auth.
+   * a real provider is active or pending, or the user acknowledged no-auth.
    */
   public canProceed: Computed<boolean>;
 
@@ -95,6 +136,13 @@ export class AuthenticationSection extends Disposable implements ConfigSection {
 
   /** Auth changes always require a restart to take effect. */
   public readonly needsRestart = true;
+
+  /**
+   * Scope the acknowledgement to this installation, so the same browser used
+   * to administer multiple Grist installations doesn't carry the dismissal across.
+   */
+  public readonly noAuthAcknowledged = this.autoDispose(
+    localStorageBoolObs(`noAuthAcknowledged:${getAdminConfig().installationId}`));
 
   private _appModel = this._options.appModel;
   private _installAPI = this._options.installAPI ?? new InstallAPIImpl(getHomeUrl());
@@ -159,22 +207,36 @@ export class AuthenticationSection extends Disposable implements ConfigSection {
     },
   );
 
-  private _getgristLoginOwner = Computed.create(this, this._providers, (_use, providers) => {
-    const getgristLogin = providers.find(p => p.key === GETGRIST_COM_PROVIDER_KEY);
-    return getgristLogin?.metadata?.owner ?? null;
-  });
+  private _getgristLoginOwner = Computed.create(
+    this, this._providers, this._draftConfigs,
+    (_use, providers, draftConfigs) => {
+      const draftSecret = draftConfigs.get(GETGRIST_COM_PROVIDER_KEY)?.GRIST_GETGRISTCOM_SECRET;
+      const draftOwner = draftSecret ? getGetGristComKeyOwner(draftSecret) : null;
+      if (draftOwner) { return draftOwner; }
+
+      const getgristLogin = providers.find(p => p.key === GETGRIST_COM_PROVIDER_KEY);
+      return getgristLogin?.metadata?.owner ?? null;
+    },
+  );
+
+  // Set by apply() to communicate to afterApply() whether the restart it just
+  // triggered will kill the operator's session, in which case afterApply
+  // redirects through sign-in.
+  private _willInvalidateSession = false;
 
   constructor(private _options: AuthenticationSectionOptions) {
     super();
 
-    this.canProceed = Computed.create(this, (use) => {
-      if (use(noAuthAcknowledged)) { return true; }
+    this.hasConfiguredAuth = Computed.create(this, (use) => {
       if (use(this._hasActiveOnRestartProvider)) { return true; }
       const providers = use(this._displayProviders);
-      if (providers.some(p => (p.isActive || p.isConfigured) && isRealProvider(p.key))) { return true; }
+      if (providers.some(p => p.isActive && isRealProvider(p.key))) { return true; }
       const loginSystemId = use(this._loginSystemId);
       return !!loginSystemId && isRealProvider(loginSystemId);
     });
+
+    this.canProceed = Computed.create(this, use =>
+      use(this.noAuthAcknowledged) || use(this.hasConfiguredAuth));
 
     // Evaluate every branch: short-circuit returns drop subscriptions to
     // later deps, leaving `isDirty` stale once an early truthy branch flips.
@@ -237,13 +299,25 @@ export class AuthenticationSection extends Disposable implements ConfigSection {
    * routes the now-signed-out admin through sign-in.
    */
   public async apply(): Promise<void> {
-    for (const [providerKey, config] of this._draftConfigs.get()) {
+    // Decide once, up front, whether the upcoming restart will kill the
+    // operator's session: any provider draft sets `onRestartClearSessions`
+    // server-side (configureProvider / setActiveAuthProvider), and a queued
+    // admin-email change is staged with the same flag (see _setInstallAdmin).
+    const draftConfigs = this._draftConfigs.get();
+    const activeChoice = this._draftActiveProvider.get();
+    const prefs = this._prefsPendingChanges.get();
+    this._willInvalidateSession =
+      draftConfigs.size > 0 ||
+      activeChoice !== null ||
+      Boolean(prefs?.onRestartSetAdminEmail) ||
+      Boolean(prefs?.onRestartReplaceEmailWithAdmin);
+
+    for (const [providerKey, config] of draftConfigs) {
       await this._configAPI.configureProvider(providerKey, config);
       this._updateDraftConfigs(draft => draft.delete(providerKey));
       this._recentlyConfigured.add(providerKey);
     }
 
-    const activeChoice = this._draftActiveProvider.get();
     if (activeChoice !== null) {
       await this._configAPI.setActiveAuthProvider(activeChoice);
       this._draftActiveProvider.set(null);
@@ -258,13 +332,18 @@ export class AuthenticationSection extends Disposable implements ConfigSection {
   }
 
   /**
-   * Auth changes invalidate the admin's session, so once the manager has
-   * restarted we redirect through sign-in rather than trying to refetch
-   * (the API would 401 anyway). Returning `{ redirected: true }` tells the
-   * manager and its caller to skip any post-apply work.
+   * When the upcoming restart will invalidate the operator's session
+   * (provider config/switch, or a queued admin transfer), redirect
+   * through sign-in once the manager has restarted -- the API would 401
+   * anyway, and in the Quick Setup wizard the operator needs to come
+   * back as the new admin to reach the next step. Returning
+   * `{ redirected: true }` tells the manager and its caller to skip
+   * any post-apply work. When nothing session-clearing applied, we let
+   * the manager continue with its normal post-apply.
    */
   public async afterApply(): Promise<ApplyResult> {
     if (this.isDisposed()) { return; }
+    if (!this._willInvalidateSession) { return; }
     redirectToLogin();
     return { redirected: true };
   }
@@ -293,13 +372,18 @@ export class AuthenticationSection extends Disposable implements ConfigSection {
     }
   }
 
+  /**
+   * Prompt for the no-auth acknowledgement, then run `onConfirm` if given.
+   */
+  public confirmNoAuth(onConfirm: () => void): void {
+    confirmNoAuthAcknowledgement(this.noAuthAcknowledged, onConfirm);
+  }
+
   public buildDom() {
     return [
-      this._inAdminPanel ? null : quickSetupStepHeader({
-        icon: "AddUser",
-        title: t("Authentication"),
-        description: t("Choose how users sign in to Grist."),
-      }),
+      this._inAdminPanel ? null : cssAuthIntro(
+        t("Choose how people sign in. You can change this anytime after setup."),
+      ),
       dom.domComputed((use) => {
         const providers = use(this._displayProviders);
         const loginSystemId = use(this._loginSystemId);
@@ -358,6 +442,8 @@ export class AuthenticationSection extends Disposable implements ConfigSection {
       },
       recentlyConfigured: this._recentlyConfigured,
       loginSystemId,
+      inAdminPanel: this._inAdminPanel,
+      noAuthAcknowledged: this.noAuthAcknowledged,
     });
   }
 
@@ -390,6 +476,7 @@ authentication system.",
             }
           }),
           dom("p", t('See "Restart Grist" section on top of this page to restart.')),
+          testId("change-warning-content"),
         ),
         dom.domComputed((use) => {
           const prefs = use(this._prefsPendingChanges);
@@ -398,12 +485,14 @@ authentication system.",
               t("Revert change of admin user"),
               dom.style("margin-top", "16px"),
               dom.on("click", () => this._revertSetInstallAdmin()),
+              testId("revert-change-admin"),
             );
           } else {
             return bigPrimaryButton(
               t("Change admin user"),
               dom.style("margin-top", "16px"),
               dom.on("click", () => this._showChangeAdminModal()),
+              testId("change-admin"),
             );
           }
         }),
@@ -500,6 +589,7 @@ effect after you restart Grist."),
     saveModal((_ctl, owner) => {
       const changeAdminModal = ChangeAdminModal.create(owner, {
         currentUserEmail,
+        installAPI: this._installAPI,
         defaultEmail: this._getgristLoginOwner.get()?.email,
         onSave: async ({ email, replace }) => {
           await this._setInstallAdmin(email, replace);
@@ -518,9 +608,15 @@ effect after you restart Grist."),
 
   private async _setInstallAdmin(email: string, replace: boolean) {
     const onRestartReplaceEmailWithAdmin = replace ? this._currentUserEmail : undefined;
+    // The operator is handing off admin, so their current session needs
+    // to die at the upcoming restart. Otherwise they reload as a stripped
+    // -of-admin ghost (or, in the Quick Setup wizard, can't reach the
+    // next step at all). Mirrors what configureProvider /
+    // setActiveAuthProvider already do server-side.
     await this._installAPI.updateInstallPrefs({
       onRestartSetAdminEmail: email,
       onRestartReplaceEmailWithAdmin,
+      onRestartClearSessions: true,
     });
     if (this.isDisposed()) { return; }
 
@@ -767,6 +863,8 @@ export interface ProviderListContext {
   collapsible?: boolean;
   /** When true, collapse the list when the no-auth checkbox is acknowledged. */
   collapseOnNoAuth?: boolean;
+  /** Defaults to "Available methods"/"Other authentication methods". */
+  title?: string;
 }
 
 export interface AuthSectionContext {
@@ -776,6 +874,10 @@ export interface AuthSectionContext {
   /** The login system ID from the boot probe (e.g. "minimal", "boot-key").
    *  When set to a non-real provider key, shows the no-auth hero. */
   loginSystemId?: string;
+  /** Defaults to true. */
+  inAdminPanel?: boolean;
+  /** Whether the admin has ticked the no-auth acknowledgement checkbox. */
+  noAuthAcknowledged: Observable<boolean>;
 }
 
 /**
@@ -793,6 +895,21 @@ export function buildAuthSection(
     providers.find(p => p.willBeActive && isRealProvider(p.key)) ??
     null;
 
+  const getgrist = providers.find(p => p.key === GETGRIST_COM_PROVIDER_KEY);
+  if (!ctx.inAdminPanel && !hero && getgrist) {
+    const heroEl = buildRecommendedCard(getgrist, ctx.heroCtx, ctx.listCtx);
+    const otherProviders = providers.filter(p => p.key !== GETGRIST_COM_PROVIDER_KEY);
+    const listEl = buildProviderList(otherProviders, recentlyConfigured, ctx.noAuthAcknowledged, {
+      ...ctx.listCtx,
+      collapsible: true,
+      title: t("Or connect your own identity provider"),
+    });
+    return dom("div",
+      heroEl,
+      cssOtherMethods(listEl),
+    );
+  }
+
   // Show the no-auth hero when no real provider is active or pending. This covers:
   // - Boot probe reports a non-real provider (minimal, boot-key)
   // - A provider was just deactivated (willBeDisabled) with nothing replacing it
@@ -804,11 +921,12 @@ export function buildAuthSection(
   // fallback key so the hero shows the right language for what comes after restart.
   const effectiveLoginSystem = noRealPending ? FALLBACK_PROVIDER_KEY : ctx.loginSystemId;
   const heroEl = (hero || showNoAuth) ?
-    buildHeroCard(hero, recentlyConfigured, ctx.heroCtx, effectiveLoginSystem) :
+    buildHeroCard(hero, recentlyConfigured, ctx.heroCtx, ctx.noAuthAcknowledged, effectiveLoginSystem) :
     dom("div");
 
   const listEl = buildProviderList(
-    providers, recentlyConfigured, { ...ctx.listCtx, collapsible: !!hero, collapseOnNoAuth: showNoAuth },
+    providers, recentlyConfigured, ctx.noAuthAcknowledged,
+    { ...ctx.listCtx, collapsible: !!hero, collapseOnNoAuth: showNoAuth },
   );
 
   return dom("div", heroEl, listEl);
@@ -857,10 +975,41 @@ function buildHeroAdminRow(ctx: HeroCardContext) {
   );
 }
 
+function buildRecommendedCard(
+  provider: AuthProvider,
+  heroCtx: HeroCardContext,
+  listCtx: ProviderListContext,
+): HTMLElement {
+  const meta = getGristComProviderMeta();
+  return cssRecommendedCard(
+    testId("hero-card"),
+    testId("hero-nudge"),
+    cssRecommendedHeader(
+      cssGMark("G"),
+      badge(meta.recommendedBadge, "-primary", "badge-recommended"),
+    ),
+    cssHeroProviderName(provider.name, dom.style("margin-bottom", "12px")),
+    cssHeroHighlight(
+      cssHeroHighlightCheck(icon("Tick")),
+      cssHeroHighlightBody(meta.recommendedHighlight),
+    ),
+    cssHeroDescription(meta.recommendedDesc),
+    cssHeroActions(
+      bigPrimaryButton(
+        meta.recommendedConfigure,
+        dom.on("click", () => listCtx.onConfigure?.(provider)),
+        testId("getgrist-cta"),
+      ),
+    ),
+    buildHeroAdminRow(heroCtx),
+  );
+}
+
 function buildHeroCard(
   hero: AuthProvider | null,
   recentlyConfigured: ReadonlySet<string>,
   ctx: HeroCardContext,
+  noAuthAcknowledged: Observable<boolean>,
   loginSystemId?: string,
 ): HTMLElement {
   if (!hero) {
@@ -983,7 +1132,7 @@ function buildProviderCard(
         cssMethodError(error, testId("error-message")),
       ) : null,
     provider.isSelectedByEnv ?
-      cssMethodInfo(
+      dom("div",
         t("Active method is controlled by an environment variable. Unset variable to change active method."),
       ) : null,
   );
@@ -992,6 +1141,7 @@ function buildProviderCard(
 function buildProviderList(
   providers: AuthProvider[],
   recentlyConfigured: ReadonlySet<string>,
+  noAuthAcknowledged: Observable<boolean>,
   ctx: ProviderListContext = {},
 ): HTMLElement {
   const visible = providers.filter(p =>
@@ -1005,7 +1155,7 @@ function buildProviderList(
 
   if (!ctx.collapsible && !ctx.collapseOnNoAuth) {
     return dom("div",
-      cssProviderListHeader(t("Available methods"), testId("provider-list-header")),
+      cssProviderListHeader(ctx.title ?? t("Available methods"), testId("provider-list-header")),
       buildCards(),
     );
   }
@@ -1019,7 +1169,7 @@ function buildProviderList(
     noAuthListener ? dom.autoDispose(noAuthListener) : null,
     cssProviderListHeaderClickable(
       dom.domComputed(collapsed, c => cssCollapseIcon(c ? "Expand" : "Collapse")),
-      t("Other authentication methods"),
+      ctx.title ?? t("Other authentication methods"),
       dom.on("click", toggle),
       dom.on("keydown", (ev: KeyboardEvent) => {
         if (ev.key === "Enter" || ev.key === " ") {
@@ -1050,7 +1200,6 @@ const cssHeroProviderName = styled("div", `
 `);
 
 const cssHeroDescription = styled("div", `
-  color: ${theme.lightText};
   font-size: ${vars.mediumFontSize};
   line-height: 1.4;
   margin-bottom: 8px;
@@ -1070,13 +1219,77 @@ const cssHeroAdminRow = styled("div", `
   padding-top: 12px;
   border-top: 1px solid ${theme.menuBorder};
   font-size: ${vars.mediumFontSize};
-  color: ${theme.lightText};
 `);
 
 const cssHeroActions = styled("div", `
   display: flex;
   gap: 8px;
   margin-top: 12px;
+`);
+
+const cssAuthIntro = styled("div", `
+  font-size: ${vars.mediumFontSize};
+  line-height: 1.5;
+  margin-bottom: 20px;
+`);
+
+const cssRecommendedCard = styled(cssHeroCard, `
+  border: 2px solid ${theme.controlPrimaryBg};
+  margin-bottom: 24px;
+`);
+
+const cssRecommendedHeader = styled("div", `
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+`);
+
+const cssGMark = styled("div", `
+  width: 24px;
+  height: 24px;
+  flex: none;
+  border-radius: 6px;
+  background-color: ${theme.controlPrimaryBg};
+  color: ${theme.controlPrimaryFg};
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 15px;
+`);
+
+const cssHeroHighlight = styled("div", `
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 0 12px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid ${theme.controlPrimaryBg};
+  background-color: ${theme.selectionOpaqueBg};
+`);
+
+const cssOtherMethods = styled("div", `
+  margin-top: 8px;
+`);
+
+const cssHeroHighlightCheck = styled("div", `
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 50%;
+  background-color: ${theme.controlPrimaryBg};
+  --icon-color: ${theme.controlPrimaryFg};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`);
+
+const cssHeroHighlightBody = styled("div", `
+  font-size: ${vars.mediumFontSize};
+  line-height: 1.5;
+  color: ${theme.text};
 `);
 
 const cssNoAuthCheckbox = styled("div", `
@@ -1154,12 +1367,7 @@ const cssMethodContent = styled("div", `
   gap: 12px;
 `);
 
-const cssMethodInfo = styled("div", `
-  color: ${theme.lightText};
-`);
-
 const cssMethodHint = styled("div", `
-  color: ${theme.lightText};
   font-size: ${vars.smallFontSize};
   & a {
     color: ${theme.controlFg};

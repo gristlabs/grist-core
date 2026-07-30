@@ -354,10 +354,12 @@ describe("parseDate", function() {
   });
 
   it("should be flexible in parsing the preferred format", function() {
-    for (const format of ["DD-MM-YYYY", "DD-MM-YY", "DD-MMM-YYYY", "DD-MMM-YY"]) {
+    for (const format of ["DD-MM-YYYY", "DD-MM-YY", "DD-MMM-YYYY", "DD-MMM-YY", "DD.MM.YYYY", "DD/MM/YYYY"]) {
       testParse(format, "1/2/21",     "2021-02-01");
       testParse(format, "01/02/2021", "2021-02-01");
       testParse(format, "1-02-21",    "2021-02-01");
+      testParse(format, "01/02/2021", "2021-02-01");
+      testParse(format, "01.02.2021", "2021-02-01");
     }
 
     for (const format of ["MM-DD-YYYY", "MM-DD-YY", "MMM-DD-YYYY", "MMM-DD-YY"]) {
@@ -459,6 +461,7 @@ describe("parseDate", function() {
       assert.deepEqual(guessDateFormats(["01/02/03"]), ["DD/MM/YY", "MM/DD/YY", "YY/MM/DD"]);
       assert.deepEqual(guessDateFormats(["01-01-2020"]), ["DD-MM-YYYY", "MM-DD-YYYY"]);
       assert.deepEqual(guessDateFormats(["01-02-03"]), ["DD-MM-YY", "MM-DD-YY", "YY-MM-DD"]);
+      assert.deepEqual(guessDateFormats(["01.02.2023"]), ["DD.MM.YYYY", "MM.DD.YYYY"]);
       assert.deepEqual(guessDateFormat(["01/01/2020"]), "MM/DD/YYYY");
       assert.deepEqual(guessDateFormat(["01/02/03"]), "YY/MM/DD");
       assert.deepEqual(guessDateFormat(["01-01-2020"]), "MM-DD-YYYY");

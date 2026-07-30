@@ -21,6 +21,7 @@ describe("AuthProvider", function() {
     oldEnv = new testUtils.EnvironmentSnapshot();
     process.env.GRIST_DEFAULT_EMAIL = user.email;
     process.env.GRIST_TEST_SERVER_DEPLOYMENT_TYPE = "core";
+    process.env.GRIST_IN_SERVICE = "false";
     useFastSandboxProbe();
     await server.restart();
 

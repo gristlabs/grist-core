@@ -1,51 +1,109 @@
 {
-  "ACUserManager": {
-    "Invite new member": "Yeni üyeyi davet edin",
-    "Enter email address": "E-posta adresini girin",
-    "We'll email an invite to {{email}}": "{{email}} adresine bir davet e-postası göndereceğiz"
-  },
-  "AccessRules": {
-    "Add column rule": "Sütuna Kural ekle",
-    "Add Default Rule": "Varsayılan kural ekle",
-    "Add table rules": "Tabloya kural ekle",
-    "Reset": "Sıfırla",
-    "Saved": "Kaydedildi",
-    "Attribute name": "Nitelik adı",
-    "Save": "Kaydet",
-    "Add user attributes": "Kullanıcı özellikleri ekle"
-  },
-  "AdminPanel": {
-    "Off": "Kapalı",
-    "Log Streaming": "Günlük Akışları",
-    "Audit Logs": "Denetim Günlükleri",
-    "Contact us": "Bize Ulaşın"
-  },
-  "Columns": {
-    "Remove Column": "Sütunu Sil"
-  },
-  "Field": {
-    "No choices configured": "Seçim yapılmamış"
-  },
-  "AccountPage": {
-    "API": "API",
-    "API Key": "API anahtarı",
-    "Edit": "Düzenle",
-    "Password & security": "Parola ve Güvenlik",
-    "Language": "Dil",
-    "Save": "Kaydet",
-    "Email": "E-posta",
-    "Login method": "Giriş yöntemi",
-    "Name": "Adı",
-    "Change password": "Parola değiştir",
-    "Account settings": "Hesap ayarları"
-  },
-  "AccountWidget": {
-    "Access Details": "Erişim ayrıntıları",
-    "Add account": "Hesap ekle",
-    "Document settings": "Belge Ayarları",
-    "Profile settings": "Profil Ayarları",
-    "Sign in": "Oturum aç",
-    "Accounts": "Hesaplar",
-    "Sign out": "Oturumu kapat"
-  }
+    "ACUserManager": {
+        "Invite new member": "Yeni üyeyi davet edin",
+        "Enter email address": "E-posta adresini girin",
+        "We'll email an invite to {{email}}": "{{email}} adresine bir davet e-postası göndereceğiz"
+    },
+    "AccessRules": {
+        "Add column rule": "Sütuna Kural ekle",
+        "Add Default Rule": "Varsayılan kural ekle",
+        "Add table rules": "Tabloya kural ekle",
+        "Reset": "Sıfırla",
+        "Saved": "Kaydedildi",
+        "Attribute name": "Nitelik adı",
+        "Save": "Kaydet",
+        "Add user attributes": "Kullanıcı özellikleri ekle",
+        "Default rules": "Varsayılan kurallar",
+        "Delete table rules": "Tablo kurallarını sil",
+        "Everyone": "Herkes",
+        "Invalid": "Geçersiz",
+        "Lookup Column": "Sütün ara",
+        "Lookup Table": "Tablo ara",
+        "Permission to access the document in full when needed": "Gerektiğinde dökümanı tamamen görüntüleme izni",
+        "Permission to view Access Rules": "Erişim kurallarını görüntüleme izni",
+        "Permissions": "İzinler",
+        "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "Editörlerin yapıyı düzenlemesine (Örneğin, tabloları, sütünları ve düzenleri değiştirmeyi ve silmeyi) ve förmül yazmalarına izin ver. Tablo ve sütün seviyesinde ayarlanan izinlere bakılmaksızın, förmüller hala düzenlenebilir ve bütün verilere erişebilir.",
+        "Add table-wide rule": "Tablo genelinde bir kural ekle",
+        "Access rules have changed. Click Reset to revert your changes and refresh the rules.": "Erişim izinleri değişti. Değişimlerinizi geri sarmak ve kuralları yenilemek için Reset'e basın.",
+        "All": "Hepsi",
+        "Column {{colId}} appears in multiple rules for table {{tableId}} that might be order-dependent. Try splitting rules up differently?": "Sütün {{collId}}, tablo {{tableId}}'nin sıraya bağlı olabilen birden fazla kuralında beliriyor. Kuralları değiştirmeyi deneyebilirsiniz.",
+        "Columns": "Sütünlar",
+        "Default resource missing in resource map": "Varsayılan kaynak, kaynak haritasında bulunmuyor",
+        "Invalid columns in table {{tableId}}: {{invalidColIds}}": "Tablo {{tableId}}'da geçersiz sütunlar: {{invalidColIds}}",
+        "Invalid table: {{tableId}}": "Geçersiz tablo: {{tableId}}",
+        "Invalid user attribute rule: {{prop}} must be set": "Geçersiz kullanıcı özellik kuralı: {{prop}} belirlenmiş olmalı",
+        "hidden": "gizli",
+        "Continue": "Devam et",
+        "Disable Access Rules": "Erişim kurallarını devre dışı bırak",
+        "## Access Rules\n\nYou don't have permission to view or edit access rules for this document.": "## Erişim Kuralları\n\nBu dökümanın erişim kurallarını görüntülemek veya düzenleme izniniz yoktur.",
+        "**Special rules** (expand each rule to customize who it applies to)": "**Özel Kurallar**(kuralların kimlere işlediğini ayarlamak için genişletin)",
+        "After enabling Access Rules, Editors will no longer be able to change the structure of the\ndocument or edit formulas. Only Owners will be able to copy or download the document.\n\nThese settings can be changed under 'Special rules'.": "İzin kurallarını aktifleştirdikten sonra, Editörler bir daha dökümanın yapısını değiştiremez veya formülleri düzenleyemez. Sadece yöneticiler dökümanı kopyalayıp indirebilecek.\n\nBu ayarlar 'Özel kurallar' altında değiştilirebilir.",
+        "Allow everyone to view access rules.": "Herkesin erişim kurallarını görmesine izin ver.",
+        "Disable and save": "Kaydet ve devre dışı bırak",
+        "Enable Access Rules": "İzin kurallarını aktifleştir",
+        "Special rules for templates": "Taslaklar için özel kurallar",
+        "This options should be off if Editors' access is to be limited. ": "Editörlerin erişimi kısıtlanacak ise bu seçenek kapalı olmalıdır. "
+    },
+    "AdminPanel": {
+        "Off": "Kapalı",
+        "Log Streaming": "Günlük Akışları",
+        "Audit Logs": "Denetim Günlükleri",
+        "Contact us": "Bize Ulaşın"
+    },
+    "Columns": {
+        "Remove Column": "Sütunu Sil"
+    },
+    "Field": {
+        "No choices configured": "Seçim yapılmamış"
+    },
+    "AccountPage": {
+        "API": "API",
+        "API Key": "API anahtarı",
+        "Edit": "Düzenle",
+        "Password & security": "Parola ve Güvenlik",
+        "Language": "Dil",
+        "Save": "Kaydet",
+        "Email": "E-posta",
+        "Login method": "Giriş yöntemi",
+        "Name": "Adı",
+        "Change password": "Parola değiştir",
+        "Account settings": "Hesap ayarları",
+        "Allow signing in to this account with Google": "Bu hesaba google ile giriş yapılmasına izin ver",
+        "Names only allow letters, numbers and certain special characters": "Adlar sadece harfler, numaralar ve bazı özel karakterler içerebilir",
+        "Theme": "Tema",
+        "Two-factor authentication": "İki faktörlü kimlik doğrulama",
+        "Developer": "Geliştirici",
+        "Home": "Ana Sayfa",
+        "Profile": "Profil",
+        "Accessibility": "Erişebilirlik"
+    },
+    "AccountWidget": {
+        "Access Details": "Erişim ayrıntıları",
+        "Add account": "Hesap ekle",
+        "Document settings": "Belge Ayarları",
+        "Profile settings": "Profil Ayarları",
+        "Sign in": "Oturum aç",
+        "Accounts": "Hesaplar",
+        "Sign out": "Oturumu kapat",
+        "Manage team": "Takımı yönet",
+        "Switch Accounts": "Hesap Değiştir",
+        "Activation": "Aktivasyon",
+        "Support Grist": "Grist'i destekle",
+        "Upgrade Plan": "Planı yükselt",
+        "Sign up": "Kayıt ol",
+        "Use This Template": "Bu şablonu kullan",
+        "Site settings": "Site ayarları",
+        "Account settings": "Hesap ayarları"
+    },
+    "ViewAsDropdown": {
+        "View as": "Olarak görüntüle",
+        "Users from table": "Tablodan kullanıcılar",
+        "Example Users": "Örnek kullanıcılar"
+    },
+    "ActionLog": {
+        "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "Sütün {{colId}} aksiyon #{{action.actionNum}}'da kaldırıldı",
+        "Table {{tableId}} was subsequently removed in action #{{actionNum}}": "Tablo {{tableId}} aksiyon #{{actionNum}}'da kaldırıldı",
+        "This row was subsequently removed in action {{action.actionNum}}": "Bu satır aksiyon {{action.actionNum}}'da kaldırıldı",
+        "All tables": "Bütün tablolar"
+    }
 }

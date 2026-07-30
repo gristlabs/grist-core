@@ -1,8 +1,10 @@
 /**
  * Tests for DocApi functionality behind a reverse proxy.
- * These tests verify that document comparison works correctly when:
- * - APP_HOME_INTERNAL_URL is set (should succeed)
- * - APP_HOME_INTERNAL_URL is not set (should fail with expected error)
+ * Document comparison forwards a request to the second doc's worker, so it must
+ * use the worker's internal URL and never leak back out to the public proxy URL.
+ * These tests verify that when:
+ * - APP_DOC_INTERNAL_URL is set (should succeed)
+ * - APP_DOC_INTERNAL_URL is not set (should fail with expected error)
  *
  * These tests require Redis and use TestServerReverseProxy to simulate
  * a reverse proxy in front of home and doc servers.
@@ -22,7 +24,6 @@ import * as path from "path";
 
 import { AxiosRequestConfig } from "axios";
 import { assert } from "chai";
-import FormData from "form-data";
 import fetch from "node-fetch";
 import { createClient } from "redis";
 
@@ -49,7 +50,7 @@ describe("DocApiReverseProxy", function() {
   before(async function() {
     await prepareFilesystemDirectoryForTests(tmpDir);
     oldEnv = new testUtils.EnvironmentSnapshot();
-    await prepareDatabase(tmpDir);
+    await prepareDatabase(tmpDir, oldEnv);
     dataDir = path.join(tmpDir, "data");
   });
 
@@ -80,13 +81,12 @@ describe("DocApiReverseProxy", function() {
     return new UserAPIImpl(`${homeUrl}/o/${org}`, {
       headers: makeConfig(user).headers as Record<string, string>,
       fetch: fetch as unknown as typeof globalThis.fetch,
-      newFormData: () => new FormData() as any,
     });
   }
 
   async function setupServersWithProxy(
     testSuiteName: string,
-    { withAppHomeInternalUrl }: { withAppHomeInternalUrl: boolean },
+    { withAppDocInternalUrl }: { withAppDocInternalUrl: boolean },
   ) {
     const proxy = await TestServerReverseProxy.build();
 
@@ -98,7 +98,7 @@ describe("DocApiReverseProxy", function() {
       APP_HOME_URL: proxy.serverUrl,
       GRIST_ORG_IN_PATH: "true",
       GRIST_SINGLE_PORT: "0",
-      APP_HOME_INTERNAL_URL: withAppHomeInternalUrl ? home.serverUrl : "",
+      APP_HOME_INTERNAL_URL: home.serverUrl,
       GRIST_EXTERNAL_ATTACHMENTS_MODE: "test",
     };
 
@@ -108,8 +108,10 @@ describe("DocApiReverseProxy", function() {
     const docs = new TestServer("docs", docPort, tmpDir, testSuiteName);
     await docs.start(home.serverUrl, {
       ...additionalEnvConfiguration,
+      // Public doc URL is the fallback used when APP_DOC_INTERNAL_URL is unset;
+      // an internal call landing on it is caught by the reverse proxy.
       APP_DOC_URL: `${proxy.serverUrl}/dw/dw1`,
-      APP_DOC_INTERNAL_URL: docs.serverUrl,
+      APP_DOC_INTERNAL_URL: withAppDocInternalUrl ? docs.serverUrl : "",
     });
 
     proxy.requireFromOutsideHeader();
@@ -143,15 +145,15 @@ describe("DocApiReverseProxy", function() {
     return doc1.compareDoc(docId2);
   }
 
-  describe("specific tests with APP_HOME_INTERNAL_URL", function() {
+  describe("specific tests with APP_DOC_INTERNAL_URL", function() {
     let proxy: TestServerReverseProxy;
     let home: TestServer;
     let docs: TestServer;
 
     before(async function() {
       ({ proxy, home, docs } = await setupServersWithProxy(
-        "behind-proxy-with-apphomeinternalurl",
-        { withAppHomeInternalUrl: true },
+        "behind-proxy-with-appdocinternalurl",
+        { withAppDocInternalUrl: true },
       ));
     });
 
@@ -165,15 +167,15 @@ describe("DocApiReverseProxy", function() {
     });
   });
 
-  describe("specific tests without APP_HOME_INTERNAL_URL", function() {
+  describe("specific tests without APP_DOC_INTERNAL_URL", function() {
     let proxy: TestServerReverseProxy;
     let home: TestServer;
     let docs: TestServer;
 
     before(async function() {
       ({ proxy, home, docs } = await setupServersWithProxy(
-        "behind-proxy-without-apphomeinternalurl",
-        { withAppHomeInternalUrl: false },
+        "behind-proxy-without-appdocinternalurl",
+        { withAppDocInternalUrl: false },
       ));
     });
 

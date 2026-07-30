@@ -14,6 +14,7 @@ import {
   UseCBOwner,
 } from "grainjs";
 import { Observable as KoObservable } from "knockout";
+import escapeRegExp from "lodash/escapeRegExp";
 import identity from "lodash/identity";
 
 // Some definitions have moved to be used by plugin API.
@@ -51,12 +52,6 @@ export function removeTrailingSlash(str: string): string {
   return result === null ? str : result;
 }
 
-// Expose <string>.padStart.  The version of node we use has it, but they typings
-// need the es2017 typescript target.  TODO: replace once typings in place.
-export function padStart(str: string, targetLength: number, padString: string) {
-  return (str as any).padStart(targetLength, padString);
-}
-
 // Capitalizes every word in a string.
 export function capitalize(str: string): string {
   return str.replace(/\b[a-z]/gi, c => c.toUpperCase());
@@ -65,6 +60,24 @@ export function capitalize(str: string): string {
 // Capitalizes the first word in a string.
 export function capitalizeFirstWord(str: string): string {
   return str.replace(/\b[a-z]/i, c => c.toUpperCase());
+}
+
+// Replace the `marker` substring of `str` with `value`, *without* interpreting any special
+// replacement patterns (like `$'`). Only the first occurrence is replaced.
+export function replaceLiteral(str: string, marker: string, value: string): string {
+  return str.replace(marker, () => value);
+}
+
+// Given an object of replacements like {"foo": value1, "bar": value2}, replace markers "foo" and
+// "bar" in `template` with corresponding values, *without* interpreting any special
+// string-replacement patterns (like `$'`). All occurrences of all markers are replaced.
+export function replaceLiterals(template: string, replacements: Record<string, string>): string {
+  const markers = Object.keys(replacements);
+  if (!markers.length) { return template; }
+  // Use a single regexp over all replacement keys, as opposed to a sequential loop, so that
+  // results of previous replacements don't themselves become subject to replacement.
+  const re = new RegExp(markers.map(escapeRegExp).join("|"), "g");
+  return template.replace(re, m => replacements[m]);
 }
 
 // Returns whether the string n represents a valid number.
@@ -819,17 +832,21 @@ export async function waitGrainObs<T>(observable: Observable<T>,
 }
 
 /**
- * Given a promise, returns an observable that starts out undefined and gets set to the resolved
- * value once the promise is fulfilled. On rejection, calls onError(err) callback without setting
- * the observable.
+ * Given a promise, returns an observable that starts out undefined, gets set to the resolved
+ * value once the promise is fulfilled, or to the Error if the promise is rejected. The optional
+ * onError callback runs after the rejection, for side-effects like a toast or logging.
  */
 export function createObsFromPromise<T>(
-  owner: IDisposableOwner, promise: Promise<T>, onError: (err: Error) => void,
-): Observable<T | undefined> {
-  const obs = Observable.create<T | undefined>(owner, undefined);
+  owner: IDisposableOwner, promise: Promise<T>, onError?: (err: Error) => void,
+): Observable<T | Error | undefined> {
+  const obs = Observable.create<T | Error | undefined>(owner, undefined);
   promise.then(
     (value) => { if (!obs.isDisposed()) { obs.set(value); } },
-    onError,
+    (err) => {
+      if (obs.isDisposed()) { return; }
+      if (!(err instanceof Error)) { err = new Error(String(err)); }
+      obs.set(err); onError?.(err);
+    },
   );
   return obs;
 }

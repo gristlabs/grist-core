@@ -1480,18 +1480,25 @@ describe("Scim", () => {
           it("should return describe the docId, workspaceId and orgId associated to the Role", async function() {
             const api = await getServer().createHomeApi("chimpy", "docs", true);
             const newOrgId = await api.newOrg({ name: "someOrg", domain: "testy" });
-            const newWsId = await api.newWorkspace({ name: "someWs" }, newOrgId);
-            const newDocId = await api.newDoc({ name: "someDoc" }, newWsId);
+            try {
+              const newWsId = await api.newWorkspace({ name: "someWs" }, newOrgId);
+              const newDocId = await api.newDoc({ name: "someDoc" }, newWsId);
 
-            const res = await axios.get(scimUrl("/Roles?count=300"), chimpy);
+              const res = await axios.get(scimUrl("/Roles?count=300"), chimpy);
 
-            assert.equal(res.status, 200);
-            assert.isTrue(res.data.Resources.some((role: any) => role.orgId === newOrgId),
-              "no role with orgId=" + newOrgId);
-            assert.isTrue(res.data.Resources.some((role: any) => role.workspaceId === newWsId),
-              "no role with workspaceId=" + newWsId);
-            assert.isTrue(res.data.Resources.some((role: any) => role.docId === newDocId),
-              "no role with docId=" + newDocId);
+              assert.equal(res.status, 200);
+              assert.isTrue(res.data.Resources.some((role: any) => role.orgId === newOrgId),
+                "no role with orgId=" + newOrgId);
+              assert.isTrue(res.data.Resources.some((role: any) => role.workspaceId === newWsId),
+                "no role with workspaceId=" + newWsId);
+              assert.isTrue(res.data.Resources.some((role: any) => role.docId === newDocId),
+                "no role with docId=" + newDocId);
+            } finally {
+              // Clean up the org we created. (api.deleteOrg doesn't work because we only have a
+              // home server in this test suite).
+              const user = await getDbManager().getUserByLogin("chimpy@getgrist.com");
+              await getDbManager().deleteOrg({ userId: user.id }, newOrgId);
+            }
           });
 
           checkCommonErrors("get", "/Roles");

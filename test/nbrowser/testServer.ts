@@ -45,6 +45,8 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
   private _server: ChildProcess;
   private _exitPromise: Promise<number | string>;
   private _starts: number = 0;
+  private _testingSocketPath: string;
+  private _reconnectingHooks?: Promise<TestingHooksClient>;
   private _dbManager?: HomeDBManager;
   private _driver?: WebDriver;
 
@@ -61,7 +63,7 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
    * Restart the server.  If reset is set, the database is cleared.  If reset is not set,
    * the database is preserved, and the temporary directory is unchanged.
    */
-  public async restart(reset: boolean = false, quiet = false) {
+  public async restart(reset: boolean = false, quiet = false, options?: { useCoreCmd?: boolean }) {
     if (this.isExternalServer()) { return; }
     if (this._starts > 0) {
       this.resume();
@@ -99,8 +101,11 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
     }
 
     const stubCmd = "_build/stubs/app/server/server";
-    const isCore = await fse.pathExists(stubCmd + ".js");
-    const cmd = isCore ? stubCmd : "_build/core/app/server/devServerMain";
+    const haveCoreCmd = await fse.pathExists(stubCmd + ".js");
+    const isCore = options?.useCoreCmd ?? haveCoreCmd;
+    const cmd = isCore ? (haveCoreCmd ? stubCmd : "_build/core/stubs/app/server/server") :
+      "_build/core/app/server/devServerMain";
+
     // If a proxy is set, use a single port - otherwise we'd need a lot of
     // proxies.
     const useSinglePort = this._proxyUrl !== null;
@@ -182,6 +187,7 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
     await this.waitServerReady(60000);
 
     // Prepare testingHooks for certain behind-the-scenes interactions with the server.
+    this._testingSocketPath = testingSocket;
     this.testingHooks = await connectTestingHooks(testingSocket);
     this.emit("start");
   }
@@ -293,6 +299,17 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
   }
 
   public async getTestingHooks() {
+    // A RestartShell worker exit (/api/admin/restart) peer-closes our socket; reconnect to
+    // the same path -- each respawned worker rebinds the socket file via GRIST_TESTING_SOCKET.
+    // Cache the in-flight reconnect so concurrent callers share one socket.
+    if (this.testingHooks?.isClosed() && !this._reconnectingHooks) {
+      this._reconnectingHooks = connectTestingHooks(this._testingSocketPath)
+        .then(hooks => this.testingHooks = hooks)
+        .finally(() => { this._reconnectingHooks = undefined; });
+    }
+    if (this._reconnectingHooks) {
+      await this._reconnectingHooks;
+    }
     return this.testingHooks;
   }
 

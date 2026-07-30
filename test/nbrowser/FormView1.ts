@@ -191,7 +191,7 @@ describe("FormView1", function() {
     before(async function() {
       const adminSession = await gu.session().user("support").login();
       adminApi = adminSession.createHomeApi();
-      const session = await gu.session().login();
+      const session = await gu.session().login({ showTips: true });
       docId = await session.tempNewDoc(cleanup);
       api = session.createHomeApi();
     });
@@ -1095,6 +1095,18 @@ describe("FormView1", function() {
         await driver.findWait('button[type="submit"]', 2000).click();
         await waitForConfirm();
         assert.isFalse(await gu.isAlertShown());
+      });
+      await removeForm();
+    });
+
+    it("redirects to valid URLs on submission with id substitution", async function() {
+      const url = await createFormWith("Text", {
+        redirectUrl: externalSite.getUrl().href + "?id={{ID}}&title=untitled-{{ID}}",
+      });
+      await gu.onNewTab(async () => {
+        await driver.get(url);
+        await driver.findWait('button[type="submit"]', 2000).click();
+        await gu.waitForUrl(/localtest\.datagrist\.com.*\?id=(\d+)&title=untitled-\1/);
       });
       await removeForm();
     });

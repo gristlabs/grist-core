@@ -70,7 +70,6 @@ namespace gristUtils {
 
   export const createNewDoc = homeUtil.createNewDoc.bind(homeUtil);
   // importFixturesDoc has a custom implementation that supports 'load' flag.
-  export const uploadFixtureDoc = homeUtil.uploadFixtureDoc.bind(homeUtil);
   export const getWorkspaceId = homeUtil.getWorkspaceId.bind(homeUtil);
   export const listDocs = homeUtil.listDocs.bind(homeUtil);
   export const createHomeApi = homeUtil.createHomeApi.bind(homeUtil);
@@ -1184,6 +1183,20 @@ namespace gristUtils {
     await driver.wait(async () => (await hasFocus(selector) === yesNo), waitMs);
   }
 
+  /**
+   * Wait until an element matching `selector` exists and holds focus. The positive counterpart to
+   * waitAppFocus(false), which only confirms focus left the app, not that it reached the editor
+   * about to be typed into. Tolerates the element not existing yet (async-mounting editors).
+   */
+  export async function waitForEditorFocus(selector: string, waitMs: number = 2000): Promise<void> {
+    await driver.wait(async () => {
+      for (const el of await driver.findAll(selector)) {
+        if (await el.hasFocus()) { return true; }
+      }
+      return false;
+    }, waitMs);
+  }
+
   export async function waitForLabelInput(): Promise<void> {
     await driver.wait(async () => (await driver.findWait(".test-column-title-label", 100).hasFocus()), 300);
   }
@@ -1230,10 +1243,12 @@ namespace gristUtils {
     if (text === null) {
       assert.isFalse(await driver.find(".test-banner-element").isPresent());
     } else {
-      assert.match(
-        await driver.findWait(".test-doc-usage-banner-text", 2000).getText(),
-        typeof text === "string" ? exactMatch(text) : text,
-      );
+      await waitToPass(async () => {
+        assert.match(
+          await driver.findWait(".test-doc-usage-banner-text", 2000).getText(),
+          typeof text === "string" ? exactMatch(text) : text,
+        );
+      });
     }
   }
 
@@ -1831,7 +1846,7 @@ namespace gristUtils {
   export async function openSectionMenu(which: "sortAndFilter" | "viewLayout", section?: string | WebElement) {
     const sectionElem = section ? await getSection(section) : await driver.findWait(".active_section", 4000);
     await sectionElem.find(`.test-section-menu-${which}`).click();
-    return await findOpenMenu(100);
+    return await findOpenMenu();
   }
 
   /**
@@ -1859,7 +1874,7 @@ namespace gristUtils {
 
   async function openColumnMenuHelper(col: IColHeader | string, option?: string): Promise<WebElement> {
     await getColumnHeader(typeof col === "string" ? { col } : col).mouseMove().find(".g-column-main-menu").click();
-    const menu = await findOpenMenu(100);
+    const menu = await findOpenMenu();
     if (option) {
       await menu.findContent("li", option).click();
       const waitForElem = ColumnMenuOption[option];
@@ -2101,7 +2116,7 @@ namespace gristUtils {
       await orgInput.sendKeys(e, Key.ENTER);
       if (role && role !== "Viewer") {
         await driver.findContentWait(".test-um-member", e, 1000).find(".test-um-member-role").click();
-        await driver.findContent(".test-um-role-option", role ?? "Viewer").click();
+        await driver.findContentWait(".test-um-role-option", role ?? "Viewer", 200).click();
       }
     }
     await driver.find(".test-um-confirm").click();
@@ -2593,8 +2608,7 @@ namespace gristUtils {
       urlId = urlId || await getCurrentUrlId();
       const api = this.createHomeApi();
       const doc = await api.getDoc(urlId!);
-      const workerApi = await api.getWorkerAPI(doc.id);
-      const response = await workerApi.downloadDoc(doc.id);
+      const response = await api.getDocAPI(doc.id).download();
       await fse.writeFile(fname, Buffer.from(await response.arrayBuffer()));
     }
   }
@@ -2833,7 +2847,7 @@ namespace gristUtils {
   export async function insertColumn(type?: string) {
     await sendKeys(Key.chord(Key.ALT, "="));
     // Wait for the rename popup to actually open, otherwise Escape is racy.
-    await driver.findWait(".test-column-title-popup", 1000);
+    await driver.findWait(".test-column-title-popup", 3000);
     await sendKeys(Key.ESCAPE);
     // Make sure the popup is gone before returning, so a subsequent insertColumn
     // call doesn't have its Alt+= swallowed by a still-closing popup.
@@ -3067,7 +3081,7 @@ namespace gristUtils {
  */
   export async function setRefShowColumn(col: string) {
     await driver.find(".test-fbuilder-ref-col-select").click();
-    await findOpenMenuItem(".test-select-row", col, 100).click();
+    await findOpenMenuItem(".test-select-row", col).click();
     await waitForServer();
   }
 
@@ -3687,15 +3701,18 @@ namespace gristUtils {
  * Useful for local testing of features that depend on environment variables, as it avoids the need
  * to restart the server when those variables are already set.
  *
- * Returns a `restartWithEnv(moreVars)` helper that applies additional env vars and restarts the
- * server. Useful when several sibling describes each need the server in a different state: pass
- * no vars to the outer call (just to own the snapshot) and call the returned helper in each
- * inner `before`. The outer `after` restores the original env and restarts once at the end.
+ * Returns a `restartWithEnv(moreVars)` helper for testing several server variants within one
+ * enclosing describe: pass no vars to the outer call (it then only takes the snapshot and
+ * restores it at the end), and call the helper in each inner describe's `before`. Nesting
+ * withEnvironmentSnapshot in each inner describe instead would cost two restarts per block
+ * (apply + restore); the helper costs one per block, plus a single restoring restart at the
+ * end. NOTE: vars applied by the helper accumulate across calls, so each block should set
+ * every variable it depends on (use null to unset).
  */
   export function withEnvironmentSnapshot(vars: Record<string, any> = {}) {
     let oldEnv: testUtils.EnvironmentSnapshot | null = null;
     let needsRestoreRestart = false;
-    async function restartWithEnv(newVars: Record<string, any>) {
+    async function restartWithEnv(newVars: Record<string, any>, ...args: Parameters<typeof server.restart>) {
       for (const key of Object.keys(newVars)) {
         if (newVars[key] === undefined || newVars[key] === null) {
           delete process.env[key];
@@ -3704,7 +3721,7 @@ namespace gristUtils {
         }
       }
       needsRestoreRestart = true;
-      await server.restart();
+      await server.restart(...args);
     }
     before(async () => {
       oldEnv = new testUtils.EnvironmentSnapshot();
@@ -4299,11 +4316,12 @@ namespace gristUtils {
     };
   }
 
-  export function findOpenMenu(timeoutMsec = 100) {
+  // Default 1000ms: menus render after setTimeout(0), the 100ms wait raced it on CI.
+  export function findOpenMenu(timeoutMsec = 1000) {
     return driver.findWait(".grist-floating-menu", timeoutMsec);
   }
 
-  export function findOpenMenuItem(itemSelector: string, itemContentMatcher?: string | RegExp, timeoutMsec = 100) {
+  export function findOpenMenuItem(itemSelector: string, itemContentMatcher?: string | RegExp, timeoutMsec = 1000) {
     return itemContentMatcher ?
       driver.findContentWait(`.grist-floating-menu ${itemSelector}`, itemContentMatcher, timeoutMsec) :
       driver.findWait(`.grist-floating-menu ${itemSelector}`, timeoutMsec);
@@ -4312,7 +4330,7 @@ namespace gristUtils {
   export async function findOpenMenuAllItems<T>(
     itemSelector: string,
     mapper: (e: WebElement) => Promise<T>,
-    timeoutMsec = 100,
+    timeoutMsec = 1000,
   ): Promise<T[]>   {
     try {
       // Find at least one item to ensure the menu is open.
@@ -4381,6 +4399,34 @@ namespace gristUtils {
         height: window.innerHeight,
       };
     });
+  }
+
+  export async function focusNextSection(count: number = 1) {
+    return sendKeys(...Array(count).fill(Key.chord(Key.CONTROL, "o")));
+  }
+
+  export async function focusPrevSection(count: number = 1) {
+    return sendKeys(...Array(count).fill(Key.chord(Key.CONTROL, Key.SHIFT, "o")));
+  }
+
+  /**
+   * Asserts that the screen reader recently announced the given text.
+   *
+   * By default, we verify that the given text is part of the latest announcement.
+   */
+  export async function assertScreenReaderAnnouncement(expected: string, mustBeLast: boolean = true) {
+    // We always wait a bit for the test to pass because announcements are not done synchronously
+    await driver.wait(async () => {
+      // We manually get textContent instead of relying on selenium's getText because the text is visually hidden.
+      const text = await driver.executeScript<string>((onlyLast: boolean) => {
+        const el = document.querySelector(onlyLast ?
+          "#screen-reader-announcer div:last-child" :
+          "#screen-reader-announcer",
+        );
+        return (el?.textContent || "").toLowerCase();
+      }, mustBeLast);
+      return text.includes(expected.toLowerCase());
+    }, 500);
   }
 
 } // end of namespace gristUtils

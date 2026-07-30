@@ -1,5 +1,6 @@
 /node_modules/
 /_build/
+/app/common/version.ts
 /static/*.bundle.js
 /static/*.bundle.js.map
 /static/grist-plugin-api*
@@ -105,3 +106,6 @@ xunit.xml
 
 # Storybook
 /storybook-static/
+
+# Installed edition written by the post-install hook (install_edition.sh).
+/grist-edition

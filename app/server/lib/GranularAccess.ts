@@ -372,7 +372,9 @@ export class GranularAccess implements GranularAccessForBundle {
       // has `forceAnonymous` enabled.
       fullUser = this._homeDbManager?.makeFullUser(this._homeDbManager.getAnonymousUser()) ?? null;
     } else {
-      fullUser = docSession.fullUser;
+      // In case of restricted credentials (like AccessToken or oauth), the user may not be able
+      // to act fully as themselves, so fullUser is anonymous; what we want is identifiedUser.
+      fullUser = docSession.identifiedUser;
     }
     const user = new User();
     user.Access = access;
@@ -444,6 +446,7 @@ export class GranularAccess implements GranularAccessForBundle {
     return {
       user: await this.getUser(docSession),
       docId: this._docId,
+      mask: docSession.credential?.permissionMask(),
     };
   }
 
@@ -591,7 +594,7 @@ export class GranularAccess implements GranularAccessForBundle {
     if (!canEdit(await this.getNominalAccess(docSession))) {
       throw new ErrorWithCode("ACL_DENY", "Only owners or editors can modify documents");
     }
-    if (this._ruler.haveRules()) {
+    if (this._ruler.haveRules() || docSession.credential?.permissionMask()) {
       await Promise.all(
         docActions.map((action, actionIdx) => {
           if (isDirect[actionIdx]) {
@@ -912,8 +915,16 @@ export class GranularAccess implements GranularAccessForBundle {
     // Reject writes from prefork-as-owner sessions before the data engine is
     // touched. WS clients are normally caught earlier by Authorizer.assertAccess
     // downgrading owner→viewer in fork mode; this guard catches server-internal
-    // callers (e.g. the assistant) that bypass that path.
-    if (docSession.forkingAsOwner) { throw new Error("Should never modify a prefork"); }
+    // callers (e.g. the assistant) that bypass that path. The AUTH_NO_EDIT/fork
+    // shape is what makes Client.ts set `shouldFork: true` on the response so
+    // DocComm transparently fork-and-retries (matching normal user actions).
+    // Message text is preserved for the existing regression test.
+    if (docSession.forkingAsOwner) {
+      throw new ErrorWithCode("AUTH_NO_EDIT", "Should never modify a prefork", {
+        status: 403,
+        accessMode: "fork",
+      });
+    }
 
     // Checks are in no particular order.
     await this._checkSimpleDataActions(docSession, actions);
@@ -2194,7 +2205,7 @@ export class GranularAccess implements GranularAccessForBundle {
     }
     const na = cloneDeep(a);
     const [, , oldIds, bulkColValues] = na;
-    const mask = oldIds.map((id, idx) => rowIds.has(id) ? idx : false).filter(v => v !== false) as number[];
+    const mask = oldIds.map((id, idx) => rowIds.has(id) ? idx : false).filter(v => v !== false);
     this._removeRowsAt(mask, oldIds, bulkColValues);
     if (oldIds.length === 0) { return null; }
     return na;
@@ -2742,6 +2753,13 @@ export class GranularAccess implements GranularAccessForBundle {
       if (isAclTable(tableId) && await this.isOwner(docSession)) {
         return dummyAccessCheck;
       }
+      // Webhook management writes _grist_Triggers. The `webhook` option waives the schema-edit
+      // check for these writes, so they can be made with the doc:webhooks scope instead of the
+      // broad doc.schema:write. The webhook API routes authorize the caller first (owner access,
+      // or a valid unsubscribe key on the deprecated unsubscribe route).
+      if (tableId === "_grist_Triggers" && this._activeBundle?.options?.webhook) {
+        return dummyAccessCheck;
+      }
       return accessChecks[severity].schemaEdit;
     } else if (a[0] === "UpdateRecord" || a[0] === "BulkUpdateRecord") {
       return accessChecks[severity].update;
@@ -2767,7 +2785,7 @@ export class GranularAccess implements GranularAccessForBundle {
 
     // Now remove all action that modify cell metadata from after.
     // We will use the patch to reconstruct the cell metadata.
-    const result = after.filter(action => !isCellDataAction(action));
+    const result: DocAction[] = after.filter(action => !isCellDataAction(action));
 
     // Prepare checker, we need to use checker from the last step.
     const cursor = {
@@ -3519,4 +3537,5 @@ export class PseudoDocSession extends OptDocSession {
   public get userId() { return this._userData.id; }
   public get userIsAuthorized() { return !this._userData.anonymous; }
   public get fullUser() { return this._userData; }
+  public get credential() { return undefined; }
 }

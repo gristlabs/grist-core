@@ -23,6 +23,8 @@ export interface UserPrefs extends Prefs {
   recordSignUpEvent?: boolean;
   // Theme-related preferences.
   theme?: ThemePrefs;
+  // Whether screen reader mode is enabled.
+  screenReaderMode?: boolean;
   // List of deprecated warnings user have seen. Kept for historical reasons as some users have them in their prefs.
   seenDeprecatedWarnings?: DeprecationWarning[];
   // List of dismissedPopups user have seen.
@@ -136,6 +138,8 @@ export const DismissedPopup = StringUnion(
   "publishForm",          // confirmation for publishing a form
   "unpublishForm",        // confirmation for unpublishing a form
   "upgradeNewAssistant",  // nudge to upgrade to enterprise shown in the formula assistant
+  "mcpConnectBanner",     // nudge to connect an AI assistant via the MCP server (home page banner)
+  "mcpConnectCard",       // collapsed state of the MCP connect card on the OAuth apps page
 
   /* Deprecated */
   "onboardingCards",      // onboarding cards shown on the doc menu

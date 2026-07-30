@@ -21,7 +21,7 @@ export class GristProxyAgent extends ProxyAgent {
   }
 }
 
-function getProxyAgentConfiguration() {
+export function getProxyAgentConfiguration() {
   const proxyForTrustedRequestsUrl = appSettings.section("proxy").readString({
     envVar: ["HTTPS_PROXY", "https_proxy"],
     preferredEnvVar: "HTTPS_PROXY",

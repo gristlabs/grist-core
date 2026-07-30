@@ -428,8 +428,8 @@ for (const { limit, expected, desc } of [
     });
 
     after(async function() {
-      await limitServer.stop();
       oldEnv.restore();
+      await limitServer.stop();
     });
 
     it(desc, async function() {

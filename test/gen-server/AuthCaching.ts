@@ -150,7 +150,7 @@ describe("AuthCaching", function() {
     assert.deepEqual(getDocCalls.docs.getAndReset(), { forced: 0, misses: 0, hits: 0 });
   });
 
-  it("should cache DocApi + DocApiForwarder calls", async function() {
+  it("should cache DocApi + DocApiProxy calls", async function() {
     flushCache();
     const getDocCalls = getDocCallTracker();
     const resp = await axios.get(`${homeUrl}/api/docs/${helloDocId}/tables/Table1/data`, chimpy);
@@ -172,7 +172,7 @@ describe("AuthCaching", function() {
     assert.deepEqual(getDocCalls.docs.getAndReset(), { forced: 0, misses: 0, hits: 1 });
   });
 
-  it("should cache DocAPI + DocApiForwarder no-access calls", async function() {
+  it("should cache DocAPI + DocApiProxy no-access calls", async function() {
     flushCache();
     const getDocCalls = getDocCallTracker();
 
@@ -187,7 +187,7 @@ describe("AuthCaching", function() {
     resp = await axios.post(`${homeUrl}/api/docs/${helloDocId}/tables/Table1/data`, { A: ["Bar"] }, kiwi);
     assert.equal(resp.status, 403);
     assert.match(resp.data.error, /No write access/);
-    // The read/write distinction isn't checked by DocApiForwarder, so docsServer sees the request.
+    // The read/write distinction isn't checked by DocApiProxy, so docsServer sees the request.
     assert.deepEqual(getDocCalls.home.getAndReset(), { forced: 0, misses: 0, hits: 1 });
     assert.deepEqual(getDocCalls.docs.getAndReset(), { forced: 0, misses: 0, hits: 1 });
 

@@ -11,6 +11,7 @@ describe("ApiKeyWidget", function() {
   before(async function() {
     this.timeout(60000);      // Set a longer default timeout.
     await driver.get(`${server.getHost()}/ApiKey`);
+    await driver.findWait(".test-apikey-container", 2000);
   });
 
   it("should show only the create button when the api key has not been created", async function() {

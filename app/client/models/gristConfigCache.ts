@@ -14,7 +14,7 @@
 import { urlState } from "app/client/models/gristUrlState";
 import { getWeakestRole } from "app/common/roles";
 import { getGristConfig } from "app/common/urlUtils";
-import { Document, UserAPI } from "app/common/UserAPI";
+import { Document, PublicDocWorkerUrlInfo, UserAPI } from "app/common/UserAPI";
 
 const MaxGristConfigAgeMs = 5000;
 
@@ -30,15 +30,15 @@ export async function getDoc(api: UserAPI, docId: string): Promise<Document> {
   return result;
 }
 
-export async function getWorker(api: UserAPI, assignmentId: string): Promise<string> {
-  const value = findAndResetInGristConfig("getWorker", assignmentId);
-  return value || api.getWorker(assignmentId);
+export async function getWorkerFull(api: UserAPI, assignmentId: string): Promise<PublicDocWorkerUrlInfo> {
+  const value = findAndResetInGristConfig("getWorkerFull", assignmentId);
+  return value || api.getWorkerFull(assignmentId);
 }
 
-type CallType = "getDoc" | "getWorker";
+type CallType = "getDoc" | "getWorkerFull";
 
 function findAndResetInGristConfig(method: "getDoc", id: string): Document | null;
-function findAndResetInGristConfig(method: "getWorker", id: string): string | null;
+function findAndResetInGristConfig(method: "getWorkerFull", id: string): PublicDocWorkerUrlInfo | null | undefined;
 function findAndResetInGristConfig(method: CallType, id: string): any {
   const gristConfig = getGristConfig();
   const methodCache = gristConfig[method];

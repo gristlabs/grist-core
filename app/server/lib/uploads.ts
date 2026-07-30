@@ -26,6 +26,7 @@ import { Application, Request, RequestHandler, Response } from "express";
 import * as fse from "fs-extra";
 import pick from "lodash/pick";
 import * as multiparty from "multiparty";
+import fetch from "node-fetch";
 import { Response as FetchResponse } from "node-fetch";
 import * as tmp from "tmp";
 
@@ -35,7 +36,12 @@ import * as tmp from "tmp";
 const INACTIVITY_CLEANUP_MS = 60 * 60 * 1000;     // an hour, very generously.
 
 // A hook for dependency injection.
-export const Deps = { fetch: fetchUntrustedWithAgent, INACTIVITY_CLEANUP_MS };
+export const Deps = {
+  fetch: fetchUntrustedWithAgent,
+  fetchInternal: fetch,
+  getDocWorkerInfoOrSelfPrefix,
+  INACTIVITY_CLEANUP_MS,
+};
 
 // An optional UploadResult, with parameters.
 export interface FormResult {
@@ -436,8 +442,15 @@ export async function fetchURL(url: string, accessId: string | null, options?: F
 /**
  * Register a new upload with resource fetched from a url, optionally including credentials in
  * request. Returns corresponding UploadInfo.
+ *
+ * @param isInternal Internal parameter: only used by fetchDoc() for internal doc worker URLs.
  */
-async function _fetchURL(url: string, accessId: string | null, options?: FetchUrlOptions): Promise<UploadResult> {
+async function _fetchURL(
+  url: string,
+  accessId: string | null,
+  options?: FetchUrlOptions,
+  isInternal?: boolean,
+): Promise<UploadResult> {
   try {
     const code = options?.googleAuthorizationCode;
     let fileName = options?.fileName ?? "";
@@ -447,7 +460,8 @@ async function _fetchURL(url: string, accessId: string | null, options?: FetchUr
       response = await downloadFromGDrive(url, code);
       fileName = ""; // Read the file name from headers.
     } else {
-      response = await Deps.fetch(url, {
+      const fetchFunc = isInternal ? Deps.fetchInternal : Deps.fetch;
+      response = await fetchFunc(url, {
         redirect: "follow",
         follow: 10,
         headers,
@@ -507,13 +521,14 @@ export async function fetchDoc(
   const docId = (await server.getHomeDBManager().getRawDocById(urlId)).id;
   // Find the doc worker responsible for the document we wish to copy.
   // The backend needs to be well configured for this to work.
-  const { selfPrefix, docWorker } = await getDocWorkerInfoOrSelfPrefix(docId, docWorkerMap, server.getTag());
+  const { selfPrefix, docWorker } = await Deps.getDocWorkerInfoOrSelfPrefix(docId, docWorkerMap, server.getTag());
   const docWorkerUrl = docWorker ? docWorker.internalUrl : getUrlFromPrefix(server.getHomeInternalUrl(), selfPrefix);
   const apiBaseUrl = docWorkerUrl.replace(/\/*$/, "/");
 
   // Download the document, in full or as a template.
   const url = new URL(`api/docs/${docId}/download?template=${Number(template)}`, apiBaseUrl);
-  return _fetchURL(url.href, accessId, { headers });
+  // The doc worker URL is trusted and internal. Bypass GRIST_PROXY_FOR_UNTRUSTED_URLS to prevent connection failures.
+  return _fetchURL(url.href, accessId, { headers }, /* isInternal */ true);
 }
 
 // Re-issue failures as exceptions.

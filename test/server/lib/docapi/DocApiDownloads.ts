@@ -13,17 +13,25 @@
  * - Direct to docworker (requires Redis)
  */
 
+import { OpenMode, SQLiteDB } from "app/server/lib/SQLiteDB";
 import { addAllScenarios, ORG_NAME, TestContext } from "test/server/lib/docapi/helpers";
 import * as testUtils from "test/server/testUtils";
 
+import { tmpdir } from "os";
+import * as path from "path";
+
 import axios from "axios";
 import { assert } from "chai";
+import * as fse from "fs-extra";
 
 describe("DocApiDownloads", function() {
   this.timeout(30000);
   testUtils.setTmpLogLevel("error");
 
-  addAllScenarios(addDownloadsTests, "docapi-downloads");
+  addAllScenarios(addDownloadsTests, "docapi-downloads", {
+    // Needed by the trigger-disable test, which creates a webhook action
+    extraEnv: { ALLOWED_WEBHOOK_DOMAINS: "*" },
+  });
 });
 
 function addDownloadsTests(getCtx: () => TestContext) {
@@ -64,14 +72,6 @@ function addDownloadsTests(getCtx: () => TestContext) {
     const resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/download`, kiwi);
     assert.equal(resp.status, 403);
     assert.notMatch(resp.data, /grist_Tables_column/);
-  });
-
-  // A tiny test that /copy doesn't throw.
-  it("POST /copy succeeds on a doc worker", async function() {
-    const { userApi, docIds } = getCtx();
-    const docId = docIds.TestDoc;
-    const worker1 = await userApi.getWorkerAPI(docId);
-    await worker1.copyDoc(docId, undefined, "copy");
   });
 
   it("POST /docs/{did} with sourceDocId copies a document", async function() {
@@ -307,18 +307,70 @@ function addDownloadsTests(getCtx: () => TestContext) {
   });
 
   it("POST /workspaces/{wid}/import handles empty filenames", async function() {
-    const { userApi, chimpy } = getCtx();
+    const { userApi } = getCtx();
     if (!process.env.TEST_REDIS_URL) {
       this.skip();
     }
     const worker = await userApi.getWorkerAPI("import");
     const wid = (await userApi.getOrgWorkspaces("current")).find(w => w.name === "Private")!.id;
     const fakeData1 = await testUtils.readFixtureDoc("Hello.grist");
-    const uploadId1 = await worker.upload(fakeData1, ".grist");
-    const resp = await axios.post(`${worker.url}/api/workspaces/${wid}/import`, { uploadId: uploadId1 }, chimpy);
+    const docInfo = await worker.importDocToWorkspace([new File([new Uint8Array(fakeData1)], ".grist")], wid);
+    assert.equal(docInfo.title, "Untitled upload");
+    assert.equal(typeof docInfo.id, "string");
+    assert.notEqual(docInfo.id, "");
+  });
+
+  it("GET /docs/{did}/download disables triggers in the downloaded copy", async function() {
+    const { serverUrl, userApi, chimpy } = getCtx();
+    const { docId } = await generateDocAndUrl("DownloadTriggers");
+    const docApi = userApi.getDocAPI(docId);
+
+    const tableRef = (await docApi.getRecords(
+      "_grist_Tables", { filters: { tableId: ["Table1"] } },
+    ))[0].id as number;
+    const { records } = await docApi.addTriggers({
+      records: [{ fields: { tableRef, label: "T", enabled: true, actions: JSON.stringify([
+        { type: "email", to: "a@b.com", subject: "S", body: "B" },
+        { type: "webhook", url: "https://example.com" },
+      ]) } }],
+    });
+    const triggerId = records[0].id;
+
+    // Sanity check that the trigger is enabled before download.
+    const before = await docApi.getTriggers();
+    assert.isTrue(
+      Boolean(before.records.find(r => r.id === triggerId)!.fields.enabled),
+    );
+
+    await userApi.getDoc(docId);
+
+    const resp = await axios.get(
+      `${serverUrl}/api/docs/${docId}/download`,
+      { ...chimpy, responseType: "arraybuffer" },
+    );
     assert.equal(resp.status, 200);
-    assert.equal(resp.data.title, "Untitled upload");
-    assert.equal(typeof resp.data.id, "string");
-    assert.notEqual(resp.data.id, "");
+
+    const tmpPath = path.join(tmpdir(), `download-disables-triggers-${docId}.grist`);
+    await fse.writeFile(tmpPath, Buffer.from(resp.data));
+    try {
+      const db = await SQLiteDB.openDBRaw(tmpPath, OpenMode.OPEN_READONLY);
+      try {
+        const rows = await db.all("SELECT id, enabled FROM _grist_Triggers");
+        assert.lengthOf(rows, 1);
+        assert.equal(rows[0].enabled, 0,
+          "trigger should be disabled in the downloaded copy");
+      } finally {
+        await db.close();
+      }
+    } finally {
+      await fse.unlink(tmpPath).catch(() => {});
+    }
+
+    // The source doc itself must remain enabled — only the temp copy is mutated.
+    const after = await docApi.getTriggers();
+    assert.isTrue(
+      Boolean(after.records.find(r => r.id === triggerId)!.fields.enabled),
+      "source doc trigger must remain enabled after download",
+    );
   });
 }

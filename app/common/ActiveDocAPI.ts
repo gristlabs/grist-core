@@ -25,6 +25,7 @@ export interface ApplyUAExtendedOptions extends ApplyUAOptions {
   // action was built from, expressed as number of milliseconds
   // elapsed since January 1, 1970 00:00:00 UTC
   attachment?: boolean;   // If set, allow actions on attachments.
+  webhook?: boolean;      // If set, allow webhook writes to _grist_Triggers without doc.schema:write.
 }
 
 export interface ApplyUAResult {

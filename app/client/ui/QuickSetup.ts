@@ -9,10 +9,11 @@ import { AuthenticationSection } from "app/client/ui/AuthenticationSection";
 import { BackupsSection } from "app/client/ui/BackupsSection";
 import { DraftChangesManager } from "app/client/ui/DraftChanges";
 import { peekSetupReturnFromGetGristCom, SetupReturnStep } from "app/client/ui/GetGristComProvider";
-import { PermissionsSetupSection } from "app/client/ui/PermissionsSetupSection";
+import { QuickSetupApplyStep } from "app/client/ui/QuickSetupApplyStep";
 import { quickSetupContinueButton, QuickSetupSection } from "app/client/ui/QuickSetupContinueButton";
 import { QuickSetupServerStep } from "app/client/ui/QuickSetupServerStep";
-import { SandboxSetupSection } from "app/client/ui/SandboxSection";
+import { SANDBOX_PROBE_ID, SandboxSetupSection } from "app/client/ui/SandboxSection";
+import { textButton } from "app/client/ui2018/buttons";
 import { Stepper } from "app/client/ui2018/Stepper";
 import { InstallAPIImpl } from "app/common/InstallAPI";
 
@@ -82,7 +83,12 @@ export class QuickSetup extends Disposable {
     this._checks.fetchAvailableChecks()
       .catch(reportError)
       .finally(() => {
-        if (!this.isDisposed()) { this._checksLoaded.set(true); }
+        if (this.isDisposed()) { return; }
+        this._checksLoaded.set(true);
+        // Pre-warm sandbox-providers so the slow real-machine probe is already
+        // running while the user is on earlier steps.
+        const sandboxProbe = this._checks.probes.get().find(p => p.id === SANDBOX_PROBE_ID);
+        if (sandboxProbe) { this._checks.requestCheck(sandboxProbe, { background: true }); }
       });
     return dom.maybe(this._checksLoaded, () =>
       this._checks.probes.get().length > 0 ?
@@ -131,7 +137,11 @@ export class QuickSetup extends Disposable {
 
   private _buildSandboxStep(): DomContents {
     return dom.create((owner) => {
-      const section = SandboxSetupSection.create(owner);
+      // If the background prefetch hit the server mid-restart (after Apply
+      // on the Server step) it will have cached a fault. Drop it so the
+      // section's load runs fresh now that the server is back.
+      this._checks.discardIfFault(SANDBOX_PROBE_ID);
+      const section = SandboxSetupSection.create(owner, this._checks);
       return dom("div",
         section.buildDom(),
         quickSetupContinueButton(section, () => this._advanceStep(), testId("sandbox-continue")),
@@ -155,7 +165,20 @@ export class QuickSetup extends Disposable {
       };
       return dom("div",
         section.buildDom(),
-        quickSetupContinueButton(step, () => this._advanceStep(), testId("auth-continue")),
+        dom.maybe(
+          section.hasConfiguredAuth,
+          () => quickSetupContinueButton(step, () => this._advanceStep(), testId("auth-continue")),
+        ),
+        dom.maybe(
+          use => !use(section.hasConfiguredAuth),
+          () => cssAuthSkipRow(
+            textButton(
+              t("Set up later"),
+              dom.on("click", () => section.confirmNoAuth(() => this._advanceStep())),
+              testId("auth-skip"),
+            ),
+          ),
+        ),
       );
     });
   }
@@ -172,8 +195,8 @@ export class QuickSetup extends Disposable {
 
   private _buildApplyStep(): DomContents {
     return dom.create((owner) => {
-      const section = PermissionsSetupSection.create(owner);
-      return section.buildDom();
+      const step = QuickSetupApplyStep.create(owner, this._appModel);
+      return step.buildDom();
     });
   }
 }
@@ -193,4 +216,9 @@ const cssStepContent = styled("div", `
   animation: ${cssFadeUp} 0.5s ease 0.24s both;
   margin: 24px auto;
   max-width: 520px;
+`);
+
+const cssAuthSkipRow = styled("div", `
+  text-align: center;
+  margin-top: 20px;
 `);

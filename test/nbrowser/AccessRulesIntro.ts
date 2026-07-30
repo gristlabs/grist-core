@@ -138,8 +138,8 @@ describe("AccessRulesIntro", function() {
     assert.equal(await driver.find(".test-rule-special-DocCopies").isDisplayed(), false);
 
     // Check that initially, once access rules are present, only owner can download a document.
-    await assert.isFulfilled((await ownerApi.getWorkerAPI(docId)).downloadDoc(docId));
-    await assert.isRejected((await editorApi.getWorkerAPI(docId)).downloadDoc(docId), /Forbidden/);
+    await assert.isFulfilled(ownerApi.getDocAPI(docId).download());
+    await assert.isRejected(editorApi.getDocAPI(docId).download(), /Forbidden/);
 
     // Toggle the "Access Rules" permission to ON.
     assert.equal(await getChecked(driver.find(".test-rule-special-AccessRules")), null);
@@ -158,8 +158,8 @@ describe("AccessRulesIntro", function() {
 
     // Though editors can now see all data AND can see access rules, there is still a restriction
     // on copies.
-    await assert.isFulfilled((await ownerApi.getWorkerAPI(docId)).downloadDoc(docId));
-    await assert.isRejected((await editorApi.getWorkerAPI(docId)).downloadDoc(docId), /Forbidden/);
+    await assert.isFulfilled(ownerApi.getDocAPI(docId).download());
+    await assert.isRejected(editorApi.getDocAPI(docId).download(), /Forbidden/);
 
     // Now remove the restriction.
     await driver.find(".test-rule-special-DocCopies .test-rule-special-checkbox").click();
@@ -167,13 +167,13 @@ describe("AccessRulesIntro", function() {
     await saveRules();
 
     // Now finally editors can also download the doc.
-    await assert.isFulfilled((await ownerApi.getWorkerAPI(docId)).downloadDoc(docId));
-    await assert.isFulfilled((await editorApi.getWorkerAPI(docId)).downloadDoc(docId));
+    await assert.isFulfilled(ownerApi.getDocAPI(docId).download());
+    await assert.isFulfilled(editorApi.getDocAPI(docId).download());
 
     // Undo and check that editors cannot download again.
     await gu.undo();
-    await assert.isFulfilled((await ownerApi.getWorkerAPI(docId)).downloadDoc(docId));
-    await assert.isRejected((await editorApi.getWorkerAPI(docId)).downloadDoc(docId), /Forbidden/);
+    await assert.isFulfilled(ownerApi.getDocAPI(docId).download());
+    await assert.isRejected(editorApi.getDocAPI(docId).download(), /Forbidden/);
   });
 
   it("should show Disable button if only checkbox rules are shown", async function() {
@@ -206,7 +206,7 @@ describe("AccessRulesIntro", function() {
 
   it("should allow using Disable button to remove all rules after confirmation", async function() {
     // As a reminder, when we get here, editors aren't allowed to download the full doc.
-    await assert.isRejected((await editorApi.getWorkerAPI(docId)).downloadDoc(docId), /Forbidden/);
+    await assert.isRejected(editorApi.getDocAPI(docId).download(), /Forbidden/);
 
     // Click the "Disable Access Rules" button.
     await driver.find(".test-disable-access-rules").click();
@@ -225,7 +225,7 @@ describe("AccessRulesIntro", function() {
 
     // Last we checked, editors could not download the document in full. With all rules cleared,
     // full downloads should be allowed to all collaborators again.
-    await assert.isFulfilled((await editorApi.getWorkerAPI(docId)).downloadDoc(docId));
+    await assert.isFulfilled(editorApi.getDocAPI(docId).download());
   });
 });
 

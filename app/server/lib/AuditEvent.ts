@@ -182,7 +182,7 @@ export interface AuditEventDetails {
     };
     duplicate: {
       document: Pick<Document, "id" | "name"> & {
-        workspace: Pick<Workspace, "id">;
+        workspace?: Pick<Workspace, "id">;
       };
     };
     options: {

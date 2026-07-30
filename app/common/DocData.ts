@@ -67,7 +67,9 @@ export class DocData extends ActionDispatcher {
    * Creates a new TableData object. A derived class may override to return an object derived from TableData.
    */
   public createTableData(tableId: string, tableData: TableDataAction | null, colTypes: ColTypeMap): TableData {
-    return new (tableId in schema ? MetaTableData : TableData)(tableId, tableData, colTypes);
+    return tableId in schema ?
+      new MetaTableData(tableId as keyof SchemaTypes, tableData, colTypes) :
+      new TableData(tableId, tableData, colTypes);
   }
 
   /**

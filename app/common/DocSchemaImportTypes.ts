@@ -16,6 +16,7 @@ export interface ExistingTableSchema {
 
 export interface ExistingColumnSchema {
   id: string;
+  type: string;
   ref: number;
   // Label is required for column matching to work correctly.
   label?: string;

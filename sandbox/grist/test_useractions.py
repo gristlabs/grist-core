@@ -1830,3 +1830,43 @@ class TestUserActions(test_engine.EngineTestCase):
       [22, 5, 10.5, 29],
       [23, 5, 12.5, 30],
     ])
+
+  def test_record_card_disabled(self):
+    self.load_sample(self.sample)
+    self.apply_user_action(['AddEmptyTable', None])
+    table = self.engine.docmodel.tables.lookupOne(tableId='Table1')
+    record_card = table.recordCardViewSectionRef
+
+    # Check the record card defaults to one field per visible column (A, B, C).
+    default_col_refs = [f.colRef.id for f in record_card.fields]
+    self.assertEqual(len(default_col_refs), 3)
+
+    # Customize the record card so its layout differs from the default: drop its last field, set a
+    # distinctive theme/layout, and disable it.
+    self.apply_user_action(['RemoveRecord', '_grist_Views_section_field', record_card.fields[-1].id])
+    self.apply_user_action(['UpdateRecord', '_grist_Views_section', record_card.id, {
+      'theme': 'compact',
+      'layoutSpec': '{"children":[{"leaf":1}]}',
+      'options': '{"disabled":true}',
+    }])
+    record_card_col_refs = [f.colRef.id for f in record_card.fields]
+    self.assertEqual(len(record_card_col_refs), 2)
+
+    # Add a new card section while the record card is disabled.
+    result = self.apply_user_action(['CreateViewSection', table.id, 0, 'detail', None, None])
+    new_section = self.engine.docmodel.view_sections.table.get_record(result.retValues[0]['sectionRef'])
+
+    # Check it uses the full default field set, not the disabled record card's reduced set, and does not
+    # inherit the record card's theme/layout.
+    self.assertEqual([f.colRef.id for f in new_section.fields], default_col_refs)
+    self.assertNotEqual(new_section.theme, 'compact')
+    self.assertNotIn('disabled', new_section.options or '')
+
+    # Re-enable the record card. A newly added card section now inherits its layout again.
+    self.apply_user_action(['UpdateRecord', '_grist_Views_section', record_card.id, {
+      'options': '{"disabled":false}',
+    }])
+    result = self.apply_user_action(['CreateViewSection', table.id, 0, 'detail', None, None])
+    enabled_section = self.engine.docmodel.view_sections.table.get_record(result.retValues[0]['sectionRef'])
+    self.assertEqual([f.colRef.id for f in enabled_section.fields], record_card_col_refs)
+    self.assertEqual(enabled_section.theme, 'compact')

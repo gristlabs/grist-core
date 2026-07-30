@@ -1,1 +1,23 @@
-{}
+{
+    "sendAppPage": {
+        "Loading...": "読み込み中...",
+        "og-description": "グリッドの枠を越える、モダンなオープンソースのスプレッドシート",
+        "og-title": "Grist — スプレッドシートの進化形"
+    },
+    "oidc": {
+        "emailNotVerifiedError": "IDプロバイダーでメールアドレスを確認してから、再度ログインしてください。"
+    },
+    "access": {
+        "docDisabled": "このドキュメントは無効化されています。",
+        "docNoAccess": "このドキュメントへのアクセス権がありません。"
+    },
+    "admin": {
+        "emptyOrg": "`GRIST_INSTALL_ADMIN_ORG={{org}}` で定義された管理組織にオーナーが見つかりません",
+        "orgUser": "`GRIST_INSTALL_ADMIN_ORG={{org}}` で定義された管理組織のオーナーです",
+        "noAdminEmail": "`GRIST_ADMIN_EMAIL` と `GRIST_DEFAULT_EMAIL` が未設定のため、管理者アカウントが設定されていません",
+        "accountByEmail": "`GRIST_DEFAULT_EMAIL={{defaultEmail}}` で定義された管理者アカウント"
+    },
+    "DocApi": {
+        "UntitledDocument": "無題のドキュメント"
+    }
+}

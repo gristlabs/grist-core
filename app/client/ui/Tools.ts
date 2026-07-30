@@ -196,7 +196,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
       ),
     ),
     createHelpTools(docPageModel.appModel),
-    createAccessibilityTools(),
+    createAccessibilityTools(docPageModel.appModel),
   );
 }
 

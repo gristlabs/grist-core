@@ -127,7 +127,6 @@ describe("UserAttributes", function() {
       const userApi = new UserAPIImpl(`${serverUrl}/o/nasa`, {
         fetch: fetch as any,
         headers: { Cookie: cookie.headers.Cookie },
-        newFormData: () => new FormData() as any,
       });
       const actualDataApi = await userApi.getDocAPI(docId).getRows("Projects");
       delete actualDataApi.manualSort;

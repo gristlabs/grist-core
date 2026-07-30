@@ -963,7 +963,17 @@
     "Type here": "Zadejte zde",
     "What organization are you with?": "V jaké organizaci pracujete?",
     "Your organization": "Vaše organizace",
-    "Your role": "Vaše role"
+    "Your role": "Vaše role",
+    "Product Development": "Vývoj produktu",
+    "Finance & Accounting": "Finance a účetnictví",
+    "Media Production": "Mediální produkce",
+    "IT & Technology": "IT a technologie",
+    "Marketing": "Marketing",
+    "Research": "Výzkum",
+    "Sales": "Prodej",
+    "Education": "Vzdělávání",
+    "HR & Management": "Lidské zdroje a řízení",
+    "Other": "Ostatní"
   },
   "SiteSwitcher": {
     "Create new team site": "Vytvořit nové stránky týmu",
@@ -971,7 +981,8 @@
   },
   "ThemeConfig": {
     "Appearance ": "Vzhled ",
-    "Switch appearance automatically to match system": "Přepnout vzhled automaticky podle systému"
+    "Switch appearance automatically to match system": "Přepnout vzhled automaticky podle systému",
+    "Light": "Světlé"
   },
   "AppModel": {
     "This team site is suspended. Documents can be read, but not modified.": "Tato týmová stránka je pozastavena. Dokumenty lze číst, ale nelze je upravovat."
@@ -1008,21 +1019,6 @@
   },
   "SelectionSummary": {
     "Copied to clipboard": "Zkopírováno do schránky"
-  },
-  "WelcomeQuestions": {
-    "Welcome to Grist!": "Vítejte na Grist!",
-    "Other": "Ostatní",
-    "Sales": "Prodej",
-    "Finance & Accounting": "Finance a účetnictví",
-    "Education": "Vzdělávání",
-    "Media Production": "Mediální produkce",
-    "Marketing": "Marketing",
-    "Research": "Výzkum",
-    "What brings you to Grist? Please help us serve you better.": "Co vás přivedlo ke Grist? Pomozte nám, abychom vám mohli lépe sloužit.",
-    "Product Development": "Vývoj produktu",
-    "Type here": "Zadejte zde",
-    "HR & Management": "Lidské zdroje a řízení",
-    "IT & Technology": "IT a technologie"
   },
   "ConditionalStyle": {
     "Row style": "Styl řádku",
@@ -1213,10 +1209,8 @@
     "Date": "Datum",
     "DateTime": "Datum a čas",
     "* Workspaces are available on team plans. ": "* Pracovní prostory jsou k dispozici v týmových plánech. ",
-    "Light": "Světlé",
     "Integer": "Celé číslo",
     "By Name": "Podle názvu",
-    "Custom": "Vlastní",
     "Choice": "Výběr",
     "Text": "Text",
     "By Date Modified": "Podle data úpravy"

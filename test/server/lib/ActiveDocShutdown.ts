@@ -407,7 +407,7 @@ return c
       const storageManager = docTools.getStorageManager();
       await storageManager.flushDoc(adoc.docName);
       const waitStub = sandbox.stub(sqlite3.Database.prototype as any, "wait");
-      waitStub.callsFake(function(this: sqlite3.Database, callback?: (param: null) => void) {
+      waitStub.callsFake(function(this: sqlite3.Database, callback) {
         waitStub.wrappedMethod.call(this, callback);
 
         // let's add the long query right after having invoked wait() and before configure()

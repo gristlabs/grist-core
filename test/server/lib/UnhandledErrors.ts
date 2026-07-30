@@ -25,7 +25,7 @@ describe("UnhandledErrors", function() {
   before(async function() {
     oldEnv = new testUtils.EnvironmentSnapshot();
     testDir = await createTestDir("UnhandledErrors");
-    await prepareDatabase(testDir);
+    await prepareDatabase(testDir, oldEnv);
   });
 
   after(function() {

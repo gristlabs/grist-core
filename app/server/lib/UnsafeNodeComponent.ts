@@ -1,6 +1,6 @@
 import { ActionRouter } from "app/common/ActionRouter";
 import { LocalPlugin } from "app/common/plugin";
-import { BaseComponent, createRpcLogger, warnIfNotReady } from "app/common/PluginInstance";
+import { BaseComponent, createRpcLogger } from "app/common/PluginInstance";
 import { GristAPI, RPC_GRISTAPI_INTERFACE } from "app/plugin/GristAPI";
 import log from "app/server/lib/log";
 import { getAppPathTo } from "app/server/lib/places";
@@ -128,7 +128,6 @@ export class UnsafeNodeComponent extends BaseComponent {
     child.stdout!.on("data", makeLinePrefixer("PLUGIN stdout: "));
     child.stderr!.on("data", makeLinePrefixer("PLUGIN stderr: "));
 
-    warnIfNotReady(this._rpc, 3000, "Plugin isn't ready; be sure to call grist.ready() from plugin");
     child.on("message", this._rpc.receiveMessage.bind(this._rpc));
   }
 

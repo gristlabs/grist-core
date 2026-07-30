@@ -61,13 +61,18 @@ function connectToSocket(rpc: Rpc, socket: net.Socket): Rpc {
 
 export interface TestingHooksClient extends ITestingHooks {
   close(): void;
+  // True after the socket closes (peer-close too, e.g. RestartShell worker exit). Check before reuse.
+  isClosed(): boolean;
 }
 
 export async function connectTestingHooks(socketPath: string): Promise<TestingHooksClient> {
   const socket = await connect(socketPath);
+  let closed = false;
+  socket.on("close", () => { closed = true; });
   const rpc = connectToSocket(new Rpc({ logger: {} }), socket);
   return Object.assign(rpc.getStub<TestingHooks>("testing", tiCheckers.ITestingHooks), {
     close: () => socket.end(),
+    isClosed: () => closed,
   });
 }
 
@@ -116,17 +121,17 @@ export class TestingHooks implements ITestingHooks {
 
   public async commShutdown(): Promise<void> {
     log.info("TestingHooks.commShutdown called");
-    await this._comm.testServerShutdown();
+    await this._comm.close();
     for (const server of this._workerServers) {
-      await server.getComm().testServerShutdown();
+      await server.getComm().close();
     }
   }
 
   public async commRestart(): Promise<void> {
     log.info("TestingHooks.commRestart called");
-    await this._comm.testServerRestart();
+    await this._comm.restart();
     for (const server of this._workerServers) {
-      await server.getComm().testServerRestart();
+      await server.getComm().restart();
     }
   }
 

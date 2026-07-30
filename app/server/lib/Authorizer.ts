@@ -8,7 +8,9 @@ import { UserOptions } from "app/common/UserAPI";
 import { User } from "app/gen-server/entity/User";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { DocAuthResult, HomeDBAuth } from "app/gen-server/lib/homedb/Interfaces";
-import { AccessTokenInfo } from "app/server/lib/AccessTokens";
+import { AccessTokenCredential } from "app/server/lib/AccessTokenCredential";
+import { AuthCredential } from "app/server/lib/AuthCredential";
+import { AuthSession } from "app/server/lib/AuthSession";
 import {
   forceSessionChange, generateAltSessionID, getSessionProfiles,
   getSessionUser, getSignInStatus, linkOrgWithEmail, SessionObj, SessionUserObj, SignInStatus,
@@ -21,7 +23,13 @@ import { COOKIE_MAX_AGE,
 import { getBootKey } from "app/server/lib/gristSettings";
 import log from "app/server/lib/log";
 import { IPermitStore, Permit } from "app/server/lib/Permit";
-import { allowHost, buildXForwardedForHeader, getOriginUrl, optStringParam } from "app/server/lib/requestUtils";
+import {
+  allowHost,
+  buildXForwardedForHeader,
+  getOriginUrl,
+  optStringParam,
+  toCommaSeparatedString,
+} from "app/server/lib/requestUtils";
 
 import { IncomingMessage } from "http";
 
@@ -35,14 +43,23 @@ export interface RequestWithLogin extends Request {
   org?: string;
   isCustomHost?: boolean;  // when set, the request's domain is a recognized custom host linked
   // with the specified org.
+
+  // Fields fullUser, userId, user answer "who is this request permitted to act as", except for
+  // requests with restrictions (like AccessTokens or oauth), where they are set to anonymous. In
+  // new code, prefer authSession.credential for access checks, and authSession.identifiedUser for
+  // attribution.
   fullUser?: FullUser;
   users?: UserProfile[];
   userId?: number;
   user?: User;
   userIsAuthorized?: boolean;   // If userId is for "anonymous", this will be false.
+
+  // New code should use authSession: its .credential field holds for identity and permissions for
+  // a request with restrictions; and .identifiedUser holds the user for attribution purposes.
+  authSession?: AuthSession;
+
   docAuth?: DocAuthResult;      // For doc requests, the docId and the user's access level.
   specialPermit?: Permit;
-  accessToken?: AccessTokenInfo;
   altSessionId?: string;   // a session id for use in trigger formulas and granular access rules
   isApiKeyAuth?: boolean;  // Whether the request was authenticated via API key.
   activation?: ActivationState;
@@ -136,7 +153,7 @@ export function getRequestProfile(req: Request | IncomingMessage,
   return profile;
 }
 
-function setRequestUser(mreq: RequestWithLogin, dbManager: HomeDBAuth, user: User) {
+function setRequestUser(mreq: RequestWithLogin, dbManager: HomeDBAuth, user: User, credential?: AuthCredential) {
   mreq.user = user;
   mreq.userId = user.id;
   mreq.userIsAuthorized = (user.id !== dbManager.getAnonymousUserId());
@@ -155,6 +172,7 @@ function setRequestUser(mreq: RequestWithLogin, dbManager: HomeDBAuth, user: Use
   if (!mreq.users) {
     mreq.users = [fullUser];
   }
+  mreq.authSession = AuthSession.fromReq(mreq, credential);
 }
 
 /**
@@ -219,10 +237,10 @@ async function getUserFromProfile(
  * Used by both REST (addRequestUser) and WebSocket (Comm) auth paths.
  */
 export interface IdentityResult {
-  user: User;                    // The resolved user (or anonymous)
-  accessToken?: AccessTokenInfo; // Set if ?auth token was used
-  specialPermit?: Permit;        // Set if permit header was used
-  hasApiKey: boolean;            // Whether API key was used (for telemetry)
+  user: User;                      // The resolved user (or anonymous)
+  credential?: AuthCredential;
+  specialPermit?: Permit;          // Set if permit header was used
+  hasApiKey: boolean;              // Whether API key was used (for telemetry)
   // True when the user presented explicit credentials (API key, boot key, permit,
   // access token). False for ambient browser-based auth (session cookie, forward-auth
   // header) and anonymous. Used by REST middleware for CSRF protection: mutating
@@ -262,14 +280,30 @@ export async function resolveIdentity(
   if (auth) {
     const tokens = options.gristServer.getAccessTokens();
     const accessToken = await tokens.verify(auth);
+    const user = await dbManager.getUser(accessToken.userId);
+    if (!user) { throw new ApiError("Bad request: invalid auth param", 401); }
     // Access tokens don't set a userId, so CSRF protection still applies
     // (explicitAuth: false). In practice these are GET requests for
     // attachments, but we keep the check for safety.
     return {
       user: dbManager.getAnonymousUser(),
-      accessToken,
+      credential: new AccessTokenCredential(dbManager.makeFullUser(user), accessToken),
       hasApiKey: false,
       explicitAuth: false,
+    };
+  }
+
+  // OAuth access token (Bearer header).
+  const oauthCredentialPromise = options.gristServer.getOAuthValidator()?.getCredential(req);
+  if (oauthCredentialPromise) {
+    // OAuth tokens don't set a userId to avoid authenticating across all endpoints by default.
+    // Instead, they get a restricted credential. See AuthCredential.ts for how to elevate access
+    // safely from anonymous to the real user.
+    return {
+      user: dbManager.getAnonymousUser(),
+      credential: await oauthCredentialPromise,
+      hasApiKey: true,      // Treat oauth as API requests for purposes of throttling and logging.
+      explicitAuth: true,
     };
   }
 
@@ -500,8 +534,7 @@ export async function addRequestUser(
   }
 
   // Set mreq fields from the identity result.
-  setRequestUser(mreq, dbManager, identity.user);
-  if (identity.accessToken) { mreq.accessToken = identity.accessToken; }
+  setRequestUser(mreq, dbManager, identity.user, identity.credential);
   if (identity.specialPermit) { mreq.specialPermit = identity.specialPermit; }
   if (identity.hasApiKey) { mreq.isApiKeyAuth = true; }
 
@@ -546,21 +579,23 @@ export async function addRequestUser(
   }
 
   if (mreq.userId) {
-    if (mreq.user?.options?.locale) {
-      mreq.language = mreq.user.options.locale;
+    const locale = mreq.authSession?.identifiedUser?.locale || mreq.user?.options?.locale;
+    if (locale) {
+      mreq.language = locale;
       // This is a synchronous call (as it was configured with initImmediate: false).
       mreq.i18n.changeLanguage(mreq.language).catch(() => {});
     }
   }
 
+  const identifiedUserId = mreq.authSession?.identifiedUser?.id || mreq.userId;
   const meta = {
     customHostSession,
     method: mreq.method,
     host: mreq.get("host"),
     path: mreq.path,
     org: mreq.org,
-    email: mreq.user?.loginEmail,
-    userId: mreq.userId,
+    email: mreq.authSession?.identifiedUser?.email || mreq.user?.loginEmail,
+    userId: identifiedUserId,
     altSessionId: mreq.altSessionId,
   };
   log.rawDebug(`Auth[${meta.method}]: ${meta.host} ${meta.path}`, meta);
@@ -568,7 +603,7 @@ export async function addRequestUser(
     options.gristServer.getTelemetry().logEvent(mreq, "apiUsage", {
       full: {
         method: mreq.method,
-        userId: mreq.userId,
+        userId: identifiedUserId,
         userAgent: mreq.headers["user-agent"],
       },
     });
@@ -651,49 +686,32 @@ export function redirectToLogin(
  * Sets mreq.docAuth if not yet set, and returns it.
  */
 export async function getOrSetDocAuth(
-  mreq: RequestWithLogin, dbManager: HomeDBManager,
-  gristServer: GristServer,
+  mreq: RequestWithLogin,
+  dbManager: HomeDBManager,
   urlId: string,
 ): Promise<DocAuthResult> {
   if (!mreq.docAuth) {
-    let effectiveUserId = getUserId(mreq);
-    if (mreq.specialPermit && mreq.userId === dbManager.getAnonymousUserId()) {
-      effectiveUserId = dbManager.getPreviewerUserId();
-    }
-
-    // A permit with a token gives us the userId associated with that token.
-    const tokenObj = mreq.accessToken;
-    if (tokenObj) {
-      effectiveUserId = tokenObj.userId;
-    }
-
-    mreq.docAuth = await dbManager.getDocAuthCached({ urlId, userId: effectiveUserId, org: mreq.org });
-
-    if (tokenObj) {
-      // Sanity check: does the current document match the document the token is
-      // for? If not, fail.
-      if (!mreq.docAuth.docId || mreq.docAuth.docId !== tokenObj.docId) {
-        throw new ApiError("token misuse", 401);
+    if (mreq.authSession?.credential) {
+      mreq.docAuth = await mreq.authSession.credential.docAuth(mreq, dbManager, urlId);
+    } else {
+      // It's OK to check specialPermit only in the "else", because resolveIdentity only sets
+      // specialPermit if no other credentials are in play.
+      let effectiveUserId = getUserId(mreq);
+      if (mreq.specialPermit && mreq.userId === dbManager.getAnonymousUserId()) {
+        effectiveUserId = dbManager.getPreviewerUserId();
       }
-      // Limit access to read-only if specified.
-      if (tokenObj.readOnly) {
-        mreq.docAuth = { ...mreq.docAuth, access: getWeakestRole("viewers", mreq.docAuth.access) };
-      }
-    }
 
-    // A permit with a user set to the anonymous user and linked to this document
-    // gets updated to full access.
-    if (mreq.specialPermit && mreq.userId === dbManager.getAnonymousUserId() &&
-      mreq.specialPermit.docId === mreq.docAuth.docId) {
-      mreq.docAuth = { ...mreq.docAuth, access: "owners" };
+      mreq.docAuth = await dbManager.getDocAuthCached({ urlId, userId: effectiveUserId, org: mreq.org });
+
+      // A permit with a user set to the anonymous user and linked to this document
+      // gets updated to full access.
+      if (mreq.specialPermit && mreq.userId === dbManager.getAnonymousUserId() &&
+        mreq.specialPermit.docId === mreq.docAuth.docId) {
+        mreq.docAuth = { ...mreq.docAuth, access: "owners" };
+      }
     }
   }
   return mreq.docAuth;
-}
-
-export interface ResourceSummary {
-  kind: "doc";
-  id: string | number;
 }
 
 interface AssertAccessOptions {
@@ -753,32 +771,34 @@ export function assertAccess(
  * authentication.
  */
 export function getTransitiveHeaders(
-  req: Request,
+  // Express Request subclasses http.IncomingMessage, so this allows for Node HTTP requests + Express requests
+  req: IncomingMessage,
   { includeOrigin }: { includeOrigin: boolean },
 ): { [key: string]: string } {
-  const Authorization = req.get("Authorization");
-  const Cookie = req.get("Cookie");
-  const PermitHeader = req.get("Permit");
+  const Authorization = req.headers.authorization;
+  const Cookie = req.headers.cookie;
+  const PermitHeader = req.headers.permit;
   const Organization = (req as RequestWithOrg).org;
-  const XRequestedWith = req.get("X-Requested-With");
-  const UserAgent = req.get("User-Agent");
-  const Origin = req.get("Origin");  // Pass along the original Origin since it may
-  // play a role in granular access control.
+  const XRequestedWith = req.headers["x-requested-with"];
+  const UserAgent = req.headers["user-agent"];
+  // Pass along the original Origin since it may play a role in granular access control.
+  const Origin = req.headers.origin;
 
   const result: Record<string, string> = {
     ...(Authorization ? { Authorization } : undefined),
     ...(Cookie ? { Cookie } : undefined),
     ...(Organization ? { Organization } : undefined),
-    ...(PermitHeader ? { Permit: PermitHeader } : undefined),
-    ...(XRequestedWith ? { "X-Requested-With": XRequestedWith } : undefined),
+    ...(PermitHeader ? { Permit: toCommaSeparatedString(PermitHeader) } : undefined),
+    ...(XRequestedWith ? { "X-Requested-With": toCommaSeparatedString(XRequestedWith) } : undefined),
     ...(UserAgent ? { "User-Agent": UserAgent } : undefined),
     ...buildXForwardedForHeader(req),
     ...((includeOrigin && Origin) ? { Origin } : undefined),
   };
+
   const extraHeader = process.env.GRIST_FORWARD_AUTH_HEADER;
-  const extraHeaderValue = extraHeader && req.get(extraHeader);
+  const extraHeaderValue = extraHeader && req.headers[extraHeader.toLowerCase()];
   if (extraHeader && extraHeaderValue) {
-    result[extraHeader] = extraHeaderValue;
+    result[extraHeader] = toCommaSeparatedString(extraHeaderValue);
   }
   return result;
 }

@@ -148,6 +148,10 @@ export class Client {
     return this._req;
   }
 
+  public isConnected(): boolean {
+    return Boolean(this._websocket);
+  }
+
   /**
    * Returns DocSession for the given docFD, or throws an exception if this doc is not open.
    */
@@ -291,12 +295,20 @@ export class Client {
 
   /**
    * Called from Comm.ts to decide whether this Client is available to accept a new connection
-   * that requests the same clientId.
+   * that requests the same clientId, that's authenticated as authSession.
    */
-  public canAcceptConnection(): boolean {
+  public canAcceptConnection(authSession: AuthSession): boolean {
     // Refuse reconnect if another websocket is currently active. It may be a new browser tab
     // (which may reuse clientId from a copy of sessinStorage). It will need its own Client object.
-    return !this._websocket;
+    //
+    // Also refuse if the reconnecting user differs from this Client's, for stronger security, so
+    // that we don't treat a clientId on its own as a secret sufficient to impersonate a user.
+    //
+    // UserId can't tell apart credentialed sessions (OAuth / access-token auth). Don't let them
+    // reconnect and reuse a Client; if the "reuse" optimization ever becomes relevant for those,
+    // we can relax this by checking the compatibility of authSession.credentials.
+    return !this._websocket && this._authSession.userId === authSession.userId &&
+      !this._authSession.credential && !authSession.credential;
   }
 
   /**

@@ -57,7 +57,10 @@ DOCKER_PID="$!"
 
 echo "[waiting for server]"
 while true; do
-  curl -s http://localhost:$PORT/status && break
+  # Wait for a healthy response specifically. RestartShell opens the port
+  # before the server is ready, answering /status with a 503 "starting"
+  # error until then, so insist on a 200 response that says "alive".
+  if curl -fs http://localhost:$PORT/status | grep -q alive; then break; fi
   sleep 1
 done
 echo ""
@@ -73,5 +76,5 @@ TEST_ADD_SAMPLES=1 TEST_ACCOUNT_PASSWORD=not-needed \
   HOME_URL=http://localhost:8585 \
   GRIST_TEST_LOGIN=1 \
   GRIST_TEST_FORCE_LIGHT_MODE=1 \
-  NODE_PATH=_build:_build/ext:_build/stubs \
+  NODE_PATH=_build:_build/ext:_build/stubs:ext/node_modules \
   $MOCHA _build/test/deployment/*.js --slow 6000 -g "${GREP_TESTS:-}" "$@"

@@ -636,3 +636,27 @@ class TestUserActions(test_engine.EngineTestCase):
       [2,    26,       0],
       [3,    27,       0]
     ])
+
+  def test_set_display_formula_with_col_id(self):
+    # SetDisplayFormula should accept a string colId in place of a numeric colRef.
+    self.load_sample(self.ref_sample)
+    self.apply_user_action(['AddTable', 'Favorites', [
+      {'id': 'favorite', 'type': 'Ref:Television'}
+    ]])
+    self.apply_user_action(['BulkAddRecord', 'Favorites', [1, 2], {'favorite': [11, 12]}])
+
+    # Use string colId "favorite" instead of numeric colRef 25.
+    self.apply_user_action(['SetDisplayFormula', 'Favorites', None, 'favorite', '$favorite.show'])
+    self.assertTableData("_grist_Tables_column", cols="subset", rows=(lambda r: r.parentId.id == 2),
+    data=[
+      ["id", "colId",                "parentId", "displayCol", "formula"],
+      [24,   "manualSort",           2,          0,            ""],
+      [25,   "favorite",             2,          26,           ""],
+      [26,   "gristHelper_Display",  2,          0,            "$favorite.show"],
+    ])
+    # Verify data still works.
+    self.assertTableData("Favorites", cols="subset", data=[
+      ["id", "favorite", "gristHelper_Display"],
+      [1,    11,         "Game of Thrones"],
+      [2,    12,         "Narcos"],
+    ])

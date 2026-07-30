@@ -17,6 +17,7 @@
 
 import { ApiError } from "app/common/ApiError";
 import { FullUser } from "app/common/LoginSessionAPI";
+import { AuthCredential } from "app/server/lib/AuthCredential";
 import { ILogMeta } from "app/server/lib/log";
 
 import moment from "moment";
@@ -25,13 +26,18 @@ import type { RequestWithLogin } from "app/server/lib/Authorizer";
 
 export abstract class AuthSession {
   // Create AuthSession from request. (This is very cheap to create.)
-  public static fromReq(req: RequestWithLogin): AuthSession {
-    return new AuthSessionForReq(req);
+  public static fromReq(req: RequestWithLogin, credential?: AuthCredential): AuthSession {
+    return new AuthSessionForReq(req, credential);
   }
 
-  public static fromUser(fullUser: FullUser, org: string, altSessionId?: string,
-    isApiKeyAuth: boolean = false): AuthSession {
-    return new AuthSessionForUser(fullUser, org, altSessionId, isApiKeyAuth);
+  public static fromUser(
+    fullUser: FullUser,
+    org: string,
+    altSessionId?: string,
+    credential?: AuthCredential,
+    isApiKeyAuth: boolean = false,
+  ): AuthSession {
+    return new AuthSessionForUser(fullUser, org, altSessionId, credential, isApiKeyAuth);
   }
 
   public static unauthenticated(): AuthSession { return new UnauthenticatedAuthSession(); }
@@ -41,11 +47,20 @@ export abstract class AuthSession {
   public abstract userId: number | null;
   public abstract userIsAuthorized: boolean;
   public abstract fullUser: FullUser | null;
+  public abstract credential?: AuthCredential;  // Identity and permissions for a request with restrictions.
   public abstract isApiKeyAuth: boolean;
 
-  public get normalizedEmail(): string | undefined { return this.fullUser?.loginEmail ?? this.fullUser?.email; }
-  public get displayEmail(): string | undefined { return this.fullUser?.email; }
+  public get normalizedEmail(): string | undefined {
+    return this.identifiedUser?.loginEmail ?? this.identifiedUser?.email;
+  }
+
+  public get displayEmail(): string | undefined { return this.identifiedUser?.email; }
   public get userAgeInDays(): number | undefined { return this._userAge ?? (this._userAge = this._calcAgeInDays()); }
+
+  // Use identifiedUser for display, audit logs, attribution, `user.*` references in access rules.
+  // Do NOT use this for permission decisions: use `credential`, which is aware of restrictions.
+  // (For requests without restrictions, it is the same as fullUser.)
+  public get identifiedUser(): FullUser | null { return this.credential?.identifiedUser ?? this.fullUser; }
 
   private _userAge?: number;
 
@@ -56,8 +71,9 @@ export abstract class AuthSession {
   public getLogMeta(): ILogMeta {
     // Setting each field conditionally here to omit keys with undefined/null values.
     const meta: ILogMeta = {};
-    const [org, email, userId, altSessionId, age] =
-      [this.org, this.normalizedEmail, this.userId, this.altSessionId, this.userAgeInDays];
+    const [org, email, altSessionId, age] =
+      [this.org, this.normalizedEmail, this.altSessionId, this.userAgeInDays];
+    const userId = this.identifiedUser?.id;
     if (org != null) { meta.org = org; }
     if (email != null) { meta.email = email; }
     if (userId != null) { meta.userId = userId; }
@@ -78,11 +94,12 @@ class UnauthenticatedAuthSession extends AuthSession {
   public readonly userId = null;
   public readonly userIsAuthorized = false;
   public readonly fullUser = null;
+  public readonly credential = undefined;
   public readonly isApiKeyAuth = false;
 }
 
 class AuthSessionForReq extends AuthSession {
-  constructor(private _req: RequestWithLogin) { super(); }
+  constructor(private _req: RequestWithLogin, public readonly credential?: AuthCredential) { super(); }
   public get isApiKeyAuth() { return this._req.isApiKeyAuth || false; }
   public get org() { return this._req.org; }
   public get altSessionId() { return this._req.altSessionId ?? null; }
@@ -92,11 +109,14 @@ class AuthSessionForReq extends AuthSession {
 }
 
 class AuthSessionForUser extends AuthSession {
-  public readonly isApiKeyAuth: boolean;
-  constructor(private _fullUser: FullUser, private _org: string,
-    private _altSessionId?: string, isApiKeyAuth: boolean = false) {
+  constructor(
+    private _fullUser: FullUser,
+    private _org: string,
+    private _altSessionId?: string,
+    private _credential?: AuthCredential,
+    private _isApiKeyAuth: boolean = false,
+  ) {
     super();
-    this.isApiKeyAuth = isApiKeyAuth;
   }
 
   public get org() { return this._org; }
@@ -104,6 +124,8 @@ class AuthSessionForUser extends AuthSession {
   public get userId() { return this._fullUser.id; }
   public get userIsAuthorized() { return !this._fullUser.anonymous; }
   public get fullUser() { return this._fullUser; }
+  public get credential() { return this._credential; }
+  public get isApiKeyAuth() { return this._isApiKeyAuth; }
 }
 
 function apiFail(errMessage: string, errStatus: number): never {

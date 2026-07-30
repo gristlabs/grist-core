@@ -1,5 +1,6 @@
 import { fromKoSave } from "app/client/lib/fromKoSave";
 import { makeT } from "app/client/lib/localization";
+import { obsPropWithSaveOnWrite } from "app/client/lib/obsPropWithSaveOnWrite";
 import { ViewFieldRec } from "app/client/models/DocModel";
 import { fieldWithDefault, SaveableObjObservable } from "app/client/models/modelUtil";
 import { FormFieldOptions, FormOptionsAlignment, FormOptionsSortOrder, FormSelectFormat } from "app/client/ui/FormAPI";
@@ -16,7 +17,7 @@ import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
 import { theme } from "app/client/ui2018/cssVars";
 import { select } from "app/client/ui2018/menus";
 
-import { Computed, Disposable, dom, fromKo, IDisposableOwner, makeTestId, styled } from "grainjs";
+import { Disposable, dom, fromKo, makeTestId, styled } from "grainjs";
 
 const t = makeT("FormConfig");
 
@@ -133,27 +134,6 @@ export class FormOptionsLimitConfig extends Disposable {
       ),
     ];
   }
-}
-
-/**
- * obsPropWithSaveOnWrite(owner, observable, prop, fallback) creates an observable for
- * observable()[prop], similar to fieldWithDefault(jsonObservable.prop(prop), fallback).
- *
- * It also sets and saves the observable on write, to satisfy the expectations of the checkbox
- * element. It uses `setAndSaveOrRevert` for saving.
- *
- * TODO Move this helper to a common place, e.g. modelUtil once it's converted to typescript.
- */
-function obsPropWithSaveOnWrite<Props extends object, Key extends keyof Props, Val extends Props[Key]>(
-  owner: IDisposableOwner,
-  obs: SaveableObjObservable<Props>,
-  prop: Key,
-  fallback: Val,
-): Computed<NonNullable<Props[Key]> | Val> {
-  return Computed.create(owner, use => use(obs)[prop] ?? fallback)
-    .onWrite((value) => {
-      obs.setAndSaveOrRevert({ ...obs.peek(), [prop]: value }).catch(reportError);
-    });
 }
 
 export class FormFieldRulesConfig extends Disposable {

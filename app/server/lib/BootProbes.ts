@@ -1,5 +1,9 @@
 import { ApiError } from "app/common/ApiError";
-import { BootProbeIds, BootProbeResult } from "app/common/BootProbe";
+import {
+  BootProbeIds,
+  BootProbeResult,
+  summarizeOutgoingRequests,
+} from "app/common/BootProbe";
 import { removeTrailingSlash } from "app/common/gutil";
 import { appSettings } from "app/server/lib/AppSettings";
 import { expressWrap, jsonErrorHandler } from "app/server/lib/expressWrap";
@@ -7,6 +11,13 @@ import { GristServer } from "app/server/lib/GristServer";
 import { getBootKey, getInService, getSandboxFlavor, getSandboxFlavorSource } from "app/server/lib/gristSettings";
 import { DEFAULT_SESSION_SECRET } from "app/server/lib/ICreate";
 import { getAvailableSandboxes, testSandboxFlavor } from "app/server/lib/NSandbox";
+import {
+  getAllowedWebhookDomains,
+  isAllowedWebhookWildcard,
+  isRequestFunctionEnabled,
+} from "app/server/lib/outgoingRequests";
+import { getProxyAgentConfiguration, isUntrustedRequestBehaviorSet } from "app/server/lib/ProxyAgent";
+import { classifyStorage } from "app/server/lib/storageDurability";
 
 import * as express from "express";
 import fetch from "node-fetch";
@@ -60,7 +71,6 @@ export class BootProbes {
   }
 
   private _addProbes() {
-    this._probes.push(_homeUrlReachableProbe);
     this._probes.push(_homeUrlProbe);
     this._probes.push(_statusCheckProbe);
     this._probes.push(_userProbe);
@@ -74,6 +84,8 @@ export class BootProbes {
     this._probes.push(_serviceStatusProbe);
     this._probes.push(_backupsProbe);
     this._probes.push(_sandboxProvidersProbe);
+    this._probes.push(_dataPersistsProbe);
+    this._probes.push(_outgoingRequestsProbe);
     this._probeById = new Map(this._probes.map(p => [p.id, p]));
   }
 }
@@ -103,36 +115,6 @@ const _admins: Probe = {
       return {
         status: "fault",
         details: { error: String(e) },
-      };
-    }
-  },
-};
-
-const _homeUrlReachableProbe: Probe = {
-  id: "reachable",
-  name: "Is home page available at expected URL",
-  apply: async (server, req) => {
-    const url = server.getHomeInternalUrl();
-    const details: Record<string, any> = {
-      url,
-    };
-    try {
-      const resp = await fetch(url);
-      details.status = resp.status;
-      if (resp.status !== 200) {
-        throw new ApiError(await resp.text(), resp.status);
-      }
-      return {
-        status: "success",
-        details,
-      };
-    } catch (e) {
-      return {
-        details: {
-          ...details,
-          error: String(e),
-        },
-        status: "fault",
       };
     }
   },
@@ -355,6 +337,31 @@ const _homeUrlProbe: Probe = {
   },
 };
 
+/**
+ * Reports on whether user-triggerable outgoing-request vectors (webhooks,
+ * the REQUEST() formula function, and Import-from-URL) are gated by a
+ * proxy.
+ *
+ * Pure env inspection; no network calls. The roll-up itself lives in
+ * summarizeOutgoingRequests() (app/common/BootProbe.ts) so the admin panel
+ * and Storybook share it.
+ */
+export const _outgoingRequestsProbe: Probe = {
+  id: "outgoing-requests",
+  name: "Are outgoing-request vectors protected",
+  apply: async () => {
+    const { proxyForTrustedRequestsUrl, proxyForUntrustedRequestsUrl } = getProxyAgentConfiguration();
+    return summarizeOutgoingRequests({
+      proxyConfigured: isUntrustedRequestBehaviorSet(),
+      untrustedDirect: proxyForUntrustedRequestsUrl === "direct",
+      trustedConfigured: proxyForTrustedRequestsUrl !== undefined,
+      requestFunctionEnabled: isRequestFunctionEnabled(),
+      allowedWebhookDomains: getAllowedWebhookDomains(),
+      webhookWildcard: isAllowedWebhookWildcard(),
+    });
+  },
+};
+
 const _serviceStatusProbe: Probe = {
   id: "service-status",
   name: "Service status",
@@ -437,5 +444,44 @@ const _sandboxProvidersProbe: Probe = {
         flavorInDB,
       },
     };
+  },
+};
+
+// Heuristic: the official Docker image sets GRIST_DATA_DIR to this and expects a
+// volume at /persist. We use it to guess we're in that image, where `/` is a
+// throwaway layer — the filesystem alone can't tell us that.
+const IMAGE_DATA_DIR = "/persist/docs";
+
+/**
+ * Warns when Grist's data would be lost on restart — i.e. it sits on the
+ * container's own filesystem rather than a mounted volume or external storage.
+ */
+const _dataPersistsProbe: Probe = {
+  id: "persist-data",
+  name: "Does data persist across restarts",
+  apply: async () => {
+    const dataDir = process.env.GRIST_DATA_DIR;
+    const homeDb = process.env.TYPEORM_DATABASE;
+    // We can't truly detect ephemeral storage, so treat the official image's DATA_DIR as the signal.
+    const rootMayBeEphemeral = (dataDir === IMAGE_DATA_DIR);
+
+    const isExternalStorageActive = appSettings.section("externalStorage").flag("active").getAsBool();
+    const usesPostgres = (process.env.TYPEORM_TYPE === "postgres");
+
+    const docs = isExternalStorageActive ? "durable" : await classifyStorage(dataDir, rootMayBeEphemeral);
+    const home = usesPostgres ? "durable" : await classifyStorage(homeDb, rootMayBeEphemeral);
+
+    const details = { dataDir, homeDb, docs, home };
+    if (docs === "ephemeral" || home === "ephemeral") {
+      return {
+        status: "fault",
+        verdict: "Your data will be lost when Grist restarts. To keep it, mount a volume at /persist.",
+        details,
+      };
+    }
+    // Claim success only when both stores are positively durable; otherwise we
+    // couldn't fully verify and stay neutral.
+    const verified = docs === "durable" && home === "durable";
+    return { status: verified ? "success" : "none", details };
   },
 };

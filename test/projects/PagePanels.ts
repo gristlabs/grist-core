@@ -443,6 +443,8 @@ describe("PagePanels", function() {
       await driver.find(".test-pp-addNewPage").doClick();
       await waitAssertPickerShown();
       await driver.findContent(".test-wselect-table", /New Table/).doClick();
+      // We press Enter twice: once to make the keyboard focus the submit button, once to submit
+      await driver.sendKeys(Key.ENTER);
       await driver.sendKeys(Key.ENTER);
 
       // check that the picker is gone

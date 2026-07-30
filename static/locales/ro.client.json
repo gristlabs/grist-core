@@ -692,21 +692,6 @@
     "Access overview": "Prezentare generală a accesului",
     "Inherit access: ": "Moşteneşte acess: "
   },
-  "WelcomeQuestions": {
-    "Welcome to Grist!": "Bun venit la Grist!",
-    "HR & Management": "Resurse Umane și Management",
-    "Sales": "Vânzări",
-    "Marketing": "Marketing",
-    "Type here": "Scrie aici",
-    "Other": "Altele",
-    "Product Development": "Dezvoltare de produs",
-    "Media Production": "Producție media",
-    "What brings you to Grist? Please help us serve you better.": "Ce vă aduce la Grist? Vă rugăm să ne ajutați să vă servim mai bine.",
-    "Education": "Educaţie",
-    "IT & Technology": "IT și Tehnologie",
-    "Finance & Accounting": "Finanțe și Contabilitate",
-    "Research": "Cercetare"
-  },
   "PagePanels": {
     "Open creator panel": "Deschide Panoul creatorului",
     "Close Creator Panel": "Închide Panoul creatorului"
@@ -1350,5 +1335,18 @@
     "Home": "Acasă",
     "Sponsor": "Sponsor",
     "Support Grist": "Sponsor Grist"
+  },
+  "OnboardingPage": {
+    "Product Development": "Dezvoltare de produs",
+    "Finance & Accounting": "Finanțe și Contabilitate",
+    "Media Production": "Producție media",
+    "IT & Technology": "IT și Tehnologie",
+    "Marketing": "Marketing",
+    "Research": "Cercetare",
+    "Sales": "Vânzări",
+    "Education": "Educaţie",
+    "HR & Management": "Resurse Umane și Management",
+    "Other": "Altele",
+    "Type here": "Scrie aici"
   }
 }

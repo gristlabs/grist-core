@@ -24,7 +24,7 @@ import { RequestWithLogin } from "app/server/lib/Authorizer";
 import { getMetaTables, handleSandboxError, validate, WithDocHandler } from "app/server/lib/DocApiUtils";
 import { docSessionFromRequest } from "app/server/lib/DocSession";
 import log from "app/server/lib/log";
-import { isUrlAllowed } from "app/server/lib/Triggers";
+import { isWebhookUrlAllowed } from "app/server/lib/Triggers";
 
 import { Application, RequestHandler, Response } from "express";
 import * as _ from "lodash";
@@ -104,7 +104,7 @@ function extractSecrets(action: TriggerAction | ActionSecretData): {
 function validateActionUrl(action: TriggerAction & ActionSecretData): void {
   if (action.type !== "webhook") { return; }
   const url = "url" in action && action.url;
-  if (typeof url === "string" && !isUrlAllowed(url)) {
+  if (typeof url === "string" && !isWebhookUrlAllowed(url)) {
     throw new ApiError("Provided url is forbidden", 403);
   }
 }
@@ -151,9 +151,13 @@ async function extractAndUpdateActionSecret(
   validateActionUrl(action);
   const { docAction, secretData } = extractSecrets(action);
   if (Object.keys(secretData).length > 0) {
-    // Read existing secret, merge updated fields, and write back
     const existing = await dbManager.getSecret(action.id, docId);
-    const existingData: ActionSecretData = existing ? JSON.parse(existing) : {};
+    if (!existing) {
+      // Orphaned secret (e.g. after copy/fork): heal by creating a fresh one rather
+      // than letting updateSecret throw 404 and abort sibling actions in the batch.
+      return await createActionSecret(action, dbManager, docId);
+    }
+    const existingData: ActionSecretData = JSON.parse(existing);
     const merged = { ...existingData, ...secretData };
     await dbManager.updateSecret(action.id, docId, JSON.stringify(merged));
   }
@@ -258,7 +262,7 @@ export class DocApiTriggers {
       if (!fields.eventTypes?.length) {
         throw new ApiError(`eventTypes must be a non-empty array`, 400);
       }
-      if (!isUrlAllowed(url)) {
+      if (!isWebhookUrlAllowed(url)) {
         throw new ApiError("Provided url is forbidden", 403);
       }
       if (!fields.tableRef) {
@@ -272,7 +276,7 @@ export class DocApiTriggers {
 
       try {
         const webhookAction: WebhookAction = { type: "webhook", id: webhookId };
-        const sandboxRes = await handleSandboxError("_grist_Triggers", [], activeDoc.applyUserActions(
+        const sandboxRes = await handleSandboxError("_grist_Triggers", [], activeDoc.applyWebhookActions(
           docSessionFromRequest(req),
           [["AddRecord", "_grist_Triggers", null, {
             enabled: true,
@@ -318,7 +322,7 @@ export class DocApiTriggers {
       activeDoc.webhookQueue.clearWebhookCache(webhookId);
       activeDoc.triggers.clearCache();
 
-      await handleSandboxError("_grist_Triggers", [], activeDoc.applyUserActions(
+      await handleSandboxError("_grist_Triggers", [], activeDoc.applyWebhookActions(
         docSessionFromRequest(req),
         [["RemoveRecord", "_grist_Triggers", triggerRowId]]));
 
@@ -338,7 +342,7 @@ export class DocApiTriggers {
 
       const fields: Partial<SchemaTypes["_grist_Triggers"]> = {};
 
-      if (url && !isUrlAllowed(url)) {
+      if (url && !isWebhookUrlAllowed(url)) {
         throw new ApiError("Provided url is forbidden", 403);
       }
 
@@ -415,6 +419,9 @@ export class DocApiTriggers {
 
     /**
      * @deprecated Use POST /webhooks instead. Kept for backward compatibility.
+     *
+     * This and the /triggers routes are intentionally absent from OAuthValidator's allowlist, so
+     * OAuth reaches them only as default-deny.
      */
     this._app.post("/api/docs/:docId/tables/:tableId/_subscribe", isOwner, validate(WebhookSubscribeChecker),
       withDocTriggersLock(async (activeDoc, req, res) => {
@@ -467,7 +474,7 @@ export class DocApiTriggers {
         // then update document
         if (Object.keys(fields).length) {
           activeDoc.triggers.clearCache();
-          await handleSandboxError("_grist_Triggers", [], activeDoc.applyUserActions(
+          await handleSandboxError("_grist_Triggers", [], activeDoc.applyWebhookActions(
             docSessionFromRequest(req),
             [["UpdateRecord", "_grist_Triggers", triggerRowId, fields]]));
         }
@@ -556,7 +563,7 @@ export class DocApiTriggers {
           }
 
           const sandboxRes = await handleSandboxError("_grist_Triggers", [],
-            activeDoc.applyUserActions(
+            activeDoc.applyWebhookActions(
               docSessionFromRequest(req),
               [["AddRecord", "_grist_Triggers", null, {
                 enabled: true,
@@ -631,7 +638,7 @@ export class DocApiTriggers {
 
           activeDoc.triggers.clearCache();
           await handleSandboxError("_grist_Triggers", [],
-            activeDoc.applyUserActions(
+            activeDoc.applyWebhookActions(
               docSessionFromRequest(req),
               [["UpdateRecord", "_grist_Triggers", triggerRowId, fields]],
             ),
@@ -670,7 +677,7 @@ export class DocApiTriggers {
 
           activeDoc.triggers.clearCache();
           await handleSandboxError("_grist_Triggers", [],
-            activeDoc.applyUserActions(
+            activeDoc.applyWebhookActions(
               docSessionFromRequest(req),
               [["RemoveRecord", "_grist_Triggers", triggerRowId]],
             ),

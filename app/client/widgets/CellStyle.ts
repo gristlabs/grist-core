@@ -3,7 +3,7 @@ import { GristDoc } from "app/client/components/GristDoc";
 import { makeT } from "app/client/lib/localization";
 import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
 import { textButton } from "app/client/ui2018/buttons";
-import { ColorOption, colorSelect } from "app/client/ui2018/ColorSelect";
+import { COLOR_OPTION_NONE_TEXTS, ColorOption, colorSelect } from "app/client/ui2018/ColorSelect";
 import { testId, theme, vars } from "app/client/ui2018/cssVars";
 import { ConditionalStyle } from "app/client/widgets/ConditionalStyle";
 
@@ -55,12 +55,12 @@ export class CellStyle extends Disposable {
                     color: headerTextColor,
                     defaultColor: theme.tableHeaderFg.toString(),
                     allowsNone: true,
-                    noneText: "default",
+                    noneText: COLOR_OPTION_NONE_TEXTS.default(),
                   }),
                   fillColor: new ColorOption({
                     color: headerFillColor,
                     allowsNone: true,
-                    noneText: "none",
+                    noneText: COLOR_OPTION_NONE_TEXTS.none(),
                   }),
                   fontBold: headerFontBold,
                   fontItalic: headerFontItalic,
@@ -111,12 +111,12 @@ export class CellStyle extends Disposable {
                 color: textColor,
                 defaultColor: this._defaultTextColor,
                 allowsNone: true,
-                noneText: "default",
+                noneText: COLOR_OPTION_NONE_TEXTS.default(),
               }),
               fillColor: new ColorOption({
                 color: fillColor,
                 allowsNone: true,
-                noneText: "none",
+                noneText: COLOR_OPTION_NONE_TEXTS.none(),
               }),
               fontBold: fontBold,
               fontItalic: fontItalic,

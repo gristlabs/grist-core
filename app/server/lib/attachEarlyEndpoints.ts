@@ -1,12 +1,10 @@
-import { ApiError } from "app/common/ApiError";
+import { ApiError, ApiErrorDetails } from "app/common/ApiError";
 import {
   ConfigKey,
   ConfigKeyChecker,
   ConfigValue,
   ConfigValueCheckers,
 } from "app/common/Config";
-import { AdminPageConfig } from "app/common/gristUrls";
-import { isAffirmative } from "app/common/gutil";
 import { InstallPrefs } from "app/common/Install";
 import { PermissionsStatus, PrefSource } from "app/common/InstallAPI";
 import { getOrgKey } from "app/gen-server/ApiServer";
@@ -15,6 +13,7 @@ import {
   PreviousAndCurrent,
   QueryResult,
 } from "app/gen-server/lib/homedb/Interfaces";
+import { canRestart, makeAdminPageConfig } from "app/server/lib/adminPageConfig";
 import { appSettings } from "app/server/lib/AppSettings";
 import { RequestWithLogin } from "app/server/lib/Authorizer";
 import { BootProbes } from "app/server/lib/BootProbes";
@@ -34,6 +33,8 @@ import {
   sendReply,
   stringParam,
 } from "app/server/lib/requestUtils";
+import { attachSetupRequestsEndpoints } from "app/server/lib/SetupRequestsEndpoints";
+import { getTelemetryPrefs } from "app/server/lib/Telemetry";
 import { updateGristServerLatestVersion } from "app/server/lib/updateChecker";
 
 import {
@@ -46,11 +47,6 @@ import {
 } from "express";
 import isEmpty from "lodash/isEmpty";
 import pick from "lodash/pick";
-
-function canRestart() {
-  return isAffirmative(process.env.GRIST_RUNNING_UNDER_SUPERVISOR) ||
-    isAffirmative(process.env.GRIST_UNDER_RESTART_SHELL);
-}
 
 export interface AttachOptions {
   app: Application;
@@ -82,14 +78,10 @@ export function attachEarlyEndpoints(options: AttachOptions) {
     "/admin/:subpath(*)?",
     userIdMiddleware,
     expressWrap(async (req, res) => {
-      const config: Partial<AdminPageConfig> = {
-        runningUnderSupervisor: canRestart(),
-        adminControls: gristServer.create.areAdminControlsAvailable(),
-      };
       return gristServer.sendAppPage(req, res, {
         path: "app.html",
         status: 200,
-        config,
+        config: makeAdminPageConfig(gristServer),
       });
     }),
   );
@@ -104,6 +96,9 @@ export function attachEarlyEndpoints(options: AttachOptions) {
 
   const probes = new BootProbes(app, gristServer, "/api", adminMiddleware);
   probes.addEndpoints();
+
+  // Setup requests rely on the /api/admin gate just registered for their admin half.
+  attachSetupRequestsEndpoints(app, gristServer);
 
   app.post(
     "/api/admin/restart",
@@ -131,6 +126,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
         return res.status(409).send({
           error:
             "Cannot automatically restart the Grist server to enact changes. Please restart server manually.",
+          details: { code: "RestartUnavailable" } satisfies ApiErrorDetails,
         });
       }
       // We're going down, so we're no longer ready to serve requests.
@@ -154,13 +150,31 @@ export function attachEarlyEndpoints(options: AttachOptions) {
     expressWrap(async (_req, res) => {
       const toPrefSource = (s: "env" | "db" | undefined): PrefSource | undefined =>
         s === "env" ? "environment-variable" : s === "db" ? "preferences" : undefined;
+      const telemetryPrefs = await getTelemetryPrefs(gristServer.getHomeDBManager());
       const status: PermissionsStatus = {
         orgCreationAnyone: { value: getCanAnyoneCreateOrgs(), source: toPrefSource(getCanAnyoneCreateOrgsSource()) },
         personalOrgs: { value: getPersonalOrgsEnabled(), source: toPrefSource(getPersonalOrgsEnabledSource()) },
         forceLogin: { value: getForceLogin(), source: toPrefSource(getForceLoginSource()) },
         anonPlayground: { value: getAnonPlaygroundEnabled(), source: toPrefSource(getAnonPlaygroundEnabledSource()) },
+        telemetry: {
+          value: telemetryPrefs.telemetryLevel.value !== "off",
+          source: telemetryPrefs.telemetryLevel.source,
+        },
       };
       return sendOkReply(null, res, status);
+    }),
+  );
+
+  // Used by the "Change admin user" modal to flag the case where a Replace
+  // would later fail at restart because a user with the new admin email
+  // already exists (the rename can't satisfy the unique constraint on
+  // logins.email).
+  app.get(
+    "/api/install/users/exists",
+    expressWrap(async (req, res) => {
+      const email = stringParam(req.query.email, "email");
+      const user = await gristServer.getHomeDBManager().getExistingUserByLogin(email);
+      return sendOkReply(req, res, { exists: Boolean(user) });
     }),
   );
 

@@ -11,7 +11,7 @@ import { FocusLayer } from "app/client/lib/FocusLayer";
 import { ImportSourceElement } from "app/client/lib/ImportSourceElement";
 import { makeT } from "app/client/lib/localization";
 import {
-  EXTENSIONS_IMPORTABLE_WITHIN_DOC, fetchURL, isDriveUrl, selectFiles, uploadFiles,
+  checkBrowserUploadSizeLimit, EXTENSIONS_IMPORTABLE_WITHIN_DOC, fetchURL, isDriveUrl, selectPicker,
 } from "app/client/lib/uploads";
 import { reportError } from "app/client/models/AppModel";
 import { ColumnRec, ViewFieldRec, ViewSectionRec } from "app/client/models/DocModel";
@@ -210,16 +210,17 @@ export async function importFromFile(gristDoc: GristDoc, createPreview: CreatePr
   });
   // Important to fork first before trying to import, so we end up uploading to a
   // consistent doc worker.
-  await gristDoc.forkIfNeeded();
+  const newDocId = await gristDoc.forkIfNeeded();
+  const docApi = newDocId ? gristDoc.appModel.api.getDocAPI(newDocId) : gristDoc.docApi;
   const label = files.map(f => f.name).join(", ");
   const size = files.reduce((acc, f) => acc + f.size, 0);
   const app = gristDoc.app.topAppModel.appObs.get();
   const progress = app ? app.notifier.createProgressIndicator(label, byteString(size)) : null;
-  const onProgress = (percent: number) => progress?.setProgress(percent);
+  const onProgress = (percent?: number) => progress?.setProgress(percent ?? 0);
   try {
     onProgress(0);
-    uploadResult = await uploadFiles(files, { docWorkerUrl: gristDoc.docComm.docWorkerUrl,
-      sizeLimit: "import" }, onProgress);
+    checkBrowserUploadSizeLimit(files, "import");
+    uploadResult = await docApi.upload(files, { onProgress });
     onProgress(100);
   } finally {
     if (progress) {
@@ -402,10 +403,12 @@ export class Importer extends DisposableWithEvents {
     try {
       if (!this._importSourceElem) {
         // Use upload result if it was passed in or the built-in file picker.
-        // On electron, it uses the native file selector (without actually uploading anything),
-        // which is why this requires a slightly different flow.
-        uploadResult = uploadResult || await selectFiles({ docWorkerUrl: this._docComm.docWorkerUrl,
-          multiple: true, sizeLimit: "import" });
+        if (!uploadResult) {
+          const files = await selectPicker({ multiple: true });
+          if (!files.length) { return; }
+          checkBrowserUploadSizeLimit(files, "import");
+          uploadResult = await this._gristDoc.docApi.upload(files);
+        }
       } else {
         // Need to use plugin to get the data, and manually upload it.
         const plugin = this._importSourceElem.plugin;
@@ -419,13 +422,13 @@ export class Importer extends DisposableWithEvents {
           const item = importSource.item;
           if (item.kind === "fileList") {
             const files = item.files.map(({ content, name }) => new File([content], name));
-            uploadResult = await uploadFiles(files, { docWorkerUrl: this._docComm.docWorkerUrl,
-              sizeLimit: "import" });
+            checkBrowserUploadSizeLimit(files, "import");
+            uploadResult = await this._gristDoc.docApi.upload(files);
           } else if (item.kind ===  "url") {
             if (isDriveUrl(item.url)) {
               uploadResult = await this._fetchFromDrive(item.url);
             } else {
-              uploadResult = await fetchURL(this._docComm, item.url);
+              uploadResult = await fetchURL(this._gristDoc.docApi, this._docComm, item.url);
             }
           } else {
             throw new Error(`Import source of kind ${(item as any).kind} are not yet supported!`);
@@ -1407,7 +1410,7 @@ export class Importer extends DisposableWithEvents {
   private async _fetchFromDrive(itemUrl: string) {
     // First we will assume that this is public file, so no need to ask for permissions.
     try {
-      return await fetchURL(this._docComm, itemUrl);
+      return await fetchURL(this._gristDoc.docApi, this._docComm, itemUrl);
     } catch (err) {
       // It is not a public file or the file id in the url is wrong,
       // but we have no way to check it, so we assume that it is private file
@@ -1432,7 +1435,7 @@ export class Importer extends DisposableWithEvents {
           }
         }
         // Download file from private drive, if it fails, report the error to user.
-        return await fetchURL(this._docComm, itemUrl, options);
+        return await fetchURL(this._gristDoc.docApi, this._docComm, itemUrl, options);
       } else {
         // We are not allowed to ask for full readonly permission, fallback to GoogleDrive plugin.
         throw new GDriveUrlNotSupported(itemUrl);

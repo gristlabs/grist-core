@@ -22,6 +22,16 @@ describe("AccessTokens", function() {
   let cliOwner: GristClient;
   const sandbox = sinon.createSandbox();
 
+  async function closeClient(cli: GristClient) {
+    try {
+      await cli.send("closeDoc", 0);
+    } catch (e) {
+      // Do not worry if socket is already closed by the other side.
+      if (!String(e).match(/WebSocket is not open/)) { throw e; }
+    }
+    await cli.close();
+  }
+
   before(async function() {
     home = new TestServer(this);
     await home.start(["home", "docs"]);
@@ -45,17 +55,7 @@ describe("AccessTokens", function() {
 
   afterEach(async function() {
     if (docId) {
-      for (const cli of [cliOwner]) {
-        try {
-          await cli.send("closeDoc", 0);
-        } catch (e) {
-          // Do not worry if socket is already closed by the other side.
-          if (!String(e).match(/WebSocket is not open/)) {
-            throw e;
-          }
-        }
-        await cli.close();
-      }
+      await closeClient(cliOwner);
       docId = "";
     }
     sandbox.restore();
@@ -114,8 +114,105 @@ describe("AccessTokens", function() {
     tokenResult = (await cliOwner.send("getAccessToken", 0, {})).data;
     token = tokenResult.token;
     result = await fetch(home.serverUrl + `/api/docs/${docId2}/tables/Table1/records?auth=${token}`);
-    assert.equal(result.status, 401);
+    assert.equal(result.status, 403);
     result = await fetch(home.serverUrl + `/api/docs/${docId}/tables/Table1/records?auth=${token}`);
     assert.equal(result.status, 200);
+  });
+
+  // These tests exercise how token-authenticated requests are treated and reported. Since
+  // mreq.userId/fullUser is anonymous, it doesn't carry the right identity.
+  describe("attribution and identity", function() {
+    let editorApi: UserAPI;
+    const trackedClients: GristClient[] = [];
+
+    before(async function() {
+      editorApi = await home.createHomeApi("charon", "testy", true);
+    });
+
+    afterEach(async function() {
+      while (trackedClients.length) {
+        await closeClient(trackedClients.pop()!);
+      }
+    });
+
+    async function mintEditorToken(): Promise<AccessTokenResult> {
+      const cli = await openClient(home.server, "charon@getgrist.com", "testy");
+      trackedClients.push(cli);
+      await cli.openDocOnConnect(docId);
+      return (await cli.send("getAccessToken", 0, {})).data;
+    }
+
+    it("applies identity-based deny rules to access-token requests", async function() {
+      await freshDoc();
+
+      // Plant a secret value and a rule that denies *only* charon read on column A. Direct API
+      // calls by charon respect the rule; token-authenticated calls should too.
+      await owner.applyUserActions(docId, [
+        ["AddRecord", "Table1", null, { A: "secret-1" }],
+        ["AddRecord", "_grist_ACLResources", -1, { tableId: "Table1", colIds: "A" }],
+        ["AddRecord", "_grist_ACLRules", null, {
+          resource: -1,
+          aclFormula: "user.Email == 'charon@getgrist.com'",
+          permissionsText: "-R",
+        }],
+      ]);
+
+      const directJson = JSON.stringify(await editorApi.getDocAPI(docId).getRecords("Table1"));
+      assert.notInclude(directJson, "secret-1",
+        "direct API call by charon should not return column A");
+
+      const tok = await mintEditorToken();
+      const resp = await fetch(`${tok.baseUrl}/tables/Table1/records?auth=${tok.token}`);
+      assert.equal(resp.status, 200);
+      const tokenJson = JSON.stringify(await resp.json());
+      assert.notInclude(tokenJson, "secret-1", "charon's token should not return column A");
+    });
+
+    it("attributes token-authenticated requests to the issuing user in auth logs", async function() {
+      await freshDoc();
+      const tok = await mintEditorToken();
+
+      const authLogFor = (msgs: string[]) =>
+        msgs.find(m => /Auth\[GET\].*\/tables\/Table1\/records/.test(m)) || "";
+
+      // Sanity: direct authenticated call is attributed to charon.
+      const directLogs = await testUtils.captureLog("debug", async () => {
+        await editorApi.getDocAPI(docId).getRecords("Table1");
+      });
+      assert.include(authLogFor(directLogs), "email=charon@getgrist.com");
+
+      // Token call: should also be attributed to charon (the issuer).
+      const tokenLogs = await testUtils.captureLog("debug", async () => {
+        const r = await fetch(`${tok.baseUrl}/tables/Table1/records?auth=${tok.token}`);
+        assert.equal(r.status, 200);
+      });
+      assert.include(authLogFor(tokenLogs), "email=charon@getgrist.com");
+    });
+
+    it("attributes records added via token to the issuing user", async function() {
+      await freshDoc();
+
+      // Create a CreatedBy authorship column using `user.Name` formula.
+      // (recalcWhen=DEFAULT, no recalcDeps).
+      await owner.applyUserActions(docId, [
+        ["AddColumn", "Table1", "CreatedBy", { type: "Text", isFormula: false, formula: "user.Name" }],
+      ]);
+
+      // Reference case: Charon adds a row over using a regular API call.
+      await editorApi.getDocAPI(docId).addRows("Table1", { A: ["direct"] });
+
+      // Charon adds a row using an access token.
+      const tok = await mintEditorToken();
+      const postResp = await fetch(`${tok.baseUrl}/tables/Table1/records?auth=${tok.token}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ records: [{ fields: { A: "via-token" } }] }),
+      });
+      assert.equal(postResp.status, 200);
+
+      const rows = await owner.getDocAPI(docId).getRecords("Table1");
+      assert.deepEqual(rows.map(r => r.fields.A), ["direct", "via-token"]);
+      assert.deepEqual(rows.map(r => r.fields.CreatedBy), ["Charon", "Charon"]);
+    });
   });
 });

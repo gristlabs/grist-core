@@ -160,13 +160,21 @@ RecordLayout.updateLayoutSpecWithFields = function(spec, viewFields) {
   // two-column layout, so add a new row, or a second box to the last row if it's a leaf.
   _.difference(viewFieldIds, specFieldIds).forEach(function(leafId) {
     var newBox = tmpLayout.buildLayoutBox({ leaf: leafId });
-    var rows = tmpLayout.rootBox().childBoxes.peek();
+    var rootBox = tmpLayout.rootBox();
+    if (!rootBox || rootBox.isDisposed()) {
+      // Removing all stale fields from tmpLayout collapses the layout and disposes the root box.
+      // In that case, build a fresh layout.
+      rootBox = tmpLayout.buildLayoutBox({});
+      tmpLayout.setRoot(rootBox);
+    }
+
+    var rows = rootBox.childBoxes.peek();
     if (rows.length >= 1 && _.last(rows).isLeaf()) {
       // Add a new child to the last row.
       _.last(rows).addChild(newBox, true);
     } else {
       // Add a new row.
-      tmpLayout.rootBox().addChild(newBox, true);
+      rootBox.addChild(newBox, true);
     }
   });
 

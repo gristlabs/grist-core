@@ -1000,21 +1000,6 @@
         "Update Sort&Filter settings": "Aktualizovať nastavenie triedenia a filtrovania",
         "Sort and filter": "Triedenie a filter"
     },
-    "WelcomeQuestions": {
-        "Education": "Vzdelávanie",
-        "Finance & Accounting": "Financie a Účtovníctvo",
-        "HR & Management": "HR a Manažment",
-        "Marketing": "Marketing",
-        "Media Production": "Mediálna Produkcia",
-        "Other": "Ostatné",
-        "Product Development": "Vývoj Produktov",
-        "Research": "Výskum",
-        "Sales": "Predaj",
-        "Type here": "Písať sem",
-        "Welcome to Grist!": "Vitajte v Grist!",
-        "IT & Technology": "IT a Technológie",
-        "What brings you to Grist? Please help us serve you better.": "Čo vás privádza do Gristu? Pomôžte nám, aby sme Vám lepšie poslúžili."
-    },
     "WidgetTitle": {
         "Save": "Uložiť",
         "Cancel": "Zrušiť",
@@ -1087,9 +1072,7 @@
         "Reference List": "Zoznam Referencií",
         "Search columns": "Hľadať stĺpce",
         "By Name": "Podľa Názvu",
-        "By Date Modified": "Podľa dátumu úpravy",
-        "Light": "Svetlé",
-        "Custom": "Vlastné"
+        "By Date Modified": "Podľa dátumu úpravy"
     },
     "modals": {
         "Save": "Uložiť",
@@ -1814,7 +1797,8 @@
     },
     "ThemeConfig": {
         "Appearance ": "Vzhľad ",
-        "Switch appearance automatically to match system": "Automaticky prepnúť vzhľad tak, aby zodpovedal systému"
+        "Switch appearance automatically to match system": "Automaticky prepnúť vzhľad tak, aby zodpovedal systému",
+        "Light": "Svetlé"
     },
     "ValidationPanel": {
         "Rule {{length}}": "Pravidlo {{length}}",
@@ -2005,7 +1989,17 @@
         "Type here": "Zadať sem",
         "Your organization": "Vaša organizácia",
         "Your role": "Vaša úloha",
-        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "Grist môže vyzerať ako tabuľka, ale nie vždy sa tak správa. Objavte v čom je Grist iný."
+        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "Grist môže vyzerať ako tabuľka, ale nie vždy sa tak správa. Objavte v čom je Grist iný.",
+        "Product Development": "Vývoj Produktov",
+        "Finance & Accounting": "Financie a Účtovníctvo",
+        "Media Production": "Mediálna Produkcia",
+        "IT & Technology": "IT a Technológie",
+        "Marketing": "Marketing",
+        "Research": "Výskum",
+        "Sales": "Predaj",
+        "Education": "Vzdelávanie",
+        "HR & Management": "HR a Manažment",
+        "Other": "Ostatné"
     },
     "ToggleEnterpriseWidget": {
         "Disable Grist Enterprise": "Zakázať Grist Enterprise",

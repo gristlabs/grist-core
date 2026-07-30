@@ -1,5 +1,5 @@
-import { Style } from "app/client/models/Styles";
 import { theme, vars } from "app/client/ui2018/cssVars";
+import { Style } from "app/common/Styles";
 
 import { colord, extend } from "colord";
 import a11yPlugin from "colord/plugins/a11y";

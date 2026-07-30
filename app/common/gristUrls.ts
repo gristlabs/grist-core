@@ -11,7 +11,7 @@ import { StringUnion } from "app/common/StringUnion";
 import { TelemetryLevel } from "app/common/Telemetry";
 import { ThemeAppearance, themeAppearances, ThemeName, themeNames } from "app/common/ThemePrefs";
 import { getGristConfig } from "app/common/urlUtils";
-import { Document } from "app/common/UserAPI";
+import { Document, PublicDocWorkerUrlInfo } from "app/common/UserAPI";
 import { IAttachedCustomWidget } from "app/common/widgetTypes";
 import { UIRowId } from "app/plugin/GristAPI";
 
@@ -66,6 +66,9 @@ export type LoginPage = typeof LoginPage.type;
 export const AdminPanelPage = StringUnion("admin", "setup", "docs", "users", "workspaces", "orgs");
 export type AdminPanelPage = typeof AdminPanelPage.type;
 
+// Shared by the Edition card's DOM id (core) and the trial banner's hash anchor (ext).
+export const ADMIN_PANEL_EDITION_ANCHOR = "edition";
+
 export const AdminPanelTab = StringUnion("users", "workspaces", "docs", "orgs", "details");
 export type AdminPanelTab = typeof AdminPanelTab.type;
 
@@ -89,6 +92,9 @@ export type CompareEmphasis = typeof CompareEmphasis.type;
 
 // Default subdomain for home api service if not otherwise specified.
 export const DEFAULT_HOME_SUBDOMAIN = "api";
+
+// Length of a generated docId (makeId pads to this); routing relies on it.
+export const DOC_ID_LENGTH = 22;
 
 // This is the minimum length a urlId may have if it is chosen
 // as a prefix of the docId.
@@ -157,6 +163,8 @@ export const getCommonUrls = () => withAdminDefinedUrls({
   helpAirtableIntegration: "https://support.getgrist.com/install/integrations/airtable",
   helpCloudStorage: "https://support.getgrist.com/install/cloud-storage",
   integrators: "https://support.getgrist.com/integrators/",
+  editionComparison: "https://www.getgrist.com/grist-edition-comparison/",
+  mcp: "https://support.getgrist.com/mcp/",
   freeCoachingCall: getFreeCoachingCallUrl(),
   contactSupport: getContactSupportUrl(),
   termsOfService: getTermsOfServiceUrl(),
@@ -183,6 +191,8 @@ export const getCommonUrls = () => withAdminDefinedUrls({
   signInWithGristRegister: "https://login.getgrist.com/oauth/register",
   signInWithGristHelp: "https://support.getgrist.com/install/sign-in-with-grist",
   signInWithGristDocs: "https://support.getgrist.com/install/getgrist-com/",
+
+  helpUsImproveSurvey: getHelpUsImproveSurveyUrl(),
 });
 
 export const commonUrls = getCommonUrls();
@@ -950,8 +960,8 @@ export interface GristLoadConfig {
   // Pre-fetched call to getDoc for the doc being loaded.
   getDoc?: { [id: string]: Document };
 
-  // Pre-fetched call to getWorker for the doc being loaded.
-  getWorker?: { [id: string]: string | null };
+  // Pre-fetched call to getWorkerFull for the doc being loaded.
+  getWorkerFull?: { [id: string]: PublicDocWorkerUrlInfo | undefined };
 
   // The timestamp when this gristConfig was generated.
   timestampMs: number;
@@ -1020,6 +1030,10 @@ export interface GristLoadConfig {
   // Force enterprise deployment? For backwards compatibility with grist-ee Docker image
   forceEnableEnterprise?: boolean;
 
+  // Whether the server has OAuth apps enabled (GRIST_ENABLE_OIDC_SERVER). Always false in core,
+  // which doesn't include the feature.
+  oauthAppsEnabled?: boolean;
+
   // The org containing public templates and tutorials.
   templateOrg?: string | null;
 
@@ -1037,6 +1051,9 @@ export interface GristLoadConfig {
   // If backend has an email service for sending notifications.
   notifierEnabled?: boolean;
 
+  // If a Redis connection is configured (REDIS_URL set). Reports configuration, not reachability.
+  redisAvailable?: boolean;
+
   formFraming?: FormFraming;
 
   adminDefinedUrls?: string;
@@ -1045,17 +1062,36 @@ export interface GristLoadConfig {
   userPresenceMaxUsers?: number;
 
   warnBeforeSharingPublicly?: boolean;
+
+  // Opaque payload for the OAuth flow, defined in ext/ in the full Grist build.
+  // Core uses only its presence to dispatch client-side rendering.
+  oauth?: unknown;
+
+  // URL the quick-setup "Help us improve" survey POSTs to. Absent/empty = survey hidden.
+  helpUsImproveSurveyUrl?: string;
 }
 
 /**
- * Settings sent with all Grist admin pages (/admin).
+ * Settings sent with admin-group Grist pages.
  */
 export interface AdminPageConfig extends GristLoadConfig {
   /** Whether there is a parent process that can restart Grist. */
   runningUnderSupervisor: boolean;
 
+  /** The unique installation ID. */
+  installationId: string;
+
   /** Whether AdminControls are available and should be enabled in UI. */
   adminControls?: boolean;
+
+  /**
+   * Whether the installation is "in service". Set to false on fresh installs
+   * guarded by the boot key, until an operator brings the server live.
+   */
+  inService?: boolean;
+
+  /** Whether the admin can download and switch to the full edition at runtime. */
+  supportsExtFullEdition?: boolean;
 }
 
 export const Features = StringUnion(
@@ -1093,6 +1129,12 @@ export interface TelemetryConfig {
 
 export const GristDeploymentTypes = StringUnion("saas", "core", "enterprise", "electron", "static");
 export type GristDeploymentType = typeof GristDeploymentTypes.type;
+
+// Deployment types that are the full Grist edition rather than the free core edition.
+export const fullEditionDeploymentTypes: GristDeploymentType[] = ["saas", "enterprise"];
+export function isFullEditionDeployment(deploymentType?: GristDeploymentType): boolean {
+  return fullEditionDeploymentTypes.includes(deploymentType ?? "core");
+}
 
 // Acceptable org subdomains are alphanumeric (hyphen also allowed) and of
 // non-zero length.
@@ -1155,6 +1197,17 @@ export function getContactSupportUrl(): string {
 export function getWebinarsUrl(): string {
   const defaultUrl = "https://www.getgrist.com/webinars/grist-101-new-users-guide";
   return getCustomizableValue("webinarsUrl", "GRIST_WEBINARS_URL") || defaultUrl;
+}
+
+export function getHelpUsImproveSurveyUrl(): string {
+  // Grist Labs' default ingest for the quick-setup "Help us improve" survey.
+  // Overridable via GRIST_HELP_US_IMPROVE_SURVEY_URL
+  const defaultUrl = "https://gristlabs.getgrist.com/api/help-us-improve";
+
+  const value = getCustomizableValue("helpUsImproveSurveyUrl", "GRIST_HELP_US_IMPROVE_SURVEY_URL");
+  // Explicit undefined check (not `||`) so an empty string is preserved as "disabled"
+  // rather than collapsing to the default URL.
+  return value === undefined ? defaultUrl : String(value);
 }
 
 export function getMaxUploadSizeAttachmentMB(): number {

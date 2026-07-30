@@ -3,7 +3,7 @@ import { GristSocketServer, GristSocketServerOptions } from "app/server/lib/Gris
 import { fromCallback, listenPromise } from "app/server/lib/serverUtils";
 
 import * as http from "http";
-import { AddressInfo } from "net";
+import net, { AddressInfo } from "net";
 
 import { assert } from "chai";
 import httpProxy from "http-proxy";
@@ -30,8 +30,17 @@ describe(`GristSockets`, function() {
       });
 
       async function startSocketServer(options?: GristSocketServerOptions) {
-        server = http.createServer((req, res) => res.writeHead(404).end());
-        socketServer = new GristSocketServer(server, options);
+        server = http.createServer();
+        socketServer = new GristSocketServer(options);
+        server.on("request", async (req, res) => {
+          if (!await socketServer?.handleHTTPRequest(req, res)) {
+            res.writeHead(404).end();
+          }
+        });
+        server.on("upgrade", (req: http.IncomingMessage, socket: net.Socket, head: Buffer) =>
+          socketServer?.handleHTTPUpgrade(req, socket, head),
+        );
+        server.on("close", async () => socketServer?.close(e => console.error(e)));
         await listenPromise(server.listen(0, "localhost"));
         serverPort = (server.address() as AddressInfo).port;
       }

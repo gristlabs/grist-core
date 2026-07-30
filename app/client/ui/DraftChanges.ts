@@ -43,6 +43,8 @@ export interface ConfigSection {
   isDirty: Computed<boolean>;
   /** True when the section's changes require a server restart to take effect. */
   needsRestart: boolean;
+  /** Max number of `waitUntilReady` calls until timeout. */
+  restartWaitAttempts?: number;
   /**
    * Describe the draft change(s) for display in the restart banner.
    * Only consulted when `isDirty` is true (the manager filters first).
@@ -167,7 +169,9 @@ export class DraftChangesManager extends Disposable {
       let redirected = false;
       if (restart && failures.length === 0 && dirty.some(s => s.needsRestart)) {
         await this._configAPI.restartServer();
-        if (!await this._configAPI.waitUntilReady()) {
+        // Wait the longest any dirty section asks for.
+        const attempts = Math.max(0, ...dirty.map(s => s.restartWaitAttempts ?? 0)) || undefined;
+        if (!await this._configAPI.waitUntilReady({ attempts })) {
           throw new Error("Timed out waiting for Grist server to restart");
         }
         for (const section of dirty) {

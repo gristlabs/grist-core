@@ -1,11 +1,15 @@
 import { getHomeUrl } from "app/client/models/AppModel";
 import { BaseAPI, IOptions } from "app/common/BaseAPI";
-import { Config, ConfigKey, ConfigValue } from "app/common/Config";
+import { Config, ConfigKey, ConfigValueByKey } from "app/common/Config";
 import { addCurrentOrgToPath } from "app/common/urlUtils";
 
+// A Config whose `value` is narrowed to the type for key `K`, so callers passing a literal key
+// get its specific value type back instead of the whole union (no cast needed).
+export type ConfigFor<K extends ConfigKey> = Omit<Config, "value"> & { value: ConfigValueByKey[K] };
+
 export interface ConfigsAPI {
-  getConfig(key: ConfigKey): Promise<Config>;
-  updateConfig(key: ConfigKey, value: ConfigValue): Promise<Config>;
+  getConfig<K extends ConfigKey>(key: K): Promise<ConfigFor<K>>;
+  updateConfig<K extends ConfigKey>(key: K, value: ConfigValueByKey[K]): Promise<ConfigFor<K>>;
   deleteConfig(key: ConfigKey): Promise<void>;
 }
 
@@ -14,13 +18,13 @@ export class InstallConfigsAPI extends BaseAPI implements ConfigsAPI {
     super(options);
   }
 
-  public getConfig(key: ConfigKey): Promise<Config> {
+  public getConfig<K extends ConfigKey>(key: K): Promise<ConfigFor<K>> {
     return this.requestJson(`${this._url}/api/install/configs/${key}`, {
       method: "GET",
     });
   }
 
-  public updateConfig(key: ConfigKey, value: ConfigValue): Promise<Config> {
+  public updateConfig<K extends ConfigKey>(key: K, value: ConfigValueByKey[K]): Promise<ConfigFor<K>> {
     return this.requestJson(`${this._url}/api/install/configs/${key}`, {
       method: "PUT",
       body: JSON.stringify(value),
@@ -47,7 +51,7 @@ export class OrgConfigsAPI extends BaseAPI implements ConfigsAPI {
     super(options);
   }
 
-  public getConfig(key: ConfigKey): Promise<Config> {
+  public getConfig<K extends ConfigKey>(key: K): Promise<ConfigFor<K>> {
     return this.requestJson(
       `${this._url}/api/orgs/${this._org}/configs/${key}`,
       {
@@ -56,7 +60,7 @@ export class OrgConfigsAPI extends BaseAPI implements ConfigsAPI {
     );
   }
 
-  public updateConfig(key: ConfigKey, value: ConfigValue): Promise<Config> {
+  public updateConfig<K extends ConfigKey>(key: K, value: ConfigValueByKey[K]): Promise<ConfigFor<K>> {
     return this.requestJson(
       `${this._url}/api/orgs/${this._org}/configs/${key}`,
       {

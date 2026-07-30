@@ -490,43 +490,39 @@ describe("SQLiteDB", function() {
   });
 
   it("should honor pauses", async function() {
+    // This test deliberately waits, and does real disk I/O on top; mocha's 2s
+    // default is not enough of a margin on a busy machine.
+    this.timeout(10000);
+
     const sdb = await SQLiteDB.openDB(dbPath("testPause"), schemaInfo, OpenMode.OPEN_CREATE);
 
-    // Time that is certainly enough for SQLite statements to complete when not paused.
+    // Time to wait to satisfy ourselves that a paused write is not going through.
+    // Only used for checking that writes have NOT happened, so that a slow
+    // machine cannot make this test fail.
     const delayMs = 200;
 
-    // Modification should happen immediately.
-    assert.isFalse(await timeoutReached(
-      delayMs,
-      sdb.exec("CREATE TABLE Foo1(id INTEGER)"),
-    ));
+    // Modification should happen when not paused.
+    await sdb.exec("CREATE TABLE Foo1(id INTEGER)");
 
     // Modification should not happen immediately once paused.
     sdb.pause();
-    assert.isTrue(await timeoutReached(
-      delayMs,
-      sdb.exec("CREATE TABLE Foo2(id INTEGER)"),
-    ));
+    const foo2 = sdb.exec("CREATE TABLE Foo2(id INTEGER)");
+    assert.isTrue(await timeoutReached(delayMs, foo2));
 
-    // After unpausing we should be back to immediate.
+    // After unpausing we should be back to writing.
     sdb.unpause();
-    assert.isFalse(await timeoutReached(
-      delayMs,
-      sdb.exec("CREATE TABLE Foo3(id INTEGER)"),
-    ));
+    await sdb.exec("CREATE TABLE Foo3(id INTEGER)");
 
     // And we should be able to pause again.
     sdb.pause();
-    assert.isTrue(await timeoutReached(
-      delayMs,
-      sdb.exec("CREATE TABLE Foo4(id INTEGER)"),
-    ));
+    const foo4 = sdb.exec("CREATE TABLE Foo4(id INTEGER)");
+    assert.isTrue(await timeoutReached(delayMs, foo4));
 
     // Check that all tables were made eventually once we
-    // unpause and wait a little bit, since the exec() calls
-    // above are never cancelled.
+    // unpause, since the exec() calls above are never cancelled.
     sdb.unpause();
-    await delay(delayMs);
+    await foo2;
+    await foo4;
     await assert.isRejected(sdb.all("SELECT * FROM Foo0"));
     await assert.isFulfilled(sdb.all("SELECT * FROM Foo1"));
     await assert.isFulfilled(sdb.all("SELECT * FROM Foo2"));
@@ -535,12 +531,13 @@ describe("SQLiteDB", function() {
 
     // Pause and start a write before closing.
     sdb.pause();
-    assert.isTrue(await timeoutReached(
-      delayMs,
-      sdb.exec("CREATE TABLE Foo5(id INTEGER)"),
-    ));
+    const foo5 = sdb.exec("CREATE TABLE Foo5(id INTEGER)");
+    assert.isTrue(await timeoutReached(delayMs, foo5));
 
     await sdb.close();
+    // Closing should cancel that write, reporting it to whoever asked for it.
+    await assert.isRejected(foo5, /SQLiteDB closing/);
+
     // Take a little time to give that last write a chance (we don't
     // expect it to write though, it should be cancelled).
     await delay(delayMs);

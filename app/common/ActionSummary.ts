@@ -92,6 +92,17 @@ export interface TableDelta {
   /** Partial record of cell-level changes - large bulk changes not included. */
   columnDeltas: { [colId: string]: ColumnDelta };
   columnRenames: LabelDelta[];  /** a list of column renames/additions/removals */
+  /**
+   * Set if any bulk action on this table dropped per-cell values to stay
+   * under `maximumInlineRows`. When unset (the default), a row in
+   * `updateRows` with no matching `columnDeltas` entry can be relied on
+   * to mean "column untouched for this row." When set, that interpretation
+   * is no longer safe: the missing entry might be an untouched column or
+   * might be a deliberately dropped value, and consumers (including
+   * composition) should treat the cell as unknown rather than recover a
+   * value from elsewhere.
+   */
+  mayBeIncomplete?: true;
 }
 
 /**

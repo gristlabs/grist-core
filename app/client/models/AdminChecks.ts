@@ -49,9 +49,10 @@ export class AdminChecks {
 
   /**
    * Request the result of one of the available checks. Returns information
-   * about the check and a way to observe the result when it arrives.
+   * about the check and a way to observe the result when it arrives. Pass
+   * `background: true` for prefetches (see {@link InstallAPI.runCheckBackground}).
    */
-  public requestCheck(probe: BootProbeInfo): AdminCheckRequest {
+  public requestCheck(probe: BootProbeInfo, options: { background?: boolean } = {}): AdminCheckRequest {
     const { id } = probe;
     let result = this._results.get(id);
     if (!result) {
@@ -60,7 +61,7 @@ export class AdminChecks {
     }
     let request = this._requests.get(id);
     if (!request) {
-      request = new AdminCheckRunner(this._installAPI, id, this._results, this._parent);
+      request = new AdminCheckRunner(this._installAPI, id, this._results, this._parent, options.background);
       this._requests.set(id, request);
     }
     request.start();
@@ -102,6 +103,19 @@ export class AdminChecks {
     this._requests.clear();
     await this.fetchAvailableChecks();
   }
+
+  /**
+   * Drop a cached probe result if it is in a fault state, so the next
+   * {@link requestCheck} re-runs it. Useful after a transient failure
+   * (e.g. a background prefetch that hit the server mid-restart).
+   */
+  public discardIfFault(id: BootProbeIds) {
+    const result = this._results.get(id);
+    if (result?.get().status !== "fault") { return; }
+    result.dispose();
+    this._results.delete(id);
+    this._requests.delete(id);
+  }
 }
 
 /**
@@ -120,14 +134,18 @@ export class AdminCheckRunner {
   constructor(private _installAPI: InstallAPI,
     public id: string,
     public results: Map<string, Observable<BootProbeResult>>,
-    public parent: Disposable) {
-    this._installAPI.runCheck(id).then((result) => {
+    public parent: Disposable,
+    background: boolean = false) {
+    this._installAPI.runCheck(id, { background }).then((result) => {
       if (parent.isDisposed()) { return; }
       const ob = results.get(id);
       if (ob) {
         ob.set(result);
       }
-    }).catch(e => console.error(e));
+    }).catch((e) => {
+      if (parent.isDisposed()) { return; }
+      results.get(id)?.set({ status: "fault", details: { error: String(e) } });
+    });
   }
 
   public start() {
@@ -175,10 +193,6 @@ from the network."),
     info: t("It is good practice not to run Grist as the root user."),
   },
 
-  "reachable": {
-    info: t("The main page of Grist should be available."),
-  },
-
   "home-url": {
     info: t("APP_HOME_URL is the base URL where users and integrations reach \
 this Grist server. Auth callbacks, API links, and email notifications \
@@ -190,6 +204,12 @@ all depend on this being correct."),
     info: t("Websocket connections need HTTP 1.1 and the ability to pass a few \
 extra headers in order to work. Sometimes a reverse proxy can \
 interfere with these requirements."),
+  },
+
+  "persist-data": {
+    info: t("If running in a container without external storage or with default database, \
+/persist should be a mounted volume. Otherwise Grist documents and metadata will be lost \
+when the container stops."),
   },
 };
 

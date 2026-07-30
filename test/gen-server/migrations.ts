@@ -64,6 +64,9 @@ import { DocDisabledAt1759434763338
 as DocDisabledAt } from "app/gen-server/migration/1759434763338-DocDisabledAt";
 import { OAuthClientsAndGrants1764872085347
 as OAuthClientsAndGrants } from "app/gen-server/migration/1764872085347-OAuthClientsAndGrants";
+import { OAuthGrantSettingsAndLastUsedAt1777897588904
+as OAuthGrantSettingsAndLastUsedAt,
+} from "app/gen-server/migration/1777897588904-OAuthGrantSettingsAndLastUsedAt";
 import { withSqliteForeignKeyConstraintDisabled } from "app/server/lib/dbUtils";
 import { addSeedData, createInitialDb, removeConnection, setUpDB } from "test/gen-server/seed";
 import { EnvironmentSnapshot } from "test/server/testUtils";
@@ -81,7 +84,8 @@ const migrations = [Initial, Login, PinDocs, UserPicture, DisplayEmail, DisplayE
   Forks, ForkIndexes, ActivationPrefs, AssistantLimit, Shares, BillingFeatures,
   UserLastConnection, ActivationEnabled, Configs, LoginsEmailsIndex, GracePeriod,
   UserCreatedAt, DocPref, GroupUsersCreatedAt, GroupTypes, UserUnsubscribeKey,
-  UserDisabledAt, ServiceAccounts, DocDisabledAt, OAuthClientsAndGrants];
+  UserDisabledAt, ServiceAccounts, DocDisabledAt, OAuthClientsAndGrants,
+  OAuthGrantSettingsAndLastUsedAt];
 
 // Assert that the "members" acl rule and group exist (or not).
 function assertMembersGroup(org: Organization, exists: boolean) {

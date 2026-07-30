@@ -219,6 +219,14 @@ export interface JSONSchema {
    */
   maximum?: number;
   /**
+   * Regular expression pattern that string properties must match.
+   */
+  pattern?: string;
+  /**
+   * Minimum length for string properties.
+   */
+  minLength?: number;
+  /**
    * Allowed values (e.g. `["error", "warning"]`).
    */
   enum?: any[];
@@ -232,6 +240,10 @@ export interface JSONSchema {
    * Schema for sub-properties.
    */
   properties?: Record<string, JSONSchema>;
+  /**
+   * Schemas keyed by a regex pattern, applied to any sub-property whose name matches.
+   */
+  patternProperties?: Record<string, JSONSchema>;
   /**
    * Names of required sub-properties.
    *

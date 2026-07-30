@@ -36,7 +36,7 @@ import { Computed, Holder, Observable, subscribe } from "grainjs";
 import * as ko from "knockout";
 import defaults from "lodash/defaults";
 
-import type { Style } from "app/client/models/Styles";
+import type { Style } from "app/common/Styles";
 
 export interface InsertColOptions {
   colInfo?: ColInfo;
@@ -82,11 +82,16 @@ export interface ChartOptions {
   aggregate?: boolean;
 }
 
+// What the row-number gutter of a grid shows: position numbers (default), bracketed row IDs,
+// or nothing (gutter collapsed).
+export type RowNumbersMode = "number" | "rowId" | "hidden";
+
 export interface ViewSectionOptions extends ChartOptions {
   // Options for GridView.
   verticalGridlines?: boolean;
   horizontalGridlines?: boolean;
   zebraStripes?: boolean;
+  rowNumbers?: RowNumbersMode;
   numFrozen?: number;
   rowHeight?: number;           // Optional limit on height of rows, in lines.
   rowHeightUniform?: boolean;   // Whether rowHeight should make rows uniform height, by expanding shorter rows.
@@ -472,6 +477,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     verticalGridlines: true,
     horizontalGridlines: true,
     zebraStripes: false,
+    rowNumbers: "number",
     customView: "",
     numFrozen: 0,
   };
@@ -513,11 +519,11 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     .filter(c => !c.isDisposed())));
   this.columnsBehavior = ko.pureComputed(() => {
     const list = new Set(selectedColumns().map(c => c.behavior()));
-    return list.size === 1 ? list.values().next().value : "mixed";
+    return list.size === 1 ? list.values().next().value! : "mixed";
   });
   this.columnsType = ko.pureComputed(() => {
     const list = new Set(selectedColumns().map(c => c.type()));
-    return list.size === 1 ? list.values().next().value : "mixed";
+    return list.size === 1 ? list.values().next().value! : "mixed";
   });
   this.columnsAllIsFormula = ko.pureComputed(() => {
     return selectedColumns().every(c => c.isFormula());

@@ -2,12 +2,12 @@ import { ColumnRec, DocModel, IRowModel, refListRecords, refRecord, ViewSectionR
 import { formatterForRec } from "app/client/models/entities/ColumnRec";
 import * as modelUtil from "app/client/models/modelUtil";
 import { removeRule, RuleOwner } from "app/client/models/RuleOwner";
-import { HeaderStyle, Style } from "app/client/models/Styles";
 import { ViewFieldConfig } from "app/client/models/ViewFieldConfig";
 import * as UserType from "app/client/widgets/UserType";
 import { DocumentSettings } from "app/common/DocumentSettings";
 import { DropdownCondition, DropdownConditionCompilationResult } from "app/common/DropdownCondition";
 import { compilePredicateFormula } from "app/common/PredicateFormula";
+import { HeaderStyle, Style } from "app/common/Styles";
 import { BaseFormatter } from "app/common/ValueFormatter";
 import { createParser } from "app/common/ValueParser";
 

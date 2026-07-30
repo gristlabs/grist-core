@@ -31,6 +31,23 @@ describe("Telemetry", function() {
         userId: 1,
         altSessionId: "altSessionId",
       }));
+      assert.doesNotThrow(() => checker("mcpToolCall", {
+        toolName: "grist_get_tables",
+        method: "tools/call",
+        success: true,
+        sessionId: "sessionId",
+        docIdDigest: "docIdDigest",
+        orgId: 1,
+        userId: 1,
+        durationMs: 5,
+      }));
+      assert.doesNotThrow(() => checker("mcpSessionStart", {
+        sessionId: "sessionId",
+        userId: 1,
+        clientName: "clientName",
+        clientVersion: "clientVersion",
+        userAgent: "userAgent",
+      }));
     });
 
     it("does not throw when metadata is a subset of what's expected", function() {
@@ -41,12 +58,24 @@ describe("Telemetry", function() {
         rowCount: 123,
         attachmentTypes: ["pdf"],
       }));
+      assert.doesNotThrow(() => checker("mcpToolCall", {
+        toolName: "grist_list_orgs",
+        method: "tools/call",
+        success: true,
+        sessionId: "sessionId",
+        userId: 1,
+        durationMs: 2,
+      }));
     });
 
     it("does not throw if all metadata is less than or equal to the expected telemetry level", function() {
       const checker = buildTelemetryEventChecker("limited");
       assert.doesNotThrow(() => checker("documentUsage", {
         rowCount: 123,
+      }));
+      assert.doesNotThrow(() => checker("documentUsage", {
+        mcpToolCallsDelta: 1,
+        mcpUsersDelta: 1,
       }));
       assert.doesNotThrow(() => checker("siteUsage", {
         siteId: 1,
@@ -57,6 +86,10 @@ describe("Telemetry", function() {
         numMembers: 1,
         lastActivity: new Date("2022-12-30T01:23:45"),
         earliestDocCreatedAt: new Date("2022-12-29T00:01:02"),
+      }));
+      assert.doesNotThrow(() => checker("siteUsage", {
+        mcpToolCallsDelta: 1,
+        mcpUsersDelta: 1,
       }));
       assert.doesNotThrow(() => checker("watchedVideoTour", {
         watchTimeSeconds: 30,

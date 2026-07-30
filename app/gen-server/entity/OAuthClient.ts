@@ -34,21 +34,24 @@ export class OAuthClient extends BaseEntity {
    * as is the case with json columns, and don't expect high write volumes that would make
    * jsonb's additional overhead a problem.
    *
+   * The type this stores is `AllClientMetdata` (from `oidc-provider` module); but it's not
+   * named here to avoid bringing in `oidc-provider` as a grist-core dependency.
+   *
    * Reference: https://github.com/panva/node-oidc-provider/blob/main/example/my_adapter.js#L93-L94.
    */
   @Column({ type: nativeValues.jsonbEntityType })
   public payload: Record<string, unknown>;
 
   /**
-   * The ID of the org that owns the client.
+   * The ID of the org that owns the client, or null for DCR clients, which have no owner.
    *
-   * Note: Currently, clients are only owned by personal orgs.
+   * Note: Currently, user-registered clients are only owned by personal orgs.
    */
-  @Column({ name: "org_id", type: Number })
-  public orgId: number;
+  @Column({ name: "org_id", type: Number, nullable: true })
+  public orgId: number | null;
 
   /**
-   * The org that owns the client.
+   * The org that owns the client, or null for DCR clients, which have no owner org.
    *
    * Clients are deleted when their associated org is deleted. This means that
    * if a user registered a client using their personal org and later deleted
@@ -62,11 +65,11 @@ export class OAuthClient extends BaseEntity {
    * with support for organization-wide sharing of clients, and self-service
    * transfer of client ownership (see note below about current restrictions).
    *
-   * Note: Currently, clients are only owned by personal orgs.
+   * Note: Currently, user-registered clients are only owned by personal orgs.
    */
-  @ManyToOne(() => Organization, { onDelete: "CASCADE" })
+  @ManyToOne(() => Organization, { onDelete: "CASCADE", nullable: true })
   @JoinColumn({ name: "org_id" })
-  public org: Organization;
+  public org: Organization | null;
 
   /**
    * The client created at timestamp.

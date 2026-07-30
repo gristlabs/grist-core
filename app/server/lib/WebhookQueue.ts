@@ -17,8 +17,8 @@ import { decodeObject } from "app/plugin/objtypes";
 import { ActiveDoc } from "app/server/lib/ActiveDoc";
 import log from "app/server/lib/log";
 import { fetchUntrustedWithAgent } from "app/server/lib/ProxyAgent";
-import { matchesBaseDomain } from "app/server/lib/requestUtils";
 import { delayAbort } from "app/server/lib/serverUtils";
+import { isWebhookUrlAllowed } from "app/server/lib/Triggers";
 import { LogSanitizer } from "app/server/utils/LogSanitizer";
 
 import { promisifyAll } from "bluebird";
@@ -125,8 +125,8 @@ export class WebhookQueue implements ActionQueue<WebhookActionPayload> {
   // Modifications to this queue should be replicated on the redis queue.
   private _webHookEventQueue: WebhookActionPayload[] = [];
 
-  // DB cache for webhook secrets
-  private _webhookCache = new MapWithTTL<string, WebHookSecret>(WEBHOOK_CACHE_TTL);
+  // DB cache for webhook secrets.
+  private _webhookCache = new MapWithTTL<string, WebHookSecret | null>(WEBHOOK_CACHE_TTL);
 
   // Set to true by shutdown().
   // Indicates that loops (especially for sending requests) should stop.
@@ -393,22 +393,23 @@ export class WebhookQueue implements ActionQueue<WebhookActionPayload> {
   }
 
   private async _getWebHook(id: string): Promise<WebHookSecret | undefined> {
-    let webhook = this._webhookCache.get(id);
-    if (!webhook) {
-      const secret = await this._activeDoc.getHomeDbManager()?.getSecret(id, this._docId);
-      if (!secret) {
-        this._log(`No webhook secret found`, { level: "warn", id });
-        return;
-      }
-      webhook = JSON.parse(secret);
-      this._webhookCache.set(id, webhook!);
+    if (this._webhookCache.has(id)) {
+      return this._webhookCache.get(id) ?? undefined;
     }
-    return webhook!;
+    const secret = await this._activeDoc.getHomeDbManager()?.getSecret(id, this._docId);
+    if (!secret) {
+      this._log(`No webhook secret found`, { level: "warn", id });
+      this._webhookCache.set(id, null);
+      return;
+    }
+    const webhook = JSON.parse(secret) as WebHookSecret;
+    this._webhookCache.set(id, webhook);
+    return webhook;
   }
 
   private async _getWebHookUrl(id: string): Promise<string | undefined> {
     const url = (await this._getWebHook(id))?.url ?? "";
-    if (!isUrlAllowed(url)) {
+    if (!isWebhookUrlAllowed(url)) {
       // TODO: this is not a good place for a validation.
       this._log(`Webhook not sent to forbidden URL`, { level: "warn", url });
       return;
@@ -637,36 +638,6 @@ export class WebhookQueue implements ActionQueue<WebhookActionPayload> {
     }
     return false;
   }
-}
-
-export function isUrlAllowed(urlString: string) {
-  let url: URL;
-  try {
-    url = new URL(urlString);
-  } catch (e) {
-    return false;
-  }
-
-  // Support at most https and http.
-  if (url.protocol !== "https:" && url.protocol !== "http:") {
-    return false;
-  }
-
-  // Support a wildcard that allows all domains.
-  // Allow either https or http if it is set.
-  if (process.env.ALLOWED_WEBHOOK_DOMAINS === "*") {
-    return true;
-  }
-
-  // http (no s) is only allowed for localhost for testing.
-  // localhost still needs to be explicitly permitted, and it shouldn't be outside dev
-  if (url.protocol !== "https:" && url.hostname !== "localhost") {
-    return false;
-  }
-
-  return (process.env.ALLOWED_WEBHOOK_DOMAINS || "").split(",").some(domain =>
-    domain && matchesBaseDomain(url.host, domain),
-  );
 }
 
 /**

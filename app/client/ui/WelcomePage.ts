@@ -1,4 +1,5 @@
 import { handleSubmit } from "app/client/lib/formUtils";
+import { sanitizeHttpUrl } from "app/client/lib/sanitizeUrl";
 import { getLoginUrl, getSignupUrl } from "app/client/lib/urlUtils";
 import { AppModel } from "app/client/models/AppModel";
 import { urlState } from "app/client/models/gristUrlState";
@@ -194,7 +195,11 @@ export class WelcomePage extends Disposable {
   private _buildAccountPicker(): DomContents {
     function addUserToLink(email: string): string {
       const next = new URLSearchParams(location.search).get("next") || "";
-      const url = new URL(next, location.href);
+      // `next` is only ever a same-origin in-app URL. Sanitize it (to reject 'javascript:'
+      // scheme), and check that it is same-origin to prevent cross-origin open redirect.
+      const nextUrl = new URL(next, location.href);
+      const url = sanitizeHttpUrl(nextUrl.href) && nextUrl.origin === location.origin ?
+        nextUrl : new URL("/", location.href);
       url.searchParams.set("user", email);
       return url.toString();
     }

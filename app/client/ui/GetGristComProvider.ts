@@ -47,6 +47,26 @@ export function validateGetGristComKey(key: string): string | null {
   return null;
 }
 
+/**
+ * The owner embedded in a getgrist.com configuration key -- the account that
+ * registered the server on getgrist.com. Mirrors the server's
+ * `readGetGristComMetadata`, letting the UI surface the owner from a freshly
+ * pasted (but not yet applied) key before the server has persisted it.
+ */
+export interface GetGristComKeyOwner {
+  name?: string;
+  email?: string;
+}
+
+export function getGetGristComKeyOwner(key: string): GetGristComKeyOwner | null {
+  try {
+    const owner = JSON.parse(atob(key))?.owner;
+    return owner && typeof owner === "object" ? owner : null;
+  } catch {
+    return null;
+  }
+}
+
 import { Disposable, dom, makeTestId, Observable, styled } from "grainjs";
 
 const t = makeT("GetGristComProvider");
@@ -63,6 +83,11 @@ export function getGristComProviderMeta() {
     heroDesc: t("Your server uses getgrist.com authentication. \
 Users sign in with their getgrist.com account."),
     docsUrl: commonUrls.signInWithGristDocs,
+    recommendedBadge: t("Recommended"),
+    recommendedHighlight: t("Ideal for testing and prototyping. Sign in with a getgrist.com account, \
+with no identity provider to configure."),
+    recommendedDesc: t("You can switch to OIDC, SAML, or another method at any time."),
+    recommendedConfigure: t("Use getgrist.com sign-in"),
   };
 }
 

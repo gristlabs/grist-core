@@ -1,34 +1,30 @@
 /**
- * This module contains several ways to create an upload on the server. In all cases, an
- * UploadResult is returned, with an uploadId which may be used in other server calls to identify
- * this upload.
+ * Client-side helpers for the doc-scoped upload pipeline.
  *
- * TODO: another proposed source for files is uploadUrl(url) which would fetch a file from URL and
- * upload, and if that fails due to CORS, would fetch the file on the server side instead.
+ * Uploads are routed through a `DocAPI` instance so the request lands on the doc-owning
+ * worker (via DocApiProxy), where the resulting `uploadId` is consumable by the
+ * subsequent WebSocket calls or HTTP requests.
+ *
+ * Generic uploads (not using the doc-scoped endpoint) are deprecated as they don't work when Grist is proxying
+ * requests to doc workers, as the client may not be able to decide or know which doc worker the uploaded files will be
+ * used on.
  */
 
 import { DocComm } from "app/client/components/DocComm";
-import { getTestState } from "app/client/lib/testState";
 import { UserError } from "app/client/models/errors";
 import { FileDialogOptions, openFilePicker } from "app/client/ui/FileDialog";
 import { GristLoadConfig } from "app/common/gristUrls";
-import { byteString, safeJsonParse } from "app/common/gutil";
-import { FetchUrlOptions, UPLOAD_URL_PATH, UploadResult } from "app/common/uploads";
-import { docUrl } from "app/common/urlUtils";
+import { byteString } from "app/common/gutil";
+import { FetchUrlOptions, UploadResult } from "app/common/uploads";
+import { DocAPI, FormFile } from "app/common/UserAPI";
 
 import { basename } from "path";      // made available by webpack using path-browserify module.
 
 import noop from "lodash/noop";
-import trimStart from "lodash/trimStart";
 
 type ProgressCB = (percent: number) => void;
 
-export interface UploadOptions {
-  docWorkerUrl?: string;
-  sizeLimit?: "import" | "attachment";
-}
-
-export interface SelectFileOptions extends UploadOptions {
+export interface SelectFileOptions {
   multiple?: boolean;     // Whether multiple files may be selected.
   extensions?: string[];  // Comma-separated list of extensions (with a leading period),
   // e.g. [".jpg", ".png"]
@@ -39,34 +35,41 @@ export const EXTENSIONS_IMPORTABLE_WITHIN_DOC = [".xlsx", ".json", ".csv", ".tsv
 
 export const EXTENSIONS_IMPORTABLE_AS_DOC = [".grist", ".csv", ".tsv", ".dsv", ".txt", ".xlsx", ".xlsm"];
 
-/**
- * Shows the file-picker dialog with the given options, and uploads the selected files. If under
- * electron, shows the native file-picker instead.
- *
- * If given, onProgress() callback will be called with 0 on initial call, and will go up to 100
- * after files are selected to indicate percentage of data uploaded.
- */
-export async function selectFiles(options: SelectFileOptions,
-  onProgress: ProgressCB = noop): Promise<UploadResult | null> {
-  let result: UploadResult | null = null;
-  const electronSelectFiles: any = (window as any).electronSelectFiles;
-  if (typeof electronSelectFiles === "function") {
-    onProgress(0);
-    result = await electronSelectFiles(getElectronOptions(options));
-  } else {
-    const fileList = await selectPicker(options);
-    // start the progress bar only after the user selected the files
-    onProgress(0);
-    await maybeFakeSlowUploadsForTests();
-    result = await uploadFiles(fileList, options, onProgress);
+// Browser-side size-limit guard for DocAPI.upload. Caller guarantees we're in a browser
+// (typeof window !== "undefined"); .grist files are exempt from the import limit because they
+// can legitimately be very large (attachments, on-demand tables, restored backups, ...).
+export function checkBrowserUploadSizeLimit(
+  files: FormFile | FormFile[],
+  kind: "import" | "attachment",
+): void {
+  const fileList = Array.isArray(files) ? files : [files];
+  const gristConfig: Partial<GristLoadConfig> = (window as any).gristConfig || {};
+  const { maxUploadSizeImport, maxUploadSizeAttachment } = gristConfig;
+  if (kind === "import" && maxUploadSizeImport) {
+    const totalSize = fileList.reduce((acc, f) => {
+      const blob = f.contents ?? f;
+      const size = (blob as Blob | undefined)?.size ?? 0;
+      return acc + (f.name?.endsWith(".grist") ? 0 : size);
+    }, 0);
+    if (totalSize > maxUploadSizeImport) {
+      throw new UserError(`Imported files may not exceed ${byteString(maxUploadSizeImport)}`);
+    }
+  } else if (kind === "attachment" && maxUploadSizeAttachment) {
+    if (fileList.some((f) => {
+      const blob = f.contents ?? f;
+      const size = (blob as Blob | undefined)?.size ?? 0;
+      return size > maxUploadSizeAttachment;
+    })) {
+      throw new UserError(`Attachments may not exceed ${byteString(maxUploadSizeAttachment)}`);
+    }
   }
-  onProgress(100);
-  return result;
 }
 
-export async function selectPicker(options: SelectFileOptions) {
-  const files: File[] = await openFilePicker(getFileDialogOptions(options));
-  return files;
+/**
+ * Shows the browser's file-picker dialog with the given options and returns the selected files.
+ */
+export async function selectPicker(options: SelectFileOptions): Promise<File[]> {
+  return openFilePicker(getFileDialogOptions(options));
 }
 
 // Helper to convert SelectFileOptions to the browser's FileDialogOptions.
@@ -81,106 +84,13 @@ function getFileDialogOptions(options: SelectFileOptions): FileDialogOptions {
   return resOptions;
 }
 
-// Helper to convert SelectFileOptions to electron's OpenDialogOptions.
-function getElectronOptions(options: SelectFileOptions) /* : OpenDialogOptions */ {
-  const resOptions /* : OpenDialogOptions */ = {
-    filters: [] as { name: string, extensions: any }[],
-    properties: ["openFile"],
-  };
-  if (options.extensions) {
-    // Electron does not expect leading period.
-    const extensions = options.extensions.map(e => trimStart(e, "."));
-    resOptions.filters.push({ name: "Select files", extensions });
-  }
-  if (options.multiple) {
-    resOptions.properties.push("multiSelections");
-  }
-  return resOptions;
-}
-
-/**
- * Uploads a list of File objects to the server.
- */
-export async function uploadFiles(
-  fileList: File[], options: UploadOptions, onProgress: ProgressCB = noop,
-): Promise<UploadResult | null> {
-  if (!fileList.length) { return null; }
-
-  const formData = new FormData();
-  for (const file of fileList) {
-    formData.append("upload", file);
-  }
-
-  await maybeFakeSlowUploadsForTests();
-
-  // Check for upload limits.
-  const gristConfig: Partial<GristLoadConfig> = window.gristConfig || {};
-  const { maxUploadSizeImport, maxUploadSizeAttachment } = gristConfig;
-  if (options.sizeLimit === "import" && maxUploadSizeImport) {
-    // For imports, we limit the total upload size, but exempt .grist files from the upload limit.
-    // Grist docs can be uploaded to make copies or restore from backup, and may legitimately be
-    // very large (e.g. contain many attachments or on-demand tables).
-    const totalSize = fileList.reduce((acc, f) => acc + (f.name.endsWith(".grist") ? 0 : f.size), 0);
-    if (totalSize > maxUploadSizeImport) {
-      throw new UserError(`Imported files may not exceed ${byteString(maxUploadSizeImport)}`);
-    }
-  } else if (options.sizeLimit === "attachment" && maxUploadSizeAttachment) {
-    // For attachments, we limit the size of each attachment.
-    if (fileList.some(f => (f.size > maxUploadSizeAttachment))) {
-      throw new UserError(`Attachments may not exceed ${byteString(maxUploadSizeAttachment)}`);
-    }
-  }
-
-  return uploadFormData(docUrl(options.docWorkerUrl, UPLOAD_URL_PATH), formData, onProgress);
-}
-
-/**
- * POSTs the provided form data to the given endpoint.
- * Provides progress tracking, error handling and promises.
- * @param {string} url - Endpoint to send form data to.
- * @param {FormData} formData - Data to send
- * @param {ProgressCB} onProgress - Called periodically during the upload
- * @returns {Promise<any>} - Parsed JSON from the endpoint. Uses `any` as no validation is performed.
- */
-async function uploadFormData(
-  url: string, formData: FormData, onProgress: ProgressCB = noop,
-): Promise<any> {
-  return new Promise<any>((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open("post", url, true);
-    xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-    xhr.withCredentials = true;
-    onProgress(0);
-    xhr.upload.addEventListener("progress", (e) => {
-      if (e.lengthComputable) {
-        onProgress(e.loaded / e.total * 100);   // percentage complete
-      }
-    });
-    xhr.addEventListener("error", (e: ProgressEvent) => {
-      console.warn("Upload error", e); // The event does not seem to have any helpful info in it, to add to the message.
-      reject(new Error("Upload error"));
-    });
-    xhr.addEventListener("load", () => {
-      if (xhr.status !== 200) {
-        console.warn("Upload failed", xhr.status, xhr.responseText);
-        const err = safeJsonParse(xhr.responseText, null);
-        reject(new UserError("Upload failed: " + (err?.error || xhr.status)));
-      } else {
-        onProgress(100);
-        resolve(JSON.parse(xhr.responseText));
-      }
-    });
-    xhr.send(formData);
-  });
-}
-
 /**
  * Fetches resource from a url and returns an UploadResult. Tries to fetch from the client and
  * upload the file to the server. If unsuccessful, tries to fetch directly from the server. In both
- * case, it guesses the name of the file based on the response's content-type and the url.
+ * cases, it guesses the name of the file based on the response's content-type and the url.
  */
 export async function fetchURL(
-  docComm: DocComm, url: string, options?: FetchUrlOptions, onProgress: ProgressCB = noop,
+  docApi: DocAPI, docComm: DocComm, url: string, options?: FetchUrlOptions, onProgress: ProgressCB = noop,
 ): Promise<UploadResult> {
   if (isDriveUrl(url)) {
     // don't download from google drive, immediately fallback to server side.
@@ -201,8 +111,8 @@ export async function fetchURL(
   const mimeType = response.headers.get("content-type");
   const fileOptions = mimeType ? { type: mimeType } : {};
   const fileObj = new File([await response.blob()], fileName, fileOptions);
-  const res = await uploadFiles([fileObj], { docWorkerUrl: docComm.docWorkerUrl }, onProgress);
-  return res!;
+  checkBrowserUploadSizeLimit(fileObj, "import");
+  return docApi.upload(fileObj, { onProgress: p => onProgress(p ?? 0) });
 }
 
 export function isDriveUrl(url: string) {
@@ -210,11 +120,3 @@ export function isDriveUrl(url: string) {
   const match = /^https:\/\/(docs|drive).google.com\/(spreadsheets|file)\/d\/([^/]*)/i.exec(url);
   return !!match;
 }
-
-const maybeFakeSlowUploadsForTests = (): Promise<void> => {
-  const fakeSlowUploads = getTestState().fakeSlowUploads;
-  if (fakeSlowUploads) {
-    return new Promise(resolve => setTimeout(resolve, 1200));
-  }
-  return Promise.resolve();
-};

@@ -185,7 +185,7 @@ describe("AirtableSchemaImporter", function() {
         type: "Numeric",
         isFormula: true,
         formula: {
-          formula: "len($[R0])",
+          formula: "len($[R0]) if isinstance($[R0], list) else int(bool($[R0]))",
           replacements: [{ originalTableId: firstTableId, originalColId: referencedField.id }],
         },
       });

@@ -20,7 +20,7 @@
  * https://datatracker.ietf.org/doc/html/draft-ietf-oauth-browser-based-apps#name-backend-for-frontend-bff.
  */
 import { ApiError } from "app/common/ApiError";
-import { safeJsonParse } from "app/common/gutil";
+import { replaceLiterals, safeJsonParse } from "app/common/gutil";
 import { User } from "app/common/User";
 import { appSettings } from "app/server/lib/AppSettings";
 import { getAuthorizedUserId, RequestWithLogin } from "app/server/lib/Authorizer";
@@ -34,6 +34,7 @@ import { agents } from "app/server/lib/ProxyAgent";
 import { allowHost, stringParam } from "app/server/lib/requestUtils";
 
 import express from "express";
+import jsesc from "jsesc";
 import pick from "lodash/pick";
 import openidClient, { Client, ClientMetadata, Issuer, IssuerMetadata, TokenSet } from "openid-client";
 
@@ -198,11 +199,17 @@ export class OAuth2Clients {
      * Redirect to the resource provider's authorization endpoint.
      */
     app.get(OAUTH2_ENDPOINTS.authorize, middleware, expressWrap(async (req, res) => {
-      const openerOrigin = stringParam(req.query.openerOrigin, "openerOrigin");
-      if (openerOrigin && !allowHost(req, new URL(openerOrigin))) {
-        // This is outside try/catch because a problem with the origin can't be reported back to the opener.
-        throw new ApiError("Untrusted opener origin", 403);
-      }
+      const openerOriginParam = stringParam(req.query.openerOrigin, "openerOrigin");
+
+      // Origin checks are outside try/catch because a problem there can't be reported back to the opener.
+      if (!openerOriginParam) { throw new ApiError("Missing opener origin", 403); }
+      const openerUrl = new URL(openerOriginParam);
+      if (!allowHost(req, openerUrl)) { throw new ApiError("Untrusted opener origin", 403); }
+
+      // Reduce the origin to its bare origin (what the param should be, and what matters to where
+      // it's used in postMessage), so that no path/query/fragment rides along into the page we serve.
+      const openerOrigin = openerUrl.origin;
+
       try {
         assertUserIsAuthorized(req);
         const { id, client, protections, scope } = this._getIntegration(req.params.integration);
@@ -374,7 +381,10 @@ const END_FLOW_HTML_TEMPLATE = `
 // future, we validate that openerOrigin is an allowed origin. Otherwise, evil.com could open our
 // /authorize endpoint and receive back the payload.
 function renderEndFlowHtmlTemplate(payload: object, openerOrigin: string) {
-  return END_FLOW_HTML_TEMPLATE
-    .replace("{{PAYLOAD}}", JSON.stringify(payload))
-    .replace("{{OPENER_ORIGIN}}", JSON.stringify(openerOrigin));
+  // Convert values to JSON using jsesc and replace as literal values, to ensure sneaky values
+  // don't lead to an XSS attack.
+  return replaceLiterals(END_FLOW_HTML_TEMPLATE, {
+    "{{PAYLOAD}}": jsesc(payload, { isScriptContext: true, json: true }),
+    "{{OPENER_ORIGIN}}": jsesc(openerOrigin, { isScriptContext: true, json: true }),
+  });
 }

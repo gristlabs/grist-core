@@ -97,7 +97,7 @@ class DummyDocWorkerMap implements IDocWorkerMap {
         }
         return key;
       },
-      async getPermit(key: string): Promise<Permit> {
+      async getPermit(key: string): Promise<Permit | null> {
         const result = _permits.get(key);
         return result ? JSON.parse(result) : null;
       },

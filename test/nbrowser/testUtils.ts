@@ -305,7 +305,11 @@ export function setupRequirement(options: TestSuiteOptions) {
           await api.newOrg({ name: `Test${suffix} Grist`, domain: orgName });
           isNew = true;
         } catch (e) {
-          // Assume the org already exists.
+          // The org may already exist. Any other failure matters, since it
+          // would leave the site without the permissions set up below.
+          if (!String(e).match("Domain already in use")) {
+            throw e;
+          }
         }
         if (isNew) {
           await api.updateOrgPermissions(orgName, {

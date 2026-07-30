@@ -918,7 +918,8 @@
     },
     "ThemeConfig": {
         "Appearance ": "Εμφάνιση ",
-        "Switch appearance automatically to match system": "Αυτόματη αλλαγή εμφάνισης ώστε να ταιριάζει με το σύστημα"
+        "Switch appearance automatically to match system": "Αυτόματη αλλαγή εμφάνισης ώστε να ταιριάζει με το σύστημα",
+        "Light": "Φωτεινό"
     },
     "Tools": {
         "API console": "Κονσόλα API",
@@ -1027,21 +1028,6 @@
         "Hide {{label}} (batch mode)": "Απόκρυψη {{label}} (λειτουργία παρτίδας)",
         "Show {{label}} (batch mode)": "Εμφάνιση {{label}} (λειτουργία παρτίδας)"
     },
-    "WelcomeQuestions": {
-        "Education": "Εκπαίδευση",
-        "Finance & Accounting": "Χρηματοοικονομικά και Λογιστική",
-        "HR & Management": "Ανθρώπινο Δυναμικό και Διοίκηση",
-        "IT & Technology": "Πληροφορική και Τεχνολογία",
-        "Marketing": "Μάρκετινγκ",
-        "Media Production": "Παραγωγή Μέσων Ενημέρωσης",
-        "Other": "Άλλο",
-        "Research": "Έρευνα",
-        "Type here": "Πληκτρολογήστε εδώ",
-        "Welcome to Grist!": "Καλώς ήρθατε στο Grist!",
-        "Product Development": "Ανάπτυξη Προϊόντων",
-        "What brings you to Grist? Please help us serve you better.": "Τι σας φέρνει στο Grist; Παρακαλούμε βοηθήστε μας να σας εξυπηρετήσουμε καλύτερα.",
-        "Sales": "Πωλήσεις"
-    },
     "WidgetTitle": {
         "Cancel": "Ακύρωση",
         "DATA TABLE NAME": "ΟΝΟΜΑ ΠΙΝΑΚΑ ΔΕΔΟΜΕΝΩΝ",
@@ -1118,8 +1104,6 @@
         "Reference List": "Λίστα Αναφοράς",
         "Attachment": "Συννημένο",
         "Search columns": "Αναζήτηση στηλών",
-        "Light": "Φωτεινό",
-        "Custom": "Προσαρμοσμένο",
         "Choice List": "Λίστα Επιλογών",
         "By Date Modified": "Κατά ημερομηνία Τροποποίησης",
         "Date": "Ημερομηνία",
@@ -1792,7 +1776,17 @@
         "Your organization": "Ο οργανισμός σας",
         "Tell us who you are": "Πες μας ποιος είσαι",
         "What brings you to Grist (you can select multiple)?": "Τι σας φέρνει στο Grist (μπορείτε να επιλέξετε πολλαπλά);",
-        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "Το Grist μπορεί να μοιάζει με υπολογιστικό φύλλο, αλλά δεν λειτουργεί πάντα έτσι. Ανακαλύψτε τι κάνει το Grist να διαφέρει."
+        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "Το Grist μπορεί να μοιάζει με υπολογιστικό φύλλο, αλλά δεν λειτουργεί πάντα έτσι. Ανακαλύψτε τι κάνει το Grist να διαφέρει.",
+        "Product Development": "Ανάπτυξη Προϊόντων",
+        "Finance & Accounting": "Χρηματοοικονομικά και Λογιστική",
+        "Media Production": "Παραγωγή Μέσων Ενημέρωσης",
+        "IT & Technology": "Πληροφορική και Τεχνολογία",
+        "Marketing": "Μάρκετινγκ",
+        "Research": "Έρευνα",
+        "Sales": "Πωλήσεις",
+        "Education": "Εκπαίδευση",
+        "HR & Management": "Ανθρώπινο Δυναμικό και Διοίκηση",
+        "Other": "Άλλο"
     },
     "ToggleEnterpriseWidget": {
         "Enable Grist Enterprise": "Ενεργοποίηση Grist Enterprise",

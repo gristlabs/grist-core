@@ -15,7 +15,6 @@ const G = getBrowserGlobals("document", "window");
 const EXPERIMENTS = {
   newRecordButton: () => t("New record button"),
   notifications: () => t("Notifications"),
-  oauthApps: () => t("OAuth apps"),
 
   // Tells UI to treat deployment type as "core" regardless of the server, for easier testing of UI differences.
   simulateCoreDeployment: () => t("Simulate deployment as core"),

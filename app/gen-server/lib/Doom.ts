@@ -158,8 +158,9 @@ export class Doom {
 
   // List the sites a user has access to.
   private async _getOrgs(userId: number) {
-    const orgs = this._dbManager.unwrapQueryResult(await this._dbManager.getOrgs(userId, null,
-      { ignoreEveryoneShares: true }));
+    const orgs = this._dbManager.unwrapQueryResult(await this._dbManager.getOrgs({ userId }, {
+      ignoreEveryoneShares: true,
+    }));
     return orgs;
   }
 

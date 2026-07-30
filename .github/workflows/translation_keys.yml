@@ -24,7 +24,7 @@ jobs:
           node-version: 22
 
       - name: Install Node.js packages
-        run: yarn install
+        run: yarn run set-community-edition
 
       - name: Build code
         run: yarn run build

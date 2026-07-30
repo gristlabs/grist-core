@@ -222,7 +222,7 @@ export interface GristDoc extends DisposableWithEvents {
   saveViewSection(section: ViewSectionRec, newVal: IPageWidget): Promise<ViewSectionRec>;
   saveLink(linkId: string, sectionId?: number): Promise<any>;
   selectBy(widget: IPageWidget): any[];
-  forkIfNeeded(): Promise<void>;
+  forkIfNeeded(): Promise<string | null>;
 
   getCsvLink(): string;
   getTsvLink(): string;
@@ -750,6 +750,12 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       }
       // finally set the current view as fully loaded
       this.currentView.set(view);
+      if (view) {
+        this.appModel.screenReaderAnnouncer?.announce(t("{{title}} widget", {
+          title: view.viewSection.titleDef(),
+        }), "view-change");
+        view.announceCurrentItem();
+      }
     }));
 
     // create observable for current cursor position
@@ -1131,30 +1137,31 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
   }
 
   // Fork the document if it is in prefork mode.
-  public async forkIfNeeded() {
+  public async forkIfNeeded(): Promise<string | null> {
     if (this.docPageModel.isPrefork.get()) {
-      await this.docComm.forkAndUpdateUrl();
+      return await this.docComm.forkAndUpdateUrl();
     }
+    return null;
   }
 
   public getCsvLink() {
     const params = this._getDocApiDownloadParams();
-    return this.docPageModel.appModel.api.getDocAPI(this.docId()).getDownloadCsvUrl(params);
+    return this._downloadDocApi().getDownloadCsvUrl(params);
   }
 
   public getTsvLink() {
     const params = this._getDocApiDownloadParams();
-    return this.docPageModel.appModel.api.getDocAPI(this.docId()).getDownloadTsvUrl(params);
+    return this._downloadDocApi().getDownloadTsvUrl(params);
   }
 
   public getDsvLink() {
     const params = this._getDocApiDownloadParams();
-    return this.docPageModel.appModel.api.getDocAPI(this.docId()).getDownloadDsvUrl(params);
+    return this._downloadDocApi().getDownloadDsvUrl(params);
   }
 
   public getXlsxActiveViewLink() {
     const params = this._getDocApiDownloadParams();
-    return this.docPageModel.appModel.api.getDocAPI(this.docId()).getDownloadXlsxUrl(params);
+    return this._downloadDocApi().getDownloadXlsxUrl(params);
   }
 
   /**
@@ -1931,6 +1938,11 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue."))
     }
   }
 
+  // A DocAPI for building download links, View-as-aware so exports respect ACLs.
+  private _downloadDocApi() {
+    return this.docPageModel.appModel.api.getDocAPI(this.docId(), { propagateViewAs: true });
+  }
+
   private _getDocApiDownloadParams() {
     const activeSection = this.viewModel.activeSection();
     const filters = activeSection.activeFilters.get().map(filterInfo => ({
@@ -1938,7 +1950,6 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue."))
       filter: filterInfo.filter(),
     }));
     const linkingFilter: FilterColValues = activeSection.linkingFilter();
-    const userOverride = this.docPageModel.userOverride.get();
 
     return {
       viewSection: this.viewModel.activeSectionId(),
@@ -1946,7 +1957,6 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue."))
       activeSortSpec: JSON.stringify(activeSection.activeSortSpec()),
       filters: JSON.stringify(filters),
       linkingFilter: JSON.stringify(linkingFilter),
-      ...(userOverride ? { aclAsUser_: userOverride.user?.email } : {}),
     };
   }
 

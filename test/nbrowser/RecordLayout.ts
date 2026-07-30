@@ -28,6 +28,42 @@ describe("RecordLayout", function() {
     assert.isNotNull(await row.find(".test-vfc-hide").getAttribute("disabled"));
   });
 
+  it("should rebuild layout when saved spec shares no fields with view", async () => {
+    // When a saved layoutSpec shared no fields with the current view,
+    // building the card layout used to throw: all the stale fields would
+    // auto-collapse the layout and dispose its root box, which
+    // updateLayoutSpecWithFields was not checking for.
+    const session = await gu.session().login();
+    await session.tempNewDoc(cleanup);
+    await gu.toggleSidePanel("right", "open");
+    await driver.findContent("button", "Change widget").click();
+    await gu.selectWidget("Card");
+    assert.deepEqual(await getFields(), ["A", "B", "C"]);
+
+    // Overwrite the saved layout with one referencing only non-existent fields, so it has no
+    // overlap at all with the actual viewFields (the scenario that used to throw).
+    const sectionId = await gu.getSectionId();
+    await gu.sendActions([
+      ["UpdateRecord", "_grist_Views_section", sectionId, {
+        layoutSpec: JSON.stringify({ children: [{ leaf: 90001 }, { leaf: 90002 }, { leaf: 90003 }] }),
+      }],
+    ]);
+
+    // Reload so the layout is rebuilt.
+    await gu.reloadDoc();
+
+    // No errors, all fields are present again...
+    await gu.checkForErrors();
+    assert.deepEqual(await getFields(), ["A", "B", "C"]);
+
+    // ...and the layout is preserved.
+    const topA = (await gu.getDetailCell("A", 1).rect()).top;
+    const topB = (await gu.getDetailCell("B", 1).rect()).top;
+    const topC = (await gu.getDetailCell("C", 1).rect()).top;
+    assert.equal(topA, topB);
+    assert.isAbove(topC, topA);
+  });
+
   it("should allow deleting cells", async function() {
     await server.simulateLogin("Chimpy", "chimpy@getgrist.com", "nasa");
     await gu.importFixturesDoc("chimpy", "nasa", "Horizon", "World.grist", "newui");

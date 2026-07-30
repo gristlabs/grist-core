@@ -24,6 +24,7 @@ import {
   HidableToggle,
 } from "app/client/ui/AdminPanelCss";
 import { getAdminPanelName } from "app/client/ui/AdminPanelName";
+import { buildSetupRequestsItem } from "app/client/ui/AdminSetupRequests";
 import { App } from "app/client/ui/App";
 import { AuditLogStreamingConfig, getDestinationDisplayName } from "app/client/ui/AuditLogStreamingConfig";
 import { AuthenticationSection } from "app/client/ui/AuthenticationSection";
@@ -32,8 +33,9 @@ import { BaseUrlSection } from "app/client/ui/BaseUrlSection";
 import { BootKeyStatus } from "app/client/ui/BootKeyStatus";
 import { InstallConfigsAPI } from "app/client/ui/ConfigsAPI";
 import { DraftChangesManager } from "app/client/ui/DraftChanges";
-import { EditionSection } from "app/client/ui/EditionSection";
+import { Edition, EditionSection, editionSwitchModal, editionSwitchWarning } from "app/client/ui/EditionSection";
 import { peekSetupReturnFromGetGristCom } from "app/client/ui/GetGristComProvider";
+import { buildOutgoingRequestsPanel, buildOutgoingRequestsSummary } from "app/client/ui/OutgoingRequestsStatus";
 import { pagePanels } from "app/client/ui/PagePanels";
 import {
   buildPermissionsCard,
@@ -53,7 +55,6 @@ import {
   SectionItem,
 } from "app/client/ui/SettingsLayout";
 import { SupportGristPage } from "app/client/ui/SupportGristPage";
-import { buildInstallationIdDisplay } from "app/client/ui/ToggleEnterpriseWidget";
 import { createTopBarHome } from "app/client/ui/TopBar";
 import { createUserImage } from "app/client/ui/UserImage";
 import { fullBreadcrumbs } from "app/client/ui2018/breadcrumbs";
@@ -66,7 +67,8 @@ import { toggleSwitch } from "app/client/ui2018/toggleSwitch";
 import { BootProbeInfo, BootProbeResult, SandboxingBootProbeDetails } from "app/common/BootProbe";
 import { ConfigAPI } from "app/common/ConfigAPI";
 import { delay } from "app/common/delay";
-import { AdminPanelPage, commonUrls, getPageTitleSuffix, LatestVersionAvailable } from "app/common/gristUrls";
+import { ADMIN_PANEL_EDITION_ANCHOR, AdminPanelPage, commonUrls, getPageTitleSuffix,
+  LatestVersionAvailable } from "app/common/gristUrls";
 import { useBindable } from "app/common/gutil";
 import { InstallAPI, InstallAPIImpl } from "app/common/InstallAPI";
 import { BOOT_KEY_PROVIDER_KEY, MINIMAL_PROVIDER_KEY } from "app/common/loginProviders";
@@ -214,9 +216,11 @@ class AdminInstallationPanel extends Disposable {
   private _editionSection = EditionSection.create(this, {
     inAdminPanel: true,
     notifier: this._appModel.notifier,
+    onEditionSwitch: edition => this._confirmEditionSwitch(edition),
   });
 
-  private _permissionsModel = PermissionsToggleModel.create(this);
+  // Hide telemetry toggle, as the admin panel exposes it through SupportGristPage
+  private _permissionsModel = PermissionsToggleModel.create(this, { excludeToggles: ["telemetry"] });
 
   private _drafts = DraftChangesManager.create(this);
 
@@ -291,19 +295,64 @@ class AdminInstallationPanel extends Disposable {
   }
 
   public async restartGrist(): Promise<void> {
+    const editionSwitch = this._editionSection.pendingEditionSwitch();
+
     confirmModal(
       t("Restart Grist?"),
       t("Restart"),
       () => {
-        // Fire-and-forget so confirmModal closes immediately; otherwise it
+        // Fire-and-forget so modal closes immediately; otherwise it
         // hangs on top of the spinner for the whole restart duration.
-        spinnerModal(t("Restarting Grist..."), this._performRestart())
-          .catch(err => reportError(err as Error));
+        const restarting = this._performRestart();
+        (editionSwitch ?
+          editionSwitchModal(restarting) :
+          spinnerModal(t("Restarting Grist..."), restarting)
+        ).catch(err => reportError(err as Error));
       },
       {
         explanation: dom("div",
           dom("p", t("Are you sure you want to restart Grist?")),
-          dom("p", t("This will apply any pending changes and briefly interrupt access for all users.")),
+          editionSwitch ?
+            editionSwitchWarning(editionSwitch) :
+            dom("p", t("This will apply any pending changes and briefly interrupt access for all users.")),
+        ),
+      },
+    );
+  }
+
+  private _confirmEditionSwitch(edition: Edition) {
+    const otherChanges = this._drafts.changes.get();
+    const canRestart = this._supportsRestart;
+
+    confirmModal(
+      edition === "enterprise" ? t("Switch to full Grist?") : t("Switch to Community edition?"),
+      canRestart ? t("Restart") : t("Apply changes"),
+      () => {
+        this._editionSection.selectEdition(edition);
+        if (canRestart) {
+          // Fire-and-forget so modal closes immediately; otherwise it
+          // hangs on top of the spinner for the whole restart duration.
+          editionSwitchModal(this._performRestart()).catch(err => reportError(err as Error));
+        } else {
+          // Fire-and-forget so _applyWithoutRestart opens its own spinner and
+          // reports its own errors.
+          void this._applyWithoutRestart();
+        }
+      },
+      {
+        explanation: dom("div",
+          canRestart ? editionSwitchWarning(edition) : dom("p", t("Grist is running in an \
+environment that doesn't support restarting from the admin panel. Your change will be saved \
+now, and takes effect the next time you restart Grist manually.")),
+          otherChanges.length === 0 ? null : [
+            dom("p", t("This will also apply your other pending changes:")),
+            cssDraftChangesList(otherChanges.map(c => dom("li",
+              cssDraftChangeLabel(c.label + ":"),
+              " ",
+              dom("span", c.value),
+            ))),
+          ],
+          testId("admin-panel-edition-switch-modal"),
         ),
       },
     );
@@ -446,6 +495,7 @@ class AdminInstallationPanel extends Disposable {
           ),
         ),
       )),
+      this._buildEditionCard(),
       SectionCard(t("Support Grist"), [
         SectionItem({
           id: "telemetry",
@@ -475,12 +525,15 @@ class AdminInstallationPanel extends Disposable {
           expandedContent: this._baseUrlSection.buildDom(),
         }),
         SectionItem({
-          id: "edition",
-          name: t("Edition"),
-          description: EditionSection.description(),
-          value: this._editionSection.buildStatusDisplay(),
-          expandedContent: this._editionSection.buildDom(),
+          id: "version",
+          name: t("Version"),
+          description: t("Current version of Grist"),
+          value: cssValueLabel(t("Version {{versionNumber}}", { versionNumber: version.version })),
         }),
+        dom.create(this._buildUpdates.bind(this)),
+        // Setup steps users have asked for (via the nudge in Document Settings).
+        // Renders nothing when there are no requests.
+        dom.create(buildSetupRequestsItem, this._appModel),
         SectionItem({
           id: "service-status",
           name: t("Service status"),
@@ -543,19 +596,16 @@ class AdminInstallationPanel extends Disposable {
           value: buildPermissionsStatusDisplay(this._permissionsModel),
           expandedContent: buildPermissionsCard(this._permissionsModel),
         }),
+        SectionItem({
+          id: "outgoing-requests",
+          name: t("Outgoing requests"),
+          description: t("How user actions can reach the outside world"),
+          value: this._buildOutgoingRequestsDisplay(),
+          expandedContent: this._buildOutgoingRequestsContent(),
+        }),
       ]),
       this._buildBackupsSection(),
       this._buildAuditLogsSection(),
-      SectionCard(t("Version"), [
-        SectionItem({
-          id: "version",
-          name: t("Current"),
-          description: t("Current version of Grist"),
-          value: cssValueLabel(t("Version {{versionNumber}}", { versionNumber: version.version })),
-        }),
-        this._maybeAddEnterpriseToggle(),
-        dom.create(this._buildUpdates.bind(this)),
-      ]),
       SectionCard(t("Self Checks"), [
         this._buildProbeItems({
           showRedundant: false,
@@ -575,68 +625,19 @@ class AdminInstallationPanel extends Disposable {
     ];
   }
 
-  // Stub for users following older documentation that still refers to an
-  // "Enterprise" item in this section. The real controls live in the new
-  // "Server → Edition" item above. The toggle mirrors the real edition
-  // state but intercepts clicks and bounces the user to Edition instead.
-  private _maybeAddEnterpriseToggle() {
-    const enterpriseObs = this._editionSection.getEnterpriseToggleObservable();
-
-    const interceptClick = (ev: Event) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-      focusAdminItem("edition");
-    };
-
-    const makeToggle = () => {
-      if (getGristConfig().forceEnableEnterprise) {
-        return cssValueLabel(cssHappyText(t("On")));
-      }
-      if (!enterpriseObs) {
-        return cssValueLabel(t("moved to Edition"));
-      }
-      // Wrap the toggle in a container that intercepts clicks at the
-      // capture phase so the underlying observable never changes; the
-      // user is redirected to the real Edition item instead.
-      return dom("span",
-        dom.on("click", interceptClick, { useCapture: true }),
-        dom.create(HidableToggle, enterpriseObs, {
-          labelId: "admin-panel-item-description-enterprise",
-        }),
-      );
-    };
-
-    return SectionItem({
-      id: "enterprise",
-      name: t("Enterprise"),
-      description: EditionSection.description(),
-      value: makeToggle(),
-      expandedContent: dom("div",
-        // Installation ID is only surfaced when the enterprise activation-
-        // status endpoint is available (i.e. Full Grist). On community
-        // builds the observable is null and we hide the row entirely.
-        this._buildInstallationIdRow(),
-        dom("p", t(
-          "What used to be called \"Grist Enterprise\" is now called \"Full Grist\".",
-        )),
-        dom("p",
-          t("Its controls have moved to {{editionLink}} above.", {
-            editionLink: cssLink(t("Server → Edition"),
-              dom.on("click", (ev) => { ev.preventDefault(); focusAdminItem("edition"); }),
-              { href: "#edition" },
-            ),
-          }),
-        ),
-        testId("admin-panel-enterprise-stub"),
+  private _buildEditionCard() {
+    return SectionCard(
+      dom("span", t("Edition"),
+        // SectionItem owns the per-item hash-scroll; this card isn't one, so re-run it for #edition.
+        dom.attr("id", ADMIN_PANEL_EDITION_ANCHOR),
+        () => {
+          if (window.location.hash === "#" + ADMIN_PANEL_EDITION_ANCHOR) {
+            setTimeout(() => focusAdminItem(ADMIN_PANEL_EDITION_ANCHOR), 0);
+          }
+        },
       ),
-    });
-  }
-
-  // Shown only on builds that mount `/api/activation/status` (Full Grist);
-  // buildInstallationIdDisplay no-ops until the ID has loaded.
-  private _buildInstallationIdRow() {
-    const installationId = this._editionSection.getInstallationIdObservable();
-    return installationId && dom("p", buildInstallationIdDisplay(installationId));
+      [this._editionSection.buildDom()],
+    );
   }
 
   private _buildSandboxingDisplay() {
@@ -860,6 +861,20 @@ class AdminInstallationPanel extends Disposable {
     return t("Grist signs user session cookies with a secret key. Please set this key via the environment variable \
 GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice \
 in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.");
+  }
+
+  private _buildOutgoingRequestsDisplay() {
+    return dom.domComputed((use) => {
+      const req = this._checks.requestCheckById(use, "outgoing-requests");
+      return buildOutgoingRequestsSummary(req ? use(req.result) : undefined);
+    });
+  }
+
+  private _buildOutgoingRequestsContent() {
+    return dom.domComputed((use) => {
+      const req = this._checks.requestCheckById(use, "outgoing-requests");
+      return buildOutgoingRequestsPanel(req ? use(req.result) : undefined);
+    });
   }
 
   private _buildUpdates(owner: MultiHolder) {
@@ -1101,6 +1116,8 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
             "session-secret",
             "service-status",
             "backups",
+            "persist-data",
+            "outgoing-requests",
           ].includes(probe.id);
           const show = isRedundant ? options.showRedundant : options.showNovel;
           if (!show) { return null; }
@@ -1128,7 +1145,7 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
           t("Results"),
           { style: "margin-top: 0px; padding-top: 0px;" },
         ),
-        result.verdict ? dom("pre", result.verdict) : null,
+        result.verdict ? cssVerdict(result.verdict) : null,
         (result.status === "none") ? null :
           dom("p",
             (result.status === "success") ? t("Check succeeded.") : t("Check failed.")),
@@ -1197,7 +1214,7 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
       case "enterprise":
       case "saas": {
         return SectionCard(
-          [t("Audit Logs"), cssSectionTag(t("New, Enterprise"))],
+          [t("Audit Logs"), cssSectionTag(t("full Edition"))],
           [this._buildLogStreamingSection(deploymentType)],
         );
       }
@@ -1391,6 +1408,10 @@ const cssAdminAccountItemPart = styled("span", `
   }
 `);
 
+const cssVerdict = styled("pre", `
+  white-space: normal;
+`);
+
 async function reloadSafe() {
   // Reload the page.
   const currentUrl = new URL(window.location.href);
@@ -1399,11 +1420,20 @@ async function reloadSafe() {
   await delay(2000); // Allow UI to update before doing the work
   let counter = 10;
   while (counter-- > 0) {
-    const res = await fetch(window.location.href, { credentials: "include" });
-    if (res.status === 200) {
-      break;
+    try {
+      const res = await fetch(window.location.href, { credentials: "include" });
+      if (res.status === 200) {
+        break;
+      }
+    } catch {
+      // Server is mid-restart; keep polling.
     }
     await delay(1000);
   }
-  window.location.href = currentUrl.href;
+
+  if (currentUrl.href === window.location.href) {
+    window.location.reload();
+  } else {
+    window.location.href = currentUrl.href;
+  }
 }

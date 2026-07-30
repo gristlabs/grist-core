@@ -127,7 +127,7 @@ export function parsePasteHtml(data: string): RichPasteObject[][] {
       const col = cols[colIdx];
       const colType = col?.getAttribute("data-grist-col-type");
       const colRef = col && Number(col.getAttribute("data-grist-col-ref"));
-      const o: RichPasteObject = { displayValue: cell.textContent!, docIdHash, colType, colRef };
+      const o: RichPasteObject = { displayValue: cell.textContent, docIdHash, colType, colRef };
 
       if (cell.hasAttribute("data-grist-raw-value")) {
         o.rawValue = safeJsonParse(cell.getAttribute("data-grist-raw-value")!,

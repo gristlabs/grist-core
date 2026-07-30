@@ -62,7 +62,7 @@ export class DocComm extends Disposable implements ActiveDocAPI {
   // (which is handled by App.ts). This way, Comm can protect against mismatched clientIds.
   private _clientId: string;
   private _docFD: number;
-  private _forkPromise: Promise<void> | null = null;
+  private _forkPromise: Promise<string> | null = null;
   private _isClosed: boolean = false;
   private listenTo: BackboneEvents["listenTo"];  // set by Backbone
 
@@ -104,6 +104,12 @@ export class DocComm extends Disposable implements ActiveDocAPI {
     return this._comm.getDocWorkerUrl(this._docId);
   }
 
+  // The docId identifying this open document.
+  // Needs to be a getter as this._docId is internally re-assignable, but not externally.
+  public get docId(): string {
+    return this._docId;
+  }
+
   // Returns whether a message received by this Comm object is for the current doc.
   public isActionFromThisDoc(message: CommMessage): boolean {
     return message.docFD === this._docFD;
@@ -129,9 +135,11 @@ export class DocComm extends Disposable implements ActiveDocAPI {
    * Forks the document, making sure the url gets updated, and holding any actions
    * until the fork is complete.  If a fork has already been started/completed, this
    * does nothing.
+   *
+   * @returns the docId of the forked document
    */
-  public async forkAndUpdateUrl(): Promise<void> {
-    await (this._forkPromise || (this._forkPromise = this._doForkDoc()));
+  public async forkAndUpdateUrl(): Promise<string> {
+    return await (this._forkPromise || (this._forkPromise = this._doForkDoc()));
   }
 
   // Clean up connection after closing doc.
@@ -195,7 +203,7 @@ export class DocComm extends Disposable implements ActiveDocAPI {
     return this._comm._makeRequest(this._clientId, this._docId, name, this._docFD, ...args);
   }
 
-  private async _doForkDoc(): Promise<void> {
+  private async _doForkDoc(): Promise<string> {
     reportMessage("Preparing your copy...", { key: "forking" });
     const { urlId, docId } = await this.fork();
     // TODO: may want to preserve linkParameters in call to openDoc.
@@ -208,6 +216,7 @@ export class DocComm extends Disposable implements ActiveDocAPI {
     this._setOpenResponse(openResponse);
     this.changeUrlIdEmitter.emit(urlId, openResponse);
     reportMessage("You are now editing your own copy", { key: "forking" });
+    return docId;
   }
 }
 

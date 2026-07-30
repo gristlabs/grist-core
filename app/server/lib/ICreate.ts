@@ -9,6 +9,7 @@ import {
 } from "app/server/lib/AttachmentStore";
 import { IAttachmentStore } from "app/server/lib/AttachmentStore";
 import { getCoreLoginSystem } from "app/server/lib/coreLogins";
+import { DocApiUsageTracker } from "app/server/lib/DocApiUsageTracker";
 import { DocStorageManager } from "app/server/lib/DocStorageManager";
 import { ExternalStorage, ExternalStorageCreator, UnsupportedPurposeError } from "app/server/lib/ExternalStorage";
 import { createDummyTelemetry, GristLoginSystem, GristServer } from "app/server/lib/GristServer";
@@ -20,13 +21,17 @@ import { IDocNotificationManager } from "app/server/lib/IDocNotificationManager"
 import { IDocStorageManager } from "app/server/lib/IDocStorageManager";
 import { INotifier } from "app/server/lib/INotifier";
 import { InstallAdmin, SimpleInstallAdmin } from "app/server/lib/InstallAdmin";
+import { IOAuthValidator } from "app/server/lib/IOAuthValidator";
 import { ISandbox, ISandboxCreationOptions } from "app/server/lib/ISandbox";
+import { IWebSocketProxy, IWebSocketProxyOptions } from "app/server/lib/IWebSocketProxy";
 import { createSandbox, SpawnFn } from "app/server/lib/NSandbox";
 import * as ProcessMonitor from "app/server/lib/ProcessMonitor";
 import { SqliteVariant } from "app/server/lib/SqliteCommon";
 import { ITelemetry } from "app/server/lib/Telemetry";
 
 import { Express } from "express";
+
+import type { SiteMetricsSource } from "app/gen-server/lib/Housekeeper";
 
 // In the past, the session secret was used as an additional
 // protection passed on to expressjs-session for security when
@@ -69,6 +74,11 @@ export interface ICreate {
     ...args: ConstructorParameters<typeof HostedStorageManager>
   ): Promise<IDocStorageManager>;
 
+  // Creates the billing component. The base implementation serves core pages such
+  // as the team site-settings page; editions that override this to add their own
+  // billing/activation logic should compose with the base (e.g. via ComposedBilling
+  // and `super.Billing(...)`) rather than replacing it, so those core pages remain
+  // available.
   Billing(dbManager: HomeDBManager, gristConfig: GristServer): IBilling;
   Notifier(dbManager: HomeDBManager, gristConfig: GristServer): INotifier | undefined;
   AuditLogger(dbManager: HomeDBManager, gristConfig: GristServer): IAuditLogger;
@@ -98,10 +108,14 @@ export interface ICreate {
   getLoginSystem(): Promise<GristLoginSystem>;
 
   addExtraHomeEndpoints(gristServer: GristServer, app: Express): void;
-  addMcpEndpoints(gristServer: GristServer, app: Express): void;
+  addExtraDocEndpoints(gristServer: GristServer, app: Express, tracker?: DocApiUsageTracker): void;
+  getSiteMetricsSource(): SiteMetricsSource | undefined;
   areAdminControlsAvailable(): boolean;
+  areOAuthAppsEnabled(): boolean;
   createDocNotificationManager(gristServer: GristServer): IDocNotificationManager | undefined;
   startProcessMonitor(telemetry: ITelemetry): StopCallback | undefined;
+  createOAuthValidator(gristServer: GristServer): IOAuthValidator | undefined;
+  getWebSocketProxy?(gristServer: GristServer, options: IWebSocketProxyOptions): IWebSocketProxy | undefined;
 }
 
 type StopCallback = () => void;
@@ -136,6 +150,8 @@ export class BaseCreate implements ICreate {
 
   public deploymentType(): GristDeploymentType { return this._deploymentType; }
   public Billing(dbManager: HomeDBManager, gristConfig: GristServer): IBilling {
+    // Serves core pages such as the team site-settings page. Editions overriding
+    // this should compose with `super.Billing(...)` so these pages aren't dropped.
     return new TeamSettings(gristConfig);
   }
 
@@ -255,13 +271,19 @@ export class BaseCreate implements ICreate {
   }
 
   public addExtraHomeEndpoints(gristServer: GristServer, app: Express) {}
-  public addMcpEndpoints(gristServer: GristServer, app: Express) {}
+  public addExtraDocEndpoints(gristServer: GristServer, app: Express, tracker?: DocApiUsageTracker) {}
+  public getSiteMetricsSource(): SiteMetricsSource | undefined { return undefined; }
   public areAdminControlsAvailable(): boolean { return false; }
+  public areOAuthAppsEnabled(): boolean { return false; }
   public createDocNotificationManager(gristServer: GristServer): IDocNotificationManager | undefined {
     return undefined;
   }
 
   public startProcessMonitor(telemetry: ITelemetry) {
     return ProcessMonitor.start(telemetry);
+  }
+
+  public createOAuthValidator(gristServer: GristServer): IOAuthValidator | undefined {
+    return undefined;
   }
 }

@@ -142,6 +142,15 @@
   white-space: pre-wrap;
 }
 
+/**
+ * Markdown cells render block-level content with lines that aren't a uniform
+ * height, making them incompatible with the -webkit-box/-webkit-line-clamp
+ * approach above.
+ */
+.row_height_set .field_clip.markdown {
+  display: block;
+}
+
 .row_height_uniform .field_clip {
   min-height: calc(3px + var(--row-height-lines) * 18px);
 }

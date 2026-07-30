@@ -12,7 +12,6 @@ import { addAllScenarios, TestContext } from "test/server/lib/docapi/helpers";
 import * as testUtils from "test/server/testUtils";
 
 import { assert } from "chai";
-import FormData from "form-data";
 import fetch from "node-fetch";
 
 describe("DocApiPermissions", function() {
@@ -32,7 +31,6 @@ function addPermissionsTests(getCtx: () => TestContext) {
     const kiwiApi = new UserAPIImpl(`${homeUrl}/o/docs-1`, {
       headers: { Authorization: "Bearer api_key_for_kiwi" },
       fetch: fetch as unknown as typeof globalThis.fetch,
-      newFormData: () => new FormData() as any,
     });
     await assert.isRejected(kiwiApi.getWorkspaceAccess(ws1), /Forbidden/);
     // Add kiwi as an editor for the org.
@@ -57,7 +55,6 @@ function addPermissionsTests(getCtx: () => TestContext) {
     const kiwiApi = new UserAPIImpl(`${homeUrl}/o/docs-1`, {
       headers: { Authorization: "Bearer api_key_for_kiwi" },
       fetch: fetch as unknown as typeof globalThis.fetch,
-      newFormData: () => new FormData() as any,
     });
     await assert.isRejected(kiwiApi.getWorkspaceAccess(ws1), /Forbidden/);
     // Add kiwi as an editor of this workspace.
@@ -81,7 +78,6 @@ function addPermissionsTests(getCtx: () => TestContext) {
     const kiwiApi = new UserAPIImpl(`${homeUrl}/o/docs-1`, {
       headers: { Authorization: "Bearer api_key_for_kiwi" },
       fetch: fetch as unknown as typeof globalThis.fetch,
-      newFormData: () => new FormData() as any,
     });
 
     // Kiwi is editor of the document, so he can't delete it.
@@ -102,7 +98,6 @@ function addPermissionsTests(getCtx: () => TestContext) {
     const kiwiApi = new UserAPIImpl(`${homeUrl}/o/docs-1`, {
       headers: { Authorization: "Bearer api_key_for_kiwi" },
       fetch: fetch as unknown as typeof globalThis.fetch,
-      newFormData: () => new FormData() as any,
     });
 
     // Kiwi is editor of the document, so he can't rename it.

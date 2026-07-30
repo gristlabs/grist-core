@@ -44,7 +44,7 @@ describe("HomeDBManager", function() {
     const profile = { email: "unseen@getgrist.com", name: "Unseen" };
     const user = await home.getUserByLogin("unseen@getgrist.com", { profile });
     assert.equal(user.name, "Unseen");
-    const orgs = await home.getOrgs(user.id, null);
+    const orgs = await home.getOrgs({ userId: user.id });
     assert.isAtLeast(orgs.data!.length, 1);
     assert.equal(orgs.data![0].name, "Personal");
     assert.equal(orgs.data![0].owner.name, "Unseen");
@@ -221,9 +221,10 @@ describe("HomeDBManager", function() {
   });
 
   it("can pool orgs for two users", async function() {
-    const charonOrgs = (await home.getOrgs([charonProfile], null)).data!;
-    const kiwiOrgs = (await home.getOrgs([kiwiProfile], null)).data!;
-    const pooledOrgs = (await home.getOrgs([charonProfile, kiwiProfile], null)).data!;
+    const userId = await home.testGetId("Chimpy") as number;
+    const charonOrgs = (await home.getOrgs({ userId, users: [charonProfile] })).data!;
+    const kiwiOrgs = (await home.getOrgs({ userId, users: [kiwiProfile] })).data!;
+    const pooledOrgs = (await home.getOrgs({ userId, users: [charonProfile, kiwiProfile] })).data!;
     // test there is some overlap
     assert.isAbove(pooledOrgs.length, charonOrgs.length);
     assert.isAbove(pooledOrgs.length, kiwiOrgs.length);
@@ -237,12 +238,14 @@ describe("HomeDBManager", function() {
       ["Abyss", "Fish", "Flightless", "NASA", "Primately", "Charonland", "Chimpyland", "Kiwiland"]);
 
     // make sure if there are no profiles that we get no orgs
-    const emptyOrgs = (await home.getOrgs([], null)).data!;
+    const emptyOrgs = (await home.getOrgs({ userId, users: [] })).data!;
     assert.lengthOf(emptyOrgs, 0);
   });
 
   it("can pool orgs for three users", async function() {
-    const pooledOrgs = (await home.getOrgs([charonProfile, chimpyProfile, kiwiProfile], null)).data!;
+    const userId = await home.testGetId("Chimpy") as number;
+    const scope = { userId, users: [charonProfile, chimpyProfile, kiwiProfile] };
+    const pooledOrgs = (await home.getOrgs(scope)).data!;
     assert.sameDeepMembers(pooledOrgs.map(org => org.name), [
       "Abyss",
       "EmptyOrg",
@@ -262,11 +265,12 @@ describe("HomeDBManager", function() {
   });
 
   it("can pool orgs for multiple users with non-normalized emails", async function() {
-    const refOrgs = (await home.getOrgs([charonProfile, kiwiProfile], null)).data!;
+    const userId = await home.testGetId("Chimpy") as number;
+    const refOrgs = (await home.getOrgs({ userId, users: [charonProfile, kiwiProfile] })).data!;
     // Profiles in sessions can have email addresses with arbitrary capitalization.
     const oddCharonProfile = { email: "CharON@getgrist.COM", name: "charON" };
     const oddKiwiProfile = { email: "KIWI@getgrist.COM", name: "KIwi" };
-    const orgs = (await home.getOrgs([oddCharonProfile, kiwiProfile, oddKiwiProfile], null)).data!;
+    const orgs = (await home.getOrgs({ userId, users: [oddCharonProfile, kiwiProfile, oddKiwiProfile] })).data!;
     assert.deepEqual(refOrgs, orgs);
   });
 

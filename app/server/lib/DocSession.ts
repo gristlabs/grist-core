@@ -36,7 +36,7 @@ export class OptDocSession extends AuthSession {
   public linkParameters?: Record<string, string>;
 
   private get _authSession(): AuthSession {
-    return this.client?.authSession ?? (this.req ? AuthSession.fromReq(this.req) : AuthSession.unauthenticated());
+    return this.client?.authSession ?? this.req?.authSession ?? AuthSession.unauthenticated();
   }
 
   constructor(options: {
@@ -60,6 +60,7 @@ export class OptDocSession extends AuthSession {
   public get userId() { return this._authSession.userId; }
   public get userIsAuthorized() { return this._authSession.userIsAuthorized; }
   public get fullUser() { return this._authSession.fullUser; }
+  public get credential() { return this._authSession.credential; }
   public get isApiKeyAuth() { return this._authSession.isApiKeyAuth; }
 
   // Like AuthSession.getLogMeta(), but includes a bit more info when we have a Client.

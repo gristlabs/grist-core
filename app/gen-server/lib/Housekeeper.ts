@@ -4,6 +4,7 @@ import { buildUrlId } from "app/common/gristUrls";
 import { isAffirmative } from "app/common/gutil";
 import { normalizedDateTimeString } from "app/common/normalizedDateTimeString";
 import { Document } from "app/gen-server/entity/Document";
+import { OAUTH_REFRESH_TOKEN_TTL_SECONDS } from "app/gen-server/entity/OAuthGrant";
 import { Organization } from "app/gen-server/entity/Organization";
 import { Workspace } from "app/gen-server/entity/Workspace";
 import { HomeDBManager, Scope } from "app/gen-server/lib/homedb/HomeDBManager";
@@ -24,6 +25,12 @@ import fetch from "node-fetch";
 import * as Fetch from "node-fetch";
 import { EntityManager } from "typeorm";
 
+export interface SiteMetricsSource {
+  // Drain extra per-site metrics for all given orgs at once, returned as an orgId -> metrics map.
+  // Batched so the daily job does not pay one round-trip per site.
+  getSiteMetrics(orgIds: number[]): Promise<Map<number, Record<string, number>>>;
+}
+
 export const Timings = {
   DELETE_TRASH_PERIOD_MS: 1 * 60 * 60 * 1000,  // operate every 1 hour
   LOG_METRICS_PERIOD_MS: 24 * 60 * 60 * 1000,  // operate every day
@@ -31,6 +38,8 @@ export const Timings = {
   VERSION_CHECK_OFFSET_MS: 20 * 1000, // wait 20 seconds before running the first check
   TEST_PROXY_URL_PERIOD_MS: 5 * 60 * 1000,     // every five minutes
   AGE_THRESHOLD_OFFSET: "-30 days",            // should be an interval known by postgres + sqlite
+  STALE_OAUTH_CLIENT_PERIOD_MS: 24 * 60 * 60 * 1000,  // sweep daily
+  STALE_OAUTH_CLIENT_ABANDONED_OFFSET: "-1 day",  // grace before GCing a registration that never authorized
 
   // Don't keep doing synchronous work longer than this.
   SYNC_WORK_LIMIT_MS: appSettings.section("telemetry").section("syncWork").flag("limitMs").requireInt({
@@ -67,6 +76,7 @@ export class Housekeeper {
   private _checkVersionUpdatesTimeout?: NodeJS.Timeout;
   private _checkVersionUpdatesInterval?: NodeJS.Timeout;
   private _testProxyUrlInterval?: NodeJS.Timeout;
+  private _staleOAuthClientsInterval?: NodeJS.Timeout;
 
   private _electionKey?: string;
   private _telemetry = this._server.getTelemetry();
@@ -97,6 +107,9 @@ export class Housekeeper {
         this.testProxyUrlExclusively().catch(log.warn.bind(log));
       }, Timings.TEST_PROXY_URL_PERIOD_MS);
     }
+    this._staleOAuthClientsInterval = setInterval(() => {
+      this.deleteStaleOAuthClientsExclusively().catch(log.warn.bind(log));
+    }, Timings.STALE_OAUTH_CLIENT_PERIOD_MS);
   }
 
   /**
@@ -107,7 +120,8 @@ export class Housekeeper {
       "_deleteTrashinterval",
       "_logMetricsInterval",
       "_checkVersionUpdatesInterval",
-      "_testProxyUrlInterval"] as const) {
+      "_testProxyUrlInterval",
+      "_staleOAuthClientsInterval"] as const) {
       clearInterval(this[interval]);
       this[interval] = undefined;
     }
@@ -196,6 +210,35 @@ export class Housekeeper {
     }
   }
 
+  /**
+   * Deletes stale dynamic (null-owner) OAuth clients if elected to do so.
+   */
+  public async deleteStaleOAuthClientsExclusively(): Promise<boolean> {
+    const electionKey = await this._electionStore.getElection(
+      "stale-oauth-clients", Timings.STALE_OAUTH_CLIENT_PERIOD_MS / 2.0);
+    if (!electionKey) { return false; }
+    await this.deleteStaleOAuthClients();
+    return true;
+  }
+
+  /**
+   * Deletes stale dynamic (null-owner) OAuth clients. The activity window is the refresh-token TTL,
+   * so a client is only removed once its refresh tokens are already dead.
+   */
+  public async deleteStaleOAuthClients(): Promise<void> {
+    const dbType = this._dbManager.connection.driver.options.type;
+    const abandonedThreshold = fromNow(dbType, Timings.STALE_OAUTH_CLIENT_ABANDONED_OFFSET);
+    const deadThreshold = fromNow(dbType, `-${OAUTH_REFRESH_TOKEN_TTL_SECONDS} seconds`);
+    await this._dbManager.connection.manager.query(`
+      DELETE FROM oauth_clients
+      WHERE org_id IS NULL
+        AND created_at < ${abandonedThreshold}
+        AND NOT EXISTS (SELECT 1 FROM oauth_grants g
+                        WHERE g.oauth_client_id = oauth_clients.id
+                          AND COALESCE(g.last_used_at, g.created_at) >= ${deadThreshold})
+    `);
+  }
+
   public async testProxyUrlExclusively(): Promise<boolean> {
     const electionKey = await this._electionStore.getElection("testProxyUrl", Timings.TEST_PROXY_URL_PERIOD_MS / 2.0);
     if (!electionKey) {
@@ -262,7 +305,15 @@ export class Housekeeper {
       // We sleep occasionally during this logging. We may log many MANY lines, which can hang up a
       // server for minutes (unclear why; perhaps filling up buffers, and allocating memory very
       // inefficiently?)
+      // Route through GristServer instead of the create singleton to avoid a runtime import cycle.
+      const siteMetricsSource = this._server.getSiteMetricsSource();
+      // Drain all sites in one batch up front (a few round-trips) rather than one per site inside
+      // the sleepy loop; the loop below just reads from this map.
+      const extraMetricsByOrg = siteMetricsSource ?
+        await siteMetricsSource.getSiteMetrics(usageSummaries.map(s => s.site_id)) :
+        new Map<number, Record<string, number>>();
       await forEachWithBreaks("logMetrics siteUsage progress", usageSummaries, (summary) => {
+        const extraMetrics = extraMetricsByOrg.get(summary.site_id) ?? {};
         this._telemetry.logEvent(null, "siteUsage", {
           limited: {
             siteId: summary.site_id,
@@ -273,6 +324,7 @@ export class Housekeeper {
             numMembers: Number(summary.num_members),
             lastActivity: normalizedDateTimeString(summary.last_activity),
             earliestDocCreatedAt: normalizedDateTimeString(summary.earliest_doc_created_at),
+            ...extraMetrics,
           },
           full: {
             stripePlanId: summary.stripe_plan_id,
@@ -508,14 +560,16 @@ export class Housekeeper {
  * happen. Any time work takes more than SYNC_WORK_LIMIT_MS, will sleep for SYNC_WORK_BREAK_MS.
  * At each sleep will log a message with logText and progress info.
  */
-async function forEachWithBreaks<T>(logText: string, items: T[], callback: (item: T) => void): Promise<void> {
+async function forEachWithBreaks<T>(
+  logText: string, items: T[], callback: (item: T) => void | Promise<void>,
+): Promise<void> {
   const delayMs = Timings.SYNC_WORK_BREAK_MS;
   const itemsTotal = items.length;
   let itemsProcesssed = 0;
   const start = Date.now();
   let syncWorkStart = start;
   for (const item of items) {
-    callback(item);
+    await callback(item);
     itemsProcesssed++;
     if (Date.now() >= syncWorkStart + Timings.SYNC_WORK_LIMIT_MS) {
       log.rawInfo(logText, { itemsProcesssed, itemsTotal, delayMs });

@@ -3,6 +3,8 @@ import { transition } from "app/client/ui/transitions";
 import { bigPrimaryButton } from "app/client/ui2018/buttons";
 import { mediaSmall, testId, theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
+import { loadingSpinner } from "app/client/ui2018/loaders";
+import { ApiError } from "app/common/ApiError";
 import { tokens } from "app/common/ThemePrefs";
 
 import { dom, DomContents, DomElementArg, IDisposableOwner, Observable, styled } from "grainjs";
@@ -132,16 +134,7 @@ export function SectionItem(options: {
           cssItemShort.cls("-expandable"),
           dom.on("click", () => isCollapsed.set(!isCollapsed.get())),
         ),
-        cssExpandedContentWrap(
-          transition(isCollapsed, {
-            prepare(elem, close) { elem.style.maxHeight = close ? elem.scrollHeight + "px" : "0"; },
-            run(elem, close) { elem.style.maxHeight = close ? "0" : elem.scrollHeight + "px"; },
-            finish(elem, close) { elem.style.maxHeight = close ? "0" : "unset"; },
-          }),
-          cssExpandedContent(
-            options.expandedContent,
-          ),
-        ),
+        collapsibleContent(isCollapsed, cssExpandedContent(options.expandedContent)),
         testId(`admin-panel-item-${options.id}`),
       );
     });
@@ -157,6 +150,40 @@ export function SectionItem(options: {
       testId(`admin-panel-item-${options.id}`),
     );
   }
+}
+
+/**
+ * Wrap `content` in the animated max-height container used by collapsible settings rows, driven
+ * by `isCollapsed`. The caller owns the header and toggle; shared so every collapsible animates
+ * identically.
+ */
+export function collapsibleContent(isCollapsed: Observable<boolean>, content: DomContents): DomContents {
+  return cssExpandedContentWrap(
+    transition(isCollapsed, {
+      prepare(elem, close) { elem.style.maxHeight = close ? elem.scrollHeight + "px" : "0"; },
+      run(elem, close) { elem.style.maxHeight = close ? "0" : elem.scrollHeight + "px"; },
+      finish(elem, close) { elem.style.maxHeight = close ? "0" : "unset"; },
+    }),
+    content,
+  );
+}
+
+/**
+ * Shows an error message for an Error, or a loading spinner for an undefined argument.
+ *
+ * Convenient to use with createObsFromPromise. For instance:
+ *    const dataObs = createObsFromPromise(owner, fetchData());
+ *    dom.domComputed(dataObs, (data) => {
+ *      if (data === undefined || data instanceof Error)  { return loadingOrError(data); }
+ *      return renderFromData(data);
+ *    })
+ */
+export function loadingOrError(optError: Error | undefined): DomContents {
+  if (!optError) {
+    return cssLoading(loadingSpinner(), testId("settings-loading"));
+  }
+  const message = (optError instanceof ApiError && optError.details?.userError) || optError.message;
+  return cssError(message, testId("settings-error"));
 }
 
 export const cssSettingsPage = styled("div", `
@@ -241,7 +268,7 @@ export const cssSection = styled(cssCardSurface, `
 /**
  * Bordered card used to wrap a sub-section of a QuickSetup step
  * (e.g. Base URL or Edition inside the Server step, the toggle list
- * inside the Apply & Restart step). Inherits the shared bordered look
+ * inside the Apply & restart step). Inherits the shared bordered look
  * from {@link cssCardSurface} so it tracks the admin panel's outer cards.
  */
 export const cssQuickSetupCard = styled(cssCardSurface, `
@@ -264,6 +291,16 @@ export const cssShadowedPrimaryButton = styled(bigPrimaryButton, `
   &:disabled, &[disabled] {
     box-shadow: none;
   }
+`);
+
+const cssLoading = styled("div", `
+  text-align: center;
+  margin: 16px 0;
+`);
+
+const cssError = styled("div", `
+  color: ${theme.errorText};
+  margin: 16px 0;
 `);
 
 export const cssSectionTitle = styled("div", `

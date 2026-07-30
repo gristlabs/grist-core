@@ -98,7 +98,11 @@
         "Basic info": "Infos de base",
         "Developer": "Développeur",
         "Home": "Accueil",
-        "Profile": "Profil"
+        "Profile": "Profil",
+        "Accessibility": "Accessibilité",
+        "Enterprise": "Entreprise",
+        "OAuth apps": "Applications OAuth",
+        "OAuth apps let you connect external integrations to this Grist server with more security and convenience than when using API keys.\n\nOAuth apps are available with the [full version of Grist]({{fullGrist}}).": "Les applications OAuth vous permettent de connecter des intégrations externes à ce serveur Grist avec plus de sécurité et de praticité qu'avec une clé d'API.\n\nLes applications OAuth sont disponible avec la [version complète de Grist]({{fullGrist}})."
     },
     "AccountWidget": {
         "Sign in": "Se connecter",
@@ -148,7 +152,9 @@
         "Description": "Description",
         "Key": "Clé",
         "Memory Error": "Erreur mémoire",
-        "Translators: please translate this only when your language is ready to be offered to users": "Traducteurs : merci de ne traduire ceci que lorsque votre langue sera prête à être proposée aux utilisateurs"
+        "Translators: please translate this only when your language is ready to be offered to users": "Traducteurs : merci de ne traduire ceci que lorsque votre langue sera prête à être proposée aux utilisateurs",
+        "Disabled screen reader improvements": "Désactivé : améliorations pour lecteurs d'écran",
+        "Enabled screen reader improvements": "Activé : améliorations pour lecteurs d'écran"
     },
     "AppHeader": {
         "Home page": "Page d’accueil",
@@ -475,7 +481,8 @@
         "Allow others to suggest changes": "Permettez aux autres de suggérer des changements",
         "Enable suggestions": "Activer les suggestions",
         "Suggestions": "Suggestions",
-        "experiment": "expérimentation"
+        "experiment": "expérimentation",
+        "For number formats": "Pour les formats de nombre"
     },
     "DocumentUsage": {
         "Usage statistics are only available to users with full access to the document data.": "Les statistiques d'utilisation ne sont accessibles qu'aux utilisateurs ayant un accès complet aux données du document.",
@@ -635,7 +642,8 @@
         "Saved linked section {{title}} in view {{name}}": "Section liée {{title}} sauvegardée dans la page {{name}}",
         "go to webhook settings": "Aller aux paramétrages des points d’ancrage Web",
         "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "Les nouvelles modifications sont temporairement suspendues. La file d'attente des points d'ancrage est saturée. Veuillez vérifier les paramètres des points d'ancrage , supprimer les points d'ancrage non valides et nettoyer la file d'attente.",
-        "Import from Airtable": "Importer depuis Airtable"
+        "Import from Airtable": "Importer depuis Airtable",
+        "{{title}} widget": "vue {{title}}"
     },
     "HomeIntro": {
         "Sign up": "S'inscrire",
@@ -711,7 +719,9 @@
     },
     "LeftPanelCommon": {
         "Help Center": "Centre d'aide",
-        "Accessibility": "Accessibilité"
+        "Accessibility": "Accessibilité",
+        "(Screen reader improvements enabled)": "(Améliorations pour lecteurs d'écran activées)",
+        "Screen reader improvements enabled": "Améliorations pour lecteurs d'écran activées"
     },
     "MakeCopyMenu": {
         "Replacing the original requires editing rights on the original document.": "Le remplacement de l'original nécessite des droits d'édition sur le document d'origine.",
@@ -782,7 +792,10 @@
         "Group by": "Grouper par",
         "Add to page": "Ajouter à la Page",
         "New Table": "Nouvelle Table",
-        "SELECT BY": "SÉLECTIONNÉ PAR"
+        "SELECT BY": "SÉLECTIONNÉ PAR",
+        "{{table}} grouped by… (press to select fields)": "{{table}} groupé par… (appuyer pour choisir les champs)",
+        "Press Space to add fields": "Appuyer sur Espace pour ajouter des champs",
+        "Use up and down arrow keys to move through options. Press Enter and Esc to move between steps.": "Utilisez les flèches haut et bas pour naviguer dans les options. Appuyez sur Entrée et Échap pour naviguer entre les étapes."
     },
     "Pages": {
         "The following tables will no longer be visible_one": "La donnée source ne sera plus visible",
@@ -943,7 +956,10 @@
     },
     "ThemeConfig": {
         "Appearance ": "Apparence ",
-        "Switch appearance automatically to match system": "Adapter l'apparence au système"
+        "Switch appearance automatically to match system": "Adapter l'apparence au système",
+        "Light": "Clair",
+        "Dark": "Sombre",
+        "Light (High Contrast)": "Clair (contraste élevé)"
     },
     "Tools": {
         "TOOLS": "OUTILS",
@@ -1058,21 +1074,6 @@
         "Hide {{label}} (batch mode)": "Masquer {{label}} (mode groupé)",
         "Show {{label}} (batch mode)": "Montrer {{label}} (mode groupé)"
     },
-    "WelcomeQuestions": {
-        "Welcome to Grist!": "Bienvenue sur Grist !",
-        "Product Development": "Développement de produit",
-        "Finance & Accounting": "Finance et comptabilité",
-        "Media Production": "Production de média",
-        "IT & Technology": "Technologie informatique",
-        "Marketing": "Marketing",
-        "Research": "Recherche",
-        "Sales": "Ventes",
-        "Education": "Éducation",
-        "HR & Management": "RH et Gestion",
-        "Other": "Autres",
-        "What brings you to Grist? Please help us serve you better.": "Pourquoi utilisez-vous Grist ? Aidez-nous à l’améliorer.",
-        "Type here": "Écrire ici"
-    },
     "WidgetTitle": {
         "Override widget title": "Renommer la vue",
         "DATA TABLE NAME": "NOM DE LA TABLE",
@@ -1161,11 +1162,7 @@
         "Any": "Non défini",
         "Search columns": "Chercher des colonnes",
         "By Name": "Par Nom",
-        "By Date Modified": "Par Date de modification",
-        "Light": "Clair",
-        "Custom": "Personnalisé",
-        "Dark": "Sombre",
-        "Light (High Contrast)": "Clair (contraste élevé)"
+        "By Date Modified": "Par Date de modification"
     },
     "modals": {
         "Save": "Enregistrer",
@@ -1581,7 +1578,9 @@
         "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Nous vous remercions ! Votre confiance et votre soutien sont très appréciés. Vous pouvez vous désinscrire à tout moment en cliquant sur le {{link}} dans le menu utilisateur."
     },
     "GridView": {
-        "Click to insert": "Cliquer pour insérer"
+        "Click to insert": "Cliquer pour insérer",
+        "row {{rowNum}} {{colName}}": "ligne {{rowNum}} {{colName}}",
+        "row {{rowNum}} {{colName}} (new row)": "ligne {{rowNum}} {{colName}} (nouvelle ligne)"
     },
     "SupportGristPage": {
         "GitHub": "GitHub",
@@ -1950,7 +1949,17 @@
         "The URL where users and integrations reach this Grist server": "L'URL à laquelle les utilisateurs et les intégrations peuvent joindre ce serveur Grist",
         "What used to be called \"Grist Enterprise\" is now called \"Full Grist\".": "Ce qui était auparavant appelé \"Grist Entreprise\" est désormais appelé \"Version complète de Grist\".",
         "moved to Edition": "basculé en Édition",
-        "Installation": "Installation"
+        "Installation": "Installation",
+        "Default permissions": "Permissions par défaut",
+        "Who can create sites, log in, and use the playground": "Qui peut créer des espaces, se connecter et utiliser le bac à sable",
+        "Any pending changes will be cleared.": "Les modifications en attentes seront effacées.",
+        "Dismiss": "Rejeter",
+        "Dismiss changes": "Rejeter les modifications",
+        "Dismiss pending changes?": "Rejeter les modifications en attente ?",
+        "Dismissing...": "Rejet en cours...",
+        "How user actions can reach the outside world": "Comment les actions utilisateurs peuvent joindre le monde extérieur",
+        "Outgoing requests": "Requêtes sortantes",
+        "full Edition": "Édition complète"
     },
     "Field": {
         "No choices configured": "Aucun choix configuré",
@@ -2063,7 +2072,17 @@
         "Tell us who you are": "Dites-nous qui vous êtes",
         "What brings you to Grist (you can select multiple)?": "Qu'est-ce qui vous amène à Grist (vous pouvez en sélectionner plusieurs) ?",
         "What is your role?": "Quel est votre rôle ?",
-        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "Grist ressemble à un tableur, mais ne fonctionne pas toujours comme tel. Découvrez ce qui le rend unique."
+        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "Grist ressemble à un tableur, mais ne fonctionne pas toujours comme tel. Découvrez ce qui le rend unique.",
+        "Product Development": "Développement de produit",
+        "Finance & Accounting": "Finance et comptabilité",
+        "Media Production": "Production de média",
+        "IT & Technology": "Technologie informatique",
+        "Marketing": "Marketing",
+        "Research": "Recherche",
+        "Sales": "Ventes",
+        "Education": "Éducation",
+        "HR & Management": "RH et Gestion",
+        "Other": "Autres"
     },
     "ToggleEnterpriseWidget": {
         "Disable Grist Enterprise": "Désactiver Grist Entreprise",
@@ -2349,7 +2368,9 @@
         "You are about to enable this experimental feature: {{experiment}}": "Vous êtes sur le point d'activer cette fonctionnalité expérimentale : {{experiment}}",
         "{{experiment}} disabled.": "{{experiment}} désactivé.",
         "{{experiment}} enabled.": "{{experiment}} activé.",
-        "Notifications": "Notifications"
+        "Notifications": "Notifications",
+        "OAuth apps": "Application OAuth",
+        "Simulate deployment as core": "Simuler le déploiement comme noyau"
     },
     "NewRecordButton": {
         "New card": "Nouvelle fiche",
@@ -2365,7 +2386,8 @@
         "Create new page": "Créer une nouvelle page"
     },
     "AttachmentsWidget": {
-        "Uploading, please wait…": "En cours de téléversement, merci de patienter…"
+        "Uploading, please wait…": "En cours de téléversement, merci de patienter…",
+        "Image": "Image"
     },
     "AttachmentsEditor": {
         "Add": "Ajouter",
@@ -2401,7 +2423,10 @@
         "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.": "Les connexions websocket nécessitent HTTP 1.1 et le droit de passer quelques entêtes supplémentaires pour pouvoir fonctionner. Parfois un proxy inverse peut interférer avec ces exigences.",
         "It is good practice not to run Grist as the root user.": "C'est une bonne pratique de ne pas faire tourner Grist en tant qu'utilisateur root.",
         "The main page of Grist should be available.": "La page principale de Grist devrait être disponible.",
-        "APP_HOME_URL is the base URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "APP_HOME_URL est l'URL de base à laquelle les utilisateurs et les intégrations peuvent joindre votre serveur Grist. Les requêtes d'authentification, les liens d'API et les notifications par courriel dépendent toutes de ce paramètre pour fonctionner correctement."
+        "APP_HOME_URL is the base URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "APP_HOME_URL est l'URL de base à laquelle les utilisateurs et les intégrations peuvent joindre votre serveur Grist. Les requêtes d'authentification, les liens d'API et les notifications par courriel dépendent toutes de ce paramètre pour fonctionner correctement.",
+        "If running in a container without external storage or with default database, ": {
+            "persist should be a mounted volume. Otherwise Grist documents and metadata will be lost when the container stops.": "Si vous faites tourner un conteneur sans stockage externe ou avec la base de donnée par défaut, /persit devrait être monté comme volume. Dans le cas contraire les documents Grist et les métadonnées seront perdues à l'arrêt du conteneur."
+        }
     },
     "ChoiceListEntry": {
         "Edit": "Modifier",
@@ -2456,7 +2481,14 @@
         "{{creatorPanelShortcut}} Focus to and from the creator panel": "{{creatorPanelShortcut}} Basculer la focalisation clavier depuis et vers le panneau de création",
         "{{nextRegionShortcut}} Focus on the next region": "{{nextRegionShortcut}} Focaliser la région suivante",
         "{{prevRegionShortcut}} Focus on the previous region": "{{prevRegionShortcut}} Focaliser la région précédente",
-        "{{shortcutsModal}} Show the complete list of keyboard shortcuts": "{{shortcutsModal}} Afficher la liste complète des raccourcis claviers"
+        "{{shortcutsModal}} Show the complete list of keyboard shortcuts": "{{shortcutsModal}} Afficher la liste complète des raccourcis claviers",
+        "Enable screen reader improvements (keyboard shortcut: {{shortcut}})": "Activer les améliorations pour lecteurs d'écran (raccourci clavier : {{shortcut}})",
+        "Use your screen reader's focus mode, or disable Quick Nav if you use VoiceOver.": "Utilisez le mode focus de votre lecteur d'écran, ou désactivez la navigation rapide si vous utilisez VoiceOver.",
+        "Please first read the \"Keyboard navigation\" section above to understand how to navigate across the interface's regions: specific keyboard shortcuts need to be used.": "Lisez d'abord la section \"Navigation au clavier\" ci-dessus pour comprendre comment naviguer entre les régions de l'interface : des raccourcis clavier spécifiques doivent être utilisés.",
+        "Screen reader navigation": "Navigation avec lecteur d'écran",
+        "Warning: screen reader support is a work-in-progress in Grist and is improving over time. Feedback is greatly appreciated!": "Attention : le support des lecteurs d'écran est en cours de développement dans Grist et s'améliore régulièrement. N'hésitez pas à nous faire part de vos retours.",
+        "While not mandatory, you can enable screen reader improvements for a better navigation experience:": "Même si ce n'est pas obligatoire, vous pouvez activer les améliorations pour lecteurs d'écran pour une meilleure expérience de navigation :",
+        "We recommend using Firefox, Chrome or Edge in order to use Grist with a screen reader.": "Nous recommandons d'utiliser Firefox, Chrome ou Edge pour utiliser Grist avec un lecteur d'écran."
     },
     "ProposedChangesPage": {
         "Proposed changes": "Suggestions de modifications",
@@ -2597,7 +2629,10 @@
         "When typed at the start of a cell, make this a formula column": "Quand tapé au début d'une cellule, transformer celle-ci en colonne de formule",
         "showing a behavioral popup": "affichage d'une fenêtre contextuelle comportementale",
         "Filter this column by just this cell's value": "Filtrer cette colonne par la valeur de cette cellule uniquement",
-        "Open the context menu": "Ouvrir le menu contextuel"
+        "Open the context menu": "Ouvrir le menu contextuel",
+        "Toggle the screen reader improvements": "Activer ou désactiver les améliorations pour lecteurs d'écran",
+        "Open the current column menu": "Ouvrir le menu de la colonne actuelle",
+        "Open the current row menu": "Ouvrir le menu de la ligne actuelle"
     },
     "GridViewMenusDateHelpers": {
         "12-hour format": "format 12-heures",
@@ -2662,7 +2697,12 @@
         "To set up {{provider}}, you need to register your Grist server on getgrist.com and paste the configuration key you receive below.": "Pour mettre en place {{provider}}, vous devez enregistrer votre instance Grist sur getgrist.com et coller la clé de configuration que vous avez reçue ci-dessous.",
         "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.": "Quand il se connecteront, les utilisateurs seront redirigés sur la page de connexion de getgrist.com pour se connecter ou se créer un compte. Après s'être authentifié sur getgrist.com, ils seront redirigés sur votre instance de Grist et connecté en tant que l'utilisateur qu'ils ont authentifié.",
         "Managed authentication by Grist Labs.": "Authentification gérée par Grist Labs.",
-        "Your server uses getgrist.com authentication. Users sign in with their getgrist.com account.": "Vous serveur utilise getgrist.com pour authentifier les utilisateurs. Les utilisateurs se connectent grâce à leur compte sur getgrist.com."
+        "Your server uses getgrist.com authentication. Users sign in with their getgrist.com account.": "Vous serveur utilise getgrist.com pour authentifier les utilisateurs. Les utilisateurs se connectent grâce à leur compte sur getgrist.com.",
+        "Error configuring provider with the provided key: {{reason}}": "Une erreur est survenue en configurant le fournisseur avec la clé fournisseur : {{reason}}",
+        "Ideal for testing and prototyping. Sign in with a getgrist.com account, with no identity provider to configure.": "Idéal pour tester et prototyper. Connectez-vous avec un compte getgrist.com, sans fournisseur d'identité à configurer.",
+        "Recommended": "Recommandé",
+        "Use getgrist.com sign-in": "Utilisez la connexion getgrist.com",
+        "You can switch to OIDC, SAML, or another method at any time.": "Vous pouvez changer pour l'OIDC, le SAML ou n'importe quelle méthode à tout moment."
     },
     "AuthenticationSection": {
         "Active": "Active",
@@ -2772,7 +2812,18 @@
         "Your server is using a boot key as a fallback login method. Configure one of the authentication methods below.": "Votre serveur utilise une clé d'amorçage comme méthode de connexion alternative. Configurez une des méthodes d'authentification ci-dessous.",
         "Your server trusts authentication from a reverse proxy. Make sure only your proxy can reach the Grist backend.": "Votre serveur fait confiance à une authentification provenant d'un proxy inversé. Assurez-vous que seul votre proxy puisse joindre le backend de Grist.",
         "Authentication": "Authentification",
-        "Choose how users sign in to Grist.": "Choisissez comment les utilisateurs se connectent à Grist."
+        "Choose how users sign in to Grist.": "Choisissez comment les utilisateurs se connectent à Grist.",
+        "New admin email": "Nouvel e-mail d'administration",
+        "Reassign login to admin": "Réaffecter les droits de connexion en droit d'administration",
+        "The change will be saved when you apply pending changes, and will go into effect after you restart Grist.": "La modification sera sauvegardée lorsque vous appliquerez les modifications en attente, puis prendra effet après le redémarrage de Grist.",
+        "The change will be saved when you apply pending changes, and will take effect after you restart Grist.": "La modification sera sauvegardée lorsque vous appliquerez les modifications en attente, puis prendra effet après le redémarrage de Grist.",
+        "configuration updated": "configuration mise à jour",
+        "disabled": "désactivé",
+        "Anyone who can reach this server can access all data without signing in. You can configure authentication later from the admin panel.": "Toute personne pouvant accéder à ce serveur peut accéder à la totalité de ces données sans se connecter. Vous pouvez configurer authentification plus tard depuis le panneau d'administration.",
+        "Choose how people sign in. You can change this anytime after setup.": "Choisir comment les personnes se connectent. Vous pouvez changer cela n'importe quand après l'installation.",
+        "Continue without authentication": "Continuez sans authentification",
+        "Or connect your own identity provider": "Ou connectez votre propre fournisseur d'identité",
+        "Skip authentication setup?": "Sauter l’installation de l'authentification ?"
     },
     "DetailView": {
         "This row is unavailable or does not exist": "Cette ligne est indisponible ou n’existe pas"
@@ -2830,7 +2881,8 @@
         "Enter new admin email": "Entrez le nouvel e-mail d'administration",
         "Make the new email the installation admin. Orgs, workspaces, and documents will remain owned by {{email}}. These changes will take effect after you restart this Grist server.": "Faire du nouvel e-mail l'administrateur d'installation. Les Espaces d'équipes, Dossiers, et documents resteront la propriété de {{email}}. Ces changements seront effectifs après le redémarrage du serveur Grist.",
         "New admin": "Nouvel administrateur",
-        "Replace {{email}} with the new email throughout. The new email will become the installation admin, as well as the owner of all materials previously owned by you@example.com.": "Remplacer complètement {{email}} par le nouvel e-mail d'administration. Le nouvel e-mail deviendra l'administrateur d'installation, ainsi que le propriétaire de tout les éléments appartenant précédemment à vous@exemple.fr."
+        "Replace {{email}} with the new email throughout. The new email will become the installation admin, as well as the owner of all materials previously owned by you@example.com.": "Remplacer complètement {{email}} par le nouvel e-mail d'administration. Le nouvel e-mail deviendra l'administrateur d'installation, ainsi que le propriétaire de tout les éléments appartenant précédemment à vous@exemple.fr.",
+        "An account with {{email}} already exists.": "Un compte {{email}} existe déjà."
     },
     "startDocAirtableImport": {
         "Import from Airtable": "Importer depuis Airtable"
@@ -2893,7 +2945,11 @@
         "Review these defaults before going live. You can change them later from the admin panel.": "Vérifiez ces paramètres par défaut avant le lancement. Vous pouvez les modifier plus tard depuis le portail d'administration.",
         "Server did not restart in time. Please refresh the page.": "Le serveur n'a pas redémarré à temps. Merci d'actualiser la page.",
         "Some settings are controlled by environment variables and cannot be changed here: {{vars}}. To modify them, update the corresponding variables in your server configuration and restart.": "Quelques paramètres sont contrôlés par des variables d'environnement et ne peuvent pas être modifiés ici : {{vars}}. Pour les modifier, mettez à jour les variables correspondantes dans votre configuration de serveur puis redémarrez.",
-        "The personal org is the only org available — personal sites must stay enabled or Grist will be non-functional.": "L'organisation personnelle est la seule disponible — les espaces personnels doivent rester activés sous peine de dysfonctionnement de Grist."
+        "The personal org is the only org available — personal sites must stay enabled or Grist will be non-functional.": "L'organisation personnelle est la seule disponible — les espaces personnels doivent rester activés sous peine de dysfonctionnement de Grist.",
+        "Apply & restart": "Appliquer et redémarrer",
+        "Apply and go live!": "Appliquer et hop en prod !",
+        "Custom": "Personnalisé",
+        "loading…": "Chargement en cours…"
     },
     "SandboxSection": {
         "Active": "Actif",
@@ -2912,7 +2968,9 @@
         "Skip and Continue": "Ignorer et poursuivre",
         "Uses the built-in macOS sandbox. Good isolation for local use on a Mac.": "Utilise le bac à sable macOS préconfiguré. Permet une bonne isolation pour une utilisation locale sur un Mac.",
         "macOS Sandbox": "Bac à sable macOS",
-        "Sandbox": "Bac à sable"
+        "Sandbox": "Bac à sable",
+        "No sandbox": "Pas de sandbox",
+        "macOS sandbox": "Sandbox macOS"
     },
     "AdminPanelCss": {
         "Confirmed": "Confirmé",
@@ -2961,7 +3019,9 @@
         "Your installation does not bundle the Full Grist edition. Want Full Grist? {{enableLink}}": "Votre installation n'inclut pas la version complète de Grist. Vous souhaitez obtenir la version complète ? {{enableLink}}",
         "community": "communautaire",
         "full": "complète",
-        "pricing": "tarification"
+        "pricing": "tarification",
+        "Community edition": "Édition communautaire",
+        "I understand I am running Grist Community edition": "J'ai compris que je suis en train d'utiliser la version communautaire de Grist"
     },
     "QuickSetupServerStep": {
         "Apply and Continue": "Appliquer et poursuivre",
@@ -2977,7 +3037,8 @@
     "AccountLeftPanel": {
         "Account settings": "Paramètres du compte",
         "Developer": "Développeur",
-        "Profile": "Profil"
+        "Profile": "Profil",
+        "Authorized apps": "Applications autorisées"
     },
     "SettingsLayout": {
         "Authentication": "Authentification",
@@ -3040,7 +3101,8 @@
         "Quick setup": "Paramétrage rapide",
         "Sandboxing": "Mise en bac à sable",
         "Server": "Serveur",
-        "Continue": "Continuer"
+        "Continue": "Continuer",
+        "Set up later": "Installer plus tard"
     },
     "ServiceStatus": {
         "Enter maintenance mode": "Entrer en mode maintenance",
@@ -3074,6 +3136,75 @@
         "Set these environment variables and restart Grist to enable Azure storage:": "Définissez ces variables d'environnement et redémarrez Grist pour activer le stockage Azure :",
         "Set these environment variables and restart Grist to enable MinIO storage:": "Définissez ces variables d'environnement et redémarrez Grist pour activer le stockage MinIO :",
         "Set these environment variables and restart Grist to enable S3 storage:": "Définissez ces variables d'environnement et redémarrez Grist pour activer le stockage S3 :",
-        "Store document backups on an external service like S3 or Azure.           This protects against data loss if the server's disk fails.": "Conserver les sauvegardes des documents sur un service externe comme S3 ou Azure.           Cela vous protège contre la perte de données si le disque dur du serveur dysfonctionne."
+        "Store document backups on an external service like S3 or Azure.           This protects against data loss if the server's disk fails.": "Conserver les sauvegardes des documents sur un service externe comme S3 ou Azure.           Cela vous protège contre la perte de données si le disque dur du serveur dysfonctionne.",
+        "Local filesystem (test only)": "Système de fichier local (pour test uniquement)",
+        "Stores document snapshots on the local filesystem. For tests only, not production.": "Sauvegarde les instantanés des documents sur le système de fichier local. Uniquement pour les tests, ne pas mettre en production.",
+        "Action needed": "Action nécéssaire",
+        "To preserve it, mount a volume at ": {
+            "persist.": "Pour le préserver, montez un volume sur /persist."
+        },
+        "Your data may not survive a container restart.": "Vos données ne survivrons pas au redémarrage du conteneur."
+    },
+    "ScreenReaderAnnouncer": {
+        "Notification: {{notification}}": "Notification : {{notification}}"
+    },
+    "ScreenReaderConfig": {
+        "Enable screen reader improvements": "Activer les améliorations pour lecteurs d'écran",
+        "Press {{accessibilityModalShortcut}} for more information about screen reader navigation.": "Appuyez sur {{accessibilityModalShortcut}} pour plus d'informations à propos de la navigation avec lecteur d'écran."
+    },
+    "ScreenReaderFormatters": {
+        "Checked": "Coché",
+        "Image": "Image",
+        "Toggled off": "Désactivé",
+        "Toggled on": "Activé",
+        "Unchecked": "Non coché",
+        "heading {{- text}}": "titre {{- text}}",
+        "link {{- label}}": "lien {{- label}}",
+        "list: {{- items}}": "liste: {{- items}}",
+        "{{- text}} (link)": "{{- text}} (lien)"
+    },
+    "AdminAccessDeniedCard": {
+        "Administrator Panel Unavailable": "Panneau d'administration indisponible",
+        "If you are the server operator, you can sign in using the boot key from your server logs.": "Si vous êtes l'administrateur du serveur, vous pouvez vous identifier en utilisant la boot key disponible dans les logs de votre serveur.",
+        "Sign in with boot key": "S'identifier avec la boot key",
+        "You do not have access to the administrator panel.\nPlease log in as an administrator.": "Vous n'avez pas accès au panneau d’administration.\nConnectez-vous en tant qu'administrateur."
+    },
+    "PermissionsToggleModel": {
+        "Allow anonymous access": "Autoriser les accès anonymes",
+        "Allow anonymous playground": "Autoriser le bac à sable anonyme",
+        "Allow anyone to create team sites": "Autoriser tout le monde à créer des espaces d'équipe",
+        "Allow personal sites": "Autoriser les espaces personnels",
+        "Any logged-in user can create new team sites. Turn off to restrict team creation to admins only.": "Tous les utilisateurs connectés peuvent créer de nouveaux espaces d'équipe. Désactiver pour restreindre la création d'espace d'équipe aux seuls administrateurs.",
+        "Permissions": "Permissions",
+        "Users can create their own personal sites with documents. Turn off to restrict all documents to team sites managed by admins.": "Les utilisateurs peuvent créer leur propres espaces personnels avec des documents. Désactiver pour n'autoriser la création de documents que dans des espaces d'équipes gérés par des administrateurs.",
+        "Visitors who aren't signed in can create and edit documents in a temporary playground. Turn off to require sign-in before creating any documents.": "Les visiteurs qui ne sont pas connectés peuvent créer et éditer des documents en mode bac à sable. Désactiver pour imposer la connexion avant de pouvoir créer un document.",
+        "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.": "Les visiteurs qui ne sont pas connectés peuvent voir les documents publiques. C'est nécessaire pour le partage de liens et les formulaires.",
+        "off": "désactivé",
+        "on": "activé"
+    },
+    "OutgoingRequestsStatus": {
+        "Allowed: any host (*)": "Autorisé : tous les hôtes (*)",
+        "Allowed: {{list}}": "Autorisé : {{list}}",
+        "Any editor could trigger a request to an internal URL.": "Tous les éditeurs pourraient déclencher une requête à une URL interne.",
+        "Any host is allowed and no URL filter is in place.": "Tous les éditeurs sont autorisés et aucun filtre d'URL n'est en place.",
+        "Checking…": "Vérification…",
+        "For example, checking for updates or talking to your single sign-on provider.": "Par exemple, vérifier les mises à jour ou communiquer avec votre fournisseur de service d'authentification unifié.",
+        "Grist connects directly. No HTTPS proxy is in place.": "Grist se connecte directement. Aucun proxy HTTPS n'est en place.",
+        "Grist routes those requests through the URL filter you've set up.": "Grist redirige ces requêtes à travers le filtre d'URL que vous avez configuré.",
+        "Grist sends them straight out. You've opted out of URL filtering.": "Grist les envoie directement. Vous avez désactivé le filtrage d'URL.",
+        "No URL filter is set up. Features that need one stay switched off.": "Aucun filtre d'URL n'est configuré. Les fonctions qui en nécessitent un sont désactivées.",
+        "Not filtered.": "Non filtré.",
+        "Open to any host. The URL proxy is what keeps this safe.": "Ouvert à n'importe quel hôte. Un proxy d'URL permet d'assurer la sécurité de ce système.",
+        "Search docs for: {{envVar}}": "Rechercher les documents pour : {{envVar}}",
+        "These requests go through your HTTPS proxy.": "Ces requêtes passent à travers votre proxy HTTPS.",
+        "Three features can make Grist send HTTP requests on behalf of your users. Here's how each one is set up right now.": "Trois fonctionnalités peuvent permettre à Grist d'envoyer des requêtes HTTP au nom de vos utilisateurs. Voici comment chacune d'entre elles est actuellement configurée.",
+        "When Grist itself reaches out…": "Quand Grist lui-même se connecte…",
+        "When your users reach out…": "Quand vos utilisateurs se connectent…",
+        "bypassed": "contourné",
+        "checking": "vérification",
+        "filtered": "filtré",
+        "not configured": "non configuré",
+        "review": "revue",
+        "unfiltered": "non filtré"
     }
 }

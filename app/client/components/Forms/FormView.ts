@@ -502,7 +502,7 @@ export class FormView extends BaseView {
         async (dontShowAgain) => {
           await this._publishForm();
           if (dontShowAgain) {
-            this.gristDoc.appModel.dismissPopup("publishForm", true);
+            this.gristDoc.appModel.dismissPopup("publishForm");
           }
         },
         {
@@ -594,7 +594,7 @@ fields, such as reference and choice columns.",
         async (dontShowAgain) => {
           await this._unpublishForm();
           if (dontShowAgain) {
-            this.gristDoc.appModel.dismissPopup("unpublishForm", true);
+            this.gristDoc.appModel.dismissPopup("unpublishForm");
           }
         },
         {

@@ -764,6 +764,15 @@ export const TelemetryContracts: TelemetryContracts = {
           'The ids of widgets not created by Grist Labs are replaced with "externalId".',
         dataType: "string[]",
       },
+      // MCP usage deltas, drained from the MCP usage tracker; implementation lives in ext/.
+      mcpToolCallsDelta: {
+        description: "MCP tool calls for this document since the last reading.",
+        dataType: "number",
+      },
+      mcpUsersDelta: {
+        description: "Unique MCP users for this document since the last reading.",
+        dataType: "number",
+      },
     },
   },
   "processMonitor": {
@@ -944,6 +953,15 @@ export const TelemetryContracts: TelemetryContracts = {
       earliestDocCreatedAt: {
         description: "A timestamp of the earliest non-deleted document creation time.",
         dataType: "date",
+      },
+      // MCP usage deltas, drained from the MCP usage tracker; implementation lives in ext/.
+      mcpToolCallsDelta: {
+        description: "MCP tool calls for this site since the last reading.",
+        dataType: "number",
+      },
+      mcpUsersDelta: {
+        description: "Unique MCP users for this site since the last reading.",
+        dataType: "number",
       },
     },
   },
@@ -1844,6 +1862,75 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
+  // MCP server telemetry contracts; the MCP server implementation lives in ext/.
+  "mcpToolCall": {
+    category: "MCPServer",
+    description: "Triggered when an MCP tool is called.",
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: "indefinitely",
+    metadataContracts: {
+      toolName: {
+        description: "The MCP tool name.",
+        dataType: "string",
+      },
+      method: {
+        description: "The JSON-RPC method.",
+        dataType: "string",
+      },
+      success: {
+        description: "Whether the tool call succeeded.",
+        dataType: "boolean",
+      },
+      sessionId: {
+        description: "The Mcp-Session-Id header, if present.",
+        dataType: "string",
+      },
+      docIdDigest: {
+        description: "A hash of the doc id, if the call targets a document.",
+        dataType: "string",
+      },
+      orgId: {
+        description: "The org id, present for doc-level calls.",
+        dataType: "number",
+      },
+      userId: {
+        description: "The user id.",
+        dataType: "number",
+      },
+      durationMs: {
+        description: "Wall-clock duration of the tool call in milliseconds.",
+        dataType: "number",
+      },
+    },
+  },
+  "mcpSessionStart": {
+    category: "MCPServer",
+    description: "Triggered when an MCP session is initialized.",
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: "indefinitely",
+    metadataContracts: {
+      sessionId: {
+        description: "The Mcp-Session-Id issued on initialize.",
+        dataType: "string",
+      },
+      userId: {
+        description: "The user id.",
+        dataType: "number",
+      },
+      clientName: {
+        description: "The MCP client name from clientInfo.",
+        dataType: "string",
+      },
+      clientVersion: {
+        description: "The MCP client version from clientInfo.",
+        dataType: "string",
+      },
+      userAgent: {
+        description: "The User-Agent header.",
+        dataType: "string",
+      },
+    },
+  },
 };
 
 type TelemetryContracts = Record<TelemetryEvent, TelemetryEventContract>;
@@ -1917,6 +2004,8 @@ export const TelemetryEvents = StringUnion(
   "submittedForm",
   "changedAccessRules",
   "checkedUpdateAPI",
+  "mcpToolCall",
+  "mcpSessionStart",
 );
 export type TelemetryEvent = typeof TelemetryEvents.type;
 
@@ -1932,7 +2021,8 @@ type TelemetryEventCategory =
   "ProductVisits" |
   "AccessRules" |
   "WidgetUsage" |
-  "SelfHosted";
+  "SelfHosted" |
+  "MCPServer";
 
 interface TelemetryEventContract {
   description: string;

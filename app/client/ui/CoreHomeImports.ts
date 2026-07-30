@@ -1,22 +1,16 @@
 import { PluginScreen } from "app/client/components/PluginScreen";
 import { guessTimezone } from "app/client/lib/guessTimezone";
 import { ImportSourceElement } from "app/client/lib/ImportSourceElement";
-import { EXTENSIONS_IMPORTABLE_AS_DOC } from "app/client/lib/uploads";
-import { uploadFiles } from "app/client/lib/uploads";
+import { checkBrowserUploadSizeLimit, EXTENSIONS_IMPORTABLE_AS_DOC } from "app/client/lib/uploads";
 import { AppModel, reportError } from "app/client/models/AppModel";
 import { openFilePicker } from "app/client/ui/FileDialog";
 import { ImportProgress } from "app/client/ui/ImportProgress";
 import { byteString } from "app/common/gutil";
 
-import { AxiosProgressEvent } from "axios";
-
 /**
  * Imports a document and returns its docId, or null if no files were selected.
  */
 export async function docImport(app: AppModel, workspaceId: number | "unsaved"): Promise<string | null> {
-  // We use openFilePicker() and uploadFiles() separately, rather than the selectFiles() helper,
-  // because we only want to connect to a docWorker if there are in fact any files to upload.
-
   // Start selecting files.  This needs to start synchronously to be seen as a user-initiated
   // popup, or it would get blocked by default in a typical browser.
   const files: File[] = await openFilePicker({
@@ -24,6 +18,7 @@ export async function docImport(app: AppModel, workspaceId: number | "unsaved"):
     accept: EXTENSIONS_IMPORTABLE_AS_DOC.join(","),
   });
 
+  // Avoid connecting to the docWorker if no files need importing.
   if (!files.length) { return null; }
 
   return await fileImport(files, app, workspaceId);
@@ -40,22 +35,17 @@ export async function fileImport(
   try {
     const timezone = await guessTimezone();
 
+    const onProgress = (percent?: number) => {
+      if (percent !== undefined) { progress.setUploadProgress(percent); }
+    };
     if (workspaceId === "unsaved") {
-      function onUploadProgress(ev: AxiosProgressEvent) {
-        if (ev.event.lengthComputable) {
-          progress.setUploadProgress(ev.event.loaded / ev.event.total * 100);   // percentage complete
-        }
-      }
-      return await app.api.importUnsavedDoc(files[0], { timezone, onUploadProgress });
+      return await app.api.importUnsavedDoc(files[0], { timezone, onProgress });
     } else {
       // Connect to a docworker.  Imports share some properties of documents but not all. In place of
       // docId, for the purposes of work allocation, we use the special assigmentId `import`.
       const docWorker = await app.api.getWorkerAPI("import");
-
-      // This uploads to the docWorkerUrl saved in window.gristConfig
-      const uploadResult = await uploadFiles(files, { docWorkerUrl: docWorker.url, sizeLimit: "import" },
-        p => progress.setUploadProgress(p));
-      const importResult = await docWorker.importDocToWorkspace(uploadResult!.uploadId, workspaceId, { timezone });
+      checkBrowserUploadSizeLimit(files, "import");
+      const importResult = await docWorker.importDocToWorkspace(files, workspaceId, { timezone, onProgress });
       return importResult.id;
     }
   } catch (err) {

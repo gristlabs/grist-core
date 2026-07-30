@@ -35,7 +35,7 @@ export async function sectionIsExpanded() {
  */
 export async function openCollapsedSectionMenu(section: string | RegExp) {
   await getCollapsedSection(section).find(`.test-section-menu-viewLayout`).click();
-  await gu.findOpenMenu(100);
+  await gu.findOpenMenu();
 }
 
 export function getCollapsedSection(section: string | RegExp) {

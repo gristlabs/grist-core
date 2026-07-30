@@ -16,6 +16,7 @@ import {
   RefValuesByColumnId,
   TableReferenceTracker,
 } from "app/common/airtable/AirtableReferenceTracker";
+import { isRefListType } from "app/common/gristTypes";
 import { AddOrUpdateRecord } from "app/plugin/DocApiTypes";
 import { CellValue, GristObjCode } from "app/plugin/GristData";
 import { convertToBulkColValues } from "app/plugin/TableOperationsImpl";
@@ -54,6 +55,7 @@ export async function importDataFromAirtableBase(
       .map(mapping => ({
         id: mapping.gristColumn.id,
         tableId: resolveLinkedTableId(schemaCrosswalk, mapping.airtableField),
+        isList: isRefListType(mapping.gristColumn.type),
       }));
 
     let tableReferenceTracker: TableReferenceTracker | undefined;

@@ -34,6 +34,28 @@ import * as weasel from "popweasel";
 
 const t = makeT("GridViewMenus");
 
+// Translate the label of a column type. Labels come from `UserType.typeDefs[X].label`
+// (see app/client/widgets/UserType.ts), so the set is fixed. The explicit switch lets
+// i18next-scanner see every key as a literal `t(...)` call; without it, dynamic
+// `t(label)` would make these keys look orphaned to the scanner.
+export function translateColumnTypeLabel(label: string): string {
+  switch (label) {
+    case "Any": return t("Any");
+    case "Text": return t("Text");
+    case "Numeric": return t("Numeric");
+    case "Integer": return t("Integer");
+    case "Toggle": return t("Toggle");
+    case "Date": return t("Date");
+    case "DateTime": return t("DateTime");
+    case "Choice": return t("Choice");
+    case "Choice List": return t("Choice List");
+    case "Reference": return t("Reference");
+    case "Reference List": return t("Reference List");
+    case "Attachment": return t("Attachment");
+    default: return label;
+  }
+}
+
 export function buildAddColumnMenu(gridView: GridView, index?: number) {
   const isSummaryTable = Boolean(gridView.viewSection.table().summarySourceTable());
   return [
@@ -66,7 +88,7 @@ export function getColumnTypes(gristDoc: GristDoc, tableId: string, pure = false
       testIdName: string,
       icon: IconName | undefined,
       openCreatorPanel: boolean } => ({
-      displayName: t(ct.obj.label),
+      displayName: translateColumnTypeLabel(ct.obj.label),
       colType: ct.type,
       testIdName: ct.obj.label.toLowerCase().replace(" ", "-"),
       icon: ct.obj.icon,

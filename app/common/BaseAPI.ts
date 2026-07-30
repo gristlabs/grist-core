@@ -6,8 +6,17 @@ import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 export interface IOptions {
   headers?: Record<string, string>;
   fetch?: typeof fetch;
-  newFormData?: () => FormData;  // constructor for FormData depends on platform.
   extraParameters?: Map<string, string>;  // if set, add query parameters to requests.
+  // If set, add the page's "View as" (aclAsUser) params to requests, so URLs this API builds
+  // resolve as the impersonated user, not the owner. Browser-only, and only needed for URLs the
+  // browser fetches directly (downloads, <img> src).
+  propagateViewAs?: boolean;
+}
+
+export interface UploadProgressCallbacks {
+  // Called whenever a progress event is emitted during the upload.
+  // Percent is a number between 0 and 100, or undefined if progress is not available / incalculable.
+  onProgress?: (percent?: number) => void;
 }
 
 /**
@@ -50,13 +59,11 @@ export class BaseAPI {
   private static _numPendingRequests: number = 0;
 
   protected fetch: typeof fetch;
-  protected newFormData: () => FormData;
   private _headers: Record<string, string>;
   private _extraParameters?: Map<string, string>;
 
   constructor(public readonly options: IOptions = {}) {
     this.fetch = options.fetch || tbind(window.fetch, window);
-    this.newFormData = options.newFormData || (() => new FormData());
     this._headers = {
       "Content-Type": "application/json",
       "X-Requested-With": "XMLHttpRequest",
@@ -75,6 +82,16 @@ export class BaseAPI {
       }
     }
     this._extraParameters = options.extraParameters;
+    // Like the boot-key fallback above, read "View as" params straight off the page URL.
+    if (options.propagateViewAs && typeof window !== "undefined") {
+      const sp = new URLSearchParams(window.location?.search);
+      // Prefer the id form, as "View as" links do.
+      const key = sp.has("aclAsUserId_") ? "aclAsUserId_" : sp.has("aclAsUser_") ? "aclAsUser_" : undefined;
+      if (key) {
+        this._extraParameters = new Map(this._extraParameters);
+        this._extraParameters.set(key, sp.get(key)!);
+      }
+    }
   }
 
   // Make a modified request, exposed for test convenience.
@@ -95,17 +112,11 @@ export class BaseAPI {
   // Similar to request, but uses the axios library, and supports progress indicator.
   @BaseAPI.countRequest
   protected async requestAxios(url: string, config: AxiosRequestConfig): Promise<AxiosResponse> {
-    // If using with FormData in node, axios needs the headers prepared by FormData.
-    let headers = config.headers;
-    if (config.data && typeof config.data.getHeaders === "function") {
-      headers = { ...config.data.getHeaders(), ...headers };
-    }
     const resp = await axios.request({
       url,
       withCredentials: true,
       validateStatus: status => true,     // This is more like fetch
       ...config,
-      headers,
     });
     if (resp.status !== 200) {
       throwApiError(url, resp, resp.data);
@@ -113,8 +124,56 @@ export class BaseAPI {
     return resp;
   }
 
+  protected async requestWithFormData(url: string, formData: FormData, options: UploadProgressCallbacks = {}) {
+    const { onProgress } = options;
+    onProgress?.(0);
+    const resp = await this.requestAxios(url, {
+      method: "POST",
+      data: formData,
+      onUploadProgress: ev => onProgress?.(ev.progress === undefined ? undefined : ev.progress * 100),
+      // On browser, it is important not to set Content-Type so that the browser takes care
+      // of setting HTTP headers appropriately.  Outside browser, requestAxios has logic
+      // for setting the HTTP headers.
+      headers: { ...this.defaultHeadersWithoutContentType() },
+    });
+    onProgress?.(100);
+    return resp;
+  }
+
   @BaseAPI.countRequest
   protected async request(input: string, init: RequestInit = {}): Promise<Response> {
+    return this._doRequest(input, init);
+  }
+
+  /**
+   * Like `request`, but bypasses the pending-request counter. Use for background work
+   * the user isn't waiting on (e.g. prefetches), so tests' `waitForServer` doesn't block.
+   */
+  protected async requestUncounted(input: string, init: RequestInit = {}): Promise<Response> {
+    return this._doRequest(input, init);
+  }
+
+  /**
+   * Make a request, and read the response as JSON. This allows counting the request as pending
+   * until it has been read, which is relied on by tests.
+   */
+  @BaseAPI.countRequest
+  protected async requestJson(input: string, init: RequestInit = {}): Promise<any> {
+    return (await this._doRequest(input, init)).json();
+  }
+
+  /** Like `requestJson`, but bypasses the pending-request counter. See `requestUncounted`. */
+  protected async requestJsonUncounted(input: string, init: RequestInit = {}): Promise<any> {
+    return (await this._doRequest(input, init)).json();
+  }
+
+  // The extra query params (e.g. "View as" aclAsUser_) also sent with every request, exposed so
+  // URL builders for browser-fetched resources (downloads, <img> src) can include them too.
+  protected get extraParameters(): Record<string, string> {
+    return this._extraParameters ? Object.fromEntries(this._extraParameters) : {};
+  }
+
+  private async _doRequest(input: string, init: RequestInit): Promise<Response> {
     init = Object.assign({ headers: this._headers, credentials: "include" }, init);
     if (this._extraParameters) {
       const url = new URL(input);
@@ -129,15 +188,6 @@ export class BaseAPI {
       throwApiError(input, resp, body);
     }
     return resp;
-  }
-
-  /**
-   * Make a request, and read the response as JSON. This allows counting the request as pending
-   * until it has been read, which is relied on by tests.
-   */
-  @BaseAPI.countRequest
-  protected async requestJson(input: string, init: RequestInit = {}): Promise<any> {
-    return (await this.request(input, init)).json();
   }
 }
 

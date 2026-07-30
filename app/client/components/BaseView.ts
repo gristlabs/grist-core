@@ -880,6 +880,14 @@ export default class BaseView extends DisposableWithEvents {
   }
 
   /**
+   * Announces the currently focused item in the view to screen readers.
+   * This is called by the grist document when the view becomes the focused one.
+   * Derived views may override.
+   */
+  public announceCurrentItem(): void {
+  }
+
+  /**
    * Called to obtain the rowModel for the given rowId. Returns a rowModel if it belongs to the
    * section and is rendered, otherwise returns null.
    * Useful to tie a rendered row to the row being edited. Derived views may override.

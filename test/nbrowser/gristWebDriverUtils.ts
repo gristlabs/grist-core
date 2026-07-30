@@ -276,8 +276,9 @@ export class GristWebDriverUtils {
     await this.waitForServer();
   }
 
-  public async reloadDoc() {
+  public async reloadDoc(opt: { skipAlert?: boolean } = {}) {
     await this.driver.navigate().refresh();
+    if (opt.skipAlert && await this.isAlertShown()) { await this.acceptAlert(); }
     await this.waitForDocToLoad();
   }
 

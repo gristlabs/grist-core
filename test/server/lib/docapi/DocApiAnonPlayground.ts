@@ -33,7 +33,7 @@ describe("DocApiAnonPlayground", function() {
     tmpDir = path.join(tmpdir(), `grist_test_${username}_docapi-anon-playground`);
     await prepareFilesystemDirectoryForTests(tmpDir);
     oldEnv = new testUtils.EnvironmentSnapshot();
-    await prepareDatabase(tmpDir);
+    await prepareDatabase(tmpDir, oldEnv);
 
     // Create data directory
     const dataDir = path.join(tmpDir, "anon-playground-data");

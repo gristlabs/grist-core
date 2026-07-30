@@ -46,6 +46,24 @@ const choices: { icon: IconName, color: string, textKey: string }[] = [
   { icon: "UseOther",   color: "#929299",              textKey: "Other"               },
 ];
 
+// Translate an onboarding choice label. Keys are pinned in the `choices` array above;
+// the explicit switch lets i18next-scanner see them as literal `t(...)` calls.
+function translateOnboardingChoice(textKey: string): string {
+  switch (textKey) {
+    case "Product Development": return t("Product Development");
+    case "Finance & Accounting": return t("Finance & Accounting");
+    case "Media Production": return t("Media Production");
+    case "IT & Technology": return t("IT & Technology");
+    case "Marketing": return t("Marketing");
+    case "Research": return t("Research");
+    case "Sales": return t("Sales");
+    case "Education": return t("Education");
+    case "HR & Management": return t("HR & Management");
+    case "Other": return t("Other");
+    default: return textKey;
+  }
+}
+
 export function shouldShowOnboardingPage(userPrefsObs: Observable<UserPrefs>): boolean {
   return Boolean(getGristConfig().survey && userPrefsObs.get()?.showNewUserQuestions);
 }
@@ -202,9 +220,9 @@ function buildQuestions(owner: IDisposableOwner, incrementStep: IncrementStep, s
           cssUseCase.cls("-selected", useCases[i]),
           dom.on("click", () => useCases[i].set(!useCases[i].get())),
           (item.icon !== "UseOther" ?
-            t(item.textKey) :
+            translateOnboardingChoice(item.textKey) :
             [
-              cssOtherLabel(t(item.textKey)),
+              cssOtherLabel(translateOnboardingChoice(item.textKey)),
               cssOtherInput(useOther, {}, { type: "text", placeholder: t("Type here") },
                 // The following subscribes to changes to selection observable, and focuses the input when
                 // this item is selected.

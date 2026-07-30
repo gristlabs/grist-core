@@ -565,21 +565,6 @@
     "Inherit access: ": "繼承存取權限： ",
     "Access overview": "存取權限總覽"
   },
-  "WelcomeQuestions": {
-    "Welcome to Grist!": "歡迎來到 Grist！",
-    "HR & Management": "人力資源與管理",
-    "Sales": "銷售",
-    "Marketing": "行銷",
-    "Type here": "在此輸入",
-    "Other": "其他",
-    "Product Development": "產品開發",
-    "Media Production": "媒體製作",
-    "What brings you to Grist? Please help us serve you better.": "您是怎麼認識 Grist 的？請告訴我們如何能更好地為您服務。",
-    "Education": "教育",
-    "IT & Technology": "資訊科技與科技",
-    "Finance & Accounting": "財務與會計",
-    "Research": "研究"
-  },
   "PagePanels": {
     "Open creator panel": "開啟建立者面板",
     "Close Creator Panel": "關閉建立者面板"
@@ -807,9 +792,7 @@
     "DateTime": "日期時間",
     "Date": "日期",
     "By Name": "依名稱",
-    "By Date Modified": "依修改日期",
-    "Light": "日間",
-    "Custom": "自訂"
+    "By Date Modified": "依修改日期"
   },
   "DocPageModel": {
     "Sorry, access to this document has been denied. [{{error}}]": "抱歉，您被拒絕存取此文件。[{{error}}]",
@@ -1418,7 +1401,8 @@
   },
   "ThemeConfig": {
     "Switch appearance automatically to match system": "自動切換外觀以符合系統",
-    "Appearance ": "外觀 "
+    "Appearance ": "外觀 ",
+    "Light": "日間"
   },
   "GridView": {
     "Click to insert": "點選以插入"
@@ -1687,5 +1671,18 @@
     "Help us make Grist better": "幫助我們改進 Grist",
     "Home": "首頁",
     "Sponsor": "贊助"
+  },
+  "OnboardingPage": {
+    "Product Development": "產品開發",
+    "Finance & Accounting": "財務與會計",
+    "Media Production": "媒體製作",
+    "IT & Technology": "資訊科技與科技",
+    "Marketing": "行銷",
+    "Research": "研究",
+    "Sales": "銷售",
+    "Education": "教育",
+    "HR & Management": "人力資源與管理",
+    "Other": "其他",
+    "Type here": "在此輸入"
   }
 }
