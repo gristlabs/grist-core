@@ -40,9 +40,8 @@ import { BootKeyLoginMiddleware } from "app/server/lib/Boot";
 import { forceSessionChange } from "app/server/lib/BrowserSession";
 import { Comm, verifyCommHttpRequest } from "app/server/lib/Comm";
 import { ConfigBackendAPI } from "app/server/lib/ConfigBackendAPI";
-import { IGristCoreConfig } from "app/server/lib/configCore";
 import { getAndClearSignupStateCookie } from "app/server/lib/cookieUtils";
-import { create } from "app/server/lib/create";
+import { getCreate } from "app/server/lib/create";
 import { createSavedDoc } from "app/server/lib/createSavedDoc";
 import { addDiscourseConnectEndpoints } from "app/server/lib/DiscourseConnect";
 import { addDocApiRoutes } from "app/server/lib/DocApi";
@@ -139,15 +138,12 @@ export interface FlexServerOptions {
   // Base URL for plugins, if permitted. Defaults to APP_UNTRUSTED_URL.
   pluginUrl?: string;
 
-  // Global grist config options
-  settings?: IGristCoreConfig;
-
   // An existing http.Server to use instead of creating a new one.
   server?: http.Server;
 }
 
 export class FlexServer implements GristServer {
-  public readonly create = create;
+  public readonly create = getCreate();
   public tagChecker: TagChecker;
   public app: express.Express;
   public deps = new Set<string>();
@@ -159,7 +155,6 @@ export class FlexServer implements GristServer {
   public housekeeper: Housekeeper;
   public server: http.Server;
   public httpsServer?: https.Server;
-  public settings?: IGristCoreConfig;
   public worker: DocWorkerInfo;
   public electronServerMethods: ElectronServerMethods;
   public readonly docsRoot: string;
@@ -237,8 +232,7 @@ export class FlexServer implements GristServer {
 
   constructor(public port: number, public name: string = "flexServer",
     public readonly options: FlexServerOptions = {}) {
-    this._getLoginSystem = create.getLoginSystem.bind(create);
-    this.settings = options.settings;
+    this._getLoginSystem = this.create.getLoginSystem.bind(this.create);
     this.app = express();
     this.app.set("port", port);
 
@@ -1747,7 +1741,7 @@ export class FlexServer implements GristServer {
         lastSuccessfulStep: "none",
       } as SandboxInfo;
     }
-    // No flavor argument — uses the deployment's default via create.NSandbox().
+    // No flavor argument — uses the deployment's default via getCreate().NSandbox().
     return this._sandboxInfo = await testSandboxFlavor();
   }
 

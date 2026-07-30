@@ -70,7 +70,7 @@
 import { delay } from "app/common/delay";
 import { ErrorWithCode } from "app/common/ErrorWithCode";
 import { timeFormat } from "app/common/timeFormat";
-import { create } from "app/server/lib/create";
+import { getCreate } from "app/server/lib/create";
 import * as docUtils from "app/server/lib/docUtils";
 import log from "app/server/lib/log";
 import {
@@ -94,7 +94,7 @@ export type RunResult = MinRunResult;
 const asyncLocalStorage = new AsyncLocalStorage<boolean>();
 
 function getVariant(): SqliteVariant {
-  return create.getSqliteVariant?.() || new NodeSqliteVariant();
+  return getCreate().getSqliteVariant?.() || new NodeSqliteVariant();
 }
 
 // Describes how to create a new DB or migrate an old one. Any changes to the DB must be reflected

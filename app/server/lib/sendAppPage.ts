@@ -25,6 +25,7 @@ import { RequestWithOrg } from "app/server/lib/extractOrg";
 import { GristServer } from "app/server/lib/GristServer";
 import {
   getAnonPlaygroundEnabled, getCanAnyoneCreateOrgs,
+  getEditionSource,
   getOnboardingTutorialDocId, getPersonalOrgsEnabled,
   getTemplateOrg,
   getUserPresenceMaxUsers,
@@ -135,7 +136,8 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     userLocale: (req as RequestWithLogin | undefined)?.user?.options?.locale,
     telemetry: server?.getTelemetry().getTelemetryConfig(req as RequestWithLogin | undefined),
     deploymentType: server?.getDeploymentType(),
-    forceEnableEnterprise: isAffirmative(process.env.GRIST_FORCE_ENABLE_ENTERPRISE),
+    // Previously forceEnableEnterprise. Now reports when any edition is forced via env variable.
+    editionForced: getEditionSource() === "env",
     oauthAppsEnabled: server?.create.areOAuthAppsEnabled(),
     templateOrg: getTemplateOrg(),
     onboardingTutorialDocId: getOnboardingTutorialDocId(),

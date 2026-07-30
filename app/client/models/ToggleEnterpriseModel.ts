@@ -4,7 +4,8 @@ import { Notifier } from "app/client/models/NotifyModel";
 import { ActivationAPIImpl, ActivationStatus } from "app/common/ActivationAPI";
 import { ConfigAPI } from "app/common/ConfigAPI";
 import { delay } from "app/common/delay";
-import { GristDeploymentType } from "app/common/gristUrls";
+import { editionFromDeploymentType, GristEdition } from "app/common/gristUrls";
+import { InstallAPIImpl } from "app/common/InstallAPI";
 import { getGristConfig } from "app/common/urlUtils";
 
 import { Disposable, Observable } from "grainjs";
@@ -12,11 +13,12 @@ import { Disposable, Observable } from "grainjs";
 const t = makeT("ToggleEnterpriseModel");
 
 export class ToggleEnterpriseModel extends Disposable {
-  public readonly edition: Observable<GristDeploymentType | null> = Observable.create(this, null);
+  public readonly edition: Observable<GristEdition | null> = Observable.create(this, null);
   public readonly status: Observable<ActivationStatus | null> = Observable.create(this, null);
   public readonly installationId: Observable<string | null> = Observable.create(this, null);
   public readonly busy: Observable<boolean> = Observable.create(this, false);
   private readonly _configAPI: ConfigAPI = new ConfigAPI(getHomeUrl());
+  private readonly _installAPI: InstallAPIImpl = new InstallAPIImpl(getHomeUrl());
   private readonly _activationAPI: ActivationAPIImpl = new ActivationAPIImpl(getHomeUrl());
 
   constructor(private _notifier: Notifier) {
@@ -25,7 +27,7 @@ export class ToggleEnterpriseModel extends Disposable {
 
   public async fetchEnterpriseToggle() {
     const { deploymentType } = getGristConfig();
-    this.edition.set(deploymentType || null);
+    this.edition.set(deploymentType ? editionFromDeploymentType(deploymentType) : null);
     if (deploymentType === "enterprise") {
       const status = await this._activationAPI.getActivationStatus();
       if (this.isDisposed()) {
@@ -36,11 +38,13 @@ export class ToggleEnterpriseModel extends Disposable {
     }
   }
 
-  public async updateEnterpriseToggle(edition: GristDeploymentType): Promise<void> {
+  public async updateEnterpriseToggle(edition: GristEdition): Promise<void> {
     // We may be restarting the server, so these requests may well
     // fail if done in quick succession.
     const task = async () => {
-      await retryOnNetworkError(() => this._configAPI.setValue({ edition }));
+      await retryOnNetworkError(() => this._installAPI.updateInstallPrefs({
+        envVars: { GRIST_SERVER_EDITION: edition },
+      }));
       this.edition.set(edition);
       await retryOnNetworkError(() => this._configAPI.restartServer());
     };

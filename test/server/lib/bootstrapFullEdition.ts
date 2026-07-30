@@ -4,8 +4,7 @@ import {
   Deps, isExtFullEditionSupported, maybeManageFullEdition, resolveFullEditionWorker,
 } from "app/server/lib/bootstrapFullEdition";
 import { checksumFile } from "app/server/lib/checksumFile";
-import { Edition } from "app/server/lib/configCore";
-import { getEdition } from "app/server/lib/gristSettings";
+import { getEdition, getEditionSource } from "app/server/lib/gristSettings";
 import { codeRoot, getAppRoot } from "app/server/lib/places";
 import * as testUtils from "test/server/testUtils";
 import { EnvironmentSnapshot } from "test/server/testUtils";
@@ -152,7 +151,6 @@ describe("bootstrapFullEdition", function() {
     let instRoot: string;
     let dir: string;
     let fileServer: http.Server | undefined;
-    let editionValue: Edition;
 
     beforeEach(async function() {
       instRoot = await fse.mkdtemp(path.join(os.tmpdir(), "grist-fe-inst-"));
@@ -164,13 +162,6 @@ describe("bootstrapFullEdition", function() {
       sandbox.stub(Deps, "isReleaseBuild").returns(true);
       dir = fullEditionDir(instRoot);
       await fse.mkdirp(dir);
-      editionValue = "core";
-      sandbox.stub(Deps, "getGlobalConfig").returns({
-        edition: {
-          get: () => editionValue,
-          set: async (value: Edition) => { editionValue = value; },
-        },
-      } as any);
     });
 
     afterEach(async function() {
@@ -183,10 +174,7 @@ describe("bootstrapFullEdition", function() {
     function setEdition(value: string | undefined): void {
       appSettings.setEnvVars(value === undefined ? {} : { GRIST_SERVER_EDITION: value });
       getEdition.cache.clear();
-    }
-
-    function edition(): Edition {
-      return editionValue;
+      getEditionSource.cache.clear();
     }
 
     async function writeStamp(identity: string): Promise<void> {
@@ -198,6 +186,16 @@ describe("bootstrapFullEdition", function() {
       await fse.mkdirp(path.join(dir, "static"));
     }
 
+    function assertNextBootUsesExtensions(expected: boolean): void {
+      const spec = resolveFullEditionWorker();
+      if (expected) {
+        assert.isNotNull(spec, "next boot should layer the downloaded extensions");
+        assert.equal(spec!.key, `full:${IDENTITY}`);
+      } else {
+        assert.isNull(spec, "next boot should run the built-in build");
+      }
+    }
+
     it("is a no-op on a non-release build", async function() {
       (Deps.isReleaseBuild as sinon.SinonStub).returns(false);
       setEdition("full");
@@ -206,6 +204,7 @@ describe("bootstrapFullEdition", function() {
 
       const { restartRequested } = await maybeManageFullEdition();
       assert.isFalse(restartRequested);
+      assertNextBootUsesExtensions(false);
       assert.isTrue(await fse.pathExists(path.join(dir, STAMP_FILE)));
       assert.isTrue(await fse.pathExists(path.join(dir, "ext")));
     });
@@ -218,32 +217,31 @@ describe("bootstrapFullEdition", function() {
 
       const { restartRequested } = await maybeManageFullEdition();
       assert.isFalse(restartRequested);
+      assertNextBootUsesExtensions(false);
       assert.isTrue(await fse.pathExists(path.join(dir, "ext")));
-      assert.equal(edition(), "core", "global config must not be touched by an ext build");
     });
 
     it("reverts: drops the stamp and requests restart without deleting the payload", async function() {
-      editionValue = "enterprise";
       setEdition("community");
       await makePayloadDirs();
       await writeStamp(IDENTITY);
 
       const { restartRequested } = await maybeManageFullEdition();
       assert.isTrue(restartRequested);
-      assert.equal(edition(), "core");
+      assertNextBootUsesExtensions(false);
       assert.isFalse(await fse.pathExists(path.join(dir, STAMP_FILE)), "stamp should be dropped");
       assert.isTrue(await fse.pathExists(path.join(dir, "ext")));
       assert.isTrue(await fse.pathExists(path.join(dir, "static")));
     });
 
-    it("already current: keeps edition in sync and requests no restart", async function() {
+    it("already current: requests no restart", async function() {
       setEdition("full");
       await makePayloadDirs();
       await writeStamp(IDENTITY);
 
       const { restartRequested } = await maybeManageFullEdition();
       assert.isFalse(restartRequested);
-      assert.equal(edition(), "enterprise");
+      assertNextBootUsesExtensions(true);
       assert.isTrue(await fse.pathExists(path.join(dir, STAMP_FILE)));
       assert.isTrue(await fse.pathExists(path.join(dir, "ext")));
     });
@@ -254,7 +252,7 @@ describe("bootstrapFullEdition", function() {
 
       const { restartRequested } = await maybeManageFullEdition();
       assert.isFalse(restartRequested);
-      assert.equal(edition(), "core");
+      assertNextBootUsesExtensions(false);
       assert.isFalse(await fse.pathExists(path.join(dir, "ext")), "payload should be reclaimed");
       assert.isFalse(await fse.pathExists(path.join(dir, "static")));
     });
@@ -271,7 +269,7 @@ describe("bootstrapFullEdition", function() {
       try {
         const { restartRequested } = await maybeManageFullEdition();
         assert.isFalse(restartRequested);
-        assert.equal(edition(), "core");
+        assertNextBootUsesExtensions(false);
       } finally {
         await fse.chmod(dir, 0o700).catch(() => undefined);
       }
@@ -319,10 +317,10 @@ describe("bootstrapFullEdition", function() {
         await fse.remove(src).catch(() => undefined);
       });
 
-      it("derives, installs verified extensions, sets edition and requests restart", async function() {
+      it("derives, installs verified extensions and requests restart", async function() {
         const { restartRequested } = await maybeManageFullEdition();
         assert.isTrue(restartRequested);
-        assert.equal(edition(), "enterprise");
+        assertNextBootUsesExtensions(true);
         assert.equal((await fse.readFile(path.join(dir, STAMP_FILE), "utf8")).trim(), IDENTITY);
         assert.isTrue(await fse.pathExists(path.join(dir, "ext", "marker")));
         assert.isTrue(await fse.pathExists(path.join(dir, "static", "marker")));
@@ -337,7 +335,7 @@ describe("bootstrapFullEdition", function() {
 
         const { restartRequested } = await maybeManageFullEdition();
         assert.isTrue(restartRequested);
-        assert.equal(edition(), "enterprise");
+        assertNextBootUsesExtensions(true);
         assert.equal((await fse.readFile(path.join(dir, STAMP_FILE), "utf8")).trim(), IDENTITY);
         assert.isTrue(await fse.pathExists(path.join(dir, "ext", "marker")));
         assert.isFalse(await fse.pathExists(path.join(dir, "ext", "old-marker")),
@@ -352,29 +350,29 @@ describe("bootstrapFullEdition", function() {
 
         const { restartRequested } = await maybeManageFullEdition();
         assert.isFalse(restartRequested);
-        assert.equal(edition(), "core", "edition must not flip to enterprise on a failed install");
+        assertNextBootUsesExtensions(false);
         assert.isFalse(await fse.pathExists(path.join(dir, STAMP_FILE)));
       });
 
-      it("stays on core when the manifest is missing", async function() {
+      it("stays on the built-in edition when the manifest is missing", async function() {
         sandbox.stub(Deps, "installAttempts").value(1);
         sandbox.stub(Deps, "installRetryDelayMs").value(0);
         manifestBody = null;
 
         const { restartRequested } = await maybeManageFullEdition();
         assert.isFalse(restartRequested);
-        assert.equal(edition(), "core");
+        assertNextBootUsesExtensions(false);
         assert.isFalse(await fse.pathExists(path.join(dir, STAMP_FILE)));
       });
 
-      it("stays on core when the manifest is malformed", async function() {
+      it("stays on the built-in edition when the manifest is malformed", async function() {
         sandbox.stub(Deps, "installAttempts").value(1);
         sandbox.stub(Deps, "installRetryDelayMs").value(0);
         manifestBody = "{ not json";
 
         const { restartRequested } = await maybeManageFullEdition();
         assert.isFalse(restartRequested);
-        assert.equal(edition(), "core");
+        assertNextBootUsesExtensions(false);
         assert.isFalse(await fse.pathExists(path.join(dir, STAMP_FILE)));
       });
     });

@@ -1027,8 +1027,9 @@ export interface GristLoadConfig {
   // The Grist deployment type (e.g. core, enterprise).
   deploymentType?: GristDeploymentType;
 
-  // Force enterprise deployment? For backwards compatibility with grist-ee Docker image
-  forceEnableEnterprise?: boolean;
+  // True if the edition is pinned by the environment (e.g. GRIST_SERVER_EDITION or
+  // GRIST_FORCE_ENABLE_ENTERPRISE) and can't be changed from the admin panel.
+  editionForced?: boolean;
 
   // Whether the server has OAuth apps enabled (GRIST_ENABLE_OIDC_SERVER). Always false in core,
   // which doesn't include the feature.
@@ -1134,6 +1135,16 @@ export type GristDeploymentType = typeof GristDeploymentTypes.type;
 export const fullEditionDeploymentTypes: GristDeploymentType[] = ["saas", "enterprise"];
 export function isFullEditionDeployment(deploymentType?: GristDeploymentType): boolean {
   return fullEditionDeploymentTypes.includes(deploymentType ?? "core");
+}
+
+export const GristEdition = StringUnion("community", "full");
+export type GristEdition = typeof GristEdition.type;
+
+export const FULL_EDITION = "full" as const satisfies GristEdition;
+export const COMMUNITY_EDITION = "community" as const satisfies GristEdition;
+
+export function editionFromDeploymentType(deploymentType: GristDeploymentType | undefined): GristEdition {
+  return isFullEditionDeployment(deploymentType) ? FULL_EDITION : COMMUNITY_EDITION;
 }
 
 // Acceptable org subdomains are alphanumeric (hyphen also allowed) and of

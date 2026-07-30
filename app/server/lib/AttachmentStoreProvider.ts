@@ -1,6 +1,6 @@
 import { appSettings } from "app/server/lib/AppSettings";
 import { FilesystemAttachmentStore, IAttachmentStore } from "app/server/lib/AttachmentStore";
-import { create } from "app/server/lib/create";
+import { getCreate } from "app/server/lib/create";
 import { ICreateAttachmentStoreOptions } from "app/server/lib/ICreate";
 import log from "app/server/lib/log";
 
@@ -189,7 +189,7 @@ export async function getConfiguredAttachmentStoreConfigs(
   externalStorageDisabled: boolean = false,
 ): Promise<IAttachmentStoreConfig[]> {
   if (GRIST_EXTERNAL_ATTACHMENTS_MODE === "snapshots") {
-    const snapshotProvider = create.getAttachmentStoreOptions().snapshots;
+    const snapshotProvider = getCreate().getAttachmentStoreOptions().snapshots;
     // This shouldn't happen - it could only happen if a version of Grist removes the snapshot provider from ICreate.
     if (snapshotProvider === undefined) {
       throw new UnsupportedExternalAttachmentsMode("snapshots");

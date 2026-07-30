@@ -7,7 +7,7 @@
  *
  */
 
-import { create } from "app/server/lib/create";
+import { getCreate } from "app/server/lib/create";
 
 export async function main() {
   if (!process.env.GRIST_CHECKPOINT) {
@@ -16,7 +16,7 @@ export async function main() {
   if (!process.env.GRIST_CHECKPOINT_MAKE) {
     throw new Error("GRIST_CHECKPOINT_MAKE must be defined");
   }
-  create.NSandbox({
+  getCreate().NSandbox({
     preferredPythonVersion: "3",
   });
 }

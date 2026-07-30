@@ -14,7 +14,7 @@ import {
   backupSqliteDatabase,
   retryOnClose,
 } from "app/server/lib/backupSqliteDatabase";
-import { create } from "app/server/lib/create";
+import { getCreate } from "app/server/lib/create";
 import { DocManager } from "app/server/lib/DocManager";
 import { makeExceptionalDocSession } from "app/server/lib/DocSession";
 import { IDocWorkerMap } from "app/server/lib/DocWorkerMap";
@@ -393,6 +393,7 @@ describe("HostedStorageManager", function() {
   setTmpLogLevel("info");  // allow info messages for this test since failures are hard to replicate
   this.timeout(60000);     // s3 can be slow
 
+  const create = getCreate();
   const docSession = makeExceptionalDocSession("system");
 
   before(async function() {

@@ -1,6 +1,6 @@
 import { ActiveDoc } from "app/server/lib/ActiveDoc";
 import { AttachmentStoreProvider } from "app/server/lib/AttachmentStoreProvider";
-import { create } from "app/server/lib/create";
+import { getCreate } from "app/server/lib/create";
 import { DocManager } from "app/server/lib/DocManager";
 import { makeExceptionalDocSession } from "app/server/lib/DocSession";
 import { DocStorageManager } from "app/server/lib/DocStorageManager";
@@ -35,7 +35,7 @@ export async function main(baseName: string) {
     }
     const docManager = new DocManager(storageManager, pluginManager, null as any,
       new AttachmentStoreProvider([], ""), {
-        create,
+        create: getCreate(),
         getAuditLogger() { return createNullAuditLogger(); },
         getTelemetry() { return createDummyTelemetry(); },
         getDocNotificationManager() { return undefined; },

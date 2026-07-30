@@ -2,13 +2,14 @@ import { makeT } from "app/client/lib/localization";
 import { sessionStorageObs } from "app/client/lib/localStorageObs";
 import { getHomeUrl } from "app/client/models/homeUrl";
 import { showEnterpriseToggle } from "app/client/ui/ActivationPage";
-import { APPLIED_EDITION_KEY, Edition } from "app/client/ui/EditionSection";
+import { APPLIED_EDITION_KEY } from "app/client/ui/EditionSection";
 import { textInput } from "app/client/ui/inputs";
 import { cssQuickSetupCard } from "app/client/ui/SettingsLayout";
 import { theme } from "app/client/ui2018/cssVars";
 import { select } from "app/client/ui2018/menus";
 import { toggleSwitch } from "app/client/ui2018/toggleSwitch";
 import { ConfigAPI } from "app/common/ConfigAPI";
+import { GristEdition } from "app/common/gristUrls";
 import { isEmail } from "app/common/gutil";
 import { HelpUsImproveSubmission } from "app/common/HelpUsImproveAPI";
 import { GETGRIST_COM_PROVIDER_KEY } from "app/common/loginProviders";
@@ -148,22 +149,28 @@ export class HelpUsImproveSection extends Disposable {
       return null;
     }
 
-    const { installationId, deploymentType } = getAdminConfig();
+    const config = getAdminConfig();
 
     // An edition switch applied earlier in the wizard restarts the server without
     // reloading the page, leaving deploymentType in window.gristConfig stale.
     // TODO: Trigger a page reload upon server restart after an edition change.
-    const appliedEdition = this._appliedEdition.get() as Edition | null;
+    const appliedEdition = this._appliedEdition.get() as GristEdition | null;
+    let { deploymentType } = config;
+    if (appliedEdition === "full") {
+      deploymentType = "enterprise";
+    } else if (appliedEdition === "community") {
+      deploymentType = "core";
+    }
 
     return {
-      installationId,
+      installationId: config.installationId,
       loginWithGristClientId: await this._fetchLoginWithGristClientId(),
       referralSource: hearAbout,
       role: userType,
       subscribeToUpdates: subscribe,
       email: subscribe ? email : "",
-      deploymentType: appliedEdition ?? deploymentType,
-      build: (appliedEdition === "enterprise" || showEnterpriseToggle()) ? "full" : "community",
+      deploymentType,
+      build: (appliedEdition === "full" || showEnterpriseToggle()) ? "full" : "community",
     };
   }
 

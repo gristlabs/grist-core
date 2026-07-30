@@ -17,7 +17,7 @@ import { hoverTooltip, showTransientTooltip } from "app/client/ui/tooltips";
 import { bigPrimaryButton } from "app/client/ui2018/buttons";
 import { theme, vars } from "app/client/ui2018/cssVars";
 import { colorIcon, icon } from "app/client/ui2018/icons";
-import { ActivationState, commonUrls } from "app/common/gristUrls";
+import { ActivationState, commonUrls, COMMUNITY_EDITION, FULL_EDITION } from "app/common/gristUrls";
 import { not } from "app/common/gutil";
 import { tokens } from "app/common/ThemePrefs";
 import { getGristConfig } from "app/common/urlUtils";
@@ -32,11 +32,11 @@ type State = "core" | "activated" | "trial" | "no-key" | "error";
 
 export class ToggleEnterpriseWidget extends Disposable {
   private readonly _model = this.autoDispose(new ToggleEnterpriseModel(this._notifier));
-  /** If we are running Enterprise edition (even if not activated or valid) */
-  private readonly _isEnterpriseEdition = Computed.create(this, this._model.edition, (_use, edition) => {
-    return edition === "enterprise";
-  }).onWrite(async (enabled) => {
-    await this._model.updateEnterpriseToggle(enabled ? "enterprise" : "core");
+  /** If we are running the full edition (even if not activated or valid) */
+  private readonly _isFullEdition = Computed.create(this, this._model.edition, (_use, edition) => {
+    return edition === FULL_EDITION;
+  }).onWrite(async (isFull) => {
+    await this._model.updateEnterpriseToggle(isFull ? FULL_EDITION : COMMUNITY_EDITION);
   });
 
   private _activationKey = Observable.create(this, "");
@@ -47,7 +47,7 @@ export class ToggleEnterpriseWidget extends Disposable {
     // When we're on Full Grist but status hasn't loaded, return null so the
     // section renders nothing rather than flashing an "Enable Full Grist"
     // button.
-    if (!use(this._isEnterpriseEdition)) {
+    if (!use(this._isFullEdition)) {
       return "core";
     }
     const status = use(this._model.status);
@@ -72,12 +72,12 @@ export class ToggleEnterpriseWidget extends Disposable {
   }
 
   public getEnterpriseToggleObservable() {
-    return this._isEnterpriseEdition;
+    return this._isFullEdition;
   }
 
   public buildEnterpriseSection() {
     return cssSection(
-      testId("enterprise-content", this._isEnterpriseEdition),
+      testId("enterprise-content", this._isFullEdition),
       dom.domComputed(this._state, (state) => {
         switch (state) {
           case "trial":    return this._trialCopy();
@@ -295,7 +295,7 @@ orgs under US $1 million total annual funding. For larger orgs, see [pricing]({{
         enterpriseNotEnabledCopy(),
       ),
       cssOptInButton(t("Enable Full Grist"),
-        dom.on("click", () => this._isEnterpriseEdition.set(true)),
+        dom.on("click", () => this._isFullEdition.set(true)),
       ),
     ];
   }

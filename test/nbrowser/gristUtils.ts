@@ -17,7 +17,7 @@ import { Organization as APIOrganization,
 import { Organization } from "app/gen-server/entity/Organization";
 import { Product } from "app/gen-server/entity/Product";
 import * as PluginApi from "app/plugin/grist-plugin-api";
-import { create } from "app/server/lib/create";
+import { getCreate } from "app/server/lib/create";
 import { getAppRoot } from "app/server/lib/places";
 import { GristWebDriverUtils, ICellSelect as _ICellSelect,
   IColSelect, IColsSelect, noCleanup as _noCleanup, PageWidgetPickerOptions,
@@ -959,7 +959,7 @@ namespace gristUtils {
   // For this to be useful in tests against deployments, s3-related env variables should
   // be set to match the deployment.
   export function getStorage()  {
-    return create.ExternalStorage("doc", "") || null;
+    return getCreate().ExternalStorage("doc", "") || null;
   }
 
   /**

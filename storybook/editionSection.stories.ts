@@ -1,6 +1,7 @@
 import { Notifier } from "app/client/models/NotifyModel";
 import { EditionSection, editionSwitchWarning } from "app/client/ui/EditionSection";
 import { confirmModal } from "app/client/ui2018/modals";
+import { COMMUNITY_EDITION, FULL_EDITION } from "app/common/gristUrls";
 
 import { Disposable, DomContents, styled } from "grainjs";
 
@@ -39,7 +40,7 @@ function adminStory({ deploymentType, overrides, build }: AdminStoryArgs) {
         inAdminPanel: true,
         notifier: Notifier.create(owner),
         onEditionSwitch: edition => confirmModal(
-          edition === "enterprise" ? "Switch to full Grist?" : "Switch to Community edition?",
+          edition === FULL_EDITION ? "Switch to full Grist?" : "Switch to Community edition?",
           "Restart",
           () => section.selectEdition(edition),
           { explanation: editionSwitchWarning(edition) },
@@ -76,9 +77,9 @@ export const AdminCommunityOnly = adminStory({
  * ToggleEnterpriseWidget is hidden to avoid duplicating its "Enable Full
  * Grist" button.
  */
-export const AdminServerCore = adminStory({
+export const AdminServerCommunity = adminStory({
   deploymentType: "core",
-  overrides: { fullGristAvailable: true, initialServerEdition: "core" },
+  overrides: { fullGristAvailable: true, initialServerEdition: COMMUNITY_EDITION },
 });
 
 /**
@@ -89,7 +90,7 @@ export const AdminServerCore = adminStory({
  */
 export const AdminServerFull = adminStory({
   deploymentType: "enterprise",
-  overrides: { fullGristAvailable: true, initialServerEdition: "enterprise" },
+  overrides: { fullGristAvailable: true, initialServerEdition: FULL_EDITION },
 });
 
 /** Edition forced via GRIST_FORCE_ENABLE_ENTERPRISE: env note. */
@@ -98,7 +99,7 @@ export const AdminEditionForced = adminStory({
   overrides: {
     fullGristAvailable: true,
     editionForced: true,
-    initialServerEdition: "enterprise",
+    initialServerEdition: FULL_EDITION,
   },
 });
 
@@ -108,13 +109,18 @@ export const StatusCommunity = statusStory({
   overrides: { fullGristAvailable: false },
 });
 
-export const StatusForced = statusStory({
-  overrides: { fullGristAvailable: true, editionForced: true },
+export const StatusForcedFull = statusStory({
+  deploymentType: "enterprise",
+  overrides: { fullGristAvailable: true, editionForced: true, initialServerEdition: FULL_EDITION },
+});
+
+export const StatusForcedCommunity = statusStory({
+  overrides: { fullGristAvailable: true, editionForced: true, initialServerEdition: COMMUNITY_EDITION },
 });
 
 export const StatusFull = statusStory({
   deploymentType: "enterprise",
-  overrides: { fullGristAvailable: true, initialServerEdition: "enterprise" },
+  overrides: { fullGristAvailable: true, initialServerEdition: FULL_EDITION },
 });
 
 // --- Wizard-mode stories ----------------------------------------------------

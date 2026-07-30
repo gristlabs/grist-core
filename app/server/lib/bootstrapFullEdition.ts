@@ -29,9 +29,7 @@ import { delay } from "app/common/delay";
 import { channel, version } from "app/common/version";
 import { appSettings } from "app/server/lib/AppSettings";
 import { HashPassthroughStream } from "app/server/lib/checksumFile";
-import { Edition } from "app/server/lib/configCore";
-import { getGlobalConfig } from "app/server/lib/globalConfig";
-import { getEdition } from "app/server/lib/gristSettings";
+import { isFullEdition } from "app/server/lib/gristSettings";
 import log from "app/server/lib/log";
 import { codeRoot, getAppRoot, getInstanceRoot } from "app/server/lib/places";
 import { agents } from "app/server/lib/ProxyAgent";
@@ -57,7 +55,6 @@ export const Deps = {
   installRetryDelayMs: 10 * 1000,
   hasBuiltInExt: defaultHasBuiltInExt,
   isReleaseBuild: defaultIsReleaseBuild,
-  getGlobalConfig,
 };
 
 /** Default base URL to download extensions from. */
@@ -235,7 +232,7 @@ export async function maybeManageFullEdition(): Promise<{ restartRequested: bool
 
 async function manageFullEdition(identity: string): Promise<{ restartRequested: boolean }> {
   const dir = getFullEditionDir();
-  const enabled = isFullEditionEnabled();
+  const enabled = isFullEdition();
   const current = await isStampCurrent(dir, identity);
 
   if (enabled && !current) {
@@ -249,7 +246,6 @@ async function manageFullEdition(identity: string): Promise<{ restartRequested: 
       try {
         const { url, sha256 } = await resolveExtensionsDownload();
         await downloadAndInstall(dir, identity, url, sha256);
-        await updateGlobalConfigEdition(true);
         return { restartRequested: true };
       } catch (e) {
         const willRetry = attempt < Deps.installAttempts;
@@ -261,8 +257,6 @@ async function manageFullEdition(identity: string): Promise<{ restartRequested: 
     }
     return { restartRequested: false };
   }
-
-  await updateGlobalConfigEdition(enabled);
 
   if (!enabled && current) {
     await fse.remove(path.join(dir, STAMP_FILE)).catch(() => undefined);
@@ -304,26 +298,6 @@ async function reclaimFullEditionDir(dir: string): Promise<void> {
   for (const p of remnants) {
     await fse.remove(p).catch(() => undefined);
   }
-}
-
-/**
- * Updates the value of `edition` in the global config file to "enterprise" if full
- * edition is enabled, or "core" if disabled.
- */
-async function updateGlobalConfigEdition(fullEditionEnabled: boolean): Promise<void> {
-  const desired: Edition = fullEditionEnabled ? "enterprise" : "core";
-  const edition = Deps.getGlobalConfig().edition;
-  if (edition.get() === desired) { return; }
-
-  log.info("bootstrapFullEdition: setting edition in global config to %s", desired);
-  await edition.set(desired);
-}
-
-/**
- * Returns whether the install has enabled the full edition of Grist.
- */
-function isFullEditionEnabled(): boolean {
-  return getEdition() === "full";
 }
 
 /**

@@ -25,10 +25,7 @@ import { initializeAppSettings } from "app/server/lib/initializeAppSettings";
 import log from "app/server/lib/log";
 import { MergedServer } from "app/server/MergedServer";
 
-import * as path from "path";
-
 import { promisifyAll } from "bluebird";
-import * as fse from "fs-extra";
 import { createClient, RedisClient } from "redis";
 
 promisifyAll(RedisClient.prototype);
@@ -73,20 +70,6 @@ export async function main() {
   }
 
   await initializeAppSettings();
-
-  // In V1, we no longer create a config.json file automatically if it is missing.
-  // It is convenient to do that in the dev and test environment.
-  const appRoot = path.dirname(path.dirname(__dirname));
-  const instDir = process.env.GRIST_INST_DIR || appRoot;
-  if (process.env.GRIST_INST_DIR) {
-    const fileName = path.join(instDir, "config.json");
-    if (!(await fse.pathExists(fileName))) {
-      const config = {
-        untrustedContentOrigin: "notset",
-      };
-      await fse.writeFile(fileName, JSON.stringify(config, null, 2));
-    }
-  }
 
   if (!process.env.GOOGLE_CLIENT_ID) {
     log.warn("GOOGLE_CLIENT_ID is not defined, Google Drive Plugin will not work.");

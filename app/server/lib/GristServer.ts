@@ -13,8 +13,7 @@ import { HomeDBManager, UserChange } from "app/gen-server/lib/homedb/HomeDBManag
 import { IAccessTokens } from "app/server/lib/AccessTokens";
 import { RequestWithLogin } from "app/server/lib/Authorizer";
 import { Comm } from "app/server/lib/Comm";
-import { IGristCoreConfig, loadGristCoreConfig } from "app/server/lib/configCore";
-import { create } from "app/server/lib/create";
+import { getCreate } from "app/server/lib/create";
 import { DocApiUsageTracker } from "app/server/lib/DocApiUsageTracker";
 import { DocManager } from "app/server/lib/DocManager";
 import { IDocWorkerMap } from "app/server/lib/DocWorkerMap";
@@ -66,7 +65,6 @@ export interface ResourceUrlOptions {
  */
 export interface GristServer extends StorageCoordinator {
   readonly create: ICreate;
-  settings?: IGristCoreConfig;
   getHost(): string;
   getHomeUrl(req: express.Request, relPath?: string): string;
   getHomeInternalUrl(relPath?: string): string;
@@ -193,8 +191,7 @@ export interface DocTemplate {
  */
 export function createDummyGristServer(): GristServer {
   return {
-    create,
-    settings: loadGristCoreConfig(),
+    create: getCreate(),
     getHost() { return "localhost:4242"; },
     getHomeUrl() { return "http://localhost:4242"; },
     getHomeInternalUrl() { return "http://localhost:4242"; },

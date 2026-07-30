@@ -33,7 +33,7 @@ import { BaseUrlSection } from "app/client/ui/BaseUrlSection";
 import { BootKeyStatus } from "app/client/ui/BootKeyStatus";
 import { InstallConfigsAPI } from "app/client/ui/ConfigsAPI";
 import { DraftChangesManager } from "app/client/ui/DraftChanges";
-import { Edition, EditionSection, editionSwitchModal, editionSwitchWarning } from "app/client/ui/EditionSection";
+import { EditionSection, editionSwitchModal, editionSwitchWarning } from "app/client/ui/EditionSection";
 import { peekSetupReturnFromGetGristCom } from "app/client/ui/GetGristComProvider";
 import { buildOutgoingRequestsPanel, buildOutgoingRequestsSummary } from "app/client/ui/OutgoingRequestsStatus";
 import { pagePanels } from "app/client/ui/PagePanels";
@@ -67,8 +67,15 @@ import { toggleSwitch } from "app/client/ui2018/toggleSwitch";
 import { BootProbeInfo, BootProbeResult, SandboxingBootProbeDetails } from "app/common/BootProbe";
 import { ConfigAPI } from "app/common/ConfigAPI";
 import { delay } from "app/common/delay";
-import { ADMIN_PANEL_EDITION_ANCHOR, AdminPanelPage, commonUrls, getPageTitleSuffix,
-  LatestVersionAvailable } from "app/common/gristUrls";
+import {
+  ADMIN_PANEL_EDITION_ANCHOR,
+  AdminPanelPage,
+  commonUrls,
+  FULL_EDITION,
+  getPageTitleSuffix,
+  GristEdition,
+  LatestVersionAvailable,
+} from "app/common/gristUrls";
 import { useBindable } from "app/common/gutil";
 import { InstallAPI, InstallAPIImpl } from "app/common/InstallAPI";
 import { BOOT_KEY_PROVIDER_KEY, MINIMAL_PROVIDER_KEY } from "app/common/loginProviders";
@@ -320,12 +327,12 @@ class AdminInstallationPanel extends Disposable {
     );
   }
 
-  private _confirmEditionSwitch(edition: Edition) {
+  private _confirmEditionSwitch(edition: GristEdition) {
     const otherChanges = this._drafts.changes.get();
     const canRestart = this._supportsRestart;
 
     confirmModal(
-      edition === "enterprise" ? t("Switch to full Grist?") : t("Switch to Community edition?"),
+      edition === FULL_EDITION ? t("Switch to full Grist?") : t("Switch to Community edition?"),
       canRestart ? t("Restart") : t("Apply changes"),
       () => {
         this._editionSection.selectEdition(edition);
