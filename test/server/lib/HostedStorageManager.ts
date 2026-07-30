@@ -769,12 +769,12 @@ describe("HostedStorageManager", function() {
       });
 
       it("wipes or keeps the local cache after closing a document depending on the storage mode", async function() {
-        const cacheRemainsAfterClosing = store.storageManager.getMode() === StorageMode.S3_WITH_CACHE;
         const docId = `wipe-cache-${uuidv4()}`;
         await workers.assignDocWorker(docId);
         const docPath = store.getDocPath(docId);
 
         await store.run(async () => {
+          const cacheRemainsAfterClosing = store.storageManager.getMode() === StorageMode.S3_WITH_CACHE;
           await store.docManager.createNamedDoc(docSession, docId);
           const doc = await store.docManager.fetchDoc(docSession, docId);
           await doc.docStorage.exec("insert into Table1(id, A) values(1, 'magic word')");
