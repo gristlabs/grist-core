@@ -789,10 +789,11 @@ export class HostedStorageManager implements IDocStorageManager {
    * Remove local version of a document, and state related to it.
    */
   private async _removeFromFilesystem(docName: string) {
+    const docPath = this.getPath(docName);
     // NOTE: fse.remove succeeds also when the file does not exist.
-    await fse.remove(this.getPath(docName));
-    await fse.remove(this._getHashFile(this.getPath(docName), "doc"));
-    await fse.remove(this._getHashFile(this.getPath(docName), "meta"));
+    await this._removeSqliteFiles(docPath);
+    await fse.remove(this._getHashFile(docPath, "doc"));
+    await fse.remove(this._getHashFile(docPath, "meta"));
 
     // Clear the inventory before the asset directory: it may recreate the directory
     // using mkdirp via DocSnapshotInventory._getFilename.
@@ -805,6 +806,12 @@ export class HostedStorageManager implements IDocStorageManager {
     this._latestMetaVersions.delete(docName);
     // _localFiles is intentionally left alone: closeDocument clears it, and
     // the next open repopulates it.
+  }
+
+  private async _removeSqliteFiles(docPath: string) {
+    for (const suffix of ["", "-shm", "-journal", "-wal"]) {
+      await fse.remove(docPath + suffix);
+    }
   }
 
   /**
