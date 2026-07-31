@@ -44,13 +44,13 @@ import {
   Computed,
   Disposable,
   dom as grainjsDom,
+  domDispose,
   fromKo,
   makeTestId,
   MultiHolder,
   Observable,
   styled,
   toKo,
-  domDispose,
 } from "grainjs";
 import * as ko from "knockout";
 import isEqual from "lodash/isEqual";
