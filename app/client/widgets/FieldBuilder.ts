@@ -50,6 +50,7 @@ import {
   Observable,
   styled,
   toKo,
+  domDispose,
 } from "grainjs";
 import * as ko from "knockout";
 import isEqual from "lodash/isEqual";
@@ -218,6 +219,15 @@ export class FieldBuilder extends Disposable {
         return UserTypeImpl.getWidgetConstructor(this.options().widget, this._readOnlyPureType());
       }
     })).onlyNotifyUnequal());
+
+    // Cell DOM outlives this FieldBuilder by a tick; dispose bindings early so nothing
+    // re-evaluates against an already-disposed widget. Must run before widgetImpl (reverse order).
+    this.onDispose(() => {
+      for (const elem of this._rowMap.values()) {
+        domDispose(elem);
+      }
+      this._rowMap.clear();
+    });
 
     // Computed builder for the widget.
     this.widgetImpl = this.autoDispose(koUtil.computedBuilder(() => {

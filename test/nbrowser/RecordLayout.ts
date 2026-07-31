@@ -317,6 +317,40 @@ describe("RecordLayout", function() {
     }
   });
 
+  it("should not throw when hiding all fields of a card with a choice list", async function() {
+    const session = await gu.session().login();
+    await session.tempNewDoc(cleanup);
+
+    const choiceOpts = JSON.stringify({ choices: ["red", "green", "blue"] });
+
+    await gu.sendActions([
+      ["ModifyColumn", "Table1", "A", { type: "ChoiceList", widgetOptions: choiceOpts }],
+      ["ModifyColumn", "Table1", "B", { type: "Choice", widgetOptions: choiceOpts }],
+      ["ModifyColumn", "Table1", "C", { type: "Text" }],
+    ]);
+    await gu.sendActions([["BulkAddRecord", "Table1", [null], {
+      A: [["L", "red", "green"]],
+      B: ["red"],
+    }]]);
+
+    await gu.addNewSection(/Card$/, /Table1/, { selectBy: /TABLE1/ });
+
+    const sectionId = await gu.getSectionId();
+    await gu.sendActions([
+      ["UpdateRecord", "_grist_Views_section", sectionId, {
+        sortColRefs: "[1]",
+      }],
+    ]);
+    await gu.reloadDoc();
+
+    await gu.openWidgetPanel("widget");
+    await gu.selectAllVisibleColumns();
+    await gu.hideColumns();
+    await driver.sleep(10); // just for next tick.
+
+    await gu.checkForErrors();
+  });
+
   // Helper to delete a layout box using the on-hover "x" circle.
   async function deleteBox(cell: WebElement) {
     await cell.mouseMove();
