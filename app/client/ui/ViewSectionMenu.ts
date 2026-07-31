@@ -114,8 +114,9 @@ export function viewSectionMenu(
         makeSortPanel(viewSection, gristDoc),
         // Filter section.
         makeFilterPanel(viewSection),
-        // Widget options
-        dom.maybe(use => use(viewSection.parentKey) === "custom", () =>
+        // Widget options. effectiveWidgetType, not parentKey: a legacy calendar section is stored
+        // as "custom" but is rendered natively and has no custom widget to hold options.
+        dom.maybe(use => use(viewSection.effectiveWidgetType) === "custom", () =>
           makeCustomOptions(viewSection),
         ),
         // [Save] [Revert] buttons
