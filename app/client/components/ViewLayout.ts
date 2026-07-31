@@ -85,8 +85,11 @@ export class ViewSectionHelper extends Disposable {
       // Rebuild the section when its type changes or its underlying table.
       const table = use(vs.table);
       const key = use(vs.parentKey);
-      const Cons = getInstanceConstructor(key);
-      const viewOptions = options?.[key] || {};
+      // Old docs may reference the retired calendar custom widget from a plain "custom"
+      // section; render those with the native calendar, like the "custom.calendar" alias.
+      const effectiveKey = key === "custom" && use(vs.isLegacyCalendarWidget) ? "calendar" : key;
+      const Cons = getInstanceConstructor(effectiveKey);
+      const viewOptions = options?.[effectiveKey] || {};
       this._instance.clear();
       if (table.getRowId()) {
         this._instance.autoDispose(Cons.create(null, gristDoc, vs, viewOptions));

@@ -27,7 +27,7 @@ import { UserAction } from "app/common/DocActions";
 import { RecalcWhen } from "app/common/gristTypes";
 import { arrayRepeat, safeJsonParse } from "app/common/gutil";
 import { Sort } from "app/common/SortSpec";
-import { WidgetType } from "app/common/widgetTypes";
+import { isLegacyCalendarCustomDef, WidgetType } from "app/common/widgetTypes";
 import { ColumnsToMap, WidgetColumnMap } from "app/plugin/CustomSectionAPI";
 import { CursorPos, UIRowId } from "app/plugin/GristAPI";
 import { GristObjCode } from "app/plugin/GristData";
@@ -306,6 +306,10 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   columnsToMap: ko.Observable<ColumnsToMap | null>;
   // Map from widget columns to colIds in document.
   mappedColumns: ko.Computed<WidgetColumnMap | null>;
+
+  // True for old "custom" sections that referenced the retired calendar custom widget.
+  // They are rendered with the native calendar (see ViewLayout).
+  isLegacyCalendarWidget: ko.Computed<boolean>;
   // Temporary variable holding flag that describes if the widget supports custom options (set by API).
   hasCustomOptions: ko.Observable<boolean>;
   // Temporary variable holding widget desired access (changed either from manifest or via API).
@@ -515,6 +519,13 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     renderAfterReady: customDefObj.prop("renderAfterReady"),
   };
 
+  this.isLegacyCalendarWidget = ko.pureComputed(() => {
+    return this.parentKey() === "custom" && isLegacyCalendarCustomDef({
+      widgetId: this.customDef.widgetId(),
+      url: this.customDef.url(),
+    });
+  });
+
   this.selectedFields = ko.observable<any>([]);
 
   // During schema change, some columns/fields might be disposed beyond our control.
@@ -555,8 +566,10 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   // - Widget type description (if not grid)
   // All concatenated separated by space.
   this.defaultWidgetTitle = this.autoDispose(ko.pureComputed(() => {
-    const widgetTypeDesc = this.parentKey() !== "record" ?
-      `${getWidgetTypes(this.parentKey.peek() as any).getLabel()}` :
+    // Legacy custom sections referencing the retired calendar widget get the Calendar label.
+    const widgetType = this.isLegacyCalendarWidget.peek() ? "calendar" : this.parentKey.peek() as any;
+    const widgetTypeDesc = widgetType !== "record" ?
+      `${getWidgetTypes(widgetType).getLabel()}` :
       "";
     const table = this.table();
     return [
