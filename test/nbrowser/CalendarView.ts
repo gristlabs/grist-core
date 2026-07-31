@@ -577,3 +577,46 @@ describe("CalendarView legacy custom.calendar docs", function() {
     assert.equal(ev?.title, "Legacy Event A");
   });
 });
+
+/**
+ * Same back-compat as above, but for docs that referenced the old calendar as a plain "custom"
+ * section (parentKey "custom") rather than the attached "custom.calendar" widget. The bundled
+ * copy was referenced by widgetId/pluginId (its URL varied per deployment), so the fixture's
+ * section has customDef.widgetId "@gristlabs/widget-calendar" and pluginId "bundled/grist-bundled".
+ * With the bundled widget plugin removed, such sections must render as the native calendar.
+ */
+describe("CalendarView legacy custom docs", function() {
+  this.timeout(30000);
+  const cleanup = setupTestSuite();
+
+  before(async function() {
+    const session = await gu.session().login();
+    await session.tempDoc(cleanup, "CalendarLegacyCustom.grist");
+  });
+
+  it("renders a legacy custom section referencing the old calendar as the native calendar", async function() {
+    // The native view mounts (not a grid), and there is no custom-widget iframe.
+    await driver.findWait(".test-calendar-container", 2000);
+    await driver.findWait(".test-calendar-widget", 2000);
+    assert.isEmpty(await driver.findElements(By.css("iframe.custom_view")));
+    // The section header must label the widget as Calendar, not Custom.
+    assert.include(await gu.getSectionTitles(), "TABLE1 Calendar");
+  });
+
+  it("keeps the saved start/end/title mapping and shows the events", async function() {
+    const mapped = await driver.executeScript<any>(
+      "return window.gristCalendarView._view.viewSection.mappedColumns()");
+    assert.equal(mapped?.startDate, "Start");
+    assert.equal(mapped?.endDate, "End");
+    assert.equal(mapped?.title, "Title");
+
+    await driver.executeScript(
+      "window.gristCalendarView._view._calendar.setDate(new Date(2024, 0, 15))");
+    await driver.wait(async () => Boolean(
+      await driver.executeScript("return window.gristCalendarView.getEventByTitle('Legacy Event A')"),
+    ), 2000);
+    const ev = await driver.executeScript<any>(
+      "return window.gristCalendarView.getEventByTitle('Legacy Event A')");
+    assert.equal(ev?.title, "Legacy Event A");
+  });
+});
