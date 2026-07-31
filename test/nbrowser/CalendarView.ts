@@ -564,7 +564,7 @@ describe("CalendarView legacy custom.calendar docs", function() {
 
     // The two legacy events render (their start is anchored to Jan 2024, so navigate there first).
     await driver.executeScript(
-      "window.gristCalendarView._view._calendar.setDate(new Date(2024, 0, 15))");
+      "window.gristCalendarView.setDate(new Date(2024, 0, 15))");
     await driver.wait(async () => Boolean(
       await driver.executeScript("return window.gristCalendarView.getEventByTitle('Legacy Event A')"),
     ), 2000);
@@ -611,7 +611,7 @@ describe("CalendarView legacy custom docs", function() {
     assert.equal(mapped?.title, "Title");
 
     await driver.executeScript(
-      "window.gristCalendarView._view._calendar.setDate(new Date(2024, 0, 15))");
+      "window.gristCalendarView.setDate(new Date(2024, 0, 15))");
     await driver.wait(async () => Boolean(
       await driver.executeScript("return window.gristCalendarView.getEventByTitle('Legacy Event A')"),
     ), 2000);
