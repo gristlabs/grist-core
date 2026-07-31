@@ -124,18 +124,22 @@ describe("CalendarView", function() {
     assert.equal(await getViewName(), "week");
   });
 
-  it("labels the now-indicator in the same 12-hour format as the hour axis", async function() {
+  it("labels the now-indicator in the same format as the hour axis", async function() {
     // The now-indicator only renders on today, so go to day view on today.
     await driver.find(".test-calendar-perspective-day").click();
     await driver.find(".test-calendar-today").click();
-    // Pick 12-hour explicitly. The format otherwise defaults to the browser locale, which differs
-    // between a developer machine and CI, so the assertion below would be locale-dependent.
-    await setTimeFormat("12-hour");
+    // The format follows the browser locale, which differs between a developer machine and CI, so
+    // derive the expected shape the same way the widget does (am/pm marker means 12-hour).
+    const is12h = await driver.executeScript<boolean>(() => {
+      const parts = new Intl.DateTimeFormat(navigator.language || undefined, { hour: "numeric" })
+        .formatToParts(new Date(2020, 0, 1, 13, 0));
+      return parts.some(p => p.type === "dayPeriod");
+    });
     // TUI renders the label with the class "...-timegrid-current-time"; "now-indicator-label" is
     // only its data-testid, not a class name.
     const label = await driver.findWait(".toastui-calendar-timegrid-current-time", 2000).getText();
-    // 12-hour with am/pm (e.g. "3:44 pm"), matching TUI's "3 pm" hour axis, not 24-hour "15:44".
-    assert.match(label.trim(), /^\d{1,2}:\d{2} (am|pm)$/);
+    // 12-hour with am/pm (e.g. "3:44 pm") or 24-hour ("15:44"), with minutes in both cases.
+    assert.match(label.trim(), is12h ? /^\d{1,2}:\d{2} (am|pm)$/ : /^\d{2}:\d{2}$/);
     await driver.find(".test-calendar-perspective-week").click();
   });
 
@@ -313,14 +317,6 @@ describe("CalendarView", function() {
     if (ids.length) {
       await gu.sendActions([["BulkRemoveRecord", "Table1", ids]]);
     }
-  }
-
-  // Picks a value in the toolbar's time-format dropdown (e.g. "12-hour"), so tests don't depend on
-  // the browser locale that the format otherwise defaults to.
-  async function setTimeFormat(label: string) {
-    await driver.find(".test-calendar-time-format .test-select-open").click();
-    await driver.findContentWait(".test-select-menu li", label, 1000).click();
-    await gu.waitForServer();
   }
 
   async function setMapping(name: string, value: RegExp) {
@@ -576,6 +572,10 @@ describe("CalendarView legacy custom.calendar docs", function() {
       "return window.gristCalendarView.getEventByTitle('Legacy Event A')");
     assert.equal(ev?.title, "Legacy Event A");
   });
+
+  it("shows the calendar column mapping in the creator panel", async function() {
+    await assertCalendarCreatorPanel();
+  });
 });
 
 /**
@@ -619,4 +619,27 @@ describe("CalendarView legacy custom docs", function() {
       "return window.gristCalendarView.getEventByTitle('Legacy Event A')");
     assert.equal(ev?.title, "Legacy Event A");
   });
+
+  it("shows the calendar column mapping in the creator panel", async function() {
+    await assertCalendarCreatorPanel();
+  });
 });
+
+/**
+ * Opens the creator panel on the active (legacy calendar) section and checks it is configured like
+ * a native calendar: the predefined column-mapping panel, not the custom widget's URL/gallery
+ * selector. A legacy section keeps its old parentKey on disk ("custom.calendar", or "custom"
+ * pointing at the retired widget), so this only holds if the panel resolves the widget type
+ * through `effectiveWidgetType` rather than reading parentKey directly.
+ */
+async function assertCalendarCreatorPanel() {
+  // The fixture page holds the source grid alongside the calendar, and the grid is active on
+  // load; click into the calendar so the creator panel describes it and not the grid.
+  await driver.find(".test-calendar-container").click();
+  await gu.waitForServer();
+  await gu.openWidgetPanel("widget");
+  assert.exists(await driver.findWait(".test-config-widget-mapping-for-startDate", 2000));
+  assert.exists(await driver.find(".test-config-widget-mapping-for-title"));
+  // The custom widget selector belongs to a "custom" section; it must not appear for a calendar.
+  assert.isEmpty(await driver.findElements(By.css(".test-config-widget-open-custom-widget-gallery")));
+}

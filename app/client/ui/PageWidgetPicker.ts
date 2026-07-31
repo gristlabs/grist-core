@@ -88,7 +88,7 @@ export function toPageWidget(section: ViewSectionRec): IPageWidget {
     targetColRef: section.linkTargetColRef.peek(),
   });
   return {
-    type: section.parentKey.peek() as IWidgetType,
+    type: section.effectiveWidgetType.peek(),
     table: section.table.peek().summarySourceTable.peek() || section.tableRef.peek(),
     summarize: Boolean(section.table.peek().summarySourceTable.peek()),
     columns: section.table.peek().columns.peek().peek()
@@ -138,8 +138,10 @@ function getCompatibleTypes(tableId: TableRef,
 // The Picker disables some choices that do not make much sense.
 // This function return a boolean telling if summary can be used with this type.
 function isSummaryCompatible(widgetType: IWidgetType): boolean {
-  // TODO - Maybe this needs a calendar widget type adding.
-  const incompatibleTypes: IWidgetType[] = ["form"];
+  // A summary table exposes only its group-by columns plus the "group"/"count" formulas, so a
+  // calendar there can map a start date only when the summary happens to group by a date column,
+  // and never gets a title to label events with. Offer it on plain tables only.
+  const incompatibleTypes: IWidgetType[] = ["form", "calendar"];
   return !incompatibleTypes.includes(widgetType);
 }
 
