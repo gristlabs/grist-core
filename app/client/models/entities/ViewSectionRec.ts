@@ -27,7 +27,7 @@ import { UserAction } from "app/common/DocActions";
 import { RecalcWhen } from "app/common/gristTypes";
 import { arrayRepeat, safeJsonParse } from "app/common/gutil";
 import { Sort } from "app/common/SortSpec";
-import { isLegacyCalendarCustomDef, WidgetType } from "app/common/widgetTypes";
+import { isLegacyCalendarCustomDef, IWidgetType, WidgetType } from "app/common/widgetTypes";
 import { ColumnsToMap, WidgetColumnMap } from "app/plugin/CustomSectionAPI";
 import { CursorPos, UIRowId } from "app/plugin/GristAPI";
 import { GristObjCode } from "app/plugin/GristData";
@@ -98,8 +98,6 @@ export interface ViewSectionOptions extends ChartOptions {
 
   // Options for the native CalendarView.
   calendarViewPerspective?: "day" | "week" | "month";   // Last-used calendar view.
-  calendarTimeFormat?: "12h" | "24h";                   // Hour labels; unset falls back to locale.
-  calendarWeekStart?: "sun" | "mon";                    // Grid start day; unset falls back to locale.
 
   // Other options.
   customView?: string;    // Configuration for custom widgets in JSON format.
@@ -310,6 +308,11 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   // True for old "custom" sections that referenced the retired calendar custom widget.
   // They are rendered with the native calendar (see ViewLayout).
   isLegacyCalendarWidget: ko.Computed<boolean>;
+  // The widget type to treat this section as, which is parentKey except for legacy calendar
+  // sections: those keep their old parentKey on disk but behave as "calendar" everywhere in the
+  // UI (which view to build, which creator panel to show, what the widget picker starts on).
+  // Use this rather than parentKey for anything user-facing; parentKey stays the storage value.
+  effectiveWidgetType: ko.Computed<IWidgetType>;
   // Temporary variable holding flag that describes if the widget supports custom options (set by API).
   hasCustomOptions: ko.Observable<boolean>;
   // Temporary variable holding widget desired access (changed either from manifest or via API).
@@ -526,6 +529,14 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     });
   });
 
+  this.effectiveWidgetType = ko.pureComputed<IWidgetType>(() => {
+    const key = this.parentKey() as IWidgetType;
+    // Both legacy shapes present themselves as the native calendar: the old attached widget
+    // ("custom.calendar") and a plain "custom" section pointing at the retired widget.
+    if (key === "custom.calendar" || this.isLegacyCalendarWidget()) { return WidgetType.Calendar; }
+    return key;
+  });
+
   this.selectedFields = ko.observable<any>([]);
 
   // During schema change, some columns/fields might be disposed beyond our control.
@@ -566,8 +577,8 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   // - Widget type description (if not grid)
   // All concatenated separated by space.
   this.defaultWidgetTitle = this.autoDispose(ko.pureComputed(() => {
-    // Legacy custom sections referencing the retired calendar widget get the Calendar label.
-    const widgetType = this.isLegacyCalendarWidget.peek() ? "calendar" : this.parentKey.peek() as any;
+    // Legacy calendar sections get the Calendar label, not their stored parentKey's.
+    const widgetType = this.effectiveWidgetType.peek();
     const widgetTypeDesc = widgetType !== "record" ?
       `${getWidgetTypes(widgetType).getLabel()}` :
       "";

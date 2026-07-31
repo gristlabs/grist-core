@@ -53,10 +53,6 @@ const viewSectionTypes: { [key: string]: any } = {
   "chart": ChartView,
   "single": DetailView,
   "calendar": CalendarView,
-  // Back-compat: docs saved by the old bundled calendar widget stored the section as
-  // "custom.calendar". Map that key to the native view so those docs keep opening as a calendar
-  // (their saved start/end/title mapping lives under the same customDef.columnsMapping keys).
-  "custom.calendar": CalendarView,
   "custom": CustomView,
   "form": FormView,
 };
@@ -84,12 +80,9 @@ export class ViewSectionHelper extends Disposable {
       if (vs.isDisposed()) { return; }
       // Rebuild the section when its type changes or its underlying table.
       const table = use(vs.table);
-      const key = use(vs.parentKey);
-      // Old docs may reference the retired calendar custom widget from a plain "custom"
-      // section; render those with the native calendar, like the "custom.calendar" alias.
-      const effectiveKey = key === "custom" && use(vs.isLegacyCalendarWidget) ? "calendar" : key;
-      const Cons = getInstanceConstructor(effectiveKey);
-      const viewOptions = options?.[effectiveKey] || {};
+      const key = use(vs.effectiveWidgetType);
+      const Cons = getInstanceConstructor(key);
+      const viewOptions = options?.[key] || {};
       this._instance.clear();
       if (table.getRowId()) {
         this._instance.autoDispose(Cons.create(null, gristDoc, vs, viewOptions));

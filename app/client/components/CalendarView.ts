@@ -9,7 +9,6 @@ import { urlState } from "app/client/models/gristUrlState";
 import { basicButton, button, cssButton, cssButtonGroup } from "app/client/ui2018/buttons";
 import { theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
-import { linkSelect } from "app/client/ui2018/menus";
 import { gristThemeObs } from "app/client/ui2018/theme";
 import { getReadableColorsCombo } from "app/client/widgets/ChoiceToken";
 import { CellValue, UserAction } from "app/common/DocActions";
@@ -43,11 +42,9 @@ type WeekStart = "sun" | "mon";
 const SECONDS_PER_DAY = 24 * 60 * 60;
 const HOURS_PER_DAY = 24;
 
-// Columns the calendar needs the user to map. Mirrors the mapping offered by the
-// (now superseded) custom calendar widget, so existing configurations keep working.
-// TODO(O6): the description strings here ("starting point of event", "is event all day long",
-// "event category and style") read awkwardly; polish for a future i18n pass, e.g. "Start of the
-// event", "Whether the event lasts all day", "Event category for color/style".
+// Columns the calendar needs the user to map. The `name` keys mirror the mapping offered by the
+// (now superseded) custom calendar widget, so existing configurations keep working; the titles and
+// descriptions are shown in the creator panel and are ours to word.
 function getCalendarColumns(): ColumnsToMap {
   return [
     {
@@ -55,7 +52,7 @@ function getCalendarColumns(): ColumnsToMap {
       title: t("Start Date"),
       optional: false,
       type: "Date,DateTime",
-      description: t("starting point of event"),
+      description: t("When the event starts."),
       allowMultiple: false,
       strictType: true,
     },
@@ -64,7 +61,7 @@ function getCalendarColumns(): ColumnsToMap {
       title: t("End Date"),
       optional: true,
       type: "Date,DateTime",
-      description: t("ending point of event"),
+      description: t("When the event ends. If empty, the event lasts as long as its start."),
       allowMultiple: false,
       strictType: true,
     },
@@ -73,7 +70,7 @@ function getCalendarColumns(): ColumnsToMap {
       title: t("Is All Day"),
       optional: true,
       type: "Bool",
-      description: t("is event all day long"),
+      description: t("Whether the event lasts all day."),
       strictType: true,
     },
     {
@@ -81,7 +78,7 @@ function getCalendarColumns(): ColumnsToMap {
       title: t("Title"),
       optional: false,
       type: "Text",
-      description: t("title of event"),
+      description: t("The label shown on the event."),
       allowMultiple: false,
     },
     {
@@ -89,7 +86,7 @@ function getCalendarColumns(): ColumnsToMap {
       title: t("Type"),
       optional: true,
       type: "Choice,ChoiceList",
-      description: t("event category and style"),
+      description: t("Groups events by category. Each choice uses its own color and style."),
       allowMultiple: false,
     },
   ];
@@ -113,9 +110,7 @@ interface CalendarRecord {
 
 /**
  * CalendarView renders records of the underlying table as events in a Toast UI Calendar, with
- * day/week/month perspectives. It is the native replacement for the bundled custom calendar
- * widget: same column mapping (start/end/title/all-day/type), same timezone and color handling,
- * but rendered directly (no iframe) and writing back through ordinary user actions.
+ * day/week/month perspectives.
  */
 export class CalendarView extends BaseView {
   private _calendar: Calendar | null = null;
@@ -129,17 +124,15 @@ export class CalendarView extends BaseView {
   private _visibleEventIds = new Set<number>();
   private _selectedRecordId: number | null = null;
 
-  // Our 12-hour overlay labels for the drag selection (one per selected column), pooled and reused
+  // Our own overlay labels for the drag selection (one per selected column), pooled and reused
   // across drag frames. Live on document.body; kept in sync by _syncSelectionOverlay.
   private _selectionLabels: HTMLElement[] = [];
 
   private _perspective: Computed<Perspective>;
-  private _timeFormat: Computed<TimeFormat>;
-  private _weekStart: Computed<WeekStart>;
-  // Last values pushed to TUI. The optionsObj subscription fires on every option write (incl. the
-  // perspective toggle), so we compare against these to re-render only on an actual change.
-  private _appliedTimeFormat: TimeFormat | null = null;
-  private _appliedWeekStart: WeekStart | null = null;
+  // Hour-label format and grid start day follow the browser locale.
+  private _timeFormat: TimeFormat = getLocaleTimeFormat();
+  private _weekStart: WeekStart = getLocaleWeekStart();
+  // Last all-day-only flag pushed to TUI, so setOptions is called only on an actual change.
   private _appliedAllDayOnly: boolean | null = null;
   private _update: () => void;
   private _resize: () => void;
@@ -152,19 +145,6 @@ export class CalendarView extends BaseView {
     this._perspective = Computed.create(this,
       fromKo(this.viewSection.optionsObj.prop("calendarViewPerspective")),
       (_use, view) => (view && PERSPECTIVES.includes(view) ? view : "week"));
-
-    // Read the saved option, falling back to the browser locale when unset. Writable so the toolbar
-    // dropdowns persist via setAndSave; the grid updates through the optionsObj subscription below.
-    const timeFormatProp = this.viewSection.optionsObj.prop("calendarTimeFormat");
-    this._timeFormat = Computed.create(this,
-      fromKo(timeFormatProp),
-      (_use, fmt) => (fmt === "12h" || fmt === "24h" ? fmt : getLocaleTimeFormat()));
-    this._timeFormat.onWrite(val => timeFormatProp.setAndSave(val).catch(reportError));
-    const weekStartProp = this.viewSection.optionsObj.prop("calendarWeekStart");
-    this._weekStart = Computed.create(this,
-      fromKo(weekStartProp),
-      (_use, start) => (start === "sun" || start === "mon" ? start : getLocaleWeekStart()));
-    this._weekStart.onWrite(val => weekStartProp.setAndSave(val).catch(reportError));
 
     this.viewPane = this._buildDom();
     this.onDispose(() => {
@@ -203,9 +183,6 @@ export class CalendarView extends BaseView {
     this.onDispose(() => typeSubs.forEach(s => s.dispose()));
 
     this.autoDispose(this._perspective.addListener(view => this._changeView(view)));
-    // Subscribe to the whole optionsObj (fires on the save round-trip) rather than the per-prop
-    // computeds, since saveOnly() updates the value only after the round-trip, not optimistically.
-    this.autoDispose(this.viewSection.optionsObj.subscribe(() => this._applyCalendarOptions()));
     // Event colors are set to CSS-variable strings, so they re-resolve on theme change with no
     // data rebuild; we only need to re-apply the calendar chrome theme.
     this.autoDispose(gristThemeObs().addListener(() => {
@@ -280,7 +257,7 @@ export class CalendarView extends BaseView {
     this._tzDate = TZDate;
 
     const isReadOnly = this._isReadOnly();
-    const startDayOfWeek = weekStartToIndex(this._weekStart.get());
+    const startDayOfWeek = weekStartToIndex(this._weekStart);
     this._calendar = new CalendarCtor(this._calendarDom, {
       week: { taskView: false, startDayOfWeek },
       month: { startDayOfWeek },
@@ -303,10 +280,6 @@ export class CalendarView extends BaseView {
       }],
     });
 
-    // Prime as applied; the optionsObj subscription only acts on later changes.
-    this._appliedTimeFormat = this._timeFormat.get();
-    this._appliedWeekStart = this._weekStart.get();
-
     this._wireCalendarEvents();
     // disableEditing is a ko.computed that depends on linking state (BaseView.ts), so it can flip
     // after init when the section becomes a link target. Mirror its current value onto TUI so
@@ -327,33 +300,15 @@ export class CalendarView extends BaseView {
     this._calendar.setOptions({ isReadOnly });
   }
 
-  // Hour-axis and now-indicator templates, in the widget's 12h/24h format. Extracted so
-  // _applyCalendarOptions can re-set them: a bare render() reuses the template refs, so Preact
-  // memoizes and the axis keeps its old labels; setOptions({ template }) forces the grid to redraw.
+  // Hour-axis and now-indicator templates, in the locale's 12h/24h format. TUI's axis and
+  // now-indicator default to different styles ("03 pm" vs "15:44"); format both with one helper so
+  // they agree. The drag-selection label can't be templated, so it's hidden via CSS and redrawn as
+  // an overlay in _syncSelectionOverlay to match.
   private _timeTemplates(): NonNullable<Options["template"]> {
-    // TUI's axis and now-indicator default to different styles ("03 pm" vs "15:44"); format both
-    // with one helper so they agree. The drag-selection label can't be templated, so it's hidden via
-    // CSS and redrawn as an overlay in _syncSelectionOverlay to match.
     return {
-      timegridDisplayPrimaryTime: ({ time }) => formatHourMinute(time, this._timeFormat.get()),
-      timegridNowIndicatorLabel: ({ time }) => formatHourMinute(time, this._timeFormat.get()),
+      timegridDisplayPrimaryTime: ({ time }) => formatHourMinute(time, this._timeFormat),
+      timegridNowIndicatorLabel: ({ time }) => formatHourMinute(time, this._timeFormat),
     };
-  }
-
-  // Push changed time-format / week-start options onto the live calendar.
-  private _applyCalendarOptions() {
-    if (!this._calendar) { return; }
-    const timeFormat = this._timeFormat.get();
-    if (timeFormat !== this._appliedTimeFormat) {
-      this._appliedTimeFormat = timeFormat;
-      this._calendar.setOptions({ template: this._timeTemplates() });
-    }
-    const weekStart = this._weekStart.get();
-    if (weekStart !== this._appliedWeekStart) {
-      this._appliedWeekStart = weekStart;
-      const startDayOfWeek = weekStartToIndex(weekStart);
-      this._calendar.setOptions({ week: { startDayOfWeek }, month: { startDayOfWeek } });
-    }
   }
 
   // When the mapped columns have no time-of-day, hide the Day/Week hour grid (eventView: ['allday'])
@@ -447,13 +402,13 @@ export class CalendarView extends BaseView {
     cal.on("beforeDeleteEvent", event => this._deleteEvent(Number(event.id)));
 
     // Clear leftover grid selections, mirroring the upstream workaround for nhn/tui.calendar#1300.
+    // The old widget also called v1's `cancelDrag()` for a bug where a too-fast mouseup left a drag
+    // stuck. TUI v2 removed that method and exposes no drag state at all, so there is nothing to
+    // call; this mousedown handler is the whole workaround now. If a stuck drag ever shows up
+    // (most likely on touch), it needs reporting upstream rather than a reach into TUI's internals.
     this._calendarDom.addEventListener("mousedown", () => cal.clearGridSelections());
-    // TODO(O4): the original custom widget worked around a TUI bug where a too-fast mouseup left
-    // a stale drag (it called the v1-only `cancelDrag()`). TUI v2 doesn't expose an equivalent
-    // public API; leaving as a known gap rather than risking a wrong fix. Resurrect via a
-    // private-API call (and a comment) if QA hits the bug on touch devices.
 
-    // Redraw our 12-hour drag-selection overlay on every grid mutation. The drag-to-select guide
+    // Redraw our drag-selection overlay on every grid mutation. The drag-to-select guide
     // label is the one time label TUI builds itself (as raw 24-hour "14:00 - 16:30"), with no
     // template hook, and it re-renders (via Preact) on every drag frame. Rather than fight that
     // reconciliation by editing its text, we hide it (cssCalendarContainer) and draw our own
@@ -486,12 +441,12 @@ export class CalendarView extends BaseView {
     this._syncSelectionOverlay();
   }
 
-  // Draws our own 12-hour guide labels over TUI's hidden ones during a drag selection. There is one
+  // Draws our own guide labels over TUI's hidden ones during a drag selection. There is one
   // TUI selection box (`.toastui-calendar-grid-selection`) per selected column; each carries a
   // `.toastui-calendar-grid-selection-label` whose raw text is "HH:MM - HH:MM" (or a bare "HH:MM" on
   // the non-starting columns of a multi-column drag). We reuse a pool of body-level overlay nodes
   // (one per box), position each over its box via getBoundingClientRect, and set its text to the
-  // 12-hour form. Idempotent and cheap: it runs on every grid mutation, reuses nodes, and does
+  // locale-formatted form. Idempotent and cheap: it runs on every grid mutation, reuses nodes, and does
   // nothing beyond a rect read + text/style writes. Any surplus pooled nodes (selection shrank or
   // cleared) are removed, so nothing dangles once the selection is gone.
   private _syncSelectionOverlay() {
@@ -507,7 +462,7 @@ export class CalendarView extends BaseView {
     let used = 0;
     for (const box of boxes) {
       const label = box.querySelector(".toastui-calendar-grid-selection-label");
-      const text = label && formatSelectionLabel(label.textContent || "", this._timeFormat.get());
+      const text = label && formatSelectionLabel(label.textContent || "", this._timeFormat);
       if (!text) { continue; }
       const rect = box.getBoundingClientRect();
       const overlay = this._selectionLabels[used] ||
@@ -556,8 +511,6 @@ export class CalendarView extends BaseView {
       .filter((c): c is ColumnRec => c !== null);
     return Array.from(new Set(cols));
   }
-
-  // Reading data
 
   private _updateView() {
     if (this.isDisposed() || !this._calendar) { return; }
@@ -718,8 +671,6 @@ export class CalendarView extends BaseView {
     }
   }
 
-  // Writing data
-
   // On the create path (rowId === null) returns the new row's id, so the caller can open the
   // Record Card on it; returns null on the update path or when nothing was written.
   private async _upsertFromToast(rowId: number | null, tui: Partial<EventObject>): Promise<number | null> {
@@ -847,8 +798,6 @@ export class CalendarView extends BaseView {
       start.getDate() === end.getDate();
   }
 
-  // Navigation & rendering
-
   /** Adds/updates events in the visible range and removes those that scrolled out of it. */
   private _renderVisibleEvents() {
     const cal = this._calendar;
@@ -972,26 +921,9 @@ export class CalendarView extends BaseView {
     );
     return cssCalendarView(
       testId("container"),
-      cssToolbar(navGroup, this._titleDom, this._buildOptionsGroup(), perspectiveGroup),
+      cssToolbar(navGroup, this._titleDom, perspectiveGroup),
       cssCalendarBody(
         this._calendarDom,
-      ),
-    );
-  }
-
-  private _buildOptionsGroup() {
-    return cssOptionsGroup(
-      dom("div", testId("time-format"),
-        linkSelect<TimeFormat>(this._timeFormat, [
-          { value: "12h", label: t("12-hour") },
-          { value: "24h", label: t("24-hour") },
-        ]),
-      ),
-      dom("div", testId("week-start"),
-        linkSelect<WeekStart>(this._weekStart, [
-          { value: "sun", label: t("Week: Sun") },
-          { value: "mon", label: t("Week: Mon") },
-        ]),
       ),
     );
   }
@@ -1033,8 +965,8 @@ function perspectiveLabel(view: Perspective): string {
   }
 }
 
-// Hour labels for the axis, now-indicator, and drag-selection overlay, in the widget's 12h ("3:00
-// pm") or 24h ("15:00") style. The argument is a TUI TZDate, which exposes getHours()/getMinutes()
+// Hour labels for the axis, now-indicator, and drag-selection overlay, in 12h ("3:00 pm") or 24h
+// ("15:00") style. The argument is a TUI TZDate, which exposes getHours()/getMinutes()
 // like a Date (the same accessors TUI's own format tokens use), so reading local wall-clock time
 // here is correct.
 function formatHourMinute(
@@ -1068,13 +1000,13 @@ function formatSelectionLabel(text: string, format: TimeFormat): string | null {
   return null;
 }
 
-// TUI's startDayOfWeek index: 0=Sun..6=Sat. We only offer Sunday/Monday in the UI.
+// TUI's startDayOfWeek index: 0=Sun..6=Sat. We only distinguish Sunday/Monday.
 function weekStartToIndex(start: WeekStart): number {
   return start === "mon" ? 1 : 0;
 }
 
-// The week-start default when the widget option is unset: Monday if the browser locale starts its
-// week on Monday, otherwise Sunday. (Intl: 1=Mon..7=Sun; a locale firstDay of 7 means Sunday.)
+// The week start: Monday if the browser locale starts its week on Monday, otherwise Sunday.
+// (Intl: 1=Mon..7=Sun; a locale firstDay of 7 means Sunday.)
 function getLocaleWeekStart(): WeekStart {
   try {
     const locale = new Intl.Locale(navigator.language || "en");
@@ -1088,8 +1020,8 @@ function getLocaleWeekStart(): WeekStart {
   return "sun";
 }
 
-// The time-format default when the widget option is unset: 24h if the browser locale formats an
-// afternoon time without an am/pm marker, otherwise 12h.
+// The time format: 24h if the browser locale formats an afternoon time without an am/pm marker,
+// otherwise 12h.
 function getLocaleTimeFormat(): TimeFormat {
   try {
     const parts = new Intl.DateTimeFormat(navigator.language || undefined, { hour: "numeric" })
@@ -1172,16 +1104,6 @@ const cssPerspectiveGroup = styled(cssButtonGroup, `
   }
 `);
 
-// The 12h/24h and week-start dropdowns, sitting just left of the Day/Week/Month toggle. flex: none
-// so they keep their natural width; the title (flex) absorbs the slack and truncates first.
-const cssOptionsGroup = styled("div", `
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex: none;
-  white-space: nowrap;
-`);
-
 // The title takes the leftover space and truncates rather than forcing the toolbar wider.
 const cssCalendarTitle = styled("div", `
   font-weight: 600;
@@ -1202,7 +1124,7 @@ const cssCalendarBody = styled("div", `
 `);
 
 // The drag-selection guide label is the one time label TUI builds itself (raw 24-hour, e.g.
-// "08:00 - 11:00"), with no template hook. We hide it and draw our own 12-hour overlay instead
+// "08:00 - 11:00"), with no template hook. We hide it and draw our own locale-formatted overlay instead
 // (see _syncSelectionOverlay); the alternative of rewriting TUI's text node fights Preact, which
 // re-renders the label every drag frame and double-renders (stale + raw) against our edit.
 // We must beat TUI's own rule for this label, which is a 3-class selector

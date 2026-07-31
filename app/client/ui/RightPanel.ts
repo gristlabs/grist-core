@@ -83,16 +83,17 @@ const ELEMENTOF = "\u2208"; // 220A for small elementof
 
 const t = makeT("RightPanel");
 
-// Widget types whose creator panel shows the column-mapping config: custom widgets (including
-// bundled "custom.*" ones) and the native calendar.
+// Widget types whose creator panel shows the column-mapping config.
 function usesColumnMapping(widgetType: IWidgetType | null | undefined): boolean {
   return widgetType === "custom" || usesPredefinedMapping(widgetType);
 }
 
-// Widget types configured through the predefined column-mapping panel (no widget selector): the
-// native calendar and bundled "custom.*" widgets, but not the generic "custom" URL widget.
+// Widget types configured through the predefined column-mapping panel (no widget selector), as
+// opposed to the generic "custom" URL widget which picks its widget first. Only the native
+// calendar qualifies: the panel reads effectiveWidgetType, so a legacy calendar section arrives
+// here as "calendar" too, and no other attached widget type is left.
 function usesPredefinedMapping(widgetType: IWidgetType | null | undefined): boolean {
-  return widgetType === "calendar" || Boolean(widgetType?.startsWith("custom."));
+  return widgetType === "calendar";
 }
 
 // Represents a top tab of the right side-pane.
@@ -121,7 +122,7 @@ export class RightPanel extends Disposable {
   // icons in the top tab.
   private _pageWidgetType = Computed.create<IWidgetType | null>(this, (use) => {
     const section: ViewSectionRec = use(this._gristDoc.viewModel.activeSection);
-    return (use(section.parentKey) || null) as IWidgetType;
+    return (use(section.effectiveWidgetType) || null) as IWidgetType;
   });
 
   private _isForm = Computed.create(this, (use) => {
@@ -584,8 +585,7 @@ export class RightPanel extends Disposable {
         ];
       }),
       // The native calendar and bundled custom widgets configure themselves through the predefined
-      // column-mapping panel (no widget selector). The calendar's own options (time format, week
-      // start) live in its toolbar, not here.
+      // column-mapping panel (no widget selector).
       dom.maybe(use => usesPredefinedMapping(use(this._pageWidgetType)), () => {
         return [
           dom.create(PredefinedCustomSectionConfig, activeSection, this._gristDoc),
