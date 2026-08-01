@@ -268,7 +268,7 @@ export class ChartView extends BaseView {
 
     // groupSeries() below caps how many group values we plot (see MAX_SERIES_IN_CHART). When it
     // drops some, record the counts so we can tell the user the chart is incomplete.
-    let seriesTruncation: {shown: number; total: number} | undefined;
+    let seriesTruncation: { shown: number; total: number } | undefined;
 
     if (isPieLike(this._chartType.peek())) {
       // Plotly's pie charts have a sort option that is enabled by default. Let's turn it off.
@@ -342,10 +342,10 @@ export class ChartView extends BaseView {
         xanchor: "left",
         yanchor: "bottom",
         showarrow: false,
-        font: {size: 11},
+        font: { size: 11 },
       };
       layout.annotations = [...(layout.annotations || []), truncationNote];
-      layout.margin = {...layout.margin, t: Math.max(layout.margin?.t ?? 0, 40)};
+      layout.margin = { ...layout.margin, t: Math.max(layout.margin?.t ?? 0, 40) };
     }
     const config: Partial<Config> = { ...plotData.config, displayModeBar: false };
     // react() can be used in place of newPlot(), and is faster when updating an existing plot.
