@@ -12,13 +12,6 @@ import type { EventObject, Options, TZDate } from "@toast-ui/calendar";
 
 const t = makeT("CalendarExt");
 
-// TUI does not export the type of its theme object (it hides it behind DeepPartial<ThemeState>),
-// so we take it from Options instead. This way a typo in a nested key becomes a compile error.
-type CalendarThemeOption = NonNullable<Options["theme"]>;
-
-// The single TUI "calendar" all events belong to.
-const CALENDAR_NAME = "standardCalendar";
-
 /** One row of the table, with the mapped columns already read out of it. */
 export interface CalendarRecord {
   id: number;
@@ -31,11 +24,6 @@ export interface CalendarRecord {
 
 export type Perspective = "day" | "week" | "month";
 export const PERSPECTIVES: Perspective[] = ["day", "week", "month"];
-
-type TimeFormat = "12h" | "24h";
-type WeekStart = "sun" | "mon";
-
-const HOURS_PER_DAY = 24;
 
 /**
  * What CalendarExt asks Grist to do. The calendar knows only row ids and dates. Everything that
@@ -177,7 +165,7 @@ export class CalendarExt extends Disposable {
   }
 
   public updateUIAfterNavigation() {
-    this.renderVisibleEvents();
+    this._renderVisibleEvents();
     this.updateTitle();
     this._host.onNavigate();
   }
@@ -206,8 +194,8 @@ export class CalendarExt extends Disposable {
     record: CalendarRecord, startType: string, endType: string, choiceOptions: Record<string, any>,
     docTz: string,
   ): EventObject {
-    const start = this.getAdjustedDate(record.startDate!, startType, docTz);
-    let end = record.endDate ? this.getAdjustedDate(record.endDate, endType, docTz) : start;
+    const start = this._getAdjustedDate(record.startDate!, startType, docTz);
+    let end = record.endDate ? this._getAdjustedDate(record.endDate, endType, docTz) : start;
 
     // Normalize invalid ranges so the event is still visible.
     if (end < start) { end = start; }
@@ -259,49 +247,7 @@ export class CalendarExt extends Disposable {
    */
   public setEvents(events: Map<number, EventObject>) {
     this._events = events;
-    this.renderVisibleEvents();
-  }
-
-  /**
-   * Adds or updates the events that fall in the visible range, and removes the ones that scrolled
-   * out of it. Uses the set given by the last setEvents call.
-   *
-   * Ported from the calendar widget (page.js renderVisibleEvents). Two changes: we add events in
-   * one batched createEvents call instead of one call each, and we track what is on screen with
-   * _visibleEventIds instead of asking TUI (getEvent) about every event. The widget's
-   * `setHours(23, 99, 99, 999)` (the minutes and seconds are out of range) becomes 23:59:59.999,
-   * and we apply it to a copy, because TUI may return a reference to its own range end.
-   */
-  public renderVisibleEvents() {
-    const cal = this._calendar;
-    const rangeStart = cal.getDateRangeStart().getTime();
-    // Copy the date first, because setHours changes it in place. TUI may give us its own range-end
-    // object, so changing it would move the visible window forward a bit on every render.
-    const rangeEndDate = (cal.getDateRangeEnd()).toDate();
-    rangeEndDate.setHours(23, 59, 59, 999);
-    const rangeEnd = rangeEndDate.getTime();
-
-    const nowVisible = new Set<number>();
-    const toCreate: EventObject[] = [];
-    for (const [rowId, event] of this._events) {
-      const startMs = (event.start as TZDate).getTime();
-      const endMs = (event.end as TZDate).getTime();
-      const inRange = (startMs >= rangeStart && startMs <= rangeEnd) ||
-        (endMs >= rangeStart && endMs <= rangeEnd) ||
-        (startMs < rangeStart && endMs > rangeEnd);
-      if (!inRange) { continue; }
-      if (this._visibleEventIds.has(rowId)) {
-        cal.updateEvent(String(rowId), CALENDAR_NAME, event);
-      } else {
-        toCreate.push(event);
-      }
-      nowVisible.add(rowId);
-    }
-    if (toCreate.length) { cal.createEvents(toCreate); }
-    for (const rowId of this._visibleEventIds) {
-      if (!nowVisible.has(rowId)) { cal.deleteEvent(String(rowId), CALENDAR_NAME); }
-    }
-    this._visibleEventIds = nowVisible;
+    this._renderVisibleEvents();
   }
 
   // Highlights (or un-highlights) an event with the primary color. The accent is normally the left
@@ -326,25 +272,6 @@ export class CalendarExt extends Disposable {
       backgroundColor: selected && useFill ? accent : base,
       color: baseColor,
     });
-  }
-
-  /**
-   * Shifts a UTC-based JS Date so it displays correctly for the given column type.
-   *
-   * Ported from the calendar widget (page.js getAdjustedDate), including the DST reasoning. The
-   * only change is that the doc timezone is passed in rather than read from a URL parameter.
-   */
-  public getAdjustedDate(date: Date, colType: string, docTz: string): Date {
-    // The `timezone` property exists on TZDate (TUI's wrapper) but not on plain Date; we still
-    // call this with both, so probe the field rather than narrowing the parameter type.
-    const dateTz = (date as Date & { timezone?: string }).timezone;
-    if (docTz && docTz !== dateTz && isDateTime(colType)) {
-      return this.tzDate(date).tz(docTz) as unknown as Date;
-    }
-    if (!isDateOnlyType(colType)) { return date; }
-    // Like date.tz('UTC'), but accounts for DST differences.
-    const ms = date.valueOf() + (date.getTimezoneOffset() * 60000);
-    return new Date(ms);
   }
 
   /**
@@ -403,6 +330,67 @@ export class CalendarExt extends Disposable {
     this._titleDom.textContent = title;
   }
 
+  /**
+   * Adds or updates the events that fall in the visible range, and removes the ones that scrolled
+   * out of it. Uses the set given by the last setEvents call.
+   *
+   * Ported from the calendar widget (page.js renderVisibleEvents). Two changes: we add events in
+   * one batched createEvents call instead of one call each, and we track what is on screen with
+   * _visibleEventIds instead of asking TUI (getEvent) about every event. The widget's
+   * `setHours(23, 99, 99, 999)` (the minutes and seconds are out of range) becomes 23:59:59.999,
+   * and we apply it to a copy, because TUI may return a reference to its own range end.
+   */
+  private _renderVisibleEvents() {
+    const cal = this._calendar;
+    const rangeStart = cal.getDateRangeStart().getTime();
+    // Copy the date first, because setHours changes it in place. TUI may give us its own range-end
+    // object, so changing it would move the visible window forward a bit on every render.
+    const rangeEndDate = (cal.getDateRangeEnd()).toDate();
+    rangeEndDate.setHours(23, 59, 59, 999);
+    const rangeEnd = rangeEndDate.getTime();
+
+    const nowVisible = new Set<number>();
+    const toCreate: EventObject[] = [];
+    for (const [rowId, event] of this._events) {
+      const startMs = (event.start as TZDate).getTime();
+      const endMs = (event.end as TZDate).getTime();
+      const inRange = (startMs >= rangeStart && startMs <= rangeEnd) ||
+        (endMs >= rangeStart && endMs <= rangeEnd) ||
+        (startMs < rangeStart && endMs > rangeEnd);
+      if (!inRange) { continue; }
+      if (this._visibleEventIds.has(rowId)) {
+        cal.updateEvent(String(rowId), CALENDAR_NAME, event);
+      } else {
+        toCreate.push(event);
+      }
+      nowVisible.add(rowId);
+    }
+    if (toCreate.length) { cal.createEvents(toCreate); }
+    for (const rowId of this._visibleEventIds) {
+      if (!nowVisible.has(rowId)) { cal.deleteEvent(String(rowId), CALENDAR_NAME); }
+    }
+    this._visibleEventIds = nowVisible;
+  }
+
+  /**
+   * Shifts a UTC-based JS Date so it displays correctly for the given column type.
+   *
+   * Ported from the calendar widget (page.js getAdjustedDate), including the DST reasoning. The
+   * only change is that the doc timezone is passed in rather than read from a URL parameter.
+   */
+  private _getAdjustedDate(date: Date, colType: string, docTz: string): Date {
+    // The `timezone` property exists on TZDate (TUI's wrapper) but not on plain Date; we still
+    // call this with both, so probe the field rather than narrowing the parameter type.
+    const dateTz = (date as Date & { timezone?: string }).timezone;
+    if (docTz && docTz !== dateTz && isDateTime(colType)) {
+      return this.tzDate(date).tz(docTz) as unknown as Date;
+    }
+    if (!isDateOnlyType(colType)) { return date; }
+    // Like date.tz('UTC'), but accounts for DST differences.
+    const ms = date.valueOf() + (date.getTimezoneOffset() * 60000);
+    return new Date(ms);
+  }
+
   // Partly ported. The clickEvent / beforeUpdateEvent / beforeDeleteEvent handlers and the
   // mousedown clearGridSelections fix come from the calendar widget. The dblclick handler is
   // rewritten: the widget listened on `document` and used TUI's internal getEventModel, while we
@@ -439,7 +427,7 @@ export class CalendarExt extends Disposable {
     // and all-day flag, which is all we need to seed the new row.
     cal.on("selectDateTime", async ({ start, end, isAllday }) => {
       // selectDateTime hands back plain Dates; makeGristDateTime needs a TZDate (it calls .tz()),
-      // so wrap them the same way getAdjustedDate does.
+      // so wrap them the same way _getAdjustedDate does.
       const rowId = await this._host.onCreate(this.tzDate(start), this.tzDate(end), isAllday);
       // We waited for AddRecord, so the section may be disposed (and `cal` destroyed) by now.
       // Stop here before we touch the calendar, so we don't call into a store that is already gone.
@@ -614,10 +602,6 @@ export class CalendarExt extends Disposable {
   }
 }
 
-const SECONDS_PER_DAY = 24 * 60 * 60;
-
-function isDateTime(colType: string): boolean { return isDateLikeType(colType) && !isDateOnlyType(colType); }
-
 // The columns the user has to map, as shown in the creator panel.
 //
 // Ported from the calendar widget (page.js getGristOptions). The five `name` keys must stay exactly
@@ -669,6 +653,54 @@ export function getCalendarColumns(): ColumnsToMap {
     },
   ];
 }
+
+// The drag guide label is the only time label TUI builds by itself (plain 24-hour text, like
+// "08:00 - 11:00"), and it gives us no template for it. So we hide it here and draw our own label in
+// the local time format instead (see _syncSelectionOverlay). Editing TUI's text node does not work,
+// because Preact draws the label again on every frame of the drag.
+//
+// TUI's own rule for this label uses three classes
+// (".toastui-calendar-column .toastui-calendar-grid-selection .toastui-calendar-grid-selection-label")
+// and also sets the label color inline. So we repeat the same three classes, to make our rule at
+// least as strong, and hide the label with `visibility`. An inline color cannot undo `visibility`,
+// and the label keeps its size, which we need in order to find where to draw our own label.
+export const cssCalendarContainer = styled("div", `
+  flex: 1 1 0;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  & .toastui-calendar-column .toastui-calendar-grid-selection .toastui-calendar-grid-selection-label {
+    visibility: hidden;
+  }
+  & .toastui-calendar-day-names.toastui-calendar-month {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  & .toastui-calendar-day-name-item:not(:first-child) {
+    border-left: 1px solid ${theme.tableBodyBorder};
+  }
+  & .toastui-calendar-grid-cell-date .toastui-calendar-weekday-grid-date.toastui-calendar-weekday-grid-date-decorator {
+    background-color: ${theme.controlPrimaryBg};
+    color: ${theme.controlPrimaryFg};
+  }
+`);
+
+// Helpers
+
+// TUI does not export the type of its theme object (it hides it behind DeepPartial<ThemeState>),
+// so we take it from Options instead. This way a typo in a nested key becomes a compile error.
+type CalendarThemeOption = NonNullable<Options["theme"]>;
+
+// The single TUI "calendar" all events belong to.
+const CALENDAR_NAME = "standardCalendar";
+
+type TimeFormat = "12h" | "24h";
+type WeekStart = "sun" | "mon";
+
+const HOURS_PER_DAY = 24;
+const SECONDS_PER_DAY = 24 * 60 * 60;
+
+function isDateTime(colType: string): boolean { return isDateLikeType(colType) && !isDateOnlyType(colType); }
 
 function buildTextDecoration(style: Record<string, any>): string {
   const parts: string[] = [];
@@ -750,37 +782,6 @@ function getLocaleTimeFormat(): TimeFormat {
   }
   return "12h";
 }
-
-// The drag guide label is the only time label TUI builds by itself (plain 24-hour text, like
-// "08:00 - 11:00"), and it gives us no template for it. So we hide it here and draw our own label in
-// the local time format instead (see _syncSelectionOverlay). Editing TUI's text node does not work,
-// because Preact draws the label again on every frame of the drag.
-//
-// TUI's own rule for this label uses three classes
-// (".toastui-calendar-column .toastui-calendar-grid-selection .toastui-calendar-grid-selection-label")
-// and also sets the label color inline. So we repeat the same three classes, to make our rule at
-// least as strong, and hide the label with `visibility`. An inline color cannot undo `visibility`,
-// and the label keeps its size, which we need in order to find where to draw our own label.
-export const cssCalendarContainer = styled("div", `
-  flex: 1 1 0;
-  min-height: 0;
-  min-width: 0;
-  overflow: hidden;
-  & .toastui-calendar-column .toastui-calendar-grid-selection .toastui-calendar-grid-selection-label {
-    visibility: hidden;
-  }
-  & .toastui-calendar-day-names.toastui-calendar-month {
-    padding-left: 0;
-    padding-right: 0;
-  }
-  & .toastui-calendar-day-name-item:not(:first-child) {
-    border-left: 1px solid ${theme.tableBodyBorder};
-  }
-  & .toastui-calendar-grid-cell-date .toastui-calendar-weekday-grid-date.toastui-calendar-weekday-grid-date-decorator {
-    background-color: ${theme.controlPrimaryBg};
-    color: ${theme.controlPrimaryFg};
-  }
-`);
 
 // Our own drag guide label, drawn on top of TUI's hidden one (see cssCalendarContainer). There is
 // one per selected column. It uses `position: fixed` with the box's own screen position, so we do
