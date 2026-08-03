@@ -36,16 +36,9 @@ const testId = makeTestId("test-calendar-");
  * day/week/month perspectives.
  *
  * This is the Grist half: column mapping, reading rows, writing user actions, cursor linking and
- * the toolbar. The calendar itself lives in CalendarWrapper, which holds what we kept from the bundled
- * "calendar" custom widget (grist-widget repo, calendar/page.js). The two talk through the
- * CalendarHost methods on this class: CalendarWrapper reports row ids, and this class turns them
- * into Grist actions.
- *
- * Almost nothing here comes from the widget. The widget ran in an iframe and reached Grist through
- * the plugin API (grist.onRecords, mapColumnNames, getTable().create/update/destroy). It also had a
- * ColTypesFetcher class that read _grist_Tables_column by hand, because the API could not tell it
- * the column types. Here we read the view section directly, so types, display columns and choice
- * options are all available at once. The few ported parts say so where they appear.
+ * the toolbar. The calendar itself lives in CalendarWrapper. The two talk through the CalendarHost
+ * methods on this class: CalendarWrapper reports row ids, and this class turns them into Grist
+ * actions.
  */
 export class CalendarView extends BaseView implements CalendarHost {
   private _calendar: CalendarWrapper | null = null;
@@ -97,7 +90,6 @@ export class CalendarView extends BaseView implements CalendarHost {
 
     // Rebuild when the mapping changes _or_ when one of the mapped columns' types changes
     // (Text -> Numeric, Date <-> DateTime, etc.). Mirrors ChartView's per-field type listener.
-    // The widget gave up on this ("no good way to know when a column's type is changed").
     //
     // A type change is as invalidating as a mapping change: the spans in the index were worked out
     // under the old types, so both cases rebuild rather than redraw.
@@ -181,10 +173,6 @@ export class CalendarView extends BaseView implements CalendarHost {
   // is async) so the cursor-derived rowId is stale, and a calendar section has no view fields for the
   // colRef it reads. The card only needs rowId + the record-card sectionId (see GristDoc), so push
   // that url hash directly.
-  //
-  // Same idea as the calendar widget's dblclick handler (page.js), but no shared code: the widget
-  // ran `grist.commandApi.run('viewAsCard')` after moving the cursor. In-app there is no command
-  // API to call, so we push the record-card url hash ourselves.
   public onOpen(rowId: number) {
     if (this.isRecordCardDisabled()) { return; }
     const sectionId = this.viewSection.tableRecordCard().id();
@@ -362,14 +350,10 @@ export class CalendarView extends BaseView implements CalendarHost {
     const toGrist = (date: unknown, f: Field) => makeGristDateTime(date as TZDate, f.type, docTz);
 
     const fields: Record<string, CellValue> = {};
-    const identity = (v: unknown, _f: Field) => v as CellValue;
-    const set = (field: typeof start, value: typeof tui.start, convert = identity) => {
-      if (field && value !== undefined) { fields[field.colId] = convert(value, field); }
-    };
-    set(start, tui.start, toGrist);
-    set(end, tui.end, toGrist);
-    set(allDay, tui.isAllday);
-    set(title, tui.title, v => (v as string) || t("New Event"));
+    if (start && tui.start !== undefined) { fields[start.colId] = toGrist(tui.start, start); }
+    if (end && tui.end !== undefined) { fields[end.colId] = toGrist(tui.end, end); }
+    if (allDay && tui.isAllday !== undefined) { fields[allDay.colId] = tui.isAllday as CellValue; }
+    if (title && tui.title !== undefined) { fields[title.colId] = tui.title || t("New Event"); }
     if (Object.keys(fields).length === 0) { return null; }
 
     try {
@@ -418,10 +402,6 @@ export class CalendarView extends BaseView implements CalendarHost {
   }
 
   // Builds the toolbar and the container the calendar draws into.
-  //
-  // The widget's toolbar was hand-written HTML in index.html (Bootstrap buttons, radio inputs, and
-  // a selectRadioButton() helper to keep their checked state right). Here it is grainjs, and the
-  // active perspective is bound to the _perspective observable, so nothing needs syncing by hand.
   private _buildDom() {
     // Build all field-bound nodes into locals first, then compose; easier to grep for the
     // _titleDom / _calendarDom assignments than spotting them inline in a tree literal.
