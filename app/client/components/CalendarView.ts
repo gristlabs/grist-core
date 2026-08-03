@@ -53,36 +53,33 @@ export class CalendarView extends BaseView implements CalendarHost {
   private _allEvents = new Map<number, EventObject>();
   private _selectedRecordId: number | null = null;
 
-  private _perspective: Computed<Perspective>;
-  private _update: () => void;
-  private _resize: () => void;
+  private _perspective = Computed.create(this,
+    fromKo(this.viewSection.optionsObj.prop("calendarViewPerspective")),
+    (_use, view) => (view && PERSPECTIVES.includes(view) ? view : "week"));
+
+  private _update = debounce(() => this._updateView(), 0);
+  private _resize = this.autoDispose(Delay.untilAnimationFrame(() => this._calendar?.render(), this));
 
   constructor(gristDoc: GristDoc, viewSectionModel: ViewSectionRec) {
     super(gristDoc, viewSectionModel);
 
-    // Derived from the saved option (defaulting to "week"); drives dom.cls in the toolbar and
-    // changeView via its listener. Persisted by _setPerspective. Must exist before _buildDom().
-    this._perspective = Computed.create(this,
-      fromKo(this.viewSection.optionsObj.prop("calendarViewPerspective")),
-      (_use, view) => (view && PERSPECTIVES.includes(view) ? view : "week"));
-
+    // First build the dom that will be added to the dom. For now it will be empty, just elements
+    // we will bind data to it a moment later.
     this.viewPane = this._buildDom();
     this.onDispose(() => {
       dom.domDispose(this.viewPane);
       this.viewPane.remove();
     });
 
-    // Clear on dispose so switching widget type doesn't leave stale mapping / link-source flags behind.
-    this.viewSection.columnsToMap(getCalendarColumns());
-    this.viewSection.allowSelectBy(true);
+    // Now configure the section reusing some of the custom widget setup.
+    this.viewSection.columnsToMap(getCalendarColumns()); // this will be used in the Right Panel for setup.
+    this.viewSection.allowSelectBy(true); // Allow select by default, reusing custom widget api for that. 
     this.onDispose(() => {
       if (this.viewSection.isDisposed()) { return; }
+      // Tidy up things we changed, probably not needed, but to be clean.
       this.viewSection.columnsToMap(null);
       this.viewSection.allowSelectBy(false);
     });
-
-    this._update = debounce(() => this._updateView(), 0);
-    this._resize = this.autoDispose(Delay.untilAnimationFrame(() => this._calendar?.render(), this));
 
     // Re-render events when data, mapping, perspective or theme change.
     this.listenTo(this.sortedRows, "rowNotify", this._update);
@@ -187,7 +184,8 @@ export class CalendarView extends BaseView implements CalendarHost {
   }
 
   public onDelete(rowId: number) {
-    this._deleteEvent(rowId).catch(reportError);
+    if (this.isReadOnly() || !rowId) { return; }
+    this.deleteRows([rowId])?.catch(reportError);
   }
 
   public onNavigate() {
@@ -320,10 +318,14 @@ export class CalendarView extends BaseView implements CalendarHost {
     const toGrist = (date: unknown, f: Field) => cal.makeGristDateTime(date as TZDate, f.type, docTz);
 
     const fields: Record<string, CellValue> = {};
-    if (tui.start !== undefined && start) { fields[start.colId] = toGrist(tui.start, start); }
-    if (tui.end !== undefined && end) { fields[end.colId] = toGrist(tui.end, end); }
-    if (tui.isAllday !== undefined && allDay) { fields[allDay.colId] = tui.isAllday; }
-    if (tui.title !== undefined && title) { fields[title.colId] = tui.title || t("New Event"); }
+    const identity = (v: unknown, _f: Field) => v as CellValue;
+    const set = (field: typeof start, value: typeof tui.start, convert = identity) => {
+      if (field && value !== undefined) { fields[field.colId] = convert(value, field); }
+    };
+    set(start, tui.start, toGrist);
+    set(end, tui.end, toGrist);
+    set(allDay, tui.isAllday);
+    set(title, tui.title, v => (v as string) || t("New Event"));
     if (Object.keys(fields).length === 0) { return null; }
 
     try {
@@ -344,15 +346,6 @@ export class CalendarView extends BaseView implements CalendarHost {
       reportError(err as Error);
     }
     return null;
-  }
-
-  private async _deleteEvent(rowId: number) {
-    if (this.isReadOnly() || !rowId) { return; }
-    try {
-      await this.deleteRows([rowId]);
-    } catch (err) {
-      reportError(err as Error);
-    }
   }
 
   private _selectRecord(rowId: UIRowId | null) {
