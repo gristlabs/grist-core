@@ -1,8 +1,7 @@
+import { CALENDAR_NAME, setTZDate } from "app/client/components/CalendarEvents";
 import { loadToastUICalendar, ToastUICalendarModule } from "app/client/lib/imports";
 import { makeT } from "app/client/lib/localization";
 import { theme } from "app/client/ui2018/cssVars";
-import { getReadableColorsCombo } from "app/client/widgets/ChoiceToken";
-import { isDateLikeType, isDateOnlyType } from "app/common/gristTypes";
 import { ColumnsToMap } from "app/plugin/CustomSectionAPI";
 
 import { Disposable, styled } from "grainjs";
@@ -11,16 +10,6 @@ import type Calendar from "@toast-ui/calendar";
 import type { EventObject, Options, TZDate } from "@toast-ui/calendar";
 
 const t = makeT("CalendarExt");
-
-/** One row of the table, with the mapped columns already read out of it. */
-export interface CalendarRecord {
-  id: number;
-  startDate: Date | null;
-  endDate: Date | null;
-  isAllDay: boolean | undefined;
-  title: string | null;
-  type: string;
-}
 
 export type Perspective = "day" | "week" | "month";
 export const PERSPECTIVES: Perspective[] = ["day", "week", "month"];
@@ -43,7 +32,7 @@ export interface CalendarHost extends Disposable {
   onUpdate(rowId: number, changes: Partial<EventObject>): void;
   /** The user deleted an event. */
   onDelete(rowId: number): void;
-  /** The visible range changed, so the host can draw its selection highlight again. */
+  /** The grid now shows a different date range, so the host can draw what belongs in it. */
   onNavigate(): void;
 }
 
@@ -51,9 +40,11 @@ export interface CalendarHost extends Disposable {
  * The Toast UI Calendar, wrapped.
  *
  * This holds what we kept from the old bundled calendar widget (grist-widget repo,
- * calendar/page.js): the TUI theme, drawing events for the visible date range, the selection
- * highlight, navigation, and the timezone helpers. It knows nothing about Grist. It only reports
- * row ids back through CalendarHost.
+ * calendar/page.js): the TUI theme, the selection accent, navigation and the timezone helpers. It
+ * knows nothing about Grist. It only reports row ids back through CalendarHost.
+ *
+ * It draws what it is told to draw, and never decides what belongs on the grid. Which rows are in
+ * view is worked out on the Grist side, where the dates live (see CalendarRenderer).
  *
  * The Grist side (column mapping, reading rows, writing user actions, cursor linking) lives in
  * CalendarView, which owns an instance of this class.
@@ -73,16 +64,17 @@ export class CalendarExt extends Disposable {
     host: CalendarHost, container: HTMLElement, titleDom: HTMLElement, perspective: Perspective,
   ): Promise<CalendarExt | null> {
     const { Calendar: Ctor, TZDate: TZDateCtor } = await loadToastUICalendar();
+    setTZDate((date: Date) => new TZDateCtor(date) as unknown as TZDate);
     if (host.isDisposed()) { return null; }
     return new CalendarExt(Ctor, TZDateCtor, container, titleDom, host, perspective);
   }
 
   private _calendar: Calendar;
 
-  // Every event, by Grist rowId. We only send TUI the ones inside the visible date range.
-  // CalendarView replaces this whole map through setEvents when the rows change.
-  private _events = new Map<number, EventObject>();
-  private _visibleEventIds = new Set<number>();
+  // The row drawn with the selection accent, if any. TUI has no idea of a selected event, and
+  // drawing an event replaces it, which would quietly drop the accent. Keeping the row here lets
+  // every draw put it back, so the accent survives a redraw without the caller thinking about it.
+  private _selectedId: number | null = null;
 
   // Our own labels for the drag selection, one per selected column. We keep and reuse the nodes
   // between frames. They live on document.body, and _syncSelectionOverlay keeps them in place.
@@ -143,7 +135,23 @@ export class CalendarExt extends Disposable {
 
   public getDate(): TZDate { return this._calendar.getDate(); }
 
-  public setDate(date: TZDate) { this._calendar.setDate(date); }
+  // TUI takes a plain Date here as happily as a TZDate; its typings just name the wider union.
+  public setDate(date: Date | TZDate) { this._calendar.setDate(date); }
+
+  /**
+   * The date range the grid currently shows, in milliseconds, with both ends included.
+   *
+   * TUI gives the range as whole days, so the end is stretched to the last millisecond of its day;
+   * otherwise an event later in that day would count as out of view. The widget wrote
+   * `setHours(23, 99, 99, 999)` (minutes and seconds out of range, which Date rolls over into the
+   * next hour); this is the same instant, written plainly. We stretch a copy, because TUI may hand
+   * back its own range-end object, and changing that would push the window forward on every call.
+   */
+  public getVisibleRange(): { fromMs: number; toMs: number } {
+    const end = this._calendar.getDateRangeEnd().toDate();
+    end.setHours(23, 59, 59, 999);
+    return { fromMs: this._calendar.getDateRangeStart().getTime(), toMs: end.getTime() };
+  }
 
   public render() { this._calendar.render(); }
 
@@ -165,9 +173,12 @@ export class CalendarExt extends Disposable {
   }
 
   public updateUIAfterNavigation() {
-    this._renderVisibleEvents();
     this.updateTitle();
+    // The host draws whatever entered the new range, so the accent goes on afterwards. It has to be
+    // painted again even for an event that stayed on screen: month view accents a single-day event
+    // through its fill, while day and week views use its border.
     this._host.onNavigate();
+    this._repaintSelected();
   }
 
   // When the mapped columns have no time-of-day, hide the Day/Week hour grid (eventView: ['allday'])
@@ -181,118 +192,51 @@ export class CalendarExt extends Disposable {
   }
 
   /**
-   * Turns one flat record into a TUI event.
+   * Puts events on the grid. One call for a whole batch, so TUI re-renders once rather than once
+   * per event.
    *
-   * Ported from the calendar widget (page.js buildCalendarEventObject): adjusting the dates, fixing
-   * a range where the end is before the start, treating Date columns as all-day, and the fix for
-   * zero-length events at midnight. What changed: colors go through getReadableColorsCombo, so a
-   * choice with a dark fill still gets readable text (the widget used the raw choice colors),
-   * `category` now follows isAllday instead of always being "time", and the widget's `clean()` call
-   * with two spreads is replaced by plain fields.
+   * Ported from the calendar widget only in spirit: the widget added events one at a time, and
+   * worked out by itself which of them were in view. Here the caller has already narrowed the list
+   * to what fits on the grid, so this just draws what it is handed.
    */
-  public buildEvent(
-    record: CalendarRecord, startType: string, endType: string, choiceOptions: Record<string, any>,
-    docTz: string,
-  ): EventObject {
-    const start = this._getAdjustedDate(record.startDate!, startType, docTz);
-    let end = record.endDate ? this._getAdjustedDate(record.endDate, endType, docTz) : start;
+  public createEvents(events: EventObject[]) {
+    this._calendar.createEvents(events);
+    this._repaintSelected();
+  }
 
-    // Normalize invalid ranges so the event is still visible.
-    if (end < start) { end = start; }
+  /** Draws one event again in place, e.g. after its row changed. */
+  public updateEvent(rowId: number, event: EventObject) {
+    this._calendar.updateEvent(String(rowId), CALENDAR_NAME, event);
+    this._repaintSelected();
+  }
 
-    let isAllday = record.isAllDay;
-    if (isDateOnlyType(startType) && isDateOnlyType(endType)) { isAllday = true; }
-    // Workaround for midnight zero-length events not showing up.
-    if (!isAllday && end.valueOf() === start.valueOf() && isZeroTime(end) && isZeroTime(start)) {
-      end = this.tzDate(end).addHours(1) as unknown as Date;
-    }
+  public deleteEvent(rowId: number) {
+    this._calendar.deleteEvent(String(rowId), CALENDAR_NAME);
+  }
 
-    // Apply colors/styling from the choice options of the "type" column, falling back to defaults.
-    // getReadableColorsCombo picks a readable text shade when a choice has a custom fill but no
-    // custom text color, so events with a dark fill don't render near-invisible text.
-    const style = choiceOptions[record.type] || {};
-    const { bg: backgroundColor, fg: color } = getReadableColorsCombo(
-      { fillColor: style.fillColor, textColor: style.textColor },
-      { bg: theme.inputReadonlyBorder.toString(), fg: theme.text.toString() },
-    );
-    const fontWeight = style.fontBold ? "800" : "normal";
-    const fontStyle = style.fontItalic ? "italic" : "normal";
-    const textDecoration = buildTextDecoration(style);
+  /** Takes every event off the grid, e.g. when the column mapping changed under us. */
+  public clearEvents() {
+    this._calendar.clear();
+  }
 
-    return {
-      id: String(record.id),
-      calendarId: CALENDAR_NAME,
-      title: record.title!,
-      start,
-      end,
-      isAllday,
-      category: isAllday ? "allday" : "time",
-      // TUI's EventState is "Busy" or "Free". We mark every Grist row as Free, because we do not
-      // track whether a person is busy. We take the type from EventObject["state"] instead of
-      // writing a plain string, so that a rename in TUI becomes a compile error.
-      state: "Free" satisfies NonNullable<EventObject["state"]>,
-      backgroundColor,
-      color,
-      borderColor: backgroundColor,
-      dragBackgroundColor: theme.hover.toString(),
-      // Remember base colors so setHighlight can restore them after a selection.
-      raw: { backgroundColor, color },
-      customStyle: { fontStyle, fontWeight, textDecoration, textWrap: "auto" },
-    } as EventObject;
+  /** One drawn event, or null when that row is not on the grid right now. */
+  public getEvent(rowId: number) {
+    return this._calendar.getEvent(String(rowId), CALENDAR_NAME);
   }
 
   /**
-   * Replaces the full set of events, then draws the ones in view. Call this after the rows or the
-   * column mapping change.
-   */
-  public setEvents(events: Map<number, EventObject>) {
-    this._events = events;
-    this._renderVisibleEvents();
-  }
-
-  // Highlights (or un-highlights) an event with the primary color. The accent is normally the left
-  // border, but a single-day month event has none (dot or filled bar), so there we tint the fill.
-  // Passing the full color set in one updateEvent is what makes TUI repaint; a lone change does not.
-  //
-  // Ported from the calendar widget (page.js _highlightEvent + _clearHighlightEvent), merged into
-  // one method with a `selected` flag since the two bodies only differed in which color they wrote.
-  // We also restore `color` (the text shade), which the widget never did, so an event keeps readable
-  // text after being deselected.
-  public setHighlight(rowId: number, selected: boolean) {
-    const event = this._getEvent(rowId);
-    if (!event) { return; }
-    const base = event.raw?.backgroundColor ?? theme.inputReadonlyBorder.toString();
-    const baseColor = event.raw?.color ?? theme.text.toString();
-    const accent = theme.controlPrimaryBg.toString();
-    // Which property carries the accent: the fill (backgroundColor) for a single-day month event,
-    // else the left border. Start from the base for both so the previous highlight is cleared.
-    const useFill = this._isSingleDayInMonthView(event);
-    this._calendar.updateEvent(String(rowId), CALENDAR_NAME, {
-      borderColor: selected && !useFill ? accent : base,
-      backgroundColor: selected && useFill ? accent : base,
-      color: baseColor,
-    });
-  }
-
-  /**
-   * Converts a calendar date (browser-local TZDate) into the seconds value Grist stores.
+   * Marks one row as the selected one, or none when given null.
    *
-   * Ported from the calendar widget (page.js makeGristDateTime). The widget's worked example: if
-   * the user is in UTC-5 and the doc is in UTC+2, a picked time of 10:00 must be stored as 03:00,
-   * since the doc reads it 7 hours ahead.
+   * The accent outlives redraws: any draw paints it again, because drawing replaces the event
+   * inside TUI and would otherwise lose it. So the caller says which row is selected and can then
+   * forget about it.
    */
-  public makeGristDateTime(date: TZDate, colType: string, docTz: string): number {
-    let unixTime = Math.floor(date.valueOf() / 1000);
-    // NOTE: getTimezoneOffset has the opposite sign to what a tz-tagged TZDate returns.
-    const localOffsetMin = -date.getTimezoneOffset();
-    const docOffsetMin = !docTz ? localOffsetMin : date.tz(docTz).getTimezoneOffset();
-    if (isDateOnlyType(colType)) {
-      const secondsSinceEpoch = unixTime + localOffsetMin * 60;
-      return Math.floor(secondsSinceEpoch / SECONDS_PER_DAY) * SECONDS_PER_DAY;
-    } else {
-      unixTime += (localOffsetMin - docOffsetMin) * 60;
-      return unixTime;
-    }
+  public setSelected(rowId: number | null) {
+    if (rowId === this._selectedId) { return; }
+    const previous = this._selectedId;
+    this._selectedId = rowId;
+    if (previous !== null) { this._paint(previous, false); }
+    this._repaintSelected();
   }
 
   // Title shown in the toolbar above the calendar grid.
@@ -330,65 +274,34 @@ export class CalendarExt extends Disposable {
     this._titleDom.textContent = title;
   }
 
-  /**
-   * Adds or updates the events that fall in the visible range, and removes the ones that scrolled
-   * out of it. Uses the set given by the last setEvents call.
-   *
-   * Ported from the calendar widget (page.js renderVisibleEvents). Two changes: we add events in
-   * one batched createEvents call instead of one call each, and we track what is on screen with
-   * _visibleEventIds instead of asking TUI (getEvent) about every event. The widget's
-   * `setHours(23, 99, 99, 999)` (the minutes and seconds are out of range) becomes 23:59:59.999,
-   * and we apply it to a copy, because TUI may return a reference to its own range end.
-   */
-  private _renderVisibleEvents() {
-    const cal = this._calendar;
-    const rangeStart = cal.getDateRangeStart().getTime();
-    // Copy the date first, because setHours changes it in place. TUI may give us its own range-end
-    // object, so changing it would move the visible window forward a bit on every render.
-    const rangeEndDate = (cal.getDateRangeEnd()).toDate();
-    rangeEndDate.setHours(23, 59, 59, 999);
-    const rangeEnd = rangeEndDate.getTime();
-
-    const nowVisible = new Set<number>();
-    const toCreate: EventObject[] = [];
-    for (const [rowId, event] of this._events) {
-      const startMs = (event.start as TZDate).getTime();
-      const endMs = (event.end as TZDate).getTime();
-      const inRange = (startMs >= rangeStart && startMs <= rangeEnd) ||
-        (endMs >= rangeStart && endMs <= rangeEnd) ||
-        (startMs < rangeStart && endMs > rangeEnd);
-      if (!inRange) { continue; }
-      if (this._visibleEventIds.has(rowId)) {
-        cal.updateEvent(String(rowId), CALENDAR_NAME, event);
-      } else {
-        toCreate.push(event);
-      }
-      nowVisible.add(rowId);
-    }
-    if (toCreate.length) { cal.createEvents(toCreate); }
-    for (const rowId of this._visibleEventIds) {
-      if (!nowVisible.has(rowId)) { cal.deleteEvent(String(rowId), CALENDAR_NAME); }
-    }
-    this._visibleEventIds = nowVisible;
+  // Paints (or unpaints) an event with the primary color. The accent is normally the left border,
+  // but a single-day month event has none (dot or filled bar), so there we tint the fill.
+  // Passing the full color set in one updateEvent is what makes TUI repaint; a lone change does not.
+  //
+  // Ported from the calendar widget (page.js _highlightEvent + _clearHighlightEvent), merged into
+  // one method with a `selected` flag since the two bodies only differed in which color they wrote.
+  // We also restore `color` (the text shade), which the widget never did, so an event keeps readable
+  // text after being deselected.
+  private _paint(rowId: number, selected: boolean) {
+    const event = this.getEvent(rowId);
+    if (!event) { return; }
+    const base = event.raw?.backgroundColor ?? theme.inputReadonlyBorder.toString();
+    const baseColor = event.raw?.color ?? theme.text.toString();
+    const accent = theme.controlPrimaryBg.toString();
+    // Which property carries the accent: the fill (backgroundColor) for a single-day month event,
+    // else the left border. Start from the base for both so the previous highlight is cleared.
+    const useFill = this._isSingleDayInMonthView(event);
+    this._calendar.updateEvent(String(rowId), CALENDAR_NAME, {
+      borderColor: selected && !useFill ? accent : base,
+      backgroundColor: selected && useFill ? accent : base,
+      color: baseColor,
+    });
   }
 
-  /**
-   * Shifts a UTC-based JS Date so it displays correctly for the given column type.
-   *
-   * Ported from the calendar widget (page.js getAdjustedDate), including the DST reasoning. The
-   * only change is that the doc timezone is passed in rather than read from a URL parameter.
-   */
-  private _getAdjustedDate(date: Date, colType: string, docTz: string): Date {
-    // The `timezone` property exists on TZDate (TUI's wrapper) but not on plain Date; we still
-    // call this with both, so probe the field rather than narrowing the parameter type.
-    const dateTz = (date as Date & { timezone?: string }).timezone;
-    if (docTz && docTz !== dateTz && isDateTime(colType)) {
-      return this.tzDate(date).tz(docTz) as unknown as Date;
-    }
-    if (!isDateOnlyType(colType)) { return date; }
-    // Like date.tz('UTC'), but accounts for DST differences.
-    const ms = date.valueOf() + (date.getTimezoneOffset() * 60000);
-    return new Date(ms);
+  // Paints the accent onto the selected event again. Safe to call after any draw: it does nothing
+  // when no row is selected, and nothing when the selected row is not on the grid.
+  private _repaintSelected() {
+    if (this._selectedId !== null) { this._paint(this._selectedId, true); }
   }
 
   // Partly ported. The clickEvent / beforeUpdateEvent / beforeDeleteEvent handlers and the
@@ -469,10 +382,6 @@ export class CalendarExt extends Disposable {
     });
   }
 
-  private _getEvent(rowId: number) {
-    return this._calendar.getEvent(String(rowId), CALENDAR_NAME);
-  }
-
   // TUI theme, expressed in terms of Grist theme CSS variables so it follows light/dark mode.
   //
   // Ported from the calendar widget (page.js _calendarTheme), minus the keys it set that we don't
@@ -530,7 +439,7 @@ export class CalendarExt extends Disposable {
   }
 
   // True when this event occupies a single day in month view. Such events render as a dot (timed) or
-  // a filled bar (all-day), neither of which has a border for setHighlight to accent, so it tints
+  // a filled bar (all-day), neither of which has a border for _paint to accent, so it tints
   // the fill instead. Multi-day month bars (which do have a border) and day/week views are excluded.
   //
   // Ported from the calendar widget (page.js _isMultidayInMonthViewEvent). Renamed: the widget's
@@ -691,28 +600,10 @@ export const cssCalendarContainer = styled("div", `
 // so we take it from Options instead. This way a typo in a nested key becomes a compile error.
 type CalendarThemeOption = NonNullable<Options["theme"]>;
 
-// The single TUI "calendar" all events belong to.
-const CALENDAR_NAME = "standardCalendar";
-
 type TimeFormat = "12h" | "24h";
 type WeekStart = "sun" | "mon";
 
 const HOURS_PER_DAY = 24;
-const SECONDS_PER_DAY = 24 * 60 * 60;
-
-function isDateTime(colType: string): boolean { return isDateLikeType(colType) && !isDateOnlyType(colType); }
-
-function buildTextDecoration(style: Record<string, any>): string {
-  const parts: string[] = [];
-  if (style.fontUnderline) { parts.push("underline"); }
-  if (style.fontStrikethrough) { parts.push("line-through"); }
-  return parts.length ? parts.join(" ") : "none";
-}
-
-// Ported word for word from the calendar widget (page.js isZeroTime).
-function isZeroTime(date: Date): boolean {
-  return date.getHours() === 0 && date.getMinutes() === 0 && date.getSeconds() === 0;
-}
 
 // Hour labels for the axis, now-indicator, and drag-selection overlay, in 12h ("3:00 pm") or 24h
 // ("15:00") style. The argument is a TUI TZDate, which exposes getHours()/getMinutes()
