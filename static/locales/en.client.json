@@ -3355,5 +3355,42 @@
         "We saved your details, but couldn't subscribe you to updates.": "We saved your details, but couldn't subscribe you to updates.",
         "We subscribed you for product updates, but couldn't save your other details.": "We subscribed you for product updates, but couldn't save your other details.",
         "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users."
+    },
+    "CalendarConfigModal": {
+        "Add calendar": "Add calendar",
+        "Create new column": "Create new column",
+        "Date + time": "Date + time",
+        "Date only": "Date only",
+        "Dates": "Dates",
+        "End": "End",
+        "End (optional)": "End (optional)",
+        "None": "None",
+        "Pick the columns that hold your event dates and titles, or create new ones.": "Pick the columns that hold your event dates and titles, or create new ones.",
+        "Select a column": "Select a column",
+        "Set up calendar": "Set up calendar",
+        "Start": "Start",
+        "Start and end must be the same date type.": "Start and end must be the same date type.",
+        "Title": "Title"
+    },
+    "CalendarView": {
+        "Day": "Day",
+        "Month": "Month",
+        "New Event": "New Event",
+        "Today": "Today",
+        "Week": "Week"
+    },
+    "CalendarWrapper": {
+        "+{{count}} more_one": "+{{count}} more",
+        "+{{count}} more_other": "+{{count}} more",
+        "End Date": "End Date",
+        "Groups events by category. Each choice uses its own color and style.": "Groups events by category. Each choice uses its own color and style.",
+        "Is All Day": "Is All Day",
+        "Start Date": "Start Date",
+        "The label shown on the event.": "The label shown on the event.",
+        "Title": "Title",
+        "Type": "Type",
+        "When the event ends. If empty, the event lasts as long as its start.": "When the event ends. If empty, the event lasts as long as its start.",
+        "When the event starts.": "When the event starts.",
+        "Whether the event lasts all day.": "Whether the event lasts all day."
     }
 }
