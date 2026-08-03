@@ -383,9 +383,11 @@ const MAX_EVENTS_PER_DAY = 20;
  * the index holds the spans, so there is no third copy that could fall behind.
  */
 export class CalendarRenderer extends RowListener {
-  // Set while a full redraw already drew the new contents, so the 'add' that follows the 'remove'
-  // in the same filter change is not drawn a second time. See _redrawAll.
-  private _drewEverything = false;
+  // The rows currently on the grid. A full redraw draws whatever `_visible` holds at that moment,
+  // which is not always the final set: a filter change reports its removals and its additions as
+  // two separate passes, so a redraw during the first pass cannot see the second. Remembering what
+  // was drawn lets the next pass compare instead of guess, and makes a redundant redraw a no-op.
+  private _drawn = new Set<number>();
 
   constructor(
     private _cal: CalendarWrapper,
@@ -401,13 +403,15 @@ export class CalendarRenderer extends RowListener {
   // this far, because CalendarSource drops it; and the phantom "new" row is added further down the
   // chain than the point we tap. They are what the pipeline's own types promise, no more.
   public onAddRows(rows: RowList) {
-    // A bulk removal has just drawn the new contents, and this is the matching 'add' of the same
-    // filter change, so there is nothing left to draw.
-    if (this._drewEverything) { this._drewEverything = false; return; }
+    // Anything a previous redraw already put on the grid is not drawn again, so the 'add' that
+    // follows a bulk removal costs nothing when it brings no news.
+    const fresh = [...rows].filter((rowId): rowId is number =>
+      typeof rowId === "number" && !this._drawn.has(rowId));
+    if (!fresh.length) { return; }
     // With a cap in force a new event can displace one already drawn, or fall behind the cap
     // itself, so which events belong on the grid is a property of the whole day rather than of the
     // row that arrived. Month has no cap and can therefore keep drawing just what came in.
-    if (this._cal.capsEventsPerDay()) { this._redrawAll(false); } else { this._drawRows(rows); }
+    if (this._cal.capsEventsPerDay()) { this._redrawAll(); } else { this._drawRows(fresh); }
   }
 
   public onUpdateRows(rows: RowList) {
@@ -429,34 +433,27 @@ export class CalendarRenderer extends RowListener {
   public onRemoveRows(rows: RowList) {
     const rowIds = [...rows].filter((rowId): rowId is number => typeof rowId === "number");
     if (rowIds.length > BULK_REMOVE_THRESHOLD) {
-      this._redrawAll(true);
+      this._redrawAll();
     } else {
-      this._drewEverything = false;
-      for (const rowId of rowIds) { this._cal.deleteEvent(rowId); }
+      for (const rowId of rowIds) {
+        this._cal.deleteEvent(rowId);
+        this._drawn.delete(rowId);
+      }
     }
   }
 
-  /**
-   * Wipes the grid and draws everything that belongs on it now.
-   *
-   * Safe to call while rows are being announced because FilteredRowSource settles its membership
-   * before it emits anything: by the time a change arrives, `_visible` already lists what the grid
-   * should end up showing.
-   *
-   * `expectAdd` says whether an 'add' for the same change is still to come, which is true only of a
-   * bulk removal — a filter change emits 'remove' and then 'add'. Set from anywhere else the flag
-   * would linger and swallow the next unrelated 'add'.
-   */
-  private _redrawAll(expectAdd: boolean) {
+  /** Wipes the grid and draws whatever belongs on it now, as one TUI call. */
+  private _redrawAll() {
     this._cal.clearEvents();
+    this._drawn.clear();
     this._drawRows(this._visible.getAllRows());
-    this._drewEverything = expectAdd;
   }
 
   private _drawRows(rows: RowList) {
     const { events, hiddenPerDay } = this._selectEvents(rows);
     // One call for the batch, so TUI re-renders once however many events entered the view.
     if (events.length) { this._cal.createEvents(events); }
+    for (const event of events) { this._drawn.add(Number(event.id)); }
     this._cal.setHiddenCounts(hiddenPerDay);
   }
 
