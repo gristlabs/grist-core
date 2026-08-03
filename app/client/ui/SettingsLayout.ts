@@ -134,7 +134,10 @@ export function SectionItem(options: {
           cssItemShort.cls("-expandable"),
           dom.on("click", () => isCollapsed.set(!isCollapsed.get())),
         ),
-        collapsibleContent(isCollapsed, cssExpandedContent(options.expandedContent)),
+        collapsibleContent(isCollapsed, cssExpandedContent(options.expandedContent),
+          // The element whose max-height animates: what a test waits on to know the
+          // expand or collapse settled.
+          testId(`admin-panel-item-content-${options.id}`)),
         testId(`admin-panel-item-${options.id}`),
       );
     });
@@ -155,9 +158,11 @@ export function SectionItem(options: {
 /**
  * Wrap `content` in the animated max-height container used by collapsible settings rows, driven
  * by `isCollapsed`. The caller owns the header and toggle; shared so every collapsible animates
- * identically.
+ * identically. Extra `args` go on the animating wrapper, which is what a test watches.
  */
-export function collapsibleContent(isCollapsed: Observable<boolean>, content: DomContents): DomContents {
+export function collapsibleContent(
+  isCollapsed: Observable<boolean>, content: DomContents, ...args: DomElementArg[]
+): DomContents {
   return cssExpandedContentWrap(
     transition(isCollapsed, {
       prepare(elem, close) { elem.style.maxHeight = close ? elem.scrollHeight + "px" : "0"; },
@@ -165,6 +170,7 @@ export function collapsibleContent(isCollapsed: Observable<boolean>, content: Do
       finish(elem, close) { elem.style.maxHeight = close ? "0" : "unset"; },
     }),
     content,
+    ...args,
   );
 }
 
